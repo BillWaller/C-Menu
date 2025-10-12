@@ -1,0 +1,44 @@
+#!/bin/sh
+# instexe install executable
+# Bill Waller
+# billxwaller@gmail.com
+
+FILENAME=$1
+DSTDIR=$2
+DSTNAME=$3
+FILEMOD=$4
+FILEOWN=$5
+FILEGRP=$6
+EUSER=$(whoami)
+if [ "$EUSER" != "root" ]; then
+	echo should be root to run this script
+	exit 1
+fi
+if [ "$#" != 6 ]; then
+	echo usage: instexe FileName Directory DestName Mode Owner Group
+	exit 1
+fi
+if [ ! -f "$FILENAME" ]; then
+	echo file "$FILENAME" not found
+	echo usage: instexe FileName Directory DestName Mode Owner Group
+	exit 1
+fi
+if [ ! -d "$DSTDIR" ]; then
+	if mkdir -p "$DSTDIR"; then
+		echo created directory "$DSTDIR"
+	else
+		echo unable to create directory "$DSTDIR"
+		echo usage: instexe FileName Directory DestName Mode Owner Group
+		exit 1
+	fi
+fi
+if [ -f /tmp/"$FILENAME".old ]; then
+	rm -f /tmp/"$FILENAME".old
+fi
+if [ -f "$DSTDIR/$DSTNAME" ]; then
+	mv "$DSTDIR/$DSTNAME" /tmp/"$FILENAME".old
+fi
+cp "$FILENAME" "$DSTDIR/$DSTNAME"
+chown "$FILEOWN" "$DSTDIR/$DSTNAME"
+chgrp "$FILEGRP" "$DSTDIR/$DSTNAME"
+chmod "$FILEMOD" "$DSTDIR/$DSTNAME"
