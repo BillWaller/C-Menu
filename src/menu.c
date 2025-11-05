@@ -1,52 +1,51 @@
-/* menu.c
- * Bill Waller
- * billxwaller@gmail.com
+/*  menu.c
+    Bill Waller
+    billxwaller@gmail.com
+
+    This is the main file for mapp, a terminal-based application
+    launcher and menu system.
+
+    It operates by reading a menu description file and displaying
+    a navigable menu in the terminal. Users can select applications
+    to launch or scripts to execute.
+
+    Several ancillary files provide supporting functionality, including
+    handling terminal I/O settings, managing the menu structure,
+    and rendering the interface using the ncurses library.
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
  */
 
 #include "menu.h"
-#include <stdlib.h>
-#include <string.h>
 
 int main(int argc, char **argv) {
-    int rc;
-    menu_ *menu;
-
-    if ((rc = initialization(argc, argv)))
-        exit(rc);
-
-    menu = (menu_ *)malloc(sizeof(menu_));
-    if (!menu) {
-        snprintf(tmp_str, MAXLEN - 1, "malloc(%ld bytes) failed M\n",
-                 sizeof(menu));
-        abend(-1, tmp_str);
-    }
-    menu->choice_max_len = 0;
-    menu->text_max_len = 0;
-    menu->option_offset = 0;
-    menu->option_max_len = 0;
-    menu->item_count = 0;
-    menu->line_idx = 0;
-    menu->lines = 0;
-    menu->cols = 0;
-    menu->title = NULL;
-    menu->begy = 2;
-    menu->begx = 4;
-    menu->argc = 0;
-    menu->argv[0] = NULL;
-    menu->rargv[0] = NULL;
-    menu->rargc = 0;
-    menu->argv[0] = strdup(argv[0]);
-    menu->argv[1] = strdup(option->mapp_spec);
-    menu->argv[2] = (char *)0;
-    menu->argc = 3;
-
+    int begy, begx;
+    capture_shell_tioctl();
+    Init *init = new_init(argc, argv);
+    mapp_initialization(init, argc, argv);
     open_curses();
-    if (read_menu_file(menu))
-        abend(-1, "read_menu_file failed");
-    wclear(stdscr);
-    menu->caller = C_MAIN;
-    disp_menu(menu);
+    sig_prog_mode();
+    capture_curses_tioctl();
+    win_init_attrs(init->fg_color, init->bg_color, init->bo_color);
+    begy = LINES / 14;
+    begx = COLS / 14;
+    new_menu(init, init->argc, init->argv, begy, begx);
+    menu = init->menu;
+    parse_menu_description(init);
+    menu_engine(init);
     close_curses();
-    free(menu);
-    exit(0);
+    sig_dfl_mode();
+    restore_shell_tioctl();
+    return 0;
 }

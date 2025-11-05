@@ -1,0 +1,67 @@
+ ROWS 50
+ COLUMNS 95
+ LINE = 0
+
+c_cflag     (CS8 | B38400)
+c_cflag     ~(PARENB | PARODD | CMSPAR | HUPCL | CSTOPB | CLOCAL | CRTSCTS)
+c_iflag     (ICRNL | IXON | IUTF8)
+c_iflag     ~(IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR |
+            IXOFF | IUCLC | IXANY | IMAXBEL)
+c_oflag     (OPOST | ONLCR)
+c_oflag     ~(OLCUC | OCRNL | ONOCR | ONLRET | OFILL | OFDEL)
+c_oflag     |= (NL0 | CR0 | TAB0 | BS0 | VT0 | FF0)
+c_lflag     |= (ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE)
+c_lflag     &= ~(ECHONL | NOFLSH | XCASE | TOSTOP | ECHOPRT | FLUSHO | EXTPROC)
+c_cflag     |= (CS8 | B38400)
+c_cflag     &= ~(PARENB | PARODD | CMSPAR | HUPCL | CSTOPB | CLOCAL | CRTSCTS)
+c_iflag     |= (ICRNL | IXON | IUTF8)
+c_iflag     &= ~(IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR |
+            IXOFF | IUCLC | IXANY | IMAXBEL)
+c_oflag     |= (OPOST | ONLCR | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0)
+c_oflag     &= ~(OLCUC | OCRNL | ONOCR | ONLRET | OFILL | OFDEL)
+
+// DEFAULT VALUES
+ c_cc[VINTR] = 0x03
+ c_cc[VQUIT] = 0x1C
+ c_cc[VERASE] = 0x7F
+ c_cc[VKILL] = 0x15
+ c_cc[VEOF] = 0x04
+ c_cc[VSTART] = 0x11
+ c_cc[VSTOP] = 0x13
+ c_cc[VSUSP] = 0x1A
+ c_cc[VREPRINT] = 0x12
+ c_cc[VWERASE] = 0x17
+ c_cc[VLNEXT] = 0x16
+ c_cc[VDISCARD] = 0x0F
+ c_cc[VMIN] = 1
+ c_cc[VTIME] = 0
+ c_cflag |=   (CS8 | B38400)
+ c_cflag &=  ~(PARENB | PARODD | CMSPAR | HUPCL | CSTOP | CLOCAL | CRTSCTS)
+ c_iflag |=   (ICRNL | IXON | IUTF8)
+ c_iflag &=  ~(IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | IXOFF | IUCLC | IXANY | IMAXBEL)
+ c_oflag |=   (OPOST | ONLCR)
+ c_oflag &=  ~(OLCUC | OCRNL | ONOCR | ONLRET | OFILL | OFDEL)
+ c_oflag |=   (NL0 | CR0 | TAB0 | BS0 | VT0 | FF)
+ c_lflag |=   (ISIG | ICANON | IEXTEN | ECHO | ECHO | ECHOK | ECHOCTL | ECHOKE)
+ c_lflag &=  ~(ECHONL | NOFLSH | XCASE | TOSTOP | ECHOPRT | FLUSHO | EXTPROC)
+ c_cflag |=   (CS8 | B38400)
+ c_cflag &=  ~(PARENB | PARODD | CMSPAR | HUPCL | CSTOPB | CLOCAL | CRTSCTS)
+
+// -----------------------------------------------------------------------------
+// RAW MODE
+// -----------------------------------------------------------------------------
+tioctl_p-> c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXOFF);
+tioctl_p-> c_oflag &= ~OPOST;
+tioctl_p-> c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN);
+tioctl_p-> c_lflag |=   ISIG;
+tioctl_p-> c_cflag &= ~(CSIZE | PARENB);
+tioctl_p-> c_cflag |=   CS8 | CLOCAL;
+// -----------------------------------------------------------------------------
+// NOMINAL SANE VALUES
+// -----------------------------------------------------------------------------
+tioctl_p-> c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXOFF);
+tioctl_p-> c_iflag |=   IUTF8;
+tioctl_p-> c_oflag |=   (OPOST | OCRNL);
+tioctl_p-> c_lflag |=   (ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK );
+tioctl_p-> c_cflag &=  ~(CSIZE | PARENB);
+tioctl_p-> c_cflag |=   CS8 | CLOCAL | CREAD;

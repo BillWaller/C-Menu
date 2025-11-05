@@ -1,0 +1,1 @@
+gdb --args pick -i picklist -c vi picklist.out

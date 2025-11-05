@@ -4,216 +4,296 @@
  */
 
 #include "menu.h"
-#include <errno.h>
+#include <getopt.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-/* ~/minitrc
+enum {
+    MAPP_MSRC = 257,
+    MAPP_HELP,
+    MAPP_DATA,
+    MAPP_SPEC,
+    HELP_SPEC,
+    ANSWER_SPEC,
+    IN_SPEC,
+    OUT_SPEC
+};
 
-  all  c: d: e: g: h i: n: o: s: t: v w x y z D B: F: O: P: V Z
-  init c: d: e: g: h i: n: o:       v w       D B: F: O:    V Z
-  view c: d: e: g: h i: n: o: s: t: v w x y z D B: F: O: P: V Z
->   c: command executable                   cmd_str
->   d: application directory                mapp_dir
->   e  menu application description file    mapp_desc
->   g: lllcccLLLCCC (lines,cols,begy,begx)  geometry
->   h  display command line help            f_help
->   i: input file_name                      in_file
->   n: number of selections                 selections
->   o: output file_name                     out_file
-    s  squeeze multiple blank lines         f_squeeze
-    t: number of spaces in tabs             tab_stops
->   v  version                              MENU_VERSION
->   w  write configuration
-    x  ignore case in search                f_ignore_case
-    y  remove file at end of program        f_at_end_remove
-    z  clear screen at startup              f_at_end_clear
->   D  dump configuration
->   B: background color                     bg_color
->   F: foreground color                     fg_color
->   O: border color                         bo_color
-    P: {S-Short, L-Long, N-None}[string]    prompt_style
->   V  version                              MENU_VERSION
->   Z  (undocumented) stop on error         f_stop_on_error
-    +: execute command on startup           startup_cmd
+bool f_write_config = false;
+bool f_dump_config = false;
+bool f_help = false;
+bool f_version = false;
+bool f_debug = false;
+bool f_stop_on_error = true;
 
-*/
+const char *mapp_version = "0.5.1";
+const char *PgmID = "init.c";
 
-bool f_write_config = FALSE;
-bool f_dump_config = FALSE;
-bool f_help = FALSE;
-bool f_version = FALSE;
-bool f_debug = FALSE;
-
-const char mapp_version[20] = "0.5.1";
-const char PgmID[] = "init.c";
-
-int write_config();
+int write_config(Init *init);
 void display_version();
 
-/* Globals */
-
 // GLOBL INITVARS - DEFAULT VALUES
-char minitrc[MAXLEN];
-opt *option;
+Init *init = NULL;
 
-int initialization(int, char **);
-int opt_process_cmdline(int, char **);
-int parse_config_minitrc();
-int derive_mapp_spec(char *, char *, char *);
-void dump_config(char *);
-void Usage();
+void mapp_initialization(Init *init, int, char **);
+void parse_opt_args(Init *, int, char **);
+int parse_config(Init *);
+void dump_config(Init *, char *);
+void usage();
 
-int initialization(int argc, char **argv) {
+char *tilde_expand(char *);
+bool derive_file_spec(char *, char *, char *);
+int executor = 0;
 
+/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+   ┃ MAPP_INITIALIZATION                                   ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+void mapp_initialization(Init *init, int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
+    if (!init) {
+        snprintf(tmp_str, sizeof(tmp_str), "%s",
+                 "init struct not allocated on entry");
+        abend(-1, tmp_str);
+    }
+    if (init->minitrc[0] == '\0')
+        strncpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
+    init->bg_color = BG_COLOR;      // B: background color
+    init->fg_color = FG_COLOR;      // F: foreground color
+    init->bo_color = BO_COLOR;      // O: border colorZ
+    init->help_spec[0] = '\0';      // H: help spec
+    init->f_at_end_clear = true;    // z  clear screen on exit
+    init->f_erase_remainder = true; // e  erase remainder on enter
+    strncpy(init->prompt, "S", MAXLEN - 1);
+    strncpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
+    strncpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
+    strncpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
+    strncpy(init->mapp_data, "~/menuapp/data", MAXLEN - 1);
+    strncpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
 
-    // initialize option struct
+    /*
+        Initialization Priorities
 
-    option = (opt *)malloc(sizeof(opt));
-    if (!option)
-        abend(-1, "malloc failed (option)");
-    strcpy(minitrc, "~/.minitrc");
-    strcpy(option->mapp_dir, "~/menuapp");
-    strcpy(option->mapp_desc, "main.m");
-    strcpy(option->mapp_spec, "~/menuapp/main.m");
-    option->cmd_str[0] = '\0';
-    option->in_file[0] = '\0';
-    option->out_file[0] = '\0';
-    option->selections = 0;
-    option->fg_color = FG_COLOR;
-    option->bg_color = BG_COLOR;
-    option->bo_color = BO_COLOR;
-    parse_config_minitrc();
+        5  def_args   Default values
+        4  cfg_args - Configuration file
+        3  env_args - Environment variables
+        2  pos_args - Command line positional arguments
+        1  opt_args - Command line option arguments
+     */
+
+    // Priority-4 - cfg_args
+    parse_config(init);
     if (f_debug)
-        dump_config("Configuration after parse_config_minitrc");
-    opt_process_cmdline(argc, argv);
-    derive_mapp_spec(option->mapp_spec, option->mapp_dir, option->mapp_desc);
+        dump_config(init, "Configuration after parse_config");
+    // Priority 1 - opt_args
+    parse_opt_args(init, argc, argv);
+
     if (f_dump_config) {
-        dump_config(
-            "Configuration after parse_config_minitrc and opt_process_cmdline");
-        exit(0);
+        dump_config(init, "Configuration after parse_config and "
+                          "parse_opt_args");
     } else if (f_debug)
-        dump_config("Configuration after opt_process_cmdline");
+        dump_config(init, "Configuration after parse_opt_args");
     if (f_write_config) {
-        write_config();
-        exit(0);
+        write_config(init);
     }
     if (f_help) {
-        display_version();
-        Usage();
-        dump_config("Current configuration");
-        exit(0);
+        usage();
     }
     if (f_version) {
         display_version();
-        exit(0);
     }
     if (f_write_config)
-        write_config();
-    return (0);
+        write_config(init);
 }
 
-int opt_process_cmdline(int argc, char **argv) {
+/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+   ┃ PARSE_OPT_ARGS                                        ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+void parse_opt_args(Init *init, int argc, char **argv) {
+    int i;
     int opt;
-    char *optstring = "c:d:e:g:hi:n:o:s:t:vwxyzDB:F:O:P:VZ";
-    while ((opt = getopt(argc, argv, optstring)) != -1) {
+    int longindex = 0;
+    int flag = 0;
+    char *optstring = "a:c:d:g:hi:m:n:o:rst:vwxzA:B:C:DF:H:L:MO:P:S:T:U:VX:Y:Z";
+    struct option long_options[] = {{"answer_spec", 1, &flag, ANSWER_SPEC},
+                                    {"mapp_data", 1, &flag, MAPP_DATA},
+                                    {"mapp_spec", 1, &flag, MAPP_SPEC},
+                                    {"mapp_help", 1, &flag, MAPP_HELP},
+                                    {"help_spec", 1, &flag, HELP_SPEC},
+                                    {"in_spec", 1, &flag, IN_SPEC},
+                                    {"out_spec", 1, &flag, OUT_SPEC},
+                                    {"mapp_msrc", 1, &flag, MAPP_MSRC},
+                                    {0, 0, 0, 0}};
+    char mapp[MAXLEN];
+    base_name(mapp, argv[0]);
+    optind = 1;
+    while ((opt = getopt_long(argc, argv, optstring, long_options,
+                              &longindex)) != -1) {
         switch (opt) {
+        case 0:
+            switch (flag) {
+            case ANSWER_SPEC:
+                strncpy(init->answer_spec, optarg, MAXLEN - 1);
+                break;
+            case MAPP_DATA:
+                strncpy(init->mapp_data, optarg, MAXLEN - 1);
+                break;
+            case MAPP_SPEC:
+                strncpy(init->mapp_spec, optarg, MAXLEN - 1);
+                break;
+            case MAPP_HELP:
+                strncpy(init->mapp_help, optarg, MAXLEN - 1);
+                break;
+            case HELP_SPEC:
+                strncpy(init->help_spec, optarg, MAXLEN - 1);
+                break;
+            case IN_SPEC:
+                strncpy(init->in_spec, optarg, MAXLEN - 1);
+                break;
+            case OUT_SPEC:
+                strncpy(init->out_spec, optarg, MAXLEN - 1);
+                break;
+            case MAPP_MSRC:
+                strncpy(init->mapp_msrc, optarg, MAXLEN - 1);
+                break;
+            default:
+                break;
+            }
+            break;
+        case 'a':
+            strncpy(init->minitrc, optarg, MAXLEN - 1);
+            break;
         case 'c':
-            strncpy(option->cmd_str, optarg, MAXLEN);
+            strncpy(init->cmd_spec, optarg, MAXLEN - 1);
             break;
         case 'd':
-            strncpy(option->mapp_dir, optarg, MAXLEN);
+            strncpy(init->mapp_spec, optarg, MAXLEN - 1);
             break;
         case 'e':
-            strncpy(option->mapp_desc, optarg, MAXLEN);
-            break;
-        case 'g':
-            parse_geometry_str(optarg, &lines, &cols, &begx, &begy);
+            init->f_erase_remainder = true;
             break;
         case 'h':
-            f_help = TRUE;
+            f_help = true;
             break;
         case 'i':
-            strncpy(option->in_file, optarg, MAXLEN);
+            strncpy(init->in_spec, optarg, MAXLEN - 1);
+            break;
+        case 'm':
+            strncpy(init->mapp_home, optarg, MAXLEN - 1);
             break;
         case 'n':
-            option->selections = atoi(optarg);
+            init->selections = atoi(optarg);
             break;
         case 'o':
-            strncpy(option->out_file, optarg, MAXLEN);
+            strncpy(init->out_spec, optarg, MAXLEN - 1);
+            break;
+        case 'r':
+            init->f_at_end_remove = true;
             break;
         case 's':
+            init->f_squeeze = true;
             break;
         case 't':
+            init->tab_stop = atoi(optarg);
             break;
         case 'v':
         case 'V':
-            f_version = TRUE;
+            f_version = true;
             break;
         case 'w':
-            f_write_config = TRUE;
+            f_write_config = true;
             break;
         case 'x':
+            init->f_ignore_case = true;
             break;
         case 'y':
+            init->f_at_end_remove = true;
             break;
         case 'z':
+            init->f_at_end_clear = true;
             break;
-        case 'D':
-            f_dump_config = TRUE;
-            break;
-        case 'F':
-            option->fg_color = get_color_number(optarg);
+        case 'A':
+            strncpy(init->answer_spec, optarg, MAXLEN - 1);
             break;
         case 'B':
-            option->bg_color = get_color_number(optarg);
+            init->bg_color = get_color_number(optarg);
+            break;
+        case 'C':
+            init->cols = atoi(optarg);
+            break;
+        case 'D':
+            f_dump_config = true;
+            break;
+        case 'F':
+            init->fg_color = get_color_number(optarg);
+            break;
+        case 'H':
+            strncpy(init->help_spec, optarg, MAXLEN - 1);
+            break;
+        case 'L':
+            init->lines = atoi(optarg);
+            break;
+        case 'M':
+            init->f_multiple_cmd_args = true;
             break;
         case 'O':
-            option->bo_color = get_color_number(optarg);
+            init->bo_color = get_color_number(optarg);
             break;
         case 'P':
+            strncpy(init->prompt, optarg, MAXLEN - 1);
+            break;
+        case 'S':
+            strncpy(init->start_cmd, optarg, MAXLEN - 1);
+            break;
+        case 'T':
+            strncpy(init->title, optarg, MAXLEN - 1);
+            break;
+        case 'U':
+            strncpy(init->mapp_user, optarg, MAXLEN - 1);
+            break;
+        case 'X':
+            init->begx = atoi(optarg);
+            break;
+        case 'Y':
+            init->begy = atoi(optarg);
             break;
         case 'Z':
-            f_stop_on_error = TRUE;
-            break;
-        case '+':
-            strncpy(option->cmd_str, optarg, MAXLEN - 1);
+            init->f_stop_on_error = true;
             break;
         default:
             break;
         }
     }
-    return (0);
+    init->argv[0] = strdup(argv[0]);
+    i = 1;
+    while (optind < argc)
+        init->argv[i++] = strdup(argv[optind++]);
+    init->argv[i] = NULL;
+    init->argc = i;
+    argc = i;
+    return;
 }
 
-int parse_config_minitrc() {
-    char *tp, *sp, *dp;
+/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+   ┃ PARSE_CONFIG                                          ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+int parse_config(Init *init) {
     char ts[MAXLEN];
+    char *sp, *dp;
 
-    char *e = getenv("MINITRC");
-    if (e)
-        strcpy(ts, e);
-    else
-        strcpy(ts, minitrc);
-    tp = ts;
-    if (*tp == '~') {
-        tp++;
-        while (*tp == '/')
-            tp++;
-        e = getenv("HOME");
-        if (e) {
-            strcpy(minitrc, e);
-            strcat(minitrc, "/");
-            strcat(minitrc, tp);
-        }
+    if (!init->minitrc[0]) {
+        char *e = getenv("MINITRC");
+        if (e)
+            strncpy(init->minitrc, e, MAXLEN - 1);
+        else
+            strncpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
     }
+    expand_tilde(init->minitrc, MAXLEN - 1);
 
-    FILE *config_fp = fopen(minitrc, "r");
+    FILE *config_fp = fopen(init->minitrc, "r");
     if (!config_fp) {
-        fprintf(stderr, "failed to read file: %s\n", minitrc);
+        fprintf(stderr, "failed to read file: %s\n", init->minitrc);
         return (-1);
     }
 
@@ -222,152 +302,232 @@ int parse_config_minitrc() {
             sp = ts;
             dp = tmp_str;
             while (*sp != '\0') {
-                if (*sp == '\n')
+                if (*sp == '\n') {
                     *dp = *sp = '\0';
-                else {
-                    if (*sp != '"' && *sp != ' ' && *sp != ';')
+                } else {
+                    if (*sp != '"' && *sp != ' ' && *sp != ';') {
                         *dp++ = *sp;
+                    }
                     sp++;
                 }
             }
             char *key = strtok(tmp_str, "=");
             char *value = strtok(NULL, "=");
-            if (!strcmp(key, "mapp_dir"))
-                strcpy(option->mapp_dir, value);
-            if (!strcmp(key, "mapp_desc"))
-                strcpy(option->mapp_desc, value);
+            if (value == NULL)
+                continue;
+            if (!strcmp(key, "minitrc"))
+                strncpy(init->minitrc, value, MAXLEN - 1);
             if (!strcmp(key, "fg_color"))
-                option->fg_color = get_color_number(value);
+                init->fg_color = get_color_number(value);
             if (!strcmp(key, "bg_color"))
-                option->bg_color = get_color_number(value);
+                init->bg_color = get_color_number(value);
             if (!strcmp(key, "bo_color"))
-                option->bo_color = get_color_number(value);
+                init->bo_color = get_color_number(value);
+            if (!strcmp(key, "lines"))
+                init->lines = atoi(value);
+            if (!strcmp(key, "cols"))
+                init->cols = atoi(value);
+            if (!strcmp(key, "begy"))
+                init->begy = atoi(value);
+            if (!strcmp(key, "begx"))
+                init->begx = atoi(value);
+            if (!strcmp(key, "f_erase_remainder"))
+                init->f_erase_remainder = str_to_bool(value);
+            if (!strcmp(key, "f_at_end_remove"))
+                init->f_at_end_remove = str_to_bool(value);
+            if (!strcmp(key, "f_squeeze"))
+                init->f_squeeze = str_to_bool(value);
+            if (!strcmp(key, "f_ignore_case"))
+                init->f_ignore_case = str_to_bool(value);
+            if (!strcmp(key, "f_at_end_clear"))
+                init->f_at_end_clear = str_to_bool(value);
+            if (!strcmp(key, "f_stop_on_error"))
+                init->f_stop_on_error = str_to_bool(value);
+            if (!strcmp(key, "selections"))
+                init->selections = atoi(value);
+            if (!strcmp(key, "tab_stop"))
+                init->tab_stop = atoi(value);
+            if (!strcmp(key, "prompt"))
+                strncpy(init->prompt, value, MAXLEN - 1);
+            if (!strcmp(key, "start_cmd"))
+                strncpy(init->start_cmd, value, MAXLEN - 1);
+            if (!strcmp(key, "mapp_home"))
+                strncpy(init->mapp_home, value, MAXLEN - 1);
+            if (!strcmp(key, "mapp_data"))
+                strncpy(init->mapp_data, value, MAXLEN - 1);
+            if (!strcmp(key, "mapp_help"))
+                strncpy(init->mapp_help, value, MAXLEN - 1);
+            if (!strcmp(key, "mapp_msrc"))
+                strncpy(init->mapp_msrc, value, MAXLEN - 1);
+            if (!strcmp(key, "mapp_user"))
+                strncpy(init->mapp_user, value, MAXLEN - 1);
         }
     }
-    fclose(config_fp);
+    (void)fclose(config_fp);
     return 0;
 }
 
-int write_config() {
+/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+   ┃ WRITE_CONFIG                                          ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+int write_config(Init *init) {
     char *e;
-    char minitrc_file[MAXLEN];
+    char minitrc_dmp[MAXLEN];
+
     e = getenv("HOME");
     if (e) {
-        strcpy(minitrc_file, e);
-        strcat(minitrc_file, "/");
-        strcat(minitrc_file, "menuapp/minitrc.dmp");
+        strcpy(minitrc_dmp, e);
+        strcat(minitrc_dmp, "/");
+        strcat(minitrc_dmp, "menuapp/minitrc.dmp");
     }
 
-    FILE *minitrc_fp = fopen(minitrc_file, "w");
+    FILE *minitrc_fp = fopen(minitrc_dmp, "w");
     if (minitrc_fp == (FILE *)0) {
-        fprintf(stderr, "failed to open file: %s\n", minitrc_file);
+        fprintf(stderr, "failed to open file: %s\n", minitrc_dmp);
         return (-1);
     }
-    fprintf(minitrc_fp, "# %s\n", "~/.minitrc");
-    fprintf(minitrc_fp, "%s=%s\n", "mapp_dir", option->mapp_dir);
-    fprintf(minitrc_fp, "%s=%s\n", "mapp_desc", option->mapp_desc);
-    strcpy(tmp_str, colors_text[option->fg_color]);
-    fprintf(minitrc_fp, "%s=%s\n", "fg_color", tmp_str);
-    strcpy(tmp_str, colors_text[option->bg_color]);
-    fprintf(minitrc_fp, "%s=%s\n", "bg_color", tmp_str);
-    strcpy(tmp_str, colors_text[option->bo_color]);
-    fprintf(minitrc_fp, "%s=%s\n", "bo_color", tmp_str);
-    fclose(minitrc_fp);
+    (void)fprintf(minitrc_fp, "# %s\n", "~/.minitrc");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_spec", init->cmd_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
+                  init->f_erase_remainder ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_home", init->mapp_home);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "selections", init->selections);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "out_spec", init->out_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
+                  init->f_at_end_remove ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_squeeze",
+                  init->f_squeeze ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%d\n", "tab_stop", init->tab_stop);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_user", init->mapp_user);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_ignore_case",
+                  init->f_ignore_case ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
+                  init->f_at_end_clear ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "answer_spec", init->answer_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bg_color",
+                  colors_text[init->bg_color]);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "cols", init->cols);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "fg_color",
+                  colors_text[init->fg_color]);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "lines", init->lines);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bo_color",
+                  colors_text[init->bo_color]);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt", init->prompt);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "start_cmd", init->start_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "begx", init->begx);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_stop_on_error",
+                  init->f_stop_on_error ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "answer_spec", init->answer_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_data", init->mapp_data);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_help", init->mapp_help);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "out_spec", init->out_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_msrc", init->mapp_msrc);
+
+    (void)fclose(minitrc_fp);
     strcpy(tmp_str, "Configuration written to file: ");
-    strcat(tmp_str, minitrc_file);
+    strcat(tmp_str, minitrc_dmp);
     display_error_message(tmp_str);
     return 0;
 }
 
-int derive_mapp_spec(char *file_spec, char *dir, char *file_name) {
+/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+   ┃ DERIVE_FILE_SPEC                                      ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     char ts[MAXLEN];
     char ts2[MAXLEN];
-    char err_msg[MAXLEN];
-    char *tp;
     char *e;
 
-    // choose the directory wisely - 1 command line, 2 env, 3 default
-    if (dir[0])
-        strncpy(ts, dir, MAXARGS - 1);
-    else {
+    if (!file_name || !*file_name) {
+        *file_spec = '\0';
+        return false;
+    }
+
+    if (dir) {
+        strncpy(ts, dir, MAXLEN - 1);
+    } else {
         e = getenv("MAPP_DIR");
         if (e) {
-            strncpy(ts, e, MAXARGS - 1);
-        } else
-            strncpy(ts, "~/menuapp", MAXARGS - 1);
-    }
-    // replace ~ with $HOME
-    tp = ts;
-    if (*tp == '~') {
-        tp++;
-        while (*tp == '/')
-            tp++;
-        e = getenv("HOME");
-        if (e) {
-            strncpy(ts2, e, MAXLEN - 1);
-            strncat(ts2, "/", MAXLEN - 1);
-            strncat(ts2, tp, MAXLEN - 1);
+            strncpy(ts, e, MAXLEN - 1);
+        } else {
+            strncpy(ts, "~/menuapp", MAXLEN - 1);
         }
-    } else
-        strncpy(ts2, ts, MAXLEN - 1);
+    }
+    trim_path(ts);
+    strncpy(ts2, ts, MAXLEN - 1);
     // construct the full file specification
     // check that the file exists and is readable
-    int sl;
     strncpy(file_spec, ts2, MAXLEN - 1);
-    sl = strlen(file_spec);
-    if (file_spec[sl] != '/')
-        strncat(file_spec, "/", MAXLEN - 1);
+    strncat(file_spec, "/", MAXLEN - 1);
     strncat(file_spec, file_name, MAXLEN - 1);
-    if (access(file_spec, R_OK)) {
-        strncpy(err_msg, "unable to open file: ", MAXLEN - 1);
-        strncat(err_msg, file_name, MAXLEN - 1);
-        strncat(err_msg, " in directory: ", MAXLEN - 1);
-        strncat(err_msg, ts2, MAXLEN - 1);
-        strncat(err_msg, " - ", MAXLEN - 1);
-        strncat(err_msg, strerror(errno), MAXLEN - 1);
-        display_error_message(err_msg);
-        // now clobber the file_spec to indicate failure
-        *file_spec = '\0';
-        return (-1);
-    }
-    return (0);
+    return true;
 }
 
 void display_version() { fprintf(stderr, "\nVersion %s\n", mapp_version); }
 
-void Usage() {
-    fprintf(stderr, "\n':' indicates flag requires an option\n\n");
-    fprintf(stderr, "menuapp  c: d: e: g: h i: o: s: v w D F: B: O: V\n");
-    fprintf(stderr, "menu         d: e:    h          v w D F: B: O: V\n");
-    fprintf(stderr, "cpick     c: d: e: g: h i: o: s: v w D F: B: O: V\n");
-    fprintf(stderr, "paint     c: d: e: g: h i: o:    v w D F: B: O: V\n");
-    fprintf(stderr, "paintfile c: d: e: g: h i: o:    v w D F: B: O: V\n\n");
-    fprintf(stderr, "    -c command\n");
-    fprintf(stderr, "    -d mapp directory\n");
-    fprintf(stderr, "    -e description file (main.m)\n");
-    fprintf(stderr, "    -g geometry            (lllcccLLLCCC)\n");
-    fprintf(stderr, "    -h                     (help)\n");
-    fprintf(stderr, "    -i input-file-name\n");
-    fprintf(stderr, "    -n number-of-selections\n");
-    fprintf(stderr, "    -o output-file-name\n");
-    fprintf(stderr, "    -v version\n");
-    fprintf(stderr, "    -w write configuration\n");
-    fprintf(stderr, "    -D dump configuration\n");
-    fprintf(stderr, "    -F foreground-color\n");
-    fprintf(stderr, "    -B background-color\n");
-    fprintf(stderr, "    -O border-color\n");
-    fprintf(stderr, "    -V version\n");
-
-    fprintf(stderr, "\nColors:\n");
-    list_colors();
+void usage() {
+    (void)fprintf(stderr, "\n\nPress any key to continue...");
+    di_getch();
 }
 
-void dump_config(char *msg) {
-    fprintf(stderr, "\n%s\n\n", msg);
-    fprintf(stderr, "minitrc   = %s\n", minitrc);
-    fprintf(stderr, "-d mapp_dir  = %s\n", option->mapp_dir);
-    fprintf(stderr, "-e mapp_desc = %s\n", option->mapp_desc);
-    fprintf(stderr, "-F fg_color  = %s\n", colors_text[option->fg_color]);
-    fprintf(stderr, "-B bg_color  = %s\n", colors_text[option->bg_color]);
-    fprintf(stderr, "-O bo_color  = %s\n\n", colors_text[option->bo_color]);
+void opt_prt_char(const char *o, const char *name, const char *value) {
+    fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
+}
+
+void opt_prt_int(const char *o, const char *name, int value) {
+    fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
+}
+
+void opt_prt_bool(const char *o, const char *name, bool value) {
+    fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
+}
+
+/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+   ┃ DUMP_CONFIG                                           ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+void dump_config(Init *init, char *msg) {
+    opt_prt_char("-a:", "--minitrc", init->minitrc);
+    opt_prt_char("-c:", "--cmd_spec", init->cmd_spec);
+    opt_prt_char("-d:", "--mapp_spec", init->mapp_spec);
+    opt_prt_bool("-e:", "--f_erase_remainder", init->f_erase_remainder);
+    opt_prt_char("-i:", "--in_spec", init->in_spec);
+    opt_prt_char("-m:", "--mapp_home", init->mapp_home);
+    opt_prt_int("-n:", "--selections", init->selections);
+    opt_prt_char("-o:", "--out_spec", init->out_spec);
+    opt_prt_bool("-r:", "--f_at_end_remove", init->f_at_end_remove);
+    opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
+    opt_prt_int("-t:", "--tab_stop", init->tab_stop);
+    opt_prt_char("-u:", "--mapp_user", init->mapp_user);
+    opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
+    opt_prt_bool("-z ", "--f_at_end_clear", init->f_at_end_clear);
+    opt_prt_char("-A:", "--answer_spec", init->answer_spec);
+    opt_prt_int("-B:", "--bg_color", init->bg_color);
+    opt_prt_int("-C:", "--cols", init->cols);
+    opt_prt_int("-F:", "--fg_color", init->fg_color);
+    opt_prt_char("-H:", "--help_spec", init->help_spec);
+    opt_prt_int("-L:", "--lines", init->lines);
+    opt_prt_int("-O:", "--bo_color", init->bo_color);
+    opt_prt_char("-P:", "--prompt", init->prompt);
+    opt_prt_char("-S ", "--start_cmd", init->start_cmd);
+    opt_prt_char("-T:", "--title", init->title);
+    opt_prt_int("-X:", "--begx", init->begx);
+    opt_prt_int("-Y:", "--begy", init->begy);
+    opt_prt_bool("-Z ", "--f_stop_on_error", init->f_stop_on_error);
+    opt_prt_char("   ", "--answer_spec", init->answer_spec);
+    opt_prt_char("   ", "--mapp_data", init->mapp_data);
+    opt_prt_char("   ", "--mapp_spec", init->mapp_spec);
+    opt_prt_char("   ", "--mapp_help", init->mapp_help);
+    opt_prt_char("   ", "--help_spec", init->help_spec);
+    opt_prt_char("   ", "--in_spec", init->in_spec);
+    opt_prt_char("   ", "--out_spec", init->out_spec);
+    opt_prt_char("   ", "--mapp_msrc", init->mapp_msrc);
+    (void)fprintf(stderr, "\n%s\n\n", msg);
 }

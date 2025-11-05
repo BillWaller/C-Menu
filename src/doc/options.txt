@@ -1,0 +1,84 @@
+    /*
+        Initialization - Order of Execution and Priority
+
+        Order  Priority  Source     Description
+        -----  --------  ---------- -------------------------------------
+          1       1      default    Default values
+          2       2      config     Configuration file
+          3       3      env        Environment variables
+          4       5      options    Command line option arguments
+          5       4      positional Command line positional arguments
+
+        Notice that the execution order is not the same as the priority order.
+
+        Higher priority values override lower priority values.
+
+        executable positional arguments
+        ---------- ------------------------------------------------
+           menu    mapp-spec                            [help_spec]
+           pick    in_spec    {out_spec    | cmd_spec}  [help_spec]
+           form    mapp-spec  {answer_spec | cmd_spec}  [help_spec]
+           view    argv[0], argv[1]...                  [help_spec]
+
+        * Options and groups of options in square brackets are optional.
+        * Options and groups of options in curly brackets are required.
+        * Groups of options seperated by a vertical bars, '|' indicate
+          that only one may be provided.
+        * Groups of options seperated by a commas, ',' indicate none or
+          more more may be provided.
+
+        With no option arguments, pick's positional arguments are:
+            0           1           2            3          4
+           pick      in_spec    [out_spec]  |[cmd_spec] [help_spec]
+
+        But if in_spec is provided by an option argument, then the positional
+        arguments are:
+
+            0           1           2            3
+           pick     {out_spec  | cmd_spec} [help_spec]
+
+        That's because in_spec has already been set by the option argument.
+
+        If in_spec and out_spec are provided by option arguments, then the
+        positional arguments are:
+
+            0           1
+           pick    [help_spec]
+
+        In this case, only the first of the positional arguments in curly
+        brackets is allowed. cmd_spec is disqualified when out_spec is
+        provided.
+
+        As you can see, pick only requires one argument, in_spec, which
+        may be provided as a positional argument or as an option argument.
+        If the other arguments are not provided, they will be fabricated
+        as needed based on in_spec.  For example, if in_spec is provided
+        as abcd.in, then out_spec will become abcd.out, and help_spec
+        as abcd.help. Because only one of out_spec or cmd_spec is allowed,
+        if out_spec is provided, cmd_spec will not be fabricated.
+
+        Options can be provided on the command line as arguments to: 
+            menu, pick, form, and view
+        or, as directives in the mapp description files for menu, pick,
+        and form.
+
+        The options provided in the mapp description files are processed
+        in the same manner as command line option arguments, and have the
+        same priority (5).
+
+     */
+
+
+/*
+    Higher numbers override lower numbers.
+
+    Ensures the most specific settings (command line) override more general ones (default values).
+
+    Allows for flexible configuration management, enabling users to customize settings as needed while maintaining sensible defaults.
+
+    Positional args should override env vars and config file settings
+
+    Option args should override positional args, env vars, config file settings, and default values
+
+*/
+

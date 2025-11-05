@@ -7,14 +7,14 @@
 #include "menu.h"
 #include <string.h>
 
-int accept_field(WINDOW *, int, int, int, char *, int, char, int);
+int accept_field(WINDOW *, int, int, int, char *, int, char, int, bool);
 void display_field(WINDOW *, int, int, char *, int, char, int);
 int format_field(char *, int, char, int);
 int validate_field(char *, int);
 
 int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,
-                 int flen, char fprompt, int fval) {
-    int f_insert = FALSE;
+                 int flen, char fprompt, int fval, bool f_erase_remainder) {
+    bool f_insert = FALSE;
     int in_key;
     static char buf[MAXLEN + 1];
     char *str_end; /*  End of string */
@@ -45,8 +45,8 @@ int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,
             return (in_key);
 
         // Abort Operation
-        case key_ctlc:
-        case key_ctld:
+        case KEY_CTLC:
+        case KEY_CTLD:
         case KEY_ESC:
         case KEY_BREAK:
         case KEY_F(9):
@@ -54,6 +54,7 @@ int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,
             in_key = KEY_F(9);
             return (in_key);
 
+        case KEY_BTAB:
         case key_up:
         case KEY_UP:
         case KEY_F(7):
@@ -61,6 +62,7 @@ int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,
             in_key = KEY_UP;
             return (in_key);
 
+        case KEY_TAB:
         case key_down:
         case KEY_DOWN:
             display_field(win, flin, fcol, fstart, flen, fprompt, fval);
@@ -73,7 +75,7 @@ int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,
             display_field(win, flin, fcol, fstart, flen, fprompt, fval);
             return (in_key);
 
-        case key_ctlm:
+        case KEY_CTLM:
         case KEY_ENTER:
             if (f_erase_remainder) {
                 str_end = fptr;
@@ -120,7 +122,7 @@ int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,
             }
             break;
 
-        case key_ctlh:
+        case KEY_CTLH:
         case KEY_LEFT:
             if (fptr > fstart)
                 fptr--;
@@ -130,7 +132,7 @@ int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,
             }
             break;
 
-        case key_ctll:
+        case KEY_CTLL:
         case KEY_RIGHT:
             if (fptr < fend)
                 if (fptr <= str_end)
@@ -191,10 +193,13 @@ void display_field(WINDOW *win, int flin, int fcol, char *fptr, int flen,
         while (*s++ != '\0')
             flen++;
     }
-    wmove(win, flin, fcol);
+    wmove(win, flin, fcol - 1);
+    waddch(win, '[');
+    wmove(win, flin, fcol - 1);
     strcpy(formatted_field, fptr);
     (void)format_field(formatted_field, flen, fprompt, fval);
     mvwaddstr(win, flin, fcol, formatted_field);
+    waddch(win, ']');
 }
 
 int format_field(char *fptr, int flen, char fprompt, int fval) {

@@ -1,21 +1,27 @@
-// ckeys.c
-// Test Curses Keys
-// Bill Waller */
-// billxwaller@gmail.com
+/*  ckeys.c
+    Test Curses Keys
+    Bill Waller
+    billxwaller @gmail.com
+    Ckeys
+
+ */
 
 #include "menu.h"
+#include <sys/types.h>
 
 int main(int argc, char **argv) {
-    int rc;
-
-    if ((rc = initialization(argc, argv)))
-        return (rc);
+    capture_shell_tioctl();
+    init = new_init(argc, argv);
+    if (!init) {
+        abend(-1, "malloc failed init (Init)");
+    }
+    mapp_initialization(init, argc, argv);
+    sig_prog_mode();
     open_curses();
-    int begy = 3;
-    int begx = 5;
-    ckeys(begy, begx);
+    win_init_attrs(init->fg_color, init->bg_color, init->bo_color);
+    display_curses_keys();
     close_curses();
-    sig_shell_mode();
-    reset_shell_mode();
+    sig_dfl_mode();
+    restore_shell_tioctl();
     return (0);
 }

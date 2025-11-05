@@ -1,0 +1,66 @@
+<h1 id="usage:form_execform_write">usage: form_exec &amp; form_write</h1>
+
+<pre><code class="bash">long option          type      group       mask  flg description
+-------------------  -------   ----------  ----- --- --------------------------------
+GEOMETRY
+--lines              integer   parameters  mpxwv -L: width in lines
+--cols               integer   parameters  mpxwv -C: height in columns
+--begx               integer   parameters  mpxwv -X: begin on column
+--begy               integer   parameters  mpxwv -Y: begin on line
+--geometry           string    misc        mpxwv -g: geometry (lllcccLLLCCC)
+</code></pre>
+
+<pre><code class="bash">COLORS
+-------------------  -------   ----------  ----- --- --------------------------------
+--bg_color           integer   parameters  mpxwv -B: background_color
+--fg_color           integer   parameters  mpxwv -F: foreground_color
+--bo_color           integer   parameters  mpxwv -O: border_color
+</code></pre>
+
+<pre><code class="bash">PARAMETERS
+-------------------  -------   ----------  ----- --- --------------------------------
+--cmd_str            string    misc        .pxwv -c: command executable
+--prompt             string    misc        ....v -P: S-Short, L-Long, N-None, string
+--start_cmd          string    misc        ....v -S  cmd at start of view
+--title              string    misc        mpxwv -T: title
+--tab_stop           integer   parameters  ....v -t: number of spaces per tab
+--selections         integer   parameters  .p... -n: number of selections
+</code></pre>
+
+<pre><code class="bash">FLAGS
+-------------------  -------   ----------  ----- --- --------------------------------
+--f_squeeze          yes/no    flag        ....v -s  squeeze multiple blank lines
+--f_at_end_remove    yes/no    flag        ....v -r: remove file at end of program
+--f_ignore_case      yes/no    flag        ....v -x: ignore case in search
+--f_at_end_clear     yes/no    flag        mpxwv -z  clear screen at end of program
+--f_erase_remainder  yes/no    flag        ..xw. -e: erase remainder of line on enter
+--f_stop_on_error    yes/no    flag        mpxwv -Z  stop on error
+</code></pre>
+
+<pre><code class="bash">FILES
+-------------------  -------   ----------  ----- --- --------------------------------
+--minitrc            string    file spec   mpxwv -a: configuration file
+--mapp_desc          string    file name   mpxwv -d: description file
+--answer_file        string    file name   ..xw. -A: answer file
+--help_file          string    file name   mpxwv -H: help file
+--in_file            string    file name   .p... -i: input file
+--out_file           string    file name   .p.w. -o: output file
+</code></pre>
+
+<pre><code class="bash">DIRECTORIES
+-------------------  -------   ----------  ----- --- --------------------------------
+--mapp_home          string    directory   mpxwv -m: home directory
+--mapp_msrc          string    directory   mpxwv     source directory
+--mapp_data          string    directory   mpxwv     data directory
+--mapp_help          string    directory   mpxwv     help directory
+--mapp_user          string    directory   mpxwv -u: user directory
+</code></pre>
+
+<pre><code class="bash">FILE SPECS
+-------------------  -------   ----------  ----- --- --------------------------------
+--mapp_spec          string    file spec   mpxwv     description file spec
+--answer_spec        string    file spec   ..xw.     answer file spec
+--help_spec          string    file spec   mpxwv     help file spec
+--in_spec            string    file spec   .p...     input file spec
+--out_spec           string    file spec   .p...     output file spec
+</code></pre>
