@@ -6,48 +6,51 @@ project(cmenu C)
 
 add_library(
   cmenu
-  fckeys.c
-  fmenu.c
-  rmenu.c
-  mmenu.c
-  fpaint.c
-  fpick.c
-  fview.c
-  log.c
-  mpick.c
-  mview.c
-  init.c
-  futil.c
-  fields.c
-  scriou.c
+  display_curses_keys.c
   dwin.c
-  log.c)
+  exec.c
+  fform.c
+  fields.c
+  futil.c
+  init.c
+  init_menu.c
+  init_pick.c
+  init_view.c
+  mem.c
+  menu_engine.c
+  mview.c
+  opts.c
+  parse_menu_desc.c
+  pick_engine.c
+  scriou.c
+  sig.c
+  view_engine.c)
 
 set(LIBS ncursesw tinfo config)
-
-add_executable(menu menu.c)
-target_link_libraries(menu cmenu ${LIBS})
-
-add_executable(paint paint.c)
-target_link_libraries(paint cmenu ${LIBS})
 
 add_executable(ckeys ckeys.c)
 target_link_libraries(ckeys cmenu ${LIBS})
 
-add_executable(paintfile paintfile.c)
-target_link_libraries(paintfile cmenu ${LIBS})
+add_executable(form form.c)
+target_link_libraries(form cmenu ${LIBS})
 
-add_executable(cpick cpick.c)
-target_link_libraries(cpick cmenu ${LIBS})
+add_executable(iloan iloan.c)
+target_link_libraries(iloan m)
+
+add_executable(menu menu.c)
+target_link_libraries(menu cmenu ${LIBS})
+
+add_executable(pick pick.c)
+target_link_libraries(pick cmenu ${LIBS})
 
 add_executable(view view.c)
 target_link_libraries(view cmenu ${LIBS})
 
-add_executable(dgraph dgraph.c)
-target_link_libraries(dgraph cmenu ${LIBS} m)
-
 add_executable(whence whence.c)
 target_link_libraries(whence)
 
-add_executable(iloan iloan.c)
-target_link_libraries(iloan m)
+add_executable(enterchr enterchr.c)
+target_link_libraries(enterchr cmenu ${LIBS})
+
+add_executable(enterstr enterstr.c)
+target_link_libraries(enterstr cmenu ${LIBS})

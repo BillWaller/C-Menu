@@ -1,0 +1,53 @@
+{
+	"kind" : "toolchains",
+	"toolchains" : 
+	[
+		{
+			"compiler" : 
+			{
+				"id" : "Clang",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"/usr/lib64/clang/21/include",
+						"/usr/local/include",
+						"/usr/x86_64-suse-linux/include",
+						"/usr/include"
+					],
+					"linkDirectories" : 
+					[
+						"/usr/lib64/gcc/x86_64-suse-linux/15",
+						"/usr/lib64",
+						"/lib64",
+						"/usr/x86_64-suse-linux/lib",
+						"/lib",
+						"/usr/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"gcc",
+						"gcc_s",
+						"c",
+						"gcc",
+						"gcc_s"
+					]
+				},
+				"path" : "/usr/bin/clang",
+				"version" : "21.1.3"
+			},
+			"language" : "C",
+			"sourceFileExtensions" : 
+			[
+				"c",
+				"m"
+			]
+		}
+	],
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 0
+	}
+}

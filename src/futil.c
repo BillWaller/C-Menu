@@ -5,9 +5,17 @@
  */
 
 #include "menu.h"
+#include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <termios.h>
+#include <unistd.h>
+#include <wait.h>
 
+bool str_to_bool(const char *);
 int str_to_args(char **, char *);
 void str_to_lower(char *);
 void str_to_upper(char *);
@@ -21,17 +29,11 @@ void str_subc(char *, char *, char, char *, int);
 void normalize_file_spec(char *);
 void file_spec_path(char *, char *);
 void file_spec_name(char *, char *);
-int parse_geometry_str(char *, int *, int *, int *, int *);
-int get_color_number(char *s);
-void list_colors();
-void build_color_opt_str();
-int verify_screen_geometry(int *, int *, int *, int *);
-int full_screen_fork_exec(char **);
-int full_screen_shell(char *);
-int shell(char *);
-void abend(int, char *);
-char errmsg[MAXLEN + 1];
-char color_opt_str[MAXLEN + 1];
+bool verify_file(char *, int);
+bool verify_dir(char *, int);
+bool locate_file_in_path(char *, char *);
+
+char errmsg[MAXLEN];
 
 int str_to_args(char **argv, char *strptr) {
     int i;
@@ -59,6 +61,19 @@ void str_to_upper(char *s) {
             *s = *s + 'A' - 'a';
         s++;
     }
+}
+
+int strnz__cpy(char *d, char *s, int max_len) {
+    char *e;
+    int len = 0;
+
+    e = d + max_len;
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
 }
 
 void strnz_cpy(char *d, char *s, int l) {
@@ -158,8 +173,9 @@ void normalize_file_spec(char *fs) {
 void file_spec_path(char *fp, char *fs) {
     char *d, *l, *s;
 
-    s = fs;
-    d = fp;
+    // get path component of file spec
+    s = fp;
+    d = fs;
     l = NULL;
     while (*s != '\0') {
         if (*s == '/')
@@ -175,6 +191,7 @@ void file_spec_path(char *fp, char *fs) {
 void file_spec_name(char *fn, char *fs) {
     char *d, *l, *s;
 
+    // get name component of file spec
     l = NULL;
     s = fs;
     while (*s != '\0') {
@@ -192,174 +209,280 @@ void file_spec_name(char *fn, char *fs) {
     *d = '\0';
 }
 
-int parse_geometry_str(char *s, int *l, int *c, int *y, int *x) {
-    char str[4], *d, *e;
+bool str_to_bool(const char *s) {
+    if (!s)
+        return false;
 
-    d = str;
-    e = s + 3;
-    while (*s != '\0' && s < e)
-        *d++ = *s++;
-    *d = '\0';
-    if (*s == '\0')
-        return (-1);
-    d = str;
-    *l = atoi(d);
-
-    d = str;
-    e = s + 3;
-    while (*s != '\0' && s < e)
-        *d++ = *s++;
-    *d = '\0';
-    if (*s == '\0')
-        return (-1);
-    d = str;
-    *c = atoi(d);
-
-    d = str;
-    e = s + 3;
-    while (*s != '\0' && s < e)
-        *d++ = *s++;
-    *d = '\0';
-    if (*s == '\0')
-        return (-1);
-    d = str;
-    *y = atoi(d);
-
-    d = str;
-    e = s + 3;
-    while (*s != '\0' && s < e)
-        *d++ = *s++;
-    *d = '\0';
-    d = str;
-    *x = atoi(d);
-
-    return (0);
-}
-
-int get_color_number(char *s) {
-    int i = 0;
-    int n = NCOLORS;
-
-    str_to_lower(s);
-    while (i < n) {
-        if (!strcmp(colors_text[i], s))
+    switch (s[0]) {
+    case 't':
+    case 'T':
+    case 'y':
+    case 'Y':
+    case '1':
+        return true;
+    case 'o':
+    case 'O':
+        switch (s[1]) {
+        case 'n':
+        case 'N':
+            return true;
+        default:
             break;
-        i++;
-    }
-    if (i >= n)
-        return (-1);
-    return (i);
-}
-
-void list_colors() {
-    int i, col;
-
-    for (i = 0, col = 0; i < NCOLORS; i++, col++) {
-        if (i < 8) {
-            fprintf(stderr, " ");
         }
-        if (i == 8) {
-            col = 0;
-            fprintf(stderr, "\n");
-        } else if (col > 0)
-            fprintf(stderr, " ");
-        fprintf(stderr, "%s", colors_text[i]);
+    default:
+        break;
     }
-    fprintf(stderr, "\n");
+    return false;
 }
 
-void build_color_opt_str() {
-    if (option->fg_color == option->bg_color || option->fg_color == -1 ||
-        option->bg_color == -1) {
-        option->bg_color = black;
-        option->fg_color = white;
+// FILE/PATH UTILITIES
+//------------------------------
+bool expand_tilde(char *path, int path_maxlen) {
+    char *e;
+    char ts[MAXLEN];
+    char *tp;
+
+    if (!path || !*path || !path_maxlen)
+        return false;
+    tp = path;
+    if (*tp == '~') {
+        tp++;
+        while (*tp == '/') {
+            tp++;
+        }
+        e = getenv("HOME");
+        if (e) {
+            strncpy(ts, e, path_maxlen - 1);
+            strncat(ts, "/", path_maxlen - 1);
+            strncat(ts, tp, path_maxlen - 1);
+            strncpy(path, ts, path_maxlen - 1);
+        }
     }
-    strncpy(color_opt_str, "-F ", MAXLEN);
-    strncat(color_opt_str, colors_text[option->fg_color], MAXLEN);
-    strncat(color_opt_str, " ", MAXLEN);
-    strncat(color_opt_str, "-B ", MAXLEN);
-    strncat(color_opt_str, colors_text[option->bg_color], MAXLEN);
+    return true;
 }
 
-int verify_screen_geometry(int *lines, int *cols, int *begy, int *begx) {
-    int box;
+bool trim_path(char *dir) {
+    char *p;
 
-    if (LINES == 0 || COLS == 0)
-        return (1);
-    box = 2;
-    if (!*lines)
-        *lines = DEF_LINES;
-    if (*lines > LINES - box)
-        *lines = LINES - box;
-    if (*begy < 0 || *begy + *lines + box > LINES) /* bottom of screen */
-        *begy = LINES - *lines - box;
-    if (!*cols)
-        *cols = DEF_COLS;
-    if (*begx == -1)
-        *begx = 0;
-    if (*cols > COLS - box)
-        *cols = COLS - box;
-    if (*cols < MIN_COLS + box)
-        *cols = MIN_COLS + box;
-    if (*begx < 0 || *begx + *cols + box > COLS) /* left of screen   */
-        *begx = COLS - *cols - box;
-    return (0);
+    if (!dir || !*dir)
+        return false;
+    p = dir;
+    while (*p++ != '\0') {
+        if (*p == ' ' || *p == '\t' || *p == '\n') {
+            *p = '\0';
+            break;
+        }
+    }
+    --p;
+    while (--p > dir && *p == '/') {
+        if (*(p - 1) != '~')
+            *p = '\0';
+    }
+    return true;
 }
 
-int full_screen_fork_exec(char **argv) {
-    int rc;
+bool trim_ext(char *buf, char *filename) {
 
-    fprintf(stderr, "\n");
-    fflush(stderr);
-    wclear(stdscr);
-    wmove(stdscr, LINES - 1, 0);
-    wrefresh(stdscr);
-    rc = fork_exec(argv);
-    wclear(stdscr);
-    wmove(stdscr, 0, 0);
-    wrefresh(stdscr);
-    restore_wins();
-    return (rc);
+    if (!filename || !*filename || !buf)
+        return false;
+    char *s = filename;
+    char *d = buf;
+    *d = '\0';
+    while (*s)
+        s++;
+    while (filename < --s) {
+        if (*s == '.') {
+            break;
+        }
+    }
+    if (*s != '.') {
+        while (*filename)
+            *d++ = *filename++;
+    } else {
+        while (filename < s) {
+            *d++ = *filename++;
+        }
+    }
+    *d = '\0';
+    if (d == buf)
+        return false;
+    return true;
 }
 
-int full_screen_shell(char *shellCmdPtr) {
-    int rc;
-
-    fprintf(stderr, "\n");
-    fflush(stderr);
-    wclear(stdscr);
-    wmove(stdscr, 0, 0);
-    wrefresh(stdscr);
-    rc = shell(shellCmdPtr);
-    restore_wins();
-    return (rc);
+bool base_name(char *buf, char *path) {
+    if (!path || !*path || !buf)
+        return false;
+    char *s = path;
+    char *d = buf;
+    *d = '\0';
+    while (*s) {
+        if (*s == '/' || *s == '\\') {
+            d = buf;
+        } else {
+            *d++ = *s;
+        }
+        s++;
+    }
+    *d = '\0';
+    if (d == buf)
+        return false;
+    return true;
 }
 
-int shell(char *shellCmdPtr) {
-    int Eargc;
-    char *Eargv[MAXARGS];
-    char *shellPtr;
-    int rc;
-
-    Eargc = 0;
-    shellPtr = getenv("SHELL");
-    if (shellPtr == NULL || *shellPtr == '\0')
-        shellPtr = DEFAULTSHELL;
-    Eargv[Eargc++] = strdup(shellPtr);
-    Eargv[Eargc++] = "-c";
-    Eargv[Eargc++] = shellCmdPtr;
-    Eargv[Eargc++] = NULL;
-    rc = fork_exec(Eargv);
-    return (rc);
+bool dir_name(char *buf, char *path) {
+    if (!path || !*path || !buf)
+        return false;
+    char tmp_str[MAXLEN];
+    strcpy(tmp_str, path);
+    char *s = tmp_str;
+    while (*s++)
+        ;
+    while (tmp_str < --s) {
+        if (*s == '/' || *s == '\\') {
+            *s = '\0';
+            break;
+        }
+    }
+    while (tmp_str < --s && (*s == '/' || *s == '\\'))
+        *s = '\0';
+    char *d = buf;
+    *d = '\0';
+    s = tmp_str;
+    while (*s) {
+        *d++ = *s++;
+    }
+    *d = '\0';
+    if (d == buf)
+        return false;
+    return true;
 }
 
-void abend(int ec, char *s) {
-    close_curses();
-    reset_shell_mode();
-    sig_shell_mode();
-    fprintf(stderr, "ABEND: %s code: %d\n", s, ec);
-    fprintf(stderr, "Press a key to exit program");
-    di_getch();
-    fprintf(stderr, "\n");
-    exit(ec);
+bool verify_dir(char *spec, int mode) {
+    char tmp_str[MAXLEN];
+    expand_tilde(spec, MAXLEN);
+    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
+        return true;
+    else {
+        if (errno == EACCES) {
+            if (mode == W_OK) {
+                strncpy(tmp_str, "Directory ", MAXLEN - 1);
+                strncat(tmp_str, spec, MAXLEN - 1);
+                strncat(tmp_str, " is not writable (permission denied).",
+                        MAXLEN - 1);
+                display_error_message(tmp_str);
+            }
+            if (mode == R_OK) {
+                strncpy(tmp_str, "Directory ", MAXLEN - 1);
+                strncat(tmp_str, spec, MAXLEN - 1);
+                strncat(tmp_str, " is not readable (permission denied).",
+                        MAXLEN - 1);
+                display_error_message(tmp_str);
+            }
+        } else if (errno == ENOENT) {
+            strncpy(tmp_str, "Directory ", MAXLEN - 1);
+            strncat(tmp_str, spec, MAXLEN - 1);
+            strncat(tmp_str, " does not exist.", MAXLEN - 1);
+            display_error_message(tmp_str);
+        } else
+            return true;
+        return false;
+    }
+}
+
+bool verify_dir_q(char *spec, int mode) {
+    expand_tilde(spec, MAXLEN);
+    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
+        return true;
+    return false;
+}
+
+bool verify_file(char *spec, int imode) {
+    char dirbuf[MAXLEN];
+    int mode = imode & ~0x1000;
+    expand_tilde(spec, MAXLEN);
+    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
+        return true;
+    else {
+        if (errno == EACCES) {
+            if (mode & W_OK) {
+                strncpy(tmp_str, "File ", MAXLEN - 1);
+                strncat(tmp_str, spec, MAXLEN - 1);
+                strncat(tmp_str, " is not writable (permission denied).",
+                        MAXLEN - 1);
+            }
+            if (mode & R_OK) {
+                strncpy(tmp_str, "File ", MAXLEN - 1);
+                strncat(tmp_str, spec, MAXLEN - 1);
+                strncat(tmp_str, " is not readable (permission denied).",
+                        MAXLEN - 1);
+            }
+            if (mode & X_OK) {
+                strncpy(tmp_str, "File ", MAXLEN - 1);
+                strncat(tmp_str, spec, MAXLEN - 1);
+                strncat(tmp_str, " is not executable (permission denied).",
+                        MAXLEN - 1);
+            }
+            display_error_message(tmp_str);
+            return false;
+        } else if (errno == ENOENT) {
+            if (imode & WC_OK) {
+                dir_name(dirbuf, spec);
+                if (faccessat(AT_FDCWD, dirbuf, W_OK, AT_EACCESS) == 0)
+                    return true;
+                strncpy(tmp_str, "File ", MAXLEN - 1);
+                strncat(tmp_str, spec, MAXLEN - 1);
+                strncat(tmp_str, "does not exist and cannot be created",
+                        MAXLEN - 1);
+                display_error_message(tmp_str);
+                return false;
+            } else {
+                strncpy(tmp_str, "File ", MAXLEN - 1);
+                strncat(tmp_str, spec, MAXLEN - 1);
+                strncat(tmp_str, " does not exist.", MAXLEN - 1);
+                display_error_message(tmp_str);
+                return false;
+            }
+        }
+        strncpy(tmp_str, "Error accessing file ", MAXLEN - 1);
+        strncat(tmp_str, spec, MAXLEN - 1);
+        strncat(tmp_str, ": ", MAXLEN - 1);
+        strncat(tmp_str, strerror(errno), MAXLEN - 1);
+        display_error_message(tmp_str);
+        return false;
+    }
+}
+
+bool verify_file_q(char *spec, int imode) {
+    int mode = imode & ~0x1000;
+    expand_tilde(spec, MAXLEN);
+    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
+        return true;
+    return false;
+}
+
+bool locate_file_in_path(char *file_spec, char *file_name) {
+    char path[MAXLEN];
+    char fn[MAXLEN];
+    char *p, *fnp, *dir;
+
+    strncpy(fn, file_name, MAXLEN - 1);
+    fnp = fn;
+    while (*fnp && *fnp != '/')
+        fnp++;
+    if (*fnp == '/')
+        return false;
+    if ((p = getenv("PATH")) == NULL)
+        return false;
+    strcpy(path, p);
+    dir = strtok(path, ":");
+    while (dir != NULL) {
+        strncpy(file_spec, dir, MAXLEN - 1);
+        strncat(file_spec, "/", MAXLEN - 1);
+        strncat(file_spec, file_name, MAXLEN - 1);
+        if (access(file_spec, F_OK) == 0) {
+            return true;
+        }
+        dir = strtok(NULL, ":");
+    }
+    return false;
 }

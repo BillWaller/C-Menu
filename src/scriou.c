@@ -1,164 +1,149 @@
-/* scriou.c
- * Screen IO Support for MENU
- * Bill Waller
- * billxwaller@gmail.com
+/*  scriou.c
+    Screen IO Support for MENU
+    Bill Waller
+    billxwaller@gmail.com
+
+    Copyright (c) 2024 Bill Waller
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to
+   deal in the Software without restriction, including without limitation the
+   rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+   sell copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+   This file contains terminal ioctl handling functions for MENU. It provide
+   sane terminal settings for MENU applications, and to to restore the terminal
+   to its original state when the MENU application exits.
+
  */
 
 #include "menu.h"
-#include <stdlib.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
-#include <wait.h>
 
 #ifndef M_TERMCAP
 SCREEN *Screen;
 #endif
 
-struct termios shell_ioctl;
-int f_shell_ioctl;
-int f_curses_open;
-int f_restore_screen;
-
-void open_curses();
-void close_curses();
-void end_pgm();
-void sig_prog_mode();
-void sig_shell_mode();
-int fork_exec(char **);
-void display_argv_error_msg(char *, char **);
-void SetCursorDefault();
-void SetCursorInsert();
+struct termios shell_tioctl;
+struct termios curses_tioctl;
+bool f_have_shell_tioctl = false;
+bool f_have_curses_tioctl = false;
+bool capture_shell_tioctl();
+bool restore_shell_tioctl();
+bool capture_curses_tioctl();
+bool restore_curses_tioctl();
+bool set_sane_tioctl(struct termios *);
+bool mk_raw_tioctl(struct termios *);
+void set_cursor_dfl();
+void set_cursor_ins();
 char di_getch();
-void capture_shell_ioctl();
-void restore_shell_ioctl();
 
-void open_curses() {
-    capture_shell_ioctl();
-    def_shell_mode();
-    initscr();
-    f_curses_open = TRUE;
-    clear();
-    nonl(); // don't translate CR to LF
-    noecho();
-    cbreak(); // raw unbuffered
-    keypad(stdscr, TRUE);
-    clearok(stdscr, FALSE);
-    scrollok(stdscr, TRUE);
-    win_init_attrs(option->fg_color, option->bg_color, option->bo_color);
+// Terminal IOCTL structures
+struct termios shell_tioctl, curses_tioctl;
+struct termios shell_in_tioctl, curses_in_tioctl;
+struct termios shell_out_tioctl, curses_out_tioctl;
+struct termios shell_err_tioctl, curses_err_tioctl;
+
+bool capture_shell_tioctl() {
+    if (f_have_shell_tioctl)
+        return true;
+    tcgetattr(0, &shell_tioctl);
+    // tcgetattr(0, &shell_in_tioctl);
+    // tcgetattr(1, &shell_out_tioctl);
+    // tcgetattr(2, &shell_err_tioctl);
+    f_have_shell_tioctl = true;
+    return true;
+}
+bool restore_shell_tioctl() {
+    if (!f_have_shell_tioctl)
+        return false;
+    tcsetattr(0, TCSANOW, &shell_tioctl);
+    // tcsetattr(0, TCSANOW, &shell_in_tioctl);
+    // tcsetattr(1, TCSANOW, &shell_out_tioctl);
+    // tcsetattr(2, TCSANOW, &shell_err_tioctl);
+    return true;
+}
+bool capture_curses_tioctl() {
+    if (f_have_curses_tioctl)
+        return true;
+    tcgetattr(0, &curses_tioctl);
+    // tcgetattr(0, &curses_in_tioctl);
+    // tcgetattr(1, &curses_out_tioctl);
+    // tcgetattr(2, &curses_err_tioctl);
+    f_have_curses_tioctl = true;
+    return true;
+}
+bool restore_curses_tioctl() {
+    if (!f_have_curses_tioctl)
+        return false;
+    tcsetattr(0, TCSANOW, &curses_tioctl);
+    // tcsetattr(0, TCSANOW, &curses_in_tioctl);
+    // tcsetattr(1, TCSANOW, &curses_out_tioctl);
+    // tcsetattr(2, TCSANOW, &curses_err_tioctl);
+    return true;
 }
 
-void close_curses() {
-    if (f_curses_open) {
-        wclear(stdscr);
-        wrefresh(stdscr);
-        endwin();
-        f_curses_open = FALSE;
-    }
-    reset_shell_mode();
-    sig_shell_mode();
+// NOMINAL SANE VALUES
+// -----------------------------------------------------------------------------
+bool set_sane_tioctl(struct termios *t_p) {
+    tcgetattr(0, t_p);
+    t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
+                      IGNCR | ICRNL | IXON | IXOFF);
+    t_p->c_iflag |= IUTF8;
+    t_p->c_oflag |= OPOST | OCRNL;
+    t_p->c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN);
+    t_p->c_lflag |= (ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK);
+    t_p->c_cflag &= ~(CSIZE | PARENB);
+    t_p->c_cflag |= CS8 | CLOCAL | CREAD;
+    tcsetattr(0, TCSANOW, t_p);
+    return true;
 }
 
-void end_pgm() {
-    close_curses();
-    exit(0);
-}
-
-void sig_prog_mode() {
-    signal(SIGINT, SIG_IGN);
-    signal(SIGQUIT, SIG_IGN);
-}
-
-void sig_shell_mode() {
-    signal(SIGINT, SIG_IGN);
-    signal(SIGQUIT, SIG_IGN);
-}
-
-int fork_exec(char **FArgv) {
-    int Wstat;
-    int pid;
-
-    if (FArgv[0] == 0) {
-        display_error_message("Missing argument for execvp");
-        return (-1);
-    }
-    sig_shell_mode();
-    reset_shell_mode();
-    if (signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
-        perror("signal");
-        exit(EXIT_FAILURE);
-    }
-    pid = fork();
-    switch (pid) {
-    case -1:
-        reset_prog_mode();
-        sig_prog_mode();
-        keypad(stdscr, TRUE);
-        display_argv_error_msg("fork_exec() Failed to fork", FArgv);
-        return (-1);
-    case 0:
-        restore_shell_ioctl();
-        execvp(FArgv[0], FArgv);
-        reset_prog_mode();
-        sig_prog_mode();
-        keypad(stdscr, TRUE);
-        display_argv_error_msg("fork_exec() Failed to execvp", FArgv);
-        return (-1);
-    default:
-        pid = waitpid(0, &Wstat, 0);
-        break;
-    }
-    reset_prog_mode();
-    sig_prog_mode();
-    if ((pid >>= 8) && f_stop_on_error) {
-        sprintf(tmp_str, "Program returned %x", Wstat);
-        display_argv_error_msg(tmp_str, FArgv);
-        return (-1);
-    }
-    fprintf(stderr, "\n");
-    return (0);
-}
-
-void display_argv_error_msg(char *emsg, char **argv) {
-    int argc;
-
-    argc = 0;
-    fprintf(stderr, "\r\n");
-    while (*argv != NULL && **argv != '\0')
-        fprintf(stderr, "argv[%d] - %s\r\n", argc++, *argv++);
-    fprintf(stderr, "%s\r\n", emsg);
-    fprintf(stderr, "%s", "Press any key to continue");
-    wrefresh(stdscr);
-    wgetch(stdscr);
-}
-
-void capture_shell_ioctl() {
-    if (tcgetattr(2, &shell_ioctl) == -1) {
-        fprintf(stderr, "standard error not a tty\n");
-        return;
-    }
-}
-
-void restore_shell_ioctl() {
-    if (tcsetattr(2, TCSAFLUSH, &shell_ioctl) == -1) {
-        fprintf(stderr, "standard error not a tty\n");
-        return;
-    }
+// RAW MODE
+// Based on code from "man termios"
+// unlike cfmakeraw(), this leaves ISIG enabled
+bool mk_raw_tioctl(struct termios *t_p) {
+    tcgetattr(0, t_p);
+    // t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
+    //                IGNCR | ICRNL | IXON | IXOFF);
+    // t_p->c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN);
+    // t_p->c_cflag &= ~(CSIZE | PARENB);
+    // t_p->c_cflag |= CS8 | CLOCAL;
+    //
+    t_p->c_lflag |= ISIG;
+    t_p->c_lflag &= ~(ECHO | ICANON);
+    t_p->c_cc[VMIN] = 1;
+    t_p->c_cc[VTIME] = 0;
+    tcsetattr(0, TCSAFLUSH, t_p);
+    return true;
 }
 
 char di_getch() {
-    struct termios OrgIOCTL, NewIOCTL;
+    struct termios org_tioctl, new_tioctl;
     char buf;
 
-    if (tcgetattr(2, &OrgIOCTL) == -1) {
+    if (tcgetattr(0, &org_tioctl) == -1) {
         fprintf(stderr, "standard error not a tty\n");
         return (0);
     }
-    NewIOCTL = OrgIOCTL;
-    NewIOCTL.c_lflag &= ~(ECHO | ICANON);
-    NewIOCTL.c_cc[VMIN] = 1;
-    NewIOCTL.c_cc[VTIME] = 0;
-    tcsetattr(2, TCSAFLUSH, &NewIOCTL);
-    read(2, &buf, 1);
-    tcsetattr(2, TCSAFLUSH, &OrgIOCTL);
+    new_tioctl = org_tioctl;
+    new_tioctl.c_lflag &= ~(ECHO | ICANON);
+    new_tioctl.c_cc[VMIN] = 1;
+    new_tioctl.c_cc[VTIME] = 0;
+    tcsetattr(0, TCSAFLUSH, &new_tioctl);
+    read(0, &buf, 1);
+    tcsetattr(0, TCSAFLUSH, &org_tioctl);
     return (buf);
 }

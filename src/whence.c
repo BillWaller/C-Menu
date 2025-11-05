@@ -27,8 +27,8 @@
 #define PATH_MAX 256
 
 int f_all, f_help, f_verbose;
-char *env_path_ptr;
-char env_path_str[PATH_MAX];
+char *path_p;
+char path_s[PATH_MAX];
 char *file_name[PATH_MAX + 1];
 
 void usage();
@@ -62,13 +62,14 @@ int main(int argc, char **argv) {
         usage();
         normalend(0);
     }
-    env_path_ptr = getenv("PATH");
-    if (env_path_ptr == NULL)
+    path_p = getenv("PATH");
+    if (path_p == NULL)
         abend(argv[0], FAIL, "PATH environment variable not set");
     if (f_verbose)
-        printf("%s\n", env_path_ptr);
-    while (optind < argc)
+        printf("%s\n", path_p);
+    while (optind < argc) {
         whence(argv[optind++]);
+    }
     normalend(0);
 }
 
@@ -79,23 +80,23 @@ void usage() {
     fprintf(stderr, "       -v verbose (implies -a)\n");
 }
 
-void whence(char *file_specPtr) {
+void whence(char *file_spec_p) {
     char file_spec[PATH_MAX];
     char file_dir[PATH_MAX];
     char file_name[PATH_MAX];
     char try_spec[PATH_MAX];
     char try_dir[PATH_MAX];
-    int env_path_len;
+    int path_l;
     struct stat stat_struct;
 
-    strcpy(file_spec, file_specPtr);
-    strcpy(env_path_str, env_path_ptr);
+    strcpy(file_spec, file_spec_p);
+    strcpy(path_s, path_p);
     file_spec_parts(file_spec, file_dir, file_name);
-    env_path_ptr = env_path_str;
-    env_path_len = next_path(try_dir, &env_path_ptr);
-    while (env_path_len != 0) {
+    path_p = path_s;
+    path_l = next_path(try_dir, &path_p);
+    while (path_l != 0) {
         strcpy(try_spec, try_dir);
-        if (try_spec[env_path_len] != '/')
+        if (try_spec[path_l] != '/')
             strcat(try_spec, "/");
         strcat(try_spec, file_name);
         if (f_verbose) {
@@ -108,35 +109,34 @@ void whence(char *file_specPtr) {
             if (!f_all)
                 return;
         }
-        env_path_len = next_path(try_dir, &env_path_ptr);
+        path_l = next_path(try_dir, &path_p);
     }
 }
 
-int next_path(char *dst_ptr, char **src_ptr) {
-    int dst_len;
+int next_path(char *dp, char **sp) {
+    int dl;
 
-    if (**src_ptr == ':') {
-        (*src_ptr)++;
-        getcwd(dst_ptr, PATH_MAX);
-        return (strlen(dst_ptr));
+    if (**sp == ':') {
+        (*sp)++;
+        getcwd(dp, PATH_MAX);
+        return (strlen(dp));
     } else {
-        dst_len = 0;
-        while (**src_ptr != '\0' && **src_ptr != '\n' && **src_ptr != '\r' &&
-               **src_ptr != ':') {
-            *dst_ptr++ = *(*src_ptr)++;
-            dst_len++;
+        dl = 0;
+        while (**sp != '\0' && **sp != '\n' && **sp != '\r' && **sp != ':') {
+            *dp++ = *(*sp)++;
+            dl++;
         }
-        *dst_ptr = '\0';
-        if (**src_ptr == ':' && *++(*src_ptr) == '\0')
-            (*src_ptr)--;
-        return (dst_len);
+        *dp = '\0';
+        if (**sp == ':' && *++(*sp) == '\0')
+            (*sp)--;
+        return (dl);
     }
 }
 
 int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
     int i, last_slash;
     char tmp_file_spec[PATH_MAX];
-    int file_spec_len;
+    int file_spec_l;
     struct stat stat_struct;
 
     if (stat(file_spec, &stat_struct) != -1)
@@ -154,10 +154,10 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
         return (0);
     }
     strcpy(tmp_file_spec, file_spec);
-    file_spec_len = strlen(file_spec);
+    file_spec_l = strlen(file_spec);
     last_slash = -1;
     i = 0;
-    while (i < file_spec_len) {
+    while (i < file_spec_l) {
         if (tmp_file_spec[i] == '/')
             last_slash = i;
         i++;
@@ -174,16 +174,16 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
         tmp_file_spec[last_slash] = '\0';
         strcpy(file_path, tmp_file_spec);
         strcat(file_path, "/");
-        if (last_slash < file_spec_len)
+        if (last_slash < file_spec_l)
             last_slash++;
         strcpy(file_name, tmp_file_spec + last_slash);
     }
     return (0);
 }
 
-void normalend(int rc) { exit(rc); }
+void normalend(int rc) { exit(EXIT_SUCCESS); }
 
 void abend(char *pgmid, int rc, char *err_msg) {
     fprintf(stderr, "%s; error %d; %s\n", pgmid, rc, err_msg);
-    exit(rc);
+    exit(EXIT_FAILURE);
 }

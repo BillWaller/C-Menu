@@ -5,8 +5,10 @@
  */
 
 #include "menu.h"
-#include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
+
+char *eargv[MAXARGS];
 
 int lines = 10, cols = 40, begx = 10, begy = 4;
 
@@ -14,6 +16,8 @@ WINDOW *win;
 WINDOW *win_win[MAXWIN];
 WINDOW *win_box[MAXWIN];
 
+void open_curses();
+void close_curses();
 int win_new(int, int, int, int, char *);
 void win_redraw(WINDOW *, int, char *);
 WINDOW *win_open_box(int, int, int, int, char *);
@@ -27,15 +31,21 @@ void cbox(WINDOW *);
 void win_init_attrs(int, int, int);
 int display_o_k_message(char *);
 int display_error_message(char *);
+int error_message(char **);
+void free_error_message(char **);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
+void list_colors();
+int get_color_number(char *s);
+void display_argv_error_msg(char *, char **);
+void abend(int, char *);
+void user_end();
+int nf_error(int, char *);
 
-char tmp_str[MAXLEN + 1];
+char tmp_str[MAXLEN];
 char *tmp_ptr;
 int exit_code;
 unsigned int cmd_key;
 
-int f_erase_remainder = TRUE;
-int f_stop_on_error;
 int win_attr_Odd;
 int win_attr_Even;
 int win_attr;
@@ -79,6 +89,29 @@ const wchar_t bw_br = BW_RBR;
 const wchar_t bw_lt = BW_LT;
 const wchar_t bw_rt = BW_RT;
 const wchar_t bw_sp = BW_SP;
+
+void open_curses() {
+    initscr();
+    f_curses_open = true;
+    clear();
+    nonl(); // don't translate CR to LF
+    noecho();
+    cbreak(); // raw unbuffered
+    keypad(stdscr, true);
+    clearok(stdscr, false);
+    scrollok(stdscr, true);
+}
+
+void close_curses() {
+    if (f_curses_open) {
+        wclear(stdscr);
+        wrefresh(stdscr);
+        endwin();
+        f_curses_open = false;
+    }
+    restore_shell_tioctl();
+    sig_dfl_mode();
+}
 
 int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
     int maxx;
@@ -279,40 +312,98 @@ void win_init_attrs(int fg_color, int bg_color, int bo_color) {
     box_Attr = COLOR_PAIR(2);
 }
 
-int display_error_message(char *msgstr) {
-    char emsg[80];
-    int emsglen = 80;
+int error_message(char **argv) {
+    const int msg_max_len = 71;
+    WINDOW *error_win;
+    int len, line, pos;
+    int argc, i;
+    char msg[72];
+    char title[64];
     unsigned cmd_key;
-    WINDOW *Errorwin;
-    int l, line, pos;
-    char *s, *e;
+    char c;
 
-    strncpy(emsg, msgstr, emsglen);
+    argc = 0;
+    while (argv[argc]) {
+        len = strlen(argv[argc]);
+        if (len > cols)
+            cols = len;
+        argc++;
+    }
+    lines = argc + 1;
+    if (f_curses_open) {
+        if (cols > msg_max_len - 4)
+            cols = msg_max_len - 4;
+        pos = ((COLS - len) - 4) / 2;
+        line = (LINES - 4) / 2;
+
+        strncpy(title, "Error", msg_max_len - 7);
+        if (win_new(lines, cols + 2, line, pos, title)) {
+            sprintf(tmp_str, "win_new(%d, %d, %d, %s) failed", cols, line, pos,
+                    msg);
+            abend(-1, tmp_str);
+        }
+        error_win = win_win[win_ptr];
+        i = 0;
+        while (i < argc)
+            mvwaddstr(error_win, i, 1, argv[i++]);
+        wattron(error_win, A_REVERSE);
+        mvwaddstr(error_win, i, 1,
+                  " Type \"X\" to exit or any other key to continue ");
+        wattroff(error_win, A_REVERSE);
+        // wmove(error_win, i - 1, len + 1);
+        // touchwin(error_win);
+        // wnoutrefresh(error_win);
+        wrefresh(error_win);
+        cmd_key = wgetch(error_win);
+        c = (char)cmd_key;
+        to_uppercase(c);
+        if (c == 'X') {
+            exit_code = -1;
+            abend(-1, "menu terminated by user");
+        }
+        win_del();
+    } else {
+        i = 0;
+        while (i++ < lines) {
+            strncpy(msg, argv[i], msg_max_len - 1);
+            fprintf(stderr, "%s\n", msg);
+        }
+        cmd_key = di_getch();
+        if (cmd_key == 'X' || cmd_key == 'x') {
+            exit_code = -1;
+            abend(-1, "menu terminated by user");
+        }
+    }
+    return (cmd_key);
+}
+
+int display_error_message(char *emsg_str) {
+    char emsg[80];
+    int emsg_max_len = 80;
+    unsigned cmd_key;
+    WINDOW *error_win;
+    int len, line, pos;
+
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
         return (1);
     }
-    l = 0;
-    s = emsg;
-    e = s + COLS - 3;
-    while (*s != '\0' && *s != '\n' && s < e) {
-        s++;
-        l++;
-    }
-    *s = '\0';
-    pos = (COLS - l - 4) / 2;
+
+    len = strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
+
+    pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
 
     strcpy(tmp_str, "Notification");
-    if (win_new(2, l + 2, line, pos, tmp_str)) {
+    if (win_new(1, len + 2, line, pos, tmp_str)) {
         sprintf(tmp_str, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
         abend(-1, tmp_str);
     }
-    Errorwin = win_win[win_ptr];
-    mvwaddstr(Errorwin, 0, 1, emsg);
-    wmove(Errorwin, 0, l + 1);
-    wrefresh(Errorwin);
-    cmd_key = wgetch(Errorwin);
+    error_win = win_win[win_ptr];
+    mvwaddstr(error_win, 0, 1, emsg);
+    wmove(error_win, 0, len + 1);
+    wrefresh(error_win);
+    cmd_key = wgetch(error_win);
     win_del();
     return (cmd_key);
 }
@@ -329,4 +420,77 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
             *d++ = *s++;
     *d++ = '\0';
     mvwaddstr(w, y, x, tmp_str);
+}
+
+int get_color_number(char *s) {
+    int i = 0;
+    int n = NCOLORS;
+
+    str_to_lower(s);
+    while (i < n) {
+        if (!strcmp(colors_text[i], s))
+            break;
+        i++;
+    }
+    if (i >= n)
+        return (-1);
+    return (i);
+}
+
+void list_colors() {
+    int i, col;
+
+    for (i = 0, col = 0; i < NCOLORS; i++, col++) {
+        if (i < 8) {
+            fprintf(stderr, " ");
+        }
+        if (i == 8) {
+            col = 0;
+            fprintf(stderr, "\n");
+        } else if (col > 0)
+            fprintf(stderr, " ");
+        fprintf(stderr, "%s", colors_text[i]);
+    }
+    fprintf(stderr, "\n");
+}
+
+void display_argv_error_msg(char *emsg, char **argv) {
+    int argc;
+
+    argc = 0;
+    fprintf(stderr, "\r\n");
+    while (*argv != NULL && **argv != '\0')
+        fprintf(stderr, "argv[%d] - %s\r\n", argc++, *argv++);
+    fprintf(stderr, "%s\r\n", emsg);
+    fprintf(stderr, "%s", "Press any key to continue");
+    wrefresh(stdscr);
+    wgetch(stdscr);
+}
+
+int nf_error(int ec, char *s) {
+    fprintf(stderr, "ERROR: %s code: %d\n", s, ec);
+    fprintf(stderr, "Press a key to continue");
+    di_getch();
+    fprintf(stderr, "\n");
+    return ec;
+}
+
+void user_end() {
+    close_curses();
+    restore_shell_tioctl();
+    sig_dfl_mode();
+    fprintf(stderr, "Normal program exit");
+    fprintf(stderr, "\n");
+    exit(EXIT_SUCCESS);
+}
+
+void abend(int ec, char *s) {
+    close_curses();
+    restore_shell_tioctl();
+    sig_dfl_mode();
+    fprintf(stderr, "\nABEND: %s code: %d\n", s, ec);
+    fprintf(stderr, "Press a key to exit program");
+    // di_getch();
+    fprintf(stderr, "\n");
+    exit(EXIT_FAILURE);
 }

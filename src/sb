@@ -22,10 +22,17 @@ if [ "$#" = 1 ]; then
 	fi
 fi
 echo "Running scan-build for cmenu..."
-scan-build --use-analyzer=/usr/bin/clang --status-bugs -plist-html \
-	--html-title="cmenu Scan-Build" -o /home/bill/scan-build \
-	-enable-checker debug.DumpCFG -enable-checker debug.DumpCallGraph \
-	-enable-checker unix.cstring.NulArg -enable-checker unix.API \
-	make clean all >scan-build.log 2>&1
-# -enable-checker debug.ViewCallGraph \
-#			-enable-checker debug.ViewCFG \
+scan-build \
+	--use-analyzer=/usr/bin/clang \
+	-plist-html \
+	--html-title="cmenu Scan-Build" \
+	-enable-checker unix.cstring.NulArg \
+	-enable-checker unix.API \
+	-enable-checker unix.Malloc \
+	-enable-checker core.NullDereference \
+	make clean all -o /home/bill/scan-build >scan-build.log 2>&1
+# -enable-checker debug.ViewCallGraph
+# -enable-checker debug.DumpCallGraph \
+# -enable-checker debug.ViewCFG
+# -enable-checker debug.DumpCFG \
+# --status-bugs \

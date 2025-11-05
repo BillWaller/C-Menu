@@ -1,0 +1,17 @@
+    H:Contact Information
+    
+    
+                1         2         3         4         5         6         7         8
+      0123456789012345678901234567890123456789012345678901234567890123456789012345678901
+                 11         22
+    T~2~11~10   "     Name: John Doe
+    F~2~22~36
+                "  Address: 1234 Elm Street, Springfield, IL 62704
+                "    Phone: (555) 123-4567
+                "    Email: jdoe@bigcorp.com
+                "  Website: www.johndoe.com
+                "   GitHub: github.com/johndoe
+                "  Twitter: @johndoe
+                " LinkedIn: linkedin.com/in/johndoe
+
+                "   Amount:

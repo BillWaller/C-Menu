@@ -1,0 +1,869 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	Development	//
+ACCEPT_PROMPT_CHAR	menu.h	25;"	d
+ANSWER_SPEC	init.c	/^    ANSWER_SPEC,$/;"	e	enum:__anon20	file:
+ARRAY_SIZE	opts.c	7;"	d	file:
+BG_COLOR	menu.h	223;"	d
+BO_COLOR	menu.h	224;"	d
+BO_END	view_engine.c	27;"	d	file:
+BO_START	view_engine.c	26;"	d	file:
+BUFSIZ	menu.h	86;"	d
+BW_BL	menu.h	232;"	d
+BW_BR	menu.h	233;"	d
+BW_BT	menu.h	242;"	d
+BW_CR	menu.h	241;"	d
+BW_HO	menu.h	228;"	d
+BW_LT	menu.h	238;"	d
+BW_RBL	menu.h	236;"	d
+BW_RBR	menu.h	237;"	d
+BW_RT	menu.h	240;"	d
+BW_RTL	menu.h	234;"	d
+BW_RTR	menu.h	235;"	d
+BW_SP	menu.h	243;"	d
+BW_TL	menu.h	230;"	d
+BW_TR	menu.h	231;"	d
+BW_TT	menu.h	239;"	d
+BW_VE	menu.h	229;"	d
+COLOR_LEN	menu.h	225;"	d
+CT_CKEYS	menu.h	/^    CT_CKEYS,$/;"	e	enum:__anon7
+CT_EXEC	menu.h	/^    CT_EXEC,$/;"	e	enum:__anon7
+CT_FORM	menu.h	/^    CT_FORM,$/;"	e	enum:__anon7
+CT_FORM_EXEC	menu.h	/^    CT_FORM_EXEC,$/;"	e	enum:__anon7
+CT_FORM_WRITE	menu.h	/^    CT_FORM_WRITE,$/;"	e	enum:__anon7
+CT_HELP	menu.h	/^    CT_HELP,$/;"	e	enum:__anon7
+CT_MENU	menu.h	/^    CT_MENU,$/;"	e	enum:__anon7
+CT_NULL	menu.h	/^    CT_NULL,$/;"	e	enum:__anon7
+CT_PICK	menu.h	/^    CT_PICK,$/;"	e	enum:__anon7
+CT_RETURN	menu.h	/^    CT_RETURN,$/;"	e	enum:__anon7
+CT_RETURNMAIN	menu.h	/^    CT_RETURNMAIN,$/;"	e	enum:__anon7
+CT_TOGGLE	menu.h	/^    CT_TOGGLE,$/;"	e	enum:__anon7
+CT_UNDEFINED	menu.h	/^    CT_UNDEFINED$/;"	e	enum:__anon7
+CT_VIEW	menu.h	/^    CT_VIEW,$/;"	e	enum:__anon7
+CT_WRITE_CONFIG	menu.h	/^    CT_WRITE_CONFIG,$/;"	e	enum:__anon7
+C_MAIN	menu.h	/^enum { C_MAIN, C_MENU, C_OPTION };$/;"	e	enum:__anon8
+C_MENU	menu.h	/^enum { C_MAIN, C_MENU, C_OPTION };$/;"	e	enum:__anon8
+C_OPTION	menu.h	/^enum { C_MAIN, C_MENU, C_OPTION };$/;"	e	enum:__anon8
+Caller	menu.h	/^enum Caller { VIEW, FORM, PICK, MENU };$/;"	g
+Color	menu.h	/^enum Color {$/;"	g
+Ctrl	view_engine.c	17;"	d	file:
+DEFAULTEDITOR	menu.h	26;"	d
+DEFAULTSHELL	menu.h	37;"	d
+DEF_COLS	menu.h	15;"	d
+DEF_LINES	menu.h	21;"	d
+D_CMD	fform.c	12;"	d	file:
+D_COMMENT	fform.c	11;"	d	file:
+D_FIELD	fform.c	13;"	d	file:
+D_HEADER	fform.c	16;"	d	file:
+D_HELP	fform.c	15;"	d	file:
+D_TEXT	fform.c	14;"	d	file:
+EDITOR	menu.h	27;"	d
+EIGHT	menu.h	46;"	d
+FAIL	whence.c	26;"	d	file:
+FALSE	iloan.c	13;"	d	file:
+FALSE	menu.h	83;"	d
+FALSE	whence.c	20;"	d	file:
+FG_COLOR	menu.h	222;"	d
+FILEBUFS	menu.h	563;"	d
+FORM	menu.h	/^enum Caller { VIEW, FORM, PICK, MENU };$/;"	e	enum:Caller
+FORM_EXEC_HELP_FILE	menu.h	30;"	d
+FORM_WRITE_HELP_FILE	menu.h	31;"	d
+F_NOECHO	menu.h	45;"	d
+F_NOMETAS	menu.h	43;"	d
+F_NOTBLANK	menu.h	44;"	d
+Field	menu.h	/^} Field;$/;"	t	typeref:struct:__anon13
+Form	menu.h	/^} Form;$/;"	t	typeref:struct:__anon14
+GSTART	dgraph.c	20;"	d	file:
+GWIDTH	dgraph.c	21;"	d	file:
+HELP_CMD	menu.h	34;"	d
+HELP_SPEC	init.c	/^    HELP_SPEC,$/;"	e	enum:__anon20	file:
+IC_FORM	menu.h	/^enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };$/;"	e	enum:__anon19
+IC_MENU	menu.h	/^enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };$/;"	e	enum:__anon19
+IC_PICK	menu.h	/^enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };$/;"	e	enum:__anon19
+IC_VIEW	menu.h	/^enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };$/;"	e	enum:__anon19
+IN_SPEC	init.c	/^    IN_SPEC,$/;"	e	enum:__anon20	file:
+Init	menu.h	/^} Init;$/;"	t	typeref:struct:__anon18
+KEY_ALT	menu.h	/^    KEY_ALT,$/;"	e	enum:__anon3
+KEY_ALT0	menu.h	/^    KEY_ALT0,$/;"	e	enum:__anon3
+KEY_ALT1	menu.h	/^    KEY_ALT1,$/;"	e	enum:__anon3
+KEY_ALT2	menu.h	/^    KEY_ALT2,$/;"	e	enum:__anon3
+KEY_ALT3	menu.h	/^    KEY_ALT3,$/;"	e	enum:__anon3
+KEY_ALT4	menu.h	/^    KEY_ALT4,$/;"	e	enum:__anon3
+KEY_ALT5	menu.h	/^    KEY_ALT5,$/;"	e	enum:__anon3
+KEY_ALT6	menu.h	/^    KEY_ALT6,$/;"	e	enum:__anon3
+KEY_ALT7	menu.h	/^    KEY_ALT7,$/;"	e	enum:__anon3
+KEY_ALT8	menu.h	/^    KEY_ALT8,$/;"	e	enum:__anon3
+KEY_ALT9	menu.h	/^    KEY_ALT9$/;"	e	enum:__anon3
+KEY_ALTA	menu.h	/^    KEY_ALTA = 0x170,$/;"	e	enum:__anon3
+KEY_ALTB	menu.h	/^    KEY_ALTB,$/;"	e	enum:__anon3
+KEY_ALTC	menu.h	/^    KEY_ALTC,$/;"	e	enum:__anon3
+KEY_ALTD	menu.h	/^    KEY_ALTD,$/;"	e	enum:__anon3
+KEY_ALTE	menu.h	/^    KEY_ALTE,$/;"	e	enum:__anon3
+KEY_ALTF	menu.h	/^    KEY_ALTF,$/;"	e	enum:__anon3
+KEY_ALTG	menu.h	/^    KEY_ALTG,$/;"	e	enum:__anon3
+KEY_ALTH	menu.h	/^    KEY_ALTH,$/;"	e	enum:__anon3
+KEY_ALTI	menu.h	/^    KEY_ALTI,$/;"	e	enum:__anon3
+KEY_ALTJ	menu.h	/^    KEY_ALTJ,$/;"	e	enum:__anon3
+KEY_ALTK	menu.h	/^    KEY_ALTK,$/;"	e	enum:__anon3
+KEY_ALTL	menu.h	/^    KEY_ALTL,$/;"	e	enum:__anon3
+KEY_ALTM	menu.h	/^    KEY_ALTM,$/;"	e	enum:__anon3
+KEY_ALTN	menu.h	/^    KEY_ALTN,$/;"	e	enum:__anon3
+KEY_ALTO	menu.h	/^    KEY_ALTO,$/;"	e	enum:__anon3
+KEY_ALTP	menu.h	/^    KEY_ALTP,$/;"	e	enum:__anon3
+KEY_ALTQ	menu.h	/^    KEY_ALTQ,$/;"	e	enum:__anon3
+KEY_ALTR	menu.h	/^    KEY_ALTR,$/;"	e	enum:__anon3
+KEY_ALTS	menu.h	/^    KEY_ALTS,$/;"	e	enum:__anon3
+KEY_ALTT	menu.h	/^    KEY_ALTT,$/;"	e	enum:__anon3
+KEY_ALTU	menu.h	/^    KEY_ALTU,$/;"	e	enum:__anon3
+KEY_ALTV	menu.h	/^    KEY_ALTV,$/;"	e	enum:__anon3
+KEY_ALTW	menu.h	/^    KEY_ALTW,$/;"	e	enum:__anon3
+KEY_ALTX	menu.h	/^    KEY_ALTX,$/;"	e	enum:__anon3
+KEY_ALTY	menu.h	/^    KEY_ALTY,$/;"	e	enum:__anon3
+KEY_CTLA	menu.h	/^    KEY_CTLA,$/;"	e	enum:__anon4
+KEY_CTLB	menu.h	/^    KEY_CTLB,$/;"	e	enum:__anon4
+KEY_CTLC	menu.h	/^    KEY_CTLC,$/;"	e	enum:__anon4
+KEY_CTLD	menu.h	/^    KEY_CTLD,$/;"	e	enum:__anon4
+KEY_CTLE	menu.h	/^    KEY_CTLE,$/;"	e	enum:__anon4
+KEY_CTLF	menu.h	/^    KEY_CTLF,$/;"	e	enum:__anon4
+KEY_CTLG	menu.h	/^    KEY_CTLG,$/;"	e	enum:__anon4
+KEY_CTLH	menu.h	/^    KEY_CTLH,$/;"	e	enum:__anon4
+KEY_CTLI	menu.h	/^    KEY_CTLI,$/;"	e	enum:__anon4
+KEY_CTLJ	menu.h	/^    KEY_CTLJ,$/;"	e	enum:__anon4
+KEY_CTLK	menu.h	/^    KEY_CTLK,$/;"	e	enum:__anon4
+KEY_CTLL	menu.h	/^    KEY_CTLL,$/;"	e	enum:__anon4
+KEY_CTLM	menu.h	/^    KEY_CTLM,$/;"	e	enum:__anon4
+KEY_CTLN	menu.h	/^    KEY_CTLN,$/;"	e	enum:__anon4
+KEY_CTLO	menu.h	/^    KEY_CTLO,$/;"	e	enum:__anon4
+KEY_CTLP	menu.h	/^    KEY_CTLP,$/;"	e	enum:__anon4
+KEY_CTLQ	menu.h	/^    KEY_CTLQ,$/;"	e	enum:__anon4
+KEY_CTLR	menu.h	/^    KEY_CTLR,$/;"	e	enum:__anon4
+KEY_CTLS	menu.h	/^    KEY_CTLS,$/;"	e	enum:__anon4
+KEY_CTLT	menu.h	/^    KEY_CTLT,$/;"	e	enum:__anon4
+KEY_CTLU	menu.h	/^    KEY_CTLU,$/;"	e	enum:__anon4
+KEY_CTLV	menu.h	/^    KEY_CTLV,$/;"	e	enum:__anon4
+KEY_CTLW	menu.h	/^    KEY_CTLW,$/;"	e	enum:__anon4
+KEY_CTLX	menu.h	/^    KEY_CTLX,$/;"	e	enum:__anon4
+KEY_CTLY	menu.h	/^    KEY_CTLY,$/;"	e	enum:__anon4
+KEY_CTLZ	menu.h	/^    KEY_CTLZ$/;"	e	enum:__anon4
+KEY_ESC	menu.h	183;"	d
+KEY_F1	menu.h	/^    KEY_F1 = 0x109,$/;"	e	enum:__anon2
+KEY_F10	menu.h	/^    KEY_F10,$/;"	e	enum:__anon2
+KEY_F11	menu.h	/^    KEY_F11,$/;"	e	enum:__anon2
+KEY_F12	menu.h	/^    KEY_F12,$/;"	e	enum:__anon2
+KEY_F13	menu.h	/^    KEY_F13,$/;"	e	enum:__anon2
+KEY_F14	menu.h	/^    KEY_F14,$/;"	e	enum:__anon2
+KEY_F2	menu.h	/^    KEY_F2,$/;"	e	enum:__anon2
+KEY_F3	menu.h	/^    KEY_F3,$/;"	e	enum:__anon2
+KEY_F4	menu.h	/^    KEY_F4,$/;"	e	enum:__anon2
+KEY_F5	menu.h	/^    KEY_F5,$/;"	e	enum:__anon2
+KEY_F6	menu.h	/^    KEY_F6,$/;"	e	enum:__anon2
+KEY_F7	menu.h	/^    KEY_F7,$/;"	e	enum:__anon2
+KEY_F8	menu.h	/^    KEY_F8,$/;"	e	enum:__anon2
+KEY_F9	menu.h	/^    KEY_F9,$/;"	e	enum:__anon2
+KEY_NULL	menu.h	/^    KEY_NULL,$/;"	e	enum:__anon4
+KEY_TAB	menu.h	184;"	d
+Line	menu.h	/^} Line;$/;"	t	typeref:struct:__anon10
+MAPP_DATA	init.c	/^    MAPP_DATA,$/;"	e	enum:__anon20	file:
+MAPP_DIR	menu.h	39;"	d
+MAPP_HELP	init.c	/^    MAPP_HELP,$/;"	e	enum:__anon20	file:
+MAPP_MSRC	init.c	/^    MAPP_MSRC = 257,$/;"	e	enum:__anon20	file:
+MAPP_SPEC	init.c	/^    MAPP_SPEC,$/;"	e	enum:__anon20	file:
+MAXARGS	menu.h	23;"	d
+MAXCHAR	view_engine.c	23;"	d	file:
+MAXFIELDS	menu.h	24;"	d
+MAXLEN	chkfile.c	10;"	d	file:
+MAXLEN	menu.h	12;"	d
+MAXLEN	menu.h	566;"	d
+MAXLEN	rsh.c	31;"	d	file:
+MAXLINE	view_engine.c	18;"	d	file:
+MAXOPTS	menu.h	41;"	d
+MAXWIN	menu.h	266;"	d
+MAX_COLS	menu.h	14;"	d
+MAX_LINES	menu.h	16;"	d
+MA_DISPLAY_MENU	menu.h	/^enum { MA_INIT, MA_RETURN, MA_RETURN_MAIN, MA_DISPLAY_MENU, MA_ENTER_OPTION };$/;"	e	enum:__anon6
+MA_ENTER_OPTION	menu.h	/^enum { MA_INIT, MA_RETURN, MA_RETURN_MAIN, MA_DISPLAY_MENU, MA_ENTER_OPTION };$/;"	e	enum:__anon6
+MA_INIT	menu.h	/^enum { MA_INIT, MA_RETURN, MA_RETURN_MAIN, MA_DISPLAY_MENU, MA_ENTER_OPTION };$/;"	e	enum:__anon6
+MA_RETURN	menu.h	/^enum { MA_INIT, MA_RETURN, MA_RETURN_MAIN, MA_DISPLAY_MENU, MA_ENTER_OPTION };$/;"	e	enum:__anon6
+MA_RETURN_MAIN	menu.h	/^enum { MA_INIT, MA_RETURN, MA_RETURN_MAIN, MA_DISPLAY_MENU, MA_ENTER_OPTION };$/;"	e	enum:__anon6
+MENU	menu.h	/^enum Caller { VIEW, FORM, PICK, MENU };$/;"	e	enum:Caller
+MENU_HELP_FILE	menu.h	28;"	d
+MINITRC	menu.h	38;"	d
+MIN_COLS	menu.h	13;"	d
+MO_BO_EXPECT_CHR	view_engine.c	35;"	d	file:
+MO_BO_GOT_BS_EXPECT_SAME	view_engine.c	37;"	d	file:
+MO_BO_GOT_CHR_EXPECT_BS	view_engine.c	36;"	d	file:
+MO_NORMAL	view_engine.c	31;"	d	file:
+MO_UL_EXPECT_CHR	view_engine.c	32;"	d	file:
+MO_UL_GOT_BS_EXPECT_CHR	view_engine.c	34;"	d	file:
+MO_UL_GOT_CHR_EXPECT_BS	view_engine.c	33;"	d	file:
+MT_CENTERED_TEXT	menu.h	/^enum { MT_NULL, MT_CENTERED_TEXT, MT_LEFT_JUST_TEXT, MT_CHOICE };$/;"	e	enum:__anon5
+MT_CHOICE	menu.h	/^enum { MT_NULL, MT_CENTERED_TEXT, MT_LEFT_JUST_TEXT, MT_CHOICE };$/;"	e	enum:__anon5
+MT_LEFT_JUST_TEXT	menu.h	/^enum { MT_NULL, MT_CENTERED_TEXT, MT_LEFT_JUST_TEXT, MT_CHOICE };$/;"	e	enum:__anon5
+MT_NULL	menu.h	/^enum { MT_NULL, MT_CENTERED_TEXT, MT_LEFT_JUST_TEXT, MT_CHOICE };$/;"	e	enum:__anon5
+M_JUMP	pick_engine-bak.c	11;"	d	file:
+M_JUMP	pick_engine.c	12;"	d	file:
+Menu	menu.h	/^} Menu;$/;"	t	typeref:struct:__anon11
+NCOLORS	menu.h	22;"	d
+NELEMENTS	dgraph.c	13;"	d	file:
+NFORM	dgraph.c	19;"	d	file:
+NMARKS	menu.h	565;"	d
+NMARKS	view_engine.c	19;"	d	file:
+NPOS	menu.h	564;"	d
+NSTRLEN	dgraph.c	18;"	d	file:
+NULL_POSITION	init_view.c	/^long const NULL_POSITION = (-1);$/;"	v
+NULL_POSITION	view_engine.c	21;"	d	file:
+Nstr	dgraph.c	/^char Nstr[NELEMENTS][NSTRLEN];$/;"	v
+OBJ_MAXCNT	menu.h	505;"	d
+OBJ_MAXLEN	menu.h	504;"	d
+OG_DIRS	menu.h	/^enum OptGroup { OG_FILES, OG_DIRS, OG_SPECS, OG_MISC, OG_PARMS, OG_FLAGS };$/;"	e	enum:OptGroup
+OG_FILES	menu.h	/^enum OptGroup { OG_FILES, OG_DIRS, OG_SPECS, OG_MISC, OG_PARMS, OG_FLAGS };$/;"	e	enum:OptGroup
+OG_FLAGS	menu.h	/^enum OptGroup { OG_FILES, OG_DIRS, OG_SPECS, OG_MISC, OG_PARMS, OG_FLAGS };$/;"	e	enum:OptGroup
+OG_MISC	menu.h	/^enum OptGroup { OG_FILES, OG_DIRS, OG_SPECS, OG_MISC, OG_PARMS, OG_FLAGS };$/;"	e	enum:OptGroup
+OG_PARMS	menu.h	/^enum OptGroup { OG_FILES, OG_DIRS, OG_SPECS, OG_MISC, OG_PARMS, OG_FLAGS };$/;"	e	enum:OptGroup
+OG_SPECS	menu.h	/^enum OptGroup { OG_FILES, OG_DIRS, OG_SPECS, OG_MISC, OG_PARMS, OG_FLAGS };$/;"	e	enum:OptGroup
+OT_BOOL	menu.h	/^    OT_BOOL,$/;"	e	enum:OptType
+OT_INT	menu.h	/^    OT_INT,$/;"	e	enum:OptType
+OT_STRING	menu.h	/^    OT_STRING,$/;"	e	enum:OptType
+OUT_SPEC	init.c	/^    OUT_SPEC$/;"	e	enum:__anon20	file:
+OptGroup	menu.h	/^enum OptGroup { OG_FILES, OG_DIRS, OG_SPECS, OG_MISC, OG_PARMS, OG_FLAGS };$/;"	g
+OptType	menu.h	/^enum OptType {$/;"	g
+Opts	menu.h	/^} Opts;$/;"	t	typeref:struct:__anon1
+PATH_MAX	whence.c	23;"	d	file:
+PATH_MAX	whence.c	27;"	d	file:
+PICK	menu.h	/^enum Caller { VIEW, FORM, PICK, MENU };$/;"	e	enum:Caller
+PICK_HELP_FILE	menu.h	29;"	d
+PICK_MAX_ARGS	menu.h	17;"	d
+PICK_MAX_ARG_LEN	menu.h	18;"	d
+PIPEBUFS	menu.h	562;"	d
+PRINTCMD	menu.h	40;"	d
+P_ACCEPT	menu.h	/^enum { P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CONTINUE };$/;"	e	enum:__anon9
+P_CANCEL	menu.h	/^enum { P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CONTINUE };$/;"	e	enum:__anon9
+P_CONTINUE	menu.h	/^enum { P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CONTINUE };$/;"	e	enum:__anon9
+P_ERROR	menu.h	42;"	d
+P_HELP	menu.h	/^enum { P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CONTINUE };$/;"	e	enum:__anon9
+P_REFUSE	menu.h	/^enum { P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CONTINUE };$/;"	e	enum:__anon9
+PgmID	init.c	/^const char *PgmID = "init.c";$/;"	v
+Pick	menu.h	/^} Pick;$/;"	t	typeref:struct:__anon15
+REASSIGN_STDIN	menu.h	75;"	d
+Screen	scriou.c	/^SCREEN *Screen;$/;"	v
+TRUE	iloan.c	14;"	d	file:
+TRUE	menu.h	82;"	d
+TRUE	whence.c	17;"	d	file:
+Text	menu.h	/^} Text;$/;"	t	typeref:struct:__anon12
+UL_END	view_engine.c	25;"	d	file:
+UL_START	view_engine.c	24;"	d	file:
+VBUFSIZ	menu.h	561;"	d
+VIEW	menu.h	/^enum Caller { VIEW, FORM, PICK, MENU };$/;"	e	enum:Caller
+VIEW_HELP_FILE	menu.h	32;"	d
+VIEW_MAX_ARGS	menu.h	19;"	d
+VIEW_MAX_ARG_LEN	menu.h	20;"	d
+VIEW_PRT_CMD	menu.h	36;"	d
+VIEW_PRT_FILE	menu.h	35;"	d
+View	menu.h	/^} View;$/;"	t	typeref:struct:__anon17
+WC_OK	chkfile.c	11;"	d	file:
+WC_OK	menu.h	71;"	d
+YLINES	dgraph.c	22;"	d	file:
+_MENU_H	menu.h	6;"	d
+abend	dwin.c	/^void abend(int ec, char *s) {$/;"	f
+abend	iloan.c	/^void abend(int e) {$/;"	f
+abend	rsh.c	/^void abend(int e, char const *s) {$/;"	f
+abend	whence.c	/^void abend(char *pgmid, int rc, char *err_msg) {$/;"	f
+accept_field	fields.c	/^int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,$/;"	f
+accept_i	iloan.c	/^double accept_i(double pv, double n) {$/;"	f
+accept_n	iloan.c	/^double accept_n(double pv) {$/;"	f
+accept_pmt	iloan.c	/^double accept_pmt(double pv, double n, double i) {$/;"	f
+accept_pv	iloan.c	/^double accept_pv() {$/;"	f
+accept_str	iloan.c	/^void accept_str(char *s) {$/;"	f
+answer_spec	menu.h	/^    char answer_spec[MAXLEN]; \/\/    answer spec$/;"	m	struct:__anon14
+answer_spec	menu.h	/^    char answer_spec[MAXLEN]; \/\/ -A: answer qualified path$/;"	m	struct:__anon18
+arg_str	menu.h	/^    char arg_str[MAXLEN];$/;"	m	struct:__anon17
+argc	menu.h	/^    int argc;$/;"	m	struct:__anon11
+argc	menu.h	/^    int argc;$/;"	m	struct:__anon15
+argc	menu.h	/^    int argc;$/;"	m	struct:__anon17
+argc	menu.h	/^    int argc;$/;"	m	struct:__anon18
+argv	menu.h	/^    char **argv;$/;"	m	struct:__anon11
+argv	menu.h	/^    char **argv;$/;"	m	struct:__anon15
+argv	menu.h	/^    char **argv;$/;"	m	struct:__anon17
+argv	menu.h	/^    char **argv;$/;"	m	struct:__anon18
+attr	menu.h	/^    int attr, line_mode;$/;"	m	struct:__anon17
+base_name	futil.c	/^bool base_name(char *buf, char *path) {$/;"	f
+bblack	menu.h	/^    bblack,$/;"	e	enum:Color
+bblue	menu.h	/^    bblue,$/;"	e	enum:Color
+bcyan	menu.h	/^    bcyan,$/;"	e	enum:Color
+begx	dwin.c	/^int lines = 10, cols = 40, begx = 10, begy = 4;$/;"	v
+begx	menu.h	/^    int begx;     \/\/ -X: lines$/;"	m	struct:__anon18
+begx	menu.h	/^    int begx;     \/\/ X: lines$/;"	m	struct:__anon11
+begx	menu.h	/^    int begx;     \/\/ X: lines$/;"	m	struct:__anon14
+begx	menu.h	/^    int begx;     \/\/ X: lines$/;"	m	struct:__anon15
+begx	menu.h	/^    int begx;     \/\/ X: lines$/;"	m	struct:__anon17
+begy	dwin.c	/^int lines = 10, cols = 40, begx = 10, begy = 4;$/;"	v
+begy	menu.h	/^    int begy;     \/\/ -Y: lines$/;"	m	struct:__anon18
+begy	menu.h	/^    int begy;     \/\/ Y: lines$/;"	m	struct:__anon11
+begy	menu.h	/^    int begy;     \/\/ Y: lines$/;"	m	struct:__anon14
+begy	menu.h	/^    int begy;     \/\/ Y: lines$/;"	m	struct:__anon15
+begy	menu.h	/^    int begy;     \/\/ Y: lines$/;"	m	struct:__anon17
+bg_color	menu.h	/^    int bg_color; \/\/ -B: background_color$/;"	m	struct:__anon18
+bg_color	menu.h	/^    int bg_color; \/\/ B: background_color$/;"	m	struct:__anon11
+bg_color	menu.h	/^    int bg_color; \/\/ B: background_color$/;"	m	struct:__anon14
+bg_color	menu.h	/^    int bg_color; \/\/ B: background_color$/;"	m	struct:__anon15
+bg_color	menu.h	/^    int bg_color; \/\/ B: background_color$/;"	m	struct:__anon17
+bgreen	menu.h	/^    bgreen,$/;"	e	enum:Color
+black	menu.h	/^    black,$/;"	e	enum:Color
+blk_curr	menu.h	/^    block_struct *blk_first, *blk_last, *blk_curr;$/;"	m	struct:__anon17
+blk_first	menu.h	/^    block_struct *blk_first, *blk_last, *blk_curr;$/;"	m	struct:__anon17
+blk_last	menu.h	/^    block_struct *blk_first, *blk_last, *blk_curr;$/;"	m	struct:__anon17
+blk_no	menu.h	/^    long blk_no, last_blk_no, size_bytes, prev_file_pos, file_pos;$/;"	m	struct:__anon17
+blk_offset	menu.h	/^    int blk_offset;$/;"	m	struct:__anon17
+block_no	menu.h	/^    long block_no;$/;"	m	struct:__anon16
+block_struct	menu.h	/^} block_struct;$/;"	t	typeref:struct:__anon16
+blue	menu.h	/^    blue,$/;"	e	enum:Color
+bmagenta	menu.h	/^    bmagenta,$/;"	e	enum:Color
+bo_color	menu.h	/^    int bo_color; \/\/ -O: border_color$/;"	m	struct:__anon18
+bo_color	menu.h	/^    int bo_color; \/\/ O: border_color$/;"	m	struct:__anon11
+bo_color	menu.h	/^    int bo_color; \/\/ O: border_color$/;"	m	struct:__anon14
+bo_color	menu.h	/^    int bo_color; \/\/ O: border_color$/;"	m	struct:__anon15
+bo_color	menu.h	/^    int bo_color; \/\/ O: border_color$/;"	m	struct:__anon17
+box	menu.h	/^    WINDOW *win, *box;$/;"	m	struct:__anon11
+box	menu.h	/^    WINDOW *win, *box;$/;"	m	struct:__anon14
+box	menu.h	/^    WINDOW *win, *box;$/;"	m	struct:__anon15
+box	menu.h	/^    WINDOW *win, *box;$/;"	m	struct:__anon17
+box_Attr	dwin.c	/^int box_Attr;$/;"	v
+bred	menu.h	/^    bred,$/;"	e	enum:Color
+buf_end	menu.h	/^        *buf_start, *buf_ptr, *buf_end;$/;"	m	struct:__anon17
+buf_ptr	menu.h	/^        *buf_start, *buf_ptr, *buf_end;$/;"	m	struct:__anon17
+buf_start	menu.h	/^        *buf_start, *buf_ptr, *buf_end;$/;"	m	struct:__anon17
+build_prompt	view_engine.c	/^void build_prompt(View *view, char build_prompt_type, char *prompt_ptr) {$/;"	f
+bw_bl	dwin.c	/^const wchar_t bw_bl = BW_RBL;$/;"	v
+bw_br	dwin.c	/^const wchar_t bw_br = BW_RBR;$/;"	v
+bw_ho	dwin.c	/^const wchar_t bw_ho = BW_HO;$/;"	v
+bw_lt	dwin.c	/^const wchar_t bw_lt = BW_LT;$/;"	v
+bw_rt	dwin.c	/^const wchar_t bw_rt = BW_RT;$/;"	v
+bw_sp	dwin.c	/^const wchar_t bw_sp = BW_SP;$/;"	v
+bw_tl	dwin.c	/^const wchar_t bw_tl = BW_RTL;$/;"	v
+bw_tr	dwin.c	/^const wchar_t bw_tr = BW_RTR;$/;"	v
+bw_ve	dwin.c	/^const wchar_t bw_ve = BW_VE;$/;"	v
+bwhite	menu.h	/^    bwhite$/;"	e	enum:Color
+byellow	menu.h	/^    byellow,$/;"	e	enum:Color
+calculate_i	iloan.c	/^double calculate_i(double pv, double n, double pmt) {$/;"	f
+calculate_n	iloan.c	/^double calculate_n(double pv, double i, double pmt) {$/;"	f
+calculate_pmt	iloan.c	/^double calculate_pmt(double pv, double n, double i) {$/;"	f
+calculate_pv	iloan.c	/^double calculate_pv(double n, double i, double pmt) {$/;"	f
+caller	menu.h	/^    char caller; \/\/ called from program$/;"	m	struct:__anon17
+caller	menu.h	/^    char caller; \/\/ called from program$/;"	m	struct:__anon18
+caller	menu.h	/^    char caller;$/;"	m	struct:__anon11
+caller	menu.h	/^    char caller;$/;"	m	struct:__anon14
+caller	menu.h	/^    char caller;$/;"	m	struct:__anon15
+capture_curses_tioctl	scriou.c	/^bool capture_curses_tioctl() {$/;"	f
+capture_shell_tioctl	scriou.c	/^bool capture_shell_tioctl() {$/;"	f
+cat_file	view_engine.c	/^void cat_file(View *view) {$/;"	f
+cbox	dwin.c	/^void cbox(WINDOW *win) {$/;"	f
+choice_letter	menu.h	/^    char choice_letter;$/;"	m	struct:__anon10
+choice_max_len	menu.h	/^    int choice_max_len;$/;"	m	struct:__anon11
+choice_max_len	menu.h	/^    int choice_max_len;$/;"	m	struct:__anon14
+choice_text	menu.h	/^    char *choice_text;$/;"	m	struct:__anon10
+close_curses	dwin.c	/^void close_curses() {$/;"	f
+close_form	mem.c	/^Form *close_form(Init *init) {$/;"	f
+close_init	mem.c	/^Init *close_init(Init *init) {$/;"	f
+close_menu	mem.c	/^Menu *close_menu(Init *init) {$/;"	f
+close_pick	mem.c	/^Pick *close_pick(Init *init) {$/;"	f
+close_view	mem.c	/^View *close_view(Init *init) {$/;"	f
+cmd_jmp	menu.h	/^    jmp_buf cmd_jmp;$/;"	m	struct:__anon17
+cmd_key	dwin.c	/^unsigned int cmd_key;$/;"	v
+cmd_line	menu.h	/^    int curx, cury, max_col, next_c, scroll_lines, cmd_line;$/;"	m	struct:__anon17
+cmd_line_prompt	view_engine.c	/^void cmd_line_prompt(View *view, char *s) {$/;"	f
+cmd_spec	menu.h	/^    char cmd_spec[MAXLEN];    \/\/ -c: answer qualified path$/;"	m	struct:__anon18
+cmd_spec	menu.h	/^    char cmd_spec[MAXLEN];    \/\/ c: command executable$/;"	m	struct:__anon14
+cmd_spec	menu.h	/^    char cmd_spec[MAXLEN];  \/\/ c: command executable$/;"	m	struct:__anon17
+cmd_spec	menu.h	/^    char cmd_spec[MAXLEN];  \/\/ c: command$/;"	m	struct:__anon15
+col	menu.h	/^    int col;$/;"	m	struct:__anon12
+col	menu.h	/^    int col;$/;"	m	struct:__anon13
+col	menu.h	/^    int col;$/;"	m	struct:__anon15
+col_cnt	menu.h	/^    int col_cnt;$/;"	m	struct:__anon15
+colors_text	dwin.c	/^char const colors_text[16][10] = {"black",  "red",   "green",    "yellow",$/;"	v
+cols	dwin.c	/^int lines = 10, cols = 40, begx = 10, begy = 4;$/;"	v
+cols	menu.h	/^    int cols;     \/\/ -C: columns$/;"	m	struct:__anon18
+cols	menu.h	/^    int cols;     \/\/ C: columns$/;"	m	struct:__anon11
+cols	menu.h	/^    int cols;     \/\/ C: columns$/;"	m	struct:__anon14
+cols	menu.h	/^    int cols;     \/\/ C: columns$/;"	m	struct:__anon15
+cols	menu.h	/^    int cols;     \/\/ C: columns$/;"	m	struct:__anon17
+command_str	menu.h	/^    char *command_str;$/;"	m	struct:__anon10
+command_type	menu.h	/^    char command_type;$/;"	m	struct:__anon10
+comp_opt_desc	opts.c	/^static int comp_opt_desc(const void *o1, const void *o2) {$/;"	f	file:
+comp_opt_group	opts.c	/^static int comp_opt_group(const void *o1, const void *o2) {$/;"	f	file:
+comp_opt_name	opts.c	/^static int comp_opt_name(const void *o1, const void *o2) {$/;"	f	file:
+cur_file_str	menu.h	/^    char cur_file_str[MAXLEN];$/;"	m	struct:__anon17
+curr_argc	menu.h	/^    int curr_argc;$/;"	m	struct:__anon17
+curses_err_tioctl	scriou.c	/^struct termios shell_err_tioctl, curses_err_tioctl;$/;"	v	typeref:struct:
+curses_in_tioctl	scriou.c	/^struct termios shell_in_tioctl, curses_in_tioctl;$/;"	v	typeref:struct:
+curses_out_tioctl	scriou.c	/^struct termios shell_out_tioctl, curses_out_tioctl;$/;"	v	typeref:struct:
+curses_tioctl	scriou.c	/^struct termios curses_tioctl;$/;"	v	typeref:struct:termios
+curses_tioctl	scriou.c	/^struct termios shell_tioctl, curses_tioctl;$/;"	v	typeref:struct:
+curx	menu.h	/^    int curx, cury, max_col, next_c, scroll_lines, cmd_line;$/;"	m	struct:__anon17
+cury	menu.h	/^    int curx, cury, max_col, next_c, scroll_lines, cmd_line;$/;"	m	struct:__anon17
+cyan	menu.h	/^    cyan,$/;"	e	enum:Color
+data	menu.h	/^    char data[VBUFSIZ];$/;"	m	struct:__anon16
+derive_file_spec	init.c	/^bool derive_file_spec(char *file_spec, char *dir, char *file_name) {$/;"	f
+desc	menu.h	/^    const char *desc;$/;"	m	struct:__anon1
+di_getch	scriou.c	/^char di_getch() {$/;"	f
+didx	menu.h	/^    int didx;$/;"	m	struct:__anon14
+dir_name	chkfile.c	/^bool dir_name(char *buf, char *path) {$/;"	f
+dir_name	futil.c	/^bool dir_name(char *buf, char *path) {$/;"	f
+display_argv_error_msg	dwin.c	/^void display_argv_error_msg(char *emsg, char **argv) {$/;"	f
+display_curses_keys	display_curses_keys.c	/^int display_curses_keys() {$/;"	f
+display_error_message	chkfile.c	/^void display_error_message(const char *message) {$/;"	f
+display_error_message	dwin.c	/^int display_error_message(char *emsg_str) {$/;"	f
+display_error_msg	view_engine.c	/^void display_error_msg(View *view, char *s) {$/;"	f
+display_field	fields.c	/^void display_field(WINDOW *win, int flin, int fcol, char *fptr, int flen,$/;"	f
+display_form_screen	fform.c	/^int display_form_screen(Form *form) {$/;"	f
+display_page	pick_engine-bak.c	/^void display_page(Pick *pick) {$/;"	f
+display_page	pick_engine.c	/^void display_page(Pick *pick) {$/;"	f
+display_text_graph	dgraph.c	/^int display_text_graph() {$/;"	f
+display_version	init.c	/^void display_version() { fprintf(stderr, "\\nVersion %s\\n", mapp_version); }$/;"	f
+dmvwaddstr	dwin.c	/^void dmvwaddstr(WINDOW *win, int y, int x, char *s) {$/;"	f
+dump_config	init.c	/^void dump_config(Init *init, char *msg) {$/;"	f
+dump_opts	opts.c	/^void dump_opts() {$/;"	f
+dump_opts_by_desc	opts.c	/^void dump_opts_by_desc() {$/;"	f
+dump_opts_by_group	opts.c	/^void dump_opts_by_group() {$/;"	f
+dump_opts_by_name	opts.c	/^void dump_opts_by_name() {$/;"	f
+dump_opts_by_use	opts.c	/^void dump_opts_by_use(char *usage, char *mask) {$/;"	f
+eargv	dwin.c	/^char *eargv[MAXARGS];$/;"	v
+end_ptr	menu.h	/^    char *end_ptr;$/;"	m	struct:__anon16
+err_msg	view_engine.c	/^char err_msg[MAXLEN];$/;"	v
+errmsg	futil.c	/^char errmsg[MAXLEN];$/;"	v
+error_message	dwin.c	/^int error_message(char **argv) {$/;"	f
+error_press_any_key	iloan.c	/^void error_press_any_key(char *s) {$/;"	f
+exec_objects	pick_engine-bak.c	/^int exec_objects(Pick *pick, char *title) {$/;"	f
+exec_objects	pick_engine.c	/^int exec_objects(Pick *pick, char *title) {$/;"	f
+executor	init.c	/^int executor = 0;$/;"	v
+executor	menu.h	/^    int executor;$/;"	m	struct:__anon18
+exit_code	dwin.c	/^int exit_code;$/;"	v
+expand_tilde	chkfile.c	/^void expand_tilde(char *path, size_t size) {$/;"	f
+expand_tilde	futil.c	/^bool expand_tilde(char *path, int path_maxlen) {$/;"	f
+f1	dgraph.c	/^numtyp f1;$/;"	v
+f2	dgraph.c	/^numtyp f2;$/;"	v
+f_all	whence.c	/^int f_all, f_help, f_verbose;$/;"	v
+f_answer_spec	menu.h	/^    bool f_answer_spec;$/;"	m	struct:__anon14
+f_append_cmd_args	menu.h	/^    bool f_append_cmd_args;$/;"	m	struct:__anon15
+f_at_end_clear	menu.h	/^    bool f_at_end_clear;    \/\/ -z  clear screen at end of program$/;"	m	struct:__anon18
+f_at_end_clear	menu.h	/^    bool f_at_end_clear;  \/\/ -z  clear screen at end of program$/;"	m	struct:__anon17
+f_at_end_remove	menu.h	/^    bool f_at_end_remove;   \/\/ -r: remove file at end of program$/;"	m	struct:__anon18
+f_at_end_remove	menu.h	/^    bool f_at_end_remove; \/\/ -r: remove file at end of program$/;"	m	struct:__anon17
+f_bar	dgraph.c	/^bool f_bar;$/;"	v
+f_beg_of_file	menu.h	/^    bool f_beg_of_file, f_eof, f_forward, f_is_pipe, f_new_file,$/;"	m	struct:__anon17
+f_cmd_spec	menu.h	/^    bool f_cmd_spec;$/;"	m	struct:__anon14
+f_cmd_spec	menu.h	/^    bool f_cmd_spec;$/;"	m	struct:__anon15
+f_curses_open	sig.c	/^bool f_curses_open = false;$/;"	v
+f_debug	init.c	/^bool f_debug = false;$/;"	v
+f_displaying_help	menu.h	/^        f_pipe_processed, f_redraw_screen, f_displaying_help, f_stdout_is_tty;$/;"	m	struct:__anon17
+f_dump_config	init.c	/^bool f_dump_config = false;$/;"	v
+f_eof	menu.h	/^    bool f_beg_of_file, f_eof, f_forward, f_is_pipe, f_new_file,$/;"	m	struct:__anon17
+f_erase_remainder	menu.h	/^    bool f_erase_remainder; \/\/ -e: erase remainder of line on enter$/;"	m	struct:__anon18
+f_erase_remainder	menu.h	/^    bool f_erase_remainder;$/;"	m	struct:__anon14
+f_file	dgraph.c	/^bool f_file;$/;"	v
+f_forward	menu.h	/^    bool f_beg_of_file, f_eof, f_forward, f_is_pipe, f_new_file,$/;"	m	struct:__anon17
+f_have_curses_tioctl	scriou.c	/^bool f_have_curses_tioctl = false;$/;"	v
+f_have_shell_tioctl	scriou.c	/^bool f_have_shell_tioctl = false;$/;"	v
+f_help	init.c	/^bool f_help = false;$/;"	v
+f_help	whence.c	/^int f_all, f_help, f_verbose;$/;"	v
+f_help_spec	menu.h	/^    bool f_help_spec;$/;"	m	struct:__anon11
+f_help_spec	menu.h	/^    bool f_help_spec;$/;"	m	struct:__anon14
+f_help_spec	menu.h	/^    bool f_help_spec;$/;"	m	struct:__anon15
+f_ignore_case	menu.h	/^    bool f_ignore_case;     \/\/ -x: ignore case in search$/;"	m	struct:__anon18
+f_ignore_case	menu.h	/^    bool f_ignore_case;   \/\/ -x: ignore case in search$/;"	m	struct:__anon17
+f_in_spec	menu.h	/^    bool f_in_spec;$/;"	m	struct:__anon14
+f_in_spec	menu.h	/^    bool f_in_spec;$/;"	m	struct:__anon15
+f_is_pipe	menu.h	/^    bool f_beg_of_file, f_eof, f_forward, f_is_pipe, f_new_file,$/;"	m	struct:__anon17
+f_mapp_data	menu.h	/^    bool f_mapp_data; \/\/$/;"	m	struct:__anon18
+f_mapp_help	menu.h	/^    bool f_mapp_help; \/\/$/;"	m	struct:__anon18
+f_mapp_home	menu.h	/^    bool f_mapp_home; \/\/ -m: home directory$/;"	m	struct:__anon18
+f_mapp_msrc	menu.h	/^    bool f_mapp_msrc; \/\/$/;"	m	struct:__anon18
+f_mapp_spec	menu.h	/^    bool f_mapp_spec;$/;"	m	struct:__anon11
+f_mapp_spec	menu.h	/^    bool f_mapp_spec;$/;"	m	struct:__anon14
+f_mapp_spec	menu.h	/^    bool f_mapp_spec;$/;"	m	struct:__anon15
+f_mapp_user	menu.h	/^    bool f_mapp_user; \/\/ -u: user directory$/;"	m	struct:__anon18
+f_new_file	menu.h	/^    bool f_beg_of_file, f_eof, f_forward, f_is_pipe, f_new_file,$/;"	m	struct:__anon17
+f_out_spec	menu.h	/^    bool f_out_spec;$/;"	m	struct:__anon14
+f_out_spec	menu.h	/^    bool f_out_spec;$/;"	m	struct:__anon15
+f_pie	dgraph.c	/^bool f_pie;$/;"	v
+f_pipe_processed	menu.h	/^        f_pipe_processed, f_redraw_screen, f_displaying_help, f_stdout_is_tty;$/;"	m	struct:__anon17
+f_print	dgraph.c	/^bool f_print;$/;"	v
+f_redraw_screen	menu.h	/^        f_pipe_processed, f_redraw_screen, f_displaying_help, f_stdout_is_tty;$/;"	m	struct:__anon17
+f_selected	menu.h	/^    bool f_selected[OBJ_MAXCNT];$/;"	m	struct:__anon15
+f_squeeze	menu.h	/^    bool f_squeeze;         \/\/ -s  squeeze multiple blank lines$/;"	m	struct:__anon18
+f_squeeze	menu.h	/^    bool f_squeeze;       \/\/ -s  squeeze multiple blank lines$/;"	m	struct:__anon17
+f_stdout_is_tty	menu.h	/^        f_pipe_processed, f_redraw_screen, f_displaying_help, f_stdout_is_tty;$/;"	m	struct:__anon17
+f_stop_on_error	init.c	/^bool f_stop_on_error = true;$/;"	v
+f_stop_on_error	menu.h	/^    bool f_stop_on_error;   \/\/ -Z  stop on error$/;"	m	struct:__anon18
+f_stop_on_error	menu.h	/^    bool f_stop_on_error; \/\/ Z  stop on error$/;"	m	struct:__anon17
+f_stop_on_error	menu.h	/^    bool f_stop_on_error;$/;"	m	struct:__anon11
+f_verbose	rsh.c	/^bool f_verbose = false;$/;"	v
+f_verbose	rsh.c	/^bool f_verbose = true;$/;"	v
+f_verbose	whence.c	/^int f_all, f_help, f_verbose;$/;"	v
+f_version	init.c	/^bool f_version = false;$/;"	v
+f_write_config	init.c	/^bool f_write_config = false;$/;"	v
+far	dgraph.c	16;"	d	file:
+fd	menu.h	/^    int fd;$/;"	m	struct:__anon17
+fg_color	menu.h	/^    int fg_color; \/\/ -F: foreground_color$/;"	m	struct:__anon18
+fg_color	menu.h	/^    int fg_color; \/\/ F: foreground_color$/;"	m	struct:__anon11
+fg_color	menu.h	/^    int fg_color; \/\/ F: foreground_color$/;"	m	struct:__anon14
+fg_color	menu.h	/^    int fg_color; \/\/ F: foreground_color$/;"	m	struct:__anon15
+fg_color	menu.h	/^    int fg_color; \/\/ F: foreground_color$/;"	m	struct:__anon17
+fidx	menu.h	/^    int fidx;$/;"	m	struct:__anon14
+field	menu.h	/^    Field *field[MAXFIELDS];$/;"	m	struct:__anon14
+field_pos	menu.h	/^    int field_pos;$/;"	m	struct:__anon14
+file_graph	dgraph.c	/^void file_graph() {$/;"	f
+file_name	whence.c	/^char *file_name[PATH_MAX + 1];$/;"	v
+file_pos	menu.h	/^    long blk_no, last_blk_no, size_bytes, prev_file_pos, file_pos;$/;"	m	struct:__anon17
+file_spec_name	futil.c	/^void file_spec_name(char *fn, char *fs) {$/;"	f
+file_spec_parts	whence.c	/^int file_spec_parts(char *file_spec, char *file_path, char *file_name) {$/;"	f
+file_spec_path	futil.c	/^void file_spec_path(char *fp, char *fs) {$/;"	f
+file_spec_ptr	menu.h	/^    char *file_spec_ptr;$/;"	m	struct:__anon17
+first_column	menu.h	/^    int first_column, last_column, last_line, ptop, pbot;$/;"	m	struct:__anon17
+fork_exec	exec.c	/^int fork_exec(char **argv) {$/;"	f
+form	mem.c	/^Form *form;$/;"	v
+form	menu.h	/^    Form *form;$/;"	m	struct:__anon18
+form_cnt	menu.h	/^    int form_cnt;$/;"	m	struct:__anon18
+form_desc_error	fform.c	/^int form_desc_error(int in_line_num, char *in_buf, char *emsg) {$/;"	f
+form_enter_fields	fform.c	/^int form_enter_fields(Form *form) {$/;"	f
+form_process	fform.c	/^int form_process(Init *init) {$/;"	f
+form_str	dgraph.c	/^char form_str[MAXLEN + 1];$/;"	v
+form_usage	fform.c	/^void form_usage() {$/;"	f
+format_currency	iloan.c	/^char *format_currency(float a) {$/;"	f
+format_field	fields.c	/^int format_field(char *fptr, int flen, char fprompt, int fval) {$/;"	f
+format_interest	iloan.c	/^char *format_interest(float a) {$/;"	f
+free_menu_line	parse_menu_desc.c	/^void free_menu_line(Line *line) {$/;"	f
+full_screen_fork_exec	exec.c	/^int full_screen_fork_exec(char **argv) {$/;"	f
+full_screen_shell	exec.c	/^int full_screen_shell(char *shellCmdPtr) {$/;"	f
+get_char_buffer	view_engine.c	/^int get_char_buffer(View *view) {$/;"	f
+get_char_next_block	view_engine.c	/^int get_char_next_block(View *view) {$/;"	f
+get_char_prev_block	view_engine.c	/^int get_char_prev_block(View *view) {$/;"	f
+get_cmd_char	view_engine.c	/^int get_cmd_char(View *view) {$/;"	f
+get_cmd_spec	view_engine.c	/^int get_cmd_spec(View *view, char *MsgPtr) {$/;"	f
+get_color_number	dwin.c	/^int get_color_number(char *s) {$/;"	f
+get_command_type	parse_menu_desc.c	/^char get_command_type(char *t) {$/;"	f
+get_next_char	view_engine.c	42;"	d	file:
+get_prev_char	view_engine.c	50;"	d	file:
+gn_cpy	dgraph.c	/^char *gn_cpy(char *s, int pos) {$/;"	f
+go_to_eof	view_engine.c	/^void go_to_eof(View *view) {$/;"	f
+go_to_line	view_engine.c	/^void go_to_line(View *view, int LineNumber) {$/;"	f
+go_to_mark	view_engine.c	/^void go_to_mark(View *view, int c) {$/;"	f
+go_to_percent	view_engine.c	/^void go_to_percent(View *view, int Percent) {$/;"	f
+go_to_position	view_engine.c	/^void go_to_position(View *view, long GoToPos) {$/;"	f
+graph_file_name	dgraph.c	/^char graph_file_name[MAXLEN];$/;"	v
+graph_id	dgraph.c	/^char graph_id[MAXLEN];$/;"	v
+graph_idFlag	dgraph.c	/^char graph_idFlag;$/;"	v
+graph_id_len	dgraph.c	/^int graph_id_len;$/;"	v
+graph_in	dgraph.c	/^char *graph_in[NELEMENTS * 2];$/;"	v
+graph_title	dgraph.c	/^char *graph_title;$/;"	v
+green	menu.h	/^    green,$/;"	e	enum:Color
+group	menu.h	/^    int group;       \/\/ 0=FILES, 1=SPECS, 2=MISC, 3=PARMS, 4=FLAGS$/;"	m	struct:__anon1
+help_spec	menu.h	/^    char help_spec[MAXLEN];   \/\/    help spec$/;"	m	struct:__anon14
+help_spec	menu.h	/^    char help_spec[MAXLEN];   \/\/ -H: help qualified path$/;"	m	struct:__anon18
+help_spec	menu.h	/^    char help_spec[MAXLEN]; \/\/    application help qualified path$/;"	m	struct:__anon11
+help_spec	menu.h	/^    char help_spec[MAXLEN]; \/\/    application help qualified path$/;"	m	struct:__anon15
+idx	menu.h	/^    int idx;$/;"	m	struct:__anon15
+in_buf	menu.h	/^    char in_buf[BUFSIZ];$/;"	m	struct:__anon15
+in_fp	menu.h	/^    FILE *in_fp, *out_fp;$/;"	m	struct:__anon15
+in_spec	menu.h	/^    char in_spec[MAXLEN];     \/\/    output spec$/;"	m	struct:__anon14
+in_spec	menu.h	/^    char in_spec[MAXLEN];     \/\/ -i: input file qualified path$/;"	m	struct:__anon18
+in_spec	menu.h	/^    char in_spec[MAXLEN];$/;"	m	struct:__anon15
+in_str	iloan.c	/^char in_str[BUFSIZ + 1];$/;"	v
+init	init.c	/^Init *init = NULL;$/;"	v
+init_cnt	mem.c	/^int init_cnt = 0;$/;"	v
+init_form_files	mem.c	/^bool init_form_files(Init *init, int argc, char **argv) {$/;"	f
+init_menu_files	mem.c	/^bool init_menu_files(Init *init, int argc, char **argv) {$/;"	f
+init_pick	pick_engine-bak.c	/^int init_pick(Init *init, int argc, char **argv, int lines, int cols, int begy,$/;"	f
+init_pick	pick_engine.c	/^int init_pick(Init *init, int argc, char **argv, int lines, int cols, int begy,$/;"	f
+init_pick_files	mem.c	/^bool init_pick_files(Init *init, int argc, char **argv) {$/;"	f
+init_view_boxwin	init_view.c	/^int init_view_boxwin(View *view) {$/;"	f
+init_view_files	mem.c	/^bool init_view_files(Init *init, int argc, char **argv) {$/;"	f
+init_view_stdscr	init_view.c	/^int init_view_stdscr(View *view) {$/;"	f
+initialize_buffers	view_engine.c	/^int initialize_buffers(View *view, int number_of_buffers) {$/;"	f
+is_numeric	iloan.c	/^int is_numeric(char *s) {$/;"	f
+item_count	menu.h	/^    int item_count;$/;"	m	struct:__anon11
+item_count	menu.h	/^    int item_count;$/;"	m	struct:__anon14
+key_cr	menu.h	220;"	d
+key_down	menu.h	217;"	d
+key_down	menu.h	79;"	d
+key_left	menu.h	216;"	d
+key_left	menu.h	77;"	d
+key_right	menu.h	219;"	d
+key_right	menu.h	78;"	d
+key_up	menu.h	218;"	d
+key_up	menu.h	80;"	d
+last_blk_no	menu.h	/^    long blk_no, last_blk_no, size_bytes, prev_file_pos, file_pos;$/;"	m	struct:__anon17
+last_column	menu.h	/^    int first_column, last_column, last_line, ptop, pbot;$/;"	m	struct:__anon17
+last_line	menu.h	/^    int first_column, last_column, last_line, ptop, pbot;$/;"	m	struct:__anon17
+len	menu.h	/^    int len;$/;"	m	struct:__anon12
+len	menu.h	/^    int len;$/;"	m	struct:__anon13
+letter_pos	menu.h	/^    int letter_pos;$/;"	m	struct:__anon10
+line	menu.h	/^    Line *line[MAX_LINES];$/;"	m	struct:__anon11
+line	menu.h	/^    int line;$/;"	m	struct:__anon12
+line	menu.h	/^    int line;$/;"	m	struct:__anon13
+line	menu.h	/^    int line;$/;"	m	struct:__anon15
+line_cnt	menu.h	/^    int line_cnt;$/;"	m	struct:__anon15
+line_idx	menu.h	/^    int line_idx;$/;"	m	struct:__anon11
+line_idx	menu.h	/^    int line_idx;$/;"	m	struct:__anon14
+line_mode	menu.h	/^    int attr, line_mode;$/;"	m	struct:__anon17
+line_out_str	menu.h	/^    char line_out_str[MAX_COLS];$/;"	m	struct:__anon17
+line_ptr	menu.h	/^    char *next_file_spec_ptr, *tmp_file_name_ptr, *line_start_ptr, *line_ptr,$/;"	m	struct:__anon17
+line_start_ptr	menu.h	/^    char *next_file_spec_ptr, *tmp_file_name_ptr, *line_start_ptr, *line_ptr,$/;"	m	struct:__anon17
+line_str	menu.h	/^    char line_str[MAX_COLS];$/;"	m	struct:__anon17
+lines	dwin.c	/^int lines = 10, cols = 40, begx = 10, begy = 4;$/;"	v
+lines	menu.h	/^    int lines;    \/\/ -L: lines$/;"	m	struct:__anon18
+lines	menu.h	/^    int lines;    \/\/ L: lines$/;"	m	struct:__anon11
+lines	menu.h	/^    int lines;    \/\/ L: lines$/;"	m	struct:__anon14
+lines	menu.h	/^    int lines;    \/\/ L: lines$/;"	m	struct:__anon15
+lines	menu.h	/^    int lines;    \/\/ L: lines$/;"	m	struct:__anon17
+list_colors	dwin.c	/^void list_colors() {$/;"	f
+locate_byte_pipe	view_engine.c	/^int locate_byte_pipe(View *view, long locate_file_pos) {$/;"	f
+locate_file_in_path	futil.c	/^bool locate_file_in_path(char *file_spec, char *file_name) {$/;"	f
+lp	view_engine.c	/^void lp(char *PrintFile, char *Notation) {$/;"	f
+m_begx	dwin.c	/^int m_begx = -1;$/;"	v
+m_begy	dwin.c	/^int m_begy = -1;$/;"	v
+m_cols	dwin.c	/^int m_cols;$/;"	v
+m_lines	dwin.c	/^int m_lines;$/;"	v
+magenta	menu.h	/^    magenta,$/;"	e	enum:Color
+main	chkfile.c	/^int main(int argc, char **argv) {$/;"	f
+main	ckeys.c	/^int main(int argc, char **argv) {$/;"	f
+main	dgraph.c	/^int main(int argc, char **argv) {$/;"	f
+main	enterchr.c	/^int main(int argc, char **argv) {$/;"	f
+main	enterstr.c	/^int main(int argc, char **argv) {$/;"	f
+main	form.c	/^int main(int argc, char **argv) {$/;"	f
+main	iloan.c	/^int main(int argc, char **argv) {$/;"	f
+main	menu.c	/^int main(int argc, char **argv) {$/;"	f
+main	pick.c	/^int main(int argc, char **argv) {$/;"	f
+main	rsh.c	/^int main(int argc, char **argv) {$/;"	f
+main	view.c	/^int main(int argc, char **argv) {$/;"	f
+main	whence.c	/^int main(int argc, char **argv) {$/;"	f
+mapp_data	menu.h	/^    char mapp_data[MAXLEN]; \/\/     --mapp_data$/;"	m	struct:__anon18
+mapp_help	menu.h	/^    char mapp_help[MAXLEN]; \/\/     --mapp_help$/;"	m	struct:__anon18
+mapp_home	menu.h	/^    char mapp_home[MAXLEN]; \/\/ -m: home directory$/;"	m	struct:__anon18
+mapp_initialization	init.c	/^void mapp_initialization(Init *init, int argc, char **argv) {$/;"	f
+mapp_msrc	menu.h	/^    char mapp_msrc[MAXLEN]; \/\/     --mapp_msrc$/;"	m	struct:__anon18
+mapp_spec	menu.h	/^    char mapp_spec[MAXLEN];   \/\/    description spec$/;"	m	struct:__anon14
+mapp_spec	menu.h	/^    char mapp_spec[MAXLEN];   \/\/ -d: description qualified path$/;"	m	struct:__anon18
+mapp_spec	menu.h	/^    char mapp_spec[MAXLEN]; \/\/    application description qualified path$/;"	m	struct:__anon11
+mapp_spec	menu.h	/^    char mapp_spec[MAXLEN]; \/\/    application qualified path$/;"	m	struct:__anon15
+mapp_user	menu.h	/^    char mapp_user[MAXLEN]; \/\/ -u: user directory$/;"	m	struct:__anon18
+mapp_version	init.c	/^const char *mapp_version = "0.5.1";$/;"	v
+mark_tbl	menu.h	/^    long pos_tbl[NPOS], mark_tbl[NMARKS];$/;"	m	struct:__anon17
+max_col	menu.h	/^    int curx, cury, max_col, next_c, scroll_lines, cmd_line;$/;"	m	struct:__anon17
+menu	mem.c	/^Menu *menu;$/;"	v
+menu	menu.h	/^    Menu *menu;$/;"	m	struct:__anon18
+menu_cmd_processor	menu_engine.c	/^int menu_cmd_processor(Init *init) {$/;"	f
+menu_cnt	menu.h	/^    int menu_cnt;$/;"	m	struct:__anon18
+menu_engine	menu_engine.c	/^int menu_engine(Init *init) {$/;"	f
+mg_action	dwin.c	/^int mg_action, mg_col, mg_line;$/;"	v
+mg_col	dwin.c	/^int mg_action, mg_col, mg_line;$/;"	v
+mg_line	dwin.c	/^int mg_action, mg_col, mg_line;$/;"	v
+minitrc	menu.h	/^    char minitrc[MAXLEN];     \/\/ -a: main configuration file$/;"	m	struct:__anon18
+mk_raw_tioctl	scriou.c	/^bool mk_raw_tioctl(struct termios *t_p) {$/;"	f
+mouse_support	dwin.c	/^int mouse_support;$/;"	v
+mview	mview.c	/^int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,$/;"	f
+mvwaddstr_fill	dwin.c	/^void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {$/;"	f
+name	menu.h	/^    const char *name;$/;"	m	struct:__anon1
+ncolors	dwin.c	/^int const ncolors[16] = {COLOR_BLACK,$/;"	v
+near	dgraph.c	15;"	d	file:
+nelements	dgraph.c	/^int nelements;$/;"	v
+new_form	mem.c	/^Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {$/;"	f
+new_init	mem.c	/^Init *new_init(int argc, char **argv) {$/;"	f
+new_menu	mem.c	/^Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {$/;"	f
+new_pick	mem.c	/^Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {$/;"	f
+new_view	mem.c	/^View *new_view(Init *init, int argc, char **argv, int begy, int begx) {$/;"	f
+next_c	menu.h	/^    int curx, cury, max_col, next_c, scroll_lines, cmd_line;$/;"	m	struct:__anon17
+next_file_spec_ptr	menu.h	/^    char *next_file_spec_ptr, *tmp_file_name_ptr, *line_start_ptr, *line_ptr,$/;"	m	struct:__anon17
+next_path	whence.c	/^int next_path(char *dp, char **sp) {$/;"	f
+nf_error	dwin.c	/^int nf_error(int ec, char *s) {$/;"	f
+nlabel	dgraph.c	/^char far *nlabel[NELEMENTS];$/;"	v
+nmax	dgraph.c	/^numtyp nmax;$/;"	v
+nmin	dgraph.c	/^numtyp nmin;$/;"	v
+norder	dgraph.c	/^numtyp norder;$/;"	v
+normalend	whence.c	/^void normalend(int rc) { exit(EXIT_SUCCESS); }$/;"	f
+normalize_file_spec	futil.c	/^void normalize_file_spec(char *fs) {$/;"	f
+numtyp	dgraph.c	/^typedef double numtyp;$/;"	t	file:
+nwidth	dgraph.c	/^int nwidth;$/;"	v
+ny	dgraph.c	/^int ny[NELEMENTS];$/;"	v
+obj_cnt	menu.h	/^    int obj_cnt;$/;"	m	struct:__anon15
+object	menu.h	/^    char *object[OBJ_MAXCNT];$/;"	m	struct:__anon15
+op	menu.h	/^    int op;$/;"	m	struct:__anon14
+open_curses	dwin.c	/^void open_curses() {$/;"	f
+open_pick_win	pick_engine-bak.c	/^int open_pick_win(Pick *pick) {$/;"	f
+open_pick_win	pick_engine.c	/^int open_pick_win(Pick *pick) {$/;"	f
+opt_prt_bool	init.c	/^void opt_prt_bool(const char *o, const char *name, bool value) {$/;"	f
+opt_prt_char	init.c	/^void opt_prt_char(const char *o, const char *name, const char *value) {$/;"	f
+opt_prt_int	init.c	/^void opt_prt_int(const char *o, const char *name, int value) {$/;"	f
+optind	menu.h	/^    int optind;$/;"	m	struct:__anon18
+option_cnt	menu.h	/^    int option_cnt;$/;"	m	struct:__anon10
+option_col	menu.h	/^    int option_col;$/;"	m	struct:__anon10
+option_idx	menu.h	/^    int option_idx;$/;"	m	struct:__anon10
+option_max_len	menu.h	/^    int option_max_len;$/;"	m	struct:__anon11
+option_max_len	menu.h	/^    int option_max_len;$/;"	m	struct:__anon14
+option_offset	menu.h	/^    int option_offset;$/;"	m	struct:__anon11
+option_offset	menu.h	/^    int option_offset;$/;"	m	struct:__anon14
+option_ptr	menu.h	/^    char *option_ptr[MAXOPTS];$/;"	m	struct:__anon10
+opts	opts.c	/^Opts opts[] = {$/;"	v
+out_fp	menu.h	/^    FILE *in_fp, *out_fp;$/;"	m	struct:__anon15
+out_spec	menu.h	/^    char out_spec[MAXLEN];    \/\/    output spec$/;"	m	struct:__anon14
+out_spec	menu.h	/^    char out_spec[MAXLEN];    \/\/ -o: output file qualified path$/;"	m	struct:__anon18
+out_spec	menu.h	/^    char out_spec[MAXLEN];$/;"	m	struct:__anon15
+output_objects	pick_engine-bak.c	/^int output_objects(Pick *pick) {$/;"	f
+output_objects	pick_engine.c	/^int output_objects(Pick *pick) {$/;"	f
+page	menu.h	/^    int page;$/;"	m	struct:__anon15
+page_cnt	menu.h	/^    int page_cnt;$/;"	m	struct:__anon15
+parse_config	init.c	/^int parse_config(Init *init) {$/;"	f
+parse_menu_description	parse_menu_desc.c	/^int parse_menu_description(Init *init) {$/;"	f
+parse_opt_args	init.c	/^void parse_opt_args(Init *init, int argc, char **argv) {$/;"	f
+path_p	whence.c	/^char *path_p;$/;"	v
+path_s	whence.c	/^char path_s[PATH_MAX];$/;"	v
+pbot	menu.h	/^    int first_column, last_column, last_line, ptop, pbot;$/;"	m	struct:__anon17
+pick	mem.c	/^Pick *pick;$/;"	v
+pick	menu.h	/^    Pick *pick;$/;"	m	struct:__anon18
+pick_cnt	menu.h	/^    int pick_cnt;$/;"	m	struct:__anon18
+pick_engine	pick_engine-bak.c	/^int pick_engine(Init *init) {$/;"	f
+pick_engine	pick_engine.c	/^int pick_engine(Init *init) {$/;"	f
+picker	pick_engine-bak.c	/^int picker(Pick *pick) {$/;"	f
+picker	pick_engine.c	/^int picker(Pick *pick) {$/;"	f
+pos_tbl	menu.h	/^    long pos_tbl[NPOS], mark_tbl[NMARKS];$/;"	m	struct:__anon17
+prev_file_pos	menu.h	/^    long blk_no, last_blk_no, size_bytes, prev_file_pos, file_pos;$/;"	m	struct:__anon17
+print_char	dgraph.c	/^uchar print_char;$/;"	v
+print_graph	dgraph.c	/^void print_graph() {$/;"	f
+prompt	menu.h	/^    char prompt[MAXLEN];    \/\/ -P: prompt (S-Short, L-Long, N-None)[string]$/;"	m	struct:__anon18
+prompt	menu.h	/^    char prompt[MAXLEN]; \/\/ -P: prompt (S-Short, L-Long, N-None)[string]$/;"	m	struct:__anon17
+ptop	menu.h	/^    int first_column, last_column, last_line, ptop, pbot;$/;"	m	struct:__anon17
+put_line	view_engine.c	/^void put_line(View *view) {$/;"	f
+raw_text	menu.h	/^    char *raw_text;$/;"	m	struct:__anon10
+read_backward_from_current_file_pos	view_engine.c	/^void read_backward_from_current_file_pos(View *view, int number_of_lines) {$/;"	f
+read_backward_from_file_pos	view_engine.c	/^void read_backward_from_file_pos(View *view, int number_of_lines,$/;"	f
+read_form_answer	fform.c	/^int read_form_answer(Form *form) {$/;"	f
+read_form_description	fform.c	/^int read_form_description(Form *form) {$/;"	f
+read_forward_from_current_file_pos	view_engine.c	/^void read_forward_from_current_file_pos(View *view, int number_of_lines) {$/;"	f
+read_forward_from_file_pos	view_engine.c	/^void read_forward_from_file_pos(View *view, int number_of_lines,$/;"	f
+read_line_backward	view_engine.c	/^long read_line_backward(View *view, long current_file_pos) {$/;"	f
+read_line_backward_raw	view_engine.c	/^long read_line_backward_raw(View *view, long current_file_pos) {$/;"	f
+read_line_forward	view_engine.c	/^long read_line_forward(View *view, long current_file_pos) {$/;"	f
+read_line_forward_raw	view_engine.c	/^long read_line_forward_raw(View *view, long current_file_pos) {$/;"	f
+red	menu.h	/^    red,$/;"	e	enum:Color
+remove_file	view_engine.c	/^void remove_file(View *view) {$/;"	f
+restore_curses_tioctl	scriou.c	/^bool restore_curses_tioctl() {$/;"	f
+restore_shell_tioctl	scriou.c	/^bool restore_shell_tioctl() {$/;"	f
+restore_wins	dwin.c	/^void restore_wins() {$/;"	f
+reverse_object	pick_engine-bak.c	/^void reverse_object(Pick *pick) {$/;"	f
+reverse_object	pick_engine.c	/^void reverse_object(Pick *pick) {$/;"	f
+row_cnt	menu.h	/^    int row_cnt;$/;"	m	struct:__anon15
+save_object	pick_engine-bak.c	/^void save_object(Pick *pick, char *s) {$/;"	f
+save_object	pick_engine.c	/^void save_object(Pick *pick, char *s) {$/;"	f
+scroll_lines	menu.h	/^    int curx, cury, max_col, next_c, scroll_lines, cmd_line;$/;"	m	struct:__anon17
+search	view_engine.c	/^void search(View *view, int search_cmd, char *regex, int n) {$/;"	f
+select_cnt	menu.h	/^    int select_cnt;$/;"	m	struct:__anon15
+select_idx	menu.h	/^    int select_idx;$/;"	m	struct:__anon15
+select_opt	opts.c	/^Opts *select_opt(char *name) {$/;"	f
+selections	menu.h	/^    int selections; \/\/ -n: number of selections$/;"	m	struct:__anon18
+set_sane_tioctl	scriou.c	/^bool set_sane_tioctl(struct termios *t_p) {$/;"	f
+shell	exec.c	/^int shell(char *shellCmdPtr) {$/;"	f
+shell_err_tioctl	scriou.c	/^struct termios shell_err_tioctl, curses_err_tioctl;$/;"	v	typeref:struct:termios
+shell_in_tioctl	scriou.c	/^struct termios shell_in_tioctl, curses_in_tioctl;$/;"	v	typeref:struct:termios
+shell_out_tioctl	scriou.c	/^struct termios shell_out_tioctl, curses_out_tioctl;$/;"	v	typeref:struct:termios
+shell_tioctl	scriou.c	/^struct termios shell_tioctl, curses_tioctl;$/;"	v	typeref:struct:termios
+shell_tioctl	scriou.c	/^struct termios shell_tioctl;$/;"	v	typeref:struct:termios
+sig_dfl_mode	sig.c	/^void sig_dfl_mode() {$/;"	f
+sig_prog_mode	sig.c	/^void sig_prog_mode() {$/;"	f
+signal_handler	sig.c	/^void signal_handler(int sig_num) {$/;"	f
+size_bytes	menu.h	/^    long blk_no, last_blk_no, size_bytes, prev_file_pos, file_pos;$/;"	m	struct:__anon17
+sort_opts_by_desc	opts.c	/^void sort_opts_by_desc() {$/;"	f
+sort_opts_by_group	opts.c	/^void sort_opts_by_group() {$/;"	f
+sort_opts_by_name	opts.c	/^void sort_opts_by_name() {$/;"	f
+start_cmd	menu.h	/^    char start_cmd[MAXLEN]; \/\/ -S: command to execute at start of program$/;"	m	struct:__anon18
+start_cmd	menu.h	/^    char start_cmd[MAXLEN]; \/\/ S  command to execute at start of program$/;"	m	struct:__anon17
+start_cmd_all_files	menu.h	/^    char start_cmd_all_files[MAXLEN];$/;"	m	struct:__anon17
+stdin_graph	dgraph.c	/^void stdin_graph() {$/;"	f
+str	menu.h	/^    char str[MAX_COLS];$/;"	m	struct:__anon12
+str	menu.h	/^    char str[MAX_COLS];$/;"	m	struct:__anon13
+str_subc	futil.c	/^void str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {$/;"	f
+str_to_args	futil.c	/^int str_to_args(char **argv, char *strptr) {$/;"	f
+str_to_bool	futil.c	/^bool str_to_bool(const char *s) {$/;"	f
+str_to_lower	futil.c	/^void str_to_lower(char *s) {$/;"	f
+str_to_upper	futil.c	/^void str_to_upper(char *s) {$/;"	f
+strnz	futil.c	/^int strnz(char *s, int l) {$/;"	f
+strnz__cpy	futil.c	/^int strnz__cpy(char *d, char *s, int max_len) {$/;"	f
+strnz_cat	futil.c	/^void strnz_cat(char *d, char *s, int l) {$/;"	f
+strnz_cpy	futil.c	/^void strnz_cpy(char *d, char *s, int l) {$/;"	f
+strnz_dup	futil.c	/^char *strnz_dup(char *s, int l) {$/;"	f
+strz	futil.c	/^void strz(char *s) {$/;"	f
+strz_dup	futil.c	/^char *strz_dup(char *s) {$/;"	f
+tab_stop	menu.h	/^    int tab_stop;           \/\/ -t: number of spaces per tab$/;"	m	struct:__anon18
+tab_stop	menu.h	/^    int tab_stop;         \/\/ -t: number of spaces per tab$/;"	m	struct:__anon17
+text	menu.h	/^    Text *text[MAXFIELDS];$/;"	m	struct:__anon14
+text_max_len	menu.h	/^    int text_max_len;$/;"	m	struct:__anon11
+text_max_len	menu.h	/^    int text_max_len;$/;"	m	struct:__anon14
+title	menu.h	/^    char title[MAXLEN]; \/\/ -T: title$/;"	m	struct:__anon18
+title	menu.h	/^    char title[MAXLEN]; \/\/ T: title$/;"	m	struct:__anon11
+title	menu.h	/^    char title[MAXLEN]; \/\/ T: title$/;"	m	struct:__anon14
+title	menu.h	/^    char title[MAXLEN]; \/\/ T: title$/;"	m	struct:__anon15
+title_line	menu.h	/^    int title_line;$/;"	m	struct:__anon14
+tmp_file_name_ptr	menu.h	/^    char *next_file_spec_ptr, *tmp_file_name_ptr, *line_start_ptr, *line_ptr,$/;"	m	struct:__anon17
+tmp_ptr	dwin.c	/^char *tmp_ptr;$/;"	v
+tmp_str	chkfile.c	/^char tmp_str[MAXLEN];$/;"	v
+tmp_str	dwin.c	/^char tmp_str[MAXLEN];$/;"	v
+to_uppercase	menu.h	89;"	d
+toggle_object	pick_engine-bak.c	/^void toggle_object(Pick *pick) {$/;"	f
+toggle_object	pick_engine.c	/^void toggle_object(Pick *pick) {$/;"	f
+trim_ext	futil.c	/^bool trim_ext(char *buf, char *filename) {$/;"	f
+trim_path	futil.c	/^bool trim_path(char *dir) {$/;"	f
+type	menu.h	/^    char type;$/;"	m	struct:__anon10
+type	menu.h	/^    int type;        \/\/ 0=string, 1=int, 2=bool$/;"	m	struct:__anon1
+uchar	dgraph.c	/^typedef unsigned char uchar;$/;"	t	file:
+uchar	menu.h	/^typedef unsigned char uchar;$/;"	t
+usage	init.c	/^void usage() {$/;"	f
+usage	whence.c	/^void usage() {$/;"	f
+use	menu.h	/^    const char *use; \/\/ which programs use this option$/;"	m	struct:__anon1
+user_end	dwin.c	/^void user_end() {$/;"	f
+val	menu.h	/^    int val;$/;"	m	struct:__anon13
+validate_field	fields.c	/^int validate_field(char *fptr, int fval) {$/;"	f
+value	dgraph.c	/^numtyp far value[NELEMENTS];$/;"	v
+verify_dir	futil.c	/^bool verify_dir(char *spec, int mode) {$/;"	f
+verify_dir_q	futil.c	/^bool verify_dir_q(char *spec, int mode) {$/;"	f
+verify_file	chkfile.c	/^bool verify_file(char *spec, int mode) {$/;"	f
+verify_file	futil.c	/^bool verify_file(char *spec, int imode) {$/;"	f
+verify_file_q	futil.c	/^bool verify_file_q(char *spec, int imode) {$/;"	f
+verify_spec_arg	mem.c	/^bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,$/;"	f
+view	mem.c	/^View *view;$/;"	v
+view	menu.h	/^    View *view;$/;"	m	struct:__anon18
+view_cmd_processor	view_engine.c	/^int view_cmd_processor(View *view) {$/;"	f
+view_cnt	menu.h	/^    int view_cnt;$/;"	m	struct:__anon18
+view_display_help	view_engine.c	/^void view_display_help(View *view) {$/;"	f
+view_file	view_engine.c	/^int view_file(View *view) {$/;"	f
+view_init_input	init_view.c	/^int view_init_input(View *view, char *file_name) {$/;"	f
+whence	whence.c	/^void whence(char *file_spec_p) {$/;"	f
+white	menu.h	/^    white,$/;"	e	enum:Color
+width	menu.h	/^    int width;$/;"	m	struct:__anon15
+win	dwin.c	/^WINDOW *win;$/;"	v
+win	menu.h	/^    WINDOW *win, *box;$/;"	m	struct:__anon11
+win	menu.h	/^    WINDOW *win, *box;$/;"	m	struct:__anon14
+win	menu.h	/^    WINDOW *win, *box;$/;"	m	struct:__anon15
+win	menu.h	/^    WINDOW *win, *box;$/;"	m	struct:__anon17
+win_attr	dwin.c	/^int win_attr;$/;"	v
+win_attr_Even	dwin.c	/^int win_attr_Even;$/;"	v
+win_attr_Odd	dwin.c	/^int win_attr_Odd;$/;"	v
+win_box	dwin.c	/^WINDOW *win_box[MAXWIN];$/;"	v
+win_close_box	dwin.c	/^void win_close_box(WINDOW *Wbox) {$/;"	f
+win_close_win	dwin.c	/^void win_close_win(WINDOW *W) { delwin(W); }$/;"	f
+win_del	dwin.c	/^WINDOW *win_del() {$/;"	f
+win_init_attrs	dwin.c	/^void win_init_attrs(int fg_color, int bg_color, int bo_color) {$/;"	f
+win_new	dwin.c	/^int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {$/;"	f
+win_open_box	dwin.c	/^WINDOW *win_open_box(int wlines, int wcols, int wbegy, int wbegx,$/;"	f
+win_open_win	dwin.c	/^WINDOW *win_open_win(int wlines, int wcols, int wbegy, int wbegx) {$/;"	f
+win_ptr	dwin.c	/^int win_ptr;$/;"	v
+win_redraw	dwin.c	/^void win_redraw(WINDOW *win, int Wattr, char *WTitle) {$/;"	f
+win_win	dwin.c	/^WINDOW *win_win[MAXWIN];$/;"	v
+write_config	init.c	/^int write_config(Init *init) {$/;"	f
+write_form_answer	fform.c	/^int write_form_answer(Form *form) {$/;"	f
+x	menu.h	/^    int x;$/;"	m	struct:__anon15
+yellow	menu.h	/^    yellow,$/;"	e	enum:Color
+yform	dgraph.c	/^char yform[MAXLEN];$/;"	v
+yincrement	dgraph.c	/^numtyp yincrement;$/;"	v
+ymax	dgraph.c	/^numtyp ymax;$/;"	v
+ytxt	dgraph.c	/^char ytxt[YLINES][GSTART];$/;"	v

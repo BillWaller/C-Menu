@@ -2,109 +2,158 @@
 # MENU
 # Bill Waller
 # billxwaller@gmail.com
-
+#
+# Makefile for the MENU application suite
+#
+# If you find the Child exit and signal messages from rsh annoying,
+# remove the -DVERBOSE flag from the rsh compile instruction.
+# The default is to compile without -DVERBOSE.
+#
+#
 PREFIX=~/menuapp
+OWNER=bill
+GROUP=users
 SHELL = /bin/sh
-OBJS = init.o futil.o fields.o scriou.o dwin.o log.o fckeys.o
 CFLAGS = -O0 -g3 -fdiagnostics-color=always -Wall -Wextra \
 		-Wno-unused-parameter -Wno-missing-field-initializers \
-		-Wno-unused-function -DNCURSES_WIDECHAR 
-# CCFLAGS = -fanalyzer -fdiagnostics-color=always \
-# 		-Wanalyzer-use-after-free -Wanalyzer-null-dereference \
-# 		-Wanalyzer-malloc-leak -Wanalyzer-use-of-uninitialized-value \
-# 		-Wanalyzer-double-free -xref -Ohtml -N$*
-LDFLAGS =  -lncursesw -ltinfo
+		-Wno-unused-function -DNCURSES_WIDECHAR
+LIBS =  -lncursesw -ltinfo
+LDFLAGS =
 CC = gcc
-CFLOW_FLAGS = --brief
+INSTALLED=	$(PREFIX)/bin/menu $(PREFIX)/bin/form $(PREFIX)/bin/pick \
+		$(PREFIX)/bin/ckeys	$(PREFIX)/bin/view $(PREFIX)/bin/whence \
+		$(PREFIX)/bin/rsh $(PREFIX)/bin/enterchr $(PREFIX)/bin/enterstr \
+		$(PREFIX)/bin/iloan
 
-all:	menu paint paintfile cpick ckeys view dgraph iloan whence rsh
+#-----------------------------------------------------------
+all:	menu form pick view ckeys whence rsh iloan enterchr enterstr
 	@echo Make Complete
 
-menu:	menu.o fmenu.o rmenu.o mmenu.o fpaint.o fpick.o fview.o mpick.o \
-		mview.o $(OBJS)
-	$(CC) $(CFLAGS) menu.o fmenu.o rmenu.o mmenu.o fpaint.o fpick.o \
-		fview.o mpick.o mview.o $(OBJS) $(LDFLAGS) -o $@ $(LIBS)
-
-paint:	paint.o fpaint.o fview.o mview.o $(OBJS)
-	$(CC) $(CFLAGS) paint.o fpaint.o fview.o mview.o \
-		$(OBJS) $(LDFLAGS) -o $@ $(LIBS)
-
-paintfile:	paintfile.o fpaint.o fview.o mview.o $(OBJS)
-	$(CC) $(CFLAGS) paintfile.o fpaint.o fview.o mview.o \
-		$(OBJS) $(LDFLAGS) -o $@ $(LIBS)
-
-cpick:	cpick.o fpick.o mpick.o fview.o mview.o $(OBJS)
-	$(CC) $(CFLAGS) cpick.o fpick.o mpick.o fview.o mview.o $(OBJS) \
+menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o \
+	 fform.o fields.o pick_engine.o display_curses_keys.o mview.o \
+	view_engine.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o  init_view.o \
+	 fform.o fields.o pick_engine.o display_curses_keys.o mview.o \
+	view_engine.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
+   	$(LDFLAGS) -o $@ $(LIBS)
+#-----------------------------------------------------------
+menu.o: menu.c menu.h
+	$(CC) $(CFLAGS) -c menu.c
+menu_engine.o: menu_engine.c menu.h
+	$(CC) $(CFLAGS) -c menu_engine.c
+parse_menu_desc.o: parse_menu_desc.c menu.h
+	$(CC) $(CFLAGS) -c parse_menu_desc.c
+#-----------------------------------------------------------
+form:	form.o fields.o fform.o mview.o init_view.o view_engine.o \
+	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) form.o fields.o fform.o mview.o init_view.o view_engine.o \
+   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+form.o: form.c menu.h
+	$(CC) $(CFLAGS) -c form.c
+fform.o: fform.c menu.h
+	$(CC) $(CFLAGS) -c fform.c
+fields.o:	fields.c menu.h
+	$(CC) $(CFLAGS) -c fields.c
+#-----------------------------------------------------------
+ckeys:	ckeys.o display_curses_keys.o \
+   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) ckeys.o display_curses_keys.o \
+   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
+	$(LDFLAGS) -o $@ $(LIBS)
+ckeys.o: ckeys.c menu.h
+	$(CC) $(CFLAGS) -c ckeys.c
+display_curses_keys.o: display_curses_keys.c menu.h
+	$(CC) $(CFLAGS) -c display_curses_keys.c
+#-----------------------------------------------------------
+pick:	pick.o  pick_engine.o mview.o init_view.o view_engine.o \
+   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o 
+	$(CC) $(CFLAGS) pick.c  pick_engine.o \
+		mview.o init_view.o view_engine.o \
+		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
 		$(LDFLAGS) -o $@ $(LIBS)
-
-view:	view.o fview.o mview.o $(OBJS)
-	$(CC) $(CFLAGS) view.o fview.o mview.o $(OBJS) $(LDFLAGS) \
-		-o $@ $(LIBS)
-
-ckeys:	ckeys.o $(OBJS)
-	$(CC) $(CFLAGS) ckeys.o $(OBJS) $(LDFLAGS) -o $@ $(LIBS)
-
-dgraph:	dgraph.o $(OBJS)
-	$(CC) $(CFLAGS) dgraph.o $(OBJS) $(LDFLAGS) -o $@ \
-		$(LIBS) -lm
-
+pick.o: pick.c menu.h
+	$(CC) $(CFLAGS) -c pick.c
+pick_engine.o: pick_engine.c menu.h
+	$(CC) $(CFLAGS) -c pick_engine.c
+#-----------------------------------------------------------
+view: view.o init_view.o view_engine.o mview.o \
+   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) view.o init_view.o view_engine.o mview.o \
+   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
+		$(LDFLAGS) -o $@ $(LIBS)
+view.o: view.c menu.h
+	$(CC) $(CFLAGS) -c view.c
+init_view.o: init_view.c menu.h
+	$(CC) $(CFLAGS) -c init_view.c
+mview.o: mview.c menu.h
+	$(CC) $(CFLAGS) -c mview.c
+view_engine.o: view_engine.c menu.h
+	$(CC) $(CFLAGS) -c view_engine.c
+#-----------------------------------------------------------
+enterchr:	enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
+	$(CC) $(CFLAGS) enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o \
+	   	sig.o \
+		$(LDFLAGS) -o $@ $(LIBS)
+enterstr:	enterstr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
+	$(CC) $(CFLAGS) enterstr.o dwin.o futil.o init.o mem.o opts.o scriou.o \
+		sig.o \
+		$(LDFLAGS) -o $@ $(LIBS)
+#-----------------------------------------------------------
+dwin.o: dwin.c menu.h
+	$(CC) $(CFLAGS) -c dwin.c
+futil.o: futil.c menu.h
+	$(CC) $(CFLAGS) -c futil.c
+init.o: init.c menu.h
+	$(CC) $(CFLAGS) -c init.c
+mem.o: mem.c menu.h
+	$(CC) $(CFLAGS) -c mem.c
+opts.o: opts.c menu.h
+	$(CC) $(CFLAGS) -c opts.c
+scriou.o: scriou.c menu.h
+	$(CC) $(CFLAGS) -c scriou.c
+exec.o: exec.c menu.h
+	$(CC) $(CFLAGS) -c exec.c
+sig.o: sig.c menu.h
+	$(CC) $(CFLAGS) -c sig.c
+enterchr.o: enterchr.c menu.h
+	$(CC) $(CFLAGS) -c enterchr.c
+enterstr.o: enterstr.c menu.h
+	$(CC) $(CFLAGS) -c enterstr.c
+#-----------------------------------------------------------
 whence:	whence.c
 	$(CC) $(CFLAGS) whence.c -o $@ -lc
-
 iloan:	iloan.c
 	$(CC) $(CFLAGS) iloan.c -o $@ -lc -lm
-
 rsh:	rsh.c
-	$(CC) $(CFLAGS) rsh.c -o $@
-
-cpick.o:			cpick.c		menu.h
-ckeys.o:			ckeys.c		menu.h
-fckeys.o:			fckeys.c	menu.h
-dgraph.o:			dgraph.c	menu.h
-dwin.o:				dwin.c	    menu.h
-fields.o:			fields.c    menu.h
-fmenu.o:			fmenu.c	    menu.h
-fpaint.o:			fpaint.c	menu.h
-fpick.o:			fpick.c	   	menu.h
-futil.o:			futil.c	    menu.h
-fview.o:			fview.c	    menu.h
-log.o:				log.c	    menu.h
-menu.o:				menu.c	    menu.h
-mmenu.o:			mmenu.c	    menu.h
-mpick.o:			mpick.c    	menu.h
-mview.o:			mview.c	    menu.h
-paint.o:			paint.c	    menu.h
-paintfile.o:		paintfile.c	menu.h
-rmenu.o:			rmenu.c	    menu.h
-scriou.o:			scriou.c	menu.h
-view.o:				view.c	    menu.h
-init.o:				init.c		menu.h
+	$(CC) $(CFLAGS) -DVERBOSE rsh.c -o $@
+#-----------------------------------------------------------
 
 clean:
-	rm -f core *.o menu paint paintfile cpick view dgraph ckeys \
-	   iloan whence rsh make.out
+	rm -rf core *.o menu form  pick view ckeys enterchr enterstr \
+		iloan whence rsh make.out $(CFLOW_OUTPUT) *.o *.cflow \
+		scan-build scan-build.log
 
 install:
-	./instexe dgraph    $(PREFIX)/bin    dgraph        0711    bin    bin
-	./instexe menu      $(PREFIX)/bin    menu          0711    bin    bin
-	./instexe view      $(PREFIX)/bin    more          0711    bin    bin
-	./instexe paint     $(PREFIX)/bin    paint         0711    bin    bin
-	./instexe paintfile $(PREFIX)/bin    paintfile     0711    bin    bin
-	./instexe cpick     $(PREFIX)/bin    cpick         0711    bin    bin
-	./instexe ckeys     $(PREFIX)/bin    ckeys         0711    bin    bin
-	./instexe view      $(PREFIX)/bin    view          0711    bin    bin
-	./instexe whence    $(PREFIX)/bin    whence        0711    bin    bin
-	./instexe rsh       $(PREFIX)/bin    rsh           4711    root   root
+	./inst.sh --
+	./inst.sh menu			$(PREFIX)/bin    menu		0711    $(OWNER) $(GROUP)
+	./inst.sh form			$(PREFIX)/bin    form		0711    $(OWNER) $(GROUP)
+	./inst.sh pick			$(PREFIX)/bin    pick		0711    $(OWNER) $(GROUP)
+	./inst.sh ckeys			$(PREFIX)/bin    ckeys		0711    $(OWNER) $(GROUP)
+	./inst.sh view			$(PREFIX)/bin    view		0711    $(OWNER) $(GROUP)
+	./inst.sh whence		$(PREFIX)/bin    whence		0711    $(OWNER) $(GROUP)
+	./inst.sh rsh			$(PREFIX)/bin    rsh		4711    root root
+	./inst.sh enterchr		$(PREFIX)/bin    enterchr	0711    $(OWNER) $(GROUP)
+	./inst.sh enterstr		$(PREFIX)/bin    enterstr	0711    $(OWNER) $(GROUP)
+	./inst.sh iloan			$(PREFIX)/bin    iloan		0711    $(OWNER) $(GROUP)
+	./inst.sh -l
 
 uninstall:
-	rm -fv	$(PREFIX)/bin/dgraph \
-			$(PREFIX)/bin/menu	\
-			$(PREFIX)/bin/more	\
-			$(PREFIX)/bin/paint	\
-			$(PREFIX)/bin/paintfile	\
-			$(PREFIX)/bin/cpick	\
+	rm -fv	$(PREFIX)/bin/menu	\
+			$(PREFIX)/bin/form	\
+			$(PREFIX)/bin/pick	\
 			$(PREFIX)/bin/ckeys	\
 			$(PREFIX)/bin/view \
 			$(PREFIX)/bin/rsh \
-			$(PREFIX)/bin/instexe
+			$(PREFIX)/bin/enterchr \
+			$(PREFIX)/bin/enterstr
 

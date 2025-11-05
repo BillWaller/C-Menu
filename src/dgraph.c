@@ -46,10 +46,10 @@ uchar print_char;
 char graph_id[MAXLEN];
 char graph_idFlag;
 int graph_id_len;
-int f_print;
-int f_file;
-int f_pie;
-int f_bar;
+bool f_print;
+bool f_file;
+bool f_pie;
+bool f_bar;
 
 int display_text_graph();
 void print_graph();
@@ -60,48 +60,15 @@ char *gn_cpy(char *, int);
 int main(int argc, char **argv) {
     extern int optind;
     extern char *optarg;
-    char *optstring = "F:B:O:G:f:p:r:";
     int o;
-    int Eo;
     char errflg = 0;
     char *e, *d;
     int eargc;
     char *eargv[MAXARGS];
     int i, j;
 
-    e = getenv("MARGS");
-    if (e == NULL || *e == '\0')
-        e = MARGS;
-    d = strdup(e);
-    eargc = str_to_args(eargv, d);
-
-    if (eargc > 0) {
-        optind = 0;
-        o = Eo = getopt(eargc, eargv, optstring);
-        if (Eo == EOF)
-            optind = 1;
-    } else
-        Eo = EOF;
-    if (Eo == EOF)
-        o = getopt(argc, argv, optstring);
-
-    while (o != EOF) {
-        switch (o) {
-        case 'F':
-            option->fg_color = get_color_number(optarg);
-            if (option->fg_color == -1)
-                errflg++;
-            break;
-        case 'B':
-            option->bg_color = get_color_number(optarg);
-            if (option->bg_color == -1)
-                errflg++;
-            break;
-        case 'O':
-            option->bo_color = get_color_number(optarg);
-            if (option->bo_color == -1)
-                errflg++;
-            break;
+    while (opt != EOF) {
+        switch (opt) {
         case 'G':
             if (strcmp(optarg, "B") == 0)
                 f_bar = TRUE;
@@ -110,14 +77,14 @@ int main(int argc, char **argv) {
             break;
         case 'f':
             strncpy(graph_file_name, optarg, MAXLEN);
-            f_file++;
+            f_file = TRUE;
             break;
         case 'p':
             if (strcmp(optarg, "7") == 0) {
-                f_print = 1;
+                f_print = TRUE;
                 print_char = '#';
             } else if (strcmp(optarg, "8") == 0) {
-                f_print = 1;
+                f_print = TRUE;
                 print_char = 219;
             } else
                 errflg++;
@@ -134,17 +101,10 @@ int main(int argc, char **argv) {
             errflg++;
             break;
         }
-        if (Eo != EOF) {
-            o = Eo = getopt(eargc, eargv, optstring);
-            if (Eo == EOF)
-                optind = 1;
-        }
-        if (Eo == EOF)
-            o = getopt(argc, argv, optstring);
     }
 
-    if (option->fg_color == -1)
-        option->fg_color = 7;
+    if (init->fg_color == -1)
+        init->fg_color = 7;
 
     if (errflg) {
         fprintf(stderr,
@@ -156,10 +116,10 @@ int main(int argc, char **argv) {
         fprintf(stderr, "    -G B    bit mapped bar chart\n");
         fprintf(stderr, "    -G P    bit mapped pie chart\n");
         list_colors();
-        exit(1);
+        exit(EXIT_SUCCESS);
     }
 
-    if (f_file == 0)
+    if (f_file == FALSE)
         stdin_graph();
     else
         file_graph();
@@ -218,7 +178,7 @@ int main(int argc, char **argv) {
         ytxt[i++][0] = '\0';
     }
 
-    if (f_print == 1)
+    if (f_print == TRUE)
         print_graph();
     else {
         display_text_graph();
@@ -228,6 +188,7 @@ int main(int argc, char **argv) {
 int display_text_graph() {
     int x, y, e, i;
     open_curses();
+    win_init_attrs(init->fg_color, init->bg_color, init->bo_color);
     werase(stdscr);
     for (y = 0; y < YLINES; y++) {
         mvaddstr(y, 1, ytxt[y]);
@@ -321,7 +282,7 @@ void file_graph() {
         strncpy(tmp_str, graph_file_name, MAXLEN);
         strncat(tmp_str, " not found", MAXLEN);
         fprintf(stderr, "%s\n", tmp_str);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     i = 0;
     while (fgets(in_buf, BUFSIZ, graph_fp) != NULL && i < (NELEMENTS * 2))

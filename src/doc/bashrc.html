@@ -1,0 +1,240 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <link rel="stylesheet" href="./bwstyle.css" >
+  </head>
+  <body>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <link rel="stylesheet" href="./bwstyle.css" >
+  </head>
+  <body>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <link rel="stylesheet" href="./bwstyle.css" >
+  </head>
+  <body>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <link rel="stylesheet" href="./bwstyle.css" >
+  </head>
+  <body>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <link rel="stylesheet" href="./bwstyle.css" >
+  </head>
+  <body>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <link rel="stylesheet" href="./bwstyle.css" >
+  </head>
+  <body>
+<h1 id="customize">Customize</h1>
+
+<h2 id="bashshell🎯">BASH SHELL 🎯</h2>
+
+<p>Using xsh, or some other alias reduces visibility and
+vulnerability to some automated attacks and jerkware.
+You could just copy /bin/bash to /bin/xsh. Someone
+suggested a symbolic link, but that would defeat the purpose.
+Ideally, you would compile your own bash from source
+and name it xsh or something else obscure. A static build
+would be even better, but it involves more than just
+compiling bash with --static option. The most reasonable
+solution is to build a set of core libraries including
+libncursesw, tinfo, and readline as static libraries, then
+link bash against those static libraries. The resulting
+binary would be mostly static, except for a few libraries.
+This is left as an exercise for the reader.</p>
+
+<p>Once you have your xsh binary, place it somewhere in your PATH,
+then this line will set your SHELL variable to xsh.</p>
+
+<ul>
+<li>IMPORTANT: Leave &quot;export SHELL=BASH&quot; as a fallback.</li>
+</ul>
+
+<p>If xsh isn't available, you will still have a working shell,
+and <em>NOTHING</em> works without a shell.</p>
+
+<pre class="rounded-code"><code class="bash">export SHELL=bash
+which xsh &gt;/dev/null 2&gt;&amp;1 &amp;&amp; export SHELL=xsh
+</code></pre>
+
+<h2 id="rsh">RSH</h2>
+
+<p>rsh is a small C program that provides a root shell to
+non-privileged users. It is intended for personal systems
+where you are the only user, or where you trust all users.
+It is NOT intended for multi-user systems where security
+is a concern.</p>
+
+<p>rsh works by being installed as a setuid root binary.
+When a non-privileged user runs rsh, it spawns a root shell.</p>
+
+<p>Type xx and hit enter. Boom, you have a root shell.
+To exit the root shell, simply type &quot;exit&quot;, press Ctrl-D, or,
+type &quot;x&quot;. If you are bopping in and out of a root shell
+hundreds of times a day, you want it to be instant and
+seamless.</p>
+
+<p>To install rsh, you need to compile it from source.
+You can get the source code from the cmenu project.
+Here are the steps to compile and install rsh:</p>
+
+<pre class="rounded-code"><code class="bash">cd /usr/local/src/cmenu/src
+$ make
+$ sudo make install
+$ ls -l ~/menuapp/bin/rsh
+$ -rws--x--x. 1 root root 86240 Oct 25 18:48 /home/me/menuapp/bin/rsh
+</code></pre>
+
+<h3 id="--or--">-- or --</h3>
+
+<pre class="rounded-code"><code class="bash">$ su -
+# cp rsh /usr/local/bin
+# chown root:root /usr/local/bin/rsh
+# chmod 4755 /usr/local/bin/rsh
+# ls /usr/local/bin/rsh
+# -rwsr-xr-x. 1 root root 86240 Oct 25 20:00 /usr/local/bin/rsh
+</code></pre>
+
+<p>Once rsh and the following functions are installed, you can,
+from a standard user shell, type &quot;xx&quot; to start a root shell,
+and &quot;x&quot; to exit that root shell.</p>
+
+<pre class="rounded-code"><code class="bash">which rsh &gt;/dev/null 2&gt;&amp;1 &amp;&amp; xx() { rsh; }
+</code></pre>
+
+<p>Using the following function allows you to exit the root shell
+instantiated by the above function by typing &quot;x&quot;.</p>
+
+<p>As an added benefit, it directs the output of exit to /dev/null,
+which suppresses the annoying &quot;exit&quot; message that adds another
+non-relevant line to your terminal.</p>
+
+<p>This is especially useful when you have nested shells and want
+to exit multiple levels without cluttering the terminal with
+exit messages.</p>
+
+<pre class="rounded-code"><code class="bash">x() { exit &gt;/dev/null 2&gt;&amp;1; }
+</code></pre>
+
+<h2 id="thepathvariableor">The PATH Variable or</h2>
+
+<h2 id="massstorageblocksinodeandloved">Mass Storage Blocks Inode and Loved</h2>
+
+<p>Don't end up with duplicate entries in your PATH.</p>
+
+<ul>
+<li>This technique is from bashfaq #24. It's elegant and efficient.</li>
+</ul>
+
+<pre class="rounded-code"><code class="bash">prepend_path() {
+    case &quot;:${PATH}:&quot; in
+    *:&quot;$1&quot;:*) ;;
+    *)
+        PATH=&quot;$1:$PATH&quot;
+        ;;
+    esac
+}
+export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+[ -d &quot;/usr/lib/qt6/bin&quot; ] &amp;&amp; prepend_path &quot;/usr/lib/qt6/bin&quot;
+[ -d &quot;/usr/local/bin&quot; ] &amp;&amp; prepend_path &quot;/usr/local/bin&quot;
+[ -d &quot;$HOME/.local/bin&quot; ] &amp;&amp; prepend_path &quot;$HOME/.local/bin&quot;
+[ -d &quot;$HOME/.cargo/bin&quot; ] &amp;&amp; prepend_path &quot;$HOME/.cargo/bin&quot;
+[ -d &quot;$HOME/menuapp/bin&quot; ] &amp;&amp; prepend_path &quot;$HOME/menuapp/bin&quot;
+export PATH
+</code></pre>
+
+<ul>
+<li>Old habits die hard - use vi command to start nvim</li>
+</ul>
+
+<pre class="rounded-code"><code class="bash">which nvim &gt;/dev/null 2&gt;&amp;1 &amp;&amp; vi() { nvim &quot;$@&quot;; }
+</code></pre>
+
+<ul>
+<li>typing mm is faster than typing menu</li>
+</ul>
+
+<pre class="rounded-code"><code class="bash">which menu &gt;/dev/null 2&gt;&amp;1 &amp;&amp; mm() { menu &quot;$@&quot;; }
+</code></pre>
+
+<ul>
+<li>colorize ls output if possible</li>
+</ul>
+
+<pre class="rounded-code"><code class="bash">which ls &gt;/dev/null 2&gt;&amp;1 &amp;&amp; ls() { /bin/ls --color=auto &quot;$@&quot;; }
+</code></pre>
+
+<ul>
+<li>gdb alias to always start in silent mode</li>
+</ul>
+
+<pre class="rounded-code"><code class="bash">which gdb &gt;/dev/null 2&gt;&amp;1 &amp;&amp; gdb() { /usr/bin/gdb --silent &quot;$@&quot;; }
+</code></pre>
+
+<ul>
+<li>persistent project directory</li>
+</ul>
+
+<pre class="rounded-code"><code class="bash">pp() { cd /usr/local/src/cmenu/src || return; }
+</code></pre>
+
+<ul>
+<li>lazyvim config directory</li>
+</ul>
+
+<pre class="rounded-code"><code class="bash">ll() { cd ~/.config/lazyvim/lua || return; }
+</code></pre>
+
+<h2 id="curses">CURSES</h2>
+
+<ul>
+<li>shorter delay for curses escape sequences</li>
+</ul>
+
+<pre class="rounded-code"><code class="bash">export ESCDELAY=50
+</code></pre>
+
+<h2 id="shellprompt">SHELL PROMPT</h2>
+
+<p>Before your co-workers notice you repetitively typing 'whoami', Install
+this shell prompt. It's green when you are yourself, but turns red
+when you go superuser. It's very low-key, as it should be, but relevant.
+Change the colors and information to suit your taste.</p>
+
+<pre class="rounded-code"><code class="bash">export PS1=&quot;\[\e[1;32m\]\u@\h:\w&gt;\[\e[0m\] &quot;
+export XUSER=&quot;$(id -un)&quot;
+[ &quot;$XUSER&quot; = &quot;root&quot; ] &amp;&amp; export PS1=&quot;\[\e[1;31m\]\u@\h:\w&gt;\[\e[0m\] &quot;
+</code></pre>
+
+<h2 id="manualpages">MANUAL PAGES</h2>
+
+<p>If you find your manual pages looking dreary and uninviting,
+consider using nvim as your man pager. It offers syntax highlighting
+and a more pleasant reading experience.</p>
+
+<pre class="rounded-code"><code class="bash">export MANPAGER=&quot;nvim +Man!&quot;
+export MANWIDTH=80
+</code></pre>
+
+<p>Live Long and Prosper! 🖖</p>
+</body></html>
+</body></html>
+</body></html>
+</body></html>
+</body></html>
+</body></html>

@@ -1,0 +1,55 @@
+Options in the Sequence of execution initiated by menu, pick,
+form, or view executables.
+
+init.c
+
+    new_init()
+
+    mapp_initialization()
+
+        1. default
+
+    parse_config()
+
+        2. config file ~/.minitrc
+
+    code as needed
+
+        3. environment variables
+
+    parse_opt_args
+
+        4. option arguments
+
+mem.c
+
+    new_menu |
+    new_pick |
+    new_form |
+    new_view
+
+        5. positional arguments
+
+    verification of option arguments
+
+-------------------------------------------------------------------
+Options in the Sequence of execution when initiated by user provided
+mapp description files, "menu.d", "pick.d", and "form.d".
+
+When a user-provided mapp description file is executed from within
+the menu_engine, the sequence of execution is as follows:
+
+menu_engine.c
+
+    parse_opt_args()
+
+        4. option arguments from mapp description file
+
+mem.c
+    new_menu |
+    new_pick |
+    new_form |
+    new_view
+
+        5. positional arguments
+

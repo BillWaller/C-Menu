@@ -323,5 +323,5 @@ char *format_interest(float a) {
 
 void abend(int e) {
     printf("ABEND: Error %d:\n", e);
-    exit(e);
+    exit(EXIT_FAILURE);
 }
