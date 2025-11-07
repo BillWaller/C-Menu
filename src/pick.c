@@ -14,8 +14,8 @@ int main(int argc, char **argv) {
     open_curses();
     capture_curses_tioctl();
     win_init_attrs(init->fg_color, init->bg_color, init->bo_color);
-    begy = LINES / 14;
-    begx = COLS / 14;
+    begy = 0;
+    begx = 0;
     new_pick(init, init->argc, init->argv, begy, begx);
     pick = init->pick;
     init_pick(init, init->argc, init->argv, begy, begx);

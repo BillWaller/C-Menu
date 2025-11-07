@@ -149,6 +149,10 @@ Pick *close_pick(Init *init) {
     int i;
     if (!init->pick)
         return NULL;
+
+    for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt; pick->obj_idx++)
+        free(pick->object[pick->obj_idx]);
+
     for (i = 0; i <= init->pick->argc; i++) {
         init->pick->argv[i] =
             (char *)calloc(1, PICK_MAX_ARG_LEN * sizeof(char));
@@ -311,9 +315,29 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
    ┃ INIT_MENU_FILES                                       ┃
    ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
 bool init_menu_files(Init *init, int argc, char **argv) {
-    int optind;
     char tmp_str[MAXLEN];
-
+    //
+    //    test case 316:
+    //
+    //    pick -i picklist -M -c vi picklist.out
+    //
+    //    optind = 6, argc = 7, argv[6] = picklist.out
+    //
+    //    argc i
+    //       1 0           argv[0] pick
+    //       2 1             argv[1] -i
+    //       3 2             argv[2] picklist
+    //       4 3             argv[3] -M
+    //       5 4             argv[4] -c
+    //       6 5             argv[5] vi
+    // argc> 7 6 <optind     argv[6] picklist.out
+    //         7             argv[7] NULL
+    //
+    // while optind < argc
+    //
+    // optind = 6   argc = 7
+    // while optind < argc
+    //
     /* ╭───────────────────────────────────────────────────────────────────╮
        │ VERIFY_SPEC_ARG(                                                  │
        │     char *spec,      -> menu->spec, form->spec, etc.              │
@@ -322,27 +346,23 @@ bool init_menu_files(Init *init, int argc, char **argv) {
        │     char *alt_dir,   -> literal, "~/menuapp/data", etc.           │
        │     int mode)        -> R_OK, W_OK, X_OK, WC_OK                   │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    optind = 1;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ MENU MAPP_SPEC OPT ARGS - Priority 5                              │
+       │ MENU MAPP_SPEC - OPT ARG -d: - Priority 5                         │
        ╰───────────────────────────────────────────────────────────────────╯ */
     menu->f_mapp_spec =
         verify_spec_arg(menu->mapp_spec, init->mapp_spec, init->mapp_msrc,
                         "~/menuapp/msrc", R_OK);
-    if (menu->f_mapp_spec)
-        optind++;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ MENU HELP_SPEC OPT ARGS - Priority 5                              │
+       │ MENU HELP_SPEC - OPT ARG -H: - Priority 5                         │
        ╰───────────────────────────────────────────────────────────────────╯ */
     menu->f_help_spec =
         verify_spec_arg(menu->help_spec, init->help_spec, init->mapp_help,
                         "~/menuapp/help", R_OK);
-    if (menu->f_help_spec)
-        optind++;
+
     /*  ╭───────────────────────────────────────────────────────────────────╮
-        │ MENU MAPP_SPEC POSITIONAL ARGS - Priority 4                       │
+        │ MENU MAPP_SPEC - POSITIONAL ARG 1 - Priority 4                    │
         ╰───────────────────────────────────────────────────────────────────╯ */
-    if (optind <= argc && !menu->f_mapp_spec) {
+    if (optind < argc && !menu->f_mapp_spec) {
         menu->f_mapp_spec =
             verify_spec_arg(menu->mapp_spec, argv[optind], init->mapp_msrc,
                             "~/menuapp/msrc", R_OK);
@@ -350,9 +370,9 @@ bool init_menu_files(Init *init, int argc, char **argv) {
             optind++;
     }
     /*  ╭───────────────────────────────────────────────────────────────────╮
-        │ MENU HELP_SPEC POSITIONAL ARGS - Priority 4                       │
+        │ MENU HELP_SPEC - POSITIONAL ARG 2 - Priority 4                    │
         ╰───────────────────────────────────────────────────────────────────╯ */
-    if (optind <= argc && !menu->f_help_spec) {
+    if (optind < argc && !menu->f_help_spec) {
         menu->f_help_spec =
             verify_spec_arg(menu->help_spec, argv[optind], init->mapp_help,
                             "~/menuapp/help", R_OK);
@@ -360,7 +380,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ MENU MAPP_SPEC FALLBACK DEFAULTS - Priority 1                     │
+       │ MENU MAPP_SPEC - FALLBACK DEFAULTS - Priority 1                   │
        ╰───────────────────────────────────────────────────────────────────╯ */
     if (!menu->f_mapp_spec) {
         menu->f_mapp_spec = verify_spec_arg(
@@ -372,7 +392,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
         }
     }
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ MENU HELP_SPEC FALLBACK DEFAULTS - Priority 1                     │
+       │ MENU HELP_SPEC - FALLBACK DEFAULTS - Priority 1                   │
        ╰───────────────────────────────────────────────────────────────────╯ */
     if (!menu->f_help_spec) {
         menu->f_help_spec = verify_spec_arg(
@@ -399,45 +419,40 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     // 1    2     3        4         5
 
     //
-    optind = 1;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ PICK IN_SPEC OPT ARGS - Priority 5                                │
+       │ PICK IN_SPEC - OPT ARG -i: - Priority 5                           │
        ╰───────────────────────────────────────────────────────────────────╯ */
     pick->f_in_spec = verify_spec_arg(pick->in_spec, init->in_spec,
                                       init->mapp_data, "~/menuapp/data", R_OK);
-    if (pick->f_in_spec)
-        optind++;
-
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ PICK OUT_SPEC OPT ARGS - Priority 5                               │
+       │ PICK OUT_SPEC - OPT ARG -o: - Priority 5                          │
        ╰───────────────────────────────────────────────────────────────────╯ */
     pick->f_out_spec =
         verify_spec_arg(pick->out_spec, init->out_spec, init->mapp_data,
                         "~/menuapp/data", WC_OK);
-    if (pick->f_out_spec)
-        optind++;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ PICK CMD_SPEC OPT ARGS - Priority 5                               │
+       │ PICK CMD_SPEC - OPT ARG -c: - Priority 5                          │
        ╰───────────────────────────────────────────────────────────────────╯ */
     pick->f_cmd_spec = verify_spec_arg(pick->cmd_spec, init->cmd_spec,
                                        init->mapp_user, "~/menuapp/user", X_OK);
     if (!pick->f_cmd_spec && init->cmd_spec[0])
         if (locate_file_in_path(pick->cmd_spec, init->cmd_spec))
             pick->f_cmd_spec = verify_file_q(pick->cmd_spec, X_OK);
-    if (pick->f_cmd_spec)
-        optind++;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ PICK HELP_SPEC OPT ARGS - Priority 5                              │
+       │ PICK TITLE    - OPT ARG -T: - Priority 5                          │
+       ╰───────────────────────────────────────────────────────────────────╯ */
+    if (init->title[0])
+        strncpy(pick->title, init->title, MAXLEN - 1);
+    /* ╭───────────────────────────────────────────────────────────────────╮
+       │ PICK HELP_SPEC - OPT ARG -H: - Priority 5                         │
        ╰───────────────────────────────────────────────────────────────────╯ */
     pick->f_help_spec =
         verify_spec_arg(pick->help_spec, init->help_spec, init->mapp_help,
                         "~/menuapp/help", R_OK);
-    if (pick->f_help_spec)
-        optind++;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ PICK IN_SPEC POSITIONAL ARGS - Priority 4                         │
+       │ PICK IN_SPEC - POSITIONAL ARG 1 - Priority 4                      │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    if (argc > optind && !pick->f_in_spec) {
+    if (optind < argc && !pick->f_in_spec) {
         pick->f_in_spec =
             verify_spec_arg(pick->in_spec, argv[optind], init->mapp_data,
                             "~/menuapp/data", R_OK);
@@ -445,9 +460,9 @@ bool init_pick_files(Init *init, int argc, char **argv) {
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ PICK OUT_SPEC POSITIONAL ARGS - Priority 4                        │
+       │ PICK OUT_SPEC - POSITIONAL ARG 2 - Priority 4                     │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    if (argc > optind && !pick->f_out_spec) {
+    if (optind < argc && !pick->f_out_spec) {
         pick->f_out_spec =
             verify_spec_arg(pick->out_spec, argv[optind], init->mapp_data,
                             "~/menuapp/data", R_OK);
@@ -455,9 +470,9 @@ bool init_pick_files(Init *init, int argc, char **argv) {
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ PICK CMD_SPEC POSITIONAL ARGS - Priority 5                        │
+       │ PICK CMD_SPEC - POSITIONAL ARG 3 - Priority 5                     │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    if (argc > optind && !pick->f_cmd_spec) {
+    if (optind < argc && !pick->f_cmd_spec) {
         pick->f_cmd_spec =
             verify_spec_arg(pick->cmd_spec, init->cmd_spec, init->mapp_user,
                             "~/menuapp/user", X_OK);
@@ -468,9 +483,16 @@ bool init_pick_files(Init *init, int argc, char **argv) {
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ PICK HELP_SPEC POSITIONAL ARGS - Priority 4                       │
+       │ PICK TITLE    - POSITIONAL ARG 4 - Priority 4                     │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    if (argc > optind && !pick->f_help_spec) {
+    if (optind < argc && !pick->title[0]) {
+        strncpy(pick->title, argv[optind], MAXLEN - 1);
+        optind++;
+    }
+    /* ╭───────────────────────────────────────────────────────────────────╮
+       │ PICK HELP_SPEC - POSITIONAL ARG 5 - Priority 4                    │
+       ╰───────────────────────────────────────────────────────────────────╯ */
+    if (optind < argc && !pick->f_help_spec) {
         pick->f_help_spec =
             verify_spec_arg(pick->help_spec, argv[optind], init->mapp_help,
                             "~/menuapp/help", R_OK);
@@ -492,44 +514,36 @@ bool init_form_files(Init *init, int argc, char **argv) {
     optind = 1;
 
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ FORM MAPP_SPEC OPT ARGS - Priority 5                              │
+       │ FORM MAPP_SPEC - OPT ARG -d: - Priority 5                         │
        ╰───────────────────────────────────────────────────────────────────╯ */
     form->f_mapp_spec =
         verify_spec_arg(form->mapp_spec, init->mapp_spec, init->mapp_msrc,
                         "~/menuapp/msrc", R_OK);
-    if (form->f_mapp_spec)
-        optind++;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ FORM ANSWER_SPEC OPT ARGS - Priority 5                            │
+       │ FORM ANSWER_SPEC - OPT ARG -A: - Priority 5                       │
        ╰───────────────────────────────────────────────────────────────────╯ */
     form->f_answer_spec =
         verify_spec_arg(form->answer_spec, init->answer_spec, init->mapp_data,
                         "~/menuapp/data", WC_OK);
-    if (form->f_answer_spec)
-        optind++;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ FORM CMD_SPEC OPT ARGS - Priority 5                               │
+       │ FORM CMD_SPEC - OPT ARG -c: - Priority 5                          │
        ╰───────────────────────────────────────────────────────────────────╯ */
     form->f_cmd_spec = verify_spec_arg(form->cmd_spec, init->cmd_spec,
                                        init->mapp_user, "~/menuapp/user", X_OK);
     if (!form->f_cmd_spec && init->cmd_spec[0])
         if (locate_file_in_path(form->cmd_spec, init->cmd_spec))
             pick->f_cmd_spec = verify_file_q(form->cmd_spec, X_OK);
-    if (form->f_cmd_spec)
-        optind++;
 
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ FORM HELP_SPEC OPT ARGS - Priority 5                              │
+       │ FORM HELP_SPEC - OPT ARG -H: - Priority 5                         │
        ╰───────────────────────────────────────────────────────────────────╯ */
     form->f_help_spec =
         verify_spec_arg(form->help_spec, init->help_spec, init->mapp_help,
                         "~/menuapp/help", WC_OK);
-    if (form->f_help_spec)
-        optind++;
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ FORM MAPP_SPEC POSITIONAL ARGS - Priority 4                       │
+       │ FORM MAPP_SPEC - POSITIONAL ARG 1 - Priority 4                    │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    if (argc > optind && !form->f_mapp_spec) {
+    if (optind < argc && !form->f_mapp_spec) {
         form->f_mapp_spec =
             verify_spec_arg(form->mapp_spec, argv[optind], init->mapp_msrc,
                             "~/menuapp/msrc", R_OK);
@@ -537,9 +551,9 @@ bool init_form_files(Init *init, int argc, char **argv) {
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ FORM ANSWER_SPEC POSITIONAL ARGS - Priority 4                     │
+       │ FORM ANSWER_SPEC - POSITIONAL ARG 2 - Priority 4                  │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    if (argc > optind && !form->f_answer_spec) {
+    if (optind < argc && !form->f_answer_spec) {
         form->f_answer_spec =
             verify_spec_arg(form->answer_spec, argv[optind], init->mapp_data,
                             "~/menuapp/data", R_OK);
@@ -547,9 +561,9 @@ bool init_form_files(Init *init, int argc, char **argv) {
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ FORM CMD_SPEC POSITIONAL ARGS - Priority 4                        │
+       │ FORM CMD_SPEC - POSITIONAL ARG 3 - Priority 4                     │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    if (argc > optind && !form->f_cmd_spec) {
+    if (optind < argc && !form->f_cmd_spec) {
         form->f_cmd_spec =
             verify_spec_arg(form->cmd_spec, init->cmd_spec, init->mapp_user,
                             "~/menuapp/user", X_OK);
@@ -560,9 +574,9 @@ bool init_form_files(Init *init, int argc, char **argv) {
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────────────╮
-       │ FORM HELP_SPEC POSITIONAL ARGS - Priority 4                       │
+       │ FORM HELP_SPEC - POSITIONAL ARG 4 - Priority 4                    │
        ╰───────────────────────────────────────────────────────────────────╯ */
-    if (argc > optind && !form->f_help_spec) {
+    if (optind < argc && !form->f_help_spec) {
         form->f_help_spec =
             verify_spec_arg(form->help_spec, init->help_spec, init->mapp_help,
                             "~/menuapp/help", WC_OK);

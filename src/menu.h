@@ -508,8 +508,8 @@ typedef struct {
     int fg_color;  // F: foreground_color
     int bg_color;  // B: background_color
     int bo_color;  // O: border_color
-    int scr_lines; // L: lines
-    int scr_cols;  // C: columns
+    int win_lines; // L: lines
+    int win_width; // C: columns
     int begy;      // Y: placement line
     int begx;      // X: placement column
     int y;         // line
@@ -540,14 +540,19 @@ typedef struct {
     char *object[OBJ_MAXCNT];
     int select_idx;
     int select_cnt;
+    int select_max;
     int obj_cnt;
-    int idx;
-    int tab_pages;
-    int tab_page;
-    int tab_lines;
-    int tab_cols;
-    int tab_col;
-    int tab_width;
+    int obj_idx;
+    int pg_line;
+    int pg_lines;
+    int tab_idx;
+    int tbl_pages;
+    int tbl_page;
+    int tbl_line;
+    int tbl_lines;
+    int tbl_cols;
+    int tbl_col;
+    int tbl_col_width;
 } Pick;
 
 extern Pick *pick;
@@ -718,13 +723,13 @@ extern int init_cnt;
 extern int init_pick(Init *, int, char **, int, int);
 extern int pick_engine(Init *);
 extern void save_object(Pick *, char *);
-extern bool picker(Pick *);
+extern int picker(Pick *);
 extern void display_page(Pick *);
 extern void reverse_object(Pick *);
 extern void toggle_object(Pick *);
 extern int output_objects(Pick *);
 ;
-extern int exec_objects(Pick *, char *);
+extern int exec_objects(Pick *);
 extern int open_pick_win(Pick *);
 extern int mpick(int, char **, int, int, int, int, char *, int);
 

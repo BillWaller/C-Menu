@@ -1,0 +1,43 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/cmenu.dir/curskeys.c.o"
+  "CMakeFiles/cmenu.dir/curskeys.c.o.d"
+  "CMakeFiles/cmenu.dir/dwin.c.o"
+  "CMakeFiles/cmenu.dir/dwin.c.o.d"
+  "CMakeFiles/cmenu.dir/exec.c.o"
+  "CMakeFiles/cmenu.dir/exec.c.o.d"
+  "CMakeFiles/cmenu.dir/fform.c.o"
+  "CMakeFiles/cmenu.dir/fform.c.o.d"
+  "CMakeFiles/cmenu.dir/fields.c.o"
+  "CMakeFiles/cmenu.dir/fields.c.o.d"
+  "CMakeFiles/cmenu.dir/futil.c.o"
+  "CMakeFiles/cmenu.dir/futil.c.o.d"
+  "CMakeFiles/cmenu.dir/init.c.o"
+  "CMakeFiles/cmenu.dir/init.c.o.d"
+  "CMakeFiles/cmenu.dir/init_view.c.o"
+  "CMakeFiles/cmenu.dir/init_view.c.o.d"
+  "CMakeFiles/cmenu.dir/mem.c.o"
+  "CMakeFiles/cmenu.dir/mem.c.o.d"
+  "CMakeFiles/cmenu.dir/menu_engine.c.o"
+  "CMakeFiles/cmenu.dir/menu_engine.c.o.d"
+  "CMakeFiles/cmenu.dir/mview.c.o"
+  "CMakeFiles/cmenu.dir/mview.c.o.d"
+  "CMakeFiles/cmenu.dir/opts.c.o"
+  "CMakeFiles/cmenu.dir/opts.c.o.d"
+  "CMakeFiles/cmenu.dir/parse_menu_desc.c.o"
+  "CMakeFiles/cmenu.dir/parse_menu_desc.c.o.d"
+  "CMakeFiles/cmenu.dir/pick_engine.c.o"
+  "CMakeFiles/cmenu.dir/pick_engine.c.o.d"
+  "CMakeFiles/cmenu.dir/scriou.c.o"
+  "CMakeFiles/cmenu.dir/scriou.c.o.d"
+  "CMakeFiles/cmenu.dir/sig.c.o"
+  "CMakeFiles/cmenu.dir/sig.c.o.d"
+  "CMakeFiles/cmenu.dir/view_engine.c.o"
+  "CMakeFiles/cmenu.dir/view_engine.c.o.d"
+  "libcmenu.a"
+  "libcmenu.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C)
+  include(CMakeFiles/cmenu.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

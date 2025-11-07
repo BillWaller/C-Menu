@@ -266,12 +266,28 @@ void parse_opt_args(Init *init, int argc, char **argv) {
         }
     }
     init->argv[0] = strdup(argv[0]);
-    i = 1;
-    while (optind < argc)
-        init->argv[i++] = strdup(argv[optind++]);
+    //    argc i
+    //       1 0           argv[0] pick
+    //       2 1             argv[1] -i
+    //       3 2             argv[2] picklist
+    //       4 3             argv[3] -M
+    //       5 4             argv[4] -c
+    //       6 5             argv[5] vi
+    // argc> 7 6 <optind     argv[6] picklist.out
+    //         7             argv[7] NULL
+    //
+    // while optind < argc
+    //
+    // optind = 6
+    // argc = 7
+    //
+    i = 0;
+    while (i < argc) {
+        init->argv[i] = strdup(argv[i]);
+        i++;
+    }
     init->argv[i] = NULL;
-    init->argc = i;
-    argc = i;
+    init->argc = argc;
     return;
 }
 

@@ -1,0 +1,1 @@
+/usr/bin/clang -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -Xlinker --dependency-file=CMakeFiles/menu.dir/link.d CMakeFiles/menu.dir/menu.c.o -o menu  libcmenu.a -lncursesw -ltinfo -lconfig
