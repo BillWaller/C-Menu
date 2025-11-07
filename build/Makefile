@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /usr/local/src/cmenu/src
+CMAKE_SOURCE_DIR = /usr/local/src/C-Menu-0.2.3/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /usr/local/src/cmenu/build
+CMAKE_BINARY_DIR = /usr/local/src/C-Menu-0.2.3/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,16 +87,16 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/cmenu/build/CMakeFiles /usr/local/src/cmenu/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles /usr/local/src/C-Menu-0.2.3/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/cmenu/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
 .PHONY : all
 
 # The main codegen target
 codegen: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/cmenu/build/CMakeFiles /usr/local/src/cmenu/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles /usr/local/src/C-Menu-0.2.3/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 codegen
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/cmenu/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
 .PHONY : codegen
 
 # The main clean target
@@ -277,29 +277,29 @@ ckeys.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ckeys.dir/build.make CMakeFiles/ckeys.dir/ckeys.c.s
 .PHONY : ckeys.c.s
 
-display_curses_keys.o: display_curses_keys.c.o
-.PHONY : display_curses_keys.o
+curskeys.o: curskeys.c.o
+.PHONY : curskeys.o
 
 # target to build an object file
-display_curses_keys.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/display_curses_keys.c.o
-.PHONY : display_curses_keys.c.o
+curskeys.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/curskeys.c.o
+.PHONY : curskeys.c.o
 
-display_curses_keys.i: display_curses_keys.c.i
-.PHONY : display_curses_keys.i
+curskeys.i: curskeys.c.i
+.PHONY : curskeys.i
 
 # target to preprocess a source file
-display_curses_keys.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/display_curses_keys.c.i
-.PHONY : display_curses_keys.c.i
+curskeys.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/curskeys.c.i
+.PHONY : curskeys.c.i
 
-display_curses_keys.s: display_curses_keys.c.s
-.PHONY : display_curses_keys.s
+curskeys.s: curskeys.c.s
+.PHONY : curskeys.s
 
 # target to generate assembly for a file
-display_curses_keys.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/display_curses_keys.c.s
-.PHONY : display_curses_keys.c.s
+curskeys.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/curskeys.c.s
+.PHONY : curskeys.c.s
 
 dwin.o: dwin.c.o
 .PHONY : dwin.o
@@ -540,54 +540,6 @@ init.s: init.c.s
 init.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/init.c.s
 .PHONY : init.c.s
-
-init_menu.o: init_menu.c.o
-.PHONY : init_menu.o
-
-# target to build an object file
-init_menu.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/init_menu.c.o
-.PHONY : init_menu.c.o
-
-init_menu.i: init_menu.c.i
-.PHONY : init_menu.i
-
-# target to preprocess a source file
-init_menu.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/init_menu.c.i
-.PHONY : init_menu.c.i
-
-init_menu.s: init_menu.c.s
-.PHONY : init_menu.s
-
-# target to generate assembly for a file
-init_menu.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/init_menu.c.s
-.PHONY : init_menu.c.s
-
-init_pick.o: init_pick.c.o
-.PHONY : init_pick.o
-
-# target to build an object file
-init_pick.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/init_pick.c.o
-.PHONY : init_pick.c.o
-
-init_pick.i: init_pick.c.i
-.PHONY : init_pick.i
-
-# target to preprocess a source file
-init_pick.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/init_pick.c.i
-.PHONY : init_pick.c.i
-
-init_pick.s: init_pick.c.s
-.PHONY : init_pick.s
-
-# target to generate assembly for a file
-init_pick.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/init_pick.c.s
-.PHONY : init_pick.c.s
 
 init_view.o: init_view.c.o
 .PHONY : init_view.o
@@ -947,9 +899,9 @@ help:
 	@echo "... ckeys.o"
 	@echo "... ckeys.i"
 	@echo "... ckeys.s"
-	@echo "... display_curses_keys.o"
-	@echo "... display_curses_keys.i"
-	@echo "... display_curses_keys.s"
+	@echo "... curskeys.o"
+	@echo "... curskeys.i"
+	@echo "... curskeys.s"
 	@echo "... dwin.o"
 	@echo "... dwin.i"
 	@echo "... dwin.s"
@@ -980,12 +932,6 @@ help:
 	@echo "... init.o"
 	@echo "... init.i"
 	@echo "... init.s"
-	@echo "... init_menu.o"
-	@echo "... init_menu.i"
-	@echo "... init_menu.s"
-	@echo "... init_pick.o"
-	@echo "... init_pick.i"
-	@echo "... init_pick.s"
 	@echo "... init_view.o"
 	@echo "... init_view.i"
 	@echo "... init_view.s"

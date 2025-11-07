@@ -7,6 +7,8 @@
 #   echo "    -l      list installed files"
 #   echo "    --      clear installed files list"
 #
+
+DATE=$(rfc3339)
 FILENAME=$1
 DSTDIR=$2
 DSTNAME=$3
@@ -29,7 +31,7 @@ if [ "$#" -eq 1 ]; then
             echo Installed files:
             which lsd >/dev/null 2>&1
             if which lsd >/dev/null 2>&1; then
-                cat installed | while read -r line; do
+                awk '{printf("%s\n", $2)}' installed | while read -r line; do
                     lsd -l "$line"
                 done
             else
@@ -74,7 +76,7 @@ fi
 if [ -f "$DSTDIR/$DSTNAME" ]; then
     mv "$DSTDIR/$DSTNAME" /tmp/"$FILENAME".old
 fi
-echo "$DSTDIR/$DSTNAME" >>installed
+echo "$DATE $DSTDIR/$DSTNAME" >>installed
 cp "$FILENAME" "$DSTDIR/$DSTNAME"
 chown "$FILEOWN":"$FILEGRP" "$DSTDIR/$DSTNAME"
 chmod "$FILEMOD" "$DSTDIR/$DSTNAME"

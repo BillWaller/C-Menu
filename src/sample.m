@@ -22,6 +22,9 @@
 :Customer Receipts
 !form contact.d -c contact.sh
 
+:Manual Page Viewer
+!nvim +Man!
+
 :
 :Help
 !help ~/menuapp/doc/applications.hlp

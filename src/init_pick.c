@@ -11,8 +11,9 @@
 int init_pick(Init *init, int argc, char **argv, int lines, int cols, int begy,
               int begx) {
     Pick *pick = new_pick(init, argc, argv, begy, begx);
-    pick->lines = lines;
-    pick->cols = cols;
+
+    pick->scr_lines = lines;
+    pick->scr_cols = cols;
     pick->begy = begy + 1;
     pick->begx = begx + 4;
     strncpy(pick->title, init->title, MAXLEN - 1);

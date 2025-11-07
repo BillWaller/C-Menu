@@ -30,10 +30,10 @@ all:	menu form pick view ckeys whence rsh iloan enterchr enterstr
 	@echo Make Complete
 
 menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o \
-	 fform.o fields.o pick_engine.o display_curses_keys.o mview.o \
+	 fform.o fields.o pick_engine.o curskeys.o mview.o \
 	view_engine.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
 	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o  init_view.o \
-	 fform.o fields.o pick_engine.o display_curses_keys.o mview.o \
+	 fform.o fields.o pick_engine.o curskeys.o mview.o \
 	view_engine.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
    	$(LDFLAGS) -o $@ $(LIBS)
 #-----------------------------------------------------------
@@ -55,15 +55,15 @@ fform.o: fform.c menu.h
 fields.o:	fields.c menu.h
 	$(CC) $(CFLAGS) -c fields.c
 #-----------------------------------------------------------
-ckeys:	ckeys.o display_curses_keys.o \
+ckeys:	ckeys.o curskeys.o \
    	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) ckeys.o display_curses_keys.o \
+	$(CC) $(CFLAGS) ckeys.o curskeys.o \
    	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
 	$(LDFLAGS) -o $@ $(LIBS)
 ckeys.o: ckeys.c menu.h
 	$(CC) $(CFLAGS) -c ckeys.c
-display_curses_keys.o: display_curses_keys.c menu.h
-	$(CC) $(CFLAGS) -c display_curses_keys.c
+curskeys.o: curskeys.c menu.h
+	$(CC) $(CFLAGS) -c curskeys.c
 #-----------------------------------------------------------
 pick:	pick.o  pick_engine.o mview.o init_view.o view_engine.o \
    	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o 
@@ -125,7 +125,8 @@ whence:	whence.c
 iloan:	iloan.c
 	$(CC) $(CFLAGS) iloan.c -o $@ -lc -lm
 rsh:	rsh.c
-	$(CC) $(CFLAGS) -DVERBOSE rsh.c -o $@
+	$(CC) $(CFLAGS) rsh.c -o $@
+#	$(CC) $(CFLAGS) -DVERBOSE rsh.c -o $@
 #-----------------------------------------------------------
 
 clean:
@@ -134,19 +135,19 @@ clean:
 		scan-build scan-build.log
 
 install:
-	./inst.sh --
-	./inst.sh menu			$(PREFIX)/bin    menu		0711    $(OWNER) $(GROUP)
-	./inst.sh form			$(PREFIX)/bin    form		0711    $(OWNER) $(GROUP)
-	./inst.sh pick			$(PREFIX)/bin    pick		0711    $(OWNER) $(GROUP)
-	./inst.sh ckeys			$(PREFIX)/bin    ckeys		0711    $(OWNER) $(GROUP)
-	./inst.sh view			$(PREFIX)/bin    view		0711    $(OWNER) $(GROUP)
-	./inst.sh whence		$(PREFIX)/bin    whence		0711    $(OWNER) $(GROUP)
-	./inst.sh rsh			$(PREFIX)/bin    rsh		4711    root root
-	./inst.sh enterchr		$(PREFIX)/bin    enterchr	0711    $(OWNER) $(GROUP)
-	./inst.sh enterstr		$(PREFIX)/bin    enterstr	0711    $(OWNER) $(GROUP)
-	./inst.sh iloan			$(PREFIX)/bin    iloan		0711    $(OWNER) $(GROUP)
-	./inst.sh -l
-
+	./inst.sh	--
+	./inst.sh	menu			$(PREFIX)/bin	menu			0711	$(OWNER)	$(GROUP)
+	./inst.sh	form			$(PREFIX)/bin	form			0711	$(OWNER)	$(GROUP)
+	./inst.sh	pick			$(PREFIX)/bin	pick			0711	$(OWNER)	$(GROUP)
+	./inst.sh	ckeys		$(PREFIX)/bin	ckeys			0711	$(OWNER)	$(GROUP)
+	./inst.sh	view			$(PREFIX)/bin	view			0711	$(OWNER)	$(GROUP)
+	./inst.sh	whence		$(PREFIX)/bin	whence		0711	$(OWNER)	$(GROUP)
+	./inst.sh	rsh			$(PREFIX)/bin	rsh			4711	root	root
+	./inst.sh	enterchr	$(PREFIX)/bin	enterchr	0711	$(OWNER)	$(GROUP)
+	./inst.sh	enterstr	$(PREFIX)/bin	enterstr	0711	$(OWNER)	$(GROUP)
+	./inst.sh	iloan		$(PREFIX)/bin	iloan			0711	$(OWNER)	$(GROUP)
+	./inst.sh	-l
+	
 uninstall:
 	rm -fv	$(PREFIX)/bin/menu	\
 			$(PREFIX)/bin/form	\

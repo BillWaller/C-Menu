@@ -6,15 +6,13 @@ project(cmenu C)
 
 add_library(
   cmenu
-  display_curses_keys.c
+  curskeys.c
   dwin.c
   exec.c
   fform.c
   fields.c
   futil.c
   init.c
-  init_menu.c
-  init_pick.c
   init_view.c
   mem.c
   menu_engine.c
