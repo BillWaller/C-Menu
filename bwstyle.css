@@ -1,0 +1,128 @@
+* {
+	background: #000027;
+	font-size: 22px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+.rounded-code {
+	display: block;
+	background: #000fbf;
+	border: 1px solid #e7e0e0;
+	border-radius: 8px;
+	padding: 8px;
+	width: 80%;
+	margin-left: 12%;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+body {
+	color: #00ff7f;
+	text-align: left;
+	font-family: "Noto Sans", verdana, arial, sans-serif;
+	font-size: 22px;
+	background: #000027;
+}
+img {
+	width: auto;
+	border: 1px solid #e7e0e0;
+	border-radius: 8px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.wrap-text {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+code,
+pre {
+	font-family: "Source Code Pro", "Courier New", monospace;
+	font-size: 22px;
+	background: #000fbf;
+}
+code {
+	display: block;
+	font-size: 20px;
+	text-indent: 0;
+}
+
+h1 {
+	color: #e7e0e0;
+	font-size: 40px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 5%;
+}
+h2 {
+	color: #e7e0e0;
+	font-size: 30px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 7%;
+}
+h3 {
+	color: #e7e0e0;
+	font-size: 22px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+}
+img {
+	display: block;
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #e7e0e0;
+	border-radius: 8px;
+}
+ol {
+	font-size: 20px;
+	margin-left: 0%;
+}
+span {
+	font-size: 22px;
+	margin-left: 12%;
+}
+p {
+	font-size: 22px;
+	margin-left: 12%;
+}
+li {
+	font-size: 22px;
+	margin-left: 12%;
+}
+a {
+	font-size: 22px;
+	margin-left: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+/* unvisited link */
+a:link {
+	color: #00df8f;
+	text-decoration: none;
+	margin-left: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 22px;
+}
+
+/* visited link */
+a:visited {
+	color: #3f7fff;
+	text-decoration: none;
+	margin-left: 12%;
+	font-size: 22px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+
+/* mouse over link */
+a:hover {
+	color: #00ff7f;
+	text-decoration: none;
+	margin-left: 12%;
+	font-size: 22px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+
+/* selected link */
+a:active {
+	color: #ff7700;
+	text-decoration: none;
+	margin-left: 12%;
+	font-size: 22px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
