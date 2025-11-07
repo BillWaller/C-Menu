@@ -1,4 +1,4 @@
- # CMENU - A TUI Menu System
+# CMENU - A TUI Menu System
 
 ## Programs: Menu, Form, Pick, View, and RSH
 
@@ -11,11 +11,7 @@ frameworks for user applications in terminal environments.
 
 ### CMENU with Test Curses Keys
 
-href="https://github.com/BillWaller/C-Menu/blob/main/screenshots/Curses_Keys.png">https://github.com/BillWaller/C-Menu/blob/main/screenshots/Curses_Keys.png</a><br>
-<p>Copyright (C) 2025-2025 BillWaller</p>
-<figure>
-<img src="Curses_Keys.png" alt="image" />
-<figcaption aria-hidden="true">image</figcaption>
+<img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" style="width: 80%" />
 
 MENU reads a simple description file like the one below and displays a context
 menu to the user. When the user selects an item, MENU executes the
@@ -30,11 +26,7 @@ for keys not defined in Curses, so you can provide your own custom keys.
 
 ### CMENU with PICK
 
-href="https://github.com/BillWaller/C-Menu/blob/main/screenshots/Pick.png">https://github.com/BillWaller/C-Menu/blob/main/screenshots/Pick.png</a><br>
-<p>Copyright (C) 2025-2025 BillWaller</p>
-<figure>
-<img src="Pick.png" alt="image" />
-<figcaption aria-hidden="true">image</figcaption>
+<img src="screenshots/Pick.png" style="width: 80%" />
 
 This program provides a list of objects from arguments or a text file
 and lets the user select any number to be written to a file or provided
@@ -42,11 +34,7 @@ as arguments to an executable specified in the description file.
 
 ### FORM
 
-href="https://github.com/BillWaller/C-Menu/blob/main/screenshots/Receipt.png">https://github.com/BillWaller/C-Menu/blob/main/screenshots/Receipt.png</a><br>
-<p>Copyright (C) 2025-2025 BillWaller</p>
-<figure>
-<img src="Receipt.png" alt="image" />
-<figcaption aria-hidden="true">image</figcaption>
+<img src="screenshots/Receipt.png" style="width: 80%" />
 
 FORM displays data entry forms based on a description file. It allows users
 to input data in a structured manner. The entered data can then be processed
@@ -61,7 +49,6 @@ or wedding invitation list? FORM has you covered. This particular
 program took about 10 minutes from design to test. It doesn't post
 transactions, yet. That's why we have people like you. FORM makes a
 great front-end for SQL database queries.
-
 
 ### A Sample Menu Description File
 
@@ -115,11 +102,7 @@ handles this task with ease and zip through them with lightning speed.
 
 ### RSH
 
-ref="https://github.com/BillWaller/C-Menu/blob/main/screenshots/rsh.png">https://github.com/BillWaller/C-Menu/blob/screenshots/rsh.png</a><br>
-<p>Copyright (C) 2025-2025 BillWaller</p>
-<figure>
-<img src="rsh.png" alt="image" />
-<figcaption aria-hidden="true">image</figcaption>
+<img src="screenshots/rsh.png" style="width: 80%" />
 
 RSH is not a shell. It is a shell runner, which allows you to specify your
 shell of choice, and provides a consistent environment for running shell
@@ -165,7 +148,6 @@ vulnerabilities if misused.
 - Cross-platform compatibility
 
 - Open-source and free to use
-
 
 ### CMENU Command Line Options
 
