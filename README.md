@@ -11,7 +11,7 @@ frameworks for user applications in terminal environments.
 
 ### CMENU with Test Curses Keys
 
-href="https://github.com/BillWaller/C-Menu/screenshots/Curses_keys">https://github.com/BillWaller/C-Menu/screenshots/Curses_Keys</a><br>
+href="https://github.com/BillWaller/C-Menu/Curses_keys">https://github.com/BillWaller/C-Menu/Curses_Keys</a><br>
 <p>Copyright (C) 2025-2025 BillWaller</p>
 <figure>
 <img src="Curses_Keys.png" alt="image" />
