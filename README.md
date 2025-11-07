@@ -11,7 +11,7 @@ frameworks for user applications in terminal environments.
 
 ### CMENU with Test Curses Keys
 
-href="https://github.com/BillWaller/C-Menu/Curses_keys">https://github.com/BillWaller/C-Menu/Curses_Keys</a><br>
+href="https://github.com/BillWaller/C-Menu/blob/main/screenshots/Curses_Keys.png">https://github.com/BillWaller/C-Menu/blob/main/screenshots/Curses_Keys.png</a><br>
 <p>Copyright (C) 2025-2025 BillWaller</p>
 <figure>
 <img src="Curses_Keys.png" alt="image" />
@@ -30,7 +30,7 @@ for keys not defined in Curses, so you can provide your own custom keys.
 
 ### CMENU with PICK
 
-href="https://github.com/BillWaller/Pick">https://github.com/BillWaller/Pick</a><br>
+href="https://github.com/BillWaller/C-Menu/blob/main/screenshots/Pick.png">https://github.com/BillWaller/C-Menu/blob/main/screenshots/Pick.png</a><br>
 <p>Copyright (C) 2025-2025 BillWaller</p>
 <figure>
 <img src="Pick.png" alt="image" />
@@ -42,7 +42,7 @@ as arguments to an executable specified in the description file.
 
 ### FORM
 
-href="https://github.com/BillWaller/Receipt">https://github.com/BillWaller/Receipt</a><br>
+href="https://github.com/BillWaller/C-Menu/blob/main/screenshots/Receipt.png">https://github.com/BillWaller/C-Menu/blob/main/screenshots/Receipt.png</a><br>
 <p>Copyright (C) 2025-2025 BillWaller</p>
 <figure>
 <img src="Receipt.png" alt="image" />
@@ -115,7 +115,7 @@ handles this task with ease and zip through them with lightning speed.
 
 ### RSH
 
-ref="https://github.com/BillWaller/rsh">https://github.com/BillWaller/rsh</a><br>
+ref="https://github.com/BillWaller/C-Menu/blob/main/screenshots/rsh.png">https://github.com/BillWaller/C-Menu/blob/screenshots/rsh.png</a><br>
 <p>Copyright (C) 2025-2025 BillWaller</p>
 <figure>
 <img src="rsh.png" alt="image" />
