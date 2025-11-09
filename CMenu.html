@@ -8,11 +8,11 @@
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>CMENU - A TUI Menu System</h1>
 <h2>Programs: Menu, Form, Pick, View, and RSH</h2>
 <p>CMENU is a lightweight, customizable, and easy-to-learn suite of programs
-for quickly and easily creating menus, entry forms, and pickers with a
-text-based user interface(TUI) for applications running on Linux and Unix-like
-operating systems. CMENU is designed to be simple to use while providing
-powerful features for developers who need to implement menu driven
-frameworks for user applications in terminal environments.</p>
+for creating menus, entry forms, and pickers with a text-based user
+interface(TUI) for applications running on Linux and Unix-like operating
+systems. CMENU is designed to be simple to use while providing powerful
+features to implement menu driven frameworks for applications in
+terminal and terminal emulator environments.</p>
 <h3>CMENU with Test Curses Keys</h3>
 <img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
 <p>MENU reads a simple description file like the one below and displays a context
@@ -37,15 +37,14 @@ by a specified command or script.</p>
 <p>Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
 accounting, scheduling and management system. It was particularly useful
 as a front-end for our SQL database applications.</p>
-<p>Do you need to design a quick and easy Cash Receipts, General Journal,
-or wedding invitation list? FORM has you covered. This particular
-program took about 10 minutes from design to test. It doesn't post
-transactions, yet. That's why we have people like you. FORM makes a
-great front-end for SQL database queries.</p>
+<p>Need quick and easy Cash Receipts, General Journal, or wedding invitation
+list? FORM has you covered. The application shown above took about 10
+minutes from design to test. It doesn't post transactions, or keep running
+balances yet, but that's why we have people like you.</p>
+<p>FORM also makes a great front-end for SQL database queries.</p>
 <h3>A Sample Menu Description File</h3>
-<pre class="rounded-code"><code>:SAMPLE MENU
+<pre class="rounded-code"><code>H:SAMPLE MENU
 
-:
 :Gnumeric
 !exec gnumeric
 
@@ -67,44 +66,61 @@ great front-end for SQL database queries.</p>
 :Cash Receipts
 !form receipt.d -c receipt.sh
 
-:
 :Help
 !help ~/menuapp/doc/applications.hlp
 
 :Exit Applications
 !return
 </code></pre>
+<p>As you can see, the description file is straightforward and easy to read. Each menu
+item consists of a label and a command to execute. The label is displayed in the menu,
+and the command is executed when the user selects that item.</p>
+<p>We hope you find CMENU useful for your projects. It's a powerful tool that can
+greatly simplify the process of creating text-based user interfaces for
+your applications.</p>
 <h3>VIEW</h3>
 <p>VIEW is a simple text file viewer that allows users to view text files in a
-terminal environment. It supports basic navigation and search functionality,
-which comes in handy for displaying help files or other text-based
-documentation. VIEW can be invoked from within MENU, FORM, or PICK to provide
-contextual help or information.</p>
+terminal environment. It supports basic navigation and regular expression
+search functionality, which comes in handy for displaying help files or
+other text-based documentation. VIEW can be invoked from within MENU, FORM,
+or PICK to provide contextual help or information.</p>
 <p>One especially useful feature of VIEW is its incredible speed with very large
 text files. VIEW can open and display multi-megabyte text files almost
 instantaneously, making it an excellent choice for viewing log files or other
 large documents. While NVIM and other modern editors are outstanding for code
 editing, it's just not practical to open a 100MB log file in them. VIEW
-handles this task with ease and zips through them with lightning speed.</p>
+handles large files with ease and zips through them with lightning speed.</p>
 <h3>RSH</h3>
 <img src="screenshots/rsh.png" />
-<p>RSH is not a shell. It is a shell runner, which allows you to specify your
-shell of choice, and provides a consistent environment for running shell
-scripts and commands. You can execute commands in either user mode or root
-mode, making it a versatile tool for various tasks. RSH ensures that your
-scripts run in a controlled environment, reducing the chances of unexpected
-behavior due to differing shell environments. RSH forks and waits for the
-command to complete before returning control to the calling program. It
-catches and displays the exit status of the command, allowing for better
-error handling. Instead of using su -c or sudo to run commands as root,
-you can use rsh -c to achieve the same result in a more streamlined manner.
-You can literally have root access within a fraction of a second, making it
-ideal for quick administrative tasks. RSH is particularly useful when
-invoked from within MENU, FORM, or PICK to execute commands that require
-elevated privileges.</p>
-<p>You knew this was coming. Please be very careful when using RSH in root
-mode, as it can potentially lead to system instability or security
-vulnerabilities if misused.</p>
+<p>Despite its name, RSH is not a shell. It is a shell runner, which allows
+you to specify your shell of choice, and provides a consistent environment
+for running shell scripts and commands. RSH was designed to be invoked from
+within MENU, FORM, or PICK to execute commands that require elevated
+privileges, but its functionality extends beyond that.</p>
+<p>You can execute commands in either user or root mode, making it a versatile
+tool for developing aplication front-ends. RSH ensures that your scripts
+and executables run in a controlled environment, reducing the chances of
+unexpected behavior due to differing shell environments. RSH forks and waits
+for its spawn to complete before returning control to the calling program.
+When executed under CMenu's signal handler, it catches and displays the
+exit status of the command, allowing for better error handling. Instead of
+using su -c or sudo to run commands as root, you can use rsh -c to achieve
+the same result in a more streamlined manner. You can literally have root
+access within a fraction of a second, making it ideal for work that
+requires frequent switching between user and root modes for various
+administrative tasks.</p>
+<p>Many system administrators and developers find RSH invaluable for tasks
+that require elevated privileges. RSH eliminates the need to repeatedly enter
+passwords or switch users, streamlining workflows and improving efficiency. We all
+know it's not a good idea to run everything as root, but sometimes a user want's to
+avoid precious seconds it takes to enter passwords for su. With RSH, it takes three
+keystrokes to enter root mode and two keystrokes to get out.</p>
+<p>Please be very careful when using RSH in setuid root mode. Keep the
+executable protected in your home directory with appropriate permissions
+to prevent promiscuous access by unauthorized users. RSH should be provided
+only to trusted users who understand the implications of executing commands
+with elevated privileges. Used inappropriately, it can lead to system
+instability or security vulnerabilities.</p>
 <h2>Features</h2>
 <ul>
 <li>
