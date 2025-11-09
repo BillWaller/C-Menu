@@ -3,19 +3,15 @@
 ## Programs: Menu, Form, Pick, View, and RSH
 
 CMENU is a lightweight, customizable, and easy-to-learn suite of programs
-for quickly and easily creating menus, entry forms, and pickers with a
-text-based user interface(TUI) for applications running on Linux and Unix-like
-operating systems. CMENU is designed to be simple to use while providing
-powerful features for developers who need to implement menu driven
-frameworks for user applications in terminal environments.
+for creating menus, entry forms, and pickers with a text-based user
+interface(TUI) for applications running on Linux and Unix-like operating
+systems. CMENU is designed to be simple to use while providing powerful
+features to implement menu driven frameworks for applications in
+terminal and terminal emulator environments.
 
 ### CMENU with Test Curses Keys
 
-href="https://github.com/BillWaller/C-Menu/screenshots/Curses_keys.png">https://github.com/BillWaller/C-Menu/screenshots/Curses_Keys.png</a><br>
-<p>Copyright (C) 2025-2025 BillWaller</p>
-<figure>
-<img src="Curses_Keys.png" alt="image" />
-<figcaption aria-hidden="true">image</figcaption>
+<img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
 
 MENU reads a simple description file like the one below and displays a context
 menu to the user. When the user selects an item, MENU executes the
@@ -30,11 +26,7 @@ for keys not defined in Curses, so you can provide your own custom keys.
 
 ### CMENU with PICK
 
-href="https://github.com/BillWaller/C-Menu/Pick">https://github.com/BillWaller/C-Menu/Pick</a><br>
-<p>Copyright (C) 2025-2025 BillWaller</p>
-<figure>
-<img src="Pick.png" alt="image" />
-<figcaption aria-hidden="true">image</figcaption>
+<img src="screenshots/Pick.png" />
 
 This program provides a list of objects from arguments or a text file
 and lets the user select any number to be written to a file or provided
@@ -42,11 +34,7 @@ as arguments to an executable specified in the description file.
 
 ### FORM
 
-href="https://github.com/BillWaller/C-Menu/Receipt">https://github.com/BillWaller/C-Menu/Receipt</a><br>
-<p>Copyright (C) 2025-2025 BillWaller</p>
-<figure>
-<img src="Receipt.png" alt="image" />
-<figcaption aria-hidden="true">image</figcaption>
+<img src="screenshots/Receipt.png" />
 
 FORM displays data entry forms based on a description file. It allows users
 to input data in a structured manner. The entered data can then be processed
@@ -56,19 +44,18 @@ Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
 accounting, scheduling and management system. It was particularly useful
 as a front-end for our SQL database applications.
 
-Do you need to design a quick and easy Cash Receipts, General Journal,
-or wedding invitation list? FORM has you covered. This particular
-program took about 10 minutes from design to test. It doesn't post
-transactions, yet. That's why we have people like you. FORM makes a
-great front-end for SQL database queries.
+Need quick and easy Cash Receipts, General Journal, or wedding invitation
+list? FORM has you covered. The application shown above took about 10
+minutes from design to test. It doesn't post transactions, or keep running
+balances yet, but that's why we have people like you.
 
+FORM also makes a great front-end for SQL database queries.
 
 ### A Sample Menu Description File
 
 ```
-:SAMPLE MENU
+H:SAMPLE MENU
 
-:
 :Gnumeric
 !exec gnumeric
 
@@ -90,7 +77,6 @@ great front-end for SQL database queries.
 :Cash Receipts
 !form receipt.d -c receipt.sh
 
-:
 :Help
 !help ~/menuapp/doc/applications.hlp
 
@@ -98,47 +84,66 @@ great front-end for SQL database queries.
 !return
 ```
 
+As you can see, the description file is straightforward and easy to read. Each menu
+item consists of a label and a command to execute. The label is displayed in the menu,
+and the command is executed when the user selects that item.
+
+We hope you find CMENU useful for your projects. It's a powerful tool that can
+greatly simplify the process of creating text-based user interfaces for
+your applications.
+
 ### VIEW
 
 VIEW is a simple text file viewer that allows users to view text files in a
-terminal environment. It supports basic navigation and search functionality,
-which comes in handy for displaying help files or other text-based
-documentation. VIEW can be invoked from within MENU, FORM, or PICK to provide
-contextual help or information.
+terminal environment. It supports basic navigation and regular expression
+search functionality, which comes in handy for displaying help files or
+other text-based documentation. VIEW can be invoked from within MENU, FORM,
+or PICK to provide contextual help or information.
 
 One especially useful feature of VIEW is its incredible speed with very large
 text files. VIEW can open and display multi-megabyte text files almost
 instantaneously, making it an excellent choice for viewing log files or other
 large documents. While NVIM and other modern editors are outstanding for code
 editing, it's just not practical to open a 100MB log file in them. VIEW
-handles this task with ease and zip through them with lightning speed.
+handles large files with ease and zips through them with lightning speed.
 
 ### RSH
 
-ref="https://github.com/BillWaller/C-Menu/rsh">https://github.com/BillWaller/C-Menu/rsh</a><br>
-<p>Copyright (C) 2025-2025 BillWaller</p>
-<figure>
-<img src="rsh.png" alt="image" />
-<figcaption aria-hidden="true">image</figcaption>
+<img src="screenshots/rsh.png" />
 
-RSH is not a shell. It is a shell runner, which allows you to specify your
-shell of choice, and provides a consistent environment for running shell
-scripts and commands. You can execute commands in either user mode or root
-mode, making it a versatile tool for various tasks. RSH ensures that your
-scripts run in a controlled environment, reducing the chances of unexpected
-behavior due to differing shell environments. RSH forks and waits for the
-command to complete before returning control to the calling program. It
-catches and displays the exit status of the command, allowing for better
-error handling. Instead of using su -c or sudo to run commands as root,
-you can use rsh -c to achieve the same result in a more streamlined manner.
-You can literally have root access within a fraction of a second, making it
-ideal for quick administrative tasks. RSH is particularly useful when
-invoked from within MENU, FORM, or PICK to execute commands that require
-elevated privileges.
+Despite its name, RSH is not a shell. It is a shell runner, which allows
+you to specify your shell of choice, and provides a consistent environment
+for running shell scripts and commands. RSH was designed to be invoked from
+within MENU, FORM, or PICK to execute commands that require elevated
+privileges, but its functionality extends beyond that.
 
-You knew this was coming. Please be very careful when using RSH in root
-mode, as it can potentially lead to system instability or security
-vulnerabilities if misused.
+You can execute commands in either user or root mode, making it a versatile
+tool for developing aplication front-ends. RSH ensures that your scripts
+and executables run in a controlled environment, reducing the chances of
+unexpected behavior due to differing shell environments. RSH forks and waits
+for its spawn to complete before returning control to the calling program.
+When executed under CMenu's signal handler, it catches and displays the
+exit status of the command, allowing for better error handling. Instead of
+using su -c or sudo to run commands as root, you can use rsh -c to achieve
+the same result in a more streamlined manner. You can literally have root
+access within a fraction of a second, making it ideal for work that
+requires frequent switching between user and root modes for various
+administrative tasks.
+
+Many system administrators and developers find RSH invaluable for tasks
+that require elevated privileges.
+RSH eliminates the need to repeatedly enter passwords or switch users,
+streamlining workflows and improving efficiency. We all know it's not a
+good idea to run everything as root, but sometimes a user want's to avoid
+precious seconds it takes to enter passwords for su. With RSH, it takes
+three keystrokes to enter root mode and two keystrokes to get out.
+
+Please be very careful when using RSH in setuid root mode. Keep the
+executable protected in your home directory with appropriate permissions
+to prevent promiscuous access by unauthorized users. RSH should be provided
+only to trusted users who understand the implications of executing commands
+with elevated privileges. Used inappropriately, it can lead to system
+instability or security vulnerabilities.
 
 ## Features
 
@@ -165,7 +170,6 @@ vulnerabilities if misused.
 - Cross-platform compatibility
 
 - Open-source and free to use
-
 
 ### CMENU Command Line Options
 
@@ -205,10 +209,8 @@ long option          type      group       mask  flg description
 --mapp_data           string    directory   mpfv      data directory
 --mapp_help           string    directory   mpfv      help directory
 --mapp_msrc           string    directory   mpfv      source directory
-
-
+```
 
 ## Installation
 
 To install CMENU, simply download the source code from the repository and follow the installation instructions provided in the INSTALL.md file.
-```
