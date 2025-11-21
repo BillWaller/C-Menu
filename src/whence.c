@@ -6,6 +6,8 @@
  * billxwaller@gmail.com
  */
 
+#include <fcntl.h>
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,45 +28,45 @@
 #define FAIL -1
 #define PATH_MAX 256
 
-int f_all, f_help, f_verbose;
+int f_all, f_display_help, f_verbose;
 char *path_p;
 char path_s[PATH_MAX];
 char *file_name[PATH_MAX + 1];
 
-void usage();
+void whence_usage();
 void whence(char *);
 int next_path(char *, char **);
 int file_spec_parts(char *, char *, char *);
-void abend(char *, int, char *);
+void ABEND(char *, int, char *);
 void normalend(int);
 
 int main(int argc, char **argv) {
 
     int opt;
     if (argc < 2)
-        usage();
+        whence_usage();
     while ((opt = getopt(argc, argv, "ahv")) != -1) {
         switch (opt) {
         case 'a':
             f_all = TRUE;
             break;
         case 'h':
-            f_help = TRUE;
+            f_display_help = TRUE;
             break;
         case 'v':
             f_verbose = TRUE;
             break;
         default:
-            abend(argv[0], FAIL, "unrecognized option");
+            ABEND(argv[0], FAIL, "unrecognized option");
         }
     }
-    if (f_help) {
-        usage();
+    if (f_display_help) {
+        whence_usage();
         normalend(0);
     }
     path_p = getenv("PATH");
     if (path_p == NULL)
-        abend(argv[0], FAIL, "PATH environment variable not set");
+        ABEND(argv[0], FAIL, "PATH environment variable not set");
     if (f_verbose)
         printf("%s\n", path_p);
     while (optind < argc) {
@@ -73,8 +75,8 @@ int main(int argc, char **argv) {
     normalend(0);
 }
 
-void usage() {
-    fprintf(stderr, "usage: whence [options] file_name\n");
+void whence_usage() {
+    fprintf(stderr, "whence_usage: whence [options] file_name\n");
     fprintf(stderr, "       -a show all matches\n");
     fprintf(stderr, "       -h help\n");
     fprintf(stderr, "       -v verbose (implies -a)\n");
@@ -183,7 +185,7 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
 
 void normalend(int rc) { exit(EXIT_SUCCESS); }
 
-void abend(char *pgmid, int rc, char *err_msg) {
+void ABEND(char *pgmid, int rc, char *err_msg) {
     fprintf(stderr, "%s; error %d; %s\n", pgmid, rc, err_msg);
     exit(EXIT_FAILURE);
 }

@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /usr/local/src/C-Menu-0.2.3/src
+CMAKE_SOURCE_DIR = /usr/local/src/C-Menu-0.2.4/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /usr/local/src/C-Menu-0.2.3/build
+CMAKE_BINARY_DIR = /usr/local/src/C-Menu-0.2.4/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -66,26 +66,28 @@ CMAKE_BINARY_DIR = /usr/local/src/C-Menu-0.2.3/build
 all: CMakeFiles/cmenu.dir/all
 all: CMakeFiles/ckeys.dir/all
 all: CMakeFiles/form.dir/all
+all: CMakeFiles/enterchr.dir/all
+all: CMakeFiles/enterstr.dir/all
 all: CMakeFiles/iloan.dir/all
 all: CMakeFiles/menu.dir/all
 all: CMakeFiles/pick.dir/all
+all: CMakeFiles/rsh.dir/all
 all: CMakeFiles/view.dir/all
 all: CMakeFiles/whence.dir/all
-all: CMakeFiles/enterchr.dir/all
-all: CMakeFiles/enterstr.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
 codegen: CMakeFiles/cmenu.dir/codegen
 codegen: CMakeFiles/ckeys.dir/codegen
 codegen: CMakeFiles/form.dir/codegen
+codegen: CMakeFiles/enterchr.dir/codegen
+codegen: CMakeFiles/enterstr.dir/codegen
 codegen: CMakeFiles/iloan.dir/codegen
 codegen: CMakeFiles/menu.dir/codegen
 codegen: CMakeFiles/pick.dir/codegen
+codegen: CMakeFiles/rsh.dir/codegen
 codegen: CMakeFiles/view.dir/codegen
 codegen: CMakeFiles/whence.dir/codegen
-codegen: CMakeFiles/enterchr.dir/codegen
-codegen: CMakeFiles/enterstr.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -96,13 +98,14 @@ preinstall:
 clean: CMakeFiles/cmenu.dir/clean
 clean: CMakeFiles/ckeys.dir/clean
 clean: CMakeFiles/form.dir/clean
+clean: CMakeFiles/enterchr.dir/clean
+clean: CMakeFiles/enterstr.dir/clean
 clean: CMakeFiles/iloan.dir/clean
 clean: CMakeFiles/menu.dir/clean
 clean: CMakeFiles/pick.dir/clean
+clean: CMakeFiles/rsh.dir/clean
 clean: CMakeFiles/view.dir/clean
 clean: CMakeFiles/whence.dir/clean
-clean: CMakeFiles/enterchr.dir/clean
-clean: CMakeFiles/enterstr.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -112,14 +115,14 @@ clean: CMakeFiles/enterstr.dir/clean
 CMakeFiles/cmenu.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Built target cmenu"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Built target cmenu"
 .PHONY : CMakeFiles/cmenu.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/cmenu.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 18
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 18
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/cmenu.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
 .PHONY : CMakeFiles/cmenu.dir/rule
 
 # Convenience name for target.
@@ -129,7 +132,7 @@ cmenu: CMakeFiles/cmenu.dir/rule
 # codegen rule for target.
 CMakeFiles/cmenu.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Finished codegen for target cmenu"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Finished codegen for target cmenu"
 .PHONY : CMakeFiles/cmenu.dir/codegen
 
 # clean rule for target.
@@ -144,14 +147,14 @@ CMakeFiles/cmenu.dir/clean:
 CMakeFiles/ckeys.dir/all: CMakeFiles/cmenu.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ckeys.dir/build.make CMakeFiles/ckeys.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ckeys.dir/build.make CMakeFiles/ckeys.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=1,2 "Built target ckeys"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=1,2 "Built target ckeys"
 .PHONY : CMakeFiles/ckeys.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ckeys.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 20
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 20
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/ckeys.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
 .PHONY : CMakeFiles/ckeys.dir/rule
 
 # Convenience name for target.
@@ -161,7 +164,7 @@ ckeys: CMakeFiles/ckeys.dir/rule
 # codegen rule for target.
 CMakeFiles/ckeys.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ckeys.dir/build.make CMakeFiles/ckeys.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=1,2 "Finished codegen for target ckeys"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=1,2 "Finished codegen for target ckeys"
 .PHONY : CMakeFiles/ckeys.dir/codegen
 
 # clean rule for target.
@@ -176,14 +179,14 @@ CMakeFiles/ckeys.dir/clean:
 CMakeFiles/form.dir/all: CMakeFiles/cmenu.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/form.dir/build.make CMakeFiles/form.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/form.dir/build.make CMakeFiles/form.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=25,26 "Built target form"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=25,26 "Built target form"
 .PHONY : CMakeFiles/form.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/form.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 20
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 20
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/form.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
 .PHONY : CMakeFiles/form.dir/rule
 
 # Convenience name for target.
@@ -193,7 +196,7 @@ form: CMakeFiles/form.dir/rule
 # codegen rule for target.
 CMakeFiles/form.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/form.dir/build.make CMakeFiles/form.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=25,26 "Finished codegen for target form"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=25,26 "Finished codegen for target form"
 .PHONY : CMakeFiles/form.dir/codegen
 
 # clean rule for target.
@@ -202,180 +205,20 @@ CMakeFiles/form.dir/clean:
 .PHONY : CMakeFiles/form.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/iloan.dir
-
-# All Build rule for target.
-CMakeFiles/iloan.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iloan.dir/build.make CMakeFiles/iloan.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iloan.dir/build.make CMakeFiles/iloan.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=27,28 "Built target iloan"
-.PHONY : CMakeFiles/iloan.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/iloan.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/iloan.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
-.PHONY : CMakeFiles/iloan.dir/rule
-
-# Convenience name for target.
-iloan: CMakeFiles/iloan.dir/rule
-.PHONY : iloan
-
-# codegen rule for target.
-CMakeFiles/iloan.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iloan.dir/build.make CMakeFiles/iloan.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=27,28 "Finished codegen for target iloan"
-.PHONY : CMakeFiles/iloan.dir/codegen
-
-# clean rule for target.
-CMakeFiles/iloan.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iloan.dir/build.make CMakeFiles/iloan.dir/clean
-.PHONY : CMakeFiles/iloan.dir/clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/menu.dir
-
-# All Build rule for target.
-CMakeFiles/menu.dir/all: CMakeFiles/cmenu.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu.dir/build.make CMakeFiles/menu.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu.dir/build.make CMakeFiles/menu.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=29,30 "Built target menu"
-.PHONY : CMakeFiles/menu.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/menu.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 20
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/menu.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
-.PHONY : CMakeFiles/menu.dir/rule
-
-# Convenience name for target.
-menu: CMakeFiles/menu.dir/rule
-.PHONY : menu
-
-# codegen rule for target.
-CMakeFiles/menu.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu.dir/build.make CMakeFiles/menu.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=29,30 "Finished codegen for target menu"
-.PHONY : CMakeFiles/menu.dir/codegen
-
-# clean rule for target.
-CMakeFiles/menu.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu.dir/build.make CMakeFiles/menu.dir/clean
-.PHONY : CMakeFiles/menu.dir/clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/pick.dir
-
-# All Build rule for target.
-CMakeFiles/pick.dir/all: CMakeFiles/cmenu.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pick.dir/build.make CMakeFiles/pick.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pick.dir/build.make CMakeFiles/pick.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=31,32 "Built target pick"
-.PHONY : CMakeFiles/pick.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/pick.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 20
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/pick.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
-.PHONY : CMakeFiles/pick.dir/rule
-
-# Convenience name for target.
-pick: CMakeFiles/pick.dir/rule
-.PHONY : pick
-
-# codegen rule for target.
-CMakeFiles/pick.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pick.dir/build.make CMakeFiles/pick.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=31,32 "Finished codegen for target pick"
-.PHONY : CMakeFiles/pick.dir/codegen
-
-# clean rule for target.
-CMakeFiles/pick.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/pick.dir/build.make CMakeFiles/pick.dir/clean
-.PHONY : CMakeFiles/pick.dir/clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/view.dir
-
-# All Build rule for target.
-CMakeFiles/view.dir/all: CMakeFiles/cmenu.dir/all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/view.dir/build.make CMakeFiles/view.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/view.dir/build.make CMakeFiles/view.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=33,34 "Built target view"
-.PHONY : CMakeFiles/view.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/view.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 20
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/view.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
-.PHONY : CMakeFiles/view.dir/rule
-
-# Convenience name for target.
-view: CMakeFiles/view.dir/rule
-.PHONY : view
-
-# codegen rule for target.
-CMakeFiles/view.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/view.dir/build.make CMakeFiles/view.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=33,34 "Finished codegen for target view"
-.PHONY : CMakeFiles/view.dir/codegen
-
-# clean rule for target.
-CMakeFiles/view.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/view.dir/build.make CMakeFiles/view.dir/clean
-.PHONY : CMakeFiles/view.dir/clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/whence.dir
-
-# All Build rule for target.
-CMakeFiles/whence.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=35,36 "Built target whence"
-.PHONY : CMakeFiles/whence.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/whence.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/whence.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
-.PHONY : CMakeFiles/whence.dir/rule
-
-# Convenience name for target.
-whence: CMakeFiles/whence.dir/rule
-.PHONY : whence
-
-# codegen rule for target.
-CMakeFiles/whence.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=35,36 "Finished codegen for target whence"
-.PHONY : CMakeFiles/whence.dir/codegen
-
-# clean rule for target.
-CMakeFiles/whence.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/clean
-.PHONY : CMakeFiles/whence.dir/clean
-
-#=============================================================================
 # Target rules for target CMakeFiles/enterchr.dir
 
 # All Build rule for target.
 CMakeFiles/enterchr.dir/all: CMakeFiles/cmenu.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterchr.dir/build.make CMakeFiles/enterchr.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterchr.dir/build.make CMakeFiles/enterchr.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=21,22 "Built target enterchr"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=21,22 "Built target enterchr"
 .PHONY : CMakeFiles/enterchr.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/enterchr.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 20
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 20
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/enterchr.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
 .PHONY : CMakeFiles/enterchr.dir/rule
 
 # Convenience name for target.
@@ -385,7 +228,7 @@ enterchr: CMakeFiles/enterchr.dir/rule
 # codegen rule for target.
 CMakeFiles/enterchr.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterchr.dir/build.make CMakeFiles/enterchr.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=21,22 "Finished codegen for target enterchr"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=21,22 "Finished codegen for target enterchr"
 .PHONY : CMakeFiles/enterchr.dir/codegen
 
 # clean rule for target.
@@ -400,14 +243,14 @@ CMakeFiles/enterchr.dir/clean:
 CMakeFiles/enterstr.dir/all: CMakeFiles/cmenu.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterstr.dir/build.make CMakeFiles/enterstr.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterstr.dir/build.make CMakeFiles/enterstr.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=23,24 "Built target enterstr"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=23,24 "Built target enterstr"
 .PHONY : CMakeFiles/enterstr.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/enterstr.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 20
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 20
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/enterstr.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
 .PHONY : CMakeFiles/enterstr.dir/rule
 
 # Convenience name for target.
@@ -417,13 +260,205 @@ enterstr: CMakeFiles/enterstr.dir/rule
 # codegen rule for target.
 CMakeFiles/enterstr.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterstr.dir/build.make CMakeFiles/enterstr.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=23,24 "Finished codegen for target enterstr"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=23,24 "Finished codegen for target enterstr"
 .PHONY : CMakeFiles/enterstr.dir/codegen
 
 # clean rule for target.
 CMakeFiles/enterstr.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterstr.dir/build.make CMakeFiles/enterstr.dir/clean
 .PHONY : CMakeFiles/enterstr.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/iloan.dir
+
+# All Build rule for target.
+CMakeFiles/iloan.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iloan.dir/build.make CMakeFiles/iloan.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iloan.dir/build.make CMakeFiles/iloan.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=27,28 "Built target iloan"
+.PHONY : CMakeFiles/iloan.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/iloan.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/iloan.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
+.PHONY : CMakeFiles/iloan.dir/rule
+
+# Convenience name for target.
+iloan: CMakeFiles/iloan.dir/rule
+.PHONY : iloan
+
+# codegen rule for target.
+CMakeFiles/iloan.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iloan.dir/build.make CMakeFiles/iloan.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=27,28 "Finished codegen for target iloan"
+.PHONY : CMakeFiles/iloan.dir/codegen
+
+# clean rule for target.
+CMakeFiles/iloan.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iloan.dir/build.make CMakeFiles/iloan.dir/clean
+.PHONY : CMakeFiles/iloan.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/menu.dir
+
+# All Build rule for target.
+CMakeFiles/menu.dir/all: CMakeFiles/cmenu.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu.dir/build.make CMakeFiles/menu.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu.dir/build.make CMakeFiles/menu.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=29,30 "Built target menu"
+.PHONY : CMakeFiles/menu.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/menu.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 20
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/menu.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
+.PHONY : CMakeFiles/menu.dir/rule
+
+# Convenience name for target.
+menu: CMakeFiles/menu.dir/rule
+.PHONY : menu
+
+# codegen rule for target.
+CMakeFiles/menu.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu.dir/build.make CMakeFiles/menu.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=29,30 "Finished codegen for target menu"
+.PHONY : CMakeFiles/menu.dir/codegen
+
+# clean rule for target.
+CMakeFiles/menu.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/menu.dir/build.make CMakeFiles/menu.dir/clean
+.PHONY : CMakeFiles/menu.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/pick.dir
+
+# All Build rule for target.
+CMakeFiles/pick.dir/all: CMakeFiles/cmenu.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pick.dir/build.make CMakeFiles/pick.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pick.dir/build.make CMakeFiles/pick.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=31,32 "Built target pick"
+.PHONY : CMakeFiles/pick.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/pick.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 20
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/pick.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
+.PHONY : CMakeFiles/pick.dir/rule
+
+# Convenience name for target.
+pick: CMakeFiles/pick.dir/rule
+.PHONY : pick
+
+# codegen rule for target.
+CMakeFiles/pick.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pick.dir/build.make CMakeFiles/pick.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=31,32 "Finished codegen for target pick"
+.PHONY : CMakeFiles/pick.dir/codegen
+
+# clean rule for target.
+CMakeFiles/pick.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pick.dir/build.make CMakeFiles/pick.dir/clean
+.PHONY : CMakeFiles/pick.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/rsh.dir
+
+# All Build rule for target.
+CMakeFiles/rsh.dir/all: CMakeFiles/cmenu.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsh.dir/build.make CMakeFiles/rsh.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsh.dir/build.make CMakeFiles/rsh.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=33,34 "Built target rsh"
+.PHONY : CMakeFiles/rsh.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/rsh.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 20
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/rsh.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
+.PHONY : CMakeFiles/rsh.dir/rule
+
+# Convenience name for target.
+rsh: CMakeFiles/rsh.dir/rule
+.PHONY : rsh
+
+# codegen rule for target.
+CMakeFiles/rsh.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsh.dir/build.make CMakeFiles/rsh.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=33,34 "Finished codegen for target rsh"
+.PHONY : CMakeFiles/rsh.dir/codegen
+
+# clean rule for target.
+CMakeFiles/rsh.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsh.dir/build.make CMakeFiles/rsh.dir/clean
+.PHONY : CMakeFiles/rsh.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/view.dir
+
+# All Build rule for target.
+CMakeFiles/view.dir/all: CMakeFiles/cmenu.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/view.dir/build.make CMakeFiles/view.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/view.dir/build.make CMakeFiles/view.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=35,36 "Built target view"
+.PHONY : CMakeFiles/view.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/view.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 20
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/view.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
+.PHONY : CMakeFiles/view.dir/rule
+
+# Convenience name for target.
+view: CMakeFiles/view.dir/rule
+.PHONY : view
+
+# codegen rule for target.
+CMakeFiles/view.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/view.dir/build.make CMakeFiles/view.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=35,36 "Finished codegen for target view"
+.PHONY : CMakeFiles/view.dir/codegen
+
+# clean rule for target.
+CMakeFiles/view.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/view.dir/build.make CMakeFiles/view.dir/clean
+.PHONY : CMakeFiles/view.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/whence.dir
+
+# All Build rule for target.
+CMakeFiles/whence.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=37,38 "Built target whence"
+.PHONY : CMakeFiles/whence.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/whence.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/whence.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
+.PHONY : CMakeFiles/whence.dir/rule
+
+# Convenience name for target.
+whence: CMakeFiles/whence.dir/rule
+.PHONY : whence
+
+# codegen rule for target.
+CMakeFiles/whence.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=37,38 "Finished codegen for target whence"
+.PHONY : CMakeFiles/whence.dir/codegen
+
+# clean rule for target.
+CMakeFiles/whence.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/clean
+.PHONY : CMakeFiles/whence.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

@@ -1,158 +1,164 @@
 [
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/curskeys.c.o -c /usr/local/src/C-Menu-0.2.3/src/curskeys.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/curskeys.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/curskeys.c.o -c /usr/local/src/C-Menu-0.2.4/src/curskeys.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/curskeys.c",
   "output": "CMakeFiles/cmenu.dir/curskeys.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/dwin.c.o -c /usr/local/src/C-Menu-0.2.3/src/dwin.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/dwin.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/dwin.c.o -c /usr/local/src/C-Menu-0.2.4/src/dwin.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/dwin.c",
   "output": "CMakeFiles/cmenu.dir/dwin.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/exec.c.o -c /usr/local/src/C-Menu-0.2.3/src/exec.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/exec.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/exec.c.o -c /usr/local/src/C-Menu-0.2.4/src/exec.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/exec.c",
   "output": "CMakeFiles/cmenu.dir/exec.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/fform.c.o -c /usr/local/src/C-Menu-0.2.3/src/fform.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/fform.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/fform.c.o -c /usr/local/src/C-Menu-0.2.4/src/fform.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/fform.c",
   "output": "CMakeFiles/cmenu.dir/fform.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/fields.c.o -c /usr/local/src/C-Menu-0.2.3/src/fields.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/fields.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/fields.c.o -c /usr/local/src/C-Menu-0.2.4/src/fields.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/fields.c",
   "output": "CMakeFiles/cmenu.dir/fields.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/futil.c.o -c /usr/local/src/C-Menu-0.2.3/src/futil.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/futil.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/futil.c.o -c /usr/local/src/C-Menu-0.2.4/src/futil.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/futil.c",
   "output": "CMakeFiles/cmenu.dir/futil.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/init.c.o -c /usr/local/src/C-Menu-0.2.3/src/init.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/init.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/init.c.o -c /usr/local/src/C-Menu-0.2.4/src/init.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/init.c",
   "output": "CMakeFiles/cmenu.dir/init.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/init_view.c.o -c /usr/local/src/C-Menu-0.2.3/src/init_view.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/init_view.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/init_view.c.o -c /usr/local/src/C-Menu-0.2.4/src/init_view.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/init_view.c",
   "output": "CMakeFiles/cmenu.dir/init_view.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/mem.c.o -c /usr/local/src/C-Menu-0.2.3/src/mem.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/mem.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/mem.c.o -c /usr/local/src/C-Menu-0.2.4/src/mem.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/mem.c",
   "output": "CMakeFiles/cmenu.dir/mem.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/menu_engine.c.o -c /usr/local/src/C-Menu-0.2.3/src/menu_engine.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/menu_engine.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/menu_engine.c.o -c /usr/local/src/C-Menu-0.2.4/src/menu_engine.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/menu_engine.c",
   "output": "CMakeFiles/cmenu.dir/menu_engine.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/mview.c.o -c /usr/local/src/C-Menu-0.2.3/src/mview.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/mview.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/mview.c.o -c /usr/local/src/C-Menu-0.2.4/src/mview.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/mview.c",
   "output": "CMakeFiles/cmenu.dir/mview.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/opts.c.o -c /usr/local/src/C-Menu-0.2.3/src/opts.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/opts.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/opts.c.o -c /usr/local/src/C-Menu-0.2.4/src/opts.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/opts.c",
   "output": "CMakeFiles/cmenu.dir/opts.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/parse_menu_desc.c.o -c /usr/local/src/C-Menu-0.2.3/src/parse_menu_desc.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/parse_menu_desc.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/parse_menu_desc.c.o -c /usr/local/src/C-Menu-0.2.4/src/parse_menu_desc.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/parse_menu_desc.c",
   "output": "CMakeFiles/cmenu.dir/parse_menu_desc.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/pick_engine.c.o -c /usr/local/src/C-Menu-0.2.3/src/pick_engine.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/pick_engine.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/pick_engine.c.o -c /usr/local/src/C-Menu-0.2.4/src/pick_engine.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/pick_engine.c",
   "output": "CMakeFiles/cmenu.dir/pick_engine.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/scriou.c.o -c /usr/local/src/C-Menu-0.2.3/src/scriou.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/scriou.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/scriou.c.o -c /usr/local/src/C-Menu-0.2.4/src/scriou.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/scriou.c",
   "output": "CMakeFiles/cmenu.dir/scriou.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/sig.c.o -c /usr/local/src/C-Menu-0.2.3/src/sig.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/sig.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/sig.c.o -c /usr/local/src/C-Menu-0.2.4/src/sig.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/sig.c",
   "output": "CMakeFiles/cmenu.dir/sig.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/view_engine.c.o -c /usr/local/src/C-Menu-0.2.3/src/view_engine.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/view_engine.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/cmenu.dir/view_engine.c.o -c /usr/local/src/C-Menu-0.2.4/src/view_engine.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/view_engine.c",
   "output": "CMakeFiles/cmenu.dir/view_engine.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/ckeys.dir/ckeys.c.o -c /usr/local/src/C-Menu-0.2.3/src/ckeys.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/ckeys.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/ckeys.dir/ckeys.c.o -c /usr/local/src/C-Menu-0.2.4/src/ckeys.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/ckeys.c",
   "output": "CMakeFiles/ckeys.dir/ckeys.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/form.dir/form.c.o -c /usr/local/src/C-Menu-0.2.3/src/form.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/form.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/form.dir/form.c.o -c /usr/local/src/C-Menu-0.2.4/src/form.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/form.c",
   "output": "CMakeFiles/form.dir/form.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/iloan.dir/iloan.c.o -c /usr/local/src/C-Menu-0.2.3/src/iloan.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/iloan.c",
-  "output": "CMakeFiles/iloan.dir/iloan.c.o"
-},
-{
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/menu.dir/menu.c.o -c /usr/local/src/C-Menu-0.2.3/src/menu.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/menu.c",
-  "output": "CMakeFiles/menu.dir/menu.c.o"
-},
-{
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/pick.dir/pick.c.o -c /usr/local/src/C-Menu-0.2.3/src/pick.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/pick.c",
-  "output": "CMakeFiles/pick.dir/pick.c.o"
-},
-{
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/view.dir/view.c.o -c /usr/local/src/C-Menu-0.2.3/src/view.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/view.c",
-  "output": "CMakeFiles/view.dir/view.c.o"
-},
-{
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/whence.dir/whence.c.o -c /usr/local/src/C-Menu-0.2.3/src/whence.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/whence.c",
-  "output": "CMakeFiles/whence.dir/whence.c.o"
-},
-{
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/enterchr.dir/enterchr.c.o -c /usr/local/src/C-Menu-0.2.3/src/enterchr.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/enterchr.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/enterchr.dir/enterchr.c.o -c /usr/local/src/C-Menu-0.2.4/src/enterchr.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/enterchr.c",
   "output": "CMakeFiles/enterchr.dir/enterchr.c.o"
 },
 {
-  "directory": "/usr/local/src/C-Menu-0.2.3/build",
-  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/enterstr.dir/enterstr.c.o -c /usr/local/src/C-Menu-0.2.3/src/enterstr.c",
-  "file": "/usr/local/src/C-Menu-0.2.3/src/enterstr.c",
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/enterstr.dir/enterstr.c.o -c /usr/local/src/C-Menu-0.2.4/src/enterstr.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/enterstr.c",
   "output": "CMakeFiles/enterstr.dir/enterstr.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/iloan.dir/iloan.c.o -c /usr/local/src/C-Menu-0.2.4/src/iloan.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/iloan.c",
+  "output": "CMakeFiles/iloan.dir/iloan.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/menu.dir/menu.c.o -c /usr/local/src/C-Menu-0.2.4/src/menu.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/menu.c",
+  "output": "CMakeFiles/menu.dir/menu.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/pick.dir/pick.c.o -c /usr/local/src/C-Menu-0.2.4/src/pick.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/pick.c",
+  "output": "CMakeFiles/pick.dir/pick.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/rsh.dir/rsh.c.o -c /usr/local/src/C-Menu-0.2.4/src/rsh.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/rsh.c",
+  "output": "CMakeFiles/rsh.dir/rsh.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/view.dir/view.c.o -c /usr/local/src/C-Menu-0.2.4/src/view.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/view.c",
+  "output": "CMakeFiles/view.dir/view.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu-0.2.4/build",
+  "command": "/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -o CMakeFiles/whence.dir/whence.c.o -c /usr/local/src/C-Menu-0.2.4/src/whence.c",
+  "file": "/usr/local/src/C-Menu-0.2.4/src/whence.c",
+  "output": "CMakeFiles/whence.dir/whence.c.o"
 }
 ]

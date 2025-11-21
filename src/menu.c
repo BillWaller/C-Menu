@@ -13,18 +13,6 @@
     handling terminal I/O settings, managing the menu structure,
     and rendering the interface using the ncurses library.
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
  */
 
 #include "menu.h"
@@ -34,7 +22,7 @@ int main(int argc, char **argv) {
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
     mapp_initialization(init, argc, argv);
-    open_curses();
+    open_curses(init);
     sig_prog_mode();
     capture_curses_tioctl();
     win_init_attrs(init->fg_color, init->bg_color, init->bo_color);

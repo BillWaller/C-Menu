@@ -51,10 +51,10 @@ int form_process(Init *init) {
                 strncpy(earg_str, form->cmd_spec, MAXLEN - 1);
                 i = str_to_args(eargv, earg_str);
                 while (i++ < form->fidx) {
-                    strncpy(tmp_str, "\"", MAX_COLS - 1);
-                    strncat(tmp_str, form->field[i]->str, MAX_COLS - 1);
-                    strncat(tmp_str, "\"", MAX_COLS - 1);
-                    eargv[i] = strdup(tmp_str);
+                    strncpy(tmp_str, "\"", MAXLEN - 1);
+                    strncat(tmp_str, form->field[i]->str, MAXLEN - 1);
+                    strncat(tmp_str, "\"", MAXLEN - 1);
+                    eargv[i] = tmp_str;
                 }
                 eargv[i] = (char *)0;
                 full_screen_fork_exec(eargv);
@@ -75,7 +75,6 @@ int form_process(Init *init) {
             mview(init, eargc, eargv, 10, 68, form->begy + 1, form->begx + 4);
             restore_wins();
             break;
-        case P_ERROR:
         case P_CANCEL:
             win_del();
             form->win = win_win[win_ptr];
@@ -85,7 +84,7 @@ int form_process(Init *init) {
         case P_REFUSE:
             break;
         case KEY_CTLE:
-            d = getenv("EDITOR");
+            d = getenv("DEFAULTEDITOR");
             if (d == NULL || *d == '\0')
                 strncpy(earg_str, DEFAULTEDITOR, MAXLEN - 1);
             else
@@ -93,7 +92,6 @@ int form_process(Init *init) {
             eargv[0] = earg_str;
             eargv[1] = form->mapp_spec;
             eargv[2] = NULL;
-            eargc = 2;
             full_screen_fork_exec(eargv);
             close_form(init);
             break;
@@ -127,6 +125,7 @@ int display_form_screen(Form *form) {
             form->fidx = n;
     }
 
+    form->cols += 2;
     if (form->cols > (COLS - form->begx - 1))
         form->cols = COLS - form->begx - 1;
 
@@ -244,7 +243,7 @@ int form_enter_fields(Form *form) {
             break;
         case KEY_CTLO: /* Insert line */
             for (i = (form->fidx - 1); i > n; i--) {
-                strncpy(form->field[i]->str, form->field[i - 1]->str, MAX_COLS);
+                strncpy(form->field[i]->str, form->field[i - 1]->str, MAXLEN);
                 display_field(form->win, form->field[i]->line,
                               form->field[i]->col, form->field[i]->str,
                               form->field[i]->len, ACCEPT_PROMPT_CHAR,
@@ -262,7 +261,7 @@ int form_enter_fields(Form *form) {
                     form->field[i]->str[0] = '\0';
                 else
                     strncpy(form->field[i]->str, form->field[i + 1]->str,
-                            MAX_COLS);
+                            MAXLEN);
                 display_field(form->win, form->field[i]->line,
                               form->field[i]->col, form->field[i]->str,
                               form->field[i]->len, ACCEPT_PROMPT_CHAR,
@@ -292,8 +291,9 @@ int read_form_description(Form *form) {
 
     form_desc_fp = fopen(form->mapp_spec, "r");
     if (form_desc_fp == NULL) {
-        form_desc_error(in_line_num, in_buf,
-                        "FORM: cannot open description file");
+        strcpy(tmp_str, "FORM: Cannot open description file: ");
+        strncat(tmp_str, form->mapp_spec, MAXLEN - 1);
+        abend(EXIT_FAILURE, tmp_str);
         return (1);
     }
     for (i = 0; i < MAXFIELDS; i++) {
@@ -485,7 +485,7 @@ int read_form_description(Form *form) {
                 form_desc_error(in_line_num, in_buf, "FORM: text delimiter");
                 break;
             }
-            strncpy(form->text[form->didx]->str, token, MAX_COLS - 1);
+            strncpy(form->text[form->didx]->str, token, MAXLEN - 1);
             // TEXT len form->text[form->didx]->len
             // -----------------------------------------------------------
             form->text[form->didx]->len = strlen(form->text[form->didx]->str);
@@ -507,7 +507,7 @@ int read_form_description(Form *form) {
         // -----------------------------------------------------------
         case D_HEADER:
             if ((token = strtok(NULL, delim))) {
-                strncpy(form->title, token, MAX_COLS - 1);
+                strncpy(form->title, token, MAXLEN - 1);
             }
             break;
         default:
@@ -520,10 +520,11 @@ int read_form_description(Form *form) {
     fclose(form_desc_fp);
     if (form->didx < 1 && form->fidx < 1) {
         i = 0;
-        eargv[i++] = strdup("FORM: description file invalid");
-        eargv[i++] = strdup(form->mapp_spec);
+        eargv[i++] = "FORM: description file invalid";
+        eargv[i++] = form->mapp_spec;
         eargv[i] = (char *)0;
         error_message(eargv);
+
         return (1);
     }
     return (0);
@@ -542,7 +543,7 @@ int read_form_answer(Form *form) {
     while ((fgets(in_buf, MAXLEN, answer_fp)) != NULL) {
         if (n < form->fidx) {
             s = in_buf;
-            e = s + MAX_COLS;
+            e = s + MAXLEN;
             while (*s != '\0' && *s != '\n' && *s != '\r' && s < e) {
                 s++;
             }
@@ -586,6 +587,9 @@ int form_desc_error(int in_line_num, char *in_buf, char *emsg) {
     int cmd_key;
 
     char **eargv = (char **)calloc(MAXARGS, sizeof(char *));
+    if (eargv == NULL) {
+        abend(EXIT_FAILURE, "fform.c: calloc failed for error argv");
+    }
     int i = 0;
     eargv[i++] = strdup("FORM: error processing description file\n");
     eargv[i++] = strdup(form->mapp_spec);
@@ -595,7 +599,7 @@ int form_desc_error(int in_line_num, char *in_buf, char *emsg) {
     strncat(t1, in_buf, MAXLEN - 1);
     eargv[i++] = strdup(t1);
     eargv[i++] = strdup(emsg);
-    eargv[i++] = (char *)0;
+    eargv[i++] = NULL;
     cmd_key = error_message(eargv);
     for (--i; i >= 0; i--)
         free(eargv[i]);

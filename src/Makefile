@@ -5,149 +5,116 @@
 #
 # Makefile for the MENU application suite
 #
-# If you find the Child exit and signal messages from rsh annoying,
+# If you create a simpler Makefile, without increasing the size of
+# executables, please share. I have created much simpler Makefiles that
+# work, but only by linking all object files, which increases the size of
+# the executables significantly.
+#
+# This Makefile produces reasonably sized executables considering the
+# inclusion of debugging information and symbols.
+#
+# You can optimize the executables by changing -O0 to -O2, removing -g3,
+# and add -Wl,-s to the linker. As you can see, the executables get much
+# smaller.
+#
+# Here are the sizes of the executables in KB using three different
+# Makefiles:
+#
+#           Generic Custom Optimized
+# ckeys       358     260     63
+# enterchr    297     193     14
+# enterstr    328     220     35
+# form        403     360     96
+# iloan       310      98     20
+# menu        437     433    128
+# pick        394     348     95
+# rsh         293      87     14
+# view        386     326     83
+# whence      293      81     20
+# total      3499    2406    568
+#
+# If the Child Exit and Signal messages from rsh are annoying,
 # remove the -DVERBOSE flag from the rsh compile instruction.
 # The default is to compile without -DVERBOSE.
 #
-#
+
+CFLAGS = -O0 -g3 -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
+		-Wno-unused-parameter -Wno-missing-field-initializers \
+		-Wno-unused-function -DNCURSES_WIDECHAR -Wl,--gc-sections
+LIBS =  -lncursesw -ltinfo
+LDFLAGS = -Wl,--gc-sections
+CC = gcc
+TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr
+
+all:	$(TARGETS)
+	@echo Make Complete
+
+menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o fform.o fields.o \
+	pick_engine.o curskeys.o mview.o view_engine.o dwin.o futil.o init.o mem.o \
+	opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o init_view.o fform.o \
+		fields.o pick_engine.o curskeys.o mview.o view_engine.o dwin.o futil.o \
+		init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+form:	form.o fields.o fform.o mview.o init_view.o view_engine.o dwin.o futil.o \
+	init.o mem.o opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) form.o fields.o fform.o mview.o init_view.o view_engine.o \
+		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ \
+		$(LIBS)
+ckeys:	ckeys.o curskeys.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) ckeys.o curskeys.o dwin.o futil.o init.o mem.o opts.o scriou.o \
+		exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+pick:	pick.o  pick_engine.o mview.o init_view.o view_engine.o dwin.o futil.o \
+	init.o mem.o opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) pick.c  pick_engine.o mview.o init_view.o view_engine.o \
+		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
+		$(LDFLAGS) -o $@ $(LIBS)
+view: view.o init_view.o view_engine.o mview.o dwin.o futil.o init.o mem.o \
+	opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) view.o init_view.o view_engine.o mview.o dwin.o futil.o \
+		init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+enterchr:	enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
+	$(CC) $(CFLAGS) enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o \
+		$(LDFLAGS) -o $@ $(LIBS)
+enterstr:	enterstr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
+	$(CC) $(CFLAGS) enterstr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o \
+		$(LDFLAGS) -o $@ $(LIBS)
+whence:	whence.c
+	$(CC) $(CFLAGS) $(LDFLAGS) whence.c -o $@ -lc
+iloan:	iloan.c
+	$(CC) $(CFLAGS) $(LDFLAGS) iloan.c -o $@ -lc -lm
+rsh:	rsh.c
+	$(CC) $(CFLAGS) $(LDFLAGS) rsh.c -o $@
+
+%:	%.c menu.h
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LIBS)
+
+%.o:	%.c menu.h
+	$(CC) $(CFLAGS) -c $<
+
+clean:
+	rm -rf core *.o $(TARGETS) make.out $(CFLOW_OUTPUT) *.o *.cflow \
+		scan-build scan-build.log
+
 PREFIX=~/menuapp
 OWNER=bill
 GROUP=users
-SHELL = /bin/sh
-CFLAGS = -O0 -g3 -fdiagnostics-color=always -Wall -Wextra \
-		-Wno-unused-parameter -Wno-missing-field-initializers \
-		-Wno-unused-function -DNCURSES_WIDECHAR
-LIBS =  -lncursesw -ltinfo
-LDFLAGS =
-CC = gcc
-INSTALLED=	$(PREFIX)/bin/menu $(PREFIX)/bin/form $(PREFIX)/bin/pick \
-		$(PREFIX)/bin/ckeys	$(PREFIX)/bin/view $(PREFIX)/bin/whence \
-		$(PREFIX)/bin/rsh $(PREFIX)/bin/enterchr $(PREFIX)/bin/enterstr \
-		$(PREFIX)/bin/iloan
-
-#-----------------------------------------------------------
-all:	menu form pick view ckeys whence rsh iloan enterchr enterstr
-	@echo Make Complete
-
-menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o \
-	 fform.o fields.o pick_engine.o curskeys.o mview.o \
-	view_engine.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o  init_view.o \
-	 fform.o fields.o pick_engine.o curskeys.o mview.o \
-	view_engine.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
-   	$(LDFLAGS) -o $@ $(LIBS)
-#-----------------------------------------------------------
-menu.o: menu.c menu.h
-	$(CC) $(CFLAGS) -c menu.c
-menu_engine.o: menu_engine.c menu.h
-	$(CC) $(CFLAGS) -c menu_engine.c
-parse_menu_desc.o: parse_menu_desc.c menu.h
-	$(CC) $(CFLAGS) -c parse_menu_desc.c
-#-----------------------------------------------------------
-form:	form.o fields.o fform.o mview.o init_view.o view_engine.o \
-	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) form.o fields.o fform.o mview.o init_view.o view_engine.o \
-   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-form.o: form.c menu.h
-	$(CC) $(CFLAGS) -c form.c
-fform.o: fform.c menu.h
-	$(CC) $(CFLAGS) -c fform.c
-fields.o:	fields.c menu.h
-	$(CC) $(CFLAGS) -c fields.c
-#-----------------------------------------------------------
-ckeys:	ckeys.o curskeys.o \
-   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) ckeys.o curskeys.o \
-   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
-	$(LDFLAGS) -o $@ $(LIBS)
-ckeys.o: ckeys.c menu.h
-	$(CC) $(CFLAGS) -c ckeys.c
-curskeys.o: curskeys.c menu.h
-	$(CC) $(CFLAGS) -c curskeys.c
-#-----------------------------------------------------------
-pick:	pick.o  pick_engine.o mview.o init_view.o view_engine.o \
-   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o 
-	$(CC) $(CFLAGS) pick.c  pick_engine.o \
-		mview.o init_view.o view_engine.o \
-		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
-		$(LDFLAGS) -o $@ $(LIBS)
-pick.o: pick.c menu.h
-	$(CC) $(CFLAGS) -c pick.c
-pick_engine.o: pick_engine.c menu.h
-	$(CC) $(CFLAGS) -c pick_engine.c
-#-----------------------------------------------------------
-view: view.o init_view.o view_engine.o mview.o \
-   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) view.o init_view.o view_engine.o mview.o \
-   	dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
-		$(LDFLAGS) -o $@ $(LIBS)
-view.o: view.c menu.h
-	$(CC) $(CFLAGS) -c view.c
-init_view.o: init_view.c menu.h
-	$(CC) $(CFLAGS) -c init_view.c
-mview.o: mview.c menu.h
-	$(CC) $(CFLAGS) -c mview.c
-view_engine.o: view_engine.c menu.h
-	$(CC) $(CFLAGS) -c view_engine.c
-#-----------------------------------------------------------
-enterchr:	enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o \
-	   	sig.o \
-		$(LDFLAGS) -o $@ $(LIBS)
-enterstr:	enterstr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) enterstr.o dwin.o futil.o init.o mem.o opts.o scriou.o \
-		sig.o \
-		$(LDFLAGS) -o $@ $(LIBS)
-#-----------------------------------------------------------
-dwin.o: dwin.c menu.h
-	$(CC) $(CFLAGS) -c dwin.c
-futil.o: futil.c menu.h
-	$(CC) $(CFLAGS) -c futil.c
-init.o: init.c menu.h
-	$(CC) $(CFLAGS) -c init.c
-mem.o: mem.c menu.h
-	$(CC) $(CFLAGS) -c mem.c
-opts.o: opts.c menu.h
-	$(CC) $(CFLAGS) -c opts.c
-scriou.o: scriou.c menu.h
-	$(CC) $(CFLAGS) -c scriou.c
-exec.o: exec.c menu.h
-	$(CC) $(CFLAGS) -c exec.c
-sig.o: sig.c menu.h
-	$(CC) $(CFLAGS) -c sig.c
-enterchr.o: enterchr.c menu.h
-	$(CC) $(CFLAGS) -c enterchr.c
-enterstr.o: enterstr.c menu.h
-	$(CC) $(CFLAGS) -c enterstr.c
-#-----------------------------------------------------------
-whence:	whence.c
-	$(CC) $(CFLAGS) whence.c -o $@ -lc
-iloan:	iloan.c
-	$(CC) $(CFLAGS) iloan.c -o $@ -lc -lm
-rsh:	rsh.c
-	$(CC) $(CFLAGS) rsh.c -o $@
-#	$(CC) $(CFLAGS) -DVERBOSE rsh.c -o $@
-#-----------------------------------------------------------
-
-clean:
-	rm -rf core *.o menu form  pick view ckeys enterchr enterstr \
-		iloan whence rsh make.out $(CFLOW_OUTPUT) *.o *.cflow \
-		scan-build scan-build.log
 
 install:
 	./inst.sh	--
-	./inst.sh	menu			$(PREFIX)/bin	menu			0711	$(OWNER)	$(GROUP)
-	./inst.sh	form			$(PREFIX)/bin	form			0711	$(OWNER)	$(GROUP)
-	./inst.sh	pick			$(PREFIX)/bin	pick			0711	$(OWNER)	$(GROUP)
-	./inst.sh	ckeys		$(PREFIX)/bin	ckeys			0711	$(OWNER)	$(GROUP)
-	./inst.sh	view			$(PREFIX)/bin	view			0711	$(OWNER)	$(GROUP)
+	./inst.sh	menu		$(PREFIX)/bin	menu		0711	$(OWNER)	$(GROUP)
+	./inst.sh	form		$(PREFIX)/bin	form		0711	$(OWNER)	$(GROUP)
+	./inst.sh	pick		$(PREFIX)/bin	pick		0711	$(OWNER)	$(GROUP)
+	./inst.sh	ckeys		$(PREFIX)/bin	ckeys		0711	$(OWNER)	$(GROUP)
+	./inst.sh	view		$(PREFIX)/bin	view		0711	$(OWNER)	$(GROUP)
 	./inst.sh	whence		$(PREFIX)/bin	whence		0711	$(OWNER)	$(GROUP)
-	./inst.sh	rsh			$(PREFIX)/bin	rsh			4711	root	root
+	./inst.sh	rsh		$(PREFIX)/bin	rsh		4711	root	root
+	./inst.sh	rsh		$(PREFIX)/bin	ush		0711	$(OWNER)	$(GROUP)
 	./inst.sh	enterchr	$(PREFIX)/bin	enterchr	0711	$(OWNER)	$(GROUP)
 	./inst.sh	enterstr	$(PREFIX)/bin	enterstr	0711	$(OWNER)	$(GROUP)
-	./inst.sh	iloan		$(PREFIX)/bin	iloan			0711	$(OWNER)	$(GROUP)
+	./inst.sh	iloan		$(PREFIX)/bin	iloan		0711	$(OWNER)	$(GROUP)
 	./inst.sh	-l
-	
+	./inst.sh	-m
+
 uninstall:
 	rm -fv	$(PREFIX)/bin/menu	\
 			$(PREFIX)/bin/form	\
@@ -155,6 +122,7 @@ uninstall:
 			$(PREFIX)/bin/ckeys	\
 			$(PREFIX)/bin/view \
 			$(PREFIX)/bin/rsh \
+			$(PREFIX)/bin/ush \
 			$(PREFIX)/bin/enterchr \
 			$(PREFIX)/bin/enterstr
 

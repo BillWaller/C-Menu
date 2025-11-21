@@ -42,14 +42,14 @@ Init *new_init(int argc, char **argv) {
         abend(-1, "calloc init failed");
     }
     init->argv = (char **)calloc((MAXARGS + 1), sizeof(char *));
+    if (!init->argv) {
+        abend(-1, "calloc init->argv failed");
+    }
     init->argc = argc;
     for (i = 0; i < init->argc; i++) {
         init->argv[i] = strdup(argv[i]);
     }
     init->argv[i] = NULL;
-    if (!init->argv) {
-        abend(-1, "calloc init->argv failed");
-    }
     init_cnt++;
     return init;
 }
@@ -228,12 +228,13 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
         abend(-1, "init_view_files failed");
         return NULL;
     }
-    init->view->argc = init->argc;
     init->view->begy = begy;
     init->view->begx = begx;
     init->view->fg_color = init->fg_color;
     init->view->bg_color = init->bg_color;
     init->view->bo_color = init->bo_color;
+    init->view->prompt_type = init->prompt_type;
+    strncpy(init->view->prompt_str, init->prompt_str, MAXLEN - 1);
     return init->view;
 }
 
@@ -285,17 +286,21 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
                 strncpy(try_spec, dir, MAXLEN - 1);
                 expand_tilde(try_spec, MAXLEN - 1);
                 f_dir = verify_dir_q(try_spec, R_OK);
-                strncat(try_spec, "/", MAXLEN - 1);
-                strncat(try_spec, src_spec, MAXLEN - 1);
-                f_spec = verify_file_q(try_spec, mode);
+                if (f_dir) {
+                    strncat(try_spec, "/", MAXLEN - 1);
+                    strncat(try_spec, src_spec, MAXLEN - 1);
+                    f_spec = verify_file_q(try_spec, mode);
+                }
             }
             if (!f_spec && alt_dir[0]) {
                 strncpy(try_spec, alt_dir, MAXLEN - 1);
                 expand_tilde(try_spec, MAXLEN - 1);
                 f_dir = verify_dir_q(try_spec, mode);
-                strncat(try_spec, "/", MAXLEN - 1);
-                strncat(try_spec, src_spec, MAXLEN - 1);
-                f_spec = verify_file_q(try_spec, mode);
+                if (f_dir) {
+                    strncat(try_spec, "/", MAXLEN - 1);
+                    strncat(try_spec, src_spec, MAXLEN - 1);
+                    f_spec = verify_file_q(try_spec, mode);
+                }
             }
             if (!f_spec) {
                 strncpy(try_spec, ".", MAXLEN - 1);
@@ -502,6 +507,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     pick->fg_color = init->fg_color;
     pick->bg_color = init->bg_color;
     pick->bo_color = init->bo_color;
+    strncpy(pick->title, init->title, MAXLEN - 1);
     pick->f_stop_on_error = init->f_stop_on_error;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
     return true;
@@ -532,7 +538,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
                                        init->mapp_user, "~/menuapp/user", X_OK);
     if (!form->f_cmd_spec && init->cmd_spec[0])
         if (locate_file_in_path(form->cmd_spec, init->cmd_spec))
-            pick->f_cmd_spec = verify_file_q(form->cmd_spec, X_OK);
+            form->f_cmd_spec = verify_file_q(form->cmd_spec, X_OK);
 
     /* ╭───────────────────────────────────────────────────────────────────╮
        │ FORM HELP_SPEC - OPT ARG -H: - Priority 5                         │
@@ -569,7 +575,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
                             "~/menuapp/user", X_OK);
         if (!form->f_cmd_spec && init->cmd_spec[0])
             if (locate_file_in_path(form->cmd_spec, init->cmd_spec))
-                pick->f_cmd_spec = verify_file_q(form->cmd_spec, X_OK);
+                form->f_cmd_spec = verify_file_q(form->cmd_spec, X_OK);
         if (form->f_cmd_spec)
             optind++;
     }
@@ -597,9 +603,10 @@ bool init_form_files(Init *init, int argc, char **argv) {
 bool init_view_files(Init *init, int argc, char **argv) {
     int s = 1;
     int d = 0;
-    while (s < init->argc)
-        init->view->argv[d++] = strdup(init->argv[s++]);
+    while (s < argc)
+        init->view->argv[d++] = strdup(argv[s++]);
     init->view->argv[d] = NULL;
+    init->view->argc = d;
     view->fg_color = init->fg_color;
     view->bg_color = init->bg_color;
     view->bo_color = init->bo_color;

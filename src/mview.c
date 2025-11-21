@@ -32,21 +32,30 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     view->f_stdout_is_tty = isatty(1);
     if (!view->f_stdout_is_tty) {
         if (view->argc < 1) {
-            if (view_init_input(view, "-") > 0)
-                if (view->fd >= 0)
+            if (view_init_input(view, "-"))
+                if (view->fp)
                     cat_file(view);
         } else {
             while (view->curr_argc < view->argc) {
-                if (view_init_input(view, view->argv[view->curr_argc]) > 0)
-                    if (view->fd >= 0)
+                if (view_init_input(view, view->argv[view->curr_argc]))
+                    if (view->fp)
                         cat_file(view);
                 view->curr_argc++;
             }
         }
         exit(EXIT_SUCCESS);
     }
-    view->lines = lines;
-    view->cols = cols;
+    if (!lines || !cols) {
+        view->lines = LINES * 3 / 4;
+        view->cols = COLS * 3 / 4;
+    } else {
+        view->lines = lines;
+        view->cols = cols;
+    }
+    if (!begy || !begx) {
+        begy = (LINES - view->lines) / 2;
+        begx = (COLS - view->cols) / 2;
+    }
     view->begy = begy;
     view->begx = begx;
     if (!init_view_boxwin(view)) {

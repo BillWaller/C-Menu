@@ -15,26 +15,26 @@ int main(int argc, char **argv) {
     int begy = 0;
     int begx = 0;
     view = new_view(init, argc, argv, begy, begx);
-    view->fd = -1;
     view->f_stdout_is_tty = isatty(1);
     if (!view->f_stdout_is_tty) {
         if (view->argc < 1) {
-            if (view_init_input(view, "-") > 0)
-                if (view->fd >= 0)
+            if (view_init_input(view, "-"))
+                if (view->fp)
                     cat_file(view);
         } else {
             while (view->curr_argc < view->argc) {
-                if (view_init_input(view, view->argv[view->curr_argc]) > 0)
-                    if (view->fd >= 0)
+                if (view_init_input(view, view->argv[view->curr_argc]))
+                    if (view->fp)
                         cat_file(view);
                 view->curr_argc++;
             }
         }
         exit(EXIT_SUCCESS);
     }
-    f_curses_open = FALSE;
-    if (!init_view_stdscr(view))
+
+    if (!init_view_stdscr(init)) {
         view_file(view);
+    }
     if (f_curses_open) {
         if (view->f_at_end_clear) {
             wclear(stdscr);

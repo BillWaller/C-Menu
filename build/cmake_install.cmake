@@ -1,8 +1,8 @@
-# Install script for directory: /usr/local/src/C-Menu-0.2.3/src
+# Install script for directory: /usr/local/src/C-Menu-0.2.4/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/usr/local")
+  set(CMAKE_INSTALL_PREFIX "/home/bill/menuapp/bin")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -45,7 +45,7 @@ endif()
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/usr/local/src/C-Menu-0.2.3/build/install_local_manifest.txt"
+  file(WRITE "/usr/local/src/C-Menu-0.2.4/build/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
 if(CMAKE_INSTALL_COMPONENT)
@@ -61,6 +61,6 @@ else()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/usr/local/src/C-Menu-0.2.3/build/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "/usr/local/src/C-Menu-0.2.4/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

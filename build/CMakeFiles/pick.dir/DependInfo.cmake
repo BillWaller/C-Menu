@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/usr/local/src/C-Menu-0.2.3/src/pick.c" "CMakeFiles/pick.dir/pick.c.o" "gcc" "CMakeFiles/pick.dir/pick.c.o.d"
+  "/usr/local/src/C-Menu-0.2.4/src/pick.c" "CMakeFiles/pick.dir/pick.c.o" "gcc" "CMakeFiles/pick.dir/pick.c.o.d"
   "" "pick" "gcc" "CMakeFiles/pick.dir/link.d"
   )
 

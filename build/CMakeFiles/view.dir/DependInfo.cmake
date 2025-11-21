@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/usr/local/src/C-Menu-0.2.3/src/view.c" "CMakeFiles/view.dir/view.c.o" "gcc" "CMakeFiles/view.dir/view.c.o.d"
+  "/usr/local/src/C-Menu-0.2.4/src/view.c" "CMakeFiles/view.dir/view.c.o" "gcc" "CMakeFiles/view.dir/view.c.o.d"
   "" "view" "gcc" "CMakeFiles/view.dir/link.d"
   )
 

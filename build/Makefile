@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /usr/local/src/C-Menu-0.2.3/src
+CMAKE_SOURCE_DIR = /usr/local/src/C-Menu-0.2.4/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /usr/local/src/C-Menu-0.2.3/build
+CMAKE_BINARY_DIR = /usr/local/src/C-Menu-0.2.4/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,16 +87,16 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles /usr/local/src/C-Menu-0.2.3/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles /usr/local/src/C-Menu-0.2.4/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
 .PHONY : all
 
 # The main codegen target
 codegen: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles /usr/local/src/C-Menu-0.2.3/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles /usr/local/src/C-Menu-0.2.4/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 codegen
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.3/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/C-Menu-0.2.4/build/CMakeFiles 0
 .PHONY : codegen
 
 # The main clean target
@@ -163,6 +163,32 @@ form/fast:
 .PHONY : form/fast
 
 #=============================================================================
+# Target rules for targets named enterchr
+
+# Build rule for target.
+enterchr: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 enterchr
+.PHONY : enterchr
+
+# fast build rule for target.
+enterchr/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterchr.dir/build.make CMakeFiles/enterchr.dir/build
+.PHONY : enterchr/fast
+
+#=============================================================================
+# Target rules for targets named enterstr
+
+# Build rule for target.
+enterstr: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 enterstr
+.PHONY : enterstr
+
+# fast build rule for target.
+enterstr/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterstr.dir/build.make CMakeFiles/enterstr.dir/build
+.PHONY : enterstr/fast
+
+#=============================================================================
 # Target rules for targets named iloan
 
 # Build rule for target.
@@ -202,6 +228,19 @@ pick/fast:
 .PHONY : pick/fast
 
 #=============================================================================
+# Target rules for targets named rsh
+
+# Build rule for target.
+rsh: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 rsh
+.PHONY : rsh
+
+# fast build rule for target.
+rsh/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsh.dir/build.make CMakeFiles/rsh.dir/build
+.PHONY : rsh/fast
+
+#=============================================================================
 # Target rules for targets named view
 
 # Build rule for target.
@@ -226,32 +265,6 @@ whence: cmake_check_build_system
 whence/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/whence.dir/build.make CMakeFiles/whence.dir/build
 .PHONY : whence/fast
-
-#=============================================================================
-# Target rules for targets named enterchr
-
-# Build rule for target.
-enterchr: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 enterchr
-.PHONY : enterchr
-
-# fast build rule for target.
-enterchr/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterchr.dir/build.make CMakeFiles/enterchr.dir/build
-.PHONY : enterchr/fast
-
-#=============================================================================
-# Target rules for targets named enterstr
-
-# Build rule for target.
-enterstr: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 enterstr
-.PHONY : enterstr
-
-# fast build rule for target.
-enterstr/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/enterstr.dir/build.make CMakeFiles/enterstr.dir/build
-.PHONY : enterstr/fast
 
 ckeys.o: ckeys.c.o
 .PHONY : ckeys.o
@@ -757,6 +770,30 @@ pick_engine.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cmenu.dir/build.make CMakeFiles/cmenu.dir/pick_engine.c.s
 .PHONY : pick_engine.c.s
 
+rsh.o: rsh.c.o
+.PHONY : rsh.o
+
+# target to build an object file
+rsh.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsh.dir/build.make CMakeFiles/rsh.dir/rsh.c.o
+.PHONY : rsh.c.o
+
+rsh.i: rsh.c.i
+.PHONY : rsh.i
+
+# target to preprocess a source file
+rsh.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsh.dir/build.make CMakeFiles/rsh.dir/rsh.c.i
+.PHONY : rsh.c.i
+
+rsh.s: rsh.c.s
+.PHONY : rsh.s
+
+# target to generate assembly for a file
+rsh.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rsh.dir/build.make CMakeFiles/rsh.dir/rsh.c.s
+.PHONY : rsh.c.s
+
 scriou.o: scriou.c.o
 .PHONY : scriou.o
 
@@ -894,6 +931,7 @@ help:
 	@echo "... iloan"
 	@echo "... menu"
 	@echo "... pick"
+	@echo "... rsh"
 	@echo "... view"
 	@echo "... whence"
 	@echo "... ckeys.o"
@@ -959,6 +997,9 @@ help:
 	@echo "... pick_engine.o"
 	@echo "... pick_engine.i"
 	@echo "... pick_engine.s"
+	@echo "... rsh.o"
+	@echo "... rsh.i"
+	@echo "... rsh.s"
 	@echo "... scriou.o"
 	@echo "... scriou.i"
 	@echo "... scriou.s"

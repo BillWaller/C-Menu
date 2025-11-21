@@ -28,14 +28,14 @@ double accept_n(double);
 double accept_i(double, double);
 double accept_pmt(double, double, double);
 void error_press_any_key(char *);
-void abend(int);
+void ABEND(int);
 
-int main(int argc, char **argv) {
+int main() {
     double pv, pmt, i, n;
 
-    signal(SIGINT, abend);
-    signal(SIGQUIT, abend);
-    signal(SIGHUP, abend);
+    signal(SIGINT, ABEND);
+    signal(SIGQUIT, ABEND);
+    signal(SIGHUP, ABEND);
     printf("\nInstallment Loan Calculator\n\n");
     printf("You will be prompted to enter:\n\n");
     printf("    Present Value\n");
@@ -60,10 +60,10 @@ int main(int argc, char **argv) {
             pv = calculate_pv(n, i, pmt);
             break;
         }
-        if (pmt == 0) {
-            pmt = calculate_pmt(pv, n, i);
-            break;
-        }
+        // if (pmt == 0) {
+        //     pmt = calculate_pmt(pv, n, i);
+        //     break;
+        // }
         if (n == 0) {
             n = calculate_n(pv, i, pmt);
             break;
@@ -106,25 +106,20 @@ double accept_n(double pv) {
     double n;
     while (1) {
         accept_str("Number of Payments > ");
-        if (in_str[0] == '\0')
-            n = 0;
-        else {
-            if (is_numeric(in_str)) {
-                n = atof(in_str);
-                if (n < 0)
+        if (is_numeric(in_str)) {
+            n = atof(in_str);
+            if (n < 0)
+                error_press_any_key("Number of Payments can't be less than 0");
+            else {
+                if (pv == 0 && n == 0) {
                     error_press_any_key(
-                        "Number of Payments can't be less than 0");
-                else {
-                    if (pv == 0 && n == 0) {
-                        error_press_any_key(
-                            "Present Value and Number of Payments both 0");
-                        return (FALSE);
-                    } else
-                        break;
-                }
-            } else
-                error_press_any_key("Number of Payments must be numeric");
-        }
+                        "Present Value and Number of Payments both 0");
+                    return (FALSE);
+                } else
+                    break;
+            }
+        } else
+            error_press_any_key("Number of Payments must be numeric");
     }
     return (n);
 }
@@ -321,7 +316,7 @@ char *format_interest(float a) {
     return (s);
 }
 
-void abend(int e) {
+void ABEND(int e) {
     printf("ABEND: Error %d:\n", e);
     exit(EXIT_FAILURE);
 }

@@ -47,13 +47,14 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "message-v1"
     backtrace:
       - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:212 (message)"
       - "CMakeLists.txt:5 (project)"
     message: |
-      The system is: Linux - 6.17.6-1-default - x86_64
+      The system is: Linux - 6.17.7-1-default - x86_64
   -
     kind: "find-v1"
     backtrace:
@@ -102,6 +103,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -138,6 +140,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "message-v1"
     backtrace:
@@ -158,7 +161,7 @@ events:
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
       
       The C compiler identification is Clang, found in:
-        /usr/local/src/C-Menu-0.2.3/build/CMakeFiles/4.1.2/CompilerIdC/a.out
+        /usr/local/src/C-Menu-0.2.4/build/CMakeFiles/4.1.2/CompilerIdC/a.out
       
   -
     kind: "find-v1"
@@ -202,6 +205,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -244,6 +248,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -286,6 +291,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -328,6 +334,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -370,6 +377,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -412,6 +420,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -454,6 +463,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -496,6 +506,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -538,6 +549,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -580,6 +592,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -631,6 +644,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -685,6 +699,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -739,6 +754,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "find-v1"
     backtrace:
@@ -793,6 +809,7 @@ events:
         - "/bin"
         - "/usr/sbin"
         - "/sbin"
+      CMAKE_INSTALL_PREFIX: "/home/bill/menuapp/bin"
   -
     kind: "try_compile-v1"
     backtrace:
@@ -802,8 +819,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL"
-      binary: "/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL"
+      source: "/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy"
+      binary: "/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy"
     cmakeVariables:
       CMAKE_C_FLAGS: "-O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR"
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -812,14 +829,14 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL'
+        Change Dir: '/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy'
         
-        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_eb3f0/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_eb3f0.dir/build.make CMakeFiles/cmTC_eb3f0.dir/build
-        gmake[1]: Entering directory '/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL'
-        Building C object CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o
-        /usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR    -v -MD -MT CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -c /usr/share/cmake/Modules/CMakeCCompilerABI.c
-        clang version 21.1.4
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_350a5/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_350a5.dir/build.make CMakeFiles/cmTC_350a5.dir/build
+        gmake[1]: Entering directory '/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy'
+        Building C object CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o
+        /usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR    -v -MD -MT CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -c /usr/share/cmake/Modules/CMakeCCompilerABI.c
+        clang version 21.1.5
         Target: x86_64-suse-linux
         Thread model: posix
         InstalledDir: /usr/bin
@@ -831,8 +848,8 @@ events:
         Candidate multilib: .;@m64
         Selected multilib: .;@m64
          (in-process)
-         "/usr/bin/clang-21" -cc1 -triple x86_64-suse-linux -O0 -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -debug-info-kind=constructor -dwarf-version=5 -debugger-tuning=gdb -fdebug-compilation-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL -v -fcoverage-compilation-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL -resource-dir /usr/lib64/clang/21 -dependency-file CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -sys-header-deps -D NCURSES_WIDECHAR -internal-isystem /usr/lib64/clang/21/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../x86_64-pc-linux-gnu/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function -ferror-limit 19 -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -x c /usr/share/cmake/Modules/CMakeCCompilerABI.c
-        clang -cc1 version 21.1.4 based upon LLVM 21.1.4 default target x86_64-suse-linux
+         "/usr/bin/clang-21" -cc1 -triple x86_64-suse-linux -O0 -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -debug-info-kind=constructor -dwarf-version=5 -debugger-tuning=gdb -fdebug-compilation-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy -v -fcoverage-compilation-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy -resource-dir /usr/lib64/clang/21 -dependency-file CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -sys-header-deps -D NCURSES_WIDECHAR -internal-isystem /usr/lib64/clang/21/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../x86_64-pc-linux-gnu/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function -ferror-limit 19 -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -x c /usr/share/cmake/Modules/CMakeCCompilerABI.c
+        clang -cc1 version 21.1.5 based upon LLVM 21.1.5 default target x86_64-suse-linux
         ignoring nonexistent directory "/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../x86_64-pc-linux-gnu/include"
         ignoring nonexistent directory "/include"
         #include "..." search starts here:
@@ -841,9 +858,9 @@ events:
          /usr/local/include
          /usr/include
         End of search list.
-        Linking C executable cmTC_eb3f0
-        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_eb3f0.dir/link.txt --verbose=1
-        clang version 21.1.4
+        Linking C executable cmTC_350a5
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_350a5.dir/link.txt --verbose=1
+        clang version 21.1.5
         Target: x86_64-suse-linux
         Thread model: posix
         InstalledDir: /usr/bin
@@ -854,10 +871,10 @@ events:
         Selected GCC installation: /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0
         Candidate multilib: .;@m64
         Selected multilib: .;@m64
-         "/usr/bin/ld" -z relro --hash-style=both --build-id --eh-frame-hdr -m elf_x86_64 -pie -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_eb3f0 /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/Scrt1.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crti.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtbeginS.o -L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0 -L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib64 -L/lib -L/usr/lib -v CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtendS.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crtn.o
-        GNU ld (GNU Binutils; openSUSE Tumbleweed) 2.45.0.20251014-1
-        /usr/bin/clang -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR  -v -Wl,-v CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -o cmTC_eb3f0
-        gmake[1]: Leaving directory '/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL'
+         "/usr/bin/ld" -z relro --hash-style=both --build-id --eh-frame-hdr -m elf_x86_64 -pie -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_350a5 /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/Scrt1.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crti.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtbeginS.o -L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0 -L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib64 -L/lib -L/usr/lib -v CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtendS.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crtn.o
+        GNU ld (GNU Binutils; openSUSE Tumbleweed) 2.45.0.20251103-2
+        /usr/bin/clang -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR  -v -Wl,-v CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -o cmTC_350a5
+        gmake[1]: Leaving directory '/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy'
         
       exitCode: 0
   -
@@ -890,14 +907,14 @@ events:
       Parsed C implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL']
+        ignore line: [Change Dir: '/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy']
         ignore line: []
-        ignore line: [Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_eb3f0/fast]
-        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_eb3f0.dir/build.make CMakeFiles/cmTC_eb3f0.dir/build]
-        ignore line: [gmake[1]: Entering directory '/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL']
-        ignore line: [Building C object CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o]
-        ignore line: [/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR    -v -MD -MT CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
-        ignore line: [clang version 21.1.4]
+        ignore line: [Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_350a5/fast]
+        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_350a5.dir/build.make CMakeFiles/cmTC_350a5.dir/build]
+        ignore line: [gmake[1]: Entering directory '/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy']
+        ignore line: [Building C object CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o]
+        ignore line: [/usr/bin/clang   -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR    -v -MD -MT CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [clang version 21.1.5]
         ignore line: [Target: x86_64-suse-linux]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /usr/bin]
@@ -911,8 +928,8 @@ events:
         ignore line: [Selected multilib: .]
         ignore line: [@m64]
         ignore line: [ (in-process)]
-        ignore line: [ "/usr/bin/clang-21" -cc1 -triple x86_64-suse-linux -O0 -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -debug-info-kind=constructor -dwarf-version=5 -debugger-tuning=gdb -fdebug-compilation-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL -v -fcoverage-compilation-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles/CMakeScratch/TryCompile-xUJWHL -resource-dir /usr/lib64/clang/21 -dependency-file CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -sys-header-deps -D NCURSES_WIDECHAR -internal-isystem /usr/lib64/clang/21/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../x86_64-pc-linux-gnu/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function -ferror-limit 19 -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -x c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
-        ignore line: [clang -cc1 version 21.1.4 based upon LLVM 21.1.4 default target x86_64-suse-linux]
+        ignore line: [ "/usr/bin/clang-21" -cc1 -triple x86_64-suse-linux -O0 -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -debug-info-kind=constructor -dwarf-version=5 -debugger-tuning=gdb -fdebug-compilation-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy -v -fcoverage-compilation-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles/CMakeScratch/TryCompile-6Bg7Dy -resource-dir /usr/lib64/clang/21 -dependency-file CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -sys-header-deps -D NCURSES_WIDECHAR -internal-isystem /usr/lib64/clang/21/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../x86_64-pc-linux-gnu/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function -ferror-limit 19 -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -x c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [clang -cc1 version 21.1.5 based upon LLVM 21.1.5 default target x86_64-suse-linux]
         ignore line: [ignoring nonexistent directory "/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../x86_64-pc-linux-gnu/include"]
         ignore line: [ignoring nonexistent directory "/include"]
         ignore line: [#include "..." search starts here:]
@@ -921,9 +938,9 @@ events:
         ignore line: [ /usr/local/include]
         ignore line: [ /usr/include]
         ignore line: [End of search list.]
-        ignore line: [Linking C executable cmTC_eb3f0]
-        ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_eb3f0.dir/link.txt --verbose=1]
-        ignore line: [clang version 21.1.4]
+        ignore line: [Linking C executable cmTC_350a5]
+        ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_350a5.dir/link.txt --verbose=1]
+        ignore line: [clang version 21.1.5]
         ignore line: [Target: x86_64-suse-linux]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /usr/bin]
@@ -936,7 +953,7 @@ events:
         ignore line: [@m64]
         ignore line: [Selected multilib: .]
         ignore line: [@m64]
-        link line: [ "/usr/bin/ld" -z relro --hash-style=both --build-id --eh-frame-hdr -m elf_x86_64 -pie -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_eb3f0 /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/Scrt1.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crti.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtbeginS.o -L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0 -L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib64 -L/lib -L/usr/lib -v CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtendS.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crtn.o]
+        link line: [ "/usr/bin/ld" -z relro --hash-style=both --build-id --eh-frame-hdr -m elf_x86_64 -pie -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_350a5 /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/Scrt1.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crti.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtbeginS.o -L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0 -L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib64 -L/lib -L/usr/lib -v CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtendS.o /usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crtn.o]
           arg [/usr/bin/ld] ==> ignore
           arg [-zrelro] ==> ignore
           arg [--hash-style=both] ==> ignore
@@ -948,7 +965,7 @@ events:
           arg [-dynamic-linker] ==> ignore
           arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_eb3f0] ==> ignore
+          arg [cmTC_350a5] ==> ignore
           arg [/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/Scrt1.o] ==> obj [/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/Scrt1.o]
           arg [/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crti.o] ==> obj [/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/../../../../lib64/crti.o]
           arg [/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtbeginS.o] ==> obj [/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/16.0.0/crtbeginS.o]
@@ -959,7 +976,7 @@ events:
           arg [-L/lib] ==> dir [/lib]
           arg [-L/usr/lib] ==> dir [/usr/lib]
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_eb3f0.dir/CMakeCCompilerABI.c.o] ==> ignore
+          arg [CMakeFiles/cmTC_350a5.dir/CMakeCCompilerABI.c.o] ==> ignore
           arg [-lgcc] ==> lib [gcc]
           arg [--as-needed] ==> ignore
           arg [-lgcc_s] ==> lib [gcc_s]
@@ -998,5 +1015,5 @@ events:
       - "CMakeLists.txt:5 (project)"
     message: |
       Running the C compiler's linker: "/usr/bin/ld" "-v"
-      GNU ld (GNU Binutils; openSUSE Tumbleweed) 2.45.0.20251014-1
+      GNU ld (GNU Binutils; openSUSE Tumbleweed) 2.45.0.20251103-2
 ...
