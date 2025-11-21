@@ -16,18 +16,29 @@ int display_curses_keys() {
     WINDOW *box;
     char Title[] = "TEST CURSES KEYS";
     int lines = 9;
-    int cols = 50;
+    int cols = 55;
     char kstr[64];
-    int c, p;
-    char tmp[256];
+    int c;
+    char action[MAXLEN];
+    char tmp[MAXLEN];
     MEVENT event;
+    /*
+       typedef struct {
+           short id;
+           int x, y, z;
+           mmask_t bstate;
+       } MEVENT;
+     */
     int maxy, maxx;
+    // int winy, winx;
 
     getmaxyx(stdscr, maxy, maxx);
     int begy = (maxy - lines) / 3;
     int begx = (maxx - cols) / 2;
 
-    mousemask(ALL_MOUSE_EVENTS, NULL);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
+                  BUTTON_CTRL | BUTTON_ALT,
+              NULL);
     if (win_new(lines, cols, begy, begx, Title)) {
         strncpy(tmp, "win_new failed: ", MAXLEN - 1);
         strncat(tmp, Title, MAXLEN - 1);
@@ -364,67 +375,77 @@ int display_curses_keys() {
             strcpy(kstr, "KEY_UNDO undo key");
             break;
         case KEY_MOUSE:
+            action[0] = '\0';
             if (getmouse(&event) == OK) {
                 switch (event.bstate) {
                 case BUTTON1_PRESSED:
-                    strcpy(tmp, "Button 1 pressed");
+                    strcpy(action, "Button 1 pressed");
                     break;
                 case BUTTON1_RELEASED:
-                    strcpy(tmp, "Button 1 released");
+                    strcpy(action, "Button 1 released");
                     break;
                 case BUTTON1_CLICKED:
-                    strcpy(tmp, "Button 1 clicked");
+                    strcpy(action, "Button 1 clicked");
                     break;
                 case BUTTON1_DOUBLE_CLICKED:
-                    strcpy(tmp, "Button 1 double-clicked");
+                    strcpy(action, "Button 1 double-clicked");
                     break;
                 case BUTTON2_PRESSED:
-                    strcpy(tmp, "Button 2 pressed");
+                    strcpy(action, "Button 2 pressed");
                     break;
                 case BUTTON2_RELEASED:
-                    strcpy(tmp, "Button 2 released");
+                    strcpy(action, "Button 2 released");
                     break;
                 case BUTTON2_CLICKED:
-                    strcpy(tmp, "Button 2 clicked");
+                    strcpy(action, "Button 2 clicked");
                     break;
                 case BUTTON2_DOUBLE_CLICKED:
-                    strcpy(tmp, "Button 2 double-clicked");
+                    strcpy(action, "Button 2 double-clicked");
                     break;
                 case BUTTON3_PRESSED:
-                    strcpy(tmp, "Button 3 pressed");
+                    strcpy(action, "Button 3 pressed");
                     break;
                 case BUTTON3_RELEASED:
-                    strcpy(tmp, "Button 3 released");
+                    strcpy(action, "Button 3 released");
                     break;
                 case BUTTON3_CLICKED:
-                    strcpy(tmp, "Button 3 clicked");
+                    strcpy(action, "Button 3 clicked");
                     break;
                 case BUTTON3_DOUBLE_CLICKED:
-                    strcpy(tmp, "Button 3 double-clicked");
+                    strcpy(action, "Button 3 double-clicked");
                     break;
                 case BUTTON4_PRESSED:
-                    strcpy(tmp, "Scroll Down");
+                    strcpy(action, "Scroll Down");
                     break;
                 case BUTTON5_PRESSED:
-                    strcpy(tmp, "Scroll Up");
+                    strcpy(action, "Scroll Up");
                     break;
                 default:
                     break;
                 }
-                mvwaddstr(win, 1, 1, tmp);
+                mvwaddstr(win, 6, 3, "     Action:");
+                mvwaddstr(win, 6, 16, action);
                 wclrtoeol(win);
-                p = strlen(tmp);
-                wmove(win, 1, p + 1);
-                sprintf(tmp, "      Event  %6d", event.bstate);
+
+                strcpy(tmp, "  With Key:");
+                if (event.bstate & BUTTON_SHIFT)
+                    strcat(tmp, " Shift");
+                if (event.bstate & BUTTON_CTRL)
+                    strcat(tmp, " Ctrl");
+                if (event.bstate & BUTTON_ALT)
+                    strcat(tmp, " Alt");
                 mvwaddstr(win, 3, 4, tmp);
                 wclrtoeol(win);
-                sprintf(tmp, "       Line  %3d", event.y);
+                if (wenclose(win, event.y, event.x)) {
+                    sprintf(tmp, "   Inside Win:  y: %3d, x: %3d",
+                            event.y - begy, event.x - begx);
+                } else {
+                    sprintf(tmp, "  Outside Win:  y: %3d, x: %3d",
+                            event.y - begy, event.x - begx);
+                }
                 mvwaddstr(win, 4, 4, tmp);
                 wclrtoeol(win);
-                sprintf(tmp, "     Column  %3d", event.x);
-                mvwaddstr(win, 5, 4, tmp);
-                wclrtoeol(win);
-                wmove(win, 6, 1);
+                wmove(win, 5, 0);
                 wclrtoeol(win);
             }
             break;
@@ -433,24 +454,24 @@ int display_curses_keys() {
         }
         if (c != KEY_MOUSE) {
 
-            sprintf(tmp, "      Octal  %3o", c);
+            sprintf(tmp, "     Octal: %3o", c);
             mvwaddstr(win, 3, 4, tmp);
             wclrtoeol(win);
 
-            sprintf(tmp, "    Decimal  %3d", c);
+            sprintf(tmp, "   Decimal: %3d", c);
             mvwaddstr(win, 4, 4, tmp);
             wclrtoeol(win);
 
-            sprintf(tmp, "        Hex  %3x", c);
+            sprintf(tmp, "       Hex: %3x", c);
             mvwaddstr(win, 5, 4, tmp);
             wclrtoeol(win);
 
             if (kstr[0]) {
-                sprintf(tmp, "Description  %s", kstr);
+                sprintf(tmp, "Description: %s", kstr);
             } else {
-                sprintf(tmp, "      ASCII    %c", c);
+                sprintf(tmp, "      ASCII: %c", c);
             }
-            mvwaddstr(win, 6, 4, tmp);
+            mvwaddstr(win, 6, 3, tmp);
             wclrtoeol(win);
             wrefresh(win);
         }

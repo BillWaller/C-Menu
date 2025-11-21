@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     }
     mapp_initialization(init, argc, argv);
     sig_prog_mode();
-    open_curses();
+    open_curses(init);
     win_init_attrs(init->fg_color, init->bg_color, init->bo_color);
     display_curses_keys();
     close_curses();

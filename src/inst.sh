@@ -5,6 +5,7 @@
 #
 #   echo usage: inst.sh FileName Directory DestName Mode Owner Group
 #   echo "    -l      list installed files"
+#   echo "    -m      echo message to terminal
 #   echo "    --      clear installed files list"
 #
 
@@ -16,7 +17,7 @@ FILEMOD=$4
 FILEOWN=$5
 FILEGRP=$6
 EUSER=$(whoami)
-if [ "$EUSER" != "root" ]; then
+if [ "$EUSER" != "root" ] && [ "$FILENAME" = "rsh" ]; then
     echo Root privileges recommended for install
     key=$(enterchr "Press 'C' to continue or any other key to abort.")
     key=$(toupper "$key")
@@ -31,9 +32,11 @@ if [ "$#" -eq 1 ]; then
             echo Installed files:
             which lsd >/dev/null 2>&1
             if which lsd >/dev/null 2>&1; then
-                awk '{printf("%s\n", $2)}' installed | while read -r line; do
-                    lsd -l "$line"
-                done
+                LS=$(awk '{printf("%s ", $2)}
+                END {printf("\n")}' installed)
+                # Sometimes globbing and word-splitting is what you want.
+                # If you double quote this, it will not work as intended.
+                lsd -l --icon-theme unicode $LS
             else
                 cat installed | while read -r line; do
                     ls --color=always -l "$line"
@@ -47,6 +50,13 @@ if [ "$#" -eq 1 ]; then
     fi
     if [ "$1" = "--" ]; then
         rm -f installed
+        exit 0
+    fi
+    if [ "$1" = "-m" ]; then
+        echo
+        echo "To copy the sample menuapp directory to your home directory:"
+        echo "cp -Rdup ../menuapp ~/"
+        echo
         exit 0
     fi
 fi

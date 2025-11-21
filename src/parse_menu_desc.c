@@ -29,6 +29,8 @@ int parse_menu_description(Init *init) {
         abend(-1, tmp_buf);
     }
     while ((fgets(in_buf, MAXLEN, fp)) != NULL) {
+        if (in_buf[0] == '\0')
+            continue;
         switch ((int)in_buf[0]) {
         case '#':
             break;
@@ -50,7 +52,7 @@ int parse_menu_description(Init *init) {
                 l = MAX_COLS - 1;
             d = menu->line[menu->line_idx]->command_str =
                 (char *)malloc(MAX_COLS + 1);
-            if (d == (char *)0) {
+            if (!d) {
                 sprintf(tmp_str, "malloc(%d bytes) failed M-L[%d]->command_str",
                         MAX_COLS + 1, menu->line_idx);
                 abend(-1, tmp_str);
@@ -63,7 +65,7 @@ int parse_menu_description(Init *init) {
                     *s = ' ';
                 *d++ = *s++;
             }
-            *d = '\0';
+            *d = (char)'\0';
             s = menu->line[menu->line_idx]->command_str;
             d = tmp_buf;
             while (*s != '\0')
@@ -86,7 +88,7 @@ int parse_menu_description(Init *init) {
                 l = MAX_COLS - 1;
             d = menu->line[menu->line_idx]->choice_text =
                 (char *)malloc(MAX_COLS + 1);
-            if (d == (char *)0) {
+            if (!d) {
                 sprintf(tmp_str, "malloc(%d bytes) failed M-L[%d]->choice_text",
                         MAX_COLS + 1, menu->line_idx);
                 abend(-1, tmp_str);
@@ -97,7 +99,7 @@ int parse_menu_description(Init *init) {
                 s += 2;
             while (*s != '\0' && d < e)
                 *d++ = *s++;
-            *d = '\0';
+            *d = (char)'\0';
             if (l > menu->choice_max_len)
                 menu->choice_max_len = l;
             if (menu->line[menu->line_idx]->command_type == CT_RETURN)
@@ -159,7 +161,7 @@ int parse_menu_description(Init *init) {
                     l = MAX_COLS - 1;
                 d = menu->line[menu->line_idx]->raw_text =
                     (char *)malloc(MAX_COLS + 1);
-                if (d == (char *)0) {
+                if (!d) {
                     sprintf(tmp_str,
                             "malloc(%d bytes) failed M-L[%d]->raw_text",
                             MAX_COLS + 1, menu->line_idx);
@@ -168,7 +170,7 @@ int parse_menu_description(Init *init) {
                 e = d + l;
                 while (*s != '\0' && d < e)
                     *d++ = *s++;
-                *d = '\0';
+                *d = (char)'\0';
                 menu->line[menu->line_idx]->choice_text = NULL;
                 menu->line[menu->line_idx]->choice_letter = '\0';
                 menu->line[menu->line_idx]->letter_pos = 0;
@@ -216,7 +218,7 @@ int parse_menu_description(Init *init) {
                     l = MAX_COLS - 1;
                 d = menu->line[menu->line_idx]->option_ptr[cnt] =
                     (char *)malloc(MAX_COLS + 1);
-                if (d == (char *)0) {
+                if (!d) {
                     sprintf(tmp_str,
                             "malloc(%d bytes) failed M-L[%d]->option_ptr[%d]",
                             MAX_COLS + 1, menu->line_idx, cnt);
@@ -225,7 +227,7 @@ int parse_menu_description(Init *init) {
                 e = d + l;
                 while (*s != '\0' && d < e)
                     *d++ = *s++;
-                *d = '\0';
+                *d = (char)'\0';
                 if (l > menu->option_max_len)
                     menu->option_max_len = l;
                 cnt++;
@@ -261,7 +263,7 @@ int parse_menu_description(Init *init) {
                 s += 2;
             while (*s != '\0' && d < e)
                 *d++ = *s++;
-            *d = '\0';
+            *d = (char)'\0';
             if (l > menu->choice_max_len)
                 menu->choice_max_len = l;
             if (menu->line[menu->line_idx]->command_type == CT_RETURN)

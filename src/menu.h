@@ -1,4 +1,4 @@
-// menu.h
+// menu
 // Bill Waller
 // billxwaller@gmail.com
 
@@ -6,44 +6,36 @@
 #define _MENU_H 1
 
 #include <ncursesw/ncurses.h>
-#include <setjmp.h>
 #include <stddef.h>
 
+// MAXLEN is for variables known to be limited in length
 #define MAXLEN 256
 #define MIN_COLS 40
-#define MAX_COLS 256
-#define DEF_COLS 40
-#define MAX_LINES 128
-#define PICK_MAX_ARGS 200
+#define MAX_COLS 1024
+#define COLOR_LEN 8
+#define MAX_MENU_LINES 256
 #define PICK_MAX_ARG_LEN 256
-#define VIEW_MAX_ARGS 200
-#define VIEW_MAX_ARG_LEN 256
-#define DEF_LINES 10
 #define NCOLORS 16
-#define MAXARGS 50
+#define MAXARGS 1024
 #define MAXFIELDS 50
 #define ACCEPT_PROMPT_CHAR '_'
 #define DEFAULTEDITOR "vi"
-#define EDITOR "vi"
 #define MENU_HELP_FILE "~/menuapp/help/menu.help"
 #define PICK_HELP_FILE "~/menuapp/help/pick.help"
-#define FORM_EXEC_HELP_FILE "~/menuapp/help/formexec.help"
-#define FORM_WRITE_HELP_FILE "~/menuapp/help/formwrite.help"
 #define VIEW_HELP_FILE "~/menuapp/help/view.help"
-// #define HELP_CMD "view -g010050003004 -s -x -z -PL"
 #define HELP_CMD "view"
 #define VIEW_PRT_FILE "~/menuapp/data/prtout"
-#define VIEW_PRT_CMD "lp"
 #define DEFAULTSHELL "/bin/bash"
 #define MINITRC "~/.minitrc"
 #define MAPP_DIR "~/menuapp"
 #define PRINTCMD "lp -c -s"
 #define MAXOPTS 50
-#define P_ERROR -1
 #define F_NOMETAS 1
 #define F_NOTBLANK 2
 #define F_NOECHO 4
 #define EIGHT 8
+
+extern int dbgfd;
 
 extern char *eargv[MAXARGS];
 
@@ -82,10 +74,6 @@ extern void dump_opts_by_use(char *, char *);
 #define TRUE 1
 #define FALSE 0
 
-#ifndef BUFSIZ
-#define BUFSIZ 4096
-#endif
-
 #define to_uppercase(c)                                                        \
     if (c >= 'a' && c <= 'z')                                                  \
     c -= ' '
@@ -95,7 +83,7 @@ extern const char *mapp_version;
 extern bool f_debug;
 extern bool f_stop_on_error;
 
-extern char const colors_text[16][10];
+extern char const colors_text[][10];
 extern struct termios shell_tioctl, curses_tioctl;
 extern struct termios shell_in_tioctl, curses_in_tioctl;
 extern struct termios shell_out_tioctl, curses_out_tioctl;
@@ -219,10 +207,20 @@ enum {
 #define key_right 12 // ^L
 #define key_cr 13    // ^M
 
-#define FG_COLOR 2
-#define BG_COLOR 0
-#define BO_COLOR 2
-#define COLOR_LEN 32
+#define FG_COLOR 2 // green
+#define BG_COLOR 0 // black
+#define BO_COLOR 1 // red
+
+enum color_pairs_enum {
+    CP_DEFAULT,
+    CP_NORM,
+    CP_REVERSE,
+    CP_BOX,
+    CP_BOLD,
+    CP_TITLE,
+    CP_HIGHLIGHT,
+    CP_NPAIRS
+};
 
 // box Wide Unicode
 #define BW_HO L'\x2500'
@@ -268,7 +266,6 @@ extern int begy;
 typedef unsigned char uchar;
 
 // scriou.c
-extern void open_curses();
 extern void close_curses();
 extern void sig_prog_mode();
 extern void sig_shell_mode();
@@ -291,7 +288,7 @@ extern int mbegy;
 extern int mbegx;
 extern int mg_action, mg_col, mg_line;
 extern int mouse_support;
-extern int const ncolors[16];
+extern int const ncolors[];
 
 enum Color {
     black,
@@ -299,17 +296,18 @@ enum Color {
     green,
     yellow,
     blue,
-    cyan,
     magenta,
+    cyan,
     white,
     bblack,
     bred,
     bgreen,
     byellow,
     bblue,
-    bcyan,
     bmagenta,
-    bwhite
+    bcyan,
+    bwhite,
+    orange
 };
 
 extern char tmp_str[MAXLEN];
@@ -415,7 +413,7 @@ typedef struct {
     int option_max_len;
     int item_count;
     int line_idx;
-    Line *line[MAX_LINES];
+    Line *line[MAX_MENU_LINES];
     bool f_stop_on_error;
 } Menu;
 
@@ -520,7 +518,8 @@ typedef struct {
     // argument processing
     int argc;
     char **argv;
-    FILE *in_fp, *out_fp;
+    FILE *in_fp;
+    FILE *out_fp;
     // files
     char mapp_spec[MAXLEN]; //    application qualified path
     char in_spec[MAXLEN];
@@ -560,18 +559,14 @@ extern Pick *pick;
 // VIEW
 // --------------------------------------------------------------------------
 
-#define VBUFSIZ 4096
-#define PIPEBUFS 16
-#define FILEBUFS 4
-#define NPOS 32
-#define NMARKS 27
+#define NPOS 256
+#define NMARKS 256
 #define MAXLEN 256
+#define NULSL
+#define NULL_POSITION -1
+#define VBUFSIZ 8192
 
-typedef struct {
-    long block_no;
-    char data[VBUFSIZ];
-    char *end_ptr;
-} block_struct;
+enum PROMPT_TYPE { PT_NONE, PT_SHORT, PT_LONG, PT_STRING };
 
 typedef struct {
     // colors & geometry
@@ -582,9 +577,11 @@ typedef struct {
     int cols;     // C: columns
     int begy;     // Y: lines
     int begx;     // X: lines
+    int col;
     // window
     WINDOW *win, *box;
-    char prompt[MAXLEN]; // -P: prompt (S-Short, L-Long, N-None)[string]
+    char prompt_str[MAXLEN];
+    int prompt_type; // PT_NONE, PT_SHORT, PT_LONG, PT_STRING
     // files
     char cmd_spec[MAXLEN];  // c: command executable
     char start_cmd[MAXLEN]; // S  command to execute at start of program
@@ -601,24 +598,53 @@ typedef struct {
     bool f_squeeze;       // -s  squeeze multiple blank lines
     bool f_stop_on_error; // Z  stop on error
     //
-    int curx, cury, max_col, next_c, scroll_lines, cmd_line;
-    int first_column, last_column, last_line, ptop, pbot;
-    int attr, line_mode;
-    int fd;
-    long blk_no, last_blk_no, size_bytes, prev_file_pos, file_pos;
-    long pos_tbl[NPOS], mark_tbl[NMARKS];
-    int blk_offset;
-    bool f_beg_of_file, f_eof, f_forward, f_is_pipe, f_new_file,
-        f_pipe_processed, f_redraw_screen, f_displaying_help, f_stdout_is_tty;
-    char cur_file_str[MAXLEN];
-    char line_str[MAX_COLS];
-    char line_out_str[MAX_COLS];
+    int cury;
+    int curx;
+    int max_col;
+    int next_c;
+    int scroll_lines;
+    int cmd_line;
+    int first_column;
+    int last_column;
+    int line_mode;
+    //--------------------------------
+    bool f_bod;
+    bool f_eod;
+    bool f_eob;
+    bool f_eof;
+    bool f_forward;
+    bool f_is_pipe;
+    bool f_new_file;
+    bool f_pipe_processed;
+    bool f_redraw_screen;
+    bool f_displaying_help;
+    bool f_stdout_is_tty;
+    //
     char start_cmd_all_files[MAXLEN];
+    char cur_file_str[MAXLEN];
+    char line_in_s[MAX_COLS];
+    char line_out_s[MAX_COLS];
+    char *line_in_beg_p;
+    char *line_in_end_p;
+    //
     char *file_spec_ptr;
-    char *next_file_spec_ptr, *tmp_file_name_ptr, *line_start_ptr, *line_ptr,
-        *buf_start, *buf_ptr, *buf_end;
-    block_struct *blk_first, *blk_last, *blk_curr;
-    jmp_buf cmd_jmp;
+    char *next_file_spec_ptr;
+    char *tmp_file_name_ptr;
+    //
+    FILE *fp;
+    long file_size;
+    long file_pos;
+    long prev_file_pos;
+    long page_top_pos;
+    long page_bot_pos;
+    // long pos_tbl[NPOS];
+    long mark_tbl[NMARKS];
+    //
+    long buf_idx;
+    long buf_last;
+    char *buf;
+    char *buf_curr_ptr;
+    char *buf_end_ptr;
 } View;
 
 extern View *view;
@@ -632,11 +658,58 @@ typedef struct {
     int fg_color; // -F: foreground_color
     int bg_color; // -B: background_color
     int bo_color; // -O: border_color
-    int lines;    // -L: lines
-    int cols;     // -C: columns
-    int begx;     // -X: lines
-    int begy;     // -Y: lines
+    char black[COLOR_LEN];
+    char red[COLOR_LEN];
+    char green[COLOR_LEN];
+    char yellow[COLOR_LEN];
+    char blue[COLOR_LEN];
+    char magenta[COLOR_LEN];
+    char cyan[COLOR_LEN];
+    char white[COLOR_LEN];
+    char orange[COLOR_LEN];
+    char bblack[COLOR_LEN];
+    char bred[COLOR_LEN];
+    char bgreen[COLOR_LEN];
+    char byellow[COLOR_LEN];
+    char bblue[COLOR_LEN];
+    char bmagenta[COLOR_LEN];
+    char bcyan[COLOR_LEN];
+    char bwhite[COLOR_LEN];
+    char borange[COLOR_LEN];
+    char bg[COLOR_LEN];
+    char abg[COLOR_LEN];
+    // char hfg[COLOR_LEN];
+    // char title_fg[COLOR_LEN];
+    // char title_bg[COLOR_LEN];
+    // char title_bold[COLOR_LEN];
+    // char prompt_fg[COLOR_LEN];
+    // char prompt_bg[COLOR_LEN];
+    // char prompt_bold[COLOR_LEN];
+    // char select_fg[COLOR_LEN];
+    // char select_bg[COLOR_LEN];
+    // char select_bold[COLOR_LEN];
+    // char normal_fg[COLOR_LEN];
+    // char normal_bg[COLOR_LEN];
+    // char normal_bold[COLOR_LEN];
+    // char help_fg[COLOR_LEN];
+    // char help_bg[COLOR_LEN];
+    // char help_bold[COLOR_LEN];
+    // char border_fg[COLOR_LEN];
+    // char border_bg[COLOR_LEN];
+    // char border_bold[COLOR_LEN];
+    // char cmd_fg[COLOR_LEN];
+    // char cmd_bg[COLOR_LEN];
+    // char cmd_bold[COLOR_LEN];
+    // char mapp_fg[COLOR_LEN];
+    // char mapp_bg[COLOR_LEN];
+    int lines; // -L: lines
+    int cols;  // -C: columns
+    int begx;  // -X: lines
+    int begy;  // -Y: lines
     // window
+    char start_cmd[MAXLEN]; // -S: command to execute at start of program
+    char prompt_str[MAXLEN];
+    int prompt_type;    // PT_LONG, PT_SHORT, PT_NONE, PT_STRING
     char title[MAXLEN]; // -T: title
     // argument processing
     int argc;
@@ -673,9 +746,7 @@ typedef struct {
     // pick
     int selections; // -n: number of selections
     // view
-    char start_cmd[MAXLEN]; // -S: command to execute at start of program
-    char prompt[MAXLEN];    // -P: prompt (S-Short, L-Long, N-None)[string]
-    int tab_stop;           // -t: number of spaces per tab
+    int tab_stop; // -t: number of spaces per tab
     // structures
     // ----------------------------------------------------
     Menu *menu;
@@ -692,6 +763,7 @@ enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };
 
 extern Init *init;
 
+extern void open_curses(Init *init);
 extern bool init_menu_files(Init *, int, char **);
 extern bool init_pick_files(Init *, int, char **);
 extern bool init_form_files(Init *, int, char **);
@@ -729,7 +801,6 @@ extern void reverse_object(Pick *);
 extern void toggle_object(Pick *);
 extern int output_objects(Pick *);
 ;
-extern int exec_objects(Pick *);
 extern int open_pick_win(Pick *);
 extern int mpick(int, char **, int, int, int, int, char *, int);
 
@@ -750,39 +821,15 @@ extern void free_menu_line(Line *);
 // VIEW
 //--------------------------------------------------------------
 extern int mview(Init *, int, char **, int, int, int, int);
-extern int init_view_stdscr(View *);
+extern int init_view_stdscr(Init *);
 extern int init_view_boxwin(View *);
-extern int view_init_input(View *, char *);
+extern bool view_init_input(View *, char *);
 extern int view_cmd_processor(View *);
 extern int get_cmd_char(View *);
 extern int get_cmd_spec(View *, char *);
-extern void build_prompt(View *, char, char *);
-extern void cat_file(View *);
-extern void lp(char *, char *);
-extern void go_to_mark(View *, int);
-extern void go_to_eof(View *);
-extern void go_to_line(View *, int);
-extern void go_to_percent(View *, int);
 extern void go_to_position(View *, long);
-extern void search(View *, int, char *, int);
-extern void read_forward_from_current_file_pos(View *, int);
-extern void read_forward_from_file_pos(View *, int, long);
-extern long read_line_forward(View *, long);
-extern long read_line_forward_raw(View *, long);
-extern void read_backward_from_current_file_pos(View *, int);
-extern void read_backward_from_file_pos(View *, int, long);
-extern long read_line_backward(View *, long);
-extern long read_line_backward_raw(View *, long);
-extern int initialize_buffers(View *, int);
-extern int get_char_next_block(View *);
-extern int get_char_prev_block(View *);
-extern int get_char_buffer(View *);
-extern int locate_byte_pipe(View *, long);
-extern void put_line(View *);
+extern void cat_file(View *);
 extern void display_error_msg(View *, char *);
-extern void mk_cmd_prompt(char *);
-extern void remove_file(View *);
-extern void view_display_help(View *);
 extern char err_msg[MAXLEN];
 
 // UTILITIES

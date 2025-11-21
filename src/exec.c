@@ -1,7 +1,6 @@
 #include "menu.h"
 #include <errno.h>
 #include <fcntl.h>
-#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -61,6 +60,7 @@ int shell(char *shellCmdPtr) {
     Eargv[Eargc++] = shellCmdPtr;
     Eargv[Eargc++] = NULL;
     rc = fork_exec(Eargv);
+    free(Eargv[0]);
     return (rc);
 }
 

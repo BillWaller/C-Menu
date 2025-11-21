@@ -1,0 +1,54 @@
+line pos len bufaddr data
+ 0    0   10 48F010 /* view.c
+ 1   10   15 48F01A .* Bill Waller
+ 2   25   25 48F029 .* billxwaller@gmail.com
+ 3   50    4 48F042 .*/
+ 4   54    1 48F046 
+ 5   55   18 48F047 #include "menu.h"
+ 6   73   20 48F059 #include <stdlib.h>
+ 7   93   21 48F06D #include <termios.h>
+ 8  114   20 48F082 #include <unistd.h>
+ 9  134    1 48F096 
+10  135   34 48F097 int main(int argc, char **argv) {
+11  169   28 48F0B9 .   capture_shell_tioctl();
+12  197   39 48F0D5 .   Init *init = new_init(argc, argv);
+13  236   43 48F0FC .   mapp_initialization(init, argc, argv);
+14  279   18 48F127 .   int begy = 0;
+15  297   18 48F139 .   int begx = 0;
+16  315   51 48F14B .   view = new_view(init, argc, argv, begy, begx);
+17  366   39 48F17E .   view->f_stdout_is_tty = isatty(1);
+18  405   34 48F1A5 .   if (!view->f_stdout_is_tty) {
+19  439   30 48F1C7 .       if (view->argc < 1) {
+20  469   44 48F1E5 .           if (view_init_input(view, "-"))
+21  513   30 48F211 .               if (view->fp)
+22  543   36 48F22F .                   cat_file(view);
+23  579   17 48F253 .       } else {
+24  596   51 48F264 .           while (view->curr_argc < view->argc) {
+25  647   72 48F297 .               if (view_init_input(view, view->argv[
+                                                        view->curr_argc]))
+26  719   34 48F2DF .                   if (view->fp)
+27  753   40 48F301 .                       cat_file(view);
+28  793   35 48F329 .               view->curr_argc++;
+29  828   14 48F34C .           }
+30  842   10 48F35A .       }
+31  852   28 48F364 .       exit(EXIT_SUCCESS);
+32  880    6 48F380 .   }
+33  886    1 48F386 
+34  887   35 48F387 .   if (!init_view_stdscr(init)) {
+35  922   25 48F3AA .       view_file(view);
+36  947    6 48F3C3 .   }
+37  953   25 48F3C9 .   if (f_curses_open) {
+38  978   36 48F3E2 .       if (view->f_at_end_clear) {
+39 1014   28 48F406 .           wclear(stdscr);
+40 1042   30 48F422 .           wrefresh(stdscr);
+41 1072   10 48F440 .       }
+42 1082   33 48F44A .       if (view->win != stdscr)
+43 1115   23 48F46B .           win_del();
+44 1138   18 48F482 .       endwin();
+45 1156    6 48F494 .   }
+46 1162   22 48F49A .   close_view(init);
+47 1184   27 48F4B0 .   fprintf(stderr, "\n");
+48 1211   28 48F4CB .   restore_shell_tioctl();
+49 1239   14 48F4E7 .   return 0;
+50 1253    2 48F4F5 }
+   1255 1255        

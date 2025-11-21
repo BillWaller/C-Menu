@@ -23,7 +23,6 @@ add_library(
   scriou.c
   sig.c
   view_engine.c)
-
 set(LIBS ncursesw tinfo config)
 
 add_executable(ckeys ckeys.c)
@@ -31,6 +30,12 @@ target_link_libraries(ckeys cmenu ${LIBS})
 
 add_executable(form form.c)
 target_link_libraries(form cmenu ${LIBS})
+
+add_executable(enterchr enterchr.c)
+target_link_libraries(enterchr cmenu ${LIBS})
+
+add_executable(enterstr enterstr.c)
+target_link_libraries(enterstr cmenu ${LIBS})
 
 add_executable(iloan iloan.c)
 target_link_libraries(iloan m)
@@ -41,14 +46,11 @@ target_link_libraries(menu cmenu ${LIBS})
 add_executable(pick pick.c)
 target_link_libraries(pick cmenu ${LIBS})
 
+add_executable(rsh rsh.c)
+target_link_libraries(rsh cmenu ${LIBS})
+
 add_executable(view view.c)
 target_link_libraries(view cmenu ${LIBS})
 
 add_executable(whence whence.c)
 target_link_libraries(whence)
-
-add_executable(enterchr enterchr.c)
-target_link_libraries(enterchr cmenu ${LIBS})
-
-add_executable(enterstr enterstr.c)
-target_link_libraries(enterstr cmenu ${LIBS})

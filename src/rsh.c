@@ -1,6 +1,4 @@
-/*
-    rsh.c
-    rsh
+/*  rsh.c
     Author:  Bill Waller <billxwaller@gmail.com>
 
     Build instructions:
@@ -25,7 +23,9 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <termios.h>
 #include <unistd.h>
+char *strdup(const char *s);
 
 #ifndef MAXLEN
 #define MAXLEN 256
@@ -37,7 +37,7 @@ bool f_verbose = true;
 bool f_verbose = false;
 #endif
 
-void abend(int e, char const *);
+void ABEND(int e, char const *);
 
 int main(int argc, char **argv) {
     char *cargv[30];
@@ -61,18 +61,20 @@ int main(int argc, char **argv) {
     pid = fork();
     switch (pid) {
     case -1:
-        abend(EXIT_FAILURE, "fork() fatal error");
+        ABEND(EXIT_FAILURE, "fork() fatal error");
         break;
     case 0:
-        if (setuid(0) || setgid(0))
-            abend(EXIT_FAILURE, "setuid(0) fatal error");
-        struct rlimit rl;
-        getrlimit(RLIMIT_FSIZE, &rl);
-        rl.rlim_cur = RLIM_INFINITY;
-        rl.rlim_max = RLIM_INFINITY;
-        setrlimit(RLIMIT_FSIZE, &rl);
+        if (argv[0] && strstr(argv[0], "rsh")) {
+            if (setuid(0) || setgid(0))
+                ABEND(EXIT_FAILURE, "setuid(0) fatal error");
+            struct rlimit rl;
+            getrlimit(RLIMIT_FSIZE, &rl);
+            rl.rlim_cur = RLIM_INFINITY;
+            rl.rlim_max = RLIM_INFINITY;
+            setrlimit(RLIMIT_FSIZE, &rl);
+        }
         execvp(exec_cmd, cargv);
-        abend(EXIT_FAILURE, "execvp() fatal error");
+        ABEND(EXIT_FAILURE, "execvp() fatal error");
         break;
     default:
         waitpid(pid, &status, 0);
@@ -80,13 +82,13 @@ int main(int argc, char **argv) {
             if (WIFEXITED(status)) {
                 rc = WEXITSTATUS(status);
                 if (rc != 0)
-                    abend(rc, "Child process exited");
+                    ABEND(rc, "Child process exited");
             } else {
                 if (WIFSIGNALED(status)) {
                     rc = WTERMSIG(status);
-                    abend(rc, "Child process terminated by signal");
+                    ABEND(rc, "Child process terminated by signal");
                 } else
-                    abend(EXIT_FAILURE, "Child process terminated abnormally");
+                    ABEND(EXIT_FAILURE, "Child process terminated abnormally");
             }
         }
         break;
@@ -94,7 +96,7 @@ int main(int argc, char **argv) {
     exit(EXIT_SUCCESS);
 }
 
-void abend(int e, char const *s) {
+void ABEND(int e, char const *s) {
     fprintf(stderr, "%s: %d %s\n", s, e, strerror(e));
     exit(EXIT_FAILURE);
 }
