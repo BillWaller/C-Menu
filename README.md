@@ -9,20 +9,23 @@ systems. CMENU is designed to be simple to use while providing powerful
 features to implement menu driven frameworks for applications in
 terminal and terminal emulator environments.
 
-### CMENU with Test Curses Keys
+### CMENU
 
-<img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
+<img src="screenshots/sample_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 
-MENU reads a simple description file like the one below and displays a context
-menu to the user. When the user selects an item, MENU executes the
-corresponding command. It's like writing a shell script, but with a nice TUI
-menu interface.
+MENU reads a simple description file like the one above and displays a menu to the user. When the user selects an item, MENU executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
 
 Is a particular key not working for your project? Curses Keys (or CKeys)
 provides an easy way to determine whether the problem is with your code
 or your terminfo/termcap files. Or, if you just don't remember the key
 symbol for Curses. It also gives you the Octal, Decimal, and Hex codes
 for keys not defined in Curses, so you can provide your own custom keys.
+
+### Test Curses Keys
+
+<img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
+
+
 
 ### CMENU with PICK
 
@@ -170,7 +173,7 @@ instability or security vulnerabilities.
 
 - Open-source and free to use
 
-### CMENU Command Line Options1
+### CMENU Command Line Options
 
 ```
 usage: {menu|pick|form|view}
@@ -209,6 +212,14 @@ long option          type      group       mask  flg description
 --mapp_help           string    directory   mpfv      help directory
 --mapp_msrc           string    directory   mpfv      source directory
 ```
+
+## MINITRC Runtime Configuration
+
+<img src="screenshots/minitrc.png" />
+
+User's can have multiple runtime configurations. In the snippet above, the
+standard ISO 6429 / ECMA-48 colors have been redefined and orange has been
+added.
 
 ## Installation
 
