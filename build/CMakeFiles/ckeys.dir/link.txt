@@ -1,1 +1,0 @@
-/usr/bin/clang -O0 -g3 -Wno-unused-parameter     -Wno-missing-field-initializers -Wno-unused-function -DNCURSES_WIDECHAR -Xlinker --dependency-file=CMakeFiles/ckeys.dir/link.d CMakeFiles/ckeys.dir/ckeys.c.o -o ckeys  libcmenu.a -lncursesw -ltinfo -lconfig
