@@ -1,0 +1,12 @@
+зддддддддбддддд© здддддддддддбдддддддддддбддддд©
+Ё Color  Ё Hex Ё Ё Attribute Ё Binary    Ё Hex Ё
+цддддддддеддддд╢ цдддддддддддедддддддддддеддддд╢
+Ё Black  Ё  0  Ё Ё Underline Ё 0000 0001 Ё 01  Ё
+Ё Blue   Ё  1  Ё Ё Bright    Ё 0000 1000 Ё 08  Ё
+Ё Green  Ё  2  Ё Ё Blink     Ё 1000 0000 Ё 80  Ё
+Ё Cyan   Ё  3  Ё юдддддддддддадддддддддддаддддды
+Ё Red    Ё  4  Ё   A_STANDOUT     7800    Reverse / Bright
+Ё Violet Ё  5  Ё   A_REVERSE      7000    Reverse
+Ё Yellow Ё  6  Ё   A_UNDERLINE    0100    Reverse
+Ё White  Ё  7  Ё   A_BOLD         0800    Bright
+юддддддддаддддды   A_BLINK        8000    Blink

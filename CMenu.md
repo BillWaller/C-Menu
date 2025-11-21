@@ -1,48 +1,63 @@
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
-    <title></title>
-    <link rel="stylesheet" href="./bwstyle.css" >
-  </head>
-  <body>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>CMENU - A TUI Menu System</h1>
-<h2>Programs: Menu, Form, Pick, View, and RSH</h2>
-<p>CMENU is a lightweight, customizable, and easy-to-learn suite of programs
+# CMENU - A TUI Menu System
+
+## Programs: Menu, Form, Pick, View, and RSH
+
+CMENU is a lightweight, customizable, and easy-to-learn suite of programs
 for creating menus, entry forms, and pickers with a text-based user
 interface(TUI) for applications running on Linux and Unix-like operating
 systems. CMENU is designed to be simple to use while providing powerful
 features to implement menu driven frameworks for applications in
-terminal and terminal emulator environments.</p>
-<h3>CMENU</h3>
+terminal and terminal emulator environments.
+
+### CMENU
+
 <img src="screenshots/sample_menu.m.png" alt="Curses Keys" title="Sample Menu" />
-<p>MENU reads a simple description file like the one above and displays a menu to the user. When the user selects an item, MENU executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.</p>
-<p>Is a particular key not working for your project? Curses Keys (or CKeys)
+
+MENU reads a simple description file like the one above and displays a menu to the user. When the user selects an item, MENU executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
+
+Is a particular key not working for your project? Curses Keys (or CKeys)
 provides an easy way to determine whether the problem is with your code
 or your terminfo/termcap files. Or, if you just don't remember the key
 symbol for Curses. It also gives you the Octal, Decimal, and Hex codes
-for keys not defined in Curses, so you can provide your own custom keys.</p>
-<h3>Test Curses Keys</h3>
+for keys not defined in Curses, so you can provide your own custom keys.
+
+### Test Curses Keys
+
 <img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
-<h3>CMENU with PICK</h3>
+
+
+
+### CMENU with PICK
+
 <img src="screenshots/Pick.png" />
-<p>This program provides a list of objects from arguments or a text file
+
+This program provides a list of objects from arguments or a text file
 and lets the user select any number to be written to a file or provided
-as arguments to an executable specified in the description file.</p>
-<h3>FORM</h3>
+as arguments to an executable specified in the description file.
+
+### FORM
+
 <img src="screenshots/Receipt.png" />
-<p>FORM displays data entry forms based on a description file. It allows users
+
+FORM displays data entry forms based on a description file. It allows users
 to input data in a structured manner. The entered data can then be processed
-by a specified command or script.</p>
-<p>Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
+by a specified command or script.
+
+Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
 accounting, scheduling and management system. It was particularly useful
-as a front-end for our SQL database applications.</p>
-<p>Need quick and easy Cash Receipts, General Journal, or wedding invitation
+as a front-end for our SQL database applications.
+
+Need quick and easy Cash Receipts, General Journal, or wedding invitation
 list? FORM has you covered. The application shown above took about 10
 minutes from design to test. It doesn't post transactions, or keep running
-balances yet, but that's why we have people like you.</p>
-<p>FORM also makes a great front-end for SQL database queries.</p>
-<h3>A Sample Menu Description File</h3>
-<pre class="rounded-code"><code>H:SAMPLE MENU
+balances yet, but that's why we have people like you.
+
+FORM also makes a great front-end for SQL database queries.
+
+### A Sample Menu Description File
+
+```
+H:SAMPLE MENU
 
 :Gnumeric
 !exec gnumeric
@@ -70,33 +85,42 @@ balances yet, but that's why we have people like you.</p>
 
 :Exit Applications
 !return
-</code></pre>
-<p>As you can see, the description file is straightforward and easy to read. Each menu
+```
+
+As you can see, the description file is straightforward and easy to read. Each menu
 item consists of a label and a command to execute. The label is displayed in the menu,
-and the command is executed when the user selects that item.</p>
-<p>We hope you find CMENU useful for your projects. It's a powerful tool that can
+and the command is executed when the user selects that item.
+
+We hope you find CMENU useful for your projects. It's a powerful tool that can
 greatly simplify the process of creating text-based user interfaces for
-your applications.</p>
-<h3>VIEW</h3>
-<p>VIEW is a simple text file viewer that allows users to view text files in a
+your applications.
+
+### VIEW
+
+VIEW is a simple text file viewer that allows users to view text files in a
 terminal environment. It supports basic navigation and regular expression
 search functionality, which comes in handy for displaying help files or
 other text-based documentation. VIEW can be invoked from within MENU, FORM,
-or PICK to provide contextual help or information.</p>
-<p>One especially useful feature of VIEW is its incredible speed with very large
+or PICK to provide contextual help or information.
+
+One especially useful feature of VIEW is its incredible speed with very large
 text files. VIEW can open and display multi-megabyte text files almost
 instantaneously, making it an excellent choice for viewing log files or other
 large documents. While NVIM and other modern editors are outstanding for code
 editing, it's just not practical to open a 100MB log file in them. VIEW
-handles large files with ease and zips through them with lightning speed.</p>
-<h3>RSH</h3>
+handles large files with ease and zips through them with lightning speed.
+
+### RSH
+
 <img src="screenshots/rsh.png" />
-<p>Despite its name, RSH is not a shell. It is a shell runner, which allows
+
+Despite its name, RSH is not a shell. It is a shell runner, which allows
 you to specify your shell of choice, and provides a consistent environment
 for running shell scripts and commands. RSH was designed to be invoked from
 within MENU, FORM, or PICK to execute commands that require elevated
-privileges, but its functionality extends beyond that.</p>
-<p>You can execute commands in either user or root mode, making it a versatile
+privileges, but its functionality extends beyond that.
+
+You can execute commands in either user or root mode, making it a versatile
 tool for developing aplication front-ends. RSH ensures that your scripts
 and executables run in a controlled environment, reducing the chances of
 unexpected behavior due to differing shell environments. RSH forks and waits
@@ -107,60 +131,52 @@ using su -c or sudo to run commands as root, you can use rsh -c to achieve
 the same result in a more streamlined manner. You can literally have root
 access within a fraction of a second, making it ideal for work that
 requires frequent switching between user and root modes for various
-administrative tasks.</p>
-<p>Many system administrators and developers find RSH invaluable for tasks
+administrative tasks.
+
+Many system administrators and developers find RSH invaluable for tasks
 that require elevated privileges. RSH eliminates the need to repeatedly enter
 passwords or switch users, streamlining workflows and improving efficiency. We all
 know it's not a good idea to run everything as root, but sometimes a user want's to
 avoid precious seconds it takes to enter passwords for su. With RSH, it takes three
-keystrokes to enter root mode and two keystrokes to get out.</p>
-<p>Please be very careful when using RSH in setuid root mode. Keep the
+keystrokes to enter root mode and two keystrokes to get out.
+
+Please be very careful when using RSH in setuid root mode. Keep the
 executable protected in your home directory with appropriate permissions
 to prevent promiscuous access by unauthorized users. RSH should be provided
 only to trusted users who understand the implications of executing commands
 with elevated privileges. Used inappropriately, it can lead to system
-instability or security vulnerabilities.</p>
-<h2>Features</h2>
-<ul>
-<li>
-<p>Create and manage multiple menus, forms, and pickers</p>
-</li>
-<li>
-<p>Define interfaces using simple configuration files</p>
-</li>
-<li>
-<p>Perfect for shell scripting, command-line, and terminal based applications</p>
-</li>
-<li>
-<p>Made for Linux and Unix-like operating systems</p>
-</li>
-<li>
-<p>Blazingly fast, even on older hardware</p>
-</li>
-<li>
-<p>Text-based user interface (TUI) using ncurses</p>
-</li>
-<li>
-<p>Easily customize menu options and actions</p>
-</li>
-<li>
-<p>Any level of sub-menus</p>
-</li>
-<li>
-<p>Navigation using keyboard inputs the way God intended</p>
-</li>
-<li>
-<p>Configurable appearance and behavior</p>
-</li>
-<li>
-<p>Cross-platform compatibility</p>
-</li>
-<li>
-<p>Open-source and free to use</p>
-</li>
-</ul>
-<h3>CMENU Command Line Options</h3>
-<pre class="rounded-code"><code>usage: {menu|pick|form|view}
+instability or security vulnerabilities.
+
+## Features
+
+- Create and manage multiple menus, forms, and pickers
+
+- Define interfaces using simple configuration files
+
+- Perfect for shell scripting, command-line, and terminal based applications
+
+- Made for Linux and Unix-like operating systems
+
+- Blazingly fast, even on older hardware
+
+- Text-based user interface (TUI) using ncurses
+
+- Easily customize menu options and actions
+
+- Any level of sub-menus
+
+- Navigation using keyboard inputs the way God intended
+
+- Configurable appearance and behavior
+
+- Cross-platform compatibility
+
+- Open-source and free to use
+
+### CMENU Command Line Options
+
+```
+usage: {menu|pick|form|view}
 
 long option          type      group       mask  flg description
 -------------------  -------   ----------  ----- --- --------------------------------
@@ -195,12 +211,16 @@ long option          type      group       mask  flg description
 --mapp_data           string    directory   mpfv      data directory
 --mapp_help           string    directory   mpfv      help directory
 --mapp_msrc           string    directory   mpfv      source directory
-</code></pre>
-<h2>MINITRC Runtime Configuration</h2>
+```
+
+## MINITRC Runtime Configuration
+
 <img src="screenshots/minitrc.png" />
-<p>User's can have multiple runtime configurations. In the snippet above, the
+
+User's can have multiple runtime configurations. In the snippet above, the
 standard ISO 6429 / ECMA-48 colors have been redefined and orange has been
-added.</p>
-<h2>Installation</h2>
-<p>To install CMENU, simply download the source code from the repository and follow the installation instructions provided in the INSTALL.md file.</p>
-</body></html></body></html>
+added.
+
+## Installation
+
+To install CMENU, simply download the source code from the repository and follow the installation instructions provided in the INSTALL.md file.

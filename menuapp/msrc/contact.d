@@ -1,0 +1,21 @@
+H:Contact
+T:1:0:line1
+F!1!10!10!3!
+T:2:0:line2
+F!2!10!10!3!
+T:3:0:line3
+T:4:0:line4
+T:5:0:line5
+T:6:0:line6
+F!6!10!10!3!
+T:7:0:line7
+F!7!11!50!3!
+T:8:0:Address 2
+F!8!11!50!3!
+T:9:1:City
+T:9:19:State
+T:9:28:Zip
+F!9!6!12!3!
+F!9!25!2!3!
+F!9!32!10!3!
+?:/home/bill/menuapp/contact.help

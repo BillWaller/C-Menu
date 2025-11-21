@@ -1,6 +1,6 @@
 * {
 	background: #000027;
-	font-size: 18px;
+	font-size: 20px;
 	font-family: "Source Code Pro", "Courier New", monospace;
 }
 .rounded-code {
@@ -19,7 +19,7 @@ body {
 	color: #00ff9f;
 	text-align: left;
 	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-	font-size: 18px;
+	font-size: 20px;
 	background: #000027;
 }
 .wrap-text {
@@ -29,7 +29,7 @@ body {
 }
 pre {
 	font-family: "Source Code Pro", "Courier New", monospace;
-	font-size: 18px;
+	font-size: 20px;
 	color: #e0e0e0;
 	background: #002f4f;
 }
@@ -72,27 +72,27 @@ img {
 	border-radius: 8px;
 }
 ol {
-	font-size: 18px;
+	font-size: 20px;
 	margin-left: 0%;
 	margin-right: 12%;
 }
 span {
-	font-size: 18px;
+	font-size: 20px;
 	margin-left: 12%;
 	margin-right: 12%;
 }
 p {
-	font-size: 18px;
+	font-size: 20px;
 	margin-left: 12%;
 	margin-right: 12%;
 }
 li {
-	font-size: 18px;
+	font-size: 20px;
 	margin-left: 12%;
 	margin-right: 12%;
 }
 a {
-	font-size: 18px;
+	font-size: 20px;
 	margin-left: 12%;
 	margin-right: 12%;
 	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
@@ -103,14 +103,14 @@ a:link {
 	margin-left: 12%;
 	margin-right: 12%;
 	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-	font-size: 18px;
+	font-size: 20px;
 }
 a:visited {
 	color: #3fcfff;
 	text-decoration: none;
 	margin-left: 12%;
 	margin-right: 12%;
-	font-size: 18px;
+	font-size: 20px;
 	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
 }
 a:hover {
@@ -118,7 +118,7 @@ a:hover {
 	text-decoration: none;
 	margin-left: 12%;
 	margin-right: 12%;
-	font-size: 18px;
+	font-size: 20px;
 	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
 }
 a:active {
@@ -126,6 +126,6 @@ a:active {
 	text-decoration: none;
 	margin-left: 12%;
 	margin-right: 12%;
-	font-size: 18px;
+	font-size: 20px;
 	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
 }
