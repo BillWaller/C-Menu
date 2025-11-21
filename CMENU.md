@@ -9,20 +9,23 @@ systems. CMENU is designed to be simple to use while providing powerful
 features to implement menu driven frameworks for applications in
 terminal and terminal emulator environments.
 
-### CMENU with Test Curses Keys
+### CMENU
 
-<img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
+<img src="screenshots/sample_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 
-MENU reads a simple description file like the one below and displays a context
-menu to the user. When the user selects an item, MENU executes the
-corresponding command. It's like writing a shell script, but with a nice TUI
-menu interface.
+MENU reads a simple description file like the one above and displays a menu to the user. When the user selects an item, MENU executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
 
 Is a particular key not working for your project? Curses Keys (or CKeys)
 provides an easy way to determine whether the problem is with your code
 or your terminfo/termcap files. Or, if you just don't remember the key
 symbol for Curses. It also gives you the Octal, Decimal, and Hex codes
 for keys not defined in Curses, so you can provide your own custom keys.
+
+### Test Curses Keys
+
+<img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
+
+
 
 ### CMENU with PICK
 
@@ -131,12 +134,11 @@ requires frequent switching between user and root modes for various
 administrative tasks.
 
 Many system administrators and developers find RSH invaluable for tasks
-that require elevated privileges.
-RSH eliminates the need to repeatedly enter passwords or switch users,
-streamlining workflows and improving efficiency. We all know it's not a
-good idea to run everything as root, but sometimes a user want's to avoid
-precious seconds it takes to enter passwords for su. With RSH, it takes
-three keystrokes to enter root mode and two keystrokes to get out.
+that require elevated privileges. RSH eliminates the need to repeatedly enter
+passwords or switch users, streamlining workflows and improving efficiency. We all
+know it's not a good idea to run everything as root, but sometimes a user want's to
+avoid precious seconds it takes to enter passwords for su. With RSH, it takes three
+keystrokes to enter root mode and two keystrokes to get out.
 
 Please be very careful when using RSH in setuid root mode. Keep the
 executable protected in your home directory with appropriate permissions
@@ -211,6 +213,15 @@ long option          type      group       mask  flg description
 --mapp_msrc           string    directory   mpfv      source directory
 ```
 
+## MINITRC Runtime Configuration
+
+<img src="screenshots/minitrc.png" />
+
+User's can have multiple runtime configurations. In the snippet above, the
+standard ISO 6429 / ECMA-48 colors have been redefined and orange has been
+added.
+
 ## Installation
 
 To install CMENU, simply download the source code from the repository and follow the installation instructions provided in the INSTALL.md file.
+
