@@ -7,6 +7,7 @@
 #include "menu.h"
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 int tbl_col, tbl_line, tbl_page, tbl_cols, pg_lines, tbl_pages;
@@ -23,25 +24,49 @@ void display_page(Pick *);
 void reverse_object(Pick *);
 void toggle_object(Pick *);
 int output_objects(Pick *);
-int exec_objects(Pick *);
+int exec_objects(Init *);
 int open_pick_win(Pick *);
+
+char const pagers_editors[12][10] = {"view", "mview", "less", "more",
+                                     "vi",   "vim",   "nano", "nvim",
+                                     "pico", "emacs", "edit", ""};
 
 /* ╭───────────────────────────────────────────────────────────────────╮
    │ INIT_PICK                                                         │
    ╰───────────────────────────────────────────────────────────────────╯ */
 int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
+    struct stat sb;
+    int m;
     Pick *pick = new_pick(init, argc, argv, begy, begx);
     char tmp_str[MAXLEN];
+    if (init->pick != pick)
+        abend(-1, "exec_objects: init->pick != pick\n");
 
-    pick->win_lines = lines;
-    pick->win_width = cols;
     pick->begy = begy + 1;
     pick->begx = begx + 4;
     strncpy(pick->title, init->title, MAXLEN - 1);
     if (pick->f_in_spec) {
+        if (lstat(pick->in_spec, &sb) == -1) {
+            m = MAXLEN - 29;
+            strncpy(tmp_str, "Can\'t stat pick input file: ", m);
+            m -= strlen(pick->in_spec);
+            strncat(tmp_str, pick->in_spec, m);
+            display_error_message(tmp_str);
+            return (1);
+        }
+        if (sb.st_size == 0) {
+            m = MAXLEN - 24;
+            strncpy(tmp_str, "Pick input file empty: ", m);
+            m -= strlen(pick->in_spec);
+            strncat(tmp_str, pick->in_spec, m);
+            display_error_message(tmp_str);
+            return (1);
+        }
         if ((pick->in_fp = fopen(pick->in_spec, "rb")) == NULL) {
-            strncpy(tmp_str, "Can\'t open input ", MAXLEN - 25);
-            strncat(tmp_str, pick->in_spec, MAXLEN - 25);
+            m = MAXLEN - 29;
+            strncpy(tmp_str, "Can't open pick input file: ", m);
+            m -= strlen(pick->in_spec);
+            strncat(tmp_str, pick->in_spec, m);
             display_error_message(tmp_str);
             return (1);
         }
@@ -54,8 +79,10 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (pick->f_out_spec) {
         if ((pick->out_fp = fopen(pick->out_spec, "w")) == NULL) {
-            strncpy(tmp_str, "Can\'t open output ", MAXLEN - 5);
-            strncat(tmp_str, pick->out_spec, MAXLEN - 5);
+            m = MAXLEN - 30;
+            strncpy(tmp_str, "Can't open pick output file: ", m);
+            m -= strlen(pick->in_spec);
+            strncat(tmp_str, pick->out_spec, m);
             display_error_message(tmp_str);
             return (1);
         }
@@ -82,8 +109,7 @@ int pick_engine(Init *init) {
 
     Pick *pick = init->pick;
     pick->obj_cnt = pick->tbl_pages = pick->pg_lines = pick->tbl_cols = 0;
-    pick->obj_idx = pick->tbl_page = pick->y = pick->tbl_col = pick->x =
-        pick->tbl_col_width = 0;
+    pick->obj_idx = pick->tbl_page = pick->y = pick->tbl_col = pick->x = 0;
 
     if (pick->in_fp) {
         while (fgets(pick->in_buf, sizeof(pick->in_buf), pick->in_fp) != NULL)
@@ -96,38 +122,77 @@ int pick_engine(Init *init) {
         return (-1);
     pick->obj_cnt = pick->obj_idx;
     pick->obj_idx = 0;
-
     /* ╭───────────────────────────────────────────────────────────────────╮
        │ PICK TABLE LAYOUT                                                 │
-       ╰───────────────────────────────────────────────────────────────────╯ */
+       ╰───────────────────────────────────────────────────────────────────╯
+     */
     getmaxyx(stdscr, i, maxx);
-
-    win_maxx = maxx * 8 / 10;
-    pick->tbl_cols = win_maxx / pick->tbl_col_width;
-    pick->win_width = pick->tbl_cols * (pick->tbl_col_width + 1) + 2;
-    pick->pg_lines = (pick->obj_cnt - 1) / pick->tbl_cols + 1;
-    pick->win_lines = pick->pg_lines + 1;
-    if (pick->tbl_cols > pick->obj_cnt)
-        pick->tbl_cols = pick->obj_cnt;
-    pick->tbl_pages = pick->obj_cnt / (pick->tbl_cols * pick->pg_lines) + 1;
-    pick->tbl_page = 0;
-    rc = open_pick_win(pick);
-    if (rc)
-        return (rc);
-    display_page(pick);
-    reverse_object(pick);
+    maxx -= pick->begx + 3;
+    if (pick->tbl_col_width + 1 > maxx) {
+        pick->tbl_col_width = maxx;
+    }
+    if ((pick->tbl_col_width + 1) * pick->obj_cnt <= maxx) {
+        if (pick->tbl_col_width < 4)
+            pick->tbl_col_width = 4;
+        pick->tbl_cols = maxx / pick->tbl_col_width;
+        if (pick->tbl_cols == 0)
+            pick->tbl_cols = 1;
+        if (((pick->tbl_col_width + 1) * pick->tbl_cols) > maxx) {
+            if (pick->tbl_cols > 1)
+                pick->tbl_cols--;
+            maxx = (pick->tbl_col_width + 1) * pick->tbl_cols;
+        }
+        if ((pick->tbl_col_width + 1) * pick->tbl_cols > maxx) {
+            sprintf(errmsg,
+                    "fpick: (pick->tbl_col_width + 1) * pick->tbl_cols > "
+                    "maxx %d > %d\n",
+                    (pick->tbl_col_width + 1) * pick->tbl_cols, maxx);
+            abend(-1, errmsg);
+        }
+        pick->win_width = pick->tbl_cols * (pick->tbl_col_width + 1) + 2;
+        pick->pg_lines = (pick->obj_cnt - 1) / pick->tbl_cols + 1;
+        pick->win_lines = pick->pg_lines + 1;
+        if (pick->tbl_cols > pick->obj_cnt)
+            pick->tbl_cols = pick->obj_cnt;
+        pick->tbl_pages = pick->obj_cnt / (pick->tbl_cols * pick->pg_lines) + 1;
+        pick->tbl_page = 0;
+        rc = open_pick_win(pick);
+        if (rc)
+            return (rc);
+        display_page(pick);
+        reverse_object(pick);
+    } else {
+        if ((maxx * 8 / 10) > (pick->tbl_col_width + 1))
+            win_maxx = maxx * 8 / 10;
+        else
+            win_maxx = (pick->tbl_col_width + 1) * pick->tbl_cols + 2;
+        pick->tbl_cols = win_maxx / pick->tbl_col_width;
+        pick->win_width = pick->tbl_cols * (pick->tbl_col_width + 1) + 2;
+        pick->pg_lines = (pick->obj_cnt - 1) / pick->tbl_cols + 1;
+        pick->win_lines = pick->pg_lines + 1;
+        if (pick->tbl_cols > pick->obj_cnt)
+            pick->tbl_cols = pick->obj_cnt;
+        pick->tbl_pages = pick->obj_cnt / (pick->tbl_cols * pick->pg_lines) + 1;
+        pick->tbl_page = 0;
+        rc = open_pick_win(pick);
+        if (rc)
+            return (rc);
+        display_page(pick);
+        reverse_object(pick);
+    }
 
     /* ╭───────────────────────────────────────────────────────────────────╮
        │ PICK MAIN LOOP                                                    │
-       ╰───────────────────────────────────────────────────────────────────╯ */
+       ╰───────────────────────────────────────────────────────────────────╯
+     */
     pick->obj_idx = 0;
-    while (!picker((Pick *)pick))
+    while (!picker(pick))
         ;
     if (pick->obj_idx > 0) {
         if (pick->f_out_spec && pick->out_spec[0])
             rc = output_objects(pick);
         if (pick->f_cmd_spec && pick->cmd_spec[0])
-            rc = exec_objects(pick);
+            rc = exec_objects(init);
     }
     for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt; pick->obj_idx++)
         free(pick->object[pick->obj_idx]);
@@ -195,7 +260,6 @@ int picker(Pick *pick) {
         pick->y = pick->tbl_line;
         if (display_tbl_page != pick->tbl_page) {
             display_page(pick);
-            display_tbl_page = pick->tbl_page;
         }
         reverse_object(pick);
         break;
@@ -217,7 +281,6 @@ int picker(Pick *pick) {
                         pick->tbl_col * pick->pg_lines + pick->y;
         if (display_tbl_page != pick->tbl_page) {
             display_page(pick);
-            display_tbl_page = pick->tbl_page;
         }
         reverse_object(pick);
         break;
@@ -270,7 +333,6 @@ int picker(Pick *pick) {
         pick->y = pick->tbl_line;
         if (display_tbl_page != pick->tbl_page) {
             display_page(pick);
-            display_tbl_page = pick->tbl_page;
         }
         reverse_object(pick);
         break;
@@ -304,7 +366,6 @@ int picker(Pick *pick) {
         pick->y = pick->tbl_line;
         if (display_tbl_page != pick->tbl_page) {
             display_page(pick);
-            display_tbl_page = pick->tbl_page;
         }
         reverse_object(pick);
         break;
@@ -402,67 +463,79 @@ int output_objects(Pick *pick) {
     return (0);
 }
 
-int exec_objects(Pick *pick) {
+int exec_objects(Init *init) {
     int rc = -1;
     int margc;
-    char *optarg;
+    char *token;
     char *margv[MAXARGS];
     char *s;
     char tmp_str[MAXLEN];
+    int i = 0;
 
-    fprintf(stderr, "\n");
-    fflush(stderr);
-    wclear(stdscr);
-    wmove(stdscr, 0, 0);
-    wrefresh(stdscr);
+    if (init->pick != pick)
+        abend(-1, "exec_objects: init->pick != pick\n");
+
+    if (pick->cmd_spec[0] == '\0')
+        return rc;
+
     s = pick->cmd_spec;
-    for (margc = 0; margc < MAXARGS; margc++) {
-        optarg = strtok(s, " \t");
-        if (*optarg == '\0')
+    margc = 0;
+    token = strtok(s, " \t");
+    do {
+        if (token == NULL)
             break;
-        margv[margc++] = strdup(optarg);
-        s = (char *)0;
-    }
-    strncpy(tmp_str, optarg, MAXLEN - 1);
+        margv[margc++] = strdup(token);
+        token = strtok(NULL, " \t");
+    } while (token);
     margv[margc] = NULL;
-    base_name(tmp_str, optarg);
-    if (tmp_str[0] && strcmp(tmp_str, "view") == 0) {
+
+    base_name(tmp_str, margv[0]);
+    while (pagers_editors[i][0] != '\0') {
+        if (!strcmp(tmp_str, pagers_editors[i]))
+            break;
+        i++;
+    }
+    if (pagers_editors[i][0] != '\0') {
         for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt;
              pick->obj_idx++) {
             if (pick->f_selected[pick->obj_idx])
                 if (margc < MAXARGS)
-                    margv[margc++] = pick->object[pick->obj_idx];
+                    margv[margc++] = strdup(pick->object[pick->obj_idx]);
         }
         margv[margc] = NULL;
-        mview(init, margc, margv, 10, 40, pick->begy + 1, pick->begx + 4);
+        if (strcmp(tmp_str, "mview"))
+            mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4);
     } else {
+        tmp_str[0] = '\0';
         if (pick->f_multiple_cmd_args) {
             for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt;
                  pick->obj_idx++) {
-                if (pick->f_selected[pick->obj_idx])
-                    if (margc < MAXARGS)
-                        margv[margc++] = pick->object[pick->obj_idx];
+                if (pick->f_selected[pick->obj_idx]) {
+                    if (tmp_str[0] != '\0')
+                        strncat(tmp_str, " ", MAXLEN - strlen(tmp_str) - 1);
+                    strncat(tmp_str, pick->object[pick->obj_idx],
+                            MAXLEN - strlen(tmp_str) - 1);
+                }
             }
-            margv[margc] = NULL;
-            rc = fork_exec(margv);
-            for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt;
-                 pick->obj_idx++)
-                free(pick->object[pick->obj_idx]);
+            margv[margc++] = strdup(tmp_str);
         } else {
             for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt;
                  pick->obj_idx++) {
                 if (pick->f_selected[pick->obj_idx]) {
                     if (margc < MAXARGS)
-                        margv[margc] = pick->object[pick->obj_idx];
-                    margv[margc + 1] = NULL;
-                    rc = fork_exec(margv);
+                        margv[margc++] = strdup(pick->object[pick->obj_idx]);
                 }
-                free(pick->object[pick->obj_idx]);
             }
         }
+        margv[margc] = NULL;
+        rc = fork_exec(margv);
+        margc = 0;
+        while (margv[margc])
+            free(margv[margc++]);
+        restore_wins();
+        return (rc);
     }
-    restore_wins();
-    return (rc);
+    return 0;
 }
 
 int open_pick_win(Pick *pick) {

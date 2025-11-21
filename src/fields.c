@@ -70,17 +70,15 @@ int accept_field(WINDOW *win, int flin, int fcol, int fpos, char *fptr,
             return (in_key);
 
         case KEY_END:
-            str_end = fptr;
+            // str_end = fptr;
             *fptr = '\0';
             display_field(win, flin, fcol, fstart, flen, fprompt, fval);
             return (in_key);
 
         case KEY_CTLM:
         case KEY_ENTER:
-            if (f_erase_remainder) {
-                str_end = fptr;
+            if (f_erase_remainder)
                 *fptr = '\0';
-            }
             in_key = KEY_ENTER;
             display_field(win, flin, fcol, fstart, flen, fprompt, fval);
             return (in_key);
@@ -218,7 +216,7 @@ int format_field(char *fptr, int flen, char fprompt, int fval) {
     buf_ptr = buf_start = buf;
     while (*fptr != '\0') {
         if (fval & F_NOECHO)
-            c = '#';
+            fptr++;
         else {
             c = *fptr;
             if (c < ' ') {

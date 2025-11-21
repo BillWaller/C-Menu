@@ -1,4 +1,0 @@
-
-# ./pick -i picklist -T "Source Files" -M -c vi -o picklist.out
-# gdb --args pick -i picklist -T "Source Files" -M -c vi -o picklist.out
-gdb --args pick -i picklist -T "Source Files" -M -c vi -o picklist.out

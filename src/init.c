@@ -43,6 +43,8 @@ int parse_config(Init *);
 void dump_config(Init *, char *);
 void usage();
 
+void prompt_int_to_str(char *, int);
+int prompt_str_to_int(char *);
 char *tilde_expand(char *);
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
@@ -65,7 +67,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     init->help_spec[0] = '\0';      // H: help spec
     init->f_at_end_clear = true;    // z  clear screen on exit
     init->f_erase_remainder = true; // e  erase remainder on enter
-    strncpy(init->prompt, "S", MAXLEN - 1);
+    init->prompt_type = PT_LONG;    // P: prompt type
     strncpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
     strncpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
     strncpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
@@ -115,7 +117,8 @@ void parse_opt_args(Init *init, int argc, char **argv) {
     int opt;
     int longindex = 0;
     int flag = 0;
-    char *optstring = "a:c:d:g:hi:m:n:o:rst:vwxzA:B:C:DF:H:L:MO:P:S:T:U:VX:Y:Z";
+    char *optstring =
+        "a:c:d:g:hi:m:n:o:p:rst:vwxzA:B:C:DF:H:L:MO:P:S:T:U:VX:Y:Z";
     struct option long_options[] = {{"answer_spec", 1, &flag, ANSWER_SPEC},
                                     {"mapp_data", 1, &flag, MAPP_DATA},
                                     {"mapp_spec", 1, &flag, MAPP_SPEC},
@@ -241,7 +244,11 @@ void parse_opt_args(Init *init, int argc, char **argv) {
             init->bo_color = get_color_number(optarg);
             break;
         case 'P':
-            strncpy(init->prompt, optarg, MAXLEN - 1);
+            strncpy(tmp_str, optarg, MAXLEN - 1);
+            init->prompt_type = prompt_str_to_int(tmp_str);
+            break;
+        case 'p':
+            strncpy(init->prompt_str, optarg, MAXLEN - 1);
             break;
         case 'S':
             strncpy(init->start_cmd, optarg, MAXLEN - 1);
@@ -331,56 +338,231 @@ int parse_config(Init *init) {
             char *value = strtok(NULL, "=");
             if (value == NULL)
                 continue;
-            if (!strcmp(key, "minitrc"))
+            if (!strcmp(key, "minitrc")) {
                 strncpy(init->minitrc, value, MAXLEN - 1);
-            if (!strcmp(key, "fg_color"))
-                init->fg_color = get_color_number(value);
-            if (!strcmp(key, "bg_color"))
-                init->bg_color = get_color_number(value);
-            if (!strcmp(key, "bo_color"))
-                init->bo_color = get_color_number(value);
-            if (!strcmp(key, "lines"))
+                continue;
+            }
+            if (!strcmp(key, "lines")) {
                 init->lines = atoi(value);
-            if (!strcmp(key, "cols"))
+                continue;
+            }
+            if (!strcmp(key, "cols")) {
                 init->cols = atoi(value);
-            if (!strcmp(key, "begy"))
+                continue;
+            }
+            if (!strcmp(key, "begy")) {
                 init->begy = atoi(value);
-            if (!strcmp(key, "begx"))
+                continue;
+            }
+            if (!strcmp(key, "begx")) {
                 init->begx = atoi(value);
-            if (!strcmp(key, "f_erase_remainder"))
-                init->f_erase_remainder = str_to_bool(value);
-            if (!strcmp(key, "f_at_end_remove"))
-                init->f_at_end_remove = str_to_bool(value);
-            if (!strcmp(key, "f_squeeze"))
-                init->f_squeeze = str_to_bool(value);
-            if (!strcmp(key, "f_ignore_case"))
-                init->f_ignore_case = str_to_bool(value);
-            if (!strcmp(key, "f_at_end_clear"))
+                continue;
+            }
+            if (!strcmp(key, "fg_color")) {
+                init->fg_color = get_color_number(value);
+                continue;
+            }
+            if (!strcmp(key, "bg_color")) {
+                init->bg_color = get_color_number(value);
+                continue;
+            }
+            if (!strcmp(key, "bo_color")) {
+                init->bo_color = get_color_number(value);
+                continue;
+            }
+            if (!strcmp(key, "f_at_end_clear")) {
                 init->f_at_end_clear = str_to_bool(value);
-            if (!strcmp(key, "f_stop_on_error"))
+                continue;
+            }
+            if (!strcmp(key, "f_at_end_remove")) {
+                init->f_at_end_remove = str_to_bool(value);
+                continue;
+            }
+            if (!strcmp(key, "f_erase_remainder")) {
+                init->f_erase_remainder = str_to_bool(value);
+                continue;
+            }
+            if (!strcmp(key, "f_ignore_case")) {
+                init->f_ignore_case = str_to_bool(value);
+                continue;
+            }
+            if (!strcmp(key, "f_squeeze")) {
+                init->f_squeeze = str_to_bool(value);
+                continue;
+            }
+            if (!strcmp(key, "f_stop_on_error")) {
                 init->f_stop_on_error = str_to_bool(value);
-            if (!strcmp(key, "selections"))
+                continue;
+            }
+            if (!strcmp(key, "selections")) {
                 init->selections = atoi(value);
-            if (!strcmp(key, "tab_stop"))
+                continue;
+            }
+            if (!strcmp(key, "tab_stop")) {
                 init->tab_stop = atoi(value);
-            if (!strcmp(key, "prompt"))
-                strncpy(init->prompt, value, MAXLEN - 1);
-            if (!strcmp(key, "start_cmd"))
+                continue;
+            }
+            if (!strcmp(key, "prompt_type")) {
+                strncpy(tmp_str, value, MAXLEN - 1);
+                init->prompt_type = prompt_str_to_int(tmp_str);
+                continue;
+            }
+            if (!strcmp(key, "prompt_str")) {
+                strncpy(init->prompt_str, value, MAXLEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "title")) {
+                strncpy(init->title, value, MAXLEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "start_cmd")) {
                 strncpy(init->start_cmd, value, MAXLEN - 1);
-            if (!strcmp(key, "mapp_home"))
-                strncpy(init->mapp_home, value, MAXLEN - 1);
-            if (!strcmp(key, "mapp_data"))
+                continue;
+            }
+
+            if (!strcmp(key, "bg")) {
+                strncpy(init->bg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "black")) {
+                strncpy(init->black, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "red")) {
+                strncpy(init->red, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "green")) {
+                strncpy(init->green, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "yellow")) {
+                strncpy(init->yellow, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "blue")) {
+                strncpy(init->blue, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "magenta")) {
+                strncpy(init->magenta, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "cyan")) {
+                strncpy(init->cyan, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "white")) {
+                strncpy(init->white, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "orange")) {
+                strncpy(init->orange, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "bblack")) {
+                strncpy(init->bblack, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "bred")) {
+                strncpy(init->bred, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "bgreen")) {
+                strncpy(init->bgreen, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "byellow")) {
+                strncpy(init->byellow, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "bblue")) {
+                strncpy(init->bblue, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "bmagenta")) {
+                strncpy(init->bmagenta, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "bcyan")) {
+                strncpy(init->bcyan, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "bwhite")) {
+                strncpy(init->bwhite, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "borange")) {
+                strncpy(init->borange, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "bg")) {
+                strncpy(init->bg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "cmd_spec")) {
+                strncpy(init->cmd_spec, value, MAXLEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "mapp_spec")) {
+                strncpy(init->mapp_spec, value, MAXLEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "mapp_data")) {
                 strncpy(init->mapp_data, value, MAXLEN - 1);
-            if (!strcmp(key, "mapp_help"))
+                continue;
+            }
+            if (!strcmp(key, "mapp_help")) {
                 strncpy(init->mapp_help, value, MAXLEN - 1);
-            if (!strcmp(key, "mapp_msrc"))
+                continue;
+            }
+            if (!strcmp(key, "mapp_home")) {
+                strncpy(init->mapp_home, value, MAXLEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "mapp_msrc")) {
                 strncpy(init->mapp_msrc, value, MAXLEN - 1);
-            if (!strcmp(key, "mapp_user"))
+                continue;
+            }
+            if (!strcmp(key, "mapp_user")) {
                 strncpy(init->mapp_user, value, MAXLEN - 1);
+                continue;
+            }
         }
     }
     (void)fclose(config_fp);
     return 0;
+}
+
+int prompt_str_to_int(char *s) {
+    int prompt_type;
+    str_to_lower(s);
+    if (strcmp(s, "short") == 0)
+        prompt_type = PT_SHORT;
+    else if (strcmp(s, "long") == 0)
+        prompt_type = PT_LONG;
+    else if (strcmp(s, "string") == 0)
+        prompt_type = PT_STRING;
+    else
+        prompt_type = PT_NONE;
+    return prompt_type;
+}
+
+void prompt_int_to_str(char *s, int prompt_type) {
+    switch (prompt_type) {
+    case PT_SHORT:
+        strcpy(s, "short");
+        break;
+    case PT_LONG:
+        strcpy(s, "long");
+        break;
+    case PT_STRING:
+        strcpy(s, "string");
+        break;
+    default:
+        strcpy(s, "none");
+        break;
+    }
 }
 
 /* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -395,58 +577,75 @@ int write_config(Init *init) {
         strcpy(minitrc_dmp, e);
         strcat(minitrc_dmp, "/");
         strcat(minitrc_dmp, "menuapp/minitrc.dmp");
+    } else {
+        strcpy(minitrc_dmp, "./minitrc.dmp");
     }
-
     FILE *minitrc_fp = fopen(minitrc_dmp, "w");
     if (minitrc_fp == (FILE *)0) {
         fprintf(stderr, "failed to open file: %s\n", minitrc_dmp);
         return (-1);
     }
     (void)fprintf(minitrc_fp, "# %s\n", "~/.minitrc");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_spec", init->cmd_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
-                  init->f_erase_remainder ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_home", init->mapp_home);
-    (void)fprintf(minitrc_fp, "%s=%d\n", "selections", init->selections);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "out_spec", init->out_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
-                  init->f_at_end_remove ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_squeeze",
-                  init->f_squeeze ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%d\n", "tab_stop", init->tab_stop);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_user", init->mapp_user);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_ignore_case",
-                  init->f_ignore_case ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
-                  init->f_at_end_clear ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "answer_spec", init->answer_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bg_color",
-                  colors_text[init->bg_color]);
     (void)fprintf(minitrc_fp, "%s=%d\n", "cols", init->cols);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "fg_color",
-                  colors_text[init->fg_color]);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
     (void)fprintf(minitrc_fp, "%s=%d\n", "lines", init->lines);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bo_color",
-                  colors_text[init->bo_color]);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt", init->prompt);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "start_cmd", init->start_cmd);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begx", init->begx);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bg_color",
+                  colors_text[init->bg_color]);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "fg_color",
+                  colors_text[init->fg_color]);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bo_color",
+                  colors_text[init->bo_color]);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
+                  init->f_at_end_clear ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
+                  init->f_at_end_remove ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
+                  init->f_erase_remainder ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_ignore_case",
+                  init->f_ignore_case ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_squeeze",
+                  init->f_squeeze ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_stop_on_error",
                   init->f_stop_on_error ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%d\n", "tab_stop", init->tab_stop);
+    prompt_int_to_str(tmp_str, init->prompt_type);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_type", tmp_str);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "start_cmd", init->start_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "selections", init->selections);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "black", init->black);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "red", init->red);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "green", init->green);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "yellow", init->yellow);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "blue", init->blue);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "magenta", init->magenta);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cyan", init->cyan);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "white", init->white);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "orange", init->orange);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bblack", init->bblack);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bred", init->bred);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bgreen", init->bgreen);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "byellow", init->byellow);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bblue", init->bblue);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bmagenta", init->bmagenta);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bcyan", init->bcyan);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bwhite", init->bwhite);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "borange", init->borange);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bg", init->bg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "abg", init->abg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "answer_spec", init->answer_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_data", init->mapp_data);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_spec", init->cmd_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_help", init->mapp_help);
     (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "out_spec", init->out_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_data", init->mapp_data);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_help", init->mapp_help);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_home", init->mapp_home);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_msrc", init->mapp_msrc);
-
+    (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_user", init->mapp_user);
     (void)fclose(minitrc_fp);
     strcpy(tmp_str, "Configuration written to file: ");
     strcat(tmp_str, minitrc_dmp);
@@ -511,39 +710,56 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
    ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
 void dump_config(Init *init, char *msg) {
     opt_prt_char("-a:", "--minitrc", init->minitrc);
-    opt_prt_char("-c:", "--cmd_spec", init->cmd_spec);
-    opt_prt_char("-d:", "--mapp_spec", init->mapp_spec);
-    opt_prt_bool("-e:", "--f_erase_remainder", init->f_erase_remainder);
-    opt_prt_char("-i:", "--in_spec", init->in_spec);
-    opt_prt_char("-m:", "--mapp_home", init->mapp_home);
-    opt_prt_int("-n:", "--selections", init->selections);
-    opt_prt_char("-o:", "--out_spec", init->out_spec);
-    opt_prt_bool("-r:", "--f_at_end_remove", init->f_at_end_remove);
-    opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
-    opt_prt_int("-t:", "--tab_stop", init->tab_stop);
-    opt_prt_char("-u:", "--mapp_user", init->mapp_user);
-    opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
-    opt_prt_bool("-z ", "--f_at_end_clear", init->f_at_end_clear);
-    opt_prt_char("-A:", "--answer_spec", init->answer_spec);
-    opt_prt_int("-B:", "--bg_color", init->bg_color);
     opt_prt_int("-C:", "--cols", init->cols);
-    opt_prt_int("-F:", "--fg_color", init->fg_color);
-    opt_prt_char("-H:", "--help_spec", init->help_spec);
     opt_prt_int("-L:", "--lines", init->lines);
-    opt_prt_int("-O:", "--bo_color", init->bo_color);
-    opt_prt_char("-P:", "--prompt", init->prompt);
-    opt_prt_char("-S ", "--start_cmd", init->start_cmd);
-    opt_prt_char("-T:", "--title", init->title);
     opt_prt_int("-X:", "--begx", init->begx);
     opt_prt_int("-Y:", "--begy", init->begy);
+    opt_prt_int("-B:", "--bg_color", init->bg_color);
+    opt_prt_int("-F:", "--fg_color", init->fg_color);
+    opt_prt_int("-O:", "--bo_color", init->bo_color);
+    opt_prt_bool("-z ", "--f_at_end_clear", init->f_at_end_clear);
+    opt_prt_bool("-r:", "--f_at_end_remove", init->f_at_end_remove);
+    opt_prt_bool("-e:", "--f_erase_remainder", init->f_erase_remainder);
+    opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
+    opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
     opt_prt_bool("-Z ", "--f_stop_on_error", init->f_stop_on_error);
-    opt_prt_char("   ", "--answer_spec", init->answer_spec);
+    opt_prt_int("-t:", "--tab_stop", init->tab_stop);
+    prompt_int_to_str(tmp_str, init->prompt_type);
+    opt_prt_char("-P:", "--promp_type", tmp_str);
+    opt_prt_char("-P:", "--promp_str", init->prompt_str);
+    opt_prt_int("-n:", "--selections", init->selections);
+    opt_prt_char("-S ", "--start_cmd", init->start_cmd);
+    opt_prt_char("-T:", "--title", init->title);
+    opt_prt_char("   ", "--black", init->black);
+    opt_prt_char("   ", "--red", init->red);
+    opt_prt_char("   ", "--green", init->green);
+    opt_prt_char("   ", "--yellow", init->yellow);
+    opt_prt_char("   ", "--blue", init->blue);
+    opt_prt_char("   ", "--magenta", init->magenta);
+    opt_prt_char("   ", "--cyan", init->cyan);
+    opt_prt_char("   ", "--white", init->white);
+    opt_prt_char("   ", "--orange", init->orange);
+    opt_prt_char("   ", "--bblack", init->bblack);
+    opt_prt_char("   ", "--bred", init->bred);
+    opt_prt_char("   ", "--bgreen", init->bgreen);
+    opt_prt_char("   ", "--byellow", init->byellow);
+    opt_prt_char("   ", "--bblue", init->bblue);
+    opt_prt_char("   ", "--bmagenta", init->bmagenta);
+    opt_prt_char("   ", "--bcyan", init->bcyan);
+    opt_prt_char("   ", "--bwhite", init->bwhite);
+    opt_prt_char("   ", "--borange", init->borange);
+    opt_prt_char("   ", "--bg", init->bg);
+    opt_prt_char("   ", "--abg", init->abg);
+    opt_prt_char("-A:", "--answer_spec", init->answer_spec);
+    opt_prt_char("-c:", "--cmd_spec", init->cmd_spec);
+    opt_prt_char("-H:", "--help_spec", init->help_spec);
+    opt_prt_char("-i:", "--in_spec", init->in_spec);
+    opt_prt_char("-d:", "--mapp_spec", init->mapp_spec);
+    opt_prt_char("-o:", "--out_spec", init->out_spec);
     opt_prt_char("   ", "--mapp_data", init->mapp_data);
-    opt_prt_char("   ", "--mapp_spec", init->mapp_spec);
     opt_prt_char("   ", "--mapp_help", init->mapp_help);
-    opt_prt_char("   ", "--help_spec", init->help_spec);
-    opt_prt_char("   ", "--in_spec", init->in_spec);
-    opt_prt_char("   ", "--out_spec", init->out_spec);
+    opt_prt_char("-m:", "--mapp_home", init->mapp_home);
     opt_prt_char("   ", "--mapp_msrc", init->mapp_msrc);
+    opt_prt_char("-u:", "--mapp_user", init->mapp_user);
     (void)fprintf(stderr, "\n%s\n\n", msg);
 }

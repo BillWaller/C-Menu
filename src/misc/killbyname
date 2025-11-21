@@ -1,6 +1,0 @@
-#!/bin/bash
-
-for process in $(ps -C "$1" -o pid); do
-	kill -9 "$process"
-	echo "Killed process $process"
-done

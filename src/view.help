@@ -1,0 +1,19 @@
+╭──────────────────────────────────────────────────────────╮
+│ The FORM description file consists of text lines which   │
+│ begin with single character directive. The character     │
+│ following the directive is used to delimit positional    │
+│ attributes.                                              │
+├───┬──────────────────────────────────────────────────────┤
+│ L │ L:lines                                              │
+│ C │ C:columns                                            │
+│ H │ H:Text                  (top line of window border)  │
+│ T │ T:line:column:Text                                   │
+│ F │ F:line:column:length:validation                      │
+│   │   validation 1-none, 2-numeric, 3-currency           │
+│ # │ Comment - ignored by form                            │
+│   │ Blank lines and spaces are treated as comments       │
+│ < │ Input Fields File                                    │
+│ > │ Output Fields File                                   │
+│ ! │ Command to execute with fields as args               │
+│ ? │ Help File                                            │
+╰───┴──────────────────────────────────────────────────────╯

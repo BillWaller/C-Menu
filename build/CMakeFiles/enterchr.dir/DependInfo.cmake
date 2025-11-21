@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/usr/local/src/C-Menu-0.2.3/src/enterchr.c" "CMakeFiles/enterchr.dir/enterchr.c.o" "gcc" "CMakeFiles/enterchr.dir/enterchr.c.o.d"
+  "/usr/local/src/C-Menu-0.2.4/src/enterchr.c" "CMakeFiles/enterchr.dir/enterchr.c.o" "gcc" "CMakeFiles/enterchr.dir/enterchr.c.o.d"
   "" "enterchr" "gcc" "CMakeFiles/enterchr.dir/link.d"
   )
 

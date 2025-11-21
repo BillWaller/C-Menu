@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /usr/local/src/C-Menu-0.2.3/src
+CMAKE_SOURCE_DIR = /usr/local/src/C-Menu-0.2.4/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /usr/local/src/C-Menu-0.2.3/build
+CMAKE_BINARY_DIR = /usr/local/src/C-Menu-0.2.4/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/cmenu.dir/depend.make
@@ -73,242 +73,242 @@ CMakeFiles/cmenu.dir/codegen:
 .PHONY : CMakeFiles/cmenu.dir/codegen
 
 CMakeFiles/cmenu.dir/curskeys.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/curskeys.c.o: /usr/local/src/C-Menu-0.2.3/src/curskeys.c
+CMakeFiles/cmenu.dir/curskeys.c.o: /usr/local/src/C-Menu-0.2.4/src/curskeys.c
 CMakeFiles/cmenu.dir/curskeys.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/cmenu.dir/curskeys.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/curskeys.c.o -MF CMakeFiles/cmenu.dir/curskeys.c.o.d -o CMakeFiles/cmenu.dir/curskeys.c.o -c /usr/local/src/C-Menu-0.2.3/src/curskeys.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/cmenu.dir/curskeys.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/curskeys.c.o -MF CMakeFiles/cmenu.dir/curskeys.c.o.d -o CMakeFiles/cmenu.dir/curskeys.c.o -c /usr/local/src/C-Menu-0.2.4/src/curskeys.c
 
 CMakeFiles/cmenu.dir/curskeys.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/curskeys.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/curskeys.c > CMakeFiles/cmenu.dir/curskeys.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/curskeys.c > CMakeFiles/cmenu.dir/curskeys.c.i
 
 CMakeFiles/cmenu.dir/curskeys.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/curskeys.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/curskeys.c -o CMakeFiles/cmenu.dir/curskeys.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/curskeys.c -o CMakeFiles/cmenu.dir/curskeys.c.s
 
 CMakeFiles/cmenu.dir/dwin.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/dwin.c.o: /usr/local/src/C-Menu-0.2.3/src/dwin.c
+CMakeFiles/cmenu.dir/dwin.c.o: /usr/local/src/C-Menu-0.2.4/src/dwin.c
 CMakeFiles/cmenu.dir/dwin.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/cmenu.dir/dwin.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/dwin.c.o -MF CMakeFiles/cmenu.dir/dwin.c.o.d -o CMakeFiles/cmenu.dir/dwin.c.o -c /usr/local/src/C-Menu-0.2.3/src/dwin.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/cmenu.dir/dwin.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/dwin.c.o -MF CMakeFiles/cmenu.dir/dwin.c.o.d -o CMakeFiles/cmenu.dir/dwin.c.o -c /usr/local/src/C-Menu-0.2.4/src/dwin.c
 
 CMakeFiles/cmenu.dir/dwin.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/dwin.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/dwin.c > CMakeFiles/cmenu.dir/dwin.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/dwin.c > CMakeFiles/cmenu.dir/dwin.c.i
 
 CMakeFiles/cmenu.dir/dwin.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/dwin.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/dwin.c -o CMakeFiles/cmenu.dir/dwin.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/dwin.c -o CMakeFiles/cmenu.dir/dwin.c.s
 
 CMakeFiles/cmenu.dir/exec.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/exec.c.o: /usr/local/src/C-Menu-0.2.3/src/exec.c
+CMakeFiles/cmenu.dir/exec.c.o: /usr/local/src/C-Menu-0.2.4/src/exec.c
 CMakeFiles/cmenu.dir/exec.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/cmenu.dir/exec.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/exec.c.o -MF CMakeFiles/cmenu.dir/exec.c.o.d -o CMakeFiles/cmenu.dir/exec.c.o -c /usr/local/src/C-Menu-0.2.3/src/exec.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/cmenu.dir/exec.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/exec.c.o -MF CMakeFiles/cmenu.dir/exec.c.o.d -o CMakeFiles/cmenu.dir/exec.c.o -c /usr/local/src/C-Menu-0.2.4/src/exec.c
 
 CMakeFiles/cmenu.dir/exec.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/exec.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/exec.c > CMakeFiles/cmenu.dir/exec.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/exec.c > CMakeFiles/cmenu.dir/exec.c.i
 
 CMakeFiles/cmenu.dir/exec.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/exec.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/exec.c -o CMakeFiles/cmenu.dir/exec.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/exec.c -o CMakeFiles/cmenu.dir/exec.c.s
 
 CMakeFiles/cmenu.dir/fform.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/fform.c.o: /usr/local/src/C-Menu-0.2.3/src/fform.c
+CMakeFiles/cmenu.dir/fform.c.o: /usr/local/src/C-Menu-0.2.4/src/fform.c
 CMakeFiles/cmenu.dir/fform.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/cmenu.dir/fform.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/fform.c.o -MF CMakeFiles/cmenu.dir/fform.c.o.d -o CMakeFiles/cmenu.dir/fform.c.o -c /usr/local/src/C-Menu-0.2.3/src/fform.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/cmenu.dir/fform.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/fform.c.o -MF CMakeFiles/cmenu.dir/fform.c.o.d -o CMakeFiles/cmenu.dir/fform.c.o -c /usr/local/src/C-Menu-0.2.4/src/fform.c
 
 CMakeFiles/cmenu.dir/fform.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/fform.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/fform.c > CMakeFiles/cmenu.dir/fform.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/fform.c > CMakeFiles/cmenu.dir/fform.c.i
 
 CMakeFiles/cmenu.dir/fform.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/fform.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/fform.c -o CMakeFiles/cmenu.dir/fform.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/fform.c -o CMakeFiles/cmenu.dir/fform.c.s
 
 CMakeFiles/cmenu.dir/fields.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/fields.c.o: /usr/local/src/C-Menu-0.2.3/src/fields.c
+CMakeFiles/cmenu.dir/fields.c.o: /usr/local/src/C-Menu-0.2.4/src/fields.c
 CMakeFiles/cmenu.dir/fields.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/cmenu.dir/fields.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/fields.c.o -MF CMakeFiles/cmenu.dir/fields.c.o.d -o CMakeFiles/cmenu.dir/fields.c.o -c /usr/local/src/C-Menu-0.2.3/src/fields.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/cmenu.dir/fields.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/fields.c.o -MF CMakeFiles/cmenu.dir/fields.c.o.d -o CMakeFiles/cmenu.dir/fields.c.o -c /usr/local/src/C-Menu-0.2.4/src/fields.c
 
 CMakeFiles/cmenu.dir/fields.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/fields.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/fields.c > CMakeFiles/cmenu.dir/fields.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/fields.c > CMakeFiles/cmenu.dir/fields.c.i
 
 CMakeFiles/cmenu.dir/fields.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/fields.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/fields.c -o CMakeFiles/cmenu.dir/fields.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/fields.c -o CMakeFiles/cmenu.dir/fields.c.s
 
 CMakeFiles/cmenu.dir/futil.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/futil.c.o: /usr/local/src/C-Menu-0.2.3/src/futil.c
+CMakeFiles/cmenu.dir/futil.c.o: /usr/local/src/C-Menu-0.2.4/src/futil.c
 CMakeFiles/cmenu.dir/futil.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/cmenu.dir/futil.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/futil.c.o -MF CMakeFiles/cmenu.dir/futil.c.o.d -o CMakeFiles/cmenu.dir/futil.c.o -c /usr/local/src/C-Menu-0.2.3/src/futil.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/cmenu.dir/futil.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/futil.c.o -MF CMakeFiles/cmenu.dir/futil.c.o.d -o CMakeFiles/cmenu.dir/futil.c.o -c /usr/local/src/C-Menu-0.2.4/src/futil.c
 
 CMakeFiles/cmenu.dir/futil.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/futil.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/futil.c > CMakeFiles/cmenu.dir/futil.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/futil.c > CMakeFiles/cmenu.dir/futil.c.i
 
 CMakeFiles/cmenu.dir/futil.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/futil.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/futil.c -o CMakeFiles/cmenu.dir/futil.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/futil.c -o CMakeFiles/cmenu.dir/futil.c.s
 
 CMakeFiles/cmenu.dir/init.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/init.c.o: /usr/local/src/C-Menu-0.2.3/src/init.c
+CMakeFiles/cmenu.dir/init.c.o: /usr/local/src/C-Menu-0.2.4/src/init.c
 CMakeFiles/cmenu.dir/init.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/cmenu.dir/init.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/init.c.o -MF CMakeFiles/cmenu.dir/init.c.o.d -o CMakeFiles/cmenu.dir/init.c.o -c /usr/local/src/C-Menu-0.2.3/src/init.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/cmenu.dir/init.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/init.c.o -MF CMakeFiles/cmenu.dir/init.c.o.d -o CMakeFiles/cmenu.dir/init.c.o -c /usr/local/src/C-Menu-0.2.4/src/init.c
 
 CMakeFiles/cmenu.dir/init.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/init.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/init.c > CMakeFiles/cmenu.dir/init.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/init.c > CMakeFiles/cmenu.dir/init.c.i
 
 CMakeFiles/cmenu.dir/init.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/init.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/init.c -o CMakeFiles/cmenu.dir/init.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/init.c -o CMakeFiles/cmenu.dir/init.c.s
 
 CMakeFiles/cmenu.dir/init_view.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/init_view.c.o: /usr/local/src/C-Menu-0.2.3/src/init_view.c
+CMakeFiles/cmenu.dir/init_view.c.o: /usr/local/src/C-Menu-0.2.4/src/init_view.c
 CMakeFiles/cmenu.dir/init_view.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/cmenu.dir/init_view.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/init_view.c.o -MF CMakeFiles/cmenu.dir/init_view.c.o.d -o CMakeFiles/cmenu.dir/init_view.c.o -c /usr/local/src/C-Menu-0.2.3/src/init_view.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/cmenu.dir/init_view.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/init_view.c.o -MF CMakeFiles/cmenu.dir/init_view.c.o.d -o CMakeFiles/cmenu.dir/init_view.c.o -c /usr/local/src/C-Menu-0.2.4/src/init_view.c
 
 CMakeFiles/cmenu.dir/init_view.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/init_view.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/init_view.c > CMakeFiles/cmenu.dir/init_view.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/init_view.c > CMakeFiles/cmenu.dir/init_view.c.i
 
 CMakeFiles/cmenu.dir/init_view.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/init_view.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/init_view.c -o CMakeFiles/cmenu.dir/init_view.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/init_view.c -o CMakeFiles/cmenu.dir/init_view.c.s
 
 CMakeFiles/cmenu.dir/mem.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/mem.c.o: /usr/local/src/C-Menu-0.2.3/src/mem.c
+CMakeFiles/cmenu.dir/mem.c.o: /usr/local/src/C-Menu-0.2.4/src/mem.c
 CMakeFiles/cmenu.dir/mem.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/cmenu.dir/mem.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/mem.c.o -MF CMakeFiles/cmenu.dir/mem.c.o.d -o CMakeFiles/cmenu.dir/mem.c.o -c /usr/local/src/C-Menu-0.2.3/src/mem.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/cmenu.dir/mem.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/mem.c.o -MF CMakeFiles/cmenu.dir/mem.c.o.d -o CMakeFiles/cmenu.dir/mem.c.o -c /usr/local/src/C-Menu-0.2.4/src/mem.c
 
 CMakeFiles/cmenu.dir/mem.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/mem.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/mem.c > CMakeFiles/cmenu.dir/mem.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/mem.c > CMakeFiles/cmenu.dir/mem.c.i
 
 CMakeFiles/cmenu.dir/mem.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/mem.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/mem.c -o CMakeFiles/cmenu.dir/mem.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/mem.c -o CMakeFiles/cmenu.dir/mem.c.s
 
 CMakeFiles/cmenu.dir/menu_engine.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/menu_engine.c.o: /usr/local/src/C-Menu-0.2.3/src/menu_engine.c
+CMakeFiles/cmenu.dir/menu_engine.c.o: /usr/local/src/C-Menu-0.2.4/src/menu_engine.c
 CMakeFiles/cmenu.dir/menu_engine.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/cmenu.dir/menu_engine.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/menu_engine.c.o -MF CMakeFiles/cmenu.dir/menu_engine.c.o.d -o CMakeFiles/cmenu.dir/menu_engine.c.o -c /usr/local/src/C-Menu-0.2.3/src/menu_engine.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/cmenu.dir/menu_engine.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/menu_engine.c.o -MF CMakeFiles/cmenu.dir/menu_engine.c.o.d -o CMakeFiles/cmenu.dir/menu_engine.c.o -c /usr/local/src/C-Menu-0.2.4/src/menu_engine.c
 
 CMakeFiles/cmenu.dir/menu_engine.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/menu_engine.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/menu_engine.c > CMakeFiles/cmenu.dir/menu_engine.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/menu_engine.c > CMakeFiles/cmenu.dir/menu_engine.c.i
 
 CMakeFiles/cmenu.dir/menu_engine.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/menu_engine.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/menu_engine.c -o CMakeFiles/cmenu.dir/menu_engine.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/menu_engine.c -o CMakeFiles/cmenu.dir/menu_engine.c.s
 
 CMakeFiles/cmenu.dir/mview.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/mview.c.o: /usr/local/src/C-Menu-0.2.3/src/mview.c
+CMakeFiles/cmenu.dir/mview.c.o: /usr/local/src/C-Menu-0.2.4/src/mview.c
 CMakeFiles/cmenu.dir/mview.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/cmenu.dir/mview.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/mview.c.o -MF CMakeFiles/cmenu.dir/mview.c.o.d -o CMakeFiles/cmenu.dir/mview.c.o -c /usr/local/src/C-Menu-0.2.3/src/mview.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/cmenu.dir/mview.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/mview.c.o -MF CMakeFiles/cmenu.dir/mview.c.o.d -o CMakeFiles/cmenu.dir/mview.c.o -c /usr/local/src/C-Menu-0.2.4/src/mview.c
 
 CMakeFiles/cmenu.dir/mview.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/mview.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/mview.c > CMakeFiles/cmenu.dir/mview.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/mview.c > CMakeFiles/cmenu.dir/mview.c.i
 
 CMakeFiles/cmenu.dir/mview.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/mview.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/mview.c -o CMakeFiles/cmenu.dir/mview.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/mview.c -o CMakeFiles/cmenu.dir/mview.c.s
 
 CMakeFiles/cmenu.dir/opts.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/opts.c.o: /usr/local/src/C-Menu-0.2.3/src/opts.c
+CMakeFiles/cmenu.dir/opts.c.o: /usr/local/src/C-Menu-0.2.4/src/opts.c
 CMakeFiles/cmenu.dir/opts.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/cmenu.dir/opts.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/opts.c.o -MF CMakeFiles/cmenu.dir/opts.c.o.d -o CMakeFiles/cmenu.dir/opts.c.o -c /usr/local/src/C-Menu-0.2.3/src/opts.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/cmenu.dir/opts.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/opts.c.o -MF CMakeFiles/cmenu.dir/opts.c.o.d -o CMakeFiles/cmenu.dir/opts.c.o -c /usr/local/src/C-Menu-0.2.4/src/opts.c
 
 CMakeFiles/cmenu.dir/opts.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/opts.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/opts.c > CMakeFiles/cmenu.dir/opts.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/opts.c > CMakeFiles/cmenu.dir/opts.c.i
 
 CMakeFiles/cmenu.dir/opts.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/opts.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/opts.c -o CMakeFiles/cmenu.dir/opts.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/opts.c -o CMakeFiles/cmenu.dir/opts.c.s
 
 CMakeFiles/cmenu.dir/parse_menu_desc.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/parse_menu_desc.c.o: /usr/local/src/C-Menu-0.2.3/src/parse_menu_desc.c
+CMakeFiles/cmenu.dir/parse_menu_desc.c.o: /usr/local/src/C-Menu-0.2.4/src/parse_menu_desc.c
 CMakeFiles/cmenu.dir/parse_menu_desc.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/cmenu.dir/parse_menu_desc.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/parse_menu_desc.c.o -MF CMakeFiles/cmenu.dir/parse_menu_desc.c.o.d -o CMakeFiles/cmenu.dir/parse_menu_desc.c.o -c /usr/local/src/C-Menu-0.2.3/src/parse_menu_desc.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/cmenu.dir/parse_menu_desc.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/parse_menu_desc.c.o -MF CMakeFiles/cmenu.dir/parse_menu_desc.c.o.d -o CMakeFiles/cmenu.dir/parse_menu_desc.c.o -c /usr/local/src/C-Menu-0.2.4/src/parse_menu_desc.c
 
 CMakeFiles/cmenu.dir/parse_menu_desc.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/parse_menu_desc.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/parse_menu_desc.c > CMakeFiles/cmenu.dir/parse_menu_desc.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/parse_menu_desc.c > CMakeFiles/cmenu.dir/parse_menu_desc.c.i
 
 CMakeFiles/cmenu.dir/parse_menu_desc.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/parse_menu_desc.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/parse_menu_desc.c -o CMakeFiles/cmenu.dir/parse_menu_desc.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/parse_menu_desc.c -o CMakeFiles/cmenu.dir/parse_menu_desc.c.s
 
 CMakeFiles/cmenu.dir/pick_engine.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/pick_engine.c.o: /usr/local/src/C-Menu-0.2.3/src/pick_engine.c
+CMakeFiles/cmenu.dir/pick_engine.c.o: /usr/local/src/C-Menu-0.2.4/src/pick_engine.c
 CMakeFiles/cmenu.dir/pick_engine.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/cmenu.dir/pick_engine.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/pick_engine.c.o -MF CMakeFiles/cmenu.dir/pick_engine.c.o.d -o CMakeFiles/cmenu.dir/pick_engine.c.o -c /usr/local/src/C-Menu-0.2.3/src/pick_engine.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/cmenu.dir/pick_engine.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/pick_engine.c.o -MF CMakeFiles/cmenu.dir/pick_engine.c.o.d -o CMakeFiles/cmenu.dir/pick_engine.c.o -c /usr/local/src/C-Menu-0.2.4/src/pick_engine.c
 
 CMakeFiles/cmenu.dir/pick_engine.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/pick_engine.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/pick_engine.c > CMakeFiles/cmenu.dir/pick_engine.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/pick_engine.c > CMakeFiles/cmenu.dir/pick_engine.c.i
 
 CMakeFiles/cmenu.dir/pick_engine.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/pick_engine.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/pick_engine.c -o CMakeFiles/cmenu.dir/pick_engine.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/pick_engine.c -o CMakeFiles/cmenu.dir/pick_engine.c.s
 
 CMakeFiles/cmenu.dir/scriou.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/scriou.c.o: /usr/local/src/C-Menu-0.2.3/src/scriou.c
+CMakeFiles/cmenu.dir/scriou.c.o: /usr/local/src/C-Menu-0.2.4/src/scriou.c
 CMakeFiles/cmenu.dir/scriou.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/cmenu.dir/scriou.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/scriou.c.o -MF CMakeFiles/cmenu.dir/scriou.c.o.d -o CMakeFiles/cmenu.dir/scriou.c.o -c /usr/local/src/C-Menu-0.2.3/src/scriou.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/cmenu.dir/scriou.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/scriou.c.o -MF CMakeFiles/cmenu.dir/scriou.c.o.d -o CMakeFiles/cmenu.dir/scriou.c.o -c /usr/local/src/C-Menu-0.2.4/src/scriou.c
 
 CMakeFiles/cmenu.dir/scriou.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/scriou.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/scriou.c > CMakeFiles/cmenu.dir/scriou.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/scriou.c > CMakeFiles/cmenu.dir/scriou.c.i
 
 CMakeFiles/cmenu.dir/scriou.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/scriou.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/scriou.c -o CMakeFiles/cmenu.dir/scriou.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/scriou.c -o CMakeFiles/cmenu.dir/scriou.c.s
 
 CMakeFiles/cmenu.dir/sig.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/sig.c.o: /usr/local/src/C-Menu-0.2.3/src/sig.c
+CMakeFiles/cmenu.dir/sig.c.o: /usr/local/src/C-Menu-0.2.4/src/sig.c
 CMakeFiles/cmenu.dir/sig.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/cmenu.dir/sig.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/sig.c.o -MF CMakeFiles/cmenu.dir/sig.c.o.d -o CMakeFiles/cmenu.dir/sig.c.o -c /usr/local/src/C-Menu-0.2.3/src/sig.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/cmenu.dir/sig.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/sig.c.o -MF CMakeFiles/cmenu.dir/sig.c.o.d -o CMakeFiles/cmenu.dir/sig.c.o -c /usr/local/src/C-Menu-0.2.4/src/sig.c
 
 CMakeFiles/cmenu.dir/sig.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/sig.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/sig.c > CMakeFiles/cmenu.dir/sig.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/sig.c > CMakeFiles/cmenu.dir/sig.c.i
 
 CMakeFiles/cmenu.dir/sig.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/sig.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/sig.c -o CMakeFiles/cmenu.dir/sig.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/sig.c -o CMakeFiles/cmenu.dir/sig.c.s
 
 CMakeFiles/cmenu.dir/view_engine.c.o: CMakeFiles/cmenu.dir/flags.make
-CMakeFiles/cmenu.dir/view_engine.c.o: /usr/local/src/C-Menu-0.2.3/src/view_engine.c
+CMakeFiles/cmenu.dir/view_engine.c.o: /usr/local/src/C-Menu-0.2.4/src/view_engine.c
 CMakeFiles/cmenu.dir/view_engine.c.o: CMakeFiles/cmenu.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/cmenu.dir/view_engine.c.o"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/view_engine.c.o -MF CMakeFiles/cmenu.dir/view_engine.c.o.d -o CMakeFiles/cmenu.dir/view_engine.c.o -c /usr/local/src/C-Menu-0.2.3/src/view_engine.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/cmenu.dir/view_engine.c.o"
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/cmenu.dir/view_engine.c.o -MF CMakeFiles/cmenu.dir/view_engine.c.o.d -o CMakeFiles/cmenu.dir/view_engine.c.o -c /usr/local/src/C-Menu-0.2.4/src/view_engine.c
 
 CMakeFiles/cmenu.dir/view_engine.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/cmenu.dir/view_engine.c.i"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.3/src/view_engine.c > CMakeFiles/cmenu.dir/view_engine.c.i
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /usr/local/src/C-Menu-0.2.4/src/view_engine.c > CMakeFiles/cmenu.dir/view_engine.c.i
 
 CMakeFiles/cmenu.dir/view_engine.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/cmenu.dir/view_engine.c.s"
-	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.3/src/view_engine.c -o CMakeFiles/cmenu.dir/view_engine.c.s
+	/usr/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /usr/local/src/C-Menu-0.2.4/src/view_engine.c -o CMakeFiles/cmenu.dir/view_engine.c.s
 
 # Object files for target cmenu
 cmenu_OBJECTS = \
@@ -352,7 +352,7 @@ libcmenu.a: CMakeFiles/cmenu.dir/sig.c.o
 libcmenu.a: CMakeFiles/cmenu.dir/view_engine.c.o
 libcmenu.a: CMakeFiles/cmenu.dir/build.make
 libcmenu.a: CMakeFiles/cmenu.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/usr/local/src/C-Menu-0.2.3/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Linking C static library libcmenu.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/usr/local/src/C-Menu-0.2.4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Linking C static library libcmenu.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/cmenu.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/cmenu.dir/link.txt --verbose=$(VERBOSE)
 
@@ -365,6 +365,6 @@ CMakeFiles/cmenu.dir/clean:
 .PHONY : CMakeFiles/cmenu.dir/clean
 
 CMakeFiles/cmenu.dir/depend:
-	cd /usr/local/src/C-Menu-0.2.3/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /usr/local/src/C-Menu-0.2.3/src /usr/local/src/C-Menu-0.2.3/src /usr/local/src/C-Menu-0.2.3/build /usr/local/src/C-Menu-0.2.3/build /usr/local/src/C-Menu-0.2.3/build/CMakeFiles/cmenu.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /usr/local/src/C-Menu-0.2.4/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /usr/local/src/C-Menu-0.2.4/src /usr/local/src/C-Menu-0.2.4/src /usr/local/src/C-Menu-0.2.4/build /usr/local/src/C-Menu-0.2.4/build /usr/local/src/C-Menu-0.2.4/build/CMakeFiles/cmenu.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/cmenu.dir/depend
 
