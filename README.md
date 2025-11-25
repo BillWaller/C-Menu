@@ -15,17 +15,15 @@ terminal and terminal emulator environments.
 
 MENU reads a simple description file like the one above and displays a menu to the user. When the user selects an item, MENU executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
 
+### Test Curses Keys
+
 Is a particular key not working for your project? Curses Keys (or CKeys)
 provides an easy way to determine whether the problem is with your code
 or your terminfo/termcap files. Or, if you just don't remember the key
 symbol for Curses. It also gives you the Octal, Decimal, and Hex codes
 for keys not defined in Curses, so you can provide your own custom keys.
 
-### Test Curses Keys
-
 <img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
-
-
 
 ### CMENU with PICK
 
@@ -37,15 +35,33 @@ as arguments to an executable specified in the description file.
 
 ### FORM
 
-<img src="screenshots/Receipt.png" />
+FORM is a lightweight and flexible form handling library designed to simplify the process of creating, validating, and managing forms in text-based applications.
+
+It provides a straightforward API for defining form fields, handling user input, and performing validation checks.
+
+### Key Features
+
+- Easy Form Creation: Define forms with various field types such as text, number, email, and more.
+- Validation: Built-in validation rules to ensure data integrity, including required fields, format checks, and custom validators.
+- User Input Handling: Seamlessly capture and process user input from the command line or text-based interfaces.
+- Customizable: Extendable architecture allowing developers to create custom field types and validation rules.
+- Integration: Designed to work well with other components of the C-Menu Project, enabling a cohesive development experience.
+
+### Numeric Formats Supported
+
+<img src="screenshots/form.png" alt="Curses Keys" title="Sample Menu" />
 
 FORM displays data entry forms based on a description file. It allows users
 to input data in a structured manner. The entered data can then be processed
 by a specified command or script.
 
+<img src="screenshots/form.png" alt="Curses Keys" title="Sample Menu" />
+
 Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
 accounting, scheduling and management system. It was particularly useful
 as a front-end for our SQL database applications.
+
+<img src="screenshots/Receipt.png" />
 
 Need quick and easy Cash Receipts, General Journal, or wedding invitation
 list? FORM has you covered. The application shown above took about 10
