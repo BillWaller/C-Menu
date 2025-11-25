@@ -49,8 +49,6 @@ It provides a straightforward API for defining form fields, handling user input,
 
 ### Numeric Formats Supported
 
-<img src="screenshots/form.png" alt="Curses Keys" title="Sample Menu" />
-
 FORM displays data entry forms based on a description file. It allows users
 to input data in a structured manner. The entered data can then be processed
 by a specified command or script.
