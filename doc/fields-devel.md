@@ -1,5 +1,23 @@
 # CMenu Field Development Guide
 
+## Recent Changes
+
+2025-11-25 Added field formatting for:
+
+- Decimal Integer
+- Hex Integer
+- Double
+- Float
+- Currency
+
+This provides a framework to add more field types by adding just a few lines
+of code.
+
+2025-11-15 Implemented reading of field data from text files.
+Eventually, this capability will be extended to read from databases.
+
+\*\* These changes address some of the following development goals
+
 ## Validation
 
 CMenu's fields program only supports modest field validation types at this time.
@@ -47,10 +65,10 @@ CMenu's fields program currently does not support field auto-completion options.
 This could be very useful for many applications, especially when entering repetitive
 data. Future versions of CMenu should include auto-completion options, such as:
 
-    Suggest from previous entries
-    Suggest from predefined list
-    Suggest from database query
-    Custom completion logic via scripting
+- Suggest from previous entries
+- Suggest from predefined list
+- Suggest from database query
+- Custom completion logic via scripting
 
 ## Custom Field Types
 

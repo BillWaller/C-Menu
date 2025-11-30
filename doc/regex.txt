@@ -1,0 +1,61 @@
+/*
+    compile regular expression
+        regcomp(&compiled_regex, regex_pattern, REG_NEWLINE)
+            &compiled_regex = pointer to compiled regular expression
+            regex_pattern = pointer to string containing the regular
+            expression to search for
+    example:
+        static const char *const regex_pattern = "John.*o";
+        REG_NEWLINE = Change the behavior of the special characters
+           '^', '$', and '.' so that they do not match newline characters.
+        REGEXEC(&REGEX, S, NITEMS(PMATCH), PMATCH, 0)
+    After regcomp() succeeds, preg->re_nsub holds the number  of  subexpres‐
+    sions  in  regex.   Thus,  a  value  of preg->re_nsub + 1 passed as n
+    to regexec() is sufficient to capture all matches.
+    regcomp() returns 0 on success, and nonzero on failure.
+    regcomp() returns a number of errors on failure, documented in
+    regcomp(3).
+    ----------------------------------------------------------------------------
+    search for regular expression matches
+        regexec(&compiled_regex, s, NITEMS(pmatch), pmatch, 0))
+            &compiled_regex = pointer to compiled regular expression
+            s = str = string to be searched
+    example:
+        static const char *const str =
+            "1) John Driverhacker;\n2) John Doe;\n3) John Foo;\n";
+                NITEMS(pmatch) = number of elements in pmatch array
+                pmatch = array of regmatch_t structures to hold the offsets
+   of matched substrings
+
+                pmatch[0].rm.so = start offset of matched string
+                pmatch[0].rm.eo = end offset of matched string
+
+                pmatch[1].rm.so = start offset of 1st parenthesized
+                substring pmatch[1].rm.eo = end offset of 1st parenthesized
+                substring pmatch[2].rm.so = start offset of 2nd
+                parenthesized substring pmatch[2].rm.eo = end offset of 2nd
+                parenthesized substring
+
+    Unless  REG_NOSUB  was passed to regcomp(), it is possible to obtain the
+    locations of matches within string: regexec() fills n elements of
+    pmatch with results: pmatch[0] corresponds to the entire  match,
+    pmatch[1]  to the  first  subexpression, etc.  If there were more
+    matches than n, they are discarded; if fewer, unused elements of pmatch
+    are filled with -1s.
+
+    Each returned valid (non--1) match corresponds to the  range  [string +
+    rm_so, string + rm_eo).
+
+    regoff_t  is  a signed integer type capable of storing the largest
+    value that can be stored in either an ptrdiff_t type or a ssize_t type.
+
+    regexec() returns 0 on success, and nonzero on failure.
+    ----------------------------------------------------------------------------
+    regfree() deinitializes the pattern buffer at *preg, freeing any associ‐
+        ated memory; *preg must have been initialized via regcomp().
+    ----------------------------------------------------------------------------
+*/
+
+
+
+
