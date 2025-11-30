@@ -47,6 +47,9 @@ int menu_engine(Init *init) {
                 mvwaddstr(menu->win, menu->line_idx, 0,
                           menu->line[menu->line_idx]->choice_text);
                 if (menu->line[menu->line_idx]->option_cnt != 0)
+                    // y = menu->line_idx
+                    // x = menu->option_offset
+                    // menu->line[menu->line_idx]->option_ptr[menu->line[menu->line_idx]->option_idx]);
                     mvwaddstr(menu->win, menu->line_idx, menu->option_offset,
                               menu->line[menu->line_idx]->option_ptr
                                   [menu->line[menu->line_idx]->option_idx]);
@@ -305,7 +308,7 @@ int menu_cmd_processor(Init *init) {
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str);
         parse_opt_args(init, eargc, eargv);
-        mview(init, eargc, eargv, 10, 68, menu->begy + 1, menu->begx + 4);
+        mview(init, eargc, eargv, 0, 0, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
 
     case CT_CKEYS:

@@ -7,7 +7,8 @@
 
 #include <ncursesw/ncurses.h>
 #include <stddef.h>
-
+#define DEBUG TRUE
+#define USE_PAD TRUE
 // MAXLEN is for variables known to be limited in length
 #define MAXLEN 256
 #define MIN_COLS 40
@@ -112,7 +113,37 @@ extern void signal_handler(int);
 extern void sig_prog_mode();
 extern void sig_dfl_mode();
 
+#define KEY_ESC 0x01b
+#define KEY_TAB 0x09
+
 enum {
+    KEY_NULL = 0x0000,
+    KEY_CTLA,
+    KEY_CTLB,
+    KEY_CTLC,
+    KEY_CTLD,
+    KEY_CTLE,
+    KEY_CTLF,
+    KEY_CTLG,
+    KEY_CTLH,
+    KEY_CTLI,
+    KEY_CTLJ,
+    KEY_CTLK,
+    KEY_CTLL,
+    KEY_CTLM,
+    KEY_CTLN,
+    KEY_CTLO,
+    KEY_CTLP,
+    KEY_CTLQ,
+    KEY_CTLR,
+    KEY_CTLS,
+    KEY_CTLT,
+    KEY_CTLU,
+    KEY_CTLV,
+    KEY_CTLW,
+    KEY_CTLX,
+    KEY_CTLY,
+    KEY_CTLZ,
     KEY_F1 = 0x109,
     KEY_F2,
     KEY_F3,
@@ -127,9 +158,6 @@ enum {
     KEY_F12,
     KEY_F13,
     KEY_F14,
-};
-
-enum {
     KEY_ALTA = 0x170,
     KEY_ALTB,
     KEY_ALTC,
@@ -165,40 +193,17 @@ enum {
     KEY_ALT6,
     KEY_ALT7,
     KEY_ALT8,
-    KEY_ALT9
-};
-
-#define KEY_ESC 0x01b
-#define KEY_TAB 0x09
-
-enum {
-    KEY_NULL,
-    KEY_CTLA,
-    KEY_CTLB,
-    KEY_CTLC,
-    KEY_CTLD,
-    KEY_CTLE,
-    KEY_CTLF,
-    KEY_CTLG,
-    KEY_CTLH,
-    KEY_CTLI,
-    KEY_CTLJ,
-    KEY_CTLK,
-    KEY_CTLL,
-    KEY_CTLM,
-    KEY_CTLN,
-    KEY_CTLO,
-    KEY_CTLP,
-    KEY_CTLQ,
-    KEY_CTLR,
-    KEY_CTLS,
-    KEY_CTLT,
-    KEY_CTLU,
-    KEY_CTLV,
-    KEY_CTLW,
-    KEY_CTLX,
-    KEY_CTLY,
-    KEY_CTLZ
+    KEY_ALT9,
+    KEY_ALTDEL = 0x213,
+    KEY_ALTDOWN = 0x219,
+    KEY_ALTEND = 0x21e,
+    KEY_ALTHOME = 0x223,
+    KEY_ALTINS = 0x228,
+    KEY_ALTLEFT = 0x22d,
+    KEY_ALTPGDN = 0x232,
+    KEY_ALTPGUP = 0x237,
+    KEY_ALTRIGHT = 0x23c,
+    KEY_ALTUP = 0x242
 };
 
 #define key_left 8   // ^H
@@ -325,7 +330,7 @@ extern void win_close_box(WINDOW *);
 extern void restore_wins();
 extern void dmvwaddstr(WINDOW *, int, int, char *);
 extern void cbox(WINDOW *);
-extern void win_init_attrs(int, int, int);
+extern void win_init_attrs(WINDOW *, int, int, int);
 extern void win_Toggle_Attrs();
 extern int display_ok_message(char *);
 extern int display_error_message(char *);
@@ -422,11 +427,6 @@ extern Menu *menu;
 // FORMS
 //----------------------------------------------------------
 
-extern int accept_field(WINDOW *, int, int, int, char *, int, char, int, bool);
-extern void display_field(WINDOW *, int, int, char *, int, char, int);
-extern int format_field(char *, int, char, int);
-extern int validate_field(char *, int);
-
 typedef struct {
     int line;
     int col;
@@ -434,12 +434,22 @@ typedef struct {
     int len;
 } Text;
 
+// form->field[i]->line,
+// form->field[i]->col,
+// form->field[i]->str,
+// form->field[i]->len,
+// form->field[i]->val);
+
 typedef struct {
     int line;
     int col;
     int len;
     int val;
-    char str[MAX_COLS];
+    char input_s[MAXLEN];
+    char accept_s[MAXLEN];
+    char display_s[MAXLEN];
+    char filler_s[MAXLEN];
+    char blank_s[MAXLEN];
 } Field;
 
 typedef struct {
@@ -473,21 +483,27 @@ typedef struct {
     bool f_erase_remainder;
     bool f_stop_on_error;
     int fidx;
+    int fcnt;
     int didx;
-    int field_pos;
+    int dcnt;
     Text *text[MAXFIELDS];
     Field *field[MAXFIELDS];
-    int item_count;
-    int choice_max_len;
-    int text_max_len;
-    int option_offset;
-    int option_max_len;
-    int line_idx;
-    int op;
+    int decimal_int_n;
+    int hex_int_n;
+    float float_n;
+    double double_n;
+    double currency_n;
 } Form;
 
 extern Form *form;
 
+extern int accept_field(Form *);
+extern int display_field(Form *);
+extern int display_field_n(Form *, int);
+extern int display_field_brackets(Form *);
+extern int field_fmt(Form *, char *);
+extern int validate_field(Form *);
+extern void mk_filler(char *, int);
 extern int open_form_win(Form *);
 extern int display_form_screen(Form *);
 extern int form_enter_fields(Form *);
@@ -573,14 +589,10 @@ typedef struct {
     int fg_color; // F: foreground_color
     int bg_color; // B: background_color
     int bo_color; // O: border_color
-    int lines;    // L: lines
-    int cols;     // C: columns
-    int begy;     // Y: lines
-    int begx;     // X: lines
-    int col;
     // window
     WINDOW *win, *box;
     char prompt_str[MAXLEN];
+    char tmp_prompt_str[MAXLEN];
     int prompt_type; // PT_NONE, PT_SHORT, PT_LONG, PT_STRING
     // files
     char cmd_spec[MAXLEN];  // c: command executable
@@ -598,14 +610,7 @@ typedef struct {
     bool f_squeeze;       // -s  squeeze multiple blank lines
     bool f_stop_on_error; // Z  stop on error
     //
-    int cury;
-    int curx;
-    int max_col;
     int next_c;
-    int scroll_lines;
-    int cmd_line;
-    int first_column;
-    int last_column;
     int line_mode;
     //--------------------------------
     bool f_bod;
@@ -619,13 +624,57 @@ typedef struct {
     bool f_redraw_screen;
     bool f_displaying_help;
     bool f_stdout_is_tty;
+    bool f_line_numbers;
+    bool f_wrap;
+    bool f_full_screen;
     //
     char start_cmd_all_files[MAXLEN];
     char cur_file_str[MAXLEN];
     char line_in_s[MAX_COLS];
     char line_out_s[MAX_COLS];
+    unsigned int line_number;
+    char line_number_s[20];
+    char *line_out_p;
     char *line_in_beg_p;
     char *line_in_end_p;
+    long srch_beg_pos;
+    //
+    WINDOW *pad;
+    // *newpad(int plines, int pcols);
+    // *subpad(WINDOW *orig, int nlines, int ncols, int begy, int begx);
+    // prefresh(
+    // pnoutrefresh(
+    // WINDOW *, int p_minrow, int p_mincol,
+    //                    int ps_minrow, int ps_mincol,
+    //                    int ps_maxrow, int ps_maxcol);
+    // pechochar(WINDOW *pad, char ch);
+    // pecho_wchar(WINDOW *pad, wchar_t wch);
+    //
+    int lines; // L: lines
+    int cols;  // C: columns
+    int begy;  // Y: lines
+    int begx;  // X: lines
+    //
+    int cury;
+    int curx;
+    int scroll_lines;
+    int cmd_line;
+    int first_column;
+    int last_column;
+    //
+    int maxcol;
+    //
+    // pad coordinates
+    int pminrow;
+    int pmincol;
+    // screen coordinates
+    int sminrow;
+    int smincol;
+    int smaxrow;
+    int smaxcol;
+    //
+    int first_match_x;
+    int last_match_x;
     //
     char *file_spec_ptr;
     char *next_file_spec_ptr;
@@ -641,7 +690,7 @@ typedef struct {
     long mark_tbl[NMARKS];
     //
     long buf_idx;
-    long buf_last;
+    int buf_last;
     char *buf;
     char *buf_curr_ptr;
     char *buf_end_ptr;
@@ -821,7 +870,7 @@ extern void free_menu_line(Line *);
 // VIEW
 //--------------------------------------------------------------
 extern int mview(Init *, int, char **, int, int, int, int);
-extern int init_view_stdscr(Init *);
+extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(View *);
 extern bool view_init_input(View *, char *);
 extern int view_cmd_processor(View *);
@@ -834,18 +883,21 @@ extern char err_msg[MAXLEN];
 
 // UTILITIES
 // --------------------------------------------------------------
+extern int display_error(char *, char *, char *);
+extern int ssnprintf(char *, size_t, const char *, ...);
 extern bool str_to_bool(const char *);
 extern int str_to_args(char **, char *);
 extern void str_to_lower(char *);
 extern void str_to_upper(char *);
 extern void str(char *);
-extern int strn(char *, int);
-extern int strnz__cpy(char *, char *, int);
 extern int strnz(char *, int);
-extern void strnz_cpy(char *, char *, int);
+extern int strnz__cpy(char *, char *, int);
+extern int strnz__cat(char *, char *, int);
 extern char *strz_dup(char *);
 extern char *strnz_dup(char *, int);
 extern void str_subc(char *, char *, char, char *, int);
+extern void trim(char *);
+extern void chrep(char *, char, char);
 extern void normalize_file_spec(char *);
 extern void file_spec_path(char *, char *);
 extern void file_spec_name(char *, char *);

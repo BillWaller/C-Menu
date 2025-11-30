@@ -199,6 +199,8 @@ void parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 't':
             init->tab_stop = atoi(optarg);
+            if (init->tab_stop < 1)
+                init->tab_stop = 1;
             break;
         case 'v':
         case 'V':

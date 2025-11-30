@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <wait.h>
 
+int ssnprintf(char *, size_t, const char *, ...);
 bool str_to_bool(const char *);
 int str_to_args(char **, char *);
 void str_to_lower(char *);
@@ -34,6 +35,21 @@ bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
 
 char errmsg[MAXLEN];
+
+int ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
+    va_list args;
+    int n;
+
+    va_start(args, format);
+    n = vsnprintf(buf, buf_size, format, args);
+    va_end(args);
+
+    // Could just truncate here
+    if (n < 0 || (size_t)n >= buf_size) {
+        abend(-1, "ssnprintf: buffer overflow");
+    }
+    return n;
+}
 
 int str_to_args(char **argv, char *strptr) {
     int i;
@@ -63,6 +79,9 @@ void str_to_upper(char *s) {
     }
 }
 
+// copy string
+// stops at max_len, newline, or carriage return
+// max_len limits the destination buffer size
 int strnz__cpy(char *d, char *s, int max_len) {
     char *e;
     int len = 0;
@@ -76,44 +95,46 @@ int strnz__cpy(char *d, char *s, int max_len) {
     return len;
 }
 
-void strnz_cpy(char *d, char *s, int l) {
+// concatenate strings
+// stops at max_len, newline, or carriage return
+// max_len limits the destination buffer size
+int strnz__cat(char *d, char *s, int max_len) {
     char *e;
+    int len = 0;
 
-    e = d + l;
-    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e)
-        *d++ = *s++;
-    *d = '\0';
-}
-
-void strnz_cat(char *d, char *s, int l) {
-    char *e;
-
-    e = d + l;
-    while (*d != '\0' && *d != '\n' && *d != '\r' && d < e)
+    e = d + max_len;
+    while (*d != '\0' && *d != '\n' && *d != '\r' && d < e) {
         d++;
-    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e)
+        len++;
+    }
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
         *d++ = *s++;
+        len++;
+    }
     *d = '\0';
+    return len;
 }
 
+// replace newline and carriage return with null terminator
 void strz(char *s) {
     while (*s != '\0' && *s != '\n' && *s != '\r')
         s++;
     *s = '\0';
 }
 
-int strnz(char *s, int l) {
+// return length of string up to max_len, newline, or carriage return
+// return length of resulting string
+int strnz(char *s, int max_len) {
     char *e;
-    int i;
+    int len = 0;
 
-    e = s + l;
-    i = 0;
+    e = s + max_len;
     while (*s != '\0' && *s != '\n' && *s != '\r' && s < e) {
         s++;
-        i++;
+        len++;
     }
     *s = '\0';
-    return (i);
+    return (len);
 }
 
 char *strnz_dup(char *s, int l) {
@@ -160,6 +181,15 @@ void str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
             *d++ = *s++;
     }
     *d = '\0';
+}
+
+// replace old_chr with new_chr in string s
+void chrep(char *s, char old_chr, char new_chr) {
+    while (*s != '\0') {
+        if (*s == old_chr)
+            *s = new_chr;
+        s++;
+    }
 }
 
 void normalize_file_spec(char *fs) {

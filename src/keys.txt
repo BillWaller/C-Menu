@@ -1,0 +1,10 @@
+o 1023 d 531 h 213 ALT+Delete
+o 1031 d 537 h 219 ALT+Down
+o 1036 d 542 h 21e ALT+End
+o 1043 d 547 h 223 ALT+Home
+o 1055 d 557 h 22d ALT+Left
+o 1062 d 562 h 232 ALT+Page_Down
+o 1067 d 567 h 237 ALT+Page_Up
+o 1074 d 572 h 23c ALT+Right
+o 1102 d 578 h 242 ALT+Up
+

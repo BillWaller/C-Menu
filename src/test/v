@@ -1,0 +1,1 @@
+gdb -q -x gdbcmds --args view lsp.log

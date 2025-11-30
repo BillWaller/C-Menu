@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     mapp_initialization(init, argc, argv);
     open_curses(init);
     capture_curses_tioctl();
-    win_init_attrs(init->fg_color, init->bg_color, init->bo_color);
+    win_init_attrs(win, init->fg_color, init->bg_color, init->bo_color);
     init_pick(init, init->argc, init->argv, 0, 0);
     close_curses();
     restore_shell_tioctl();

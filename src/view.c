@@ -15,6 +15,10 @@ int main(int argc, char **argv) {
     int begy = 0;
     int begx = 0;
     view = new_view(init, argc, argv, begy, begx);
+    if (view->argv[0] == NULL) {
+        fprintf(stderr, "view: No files specified.\n");
+        exit(EXIT_FAILURE);
+    }
     view->f_stdout_is_tty = isatty(1);
     if (!view->f_stdout_is_tty) {
         if (view->argc < 1) {
@@ -31,8 +35,7 @@ int main(int argc, char **argv) {
         }
         exit(EXIT_SUCCESS);
     }
-
-    if (!init_view_stdscr(init)) {
+    if (!init_view_full_screen(init)) {
         view_file(view);
     }
     if (f_curses_open) {

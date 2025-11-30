@@ -49,15 +49,15 @@ TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr
 all:	$(TARGETS)
 	@echo Make Complete
 
-menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o fform.o fields.o \
+menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o form_engine.o fields.o \
 	pick_engine.o curskeys.o mview.o view_engine.o dwin.o futil.o init.o mem.o \
 	opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o init_view.o fform.o \
+	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o init_view.o form_engine.o \
 		fields.o pick_engine.o curskeys.o mview.o view_engine.o dwin.o futil.o \
 		init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-form:	form.o fields.o fform.o mview.o init_view.o view_engine.o dwin.o futil.o \
+form:	form.o fields.o form_engine.o mview.o init_view.o view_engine.o dwin.o futil.o \
 	init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) form.o fields.o fform.o mview.o init_view.o view_engine.o \
+	$(CC) $(CFLAGS) form.o fields.o form_engine.o mview.o init_view.o view_engine.o \
 		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ \
 		$(LIBS)
 ckeys:	ckeys.o curskeys.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o

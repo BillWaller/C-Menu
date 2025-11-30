@@ -615,5 +615,7 @@ bool init_view_files(Init *init, int argc, char **argv) {
     view->f_at_end_clear = init->f_at_end_clear;
     view->f_at_end_remove = init->f_at_end_remove;
     view->f_squeeze = init->f_squeeze;
+    if (view->tab_stop == 0)
+        view->tab_stop = 4;
     return true;
 }

@@ -28,7 +28,7 @@ void win_close_box(WINDOW *);
 void restore_wins();
 void dmvwaddstr(WINDOW *, int, int, char *);
 void cbox(WINDOW *);
-void win_init_attrs(int, int, int);
+void win_init_attrs(WINDOW *, int, int, int);
 int display_o_k_message(char *);
 int display_error_message(char *);
 int error_message(char **);
@@ -56,7 +56,6 @@ int m_lines;
 int m_cols;
 int m_begy = -1;
 int m_begx = -1;
-int mg_action, mg_col, mg_line;
 int mouse_support;
 
 enum colors_enum {
@@ -133,11 +132,10 @@ void set_color(int color_n, char *s);
 // CP_HIGHLIGHT,
 // CP_NPAIRS
 
-void win_init_attrs(int fg_color, int bg_color, int bo_color) {
-    // bkgd(COLOR_PAIR(CP_DEFAULT) | ' ');
-    // attr_on(COLOR_PAIR(CP_DEFAULT), NULL);
-    // box_attr = COLOR_PAIR(CP_BOX);
-    // win_attr = COLOR_PAIR(CP_NORM);
+void win_init_attrs(WINDOW *win, int fg_color, int bg_color, int bo_color) {
+    // init_pair(CP_NORM, fg_color, bg_color);
+    // init_pair(CP_BOX, bo_color, bg_color);
+    // wcolor_set(win, CP_NORM, NULL);
     return;
 }
 
@@ -145,19 +143,14 @@ void open_curses(Init *init) {
     initscr();
     f_curses_open = true;
     clear();
-    nonl(); // don't translate CR to LF
+    nonl();
     noecho();
-    cbreak(); // raw unbuffered
-    // intrflush(stdscr, true);
-    // raw();
-    meta(stdscr, true);
+    cbreak();
+    // meta(stdscr, true);
     keypad(stdscr, true);
     clearok(stdscr, false);
     scrollok(stdscr, true);
-#define DEBUG true
-#ifdef DEBUG
-    immedok(stdscr, TRUE);
-#endif
+    // immedok(stdscr, TRUE);
     if (!has_colors()) {
         close_curses();
         abend(-1, "terminal color support required");
@@ -183,6 +176,7 @@ void open_curses(Init *init) {
     // attr_on(COLOR_PAIR(CP_NORM), NULL);
     box_attr = COLOR_PAIR(CP_BOX);
     win_attr = COLOR_PAIR(CP_NORM);
+    wcolor_set(stdscr, CP_NORM, NULL);
 }
 
 void set_color(int color_n, char *s) {
@@ -233,6 +227,11 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
             wbkgd(win_box[win_ptr], COLOR_PAIR(CP_BOX) | ' ');
             cbox(win_box[win_ptr]);
             if (WTitle != NULL && *WTitle != '\0') {
+                wmove(win_box[win_ptr], 0, 1);
+                waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
+                wmove(win_box[win_ptr], 0, 2);
+                waddnstr(win_box[win_ptr], (const char *)&bw_sp, 1);
+
                 mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
                 mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
                 mvwaddstr(win_box[win_ptr], 0, 3, WTitle);
@@ -256,7 +255,6 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
         }
         if (win_win[win_ptr] == NULL)
             return (-1);
-        keypad(win_win[win_ptr], TRUE);
     }
     return (0);
 }
@@ -264,49 +262,6 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
 void win_redraw(WINDOW *win, int Wattr, char *WTitle) {
     werase(win);
     wnoutrefresh(win);
-}
-
-WINDOW *win_open_box(int wlines, int wcols, int wbegy, int wbegx,
-                     char *WTitle) {
-    WINDOW *wbox;
-    int maxx;
-
-    wrefresh(stdscr);
-    if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 || wcols < COLS - 2) {
-        wbox = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
-        if (wbox == (WINDOW *)0)
-            return ((WINDOW *)0);
-        wbkgd(win_box[win_ptr], COLOR_PAIR(CP_BOX) | ' ');
-        cbox(wbox);
-        if (WTitle != (char *)0 && *WTitle != '\0') {
-            mvwaddch(wbox, 0, 1, ACS_URCORNER);
-            mvwaddch(wbox, 0, 2, ' ');
-            mvwaddstr(wbox, 0, 3, WTitle);
-            maxx = getmaxx(wbox);
-            if ((strlen(WTitle) + 3) < (size_t)maxx)
-                mvwaddch(wbox, 0, strlen(WTitle) + 3, ' ');
-            if ((strlen(WTitle) + 4) < (size_t)maxx)
-                mvwaddch(wbox, 0, strlen(WTitle) + 4, ACS_ULCORNER);
-        }
-        wnoutrefresh(wbox);
-    } else {
-        wbox = newwin(wlines, wcols, wbegy, wbegx);
-        if (wbox == (WINDOW *)0)
-            return ((WINDOW *)0);
-        wbkgd(win_box[win_ptr], COLOR_PAIR(CP_BOX) | ' ');
-    }
-    return (wbox);
-}
-
-WINDOW *win_open_win(int wlines, int wcols, int wbegy, int wbegx) {
-    WINDOW *W;
-
-    if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 || wcols < COLS - 2)
-        W = newwin(wlines, wcols, wbegy + 1, wbegx + 1);
-    else
-        W = newwin(wlines, wcols, wbegy, wbegx);
-    wbkgd(win_win[win_ptr], COLOR_PAIR(CP_NORM) | ' ');
-    return (W);
 }
 
 WINDOW *win_del() {
@@ -326,27 +281,6 @@ WINDOW *win_del() {
         win_ptr--;
     }
     return (0);
-}
-
-void win_close_win(WINDOW *W) { delwin(W); }
-
-void win_close_box(WINDOW *wbox) {
-    int i;
-
-    delwin(wbox);
-    if (win_ptr > 0) {
-        touchwin(stdscr);
-        wnoutrefresh(stdscr);
-        for (i = 0; i < win_ptr; i++) {
-            touchwin(win_box[i]);
-            wnoutrefresh(win_box[i]);
-            touchwin(win_win[i]);
-            wnoutrefresh(win_win[i]);
-        }
-    } else {
-        touchwin(stdscr);
-        wnoutrefresh(stdscr);
-    }
 }
 
 void restore_wins() {
@@ -467,14 +401,54 @@ int error_message(char **argv) {
     return (cmd_key);
 }
 
+int display_error(char *emsg0, char *emsg1, char *emsg2) {
+    char title[64];
+    WINDOW *error_win;
+    int line, pos, emsg0_l, emsg1_l, emsg_l;
+
+    if (!f_curses_open) {
+        fprintf(stderr, "\n\n%s\n%s\n%s\n\n", emsg0, emsg1, emsg2);
+        return (1);
+    }
+    emsg0_l = strlen(emsg0);
+    emsg1_l = strlen(emsg1);
+    emsg_l = strlen(emsg2);
+    if (emsg0_l > emsg_l)
+        emsg_l = emsg0_l;
+    if (emsg1_l > emsg_l)
+        emsg_l = emsg1_l;
+    if (emsg_l < 26)
+        emsg_l = 26;
+    pos = (COLS - emsg_l - 4) / 2;
+    line = (LINES - 5) / 2;
+
+    strcpy(title, "Notification");
+    if (win_new(3, emsg_l + 2, line, pos, title)) {
+        sprintf(title, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
+        abend(-1, title);
+    }
+    error_win = win_win[win_ptr];
+    mvwaddstr(error_win, 0, 1, emsg0);
+    mvwaddstr(error_win, 1, 1, emsg1);
+    mvwaddstr(error_win, 1, 1, emsg2);
+    mvwaddstr(error_win, 2, 1, "Press any key to continue");
+    wmove(error_win, 2, 26);
+    wrefresh(error_win);
+    cmd_key = wgetch(error_win);
+    win_del();
+    return (cmd_key);
+}
+
 int display_error_message(char *emsg_str) {
     char emsg[80];
     int emsg_max_len = 80;
     unsigned cmd_key;
     WINDOW *error_win;
     int len, line, pos;
+    char title[64];
 
-    len = strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
+    strncpy(emsg, emsg_str, emsg_max_len - 1);
+    len = strlen(emsg);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
         return (1);
@@ -482,11 +456,12 @@ int display_error_message(char *emsg_str) {
 
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-
-    strcpy(tmp_str, "Notification");
-    if (win_new(1, len + 2, line, pos, tmp_str)) {
-        sprintf(tmp_str, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
-        abend(-1, tmp_str);
+    if (len < 26)
+        len = 26;
+    strcpy(title, "Notification");
+    if (win_new(1, len + 2, line, pos, title)) {
+        sprintf(title, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
+        abend(-1, title);
     }
     error_win = win_win[win_ptr];
     mvwaddstr(error_win, 0, 1, emsg);

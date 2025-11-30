@@ -58,6 +58,7 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     }
     view->begy = begy;
     view->begx = begx;
+    view->f_full_screen = false;
     if (!init_view_boxwin(view)) {
         view_file(view);
         win_del();
