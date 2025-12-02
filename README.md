@@ -49,6 +49,8 @@ It provides a straightforward API for defining form fields, handling user input,
 
 ### Numeric Formats Supported
 
+<img src="screenshots/form.png" alt="Curses Keys" title="Sample Menu" />
+
 FORM displays data entry forms based on a description file. It allows users
 to input data in a structured manner. The entered data can then be processed
 by a specified command or script.
@@ -101,9 +103,14 @@ H:SAMPLE MENU
 !return
 ```
 
-As you can see, the description file is straightforward and easy to read. Each menu
-item consists of a label and a command to execute. The label is displayed in the menu,
-and the command is executed when the user selects that item.
+As you can see, the description file is straightforward and easy to read. Each menu item consists of a label and a command to execute. The label is displayed in the menu, and the command is executed when the user selects that item.
+
+Here's just one example of how easy it is to create useful programs with the C-Menu Form facility.
+
+<img src="screenshots/iloan_f.png" alt="Curses Keys" title="Sample Application" />
+
+
+<img src="screenshots/iloan.png" alt="Curses Keys" title="Sample Application" />
 
 We hope you find CMENU useful for your projects. It's a powerful tool that can
 greatly simplify the process of creating text-based user interfaces for
