@@ -5,6 +5,7 @@
  */
 
 #include "menu.h"
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -28,7 +29,7 @@ void win_close_box(WINDOW *);
 void restore_wins();
 void dmvwaddstr(WINDOW *, int, int, char *);
 void cbox(WINDOW *);
-void win_init_attrs(int, int, int);
+void win_init_attrs(WINDOW *, int, int, int);
 int display_o_k_message(char *);
 int display_error_message(char *);
 int error_message(char **);
@@ -41,6 +42,7 @@ void abend(int, char *);
 void user_end();
 int nf_error(int, char *);
 void set_color(int color, char *color_str);
+void set_fkey(int, char *);
 
 char tmp_str[MAXLEN];
 char *tmp_ptr;
@@ -56,7 +58,6 @@ int m_lines;
 int m_cols;
 int m_begy = -1;
 int m_begx = -1;
-int mg_action, mg_col, mg_line;
 int mouse_support;
 
 enum colors_enum {
@@ -112,6 +113,9 @@ int const ncolors[] = {
     0,
 };
 
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ UNICODE BOX DRAWING CHARACTERS                                │
+    ╰───────────────────────────────────────────────────────────────╯ */
 const wchar_t bw_ho = BW_HO;
 const wchar_t bw_ve = BW_VE;
 const wchar_t bw_tl = BW_RTL;
@@ -132,29 +136,97 @@ void set_color(int color_n, char *s);
 // CP_TITLE,
 // CP_HIGHLIGHT,
 // CP_NPAIRS
-
-void win_init_attrs(int fg_color, int bg_color, int bo_color) {
-    // bkgd(COLOR_PAIR(CP_DEFAULT) | ' ');
-    // attr_on(COLOR_PAIR(CP_DEFAULT), NULL);
-    // box_attr = COLOR_PAIR(CP_BOX);
-    // win_attr = COLOR_PAIR(CP_NORM);
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ WIN_INIT_ATTRS                                                │
+    ╰───────────────────────────────────────────────────────────────╯ */
+void win_init_attrs(WINDOW *win, int fg_color, int bg_color, int bo_color) {
+    // init_pair(CP_NORM, fg_color, bg_color);
+    // init_pair(CP_BOX, bo_color, bg_color);
+    // wcolor_set(win, CP_NORM, NULL);
     return;
 }
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ FKEY_CMD_TBL                                                  │
+    │ if text is "", key is not processed                           │
+    │ F_KEYS 0 - 10 are defined as a convenience                    │
+    ╰───────────────────────────────────────────────────────────────╯ */
+key_cmd_tbl key_cmd[20] = {
+    {"", KEY_F(0), 0},
+    {"F1 Help", KEY_F(1), 0},
+    {"", KEY_F(2), 0},
+    {"", KEY_F(3), 0},
+    {"F4 Query", KEY_F(4), 0},
+    {"F5 Calculate", KEY_F(5), 0},
+    {"F6 Edit", KEY_F(6), 0},
+    {"", KEY_F(7), 0},
+    {"", KEY_F(8), 0},
+    {"F9 Cancel", KEY_F(9), 0},
+    {"F10 Accept", KEY_F(10), 0},
+    {"PgUp", KEY_PPAGE, 0},
+    {"PgDn", KEY_NPAGE, 0},
+    {"", 0x0, -1},
+};
 
+enum key_idx { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, PgUp, PgDn, END };
+
+void set_fkey(int k, char *s) {
+    if (*s != '\0')
+        strncpy(key_cmd[k].text, "Calculate", 26);
+    else
+        key_cmd[k].text[0] = '\0';
+}
+int chyron_mk(key_cmd_tbl *ck, char *chyron_s);
+int get_chyron_key(key_cmd_tbl *ck, int choice);
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ CHYRON_MK                                                     │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int chyron_mk(key_cmd_tbl *fc, char *s) {
+    int end_pos = 0;
+    int i = 0;
+    *s = '\0';
+    while (fc[i].end_pos != -1) {
+        if (fc[i].text[0] == '\0') {
+            i++;
+            continue;
+        }
+        if (end_pos == 0)
+            strncat(s, " ", MAXLEN - strlen(s) - 1);
+        else
+            strncat(s, " | ", MAXLEN - strlen(s) - 1);
+        strncat(s, fc[i].text, MAXLEN - strlen(s) - 1);
+        end_pos = strlen(s) + 1;
+        fc[i].end_pos = end_pos;
+        i++;
+    }
+    if (end_pos > 0)
+        strncat(s, " ", MAXLEN - strlen(s) - 1);
+    return strlen(s);
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ GET_CHYRON_KEY                                                │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int get_chyron_key(key_cmd_tbl *fc, int x) {
+    int i;
+    for (i = 0; fc[i].end_pos != -1; i++)
+        if (x < fc[i].end_pos)
+            break;
+    return fc[i].keycode;
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ OPEN_CURSES                                                   │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void open_curses(Init *init) {
+    int i, j;
     initscr();
     f_curses_open = true;
     clear();
-    nonl(); // don't translate CR to LF
+    nonl();
     noecho();
-    cbreak(); // raw unbuffered
-    // intrflush(stdscr, true);
-    // raw();
-    meta(stdscr, true);
+    cbreak();
+    // meta(stdscr, true);
     keypad(stdscr, true);
     clearok(stdscr, false);
     scrollok(stdscr, true);
-#define DEBUG true
 #ifdef DEBUG
     immedok(stdscr, TRUE);
 #endif
@@ -171,8 +243,21 @@ void open_curses(Init *init) {
     set_color(CLR_MAGENTA, init->magenta);
     set_color(CLR_CYAN, init->cyan);
     set_color(CLR_WHITE, init->white);
+    set_color(CLR_BBLACK, init->bblack);
+    set_color(CLR_BRED, init->bred);
+    set_color(CLR_BGREEN, init->bgreen);
+    set_color(CLR_BYELLOW, init->byellow);
+    set_color(CLR_BBLUE, init->bblue);
+    set_color(CLR_BMAGENTA, init->bmagenta);
+    set_color(CLR_BCYAN, init->bcyan);
+    set_color(CLR_BWHITE, init->bwhite);
     set_color(CLR_ORANGE, init->orange);
     set_color(CLR_BG, init->bg);
+    // Standard Colors fg/bg combinations
+    start_color();
+    for (i = 0; i < 8; i++)
+        for (j = 0; j < 8; j++)
+            init_pair(i * 8 + j + 1, i, j);
     init_pair(CP_DEFAULT, init->fg_color, CLR_BLACK);
     init_pair(CP_NORM, init->fg_color, CLR_BG);
     init_pair(CP_BOX, init->bo_color, CLR_BG);
@@ -183,29 +268,22 @@ void open_curses(Init *init) {
     // attr_on(COLOR_PAIR(CP_NORM), NULL);
     box_attr = COLOR_PAIR(CP_BOX);
     win_attr = COLOR_PAIR(CP_NORM);
+    wcolor_set(stdscr, CP_NORM, NULL);
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ SET_COLOR                                                     │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void set_color(int color_n, char *s) {
-    char rx[3], gx[3], bx[3];
     unsigned int r, g, b;
-    rx[0] = s[1];
-    rx[1] = s[2];
-    rx[2] = '\0';
-    gx[0] = s[3];
-    gx[1] = s[4];
-    gx[2] = '\0';
-    bx[0] = s[5];
-    bx[1] = s[6];
-    bx[2] = '\0';
-    sscanf(rx, "%x", &r);
-    sscanf(gx, "%x", &g);
-    sscanf(bx, "%x", &b);
+    sscanf(s, "%02x%02x%02x", &r, &g, &b);
     r = r * 1000 / 255;
     g = g * 1000 / 255;
     b = b * 1000 / 255;
     init_color(color_n, r, g, b);
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ CLOSE_CURSES                                                  │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void close_curses() {
     if (f_curses_open) {
         wclear(stdscr);
@@ -216,7 +294,9 @@ void close_curses() {
     restore_shell_tioctl();
     sig_dfl_mode();
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ WIN_NEW                                                       │
+    ╰───────────────────────────────────────────────────────────────╯ */
 int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
     int maxx;
     if (win_ptr < MAXWIN) {
@@ -233,6 +313,10 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
             wbkgd(win_box[win_ptr], COLOR_PAIR(CP_BOX) | ' ');
             cbox(win_box[win_ptr]);
             if (WTitle != NULL && *WTitle != '\0') {
+                wmove(win_box[win_ptr], 0, 1);
+                waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
+                wmove(win_box[win_ptr], 0, 2);
+                waddnstr(win_box[win_ptr], (const char *)&bw_sp, 1);
                 mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
                 mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
                 mvwaddstr(win_box[win_ptr], 0, 3, WTitle);
@@ -257,58 +341,22 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
         if (win_win[win_ptr] == NULL)
             return (-1);
         keypad(win_win[win_ptr], TRUE);
+        idlok(win_win[win_ptr], false);
+        idcok(win_win[win_ptr], false);
     }
     return (0);
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ WIN_REDRAW                                                    │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void win_redraw(WINDOW *win, int Wattr, char *WTitle) {
     werase(win);
     wnoutrefresh(win);
 }
 
-WINDOW *win_open_box(int wlines, int wcols, int wbegy, int wbegx,
-                     char *WTitle) {
-    WINDOW *wbox;
-    int maxx;
-
-    wrefresh(stdscr);
-    if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 || wcols < COLS - 2) {
-        wbox = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
-        if (wbox == (WINDOW *)0)
-            return ((WINDOW *)0);
-        wbkgd(win_box[win_ptr], COLOR_PAIR(CP_BOX) | ' ');
-        cbox(wbox);
-        if (WTitle != (char *)0 && *WTitle != '\0') {
-            mvwaddch(wbox, 0, 1, ACS_URCORNER);
-            mvwaddch(wbox, 0, 2, ' ');
-            mvwaddstr(wbox, 0, 3, WTitle);
-            maxx = getmaxx(wbox);
-            if ((strlen(WTitle) + 3) < (size_t)maxx)
-                mvwaddch(wbox, 0, strlen(WTitle) + 3, ' ');
-            if ((strlen(WTitle) + 4) < (size_t)maxx)
-                mvwaddch(wbox, 0, strlen(WTitle) + 4, ACS_ULCORNER);
-        }
-        wnoutrefresh(wbox);
-    } else {
-        wbox = newwin(wlines, wcols, wbegy, wbegx);
-        if (wbox == (WINDOW *)0)
-            return ((WINDOW *)0);
-        wbkgd(win_box[win_ptr], COLOR_PAIR(CP_BOX) | ' ');
-    }
-    return (wbox);
-}
-
-WINDOW *win_open_win(int wlines, int wcols, int wbegy, int wbegx) {
-    WINDOW *W;
-
-    if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 || wcols < COLS - 2)
-        W = newwin(wlines, wcols, wbegy + 1, wbegx + 1);
-    else
-        W = newwin(wlines, wcols, wbegy, wbegx);
-    wbkgd(win_win[win_ptr], COLOR_PAIR(CP_NORM) | ' ');
-    return (W);
-}
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ WIN_DEL                                                       │
+    ╰───────────────────────────────────────────────────────────────╯ */
 WINDOW *win_del() {
     int i;
 
@@ -327,28 +375,9 @@ WINDOW *win_del() {
     }
     return (0);
 }
-
-void win_close_win(WINDOW *W) { delwin(W); }
-
-void win_close_box(WINDOW *wbox) {
-    int i;
-
-    delwin(wbox);
-    if (win_ptr > 0) {
-        touchwin(stdscr);
-        wnoutrefresh(stdscr);
-        for (i = 0; i < win_ptr; i++) {
-            touchwin(win_box[i]);
-            wnoutrefresh(win_box[i]);
-            touchwin(win_win[i]);
-            wnoutrefresh(win_win[i]);
-        }
-    } else {
-        touchwin(stdscr);
-        wnoutrefresh(stdscr);
-    }
-}
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ RESTORE_WINS                                                  │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void restore_wins() {
     int i;
 
@@ -363,21 +392,9 @@ void restore_wins() {
     }
 }
 
-void dmvwaddstr(WINDOW *win, int y, int x, char *s) {
-    wmove(win, y, x);
-    while (*s != '\0') {
-        if (*(s + 1) == '\b') {
-            if (*(s + 2) == *s) {
-                s += 2;
-                wattr_on(win, A_BOLD, NULL);
-                waddch(win, *s++);
-                wattr_off(win, A_BOLD, NULL);
-            }
-        } else
-            waddch(win, *s++);
-    }
-}
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ CBOX                                                          │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void cbox(WINDOW *win) {
     int x, y;
     int maxx;
@@ -401,6 +418,9 @@ void cbox(WINDOW *win) {
     waddnwstr(win, &bw_br, 1);
 }
 
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ ERROR_MESSAGE                                                 │
+    ╰───────────────────────────────────────────────────────────────╯ */
 int error_message(char **argv) {
     const int msg_max_len = 71;
     WINDOW *error_win;
@@ -440,21 +460,20 @@ int error_message(char **argv) {
         mvwaddstr(error_win, i, 1,
                   " Type \"X\" to exit or any other key to continue ");
         wattroff(error_win, A_REVERSE);
-        // wmove(error_win, i - 1, len + 1);
-        // touchwin(error_win);
-        // wnoutrefresh(error_win);
         wrefresh(error_win);
         cmd_key = wgetch(error_win);
         c = (char)cmd_key;
         to_uppercase(c);
         if (c == 'X') {
             exit_code = -1;
-            abend(-1, "menu terminated by user");
+            abend(-1, "terminated by user");
         }
         win_del();
     } else {
         i = 0;
         while (i++ < argc) {
+            if (argv[i] == NULL)
+                break;
             strncpy(msg, argv[i], msg_max_len - 1);
             fprintf(stderr, "%s\n", msg);
         }
@@ -467,26 +486,85 @@ int error_message(char **argv) {
     return (cmd_key);
 }
 
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ DISPLAY_ERROR                                                 │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int display_error(char *emsg0, char *emsg1, char *emsg2) {
+    char title[64];
+    WINDOW *error_win;
+    int line, pos, emsg0_l, emsg1_l, emsg_l, cmd_l;
+    char cmd[] = " F1 Help | F9 Cancel | F10 Continue ";
+
+    if (!f_curses_open) {
+        fprintf(stderr, "\n\n%s\n%s\n%s\n\n", emsg0, emsg1, emsg2);
+        return (1);
+    }
+    cmd_l = strlen(cmd);
+    emsg0_l = strlen(emsg0);
+    emsg1_l = strlen(emsg1);
+    emsg_l = strlen(emsg2);
+    if (emsg0_l > emsg_l)
+        emsg_l = emsg0_l;
+    if (emsg1_l > emsg_l)
+        emsg_l = emsg1_l;
+    if (emsg_l < cmd_l)
+        emsg_l = cmd_l;
+    pos = (COLS - emsg_l - 4) / 2;
+    line = (LINES - 5) / 2;
+
+    strcpy(title, "Notification");
+    if (win_new(4, emsg_l + 2, line, pos, title)) {
+        sprintf(title, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
+        abend(-1, title);
+    }
+    error_win = win_win[win_ptr];
+    mvwaddstr(error_win, 0, 1, emsg0);
+    mvwaddstr(error_win, 1, 1, emsg1);
+    mvwaddstr(error_win, 2, 1, emsg2);
+    wattron(error_win, A_REVERSE);
+    mvwaddstr(error_win, 3, 1, cmd);
+    wattroff(error_win, A_REVERSE);
+    wmove(error_win, 3, cmd_l + 1);
+    wrefresh(error_win);
+    cmd_key = wgetch(error_win);
+    switch (cmd_key) {
+    case KEY_F(1):
+        break;
+    case KEY_F(9):
+        break;
+    case KEY_F(10):
+        break;
+    default:
+        break;
+    }
+    win_del();
+    return (cmd_key);
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ DISPLAY_ERROR_MESSAGE                                         │
+    ╰───────────────────────────────────────────────────────────────╯ */
 int display_error_message(char *emsg_str) {
     char emsg[80];
     int emsg_max_len = 80;
     unsigned cmd_key;
     WINDOW *error_win;
     int len, line, pos;
+    char title[64];
 
-    len = strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
+    strncpy(emsg, emsg_str, emsg_max_len - 1);
+    len = strlen(emsg);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
         return (1);
     }
-
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-
-    strcpy(tmp_str, "Notification");
-    if (win_new(1, len + 2, line, pos, tmp_str)) {
-        sprintf(tmp_str, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
-        abend(-1, tmp_str);
+    if (len < 26)
+        len = 26;
+    strcpy(title, "Notification");
+    if (win_new(1, len + 2, line, pos, title)) {
+        sprintf(title, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
+        abend(-1, title);
     }
     error_win = win_win[win_ptr];
     mvwaddstr(error_win, 0, 1, emsg);
@@ -496,11 +574,16 @@ int display_error_message(char *emsg_str) {
     win_del();
     return (cmd_key);
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ MVWADDSTR_FILL                                                │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     char *d, *e;
+    char tmp_str[MAXLEN];
 
     d = tmp_str;
+    if (l > MAXLEN - 1)
+        l = MAXLEN - 1;
     e = tmp_str + l;
     while (d < e)
         if (*s == '\0' || *s == '\n')
@@ -510,7 +593,9 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     *d++ = '\0';
     mvwaddstr(w, y, x, tmp_str);
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ GET_COLOR_NUMBER                                              │
+    ╰───────────────────────────────────────────────────────────────╯ */
 int get_color_number(char *s) {
     int i = 0;
     int n = NCOLORS;
@@ -525,7 +610,9 @@ int get_color_number(char *s) {
         return (-1);
     return (i);
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ LIST_COLORS                                                   │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void list_colors() {
     int i, col;
 
@@ -542,7 +629,9 @@ void list_colors() {
     }
     fprintf(stderr, "\n");
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ DISPLAY_ARGV_ERROR_MSG                                        │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void display_argv_error_msg(char *emsg, char **argv) {
     int argc;
 
@@ -555,7 +644,9 @@ void display_argv_error_msg(char *emsg, char **argv) {
     wrefresh(stdscr);
     wgetch(stdscr);
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ NF_ERROR                                                      │
+    ╰───────────────────────────────────────────────────────────────╯ */
 int nf_error(int ec, char *s) {
     fprintf(stderr, "ERROR: %s code: %d\n", s, ec);
     fprintf(stderr, "Press a key to continue");
@@ -563,7 +654,9 @@ int nf_error(int ec, char *s) {
     fprintf(stderr, "\n");
     return ec;
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ USER_END                                                      │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void user_end() {
     close_curses();
     restore_shell_tioctl();
@@ -572,14 +665,16 @@ void user_end() {
     fprintf(stderr, "\n");
     exit(EXIT_SUCCESS);
 }
-
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ ABEND                                                         │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void abend(int ec, char *s) {
     close_curses();
-    restore_shell_tioctl();
     sig_dfl_mode();
-    fprintf(stderr, "\nABEND: %s code: %d\n", s, ec);
+    fprintf(stderr, "\n\nABEND: %s code: %d\n", s, ec);
     fprintf(stderr, "Press a key to exit program");
-    // di_getch();
+    di_getch();
+    restore_shell_tioctl();
     fprintf(stderr, "\n");
     exit(EXIT_FAILURE);
 }

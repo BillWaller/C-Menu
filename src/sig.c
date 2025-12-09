@@ -44,7 +44,6 @@ void sig_prog_mode() {
 }
 
 void signal_handler(int sig_num) {
-    char *eargv[MAXARGS];
     char c;
     char *msg;
     char tmp_str[MAXLEN];
@@ -67,7 +66,7 @@ void signal_handler(int sig_num) {
         msg = tmp_str;
         while (*msg)
             write(2, msg++, 1);
-        msg = "\nPress 'X' to exit program, any other key to continue:";
+        msg = "\nPress 'X' to exit, any other key to continue:";
         while (*msg)
             write(2, msg++, 1);
         read(0, &c, 1);
@@ -89,28 +88,12 @@ void signal_handler(int sig_num) {
         }
         restore_shell_tioctl();
     } else {
-        // Curses mode
-        eargv[0] = strdup(tmp_str);
-        eargv[1] = "Press 'X' to exit program, any other key to continue: ";
-        eargv[2] = NULL;
-        c = (char)error_message(eargv);
-        free(eargv[0]);
-        eargv[1] = NULL;
-        if (c == 'X') {
-            eargv[0] = "\nAre you sure? 'Y' or 'N': ";
-            eargv[1] = NULL;
-            c = (char)error_message(eargv);
-            to_uppercase(c);
-            if (c == 'Y') {
-                free(eargv[0]);
-                eargv[0] = "\nExiting program now.\n";
-                eargv[1] = NULL;
-                close_curses();
-                sig_dfl_mode();
-                restore_shell_tioctl();
-                _exit(1);
-            }
-        }
+        strcpy(tmp_str, "Caught signal - Press any key");
+        c = (char)display_error_message(tmp_str);
+        close_curses();
+        sig_dfl_mode();
+        restore_shell_tioctl();
+        _exit(1);
     }
     sig_prog_mode();
     return;

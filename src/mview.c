@@ -9,21 +9,6 @@
 
 int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
           int begx) {
-    /*
-     * P: DefPrompt        {S-Short, L-Long, N-None}[String]
-     * m  Medium Prompt    for reverse compatibility only
-     * M  Long Prompt      for reverse compatibility only
-     * c  f_at_end_clear   clear screen at end
-     * h  errflg           display command line help
-     * i  f_ignore_case    ignore case in search
-     * r  f_at_end_remove  remove file at end of program
-     * s  f_squeeze        squeeze multiple blank lines
-     * t: tab_stop         number of spaces in tab
-     * w:                  window initialization string
-     *                         lllcccLLLCCCC
-     * +  start_cmd        Command to execute on start
-     */
-
     if (!view)
         view = new_view(init, argc, argv, begy, begx);
     else
@@ -58,6 +43,7 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     }
     view->begy = begy;
     view->begx = begx;
+    view->f_full_screen = false;
     if (!init_view_boxwin(view)) {
         view_file(view);
         win_del();

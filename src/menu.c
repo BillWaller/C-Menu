@@ -2,7 +2,7 @@
     Bill Waller
     billxwaller@gmail.com
 
-    This is the main file for mapp, a terminal-based application
+    This is the main file for C-Menu, a terminal-based application
     launcher and menu system.
 
     It operates by reading a menu description file and displaying
@@ -12,7 +12,6 @@
     Several ancillary files provide supporting functionality, including
     handling terminal I/O settings, managing the menu structure,
     and rendering the interface using the ncurses library.
-
  */
 
 #include "menu.h"
@@ -25,12 +24,15 @@ int main(int argc, char **argv) {
     open_curses(init);
     sig_prog_mode();
     capture_curses_tioctl();
-    win_init_attrs(init->fg_color, init->bg_color, init->bo_color);
+    win_init_attrs(stdscr, init->fg_color, init->bg_color, init->bo_color);
     begy = LINES / 14;
     begx = COLS / 14;
     new_menu(init, init->argc, init->argv, begy, begx);
     menu = init->menu;
     parse_menu_description(init);
+    /* ╭───────────────────────────────────────────────────────────────────╮
+       │ MENU_ENGINE                                                       │
+       ╰───────────────────────────────────────────────────────────────────╯ */
     menu_engine(init);
     close_curses();
     sig_dfl_mode();

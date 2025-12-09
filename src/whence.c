@@ -8,6 +8,8 @@
 
 #include <fcntl.h>
 #include <getopt.h>
+#include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,20 +17,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#ifndef TRUE
 #define TRUE 1
-#endif
-#ifndef FALSE
 #define FALSE 0
-#endif
-#ifndef PATH_MAX
-#define PATH_MAX 256
-#endif
-
 #define FAIL -1
-#define PATH_MAX 256
 
-int f_all, f_display_help, f_verbose;
+bool f_all, f_display_help, f_verbose;
 char *path_p;
 char path_s[PATH_MAX];
 char *file_name[PATH_MAX + 1];

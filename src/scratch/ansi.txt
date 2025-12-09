@@ -1,0 +1,35 @@
+ANSI escape codes
+ECMA-48 ANSI escape codes (1976)(also known as ISO/IEC 6429) are a standard for in-band signaling to control cursor location, color, font styling, and other options on text terminals and terminal emulators. They are widely used in command-line interfaces and terminal applications.
+CSI ESC[
+OSI ESC]
+OSC-52 Copy to clipboard
+OSC-8 Hyperlinks
+
+
+def convert_ansi_to_ncurses(ansi_string, window):
+    current_attributes = 0 # Track ncurses attributes
+    current_color_pair = 0 # Track ncurses color pair
+
+    # Initialize ncurses colors if not already done
+    # start_color()
+    # init_pair(1, COLOR_RED, COLOR_BLACK) # Example color pair
+
+    while ansi_string is not empty:
+        if ansi_string starts with ANSI escape sequence:
+            parse ansi_sequence
+            if ansi_sequence is for color:
+                update current_color_pair based on ANSI color
+                wattron(window, COLOR_PAIR(current_color_pair))
+            else if ansi_sequence is for attribute:
+                update current_attributes based on ANSI attribute
+                wattron(window, current_attributes)
+            else if ansi_sequence is for cursor movement:
+                call wmove(window, row, col)
+            else if ansi_sequence is for clearing:
+                call appropriate ncurses clearing function
+            remove ansi_sequence from ansi_string
+        else:
+            extract a segment of text without ANSI sequences
+            convert text to wide characters (wchar_t array)
+            waddwstr(window, wide_char_text)
+            remove text segment from ansi_string

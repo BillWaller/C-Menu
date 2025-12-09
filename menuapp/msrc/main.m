@@ -1,23 +1,28 @@
 :                APPLICATIONS
 :
 :
-:      Yast
-!exec rsh -c ~/menuapp/bin/yast
+:      Neovim
+!exec nvim
+:      Root Neovim
+!exec rsh -c nvim
 :      Full Screen (root) Shell
 !exec rsh
 :       Test Curses Keys
 !ckeys
-:       Write Configuration File
-!write_config
-:       Install Configuration File
-!~/menuapp/user/inst_config >~/menuapp/user/shell_msg
+:       View Scan Build Output
+!view scan-build.out
+:       Installment Loan Calculator
+!form iloan.f
 :       Pick Edit a File
 !pick -i picklist -M -c vi picklist.out
+:      Listener Research
+!form listadd.d
 :       Cash Receipts
-!form receipts.f receipt.sh
-:
+!form receipt.f receipt.sh
+:      Test Fields
+!form -d fields.f -A fields.ans
 :      Help
-!help ~/menuapp/doc/applications.hlp
+!view -C 60 -L 27 /home/bill/menuapp/help/view.help
 :
 :      Exit Applications
 !return

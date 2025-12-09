@@ -13,69 +13,70 @@ int parse_menu_description(Init *);
 char get_command_type(char *);
 void free_menu_line(Line *);
 
+/* ╭───────────────────────────────────────────────────────────────────╮
+   │ PARSE_MENU_DESCRIPTION                                            │
+   ╰───────────────────────────────────────────────────────────────────╯ */
 int parse_menu_description(Init *init) {
     FILE *fp;
     char tmp_buf[MAXLEN + 1];
     char in_buf[MAXLEN + 1];
+    char *in_buf_p;
     int Pos;
     unsigned char ltr;
     unsigned char fltr[127];
-    int col, cnt;
+    int directive;
     int l;
-    char *s, *d, *e, *p;
+    char *s, *d, *e;
     menu = init->menu;
-    if ((fp = fopen(menu->mapp_spec, "r")) == NULL) {
+    fp = fopen(menu->mapp_spec, "r");
+    if (fp == NULL) {
         strncat(tmp_buf, "file not found", MAXLEN);
         abend(-1, tmp_buf);
     }
     while ((fgets(in_buf, MAXLEN, fp)) != NULL) {
         if (in_buf[0] == '\0')
             continue;
-        switch ((int)in_buf[0]) {
+        chrep(in_buf, '\r', '\0');
+        chrep(in_buf, '\n', '\0');
+        chrep(in_buf, '\t', ' ');
+        in_buf_p = in_buf;
+        directive = *in_buf_p;
+        in_buf_p++;
+        strncpy(tmp_buf, in_buf_p, MAXLEN);
+        trim(tmp_buf);
+        l = strlen(tmp_buf);
+        if (!l)
+            continue;
+        switch (directive) {
         case '#':
             break;
+            /*  ╭──────────────────────────────────────────────────╮
+                │ '!' ====> MENU COMMAND                           │
+                ╰──────────────────────────────────────────────────╯ */
         case '!':
             if (!menu->line_idx)
                 break;
             if (menu->line[menu->line_idx - 1]->type != MT_CENTERED_TEXT)
                 break;
             menu->line_idx--;
-
-            s = in_buf; /* in_buf -> command_str */
-            s++;
-            l = 0;
-            while (*s != '\n' && *s != '\0') {
-                s++;
-                l++;
-            }
-            if (l + 1 > MAX_COLS)
-                l = MAX_COLS - 1;
-            d = menu->line[menu->line_idx]->command_str =
-                (char *)malloc(MAX_COLS + 1);
-            if (!d) {
-                sprintf(tmp_str, "malloc(%d bytes) failed M-L[%d]->command_str",
-                        MAX_COLS + 1, menu->line_idx);
+            l = strlen(tmp_buf);
+            if (l + 1 > MAXLEN)
+                break;
+            /*  ╭───────────────────────────────────────────────────╮
+                │ MENU COMMAND_STR                                  │
+                ╰───────────────────────────────────────────────────╯ */
+            menu->line[menu->line_idx]->command_str =
+                (char *)malloc(MAXLEN + 1);
+            if (!menu->line[menu->line_idx]->command_str) {
+                sprintf(tmp_str,
+                        "0-malloc(%d bytes) failed M-L[%d]->command_str",
+                        MAXLEN + 1, menu->line_idx);
                 abend(-1, tmp_str);
             }
-            e = d + l;
-            s = in_buf;
-            s++;
-            while (*s != '\0' && d < e) {
-                if (*s == '\t')
-                    *s = ' ';
-                *d++ = *s++;
-            }
-            *d = (char)'\0';
-            s = menu->line[menu->line_idx]->command_str;
-            d = tmp_buf;
-            while (*s != '\0')
-                *d++ = *s++;
-            *d = '\0';
+            menu->line[menu->line_idx]->command_str = strdup(tmp_buf);
             menu->line[menu->line_idx]->command_type =
                 get_command_type(tmp_buf);
-
-            s = menu->line[menu->line_idx]
-                    ->raw_text; /* raw_text -> choice_text */
+            s = menu->line[menu->line_idx]->raw_text;
             if (*s == '-' || *s == '_') {
                 s++;
                 ltr = *s++;
@@ -84,15 +85,20 @@ int parse_menu_description(Init *init) {
             l = 0;
             while (*s++ != '\0')
                 l++;
-            if (l + 1 > MAX_COLS)
-                l = MAX_COLS - 1;
-            d = menu->line[menu->line_idx]->choice_text =
-                (char *)malloc(MAX_COLS + 1);
-            if (!d) {
-                sprintf(tmp_str, "malloc(%d bytes) failed M-L[%d]->choice_text",
-                        MAX_COLS + 1, menu->line_idx);
+            if (l + 1 > MAXLEN)
+                l = MAXLEN - 1;
+            /*  ╭───────────────────────────────────────────────────╮
+                │ MENU COMMAND CHOICE_TEXT                          │
+                ╰───────────────────────────────────────────────────╯ */
+            menu->line[menu->line_idx]->choice_text =
+                (char *)malloc(MAXLEN + 1);
+            if (!menu->line[menu->line_idx]->choice_text) {
+                sprintf(tmp_str,
+                        "1-malloc(%d bytes) failed M-L[%d]->choice_text",
+                        MAXLEN + 1, menu->line_idx);
                 abend(-1, tmp_str);
             }
+            d = menu->line[menu->line_idx]->choice_text;
             e = d + l;
             s = menu->line[menu->line_idx]->raw_text;
             if (*s == '-' || *s == '_')
@@ -112,65 +118,37 @@ int parse_menu_description(Init *init) {
             menu->line_idx++;
             break;
 
+        /*  ╭───────────────────────────────────────────────────────╮
+            │ ':' ====> MENU TEXT                                   │
+            ╰───────────────────────────────────────────────────────╯ */
         case ':':
-            s = in_buf;
-            s++;
-            d = tmp_buf;
-            e = d + MAX_COLS;
-            while (*s == ' ' || *s == '\t')
-                s++;
-            l = 0;
-            while (*s != '\n' && *s != '\0' && d < e) {
-                if (*s == '\t')
-                    *s = ' ';
-                *d++ = *s++;
-                l++;
-            }
-            *d = '\0';
-            if (!l)
-                break;
-            s = tmp_buf;
-            if (!l)
-                break;
+            chrep(tmp_buf, '\t', ' ');
+            l = strlen(tmp_buf);
             if (l > menu->text_max_len)
                 menu->text_max_len = l;
             if (!menu->title[0]) { /* in_buf -> Title */
-                if (l + 5 > MAX_COLS)
-                    l = MAX_COLS - 5;
-                strncpy(menu->title, tmp_buf, MAXLEN - 1);
-                e = d + l;
-                while (*s != '\0' && d < e)
-                    *d++ = *s++;
-                *d = '\0';
+                if (l + 5 > MAXLEN)
+                    l = MAXLEN - 5;
+                strncpy(menu->title, tmp_buf, l);
                 l += 4;
                 if (l > menu->text_max_len)
                     menu->text_max_len = l;
-            } else { /* in_buf -> raw_text */
+            } else {
+                /*  ╭───────────────────────────────────────────────╮
+                    │ MENU TEXT LINE MALLOC                         │
+                    ╰───────────────────────────────────────────────╯ */
                 menu->line[menu->line_idx] = (Line *)malloc(sizeof(Line));
                 if (menu->line[menu->line_idx] == (Line *)0) {
-                    sprintf(tmp_str, "malloc(%ld bytes) failed menu->line[%d]",
+                    sprintf(tmp_str,
+                            "2-malloc(%ld bytes) failed menu->line[%d]",
                             sizeof(Line), menu->line_idx);
                     abend(-1, tmp_str);
                 }
                 menu->line[menu->line_idx]->type = MT_CENTERED_TEXT;
-                if (*s == '.') {
-                    l--;
-                    s++;
-                }
-                if (l + 1 > MAX_COLS)
-                    l = MAX_COLS - 1;
-                d = menu->line[menu->line_idx]->raw_text =
-                    (char *)malloc(MAX_COLS + 1);
-                if (!d) {
-                    sprintf(tmp_str,
-                            "malloc(%d bytes) failed M-L[%d]->raw_text",
-                            MAX_COLS + 1, menu->line_idx);
-                    abend(-1, tmp_str);
-                }
-                e = d + l;
-                while (*s != '\0' && d < e)
-                    *d++ = *s++;
-                *d = (char)'\0';
+                /*  ╭───────────────────────────────────────────────╮
+                    │ MENU TEXT RAW_TEXT                            │
+                    ╰───────────────────────────────────────────────╯ */
+                menu->line[menu->line_idx]->raw_text = strdup(tmp_buf);
                 menu->line[menu->line_idx]->choice_text = NULL;
                 menu->line[menu->line_idx]->choice_letter = '\0';
                 menu->line[menu->line_idx]->letter_pos = 0;
@@ -183,95 +161,10 @@ int parse_menu_description(Init *init) {
                 menu->line_idx++;
             }
             break;
-
+        /*  ╭───────────────────────────────────────────────────────╮
+            │ '?' MYSTERY DIRECTIVE                                 │
+            ╰───────────────────────────────────────────────────────╯ */
         case '?':
-            if (!menu->line_idx)
-                break;
-            if (menu->line[menu->line_idx - 1]->type != MT_CENTERED_TEXT)
-                break;
-            menu->line_idx--;
-            s = in_buf;
-            s++;
-            d = tmp_buf;
-            while (*s != '?' && *s != '\0' && *s != '\n')
-                *d++ = *s++;
-            *d = '\0';
-            if (*s != '?' || (col = atoi(tmp_buf)) < 0 || col >= MAX_COLS) {
-                menu->line[menu->line_idx]->option_cnt = 0;
-                break;
-            }
-            menu->line[menu->line_idx]->option_col = col;
-            cnt = 0;
-            p = s;
-            while (*++p != '\0' && *p != '\n') {
-                d = tmp_buf;
-                l = 0;
-                while (*p != '?' && *p != '\0' && *p != '\n') {
-                    *d++ = *p++;
-                    l++;
-                }
-                *d = '\0';
-                if (!l)
-                    break;
-                s = tmp_buf;
-                if (l + 1 > MAX_COLS)
-                    l = MAX_COLS - 1;
-                d = menu->line[menu->line_idx]->option_ptr[cnt] =
-                    (char *)malloc(MAX_COLS + 1);
-                if (!d) {
-                    sprintf(tmp_str,
-                            "malloc(%d bytes) failed M-L[%d]->option_ptr[%d]",
-                            MAX_COLS + 1, menu->line_idx, cnt);
-                    abend(-1, tmp_str);
-                }
-                e = d + l;
-                while (*s != '\0' && d < e)
-                    *d++ = *s++;
-                *d = (char)'\0';
-                if (l > menu->option_max_len)
-                    menu->option_max_len = l;
-                cnt++;
-                if (cnt >= MAXOPTS)
-                    break;
-            }
-            menu->line[menu->line_idx]->option_cnt = cnt - 1;
-            menu->line[menu->line_idx]->option_idx = 0;
-            menu->line[menu->line_idx]->command_type = CT_TOGGLE;
-
-            s = menu->line[menu->line_idx]
-                    ->raw_text; /* raw_text -> choice_text */
-            if (*s == '-' || *s == '_') {
-                s++;
-                ltr = *s++;
-            } else
-                ltr = *s;
-            l = 0;
-            while (*s++ != '\0')
-                l++;
-            if (l + 1 > MAX_COLS)
-                l = MAX_COLS - 1;
-            d = menu->line[menu->line_idx]->choice_text =
-                (char *)malloc(MAX_COLS + 1);
-            if (d == (char *)0) {
-                sprintf(tmp_str, "malloc(%d bytes) failed M-L[%d]->choice_text",
-                        MAX_COLS + 1, menu->line_idx);
-                abend(-1, tmp_str);
-            }
-            e = d + l;
-            s = menu->line[menu->line_idx]->raw_text;
-            if (*s == '-' || *s == '_')
-                s += 2;
-            while (*s != '\0' && d < e)
-                *d++ = *s++;
-            *d = (char)'\0';
-            if (l > menu->choice_max_len)
-                menu->choice_max_len = l;
-            if (menu->line[menu->line_idx]->command_type == CT_RETURN)
-                menu->line[menu->line_idx]->choice_letter = 'Q';
-            else
-                menu->line[menu->line_idx]->choice_letter = ltr;
-            menu->line[menu->line_idx]->type = MT_CHOICE;
-            menu->line_idx++;
             break;
 
         case ' ':
@@ -284,6 +177,9 @@ int parse_menu_description(Init *init) {
         }
     }
     fclose(fp);
+    /* ╭────────────────────────────────────────────────────────────╮
+       │                                                            │
+       ╰────────────────────────────────────────────────────────────╯ */
 
     menu->item_count = menu->line_idx;
     for (ltr = '0'; ltr < 'z'; ltr++)
@@ -330,6 +226,9 @@ int parse_menu_description(Init *init) {
         menu->line[menu->line_idx]->letter_pos = Pos;
     }
 
+    /* ╭────────────────────────────────────────────────────────────╮
+       │                                                            │
+       ╰────────────────────────────────────────────────────────────╯ */
     menu->lines = menu->item_count;
     if (menu->option_max_len > 0)
         menu->option_max_len += 2;
@@ -337,7 +236,7 @@ int parse_menu_description(Init *init) {
         menu->cols = menu->text_max_len;
     else
         menu->cols = menu->choice_max_len + menu->option_max_len + 6;
-    if (menu->cols >= MAX_COLS)
+    if (menu->cols >= MAXLEN)
         display_error_message("line too long");
     menu->option_offset = menu->choice_max_len + 7;
 
@@ -369,8 +268,8 @@ int parse_menu_description(Init *init) {
             l++;
         }
         *d = '\0';
-        if (l + 1 > MAX_COLS)
-            l = MAX_COLS - 1;
+        if (l + 1 > MAXLEN)
+            l = MAXLEN - 1;
         s = tmp_buf;
         d = menu->line[menu->line_idx]->choice_text;
         e = d + l;
@@ -382,6 +281,9 @@ int parse_menu_description(Init *init) {
     return (0);
 }
 
+/* ╭───────────────────────────────────────────────────────────────╮
+   │ GET_COMMAND_TYPE                                              │
+   ╰───────────────────────────────────────────────────────────────╯ */
 char get_command_type(char *t) {
     char *s, *p;
     s = p = t;
@@ -424,6 +326,9 @@ char get_command_type(char *t) {
     return (CT_UNDEFINED);
 }
 
+/* ╭────────────────────────────────────────────────────────────────╮
+   │ FREE_MENU_LINE                                                 │
+   ╰────────────────────────────────────────────────────────────────╯ */
 void free_menu_line(Line *line) {
     int j;
 

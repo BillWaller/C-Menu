@@ -4,10 +4,23 @@
  * Bill Waller
  */
 
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ ILOAN - INSTALLMENT LOAN CALCULATOR                           │
+    │                                                               │
+    │ Iloan is a trivial application to demonstrate the how         │
+    │ a command-line program can be integrated into C-Menu Form     │
+    │ with simple file i-o.                                         │
+    │                                                               │
+    │ This feature clearly needs lots of work, including            │
+    │ more sophisticated serialization and communications.          │
+    ╰───────────────────────────────────────────────────────────────╯ */
+
 #include <math.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #define FALSE 0
@@ -15,6 +28,7 @@
 
 char in_str[BUFSIZ + 1];
 
+void numbers(char *d, char *s);
 double calculate_i(double, double, double);
 double calculate_n(double, double, double);
 double calculate_pmt(double, double, double);
@@ -24,58 +38,122 @@ void accept_str(char *s);
 char *format_currency(float);
 char *format_interest(float);
 double accept_pv();
-double accept_n(double);
-double accept_i(double, double);
-double accept_pmt(double, double, double);
+double accept_n();
+double accept_i();
+double accept_pmt();
 void error_press_any_key(char *);
 void ABEND(int);
+int f_pv = 0;
+int f_n = 0;
+int f_i = 0;
+int f_pmt = 0;
+bool f_quiet = false;
 
-int main() {
-    double pv, pmt, i, n;
+int main(int argc, char **argv) {
+    double pv = 0, pmt = 0, i = 0, n = 0;
+    char tmp_str[BUFSIZ];
 
     signal(SIGINT, ABEND);
     signal(SIGQUIT, ABEND);
     signal(SIGHUP, ABEND);
-    printf("\nInstallment Loan Calculator\n\n");
-    printf("You will be prompted to enter:\n\n");
-    printf("    Present Value\n");
-    printf("    Payment Amount\n");
-    printf("    Number of Payments\n");
-    printf("    Interest Rate\n\n");
-    printf("Three of these values must be greater than 0.  The field\n");
-    printf("with a value of 0 will be calculated.\n\n");
 
-    while (1) {
-        pmt = 0;
-        if (!(pv = accept_pv()))
-            break;
-        if (!(n = accept_n(pv)))
-            break;
-        if (!(i = accept_i(pv, n)))
-            break;
-        if (pv == 0 || n == 0 || i == 0)
-            if (!(pmt = accept_pmt(pv, n, i)))
-                break;
-        if (pv == 0) {
-            pv = calculate_pv(n, i, pmt);
-            break;
+    if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+        printf("Usage: iloan [present_value number_of_payments "
+               "interest_rate payment_amount]\n\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    if (argc > 5) {
+        numbers(tmp_str, argv[1]);
+        sscanf(tmp_str, "%lf", &pv);
+        sscanf(argv[2], "%lf", &n);
+        sscanf(argv[3], "%lf", &i);
+        numbers(tmp_str, argv[4]);
+        sscanf(tmp_str, "%lf", &pmt);
+        strcpy(tmp_str, argv[5]);
+        if (pv != 0)
+            f_pv = 1;
+        if (n != 0)
+            f_n = 1;
+        if (i != 0)
+            f_i = 1;
+        if (pmt != 0)
+            f_pmt = 1;
+        if (f_pv + f_n + f_i + f_pmt < 3) {
+            error_press_any_key(
+                "Error: At least three values must be greater than zero.");
+            exit(EXIT_FAILURE);
         }
-        // if (pmt == 0) {
-        //     pmt = calculate_pmt(pv, n, i);
-        //     break;
-        // }
-        if (n == 0) {
-            n = calculate_n(pv, i, pmt);
-            break;
+        f_quiet = true;
+    } else {
+        if (argc != 1) {
+            printf("Usage: iloan [present_value number_of_payments "
+                   "interest_rate payment_amount]\n\n");
+            exit(EXIT_FAILURE);
+        } else {
+            if (argc == 1) {
+                printf("\nInstallment Loan Calculator\n\n");
+                printf("Three of these values must be greater than 0.  The "
+                       "field\n");
+                printf("with a value of 0 will be calculated.\n\n");
+                while (f_pv + f_n + f_i + f_pmt < 3) {
+                    if (pv == 0) {
+                        pv = accept_pv();
+                        if (pv != 0)
+                            f_pv = 1;
+                    }
+                    if (n == 0) {
+                        n = accept_n();
+                        if (n != 0)
+                            f_n = 1;
+                    }
+                    if (i == 0) {
+                        i = accept_i();
+                        if (i != 0)
+                            f_i = 1;
+                    }
+                    if (pmt == 0) {
+                        pmt = accept_pmt();
+                        if (pmt != 0)
+                            f_pmt = 1;
+                    }
+                    if (f_pv + f_n + f_i + f_pmt < 3) {
+                        error_press_any_key("Error: At least three values must "
+                                            "be greater than zero.");
+                    }
+                }
+                printf("\nYou entered:\n\n");
+                if (pv != 0)
+                    printf("Present Value - - - - - -> %s\n",
+                           format_currency(pv));
+                if (n != 0)
+                    printf("Number of Payments  - - -> %s\n",
+                           format_currency(n));
+                if (i != 0)
+                    printf("Interest Rate - - - - - -> %s\n",
+                           format_interest(i));
+                if (pmt != 0)
+                    printf("Payment Amount  - - - - -> %s\n",
+                           format_currency(pmt));
+                printf("\n\nCalculation result:\n\n");
+            }
         }
-        if (i == 0) {
-            if ((pmt * n) >= pv) {
-                i = calculate_i(pv, n, pmt);
-                break;
-            } else
-                error_press_any_key("(Payment Amount * Number of Payments) is "
-                                    "less than Present Value");
-        }
+    }
+    if (pv == 0)
+        pv = calculate_pv(n, i, pmt);
+    else if (n == 0)
+        n = calculate_n(pv, i, pmt);
+    else if (i == 0)
+        i = calculate_i(pv, n, pmt);
+    else if (pmt == 0)
+        pmt = calculate_pmt(pv, n, i);
+
+    if (f_quiet) {
+        printf("%s\n", format_currency(pv));
+        printf("%s\n", format_currency(n));
+        printf("%s\n", format_interest(i));
+        printf("%s\n", format_currency(pmt));
+        printf("%s\n", tmp_str);
     }
     signal(SIGINT, SIG_DFL);
     signal(SIGQUIT, SIG_DFL);
@@ -102,7 +180,7 @@ double accept_pv() {
     return (pv);
 }
 
-double accept_n(double pv) {
+double accept_n() {
     double n;
     while (1) {
         accept_str("Number of Payments > ");
@@ -110,24 +188,18 @@ double accept_n(double pv) {
             n = atof(in_str);
             if (n < 0)
                 error_press_any_key("Number of Payments can't be less than 0");
-            else {
-                if (pv == 0 && n == 0) {
-                    error_press_any_key(
-                        "Present Value and Number of Payments both 0");
-                    return (FALSE);
-                } else
-                    break;
-            }
+            else
+                break;
         } else
             error_press_any_key("Number of Payments must be numeric");
     }
     return (n);
 }
 
-double accept_i(double pv, double n) {
+double accept_i() {
     double i;
     while (1) {
-        accept_str("Interest Rate - - -> ");
+        accept_str("Rate (annual) - - -> ");
         if (in_str[0] == '\0')
             i = 0;
         else {
@@ -135,19 +207,8 @@ double accept_i(double pv, double n) {
                 i = atof(in_str);
                 if (i < 0)
                     error_press_any_key("interest Rate can't be less than 0");
-                else {
-                    if (pv == 0 && i == 0) {
-                        error_press_any_key(
-                            "Present Value and interest Rate both 0");
-                        return (FALSE);
-                    }
-                    if (n == 0 && i == 0) {
-                        error_press_any_key(
-                            "Number of Payments and Interest Rate both 0");
-                        return (FALSE);
-                    } else
-                        break;
-                }
+                else
+                    break;
             } else
                 error_press_any_key("Interest Rate must be numeric");
         }
@@ -155,7 +216,7 @@ double accept_i(double pv, double n) {
     return (i);
 }
 
-double accept_pmt(double pv, double n, double i) {
+double accept_pmt() {
     double pmt;
     while (1) {
         accept_str("Payment Amount  - -> ");
@@ -164,21 +225,6 @@ double accept_pmt(double pv, double n, double i) {
         else {
             if (is_numeric(in_str)) {
                 pmt = atof(in_str);
-                if (pv == 0 && pmt == 0) {
-                    error_press_any_key(
-                        "Present Value and Payment Amount both 0");
-                    return (FALSE);
-                }
-                if (n == 0 && pmt == 0) {
-                    error_press_any_key(
-                        "Number of Payments and Payment Amount both 0");
-                    return (FALSE);
-                }
-                if (i == 0 && pmt == 0) {
-                    error_press_any_key(
-                        "Interest Rate and Payment Amount both 0");
-                    return (FALSE);
-                }
                 break;
             } else
                 error_press_any_key("Payment Amount must be numeric");
@@ -196,18 +242,25 @@ void error_press_any_key(char *s) {
 double calculate_pv(double n, double i, double pmt) {
     double i1, pv;
 
+    if (n == 0 || i == 0 || pmt == 0)
+        error_press_any_key(
+            "3 non-zero values required to calculate Present Value");
     i1 = i / 1200;
     pv = pmt * (1 - pow(1 + i1, -n)) / i1;
-    printf("Present Value - - - - - -> %s\n", format_currency(pv));
+    if (!f_quiet)
+        printf("Present Value - - - - - -> %s\n", format_currency(pv));
     return (pv);
 }
 
 double calculate_n(double pv, double i, double pmt) {
     double i1, n;
-
+    if (pv == 0 || i == 0 || pmt == 0)
+        error_press_any_key("3 non-zero values required to calculate "
+                            "Number of Payments");
     i1 = i / 1200;
     n = -log(1 - pv * i1 / pmt) / log(1 + i1);
-    printf("Number of Payments  - - -> %s\n", format_currency(n));
+    if (!f_quiet)
+        printf("Number of Payments  - - -> %s\n", format_currency(n));
     return (n);
 }
 
@@ -221,7 +274,9 @@ double calculate_i(double pv, double n, double pmt) {
     double fi;
     double fman;
     double fmann;
-
+    if (pv == 0 || n == 0 || pmt == 0)
+        error_press_any_key(
+            "3 non-zero values required to calculate Interest Rate");
     ffact = pv / pmt;
     xdelta = 0;
     if (ffact < n) {
@@ -241,16 +296,20 @@ double calculate_i(double pv, double n, double pmt) {
             xdelta = fdelta;
     }
     i = i1 * 1200;
-    printf("interest Rate - - - - - -> %s\n", format_interest(i));
+    if (!f_quiet)
+        printf("interest Rate - - - - - -> %s\n", format_interest(i));
     return (i);
 }
 
 double calculate_pmt(double pv, double n, double i) {
     double i1, pmt;
-
+    if (pv == 0 || n == 0 || i == 0)
+        error_press_any_key(
+            "3 non-zero values required to calculate Payment Amount");
     i1 = i / 1200;
     pmt = pv * i1 / (1 - pow(1 + i1, -n));
-    printf("Payment Amount  - - - - -> %s\n", format_currency(pmt));
+    if (!f_quiet)
+        printf("Payment Amount  - - - - -> %s\n", format_currency(pmt));
     return (pmt);
 }
 
@@ -319,4 +378,14 @@ char *format_interest(float a) {
 void ABEND(int e) {
     printf("ABEND: Error %d:\n", e);
     exit(EXIT_FAILURE);
+}
+
+void numbers(char *d, char *s) {
+    while (*s != '\0') {
+        if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))
+            *d++ = *s++;
+        else
+            s++;
+    }
+    *d = '\0';
 }

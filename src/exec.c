@@ -16,6 +16,9 @@ void abend(int ec, char *s);
 void user_end();
 int nf_error(int ec, char *s);
 
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ FULL_SCREEN_FORK_EXEC                                             │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int full_screen_fork_exec(char **argv) {
     int rc;
 
@@ -32,6 +35,9 @@ int full_screen_fork_exec(char **argv) {
     return (rc);
 }
 
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ FULL_SCREEN_SHELL                                                 │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int full_screen_shell(char *shellCmdPtr) {
     int rc;
 
@@ -45,6 +51,9 @@ int full_screen_shell(char *shellCmdPtr) {
     return (rc);
 }
 
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ SHELL                                                             │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int shell(char *shellCmdPtr) {
     int Eargc;
     char *Eargv[MAXARGS];
@@ -64,6 +73,9 @@ int shell(char *shellCmdPtr) {
     return (rc);
 }
 
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ FORK_EXEC                                                         │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int fork_exec(char **argv) {
     pid_t pid;
     int status;
