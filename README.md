@@ -1,124 +1,270 @@
-# CMake Build
+# CMENU - A TUI Menu System
 
-## Building the Menu System
+## Programs: Menu, Form, Pick, View, and RSH
 
-- To build with Cmake and clang:
+CMENU is a lightweight, customizable, and easy-to-learn suite of programs
+for creating menus, entry forms, and pickers with a text-based user
+interface(TUI) for applications running on Linux and Unix-like operating
+systems. CMENU is designed to be simple to use while providing powerful
+features to implement menu driven frameworks for applications in
+terminal and terminal emulator environments.
 
-From the top level directory of this distribution:
+### CMENU
 
-```cd build
-$ ./build.sh
-$ make
-$ make install
+<img src="screenshots/sample_menu.m.png" alt="Curses Keys" title="Sample Menu" />
+
+MENU reads a simple description file like the one above and displays a menu to the user. When the user selects an item, MENU executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
+
+### Test Curses Keys
+
+Is a particular key not working for your project? Curses Keys (or CKeys)
+provides an easy way to determine whether the problem is with your code
+or your terminfo/termcap files. Or, if you just don't remember the key
+symbol for Curses. It also gives you the Octal, Decimal, and Hex codes
+for keys not defined in Curses, so you can provide your own custom keys.
+
+<img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
+
+### CMENU with PICK
+
+<img src="screenshots/Pick.png" />
+
+This program provides a list of objects from arguments or a text file
+and lets the user select any number to be written to a file or provided
+as arguments to an executable specified in the description file.
+
+### FORM
+
+FORM is a lightweight and flexible form handling library designed to simplify the process of creating, validating, and managing forms in text-based applications.
+
+It provides a straightforward API for defining form fields, handling user input, and performing validation checks.
+
+
+### FORM Key Features
+
+- Easy Form Creation: Define forms with various field types such as text, number, email, and more.
+- Validation: Built-in validation rules to ensure data integrity, including required fields, format checks, and custom validators.
+- User Input Handling: Seamlessly capture and process user input from the command line or text-based interfaces.
+- Customizable: Extendable architecture allowing developers to create custom field types and validation rules.
+- Integration: Designed to work well with other components of the C-Menu Project, enabling a cohesive development experience.
+
+### FORM Data Types
+
+<img src="screenshots/data-types.f.png" />
+
+<img src="screenshots/data-types.png" />
+
+FORM displays data entry forms based on a description file. It allows users
+to input data in a structured manner. The entered data can then be processed
+by a specified command or script.
+
+If you make a mistake, in the form description syntax, as I did below, you will
+get a notification pinpointing the problem. In this message, we can see that the
+format field on line 3 of "receipt.f" is invalid. I have a "3", and it should have been "String". The corrected line would be: "F!2!18!10!String".
+
+<img src="screenshots/form-error.png" />
+
+Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
+accounting, scheduling and management system. It was particularly useful
+as a front-end for our SQL database applications.
+
+<img src="screenshots/Receipt.png" />
+
+Need quick and easy Cash Receipts, General Journal, or wedding invitation
+list? FORM has you covered. The application shown above took about 10
+minutes from design to test. It doesn't post transactions, or keep running
+balances yet, but that's why we have people like you.
+
+FORM also makes a great front-end for SQL database queries.
+
+### A Sample Menu Description File
+
 ```
+H:SAMPLE MENU
 
-- To build using gnu make and gnuc:
+:Gnumeric
+!exec gnumeric
 
-From the top level directory of this distribution:
+:Shell Script
+!exec bash -c script.sh
 
-```
-$ cd src
-$ make
-$ make install
-```
+:Shell Script as Root
+!exec rsh -c script.sh
 
-> STOP 🛑 Read this! It applies to the Makefile in the "src" directory, and could
-> leave a glaring vulnerability in your system. If your target system will be available
-> to other users, you will need to change the permissions on "rsh" from 4711 to 0711
-> in the install section of src/Makefile. To do this, you will need to edit the
-> Makefile before running make install.
+:Full Screen (root) Shell
+!exec rsh
 
-```
-Change the last line of the install section.
-
-               program   target directory          perms
-               -------   ----------------          -----
-From ./instexe rsh       $(PREFIX)/bin    rsh       4711    bin    bin
-
-To:  ./instexe rsh       $(PREFIX)/bin    rsh       0711    bin    bin
-```
-
-"rsh" is simply a convenience tool to allow developers to quickly switch to
-superuser mode without having to use "sudo -s" or "su -". It is not required for
-normal operation of the menu system.
-
-## Running the Menu System
-
-- To start the menu system:
-
-```
-$ menu
-```
-
-## Configuring the Menu System
-
-The edit the menu system configuration:
-
-```
-$ vi ~/.minitrc
-```
-
-Application files are in ~/menuapp
-
-To edit the default top-level application description file:
-
-```
-$ vi ~/menuapp/main.m
-```
-
-```
-: APPLICATIONS
-:
-: Documentation
-!menu doc.m
-: System Setup
-!menu setup.m
-: More Applications
-!menu appl.m
-: Test Curses Keys
+:Test Curses Keys
 !ckeys
-: Write Configuration File
-!write_config
-: Install Configuration File
-!~/menuapp/inst_config ~/menuapp/shell_msg
-: Pick Edit a File
-!cpick -i picklist -c vi picklist.out
-: Display Banner
-!paint banner.d
-:
-: Help
-!view main.h
-:
-: Exit Applications
+
+:Pick Items From a List
+!pick -i picklist -M -c vi picklist.out
+
+:Cash Receipts
+!form receipt.d -c receipt.sh
+
+:Help
+!help ~/menuapp/doc/applications.hlp
+
+:Exit Applications
 !return
 ```
 
-~/menuapp/banner.d uses the menu system's paint application to to receive user
-input for an ascii-art banner message to be displayed on the screen.
-To edit the banner description file:
+As you can see, the description file is straightforward and easy to read. Each menu item consists of a label and a command to execute. The label is displayed in the menu, and the command is executed when the user selects that item.
+
+Here's just one example of how easy it is to create useful programs with the C-Menu Form facility.
+
+<img src="screenshots/iloan_f.png" alt="Curses Keys" title="Sample Application" />
+
+<img src="screenshots/iloan.png" alt="Curses Keys" title="Sample Application" />
+
+We hope you find CMENU useful for your projects. It's a powerful tool that can
+greatly simplify the process of creating text-based user interfaces for
+your applications.
+
+### VIEW
+
+VIEW is an easy-to-use text file viewer that allows users to view text files in a
+terminal environment. It supports basic navigation, regular expression
+search functionality, horizontal scrolling, ANSI escape highlighting, Unicode, and
+NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to provide contextual help or stand-alone, full-screen as a system pager.
+
+You may have noticed that Nvim doesn't render ANSI escape sequences. Why should it? How often do you need to edit a file with ANSI escape sequences? Generally, the user just needs to view that type of file, and that's what pagers like "less" and C-Menu view were designed to do.
+
+#### Nvim Screenshot
+
+<img src="screenshots/nvim-log.png" alt="nvim log" title="nvim log" />
+
+#### C-Menu View Screenshot
+
+<img src="screenshots/view.png" alt="View" title="View" />
+
+One especially useful feature of C-Menu View is its incredible speed with large
+text files, like system logs. C-Menu View can open and display multi-gigabyte text files almost instantaneously. While NVIM and other modern editors are outstanding for code editing, but don't even try to open multi-gigabyte file with them. C-Menu View handles large files without breaking a sweat, and zips through them with lightning speed.
+
+#### view ~/menuapp/help/view.help
+
+<img src="screenshots/view-help.png" alt="View Help" title="View Help" />
+
+Or maybe you just want to have Unicode glyphs and ANSI escape highlighting in
+your documentation.
+
+Here's the C-Menu description. As you can see, the view command on line 24 specifies the number of columns and lines (-C and -L respectively).
+
+<img src="screenshots/main.m.png" />
+
+
+### RSH
+
+<img src="screenshots/rsh.png" />
+
+Despite its name, RSH is not a shell. It is a shell runner, which allows
+you to specify your shell of choice, and provides a consistent environment
+for running shell scripts and commands. RSH was designed to be invoked from
+within MENU, FORM, or PICK to execute commands that require elevated
+privileges, but its functionality extends beyond that.
+
+You can execute commands in either user or root mode, making it a versatile
+tool for developing aplication front-ends. RSH ensures that your scripts
+and executables run in a controlled environment, reducing the chances of
+unexpected behavior due to differing shell environments. RSH forks and waits
+for its spawn to complete before returning control to the calling program.
+When executed under CMenu's signal handler, it catches and displays the
+exit status of the command, allowing for better error handling. Instead of
+using su -c or sudo to run commands as root, you can use rsh -c to achieve
+the same result in a more streamlined manner. You can literally have root
+access within a fraction of a second, making it ideal for work that
+requires frequent switching between user and root modes for various
+administrative tasks.
+
+Many system administrators and developers find RSH invaluable for tasks
+that require elevated privileges. RSH eliminates the need to repeatedly enter
+passwords or switch users, streamlining workflows and improving efficiency. We all
+know it's not a good idea to run everything as root, but sometimes a user want's to
+avoid precious seconds it takes to enter passwords for su. With RSH, it takes three
+keystrokes to enter root mode and two keystrokes to get out.
+
+Please be very careful when using RSH in setuid root mode. Keep the
+executable protected in your home directory with appropriate permissions
+to prevent promiscuous access by unauthorized users. RSH should be provided
+only to trusted users who understand the implications of executing commands
+with elevated privileges. Used inappropriately, it can lead to system
+instability or security vulnerabilities.
+
+## Features
+
+- Create and manage multiple menus, forms, and pickers
+
+- Define interfaces using simple configuration files
+
+- Perfect for shell scripting, command-line, and terminal based applications
+
+- Made for Linux and Unix-like operating systems
+
+- Blazingly fast, even on older hardware
+
+- Text-based user interface (TUI) using ncurses
+
+- Easily customize menu options and actions
+
+- Any level of sub-menus
+
+- Navigation using keyboard inputs the way God intended
+
+- Configurable appearance and behavior
+
+- Cross-platform compatibility
+
+- Open-source and free to use
+
+### CMENU Command Line Options
 
 ```
-$ vi ~/menuapp/banner.d
+usage: {menu|pick|form|view}
+
+long option          type      group       mask  flg description
+-------------------  -------   ----------  ----- --- --------------------------------
+--minitrc             string    file spec   mpfv  -a: configuration file spec
+--cmd_spec            string    misc        .pfv  -c: command executable
+--mapp_spec           string    file name   mpfv  -d: description spec
+--f_erase_remainder   yes/no    flag        ..f.  -e: erase remainder of line on enter
+--in_spec             string    file name   .p..  -i: input spec
+--mapp_home           string    directory   mpfv  -m: home directory
+--selections          integer   parameters  .p..  -n: number of selections
+--out_spec            string    file name   .p..  -o: output spec
+--f_at_end_remove     yes/no    flag        ...v  -r: remove file at end of program
+--f_squeeze           yes/no    flag        ...v  -s  squeeze multiple blank lines
+--tab_stop            integer   parameters  ...v  -t: number of spaces per tab
+--mapp_user           string    directory   mpfv  -u: user directory
+--f_ignore_case       yes/no    flag        ...v  -x: ignore case in search
+--f_at_end_clear      yes/no    flag        mpfv  -z  clear screen at end of program
+--answer_spec         string    file name   ..f.  -A: answer spec
+--bg_color            integer   parameters  mpfv  -B: background_color
+--cols                integer   parameters  mpfv  -C: height in columns
+--fg_color            integer   parameters  mpfv  -F: foreground_color
+--help_spec           string    file name   mpfv  -H: help spec
+--lines               integer   parameters  mpfv  -L: width in lines
+--f_mutiple_cmd_args  integer   parameters  mpfv  -M  multiple command arguments
+--bo_color            integer   parameters  mpfv  -O: border_color
+--prompt              string    misc        ...v  -P: prompt (S-Short, L-Long, N-None)[string]
+--start_cmd           string    misc        ...v  -S  command to execute at start of program
+--title               string    misc        mpfv  -T: title
+--begx                integer   parameters  mpfv  -X: begin on column
+--begy                integer   parameters  mpfv  -Y: begin on line
+--f_stop_on_error     yes/no    flag        mpfv  -Z  stop on error
+--mapp_data           string    directory   mpfv      data directory
+--mapp_help           string    directory   mpfv      help directory
+--mapp_msrc           string    directory   mpfv      source directory
 ```
 
-```
-:1:0:DISPLAY BANNER
-:3:5:Enter Banner Text
-!8!7!30!2!/usr/local/brt/cmenu/src/banner.sh
-```
+## MINITRC Runtime Configuration
 
-Lines beginning with : are display text.
+<img src="screenshots/minitrc.png" />
 
-Lines beginning with ! are commands for menu system.
+User's can have multiple runtime configurations. In the snippet above, the
+standard ISO 6429 / ECMA-48 colors have been redefined and orange has been
+added.
 
-Numbers within line segments are generally row and column positions. In the last
-line of banner.d, the numbers correspond to row, column, width, and validation type.
-The remainder of the line is a command to be executed with the user input as
-an argument.
+## Installation
 
-This is a work in progress. Additional features and documentation will be added
-if there is sufficient interest. Please send comments and suggestions to
-billxwaller@gmail.com.
-
-This program is distrubuted under the terms of the MIT lICENSE. See the file LICENSE
-in the type level directory of this distribution for details.
+To install CMENU, simply download the source code from the repository and follow the installation instructions provided in the INSTALL.md file.

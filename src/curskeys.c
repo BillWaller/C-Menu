@@ -47,6 +47,7 @@ int display_curses_keys() {
     }
     win = win_win[win_ptr];
     box = win_box[win_ptr];
+    keypad(win, TRUE);
     wattron(win, A_REVERSE);
     mvwaddstr(win, lines - 1, 0, " ESC to exit ");
     wattroff(win, A_REVERSE);
@@ -374,6 +375,40 @@ int display_curses_keys() {
         case KEY_UNDO:
             strcpy(kstr, "KEY_UNDO undo key");
             break;
+        case KEY_ALTDEL:
+            strcpy(kstr, "KEY_ALTDEL alt+delete");
+            break;
+        case KEY_ALTDOWN:
+            strcpy(kstr, "KEY_ALTDOWN alt+down");
+            break;
+        case KEY_ALTEND:
+            strcpy(kstr, "KEY_ALTEND alt+end");
+            break;
+        case KEY_ALTHOME:
+            strcpy(kstr, "KEY_ALTHOME alt+home");
+            break;
+        case KEY_ALTINS:
+            strcpy(kstr, "KEY_ALTINS alt+ins");
+            break;
+        case KEY_ALTLEFT:
+            strcpy(kstr, "KEY_ALTLEFT alt+left");
+            break;
+        case KEY_ALTPGDN:
+            strcpy(kstr, "KEY_ALTPGDN alt+pgdn");
+            break;
+        case KEY_ALTPGUP:
+            strcpy(kstr, "KEY_ALTPGUP alt+pgup");
+            break;
+        case KEY_ALTRIGHT:
+            strcpy(kstr, "KEY_ALTRIGHT alt+right");
+            break;
+        case KEY_ALTUP:
+            strcpy(kstr, "KEY_ALTUP alt+up");
+            break;
+            /*  ╭───────────────────────────────────────────────────────────────╮
+                │ MOUSE FUNCTIONS │
+                ╰───────────────────────────────────────────────────────────────╯
+             */
         case KEY_MOUSE:
             action[0] = '\0';
             if (getmouse(&event) == OK) {

@@ -1,0 +1,26 @@
+┌──────────────────────────────────────────────────────────┐
+│ This should be [1;31;40mred[0m on black                              │
+│ This should be [1;32;40mgreen[0m on black                            │
+│ This should be [1;33;40myellow[0m on black                           │
+│ This should be [1;34;40mblue[0m on black                             │
+│ This should be [1;35;40mmagenta[0m on black                          │
+│ This should be [1;36;40mcyan[0m on black                             │
+│ This should be [1;37;40mwhite[0m on black                            │
+│                                                          │
+│ The [1;31;40mFORM[0m description file consists of text lines which   │
+│ begin with single character directive  The character     │
+│ following the directive is used to delimit positional    │
+│ attributes                                               │
+├───┬──────────────────────────────────────────────────────┤
+│   │                                                      │
+│ [1;31;40mL[0m │ L:lines                                              │
+│🍟 │ C:columns                                            │
+│🍔 │ H:Text [1;34;40m(top line of window border)[0m                   │
+│🚜 │ T:line:column:Text                                   │
+│🚔 │ F:line:column:length:validation                      │
+│🐯 │   validation 1-none, 2-numeric, 3-currency           │
+│🧲 │ Comment - ignored by form                            │
+│🎃 │ Blank lines and spaces are treated as comments       │
+│🐞 │ Command to execute with fields as args               │
+│😃 │ Help File                                            │
+└───┴──────────────────────────────────────────────────────┘

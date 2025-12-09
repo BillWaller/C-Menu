@@ -13,6 +13,7 @@ void dump_opts_by_use(char *, char *);
 void sort_opts_by_name();
 void sort_opts_by_group();
 void sort_opts_by_desc();
+int strnz__cpy(char *, char *, int);
 static int comp_opt_desc(const void *, const void *);
 static int comp_opt_group(const void *, const void *);
 static int comp_opt_desc(const void *, const void *);
@@ -22,27 +23,28 @@ Opts *select_opt(char *);
 
 Opts opts[] = {
     {"minitrc", 0, 2, "mpfv", "a: configuration file spec"},
-    {"lines", 1, 4, "mpfv", "L: width in lines"},
-    {"cols", 1, 4, "mpfv", "C: height in columns"},
+    {"lines", 1, 4, "mpfv", "L: width in columns"},
+    {"cols", 1, 4, "mpfv", "C: height in lines"},
     {"begx", 1, 4, "mpfv", "X: begin on column"},
     {"begy", 1, 4, "mpfv", "Y: begin on line"},
+    {"title", 0, 3, "mpfv", "T: title"},
     {"fg_color", 1, 4, "mpfv", "F: foreground_color"},
     {"bg_color", 1, 4, "mpfv", "B: background_color"},
     {"bo_color", 1, 4, "mpfv", "O: border_color"},
+
     {"f_at_end_clear", 2, 5, "mpfv", "z  clear screen at end of program"},
     {"f_at_end_remove", 2, 5, "...v", "r: remove file at end of program"},
     {"f_erase_remainder", 2, 5, "..f.", "e: erase remainder of line on enter"},
     {"f_ignore_case", 2, 5, "...v", "x: ignore case in search"},
-    {"f_mutiple_cmd_args", 1, 4, "mpfv", "M  multiple command arguments"},
     {"f_squeeze", 2, 5, "...v", "s  squeeze multiple blank lines"},
+    {"f_mutiple_cmd_args", 1, 4, "mpfv", "M  multiple command arguments"},
     {"f_stop_on_error", 2, 5, "mpfv", "Z  stop on error"},
+    {"tab_stop", 1, 4, "...v", "t: number of spaces per tab"},
     {"prompt-type", 0, 3, "...v",
      "P: prompt (S-Short, L-Long, N-None)[string]"},
     {"prompt-str", 0, 3, "...v", "User supplied string"},
-    {"selections", 1, 4, ".p..", "n: number of selections"},
     {"start_cmd", 0, 3, "...v", "S  command to execute at start of program"},
-    {"tab_stop", 1, 4, "...v", "t: number of spaces per tab"},
-    {"title", 0, 3, "mpfv", "T: title"},
+    {"select_max", 1, 4, ".p..", "n: number of selections"},
     {"answer_spec", 0, 0, "..f.", "A: answer spec"},
     {"cmd_spec", 0, 3, ".pfv", "c: command executable"},
     {"help_spec", 0, 0, "mpfv", "H: help spec"},
@@ -54,6 +56,26 @@ Opts opts[] = {
     {"mapp_home", 0, 1, "mpfv", "m: home directory"},
     {"mapp_msrc", 0, 1, "mpfv", "   source directory"},
     {"mapp_user", 0, 1, "mpfv", "u: user directory"},
+    {"black", 3, 6, "mpfv", " "},
+    {"red", 3, 6, "mpfv", " "},
+    {"green", 3, 6, "mpfv", " "},
+    {"yellow", 3, 6, "mpfv", " "},
+    {"blue", 3, 6, "mpfv", " "},
+    {"magenta", 3, 6, "mpfv", " "},
+    {"cyan", 3, 6, "mpfv", " "},
+    {"white", 3, 6, "mpfv", " "},
+    {"orange", 3, 6, "mpfv", " "},
+    {"bblack", 3, 6, "mpfv", " "},
+    {"bred", 3, 6, "mpfv", " "},
+    {"bgreen", 3, 6, "mpfv", " "},
+    {"byellow", 3, 6, "mpfv", " "},
+    {"bblue", 3, 6, "mpfv", " "},
+    {"bmagenta", 3, 6, "mpfv", " "},
+    {"bcyan", 3, 6, "mpfv", " "},
+    {"bwhite", 3, 6, "mpfv", " "},
+    {"orange", 3, 6, "mpfv", " "},
+    {"bg", 3, 6, "mpfv", " "},
+    {"abg", 3, 6, "mpfv", " "},
     {"", 0, 0, "", ""}}; // End marker
 
 static int comp_opt_name(const void *o1, const void *o2) {
@@ -98,41 +120,47 @@ void dump_opts() {
     while (opts[i].name != NULL) {
         switch (opts[i].type) {
         case OT_STRING:
-            type = "string";
+            type = "str";
             break;
         case OT_INT:
-            type = "integer";
+            type = "int";
             break;
         case OT_BOOL:
-            type = "yes/no";
+            type = "t/f";
+            break;
+        case OT_HEX:
+            type = "hex";
             break;
         default:
-            type = "unknown";
+            type = "unk";
         }
         switch (opts[i].group) {
         case OG_FILES:
-            group = "file name";
+            group = "file";
             break;
         case OG_DIRS:
-            group = "directory";
+            group = "dir";
             break;
         case OG_SPECS:
-            group = "file spec";
+            group = "spec";
             break;
         case OG_MISC:
             group = "misc";
             break;
         case OG_PARMS:
-            group = "parameters";
+            group = "prm";
             break;
         case OG_FLAGS:
-            group = "flag";
+            group = "flg";
+            break;
+        case OG_COL:
+            group = "col";
             break;
         default:
-            group = "unknown";
+            group = "unk";
         }
-        printf("%02d %-18s  %-7s   %-10s  %-5s %s\n", i, opts[i].name, type,
-               group, opts[i].use, opts[i].desc);
+        printf("%02d %-18s %-7s %-4s %-5s %s\n", i, opts[i].name, type, group,
+               opts[i].use, opts[i].desc);
         i++;
     }
 }
@@ -167,60 +195,67 @@ void dump_opts_by_use(char *usage, char *mask) {
 
     printf("\n%s\n\n", usage);
 
+    printf("   long option        type grp  mask flg description\n");
     printf(
-        "long option          type      group       mask  flg description\n");
-    printf("-------------------  -------   ----------  ----- --- "
-           "--------------------------------\n");
+        "   ------------------ ---- ---- ---- --- -------------------------\n");
     while (opts[i].name != NULL) {
-        for (j = 0; j < 5; j++) {
+        for (j = 0; j < 4; j++) {
             if (mask[j] != '.' && mask[j] == opts[i].use[j])
                 break;
+            else
+                continue;
         }
-        if (j == 5) {
+        if (j == 4) {
             i++;
             continue;
         }
         switch (opts[i].type) {
         case OT_STRING:
-            type = "string";
+            type = "str";
             break;
         case OT_INT:
-            type = "integer";
+            type = "int";
             break;
         case OT_BOOL:
-            type = "yes/no";
+            type = "t/f";
+            break;
+        case OT_HEX:
+            type = "hex";
             break;
         default:
-            type = "unknown";
+            type = "   ";
         }
         switch (opts[i].group) {
         case OG_FILES:
-            group = "file name";
+            group = "file";
             break;
         case OG_DIRS:
-            group = "directory";
+            group = "dir";
             break;
         case OG_SPECS:
-            group = "file spec";
+            group = "spec";
             break;
         case OG_MISC:
             group = "misc";
             break;
         case OG_PARMS:
-            group = "parameters";
+            group = "prm";
             break;
         case OG_FLAGS:
             group = "flag";
             break;
+        case OG_COL:
+            group = "col";
+            break;
         default:
-            group = "unknown";
+            group = "   ";
         }
         if (opts[i].desc[0] == ' ')
             c = ' ';
         else
             c = '-';
-        printf("--%-18s  %-7s   %-10s  %-5s %c%s\n", opts[i].name, type, group,
-               opts[i].use, c, opts[i].desc);
+        printf("%02d %-18s %-4s %-4s %4s %c%-24s\n", i, opts[i].name, type,
+               group, opts[i].use, c, opts[i].desc);
         i++;
     }
 }
