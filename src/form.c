@@ -22,14 +22,14 @@ int main(int argc, char **argv) {
         } else {
             strcpy(tmp_str, "form->mapp_spec: ");
             strcat(tmp_str, form->mapp_spec);
-            strcat(tmp_str, "not found");
-            display_error_message("Error: No form specification file found");
+            strcat(tmp_str, " not found");
+            display_error_message(tmp_str);
         }
         close_curses();
         restore_shell_tioctl();
         return 1;
     }
-    form_process(init);
+    form_engine(init);
     close_curses();
     restore_shell_tioctl();
     return 0;

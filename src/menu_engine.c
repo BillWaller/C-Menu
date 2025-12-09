@@ -27,9 +27,9 @@ int menu_engine(Init *init) {
     }
     action = MA_INIT;
 
-    /* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-       ┃ DISPLAY_MENU                                          ┃
-       ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ DISPLAY_MENU                                                  │
+        ╰───────────────────────────────────────────────────────────────╯ */
     while (action == MA_INIT) {
         action = MA_DISPLAY_MENU;
         if (win_new(menu->lines, menu->cols, menu->begy, menu->begx,
@@ -85,9 +85,9 @@ int menu_engine(Init *init) {
     return (action);
 }
 
-/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-   ┃ MENU_CMD_PROCESSOR                                    ┃
-   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ MENU_CMD_PROCESSOR                                            │
+    ╰───────────────────────────────────────────────────────────────╯ */
 int menu_cmd_processor(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
@@ -179,6 +179,9 @@ int menu_cmd_processor(Init *init) {
         str_to_args(eargv, earg_str);
         full_screen_fork_exec(eargv);
         return (MA_INIT);
+        /*  ╭───────────────────────────────────────────────────────────────╮
+            │ MENU MOUSE FUNCTIONS                                          │
+            ╰───────────────────────────────────────────────────────────────╯ */
     case KEY_MOUSE:
         if (getmouse(&event) != OK)
             return (MA_ENTER_OPTION);
@@ -301,14 +304,15 @@ int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str);
         parse_opt_args(init, eargc, eargv);
         new_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
-        form_process(init);
+        form_engine(init);
         return (MA_DISPLAY_MENU);
 
     case CT_VIEW:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str);
         parse_opt_args(init, eargc, eargv);
-        mview(init, eargc, eargv, 0, 0, menu->begy + 1, menu->begx + 4);
+        mview(init, eargc, eargv, init->lines, init->cols, menu->begy + 1,
+              menu->begx + 4);
         return (MA_DISPLAY_MENU);
 
     case CT_CKEYS:
@@ -335,20 +339,6 @@ int menu_cmd_processor(Init *init) {
         return (MA_ENTER_OPTION);
 
     default:
-        // strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN -
-        // 1); for (i = 0; i < menu->item_count; i++) {
-        //     if (menu->line[i]->option_idx != 0) {
-        //         strncat(earg_str, " ", MAXLEN - 1);
-        //         strncat(
-        //             earg_str,
-        //             menu->line[i]->option_ptr[menu->line[i]->option_idx],
-        //             MAXLEN -
-        //                 strlen(menu->line[i]
-        //                            ->option_ptr[menu->line[i]->option_idx]));
-        //     }
-        // }
-        // full_screen_shell(earg_str);
-        // return (MA_DISPLAY_MENU);
         return (MA_ENTER_OPTION);
     }
     return 0;

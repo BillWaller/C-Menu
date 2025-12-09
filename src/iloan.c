@@ -4,6 +4,17 @@
  * Bill Waller
  */
 
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ ILOAN - INSTALLMENT LOAN CALCULATOR                           │
+    │                                                               │
+    │ Iloan is a trivial application to demonstrate the how         │
+    │ a command-line program can be integrated into C-Menu Form     │
+    │ with simple file i-o.                                         │
+    │                                                               │
+    │ This feature clearly needs lots of work, including            │
+    │ more sophisticated serialization and communications.          │
+    ╰───────────────────────────────────────────────────────────────╯ */
+
 #include <math.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -17,6 +28,7 @@
 
 char in_str[BUFSIZ + 1];
 
+void numbers(char *d, char *s);
 double calculate_i(double, double, double);
 double calculate_n(double, double, double);
 double calculate_pmt(double, double, double);
@@ -39,6 +51,7 @@ bool f_quiet = false;
 
 int main(int argc, char **argv) {
     double pv = 0, pmt = 0, i = 0, n = 0;
+    char tmp_str[BUFSIZ];
 
     signal(SIGINT, ABEND);
     signal(SIGQUIT, ABEND);
@@ -50,11 +63,14 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
 
-    if (argc == 5) {
-        pv = atof(argv[1]);
-        n = atof(argv[2]);
-        i = atof(argv[3]);
-        pmt = atof(argv[4]);
+    if (argc > 5) {
+        numbers(tmp_str, argv[1]);
+        sscanf(tmp_str, "%lf", &pv);
+        sscanf(argv[2], "%lf", &n);
+        sscanf(argv[3], "%lf", &i);
+        numbers(tmp_str, argv[4]);
+        sscanf(tmp_str, "%lf", &pmt);
+        strcpy(tmp_str, argv[5]);
         if (pv != 0)
             f_pv = 1;
         if (n != 0)
@@ -137,6 +153,7 @@ int main(int argc, char **argv) {
         printf("%s\n", format_currency(n));
         printf("%s\n", format_interest(i));
         printf("%s\n", format_currency(pmt));
+        printf("%s\n", tmp_str);
     }
     signal(SIGINT, SIG_DFL);
     signal(SIGQUIT, SIG_DFL);
@@ -361,4 +378,14 @@ char *format_interest(float a) {
 void ABEND(int e) {
     printf("ABEND: Error %d:\n", e);
     exit(EXIT_FAILURE);
+}
+
+void numbers(char *d, char *s) {
+    while (*s != '\0') {
+        if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))
+            *d++ = *s++;
+        else
+            s++;
+    }
+    *d = '\0';
 }

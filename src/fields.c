@@ -28,72 +28,78 @@
 #include <termios.h>
 #include <unistd.h>
 
-double field_fmt_currency(Form *form, char *currency_s);
-int field_fmt_decimal_int(Form *form, char *decimal_int_s);
-int field_fmt_hex_int(Form *form, char *hex_int_s);
-float field_fmt_float(Form *form, char *float_s);
-double field_fmt_double(Form *form, char *double_s);
-void scrub(char *, char *);
+bool is_valid_date(int, int, int);
+bool is_valid_time(int, int, int);
+double form_fmt_currency(Form *form, char *currency_s);
+int form_fmt_decimal_int(Form *form, char *decimal_int_s);
+int form_fmt_hex_int(Form *form, char *hex_int_s);
+float form_fmt_float(Form *form, char *float_s);
+double form_fmt_double(Form *form, char *double_s);
+int form_fmt_field(Form *, char *s);
+void numeric(char *, char *);
 void right_justify(char *s, int fl);
 void left_justify(char *s, int fl);
-void trim(char *);
 
-enum FieldFormat {
-    FF_STRING,
-    FF_DECIMAL_INT,
-    FF_HEX_INT,
-    FF_FLOAT,
-    FF_DOUBLE,
-    FF_CURRENCY,
-    FF_INVALID
-};
+char ff_tbl[][26] = {"string",   "decimal_int", "hex_int", "float", "double",
+                     "currency", "yyyymmdd",    "hhmmss",  "apr",   ""};
 
-int accept_field(Form *);
-int display_field(Form *);
-int display_field_n(Form *, int);
-int display_field_brackets(Form *);
-int field_fmt(Form *, char *s);
-int validate_field(Form *);
+int form_accept_field(Form *);
+int form_display_field(Form *);
+int form_display_field_n(Form *, int);
+int form_display_field_brackets(Form *);
+int form_validate_field(Form *);
 void mk_filler_s(char *, int);
 void mk_blank_s(char *, int);
 
-int accept_field(Form *form) {
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ ACCEPT_FIELD                                                  │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int form_accept_field(Form *form) {
     bool f_insert = FALSE;
     int in_key;
-    static char buf[MAXLEN + 1];
     char *s, *d;
-    int rc = 0;
     WINDOW *win = form->win;
+
     int flin = form->field[form->fidx]->line;
     int fcol = form->field[form->fidx]->col;
     int flen = form->field[form->fidx]->len;
-    int fval = form->field[form->fidx]->val;
+    int ff = form->field[form->fidx]->ff;
     char *accept_s = form->field[form->fidx]->accept_s;
     char *blank_s = form->field[form->fidx]->blank_s;
+
+    form_fmt_field(form, accept_s);
+    // mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION |
+    // NCURSES_BUTTON_CLICKED,
+    //          NULL);
+    mousemask(NCURSES_BUTTON_CLICKED, NULL);
+    MEVENT event;
+    event.y = event.x = -1;
+
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ CURSOR AND FIELD POSITIONING                                  │
+        ╰───────────────────────────────────────────────────────────────╯ */
+
     char *fstart = accept_s;
     char *fend = fstart + flen;
     int x = fcol;
     char *p = fstart = accept_s;
-    while (*p != '\0') {
-        p++;
-        x++;
-    }
     char *str_end = p;
-
-    idlok(win, TRUE);
-    idcok(win, TRUE);
-    immedok(win, TRUE);
+    in_key = 0;
 
     while (1) {
-        mvwaddstr(win, flin, fcol, blank_s);
-        mvwaddstr(win, flin, fcol, accept_s);
-        tcflush(0, TCIFLUSH);
-        in_key = mvwgetch(win, flin, x);
+        if (in_key == 0) {
+            mvwaddstr(win, flin, fcol, blank_s);
+            mvwaddstr(win, flin, fcol, accept_s);
+            wmove(win, flin, x);
+            tcflush(0, TCIFLUSH);
+            in_key = mvwgetch(win, flin, x);
+        }
         switch (in_key) {
-
         // Accept Field
         case KEY_F(10):
-            display_field(form);
+            if (form_validate_field(form) != 0)
+                continue;
+            form_display_field(form);
             return (in_key);
 
         // Abort Operation
@@ -102,22 +108,23 @@ int accept_field(Form *form) {
         case KEY_ESC:
         case KEY_BREAK:
         case KEY_F(9):
-            display_field(form);
+            form_display_field(form);
             in_key = KEY_F(9);
             return (in_key);
 
         case KEY_BTAB:
         case key_up:
         case KEY_UP:
-        case KEY_F(7):
-            display_field(form);
+            form_fmt_field(form, accept_s);
+            form_display_field(form);
             in_key = KEY_UP;
             return (in_key);
 
         case KEY_TAB:
         case key_down:
         case KEY_DOWN:
-            display_field(form);
+            form_fmt_field(form, accept_s);
+            form_display_field(form);
             in_key = KEY_DOWN;
             return (in_key);
 
@@ -125,23 +132,24 @@ int accept_field(Form *form) {
             while (*p != '\0')
                 p++;
             x = fcol + (p - fstart);
+            in_key = 0;
             continue;
 
         case KEY_CTLM:
         case KEY_ENTER:
             if (form->f_erase_remainder)
                 *p = '\0';
-            field_fmt(form, accept_s);
-            display_field(form);
+            form_fmt_field(form, accept_s);
+            form_display_field(form);
             in_key = KEY_ENTER;
             return (in_key);
 
         case KEY_IC:
-            if (f_insert) {
+            if (f_insert)
                 f_insert = FALSE;
-            } else {
+            else
                 f_insert = TRUE;
-            }
+            in_key = 0;
             continue;
 
         case KEY_DC:
@@ -152,11 +160,14 @@ int accept_field(Form *form) {
             *d = '\0';
             str_end = d;
             f_insert = FALSE;
+            in_key = 0;
             continue;
 
         case KEY_HOME:
             p = fstart;
-            break;
+            x = fcol;
+            in_key = 0;
+            continue;
 
         case KEY_BACKSPACE:
             if (p > fstart) {
@@ -169,11 +180,7 @@ int accept_field(Form *form) {
                 *d++ = *s++;
             *d = '\0';
             str_end = d; /* new end of string    */
-            if (p == fstart) {
-                mvwaddstr(win, flin, fcol, blank_s);
-                mvwaddstr(win, flin, fcol, accept_s);
-                return (KEY_STAB);
-            }
+            in_key = 0;
             continue;
 
         case KEY_CTLH:
@@ -182,6 +189,7 @@ int accept_field(Form *form) {
                 p--;
                 x--;
             }
+            in_key = 0;
             continue;
 
         case KEY_CTLL:
@@ -195,49 +203,89 @@ int accept_field(Form *form) {
                 mvwaddstr(win, flin, fcol, accept_s);
                 return (KEY_ENTER);
             }
+            in_key = 0;
+            continue;
+            /*  ╭───────────────────────────────────────────────────────╮
+                │ FORM MOUSE EVENT                                      │
+                ╰───────────────────────────────────────────────────────╯ */
+        case KEY_MOUSE:
+            in_key = 0;
+            if (getmouse(&event) != OK)
+                break;
+            if (event.bstate == BUTTON1_PRESSED ||
+                event.bstate == BUTTON1_CLICKED ||
+                event.bstate == BUTTON1_DOUBLE_CLICKED) {
+                if (!wenclose(form->win, event.y, event.x))
+                    continue;
+                wmouse_trafo(form->win, &event.y, &event.x, false);
+                if (event.y == form->lines - 1)
+                    in_key = get_chyron_key(key_cmd, event.x);
+            }
             continue;
 
         default:
-            switch (fval) {
+            /*  ╭───────────────────────────────────────────────────────╮
+                │ FIELD CHARACTER FILTER │
+                ╰───────────────────────────────────────────────────────╯
+             */
+            switch (ff) {
             case FF_STRING:
-                continue;
+                break;
             case FF_DECIMAL_INT:
-                if ((in_key < '0' || in_key > '9') && in_key != '.') {
-                    beep();
-                    continue;
-                }
-                break;
+                if ((in_key >= '0' || in_key <= '9') || in_key == '.')
+                    break;
+                beep();
+                in_key = 0;
+                continue;
             case FF_HEX_INT:
-                if ((in_key < '0' || in_key > '9') &&
-                    (in_key < 'A' || in_key > 'F') &&
-                    (in_key < 'a' || in_key > 'f')) {
-                    beep();
-                    continue;
-                }
-                break;
+                if ((in_key >= '0' && in_key <= '9') ||
+                    (in_key >= 'A' && in_key <= 'F') ||
+                    (in_key >= 'a' && in_key <= 'f'))
+                    break;
+                beep();
+                in_key = 0;
+                continue;
             case FF_FLOAT:
-                if ((in_key < '0' || in_key > '9') && in_key != '.' &&
-                    in_key != '-') {
-                    beep();
-                    continue;
-                }
-                break;
+                if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
+                    (in_key == '-' && p == fstart))
+                    break;
+                beep();
+                in_key = 0;
+                continue;
             case FF_DOUBLE:
-                if ((in_key < '0' || in_key > '9') && in_key != '.' &&
-                    in_key != '-') {
-                    beep();
-                    continue;
-                }
-                break;
+                if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
+                    (in_key == '-' && p == fstart))
+                    break;
+                beep();
+                in_key = 0;
+                continue;
             case FF_CURRENCY:
-                if ((in_key < '0' || in_key > '9') && in_key != '.' &&
-                    in_key != '-') {
-                    beep();
-                    continue;
-                }
-                break;
+                if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
+                    (in_key == '-' && p == fstart))
+                    break;
+                beep();
+                in_key = 0;
+                continue;
+            case FF_YYYYMMDD:
+                if (in_key >= '0' && in_key <= '9')
+                    break;
+                beep();
+                in_key = 0;
+                continue;
+            case FF_HHMMSS:
+                if (in_key >= '0' && in_key <= '9')
+                    break;
+                beep();
+                in_key = 0;
+                continue;
+            case FF_APR:
+                if ((in_key >= '0' && in_key <= '9') || in_key == '.')
+                    break;
+                beep();
+                in_key = 0;
+                continue;
             default:
-                display_error_message("accept_field() invalid format");
+                display_error_message("form_accept_field() invalid format");
                 break;
             }
             if (in_key >= ' ') {
@@ -261,41 +309,42 @@ int accept_field(Form *form) {
                         x++;
                     }
                 }
+                in_key = 0;
                 continue;
             }
-        }
-        strcpy(buf, fstart);
-        if ((rc = field_fmt(form, buf)) == -1)
-            mvwaddstr(win, flin, fcol, form->field[form->fidx]->display_s);
-        else if (rc == 0) {
-            mvwaddstr(win, flin, fcol, form->field[form->fidx]->display_s);
-            if (in_key != KEY_LL)
-                if (p == str_end)
-                    return (KEY_DOWN);
         }
     }
 }
 
-int display_field_n(Form *form, int n) {
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ DISPLAY_FIELD_N                                               │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int form_display_field_n(Form *form, int n) {
     int fidx = form->fidx;
     form->fidx = n;
-    display_field(form);
+    form_display_field(form);
     form->fidx = fidx;
     return 0;
 }
 
-int display_field(Form *form) {
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ DISPLAY_FIELD                                                 │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int form_display_field(Form *form) {
     WINDOW *win = form->win;
     int flin = form->field[form->fidx]->line;
     int fcol = form->field[form->fidx]->col;
-    display_field_brackets(form);
+    form_display_field_brackets(form);
     wmove(win, flin, fcol);
     mvwaddstr(win, flin, fcol, form->field[form->fidx]->display_s);
     wrefresh(win);
     return 0;
 }
 
-int display_field_brackets(Form *form) {
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ DISPLAY_FIELD_BRACKETS                                        │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int form_display_field_brackets(Form *form) {
     WINDOW *box = form->box;
     int flin = form->field[form->fidx]->line + 1;
     int fcol = form->field[form->fidx]->col;
@@ -307,17 +356,39 @@ int display_field_brackets(Form *form) {
     return 0;
 }
 
-int field_fmt(Form *form, char *s) {
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ FORM_FMT_FIELD                                                │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int form_fmt_field(Form *form, char *s) {
     strncpy(form->field[form->fidx]->input_s, s, MAXLEN - 1);
     char *input_s = form->field[form->fidx]->input_s;
     char *accept_s = form->field[form->fidx]->accept_s;
     char *display_s = form->field[form->fidx]->display_s;
     char *blank_s = form->field[form->fidx]->blank_s;
-    int fval = form->field[form->fidx]->val;
+    int ff = form->field[form->fidx]->ff;
     int fl = form->field[form->fidx]->len;
-    char field_s[MAXLEN];
 
-    switch (fval) {
+    char field_s[MAXLEN];
+    int decimal_int_n = 0;
+    int hex_int_n = 0;
+    float float_n = 0.0;
+    double double_n = 0.0;
+    double currency_n = 0.0;
+
+    struct {
+        int yyyy;
+        int mm;
+        int dd;
+    } Date;
+    Date.yyyy = Date.mm = Date.dd = 0;
+    struct {
+        int hh;
+        int mm;
+        int ss;
+    } Time;
+    Time.hh = Time.mm = Time.ss = 0;
+    strnz(accept_s, fl);
+    switch (ff) {
     case FF_STRING:
         left_justify(s, fl);
         trim(s);
@@ -326,45 +397,74 @@ int field_fmt(Form *form, char *s) {
         strncpy(display_s, s, MAXLEN - 1);
         break;
     case FF_DECIMAL_INT:
-        sscanf(input_s, "%d", &form->decimal_int_n);
-        sprintf(accept_s, "%d", form->decimal_int_n);
-        sprintf(display_s, "%d", form->decimal_int_n);
+        sscanf(input_s, "%d", &decimal_int_n);
+        sprintf(accept_s, "%d", decimal_int_n);
+        sprintf(display_s, "%d", decimal_int_n);
+        right_justify(display_s, fl);
         break;
     case FF_HEX_INT:
-        sscanf(input_s, "%x", &form->hex_int_n);
-        sprintf(accept_s, "%x", form->hex_int_n);
-        sprintf(display_s, "%x", form->hex_int_n);
+        sscanf(input_s, "%x", &hex_int_n);
+        sprintf(accept_s, "%d", hex_int_n);
+        sprintf(display_s, "%x", hex_int_n);
+        right_justify(display_s, fl);
         break;
     case FF_FLOAT:
-        sscanf(input_s, "%f", &form->float_n);
-        sprintf(accept_s, "%f", form->float_n);
-        sprintf(display_s, "%f", form->float_n);
+        sscanf(input_s, "%f", &float_n);
+        sprintf(accept_s, "%f", float_n);
+        sprintf(display_s, "%f", float_n);
+        right_justify(display_s, fl);
         break;
     case FF_DOUBLE:
-        sscanf(input_s, "%lf", &form->double_n);
-        sprintf(accept_s, "%lf", form->double_n);
-        sprintf(display_s, "%lf", form->double_n);
+        sscanf(input_s, "%lf", &double_n);
+        sprintf(accept_s, "%lf", double_n);
+        sprintf(display_s, "%lf", double_n);
+        right_justify(display_s, fl);
         break;
     case FF_CURRENCY:
-        scrub(field_s, input_s);
-        sscanf(field_s, "%lf", &form->currency_n);
-        sprintf(accept_s, "%'.2lf", form->currency_n);
-        sprintf(display_s, "%'.2lf", form->currency_n);
+        numeric(field_s, input_s);
+        sscanf(field_s, "%lf", &currency_n);
+        sprintf(accept_s, "%.2lf", currency_n);
+        sprintf(display_s, "%'.2lf", currency_n);
+        right_justify(display_s, fl);
+        break;
+    case FF_YYYYMMDD:
+        Date.yyyy = Date.mm = Date.dd = 0;
+        strncpy(field_s, input_s, MAXLEN - 1);
+        sscanf(field_s, "%4d%2d%2d", &Date.yyyy, &Date.mm, &Date.dd);
+        sprintf(accept_s, "%04d%02d%02d", Date.yyyy, Date.mm, Date.dd);
+        if (is_valid_date(Date.yyyy, Date.mm, Date.dd))
+            sprintf(display_s, "%04d-%02d-%02d", Date.yyyy, Date.mm, Date.dd);
+        break;
+    case FF_HHMMSS:
+        Time.hh = Time.mm = Time.ss = 0;
+        strncpy(field_s, input_s, MAXLEN - 1);
+        sscanf(field_s, "%2d%2d%2d", &Time.hh, &Time.mm, &Time.ss);
+        sprintf(accept_s, "%02d%02d%02d", Time.hh, Time.mm, Time.ss);
+        if (is_valid_time(Time.hh, Time.mm, Time.ss))
+            sprintf(display_s, "%02d:%02d:%02d", Time.hh, Time.mm, Time.ss);
+        break;
+    case FF_APR:
+        sscanf(input_s, "%lf", &double_n);
+        sprintf(accept_s, "%lf", double_n);
+        sprintf(display_s, "%0.3lf", double_n);
+        right_justify(display_s, fl);
         break;
     default:
-        display_error_message("field_fmt() invalid format");
+        display_error_message("form_fmt_field() invalid format");
         break;
     }
+    strnz(accept_s, fl);
     left_justify(accept_s, fl);
     mk_blank_s(blank_s, fl);
-    right_justify(display_s, fl);
     return 0;
 }
-
-int validate_field(Form *form) {
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ VALIDATE_FIELD                                                │
+    ╰───────────────────────────────────────────────────────────────╯ */
+int form_validate_field(Form *form) {
     int n = form->fidx;
     char *p = form->field[n]->accept_s;
-    if (form->field[n]->val & F_NOTBLANK) {
+    if (form->field[n]->ff & F_NOTBLANK) {
         char *s = form->field[n]->accept_s;
         while (*s++ == ' ')
             ;
@@ -373,7 +473,7 @@ int validate_field(Form *form) {
             return (1);
         }
     }
-    if (form->field[n]->val & F_NOMETAS) {
+    if (form->field[n]->ff & F_NOMETAS) {
         if (strpbrk(p, "*?[]") != 0) {
             display_error_message("metacharacters not allowed");
             return (1);
@@ -413,30 +513,36 @@ void right_justify(char *s, int fl) {
         *(--d) = ' ';
     }
 }
-
-void scrub(char *d, char *s) {
-    while (*s != '\0') {
-        if (*s == '-' || *s == '.') {
-            *d++ = *s++;
-        } else {
-            if (*s < '0' || *s > '9') {
-                s++;
-                continue;
-            }
-        }
-        *d++ = *s++;
-    }
-    *d = '\0';
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ IS_VALID_DATE                                                 │
+    ╰───────────────────────────────────────────────────────────────╯ */
+bool is_valid_date(int yyyy, int mm, int dd) {
+    if (yyyy < 1 || mm < 1 || mm > 12 || dd < 1)
+        return false;
+    int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if ((yyyy % 4 == 0 && yyyy % 100 != 0) || (yyyy % 400 == 0))
+        days_in_month[2] = 29;
+    if (dd > days_in_month[mm])
+        return false;
+    return true;
 }
-
-void trim(char *s) {
-    char *p = s;
-    char *d = s;
-    while (*p == ' ')
-        p++;
-    while (*p != '\0')
-        *d++ = *p++;
-    while (*(d - 1) == ' ' && d > s)
-        d--;
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ IS_VALID_TIME                                                 │
+    ╰───────────────────────────────────────────────────────────────╯ */
+bool is_valid_time(int hh, int mm, int ss) {
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59 || ss < 0 || ss > 59)
+        return false;
+    return true;
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ NUMERIC                                                       │
+    ╰───────────────────────────────────────────────────────────────╯ */
+void numeric(char *d, char *s) {
+    while (*s != '\0') {
+        if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))
+            *d++ = *s++;
+        else
+            s++;
+    }
     *d = '\0';
 }
