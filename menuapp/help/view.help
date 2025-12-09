@@ -1,17 +1,51 @@
-┌──────────────────────────────────────────────────────────┐
-│ The FORM description file consists of text lines which   │
-│ begin with single character directive. The character     │
-│ following the directive is used to delimit positional    │
-│ attributes.                                              │
-├───┬──────────────────────────────────────────────────────┤
-│ L │ L:lines                                              │
-│ C │ C:columns                                            │
-│ H │ H:Text                  (top line of window border)  │
-│ T │ T:line:column:Text                                   │
-│ F │ F:line:column:length:validation                      │
-│   │   validation 1-none, 2-numeric, 3-currency           │
-│ # │ Comment - ignored by form                            │
-│   │ Blank lines and spaces are treated as comments       │
-│ ! │ Command to execute with fields as args               │
-│ ? │ Help File                                            │
-└───┴──────────────────────────────────────────────────────┘
+usage: view
+
+   long option        type grp  mask flg description
+   ------------------ ---- ---- ---- --- -------------------------
+00 minitrc            str  spec mpfv -a: configuration file spec
+01 lines              int  prm  mpfv -L: width in columns     
+02 cols               int  prm  mpfv -C: height in lines      
+03 begx               int  prm  mpfv -X: begin on column      
+04 begy               int  prm  mpfv -Y: begin on line        
+05 title              str  misc mpfv -T: title                
+06 fg_color           int  prm  mpfv -F: foreground_color     
+07 bg_color           int  prm  mpfv -B: background_color     
+08 bo_color           int  prm  mpfv -O: border_color         
+09 f_at_end_clear     t/f  flag mpfv -z  clear screen at end of program
+10 f_at_end_remove    t/f  flag ...v -r: remove file at end of program
+12 f_ignore_case      t/f  flag ...v -x: ignore case in search
+13 f_squeeze          t/f  flag ...v -s  squeeze multiple blank lines
+14 f_mutiple_cmd_args int  prm  mpfv -M  multiple command arguments
+15 f_stop_on_error    t/f  flag mpfv -Z  stop on error        
+16 tab_stop           int  prm  ...v -t: number of spaces per tab
+17 prompt-type        str  misc ...v -P: prompt (S-Short, L-Long, N-None)[string]
+18 prompt-str         str  misc ...v -User supplied string    
+19 start_cmd          str  misc ...v -S  command to execute at start of program
+22 cmd_spec           str  misc .pfv -c: command executable   
+23 help_spec          str  file mpfv -H: help spec            
+26 mapp_spec          str  file mpfv -d: description spec     
+27 mapp_data          str  dir  mpfv     data directory       
+28 mapp_help          str  dir  mpfv     help directory       
+29 mapp_home          str  dir  mpfv -m: home directory       
+30 mapp_msrc          str  dir  mpfv     source directory     
+31 mapp_user          str  dir  mpfv -u: user directory       
+32 black              hex  col  mpfv                          
+33 red                hex  col  mpfv                          
+34 green              hex  col  mpfv                          
+35 yellow             hex  col  mpfv                          
+36 blue               hex  col  mpfv                          
+37 magenta            hex  col  mpfv                          
+38 cyan               hex  col  mpfv                          
+39 white              hex  col  mpfv                          
+40 orange             hex  col  mpfv                          
+41 bblack             hex  col  mpfv                          
+42 bred               hex  col  mpfv                          
+43 bgreen             hex  col  mpfv                          
+44 byellow            hex  col  mpfv                          
+45 bblue              hex  col  mpfv                          
+46 bmagenta           hex  col  mpfv                          
+47 bcyan              hex  col  mpfv                          
+48 bwhite             hex  col  mpfv                          
+49 orange             hex  col  mpfv                          
+50 bg                 hex  col  mpfv                          
+51 abg                hex  col  mpfv                          
