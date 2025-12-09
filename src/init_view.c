@@ -10,6 +10,9 @@
 #include <sys/sysmacros.h>
 #include <unistd.h>
 
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ INIT_VIEW_FULL_SCREEN                                         │
+    ╰───────────────────────────────────────────────────────────────╯ */
 int init_view_full_screen(Init *init) {
     char emsg0[MAXLEN];
     char emsg1[MAXLEN];
@@ -32,9 +35,9 @@ int init_view_full_screen(Init *init) {
 
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
-        ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 1, "newpad(%d, %d) failed", view->lines,
-                  MAX_COLS);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
+                 MAX_COLS);
         emsg2[0] = '\0';
         display_error(emsg0, emsg1, emsg2);
         abend(-1, "init_view_full_screen: newpad() failed");
@@ -53,6 +56,9 @@ int init_view_full_screen(Init *init) {
     return 0;
 }
 
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ INIT_VIEW_BOXWIN                                              │
+    ╰───────────────────────────────────────────────────────────────╯ */
 int init_view_boxwin(View *view) {
     char emsg0[MAXLEN];
     char emsg1[MAXLEN];
@@ -62,9 +68,9 @@ int init_view_boxwin(View *view) {
     }
     if (win_new(view->lines, view->cols, view->begy, view->begx,
                 view->argv[0])) {
-        ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s) failed",
-                  view->lines, view->cols, view->begy, view->begx, "NULL");
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
+                 view->lines, view->cols, view->begy, view->begx, "NULL");
         emsg2[0] = '\0';
         display_error(emsg0, emsg1, emsg2);
         return (-1);
@@ -81,9 +87,9 @@ int init_view_boxwin(View *view) {
 
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
-        ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 1, "newpad(%d, %d) failed", view->lines,
-                  MAX_COLS);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
+                 MAX_COLS);
         emsg2[0] = '\0';
         display_error(emsg0, emsg1, emsg2);
         return -1;
@@ -99,6 +105,9 @@ int init_view_boxwin(View *view) {
     return (0);
 }
 
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ VIEW_INIT_INPUT                                               │
+    ╰───────────────────────────────────────────────────────────────╯ */
 bool view_init_input(View *view, char *file_name) {
     struct stat sb;
     int idx = 0;
@@ -109,17 +118,17 @@ bool view_init_input(View *view, char *file_name) {
     char emsg2[MAXLEN];
 
     if (lstat(file_name, &sb) == -1) {
-        ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 1, "lstat %s", file_name);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg1, MAXLEN - 65, "lstat %s", file_name);
         strerror_r(errno, emsg2, MAXLEN);
         display_error(emsg0, emsg1, emsg2);
         return false;
     }
     view->buf = (char *)malloc(VBUFSIZ + 1);
     if (view->buf == NULL) {
-        ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 1, "view->buf = malloc(%d): failed\n",
-                  VBUFSIZ + 1);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg1, MAXLEN - 65, "view->buf = malloc(%d): failed\n",
+                 VBUFSIZ + 1);
         emsg2[0] = '\0';
         display_error(emsg0, emsg1, emsg2);
         abend(-1, err_msg);
@@ -128,8 +137,8 @@ bool view_init_input(View *view, char *file_name) {
     view->buf_last = view->file_size / VBUFSIZ;
     if (S_ISFIFO(sb.st_mode) || S_ISCHR(sb.st_mode)) {
         if (view->f_pipe_processed) {
-            ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-            ssnprintf(emsg1, MAXLEN - 1, "file status %s", file_name);
+            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+            snprintf(emsg1, MAXLEN - 65, "file status %s", file_name);
             strerror_r(errno, emsg2, MAXLEN);
             emsg2[0] = '\0';
             display_error(emsg0, emsg1, emsg2);
@@ -137,15 +146,15 @@ bool view_init_input(View *view, char *file_name) {
         }
         view->fp = fopen(file_name, "r");
         if (view->fp == NULL) {
-            ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-            ssnprintf(emsg1, MAXLEN - 1, "fopen %s", file_name);
+            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+            snprintf(emsg1, MAXLEN - 65, "fopen %s", file_name);
             strerror_r(errno, emsg2, MAXLEN);
             display_error(emsg0, emsg1, emsg2);
             return false;
         }
         if (setvbuf(view->fp, view->buf, _IOFBF, VBUFSIZ) != 0) {
-            ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-            ssnprintf(emsg1, MAXLEN - 1, "setvbuf %s", file_name);
+            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+            snprintf(emsg1, MAXLEN - 65, "setvbuf %s", file_name);
             strerror_r(errno, emsg2, MAXLEN);
             display_error(emsg0, emsg1, emsg2);
         }
@@ -156,15 +165,15 @@ bool view_init_input(View *view, char *file_name) {
     } else {
         view->fp = fopen(file_name, "r");
         if (view->fp == NULL) {
-            ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-            ssnprintf(emsg1, MAXLEN - 1, "fopen %s", file_name);
+            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+            snprintf(emsg1, MAXLEN - 65, "fopen %s", file_name);
             strerror_r(errno, emsg2, MAXLEN);
             display_error(emsg0, emsg1, emsg2);
             return false;
         }
         if (setvbuf(view->fp, view->buf, _IOFBF, VBUFSIZ) != 0) {
-            ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-            ssnprintf(emsg1, MAXLEN - 1, "setvbuf %s", file_name);
+            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+            snprintf(emsg1, MAXLEN - 65, "setvbuf %s", file_name);
             strerror_r(errno, emsg2, MAXLEN);
             display_error(emsg0, emsg1, emsg2);
         }
@@ -174,19 +183,24 @@ bool view_init_input(View *view, char *file_name) {
         view->prev_file_pos = NULL_POSITION;
     }
     if (fseek(view->fp, 0L, SEEK_SET) != 0) {
-        ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 1, "seek error: %s", file_name);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg1, MAXLEN - 65, "seek error: %s", file_name);
         strerror_r(errno, emsg2, MAXLEN);
         display_error(emsg0, emsg1, emsg2);
         return false;
     }
     if (view->file_size == 0L) {
-        ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 1, "empty file: %s", file_name);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg1, MAXLEN - 65, "empty file: %s", file_name);
         strerror_r(errno, emsg2, MAXLEN);
         display_error(emsg0, emsg1, emsg2);
         return false;
     }
+    // warning: The 1st argument to 'fread' is NULL but should not be NULL
+    // [unix.S 199 |     bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
+    // Can't see what ccc analyzer means by that
+    if (view->buf == NULL)
+        abend(-1, "view->buf is NULL");
     bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
     if (bytes_read > 0)
         view->buf_end_ptr = view->buf + bytes_read;
@@ -194,9 +208,9 @@ bool view_init_input(View *view, char *file_name) {
         if (!feof(view->fp)) {
             pos = (view->buf_idx * VBUFSIZ) +
                   (long)(view->buf_curr_ptr - view->buf);
-            ssnprintf(emsg0, MAXLEN - 1, "%s, line: %s", __FILE__, __LINE__);
-            ssnprintf(emsg1, BUFSIZ - 1, "file: %s, read error at position %ld",
-                      file_name, pos);
+            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+            snprintf(emsg1, MAXLEN - 65, "file: %s, read error at position %ld",
+                     file_name, pos);
             strerror_r(errno, emsg2, MAXLEN);
             display_error(emsg0, emsg1, emsg2);
             abend(-1, emsg1);

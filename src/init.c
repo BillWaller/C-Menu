@@ -38,7 +38,7 @@ void display_version();
 Init *init = NULL;
 
 void mapp_initialization(Init *init, int, char **);
-void parse_opt_args(Init *, int, char **);
+int parse_opt_args(Init *, int, char **);
 int parse_config(Init *);
 void dump_config(Init *, char *);
 void usage();
@@ -49,9 +49,9 @@ char *tilde_expand(char *);
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
-/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-   ┃ MAPP_INITIALIZATION                                   ┃
-   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+/* ╭───────────────────────────────────────────────────────────────────╮
+   │ MAPP_INITIALIZATION                                               │
+   ╰───────────────────────────────────────────────────────────────────╯ */
 void mapp_initialization(Init *init, int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
     if (!init) {
@@ -109,14 +109,22 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         write_config(init);
 }
 
-/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-   ┃ PARSE_OPT_ARGS                                        ┃
-   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
-void parse_opt_args(Init *init, int argc, char **argv) {
+/* ╭───────────────────────────────────────────────────────────────────╮
+   │ PARSE_OPT_ARGS                                                    │
+   ╰───────────────────────────────────────────────────────────────────╯ */
+int parse_opt_args(Init *init, int argc, char **argv) {
     int i;
     int opt;
     int longindex = 0;
     int flag = 0;
+
+    init->mapp_spec[0] = '\0';
+    init->help_spec[0] = '\0';
+    init->answer_spec[0] = '\0';
+    init->cmd_spec[0] = '\0';
+    init->in_spec[0] = '\0';
+    init->out_spec[0] = '\0';
+
     char *optstring =
         "a:c:d:g:hi:m:n:o:p:rst:vwxzA:B:C:DF:H:L:MO:P:S:T:U:VX:Y:Z";
     struct option long_options[] = {{"answer_spec", 1, &flag, ANSWER_SPEC},
@@ -135,6 +143,10 @@ void parse_opt_args(Init *init, int argc, char **argv) {
                               &longindex)) != -1) {
         switch (opt) {
         case 0:
+            /*  ╭───────────────────────────────────────────────────────────────────╮
+                │ LONG_OPTIONS │
+                ╰───────────────────────────────────────────────────────────────────╯
+             */
             switch (flag) {
             case ANSWER_SPEC:
                 strncpy(init->answer_spec, optarg, MAXLEN - 1);
@@ -164,6 +176,10 @@ void parse_opt_args(Init *init, int argc, char **argv) {
                 break;
             }
             break;
+            /*  ╭───────────────────────────────────────────────────────────────────╮
+                │ SHORT_OPTIONS │
+                ╰───────────────────────────────────────────────────────────────────╯
+             */
         case 'a':
             strncpy(init->minitrc, optarg, MAXLEN - 1);
             break;
@@ -186,7 +202,7 @@ void parse_opt_args(Init *init, int argc, char **argv) {
             strncpy(init->mapp_home, optarg, MAXLEN - 1);
             break;
         case 'n':
-            init->selections = atoi(optarg);
+            init->select_max = atoi(optarg);
             break;
         case 'o':
             strncpy(init->out_spec, optarg, MAXLEN - 1);
@@ -275,21 +291,6 @@ void parse_opt_args(Init *init, int argc, char **argv) {
         }
     }
     init->argv[0] = strdup(argv[0]);
-    //    argc i
-    //       1 0           argv[0] pick
-    //       2 1             argv[1] -i
-    //       3 2             argv[2] picklist
-    //       4 3             argv[3] -M
-    //       5 4             argv[4] -c
-    //       6 5             argv[5] vi
-    // argc> 7 6 <optind     argv[6] picklist.out
-    //         7             argv[7] NULL
-    //
-    // while optind < argc
-    //
-    // optind = 6
-    // argc = 7
-    //
     i = 0;
     while (i < argc) {
         init->argv[i] = strdup(argv[i]);
@@ -297,12 +298,12 @@ void parse_opt_args(Init *init, int argc, char **argv) {
     }
     init->argv[i] = NULL;
     init->argc = argc;
-    return;
+    return optind;
 }
 
-/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-   ┃ PARSE_CONFIG                                          ┃
-   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+/* ╭───────────────────────────────────────────────────────────────────╮
+   │ PARSE_CONFIG                                                      │
+   ╰───────────────────────────────────────────────────────────────────╯ */
 int parse_config(Init *init) {
     char ts[MAXLEN];
     char *sp, *dp;
@@ -396,8 +397,8 @@ int parse_config(Init *init) {
                 init->f_stop_on_error = str_to_bool(value);
                 continue;
             }
-            if (!strcmp(key, "selections")) {
-                init->selections = atoi(value);
+            if (!strcmp(key, "select_max")) {
+                init->select_max = atoi(value);
                 continue;
             }
             if (!strcmp(key, "tab_stop")) {
@@ -567,9 +568,9 @@ void prompt_int_to_str(char *s, int prompt_type) {
     }
 }
 
-/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-   ┃ WRITE_CONFIG                                          ┃
-   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+/* ╭───────────────────────────────────────────────────────────────────╮
+   │ WRITE_CONFIG                                                      │
+   ╰───────────────────────────────────────────────────────────────────╯ */
 int write_config(Init *init) {
     char *e;
     char minitrc_dmp[MAXLEN];
@@ -616,7 +617,7 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
     (void)fprintf(minitrc_fp, "%s=%s\n", "start_cmd", init->start_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
-    (void)fprintf(minitrc_fp, "%s=%d\n", "selections", init->selections);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "select_max", init->select_max);
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", init->black);
     (void)fprintf(minitrc_fp, "%s=%s\n", "red", init->red);
     (void)fprintf(minitrc_fp, "%s=%s\n", "green", init->green);
@@ -655,9 +656,9 @@ int write_config(Init *init) {
     return 0;
 }
 
-/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-   ┃ DERIVE_FILE_SPEC                                      ┃
-   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+/* ╭───────────────────────────────────────────────────────────────────╮
+   │ DERIVE_FILE_SPEC                                                  │
+   ╰───────────────────────────────────────────────────────────────────╯ */
 bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     char ts[MAXLEN];
     char ts2[MAXLEN];
@@ -707,9 +708,9 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
 
-/* ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-   ┃ DUMP_CONFIG                                           ┃
-   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ */
+/* ╭───────────────────────────────────────────────────────────────────╮
+   │ DUMP_CONFIG                                                       │
+   ╰───────────────────────────────────────────────────────────────────╯ */
 void dump_config(Init *init, char *msg) {
     opt_prt_char("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-C:", "--cols", init->cols);
@@ -729,7 +730,7 @@ void dump_config(Init *init, char *msg) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_char("-P:", "--promp_type", tmp_str);
     opt_prt_char("-P:", "--promp_str", init->prompt_str);
-    opt_prt_int("-n:", "--selections", init->selections);
+    opt_prt_int("-n:", "--select_max", init->select_max);
     opt_prt_char("-S ", "--start_cmd", init->start_cmd);
     opt_prt_char("-T:", "--title", init->title);
     opt_prt_char("   ", "--black", init->black);

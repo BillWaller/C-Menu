@@ -12,18 +12,20 @@
 #include <termios.h>
 #include <unistd.h>
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ CONSTANTS                                                         │
-│ The following artifacts, circa 1980's, were used to process       │
-│ nroff/troff manual pages for the Decision, Inc. Broadcast         │
-│ software. TROFF, because it was designed for offset printing,     │
-│ used backspace for underlining and overstrike bold characters.    │
-│                                                                   │
-│ Linux manual pages still use Groff/Nroff/Troff type processing.   │
-│ For now, that code has been removed from view, but at some point, │
-│ it may be may be resurrected.                                     │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ DEPRECATED CONSTANTS                                              │
+    │                                                                   │
+    │ The following artifacts, circa 1980's, were used to process       │
+    │ nroff/troff manual pages for the Decision, Inc. Broadcast         │
+    │ software. TROFF, because it was designed for offset printing,     │
+    │ used backspace for underlining and overstrike bold characters.    │
+    │                                                                   │
+    │ Interestingly, the Linux manual pages still use Groff, Nroff,     │
+    │ Troff formatting. For now, that code has been removed from view.  │
+    │ An equivalent feature may be may be added in the future, but      │
+    │ don't worry, it won't be sending ANSI escape sequences to the     │
+    │ display.                                                          │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 #define MAXCHAR (uchar)0xfa
 #define UL_START (uchar)0xfb
 #define UL_END (uchar)0xfc
@@ -37,19 +39,26 @@
 #define MO_BO_EXPECT_CHR 4         //            next char
 #define MO_BO_GOT_CHR_EXPECT_BS 5  //    char    ^H
 #define MO_BO_GOT_BS_EXPECT_SAME 6 //    ^H      same char
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ MACROS                                                            │
-│                                                                   │
-│ The following artifacts, circa 1980's, were used to get the best  │
-│ performance from such ancient processors such as the Motorola     │
-│ 68010/20/30 and the 80486. They still work.                       │ │ │ │ The
-80486DX had a math coprocessor with eight 80-bit registers    │ │ and supported
-packed BCD integer arithmetic as a data type.       │ │ BCD hardware is fast and
-accurate for scientific and financial    │ │ calculatiions where floating-point
-errors are unacceptable.       │ │ You can still get BCD hardware today in IBM's
-System-Z and        │ │ Power platforms. │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ TOKEN MACROS                                                      │
+    │                                                                   │
+    │ The following artifacts, circa 1980's, were used to get the best  │
+    │ performance from such ancient processors such as the Motorola     │
+    │ 68010/20/30 and the 80486. They still work.                       │
+    │                                                                   │
+    │ The 80486DX had a math coprocessor with eight 80-bit registers    │
+    │ and supported packed BCD integer arithmetic as a data type.       │
+    │ BCD hardware is fast and accurate for scientific and financial    │
+    │ calculatiions where floating-point errors are unacceptable.       │
+    │ You can still get BCD hardware today in IBM's System-Z and        │
+    │ Power platforms, if you can afford it. I can't.                   │
+    │                                                                   │
+    │ This project wants for serialization and interoperability which   │
+    │ will be well-served by rust libraries like "rust_decimal",        │
+    │ "Tokio", and "Serde". Rust-decimal provides 128-bit decimal math  │
+    │ with no rounding errors, Serde serializes data into a myriad of   │
+    │ formats, and Tokio provides reliable asynchronous communications. │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 #define Ctrl(c) ((c) & 0x1f)
 
 #define get_next_char()                                                        \
@@ -96,21 +105,24 @@ long get_next_line(View *, long);
 long get_prev_line(View *, long);
 long get_pos_next_line(View *, long);
 long get_pos_prev_line(View *, long);
-void format_output_line(View *);
+void fmt_line_out(View *);
 void display_output_line(View *);
+bool ansi_to_cmplx(cchar_t *, const char *);
+void parse_ansi_str(WINDOW *, char *, attr_t *, short *);
+int fmt_cmplx_buf(View *);
+void display_cmplx_buf(View *, int);
+void view_display_help(View *);
 int advance_buffer(View *);
 bool load_buffer(View *, long);
 
 void cmd_line_prompt(View *, char *);
 void remove_file(View *);
-void view_display_help(View *);
 
 char err_msg[MAXLEN];
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ VIEW_FILE                                                         │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ VIEW_FILE                                                         │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int view_file(View *view) {
     if (view->argc < 1) {
         view->curr_argc = -1;
@@ -157,10 +169,9 @@ int view_file(View *view) {
     return (0);
 }
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ VIEW_CMD_PROCESSOR                                                │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ VIEW_CMD_PROCESSOR                                                │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int view_cmd_processor(View *view) {
     int tfd;
     char tmp_str[MAXLEN];
@@ -185,6 +196,7 @@ int view_cmd_processor(View *view) {
                 view->f_redraw_screen = false;
             }
             build_prompt(view, view->prompt_type, view->prompt_str);
+            // wtf ?
             if (view->prompt_str[0] == '\0')
                 cmd_line_prompt(view, "");
             else if (view->tmp_prompt_str[0] == '\0')
@@ -617,10 +629,9 @@ int view_cmd_processor(View *view) {
     }
 }
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ GET_CMD_CHAR                                                      │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GET_CMD_CHAR                                                      │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int get_cmd_char(View *view) {
     int c;
     tcflush(0, TCIFLUSH);
@@ -629,10 +640,9 @@ int get_cmd_char(View *view) {
     return (c);
 }
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ GET_CMD_SPEC                                                      │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GET_CMD_SPEC                                                      │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int get_cmd_spec(View *view, char *prompt) {
     int c;
     int numeric_arg = false;
@@ -740,10 +750,9 @@ int get_cmd_spec(View *view, char *prompt) {
     }
 }
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ BUILD_PROMPT                                                      │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ BUILD_PROMPT                                                      │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 void build_prompt(View *view, int prompt_type, char *prompt_str) {
     prompt_str[0] = '\0';
     strncpy(prompt_str, "", MAXLEN - 1);
@@ -798,10 +807,9 @@ void build_prompt(View *view, int prompt_type, char *prompt_str) {
     view->f_new_file = false;
 }
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ CAT_FILE                                                          │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ CAT_FILE                                                          │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 void cat_file(View *view) {
     int c;
 
@@ -813,10 +821,9 @@ void cat_file(View *view) {
     }
 }
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ LP (PRINT)                                                        │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ LP (PRINT)                                                        │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 void lp(char *PrintFile, char *Notation) {
     char *print_cmd_ptr;
     char shell_cmd_spec[MAXLEN];
@@ -830,10 +837,9 @@ void lp(char *PrintFile, char *Notation) {
     shell(shell_cmd_spec);
 }
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ GO_TO_MARK                                                        │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GO_TO_MARK                                                        │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 void go_to_mark(View *view, int c) {
     if (c == '\'')
         view->file_pos = view->mark_tbl[(NMARKS - 1)];
@@ -845,14 +851,13 @@ void go_to_mark(View *view, int c) {
         go_to_position(view, view->file_pos);
 }
 
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ GO_TO_EOF                                                         │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GO_TO_EOF                                                         │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 void go_to_eof(View *view) {
     int c;
     long pos, buf_idx;
-    unsigned int bytes_read;
+    unsigned int bytes_read = 0;
 
     if (view->f_is_pipe) {
         cmd_line_prompt(view, "Seeking end of pipe");
@@ -867,6 +872,7 @@ void go_to_eof(View *view) {
         pos = ftell(view->fp);
         buf_idx = ((pos - 1) / VBUFSIZ);
         view->buf_idx = ((view->file_size - 1) / VBUFSIZ);
+
         if (view->buf_idx != buf_idx) {
             fseek(view->fp, (long)(view->buf_idx * VBUFSIZ), SEEK_SET);
             bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
@@ -880,6 +886,10 @@ void go_to_eof(View *view) {
                 }
             }
         }
+        if (!bytes_read) {
+            display_error_message("VIEW: go_to_eof, 0 bytes read");
+            abend(-1, tmp_str);
+        }
         view->buf_curr_ptr = view->buf + bytes_read - 1;
         view->buf_end_ptr = view->buf + bytes_read;
         view->page_top_pos =
@@ -887,11 +897,9 @@ void go_to_eof(View *view) {
     }
     prev_page(view);
 }
-
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ GO_TO_LINE                                                        │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GO_TO_LINE                                                        │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 int go_to_line(View *view, int LineNumber) {
     int c;
     int LineCnt;
@@ -929,10 +937,9 @@ int go_to_line(View *view, int LineNumber) {
                              (long)(view->buf_curr_ptr - view->buf));
     return 0;
 }
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ GO_TO_PERCENT                                                     │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GO_TO_PERCENT                                                     │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 void go_to_percent(View *view, int Percent) {
     int c;
 
@@ -954,19 +961,17 @@ void go_to_percent(View *view, int Percent) {
         view->buf_idx * VBUFSIZ + (long)(view->buf_curr_ptr - view->buf);
     go_to_position(view, view->file_pos);
 }
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ GO_TO_POSITION                                                    │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GO_TO_POSITION                                                    │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 void go_to_position(View *view, long go_to_pos) {
     load_buffer(view, go_to_pos);
     view->f_forward = true;
     next_page(view);
 }
-/*
-╭───────────────────────────────────────────────────────────────────╮
-│ SEARCH                                                            │
-╰───────────────────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ SEARCH                                                            │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     int REG_FLAGS = 0;
     regmatch_t pmatch[1];
@@ -985,10 +990,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         if (search_cmd == '/')
             srch_curr_pos = view->page_bot_pos;
     }
-    /*
-    ╭───────────────────────────────────────────────────────────────────╮
-    │ SEARCH - COMPILE REGULAR EXPRESSION                               │
-    ╰───────────────────────────────────────────────────────────────────╯ */
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ SEARCH - COMPILE REGULAR EXPRESSION                           │
+        ╰───────────────────────────────────────────────────────────────╯ */
     if (view->f_ignore_case)
         REG_FLAGS = REG_ICASE;
     else
@@ -998,10 +1002,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         display_error_message("Invalid pattern");
         return false;
     }
-    /*
-    ╭───────────────────────────────────────────────────────────────────╮
-    │ SEARCH - READ LINES                                               │
-    ╰───────────────────────────────────────────────────────────────────╯ */
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ SEARCH - READ LINES                                           │
+        ╰───────────────────────────────────────────────────────────────╯ */
     while (1) {
 #ifdef DEBUG
         snprintf(tmp_str, MAXLEN - 1, "Pos %ld of %ld, %s for: ", srch_curr_pos,
@@ -1053,17 +1056,15 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             load_buffer(view, srch_curr_pos);
             srch_curr_pos = get_prev_line(view, srch_curr_pos);
         }
-        format_output_line(view);
-        /*
-        ╭───────────────────────────────────────────────────────────╮
-        │ SEARCH - CURRENT LINE                                     │
-        ╰───────────────────────────────────────────────────────────╯ */
+        fmt_line_out(view);
+        /*  ╭───────────────────────────────────────────────────────────╮
+            │ SEARCH - CURRENT LINE                                     │
+            ╰───────────────────────────────────────────────────────────╯ */
         reti = regexec(&compiled_regex, view->line_out_s,
                        compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-        /*
-        ╭─────────────────────────────────────────────────────────╮
-        │ SEARCH - NO MATCH - DISPLAY LINE IF PAGING              │
-        ╰─────────────────────────────────────────────────────────╯ */
+        /*  ╭───────────────────────────────────────────────────────────╮
+            │ SEARCH - NO MATCH - DISPLAY LINE IF PAGING                │
+            ╰───────────────────────────────────────────────────────────╯ */
         if (reti == REG_NOMATCH) {
             if (f_page) {
                 display_output_line(view);
@@ -1072,10 +1073,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             }
             continue;
         }
-        /*
-        ╭───────────────────────────────────────────────────────────╮
-        │ SEARCH - ERROR                                            │
-        ╰───────────────────────────────────────────────────────────╯ */
+        /*  ╭───────────────────────────────────────────────────────────╮
+            │ SEARCH - ERROR                                            │
+            ╰───────────────────────────────────────────────────────────╯ */
         if (reti) {
             char err_str[MAXLEN];
             regerror(reti, &compiled_regex, err_str, sizeof(err_str));
@@ -1085,10 +1085,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             regfree(&compiled_regex);
             return false;
         }
-        /*
-        ╭───────────────────────────────────────────────────────────╮
-        │ SEARCH - MATCH - DISPLAY LEADING CONTEXT LINES            │
-        ╰───────────────────────────────────────────────────────────╯ */
+        /*  ╭───────────────────────────────────────────────────────────╮
+            │ SEARCH - MATCH - DISPLAY LEADING CONTEXT LINES            │
+            ╰───────────────────────────────────────────────────────────╯ */
         if (!f_page) {
             view->f_forward = true;
             view->cury = 0;
@@ -1104,31 +1103,28 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 header_lines = 1;
             for (i = 0; i < header_lines; i++) {
                 srch_curr_pos = get_next_line(view, srch_curr_pos);
-                format_output_line(view);
+                fmt_line_out(view);
                 display_output_line(view);
             }
             f_page = true;
         } else {
-            /*
-            ╭──────────────────────────────────────────────────────────────╮
-            │ SEARCH - CONTINUE HIGHLIGHTING MATCHING LINES ON SAME PAGE   │
-            ╰──────────────────────────────────────────────────────────────╯ */
+            /*  ╭───────────────────────────────────────────────────────╮
+                │ SEARCH - CONTINUE HIGHLIGHTING MATCHED LINES          │
+                ╰───────────────────────────────────────────────────────╯ */
             display_output_line(view);
             cury = view->cury;
         }
-        /*
-        ╭───────────────────────────────────────────────────────────────╮
-        │ SEARCH - HIGHLIGHT ALL MATCHES ON CURRENT LINE                │
-        ╰───────────────────────────────────────────────────────────────╯*/
+        /*  ╭───────────────────────────────────────────────────────────╮
+            │ SEARCH - HIGHLIGHT ALL MATCHES ON CURRENT LINE            │
+            ╰───────────────────────────────────────────────────────────╯*/
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->line_out_s);
         line_offset = 0;
         while (1) {
-            /*
-            ╭───────────────────────────────────────────────────────╮
-            │ SEARCH - HIGHLIGHT MATCH                              │
-            ╰───────────────────────────────────────────────────────╯*/
+            /*  ╭───────────────────────────────────────────────────────╮
+                │ SEARCH - HIGHLIGHT MATCH                              │
+                ╰───────────────────────────────────────────────────────╯*/
             view->curx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
             mvwchgat(view->win, view->cury - 1, view->curx, match_len,
@@ -1139,10 +1135,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             if (rc == ERR) {
                 display_error_message("Error refreshing screen");
             }
-            /*
-            ╭───────────────────────────────────────────────────────╮
-            │ SEARCH - UPDATE LINE MATCH COLUMNS                    │
-            ╰───────────────────────────────────────────────────────╯*/
+            /*  ╭───────────────────────────────────────────────────────╮
+                │ SEARCH - UPDATE LINE MATCH COLUMNS                    │
+                ╰───────────────────────────────────────────────────────╯*/
             if (view->first_match_x == -1)
                 view->first_match_x = pmatch[0].rm_so;
             view->last_match_x = line_offset + pmatch[0].rm_eo;
@@ -1154,10 +1149,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             if (line_offset >= line_len)
                 break;
             view->line_out_p = view->line_out_s + line_offset;
-            /*
-            ╭───────────────────────────────────────────────────────╮
-            │ SEARCH - CONTINUE HIGHLIGHTING SAME LINE              │
-            ╰───────────────────────────────────────────────────────╯*/
+            /*  ╭───────────────────────────────────────────────────────╮
+                │ SEARCH - CONTINUE HIGHLIGHTING SAME LINE              │
+                ╰───────────────────────────────────────────────────────╯*/
             reti = regexec(&compiled_regex, view->line_out_p,
                            compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
             if (reti == REG_NOMATCH)
@@ -1176,10 +1170,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             }
         }
     }
-    /*
-    ╭───────────────────────────────────────────────────────╮
-    │ SEARCH - SUCCESS - PREPARE PROMPT                     │
-    ╰───────────────────────────────────────────────────────╯*/
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ SEARCH - SUCCESS - PREPARE PROMPT                             │
+        ╰───────────────────────────────────────────────────────────────╯*/
     snprintf(view->tmp_prompt_str, MAXLEN - 1,
              "%c%s Match at Cols %d - %d, Cols %d - %d showing", search_cmd,
              regex_pattern, view->first_match_x, view->last_match_x,
@@ -1187,10 +1180,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     return true;
 }
 
-/*
-╭───────────────────────────────────────────────────────╮
-│ NEXT_PAGE                                             │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ NEXT_PAGE                                                         │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 void next_page(View *view) {
     int i;
     view->maxcol = 0;
@@ -1198,20 +1190,17 @@ void next_page(View *view) {
     view->cury = 0;
     wmove(view->win, view->cury, 0);
     view->page_top_pos = view->page_bot_pos;
-    for (i = 0; i < view->scroll_lines; i++) {
+    for (i = 0; i <= view->scroll_lines; i++) {
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
         if (view->f_eod)
             break;
-        format_output_line(view);
+        fmt_line_out(view);
         display_output_line(view);
     }
-    wclrtobot(view->win);
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ PREV_PAGE                                             │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ PREV_PAGE                                                         │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 void prev_page(View *view) {
     int i;
     if (view->page_top_pos == (long)0)
@@ -1229,11 +1218,9 @@ void prev_page(View *view) {
     view->page_bot_pos = view->page_top_pos;
     next_page(view);
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ SCROLL_FORWARD_N_LINES                                │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ SCROLL_FORWARD_N_LINES                                            │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 void scroll_down_n_lines(View *view, int n) {
     int i = 0;
 
@@ -1260,16 +1247,13 @@ void scroll_down_n_lines(View *view, int n) {
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
         if (view->f_eod)
             break;
-        format_output_line(view);
+        fmt_line_out(view);
         display_output_line(view);
     }
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ SCROLL_BACK_N_LINES                                   │
-╰───────────────────────────────────────────────────────╯*/
-
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ SCROLL_BACK_N_LINES                                               │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 void scroll_up_n_lines(View *view, int n) {
     int i;
 
@@ -1298,22 +1282,20 @@ void scroll_up_n_lines(View *view, int n) {
     load_buffer(view, view->page_top_pos);
     for (i = 0; i < n; i++) {
         get_next_line(view, view->page_top_pos);
-        format_output_line(view);
+        fmt_line_out(view);
         display_output_line(view);
     }
     return;
 }
 
-/*
-╭───────────────────────────────────────────────────────╮
-│ GET_NEXT_LINE                                         │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GET_NEXT_LINE -> line_in_s                                        │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 long get_next_line(View *view, long pos) {
     uchar c;
     char *line_in_p;
 
     view->f_forward = true;
-    // get_next_char();
     do {
         if (view->buf_curr_ptr == view->buf_end_ptr)
             c = advance_buffer(view);
@@ -1331,7 +1313,6 @@ long get_next_line(View *view, long pos) {
         if (line_in_p >= view->line_in_end_p)
             break;
         *line_in_p++ = c;
-        // get_next_char();
         do {
             if (view->buf_curr_ptr == view->buf_end_ptr)
                 c = advance_buffer(view);
@@ -1355,11 +1336,9 @@ long get_next_line(View *view, long pos) {
     pos = (view->buf_idx * VBUFSIZ) + (long)(view->buf_curr_ptr - view->buf);
     return pos;
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ GET_PREV_LINE                                         │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GET_PREV_LINE                                                     │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 long get_prev_line(View *view, long pos) {
     uchar c;
 
@@ -1394,31 +1373,6 @@ long get_prev_line(View *view, long pos) {
     return pos;
 }
 
-/*
-╭───────────────────────────────────────────────────────╮
-│ DISPLAY_OUTPUT_LINE                                   │
-╰───────────────────────────────────────────────────────╯*/
-void display_output_line(View *view) {
-    int len;
-    int rc;
-    len = strlen(view->line_out_s);
-    if (len > view->maxcol)
-        view->maxcol = len;
-    if (view->cury < 0)
-        view->cury = 0;
-    if (view->cury > view->scroll_lines)
-        view->cury = view->scroll_lines;
-    wmove(view->win, view->cury, 0);
-    waddstr(view->win, view->line_out_s);
-    wclrtoeol(view->win);
-    view->cury++;
-    rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-                  view->smincol, view->smaxrow, view->smaxcol);
-    if (rc == ERR) {
-        display_error_message("Error refreshing screen");
-    }
-}
-
 void prepend_top_line(View *view) {
     view->cury = 0;
     wscrl(view->win, -1);
@@ -1432,10 +1386,9 @@ void append_bot_line(View *view) {
     display_output_line(view);
     view->page_top_pos = get_pos_next_line(view, view->page_top_pos);
 }
-/*
-╭───────────────────────────────────────────────────────╮
-│ GET_POS_NEXT_LINE                                     │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GET_POS_NEXT_LINE                                                 │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 long get_pos_next_line(View *view, long pos) {
     uchar c;
 
@@ -1475,11 +1428,9 @@ long get_pos_next_line(View *view, long pos) {
     pos = (view->buf_idx * VBUFSIZ) + (long)(view->buf_curr_ptr - view->buf);
     return pos;
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ GET_POS_PREV_LINE                                     │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ GET_POS_PREV_LINE                                                 │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 long get_pos_prev_line(View *view, long pos) {
     uchar c;
 
@@ -1503,12 +1454,10 @@ long get_pos_prev_line(View *view, long pos) {
         view->f_eod = false;
     return pos;
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ FORMAT_OUTPUT_LINE                                    │
-╰───────────────────────────────────────────────────────╯*/
-void format_output_line(View *view) {
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ FORMAT_OUTPUT_LINE    line_in_s -> line_out_s                     │
+    ╰───────────────────────────────────────────────────────────────────╯*/
+void fmt_line_out(View *view) {
     uchar *c;
     char *line_out_p;
     char *line_out_e = view->line_out_s + MAX_COLS - 1;
@@ -1537,15 +1486,140 @@ void format_output_line(View *view) {
             break;
         scr_column--;
     }
+    if (scr_column > MAX_COLS - 1)
+        scr_column = MAX_COLS;
     view->line_out_s[scr_column] = '\0';
     if (scr_column > view->maxcol)
         view->maxcol = scr_column;
 }
 
-/*
-╭───────────────────────────────────────────────────────╮
-│ ADVANCE_BUFFER                                        │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ DISPLAY_OUTPUT_LINE    line_out_s -> view->wide_buf               │
+    │                                      view->cmplx_buf              │
+    ╰───────────────────────────────────────────────────────────────────╯*/
+
+void display_output_line(View *view) {
+    int rc;
+    int len;
+    char *ansi_p = view->line_out_s;
+    cchar_t *cmplx_buf_p = view->cmplx_buf;
+    len = ansi_to_cmplx(cmplx_buf_p, ansi_p);
+    // display_cmplx_buf(view, len);
+    /*  ╭───────────────────────────────────────────────────────────────────╮
+        │ DISPLAY_CMPLX_BUF   cmplx_buf -> display                          │
+        ╰───────────────────────────────────────────────────────────────────╯*/
+    // void display_cmplx_buf(View *view, int len) {
+    if (len > view->maxcol)
+        view->maxcol = len;
+    if (view->cury < 0)
+        view->cury = 0;
+    if (view->cury > view->scroll_lines)
+        view->cury = view->scroll_lines;
+    wmove(view->win, view->cury, 0);
+    // waddstr(view->win, view->line_out_s);
+    wadd_wchstr(view->win, view->cmplx_buf);
+    view->cury++;
+    refresh();
+    rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
+                  view->smincol, view->smaxrow, view->smaxcol);
+    if (rc == ERR)
+        display_error_message("Error refreshing screen");
+}
+
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ ANSI_TO_CMPLX_STR                                                 │
+    ╰───────────────────────────────────────────────────────────────────╯*/
+bool ansi_to_cmplx(cchar_t *cmplx_buf, const char *in_str) {
+    attr_t attr = A_NORMAL;
+    char ansi_tok[32];
+    short cp = CP_DEFAULT;
+    int i = 0, j = 0;
+    int len;
+    wchar_t wc;
+    wchar_t null_wch = L'\0';
+    cchar_t cc;
+    mbstate_t state;
+    memset(&state, 0, sizeof(state));
+    mbtowc(NULL, NULL, 0);
+    while (in_str[i] != '\0') {
+        if (in_str[i] == '\033' && in_str[i + 1] == '[') {
+            char *start_seq = (char *)&in_str[i];
+            char *end_seq = strchr(start_seq, 'm');
+            if (end_seq) {
+                strncpy(ansi_tok, start_seq, end_seq - start_seq + 1);
+                ansi_tok[end_seq - start_seq + 1] = '\0';
+                parse_ansi_str(stdscr, ansi_tok, &attr, &cp);
+                i = (end_seq - in_str) + 1;
+            } else {
+                i++;
+            }
+        } else {
+            char *s = (char *)&in_str[i];
+            len = mbtowc(&wc, s, MB_CUR_MAX);
+            if (len > 0) {
+                s += len;
+                i += len;
+                if (setcchar(&cc, &wc, attr, cp, NULL) != ERR)
+                    cmplx_buf[j++] = cc;
+            } else {
+                if (len == -1) { // don't know what to do with these yet
+                    break;
+                } else {
+                    if (len == -2) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if (setcchar(&cc, &null_wch, A_NORMAL, CP_DEFAULT, NULL) != ERR)
+        cmplx_buf[j] = cc;
+    return 0;
+}
+
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ PARSE_ANSI_STR                                                    │
+    ╰───────────────────────────────────────────────────────────────────╯*/
+void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, short *cp) {
+    char *token;
+    int i, len;
+    short fg, bg;
+    char *ansi_ptr = ansi_str + 2;
+    pair_content(*cp, &fg, &bg);
+    for (i = 1; i < 4; i++) {
+        token = strtok((char *)ansi_ptr, ";m");
+        if (token == NULL)
+            break;
+        ansi_ptr = NULL;
+        len = strlen(token);
+        if (len == 2) {
+            if (token[0] == '3' || token[0] == '4' ||
+                (token[1] >= '0' && token[1] <= '7')) {
+                if (token[0] == '3')
+                    fg = atoi(&token[1]);
+                else if (token[0] == '4')
+                    bg = atoi(&token[1]);
+            }
+            *cp = fg * 8 + bg + 1; // color_pair(0) is reserved for default
+        } else if (len == 1) {
+            if (token[0] == '0') {
+                *attr = A_NORMAL;
+                *cp = CP_DEFAULT;
+            } else if (token[0] == '1')
+                *attr = A_BOLD;
+            else if (token[0] == '2')
+                *attr = A_REVERSE;
+        } else if (len == 0) {
+            *attr = A_NORMAL;
+            *cp = CP_DEFAULT;
+        }
+    }
+    return;
+}
+
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ ADVANCE_BUFFER                                                    │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 int advance_buffer(View *view) {
     size_t bytes_read = 0;
     int c;
@@ -1598,11 +1672,9 @@ int advance_buffer(View *view) {
     }
     return (c);
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ LOAD_BUFFER                                           │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ LOAD_BUFFER                                                       │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 bool load_buffer(View *view, long pos) {
     view->f_eod = false;
     long bytes_read;
@@ -1629,10 +1701,9 @@ bool load_buffer(View *view, long pos) {
     return true;
 }
 
-/*
-╭───────────────────────────────────────────────────────╮
-│ CMD_LINE_PROMPT                                       │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ CMD_LINE_PROMPT                                                   │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 void cmd_line_prompt(View *view, char *s) {
     char message_str[MAX_COLS + 1];
     int l;
@@ -1651,11 +1722,9 @@ void cmd_line_prompt(View *view, char *s) {
     }
     wclrtoeol(view->win);
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ REMOVE_FILE                                           │
-╰───────────────────────────────────────────────────────╯*/
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ REMOVE_FILE                                                       │
+    ╰───────────────────────────────────────────────────────────────────╯*/
 void remove_file(View *view) {
     char c;
 
@@ -1666,16 +1735,18 @@ void remove_file(View *view) {
         c = (char)wgetch(view->win);
         waddch(view->win, (char)toupper(c));
         if (c == 'Y' || c == 'y') {
-            fclose(view->fp);
-            remove(view->cur_file_str);
+            if (view->fp == NULL)
+                display_error_message("remove_file() view->fp == NULL");
+            else {
+                fclose(view->fp);
+                remove(view->cur_file_str);
+            }
         }
     }
 }
-
-/*
-╭───────────────────────────────────────────────────────╮
-│ VIEW_DISPLAY_HELP                                     │
-╰───────────────────────────────────────────────────────╯ */
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ VIEW_DISPLAY_HELP                                                 │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 void view_display_help(View *view) {
     int begy, begx;
     int eargc;

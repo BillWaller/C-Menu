@@ -405,6 +405,10 @@ int display_curses_keys() {
         case KEY_ALTUP:
             strcpy(kstr, "KEY_ALTUP alt+up");
             break;
+            /*  ╭───────────────────────────────────────────────────────────────╮
+                │ MOUSE FUNCTIONS │
+                ╰───────────────────────────────────────────────────────────────╯
+             */
         case KEY_MOUSE:
             action[0] = '\0';
             if (getmouse(&event) == OK) {

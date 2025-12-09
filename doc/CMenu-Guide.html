@@ -144,50 +144,66 @@ a:active {
     </style>
   </head>
   <body>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>CMENU - A TUI Menu System</h1>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>CMENU - USER GUIDE</h1>
 <h2>Programs: Menu, Form, Pick, View, and RSH</h2>
-<p>CMENU is a lightweight, customizable, and easy-to-learn suite of programs
-for creating menus, entry forms, and pickers with a text-based user
-interface(TUI) for applications running on Linux and Unix-like operating
-systems. CMENU is designed to be simple to use while providing powerful
-features to implement menu driven frameworks for applications in
-terminal and terminal emulator environments.</p>
-<h3>CMENU</h3>
+<h2>CMENU</h2>
 <img src="screenshots/sample_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 <p>MENU reads a simple description file like the one above and displays a menu to the user. When the user selects an item, MENU executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.</p>
-<h3>Test Curses Keys</h3>
-<p>Is a particular key not working for your project? Curses Keys (or CKeys)
-provides an easy way to determine whether the problem is with your code
-or your terminfo/termcap files. Or, if you just don't remember the key
-symbol for Curses. It also gives you the Octal, Decimal, and Hex codes
-for keys not defined in Curses, so you can provide your own custom keys.</p>
+<p>The structure of the description file is straightforward. Each menu item consists of a label and a command to execute. The label is displayed in the menu, and the command is executed when the user selects that item. The first character on each line indicates the type of line: &quot;:&quot; for a menu item, &quot;H:&quot; for the menu header, &quot;!&quot; for commands, and '#' for comments.</p>
+<p>The string of alpha-numeric characters following the &quot;!&quot;, and terminated by a space may be certain internal commands like !help, !return, !ckeys, !pick, !form, or !rsh. These commands invoke other CMENU programs to provide additional functionality. If the string is not one of these internal commands, it is treated as an external command to be executed by the shell. This allows you to run any shell command or script from within the menu. The remainder of the line after the command is passed as arguments to the command.</p>
+<h2>CKEYS</h2>
+<p>CKeys is not a structural part of CMENU, but it's included as a demonstration
+of C-Menu's user interface and as a handy utility for developers working with Curses-based applications. It displays a list of Curses key symbols along with their corresponding octal, decimal, and hex values. It also shows mouse actions and pointer coordinates.</p>
 <img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
-<h3>CMENU with PICK</h3>
-<img src="screenshots/Pick.png" />
-<p>This program provides a list of objects from arguments or a text file
-and lets the user select any number to be written to a file or provided
-as arguments to an executable specified in the description file.</p>
-<h3>FORM</h3>
-<p>FORM is a lightweight and flexible form handling library designed to simplify the process of creating, validating, and managing forms in text-based applications.</p>
-<p>It provides a straightforward API for defining form fields, handling user input, and performing validation checks.</p>
-<h3>FORM Key Features</h3>
+<h2>ILOAN</h2>
+<p>ILoan is a sample application included with CMENU that demonstrates how to create a loan calculator interface using the Form program. Given any three of Present Value, Number of Periods, Payment Amount, or Interest Rate, it calculates the fourth value. When the user presses &quot;F5 Calculate&quot;, Form passes the variables entered to ILoan, a stand-alone executable and uses the output to fill in the missing value, which is Payment Amount in the screen below.</p>
+<img src="screenshots/iloan.png" alt="ILoan" title="ILoan" />
+<h2>FORM</h2>
+<p>FORM reads a description file that defines a data entry form. It displays the form to the user, allowing them to input data in a structured manner. The entered data can then be processed by a specified command or script, or written to a file.</p>
+<pre class="rounded-code"><code>H:Installment Loan Calculator
+#
+T:1:4:Enter any three of the four values to calculate the fourth.
+T:2:4:Only one field can be left blank or zero.
+T:3:4:Press F5 to calculate the missing value.
+#
+#
+T:5:14:Principal Amount:
+F:5:33:14:Currency
+T:6:14:Number of Months:
+F:6:33:5:Decimal_Int
+T:7:10:Annual Interest Rate:
+F:7:33:5:APR
+T:8:16:Payment Amount:
+F:8:33:12:Currency
+T:10:1:First Payment Date (Yyyymmdd):
+F:10:33:10:Yyyymmdd
+C
+?iloan.hlp
+</code></pre>
+<h2>Line Type Speecifiers (H, T, F, C, and ?)</h2>
 <ul>
-<li>Easy Form Creation: Define forms with various field types such as text, number, email, and more.</li>
-<li>Validation: Built-in validation rules to ensure data integrity, including required fields, format checks, and custom validators.</li>
-<li>User Input Handling: Seamlessly capture and process user input from the command line or text-based interfaces.</li>
-<li>Customizable: Extendable architecture allowing developers to create custom field types and validation rules.</li>
-<li>Integration: Designed to work well with other components of the C-Menu Project, enabling a cohesive development experience.</li>
+<li>'#' Comment line (ignored)</li>
+<li>'H' The header to be displayed at the top of the form</li>
+<li>'T' Text field (line:column:length:text)</li>
+<li>'F' Input field (line:column:length:type)</li>
+<li>'C' Instructs Form to provide an &quot;F5 Calculate&quot; option</li>
+<li>'?' A user supplied help file for the form.</li>
 </ul>
-<h3>FORM Data Types</h3>
-<img src="screenshots/data-types.f.png" />
-<img src="screenshots/data-types.png" />
+<h2>Field Delimiters:</h2>
+<p>The &quot;:&quot; character is used as a delimiter in the fields above, but any
+character that is placed immediately after the line designator (H, T, F, C, or ?)
+will be used as a delimiter. For example, the following two lines are
+equivalent:</p>
+<pre class="rounded-code"><code>T:2:4:Enter any three of the four values to calculate the fourth.
+T|2|4|Enter any three of the four values to calculate the fourth.
+</code></pre>
+<h2>FORM Data Types</h2>
+<p>ZZ</p>
 <p>FORM displays data entry forms based on a description file. It allows users
 to input data in a structured manner. The entered data can then be processed
 by a specified command or script.</p>
-<p>If you make a mistake, in the form description syntax, as I did below, you will
-get a notification pinpointing the problem. In this message, we can see that the
-format field on line 3 of &quot;receipt.f&quot; is invalid. I have a &quot;3&quot;, and it should have been &quot;String&quot;. The corrected line would be: &quot;F!2!18!10!String&quot;.</p>
-<img src="screenshots/form-error.png" />
+<img src="screenshots/data-types.f.png" />
+<img src="screenshots/data-types.png" />
 <p>Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
 accounting, scheduling and management system. It was particularly useful
 as a front-end for our SQL database applications.</p>
@@ -197,7 +213,105 @@ list? FORM has you covered. The application shown above took about 10
 minutes from design to test. It doesn't post transactions, or keep running
 balances yet, but that's why we have people like you.</p>
 <p>FORM also makes a great front-end for SQL database queries.</p>
-<h3>A Sample Menu Description File</h3>
+<pre class="rounded-code"><code>       String: Any text
+       Decimal_Int: Integer number
+       Hex_Int: Hexadecimal integer
+       Float: Floating point number
+       Double: Double precision floating point number
+       Currency: Currency amount
+       APR: Annual Percentage Rate
+       Date: {int yyyy; int mm; int dd}
+       Time: {int hh; int mm; int ss}
+</code></pre>
+<p>All field data is passed through &quot;format_field()&quot; for validation and conversion.
+It can easily be passed to user programs in this same module, and it can be passed
+as unformatted strings, formatted strings, or C data types as shown below.</p>
+<p>Currently, the data types are as shown in the following listing, and more will
+be added in future releases. This listing also shows how each data type is processed
+within the &quot;format_field()&quot; function in fields.c and serves as a guide for adding new types.</p>
+<p>The send and receive client functions can be used to serialize and transmit/receive
+data to and from user programs via simple files, json, or network protocols.</p>
+<pre class="rounded-code"><code class="language-c"> fields.c
+
+ int format_field(Form *, char *s) {
+
+     char   field_s[MAXLEN];
+     int    decimal_int_n = 0;
+     int    hex_int_n = 0;
+     float  float_n = 0.0;
+     double double_n = 0.0;
+     double currency_n = 0.0;
+
+     struct {
+         int yyyy;
+         int mm;
+         int dd;
+     } Date;
+
+     struct {
+        int hh;
+        int mm;
+        int ss;
+     } Time;
+
+     switch (form-&gt;field[form-&gt;fidx]-&gt;data_type) {
+     case FF_CURRENCY:
+         numeric(field_s, input_s); // remove &quot;,&quot; and &quot;$&quot;
+         sscanf(field_s, &quot;%lf&quot;, &amp;currency_n);
+         if (!valid_currency(currency_n))
+             return false;
+         sprintf(accept_s, &quot;%.2lf&quot;, currency_n);
+         sprintf(display_s, &quot;%'.2lf&quot;, currency_n);
+         right_justify(display_s, fl);
+         send_client_currency(form-&gt;fidx, currency_n);
+         break;
+
+     case FF_YYYYMMDD:
+         numeric(field_s, input_s); // remove &quot;/&quot; and &quot;-&quot;
+         sscanf(field_s, &quot;%4d%2d%2d&quot;, &amp;Date.yyyy, &amp;Date.mm, &amp;Date.dd);
+         if (!is_valid_date(Date.yyyy, Date.mm, Date.dd))
+             return false;
+         sprintf(display_s, &quot;%04d-%02d-%02d&quot;, Date.yyyy, Date.mm, Date.dd);
+         send_client_date(form-&gt;fidx, Date);
+         break;
+     ...
+
+</code></pre>
+<p>The Field Format Specifiers can be any combination of upper and lower case,
+and new types can be easily added by modifying the source code.</p>
+<h2>RSH</h2>
+<h2>CMENU with PICK</h2>
+<img src="screenshots/Pick.png" />
+<p>This program provides a list of objects from arguments or a text file
+and lets the user select any number to be written to a file or provided
+as arguments to an executable specified in the description file.</p>
+<h2>FORM</h2>
+<p>FORM is a lightweight and flexible form handling library designed to simplify the process of creating, validating, and managing forms in text-based applications.</p>
+<p>It provides a straightforward API for defining form fields, handling user input, and performing validation checks.</p>
+<h2>Key Features</h2>
+<ul>
+<li>Easy Form Creation: Define forms with various field types such as text, number, email, and more.</li>
+<li>Validation: Built-in validation rules to ensure data integrity, including required fields, format checks, and custom validators.</li>
+<li>User Input Handling: Seamlessly capture and process user input from the command line or text-based interfaces.</li>
+<li>Customizable: Extendable architecture allowing developers to create custom field types and validation rules.</li>
+<li>Integration: Designed to work well with other components of the C-Menu Project, enabling a cohesive development experience.</li>
+</ul>
+<h2>Numeric Formats Supported</h2>
+<img src="screenshots/form.png" alt="Curses Keys" title="Sample Menu" />
+<p>FORM displays data entry forms based on a description file. It allows users
+to input data in a structured manner. The entered data can then be processed
+by a specified command or script.</p>
+<img src="screenshots/form.png" alt="Curses Keys" title="Sample Menu" />
+<p>Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
+accounting, scheduling and management system. It was particularly useful
+as a front-end for our SQL database applications.</p>
+<img src="screenshots/Receipt.png" />
+<p>Need quick and easy Cash Receipts, General Journal, or wedding invitation
+list? FORM has you covered. The application shown above took about 10
+minutes from design to test. It doesn't post transactions, or keep running
+balances yet, but that's why we have people like you.</p>
+<p>FORM also makes a great front-end for SQL database queries.</p>
+<h2>A Sample Menu Description File</h2>
 <pre class="rounded-code"><code>H:SAMPLE MENU
 
 :Gnumeric
@@ -234,13 +348,13 @@ balances yet, but that's why we have people like you.</p>
 <p>We hope you find CMENU useful for your projects. It's a powerful tool that can
 greatly simplify the process of creating text-based user interfaces for
 your applications.</p>
-<h3>VIEW</h3>
-<p>VIEW is a simple text file viewer that allows users to view text files in a
+<h2>VIEW</h2>
+<p><strong>VIEW</strong> is a simple text file viewer that allows users to view text files in a
 terminal environment. It supports basic navigation and regular expression
 search functionality, which comes in handy for displaying help files or
-other text-based documentation. VIEW can be invoked from within MENU, FORM,
+other text-based documentation. <strong>VIEW</strong> can be invoked from within MENU, FORM,
 or PICK to provide contextual help or information.</p>
-<p>You may have noticed that Nvim doesn't render ANSI escape sequences. Why should it? How often do you need to edit a file with ANSI escape sequences? Generally, the user just needs to view that type of file, and that's what pagers like &quot;less&quot; and C-Menu view were designed to do.</p>
+<p>You may have noticed that Nvim doesn't render ANSI escape sequences. Why should it? How often do you need to edit a file that contains ANSI escape sequences? That's what pagers like <strong>less</strong> and <strong>C-Menu View</strong> were designed to do.</p>
 <h4>Nvim Screenshot</h4>
 <img src="screenshots/nvim-log.png" alt="nvim log" title="nvim log" />
 <h4>C-Menu View Screenshot</h4>
@@ -251,13 +365,7 @@ instantaneously, making it an excellent choice for viewing log files or other
 large documents. While NVIM and other modern editors are outstanding for code
 editing, it's just not practical to open a 100MB log file in them. VIEW
 handles large files with ease and zips through them with lightning speed.</p>
-<h4>view ~/menuapp/help/view.help</h4>
-<img src="screenshots/view-help.png" alt="View Help" title="View Help" />
-<p>Or maybe you just want to have Unicode glyphs and ANSI escape highlighting in
-your documentation.</p>
-<p>Here's the C-Menu description.</p>
-<img src="screenshots/main.m.png" />
-<h3>RSH</h3>
+<h2>RSH</h2>
 <img src="screenshots/rsh.png" />
 <p>Despite its name, RSH is not a shell. It is a shell runner, which allows
 you to specify your shell of choice, and provides a consistent environment
@@ -288,6 +396,13 @@ to prevent promiscuous access by unauthorized users. RSH should be provided
 only to trusted users who understand the implications of executing commands
 with elevated privileges. Used inappropriately, it can lead to system
 instability or security vulnerabilities.</p>
+<h2>Build Instructions</h2>
+<h3>Makefile</h3>
+<img src="screenshots/make.png" alt="Makefile Build" title="Makefile Build" />
+<h3>CMake Build</h3>
+<img src="screenshots/cmake_build.png" alt="CMake Build" title="CMake Build" />
+<h3>CMake Install</h3>
+<img src="screenshots/cmake_install.png" alt="CMake install" title="CMake install"  />
 <h2>Features</h2>
 <ul>
 <li>
@@ -327,7 +442,7 @@ instability or security vulnerabilities.</p>
 <p>Open-source and free to use</p>
 </li>
 </ul>
-<h3>CMENU Command Line Options</h3>
+<h2>CMENU Command Line Options</h2>
 <pre class="rounded-code"><code>usage: {menu|pick|form|view}
 
 long option          type      group       mask  flg description
