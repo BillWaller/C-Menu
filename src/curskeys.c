@@ -15,13 +15,14 @@ int display_curses_keys() {
     WINDOW *win;
     WINDOW *box;
     char Title[] = "TEST CURSES KEYS";
-    int lines = 9;
+    int lines = 10;
     int cols = 55;
     char kstr[64];
     int c;
     char action[MAXLEN];
     char tmp[MAXLEN];
     MEVENT event;
+    char *s;
     /*
        typedef struct {
            short id;
@@ -43,13 +44,13 @@ int display_curses_keys() {
         strncpy(tmp, "win_new failed: ", MAXLEN - 1);
         strncat(tmp, Title, MAXLEN - 1);
         display_error_message(tmp);
-        return (-1);
+        return 0;
     }
     win = win_win[win_ptr];
     box = win_box[win_ptr];
     keypad(win, TRUE);
     wattron(win, A_REVERSE);
-    mvwaddstr(win, lines - 1, 0, " ESC to exit ");
+    mvwaddstr(win, lines - 1, 0, " <ALT>END to exit ");
     wattroff(win, A_REVERSE);
     wnoutrefresh(box);
     mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
@@ -57,11 +58,9 @@ int display_curses_keys() {
     while (!c) {
         kstr[0] = '\0';
         c = mvwgetch(win, 1, 39);
+        s = keybound(c, 0);
         switch (c) {
         case '\0':
-            break;
-        case '\033':
-            strcpy(kstr, "0033 Escape Key");
             break;
         case KEY_CODE_YES:
             strcpy(kstr, "KEY_CODE_YES A wchar_t contains a key code");
@@ -87,50 +86,41 @@ int display_curses_keys() {
         case KEY_BACKSPACE:
             strcpy(kstr, "KEY_BACKSPACE backspace key");
             break;
-        case KEY_F0:
-            strcpy(kstr, "KEY_F0 Function Keys");
+        case KEY_F(1):
+            strcpy(kstr, "KEY_F(1) KEY_F(1)");
             break;
-        case KEY_F1:
-            strcpy(kstr, "KEY_F1 KEY_F1");
-            break;
-        case KEY_F2:
+        case KEY_F(2):
             strcpy(kstr, "KEY_F2 KEY_F2");
             break;
-        case KEY_F3:
+        case KEY_F(3):
             strcpy(kstr, "KEY_F3 KEY_F3");
             break;
-        case KEY_F4:
+        case KEY_F(4):
             strcpy(kstr, "KEY_F4 KEY_F4");
             break;
-        case KEY_F5:
+        case KEY_F(5):
             strcpy(kstr, "KEY_F5 KEY_F5");
             break;
-        case KEY_F6:
+        case KEY_F(6):
             strcpy(kstr, "KEY_F6 KEY_F6");
             break;
-        case KEY_F7:
+        case KEY_F(7):
             strcpy(kstr, "KEY_F7 KEY_F7");
             break;
-        case KEY_F8:
+        case KEY_F(8):
             strcpy(kstr, "KEY_F8 KEY_F8");
             break;
-        case KEY_F9:
+        case KEY_F(9):
             strcpy(kstr, "KEY_F9 KEY_F9");
             break;
-        case KEY_F10:
+        case KEY_F(10):
             strcpy(kstr, "KEY_F10 KEY_F10");
             break;
-        case KEY_F11:
+        case KEY_F(11):
             strcpy(kstr, "KEY_F11 KEY_F11");
             break;
-        case KEY_F12:
+        case KEY_F(12):
             strcpy(kstr, "KEY_F12 KEY_F12");
-            break;
-        case KEY_F13:
-            strcpy(kstr, "KEY_F13 KEY_F13");
-            break;
-        case KEY_F14:
-            strcpy(kstr, "KEY_F14 KEY_F14");
             break;
         case KEY_DL:
             strcpy(kstr, "KEY_DL delete - line key");
@@ -405,6 +395,42 @@ int display_curses_keys() {
         case KEY_ALTUP:
             strcpy(kstr, "KEY_ALTUP alt+up");
             break;
+        case KEY_ALTF(1):
+            strcpy(kstr, "KEY_ALTF1 alt+F1");
+            break;
+        case KEY_ALTF(2):
+            strcpy(kstr, "KEY_ALTF1 alt+F2");
+            break;
+        case KEY_ALTF(3):
+            strcpy(kstr, "KEY_ALTF3 alt+F3");
+            break;
+        case KEY_ALTF(4):
+            strcpy(kstr, "KEY_ALTF4 alt+F4");
+            break;
+        case KEY_ALTF(5):
+            strcpy(kstr, "KEY_ALTF5 alt+F5");
+            break;
+        case KEY_ALTF(6):
+            strcpy(kstr, "KEY_ALTF6 alt+F6");
+            break;
+        case KEY_ALTF(7):
+            strcpy(kstr, "KEY_ALTF7 alt+F7");
+            break;
+        case KEY_ALTF(8):
+            strcpy(kstr, "KEY_ALTF8 alt+F8");
+            break;
+        case KEY_ALTF(9):
+            strcpy(kstr, "KEY_ALTF9 alt+F9");
+            break;
+        case KEY_ALTF(10):
+            strcpy(kstr, "KEY_ALTF10 alt+F10");
+            break;
+        case KEY_ALTF(11):
+            strcpy(kstr, "KEY_ALTF11 alt+F11");
+            break;
+        case KEY_ALTF(12):
+            strcpy(kstr, "KEY_ALTF12 alt+F12");
+            break;
             /*  ╭───────────────────────────────────────────────────────────────╮
                 │ MOUSE FUNCTIONS │
                 ╰───────────────────────────────────────────────────────────────╯
@@ -482,6 +508,8 @@ int display_curses_keys() {
                 wclrtoeol(win);
                 wmove(win, 5, 0);
                 wclrtoeol(win);
+                wmove(win, 7, 0);
+                wclrtoeol(win);
             }
             break;
         default:
@@ -508,9 +536,12 @@ int display_curses_keys() {
             }
             mvwaddstr(win, 6, 3, tmp);
             wclrtoeol(win);
+            mvwaddstr(win, 7, 2, "Key bound To: ");
+            wclrtoeol(win);
+            mvwaddstr(win, 7, 16, s ? s : "Not Bound");
             wrefresh(win);
         }
-        if (c == '\33') {
+        if (c == KEY_ALTEND) {
             usleep(100000);
             break;
         }
@@ -518,6 +549,8 @@ int display_curses_keys() {
     }
     wclear(win);
     wrefresh(win);
+    clear();
+    refresh();
     win_del();
     return 0;
 }

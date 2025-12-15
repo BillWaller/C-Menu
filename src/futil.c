@@ -19,6 +19,7 @@ int trim(char *);
 int ssnprintf(char *, size_t, const char *, ...);
 bool str_to_bool(const char *);
 int str_to_args(char **, char *);
+double str_to_double(char *);
 void str_to_lower(char *);
 void str_to_upper(char *);
 void strnz_cpy(char *, char *, int);
@@ -311,7 +312,15 @@ void file_spec_name(char *fn, char *fs) {
         *d++ = *s++;
     *d = '\0';
 }
+double str_to_double(char *s) {
+    char *e;
+    double d;
 
+    if (!s || !*s)
+        return false;
+    d = strtod(s, &e);
+    return d;
+}
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STR_TO_BOOL                                                       │
     │ Converts generalized boolean to true or false.                    │

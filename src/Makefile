@@ -41,7 +41,7 @@
 CFLAGS = -O0 -g3 -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
 		-Wno-unused-parameter -Wno-missing-field-initializers \
 		-Wno-unused-function -DNCURSES_WIDECHAR -Wl,--gc-sections
-LIBS =  -lncursesw -ltinfo
+LIBS =  -lncursesw -ltinfo -lm
 LDFLAGS = -Wl,--gc-sections
 CC = gcc
 TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr

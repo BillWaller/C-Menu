@@ -1,31 +1,33 @@
-# CMENU - A TUI Menu System
+# **C-Menu** - A TUI Menu System
 
-## Programs: Menu, Form, Pick, View, and RSH
+## Programs: C-Menu Menu, Form, Pick, View, and RSH
 
-CMENU is a lightweight, customizable, and easy-to-learn suite of programs
+**C-Menu** is a lightweight, customizable, and easy-to-learn suite of programs
 for creating menus, entry forms, and pickers with a text-based user
 interface(TUI) for applications running on Linux and Unix-like operating
-systems. CMENU is designed to be simple to use while providing powerful
+systems. **C-Menu** is designed to be simple to use while providing powerful
 features to implement menu driven frameworks for applications in
 terminal and terminal emulator environments.
 
-### CMENU
+### **C-Menu**
 
 <img src="screenshots/sample_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 
-MENU reads a simple description file like the one above and displays a menu to the user. When the user selects an item, MENU executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
+C-Menu reads a simple description file like the one above and displays a menu to the user. When the user selects an item, C-Menu executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
 
-### Test Curses Keys
+### **C-Menu** C-Keys to diagnose screen input issues
 
-Is a particular key not working for your project? Curses Keys (or CKeys)
-provides an easy way to determine whether the problem is with your code
-or your terminfo/termcap files. Or, if you just don't remember the key
-symbol for Curses. It also gives you the Octal, Decimal, and Hex codes
-for keys not defined in Curses, so you can provide your own custom keys.
+Is a particular key not working for your project? C-Menu C-Keys provides an easy way to determine if the key is defined in NCurses or there is a missing entry in your terminfo database. Or, if you just don't remember the name of a particular key, it may be more convenient than rummaging through NCurses header files. Just start C-Keys and press the key. It will display the curses key name, if defined, along with Octal, Decimal, and Hex codes. It's also a good way to identify which keys are defined in NCurses, and gives you the specific key code so if it's not, you can easily add your own Extended NCurses keys.
 
-<img src="screenshots/Curses_Keys.png" alt="Curses Keys" title="Curses Keys" />
+<img src="screenshots/extended-keys.png" alt="Extended Keys" title="Extended Keys" />
 
-### CMENU with PICK
+<img src="screenshots/ckeys-alt.png" alt="CKeys ALT Keys" title="CKeys ALT Keys" />
+
+C-Menu C-Keys also provides a diagnostic function for mouse actions and geometry.
+
+<img src="screenshots/ckeys-mouse.png" alt="CKeys Mouse" title="CKeys Mouse" />
+
+### **C-Menu** PICK
 
 <img src="screenshots/Pick.png" />
 
@@ -33,22 +35,21 @@ This program provides a list of objects from arguments or a text file
 and lets the user select any number to be written to a file or provided
 as arguments to an executable specified in the description file.
 
-### FORM
+### **C-Menu** FORM
 
 FORM is a lightweight and flexible form handling library designed to simplify the process of creating, validating, and managing forms in text-based applications.
 
 It provides a straightforward API for defining form fields, handling user input, and performing validation checks.
 
-
-### FORM Key Features
+### **C-Menu** FORM Key Features
 
 - Easy Form Creation: Define forms with various field types such as text, number, email, and more.
 - Validation: Built-in validation rules to ensure data integrity, including required fields, format checks, and custom validators.
 - User Input Handling: Seamlessly capture and process user input from the command line or text-based interfaces.
 - Customizable: Extendable architecture allowing developers to create custom field types and validation rules.
-- Integration: Designed to work well with other components of the C-Menu Project, enabling a cohesive development experience.
+- Integration: Designed to work well with other components of the **C-Menu** Project, enabling a cohesive development experience.
 
-### FORM Data Types
+### **C-Menu** FORM Data Types
 
 <img src="screenshots/data-types.f.png" />
 
@@ -64,7 +65,7 @@ format field on line 3 of "receipt.f" is invalid. I have a "3", and it should ha
 
 <img src="screenshots/form-error.png" />
 
-Decision, Inc. used CMENU's FORM program to augment it's Radio Broadcast
+Decision, Inc. used **C-Menu**'s FORM program to augment it's Radio Broadcast
 accounting, scheduling and management system. It was particularly useful
 as a front-end for our SQL database applications.
 
@@ -77,82 +78,76 @@ balances yet, but that's why we have people like you.
 
 FORM also makes a great front-end for SQL database queries.
 
-### A Sample Menu Description File
+### **C-Menu** Sample Menu Description File
 
-```
-H:SAMPLE MENU
-
-:Gnumeric
-!exec gnumeric
-
-:Shell Script
-!exec bash -c script.sh
-
-:Shell Script as Root
-!exec rsh -c script.sh
-
-:Full Screen (root) Shell
-!exec rsh
-
-:Test Curses Keys
-!ckeys
-
-:Pick Items From a List
-!pick -i picklist -M -c vi picklist.out
-
-:Cash Receipts
-!form receipt.d -c receipt.sh
-
-:Help
-!help ~/menuapp/doc/applications.hlp
-
-:Exit Applications
-!return
-```
+<img src="screenshots/menu-desc.png" alt="Menu Description File log" title="Menu Description File" />
 
 As you can see, the description file is straightforward and easy to read. Each menu item consists of a label and a command to execute. The label is displayed in the menu, and the command is executed when the user selects that item.
 
-Here's just one example of how easy it is to create useful programs with the C-Menu Form facility.
+Here's just one example of how easy it is to create useful programs with the **C-Menu** Form facility.
 
 <img src="screenshots/iloan_f.png" alt="Curses Keys" title="Sample Application" />
 
 <img src="screenshots/iloan.png" alt="Curses Keys" title="Sample Application" />
 
-We hope you find CMENU useful for your projects. It's a powerful tool that can
+We hope you find **C-Menu** useful for your projects. It's a powerful tool that can
 greatly simplify the process of creating text-based user interfaces for
 your applications.
 
-### VIEW
+### **C-Menu** VIEW
 
 VIEW is an easy-to-use text file viewer that allows users to view text files in a
 terminal environment. It supports basic navigation, regular expression
 search functionality, horizontal scrolling, ANSI escape highlighting, Unicode, and
 NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to provide contextual help or stand-alone, full-screen as a system pager.
 
-You may have noticed that Nvim doesn't render ANSI escape sequences. Why should it? How often do you need to edit a file with ANSI escape sequences? Generally, the user just needs to view that type of file, and that's what pagers like "less" and C-Menu view were designed to do.
+You may have noticed that Nvim doesn't render ANSI escape sequences. Why should it? How often do you need to edit a file with ANSI escape sequences? Generally, the user just needs to view that type of file, and that's what pagers like "less" and **C-Menu** view were designed to do.
 
 #### Nvim Screenshot
 
 <img src="screenshots/nvim-log.png" alt="nvim log" title="nvim log" />
 
-#### C-Menu View Screenshot
+#### CMenu Screenshot of the Same File
 
 <img src="screenshots/view.png" alt="View" title="View" />
 
-One especially useful feature of C-Menu View is its incredible speed with large
-text files, like system logs. C-Menu View can open and display multi-gigabyte text files almost instantaneously. While NVIM and other modern editors are outstanding for code editing, but don't even try to open multi-gigabyte file with them. C-Menu View handles large files without breaking a sweat, and zips through them with lightning speed.
+One especially useful feature of **C-Menu** View is its incredible speed with large
+text files, like system logs. **C-Menu** View can open and display multi-gigabyte text files almost instantaneously. While NVIM and other modern editors are outstanding for code editing, but don't even try to open multi-gigabyte file with them. C-Menu View handles large files without breaking a sweat, and zips through them with lightning speed.
 
-#### view ~/menuapp/help/view.help
+### C-Menu 3-Channel Gamma Correction
+
+When using utilities such as "pygmentize" to highlight files, the text is sometimes almost unreadable. On the left-hand side of the following screenshot, "less" does a great job of rendering the output of pygmentize, but **C-Menu** with gamma correction can do better. It's all about perceptual luminance. Either from the command line or the minitrc file, the user can specify a gamma correction value for each of the three color channels, red, green, and blue. It's a minor thing, really, but we programmers aren't "automitons." A pleasing visual appearance makes work more fun.
+
+<img src="screenshots/gamma.png" alt="Gamma Correction" title="Gamma Correction" />
+
+Here's another sample using "bat".
+
+<img src="screenshots/bat.png" alt="Bat Highlighter" title="Bat Highlighter" />
+
+### C-Menu 6-Channel Gamma Correction
+
+It's not available yet, but it could be. "bat", is a totally awesome highlighting application, and the included themes are great, but sometimes the reverse backgrounds don't have enough contrast. The text blends in with the backgroudn, making it difficult to read. That's where 6-Channel Gamma correction might be very useful. By using luminance and hue as indicators, it could darken, lighten, and shift hue to improve readability and aesthetic appeal. Let me know what you think.
+
+[Bezold-Brücke hue shift](https://pubmed.ncbi.nlm.nih.gov/6534013/)
+
+
+#### VIEW ~/menuapp/help/view.help
 
 <img src="screenshots/view-help.png" alt="View Help" title="View Help" />
 
-Or maybe you just want to have Unicode glyphs and ANSI escape highlighting in
-your documentation.
+#### And you're Bobby Dazzler!
 
-Here's the C-Menu description. As you can see, the view command on line 24 specifies the number of columns and lines (-C and -L respectively).
+With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma correction, your application is bound to outshine the competition.
+
+### **C-Menu** Is Easy to Use
+
+As you can see, the view command on line 24 specifies the number of columns and lines (-C and -L respectively). The following screenshot shows the C-Menu description file being edited with NVim.
 
 <img src="screenshots/main.m.png" />
 
+But if you like a little more panache, display it with C-Menu view.
+
+<img src="screenshots/menu-desc.png" alt="Sample Menu" title="Sample Menu" />
 
 ### RSH
 
@@ -169,7 +164,7 @@ tool for developing aplication front-ends. RSH ensures that your scripts
 and executables run in a controlled environment, reducing the chances of
 unexpected behavior due to differing shell environments. RSH forks and waits
 for its spawn to complete before returning control to the calling program.
-When executed under CMenu's signal handler, it catches and displays the
+When executed under **C-Menu**'s signal handler, it catches and displays the
 exit status of the command, allowing for better error handling. Instead of
 using su -c or sudo to run commands as root, you can use rsh -c to achieve
 the same result in a more streamlined manner. You can literally have root
@@ -217,47 +212,7 @@ instability or security vulnerabilities.
 
 - Open-source and free to use
 
-### CMENU Command Line Options
-
-```
-usage: {menu|pick|form|view}
-
-long option          type      group       mask  flg description
--------------------  -------   ----------  ----- --- --------------------------------
---minitrc             string    file spec   mpfv  -a: configuration file spec
---cmd_spec            string    misc        .pfv  -c: command executable
---mapp_spec           string    file name   mpfv  -d: description spec
---f_erase_remainder   yes/no    flag        ..f.  -e: erase remainder of line on enter
---in_spec             string    file name   .p..  -i: input spec
---mapp_home           string    directory   mpfv  -m: home directory
---selections          integer   parameters  .p..  -n: number of selections
---out_spec            string    file name   .p..  -o: output spec
---f_at_end_remove     yes/no    flag        ...v  -r: remove file at end of program
---f_squeeze           yes/no    flag        ...v  -s  squeeze multiple blank lines
---tab_stop            integer   parameters  ...v  -t: number of spaces per tab
---mapp_user           string    directory   mpfv  -u: user directory
---f_ignore_case       yes/no    flag        ...v  -x: ignore case in search
---f_at_end_clear      yes/no    flag        mpfv  -z  clear screen at end of program
---answer_spec         string    file name   ..f.  -A: answer spec
---bg_color            integer   parameters  mpfv  -B: background_color
---cols                integer   parameters  mpfv  -C: height in columns
---fg_color            integer   parameters  mpfv  -F: foreground_color
---help_spec           string    file name   mpfv  -H: help spec
---lines               integer   parameters  mpfv  -L: width in lines
---f_mutiple_cmd_args  integer   parameters  mpfv  -M  multiple command arguments
---bo_color            integer   parameters  mpfv  -O: border_color
---prompt              string    misc        ...v  -P: prompt (S-Short, L-Long, N-None)[string]
---start_cmd           string    misc        ...v  -S  command to execute at start of program
---title               string    misc        mpfv  -T: title
---begx                integer   parameters  mpfv  -X: begin on column
---begy                integer   parameters  mpfv  -Y: begin on line
---f_stop_on_error     yes/no    flag        mpfv  -Z  stop on error
---mapp_data           string    directory   mpfv      data directory
---mapp_help           string    directory   mpfv      help directory
---mapp_msrc           string    directory   mpfv      source directory
-```
-
-## MINITRC Runtime Configuration
+#### MINITRC Runtime Configuration and Options
 
 <img src="screenshots/minitrc.png" />
 
@@ -267,4 +222,4 @@ added.
 
 ## Installation
 
-To install CMENU, simply download the source code from the repository and follow the installation instructions provided in the INSTALL.md file.
+To install **C-Menu**, simply download the source code from the repository and follow the installation instructions provided in the INSTALL.md file.

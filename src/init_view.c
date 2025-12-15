@@ -17,22 +17,22 @@ int init_view_full_screen(Init *init) {
     char emsg0[MAXLEN];
     char emsg1[MAXLEN];
     char emsg2[MAXLEN];
-    open_curses(init);
+    view = init->view;
+    view->f_full_screen = true;
     getmaxyx(stdscr, view->lines, view->cols);
     // Screen    50 lines
     //          - 1 command line
     //          -----------
     //           49 viewable lines
     //
-    view->scroll_lines = view->lines - 1;
-    view->cmd_line = view->lines - 1;
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = 0;
     view->smincol = 0;
+    view->scroll_lines = view->lines - 1;
+    view->cmd_line = view->lines - 1;
     view->smaxrow = view->lines - 1;
     view->smaxcol = view->cols - 1;
-
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
         snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
@@ -43,9 +43,9 @@ int init_view_full_screen(Init *init) {
         abend(-1, "init_view_full_screen: newpad() failed");
     }
     view->box = NULL;
-
-    wcolor_set(view->win, CP_NORM, NULL);
-    wbkgd(view->win, COLOR_PAIR(CP_NORM) | ' ');
+    wbkgd(view->win, COLOR_PAIR(cp_norm) | ' ');
+    if (view->tab_stop <= 0)
+        view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
     wsetscrreg(view->win, 0, view->scroll_lines - 1);
     scrollok(view->win, true);
@@ -59,15 +59,22 @@ int init_view_full_screen(Init *init) {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ INIT_VIEW_BOXWIN                                              │
     ╰───────────────────────────────────────────────────────────────╯ */
-int init_view_boxwin(View *view) {
+int init_view_boxwin(Init *init) {
     char emsg0[MAXLEN];
     char emsg1[MAXLEN];
     char emsg2[MAXLEN];
-    if (!f_curses_open) {
-        open_curses(init);
-    }
-    if (win_new(view->lines, view->cols, view->begy, view->begx,
-                view->argv[0])) {
+    int scr_lines, scr_cols;
+    view = init->view;
+    view->f_full_screen = false;
+    scr_lines = LINES;
+    scr_cols = COLS;
+    getmaxyx(stdscr, scr_lines, scr_cols);
+    if (view->begy + view->lines > scr_lines)
+        view->lines = scr_lines;
+    if (view->begx + view->cols > scr_cols)
+        view->cols = scr_cols;
+    strncpy(view->title, view->argv[0], MAXLEN - 1);
+    if (win_new(view->lines, view->cols, view->begy, view->begx, view->title)) {
         snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
         snprintf(emsg1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
                  view->lines, view->cols, view->begy, view->begx, "NULL");
@@ -75,7 +82,6 @@ int init_view_boxwin(View *view) {
         display_error(emsg0, emsg1, emsg2);
         return (-1);
     }
-
     view->scroll_lines = view->lines - 1;
     view->cmd_line = view->lines - 1;
     view->pminrow = 0;
@@ -84,7 +90,6 @@ int init_view_boxwin(View *view) {
     view->smincol = view->begx + 1;
     view->smaxrow = view->begy + view->lines;
     view->smaxcol = view->begx + view->cols;
-
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
         snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
@@ -94,7 +99,7 @@ int init_view_boxwin(View *view) {
         display_error(emsg0, emsg1, emsg2);
         return -1;
     }
-    wbkgd(view->win, COLOR_PAIR(CP_NORM) | ' ');
+    wbkgd(view->win, COLOR_PAIR(cp_norm) | ' ');
     set_tabsize(view->tab_stop);
     wsetscrreg(view->win, 0, view->scroll_lines - 1);
     scrollok(view->win, true);
@@ -116,7 +121,8 @@ bool view_init_input(View *view, char *file_name) {
     char emsg0[MAXLEN];
     char emsg1[MAXLEN];
     char emsg2[MAXLEN];
-
+    if (strcmp(file_name, "-") == 0)
+        file_name = "/dev/stdin";
     if (lstat(file_name, &sb) == -1) {
         snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
         snprintf(emsg1, MAXLEN - 65, "lstat %s", file_name);
@@ -135,29 +141,8 @@ bool view_init_input(View *view, char *file_name) {
     }
     view->file_size = sb.st_size;
     view->buf_last = view->file_size / VBUFSIZ;
-    if (S_ISFIFO(sb.st_mode) || S_ISCHR(sb.st_mode)) {
-        if (view->f_pipe_processed) {
-            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-            snprintf(emsg1, MAXLEN - 65, "file status %s", file_name);
-            strerror_r(errno, emsg2, MAXLEN);
-            emsg2[0] = '\0';
-            display_error(emsg0, emsg1, emsg2);
-            return false;
-        }
-        view->fp = fopen(file_name, "r");
-        if (view->fp == NULL) {
-            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-            snprintf(emsg1, MAXLEN - 65, "fopen %s", file_name);
-            strerror_r(errno, emsg2, MAXLEN);
-            display_error(emsg0, emsg1, emsg2);
-            return false;
-        }
-        if (setvbuf(view->fp, view->buf, _IOFBF, VBUFSIZ) != 0) {
-            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-            snprintf(emsg1, MAXLEN - 65, "setvbuf %s", file_name);
-            strerror_r(errno, emsg2, MAXLEN);
-            display_error(emsg0, emsg1, emsg2);
-        }
+    if (strcmp(file_name, "/dev/stdin") == 0) {
+        view->fp = fdopen(STDIN_FILENO, "r");
         view->f_is_pipe = true;
         view->f_pipe_processed = false;
         view->f_new_file = true;
@@ -171,34 +156,25 @@ bool view_init_input(View *view, char *file_name) {
             display_error(emsg0, emsg1, emsg2);
             return false;
         }
-        if (setvbuf(view->fp, view->buf, _IOFBF, VBUFSIZ) != 0) {
-            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-            snprintf(emsg1, MAXLEN - 65, "setvbuf %s", file_name);
-            strerror_r(errno, emsg2, MAXLEN);
-            display_error(emsg0, emsg1, emsg2);
-        }
         view->f_is_pipe = false;
         view->f_pipe_processed = false;
         view->f_new_file = true;
         view->prev_file_pos = NULL_POSITION;
+        if (fseek(view->fp, 0L, SEEK_SET) != 0) {
+            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+            snprintf(emsg1, MAXLEN - 65, "seek error: %s", file_name);
+            strerror_r(errno, emsg2, MAXLEN);
+            display_error(emsg0, emsg1, emsg2);
+            return false;
+        }
+        if (view->file_size == 0L) {
+            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+            snprintf(emsg1, MAXLEN - 65, "empty file: %s", file_name);
+            strerror_r(errno, emsg2, MAXLEN);
+            display_error(emsg0, emsg1, emsg2);
+            return false;
+        }
     }
-    if (fseek(view->fp, 0L, SEEK_SET) != 0) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-        snprintf(emsg1, MAXLEN - 65, "seek error: %s", file_name);
-        strerror_r(errno, emsg2, MAXLEN);
-        display_error(emsg0, emsg1, emsg2);
-        return false;
-    }
-    if (view->file_size == 0L) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-        snprintf(emsg1, MAXLEN - 65, "empty file: %s", file_name);
-        strerror_r(errno, emsg2, MAXLEN);
-        display_error(emsg0, emsg1, emsg2);
-        return false;
-    }
-    // warning: The 1st argument to 'fread' is NULL but should not be NULL
-    // [unix.S 199 |     bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
-    // Can't see what ccc analyzer means by that
     if (view->buf == NULL)
         abend(-1, "view->buf is NULL");
     bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);

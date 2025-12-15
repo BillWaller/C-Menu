@@ -20,7 +20,7 @@
 #define D_CALC 'C'
 #define D_QUERY 'Q'
 
-int form_display_screen(Form *);
+unsigned int form_display_screen(Init *);
 void form_display_chyron(Form *);
 int form_enter_fields(Form *);
 int form_parse_desc(Form *);
@@ -30,13 +30,13 @@ int form_write_answer(Form *);
 void form_usage();
 int form_desc_error(int, char *, char *);
 int form_exec_cmd(Init *);
-int form_calculate(Form *);
+int form_calculate(Init *);
 void stop_form_engine(Init *);
 
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_ENGINE                                                   │
     ╰───────────────────────────────────────────────────────────────╯ */
-int form_engine(Init *init) {
+unsigned int form_engine(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
     char earg_str[MAXLEN + 1];
@@ -51,7 +51,7 @@ int form_engine(Init *init) {
         abend(EXIT_FAILURE, "FORM:read form description failed");
     }
     form_read_answer(form);
-    form_display_screen(form);
+    form_display_screen(init);
     form->fidx = 0;
     form_action = 0;
     while (1) {
@@ -62,7 +62,7 @@ int form_engine(Init *init) {
             wmove(form->win, form->lines - 1, 0);
             wclrtoeol(form->win);
             if (form->f_calculate) {
-                form_action = form_calculate(form);
+                form_action = form_calculate(init);
                 if (form_action == P_END) {
                     stop_form_engine(init);
                     return 0;
@@ -102,10 +102,11 @@ void stop_form_engine(Init *init) {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_CALCULATE                                                │
     ╰───────────────────────────────────────────────────────────────╯ */
-int form_calculate(Form *form) {
+int form_calculate(Init *init) {
     int i, c, rc;
     char earg_str[MAXLEN + 1];
     bool loop = true;
+    form = init->form;
     set_fkey(10, "");
     set_fkey(5, "Calculate");
     form_display_chyron(form);
@@ -135,7 +136,7 @@ int form_calculate(Form *form) {
             }
             shell(earg_str);
             form_read_answer(form);
-            form_display_screen(form);
+            form_display_screen(init);
             rc = P_CONTINUE;
             loop = false;
             break;
@@ -210,9 +211,10 @@ int form_enter_fields(Form *form) {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_DISPLAY_SCREEN                                           │
     ╰───────────────────────────────────────────────────────────────╯ */
-int form_display_screen(Form *form) {
+unsigned int form_display_screen(Init *init) {
     int n;
 
+    form = init->form;
     form->lines = 0;
     for (n = 0; n < form->dcnt; n++)
         if (form->text[n]->line > form->lines)
@@ -234,7 +236,7 @@ int form_display_screen(Form *form) {
         strncpy(tmp_str, "win_new failed: ", MAXLEN - 1);
         strncat(tmp_str, form->title, MAXLEN - 1);
         display_error_message(tmp_str);
-        return (-1);
+        return (1);
     }
     form->win = win_win[win_ptr];
     form->box = win_box[win_ptr];

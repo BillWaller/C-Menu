@@ -5,9 +5,13 @@
  */
 
 #include "menu.h"
+#include <errno.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <wchar.h>
 
 char *eargv[MAXARGS];
 
@@ -20,7 +24,8 @@ WINDOW *win_box[MAXWIN];
 void open_curses(Init *);
 void close_curses();
 int win_new(int, int, int, int, char *);
-void win_redraw(WINDOW *, int, char *);
+void win_redraw(WINDOW *);
+void win_resize(int wlines, int wcols, char *title);
 WINDOW *win_open_box(int, int, int, int, char *);
 WINDOW *win_open_win(int, int, int, int);
 WINDOW *win_del();
@@ -35,20 +40,42 @@ int display_error_message(char *);
 int error_message(char **);
 void free_error_message(char **);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
-void list_colors();
-int get_color_number(char *s);
 void display_argv_error_msg(char *, char **);
 void abend(int, char *);
 void user_end();
 int nf_error(int, char *);
-void set_color(int color, char *color_str);
+void list_colors();
+int get_color_number(char *s);
+int rgb_clr_to_cube(int);
 void set_fkey(int, char *);
+void def_clr_pairs();
+RGB hex_clr_str_to_rgb(char *);
+void init_hex_clr(int, char *);
+void color_correction(RGB *);
 
+RGB StdColors[16] = {
+    {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
+    {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
+    {128, 128, 128}, {255, 0, 0},   {0, 255, 0},   {255, 255, 0},
+    {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+
+ColorPair clr_pairs[MAX_COLOR_PAIRS];
+
+RGB xterm256_idx_to_rgb(int);
+int rgb_to_xterm256_idx(RGB);
+void init_clr_palette(Init *);
+void apply_gamma(RGB *);
+double rgb_to_linear(double);
+double linear_to_rgb(double);
+double RED_GAMMA;
+double GREEN_GAMMA;
+double BLUE_GAMMA;
 char tmp_str[MAXLEN];
 char *tmp_ptr;
 int exit_code;
 unsigned int cmd_key;
 
+bool f_sigwench = false;
 int win_attr_Odd;
 int win_attr_Even;
 int win_attr;
@@ -69,7 +96,6 @@ enum colors_enum {
     CLR_MAGENTA = COLOR_MAGENTA,
     CLR_CYAN = COLOR_CYAN,
     CLR_WHITE = COLOR_WHITE,
-    CLR_ORANGE,
     CLR_BBLACK,
     CLR_BRED,
     CLR_BGREEN,
@@ -79,8 +105,6 @@ enum colors_enum {
     CLR_BCYAN,
     CLR_BWHITE,
     CLR_BORANGE,
-    CLR_BG,
-    CLR_ABG,
     CLR_NCOLORS
 };
 
@@ -89,29 +113,20 @@ char const colors_text[][10] = {
     "white",   "orange", "bg",    "abg",      "bblack", "bred",    "bgreen",
     "byellow", "bblue",  "bcyan", "bmagenta", "bwhite", "borange", ""};
 
-int const ncolors[] = {
-    CLR_BLACK,
-    CLR_RED,
-    CLR_GREEN,
-    CLR_YELLOW,
-    CLR_BLUE,
-    CLR_MAGENTA,
-    CLR_CYAN,
-    CLR_WHITE,
-    CLR_ORANGE,
-    CLR_BG,
-    CLR_ABG,
-    CLR_BBLACK | A_BOLD,
-    CLR_BRED | A_BOLD,
-    CLR_BGREEN | A_BOLD,
-    CLR_BYELLOW | A_BOLD,
-    CLR_BBLUE | A_BOLD,
-    CLR_BMAGENTA | A_BOLD,
-    CLR_BCYAN | A_BOLD,
-    CLR_BWHITE | A_BOLD,
-    CLR_BORANGE | A_BOLD,
-    0,
-};
+int const ncolors[512] = {
+    CLR_BLACK, CLR_RED,      CLR_GREEN,  CLR_YELLOW, CLR_BLUE,   CLR_MAGENTA,
+    CLR_CYAN,  CLR_WHITE,    CLR_BBLACK, CLR_BRED,   CLR_BGREEN, CLR_BYELLOW,
+    CLR_BBLUE, CLR_BMAGENTA, CLR_BCYAN,  CLR_BWHITE, CLR_NCOLORS};
+
+int cp_default;
+int cp_norm;
+int cp_box;
+int cp_reverse;
+
+int clr_cnt = 0;
+int clr_idx = 0;
+int clr_pair_cnt = 0;
+int clr_pair_idx = 0;
 
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ UNICODE BOX DRAWING CHARACTERS                                │
@@ -126,23 +141,12 @@ const wchar_t bw_lt = BW_LT;
 const wchar_t bw_rt = BW_RT;
 const wchar_t bw_sp = BW_SP;
 
-void set_color(int color_n, char *s);
-
-// CP_DEFAULT,
-// CP_NORM,
-// CP_REVERSE,
-// CP_BOX,
-// CP_BOLD,
-// CP_TITLE,
-// CP_HIGHLIGHT,
-// CP_NPAIRS
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ WIN_INIT_ATTRS                                                │
     ╰───────────────────────────────────────────────────────────────╯ */
 void win_init_attrs(WINDOW *win, int fg_color, int bg_color, int bo_color) {
-    // init_pair(CP_NORM, fg_color, bg_color);
-    // init_pair(CP_BOX, bo_color, bg_color);
-    // wcolor_set(win, CP_NORM, NULL);
+    init_extended_pair(cp_norm, fg_color, bg_color);
+    init_extended_pair(cp_box, bo_color, bg_color);
     return;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -169,6 +173,11 @@ key_cmd_tbl key_cmd[20] = {
 
 enum key_idx { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, PgUp, PgDn, END };
 
+int tty_fd, pipe_fd;
+
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ SET_FKEY                                                      │
+    ╰───────────────────────────────────────────────────────────────╯ */
 void set_fkey(int k, char *s) {
     if (*s != '\0')
         strncpy(key_cmd[k].text, "Calculate", 26);
@@ -213,20 +222,40 @@ int get_chyron_key(key_cmd_tbl *fc, int x) {
     return fc[i].keycode;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
-    │ OPEN_CURSES                                                   │
+    │ OPEN_CURSES                                                  │
     ╰───────────────────────────────────────────────────────────────╯ */
 void open_curses(Init *init) {
-    int i, j;
-    initscr();
+    char tty_name[256];
+    char tmp_str[MAXLEN];
+    char emsg0[MAXLEN];
+
+    if (ttyname_r(STDERR_FILENO, tty_name, sizeof(tty_name)) != 0) {
+        strerror_r(errno, tmp_str, MAXLEN - 1);
+        strcpy(emsg0, "ttyname_r failed ");
+        strcat(emsg0, tmp_str);
+        fprintf(stderr, "%s\n", tmp_str);
+        exit(0);
+    }
+    FILE *tty_fp = fopen(tty_name, "r+");
+    if (tty_fp == NULL) {
+        strerror_r(errno, tmp_str, MAXLEN - 1);
+        strcpy(emsg0, "fopen(tty_name) failed ");
+        strcat(emsg0, tmp_str);
+        fprintf(stderr, "%s\n", tmp_str);
+        exit(0);
+    }
+    tty_fd = fileno(tty_fp);
+    pipe_fd = fileno(stdin);
+    SCREEN *screen = newterm(NULL, tty_fp, tty_fp);
+    if (screen == NULL) {
+        strerror_r(errno, tmp_str, MAXLEN - 1);
+        strcpy(emsg0, "newterm failed ");
+        strcat(emsg0, tmp_str);
+        fprintf(stderr, "%s\n", tmp_str);
+        exit(0);
+    }
+    set_term(screen);
     f_curses_open = true;
-    clear();
-    nonl();
-    noecho();
-    cbreak();
-    // meta(stdscr, true);
-    keypad(stdscr, true);
-    clearok(stdscr, false);
-    scrollok(stdscr, true);
 #ifdef DEBUG
     immedok(stdscr, TRUE);
 #endif
@@ -235,51 +264,199 @@ void open_curses(Init *init) {
         abend(-1, "terminal color support required");
     }
     start_color();
-    set_color(CLR_BLACK, init->black);
-    set_color(CLR_RED, init->red);
-    set_color(CLR_GREEN, init->green);
-    set_color(CLR_YELLOW, init->yellow);
-    set_color(CLR_BLUE, init->blue);
-    set_color(CLR_MAGENTA, init->magenta);
-    set_color(CLR_CYAN, init->cyan);
-    set_color(CLR_WHITE, init->white);
-    set_color(CLR_BBLACK, init->bblack);
-    set_color(CLR_BRED, init->bred);
-    set_color(CLR_BGREEN, init->bgreen);
-    set_color(CLR_BYELLOW, init->byellow);
-    set_color(CLR_BBLUE, init->bblue);
-    set_color(CLR_BMAGENTA, init->bmagenta);
-    set_color(CLR_BCYAN, init->bcyan);
-    set_color(CLR_BWHITE, init->bwhite);
-    set_color(CLR_ORANGE, init->orange);
-    set_color(CLR_BG, init->bg);
-    // Standard Colors fg/bg combinations
-    start_color();
-    for (i = 0; i < 8; i++)
-        for (j = 0; j < 8; j++)
-            init_pair(i * 8 + j + 1, i, j);
-    init_pair(CP_DEFAULT, init->fg_color, CLR_BLACK);
-    init_pair(CP_NORM, init->fg_color, CLR_BG);
-    init_pair(CP_BOX, init->bo_color, CLR_BG);
-    init_pair(CP_REVERSE, init->bg_color, init->fg_color);
-    init_pair(CP_TITLE, init->bo_color, init->bg_color);
-    init_pair(CP_HIGHLIGHT, init->bg_color, init->fg_color);
-    // bkgd(COLOR_PAIR(CP_NORM) | ' ');
-    // attr_on(COLOR_PAIR(CP_NORM), NULL);
-    box_attr = COLOR_PAIR(CP_BOX);
-    win_attr = COLOR_PAIR(CP_NORM);
-    wcolor_set(stdscr, CP_NORM, NULL);
+    init_clr_palette(init);
+    RED_GAMMA = init->red_gamma;
+    GREEN_GAMMA = init->green_gamma;
+    BLUE_GAMMA = init->blue_gamma;
+    cp_default = get_clr_pair(CLR_WHITE, CLR_BLACK);
+    cp_norm = get_clr_pair(CLR_WHITE, CLR_BLACK);
+    cp_reverse = get_clr_pair(CLR_BLACK, CLR_WHITE);
+    cp_box = get_clr_pair(CLR_RED, CLR_BLACK);
+    wcolor_set(stdscr, cp_norm, NULL);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
-    │ SET_COLOR                                                     │
+    │ DEF_CLR_PAIRS                                                 │
     ╰───────────────────────────────────────────────────────────────╯ */
-void set_color(int color_n, char *s) {
-    unsigned int r, g, b;
-    sscanf(s, "%02x%02x%02x", &r, &g, &b);
-    r = r * 1000 / 255;
-    g = g * 1000 / 255;
-    b = b * 1000 / 255;
-    init_color(color_n, r, g, b);
+void def_clr_pairs() {
+    int i, j, id;
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 8; j++) {
+            id = get_clr_pair(i, j);
+            clr_pairs[clr_pair_cnt].fg = i;
+            clr_pairs[clr_pair_cnt].bg = j;
+            clr_pairs[clr_pair_cnt].pair_id = id;
+            clr_pair_cnt++;
+        }
+    }
+    clr_pair_idx = id + 1;
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ GET_CLR_PAIR                                                  │
+    ╰───────────────────────────────────────────────────────────────╯*/
+int get_clr_pair(int fg, int bg) {
+    for (int i = 0; i < clr_pair_cnt; i++) {
+        if (clr_pairs[i].fg == fg && clr_pairs[i].bg == bg) {
+            return clr_pairs[i].pair_id;
+        }
+    }
+    if (clr_pair_cnt < MAX_COLOR_PAIRS) {
+        int id = clr_pair_cnt + 1;
+        init_extended_pair(id, fg, bg);
+        clr_pairs[clr_pair_cnt].fg = fg;
+        clr_pairs[clr_pair_cnt].bg = bg;
+        clr_pairs[clr_pair_cnt].pair_id = id;
+        clr_pair_cnt++;
+        return id;
+    }
+    return ERR;
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ GET_CLR                                                       │
+    ╰───────────────────────────────────────────────────────────────╯*/
+int get_clr(RGB rgb) {
+    int i;
+    int r, g, b;
+
+    r = (rgb.r * 1000) / 255;
+    g = (rgb.g * 1000) / 255;
+    b = (rgb.b * 1000) / 255;
+    for (i = 0; i < clr_cnt; i++) {
+        extended_color_content(i, &r, &g, &b);
+        if (rgb.r == r && rgb.g == g && rgb.b == b) {
+            return i;
+        }
+    }
+    if (i < COLORS) {
+        init_extended_color(i, r, g, b);
+        clr_cnt++;
+        return clr_cnt - 1;
+    }
+    return ERR;
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ RGB_TO_XTERM256_IDX                                           │
+    ╰───────────────────────────────────────────────────────────────╯*/
+int rgb_to_xterm256_idx(RGB rgb) {
+    int ri = (int)round(rgb.r / 255.0 * 5);
+    int gi = (int)round(rgb.g / 255.0 * 5);
+    int bi = (int)round(rgb.b / 255.0 * 5);
+    int color_index = 16 + (ri * 36) + (gi * 6) + bi;
+    int gray_index = -1;
+    int best_gray_diff = -1;
+    for (int i = 0; i < 24; i++) {
+        int gray_value = 8 + i * 10;
+        int luminance =
+            (int)round(0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
+        int diff = abs(luminance - gray_value);
+        if (gray_index == -1 || diff < best_gray_diff) {
+            best_gray_diff = diff;
+            gray_index = 232 + i;
+        }
+    }
+    return color_index;
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ XTERM256_IDX_TO_RGB                                           │
+    ╰───────────────────────────────────────────────────────────────╯*/
+RGB xterm256_idx_to_rgb(int code) {
+    RGB rgb;
+    if (code < 16) {
+        rgb.r = StdColors[code].r;
+        rgb.g = StdColors[code].g;
+        rgb.b = StdColors[code].b;
+    } else if (code >= 16 && code <= 231) {
+        code -= 16;
+        rgb.r = (code / 36) % 6 * 51;
+        rgb.g = (code / 6) % 6 * 51;
+        rgb.b = (code % 6) * 51;
+    } else if (code >= 232 && code <= 255) {
+        int gray = (code - 232) * 11;
+        rgb.r = rgb.g = rgb.b = gray;
+    }
+    return rgb;
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ APPLY_GAMMA                                                   │
+    ╰───────────────────────────────────────────────────────────────╯*/
+void apply_gamma(RGB *rgb) {
+    if (rgb->r != 0 && RED_GAMMA > 0.0f && RED_GAMMA != 1.0f)
+        rgb->r = (int)(pow((rgb->r / 255.0f), 1.0f / RED_GAMMA) * 255.0f);
+    if (rgb->g != 0 && GREEN_GAMMA > 0.0f && GREEN_GAMMA != 1.0f)
+        rgb->g = (int)(pow((rgb->g / 255.0f), 1.0f / GREEN_GAMMA) * 255.0f);
+    if (rgb->b != 0 && BLUE_GAMMA > 0.0f && BLUE_GAMMA != 1.0f)
+        rgb->b = (int)(pow((rgb->b / 255.0f), 1.0f / BLUE_GAMMA) * 255.0f);
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ INIT_CLR_PALETTE                                              │
+    ╰───────────────────────────────────────────────────────────────╯*/
+void init_clr_palette(Init *init) {
+    int i;
+    int rr, gg, bb;
+    RGB rgb;
+
+    for (i = 0; i < 256; i++) {
+        rgb = xterm256_idx_to_rgb(i);
+        rr = (rgb.r * 1000) / 255;
+        gg = (rgb.g * 1000) / 255;
+        bb = (rgb.b * 1000) / 255;
+        init_extended_color(i, rr, gg, bb);
+    }
+    if (init->black[0])
+        init_hex_clr(CLR_BLACK, init->black);
+    if (init->red[0])
+        init_hex_clr(CLR_RED, init->red);
+    if (init->green[0])
+        init_hex_clr(CLR_GREEN, init->green);
+    if (init->yellow[0])
+        init_hex_clr(CLR_YELLOW, init->yellow);
+    if (init->blue[0])
+        init_hex_clr(CLR_BLUE, init->blue);
+    if (init->magenta[0])
+        init_hex_clr(CLR_MAGENTA, init->magenta);
+    if (init->cyan[0])
+        init_hex_clr(CLR_CYAN, init->cyan);
+    if (init->white[0])
+        init_hex_clr(CLR_WHITE, init->white);
+    if (init->bblack[0])
+        init_hex_clr(CLR_BBLACK, init->bblack);
+    if (init->bred[0])
+        init_hex_clr(CLR_BRED, init->bred);
+    if (init->bgreen[0])
+        init_hex_clr(CLR_BGREEN, init->bgreen);
+    if (init->byellow[0])
+        init_hex_clr(CLR_BYELLOW, init->byellow);
+    if (init->bblue[0])
+        init_hex_clr(CLR_BBLUE, init->bblue);
+    if (init->bmagenta[0])
+        init_hex_clr(CLR_BMAGENTA, init->bmagenta);
+    if (init->bcyan[0])
+        init_hex_clr(CLR_BCYAN, init->bcyan);
+    if (init->bwhite[0])
+        init_hex_clr(CLR_BWHITE, init->bwhite);
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ INIT_HEX_CLR                                                  │
+    ╰───────────────────────────────────────────────────────────────╯*/
+void init_hex_clr(int idx, char *s) {
+    RGB rgb;
+    rgb = hex_clr_str_to_rgb(s);
+    if (idx < 16) {
+        StdColors[idx].r = rgb.r;
+        StdColors[idx].g = rgb.g;
+        StdColors[idx].g = rgb.g;
+    }
+    rgb.r = (rgb.r * 1000) / 255;
+    rgb.g = (rgb.g * 1000) / 255;
+    rgb.b = (rgb.b * 1000) / 255;
+    init_extended_color(idx, rgb.r, rgb.g, rgb.b);
+}
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ HEX_CLR_STR_TO_RGB                                            │
+    ╰───────────────────────────────────────────────────────────────╯*/
+RGB hex_clr_str_to_rgb(char *s) {
+    RGB rgb;
+    sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    return rgb;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ CLOSE_CURSES                                                  │
@@ -309,8 +486,8 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
             wcols < COLS - 2) {
             win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
             if (win_box[win_ptr] == NULL)
-                return (-1);
-            wbkgd(win_box[win_ptr], COLOR_PAIR(CP_BOX) | ' ');
+                return (1);
+            wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
             cbox(win_box[win_ptr]);
             if (WTitle != NULL && *WTitle != '\0') {
                 wmove(win_box[win_ptr], 0, 1);
@@ -328,32 +505,64 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
                     mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
             }
             wnoutrefresh(win_box[win_ptr]);
+
             win_win[win_ptr] = newwin(wlines, wcols, wbegy + 1, wbegx + 1);
-            wbkgd(win_win[win_ptr], COLOR_PAIR(CP_NORM) | ' ');
+            wbkgd(win_win[win_ptr], COLOR_PAIR(cp_norm) | ' ');
         } else {
             win_box[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
             if (win_box[win_ptr] == NULL)
-                return (-1);
-            wbkgd(win_box[win_ptr], COLOR_PAIR(CP_BOX) | ' ');
+                return (1);
+            wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
             win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
-            wbkgd(win_win[win_ptr], COLOR_PAIR(CP_NORM) | ' ');
+            wbkgd(win_win[win_ptr], COLOR_PAIR(cp_norm) | ' ');
         }
         if (win_win[win_ptr] == NULL)
-            return (-1);
+            return (1);
         keypad(win_win[win_ptr], TRUE);
         idlok(win_win[win_ptr], false);
         idcok(win_win[win_ptr], false);
     }
     return (0);
 }
+void win_resize(int wlines, int wcols, char *title) {
+    int maxx;
+
+    wrefresh(stdscr);
+    wresize(win_box[win_ptr], wlines + 2, wcols + 2);
+    wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
+    cbox(win_box[win_ptr]);
+    if (title != NULL && *title != '\0') {
+        wmove(win_box[win_ptr], 0, 1);
+        waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
+        wmove(win_box[win_ptr], 0, 2);
+        waddnstr(win_box[win_ptr], (const char *)&bw_sp, 1);
+        mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
+        mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
+        mvwaddstr(win_box[win_ptr], 0, 3, title);
+        maxx = getmaxx(win_box[win_ptr]);
+        int s = strlen(title);
+        if ((s + 3) < maxx)
+            mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
+        if ((s + 4) < maxx)
+            mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
+    }
+    wnoutrefresh(win_box[win_ptr]);
+    wresize(win_win[win_ptr], wlines, wcols);
+
+    wbkgd(win_win[win_ptr], COLOR_PAIR(cp_norm) | ' ');
+    wsetscrreg(win_win[win_ptr], 0, wlines - 1);
+    keypad(win_win[win_ptr], TRUE);
+    idlok(win_win[win_ptr], false);
+    idcok(win_win[win_ptr], false);
+}
+
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ WIN_REDRAW                                                    │
     ╰───────────────────────────────────────────────────────────────╯ */
-void win_redraw(WINDOW *win, int Wattr, char *WTitle) {
+void win_redraw(WINDOW *win) {
     werase(win);
     wnoutrefresh(win);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ WIN_DEL                                                       │
     ╰───────────────────────────────────────────────────────────────╯ */
@@ -363,14 +572,14 @@ WINDOW *win_del() {
     if (win_ptr > 0) {
         delwin(win_win[win_ptr]);
         delwin(win_box[win_ptr]);
-        touchwin(stdscr);
-        wnoutrefresh(stdscr);
         for (i = 0; i < win_ptr; i++) {
             touchwin(win_box[i]);
             wnoutrefresh(win_box[i]);
             touchwin(win_win[i]);
             wnoutrefresh(win_win[i]);
         }
+        touchwin(stdscr);
+        wnoutrefresh(stdscr);
         win_ptr--;
     }
     return (0);
@@ -391,33 +600,31 @@ void restore_wins() {
         wnoutrefresh(win_win[i]);
     }
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ CBOX                                                          │
     ╰───────────────────────────────────────────────────────────────╯ */
-void cbox(WINDOW *win) {
+void cbox(WINDOW *box) {
     int x, y;
     int maxx;
     int maxy;
 
-    maxx = getmaxx(win);
+    maxx = getmaxx(box);
     maxx--;
-    mvwaddnwstr(win, 0, 0, &bw_tl, 1);
+    mvwaddnwstr(box, 0, 0, &bw_tl, 1);
     for (x = 1; x < maxx; x++)
-        waddnwstr(win, &bw_ho, 1);
-    waddnwstr(win, &bw_tr, 1);
-    maxy = getmaxy(win);
+        waddnwstr(box, &bw_ho, 1);
+    waddnwstr(box, &bw_tr, 1);
+    maxy = getmaxy(box);
     maxy--;
     for (y = 1; y < maxy; y++) {
-        mvwaddnwstr(win, y, 0, &bw_ve, 1);
-        mvwaddnwstr(win, y, maxx, &bw_ve, 1);
+        mvwaddnwstr(box, y, 0, &bw_ve, 1);
+        mvwaddnwstr(box, y, maxx, &bw_ve, 1);
     }
-    mvwaddnwstr(win, maxy, 0, &bw_bl, 1);
+    mvwaddnwstr(box, maxy, 0, &bw_bl, 1);
     for (x = 1; x < maxx; x++)
-        waddnwstr(win, &bw_ho, 1);
-    waddnwstr(win, &bw_br, 1);
+        waddnwstr(box, &bw_ho, 1);
+    waddnwstr(box, &bw_br, 1);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ ERROR_MESSAGE                                                 │
     ╰───────────────────────────────────────────────────────────────╯ */
@@ -485,7 +692,6 @@ int error_message(char **argv) {
     }
     return (cmd_key);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ DISPLAY_ERROR                                                 │
     ╰───────────────────────────────────────────────────────────────╯ */

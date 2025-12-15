@@ -183,6 +183,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'a':
             strncpy(init->minitrc, optarg, MAXLEN - 1);
             break;
+        case 'b':
+            init->blue_gamma = str_to_double(optarg);
+            break;
         case 'c':
             strncpy(init->cmd_spec, optarg, MAXLEN - 1);
             break;
@@ -191,6 +194,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'e':
             init->f_erase_remainder = true;
+            break;
+        case 'g':
+            init->green_gamma = str_to_double(optarg);
             break;
         case 'h':
             f_help = true;
@@ -208,7 +214,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strncpy(init->out_spec, optarg, MAXLEN - 1);
             break;
         case 'r':
-            init->f_at_end_remove = true;
+            init->red_gamma = str_to_double(optarg);
             break;
         case 's':
             init->f_squeeze = true;
@@ -371,6 +377,18 @@ int parse_config(Init *init) {
             }
             if (!strcmp(key, "bo_color")) {
                 init->bo_color = get_color_number(value);
+                continue;
+            }
+            if (!strcmp(key, "red_gamma")) {
+                init->red_gamma = str_to_double(value);
+                continue;
+            }
+            if (!strcmp(key, "green_gamma")) {
+                init->green_gamma = str_to_double(value);
+                continue;
+            }
+            if (!strcmp(key, "blue_gamma")) {
+                init->blue_gamma = str_to_double(value);
                 continue;
             }
             if (!strcmp(key, "f_at_end_clear")) {
@@ -599,6 +617,9 @@ int write_config(Init *init) {
                   colors_text[init->fg_color]);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bo_color",
                   colors_text[init->bo_color]);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", init->red_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", init->green_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", init->blue_gamma);
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
                   init->f_at_end_clear ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
@@ -704,6 +725,9 @@ void opt_prt_int(const char *o, const char *name, int value) {
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
 }
 
+void opt_prt_double(const char *o, const char *name, double value) {
+    fprintf(stdout, "%3s %-15s: %0.2f\n", o, name, value);
+}
 void opt_prt_bool(const char *o, const char *name, bool value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
@@ -720,8 +744,11 @@ void dump_config(Init *init, char *msg) {
     opt_prt_int("-B:", "--bg_color", init->bg_color);
     opt_prt_int("-F:", "--fg_color", init->fg_color);
     opt_prt_int("-O:", "--bo_color", init->bo_color);
+    opt_prt_double("-r:", "--red_gamma", init->red_gamma);
+    opt_prt_double("-g:", "--green_gamma", init->blue_gamma);
+    opt_prt_double("-b:", "--blue_gamma", init->green_gamma);
     opt_prt_bool("-z ", "--f_at_end_clear", init->f_at_end_clear);
-    opt_prt_bool("-r:", "--f_at_end_remove", init->f_at_end_remove);
+    opt_prt_bool("-y:", "--f_at_end_remove", init->f_at_end_remove);
     opt_prt_bool("-e:", "--f_erase_remainder", init->f_erase_remainder);
     opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
@@ -729,7 +756,6 @@ void dump_config(Init *init, char *msg) {
     opt_prt_int("-t:", "--tab_stop", init->tab_stop);
     prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_char("-P:", "--promp_type", tmp_str);
-    opt_prt_char("-P:", "--promp_str", init->prompt_str);
     opt_prt_int("-n:", "--select_max", init->select_max);
     opt_prt_char("-S ", "--start_cmd", init->start_cmd);
     opt_prt_char("-T:", "--title", init->title);

@@ -22,7 +22,7 @@
 :      Test Fields
 !form -d fields.f -A fields.ans
 :      Help
-!view -C 60 -L 27 /home/bill/menuapp/help/view.help
+!view /home/bill/menuapp/data/dwin.c.hi
 :
 :      Exit Applications
 !return

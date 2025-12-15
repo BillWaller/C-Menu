@@ -23,7 +23,7 @@ add_library(
   scriou.c
   sig.c
   view_engine.c)
-set(LIBS ncursesw tinfo)
+set(LIBS ncursesw tinfo m)
 
 add_executable(ckeys ckeys.c)
 target_link_libraries(ckeys cmenu ${LIBS})

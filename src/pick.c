@@ -14,7 +14,8 @@ int main(int argc, char **argv) {
     capture_curses_tioctl();
     win_init_attrs(win, init->fg_color, init->bg_color, init->bo_color);
     init_pick(init, init->argc, init->argv, 0, 0);
+    close_init(init);
+    win_del();
     close_curses();
-    restore_shell_tioctl();
     return 0;
 }

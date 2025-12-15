@@ -20,8 +20,7 @@ int main(int argc, char **argv) {
     open_curses(init);
     win_init_attrs(stdscr, init->fg_color, init->bg_color, init->bo_color);
     display_curses_keys();
+    win_del();
     close_curses();
-    sig_dfl_mode();
-    restore_shell_tioctl();
     return (0);
 }

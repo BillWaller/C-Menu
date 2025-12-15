@@ -27,7 +27,7 @@ void reverse_object(Pick *);
 void toggle_object(Pick *);
 int output_objects(Pick *);
 int exec_objects(Init *);
-int open_pick_win(Pick *);
+int open_pick_win(Init *);
 void display_pick_help(Init *);
 void pick_display_chyron(Pick *);
 
@@ -166,7 +166,7 @@ int pick_engine(Init *init) {
     pick->pg_lines = (lines / pages) + 1;
     pick->win_lines = pick->pg_lines + 1;
     pick->tbl_page = 0;
-    rc = open_pick_win(pick);
+    rc = open_pick_win(init);
     if (rc)
         return (rc);
     display_page(pick);
@@ -238,7 +238,6 @@ int picker(Init *init) {
         switch (cmd_key) {
         case 'q':
         case 'Q':
-        case '\033':
         case KEY_F(9):
             return -1;
         case 'h':
@@ -256,7 +255,7 @@ int picker(Init *init) {
                 return pick->select_cnt;
             cmd_key = 0;
             break;
-        case '\15': // CR
+        case '\015': // CR
         case KEY_F(10):
         case KEY_ENTER:
             return pick->select_cnt;
@@ -276,7 +275,7 @@ int picker(Init *init) {
             cmd_key = 0;
             break;
         case KEY_RIGHT:
-        case KEY_CTLL:
+        case '\014':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
@@ -297,7 +296,7 @@ int picker(Init *init) {
             cmd_key = 0;
             break;
         case KEY_LEFT:
-        case KEY_CTLH:
+        case '\010':
         case KEY_BACKSPACE:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
@@ -320,7 +319,7 @@ int picker(Init *init) {
             cmd_key = 0;
             break;
         case KEY_DOWN:
-        case KEY_CTLJ:
+        case '\012':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
@@ -337,7 +336,7 @@ int picker(Init *init) {
             cmd_key = 0;
             break;
         case KEY_UP:
-        case KEY_CTLK:
+        case '\013':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
@@ -353,7 +352,7 @@ int picker(Init *init) {
             cmd_key = 0;
             break;
         case KEY_NPAGE:
-        case KEY_CTLF:
+        case '\06':
             if (pick->tbl_page < pick->tbl_pages - 1) {
                 pick->tbl_page++;
                 pick->pg_line = 0;
@@ -366,7 +365,7 @@ int picker(Init *init) {
             cmd_key = 0;
             break;
         case KEY_PPAGE:
-        case KEY_CTLB:
+        case '\02':
             if (pick->tbl_page > 0)
                 pick->tbl_page--;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
@@ -391,10 +390,6 @@ int picker(Init *init) {
                             pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
-            cmd_key = 0;
-            break;
-        case KEY_CTLR:
-            restore_wins();
             cmd_key = 0;
             break;
         /*  ╭───────────────────────────────────────────────────────╮
@@ -610,8 +605,9 @@ int exec_objects(Init *init) {
     return 0;
 }
 
-int open_pick_win(Pick *pick) {
+int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
+    pick = init->pick;
     if (win_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
                 pick->title)) {
         ssnprintf(tmp_str, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
