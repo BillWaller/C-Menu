@@ -42,11 +42,14 @@
 #define F_NOTBLANK 2
 #define F_NOECHO 4
 #define EIGHT 8
+#define MAX_COLOR_PAIRS 512
+#define MAX_COLORS 512
 
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ Miscelaneous                                                      │
     ╰───────────────────────────────────────────────────────────────────╯*/
 
+extern int tty_fd, pipe_fd;
 extern int dbgfd;
 
 extern char *eargv[MAXARGS];
@@ -71,10 +74,10 @@ extern void dump_opts();
 
 typedef struct {
     const char *name;
-    int type;        // 0=string, 1=int, 2=bool
-    int group;       // 0=FILES, 1=SPECS, 2=MISC, 3=PARMS, 4=FLAGS
-    const char *use; // which programs use this option
-                     // m=menu, p=pick, f=form, v=view
+    unsigned int type;  // 0=string, 1=int, 2=bool
+    unsigned int group; // 0=FILES, 1=SPECS, 2=MISC, 3=PARMS, 4=FLAGS
+    const char *use;    // which programs use this option
+                        // m=menu, p=pick, f=form, v=view
     const char *desc;
 } Opts;
 
@@ -91,8 +94,6 @@ extern const char *mapp_version;
 
 extern bool f_debug;
 extern bool f_stop_on_error;
-
-extern char const colors_text[][10];
 
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ SCREEN I/O                                                        │
@@ -132,104 +133,84 @@ extern void sig_dfl_mode();
 #undef key_down
 #undef key_up
 
-#define KEY_ESC 0x01b
-#define KEY_TAB 0x09
+// #define KEY_TAB 0x09
 
-enum {
-    KEY_NULL = 0x0000,
-    KEY_CTLA,
-    KEY_CTLB,
-    KEY_CTLC,
-    KEY_CTLD,
-    KEY_CTLE,
-    KEY_CTLF,
-    KEY_CTLG,
-    KEY_CTLH,
-    KEY_CTLI,
-    KEY_CTLJ,
-    KEY_CTLK,
-    KEY_CTLL,
-    KEY_CTLM,
-    KEY_CTLN,
-    KEY_CTLO,
-    KEY_CTLP,
-    KEY_CTLQ,
-    KEY_CTLR,
-    KEY_CTLS,
-    KEY_CTLT,
-    KEY_CTLU,
-    KEY_CTLV,
-    KEY_CTLW,
-    KEY_CTLX,
-    KEY_CTLY,
-    KEY_CTLZ,
-    KEY_F1 = 0x109,
-    KEY_F2,
-    KEY_F3,
-    KEY_F4,
-    KEY_F5,
-    KEY_F6,
-    KEY_F7,
-    KEY_F8,
-    KEY_F9,
-    KEY_F10,
-    KEY_F11,
-    KEY_F12,
-    KEY_F13,
-    KEY_F14,
-    KEY_ALTA = 0x170,
-    KEY_ALTB,
-    KEY_ALTC,
-    KEY_ALTD,
-    KEY_ALTE,
-    KEY_ALTF,
-    KEY_ALTG,
-    KEY_ALTH,
-    KEY_ALTI,
-    KEY_ALTJ,
-    KEY_ALTK,
-    KEY_ALTL,
-    KEY_ALTM,
-    KEY_ALTN,
-    KEY_ALTO,
-    KEY_ALTP,
-    KEY_ALTQ,
-    KEY_ALTR,
-    KEY_ALTS,
-    KEY_ALTT,
-    KEY_ALTU,
-    KEY_ALTV,
-    KEY_ALTW,
-    KEY_ALTX,
-    KEY_ALTY,
-    KEY_ALT,
-    KEY_ALT0,
-    KEY_ALT1,
-    KEY_ALT2,
-    KEY_ALT3,
-    KEY_ALT4,
-    KEY_ALT5,
-    KEY_ALT6,
-    KEY_ALT7,
-    KEY_ALT8,
-    KEY_ALT9,
-    KEY_ALTDEL = 0x213,
-    KEY_ALTDOWN = 0x219,
-    KEY_ALTEND = 0x21e,
-    KEY_ALTHOME = 0x223,
-    KEY_ALTINS = 0x228,
-    KEY_ALTLEFT = 0x22d,
-    KEY_ALTPGDN = 0x232,
-    KEY_ALTPGUP = 0x237,
-    KEY_ALTRIGHT = 0x23c,
-    KEY_ALTUP = 0x242
-};
+// Extended NCurses key definitions
 
-#define key_left 8   // ^H
-#define key_down 10  // ^J
-#define key_up 11    // ^K
-#define key_right 12 // ^L
-#define key_cr 13    // ^M
+#define KEY_ALTF0 0x138
+#define KEY_ALTF(n) (KEY_ALTF0 + (n))
+#define KEY_ALTINS 0x223
+#define KEY_ALTDEL 0x20e
+#define KEY_ALTHOME 0x21e
+#define KEY_ALTEND 0x219
+#define KEY_ALTPGDN 0x22d
+#define KEY_ALTPGUP 0x232
+#define KEY_ALTLEFT 0x228
+#define KEY_ALTRIGHT 0x237
+#define KEY_ALTUP 0x23d
+#define KEY_ALTDOWN 0x214
+#define KEY_ALTR 0x12d
+// enum {
+//     KEY_CTLA = 0x001,
+//     KEY_CTLB,
+//     KEY_CTLC,
+//     KEY_CTLD,
+//     KEY_CTLE,
+//     KEY_CTLF,
+//     KEY_CTLG,
+//     KEY_CTLH,
+//     KEY_CTLI,
+//     KEY_CTLJ,
+//     KEY_CTLK,
+//     KEY_CTLL,
+//     KEY_CTLM,
+//     KEY_CTLN,
+//     KEY_CTLO,
+//     KEY_CTLP,
+//     KEY_CTLQ,
+//     KEY_CTLR,
+//     KEY_CTLS,
+//     KEY_CTLT,
+//     KEY_CTLU,
+//     KEY_CTLV,
+//     KEY_CTLW,
+//     KEY_CTLX,
+//     KEY_CTLY,
+//     KEY_CTLZ,
+//     KEY_ALT0 = 0x60,
+//     KEY_ALTA,
+//     KEY_ALTB,
+//     KEY_ALTC,
+//     KEY_ALTD,
+//     KEY_ALTE,
+//     KEY_ALTF,
+//     KEY_ALTG,
+//     KEY_ALTH,
+//     KEY_ALTI,
+//     KEY_ALTJ,
+//     KEY_ALTK,
+//     KEY_ALTL,
+//     KEY_ALTM,
+//     KEY_ALTN,
+//     KEY_ALTO,
+//     KEY_ALTP,
+//     KEY_ALTQ,
+//     KEY_ALTR,
+//     KEY_ALTS,
+//     KEY_ALTT,
+//     KEY_ALTU,
+//     KEY_ALTV,
+//     KEY_ALTW,
+//     KEY_ALTX,
+//     KEY_ALTY,
+//     KEY_ALTZ,
+// };
+
+// #define key_left 8   // ^H
+// #define key_down 10  // ^J
+// #define key_up 11    // ^K
+// #define key_right 12 // ^L
+// #define key_cr 13    // ^M
 
 typedef struct {
     char text[32];
@@ -239,20 +220,39 @@ typedef struct {
 
 extern key_cmd_tbl key_cmd[20];
 
+typedef struct {
+    int r;
+    int g;
+    int b;
+} RGB;
+
 #define FG_COLOR 2 // green
 #define BG_COLOR 0 // black
 #define BO_COLOR 1 // red
 
-enum color_pairs_enum {
-    CP_DEFAULT,
-    CP_NORM,
-    CP_REVERSE,
-    CP_BOX,
-    CP_BOLD,
-    CP_TITLE,
-    CP_HIGHLIGHT,
-    CP_NPAIRS
-};
+extern int cp_default;
+extern int cp_norm;
+extern int cp_reverse;
+extern int clr_idx;
+extern int clr_cnt;
+extern int clr_pair_idx;
+extern int clr_pair_cnt;
+extern void apply_gamma(RGB *);
+extern void color_correction(RGB *);
+extern char const colors_text[][10];
+
+extern int cp_default;
+extern int cp_norm;
+extern int cp_box;
+extern int cp_reverse;
+
+typedef struct {
+    int fg;
+    int bg;
+    int pair_id;
+} ColorPair;
+
+extern ColorPair clr_pairs[MAX_COLOR_PAIRS];
 
 // box Wide Unicode
 #define BW_HO L'\x2500'
@@ -350,8 +350,6 @@ extern unsigned int cmd_key;
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ WINDOWS FUNCTIONS                                                 │
     ╰───────────────────────────────────────────────────────────────────╯*/
-extern int win_new(int, int, int, int, char *);
-extern void win_redraw(WINDOW *, int, char *);
 extern WINDOW *win_open_box(int, int, int, int, char *);
 extern WINDOW *winOpenwin(int, int, int, int);
 extern WINDOW *win_del();
@@ -372,12 +370,22 @@ extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
     │ MENU                                                              │
     ╰───────────────────────────────────────────────────────────────────╯*/
 
-enum { MT_NULL, MT_CENTERED_TEXT, MT_LEFT_JUST_TEXT, MT_CHOICE };
+enum { C_MAIN = 283, C_MENU, C_OPTION };
 
-enum { MA_INIT, MA_RETURN, MA_RETURN_MAIN, MA_DISPLAY_MENU, MA_ENTER_OPTION };
+enum { P_CONTINUE = 302, P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CALC, P_END };
+
+enum { MT_NULL = 327, MT_CENTERED_TEXT, MT_LEFT_JUST_TEXT, MT_CHOICE };
 
 enum {
-    CT_NULL,
+    MA_INIT = 350,
+    MA_RETURN,
+    MA_RETURN_MAIN,
+    MA_DISPLAY_MENU,
+    MA_ENTER_OPTION
+};
+
+enum {
+    CT_NULL = 0x396,
     CT_RETURNMAIN,
     CT_EXEC,
     CT_HELP,
@@ -394,19 +402,15 @@ enum {
     CT_UNDEFINED
 };
 
-enum { C_MAIN, C_MENU, C_OPTION };
-
-enum { P_CONTINUE, P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CALC, P_END };
-
 extern int exit_code;
 
 typedef struct {
-    char type;
+    unsigned int type;
     char *raw_text;
     char *choice_text;
     char choice_letter;
     int letter_pos;
-    char command_type;
+    unsigned int command_type;
     char *command_str;
     char *option_ptr[MAXOPTS];
     int option_col;
@@ -540,7 +544,6 @@ extern int form_accept_field(Form *);
 extern int form_display_field(Form *);
 extern int form_display_field_n(Form *, int);
 extern int form_open_win(Form *);
-extern int form_display_screen(Form *);
 extern int form_enter_fields(Form *);
 extern int form_read_description(Form *);
 extern int form_read_answer_file(Form *);
@@ -634,6 +637,7 @@ typedef struct {
     char prompt_str[MAXLEN];
     char tmp_prompt_str[MAXLEN];
     int prompt_type; // PT_NONE, PT_SHORT, PT_LONG, PT_STRING
+    char title[MAXLEN];
     // files
     char cmd_spec[MAXLEN];  // c: command executable
     char start_cmd[MAXLEN]; // S  command to execute at start of program
@@ -661,7 +665,7 @@ typedef struct {
     bool f_is_pipe;
     bool f_new_file;
     bool f_pipe_processed;
-    bool f_redraw_screen;
+    bool f_redisplay_page;
     bool f_displaying_help;
     bool f_stdout_is_tty;
     bool f_line_numbers;
@@ -673,6 +677,7 @@ typedef struct {
     char cur_file_str[MAXLEN];
     char line_in_s[MAX_COLS];
     char line_out_s[MAX_COLS];
+    char stripped_line_out[MAX_COLS];
     cchar_t cmplx_buf[MAX_COLS];
     char *line_out_p;
     wchar_t line_w[MAX_COLS];
@@ -740,7 +745,6 @@ typedef struct {
     char *buf_end_ptr;
 } View;
 extern View *view;
-extern int view_file(View *);
 
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ INIT                                                              │
@@ -750,6 +754,9 @@ typedef struct {
     int fg_color; // -F: foreground_color
     int bg_color; // -B: background_color
     int bo_color; // -O: border_color
+    double red_gamma;
+    double green_gamma;
+    double blue_gamma;
     char black[COLOR_LEN];
     char red[COLOR_LEN];
     char green[COLOR_LEN];
@@ -770,6 +777,18 @@ typedef struct {
     char borange[COLOR_LEN];
     char bg[COLOR_LEN];
     char abg[COLOR_LEN];
+    int clr_cnt;
+    int clr_pair_cnt;
+    int clr_idx;
+    int clr_pair_idx;
+    int cp_default;
+    int cp_norm;
+    int cp_reverse;
+    int cp_box;
+    int cp_bold;
+    int cp_title;
+    int cp_highlight;
+    // char bg[COLOR_LEN];
     // char hfg[COLOR_LEN];
     // char title_fg[COLOR_LEN];
     // char title_bg[COLOR_LEN];
@@ -861,6 +880,7 @@ extern char minitrc[MAXLEN];
 
 extern void mapp_initialization(Init *init, int, char **);
 
+extern int view_file(Init *);
 extern Init *new_init(int, char **);
 extern View *new_view(Init *init, int, char **, int, int);
 extern Form *new_form(Init *init, int, char **, int, int);
@@ -880,13 +900,20 @@ extern int write_config(Init *);
 extern bool derive_file_spec(char *, char *, char *);
 extern void open_curses(Init *init);
 extern bool ansi_to_cmplx(cchar_t *, const char *);
-extern void parse_ansi_str(WINDOW *, char *, attr_t *, short *);
+extern void parse_ansi_str(WINDOW *, char *, attr_t *, int *);
+extern int win_new(int, int, int, int, char *);
+extern void win_redraw(WINDOW *);
+extern void win_resize(int, int, char *);
+extern int rgb_to_xterm256_idx(RGB);
+extern RGB xterm256_idx_to_rgb(int);
+extern void init_clr_palette(Init *);
+extern int get_clr_pair(int, int);
 
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ PICK                                                              │
     ╰───────────────────────────────────────────────────────────────────╯*/
 extern int init_pick(Init *, int, char **, int, int);
-extern int open_pick_win(Pick *);
+extern int open_pick_win(Init *);
 extern int pick_engine(Init *);
 extern bool pick_help_spec(Init *, int argc, char **argv);
 extern bool pick_in_spec(Init *, int argc, char **argv);
@@ -901,27 +928,28 @@ extern int mpick(int, char **, int, int, int, int, char *, int);
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ MENU                                                              │
     ╰───────────────────────────────────────────────────────────────────╯*/
-extern int menu_engine(Init *);
-extern int menu_loop(Init *);
-extern int parse_menu_description(Init *);
-extern char get_command_type(char *);
+extern unsigned int menu_engine(Init *);
+extern unsigned int menu_loop(Init *);
+extern unsigned int parse_menu_description(Init *);
+extern unsigned int get_command_type(char *);
 extern void free_menu_line(Line *);
 
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ FORM                                                              │
     ╰───────────────────────────────────────────────────────────────────╯*/
-extern int form_engine(Init *);
+extern unsigned int form_engine(Init *);
 extern bool form_answer_spec(Init *, int argc, char **argv);
 extern bool form_help_spec(Init *, int argc, char **argv);
+extern unsigned int form_display_screen(Init *);
 
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VIEW                                                              │
     ╰───────────────────────────────────────────────────────────────────╯*/
 extern int mview(Init *, int, char **, int, int, int, int);
 extern int init_view_full_screen(Init *);
-extern int init_view_boxwin(View *);
+extern int init_view_boxwin(Init *);
 extern bool view_init_input(View *, char *);
-extern int view_cmd_processor(View *);
+extern int view_cmd_processor(Init *);
 extern int get_cmd_char(View *);
 extern int get_cmd_spec(View *, char *);
 extern void go_to_position(View *, long);
@@ -946,7 +974,9 @@ extern char *strnz_dup(char *, int);
 extern void str_subc(char *, char *, char, char *, int);
 extern void chrep(char *, char, char);
 extern int get_color_number(char *);
+extern int rgb_clr_to_cube(int);
 extern void list_colors();
+extern double str_to_double(char *);
 
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ EXEC UTILITIES                                                    │

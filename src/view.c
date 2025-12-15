@@ -9,16 +9,14 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
     mapp_initialization(init, argc, argv);
     int begy = 0;
     int begx = 0;
     view = new_view(init, argc, argv, begy, begx);
-    if (view->argv[0] == NULL) {
-        fprintf(stderr, "view: No files specified.\n");
-        exit(EXIT_FAILURE);
-    }
+
     view->f_stdout_is_tty = isatty(1);
     if (!view->f_stdout_is_tty) {
         if (view->argc < 1) {
@@ -35,20 +33,18 @@ int main(int argc, char **argv) {
         }
         exit(EXIT_SUCCESS);
     }
+    open_curses(init);
     if (!init_view_full_screen(init)) {
-        view_file(view);
+        view_file(init);
     }
     if (f_curses_open) {
         if (view->f_at_end_clear) {
             wclear(stdscr);
             wrefresh(stdscr);
         }
-        if (view->win != stdscr)
-            win_del();
-        endwin();
     }
-    close_view(init);
-    fprintf(stderr, "\n");
-    restore_shell_tioctl();
+    close_init(init);
+    win_del();
+    close_curses();
     return 0;
 }

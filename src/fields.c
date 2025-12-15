@@ -103,9 +103,6 @@ int form_accept_field(Form *form) {
             return (in_key);
 
         // Abort Operation
-        case KEY_CTLC:
-        case KEY_CTLD:
-        case KEY_ESC:
         case KEY_BREAK:
         case KEY_F(9):
             form_display_field(form);
@@ -113,15 +110,13 @@ int form_accept_field(Form *form) {
             return (in_key);
 
         case KEY_BTAB:
-        case key_up:
         case KEY_UP:
             form_fmt_field(form, accept_s);
             form_display_field(form);
             in_key = KEY_UP;
             return (in_key);
 
-        case KEY_TAB:
-        case key_down:
+        case '\t':
         case KEY_DOWN:
             form_fmt_field(form, accept_s);
             form_display_field(form);
@@ -135,7 +130,6 @@ int form_accept_field(Form *form) {
             in_key = 0;
             continue;
 
-        case KEY_CTLM:
         case KEY_ENTER:
             if (form->f_erase_remainder)
                 *p = '\0';
@@ -183,7 +177,6 @@ int form_accept_field(Form *form) {
             in_key = 0;
             continue;
 
-        case KEY_CTLH:
         case KEY_LEFT:
             if (p > fstart) {
                 p--;
@@ -192,7 +185,6 @@ int form_accept_field(Form *form) {
             in_key = 0;
             continue;
 
-        case KEY_CTLL:
         case KEY_RIGHT:
             if (p < fend)
                 if (p <= str_end) {

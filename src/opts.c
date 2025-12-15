@@ -31,7 +31,9 @@ Opts opts[] = {
     {"fg_color", 1, 4, "mpfv", "F: foreground_color"},
     {"bg_color", 1, 4, "mpfv", "B: background_color"},
     {"bo_color", 1, 4, "mpfv", "O: border_color"},
-
+    {"red_gamma", 1, 4, "mpfv", "r: red_gamma"},
+    {"green_gamma", 1, 4, "mpfv", "g: green_gamma"},
+    {"blue_gamma", 1, 4, "mpfv", "g: blue_gamma"},
     {"f_at_end_clear", 2, 5, "mpfv", "z  clear screen at end of program"},
     {"f_at_end_remove", 2, 5, "...v", "r: remove file at end of program"},
     {"f_erase_remainder", 2, 5, "..f.", "e: erase remainder of line on enter"},

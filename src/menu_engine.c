@@ -13,10 +13,10 @@
 
 // menu_engine is reentrant through m_menu
 
-int menu_engine(Init *);
-int menu_cmd_processor(Init *);
+unsigned int menu_engine(Init *);
+unsigned int menu_cmd_processor(Init *);
 
-int menu_engine(Init *init) {
+unsigned int menu_engine(Init *init) {
     int action;
     int i;
 
@@ -84,11 +84,10 @@ int menu_engine(Init *init) {
     }
     return (action);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ MENU_CMD_PROCESSOR                                            │
     ╰───────────────────────────────────────────────────────────────╯ */
-int menu_cmd_processor(Init *init) {
+unsigned int menu_cmd_processor(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
     char earg_str[MAXLEN];
@@ -97,6 +96,7 @@ int menu_cmd_processor(Init *init) {
     int in_key;
     int lines, cols, begy, begx;
 
+    keypad(menu->win, TRUE);
     Menu *menu = init->menu;
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | NCURSES_BUTTON_CLICKED,
               NULL);
@@ -110,12 +110,12 @@ int menu_cmd_processor(Init *init) {
     touchwin(win_win[win_ptr]);
     wnoutrefresh(win_win[win_ptr]);
     event.y = event.x = -1;
-    tcflush(0, TCIFLUSH);
+    // tcflush(0, TCIFLUSH);
     in_key = mvwgetch(menu->win, menu->line_idx, 1);
     mvwaddstr(menu->win, menu->line_idx, 0,
               menu->line[menu->line_idx]->choice_text);
+
     switch (in_key) {
-    case key_up:
     case KEY_UP:
         i = menu->line_idx;
         while (i > 0) {
@@ -126,7 +126,6 @@ int menu_cmd_processor(Init *init) {
             }
         }
         return (MA_ENTER_OPTION);
-    case key_down:
     case KEY_DOWN:
         i = menu->line_idx;
         while (i < menu->item_count - 1) {
@@ -137,16 +136,13 @@ int menu_cmd_processor(Init *init) {
             }
         }
         return (MA_ENTER_OPTION);
-    case key_cr:
     case KEY_ENTER:
         break;
     case KEY_F(9):
         return (MA_RETURN_MAIN);
-    case KEY_CTLD:
     case KEY_BREAK:
     case KEY_DL:
         return (MA_RETURN_MAIN);
-    case KEY_CTLP:
         d = getenv("PRTCMD");
         if (d == NULL || *d == '\0')
             strncpy(earg_str, PRINTCMD, MAXLEN - 1);
@@ -167,10 +163,9 @@ int menu_cmd_processor(Init *init) {
             strncat(earg_str, d, MAXLEN - 1);
         full_screen_shell(earg_str);
         return (MA_DISPLAY_MENU);
-    case KEY_CTLR:
+    case '\r':
         restore_wins();
         return (MA_DISPLAY_MENU);
-    case KEY_CTLE:
         d = getenv("DEFAULTEDITOR");
         if (d == NULL || *d == '\0')
             strncpy(earg_str, DEFAULTEDITOR, MAXLEN - 1);

@@ -52,6 +52,6 @@ int main(int argc, char **argv) {
     // sig_dfl_mode();
     restore_shell_tioctl();
     if (c == (char)0x1b)
-        return (-1);
+        return (1);
     return (0);
 }

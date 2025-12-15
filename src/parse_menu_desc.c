@@ -9,14 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-int parse_menu_description(Init *);
-char get_command_type(char *);
+unsigned int parse_menu_description(Init *);
+unsigned int get_command_type(char *);
 void free_menu_line(Line *);
 
 /* ╭───────────────────────────────────────────────────────────────────╮
    │ PARSE_MENU_DESCRIPTION                                            │
    ╰───────────────────────────────────────────────────────────────────╯ */
-int parse_menu_description(Init *init) {
+unsigned int parse_menu_description(Init *init) {
     FILE *fp;
     char tmp_buf[MAXLEN + 1];
     char in_buf[MAXLEN + 1];
@@ -284,7 +284,7 @@ int parse_menu_description(Init *init) {
 /* ╭───────────────────────────────────────────────────────────────╮
    │ GET_COMMAND_TYPE                                              │
    ╰───────────────────────────────────────────────────────────────╯ */
-char get_command_type(char *t) {
+unsigned int get_command_type(char *t) {
     char *s, *p;
     s = p = t;
     while (*s != ' ' && *s != '\0') {

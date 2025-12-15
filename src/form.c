@@ -30,7 +30,8 @@ int main(int argc, char **argv) {
         return 1;
     }
     form_engine(init);
+    close_init(init);
+    win_del();
     close_curses();
-    restore_shell_tioctl();
     return 0;
 }
