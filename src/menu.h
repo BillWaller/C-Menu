@@ -18,6 +18,7 @@
 // MAXLEN is for variables known to be limited in length
 #define MAXLEN 256
 #define MIN_COLS 40
+#define LINE_IN_MAX_COLS 2048
 #define MAX_COLS 1024
 #define MAX_WIDE_LEN 1024
 #define COLOR_LEN 8
@@ -679,8 +680,8 @@ typedef struct {
     //
     char start_cmd_all_files[MAXLEN];
     char cur_file_str[MAXLEN];
-    char line_in_s[MAX_COLS];
-    char line_out_s[MAX_COLS];
+    char line_in_s[LINE_IN_MAX_COLS];
+    char line_out_s[LINE_IN_MAX_COLS];
     char stripped_line_out[MAX_COLS];
     cchar_t cmplx_buf[MAX_COLS];
     char *line_out_p;
