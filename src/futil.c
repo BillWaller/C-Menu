@@ -510,20 +510,20 @@ bool verify_dir(char *spec, int mode) {
                 strncat(tmp_str, spec, MAXLEN - 1);
                 strncat(tmp_str, " is not writable (permission denied).",
                         MAXLEN - 1);
-                display_error_message(tmp_str);
+                Perror(tmp_str);
             }
             if (mode == R_OK) {
                 strncpy(tmp_str, "Directory ", MAXLEN - 1);
                 strncat(tmp_str, spec, MAXLEN - 1);
                 strncat(tmp_str, " is not readable (permission denied).",
                         MAXLEN - 1);
-                display_error_message(tmp_str);
+                Perror(tmp_str);
             }
         } else if (errno == ENOENT) {
             strncpy(tmp_str, "Directory ", MAXLEN - 1);
             strncat(tmp_str, spec, MAXLEN - 1);
             strncat(tmp_str, " does not exist.", MAXLEN - 1);
-            display_error_message(tmp_str);
+            Perror(tmp_str);
         } else
             return true;
         return false;
@@ -573,7 +573,7 @@ bool verify_file(char *spec, int imode) {
                 strncat(tmp_str, " is not executable (permission denied).",
                         MAXLEN - 1);
             }
-            display_error_message(tmp_str);
+            Perror(tmp_str);
             return false;
         } else if (errno == ENOENT) {
             if (imode & WC_OK) {
@@ -584,13 +584,13 @@ bool verify_file(char *spec, int imode) {
                 strncat(tmp_str, spec, MAXLEN - 1);
                 strncat(tmp_str, "does not exist and cannot be created",
                         MAXLEN - 1);
-                display_error_message(tmp_str);
+                Perror(tmp_str);
                 return false;
             } else {
                 strncpy(tmp_str, "File ", MAXLEN - 1);
                 strncat(tmp_str, spec, MAXLEN - 1);
                 strncat(tmp_str, " does not exist.", MAXLEN - 1);
-                display_error_message(tmp_str);
+                Perror(tmp_str);
                 return false;
             }
         }
@@ -598,7 +598,7 @@ bool verify_file(char *spec, int imode) {
         strncat(tmp_str, spec, MAXLEN - 1);
         strncat(tmp_str, ": ", MAXLEN - 1);
         strncat(tmp_str, strerror(errno), MAXLEN - 1);
-        display_error_message(tmp_str);
+        Perror(tmp_str);
         return false;
     }
 }

@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <unistd.h>
 #include <wchar.h>
 
@@ -36,7 +37,7 @@ void dmvwaddstr(WINDOW *, int, int, char *);
 void cbox(WINDOW *);
 void win_init_attrs(WINDOW *, int, int, int);
 int display_o_k_message(char *);
-int display_error_message(char *);
+int Perror(char *);
 int error_message(char **);
 void free_error_message(char **);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
@@ -67,6 +68,7 @@ void init_clr_palette(Init *);
 void apply_gamma(RGB *);
 double rgb_to_linear(double);
 double linear_to_rgb(double);
+double GRAY_GAMMA = 1.0;
 double RED_GAMMA;
 double GREEN_GAMMA;
 double BLUE_GAMMA;
@@ -173,7 +175,7 @@ key_cmd_tbl key_cmd[20] = {
 
 enum key_idx { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, PgUp, PgDn, END };
 
-int tty_fd, pipe_fd;
+int tty_fd, pipe_in, pipe_out;
 
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ SET_FKEY                                                      │
@@ -229,6 +231,9 @@ void open_curses(Init *init) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
 
+    // struct termios t_p;
+
+    // tcgetattr(STDIN_FILENO, &t_p);
     if (ttyname_r(STDERR_FILENO, tty_name, sizeof(tty_name)) != 0) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strcpy(emsg0, "ttyname_r failed ");
@@ -236,6 +241,12 @@ void open_curses(Init *init) {
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ By default, Unix stdin doesn't differentiate between piped    │
+        │ input via "|" and input from the keyboard. Here, we open      │
+        │ the tty device for curses screen io, leaving stdin, stdout,   │
+        │ and stderr, for piped input and output.                       │
+        ╰───────────────────────────────────────────────────────────────╯ */
     FILE *tty_fp = fopen(tty_name, "r+");
     if (tty_fp == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -245,7 +256,13 @@ void open_curses(Init *init) {
         exit(0);
     }
     tty_fd = fileno(tty_fp);
-    pipe_fd = fileno(stdin);
+    // tcsetattr(tty_fd, TCSANOW, &t_p);
+    pipe_in = fileno(stdin);
+    pipe_out = fileno(stdout);
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ This is where we associate the terminal device with NCurses   │
+        │ Beyond this point, NCurses has the tty.                       │
+        ╰───────────────────────────────────────────────────────────────╯ */
     SCREEN *screen = newterm(NULL, tty_fp, tty_fp);
     if (screen == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -255,6 +272,7 @@ void open_curses(Init *init) {
         exit(0);
     }
     set_term(screen);
+
     f_curses_open = true;
 #ifdef DEBUG
     immedok(stdscr, TRUE);
@@ -273,6 +291,12 @@ void open_curses(Init *init) {
     cp_reverse = get_clr_pair(CLR_BLACK, CLR_WHITE);
     cp_box = get_clr_pair(CLR_RED, CLR_BLACK);
     wcolor_set(stdscr, cp_norm, NULL);
+    immedok(stdscr, true);
+    noecho();
+    cbreak();
+    keypad(stdscr, true);
+    idlok(stdscr, false);
+    idcok(stdscr, false);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ DEF_CLR_PAIRS                                                 │
@@ -379,6 +403,14 @@ RGB xterm256_idx_to_rgb(int code) {
     │ APPLY_GAMMA                                                   │
     ╰───────────────────────────────────────────────────────────────╯*/
 void apply_gamma(RGB *rgb) {
+    if (rgb->r == rgb->g && rgb->r == rgb->b) {
+        if (GRAY_GAMMA > 0.0f && GRAY_GAMMA != 1.0f) {
+            rgb->r = (int)(pow((rgb->r / 255.0f), 1.0f / GRAY_GAMMA) * 255.0f);
+            rgb->g = rgb->r;
+            rgb->b = rgb->r;
+        }
+        return;
+    }
     if (rgb->r != 0 && RED_GAMMA > 0.0f && RED_GAMMA != 1.0f)
         rgb->r = (int)(pow((rgb->r / 255.0f), 1.0f / RED_GAMMA) * 255.0f);
     if (rgb->g != 0 && GREEN_GAMMA > 0.0f && GREEN_GAMMA != 1.0f)
@@ -749,7 +781,7 @@ int display_error(char *emsg0, char *emsg1, char *emsg2) {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ DISPLAY_ERROR_MESSAGE                                         │
     ╰───────────────────────────────────────────────────────────────╯ */
-int display_error_message(char *emsg_str) {
+int Perror(char *emsg_str) {
     char emsg[80];
     int emsg_max_len = 80;
     unsigned cmd_key;

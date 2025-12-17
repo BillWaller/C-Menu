@@ -60,7 +60,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         abend(-1, tmp_str);
     }
     if (init->minitrc[0] == '\0')
-        strncpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
+        strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
     init->bg_color = BG_COLOR;      // B: background color
     init->fg_color = FG_COLOR;      // F: foreground color
     init->bo_color = BO_COLOR;      // O: border colorZ
@@ -68,11 +68,11 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     init->f_at_end_clear = true;    // z  clear screen on exit
     init->f_erase_remainder = true; // e  erase remainder on enter
     init->prompt_type = PT_LONG;    // P: prompt type
-    strncpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
-    strncpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
-    strncpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
-    strncpy(init->mapp_data, "~/menuapp/data", MAXLEN - 1);
-    strncpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
+    strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
+    strnz__cpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
+    strnz__cpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
+    strnz__cpy(init->mapp_data, "~/menuapp/data", MAXLEN - 1);
+    strnz__cpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
 
     /*
         Initialization Priorities
@@ -149,28 +149,28 @@ int parse_opt_args(Init *init, int argc, char **argv) {
              */
             switch (flag) {
             case ANSWER_SPEC:
-                strncpy(init->answer_spec, optarg, MAXLEN - 1);
+                strnz__cpy(init->answer_spec, optarg, MAXLEN - 1);
                 break;
             case MAPP_DATA:
-                strncpy(init->mapp_data, optarg, MAXLEN - 1);
+                strnz__cpy(init->mapp_data, optarg, MAXLEN - 1);
                 break;
             case MAPP_SPEC:
-                strncpy(init->mapp_spec, optarg, MAXLEN - 1);
+                strnz__cpy(init->mapp_spec, optarg, MAXLEN - 1);
                 break;
             case MAPP_HELP:
-                strncpy(init->mapp_help, optarg, MAXLEN - 1);
+                strnz__cpy(init->mapp_help, optarg, MAXLEN - 1);
                 break;
             case HELP_SPEC:
-                strncpy(init->help_spec, optarg, MAXLEN - 1);
+                strnz__cpy(init->help_spec, optarg, MAXLEN - 1);
                 break;
             case IN_SPEC:
-                strncpy(init->in_spec, optarg, MAXLEN - 1);
+                strnz__cpy(init->in_spec, optarg, MAXLEN - 1);
                 break;
             case OUT_SPEC:
-                strncpy(init->out_spec, optarg, MAXLEN - 1);
+                strnz__cpy(init->out_spec, optarg, MAXLEN - 1);
                 break;
             case MAPP_MSRC:
-                strncpy(init->mapp_msrc, optarg, MAXLEN - 1);
+                strnz__cpy(init->mapp_msrc, optarg, MAXLEN - 1);
                 break;
             default:
                 break;
@@ -181,16 +181,16 @@ int parse_opt_args(Init *init, int argc, char **argv) {
                 ╰───────────────────────────────────────────────────────────────────╯
              */
         case 'a':
-            strncpy(init->minitrc, optarg, MAXLEN - 1);
+            strnz__cpy(init->minitrc, optarg, MAXLEN - 1);
             break;
         case 'b':
             init->blue_gamma = str_to_double(optarg);
             break;
         case 'c':
-            strncpy(init->cmd_spec, optarg, MAXLEN - 1);
+            strnz__cpy(init->cmd_spec, optarg, MAXLEN - 1);
             break;
         case 'd':
-            strncpy(init->mapp_spec, optarg, MAXLEN - 1);
+            strnz__cpy(init->mapp_spec, optarg, MAXLEN - 1);
             break;
         case 'e':
             init->f_erase_remainder = true;
@@ -202,16 +202,16 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             f_help = true;
             break;
         case 'i':
-            strncpy(init->in_spec, optarg, MAXLEN - 1);
+            strnz__cpy(init->in_spec, optarg, MAXLEN - 1);
             break;
         case 'm':
-            strncpy(init->mapp_home, optarg, MAXLEN - 1);
+            strnz__cpy(init->mapp_home, optarg, MAXLEN - 1);
             break;
         case 'n':
             init->select_max = atoi(optarg);
             break;
         case 'o':
-            strncpy(init->out_spec, optarg, MAXLEN - 1);
+            strnz__cpy(init->out_spec, optarg, MAXLEN - 1);
             break;
         case 'r':
             init->red_gamma = str_to_double(optarg);
@@ -241,7 +241,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             init->f_at_end_clear = true;
             break;
         case 'A':
-            strncpy(init->answer_spec, optarg, MAXLEN - 1);
+            strnz__cpy(init->answer_spec, optarg, MAXLEN - 1);
             break;
         case 'B':
             init->bg_color = get_color_number(optarg);
@@ -256,7 +256,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             init->fg_color = get_color_number(optarg);
             break;
         case 'H':
-            strncpy(init->help_spec, optarg, MAXLEN - 1);
+            strnz__cpy(init->help_spec, optarg, MAXLEN - 1);
             break;
         case 'L':
             init->lines = atoi(optarg);
@@ -268,20 +268,20 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             init->bo_color = get_color_number(optarg);
             break;
         case 'P':
-            strncpy(tmp_str, optarg, MAXLEN - 1);
+            strnz__cpy(tmp_str, optarg, MAXLEN - 1);
             init->prompt_type = prompt_str_to_int(tmp_str);
             break;
         case 'p':
-            strncpy(init->prompt_str, optarg, MAXLEN - 1);
+            strnz__cpy(init->prompt_str, optarg, MAXLEN - 1);
             break;
         case 'S':
-            strncpy(init->start_cmd, optarg, MAXLEN - 1);
+            strnz__cpy(init->start_cmd, optarg, MAXLEN - 1);
             break;
         case 'T':
-            strncpy(init->title, optarg, MAXLEN - 1);
+            strnz__cpy(init->title, optarg, MAXLEN - 1);
             break;
         case 'U':
-            strncpy(init->mapp_user, optarg, MAXLEN - 1);
+            strnz__cpy(init->mapp_user, optarg, MAXLEN - 1);
             break;
         case 'X':
             init->begx = atoi(optarg);
@@ -317,9 +317,9 @@ int parse_config(Init *init) {
     if (!init->minitrc[0]) {
         char *e = getenv("MINITRC");
         if (e)
-            strncpy(init->minitrc, e, MAXLEN - 1);
+            strnz__cpy(init->minitrc, e, MAXLEN - 1);
         else
-            strncpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
+            strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
     }
     expand_tilde(init->minitrc, MAXLEN - 1);
 
@@ -348,7 +348,7 @@ int parse_config(Init *init) {
             if (value == NULL)
                 continue;
             if (!strcmp(key, "minitrc")) {
-                strncpy(init->minitrc, value, MAXLEN - 1);
+                strnz__cpy(init->minitrc, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "lines")) {
@@ -424,129 +424,129 @@ int parse_config(Init *init) {
                 continue;
             }
             if (!strcmp(key, "prompt_type")) {
-                strncpy(tmp_str, value, MAXLEN - 1);
+                strnz__cpy(tmp_str, value, MAXLEN - 1);
                 init->prompt_type = prompt_str_to_int(tmp_str);
                 continue;
             }
             if (!strcmp(key, "prompt_str")) {
-                strncpy(init->prompt_str, value, MAXLEN - 1);
+                strnz__cpy(init->prompt_str, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "title")) {
-                strncpy(init->title, value, MAXLEN - 1);
+                strnz__cpy(init->title, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "start_cmd")) {
-                strncpy(init->start_cmd, value, MAXLEN - 1);
+                strnz__cpy(init->start_cmd, value, MAXLEN - 1);
                 continue;
             }
 
             if (!strcmp(key, "bg")) {
-                strncpy(init->bg, value, COLOR_LEN - 1);
+                strnz__cpy(init->bg, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "black")) {
-                strncpy(init->black, value, COLOR_LEN - 1);
+                strnz__cpy(init->black, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "red")) {
-                strncpy(init->red, value, COLOR_LEN - 1);
+                strnz__cpy(init->red, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "green")) {
-                strncpy(init->green, value, COLOR_LEN - 1);
+                strnz__cpy(init->green, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "yellow")) {
-                strncpy(init->yellow, value, COLOR_LEN - 1);
+                strnz__cpy(init->yellow, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "blue")) {
-                strncpy(init->blue, value, COLOR_LEN - 1);
+                strnz__cpy(init->blue, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "magenta")) {
-                strncpy(init->magenta, value, COLOR_LEN - 1);
+                strnz__cpy(init->magenta, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "cyan")) {
-                strncpy(init->cyan, value, COLOR_LEN - 1);
+                strnz__cpy(init->cyan, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "white")) {
-                strncpy(init->white, value, COLOR_LEN - 1);
+                strnz__cpy(init->white, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "orange")) {
-                strncpy(init->orange, value, COLOR_LEN - 1);
+                strnz__cpy(init->orange, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bblack")) {
-                strncpy(init->bblack, value, COLOR_LEN - 1);
+                strnz__cpy(init->bblack, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bred")) {
-                strncpy(init->bred, value, COLOR_LEN - 1);
+                strnz__cpy(init->bred, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bgreen")) {
-                strncpy(init->bgreen, value, COLOR_LEN - 1);
+                strnz__cpy(init->bgreen, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "byellow")) {
-                strncpy(init->byellow, value, COLOR_LEN - 1);
+                strnz__cpy(init->byellow, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bblue")) {
-                strncpy(init->bblue, value, COLOR_LEN - 1);
+                strnz__cpy(init->bblue, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bmagenta")) {
-                strncpy(init->bmagenta, value, COLOR_LEN - 1);
+                strnz__cpy(init->bmagenta, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bcyan")) {
-                strncpy(init->bcyan, value, COLOR_LEN - 1);
+                strnz__cpy(init->bcyan, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bwhite")) {
-                strncpy(init->bwhite, value, COLOR_LEN - 1);
+                strnz__cpy(init->bwhite, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "borange")) {
-                strncpy(init->borange, value, COLOR_LEN - 1);
+                strnz__cpy(init->borange, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bg")) {
-                strncpy(init->bg, value, COLOR_LEN - 1);
+                strnz__cpy(init->bg, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "cmd_spec")) {
-                strncpy(init->cmd_spec, value, MAXLEN - 1);
+                strnz__cpy(init->cmd_spec, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "mapp_spec")) {
-                strncpy(init->mapp_spec, value, MAXLEN - 1);
+                strnz__cpy(init->mapp_spec, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "mapp_data")) {
-                strncpy(init->mapp_data, value, MAXLEN - 1);
+                strnz__cpy(init->mapp_data, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "mapp_help")) {
-                strncpy(init->mapp_help, value, MAXLEN - 1);
+                strnz__cpy(init->mapp_help, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "mapp_home")) {
-                strncpy(init->mapp_home, value, MAXLEN - 1);
+                strnz__cpy(init->mapp_home, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "mapp_msrc")) {
-                strncpy(init->mapp_msrc, value, MAXLEN - 1);
+                strnz__cpy(init->mapp_msrc, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "mapp_user")) {
-                strncpy(init->mapp_user, value, MAXLEN - 1);
+                strnz__cpy(init->mapp_user, value, MAXLEN - 1);
                 continue;
             }
         }
@@ -673,7 +673,7 @@ int write_config(Init *init) {
     (void)fclose(minitrc_fp);
     strcpy(tmp_str, "Configuration written to file: ");
     strcat(tmp_str, minitrc_dmp);
-    display_error_message(tmp_str);
+    Perror(tmp_str);
     return 0;
 }
 
@@ -691,22 +691,22 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     }
 
     if (dir) {
-        strncpy(ts, dir, MAXLEN - 1);
+        strnz__cpy(ts, dir, MAXLEN - 1);
     } else {
         e = getenv("MAPP_DIR");
         if (e) {
-            strncpy(ts, e, MAXLEN - 1);
+            strnz__cpy(ts, e, MAXLEN - 1);
         } else {
-            strncpy(ts, "~/menuapp", MAXLEN - 1);
+            strnz__cpy(ts, "~/menuapp", MAXLEN - 1);
         }
     }
     trim_path(ts);
-    strncpy(ts2, ts, MAXLEN - 1);
+    strnz__cpy(ts2, ts, MAXLEN - 1);
     // construct the full file specification
     // check that the file exists and is readable
-    strncpy(file_spec, ts2, MAXLEN - 1);
-    strncat(file_spec, "/", MAXLEN - 1);
-    strncat(file_spec, file_name, MAXLEN - 1);
+    strnz__cpy(file_spec, ts2, MAXLEN - 1);
+    strnz__cat(file_spec, "/", MAXLEN - 1);
+    strnz__cat(file_spec, file_name, MAXLEN - 1);
     return true;
 }
 

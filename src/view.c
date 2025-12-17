@@ -21,12 +21,12 @@ int main(int argc, char **argv) {
     if (!view->f_stdout_is_tty) {
         if (view->argc < 1) {
             if (view_init_input(view, "-"))
-                if (view->fp)
+                if (view->buf)
                     cat_file(view);
         } else {
             while (view->curr_argc < view->argc) {
                 if (view_init_input(view, view->argv[view->curr_argc]))
-                    if (view->fp)
+                    if (view->buf)
                         cat_file(view);
                 view->curr_argc++;
             }

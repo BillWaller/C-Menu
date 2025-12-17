@@ -22,7 +22,7 @@ unsigned int menu_engine(Init *init) {
 
     Menu *menu = init->menu;
     if (menu == NULL) {
-        display_error_message("menu_engine: menu is NULL");
+        Perror("menu_engine: menu is NULL");
         return (1);
     }
     action = MA_INIT;
@@ -36,7 +36,7 @@ unsigned int menu_engine(Init *init) {
                     menu->title)) {
             snprintf(tmp_str, MAXLEN - 1, "win_new(%d, %d, %d, %d) failed",
                      menu->lines, menu->cols, menu->begy, menu->begx);
-            display_error_message(tmp_str);
+            Perror(tmp_str);
             return (1);
         }
         menu->win = win_win[win_ptr];
@@ -98,8 +98,7 @@ unsigned int menu_cmd_processor(Init *init) {
 
     keypad(menu->win, TRUE);
     Menu *menu = init->menu;
-    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | NCURSES_BUTTON_CLICKED,
-              NULL);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     MEVENT event;
     wattron(menu->win, A_REVERSE);
     mvwaddstr(menu->win, menu->line_idx, 0,
@@ -256,12 +255,12 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_DISPLAY_MENU);
 
     case CT_HELP:
-        strncpy(earg_str, HELP_CMD, MAXLEN - 1);
-        strncat(earg_str, " ", MAXLEN - 1);
-        strncat(earg_str, menu->help_spec, MAXLEN - 1);
+        strnz__cpy(earg_str, HELP_CMD, MAXLEN - 1);
+        strnz__cat(earg_str, " ", MAXLEN - 1);
+        strnz__cat(earg_str, menu->help_spec, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str);
         parse_opt_args(init, eargc, eargv);
-        mview(init, eargc, eargv, 0, 0, 0, 0);
+        mview(init, eargc, eargv, 0, 0, 0, 0, menu->title);
         return (MA_DISPLAY_MENU);
 
     case CT_MENU:
@@ -271,7 +270,7 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_DISPLAY_MENU);
         parse_opt_args(init, eargc, eargv);
         if (!init_menu_files(init, eargc, eargv)) {
-            display_error_message("menu_cmd_processor: init_menu_files failed");
+            Perror("menu_cmd_processor: init_menu_files failed");
             return (MA_DISPLAY_MENU);
         }
         rc = menu_engine(init);
@@ -307,7 +306,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str);
         parse_opt_args(init, eargc, eargv);
         mview(init, eargc, eargv, init->lines, init->cols, menu->begy + 1,
-              menu->begx + 4);
+              menu->begx + 4, menu->title);
         return (MA_DISPLAY_MENU);
 
     case CT_CKEYS:

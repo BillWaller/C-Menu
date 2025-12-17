@@ -133,7 +133,7 @@ Menu *close_menu(Init *init) {
 Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
     init->pick = (Pick *)calloc(1, sizeof(Pick));
     if (!init->pick) {
-        display_error_message("calloc pick failed");
+        Perror("calloc pick failed");
         return NULL;
     }
     init->pick_cnt++;
@@ -150,21 +150,13 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
    │ CLOSE_PICK                                                     │
    ╰────────────────────────────────────────────────────────────────╯ */
 Pick *close_pick(Init *init) {
-    int i;
     if (!init->pick)
         return NULL;
 
     for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt; pick->obj_idx++)
-        free(pick->object[pick->obj_idx]);
+        if (pick->object[pick->obj_idx] != NULL)
+            free(pick->object[pick->obj_idx]);
 
-    for (i = 0; i <= init->pick->argc; i++) {
-        init->pick->argv[i] =
-            (char *)calloc(1, PICK_MAX_ARG_LEN * sizeof(char));
-        free(init->pick->argv[i]);
-        init->pick->argv[i] = NULL;
-    }
-    free(pick->argv);
-    pick->argv = NULL;
     free(pick);
     init->pick = NULL;
     init->pick_cnt--;
@@ -218,7 +210,7 @@ Form *close_form(Init *init) {
 View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     init->view = (View *)calloc(1, sizeof(View));
     if (!init->view) {
-        display_error_message("calloc init->view failed");
+        Perror("calloc init->view failed");
         return NULL;
     }
     view = init->view;
@@ -226,7 +218,7 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     view->argc = argc;
     view->argv = (char **)calloc((view->argc + 1), sizeof(char *));
     if (!view->argv) {
-        display_error_message("calloc view->argv failed");
+        Perror("calloc view->argv failed");
         return NULL;
     }
     if (!init_view_files(init, view->argc, argv)) {
@@ -241,7 +233,7 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     view->bg_color = init->bg_color;
     view->bo_color = init->bo_color;
     view->prompt_type = init->prompt_type;
-    strncpy(view->prompt_str, init->prompt_str, MAXLEN - 1);
+    strnz__cpy(view->prompt_str, init->prompt_str, MAXLEN - 1);
     return init->view;
 }
 /* ╭────────────────────────────────────────────────────────────────╮
@@ -281,41 +273,41 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
 
     if (!src_spec || !src_spec[0])
         return false;
-    strncpy(try_spec, src_spec, MAXLEN - 1);
+    strnz__cpy(try_spec, src_spec, MAXLEN - 1);
     if (try_spec[0]) {
         expand_tilde(try_spec, MAXLEN - 1);
         if (try_spec[0] == '/') {
             f_spec = verify_file_q(try_spec, mode);
             if (f_spec)
-                strncpy(spec, try_spec, MAXLEN - 1);
+                strnz__cpy(spec, try_spec, MAXLEN - 1);
             return f_spec;
         } else {
             if (!f_dir && dir[0]) {
-                strncpy(try_spec, dir, MAXLEN - 1);
+                strnz__cpy(try_spec, dir, MAXLEN - 1);
                 expand_tilde(try_spec, MAXLEN - 1);
                 // R_OK?
                 f_dir = verify_dir_q(try_spec, mode);
                 if (f_dir) {
-                    strncat(try_spec, "/", MAXLEN - 1);
-                    strncat(try_spec, src_spec, MAXLEN - 1);
+                    strnz__cat(try_spec, "/", MAXLEN - 1);
+                    strnz__cat(try_spec, src_spec, MAXLEN - 1);
                     f_spec = verify_file_q(try_spec, mode);
                 }
             }
             if (!f_spec && alt_dir[0]) {
-                strncpy(try_spec, alt_dir, MAXLEN - 1);
+                strnz__cpy(try_spec, alt_dir, MAXLEN - 1);
                 expand_tilde(try_spec, MAXLEN - 1);
                 // R_OK?
                 f_dir = verify_dir_q(try_spec, mode);
                 if (f_dir) {
-                    strncat(try_spec, "/", MAXLEN - 1);
-                    strncat(try_spec, src_spec, MAXLEN - 1);
+                    strnz__cat(try_spec, "/", MAXLEN - 1);
+                    strnz__cat(try_spec, src_spec, MAXLEN - 1);
                     f_spec = verify_file_q(try_spec, mode);
                 }
             }
             if (!f_spec) {
-                strncpy(try_spec, ".", MAXLEN - 1);
-                strncat(try_spec, "/", MAXLEN - 1);
-                strncat(try_spec, src_spec, MAXLEN - 1);
+                strnz__cpy(try_spec, ".", MAXLEN - 1);
+                strnz__cat(try_spec, "/", MAXLEN - 1);
+                strnz__cat(try_spec, src_spec, MAXLEN - 1);
                 f_spec = verify_file_q(try_spec, mode);
             }
             if (!f_spec && mode == WC_OK) {
@@ -326,9 +318,9 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
                 }
             }
             if (f_spec)
-                strncpy(spec, try_spec, MAXLEN - 1);
+                strnz__cpy(spec, try_spec, MAXLEN - 1);
             else
-                strncpy(spec, src_spec, MAXLEN - 1);
+                strnz__cpy(spec, src_spec, MAXLEN - 1);
             return f_spec;
         }
     }
@@ -388,8 +380,9 @@ bool init_menu_files(Init *init, int argc, char **argv) {
         menu->f_mapp_spec = verify_spec_arg(
             menu->mapp_spec, "~/menuapp/msrc/main.m", NULL, NULL, R_OK);
         if (!menu->f_mapp_spec) {
-            strncpy(tmp_str, "menu cannot read description file ", MAXLEN - 1);
-            strncat(tmp_str, menu->mapp_spec, MAXLEN - 1);
+            strnz__cpy(tmp_str, "menu cannot read description file ",
+                       MAXLEN - 1);
+            strnz__cat(tmp_str, menu->mapp_spec, MAXLEN - 1);
             abend(-1, tmp_str);
         }
     }
@@ -400,8 +393,8 @@ bool init_menu_files(Init *init, int argc, char **argv) {
         menu->f_help_spec = verify_spec_arg(
             menu->help_spec, "~/menuapp/help/main.help", NULL, NULL, R_OK);
         if (!menu->f_help_spec) {
-            strncpy(tmp_str, "menu cannot read help file ", MAXLEN - 1);
-            strncat(tmp_str, menu->help_spec, MAXLEN - 1);
+            strnz__cpy(tmp_str, "menu cannot read help file ", MAXLEN - 1);
+            strnz__cat(tmp_str, menu->help_spec, MAXLEN - 1);
             abend(-1, tmp_str);
         }
     }
@@ -441,7 +434,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
        │ PICK TITLE    - OPT ARG -T: - Priority 5                  │
        ╰───────────────────────────────────────────────────────────╯ */
     if (init->title[0])
-        strncpy(pick->title, init->title, MAXLEN - 1);
+        strnz__cpy(pick->title, init->title, MAXLEN - 1);
     /* ╭───────────────────────────────────────────────────────────╮
        │ PICK HELP_SPEC - OPT ARG -H: - Priority 5                 │
        ╰───────────────────────────────────────────────────────────╯ */
@@ -485,7 +478,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
        │ PICK TITLE    - POSITIONAL ARG 4 - Priority 4             │
        ╰───────────────────────────────────────────────────────────╯ */
     if (optind < argc && !pick->title[0]) {
-        strncpy(pick->title, argv[optind], MAXLEN - 1);
+        strnz__cpy(pick->title, argv[optind], MAXLEN - 1);
         optind++;
     }
     /* ╭───────────────────────────────────────────────────────────╮
@@ -501,7 +494,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     pick->fg_color = init->fg_color;
     pick->bg_color = init->bg_color;
     pick->bo_color = init->bo_color;
-    strncpy(pick->title, init->title, MAXLEN - 1);
+    strnz__cpy(pick->title, init->title, MAXLEN - 1);
     pick->select_max = init->select_max;
     pick->f_stop_on_error = init->f_stop_on_error;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
@@ -597,7 +590,8 @@ bool init_view_files(Init *init, int argc, char **argv) {
     int s = 1;
     int d = 0;
 
-    s = optind;
+    // we presume that no unprocessed options remain in argv
+    // so we just copy all args from argv[1..argc-1] to view
     while (s < argc)
         view->argv[d++] = strdup(argv[s++]);
     view->argv[d] = NULL;

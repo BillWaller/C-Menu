@@ -30,7 +30,7 @@ unsigned int parse_menu_description(Init *init) {
     menu = init->menu;
     fp = fopen(menu->mapp_spec, "r");
     if (fp == NULL) {
-        strncat(tmp_buf, "file not found", MAXLEN);
+        strnz__cat(tmp_buf, "file not found", MAXLEN);
         abend(-1, tmp_buf);
     }
     while ((fgets(in_buf, MAXLEN, fp)) != NULL) {
@@ -42,7 +42,7 @@ unsigned int parse_menu_description(Init *init) {
         in_buf_p = in_buf;
         directive = *in_buf_p;
         in_buf_p++;
-        strncpy(tmp_buf, in_buf_p, MAXLEN);
+        strnz__cpy(tmp_buf, in_buf_p, MAXLEN);
         trim(tmp_buf);
         l = strlen(tmp_buf);
         if (!l)
@@ -129,7 +129,7 @@ unsigned int parse_menu_description(Init *init) {
             if (!menu->title[0]) { /* in_buf -> Title */
                 if (l + 5 > MAXLEN)
                     l = MAXLEN - 5;
-                strncpy(menu->title, tmp_buf, l);
+                strnz__cpy(menu->title, tmp_buf, l);
                 l += 4;
                 if (l > menu->text_max_len)
                     menu->text_max_len = l;
@@ -172,7 +172,7 @@ unsigned int parse_menu_description(Init *init) {
         case '\n':
             break;
         default:
-            strncpy(tmp_buf, "unrecognized operator in ", MAXLEN);
+            strnz__cpy(tmp_buf, "unrecognized operator in ", MAXLEN);
             abend(-1, tmp_buf);
         }
     }
@@ -216,7 +216,7 @@ unsigned int parse_menu_description(Init *init) {
                     if (!fltr[ltr])
                         break;
                 if (ltr > 'z') {
-                    display_error_message("Ran out of letters");
+                    Perror("Ran out of letters");
                     return (0);
                 }
             }
@@ -237,7 +237,7 @@ unsigned int parse_menu_description(Init *init) {
     else
         menu->cols = menu->choice_max_len + menu->option_max_len + 6;
     if (menu->cols >= MAXLEN)
-        display_error_message("line too long");
+        Perror("line too long");
     menu->option_offset = menu->choice_max_len + 7;
 
     for (menu->line_idx = 0; menu->line_idx < menu->item_count;

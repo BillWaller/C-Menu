@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
 #include <unistd.h>
@@ -59,7 +60,7 @@ int init_view_full_screen(Init *init) {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ INIT_VIEW_BOXWIN                                              │
     ╰───────────────────────────────────────────────────────────────╯ */
-int init_view_boxwin(Init *init) {
+int init_view_boxwin(Init *init, char *title) {
     char emsg0[MAXLEN];
     char emsg1[MAXLEN];
     char emsg2[MAXLEN];
@@ -73,7 +74,10 @@ int init_view_boxwin(Init *init) {
         view->lines = scr_lines;
     if (view->begx + view->cols > scr_cols)
         view->cols = scr_cols;
-    strncpy(view->title, view->argv[0], MAXLEN - 1);
+    if (title != NULL && title[0] != '\0')
+        strnz__cpy(view->title, title, MAXLEN - 1);
+    else if (view->argv[0] != NULL && view->argv[0][0] != '\0')
+        strnz__cpy(view->title, "no title", MAXLEN - 1);
     if (win_new(view->lines, view->cols, view->begy, view->begx, view->title)) {
         snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
         snprintf(emsg1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
@@ -116,89 +120,72 @@ int init_view_boxwin(Init *init) {
 bool view_init_input(View *view, char *file_name) {
     struct stat sb;
     int idx = 0;
-    long bytes_read = 0;
-    long pos = 0;
     char emsg0[MAXLEN];
     char emsg1[MAXLEN];
     char emsg2[MAXLEN];
     if (strcmp(file_name, "-") == 0)
         file_name = "/dev/stdin";
-    if (lstat(file_name, &sb) == -1) {
+
+    int in_fd = open(file_name, O_RDONLY);
+    if (in_fd == -1) {
         snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-        snprintf(emsg1, MAXLEN - 65, "lstat %s", file_name);
+        snprintf(emsg1, MAXLEN - 65, "open %s", file_name);
         strerror_r(errno, emsg2, MAXLEN);
         display_error(emsg0, emsg1, emsg2);
         return false;
     }
-    view->buf = (char *)malloc(VBUFSIZ + 1);
-    if (view->buf == NULL) {
+    if (fstat(in_fd, &sb) == -1) {
         snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-        snprintf(emsg1, MAXLEN - 65, "view->buf = malloc(%d): failed\n",
-                 VBUFSIZ + 1);
-        emsg2[0] = '\0';
+        snprintf(emsg1, MAXLEN - 65, "fstat %s", file_name);
+        strerror_r(errno, emsg2, MAXLEN);
         display_error(emsg0, emsg1, emsg2);
-        abend(-1, err_msg);
+        close(in_fd);
+        return EXIT_FAILURE;
     }
     view->file_size = sb.st_size;
-    view->buf_last = view->file_size / VBUFSIZ;
-    if (strcmp(file_name, "/dev/stdin") == 0) {
-        view->fp = fdopen(STDIN_FILENO, "r");
-        view->f_is_pipe = true;
-        view->f_pipe_processed = false;
-        view->f_new_file = true;
-        view->prev_file_pos = NULL_POSITION;
-    } else {
-        view->fp = fopen(file_name, "r");
-        if (view->fp == NULL) {
-            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-            snprintf(emsg1, MAXLEN - 65, "fopen %s", file_name);
-            strerror_r(errno, emsg2, MAXLEN);
-            display_error(emsg0, emsg1, emsg2);
-            return false;
-        }
-        view->f_is_pipe = false;
-        view->f_pipe_processed = false;
-        view->f_new_file = true;
-        view->prev_file_pos = NULL_POSITION;
-        if (fseek(view->fp, 0L, SEEK_SET) != 0) {
-            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-            snprintf(emsg1, MAXLEN - 65, "seek error: %s", file_name);
-            strerror_r(errno, emsg2, MAXLEN);
-            display_error(emsg0, emsg1, emsg2);
-            return false;
-        }
-        if (view->file_size == 0L) {
-            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-            snprintf(emsg1, MAXLEN - 65, "empty file: %s", file_name);
-            strerror_r(errno, emsg2, MAXLEN);
-            display_error(emsg0, emsg1, emsg2);
-            return false;
+    if (!S_ISREG(sb.st_mode)) {
+        char tmp_filename[] = "/tmp/view_XXXXXX";
+        char buf[VBUFSIZ];
+        ssize_t bytes_read;
+
+        close(in_fd);
+        in_fd = mkstemp(tmp_filename);
+        if (in_fd == -1)
+            abend(-1, "failed to mkstemp");
+        unlink(tmp_filename);
+        while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0)
+            if (write(in_fd, buf, bytes_read) != bytes_read)
+                abend(-1, "failed writing to tmp file");
+        if (bytes_read == -1)
+            abend(-1, "failed reading from stdin");
+        if (fstat(in_fd, &sb) == -1)
+            abend(-1, "fstat failed");
+        view->file_size = sb.st_size;
+        if (view->file_size == 0) {
+            close(in_fd);
+            strnz__cpy(tmp_str, "no standard input", MAXLEN - 1);
+            abend(-1, tmp_str);
         }
     }
-    if (view->buf == NULL)
-        abend(-1, "view->buf is NULL");
-    bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
-    if (bytes_read > 0)
-        view->buf_end_ptr = view->buf + bytes_read;
-    if (bytes_read < VBUFSIZ) {
-        if (!feof(view->fp)) {
-            pos = (view->buf_idx * VBUFSIZ) +
-                  (long)(view->buf_curr_ptr - view->buf);
-            snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-            snprintf(emsg1, MAXLEN - 65, "file: %s, read error at position %ld",
-                     file_name, pos);
-            strerror_r(errno, emsg2, MAXLEN);
-            display_error(emsg0, emsg1, emsg2);
-            abend(-1, emsg1);
-        }
+    view->buf = mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, in_fd, 0);
+    if (view->buf == MAP_FAILED) {
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        snprintf(emsg1, MAXLEN - 65, "mmap %s", file_name);
+        strerror_r(errno, emsg2, MAXLEN);
+        display_error(emsg0, emsg1, emsg2);
+        close(in_fd);
+        return EXIT_FAILURE;
     }
-    view->buf_last = view->file_size / VBUFSIZ;
+    close(in_fd);
+    view->file_size = sb.st_size;
+    view->f_new_file = true;
+    view->prev_file_pos = NULL_POSITION;
     view->buf_curr_ptr = view->buf;
     if (view->start_cmd_all_files[0] != '\0')
-        strncpy(view->start_cmd, view->start_cmd_all_files, MAXLEN - 1);
+        strnz__cpy(view->start_cmd, view->start_cmd_all_files, MAXLEN - 1);
     for (idx = 0; idx < NMARKS; idx++)
         view->mark_tbl[idx] = NULL_POSITION;
-    strncpy(view->cur_file_str, file_name, MAXLEN - 1);
+    strnz__cpy(view->cur_file_str, file_name, MAXLEN - 1);
     if (view->f_stdout_is_tty) {
         view->page_top_pos = 0;
         view->page_bot_pos = 0;
