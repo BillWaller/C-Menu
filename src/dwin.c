@@ -262,6 +262,9 @@ void open_curses(Init *init) {
     /*  ╭───────────────────────────────────────────────────────────────╮
         │ This is where we associate the terminal device with NCurses   │
         │ Beyond this point, NCurses has the tty.                       │
+        │                                                               │
+        │ We use newterm and set_term instead of initscr so we can      │
+        │ specify the streams used by NCurses                           │
         ╰───────────────────────────────────────────────────────────────╯ */
     SCREEN *screen = newterm(NULL, tty_fp, tty_fp);
     if (screen == NULL) {
@@ -433,6 +436,9 @@ void init_clr_palette(Init *init) {
         bb = (rgb.b * 1000) / 255;
         init_extended_color(i, rr, gg, bb);
     }
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ C-Menu colors override the standard palette                   │
+        ╰───────────────────────────────────────────────────────────────╯*/
     if (init->black[0])
         init_hex_clr(CLR_BLACK, init->black);
     if (init->red[0])
@@ -468,6 +474,7 @@ void init_clr_palette(Init *init) {
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ INIT_HEX_CLR                                                  │
+    │ Convert #ffffff to NCurses rgb                                │
     ╰───────────────────────────────────────────────────────────────╯*/
 void init_hex_clr(int idx, char *s) {
     RGB rgb;
@@ -726,6 +733,11 @@ int error_message(char **argv) {
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ DISPLAY_ERROR                                                 │
+    │     emsg0 - source file and line number (dwin.c 736)          │
+    │     emsg1 - predicate and subject (open file-name)            │
+    │     emsg2 - explanation (could not open file)                 │
+    │     to be added:                                              │
+    │     emsg3 - hint (check permissions)                          │
     ╰───────────────────────────────────────────────────────────────╯ */
 int display_error(char *emsg0, char *emsg1, char *emsg2) {
     char title[64];
@@ -779,7 +791,7 @@ int display_error(char *emsg0, char *emsg1, char *emsg2) {
     return (cmd_key);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
-    │ DISPLAY_ERROR_MESSAGE                                         │
+    │ PERROR - simple one-line error                                │
     ╰───────────────────────────────────────────────────────────────╯ */
 int Perror(char *emsg_str) {
     char emsg[80];
