@@ -1187,6 +1187,7 @@ void next_page(View *view) {
     wmove(view->win, view->cury, 0);
     view->file_pos = view->page_bot_pos;
     view->page_top_pos = view->file_pos;
+    wclrtobot(view->win);
     for (i = 0; i < view->scroll_lines; i++) {
         get_next_line(view, view->file_pos);
         if (view->f_eod)

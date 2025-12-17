@@ -178,7 +178,7 @@ unsigned int parse_menu_description(Init *init) {
     }
     fclose(fp);
     /* ╭────────────────────────────────────────────────────────────╮
-       │                                                            │
+       │ ASSIGN LETTERS TO MENU CHOICES                             │
        ╰────────────────────────────────────────────────────────────╯ */
 
     menu->item_count = menu->line_idx;

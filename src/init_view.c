@@ -1,4 +1,5 @@
 // init_view.c
+// Bill Waller 2025
 
 #include "menu.h"
 #include <errno.h>
@@ -21,11 +22,6 @@ int init_view_full_screen(Init *init) {
     view = init->view;
     view->f_full_screen = true;
     getmaxyx(stdscr, view->lines, view->cols);
-    // Screen    50 lines
-    //          - 1 command line
-    //          -----------
-    //           49 viewable lines
-    //
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = 0;
@@ -36,7 +32,7 @@ int init_view_full_screen(Init *init) {
     view->smaxcol = view->cols - 1;
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
         snprintf(emsg1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
                  MAX_COLS);
         emsg2[0] = '\0';
@@ -79,7 +75,7 @@ int init_view_boxwin(Init *init, char *title) {
     else if (view->argv[0] != NULL && view->argv[0][0] != '\0')
         strnz__cpy(view->title, "no title", MAXLEN - 1);
     if (win_new(view->lines, view->cols, view->begy, view->begx, view->title)) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
         snprintf(emsg1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
                  view->lines, view->cols, view->begy, view->begx, "NULL");
         emsg2[0] = '\0';
@@ -96,7 +92,7 @@ int init_view_boxwin(Init *init, char *title) {
     view->smaxcol = view->begx + view->cols;
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
         snprintf(emsg1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
                  MAX_COLS);
         emsg2[0] = '\0';
@@ -128,14 +124,14 @@ bool view_init_input(View *view, char *file_name) {
 
     int in_fd = open(file_name, O_RDONLY);
     if (in_fd == -1) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
         snprintf(emsg1, MAXLEN - 65, "open %s", file_name);
         strerror_r(errno, emsg2, MAXLEN);
         display_error(emsg0, emsg1, emsg2);
         return false;
     }
     if (fstat(in_fd, &sb) == -1) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
         snprintf(emsg1, MAXLEN - 65, "fstat %s", file_name);
         strerror_r(errno, emsg2, MAXLEN);
         display_error(emsg0, emsg1, emsg2);
@@ -155,9 +151,9 @@ bool view_init_input(View *view, char *file_name) {
         unlink(tmp_filename);
         while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0)
             if (write(in_fd, buf, bytes_read) != bytes_read)
-                abend(-1, "failed writing to tmp file");
+                abend(-1, "unable to write tmp");
         if (bytes_read == -1)
-            abend(-1, "failed reading from stdin");
+            abend(-1, "unable to read stdin");
         if (fstat(in_fd, &sb) == -1)
             abend(-1, "fstat failed");
         view->file_size = sb.st_size;

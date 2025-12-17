@@ -37,10 +37,12 @@
 # remove the -DVERBOSE flag from the rsh compile instruction.
 # The default is to compile without -DVERBOSE.
 #
-# for debugging with gdb, use the unoptimized versions
+# for debugging with gdb, use the unoptimized CFLAGS
 # CFLAGS -O0 -g3
+#
 # for release, use
 # CFLAGS -O2
+#
 CFLAGS = -O0 -g3 -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
 		-Wno-unused-parameter -Wno-missing-field-initializers \
 		-Wno-unused-function -DNCURSES_WIDECHAR -Wl,--gc-sections
@@ -96,7 +98,7 @@ rsh:	rsh.c
 
 clean:
 	rm -rf core *.o $(TARGETS) make.out $(CFLOW_OUTPUT) *.o *.cflow \
-		scan-build scan-build.log
+		scan-build scan-build.log install
 
 PREFIX=~/menuapp
 OWNER=bill
