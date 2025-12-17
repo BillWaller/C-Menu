@@ -44,7 +44,7 @@ unsigned int form_engine(Init *init) {
 
     form = init->form;
     if (form == NULL) {
-        display_error_message("FORM: form data structure is NULL");
+        Perror("FORM: form data structure is NULL");
     }
     if (form_parse_desc(form)) {
         close_form(init);
@@ -77,11 +77,12 @@ unsigned int form_engine(Init *init) {
             stop_form_engine(init);
             return 0;
         case P_HELP:
-            strncpy(earg_str, HELP_CMD, MAXLEN - 1);
-            strncat(earg_str, " ", MAXLEN - 1);
-            strncat(earg_str, form->help_spec, MAXLEN - 1);
+            strnz__cpy(earg_str, HELP_CMD, MAXLEN - 1);
+            strnz__cat(earg_str, " ", MAXLEN - 1);
+            strnz__cat(earg_str, form->help_spec, MAXLEN - 1);
             eargc = str_to_args(eargv, earg_str);
-            mview(init, eargc, eargv, 10, 68, form->begy + 1, form->begx + 4);
+            mview(init, eargc, eargv, 10, 68, form->begy + 1, form->begx + 4,
+                  form->title);
             restore_wins();
             form_action = 0;
             break;
@@ -124,15 +125,15 @@ int form_calculate(Init *init) {
             if (form->f_answer_spec)
                 form_write_answer(form);
             if (form->f_cmd_spec) {
-                strncpy(earg_str, form->cmd_spec, MAXLEN - 1);
+                strnz__cpy(earg_str, form->cmd_spec, MAXLEN - 1);
                 for (i = 0; i < form->fcnt; i++) {
-                    strncat(earg_str, " ", MAXLEN - 1);
-                    strncat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
+                    strnz__cat(earg_str, " ", MAXLEN - 1);
+                    strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
                 }
             }
             if (form->f_answer_spec) {
-                strncat(earg_str, " >", MAXLEN - 1);
-                strncat(earg_str, form->answer_spec, MAXLEN - 1);
+                strnz__cat(earg_str, " >", MAXLEN - 1);
+                strnz__cat(earg_str, form->answer_spec, MAXLEN - 1);
             }
             shell(earg_str);
             form_read_answer(form);
@@ -153,7 +154,7 @@ int form_calculate(Init *init) {
         }
     }
     key_cmd[5].text[0] = '\0';
-    strncpy(key_cmd[10].text, "Accept", 26);
+    strnz__cpy(key_cmd[10].text, "Accept", 26);
     form_display_chyron(form);
     return rc;
 }
@@ -233,9 +234,9 @@ unsigned int form_display_screen(Init *init) {
     if (form->cols > (COLS - form->begx - 1))
         form->cols = COLS - form->begx - 1;
     if (win_new(form->lines, form->cols, form->begy, form->begx, form->title)) {
-        strncpy(tmp_str, "win_new failed: ", MAXLEN - 1);
-        strncat(tmp_str, form->title, MAXLEN - 1);
-        display_error_message(tmp_str);
+        strnz__cpy(tmp_str, "win_new failed: ", MAXLEN - 1);
+        strnz__cat(tmp_str, form->title, MAXLEN - 1);
+        Perror(tmp_str);
         return (1);
     }
     form->win = win_win[win_ptr];
@@ -259,9 +260,9 @@ unsigned int form_display_screen(Init *init) {
     }
     for (n = 0; key_cmd[n].end_pos != -1; n++)
         key_cmd[n].text[0] = '\0';
-    strncpy(key_cmd[1].text, "F1 Help", 32);
-    strncpy(key_cmd[9].text, "F9 Cancel", 32);
-    strncpy(key_cmd[10].text, "F10 Accept", 32);
+    strnz__cpy(key_cmd[1].text, "F1 Help", 32);
+    strnz__cpy(key_cmd[9].text, "F9 Cancel", 32);
+    strnz__cpy(key_cmd[10].text, "F10 Accept", 32);
     form_display_chyron(form);
     return (0);
 }
@@ -352,7 +353,7 @@ int form_parse_desc(Form *form) {
         delim[0] = '\n';
         delim[1] = in_buf[1];
         delim[2] = '\0';
-        strncpy(tmp_buf, in_buf, MAXLEN - 1);
+        strnz__cpy(tmp_buf, in_buf, MAXLEN - 1);
         tmp_buf_p = tmp_buf;
         if (!(token = strtok(tmp_buf_p, delim))) {
             continue;
@@ -382,7 +383,7 @@ int form_parse_desc(Form *form) {
                                 "FORM: cmd_spec delimiter");
                 continue;
             }
-            strncpy(form->cmd_spec, token, MAXLEN - 1);
+            strnz__cpy(form->cmd_spec, token, MAXLEN - 1);
             break;
             /*  ╭───────────────────────────────────────────────────╮
                 │ '?' HELP_FILE                                     │
@@ -392,7 +393,7 @@ int form_parse_desc(Form *form) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: help_spec delimiter");
             }
-            strncpy(form->help_spec, token, MAXLEN - 1);
+            strnz__cpy(form->help_spec, token, MAXLEN - 1);
             break;
             /*  ╭───────────────────────────────────────────────────╮
                 │ 'F' FIELD F:line:column:length:format:command     │
@@ -436,7 +437,7 @@ int form_parse_desc(Form *form) {
                 │ FIELD LEN                                         │
                 ╰───────────────────────────────────────────────────╯ */
             if (!(token = strtok(NULL, delim))) {
-                strncpy(tmp_str, in_buf, MAXLEN - 1);
+                strnz__cpy(tmp_str, in_buf, MAXLEN - 1);
                 form_desc_error(in_line_num, tmp_str, "FORM: length delimiter");
                 break;
             }
@@ -527,7 +528,7 @@ int form_parse_desc(Form *form) {
                 form_desc_error(in_line_num, in_buf, "FORM: text delimiter");
                 break;
             }
-            strncpy(form->text[form->didx]->str, token, MAXLEN - 1);
+            strnz__cpy(form->text[form->didx]->str, token, MAXLEN - 1);
             /*  ╭───────────────────────────────────────────────────╮
                 │ TEXT len                                          │
                 ╰───────────────────────────────────────────────────╯ */
@@ -552,7 +553,7 @@ int form_parse_desc(Form *form) {
             ╰───────────────────────────────────────────────────────╯ */
         case D_HEADER:
             if ((token = strtok(NULL, delim))) {
-                strncpy(form->title, token, MAXLEN - 1);
+                strnz__cpy(form->title, token, MAXLEN - 1);
             }
             break;
         default:
@@ -597,14 +598,14 @@ int form_read_answer(Form *form) {
 int form_exec_cmd(Init *init) {
     char earg_str[MAXLEN + 1];
     int i;
-    strncpy(earg_str, form->cmd_spec, MAXLEN - 1);
+    strnz__cpy(earg_str, form->cmd_spec, MAXLEN - 1);
     for (i = 0; i < form->fcnt; i++) {
-        strncat(earg_str, " ", MAXLEN - 1);
-        strncat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
+        strnz__cat(earg_str, " ", MAXLEN - 1);
+        strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
     }
     if (form->f_answer_spec && form->f_calculate) {
-        strncat(earg_str, " >", MAXLEN - 1);
-        strncat(earg_str, form->answer_spec, MAXLEN - 1);
+        strnz__cat(earg_str, " >", MAXLEN - 1);
+        strnz__cat(earg_str, form->answer_spec, MAXLEN - 1);
     }
     shell(earg_str);
     return 0;
@@ -637,7 +638,7 @@ int form_write_answer(Form *form) {
 void form_usage() {
     dump_opts_by_use("FORML: usage: ", "..f.");
     (void)fprintf(stderr, "\n");
-    display_error_message("press any key to continue");
+    Perror("press any key to continue");
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_DESC_ERROR                                               │

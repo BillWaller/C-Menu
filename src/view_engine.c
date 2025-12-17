@@ -8,8 +8,10 @@
 #include <regex.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 #define MAXCHAR (uchar)0xfa
@@ -29,35 +31,37 @@
 
 #define get_next_char()                                                        \
     do {                                                                       \
-        if (view->buf_curr_ptr == view->buf_end_ptr)                           \
-            c = advance_buffer(view);                                          \
-        else                                                                   \
-            c = *view->buf_curr_ptr++;                                         \
+        if (view->file_pos == view->file_size) {                               \
+            view->f_eod = true;                                                \
+            break;                                                             \
+        } else                                                                 \
+            view->f_eod = false;                                               \
+        c = view->buf[view->file_pos++];                                       \
     } while (c == 0x0d);
 
 #define get_prev_char()                                                        \
-    {                                                                          \
-        do {                                                                   \
-            if (view->buf_curr_ptr == view->buf)                               \
-                c = advance_buffer(view);                                      \
-            else                                                               \
-                c = *--view->buf_curr_ptr;                                     \
-        } while (c == 0x0d);                                                   \
-    }
+    do {                                                                       \
+        if (view->file_pos == (long)0) {                                       \
+            view->f_bod = true;                                                \
+            break;                                                             \
+        } else                                                                 \
+            view->f_bod = false;                                               \
+        c = view->buf[--view->file_pos];                                       \
+    } while (c == 0x0d);
 
 char prev_regex_pattern[MAXLEN];
 FILE *dbgfp;
 int view_file(Init *);
 int view_cmd_processor(Init *);
-int get_cmd_char(View *);
+int get_cmd_char(View *, long *);
 int get_cmd_spec(View *, char *);
-void build_prompt(View *, int, char *);
+void build_prompt(View *, int, char *, double elapsed);
 void cat_file(View *);
 void lp(char *, char *);
 
 void go_to_mark(View *, int);
 void go_to_eof(View *);
-int go_to_line(View *, int);
+int go_to_line(View *, long);
 void go_to_percent(View *, int);
 void go_to_position(View *, long);
 
@@ -79,10 +83,6 @@ bool ansi_to_cmplx(cchar_t *, const char *);
 void parse_ansi_str(WINDOW *, char *, attr_t *, int *);
 int fmt_cmplx_buf(View *);
 void view_display_help(View *);
-int advance_buffer(View *);
-int pipe_advance_buffer(View *);
-bool load_buffer(View *, long);
-
 void cmd_line_prompt(View *, char *);
 void remove_file(View *);
 
@@ -107,7 +107,7 @@ int view_file(Init *init) {
         view->file_spec_ptr = view->next_file_spec_ptr;
         view->next_file_spec_ptr = NULL;
         if (view_init_input(view, view->file_spec_ptr)) {
-            if (view->fp) {
+            if (view->buf) {
                 view->f_new_file = true;
                 view->maxcol = 0;
                 view->f_forward = true;
@@ -116,7 +116,7 @@ int view_file(Init *init) {
                 view->file_pos = 0;
                 next_page(view);
                 view_cmd_processor(init);
-                fclose(view->fp);
+                munmap(view->buf, view->file_size);
             }
         } else {
             view->curr_argc++;
@@ -136,11 +136,17 @@ int view_cmd_processor(Init *init) {
     char tmp_str[MAXLEN];
     int c;
     int prev_search_cmd = 0;
-    int rc, n, i;
+    int rc, i;
+    int n = 0;
     char *editor_ptr;
     char shell_cmd_spec[MAXLEN];
+    struct timespec start, end;
+    double elapsed = 0;
+    bool f_clock_started = false;
+    long n_cmd = 0L;
 
     view = init->view;
+    view->f_timer = false;
     if (view->start_cmd[0]) {
         view->next_c = view->start_cmd[0];
         strnz__cpy(view->cmd_spec, (char *)&view->start_cmd[1], MAXLEN - 1);
@@ -154,7 +160,13 @@ int view_cmd_processor(Init *init) {
             if (view->f_redisplay_page)
                 redisplay_page(init);
             view->f_redisplay_page = false;
-            build_prompt(view, view->prompt_type, view->prompt_str);
+            if (view->f_timer && f_clock_started) {
+                clock_gettime(CLOCK_MONOTONIC, &end);
+                elapsed = (end.tv_sec - start.tv_sec) +
+                          (end.tv_nsec - start.tv_nsec) / 1e9;
+                f_clock_started = false;
+            }
+            build_prompt(view, view->prompt_type, view->prompt_str, elapsed);
             if (view->prompt_str[0] == '\0')
                 cmd_line_prompt(view, "");
             else if (view->tmp_prompt_str[0] == '\0')
@@ -167,8 +179,13 @@ int view_cmd_processor(Init *init) {
                 prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                          view->smincol, view->smaxrow, view->smaxcol);
             if (rc == ERR)
-                display_error_message("Error refreshing screen");
-            c = get_cmd_char(view);
+                Perror("Error refreshing screen");
+            c = get_cmd_char(view, &n_cmd);
+            if (view->f_timer) {
+                clock_gettime(CLOCK_MONOTONIC, &start);
+                f_clock_started = true;
+            }
+            view->tmp_prompt_str[0] = '\0';
             if (c >= '0' && c <= '9') {
                 tmp_str[0] = (char)c;
                 tmp_str[1] = '\0';
@@ -178,17 +195,19 @@ int view_cmd_processor(Init *init) {
         switch (c) {
 
         case KEY_ALTLEFT:
-            n = COLS / 2;
+            if (n_cmd == 0)
+                n_cmd = COLS / 2;
             if (view->pmincol - n < 0)
                 view->pmincol = 0;
             else
-                view->pmincol -= n;
+                view->pmincol -= n_cmd;
             break;
 
         case KEY_ALTRIGHT:
-            n = COLS / 2;
-            if ((view->pmincol + n) < view->maxcol)
-                view->pmincol += n;
+            if (n_cmd == 0)
+                n_cmd = COLS / 2;
+            if ((view->pmincol + n_cmd) < view->maxcol)
+                view->pmincol += n_cmd;
             break;
 
         case Ctrl('R'):
@@ -199,33 +218,32 @@ int view_cmd_processor(Init *init) {
         case KEY_LEFT:
         case KEY_BACKSPACE:
         case Ctrl('H'):
-            n = atoi(view->cmd_spec);
-            if (n <= 0)
-                n = 1;
-            if ((view->pmincol - n) < 0)
+        case 'h':
+        case 'H':
+            if (n_cmd <= 0)
+                n_cmd = 1;
+            if ((view->pmincol - n_cmd) < 0)
                 view->pmincol = 0;
             else
-                view->pmincol -= n;
+                view->pmincol -= n_cmd;
             break;
 
         case KEY_RIGHT:
         case 'l':
         case 'L':
-            n = atoi(view->cmd_spec);
-            if (n <= 0)
-                n = 1;
-            if ((view->pmincol + n) < view->maxcol)
-                view->pmincol += n;
+            if (n_cmd <= 0)
+                n_cmd = 1;
+            if ((view->pmincol + n_cmd) < view->maxcol)
+                view->pmincol += n_cmd;
             break;
 
         case KEY_UP:
         case 'k':
         case 'K':
         case Ctrl('K'):
-            n = atoi(view->cmd_spec);
-            if (n <= 0)
-                n = 1;
-            scroll_up_n_lines(view, n);
+            if (n_cmd <= 0)
+                n_cmd = 1;
+            scroll_up_n_lines(view, n_cmd);
             break;
 
         case KEY_DOWN:
@@ -235,11 +253,10 @@ int view_cmd_processor(Init *init) {
         case ' ':
         case 'j':
         case 'J':
-            n = atoi(view->cmd_spec);
-            if (n <= 0)
-                n = 1;
-            for (i = 0; i < n; i++) {
-                scroll_down_n_lines(view, n);
+            if (n_cmd <= 0)
+                n_cmd = 1;
+            for (i = 0; i < n_cmd; i++) {
+                scroll_down_n_lines(view, n_cmd);
             }
             break;
 
@@ -260,7 +277,7 @@ int view_cmd_processor(Init *init) {
         case KEY_HOME:
         case 'g':
             view->pmincol = 0;
-            go_to_line(view, 0);
+            go_to_line(view, 0L);
             break;
 
         case KEY_LL:
@@ -273,10 +290,10 @@ int view_cmd_processor(Init *init) {
             if (get_cmd_spec(view, "!") == 0) {
                 if (!view->f_is_pipe) {
                     view->prev_file_pos = view->page_top_pos;
-                    fclose(view->fp);
                     view->next_file_spec_ptr = view->file_spec_ptr;
                     str_subc(shell_cmd_spec, view->cmd_spec, '%',
                              view->cur_file_str, MAXLEN - 1);
+                    munmap(view->buf, view->file_size);
                 } else
                     strcpy(shell_cmd_spec, view->cmd_spec);
                 full_screen_shell(shell_cmd_spec);
@@ -289,33 +306,34 @@ int view_cmd_processor(Init *init) {
 
         case '+':
             if (get_cmd_spec(view, "Startup Command:") == 0)
-                strncpy(view->start_cmd_all_files, view->cmd_spec, MAXLEN - 1);
+                strnz__cpy(view->start_cmd_all_files, view->cmd_spec,
+                           MAXLEN - 1);
             break;
 
         case '-':
             if (view->f_displaying_help)
                 break;
             cmd_line_prompt(view, "(C, I, P, S, T, or H for Help)->");
-            c = get_cmd_char(view);
+            c = get_cmd_char(view, &n_cmd);
             c = tolower(c);
             switch (c) {
             case 'c':
                 cmd_line_prompt(view, "Clear Screen at End (Y or N)->");
-                if ((c = get_cmd_char(view)) == 'y' || c == 'Y')
+                if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
                     view->f_at_end_clear = true;
                 else if (c == 'n' || c == 'N')
                     view->f_at_end_clear = false;
                 break;
             case 'i':
                 cmd_line_prompt(view, "Ignore Case in search (Y or N)->");
-                if ((c = get_cmd_char(view)) == 'y' || c == 'Y')
+                if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
                     view->f_ignore_case = true;
                 else if (c == 'n' || c == 'N')
                     view->f_ignore_case = false;
                 break;
             case 'p':
                 cmd_line_prompt(view, "(Short Long or No prompt)->");
-                c = tolower(get_cmd_char(view));
+                c = tolower(get_cmd_char(view, &n_cmd));
                 switch (c) {
                 case 's':
                     view->prompt_type = PT_SHORT;
@@ -333,7 +351,7 @@ int view_cmd_processor(Init *init) {
             case 's':
                 cmd_line_prompt(
                     view, "view->f_squeeze Multiple Blank lines (Y or N)->");
-                if ((c = get_cmd_char(view)) == 'y' || c == 'Y')
+                if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
                     view->f_squeeze = true;
                 else if (c == 'n' || c == 'N')
                     view->f_squeeze = false;
@@ -341,15 +359,16 @@ int view_cmd_processor(Init *init) {
             case 't':
                 sprintf(tmp_str,
                         "Tabstop Colums Currently %d:", view->tab_stop);
-                n = 0;
+                i = 0;
                 if (get_cmd_spec(view, tmp_str) == 0)
-                    n = atoi(view->cmd_spec);
-                if (n >= 1 && n <= 12) {
-                    view->tab_stop = n;
+                    i = atoi(view->cmd_spec);
+                if (i >= 1 && i <= 12) {
+                    view->tab_stop = i;
                     view->f_redisplay_page = true;
                 } else
-                    display_error_message("Tab stops not changed");
+                    Perror("Tab stops not changed");
                 break;
+
             case 'h':
                 if (!view->f_displaying_help)
                     view_display_help(view);
@@ -371,22 +390,9 @@ int view_cmd_processor(Init *init) {
                 view->f_wrap = false;
                 search(view, c, view->cmd_spec, false);
                 prev_search_cmd = c;
-                strncpy(prev_regex_pattern, view->cmd_spec, MAXLEN - 1);
+                strnz__cpy(prev_regex_pattern, view->cmd_spec, MAXLEN - 1);
             }
             view->srch_beg_pos = view->page_top_pos;
-            load_buffer(view, view->page_top_pos);
-            break;
-
-        case '@':
-            break;
-
-        case 'd':
-        case 'D':
-        case Ctrl('D'):
-            n = atoi(view->cmd_spec);
-            if (n < 1)
-                n = 10;
-            scroll_down_n_lines(view, n);
             break;
 
         case 'o':
@@ -403,27 +409,25 @@ int view_cmd_processor(Init *init) {
 
         case KEY_END:
         case 'G':
-            n = atoi(view->cmd_spec);
-            if (n <= 0)
+            if (n_cmd <= 0)
                 go_to_eof(view);
             else
-                go_to_line(view, n);
+                go_to_line(view, n_cmd);
             break;
 
-        case 'h':
-        case 'H':
+        case KEY_F(1):
             if (!view->f_displaying_help)
                 view_display_help(view);
             break;
 
         case 'm':
             cmd_line_prompt(view, "Mark label (A-Z)->");
-            c = get_cmd_char(view);
+            c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == KEY_F(9) || c == '\033')
                 break;
             c = tolower(c);
             if (c < 'a' || c > 'z')
-                display_error_message("Not (A-Z)");
+                Perror("Not (A-Z)");
             else
                 view->mark_tbl[c - 'a'] = view->page_top_pos;
             break;
@@ -431,30 +435,29 @@ int view_cmd_processor(Init *init) {
         case 'M':
         case '\'':
             cmd_line_prompt(view, "Goto mark (A-Z)->");
-            c = get_cmd_char(view);
+            c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == KEY_F(9) || c == '\033')
                 break;
             c = tolower(c);
             if (c < 'a' || c > 'z')
-                display_error_message("Not (A-Z)");
+                Perror("Not (A-Z)");
             else
                 go_to_mark(view, c);
             break;
 
         case 'n':
             if (prev_search_cmd == 0) {
-                display_error_message("No previous search");
+                Perror("No previous search");
                 break;
             }
             search(view, prev_search_cmd, prev_regex_pattern, true);
             break;
 
         case 'N':
-            n = atoi(view->cmd_spec);
-            if (n <= 0)
-                n = 1;
-            if (view->curr_argc + n >= view->argc) {
-                display_error_message("no more files");
+            if (n_cmd <= 0)
+                n_cmd = 1;
+            if (view->curr_argc + n_cmd >= view->argc) {
+                Perror("no more files");
                 view->curr_argc = view->argc - 1;
             } else {
                 view->curr_argc++;
@@ -466,44 +469,43 @@ int view_cmd_processor(Init *init) {
 
         case 'p':
         case '%':
-            n = atoi(view->cmd_spec);
-            if (n < 0)
+            if (n_cmd < 0)
                 go_to_line(view, 1);
-            if (n >= 100)
+            if (n_cmd >= 100)
                 go_to_eof(view);
             else
-                go_to_percent(view, n);
+                go_to_percent(view, n_cmd);
             break;
 
         case Ctrl('Z'):
             if (view->f_is_pipe) {
-                display_error_message("Can't print standard input");
+                Perror("Can't print standard input");
                 break;
             }
             get_cmd_spec(view, "Enter Notation:");
-            strncpy(tmp_str, "/tmp/view-XXXXXX", MAXLEN - 1);
+            strnz__cpy(tmp_str, "/tmp/view-XXXXXX", MAXLEN - 1);
             tfd = mkstemp(tmp_str);
             strcpy(view->tmp_file_name_ptr, tmp_str);
             if (tfd == -1) {
-                display_error_message("Unable to create temporary file");
+                Perror("Unable to create temporary file");
                 break;
             }
-            strncpy(shell_cmd_spec, "echo ", MAXLEN - 5);
-            strncat(shell_cmd_spec, view->cmd_spec, MAXLEN - 5);
-            strncat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
+            strnz__cpy(shell_cmd_spec, "echo ", MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->cmd_spec, MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
-            strncpy(shell_cmd_spec, "cat ", MAXLEN - 5);
-            strncat(shell_cmd_spec, view->cmd_spec, MAXLEN - 5);
-            strncat(shell_cmd_spec, ">>", MAXLEN - 5);
-            strncat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
+            strnz__cpy(shell_cmd_spec, "cat ", MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->cmd_spec, MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, ">>", MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
             lp(view->cur_file_str, view->cmd_spec);
             wrefresh(view->win);
             shell(shell_cmd_spec);
             snprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
                      view->tmp_file_name_ptr);
-            strncpy(shell_cmd_spec, "rm ", MAXLEN - 5);
-            strncat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
+            strnz__cpy(shell_cmd_spec, "rm ", MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
             restore_wins();
             view->f_redisplay_page = true;
@@ -514,7 +516,7 @@ int view_cmd_processor(Init *init) {
         case KEY_CATAB:
         case KEY_PRINT:
             if (view->f_is_pipe) {
-                display_error_message("Can't print standard input");
+                Perror("Can't print standard input");
                 break;
             }
             lp(view->cur_file_str, NULL);
@@ -522,11 +524,10 @@ int view_cmd_processor(Init *init) {
             break;
 
         case 'P':
-            n = atoi(view->cmd_spec);
-            if (n <= 0)
-                n = 1;
-            if (view->curr_argc - n < 0) {
-                display_error_message("No previous file");
+            if (n_cmd <= 0)
+                n_cmd = 1;
+            if (view->curr_argc - n_cmd < 0) {
+                Perror("No previous file");
                 view->curr_argc = 0;
             } else {
                 view->curr_argc--;
@@ -544,48 +545,31 @@ int view_cmd_processor(Init *init) {
             view->next_file_spec_ptr = NULL;
             return (0);
 
-            // case 'r':
-            // case 'R':
-            // case Ctrl('R'):
-            // case Ctrl('L'):
-            // restore_wins();
-            // view->f_redisplay_page = true;
-            // break;
-
-        case 'u':
-        case 'U':
-        case Ctrl('U'):
-            n = atoi(view->cmd_spec);
-            if (n < 1)
-                n = 10;
-            scroll_up_n_lines(view, n);
-            break;
-
         case 'v':
             if (view->f_displaying_help)
                 break;
             if (view->f_is_pipe) {
-                display_error_message("Can't edit standard input");
+                Perror("Can't edit standard input");
                 break;
             }
             editor_ptr = getenv("DEFAULTEDITOR");
             if (editor_ptr == NULL || *editor_ptr == '\0')
                 editor_ptr = DEFAULTEDITOR;
             if (editor_ptr == NULL || *editor_ptr == '\0') {
-                display_error_message("set DEFAULTEDITOR environment variable");
+                Perror("set DEFAULTEDITOR environment variable");
                 break;
             }
             view->prev_file_pos = view->page_top_pos;
-            fclose(view->fp);
+            munmap(view->buf, view->file_size);
             view->next_file_spec_ptr = view->file_spec_ptr;
-            strncpy(shell_cmd_spec, editor_ptr, MAXLEN - 5);
-            strncat(shell_cmd_spec, " ", MAXLEN - 5);
-            strncat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
+            strnz__cpy(shell_cmd_spec, editor_ptr, MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, " ", MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
             full_screen_shell(shell_cmd_spec);
             return (0);
 
         case 'V':
-            display_error_message("View: Version 8.0");
+            Perror("View: Version 8.0");
             break;
 
         default:
@@ -598,10 +582,19 @@ int view_cmd_processor(Init *init) {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GET_CMD_CHAR                                                  │
     ╰───────────────────────────────────────────────────────────────╯ */
-int get_cmd_char(View *view) {
-    int c;
+int get_cmd_char(View *view, long *n) {
+    int c = 0, i = 0;
+    char cmd_str[33];
+    cmd_str[0] = '\0';
     tcflush(0, TCIFLUSH);
-    c = wgetch(view->win);
+    do {
+        c = wgetch(view->win);
+        if (c >= '0' && c <= '9' && i < 32) {
+            cmd_str[i++] = (char)c;
+            cmd_str[i] = '\0';
+        }
+    } while (c >= '0' && c <= '9');
+    *n = atol(cmd_str);
     view->cmd_spec[0] = '\0';
     return (c);
 }
@@ -656,10 +649,10 @@ int get_cmd_spec(View *view, char *prompt) {
         rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol, view->smaxrow, view->smaxcol);
         if (rc == ERR) {
-            display_error_message("Error refreshing screen");
+            Perror("Error refreshing screen");
         }
         if (rc == ERR) {
-            display_error_message("Error refreshing screen");
+            Perror("Error refreshing screen");
         }
         c = wgetch(view->win);
 
@@ -718,26 +711,27 @@ int get_cmd_spec(View *view, char *prompt) {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ BUILD_PROMPT                                                  │
     ╰───────────────────────────────────────────────────────────────╯ */
-void build_prompt(View *view, int prompt_type, char *prompt_str) {
+void build_prompt(View *view, int prompt_type, char *prompt_str,
+                  double elapsed) {
     prompt_str[0] = '\0';
-    strncpy(prompt_str, "", MAXLEN - 1);
+    strnz__cpy(prompt_str, "", MAXLEN - 1);
     if (prompt_type == PT_LONG || view->f_new_file) {
         if (view->f_is_pipe)
-            strncat(prompt_str, "stdin", MAXLEN - 1);
+            strnz__cat(prompt_str, "stdin", MAXLEN - 1);
         else
-            strncat(prompt_str, view->cur_file_str, MAXLEN - 1);
+            strnz__cat(prompt_str, view->cur_file_str, MAXLEN - 1);
     }
     if (view->pmincol > 0) {
         sprintf(tmp_str, "Col %d", view->pmincol);
         if (prompt_str[0] != '\0')
-            strncat(prompt_str, " ", MAXLEN - 1);
-        strncat(prompt_str, tmp_str, MAXLEN - 1);
+            strnz__cat(prompt_str, " ", MAXLEN - 1);
+        strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
     }
     if (view->argc > 1 && (view->f_new_file || prompt_type == PT_LONG)) {
         sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
         if (prompt_str[0] != '\0') {
-            strncat(prompt_str, " ", MAXLEN - 1);
-            strncat(prompt_str, tmp_str, MAXLEN - 1); /* File Of      */
+            strnz__cat(prompt_str, " ", MAXLEN - 1);
+            strnz__cat(prompt_str, tmp_str, MAXLEN - 1); /* File Of      */
         }
     }
     if (prompt_type == PT_LONG) { /* Byte of Byte  */
@@ -745,13 +739,13 @@ void build_prompt(View *view, int prompt_type, char *prompt_str) {
             view->page_top_pos = view->file_size;
         sprintf(tmp_str, "Pos %ld-%ld", view->page_top_pos, view->page_bot_pos);
         if (prompt_str[0] != '\0') {
-            strncat(prompt_str, " ", MAXLEN - 1);
-            strncat(prompt_str, tmp_str, MAXLEN - 1);
+            strnz__cat(prompt_str, " ", MAXLEN - 1);
+            strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
         }
         if (!view->f_is_pipe) {
             if (view->file_size > 0) {
                 sprintf(tmp_str, " of %ld", view->file_size);
-                strncat(prompt_str, tmp_str, MAXLEN - 1);
+                strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
             }
         }
     }
@@ -760,18 +754,22 @@ void build_prompt(View *view, int prompt_type, char *prompt_str) {
             sprintf(tmp_str, "(%ld%%)",
                     (100L * view->page_bot_pos) / view->file_size);
             if (prompt_str[0] != '\0')
-                strncat(prompt_str, " ", MAXLEN - 1);
-            strncat(prompt_str, tmp_str, MAXLEN - 1);
+                strnz__cat(prompt_str, " ", MAXLEN - 1);
+            strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
         }
     }
     if (view->f_eod) { /* End           */
         if (prompt_str[0] != '\0')
-            strncat(prompt_str, " ", MAXLEN - 1);
-        strncat(prompt_str, "(End)", MAXLEN - 1);
+            strnz__cat(prompt_str, " ", MAXLEN - 1);
+        strnz__cat(prompt_str, "(End)", MAXLEN - 1);
         if (view->curr_argc + 1 < view->argc) {
             sprintf(tmp_str, " Next File: %s", view->argv[view->curr_argc + 1]);
-            strncat(prompt_str, tmp_str, MAXLEN - 1);
+            strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
         }
+    }
+    if (view->f_timer) {
+        sprintf(tmp_str, " secs. %.6f\n", elapsed);
+        strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
     }
     view->f_new_file = false;
 }
@@ -812,7 +810,7 @@ void go_to_mark(View *view, int c) {
     else
         view->file_pos = view->mark_tbl[c - 'a'];
     if (view->file_pos == NULL_POSITION)
-        display_error_message("Mark not set");
+        Perror("Mark not set");
     else
         go_to_position(view, view->file_pos);
 }
@@ -821,85 +819,47 @@ void go_to_mark(View *view, int c) {
     ╰───────────────────────────────────────────────────────────────╯ */
 void go_to_eof(View *view) {
     int c;
-    long pos, buf_idx;
-    unsigned int bytes_read = 0;
-
     if (view->f_is_pipe) {
-        cmd_line_prompt(view, "Seeking end of pipe");
         view->f_forward = true;
         get_next_char();
         while (!view->f_eod)
             get_next_char();
-        get_prev_char();
-        view->file_pos = view->buf_idx * VBUFSIZ +
-                         (long)(view->buf_curr_ptr - view->buf) + 1;
-    } else {
-        pos = ftell(view->fp);
-        buf_idx = ((pos - 1) / VBUFSIZ);
-        view->buf_idx = ((view->file_size - 1) / VBUFSIZ);
-
-        if (view->buf_idx != buf_idx) {
-            fseek(view->fp, (long)(view->buf_idx * VBUFSIZ), SEEK_SET);
-            bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
-            if (bytes_read < VBUFSIZ) {
-                if (!feof(view->fp)) {
-                    pos = (view->buf_idx * VBUFSIZ) +
-                          (long)(view->buf_curr_ptr - view->buf);
-                    sprintf(tmp_str, "Read error at position %ld", pos);
-                    display_error_message(tmp_str);
-                    abend(-1, tmp_str);
-                }
-            }
-        }
-        if (!bytes_read) {
-            display_error_message("VIEW: go_to_eof, 0 bytes read");
-            abend(-1, tmp_str);
-        }
-        view->buf_curr_ptr = view->buf + bytes_read - 1;
-        view->buf_end_ptr = view->buf + bytes_read;
-        view->page_top_pos =
-            view->buf_idx * VBUFSIZ + (long)(view->buf_end_ptr - view->buf);
-    }
+        if (view->f_eod)
+            view->file_pos--;
+    } else
+        view->file_pos = view->file_size;
+    view->page_top_pos = view->file_pos;
+    get_prev_char();
     prev_page(view);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GO_TO_LINE                                                    │
     ╰───────────────────────────────────────────────────────────────╯ */
-int go_to_line(View *view, int LineNumber) {
-    int c;
-    int LineCnt;
+int go_to_line(View *view, long line_idx) {
+    int c = 0;
+    long line_cnt = 0;
 
-    if (LineNumber <= 1) {
+    if (line_idx <= 1) {
         go_to_position(view, (long)0);
         return EOF;
     }
-    load_buffer(view, (long)0);
     view->f_forward = true;
-    get_next_char();
-    if (view->f_eod) {
-        display_error_message("End of data");
-        return EOF;
-    }
-    if (c == '\r') {
-        get_next_char();
-        if (view->f_eod) {
-            display_error_message("End of data");
-            return EOF;
-        }
-    }
-    for (LineCnt = 1; LineCnt < LineNumber; LineCnt++) {
+    view->file_pos = (long)0;
+    view->page_top_pos = view->file_pos;
+    line_idx = 0;
+    do {
         while (c != '\n') {
             get_next_char();
             if (view->f_eod) {
-                sprintf(tmp_str, "End of data at %d lines", LineCnt - 1);
-                display_error_message(tmp_str);
+                sprintf(tmp_str, "End of data at %ld lines", line_cnt - 1);
+                Perror(tmp_str);
                 return EOF;
             }
         }
         get_next_char();
-    }
-    go_to_position(view, view->buf_idx * VBUFSIZ +
-                             (long)(view->buf_curr_ptr - view->buf));
+    } while (line_cnt < line_idx - 1);
+    view->page_top_pos = view->file_pos;
+    prev_page(view);
     return 0;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -909,11 +869,10 @@ void go_to_percent(View *view, int Percent) {
     int c;
 
     if (view->file_size < 0) {
-        display_error_message("Cannot determine file length");
+        Perror("Cannot determine file length");
         return;
     }
     view->file_pos = ((long)Percent * view->file_size) / 100L;
-    load_buffer(view, view->file_pos);
     view->f_forward = true;
     get_next_char();
     while (c != '\n') {
@@ -922,16 +881,14 @@ void go_to_percent(View *view, int Percent) {
             break;
     }
     get_next_char();
-    view->file_pos =
-        view->buf_idx * VBUFSIZ + (long)(view->buf_curr_ptr - view->buf);
-    go_to_position(view, view->file_pos);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GO_TO_POSITION                                                │
     ╰───────────────────────────────────────────────────────────────╯ */
 void go_to_position(View *view, long go_to_pos) {
-    load_buffer(view, go_to_pos);
     view->f_forward = true;
+    view->file_pos = go_to_pos;
+    view->page_bot_pos = view->file_pos;
     next_page(view);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -964,7 +921,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         REG_FLAGS = 0;
     reti = regcomp(&compiled_regex, regex_pattern, REG_FLAGS);
     if (reti) {
-        display_error_message("Invalid pattern");
+        Perror("Invalid pattern");
         return false;
     }
     /*  ╭───────────────────────────────────────────────────────────────╮
@@ -974,12 +931,12 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
 #ifdef DEBUG
         snprintf(tmp_str, MAXLEN - 1, "Pos %ld of %ld, %s for: ", srch_curr_pos,
                  view->file_size, (search_cmd == '/') ? "Forward" : "Backward");
-        strncat(tmp_str, regex_pattern, MAXLEN - strlen(tmp_str) - 1);
+        strnz__cat(tmp_str, regex_pattern, MAXLEN - strlen(tmp_str) - 1);
         cmd_line_prompt(view, tmp_str);
         rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol, view->smaxrow, view->smaxcol);
         if (rc == ERR) {
-            display_error_message("Error refreshing screen");
+            Perror("Error refreshing screen");
         }
 #endif
         if (search_cmd == '/') {
@@ -1000,7 +957,6 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             }
             if (cury == view->scroll_lines)
                 return true;
-            load_buffer(view, srch_curr_pos);
             srch_curr_pos = get_next_line(view, srch_curr_pos);
         } else {
             if (srch_curr_pos == (long)0 &&
@@ -1018,7 +974,6 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                     return false;
                 }
             }
-            load_buffer(view, srch_curr_pos);
             srch_curr_pos = get_prev_line(view, srch_curr_pos);
         }
         fmt_line_out(view);
@@ -1046,7 +1001,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             regerror(reti, &compiled_regex, err_str, sizeof(err_str));
             strcpy(tmp_str, "Regex match failed: ");
             strcat(tmp_str, err_str);
-            display_error_message(tmp_str);
+            Perror(tmp_str);
             regfree(&compiled_regex);
             return false;
         }
@@ -1099,7 +1054,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                          view->smincol, view->smaxrow, view->smaxcol);
             if (rc == ERR) {
-                display_error_message("Error refreshing screen");
+                Perror("Error refreshing screen");
             }
             /*  ╭───────────────────────────────────────────────────╮
                 │ SEARCH - UPDATE LINE MATCH COLUMNS                │
@@ -1126,7 +1081,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 char msgbuf[100];
                 regerror(reti, &compiled_regex, msgbuf, sizeof(msgbuf));
                 sprintf(tmp_str, "Regex match failed: %s", msgbuf);
-                display_error_message(tmp_str);
+                Perror(tmp_str);
                 regfree(&compiled_regex);
                 return false;
             }
@@ -1139,6 +1094,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     /*  ╭───────────────────────────────────────────────────────────╮
         │ SEARCH - SUCCESS - PREPARE PROMPT                         │
         ╰───────────────────────────────────────────────────────────╯*/
+    view->file_pos = srch_curr_pos;
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
         snprintf(view->tmp_prompt_str, MAXLEN - 1,
@@ -1147,8 +1103,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                  view->pmincol, view->smaxcol - view->begx,
                  (int)(view->page_bot_pos * 100 / view->file_size));
     else
-        snprintf(view->tmp_prompt_str, MAXLEN - 1, "%c%s (%d%%)", search_cmd,
-                 regex_pattern,
+        snprintf(view->tmp_prompt_str, MAXLEN - 1, "%c%s lines %ld-%ld (%d%%)",
+                 search_cmd, regex_pattern, view->page_top_pos,
+                 view->page_bot_pos,
                  (int)(view->page_bot_pos * 100 / view->file_size));
     regfree(&compiled_regex);
     return true;
@@ -1210,7 +1167,6 @@ void redisplay_page(Init *init) {
 
     view->cury = 0;
     wmove(view->win, view->cury, 0);
-    load_buffer(view, view->page_top_pos);
     view->page_bot_pos = view->page_top_pos;
     for (i = 0; i < view->scroll_lines; i++) {
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
@@ -1229,14 +1185,16 @@ void next_page(View *view) {
     view->f_forward = true;
     view->cury = 0;
     wmove(view->win, view->cury, 0);
-    view->page_top_pos = view->page_bot_pos;
+    view->file_pos = view->page_bot_pos;
+    view->page_top_pos = view->file_pos;
     for (i = 0; i < view->scroll_lines; i++) {
-        view->page_bot_pos = get_next_line(view, view->page_bot_pos);
+        get_next_line(view, view->file_pos);
         if (view->f_eod)
             break;
         fmt_line_out(view);
         display_cmplx_buf(view);
     }
+    view->page_bot_pos = view->file_pos;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ PREV_PAGE                                                     │
@@ -1249,13 +1207,14 @@ void prev_page(View *view) {
     view->f_forward = false;
     view->cury = 0;
     wmove(view->win, view->cury, 0);
-    view->page_bot_pos = view->page_top_pos;
+    view->file_pos = view->page_top_pos;
+    view->page_bot_pos = view->file_pos;
     for (i = 0; i < view->scroll_lines; i++) {
-        view->page_top_pos = get_pos_prev_line(view, view->page_top_pos);
-        if (view->page_top_pos == (long)0)
+        get_pos_prev_line(view, view->file_pos);
+        if (view->f_bod)
             break;
     }
-    view->page_bot_pos = view->page_top_pos;
+    view->page_bot_pos = view->file_pos;
     next_page(view);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -1269,59 +1228,71 @@ void scroll_down_n_lines(View *view, int n) {
     view->f_forward = true;
 
     // Locate New Top of Page
-    load_buffer(view, view->page_top_pos);
+    view->file_pos = view->page_top_pos;
     for (i = 0; i < n; i++) {
-        view->page_top_pos = get_pos_next_line(view, view->page_top_pos);
+        get_pos_next_line(view, view->file_pos);
         if (view->f_eod)
             break;
     }
     n = i;
     // Scroll
     wscrl(view->win, n);
-
-    // Locate New Bottom of Page
+    // Fill in Page Bottom
     view->cury = view->scroll_lines - n;
     wmove(view->win, view->cury, 0);
-    load_buffer(view, view->page_bot_pos);
+    view->file_pos = view->page_bot_pos;
     for (i = 0; i < n; i++) {
-        view->page_bot_pos = get_next_line(view, view->page_bot_pos);
+        get_next_line(view, view->file_pos);
         if (view->f_eod)
             break;
         fmt_line_out(view);
         display_cmplx_buf(view);
     }
+    view->page_bot_pos = view->file_pos;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
-    │ SCROLL_UP_N_LINES                                             │
+    │ SCROLL_BACK_N_LINES                                           │
     ╰───────────────────────────────────────────────────────────────╯*/
 void scroll_up_n_lines(View *view, int n) {
     int i;
 
-    if (view->page_top_pos == (long)0)
+    view->file_pos = view->page_top_pos;
+    if (view->file_pos == (long)0)
+        view->f_bod = true;
+    if (view->f_bod)
         return;
-    // Scroll Up "n" Lines
+
     // Locate New Top of Page
-    load_buffer(view, view->page_top_pos);
     for (i = 0; i < n; i++) {
-        if (view->page_top_pos == (long)0)
+        if (view->f_bod)
             break;
-        view->page_top_pos = get_pos_prev_line(view, view->page_top_pos);
+        get_pos_prev_line(view, view->file_pos);
     }
     n = i;
+    view->page_top_pos = view->file_pos;
+
     // Locate New Bottom of Page
-    load_buffer(view, view->page_bot_pos);
+    view->file_pos = view->page_bot_pos;
+    view->f_bod = false;
     for (i = 0; i < n; i++) {
-        view->page_bot_pos = get_pos_prev_line(view, view->page_bot_pos);
+        if (view->f_bod)
+            break;
+        get_pos_prev_line(view, view->file_pos);
     }
+    view->page_bot_pos = view->file_pos;
+
     // Scroll Up
     if (n < view->scroll_lines)
         wscrl(view->win, -n);
-    // Add New Top of Page
+
+    // Fill in Page Top
     view->cury = 0;
     wmove(view->win, view->cury, 0);
-    load_buffer(view, view->page_top_pos);
+    view->file_pos = view->page_top_pos;
     for (i = 0; i < n; i++) {
-        get_next_line(view, view->page_top_pos);
+        if (view->f_eod)
+            break;
+        get_next_line(view, view->file_pos);
         fmt_line_out(view);
         display_cmplx_buf(view);
     }
@@ -1334,15 +1305,18 @@ long get_next_line(View *view, long pos) {
     uchar c;
     char *line_in_p;
 
+    view->file_pos = pos;
     view->f_forward = true;
     do {
-        if (view->buf_curr_ptr == view->buf_end_ptr)
-            c = advance_buffer(view);
-        else
-            c = *view->buf_curr_ptr++;
+        if (view->file_pos == view->file_size) {
+            view->f_eod = true;
+            break;
+        }
+        c = view->buf[view->file_pos++];
     } while (c == 0x0d);
     if (view->f_eod)
-        return pos;
+        return view->file_pos;
+
     line_in_p = view->line_in_s;
     view->line_in_beg_p = view->line_in_s;
     view->line_in_end_p = view->line_in_s + MAX_COLS;
@@ -1353,27 +1327,27 @@ long get_next_line(View *view, long pos) {
             break;
         *line_in_p++ = c;
         do {
-            if (view->buf_curr_ptr == view->buf_end_ptr)
-                c = advance_buffer(view);
-            else
-                c = *view->buf_curr_ptr++;
+            if (view->file_pos == view->file_size) {
+                view->f_eod = true;
+                break;
+            }
+            c = view->buf[view->file_pos++];
         } while (c == 0x0d);
         if (view->f_eod)
-            return pos;
+            return view->file_pos;
     }
     *line_in_p = '\0';
     if (view->f_squeeze) {
         while (1) {
             get_next_char();
             if (view->f_eod)
-                return pos;
+                break;
             if (c != (uchar)'\n')
                 break;
         }
         get_prev_char();
     }
-    pos = (view->buf_idx * VBUFSIZ) + (long)(view->buf_curr_ptr - view->buf);
-    return pos;
+    return view->file_pos;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GET_PREV_LINE                                                 │
@@ -1381,18 +1355,21 @@ long get_next_line(View *view, long pos) {
 long get_prev_line(View *view, long pos) {
     uchar c;
 
-    if (pos <= (long)0)
-        return (NULL_POSITION);
+    view->file_pos = pos;
     view->f_forward = false;
     get_prev_char();
-    while ((uchar)c != '\n' && view->buf_curr_ptr > view->buf)
+    if (view->f_bod)
+        return view->file_pos;
+    while ((uchar)c != '\n')
         get_prev_char();
+    if (view->f_bod)
+        return view->file_pos;
     if (view->f_squeeze) {
         if ((uchar)c == '\n') {
             while (1) {
-                if (view->buf_curr_ptr == view->buf)
-                    break;
                 get_prev_char();
+                if (view->f_bod)
+                    return view->file_pos;
                 if ((uchar)c != '\n')
                     break;
             }
@@ -1402,14 +1379,13 @@ long get_prev_line(View *view, long pos) {
     while (1) {
         if ((uchar)c == '\n')
             break;
-        if (view->buf_curr_ptr == view->buf)
-            break;
         get_prev_char();
+        if (view->f_bod)
+            break;
     }
-    pos = view->buf_idx * VBUFSIZ + (long)(view->buf_curr_ptr - view->buf);
-    if (pos < view->file_size)
+    if (view->file_pos < view->file_size)
         view->f_eod = false;
-    return pos;
+    return view->file_pos;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GET_POS_NEXT_LINE                                             │
@@ -1417,41 +1393,33 @@ long get_prev_line(View *view, long pos) {
 long get_pos_next_line(View *view, long pos) {
     uchar c;
 
-    if (pos == view->file_size)
-        return pos;
+    if (pos == view->file_size) {
+        view->f_eod = true;
+        return view->file_pos;
+    }
+    view->file_pos = pos;
     view->f_forward = true;
-    // get_next_char();
-    do {
-        if (view->buf_curr_ptr == view->buf_end_ptr)
-            c = advance_buffer(view);
-        else
-            c = *view->buf_curr_ptr++;
-    } while (c == 0x0d);
+    get_next_char();
     if (view->f_eod)
-        return pos;
+        return view->file_pos;
     if (view->f_squeeze) {
         while (1) {
             if (c != '\n')
                 break;
             get_next_char();
+            if (view->f_eod)
+                return view->file_pos;
         }
         get_prev_char();
+        if (view->f_eod)
+            return view->file_pos;
     }
-    while (1) {
+    while (!view->f_eod) {
         if (c == '\n')
             break;
-        // get_next_char();
-        do {
-            if (view->buf_curr_ptr == view->buf_end_ptr)
-                c = advance_buffer(view);
-            else
-                c = *view->buf_curr_ptr++;
-        } while (c == 0x0d);
-        if (view->f_eod)
-            return pos;
+        get_next_char();
     }
-    pos = (view->buf_idx * VBUFSIZ) + (long)(view->buf_curr_ptr - view->buf);
-    return pos;
+    return view->file_pos;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GET_POS_PREV_LINE                                             │
@@ -1459,25 +1427,28 @@ long get_pos_next_line(View *view, long pos) {
 long get_pos_prev_line(View *view, long pos) {
     uchar c;
 
-    if (pos == (long)0)
-        return pos;
+    view->file_pos = pos;
+    if (view->file_pos == (long)0) {
+        view->f_bod = true;
+        return view->file_pos;
+    }
     view->f_forward = false;
     get_prev_char();
-    if (c == '\n')
+    if (view->f_bod)
+        return view->file_pos;
+    if (c == '\n') {
         get_prev_char();
-    while (1) {
+        if (view->f_bod)
+            return view->file_pos;
+    }
+    while (!view->f_bod) {
         if (c == '\n') {
             get_next_char();
             break;
         }
-        if (view->buf_curr_ptr == view->buf && view->buf_idx == 0)
-            break;
         get_prev_char();
     }
-    pos = (view->buf_idx * VBUFSIZ) + (long)(view->buf_curr_ptr - view->buf);
-    if (pos < view->file_size)
-        view->f_eod = false;
-    return pos;
+    return view->file_pos;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORMAT_OUTPUT_LINE    line_in_s -> line_out_s                 │
@@ -1541,7 +1512,7 @@ void display_cmplx_buf(View *view) {
     rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                   view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR)
-        display_error_message("Error refreshing screen");
+        Perror("Error refreshing screen");
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ ANSI_TO_CMPLX     line_out_s -> view->wide_buf                │
@@ -1564,7 +1535,7 @@ bool ansi_to_cmplx(cchar_t *cmplx_buf, const char *in_str) {
             char *start_seq = (char *)&in_str[i];
             char *end_seq = strchr(start_seq, 'm');
             if (end_seq) {
-                strncpy(ansi_tok, start_seq, end_seq - start_seq + 1);
+                strnz__cpy(ansi_tok, start_seq, end_seq - start_seq + 1);
                 ansi_tok[end_seq - start_seq + 1] = '\0';
                 parse_ansi_str(stdscr, ansi_tok, &attr, &cp);
 
@@ -1713,21 +1684,31 @@ void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
                     bg = COLOR_BLACK;
                     f_bg = true;
                 }
-            } else if ((tok[0] == '3' || tok[1] == '4') && tok[1] >= '0' &&
+            } else if ((tok[0] == '3' || tok[0] == '4') && tok[1] >= '0' &&
                        tok[1] <= '7') {
-                if (tok[0] == '3')
+                if (tok[0] == '3') {
                     i = atoi(&tok[1]);
-                if (fg != i) {
-                    fg = i;
-                    f_fg = true;
-                } else if (tok[0] == '4')
+                    if (fg != i) {
+                        fg = i;
+                        f_fg = true;
+                    }
+                } else if (tok[0] == '4') {
                     i = atoi(&tok[1]);
-                if (bg != i) {
-                    bg = i;
-                    f_bg = true;
+                    if (bg != i) {
+                        bg = i;
+                        f_bg = true;
+                    }
                 }
             } else if (tok[0] == '0' && tok[1] == '1') {
                 *attr = A_NORMAL;
+                if (fg != COLOR_WHITE) {
+                    fg = COLOR_WHITE;
+                    f_fg = true;
+                }
+                if (bg != COLOR_BLACK) {
+                    bg = COLOR_BLACK;
+                    f_fg = true;
+                }
             } else if (tok[0] == '0' && tok[1] == '1')
                 *attr = A_BOLD;
             else if (tok[0] == '0' && tok[1] == '2')
@@ -1737,6 +1718,14 @@ void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
         } else if (len == 1) {
             if (tok[0] == '0') {
                 *attr = A_NORMAL;
+                if (fg != COLOR_WHITE) {
+                    fg = COLOR_WHITE;
+                    f_fg = true;
+                }
+                if (bg != COLOR_BLACK) {
+                    bg = COLOR_BLACK;
+                    f_fg = true;
+                }
             } else if (tok[0] == '1')
                 *attr = A_BOLD;
             else if (tok[0] == '2')
@@ -1745,6 +1734,14 @@ void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
                 *attr = A_ITALIC;
         } else if (len == 0) {
             *attr = A_NORMAL;
+            if (fg != COLOR_WHITE) {
+                fg = COLOR_WHITE;
+                f_fg = true;
+            }
+            if (bg != COLOR_BLACK) {
+                bg = COLOR_BLACK;
+                f_fg = true;
+            }
         }
     }
     if (f_fg == true || f_bg == true) {
@@ -1755,126 +1752,6 @@ void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
         *cp = clr_pair_idx++;
     }
     return;
-}
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ ADVANCE_BUFFER                                                │
-    ╰───────────────────────────────────────────────────────────────╯*/
-int advance_buffer(View *view) {
-    size_t bytes_read = 0;
-    int c;
-    long pos;
-
-    if (view->f_is_pipe)
-        return pipe_advance_buffer(view);
-    view->f_bod = false;
-    view->f_eod = false;
-    if (view->f_forward) {
-        if (view->buf_idx + 1 > view->buf_last) {
-            view->f_eod = true;
-            return (EOF);
-        }
-        view->buf_idx++;
-        fseek(view->fp, (long)(view->buf_idx * VBUFSIZ), SEEK_SET);
-        bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
-        if (bytes_read > 0)
-            view->buf_end_ptr = view->buf + bytes_read;
-        if (bytes_read < VBUFSIZ) {
-            if (!feof(view->fp)) {
-                pos = (view->buf_idx * VBUFSIZ) +
-                      (long)(view->buf_curr_ptr - view->buf);
-                sprintf(tmp_str, "Read error at position %ld", pos);
-                display_error_message(tmp_str);
-                abend(-1, tmp_str);
-            }
-        }
-        view->buf_curr_ptr = view->buf;
-        c = *view->buf_curr_ptr++;
-    } else {
-        if (view->buf_idx == 0)
-            return (EOF);
-        view->buf_idx--;
-        fseek(view->fp, (long)(view->buf_idx * VBUFSIZ), SEEK_SET);
-        bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
-        if (bytes_read > 0) {
-            view->buf_end_ptr = view->buf + bytes_read;
-            view->buf_curr_ptr = view->buf + bytes_read;
-        }
-        if (bytes_read < VBUFSIZ) {
-            if (!feof(view->fp)) {
-                pos = (view->buf_idx * VBUFSIZ) +
-                      (long)(view->buf_curr_ptr - view->buf);
-                sprintf(tmp_str, "Read error at position %ld", pos);
-                display_error_message(tmp_str);
-                abend(-1, tmp_str);
-            }
-        }
-        view->buf_curr_ptr = view->buf_end_ptr;
-        c = *--view->buf_curr_ptr;
-    }
-    return (c);
-}
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ LOAD_BUFFER                                                   │
-    ╰───────────────────────────────────────────────────────────────╯*/
-bool load_buffer(View *view, long pos) {
-    view->f_eod = false;
-    long bytes_read;
-    long fp_pos = ftell(view->fp) - 1;
-    long fp_idx = (fp_pos / VBUFSIZ);
-    view->buf_curr_ptr = view->buf + (pos % VBUFSIZ);
-    view->buf_idx = pos / VBUFSIZ;
-
-    if (fp_idx != view->buf_idx) {
-        fseek(view->fp, view->buf_idx * VBUFSIZ, SEEK_SET);
-        bytes_read = fread(view->buf, sizeof(uchar), VBUFSIZ, view->fp);
-        if (bytes_read > 0)
-            view->buf_end_ptr = view->buf + bytes_read;
-        if (bytes_read < VBUFSIZ) {
-            if (!feof(view->fp)) {
-                pos = (view->buf_idx * VBUFSIZ) +
-                      (long)(view->buf_curr_ptr - view->buf);
-                sprintf(tmp_str, "Read error at position %ld", pos);
-                display_error_message(tmp_str);
-                abend(-1, tmp_str);
-            }
-        }
-    }
-    return true;
-}
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ PIPE_ADVANCE_BUFFER                                           │
-    ╰───────────────────────────────────────────────────────────────╯*/
-int pipe_advance_buffer(View *view) {
-    size_t bytes_read = 0;
-    int c;
-    long pos;
-
-    view->f_bod = false;
-    view->f_eod = false;
-    if (view->f_forward) {
-        view->buf_idx++;
-        bytes_read = fread(view->buf, 1, VBUFSIZ, view->fp);
-        if (bytes_read > 0)
-            view->buf_end_ptr = view->buf + bytes_read;
-        if (bytes_read < VBUFSIZ) {
-            if (!feof(view->fp)) {
-                pos = (view->buf_idx * VBUFSIZ) +
-                      (long)(view->buf_curr_ptr - view->buf);
-                sprintf(tmp_str, "Read error at position %ld", pos);
-                display_error_message(tmp_str);
-                abend(-1, tmp_str);
-            }
-        }
-        view->buf_curr_ptr = view->buf;
-        c = *view->buf_curr_ptr++;
-    } else {
-        if (view->buf_idx == 0)
-            return (EOF);
-        sprintf(tmp_str, "Pipe can't seek");
-        display_error_message(tmp_str);
-        return EOF;
-    }
-    return c;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ CMD_LINE_PROMPT                                               │
@@ -1908,14 +1785,8 @@ void remove_file(View *view) {
         wclrtoeol(view->win);
         c = (char)wgetch(view->win);
         waddch(view->win, (char)toupper(c));
-        if (c == 'Y' || c == 'y') {
-            if (view->fp == NULL)
-                display_error_message("remove_file() view->fp == NULL");
-            else {
-                fclose(view->fp);
-                remove(view->cur_file_str);
-            }
-        }
+        if (c == 'Y' || c == 'y')
+            remove(view->cur_file_str);
     }
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -1932,5 +1803,5 @@ void view_display_help(View *view) {
     eargc = 2;
     begx = view->begx + 4;
     begy = view->begy + 1;
-    mview(init, eargc, eargv, 10, 54, begy, begx);
+    mview(init, eargc, eargv, 10, 54, begy, begx, "View Help");
 }

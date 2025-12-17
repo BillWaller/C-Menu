@@ -37,7 +37,10 @@
 # remove the -DVERBOSE flag from the rsh compile instruction.
 # The default is to compile without -DVERBOSE.
 #
-
+# for debugging with gdb, use the unoptimized versions
+# CFLAGS -O0 -g3
+# for release, use
+# CFLAGS -O2
 CFLAGS = -O0 -g3 -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
 		-Wno-unused-parameter -Wno-missing-field-initializers \
 		-Wno-unused-function -DNCURSES_WIDECHAR -Wl,--gc-sections

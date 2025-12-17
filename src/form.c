@@ -18,12 +18,12 @@ int main(int argc, char **argv) {
     form = init->form;
     if (!form->f_mapp_spec) {
         if (form->mapp_spec[0] == '\0') {
-            display_error_message("Error: No form specification file given");
+            Perror("Error: No form specification file given");
         } else {
             strcpy(tmp_str, "form->mapp_spec: ");
             strcat(tmp_str, form->mapp_spec);
             strcat(tmp_str, " not found");
-            display_error_message(tmp_str);
+            Perror(tmp_str);
         }
         close_curses();
         restore_shell_tioctl();

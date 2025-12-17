@@ -15,7 +15,6 @@ int main(int argc, char **argv) {
     win_init_attrs(win, init->fg_color, init->bg_color, init->bo_color);
     init_pick(init, init->argc, init->argv, 0, 0);
     close_init(init);
-    win_del();
     close_curses();
     return 0;
 }

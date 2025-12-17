@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
-          int begx) {
+          int begx, char *title) {
     if (!view)
         view = new_view(init, argc, argv, begy, begx);
     else
@@ -18,12 +18,12 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     if (!view->f_stdout_is_tty) {
         if (view->argc < 1) {
             if (view_init_input(view, "-"))
-                if (view->fp)
+                if (view->buf)
                     cat_file(view);
         } else {
             while (view->curr_argc < view->argc) {
                 if (view_init_input(view, view->argv[view->curr_argc]))
-                    if (view->fp)
+                    if (view->buf)
                         cat_file(view);
                 view->curr_argc++;
             }
@@ -44,7 +44,7 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     view->begy = begy;
     view->begx = begx;
     view->f_full_screen = false;
-    if (!init_view_boxwin(init)) {
+    if (!init_view_boxwin(init, title)) {
         view_file(init);
         win_del();
     }

@@ -575,7 +575,10 @@ typedef struct {
     int argc;
     char **argv;
     FILE *in_fp;
+    bool f_in_pipe;
     FILE *out_fp;
+    int out_fd;
+    bool f_out_pipe;
     // files
     char mapp_spec[MAXLEN]; //    application qualified path
     char in_spec[MAXLEN];
@@ -623,7 +626,7 @@ extern Pick *pick;
 #define MAXLEN 256
 #define NULSL
 #define NULL_POSITION -1
-#define VBUFSIZ 8192
+#define VBUFSIZ 65536
 
 enum PROMPT_TYPE { PT_NONE, PT_SHORT, PT_LONG, PT_STRING };
 
@@ -672,6 +675,7 @@ typedef struct {
     bool f_wrap;
     bool f_full_screen;
     bool f_help;
+    bool f_timer;
     //
     char start_cmd_all_files[MAXLEN];
     char cur_file_str[MAXLEN];
@@ -729,7 +733,6 @@ typedef struct {
     char *next_file_spec_ptr;
     char *tmp_file_name_ptr;
     //
-    FILE *fp;
     long file_size;
     long file_pos;
     long prev_file_pos;
@@ -945,12 +948,11 @@ extern unsigned int form_display_screen(Init *);
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VIEW                                                              │
     ╰───────────────────────────────────────────────────────────────────╯*/
-extern int mview(Init *, int, char **, int, int, int, int);
+extern int mview(Init *, int, char **, int, int, int, int, char *);
 extern int init_view_full_screen(Init *);
-extern int init_view_boxwin(Init *);
+extern int init_view_boxwin(Init *, char *);
 extern bool view_init_input(View *, char *);
 extern int view_cmd_processor(Init *);
-extern int get_cmd_char(View *);
 extern int get_cmd_spec(View *, char *);
 extern void go_to_position(View *, long);
 extern void cat_file(View *);
@@ -1008,7 +1010,7 @@ extern int display_error(char *, char *, char *);
 extern void display_error_msg(View *, char *);
 extern int display_ok_message(char *);
 extern void display_argv_error_msg(char *, char **);
-extern int display_error_message(char *);
+extern int Perror(char *);
 extern int error_message(char **);
 extern int form_desc_error(int, char *, char *);
 /*  ╭───────────────────────────────────────────────────────────────────╮

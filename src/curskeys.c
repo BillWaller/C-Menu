@@ -43,7 +43,7 @@ int display_curses_keys() {
     if (win_new(lines, cols, begy, begx, Title)) {
         strncpy(tmp, "win_new failed: ", MAXLEN - 1);
         strncat(tmp, Title, MAXLEN - 1);
-        display_error_message(tmp);
+        Perror(tmp);
         return 0;
     }
     win = win_win[win_ptr];

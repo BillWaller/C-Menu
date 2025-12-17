@@ -82,7 +82,7 @@ int fork_exec(char **argv) {
     int rc;
 
     if (argv[0] == 0) {
-        display_error_message("fork_exec: missing argument for execvp");
+        Perror("fork_exec: missing argument for execvp");
         return (-1);
     }
     capture_curses_tioctl();
@@ -96,7 +96,7 @@ int fork_exec(char **argv) {
         keypad(stdscr, true);
         snprintf(tmp_str, sizeof(tmp_str), "fork failed: %s, errno: %d",
                  argv[0], errno);
-        display_error_message(tmp_str);
+        Perror(tmp_str);
         return (-1);
     case 0: // child
         restore_shell_tioctl();
@@ -106,7 +106,7 @@ int fork_exec(char **argv) {
         keypad(stdscr, true);
         snprintf(tmp_str, sizeof(tmp_str), "execvp failed: %s, errno: %d",
                  argv[0], errno);
-        display_error_message(tmp_str);
+        Perror(tmp_str);
         return (-1);
     default: // parent
         rc = 0;
@@ -119,7 +119,7 @@ int fork_exec(char **argv) {
                 keypad(stdscr, true);
                 snprintf(tmp_str, sizeof(tmp_str),
                          "Child %s exited  with status %d", argv[0], rc);
-                display_error_message(tmp_str);
+                Perror(tmp_str);
             }
         } else {
             if (WIFSIGNALED(status)) {
@@ -127,12 +127,12 @@ int fork_exec(char **argv) {
                 keypad(stdscr, true);
                 snprintf(tmp_str, sizeof(tmp_str),
                          "Child %s terminated by signal %d", argv[0], rc);
-                display_error_message(tmp_str);
+                Perror(tmp_str);
             } else {
                 keypad(stdscr, true);
                 snprintf(tmp_str, sizeof(tmp_str),
                          "Child %s terminated abnormally", argv[0]);
-                display_error_message(tmp_str);
+                Perror(tmp_str);
             }
         }
         break;

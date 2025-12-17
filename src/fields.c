@@ -277,7 +277,7 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
             default:
-                display_error_message("form_accept_field() invalid format");
+                Perror("form_accept_field() invalid format");
                 break;
             }
             if (in_key >= ' ') {
@@ -352,7 +352,7 @@ int form_display_field_brackets(Form *form) {
     │ FORM_FMT_FIELD                                                │
     ╰───────────────────────────────────────────────────────────────╯ */
 int form_fmt_field(Form *form, char *s) {
-    strncpy(form->field[form->fidx]->input_s, s, MAXLEN - 1);
+    strnz__cpy(form->field[form->fidx]->input_s, s, MAXLEN - 1);
     char *input_s = form->field[form->fidx]->input_s;
     char *accept_s = form->field[form->fidx]->accept_s;
     char *display_s = form->field[form->fidx]->display_s;
@@ -384,9 +384,9 @@ int form_fmt_field(Form *form, char *s) {
     case FF_STRING:
         left_justify(s, fl);
         trim(s);
-        strncpy(input_s, s, MAXLEN - 1);
-        strncpy(accept_s, s, MAXLEN - 1);
-        strncpy(display_s, s, MAXLEN - 1);
+        strnz__cpy(input_s, s, MAXLEN - 1);
+        strnz__cpy(accept_s, s, MAXLEN - 1);
+        strnz__cpy(display_s, s, MAXLEN - 1);
         break;
     case FF_DECIMAL_INT:
         sscanf(input_s, "%d", &decimal_int_n);
@@ -421,7 +421,7 @@ int form_fmt_field(Form *form, char *s) {
         break;
     case FF_YYYYMMDD:
         Date.yyyy = Date.mm = Date.dd = 0;
-        strncpy(field_s, input_s, MAXLEN - 1);
+        strnz__cpy(field_s, input_s, MAXLEN - 1);
         sscanf(field_s, "%4d%2d%2d", &Date.yyyy, &Date.mm, &Date.dd);
         sprintf(accept_s, "%04d%02d%02d", Date.yyyy, Date.mm, Date.dd);
         if (is_valid_date(Date.yyyy, Date.mm, Date.dd))
@@ -429,7 +429,7 @@ int form_fmt_field(Form *form, char *s) {
         break;
     case FF_HHMMSS:
         Time.hh = Time.mm = Time.ss = 0;
-        strncpy(field_s, input_s, MAXLEN - 1);
+        strnz__cpy(field_s, input_s, MAXLEN - 1);
         sscanf(field_s, "%2d%2d%2d", &Time.hh, &Time.mm, &Time.ss);
         sprintf(accept_s, "%02d%02d%02d", Time.hh, Time.mm, Time.ss);
         if (is_valid_time(Time.hh, Time.mm, Time.ss))
@@ -442,7 +442,7 @@ int form_fmt_field(Form *form, char *s) {
         right_justify(display_s, fl);
         break;
     default:
-        display_error_message("form_fmt_field() invalid format");
+        Perror("form_fmt_field() invalid format");
         break;
     }
     strnz(accept_s, fl);
@@ -461,13 +461,13 @@ int form_validate_field(Form *form) {
         while (*s++ == ' ')
             ;
         if (*s == '\0') {
-            display_error_message("blank field not allowed");
+            Perror("blank field not allowed");
             return (1);
         }
     }
     if (form->field[n]->ff & F_NOMETAS) {
         if (strpbrk(p, "*?[]") != 0) {
-            display_error_message("metacharacters not allowed");
+            Perror("metacharacters not allowed");
             return (1);
         }
     }
