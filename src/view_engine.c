@@ -1319,7 +1319,7 @@ long get_next_line(View *view, long pos) {
 
     line_in_p = view->line_in_s;
     view->line_in_beg_p = view->line_in_s;
-    view->line_in_end_p = view->line_in_s + MAX_COLS;
+    view->line_in_end_p = view->line_in_s + LINE_IN_MAX_COLS;
     while (1) {
         if (c == (uchar)'\n')
             break;
@@ -1456,7 +1456,7 @@ long get_pos_prev_line(View *view, long pos) {
 void fmt_line_out(View *view) {
     uchar *c;
     char *line_out_p;
-    char *line_out_e = view->line_out_s + MAX_COLS - 1;
+    char *line_out_e = view->line_out_s + LINE_IN_MAX_COLS - 1;
     int scr_column;
     int len;
     char *ansi_p = view->line_out_s;
@@ -1484,8 +1484,8 @@ void fmt_line_out(View *view) {
             break;
         scr_column--;
     }
-    if (scr_column > MAX_COLS - 1)
-        scr_column = MAX_COLS;
+    if (scr_column > LINE_IN_MAX_COLS - 1)
+        scr_column = LINE_IN_MAX_COLS;
     view->line_out_s[scr_column] = '\0';
     if (scr_column > view->maxcol)
         view->maxcol = scr_column;
@@ -1581,7 +1581,7 @@ void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
     char *ansi_p = ansi_str + 2;
     extended_pair_content(*cp, &fg, &bg);
     RGB rgb;
-    for (i = 1; i < 4; i++) {
+    for (i = 1; i < 5; i++) {
         tok = strtok((char *)ansi_p, ";m");
         if (tok == NULL)
             break;
