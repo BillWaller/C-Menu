@@ -129,7 +129,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
    │ PICK_ENGINE                                                    │
    ╰────────────────────────────────────────────────────────────────╯ */
 int pick_engine(Init *init) {
-    int n, i, lines, pages, chyron_l, rc;
+    int n, i, chyron_l, rc;
     int maxy, maxx, win_maxy, win_maxx;
     pick->select_cnt = 0;
     Pick *pick = init->pick;
@@ -178,9 +178,9 @@ int pick_engine(Init *init) {
     pick->win_width = (pick->tbl_col_width + 1) * pick->tbl_cols;
     if (pick->win_width < chyron_l)
         pick->win_width = chyron_l;
-    lines = ((pick->obj_cnt - 1) / pick->tbl_cols) + 1;
-    pages = (lines / (win_maxy - 1)) + 1;
-    pick->pg_lines = (lines / pages) + 1;
+    pick->tbl_lines = ((pick->obj_cnt - 1) / pick->tbl_cols) + 1;
+    pick->tbl_pages = (lines / (win_maxy - 1)) + 1;
+    pick->pg_lines = (pick->tbl_lines / pick->tbl_pages) + 1;
     pick->win_lines = pick->pg_lines + 1;
     pick->tbl_page = 0;
     rc = open_pick_win(init);
@@ -292,7 +292,14 @@ int picker(Init *init) {
         case '\014':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
+
             display_tbl_page = pick->tbl_page;
+
+            // pick->obj_idx += pick->tbl_lines -> next column
+
+            if ((pick->obj_idx + pick->tbl_lines) < (pick->obj_cnt - 1))
+                pick->obj_idx += pick->tbl_lines;
+
             if (pick->tbl_col < pick->tbl_cols - 1 &&
                 pick->obj_idx + pick->pg_lines < pick->obj_cnt) {
                 pick->tbl_col++;
@@ -303,7 +310,8 @@ int picker(Init *init) {
                 }
             }
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_cols * pick->pg_line + pick->tbl_col;
+                            pick->tbl_col * pick->pg_lines + pick->tbl_line;
+
             if (display_tbl_page != pick->tbl_page)
                 display_page(pick);
             reverse_object(pick);
@@ -328,7 +336,7 @@ int picker(Init *init) {
             } else
                 pick->tbl_col--;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_cols * pick->pg_line + pick->tbl_col;
+                            pick->tbl_col * pick->pg_lines + pick->tbl_line;
             reverse_object(pick);
             cmd_key = 0;
             break;
@@ -337,12 +345,16 @@ int picker(Init *init) {
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
-            if (pick->obj_idx < pick->obj_cnt - 1)
+
+            // pick->obj_idx++ column down
+            if ((pick->obj_idx + pick->tbl_cols) < (pick->obj_cnt - 1))
                 pick->obj_idx++;
             pick->tbl_page = pick->obj_idx / (pick->pg_lines * pick->tbl_cols);
-            pick->tbl_line = (pick->obj_idx / pick->tbl_cols) % pick->pg_lines;
-            pick->tbl_col = pick->obj_idx % pick->tbl_cols;
+            pick->tbl_line = pick->obj_idx % pick->pg_lines;
+            pick->tbl_col = (pick->obj_idx / pick->pg_lines) % pick->tbl_cols;
             pick->y = pick->tbl_line;
+            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                            pick->tbl_col * pick->pg_lines + pick->tbl_line;
             if (display_tbl_page != pick->tbl_page) {
                 display_page(pick);
             }
@@ -357,9 +369,11 @@ int picker(Init *init) {
             if (pick->obj_idx > 0)
                 pick->obj_idx--;
             pick->tbl_page = pick->obj_idx / (pick->pg_lines * pick->tbl_cols);
-            pick->tbl_line = (pick->obj_idx / pick->tbl_cols) % pick->pg_lines;
-            pick->tbl_col = pick->obj_idx % pick->tbl_cols;
+            pick->tbl_line = pick->obj_idx % pick->pg_lines;
+            pick->tbl_col = (pick->obj_idx / pick->pg_lines) % pick->tbl_cols;
             pick->y = pick->tbl_line;
+            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                            pick->tbl_col * pick->pg_lines + pick->tbl_line;
             if (display_tbl_page != pick->tbl_page)
                 display_page(pick);
             reverse_object(pick);
@@ -410,8 +424,10 @@ int picker(Init *init) {
             │ PICK MOUSE EVENT                                      │
             ╰───────────────────────────────────────────────────────╯ */
         case KEY_MOUSE:
-            if (getmouse(&event) != OK)
+            if (getmouse(&event) != OK) {
+                cmd_key = 0;
                 break;
+            }
             if (event.bstate == BUTTON1_CLICKED ||
                 event.bstate == BUTTON1_DOUBLE_CLICKED) {
                 if (!wenclose(pick->win, event.y, event.x)) {
@@ -420,7 +436,7 @@ int picker(Init *init) {
                 }
                 wmouse_trafo(pick->win, &event.y, &event.x, false);
                 if (event.y < 0 ||
-                    event.y >= (pick->tbl_cols * (pick->tbl_col_width + 1))) {
+                    event.x >= (pick->tbl_cols * (pick->tbl_col_width + 1))) {
                     cmd_key = 0;
                     break;
                 }
@@ -428,6 +444,7 @@ int picker(Init *init) {
                 pick->y = event.y;
                 if (pick->y == pick->pg_lines) {
                     cmd_key = get_chyron_key(key_cmd, event.x);
+                    cmd_key = 0;
                     break;
                 }
                 pick->tbl_col = (event.x - 1) / (pick->tbl_col_width + 1);

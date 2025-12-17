@@ -13,9 +13,9 @@ terminal and terminal emulator environments.
 
 <img src="screenshots/sample_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 
-C-Menu reads a simple description file like the one above and displays a menu to the user. When the user selects an item, C-Menu executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
+C-Menu reads a simple description file like the one above and displays a menu to the user. When the user selects an item, with either keyboard or mouse, C-Menu executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
 
-### **C-Menu** C-Keys to diagnose screen input issues
+### **C-Menu** C-Keys - Diagnose Keyboard/Mouse Input
 
 Is a particular key not working for your project? C-Menu C-Keys provides an easy way to determine if the key is defined in NCurses or there is a missing entry in your terminfo database. Or, if you just don't remember the name of a particular key, it may be more convenient than rummaging through NCurses header files. Just start C-Keys and press the key. It will display the curses key name, if defined, along with Octal, Decimal, and Hex codes. It's also a good way to identify which keys are defined in NCurses, and gives you the specific key code so if it's not, you can easily add your own Extended NCurses keys.
 
@@ -31,9 +31,42 @@ C-Menu C-Keys also provides a diagnostic function for mouse actions and geometry
 
 <img src="screenshots/Pick.png" />
 
-This program provides a list of objects from arguments or a text file
-and lets the user select any number to be written to a file or provided
-as arguments to an executable specified in the description file.
+This program provides a list of objects from arguments, piped input, or a text file and lets the user select those to be written to a file, piped to standard output, or provided as arguments to an executable specified in the description file. Of course, you can select objects and commands with keyboard or mouse. C-Menu Pick does not currently support a Brain-Computer Interface. At least, not
+Yet. 
+
+The simplest use of C-Menu Pick is:
+
+Pick a file to edit:
+
+```
+ls *.rs | pick -c vi
+```
+
+Execute a script on a picked file:
+
+```
+ls -c * | pick -n 1 -c my_executable
+```
+
+Create a list of objects 
+
+```
+grep "regex" *.rs | pick -o objectlist
+```
+
+```
+vi ~/.config/bat/config
+
+add
+
+--pager=view
+
+save and type:
+
+bat view_engine.c
+```
+
+<img src="screenshots/bat2.png" alt="bat highlighted source" title="bat highlighted source" />
 
 ### **C-Menu** FORM
 
@@ -111,8 +144,7 @@ You may have noticed that Nvim doesn't render ANSI escape sequences. Why should 
 
 <img src="screenshots/view.png" alt="View" title="View" />
 
-One especially useful feature of **C-Menu** View is its incredible speed with large
-text files, like system logs. **C-Menu** View can open and display multi-gigabyte text files almost instantaneously. While NVIM and other modern editors are outstanding for code editing, but don't even try to open multi-gigabyte file with them. C-Menu View handles large files without breaking a sweat, and zips through them with lightning speed.
+One especially useful feature of **C-Menu** View is its incredible speed with large text files, like system logs. **C-Menu** View can open and display multi-gigabyte text files almost instantaneously. Seek from beginning to end of a 1Gb file takes a few milliseconds.
 
 ### C-Menu 3-Channel Gamma Correction
 
@@ -126,7 +158,9 @@ Here's another sample using "bat".
 
 ### C-Menu 6-Channel Gamma Correction
 
-It's not available yet, but it could be. "bat", is a totally awesome highlighting application, and the included themes are great, but sometimes the reverse backgrounds don't have enough contrast. The text blends in with the backgroudn, making it difficult to read. That's where 6-Channel Gamma correction might be very useful. By using luminance and hue as indicators, it could darken, lighten, and shift hue to improve readability and aesthetic appeal. Let me know what you think.
+C-Menu currently has 3-Channel Gamma Correction is good, but it's less than half a solution. If you want to make highlighted text documents "POP", we need to address background and foreground contrast in terms of luminance, hue, and saturation.
+
+[Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/)
 
 [Bezold-Brücke hue shift](https://pubmed.ncbi.nlm.nih.gov/6534013/)
 
@@ -137,7 +171,7 @@ It's not available yet, but it could be. "bat", is a totally awesome highlightin
 
 #### And you're Bobby Dazzler!
 
-With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma correction, your application is bound to outshine the competition.
+With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma correction, your application is bound to get some attention. Nobody wants to work with an ugly program.
 
 ### **C-Menu** Is Easy to Use
 

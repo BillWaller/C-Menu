@@ -154,8 +154,8 @@ features to implement menu driven frameworks for applications in
 terminal and terminal emulator environments.</p>
 <h3><strong>C-Menu</strong></h3>
 <img src="screenshots/sample_menu.m.png" alt="Curses Keys" title="Sample Menu" />
-<p>C-Menu reads a simple description file like the one above and displays a menu to the user. When the user selects an item, C-Menu executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.</p>
-<h3><strong>C-Menu</strong> C-Keys to diagnose screen input issues</h3>
+<p>C-Menu reads a simple description file like the one above and displays a menu to the user. When the user selects an item, with either keyboard or mouse, C-Menu executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.</p>
+<h3><strong>C-Menu</strong> C-Keys - Diagnose Keyboard/Mouse Input</h3>
 <p>Is a particular key not working for your project? C-Menu C-Keys provides an easy way to determine if the key is defined in NCurses or there is a missing entry in your terminfo database. Or, if you just don't remember the name of a particular key, it may be more convenient than rummaging through NCurses header files. Just start C-Keys and press the key. It will display the curses key name, if defined, along with Octal, Decimal, and Hex codes. It's also a good way to identify which keys are defined in NCurses, and gives you the specific key code so if it's not, you can easily add your own Extended NCurses keys.</p>
 <img src="screenshots/extended-keys.png" alt="Extended Keys" title="Extended Keys" />
 <img src="screenshots/ckeys-alt.png" alt="CKeys ALT Keys" title="CKeys ALT Keys" />
@@ -163,9 +163,29 @@ terminal and terminal emulator environments.</p>
 <img src="screenshots/ckeys-mouse.png" alt="CKeys Mouse" title="CKeys Mouse" />
 <h3><strong>C-Menu</strong> PICK</h3>
 <img src="screenshots/Pick.png" />
-<p>This program provides a list of objects from arguments or a text file
-and lets the user select any number to be written to a file or provided
-as arguments to an executable specified in the description file.</p>
+<p>This program provides a list of objects from arguments, piped input, or a text file and lets the user select those to be written to a file, piped to standard output, or provided as arguments to an executable specified in the description file. Of course, you can select objects and commands with keyboard or mouse. C-Menu Pick does not currently support a Brain-Computer Interface. At least, not
+Yet.</p>
+<p>The simplest use of C-Menu Pick is:</p>
+<p>Pick a file to edit:</p>
+<pre class="rounded-code"><code>ls *.rs | pick -c vi
+</code></pre>
+<p>Execute a script on a picked file:</p>
+<pre class="rounded-code"><code>ls -c * | pick -n 1 -c my_executable
+</code></pre>
+<p>Create a list of objects</p>
+<pre class="rounded-code"><code>grep &quot;regex&quot; *.rs | pick -o objectlist
+</code></pre>
+<pre class="rounded-code"><code>vi ~/.config/bat/config
+
+add
+
+--pager=view
+
+save and type:
+
+bat view_engine.c
+</code></pre>
+<img src="screenshots/bat2.png" alt="bat highlighted source" title="bat highlighted source" />
 <h3><strong>C-Menu</strong> FORM</h3>
 <p>FORM is a lightweight and flexible form handling library designed to simplify the process of creating, validating, and managing forms in text-based applications.</p>
 <p>It provides a straightforward API for defining form fields, handling user input, and performing validation checks.</p>
@@ -215,20 +235,20 @@ NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to 
 <img src="screenshots/nvim-log.png" alt="nvim log" title="nvim log" />
 <h4>CMenu Screenshot of the Same File</h4>
 <img src="screenshots/view.png" alt="View" title="View" />
-<p>One especially useful feature of <strong>C-Menu</strong> View is its incredible speed with large
-text files, like system logs. <strong>C-Menu</strong> View can open and display multi-gigabyte text files almost instantaneously. While NVIM and other modern editors are outstanding for code editing, but don't even try to open multi-gigabyte file with them. C-Menu View handles large files without breaking a sweat, and zips through them with lightning speed.</p>
+<p>One especially useful feature of <strong>C-Menu</strong> View is its incredible speed with large text files, like system logs. <strong>C-Menu</strong> View can open and display multi-gigabyte text files almost instantaneously. Seek from beginning to end of a 1Gb file takes a few milliseconds.</p>
 <h3>C-Menu 3-Channel Gamma Correction</h3>
 <p>When using utilities such as &quot;pygmentize&quot; to highlight files, the text is sometimes almost unreadable. On the left-hand side of the following screenshot, &quot;less&quot; does a great job of rendering the output of pygmentize, but <strong>C-Menu</strong> with gamma correction can do better. It's all about perceptual luminance. Either from the command line or the minitrc file, the user can specify a gamma correction value for each of the three color channels, red, green, and blue. It's a minor thing, really, but we programmers aren't &quot;automitons.&quot; A pleasing visual appearance makes work more fun.</p>
 <img src="screenshots/gamma.png" alt="Gamma Correction" title="Gamma Correction" />
 <p>Here's another sample using &quot;bat&quot;.</p>
 <img src="screenshots/bat.png" alt="Bat Highlighter" title="Bat Highlighter" />
 <h3>C-Menu 6-Channel Gamma Correction</h3>
-<p>It's not available yet, but it could be. &quot;bat&quot;, is a totally awesome highlighting application, and the included themes are great, but sometimes the reverse backgrounds don't have enough contrast. The text blends in with the backgroudn, making it difficult to read. That's where 6-Channel Gamma correction might be very useful. By using luminance and hue as indicators, it could darken, lighten, and shift hue to improve readability and aesthetic appeal. Let me know what you think.</p>
+<p>C-Menu currently has 3-Channel Gamma Correction is good, but it's less than half a solution. If you want to make highlighted text documents &quot;POP&quot;, we need to address background and foreground contrast in terms of luminance, hue, and saturation.</p>
+<a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines (WCAG) 2.2</a><br>
 <a href="https://pubmed.ncbi.nlm.nih.gov/6534013/">Bezold-Brücke hue shift</a><br>
 <h4>VIEW ~/menuapp/help/view.help</h4>
 <img src="screenshots/view-help.png" alt="View Help" title="View Help" />
 <h4>And you're Bobby Dazzler!</h4>
-<p>With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma correction, your application is bound to outshine the competition.</p>
+<p>With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma correction, your application is bound to get some attention. Nobody wants to work with an ugly program.</p>
 <h3><strong>C-Menu</strong> Is Easy to Use</h3>
 <p>As you can see, the view command on line 24 specifies the number of columns and lines (-C and -L respectively). The following screenshot shows the C-Menu description file being edited with NVim.</p>
 <img src="screenshots/main.m.png" />
