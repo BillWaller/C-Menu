@@ -241,11 +241,13 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
    ╰────────────────────────────────────────────────────────────────╯ */
 View *close_view(Init *init) {
     int i;
-    for (i = 0; i <= init->view->argc; i++)
-        free(init->view->argv[i]);
-    free(init->view->argv);
-    free(init->view);
+    view = init->view;
+    for (i = 0; i <= view->argc; i++)
+        free(view->argv[i]);
+    free(view->argv);
+    free(view);
     init->view = NULL;
+    view = NULL;
     init->view_cnt--;
     return init->view;
 }
@@ -592,11 +594,14 @@ bool init_view_files(Init *init, int argc, char **argv) {
 
     // we presume that no unprocessed options remain in argv
     // so we just copy all args from argv[1..argc-1] to view
+    s = optind;
     while (s < argc)
         view->argv[d++] = strdup(argv[s++]);
     view->argv[d] = NULL;
     view->argc = d;
 
+    view->lines = init->lines;
+    view->cols = init->cols;
     view->fg_color = init->fg_color;
     view->bg_color = init->bg_color;
     view->bo_color = init->bo_color;

@@ -18,7 +18,7 @@
 int trim(char *);
 int ssnprintf(char *, size_t, const char *, ...);
 bool str_to_bool(const char *);
-int str_to_args(char **, char *);
+int str_to_args(char **, char *, int);
 double str_to_double(char *);
 void str_to_lower(char *);
 void str_to_upper(char *);
@@ -35,9 +35,7 @@ void file_spec_name(char *, char *);
 bool verify_file(char *, int);
 bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
-
 char errmsg[MAXLEN];
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ TRIM                                                              │
     ╰───────────────────────────────────────────────────────────────────╯ */
@@ -53,7 +51,6 @@ int trim(char *s) {
     *d = '\0';
     return d - s;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ SSNPRINTF                                                         │
     ╰───────────────────────────────────────────────────────────────────╯ */
@@ -67,22 +64,48 @@ int ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
 
     return n;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STR_TO_ARGS                                                       │
     ╰───────────────────────────────────────────────────────────────────╯ */
-int str_to_args(char **argv, char *strptr) {
-    int i;
+int str_to_args(char **argv, char *cmd_line, int max_args) {
+    int argc = 0;
+    char *p = cmd_line;
+    char *arg_start;
+    bool in_quotes = false;
+    char quote_char = '\0';
 
-    for (i = 0; i < MAXARGS; i++) {
-        if ((argv[i] = strtok(strptr, " \t")) == (char *)0)
+    while (*p != '\0' && argc < max_args - 1) {
+        while (*p == ' ' || *p == '\t')
+            p++;
+        if (*p == '\0')
             break;
-        strptr = (char *)0;
+        arg_start = p;
+        while (*p != '\0') {
+            if (in_quotes) {
+                if (*p == quote_char) {
+                    in_quotes = false;
+                    p++;
+                    break;
+                }
+            } else {
+                if (*p == '"' || *p == '\'') {
+                    in_quotes = true;
+                    quote_char = *p;
+                } else if (*p == ' ' || *p == '\t') {
+                    break;
+                }
+            }
+            p++;
+        }
+        size_t arg_length = p - arg_start;
+        argv[argc] = (char *)malloc(arg_length + 1);
+        strncpy(argv[argc], arg_start, arg_length);
+        argv[argc][arg_length] = '\0';
+        argc++;
     }
-    argv[i] = NULL;
-    return (i);
+    argv[argc] = NULL;
+    return argc;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STR_TO_LOWER                                                      │
     ╰───────────────────────────────────────────────────────────────────╯ */
@@ -93,7 +116,6 @@ void str_to_lower(char *s) {
         s++;
     }
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STR_TO_UPPER                                                      │
     ╰───────────────────────────────────────────────────────────────────╯ */
@@ -104,7 +126,6 @@ void str_to_upper(char *s) {
         s++;
     }
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STRNZ_CPY                                                         │
     │ stops at max_len, newline, or carriage return                     │
@@ -123,7 +144,6 @@ int strnz__cpy(char *d, char *s, int max_len) {
     *d = '\0';
     return len;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STRNZ_CAT                                                         │
     │ stops at max_len, newline, or carriage return                     │
@@ -146,7 +166,6 @@ int strnz__cat(char *d, char *s, int max_len) {
     *d = '\0';
     return len;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STRZ                                                              │
     │ Don't use - deprecated                                            │
@@ -157,7 +176,6 @@ void strz(char *s) {
         s++;
     *s = '\0';
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STRNZ                                                             │
     │ terminates string at '\n', '\r', or max_len                       │
@@ -175,7 +193,6 @@ int strnz(char *s, int max_len) {
     *s = '\0';
     return (len);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STRNZ_DUP                                                         │
     │ terminates string at '\n', '\r', or l                             │
@@ -196,7 +213,6 @@ char *strnz_dup(char *s, int l) {
     }
     return (rs);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STRZ_DUP                                                          │
     │ Dont use - deprecated                                             │
@@ -216,7 +232,6 @@ char *strz_dup(char *s) {
     }
     return (rs);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ STR_SUBC                                                          │
     │ Use strnz_dup instead                                             │
@@ -237,7 +252,6 @@ void str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
     }
     *d = '\0';
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ CHREP                                                             │
     │ Replace all occurrences of old_chr with new_chr in string         │
@@ -250,7 +264,6 @@ void chrep(char *s, char old_chr, char new_chr) {
         s++;
     }
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ NORMALIZE_FILE_SPEC                                               │
     │ I forgot what this was supposed to do? Someone suggested it might │
@@ -265,7 +278,6 @@ void normalize_file_spec(char *fs) {
         fs++;
     }
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ FILE_SPEC_PATH                                                    │
     │ Returns the path component of a file specification.               │
@@ -287,7 +299,6 @@ void file_spec_path(char *fp, char *fs) {
     else
         *l = '\0';
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ FILE_SPEC_NAME                                                    │
     │ Returns the file name component of a file specification.          │
@@ -312,6 +323,9 @@ void file_spec_name(char *fn, char *fs) {
         *d++ = *s++;
     *d = '\0';
 }
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ STR_TO_DOUBLE                                                     │
+    ╰───────────────────────────────────────────────────────────────────╯ */
 double str_to_double(char *s) {
     char *e;
     double d;
@@ -378,7 +392,6 @@ bool expand_tilde(char *path, int path_maxlen) {
     }
     return true;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ TRIM_PATH                                                         │
     │ Removes extraneous characters from path                           │
@@ -402,7 +415,6 @@ bool trim_path(char *dir) {
     }
     return true;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ TRIM_EXT                                                          │
     │ Removes characters to the right of the rightmost period           │
@@ -434,7 +446,6 @@ bool trim_ext(char *buf, char *filename) {
         return false;
     return true;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ BASE_NAME                                                         │
     │ Returns the base name of a file specification                     │
@@ -459,7 +470,6 @@ bool base_name(char *buf, char *path) {
         return false;
     return true;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ DIR_NAME                                                          │
     │ Returns the directory name of a file specification                │
@@ -492,7 +502,6 @@ bool dir_name(char *buf, char *path) {
         return false;
     return true;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ DIR_NAME                                                          │
     │ Returns true if the directory exists and is accessable with the   │
@@ -529,7 +538,6 @@ bool verify_dir(char *spec, int mode) {
         return false;
     }
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VERIFY_DIR_Q (quietly)                                            │
     │ Returns true if the directory exists and is accessable with the   │
@@ -541,7 +549,6 @@ bool verify_dir_q(char *spec, int mode) {
         return true;
     return false;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VERIFY_FILE                                                       │
     │ Returns true if the file exists and is accessable with the mode   │
@@ -602,7 +609,6 @@ bool verify_file(char *spec, int imode) {
         return false;
     }
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VERIFY_FILE_Q (Quietly)                                           │
     │ Returns true if the directory exists and is accessable with the   │
@@ -615,7 +621,6 @@ bool verify_file_q(char *spec, int imode) {
         return true;
     return false;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ LOCATE_FILE_IN_PATH                                               │
     │ Searches all directories in the PATH environment variable and     │

@@ -100,7 +100,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         write_config(init);
     }
     if (f_help) {
-        usage();
+        dump_config(init, "Current Configuration");
     }
     if (f_version) {
         display_version();

@@ -98,7 +98,7 @@ rsh:	rsh.c
 
 clean:
 	rm -rf core *.o $(TARGETS) make.out $(CFLOW_OUTPUT) *.o *.cflow \
-		scan-build scan-build.log install
+		scan-build scan-build.log installed
 
 PREFIX=~/menuapp
 OWNER=bill
