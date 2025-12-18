@@ -26,6 +26,7 @@
 #define PICK_MAX_ARG_LEN 256
 #define NCOLORS 16
 #define MAXARGS 1024
+#define MAX_ARGS 64
 #define MAXFIELDS 50
 #define ACCEPT_PROMPT_CHAR '_'
 #define DEFAULTEDITOR "vi"
@@ -965,7 +966,7 @@ extern char err_msg[MAXLEN];
 extern int trim(char *);
 extern int ssnprintf(char *, size_t, const char *, ...);
 extern bool str_to_bool(const char *);
-extern int str_to_args(char **, char *);
+extern int str_to_args(char **, char *, int);
 extern void str_to_lower(char *);
 extern void str_to_upper(char *);
 extern void str(char *);

@@ -170,7 +170,7 @@ unsigned int menu_cmd_processor(Init *init) {
             strncpy(earg_str, DEFAULTEDITOR, MAXLEN - 1);
         else
             strncpy(earg_str, d, MAXLEN - 1);
-        str_to_args(eargv, earg_str);
+        str_to_args(eargv, earg_str, MAX_ARGS);
         full_screen_fork_exec(eargv);
         return (MA_INIT);
         /*  ╭───────────────────────────────────────────────────────────────╮
@@ -246,7 +246,7 @@ unsigned int menu_cmd_processor(Init *init) {
 
     case CT_EXEC:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
-        eargc = str_to_args(eargv, earg_str);
+        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         j = 0;
         for (i = 1; i < eargc && eargv[i] != NULL; i++)
             eargv[j++] = eargv[i];
@@ -258,14 +258,14 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(earg_str, HELP_CMD, MAXLEN - 1);
         strnz__cat(earg_str, " ", MAXLEN - 1);
         strnz__cat(earg_str, menu->help_spec, MAXLEN - 1);
-        eargc = str_to_args(eargv, earg_str);
+        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         parse_opt_args(init, eargc, eargv);
         mview(init, eargc, eargv, 0, 0, 0, 0, menu->title);
         return (MA_DISPLAY_MENU);
 
     case CT_MENU:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
-        eargc = str_to_args(eargv, earg_str);
+        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         if (eargc == 0)
             return (MA_DISPLAY_MENU);
         parse_opt_args(init, eargc, eargv);
@@ -283,7 +283,7 @@ unsigned int menu_cmd_processor(Init *init) {
 
     case CT_PICK:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
-        eargc = str_to_args(eargv, earg_str);
+        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         lines = 2 * LINES / 3;
         cols = 2 * COLS / 3;
         begy = (LINES - lines) / 2;
@@ -295,7 +295,7 @@ unsigned int menu_cmd_processor(Init *init) {
 
     case CT_FORM:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
-        eargc = str_to_args(eargv, earg_str);
+        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         parse_opt_args(init, eargc, eargv);
         new_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         form_engine(init);
@@ -303,7 +303,7 @@ unsigned int menu_cmd_processor(Init *init) {
 
     case CT_VIEW:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
-        eargc = str_to_args(eargv, earg_str);
+        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         parse_opt_args(init, eargc, eargv);
         mview(init, eargc, eargv, init->lines, init->cols, menu->begy + 1,
               menu->begx + 4, menu->title);

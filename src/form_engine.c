@@ -80,7 +80,7 @@ unsigned int form_engine(Init *init) {
             strnz__cpy(earg_str, HELP_CMD, MAXLEN - 1);
             strnz__cat(earg_str, " ", MAXLEN - 1);
             strnz__cat(earg_str, form->help_spec, MAXLEN - 1);
-            eargc = str_to_args(eargv, earg_str);
+            eargc = str_to_args(eargv, earg_str, MAX_ARGS);
             mview(init, eargc, eargv, 10, 68, form->begy + 1, form->begx + 4,
                   form->title);
             restore_wins();
