@@ -904,8 +904,6 @@ extern int parse_opt_args(Init *, int, char **);
 extern int write_config(Init *);
 extern bool derive_file_spec(char *, char *, char *);
 extern void open_curses(Init *init);
-extern bool ansi_to_cmplx(cchar_t *, const char *);
-extern void parse_ansi_str(WINDOW *, char *, attr_t *, int *);
 extern int win_new(int, int, int, int, char *);
 extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
@@ -964,6 +962,7 @@ extern char err_msg[MAXLEN];
     │ STRING UTILITIES                                                  │
     ╰───────────────────────────────────────────────────────────────────╯*/
 extern int trim(char *);
+extern int rtrim(char *);
 extern int ssnprintf(char *, size_t, const char *, ...);
 extern bool str_to_bool(const char *);
 extern int str_to_args(char **, char *, int);

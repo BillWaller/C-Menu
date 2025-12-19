@@ -77,9 +77,9 @@ long get_next_line(View *, long);
 long get_prev_line(View *, long);
 long get_pos_next_line(View *, long);
 long get_pos_prev_line(View *, long);
-void fmt_line_out(View *);
-void display_cmplx_buf(View *);
-bool ansi_to_cmplx(cchar_t *, const char *);
+void fmt_line(View *);
+void display_line(View *);
+bool ansi_to_cmplx();
 void parse_ansi_str(WINDOW *, char *, attr_t *, int *);
 int fmt_cmplx_buf(View *);
 void view_display_help(View *);
@@ -976,7 +976,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             }
             srch_curr_pos = get_prev_line(view, srch_curr_pos);
         }
-        fmt_line_out(view);
+        fmt_line(view);
         /*  ╭───────────────────────────────────────────────────────────╮
             │ SEARCH - CURRENT LINE                                     │
             ╰───────────────────────────────────────────────────────────╯ */
@@ -987,7 +987,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             ╰───────────────────────────────────────────────────────────╯ */
         if (reti == REG_NOMATCH) {
             if (f_page) {
-                display_cmplx_buf(view);
+                display_line(view);
                 if (view->cury == view->scroll_lines)
                     break;
             }
@@ -1024,15 +1024,15 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 header_lines = 1;
             for (i = 0; i < header_lines; i++) {
                 srch_curr_pos = get_next_line(view, srch_curr_pos);
-                fmt_line_out(view);
-                display_cmplx_buf(view);
+                fmt_line(view);
+                display_line(view);
             }
             f_page = true;
         } else {
             /*  ╭───────────────────────────────────────────────────────╮
                 │ SEARCH - CONTINUE HIGHLIGHTING MATCHED LINES          │
                 ╰───────────────────────────────────────────────────────╯ */
-            display_cmplx_buf(view);
+            display_line(view);
             cury = view->cury;
         }
         /*  ╭───────────────────────────────────────────────────────╮
@@ -1172,8 +1172,8 @@ void redisplay_page(Init *init) {
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
         if (view->f_eod)
             break;
-        fmt_line_out(view);
-        display_cmplx_buf(view);
+        fmt_line(view);
+        display_line(view);
     }
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -1192,8 +1192,8 @@ void next_page(View *view) {
         get_next_line(view, view->file_pos);
         if (view->f_eod)
             break;
-        fmt_line_out(view);
-        display_cmplx_buf(view);
+        fmt_line(view);
+        display_line(view);
     }
     view->page_bot_pos = view->file_pos;
 }
@@ -1227,7 +1227,6 @@ void scroll_down_n_lines(View *view, int n) {
     if (view->page_bot_pos == view->file_size)
         return;
     view->f_forward = true;
-
     // Locate New Top of Page
     view->file_pos = view->page_top_pos;
     for (i = 0; i < n; i++) {
@@ -1246,8 +1245,8 @@ void scroll_down_n_lines(View *view, int n) {
         get_next_line(view, view->file_pos);
         if (view->f_eod)
             break;
-        fmt_line_out(view);
-        display_cmplx_buf(view);
+        fmt_line(view);
+        display_line(view);
     }
     view->page_bot_pos = view->file_pos;
 }
@@ -1294,8 +1293,8 @@ void scroll_up_n_lines(View *view, int n) {
         if (view->f_eod)
             break;
         get_next_line(view, view->file_pos);
-        fmt_line_out(view);
-        display_cmplx_buf(view);
+        fmt_line(view);
+        display_line(view);
     }
     return;
 }
@@ -1451,54 +1450,10 @@ long get_pos_prev_line(View *view, long pos) {
     }
     return view->file_pos;
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ FORMAT_OUTPUT_LINE    line_in_s -> line_out_s                 │
-    ╰───────────────────────────────────────────────────────────────╯*/
-void fmt_line_out(View *view) {
-    uchar *c;
-    char *line_out_p;
-    char *line_out_e = view->line_out_s + LINE_IN_MAX_COLS - 1;
-    int scr_column;
-    int len;
-    char *ansi_p = view->line_out_s;
-    wmove(view->win, view->cury, 0);
-    scr_column = 0;
-    line_out_p = view->line_out_s;
-    for (c = (uchar *)view->line_in_s; *c != (uchar)'\0'; c++) {
-        if (line_out_p >= line_out_e - 1)
-            break;
-        if (*c == (uchar)'\t') {
-            do {
-                *line_out_p++ = ' ';
-                scr_column++;
-            } while (scr_column % view->tab_stop != 0 &&
-                     line_out_p < line_out_e - 1);
-            continue;
-        }
-        *line_out_p++ = *c;
-        scr_column++;
-    }
-    *line_out_p = '\0';
-    c = (uchar *)line_out_p--;
-    while (c > (uchar *)line_out_p) {
-        if (--c != (uchar *)' ')
-            break;
-        scr_column--;
-    }
-    if (scr_column > LINE_IN_MAX_COLS - 1)
-        scr_column = LINE_IN_MAX_COLS;
-    view->line_out_s[scr_column] = '\0';
-    if (scr_column > view->maxcol)
-        view->maxcol = scr_column;
-    cchar_t *cmplx_buf_p = view->cmplx_buf;
-    len = ansi_to_cmplx(cmplx_buf_p, ansi_p);
-    if (len > view->maxcol)
-        view->maxcol = len;
-}
 /*  ╭───────────────────────────────────────────────────────────╮
-    │ DISPLAY_CMPLX_BUF   cmplx_buf -> display                  │
+    │ DISPLAY_LINE   view->cmplx_buf -> view->win               │
     ╰───────────────────────────────────────────────────────────╯*/
-void display_cmplx_buf(View *view) {
+void display_line(View *view) {
     int rc;
 
     if (view->cury < 0)
@@ -1516,20 +1471,22 @@ void display_cmplx_buf(View *view) {
         Perror("Error refreshing screen");
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
-    │ ANSI_TO_CMPLX     line_out_s -> view->wide_buf                │
-    │                                 view->cmplx_buf               │
+    │ FMT_LINE_OUT      line_out_s -> view->cmplx_buf               │
     │                                 view->stripped_line_out       │
     ╰───────────────────────────────────────────────────────────────╯*/
-bool ansi_to_cmplx(cchar_t *cmplx_buf, const char *in_str) {
+void fmt_line(View *view) {
     attr_t attr = A_NORMAL;
     char ansi_tok[64];
-    const char *s;
     int cp = cp_default;
     int i = 0, j = 0;
     size_t len;
+    const char *s;
     wchar_t wc;
     cchar_t cc;
-    // mbstate_t state;
+    char *in_str = view->line_in_s;
+    cchar_t *cmplx_buf = view->cmplx_buf;
+
+    rtrim(view->line_out_s);
     mbtowc(NULL, NULL, 0);
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
@@ -1539,37 +1496,38 @@ bool ansi_to_cmplx(cchar_t *cmplx_buf, const char *in_str) {
                 strnz__cpy(ansi_tok, start_seq, end_seq - start_seq + 1);
                 ansi_tok[end_seq - start_seq + 1] = '\0';
                 parse_ansi_str(stdscr, ansi_tok, &attr, &cp);
-
                 i = (end_seq - in_str) + 1;
             } else {
                 i++;
             }
         } else {
             s = &in_str[i];
-            len = mbtowc(&wc, s, MB_CUR_MAX);
-            if (len > 0) {
-                if (setcchar(&cc, &wc, attr, cp, NULL) != ERR) {
-                    cmplx_buf[j] = cc;
-                    view->stripped_line_out[j++] = *s;
+            if (*s == '\t') {
+                wc = L' ';
+                setcchar(&cc, &wc, attr, cp, NULL);
+                while ((j < MAX_COLS - 2) && (j % view->tab_stop != 0)) {
+                    view->stripped_line_out[j] = ' ';
+                    cmplx_buf[j++] = cc;
                 }
-                s += len;
-                i += len;
-            } else {
-                if (len == (size_t)-1) { // don't know what to do with these yet
-                    break;
-                } else {
-                    if (len == (size_t)-2) {
-                        break;
-                    }
+                i++;
+            }
+            len = mbtowc(&wc, s, MB_CUR_MAX);
+            if (setcchar(&cc, &wc, attr, cp, NULL) != ERR) {
+                if (len > 0 && (j + len) < MAX_COLS - 1) {
+                    view->stripped_line_out[j] = *s;
+                    cmplx_buf[j++] = cc;
+                    i += len;
                 }
             }
         }
     }
+    if (j > view->maxcol)
+        view->maxcol = j;
     wc = L'\0';
     setcchar(&cc, &wc, A_NORMAL, cp_default, NULL);
     cmplx_buf[j] = cc;
     view->stripped_line_out[j] = '\0';
-    return true;
+    return;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ PARSE_ANSI_STR                                                │
@@ -1750,7 +1708,7 @@ void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
         apply_gamma(&rgb);
         fg = rgb_to_xterm256_idx(rgb);
         clr_pair_idx = get_clr_pair(fg, bg);
-        *cp = clr_pair_idx++;
+        *cp = clr_pair_idx;
     }
     return;
 }

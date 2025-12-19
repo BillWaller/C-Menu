@@ -16,6 +16,7 @@
 #include <wait.h>
 
 int trim(char *);
+int rtrim(char *);
 int ssnprintf(char *, size_t, const char *, ...);
 bool str_to_bool(const char *);
 int str_to_args(char **, char *, int);
@@ -36,6 +37,19 @@ bool verify_file(char *, int);
 bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
 char errmsg[MAXLEN];
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ RTRIM                                                             │
+    ╰───────────────────────────────────────────────────────────────────╯ */
+int rtrim(char *s) {
+    char *p = s;
+    char *d = s;
+    while (*p != '\0')
+        *d++ = *p++;
+    while (*(d - 1) == ' ' && d > s)
+        d--;
+    *d = '\0';
+    return d - s;
+}
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ TRIM                                                              │
     ╰───────────────────────────────────────────────────────────────────╯ */

@@ -60,8 +60,6 @@ RGB StdColors[16] = {
     {128, 128, 128}, {255, 0, 0},   {0, 255, 0},   {255, 255, 0},
     {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 
-ColorPair clr_pairs[MAX_COLOR_PAIRS];
-
 RGB xterm256_idx_to_rgb(int);
 int rgb_to_xterm256_idx(RGB);
 void init_clr_palette(Init *);
@@ -127,8 +125,8 @@ int cp_reverse;
 
 int clr_cnt = 0;
 int clr_idx = 0;
-int clr_pair_cnt = 0;
-int clr_pair_idx = 0;
+int clr_pair_idx = 1;
+int clr_pair_cnt = 1;
 
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ UNICODE BOX DRAWING CHARACTERS                                │
@@ -289,10 +287,9 @@ void open_curses(Init *init) {
     RED_GAMMA = init->red_gamma;
     GREEN_GAMMA = init->green_gamma;
     BLUE_GAMMA = init->blue_gamma;
-    cp_default = get_clr_pair(CLR_WHITE, CLR_BLACK);
-    cp_norm = get_clr_pair(CLR_WHITE, CLR_BLACK);
-    cp_reverse = get_clr_pair(CLR_BLACK, CLR_WHITE);
-    cp_box = get_clr_pair(CLR_RED, CLR_BLACK);
+    cp_norm = get_clr_pair(init->fg_color, init->bg_color);
+    cp_reverse = get_clr_pair(init->bg_color, init->fg_color);
+    cp_box = get_clr_pair(init->bo_color, init->bg_color);
     wcolor_set(stdscr, cp_norm, NULL);
     immedok(stdscr, true);
     noecho();
@@ -302,40 +299,23 @@ void open_curses(Init *init) {
     idcok(stdscr, false);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
-    │ DEF_CLR_PAIRS                                                 │
-    ╰───────────────────────────────────────────────────────────────╯ */
-void def_clr_pairs() {
-    int i, j, id;
-    for (i = 0; i < 8; i++) {
-        for (j = 0; j < 8; j++) {
-            id = get_clr_pair(i, j);
-            clr_pairs[clr_pair_cnt].fg = i;
-            clr_pairs[clr_pair_cnt].bg = j;
-            clr_pairs[clr_pair_cnt].pair_id = id;
-            clr_pair_cnt++;
-        }
-    }
-    clr_pair_idx = id + 1;
-}
-/*  ╭───────────────────────────────────────────────────────────────╮
     │ GET_CLR_PAIR                                                  │
     ╰───────────────────────────────────────────────────────────────╯*/
 int get_clr_pair(int fg, int bg) {
-    for (int i = 0; i < clr_pair_cnt; i++) {
-        if (clr_pairs[i].fg == fg && clr_pairs[i].bg == bg) {
-            return clr_pairs[i].pair_id;
-        }
+    int rc, i, pfg, pbg;
+    for (i = 0; i < clr_pair_cnt; i++) {
+        extended_pair_content(i, &pfg, &pbg);
+        if (pfg == fg && pbg == bg)
+            return i;
     }
-    if (clr_pair_cnt < MAX_COLOR_PAIRS) {
-        int id = clr_pair_cnt + 1;
-        init_extended_pair(id, fg, bg);
-        clr_pairs[clr_pair_cnt].fg = fg;
-        clr_pairs[clr_pair_cnt].bg = bg;
-        clr_pairs[clr_pair_cnt].pair_id = id;
+    if (i < MAX_COLOR_PAIRS - 1) {
+        rc = init_extended_pair(i, fg, bg);
+        if (rc == ERR)
+            return ERR;
+    }
+    if (i < MAX_COLOR_PAIRS)
         clr_pair_cnt++;
-        return id;
-    }
-    return ERR;
+    return i;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GET_CLR                                                       │
@@ -364,23 +344,18 @@ int get_clr(RGB rgb) {
     │ RGB_TO_XTERM256_IDX                                           │
     ╰───────────────────────────────────────────────────────────────╯*/
 int rgb_to_xterm256_idx(RGB rgb) {
-    int ri = (int)round(rgb.r / 255.0 * 5);
-    int gi = (int)round(rgb.g / 255.0 * 5);
-    int bi = (int)round(rgb.b / 255.0 * 5);
-    int color_index = 16 + (ri * 36) + (gi * 6) + bi;
-    int gray_index = -1;
-    int best_gray_diff = -1;
-    for (int i = 0; i < 24; i++) {
-        int gray_value = 8 + i * 10;
-        int luminance =
-            (int)round(0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
-        int diff = abs(luminance - gray_value);
-        if (gray_index == -1 || diff < best_gray_diff) {
-            best_gray_diff = diff;
-            gray_index = 232 + i;
-        }
+    if (rgb.r == rgb.g && rgb.g == rgb.b) {
+        if (rgb.r < 8)
+            return 16;
+        if (rgb.r > 248)
+            return 231;
+        return ((rgb.r - 8) / 10) + 232;
+    } else {
+        int r_index = (rgb.r < 45) ? 0 : (rgb.r - 60) / 40 + 1;
+        int g_index = (rgb.g < 45) ? 0 : (rgb.g - 60) / 40 + 1;
+        int b_index = (rgb.b < 45) ? 0 : (rgb.b - 60) / 40 + 1;
+        return 16 + (36 * r_index) + (6 * g_index) + b_index;
     }
-    return color_index;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ XTERM256_IDX_TO_RGB                                           │
