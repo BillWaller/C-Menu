@@ -1230,7 +1230,7 @@ void scroll_down_n_lines(View *view, int n) {
     // Locate New Top of Page
     view->file_pos = view->page_top_pos;
     for (i = 0; i < n; i++) {
-        get_pos_next_line(view, view->file_pos);
+        view->page_top_pos = get_pos_next_line(view, view->file_pos);
         if (view->f_eod)
             break;
     }
