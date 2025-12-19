@@ -1256,31 +1256,23 @@ void scroll_down_n_lines(View *view, int n) {
 void scroll_up_n_lines(View *view, int n) {
     int i;
 
-    view->file_pos = view->page_top_pos;
-    if (view->file_pos == (long)0)
-        view->f_bod = true;
-    if (view->f_bod)
+    if (view->page_top_pos == (long)0)
         return;
 
     // Locate New Top of Page
     for (i = 0; i < n; i++) {
         if (view->f_bod)
             break;
-        get_pos_prev_line(view, view->file_pos);
+        view->page_top_pos = get_pos_prev_line(view, view->page_top_pos);
     }
     n = i;
-    view->page_top_pos = view->file_pos;
-
     // Locate New Bottom of Page
-    view->file_pos = view->page_bot_pos;
     view->f_bod = false;
     for (i = 0; i < n; i++) {
         if (view->f_bod)
             break;
-        get_pos_prev_line(view, view->file_pos);
+        view->page_bot_pos = get_pos_prev_line(view, view->page_bot_pos);
     }
-    view->page_bot_pos = view->file_pos;
-
     // Scroll Up
     if (n < view->scroll_lines)
         wscrl(view->win, -n);
