@@ -163,7 +163,9 @@ int bg_fork_exec_pipe(char **argv, int *pipe_fd, pid_t pid) {
         }
         close(pipe_fd[P_WRITE]);
         execvp(argv[0], argv);
-        abend(-1, "execvp");
+        strncpy(tmp_str, "execvp failed: ", sizeof(tmp_str) - 1);
+        strncat(tmp_str, argv[0], sizeof(tmp_str) - strlen(tmp_str) - 1);
+        Perror(tmp_str);
         break;
     default: // parent
         close(pipe_fd[P_WRITE]);
@@ -172,6 +174,10 @@ int bg_fork_exec_pipe(char **argv, int *pipe_fd, pid_t pid) {
         tty_fd = fileno(tty_fp);
         dup2(tty_fd, STDIN_FILENO);
         fclose(tty_fp);
+        restore_curses_tioctl();
+        sig_prog_mode();
+        keypad(stdscr, true);
+        break;
     }
     return pid;
 }
