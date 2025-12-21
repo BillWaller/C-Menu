@@ -94,7 +94,7 @@ unsigned int menu_cmd_processor(Init *init) {
     int i, c, j, rc;
     char *d;
     int in_key;
-    int lines, cols, begy, begx;
+    int lines, cols;
 
     keypad(menu->win, TRUE);
     Menu *menu = init->menu;
@@ -193,28 +193,6 @@ unsigned int menu_cmd_processor(Init *init) {
             menu->line_idx = event.y;
             break;
             ;
-        // case BUTTON1_RELEASED:
-        //    break;
-        case BUTTON2_PRESSED:
-            break;
-        case BUTTON2_RELEASED:
-            break;
-        case BUTTON2_CLICKED:
-            break;
-        case BUTTON2_DOUBLE_CLICKED:
-            break;
-        case BUTTON3_PRESSED:
-            break;
-        case BUTTON3_RELEASED:
-            break;
-        case BUTTON3_CLICKED:
-            break;
-        case BUTTON3_DOUBLE_CLICKED:
-            break;
-        case BUTTON4_PRESSED:
-            break;
-        case BUTTON5_PRESSED:
-            break;
         default:
             return (MA_ENTER_OPTION);
             break;
@@ -289,7 +267,6 @@ unsigned int menu_cmd_processor(Init *init) {
         begy = (LINES - lines) / 2;
         begx = (COLS - cols) / 2;
         parse_opt_args(init, eargc, eargv);
-        new_pick(init, eargc, eargv, begy, begx);
         init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
 
@@ -297,8 +274,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         parse_opt_args(init, eargc, eargv);
-        new_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
-        form_engine(init);
+        init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
 
     case CT_VIEW:

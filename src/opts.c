@@ -47,7 +47,6 @@ Opts opts[] = {
     {"prompt-str", 0, 3, "...v", "User supplied string"},
     {"start_cmd", 0, 3, "...v", "S  command to execute at start of program"},
     {"select_max", 1, 4, ".p..", "n: number of selections"},
-    {"answer_spec", 0, 0, "..f.", "A: answer spec"},
     {"cmd_spec", 0, 3, ".pfv", "c: command executable"},
     {"help_spec", 0, 0, "mpfv", "H: help spec"},
     {"in_spec", 0, 0, ".p..", "i: input spec"},

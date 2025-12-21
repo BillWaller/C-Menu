@@ -6,8 +6,10 @@
 
 #include "menu.h"
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -25,14 +27,109 @@ void form_display_chyron(Form *);
 int form_enter_fields(Form *);
 int form_parse_desc(Form *);
 int form_process_text(Form *);
-int form_read_answer(Form *);
-int form_write_answer(Form *);
+int form_read(Form *);
+int form_write(Form *);
 void form_usage();
 int form_desc_error(int, char *, char *);
 int form_exec_cmd(Init *);
 int form_calculate(Init *);
 void stop_form_engine(Init *);
+int init_form(Init *, int, char **, int, int);
+unsigned int form_engine(Init *);
 
+/* ╭────────────────────────────────────────────────────────────────╮
+   │ INIT_FORM                                                      │
+   ╰────────────────────────────────────────────────────────────────╯ */
+int init_form(Init *init, int argc, char **argv, int begy, int begx) {
+    struct stat sb;
+    char tmp_str[MAXLEN];
+    int m;
+
+    if (init->form != NULL)
+        close_form(init);
+    Form *form = new_form(init, argc, argv, begy, begx);
+    if (init->form != form)
+        abend(-1, "init->form != form\n");
+
+    form->begy = begy + 1;
+    form->begx = begx + 4;
+    strnz__cpy(form->title, init->title, MAXLEN - 1);
+    if (!form->f_in_spec || (form->in_spec[0] == '\0') ||
+        (strcmp(form->in_spec, "-") == 0) ||
+        strcmp(form->in_spec, "/dev/stdin") == 0) {
+        strcpy(form->in_spec, "/dev/stdin");
+        /*  ╭───────────────────────────────────────────────────────╮
+            │ NO IN SPEC PROVIDED, USE STDIN                        │
+            ╰───────────────────────────────────────────────────────╯
+         */
+        form->f_in_pipe = true;
+        form->in_fp = fdopen(STDIN_FILENO, "r");
+
+    } else {
+        /*  ╭───────────────────────────────────────────────────────╮
+            │ IN SPEC IS A FILE                                     │
+            ╰───────────────────────────────────────────────────────╯
+         */
+        if (lstat(form->in_spec, &sb) == -1) {
+            m = MAXLEN - 29;
+            strncpy(tmp_str, "Can\'t stat form input file: ", m);
+            m -= strlen(form->in_spec);
+            strncat(tmp_str, form->in_spec, m);
+            Perror(tmp_str);
+            return (1);
+        }
+        if (sb.st_size == 0) {
+            m = MAXLEN - 24;
+            strncpy(tmp_str, "Form input file empty: ", m);
+            m -= strlen(form->in_spec);
+            strncat(tmp_str, form->in_spec, m);
+            Perror(tmp_str);
+            return (1);
+        }
+        if ((form->in_fp = fopen(form->in_spec, "rb")) == NULL) {
+            m = MAXLEN - 29;
+            strncpy(tmp_str, "Can't open form input file: ", m);
+            m -= strlen(form->in_spec);
+            strncat(tmp_str, form->in_spec, m);
+            Perror(tmp_str);
+            return (1);
+        }
+    }
+    if (form->title[0] == '\0')
+        strncpy(form->title, form->in_spec, MAXLEN - 1);
+    if (!form->f_out_spec || (form->out_spec[0] == '\0') ||
+        (strcmp(form->out_spec, "-") == 0) ||
+        strcmp(form->out_spec, "/dev/stdout") == 0) {
+        /*  ╭───────────────────────────────────────────────────────╮
+            │ NO OUT SPEC PROVIDED, USE STDOUT                      │
+            │ BUT DETACHED FROM TTY                                 │
+            ╰───────────────────────────────────────────────────────╯ */
+        strcpy(form->out_spec, "/dev/stdout");
+        close(form->out_fd);
+        form->out_fd = open(form->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
+        dup2(form->out_fd, STDOUT_FILENO);
+        form->out_fp = fdopen(STDOUT_FILENO, "w");
+        form->f_out_spec = true;
+        form->f_out_pipe = true;
+    } else {
+        if ((form->out_fp = fopen(form->out_spec, "w")) == NULL) {
+            /*  ╭───────────────────────────────────────────────────╮
+                │ OUT SPEC IS A FILE                                │
+                ╰───────────────────────────────────────────────────╯ */
+            m = MAXLEN - 30;
+            strncpy(tmp_str, "Can't open form output file: ", m);
+            m -= strlen(form->in_spec);
+            strncat(tmp_str, form->out_spec, m);
+            Perror(tmp_str);
+            return (1);
+        }
+    }
+    form_engine(init);
+    if (form->win)
+        win_del();
+    close_form(init);
+    return 0;
+}
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_ENGINE                                                   │
     ╰───────────────────────────────────────────────────────────────╯ */
@@ -50,7 +147,7 @@ unsigned int form_engine(Init *init) {
         close_form(init);
         abend(EXIT_FAILURE, "FORM:read form description failed");
     }
-    form_read_answer(form);
+    form_read(form);
     form_display_screen(init);
     form->fidx = 0;
     form_action = 0;
@@ -70,8 +167,8 @@ unsigned int form_engine(Init *init) {
                 if (form_action == P_HELP || form_action == P_CANCEL)
                     continue;
             }
-            if (form->f_answer_spec)
-                form_write_answer(form);
+            if (form->f_out_spec)
+                form_write(form);
             if (form->f_cmd_spec)
                 form_exec_cmd(init);
             stop_form_engine(init);
@@ -111,8 +208,7 @@ int form_calculate(Init *init) {
     set_fkey(10, "");
     set_fkey(5, "Calculate");
     form_display_chyron(form);
-    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | NCURSES_BUTTON_CLICKED,
-              NULL);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     MEVENT event;
     event.y = event.x = -1;
     tcflush(0, TCIFLUSH);
@@ -122,8 +218,8 @@ int form_calculate(Init *init) {
         case KEY_F(1):
             return P_HELP;
         case KEY_F(5):
-            if (form->f_answer_spec)
-                form_write_answer(form);
+            if (form->f_out_spec)
+                form_write(form);
             if (form->f_cmd_spec) {
                 strnz__cpy(earg_str, form->cmd_spec, MAXLEN - 1);
                 for (i = 0; i < form->fcnt; i++) {
@@ -131,12 +227,12 @@ int form_calculate(Init *init) {
                     strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
                 }
             }
-            if (form->f_answer_spec) {
+            if (form->f_out_spec) {
                 strnz__cat(earg_str, " >", MAXLEN - 1);
-                strnz__cat(earg_str, form->answer_spec, MAXLEN - 1);
+                strnz__cat(earg_str, form->out_spec, MAXLEN - 1);
             }
             shell(earg_str);
-            form_read_answer(form);
+            form_read(form);
             form_display_screen(init);
             rc = P_CONTINUE;
             loop = false;
@@ -572,24 +668,24 @@ int form_parse_desc(Form *form) {
     return (0);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
-    │ READ FORM ANSWER FILE                                         │
+    │ READ FORM IN FILE                                             │
     ╰───────────────────────────────────────────────────────────────╯ */
-int form_read_answer(Form *form) {
-    FILE *answer_fp;
+int form_read(Form *form) {
+    FILE *in_fp;
     char in_buf[MAXLEN];
-    char out_buf[MAXLEN];
+    char field[MAXLEN];
 
-    answer_fp = fopen(form->answer_spec, "r");
-    if (answer_fp == NULL)
+    in_fp = fopen(form->in_spec, "r");
+    if (in_fp == NULL)
         return (1);
     form->fidx = 0;
-    while ((fgets(in_buf, MAXLEN, answer_fp)) != NULL) {
+    while ((fgets(in_buf, MAXLEN, in_fp)) != NULL) {
         if (form->fidx < MAXFIELDS)
-            strnz__cpy(out_buf, in_buf, MAXLEN - 1);
-        form_fmt_field(form, out_buf);
+            strnz__cpy(field, in_buf, MAXLEN - 1);
+        form_fmt_field(form, field);
         form->fidx++;
     }
-    fclose(answer_fp);
+    fclose(in_fp);
     return (0);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -603,33 +699,33 @@ int form_exec_cmd(Init *init) {
         strnz__cat(earg_str, " ", MAXLEN - 1);
         strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
     }
-    if (form->f_answer_spec && form->f_calculate) {
+    if (form->f_out_spec && form->f_calculate) {
         strnz__cat(earg_str, " >", MAXLEN - 1);
-        strnz__cat(earg_str, form->answer_spec, MAXLEN - 1);
+        strnz__cat(earg_str, form->out_spec, MAXLEN - 1);
     }
     shell(earg_str);
     return 0;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
-    │ WRITE FORM ANSWER FILE                                        │
+    │ WRITE FORM                                                    │
     ╰───────────────────────────────────────────────────────────────╯ */
-int form_write_answer(Form *form) {
+int form_write(Form *form) {
     char emsg0[MAXLEN];
     char emsg1[MAXLEN];
     char emsg2[MAXLEN];
     int n;
-    FILE *answer_fp;
+    FILE *out_fp;
 
-    if ((answer_fp = fopen(form->answer_spec, "w")) == NULL) {
+    if ((out_fp = fopen(form->out_spec, "w")) == NULL) {
         ssnprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 65, "fopen %s", form->answer_spec);
+        ssnprintf(emsg1, MAXLEN - 65, "fopen %s", form->out_spec);
         strerror_r(errno, emsg2, MAXLEN);
         display_error(emsg0, emsg1, emsg2);
         return (1);
     }
     for (n = 0; n < form->fcnt; n++)
-        fprintf(answer_fp, "%s\n", form->field[n]->accept_s);
-    fclose(answer_fp);
+        fprintf(out_fp, "%s\n", form->field[n]->accept_s);
+    fclose(out_fp);
     return (0);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮

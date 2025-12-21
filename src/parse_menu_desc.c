@@ -295,33 +295,33 @@ unsigned int get_command_type(char *t) {
     *s = '\0';
     if (!strcmp(p, "returnmain"))
         return (CT_RETURNMAIN);
-    if (!strcmp(p, "cpick"))
+    else if (!strcmp(p, "cpick"))
         return (CT_PICK);
-    if (!strcmp(p, "ckeys"))
+    else if (!strcmp(p, "ckeys"))
         return (CT_CKEYS);
-    if (!strcmp(p, "exec"))
+    else if (!strcmp(p, "exec"))
         return (CT_EXEC);
-    if (!strcmp(p, "help"))
+    else if (!strcmp(p, "help"))
         return (CT_HELP);
-    if (!strcmp(p, "menu"))
+    else if (!strcmp(p, "menu"))
         return (CT_MENU);
-    if (!strcmp(p, "option"))
+    else if (!strcmp(p, "option"))
         return (CT_MENU);
-    if (!strcmp(p, "form"))
+    else if (!strcmp(p, "form"))
         return (CT_FORM);
-    if (!strcmp(p, "form_exec"))
+    else if (!strcmp(p, "form_exec"))
         return (CT_FORM);
-    if (!strcmp(p, "form_write"))
+    else if (!strcmp(p, "form_write"))
         return (CT_FORM);
-    if (!strcmp(p, "pick"))
+    else if (!strcmp(p, "pick"))
         return (CT_PICK);
-    if (!strcmp(p, "return"))
+    else if (!strcmp(p, "return"))
         return (CT_RETURN);
-    if (!strcmp(p, "view"))
+    else if (!strcmp(p, "view"))
         return (CT_VIEW);
-    if (!strcmp(p, "?"))
+    else if (!strcmp(p, "?"))
         return (CT_TOGGLE);
-    if (!strcmp(p, "write_config"))
+    else if (!strcmp(p, "write_config"))
         return (CT_WRITE_CONFIG);
     return (CT_UNDEFINED);
 }

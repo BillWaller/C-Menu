@@ -16,7 +16,6 @@ enum {
     MAPP_DATA,
     MAPP_SPEC,
     HELP_SPEC,
-    ANSWER_SPEC,
     IN_SPEC,
     OUT_SPEC
 };
@@ -68,6 +67,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     init->f_at_end_clear = true;    // z  clear screen on exit
     init->f_erase_remainder = true; // e  erase remainder on enter
     init->prompt_type = PT_LONG;    // P: prompt type
+    strnz__cpy(init->mapp_spec, "main.m", MAXLEN - 1);
     strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
     strnz__cpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
     strnz__cpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
@@ -118,24 +118,18 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int longindex = 0;
     int flag = 0;
 
-    init->mapp_spec[0] = '\0';
     init->help_spec[0] = '\0';
-    init->answer_spec[0] = '\0';
     init->cmd_spec[0] = '\0';
     init->in_spec[0] = '\0';
     init->out_spec[0] = '\0';
 
     char *optstring =
         "a:c:d:g:hi:m:n:o:p:rst:vwxzA:B:C:DF:H:L:MO:P:S:T:U:VX:Y:Z";
-    struct option long_options[] = {{"answer_spec", 1, &flag, ANSWER_SPEC},
-                                    {"mapp_data", 1, &flag, MAPP_DATA},
-                                    {"mapp_spec", 1, &flag, MAPP_SPEC},
-                                    {"mapp_help", 1, &flag, MAPP_HELP},
-                                    {"help_spec", 1, &flag, HELP_SPEC},
-                                    {"in_spec", 1, &flag, IN_SPEC},
-                                    {"out_spec", 1, &flag, OUT_SPEC},
-                                    {"mapp_msrc", 1, &flag, MAPP_MSRC},
-                                    {0, 0, 0, 0}};
+    struct option long_options[] = {
+        {"mapp_data", 1, &flag, MAPP_DATA}, {"mapp_spec", 1, &flag, MAPP_SPEC},
+        {"mapp_help", 1, &flag, MAPP_HELP}, {"help_spec", 1, &flag, HELP_SPEC},
+        {"in_spec", 1, &flag, IN_SPEC},     {"out_spec", 1, &flag, OUT_SPEC},
+        {"mapp_msrc", 1, &flag, MAPP_MSRC}, {0, 0, 0, 0}};
     char mapp[MAXLEN];
     base_name(mapp, argv[0]);
     optind = 1;
@@ -148,9 +142,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
                 ╰───────────────────────────────────────────────────────────────────╯
              */
             switch (flag) {
-            case ANSWER_SPEC:
-                strnz__cpy(init->answer_spec, optarg, MAXLEN - 1);
-                break;
             case MAPP_DATA:
                 strnz__cpy(init->mapp_data, optarg, MAXLEN - 1);
                 break;
@@ -239,9 +230,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'z':
             init->f_at_end_clear = true;
-            break;
-        case 'A':
-            strnz__cpy(init->answer_spec, optarg, MAXLEN - 1);
             break;
         case 'B':
             init->bg_color = get_color_number(optarg);
@@ -659,7 +647,6 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "borange", init->borange);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bg", init->bg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "abg", init->abg);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "answer_spec", init->answer_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_spec", init->cmd_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
@@ -779,7 +766,6 @@ void dump_config(Init *init, char *msg) {
     opt_prt_char("   ", "--borange", init->borange);
     opt_prt_char("   ", "--bg", init->bg);
     opt_prt_char("   ", "--abg", init->abg);
-    opt_prt_char("-A:", "--answer_spec", init->answer_spec);
     opt_prt_char("-c:", "--cmd_spec", init->cmd_spec);
     opt_prt_char("-H:", "--help_spec", init->help_spec);
     opt_prt_char("-i:", "--in_spec", init->in_spec);

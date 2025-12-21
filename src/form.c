@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
         restore_shell_tioctl();
         return 1;
     }
-    form_engine(init);
+    init_form(init, argc, argv, begy, begx);
     close_init(init);
     win_del();
     close_curses();
