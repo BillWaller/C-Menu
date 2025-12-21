@@ -70,6 +70,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         }
         str_to_args(s_argv, pick->start_cmd, MAXARGS - 1);
         dup2(STDIN_FILENO, pick->in_fd);
+        dup2(STDOUT_FILENO, pick->out_fd);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_pick");
             return (1);
@@ -93,12 +94,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             exit(rc);
         }
         close(pipe_fd[P_WRITE]);
-        // ttyname_r(STDERR_FILENO, tmp_str, sizeof(tmp_str));
-        // FILE *tty_fp = fopen(tmp_str, "r+");
-        // tty_fd = fileno(tty_fp);
-        // dup2(tty_fd, STDIN_FILENO);
-        // fclose(tty_fp);
         dup2(pick->in_fd, STDIN_FILENO);
+        // dup2(pick->out_fd, STDOUT_FILENO);
         restore_curses_tioctl();
         sig_prog_mode();
         keypad(pick->win, true);

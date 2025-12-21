@@ -13,6 +13,7 @@
     ╰───────────────────────────────────────────────────────────────────╯*/
 #include <ncursesw/ncurses.h>
 #include <stddef.h>
+#define C_MENU_VERSION "C-Menu-0.2.6"
 #define DEBUG TRUE
 #define USE_PAD TRUE
 // MAXLEN is for variables known to be limited in length
@@ -836,6 +837,14 @@ typedef struct {
     int cols;  // -C: columns
     int begx;  // -X: lines
     int begy;  // -Y: lines
+    int stdin_fd;
+    FILE *stdin_fp;
+    int stdout_fd;
+    FILE *stdout_fp;
+    int stderr_fd;
+    FILE *stderr_fp;
+    int tty_fd;
+    FILE *tty_fp;
     // window
     char start_cmd[MAXLEN]; // -S: command to execute at start of program
     char prompt_str[MAXLEN];
@@ -867,8 +876,6 @@ typedef struct {
     bool f_mapp_help; //
     bool f_mapp_msrc; //
     bool f_mapp_user; // -u: user directory
-    // devices
-    int stdin_fd;
     // files
     char minitrc[MAXLEN];   // -a: main configuration file
     char mapp_spec[MAXLEN]; // -d: description qualified path

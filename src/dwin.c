@@ -229,9 +229,6 @@ void open_curses(Init *init) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
 
-    // struct termios t_p;
-
-    // tcgetattr(STDIN_FILENO, &t_p);
     if (ttyname_r(STDERR_FILENO, tty_name, sizeof(tty_name)) != 0) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strcpy(emsg0, "ttyname_r failed ");
@@ -245,18 +242,17 @@ void open_curses(Init *init) {
         │ the tty device for curses screen io, leaving stdin, stdout,   │
         │ and stderr, for piped input and output.                       │
         ╰───────────────────────────────────────────────────────────────╯ */
-    FILE *tty_fp = fopen(tty_name, "r+");
-    if (tty_fp == NULL) {
+    init->tty_fp = fopen(tty_name, "r+");
+    if (init->tty_fp == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strcpy(emsg0, "fopen(tty_name) failed ");
         strcat(emsg0, tmp_str);
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    tty_fd = fileno(tty_fp);
-    // tcsetattr(tty_fd, TCSANOW, &t_p);
-    pipe_in = fileno(stdin);
-    pipe_out = fileno(stdout);
+    init->stdin_fd = dup(STDIN_FILENO);
+    init->stdout_fd = dup(STDOUT_FILENO);
+    init->stderr_fd = dup(STDERR_FILENO);
     /*  ╭───────────────────────────────────────────────────────────────╮
         │ This is where we associate the terminal device with NCurses   │
         │ Beyond this point, NCurses has the tty.                       │
@@ -264,7 +260,7 @@ void open_curses(Init *init) {
         │ We use newterm and set_term instead of initscr so we can      │
         │ specify the streams used by NCurses                           │
         ╰───────────────────────────────────────────────────────────────╯ */
-    SCREEN *screen = newterm(NULL, tty_fp, tty_fp);
+    SCREEN *screen = newterm(NULL, init->tty_fp, init->tty_fp);
     if (screen == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strcpy(emsg0, "newterm failed ");
