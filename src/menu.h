@@ -18,6 +18,7 @@
 // MAXLEN is for variables known to be limited in length
 #define MAXLEN 256
 #define MIN_COLS 40
+#define BUFSIZ 8192
 #define LINE_IN_MAX_COLS 2048
 #define MAX_COLS 1024
 #define MAX_WIDE_LEN 1024
@@ -47,11 +48,13 @@
 #define MAX_COLOR_PAIRS 512
 #define MAX_COLORS 512
 
+#define P_READ 0
+#define P_WRITE 1
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ Miscelaneous                                                      │
     ╰───────────────────────────────────────────────────────────────────╯*/
 
-extern int tty_fd, pipe_fd;
+extern int tty_fd;
 extern int dbgfd;
 
 extern char *eargv[MAXARGS];
@@ -438,10 +441,12 @@ typedef struct {
     // files
     char mapp_spec[MAXLEN]; //    application description qualified path
     char help_spec[MAXLEN]; //    application help qualified path
+    char start_cmd[MAXLEN]; // S  command to execute at start of program
     // file flags
     bool f_mapp_spec;
     bool f_help_spec;
     bool f_help;
+    bool f_start_cmd;
     //
     int choice_max_len;
     int text_max_len;
@@ -514,17 +519,22 @@ typedef struct {
     int title_line;
     // argument processing
     // files
-    char mapp_spec[MAXLEN];   //    description spec
-    char answer_spec[MAXLEN]; //    answer spec
-    char in_spec[MAXLEN];     //    output spec
-    char out_spec[MAXLEN];    //    output spec
-    char cmd_spec[MAXLEN];    // c: command executable
-    char help_spec[MAXLEN];   //    help spec
+    FILE *in_fp;
+    FILE *out_fp;
+    int in_fd;
+    int out_fd;
+    char mapp_spec[MAXLEN]; //    description spec
+    char in_spec[MAXLEN];   //    input spec
+    char out_spec[MAXLEN];  //    output spec
+    char cmd_spec[MAXLEN];  // c: command executable
+    char help_spec[MAXLEN]; //    help spec
+    char start_cmd[MAXLEN]; // S  command to execute at start of program
     // file flags
     bool f_mapp_spec;
-    bool f_answer_spec;
     bool f_in_spec;
     bool f_out_spec;
+    bool f_in_pipe;
+    bool f_out_pipe;
     bool f_cmd_spec;
     bool f_help_spec;
     bool f_erase_remainder;
@@ -532,6 +542,7 @@ typedef struct {
     bool f_query;
     bool f_stop_on_error;
     bool f_help;
+    bool f_start_cmd;
     int fidx;
     int fcnt;
     int didx;
@@ -548,8 +559,6 @@ extern int form_display_field_n(Form *, int);
 extern int form_open_win(Form *);
 extern int form_enter_fields(Form *);
 extern int form_read_description(Form *);
-extern int form_read_answer_file(Form *);
-extern int form_write_answer(Form *);
 extern int form_fmt_field(Form *, char *s);
 extern void form_help(char *);
 
@@ -577,10 +586,9 @@ typedef struct {
     int argc;
     char **argv;
     FILE *in_fp;
-    bool f_in_pipe;
     FILE *out_fp;
+    int in_fd;
     int out_fd;
-    bool f_out_pipe;
     // files
     char mapp_spec[MAXLEN]; //    application qualified path
     char in_spec[MAXLEN];
@@ -588,16 +596,21 @@ typedef struct {
     char cmd_spec[MAXLEN];  // c: command
     char help_spec[MAXLEN]; //    application help qualified path
     char chyron_s[MAXLEN];  // (ˈkī-ˌrän) a banner at the bottom of the screen
+    //
+    char start_cmd[MAXLEN]; // S  command to execute at start of program
     // file flags
     bool f_mapp_spec;
     bool f_in_spec;
     bool f_out_spec;
+    bool f_in_pipe;
+    bool f_out_pipe;
     bool f_cmd_spec;
     bool f_help_spec;
     bool f_multiple_cmd_args;
     bool f_stop_on_error;
     bool f_selected[OBJ_MAXCNT];
     bool f_help;
+    bool f_start_cmd;
     char in_buf[BUFSIZ];
     char *object[OBJ_MAXCNT];
     int select_idx;
@@ -678,6 +691,7 @@ typedef struct {
     bool f_full_screen;
     bool f_help;
     bool f_timer;
+    bool f_start_cmd;
     //
     char start_cmd_all_files[MAXLEN];
     char cur_file_str[MAXLEN];
@@ -840,6 +854,7 @@ typedef struct {
     bool f_multiple_cmd_args; // -M  multiple command arguments
     bool f_erase_remainder;   // -e: erase remainder of line on enter
     bool f_help;
+    bool f_start_cmd;
     // directories
     char mapp_home[MAXLEN]; // -m: home directory
     char mapp_data[MAXLEN]; //     --mapp_data
@@ -852,14 +867,15 @@ typedef struct {
     bool f_mapp_help; //
     bool f_mapp_msrc; //
     bool f_mapp_user; // -u: user directory
+    // devices
+    int stdin_fd;
     // files
-    char minitrc[MAXLEN];     // -a: main configuration file
-    char mapp_spec[MAXLEN];   // -d: description qualified path
-    char help_spec[MAXLEN];   // -H: help qualified path
-    char answer_spec[MAXLEN]; // -A: answer qualified path
-    char cmd_spec[MAXLEN];    // -c: answer qualified path
-    char in_spec[MAXLEN];     // -i: input file qualified path
-    char out_spec[MAXLEN];    // -o: output file qualified path
+    char minitrc[MAXLEN];   // -a: main configuration file
+    char mapp_spec[MAXLEN]; // -d: description qualified path
+    char help_spec[MAXLEN]; // -H: help qualified path
+    char cmd_spec[MAXLEN];  // -c: qualified path
+    char in_spec[MAXLEN];   // -i: input file qualified path
+    char out_spec[MAXLEN];  // -o: output file qualified path
     // pick
     int select_max; // -n: maximum number of selections
     // view
@@ -892,9 +908,6 @@ extern Form *new_form(Init *init, int, char **, int, int);
 extern Pick *new_pick(Init *init, int, char **, int, int);
 extern Menu *new_menu(Init *init, int, char **, int, int);
 extern bool init_menu_files(Init *, int, char **);
-extern bool init_pick_files(Init *, int, char **);
-extern bool init_form_files(Init *, int, char **);
-extern bool init_view_files(Init *, int, char **);
 extern Menu *close_menu(Init *init);
 extern Pick *close_pick(Init *init);
 extern Form *close_form(Init *init);
@@ -940,11 +953,7 @@ extern void free_menu_line(Line *);
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ FORM                                                              │
     ╰───────────────────────────────────────────────────────────────────╯*/
-extern unsigned int form_engine(Init *);
-extern bool form_answer_spec(Init *, int argc, char **argv);
-extern bool form_help_spec(Init *, int argc, char **argv);
-extern unsigned int form_display_screen(Init *);
-
+extern int init_form(Init *, int, char **, int, int);
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VIEW                                                              │
     ╰───────────────────────────────────────────────────────────────────╯*/
@@ -985,6 +994,7 @@ extern double str_to_double(char *);
     │ EXEC UTILITIES                                                    │
     ╰───────────────────────────────────────────────────────────────────╯*/
 extern int fork_exec(char **);
+extern int bg_fork_exec_pipe(char **, int *, pid_t);
 extern int full_screen_fork_exec(char **);
 extern int full_screen_shell(char *);
 extern int shell(char *);

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -31,6 +32,9 @@ int exec_objects(Init *);
 int open_pick_win(Init *);
 void display_pick_help(Init *);
 void pick_display_chyron(Pick *);
+int read_pick_input(Init *);
+
+int pipe_fd[2];
 
 char const pagers_editors[12][10] = {"view", "mview", "less", "more",
                                      "vi",   "vim",   "nano", "nvim",
@@ -41,30 +45,40 @@ char const pagers_editors[12][10] = {"view", "mview", "less", "more",
    ╰────────────────────────────────────────────────────────────────╯ */
 int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     struct stat sb;
-    // char emsg0[MAXLEN];
-    // char emsg1[MAXLEN];
-    // char emsg2[MAXLEN];
+    int s_argc = 0;
+    char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
     int m;
+    pid_t pid = 0;
 
+    if (init->pick != NULL)
+        close_pick(init);
     Pick *pick = new_pick(init, argc, argv, begy, begx);
     if (init->pick != pick)
-        abend(-1, "exec_objects: init->pick != pick\n");
-    pick->begy = begy + 1;
-    pick->begx = begx + 4;
-    strnz__cpy(pick->title, init->title, MAXLEN - 1);
+        abend(-1, "init->pick != pick\n");
 
-    if (!pick->f_in_spec || (pick->in_spec[0] == '\0') ||
-        (strcmp(pick->in_spec, "-") == 0) ||
-        strcmp(pick->in_spec, "/dev/stdin") == 0) {
-        strcpy(pick->in_spec, "/dev/stdin");
-        /*  ╭───────────────────────────────────────────────────────╮
-            │ NO IN SPEC PROVIDED, USE STDIN                        │
-            ╰───────────────────────────────────────────────────────╯
-         */
+    /* ╭────────────────────────────────────────────────────────────────╮
+       │ INPUT IS START_CMD                                             │
+       ╰────────────────────────────────────────────────────────────────╯ */
+    if (pick->start_cmd[0] != '\0') {
+        s_argc = str_to_args(s_argv, pick->start_cmd, MAXARGS - 1);
+        if (s_argc > 0)
+            bg_fork_exec_pipe(s_argv, pipe_fd, pid);
+        // dup2(pipe_fd[P_READ], STDIN_FILENO);
+        pick->in_fp = fdopen(pipe_fd[P_READ], "r");
         pick->f_in_pipe = true;
-        pick->in_fp = fdopen(STDIN_FILENO, "r");
     } else {
+        /* ╭────────────────────────────────────────────────────────╮
+           │ INPUT IS STDIN                                         │
+           ╰────────────────────────────────────────────────────────╯ */
+        if ((pick->in_spec[0] == '\0') || strcmp(pick->in_spec, "-") == 0 ||
+            strcmp(pick->in_spec, "/dev/stdin") == 0) {
+            strcpy(pick->in_spec, "/dev/stdin");
+            pick->in_fp = fdopen(STDIN_FILENO, "rb");
+            pick->f_in_pipe = true;
+        }
+    }
+    if (!pick->f_in_pipe) {
         /*  ╭───────────────────────────────────────────────────────╮
             │ IN SPEC IS A FILE                                     │
             ╰───────────────────────────────────────────────────────╯
@@ -94,31 +108,45 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             return (1);
         }
     }
-    if (pick->title[0] == '\0')
-        strncpy(pick->title, pick->in_spec, MAXLEN - 1);
-    if (!pick->f_out_spec || (pick->out_spec[0] == '\0') ||
-        (strcmp(pick->out_spec, "-") == 0) ||
-        strcmp(pick->out_spec, "/dev/stdout") == 0) {
-        /*  ╭───────────────────────────────────────────────────────╮
-            │ NO OUT SPEC PROVIDED, USE STDOUT                      │
-            ╰───────────────────────────────────────────────────────╯ */
-        strcpy(pick->out_spec, "/dev/stdout");
-        pick->out_fp = fdopen(STDOUT_FILENO, "w");
-        pick->f_out_spec = true;
-        pick->f_out_pipe = true;
-    } else {
-        if ((pick->out_fp = fopen(pick->out_spec, "w")) == NULL) {
-            /*  ╭───────────────────────────────────────────────────╮
-                │ OUT SPEC IS A FILE                                │
-               ╰───────────────────────────────────────────────────╯ */
-            m = MAXLEN - 30;
-            strncpy(tmp_str, "Can't open pick output file: ", m);
-            m -= strlen(pick->in_spec);
-            strncat(tmp_str, pick->out_spec, m);
-            Perror(tmp_str);
-            return (1);
+    if (pick->cmd_spec[0] != '\0')
+        /* ╭────────────────────────────────────────────────────────────────╮
+           │ CMD_SPEC                                                       │
+           ╰────────────────────────────────────────────────────────────────╯ */
+        s_argc = str_to_args(s_argv, pick->cmd_spec, MAXARGS - 1);
+    else {
+        if (!pick->f_out_spec || (pick->out_spec[0] == '\0') ||
+            (strcmp(pick->out_spec, "-") == 0) ||
+            strcmp(pick->out_spec, "/dev/stdout") == 0) {
+            /*  ╭───────────────────────────────────────────────────────╮
+                │ NO OUT SPEC PROVIDED, USE STDOUT                      │
+                │ BUT DETACHED FROM TTY                                 │
+                ╰───────────────────────────────────────────────────────╯ */
+            strcpy(pick->out_spec, "/dev/stdout");
+            pick->out_fd =
+                open(pick->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
+            dup2(pick->out_fd, STDOUT_FILENO);
+            close(pick->out_fd);
+            pick->out_fp = fdopen(STDOUT_FILENO, "w");
+            pick->f_out_spec = true;
+            pick->f_out_pipe = true;
+        } else {
+            if ((pick->out_fp = fopen(pick->out_spec, "w")) == NULL) {
+                /*  ╭───────────────────────────────────────────────────╮
+                    │ OUT SPEC IS A FILE                                │
+                    ╰───────────────────────────────────────────────────╯ */
+                m = MAXLEN - 30;
+                strncpy(tmp_str, "Can't open pick output file: ", m);
+                m -= strlen(pick->in_spec);
+                strncat(tmp_str, pick->out_spec, m);
+                Perror(tmp_str);
+                return (1);
+            }
         }
     }
+    read_pick_input(init);
+    close(pipe_fd[P_READ]);
+    waitpid(pid, NULL, 0);
+
     pick_engine(init);
     if (pick->win)
         win_del();
@@ -126,13 +154,13 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     return 0;
 }
 /* ╭────────────────────────────────────────────────────────────────╮
-   │ PICK_ENGINE                                                    │
+   │ READ_PICK_INPUT                                                │
    ╰────────────────────────────────────────────────────────────────╯ */
-int pick_engine(Init *init) {
-    int n, i, chyron_l, rc;
-    int maxy, maxx, win_maxy, win_maxx;
-    pick->select_cnt = 0;
+int read_pick_input(Init *init) {
+    int i;
+
     Pick *pick = init->pick;
+    pick->select_cnt = 0;
     pick->obj_cnt = pick->pg_lines = pick->tbl_cols = 0;
     pick->obj_idx = pick->tbl_page = pick->y = pick->tbl_col = pick->x = 0;
     pick->tbl_pages = 1;
@@ -143,11 +171,21 @@ int pick_engine(Init *init) {
     } else
         for (i = 1; i < pick->argc; i++)
             save_object(pick, pick->argv[i]);
-
+    fclose(pick->in_fp);
     if (!pick->obj_idx)
         return (-1);
     pick->obj_cnt = pick->obj_idx;
     pick->obj_idx = 0;
+    return 0;
+}
+
+/* ╭────────────────────────────────────────────────────────────────╮
+   │ PICK_ENGINE                                                    │
+   ╰────────────────────────────────────────────────────────────────╯ */
+int pick_engine(Init *init) {
+    int n, chyron_l, rc;
+    int maxy, maxx, win_maxy, win_maxx;
+
     /* ╭────────────────────────────────────────────────────────────╮
        │ PICK TABLE LAYOUT                                          │
        ╰────────────────────────────────────────────────────────────╯ */
@@ -188,7 +226,6 @@ int pick_engine(Init *init) {
         return (rc);
     display_page(pick);
     reverse_object(pick);
-
     /* ╭────────────────────────────────────────────────────────────╮
        │ PICK MAIN LOOP                                             │
        ╰────────────────────────────────────────────────────────────╯ */
@@ -444,13 +481,12 @@ int picker(Init *init) {
                 pick->y = event.y;
                 if (pick->y == pick->pg_lines) {
                     cmd_key = get_chyron_key(key_cmd, event.x);
-                    cmd_key = 0;
-                    break;
+                    continue;
                 }
                 pick->tbl_col = (event.x - 1) / (pick->tbl_col_width + 1);
                 if (pick->tbl_col < 0 || pick->tbl_col >= pick->tbl_cols) {
                     cmd_key = 0;
-                    break;
+                    continue;
                 }
                 pick->obj_idx =
                     pick->tbl_page * pick->pg_lines * pick->tbl_cols +
@@ -463,7 +499,10 @@ int picker(Init *init) {
                 cmd_key = 0;
                 break;
             }
+            cmd_key = 0;
+            break;
         default:
+            cmd_key = 0;
             break;
         }
     }

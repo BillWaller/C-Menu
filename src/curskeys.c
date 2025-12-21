@@ -476,7 +476,16 @@ int display_curses_keys() {
                     strcpy(action, "Button 3 double-clicked");
                     break;
                 case BUTTON4_PRESSED:
-                    strcpy(action, "Scroll Down");
+                    strcpy(action, "Button 4 pressed");
+                    break;
+                case BUTTON4_RELEASED:
+                    strcpy(action, "Button 4 released");
+                    break;
+                case BUTTON4_CLICKED:
+                    strcpy(action, "Button 4 clicked");
+                    break;
+                case BUTTON4_DOUBLE_CLICKED:
+                    strcpy(action, "Button 4 double-clicked");
                     break;
                 case BUTTON5_PRESSED:
                     strcpy(action, "Scroll Up");

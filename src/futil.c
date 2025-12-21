@@ -5,8 +5,14 @@
  */
 
 #include "menu.h"
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <grp.h>
+#include <pwd.h>
+#include <regex.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -14,6 +20,11 @@
 #include <termios.h>
 #include <unistd.h>
 #include <wait.h>
+
+bool list_files(char *, char *, bool);
+bool lf_find_files(char *, char *);
+bool lf_find_dirs(char *, char *);
+bool lf_write_file(int, char *);
 
 int trim(char *);
 int rtrim(char *);
@@ -115,6 +126,7 @@ int str_to_args(char **argv, char *cmd_line, int max_args) {
         argv[argc] = (char *)malloc(arg_length + 1);
         strncpy(argv[argc], arg_start, arg_length);
         argv[argc][arg_length] = '\0';
+        trim(argv[argc]);
         argc++;
     }
     argv[argc] = NULL;
@@ -524,33 +536,33 @@ bool dir_name(char *buf, char *path) {
 bool verify_dir(char *spec, int mode) {
     char tmp_str[MAXLEN];
     expand_tilde(spec, MAXLEN);
+    struct stat sb;
     if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
-        return true;
-    else {
-        if (errno == EACCES) {
-            if (mode == W_OK) {
-                strncpy(tmp_str, "Directory ", MAXLEN - 1);
-                strncat(tmp_str, spec, MAXLEN - 1);
-                strncat(tmp_str, " is not writable (permission denied).",
-                        MAXLEN - 1);
-                Perror(tmp_str);
-            }
-            if (mode == R_OK) {
-                strncpy(tmp_str, "Directory ", MAXLEN - 1);
-                strncat(tmp_str, spec, MAXLEN - 1);
-                strncat(tmp_str, " is not readable (permission denied).",
-                        MAXLEN - 1);
-                Perror(tmp_str);
-            }
-        } else if (errno == ENOENT) {
+        if (fstatat(AT_FDCWD, spec, &sb, 0) == 0)
+            if ((sb.st_mode & S_IFMT) == S_IFDIR)
+                return true;
+    if (errno == EACCES) {
+        if (mode == W_OK) {
             strncpy(tmp_str, "Directory ", MAXLEN - 1);
             strncat(tmp_str, spec, MAXLEN - 1);
-            strncat(tmp_str, " does not exist.", MAXLEN - 1);
+            strncat(tmp_str, " is not writable (permission denied).",
+                    MAXLEN - 1);
             Perror(tmp_str);
-        } else
-            return true;
-        return false;
+        }
+        if (mode == R_OK) {
+            strncpy(tmp_str, "Directory ", MAXLEN - 1);
+            strncat(tmp_str, spec, MAXLEN - 1);
+            strncat(tmp_str, " is not readable (permission denied).",
+                    MAXLEN - 1);
+            Perror(tmp_str);
+        }
+    } else if (errno == ENOENT) {
+        strncpy(tmp_str, "Directory ", MAXLEN - 1);
+        strncat(tmp_str, spec, MAXLEN - 1);
+        strncat(tmp_str, " does not exist.", MAXLEN - 1);
+        Perror(tmp_str);
     }
+    return false;
 }
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VERIFY_DIR_Q (quietly)                                            │
@@ -558,9 +570,13 @@ bool verify_dir(char *spec, int mode) {
     │ mode specified. Does not throw an error.                          │
     ╰───────────────────────────────────────────────────────────────────╯ */
 bool verify_dir_q(char *spec, int mode) {
+    int rc;
     expand_tilde(spec, MAXLEN);
-    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
-        return true;
+    struct stat sb;
+    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) == 0)
+        if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) == 0)
+            if ((sb.st_mode & S_IFMT) == S_IFDIR)
+                return true;
     return false;
 }
 /*  ╭───────────────────────────────────────────────────────────────────╮
@@ -569,59 +585,61 @@ bool verify_dir_q(char *spec, int mode) {
     │ specified.                                                        │
     ╰───────────────────────────────────────────────────────────────────╯ */
 bool verify_file(char *spec, int imode) {
+    int rc;
     char dirbuf[MAXLEN];
     int mode = imode & ~0x1000;
     expand_tilde(spec, MAXLEN);
-    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
-        return true;
-    else {
-        if (errno == EACCES) {
-            if (mode & W_OK) {
-                strncpy(tmp_str, "File ", MAXLEN - 1);
-                strncat(tmp_str, spec, MAXLEN - 1);
-                strncat(tmp_str, " is not writable (permission denied).",
-                        MAXLEN - 1);
-            }
-            if (mode & R_OK) {
-                strncpy(tmp_str, "File ", MAXLEN - 1);
-                strncat(tmp_str, spec, MAXLEN - 1);
-                strncat(tmp_str, " is not readable (permission denied).",
-                        MAXLEN - 1);
-            }
-            if (mode & X_OK) {
-                strncpy(tmp_str, "File ", MAXLEN - 1);
-                strncat(tmp_str, spec, MAXLEN - 1);
-                strncat(tmp_str, " is not executable (permission denied).",
-                        MAXLEN - 1);
-            }
-            Perror(tmp_str);
-            return false;
-        } else if (errno == ENOENT) {
-            if (imode & WC_OK) {
-                dir_name(dirbuf, spec);
-                if (faccessat(AT_FDCWD, dirbuf, W_OK, AT_EACCESS) == 0)
-                    return true;
-                strncpy(tmp_str, "File ", MAXLEN - 1);
-                strncat(tmp_str, spec, MAXLEN - 1);
-                strncat(tmp_str, "does not exist and cannot be created",
-                        MAXLEN - 1);
-                Perror(tmp_str);
-                return false;
-            } else {
-                strncpy(tmp_str, "File ", MAXLEN - 1);
-                strncat(tmp_str, spec, MAXLEN - 1);
-                strncat(tmp_str, " does not exist.", MAXLEN - 1);
-                Perror(tmp_str);
-                return false;
-            }
+    struct stat sb;
+    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) == 0)
+        if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) == 0)
+            if ((sb.st_mode & S_IFMT) == S_IFREG)
+                return true;
+    if (errno == EACCES) {
+        if (mode & W_OK) {
+            strncpy(tmp_str, "File ", MAXLEN - 1);
+            strncat(tmp_str, spec, MAXLEN - 1);
+            strncat(tmp_str, " is not writable (permission denied).",
+                    MAXLEN - 1);
         }
-        strncpy(tmp_str, "Error accessing file ", MAXLEN - 1);
-        strncat(tmp_str, spec, MAXLEN - 1);
-        strncat(tmp_str, ": ", MAXLEN - 1);
-        strncat(tmp_str, strerror(errno), MAXLEN - 1);
+        if (mode & R_OK) {
+            strncpy(tmp_str, "File ", MAXLEN - 1);
+            strncat(tmp_str, spec, MAXLEN - 1);
+            strncat(tmp_str, " is not readable (permission denied).",
+                    MAXLEN - 1);
+        }
+        if (mode & X_OK) {
+            strncpy(tmp_str, "File ", MAXLEN - 1);
+            strncat(tmp_str, spec, MAXLEN - 1);
+            strncat(tmp_str, " is not executable (permission denied).",
+                    MAXLEN - 1);
+        }
         Perror(tmp_str);
         return false;
+    } else if (errno == ENOENT) {
+        if (imode & WC_OK) {
+            dir_name(dirbuf, spec);
+            if (faccessat(AT_FDCWD, dirbuf, W_OK, AT_EACCESS) == 0)
+                return true;
+            strncpy(tmp_str, "File ", MAXLEN - 1);
+            strncat(tmp_str, spec, MAXLEN - 1);
+            strncat(tmp_str, "does not exist and cannot be created",
+                    MAXLEN - 1);
+            Perror(tmp_str);
+            return false;
+        } else {
+            strncpy(tmp_str, "File ", MAXLEN - 1);
+            strncat(tmp_str, spec, MAXLEN - 1);
+            strncat(tmp_str, " does not exist.", MAXLEN - 1);
+            Perror(tmp_str);
+            return false;
+        }
     }
+    strncpy(tmp_str, "Error accessing file ", MAXLEN - 1);
+    strncat(tmp_str, spec, MAXLEN - 1);
+    strncat(tmp_str, ": ", MAXLEN - 1);
+    strncat(tmp_str, strerror(errno), MAXLEN - 1);
+    Perror(tmp_str);
+    return false;
 }
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VERIFY_FILE_Q (Quietly)                                           │
@@ -629,10 +647,14 @@ bool verify_file(char *spec, int imode) {
     │ mode specified. Does not throw an error.                          │
     ╰───────────────────────────────────────────────────────────────────╯ */
 bool verify_file_q(char *spec, int imode) {
+    int rc;
     int mode = imode & ~0x1000;
     expand_tilde(spec, MAXLEN);
-    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
-        return true;
+    struct stat sb;
+    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) == 0)
+        if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) == 0)
+            if ((sb.st_mode & S_IFMT) == S_IFREG)
+                return true;
     return false;
 }
 /*  ╭───────────────────────────────────────────────────────────────────╮
@@ -665,4 +687,114 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
         dir = strtok(NULL, ":");
     }
     return false;
+}
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ LIST_FILES                                                        │
+    ╰───────────────────────────────────────────────────────────────────╯ */
+bool list_files(char *dir, char *regexp, bool f_recurse) {
+    if (f_recurse) {
+        lf_find_files(dir, regexp);
+        lf_find_dirs(dir, regexp);
+    } else {
+        lf_find_files(dir, regexp);
+    }
+    return true;
+}
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ LF_FIND_DIRS                                                      │
+    ╰───────────────────────────────────────────────────────────────────╯ */
+bool lf_find_dirs(char *dir, char *re) {
+    struct stat sb;
+    struct dirent *dir_st;
+    DIR *dirp;
+    char dir_s[MAXLEN];
+    char file_spec[MAXLEN];
+
+    if ((dirp = opendir(dir)) == 0)
+        return false;
+    dir_st = readdir(dirp);
+    while (dir_st != NULL) {
+        if (dir_st->d_ino != 0 && strcmp(dir_st->d_name, ".") != 0 &&
+            strcmp(dir_st->d_name, "..") != 0) {
+            strcpy(file_spec, dir);
+            if (file_spec[strlen(file_spec) - 1] != '/')
+                strcat(file_spec, "/");
+            strcat(file_spec, dir_st->d_name);
+            if (stat(file_spec, &sb) == -1) {
+                strnz__cpy(tmp_str, "can't find ", MAXLEN - 1);
+                strnz__cat(tmp_str, file_spec, MAXLEN - 1);
+                perror(tmp_str);
+                return false;
+            }
+            if ((sb.st_mode & S_IFMT) == S_IFDIR) {
+                strcpy(dir_s, file_spec);
+                lf_find_files(dir_s, re);
+                lf_find_dirs(dir_s, re);
+            }
+        }
+        dir_st = readdir(dirp);
+    }
+    closedir(dirp);
+    return true;
+}
+/*  ╭───────────────────────────────────────────────────────────────────╮
+    │ LF_FIND_FILES                                                     │
+    ╰───────────────────────────────────────────────────────────────────╯ */
+bool lf_find_files(char *dir, char *re) {
+    struct stat sb;
+    struct dirent *dir_st;
+    DIR *dirp;
+    int REG_FLAGS = 0;
+    int reti;
+    regmatch_t pmatch[1];
+    regex_t compiled_re;
+    char file_spec[MAXLEN];
+    char *file_spec_p;
+
+    if (re[0] == '\0')
+        return false;
+    reti = regcomp(&compiled_re, re, REG_FLAGS);
+    if (reti) {
+        perror("Invalid pattern");
+        return false;
+    }
+    if ((dirp = opendir(dir)) == 0)
+        return false;
+    dir_st = readdir(dirp);
+    while (dir_st != NULL) {
+        if (dir_st->d_ino != 0 && strcmp(dir_st->d_name, ".") != 0) {
+            strcpy(file_spec, dir);
+            if (file_spec[strlen(file_spec) - 1] != '/')
+                strcat(file_spec, "/");
+            strcat(file_spec, dir_st->d_name);
+            if (stat(file_spec, &sb) == -1) {
+                strnz__cpy(tmp_str, "can't find ", MAXLEN - 1);
+                strnz__cat(tmp_str, file_spec, MAXLEN - 1);
+                perror(tmp_str);
+                return false;
+            }
+            if ((sb.st_mode & S_IFMT) == S_IFDIR)
+                strcat(file_spec, "/");
+            reti = regexec(&compiled_re, file_spec, compiled_re.re_nsub + 1,
+                           pmatch, REG_FLAGS);
+            if (reti == REG_NOMATCH) {
+                // no match
+            } else if (reti) {
+                char msgbuf[100];
+                regerror(reti, &compiled_re, msgbuf, sizeof(msgbuf));
+                snprintf(tmp_str, MAXLEN - 1, "Regex match failed: %s\n",
+                         msgbuf);
+                perror(tmp_str);
+                return false;
+            } else {
+                file_spec_p = file_spec;
+                if (file_spec[0] == '.' && file_spec[1] == '/')
+                    file_spec_p += 2;
+                printf("%s\n", file_spec_p);
+            }
+        }
+        dir_st = readdir(dirp);
+    }
+    closedir(dirp);
+    return true;
 }
