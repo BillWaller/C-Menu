@@ -94,35 +94,35 @@ int ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     ╰───────────────────────────────────────────────────────────────────╯ */
 int str_to_args(char **argv, char *cmd_line, int max_args) {
     int argc = 0;
-    char *p = cmd_line;
+    char *d = cmd_line;
     char *arg_start;
     bool in_quotes = false;
     char quote_char = '\0';
 
-    while (*p != '\0' && argc < max_args - 1) {
-        while (*p == ' ' || *p == '\t')
-            p++;
-        if (*p == '\0')
+    while (*d != '\0' && argc < max_args - 1) {
+        while (*d == ' ' || *d == '\t')
+            d++;
+        if (*d == '\0')
             break;
-        arg_start = p;
-        while (*p != '\0') {
+        arg_start = d;
+        while (*d != '\0') {
             if (in_quotes) {
-                if (*p == quote_char) {
+                if (*d == quote_char) {
                     in_quotes = false;
-                    p++;
+                    d++;
                     break;
                 }
             } else {
-                if (*p == '"' || *p == '\'') {
+                if (*d == '"' || *d == '\'') {
                     in_quotes = true;
-                    quote_char = *p;
-                } else if (*p == ' ' || *p == '\t') {
+                    quote_char = *d;
+                } else if (*d == ' ' || *d == '\t') {
                     break;
                 }
             }
-            p++;
+            d++;
         }
-        size_t arg_length = p - arg_start;
+        size_t arg_length = d - arg_start;
         argv[argc] = (char *)malloc(arg_length + 1);
         strncpy(argv[argc], arg_start, arg_length);
         argv[argc][arg_length] = '\0';

@@ -29,7 +29,7 @@ fi
 if [ "$#" -eq 1 ]; then
     if [ "$1" = "-l" ]; then
         if [ -f installed ]; then
-            echo Installed files:
+            printf "\nInstalled files:\n"
             which lsd >/dev/null 2>&1
             if which lsd >/dev/null 2>&1; then
                 LS=$(awk '{printf("%s ", $2)}

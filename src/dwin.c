@@ -275,9 +275,6 @@ void open_curses(Init *init) {
     set_term(screen);
 
     f_curses_open = true;
-#ifdef DEBUG
-    immedok(stdscr, TRUE);
-#endif
     if (!has_colors()) {
         close_curses();
         abend(-1, "terminal color support required");
@@ -536,6 +533,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
         idlok(win_win[win_ptr], false);
         idcok(win_win[win_ptr], false);
     }
+    immedok(win_win[win_ptr], true);
     return (0);
 }
 void win_resize(int wlines, int wcols, char *title) {
@@ -784,16 +782,19 @@ int Perror(char *emsg_str) {
     }
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (len < 26)
-        len = 26;
+    if (len < 27)
+        len = 27;
     strcpy(title, "Notification");
-    if (win_new(1, len + 2, line, pos, title)) {
+    if (win_new(2, len + 2, line, pos, title)) {
         sprintf(title, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
         abend(-1, title);
     }
     error_win = win_win[win_ptr];
     mvwaddstr(error_win, 0, 1, emsg);
-    wmove(error_win, 0, len + 1);
+    wattron(error_win, A_REVERSE);
+    mvwaddstr(error_win, 1, 0, " Press any key to continue ");
+    wattroff(error_win, A_REVERSE);
+    wmove(error_win, 1, 27);
     wrefresh(error_win);
     cmd_key = wgetch(error_win);
     win_del();
