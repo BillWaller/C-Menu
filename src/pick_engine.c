@@ -47,7 +47,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     struct stat sb;
     char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
-    int m, rc;
+    int m;
     pid_t pid = 0;
 
     if (init->pick != NULL)
@@ -69,8 +69,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             }
         }
         str_to_args(s_argv, pick->start_cmd, MAXARGS - 1);
-        dup2(STDIN_FILENO, pick->in_fd);
-        dup2(STDOUT_FILENO, pick->out_fd);
+        dup2(STDIN_FILENO, init->stdin_fd);
+        dup2(STDOUT_FILENO, init->stdout_fd);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_pick");
             return (1);
@@ -83,19 +83,17 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             close(pipe_fd[P_READ]);
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
             close(pipe_fd[P_WRITE]);
-            rc = execvp(s_argv[0], s_argv);
-            if (rc == -1) {
-                m = MAXLEN - 24;
-                strncpy(tmp_str, "Can't exec pick start cmd: ", m);
-                m -= strlen(s_argv[0]);
-                strncat(tmp_str, s_argv[0], m);
-                Perror(tmp_str);
-            }
-            exit(rc);
+            execvp(s_argv[0], s_argv);
+            m = MAXLEN - 24;
+            strncpy(tmp_str, "Can't exec pick start cmd: ", m);
+            m -= strlen(s_argv[0]);
+            strncat(tmp_str, s_argv[0], m);
+            Perror(tmp_str);
+            exit(EXIT_FAILURE);
         }
         close(pipe_fd[P_WRITE]);
-        dup2(pick->in_fd, STDIN_FILENO);
-        // dup2(pick->out_fd, STDOUT_FILENO);
+        dup2(init->stdin_fd, STDIN_FILENO);
+        // dup2(init->stdout_fd, STDOUT_FILENO);
         restore_curses_tioctl();
         sig_prog_mode();
         keypad(pick->win, true);
