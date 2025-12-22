@@ -54,6 +54,15 @@ RGB hex_clr_str_to_rgb(char *);
 void init_hex_clr(int, char *);
 void color_correction(RGB *);
 
+int src_line;
+char *src_name;
+char fn[MAXLEN];
+char em0[MAXLEN];
+char em1[MAXLEN];
+char em2[MAXLEN];
+char em3[MAXLEN];
+char *eargv[MAXARGS];
+
 RGB StdColors[16] = {
     {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
     {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
@@ -702,48 +711,55 @@ int error_message(char **argv) {
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ DISPLAY_ERROR                                                 │
-    │     emsg0 - source file and line number (dwin.c 736)          │
-    │     emsg1 - predicate and subject (open file-name)            │
-    │     emsg2 - explanation (could not open file)                 │
+    │     em0 - source file and line number (dwin.c 736)            │
+    │     em1 - predicate and subject (open file-name)              │
+    │     em2 - explanation (could not open file)                   │
     │     to be added:                                              │
-    │     emsg3 - hint (check permissions)                          │
+    │     em3 - hint (check permissions)                            │
     ╰───────────────────────────────────────────────────────────────╯ */
-int display_error(char *emsg0, char *emsg1, char *emsg2) {
+int display_error(char *em0, char *em1, char *em2, char *em3) {
     char title[64];
     WINDOW *error_win;
-    int line, pos, emsg0_l, emsg1_l, emsg_l, cmd_l;
+    int line, pos, em_l, em0_l, em1_l, em2_l, em3_l, cmd_l;
     char cmd[] = " F1 Help | F9 Cancel | F10 Continue ";
 
     if (!f_curses_open) {
-        fprintf(stderr, "\n\n%s\n%s\n%s\n\n", emsg0, emsg1, emsg2);
+        fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", em0, em1, em2, em3);
         return (1);
     }
+    em_l = 0;
     cmd_l = strlen(cmd);
-    emsg0_l = strlen(emsg0);
-    emsg1_l = strlen(emsg1);
-    emsg_l = strlen(emsg2);
-    if (emsg0_l > emsg_l)
-        emsg_l = emsg0_l;
-    if (emsg1_l > emsg_l)
-        emsg_l = emsg1_l;
-    if (emsg_l < cmd_l)
-        emsg_l = cmd_l;
-    pos = (COLS - emsg_l - 4) / 2;
-    line = (LINES - 5) / 2;
-
+    em0_l = strlen(em0);
+    em1_l = strlen(em1);
+    em2_l = strlen(em2);
+    em3_l = strlen(em1);
+    if (em0_l > em_l)
+        em_l = em0_l;
+    if (em1_l > em_l)
+        em_l = em1_l;
+    if (em2_l > em_l)
+        em_l = em2_l;
+    if (em3_l > em_l)
+        em_l = em3_l;
+    if (em_l < cmd_l)
+        em_l = cmd_l;
+    pos = (COLS - em_l - 4) / 2;
+    line = (LINES - 6) / 2;
     strcpy(title, "Notification");
-    if (win_new(4, emsg_l + 2, line, pos, title)) {
-        sprintf(title, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
+    if (win_new(5, em_l + 2, line, pos, title)) {
+        sprintf(title, "win_new(%d, %d, %d, %d) failed", 5, em_l + 2, line,
+                pos);
         abend(-1, title);
     }
     error_win = win_win[win_ptr];
-    mvwaddstr(error_win, 0, 1, emsg0);
-    mvwaddstr(error_win, 1, 1, emsg1);
-    mvwaddstr(error_win, 2, 1, emsg2);
+    mvwaddstr(error_win, 0, 1, em0);
+    mvwaddstr(error_win, 1, 1, em1);
+    mvwaddstr(error_win, 2, 1, em2);
+    mvwaddstr(error_win, 3, 1, em3);
     wattron(error_win, A_REVERSE);
-    mvwaddstr(error_win, 3, 1, cmd);
+    mvwaddstr(error_win, 4, 1, cmd);
     wattroff(error_win, A_REVERSE);
-    wmove(error_win, 3, cmd_l + 1);
+    wmove(error_win, 4, cmd_l + 1);
     wrefresh(error_win);
     cmd_key = wgetch(error_win);
     switch (cmd_key) {

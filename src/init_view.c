@@ -16,9 +16,6 @@
     │ INIT_VIEW_FULL_SCREEN                                         │
     ╰───────────────────────────────────────────────────────────────╯ */
 int init_view_full_screen(Init *init) {
-    char emsg0[MAXLEN];
-    char emsg1[MAXLEN];
-    char emsg2[MAXLEN];
     view = init->view;
     view->f_full_screen = true;
     getmaxyx(stdscr, view->lines, view->cols);
@@ -32,11 +29,11 @@ int init_view_full_screen(Init *init) {
     view->smaxcol = view->cols - 1;
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        snprintf(emsg1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
+        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        snprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
                  MAX_COLS);
-        emsg2[0] = '\0';
-        display_error(emsg0, emsg1, emsg2);
+        em2[0] = '\0';
+        display_error(em0, em1, em2, NULL);
         abend(-1, "init_view_full_screen: newpad() failed");
     }
     view->box = NULL;
@@ -57,9 +54,6 @@ int init_view_full_screen(Init *init) {
     │ INIT_VIEW_BOXWIN                                              │
     ╰───────────────────────────────────────────────────────────────╯ */
 int init_view_boxwin(Init *init, char *title) {
-    char emsg0[MAXLEN];
-    char emsg1[MAXLEN];
-    char emsg2[MAXLEN];
     int scr_lines, scr_cols;
     view = init->view;
     view->f_full_screen = false;
@@ -75,11 +69,11 @@ int init_view_boxwin(Init *init, char *title) {
     else if (view->argv[0] != NULL && view->argv[0][0] != '\0')
         strnz__cpy(view->title, "no title", MAXLEN - 1);
     if (win_new(view->lines, view->cols, view->begy, view->begx, view->title)) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        snprintf(emsg1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
+        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        snprintf(em1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
                  view->lines, view->cols, view->begy, view->begx, "NULL");
-        emsg2[0] = '\0';
-        display_error(emsg0, emsg1, emsg2);
+        em2[0] = '\0';
+        display_error(em0, em1, em2, NULL);
         return (-1);
     }
     view->scroll_lines = view->lines - 1;
@@ -92,11 +86,11 @@ int init_view_boxwin(Init *init, char *title) {
     view->smaxcol = view->begx + view->cols;
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        snprintf(emsg1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
+        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        snprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
                  MAX_COLS);
-        emsg2[0] = '\0';
-        display_error(emsg0, emsg1, emsg2);
+        em2[0] = '\0';
+        display_error(em0, em1, em2, NULL);
         return -1;
     }
     wbkgd(view->win, COLOR_PAIR(cp_norm) | ' ');
@@ -116,25 +110,22 @@ int init_view_boxwin(Init *init, char *title) {
 bool view_init_input(View *view, char *file_name) {
     struct stat sb;
     int idx = 0;
-    char emsg0[MAXLEN];
-    char emsg1[MAXLEN];
-    char emsg2[MAXLEN];
     if (strcmp(file_name, "-") == 0)
         file_name = "/dev/stdin";
 
     int in_fd = open(file_name, O_RDONLY);
     if (in_fd == -1) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        snprintf(emsg1, MAXLEN - 65, "open %s", file_name);
-        strerror_r(errno, emsg2, MAXLEN);
-        display_error(emsg0, emsg1, emsg2);
+        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        snprintf(em1, MAXLEN - 65, "open %s", file_name);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, NULL);
         return false;
     }
     if (fstat(in_fd, &sb) == -1) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        snprintf(emsg1, MAXLEN - 65, "fstat %s", file_name);
-        strerror_r(errno, emsg2, MAXLEN);
-        display_error(emsg0, emsg1, emsg2);
+        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        snprintf(em1, MAXLEN - 65, "fstat %s", file_name);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, NULL);
         close(in_fd);
         return EXIT_FAILURE;
     }
@@ -165,10 +156,10 @@ bool view_init_input(View *view, char *file_name) {
     }
     view->buf = mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, in_fd, 0);
     if (view->buf == MAP_FAILED) {
-        snprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        snprintf(emsg1, MAXLEN - 65, "mmap %s", file_name);
-        strerror_r(errno, emsg2, MAXLEN);
-        display_error(emsg0, emsg1, emsg2);
+        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        snprintf(em1, MAXLEN - 65, "mmap %s", file_name);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, NULL);
         close(in_fd);
         return EXIT_FAILURE;
     }

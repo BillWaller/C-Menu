@@ -57,7 +57,13 @@
 
 extern int tty_fd;
 extern int dbgfd;
-
+extern int src_line;
+extern char *src_name;
+extern char fn[MAXLEN];
+extern char em0[MAXLEN];
+extern char em1[MAXLEN];
+extern char em2[MAXLEN];
+extern char em3[MAXLEN];
 extern char *eargv[MAXARGS];
 
 enum Caller { VIEW, FORM, PICK, MENU };
@@ -1024,7 +1030,7 @@ extern int get_chyron_key(key_cmd_tbl *, int);
     ╰───────────────────────────────────────────────────────────────────╯*/
 extern void abend(int, char *);
 extern void user_end();
-extern int display_error(char *, char *, char *);
+extern int display_error(char *, char *, char *, char *);
 extern void display_error_msg(View *, char *);
 extern int display_ok_message(char *);
 extern void display_argv_error_msg(char *, char **);
@@ -1034,7 +1040,6 @@ extern int form_desc_error(int, char *, char *);
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ FILE UTILITIES                                                    │
     ╰───────────────────────────────────────────────────────────────────╯*/
-#define WC_OK (W_OK | 0x1000)
 extern void normalize_file_spec(char *);
 extern void file_spec_path(char *, char *);
 extern void file_spec_name(char *, char *);

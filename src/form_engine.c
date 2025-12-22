@@ -33,7 +33,6 @@ void form_usage();
 int form_desc_error(int, char *, char *);
 int form_exec_cmd(Init *);
 int form_calculate(Init *);
-void stop_form_engine(Init *);
 int init_form(Init *, int, char **, int, int);
 unsigned int form_engine(Init *);
 
@@ -97,33 +96,6 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (form->title[0] == '\0')
         strncpy(form->title, form->in_spec, MAXLEN - 1);
-    if (!form->f_out_spec || (form->out_spec[0] == '\0') ||
-        (strcmp(form->out_spec, "-") == 0) ||
-        strcmp(form->out_spec, "/dev/stdout") == 0) {
-        /*  ╭───────────────────────────────────────────────────────╮
-            │ NO OUT SPEC PROVIDED, USE STDOUT                      │
-            │ BUT DETACHED FROM TTY                                 │
-            ╰───────────────────────────────────────────────────────╯ */
-        strcpy(form->out_spec, "/dev/stdout");
-        close(form->out_fd);
-        form->out_fd = open(form->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
-        dup2(form->out_fd, STDOUT_FILENO);
-        form->out_fp = fdopen(STDOUT_FILENO, "w");
-        form->f_out_spec = true;
-        form->f_out_pipe = true;
-    } else {
-        if ((form->out_fp = fopen(form->out_spec, "w")) == NULL) {
-            /*  ╭───────────────────────────────────────────────────╮
-                │ OUT SPEC IS A FILE                                │
-                ╰───────────────────────────────────────────────────╯ */
-            m = MAXLEN - 30;
-            strncpy(tmp_str, "Can't open form output file: ", m);
-            m -= strlen(form->in_spec);
-            strncat(tmp_str, form->out_spec, m);
-            Perror(tmp_str);
-            return (1);
-        }
-    }
     form_engine(init);
     if (form->win)
         win_del();
@@ -161,7 +133,6 @@ unsigned int form_engine(Init *init) {
             if (form->f_calculate) {
                 form_action = form_calculate(init);
                 if (form_action == P_END) {
-                    stop_form_engine(init);
                     return 0;
                 }
                 if (form_action == P_HELP || form_action == P_CANCEL)
@@ -171,7 +142,6 @@ unsigned int form_engine(Init *init) {
                 form_write(form);
             if (form->f_cmd_spec)
                 form_exec_cmd(init);
-            stop_form_engine(init);
             return 0;
         case P_HELP:
             strnz__cpy(earg_str, HELP_CMD, MAXLEN - 1);
@@ -184,7 +154,6 @@ unsigned int form_engine(Init *init) {
             form_action = 0;
             break;
         case P_CANCEL:
-            stop_form_engine(init);
             return 0;
         default:
             form_action = 0;
@@ -193,10 +162,6 @@ unsigned int form_engine(Init *init) {
     }
 }
 
-void stop_form_engine(Init *init) {
-    win_del();
-    close_form(init);
-}
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_CALCULATE                                                │
     ╰───────────────────────────────────────────────────────────────╯ */
@@ -379,9 +344,6 @@ void form_display_chyron(Form *form) {
     │ FORM_PARSE_DESCRIPTION                                        │
     ╰───────────────────────────────────────────────────────────────╯ */
 int form_parse_desc(Form *form) {
-    char emsg0[MAXLEN];
-    char emsg1[MAXLEN];
-    char emsg2[MAXLEN];
     FILE *form_desc_fp;
     char *token;
     char *s;
@@ -397,11 +359,11 @@ int form_parse_desc(Form *form) {
 
     form_desc_fp = fopen(form->mapp_spec, "r");
     if (form_desc_fp == NULL) {
-        ssnprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        strnz__cpy(emsg1, "fopen ", MAXLEN - 65);
-        strnz__cat(emsg1, form->mapp_spec, MAXLEN - 1);
-        strerror_r(errno, emsg2, MAXLEN);
-        display_error(emsg0, emsg1, emsg2);
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        strnz__cpy(em1, "fopen ", MAXLEN - 65);
+        strnz__cat(em1, form->mapp_spec, MAXLEN - 1);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, NULL);
         return (1);
     }
     for (i = 0; i < MAXFIELDS; i++) {
@@ -659,10 +621,10 @@ int form_parse_desc(Form *form) {
     }
     fclose(form_desc_fp);
     if (form->didx < 1 && form->fidx < 1) {
-        ssnprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 65, "%s", "Error in description file:");
-        ssnprintf(emsg2, MAXLEN - 65, "%s", form->mapp_spec);
-        display_error(emsg0, emsg1, emsg2);
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
+        ssnprintf(em1, MAXLEN - 65, "%s", "Error in description file:");
+        ssnprintf(em2, MAXLEN - 65, "%s", form->mapp_spec);
+        display_error(em0, em1, em2, NULL);
         return (1);
     }
     return (0);
@@ -710,22 +672,35 @@ int form_exec_cmd(Init *init) {
     │ WRITE FORM                                                    │
     ╰───────────────────────────────────────────────────────────────╯ */
 int form_write(Form *form) {
-    char emsg0[MAXLEN];
-    char emsg1[MAXLEN];
-    char emsg2[MAXLEN];
     int n;
-    FILE *out_fp;
-
-    if ((out_fp = fopen(form->out_spec, "w")) == NULL) {
-        ssnprintf(emsg0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-        ssnprintf(emsg1, MAXLEN - 65, "fopen %s", form->out_spec);
-        strerror_r(errno, emsg2, MAXLEN);
-        display_error(emsg0, emsg1, emsg2);
-        return (1);
+    if (!form->f_out_spec || (form->out_spec[0] == '\0') ||
+        (strcmp(form->out_spec, "-") == 0) ||
+        strcmp(form->out_spec, "/dev/stdout") == 0) {
+        /*  ╭───────────────────────────────────────────────────────╮
+            │ NO OUT SPEC PROVIDED, USE STDOUT                      │
+            │ BUT DETACHED FROM TTY                                 │
+            ╰───────────────────────────────────────────────────────╯ */
+        strcpy(form->out_spec, "/dev/stdout");
+        close(form->out_fd);
+        form->out_fd = open(form->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
+        dup2(form->out_fd, STDOUT_FILENO);
+        form->out_fp = fdopen(STDOUT_FILENO, "w");
+        form->f_out_spec = true;
+        form->f_out_pipe = true;
+    } else {
+        /*  ╭───────────────────────────────────────────────────╮
+            │ OUT SPEC IS A FILE                                │
+            ╰───────────────────────────────────────────────────╯ */
+        if ((form->out_fp = fopen(form->out_spec, "w")) == NULL) {
+            ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+            strerror_r(errno, em2, MAXLEN);
+            display_error(em0, em1, em2, NULL);
+            return (1);
+        }
     }
     for (n = 0; n < form->fcnt; n++)
-        fprintf(out_fp, "%s\n", form->field[n]->accept_s);
-    fclose(out_fp);
+        fprintf(form->out_fp, "%s\n", form->field[n]->accept_s);
+    fclose(form->out_fp);
     return (0);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -739,16 +714,13 @@ void form_usage() {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_DESC_ERROR                                               │
     ╰───────────────────────────────────────────────────────────────╯ */
-int form_desc_error(int in_line_num, char *in_buf, char *emsg) {
-    char emsg0[MAXLEN];
-    char emsg1[MAXLEN];
-    char emsg2[MAXLEN];
+int form_desc_error(int in_line_num, char *in_buf, char *em) {
     int cmd_key;
 
-    ssnprintf(emsg0, MAXLEN - 65, "%s: %s", __FILE__, emsg);
-    ssnprintf(emsg1, MAXLEN - 65, "Desc file: %s, line: %d", form->mapp_spec,
+    ssnprintf(em0, MAXLEN - 65, "%s: %s", __FILE__, em);
+    ssnprintf(em1, MAXLEN - 65, "Desc file: %s, line: %d", form->mapp_spec,
               in_line_num);
-    strnz__cpy(emsg2, in_buf, MAXLEN - 1);
-    cmd_key = display_error(emsg0, emsg1, emsg2);
+    strnz__cpy(em2, in_buf, MAXLEN - 1);
+    cmd_key = display_error(em0, em1, em2, NULL);
     return cmd_key;
 }
