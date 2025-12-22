@@ -529,55 +529,42 @@ bool dir_name(char *buf, char *path) {
     return true;
 }
 /*  ╭───────────────────────────────────────────────────────────────────╮
-    │ DIR_NAME                                                          │
-    │ Returns true if the directory exists and is accessable with the   │
-    │ mode specified                                                    │
-    ╰───────────────────────────────────────────────────────────────────╯ */
-bool verify_dir(char *spec, int mode) {
-    char tmp_str[MAXLEN];
-    expand_tilde(spec, MAXLEN);
-    struct stat sb;
-    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) == 0)
-        if (fstatat(AT_FDCWD, spec, &sb, 0) == 0)
-            if ((sb.st_mode & S_IFMT) == S_IFDIR)
-                return true;
-    if (errno == EACCES) {
-        if (mode == W_OK) {
-            strncpy(tmp_str, "Directory ", MAXLEN - 1);
-            strncat(tmp_str, spec, MAXLEN - 1);
-            strncat(tmp_str, " is not writable (permission denied).",
-                    MAXLEN - 1);
-            Perror(tmp_str);
-        }
-        if (mode == R_OK) {
-            strncpy(tmp_str, "Directory ", MAXLEN - 1);
-            strncat(tmp_str, spec, MAXLEN - 1);
-            strncat(tmp_str, " is not readable (permission denied).",
-                    MAXLEN - 1);
-            Perror(tmp_str);
-        }
-    } else if (errno == ENOENT) {
-        strncpy(tmp_str, "Directory ", MAXLEN - 1);
-        strncat(tmp_str, spec, MAXLEN - 1);
-        strncat(tmp_str, " does not exist.", MAXLEN - 1);
-        Perror(tmp_str);
-    }
-    return false;
-}
-/*  ╭───────────────────────────────────────────────────────────────────╮
-    │ VERIFY_DIR_Q (quietly)                                            │
+    │ VERIFY_DIR                                                        │
     │ Returns true if the directory exists and is accessable with the   │
     │ mode specified. Does not throw an error.                          │
     ╰───────────────────────────────────────────────────────────────────╯ */
-bool verify_dir_q(char *spec, int mode) {
+bool verify_dir(char *spec, int mode) {
     int rc;
     expand_tilde(spec, MAXLEN);
     struct stat sb;
-    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) == 0)
-        if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) == 0)
-            if ((sb.st_mode & S_IFMT) == S_IFDIR)
-                return true;
-    return false;
+    errno = 0;
+    src_line = 0;
+    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) != 0) {
+        src_line = __LINE__ - 1;
+        src_name = __FILE__;
+        strncpy(fn, "faccessat", MAXLEN - 1);
+    } else if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) != 0) {
+        src_line = __LINE__ - 1;
+        src_name = __FILE__;
+        strncpy(fn, "fstatat", MAXLEN - 1);
+    }
+    if (errno != 0)
+        strerror_r(errno, em2, MAXLEN - 1);
+    else if ((sb.st_mode & S_IFMT) != S_IFDIR) {
+        src_line = __LINE__ - 1;
+        src_name = __FILE__;
+        strncpy(fn, "verify_file", MAXLEN - 1);
+        strncpy(em2, "Not a regular file.", MAXLEN - 1);
+    }
+    if (src_line != 0) {
+        ssnprintf(em0, MAXLEN - 1, "%s failed in %s at line %d", fn, src_name,
+                  src_line);
+        strncpy(em1, spec, MAXLEN - 1);
+        strncpy(em3, "Check the file", MAXLEN - 1);
+        display_error(em0, em1, em2, em3);
+        return false;
+    }
+    return true;
 }
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ VERIFY_FILE                                                       │
@@ -586,76 +573,37 @@ bool verify_dir_q(char *spec, int mode) {
     ╰───────────────────────────────────────────────────────────────────╯ */
 bool verify_file(char *spec, int imode) {
     int rc;
-    char dirbuf[MAXLEN];
     int mode = imode & ~0x1000;
     expand_tilde(spec, MAXLEN);
     struct stat sb;
-    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) == 0)
-        if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) == 0)
-            if ((sb.st_mode & S_IFMT) == S_IFREG)
-                return true;
-    if (errno == EACCES) {
-        if (mode & W_OK) {
-            strncpy(tmp_str, "File ", MAXLEN - 1);
-            strncat(tmp_str, spec, MAXLEN - 1);
-            strncat(tmp_str, " is not writable (permission denied).",
-                    MAXLEN - 1);
-        }
-        if (mode & R_OK) {
-            strncpy(tmp_str, "File ", MAXLEN - 1);
-            strncat(tmp_str, spec, MAXLEN - 1);
-            strncat(tmp_str, " is not readable (permission denied).",
-                    MAXLEN - 1);
-        }
-        if (mode & X_OK) {
-            strncpy(tmp_str, "File ", MAXLEN - 1);
-            strncat(tmp_str, spec, MAXLEN - 1);
-            strncat(tmp_str, " is not executable (permission denied).",
-                    MAXLEN - 1);
-        }
-        Perror(tmp_str);
-        return false;
-    } else if (errno == ENOENT) {
-        if (imode & WC_OK) {
-            dir_name(dirbuf, spec);
-            if (faccessat(AT_FDCWD, dirbuf, W_OK, AT_EACCESS) == 0)
-                return true;
-            strncpy(tmp_str, "File ", MAXLEN - 1);
-            strncat(tmp_str, spec, MAXLEN - 1);
-            strncat(tmp_str, "does not exist and cannot be created",
-                    MAXLEN - 1);
-            Perror(tmp_str);
-            return false;
-        } else {
-            strncpy(tmp_str, "File ", MAXLEN - 1);
-            strncat(tmp_str, spec, MAXLEN - 1);
-            strncat(tmp_str, " does not exist.", MAXLEN - 1);
-            Perror(tmp_str);
-            return false;
-        }
+    errno = 0;
+    src_line = 0;
+    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) != 0) {
+        src_line = __LINE__ - 1;
+        src_name = __FILE__;
+        strncpy(fn, "faccessat", MAXLEN - 1);
+    } else if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) != 0) {
+        src_line = __LINE__ - 1;
+        src_name = __FILE__;
+        strncpy(fn, "fstatat", MAXLEN - 1);
     }
-    strncpy(tmp_str, "Error accessing file ", MAXLEN - 1);
-    strncat(tmp_str, spec, MAXLEN - 1);
-    strncat(tmp_str, ": ", MAXLEN - 1);
-    strncat(tmp_str, strerror(errno), MAXLEN - 1);
-    Perror(tmp_str);
-    return false;
-}
-/*  ╭───────────────────────────────────────────────────────────────────╮
-    │ VERIFY_FILE_Q (Quietly)                                           │
-    │ Returns true if the directory exists and is accessable with the   │
-    │ mode specified. Does not throw an error.                          │
-    ╰───────────────────────────────────────────────────────────────────╯ */
-bool verify_file_q(char *spec, int imode) {
-    int rc;
-    int mode = imode & ~0x1000;
-    expand_tilde(spec, MAXLEN);
-    struct stat sb;
-    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) == 0)
-        if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) == 0)
-            if ((sb.st_mode & S_IFMT) == S_IFREG)
-                return true;
-    return false;
+    if (errno != 0)
+        strerror_r(errno, em2, MAXLEN - 1);
+    else if ((sb.st_mode & S_IFMT) != S_IFREG) {
+        src_line = __LINE__ - 1;
+        src_name = __FILE__;
+        strncpy(fn, "verify_file", MAXLEN - 1);
+        strncpy(em2, "Not a regular file.", MAXLEN - 1);
+    }
+    if (src_line != 0) {
+        ssnprintf(em0, MAXLEN - 1, "%s failed in %s at line %d", fn, src_name,
+                  src_line);
+        strncpy(em1, spec, MAXLEN - 1);
+        strncpy(em3, "Check the file", MAXLEN - 1);
+        display_error(em0, em1, em2, em3);
+        return false;
+    }
+    return true;
 }
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ LOCATE_FILE_IN_PATH                                               │
