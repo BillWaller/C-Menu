@@ -69,8 +69,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             }
         }
         str_to_args(s_argv, pick->start_cmd, MAXARGS - 1);
-        dup2(STDIN_FILENO, init->stdin_fd);
-        dup2(STDOUT_FILENO, init->stdout_fd);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_pick");
             return (1);
@@ -79,7 +77,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             Perror("fork() failed in init_pick");
             return (1);
         }
-        if (pid == 0) {
+        if (pid == 0) { // Child
             close(pipe_fd[P_READ]);
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
             close(pipe_fd[P_WRITE]);
@@ -91,12 +89,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
+        // Back to parent
         close(pipe_fd[P_WRITE]);
-        dup2(init->stdin_fd, STDIN_FILENO);
-        // dup2(init->stdout_fd, STDOUT_FILENO);
-        restore_curses_tioctl();
-        sig_prog_mode();
-        keypad(pick->win, true);
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
         pick->f_in_pipe = true;
     } else {
@@ -139,44 +133,15 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             return (1);
         }
     }
-    if (pick->cmd_spec[0] != '\0')
-        /* ╭────────────────────────────────────────────────────────╮
-           │ CMD_SPEC                                               │
-           ╰────────────────────────────────────────────────────────╯ */
-        str_to_args(s_argv, pick->cmd_spec, MAXARGS - 1);
-    else {
-        if (!pick->f_out_spec || (pick->out_spec[0] == '\0') ||
-            (strcmp(pick->out_spec, "-") == 0) ||
-            strcmp(pick->out_spec, "/dev/stdout") == 0) {
-            /*  ╭───────────────────────────────────────────────────╮
-                │ NO OUT SPEC PROVIDED, USE STDOUT                  │
-                │ BUT DETACHED FROM TTY                             │
-                ╰───────────────────────────────────────────────────╯ */
-            strcpy(pick->out_spec, "/dev/stdout");
-            pick->out_fd =
-                open(pick->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
-            dup2(pick->out_fd, STDOUT_FILENO);
-            close(pick->out_fd);
-            pick->out_fp = fdopen(STDOUT_FILENO, "w");
-            pick->f_out_spec = true;
-            pick->f_out_pipe = true;
-        } else {
-            if ((pick->out_fp = fopen(pick->out_spec, "w")) == NULL) {
-                /*  ╭───────────────────────────────────────────────╮
-                    │ OUT SPEC IS A FILE                            │
-                    ╰───────────────────────────────────────────────╯ */
-                m = MAXLEN - 30;
-                strncpy(tmp_str, "Can't open pick output file: ", m);
-                m -= strlen(pick->in_spec);
-                strncat(tmp_str, pick->out_spec, m);
-                Perror(tmp_str);
-                return (1);
-            }
-        }
-    }
     read_pick_input(init);
-    close(pipe_fd[P_READ]);
-    waitpid(pid, NULL, 0);
+    if (pick->f_in_pipe && pid > 0) {
+        waitpid(pid, NULL, 0);
+        dup2(init->stdin_fd, STDIN_FILENO);
+        dup2(init->stdout_fd, STDOUT_FILENO);
+        restore_curses_tioctl();
+        sig_prog_mode();
+        keypad(pick->win, true);
+    }
     if (pick->obj_cnt == 0) {
         Perror("No pick objects available");
         close_pick(init);
@@ -624,11 +589,22 @@ void toggle_object(Pick *pick) {
    │ OUTPUT_OBJECTS                                                 │
    ╰────────────────────────────────────────────────────────────────╯ */
 int output_objects(Pick *pick) {
+    int m;
+    if ((pick->out_fp = fopen(pick->out_spec, "w")) == NULL) {
+        /*  ╭───────────────────────────────────────────────╮
+            │ OUT SPEC IS A FILE                            │
+            ╰───────────────────────────────────────────────╯ */
+        m = MAXLEN - 30;
+        strncpy(tmp_str, "Can't open pick output file: ", m);
+        m -= strlen(pick->in_spec);
+        strncat(tmp_str, pick->out_spec, m);
+    }
     for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt; pick->obj_idx++) {
         if (pick->f_selected[pick->obj_idx])
             fprintf(stdout, "%s\n", pick->object[pick->obj_idx]);
     }
     fflush(stdout);
+    fclose(pick->out_fp);
     return (0);
 }
 /* ╭────────────────────────────────────────────────────────────────╮
@@ -636,30 +612,27 @@ int output_objects(Pick *pick) {
    ╰────────────────────────────────────────────────────────────────╯ */
 int exec_objects(Init *init) {
     int rc = -1;
+    int m;
     int margc;
-    char *token;
     char *margv[MAXARGS];
-    char *s;
     char tmp_str[MAXLEN];
     int i = 0;
+    pid_t pid = 0;
 
-    if (init->pick != pick)
-        abend(-1, "exec_objects: init->pick != pick\n");
-
+    // ╭────────────────────────────────────────────────────╮
+    // │ Are we providing input via pipe?                   │
+    // ╰────────────────────────────────────────────────────╯
     if (pick->cmd_spec[0] == '\0')
-        return rc;
-
-    s = pick->cmd_spec;
-    margc = 0;
-    token = strtok(s, " \t");
-    do {
-        if (token == NULL)
-            break;
-        margv[margc++] = strdup(token);
-        token = strtok(NULL, " \t");
-    } while (token);
-    margv[margc] = NULL;
-
+        return -1;
+    if (pick->cmd_spec[0] == '\\' || pick->cmd_spec[0] == '\"') {
+        /* Remove surrounding quotes if present */
+        size_t len = strlen(pick->cmd_spec);
+        if (len > 1 && pick->cmd_spec[len - 1] == '\"') {
+            memmove(pick->cmd_spec, pick->cmd_spec + 1, len - 2);
+            pick->cmd_spec[len - 2] = '\0';
+        }
+    }
+    margc = str_to_args(margv, pick->cmd_spec, MAXARGS - 1);
     base_name(tmp_str, margv[0]);
     while (pagers_editors[i][0] != '\0') {
         if (!strcmp(tmp_str, pagers_editors[i]))
@@ -703,10 +676,29 @@ int exec_objects(Init *init) {
         }
     }
     margv[margc] = NULL;
-    rc = fork_exec(margv);
+    if ((pid = fork()) == -1) {
+        Perror("fork() failed in exec_objects");
+        return (1);
+    }
+    if (pid == 0) { // Child
+        // dup2(init->stdin_fd, STDIN_FILENO);
+        // dup2(init->stdout_fd, STDOUT_FILENO);
+        execvp(margv[0], margv);
+        m = MAXLEN - 26;
+        strncpy(tmp_str, "Can't exec pick cmd_spec: ", m);
+        m -= strlen(margv[0]);
+        strncat(tmp_str, margv[0], m);
+        Perror(tmp_str);
+        exit(EXIT_FAILURE);
+    }
+    // Parent
     margc = 0;
     while (margv[margc] != NULL)
         free(margv[margc++]);
+    waitpid(pid, NULL, 0);
+    restore_curses_tioctl();
+    sig_prog_mode();
+    keypad(pick->win, true);
     restore_wins();
     return rc;
 }

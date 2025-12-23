@@ -176,7 +176,7 @@ int form_calculate(Init *init) {
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     MEVENT event;
     event.y = event.x = -1;
-    tcflush(0, TCIFLUSH);
+    tcflush(2, TCIFLUSH);
     c = wgetch(form->win);
     while (loop) {
         switch (c) {

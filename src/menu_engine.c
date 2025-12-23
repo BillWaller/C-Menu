@@ -109,7 +109,7 @@ unsigned int menu_cmd_processor(Init *init) {
     touchwin(win_win[win_ptr]);
     wnoutrefresh(win_win[win_ptr]);
     event.y = event.x = -1;
-    // tcflush(0, TCIFLUSH);
+    tcflush(2, TCIFLUSH);
     in_key = mvwgetch(menu->win, menu->line_idx, 1);
     mvwaddstr(menu->win, menu->line_idx, 0,
               menu->line[menu->line_idx]->choice_text);

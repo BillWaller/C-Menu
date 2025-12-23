@@ -37,8 +37,8 @@ int main(int argc, char **argv) {
     raw_tioctl = shell_tioctl;
     mk_raw_tioctl(&raw_tioctl);
     tcflush(0, TCOFLUSH);
-    tcflush(1, TCOFLUSH);
-    tcflush(2, TCOFLUSH);
+    // tcflush(1, TCOFLUSH);
+    // tcflush(2, TCOFLUSH);
     while (1) {
         msg = argv[1];
         while (*msg) {

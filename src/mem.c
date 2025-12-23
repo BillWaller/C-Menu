@@ -274,9 +274,10 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
     bool f_spec = false;
     char try_spec[MAXLEN];
 
-    if (!src_spec || !src_spec[0])
+    if (!src_spec[0])
         return false;
     strnz__cpy(try_spec, src_spec, MAXLEN - 1);
+    canonicalize_file_spec(try_spec);
     if (try_spec[0]) {
         expand_tilde(try_spec, MAXLEN - 1);
         if (try_spec[0] == '/') {
@@ -293,25 +294,25 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
                 if (f_dir) {
                     strnz__cat(try_spec, "/", MAXLEN - 1);
                     strnz__cat(try_spec, src_spec, MAXLEN - 1);
-                    f_spec = verify_file(try_spec, mode);
+                    f_spec = verify_file(try_spec, mode | S_QUIET);
                 }
             }
             if (!f_spec && alt_dir[0]) {
                 strnz__cpy(try_spec, alt_dir, MAXLEN - 1);
                 expand_tilde(try_spec, MAXLEN - 1);
                 // R_OK?
-                f_dir = verify_dir(try_spec, mode);
+                f_dir = verify_dir(try_spec, mode | S_QUIET);
                 if (f_dir) {
                     strnz__cat(try_spec, "/", MAXLEN - 1);
                     strnz__cat(try_spec, src_spec, MAXLEN - 1);
-                    f_spec = verify_file(try_spec, mode);
+                    f_spec = verify_file(try_spec, mode | S_QUIET);
                 }
             }
             if (!f_spec) {
                 strnz__cpy(try_spec, ".", MAXLEN - 1);
                 strnz__cat(try_spec, "/", MAXLEN - 1);
                 strnz__cat(try_spec, src_spec, MAXLEN - 1);
-                f_spec = verify_file(try_spec, mode);
+                f_spec = verify_file(try_spec, mode | S_QUIET);
             }
             if (!f_spec && mode == W_OK) {
                 FILE *fp = fopen(try_spec, "a");
@@ -379,6 +380,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     /* ╭───────────────────────────────────────────────────────────╮
        │ MENU MAPP_SPEC - FALLBACK DEFAULTS - Priority 1           │
        ╰───────────────────────────────────────────────────────────╯ */
+    // should check menu->mapp_spec[0]
     if (!menu->f_mapp_spec) {
         menu->f_mapp_spec = verify_spec_arg(
             menu->mapp_spec, "~/menuapp/msrc/main.m", NULL, NULL, R_OK);
