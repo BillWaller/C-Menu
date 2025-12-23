@@ -49,6 +49,8 @@
 #define MAX_COLOR_PAIRS 512
 #define MAX_COLORS 512
 
+#define S_WCOK 0x1000
+#define S_QUIET 0x2000
 #define P_READ 0
 #define P_WRITE 1
 /*  ╭───────────────────────────────────────────────────────────────────╮
@@ -1055,6 +1057,7 @@ extern bool verify_dir_q(char *, int);
 extern bool verify_spec_arg(char *, char *, char *, char *, int);
 extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool locate_file_in_path(char *, char *);
+extern int canonicalize_file_spec(char *);
 
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ DEPRECATED                                                        │

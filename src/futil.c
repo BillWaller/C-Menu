@@ -47,6 +47,7 @@ void file_spec_name(char *, char *);
 bool verify_file(char *, int);
 bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
+int canonicalize_file_spec(char *);
 char errmsg[MAXLEN];
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ RTRIM                                                             │
@@ -533,12 +534,14 @@ bool dir_name(char *buf, char *path) {
     │ Returns true if the directory exists and is accessable with the   │
     │ mode specified. Does not throw an error.                          │
     ╰───────────────────────────────────────────────────────────────────╯ */
-bool verify_dir(char *spec, int mode) {
+bool verify_dir(char *spec, int imode) {
     int rc;
+    int mode = imode & ~(S_WCOK | S_QUIET);
     expand_tilde(spec, MAXLEN);
     struct stat sb;
     errno = 0;
     src_line = 0;
+
     if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) != 0) {
         src_line = __LINE__ - 1;
         src_name = __FILE__;
@@ -573,11 +576,14 @@ bool verify_dir(char *spec, int mode) {
     ╰───────────────────────────────────────────────────────────────────╯ */
 bool verify_file(char *spec, int imode) {
     int rc;
-    int mode = imode & ~0x1000;
+    int mode = imode & ~(S_WCOK | S_QUIET);
     expand_tilde(spec, MAXLEN);
     struct stat sb;
     errno = 0;
     src_line = 0;
+
+    canonicalize_file_spec(spec);
+
     if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) != 0) {
         src_line = __LINE__ - 1;
         src_name = __FILE__;
@@ -596,6 +602,8 @@ bool verify_file(char *spec, int imode) {
         strncpy(em2, "Not a regular file.", MAXLEN - 1);
     }
     if (src_line != 0) {
+        if (imode & S_QUIET)
+            return false;
         ssnprintf(em0, MAXLEN - 1, "%s failed in %s at line %d", fn, src_name,
                   src_line);
         strncpy(em1, spec, MAXLEN - 1);
@@ -615,6 +623,7 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     char fn[MAXLEN];
     char *p, *fnp, *dir;
 
+    canonicalize_file_spec(file_name);
     strncpy(fn, file_name, MAXLEN - 1);
     fnp = fn;
     while (*fnp && *fnp != '/')
@@ -745,4 +754,32 @@ bool lf_find_files(char *dir, char *re) {
     }
     closedir(dirp);
     return true;
+}
+
+int canonicalize_file_spec(char *spec) {
+    /*  ╭───────────────────────────────────────────────────────╮
+        │ trim at first space and remove quotes                 │
+        ╰───────────────────────────────────────────────────────╯ */
+    char tmp_s[MAXLEN];
+    char *s;
+    s = spec;
+    char *d;
+    d = tmp_s;
+    int l = 0;
+    while (*s != '\0') {
+        if (*s == ' ')
+            break;
+        if (*s == '\"' || *s == '\'') {
+            s++;
+            continue;
+            ;
+        }
+        *d++ = *s++;
+        l++;
+    }
+    *d = '\0';
+    // strnz__cpy(spec, tmp_s, MAXLEN - 1);
+    strncpy(spec, tmp_s, MAXLEN - 1);
+    l = strlen(spec);
+    return l;
 }

@@ -7,4 +7,4 @@ if [ ! -s "gdbcmds" ]; then
 	echo "run" >>gdbcmds
 	echo "quit" >>gdbcmds
 fi
-gdb -x gdbcmds -q --args pick -S "./lf ./ .*\.c$"
+gdb -x gdbcmds -q --args pick -S "lf ./ .*\.c$" -c vi

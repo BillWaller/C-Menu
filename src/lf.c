@@ -1,5 +1,4 @@
 // lf.c
-// Bill Waller
 // recursively list files
 
 #include <dirent.h>
@@ -16,58 +15,78 @@
 #include <unistd.h>
 
 #define MAXLEN 256
+
+#define ALL 0x01
+#define RECURSE 0x02
+
 char tmp_str[MAXLEN];
 
-bool list_files(char *, char *, bool);
-bool lf_find_files(char *, char *);
-bool lf_find_dirs(char *, char *);
-bool lf_write_file(int, char *);
+bool list_files(char *, char *, int);
+bool lf_find_files(char *, char *, int);
+bool lf_find_dirs(char *, char *, int);
+bool lf_write_file(int, char *, int);
 
 int main(int argc, char **argv) {
     char dir[MAXLEN] = "";
     char re[MAXLEN] = "";
-    int i;
-    bool f_recurse = false;
+    bool f_help = false;
+    bool f_version = false;
+    int flags = 0;
+    int opt;
 
-    if (argc > 5) {
-        snprintf(tmp_str, MAXLEN - 1, "usage: dir [regexp]\n\n");
-        perror(tmp_str);
-        snprintf(tmp_str, MAXLEN - 1, "Too many arguments. Maxmum is 5.");
-        perror(tmp_str);
-        exit(1);
-    }
-    i = 1;
-    while (i < argc) {
-        if (strcmp(argv[i], "-r") == 0) {
-            f_recurse = true;
-            i++;
-            continue;
-        } else {
-            strcpy(dir, argv[i++]);
+    while ((opt = getopt(argc, argv, "ahrv")) != -1) {
+        switch (opt) {
+        case 'a':
+            flags |= ALL;
             break;
+        case 'h':
+            f_help = true;
+            break;
+        case 'r':
+            flags |= RECURSE;
+            break;
+        case 'v':
+            f_version = true;
+            break;
+        default:
+            exit(EXIT_FAILURE);
         }
     }
-    f_recurse = true;
-    if (i < argc)
-        strcpy(re, argv[i++]);
+    if (f_help) {
+        printf("Usage: lf [options] [directory] [regexp]\n");
+        printf("Options:\n");
+        printf("  -a        List all files (including hidden files)\n");
+        printf("  -h        Show this help message\n");
+        printf("  -r        Recurse into subdirectories\n");
+        printf("  -v        Show version information\n");
+        exit(EXIT_SUCCESS);
+    }
+    if (f_version) {
+        printf("lf version 1.0\n");
+        exit(EXIT_SUCCESS);
+    }
+    if (optind < argc) {
+        strcpy(dir, argv[optind]);
+        optind++;
+    }
+    if (optind < argc) {
+        strcpy(re, argv[optind]);
+        optind++;
+    }
     if (re[0] == '\0')
         strcpy(re, ".*");
     if (dir[0] == '\0')
-        strcpy(dir, "./");
-    list_files(dir, re, f_recurse);
-}
-
-bool list_files(char *dir, char *regexp, bool f_recurse) {
-    if (f_recurse) {
-        lf_find_files(dir, regexp);
-        lf_find_dirs(dir, regexp);
+        strcpy(dir, ".");
+    if (flags & RECURSE) {
+        lf_find_files(dir, re, flags);
+        lf_find_dirs(dir, re, flags);
     } else {
-        lf_find_files(dir, regexp);
+        lf_find_files(dir, re, flags);
     }
     return true;
 }
 
-bool lf_find_dirs(char *dir, char *re) {
+bool lf_find_dirs(char *dir, char *re, int flags) {
     struct stat sb;
     struct dirent *dir_st;
     DIR *dirp;
@@ -92,8 +111,8 @@ bool lf_find_dirs(char *dir, char *re) {
             }
             if ((sb.st_mode & S_IFMT) == S_IFDIR) {
                 strcpy(dir_s, file_spec);
-                lf_find_files(dir_s, re);
-                lf_find_dirs(dir_s, re);
+                lf_find_files(dir_s, re, flags);
+                lf_find_dirs(dir_s, re, flags);
             }
         }
         dir_st = readdir(dirp);
@@ -102,7 +121,7 @@ bool lf_find_dirs(char *dir, char *re) {
     return true;
 }
 
-bool lf_find_files(char *dir, char *re) {
+bool lf_find_files(char *dir, char *re, int flags) {
     struct stat sb;
     struct dirent *dir_st;
     DIR *dirp;
@@ -113,8 +132,6 @@ bool lf_find_files(char *dir, char *re) {
     char file_spec[MAXLEN];
     char *file_spec_p;
 
-    if (re[0] == '\0')
-        return false;
     reti = regcomp(&compiled_re, re, REG_FLAGS);
     if (reti) {
         perror("Invalid pattern");

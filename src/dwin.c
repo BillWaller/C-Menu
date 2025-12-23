@@ -245,12 +245,9 @@ void open_curses(Init *init) {
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    /*  ╭───────────────────────────────────────────────────────────────╮
-        │ By default, Unix stdin doesn't differentiate between piped    │
-        │ input via "|" and input from the keyboard. Here, we open      │
-        │ the tty device for curses screen io, leaving stdin, stdout,   │
-        │ and stderr, for piped input and output.                       │
-        ╰───────────────────────────────────────────────────────────────╯ */
+    init->stdin_fd = dup(STDIN_FILENO);
+    init->stdout_fd = dup(STDOUT_FILENO);
+    // Open the terminal device for reading and writing
     init->tty_fp = fopen(tty_name, "r+");
     if (init->tty_fp == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -259,17 +256,12 @@ void open_curses(Init *init) {
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    init->stdin_fd = dup(STDIN_FILENO);
-    init->stdout_fd = dup(STDOUT_FILENO);
-    init->stderr_fd = dup(STDERR_FILENO);
-    /*  ╭───────────────────────────────────────────────────────────────╮
-        │ This is where we associate the terminal device with NCurses   │
-        │ Beyond this point, NCurses has the tty.                       │
-        │                                                               │
-        │ We use newterm and set_term instead of initscr so we can      │
-        │ specify the streams used by NCurses                           │
-        ╰───────────────────────────────────────────────────────────────╯ */
+    // Attach the terminal descriptor to the STDERR_FILENO
+    dup2(fileno(init->tty_fp), STDERR_FILENO);
     SCREEN *screen = newterm(NULL, init->tty_fp, init->tty_fp);
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ Beyond this point, NCurses has the con.                       │
+        ╰───────────────────────────────────────────────────────────────╯ */
     if (screen == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strcpy(emsg0, "newterm failed ");

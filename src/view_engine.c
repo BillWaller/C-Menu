@@ -586,7 +586,7 @@ int get_cmd_char(View *view, long *n) {
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
-    tcflush(0, TCIFLUSH);
+    tcflush(2, TCIFLUSH);
     do {
         c = wgetch(view->win);
         if (c >= '0' && c <= '9' && i < 32) {
