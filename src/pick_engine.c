@@ -60,14 +60,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
        │ INPUT IS START_CMD                                         │
        ╰────────────────────────────────────────────────────────────╯ */
     if (pick->start_cmd[0] != '\0') {
-        if (pick->start_cmd[0] == '\\' || pick->start_cmd[0] == '\"') {
-            /* Remove surrounding quotes if present */
-            size_t len = strlen(pick->start_cmd);
-            if (len > 1 && pick->start_cmd[len - 1] == '\"') {
-                memmove(pick->start_cmd, pick->start_cmd + 1, len - 2);
-                pick->start_cmd[len - 2] = '\0';
-            }
-        }
         str_to_args(s_argv, pick->start_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_pick");
@@ -648,7 +640,9 @@ int exec_objects(Init *init) {
         }
         margv[margc] = NULL;
         if (!strcmp(tmp_str, "mview")) {
-            strncpy(pick->title, "Pick", MAXLEN - 1);
+            if (pick->title[0] == '\0')
+                strncpy(pick->title, "Pick", MAXLEN - 1);
+            strip_quotes(pick->title);
             mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4,
                   pick->title);
         }

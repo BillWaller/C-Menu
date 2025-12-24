@@ -57,20 +57,20 @@ int main(int argc, char **argv) {
     signal(SIGQUIT, ABEND);
     signal(SIGHUP, ABEND);
 
-    if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+    if (argc > 1 &&
+        ((strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) ||
+         argc < 4)) {
         printf("Usage: iloan [present_value number_of_payments "
                "interest_rate payment_amount]\n\n");
         exit(EXIT_SUCCESS);
     }
-
-    if (argc > 5) {
+    if (argc > 4) {
         numbers(tmp_str, argv[1]);
         sscanf(tmp_str, "%lf", &pv);
         sscanf(argv[2], "%lf", &n);
         sscanf(argv[3], "%lf", &i);
         numbers(tmp_str, argv[4]);
         sscanf(tmp_str, "%lf", &pmt);
-        strcpy(tmp_str, argv[5]);
         if (pv != 0)
             f_pv = 1;
         if (n != 0)
@@ -153,7 +153,6 @@ int main(int argc, char **argv) {
         printf("%s\n", format_currency(n));
         printf("%s\n", format_interest(i));
         printf("%s\n", format_currency(pmt));
-        printf("%s\n", tmp_str);
     }
     signal(SIGINT, SIG_DFL);
     signal(SIGQUIT, SIG_DFL);

@@ -48,8 +48,7 @@ int form_display_field(Form *);
 int form_display_field_n(Form *, int);
 int form_display_field_brackets(Form *);
 int form_validate_field(Form *);
-void mk_filler_s(char *, int);
-void mk_blank_s(char *, int);
+void mk_filler(char *, int);
 
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ ACCEPT_FIELD                                                  │
@@ -65,7 +64,7 @@ int form_accept_field(Form *form) {
     int flen = form->field[form->fidx]->len;
     int ff = form->field[form->fidx]->ff;
     char *accept_s = form->field[form->fidx]->accept_s;
-    char *blank_s = form->field[form->fidx]->blank_s;
+    char *filler_s = form->field[form->fidx]->filler_s;
 
     form_fmt_field(form, accept_s);
     // mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION |
@@ -88,7 +87,7 @@ int form_accept_field(Form *form) {
 
     while (1) {
         if (in_key == 0) {
-            mvwaddstr(win, flin, fcol, blank_s);
+            mvwaddstr(win, flin, fcol, filler_s);
             mvwaddstr(win, flin, fcol, accept_s);
             wmove(win, flin, x);
             tcflush(0, TCIFLUSH);
@@ -318,7 +317,6 @@ int form_display_field_n(Form *form, int n) {
     form->fidx = fidx;
     return 0;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ DISPLAY_FIELD                                                 │
     ╰───────────────────────────────────────────────────────────────╯ */
@@ -327,27 +325,28 @@ int form_display_field(Form *form) {
     int flin = form->field[form->fidx]->line;
     int fcol = form->field[form->fidx]->col;
     form_display_field_brackets(form);
-    wmove(win, flin, fcol);
+    mvwaddstr(win, flin, fcol, form->field[form->fidx]->filler_s);
     mvwaddstr(win, flin, fcol, form->field[form->fidx]->display_s);
     wrefresh(win);
     return 0;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ DISPLAY_FIELD_BRACKETS                                        │
     ╰───────────────────────────────────────────────────────────────╯ */
 int form_display_field_brackets(Form *form) {
-    WINDOW *box = form->box;
-    int flin = form->field[form->fidx]->line + 1;
-    int fcol = form->field[form->fidx]->col;
-    wmove(box, flin, fcol);
-    waddch(box, '[');
-    wmove(box, flin, fcol + form->field[form->fidx]->len + 1);
-    waddch(box, ']');
-    wrefresh(box);
+    int flin, fcol;
+    if (form->f_brackets) {
+        WINDOW *box = form->box;
+        flin = form->field[form->fidx]->line + 1;
+        fcol = form->field[form->fidx]->col;
+        wmove(box, flin, fcol);
+        waddch(box, '[');
+        wmove(box, flin, fcol + form->field[form->fidx]->len + 1);
+        waddch(box, ']');
+        wrefresh(box);
+    }
     return 0;
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_FMT_FIELD                                                │
     ╰───────────────────────────────────────────────────────────────╯ */
@@ -356,7 +355,7 @@ int form_fmt_field(Form *form, char *s) {
     char *input_s = form->field[form->fidx]->input_s;
     char *accept_s = form->field[form->fidx]->accept_s;
     char *display_s = form->field[form->fidx]->display_s;
-    char *blank_s = form->field[form->fidx]->blank_s;
+    char *filler_s = form->field[form->fidx]->filler_s;
     int ff = form->field[form->fidx]->ff;
     int fl = form->field[form->fidx]->len;
 
@@ -447,7 +446,7 @@ int form_fmt_field(Form *form, char *s) {
     }
     strnz(accept_s, fl);
     left_justify(accept_s, fl);
-    mk_blank_s(blank_s, fl);
+    mk_filler(filler_s, fl);
     return 0;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
@@ -474,17 +473,16 @@ int form_validate_field(Form *form) {
     return (0);
 }
 
-void mk_filler_s(char *s, int fl) {
+/*  ╭───────────────────────────────────────────────────────────────╮
+    │ MK_FILLER_S                                                   │
+    ╰───────────────────────────────────────────────────────────────╯ */
+void mk_filler(char *s, int fl) {
     char *e = s + fl;
-    while (s != e)
-        *s++ = '_';
-    *s = '\0';
-}
+    unsigned char c;
 
-void mk_blank_s(char *s, int fl) {
-    char *e = s + fl;
+    c = form->fill_char[0];
     while (s != e)
-        *s++ = ' ';
+        *s++ = c;
     *s = '\0';
 }
 

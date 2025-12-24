@@ -189,7 +189,7 @@ int tty_fd, pipe_in, pipe_out;
     ╰───────────────────────────────────────────────────────────────╯ */
 void set_fkey(int k, char *s) {
     if (*s != '\0')
-        strncpy(key_cmd[k].text, "Calculate", 26);
+        ssnprintf(key_cmd[k].text, MAXLEN - 1, "F%d %s", k, s);
     else
         key_cmd[k].text[0] = '\0';
 }
@@ -579,16 +579,22 @@ WINDOW *win_del() {
     int i;
 
     if (win_ptr > 0) {
+        wclear(win_win[win_ptr]);
+        touchwin(win_win[win_ptr]);
+        wnoutrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
+        wclear(win_box[win_ptr]);
+        touchwin(win_box[win_ptr]);
+        wnoutrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
+        touchwin(stdscr);
+        wnoutrefresh(stdscr);
         for (i = 0; i < win_ptr; i++) {
             touchwin(win_box[i]);
             wnoutrefresh(win_box[i]);
             touchwin(win_win[i]);
             wnoutrefresh(win_win[i]);
         }
-        touchwin(stdscr);
-        wnoutrefresh(stdscr);
         win_ptr--;
     }
     return (0);
@@ -786,8 +792,8 @@ int Perror(char *emsg_str) {
     }
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (len < 27)
-        len = 27;
+    if (len < 39)
+        len = 39;
     strcpy(title, "Notification");
     if (win_new(2, len + 2, line, pos, title)) {
         sprintf(title, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
@@ -796,7 +802,7 @@ int Perror(char *emsg_str) {
     error_win = win_win[win_ptr];
     mvwaddstr(error_win, 0, 1, emsg);
     wattron(error_win, A_REVERSE);
-    mvwaddstr(error_win, 1, 0, " Press any key to continue ");
+    mvwaddstr(error_win, 1, 0, " F9 Cancel | Any other key to continue ");
     wattroff(error_win, A_REVERSE);
     wmove(error_win, 1, 27);
     wrefresh(error_win);

@@ -178,6 +178,8 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
         abend(-1, "init_form_files failed");
         return NULL;
     }
+    form->f_brackets = init->f_brackets;
+    strnz__cpy(form->fill_char, init->fill_char, MAXLEN - 1);
     form->begy = begy;
     form->begx = begx;
     return init->form;
@@ -273,6 +275,7 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
     bool f_dir = false;
     bool f_spec = false;
     char try_spec[MAXLEN];
+    char idio_spec[MAXLEN];
 
     if (!src_spec[0])
         return false;
@@ -287,14 +290,17 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
             return f_spec;
         } else {
             if (!f_dir && dir[0]) {
+                /*  ╭───────────────────────────────────────────────────╮
+                    │ IDIOMATIC (PREFERRED) SPEC                        │
+                    ╰───────────────────────────────────────────────────╯ */
                 strnz__cpy(try_spec, dir, MAXLEN - 1);
                 expand_tilde(try_spec, MAXLEN - 1);
-                // R_OK?
                 f_dir = verify_dir(try_spec, mode);
                 if (f_dir) {
                     strnz__cat(try_spec, "/", MAXLEN - 1);
                     strnz__cat(try_spec, src_spec, MAXLEN - 1);
-                    f_spec = verify_file(try_spec, mode | S_QUIET);
+                    strnz__cpy(idio_spec, try_spec, MAXLEN - 1);
+                    f_spec = verify_file(idio_spec, mode | S_QUIET);
                 }
             }
             if (!f_spec && alt_dir[0]) {
@@ -315,6 +321,7 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
                 f_spec = verify_file(try_spec, mode | S_QUIET);
             }
             if (!f_spec && mode == W_OK) {
+                strnz__cpy(try_spec, idio_spec, MAXLEN - 1);
                 FILE *fp = fopen(try_spec, "a");
                 if (fp) {
                     fclose(fp);
@@ -324,7 +331,7 @@ bool verify_spec_arg(char *spec, char *src_spec, char *dir, char *alt_dir,
             if (f_spec)
                 strnz__cpy(spec, try_spec, MAXLEN - 1);
             else
-                strnz__cpy(spec, src_spec, MAXLEN - 1);
+                strnz__cpy(spec, idio_spec, MAXLEN - 1);
             return f_spec;
         }
     }
@@ -513,7 +520,9 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     pick->fg_color = init->fg_color;
     pick->bg_color = init->bg_color;
     pick->bo_color = init->bo_color;
+    strip_quotes(init->title);
     strnz__cpy(pick->title, init->title, MAXLEN - 1);
+    strip_quotes(init->start_cmd);
     strnz__cpy(pick->start_cmd, init->start_cmd, MAXLEN - 1);
     pick->select_max = init->select_max;
     pick->f_stop_on_error = init->f_stop_on_error;

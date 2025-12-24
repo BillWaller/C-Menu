@@ -30,12 +30,17 @@ uint32_t utf8_decode(const unsigned char **s) {
 }
 
 int main() {
-    const unsigned char *str = (const unsigned char *)"é𝄞A┏━┓"; // UTF-8
+    const unsigned char *str = (const unsigned char *)"🙍👴👵♂♀";
+
     while (*str) {
         uint32_t cp = utf8_decode(&str);
-        printf("U+%04X\n", cp);
+        if (cp > 0xFFFF) {
+            printf("U+%06X\n", cp);
+            continue;
+        } else {
+            printf("U+%06X < 0xFFFF\n", cp);
+            continue;
+        }
     }
-    str = (const unsigned char *)"é𝄞A┏━┓"; // UTF-8
-    printf("%s\n", str);
     return 0;
 }

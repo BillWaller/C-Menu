@@ -28,6 +28,7 @@ bool lf_write_file(int, char *);
 
 int trim(char *);
 int rtrim(char *);
+void strip_quotes(char *);
 int ssnprintf(char *, size_t, const char *, ...);
 bool str_to_bool(const char *);
 int str_to_args(char **, char *, int);
@@ -278,6 +279,21 @@ void str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
             *d++ = *s++;
     }
     *d = '\0';
+}
+void strnfill(char *s, char c, int n) {
+    char *e;
+
+    e = s + n;
+    while (s < e)
+        *s++ = c;
+    *s = '\0';
+}
+void strip_quotes(char *s) {
+    int l = strlen(s);
+    if (l > 1 && s[l - 1] == '\"') {
+        memmove(s, s + 1, l - 2);
+        s[l - 2] = '\0';
+    }
 }
 /*  ╭───────────────────────────────────────────────────────────────────╮
     │ CHREP                                                             │
