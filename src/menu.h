@@ -509,7 +509,6 @@ typedef struct {
     char accept_s[MAXLEN];
     char display_s[MAXLEN];
     char filler_s[MAXLEN];
-    char blank_s[MAXLEN];
 } Field;
 
 typedef struct {
@@ -552,6 +551,8 @@ typedef struct {
     bool f_stop_on_error;
     bool f_help;
     bool f_start_cmd;
+    bool f_brackets;
+    char fill_char[2];
     int fidx;
     int fcnt;
     int didx;
@@ -870,8 +871,9 @@ typedef struct {
     bool f_stop_on_error;     // -Z  stop on error
     bool f_multiple_cmd_args; // -M  multiple command arguments
     bool f_erase_remainder;   // -e: erase remainder of line on enter
+    bool f_brackets;          // -f: field_brackets
     bool f_help;
-    bool f_start_cmd;
+
     // directories
     char mapp_home[MAXLEN]; // -m: home directory
     char mapp_data[MAXLEN]; //     --mapp_data
@@ -884,6 +886,15 @@ typedef struct {
     bool f_mapp_help; //
     bool f_mapp_msrc; //
     bool f_mapp_user; // -u: user directory
+    // file flags
+    bool f_mapp_desc;
+    bool f_start_cmd;
+    bool f_title;
+    bool f_cmd_spec;
+    bool f_help_spec;
+    bool f_in_spec;
+    bool f_out_spec;
+    char fill_char[2];
     // files
     char minitrc[MAXLEN];   // -a: main configuration file
     char mapp_spec[MAXLEN]; // -d: description qualified path
@@ -929,6 +940,7 @@ extern Form *close_form(Init *init);
 extern View *close_view(Init *init);
 extern Init *close_init(Init *init);
 extern int parse_opt_args(Init *, int, char **);
+extern void zero_opt_args(Init *);
 extern int write_config(Init *);
 extern bool derive_file_spec(char *, char *, char *);
 extern void open_curses(Init *init);
@@ -987,6 +999,7 @@ extern char err_msg[MAXLEN];
     ╰───────────────────────────────────────────────────────────────────╯*/
 extern int trim(char *);
 extern int rtrim(char *);
+extern void strip_quotes(char *);
 extern int ssnprintf(char *, size_t, const char *, ...);
 extern bool str_to_bool(const char *);
 extern int str_to_args(char **, char *, int);
@@ -998,6 +1011,7 @@ extern int strnz__cpy(char *, char *, int);
 extern int strnz__cat(char *, char *, int);
 extern char *strz_dup(char *);
 extern char *strnz_dup(char *, int);
+extern void strnfill(char *, char, int);
 extern void str_subc(char *, char *, char, char *, int);
 extern void chrep(char *, char, char);
 extern int get_color_number(char *);

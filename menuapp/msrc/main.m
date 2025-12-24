@@ -1,28 +1,27 @@
 :                APPLICATIONS
-:
-:
-:      Neovim
+:     Neovim
 !exec nvim
-:      Root Neovim
+:     Root Neovim
 !exec rsh -c nvim
-:      Full Screen (root) Shell
+:     Full Screen (root) Shell
 !exec rsh
-:       Test Curses Keys
+:     Test Curses Keys
 !ckeys
-:       View Scan Build Output
-!view scan-build.out
-:       Installment Loan Calculator
-!form iloan.f
-:       Pick Edit a File
-!pick -i picklist -M -c vi picklist.out
-:      Listener Research
+:     View a Source File
+!pick -i ./ls -n 1 -c bat
+:     Installment Loan Calculations
+!form iloan.f -i iloan.dat -c iloan -o iloan.dat
+:     Listener Research
 !form listadd.d
-:       Cash Receipts
+:     Cash Receipts
 !form receipt.f receipt.sh
-:      Test Fields
-!form -d fields.f -A fields.ans
-:      Help
-!view /home/bill/menuapp/data/dwin.c.hi
-:
-:      Exit Applications
+:     Form Data Types
+!form -d fields.f -i fields.dat -o fields.dat
+:     Edit .c Files in Current Directory
+!pick -S "lf ./ .*\.c$" -n 1 -c vi -T "Select File to Edit"
+:     View Data Types Help File
+!view -L 17 -C 45 -T "Data Types" /home/bill/menuapp/data/fields.f
+:     Menu Description
+!view -L 36 -C 74 main.m
+:     Exit Applications
 !return

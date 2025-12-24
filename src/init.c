@@ -38,6 +38,7 @@ Init *init = NULL;
 
 void mapp_initialization(Init *init, int, char **);
 int parse_opt_args(Init *, int, char **);
+void zero_opt_args(Init *);
 int parse_config(Init *);
 void dump_config(Init *, char *);
 void usage();
@@ -60,13 +61,15 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     }
     if (init->minitrc[0] == '\0')
         strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
-    init->bg_color = BG_COLOR;      // B: background color
-    init->fg_color = FG_COLOR;      // F: foreground color
-    init->bo_color = BO_COLOR;      // O: border colorZ
-    init->help_spec[0] = '\0';      // H: help spec
-    init->f_at_end_clear = true;    // z  clear screen on exit
-    init->f_erase_remainder = true; // e  erase remainder on enter
-    init->prompt_type = PT_LONG;    // P: prompt type
+    init->bg_color = BG_COLOR;                    // B: background color
+    init->fg_color = FG_COLOR;                    // F: foreground color
+    init->bo_color = BO_COLOR;                    // O: border colorZ
+    init->help_spec[0] = '\0';                    // H: help spec
+    init->f_at_end_clear = true;                  // z  clear screen on exit
+    init->f_erase_remainder = true;               // e  erase remainder on enter
+    init->f_brackets = true;                      // f  erase remainder on enter
+    strnz__cpy(init->fill_char, "_", MAXLEN - 1); // u  underscore
+    init->prompt_type = PT_LONG;                  // P: prompt type
     strnz__cpy(init->mapp_spec, "main.m", MAXLEN - 1);
     strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
     strnz__cpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
@@ -105,10 +108,16 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     if (f_version) {
         display_version();
     }
-    if (f_write_config)
-        write_config(init);
 }
-
+/* ╭───────────────────────────────────────────────────────────────────╮
+   │ ZERO_OPT_ARGS                                                     │
+   ╰───────────────────────────────────────────────────────────────────╯ */
+void zero_opt_args(Init *init) {
+    init->f_mapp_desc = init->f_start_cmd = init->f_title = init->f_cmd_spec =
+        init->f_help_spec = init->f_in_spec = init->f_out_spec = false;
+    init->mapp_spec[0] = init->help_spec[0] = init->cmd_spec[0] =
+        init->in_spec[0] = init->out_spec[0] = '\0';
+}
 /* ╭───────────────────────────────────────────────────────────────────╮
    │ PARSE_OPT_ARGS                                                    │
    ╰───────────────────────────────────────────────────────────────────╯ */
@@ -186,6 +195,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'e':
             init->f_erase_remainder = true;
             break;
+        case 'f':
+            init->f_brackets = true;
+            break;
         case 'g':
             init->green_gamma = str_to_double(optarg);
             break;
@@ -214,6 +226,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             init->tab_stop = atoi(optarg);
             if (init->tab_stop < 1)
                 init->tab_stop = 1;
+            break;
+        case 'u':
+            strncpy(init->fill_char, optarg, 2);
             break;
         case 'v':
         case 'V':
@@ -389,6 +404,14 @@ int parse_config(Init *init) {
             }
             if (!strcmp(key, "f_erase_remainder")) {
                 init->f_erase_remainder = str_to_bool(value);
+                continue;
+            }
+            if (!strcmp(key, "f_brackets")) {
+                init->f_brackets = str_to_bool(value);
+                continue;
+            }
+            if (!strcmp(key, "fill_char")) {
+                strnz__cpy(init->fill_char, value, 2);
                 continue;
             }
             if (!strcmp(key, "f_ignore_case")) {
@@ -614,6 +637,9 @@ int write_config(Init *init) {
                   init->f_at_end_remove ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
                   init->f_erase_remainder ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_brackets",
+                  init->f_brackets ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "fill_char", init->fill_char);
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_ignore_case",
                   init->f_ignore_case ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_squeeze",
@@ -708,6 +734,10 @@ void opt_prt_char(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
 
+void opt_prt_str(const char *o, const char *name, const char *value) {
+    fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
+}
+
 void opt_prt_int(const char *o, const char *name, int value) {
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
 }
@@ -723,7 +753,7 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
    │ DUMP_CONFIG                                                       │
    ╰───────────────────────────────────────────────────────────────────╯ */
 void dump_config(Init *init, char *msg) {
-    opt_prt_char("-a:", "--minitrc", init->minitrc);
+    opt_prt_str("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-C:", "--cols", init->cols);
     opt_prt_int("-L:", "--lines", init->lines);
     opt_prt_int("-X:", "--begx", init->begx);
@@ -737,44 +767,46 @@ void dump_config(Init *init, char *msg) {
     opt_prt_bool("-z ", "--f_at_end_clear", init->f_at_end_clear);
     opt_prt_bool("-y:", "--f_at_end_remove", init->f_at_end_remove);
     opt_prt_bool("-e:", "--f_erase_remainder", init->f_erase_remainder);
+    opt_prt_bool("-f:", "--f_brackets", init->f_brackets);
+    opt_prt_str("-u:", "--filler", init->fill_char);
     opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
     opt_prt_bool("-Z ", "--f_stop_on_error", init->f_stop_on_error);
     opt_prt_int("-t:", "--tab_stop", init->tab_stop);
     prompt_int_to_str(tmp_str, init->prompt_type);
-    opt_prt_char("-P:", "--promp_type", tmp_str);
+    opt_prt_str("-P:", "--promp_type", tmp_str);
     opt_prt_int("-n:", "--select_max", init->select_max);
-    opt_prt_char("-S ", "--start_cmd", init->start_cmd);
-    opt_prt_char("-T:", "--title", init->title);
-    opt_prt_char("   ", "--black", init->black);
-    opt_prt_char("   ", "--red", init->red);
-    opt_prt_char("   ", "--green", init->green);
-    opt_prt_char("   ", "--yellow", init->yellow);
-    opt_prt_char("   ", "--blue", init->blue);
-    opt_prt_char("   ", "--magenta", init->magenta);
-    opt_prt_char("   ", "--cyan", init->cyan);
-    opt_prt_char("   ", "--white", init->white);
-    opt_prt_char("   ", "--orange", init->orange);
-    opt_prt_char("   ", "--bblack", init->bblack);
-    opt_prt_char("   ", "--bred", init->bred);
-    opt_prt_char("   ", "--bgreen", init->bgreen);
-    opt_prt_char("   ", "--byellow", init->byellow);
-    opt_prt_char("   ", "--bblue", init->bblue);
-    opt_prt_char("   ", "--bmagenta", init->bmagenta);
-    opt_prt_char("   ", "--bcyan", init->bcyan);
-    opt_prt_char("   ", "--bwhite", init->bwhite);
-    opt_prt_char("   ", "--borange", init->borange);
-    opt_prt_char("   ", "--bg", init->bg);
-    opt_prt_char("   ", "--abg", init->abg);
-    opt_prt_char("-c:", "--cmd_spec", init->cmd_spec);
-    opt_prt_char("-H:", "--help_spec", init->help_spec);
-    opt_prt_char("-i:", "--in_spec", init->in_spec);
-    opt_prt_char("-d:", "--mapp_spec", init->mapp_spec);
-    opt_prt_char("-o:", "--out_spec", init->out_spec);
-    opt_prt_char("   ", "--mapp_data", init->mapp_data);
-    opt_prt_char("   ", "--mapp_help", init->mapp_help);
-    opt_prt_char("-m:", "--mapp_home", init->mapp_home);
-    opt_prt_char("   ", "--mapp_msrc", init->mapp_msrc);
-    opt_prt_char("-u:", "--mapp_user", init->mapp_user);
+    opt_prt_str("-S ", "--start_cmd", init->start_cmd);
+    opt_prt_str("-T:", "--title", init->title);
+    opt_prt_str("   ", "--black", init->black);
+    opt_prt_str("   ", "--red", init->red);
+    opt_prt_str("   ", "--green", init->green);
+    opt_prt_str("   ", "--yellow", init->yellow);
+    opt_prt_str("   ", "--blue", init->blue);
+    opt_prt_str("   ", "--magenta", init->magenta);
+    opt_prt_str("   ", "--cyan", init->cyan);
+    opt_prt_str("   ", "--white", init->white);
+    opt_prt_str("   ", "--orange", init->orange);
+    opt_prt_str("   ", "--bblack", init->bblack);
+    opt_prt_str("   ", "--bred", init->bred);
+    opt_prt_str("   ", "--bgreen", init->bgreen);
+    opt_prt_str("   ", "--byellow", init->byellow);
+    opt_prt_str("   ", "--bblue", init->bblue);
+    opt_prt_str("   ", "--bmagenta", init->bmagenta);
+    opt_prt_str("   ", "--bcyan", init->bcyan);
+    opt_prt_str("   ", "--bwhite", init->bwhite);
+    opt_prt_str("   ", "--borange", init->borange);
+    opt_prt_str("   ", "--bg", init->bg);
+    opt_prt_str("   ", "--abg", init->abg);
+    opt_prt_str("-c:", "--cmd_spec", init->cmd_spec);
+    opt_prt_str("-H:", "--help_spec", init->help_spec);
+    opt_prt_str("-i:", "--in_spec", init->in_spec);
+    opt_prt_str("-d:", "--mapp_spec", init->mapp_spec);
+    opt_prt_str("-o:", "--out_spec", init->out_spec);
+    opt_prt_str("   ", "--mapp_data", init->mapp_data);
+    opt_prt_str("   ", "--mapp_help", init->mapp_help);
+    opt_prt_str("-m:", "--mapp_home", init->mapp_home);
+    opt_prt_str("   ", "--mapp_msrc", init->mapp_msrc);
+    opt_prt_str("-u:", "--mapp_user", init->mapp_user);
     (void)fprintf(stderr, "\n%s\n\n", msg);
 }

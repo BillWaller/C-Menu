@@ -23,11 +23,12 @@
 #define D_QUERY 'Q'
 
 unsigned int form_display_screen(Init *);
+void form_display_fields(Form *);
 void form_display_chyron(Form *);
 int form_enter_fields(Form *);
 int form_parse_desc(Form *);
 int form_process_text(Form *);
-int form_read(Form *);
+int form_read_data(Form *);
 int form_write(Form *);
 void form_usage();
 int form_desc_error(int, char *, char *);
@@ -40,59 +41,18 @@ unsigned int form_engine(Init *);
    │ INIT_FORM                                                      │
    ╰────────────────────────────────────────────────────────────────╯ */
 int init_form(Init *init, int argc, char **argv, int begy, int begx) {
-    struct stat sb;
-    char tmp_str[MAXLEN];
-    int m;
-
     if (init->form != NULL)
         close_form(init);
     Form *form = new_form(init, argc, argv, begy, begx);
     if (init->form != form)
         abend(-1, "init->form != form\n");
-
     form->begy = begy + 1;
     form->begx = begx + 4;
-    strnz__cpy(form->title, init->title, MAXLEN - 1);
-    if (!form->f_in_spec || (form->in_spec[0] == '\0') ||
+    if ((form->f_in_spec && (form->in_spec[0] == '\0')) ||
         (strcmp(form->in_spec, "-") == 0) ||
         strcmp(form->in_spec, "/dev/stdin") == 0) {
         strcpy(form->in_spec, "/dev/stdin");
-        /*  ╭───────────────────────────────────────────────────────╮
-            │ NO IN SPEC PROVIDED, USE STDIN                        │
-            ╰───────────────────────────────────────────────────────╯
-         */
         form->f_in_pipe = true;
-        form->in_fp = fdopen(STDIN_FILENO, "r");
-
-    } else {
-        /*  ╭───────────────────────────────────────────────────────╮
-            │ IN SPEC IS A FILE                                     │
-            ╰───────────────────────────────────────────────────────╯
-         */
-        if (lstat(form->in_spec, &sb) == -1) {
-            m = MAXLEN - 29;
-            strncpy(tmp_str, "Can\'t stat form input file: ", m);
-            m -= strlen(form->in_spec);
-            strncat(tmp_str, form->in_spec, m);
-            Perror(tmp_str);
-            return (1);
-        }
-        if (sb.st_size == 0) {
-            m = MAXLEN - 24;
-            strncpy(tmp_str, "Form input file empty: ", m);
-            m -= strlen(form->in_spec);
-            strncat(tmp_str, form->in_spec, m);
-            Perror(tmp_str);
-            return (1);
-        }
-        if ((form->in_fp = fopen(form->in_spec, "rb")) == NULL) {
-            m = MAXLEN - 29;
-            strncpy(tmp_str, "Can't open form input file: ", m);
-            m -= strlen(form->in_spec);
-            strncat(tmp_str, form->in_spec, m);
-            Perror(tmp_str);
-            return (1);
-        }
     }
     if (form->title[0] == '\0')
         strncpy(form->title, form->in_spec, MAXLEN - 1);
@@ -117,14 +77,14 @@ unsigned int form_engine(Init *init) {
     }
     if (form_parse_desc(form)) {
         close_form(init);
-        abend(EXIT_FAILURE, "FORM:read form description failed");
+        return 0;
     }
-    form_read(form);
+    form_read_data(form);
     form_display_screen(init);
     form->fidx = 0;
     form_action = 0;
     while (1) {
-        if (form_action == 0)
+        if (form_action == 0 || form_action == P_CONTINUE)
             form_action = form_enter_fields(form);
         switch (form_action) {
         case P_ACCEPT:
@@ -132,16 +92,18 @@ unsigned int form_engine(Init *init) {
             wclrtoeol(form->win);
             if (form->f_calculate) {
                 form_action = form_calculate(init);
-                if (form_action == P_END) {
+                if (form_action == P_END)
                     return 0;
-                }
                 if (form_action == P_HELP || form_action == P_CANCEL)
                     continue;
             }
             if (form->f_out_spec)
                 form_write(form);
-            if (form->f_cmd_spec)
+            if (form->f_cmd_spec) {
                 form_exec_cmd(init);
+                form_action = P_CONTINUE;
+                continue;
+            }
             return 0;
         case P_HELP:
             strnz__cpy(earg_str, HELP_CMD, MAXLEN - 1);
@@ -151,12 +113,12 @@ unsigned int form_engine(Init *init) {
             mview(init, eargc, eargv, 10, 68, form->begy + 1, form->begx + 4,
                   form->title);
             restore_wins();
-            form_action = 0;
+            form_action = P_CONTINUE;
             break;
         case P_CANCEL:
             return 0;
         default:
-            form_action = 0;
+            form_action = P_CONTINUE;
             break;
         }
     }
@@ -168,9 +130,13 @@ unsigned int form_engine(Init *init) {
 int form_calculate(Init *init) {
     int i, c, rc;
     char earg_str[MAXLEN + 1];
+    char *eargv[MAXARGS];
     bool loop = true;
+    pid_t pid;
+    int pipe_fd[2];
+
     form = init->form;
-    set_fkey(10, "");
+    set_fkey(10, "Continue");
     set_fkey(5, "Calculate");
     form_display_chyron(form);
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
@@ -191,14 +157,37 @@ int form_calculate(Init *init) {
                     strnz__cat(earg_str, " ", MAXLEN - 1);
                     strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
                 }
+                str_to_args(eargv, earg_str, MAXARGS);
+                /*  ╭───────────────────────────────────────────────────╮
+                    │ SETUP PIPE FORK EXEC                              │
+                    ╰───────────────────────────────────────────────────╯ */
+                if (pipe(pipe_fd) == -1) {
+                    Perror("pipe(pipe_fd) failed in init_form");
+                    return (1);
+                }
+                if ((pid = fork()) == -1) {
+                    Perror("fork() failed in init_form");
+                    return (1);
+                }
+                if (pid == 0) { // Child
+                    close(pipe_fd[P_READ]);
+                    dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
+                    close(pipe_fd[P_WRITE]);
+                    execvp(eargv[0], eargv);
+                    strnz__cpy(tmp_str,
+                               "Can't exec form start cmd: ", MAXLEN - 1);
+                    strnz__cat(tmp_str, eargv[0], MAXLEN - 1);
+                    Perror(tmp_str);
+                    exit(EXIT_FAILURE);
+                }
+                // Back to parent
+                close(pipe_fd[P_WRITE]);
+                form->in_fp = fdopen(pipe_fd[P_READ], "rb");
+                form->f_in_pipe = true;
+                form_read_data(form);
+                close(pipe_fd[P_READ]);
+                form_display_fields(form);
             }
-            if (form->f_out_spec) {
-                strnz__cat(earg_str, " >", MAXLEN - 1);
-                strnz__cat(earg_str, form->out_spec, MAXLEN - 1);
-            }
-            shell(earg_str);
-            form_read(form);
-            form_display_screen(init);
             rc = P_CONTINUE;
             loop = false;
             break;
@@ -300,6 +289,7 @@ unsigned int form_display_screen(Init *init) {
         Perror(tmp_str);
         return (1);
     }
+    immedok(form->win, TRUE);
     form->win = win_win[win_ptr];
     form->box = win_box[win_ptr];
     for (n = 0; n < form->dcnt; n++) {
@@ -310,10 +300,17 @@ unsigned int form_display_screen(Init *init) {
         wrefresh(form->win);
 #endif
     }
+    form_display_fields(form);
+    return 0;
+}
+void form_display_fields(Form *form) {
+    int n;
+    char fill_char = form->fill_char[0];
     for (n = 0; n < form->fcnt; n++) {
         if (form->field[n]->len > form->cols)
             form->field[n]->len = form->cols;
-        strnz(form->field[n]->display_s, form->cols);
+        strnfill(form->field[n]->filler_s, fill_char, form->field[n]->len);
+        strnz(form->field[n]->display_s, form->field[n]->len);
         form_display_field_n(form, n);
 #ifdef DEBUG
         wrefresh(form->win);
@@ -325,7 +322,7 @@ unsigned int form_display_screen(Init *init) {
     strnz__cpy(key_cmd[9].text, "F9 Cancel", 32);
     strnz__cpy(key_cmd[10].text, "F10 Accept", 32);
     form_display_chyron(form);
-    return (0);
+    return;
 }
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ FORM_DISPLAY_CHYRON                                           │
@@ -632,22 +629,36 @@ int form_parse_desc(Form *form) {
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ READ FORM IN FILE                                             │
     ╰───────────────────────────────────────────────────────────────╯ */
-int form_read(Form *form) {
-    FILE *in_fp;
+int form_read_data(Form *form) {
+    struct stat sb;
     char in_buf[MAXLEN];
     char field[MAXLEN];
 
-    in_fp = fopen(form->in_spec, "r");
-    if (in_fp == NULL)
+    if (!form->f_in_pipe)
+        if ((lstat(form->in_spec, &sb) == -1) || (sb.st_size == 0) ||
+            ((form->in_fp = fopen(form->in_spec, "rb")) == NULL)) {
+            strncat(em0, form->in_spec, MAXLEN - 1);
+            if (errno)
+                strerror_r(errno, em1, MAXLEN - 1);
+            else if (sb.st_size == 0)
+                strncpy(em1, "File is empty", MAXLEN - 1);
+            else
+                strncpy(em1, "File does not exist", MAXLEN - 1);
+            strncpy(em2, "Fields will be blank or zero", MAXLEN - 1);
+            cmd_key = display_error(em0, em1, em2, NULL);
+            if (cmd_key == KEY_F(9))
+                return (1);
+        }
+    if (form->in_fp == NULL)
         return (1);
     form->fidx = 0;
-    while ((fgets(in_buf, MAXLEN, in_fp)) != NULL) {
+    while ((fgets(in_buf, MAXLEN, form->in_fp)) != NULL) {
         if (form->fidx < MAXFIELDS)
             strnz__cpy(field, in_buf, MAXLEN - 1);
         form_fmt_field(form, field);
         form->fidx++;
     }
-    fclose(in_fp);
+    fclose(form->in_fp);
     return (0);
 }
 /*  ╭───────────────────────────────────────────────────────────────╮

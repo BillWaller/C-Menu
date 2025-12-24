@@ -237,6 +237,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cat(earg_str, " ", MAXLEN - 1);
         strnz__cat(earg_str, menu->help_spec, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
+        zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         mview(init, eargc, eargv, 0, 0, 0, 0, menu->title);
         return (MA_DISPLAY_MENU);
@@ -246,6 +247,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         if (eargc == 0)
             return (MA_DISPLAY_MENU);
+        zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         if (!init_menu_files(init, eargc, eargv)) {
             Perror("menu_cmd_processor: init_menu_files failed");
@@ -266,6 +268,7 @@ unsigned int menu_cmd_processor(Init *init) {
         cols = 2 * COLS / 3;
         begy = (LINES - lines) / 2;
         begx = (COLS - cols) / 2;
+        zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
@@ -273,6 +276,7 @@ unsigned int menu_cmd_processor(Init *init) {
     case CT_FORM:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
+        zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
@@ -280,6 +284,7 @@ unsigned int menu_cmd_processor(Init *init) {
     case CT_VIEW:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
+        zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         mview(init, eargc, eargv, init->lines, init->cols, menu->begy + 1,
               menu->begx + 4, menu->title);
