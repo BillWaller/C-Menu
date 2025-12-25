@@ -767,6 +767,13 @@ typedef struct {
     // long pos_tbl[NPOS];
     long mark_tbl[NMARKS];
     //
+    bool f_in_pipe;
+    int in_fd;
+    FILE *in_fp;
+    int stdin_fd;
+    FILE *stdin_fp;
+    int stdout_fd;
+    FILE *stdout_fp;
     long buf_idx;
     int buf_last;
     char *buf;

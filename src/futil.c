@@ -717,7 +717,7 @@ bool lf_find_files(char *dir, char *re) {
     struct stat sb;
     struct dirent *dir_st;
     DIR *dirp;
-    int REG_FLAGS = 0;
+    int REG_FLAGS = REG_EXTENDED;
     int reti;
     regmatch_t pmatch[1];
     regex_t compiled_re;

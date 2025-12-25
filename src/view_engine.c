@@ -586,12 +586,24 @@ int get_cmd_char(View *view, long *n) {
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
+
+    MEVENT event;
+    mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, NULL);
     tcflush(2, TCIFLUSH);
     do {
         c = wgetch(view->win);
-        if (c >= '0' && c <= '9' && i < 32) {
-            cmd_str[i++] = (char)c;
-            cmd_str[i] = '\0';
+        if (c == KEY_MOUSE) {
+            if (getmouse(&event) != OK)
+                return (MA_ENTER_OPTION);
+            if (event.bstate & BUTTON4_PRESSED)
+                return (KEY_UP);
+            else if (event.bstate & BUTTON5_PRESSED) {
+                return (KEY_DOWN);
+            }
+            if (c >= '0' && c <= '9' && i < 32) {
+                cmd_str[i++] = (char)c;
+                cmd_str[i] = '\0';
+            }
         }
     } while (c >= '0' && c <= '9');
     *n = atol(cmd_str);
@@ -916,9 +928,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         │ SEARCH - COMPILE REGULAR EXPRESSION                           │
         ╰───────────────────────────────────────────────────────────────╯ */
     if (view->f_ignore_case)
-        REG_FLAGS = REG_ICASE;
+        REG_FLAGS = REG_ICASE | REG_EXTENDED;
     else
-        REG_FLAGS = 0;
+        REG_FLAGS = REG_EXTENDED;
     reti = regcomp(&compiled_regex, regex_pattern, REG_FLAGS);
     if (reti) {
         Perror("Invalid pattern");

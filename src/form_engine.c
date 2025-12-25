@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <termios.h>
 #include <unistd.h>
+#include <wait.h>
 
 #define D_COMMENT '#'
 #define D_CMD '!'
@@ -186,6 +187,7 @@ int form_calculate(Init *init) {
                 form->f_in_pipe = true;
                 form_read_data(form);
                 close(pipe_fd[P_READ]);
+                waitpid(pid, NULL, 0);
                 form_display_fields(form);
             }
             rc = P_CONTINUE;

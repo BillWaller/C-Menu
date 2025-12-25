@@ -145,6 +145,38 @@ After installation, you can verify that lsd is installed correctly by running:
 
 This should display the installed lsd version, confirming that lsd is successfully installed on your system
 
+## Tree-Sitter
+
+To install Tree-Sitter, a parser generator tool and an incremental parsing library, you can use the following commands based on your operating system:
+
+### On Linux
+
+After installing Rust, you can install Tree-Sitter using Cargo, Rust's package manager:
+
+```bash
+    cargo install tree-sitter-cli
+```
+
+### On macOS
+
+```bash
+    brew install tree-sitter
+```
+
+### On Windows
+
+```powershell
+    choco install tree-sitter
+```
+
+After installation, you can verify that Tree-Sitter is installed correctly by running:
+
+```bash
+    tree-sitter --version
+```
+
+This should display the installed Tree-Sitter version, confirming that Tree-Sitter is successfully installed on your system.
+
 ## Conclusion
 
 By following the instructions above, you can easily install Rust and augment your C-Menu experience with additional tools like Bat, Ripgrep, and lsd. Enjoy the enhanced functionality and features these tools bring to your workflow!

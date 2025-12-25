@@ -286,8 +286,11 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
+        if (init->title[0] == '\0')
+            strcpy(init->title, init->start_cmd);
+        strip_quotes(init->title);
         mview(init, eargc, eargv, init->lines, init->cols, menu->begy + 1,
-              menu->begx + 4, menu->title);
+              menu->begx + 4, init->title);
         return (MA_DISPLAY_MENU);
 
     case CT_CKEYS:
