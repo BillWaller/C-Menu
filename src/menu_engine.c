@@ -239,17 +239,8 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
-        if (init->title[0] == '\0')
-            strnz__cpy(init->title, menu->title, MAXLEN - 1);
-        lines = init->lines;
-        cols = init->cols;
-        if (lines == 0)
-            lines = 2 * LINES / 3;
-        if (cols == 0)
-            cols = 2 * COLS / 3;
-        begy = (LINES - lines) / 2;
-        begx = (COLS - cols) / 2;
-        mview(init, eargc, eargv, lines, cols, begx, begy, init->title);
+        mview(init, eargc, eargv, init->lines, init->cols, init->begx,
+              init->begy, init->title);
         return (MA_DISPLAY_MENU);
 
     case CT_MENU:
@@ -293,24 +284,12 @@ unsigned int menu_cmd_processor(Init *init) {
 
     case CT_VIEW:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
+        lines = cols = begx = begy = 0;
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
-        if (init->start_cmd[0] != '\0')
-            strip_quotes(init->start_cmd);
-        if (init->title[0] == '\0')
-            strnz__cpy(init->title, init->start_cmd, MAXLEN - 1);
-        else
-            strip_quotes(init->title);
-        lines = init->lines;
-        cols = init->cols;
-        if (lines == 0)
-            lines = 2 * LINES / 3;
-        if (cols == 0)
-            cols = 2 * COLS / 3;
-        begy = (LINES - lines) / 2;
-        begx = (COLS - cols) / 2;
-        mview(init, eargc, eargv, lines, cols, begx, begy, init->title);
+        mview(init, eargc, eargv, init->lines, init->cols, init->begx,
+              init->begy, init->title);
         return (MA_DISPLAY_MENU);
 
     case CT_CKEYS:
