@@ -101,7 +101,7 @@ lf:	lf.c
 
 clean:
 	rm -rf core *.o $(TARGETS) make.out $(CFLOW_OUTPUT) *.o *.cflow \
-		scan-build scan-build.out installed
+		scan-build scan-build.out installed gdbcmds tm tf tp tv x xx xxx
 
 PREFIX=~/menuapp
 OWNER=bill
