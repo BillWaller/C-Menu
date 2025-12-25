@@ -17,6 +17,8 @@ C-Menu reads a simple description file like the one above and displays a menu to
 
 <img src="screenshots/applications_menu.png" alt="Curses Keys" title="Sample Menu" />
 
+Note that some of the items in this sample menu may not work as expected. That's because this particular menu description file is used for testing C-Menu's error handling capabilities. [**sic**]
+
 ### C-Menu C-Keys - Diagnose Keyboard/Mouse Input
 
 C-Menu C-Keys is a diagnostic tool that helps you resolve keyboard and mouse issues quickly. Just press a key and get the Octal, Decimal, Hexadecimal, the ANSI escape sequence binding, or the NCURSES identifier. It's definately easier than rummaging through hardware documentation and NCurses header files. It's also a good way to identify which keys are reserved by your terminal emulator, and gives you the specific key codes so you can easily add your own Extended NCurses keys.
@@ -40,16 +42,28 @@ Yet.
 
 The simplest use of C-Menu Pick is:
 
-Pick a file to edit:
+Pick a file to view:
 
 ```
-ls *.rs | pick -c vi
+view -S "lf -r . .*\.c$"
 ```
 
 Execute a script on a picked file:
 
 ```
-ls -c * | pick -n 1 -c my_executable
+pick -S "lf -r . .*\.c$" -n 1 -c my_executable
+```
+
+Note that the syntax for "lf" (list files) is not similar to Unix "ls". The usage of "lf" is:
+
+```
+lf [directory] [regular expression]
+```
+
+If you type "lf \*.c", it will fail for lack of a valid regular expression. "ls" uses shell expansion, and "lf" uses regular expressions. "lf" is a simple utility that comes with C-Menu. You could just as easily use find to accomplish the same result, and find accepts "\*.c", even though it isn't a valid regular expression.
+
+```
+find . -name '*.c' | sed 's/^..//'
 ```
 
 Create a list of objects
@@ -69,10 +83,6 @@ save and type:
 
 bat view_engine.c
 ```
-
-### CMenu Pick Can Send Output to View
-
-<img src="screenshots/bat2.png" alt="bat highlighted source" title="bat highlighted source" />
 
 ### C-Menu FORM
 
@@ -117,7 +127,7 @@ FORM also makes a great front-end for SQL database queries.
 
 ### C-Menu Sample Menu Description File
 
-<img src="screenshots/menu-desc.png" alt="Menu Description File log" title="Menu Description File" />
+<img src="screenshots/applications_menu.m.png" alt="Menu Description File log" title="Menu Description File" />
 
 As you can see, the description file is straightforward and easy to read. Each menu item consists of a label and a command to execute. The label is displayed in the menu, and the command is executed when the user selects that item.
 
@@ -140,8 +150,6 @@ terminal environment. It supports basic navigation, regular expression
 search functionality, horizontal scrolling, ANSI escape highlighting, Unicode, and
 NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to provide contextual help or stand-alone, full-screen as a system pager.
 
-You may have noticed that Nvim doesn't render ANSI escape sequences. Why should it? How often do you need to edit a file with ANSI escape sequences? Generally, the user just needs to view that type of file, and that's what pagers like "less" and C-Menu view were designed to do.
-
 #### Nvim Screenshot
 
 <img src="screenshots/nvim-log.png" alt="nvim log" title="nvim log" />
@@ -152,15 +160,22 @@ You may have noticed that Nvim doesn't render ANSI escape sequences. Why should 
 
 One especially useful feature of C-Menu View is its incredible speed with large text files, like system logs. C-Menu View can open and display multi-gigabyte text files almost instantaneously. Seek from beginning to end of a 1Gb file takes a few milliseconds.
 
+
+### C-Menu View Architecture
+
+* Instead of using seek and read operations on a complicated buffering system, C-Menu View leverages the Kernel's sophisticated demand paged virtual memory.
+* Lazy loading means that the program doesn't waste time seeking, reading, and populating buffers that will not be needed.
+* Simplicity - Files are mapped onto the Kernel's virtual memory address space and leverages the Kernel's sophisticated demand paged virtual memory.
+* Zero-Copy I/O - Using "mmap", C-Menu View reads directly from virtual memory, without having to copy blocks from the file-system into heap address space.
+* Simplicity - A picture is worth lots of words.  No reads, no seeks, no buffer management schemes, at lest not for view. It's all handled by the kernel. The following snippet includes all of View's file I/O.
+
+<img src="screenshots/file-io.png" alt="nvim log" title="nvim log" />
+
 ### C-Menu 3-Channel Gamma Correction
 
-When using utilities such as "pygmentize" to highlight files, the text is sometimes almost unreadable. On the left-hand side of the following screenshot, "less" does a great job of rendering the output of pygmentize, but C-Menu with gamma correction can do better. It's all about perceptual luminance. Either from the command line or the minitrc file, the user can specify a gamma correction value for each of the three color channels, red, green, and blue. It's a minor thing, really, but we programmers aren't "automitons." A pleasing visual appearance makes work more fun.
+When using utilities such as "tree-sitter highlighter", "pygmentize", or "bat" to highlight files, the text is sometimes almost unreadable. On the left-hand side of the following screenshot, "less" does a great job of rendering the output of pygmentize, but C-Menu with gamma correction can do better. It's all about perceptual luminance. Either from the command line or the minitrc file, the user can specify a gamma correction value for each of the three color channels, red, green, and blue. It's a minor thing, really, but we programmers aren't "automitons." A pleasing visual appearance makes work more fun.
 
 <img src="screenshots/gamma.png" alt="Gamma Correction" title="Gamma Correction" />
-
-### C-Menu 6-Channel Gamma Correction
-
-C-Menu currently has 3-Channel Gamma Correction, and that's great, but it's less than half the solution. If really want to make highlighted text documents "POP", you may need to adjust background and foreground contrast, luminance, hue, and saturation. We have you covered, and it's in the works. See:
 
 [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/)
 
@@ -175,16 +190,6 @@ C-Menu currently has 3-Channel Gamma Correction, and that's great, but it's less
 (Australian TV show)
 
 With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma correction, your application is bound to **Wow** your clients. Nobody wants an ugly program. Of course, beauty is in the eye of the beholder. That's why we give you control.
-
-### C-Menu Is Easy to Use
-
-As you can see, the view command on line 24 specifies the number of columns and lines (-C and -L respectively). The following screenshot shows the C-Menu description file being edited with NVim.
-
-<img src="screenshots/main.m.png" />
-
-But if you like a little more panache, display it with C-Menu view.
-
-<img src="screenshots/menu-desc.png" alt="Sample Menu" title="Sample Menu" />
 
 ### RSH
 
@@ -212,9 +217,23 @@ administrative tasks.
 Many system administrators and developers find RSH invaluable for tasks
 that require elevated privileges. RSH eliminates the need to repeatedly enter
 passwords or switch users, streamlining workflows and improving efficiency. We all
-know it's not a good idea to run everything as root, but sometimes a user want's to
-avoid precious seconds it takes to enter passwords for su. With RSH, it takes three
-keystrokes to enter root mode and two keystrokes to get out.
+know it's not a good idea to run everything as root, but sometimes a user want's to avoid precious seconds it takes to enter passwords for su. With RSH, it takes three keystrokes to enter root mode and two keystrokes to get out.
+
+#### RSH With "make install"
+
+Here's an example of the proper way to use RSH. 
+
+1. Type "xx" to assume root privileges.
+2. Type "make install"
+3. Type "x" to relinquish root privileges.
+
+<img src="screenshots/Makefile-out.png" alt="Makefile" title="RSH with make install" />
+
+Notice that the bash prompt changes from green to red as a reminder that you are wielding a loaded gun with the safety off. In this state, it only takes a minor typo, such as:
+
+```
+rm -r tmp/*
+```
 
 Please be very careful when using RSH in setuid root mode. Keep the
 executable protected in your home directory with appropriate permissions
@@ -222,6 +241,10 @@ to prevent promiscuous access by unauthorized users. RSH should be provided
 only to trusted users who understand the implications of executing commands
 with elevated privileges. Used inappropriately, it can lead to system
 instability or security vulnerabilities.
+
+As an interesting note, you can accomplish basically the same functionality in 9 lines of Rust by using the 'pub unsafe extern "C" fn setuid(uid: uid_t) -> c_int' function in Rust. Of course, that isn't really in the spirit of Rust, is it?
+
+<img src="screenshots/mmrs.png" alt="MMRS" title="MMRS" />
 
 ## Features
 
