@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
 #include <unistd.h>
+#include <wait.h>
 
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ INIT_VIEW_FULL_SCREEN                                         │
@@ -110,31 +111,79 @@ int init_view_boxwin(Init *init, char *title) {
 bool view_init_input(View *view, char *file_name) {
     struct stat sb;
     int idx = 0;
-    if (strcmp(file_name, "-") == 0)
-        file_name = "/dev/stdin";
+    pid_t pid;
+    int pipe_fd[2];
+    char *s_argv[MAXARGS];
+    int in_fd;
 
-    int in_fd = open(file_name, O_RDONLY);
-    if (in_fd == -1) {
-        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        snprintf(em1, MAXLEN - 65, "open %s", file_name);
-        strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, NULL);
-        return false;
+    if (strcmp(file_name, "-") == 0) {
+        file_name = "/dev/stdin";
+        view->f_in_pipe = true;
     }
-    if (fstat(in_fd, &sb) == -1) {
-        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        snprintf(em1, MAXLEN - 65, "fstat %s", file_name);
-        strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, NULL);
-        close(in_fd);
-        return EXIT_FAILURE;
+
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ INPUT IS FROM START_CMD                                       │
+        │ SETUP PIPES                                                   │
+        │ CHILD  P_WRITE                                                │
+        │ PARENT P_READ                                                 │
+        ╰───────────────────────────────────────────────────────────────╯ */
+    if (view->start_cmd[0] != '\0') {
+        str_to_args(s_argv, view->start_cmd, MAXARGS - 1);
+        if (pipe(pipe_fd) == -1) {
+            Perror("pipe(pipe_fd) failed in init_view");
+            return (1);
+        }
+        if ((pid = fork()) == -1) {
+            Perror("fork() failed in init_view");
+            return (1);
+        }
+        if (pid == 0) { // Child
+            close(pipe_fd[P_READ]);
+            dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
+            close(pipe_fd[P_WRITE]);
+            execvp(s_argv[0], s_argv);
+            strnz__cpy(tmp_str, "Can't exec view start cmd: ", MAXLEN - 1);
+            strnz__cat(tmp_str, s_argv[0], MAXLEN - 1);
+            Perror(tmp_str);
+            exit(EXIT_FAILURE);
+        }
+        // Back to parent
+        close(pipe_fd[P_WRITE]);
+        dup2(pipe_fd[P_READ], STDIN_FILENO);
+        in_fd = dup(STDIN_FILENO);
+        view->f_in_pipe = true;
+    } else {
+        /*  ╭───────────────────────────────────────────────────────────────╮
+            │ ATTEMPT to OPEN FILENAME                                      │
+            ╰───────────────────────────────────────────────────────────────╯ */
+        in_fd = open(file_name, O_RDONLY);
+        if (in_fd == -1) {
+            snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+            snprintf(em1, MAXLEN - 65, "open %s", file_name);
+            strerror_r(errno, em2, MAXLEN);
+
+            display_error(em0, em1, em2, NULL);
+            return false;
+        }
+        if (fstat(in_fd, &sb) == -1) {
+            snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+            snprintf(em1, MAXLEN - 65, "fstat %s", file_name);
+            strerror_r(errno, em2, MAXLEN);
+            display_error(em0, em1, em2, NULL);
+            close(in_fd);
+            return EXIT_FAILURE;
+        }
+        view->file_size = sb.st_size;
+        if (!S_ISREG(sb.st_mode))
+            view->f_in_pipe = true;
     }
-    view->file_size = sb.st_size;
-    if (!S_ISREG(sb.st_mode)) {
+    if (view->f_in_pipe) {
         char tmp_filename[] = "/tmp/view_XXXXXX";
         char buf[VBUFSIZ];
         ssize_t bytes_read;
-
+        /*  ╭───────────────────────────────────────────────────────╮
+            │ CLONE STDIN to TMP_FILENAME                           │
+            ╰───────────────────────────────────────────────────────╯ */
         close(in_fd);
         in_fd = mkstemp(tmp_filename);
         if (in_fd == -1)
@@ -154,6 +203,9 @@ bool view_init_input(View *view, char *file_name) {
             abend(-1, tmp_str);
         }
     }
+    /*  ╭───────────────────────────────────────────────────────────────╮
+        │ MMAP                                                          │
+        ╰───────────────────────────────────────────────────────────────╯ */
     view->buf = mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, in_fd, 0);
     if (view->buf == MAP_FAILED) {
         snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);

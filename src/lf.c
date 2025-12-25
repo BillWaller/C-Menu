@@ -125,7 +125,7 @@ bool lf_find_files(char *dir, char *re, int flags) {
     struct stat sb;
     struct dirent *dir_st;
     DIR *dirp;
-    int REG_FLAGS = 0;
+    int REG_FLAGS = REG_EXTENDED;
     int reti;
     regmatch_t pmatch[1];
     regex_t compiled_re;
@@ -134,7 +134,8 @@ bool lf_find_files(char *dir, char *re, int flags) {
 
     reti = regcomp(&compiled_re, re, REG_FLAGS);
     if (reti) {
-        perror("Invalid pattern");
+        printf("lf: \'%s\' Invalid pattern\n", re);
+        printf("for example: \'.*\\.c$\'\n\n");
         return false;
     }
     if ((dirp = opendir(dir)) == 0)

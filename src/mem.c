@@ -237,6 +237,7 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     view->bo_color = init->bo_color;
     view->prompt_type = init->prompt_type;
     strnz__cpy(view->prompt_str, init->prompt_str, MAXLEN - 1);
+    strnz__cpy(view->start_cmd, init->start_cmd, MAXLEN - 1);
     return init->view;
 }
 /* ╭────────────────────────────────────────────────────────────────╮
@@ -642,6 +643,10 @@ bool init_form_files(Init *init, int argc, char **argv) {
     form->bo_color = init->bo_color;
     form->f_stop_on_error = init->f_stop_on_error;
     form->f_erase_remainder = init->f_erase_remainder;
+    strip_quotes(init->title);
+    strnz__cpy(form->title, init->title, MAXLEN - 1);
+    strip_quotes(init->start_cmd);
+    strnz__cpy(form->start_cmd, init->start_cmd, MAXLEN - 1);
     return true;
 }
 /* ╭───────────────────────────────────────────────────────────────╮
@@ -670,6 +675,10 @@ bool init_view_files(Init *init, int argc, char **argv) {
     view->f_at_end_clear = init->f_at_end_clear;
     view->f_at_end_remove = init->f_at_end_remove;
     view->f_squeeze = init->f_squeeze;
+    strip_quotes(init->title);
+    strnz__cpy(view->title, init->title, MAXLEN - 1);
+    strip_quotes(init->start_cmd);
+    strnz__cpy(view->start_cmd, init->start_cmd, MAXLEN - 1);
     if (view->tab_stop == 0)
         view->tab_stop = 4;
     return true;
