@@ -58,19 +58,19 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     /*  ╭───────────────────────────────────────────────────────────────╮
         │ view->cols      1/5      top margin                           │
         ╰───────────────────────────────────────────────────────────────╯ */
-    if (init->begy + lines > LINES - 4)
-        init->begy = LINES - lines - 2;
+    if (init->begy + view->lines > LINES - 4)
+        init->begy = LINES - view->lines - 2;
     else if (init->begy == 0)
-        init->begy = (LINES - lines) / 5;
+        init->begy = (LINES - view->lines) / 5;
     view->begy = init->begy;
 
     /*  ╭───────────────────────────────────────────────────────────────╮
         │ view->cols      1/5      left margin                          │
         ╰───────────────────────────────────────────────────────────────╯ */
-    if (init->begx + cols > COLS - 4)
-        init->begx = COLS - cols - 2;
+    if (init->begx + view->cols > COLS - 4)
+        init->begx = COLS - view->cols - 2;
     else if (init->begx == 0)
-        init->begx = (COLS - cols) / 8;
+        init->begx = (COLS - view->cols) / 8;
     view->begx = init->begx;
 
     view->f_full_screen = false;
