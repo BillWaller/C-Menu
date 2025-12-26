@@ -107,6 +107,8 @@ For more information on Rust and its tools, you can visit the following resource
 
 - [The Rust Programming Language Book](https://doc.rust-lang.org/book/)
 
+- [Rustlings Exercises](https://rustlings.rust-lang.org/)
+
 - [Cargo Documentation](https://doc.rust-lang.org/cargo/)
 
 - [Bat GitHub Repository](https://github.com/sharkdp/bat)
@@ -177,6 +179,75 @@ After installation, you can verify that Tree-Sitter is installed correctly by ru
 
 This should display the installed Tree-Sitter version, confirming that Tree-Sitter is successfully installed on your system.
 
+## Tree-Sitter-CLI
+
+To install Tree-Sitter-CLI, a command-line interface for Tree-Sitter, you can use the following commands based on your operating system:
+
+### On Linux
+
+After installing Rust, you can install Tree-Sitter-CLI using Cargo, Rust's package manager:
+
+```bash
+    cargo install tree-sitter-cli
+```
+
+### On macOS
+
+```bash
+    brew install tree-sitter-cli
+```
+
+### On Windows
+
+```powershell
+    choco install tree-sitter-cli
+```
+
+After installation, you can verify that Tree-Sitter-CLI is installed correctly by running:
+
+```bash
+    tree-sitter --version
+```
+
+This should display the installed Tree-Sitter-CLI version, confirming that Tree-Sitter-CLI is successfully installed on your system.
+
+## Tree-Sitter Parsers
+
+To install Tree-Sitter parsers for various programming languages, you can use the following commands based on your operating system:
+
+### On Linux
+
+After installing Rust, you can install Tree-Sitter parsers using Cargo, Rust's package manager:
+
+```bash
+    cargo install tree-sitter-<language>
+```
+
+### On macOS
+
+```bash
+    brew install tree-sitter-<language>
+```
+
+### On Windows
+
+```powershell
+    choco install tree-sitter-<language>
+```
+
+After installation, you can verify that the Tree-Sitter parser for your chosen language is installed correctly by running:
+
+```bash
+    tree-sitter <language> --version
+```
+
+This should display the installed Tree-Sitter parser version for your chosen language, confirming that it is successfully installed on your system.
+Replace `<language>` with the specific programming language you want to install the parser for, such as `python`, `javascript`, `rust`, etc.
+
+### Tree-Sitter Configuration
+
+To configure Tree-Sitter for use with your projects, you may need to set up the parser for your specific programming language. This typically involves adding the parser as a dependency in your project's configuration file (e.g., `Cargo.toml` for Rust projects). Refer to the [Tree-Sitter documentation](https://tree-sitter.github.io/tree-sitter/) for detailed instructions on how to configure and use Tree-Sitter with your projects.
+
 ## Conclusion
 
-By following the instructions above, you can easily install Rust and augment your C-Menu experience with additional tools like Bat, Ripgrep, and lsd. Enjoy the enhanced functionality and features these tools bring to your workflow!
+By following the above instructions, you can easily install Rust and various Rust-based tools to enhance your C-Menu experience. Enjoy coding with these powerful tools!
