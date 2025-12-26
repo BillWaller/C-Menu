@@ -49,9 +49,9 @@ char *tilde_expand(char *);
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
-/* ╭───────────────────────────────────────────────────────────────────╮
-   │ MAPP_INITIALIZATION                                               │
-   ╰───────────────────────────────────────────────────────────────────╯ */
+// ╭───────────────────────────────────────────────────────────────────╮
+// │ MAPP_INITIALIZATION                                               │
+// ╰───────────────────────────────────────────────────────────────────╯
 void mapp_initialization(Init *init, int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
     if (!init) {
@@ -109,9 +109,9 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         display_version();
     }
 }
-/* ╭───────────────────────────────────────────────────────────────────╮
-   │ ZERO_OPT_ARGS                                                     │
-   ╰───────────────────────────────────────────────────────────────────╯ */
+// ╭───────────────────────────────────────────────────────────────────╮
+// │ ZERO_OPT_ARGS                                                     │
+// ╰───────────────────────────────────────────────────────────────────╯
 void zero_opt_args(Init *init) {
     init->f_mapp_desc = false;
     init->f_provider_cmd = false;
@@ -122,25 +122,23 @@ void zero_opt_args(Init *init) {
     init->f_out_spec = false;
     init->mapp_spec[0] = init->help_spec[0] = '\0';
     init->provider_cmd[0] = init->receiver_cmd[0] = '\0';
+    init->view_cmd[0] = init->view_cmd_all[0] = '\0';
     init->in_spec[0] = init->out_spec[0] = '\0';
+    init->help_spec[0] = '\0';
+    init->in_spec[0] = '\0';
+    init->out_spec[0] = '\0';
 }
-/* ╭───────────────────────────────────────────────────────────────────╮
-   │ PARSE_OPT_ARGS                                                    │
-   ╰───────────────────────────────────────────────────────────────────╯ */
+// ╭───────────────────────────────────────────────────────────────────╮
+// │ PARSE_OPT_ARGS                                                    │
+// ╰───────────────────────────────────────────────────────────────────╯
 int parse_opt_args(Init *init, int argc, char **argv) {
     int i;
     int opt;
     int longindex = 0;
     int flag = 0;
 
-    init->help_spec[0] = '\0';
-    init->provider_cmd[0] = '\0';
-    init->receiver_cmd[0] = '\0';
-    init->in_spec[0] = '\0';
-    init->out_spec[0] = '\0';
-
     char *optstring =
-        "a:b:c:d:g:hi:m:n:o:p:rst:vwxzA:B:C:DE:F:H:L:MO:P:R:T:U:VX:Y:Z";
+        "a:b:c:d:g:hi:m:n:o:p:rst:vwxzA:B:C:DE:F:H:L:MO:P:R:S:T:U:VX:Y:Z";
     struct option long_options[] = {
         {"mapp_data", 1, &flag, MAPP_DATA}, {"mapp_spec", 1, &flag, MAPP_SPEC},
         {"mapp_help", 1, &flag, MAPP_HELP}, {"help_spec", 1, &flag, HELP_SPEC},
@@ -153,10 +151,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
                               &longindex)) != -1) {
         switch (opt) {
         case 0:
-            /*  ╭───────────────────────────────────────────────────────────────────╮
-                │ LONG_OPTIONS │
-                ╰───────────────────────────────────────────────────────────────────╯
-             */
+            //  ╭───────────────────────────────────────────────────╮
+            //  │ LONG_OPTIONS                                      │
+            //  ╰───────────────────────────────────────────────────╯
             switch (flag) {
             case MAPP_DATA:
                 strnz__cpy(init->mapp_data, optarg, MAXLEN - 1);
@@ -183,10 +180,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
                 break;
             }
             break;
-            /*  ╭───────────────────────────────────────────────────────────────────╮
-                │ SHORT_OPTIONS │
-                ╰───────────────────────────────────────────────────────────────────╯
-             */
+            //  ╭───────────────────────────────────────────────────╮
+            //  │ SHORT_OPTIONS                                     │
+            //  ╰───────────────────────────────────────────────────╯
         case 'a':
             strnz__cpy(init->minitrc, optarg, MAXLEN - 1);
             break;
@@ -259,8 +255,8 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'D':
             f_dump_config = true;
             break;
-        case 'R':
-            strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
+        case 'S':
+            strnz__cpy(init->provider_cmd, optarg, MAXLEN - 1);
             break;
         case 'F':
             init->fg_color = get_color_number(optarg);
@@ -285,7 +281,10 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(init->prompt_str, optarg, MAXLEN - 1);
             break;
         case 'c':
-            strnz__cpy(init->provider_cmd, optarg, MAXLEN - 1);
+            strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
+            break;
+        case 'R':
+            strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
             break;
         case 'T':
             strnz__cpy(init->title, optarg, MAXLEN - 1);
@@ -316,9 +315,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     init->argc = argc;
     return optind;
 }
-/* ╭───────────────────────────────────────────────────────────────────╮
-   │ PARSE_CONFIG                                                      │
-   ╰───────────────────────────────────────────────────────────────────╯ */
+// ╭────────────────────────────────────────────────────────────────╮
+// │ PARSE_CONFIG                                                   │
+// ╰────────────────────────────────────────────────────────────────╯
 int parse_config(Init *init) {
     char ts[MAXLEN];
     char *sp, *dp;
@@ -599,9 +598,9 @@ void prompt_int_to_str(char *s, int prompt_type) {
         break;
     }
 }
-/* ╭───────────────────────────────────────────────────────────────────╮
-   │ WRITE_CONFIG                                                      │
-   ╰───────────────────────────────────────────────────────────────────╯ */
+// ╭────────────────────────────────────────────────────────────────╮
+// │ WRITE_CONFIG                                                   │
+// ╰────────────────────────────────────────────────────────────────╯
 int write_config(Init *init) {
     char *e;
     char minitrc_dmp[MAXLEN];
@@ -691,9 +690,9 @@ int write_config(Init *init) {
     Perror(tmp_str);
     return 0;
 }
-/* ╭───────────────────────────────────────────────────────────────────╮
-   │ DERIVE_FILE_SPEC                                                  │
-   ╰───────────────────────────────────────────────────────────────────╯ */
+// ╭────────────────────────────────────────────────────────────────╮
+// │ DERIVE_FILE_SPEC                                               │
+// ╰────────────────────────────────────────────────────────────────╯
 bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     char ts[MAXLEN];
     char ts2[MAXLEN];
@@ -748,9 +747,9 @@ void opt_prt_double(const char *o, const char *name, double value) {
 void opt_prt_bool(const char *o, const char *name, bool value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
-/* ╭───────────────────────────────────────────────────────────────────╮
-   │ DUMP_CONFIG                                                       │
-   ╰───────────────────────────────────────────────────────────────────╯ */
+// ╭────────────────────────────────────────────────────────────────╮
+// │ DUMP_CONFIG                                                    │
+// ╰────────────────────────────────────────────────────────────────╯
 void dump_config(Init *init, char *msg) {
     opt_prt_str("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-C:", "--cols", init->cols);

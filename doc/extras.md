@@ -244,10 +244,6 @@ After installation, you can verify that the Tree-Sitter parser for your chosen l
 This should display the installed Tree-Sitter parser version for your chosen language, confirming that it is successfully installed on your system.
 Replace `<language>` with the specific programming language you want to install the parser for, such as `python`, `javascript`, `rust`, etc.
 
-### Tree-Sitter Configuration
-
-To configure Tree-Sitter for use with your projects, you may need to set up the parser for your specific programming language. This typically involves adding the parser as a dependency in your project's configuration file (e.g., `Cargo.toml` for Rust projects). Refer to the [Tree-Sitter documentation](https://tree-sitter.github.io/tree-sitter/) for detailed instructions on how to configure and use Tree-Sitter with your projects.
-
 ## Conclusion
 
 By following the above instructions, you can easily install Rust and various Rust-based tools to enhance your C-Menu experience. Enjoy coding with these powerful tools!

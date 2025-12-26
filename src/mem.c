@@ -681,6 +681,10 @@ bool init_view_files(Init *init, int argc, char **argv) {
     strnz__cpy(view->title, init->title, MAXLEN - 1);
     strip_quotes(init->provider_cmd);
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
+    strip_quotes(init->receiver_cmd);
+    strnz__cpy(view->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
+    strnz__cpy(view->view_cmd, init->view_cmd, MAXLEN - 1);
+    strnz__cpy(view->view_cmd_all, init->view_cmd_all, MAXLEN - 1);
     if (view->tab_stop == 0)
         view->tab_stop = 4;
     return true;
