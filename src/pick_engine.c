@@ -59,8 +59,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     /* ╭────────────────────────────────────────────────────────────╮
        │ INPUT IS START_CMD                                         │
        ╰────────────────────────────────────────────────────────────╯ */
-    if (pick->start_cmd[0] != '\0') {
-        str_to_args(s_argv, pick->start_cmd, MAXARGS - 1);
+    if (pick->receiver_cmd[0] != '\0') {
+        str_to_args(s_argv, pick->receiver_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_pick");
             return (1);
@@ -228,7 +228,7 @@ int pick_engine(Init *init) {
     if (pick->select_cnt > 0) {
         if (pick->f_out_spec && pick->out_spec[0])
             rc = output_objects(pick);
-        if (pick->f_cmd_spec && pick->cmd_spec[0])
+        if (pick->f_receiver_cmd && pick->receiver_cmd[0])
             rc = exec_objects(init);
     }
     return (rc);
@@ -614,17 +614,17 @@ int exec_objects(Init *init) {
     // ╭────────────────────────────────────────────────────╮
     // │ Are we providing input via pipe?                   │
     // ╰────────────────────────────────────────────────────╯
-    if (pick->cmd_spec[0] == '\0')
+    if (pick->receiver_cmd[0] == '\0')
         return -1;
-    if (pick->cmd_spec[0] == '\\' || pick->cmd_spec[0] == '\"') {
+    if (pick->receiver_cmd[0] == '\\' || pick->receiver_cmd[0] == '\"') {
         /* Remove surrounding quotes if present */
-        size_t len = strlen(pick->cmd_spec);
-        if (len > 1 && pick->cmd_spec[len - 1] == '\"') {
-            memmove(pick->cmd_spec, pick->cmd_spec + 1, len - 2);
-            pick->cmd_spec[len - 2] = '\0';
+        size_t len = strlen(pick->receiver_cmd);
+        if (len > 1 && pick->receiver_cmd[len - 1] == '\"') {
+            memmove(pick->receiver_cmd, pick->receiver_cmd + 1, len - 2);
+            pick->receiver_cmd[len - 2] = '\0';
         }
     }
-    margc = str_to_args(margv, pick->cmd_spec, MAXARGS - 1);
+    margc = str_to_args(margv, pick->receiver_cmd, MAXARGS - 1);
     base_name(tmp_str, margv[0]);
     while (pagers_editors[i][0] != '\0') {
         if (!strcmp(tmp_str, pagers_editors[i]))
@@ -679,7 +679,7 @@ int exec_objects(Init *init) {
         // dup2(init->stdout_fd, STDOUT_FILENO);
         execvp(margv[0], margv);
         m = MAXLEN - 26;
-        strncpy(tmp_str, "Can't exec pick cmd_spec: ", m);
+        strncpy(tmp_str, "Can't exec pick receiver_cmd: ", m);
         m -= strlen(margv[0]);
         strncat(tmp_str, margv[0], m);
         Perror(tmp_str);

@@ -237,7 +237,7 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     view->bo_color = init->bo_color;
     view->prompt_type = init->prompt_type;
     strnz__cpy(view->prompt_str, init->prompt_str, MAXLEN - 1);
-    strnz__cpy(view->start_cmd, init->start_cmd, MAXLEN - 1);
+    strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
     return init->view;
 }
 /* ╭────────────────────────────────────────────────────────────────╮
@@ -437,20 +437,21 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     /* ╭───────────────────────────────────────────────────────────╮
        │ PICK START_CMD - OPT ARG -S: - Priority 5                 │
        ╰───────────────────────────────────────────────────────────╯ */
-    pick->f_start_cmd =
-        verify_spec_arg(pick->start_cmd, init->start_cmd, init->mapp_user,
+    pick->f_provider_cmd =
+        verify_spec_arg(pick->provider_cmd, init->provider_cmd, init->mapp_user,
                         "~/menuapp/user", X_OK);
-    if (!pick->f_start_cmd && init->start_cmd[0])
-        if (locate_file_in_path(pick->start_cmd, init->start_cmd))
-            pick->f_start_cmd = verify_file(pick->start_cmd, X_OK);
+    if (!pick->f_provider_cmd && init->provider_cmd[0])
+        if (locate_file_in_path(pick->provider_cmd, init->provider_cmd))
+            pick->f_provider_cmd = verify_file(pick->provider_cmd, X_OK);
     /* ╭───────────────────────────────────────────────────────────╮
        │ PICK CMD_SPEC - OPT ARG -c: - Priority 5                  │
        ╰───────────────────────────────────────────────────────────╯ */
-    pick->f_cmd_spec = verify_spec_arg(pick->cmd_spec, init->cmd_spec,
-                                       init->mapp_user, "~/menuapp/user", X_OK);
-    if (!pick->f_cmd_spec && init->cmd_spec[0])
-        if (locate_file_in_path(pick->cmd_spec, init->cmd_spec))
-            pick->f_cmd_spec = verify_file(pick->cmd_spec, X_OK);
+    pick->f_receiver_cmd =
+        verify_spec_arg(pick->receiver_cmd, init->receiver_cmd, init->mapp_user,
+                        "~/menuapp/user", X_OK);
+    if (!pick->f_receiver_cmd && init->receiver_cmd[0])
+        if (locate_file_in_path(pick->receiver_cmd, init->receiver_cmd))
+            pick->f_receiver_cmd = verify_file(pick->receiver_cmd, X_OK);
     /* ╭───────────────────────────────────────────────────────────╮
        │ PICK TITLE    - OPT ARG -T: - Priority 5                  │
        ╰───────────────────────────────────────────────────────────╯ */
@@ -485,27 +486,27 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     /* ╭───────────────────────────────────────────────────────────╮
        │ PICK START_CMD - POSITIONAL ARG 3 - Priority 5            │
        ╰───────────────────────────────────────────────────────────╯ */
-    if (optind < argc && !pick->f_start_cmd) {
-        pick->f_start_cmd =
-            verify_spec_arg(pick->start_cmd, init->start_cmd, init->mapp_user,
-                            "~/menuapp/user", X_OK);
-        if (!pick->f_start_cmd && init->start_cmd[0])
-            if (locate_file_in_path(pick->start_cmd, init->start_cmd))
-                pick->f_start_cmd = verify_file(pick->start_cmd, X_OK);
-        if (pick->f_start_cmd)
+    if (optind < argc && !pick->f_provider_cmd) {
+        pick->f_provider_cmd =
+            verify_spec_arg(pick->provider_cmd, init->provider_cmd,
+                            init->mapp_user, "~/menuapp/user", X_OK);
+        if (!pick->f_provider_cmd && init->provider_cmd[0])
+            if (locate_file_in_path(pick->provider_cmd, init->provider_cmd))
+                pick->f_provider_cmd = verify_file(pick->provider_cmd, X_OK);
+        if (pick->f_provider_cmd)
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────╮
        │ PICK CMD_SPEC - POSITIONAL ARG 4 - Priority 5             │
        ╰───────────────────────────────────────────────────────────╯ */
-    if (optind < argc && !pick->f_cmd_spec) {
-        pick->f_cmd_spec =
-            verify_spec_arg(pick->cmd_spec, init->cmd_spec, init->mapp_user,
-                            "~/menuapp/user", X_OK);
-        if (!pick->f_cmd_spec && init->cmd_spec[0])
-            if (locate_file_in_path(pick->cmd_spec, init->cmd_spec))
-                pick->f_cmd_spec = verify_file(pick->cmd_spec, X_OK);
-        if (pick->f_cmd_spec)
+    if (optind < argc && !pick->f_receiver_cmd) {
+        pick->f_receiver_cmd =
+            verify_spec_arg(pick->receiver_cmd, init->receiver_cmd,
+                            init->mapp_user, "~/menuapp/user", X_OK);
+        if (!pick->f_receiver_cmd && init->receiver_cmd[0])
+            if (locate_file_in_path(pick->receiver_cmd, init->receiver_cmd))
+                pick->f_receiver_cmd = verify_file(pick->receiver_cmd, X_OK);
+        if (pick->f_receiver_cmd)
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────╮
@@ -523,8 +524,8 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     pick->bo_color = init->bo_color;
     strip_quotes(init->title);
     strnz__cpy(pick->title, init->title, MAXLEN - 1);
-    strip_quotes(init->start_cmd);
-    strnz__cpy(pick->start_cmd, init->start_cmd, MAXLEN - 1);
+    strip_quotes(init->provider_cmd);
+    strnz__cpy(pick->provider_cmd, init->provider_cmd, MAXLEN - 1);
     pick->select_max = init->select_max;
     pick->f_stop_on_error = init->f_stop_on_error;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
@@ -554,17 +555,18 @@ bool init_form_files(Init *init, int argc, char **argv) {
     /* ╭───────────────────────────────────────────────────────────╮
        │ FORM START_CMD - OPT ARG -S: - Priority 5                 │
        ╰───────────────────────────────────────────────────────────╯ */
-    form->f_start_cmd =
-        verify_spec_arg(form->start_cmd, init->start_cmd, init->mapp_data,
+    form->f_provider_cmd =
+        verify_spec_arg(form->provider_cmd, init->provider_cmd, init->mapp_data,
                         "~/menuapp/user", X_OK);
     /* ╭───────────────────────────────────────────────────────────╮
        │ FORM CMD_SPEC - OPT ARG -c: - Priority 5                  │
        ╰───────────────────────────────────────────────────────────╯ */
-    form->f_cmd_spec = verify_spec_arg(form->cmd_spec, init->cmd_spec,
-                                       init->mapp_user, "~/menuapp/user", X_OK);
-    if (!form->f_cmd_spec && init->cmd_spec[0])
-        if (locate_file_in_path(form->cmd_spec, init->cmd_spec))
-            form->f_cmd_spec = verify_file(form->cmd_spec, X_OK);
+    form->f_receiver_cmd =
+        verify_spec_arg(form->receiver_cmd, init->receiver_cmd, init->mapp_user,
+                        "~/menuapp/user", X_OK);
+    if (!form->f_receiver_cmd && init->receiver_cmd[0])
+        if (locate_file_in_path(form->receiver_cmd, init->receiver_cmd))
+            form->f_receiver_cmd = verify_file(form->receiver_cmd, X_OK);
 
     /* ╭───────────────────────────────────────────────────────────╮
        │ FORM HELP_SPEC - OPT ARG -H: - Priority 5                 │
@@ -605,27 +607,27 @@ bool init_form_files(Init *init, int argc, char **argv) {
     /* ╭───────────────────────────────────────────────────────────╮
        │ FORM START_CMD - POSITIONAL ARG 4 - Priority 4            │
        ╰───────────────────────────────────────────────────────────╯ */
-    if (optind < argc && !form->f_start_cmd) {
-        form->f_start_cmd =
-            verify_spec_arg(form->start_cmd, init->start_cmd, init->mapp_user,
-                            "~/menuapp/user", X_OK);
-        if (!form->f_start_cmd && init->start_cmd[0])
-            if (locate_file_in_path(form->start_cmd, init->start_cmd))
-                form->f_start_cmd = verify_file(form->start_cmd, X_OK);
-        if (form->f_start_cmd)
+    if (optind < argc && !form->f_provider_cmd) {
+        form->f_provider_cmd =
+            verify_spec_arg(form->provider_cmd, init->provider_cmd,
+                            init->mapp_user, "~/menuapp/user", X_OK);
+        if (!form->f_provider_cmd && init->provider_cmd[0])
+            if (locate_file_in_path(form->provider_cmd, init->provider_cmd))
+                form->f_provider_cmd = verify_file(form->provider_cmd, X_OK);
+        if (form->f_provider_cmd)
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────╮
        │ FORM CMD_SPEC - POSITIONAL ARG 5 - Priority 4             │
        ╰───────────────────────────────────────────────────────────╯ */
-    if (optind < argc && !form->f_cmd_spec) {
-        form->f_cmd_spec =
-            verify_spec_arg(form->cmd_spec, init->cmd_spec, init->mapp_user,
-                            "~/menuapp/user", X_OK);
-        if (!form->f_cmd_spec && init->cmd_spec[0])
-            if (locate_file_in_path(form->cmd_spec, init->cmd_spec))
-                form->f_cmd_spec = verify_file(form->cmd_spec, X_OK);
-        if (form->f_cmd_spec)
+    if (optind < argc && !form->f_receiver_cmd) {
+        form->f_receiver_cmd =
+            verify_spec_arg(form->receiver_cmd, init->receiver_cmd,
+                            init->mapp_user, "~/menuapp/user", X_OK);
+        if (!form->f_receiver_cmd && init->receiver_cmd[0])
+            if (locate_file_in_path(form->receiver_cmd, init->receiver_cmd))
+                form->f_receiver_cmd = verify_file(form->receiver_cmd, X_OK);
+        if (form->f_receiver_cmd)
             optind++;
     }
     /* ╭───────────────────────────────────────────────────────────╮
@@ -645,8 +647,8 @@ bool init_form_files(Init *init, int argc, char **argv) {
     form->f_erase_remainder = init->f_erase_remainder;
     strip_quotes(init->title);
     strnz__cpy(form->title, init->title, MAXLEN - 1);
-    strip_quotes(init->start_cmd);
-    strnz__cpy(form->start_cmd, init->start_cmd, MAXLEN - 1);
+    strip_quotes(init->provider_cmd);
+    strnz__cpy(form->provider_cmd, init->provider_cmd, MAXLEN - 1);
     return true;
 }
 /* ╭───────────────────────────────────────────────────────────────╮
@@ -677,8 +679,8 @@ bool init_view_files(Init *init, int argc, char **argv) {
     view->f_squeeze = init->f_squeeze;
     strip_quotes(init->title);
     strnz__cpy(view->title, init->title, MAXLEN - 1);
-    strip_quotes(init->start_cmd);
-    strnz__cpy(view->start_cmd, init->start_cmd, MAXLEN - 1);
+    strip_quotes(init->provider_cmd);
+    strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
     if (view->tab_stop == 0)
         view->tab_stop = 4;
     return true;

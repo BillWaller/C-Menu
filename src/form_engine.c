@@ -100,7 +100,7 @@ unsigned int form_engine(Init *init) {
             }
             if (form->f_out_spec)
                 form_write(form);
-            if (form->f_cmd_spec) {
+            if (form->f_receiver_cmd) {
                 form_exec_cmd(init);
                 form_action = P_CONTINUE;
                 continue;
@@ -152,8 +152,8 @@ int form_calculate(Init *init) {
         case KEY_F(5):
             if (form->f_out_spec)
                 form_write(form);
-            if (form->f_cmd_spec) {
-                strnz__cpy(earg_str, form->cmd_spec, MAXLEN - 1);
+            if (form->f_receiver_cmd) {
+                strnz__cpy(earg_str, form->receiver_cmd, MAXLEN - 1);
                 for (i = 0; i < form->fcnt; i++) {
                     strnz__cat(earg_str, " ", MAXLEN - 1);
                     strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
@@ -386,7 +386,7 @@ int form_parse_desc(Form *form) {
     form->title_line = 0;
 
     // D_COMMENT   '#' Comment line
-    // D_CMD       '!' Command string - cmd_spec
+    // D_CMD       '!' Command string - receiver_cmd
     // D_IN_FILE   '<' In file
     // D_OUT_FILE  '>' Help file
     // D_HELP_FILE '?' Help file
@@ -437,10 +437,10 @@ int form_parse_desc(Form *form) {
         case D_CMD:
             if (!(token = strtok(NULL, delim))) {
                 form_desc_error(in_line_num, in_buf,
-                                "FORM: cmd_spec delimiter");
+                                "FORM: receiver_cmd delimiter");
                 continue;
             }
-            strnz__cpy(form->cmd_spec, token, MAXLEN - 1);
+            strnz__cpy(form->receiver_cmd, token, MAXLEN - 1);
             break;
             /*  ╭───────────────────────────────────────────────────╮
                 │ '?' HELP_FILE                                     │
@@ -669,7 +669,7 @@ int form_read_data(Form *form) {
 int form_exec_cmd(Init *init) {
     char earg_str[MAXLEN + 1];
     int i;
-    strnz__cpy(earg_str, form->cmd_spec, MAXLEN - 1);
+    strnz__cpy(earg_str, form->receiver_cmd, MAXLEN - 1);
     for (i = 0; i < form->fcnt; i++) {
         strnz__cat(earg_str, " ", MAXLEN - 1);
         strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);

@@ -448,14 +448,16 @@ typedef struct {
     int argc;
     char **argv;
     // files
-    char mapp_spec[MAXLEN]; //    application description qualified path
-    char help_spec[MAXLEN]; //    application help qualified path
-    char start_cmd[MAXLEN]; // S  command to execute at start of program
+    char mapp_spec[MAXLEN];    //    application description qualified path
+    char help_spec[MAXLEN];    //    application help qualified path
+    char provider_cmd[MAXLEN]; // -S: command to execute at start of program
+    char receiver_cmd[MAXLEN]; // -E: command to execute at start of program
     // file flags
     bool f_mapp_spec;
     bool f_help_spec;
     bool f_help;
-    bool f_start_cmd;
+    bool f_provider_cmd;
+    bool f_receiver_cmd;
     //
     int choice_max_len;
     int text_max_len;
@@ -531,26 +533,26 @@ typedef struct {
     FILE *out_fp;
     int in_fd;
     int out_fd;
-    char mapp_spec[MAXLEN]; //    description spec
-    char in_spec[MAXLEN];   //    input spec
-    char out_spec[MAXLEN];  //    output spec
-    char cmd_spec[MAXLEN];  // c: command executable
-    char help_spec[MAXLEN]; //    help spec
-    char start_cmd[MAXLEN]; // S  command to execute at start of program
+    char mapp_spec[MAXLEN];    //    description spec
+    char in_spec[MAXLEN];      //    input spec
+    char out_spec[MAXLEN];     //    output spec
+    char help_spec[MAXLEN];    //    help spec
+    char provider_cmd[MAXLEN]; // -S: command to execute at start of program
+    char receiver_cmd[MAXLEN]; // -E: command to execute at start of program
     // file flags
     bool f_mapp_spec;
     bool f_in_spec;
     bool f_out_spec;
     bool f_in_pipe;
     bool f_out_pipe;
-    bool f_cmd_spec;
     bool f_help_spec;
     bool f_erase_remainder;
     bool f_calculate;
     bool f_query;
     bool f_stop_on_error;
     bool f_help;
-    bool f_start_cmd;
+    bool f_provider_cmd;
+    bool f_receiver_cmd;
     bool f_brackets;
     char fill_char[2];
     int fidx;
@@ -603,24 +605,24 @@ typedef struct {
     char mapp_spec[MAXLEN]; //    application qualified path
     char in_spec[MAXLEN];
     char out_spec[MAXLEN];
-    char cmd_spec[MAXLEN];  // c: command
     char help_spec[MAXLEN]; //    application help qualified path
     char chyron_s[MAXLEN];  // (ˈkī-ˌrän) a banner at the bottom of the screen
     //
-    char start_cmd[MAXLEN]; // S  command to execute at start of program
+    char provider_cmd[MAXLEN]; // -S: provider command at start
+    char receiver_cmd[MAXLEN]; // -E: receiver command at end
     // file flags
     bool f_mapp_spec;
     bool f_in_spec;
     bool f_out_spec;
     bool f_in_pipe;
     bool f_out_pipe;
-    bool f_cmd_spec;
     bool f_help_spec;
     bool f_multiple_cmd_args;
     bool f_stop_on_error;
     bool f_selected[OBJ_MAXCNT];
     bool f_help;
-    bool f_start_cmd;
+    bool f_provider_cmd;
+    bool f_receiver_cmd;
     char in_buf[BUFSIZ];
     char *object[OBJ_MAXCNT];
     int select_idx;
@@ -667,8 +669,9 @@ typedef struct {
     int prompt_type; // PT_NONE, PT_SHORT, PT_LONG, PT_STRING
     char title[MAXLEN];
     // files
-    char cmd_spec[MAXLEN];  // c: command executable
-    char start_cmd[MAXLEN]; // S  command to execute at start of program
+    char provider_cmd[MAXLEN]; // -S: provider command at start
+    char receiver_cmd[MAXLEN]; // -E: receiver command at end
+    char cmd_arg[MAXLEN];
     // argument processing
     int argc;
     char **argv;
@@ -682,7 +685,7 @@ typedef struct {
     bool f_squeeze;       // -s  squeeze multiple blank lines
     bool f_stop_on_error; // Z  stop on error
     //
-    int next_c;
+    int next_cmd_char;
     int line_mode;
     //--------------------------------
     bool f_bod;
@@ -701,9 +704,13 @@ typedef struct {
     bool f_full_screen;
     bool f_help;
     bool f_timer;
-    bool f_start_cmd;
+    bool f_view_cmd;
+    bool f_view_cmd_all;
+    bool f_provider_cmd;
+    bool f_receiver_cmd;
     //
-    char start_cmd_all_files[MAXLEN];
+    char view_cmd[MAXLEN];
+    char view_cmd_all[MAXLEN];
     char cur_file_str[MAXLEN];
     char line_in_s[LINE_IN_MAX_COLS];
     char line_out_s[LINE_IN_MAX_COLS];
@@ -862,7 +869,9 @@ typedef struct {
     int tty_fd;
     FILE *tty_fp;
     // window
-    char start_cmd[MAXLEN]; // -S: command to execute at start of program
+    char view_cmd[MAXLEN];     // -V: command to execute at start of program
+    char provider_cmd[MAXLEN]; // -c: receiver
+    char receiver_cmd[MAXLEN]; // -c: receiver
     char prompt_str[MAXLEN];
     int prompt_type;    // PT_LONG, PT_SHORT, PT_NONE, PT_STRING
     char title[MAXLEN]; // -T: title
@@ -895,9 +904,9 @@ typedef struct {
     bool f_mapp_user; // -u: user directory
     // file flags
     bool f_mapp_desc;
-    bool f_start_cmd;
+    bool f_provider_cmd;
+    bool f_receiver_cmd;
     bool f_title;
-    bool f_cmd_spec;
     bool f_help_spec;
     bool f_in_spec;
     bool f_out_spec;
@@ -906,7 +915,6 @@ typedef struct {
     char minitrc[MAXLEN];   // -a: main configuration file
     char mapp_spec[MAXLEN]; // -d: description qualified path
     char help_spec[MAXLEN]; // -H: help qualified path
-    char cmd_spec[MAXLEN];  // -c: qualified path
     char in_spec[MAXLEN];   // -i: input file qualified path
     char out_spec[MAXLEN];  // -o: output file qualified path
     // pick
