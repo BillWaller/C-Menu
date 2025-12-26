@@ -870,8 +870,9 @@ typedef struct {
     FILE *tty_fp;
     // window
     char view_cmd[MAXLEN];     // -V: command to execute at start of program
-    char provider_cmd[MAXLEN]; // -c: receiver
-    char receiver_cmd[MAXLEN]; // -c: receiver
+    char view_cmd_all[MAXLEN]; // -V: command to execute at start of program
+    char provider_cmd[MAXLEN]; // -S: receiver
+    char receiver_cmd[MAXLEN]; // -R: receiver
     char prompt_str[MAXLEN];
     int prompt_type;    // PT_LONG, PT_SHORT, PT_NONE, PT_STRING
     char title[MAXLEN]; // -T: title
@@ -906,6 +907,8 @@ typedef struct {
     bool f_mapp_desc;
     bool f_provider_cmd;
     bool f_receiver_cmd;
+    bool f_view_cmd;
+    bool f_view_cmd_all;
     bool f_title;
     bool f_help_spec;
     bool f_in_spec;

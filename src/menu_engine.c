@@ -27,9 +27,9 @@ unsigned int menu_engine(Init *init) {
     }
     action = MA_INIT;
 
-    /*  ╭───────────────────────────────────────────────────────────────╮
-        │ DISPLAY_MENU                                                  │
-        ╰───────────────────────────────────────────────────────────────╯ */
+    //  ╭───────────────────────────────────────────────────────────────╮
+    //  │ DISPLAY_MENU                                                  │
+    //  ╰───────────────────────────────────────────────────────────────╯
     while (action == MA_INIT) {
         action = MA_DISPLAY_MENU;
         if (win_new(menu->lines, menu->cols, menu->begy, menu->begx,
@@ -84,9 +84,9 @@ unsigned int menu_engine(Init *init) {
     }
     return (action);
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ MENU_CMD_PROCESSOR                                            │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ MENU_CMD_PROCESSOR                                            │
+//  ╰───────────────────────────────────────────────────────────────╯
 unsigned int menu_cmd_processor(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
@@ -173,9 +173,9 @@ unsigned int menu_cmd_processor(Init *init) {
         str_to_args(eargv, earg_str, MAX_ARGS);
         full_screen_fork_exec(eargv);
         return (MA_INIT);
-        /*  ╭───────────────────────────────────────────────────────────────╮
-            │ MENU MOUSE FUNCTIONS                                          │
-            ╰───────────────────────────────────────────────────────────────╯ */
+        //  ╭───────────────────────────────────────────────────────────────╮
+        //  │ MENU MOUSE FUNCTIONS                                          │
+        //  ╰───────────────────────────────────────────────────────────────╯
     case KEY_MOUSE:
         if (getmouse(&event) != OK)
             return (MA_ENTER_OPTION);
