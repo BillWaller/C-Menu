@@ -113,10 +113,16 @@ void mapp_initialization(Init *init, int argc, char **argv) {
    │ ZERO_OPT_ARGS                                                     │
    ╰───────────────────────────────────────────────────────────────────╯ */
 void zero_opt_args(Init *init) {
-    init->f_mapp_desc = init->f_start_cmd = init->f_title = init->f_cmd_spec =
-        init->f_help_spec = init->f_in_spec = init->f_out_spec = false;
-    init->mapp_spec[0] = init->help_spec[0] = init->cmd_spec[0] =
-        init->in_spec[0] = init->out_spec[0] = '\0';
+    init->f_mapp_desc = false;
+    init->f_provider_cmd = false;
+    init->f_receiver_cmd = false;
+    init->f_title = false;
+    init->f_help_spec = false;
+    init->f_in_spec = false;
+    init->f_out_spec = false;
+    init->mapp_spec[0] = init->help_spec[0] = '\0';
+    init->provider_cmd[0] = init->receiver_cmd[0] = '\0';
+    init->in_spec[0] = init->out_spec[0] = '\0';
 }
 /* ╭───────────────────────────────────────────────────────────────────╮
    │ PARSE_OPT_ARGS                                                    │
@@ -128,12 +134,13 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int flag = 0;
 
     init->help_spec[0] = '\0';
-    init->cmd_spec[0] = '\0';
+    init->provider_cmd[0] = '\0';
+    init->receiver_cmd[0] = '\0';
     init->in_spec[0] = '\0';
     init->out_spec[0] = '\0';
 
     char *optstring =
-        "a:c:d:g:hi:m:n:o:p:rst:vwxzA:B:C:DF:H:L:MO:P:S:T:U:VX:Y:Z";
+        "a:b:c:d:g:hi:m:n:o:p:rst:vwxzA:B:C:DE:F:H:L:MO:P:R:T:U:VX:Y:Z";
     struct option long_options[] = {
         {"mapp_data", 1, &flag, MAPP_DATA}, {"mapp_spec", 1, &flag, MAPP_SPEC},
         {"mapp_help", 1, &flag, MAPP_HELP}, {"help_spec", 1, &flag, HELP_SPEC},
@@ -185,9 +192,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'b':
             init->blue_gamma = str_to_double(optarg);
-            break;
-        case 'c':
-            strnz__cpy(init->cmd_spec, optarg, MAXLEN - 1);
             break;
         case 'd':
             strnz__cpy(init->mapp_spec, optarg, MAXLEN - 1);
@@ -255,6 +259,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'D':
             f_dump_config = true;
             break;
+        case 'R':
+            strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
+            break;
         case 'F':
             init->fg_color = get_color_number(optarg);
             break;
@@ -277,8 +284,8 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'p':
             strnz__cpy(init->prompt_str, optarg, MAXLEN - 1);
             break;
-        case 'S':
-            strnz__cpy(init->start_cmd, optarg, MAXLEN - 1);
+        case 'c':
+            strnz__cpy(init->provider_cmd, optarg, MAXLEN - 1);
             break;
         case 'T':
             strnz__cpy(init->title, optarg, MAXLEN - 1);
@@ -309,7 +316,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     init->argc = argc;
     return optind;
 }
-
 /* ╭───────────────────────────────────────────────────────────────────╮
    │ PARSE_CONFIG                                                      │
    ╰───────────────────────────────────────────────────────────────────╯ */
@@ -325,13 +331,11 @@ int parse_config(Init *init) {
             strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
     }
     expand_tilde(init->minitrc, MAXLEN - 1);
-
     FILE *config_fp = fopen(init->minitrc, "r");
     if (!config_fp) {
         fprintf(stderr, "failed to read file: %s\n", init->minitrc);
         return (-1);
     }
-
     while (fgets(ts, sizeof(ts), config_fp)) {
         if (ts[0] != '#') {
             sp = ts;
@@ -447,11 +451,14 @@ int parse_config(Init *init) {
                 strnz__cpy(init->title, value, MAXLEN - 1);
                 continue;
             }
-            if (!strcmp(key, "start_cmd")) {
-                strnz__cpy(init->start_cmd, value, MAXLEN - 1);
+            if (!strcmp(key, "provider_cmd")) {
+                strnz__cpy(init->provider_cmd, value, MAXLEN - 1);
                 continue;
             }
-
+            if (!strcmp(key, "receiver_cmd")) {
+                strnz__cpy(init->receiver_cmd, value, MAXLEN - 1);
+                continue;
+            }
             if (!strcmp(key, "bg")) {
                 strnz__cpy(init->bg, value, COLOR_LEN - 1);
                 continue;
@@ -532,10 +539,6 @@ int parse_config(Init *init) {
                 strnz__cpy(init->bg, value, COLOR_LEN - 1);
                 continue;
             }
-            if (!strcmp(key, "cmd_spec")) {
-                strnz__cpy(init->cmd_spec, value, MAXLEN - 1);
-                continue;
-            }
             if (!strcmp(key, "mapp_spec")) {
                 strnz__cpy(init->mapp_spec, value, MAXLEN - 1);
                 continue;
@@ -596,7 +599,6 @@ void prompt_int_to_str(char *s, int prompt_type) {
         break;
     }
 }
-
 /* ╭───────────────────────────────────────────────────────────────────╮
    │ WRITE_CONFIG                                                      │
    ╰───────────────────────────────────────────────────────────────────╯ */
@@ -650,7 +652,8 @@ int write_config(Init *init) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_type", tmp_str);
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "start_cmd", init->start_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "provider_cmd", init->provider_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "receiver_cmd", init->receiver_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
     (void)fprintf(minitrc_fp, "%s=%d\n", "select_max", init->select_max);
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", init->black);
@@ -673,7 +676,6 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "borange", init->borange);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bg", init->bg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "abg", init->abg);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_spec", init->cmd_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
@@ -689,7 +691,6 @@ int write_config(Init *init) {
     Perror(tmp_str);
     return 0;
 }
-
 /* ╭───────────────────────────────────────────────────────────────────╮
    │ DERIVE_FILE_SPEC                                                  │
    ╰───────────────────────────────────────────────────────────────────╯ */
@@ -702,7 +703,6 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
         *file_spec = '\0';
         return false;
     }
-
     if (dir) {
         strnz__cpy(ts, dir, MAXLEN - 1);
     } else {
@@ -748,7 +748,6 @@ void opt_prt_double(const char *o, const char *name, double value) {
 void opt_prt_bool(const char *o, const char *name, bool value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
-
 /* ╭───────────────────────────────────────────────────────────────────╮
    │ DUMP_CONFIG                                                       │
    ╰───────────────────────────────────────────────────────────────────╯ */
@@ -776,7 +775,8 @@ void dump_config(Init *init, char *msg) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_str("-P:", "--promp_type", tmp_str);
     opt_prt_int("-n:", "--select_max", init->select_max);
-    opt_prt_str("-S ", "--start_cmd", init->start_cmd);
+    opt_prt_str("-c ", "--provider_cmd", init->provider_cmd);
+    opt_prt_str("-R ", "--receiver_cmd", init->receiver_cmd);
     opt_prt_str("-T:", "--title", init->title);
     opt_prt_str("   ", "--black", init->black);
     opt_prt_str("   ", "--red", init->red);
@@ -798,7 +798,6 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("   ", "--borange", init->borange);
     opt_prt_str("   ", "--bg", init->bg);
     opt_prt_str("   ", "--abg", init->abg);
-    opt_prt_str("-c:", "--cmd_spec", init->cmd_spec);
     opt_prt_str("-H:", "--help_spec", init->help_spec);
     opt_prt_str("-i:", "--in_spec", init->in_spec);
     opt_prt_str("-d:", "--mapp_spec", init->mapp_spec);

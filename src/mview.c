@@ -31,10 +31,10 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
         exit(EXIT_SUCCESS);
     }
 
-    if (init->start_cmd[0] != '\0')
-        strip_quotes(init->start_cmd);
+    if (init->provider_cmd[0] != '\0')
+        strip_quotes(init->provider_cmd);
     if (init->title[0] == '\0')
-        strnz__cpy(init->title, init->start_cmd, MAXLEN - 1);
+        strnz__cpy(init->title, init->provider_cmd, MAXLEN - 1);
     else
         strip_quotes(init->title);
 

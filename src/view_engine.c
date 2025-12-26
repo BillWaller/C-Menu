@@ -54,7 +54,7 @@ FILE *dbgfp;
 int view_file(Init *);
 int view_cmd_processor(Init *);
 int get_cmd_char(View *, long *);
-int get_cmd_spec(View *, char *);
+int get_cmd_arg(View *, char *);
 void build_prompt(View *, int, char *, double elapsed);
 void cat_file(View *);
 void lp(char *, char *);
@@ -64,9 +64,7 @@ void go_to_eof(View *);
 int go_to_line(View *, long);
 void go_to_percent(View *, int);
 void go_to_position(View *, long);
-
 bool search(View *, int, char *, bool);
-
 void next_page(View *);
 void prev_page(View *);
 void resize_page(Init *);
@@ -127,7 +125,6 @@ int view_file(Init *init) {
     }
     return (0);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ VIEW_CMD_PROCESSOR                                            │
     ╰───────────────────────────────────────────────────────────────╯ */
@@ -144,18 +141,18 @@ int view_cmd_processor(Init *init) {
     double elapsed = 0;
     bool f_clock_started = false;
     long n_cmd = 0L;
-
     view = init->view;
     view->f_timer = false;
-    if (view->start_cmd[0]) {
-        view->next_c = view->start_cmd[0];
-        strnz__cpy(view->cmd_spec, (char *)&view->start_cmd[1], MAXLEN - 1);
-    } else
-        view->cmd_spec[0] = '\0';
-
+    //     if (view->provider_cmd[0]) {
+    //        view->next_cmd_char = view->provider_cmd[0];
+    // strnz__cpy(view->receiver_cmd, (char *)&view->provider_cmd[1],
+    // MAXLEN
+    // - 1);
+    //  } else
+    view->receiver_cmd[0] = '\0';
     while (1) {
-        c = view->next_c;
-        view->next_c = 0;
+        c = view->next_cmd_char;
+        view->next_cmd_char = 0;
         if (!c) {
             if (view->f_redisplay_page)
                 redisplay_page(init);
@@ -189,11 +186,10 @@ int view_cmd_processor(Init *init) {
             if (c >= '0' && c <= '9') {
                 tmp_str[0] = (char)c;
                 tmp_str[1] = '\0';
-                c = get_cmd_spec(view, tmp_str);
+                c = get_cmd_arg(view, tmp_str);
             }
         }
         switch (c) {
-
         case KEY_ALTLEFT:
             if (n_cmd == 0)
                 n_cmd = COLS / 2;
@@ -202,19 +198,16 @@ int view_cmd_processor(Init *init) {
             else
                 view->pmincol -= n_cmd;
             break;
-
         case KEY_ALTRIGHT:
             if (n_cmd == 0)
                 n_cmd = COLS / 2;
             if ((view->pmincol + n_cmd) < view->maxcol)
                 view->pmincol += n_cmd;
             break;
-
         case Ctrl('R'):
         case KEY_RESIZE:
             resize_page(init);
             break;
-
         case KEY_LEFT:
         case KEY_BACKSPACE:
         case Ctrl('H'):
@@ -227,7 +220,6 @@ int view_cmd_processor(Init *init) {
             else
                 view->pmincol -= n_cmd;
             break;
-
         case KEY_RIGHT:
         case 'l':
         case 'L':
@@ -236,7 +228,6 @@ int view_cmd_processor(Init *init) {
             if ((view->pmincol + n_cmd) < view->maxcol)
                 view->pmincol += n_cmd;
             break;
-
         case KEY_UP:
         case 'k':
         case 'K':
@@ -245,7 +236,6 @@ int view_cmd_processor(Init *init) {
                 n_cmd = 1;
             scroll_up_n_lines(view, n_cmd);
             break;
-
         case KEY_DOWN:
         case KEY_ENTER:
         case '\n':
@@ -259,43 +249,38 @@ int view_cmd_processor(Init *init) {
                 scroll_down_n_lines(view, n_cmd);
             }
             break;
-
         case KEY_PPAGE:
         case 'b':
         case 'B':
         case Ctrl('B'):
             scroll_up_n_lines(view, view->scroll_lines);
             break;
-
         case KEY_NPAGE:
         case 'f':
         case 'F':
         case Ctrl('F'):
             next_page(view);
             break;
-
         case KEY_HOME:
         case 'g':
             view->pmincol = 0;
             go_to_line(view, 0L);
             break;
-
         case KEY_LL:
             go_to_eof(view);
             break;
-
         case '!':
             if (view->f_displaying_help)
                 break;
-            if (get_cmd_spec(view, "!") == 0) {
+            if (get_cmd_arg(view, "!") == 0) {
                 if (!view->f_is_pipe) {
                     view->prev_file_pos = view->page_top_pos;
                     view->next_file_spec_ptr = view->file_spec_ptr;
-                    str_subc(shell_cmd_spec, view->cmd_spec, '%',
+                    str_subc(shell_cmd_spec, view->receiver_cmd, '%',
                              view->cur_file_str, MAXLEN - 1);
                     munmap(view->buf, view->file_size);
                 } else
-                    strcpy(shell_cmd_spec, view->cmd_spec);
+                    strcpy(shell_cmd_spec, view->receiver_cmd);
                 full_screen_shell(shell_cmd_spec);
                 if (!view->f_is_pipe) {
                     view->next_file_spec_ptr = view->cur_file_str;
@@ -303,13 +288,10 @@ int view_cmd_processor(Init *init) {
                 }
             }
             break;
-
         case '+':
-            if (get_cmd_spec(view, "Startup Command:") == 0)
-                strnz__cpy(view->start_cmd_all_files, view->cmd_spec,
-                           MAXLEN - 1);
+            if (get_cmd_arg(view, "Startup Command:") == 0)
+                strnz__cpy(view->view_cmd, view->receiver_cmd, MAXLEN - 1);
             break;
-
         case '-':
             if (view->f_displaying_help)
                 break;
@@ -360,53 +342,48 @@ int view_cmd_processor(Init *init) {
                 sprintf(tmp_str,
                         "Tabstop Colums Currently %d:", view->tab_stop);
                 i = 0;
-                if (get_cmd_spec(view, tmp_str) == 0)
-                    i = atoi(view->cmd_spec);
+                if (get_cmd_arg(view, tmp_str) == 0)
+                    i = atoi(view->receiver_cmd);
                 if (i >= 1 && i <= 12) {
                     view->tab_stop = i;
                     view->f_redisplay_page = true;
                 } else
                     Perror("Tab stops not changed");
                 break;
-
             case 'h':
                 if (!view->f_displaying_help)
                     view_display_help(view);
-                view->next_c = '-';
+                view->next_cmd_char = '-';
                 break;
             default:
                 break;
             }
             break;
-
         case ':':
-            view->next_c = get_cmd_spec(view, ":");
+            view->next_cmd_char = get_cmd_arg(view, ":");
             break;
-
         case '/':
         case '?':
             strcpy(tmp_str, (c == '/') ? "(forward)->" : "(backward)->");
-            if (get_cmd_spec(view, tmp_str) == 0) {
+            if (get_cmd_arg(view, tmp_str) == 0) {
                 view->f_wrap = false;
-                search(view, c, view->cmd_spec, false);
+                search(view, c, view->receiver_cmd, false);
                 prev_search_cmd = c;
-                strnz__cpy(prev_regex_pattern, view->cmd_spec, MAXLEN - 1);
+                strnz__cpy(prev_regex_pattern, view->receiver_cmd, MAXLEN - 1);
             }
             view->srch_beg_pos = view->page_top_pos;
             break;
-
         case 'o':
         case 'O':
         case 'e':
         case 'E':
-            if (get_cmd_spec(view, "File name:") == 0) {
-                strtok(view->cmd_spec, " ");
-                view->next_file_spec_ptr = strdup(view->cmd_spec);
+            if (get_cmd_arg(view, "File name:") == 0) {
+                strtok(view->receiver_cmd, " ");
+                view->next_file_spec_ptr = strdup(view->receiver_cmd);
                 view->f_redisplay_page = true;
                 return (0);
             }
             break;
-
         case KEY_END:
         case 'G':
             if (n_cmd <= 0)
@@ -414,12 +391,10 @@ int view_cmd_processor(Init *init) {
             else
                 go_to_line(view, n_cmd);
             break;
-
         case KEY_F(1):
             if (!view->f_displaying_help)
                 view_display_help(view);
             break;
-
         case 'm':
             cmd_line_prompt(view, "Mark label (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
@@ -431,7 +406,6 @@ int view_cmd_processor(Init *init) {
             else
                 view->mark_tbl[c - 'a'] = view->page_top_pos;
             break;
-
         case 'M':
         case '\'':
             cmd_line_prompt(view, "Goto mark (A-Z)->");
@@ -444,7 +418,6 @@ int view_cmd_processor(Init *init) {
             else
                 go_to_mark(view, c);
             break;
-
         case 'n':
             if (prev_search_cmd == 0) {
                 Perror("No previous search");
@@ -452,7 +425,6 @@ int view_cmd_processor(Init *init) {
             }
             search(view, prev_search_cmd, prev_regex_pattern, true);
             break;
-
         case 'N':
             if (n_cmd <= 0)
                 n_cmd = 1;
@@ -466,7 +438,6 @@ int view_cmd_processor(Init *init) {
                 return (0);
             }
             break;
-
         case 'p':
         case '%':
             if (n_cmd < 0)
@@ -476,13 +447,12 @@ int view_cmd_processor(Init *init) {
             else
                 go_to_percent(view, n_cmd);
             break;
-
         case Ctrl('Z'):
             if (view->f_is_pipe) {
                 Perror("Can't print standard input");
                 break;
             }
-            get_cmd_spec(view, "Enter Notation:");
+            get_cmd_arg(view, "Enter Notation:");
             strnz__cpy(tmp_str, "/tmp/view-XXXXXX", MAXLEN - 1);
             tfd = mkstemp(tmp_str);
             strcpy(view->tmp_file_name_ptr, tmp_str);
@@ -491,15 +461,15 @@ int view_cmd_processor(Init *init) {
                 break;
             }
             strnz__cpy(shell_cmd_spec, "echo ", MAXLEN - 5);
-            strnz__cat(shell_cmd_spec, view->cmd_spec, MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->receiver_cmd, MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
             strnz__cpy(shell_cmd_spec, "cat ", MAXLEN - 5);
-            strnz__cat(shell_cmd_spec, view->cmd_spec, MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->receiver_cmd, MAXLEN - 5);
             strnz__cat(shell_cmd_spec, ">>", MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
-            lp(view->cur_file_str, view->cmd_spec);
+            lp(view->cur_file_str, view->receiver_cmd);
             wrefresh(view->win);
             shell(shell_cmd_spec);
             snprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
@@ -511,7 +481,6 @@ int view_cmd_processor(Init *init) {
             view->f_redisplay_page = true;
             unlink(tmp_str);
             break;
-
         case Ctrl('P'):
         case KEY_CATAB:
         case KEY_PRINT:
@@ -522,7 +491,6 @@ int view_cmd_processor(Init *init) {
             lp(view->cur_file_str, NULL);
             view->f_redisplay_page = true;
             break;
-
         case 'P':
             if (n_cmd <= 0)
                 n_cmd = 1;
@@ -536,7 +504,6 @@ int view_cmd_processor(Init *init) {
                 return (0);
             }
             break;
-
         case 'q':
         case 'Q':
         case KEY_F(9):
@@ -544,7 +511,6 @@ int view_cmd_processor(Init *init) {
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = NULL;
             return (0);
-
         case 'v':
             if (view->f_displaying_help)
                 break;
@@ -567,18 +533,15 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
             full_screen_shell(shell_cmd_spec);
             return (0);
-
         case 'V':
             Perror("View: Version 8.0");
             break;
-
         default:
             break;
         }
-        view->cmd_spec[0] = '\0';
+        view->receiver_cmd[0] = '\0';
     }
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GET_CMD_CHAR                                                  │
     ╰───────────────────────────────────────────────────────────────╯ */
@@ -586,7 +549,6 @@ int get_cmd_char(View *view, long *n) {
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
-
     MEVENT event;
     mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, NULL);
     tcflush(2, TCIFLUSH);
@@ -607,14 +569,13 @@ int get_cmd_char(View *view, long *n) {
         }
     } while (c >= '0' && c <= '9');
     *n = atol(cmd_str);
-    view->cmd_spec[0] = '\0';
+    view->receiver_cmd[0] = '\0';
     return (c);
 }
-
 /*  ╭───────────────────────────────────────────────────────────────╮
     │ GET_CMD_SPEC                                                  │
     ╰───────────────────────────────────────────────────────────────╯ */
-int get_cmd_spec(View *view, char *prompt) {
+int get_cmd_arg(View *view, char *prompt) {
     int c;
     int numeric_arg = false;
     char *cmd_p;
@@ -622,16 +583,12 @@ int get_cmd_spec(View *view, char *prompt) {
     char prompt_s[MAX_COLS + 1];
     char *n;
     int rc, prompt_l;
-
     prompt_l = strnz__cpy(prompt_s, prompt, view->cols - 4);
-
-    if (view->cmd_spec[0] != '\0')
+    if (view->cmd_arg[0] != '\0')
         return (0);
-    cmd_p = view->cmd_spec;
-    cmd_e = view->cmd_spec + MAXLEN - 2;
-
+    cmd_p = view->cmd_arg;
+    cmd_e = view->cmd_arg + MAXLEN - 2;
     wmove(view->win, view->cmd_line, 0);
-
     if (prompt_l == 0)
         numeric_arg = true;
     if (prompt_l > 1) {
@@ -655,24 +612,18 @@ int get_cmd_spec(View *view, char *prompt) {
         wmove(view->win, view->cmd_line, prompt_l);
     }
     wclrtoeol(view->win);
-
     while (1) {
-
         rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol, view->smaxrow, view->smaxcol);
         if (rc == ERR) {
             Perror("Error refreshing screen");
         }
-        if (rc == ERR) {
-            Perror("Error refreshing screen");
-        }
         c = wgetch(view->win);
-
         switch (c) {
         case KEY_LEFT:
         case KEY_BACKSPACE:
         case '\b':
-            if (cmd_p > view->cmd_spec) {
+            if (cmd_p > view->cmd_arg) {
                 cmd_p--;
                 if (*cmd_p < ' ' || *cmd_p == 0x7f) {
                     getyx(view->win, view->cury, view->curx);
@@ -692,17 +643,14 @@ int get_cmd_spec(View *view, char *prompt) {
                 }
             }
             break;
-
         case KEY_ENTER:
         case '\n':
         case '\r':
             return (0);
-
         case '@':
         case KEY_F(9):
         case '\033':
             return (0);
-
         default:
             *cmd_p++ = (char)c;
             *cmd_p = '\0';
@@ -790,7 +738,6 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
     ╰───────────────────────────────────────────────────────────────╯ */
 void cat_file(View *view) {
     int c;
-
     while (1) {
         get_next_char();
         if (view->f_eod)
@@ -804,7 +751,6 @@ void cat_file(View *view) {
 void lp(char *PrintFile, char *Notation) {
     char *print_cmd_ptr;
     char shell_cmd_spec[MAXLEN];
-
     print_cmd_ptr = getenv("PRINTCMD");
     if (print_cmd_ptr == NULL || *print_cmd_ptr == '\0')
         print_cmd_ptr = PRINTCMD;
@@ -850,7 +796,6 @@ void go_to_eof(View *view) {
 int go_to_line(View *view, long line_idx) {
     int c = 0;
     long line_cnt = 0;
-
     if (line_idx <= 1) {
         go_to_position(view, (long)0);
         return EOF;
@@ -879,7 +824,6 @@ int go_to_line(View *view, long line_idx) {
     ╰───────────────────────────────────────────────────────────────╯ */
 void go_to_percent(View *view, int Percent) {
     int c;
-
     if (view->file_size < 0) {
         Perror("Cannot determine file length");
         return;
@@ -918,7 +862,6 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     bool f_page = false;
     int i;
     int rc;
-
     srch_curr_pos = view->page_top_pos;
     if (repeat) {
         if (search_cmd == '/')
@@ -1128,7 +1071,6 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
 void resize_page(Init *init) {
     int scr_lines, scr_cols;
     bool f_resize;
-
     view = init->view;
     if (view->f_full_screen) {
         // clear();
@@ -1176,7 +1118,6 @@ void resize_page(Init *init) {
     ╰───────────────────────────────────────────────────────────────╯*/
 void redisplay_page(Init *init) {
     int i;
-
     view->cury = 0;
     wmove(view->win, view->cury, 0);
     view->page_bot_pos = view->page_top_pos;
@@ -1235,7 +1176,6 @@ void prev_page(View *view) {
     ╰───────────────────────────────────────────────────────────────╯*/
 void scroll_down_n_lines(View *view, int n) {
     int i = 0;
-
     if (view->page_bot_pos == view->file_size)
         return;
     view->f_forward = true;
@@ -1267,10 +1207,8 @@ void scroll_down_n_lines(View *view, int n) {
     ╰───────────────────────────────────────────────────────────────╯*/
 void scroll_up_n_lines(View *view, int n) {
     int i;
-
     if (view->page_top_pos == (long)0)
         return;
-
     // Locate New Top of Page
     for (i = 0; i < n; i++) {
         if (view->f_bod)
@@ -1288,7 +1226,6 @@ void scroll_up_n_lines(View *view, int n) {
     // Scroll Up
     if (n < view->scroll_lines)
         wscrl(view->win, -n);
-
     // Fill in Page Top
     view->cury = 0;
     wmove(view->win, view->cury, 0);
@@ -1308,7 +1245,6 @@ void scroll_up_n_lines(View *view, int n) {
 long get_next_line(View *view, long pos) {
     uchar c;
     char *line_in_p;
-
     view->file_pos = pos;
     view->f_forward = true;
     do {
@@ -1320,7 +1256,6 @@ long get_next_line(View *view, long pos) {
     } while (c == 0x0d);
     if (view->f_eod)
         return view->file_pos;
-
     line_in_p = view->line_in_s;
     view->line_in_beg_p = view->line_in_s;
     view->line_in_end_p = view->line_in_s + LINE_IN_MAX_COLS;
@@ -1358,7 +1293,6 @@ long get_next_line(View *view, long pos) {
     ╰───────────────────────────────────────────────────────────────╯*/
 long get_prev_line(View *view, long pos) {
     uchar c;
-
     view->file_pos = pos;
     view->f_forward = false;
     get_prev_char();
@@ -1396,7 +1330,6 @@ long get_prev_line(View *view, long pos) {
     ╰───────────────────────────────────────────────────────────────╯*/
 long get_pos_next_line(View *view, long pos) {
     uchar c;
-
     if (pos == view->file_size) {
         view->f_eod = true;
         return view->file_pos;
@@ -1430,7 +1363,6 @@ long get_pos_next_line(View *view, long pos) {
     ╰───────────────────────────────────────────────────────────────╯*/
 long get_pos_prev_line(View *view, long pos) {
     uchar c;
-
     view->file_pos = pos;
     if (view->file_pos == (long)0) {
         view->f_bod = true;
@@ -1459,7 +1391,6 @@ long get_pos_prev_line(View *view, long pos) {
     ╰───────────────────────────────────────────────────────────╯*/
 void display_line(View *view) {
     int rc;
-
     if (view->cury < 0)
         view->cury = 0;
     if (view->cury > view->scroll_lines)
@@ -1489,7 +1420,6 @@ void fmt_line(View *view) {
     cchar_t cc;
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
-
     rtrim(view->line_out_s);
     mbtowc(NULL, NULL, 0);
     while (in_str[i] != '\0') {
@@ -1722,7 +1652,6 @@ void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
 void cmd_line_prompt(View *view, char *s) {
     char message_str[MAX_COLS + 1];
     int l;
-
     l = strnz__cpy(message_str, s, MAX_COLS);
     wmove(view->win, view->cmd_line, 0);
     if (l != 0) {
@@ -1741,7 +1670,6 @@ void cmd_line_prompt(View *view, char *s) {
     ╰───────────────────────────────────────────────────────────────╯*/
 void remove_file(View *view) {
     char c;
-
     if (view->f_at_end_remove) {
         wmove(view->win, view->cmd_line, 0);
         waddstr(view->win, "Remove File (Y or N)->");
@@ -1759,7 +1687,6 @@ void view_display_help(View *view) {
     int begy, begx;
     int eargc;
     char *eargv[MAXARGS];
-
     eargv[0] = HELP_CMD;
     eargv[1] = VIEW_HELP_FILE;
     eargv[2] = NULL;

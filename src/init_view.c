@@ -127,8 +127,8 @@ bool view_init_input(View *view, char *file_name) {
         │ CHILD  P_WRITE                                                │
         │ PARENT P_READ                                                 │
         ╰───────────────────────────────────────────────────────────────╯ */
-    if (view->start_cmd[0] != '\0') {
-        str_to_args(s_argv, view->start_cmd, MAXARGS - 1);
+    if (view->view_cmd[0] != '\0') {
+        str_to_args(s_argv, view->view_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_view");
             return (1);
@@ -220,8 +220,8 @@ bool view_init_input(View *view, char *file_name) {
     view->f_new_file = true;
     view->prev_file_pos = NULL_POSITION;
     view->buf_curr_ptr = view->buf;
-    if (view->start_cmd_all_files[0] != '\0')
-        strnz__cpy(view->start_cmd, view->start_cmd_all_files, MAXLEN - 1);
+    if (view->view_cmd_all[0] != '\0')
+        strnz__cpy(view->view_cmd, view->view_cmd_all, MAXLEN - 1);
     for (idx = 0; idx < NMARKS; idx++)
         view->mark_tbl[idx] = NULL_POSITION;
     strnz__cpy(view->cur_file_str, file_name, MAXLEN - 1);
