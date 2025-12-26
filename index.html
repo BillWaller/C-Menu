@@ -156,7 +156,8 @@ terminal and terminal emulator environments.</p>
 <img src="screenshots/applications_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 <p>C-Menu reads a simple description file like the one above and displays a menu to the user. When the user selects an item, with either keyboard or mouse, C-Menu executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.</p>
 <img src="screenshots/applications_menu.png" alt="Curses Keys" title="Sample Menu" />
-<p>Note that some of the items in this sample menu may not work as expected. That's because this particular menu description file is used for testing C-Menu's error handling capabilities. [<strong>sic</strong>]</p>
+<p>From the above examples, you can get an idea of how C-Menu works. Examine line-21 in &quot;main.m&quot; above. C-Menu Menu starts C-Menu View, which in turn executes &quot;tree-sitter highlight view_engine.c&quot;. Tree-Sitter doesn't need to know anything about C-Menu View. It just sends output to it's standard output device, which happens to be a pipe set up by C-Menu View. C-Menu View maps Tree-Sitter's output to the Kernel's demand paged virtual memory and you get:</p>
+<img src="screenshots/tree-sitter.png" alt="Tree-Sitter" title="Tree Sitter" />
 <h3>C-Menu C-Keys - Diagnose Keyboard/Mouse Input</h3>
 <p>C-Menu C-Keys is a diagnostic tool that helps you resolve keyboard and mouse issues quickly. Just press a key and get the Octal, Decimal, Hexadecimal, the ANSI escape sequence binding, or the NCURSES identifier. It's definately easier than rummaging through hardware documentation and NCurses header files. It's also a good way to identify which keys are reserved by your terminal emulator, and gives you the specific key codes so you can easily add your own Extended NCurses keys.</p>
 <img src="screenshots/extended-keys.png" alt="Extended Keys" title="Extended Keys" />

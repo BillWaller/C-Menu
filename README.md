@@ -17,7 +17,10 @@ C-Menu reads a simple description file like the one above and displays a menu to
 
 <img src="screenshots/applications_menu.png" alt="Curses Keys" title="Sample Menu" />
 
-Note that some of the items in this sample menu may not work as expected. That's because this particular menu description file is used for testing C-Menu's error handling capabilities. [**sic**]
+From the above examples, you can get an idea of how C-Menu works. Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View, which in turn executes "tree-sitter highlight view_engine.c". Tree-Sitter doesn't need to know anything about C-Menu View. It just sends output to it's standard output device, which happens to be a pipe set up by C-Menu View. C-Menu View maps Tree-Sitter's output to the Kernel's demand paged virtual memory and you get:
+
+ 
+<img src="screenshots/tree-sitter.png" alt="Tree-Sitter" title="Tree Sitter" />
 
 ### C-Menu C-Keys - Diagnose Keyboard/Mouse Input
 
