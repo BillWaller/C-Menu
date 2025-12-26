@@ -1,0 +1,68 @@
+{
+	"parser-directories": [
+		"/home/bill/github",
+		"/home/bill/src",
+		"/home/bill/source",
+		"/home/bill/projects",
+		"/home/bill/dev",
+		"/home/bill/git"
+	],
+	"theme": {
+		"attribute": {
+			"color": 214,
+			"italic": true
+		},
+		"comment": {
+			"color": 39,
+			"italic": true
+		},
+		"constant": 124,
+		"constant.builtin": {
+			"bold": true,
+			"color": 124
+		},
+		"constructor": 214,
+		"embedded": null,
+		"function": 32,
+		"function.builtin": {
+			"bold": true,
+			"color": 45
+		},
+		"keyword": 250,
+		"module": 196,
+		"number": {
+			"bold": true,
+			"color": 160
+		},
+		"operator": {
+			"bold": true,
+			"color": 202
+		},
+		"property": 184,
+		"property.builtin": {
+			"bold": true,
+			"color": 184
+		},
+		"punctuation": 171,
+		"punctuation.bracket": 171,
+		"punctuation.delimiter": 171,
+		"punctuation.special": 171,
+		"string": 46,
+		"string.special": 30,
+		"tag": 13,
+		"type": 51,
+		"type.builtin": {
+			"bold": true,
+			"color": 27
+		},
+		"variable": 202,
+		"variable.builtin": {
+			"bold": true,
+			"color": 208
+		},
+		"variable.parameter": {
+			"color": 208,
+			"underline": true
+		}
+	}
+}
