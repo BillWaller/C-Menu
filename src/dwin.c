@@ -910,6 +910,9 @@ void abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s code: %d\n", s, ec);
     fprintf(stderr, "Press a key to exit program");
     di_getch();
+    close_init(init);
+    win_del();
+    close_curses();
     restore_shell_tioctl();
     fprintf(stderr, "\n");
     exit(EXIT_FAILURE);
