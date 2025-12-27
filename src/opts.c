@@ -18,66 +18,81 @@ static int comp_opt_desc(const void *, const void *);
 static int comp_opt_group(const void *, const void *);
 static int comp_opt_desc(const void *, const void *);
 void dump_opts();
-
+#define red "\033[0;31m"
+#define green "\033[0;32m"
+#define yellow "\033[0;33m"
+#define blue "\033[0;34m"
+#define magenta "\033[0;35m"
+#define cyan "\033[0;36m"
+#define white "\033[0;37m"
+#define bblue "\033[34;1m"
+#define reset "\033[0m"
 Opts *select_opt(char *);
 
 Opts opts[] = {
-    {"minitrc", 0, 2, "mpfv", "a: configuration file spec"},
-    {"lines", 1, 4, "mpfv", "L: width in columns"},
-    {"cols", 1, 4, "mpfv", "C: height in lines"},
-    {"begx", 1, 4, "mpfv", "X: begin on column"},
-    {"begy", 1, 4, "mpfv", "Y: begin on line"},
-    {"title", 0, 3, "mpfv", "T: title"},
-    {"fg_color", 1, 4, "mpfv", "F: foreground_color"},
-    {"bg_color", 1, 4, "mpfv", "B: background_color"},
-    {"bo_color", 1, 4, "mpfv", "O: border_color"},
-    {"red_gamma", 1, 4, "mpfv", "r: red_gamma"},
-    {"green_gamma", 1, 4, "mpfv", "g: green_gamma"},
-    {"blue_gamma", 1, 4, "mpfv", "g: blue_gamma"},
-    {"f_at_end_clear", 2, 5, "mpfv", "z  clear screen at end of program"},
-    {"f_at_end_remove", 2, 5, "...v", "r: remove file at end of program"},
-    {"f_erase_remainder", 2, 5, "..f.", "e: erase remainder of line on enter"},
-    {"f_ignore_case", 2, 5, "...v", "x: ignore case in search"},
-    {"f_squeeze", 2, 5, "...v", "s  squeeze multiple blank lines"},
-    {"f_mutiple_cmd_args", 1, 4, "mpfv", "M  multiple command arguments"},
-    {"f_stop_on_error", 2, 5, "mpfv", "Z  stop on error"},
-    {"tab_stop", 1, 4, "...v", "t: number of spaces per tab"},
+    {"minitrc", 0, 2, "mpfv", "a:", "configuration file spec"},
+    {"lines", 1, 4, "mpfv", "L:", "width in columns"},
+    {"cols", 1, 4, "mpfv", "C:", "height in lines"},
+    {"begx", 1, 4, "mpfv", "X:", "begin on column"},
+    {"begy", 1, 4, "mpfv", "Y:", "begin on line"},
+    {"title", 0, 3, "mpfv", "T:", "title"},
+    {"black", 0, 4, "mpfv", "", "black (#000000)"},
+    {"red", 0, 4, "mpfv", "", "red (#bf0000)"},
+    {"green", 0, 4, "mpfv", "", "green (#00cf00)"},
+    {"yellow", 0, 4, "mpfv", "", "yellow (#efbf00)"},
+    {"blue", 0, 4, "mpfv", "", "blue (#0000FF)"},
+    {"magenta", 0, 4, "mpfv", "", "magenta (#9f009f)"},
+    {"cyan", 0, 4, "mpfv", "", "cyan (#00dfdf)"},
+    {"white", 0, 4, "mpfv", "", "white (#d0d0d0)"},
+    {"orange", 0, 4, "mpfv", "", "orange (#FF5f00)"},
+    {"bblack", 0, 4, "mpfv", "", "bright black (#7f7f7f)"},
+    {"bred", 0, 4, "mpfv", "", "bright red (#FF3737)"},
+    {"bgreen", 0, 4, "mpfv", "", "bright green (#00FF7f)"},
+    {"byellow", 0, 4, "mpfv", "", "bright yellow (#FFeF00)"},
+    {"bblue", 0, 4, "mpfv", "", "bright blue (#00cfFF)"},
+    {"bmagenta", 0, 4, "mpfv", "", "bright magenta (#FF00FF)"},
+    {"bcyan", 0, 4, "mpfv", "", "bright cyan (#00FFFF)"},
+    {"bwhite", 0, 4, "mpfv", "", "bright white (#FFFFFF)"},
+    {"borange", 0, 4, "mpfv", "", "bright orange (#FF7500)"},
+    {"border_color", 1, 4, "mpfv", "B:", "border_color"},
+    {"bg", 3, 6, "mpfv", "", "background (#000720)"},
+    {"abg", 3, 6, "mpfv", "", "alternate background (#000f50)"},
+    {"fg_color", 1, 4, "mpfv", "F:", "foreground_color"},
+    {"bg_color", 1, 4, "mpfv", "B:", "background_color"},
+    {"bo_color", 1, 4, "mpfv", "O:", "border_color"},
+    {"red_gamma", 1, 4, "mpfv", "r:", "red_gamma"},
+    {"green_gamma", 1, 4, "mpfv", "g:", "green_gamma"},
+    {"blue_gamma", 1, 4, "mpfv", "b:", "blue_gamma"},
+    {"f_at_end_clear", 2, 5, "mpfv", "z", "clear screen at end of program"},
+    {"f_at_end_remove", 2, 5, "...v", "r:", "remove file at end of program"},
+    {"f_erase_remainder", 2, 5, "..f.",
+     "e:", "erase remainder of line on enter"},
+    {"f_ignore_case", 2, 5, "...v", "x:", "ignore case in search"},
+    {"f_squeeze", 2, 5, "...v", "s", "squeeze multiple blank lines"},
+    {"f_mutiple_cmd_args", 1, 4, "mpfv", "M", "multiple command arguments"},
+    {"f_stop_on_error", 2, 5, "mpfv", "Z", "stop on error"},
+    {"tab_stop", 1, 4, "...v", "t:", "number of spaces per tab"},
     {"prompt-type", 0, 3, "...v",
-     "P: prompt (S-Short, L-Long, N-None)[string]"},
-    {"prompt-str", 0, 3, "...v", "User supplied string"},
-    {"start_cmd", 0, 3, "...v", "S  command to execute at start of program"},
-    {"select_max", 1, 4, ".p..", "n: number of selections"},
-    {"cmd_spec", 0, 3, ".pfv", "c: command executable"},
-    {"help_spec", 0, 0, "mpfv", "H: help spec"},
-    {"in_spec", 0, 0, ".p..", "i: input spec"},
-    {"out_spec", 0, 0, ".p..", "o: output spec"},
-    {"mapp_spec", 0, 0, "mpfv", "d: description spec"},
-    {"mapp_data", 0, 1, "mpfv", "   data directory"},
-    {"mapp_help", 0, 1, "mpfv", "   help directory"},
-    {"mapp_home", 0, 1, "mpfv", "m: home directory"},
-    {"mapp_msrc", 0, 1, "mpfv", "   source directory"},
-    {"mapp_user", 0, 1, "mpfv", "u: user directory"},
-    {"black", 3, 6, "mpfv", " "},
-    {"red", 3, 6, "mpfv", " "},
-    {"green", 3, 6, "mpfv", " "},
-    {"yellow", 3, 6, "mpfv", " "},
-    {"blue", 3, 6, "mpfv", " "},
-    {"magenta", 3, 6, "mpfv", " "},
-    {"cyan", 3, 6, "mpfv", " "},
-    {"white", 3, 6, "mpfv", " "},
-    {"orange", 3, 6, "mpfv", " "},
-    {"bblack", 3, 6, "mpfv", " "},
-    {"bred", 3, 6, "mpfv", " "},
-    {"bgreen", 3, 6, "mpfv", " "},
-    {"byellow", 3, 6, "mpfv", " "},
-    {"bblue", 3, 6, "mpfv", " "},
-    {"bmagenta", 3, 6, "mpfv", " "},
-    {"bcyan", 3, 6, "mpfv", " "},
-    {"bwhite", 3, 6, "mpfv", " "},
-    {"orange", 3, 6, "mpfv", " "},
-    {"bg", 3, 6, "mpfv", " "},
-    {"abg", 3, 6, "mpfv", " "},
-    {"", 0, 0, "", ""}}; // End marker
+     "P:", "prompt (S-Short, L-Long, N-None)[string]"},
+    {"prompt-str", 0, 3, "...v", "P", "User supplied string"},
+    {"view_cmd", 0, 3, "...v", "c", "view cmd, first file"},
+    {"view_cmd_all", 0, 3, "...v", "A", "view cmd, all files"},
+    {"receiver_cmd", 0, 3, "...v", "S", "execute to receive piped output"},
+    {"provider_cmd", 0, 3, "...v", "c", "execute to provide piped input"},
+    {"select_max", 1, 4, ".p..", "n:", "number of selections"},
+    {"cmd_spec", 0, 3, ".pfv", "c:", "command executable"},
+    {"help_spec", 0, 0, "mpfv", "H:", "help spec"},
+    {"in_spec", 0, 0, ".p..", "i:", "input spec"},
+    {"out_spec", 0, 0, ".p..", "o:", "output spec"},
+    {"mapp_spec", 0, 0, "mpfv", "d:", "description spec"},
+    {"mapp_data", 0, 1, "mpfv", "", "data directory"},
+    {"mapp_help", 0, 1, "mpfv", "", "help directory"},
+    {"mapp_home", 0, 1, "mpfv", "m:", "home directory"},
+    {"mapp_msrc", 0, 1, "mpfv", "", "source directory"},
+    {"mapp_user", 0, 1, "mpfv", "u:", "user directory"},
+    {"", 0, 0, "",
+     ", "
+     ""}}; // End marker
 
 static int comp_opt_name(const void *o1, const void *o2) {
     const Opts *opt1 = o1;
@@ -251,12 +266,13 @@ void dump_opts_by_use(char *usage, char *mask) {
         default:
             group = "   ";
         }
-        if (opts[i].desc[0] == ' ')
+        if (opts[i].short_opt[0] == '\0')
             c = ' ';
         else
             c = '-';
-        printf("%02d %-18s %-4s %-4s %4s %c%-24s\n", i, opts[i].name, type,
-               group, opts[i].use, c, opts[i].desc);
+        printf("%02d %s%-18s%s %-4s %-4s %4s %2s%1c%-3s%s%s%-24s%s\n", i, blue,
+               opts[i].name, reset, type, group, opts[i].use, yellow, c,
+               opts[i].short_opt, reset, green, opts[i].desc, reset);
         i++;
     }
 }

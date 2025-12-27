@@ -123,7 +123,7 @@ int view_file(Init *init) {
             }
         }
     }
-    return (0);
+    return 0;
 }
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ VIEW_CMD_PROCESSOR                                            │
@@ -143,13 +143,13 @@ int view_cmd_processor(Init *init) {
     long n_cmd = 0L;
     view = init->view;
     view->f_timer = false;
-    //     if (view->provider_cmd[0]) {
-    //        view->next_cmd_char = view->provider_cmd[0];
-    // strnz__cpy(view->receiver_cmd, (char *)&view->provider_cmd[1],
+    //     if (view->view_cmd[0]) {
+    //        view->next_cmd_char = view->view_cmd[0];
+    // strnz__cpy(view->cmd_arg, (char *)&view->view->view_cmd_all[1],
     // MAXLEN
     // - 1);
     //  } else
-    view->receiver_cmd[0] = '\0';
+    view->view_cmd[0] = '\0';
     while (1) {
         c = view->next_cmd_char;
         view->next_cmd_char = 0;
@@ -276,21 +276,21 @@ int view_cmd_processor(Init *init) {
                 if (!view->f_is_pipe) {
                     view->prev_file_pos = view->page_top_pos;
                     view->next_file_spec_ptr = view->file_spec_ptr;
-                    str_subc(shell_cmd_spec, view->receiver_cmd, '%',
+                    str_subc(shell_cmd_spec, view->cmd_arg, '%',
                              view->cur_file_str, MAXLEN - 1);
                     munmap(view->buf, view->file_size);
                 } else
-                    strcpy(shell_cmd_spec, view->receiver_cmd);
+                    strcpy(shell_cmd_spec, view->cmd_arg);
                 full_screen_shell(shell_cmd_spec);
                 if (!view->f_is_pipe) {
                     view->next_file_spec_ptr = view->cur_file_str;
-                    return (0);
+                    return 0;
                 }
             }
             break;
         case '+':
             if (get_cmd_arg(view, "Startup Command:") == 0)
-                strnz__cpy(view->view_cmd, view->receiver_cmd, MAXLEN - 1);
+                strnz__cpy(view->view_cmd, view->cmd_arg, MAXLEN - 1);
             break;
         case '-':
             if (view->f_displaying_help)
@@ -343,7 +343,7 @@ int view_cmd_processor(Init *init) {
                         "Tabstop Colums Currently %d:", view->tab_stop);
                 i = 0;
                 if (get_cmd_arg(view, tmp_str) == 0)
-                    i = atoi(view->receiver_cmd);
+                    i = atoi(view->cmd_arg);
                 if (i >= 1 && i <= 12) {
                     view->tab_stop = i;
                     view->f_redisplay_page = true;
@@ -367,9 +367,9 @@ int view_cmd_processor(Init *init) {
             strcpy(tmp_str, (c == '/') ? "(forward)->" : "(backward)->");
             if (get_cmd_arg(view, tmp_str) == 0) {
                 view->f_wrap = false;
-                search(view, c, view->receiver_cmd, false);
+                search(view, c, view->cmd_arg, false);
                 prev_search_cmd = c;
-                strnz__cpy(prev_regex_pattern, view->receiver_cmd, MAXLEN - 1);
+                strnz__cpy(prev_regex_pattern, view->cmd_arg, MAXLEN - 1);
             }
             view->srch_beg_pos = view->page_top_pos;
             break;
@@ -378,10 +378,10 @@ int view_cmd_processor(Init *init) {
         case 'e':
         case 'E':
             if (get_cmd_arg(view, "File name:") == 0) {
-                strtok(view->receiver_cmd, " ");
-                view->next_file_spec_ptr = strdup(view->receiver_cmd);
+                strtok(view->cmd_arg, " ");
+                view->next_file_spec_ptr = strdup(view->cmd_arg);
                 view->f_redisplay_page = true;
-                return (0);
+                return 0;
             }
             break;
         case KEY_END:
@@ -435,7 +435,7 @@ int view_cmd_processor(Init *init) {
                 view->curr_argc++;
                 if (view->curr_argc < view->argc)
                     view->next_file_spec_ptr = view->argv[view->curr_argc];
-                return (0);
+                return 0;
             }
             break;
         case 'p':
@@ -461,15 +461,15 @@ int view_cmd_processor(Init *init) {
                 break;
             }
             strnz__cpy(shell_cmd_spec, "echo ", MAXLEN - 5);
-            strnz__cat(shell_cmd_spec, view->receiver_cmd, MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->cmd_arg, MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
             strnz__cpy(shell_cmd_spec, "cat ", MAXLEN - 5);
-            strnz__cat(shell_cmd_spec, view->receiver_cmd, MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->cmd_arg, MAXLEN - 5);
             strnz__cat(shell_cmd_spec, ">>", MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
-            lp(view->cur_file_str, view->receiver_cmd);
+            lp(view->cur_file_str, view->cmd_arg);
             wrefresh(view->win);
             shell(shell_cmd_spec);
             snprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
@@ -484,10 +484,6 @@ int view_cmd_processor(Init *init) {
         case Ctrl('P'):
         case KEY_CATAB:
         case KEY_PRINT:
-            if (view->f_is_pipe) {
-                Perror("Can't print standard input");
-                break;
-            }
             lp(view->cur_file_str, NULL);
             view->f_redisplay_page = true;
             break;
@@ -501,7 +497,7 @@ int view_cmd_processor(Init *init) {
                 view->curr_argc--;
                 if (view->curr_argc >= 0)
                     view->next_file_spec_ptr = view->argv[view->curr_argc];
-                return (0);
+                return 0;
             }
             break;
         case 'q':
@@ -510,7 +506,7 @@ int view_cmd_processor(Init *init) {
         case '\033':
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = NULL;
-            return (0);
+            return 0;
         case 'v':
             if (view->f_displaying_help)
                 break;
@@ -532,14 +528,14 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, " ", MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
             full_screen_shell(shell_cmd_spec);
-            return (0);
+            return 0;
         case 'V':
             Perror("View: Version 8.0");
             break;
         default:
             break;
         }
-        view->receiver_cmd[0] = '\0';
+        view->cmd_arg[0] = '\0';
     }
 }
 //  ╭───────────────────────────────────────────────────────────────╮
@@ -569,7 +565,7 @@ int get_cmd_char(View *view, long *n) {
         }
     } while (c >= '0' && c <= '9');
     *n = atol(cmd_str);
-    view->receiver_cmd[0] = '\0';
+    view->cmd_arg[0] = '\0';
     return (c);
 }
 //  ╭───────────────────────────────────────────────────────────────╮
@@ -585,7 +581,7 @@ int get_cmd_arg(View *view, char *prompt) {
     int rc, prompt_l;
     prompt_l = strnz__cpy(prompt_s, prompt, view->cols - 4);
     if (view->cmd_arg[0] != '\0')
-        return (0);
+        return 0;
     cmd_p = view->cmd_arg;
     cmd_e = view->cmd_arg + MAXLEN - 2;
     wmove(view->win, view->cmd_line, 0);
@@ -646,11 +642,13 @@ int get_cmd_arg(View *view, char *prompt) {
         case KEY_ENTER:
         case '\n':
         case '\r':
-            return (0);
+            return 0;
         case '@':
         case KEY_F(9):
         case '\033':
-            return (0);
+            return 0;
+        case KEY_MOUSE:
+            return 0;
         default:
             *cmd_p++ = (char)c;
             *cmd_p = '\0';
@@ -661,7 +659,7 @@ int get_cmd_arg(View *view, char *prompt) {
                 c = '?';
             waddch(view->win, (char)c);
             if (cmd_p >= cmd_e)
-                return (0);
+                return 0;
             if (numeric_arg && (c < '0' || c > '9'))
                 return (c);
             break;

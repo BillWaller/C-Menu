@@ -233,9 +233,8 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_DISPLAY_MENU);
 
     case CT_HELP:
-        strnz__cpy(earg_str, HELP_CMD, MAXLEN - 1);
-        strnz__cat(earg_str, " ", MAXLEN - 1);
-        strnz__cat(earg_str, menu->help_spec, MAXLEN - 1);
+        strnz__cpy(earg_str, "view -S optsp", MAXLEN - 1);
+        lines = cols = begx = begy = 0;
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
