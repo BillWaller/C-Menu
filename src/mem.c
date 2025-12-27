@@ -421,6 +421,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
    │ PICK INIT_PICK_FILES                                           │
    ╰────────────────────────────────────────────────────────────────╯ */
 bool init_pick_files(Init *init, int argc, char **argv) {
+    int c;
     // pick desc, in_file, out_file, help_file
     // 0    1     2        3         4
     // 1    2     3        4         5
@@ -435,7 +436,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     pick->f_out_spec = verify_spec_arg(pick->out_spec, init->out_spec,
                                        init->mapp_data, "~/menuapp/data", W_OK);
     /* ╭───────────────────────────────────────────────────────────╮
-       │ PICK START_CMD - OPT ARG -S: - Priority 5                 │
+       │ PICK PROVIDER_CMD - OPT ARG -S: - Priority 5              │
        ╰───────────────────────────────────────────────────────────╯ */
     pick->f_provider_cmd =
         verify_spec_arg(pick->provider_cmd, init->provider_cmd, init->mapp_user,
@@ -444,7 +445,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         if (locate_file_in_path(pick->provider_cmd, init->provider_cmd))
             pick->f_provider_cmd = verify_file(pick->provider_cmd, X_OK);
     /* ╭───────────────────────────────────────────────────────────╮
-       │ PICK CMD_SPEC - OPT ARG -c: - Priority 5                  │
+       │ PICK RECEIVER_CMD - OPT ARG -R: - Priority 5              │
        ╰───────────────────────────────────────────────────────────╯ */
     pick->f_receiver_cmd =
         verify_spec_arg(pick->receiver_cmd, init->receiver_cmd, init->mapp_user,
@@ -518,6 +519,17 @@ bool init_pick_files(Init *init, int argc, char **argv) {
                             "~/menuapp/help", R_OK);
         if (pick->f_help_spec)
             optind++;
+    }
+    if (init->view_cmd[0] != '\0' && init->receiver_cmd[0] == '\0') {
+        strnz__cpy(em0, "PICK -c \"", MAXLEN - 1);
+        strnz__cat(em0, init->view_cmd, MAXLEN - 1);
+        strnz__cat(em0, "\"", MAXLEN - 1);
+        strnz__cpy(em1, "Invalid option for PICK", MAXLEN - 1);
+        strnz__cpy(em2, "Use -R to specify receiver command", MAXLEN - 1);
+        strnz__cpy(em3, "or -S for provider command", MAXLEN - 1);
+        c = display_error(em0, em1, em2, em3);
+        if (c == KEY_F(9))
+            return false;
     }
     pick->fg_color = init->fg_color;
     pick->bg_color = init->bg_color;

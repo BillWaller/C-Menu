@@ -192,6 +192,7 @@ int pick_engine(Init *init) {
     strncpy(key_cmd[14].text, "Enter", 32);
     chyron_l = chyron_mk(key_cmd, pick->chyron_s);
     getmaxyx(stdscr, maxy, maxx);
+
     win_maxy = (maxy * 8) / 10;
     if (win_maxy > (maxy - pick->begy) - 2)
         win_maxy = (maxy - pick->begy) - 2;
@@ -213,6 +214,21 @@ int pick_engine(Init *init) {
     pick->pg_lines = (pick->tbl_lines / pick->tbl_pages) + 1;
     pick->win_lines = pick->pg_lines + 1;
     pick->tbl_page = 0;
+    //  ╭───────────────────────────────────────────────────────────╮
+    //  │ pick->win_lines 1/5      top margin                       │
+    //  ╰───────────────────────────────────────────────────────────╯
+    if (pick->begy == 0)
+        pick->begy = (LINES - pick->win_lines) / 5;
+    else if (pick->begy + pick->win_lines > LINES - 4)
+        pick->begy = LINES - pick->win_lines - 2;
+    //  ╭───────────────────────────────────────────────────────────╮
+    //  │ pick->win_width               left margin                 │
+    //  ╰───────────────────────────────────────────────────────────╯
+    if (pick->begx + pick->win_width > COLS - 4)
+        pick->begx = COLS - pick->win_width - 2;
+    else if (pick->begx == 0)
+        pick->begx = (COLS - pick->win_width) / 2;
+
     rc = open_pick_win(init);
     if (rc)
         return (rc);

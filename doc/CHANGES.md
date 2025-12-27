@@ -1,5 +1,23 @@
 # C-Menu-0.2.5.2
 
+### 2025-12-27T09:59:15-06:00
+
+### C-Menu options changed
+
+- The -c option has been chaged to -R to avoid conflict with view, which used -c
+  for for commands to be used by the view command line.
+
+  After this update, the new options are:
+
+  -S Startup command to provide input to View, Form, and Pick
+  -R Receiver command to recieve output from View, Form, and Pick
+  -c Command to be executed by the View command processor internally
+
+- After refactoring the code earlier this year, the bug fixes have been fast and
+  frequent. I am hoping with this update, the C-Menu suite will begin to stabilize.
+  I don't like to change command line options often, but sometimes it is necessary
+  to improve usability and usefulness. Sorry for any inconvenience this may cause.
+
 ### 2025-11-30T13:26:32-06:00
 
 ### View
