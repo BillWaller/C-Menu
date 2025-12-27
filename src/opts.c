@@ -60,19 +60,20 @@ Opts opts[] = {
     {"fg_color", 1, 4, "mpfv", "F:", "foreground_color"},
     {"bg_color", 1, 4, "mpfv", "B:", "background_color"},
     {"bo_color", 1, 4, "mpfv", "O:", "border_color"},
-    {"red_gamma", 1, 4, "mpfv", "r:", "red_gamma"},
-    {"green_gamma", 1, 4, "mpfv", "g:", "green_gamma"},
-    {"blue_gamma", 1, 4, "mpfv", "b:", "blue_gamma"},
+    {"red_gamma", 1, 4, "...v", "r:", "red_gamma (View)"},
+    {"green_gamma", 1, 4, "...v", "g:", "green_gamma (View)"},
+    {"blue_gamma", 1, 4, "...v", "b:", "blue_gamma (View)"},
     {"f_at_end_clear", 2, 5, "mpfv", "z", "clear screen at end of program"},
-    {"f_at_end_remove", 2, 5, "...v", "r", "remove file at end of program"},
+    {"f_at_end_remove", 2, 5, "...v", "y", "remove file at end of program"},
     {"f_erase_remainder", 2, 5, "..f.", "e",
      "erase remainder of line on enter"},
     {"f_ignore_case", 2, 5, "...v", "x", "ignore case in search"},
     {"f_squeeze", 2, 5, "...v", "s", "squeeze multiple blank lines"},
-    {"f_mutiple_cmd_args", 2, 4, "mpfv", "M", "multiple command arguments"},
+    {"f_mutiple_cmd_args", 2, 5, ".p..", "M", "multiple command arguments"},
     {"f_stop_on_error", 2, 5, "mpfv", "Z", "stop on error"},
+    {"brackets", 2, 5, "..f.", "u:", "brackets around fields"},
+    {"fill_char", 0, 4, "..f.", "f:", "field fill_char"},
     {"select_max", 1, 4, ".p..", "n:", "number of selections"},
-    {"cmd_spec", 0, 3, ".pfv", "c:", "command executable"},
     {"tab_stop", 1, 4, "...v", "t:", "number of spaces per tab"},
     {"prompt-type", 0, 3, "...v",
      "P:", "prompt (S-Short, L-Long, N-None)[string]"},
@@ -211,7 +212,7 @@ void dump_opts_by_use(char *usage, char *mask) {
 
     printf("\n%s\n\n", usage);
 
-    printf("   long option        type grp  mask flg description\n");
+    printf("   field name         type grp  mask opt description\n");
     printf(
         "   ------------------ ---- ---- ---- --- -------------------------\n");
     while (opts[i].name != NULL) {
@@ -233,7 +234,7 @@ void dump_opts_by_use(char *usage, char *mask) {
             type = "int";
             break;
         case OT_BOOL:
-            type = "t/f";
+            type = "bool";
             break;
         case OT_HEX:
             type = "hex";

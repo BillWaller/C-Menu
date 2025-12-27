@@ -558,6 +558,7 @@ int get_cmd_char(View *view, long *n) {
             else if (event.bstate & BUTTON5_PRESSED) {
                 return (KEY_DOWN);
             }
+        } else {
             if (c >= '0' && c <= '9' && i < 32) {
                 cmd_str[i++] = (char)c;
                 cmd_str[i] = '\0';
