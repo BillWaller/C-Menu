@@ -1,7 +1,7 @@
 #!/usr/bin/awk -f
 # colorize.awk
+# Bill Waller 2025
 # an AWK script to colorize hex color codes in text output
-#
 function hex_to_dec(hex_str) {
     return strtonum("0x" hex_str)
 }
@@ -42,23 +42,22 @@ BEGIN {
     ansioff = "\x1b[0m"
     while (getline > 0) {
         line = $0
+        lineout = $0
         while (match(line, /#[0-f]{6}/)) {
-            color = substr(line, RSTART, RLENGTH) 
-            ansi = ansi_color(color)
-            p1 = substr(line, 1, RSTART - 1)
-            p2 = substr(line, RSTART, RLENGTH)
-            p3 = substr(line, RSTART + RLENGTH)
-            printf("%s%s%s%s", p1, ansi, p2, ansioff)
-            if (length(p3) > 0) {
-                line = p3
-                continue
+            if (RLENGTH > 0) {
+                color = substr(line, RSTART, RLENGTH)
+                ansi = ansi_color(color)
+                p1 = substr(line, 1, RSTART - 1)
+                p2 = substr(line, RSTART, RLENGTH)
+                p3 = substr(line, RSTART + RLENGTH)
+                sprintf(lineout, "%s%s%s%s", p1, ansi, p2, ansioff)
+                if (length(p3) > 0) {
+                    line = p3
+                    continue
+                }
+                break
             }
-            else {
-                printf("%s\n", lineout)
-                lineout = ""
-            }
-
         }
-        printf("%s\n", line)
+        printf("%s\n", lineout)
     }
 }

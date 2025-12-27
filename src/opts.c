@@ -54,7 +54,6 @@ Opts opts[] = {
     {"bcyan", 0, 4, "mpfv", "", "bright cyan (#00FFFF)"},
     {"bwhite", 0, 4, "mpfv", "", "bright white (#FFFFFF)"},
     {"borange", 0, 4, "mpfv", "", "bright orange (#FF7500)"},
-    {"border_color", 1, 4, "mpfv", "B:", "border_color"},
     {"bg", 3, 6, "mpfv", "", "background (#000720)"},
     {"abg", 3, 6, "mpfv", "", "alternate background (#000f50)"},
     {"fg_color", 1, 4, "mpfv", "F:", "foreground_color"},
