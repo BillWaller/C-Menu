@@ -138,7 +138,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int flag = 0;
 
     char *optstring =
-        "a:b:c:d:g:hi:m:n:o:p:rst:vwxzA:B:C:DE:F:H:L:MO:P:R:S:T:U:VX:Y:Z";
+        "a:b:c:d:f:g:hi:m:n:o:p:rst:uvwxzA:B:C:DE:F:H:L:MO:P:R:S:T:U:VX:Y:Z";
     struct option long_options[] = {
         {"mapp_data", 1, &flag, MAPP_DATA}, {"mapp_spec", 1, &flag, MAPP_SPEC},
         {"mapp_help", 1, &flag, MAPP_HELP}, {"help_spec", 1, &flag, HELP_SPEC},
@@ -195,7 +195,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'e':
             init->f_erase_remainder = true;
             break;
-        case 'f':
+        case 'u':
             init->f_brackets = true;
             break;
         case 'g':
@@ -227,7 +227,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             if (init->tab_stop < 1)
                 init->tab_stop = 1;
             break;
-        case 'u':
+        case 'f':
             strncpy(init->fill_char, optarg, 2);
             break;
         case 'v':
@@ -771,14 +771,14 @@ void dump_config(Init *init, char *msg) {
     opt_prt_int("-B:", "--bg_color", init->bg_color);
     opt_prt_int("-F:", "--fg_color", init->fg_color);
     opt_prt_int("-O:", "--bo_color", init->bo_color);
-    opt_prt_double("-r:", "--red_gamma", init->red_gamma);
-    opt_prt_double("-g:", "--green_gamma", init->blue_gamma);
-    opt_prt_double("-b:", "--blue_gamma", init->green_gamma);
-    opt_prt_bool("-z ", "--f_at_end_clear", init->f_at_end_clear);
-    opt_prt_bool("-y:", "--f_at_end_remove", init->f_at_end_remove);
-    opt_prt_bool("-e:", "--f_erase_remainder", init->f_erase_remainder);
-    opt_prt_bool("-f:", "--f_brackets", init->f_brackets);
-    opt_prt_str("-u:", "--filler", init->fill_char);
+    opt_prt_double("-r:", "  red_gamma", init->red_gamma);
+    opt_prt_double("-g:", "  green_gamma", init->blue_gamma);
+    opt_prt_double("-b:", "  blue_gamma", init->green_gamma);
+    opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
+    opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
+    opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
+    opt_prt_bool("-u", "  f_brackets", init->f_brackets);
+    opt_prt_str("-f:", "  fill_char", init->fill_char);
     opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
     opt_prt_bool("-Z ", "--f_stop_on_error", init->f_stop_on_error);
