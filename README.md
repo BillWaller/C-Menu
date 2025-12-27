@@ -19,7 +19,6 @@ C-Menu reads a simple description file like the one above and displays a menu to
 
 From the above examples, you can get an idea of how C-Menu works. Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View, which in turn executes "tree-sitter highlight view_engine.c". Tree-Sitter doesn't need to know anything about C-Menu View. It just sends output to it's standard output device, which happens to be a pipe set up by C-Menu View. C-Menu View maps Tree-Sitter's output to the Kernel's demand paged virtual memory and you get:
 
- 
 <img src="screenshots/tree-sitter.png" alt="Tree-Sitter" title="Tree Sitter" />
 
 ### C-Menu C-Keys - Diagnose Keyboard/Mouse Input
@@ -113,7 +112,7 @@ by a specified command or script. Internally, the numeric entries are converted 
 
 <img src="screenshots/Receipt.png" />
 
-The two Cash Receipts entry forms above are identical except the top form has field brackets turned on and the bottom form has fill characters set to underscore. This is a simple configuration option from the command line or the configuration file. 
+The two Cash Receipts entry forms above are identical except the top form has field brackets turned on and the bottom form has fill characters set to underscore. This is a simple configuration option from the command line or the configuration file.
 
 If you make a mistake, in the form description syntax, as I did below, you will
 get a notification pinpointing the problem. In this message, we can see that the
@@ -163,14 +162,37 @@ NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to 
 
 One especially useful feature of C-Menu View is its incredible speed with large text files, like system logs. C-Menu View can open and display multi-gigabyte text files almost instantaneously. Seek from beginning to end of a 1Gb file takes a few milliseconds.
 
+### C-Menu View and Manual Pages
+
+C-Menu View can also be used as a pager for manual pages. By setting the
+"MANPAGER" environment variable to "view", users can enjoy the benefits of
+C-Menu View's features while reading manual pages. However, setting MANPAGER="Nvim !Man+" is my recommendation. I don't know what Nvim is using to colorize manual pages, but it looks great. The most compelling reason to use Nvim is that it's very easy to write a few lines to a file, or edit the file, if you like.
+If you still want to use C-Menu View as your MANPAGER, just add the following line to your shell configuration file (e.g., .bashrc or .zshrc):
+
+If you still want to use C-Menu View as your MANPAGER, just add the following line to your shell configuration file (e.g., .bashrc or .zshrc):
+
+```
+    export PAGER="view"
+```
+
+You can also filter manual pages through ~/menuapp/msrc/man.sed to colorize underlined,emboldened, and italicized text. This sed script is included with C-Menu. To use it, you can run the following command in your terminal:
+
+```
+    man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
+```
+
+<img src="screenshots/nvim-man-page.png" title="Nvim Man Page" />
+
+<img src="screenshots/man-page.png" title="C-Menu View Man Page" />
+
 
 ### C-Menu View Architecture
 
-* Instead of using seek and read operations on a complicated buffering system, C-Menu View leverages the Kernel's sophisticated demand paged virtual memory.
-* Lazy loading means that the program doesn't waste time seeking, reading, and populating buffers that will not be needed.
-* Simplicity - Files are mapped onto the Kernel's virtual memory address space and leverages the Kernel's sophisticated demand paged virtual memory.
-* Zero-Copy I/O - Using "mmap", C-Menu View reads directly from virtual memory, without having to copy blocks from the file-system into heap address space.
-* Simplicity - A picture is worth lots of words.  No reads, no seeks, no buffer management schemes, at lest not for view. It's all handled by the kernel. The following snippet includes all of View's file I/O.
+- Instead of using seek and read operations on a complicated buffering system, C-Menu View leverages the Kernel's sophisticated demand paged virtual memory.
+- Lazy loading means that the program doesn't waste time seeking, reading, and populating buffers that will not be needed.
+- Simplicity - Files are mapped onto the Kernel's virtual memory address space and leverages the Kernel's sophisticated demand paged virtual memory.
+- Zero-Copy I/O - Using "mmap", C-Menu View reads directly from virtual memory, without having to copy blocks from the file-system into heap address space.
+- Simplicity - A picture is worth lots of words. No reads, no seeks, no buffer management schemes, at lest not for view. It's all handled by the kernel. The following snippet includes all of View's file I/O.
 
 <img src="screenshots/file-io.png" alt="nvim log" title="nvim log" />
 
@@ -224,7 +246,7 @@ know it's not a good idea to run everything as root, but sometimes a user want's
 
 #### RSH With "make install"
 
-Here's an example of the proper way to use RSH. 
+Here's an example of the proper way to use RSH.
 
 1. Type "xx" to assume root privileges.
 2. Type "make install"
