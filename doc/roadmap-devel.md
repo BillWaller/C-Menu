@@ -2,6 +2,26 @@
 
 This document outlines the planned features and improvements for CMENU, aimed at developers who contribute to the project. The roadmap is subject to change based on community feedback and evolving project needs.
 
+## Immediate Goals (Next 3 Months)
+
+- **Codebase Cleanup**: Continue refactoring the existing code to improve readability,
+  maintainability, and performance.
+- **Plugin API Stabilization**: Finalize and stabilize the plugin API to ensure
+  compatibility with future releases.
+- **Community Feedback Integration**: Actively seek and incorporate feedback from
+  the developer community to prioritize features and improvements.
+- **Improve Build System**: Address any immediate issues with the current build
+  system to ensure a smooth development experience, especially for non-Linux platforms.
+- **Basic Unit Tests**: Begin implementing basic unit tests for critical components
+  of the codebase to ensure stability during development.
+- **Bug Triage**: Systematically review and prioritize existing bugs and issues
+  reported by users and developers.
+- **Set Up Development Environment Guides**: Create comprehensive guides to help
+  new developers set up their development environment quickly and efficiently
+  across different operating systems.
+- Testing and Validation Framework: Establish a framework for testing and validating
+  new features and bug fixes to ensure code quality.
+
 ## Short-Term Goals (Next 3-6 Months)
 
 - **Enhanced Plugin System**: Improve the plugin architecture to allow for easier
