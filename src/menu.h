@@ -14,7 +14,7 @@
 #include <ncursesw/ncurses.h>
 #include <stddef.h>
 #define C_MENU_VERSION "C-Menu-0.2.6"
-#define DEBUG TRUE
+// #define DEBUG TRUE
 #define USE_PAD TRUE
 // MAXLEN is for variables known to be limited in length
 #define MAXLEN 256
@@ -92,6 +92,7 @@ typedef struct {
     unsigned int group; // 0=FILES, 1=SPECS, 2=MISC, 3=PARMS, 4=FLAGS
     const char *use;    // which programs use this option
                         // m=menu, p=pick, f=form, v=view
+    const char *short_opt;
     const char *desc;
 } Opts;
 
@@ -388,7 +389,7 @@ enum { C_MAIN = 283, C_MENU, C_OPTION };
 
 enum { P_CONTINUE = 302, P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CALC, P_END };
 
-enum { MT_NULL = 327, MT_CENTERED_TEXT, MT_LEFT_JUST_TEXT, MT_CHOICE };
+enum { MT_NULL = 0x320, MT_TEXT, MT_CHOICE };
 
 enum {
     MA_INIT = 350,

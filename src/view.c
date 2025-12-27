@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
     open_curses(init);
+
     if (!init_view_full_screen(init)) {
         view_file(init);
     }

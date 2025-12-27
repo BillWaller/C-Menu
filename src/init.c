@@ -280,11 +280,14 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'p':
             strnz__cpy(init->prompt_str, optarg, MAXLEN - 1);
             break;
-        case 'c':
-            strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
-            break;
         case 'R':
             strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
+            break;
+        case 'c':
+            strnz__cpy(init->view_cmd, optarg, MAXLEN - 1);
+            break;
+        case 'A':
+            strnz__cpy(init->view_cmd_all, optarg, MAXLEN - 1);
             break;
         case 'T':
             strnz__cpy(init->title, optarg, MAXLEN - 1);
@@ -448,6 +451,14 @@ int parse_config(Init *init) {
             }
             if (!strcmp(key, "title")) {
                 strnz__cpy(init->title, value, MAXLEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "view_cmd")) {
+                strnz__cpy(init->view_cmd, value, MAXLEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "view_cmd_all")) {
+                strnz__cpy(init->view_cmd_all, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "provider_cmd")) {
@@ -623,6 +634,22 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%d\n", "lines", init->lines);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begx", init->begx);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "black", init->black);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "red", init->red);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "green", init->green);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "yellow", init->yellow);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "blue", init->blue);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "magenta", init->magenta);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cyan", init->cyan);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "white", init->white);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bblack", init->bblack);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bred", init->bred);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bgreen", init->bgreen);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "byellow", init->byellow);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bblue", init->bblue);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bmagenta", init->bmagenta);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bcyan", init->bcyan);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bwhite", init->bwhite);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bg_color",
                   colors_text[init->bg_color]);
     (void)fprintf(minitrc_fp, "%s=%s\n", "fg_color",
@@ -651,28 +678,13 @@ int write_config(Init *init) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_type", tmp_str);
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "view_cmd", init->provider_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "view_cmd_all", init->receiver_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "provider_cmd", init->provider_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "receiver_cmd", init->receiver_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
     (void)fprintf(minitrc_fp, "%s=%d\n", "select_max", init->select_max);
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", init->black);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "red", init->red);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "green", init->green);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "yellow", init->yellow);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "blue", init->blue);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "magenta", init->magenta);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "cyan", init->cyan);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "white", init->white);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "orange", init->orange);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bblack", init->bblack);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bred", init->bred);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bgreen", init->bgreen);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "byellow", init->byellow);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bblue", init->bblue);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bmagenta", init->bmagenta);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bcyan", init->bcyan);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bwhite", init->bwhite);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "borange", init->borange);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bg", init->bg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "abg", init->abg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
@@ -774,7 +786,9 @@ void dump_config(Init *init, char *msg) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_str("-P:", "--promp_type", tmp_str);
     opt_prt_int("-n:", "--select_max", init->select_max);
-    opt_prt_str("-c ", "--provider_cmd", init->provider_cmd);
+    opt_prt_str("-c ", "--view_cmd", init->provider_cmd);
+    opt_prt_str("-A ", "--view_cmd_all", init->provider_cmd);
+    opt_prt_str("-S ", "--provider_cmd", init->provider_cmd);
     opt_prt_str("-R ", "--receiver_cmd", init->receiver_cmd);
     opt_prt_str("-T:", "--title", init->title);
     opt_prt_str("   ", "--black", init->black);

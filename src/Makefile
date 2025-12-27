@@ -49,7 +49,7 @@ CFLAGS = -O0 -g3 -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
 LIBS =  -lncursesw -ltinfo -lm
 LDFLAGS = -Wl,--gc-sections
 CC = gcc
-TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr lf
+TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr lf optsp
 
 all:	$(TARGETS)
 	@echo Make Complete
@@ -78,6 +78,8 @@ view: view.o init_view.o view_engine.o mview.o dwin.o futil.o init.o mem.o \
 	opts.o scriou.o exec.o sig.o
 	$(CC) $(CFLAGS) view.o init_view.o view_engine.o mview.o dwin.o futil.o \
 		init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+optsp:	optsp.c opts.o
+	$(CC) $(CFLAGS) $(LDFLAGS) optsp.c opts.o -o $@ $(LIBS)
 enterchr:	enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
 	$(CC) $(CFLAGS) enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o \
 		$(LDFLAGS) -o $@ $(LIBS)
@@ -114,6 +116,7 @@ install:
 	./inst.sh	pick		$(PREFIX)/bin	pick		0711	$(OWNER)	$(GROUP)
 	./inst.sh	ckeys		$(PREFIX)/bin	ckeys		0711	$(OWNER)	$(GROUP)
 	./inst.sh	view		$(PREFIX)/bin	view		0711	$(OWNER)	$(GROUP)
+	./inst.sh	optsp		$(PREFIX)/bin	optsp		0711	$(OWNER)	$(GROUP)
 	./inst.sh	whence		$(PREFIX)/bin	whence		0711	$(OWNER)	$(GROUP)
 	./inst.sh	rsh		$(PREFIX)/bin	rsh		4711	root	root
 	./inst.sh	rsh		$(PREFIX)/bin	ush		0711	$(OWNER)	$(GROUP)

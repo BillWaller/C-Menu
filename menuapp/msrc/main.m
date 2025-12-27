@@ -25,5 +25,9 @@
 !view -L 17 -C 45 -T "Data Types" /home/bill/menuapp/data/fields.f
 :     Menu Description
 !view -L 30 -C 78 -S "bat -l Crystal -f /home/bill/menuapp/msrc/main.m"
+:     C-Menu Options
+!exec view -L 30 -C 78 -S options
+:     Help
+!exec view -S "optsp.sh"
 :     Exit Applications
 !return
