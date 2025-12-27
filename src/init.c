@@ -678,8 +678,8 @@ int write_config(Init *init) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_type", tmp_str);
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "view_cmd", init->provider_cmd);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "view_cmd_all", init->receiver_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "view_cmd", init->view_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "view_cmd_all", init->view_cmd_all);
     (void)fprintf(minitrc_fp, "%s=%s\n", "provider_cmd", init->provider_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "receiver_cmd", init->receiver_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
@@ -786,10 +786,10 @@ void dump_config(Init *init, char *msg) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_str("-P:", "--promp_type", tmp_str);
     opt_prt_int("-n:", "--select_max", init->select_max);
-    opt_prt_str("-c ", "--view_cmd", init->provider_cmd);
-    opt_prt_str("-A ", "--view_cmd_all", init->provider_cmd);
-    opt_prt_str("-S ", "--provider_cmd", init->provider_cmd);
-    opt_prt_str("-R ", "--receiver_cmd", init->receiver_cmd);
+    opt_prt_str("-c:", "--view_cmd", init->provider_cmd);
+    opt_prt_str("-A:", "--view_cmd_all", init->provider_cmd);
+    opt_prt_str("-S:", "--provider_cmd", init->provider_cmd);
+    opt_prt_str("-R:", "--receiver_cmd", init->receiver_cmd);
     opt_prt_str("-T:", "--title", init->title);
     opt_prt_str("   ", "--black", init->black);
     opt_prt_str("   ", "--red", init->red);
