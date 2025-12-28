@@ -145,6 +145,8 @@ a:active {
   </head>
   <body>
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>C-Menu - A TUI Menu System</h1>
+<h2>New FAQ Added</h2>
+<a href="doc/FAQ.html">C-Menu FAQ</a><br>
 <h2>Programs: C-Menu Menu, Form, Pick, View, and RSH</h2>
 <p>C-Menu is a lightweight, customizable, and easy-to-learn suite of programs
 for creating menus, entry forms, and pickers with a text-based user
@@ -262,7 +264,7 @@ C-Menu View's features while reading manual pages. However, setting MANPAGER=&qu
 <ul>
 <li>Instead of using seek and read operations on a complicated buffering system, C-Menu View leverages the Kernel's sophisticated demand paged virtual memory.</li>
 <li>Lazy loading means that the program doesn't waste time seeking, reading, and populating buffers that will not be needed.</li>
-<li>Simplicity - Files are mapped onto the Kernel's virtual memory address space and leverages the Kernel's sophisticated demand paged virtual memory.</li>
+<li>Simplicity - Files are mapped onto the Kernel's virtual memory address space and leveraging the Kernel's sophisticated demand paged virtual memory.</li>
 <li>Zero-Copy I/O - Using &quot;mmap&quot;, C-Menu View reads directly from virtual memory, without having to copy blocks from the file-system into heap address space.</li>
 <li>Simplicity - A picture is worth lots of words. No reads, no seeks, no buffer management schemes, at lest not for view. It's all handled by the kernel. The following snippet includes all of View's file I/O.</li>
 </ul>
@@ -298,8 +300,7 @@ requires frequent switching between user and root modes for various
 administrative tasks.</p>
 <p>Many system administrators and developers find RSH invaluable for tasks
 that require elevated privileges. RSH eliminates the need to repeatedly enter
-passwords or switch users, streamlining workflows and improving efficiency. We all
-know it's not a good idea to run everything as root, but sometimes a user want's to avoid precious seconds it takes to enter passwords for su. With RSH, it takes three keystrokes to enter root mode and two keystrokes to get out.</p>
+passwords or switch users, streamlining workflows and improving efficiency. We all know it's not a good idea to run everything as root, but sometimes a user want's to avoid precious seconds it takes to enter passwords for su. With RSH, it takes three keystrokes to enter root mode and two keystrokes to get out.</p>
 <h4>RSH With &quot;make install&quot;</h4>
 <p>Here's an example of the proper way to use RSH.</p>
 <ol>
