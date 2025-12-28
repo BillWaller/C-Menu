@@ -10,9 +10,9 @@
 :     Installment Loan Calculations
 !form iloan.f -i iloan.dat -c iloan -o iloan.dat
 :     Listener Research
-!form listadd.d
+!form listadd.f -i listadd.dat -o listadd.dat
 :     Cash Receipts
-!form receipt.f receipt.sh
+!form receipt.f -i receipt.dat -o receipt.dat
 :     Delete File by Inode
 !pick -S "ls -i" -n 1 -R "rm -i"
 :     Form Data Types
@@ -25,9 +25,7 @@
 !view -L 17 -C 45 -T "Data Types" /home/bill/menuapp/data/fields.f
 :     Menu Description
 !view -L 30 -C 78 -S "bat -l Crystal -f /home/bill/menuapp/msrc/main.m"
-:     C-Menu Options
-!exec view -L 30 -C 78 -S options
 :     Help
-!exec view -S "optsp.sh"
+!view view -L 30 -C 78 -S "optsp.sh"
 :     Exit Applications
 !return
