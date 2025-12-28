@@ -427,10 +427,6 @@ typedef struct {
     int letter_pos;
     unsigned int command_type;
     char *command_str;
-    char *option_ptr[MAXOPTS];
-    int option_col;
-    int option_idx;
-    int option_cnt;
 } Line;
 
 typedef struct {
@@ -462,8 +458,6 @@ typedef struct {
     //
     int choice_max_len;
     int text_max_len;
-    int option_offset;
-    int option_max_len;
     int item_count;
     int line_idx;
     Line *line[MAX_MENU_LINES];

@@ -11,8 +11,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-// menu_engine is reentrant through m_menu
-
 unsigned int menu_engine(Init *);
 unsigned int menu_cmd_processor(Init *);
 
@@ -26,7 +24,6 @@ unsigned int menu_engine(Init *init) {
         return (1);
     }
     action = MA_INIT;
-
     //  ╭───────────────────────────────────────────────────────────────╮
     //  │ DISPLAY_MENU                                                  │
     //  ╰───────────────────────────────────────────────────────────────╯
@@ -46,13 +43,6 @@ unsigned int menu_engine(Init *init) {
                  menu->line_idx++) {
                 mvwaddstr(menu->win, menu->line_idx, 0,
                           menu->line[menu->line_idx]->choice_text);
-                if (menu->line[menu->line_idx]->option_cnt != 0)
-                    // y = menu->line_idx
-                    // x = menu->option_offset
-                    // menu->line[menu->line_idx]->option_ptr[menu->line[menu->line_idx]->option_idx]);
-                    mvwaddstr(menu->win, menu->line_idx, menu->option_offset,
-                              menu->line[menu->line_idx]->option_ptr
-                                  [menu->line[menu->line_idx]->option_idx]);
             }
             menu->line_idx = 0;
             for (i = 0; i < menu->item_count; i++)
@@ -76,8 +66,6 @@ unsigned int menu_engine(Init *init) {
             menu->title[0] = '\0';
             menu->choice_max_len = 0;
             menu->text_max_len = 0;
-            menu->option_offset = 0;
-            menu->option_max_len = 0;
             if (parse_menu_description(init))
                 return (MA_RETURN);
         }
@@ -101,19 +89,15 @@ unsigned int menu_cmd_processor(Init *init) {
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     MEVENT event;
     wattron(menu->win, A_REVERSE);
-    mvwaddstr(menu->win, menu->line_idx, 0,
-              menu->line[menu->line_idx]->choice_text);
+    mvwaddstr_fill(menu->win, menu->line_idx, 0,
+                   menu->line[menu->line_idx]->choice_text, menu->cols);
     wattroff(menu->win, A_REVERSE);
-    touchwin(win_box[win_ptr]);
-    wnoutrefresh(win_box[win_ptr]);
-    touchwin(win_win[win_ptr]);
-    wnoutrefresh(win_win[win_ptr]);
     event.y = event.x = -1;
     tcflush(2, TCIFLUSH);
     in_key = mvwgetch(menu->win, menu->line_idx, 1);
-    mvwaddstr(menu->win, menu->line_idx, 0,
-              menu->line[menu->line_idx]->choice_text);
-
+    mvwaddstr_fill(menu->win, menu->line_idx, 0,
+                   menu->line[menu->line_idx]->choice_text, menu->cols);
+    wclrtoeol(menu->win);
     switch (in_key) {
     case KEY_UP:
         i = menu->line_idx;
@@ -218,10 +202,8 @@ unsigned int menu_cmd_processor(Init *init) {
     }
     c = (int)menu->line[menu->line_idx]->command_type;
     switch (c) {
-
     case CT_RETURNMAIN:
         return (MA_RETURN_MAIN);
-
     case CT_EXEC:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
@@ -231,7 +213,6 @@ unsigned int menu_cmd_processor(Init *init) {
         eargv[j] = NULL;
         full_screen_fork_exec(eargv);
         return (MA_DISPLAY_MENU);
-
     case CT_HELP:
         strnz__cpy(earg_str, "view -S optsp", MAXLEN - 1);
         lines = cols = begx = begy = 0;
@@ -241,7 +222,6 @@ unsigned int menu_cmd_processor(Init *init) {
         mview(init, eargc, eargv, init->lines, init->cols, init->begx,
               init->begy, init->title);
         return (MA_DISPLAY_MENU);
-
     case CT_MENU:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
@@ -260,7 +240,6 @@ unsigned int menu_cmd_processor(Init *init) {
             //         return (MA_RETURN_MAIN); // go all the way back
             return (MA_DISPLAY_MENU);
         break;
-
     case CT_PICK:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
@@ -272,7 +251,6 @@ unsigned int menu_cmd_processor(Init *init) {
         parse_opt_args(init, eargc, eargv);
         init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
-
     case CT_FORM:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
@@ -280,7 +258,6 @@ unsigned int menu_cmd_processor(Init *init) {
         parse_opt_args(init, eargc, eargv);
         init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
-
     case CT_VIEW:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         lines = cols = begx = begy = 0;
@@ -290,30 +267,14 @@ unsigned int menu_cmd_processor(Init *init) {
         mview(init, eargc, eargv, init->lines, init->cols, init->begx,
               init->begy, init->title);
         return (MA_DISPLAY_MENU);
-
     case CT_CKEYS:
         display_curses_keys();
         return (MA_DISPLAY_MENU);
-
     case CT_RETURN:
         return (MA_RETURN);
-
-    case CT_TOGGLE:
-        if (menu->line[menu->line_idx]->option_idx <
-            menu->line[menu->line_idx]->option_cnt)
-            menu->line[menu->line_idx]->option_idx++;
-        else
-            menu->line[menu->line_idx]->option_idx = 0;
-        mvwaddstr(menu->win, menu->line_idx, menu->option_offset,
-                  menu->line[menu->line_idx]
-                      ->option_ptr[menu->line[menu->line_idx]->option_idx]);
-        wclrtoeol(menu->win);
-        return (MA_ENTER_OPTION);
-
     case CT_WRITE_CONFIG:
         write_config(init);
         return (MA_ENTER_OPTION);
-
     default:
         return (MA_ENTER_OPTION);
     }

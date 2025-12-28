@@ -170,8 +170,8 @@ int view_cmd_processor(Init *init) {
                 cmd_line_prompt(view, view->prompt_str);
             else
                 cmd_line_prompt(view, view->tmp_prompt_str);
-            if (view->box)
-                wrefresh(view->box);
+            //      if (view->box)
+            //          wrefresh(view->box);
             rc =
                 prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                          view->smincol, view->smaxrow, view->smaxcol);
@@ -470,7 +470,10 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
             lp(view->cur_file_str, view->cmd_arg);
-            wrefresh(view->win);
+            //  wrefresh(view->win);
+            rc =
+                prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
+                         view->smincol, view->smaxrow, view->smaxcol);
             shell(shell_cmd_spec);
             snprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
                      view->tmp_file_name_ptr);
@@ -755,7 +758,9 @@ void lp(char *PrintFile, char *Notation) {
         print_cmd_ptr = PRINTCMD;
     sprintf(shell_cmd_spec, "%s %s", print_cmd_ptr, PrintFile);
     cmd_line_prompt(view, shell_cmd_spec);
-    wrefresh(view->win);
+    //  wrefresh(view->win);
+    prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
+             view->smincol, view->smaxrow, view->smaxcol);
     shell(shell_cmd_spec);
 }
 //  ╭───────────────────────────────────────────────────────────────╮
@@ -882,17 +887,6 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     //  │ SEARCH - READ LINES                                           │
     //  ╰───────────────────────────────────────────────────────────────╯
     while (1) {
-#ifdef DEBUG
-        snprintf(tmp_str, MAXLEN - 1, "Pos %ld of %ld, %s for: ", srch_curr_pos,
-                 view->file_size, (search_cmd == '/') ? "Forward" : "Backward");
-        strnz__cat(tmp_str, regex_pattern, MAXLEN - strlen(tmp_str) - 1);
-        cmd_line_prompt(view, tmp_str);
-        rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-                      view->smincol, view->smaxrow, view->smaxcol);
-        if (rc == ERR) {
-            Perror("Error refreshing screen");
-        }
-#endif
         if (search_cmd == '/') {
             if (srch_curr_pos == view->file_size &&
                 view->srch_beg_pos == (long)0)
@@ -1071,12 +1065,6 @@ void resize_page(Init *init) {
     bool f_resize;
     view = init->view;
     if (view->f_full_screen) {
-        // clear();
-        // refresh();
-        // delwin(view->win);
-        // touchwin(stdscr);
-        // wnoutrefresh(stdscr);
-        // init_view_full_screen(init);
         getmaxyx(stdscr, view->lines, view->cols);
         view->scroll_lines = view->lines - 1;
         view->cmd_line = view->lines - 1;
@@ -1397,7 +1385,7 @@ void display_line(View *view) {
     wclrtoeol(view->win);
     wadd_wchstr(view->win, view->cmplx_buf);
     view->cury++;
-    refresh();
+    // refresh();
     rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                   view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR)
@@ -1412,7 +1400,7 @@ void fmt_line(View *view) {
     char ansi_tok[64];
     int cp = cp_default;
     int i = 0, j = 0;
-    size_t len;
+    int len;
     const char *s;
     wchar_t wc;
     cchar_t cc;
@@ -1444,6 +1432,10 @@ void fmt_line(View *view) {
                 i++;
             }
             len = mbtowc(&wc, s, MB_CUR_MAX);
+            if (len == -1 || len == 0) {
+                wc = (wchar_t)(unsigned char)('?');
+                len = 1;
+            }
             if (setcchar(&cc, &wc, attr, cp, NULL) != ERR) {
                 if (len > 0 && (j + len) < MAX_COLS - 1) {
                     view->stripped_line_out[j] = *s;

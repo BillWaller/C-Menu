@@ -117,8 +117,6 @@ unsigned int parse_menu_description(Init *init) {
             else
                 menu->line[menu->line_idx]->choice_letter = ltr;
             menu->line[menu->line_idx]->type = MT_CHOICE;
-            menu->line[menu->line_idx]->option_idx = 0;
-            menu->line[menu->line_idx]->option_cnt = 0;
             menu->line_idx++;
             actions++;
             break;
@@ -169,10 +167,6 @@ unsigned int parse_menu_description(Init *init) {
                 menu->line[menu->line_idx]->letter_pos = 0;
                 menu->line[menu->line_idx]->command_type = '\0';
                 menu->line[menu->line_idx]->command_str = NULL;
-                menu->line[menu->line_idx]->option_ptr[0] = NULL;
-                menu->line[menu->line_idx]->option_col = 0;
-                menu->line[menu->line_idx]->option_idx = 0;
-                menu->line[menu->line_idx]->option_cnt = 0;
                 menu->line_idx++;
                 choices++;
             }
@@ -246,52 +240,20 @@ unsigned int parse_menu_description(Init *init) {
     // │                                                            │
     // ╰────────────────────────────────────────────────────────────╯
     menu->lines = menu->item_count;
-    if (menu->option_max_len > 0)
-        menu->option_max_len += 2;
-    if (menu->text_max_len > (menu->choice_max_len + menu->option_max_len + 6))
+    if (menu->text_max_len > (menu->choice_max_len + 6))
         menu->cols = menu->text_max_len;
     else
-        menu->cols = menu->choice_max_len + menu->option_max_len + 6;
+        menu->cols = menu->choice_max_len + 6;
     if (menu->cols >= MAXLEN)
         Perror("line too long");
-    menu->option_offset = menu->choice_max_len + 7;
-
     for (menu->line_idx = 0; menu->line_idx < menu->item_count;
          menu->line_idx++) {
-        s = menu->line[menu->line_idx]->choice_text;
-        d = tmp_buf;
-        e = d + menu->choice_max_len + 6;
-        *d++ = ' ';
-        *d++ = ltr = menu->line[menu->line_idx]->choice_letter;
-        *d++ = ' ';
-        *d++ = '-';
-        *d++ = ' ';
-        l = 5;
-        while (*s != '\0' && d < e) {
-            if (ltr != '\0')
-                if (*s == ltr) {
-                    *d++ = *s;
-                    *d++ = '\b';
-                    e += 2;
-                    l += 2;
-                    ltr = '\0';
-                }
-            *d++ = *s++;
-            l++;
-        }
-        while (d < e) {
-            *d++ = ' ';
-            l++;
-        }
-        *d = '\0';
-        if (l + 1 > MAXLEN)
-            l = MAXLEN - 1;
-        s = tmp_buf;
-        d = menu->line[menu->line_idx]->choice_text;
-        e = d + l;
-        while (*s != '\0' && d < e)
-            *d++ = *s++;
-        *d = '\0';
+        strnz__cpy(tmp_buf, " x - ", MAXLEN - 1);
+        tmp_buf[1] = menu->line[menu->line_idx]->choice_letter;
+        strnz__cat(tmp_buf, menu->line[menu->line_idx]->choice_text,
+                   MAXLEN - 1);
+        strnz__cpy(menu->line[menu->line_idx]->choice_text, tmp_buf,
+                   MAXLEN - 1);
     }
 
     return (0);
@@ -321,8 +283,6 @@ unsigned int get_command_type(char *t) {
         return (CT_HELP);
     else if (!strcmp(p, "menu"))
         return (CT_MENU);
-    else if (!strcmp(p, "option"))
-        return (CT_MENU);
     else if (!strcmp(p, "form"))
         return (CT_FORM);
     else if (!strcmp(p, "form_exec"))
@@ -345,7 +305,7 @@ unsigned int get_command_type(char *t) {
 // │ FREE_MENU_LINE                                                 │
 // ╰────────────────────────────────────────────────────────────────╯
 void free_menu_line(Line *line) {
-    int j;
+    //  int j;
 
     if (line->raw_text != NULL)
         free(line->raw_text);
@@ -353,21 +313,11 @@ void free_menu_line(Line *line) {
         free(line->choice_text);
     if (line->command_str != NULL)
         free(line->command_str);
-    for (j = 0; j < line->option_cnt && j < MAXOPTS; j++) {
-        if (line->option_ptr[j] != NULL) {
-            free(line->option_ptr[j]);
-            line->option_ptr[j] = NULL;
-        }
-    }
     line->raw_text = NULL;
     line->choice_text = NULL;
     line->choice_letter = '\0';
     line->letter_pos = 0;
     line->command_type = '\0';
     line->command_str = NULL;
-    line->option_ptr[0] = NULL;
-    line->option_col = 0;
-    line->option_idx = 0;
-    line->option_cnt = 0;
     free(line);
 }

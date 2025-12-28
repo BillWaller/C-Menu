@@ -1,0 +1,214 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <style>
+* {
+	background: #000027;
+	font-size: 20px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+.rounded-code {
+	display: block;
+	background: #002f4f;
+	color: #f0f0f0;
+	border: 1px solid #666060;
+	border-radius: 8px;
+	padding: 8px;
+	width: 70%;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+body {
+	color: #00ff9f;
+	text-align: left;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 20px;
+	background: #000027;
+}
+.wrap-text {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+pre {
+	font-family: "Source Code Pro", "Courier New", monospace;
+	font-size: 20px;
+	color: #e0e0e0;
+	background: #002f4f;
+}
+code {
+	display: block;
+	font-size: 16px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+	text-indent: 0;
+	background: #002f4f;
+}
+
+h1 {
+	color: #40ffdf;
+	font-size: 40px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 5%;
+	margin-right: 12%;
+}
+h2 {
+	color: #40ffdf;
+	font-size: 30px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 7%;
+	margin-right: 12%;
+}
+h3 {
+	color: #40ffdf;
+	font-size: 22px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+	margin-right: 12%;
+}
+h4 {
+	color: #40ffdf;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+	margin-right: 12%;
+}
+img {
+	display: block;
+	width: auto;
+	width: 60%;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #506090;
+	border-radius: 8px;
+}
+ol {
+	font-size: 20px;
+	margin-left: 0%;
+	margin-right: 12%;
+}
+span {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+p {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+li {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+a {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:link {
+	color: #00ff9f;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 20px;
+}
+a:visited {
+	color: #3fcfff;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:hover {
+	color: #40ffdf;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:active {
+	color: #ff7700;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+    </style>
+  </head>
+  <body>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>C-Menu FAQ</h1>
+<hr />
+<h3>C-Menu View - Why View Displays Question Marks</h3>
+<p>Q: When I try to view a document that contains line-drawing characters, C-Menu View displays question marks instead of the line-drawing characters. How can I fix this?</p>
+<p>A: The file may contain characters above 0x80, which can't be translated by C-Menu View's multi-byte to wide character translation.These characters may be line drawing characters from the CP-437 character set. In that case, you can convert the file to UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you can use the following command:</p>
+<pre class="rounded-code"><code>    iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt
+</code></pre>
+<p>This will convert the line-drawing characters to their correct UTF-8 representations, allowing C-Menu View to display them properly. The images below show before and after using iconv.</p>
+<img src="screenshots/cp437_to_utf8.png" title="CP437 TO UTF8" />
+<hr />
+<h3>C-Menu View - How to Colorize Manual Pages</h3>
+<p>Q: How can I add color to manual pages?</p>
+<p>A: Manual pages use ANSI SGR escape sequences to add color. You can use the following sed script to substitute your own colors for:</p>
+<p>0x1b[1m bold
+0x1b[2m dim
+0x1b[3m italic
+0x1b[4m underline
+0x1b[22m normal intensity (bold/dim off)
+0x1b[23m italic off
+0x1b[24m underline off</p>
+<pre class="rounded-code"><code class="language-sed">s/\[2m/\[35;1m/g
+s/\[3m/\[33;3;1m/g
+s/\[4m/\[31;1m/g
+s/\[22m/\[22;0m/g
+s/\[23m/\[23;0m/g
+s/\[24m/\[24;0m/g
+</code></pre>
+<p>You can save this script to a file, or use the one that comes with C-Menu, (~/menuapp/msrc/man.sed) and then use it like this:</p>
+<pre class="rounded-code"><code>man bash
+man -Tutf8 bash | sed -f ~/menuapp/msrc/man.sed | view
+</code></pre>
+<p>This will display the bash manual page with the specified colors in C-Menu View.</p>
+<img src="screenshots/man-page.png" title="Colorizer" />
+<hr />
+<h3>C-Menu View - How to Colorize HTML Color Codes</h3>
+<p>Q: I want to colorize six digit html style hexadecimal colors, such as #RRGGBB, in C-Menu View. How can I do this?</p>
+<p>A: You can use the following awk script to colorize six digit html style hexadecimal colors in C-Menu View:</p>
+<pre class="rounded-code"><code class="language-bash">awk -f ~/menuapp/msrc/colorize.awk yourfile.txt | view
+</code></pre>
+<p>This script matches six digit hexadecimal colors in the format #RRGGBB and adds the ANSI escape sequences to set the background color to the specified RGB values.</p>
+<p>This will display the contents of yourfile.txt in C-Menu View with the specified hexadecimal colors colorized. The image below shows before and after colorizing.</p>
+<img src="screenshots/Colorizer.png" title="Colorizer" />
+<hr />
+<h3>C-Menu View - How to Customize Colors</h3>
+<p>Q: How can I customize the color scheme in C-Menu View?</p>
+<p>A: If you have a modern color display, C-Menu View can display up to 16,777,216 different colors using ANSI escape sequences applicable to foreground and background. You can also redefine the standard ANSI color palette in ~/.minitrc. When you exit C-Menu, your system colors revert to their previous state.</p>
+<img src="screenshots/minitrc.png" title="C-Menu .minitrc" />
+<hr />
+<h3>C-Menu Menu, Form, Pick and View API</h3>
+<p>Q: I want to use the C-Menu API to develop my own code. How can I do that.</p>
+<p>A: At the moment, you will have to rely on C-Menu's source code for documentation. If build C-Menu using CMake in the build directory, a C library will be installed in the lib64 directory, which you can link to your own executables. If there is sufficient interest, that capability will be expanded, improved, and a reference guide will be created for the API.</p>
+<hr />
+<h3>C-Menu View - How to Use Tree-sitter With View</h3>
+<p>Q: How do I use the tree-sitter highlighter with C-Menu View?</p>
+<p>A: Documentation on this feature is sparse at the moment.</p>
+<ol>
+<li>Install tree-sitter</li>
+<li>Install tree-sitter-cli</li>
+<li>Install (and build) the tree-sitter parser for your language</li>
+<li>Edit ~/.config/tree-sitter/config.json</li>
+</ol>
+<p>You will find an example config.json in C-Menu's tree-sitter directory.</p>
+<p>Type the following command:</p>
+<pre class="rounded-code"><code class="language-bash">    tree-sitter highlight source-file | view
+</code></pre>
+<img src="screenshots/tree-sitter.png" title="C-Menu View Tree-Sitter" />
+<hr />
+</body></html></body></html>
