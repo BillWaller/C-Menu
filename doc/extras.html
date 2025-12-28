@@ -1,0 +1,585 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <style>
+* {
+	background: #000027;
+	font-size: 20px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+.rounded-code {
+	display: block;
+	background: #002f4f;
+	color: #f0f0f0;
+	border: 1px solid #666060;
+	border-radius: 8px;
+	padding: 8px;
+	width: 70%;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+body {
+	color: #00ff9f;
+	text-align: left;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 20px;
+	background: #000027;
+}
+.wrap-text {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+pre {
+	font-family: "Source Code Pro", "Courier New", monospace;
+	font-size: 20px;
+	color: #e0e0e0;
+	background: #002f4f;
+}
+code {
+	display: block;
+	font-size: 16px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+	text-indent: 0;
+	background: #002f4f;
+}
+
+h1 {
+	color: #40ffdf;
+	font-size: 40px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 5%;
+	margin-right: 12%;
+}
+h2 {
+	color: #40ffdf;
+	font-size: 30px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 7%;
+	margin-right: 12%;
+}
+h3 {
+	color: #40ffdf;
+	font-size: 22px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+	margin-right: 12%;
+}
+h4 {
+	color: #40ffdf;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+	margin-right: 12%;
+}
+img {
+	display: block;
+	width: auto;
+	width: 60%;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #506090;
+	border-radius: 8px;
+}
+ol {
+	font-size: 20px;
+	margin-left: 0%;
+	margin-right: 12%;
+}
+span {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+p {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+li {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+a {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:link {
+	color: #00ff9f;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 20px;
+}
+a:visited {
+	color: #3fcfff;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:hover {
+	color: #40ffdf;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:active {
+	color: #ff7700;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+    </style>
+  </head>
+  <body>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <style>
+* {
+	background: #000027;
+	font-size: 20px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+.rounded-code {
+	display: block;
+	background: #002f4f;
+	color: #f0f0f0;
+	border: 1px solid #666060;
+	border-radius: 8px;
+	padding: 8px;
+	width: 70%;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+body {
+	color: #00ff9f;
+	text-align: left;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 20px;
+	background: #000027;
+}
+.wrap-text {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+pre {
+	font-family: "Source Code Pro", "Courier New", monospace;
+	font-size: 20px;
+	color: #e0e0e0;
+	background: #002f4f;
+}
+code {
+	display: block;
+	font-size: 16px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+	text-indent: 0;
+	background: #002f4f;
+}
+
+h1 {
+	color: #40ffdf;
+	font-size: 40px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 5%;
+	margin-right: 12%;
+}
+h2 {
+	color: #40ffdf;
+	font-size: 30px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 7%;
+	margin-right: 12%;
+}
+h3 {
+	color: #40ffdf;
+	font-size: 22px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+	margin-right: 12%;
+}
+h4 {
+	color: #40ffdf;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+	margin-right: 12%;
+}
+img {
+	display: block;
+	width: auto;
+	width: 60%;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #506090;
+	border-radius: 8px;
+}
+ol {
+	font-size: 20px;
+	margin-left: 0%;
+	margin-right: 12%;
+}
+span {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+p {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+li {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+a {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:link {
+	color: #00ff9f;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 20px;
+}
+a:visited {
+	color: #3fcfff;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:hover {
+	color: #40ffdf;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:active {
+	color: #ff7700;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+    </style>
+  </head>
+  <body>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+    <title></title>
+    <style>
+* {
+	background: #000027;
+	font-size: 20px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+.rounded-code {
+	display: block;
+	background: #002f4f;
+	color: #f0f0f0;
+	border: 1px solid #666060;
+	border-radius: 8px;
+	padding: 8px;
+	width: 70%;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Source Code Pro", "Courier New", monospace;
+}
+body {
+	color: #00ff9f;
+	text-align: left;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 20px;
+	background: #000027;
+}
+.wrap-text {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+pre {
+	font-family: "Source Code Pro", "Courier New", monospace;
+	font-size: 20px;
+	color: #e0e0e0;
+	background: #002f4f;
+}
+code {
+	display: block;
+	font-size: 16px;
+	font-family: "Source Code Pro", "Courier New", monospace;
+	text-indent: 0;
+	background: #002f4f;
+}
+
+h1 {
+	color: #40ffdf;
+	font-size: 40px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 5%;
+	margin-right: 12%;
+}
+h2 {
+	color: #40ffdf;
+	font-size: 30px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 7%;
+	margin-right: 12%;
+}
+h3 {
+	color: #40ffdf;
+	font-size: 22px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+	margin-right: 12%;
+}
+h4 {
+	color: #40ffdf;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	margin-left: 10%;
+	margin-right: 12%;
+}
+img {
+	display: block;
+	width: auto;
+	width: 60%;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #506090;
+	border-radius: 8px;
+}
+ol {
+	font-size: 20px;
+	margin-left: 0%;
+	margin-right: 12%;
+}
+span {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+p {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+li {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+}
+a {
+	font-size: 20px;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:link {
+	color: #00ff9f;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+	font-size: 20px;
+}
+a:visited {
+	color: #3fcfff;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:hover {
+	color: #40ffdf;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+a:active {
+	color: #ff7700;
+	text-decoration: none;
+	margin-left: 12%;
+	margin-right: 12%;
+	font-size: 20px;
+	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
+}
+    </style>
+  </head>
+  <body>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>Installing Programs to Augment C-Menu</h1>
+<p>Run the following in your terminal, then follow the onscreen instructions.</p>
+<pre class="rounded-code"><code class="language-bash">    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+</code></pre>
+<p>For more detailed instructions, visit</p>
+<a href="https://www.rust-lang.org/tools/install">the official Rust installation page</a><br>
+<p>After installation, ensure that your environment is set up correctly by running:</p>
+<pre class="rounded-code"><code class="language-bash">    source $HOME/.cargo/env
+</code></pre>
+<p>You can verify the installation by checking the Rust version:</p>
+<pre class="rounded-code"><code class="language-bash">    rustc --version
+</code></pre>
+<p>This should display the installed Rust version, confirming that Rust is successfully installed on your system.</p>
+<p>Rust comes with Cargo, the Rust package manager, which you can use to install additional Rust-based tools.</p>
+<p>You can update Rust and Cargo at any time by running:</p>
+<pre class="rounded-code"><code class="language-bash">    rustup update
+</code></pre>
+<h2>About C-Menu and R-Menu</h2>
+<p>Eventually, if there is enough interest in C-Menu, it will be ported to Rust as well! And, they it will be called R-Menu. :)</p>
+<h2>Installing Bat</h2>
+<p>To install Bat, a cat clone with syntax highlighting and Git integration, you can use the following commands based on your operating system:</p>
+<h3>On Linux</h3>
+<p>After installing Rust, you can install Bat using Cargo, Rust's package manager:</p>
+<pre class="rounded-code"><code class="language-bash">    cargo install bat
+</code></pre>
+<h3>On macOS</h3>
+<pre class="rounded-code"><code class="language-bash">    brew install bat
+</code></pre>
+<h3>On Windows</h3>
+<pre class="rounded-code"><code class="language-powershell">    choco install bat
+</code></pre>
+<p>After installation, you can verify that Bat is installed correctly by running:</p>
+<pre class="rounded-code"><code class="language-bash">    bat --version
+
+</code></pre>
+<p>This should display the installed Bat version, confirming that Bat is successfully installed on your system.</p>
+<h2>Installing Ripgrep</h2>
+<p>To install Ripgrep, a line-oriented search tool that recursively searches your current directory for a regex pattern, you can use the following commands based on your operating system:</p>
+<h3>On Linux</h3>
+<p>After installing Rust, you can install Ripgrep using Cargo, Rust's package manager:</p>
+<pre class="rounded-code"><code class="language-bash">    cargo install ripgrep
+</code></pre>
+<h3>On macOS</h3>
+<pre class="rounded-code"><code class="language-bash">    brew install ripgrep
+</code></pre>
+<h3>On Windows</h3>
+<pre class="rounded-code"><code class="language-powershell">    choco install ripgrep
+</code></pre>
+<p>After installation, you can verify that Ripgrep is installed correctly by running:</p>
+<pre class="rounded-code"><code class="language-bash">    rg --version
+</code></pre>
+<p>This should display the installed Ripgrep version, confirming that Ripgrep is successfully installed on your system.</p>
+<h2>Additional Resources</h2>
+<p>For more information on Rust and its tools, you can visit the following resources:</p>
+<ul>
+<li>
+<a href="https://doc.rust-lang.org/book/">The Rust Programming Language Book</a><br>
+</li>
+<li>
+<a href="https://rustlings.rust-lang.org/">Rustlings Exercises</a><br>
+</li>
+<li>
+<a href="https://doc.rust-lang.org/cargo/">Cargo Documentation</a><br>
+</li>
+<li>
+<a href="https://github.com/sharkdp/bat">Bat GitHub Repository</a><br>
+</li>
+<li>
+<a href="https://github.com/BurntSushi/ripgrep">Ripgrep GitHub Repository</a><br>
+</li>
+</ul>
+<h2>lsd</h2>
+<p>To install lsd, a modern replacement for 'ls' with colorful output and additional features, you can use the following commands based on your operating system:</p>
+<h3>On Linux</h3>
+<p>After installing Rust, you can install lsd using Cargo, Rust's package manager:</p>
+<pre class="rounded-code"><code class="language-bash">    cargo install lsd
+</code></pre>
+<h3>On macOS</h3>
+<pre class="rounded-code"><code class="language-bash">    brew install lsd
+</code></pre>
+<h3>On Windows</h3>
+<pre class="rounded-code"><code class="language-powershell">    choco install lsd
+</code></pre>
+<p>After installation, you can verify that lsd is installed correctly by running:</p>
+<pre class="rounded-code"><code class="language-bash">    lsd --version
+</code></pre>
+<p>This should display the installed lsd version, confirming that lsd is successfully installed on your system</p>
+<h2>Tree-Sitter</h2>
+<p>To install Tree-Sitter, a parser generator tool and an incremental parsing library, you can use the following commands based on your operating system:</p>
+<h3>On Linux</h3>
+<p>After installing Rust, you can install Tree-Sitter using Cargo, Rust's package manager:</p>
+<pre class="rounded-code"><code class="language-bash">    cargo install tree-sitter-cli
+</code></pre>
+<h3>On macOS</h3>
+<pre class="rounded-code"><code class="language-bash">    brew install tree-sitter
+</code></pre>
+<h3>On Windows</h3>
+<pre class="rounded-code"><code class="language-powershell">    choco install tree-sitter
+</code></pre>
+<p>After installation, you can verify that Tree-Sitter is installed correctly by running:</p>
+<pre class="rounded-code"><code class="language-bash">    tree-sitter --version
+</code></pre>
+<p>This should display the installed Tree-Sitter version, confirming that Tree-Sitter is successfully installed on your system.</p>
+<h2>Tree-Sitter-CLI</h2>
+<p>To install Tree-Sitter-CLI, a command-line interface for Tree-Sitter, you can use the following commands based on your operating system:</p>
+<h3>On Linux</h3>
+<p>After installing Rust, you can install Tree-Sitter-CLI using Cargo, Rust's package manager:</p>
+<pre class="rounded-code"><code class="language-bash">    cargo install tree-sitter-cli
+</code></pre>
+<h3>On macOS</h3>
+<pre class="rounded-code"><code class="language-bash">    brew install tree-sitter-cli
+</code></pre>
+<h3>On Windows</h3>
+<pre class="rounded-code"><code class="language-powershell">    choco install tree-sitter-cli
+</code></pre>
+<p>After installation, you can verify that Tree-Sitter-CLI is installed correctly by running:</p>
+<pre class="rounded-code"><code class="language-bash">    tree-sitter --version
+</code></pre>
+<p>This should display the installed Tree-Sitter-CLI version, confirming that Tree-Sitter-CLI is successfully installed on your system.</p>
+<h2>Tree-Sitter Parsers</h2>
+<p>To install Tree-Sitter parsers for various programming languages, you can use the following commands based on your operating system:</p>
+<h3>On Linux</h3>
+<p>After installing Rust, you can install Tree-Sitter parsers using Cargo, Rust's package manager:</p>
+<pre class="rounded-code"><code class="language-bash">    cargo install tree-sitter-&lt;language&gt;
+</code></pre>
+<h3>On macOS</h3>
+<pre class="rounded-code"><code class="language-bash">    brew install tree-sitter-&lt;language&gt;
+</code></pre>
+<h3>On Windows</h3>
+<pre class="rounded-code"><code class="language-powershell">    choco install tree-sitter-&lt;language&gt;
+</code></pre>
+<p>After installation, you can verify that the Tree-Sitter parser for your chosen language is installed correctly by running:</p>
+<pre class="rounded-code"><code class="language-bash">    tree-sitter &lt;language&gt; --version
+</code></pre>
+<p>This should display the installed Tree-Sitter parser version for your chosen language, confirming that it is successfully installed on your system.
+Replace <code>&lt;language&gt;</code> with the specific programming language you want to install the parser for, such as <code>python</code>, <code>javascript</code>, <code>rust</code>, etc.</p>
+<h2>Rustlings</h2>
+<p>Another tool I have really enjoyed is Rustlings. The Rustlings tutorials are an invaluable companion to the Rust Book.</p>
+<a href="https://doc.rust-lang.org/book/">The Rust Book</a><br>
+<img src="../screenshots/rustlings1.png" title="Rustlings 1" />
+<img src="../screenshots/rustlings2.png" title="Rustlings 2" />
+<h2>Neovim</h2>
+<p>And last, but certainly not least in my list of essential tools is Neovim. I loved vim and used it for many years. I can't say whether Vim or Neovim is better because both have evolved to provide competitive features. I can say, for me, Neovim plugins seem more accessible, and it has everything I want and more.</p>
+<img src="../screenshots/Neovim.png" title="Neovim" />
+<h2>Conclusion</h2>
+<p>By following the above instructions, you can easily install Rust and various Rust-based tools to enhance your C-Menu experience. Enjoy coding with these powerful tools!</p>
+</body></html></body></html>
