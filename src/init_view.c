@@ -209,6 +209,7 @@ bool view_init_input(View *view, char *file_name) {
             strnz__cpy(tmp_str, "no standard input", MAXLEN - 1);
             abend(-1, tmp_str);
         }
+        waitpid(pid, NULL, 0);
     }
     //  ╭───────────────────────────────────────────────────────────────╮
     //  │ MMAP                                                          │

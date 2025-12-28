@@ -166,8 +166,9 @@ One especially useful feature of C-Menu View is its incredible speed with large 
 
 C-Menu View can also be used as a pager for manual pages. By setting the
 "MANPAGER" environment variable to "view", users can enjoy the benefits of
-C-Menu View's features while reading manual pages. However, setting MANPAGER="Nvim !Man+" is my recommendation. I don't know what Nvim is using to colorize manual pages, but it looks great. The most compelling reason to use Nvim is that it's very easy to write a few lines to a file, or edit the file, if you like.
-If you still want to use C-Menu View as your MANPAGER, just add the following line to your shell configuration file (e.g., .bashrc or .zshrc):
+C-Menu View's features while reading manual pages.
+
+However, setting MANPAGER="Nvim !Man+" is my recommendation. I don't know what Nvim is using to colorize manual pages, but it looks great. The most compelling reason to use Nvim is that it's very easy to write a few lines to a file, or edit the file, if you like.
 
 If you still want to use C-Menu View as your MANPAGER, just add the following line to your shell configuration file (e.g., .bashrc or .zshrc):
 
@@ -175,7 +176,7 @@ If you still want to use C-Menu View as your MANPAGER, just add the following li
     export PAGER="view"
 ```
 
-You can also filter manual pages through ~/menuapp/msrc/man.sed to colorize underlined,emboldened, and italicized text. This sed script is included with C-Menu. To use it, you can run the following command in your terminal:
+You can filter manual pages through ~/menuapp/msrc/man.sed to colorize underlined,emboldened, and italicized text. This sed script is included with C-Menu. To use it, you can run the following command in your terminal:
 
 ```
     man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
@@ -184,7 +185,6 @@ You can also filter manual pages through ~/menuapp/msrc/man.sed to colorize unde
 <img src="screenshots/nvim-man-page.png" title="Nvim Man Page" />
 
 <img src="screenshots/man-page.png" title="C-Menu View Man Page" />
-
 
 ### C-Menu View Architecture
 
