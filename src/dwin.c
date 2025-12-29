@@ -49,6 +49,8 @@ void list_colors();
 int get_color_number(char *s);
 int rgb_clr_to_cube(int);
 void set_fkey(int, char *);
+bool is_set_fkey(int);
+void unset_fkey(int);
 void def_clr_pairs();
 RGB hex_clr_str_to_rgb(char *);
 void init_hex_clr(int, char *);
@@ -183,7 +185,12 @@ key_cmd_tbl key_cmd[20] = {
 enum key_idx { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, PgUp, PgDn, END };
 
 int tty_fd, pipe_in, pipe_out;
-
+bool is_set_fkey(int k) {
+    if (key_cmd[k].text[0] != '\0')
+        return true;
+    else
+        return false;
+}
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ SET_FKEY                                                      │
 //  ╰───────────────────────────────────────────────────────────────╯
@@ -193,6 +200,10 @@ void set_fkey(int k, char *s) {
     else
         key_cmd[k].text[0] = '\0';
 }
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ SET_FKEY                                                      │
+//  ╰───────────────────────────────────────────────────────────────╯
+void unset_fkey(int k) { key_cmd[k].text[0] = '\0'; }
 int chyron_mk(key_cmd_tbl *ck, char *chyron_s);
 int get_chyron_key(key_cmd_tbl *ck, int choice);
 //  ╭───────────────────────────────────────────────────────────────╮
