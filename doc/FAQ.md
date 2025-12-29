@@ -6,15 +6,19 @@
 
 Q: When I try to view a document that contains line-drawing characters, C-Menu View displays question marks instead of the line-drawing characters. How can I fix this?
 
-A: The file may contain characters above 0x80, which can't be translated by C-Menu View's multi-byte to wide character translation.These characters may be line drawing characters from the CP-437 character set. In that case, you can convert the file to UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you can use the following command:
+A: The file may contain characters above 0x80, which can't be translated by C-Menu View's character translators. If the offending characters CP-437 line drawing characters, you can convert the file to UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you can use the following command:
 
 ```
     iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt
 ```
 
-This will convert the line-drawing characters to their correct UTF-8 representations, allowing C-Menu View to display them properly. The images below show before and after using iconv.
+The images below show, before, on the left, and after, on the right, using iconv.
 
 <img src="screenshots/cp437_to_utf8.png" title="CP437 TO UTF8" />
+
+As an interesting note, this also works for "less", which displays the decimal representation of of the CP437 characters. This could be handy if you have been coding since the 1980's and recognize them as CP437 line-drawing characters.
+
+<img src="screenshots/cp437-line-draw-less.png" title="CP437 LESS" />
 
 ---
 
@@ -22,8 +26,9 @@ This will convert the line-drawing characters to their correct UTF-8 representat
 
 Q: How can I add color to manual pages?
 
-A: Manual pages use ANSI SGR escape sequences to add color. You can use the following sed script to substitute your own colors for:
+A: Manual pages use ANSI SGR escape sequences to add color.
 
+```
 0x1b[1m bold
 0x1b[2m dim
 0x1b[3m italic
@@ -31,7 +36,9 @@ A: Manual pages use ANSI SGR escape sequences to add color. You can use the foll
 0x1b[22m normal intensity (bold/dim off)
 0x1b[23m italic off
 0x1b[24m underline off
+```
 
+You can use the following sed script to substitute your own colors:
 
 ```sed
 s/\[2m/\[35;1m/g
@@ -110,6 +117,8 @@ Type the following command:
 ```
 
 <img src="screenshots/tree-sitter.png" title="C-Menu View Tree-Sitter" />
+
+These instructions are admittedly sketchy and hard to follow. We will revise and clarify in the future.
 
 
 ---
