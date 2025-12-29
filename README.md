@@ -1,5 +1,9 @@
 # C-Menu - A TUI Menu System
 
+## New FAQ Added
+
+[C-Menu FAQ](doc/FAQ.html)
+
 ## Programs: C-Menu Menu, Form, Pick, View, and RSH
 
 C-Menu is a lightweight, customizable, and easy-to-learn suite of programs
@@ -166,9 +170,7 @@ One especially useful feature of C-Menu View is its incredible speed with large 
 
 C-Menu View can also be used as a pager for manual pages. By setting the
 "MANPAGER" environment variable to "view", users can enjoy the benefits of
-C-Menu View's features while reading manual pages.
-
-However, setting MANPAGER="Nvim !Man+" is my recommendation. I don't know what Nvim is using to colorize manual pages, but it looks great. The most compelling reason to use Nvim is that it's very easy to write a few lines to a file, or edit the file, if you like.
+C-Menu View's features while reading manual pages. However, setting MANPAGER="Nvim !Man+" is my recommendation. I don't know what Nvim is using to colorize manual pages, but it looks great. The most compelling reason to use Nvim is that it's very easy to write a few lines to a file, or edit the file, if you like.
 
 If you still want to use C-Menu View as your MANPAGER, just add the following line to your shell configuration file (e.g., .bashrc or .zshrc):
 
@@ -176,21 +178,28 @@ If you still want to use C-Menu View as your MANPAGER, just add the following li
     export PAGER="view"
 ```
 
-You can filter manual pages through ~/menuapp/msrc/man.sed to colorize underlined,emboldened, and italicized text. This sed script is included with C-Menu. To use it, you can run the following command in your terminal:
+You can also filter manual pages through ~/menuapp/msrc/man.sed to colorize underlined,emboldened, and italicized text. This sed script is included with C-Menu. To use it, you can run the following command in your terminal:
 
 ```
     man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
 ```
 
+### Example Neovim Manual Page
+
 <img src="screenshots/nvim-man-page.png" title="Nvim Man Page" />
 
+
+### Example C-Menu View Manual Page
+
 <img src="screenshots/man-page.png" title="C-Menu View Man Page" />
+
+The C-Menu View manual page with the sed filter looks pretty good, but the functionality and smooth interface is not quite there yet. That's a good project for an enterprising programmer with some time on his hands <hint>.
 
 ### C-Menu View Architecture
 
 - Instead of using seek and read operations on a complicated buffering system, C-Menu View leverages the Kernel's sophisticated demand paged virtual memory.
 - Lazy loading means that the program doesn't waste time seeking, reading, and populating buffers that will not be needed.
-- Simplicity - Files are mapped onto the Kernel's virtual memory address space and leverages the Kernel's sophisticated demand paged virtual memory.
+- Simplicity - Files are mapped onto the Kernel's virtual memory address space and leveraging the Kernel's sophisticated demand paged virtual memory.
 - Zero-Copy I/O - Using "mmap", C-Menu View reads directly from virtual memory, without having to copy blocks from the file-system into heap address space.
 - Simplicity - A picture is worth lots of words. No reads, no seeks, no buffer management schemes, at lest not for view. It's all handled by the kernel. The following snippet includes all of View's file I/O.
 
@@ -241,8 +250,7 @@ administrative tasks.
 
 Many system administrators and developers find RSH invaluable for tasks
 that require elevated privileges. RSH eliminates the need to repeatedly enter
-passwords or switch users, streamlining workflows and improving efficiency. We all
-know it's not a good idea to run everything as root, but sometimes a user want's to avoid precious seconds it takes to enter passwords for su. With RSH, it takes three keystrokes to enter root mode and two keystrokes to get out.
+passwords or switch users, streamlining workflows and improving efficiency. We all know it's not a good idea to run everything as root, but sometimes a user want's to avoid precious seconds it takes to enter passwords for su. With RSH, it takes three keystrokes to enter root mode and two keystrokes to get out.
 
 #### RSH With "make install"
 

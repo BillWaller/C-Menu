@@ -15,9 +15,9 @@
 	border: 1px solid #666060;
 	border-radius: 8px;
 	padding: 8px;
-	width: 70%;
-	margin-left: 12%;
-	margin-right: 12%;
+	width: 60%;
+	margin-left: auto;
+	margin-right: auto;
 	font-family: "Source Code Pro", "Courier New", monospace;
 }
 body {
@@ -35,6 +35,7 @@ body {
 pre {
 	font-family: "Source Code Pro", "Courier New", monospace;
 	font-size: 20px;
+	width: 60%;
 	color: #e0e0e0;
 	background: #002f4f;
 }
@@ -42,6 +43,7 @@ code {
 	display: block;
 	font-size: 16px;
 	font-family: "Source Code Pro", "Courier New", monospace;
+	width: 60%;
 	text-indent: 0;
 	background: #002f4f;
 }
@@ -76,7 +78,6 @@ h4 {
 }
 img {
 	display: block;
-	width: auto;
 	width: 60%;
 	margin-left: auto;
 	margin-right: auto;
@@ -156,14 +157,16 @@ a:active {
 <hr />
 <h3>C-Menu View - How to Colorize Manual Pages</h3>
 <p>Q: How can I add color to manual pages?</p>
-<p>A: Manual pages use ANSI SGR escape sequences to add color. You can use the following sed script to substitute your own colors for:</p>
-<p>0x1b[1m bold
+<p>A: Manual pages use ANSI SGR escape sequences to add color.</p>
+<pre class="rounded-code"><code>0x1b[1m bold
 0x1b[2m dim
 0x1b[3m italic
 0x1b[4m underline
 0x1b[22m normal intensity (bold/dim off)
 0x1b[23m italic off
-0x1b[24m underline off</p>
+0x1b[24m underline off
+</code></pre>
+<p>You can use the following sed script to substitute your own colors:</p>
 <pre class="rounded-code"><code class="language-sed">s/\[2m/\[35;1m/g
 s/\[3m/\[33;3;1m/g
 s/\[4m/\[31;1m/g
@@ -210,5 +213,6 @@ man -Tutf8 bash | sed -f ~/menuapp/msrc/man.sed | view
 <pre class="rounded-code"><code class="language-bash">    tree-sitter highlight source-file | view
 </code></pre>
 <img src="screenshots/tree-sitter.png" title="C-Menu View Tree-Sitter" />
+<p>These instructions are admittedly sketchy and hard to follow. We will revise and clarify in the future.</p>
 <hr />
 </body></html></body></html>
