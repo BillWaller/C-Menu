@@ -31,8 +31,8 @@ Opts *select_opt(char *);
 
 Opts opts[] = {
     {"minitrc", 0, 2, "mpfv", "a:", "configuration file spec"},
-    {"lines", 1, 4, "mpfv", "L:", "width in columns"},
-    {"cols", 1, 4, "mpfv", "C:", "height in lines"},
+    {"lines", 1, 4, "mpfv", "C:", "width in columns"},
+    {"cols", 1, 4, "mpfv", "L:", "height in lines"},
     {"begx", 1, 4, "mpfv", "X:", "begin on column"},
     {"begy", 1, 4, "mpfv", "Y:", "begin on line"},
     {"title", 0, 3, "mpfv", "T:", "title"},
