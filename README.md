@@ -197,11 +197,11 @@ The C-Menu View manual page with the sed filter looks pretty good, but the funct
 
 ### C-Menu View Architecture
 
-- Instead of using seek and read operations on a complicated buffering system, C-Menu View leverages the Kernel's sophisticated demand paged virtual memory.
-- Lazy loading means that the program doesn't waste time seeking, reading, and populating buffers that will not be needed.
-- Simplicity - Files are mapped onto the Kernel's virtual memory address space and leveraging the Kernel's sophisticated demand paged virtual memory.
-- Zero-Copy I/O - Using "mmap", C-Menu View reads directly from virtual memory, without having to copy blocks from the file-system into heap address space.
-- Simplicity - A picture is worth lots of words. No reads, no seeks, no buffer management schemes, at lest not for view. It's all handled by the kernel. The following snippet includes all of View's file I/O.
+- C-Menu View doesn't employ seek and read operations in a complicated buffering scheme. There is a better way.
+- C-Menu View accesses files as arrays, letting the Kernel's sophisticated demand paged virtual memory do all the work.
+- Lazy loading means that that C-Menu View doesn't waste time seeking, reading, and populating buffers that will never be used.
+- Zero-Copy I/O - Conventional programs copy file buffers into heap address space. C-Menu View reads directly from the Kernel's virtual memory.
+- Simplicity - A picture is worth lots of words. No reads, no seeks, no buffer management schemes, at lest not for view. The following snippet includes all of View's file I/O.
 
 <img src="screenshots/file-io.png" alt="nvim log" title="nvim log" />
 
