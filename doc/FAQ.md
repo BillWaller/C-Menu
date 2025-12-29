@@ -1,5 +1,9 @@
 # C-Menu FAQ
 
+Bill Waller Copyright 2025
+
+billxwaller@gmail.com
+
 ---
 
 ### C-Menu View - Why View Displays Question Marks

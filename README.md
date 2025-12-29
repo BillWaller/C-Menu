@@ -1,5 +1,12 @@
 # C-Menu - User Interface Builder
 
+Bill Waller
+Copyright 2025
+
+billxwaller@gmail.com
+
+---
+
 ## New FAQ Added
 
 [C-Menu FAQ](doc/FAQ.html)
@@ -42,7 +49,6 @@ C-Menu C-Keys also provides a diagnostic capability for mouse actions and geomet
 Just add hot water, stir, and Bob's your uncle, you have soup!
 
 ---
-
 
 ### C-Menu Pick - A Picker
 
@@ -183,7 +189,6 @@ You can also filter manual pages through ~/menuapp/msrc/man.sed to colorize unde
 ### Example Neovim Manual Page
 
 <img src="screenshots/nvim-man-page.png" title="Nvim Man Page" />
-
 
 ### Example C-Menu Manual Page
 
