@@ -149,11 +149,13 @@ a:active {
 <hr />
 <h3>C-Menu View - Why View Displays Question Marks</h3>
 <p>Q: When I try to view a document that contains line-drawing characters, C-Menu View displays question marks instead of the line-drawing characters. How can I fix this?</p>
-<p>A: The file may contain characters above 0x80, which can't be translated by C-Menu View's multi-byte to wide character translation.These characters may be line drawing characters from the CP-437 character set. In that case, you can convert the file to UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you can use the following command:</p>
+<p>A: The file may contain characters above 0x80, which can't be translated by C-Menu View's character translators. If the offending characters CP-437 line drawing characters, you can convert the file to UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you can use the following command:</p>
 <pre class="rounded-code"><code>    iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt
 </code></pre>
-<p>This will convert the line-drawing characters to their correct UTF-8 representations, allowing C-Menu View to display them properly. The images below show before and after using iconv.</p>
+<p>The images below show, before, on the left, and after, on the right, using iconv.</p>
 <img src="screenshots/cp437_to_utf8.png" title="CP437 TO UTF8" />
+<p>As an interesting note, this also works for &quot;less&quot;, which displays the decimal representation of of the CP437 characters. This could be handy if you have been coding since the 1980's and recognize them as CP437 line-drawing characters.</p>
+<img src="screenshots/cp437-line-draw-less.png" title="CP437 LESS" />
 <hr />
 <h3>C-Menu View - How to Colorize Manual Pages</h3>
 <p>Q: How can I add color to manual pages?</p>
