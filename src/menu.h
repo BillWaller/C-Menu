@@ -387,7 +387,16 @@ extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
 
 enum { C_MAIN = 283, C_MENU, C_OPTION };
 
-enum { P_CONTINUE = 302, P_ACCEPT, P_HELP, P_CANCEL, P_REFUSE, P_CALC, P_END };
+enum {
+    P_CONTINUE = 302,
+    P_ACCEPT,
+    P_HELP,
+    P_CANCEL,
+    P_REFUSE,
+    P_CALC,
+    P_EDIT,
+    P_END
+};
 
 enum { MT_NULL = 0x320, MT_TEXT, MT_CHOICE };
 
@@ -1052,6 +1061,8 @@ extern void write_log(char *);
     │ UTILITIES                                                         │
     ╰───────────────────────────────────────────────────────────────────╯*/
 extern void set_fkey(int, char *);
+extern bool is_set_fkey(int);
+extern void unset_fkey(int);
 extern int chyron_mk(key_cmd_tbl *, char *);
 extern int get_chyron_key(key_cmd_tbl *, int);
 /*  ╭───────────────────────────────────────────────────────────────────╮

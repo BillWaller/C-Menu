@@ -44,9 +44,22 @@ unsigned int form_engine(Init *);
 int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     if (init->form != NULL)
         close_form(init);
-    Form *form = new_form(init, argc, argv, begy, begx);
-    if (init->form != form)
-        abend(-1, "init->form != form\n");
+    init->mapp_spec[0] = '\0';
+    init->form = new_form(init, argc, argv, begy, begx);
+    form = init->form;
+    if (!form->f_mapp_spec) {
+        if (form->mapp_spec[0] == '\0') {
+            Perror("Error: No form specification file given");
+        } else {
+            strcpy(tmp_str, "form->mapp_spec: ");
+            strcat(tmp_str, form->mapp_spec);
+            strcat(tmp_str, " not found");
+            Perror(tmp_str);
+        }
+        close_curses();
+        restore_shell_tioctl();
+        return 1;
+    }
     form->begy = begy + 1;
     form->begx = begx + 4;
     if ((form->f_in_spec && (form->in_spec[0] == '\0')) ||
@@ -91,13 +104,19 @@ unsigned int form_engine(Init *init) {
         case P_ACCEPT:
             wmove(form->win, form->lines - 1, 0);
             wclrtoeol(form->win);
+            wrefresh(form->win);
             if (form->f_calculate) {
                 form_action = form_calculate(init);
-                if (form_action == P_END)
-                    return 0;
-                if (form_action == P_HELP || form_action == P_CANCEL)
+                if (form_action == P_HELP || form_action == P_CANCEL ||
+                    form_action == P_CONTINUE || form_action == P_END)
                     continue;
+                if (form_action == P_ACCEPT) {
+                    form_action = P_END;
+                    continue;
+                }
             }
+            break;
+        case P_END:
             if (form->f_out_spec)
                 form_write(form);
             if (form->f_receiver_cmd) {
@@ -123,6 +142,7 @@ unsigned int form_engine(Init *init) {
             break;
         }
     }
+    return 0;
 }
 
 //  ╭───────────────────────────────────────────────────────────────╮
@@ -137,23 +157,22 @@ int form_calculate(Init *init) {
     int pipe_fd[2];
 
     form = init->form;
-    set_fkey(10, "Continue");
     set_fkey(5, "Calculate");
-    form_display_chyron(form);
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     MEVENT event;
-    event.y = event.x = -1;
-    tcflush(2, TCIFLUSH);
-    c = wgetch(form->win);
     while (loop) {
+        form_display_chyron(form);
+        event.y = event.x = -1;
+        tcflush(2, TCIFLUSH);
+        c = wgetch(form->win);
         switch (c) {
         case KEY_F(1):
             return P_HELP;
         case KEY_F(5):
             if (form->f_out_spec)
                 form_write(form);
-            if (form->f_receiver_cmd) {
-                strnz__cpy(earg_str, form->receiver_cmd, MAXLEN - 1);
+            if (form->f_provider_cmd) {
+                strnz__cpy(earg_str, form->provider_cmd, MAXLEN - 1);
                 for (i = 0; i < form->fcnt; i++) {
                     strnz__cat(earg_str, " ", MAXLEN - 1);
                     strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
@@ -189,24 +208,31 @@ int form_calculate(Init *init) {
                 close(pipe_fd[P_READ]);
                 waitpid(pid, NULL, 0);
                 form_display_fields(form);
+                set_fkey(8, "Edit");
+                continue;
             }
-            rc = P_CONTINUE;
-            loop = false;
             break;
+        case KEY_F(8):
+            if (is_set_fkey(8)) {
+                loop = false;
+                rc = P_CONTINUE;
+                break;
+            }
+            continue;
         case KEY_F(9):
-            rc = P_CANCEL;
             loop = false;
+            rc = P_CANCEL;
             break;
         case KEY_F(10):
-            rc = P_END;
             loop = false;
+            rc = P_ACCEPT;
             break;
         default:
             break;
         }
     }
-    key_cmd[5].text[0] = '\0';
-    strnz__cpy(key_cmd[10].text, "Accept", 26);
+    unset_fkey(8);
+    unset_fkey(5);
     form_display_chyron(form);
     return rc;
 }
@@ -336,8 +362,8 @@ void form_display_chyron(Form *form) {
     wattron(form->win, A_REVERSE);
     mvwaddstr(form->win, form->lines - 1, 0, form->chyron_s);
     wattroff(form->win, A_REVERSE);
-    wmove(form->win, form->lines - 1, l);
     wclrtoeol(form->win);
+    wmove(form->win, form->lines - 1, l);
 }
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ FORM_PARSE_DESCRIPTION                                        │
@@ -384,18 +410,6 @@ int form_parse_desc(Form *form) {
     form->fcnt = 0;
     form->cols = 34;
     form->title_line = 0;
-
-    // D_COMMENT   '#' Comment line
-    // D_CMD       '!' Command string - receiver_cmd
-    // D_IN_FILE   '<' In file
-    // D_OUT_FILE  '>' Help file
-    // D_HELP_FILE '?' Help file
-    // D_HEADER    'H' Header line
-    // D_FIELD     'F' Field
-    // D_TEXT      'T' Text
-    // D_CALC      'Q' Calculate?
-    // D_QUERY     'Q' Query?
-    //
     //  ╭───────────────────────────────────────────────────────────╮
     //  │ MAIN PARSE LOOP                                           │
     //  ╰───────────────────────────────────────────────────────────╯
