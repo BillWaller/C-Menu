@@ -149,11 +149,11 @@ a:active {
 <h2>New FAQ Added</h2>
 <a href="doc/FAQ.html">C-Menu FAQ</a><br>
 <hr />
-<h2>Programs: C-Menu Menu, Form, Pick, View, and RSH</h2>
+<h2>C-Menu Menu, Form, Pick, View, RSH, and C-Keys</h2>
 <p>C-Menu is a lightweight, flexible, and easy-to-use suite of programs
 for creating a sophisticated user interface for your applications. Menus, Form, Pick, and View with, using a classical text-based terminal interface(TUI) for applications running on Linux and Unix-like operating systems. C-Menu is designed to be simple to use while providing powerful features to implement menu driven frameworks for applications.</p>
 <hr />
-<h3>C-Menu</h3>
+<h3>C-Menu Menu</h3>
 <img src="screenshots/applications_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 <p>At the top of the stack is C-Menu Menu, which reads a simple description file like the one above and displays a colorful and easy-to-follow menu to the user. When the user selects an item, with either keyboard or mouse, C-Menu executes the corresponding command. It's like writing shell scripts, but with a snazzy menu interface.</p>
 <img src="screenshots/applications_menu.png" alt="Curses Keys" title="Sample Menu" />
@@ -168,7 +168,7 @@ for creating a sophisticated user interface for your applications. Menus, Form, 
 <img src="screenshots/ckeys-mouse.png" alt="CKeys Mouse" title="CKeys Mouse" />
 <p>Just add hot water, stir, and Bob's your uncle, you have soup!</p>
 <hr />
-<h3>C-Menu PICK</h3>
+<h3>C-Menu Pick - A Picker</h3>
 <img src="screenshots/Pick.png" />
 <p>This program provides a list of objects from arguments, piped input, or a text file and lets the user select those to be written to a file, piped to standard output, or provided as arguments to an executable files specified in the description file. Of course, you can select objects and commands with keyboard or mouse. C-Menu Pick does not currently support a Brain-Computer Interface (BCI), at least, not yet.</p>
 <p>The simplest use of C-Menu Pick is:</p>
@@ -187,10 +187,10 @@ for creating a sophisticated user interface for your applications. Menus, Form, 
 <pre class="rounded-code"><code>lf . '.*\.c$'
 </code></pre>
 <hr />
-<h3>C-Menu FORM</h3>
+<h3>C-Menu Form for Data Entry and Editing</h3>
 <p>FORM is a lightweight and flexible form handling library designed to simplify the process of creating, validating, and managing forms.</p>
 <p>It provides a straightforward API for defining form fields, handling user input, and performing validation checks.</p>
-<h3>C-Menu FORM Key Features</h3>
+<h3>C-Menu Form Key Features</h3>
 <ul>
 <li>Easy Form Creation: Define forms with various field types such as text, number, email, and more.</li>
 <li>Validation: Built-in validation rules to ensure data integrity, including required fields, format checks, and custom validators.</li>
@@ -198,7 +198,7 @@ for creating a sophisticated user interface for your applications. Menus, Form, 
 <li>Customizable: Extendable architecture allowing developers to create custom field types and validation rules.</li>
 <li>Integration: Designed to work well with other components of the C-Menu Project, enabling a cohesive development experience.</li>
 </ul>
-<h3>C-Menu FORM Data Types</h3>
+<h3>C-Menu Form Data Types</h3>
 <img src="screenshots/data-types.f.png" />
 <img src="screenshots/data-types.png" />
 <p>FORM displays data entry forms based on a description file. It allows users
@@ -227,7 +227,7 @@ balances yet, but that's why we have people like you.</p>
 greatly simplify the process of creating text-based user interfaces for
 your applications.</p>
 <hr />
-<h3>C-Menu VIEW</h3>
+<h3>C-Menu View</h3>
 <p>VIEW is an easy-to-use text file viewer that allows users to view text files in a
 terminal environment. It supports basic navigation, regular expression
 search functionality, horizontal scrolling, ANSI escape highlighting, Unicode, and
@@ -237,11 +237,11 @@ NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to 
 <h4>CMenu Screenshot of the Same File</h4>
 <img src="screenshots/view.png" alt="View" title="View" />
 <p>One especially useful feature of C-Menu View is its incredible speed with large text files, like system logs. C-Menu View can open and display multi-gigabyte text files almost instantaneously. Seek from beginning to end of a 1Gb file takes a few milliseconds.</p>
-<h3>C-Menu View and Manual Pages</h3>
+<h3>C-Menu View and Color Manual Pages</h3>
 <p>C-Menu View can also be used as a pager for manual pages. By setting the
 &quot;MANPAGER&quot; environment variable to &quot;view&quot;, users can enjoy the benefits of
-C-Menu View's features while reading manual pages. However, setting MANPAGER=&quot;Nvim !Man+&quot; is my recommendation. I don't know what Nvim is using to colorize manual pages, but it looks great. The most compelling reason to use Nvim is that it's very easy to write a few lines to a file, or edit the file, if you like.</p>
-<p>If you still want to use C-Menu View as your MANPAGER, just add the following line to your shell configuration file (e.g., .bashrc or .zshrc):</p>
+C-Menu View's features while reading manual pages.</p>
+<p>To use C-Menu View as your system pager, add the following line to your shell configuration file (e.g., .bashrc or .zshrc):</p>
 <pre class="rounded-code"><code>    export PAGER=&quot;view&quot;
 </code></pre>
 <p>You can also filter manual pages through ~/menuapp/msrc/man.sed to colorize underlined,emboldened, and italicized text. This sed script is included with C-Menu. To use it, you can run the following command in your terminal:</p>
@@ -249,16 +249,16 @@ C-Menu View's features while reading manual pages. However, setting MANPAGER=&qu
 </code></pre>
 <h3>Example Neovim Manual Page</h3>
 <img src="screenshots/nvim-man-page.png" title="Nvim Man Page" />
-<h3>Example C-Menu View Manual Page</h3>
+<h3>Example C-Menu Manual Page</h3>
 <img src="screenshots/man-page.png" title="C-Menu View Man Page" />
 <p>The C-Menu View manual page with the sed filter looks pretty good, but the functionality and smooth interface is not quite there yet. That's a good project for an enterprising programmer with some time on his hands <hint>.</p>
-<h3>C-Menu View Architecture</h3>
+<h3>C-Menu View - Demand Paged Virtual Address Space</h3>
 <ul>
 <li>C-Menu View doesn't employ seek and read operations in a complicated buffering scheme. There is a better way.</li>
-<li>C-Menu View accesses files as arrays, letting the Kernel's sophisticated demand paged virtual memory do all the work.</li>
+<li>C-Menu View accesses files as arrays, using the Kernel's sophisticated demand paged virtual memory.</li>
 <li>Lazy loading means that that C-Menu View doesn't waste time seeking, reading, and populating buffers that will never be used.</li>
-<li>Zero-Copy I/O - Conventional programs copy file buffers into heap address space. C-Menu View reads directly from the Kernel's virtual memory.</li>
-<li>Simplicity - A picture is worth lots of words. No reads, no seeks, no buffer management schemes, at lest not for view. The following snippet includes all of View's file I/O.</li>
+<li>Zero-Copy I/O - Conventional programs copy file buffers into heap address space. C-Menu View bypasses that step and reads directly from the Kernel's virtual memory.</li>
+<li>Simplicity - No reads, no seeks, no complicated buffer management schemes, not for view. The following snippet includes &quot;all&quot; of View's file I/O, really just lines 22 and 12.</li>
 </ul>
 <img src="screenshots/file-io.png" alt="nvim log" title="nvim log" />
 <h3>C-Menu 3-Channel Gamma Correction</h3>
@@ -294,7 +294,7 @@ administrative tasks.</p>
 <p>Many system administrators and developers find RSH invaluable for tasks
 that require elevated privileges. RSH eliminates the need to repeatedly enter
 passwords or switch users, streamlining workflows and improving efficiency. We all know it's not a good idea to run everything as root, but sometimes a user want's to avoid precious seconds it takes to enter passwords for su. With RSH, it takes three keystrokes to enter root mode and two keystrokes to get out.</p>
-<h4>RSH With &quot;make install&quot;</h4>
+<h4>RSH - Maintaining Security</h4>
 <p>Here's an example of the proper way to use RSH.</p>
 <ol>
 <li>Type &quot;xx&quot; to assume root privileges.</li>
