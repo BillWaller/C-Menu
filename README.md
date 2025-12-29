@@ -1,33 +1,35 @@
-# C-Menu - A TUI Menu System
+# C-Menu - User Interface Builder
 
 ## New FAQ Added
 
 [C-Menu FAQ](doc/FAQ.html)
 
+---
+
 ## Programs: C-Menu Menu, Form, Pick, View, and RSH
 
-C-Menu is a lightweight, customizable, and easy-to-learn suite of programs
-for creating menus, entry forms, and pickers with a text-based user
-interface(TUI) for applications running on Linux and Unix-like operating
-systems. C-Menu is designed to be simple to use while providing powerful
-features to implement menu driven frameworks for applications in
-terminal and terminal emulator environments.
+C-Menu is a lightweight, flexible, and easy-to-use suite of programs
+for creating a sophisticated user interface for your applications. Menus, Form, Pick, and View with, using a classical text-based terminal interface(TUI) for applications running on Linux and Unix-like operating systems. C-Menu is designed to be simple to use while providing powerful features to implement menu driven frameworks for applications.
+
+---
 
 ### C-Menu
 
 <img src="screenshots/applications_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 
-C-Menu reads a simple description file like the one above and displays a menu to the user. When the user selects an item, with either keyboard or mouse, C-Menu executes the corresponding command. It's like writing a shell script, but with a nice TUI menu interface.
+At the top of the stack is C-Menu Menu, which reads a simple description file like the one above and displays a colorful and easy-to-follow menu to the user. When the user selects an item, with either keyboard or mouse, C-Menu executes the corresponding command. It's like writing shell scripts, but with a snazzy menu interface.
 
 <img src="screenshots/applications_menu.png" alt="Curses Keys" title="Sample Menu" />
 
-From the above examples, you can get an idea of how C-Menu works. Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View, which in turn executes "tree-sitter highlight view_engine.c". Tree-Sitter doesn't need to know anything about C-Menu View. It just sends output to it's standard output device, which happens to be a pipe set up by C-Menu View. C-Menu View maps Tree-Sitter's output to the Kernel's demand paged virtual memory and you get:
+From the above examples, you can get an idea of how C-Menu works. Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View, which in turn executes "tree-sitter highlight view_engine.c". Tree-Sitter doesn't need to know anything about C-Menu View. It just sends output to it's standard output device, which happens to be a pipe into C-Menu View's receiver. C-Menu View maps Tree-Sitter's output to the Kernel's demand paged virtual memory and you get:
 
 <img src="screenshots/tree-sitter.png" alt="Tree-Sitter" title="Tree Sitter" />
 
+---
+
 ### C-Menu C-Keys - Diagnose Keyboard/Mouse Input
 
-C-Menu C-Keys is a diagnostic tool that helps you resolve keyboard and mouse issues quickly. Just press a key and get the Octal, Decimal, Hexadecimal, the ANSI escape sequence binding, or the NCURSES identifier. It's definately easier than rummaging through hardware documentation and NCurses header files. It's also a good way to identify which keys are reserved by your terminal emulator, and gives you the specific key codes so you can easily add your own Extended NCurses keys.
+With C-Menu C-Keys, you can diagnose and resolve keyboard and mouse issues quickly and easily. Just press a key and get the Octal, Decimal, Hexadecimal, the escape sequence binding, and the NCurses identifier. It's definitely easier than rummaging through hardware documentation and NCurses header files. It's also a good way to identify which keys are reserved by your terminal emulator, and gives you the specific key codes so you can easily add your own Extended NCurses keys.
 
 <img src="screenshots/extended-keys.png" alt="Extended Keys" title="Extended Keys" />
 
@@ -39,22 +41,24 @@ C-Menu C-Keys also provides a diagnostic capability for mouse actions and geomet
 
 Just add hot water, stir, and Bob's your uncle, you have soup!
 
+---
+
+
 ### C-Menu PICK
 
 <img src="screenshots/Pick.png" />
 
-This program provides a list of objects from arguments, piped input, or a text file and lets the user select those to be written to a file, piped to standard output, or provided as arguments to an executable specified in the description file. Of course, you can select objects and commands with keyboard or mouse. C-Menu Pick does not currently support a Brain-Computer Interface. At least, not
-Yet.
+This program provides a list of objects from arguments, piped input, or a text file and lets the user select those to be written to a file, piped to standard output, or provided as arguments to an executable files specified in the description file. Of course, you can select objects and commands with keyboard or mouse. C-Menu Pick does not currently support a Brain-Computer Interface (BCI), at least, not yet.
 
 The simplest use of C-Menu Pick is:
 
-Pick a file to view:
+Pick a file to view using "lf", a utility to search for files using regular expressions, and which is included with C-Menu:
 
 ```
 view -S "lf -r . .*\.c$"
 ```
 
-Execute a script on a picked file:
+Execute a program or script on a picked file:
 
 ```
 pick -S "lf -r . .*\.c$" -n 1 -c my_executable
@@ -66,29 +70,17 @@ Note that the syntax for "lf" (list files) is not similar to Unix "ls". The usag
 lf [directory] [regular expression]
 ```
 
-If you type "lf \*.c", it will fail for lack of a valid regular expression. "ls" uses shell expansion, and "lf" uses regular expressions. "lf" is a simple utility that comes with C-Menu. You could just as easily use find to accomplish the same result, and find accepts "\*.c", even though it isn't a valid regular expression.
+If you type "lf \*.c", it will fail for lack of a valid regular expression. That's because "ls" uses shell expansion, while "lf" uses regular expressions. Find supports regular expressions, but such a comprehensive program carries a penalty in size and overhead. "lf" is streamlined to provide input for a picker.
 
 ```
-find . -name '*.c' | sed 's/^..//'
-```
-
-Create a list of objects
-
-```
-grep "regex" *.rs | pick -o objectlist
+find -regex '.*\.c$' | sed 's/^..//'
 ```
 
 ```
-vi ~/.config/bat/config
-
-add
-
---pager=view
-
-save and type:
-
-bat view_engine.c
+lf . '.*\.c$'
 ```
+
+---
 
 ### C-Menu FORM
 
@@ -131,6 +123,8 @@ balances yet, but that's why we have people like you.
 
 FORM also makes a great front-end for SQL database queries.
 
+---
+
 ### C-Menu Sample Menu Description File
 
 <img src="screenshots/applications_menu.m.png" alt="Menu Description File log" title="Menu Description File" />
@@ -148,6 +142,8 @@ Here's just one example of how easy it is to create useful programs with the C-M
 We hope you find C-Menu useful for your projects. It's a powerful tool that can
 greatly simplify the process of creating text-based user interfaces for
 your applications.
+
+---
 
 ### C-Menu VIEW
 
@@ -225,7 +221,9 @@ When using utilities such as "tree-sitter highlighter", "pygmentize", or "bat" t
 
 With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma correction, your application is bound to **Wow** your clients. Nobody wants an ugly program. Of course, beauty is in the eye of the beholder. That's why we give you control.
 
-### RSH
+---
+
+## RSH
 
 <img src="screenshots/rsh.png" />
 
@@ -262,24 +260,19 @@ Here's an example of the proper way to use RSH.
 
 <img src="screenshots/Makefile-out.png" alt="Makefile" title="RSH with make install" />
 
-Notice that the bash prompt changes from green to red as a reminder that you are wielding a loaded gun with the safety off. In this state, it only takes a minor typo, such as:
+Notice that the bash prompt changes from green to red as a reminder that you are wielding a loaded gun with the safety off. In this state, it only takes a minor typo. You mean to type "rm -r tmp/\*", but inadvertently put an extra space after tmp. I can't even type the resulting expression.
 
 ```
 rm -r tmp/*
 ```
 
-Please be very careful when using RSH in setuid root mode. Keep the
-executable protected in your home directory with appropriate permissions
-to prevent promiscuous access by unauthorized users. RSH should be provided
-only to trusted users who understand the implications of executing commands
-with elevated privileges. Used inappropriately, it can lead to system
-instability or security vulnerabilities.
+Be very careful when using RSH in setuid root mode. Keep the executable protected in your home directory with appropriate permissions to prevent promiscuous access by unauthorized users. RSH should be provided only to trusted users who understand the implications of executing commands with elevated privileges. Used inappropriately, it can lead to system instability or security vulnerabilities.
 
-As an interesting note, you can accomplish basically the same functionality in 9 lines of Rust by using the 'pub unsafe extern "C" fn setuid(uid: uid_t) -> c_int' function in Rust. Of course, that isn't really in the spirit of Rust, is it?
+RSH is as safe or unsafe as we choose to make it. It requires root access to install, and the installer should make sure it cannot be used by other users. If you are reading this, you know how to do that. Please use it responsibly.
 
-<img src="screenshots/mmrs.png" alt="MMRS" title="MMRS" />
+---
 
-## Features
+## C-Menu Features
 
 - Create and manage multiple menus, forms, and pickers
 
@@ -305,7 +298,11 @@ As an interesting note, you can accomplish basically the same functionality in 9
 
 - Open-source and free to use
 
-#### MINITRC Runtime Configuration and Options
+---
+
+## C-Menu Configuration
+
+### MINITRC Runtime Configuration and Options
 
 <img src="screenshots/minitrc.png" />
 
@@ -313,6 +310,8 @@ User's can have multiple runtime configurations. In the snippet above, the
 standard ISO 6429 / ECMA-48 colors have been redefined and orange has been
 added.
 
-## Installation
+---
+
+## C-Menu Installation
 
 To install C-Menu, simply download the source code from the repository and follow the installation instructions provided in the INSTALL.md file.
