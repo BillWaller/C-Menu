@@ -43,20 +43,19 @@ BEGIN {
     while (getline > 0) {
         line = $0
         lineout = $0
-        while (match(line, /#[0-f]{6}/)) {
+        while (match(line, /#[0-9a-fA-F]{6}/)) {
             if (RLENGTH > 0) {
                 color = substr(line, RSTART, RLENGTH)
                 ansi = ansi_color(color)
                 p1 = substr(line, 1, RSTART - 1)
                 p2 = substr(line, RSTART, RLENGTH)
                 p3 = substr(line, RSTART + RLENGTH)
-                sprintf(lineout, "%s%s%s%s", p1, ansi, p2, ansioff)
-                if (length(p3) > 0) {
+                lineout = sprintf("%s%s%s%s", p1, ansi, p2, ansioff)
+                if (length(p3) > 0)
                     line = p3
-                    continue
-                }
-                break
             }
+            lineout = sprintf("%s%s", lineout, line)
+            break
         }
         printf("%s\n", lineout)
     }

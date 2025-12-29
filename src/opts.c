@@ -94,6 +94,7 @@ Opts opts[] = {
      ", "
      ""}}; // End marker
 
+//  ╭───────────────────────────────────────────────────────────────────╮
 static int comp_opt_name(const void *o1, const void *o2) {
     const Opts *opt1 = o1;
     const Opts *opt2 = o2;
@@ -130,7 +131,6 @@ void dump_opts() {
     // struct Opts *opts;
     char *type;
     char *group;
-
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_desc);
     int i = 1;
     while (opts[i].name != NULL) {
@@ -270,7 +270,7 @@ void dump_opts_by_use(char *usage, char *mask) {
             c = ' ';
         else
             c = '-';
-        printf("%02d %s%-18s%s %-4s %-4s %4s %2s%1c%-3s%s%s%-24s%s\n", i, blue,
+        printf("%02d %s%-18s%s %-4s %-4s %4s %2s%1c%-3s%s%s%s%s\n", i, blue,
                opts[i].name, reset, type, group, opts[i].use, yellow, c,
                opts[i].short_opt, reset, green, opts[i].desc, reset);
         i++;

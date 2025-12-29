@@ -22,7 +22,7 @@
 :     View a C File
 !view -L 50 -C 80 -S "tree-sitter highlight /home/bill/menuapp/data/init_view.c"
 :     View Data Types Help File
-!view -L 17 -C 45 -T "Data Types" /home/bill/menuapp/data/fields.f
+!view -L 17 -C 45 -T "Data Types" /home/bill/menuapp/data/fields.hlp
 :     Menu Description
 !view -L 30 -C 78 -S "bat -l Crystal -f /home/bill/menuapp/msrc/main.m"
 :     Help
