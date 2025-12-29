@@ -6,14 +6,14 @@
 
 ---
 
-## Programs: C-Menu Menu, Form, Pick, View, and RSH
+## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 
 C-Menu is a lightweight, flexible, and easy-to-use suite of programs
 for creating a sophisticated user interface for your applications. Menus, Form, Pick, and View with, using a classical text-based terminal interface(TUI) for applications running on Linux and Unix-like operating systems. C-Menu is designed to be simple to use while providing powerful features to implement menu driven frameworks for applications.
 
 ---
 
-### C-Menu
+### C-Menu Menu
 
 <img src="screenshots/applications_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 
@@ -44,7 +44,7 @@ Just add hot water, stir, and Bob's your uncle, you have soup!
 ---
 
 
-### C-Menu PICK
+### C-Menu Pick - A Picker
 
 <img src="screenshots/Pick.png" />
 
@@ -82,13 +82,13 @@ lf . '.*\.c$'
 
 ---
 
-### C-Menu FORM
+### C-Menu Form for Data Entry and Editing
 
 FORM is a lightweight and flexible form handling library designed to simplify the process of creating, validating, and managing forms.
 
 It provides a straightforward API for defining form fields, handling user input, and performing validation checks.
 
-### C-Menu FORM Key Features
+### C-Menu Form Key Features
 
 - Easy Form Creation: Define forms with various field types such as text, number, email, and more.
 - Validation: Built-in validation rules to ensure data integrity, including required fields, format checks, and custom validators.
@@ -96,7 +96,7 @@ It provides a straightforward API for defining form fields, handling user input,
 - Customizable: Extendable architecture allowing developers to create custom field types and validation rules.
 - Integration: Designed to work well with other components of the C-Menu Project, enabling a cohesive development experience.
 
-### C-Menu FORM Data Types
+### C-Menu Form Data Types
 
 <img src="screenshots/data-types.f.png" />
 
@@ -145,7 +145,7 @@ your applications.
 
 ---
 
-### C-Menu VIEW
+### C-Menu View
 
 VIEW is an easy-to-use text file viewer that allows users to view text files in a
 terminal environment. It supports basic navigation, regular expression
@@ -162,13 +162,13 @@ NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to 
 
 One especially useful feature of C-Menu View is its incredible speed with large text files, like system logs. C-Menu View can open and display multi-gigabyte text files almost instantaneously. Seek from beginning to end of a 1Gb file takes a few milliseconds.
 
-### C-Menu View and Manual Pages
+### C-Menu View and Color Manual Pages
 
 C-Menu View can also be used as a pager for manual pages. By setting the
 "MANPAGER" environment variable to "view", users can enjoy the benefits of
-C-Menu View's features while reading manual pages. However, setting MANPAGER="Nvim !Man+" is my recommendation. I don't know what Nvim is using to colorize manual pages, but it looks great. The most compelling reason to use Nvim is that it's very easy to write a few lines to a file, or edit the file, if you like.
+C-Menu View's features while reading manual pages.
 
-If you still want to use C-Menu View as your MANPAGER, just add the following line to your shell configuration file (e.g., .bashrc or .zshrc):
+To use C-Menu View as your system pager, add the following line to your shell configuration file (e.g., .bashrc or .zshrc):
 
 ```
     export PAGER="view"
@@ -185,19 +185,19 @@ You can also filter manual pages through ~/menuapp/msrc/man.sed to colorize unde
 <img src="screenshots/nvim-man-page.png" title="Nvim Man Page" />
 
 
-### Example C-Menu View Manual Page
+### Example C-Menu Manual Page
 
 <img src="screenshots/man-page.png" title="C-Menu View Man Page" />
 
 The C-Menu View manual page with the sed filter looks pretty good, but the functionality and smooth interface is not quite there yet. That's a good project for an enterprising programmer with some time on his hands <hint>.
 
-### C-Menu View Architecture
+### C-Menu View - Demand Paged Virtual Address Space
 
 - C-Menu View doesn't employ seek and read operations in a complicated buffering scheme. There is a better way.
-- C-Menu View accesses files as arrays, letting the Kernel's sophisticated demand paged virtual memory do all the work.
+- C-Menu View accesses files as arrays, using the Kernel's sophisticated demand paged virtual memory.
 - Lazy loading means that that C-Menu View doesn't waste time seeking, reading, and populating buffers that will never be used.
-- Zero-Copy I/O - Conventional programs copy file buffers into heap address space. C-Menu View reads directly from the Kernel's virtual memory.
-- Simplicity - A picture is worth lots of words. No reads, no seeks, no buffer management schemes, at lest not for view. The following snippet includes all of View's file I/O.
+- Zero-Copy I/O - Conventional programs copy file buffers into heap address space. C-Menu View bypasses that step and reads directly from the Kernel's virtual memory.
+- Simplicity - No reads, no seeks, no complicated buffer management schemes, not for view. The following snippet includes "all" of View's file I/O, really just lines 22 and 12.
 
 <img src="screenshots/file-io.png" alt="nvim log" title="nvim log" />
 
@@ -250,7 +250,7 @@ Many system administrators and developers find RSH invaluable for tasks
 that require elevated privileges. RSH eliminates the need to repeatedly enter
 passwords or switch users, streamlining workflows and improving efficiency. We all know it's not a good idea to run everything as root, but sometimes a user want's to avoid precious seconds it takes to enter passwords for su. With RSH, it takes three keystrokes to enter root mode and two keystrokes to get out.
 
-#### RSH With "make install"
+#### RSH - Maintaining Security
 
 Here's an example of the proper way to use RSH.
 
