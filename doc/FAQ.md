@@ -58,7 +58,6 @@ You can save this script to a file, or use the one that comes with C-Menu, (~/me
     man bash
     man -Tutf8 bash | sed -f ~/menuapp/msrc/man.sed | view
 
-
 This will display the bash manual page with the specified colors in C-Menu View.
 
 <img src="screenshots/man-page.png" title="Colorizer" />
@@ -124,5 +123,118 @@ Type the following command:
 
 These instructions are admittedly sketchy and hard to follow. We will revise and clarify in the future.
 
+---
+
+### C-Menu Form - How to Integrate External Executables
+
+Q: How can I integrate external programs into C-Menu Form, such as an SQL Query or calculation?
+
+A: We can use the executable "iloan" included with C-Menu as an example.
+
+The Form will have four fields. The user must enter any three of the four values. Only one field may be zero. Iloan will calculate the value of the missing field and C-Menu Form will display it.
+
+First, create a form file named "~/menuapp/msrc/iloan.f" with the following contents:
+
+```
+H:Installment Loan Calculator
+
+T:5:14:Principal Amount:
+F:5:33:14:Currency
+
+T:6:14:Number of Months:
+F:6:33:5:Decimal_Int
+
+T:7:10:Annual Interest Rate:
+F:7:33:5:APR
+
+T:8:16:Payment Amount:
+F:8:33:12:Currency
+
+T:10:1:First Payment Date (Yyyymmdd):
+F:10:33:10:Yyyymmdd
+
+C
+?iloan.hlp
+```
+
+Next, create a help file named "~/menuapp/help/iloan.hlp" with the following contents:
+
+```
+Installment Loan Calculator Help
+This form calculates the missing value of an installment loan.
+Enter any three of the four values. Leave the value to be calculated as zero.
+Only one field may be zero.
+Fields:
+Principal Amount - The total amount of the loan.
+Number of Months - The total number of monthly payments.
+Annual Interest Rate - The annual interest rate as a percentage.
+Payment Amount - The amount of each monthly payment.
+First Payment Date - The date of the first payment in YYYYMMDD format.
+```
+
+Add the following two lines to "~/menuapp/msrc/main.m":
+
+```
+:     Installment Loan Calculations
+!form iloan.f -i iloan.dat -S iloan -o iloan.dat
+```
+
+This will add a menu item to the Main Menu that will launch the Iloan Form.
+When you select the "Installment Loan Calculations" menu item, C-Menu Form will display the Iloan Form. After you enter any three of the four values and press Enter, C-Menu Form will call the "iloan" executable to calculate the missing value and display it in the form.
+
+C-Menu Form will complain that "iloan.dat" does not exist the first time you run the form. This is normal. C-Menu Form will create the file when you exit the form.
+
+### Installment Loan Calculator
+
+<img src="screenshots/iloan.png" title="Installment Loan Calculator" />
+
+After you enter the three values, you will see an option "F5 Calculate". Press F5 to calculate the missing value. When the calculation is complete, the missing value will be displayed in the form. You will then see an option, "F8 Edit", which will allow you to make changes and try again. If you don't wish to make changes, press "F10 Accept" to
+write all four values to "iloan.dat" and exit the form.
+
+The next time you run the form, C-Menu Form will read the values from "iloan.dat" and display them in the form.
+
+Here's a summary of the important parts of the form file format:
+
+### Line Type Speecifiers (H, T, F, and ?)
+
+- # Comment line (ignored)
+- H - The header to be displayed at the top of the form
+- T - Text field (line:column:length:text)
+- F - Input field (line:column:length:type)
+- ? - A user supplied help file for the form. If no path is given, Form will look for a file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.
+
+### Field Delimiters:
+
+The ":" character is used as a delimiter in the fields above, but any
+character that is placed immediately after the line designator (H, T, F, ?)
+can be used as a delimiter. For example, the following two lines are
+equivalent:
+
+```
+T:2:4:Enter any three of the four values to calculate the fourth.
+T|2|4|Enter any three of the four values to calculate the fourth.
+```
+
+### Data Types:
+
+The following data types are currently supported for input fields:
+
+       String: Any text
+
+Decimal_Int: Integer number
+Hex_Int: Hexadecimal integer
+Float: Floating point number
+Double: Double precision floating point number
+Currency: Currency amount
+APR: Annual Percentage Rate
+Yyyymmdd: Date in YYYYMMDD format
+HHMMSS: Time in HHMMSS format
+
+Note that the data types determine field formatting, and on entry, numeric data is converted to its corresponding internal binary format, so that calculations can be performed. Both text and internal numeric binary data are available to the developer.
+
+For applications that demand extreme accuracy, our plan is to integrate the "decNumber C Library", Copyright © IBM Corporation 2010, to provide 128 bit BCD (Binary Coded Decimal) in a future release.
+
+The Field Format Specifiers can be any combination of upper and lower case,
+and new types can be easily added by modifying the source code.
 
 ---
