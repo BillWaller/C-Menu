@@ -197,7 +197,7 @@ Here's a summary of the important parts of the form file format:
 
 ### Line Type Speecifiers (H, T, F, and ?)
 
-- # Comment line (ignored)
+- \# Comment line (ignored)
 - H - The header to be displayed at the top of the form
 - T - Text field (line:column:length:text)
 - F - Input field (line:column:length:type)
@@ -236,5 +236,26 @@ For applications that demand extreme accuracy, our plan is to integrate the "dec
 
 The Field Format Specifiers can be any combination of upper and lower case,
 and new types can be easily added by modifying the source code.
+
+---
+
+### Interprocess Communications
+
+Q: How does C-Menu send and receive data to external programs?
+
+A: Currently, C-Menu is limited to communicating through files or pipes.
+
+When you start C-Menu Form, Pick, or View, you can specify
+
+    -S executable
+       or
+    -R executable
+
+-S runs executables that provide input data to C-Menu via pipe, and
+-R runs executables that receive output data from C-Menu via pipe.
+
+The way it works is, C-Menu creates dual ended pipes, each with a read and write end before forking and spawning the executables. In the example (Installment Loan Calculations) above, C-Menu Form substitutes a write pipe for the standard output of the child process, and opens the read end of the pipe for it's input. The called executable writes data to the pipe and C-Menu form reads the other end.
+
+We can just as easily use named pipes or network sockets, although it requires a bit more configuration. If there is sufficient interest, C-Menu will have an event-driven server to handle network communications and asynchronous tasks. It is likely that server will be implemented in Rust to take advantage of tools like the Tokio and Serde crates.
 
 ---
