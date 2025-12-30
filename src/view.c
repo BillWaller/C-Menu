@@ -1,7 +1,6 @@
-/* view.c
- * Bill Waller
- * billxwaller@gmail.com
- */
+// view.c
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
 
 #include "menu.h"
 #include <stdlib.h>

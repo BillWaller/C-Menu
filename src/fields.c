@@ -1,24 +1,24 @@
-/* fields.c
-   Field support for MENU
-   Bill Waller
-   billxwaller@gmail.com
-
-   This program was once unwieldy. It has been tamed.
-
-   The original author was Bill Waller. He wrote the original code sometime
-   in the late 1980s. That was the bad Bill. As witnesses will testify, he has
-   been known to have written code in COBOL, Assembler, and once he even dabbled
-   with BASIC. What shame he must now live with?
-
-   The current author is also Bill Waller, the good Bill. He has rewritten
-   and modified the original code and attempted to cover-up the sins of his
-   predecessor. This is the good Bill. He writes code in C, Rust, QML, and other
-   modern languages.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the MIT License. See the LICENSE file for details.
-
- */
+// fields.c
+// Bill Waller Copyright (c) 2025
+// Field support for MENU
+// billxwaller@gmail.com
+//
+// This program was once unwieldy. It has been tamed.
+//
+// The original author was Bill Waller. He wrote the original code sometime
+// in the late 1980s. That was the bad Bill. As witnesses will testify, he has
+// been known to have written code in COBOL, Assembler, and once he even dabbled
+// with BASIC. What shame he must now live with?
+//
+// The current author is also Bill Waller, the good Bill. He has rewritten
+// and modified the original code and attempted to cover-up the sins of his
+// predecessor. This is the good Bill. He writes code in C, Rust, QML, and other
+// modern languages.
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the MIT License. See the LICENSE file for details.
+//
+//
 
 #include "menu.h"
 #include <monetary.h>
@@ -50,9 +50,9 @@ int form_display_field_brackets(Form *);
 int form_validate_field(Form *);
 void mk_filler(char *, int);
 
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ ACCEPT_FIELD                                                  │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ ACCEPT_FIELD                                                  │
+//  ╰───────────────────────────────────────────────────────────────╯
 int form_accept_field(Form *form) {
     bool f_insert = FALSE;
     int in_key;
@@ -74,9 +74,9 @@ int form_accept_field(Form *form) {
     MEVENT event;
     event.y = event.x = -1;
 
-    /*  ╭───────────────────────────────────────────────────────────────╮
-        │ CURSOR AND FIELD POSITIONING                                  │
-        ╰───────────────────────────────────────────────────────────────╯ */
+    //  ╭───────────────────────────────────────────────────────────────╮
+    //  │ CURSOR AND FIELD POSITIONING                                  │
+    //  ╰───────────────────────────────────────────────────────────────╯
 
     char *fstart = accept_s;
     char *fend = fstart + flen;
@@ -172,7 +172,7 @@ int form_accept_field(Form *form) {
             while (*s != '\0')
                 *d++ = *s++;
             *d = '\0';
-            str_end = d; /* new end of string    */
+            str_end = d; // new end of string
             in_key = 0;
             continue;
 
@@ -187,7 +187,7 @@ int form_accept_field(Form *form) {
         case KEY_RIGHT:
             if (p < fend)
                 if (p <= str_end) {
-                    p++; /* move one to the right */
+                    p++; // move one to the right
                     x++;
                 }
             if (p > str_end) {
@@ -196,9 +196,9 @@ int form_accept_field(Form *form) {
             }
             in_key = 0;
             continue;
-            /*  ╭───────────────────────────────────────────────────────╮
-                │ FORM MOUSE EVENT                                      │
-                ╰───────────────────────────────────────────────────────╯ */
+            //  ╭───────────────────────────────────────────────────────╮
+            //  │ FORM MOUSE EVENT                                      │
+            //  ╰───────────────────────────────────────────────────────╯
         case KEY_MOUSE:
             in_key = 0;
             if (getmouse(&event) != OK)
@@ -215,10 +215,9 @@ int form_accept_field(Form *form) {
             continue;
 
         default:
-            /*  ╭───────────────────────────────────────────────────────╮
-                │ FIELD CHARACTER FILTER │
-                ╰───────────────────────────────────────────────────────╯
-             */
+            //  ╭───────────────────────────────────────────────────────╮
+            //  │ FIELD CHARACTER FILTER                                │
+            //  ╰───────────────────────────────────────────────────────╯
             switch (ff) {
             case FF_STRING:
                 break;
@@ -307,9 +306,9 @@ int form_accept_field(Form *form) {
     }
 }
 
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ DISPLAY_FIELD_N                                               │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ DISPLAY_FIELD_N                                               │
+//  ╰───────────────────────────────────────────────────────────────╯
 int form_display_field_n(Form *form, int n) {
     int fidx = form->fidx;
     form->fidx = n;
@@ -317,9 +316,9 @@ int form_display_field_n(Form *form, int n) {
     form->fidx = fidx;
     return 0;
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ DISPLAY_FIELD                                                 │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ DISPLAY_FIELD                                                 │
+//  ╰───────────────────────────────────────────────────────────────╯
 int form_display_field(Form *form) {
     WINDOW *win = form->win;
     int flin = form->field[form->fidx]->line;
@@ -330,9 +329,9 @@ int form_display_field(Form *form) {
     wrefresh(win);
     return 0;
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ DISPLAY_FIELD_BRACKETS                                        │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ DISPLAY_FIELD_BRACKETS                                        │
+//  ╰───────────────────────────────────────────────────────────────╯
 int form_display_field_brackets(Form *form) {
     int flin, fcol;
     if (form->f_brackets) {
@@ -347,9 +346,9 @@ int form_display_field_brackets(Form *form) {
     }
     return 0;
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ FORM_FMT_FIELD                                                │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ FORM_FMT_FIELD                                                │
+//  ╰───────────────────────────────────────────────────────────────╯
 int form_fmt_field(Form *form, char *s) {
     strnz__cpy(form->field[form->fidx]->input_s, s, MAXLEN - 1);
     char *input_s = form->field[form->fidx]->input_s;
@@ -449,9 +448,9 @@ int form_fmt_field(Form *form, char *s) {
     mk_filler(filler_s, fl);
     return 0;
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ VALIDATE_FIELD                                                │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ VALIDATE_FIELD                                                │
+//  ╰───────────────────────────────────────────────────────────────╯
 int form_validate_field(Form *form) {
     int n = form->fidx;
     char *p = form->field[n]->accept_s;
@@ -473,9 +472,9 @@ int form_validate_field(Form *form) {
     return (0);
 }
 
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ MK_FILLER_S                                                   │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ MK_FILLER_S                                                   │
+//  ╰───────────────────────────────────────────────────────────────╯
 void mk_filler(char *s, int fl) {
     char *e = s + fl;
     unsigned char c;
@@ -503,9 +502,9 @@ void right_justify(char *s, int fl) {
         *(--d) = ' ';
     }
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ IS_VALID_DATE                                                 │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ IS_VALID_DATE                                                 │
+//  ╰───────────────────────────────────────────────────────────────╯
 bool is_valid_date(int yyyy, int mm, int dd) {
     if (yyyy < 1 || mm < 1 || mm > 12 || dd < 1)
         return false;
@@ -516,17 +515,17 @@ bool is_valid_date(int yyyy, int mm, int dd) {
         return false;
     return true;
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ IS_VALID_TIME                                                 │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ IS_VALID_TIME                                                 │
+//  ╰───────────────────────────────────────────────────────────────╯
 bool is_valid_time(int hh, int mm, int ss) {
     if (hh < 0 || hh > 23 || mm < 0 || mm > 59 || ss < 0 || ss > 59)
         return false;
     return true;
 }
-/*  ╭───────────────────────────────────────────────────────────────╮
-    │ NUMERIC                                                       │
-    ╰───────────────────────────────────────────────────────────────╯ */
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ NUMERIC                                                       │
+//  ╰───────────────────────────────────────────────────────────────╯
 void numeric(char *d, char *s) {
     while (*s != '\0') {
         if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))

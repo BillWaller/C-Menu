@@ -1,8 +1,7 @@
-/* parse_menu_desc.c
- * Bill Waller
- * billxwaller@gmail.com
- * Parse menu description file and create Menu
- */
+// parse_menu_desc.c
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
+// Parse menu description file and create Menu
 
 #include "menu.h"
 #include <ctype.h>
@@ -35,6 +34,7 @@ unsigned int parse_menu_description(Init *init) {
     if (fp == NULL) {
         strnz__cat(tmp_buf, "file not found", MAXLEN);
         abend(-1, tmp_buf);
+        exit(-1);
     }
     while ((fgets(in_buf, MAXLEN, fp)) != NULL) {
         if (in_buf[0] == '\0')
@@ -120,7 +120,6 @@ unsigned int parse_menu_description(Init *init) {
             menu->line_idx++;
             actions++;
             break;
-
         //  ╭───────────────────────────────────────────────────────╮
         //  │ ':' ====> MENU TEXT                                   │
         //  ╰───────────────────────────────────────────────────────╯
@@ -139,7 +138,7 @@ unsigned int parse_menu_description(Init *init) {
             l = strlen(tmp_buf);
             if (l > menu->text_max_len)
                 menu->text_max_len = l;
-            if (!menu->title[0]) { /* in_buf -> Title */
+            if (!menu->title[0]) { // in_buf -> Title
                 if (l + 5 > MAXLEN)
                     l = MAXLEN - 5;
                 strnz__cpy(menu->title, tmp_buf, l);
@@ -176,7 +175,6 @@ unsigned int parse_menu_description(Init *init) {
         //  ╰───────────────────────────────────────────────────────╯
         case '?':
             break;
-
         case ' ':
         case '\0':
         case '\n':
@@ -190,7 +188,6 @@ unsigned int parse_menu_description(Init *init) {
     // ╭────────────────────────────────────────────────────────────╮
     // │ ASSIGN LETTERS TO MENU CHOICES                             │
     // ╰────────────────────────────────────────────────────────────╯
-
     menu->item_count = menu->line_idx;
     for (ltr = '0'; ltr < 'z'; ltr++)
         fltr[ltr] = FALSE;
@@ -235,10 +232,6 @@ unsigned int parse_menu_description(Init *init) {
         }
         menu->line[menu->line_idx]->letter_pos = Pos;
     }
-
-    // ╭────────────────────────────────────────────────────────────╮
-    // │                                                            │
-    // ╰────────────────────────────────────────────────────────────╯
     menu->lines = menu->item_count;
     if (menu->text_max_len > (menu->choice_max_len + 6))
         menu->cols = menu->text_max_len;
@@ -258,12 +251,12 @@ unsigned int parse_menu_description(Init *init) {
 
     return (0);
 }
-
 // ╭───────────────────────────────────────────────────────────────╮
 // │ GET_COMMAND_TYPE                                              │
 // ╰───────────────────────────────────────────────────────────────╯
 unsigned int get_command_type(char *t) {
     char *s, *p;
+
     s = p = t;
     while (*s != ' ' && *s != '\0') {
         if (*s == '/')
@@ -273,8 +266,6 @@ unsigned int get_command_type(char *t) {
     *s = '\0';
     if (!strcmp(p, "returnmain"))
         return (CT_RETURNMAIN);
-    else if (!strcmp(p, "cpick"))
-        return (CT_PICK);
     else if (!strcmp(p, "ckeys"))
         return (CT_CKEYS);
     else if (!strcmp(p, "exec"))
@@ -285,10 +276,6 @@ unsigned int get_command_type(char *t) {
         return (CT_MENU);
     else if (!strcmp(p, "form"))
         return (CT_FORM);
-    else if (!strcmp(p, "form_exec"))
-        return (CT_FORM);
-    else if (!strcmp(p, "form_write"))
-        return (CT_FORM);
     else if (!strcmp(p, "pick"))
         return (CT_PICK);
     else if (!strcmp(p, "return"))
@@ -296,7 +283,7 @@ unsigned int get_command_type(char *t) {
     else if (!strcmp(p, "view"))
         return (CT_VIEW);
     else if (!strcmp(p, "?"))
-        return (CT_TOGGLE);
+        return (CT_HELP);
     else if (!strcmp(p, "write_config"))
         return (CT_WRITE_CONFIG);
     return (CT_UNDEFINED);
@@ -305,7 +292,6 @@ unsigned int get_command_type(char *t) {
 // │ FREE_MENU_LINE                                                 │
 // ╰────────────────────────────────────────────────────────────────╯
 void free_menu_line(Line *line) {
-    //  int j;
 
     if (line->raw_text != NULL)
         free(line->raw_text);

@@ -1,8 +1,7 @@
-/* form_engine.c
- * form - data entry and editing for menu system
- * Bill Waller
- * billxwaller@gmail.com
- */
+// form_engine.c
+// form - data entry and editing for menu system
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
 
 #include "menu.h"
 #include <errno.h>
@@ -654,9 +653,10 @@ int form_read_data(Form *form) {
         if ((lstat(form->in_spec, &sb) == -1) || (sb.st_size == 0) ||
             ((form->in_fp = fopen(form->in_spec, "rb")) == NULL)) {
             strncat(em0, form->in_spec, MAXLEN - 1);
-            if (errno)
-                strerror_r(errno, em1, MAXLEN - 1);
-            else if (sb.st_size == 0)
+            // if (errno)
+            // strerror_r(errno, em1, MAXLEN - 1);
+            // else
+            if (sb.st_size == 0)
                 strncpy(em1, "File is empty", MAXLEN - 1);
             else
                 strncpy(em1, "File does not exist", MAXLEN - 1);
@@ -710,6 +710,14 @@ int form_write(Form *form) {
         strcpy(form->out_spec, "/dev/stdout");
         close(form->out_fd);
         form->out_fd = open(form->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
+        if (form->out_fd == -1) {
+            ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+            strnz__cpy(em1, "open ", MAXLEN - 65);
+            strnz__cat(em1, form->out_spec, MAXLEN - 1);
+            strerror_r(errno, em2, MAXLEN);
+            display_error(em0, em1, em2, NULL);
+            return (1);
+        }
         dup2(form->out_fd, STDOUT_FILENO);
         form->out_fp = fdopen(STDOUT_FILENO, "w");
         form->f_out_spec = true;
@@ -727,7 +735,8 @@ int form_write(Form *form) {
     }
     for (n = 0; n < form->fcnt; n++)
         fprintf(form->out_fp, "%s\n", form->field[n]->accept_s);
-    fclose(form->out_fp);
+    if (form->out_fp != NULL)
+        fclose(form->out_fp);
     return (0);
 }
 //  ╭───────────────────────────────────────────────────────────────╮

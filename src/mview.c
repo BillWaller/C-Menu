@@ -1,8 +1,8 @@
-/* mview.c
- * file viewer
- * Bill Waller
- * billxwaller@gmail.com
- */
+// mview.c
+// file viewer
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
+
 #include "menu.h"
 #include <stdlib.h>
 #include <unistd.h>

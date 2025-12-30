@@ -1,18 +1,17 @@
-/*  menu.c
-    Bill Waller
-    billxwaller@gmail.com
-
-    This is the main file for C-Menu, a terminal-based application
-    launcher and menu system.
-
-    It operates by reading a menu description file and displaying
-    a navigable menu in the terminal. Users can select applications
-    to launch or scripts to execute.
-
-    Several ancillary files provide supporting functionality, including
-    handling terminal I/O settings, managing the menu structure,
-    and rendering the interface using the ncurses library.
- */
+//  menu.c
+//  Bill Waller Copyright (c) 2025
+//  billxwaller@gmail.com
+//
+//  This is the main file for C-Menu, a terminal-based application
+//  launcher and menu system.
+//
+//  It operates by reading a menu description file and displaying
+//  a navigable menu in the terminal. Users can select applications
+//  to launch or scripts to execute.
+//
+//  Several ancillary files provide supporting functionality, including
+//  handling terminal I/O settings, managing the menu structure,
+//  and rendering the interface using the ncurses library.
 
 #include "menu.h"
 

@@ -1,8 +1,7 @@
-/* dwin.c
- * window support for MENU
- * Bill Waller
- * billxwaller@gmail.com
- */
+// dwin.c
+// window support for MENU
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
 
 #include "menu.h"
 #include <errno.h>

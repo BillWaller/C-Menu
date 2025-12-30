@@ -1,10 +1,8 @@
-/*  ckeys.c
-    Test Curses Keys
-    Bill Waller
-    billxwaller @gmail.com
-    Ckeys
-
- */
+//  ckeys.c
+//  Test Curses Keys
+//  Bill Waller Copyright (c) 2025
+//  billxwaller @gmail.com
+//  Ckeys
 
 #include "menu.h"
 #include <sys/types.h>

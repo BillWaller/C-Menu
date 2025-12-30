@@ -1,8 +1,7 @@
-/* fpick.c
- * pick from a list of choices for MENU
- * Bill Waller
- * billxwaller@gmail.com
- */
+// fpick.c
+// pick from a list of choices for MENU
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
 
 #include "menu.h"
 #include <fcntl.h>
@@ -163,7 +162,8 @@ int read_pick_input(Init *init) {
     } else
         for (i = 1; i < pick->argc; i++)
             save_object(pick, pick->argv[i]);
-    fclose(pick->in_fp);
+    if (pick->in_fp != NULL)
+        fclose(pick->in_fp);
     if (!pick->obj_idx)
         return (-1);
     pick->obj_cnt = pick->obj_idx;
@@ -612,7 +612,8 @@ int output_objects(Pick *pick) {
             fprintf(stdout, "%s\n", pick->object[pick->obj_idx]);
     }
     fflush(stdout);
-    fclose(pick->out_fp);
+    if (pick->out_fp != NULL)
+        fclose(pick->out_fp);
     return (0);
 }
 // ╭────────────────────────────────────────────────────────────────╮
@@ -633,7 +634,7 @@ int exec_objects(Init *init) {
     if (pick->receiver_cmd[0] == '\0')
         return -1;
     if (pick->receiver_cmd[0] == '\\' || pick->receiver_cmd[0] == '\"') {
-        /* Remove surrounding quotes if present */
+        // Remove surrounding quotes if present
         size_t len = strlen(pick->receiver_cmd);
         if (len > 1 && pick->receiver_cmd[len - 1] == '\"') {
             memmove(pick->receiver_cmd, pick->receiver_cmd + 1, len - 2);

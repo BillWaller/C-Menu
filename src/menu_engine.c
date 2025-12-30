@@ -1,8 +1,7 @@
-/* menu_engine.c
- * Bill Waller
- * billxwaller@gmail.com
- * file system interface
- */
+// menu_engine.c
+// Bill Waller
+// billxwaller@gmail.com
+// file system interface
 
 #include "menu.h"
 #include <ctype.h>
@@ -215,7 +214,7 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_DISPLAY_MENU);
     case CT_HELP:
         strnz__cpy(earg_str, "view -S optsp", MAXLEN - 1);
-        lines = cols = begx = begy = 0;
+        // lines = cols = begx = begy = 0;
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
@@ -260,7 +259,7 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_DISPLAY_MENU);
     case CT_VIEW:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
-        lines = cols = begx = begy = 0;
+        // lines = cols = begx = begy = 0;
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);

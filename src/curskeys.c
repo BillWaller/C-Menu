@@ -1,8 +1,7 @@
-/* fckeys.c
- * Test Curses Keys
- * Bill Waller
- * billxwaller@gmail.com
- */
+// fckeys.c
+// Test Curses Keys
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
 
 #include "menu.h"
 #include <ncursesw/ncurses.h>
@@ -23,15 +22,7 @@ int display_curses_keys() {
     char tmp[MAXLEN];
     MEVENT event;
     char *s;
-    /*
-       typedef struct {
-           short id;
-           int x, y, z;
-           mmask_t bstate;
-       } MEVENT;
-     */
     int maxy, maxx;
-    // int winy, winx;
 
     getmaxyx(stdscr, maxy, maxx);
     int begy = (maxy - lines) / 3;
