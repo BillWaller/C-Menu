@@ -1,7 +1,7 @@
-/* view_engine.c_
- * Bill Waller
- * billxwaller@gmail.com
- */
+// view_engine.c_
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
+
 #include "menu.h"
 #include <ctype.h>
 #include <fcntl.h>
@@ -143,12 +143,6 @@ int view_cmd_processor(Init *init) {
     long n_cmd = 0L;
     view = init->view;
     view->f_timer = false;
-    //     if (view->view_cmd[0]) {
-    //        view->next_cmd_char = view->view_cmd[0];
-    // strnz__cpy(view->cmd_arg, (char *)&view->view->view_cmd_all[1],
-    // MAXLEN
-    // - 1);
-    //  } else
     view->view_cmd[0] = '\0';
     while (1) {
         c = view->next_cmd_char;
@@ -297,7 +291,9 @@ int view_cmd_processor(Init *init) {
                 break;
             cmd_line_prompt(view, "(C, I, P, S, T, or H for Help)->");
             c = get_cmd_char(view, &n_cmd);
-            c = tolower(c);
+            // c = tolower(c);
+            if (c >= 'A' && c <= 'Z')
+                c += ' ';
             switch (c) {
             case 'c':
                 cmd_line_prompt(view, "Clear Screen at End (Y or N)->");
@@ -315,6 +311,8 @@ int view_cmd_processor(Init *init) {
                 break;
             case 'p':
                 cmd_line_prompt(view, "(Short Long or No prompt)->");
+                if (c >= 'A' && c <= 'Z')
+                    c += ' ';
                 c = tolower(get_cmd_char(view, &n_cmd));
                 switch (c) {
                 case 's':
@@ -399,10 +397,11 @@ int view_cmd_processor(Init *init) {
             cmd_line_prompt(view, "Mark label (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == KEY_F(9) || c == '\033')
-                break;
-            c = tolower(c);
+                // c = tolower(c);
+                if (c >= 'A' && c <= 'Z')
+                    c += ' ';
             if (c < 'a' || c > 'z')
-                Perror("Not (A-Z)");
+                Perror("Not (a-z)");
             else
                 view->mark_tbl[c - 'a'] = view->page_top_pos;
             break;
@@ -412,7 +411,9 @@ int view_cmd_processor(Init *init) {
             c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == KEY_F(9) || c == '\033')
                 break;
-            c = tolower(c);
+            // c = tolower(c);
+            if (c >= 'A' && c <= 'Z')
+                c += ' ';
             if (c < 'a' || c > 'z')
                 Perror("Not (A-Z)");
             else
@@ -693,10 +694,10 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
         sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
         if (prompt_str[0] != '\0') {
             strnz__cat(prompt_str, " ", MAXLEN - 1);
-            strnz__cat(prompt_str, tmp_str, MAXLEN - 1); /* File Of      */
+            strnz__cat(prompt_str, tmp_str, MAXLEN - 1); // File Of
         }
     }
-    if (prompt_type == PT_LONG) { /* Byte of Byte  */
+    if (prompt_type == PT_LONG) { // Byte of Byte
         if (view->page_top_pos == NULL_POSITION)
             view->page_top_pos = view->file_size;
         sprintf(tmp_str, "Pos %ld-%ld", view->page_top_pos, view->page_bot_pos);
@@ -711,7 +712,7 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
             }
         }
     }
-    if (!view->f_eod && prompt_type != PT_NONE) { /* Percent       */
+    if (!view->f_eod && prompt_type != PT_NONE) { // Percent
         if (view->file_size > 0L && view->page_bot_pos != NULL_POSITION) {
             sprintf(tmp_str, "(%ld%%)",
                     (100L * view->page_bot_pos) / view->file_size);
@@ -720,7 +721,7 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
             strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
         }
     }
-    if (view->f_eod) { /* End           */
+    if (view->f_eod) { // End
         if (prompt_str[0] != '\0')
             strnz__cat(prompt_str, " ", MAXLEN - 1);
         strnz__cat(prompt_str, "(End)", MAXLEN - 1);

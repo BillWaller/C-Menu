@@ -1,13 +1,11 @@
-/*  scriou.c
-    Screen IO Support for MENU
-    Bill Waller
-    billxwaller@gmail.com
-
-    This file contains terminal ioctl handling functions for MENU. It provide
-    sane terminal settings for MENU applications, and to to restore the terminal
-    to its original state when the MENU application exits.
-
- */
+//  scriou.c
+//  Bill Waller Copyright (c) 2025
+//  Screen IO Support for MENU
+//  billxwaller@gmail.com
+//
+//  This file contains terminal ioctl handling functions for MENU. It provide
+//  sane terminal settings for MENU applications, and to to restore the terminal
+//  to its original state when the MENU application exits.
 
 #include "menu.h"
 #include <stdbool.h>

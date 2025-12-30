@@ -1,7 +1,6 @@
-/* form_exec.c
- * Bill Waller
- * billxwaller@gmail.com
- */
+// form_exec.c
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
 
 #include "menu.h"
 

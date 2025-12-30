@@ -1,8 +1,7 @@
-/* futil.c
- * Utility functions for MENU
- * Bill Waller
- * billxwaller@gmail.com
- */
+// futil.c
+// Utility functions for MENU
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
 
 #include "menu.h"
 #include <dirent.h>
@@ -338,7 +337,7 @@ void file_spec_path(char *fp, char *fs) {
         *d++ = *s++;
     }
     if (l == NULL)
-        *fp = '\0'; /* no slash, so no path */
+        *fp = '\0'; // no slash, so no path
     else
         *l = '\0';
 }

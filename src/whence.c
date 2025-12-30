@@ -1,10 +1,9 @@
-/* whence.c
- * whence: adverb
- *           from what place or source
- *           in this case, a directory name
- * Bill Waller
- * billxwaller@gmail.com
- */
+// whence.c
+// Bill Waller Copyright (c) 2025
+// whence: adverb
+//           from what place or source
+//           in this case, a directory name
+// billxwaller@gmail.com
 
 #include <fcntl.h>
 #include <getopt.h>

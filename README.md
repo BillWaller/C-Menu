@@ -9,7 +9,7 @@ billxwaller@gmail.com
 
 ## New FAQ Added
 
-[C-Menu FAQ](doc/FAQ.md)
+[C-Menu FAQ](FAQ.md)
 
 ---
 

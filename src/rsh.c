@@ -1,20 +1,19 @@
-/*  rsh.c
-    Author:  Bill Waller <billxwaller@gmail.com>
-
-    Build instructions:
-
-    cc rsh.c -o rsh
-    sudo chown root:root rsh
-    sudo chmod 4755 rsh
-    exit
-
-    Test instructions:
-
-    $ rsh
-    $ whoami
-    root
-
- */
+//  rsh.c
+//  Bill Waller Copyright (c) 2025
+//  <billxwaller@gmail.com>
+//
+//  Build instructions:
+//
+//  cc rsh.c -o rsh
+//  sudo chown root:root rsh
+//  sudo chmod 4755 rsh
+//  exit
+//
+//  Test instructions:
+//
+//  $ rsh
+//  $ whoami
+//  root
 
 #include <stdbool.h>
 #include <stdio.h>

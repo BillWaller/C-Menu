@@ -57,8 +57,8 @@ int init_view_boxwin(Init *init, char *title) {
     int scr_lines, scr_cols;
     view = init->view;
     view->f_full_screen = false;
-    scr_lines = LINES;
-    scr_cols = COLS;
+    // scr_lines = LINES;
+    // scr_cols = COLS;
     getmaxyx(stdscr, scr_lines, scr_cols);
     if (view->lines > scr_lines)
         view->lines = scr_lines;
@@ -177,7 +177,7 @@ bool view_init_input(View *view, char *file_name) {
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, NULL);
                 close(in_fd);
-                return EXIT_FAILURE;
+                return (EXIT_FAILURE);
             }
             view->file_size = sb.st_size;
             if (!S_ISREG(sb.st_mode))
@@ -193,23 +193,32 @@ bool view_init_input(View *view, char *file_name) {
         //  ╰───────────────────────────────────────────────────────╯
         close(in_fd);
         in_fd = mkstemp(tmp_filename);
-        if (in_fd == -1)
+        if (in_fd == -1) {
             abend(-1, "failed to mkstemp");
+            exit(EXIT_FAILURE);
+        }
         unlink(tmp_filename);
         while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0)
-            if (write(in_fd, buf, bytes_read) != bytes_read)
+            if (write(in_fd, buf, bytes_read) != bytes_read) {
                 abend(-1, "unable to write tmp");
-        if (bytes_read == -1)
+                exit(EXIT_FAILURE);
+            }
+        if (bytes_read == -1) {
             abend(-1, "unable to read stdin");
-        if (fstat(in_fd, &sb) == -1)
+            exit(EXIT_FAILURE);
+        }
+        if (fstat(in_fd, &sb) == -1) {
             abend(-1, "fstat failed");
+            exit(EXIT_FAILURE);
+        }
         view->file_size = sb.st_size;
         if (view->file_size == 0) {
             close(in_fd);
             strnz__cpy(tmp_str, "no standard input", MAXLEN - 1);
             abend(-1, tmp_str);
+            exit(EXIT_FAILURE);
         }
-        waitpid(pid, NULL, 0);
+        waitpid(-1, NULL, 0);
     }
     //  ╭───────────────────────────────────────────────────────────────╮
     //  │ MMAP                                                          │
@@ -221,7 +230,7 @@ bool view_init_input(View *view, char *file_name) {
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, NULL);
         close(in_fd);
-        return EXIT_FAILURE;
+        return (EXIT_FAILURE);
     }
     close(in_fd);
     view->file_size = sb.st_size;

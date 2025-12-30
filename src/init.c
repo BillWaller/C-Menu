@@ -1,7 +1,6 @@
-/* initialization.c
- * Bill Waller
- * billxwaller@gmail.com
- */
+// initialization.c
+// Bill Waller Copyright (c) 2025
+// billxwaller@gmail.com
 
 #include "menu.h"
 #include <getopt.h>
@@ -76,16 +75,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
     strnz__cpy(init->mapp_data, "~/menuapp/data", MAXLEN - 1);
     strnz__cpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
-
-    /*
-        Initialization Priorities
-
-        5  def_args   Default values
-        4  cfg_args - Configuration file
-        3  env_args - Environment variables
-        2  pos_args - Command line positional arguments
-        1  opt_args - Command line option arguments
-     */
 
     // Priority-4 - cfg_args
     parse_config(init);
