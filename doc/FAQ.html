@@ -219,7 +219,7 @@ man -Tutf8 bash | sed -f ~/menuapp/msrc/man.sed | view
 <img src="screenshots/tree-sitter.png" title="C-Menu View Tree-Sitter" />
 <p>These instructions are admittedly sketchy and hard to follow. We will revise and clarify in the future.</p>
 <hr />
-<h3>C-Menu Form - How to Integrate External Executables</h3>
+<h3>C-Menu Form - Integrating External Executables</h3>
 <p>Q: How can I integrate external programs into C-Menu Form, such as an SQL Query or calculation?</p>
 <p>A: We can use the executable &quot;iloan&quot; included with C-Menu as an example.</p>
 <p>The Form will have four fields. The user must enter any three of the four values. Only one field may be zero. Iloan will calculate the value of the missing field and C-Menu Form will display it.</p>
@@ -263,13 +263,13 @@ First Payment Date - The date of the first payment in YYYYMMDD format.
 <p>This will add a menu item to the Main Menu that will launch the Iloan Form.
 When you select the &quot;Installment Loan Calculations&quot; menu item, C-Menu Form will display the Iloan Form. After you enter any three of the four values and press Enter, C-Menu Form will call the &quot;iloan&quot; executable to calculate the missing value and display it in the form.</p>
 <p>C-Menu Form will complain that &quot;iloan.dat&quot; does not exist the first time you run the form. This is normal. C-Menu Form will create the file when you exit the form.</p>
-<h3>Installment Loan Calculator</h3>
+<h3>C-Menu - Using the Installment Loan Calculator</h3>
 <img src="screenshots/iloan.png" title="Installment Loan Calculator" />
 <p>After you enter the three values, you will see an option &quot;F5 Calculate&quot;. Press F5 to calculate the missing value. When the calculation is complete, the missing value will be displayed in the form. You will then see an option, &quot;F8 Edit&quot;, which will allow you to make changes and try again. If you don't wish to make changes, press &quot;F10 Accept&quot; to
 write all four values to &quot;iloan.dat&quot; and exit the form.</p>
 <p>The next time you run the form, C-Menu Form will read the values from &quot;iloan.dat&quot; and display them in the form.</p>
 <p>Here's a summary of the important parts of the form file format:</p>
-<h3>Line Type Speecifiers (H, T, F, and ?)</h3>
+<h3>C-Menu Form - Line Type Speecifiers (H, T, F, and ?)</h3>
 <ul>
 <li># Comment line (ignored)</li>
 <li>H - The header to be displayed at the top of the form</li>
@@ -277,7 +277,7 @@ write all four values to &quot;iloan.dat&quot; and exit the form.</p>
 <li>F - Input field (line:column:length:type)</li>
 <li>? - A user supplied help file for the form. If no path is given, Form will look for a file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.</li>
 </ul>
-<h3>Field Delimiters:</h3>
+<h3>C-Menu Form - Field Delimiters:</h3>
 <p>The &quot;:&quot; character is used as a delimiter in the fields above, but any
 character that is placed immediately after the line designator (H, T, F, ?)
 can be used as a delimiter. For example, the following two lines are
@@ -285,24 +285,26 @@ equivalent:</p>
 <pre class="rounded-code"><code>T:2:4:Enter any three of the four values to calculate the fourth.
 T|2|4|Enter any three of the four values to calculate the fourth.
 </code></pre>
-<h3>Data Types:</h3>
+<h3>C-Menu Form - Data Types:</h3>
 <p>The following data types are currently supported for input fields:</p>
 <pre class="rounded-code"><code>   String: Any text
 </code></pre>
-<p>Decimal_Int: Integer number
-Hex_Int: Hexadecimal integer
-Float: Floating point number
-Double: Double precision floating point number
-Currency: Currency amount
-APR: Annual Percentage Rate
-Yyyymmdd: Date in YYYYMMDD format
-HHMMSS: Time in HHMMSS format</p>
+<ul>
+<li>Decimal_Int: Integer number</li>
+<li>Hex_Int: Hexadecimal integer</li>
+<li>Float: Floating point number</li>
+<li>Double: Double precision floating point number</li>
+<li>Currency: Currency amount</li>
+<li>APR: Annual Percentage Rate</li>
+<li>Yyyymmdd: Date in YYYYMMDD format</li>
+<li>HHMMSS: Time in HHMMSS format</li>
+</ul>
 <p>Note that the data types determine field formatting, and on entry, numeric data is converted to its corresponding internal binary format, so that calculations can be performed. Both text and internal numeric binary data are available to the developer.</p>
 <p>For applications that demand extreme accuracy, our plan is to integrate the &quot;decNumber C Library&quot;, Copyright © IBM Corporation 2010, to provide 128 bit BCD (Binary Coded Decimal) in a future release.</p>
 <p>The Field Format Specifiers can be any combination of upper and lower case,
 and new types can be easily added by modifying the source code.</p>
 <hr />
-<h3>Interprocess Communications</h3>
+<h3>C-Menu - Interprocess Communications</h3>
 <p>Q: How does C-Menu send and receive data to external programs?</p>
 <p>A: Currently, C-Menu is limited to communicating through files or pipes.</p>
 <p>When you start C-Menu Form, Pick, or View, you can specify</p>
@@ -315,4 +317,37 @@ and new types can be easily added by modifying the source code.</p>
 <p>The way it works is, C-Menu creates dual ended pipes, each with a read and write end before forking and spawning the executables. In the example (Installment Loan Calculations) above, C-Menu Form substitutes a write pipe for the standard output of the child process, and opens the read end of the pipe for it's input. The called executable writes data to the pipe and C-Menu form reads the other end.</p>
 <p>We can just as easily use named pipes or network sockets, although it requires a bit more configuration. If there is sufficient interest, C-Menu will have an event-driven server to handle network communications and asynchronous tasks. It is likely that server will be implemented in Rust to take advantage of tools like the Tokio and Serde crates.</p>
 <hr />
+<h3>C-Menu - What Happened to Delete by Inode</h3>
+<p>Q: I noticed you have a menu option named, &quot;Delete by Inode&quot;, but it doesn't work.</p>
+<p>A: Thanks for reminding me. I will remove that choice from the menu until I can figure out a way to make it safe.</p>
+<p>The original command was:</p>
+<pre class="rounded-code"><code>find . -inum [inode-number] -delete
+</code></pre>
+<p>That is too dangerous if the user makes a mistake, so I replaced the find with &quot;rm -i&quot;.</p>
+<pre class="rounded-code"><code>  !pick -S &quot;ls -i&quot; -n 1 -R &quot;rm -i&quot;
+</code></pre>
+<p>It doesn't delete files by inode, but at least it prompts the user before deleting files. Still, it's not what I intended, so it will be removed until I find a better solution.</p>
+<p>I may eventually write a C or Rust program that will safely delete files by inode after confirming the correct file with the user as well as saving deleted files in a trash bin, on an opt-out basis.</p>
+<hr />
+<h3>C-Menu Pick - Selecting Multiple Files</h3>
+<p>Q: In C-Menu Pick, how can I select multiple files to edit with vi?</p>
+<p>A: You can use the -M option to enable multi-select in C-Menu Pick. Here is an example command that allows you to select multiple files and open them in C-Menu Vi:</p>
+<pre class="rounded-code"><code>!pick -S &quot;lf -r ./ .*\.[ch]$&quot; -M -R vi -T &quot;Project Tree - Select Files to Edit&quot;
+
+</code></pre>
+<p>Select as many files as you want to edit and press F10. C-Menu Pick will open the first file. If you are using Nvim, Vim, Less, or C-Menu View, you can type: &quot;:n<enter>&quot; to open the next file.</p>
+<hr />
+<h3>C-Menu lf - Where Are My Header Files?</h3>
+<p>Q: You have an option to edit C source files in the Project Tree menu, but it doesn't list my header files. Can you fix that?</p>
+<p>A: Sure. My bad. Of course you want your header files to be listed with your C files. Here is the new C-Menu line with the regular expression corrected to include both .c and .h files:</p>
+<p>!pick -S &quot;lf -r ./ .*.[ch]$&quot; -n 1 -R vi -T &quot;Project Tree - Select File to Edit&quot;</p>
+<hr />
+<h3>C-Menu View - View In A Box Window</h3>
+<p>Q: How do I highlight a C source file using tree-sitter and view it in a C-Menu View box window.</p>
+<pre class="rounded-code"><code>view -L 40 -C 80 -S &quot;tree-sitter highlight view_engine.c&quot;
+</code></pre>
+<p>Leave out the -L 40 and -C 80 to display the file in full screen. Alternatively, you can use the following command.</p>
+<pre class="rounded-code"><code>tree-sitter highlight view_engine.c | view -L 40 -C 80 -T &quot;Highlighted view_engine.c&quot;
+</code></pre>
+<p>The &quot;-S&quot; option will tell view to execute the command and display the output. As an added bonus, if you don't provide a title with &quot;-T, view will use the &quot;-S&quot; command as the title:</p>
 </body></html></body></html>

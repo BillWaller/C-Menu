@@ -221,14 +221,14 @@ The following data types are currently supported for input fields:
 
        String: Any text
 
-Decimal_Int: Integer number
-Hex_Int: Hexadecimal integer
-Float: Floating point number
-Double: Double precision floating point number
-Currency: Currency amount
-APR: Annual Percentage Rate
-Yyyymmdd: Date in YYYYMMDD format
-HHMMSS: Time in HHMMSS format
+- Decimal_Int: Integer number
+- Hex_Int: Hexadecimal integer
+- Float: Floating point number
+- Double: Double precision floating point number
+- Currency: Currency amount
+- APR: Annual Percentage Rate
+- Yyyymmdd: Date in YYYYMMDD format
+- HHMMSS: Time in HHMMSS format
 
 Note that the data types determine field formatting, and on entry, numeric data is converted to its corresponding internal binary format, so that calculations can be performed. Both text and internal numeric binary data are available to the developer.
 
