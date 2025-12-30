@@ -232,10 +232,8 @@ greatly simplify the process of creating text-based user interfaces for
 your applications.</p>
 <hr />
 <h3>C-Menu View</h3>
-<p>VIEW is an easy-to-use text file viewer that allows users to view text files in a
-terminal environment. It supports basic navigation, regular expression
-search functionality, horizontal scrolling, ANSI escape highlighting, Unicode, and
-NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to provide contextual help or stand-alone, full-screen as a system pager.</p>
+<p>VIEW is an easy-to-use text file viewer that allows users to view text files in a terminal environment. It supports basic navigation, regular expression
+search functionality, horizontal scrolling, ANSI escape highlighting, Unicode, and NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to provide contextual help or stand-alone, full-screen as a system pager.</p>
 <h4>Nvim Screenshot</h4>
 <img src="screenshots/nvim-log.png" alt="nvim log" title="nvim log" />
 <h4>CMenu Screenshot of the Same File</h4>
@@ -262,9 +260,21 @@ C-Menu View's features while reading manual pages.</p>
 <li>C-Menu View accesses files as arrays, using the Kernel's sophisticated demand paged virtual memory.</li>
 <li>Lazy loading means that that C-Menu View doesn't waste time seeking, reading, and populating buffers that will never be used.</li>
 <li>Zero-Copy I/O - Conventional programs copy file buffers into heap address space. C-Menu View bypasses that step and reads directly from the Kernel's virtual memory.</li>
-<li>Simplicity - No reads, no seeks, no complicated buffer management schemes, not for view. The following snippet includes &quot;all&quot; of View's file I/O, really just lines 22 and 12.</li>
+<li>Simplicity - C-Menu View has no reads, no seeks, no complicated buffer management schemes, not for view. The following snippet includes &quot;all&quot; of View's file I/O on lines 22 and 12.</li>
 </ul>
 <img src="screenshots/file-io.png" alt="nvim log" title="nvim log" />
+<h3>C-Menu View - Other Features</h3>
+<ul>
+<li>
+<p>Horizontal scrolling for long lines. C-Menu View writes output to a virtual screen, an Ncurses pad, to accommodate lines longer than the physical screen.</p>
+</li>
+<li>
+<p>C-Menu View has full support for Unicode, translating ASCII text and multi-byte sequences to wide characters (wchar_t), and wide characters and ANSI SGR sequences to complex characters (cchar_t). The complex characters combine displayable characters plus attributes such as bold, italic, underline, reverse and foreground and background colors. NCurses can display more than 16 million colors.</p>
+</li>
+<li>
+<p>C-Menu View supports mouse wheel vertical scrolling.</p>
+</li>
+</ul>
 <h3>C-Menu 3-Channel Gamma Correction</h3>
 <p>When using utilities such as &quot;tree-sitter highlighter&quot;, &quot;pygmentize&quot;, or &quot;bat&quot; to highlight files, the text is sometimes almost unreadable. On the left-hand side of the following screenshot, &quot;less&quot; does a great job of rendering the output of pygmentize, but C-Menu with gamma correction can do better. It's all about perceptual luminance. Either from the command line or the minitrc file, the user can specify a gamma correction value for each of the three color channels, red, green, and blue. It's a minor thing, really, but we programmers aren't &quot;automitons.&quot; A pleasing visual appearance makes work more fun.</p>
 <img src="screenshots/gamma.png" alt="Gamma Correction" title="Gamma Correction" />

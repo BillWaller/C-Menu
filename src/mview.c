@@ -14,30 +14,6 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     else
         view = init->view;
 
-    view->f_stdout_is_tty = isatty(1);
-    if (!view->f_stdout_is_tty) {
-        if (view->argc < 1) {
-            if (view_init_input(view, "-"))
-                if (view->buf)
-                    cat_file(view);
-        } else {
-            while (view->curr_argc < view->argc) {
-                if (view_init_input(view, view->argv[view->curr_argc]))
-                    if (view->buf)
-                        cat_file(view);
-                view->curr_argc++;
-            }
-        }
-        exit(EXIT_SUCCESS);
-    }
-
-    if (init->provider_cmd[0] != '\0')
-        strip_quotes(init->provider_cmd);
-    if (init->title[0] == '\0')
-        strnz__cpy(init->title, init->provider_cmd, MAXLEN - 1);
-    else
-        strip_quotes(init->title);
-
     //  ╭───────────────────────────────────────────────────────────╮
     //  │ view->lines     2/3                                       │
     //  ╰───────────────────────────────────────────────────────────╯
@@ -79,5 +55,5 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
         win_del();
     }
     close_view(init);
-    return (0);
+    return 0;
 }

@@ -81,7 +81,6 @@ unsigned int menu_cmd_processor(Init *init) {
     int i, c, j, rc;
     char *d;
     int in_key;
-    int lines, cols;
 
     keypad(menu->win, TRUE);
     Menu *menu = init->menu;
@@ -214,7 +213,6 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_DISPLAY_MENU);
     case CT_HELP:
         strnz__cpy(earg_str, "view -S optsp", MAXLEN - 1);
-        // lines = cols = begx = begy = 0;
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
@@ -234,18 +232,11 @@ unsigned int menu_cmd_processor(Init *init) {
         }
         rc = menu_engine(init);
         if (rc == MA_RETURN_MAIN)
-            //     if (menu->caller != C_MAIN)  // if not called by first
-            //     menu
-            //         return (MA_RETURN_MAIN); // go all the way back
             return (MA_DISPLAY_MENU);
         break;
     case CT_PICK:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-        lines = 2 * LINES / 3;
-        cols = 2 * COLS / 3;
-        begy = (LINES - lines) / 2;
-        begx = (COLS - cols) / 2;
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
@@ -259,7 +250,6 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_DISPLAY_MENU);
     case CT_VIEW:
         strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
-        // lines = cols = begx = begy = 0;
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);

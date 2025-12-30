@@ -210,7 +210,7 @@ int pick_engine(Init *init) {
     if (pick->win_width < chyron_l)
         pick->win_width = chyron_l;
     pick->tbl_lines = ((pick->obj_cnt - 1) / pick->tbl_cols) + 1;
-    pick->tbl_pages = (lines / (win_maxy - 1)) + 1;
+    pick->tbl_pages = (pick->tbl_lines / (win_maxy - 1)) + 1;
     pick->pg_lines = (pick->tbl_lines / pick->tbl_pages) + 1;
     pick->win_lines = pick->pg_lines + 1;
     pick->tbl_page = 0;
