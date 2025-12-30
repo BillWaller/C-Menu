@@ -125,7 +125,7 @@ These instructions are admittedly sketchy and hard to follow. We will revise and
 
 ---
 
-### C-Menu Form - How to Integrate External Executables
+### C-Menu Form - Integrating External Executables
 
 Q: How can I integrate external programs into C-Menu Form, such as an SQL Query or calculation?
 
@@ -184,7 +184,7 @@ When you select the "Installment Loan Calculations" menu item, C-Menu Form will 
 
 C-Menu Form will complain that "iloan.dat" does not exist the first time you run the form. This is normal. C-Menu Form will create the file when you exit the form.
 
-### Installment Loan Calculator
+### C-Menu - Using the Installment Loan Calculator
 
 <img src="screenshots/iloan.png" title="Installment Loan Calculator" />
 
@@ -195,7 +195,7 @@ The next time you run the form, C-Menu Form will read the values from "iloan.dat
 
 Here's a summary of the important parts of the form file format:
 
-### Line Type Speecifiers (H, T, F, and ?)
+### C-Menu Form - Line Type Speecifiers (H, T, F, and ?)
 
 - \# Comment line (ignored)
 - H - The header to be displayed at the top of the form
@@ -203,7 +203,7 @@ Here's a summary of the important parts of the form file format:
 - F - Input field (line:column:length:type)
 - ? - A user supplied help file for the form. If no path is given, Form will look for a file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.
 
-### Field Delimiters:
+### C-Menu Form - Field Delimiters:
 
 The ":" character is used as a delimiter in the fields above, but any
 character that is placed immediately after the line designator (H, T, F, ?)
@@ -215,7 +215,7 @@ T:2:4:Enter any three of the four values to calculate the fourth.
 T|2|4|Enter any three of the four values to calculate the fourth.
 ```
 
-### Data Types:
+### C-Menu Form - Data Types:
 
 The following data types are currently supported for input fields:
 
@@ -239,7 +239,7 @@ and new types can be easily added by modifying the source code.
 
 ---
 
-### Interprocess Communications
+### C-Menu - Interprocess Communications
 
 Q: How does C-Menu send and receive data to external programs?
 
@@ -259,3 +259,69 @@ The way it works is, C-Menu creates dual ended pipes, each with a read and write
 We can just as easily use named pipes or network sockets, although it requires a bit more configuration. If there is sufficient interest, C-Menu will have an event-driven server to handle network communications and asynchronous tasks. It is likely that server will be implemented in Rust to take advantage of tools like the Tokio and Serde crates.
 
 ---
+
+### C-Menu - What Happened to Delete by Inode
+
+Q: I noticed you have a menu option named, "Delete by Inode", but it doesn't work.
+
+A: Thanks for reminding me. I will remove that choice from the menu until I can figure out a way to make it safe.
+
+The original command was:
+
+```
+find . -inum [inode-number] -delete
+```
+
+That is too dangerous if the user makes a mistake, so I replaced the find with "rm -i".
+
+```
+  !pick -S "ls -i" -n 1 -R "rm -i"
+```
+
+It doesn't delete files by inode, but at least it prompts the user before deleting files. Still, it's not what I intended, so it will be removed until I find a better solution.
+
+I may eventually write a C or Rust program that will safely delete files by inode after confirming the correct file with the user as well as saving deleted files in a trash bin, on an opt-out basis.
+
+---
+
+### C-Menu Pick - Selecting Multiple Files
+
+Q: In C-Menu Pick, how can I select multiple files to edit with vi?
+
+A: You can use the -M option to enable multi-select in C-Menu Pick. Here is an example command that allows you to select multiple files and open them in C-Menu Vi:
+
+```
+!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
+
+```
+
+Select as many files as you want to edit and press F10. C-Menu Pick will open the first file. If you are using Nvim, Vim, Less, or C-Menu View, you can type: ":n<enter>" to open the next file.
+
+---
+
+### C-Menu lf - Where Are My Header Files?
+
+Q: You have an option to edit C source files in the Project Tree menu, but it doesn't list my header files. Can you fix that?
+
+A: Sure. My bad. Of course you want your header files to be listed with your C files. Here is the new C-Menu line with the regular expression corrected to include both .c and .h files:
+
+!pick -S "lf -r ./ .\*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to Edit"
+
+---
+
+### C-Menu View - View In A Box Window
+
+Q: How do I highlight a C source file using tree-sitter and view it in a C-Menu View box window.
+
+```
+view -L 40 -C 80 -S "tree-sitter highlight view_engine.c"
+```
+
+Leave out the -L 40 and -C 80 to display the file in full screen. Alternatively, you can use the following command.
+
+```
+tree-sitter highlight view_engine.c | view -L 40 -C 80 -T "Highlighted view_engine.c"
+```
+
+The "-S" option will tell view to execute the command and display the output. As an added bonus, if you don't provide a title with "-T, view will use the "-S" command as the title:
+

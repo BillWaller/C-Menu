@@ -238,6 +238,13 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     view->prompt_type = init->prompt_type;
     strnz__cpy(view->prompt_str, init->prompt_str, MAXLEN - 1);
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
+    if (view->provider_cmd[0] != '\0')
+        strip_quotes(view->provider_cmd);
+    if (init->title[0] == '\0')
+        strnz__cpy(init->title, init->provider_cmd, MAXLEN - 1);
+    else
+        strip_quotes(init->title);
+
     return init->view;
 }
 // ╭────────────────────────────────────────────────────────────────╮
@@ -483,7 +490,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
             optind++;
     }
     // ╭───────────────────────────────────────────────────────────╮
-    // │ PICK START_CMD - POSITIONAL ARG 3 - Priority 5            │
+    // │ PICK PROVIDER_CMD - POSITIONAL ARG 3 - Priority 5         │
     // ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !pick->f_provider_cmd) {
         pick->f_provider_cmd =
@@ -496,7 +503,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
             optind++;
     }
     // ╭───────────────────────────────────────────────────────────╮
-    // │ PICK CMD_SPEC - POSITIONAL ARG 4 - Priority 5             │
+    // │ PICK RECEIVER_SPEC - POSITIONAL ARG 4 - Priority 5        │
     // ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !pick->f_receiver_cmd) {
         pick->f_receiver_cmd =
@@ -563,13 +570,13 @@ bool init_form_files(Init *init, int argc, char **argv) {
     form->f_out_spec = verify_spec_arg(form->out_spec, init->out_spec,
                                        init->mapp_data, "~/menuapp/data", W_OK);
     // ╭───────────────────────────────────────────────────────────╮
-    // │ FORM START_CMD - OPT ARG -S: - Priority 5                 │
+    // │ FORM PROVIDER_CMD - OPT ARG -S: - Priority 5              │
     // ╰───────────────────────────────────────────────────────────╯
     form->f_provider_cmd =
         verify_spec_arg(form->provider_cmd, init->provider_cmd, init->mapp_data,
                         "~/menuapp/user", X_OK);
     // ╭───────────────────────────────────────────────────────────╮
-    // │ FORM CMD_SPEC - OPT ARG -c: - Priority 5                  │
+    // │ FORM RECEIVER_SPEC - OPT ARG -c: - Priority 5             │
     // ╰───────────────────────────────────────────────────────────╯
     form->f_receiver_cmd =
         verify_spec_arg(form->receiver_cmd, init->receiver_cmd, init->mapp_user,
@@ -615,7 +622,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
             optind++;
     }
     // ╭───────────────────────────────────────────────────────────╮
-    // │ FORM START_CMD - POSITIONAL ARG 4 - Priority 4            │
+    // │ FORM PROVIDER_CMD - POSITIONAL ARG 4 - Priority 4         │
     // ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !form->f_provider_cmd) {
         form->f_provider_cmd =
@@ -628,7 +635,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
             optind++;
     }
     // ╭───────────────────────────────────────────────────────────╮
-    // │ FORM CMD_SPEC - POSITIONAL ARG 5 - Priority 4             │
+    // │ FORM RECEIVER_SPEC - POSITIONAL ARG 5 - Priority 4        │
     // ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !form->f_receiver_cmd) {
         form->f_receiver_cmd =
@@ -687,14 +694,19 @@ bool init_view_files(Init *init, int argc, char **argv) {
     view->f_at_end_clear = init->f_at_end_clear;
     view->f_at_end_remove = init->f_at_end_remove;
     view->f_squeeze = init->f_squeeze;
-    strip_quotes(init->title);
-    strnz__cpy(view->title, init->title, MAXLEN - 1);
-    strip_quotes(init->provider_cmd);
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
-    strip_quotes(init->receiver_cmd);
+    strip_quotes(view->provider_cmd);
     strnz__cpy(view->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
-    strnz__cpy(view->view_cmd, init->view_cmd, MAXLEN - 1);
+    strip_quotes(view->receiver_cmd);
     strnz__cpy(view->view_cmd_all, init->view_cmd_all, MAXLEN - 1);
+    strip_quotes(view->view_cmd_all);
+    if (init->title[0] != '\0') {
+        strip_quotes(init->title);
+        strnz__cpy(view->title, init->title, MAXLEN - 1);
+    } else if (view->provider_cmd[0] != '\0')
+        strnz__cpy(view->title, init->provider_cmd, MAXLEN - 1);
+    else
+        strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
     if (view->tab_stop == 0)
         view->tab_stop = 4;
     return true;

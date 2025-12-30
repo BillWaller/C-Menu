@@ -153,10 +153,8 @@ your applications.
 
 ### C-Menu View
 
-VIEW is an easy-to-use text file viewer that allows users to view text files in a
-terminal environment. It supports basic navigation, regular expression
-search functionality, horizontal scrolling, ANSI escape highlighting, Unicode, and
-NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to provide contextual help or stand-alone, full-screen as a system pager.
+VIEW is an easy-to-use text file viewer that allows users to view text files in a terminal environment. It supports basic navigation, regular expression
+search functionality, horizontal scrolling, ANSI escape highlighting, Unicode, and NCurses wide characters. VIEW can be invoked from within MENU, FORM, or PICK to provide contextual help or stand-alone, full-screen as a system pager.
 
 #### Nvim Screenshot
 
@@ -202,9 +200,17 @@ The C-Menu View manual page with the sed filter looks pretty good, but the funct
 - C-Menu View accesses files as arrays, using the Kernel's sophisticated demand paged virtual memory.
 - Lazy loading means that that C-Menu View doesn't waste time seeking, reading, and populating buffers that will never be used.
 - Zero-Copy I/O - Conventional programs copy file buffers into heap address space. C-Menu View bypasses that step and reads directly from the Kernel's virtual memory.
-- Simplicity - No reads, no seeks, no complicated buffer management schemes, not for view. The following snippet includes "all" of View's file I/O, really just lines 22 and 12.
+- Simplicity - C-Menu View has no reads, no seeks, no complicated buffer management schemes, not for view. The following snippet includes "all" of View's file I/O on lines 22 and 12.
 
 <img src="screenshots/file-io.png" alt="nvim log" title="nvim log" />
+
+### C-Menu View - Other Features
+
+- Horizontal scrolling for long lines. C-Menu View writes output to a virtual screen, an Ncurses pad, to accommodate lines longer than the physical screen.
+
+- C-Menu View has full support for Unicode, translating ASCII text and multi-byte sequences to wide characters (wchar_t), and wide characters and ANSI SGR sequences to complex characters (cchar_t). The complex characters combine displayable characters plus attributes such as bold, italic, underline, reverse and foreground and background colors. NCurses can display more than 16 million colors.
+
+- C-Menu View supports mouse wheel vertical scrolling.
 
 ### C-Menu 3-Channel Gamma Correction
 

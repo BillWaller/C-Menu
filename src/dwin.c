@@ -15,8 +15,6 @@
 
 char *eargv[MAXARGS];
 
-int lines = 10, cols = 40, begx = 10, begy = 4;
-
 WINDOW *win;
 WINDOW *win_win[MAXWIN];
 WINDOW *win_box[MAXWIN];
@@ -662,6 +660,7 @@ int error_message(char **argv) {
     char title[64];
     unsigned cmd_key;
     char c;
+    int lines = 0, cols = 0;
 
     argc = 0;
     while (argv[argc] && *argv[argc] != '\0') {
