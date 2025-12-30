@@ -145,153 +145,6 @@ a:active {
     </style>
   </head>
   <body>
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
-    <title></title>
-    <style>
-* {
-	background: #000027;
-	font-size: 20px;
-	font-family: "Source Code Pro", "Courier New", monospace;
-}
-.rounded-code {
-	display: block;
-	background: #002f4f;
-	color: #f0f0f0;
-	border: 1px solid #666060;
-	border-radius: 8px;
-	padding: 8px;
-	width: 60%;
-	margin-left: auto;
-	margin-right: auto;
-	font-family: "Source Code Pro", "Courier New", monospace;
-}
-body {
-	color: #00ff9f;
-	text-align: left;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-	font-size: 20px;
-	background: #000027;
-}
-.wrap-text {
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	white-space: normal;
-}
-pre {
-	font-family: "Source Code Pro", "Courier New", monospace;
-	font-size: 20px;
-	width: 60%;
-	color: #e0e0e0;
-	background: #002f4f;
-}
-code {
-	display: block;
-	font-size: 16px;
-	font-family: "Source Code Pro", "Courier New", monospace;
-	width: 60%;
-	text-indent: 0;
-	background: #002f4f;
-}
-
-h1 {
-	color: #40ffdf;
-	font-size: 40px;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-	margin-left: 5%;
-	margin-right: 12%;
-}
-h2 {
-	color: #40ffdf;
-	font-size: 30px;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-	margin-left: 7%;
-	margin-right: 12%;
-}
-h3 {
-	color: #40ffdf;
-	font-size: 22px;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-	margin-left: 10%;
-	margin-right: 12%;
-}
-h4 {
-	color: #40ffdf;
-	font-size: 20px;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-	margin-left: 10%;
-	margin-right: 12%;
-}
-img {
-	display: block;
-	width: 60%;
-	margin-left: auto;
-	margin-right: auto;
-	border: 1px solid #506090;
-	border-radius: 8px;
-}
-ol {
-	font-size: 20px;
-	margin-left: 0%;
-	margin-right: 12%;
-}
-span {
-	font-size: 20px;
-	margin-left: 12%;
-	margin-right: 12%;
-}
-p {
-	font-size: 20px;
-	margin-left: 12%;
-	margin-right: 12%;
-}
-li {
-	font-size: 20px;
-	margin-left: 12%;
-	margin-right: 12%;
-}
-a {
-	font-size: 20px;
-	margin-left: 12%;
-	margin-right: 12%;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-}
-a:link {
-	color: #00ff9f;
-	text-decoration: none;
-	margin-left: 12%;
-	margin-right: 12%;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-	font-size: 20px;
-}
-a:visited {
-	color: #3fcfff;
-	text-decoration: none;
-	margin-left: 12%;
-	margin-right: 12%;
-	font-size: 20px;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-}
-a:hover {
-	color: #40ffdf;
-	text-decoration: none;
-	margin-left: 12%;
-	margin-right: 12%;
-	font-size: 20px;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-}
-a:active {
-	color: #ff7700;
-	text-decoration: none;
-	margin-left: 12%;
-	margin-right: 12%;
-	font-size: 20px;
-	font-family: "Noto Sans Bold", verdana, arial, sans-serif;
-}
-    </style>
-  </head>
-  <body>
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>C-Menu FAQ</h1>
 <p>Bill Waller Copyright 2025</p>
 <a href="mailto:billxwaller@gmail.com">billxwaller@gmail.com</a><br>
@@ -366,5 +219,89 @@ man -Tutf8 bash | sed -f ~/menuapp/msrc/man.sed | view
 <img src="screenshots/tree-sitter.png" title="C-Menu View Tree-Sitter" />
 <p>These instructions are admittedly sketchy and hard to follow. We will revise and clarify in the future.</p>
 <hr />
+<h3>C-Menu Form - How to Integrate External Executables</h3>
+<p>Q: How can I integrate external programs into C-Menu Form, such as an SQL Query or calculation?</p>
+<p>A: We can use the executable &quot;iloan&quot; included with C-Menu as an example.</p>
+<p>The Form will have four fields. The user must enter any three of the four values. Only one field may be zero. Iloan will calculate the value of the missing field and C-Menu Form will display it.</p>
+<p>First, create a form file named &quot;~/menuapp/msrc/iloan.f&quot; with the following contents:</p>
+<pre class="rounded-code"><code>H:Installment Loan Calculator
+
+T:5:14:Principal Amount:
+F:5:33:14:Currency
+
+T:6:14:Number of Months:
+F:6:33:5:Decimal_Int
+
+T:7:10:Annual Interest Rate:
+F:7:33:5:APR
+
+T:8:16:Payment Amount:
+F:8:33:12:Currency
+
+T:10:1:First Payment Date (Yyyymmdd):
+F:10:33:10:Yyyymmdd
+
+C
+?iloan.hlp
+</code></pre>
+<p>Next, create a help file named &quot;~/menuapp/help/iloan.hlp&quot; with the following contents:</p>
+<pre class="rounded-code"><code>Installment Loan Calculator Help
+This form calculates the missing value of an installment loan.
+Enter any three of the four values. Leave the value to be calculated as zero.
+Only one field may be zero.
+Fields:
+Principal Amount - The total amount of the loan.
+Number of Months - The total number of monthly payments.
+Annual Interest Rate - The annual interest rate as a percentage.
+Payment Amount - The amount of each monthly payment.
+First Payment Date - The date of the first payment in YYYYMMDD format.
+</code></pre>
+<p>Add the following two lines to &quot;~/menuapp/msrc/main.m&quot;:</p>
+<pre class="rounded-code"><code>:     Installment Loan Calculations
+!form iloan.f -i iloan.dat -S iloan -o iloan.dat
+</code></pre>
+<p>This will add a menu item to the Main Menu that will launch the Iloan Form.
+When you select the &quot;Installment Loan Calculations&quot; menu item, C-Menu Form will display the Iloan Form. After you enter any three of the four values and press Enter, C-Menu Form will call the &quot;iloan&quot; executable to calculate the missing value and display it in the form.</p>
+<p>C-Menu Form will complain that &quot;iloan.dat&quot; does not exist the first time you run the form. This is normal. C-Menu Form will create the file when you exit the form.</p>
+<h3>Installment Loan Calculator</h3>
+<img src="screenshots/iloan.png" title="Installment Loan Calculator" />
+<p>After you enter the three values, you will see an option &quot;F5 Calculate&quot;. Press F5 to calculate the missing value. When the calculation is complete, the missing value will be displayed in the form. You will then see an option, &quot;F8 Edit&quot;, which will allow you to make changes and try again. If you don't wish to make changes, press &quot;F10 Accept&quot; to
+write all four values to &quot;iloan.dat&quot; and exit the form.</p>
+<p>The next time you run the form, C-Menu Form will read the values from &quot;iloan.dat&quot; and display them in the form.</p>
+<p>Here's a summary of the important parts of the form file format:</p>
+<h3>Line Type Speecifiers (H, T, F, and ?)</h3>
+<ul>
+<li>
+<h1>Comment line (ignored)</h1>
+</li>
+<li>H - The header to be displayed at the top of the form</li>
+<li>T - Text field (line:column:length:text)</li>
+<li>F - Input field (line:column:length:type)</li>
+<li>? - A user supplied help file for the form. If no path is given, Form will look for a file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.</li>
+</ul>
+<h3>Field Delimiters:</h3>
+<p>The &quot;:&quot; character is used as a delimiter in the fields above, but any
+character that is placed immediately after the line designator (H, T, F, ?)
+can be used as a delimiter. For example, the following two lines are
+equivalent:</p>
+<pre class="rounded-code"><code>T:2:4:Enter any three of the four values to calculate the fourth.
+T|2|4|Enter any three of the four values to calculate the fourth.
+</code></pre>
+<h3>Data Types:</h3>
+<p>The following data types are currently supported for input fields:</p>
+<pre class="rounded-code"><code>   String: Any text
+</code></pre>
+<p>Decimal_Int: Integer number
+Hex_Int: Hexadecimal integer
+Float: Floating point number
+Double: Double precision floating point number
+Currency: Currency amount
+APR: Annual Percentage Rate
+Yyyymmdd: Date in YYYYMMDD format
+HHMMSS: Time in HHMMSS format</p>
+<p>Note that the data types determine field formatting, and on entry, numeric data is converted to its corresponding internal binary format, so that calculations can be performed. Both text and internal numeric binary data are available to the developer.</p>
+<p>For applications that demand extreme accuracy, our plan is to integrate the &quot;decNumber C Library&quot;, Copyright © IBM Corporation 2010, to provide 128 bit BCD (Binary Coded Decimal) in a future release.</p>
+<p>The Field Format Specifiers can be any combination of upper and lower case,
+and new types can be easily added by modifying the source code.</p>
+<hr />
 </body></html></body></html>
-</body></html>
