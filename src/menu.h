@@ -1021,6 +1021,7 @@ extern char err_msg[MAXLEN];
 //  ╰───────────────────────────────────────────────────────────────────╯
 extern int trim(char *);
 extern int rtrim(char *);
+extern bool stripz_quotes(char *);
 extern void strip_quotes(char *);
 extern int ssnprintf(char *, size_t, const char *, ...);
 extern bool str_to_bool(const char *);
