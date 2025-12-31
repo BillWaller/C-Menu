@@ -27,6 +27,7 @@ bool lf_write_file(int, char *);
 
 int trim(char *);
 int rtrim(char *);
+bool stripz_quotes(char *);
 void strip_quotes(char *);
 int ssnprintf(char *, size_t, const char *, ...);
 bool str_to_bool(const char *);
@@ -293,6 +294,15 @@ void strip_quotes(char *s) {
         memmove(s, s + 1, l - 2);
         s[l - 2] = '\0';
     }
+}
+bool stripz_quotes(char *s) {
+    int l = strlen(s);
+    if (l > 1 && s[l - 1] == '\"') {
+        memmove(s, s + 1, l - 2);
+        s[l - 2] = '\0';
+        return true;
+    }
+    return false;
 }
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ CHREP                                                             │
@@ -793,7 +803,6 @@ int canonicalize_file_spec(char *spec) {
         l++;
     }
     *d = '\0';
-    // strnz__cpy(spec, tmp_s, MAXLEN - 1);
     strncpy(spec, tmp_s, MAXLEN - 1);
     l = strlen(spec);
     return l;

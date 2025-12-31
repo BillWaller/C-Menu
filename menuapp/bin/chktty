@@ -72,6 +72,7 @@ chk_file="$CMENU_HOME"/test/tty/stty"$tty_num".a
 diff_file="$CMENU_HOME"/test/tty/stty"$tty_num".diff
 echo "$tty_dev" >"$chk_file"
 stty -a <"$tty_dev" | sed 's/ = /=/g
+s/speed /speed~/
 s/rows /rows~/
 s/columns /columns~/
 s/\s*$//
@@ -87,6 +88,7 @@ else
 	echo Would you like to use "stty" "$ref_file".g "to fix settings?"
 	a=$(enterchr "Apply reference settings to $tty_dev (y/n)?")
 	if [ "$a" != "y" ] && [ "$a" != "Y" ]; then
+		echo
 		echo "Not applying settings."
 		exit 0
 	fi
