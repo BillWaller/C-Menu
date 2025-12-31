@@ -43,7 +43,6 @@ unsigned int form_engine(Init *);
 int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     if (init->form != NULL)
         close_form(init);
-    init->mapp_spec[0] = '\0';
     init->form = new_form(init, argc, argv, begy, begx);
     form = init->form;
     if (!form->f_mapp_spec) {

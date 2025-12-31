@@ -538,7 +538,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
         idlok(win_win[win_ptr], false);
         idcok(win_win[win_ptr], false);
     }
-    // immedok(win_win[win_ptr], true);
+    immedok(win_win[win_ptr], true);
     return (0);
 }
 void win_resize(int wlines, int wcols, char *title) {
