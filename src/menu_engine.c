@@ -95,7 +95,7 @@ unsigned int menu_cmd_processor(Init *init) {
     in_key = mvwgetch(menu->win, menu->line_idx, 1);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);
-    wclrtoeol(menu->win);
+    // wclrtoeol(menu->win);
     switch (in_key) {
     case KEY_UP:
         i = menu->line_idx;
