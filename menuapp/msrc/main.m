@@ -18,7 +18,7 @@
 :     Edit .c Files in Project Tree
 !pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select File to Edit"
 :     View Data Types Help File
-!view -L 17 -C 45 -T "Data Types" /home/bill/menuapp/data/fields.hlp
+!view -L 40 -C 80 -T "Data Types" /home/bill/menuapp/help/fields.hlp
 :     Menu Description
 !view -L 30 -C 78 -S "bat -l Crystal -f /home/bill/menuapp/msrc/main.m"
 :     Help
