@@ -45,6 +45,10 @@ add_executable(iloan iloan.c)
 target_link_libraries(iloan m)
 install(TARGETS iloan DESTINATION bin)
 
+add_executable(lf lf.c)
+target_link_libraries(lf)
+install(TARGETS lf DESTINATION bin)
+
 add_executable(menu menu.c)
 target_link_libraries(menu cmenu ${LIBS})
 install(TARGETS menu DESTINATION bin)
