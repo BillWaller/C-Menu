@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
         strcpy(re, ".*");
     if (dir[0] == '\0')
         strcpy(dir, ".");
+    printf("..\n");
     if (flags & RECURSE) {
         lf_find_files(dir, re, flags);
         lf_find_dirs(dir, re, flags);
