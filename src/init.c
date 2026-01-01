@@ -111,7 +111,7 @@ void zero_opt_args(Init *init) {
     init->f_out_spec = false;
     init->mapp_spec[0] = init->help_spec[0] = '\0';
     init->provider_cmd[0] = init->receiver_cmd[0] = '\0';
-    init->view_cmd[0] = init->view_cmd_all[0] = '\0';
+    init->cmd[0] = init->cmd_all[0] = '\0';
     init->in_spec[0] = init->out_spec[0] = '\0';
     init->help_spec[0] = '\0';
     init->in_spec[0] = '\0';
@@ -273,10 +273,10 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
             break;
         case 'c':
-            strnz__cpy(init->view_cmd, optarg, MAXLEN - 1);
+            strnz__cpy(init->cmd, optarg, MAXLEN - 1);
             break;
         case 'A':
-            strnz__cpy(init->view_cmd_all, optarg, MAXLEN - 1);
+            strnz__cpy(init->cmd_all, optarg, MAXLEN - 1);
             break;
         case 'T':
             strnz__cpy(init->title, optarg, MAXLEN - 1);
@@ -442,12 +442,12 @@ int parse_config(Init *init) {
                 strnz__cpy(init->title, value, MAXLEN - 1);
                 continue;
             }
-            if (!strcmp(key, "view_cmd")) {
-                strnz__cpy(init->view_cmd, value, MAXLEN - 1);
+            if (!strcmp(key, "cmd")) {
+                strnz__cpy(init->cmd, value, MAXLEN - 1);
                 continue;
             }
-            if (!strcmp(key, "view_cmd_all")) {
-                strnz__cpy(init->view_cmd_all, value, MAXLEN - 1);
+            if (!strcmp(key, "cmd_all")) {
+                strnz__cpy(init->cmd_all, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "provider_cmd")) {
@@ -667,8 +667,8 @@ int write_config(Init *init) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_type", tmp_str);
     (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "view_cmd", init->view_cmd);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "view_cmd_all", init->view_cmd_all);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd", init->cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_all", init->cmd_all);
     (void)fprintf(minitrc_fp, "%s=%s\n", "provider_cmd", init->provider_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "receiver_cmd", init->receiver_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
@@ -775,8 +775,8 @@ void dump_config(Init *init, char *msg) {
     prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_str("-P:", "--promp_type", tmp_str);
     opt_prt_int("-n:", "--select_max", init->select_max);
-    opt_prt_str("-c:", "--view_cmd", init->provider_cmd);
-    opt_prt_str("-A:", "--view_cmd_all", init->provider_cmd);
+    opt_prt_str("-c:", "--cmd", init->provider_cmd);
+    opt_prt_str("-A:", "--cmd_all", init->provider_cmd);
     opt_prt_str("-S:", "--provider_cmd", init->provider_cmd);
     opt_prt_str("-R:", "--receiver_cmd", init->receiver_cmd);
     opt_prt_str("-T:", "--title", init->title);

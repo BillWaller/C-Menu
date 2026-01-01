@@ -115,6 +115,7 @@ int view_file(Init *init) {
                 next_page(view);
                 view_cmd_processor(init);
                 munmap(view->buf, view->file_size);
+                close(view->in_fd);
             }
         } else {
             view->curr_argc++;
@@ -143,7 +144,7 @@ int view_cmd_processor(Init *init) {
     long n_cmd = 0L;
     view = init->view;
     view->f_timer = false;
-    view->view_cmd[0] = '\0';
+    view->cmd[0] = '\0';
     while (1) {
         c = view->next_cmd_char;
         view->next_cmd_char = 0;
@@ -284,7 +285,7 @@ int view_cmd_processor(Init *init) {
             break;
         case '+':
             if (get_cmd_arg(view, "Startup Command:") == 0)
-                strnz__cpy(view->view_cmd, view->cmd_arg, MAXLEN - 1);
+                strnz__cpy(view->cmd, view->cmd_arg, MAXLEN - 1);
             break;
         case '-':
             if (view->f_displaying_help)

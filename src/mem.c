@@ -238,6 +238,7 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     view->prompt_type = init->prompt_type;
     strnz__cpy(view->prompt_str, init->prompt_str, MAXLEN - 1);
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
+    strnz__cpy(view->cmd, init->cmd, MAXLEN - 1);
     if (view->provider_cmd[0] != '\0')
         strip_quotes(view->provider_cmd);
     if (init->title[0] == '\0')
@@ -443,7 +444,6 @@ bool init_menu_files(Init *init, int argc, char **argv) {
 // │ PICK INIT_PICK_FILES                                           │
 // ╰────────────────────────────────────────────────────────────────╯
 bool init_pick_files(Init *init, int argc, char **argv) {
-    int c;
     // pick desc, in_file, out_file, help_file
     // 0    1     2        3         4
     // 1    2     3        4         5
@@ -463,6 +463,13 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     if (init->provider_cmd[0] != '\0') {
         strnz__cpy(pick->provider_cmd, init->provider_cmd, MAXLEN - 1);
         pick->f_provider_cmd = true;
+    }
+    // ╭───────────────────────────────────────────────────────────╮
+    // │ PICK CMD - OPT ARG -c: - Priority 5                       │
+    // ╰───────────────────────────────────────────────────────────╯
+    if (init->cmd[0] != '\0') {
+        strnz__cpy(pick->cmd, init->cmd, MAXLEN - 1);
+        pick->f_cmd = true;
     }
     // ╭───────────────────────────────────────────────────────────╮
     // │ PICK RECEIVER_CMD - OPT ARG -R: - Priority 5              │
@@ -503,7 +510,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
             optind++;
     }
     // ╭───────────────────────────────────────────────────────────╮
-    // │ PICK PROVIDER_CMD - POSITIONAL ARG 3 - Priority 5         │
+    // │ PICK PROVIDER_CMD - POSITIONAL ARG 3 - Priority 4         │
     // ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !pick->f_provider_cmd) {
         strnz__cpy(pick->provider_cmd, argv[optind], MAXLEN - 1);
@@ -511,7 +518,15 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         optind++;
     }
     // ╭───────────────────────────────────────────────────────────╮
-    // │ PICK RECEIVER_SPEC - POSITIONAL ARG 4 - Priority 5        │
+    // │ PICK CMD - POSITIONAL ARG 4 - Priority 4                  │
+    // ╰───────────────────────────────────────────────────────────╯
+    if (optind < argc && !pick->f_cmd) {
+        strnz__cpy(pick->cmd, argv[optind], MAXLEN - 1);
+        pick->f_cmd = true;
+        optind++;
+    }
+    // ╭───────────────────────────────────────────────────────────╮
+    // │ PICK RECEIVER_SPEC - POSITIONAL ARG 5 - Priority 4        │
     // ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !pick->f_receiver_cmd) {
         strnz__cpy(pick->receiver_cmd, argv[optind], MAXLEN - 1);
@@ -519,7 +534,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         optind++;
     }
     // ╭───────────────────────────────────────────────────────────╮
-    // │ PICK HELP_SPEC - POSITIONAL ARG 5 - Priority 4            │
+    // │ PICK HELP_SPEC - POSITIONAL ARG 6 - Priority 4            │
     // ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !pick->f_help_spec) {
         pick->f_help_spec =
@@ -528,24 +543,9 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         if (pick->f_help_spec)
             optind++;
     }
-    if (init->view_cmd[0] != '\0' && init->receiver_cmd[0] == '\0') {
-        strnz__cpy(em0, "PICK -c \"", MAXLEN - 1);
-        strnz__cat(em0, init->view_cmd, MAXLEN - 1);
-        strnz__cat(em0, "\"", MAXLEN - 1);
-        strnz__cpy(em1, "Invalid option for PICK", MAXLEN - 1);
-        strnz__cpy(em2, "Use -R to specify receiver command", MAXLEN - 1);
-        strnz__cpy(em3, "or -S for provider command", MAXLEN - 1);
-        c = display_error(em0, em1, em2, em3);
-        if (c == KEY_F(9))
-            return false;
-    }
     pick->fg_color = init->fg_color;
     pick->bg_color = init->bg_color;
     pick->bo_color = init->bo_color;
-    strip_quotes(init->title);
-    strnz__cpy(pick->title, init->title, MAXLEN - 1);
-    strip_quotes(init->provider_cmd);
-    strnz__cpy(pick->provider_cmd, init->provider_cmd, MAXLEN - 1);
     pick->select_max = init->select_max;
     pick->f_stop_on_error = init->f_stop_on_error;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
@@ -580,7 +580,14 @@ bool init_form_files(Init *init, int argc, char **argv) {
         form->f_provider_cmd = true;
     }
     // ╭───────────────────────────────────────────────────────────╮
-    // │ FORM RECEIVER_SPEC - OPT ARG -c: - Priority 5             │
+    // │ FORM CMD - OPT ARG -c: - Priority 5                       │
+    // ╰───────────────────────────────────────────────────────────╯
+    if (init->provider_cmd[0] != '\0') {
+        strnz__cpy(form->provider_cmd, init->provider_cmd, MAXLEN - 1);
+        form->f_provider_cmd = true;
+    }
+    // ╭───────────────────────────────────────────────────────────╮
+    // │ FORM RECEIVER_CMD - OPT ARG -R: - Priority 5              │
     // ╰───────────────────────────────────────────────────────────╯
     if (init->receiver_cmd[0] != '\0') {
         strnz__cpy(form->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
@@ -628,6 +635,14 @@ bool init_form_files(Init *init, int argc, char **argv) {
     if (optind < argc && !form->f_provider_cmd) {
         strnz__cpy(form->provider_cmd, argv[optind], MAXLEN - 1);
         form->f_provider_cmd = true;
+        optind++;
+    }
+    // ╭───────────────────────────────────────────────────────────╮
+    // │ FORM CMD - POSITIONAL ARG 5 - Priority 4                  │
+    // ╰───────────────────────────────────────────────────────────╯
+    if (optind < argc && !form->f_cmd) {
+        strnz__cpy(form->cmd, argv[optind], MAXLEN - 1);
+        form->f_cmd = true;
         optind++;
     }
     // ╭───────────────────────────────────────────────────────────╮
@@ -687,7 +702,7 @@ bool init_view_files(Init *init, int argc, char **argv) {
     view->f_squeeze = init->f_squeeze;
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
     strnz__cpy(view->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
-    strnz__cpy(view->view_cmd_all, init->view_cmd_all, MAXLEN - 1);
+    strnz__cpy(view->cmd_all, init->cmd_all, MAXLEN - 1);
     if (init->title[0] != '\0') {
         strnz__cpy(view->title, init->title, MAXLEN - 1);
     } else if (view->provider_cmd[0] != '\0')

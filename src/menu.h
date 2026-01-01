@@ -457,13 +457,15 @@ typedef struct {
     char mapp_spec[MAXLEN];    //    application description qualified path
     char help_spec[MAXLEN];    //    application help qualified path
     char provider_cmd[MAXLEN]; // -S: command to execute at start of program
-    char receiver_cmd[MAXLEN]; // -E: command to execute at start of program
+    char receiver_cmd[MAXLEN]; // -R: command to execute at start of program
+    char cmd[MAXLEN];          // -c: command to execute at start of program
     // file flags
     bool f_mapp_spec;
     bool f_help_spec;
     bool f_help;
     bool f_provider_cmd;
     bool f_receiver_cmd;
+    bool f_cmd;
     //
     int choice_max_len;
     int text_max_len;
@@ -542,7 +544,8 @@ typedef struct {
     char out_spec[MAXLEN];     //    output spec
     char help_spec[MAXLEN];    //    help spec
     char provider_cmd[MAXLEN]; // -S: command to execute at start of program
-    char receiver_cmd[MAXLEN]; // -E: command to execute at start of program
+    char receiver_cmd[MAXLEN]; // -R: command to execute at start of program
+    char cmd[MAXLEN];          // -c: command to execute at start of program
     // file flags
     bool f_mapp_spec;
     bool f_in_spec;
@@ -557,6 +560,7 @@ typedef struct {
     bool f_help;
     bool f_provider_cmd;
     bool f_receiver_cmd;
+    bool f_cmd;
     bool f_brackets;
     char fill_char[2];
     int fidx;
@@ -613,7 +617,8 @@ typedef struct {
     char chyron_s[MAXLEN];  // (ˈkī-ˌrän) a banner at the bottom of the screen
     //
     char provider_cmd[MAXLEN]; // -S: provider command at start
-    char receiver_cmd[MAXLEN]; // -E: receiver command at end
+    char receiver_cmd[MAXLEN]; // -R: receiver command at end
+    char cmd[MAXLEN];
     // file flags
     bool f_mapp_spec;
     bool f_in_spec;
@@ -627,6 +632,7 @@ typedef struct {
     bool f_help;
     bool f_provider_cmd;
     bool f_receiver_cmd;
+    bool f_cmd;
     char in_buf[BUFSIZ];
     char *object[OBJ_MAXCNT];
     int select_idx;
@@ -674,7 +680,7 @@ typedef struct {
     char title[MAXLEN];
     // files
     char provider_cmd[MAXLEN]; // -S: provider command at start
-    char receiver_cmd[MAXLEN]; // -E: receiver command at end
+    char receiver_cmd[MAXLEN]; // -R: receiver command at end
     char cmd_arg[MAXLEN];
     // argument processing
     int argc;
@@ -708,13 +714,12 @@ typedef struct {
     bool f_full_screen;
     bool f_help;
     bool f_timer;
-    bool f_view_cmd;
-    bool f_view_cmd_all;
     bool f_provider_cmd;
     bool f_receiver_cmd;
-    //
-    char view_cmd[MAXLEN];
-    char view_cmd_all[MAXLEN];
+    bool f_cmd;
+    bool f_cmd_all;
+    char cmd[MAXLEN];
+    char cmd_all[MAXLEN];
     char cur_file_str[MAXLEN];
     char line_in_s[LINE_IN_MAX_COLS];
     char line_out_s[LINE_IN_MAX_COLS];
@@ -873,8 +878,8 @@ typedef struct {
     int tty_fd;
     FILE *tty_fp;
     // window
-    char view_cmd[MAXLEN];     // -V: command to execute at start of program
-    char view_cmd_all[MAXLEN]; // -V: command to execute at start of program
+    char cmd[MAXLEN];          // -V: command to execute at start of program
+    char cmd_all[MAXLEN];      // -V: command to execute at start of program
     char provider_cmd[MAXLEN]; // -S: receiver
     char receiver_cmd[MAXLEN]; // -R: receiver
     char prompt_str[MAXLEN];
@@ -911,8 +916,8 @@ typedef struct {
     bool f_mapp_desc;
     bool f_provider_cmd;
     bool f_receiver_cmd;
-    bool f_view_cmd;
-    bool f_view_cmd_all;
+    bool f_cmd;
+    bool f_cmd_all;
     bool f_title;
     bool f_help_spec;
     bool f_in_spec;
@@ -1010,7 +1015,7 @@ extern int mview(Init *, int, char **, int, int, int, int, char *);
 extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(Init *, char *);
 extern bool view_init_input(View *, char *);
-extern int view_cmd_processor(Init *);
+extern int cmd_processor(Init *);
 extern int get_cmd_spec(View *, char *);
 extern void go_to_position(View *, long);
 extern void cat_file(View *);
@@ -1034,6 +1039,7 @@ extern int strnz__cpy(char *, char *, int);
 extern int strnz__cat(char *, char *, int);
 extern char *strz_dup(char *);
 extern char *strnz_dup(char *, int);
+extern char *rep_substring(const char *, const char *, const char *);
 extern void strnfill(char *, char, int);
 extern void str_subc(char *, char *, char, char *, int);
 extern void chrep(char *, char, char);

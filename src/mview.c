@@ -4,7 +4,6 @@
 // billxwaller@gmail.com
 
 #include "menu.h"
-#include <stdlib.h>
 #include <unistd.h>
 
 int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,

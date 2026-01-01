@@ -4,6 +4,7 @@
 // billxwaller@gmail.com
 
 #include "menu.h"
+#include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -42,6 +43,7 @@ int strnz(char *, int);
 char *strz_dup(char *);
 char *strzdup(char *);
 void str_subc(char *, char *, char, char *, int);
+char *rep_substring(const char *, const char *, const char *);
 void normalize_file_spec(char *);
 void file_spec_path(char *, char *);
 void file_spec_name(char *, char *);
@@ -94,44 +96,50 @@ int ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ STR_TO_ARGS                                                       │
 //  ╰───────────────────────────────────────────────────────────────────╯
-int str_to_args(char **argv, char *cmd_line, int max_args) {
+int str_to_args(char *argv[], char *arg_str, int max_args) {
     int argc = 0;
-    char *d = cmd_line;
+    char *p = arg_str;
+    char tmp_str[MAXLEN];
     char *arg_start;
-    bool in_quotes = false;
-    char quote_char = '\0';
+    int in_quotes = 0;
+    char *d = tmp_str;
 
-    while (*d != '\0' && argc < max_args - 1) {
-        while (*d == ' ' || *d == '\t')
-            d++;
-        if (*d == '\0')
+    while (*p != '\0' && argc < max_args) {
+        while (isspace((unsigned char)*p))
+            p++;
+        if (*p == '\0')
             break;
-        arg_start = d;
-        while (*d != '\0') {
-            if (in_quotes) {
-                if (*d == quote_char) {
-                    in_quotes = false;
-                    d++;
-                    break;
-                }
-            } else {
-                if (*d == '"' || *d == '\'') {
-                    in_quotes = true;
-                    quote_char = *d;
-                } else if (*d == ' ' || *d == '\t') {
-                    break;
-                }
-            }
-            d++;
+        if (*p == '"') {
+            in_quotes = 1;
+            p++;
         }
-        size_t arg_length = d - arg_start;
-        argv[argc] = (char *)malloc(arg_length + 1);
-        strncpy(argv[argc], arg_start, arg_length);
-        argv[argc][arg_length] = '\0';
-        trim(argv[argc]);
-        argc++;
+        while (*p != '\0') {
+            if (in_quotes) {
+                if (*p == '\\' && *(p + 1) == '"') {
+                    *d++ = '"';
+                    p += 2;
+                } else if (*p == '"') {
+                    *d++ = '\0';
+                    p++;
+                    in_quotes = 0;
+                    break;
+                } else
+                    *d++ = *p++;
+            } else {
+                if (isspace((unsigned char)*p)) {
+                    *d++ = '\0';
+                    p++;
+                    break;
+                } else
+                    *d++ = *p++;
+            }
+        }
+        *d = '\0';
+        d = tmp_str;
+        arg_start = (char *)malloc(strlen(tmp_str) + 1);
+        strnz__cpy(arg_start, tmp_str, MAXLEN - 1);
+        argv[argc++] = arg_start;
     }
-    argv[argc] = NULL;
     return argc;
 }
 //  ╭───────────────────────────────────────────────────────────────────╮
@@ -599,16 +607,16 @@ bool verify_dir(char *spec, int imode) {
 //  │ Returns true if the file exists and is accessable with the mode   │
 //  │ specified.                                                        │
 //  ╰───────────────────────────────────────────────────────────────────╯
-bool verify_file(char *spec, int imode) {
+bool verify_file(char *in_spec, int imode) {
     int rc;
-    int mode = imode & ~(S_WCOK | S_QUIET);
-    expand_tilde(spec, MAXLEN);
     struct stat sb;
+    char spec[MAXLEN];
+    strnz__cpy(spec, in_spec, MAXLEN - 1);
+    int mode = imode & ~(S_WCOK | S_QUIET);
     errno = 0;
     src_line = 0;
-
     canonicalize_file_spec(spec);
-
+    expand_tilde(spec, MAXLEN);
     if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) != 0) {
         src_line = __LINE__ - 1;
         src_name = __FILE__;
@@ -806,4 +814,35 @@ int canonicalize_file_spec(char *spec) {
     strncpy(spec, tmp_s, MAXLEN - 1);
     l = strlen(spec);
     return l;
+}
+//  ╭───────────────────────────────────────────────────────╮
+//  │ REP_SUBSTRING                                         │
+//  ╰───────────────────────────────────────────────────────╯
+char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
+    char *out_s, *ip, *tmp;
+    int tgt_l = strlen(tgt_s);
+    int rep_l = strlen(rep_s);
+    int head_l;
+    int n = 0;
+    ip = (char *)org_s;
+    while ((tmp = strstr(ip, tgt_s)) != NULL) {
+        n++;
+        ip = tmp + tgt_l;
+    }
+    out_s = malloc(strlen(org_s) + (rep_l - tgt_l) * n + 1);
+    if (!out_s)
+        return NULL;
+    tmp = out_s;
+    ip = (char *)org_s;
+    while (n--) {
+        char *p = strstr(ip, tgt_s);
+        head_l = p - ip;
+        strncpy(tmp, ip, head_l);
+        tmp += head_l;
+        strcpy(tmp, rep_s);
+        tmp += rep_l;
+        ip += head_l + tgt_l;
+    }
+    strcpy(tmp, ip);
+    return out_s;
 }

@@ -32,6 +32,7 @@ int open_pick_win(Init *);
 void display_pick_help(Init *);
 void pick_display_chyron(Pick *);
 int read_pick_input(Init *);
+char *replace_substring(char *, const char *, const char *, int);
 
 int pipe_fd[2];
 
@@ -56,7 +57,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         abend(-1, "init->pick != pick\n");
 
     // ╭────────────────────────────────────────────────────────────╮
-    // │ INPUT IS START_CMD                                         │
+    // │ Start provider_cmd, attach pipe to its STDOUT              │
     // ╰────────────────────────────────────────────────────────────╯
     if (pick->provider_cmd[0] != '\0') {
         str_to_args(s_argv, pick->provider_cmd, MAXARGS - 1);
@@ -69,8 +70,11 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             return (1);
         }
         if (pid == 0) { // Child
+            // Child doesn't need read end of pipe
             close(pipe_fd[P_READ]);
+            // Connect CHILD STDOUT to write end of pipe
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
+            // STDOUT attached to write end of pipe, so close pipe fd
             close(pipe_fd[P_WRITE]);
             execvp(s_argv[0], s_argv);
             m = MAXLEN - 24;
@@ -81,7 +85,9 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             exit(EXIT_FAILURE);
         }
         // Back to parent
+        // Parent doesn't need write end of pipe
         close(pipe_fd[P_WRITE]);
+        // Open a file pointer on read end of pipe
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
         pick->f_in_pipe = true;
     } else {
@@ -127,6 +133,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     read_pick_input(init);
     if (pick->f_in_pipe && pid > 0) {
         waitpid(pid, NULL, 0);
+        close(pipe_fd[P_READ]);
         dup2(init->stdin_fd, STDIN_FILENO);
         dup2(init->stdout_fd, STDOUT_FILENO);
         restore_curses_tioctl();
@@ -244,7 +251,7 @@ int pick_engine(Init *init) {
     if (pick->select_cnt > 0) {
         if (pick->f_out_spec && pick->out_spec[0])
             rc = output_objects(pick);
-        if (pick->f_receiver_cmd && pick->receiver_cmd[0])
+        if (pick->f_cmd && pick->cmd[0])
             rc = exec_objects(init);
     }
     return (rc);
@@ -625,88 +632,97 @@ int exec_objects(Init *init) {
     int margc;
     char *margv[MAXARGS];
     char tmp_str[MAXLEN];
+    char org_arg[MAXLEN];
+    char *new_arg;
     int i = 0;
     pid_t pid = 0;
+    bool f_append_args = false;
 
-    // ╭────────────────────────────────────────────────────╮
-    // │ Are we providing input via pipe?                   │
-    // ╰────────────────────────────────────────────────────╯
-    if (pick->receiver_cmd[0] == '\0')
+    if (pick->cmd[0] == '\0')
         return -1;
-    if (pick->receiver_cmd[0] == '\\' || pick->receiver_cmd[0] == '\"') {
+    if (pick->cmd[0] == '\\' || pick->cmd[0] == '\"') {
         // Remove surrounding quotes if present
-        size_t len = strlen(pick->receiver_cmd);
-        if (len > 1 && pick->receiver_cmd[len - 1] == '\"') {
-            memmove(pick->receiver_cmd, pick->receiver_cmd + 1, len - 2);
-            pick->receiver_cmd[len - 2] = '\0';
+        size_t len = strlen(pick->cmd);
+        if (len > 1 && pick->cmd[len - 1] == '\"') {
+            memmove(pick->cmd, pick->cmd + 1, len - 2);
+            pick->cmd[len - 2] = '\0';
         }
     }
-    margc = str_to_args(margv, pick->receiver_cmd, MAXARGS - 1);
-    base_name(tmp_str, margv[0]);
-    while (pagers_editors[i][0] != '\0') {
-        if (!strcmp(tmp_str, pagers_editors[i]))
-            break;
-        i++;
-    }
-    if (pagers_editors[i][0] != '\0') {
-        for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt;
-             pick->obj_idx++) {
-            if (pick->f_selected[pick->obj_idx])
-                if (margc < MAXARGS)
-                    margv[margc++] = strdup(pick->object[pick->obj_idx]);
+    margc = str_to_args(margv, pick->cmd, MAXARGS - 1);
+    tmp_str[0] = '\0';
+    if (pick->f_multiple_cmd_args) {
+        //  ╭───────────────────────────────────────────────────────╮
+        //  │ COMBINE MULTIPLE OBJECTS IN ONE MARGV[n]              │
+        //  ╰───────────────────────────────────────────────────────╯
+        for (i = 0; i < pick->obj_cnt; i++) {
+            if (pick->f_selected[i] && margc < MAXARGS) {
+                if (tmp_str[0] != '\0')
+                    strnz__cat(tmp_str, " ", MAXLEN - 1);
+                strnz__cat(tmp_str, pick->object[i], MAXLEN - 1);
+            }
         }
-        margv[margc] = NULL;
-        if (!strcmp(tmp_str, "mview")) {
-            if (pick->title[0] == '\0')
-                strncpy(pick->title, "Pick", MAXLEN - 1);
-            strip_quotes(pick->title);
-            mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4,
-                  pick->title);
-        }
+        margv[margc++] = strdup(tmp_str);
     } else {
-        tmp_str[0] = '\0';
-        if (pick->f_multiple_cmd_args) {
-            for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt;
-                 pick->obj_idx++) {
-                if (pick->f_selected[pick->obj_idx]) {
+        //  ╭───────────────────────────────────────────────────────╮
+        //  │ EACH OBJECT IN A SEPARATE MARGV[n]                    │
+        //  │ EXCEPT IF OBJECT CONTAINS %%                          │
+        //  │ WHICH WE REPLACE WITH SELECTED OBJECTS                │
+        //  ╰───────────────────────────────────────────────────────╯
+        i = 0;
+        while (i < margc) {
+            if (strstr(margv[i], "%%") != NULL) {
+                tmp_str[0] = '\0';
+                f_append_args = true;
+                break;
+            }
+            i++;
+        }
+        margc--;
+        strnz__cpy(org_arg, margv[margc], MAXLEN - 1);
+        for (i = 0; i < pick->obj_cnt; i++) {
+            if (pick->f_selected[i] && margc < MAXARGS) {
+                if (f_append_args == true) {
                     if (tmp_str[0] != '\0')
-                        strncat(tmp_str, " ", MAXLEN - strlen(tmp_str) - 1);
-                    strncat(tmp_str, pick->object[pick->obj_idx],
-                            MAXLEN - strlen(tmp_str) - 1);
+                        strnz__cat(tmp_str, " ", MAXLEN - 1);
+                    strnz__cat(tmp_str, pick->object[i], MAXLEN - 1);
+                    continue;
                 }
+                margv[margc++] = strdup(pick->object[i]);
             }
-            margv[margc++] = strdup(tmp_str);
-        } else {
-            for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt;
-                 pick->obj_idx++) {
-                if (pick->f_selected[pick->obj_idx]) {
-                    if (margc < MAXARGS)
-                        margv[margc++] = strdup(pick->object[pick->obj_idx]);
-                }
-            }
+        }
+        if (f_append_args == true && margc < MAXARGS) {
+            strnz__cpy(org_arg, margv[margc], MAXLEN - 1);
+            new_arg = rep_substring(org_arg, "%%", tmp_str);
+            free(margv[margc]);
+            margv[margc++] = strdup(new_arg);
         }
     }
     margv[margc] = NULL;
-    if ((pid = fork()) == -1) {
-        Perror("fork() failed in exec_objects");
-        return (1);
-    }
-    if (pid == 0) { // Child
-        // dup2(init->stdin_fd, STDIN_FILENO);
-        // dup2(init->stdout_fd, STDOUT_FILENO);
-        execvp(margv[0], margv);
-        m = MAXLEN - 26;
-        strncpy(tmp_str, "Can't exec pick receiver_cmd: ", m);
-        m -= strlen(margv[0]);
-        strncat(tmp_str, margv[0], m);
-        Perror(tmp_str);
-        exit(EXIT_FAILURE);
+    if (strcmp(margv[0], "view") == 0) {
+        zero_opt_args(init);
+        parse_opt_args(init, margc, margv);
+        mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4,
+              pick->title);
+    } else {
+        if ((pid = fork()) == -1) {
+            Perror("fork() failed in exec_objects");
+            return (1);
+        }
+        if (pid == 0) { // Child
+            execvp(margv[0], margv);
+            m = MAXLEN - 26;
+            strncpy(tmp_str, "Can't exec pick cmd: ", m);
+            m -= strlen(margv[0]);
+            strncat(tmp_str, margv[0], m);
+            Perror(tmp_str);
+            exit(EXIT_FAILURE);
+        }
     }
     // Parent
+    waitpid(pid, NULL, 0);
     margc = 0;
     while (margv[margc] != NULL)
         free(margv[margc++]);
-    waitpid(pid, NULL, 0);
     restore_curses_tioctl();
     sig_prog_mode();
     keypad(pick->win, true);
