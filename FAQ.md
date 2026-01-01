@@ -106,10 +106,45 @@ Q: How do I use the tree-sitter highlighter with C-Menu View?
 
 A: Documentation on this feature is sparse at the moment.
 
-1. Install tree-sitter
-2. Install tree-sitter-cli
-3. Install (and build) the tree-sitter parser for your language
-4. Edit ~/.config/tree-sitter/config.json
+Here are the basic steps to get started with tree-sitter and C-Menu View.
+
+### Install tree-sitter-cli
+
+```bash
+cargo install tree-sitter-cli
+```
+
+Verify installation:
+
+```bash
+tree-sitter --version
+```
+
+### Rust
+
+#### download
+
+[tree-sitter-rust](https://github.com/tree-sitter/tree-sitter-rust)
+
+```bash
+cd tree-sitter-rust
+tree-sitter build
+tree-sitter generate
+```
+
+### C
+
+#### download
+
+[tree-sitter-c](https://github.com/tree-sitter/tree-sitter-c)
+
+```bash
+cd tree-sitter-c
+tree-sitter build
+tree-sitter generate
+```
+
+You should edit ~/.config/tree-sitter/config.json to include the languages you want to use with C-Menu View.
 
 You will find an example config.json in C-Menu's tree-sitter directory.
 
@@ -324,4 +359,3 @@ tree-sitter highlight view_engine.c | view -L 40 -C 80 -T "Highlighted view_engi
 ```
 
 The "-S" option will tell view to execute the command and display the output. As an added bonus, if you don't provide a title with "-T, view will use the "-S" command as the title:
-

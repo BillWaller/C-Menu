@@ -16,7 +16,9 @@
 :     Form Data Types
 !form -d fields.f -i fields.dat -o fields.dat
 :     Edit .c Files in Project Tree
-!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select File to Edit"
+!pick -S "lf -r ./ .*\.[ch]$" -M -c vi -T "Project Tree - Select File to Edit"
+:     View Tree-Sitter Highlighted .c Files
+!pick -S "lf -r ./ .*\.[ch]$" -n 1 -c "view -S \"tree-sitter highlight %%\"" -T "Project Tree - Select File to Edit"
 :     View Data Types Help File
 !view -L 40 -C 80 -T "Data Types" /home/bill/menuapp/help/fields.hlp
 :     Menu Description
