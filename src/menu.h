@@ -586,7 +586,7 @@ extern void form_help(char *);
 //  │ PICK                                                              │
 //  ╰───────────────────────────────────────────────────────────────────╯
 #define OBJ_MAXLEN 80
-#define OBJ_MAXCNT 256
+#define OBJ_MAXCNT 1024
 
 typedef struct {
     // colors & geometry
@@ -634,7 +634,7 @@ typedef struct {
     bool f_receiver_cmd;
     bool f_cmd;
     char in_buf[BUFSIZ];
-    char *object[OBJ_MAXCNT];
+    char **object;
     int select_idx;
     int select_cnt;
     int select_max;

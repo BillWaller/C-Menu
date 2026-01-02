@@ -74,6 +74,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             close(pipe_fd[P_READ]);
             // Connect CHILD STDOUT to write end of pipe
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
+            dup2(pipe_fd[P_WRITE], STDERR_FILENO);
             // STDOUT attached to write end of pipe, so close pipe fd
             close(pipe_fd[P_WRITE]);
             execvp(s_argv[0], s_argv);
@@ -162,6 +163,13 @@ int read_pick_input(Init *init) {
     pick->obj_cnt = pick->pg_lines = pick->tbl_cols = 0;
     pick->obj_idx = pick->tbl_page = pick->y = pick->tbl_col = pick->x = 0;
     pick->tbl_pages = 1;
+
+    pick->object = (char **)calloc(OBJ_MAXCNT, sizeof(char *));
+    if (pick->object == NULL) {
+        sprintf(errmsg, "fpick: pick->object=(char **)calloc(%d)\n",
+                OBJ_MAXLEN + 1);
+        abend(-1, errmsg);
+    }
 
     if (pick->in_fp) {
         while (fgets(pick->in_buf, sizeof(pick->in_buf), pick->in_fp) != NULL)
@@ -260,28 +268,16 @@ int pick_engine(Init *init) {
 // │ SAVE_OBJECT                                                │
 // ╰────────────────────────────────────────────────────────────╯
 void save_object(Pick *pick, char *s) {
-    int tbl_col_width = 0;
-    char *p;
+    int l;
 
-    if (pick->obj_idx < OBJ_MAXCNT) {
-        p = s;
-        while (*p != '\0' && *p != '\n' && *p != '\r' &&
-               tbl_col_width < OBJ_MAXLEN) {
-            p++;
-            tbl_col_width++;
-        }
-        *p = '\0';
-        if (tbl_col_width > pick->tbl_col_width)
-            pick->tbl_col_width = tbl_col_width;
-        pick->object[pick->obj_idx] = (char *)malloc(tbl_col_width + 1);
-        p = pick->object[pick->obj_idx];
-        if (p == NULL) {
-            sprintf(errmsg,
-                    "fpick: pick->object[pick->obj_idx]=(char *)malloc(%d)\n",
-                    tbl_col_width + 1);
-            abend(-1, errmsg);
-        } else
-            strncpy(p, s, tbl_col_width + 1);
+    if (pick->obj_idx < OBJ_MAXCNT - 1) {
+        l = strlen(s);
+        if (l > OBJ_MAXLEN - 1)
+            s[OBJ_MAXLEN - 1] = '\0';
+        if (l > pick->tbl_col_width)
+            pick->tbl_col_width = l;
+        pick->object[pick->obj_idx] = (char *)calloc(l + 1, sizeof(char));
+        strnz__cpy(pick->object[pick->obj_idx], s, l);
         pick->f_selected[pick->obj_idx] = FALSE;
         pick->obj_idx++;
     }

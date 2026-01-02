@@ -25,6 +25,8 @@ bool list_files(char *, char *, int);
 bool lf_find_files(char *, char *, int);
 bool lf_find_dirs(char *, char *, int);
 bool lf_write_file(int, char *, int);
+int max_depth = 16;
+int depth = 0;
 
 int main(int argc, char **argv) {
     char dir[MAXLEN] = "";
@@ -34,10 +36,13 @@ int main(int argc, char **argv) {
     int flags = 0;
     int opt;
 
-    while ((opt = getopt(argc, argv, "ahrv")) != -1) {
+    while ((opt = getopt(argc, argv, "ad:hrv")) != -1) {
         switch (opt) {
         case 'a':
             flags |= ALL;
+            break;
+        case 'd':
+            max_depth = atoi(optarg);
             break;
         case 'h':
             f_help = true;
@@ -56,9 +61,10 @@ int main(int argc, char **argv) {
         printf("Usage: lf [options] [directory] [regexp]\n");
         printf("Options:\n");
         printf("  -a        List all files (including hidden files)\n");
-        printf("  -h        Show this help message\n");
-        printf("  -r        Recurse into subdirectories\n");
-        printf("  -v        Show version information\n");
+        printf("  -d        maximum depth of subdirectories to examine\n");
+        printf("  -h        show this help message\n");
+        printf("  -r        recurse into subdirectories\n");
+        printf("  -v        show version information\n");
         exit(EXIT_SUCCESS);
     }
     if (f_version) {
@@ -77,7 +83,6 @@ int main(int argc, char **argv) {
         strcpy(re, ".*");
     if (dir[0] == '\0')
         strcpy(dir, ".");
-    printf("..\n");
     if (flags & RECURSE) {
         lf_find_files(dir, re, flags);
         lf_find_dirs(dir, re, flags);
@@ -94,6 +99,9 @@ bool lf_find_dirs(char *dir, char *re, int flags) {
     char dir_s[MAXLEN];
     char file_spec[MAXLEN];
 
+    if (depth == max_depth)
+        return true;
+    depth++;
     if ((dirp = opendir(dir)) == 0)
         return false;
     dir_st = readdir(dirp);
@@ -119,6 +127,7 @@ bool lf_find_dirs(char *dir, char *re, int flags) {
         dir_st = readdir(dirp);
     }
     closedir(dirp);
+    depth--;
     return true;
 }
 
