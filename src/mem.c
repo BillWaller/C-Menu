@@ -157,7 +157,7 @@ Pick *close_pick(Init *init) {
     for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt; pick->obj_idx++)
         if (pick->object[pick->obj_idx] != NULL)
             free(pick->object[pick->obj_idx]);
-
+    free(pick->object);
     free(pick);
     init->pick = NULL;
     init->pick_cnt--;
