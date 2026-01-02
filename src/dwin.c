@@ -364,6 +364,10 @@ int rgb_to_xterm256_idx(RGB rgb) {
 //  ╰───────────────────────────────────────────────────────────────╯
 RGB xterm256_idx_to_rgb(int code) {
     RGB rgb;
+    if (code > 255)
+        code = 255;
+    if (code < 0)
+        code = 0;
     if (code < 16) {
         rgb.r = StdColors[code].r;
         rgb.g = StdColors[code].g;
