@@ -1423,6 +1423,10 @@ void fmt_line(View *view) {
                 i++;
             }
         } else {
+            if (in_str[i] == '\033') {
+                i++;
+                continue;
+            }
             s = &in_str[i];
             if (*s == '\t') {
                 wc = L' ';
