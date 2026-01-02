@@ -11,9 +11,15 @@ billxwaller@gmail.com
 
 [C-Menu FAQ](FAQ.md)
 
+## New User Guide Added
+
+[C-Menu User Guide](C-Menu-UG.md)
+
 ---
 
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
+
+<img src="screenshots/minitrc.png" />
 
 C-Menu is a lightweight, flexible, and easy-to-use suite of programs
 for creating a sophisticated user interface for your applications. Menus, Form, Pick, and View with, using a classical text-based terminal interface(TUI) for applications running on Linux and Unix-like operating systems. C-Menu is designed to be simple to use while providing powerful features to implement menu driven frameworks for applications.
@@ -22,11 +28,11 @@ for creating a sophisticated user interface for your applications. Menus, Form, 
 
 ### C-Menu Menu
 
-<img src="screenshots/applications_menu.m.png" alt="Curses Keys" title="Sample Menu" />
-
 At the top of the stack is C-Menu Menu, which reads a simple description file like the one above and displays a colorful and easy-to-follow menu to the user. When the user selects an item, with either keyboard or mouse, C-Menu executes the corresponding command. It's like writing shell scripts, but with a snazzy menu interface.
 
 <img src="screenshots/applications_menu.png" alt="Curses Keys" title="Sample Menu" />
+
+<img src="screenshots/applications_menu.m.png" alt="Curses Keys" title="Sample Menu" />
 
 From the above examples, you can get an idea of how C-Menu works. Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View, which in turn executes "tree-sitter highlight view_engine.c". Tree-Sitter doesn't need to know anything about C-Menu View. It just sends output to it's standard output device, which happens to be a pipe into C-Menu View's receiver. C-Menu View maps Tree-Sitter's output to the Kernel's demand paged virtual memory and you get:
 
@@ -312,10 +318,6 @@ RSH is as safe or unsafe as we choose to make it. It requires root access to ins
 ---
 
 ## C-Menu Configuration
-
-### MINITRC Runtime Configuration and Options
-
-<img src="screenshots/minitrc.png" />
 
 User's can have multiple runtime configurations. In the snippet above, the
 standard ISO 6429 / ECMA-48 colors have been redefined and orange has been

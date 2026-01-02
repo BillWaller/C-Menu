@@ -1122,12 +1122,14 @@ void redisplay_page(Init *init) {
 //  ╰───────────────────────────────────────────────────────────────╯
 void next_page(View *view) {
     int i;
+    if (view->page_bot_pos == view->file_size)
+        return;
     view->maxcol = 0;
     view->f_forward = true;
     view->cury = 0;
-    wmove(view->win, view->cury, 0);
     view->file_pos = view->page_bot_pos;
     view->page_top_pos = view->file_pos;
+    wmove(view->win, view->cury, 0);
     wclrtobot(view->win);
     for (i = 0; i < view->scroll_lines; i++) {
         get_next_line(view, view->file_pos);
@@ -1400,7 +1402,7 @@ void display_line(View *view) {
 void fmt_line(View *view) {
     attr_t attr = A_NORMAL;
     char ansi_tok[64];
-    int cp = cp_default;
+    int cpx = cp_default;
     int i = 0, j = 0;
     int len;
     const char *s;
@@ -1417,7 +1419,7 @@ void fmt_line(View *view) {
             if (end_seq) {
                 strnz__cpy(ansi_tok, start_seq, end_seq - start_seq + 1);
                 ansi_tok[end_seq - start_seq + 1] = '\0';
-                parse_ansi_str(stdscr, ansi_tok, &attr, &cp);
+                parse_ansi_str(stdscr, ansi_tok, &attr, &cpx);
                 i = (end_seq - in_str) + 1;
             } else {
                 i++;
@@ -1430,7 +1432,7 @@ void fmt_line(View *view) {
             s = &in_str[i];
             if (*s == '\t') {
                 wc = L' ';
-                setcchar(&cc, &wc, attr, cp, NULL);
+                setcchar(&cc, &wc, attr, cpx, NULL);
                 while ((j < MAX_COLS - 2) && (j % view->tab_stop != 0)) {
                     view->stripped_line_out[j] = ' ';
                     cmplx_buf[j++] = cc;
@@ -1442,7 +1444,7 @@ void fmt_line(View *view) {
                 wc = (wchar_t)(unsigned char)('?');
                 len = 1;
             }
-            if (setcchar(&cc, &wc, attr, cp, NULL) != ERR) {
+            if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
                 if (len > 0 && (j + len) < MAX_COLS - 1) {
                     view->stripped_line_out[j] = *s;
                     cmplx_buf[j++] = cc;
@@ -1462,13 +1464,13 @@ void fmt_line(View *view) {
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ PARSE_ANSI_STR                                                │
 //  ╰───────────────────────────────────────────────────────────────╯
-void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
+void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cpx) {
     char *tok;
     int i, len, x_idx;
     bool f_fg = false, f_bg = false;
     int fg, bg;
     char *ansi_p = ansi_str + 2;
-    extended_pair_content(*cp, &fg, &bg);
+    extended_pair_content(*cpx, &fg, &bg);
     RGB rgb;
     for (i = 1; i < 5; i++) {
         tok = strtok((char *)ansi_p, ";m");
@@ -1638,7 +1640,7 @@ void parse_ansi_str(WINDOW *win, char *ansi_str, attr_t *attr, int *cp) {
         apply_gamma(&rgb);
         fg = rgb_to_xterm256_idx(rgb);
         clr_pair_idx = get_clr_pair(fg, bg);
-        *cp = clr_pair_idx;
+        *cpx = clr_pair_idx;
     }
     return;
 }
