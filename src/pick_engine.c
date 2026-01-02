@@ -697,8 +697,7 @@ int exec_objects(Init *init) {
     if (strcmp(margv[0], "view") == 0) {
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
-        mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4,
-              pick->title);
+        mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4, NULL);
     } else {
         if ((pid = fork()) == -1) {
             Perror("fork() failed in exec_objects");

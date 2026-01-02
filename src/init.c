@@ -111,6 +111,7 @@ void zero_opt_args(Init *init) {
     init->f_out_spec = false;
     init->mapp_spec[0] = init->help_spec[0] = '\0';
     init->provider_cmd[0] = init->receiver_cmd[0] = '\0';
+    init->title[0] = '\0';
     init->cmd[0] = init->cmd_all[0] = '\0';
     init->in_spec[0] = init->out_spec[0] = '\0';
     init->help_spec[0] = '\0';

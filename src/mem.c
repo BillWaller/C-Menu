@@ -706,7 +706,7 @@ bool init_view_files(Init *init, int argc, char **argv) {
     if (init->title[0] != '\0') {
         strnz__cpy(view->title, init->title, MAXLEN - 1);
     } else if (view->provider_cmd[0] != '\0')
-        strnz__cpy(view->title, init->provider_cmd, MAXLEN - 1);
+        strnz__cpy(view->title, view->provider_cmd, MAXLEN - 1);
     else
         strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
     strip_quotes(view->title);
