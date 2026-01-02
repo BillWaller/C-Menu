@@ -34,6 +34,7 @@ void form_usage();
 int form_desc_error(int, char *, char *);
 int form_exec_cmd(Init *);
 int form_calculate(Init *);
+int form_end_fields(Init *);
 int init_form(Init *, int, char **, int, int);
 unsigned int form_engine(Init *);
 
@@ -100,18 +101,16 @@ unsigned int form_engine(Init *init) {
             form_action = form_enter_fields(form);
         switch (form_action) {
         case P_ACCEPT:
-            wmove(form->win, form->lines - 1, 0);
-            wclrtoeol(form->win);
-            wrefresh(form->win);
-            if (form->f_calculate) {
+            if (form->f_calculate)
                 form_action = form_calculate(init);
-                if (form_action == P_HELP || form_action == P_CANCEL ||
-                    form_action == P_CONTINUE || form_action == P_END)
-                    continue;
-                if (form_action == P_ACCEPT) {
-                    form_action = P_END;
-                    continue;
-                }
+            else
+                form_action = form_end_fields(init);
+            if (form_action == P_HELP || form_action == P_CANCEL ||
+                form_action == P_CONTINUE || form_action == P_END)
+                continue;
+            if (form_action == P_ACCEPT) {
+                form_action = P_END;
+                continue;
             }
             break;
         case P_END:
@@ -146,6 +145,65 @@ unsigned int form_engine(Init *init) {
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ FORM_CALCULATE                                                │
 //  ╰───────────────────────────────────────────────────────────────╯
+int form_end_fields(Init *init) {
+    int c, rc;
+    bool loop = true;
+
+    form = init->form;
+    wmove(form->win, form->lines - 1, 0);
+    wclrtoeol(form->win);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
+    MEVENT event;
+    set_fkey(8, "Edit");
+    while (loop) {
+        form_display_chyron(form);
+        event.y = event.x = -1;
+        tcflush(2, TCIFLUSH);
+        c = wgetch(form->win);
+        switch (c) {
+        case KEY_F(1):
+            return P_HELP;
+        case KEY_F(8):
+            if (is_set_fkey(8)) {
+                loop = false;
+                rc = P_CONTINUE;
+                break;
+            }
+            continue;
+        case KEY_F(9):
+            loop = false;
+            rc = P_CANCEL;
+            break;
+        case KEY_F(10):
+            loop = false;
+            rc = P_ACCEPT;
+            break;
+        case KEY_MOUSE:
+            rc = 0;
+            if (getmouse(&event) != OK)
+                break;
+            if (event.bstate == BUTTON1_PRESSED ||
+                event.bstate == BUTTON1_CLICKED ||
+                event.bstate == BUTTON1_DOUBLE_CLICKED) {
+                if (!wenclose(form->win, event.y, event.x))
+                    continue;
+                wmouse_trafo(form->win, &event.y, &event.x, false);
+                if (event.y == form->lines - 1)
+                    rc = get_chyron_key(key_cmd, event.x);
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    unset_fkey(8);
+    form_display_chyron(form);
+    return rc;
+}
+
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │ FORM_CALCULATE                                                │
+//  ╰───────────────────────────────────────────────────────────────╯
 int form_calculate(Init *init) {
     int i, c, rc;
     char earg_str[MAXLEN + 1];
@@ -155,6 +213,8 @@ int form_calculate(Init *init) {
     int pipe_fd[2];
 
     form = init->form;
+    wmove(form->win, form->lines - 1, 0);
+    wclrtoeol(form->win);
     set_fkey(5, "Calculate");
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     MEVENT event;
@@ -224,6 +284,20 @@ int form_calculate(Init *init) {
         case KEY_F(10):
             loop = false;
             rc = P_ACCEPT;
+            break;
+        case KEY_MOUSE:
+            rc = 0;
+            if (getmouse(&event) != OK)
+                break;
+            if (event.bstate == BUTTON1_PRESSED ||
+                event.bstate == BUTTON1_CLICKED ||
+                event.bstate == BUTTON1_DOUBLE_CLICKED) {
+                if (!wenclose(form->win, event.y, event.x))
+                    continue;
+                wmouse_trafo(form->win, &event.y, &event.x, false);
+                if (event.y == form->lines - 1)
+                    rc = get_chyron_key(key_cmd, event.x);
+            }
             break;
         default:
             break;
@@ -632,9 +706,9 @@ int form_parse_desc(Form *form) {
     }
     fclose(form_desc_fp);
     if (form->didx < 1 && form->fidx < 1) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__);
-        ssnprintf(em1, MAXLEN - 65, "%s", "Error in description file:");
-        ssnprintf(em2, MAXLEN - 65, "%s", form->mapp_spec);
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__);
+        ssnprintf(em1, MAXLEN - 1, "%s", "Error in description file:");
+        ssnprintf(em2, MAXLEN - 1, "%s", form->mapp_spec);
         display_error(em0, em1, em2, NULL);
         return (1);
     }
@@ -752,8 +826,8 @@ void form_usage() {
 int form_desc_error(int in_line_num, char *in_buf, char *em) {
     int cmd_key;
 
-    ssnprintf(em0, MAXLEN - 65, "%s: %s", __FILE__, em);
-    ssnprintf(em1, MAXLEN - 65, "Desc file: %s, line: %d", form->mapp_spec,
+    ssnprintf(em0, MAXLEN - 1, "%s: %s", __FILE__, em);
+    ssnprintf(em1, MAXLEN - 1, "Desc file: %s, line: %d", form->mapp_spec,
               in_line_num);
     strnz__cpy(em2, in_buf, MAXLEN - 1);
     cmd_key = display_error(em0, em1, em2, NULL);
