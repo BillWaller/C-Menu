@@ -50,6 +50,7 @@ LIBS =  -lncursesw -ltinfo -lm
 LDFLAGS = -Wl,--gc-sections
 CC = gcc
 TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr lf optsp
+TARGET_LIB = libmenu.a
 
 all:	$(TARGETS)
 	@echo Make Complete
@@ -58,34 +59,35 @@ menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o form_engine.o fields.o 
 	pick_engine.o curskeys.o mview.o view_engine.o dwin.o futil.o init.o mem.o \
 	opts.o scriou.o exec.o sig.o
 	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o init_view.o form_engine.o \
-		fields.o pick_engine.o curskeys.o mview.o view_engine.o dwin.o futil.o \
-		init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-form:	form.o fields.o form_engine.o mview.o init_view.o view_engine.o dwin.o \
-		futil.o \
-	init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) form.o fields.o form_engine.o mview.o init_view.o view_engine.o \
-		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ \
-		$(LIBS)
-ckeys:	ckeys.o curskeys.o dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) ckeys.o curskeys.o dwin.o futil.o init.o mem.o opts.o scriou.o \
-		exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-pick:	pick.o  pick_engine.o mview.o init_view.o view_engine.o dwin.o futil.o \
-	init.o mem.o opts.o scriou.o exec.o sig.o
+		pick_engine.o curskeys.o mview.o view_engine.o \
+	   	dwin.o exec.o fields.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+form:	form.o form_engine.o mview.o init_view.o view_engine.o \
+		dwin.o exec.o fields.o futil.o init.o mem.o opts.o scriou.o sig.o
+	$(CC) $(CFLAGS) form.o form_engine.o mview.o init_view.o view_engine.o \
+		dwin.o exec.o fields.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+ckeys:	ckeys.o curskeys.o \
+		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
+	$(CC) $(CFLAGS) ckeys.o curskeys.o \
+		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+pick:	pick.o  pick_engine.o mview.o init_view.o view_engine.o \
+		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o
 	$(CC) $(CFLAGS) pick.c  pick_engine.o mview.o init_view.o view_engine.o \
-		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o \
+		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o \
 		$(LDFLAGS) -o $@ $(LIBS)
-view: view.o init_view.o view_engine.o mview.o dwin.o futil.o init.o mem.o \
-	opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) view.o init_view.o view_engine.o mview.o dwin.o futil.o \
-		init.o mem.o opts.o scriou.o exec.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+view: view.o init_view.o view_engine.o mview.o \
+   	dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o
+	$(CC) $(CFLAGS) view.o init_view.o view_engine.o mview.o \
+		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
 optsp:	optsp.c opts.o
 	$(CC) $(CFLAGS) $(LDFLAGS) optsp.c opts.o -o $@ $(LIBS)
-enterchr:	enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) enterchr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o \
-		$(LDFLAGS) -o $@ $(LIBS)
-enterstr:	enterstr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) enterstr.o dwin.o futil.o init.o mem.o opts.o scriou.o sig.o \
-		$(LDFLAGS) -o $@ $(LIBS)
+enterchr:	enterchr.o \
+		dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
+	$(CC) $(CFLAGS) enterchr.o \
+		dwin.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
+enterstr:	enterstr.o \
+		dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
+	$(CC) $(CFLAGS) enterstr.o \
+	   	dwin.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
 whence:	whence.c
 	$(CC) $(CFLAGS) $(LDFLAGS) whence.c -o $@ -lc
 iloan:	iloan.c
