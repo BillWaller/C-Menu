@@ -1,29 +1,33 @@
 # C-Menu User Guide
 
-## Introduction
-
-The C-Menu is a versatile and user-friendly menu system designed for various applications. This guide provides detailed instructions on how to use and customize the C-Menu to fit your needs.
-
 ## Table of Contents
 
-1. [Requirements](#requirements)
-2. [Not Required, but Recommended](#not-required-but-recommended)
+1. [Introduction](#introduction)
+2. [Prerequisites](#prerequisites)
 3. [Getting Started](#getting-started)
 4. [Menu](#menu)
    - [Menu Example](#menu-example)
    - [Menu Description File Format](#menu-description-file-format)
-5. [C-Menu Form](#form)
+5. [Form](#form)
    - [Form Description File Example](#form-description-file-example)
-   - [Form Line Type Specifiers (#, H, T, F, and ?)](#form-line-type-specifiers--h-t-f-and-)
+   - [Form Line Type Specifiers (#, H, T, F, and ?)](#form-line-type-speecifiers--#-h-t-f-and-)
    - [Form Field Delimiters](#form-field-delimiters)
-   - [Form Data Types](#data-types)
+   - [Form Data Types](#form-data-types)
    - [Form Line Syntax](#form-line-syntax)
    - [Form Options](#form-options)
 6. [C-Menu Pick](#c-menu-pick)
    - [Pick Usage](#pick-usage)
    - [Pick Options](#pick-options)
+7. [C-Menu View](#c-menu-view)
+   - [View Options](#view-options)
+8. [C-Menu Options](#c-menu-options)
+9. [Troubleshooting](#troubleshooting)
 
-### Requirements
+## Introduction
+
+The C-Menu is a versatile and user-friendly menu system designed for various applications. This guide provides detailed instructions on how to use and customize the C-Menu to fit your needs.
+
+## Prerequisites
 
 - A compatible operating system (e.g., Linux, macOS).
 - Basic knowledge of command-line operations.
@@ -95,7 +99,7 @@ In this example, "Neovim" is a menu item that, when selected, will execute the c
 - Leading and trailing whitespace on lines is ignored.
 - Menu items can be grouped into sections by using text lines without corresponding command lines.
 
-## Form
+## C-Menu Form
 
 Form is a companion tool for C-Menu that allows users to create and manage forms for data entry and editing. It can be used to gather user input before executing commands from the C-Menu.
 
@@ -145,7 +149,7 @@ T:2:4:Enter any three of the four values to calculate the fourth.
 T|2|4|Enter any three of the four values to calculate the fourth.
 ```
 
-### Data Types
+### Form Data Types
 
 ```
        String: Any text
@@ -252,6 +256,30 @@ View supports extended regular expressions (regex) for advanced text searching c
 
 <img src="screenshots/options.png" title="C-Menu Options" />
 
+## lf
+
+"lf" is a very lightweight alternative to find. It was designed to provide input to C-Menu Pick, but can be used stand-alone as well. It is similar to the Unix "find" command, but with a much simpler syntax and fewer features.
+
+```
+Usage: lf [options] [directory] [regexp]
+Options:
+  -a        List all files (including hidden files)
+  -d        maximum depth of subdirectories to examine
+  -h        show this help message
+  -i        ignore case in search
+  -r        recurse into subdirectories
+  -v        show version information
+```
+
+The syntax for "lf" is different from "find" in that the directory to search is specified first, followed by the regular expression to match file names against. If no directory is specified, the current directory is used. If no regular expression is specified, all files are listed.
+
+The syntax for "lf" is also different from "ls" in that it uses regular expressions instead of shell expansion of wildcards. This allows for more complex matching patterns.
+
+Example:
+
+```
+lf -r -i /home/user '.*\.[ch]$'
+```
 
 ## Troubleshooting
 
@@ -262,3 +290,11 @@ If you encounter issues while using C-Menu, consider the following troubleshooti
 - Verify that all required dependencies are installed.
 - Consult the FAQs section for common issues and solutions.
 - Try running commands from a command line to isolate problems.
+- Check your PATH environment variable to ensure all necessary executables are accessible. For example, if view doesn't seem to be working, verify its location.
+  On some systems, "/usr/bin/view" may be a link to "/usr/bin/vim" or "/usr/bin/alts". Make sure ~/menuapp/bin is at the front of your PATH. You can check the location of a command using:
+
+```bash
+which <command_name>
+```
+
+- If you experience issues with root access features, ensure that RSH is installed with the correct permissions and that you understand the security implications.

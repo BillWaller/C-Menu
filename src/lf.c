@@ -18,6 +18,7 @@
 
 #define ALL 0x01
 #define RECURSE 0x02
+#define ICASE 0x04
 
 char tmp_str[MAXLEN];
 
@@ -47,6 +48,9 @@ int main(int argc, char **argv) {
         case 'h':
             f_help = true;
             break;
+        case 'i':
+            flags |= ICASE;
+            break;
         case 'r':
             flags |= RECURSE;
             break;
@@ -63,6 +67,7 @@ int main(int argc, char **argv) {
         printf("  -a        List all files (including hidden files)\n");
         printf("  -d        maximum depth of subdirectories to examine\n");
         printf("  -h        show this help message\n");
+        printf("  -i        ignore case in search\n");
         printf("  -r        recurse into subdirectories\n");
         printf("  -v        show version information\n");
         exit(EXIT_SUCCESS);
@@ -142,6 +147,8 @@ bool lf_find_files(char *dir, char *re, int flags) {
     char file_spec[MAXLEN];
     char *file_spec_p;
 
+    if (flags & ICASE)
+        REG_FLAGS |= REG_ICASE;
     reti = regcomp(&compiled_re, re, REG_FLAGS);
     if (reti) {
         printf("lf: \'%s\' Invalid pattern\n", re);
