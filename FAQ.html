@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>-</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="c-menu-faq">C-Menu FAQ</h1>
+<p>Bill Waller Copyright 2025</p>
+<p><a href="mailto:billxwaller@gmail.com"
+class="email">billxwaller@gmail.com</a></p>
+<hr />
+<h1 id="c-menu-frequently-asked-questions">C-Menu Frequently Asked
+Questions</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#c-menu-view---why-view-displays-question-marks">C-Menu
+View - Why View Displays Question Marks</a></li>
+<li><a href="#c-menu-view---how-to-colorize-manual-pages">C-Menu View -
+How to Colorize Manual Pages</a></li>
+<li><a href="#c-menu-view---how-to-colorize-html-color-codes">C-Menu
+View - How to Colorize HTML Color Codes</a></li>
+<li><a href="#c-menu-view---how-to-customize-colors">C-Menu View - How
+to Customize Colors</a></li>
+<li><a href="#c-menu-menu-form-pick-and-view-api">C-Menu Menu, Form,
+Pick and View API</a></li>
+<li><a href="#c-menu-view---how-to-use-tree-sitter-with-view">C-Menu
+View - How to Use Tree-sitter With View</a></li>
+<li><a href="#c-menu-form---integrating-external-executables">C-Menu
+Form - Integrating External Executables</a></li>
+<li><a href="#c-menu---interprocess-communications">C-Menu -
+Interprocess Communications</a></li>
+<li><a href="#c-menu---what-happened-to-delete-by-inode">C-Menu - What
+Happened to Delete by Inode</a></li>
+<li><a href="#c-menu-pick---selecting-multiple-files">C-Menu Pick -
+Selecting Multiple Files</a></li>
+<li><a href="#c-menu-lf---where-are-my-header-files">C-Menu lf - Where
+Are My Header Files?</a></li>
+<li><a href="#c-menu-view---view-in-a-box-window">C-Menu View - View In
+A Box Window</a></li>
+</ol>
+<h3 id="c-menu-view---why-view-displays-question-marks">C-Menu View -
+Why View Displays Question Marks</h3>
+<p>Q: When I try to view a document that contains line-drawing
+characters, C-Menu View displays question marks instead of the
+line-drawing characters. How can I fix this?</p>
+<p>A: The file may contain characters above 0x80, which can't be
+translated by C-Menu View's character translators. If the offending
+characters CP-437 line drawing characters, you can convert the file to
+UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you
+can use the following command:</p>
+<pre><code>    iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt</code></pre>
+<p>The images below show, before, on the left, and after, on the right,
+using iconv.</p>
+<p><img src="screenshots/cp437_to_utf8.png" title="CP437 TO UTF8" /></p>
+<p>As an interesting note, this also works for "less", which displays
+the decimal representation of of the CP437 characters. This could be
+handy if you have been coding since the 1980's and recognize them as
+CP437 line-drawing characters.</p>
+<p><img src="screenshots/cp437-line-draw-less.png" title="CP437 LESS" /></p>
+<hr />
+<h3 id="c-menu-view---how-to-colorize-manual-pages">C-Menu View - How to
+Colorize Manual Pages</h3>
+<p>Q: How can I add color to manual pages?</p>
+<p>A: Manual pages use ANSI SGR escape sequences to add color.</p>
+<pre><code>0x1b[1m bold
+0x1b[2m dim
+0x1b[3m italic
+0x1b[4m underline
+0x1b[22m normal intensity (bold/dim off)
+0x1b[23m italic off
+0x1b[24m underline off</code></pre>
+<p>You can use the following sed script to substitute your own
+colors:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode sed"><code class="sourceCode sed"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">2m/</span><span class="ch">\[</span><span class="st">35;1m/g</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">3m/</span><span class="ch">\[</span><span class="st">33;3;1m/g</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">4m/</span><span class="ch">\[</span><span class="st">31;1m/g</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">22m/</span><span class="ch">\[</span><span class="st">22;0m/g</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">23m/</span><span class="ch">\[</span><span class="st">23;0m/g</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">24m/</span><span class="ch">\[</span><span class="st">24;0m/g</span></span></code></pre></div>
+<p>You can save this script to a file, or use the one that comes with
+C-Menu, (~/menuapp/msrc/man.sed) and then use it like this:</p>
+<pre><code>man bash
+man -Tutf8 bash | sed -f ~/menuapp/msrc/man.sed | view</code></pre>
+<p>This will display the bash manual page with the specified colors in
+C-Menu View.</p>
+<p><img src="screenshots/man-page.png" title="Colorizer" /></p>
+<hr />
+<h3 id="c-menu-view---how-to-colorize-html-color-codes">C-Menu View -
+How to Colorize HTML Color Codes</h3>
+<p>Q: I want to colorize six digit html style hexadecimal colors, such
+as #RRGGBB, in C-Menu View. How can I do this?</p>
+<p>A: You can use the following awk script to colorize six digit html
+style hexadecimal colors in C-Menu View:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">awk</span> <span class="at">-f</span> ~/menuapp/msrc/colorize.awk yourfile.txt <span class="kw">|</span> <span class="ex">view</span></span></code></pre></div>
+<p>This script matches six digit hexadecimal colors in the format
+#RRGGBB and adds the ANSI escape sequences to set the background color
+to the specified RGB values.</p>
+<p>This will display the contents of yourfile.txt in C-Menu View with
+the specified hexadecimal colors colorized. The image below shows before
+and after colorizing.</p>
+<p><img src="screenshots/Colorizer.png" title="Colorizer" /></p>
+<hr />
+<h3 id="c-menu-view---how-to-customize-colors">C-Menu View - How to
+Customize Colors</h3>
+<p>Q: How can I customize the color scheme in C-Menu View?</p>
+<p>A: If you have a modern color display, C-Menu View can display up to
+16,777,216 different colors using ANSI escape sequences applicable to
+foreground and background. You can also redefine the standard ANSI color
+palette in ~/.minitrc. When you exit C-Menu, your system colors revert
+to their previous state.</p>
+<p><img src="screenshots/minitrc.png" title="C-Menu .minitrc" /></p>
+<hr />
+<h3 id="c-menu-menu-form-pick-and-view-api">C-Menu Menu, Form, Pick and
+View API</h3>
+<p>Q: I want to use the C-Menu API to develop my own code. How can I do
+that.</p>
+<p>A: At the moment, you will have to rely on C-Menu's source code for
+documentation. If build C-Menu using CMake in the build directory, a C
+library will be installed in the lib64 directory, which you can link to
+your own executables. If there is sufficient interest, that capability
+will be expanded, improved, and a reference guide will be created for
+the API.</p>
+<hr />
+<h3 id="c-menu-view---how-to-use-tree-sitter-with-view">C-Menu View -
+How to Use Tree-sitter With View</h3>
+<p>Q: How do I use the tree-sitter highlighter with C-Menu View?</p>
+<p>A: Documentation on this feature is sparse at the moment.</p>
+<p>Here are the basic steps to get started with tree-sitter and C-Menu
+View.</p>
+<h3 id="install-tree-sitter-cli">Install tree-sitter-cli</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> install tree-sitter-cli</span></code></pre></div>
+<p>Verify installation:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> <span class="at">--version</span></span></code></pre></div>
+<h3 id="rust">Rust</h3>
+<h4 id="download">download</h4>
+<p><a
+href="https://github.com/tree-sitter/tree-sitter-rust">tree-sitter-rust</a></p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> tree-sitter-rust</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> build</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> generate</span></code></pre></div>
+<h3 id="c">C</h3>
+<h4 id="download-1">download</h4>
+<p><a
+href="https://github.com/tree-sitter/tree-sitter-c">tree-sitter-c</a></p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> tree-sitter-c</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> build</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> generate</span></code></pre></div>
+<p>You should edit ~/.config/tree-sitter/config.json to include the
+languages you want to use with C-Menu View.</p>
+<p>You will find an example config.json in C-Menu's tree-sitter
+directory.</p>
+<p>Type the following command:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">tree-sitter</span> highlight source-file <span class="kw">|</span> <span class="ex">view</span></span></code></pre></div>
+<p><img src="screenshots/tree-sitter.png" title="C-Menu View Tree-Sitter" /></p>
+<p>These instructions are admittedly sketchy and hard to follow. We will
+revise and clarify in the future.</p>
+<hr />
+<h3 id="c-menu-form---integrating-external-executables">C-Menu Form -
+Integrating External Executables</h3>
+<p>Q: How can I integrate external programs into C-Menu Form, such as an
+SQL Query or calculation?</p>
+<p>A: We can use the executable "iloan" included with C-Menu as an
+example.</p>
+<p>The Form will have four fields. The user must enter any three of the
+four values. Only one field may be zero. Iloan will calculate the value
+of the missing field and C-Menu Form will display it.</p>
+<p>First, create a form file named "~/menuapp/msrc/iloan.f" with the
+following contents:</p>
+<pre><code>H:Installment Loan Calculator
+
+T:5:14:Principal Amount:
+F:5:33:14:Currency
+
+T:6:14:Number of Months:
+F:6:33:5:Decimal_Int
+
+T:7:10:Annual Interest Rate:
+F:7:33:5:APR
+
+T:8:16:Payment Amount:
+F:8:33:12:Currency
+
+T:10:1:First Payment Date (Yyyymmdd):
+F:10:33:10:Yyyymmdd
+
+C
+?iloan.hlp</code></pre>
+<p>Next, create a help file named "~/menuapp/help/iloan.hlp" with the
+following contents:</p>
+<pre><code>Installment Loan Calculator Help
+This form calculates the missing value of an installment loan.
+Enter any three of the four values. Leave the value to be calculated as zero.
+Only one field may be zero.
+Fields:
+Principal Amount - The total amount of the loan.
+Number of Months - The total number of monthly payments.
+Annual Interest Rate - The annual interest rate as a percentage.
+Payment Amount - The amount of each monthly payment.
+First Payment Date - The date of the first payment in YYYYMMDD format.</code></pre>
+<p>Add the following two lines to "~/menuapp/msrc/main.m":</p>
+<pre><code>:     Installment Loan Calculations
+!form iloan.f -i iloan.dat -S iloan -o iloan.dat</code></pre>
+<p>This will add a menu item to the Main Menu that will launch the Iloan
+Form. When you select the "Installment Loan Calculations" menu item,
+C-Menu Form will display the Iloan Form. After you enter any three of
+the four values and press Enter, C-Menu Form will call the "iloan"
+executable to calculate the missing value and display it in the
+form.</p>
+<p>C-Menu Form will complain that "iloan.dat" does not exist the first
+time you run the form. This is normal. C-Menu Form will create the file
+when you exit the form.</p>
+<h3 id="c-menu---using-the-installment-loan-calculator">C-Menu - Using
+the Installment Loan Calculator</h3>
+<p><img src="screenshots/iloan.png" title="Installment Loan Calculator" /></p>
+<p>After you enter the three values, you will see an option "F5
+Calculate". Press F5 to calculate the missing value. When the
+calculation is complete, the missing value will be displayed in the
+form. You will then see an option, "F8 Edit", which will allow you to
+make changes and try again. If you don't wish to make changes, press
+"F10 Accept" to write all four values to "iloan.dat" and exit the
+form.</p>
+<p>The next time you run the form, C-Menu Form will read the values from
+"iloan.dat" and display them in the form.</p>
+<p>Here's a summary of the important parts of the form file format:</p>
+<h3 id="c-menu-form---line-type-speecifiers-h-t-f-and-">C-Menu Form -
+Line Type Speecifiers (H, T, F, and ?)</h3>
+<ul>
+<li># Comment line (ignored)</li>
+<li>H - The header to be displayed at the top of the form</li>
+<li>T - Text field (line:column:length:text)</li>
+<li>F - Input field (line:column:length:type)</li>
+<li>? - A user supplied help file for the form. If no path is given,
+Form will look for a file with the same name as the form but with a .hlp
+extension. It will search in the current directory and then in the menu
+help directory, ~/menuapp/help.</li>
+</ul>
+<h3 id="c-menu-form---field-delimiters">C-Menu Form - Field
+Delimiters:</h3>
+<p>The ":" character is used as a delimiter in the fields above, but any
+character that is placed immediately after the line designator (H, T, F,
+?) can be used as a delimiter. For example, the following two lines are
+equivalent:</p>
+<pre><code>T:2:4:Enter any three of the four values to calculate the fourth.
+T|2|4|Enter any three of the four values to calculate the fourth.</code></pre>
+<h3 id="c-menu-form---data-types">C-Menu Form - Data Types:</h3>
+<p>The following data types are currently supported for input
+fields:</p>
+<pre><code>   String: Any text</code></pre>
+<ul>
+<li>Decimal_Int: Integer number</li>
+<li>Hex_Int: Hexadecimal integer</li>
+<li>Float: Floating point number</li>
+<li>Double: Double precision floating point number</li>
+<li>Currency: Currency amount</li>
+<li>APR: Annual Percentage Rate</li>
+<li>Yyyymmdd: Date in YYYYMMDD format</li>
+<li>HHMMSS: Time in HHMMSS format</li>
+</ul>
+<p>Note that the data types determine field formatting, and on entry,
+numeric data is converted to its corresponding internal binary format,
+so that calculations can be performed. Both text and internal numeric
+binary data are available to the developer.</p>
+<p>For applications that demand extreme accuracy, our plan is to
+integrate the "decNumber C Library", Copyright © IBM Corporation 2010,
+to provide 128 bit BCD (Binary Coded Decimal) in a future release.</p>
+<p>The Field Format Specifiers can be any combination of upper and lower
+case, and new types can be easily added by modifying the source
+code.</p>
+<hr />
+<h3 id="c-menu---interprocess-communications">C-Menu - Interprocess
+Communications</h3>
+<p>Q: How does C-Menu send and receive data to external programs?</p>
+<p>A: Currently, C-Menu is limited to communicating through files or
+pipes.</p>
+<p>When you start C-Menu Form, Pick, or View, you can specify</p>
+<pre><code>-S executable
+   or
+-R executable</code></pre>
+<p>-S runs executables that provide input data to C-Menu via pipe, and
+-R runs executables that receive output data from C-Menu via pipe.</p>
+<p>The way it works is, C-Menu creates dual ended pipes, each with a
+read and write end before forking and spawning the executables. In the
+example (Installment Loan Calculations) above, C-Menu Form substitutes a
+write pipe for the standard output of the child process, and opens the
+read end of the pipe for it's input. The called executable writes data
+to the pipe and C-Menu form reads the other end.</p>
+<p>We can just as easily use named pipes or network sockets, although it
+requires a bit more configuration. If there is sufficient interest,
+C-Menu will have an event-driven server to handle network communications
+and asynchronous tasks. It is likely that server will be implemented in
+Rust to take advantage of tools like the Tokio and Serde crates.</p>
+<hr />
+<h3 id="c-menu---what-happened-to-delete-by-inode">C-Menu - What
+Happened to Delete by Inode</h3>
+<p>Q: I noticed you have a menu option named, "Delete by Inode", but it
+doesn't work.</p>
+<p>A: Thanks for reminding me. I will remove that choice from the menu
+until I can figure out a way to make it safe.</p>
+<p>The original command was:</p>
+<pre><code>find . -inum [inode-number] -delete</code></pre>
+<p>That is too dangerous if the user makes a mistake, so I replaced the
+find with "rm -i".</p>
+<pre><code>  !pick -S &quot;ls -i&quot; -n 1 -R &quot;rm -i&quot;</code></pre>
+<p>It doesn't delete files by inode, but at least it prompts the user
+before deleting files. Still, it's not what I intended, so it will be
+removed until I find a better solution.</p>
+<p>I may eventually write a C or Rust program that will safely delete
+files by inode after confirming the correct file with the user as well
+as saving deleted files in a trash bin, on an opt-out basis.</p>
+<hr />
+<h3 id="c-menu-pick---selecting-multiple-files">C-Menu Pick - Selecting
+Multiple Files</h3>
+<p>Q: In C-Menu Pick, how can I select multiple files to edit with
+vi?</p>
+<p>A: You can use the -M option to enable multi-select in C-Menu Pick.
+Here is an example command that allows you to select multiple files and
+open them in C-Menu Vi:</p>
+<pre><code>!pick -S &quot;lf -r ./ .*\.[ch]$&quot; -M -R vi -T &quot;Project Tree - Select Files to Edit&quot;
+</code></pre>
+<p>Select as many files as you want to edit and press F10. C-Menu Pick
+will open the first file. If you are using Nvim, Vim, Less, or C-Menu
+View, you can type: ":n<enter>" to open the next file.</p>
+<hr />
+<h3 id="c-menu-lf---where-are-my-header-files">C-Menu lf - Where Are My
+Header Files?</h3>
+<p>Q: You have an option to edit C source files in the Project Tree
+menu, but it doesn't list my header files. Can you fix that?</p>
+<p>A: Sure. My bad. Of course you want your header files to be listed
+with your C files. Here is the new C-Menu line with the regular
+expression corrected to include both .c and .h files:</p>
+<p>!pick -S "lf -r ./ .*.[ch]$" -n 1 -R vi -T "Project Tree - Select
+File to Edit"</p>
+<hr />
+<h3 id="c-menu-view---view-in-a-box-window">C-Menu View - View In A Box
+Window</h3>
+<p>Q: How do I highlight a C source file using tree-sitter and view it
+in a C-Menu View box window.</p>
+<pre><code>view -L 40 -C 80 -S &quot;tree-sitter highlight view_engine.c&quot;</code></pre>
+<p>Leave out the -L 40 and -C 80 to display the file in full screen.
+Alternatively, you can use the following command.</p>
+<pre><code>tree-sitter highlight view_engine.c | view -L 40 -C 80 -T &quot;Highlighted view_engine.c&quot;</code></pre>
+<p>The "-S" option will tell view to execute the command and display the
+output. As an added bonus, if you don't provide a title with "-T, view
+will use the "-S" command as the title:</p>
+</body>
+</html>

@@ -6,6 +6,23 @@ billxwaller@gmail.com
 
 ---
 
+# C-Menu Frequently Asked Questions
+
+## Table of Contents
+
+1. [C-Menu View - Why View Displays Question Marks](#c-menu-view---why-view-displays-question-marks)
+2. [C-Menu View - How to Colorize Manual Pages](#c-menu-view---how-to-colorize-manual-pages)
+3. [C-Menu View - How to Colorize HTML Color Codes](#c-menu-view---how-to-colorize-html-color-codes)
+4. [C-Menu View - How to Customize Colors](#c-menu-view---how-to-customize-colors)
+5. [C-Menu Menu, Form, Pick and View API](#c-menu-menu-form-pick-and-view-api)
+6. [C-Menu View - How to Use Tree-sitter With View](#c-menu-view---how-to-use-tree-sitter-with-view)
+7. [C-Menu Form - Integrating External Executables](#c-menu-form---integrating-external-executables)
+8. [C-Menu - Interprocess Communications](#c-menu---interprocess-communications)
+9. [C-Menu - What Happened to Delete by Inode](#c-menu---what-happened-to-delete-by-inode)
+10. [C-Menu Pick - Selecting Multiple Files](#c-menu-pick---selecting-multiple-files)
+11. [C-Menu lf - Where Are My Header Files?](#c-menu-lf---where-are-my-header-files)
+12. [C-Menu View - View In A Box Window](#c-menu-view---view-in-a-box-window)
+
 ### C-Menu View - Why View Displays Question Marks
 
 Q: When I try to view a document that contains line-drawing characters, C-Menu View displays question marks instead of the line-drawing characters. How can I fix this?
