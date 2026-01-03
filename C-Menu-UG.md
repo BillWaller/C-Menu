@@ -6,22 +6,23 @@
 2. [Prerequisites](#prerequisites)
 3. [Getting Started](#getting-started)
 4. [Menu](#menu)
-   - [Menu Example](#menu-example)
-   - [Menu Description File Format](#menu-description-file-format)
-5. [Form](#form)
-   - [Form Description File Example](#form-description-file-example)
-   - [Form Line Type Specifiers (#, H, T, F, and ?)](#form-line-type-speecifiers--#-h-t-f-and-)
-   - [Form Field Delimiters](#form-field-delimiters)
-   - [Form Data Types](#form-data-types)
-   - [Form Line Syntax](#form-line-syntax)
-   - [Form Options](#form-options)
+    - [Menu Example](#menu-example)
+    - [Menu Description File Format](#menu-description-file-format)
+5. [C-Menu Form](#c-menu-form)
+    - [Form Description File Example](#form-description-file-example)
+    - [Form Line Type Specifiers (#, H, T, F, and ?)](#form-line-type-specifiers--#-h-t-f-and-)
+    - [Form Field Delimiters](#form-field-delimiters)
+    - [Form Data Types](#form-data-types)
+    - [Form Line Syntax](#form-line-syntax)
+    - [Form Options](#form-options)
 6. [C-Menu Pick](#c-menu-pick)
-   - [Pick Usage](#pick-usage)
-   - [Pick Options](#pick-options)
+    - [Pick Usage](#pick-usage)
+    - [Pick Options](#pick-options)
 7. [C-Menu View](#c-menu-view)
-   - [View Options](#view-options)
+    - [View Options](#view-options)
 8. [C-Menu Options](#c-menu-options)
-9. [Troubleshooting](#troubleshooting)
+9. [lf](#lf)
+10. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
@@ -51,18 +52,18 @@ gh repo clone BillWaller/C-Menu
 
 2. Copy the sample menuapp directory structure to your home directory Initialize the C-Menu with default settings. Copy the sample /menuapp/minitrc to your home directory as ~/.minitrc:
 
-   ```bash
-   cp -Rdup C-Menu/menuapp ~/
-   cp ~/menuapp/minitrc ~/.minitrc
-   ```
+    ```bash
+    cp -Rdup C-Menu/menuapp ~/
+    cp ~/menuapp/minitrc ~/.minitrc
+    ```
 
 3. Build C-Menu:
 
-   ```bash
-   cd C-Menu/src
-   make
-   sudo make install
-   ```
+    ```bash
+    cd C-Menu/src
+    make
+    sudo make install
+    ```
 
 To enable root access features, you need to install the RSH (Remote Shell) program with setuid root permissions. This allows certain menu items to execute commands with root privileges.
 
