@@ -15,6 +15,10 @@ billxwaller@gmail.com
 
 [C-Menu User Guide](C-Menu-UG.md)
 
+## Augmenting C-Menu
+
+[Augmenting C-Menu](extras.md)
+
 ---
 
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys

@@ -1,0 +1,819 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="generator" content="pandoc" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, user-scalable=yes"
+        />
+        <title>-</title>
+        <style>
+            /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+            html {
+                color: #f0f0f0;
+                background-color: #000027;
+            }
+            body {
+                margin: 0 auto;
+                max-width: 36em;
+                padding-left: 50px;
+                padding-right: 50px;
+                padding-top: 50px;
+                padding-bottom: 50px;
+                hyphens: auto;
+                overflow-wrap: break-word;
+                text-rendering: optimizeLegibility;
+                font-kerning: normal;
+            }
+            @media (max-width: 600px) {
+                body {
+                    font-size: 0.9em;
+                    padding: 12px;
+                }
+                h1 {
+                    font-size: 1.8em;
+                }
+            }
+            @media print {
+                html {
+                    background-color: white;
+                }
+                body {
+                    background-color: transparent;
+                    color: black;
+                    font-size: 12pt;
+                }
+                p,
+                h2,
+                h3 {
+                    orphans: 3;
+                    widows: 3;
+                }
+                h2,
+                h3,
+                h4 {
+                    page-break-after: avoid;
+                }
+            }
+            p {
+                margin: 1em 0;
+            }
+            a {
+                color: #c0c0c0;
+            }
+            a:visited {
+                color: #708090;
+            }
+            img {
+                max-width: 100%;
+            }
+            svg {
+                height: auto;
+                max-width: 100%;
+            }
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                margin-top: 1.4em;
+            }
+            h5,
+            h6 {
+                font-size: 1em;
+                font-style: italic;
+            }
+            h6 {
+                font-weight: normal;
+            }
+            ol,
+            ul {
+                padding-left: 1.7em;
+                margin-top: 1em;
+            }
+            li > ol,
+            li > ul {
+                margin-top: 0;
+            }
+            blockquote {
+                margin: 1em 0 1em 1.7em;
+                padding-left: 1em;
+                border-left: 2px solid #2f4f8f;
+                color: #e0e0e0;
+            }
+            code {
+                font-family:
+                    Menlo, Monaco, Consolas, "Lucida Console", monospace;
+                font-size: 85%;
+                margin: 0;
+                hyphens: manual;
+            }
+            pre {
+                margin: 1em 0;
+                overflow: auto;
+            }
+            pre code {
+                padding: 0;
+                overflow: visible;
+                overflow-wrap: normal;
+            }
+            .sourceCode {
+                background-color: transparent;
+                overflow: visible;
+            }
+            hr {
+                border: none;
+                border-top: 1px solid #1a1a1a;
+                height: 1px;
+                margin: 1em 0;
+            }
+            table {
+                margin: 1em 0;
+                border-collapse: collapse;
+                width: 100%;
+                overflow-x: auto;
+                display: block;
+                font-variant-numeric: lining-nums tabular-nums;
+            }
+            table caption {
+                margin-bottom: 0.75em;
+            }
+            tbody {
+                margin-top: 0.5em;
+                border-top: 1px solid #1a1a1a;
+                border-bottom: 1px solid #1a1a1a;
+            }
+            th {
+                border-top: 1px solid #1a1a1a;
+                padding: 0.25em 0.5em 0.25em 0.5em;
+            }
+            td {
+                padding: 0.125em 0.5em 0.25em 0.5em;
+            }
+            header {
+                margin-bottom: 4em;
+                text-align: center;
+            }
+            #TOC li {
+                list-style: none;
+            }
+            #TOC ul {
+                padding-left: 1.3em;
+            }
+            #TOC > ul {
+                padding-left: 0;
+            }
+            #TOC a:not(:hover) {
+                text-decoration: none;
+            }
+            code {
+                white-space: pre-wrap;
+            }
+            span.smallcaps {
+                font-variant: small-caps;
+            }
+            div.columns {
+                display: flex;
+                gap: min(4vw, 1.5em);
+            }
+            div.column {
+                flex: auto;
+                overflow-x: auto;
+            }
+            div.hanging-indent {
+                margin-left: 1.5em;
+                text-indent: -1.5em;
+            }
+            /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+            ul.task-list[class] {
+                list-style: none;
+            }
+            ul.task-list li input[type="checkbox"] {
+                font-size: inherit;
+                width: 0.8em;
+                margin: 0 0.8em 0.2em -1.6em;
+                vertical-align: middle;
+            }
+            /* CSS for syntax highlighting */
+            html {
+                -webkit-text-size-adjust: 100%;
+            }
+            pre > code.sourceCode {
+                white-space: pre;
+                position: relative;
+            }
+            pre > code.sourceCode > span {
+                display: inline-block;
+                line-height: 1.25;
+            }
+            pre > code.sourceCode > span:empty {
+                height: 1.2em;
+            }
+            .sourceCode {
+                overflow: visible;
+            }
+            code.sourceCode > span {
+                color: inherit;
+                text-decoration: inherit;
+            }
+            div.sourceCode {
+                margin: 1em 0;
+            }
+            pre.sourceCode {
+                margin: 0;
+            }
+            @media screen {
+                div.sourceCode {
+                    overflow: auto;
+                }
+            }
+            @media print {
+                pre > code.sourceCode {
+                    white-space: pre-wrap;
+                }
+                pre > code.sourceCode > span {
+                    text-indent: -5em;
+                    padding-left: 5em;
+                }
+            }
+            pre.numberSource code {
+                counter-reset: source-line 0;
+            }
+            pre.numberSource code > span {
+                position: relative;
+                left: -4em;
+                counter-increment: source-line;
+            }
+            pre.numberSource code > span > a:first-child::before {
+                content: counter(source-line);
+                position: relative;
+                left: -1em;
+                text-align: right;
+                vertical-align: baseline;
+                border: none;
+                display: inline-block;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                padding: 0 4px;
+                width: 4em;
+                color: #aaaaaa;
+            }
+            pre.numberSource {
+                margin-left: 3em;
+                border-left: 1px solid #aaaaaa;
+                padding-left: 4px;
+            }
+            div.sourceCode {
+            }
+            @media screen {
+                pre > code.sourceCode > span > a:first-child::before {
+                    text-decoration: underline;
+                }
+            }
+            code span.al {
+                color: #ff0000;
+                font-weight: bold;
+            } /* Alert */
+            code span.an {
+                color: #60a0b0;
+                font-weight: bold;
+                font-style: italic;
+            } /* Annotation */
+            code span.at {
+                color: #7d9029;
+            } /* Attribute */
+            code span.bn {
+                color: #40a070;
+            } /* BaseN */
+            code span.bu {
+                color: #008000;
+            } /* BuiltIn */
+            code span.cf {
+                color: #007020;
+                font-weight: bold;
+            } /* ControlFlow */
+            code span.ch {
+                color: #4070a0;
+            } /* Char */
+            code span.cn {
+                color: #880000;
+            } /* Constant */
+            code span.co {
+                color: #60a0b0;
+                font-style: italic;
+            } /* Comment */
+            code span.cv {
+                color: #60a0b0;
+                font-weight: bold;
+                font-style: italic;
+            } /* CommentVar */
+            code span.do {
+                color: #ba2121;
+                font-style: italic;
+            } /* Documentation */
+            code span.dt {
+                color: #902000;
+            } /* DataType */
+            code span.dv {
+                color: #40a070;
+            } /* DecVal */
+            code span.er {
+                color: #ff0000;
+                font-weight: bold;
+            } /* Error */
+            code span.ex {
+            } /* Extension */
+            code span.fl {
+                color: #40a070;
+            } /* Float */
+            code span.fu {
+                color: #06287e;
+            } /* Function */
+            code span.im {
+                color: #008000;
+                font-weight: bold;
+            } /* Import */
+            code span.in {
+                color: #60a0b0;
+                font-weight: bold;
+                font-style: italic;
+            } /* Information */
+            code span.kw {
+                color: #007020;
+                font-weight: bold;
+            } /* Keyword */
+            code span.op {
+                color: #666666;
+            } /* Operator */
+            code span.ot {
+                color: #007020;
+            } /* Other */
+            code span.pp {
+                color: #bc7a00;
+            } /* Preprocessor */
+            code span.sc {
+                color: #4070a0;
+            } /* SpecialChar */
+            code span.ss {
+                color: #bb6688;
+            } /* SpecialString */
+            code span.st {
+                color: #4070a0;
+            } /* String */
+            code span.va {
+                color: #19177c;
+            } /* Variable */
+            code span.vs {
+                color: #4070a0;
+            } /* VerbatimString */
+            code span.wa {
+                color: #60a0b0;
+                font-weight: bold;
+                font-style: italic;
+            } /* Warning */
+        </style>
+    </head>
+    <body>
+        <h1 id="installing-programs-to-augment-c-menu">
+            Installing Programs to Augment C-Menu
+        </h1>
+        <h2 id="table-of-contents">Table of Contents</h2>
+        <ol>
+            <li><a href="#installing-rust">Installing Rust</a></li>
+            <li>
+                <a href="#about-c-menu-and-r-menu">About C-Menu and R-Menu</a>
+            </li>
+            <li><a href="#installing-bat">Installing Bat</a></li>
+            <li><a href="#installing-ripgrep">Installing Ripgrep</a></li>
+            <li><a href="#lsd">lsd</a></li>
+            <li><a href="#tree-sitter">Tree-Sitter</a></li>
+            <li><a href="#tree-sitter-cli">Tree-Sitter-CLI</a></li>
+            <li><a href="#tree-sitter-parsers">Tree-Sitter Parsers</a></li>
+            <li><a href="#yazi">Yazi</a></li>
+            <li><a href="#rustlings">Rustlings</a></li>
+            <li><a href="#neovim">Neovim</a></li>
+        </ol>
+        <h2 id="installing-rust">Installing Rust</h2>
+        <p>
+            C-Menu is written in C, but there are many amazing tools written in
+            Rust that can augment your experience using C-Menu. Below are
+            instructions on how to install Rust and some of my favorite
+            Rust-based tools.
+        </p>
+        <p>
+            Run the following in your terminal, then follow the onscreen
+            instructions.
+        </p>
+        <div class="sourceCode" id="cb1">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">curl</span> <span class="at">--proto</span> <span class="st">&#39;=https&#39;</span> <span class="at">--tlsv1.2</span> <span class="at">-sSf</span> https://sh.rustup.rs <span class="kw">|</span> <span class="fu">sh</span></span></code></pre>
+        </div>
+        <p>For more detailed instructions, visit</p>
+        <p>
+            <a href="https://www.rust-lang.org/tools/install"
+                >the official Rust installation page</a
+            >
+        </p>
+        <p>
+            After installation, ensure that your environment is set up correctly
+            by running:
+        </p>
+        <div class="sourceCode" id="cb2">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>    <span class="bu">source</span> <span class="va">$HOME</span>/.cargo/env</span></code></pre>
+        </div>
+        <p>You can verify the installation by checking the Rust version:</p>
+        <div class="sourceCode" id="cb3">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">rustc</span> <span class="at">--version</span></span></code></pre>
+        </div>
+        <p>
+            This should display the installed Rust version, confirming that Rust
+            is successfully installed on your system.
+        </p>
+        <p>
+            Rust comes with Cargo, the Rust package manager, which you can use
+            to install additional Rust-based tools.
+        </p>
+        <p>You can update Rust and Cargo at any time by running:</p>
+        <div class="sourceCode" id="cb4">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">rustup</span> update</span></code></pre>
+        </div>
+        <h2 id="about-c-menu-and-r-menu">About C-Menu and R-Menu</h2>
+        <p>
+            Eventually, if there is enough interest in C-Menu, it will be ported
+            to Rust as well! And, they it will be called R-Menu. :)
+        </p>
+        <h2 id="installing-bat">Installing Bat</h2>
+        <p>
+            To install Bat, a cat clone with syntax highlighting and Git
+            integration, you can use the following commands based on your
+            operating system:
+        </p>
+        <h3 id="on-linux">On Linux</h3>
+        <p>
+            After installing Rust, you can install Bat using Cargo, Rust's
+            package manager:
+        </p>
+        <div class="sourceCode" id="cb5">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">cargo</span> install bat</span></code></pre>
+        </div>
+        <h3 id="on-macos">On macOS</h3>
+        <div class="sourceCode" id="cb6">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">brew</span> install bat</span></code></pre>
+        </div>
+        <h3 id="on-windows">On Windows</h3>
+        <div class="sourceCode" id="cb7">
+            <pre
+                class="sourceCode powershell"
+            ><code class="sourceCode powershell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>    choco install bat</span></code></pre>
+        </div>
+        <p>
+            After installation, you can verify that Bat is installed correctly
+            by running:
+        </p>
+        <div class="sourceCode" id="cb8">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">bat</span> <span class="at">--version</span></span></code></pre>
+        </div>
+        <p>
+            This should display the installed Bat version, confirming that Bat
+            is successfully installed on your system.
+        </p>
+        <h2 id="installing-ripgrep">Installing Ripgrep</h2>
+        <p>
+            To install Ripgrep, a line-oriented search tool that recursively
+            searches your current directory for a regex pattern, you can use the
+            following commands based on your operating system:
+        </p>
+        <h3 id="on-linux-1">On Linux</h3>
+        <p>
+            After installing Rust, you can install Ripgrep using Cargo, Rust's
+            package manager:
+        </p>
+        <div class="sourceCode" id="cb9">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">cargo</span> install ripgrep</span></code></pre>
+        </div>
+        <h3 id="on-macos-1">On macOS</h3>
+        <div class="sourceCode" id="cb10">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">brew</span> install ripgrep</span></code></pre>
+        </div>
+        <h3 id="on-windows-1">On Windows</h3>
+        <div class="sourceCode" id="cb11">
+            <pre
+                class="sourceCode powershell"
+            ><code class="sourceCode powershell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    choco install ripgrep</span></code></pre>
+        </div>
+        <p>
+            After installation, you can verify that Ripgrep is installed
+            correctly by running:
+        </p>
+        <div class="sourceCode" id="cb12">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">rg</span> <span class="at">--version</span></span></code></pre>
+        </div>
+        <p>
+            This should display the installed Ripgrep version, confirming that
+            Ripgrep is successfully installed on your system.
+        </p>
+        <h2 id="lsd">lsd</h2>
+        <p>
+            To install lsd, a modern replacement for 'ls' with colorful output
+            and additional features, you can use the following commands based on
+            your operating system:
+        </p>
+        <h3 id="on-linux-2">On Linux</h3>
+        <p>
+            After installing Rust, you can install lsd using Cargo, Rust's
+            package manager:
+        </p>
+        <div class="sourceCode" id="cb13">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">cargo</span> install lsd</span></code></pre>
+        </div>
+        <h3 id="on-macos-2">On macOS</h3>
+        <div class="sourceCode" id="cb14">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">brew</span> install lsd</span></code></pre>
+        </div>
+        <h3 id="on-windows-2">On Windows</h3>
+        <div class="sourceCode" id="cb15">
+            <pre
+                class="sourceCode powershell"
+            ><code class="sourceCode powershell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>    choco install lsd</span></code></pre>
+        </div>
+        <p>
+            After installation, you can verify that lsd is installed correctly
+            by running:
+        </p>
+        <div class="sourceCode" id="cb16">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">lsd</span> <span class="at">--version</span></span></code></pre>
+        </div>
+        <p>
+            This should display the installed lsd version, confirming that lsd
+            is successfully installed on your system
+        </p>
+        <h2 id="tree-sitter">Tree-Sitter</h2>
+        <p>
+            To install Tree-Sitter, a parser generator tool and an incremental
+            parsing library, you can use the following commands based on your
+            operating system:
+        </p>
+        <h3 id="on-linux-3">On Linux</h3>
+        <p>
+            After installing Rust, you can install Tree-Sitter using Cargo,
+            Rust's package manager:
+        </p>
+        <div class="sourceCode" id="cb17">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">cargo</span> install tree-sitter-cli</span></code></pre>
+        </div>
+        <h3 id="on-macos-3">On macOS</h3>
+        <div class="sourceCode" id="cb18">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">brew</span> install tree-sitter</span></code></pre>
+        </div>
+        <h3 id="on-windows-3">On Windows</h3>
+        <div class="sourceCode" id="cb19">
+            <pre
+                class="sourceCode powershell"
+            ><code class="sourceCode powershell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>    choco install tree-sitter</span></code></pre>
+        </div>
+        <p>
+            After installation, you can verify that Tree-Sitter is installed
+            correctly by running:
+        </p>
+        <div class="sourceCode" id="cb20">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">tree-sitter</span> <span class="at">--version</span></span></code></pre>
+        </div>
+        <p>
+            This should display the installed Tree-Sitter version, confirming
+            that Tree-Sitter is successfully installed on your system.
+        </p>
+        <h2 id="tree-sitter-cli">Tree-Sitter-CLI</h2>
+        <p>
+            To install Tree-Sitter-CLI, a command-line interface for
+            Tree-Sitter, you can use the following commands based on your
+            operating system:
+        </p>
+        <h3 id="on-linux-4">On Linux</h3>
+        <p>
+            After installing Rust, you can install Tree-Sitter-CLI using Cargo,
+            Rust's package manager:
+        </p>
+        <div class="sourceCode" id="cb21">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">cargo</span> install tree-sitter-cli</span></code></pre>
+        </div>
+        <h3 id="on-macos-4">On macOS</h3>
+        <div class="sourceCode" id="cb22">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">brew</span> install tree-sitter-cli</span></code></pre>
+        </div>
+        <h3 id="on-windows-4">On Windows</h3>
+        <div class="sourceCode" id="cb23">
+            <pre
+                class="sourceCode powershell"
+            ><code class="sourceCode powershell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>    choco install tree-sitter-cli</span></code></pre>
+        </div>
+        <p>
+            After installation, you can verify that Tree-Sitter-CLI is installed
+            correctly by running:
+        </p>
+        <div class="sourceCode" id="cb24">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">tree-sitter</span> <span class="at">--version</span></span></code></pre>
+        </div>
+        <p>
+            This should display the installed Tree-Sitter-CLI version,
+            confirming that Tree-Sitter-CLI is successfully installed on your
+            system.
+        </p>
+        <h2 id="tree-sitter-parsers">Tree-Sitter Parsers</h2>
+        <p>
+            To install Tree-Sitter parsers for various programming languages,
+            you can use the following commands based on your operating system:
+        </p>
+        <h3 id="on-linux-5">On Linux</h3>
+        <p>
+            After installing Rust, you can install Tree-Sitter parsers using
+            Cargo, Rust's package manager:
+        </p>
+        <div class="sourceCode" id="cb25">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">cargo</span> install tree-sitter-<span class="op">&lt;</span>language<span class="op">&gt;</span></span></code></pre>
+        </div>
+        <h3 id="on-macos-5">On macOS</h3>
+        <div class="sourceCode" id="cb26">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">brew</span> install tree-sitter-<span class="op">&lt;</span>language<span class="op">&gt;</span></span></code></pre>
+        </div>
+        <h3 id="on-windows-5">On Windows</h3>
+        <div class="sourceCode" id="cb27">
+            <pre
+                class="sourceCode powershell"
+            ><code class="sourceCode powershell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>    choco install tree-sitter-<span class="op">&lt;</span>language<span class="op">&gt;</span></span></code></pre>
+        </div>
+        <p>
+            After installation, you can verify that the Tree-Sitter parser for
+            your chosen language is installed correctly by running:
+        </p>
+        <div class="sourceCode" id="cb28">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">tree-sitter</span> <span class="op">&lt;</span>language<span class="op">&gt;</span> --version</span></code></pre>
+        </div>
+        <p>
+            This should display the installed Tree-Sitter parser version for
+            your chosen language, confirming that it is successfully installed
+            on your system. Replace <code>&lt;language&gt;</code> with the
+            specific programming language you want to install the parser for,
+            such as <code>python</code>, <code>javascript</code>,
+            <code>rust</code>, etc.
+        </p>
+        <h2 id="yazi">Yazi</h2>
+        <p>
+            Yazi is a simple and elegant terminal-based markdown viewer built
+            with Rust. It provides a clean and distraction-free way to read
+            markdown files directly in your terminal. To install Yazi, you can
+            use the following commands based on your operating system:
+        </p>
+        <h3 id="on-linux-6">On Linux</h3>
+        <p>
+            After installing Rust, you can install Yazi using Cargo, Rust's
+            package manager:
+        </p>
+        <div class="sourceCode" id="cb29">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">cargo</span> install yazi</span></code></pre>
+        </div>
+        <h3 id="on-macos-6">On macOS</h3>
+        <div class="sourceCode" id="cb30">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">brew</span> install yazi</span></code></pre>
+        </div>
+        <h3 id="on-windows-6">On Windows</h3>
+        <div class="sourceCode" id="cb31">
+            <pre
+                class="sourceCode powershell"
+            ><code class="sourceCode powershell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>    choco install yazi</span></code></pre>
+        </div>
+        <p>
+            After installation, you can verify that Yazi is installed correctly
+            by running:
+        </p>
+        <div class="sourceCode" id="cb32">
+            <pre
+                class="sourceCode bash"
+            ><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">yazi</span> <span class="at">--version</span></span></code></pre>
+        </div>
+        <p>
+            This should display the installed Yazi version, confirming that Yazi
+            is successfully installed on your system
+        </p>
+        <h2 id="rustlings">Rustlings</h2>
+        <p>
+            Another tool I have really enjoyed is Rustlings. The Rustlings
+            tutorials are an invaluable companion to the Rust Book.
+        </p>
+        <p><a href="https://doc.rust-lang.org/book/">The Rust Book</a></p>
+        <p><img src="../screenshots/rustlings1.png" title="Rustlings 1" /></p>
+        <p><img src="../screenshots/rustlings2.png" title="Rustlings 2" /></p>
+        <h2 id="neovim">Neovim</h2>
+        <p>
+            And last, but certainly not least in my list of essential tools is
+            Neovim. I loved vim and used it for many years. I can't say whether
+            Vim or Neovim is better because both have evolved to provide
+            competitive features. I can say, for me, Neovim plugins seem more
+            accessible, and it has everything I want and more.
+        </p>
+        <p><img src="../screenshots/Neovim.png" title="Neovim" /></p>
+        <h2 id="additional-resources">Additional Resources</h2>
+        <p>
+            For more information on Rust and its tools, you can visit the
+            following resources:
+        </p>
+        <ul>
+            <li>
+                <p>
+                    <a href="https://doc.rust-lang.org/book/"
+                        >The Rust Programming Language Book</a
+                    >
+                </p>
+            </li>
+            <li>
+                <p>
+                    <a href="https://rustlings.rust-lang.org/"
+                        >Rustlings Exercises</a
+                    >
+                </p>
+            </li>
+            <li>
+                <p>
+                    <a href="https://doc.rust-lang.org/cargo/"
+                        >Cargo Documentation</a
+                    >
+                </p>
+            </li>
+            <li>
+                <p>
+                    <a href="https://github.com/sharkdp/bat"
+                        >Bat GitHub Repository</a
+                    >
+                </p>
+            </li>
+            <li>
+                <p>
+                    <a href="https://github.com/BurntSushi/ripgrep"
+                        >Ripgrep GitHub Repository</a
+                    >
+                </p>
+            </li>
+        </ul>
+        <h2 id="conclusion">Conclusion</h2>
+        <p>
+            By following the above instructions, you can easily install Rust and
+            various Rust-based tools to enhance your C-Menu experience. Enjoy
+            coding with these powerful tools!
+        </p>
+    </body>
+</html>
