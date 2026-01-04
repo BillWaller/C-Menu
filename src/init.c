@@ -12,7 +12,8 @@
 enum {
     MAPP_MSRC = 257,
     MAPP_HELP,
-    MAPP_DATA,
+    MAPP_HELP_DIR,
+    MAPP_DATA_DIR,
     MAPP_SPEC,
     HELP_SPEC,
     IN_SPEC,
@@ -66,8 +67,8 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     init->help_spec[0] = '\0';                    // H: help spec
     init->f_at_end_clear = true;                  // z  clear screen on exit
     init->f_erase_remainder = true;               // e  erase remainder on enter
-    init->f_brackets = true;                      // f  erase remainder on enter
-    strnz__cpy(init->fill_char, "_", MAXLEN - 1); // u  underscore
+    init->brackets[0] = '\0';                     // u  brackets
+    strnz__cpy(init->fill_char, "_", MAXLEN - 1); // f  fill character
     init->prompt_type = PT_LONG;                  // P: prompt type
     strnz__cpy(init->mapp_spec, "main.m", MAXLEN - 1);
     strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
@@ -82,7 +83,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         dump_config(init, "Configuration after parse_config");
     // Priority 1 - opt_args
     parse_opt_args(init, argc, argv);
-
     if (f_dump_config) {
         dump_config(init, "Configuration after parse_config and "
                           "parse_opt_args");
@@ -96,6 +96,16 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     }
     if (f_version) {
         display_version();
+    }
+    if (init->mapp_home[0] != '\0') {
+        expand_tilde(init->mapp_home, MAXLEN - 1);
+        if (!verify_dir(init->mapp_home, R_OK))
+            abend(-1, "MAPP_HOME directory invalid");
+        if (init->cd_mapp_home) {
+            if (chdir(init->mapp_home) != 0) {
+                abend(-1, "failed to change to MAPP_HOME directory");
+            }
+        }
     }
 }
 // ╭───────────────────────────────────────────────────────────────────╮
@@ -128,12 +138,17 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int flag = 0;
 
     char *optstring =
-        "a:b:c:d:f:g:hi:m:n:o:p:rst:uvwxzA:B:C:DE:F:H:L:MO:P:R:S:T:U:VX:Y:Z";
-    struct option long_options[] = {
-        {"mapp_data", 1, &flag, MAPP_DATA}, {"mapp_spec", 1, &flag, MAPP_SPEC},
-        {"mapp_help", 1, &flag, MAPP_HELP}, {"help_spec", 1, &flag, HELP_SPEC},
-        {"in_spec", 1, &flag, IN_SPEC},     {"out_spec", 1, &flag, OUT_SPEC},
-        {"mapp_msrc", 1, &flag, MAPP_MSRC}, {0, 0, 0, 0}};
+        "a:b:c:d:ef:g:hi:m:n:o:p:r:st:u:vw:xzA:B:C:DF:H:L:MO:P:R:S:T:VWX:Y:Z";
+    struct option long_options[] = {{"help", 0, &flag, MAPP_HELP},
+                                    {"mapp_spec", 1, &flag, MAPP_SPEC},
+                                    {"mapp_data", 1, &flag, MAPP_DATA_DIR},
+                                    {"mapp_help", 1, &flag, MAPP_HELP_DIR},
+                                    {"help_spec", 1, &flag, HELP_SPEC},
+                                    {"mapp_spec", 1, &flag, MAPP_SPEC},
+                                    {"in_spec", 1, &flag, IN_SPEC},
+                                    {"out_spec", 1, &flag, OUT_SPEC},
+                                    {"mapp_msrc", 1, &flag, MAPP_MSRC},
+                                    {0, 0, 0, 0}};
     char mapp[MAXLEN];
     base_name(mapp, argv[0]);
     optind = 1;
@@ -145,14 +160,17 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             //  │ LONG_OPTIONS                                      │
             //  ╰───────────────────────────────────────────────────╯
             switch (flag) {
-            case MAPP_DATA:
+            case MAPP_HELP:
+                init->help = true;
+                break;
+            case MAPP_DATA_DIR:
                 strnz__cpy(init->mapp_data, optarg, MAXLEN - 1);
+                break;
+            case MAPP_HELP_DIR:
+                strnz__cpy(init->mapp_help, optarg, MAXLEN - 1);
                 break;
             case MAPP_SPEC:
                 strnz__cpy(init->mapp_spec, optarg, MAXLEN - 1);
-                break;
-            case MAPP_HELP:
-                strnz__cpy(init->mapp_help, optarg, MAXLEN - 1);
                 break;
             case HELP_SPEC:
                 strnz__cpy(init->help_spec, optarg, MAXLEN - 1);
@@ -179,14 +197,14 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'b':
             init->blue_gamma = str_to_double(optarg);
             break;
+        case 'c':
+            strnz__cpy(init->cmd, optarg, MAXLEN - 1);
+            break;
         case 'd':
             strnz__cpy(init->mapp_spec, optarg, MAXLEN - 1);
             break;
         case 'e':
             init->f_erase_remainder = true;
-            break;
-        case 'u':
-            init->f_brackets = true;
             break;
         case 'g':
             init->green_gamma = str_to_double(optarg);
@@ -197,6 +215,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'i':
             strnz__cpy(init->in_spec, optarg, MAXLEN - 1);
             break;
+        case 'l':
+            init->cd_mapp_home = true;
+            break;
         case 'm':
             strnz__cpy(init->mapp_home, optarg, MAXLEN - 1);
             break;
@@ -205,6 +226,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'o':
             strnz__cpy(init->out_spec, optarg, MAXLEN - 1);
+            break;
+        case 'p':
+            strnz__cpy(init->prompt_str, optarg, MAXLEN - 1);
             break;
         case 'r':
             init->red_gamma = str_to_double(optarg);
@@ -217,15 +241,15 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             if (init->tab_stop < 1)
                 init->tab_stop = 1;
             break;
-        case 'f':
-            strncpy(init->fill_char, optarg, 2);
+        case 'u': // brackets
+            strnz__cpy(init->brackets, optarg, 2);
+            break;
+        case 'f': // fill char
+            strncpy(init->fill_char, optarg, 1);
             break;
         case 'v':
         case 'V':
             f_version = true;
-            break;
-        case 'w':
-            f_write_config = true;
             break;
         case 'x':
             init->f_ignore_case = true;
@@ -267,14 +291,8 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(tmp_str, optarg, MAXLEN - 1);
             init->prompt_type = prompt_str_to_int(tmp_str);
             break;
-        case 'p':
-            strnz__cpy(init->prompt_str, optarg, MAXLEN - 1);
-            break;
         case 'R':
             strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
-            break;
-        case 'c':
-            strnz__cpy(init->cmd, optarg, MAXLEN - 1);
             break;
         case 'A':
             strnz__cpy(init->cmd_all, optarg, MAXLEN - 1);
@@ -284,6 +302,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'U':
             strnz__cpy(init->mapp_user, optarg, MAXLEN - 1);
+            break;
+        case 'W':
+            f_write_config = true;
             break;
         case 'X':
             init->begx = atoi(optarg);
@@ -402,8 +423,12 @@ int parse_config(Init *init) {
                 init->f_erase_remainder = str_to_bool(value);
                 continue;
             }
-            if (!strcmp(key, "f_brackets")) {
-                init->f_brackets = str_to_bool(value);
+            if (!strcmp(key, "cd_mapp_home")) {
+                init->cd_mapp_home = str_to_bool(value);
+                continue;
+            }
+            if (!strcmp(key, "brackets")) {
+                strnz__cpy(init->brackets, value, 2);
                 continue;
             }
             if (!strcmp(key, "fill_char")) {
@@ -624,6 +649,8 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%d\n", "lines", init->lines);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begx", init->begx);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "help", init->help ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", init->black);
     (void)fprintf(minitrc_fp, "%s=%s\n", "red", init->red);
     (void)fprintf(minitrc_fp, "%s=%s\n", "green", init->green);
@@ -649,14 +676,15 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", init->red_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", init->green_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", init->blue_gamma);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "brackets", init->brackets);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cd_mapp_home",
+                  init->cd_mapp_home ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
                   init->f_at_end_clear ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
                   init->f_at_end_remove ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
                   init->f_erase_remainder ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_brackets",
-                  init->f_brackets ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "fill_char", init->fill_char);
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_ignore_case",
                   init->f_ignore_case ? "true" : "false");
@@ -767,13 +795,15 @@ void dump_config(Init *init, char *msg) {
     opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
     opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
     opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
-    opt_prt_bool("-u", "  f_brackets", init->f_brackets);
+    opt_prt_bool("-h", "  help", init->help);
     opt_prt_str("-f:", "  fill_char", init->fill_char);
+    opt_prt_bool("-l:", "--cd_mapp_home", init->cd_mapp_home);
     opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
     opt_prt_bool("-Z ", "--f_stop_on_error", init->f_stop_on_error);
     opt_prt_int("-t:", "--tab_stop", init->tab_stop);
     prompt_int_to_str(tmp_str, init->prompt_type);
+    opt_prt_str("-u", "  brackets", init->brackets);
     opt_prt_str("-P:", "--promp_type", tmp_str);
     opt_prt_int("-n:", "--select_max", init->select_max);
     opt_prt_str("-c:", "--cmd", init->provider_cmd);

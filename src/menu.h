@@ -462,7 +462,7 @@ typedef struct {
     // file flags
     bool f_mapp_spec;
     bool f_help_spec;
-    bool f_help;
+    bool help;
     bool f_provider_cmd;
     bool f_receiver_cmd;
     bool f_cmd;
@@ -557,11 +557,11 @@ typedef struct {
     bool f_calculate;
     bool f_query;
     bool f_stop_on_error;
-    bool f_help;
+    bool help;
     bool f_provider_cmd;
     bool f_receiver_cmd;
     bool f_cmd;
-    bool f_brackets;
+    char brackets[3];
     char fill_char[2];
     int fidx;
     int fcnt;
@@ -629,7 +629,7 @@ typedef struct {
     bool f_multiple_cmd_args;
     bool f_stop_on_error;
     bool f_selected[OBJ_MAXCNT];
-    bool f_help;
+    bool help;
     bool f_provider_cmd;
     bool f_receiver_cmd;
     bool f_cmd;
@@ -712,7 +712,7 @@ typedef struct {
     bool f_line_numbers;
     bool f_wrap;
     bool f_full_screen;
-    bool f_help;
+    bool help;
     bool f_timer;
     bool f_provider_cmd;
     bool f_receiver_cmd;
@@ -897,8 +897,8 @@ typedef struct {
     bool f_stop_on_error;     // -Z  stop on error
     bool f_multiple_cmd_args; // -M  multiple command arguments
     bool f_erase_remainder;   // -e: erase remainder of line on enter
-    bool f_brackets;          // -f: field_brackets
-    bool f_help;
+    char brackets[3];         // -f: field_brackets
+    bool help;
 
     // directories
     char mapp_home[MAXLEN]; // -m: home directory
@@ -906,6 +906,7 @@ typedef struct {
     char mapp_help[MAXLEN]; //     --mapp_help
     char mapp_msrc[MAXLEN]; //     --mapp_msrc
     char mapp_user[MAXLEN]; // -u: user directory
+    bool cd_mapp_home;
     // directory flags
     bool f_mapp_home; // -m: home directory
     bool f_mapp_data; //

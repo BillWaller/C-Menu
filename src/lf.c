@@ -118,9 +118,9 @@ bool lf_find_dirs(char *dir, char *re, int flags) {
                 strcat(file_spec, "/");
             strcat(file_spec, dir_st->d_name);
             if (stat(file_spec, &sb) == -1) {
-                strncpy(tmp_str, "can't stat ", MAXLEN - 1);
-                strncat(tmp_str, file_spec, MAXLEN - strlen(tmp_str));
-                perror(tmp_str);
+                //  strncpy(tmp_str, "can't stat ", MAXLEN - 1);
+                //  strncat(tmp_str, file_spec, MAXLEN - strlen(tmp_str));
+                //  perror(tmp_str);
                 return false;
             }
             if ((sb.st_mode & S_IFMT) == S_IFDIR) {
@@ -166,9 +166,9 @@ bool lf_find_files(char *dir, char *re, int flags) {
                 strcat(file_spec, "/");
             strcat(file_spec, dir_st->d_name);
             if (stat(file_spec, &sb) == -1) {
-                strcpy(tmp_str, "can't stat ");
-                strcat(tmp_str, file_spec);
-                perror(tmp_str);
+                // strcpy(tmp_str, "can't stat ");
+                // strcat(tmp_str, file_spec);
+                // perror(tmp_str);
                 return false;
             }
             if ((sb.st_mode & S_IFMT) == S_IFDIR)

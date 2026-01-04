@@ -6,6 +6,7 @@
 #   echo usage: inst.sh FileName Directory DestName Mode Owner Group
 #   echo "    -l      list installed files"
 #   echo "    -m      echo message to terminal
+#   echo "    -p      create ~/menuapp/bin/project_src
 #   echo "    --      clear installed files list"
 #
 
@@ -57,6 +58,13 @@ if [ "$#" -eq 1 ]; then
         echo "To copy the sample menuapp directory to your home directory:"
         echo "cp -Rdup ../menuapp ~/"
         echo
+        exit 0
+    fi
+    if [ "$1" = "-p" ]; then
+        mkdir -p ~/menuapp/msrc
+        CMENU_SRC="$(dirname "$(realpath "$0")")"
+        echo "$CMENU_SRC" >~/menuapp/msrc/.cmenu_src
+        echo ~/menuapp/msrc/.cmenu_src created
         exit 0
     fi
 fi

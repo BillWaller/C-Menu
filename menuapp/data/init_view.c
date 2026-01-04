@@ -44,7 +44,7 @@ int init_view_full_screen(Init *init) {
     set_tabsize(view->tab_stop);
     wsetscrreg(view->win, 0, view->scroll_lines - 1);
     scrollok(view->win, true);
-    immedok(view->win, true);
+    // immedok(view->win, true);
     keypad(view->win, true);
     idlok(view->win, false);
     idcok(view->win, false);
@@ -57,17 +57,22 @@ int init_view_boxwin(Init *init, char *title) {
     int scr_lines, scr_cols;
     view = init->view;
     view->f_full_screen = false;
-    scr_lines = LINES;
-    scr_cols = COLS;
+    // scr_lines = LINES;
+    // scr_cols = COLS;
     getmaxyx(stdscr, scr_lines, scr_cols);
-    if (view->begy + view->lines > scr_lines)
+    if (view->lines > scr_lines)
         view->lines = scr_lines;
-    if (view->begx + view->cols > scr_cols)
+    if (view->cols > scr_cols)
         view->cols = scr_cols;
+    if (view->begy + view->lines > scr_lines)
+        view->begy = scr_lines - view->lines - 2;
+    if (view->begx + view->cols > scr_cols) {
+        view->begx = scr_cols - view->cols - 2;
+    }
     if (title != NULL && title[0] != '\0')
         strnz__cpy(view->title, title, MAXLEN - 1);
     else if (view->argv[0] != NULL && view->argv[0][0] != '\0')
-        strnz__cpy(view->title, "no title", MAXLEN - 1);
+        strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
     if (win_new(view->lines, view->cols, view->begy, view->begx, view->title)) {
         snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
         snprintf(em1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
@@ -97,13 +102,12 @@ int init_view_boxwin(Init *init, char *title) {
     set_tabsize(view->tab_stop);
     wsetscrreg(view->win, 0, view->scroll_lines - 1);
     scrollok(view->win, true);
-    immedok(view->win, true);
+    // immedok(view->win, true);
     keypad(view->win, true);
     idlok(view->win, false);
     idcok(view->win, false);
     return (0);
 }
-
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ VIEW_INIT_INPUT                                               │
 //  ╰───────────────────────────────────────────────────────────────╯
@@ -113,13 +117,11 @@ bool view_init_input(View *view, char *file_name) {
     pid_t pid;
     int pipe_fd[2];
     char *s_argv[MAXARGS];
-    int in_fd;
 
     if (strcmp(file_name, "-") == 0) {
         file_name = "/dev/stdin";
         view->f_in_pipe = true;
     }
-
     //  ╭───────────────────────────────────────────────────────────────╮
     //  │ INPUT IS FROM START_CMD                                       │
     //  │ SETUP PIPES                                                   │
@@ -149,35 +151,37 @@ bool view_init_input(View *view, char *file_name) {
         // Back to parent
         close(pipe_fd[P_WRITE]);
         dup2(pipe_fd[P_READ], STDIN_FILENO);
-        in_fd = dup(STDIN_FILENO);
+        view->in_fd = dup(STDIN_FILENO);
         view->f_in_pipe = true;
     } else {
         //  ╭───────────────────────────────────────────────────────────────╮
         //  │ ATTEMPT to OPEN FILENAME                                      │
         //  ╰───────────────────────────────────────────────────────────────╯
         if (view->f_in_pipe)
-            in_fd = dup(STDIN_FILENO);
-        else
-            in_fd = open(file_name, O_RDONLY);
-        if (in_fd == -1) {
-            snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-            snprintf(em1, MAXLEN - 65, "open %s", file_name);
-            strerror_r(errno, em2, MAXLEN);
-
-            display_error(em0, em1, em2, NULL);
-            return false;
+            view->in_fd = dup(STDIN_FILENO);
+        else {
+            view->in_fd = open(file_name, O_RDONLY);
+            if (view->in_fd == -1) {
+                snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                         __LINE__ - 2);
+                snprintf(em1, MAXLEN - 65, "open %s", file_name);
+                strerror_r(errno, em2, MAXLEN);
+                display_error(em0, em1, em2, NULL);
+                return false;
+            }
+            if (fstat(view->in_fd, &sb) == -1) {
+                snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                         __LINE__ - 1);
+                snprintf(em1, MAXLEN - 65, "fstat %s", file_name);
+                strerror_r(errno, em2, MAXLEN);
+                display_error(em0, em1, em2, NULL);
+                close(view->in_fd);
+                return (EXIT_FAILURE);
+            }
+            view->file_size = sb.st_size;
+            if (!S_ISREG(sb.st_mode))
+                view->f_in_pipe = true;
         }
-        if (fstat(in_fd, &sb) == -1) {
-            snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-            snprintf(em1, MAXLEN - 65, "fstat %s", file_name);
-            strerror_r(errno, em2, MAXLEN);
-            display_error(em0, em1, em2, NULL);
-            close(in_fd);
-            return EXIT_FAILURE;
-        }
-        view->file_size = sb.st_size;
-        if (!S_ISREG(sb.st_mode))
-            view->f_in_pipe = true;
     }
     if (view->f_in_pipe) {
         char tmp_filename[] = "/tmp/view_XXXXXX";
@@ -186,44 +190,55 @@ bool view_init_input(View *view, char *file_name) {
         //  ╭───────────────────────────────────────────────────────╮
         //  │ CLONE STDIN to TMP_FILENAME                           │
         //  ╰───────────────────────────────────────────────────────╯
-        close(in_fd);
-        in_fd = mkstemp(tmp_filename);
-        if (in_fd == -1)
+        close(view->in_fd);
+        view->in_fd = mkstemp(tmp_filename);
+        if (view->in_fd == -1) {
             abend(-1, "failed to mkstemp");
+            exit(EXIT_FAILURE);
+        }
         unlink(tmp_filename);
         while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0)
-            if (write(in_fd, buf, bytes_read) != bytes_read)
+            if (write(view->in_fd, buf, bytes_read) != bytes_read) {
                 abend(-1, "unable to write tmp");
-        if (bytes_read == -1)
+                exit(EXIT_FAILURE);
+            }
+        if (bytes_read == -1) {
             abend(-1, "unable to read stdin");
-        if (fstat(in_fd, &sb) == -1)
+            exit(EXIT_FAILURE);
+        }
+        if (fstat(view->in_fd, &sb) == -1) {
             abend(-1, "fstat failed");
+            exit(EXIT_FAILURE);
+        }
         view->file_size = sb.st_size;
         if (view->file_size == 0) {
-            close(in_fd);
+            close(view->in_fd);
             strnz__cpy(tmp_str, "no standard input", MAXLEN - 1);
             abend(-1, tmp_str);
+            exit(EXIT_FAILURE);
         }
+        waitpid(-1, NULL, 0);
     }
     //  ╭───────────────────────────────────────────────────────────────╮
     //  │ MMAP                                                          │
     //  ╰───────────────────────────────────────────────────────────────╯
-    view->buf = mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, in_fd, 0);
+    view->buf =
+        mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, view->in_fd, 0);
     if (view->buf == MAP_FAILED) {
         snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
         snprintf(em1, MAXLEN - 65, "mmap %s", file_name);
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, NULL);
-        close(in_fd);
-        return EXIT_FAILURE;
+        close(view->in_fd);
+        return (EXIT_FAILURE);
     }
-    close(in_fd);
+    close(view->in_fd);
     view->file_size = sb.st_size;
     view->f_new_file = true;
     view->prev_file_pos = NULL_POSITION;
     view->buf_curr_ptr = view->buf;
-    if (view->view_cmd_all[0] != '\0')
-        strnz__cpy(view->view_cmd, view->view_cmd_all, MAXLEN - 1);
+    if (view->cmd_all[0] != '\0')
+        strnz__cpy(view->cmd, view->cmd_all, MAXLEN - 1);
     for (idx = 0; idx < NMARKS; idx++)
         view->mark_tbl[idx] = NULL_POSITION;
     strnz__cpy(view->cur_file_str, file_name, MAXLEN - 1);

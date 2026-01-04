@@ -49,7 +49,8 @@ CFLAGS = -O0 -g3 -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
 LIBS =  -lncursesw -ltinfo -lm
 LDFLAGS = -Wl,--gc-sections
 CC = gcc
-TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr lf optsp
+TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr lf \
+		  optsp stripansi
 TARGET_LIB = libmenu.a
 
 all:	$(TARGETS)
@@ -96,6 +97,8 @@ rsh:	rsh.c
 	$(CC) $(CFLAGS) $(LDFLAGS) rsh.c -o $@
 lf:	lf.c
 	$(CC) $(CFLAGS) $(LDFLAGS) lf.c -o $@
+stripansi:	stripansi.c
+	$(CC) $(CFLAGS) $(LDFLAGS) stripansi.c -o $@
 
 %:	%.c menu.h
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LIBS)
@@ -125,7 +128,9 @@ install:
 	./inst.sh	enterchr	$(PREFIX)/bin	enterchr	0711	$(OWNER)	$(GROUP)
 	./inst.sh	enterstr	$(PREFIX)/bin	enterstr	0711	$(OWNER)	$(GROUP)
 	./inst.sh	iloan		$(PREFIX)/bin	iloan		0711	$(OWNER)	$(GROUP)
+	./inst.sh	stripansi	$(PREFIX)/bin	stripansi	0711	$(OWNER)	$(GROUP)
 	./inst.sh	lf		$(PREFIX)/bin	lf		0711	$(OWNER)	$(GROUP)
+	./inst.sh -p
 	./inst.sh -l
 	./inst.sh -m
 
@@ -139,5 +144,6 @@ uninstall:
 			$(PREFIX)/bin/ush \
 			$(PREFIX)/bin/enterchr \
 			$(PREFIX)/bin/enterstr
+			$(PREFIX)/bin/stripansi
 			$(PREFIX)/bin/lf
 

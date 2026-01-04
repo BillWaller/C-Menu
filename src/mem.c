@@ -178,7 +178,7 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
         abend(-1, "init_form_files failed");
         return NULL;
     }
-    form->f_brackets = init->f_brackets;
+    strnz__cpy(form->brackets, init->brackets, 3);
     strnz__cpy(form->fill_char, init->fill_char, MAXLEN - 1);
     form->begy = begy;
     form->begx = begx;
