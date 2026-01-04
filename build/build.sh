@@ -20,6 +20,7 @@ cmake -S ../src -B .
 echo "chown $user:$group $CMAKE_INSTALL_PREFIX/bin/*" >post_install.sh
 echo "chown $rootuser:$rootgroup $CMAKE_INSTALL_PREFIX/bin/rsh" >>post_install.sh
 echo "chmod 4711 $CMAKE_INSTALL_PREFIX/bin/rsh" >>post_install.sh
+echo "ls -l --color \$(cat install_manifest.txt)" >>post_install.sh
 chmod a+x post_install.sh
 echo "Build complete."
 echo "To install: sudo ./install.sh"

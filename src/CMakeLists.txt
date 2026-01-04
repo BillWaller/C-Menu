@@ -68,6 +68,14 @@ add_executable(view view.c)
 target_link_libraries(view cmenu ${LIBS})
 install(TARGETS view DESTINATION bin)
 
+add_executable(optsp optsp.c opts.c)
+target_link_libraries(optsp)
+install(TARGETS optsp DESTINATION bin)
+
 add_executable(whence whence.c)
 target_link_libraries(whence)
 install(TARGETS whence DESTINATION bin)
+
+add_executable(stripansi stripansi.c)
+target_link_libraries(stripansi)
+install(TARGETS stripansi DESTINATION bin)
