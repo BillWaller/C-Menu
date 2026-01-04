@@ -10,9 +10,13 @@ void dump_opts_by_name();
 void dump_opts_by_group();
 void dump_opts_by_desc();
 void dump_opts_by_use(char *, char *);
+void dump_opts_by_short_opt();
 void sort_opts_by_name();
 void sort_opts_by_group();
 void sort_opts_by_desc();
+void sort_opts_by_short_opt();
+void print_opt_header();
+void print_opt(int);
 int strnz__cpy(char *, char *, int);
 static int comp_opt_desc(const void *, const void *);
 static int comp_opt_group(const void *, const void *);
@@ -36,6 +40,8 @@ Opts opts[] = {
     {"begx", 1, 4, "mpfv", "X:", "begin on column"},
     {"begy", 1, 4, "mpfv", "Y:", "begin on line"},
     {"title", 0, 3, "mpfv", "T:", "title"},
+    {"help", 2, 5, "mpfv", "h", "help"},
+    {"cd-mapp-home", 2, 5, "mpfv", "D", "cd ~/menuapp on start"},
     {"black", 0, 4, "mpfv", "", "black (#000000)"},
     {"red", 0, 4, "mpfv", "", "red (#bf0000)"},
     {"green", 0, 4, "mpfv", "", "green (#00cf00)"},
@@ -70,7 +76,7 @@ Opts opts[] = {
     {"f_squeeze", 2, 5, "...v", "s", "squeeze multiple blank lines"},
     {"f_mutiple_cmd_args", 2, 5, ".p..", "M", "multiple command arguments"},
     {"f_stop_on_error", 2, 5, "mpfv", "Z", "stop on error"},
-    {"brackets", 2, 5, "..f.", "u:", "brackets around fields"},
+    {"brackets", 0, 4, "..f.", "u:", "brackets around fields"},
     {"fill_char", 0, 4, "..f.", "f:", "field fill_char"},
     {"select_max", 1, 4, ".p..", "n:", "number of selections"},
     {"tab_stop", 1, 4, "...v", "t:", "number of spaces per tab"},
@@ -89,9 +95,9 @@ Opts opts[] = {
     {"mapp_help", 0, 1, "mpfv", "", "help directory"},
     {"mapp_home", 0, 1, "mpfv", "m:", "home directory"},
     {"mapp_msrc", 0, 1, "mpfv", "", "source directory"},
-    {"mapp_user", 0, 1, "mpfv", "u:", "user directory"},
+    {"mapp_user", 0, 1, "mpfv", "U:", "user directory"},
     {"", 0, 0, "",
-     ", "
+     ""
      ""}}; // End marker
 
 //  ╭───────────────────────────────────────────────────────────────────╮
@@ -111,6 +117,11 @@ static int comp_opt_desc(const void *o1, const void *o2) {
     const Opts *opt2 = o2;
     return strcmp(opt1->desc, opt2->desc);
 }
+static int comp_opt_short_opt(const void *o1, const void *o2) {
+    const Opts *opt1 = o1;
+    const Opts *opt2 = o2;
+    return strcmp(opt1->short_opt, opt2->short_opt);
+}
 
 void dump_opts_by_desc() {
     sort_opts_by_desc();
@@ -127,70 +138,22 @@ void dump_opts_by_group() {
     dump_opts();
 }
 
-void dump_opts() {
-    // struct Opts *opts;
-    char *type;
-    char *group;
-    qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_desc);
-    int i = 1;
-    while (opts[i].name != NULL) {
-        switch (opts[i].type) {
-        case OT_STRING:
-            type = "str";
-            break;
-        case OT_INT:
-            type = "int";
-            break;
-        case OT_BOOL:
-            type = "t/f";
-            break;
-        case OT_HEX:
-            type = "hex";
-            break;
-        default:
-            type = "unk";
-        }
-        switch (opts[i].group) {
-        case OG_FILES:
-            group = "file";
-            break;
-        case OG_DIRS:
-            group = "dir";
-            break;
-        case OG_SPECS:
-            group = "spec";
-            break;
-        case OG_MISC:
-            group = "misc";
-            break;
-        case OG_PARMS:
-            group = "prm";
-            break;
-        case OG_FLAGS:
-            group = "flg";
-            break;
-        case OG_COL:
-            group = "col";
-            break;
-        default:
-            group = "unk";
-        }
-        printf("%02d %-18s %-7s %-4s %-5s %s\n", i, opts[i].name, type, group,
-               opts[i].use, opts[i].desc);
-        i++;
-    }
+void dump_opts_by_short_opt() {
+    sort_opts_by_short_opt();
+    dump_opts();
 }
 
 void sort_opts_by_name() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_name);
 }
-
 void sort_opts_by_group() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_group);
 }
-
 void sort_opts_by_desc() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_desc);
+}
+void sort_opts_by_short_opt() {
+    qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_short_opt);
 }
 
 Opts *select_opt(char *name) {
@@ -202,19 +165,23 @@ Opts *select_opt(char *name) {
     return opt;
 }
 
+void dump_opts() {
+    // struct Opts *opts;
+    print_opt_header();
+    int i = 0;
+    while (opts[i].name != NULL) {
+        if (opts[i].name[0] != '\0')
+            print_opt(i);
+        i++;
+    }
+}
+
 void dump_opts_by_use(char *usage, char *mask) {
-    char *type;
-    char *group;
     int i = 0;
     int j = 0;
-    char c;
-
-    printf("\n%s\n\n", usage);
-
-    printf("   field name         type grp  mask opt description\n");
-    printf(
-        "   ------------------ ---- ---- ---- --- -------------------------\n");
-    while (opts[i].name != NULL) {
+    printf("\nusage: %s\n\n", usage);
+    print_opt_header();
+    while (opts[i].name != NULL && opts[i].name[0] != '\0') {
         for (j = 0; j < 4; j++) {
             if (mask[j] != '.' && mask[j] == opts[i].use[j])
                 break;
@@ -225,54 +192,68 @@ void dump_opts_by_use(char *usage, char *mask) {
             i++;
             continue;
         }
-        switch (opts[i].type) {
-        case OT_STRING:
-            type = "str";
-            break;
-        case OT_INT:
-            type = "int";
-            break;
-        case OT_BOOL:
-            type = "bool";
-            break;
-        case OT_HEX:
-            type = "hex";
-            break;
-        default:
-            type = "   ";
-        }
-        switch (opts[i].group) {
-        case OG_FILES:
-            group = "file";
-            break;
-        case OG_DIRS:
-            group = "dir";
-            break;
-        case OG_SPECS:
-            group = "spec";
-            break;
-        case OG_MISC:
-            group = "misc";
-            break;
-        case OG_PARMS:
-            group = "prm";
-            break;
-        case OG_FLAGS:
-            group = "flag";
-            break;
-        case OG_COL:
-            group = "col";
-            break;
-        default:
-            group = "   ";
-        }
-        if (opts[i].short_opt[0] == '\0')
-            c = ' ';
-        else
-            c = '-';
-        printf("%02d %s%-18s%s %-4s %-4s %4s %2s%1c%-3s%s%s%s%s\n", i, blue,
-               opts[i].name, reset, type, group, opts[i].use, yellow, c,
-               opts[i].short_opt, reset, green, opts[i].desc, reset);
-        i++;
+        if (opts[i].name[0] != '\0')
+            print_opt(i);
     }
+}
+
+void print_opt_header() {
+    printf("   field name         type grp  mask opt description\n");
+    printf(
+        "   ------------------ ---- ---- ---- --- -------------------------\n");
+}
+
+void print_opt(int i) {
+    char *type;
+    char *group;
+    char c;
+    switch (opts[i].type) {
+    case OT_STRING:
+        type = "str";
+        break;
+    case OT_INT:
+        type = "int";
+        break;
+    case OT_BOOL:
+        type = "bool";
+        break;
+    case OT_HEX:
+        type = "hex";
+        break;
+    default:
+        type = "   ";
+    }
+    switch (opts[i].group) {
+    case OG_FILES:
+        group = "file";
+        break;
+    case OG_DIRS:
+        group = "dir";
+        break;
+    case OG_SPECS:
+        group = "spec";
+        break;
+    case OG_MISC:
+        group = "misc";
+        break;
+    case OG_PARMS:
+        group = "prm";
+        break;
+    case OG_FLAGS:
+        group = "flag";
+        break;
+    case OG_COL:
+        group = "col";
+        break;
+    default:
+        group = "   ";
+    }
+    if (opts[i].short_opt[0] == '\0')
+        c = ' ';
+    else
+        c = '-';
+    printf("%02d %s%-18s%s %-4s %-4s %4s %2s%1c%-3s%s%s%s%s\n", i, blue,
+           opts[i].name, reset, type, group, opts[i].use, yellow, c,
+           opts[i].short_opt, reset, green, opts[i].desc, reset);
+    i++;
 }

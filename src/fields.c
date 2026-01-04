@@ -334,14 +334,14 @@ int form_display_field(Form *form) {
 //  ╰───────────────────────────────────────────────────────────────╯
 int form_display_field_brackets(Form *form) {
     int flin, fcol;
-    if (form->f_brackets) {
+    if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
         WINDOW *box = form->box;
         flin = form->field[form->fidx]->line + 1;
         fcol = form->field[form->fidx]->col;
         wmove(box, flin, fcol);
-        waddch(box, '[');
+        waddch(box, form->brackets[0]);
         wmove(box, flin, fcol + form->field[form->fidx]->len + 1);
-        waddch(box, ']');
+        waddch(box, form->brackets[1]);
         wrefresh(box);
     }
     return 0;

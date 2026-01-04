@@ -42,7 +42,7 @@ BEGIN {
     ansioff = "\x1b[0m"
     while (getline > 0) {
         line = $0
-        lineout = $0
+        lineout = ""
         while (match(line, /#[0-9a-fA-F]{6}/)) {
             if (RLENGTH > 0) {
                 color = substr(line, RSTART, RLENGTH)
@@ -51,12 +51,14 @@ BEGIN {
                 p2 = substr(line, RSTART, RLENGTH)
                 p3 = substr(line, RSTART + RLENGTH)
                 lineout = sprintf("%s%s%s%s", p1, ansi, p2, ansioff)
-                if (length(p3) > 0)
+                if (length(p3) > 0) {
                     line = p3
+                    continue
+                }
             }
-            lineout = sprintf("%s%s", lineout, line)
-            break
+            else
+                lineout = sprintf("%s%s", lineout, line)
         }
-        printf("%s\n", lineout)
+        printf("%s%s\n", lineout, line)
     }
 }

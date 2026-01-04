@@ -1,5 +1,23 @@
 # Installing Programs to Augment C-Menu
 
+## Table of Contents
+
+- [Installing Rust](#installing-rust)
+- [About C-Menu and R-Menu](#about-c-menu-and-r-menu)
+- [Installing Bat](#installing-bat)
+- [Installing Ripgrep](#installing-ripgrep)
+- [Installing lsd](#lsd)
+- [Installing Tree-Sitter](#tree-sitter)
+- [Installing Tree-Sitter-CLI](#tree-sitter-cli)
+- [Installing Tree-Sitter Parsers](#tree-sitter-parsers)
+- [Yazi](#yazi)
+- [Rustlings](#rustlings)
+- [Neovim](#neovim)
+
+## Installing Rust
+
+C-Menu is written in C, but there are many amazing tools written in Rust that can augment your experience using C-Menu. Below are instructions on how to install Rust and some of my favorite Rust-based tools.
+
 Run the following in your terminal, then follow the onscreen instructions.
 
 ```bash
@@ -100,20 +118,6 @@ After installation, you can verify that Ripgrep is installed correctly by runnin
 ```
 
 This should display the installed Ripgrep version, confirming that Ripgrep is successfully installed on your system.
-
-## Additional Resources
-
-For more information on Rust and its tools, you can visit the following resources:
-
-- [The Rust Programming Language Book](https://doc.rust-lang.org/book/)
-
-- [Rustlings Exercises](https://rustlings.rust-lang.org/)
-
-- [Cargo Documentation](https://doc.rust-lang.org/cargo/)
-
-- [Bat GitHub Repository](https://github.com/sharkdp/bat)
-
-- [Ripgrep GitHub Repository](https://github.com/BurntSushi/ripgrep)
 
 ## lsd
 
@@ -244,7 +248,38 @@ After installation, you can verify that the Tree-Sitter parser for your chosen l
 This should display the installed Tree-Sitter parser version for your chosen language, confirming that it is successfully installed on your system.
 Replace `<language>` with the specific programming language you want to install the parser for, such as `python`, `javascript`, `rust`, etc.
 
+## Yazi
 
+Yazi is a simple and elegant terminal-based markdown viewer built with Rust. It provides a clean and distraction-free way to read markdown files directly in your terminal.
+To install Yazi, you can use the following commands based on your operating system:
+
+### On Linux
+
+After installing Rust, you can install Yazi using Cargo, Rust's package manager:
+
+```bash
+    cargo install yazi
+```
+
+### On macOS
+
+```bash
+    brew install yazi
+```
+
+### On Windows
+
+```powershell
+    choco install yazi
+```
+
+After installation, you can verify that Yazi is installed correctly by running:
+
+```bash
+    yazi --version
+```
+
+This should display the installed Yazi version, confirming that Yazi is successfully installed on your system
 
 ## Rustlings
 
@@ -254,7 +289,6 @@ Another tool I have really enjoyed is Rustlings. The Rustlings tutorials are an 
 
 <img src="../screenshots/rustlings1.png" title="Rustlings 1" />
 
-
 <img src="../screenshots/rustlings2.png" title="Rustlings 2" />
 
 ## Neovim
@@ -262,6 +296,20 @@ Another tool I have really enjoyed is Rustlings. The Rustlings tutorials are an 
 And last, but certainly not least in my list of essential tools is Neovim. I loved vim and used it for many years. I can't say whether Vim or Neovim is better because both have evolved to provide competitive features. I can say, for me, Neovim plugins seem more accessible, and it has everything I want and more.
 
 <img src="../screenshots/Neovim.png" title="Neovim" />
+
+## Additional Resources
+
+For more information on Rust and its tools, you can visit the following resources:
+
+- [The Rust Programming Language Book](https://doc.rust-lang.org/book/)
+
+- [Rustlings Exercises](https://rustlings.rust-lang.org/)
+
+- [Cargo Documentation](https://doc.rust-lang.org/cargo/)
+
+- [Bat GitHub Repository](https://github.com/sharkdp/bat)
+
+- [Ripgrep GitHub Repository](https://github.com/BurntSushi/ripgrep)
 
 ## Conclusion
 
