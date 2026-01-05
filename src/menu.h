@@ -336,7 +336,6 @@ extern int mbegy;
 extern int mbegx;
 extern int mg_action, mg_col, mg_line;
 extern int mouse_support;
-extern int const ncolors[];
 
 enum Color {
     black,
