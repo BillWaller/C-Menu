@@ -121,11 +121,6 @@ char const colors_text[][10] = {
     "white",   "orange", "bg",    "abg",      "bblack", "bred",    "bgreen",
     "byellow", "bblue",  "bcyan", "bmagenta", "bwhite", "borange", ""};
 
-int const ncolors[512] = {
-    CLR_BLACK, CLR_RED,      CLR_GREEN,  CLR_YELLOW, CLR_BLUE,   CLR_MAGENTA,
-    CLR_CYAN,  CLR_WHITE,    CLR_BBLACK, CLR_BRED,   CLR_BGREEN, CLR_BYELLOW,
-    CLR_BBLUE, CLR_BMAGENTA, CLR_BCYAN,  CLR_BWHITE, CLR_NCOLORS};
-
 int cp_default;
 int cp_norm;
 int cp_box;

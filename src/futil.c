@@ -36,8 +36,8 @@ int str_to_args(char **, char *, int);
 double str_to_double(char *);
 void str_to_lower(char *);
 void str_to_upper(char *);
-void strnz_cpy(char *, char *, int);
-void strnz_cat(char *, char *, int);
+int strnz__cpy(char *, char *, int);
+int strnz__cat(char *, char *, int);
 void strz(char *);
 int strnz(char *, int);
 char *strz_dup(char *);
@@ -168,6 +168,7 @@ void str_to_upper(char *s) {
 //  │ max_len limits the destination buffer size                        │
 //  │ returns length of resulting string                                │
 //  ╰───────────────────────────────────────────────────────────────────╯
+int strnz__cpy(char *, char *, int);
 int strnz__cpy(char *d, char *s, int max_len) {
     char *e;
     int len = 0;
