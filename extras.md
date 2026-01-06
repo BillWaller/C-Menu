@@ -2,17 +2,17 @@
 
 ## Table of Contents
 
-- [Installing Rust](#installing-rust)
-- [About C-Menu and R-Menu](#about-c-menu-and-r-menu)
-- [Installing Bat](#installing-bat)
-- [Installing Ripgrep](#installing-ripgrep)
-- [Installing lsd](#lsd)
-- [Installing Tree-Sitter](#tree-sitter)
-- [Installing Tree-Sitter-CLI](#tree-sitter-cli)
-- [Installing Tree-Sitter Parsers](#tree-sitter-parsers)
-- [Yazi](#yazi)
-- [Rustlings](#rustlings)
-- [Neovim](#neovim)
+1. [Installing Rust](#installing-rust)
+2. [About C-Menu and R-Menu](#about-c-menu-and-r-menu)
+3. [Installing Bat](#installing-bat)
+4. [Installing Ripgrep](#installing-ripgrep)
+5. [lsd](#lsd)
+6. [Tree-Sitter](#tree-sitter)
+7. [Tree-Sitter-CLI](#tree-sitter-cli)
+8. [Tree-Sitter Parsers](#tree-sitter-parsers)
+9. [Yazi](#yazi)
+10. [Rustlings](#rustlings)
+11. [Neovim](#neovim)
 
 ## Installing Rust
 
