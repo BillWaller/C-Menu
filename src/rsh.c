@@ -1,19 +1,28 @@
-//  rsh.c
-//  Bill Waller Copyright (c) 2025
-//  <billxwaller@gmail.com>
+// rsh.c
+// Bill Waller Copyright (c) 2025
+// <billxwaller@gmail.com>
 //
-//  Build instructions:
-//
-//  cc rsh.c -o rsh
-//  sudo chown root:root rsh
-//  sudo chmod 4755 rsh
-//  exit
-//
-//  Test instructions:
-//
-//  $ rsh
-//  $ whoami
-//  root
+/// rsh - restricted shell to run bash as root
+/// Usage: rsh [args]
+/// If executed as 'rsh', this program sets the user ID and group ID to 0 (root)
+/// and then executes the user's default shell (or /usr/bin/bash if SHELL is not
+/// set) with the provided arguments. If no arguments are given, it runs the
+/// shell in interactive mode.
+///
+/// Build instructions:
+///
+/// To work properly, this program must be compiled and set with the setuid bit:
+/// $ sudo -s
+/// cc rsh.c -o rsh
+/// sudo chown root:root rsh
+/// sudo chmod 4755 rsh
+/// exit
+///
+/// Test instructions:
+///
+/// $ rsh
+/// $ whoami
+/// root
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -24,7 +33,8 @@
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
-char *strdup(const char *s);
+int strnz__cat(char *, char *, int);
+int strnz__cpy(char *, char *, int);
 
 #ifndef MAXLEN
 #define MAXLEN 256
@@ -48,7 +58,7 @@ int main(int argc, char **argv) {
     pid_t pid;
 
     if ((p = getenv("SHELL")))
-        strcpy(exec_cmd, p);
+        strnz__cpy(exec_cmd, p, MAXLEN - 1);
     cargv[0] = strdup(exec_cmd);
     c = 1;
     a = 1;
@@ -98,4 +108,45 @@ int main(int argc, char **argv) {
 void ABEND(int e, char const *s) {
     fprintf(stderr, "%s: %d %s\n", s, e, strerror(e));
     exit(EXIT_FAILURE);
+}
+
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRNZ_CPY                                                         │
+/// │ stops at max_len, newline, or carriage return                     │
+/// │ max_len limits the destination buffer size                        │
+/// │ returns length of resulting string                                │
+/// ╰───────────────────────────────────────────────────────────────────╯
+int strnz__cpy(char *d, char *s, int max_len) {
+    char *e;
+    int len = 0;
+
+    e = d + max_len;
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRNZ_CAT                                                         │
+/// │ stops at max_len, newline, or carriage return                     │
+/// │ max_len limits the destination buffer size                        │
+/// │ returns length of resulting string                                │
+/// ╰───────────────────────────────────────────────────────────────────╯
+int strnz__cat(char *d, char *s, int max_len) {
+    char *e;
+    int len = 0;
+
+    e = d + max_len;
+    while (*d != '\0' && *d != '\n' && *d != '\r' && d < e) {
+        d++;
+        len++;
+    }
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
 }

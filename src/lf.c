@@ -1,5 +1,8 @@
-// lf.c
-// recursively list files
+//  lf.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  billxwaller@gmail.com
+///  Recursively list files matching a regular expression
 
 #include <dirent.h>
 #include <fcntl.h>
@@ -26,6 +29,8 @@ bool list_files(char *, char *, int);
 bool lf_find_files(char *, char *, int);
 bool lf_find_dirs(char *, char *, int);
 bool lf_write_file(int, char *, int);
+int strnz__cat(char *, char *, int);
+int strnz__cpy(char *, char *, int);
 int max_depth = 16;
 int depth = 0;
 
@@ -77,17 +82,17 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
     if (optind < argc) {
-        strcpy(dir, argv[optind]);
+        strnz__cpy(dir, argv[optind], MAXLEN - 1);
         optind++;
     }
     if (optind < argc) {
-        strcpy(re, argv[optind]);
+        strnz__cpy(re, argv[optind], MAXLEN - 1);
         optind++;
     }
     if (re[0] == '\0')
-        strcpy(re, ".*");
+        strnz__cpy(re, ".*", MAXLEN - 1);
     if (dir[0] == '\0')
-        strcpy(dir, ".");
+        strnz__cpy(dir, ".", MAXLEN - 1);
     if (flags & RECURSE) {
         lf_find_files(dir, re, flags);
         lf_find_dirs(dir, re, flags);
@@ -113,18 +118,18 @@ bool lf_find_dirs(char *dir, char *re, int flags) {
     while (dir_st != NULL) {
         if (dir_st->d_ino != 0 && strcmp(dir_st->d_name, ".") != 0 &&
             strcmp(dir_st->d_name, "..") != 0) {
-            strcpy(file_spec, dir);
+            strnz__cpy(file_spec, dir, MAXLEN - 1);
             if (file_spec[strlen(file_spec) - 1] != '/')
-                strcat(file_spec, "/");
-            strcat(file_spec, dir_st->d_name);
+                strnz__cat(file_spec, "/", MAXLEN - 1);
+            strnz__cat(file_spec, dir_st->d_name, MAXLEN - 1);
             if (stat(file_spec, &sb) == -1) {
-                //  strncpy(tmp_str, "can't stat ", MAXLEN - 1);
-                //  strncat(tmp_str, file_spec, MAXLEN - strlen(tmp_str));
+                //  strnz__cpy(tmp_str, "can't stat ", MAXLEN - 1);
+                //  strnz__cat(tmp_str, file_spec, MAXLEN - strlen(tmp_str));
                 //  perror(tmp_str);
                 return false;
             }
             if ((sb.st_mode & S_IFMT) == S_IFDIR) {
-                strcpy(dir_s, file_spec);
+                strnz__cpy(dir_s, file_spec, MAXLEN - 1);
                 lf_find_files(dir_s, re, flags);
                 lf_find_dirs(dir_s, re, flags);
             }
@@ -161,18 +166,18 @@ bool lf_find_files(char *dir, char *re, int flags) {
     while (dir_st != NULL) {
         if (dir_st->d_ino != 0 && strcmp(dir_st->d_name, ".") != 0 &&
             strcmp(dir_st->d_name, "..") != 0) {
-            strcpy(file_spec, dir);
+            strnz__cpy(file_spec, dir, MAXLEN - 1);
             if (file_spec[strlen(file_spec) - 1] != '/')
-                strcat(file_spec, "/");
-            strcat(file_spec, dir_st->d_name);
+                strnz__cat(file_spec, "/", MAXLEN - 1);
+            strnz__cat(file_spec, dir_st->d_name, MAXLEN - 1);
             if (stat(file_spec, &sb) == -1) {
-                // strcpy(tmp_str, "can't stat ");
-                // strcat(tmp_str, file_spec);
+                // strnz__cpy(tmp_str, "can't stat ", MAXLEN - 1);
+                // strnz__cat(tmp_str, file_spec, MAXLEN - 1);
                 // perror(tmp_str);
                 return false;
             }
             if ((sb.st_mode & S_IFMT) == S_IFDIR)
-                strcat(file_spec, "/");
+                strnz__cat(file_spec, "/", MAXLEN - 1);
             reti = regexec(&compiled_re, file_spec, compiled_re.re_nsub + 1,
                            pmatch, REG_FLAGS);
             if (reti == REG_NOMATCH) {
@@ -180,8 +185,8 @@ bool lf_find_files(char *dir, char *re, int flags) {
             } else if (reti) {
                 char msgbuf[100];
                 regerror(reti, &compiled_re, msgbuf, sizeof(msgbuf));
-                strcpy(tmp_str, "Regex match failed: ");
-                strcat(tmp_str, msgbuf);
+                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+                strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
                 perror(tmp_str);
                 return false;
             } else {
@@ -195,4 +200,45 @@ bool lf_find_files(char *dir, char *re, int flags) {
     }
     closedir(dirp);
     return true;
+}
+
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRNZ_CPY                                                         │
+/// │ stops at max_len, newline, or carriage return                     │
+/// │ max_len limits the destination buffer size                        │
+/// │ returns length of resulting string                                │
+/// ╰───────────────────────────────────────────────────────────────────╯
+int strnz__cpy(char *d, char *s, int max_len) {
+    char *e;
+    int len = 0;
+
+    e = d + max_len;
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRNZ_CAT                                                         │
+/// │ stops at max_len, newline, or carriage return                     │
+/// │ max_len limits the destination buffer size                        │
+/// │ returns length of resulting string                                │
+/// ╰───────────────────────────────────────────────────────────────────╯
+int strnz__cat(char *d, char *s, int max_len) {
+    char *e;
+    int len = 0;
+
+    e = d + max_len;
+    while (*d != '\0' && *d != '\n' && *d != '\r' && d < e) {
+        d++;
+        len++;
+    }
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
 }

@@ -1,8 +1,8 @@
 //  ckeys.c
-//  Test Curses Keys
 //  Bill Waller Copyright (c) 2025
+//  MIT License
 //  billxwaller @gmail.com
-//  Ckeys
+///  Test Curses Keys
 
 #include "menu.h"
 #include <sys/types.h>

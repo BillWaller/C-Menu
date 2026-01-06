@@ -1,7 +1,8 @@
-// menu_engine.c
-// Bill Waller
-// billxwaller@gmail.com
-// file system interface
+//  menu_engine.c
+//  Bill Waller Copyright (c) 2025
+//  MIT_LICENSE
+//  The working part of C-Menu Menu
+//  billxwaller@gmail.com
 
 #include "menu.h"
 #include <ctype.h>
@@ -23,9 +24,9 @@ unsigned int menu_engine(Init *init) {
         return (1);
     }
     action = MA_INIT;
-    //  ╭───────────────────────────────────────────────────────────────╮
-    //  │ DISPLAY_MENU                                                  │
-    //  ╰───────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────────╮
+    /// │ DISPLAY_MENU                                                  │
+    /// ╰───────────────────────────────────────────────────────────────╯
     while (action == MA_INIT) {
         action = MA_DISPLAY_MENU;
         if (win_new(menu->lines, menu->cols, menu->begy, menu->begx,
@@ -95,7 +96,7 @@ unsigned int menu_cmd_processor(Init *init) {
     in_key = mvwgetch(menu->win, menu->line_idx, 1);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);
-    // wclrtoeol(menu->win);
+    /// wclrtoeol(menu->win);
     switch (in_key) {
     case KEY_UP:
         i = menu->line_idx;
@@ -126,22 +127,22 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_RETURN_MAIN);
         d = getenv("PRTCMD");
         if (d == NULL || *d == '\0')
-            strncpy(earg_str, PRINTCMD, MAXLEN - 1);
+            strnz__cpy(earg_str, PRINTCMD, MAXLEN - 1);
         else
-            strncpy(earg_str, d, MAXLEN - 1);
-        strncat(earg_str, " ", MAXLEN - 1);
+            strnz__cpy(earg_str, d, MAXLEN - 1);
+        strnz__cat(earg_str, " ", MAXLEN - 1);
         d = getenv("PRTFILE");
         if (d == NULL || *d == '\0') {
             d = getenv("HOME");
             if (d == NULL || *d == '\0')
-                strncat(earg_str, VIEW_PRT_FILE, MAXLEN - 1);
+                strnz__cat(earg_str, VIEW_PRT_FILE, MAXLEN - 1);
             else {
-                strncat(earg_str, d, MAXLEN - 1);
-                strncat(earg_str, "/", MAXLEN - 1);
-                strncat(earg_str, VIEW_PRT_FILE, MAXLEN - 1);
+                strnz__cat(earg_str, d, MAXLEN - 1);
+                strnz__cat(earg_str, "/", MAXLEN - 1);
+                strnz__cat(earg_str, VIEW_PRT_FILE, MAXLEN - 1);
             }
         } else
-            strncat(earg_str, d, MAXLEN - 1);
+            strnz__cat(earg_str, d, MAXLEN - 1);
         full_screen_shell(earg_str);
         return (MA_DISPLAY_MENU);
     case '\r':
@@ -149,15 +150,15 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_DISPLAY_MENU);
         d = getenv("DEFAULTEDITOR");
         if (d == NULL || *d == '\0')
-            strncpy(earg_str, DEFAULTEDITOR, MAXLEN - 1);
+            strnz__cpy(earg_str, DEFAULTEDITOR, MAXLEN - 1);
         else
-            strncpy(earg_str, d, MAXLEN - 1);
+            strnz__cpy(earg_str, d, MAXLEN - 1);
         str_to_args(eargv, earg_str, MAX_ARGS);
         full_screen_fork_exec(eargv);
         return (MA_INIT);
-        //  ╭───────────────────────────────────────────────────────────────╮
-        //  │ MENU MOUSE FUNCTIONS                                          │
-        //  ╰───────────────────────────────────────────────────────────────╯
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ MENU MOUSE FUNCTIONS                                          │
+        /// ╰───────────────────────────────────────────────────────────────╯
     case KEY_MOUSE:
         if (getmouse(&event) != OK)
             return (MA_ENTER_OPTION);
@@ -203,7 +204,8 @@ unsigned int menu_cmd_processor(Init *init) {
     case CT_RETURNMAIN:
         return (MA_RETURN_MAIN);
     case CT_EXEC:
-        strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
+        strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
+                   MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         j = 0;
         for (i = 1; i < eargc && eargv[i] != NULL; i++)
@@ -220,7 +222,8 @@ unsigned int menu_cmd_processor(Init *init) {
               init->begy, init->title);
         return (MA_DISPLAY_MENU);
     case CT_MENU:
-        strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
+        strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
+                   MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         if (eargc == 0)
             return (MA_DISPLAY_MENU);
@@ -235,21 +238,24 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_DISPLAY_MENU);
         break;
     case CT_PICK:
-        strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
+        strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
+                   MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
     case CT_FORM:
-        strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
+        strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
+                   MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
     case CT_VIEW:
-        strncpy(earg_str, menu->line[menu->line_idx]->command_str, MAXLEN - 1);
+        strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
+                   MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);

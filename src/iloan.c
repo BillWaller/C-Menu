@@ -1,19 +1,18 @@
-// iloan.c
-// by Bill Waller
-// calculate installment loan values
-// Bill Waller
-//
-
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ ILOAN - INSTALLMENT LOAN CALCULATOR                           │
-//  │                                                               │
-//  │ Iloan is a trivial application to demonstrate the how         │
-//  │ a command-line program can be integrated into C-Menu Form     │
-//  │ with simple file i-o.                                         │
-//  │                                                               │
-//  │ This feature clearly needs lots of work, including            │
-//  │ more sophisticated serialization and communications.          │
-//  ╰───────────────────────────────────────────────────────────────╯
+//  iloan.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+/// Calculate installment loan values
+///
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ILOAN - INSTALLMENT LOAN CALCULATOR                           │
+/// │                                                               │
+/// │ Iloan is a trivial application to demonstrate the how         │
+/// │ a command-line program can be integrated into C-Menu Form     │
+/// │ with simple file i-o.                                         │
+/// │                                                               │
+/// │ This feature clearly needs lots of work, including            │
+/// │ more sophisticated serialization and communications.          │
+/// ╰───────────────────────────────────────────────────────────────╯
 
 #include <math.h>
 #include <signal.h>

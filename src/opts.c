@@ -1,4 +1,8 @@
-// #include "opts.h"
+//  opts.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  billxwaller@gmail.com
+/// Sort and print options
 #include "menu.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +21,6 @@ void sort_opts_by_desc();
 void sort_opts_by_short_opt();
 void print_opt_header();
 void print_opt(int);
-int strnz__cpy(char *, char *, int);
 static int comp_opt_desc(const void *, const void *);
 static int comp_opt_group(const void *, const void *);
 static int comp_opt_desc(const void *, const void *);
@@ -100,7 +103,6 @@ Opts opts[] = {
      ""
      ""}}; // End marker
 
-//  ╭───────────────────────────────────────────────────────────────────╮
 static int comp_opt_name(const void *o1, const void *o2) {
     const Opts *opt1 = o1;
     const Opts *opt2 = o2;
@@ -166,7 +168,7 @@ Opts *select_opt(char *name) {
 }
 
 void dump_opts() {
-    // struct Opts *opts;
+    /// struct Opts *opts;
     print_opt_header();
     int i = 0;
     while (opts[i].name != NULL) {
