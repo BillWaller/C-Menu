@@ -1,7 +1,11 @@
-// view.c
-// Bill Waller Copyright (c) 2025
-// billxwaller@gmail.com
-
+//  view.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  Command Line Start-up for C-Menu Menu
+//  billxwaller@gmail.com
+/// view.c
+/// Command Line Start-up for mapp C-Menu View
+///
 #include "menu.h"
 #include <stdlib.h>
 #include <termios.h>

@@ -1,13 +1,15 @@
-// fckeys.c
-// Test Curses Keys
-// Bill Waller Copyright (c) 2025
-// billxwaller@gmail.com
+//  curskeys.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  billxwaller@gmail.com
+/// Test Curses Keys
 
 #include "menu.h"
 #include <ncursesw/ncurses.h>
 #include <string.h>
 #include <unistd.h>
-
+#define KSTRLEN 100
+#define MAXLEN 256
 int display_curses_keys();
 
 int display_curses_keys() {
@@ -16,7 +18,7 @@ int display_curses_keys() {
     char Title[] = "TEST CURSES KEYS";
     int lines = 10;
     int cols = 55;
-    char kstr[64];
+    char kstr[KSTRLEN];
     int c;
     char action[MAXLEN];
     char tmp[MAXLEN];
@@ -32,8 +34,8 @@ int display_curses_keys() {
                   BUTTON_CTRL | BUTTON_ALT,
               NULL);
     if (win_new(lines, cols, begy, begx, Title)) {
-        strncpy(tmp, "win_new failed: ", MAXLEN - 1);
-        strncat(tmp, Title, MAXLEN - 1);
+        strnz__cpy(tmp, "win_new failed: ", MAXLEN - 1);
+        strnz__cat(tmp, Title, MAXLEN - 1);
         Perror(tmp);
         return 0;
     }
@@ -54,373 +56,385 @@ int display_curses_keys() {
         case '\0':
             break;
         case KEY_CODE_YES:
-            strcpy(kstr, "KEY_CODE_YES A wchar_t contains a key code");
+            strnz__cpy(kstr, "KEY_CODE_YES A wchar_t contains a key code",
+                       KSTRLEN - 1);
             break;
         case KEY_BREAK:
-            strcpy(kstr, "KEY_BREAK Break key(unreliable)");
+            strnz__cpy(kstr, "KEY_BREAK Break key(unreliable)", KSTRLEN - 1);
             break;
         case KEY_DOWN:
-            strcpy(kstr, "KEY_DOWN down - arrow key");
+            strnz__cpy(kstr, "KEY_DOWN down - arrow key", KSTRLEN - 1);
             break;
         case KEY_UP:
-            strcpy(kstr, "KEY_UP up - arrow key");
+            strnz__cpy(kstr, "KEY_UP up - arrow key", KSTRLEN - 1);
             break;
         case KEY_LEFT:
-            strcpy(kstr, "KEY_LEFT left - arrow key");
+            strnz__cpy(kstr, "KEY_LEFT left - arrow key", KSTRLEN - 1);
             break;
         case KEY_RIGHT:
-            strcpy(kstr, "KEY_RIGHT right - arrow key");
+            strnz__cpy(kstr, "KEY_RIGHT right - arrow key", KSTRLEN - 1);
             break;
         case KEY_HOME:
-            strcpy(kstr, "KEY_HOME home key");
+            strnz__cpy(kstr, "KEY_HOME home key", KSTRLEN - 1);
             break;
         case KEY_BACKSPACE:
-            strcpy(kstr, "KEY_BACKSPACE backspace key");
+            strnz__cpy(kstr, "KEY_BACKSPACE backspace key", KSTRLEN - 1);
             break;
         case KEY_F(1):
-            strcpy(kstr, "KEY_F(1) KEY_F(1)");
+            strnz__cpy(kstr, "KEY_F(1) KEY_F(1)", KSTRLEN - 1);
             break;
         case KEY_F(2):
-            strcpy(kstr, "KEY_F2 KEY_F2");
+            strnz__cpy(kstr, "KEY_F2 KEY_F2", KSTRLEN - 1);
             break;
         case KEY_F(3):
-            strcpy(kstr, "KEY_F3 KEY_F3");
+            strnz__cpy(kstr, "KEY_F3 KEY_F3", KSTRLEN - 1);
             break;
         case KEY_F(4):
-            strcpy(kstr, "KEY_F4 KEY_F4");
+            strnz__cpy(kstr, "KEY_F4 KEY_F4", KSTRLEN - 1);
             break;
         case KEY_F(5):
-            strcpy(kstr, "KEY_F5 KEY_F5");
+            strnz__cpy(kstr, "KEY_F5 KEY_F5", KSTRLEN - 1);
             break;
         case KEY_F(6):
-            strcpy(kstr, "KEY_F6 KEY_F6");
+            strnz__cpy(kstr, "KEY_F6 KEY_F6", KSTRLEN - 1);
             break;
         case KEY_F(7):
-            strcpy(kstr, "KEY_F7 KEY_F7");
+            strnz__cpy(kstr, "KEY_F7 KEY_F7", KSTRLEN - 1);
             break;
         case KEY_F(8):
-            strcpy(kstr, "KEY_F8 KEY_F8");
+            strnz__cpy(kstr, "KEY_F8 KEY_F8", KSTRLEN - 1);
             break;
         case KEY_F(9):
-            strcpy(kstr, "KEY_F9 KEY_F9");
+            strnz__cpy(kstr, "KEY_F9 KEY_F9", KSTRLEN - 1);
             break;
         case KEY_F(10):
-            strcpy(kstr, "KEY_F10 KEY_F10");
+            strnz__cpy(kstr, "KEY_F10 KEY_F10", KSTRLEN - 1);
             break;
         case KEY_F(11):
-            strcpy(kstr, "KEY_F11 KEY_F11");
+            strnz__cpy(kstr, "KEY_F11 KEY_F11", KSTRLEN - 1);
             break;
         case KEY_F(12):
-            strcpy(kstr, "KEY_F12 KEY_F12");
+            strnz__cpy(kstr, "KEY_F12 KEY_F12", KSTRLEN - 1);
             break;
         case KEY_DL:
-            strcpy(kstr, "KEY_DL delete - line key");
+            strnz__cpy(kstr, "KEY_DL delete - line key", KSTRLEN - 1);
             break;
         case KEY_IL:
-            strcpy(kstr, "KEY_IL insert - line key");
+            strnz__cpy(kstr, "KEY_IL insert - line key", KSTRLEN - 1);
             break;
         case KEY_DC:
-            strcpy(kstr, "KEY_DC delete - character key");
+            strnz__cpy(kstr, "KEY_DC delete - character key", KSTRLEN - 1);
             break;
         case KEY_IC:
-            strcpy(kstr, "KEY_IC insert - character key");
+            strnz__cpy(kstr, "KEY_IC insert - character key", KSTRLEN - 1);
             break;
         case KEY_EIC:
-            strcpy(kstr, "KEY_EIC sent by rmir or smir in insert mode");
+            strnz__cpy(kstr, "KEY_EIC sent by rmir or smir in insert mode",
+                       KSTRLEN - 1);
             break;
         case KEY_CLEAR:
-            strcpy(kstr, "KEY_CLEAR clear - screen or erase key");
+            strnz__cpy(kstr, "KEY_CLEAR clear - screen or erase key",
+                       KSTRLEN - 1);
             break;
         case KEY_EOS:
-            strcpy(kstr, "KEY_EOS clear - to - end - of - screen key");
+            strnz__cpy(kstr, "KEY_EOS clear - to - end - of - screen key",
+                       KSTRLEN - 1);
             break;
         case KEY_EOL:
-            strcpy(kstr, "KEY_EOL clear - to - end - of - line key");
+            strnz__cpy(kstr, "KEY_EOL clear - to - end - of - line key",
+                       KSTRLEN - 1);
             break;
         case KEY_SF:
-            strcpy(kstr, "KEY_SF scroll - forward key");
+            strnz__cpy(kstr, "KEY_SF scroll - forward key", KSTRLEN - 1);
             break;
         case KEY_SR:
-            strcpy(kstr, "KEY_SR scroll - backward key");
+            strnz__cpy(kstr, "KEY_SR scroll - backward key", KSTRLEN - 1);
             break;
         case KEY_NPAGE:
-            strcpy(kstr, "KEY_NPAGE next - page key");
+            strnz__cpy(kstr, "KEY_NPAGE next - page key", KSTRLEN - 1);
             break;
         case KEY_PPAGE:
-            strcpy(kstr, "KEY_PPAGE previous - page key");
+            strnz__cpy(kstr, "KEY_PPAGE previous - page key", KSTRLEN - 1);
             break;
         case KEY_STAB:
-            strcpy(kstr, "KEY_STAB set - tab key");
+            strnz__cpy(kstr, "KEY_STAB set - tab key", KSTRLEN - 1);
             break;
         case KEY_CTAB:
-            strcpy(kstr, "KEY_CTAB clear - tab key");
+            strnz__cpy(kstr, "KEY_CTAB clear - tab key", KSTRLEN - 1);
             break;
         case KEY_CATAB:
-            strcpy(kstr, "KEY_CATAB clear - all - tabs key");
+            strnz__cpy(kstr, "KEY_CATAB clear - all - tabs key", KSTRLEN - 1);
             break;
         case KEY_ENTER:
-            strcpy(kstr, "KEY_ENTER enter / send key");
+            strnz__cpy(kstr, "KEY_ENTER enter / send key", KSTRLEN - 1);
             break;
         case KEY_SRESET:
-            strcpy(kstr, "KEY_SRESET Soft(partial) reset(unreliable)");
+            strnz__cpy(kstr, "KEY_SRESET Soft(partial) reset(unreliable)",
+                       KSTRLEN - 1);
             break;
         case KEY_RESET:
-            strcpy(kstr, "KEY_RESET Reset or hard reset(unreliable)");
+            strnz__cpy(kstr, "KEY_RESET Reset or hard reset(unreliable)",
+                       KSTRLEN - 1);
             break;
         case KEY_PRINT:
-            strcpy(kstr, "KEY_PRINT print key");
+            strnz__cpy(kstr, "KEY_PRINT print key", KSTRLEN - 1);
             break;
         case KEY_LL:
-            strcpy(kstr, "KEY_LL lower - left key(home down)");
+            strnz__cpy(kstr, "KEY_LL lower - left key(home down)", KSTRLEN - 1);
             break;
         case KEY_A1:
-            strcpy(kstr, "KEY_A1 upper left of keypad");
+            strnz__cpy(kstr, "KEY_A1 upper left of keypad", KSTRLEN - 1);
             break;
         case KEY_A3:
-            strcpy(kstr, "KEY_A3 upper right of keypad");
+            strnz__cpy(kstr, "KEY_A3 upper right of keypad", KSTRLEN - 1);
             break;
         case KEY_B2:
-            strcpy(kstr, "KEY_B2 center of keypad");
+            strnz__cpy(kstr, "KEY_B2 center of keypad", KSTRLEN - 1);
             break;
         case KEY_C1:
-            strcpy(kstr, "KEY_C1 lower left of keypad");
+            strnz__cpy(kstr, "KEY_C1 lower left of keypad", KSTRLEN - 1);
             break;
         case KEY_C3:
-            strcpy(kstr, "KEY_C3 lower right of keypad");
+            strnz__cpy(kstr, "KEY_C3 lower right of keypad", KSTRLEN - 1);
             break;
         case KEY_BTAB:
-            strcpy(kstr, "KEY_BTAB back - tab key");
+            strnz__cpy(kstr, "KEY_BTAB back - tab key", KSTRLEN - 1);
             break;
         case KEY_BEG:
-            strcpy(kstr, "KEY_BEG begin key");
+            strnz__cpy(kstr, "KEY_BEG begin key", KSTRLEN - 1);
             break;
         case KEY_CANCEL:
-            strcpy(kstr, "KEY_CANCEL cancel key");
+            strnz__cpy(kstr, "KEY_CANCEL cancel key", KSTRLEN - 1);
             break;
         case KEY_CLOSE:
-            strcpy(kstr, "KEY_CLOSE close key");
+            strnz__cpy(kstr, "KEY_CLOSE close key", KSTRLEN - 1);
             break;
         case KEY_COMMAND:
-            strcpy(kstr, "KEY_COMMAND command key");
+            strnz__cpy(kstr, "KEY_COMMAND command key", KSTRLEN - 1);
             break;
         case KEY_COPY:
-            strcpy(kstr, "KEY_COPY copy key");
+            strnz__cpy(kstr, "KEY_COPY copy key", KSTRLEN - 1);
             break;
         case KEY_CREATE:
-            strcpy(kstr, "KEY_CREATE create key");
+            strnz__cpy(kstr, "KEY_CREATE create key", KSTRLEN - 1);
             break;
         case KEY_END:
-            strcpy(kstr, "KEY_END end key");
+            strnz__cpy(kstr, "KEY_END end key", KSTRLEN - 1);
             break;
         case KEY_EXIT:
-            strcpy(kstr, "KEY_EXIT exit key");
+            strnz__cpy(kstr, "KEY_EXIT exit key", KSTRLEN - 1);
             break;
         case KEY_FIND:
-            strcpy(kstr, "KEY_FIND find key");
+            strnz__cpy(kstr, "KEY_FIND find key", KSTRLEN - 1);
             break;
         case KEY_HELP:
-            strcpy(kstr, "KEY_HELP help key");
+            strnz__cpy(kstr, "KEY_HELP help key", KSTRLEN - 1);
             break;
         case KEY_MARK:
-            strcpy(kstr, "KEY_MARK mark key");
+            strnz__cpy(kstr, "KEY_MARK mark key", KSTRLEN - 1);
             break;
         case KEY_MESSAGE:
-            strcpy(kstr, "KEY_MESSAGE message key");
+            strnz__cpy(kstr, "KEY_MESSAGE message key", KSTRLEN - 1);
             break;
         case KEY_MOVE:
-            strcpy(kstr, "KEY_MOVE move key");
+            strnz__cpy(kstr, "KEY_MOVE move key", KSTRLEN - 1);
             break;
         case KEY_NEXT:
-            strcpy(kstr, "KEY_NEXT next key");
+            strnz__cpy(kstr, "KEY_NEXT next key", KSTRLEN - 1);
             break;
         case KEY_OPEN:
-            strcpy(kstr, "KEY_OPEN open key");
+            strnz__cpy(kstr, "KEY_OPEN open key", KSTRLEN - 1);
             break;
         case KEY_OPTIONS:
-            strcpy(kstr, "KEY_OPTIONS options key");
+            strnz__cpy(kstr, "KEY_OPTIONS options key", KSTRLEN - 1);
             break;
         case KEY_PREVIOUS:
-            strcpy(kstr, "KEY_PREVIOUS previous key");
+            strnz__cpy(kstr, "KEY_PREVIOUS previous key", KSTRLEN - 1);
             break;
         case KEY_REDO:
-            strcpy(kstr, "KEY_REDO redo key");
+            strnz__cpy(kstr, "KEY_REDO redo key", KSTRLEN - 1);
             break;
         case KEY_REFERENCE:
-            strcpy(kstr, "KEY_REFERENCE reference key");
+            strnz__cpy(kstr, "KEY_REFERENCE reference key", KSTRLEN - 1);
             break;
         case KEY_REFRESH:
-            strcpy(kstr, "KEY_REFRESH refresh key");
+            strnz__cpy(kstr, "KEY_REFRESH refresh key", KSTRLEN - 1);
             break;
         case KEY_REPLACE:
-            strcpy(kstr, "KEY_REPLACE replace key");
+            strnz__cpy(kstr, "KEY_REPLACE replace key", KSTRLEN - 1);
             break;
         case KEY_RESTART:
-            strcpy(kstr, "KEY_RESTART restart key");
+            strnz__cpy(kstr, "KEY_RESTART restart key", KSTRLEN - 1);
             break;
         case KEY_RESUME:
-            strcpy(kstr, "KEY_RESUME resume key");
+            strnz__cpy(kstr, "KEY_RESUME resume key", KSTRLEN - 1);
             break;
         case KEY_SAVE:
-            strcpy(kstr, "KEY_SAVE save key");
+            strnz__cpy(kstr, "KEY_SAVE save key", KSTRLEN - 1);
             break;
         case KEY_SBEG:
-            strcpy(kstr, "KEY_SBEG shifted begin key");
+            strnz__cpy(kstr, "KEY_SBEG shifted begin key", KSTRLEN - 1);
             break;
         case KEY_SCANCEL:
-            strcpy(kstr, "KEY_SCANCEL shifted cancel key");
+            strnz__cpy(kstr, "KEY_SCANCEL shifted cancel key", KSTRLEN - 1);
             break;
         case KEY_SCOMMAND:
-            strcpy(kstr, "KEY_SCOMMAND shifted command key");
+            strnz__cpy(kstr, "KEY_SCOMMAND shifted command key", KSTRLEN - 1);
             break;
         case KEY_SCOPY:
-            strcpy(kstr, "KEY_SCOPY shifted copy key");
+            strnz__cpy(kstr, "KEY_SCOPY shifted copy key", KSTRLEN - 1);
             break;
         case KEY_SCREATE:
-            strcpy(kstr, "KEY_SCREATE shifted create key");
+            strnz__cpy(kstr, "KEY_SCREATE shifted create key", KSTRLEN - 1);
             break;
         case KEY_SDC:
-            strcpy(kstr, "KEY_SDC shifted delete - character key");
+            strnz__cpy(kstr, "KEY_SDC shifted delete - character key",
+                       KSTRLEN - 1);
             break;
         case KEY_SDL:
-            strcpy(kstr, "KEY_SDL shifted delete - line key");
+            strnz__cpy(kstr, "KEY_SDL shifted delete - line key", KSTRLEN - 1);
             break;
         case KEY_SELECT:
-            strcpy(kstr, "KEY_SELECT select key");
+            strnz__cpy(kstr, "KEY_SELECT select key", KSTRLEN - 1);
             break;
         case KEY_SEND:
-            strcpy(kstr, "KEY_SEND shifted end key");
+            strnz__cpy(kstr, "KEY_SEND shifted end key", KSTRLEN - 1);
             break;
         case KEY_SEOL:
-            strcpy(kstr, "KEY_SEOL shifted clear - to - end - of - line key");
+            strnz__cpy(kstr,
+                       "KEY_SEOL shifted clear - to - end - of - line key",
+                       KSTRLEN - 1);
             break;
         case KEY_SEXIT:
-            strcpy(kstr, "KEY_SEXIT shifted exit key");
+            strnz__cpy(kstr, "KEY_SEXIT shifted exit key", KSTRLEN - 1);
             break;
         case KEY_SFIND:
-            strcpy(kstr, "KEY_SFIND shifted find key");
+            strnz__cpy(kstr, "KEY_SFIND shifted find key", KSTRLEN - 1);
             break;
         case KEY_SHELP:
-            strcpy(kstr, "KEY_SHELP shifted help key");
+            strnz__cpy(kstr, "KEY_SHELP shifted help key", KSTRLEN - 1);
             break;
         case KEY_SHOME:
-            strcpy(kstr, "KEY_SHOME shifted home key");
+            strnz__cpy(kstr, "KEY_SHOME shifted home key", KSTRLEN - 1);
             break;
         case KEY_SIC:
-            strcpy(kstr, "KEY_SIC shifted insert - character key");
+            strnz__cpy(kstr, "KEY_SIC shifted insert - character key",
+                       KSTRLEN - 1);
             break;
         case KEY_SLEFT:
-            strcpy(kstr, "KEY_SLEFT shifted left - arrow key");
+            strnz__cpy(kstr, "KEY_SLEFT shifted left - arrow key", KSTRLEN - 1);
             break;
         case KEY_SMESSAGE:
-            strcpy(kstr, "KEY_SMESSAGE shifted message key");
+            strnz__cpy(kstr, "KEY_SMESSAGE shifted message key", KSTRLEN - 1);
             break;
         case KEY_SMOVE:
-            strcpy(kstr, "KEY_SMOVE shifted move key");
+            strnz__cpy(kstr, "KEY_SMOVE shifted move key", KSTRLEN - 1);
             break;
         case KEY_SNEXT:
-            strcpy(kstr, "KEY_SNEXT shifted next key");
+            strnz__cpy(kstr, "KEY_SNEXT shifted next key", KSTRLEN - 1);
             break;
         case KEY_SOPTIONS:
-            strcpy(kstr, "KEY_SOPTIONS shifted options key");
+            strnz__cpy(kstr, "KEY_SOPTIONS shifted options key", KSTRLEN - 1);
             break;
         case KEY_SPREVIOUS:
-            strcpy(kstr, "KEY_SPREVIOUS shifted previous key");
+            strnz__cpy(kstr, "KEY_SPREVIOUS shifted previous key", KSTRLEN - 1);
             break;
         case KEY_SPRINT:
-            strcpy(kstr, "KEY_SPRINT shifted print key");
+            strnz__cpy(kstr, "KEY_SPRINT shifted print key", KSTRLEN - 1);
             break;
         case KEY_SREDO:
-            strcpy(kstr, "KEY_SREDO shifted redo key");
+            strnz__cpy(kstr, "KEY_SREDO shifted redo key", KSTRLEN - 1);
             break;
         case KEY_SREPLACE:
-            strcpy(kstr, "KEY_SREPLACE shifted replace key");
+            strnz__cpy(kstr, "KEY_SREPLACE shifted replace key", KSTRLEN - 1);
             break;
         case KEY_SRIGHT:
-            strcpy(kstr, "KEY_SRIGHT shifted right - arrow key");
+            strnz__cpy(kstr, "KEY_SRIGHT shifted right - arrow key",
+                       KSTRLEN - 1);
             break;
         case KEY_SRSUME:
-            strcpy(kstr, "KEY_SRSUME shifted resume key");
+            strnz__cpy(kstr, "KEY_SRSUME shifted resume key", KSTRLEN - 1);
             break;
         case KEY_SSAVE:
-            strcpy(kstr, "KEY_SSAVE shifted save key");
+            strnz__cpy(kstr, "KEY_SSAVE shifted save key", KSTRLEN - 1);
             break;
         case KEY_SSUSPEND:
-            strcpy(kstr, "KEY_SSUSPEND shifted suspend key");
+            strnz__cpy(kstr, "KEY_SSUSPEND shifted suspend key", KSTRLEN - 1);
             break;
         case KEY_SUNDO:
-            strcpy(kstr, "KEY_SUNDO shifted undo key");
+            strnz__cpy(kstr, "KEY_SUNDO shifted undo key", KSTRLEN - 1);
             break;
         case KEY_SUSPEND:
-            strcpy(kstr, "KEY_SUSPEND suspend key");
+            strnz__cpy(kstr, "KEY_SUSPEND suspend key", KSTRLEN - 1);
             break;
         case KEY_UNDO:
-            strcpy(kstr, "KEY_UNDO undo key");
+            strnz__cpy(kstr, "KEY_UNDO undo key", KSTRLEN - 1);
             break;
         case KEY_ALTDEL:
-            strcpy(kstr, "KEY_ALTDEL alt+delete");
+            strnz__cpy(kstr, "KEY_ALTDEL alt+delete", KSTRLEN - 1);
             break;
         case KEY_ALTDOWN:
-            strcpy(kstr, "KEY_ALTDOWN alt+down");
+            strnz__cpy(kstr, "KEY_ALTDOWN alt+down", KSTRLEN - 1);
             break;
         case KEY_ALTEND:
-            strcpy(kstr, "KEY_ALTEND alt+end");
+            strnz__cpy(kstr, "KEY_ALTEND alt+end", KSTRLEN - 1);
             break;
         case KEY_ALTHOME:
-            strcpy(kstr, "KEY_ALTHOME alt+home");
+            strnz__cpy(kstr, "KEY_ALTHOME alt+home", KSTRLEN - 1);
             break;
         case KEY_ALTINS:
-            strcpy(kstr, "KEY_ALTINS alt+ins");
+            strnz__cpy(kstr, "KEY_ALTINS alt+ins", KSTRLEN - 1);
             break;
         case KEY_ALTLEFT:
-            strcpy(kstr, "KEY_ALTLEFT alt+left");
+            strnz__cpy(kstr, "KEY_ALTLEFT alt+left", KSTRLEN - 1);
             break;
         case KEY_ALTPGDN:
-            strcpy(kstr, "KEY_ALTPGDN alt+pgdn");
+            strnz__cpy(kstr, "KEY_ALTPGDN alt+pgdn", KSTRLEN - 1);
             break;
         case KEY_ALTPGUP:
-            strcpy(kstr, "KEY_ALTPGUP alt+pgup");
+            strnz__cpy(kstr, "KEY_ALTPGUP alt+pgup", KSTRLEN - 1);
             break;
         case KEY_ALTRIGHT:
-            strcpy(kstr, "KEY_ALTRIGHT alt+right");
+            strnz__cpy(kstr, "KEY_ALTRIGHT alt+right", KSTRLEN - 1);
             break;
         case KEY_ALTUP:
-            strcpy(kstr, "KEY_ALTUP alt+up");
+            strnz__cpy(kstr, "KEY_ALTUP alt+up", KSTRLEN - 1);
             break;
         case KEY_ALTF(1):
-            strcpy(kstr, "KEY_ALTF1 alt+F1");
+            strnz__cpy(kstr, "KEY_ALTF1 alt+F1", KSTRLEN - 1);
             break;
         case KEY_ALTF(2):
-            strcpy(kstr, "KEY_ALTF1 alt+F2");
+            strnz__cpy(kstr, "KEY_ALTF1 alt+F2", KSTRLEN - 1);
             break;
         case KEY_ALTF(3):
-            strcpy(kstr, "KEY_ALTF3 alt+F3");
+            strnz__cpy(kstr, "KEY_ALTF3 alt+F3", KSTRLEN - 1);
             break;
         case KEY_ALTF(4):
-            strcpy(kstr, "KEY_ALTF4 alt+F4");
+            strnz__cpy(kstr, "KEY_ALTF4 alt+F4", KSTRLEN - 1);
             break;
         case KEY_ALTF(5):
-            strcpy(kstr, "KEY_ALTF5 alt+F5");
+            strnz__cpy(kstr, "KEY_ALTF5 alt+F5", KSTRLEN - 1);
             break;
         case KEY_ALTF(6):
-            strcpy(kstr, "KEY_ALTF6 alt+F6");
+            strnz__cpy(kstr, "KEY_ALTF6 alt+F6", KSTRLEN - 1);
             break;
         case KEY_ALTF(7):
-            strcpy(kstr, "KEY_ALTF7 alt+F7");
+            strnz__cpy(kstr, "KEY_ALTF7 alt+F7", KSTRLEN - 1);
             break;
         case KEY_ALTF(8):
-            strcpy(kstr, "KEY_ALTF8 alt+F8");
+            strnz__cpy(kstr, "KEY_ALTF8 alt+F8", KSTRLEN - 1);
             break;
         case KEY_ALTF(9):
-            strcpy(kstr, "KEY_ALTF9 alt+F9");
+            strnz__cpy(kstr, "KEY_ALTF9 alt+F9", KSTRLEN - 1);
             break;
         case KEY_ALTF(10):
-            strcpy(kstr, "KEY_ALTF10 alt+F10");
+            strnz__cpy(kstr, "KEY_ALTF10 alt+F10", KSTRLEN - 1);
             break;
         case KEY_ALTF(11):
-            strcpy(kstr, "KEY_ALTF11 alt+F11");
+            strnz__cpy(kstr, "KEY_ALTF11 alt+F11", KSTRLEN - 1);
             break;
         case KEY_ALTF(12):
-            strcpy(kstr, "KEY_ALTF12 alt+F12");
+            strnz__cpy(kstr, "KEY_ALTF12 alt+F12", KSTRLEN - 1);
             break;
             //  ╭───────────────────────────────────────────────────╮
             //  │ MOUSE FUNCTIONS                                   │
@@ -430,55 +444,55 @@ int display_curses_keys() {
             if (getmouse(&event) == OK) {
                 switch (event.bstate) {
                 case BUTTON1_PRESSED:
-                    strcpy(action, "Button 1 pressed");
+                    strnz__cpy(action, "Button 1 pressed", KSTRLEN - 1);
                     break;
                 case BUTTON1_RELEASED:
-                    strcpy(action, "Button 1 released");
+                    strnz__cpy(action, "Button 1 released", KSTRLEN - 1);
                     break;
                 case BUTTON1_CLICKED:
-                    strcpy(action, "Button 1 clicked");
+                    strnz__cpy(action, "Button 1 clicked", KSTRLEN - 1);
                     break;
                 case BUTTON1_DOUBLE_CLICKED:
-                    strcpy(action, "Button 1 double-clicked");
+                    strnz__cpy(action, "Button 1 double-clicked", KSTRLEN - 1);
                     break;
                 case BUTTON2_PRESSED:
-                    strcpy(action, "Button 2 pressed");
+                    strnz__cpy(action, "Button 2 pressed", KSTRLEN - 1);
                     break;
                 case BUTTON2_RELEASED:
-                    strcpy(action, "Button 2 released");
+                    strnz__cpy(action, "Button 2 released", KSTRLEN - 1);
                     break;
                 case BUTTON2_CLICKED:
-                    strcpy(action, "Button 2 clicked");
+                    strnz__cpy(action, "Button 2 clicked", KSTRLEN - 1);
                     break;
                 case BUTTON2_DOUBLE_CLICKED:
-                    strcpy(action, "Button 2 double-clicked");
+                    strnz__cpy(action, "Button 2 double-clicked", KSTRLEN - 1);
                     break;
                 case BUTTON3_PRESSED:
-                    strcpy(action, "Button 3 pressed");
+                    strnz__cpy(action, "Button 3 pressed", KSTRLEN - 1);
                     break;
                 case BUTTON3_RELEASED:
-                    strcpy(action, "Button 3 released");
+                    strnz__cpy(action, "Button 3 released", KSTRLEN - 1);
                     break;
                 case BUTTON3_CLICKED:
-                    strcpy(action, "Button 3 clicked");
+                    strnz__cpy(action, "Button 3 clicked", KSTRLEN - 1);
                     break;
                 case BUTTON3_DOUBLE_CLICKED:
-                    strcpy(action, "Button 3 double-clicked");
+                    strnz__cpy(action, "Button 3 double-clicked", KSTRLEN - 1);
                     break;
                 case BUTTON4_PRESSED:
-                    strcpy(action, "Button 4 pressed");
+                    strnz__cpy(action, "Button 4 pressed", KSTRLEN - 1);
                     break;
                 case BUTTON4_RELEASED:
-                    strcpy(action, "Button 4 released");
+                    strnz__cpy(action, "Button 4 released", KSTRLEN - 1);
                     break;
                 case BUTTON4_CLICKED:
-                    strcpy(action, "Button 4 clicked");
+                    strnz__cpy(action, "Button 4 clicked", KSTRLEN - 1);
                     break;
                 case BUTTON4_DOUBLE_CLICKED:
-                    strcpy(action, "Button 4 double-clicked");
+                    strnz__cpy(action, "Button 4 double-clicked", KSTRLEN - 1);
                     break;
                 case BUTTON5_PRESSED:
-                    strcpy(action, "Scroll Up");
+                    strnz__cpy(action, "Scroll Up", KSTRLEN - 1);
                     break;
                 default:
                     break;
@@ -487,13 +501,13 @@ int display_curses_keys() {
                 mvwaddstr(win, 6, 16, action);
                 wclrtoeol(win);
 
-                strcpy(tmp, "  With Key:");
+                strnz__cpy(tmp, "  With Key:", MAXLEN - 1);
                 if (event.bstate & BUTTON_SHIFT)
-                    strcat(tmp, " Shift");
+                    strnz__cat(tmp, " Shift", MAXLEN - 1);
                 if (event.bstate & BUTTON_CTRL)
-                    strcat(tmp, " Ctrl");
+                    strnz__cat(tmp, " Ctrl", MAXLEN - 1);
                 if (event.bstate & BUTTON_ALT)
-                    strcat(tmp, " Alt");
+                    strnz__cat(tmp, " Alt", MAXLEN - 1);
                 mvwaddstr(win, 3, 4, tmp);
                 wclrtoeol(win);
                 if (wenclose(win, event.y, event.x)) {

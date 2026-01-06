@@ -3,9 +3,9 @@
 //  Screen IO Support for MENU
 //  billxwaller@gmail.com
 //
-//  This file contains terminal ioctl handling functions for MENU. It provide
-//  sane terminal settings for MENU applications, and to to restore the terminal
-//  to its original state when the MENU application exits.
+///  This file contains terminal ioctl handling functions for MENU. It provide
+///  sane terminal settings for MENU applications, and to to restore the
+///  terminal to its original state when the MENU application exits.
 
 #include "menu.h"
 #include <stdbool.h>
@@ -31,20 +31,20 @@ void set_cursor_dfl();
 void set_cursor_ins();
 char di_getch();
 
-// Terminal IOCTL structures
+/// Terminal IOCTL structures
 struct termios shell_tioctl, curses_tioctl;
 struct termios shell_in_tioctl, curses_in_tioctl;
 struct termios shell_out_tioctl, curses_out_tioctl;
 struct termios shell_err_tioctl, curses_err_tioctl;
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ CAPTURE_SHELL_IOCTL                                           │
-//  │ Yes, this is gross overkill implemented in the wee hours of   │
-//  │ the morning while trying to resolve an issue with what        │
-//  │ appeared to be a randomly occurring event in which the bottom │
-//  │ line of my terminal emulator would assume an xoff condition.  │
-//  │ I don't think it was ever resolved. Any ideas? Let me know.   │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ CAPTURE_SHELL_IOCTL                                           │
+///  │ Yes, this is gross overkill implemented in the wee hours of   │
+///  │ the morning while trying to resolve an issue with what        │
+///  │ appeared to be a randomly occurring event in which the bottom │
+///  │ line of my terminal emulator would assume an xoff condition.  │
+///  │ I don't think it was ever resolved. Any ideas? Let me know.   │
+///  ╰───────────────────────────────────────────────────────────────╯
 bool capture_shell_tioctl() {
     if (f_have_shell_tioctl)
         return true;
@@ -72,10 +72,10 @@ bool restore_curses_tioctl() {
     return true;
 }
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ SET_SANE_IOCTL                                                │
-//  │ I like ISIG and IXANY.                                        │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ SET_SANE_IOCTL                                                │
+///  │ I like ISIG and IXANY.                                        │
+///  ╰───────────────────────────────────────────────────────────────╯
 bool set_sane_tioctl(struct termios *t_p) {
     tcgetattr(0, t_p);
     t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
@@ -90,10 +90,10 @@ bool set_sane_tioctl(struct termios *t_p) {
     return true;
 }
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ MK_RAW_IOCTL                                                  │
-//  │ unlike cfmakeraw(), this leaves ISIG enabled.                 │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ MK_RAW_IOCTL                                                  │
+///  │ unlike cfmakeraw(), this leaves ISIG enabled.                 │
+///  ╰───────────────────────────────────────────────────────────────╯
 bool mk_raw_tioctl(struct termios *t_p) {
     tcgetattr(0, t_p);
     // t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
@@ -110,10 +110,10 @@ bool mk_raw_tioctl(struct termios *t_p) {
     return true;
 }
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ DI_GETCH                                                      │
-//  │ accepts a single character                                    │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ DI_GETCH                                                      │
+///  │ accepts a single character                                    │
+///  ╰───────────────────────────────────────────────────────────────╯
 char di_getch() {
     struct termios org_tioctl, new_tioctl;
     char buf;

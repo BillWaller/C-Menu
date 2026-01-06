@@ -1,6 +1,8 @@
-// menu
-// Bill Waller Copyright (c) 2025
-// billxwaller@gmail.com
+//  menu
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  One large include file for C-Menu Menu, Form, Pick, and View
+//  billxwaller@gmail.com
 
 #ifndef _MENU_H
 #define _MENU_H 1
@@ -56,6 +58,32 @@
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ Miscelaneous                                                      │
 //  ╰───────────────────────────────────────────────────────────────────╯
+
+typedef struct {
+    char *p;
+    size_t al; // allocated characters
+} Arg;
+
+typedef struct {
+    Arg **p;
+    size_t av; // allocated vector elements
+    int argc;
+} Argv;
+
+typedef struct {
+    char *p;
+    size_t al; // allocated length
+} Str;
+
+typedef struct {
+    wchar_t *p;
+    size_t al; // allocated length
+} WCStr;
+
+typedef struct {
+    cchar_t *p;
+    size_t al; // allocated length
+} CCStr;
 
 extern int tty_fd;
 extern int dbgfd;
@@ -1035,8 +1063,8 @@ extern void str_to_lower(char *);
 extern void str_to_upper(char *);
 extern void str(char *);
 extern int strnz(char *, int);
-extern int strnz__cpy(char *, char *, int);
-extern int strnz__cat(char *, char *, int);
+extern int strnz__cpy(char *, const char *, int);
+extern int strnz__cat(char *, const char *, int);
 extern char *strz_dup(char *);
 extern char *strnz_dup(char *, int);
 extern char *rep_substring(const char *, const char *, const char *);

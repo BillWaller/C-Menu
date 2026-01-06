@@ -1,7 +1,8 @@
-# Makefile
-# MENU
-# Bill Waller
-# billxwaller@gmail.com
+#  Makefile
+#  Bill Waller Copyright (c) 2025
+#  Makefile for C-Menu application suite
+#  MIT License
+#  billxwaller@gmail.com
 #
 # Makefile for the MENU application suite
 #

@@ -1,6 +1,7 @@
-// view_engine.c_
-// Bill Waller Copyright (c) 2025
-// billxwaller@gmail.com
+//  view_engine.c_
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+///  Command Line Start-up for C-Menu Menu
 
 #include "menu.h"
 #include <ctype.h>
@@ -29,6 +30,26 @@
 #define MO_BO_GOT_BS_EXPECT_SAME 6 //    ^H      same char
 #define Ctrl(c) ((c) & 0x1f)
 
+/// Macros to get next and previous character skipping over carriage returns
+/// leaving the file position cursor at the next character to be read.
+/// @note When reading forward, if the file position cursor (FPC) reaches
+///       the end of data (EOD), the EOD flag is set, preventing further
+///       forward movement of the FPC.
+/// @note When reading backward, if the file position cursor (FPC) reaches
+///       the beginning of data (BOD), the BOD flag is set, preventing further
+///       backward movement of the FPC.
+/// @note Once either flag, EOD OR BOD, is set, no more characters will be
+///       read until the FPC moves or the direction of reading changes.
+///
+/// @note C-Menu View mapps input to the Kernel's demand paged virtual address
+///       space, so the entire file is accessible via a memory pointer. One of
+///       the reasons C-Menu View is so responsive, is that it doesn't make
+///       you wait while it loads data you will never use.
+/// @note This is called lazy loading, and for a pager like C-Menu View, it is
+///       lean and performant.
+///
+/// The character read is returned in variable 'c'.
+///
 #define get_next_char()                                                        \
     do {                                                                       \
         if (view->file_pos == view->file_size) {                               \
@@ -85,9 +106,19 @@ void remove_file(View *);
 
 char err_msg[MAXLEN];
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ VIEW_FILE                                                     │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ VIEW_FILE                                                     │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Main entry point for C-Menu View
+/// @param init Pointer to Init structure
+/// @return 0 on success
+/// @note This function processes each file specified in the command line
+///      arguments. If no files are specified, it defaults to reading from
+///      standard input ("-").
+///      @note For each file, it initializes the viewing context, displays the
+///      first page, and enters the command processing loop.
+///      @note After processing each file, it cleans up resources before moving
+///      to the next file.
 int view_file(Init *init) {
     view = init->view;
     if (view->argc < 1) {
@@ -125,9 +156,17 @@ int view_file(Init *init) {
     }
     return 0;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ VIEW_CMD_PROCESSOR                                            │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ VIEW_CMD_PROCESSOR                                            │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Command processing loop for C-Menu View
+/// @param init Pointer to Init structure
+/// @return 0 on exit command
+/// @note This function handles user commands for navigating and manipulating
+/// the viewed file. It processes commands such as scrolling, searching,
+/// jumping to specific lines, and executing shell commands.
+///     @note The function maintains the state of the view and updates the
+///     display as needed based on user input.
 int view_cmd_processor(Init *init) {
     int tfd;
     char tmp_str[MAXLEN];
@@ -184,6 +223,7 @@ int view_cmd_processor(Init *init) {
             }
         }
         switch (c) {
+        /// Horizontal Scrolling Commands
         case KEY_ALTLEFT:
             if (n_cmd == 0)
                 n_cmd = COLS / 2;
@@ -198,10 +238,18 @@ int view_cmd_processor(Init *init) {
             if ((view->pmincol + n_cmd) < view->maxcol)
                 view->pmincol += n_cmd;
             break;
+            /// Resize Command
+            /// This command handles terminal resize events, which would
+            /// otherwise disrupt the display of the viewed file.
         case Ctrl('R'):
         case KEY_RESIZE:
             resize_page(init);
             break;
+            /// Cursor Movement Commands
+            /// We have tried to leave these commands consistent with other
+            /// popular pagers, including h, j, k, and l.
+            /// @note Vertical scrolling can also be accomplished with the
+            /// mouse wheel if the terminal supports it.
         case KEY_LEFT:
         case KEY_BACKSPACE:
         case Ctrl('H'):
@@ -243,6 +291,7 @@ int view_cmd_processor(Init *init) {
                 scroll_down_n_lines(view, n_cmd);
             }
             break;
+            /// Page Scrolling Commands
         case KEY_PPAGE:
         case 'b':
         case 'B':
@@ -263,6 +312,7 @@ int view_cmd_processor(Init *init) {
         case KEY_LL:
             go_to_eof(view);
             break;
+            /// Execute Shell Command from within C-Menu View
         case '!':
             if (view->f_displaying_help)
                 break;
@@ -274,7 +324,7 @@ int view_cmd_processor(Init *init) {
                              view->cur_file_str, MAXLEN - 1);
                     munmap(view->buf, view->file_size);
                 } else
-                    strcpy(shell_cmd_spec, view->cmd_arg);
+                    strnz__cpy(shell_cmd_spec, view->cmd_arg, MAXLEN - 1);
                 full_screen_shell(shell_cmd_spec);
                 if (!view->f_is_pipe) {
                     view->next_file_spec_ptr = view->cur_file_str;
@@ -282,10 +332,18 @@ int view_cmd_processor(Init *init) {
                 }
             }
             break;
+            /// The "+" command allows executing a startup command
+            /// -c Clear Screen at End
+            /// -i Ignore Case in Search
+            /// -p Prompt Type (Short, Long, None)
+            /// -s Squeeze Multiple Blank Linesee
+            /// -t Tab Stop Columns
+            /// -h Help Display
         case '+':
             if (get_cmd_arg(view, "Startup Command:") == 0)
                 strnz__cpy(view->cmd, view->cmd_arg, MAXLEN - 1);
             break;
+            /// Settings Commands
         case '-':
             if (view->f_displaying_help)
                 break;
@@ -357,12 +415,17 @@ int view_cmd_processor(Init *init) {
                 break;
             }
             break;
+            /// Other Commands
+            /// Set a long prompt string
         case ':':
             view->next_cmd_char = get_cmd_arg(view, ":");
             break;
+            /// Search Commands
+            /// Search forward '/' or backward '?'
         case '/':
         case '?':
-            strcpy(tmp_str, (c == '/') ? "(forward)->" : "(backward)->");
+            strnz__cpy(tmp_str, (c == '/') ? "(forward)->" : "(backward)->",
+                       MAXLEN - 1);
             if (get_cmd_arg(view, tmp_str) == 0) {
                 view->f_wrap = false;
                 search(view, c, view->cmd_arg, false);
@@ -371,6 +434,7 @@ int view_cmd_processor(Init *init) {
             }
             view->srch_beg_pos = view->page_top_pos;
             break;
+            /// Open File Command
         case 'o':
         case 'O':
         case 'e':
@@ -382,6 +446,8 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
+            /// Go to End of Document or Specific Line
+            /// @param n_cmd Line number to go to, if 0 go to EOF
         case KEY_END:
         case 'G':
             if (n_cmd <= 0)
@@ -389,10 +455,12 @@ int view_cmd_processor(Init *init) {
             else
                 go_to_line(view, n_cmd);
             break;
+            /// Help Command
         case KEY_F(1):
             if (!view->f_displaying_help)
                 view_display_help(view);
             break;
+            /// Set Mark (feature may be removed in the future)
         case 'm':
             cmd_line_prompt(view, "Mark label (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
@@ -405,6 +473,7 @@ int view_cmd_processor(Init *init) {
             else
                 view->mark_tbl[c - 'a'] = view->page_top_pos;
             break;
+            /// Go to mark (feature may be removed in the future)
         case 'M':
         case '\'':
             cmd_line_prompt(view, "Goto mark (A-Z)->");
@@ -419,6 +488,7 @@ int view_cmd_processor(Init *init) {
             else
                 go_to_mark(view, c);
             break;
+            /// Repeat Previous Search
         case 'n':
             if (prev_search_cmd == 0) {
                 Perror("No previous search");
@@ -426,6 +496,7 @@ int view_cmd_processor(Init *init) {
             }
             search(view, prev_search_cmd, prev_regex_pattern, true);
             break;
+            /// Close Current and Open Next File
         case 'N':
             if (n_cmd <= 0)
                 n_cmd = 1;
@@ -439,6 +510,7 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
+            /// Go to Percent of File
         case 'p':
         case '%':
             if (n_cmd < 0)
@@ -449,10 +521,11 @@ int view_cmd_processor(Init *init) {
                 go_to_percent(view, n_cmd);
             break;
         case Ctrl('Z'):
+            /// Send File to Print Queue, with Notation
             get_cmd_arg(view, "Enter Notation:");
             strnz__cpy(tmp_str, "/tmp/view-XXXXXX", MAXLEN - 1);
             tfd = mkstemp(tmp_str);
-            strcpy(view->tmp_file_name_ptr, tmp_str);
+            strnz__cpy(view->tmp_file_name_ptr, tmp_str, MAXLEN - 1);
             if (tfd == -1) {
                 Perror("Unable to create temporary file");
                 break;
@@ -467,7 +540,6 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
             lp(view->cur_file_str, view->cmd_arg);
-            //  wrefresh(view->win);
             rc =
                 prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                          view->smincol, view->smaxrow, view->smaxcol);
@@ -481,12 +553,14 @@ int view_cmd_processor(Init *init) {
             view->f_redisplay_page = true;
             unlink(tmp_str);
             break;
+            /// Print Current File
         case Ctrl('P'):
         case KEY_CATAB:
         case KEY_PRINT:
             lp(view->cur_file_str, NULL);
             view->f_redisplay_page = true;
             break;
+            /// Close Current and Open Previous File
         case 'P':
             if (n_cmd <= 0)
                 n_cmd = 1;
@@ -500,6 +574,7 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
+            /// Quit Command
         case 'q':
         case 'Q':
         case KEY_F(9):
@@ -507,6 +582,7 @@ int view_cmd_processor(Init *init) {
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = NULL;
             return 0;
+            /// Open Current File in Editor
         case 'v':
             if (view->f_displaying_help)
                 break;
@@ -529,6 +605,7 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
             full_screen_shell(shell_cmd_spec);
             return 0;
+            /// Version Information
         case 'V':
             Perror("View: Version 8.0");
             break;
@@ -538,14 +615,16 @@ int view_cmd_processor(Init *init) {
         view->cmd_arg[0] = '\0';
     }
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_CMD_CHAR                                                  │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GET_CMD_CHAR                                                  │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Get Command Character
 int get_cmd_char(View *view, long *n) {
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
     MEVENT event;
+    /// BUTTON4 and BUTTON5 are typically used for mouse wheel up and down
     mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, NULL);
     tcflush(2, TCIFLUSH);
     do {
@@ -569,9 +648,11 @@ int get_cmd_char(View *view, long *n) {
     view->cmd_arg[0] = '\0';
     return (c);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_CMD_SPEC                                                  │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GET_CMD_SPEC                                                  │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Get Command Argument String
+///  Returns 0 on Enter, @, F9, ESC, or Mouse Event
 int get_cmd_arg(View *view, char *prompt) {
     int c;
     int numeric_arg = false;
@@ -617,6 +698,7 @@ int get_cmd_arg(View *view, char *prompt) {
         }
         c = wgetch(view->win);
         switch (c) {
+        /// Basic Editing Keys for Command Line
         case KEY_LEFT:
         case KEY_BACKSPACE:
         case '\b':
@@ -667,9 +749,10 @@ int get_cmd_arg(View *view, char *prompt) {
         }
     }
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ BUILD_PROMPT                                                  │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ BUILD_PROMPT                                                  │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Build Prompt String
 void build_prompt(View *view, int prompt_type, char *prompt_str,
                   double elapsed) {
     prompt_str[0] = '\0';
@@ -732,9 +815,10 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
     }
     view->f_new_file = false;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ CAT_FILE                                                      │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ CAT_FILE                                                      │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Concatenate File to Standard Output
 void cat_file(View *view) {
     int c;
     while (1) {
@@ -744,9 +828,10 @@ void cat_file(View *view) {
         putchar(c);
     }
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ LP (PRINT)                                                    │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ LP (PRINT)                                                    │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Send File to Print Queue
 void lp(char *PrintFile, char *Notation) {
     char *print_cmd_ptr;
     char shell_cmd_spec[MAXLEN];
@@ -760,9 +845,10 @@ void lp(char *PrintFile, char *Notation) {
              view->smincol, view->smaxrow, view->smaxcol);
     shell(shell_cmd_spec);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GO_TO_MARK                                                    │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GO_TO_MARK                                                    │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Go to Mark
 void go_to_mark(View *view, int c) {
     if (c == '\'')
         view->file_pos = view->mark_tbl[(NMARKS - 1)];
@@ -773,9 +859,10 @@ void go_to_mark(View *view, int c) {
     else
         go_to_position(view, view->file_pos);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GO_TO_EOF                                                     │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GO_TO_EOF                                                     │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Go to End of File
 void go_to_eof(View *view) {
     int c;
     if (view->f_is_pipe) {
@@ -791,9 +878,10 @@ void go_to_eof(View *view) {
     get_prev_char();
     prev_page(view);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GO_TO_LINE                                                    │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GO_TO_LINE                                                    │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Go to Specific Line
 int go_to_line(View *view, long line_idx) {
     int c = 0;
     long line_cnt = 0;
@@ -820,9 +908,10 @@ int go_to_line(View *view, long line_idx) {
     prev_page(view);
     return 0;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GO_TO_PERCENT                                                 │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GO_TO_PERCENT                                                 │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Go to Percent of File
 void go_to_percent(View *view, int Percent) {
     int c;
     if (view->file_size < 0) {
@@ -839,18 +928,20 @@ void go_to_percent(View *view, int Percent) {
     }
     get_next_char();
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GO_TO_POSITION                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GO_TO_POSITION                                                │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Go to Specific File Position
 void go_to_position(View *view, long go_to_pos) {
     view->f_forward = true;
     view->file_pos = go_to_pos;
     view->page_bot_pos = view->file_pos;
     next_page(view);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ SEARCH                                                        │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ SEARCH                                                        │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Perform Search
 bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     int REG_FLAGS = 0;
     regmatch_t pmatch[1];
@@ -925,6 +1016,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         //  ╭───────────────────────────────────────────────────────────╮
         //  │ SEARCH - CURRENT LINE                                     │
         //  ╰───────────────────────────────────────────────────────────╯
+        //  Perform regular expression matching
+        //  ANSI characters and Unicode characters are stripped before
+        //  matching, so the match positions correspond to the displayed line.
         reti = regexec(&compiled_regex, view->stripped_line_out,
                        compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
         //  ╭───────────────────────────────────────────────────────────╮
@@ -944,8 +1038,8 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         if (reti) {
             char err_str[MAXLEN];
             regerror(reti, &compiled_regex, err_str, sizeof(err_str));
-            strcpy(tmp_str, "Regex match failed: ");
-            strcat(tmp_str, err_str);
+            strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+            strnz__cat(tmp_str, err_str, MAXLEN - 1);
             Perror(tmp_str);
             regfree(&compiled_regex);
             return false;
@@ -953,6 +1047,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         //  ╭───────────────────────────────────────────────────────────╮
         //  │ SEARCH - MATCH - DISPLAY LEADING CONTEXT LINES            │
         //  ╰───────────────────────────────────────────────────────────╯
+        //  Display leading context lines only once per page
         if (!f_page) {
             view->f_forward = true;
             view->cury = 0;
@@ -983,6 +1078,10 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         //  ╭───────────────────────────────────────────────────────╮
         //  │ SEARCH - HIGHLIGHT ALL MATCHES ON CURRENT LINE        │
         //  ╰───────────────────────────────────────────────────────╯
+        //  Highlight all matches on the current line, even those not displayed
+        //  on the screen. Track first and last match columns for prompt
+        //  display.
+        //
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
@@ -1019,6 +1118,10 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             //  ╰───────────────────────────────────────────────────╯
             reti = regexec(&compiled_regex, view->line_out_p,
                            compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
+            /// @note lines may be much longer than the screen width, so
+            /// continue searching even if the line is not displayed completely.
+            /// The pad's complex characters (cchar_t) will handle the display,
+            /// even if horizantal scrolling is needed.
             if (reti == REG_NOMATCH)
                 break;
             if (reti) {
@@ -1038,6 +1141,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     //  ╭───────────────────────────────────────────────────────────╮
     //  │ SEARCH - SUCCESS - PREPARE PROMPT                         │
     //  ╰───────────────────────────────────────────────────────────╯
+    //  Update view positions and prepare prompt string
     view->file_pos = srch_curr_pos;
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
@@ -1054,9 +1158,10 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     regfree(&compiled_regex);
     return true;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ REDISPLAY_PAGE                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ REDISPLAY_PAGE                                                │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Resize Page
 void resize_page(Init *init) {
     int scr_lines, scr_cols;
     bool f_resize;
@@ -1096,9 +1201,10 @@ void resize_page(Init *init) {
     else
         view->f_redisplay_page = false;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ REDISPLAY_PAGE                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ REDISPLAY_PAGE                                                │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Redisplay Current Page
 void redisplay_page(Init *init) {
     int i;
     view->cury = 0;
@@ -1112,9 +1218,23 @@ void redisplay_page(Init *init) {
         display_line(view);
     }
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ NEXT_PAGE                                                     │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ NEXT_PAGE                                                     │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Advance to Next Page
+/// @param view->file_pos is the file position pointer
+/// @param view->page_top_pos is the top of page pointer
+/// @param view->page_top_bot is the bottom of page pointer
+/// @param view->cury is the current line on the screen
+/// @param view->maxcol is the longest line on the page
+/// @param view->f_forward is the direction flag
+/// @return void
+/// @note Advances the view to the next page by reading lines from
+/// view->page_bot_pos forward
+/// @note Keeps track of view->page_top_pos, which will be needed for
+/// KEY_UP and KEY_PPAGE
+/// @note Clears the screen and displays the next page of lines
+
 void next_page(View *view) {
     int i;
     if (view->page_bot_pos == view->file_size)
@@ -1135,9 +1255,19 @@ void next_page(View *view) {
     }
     view->page_bot_pos = view->file_pos;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ PREV_PAGE                                                     │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ PREV_PAGE                                                     │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Go to Previous Page
+/// @param view->file_pos is the file position pointer
+/// @param view->page_top_pos is the top of page pointer
+/// @param view->page_top_bot is the bottom of page pointer
+/// @param view->cury is the current line on the screen
+/// @param view->maxcol is the longest line on the page
+/// @param view->f_forward is the direction flag
+/// @return void
+/// @note Moves the view to the previous page by reading lines backward
+/// from view->page_top_pos
 void prev_page(View *view) {
     int i;
     if (view->page_top_pos == (long)0)
@@ -1156,9 +1286,15 @@ void prev_page(View *view) {
     view->page_bot_pos = view->file_pos;
     next_page(view);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ SCROLL_FORWARD_N_LINES                                        │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ SCROLL_FORWARD_N_LINES                                        │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Scroll Forward N Lines
+///  May be from 1 to scroll_lines - 1
+///  Adjust Page Top and Bottom Pointers
+///  Scroll Screen Up by N Lines
+///  Fill in Page Bottom with N New Lines
+///  @return void
 void scroll_down_n_lines(View *view, int n) {
     int i = 0;
     if (view->page_bot_pos == view->file_size)
@@ -1187,9 +1323,15 @@ void scroll_down_n_lines(View *view, int n) {
     }
     view->page_bot_pos = view->file_pos;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ SCROLL_BACK_N_LINES                                           │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ SCROLL_BACK_N_LINES                                           │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Scroll Back N Lines
+///  May be from 1 to scroll_lines - 1
+///  Adjust Page Top and Bottom Pointers
+///  Scroll Screen Down by N Lines
+///  Fill in Page Top with N New Lines
+///  @return void
 void scroll_up_n_lines(View *view, int n) {
     int i;
     if (view->page_top_pos == (long)0)
@@ -1224,9 +1366,19 @@ void scroll_up_n_lines(View *view, int n) {
     }
     return;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_NEXT_LINE -> line_in_s                                    │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GET_NEXT_LINE -> line_in_s                                    │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Get Next Line from File into line_in_s
+/// @note the input may contain ANSI SGR sequences or Unicode,
+/// which will be handled later during formatting for display
+/// @note Carriage Return (0x0d) characters are skipped
+/// @note Newline (0x0a) characters terminate the line
+/// @note If view->f_squeeze is set, multiple blank lines are
+/// compressed to a single blank line
+/// @param view->file_pos is the file position pointer
+/// @param view->f_forward is the direction flag
+/// @return updated file position pointer
 long get_next_line(View *view, long pos) {
     uchar c;
     char *line_in_p;
@@ -1273,9 +1425,19 @@ long get_next_line(View *view, long pos) {
     }
     return view->file_pos;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_PREV_LINE                                                 │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GET_PREV_LINE                                                 │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Get Previous Line from File into line_in_s
+/// @note the input may contain ANSI SGR sequences or Unicode,
+/// which will be handled later during formatting for display
+/// @note Carriage Return (0x0d) characters are skipped
+/// @note Newline (0x0a) characters terminate the line
+/// @note If view->f_squeeze is set, multiple blank lines are
+/// compressed to a single blank line
+/// @param view->file_pos is the file position pointer
+/// @param view->f_forward is the direction flag
+/// @return updated file position pointer
 long get_prev_line(View *view, long pos) {
     uchar c;
     view->file_pos = pos;
@@ -1310,9 +1472,13 @@ long get_prev_line(View *view, long pos) {
         view->f_eod = false;
     return view->file_pos;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_POS_NEXT_LINE                                             │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GET_POS_NEXT_LINE                                             │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Get Position of Next Line
+/// @param view->file_pos is the file position pointer
+/// @param view->f_forward is the direction flag
+/// @return updated file position pointer
 long get_pos_next_line(View *view, long pos) {
     uchar c;
     if (pos == view->file_size) {
@@ -1343,9 +1509,13 @@ long get_pos_next_line(View *view, long pos) {
     }
     return view->file_pos;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_POS_PREV_LINE                                             │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ GET_POS_PREV_LINE                                             │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Get Position of Previous Line
+/// @param view->file_pos is the file position pointer
+/// @param view->f_forward is the direction flag
+/// @return updated file position pointer
 long get_pos_prev_line(View *view, long pos) {
     uchar c;
     view->file_pos = pos;
@@ -1371,9 +1541,11 @@ long get_pos_prev_line(View *view, long pos) {
     }
     return view->file_pos;
 }
-//  ╭───────────────────────────────────────────────────────────╮
-//  │ DISPLAY_LINE   view->cmplx_buf -> view->win               │
-//  ╰───────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────╮
+///  │ DISPLAY_LINE   view->cmplx_buf -> view->win               │
+///  ╰───────────────────────────────────────────────────────────╯
+///  Display Line on Screen
+///  @return void
 void display_line(View *view) {
     int rc;
     if (view->cury < 0)
@@ -1390,11 +1562,23 @@ void display_line(View *view) {
     if (rc == ERR)
         Perror("Error refreshing screen");
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ FMT_LINE_OUT      line_out_s -> view->cmplx_buf               │
-//  │                                 view->stripped_line_out       │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ FMT_LINE_OUT      line_out_s -> view->cmplx_buf               │
+///  │                                 view->stripped_line_out       │
+///  ╰───────────────────────────────────────────────────────────────╯
 void fmt_line(View *view) {
+    /// @note Convert line_in_s to line_out_s with complex characters
+    /// @note Handle ANSI SGR sequences for text attributes
+    /// @note Handle Unicode multi-byte characters
+    /// @note Handle Tab characters
+    /// Resulting lines must match in length and position
+    /// @param view->line_in_s is the input line with ANSI and Unicode
+    /// @param view->stripped_line_out is the output line without ANSI
+    ///         sequences, used for searching
+    /// @param view->cmplx_buf is the output complex character buffer
+    /// @param view->tab_stop is the tab stop setting
+    /// @param view->maxcol is the maximum column on the page
+    /// @return void
     attr_t attr = A_NORMAL;
     char ansi_tok[64];
     int cpx = cp_default;
@@ -1406,6 +1590,10 @@ void fmt_line(View *view) {
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
     rtrim(view->line_out_s);
+    /// Initialize multibyte to wide char conversion
+    /// mbtowc, setcchar, and getcchar can sometimes behave badly,
+    /// depending on what you feed them. Make sure your locale is set
+    /// properly before calling them.
     mbtowc(NULL, NULL, 0);
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
@@ -1456,9 +1644,14 @@ void fmt_line(View *view) {
     view->stripped_line_out[j] = '\0';
     return;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ PARSE_ANSI_STR                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ PARSE_ANSI_STR                                                │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Parse ANSI SGR Escape Sequence
+/// @param ansi_str is the ANSI SGR escape sequence string
+/// @param attr is the text attribute output
+/// @param cpx is the color pair index output
+/// @return void
 void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     char *tok;
     int i, len, x_idx;
@@ -1628,6 +1821,8 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
             f_fg = true;
         }
     }
+    /// Update Color Pair if Needed
+    /// Apply Gamma Correction if Needed
     if (f_fg == true || f_bg == true) {
         rgb = xterm256_idx_to_rgb(fg);
         apply_gamma(&rgb);
@@ -1637,9 +1832,10 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     }
     return;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ CMD_LINE_PROMPT                                               │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ CMD_LINE_PROMPT                                               │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Display Command Line Prompt
 void cmd_line_prompt(View *view, char *s) {
     char message_str[MAX_COLS + 1];
     int l;
@@ -1656,9 +1852,10 @@ void cmd_line_prompt(View *view, char *s) {
         wmove(view->win, view->cmd_line, l + 2);
     }
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ REMOVE_FILE                                                   │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ REMOVE_FILE                                                   │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Remove File
 void remove_file(View *view) {
     char c;
     if (view->f_at_end_remove) {
@@ -1671,9 +1868,10 @@ void remove_file(View *view) {
             remove(view->cur_file_str);
     }
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ VIEW_DISPLAY_HELP                                             │
-//  ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ VIEW_DISPLAY_HELP                                             │
+///  ╰───────────────────────────────────────────────────────────────╯
+/// Display View Help File
 void view_display_help(View *view) {
     int begy, begx;
     int eargc;

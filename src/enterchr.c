@@ -1,24 +1,32 @@
-// enterchr.c
-// Bill Waller Copyright (c) 2025
-// billxwaller@gmail.com
-// Accepts a single character, converts it upper case, and sends it to stdout.
-// The calling program should usually supply a new line upon return.
+//  enterchr.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  billxwaller@gmail.com
 //
-// Although this program is simple, it is useful for testing menu systems.
-// It can also be used in scripts to get a single character response from a
-// user. For example: response=$(./enterchr "Enter Y or N: ") if [ "$response" =
-// "Y" ]; then echo "You entered Yes" else echo "You entered No" fi
-//
-// stderr is used for the prompt so that stdout can be captured.
-// This program puts the terminal into raw mode to capture a single character
-// without waiting for a newline. It restores the terminal settings before
-// exiting. It also handles SIGINT to ensure terminal settings are restored if
-// the user interrupts the program.
-//
-// stdout returns the single character entered, converted to upper casell. If
-// the user presses the Escape key, the program returns -1.
-//
-// stdin - input stream (usually keyboard)
+/// enterchr - enter a single character from keyboard
+/// Usage: enterchr "Enter Y or N: "
+/// @note does not wait for newline to be pressed
+/// @note converts character to upper case
+/// @note returns -1 if Escape key is pressed
+/// @note useful for scripts and menu testing
+/// Accepts a single character, converts it upper case, and sends it to stdout.
+/// The calling program should usually supply a new line upon return.
+///
+/// Although this program is simple, it is useful for testing menu systems.
+/// It can also be used in scripts to get a single character response from a
+/// user. For example: response=$(./enterchr "Enter Y or N: ") if [ "$response"
+/// = "Y" ]; then echo "You entered Yes" else echo "You entered No" fi
+///
+/// stderr is used for the prompt so that stdout can be captured.
+/// This program puts the terminal into raw mode to capture a single character
+/// without waiting for a newline. It restores the terminal settings before
+/// exiting. It also handles SIGINT to ensure terminal settings are restored if
+/// the user interrupts the program.
+///
+/// stdout returns the single character entered, converted to upper casell. If
+/// the user presses the Escape key, the program returns -1.
+///
+/// stdin - input stream (usually keyboard)
 
 #include "menu.h"
 #include <fcntl.h>

@@ -1,9 +1,10 @@
-// whence.c
-// Bill Waller Copyright (c) 2025
-// whence: adverb
-//           from what place or source
-//           in this case, a directory name
-// billxwaller@gmail.com
+//  whence.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  billxwaller@gmail.com
+/// whence: adverb
+///           from what place or source
+///           in this case, a directory name
 
 #include <fcntl.h>
 #include <getopt.h>
@@ -19,11 +20,12 @@
 #define TRUE 1
 #define FALSE 0
 #define FAIL -1
+#define MAXLEN PATH_MAX
 
 bool f_all, f_display_help, f_verbose;
 char *path_p;
-char path_s[PATH_MAX];
-char *file_name[PATH_MAX + 1];
+char path_s[MAXLEN];
+char *file_name[MAXLEN + 1];
 
 void whence_usage();
 void whence(char *);
@@ -31,6 +33,8 @@ int next_path(char *, char **);
 int file_spec_parts(char *, char *, char *);
 void ABEND(char *, int, char *);
 void normalend(int);
+int strnz__cpy(char *, char *, int);
+int strnz__cat(char *, char *, int);
 
 int main(int argc, char **argv) {
 
@@ -83,16 +87,16 @@ void whence(char *file_spec_p) {
     int path_l;
     struct stat stat_struct;
 
-    strcpy(file_spec, file_spec_p);
-    strcpy(path_s, path_p);
+    strnz__cpy(file_spec, file_spec_p, MAXLEN - 1);
+    strnz__cpy(path_s, path_p, MAXLEN - 1);
     file_spec_parts(file_spec, file_dir, file_name);
     path_p = path_s;
     path_l = next_path(try_dir, &path_p);
     while (path_l != 0) {
-        strcpy(try_spec, try_dir);
+        strnz__cpy(try_spec, try_dir, MAXLEN - 1);
         if (try_spec[path_l] != '/')
-            strcat(try_spec, "/");
-        strcat(try_spec, file_name);
+            strnz__cat(try_spec, "/", MAXLEN - 1);
+        strnz__cat(try_spec, file_name, MAXLEN - 1);
         if (f_verbose) {
             if (stat(try_spec, &stat_struct) == -1)
                 printf("-      %s\n", try_spec);
@@ -136,18 +140,18 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
     if (stat(file_spec, &stat_struct) != -1)
         if ((stat_struct.st_mode & S_IFMT) == S_IFDIR) {
             if (file_spec[strlen(file_path)] != '/')
-                strcat(file_spec, "/");
-            strcpy(file_path, file_spec);
+                strnz__cat(file_spec, "/", MAXLEN - 1);
+            strnz__cpy(file_path, file_spec, MAXLEN - 1);
             file_name[0] = '\0';
             return (0);
         }
     if (strlen(file_spec) == 0) {
-        strcpy(file_spec, "./");
-        strcpy(file_path, "./");
+        strnz__cpy(file_spec, "./", MAXLEN - 1);
+        strnz__cpy(file_path, "./", MAXLEN - 1);
         file_name[0] = '\0';
         return (0);
     }
-    strcpy(tmp_file_spec, file_spec);
+    strnz__cpy(tmp_file_spec, file_spec, MAXLEN - 1);
     file_spec_l = strlen(file_spec);
     last_slash = -1;
     i = 0;
@@ -157,20 +161,20 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
         i++;
     }
     if (last_slash < 0) {
-        strcpy(file_path, "./");
+        strnz__cpy(file_path, "./", MAXLEN - 1);
         if (strcmp(file_spec, ".") == 0)
             file_name[0] = '\0';
         else
-            strcpy(file_name, tmp_file_spec);
-        strcpy(file_spec, file_path);
-        strcat(file_spec, file_name);
+            strnz__cpy(file_name, tmp_file_spec, MAXLEN - 1);
+        strnz__cpy(file_spec, file_path, MAXLEN - 1);
+        strnz__cat(file_spec, file_name, MAXLEN - 1);
     } else {
         tmp_file_spec[last_slash] = '\0';
-        strcpy(file_path, tmp_file_spec);
-        strcat(file_path, "/");
+        strnz__cpy(file_path, tmp_file_spec, MAXLEN - 1);
+        strnz__cat(file_path, "/", MAXLEN - 1);
         if (last_slash < file_spec_l)
             last_slash++;
-        strcpy(file_name, tmp_file_spec + last_slash);
+        strnz__cpy(file_name, tmp_file_spec + last_slash, MAXLEN - 1);
     }
     return (0);
 }
@@ -180,4 +184,45 @@ void normalend(int rc) { exit(EXIT_SUCCESS); }
 void ABEND(char *pgmid, int rc, char *err_msg) {
     fprintf(stderr, "%s; error %d; %s\n", pgmid, rc, err_msg);
     exit(EXIT_FAILURE);
+}
+
+///  ╭───────────────────────────────────────────────────────────────────╮
+///  │ STRNZ_CPY                                                         │
+///  │ stops at max_len, newline, or carriage return                     │
+///  │ max_len limits the destination buffer size                        │
+///  │ returns length of resulting string                                │
+///  ╰───────────────────────────────────────────────────────────────────╯
+int strnz__cpy(char *d, char *s, int max_len) {
+    char *e;
+    int len = 0;
+
+    e = d + max_len;
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
+}
+///  ╭───────────────────────────────────────────────────────────────────╮
+///  │ STRNZ_CAT                                                         │
+///  │ stops at max_len, newline, or carriage return                     │
+///  │ max_len limits the destination buffer size                        │
+///  │ returns length of resulting string                                │
+///  ╰───────────────────────────────────────────────────────────────────╯
+int strnz__cat(char *d, char *s, int max_len) {
+    char *e;
+    int len = 0;
+
+    e = d + max_len;
+    while (*d != '\0' && *d != '\n' && *d != '\r' && d < e) {
+        d++;
+        len++;
+    }
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
 }

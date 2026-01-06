@@ -13,9 +13,16 @@
 #include <unistd.h>
 #include <wait.h>
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ INIT_VIEW_FULL_SCREEN                                         │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ INIT_VIEW_FULL_SCREEN                                         │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// C-Menu View has two modes: full screen and box windowed.
+/// This function initializes the full screen mode.
+/// It sets up the view structure and creates a new pad for the view.
+/// It also sets various parameters for the view such as scroll lines,
+/// command line position, and tab size.
+/// @param init Pointer to the Init structure containing view settings.
+/// @return 0 on success, -1 on failure.
 int init_view_full_screen(Init *init) {
     view = init->view;
     view->f_full_screen = true;
@@ -50,9 +57,16 @@ int init_view_full_screen(Init *init) {
     idcok(view->win, false);
     return 0;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ INIT_VIEW_BOXWIN                                              │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ INIT_VIEW_BOXWIN                                              │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// This function initializes a box windowed view for the C-Menu View
+/// application. It sets up the view structure, adjusts dimensions based on
+/// screen size, and creates a new pad for the view. It also sets various
+/// parameters such as scroll lines, command line position, and tab size.
+/// @param init Pointer to the Init structure containing view settings.
+/// @param title Title for the box window.
+/// @return 0 on success, -1 on failure.
 int init_view_boxwin(Init *init, char *title) {
     int scr_lines, scr_cols;
     view = init->view;
@@ -108,9 +122,15 @@ int init_view_boxwin(Init *init, char *title) {
     idcok(view->win, false);
     return (0);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ VIEW_INIT_INPUT                                               │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ VIEW_INIT_INPUT                                               │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// This function initializes the input for a view by handling file input
+/// or command output. It sets up pipes if a provider command is specified,
+/// opens the input file, and memory-maps the file for efficient access.
+/// @param view Pointer to the View structure to be initialized.
+/// @param file_name Name of the input file or "-" for standard input.
+/// @return true on success, false on failure.
 bool view_init_input(View *view, char *file_name) {
     struct stat sb;
     int idx = 0;
@@ -122,12 +142,15 @@ bool view_init_input(View *view, char *file_name) {
         file_name = "/dev/stdin";
         view->f_in_pipe = true;
     }
-    //  ╭───────────────────────────────────────────────────────────────╮
-    //  │ INPUT IS FROM START_CMD                                       │
-    //  │ SETUP PIPES                                                   │
-    //  │ CHILD  P_WRITE                                                │
-    //  │ PARENT P_READ                                                 │
-    //  ╰───────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────────╮
+    /// │ INPUT IS FROM START_CMD                                       │
+    /// │ SETUP PIPES                                                   │
+    /// │ CHILD  P_WRITE                                                │
+    /// │ PARENT P_READ                                                 │
+    /// ╰───────────────────────────────────────────────────────────────╯
+    /// If a provider command is specified, set up a pipe to read its output.
+    /// The child process executes the command, and the parent process reads
+    /// from the pipe.
     if (view->provider_cmd[0] != '\0') {
         str_to_args(s_argv, view->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
@@ -154,12 +177,13 @@ bool view_init_input(View *view, char *file_name) {
         view->in_fd = dup(STDIN_FILENO);
         view->f_in_pipe = true;
     } else {
-        //  ╭───────────────────────────────────────────────────────────────╮
-        //  │ ATTEMPT to OPEN FILENAME                                      │
-        //  ╰───────────────────────────────────────────────────────────────╯
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ ATTEMPT to OPEN FILENAME                                      │
+        /// ╰───────────────────────────────────────────────────────────────╯
         if (view->f_in_pipe)
             view->in_fd = dup(STDIN_FILENO);
         else {
+            /// Open the input file for reading and get its size.
             view->in_fd = open(file_name, O_RDONLY);
             if (view->in_fd == -1) {
                 snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
@@ -184,12 +208,16 @@ bool view_init_input(View *view, char *file_name) {
         }
     }
     if (view->f_in_pipe) {
+        /// ╭───────────────────────────────────────────────────────╮
+        /// │ INPUT IS FROM PIPE or STDIN                           │
+        /// │ CLONE STDIN to TEMP FILE                              │
+        /// ╰───────────────────────────────────────────────────────╯
+        /// If input is from a pipe or standard input, clone it to a temporary
+        /// file. This allows for memory-mapping the input later. Read from
+        /// stdin and write to a temporary file.
         char tmp_filename[] = "/tmp/view_XXXXXX";
         char buf[VBUFSIZ];
         ssize_t bytes_read;
-        //  ╭───────────────────────────────────────────────────────╮
-        //  │ CLONE STDIN to TMP_FILENAME                           │
-        //  ╰───────────────────────────────────────────────────────╯
         close(view->in_fd);
         view->in_fd = mkstemp(tmp_filename);
         if (view->in_fd == -1) {
@@ -219,9 +247,10 @@ bool view_init_input(View *view, char *file_name) {
         }
         waitpid(-1, NULL, 0);
     }
-    //  ╭───────────────────────────────────────────────────────────────╮
-    //  │ MMAP                                                          │
-    //  ╰───────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────────╮
+    /// │ MMAP                                                          │
+    /// ╰───────────────────────────────────────────────────────────────╯
+    /// Memory-map the input file for efficient access.
     view->buf =
         mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, view->in_fd, 0);
     if (view->buf == MAP_FAILED) {

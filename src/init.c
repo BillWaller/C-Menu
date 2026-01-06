@@ -1,6 +1,12 @@
-// initialization.c
-// Bill Waller Copyright (c) 2025
-// billxwaller@gmail.com
+//  init.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  billxwaller@gmail.com
+///  Initialization for MAPP - Menu Application Program
+///  Handles command-line arguments and configuration file parsing
+///  ╭───────────────────────────────────────────────────────────────────╮
+///  │ Includes                                                          │
+///  ╰───────────────────────────────────────────────────────────────────╯
 
 #include "menu.h"
 #include <getopt.h>
@@ -33,7 +39,7 @@ const char *PgmID = "init.c";
 int write_config(Init *init);
 void display_version();
 
-// GLOBL INITVARS - DEFAULT VALUES
+/// GLOBL INITVARS - DEFAULT VALUES
 Init *init = NULL;
 
 void mapp_initialization(Init *init, int, char **);
@@ -49,9 +55,9 @@ char *tilde_expand(char *);
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
-// ╭───────────────────────────────────────────────────────────────────╮
-// │ MAPP_INITIALIZATION                                               │
-// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ MAPP_INITIALIZATION                                               │
+/// ╰───────────────────────────────────────────────────────────────────╯
 void mapp_initialization(Init *init, int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
     if (!init) {
@@ -108,9 +114,9 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         }
     }
 }
-// ╭───────────────────────────────────────────────────────────────────╮
-// │ ZERO_OPT_ARGS                                                     │
-// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ ZERO_OPT_ARGS                                                     │
+/// ╰───────────────────────────────────────────────────────────────────╯
 void zero_opt_args(Init *init) {
     init->f_mapp_desc = false;
     init->f_provider_cmd = false;
@@ -128,9 +134,9 @@ void zero_opt_args(Init *init) {
     init->in_spec[0] = '\0';
     init->out_spec[0] = '\0';
 }
-// ╭───────────────────────────────────────────────────────────────────╮
-// │ PARSE_OPT_ARGS                                                    │
-// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ PARSE_OPT_ARGS                                                    │
+/// ╰───────────────────────────────────────────────────────────────────╯
 int parse_opt_args(Init *init, int argc, char **argv) {
     int i;
     int opt;
@@ -156,9 +162,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
                               &longindex)) != -1) {
         switch (opt) {
         case 0:
-            //  ╭───────────────────────────────────────────────────╮
-            //  │ LONG_OPTIONS                                      │
-            //  ╰───────────────────────────────────────────────────╯
+            /// ╭───────────────────────────────────────────────────╮
+            /// │ LONG_OPTIONS                                      │
+            /// ╰───────────────────────────────────────────────────╯
             switch (flag) {
             case MAPP_HELP:
                 init->help = true;
@@ -188,9 +194,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
                 break;
             }
             break;
-            //  ╭───────────────────────────────────────────────────╮
-            //  │ SHORT_OPTIONS                                     │
-            //  ╰───────────────────────────────────────────────────╯
+            /// ╭───────────────────────────────────────────────────╮
+            /// │ SHORT_OPTIONS                                     │
+            /// ╰───────────────────────────────────────────────────╯
         case 'a':
             strnz__cpy(init->minitrc, optarg, MAXLEN - 1);
             break;
@@ -245,7 +251,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(init->brackets, optarg, 2);
             break;
         case 'f': // fill char
-            strncpy(init->fill_char, optarg, 1);
+            strnz__cpy(init->fill_char, optarg, 1);
             break;
         case 'v':
         case 'V':
@@ -329,9 +335,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     init->argc = argc;
     return optind;
 }
-// ╭────────────────────────────────────────────────────────────────╮
-// │ PARSE_CONFIG                                                   │
-// ╰────────────────────────────────────────────────────────────────╯
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ PARSE_CONFIG FILE                                              │
+/// ╰────────────────────────────────────────────────────────────────╯
 int parse_config(Init *init) {
     char ts[MAXLEN];
     char *sp, *dp;
@@ -594,6 +600,9 @@ int parse_config(Init *init) {
     return 0;
 }
 
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ PROMPT_STR_TO_INT                                              │
+/// ╰────────────────────────────────────────────────────────────────╯
 int prompt_str_to_int(char *s) {
     int prompt_type;
     str_to_lower(s);
@@ -608,36 +617,40 @@ int prompt_str_to_int(char *s) {
     return prompt_type;
 }
 
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ PROMPT_INT_TO_STR                                              │
+/// ╰────────────────────────────────────────────────────────────────╯
 void prompt_int_to_str(char *s, int prompt_type) {
     switch (prompt_type) {
     case PT_SHORT:
-        strcpy(s, "short");
+        strnz__cpy(s, "short", 7);
         break;
     case PT_LONG:
-        strcpy(s, "long");
+        strnz__cpy(s, "long", 7);
         break;
     case PT_STRING:
-        strcpy(s, "string");
+        strnz__cpy(s, "string", 7);
         break;
     default:
-        strcpy(s, "none");
+        strnz__cpy(s, "none", 7);
         break;
     }
 }
-// ╭────────────────────────────────────────────────────────────────╮
-// │ WRITE_CONFIG                                                   │
-// ╰────────────────────────────────────────────────────────────────╯
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ WRITE_CONFIG FILE                                              │
+/// ╰────────────────────────────────────────────────────────────────╯
 int write_config(Init *init) {
     char *e;
     char minitrc_dmp[MAXLEN];
 
     e = getenv("HOME");
     if (e) {
-        strcpy(minitrc_dmp, e);
-        strcat(minitrc_dmp, "/");
-        strcat(minitrc_dmp, "menuapp/minitrc.dmp");
+        strnz__cpy(minitrc_dmp, e, MAXLEN - 1);
+        strnz__cat(minitrc_dmp, "/", MAXLEN - 1);
+        strnz__cat(minitrc_dmp, "menuapp/minitrc.dmp", MAXLEN - 1);
+        ;
     } else {
-        strcpy(minitrc_dmp, "./minitrc.dmp");
+        strnz__cpy(minitrc_dmp, "./minitrc.dmp", MAXLEN - 1);
     }
     FILE *minitrc_fp = fopen(minitrc_dmp, "w");
     if (minitrc_fp == (FILE *)0) {
@@ -715,14 +728,14 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_msrc", init->mapp_msrc);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_user", init->mapp_user);
     (void)fclose(minitrc_fp);
-    strcpy(tmp_str, "Configuration written to file: ");
-    strcat(tmp_str, minitrc_dmp);
+    strnz__cpy(tmp_str, "Configuration written to file: ", MAXLEN - 1);
+    strnz__cat(tmp_str, minitrc_dmp, MAXLEN - 1);
     Perror(tmp_str);
     return 0;
 }
-// ╭────────────────────────────────────────────────────────────────╮
-// │ DERIVE_FILE_SPEC                                               │
-// ╰────────────────────────────────────────────────────────────────╯
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ DERIVE_FILE_SPEC                                               │
+/// ╰────────────────────────────────────────────────────────────────╯
 bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     char ts[MAXLEN];
     char ts2[MAXLEN];
@@ -752,34 +765,55 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     return true;
 }
 
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ DISPLAY_VERSION                                                │
+/// ╰────────────────────────────────────────────────────────────────╯
 void display_version() { fprintf(stderr, "\nVersion %s\n", mapp_version); }
 
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ USAGE                                                          │
+/// ╰────────────────────────────────────────────────────────────────╯
 void usage() {
     (void)fprintf(stderr, "\n\nPress any key to continue...");
     di_getch();
 }
 
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ OPT_PRT_CHAR                                                   │
+/// ╰────────────────────────────────────────────────────────────────╯
 void opt_prt_char(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
 
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ USAGE                                                          │
+/// ╰────────────────────────────────────────────────────────────────╯
 void opt_prt_str(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
 
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ OPT_PRT_INT                                                    │
+/// ╰────────────────────────────────────────────────────────────────╯
 void opt_prt_int(const char *o, const char *name, int value) {
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
 }
 
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ OPT_PRT_DOUBLE                                                 │
+/// ╰────────────────────────────────────────────────────────────────╯
 void opt_prt_double(const char *o, const char *name, double value) {
     fprintf(stdout, "%3s %-15s: %0.2f\n", o, name, value);
 }
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ OPT_PRT_BOOL                                                   │
+/// ╰────────────────────────────────────────────────────────────────╯
 void opt_prt_bool(const char *o, const char *name, bool value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
-// ╭────────────────────────────────────────────────────────────────╮
-// │ DUMP_CONFIG                                                    │
-// ╰────────────────────────────────────────────────────────────────╯
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ DUMP_CONFIG                                                    │
+/// ╰────────────────────────────────────────────────────────────────╯
 void dump_config(Init *init, char *msg) {
     opt_prt_str("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-C:", "--cols", init->cols);

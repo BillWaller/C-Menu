@@ -1,3 +1,9 @@
+//  exec.c
+//  Bill Waller Copyright (c) 2025
+//  billxwaller@gmail.com
+//
+/// Functions to fork and exec commands
+
 #include "menu.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -19,6 +25,7 @@ int nf_error(int ec, char *s);
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ FULL_SCREEN_FORK_EXEC                                             │
 //  ╰───────────────────────────────────────────────────────────────────╯
+/// Fork and exec in full screen mode
 int full_screen_fork_exec(char **argv) {
     int rc;
 
@@ -37,6 +44,7 @@ int full_screen_fork_exec(char **argv) {
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ FULL_SCREEN_SHELL                                                 │
 //  ╰───────────────────────────────────────────────────────────────────╯
+///
 int full_screen_shell(char *shellCmdPtr) {
     int rc;
 
@@ -52,6 +60,7 @@ int full_screen_shell(char *shellCmdPtr) {
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ SHELL                                                             │
 //  ╰───────────────────────────────────────────────────────────────────╯
+/// Execute a shell command
 int shell(char *shellCmdPtr) {
     int Eargc;
     char *Eargv[MAXARGS];
@@ -73,6 +82,7 @@ int shell(char *shellCmdPtr) {
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ FORK_EXEC                                                         │
 //  ╰───────────────────────────────────────────────────────────────────╯
+/// Fork and exec a command
 int fork_exec(char **argv) {
     pid_t pid;
     int status;
@@ -143,6 +153,7 @@ int fork_exec(char **argv) {
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ BG_FORK_EXEC_PIPE                                                 │
 //  ╰───────────────────────────────────────────────────────────────────╯
+/// Fork and exec a command in the background with a pipe
 int bg_fork_exec_pipe(char **argv, int *pipe_fd, pid_t pid) {
 
     dup2(STDIN_FILENO, pick->in_fd);
@@ -163,8 +174,8 @@ int bg_fork_exec_pipe(char **argv, int *pipe_fd, pid_t pid) {
         }
         close(pipe_fd[P_WRITE]);
         execvp(argv[0], argv);
-        strncpy(tmp_str, "execvp failed: ", sizeof(tmp_str) - 1);
-        strncat(tmp_str, argv[0], sizeof(tmp_str) - strlen(tmp_str) - 1);
+        strnz__cpy(tmp_str, "execvp failed: ", sizeof(tmp_str) - 1);
+        strnz__cat(tmp_str, argv[0], sizeof(tmp_str) - strlen(tmp_str) - 1);
         Perror(tmp_str);
         break;
     default: // parent

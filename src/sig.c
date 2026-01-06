@@ -1,18 +1,19 @@
-// sig.c
-// signal handling for interrupt signals
-//
-// Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT),
-// the program will prompt the user to either exit the program or
-// continue execution. If the user chooses to exit, a confirmation
-// prompt will be displayed. If the user opts to continue, the program
-// will resume normal operation.
-//
+/// sig.c
+///  sig.c
+///  Bill Waller Copyright (c) 2025
+///  MIT License
+///  billxwaller@gmail.com
+///  signal handling for interrupt signals
+///
+///  Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT),
+///  the program will prompt the user to either exit the program or
+///  continue execution. If the user chooses to exit, a confirmation
+///  prompt will be displayed. If the user opts to continue, the program
+///  will resume normal operation.
 #include "menu.h"
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -88,7 +89,7 @@ void signal_handler(int sig_num) {
         }
         restore_shell_tioctl();
     } else {
-        strcpy(tmp_str, "Caught signal - Press any key");
+        strnz__cpy(tmp_str, "Caught signal - Press any key", MAXLEN - 1);
         c = (char)Perror(tmp_str);
         close_curses();
         sig_dfl_mode();

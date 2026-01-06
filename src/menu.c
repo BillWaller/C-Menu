@@ -1,17 +1,19 @@
 //  menu.c
 //  Bill Waller Copyright (c) 2025
+//  MIT License
+//  Command Line Start-up for C-Menu Menu
 //  billxwaller@gmail.com
 //
-//  This is the main file for C-Menu, a terminal-based application
-//  launcher and menu system.
-//
-//  It operates by reading a menu description file and displaying
-//  a navigable menu in the terminal. Users can select applications
-//  to launch or scripts to execute.
-//
-//  Several ancillary files provide supporting functionality, including
-//  handling terminal I/O settings, managing the menu structure,
-//  and rendering the interface using the ncurses library.
+/// This is the main file for C-Menu, a terminal-based application
+/// launcher and menu system.
+///
+/// It operates by reading a menu description file and displaying
+/// a navigable menu in the terminal. Users can select applications
+/// to launch or scripts to execute.
+///
+/// Several ancillary files provide supporting functionality, including
+/// handling terminal I/O settings, managing the menu structure,
+/// and rendering the interface using the ncurses library.
 
 #include "menu.h"
 
@@ -29,13 +31,13 @@ int main(int argc, char **argv) {
     new_menu(init, init->argc, init->argv, begy, begx);
     menu = init->menu;
     parse_menu_description(init);
-    // ╭───────────────────────────────────────────────────────────────────╮
-    // │ MENU_ENGINE                                                       │
-    // ╰───────────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────────────╮
+    /// │ MENU_ENGINE                                                       │
+    /// ╰───────────────────────────────────────────────────────────────────╯
     menu_engine(init);
-    // ╭───────────────────────────────────────────────────────────────────╮
-    // │ CLEANUP                                                           │
-    // ╰───────────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────────────╮
+    /// │ CLEANUP                                                           │
+    /// ╰───────────────────────────────────────────────────────────────────╯
     close_init(init);
     win_del();
     close_curses();
