@@ -287,15 +287,15 @@ Another tool I have really enjoyed is Rustlings. The Rustlings tutorials are an 
 
 [The Rust Book](https://doc.rust-lang.org/book/)
 
-<img src="../screenshots/rustlings1.png" title="Rustlings 1" />
+<img src="screenshots/rustlings1.png" title="Rustlings 1" />
 
-<img src="../screenshots/rustlings2.png" title="Rustlings 2" />
+<img src="screenshots/rustlings2.png" title="Rustlings 2" />
 
 ## Neovim
 
 And last, but certainly not least in my list of essential tools is Neovim. I loved vim and used it for many years. I can't say whether Vim or Neovim is better because both have evolved to provide competitive features. I can say, for me, Neovim plugins seem more accessible, and it has everything I want and more.
 
-<img src="../screenshots/Neovim.png" title="Neovim" />
+<img src="screenshots/Neovim.png" title="Neovim" />
 
 ## Additional Resources
 
