@@ -631,20 +631,23 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
             full_screen_shell(shell_cmd_spec);
             return 0;
-            /// Write to File Commanda
-            /// Writes the current viewed file to a specified output file.
-            /// The output file is determined by reading a filename from
-            /// a temporary file created using a form.
+        case 'w':
+            /// Write to File
+            /// @note This feature writes the file being viewed to a
+            /// specified output file.
+            /// @note The user is presented with a Form to enter the
+            /// filename.
+            /// @note View then duplicates the contents of the file or pipe
+            /// being viewed into the specified output file.
             /// @note This command is useful for saving the contents of the
-            /// viewed file to a new location, especially when viewing data from
-            /// standard input or a pipe.
-            /// @note The command uses a form to prompt the user for the output
-            /// filename, ensuring that the user can specify a valid path.
+            /// viewed file to a new location, especially when the user
+            /// wants to load piped input into an editor.
             /// @note Error handling is included to manage issues with file
             /// operations, such as opening or writing to the output file.
             /// @note Upon successful writing, a confirmation message is
             /// displayed to the user.
-        case 'w':
+            /// @note After writing, the view is refreshed to reflect any
+            /// changes.
             strnz__cpy(earg_str,
                        "form -d filename.f -o \"~/menuapp/data/form-out\"",
                        MAXLEN - 1);
@@ -812,12 +815,11 @@ int get_cmd_arg(View *view, char *prompt) {
                 }
             }
             break;
-        case KEY_ENTER:
         case '\n':
+        case KEY_ENTER:
             return 0;
-        case '@':
-        case KEY_F(9):
         case '\033':
+        case KEY_F(9):
             return 0;
         case KEY_MOUSE:
             return 0;
@@ -1105,8 +1107,8 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         //  ╭───────────────────────────────────────────────────────────╮
         //  │ SEARCH - CURRENT LINE                                     │
         //  ╰───────────────────────────────────────────────────────────╯
-        //  Perform regular expression matching
-        //  ANSI characters and Unicode characters are stripped before
+        //  Perform extended regular expression matching
+        //  ANSI sequences and Unicode characters are stripped before
         //  matching, so the match positions correspond to the displayed
         //  line.
         reti = regexec(&compiled_regex, view->stripped_line_out,
@@ -1519,7 +1521,7 @@ long get_next_line(View *view, long pos) {
 ///  │ GET_PREV_LINE                                                 │
 ///  ╰───────────────────────────────────────────────────────────────╯
 /// Get Previous Line from File into line_in_s
-/// @note the input may contain ANSI SGR sequences or Unicode,
+/// @note the input may contain ANSI SGR sequences and Unicode,
 /// which will be handled later during formatting for display
 /// @note Carriage Return (0x0d) characters are skipped
 /// @note Newline (0x0a) characters terminate the line
@@ -1737,7 +1739,11 @@ void fmt_line(View *view) {
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ PARSE_ANSI_STR                                                │
 ///  ╰───────────────────────────────────────────────────────────────╯
-/// Parse ANSI SGR Escape Sequence
+/// Parse ANSI SGR Escape Sequences
+/// @note Supports SGR sequences for Xterm 256-color and
+/// 256 x 256 x 256 = 16,777,216 RGB colors
+/// @note Updates attr and cpx for text attributes and color pair index
+/// @note The color pairs are updated dynamically as needed
 /// @param ansi_str is the ANSI SGR escape sequence string
 /// @param attr is the text attribute output
 /// @param cpx is the color pair index output
