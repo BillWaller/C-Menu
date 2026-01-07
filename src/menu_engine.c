@@ -7,7 +7,6 @@
 #include "menu.h"
 #include <ctype.h>
 #include <stdlib.h>
-#include <string.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -30,9 +29,10 @@ unsigned int menu_engine(Init *init) {
     while (action == MA_INIT) {
         action = MA_DISPLAY_MENU;
         if (win_new(menu->lines, menu->cols, menu->begy, menu->begx,
-                    menu->title)) {
-            snprintf(tmp_str, MAXLEN - 1, "win_new(%d, %d, %d, %d) failed",
-                     menu->lines, menu->cols, menu->begy, menu->begx);
+                    menu->title, 0)) {
+            ssnprintf(tmp_str, MAXLEN - 1,
+                      "win_new(%d, %d, %d, %d, %s, %b) failed", menu->lines,
+                      menu->cols, menu->begy, menu->begx, menu->title, 0);
             Perror(tmp_str);
             return (1);
         }
@@ -98,6 +98,7 @@ unsigned int menu_cmd_processor(Init *init) {
                    menu->line[menu->line_idx]->choice_text, menu->cols);
     /// wclrtoeol(menu->win);
     switch (in_key) {
+    case 'k':
     case KEY_UP:
         i = menu->line_idx;
         while (i > 0) {
@@ -108,6 +109,7 @@ unsigned int menu_cmd_processor(Init *init) {
             }
         }
         return (MA_ENTER_OPTION);
+    case 'j':
     case KEY_DOWN:
         i = menu->line_idx;
         while (i < menu->item_count - 1) {
@@ -118,6 +120,7 @@ unsigned int menu_cmd_processor(Init *init) {
             }
         }
         return (MA_ENTER_OPTION);
+    case '\n':
     case KEY_ENTER:
         break;
     case KEY_F(9):
@@ -145,7 +148,7 @@ unsigned int menu_cmd_processor(Init *init) {
             strnz__cat(earg_str, d, MAXLEN - 1);
         full_screen_shell(earg_str);
         return (MA_DISPLAY_MENU);
-    case '\r':
+    case KEY_ALTR:
         restore_wins();
         return (MA_DISPLAY_MENU);
         d = getenv("DEFAULTEDITOR");

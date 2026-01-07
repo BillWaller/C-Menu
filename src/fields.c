@@ -38,6 +38,12 @@ void mk_filler(char *, int);
 /// │ ACCEPT_FIELD                                                  │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Accept input for a field
+/// @return int Key code of action taken
+/// Handles character input, navigation keys, and mouse events
+/// for field editing
+/// @param form Pointer to Form structure
+/// @return int Key code of action taken
+///
 int form_accept_field(Form *form) {
     bool f_insert = FALSE;
     int in_key;
@@ -79,9 +85,10 @@ int form_accept_field(Form *form) {
         switch (in_key) {
         /// Accept Field
         case KEY_F(10):
+            form_fmt_field(form, accept_s);
+            form_display_field(form);
             if (form_validate_field(form) != 0)
                 continue;
-            form_display_field(form);
             return (in_key);
 
         /// Abort Operation
@@ -115,6 +122,7 @@ int form_accept_field(Form *form) {
             continue;
 
         /// Ends field input/edit, erases remainder if option set
+        case '\n':
         case KEY_ENTER:
             if (form->f_erase_remainder)
                 *p = '\0';
@@ -179,7 +187,7 @@ int form_accept_field(Form *form) {
                 }
             if (p > str_end) {
                 mvwaddstr(win, flin, fcol, accept_s);
-                return (KEY_ENTER);
+                return ('\n');
             }
             in_key = 0;
             continue;
@@ -399,6 +407,11 @@ int form_display_field_brackets(Form *form) {
 /// or specialized libraries for these tasks.
 /// @note The function is designed to be modular and extensible, allowing for
 /// easy addition of new data types and formats as needed.
+/// @note C-Menu Form converts each field's input string into internal numeric
+/// binary based on the field's specified format. The internal numberic binary
+/// is then formated and displayed, verifying the user's input and Form's
+/// interpretation of the user's input.
+///
 int form_fmt_field(Form *form, char *s) {
     strnz__cpy(form->field[form->fidx]->input_s, s, MAXLEN - 1);
     char *input_s = form->field[form->fidx]->input_s;
@@ -563,6 +576,11 @@ void right_justify(char *s, int fl) {
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ IS_VALID_DATE                                                 │
 /// ╰───────────────────────────────────────────────────────────────╯
+/// @return true if valid date, false otherwise
+/// @param yyyy Year
+/// @param mm Month
+/// @param dd Day
+/// Checks for valid date including leap years
 bool is_valid_date(int yyyy, int mm, int dd) {
     if (yyyy < 1 || mm < 1 || mm > 12 || dd < 1)
         return false;
@@ -576,6 +594,11 @@ bool is_valid_date(int yyyy, int mm, int dd) {
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ IS_VALID_TIME                                                 │
 /// ╰───────────────────────────────────────────────────────────────╯
+/// @return true if valid time, false otherwise
+/// @param hh Hour
+/// @param mm Minute
+/// @param ss Second
+/// Checks for valid time
 bool is_valid_time(int hh, int mm, int ss) {
     if (hh < 0 || hh > 23 || mm < 0 || mm > 59 || ss < 0 || ss > 59)
         return false;
@@ -584,6 +607,10 @@ bool is_valid_time(int hh, int mm, int ss) {
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ NUMERIC                                                       │
 /// ╰───────────────────────────────────────────────────────────────╯
+/// Extract numeric characters from source string to destination string
+/// ignoring dashes and periods.
+/// @param d Destination string
+/// @param s Source string
 void numeric(char *d, char *s) {
     while (*s != '\0') {
         if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))

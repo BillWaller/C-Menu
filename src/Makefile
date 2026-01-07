@@ -57,9 +57,9 @@ TARGET_LIB = libmenu.a
 all:	$(TARGETS)
 	@echo Make Complete
 
-menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o form_engine.o fields.o \
-	pick_engine.o curskeys.o mview.o view_engine.o dwin.o futil.o init.o mem.o \
-	opts.o scriou.o exec.o sig.o
+menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o \
+		form_engine.o fields.o pick_engine.o curskeys.o mview.o view_engine.o \
+		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
 	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o init_view.o form_engine.o \
 		pick_engine.o curskeys.o mview.o view_engine.o \
 	   	dwin.o exec.o fields.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
@@ -71,14 +71,16 @@ ckeys:	ckeys.o curskeys.o \
 		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
 	$(CC) $(CFLAGS) ckeys.o curskeys.o \
 		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-pick:	pick.o  pick_engine.o mview.o init_view.o view_engine.o \
+pick:	pick.o  pick_engine.o mview.o init_view.o \
+		view_engine.o form_engine.o fields.o \
 		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) pick.c  pick_engine.o mview.o init_view.o view_engine.o \
+	$(CC) $(CFLAGS) pick.c  pick_engine.o mview.o init_view.o \
+		view_engine.o form_engine.o fields.o \
 		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o \
 		$(LDFLAGS) -o $@ $(LIBS)
-view: view.o init_view.o view_engine.o mview.o \
+view: view.o init_view.o view_engine.o form_engine.o fields.o mview.o \
    	dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) view.o init_view.o view_engine.o mview.o \
+	$(CC) $(CFLAGS) view.o init_view.o view_engine.o form_engine.o fields.o mview.o \
 		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
 optsp:	optsp.c opts.o
 	$(CC) $(CFLAGS) $(LDFLAGS) optsp.c opts.o -o $@ $(LIBS)

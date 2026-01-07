@@ -302,7 +302,6 @@ int picker(Init *init) {
         case 'Q':
         case KEY_F(9):
             return -1;
-        case 'h':
         case 'H': /// Help
             display_pick_help(init);
             display_page(pick);
@@ -317,9 +316,11 @@ int picker(Init *init) {
                 return pick->select_cnt;
             cmd_key = 0;
             break;
-        case '\015': /// CR
         case KEY_F(10):
+            return pick->select_cnt;
+        case '\n':
         case KEY_ENTER:
+            toggle_object(pick);
             return pick->select_cnt;
         case KEY_END:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -336,8 +337,8 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+        case 'l':
         case KEY_RIGHT:
-        case '\014':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
 
@@ -365,8 +366,8 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+        case 'h':
         case KEY_LEFT:
-        case '\010':
         case KEY_BACKSPACE:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
@@ -389,7 +390,7 @@ int picker(Init *init) {
             cmd_key = 0;
             break;
         case KEY_DOWN:
-        case '\012':
+        case 'j':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
@@ -410,7 +411,7 @@ int picker(Init *init) {
             cmd_key = 0;
             break;
         case KEY_UP:
-        case '\013':
+        case 'k':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
@@ -731,10 +732,10 @@ int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
     pick = init->pick;
     if (win_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
-                pick->title)) {
-        ssnprintf(tmp_str, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
-                  pick->win_lines, pick->win_width, pick->begy, pick->begx,
-                  pick->title);
+                pick->title, 0)) {
+        ssnprintf(tmp_str, MAXLEN - 65,
+                  "win_new(%d, %d, %d, %d, %s, %b) failed", pick->win_lines,
+                  pick->win_width, pick->begy, pick->begx, pick->title, 0);
         Perror(tmp_str);
 
         return (1);
