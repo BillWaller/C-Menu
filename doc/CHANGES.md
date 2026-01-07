@@ -1,4 +1,35 @@
-# C-Menu-0.2.5.2
+# C-Menu-0.2.6
+
+## Summary of Changes
+
+- Standard h, j, k, l navigation keys are now supported in View, Form, and Pick.
+- Where applicable, arrow keys and ALT arrow keys are also supported for navigation.
+- Where applicable, "q" has been added as an equivalent to KEY_F(9)
+  for quitting the application.
+- A write file option, "w" has been added to View to save the current content to
+  a file.
+- View now supports NCurses pads for better handling of large content and
+  horizontal scrolling.
+- Form now supports several numeric types including decimal integer, hexadecimal,
+  double, float, and currency.
+- CMake build system has been added, along with helper scripts for building,
+  installing, and cleaning the build.
+- C-Menu View - regular expression searching with highlighting of matches.
+- C-Menu View - ANSI SGR escape sequences with RGB (256*256*256) color
+  and Xterm 256 color modes.
+- C-Menu View - memory mapped file access for improved performance with large files.
+- C-Menu Pick - improved multi-column layout and navigation.
+- C-Menu Form - improved field navigation and editing.
+- C-Menu Form, Pick, and View - full support of piped input and output, with
+  "-S" source provider, and "-R" receiver command line options.
+- C-Menu View - incorporated extended regular expression library for advanced searching.
+- Numerous bug fixes and performance improvements across all C-Menu applications.
+
+## Detailed Updates
+
+- To numerous to list at this stage. See diffs for details.
+
+### 2026-01-07T08:17:44-06:00
 
 ### 2025-12-27T09:59:15-06:00
 
