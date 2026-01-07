@@ -341,28 +341,14 @@ int picker(Init *init) {
         case KEY_RIGHT:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
-
-            display_tbl_page = pick->tbl_page;
-
             /// pick->obj_idx += pick->tbl_lines -> next column
-
-            if ((pick->obj_idx + pick->tbl_lines) < (pick->obj_cnt - 1))
-                pick->obj_idx += pick->tbl_lines;
-
-            if (pick->tbl_col < pick->tbl_cols - 1 &&
-                pick->obj_idx + pick->pg_lines < pick->obj_cnt) {
+            if (pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                        (pick->tbl_col + 1) * pick->pg_lines + pick->tbl_line <
+                    pick->obj_cnt - 1 &&
+                pick->tbl_col < pick->tbl_cols - 1)
                 pick->tbl_col++;
-            } else {
-                pick->tbl_col = 0;
-                if (pick->tbl_page < pick->tbl_pages - 1) {
-                    pick->tbl_page = 0;
-                }
-            }
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->tbl_line;
-
-            if (display_tbl_page != pick->tbl_page)
-                display_page(pick);
             reverse_object(pick);
             cmd_key = 0;
             break;
@@ -371,42 +357,25 @@ int picker(Init *init) {
         case KEY_BACKSPACE:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
-            if (pick->tbl_col == 0) {
-                pick->tbl_col = pick->tbl_cols - 1;
-                if (pick->pg_line > 0)
-                    pick->pg_line--;
-                else {
-                    pick->tbl_line = pick->pg_lines - 1;
-                    if (pick->tbl_page > 0)
-                        pick->tbl_page--;
-                    else
-                        pick->tbl_page = pick->tbl_pages - 1;
-                }
-            } else
+            if (pick->tbl_col > 0)
                 pick->tbl_col--;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->tbl_line;
-            reverse_object(pick);
             cmd_key = 0;
+            reverse_object(pick);
             break;
         case KEY_DOWN:
         case 'j':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
-            display_tbl_page = pick->tbl_page;
-
             /// pick->obj_idx++ column down
-            if ((pick->obj_idx + pick->tbl_cols) < (pick->obj_cnt - 1))
-                pick->obj_idx++;
-            pick->tbl_page = pick->obj_idx / (pick->pg_lines * pick->tbl_cols);
-            pick->tbl_line = pick->obj_idx % pick->pg_lines;
-            pick->tbl_col = (pick->obj_idx / pick->pg_lines) % pick->tbl_cols;
-            pick->y = pick->tbl_line;
+            if (pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                        pick->tbl_col * pick->pg_lines + pick->tbl_line <
+                    pick->obj_cnt - 1 &&
+                pick->tbl_line < pick->pg_lines - 1)
+                pick->tbl_line++;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->tbl_line;
-            if (display_tbl_page != pick->tbl_page) {
-                display_page(pick);
-            }
             reverse_object(pick);
             cmd_key = 0;
             break;
@@ -414,17 +383,10 @@ int picker(Init *init) {
         case 'k':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
-            display_tbl_page = pick->tbl_page;
-            if (pick->obj_idx > 0)
-                pick->obj_idx--;
-            pick->tbl_page = pick->obj_idx / (pick->pg_lines * pick->tbl_cols);
-            pick->tbl_line = pick->obj_idx % pick->pg_lines;
-            pick->tbl_col = (pick->obj_idx / pick->pg_lines) % pick->tbl_cols;
-            pick->y = pick->tbl_line;
+            if (pick->tbl_line > 0)
+                pick->tbl_line--;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->tbl_line;
-            if (display_tbl_page != pick->tbl_page)
-                display_page(pick);
             reverse_object(pick);
             cmd_key = 0;
             break;
@@ -563,6 +525,7 @@ void pick_display_chyron(Pick *pick) {
 /// ╰────────────────────────────────────────────────────────────────╯
 void reverse_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
+    pick->y = pick->tbl_line;
     wmove(pick->win, pick->y, pick->x);
     wattron(pick->win, A_REVERSE);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
@@ -665,6 +628,10 @@ int exec_objects(Init *init) {
         ///  │ EXCEPT IF OBJECT CONTAINS %%                          │
         ///  │ WHICH WE REPLACE WITH SELECTED OBJECTS                │
         ///  ╰───────────────────────────────────────────────────────╯
+        ///  CHECK FOR %% IN ARGS
+        ///  @note Only process first occurrence of %%
+        ///  @param %% is replaced with selected objects
+        ///         as a parameter list separated by spaces
         i = 0;
         while (i < margc) {
             if (strstr(margv[i], "%%") != NULL) {
