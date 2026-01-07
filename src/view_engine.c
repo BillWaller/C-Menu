@@ -1,10 +1,11 @@
-//  view_engine.c_
+//  view_engine.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 ///  Command Line Start-up for C-Menu Menu
 
 #include "menu.h"
 #include <ctype.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <regex.h>
 #include <stdlib.h>
@@ -170,10 +171,16 @@ int view_file(Init *init) {
 int view_cmd_processor(Init *init) {
     int tfd;
     char tmp_str[MAXLEN];
+    char earg_str[MAXLEN];
+    char *eargv[MAX_ARGS];
+    int eargc;
+    int begy, begx;
     int c;
     int prev_search_cmd = 0;
     int rc, i;
     int n = 0;
+    int l = 0;
+    ssize_t bytes_written;
     char *editor_ptr;
     char shell_cmd_spec[MAXLEN];
     struct timespec start, end;
@@ -250,11 +257,11 @@ int view_cmd_processor(Init *init) {
             /// popular pagers, including h, j, k, and l.
             /// @note Vertical scrolling can also be accomplished with the
             /// mouse wheel if the terminal supports it.
-        case KEY_LEFT:
-        case KEY_BACKSPACE:
+            /// 'h' or Left Arrow or Backspace or Ctrl('H') to scroll left
         case Ctrl('H'):
         case 'h':
-        case 'H':
+        case KEY_LEFT:
+        case KEY_BACKSPACE:
             if (n_cmd <= 0)
                 n_cmd = 1;
             if ((view->pmincol - n_cmd) < 0)
@@ -270,6 +277,8 @@ int view_cmd_processor(Init *init) {
             if ((view->pmincol + n_cmd) < view->maxcol)
                 view->pmincol += n_cmd;
             break;
+            /// Up Arrow, k, K, Ctrl('K')
+            ///
         case KEY_UP:
         case 'k':
         case 'K':
@@ -278,13 +287,14 @@ int view_cmd_processor(Init *init) {
                 n_cmd = 1;
             scroll_up_n_lines(view, n_cmd);
             break;
-        case KEY_DOWN:
-        case KEY_ENTER:
-        case '\n':
-        case '\r':
-        case ' ':
+            /// Down Arrow, j, J, Enter, Space, KEY_DOWN, KEY_ENTER
+            ///
         case 'j':
         case 'J':
+        case '\n':
+        case ' ':
+        case KEY_DOWN:
+        case KEY_ENTER:
             if (n_cmd <= 0)
                 n_cmd = 1;
             for (i = 0; i < n_cmd; i++) {
@@ -292,23 +302,28 @@ int view_cmd_processor(Init *init) {
             }
             break;
             /// Page Scrolling Commands
+            /// Previous Page, b, B, Ctrl('B'), KEY_PPAGE
         case KEY_PPAGE:
         case 'b':
         case 'B':
         case Ctrl('B'):
             scroll_up_n_lines(view, view->scroll_lines);
             break;
+            /// Page Scrolling Commands
+            /// Next Page, f, F, Ctrl('F'), KEY_NPAGE
         case KEY_NPAGE:
         case 'f':
         case 'F':
         case Ctrl('F'):
             next_page(view);
             break;
+            /// Go to Beginning of Document
         case KEY_HOME:
         case 'g':
             view->pmincol = 0;
             go_to_line(view, 0L);
             break;
+            /// KEY_LL lower left key (home down)
         case KEY_LL:
             go_to_eof(view);
             break;
@@ -406,7 +421,10 @@ int view_cmd_processor(Init *init) {
                 } else
                     Perror("Tab stops not changed");
                 break;
-            case 'h':
+                /// Help Command 'H'
+                /// Displays help information about the settings commands.
+                /// Lower case 'h' is reserved for horizontal scrolling.'
+            case 'H':
                 if (!view->f_displaying_help)
                     view_display_help(view);
                 view->next_cmd_char = '-';
@@ -587,7 +605,15 @@ int view_cmd_processor(Init *init) {
             if (view->f_displaying_help)
                 break;
             if (view->f_is_pipe) {
-                Perror("Can't edit standard input");
+                strnz__cpy(em0,
+                           "View doesn't support editing of standard input",
+                           MAXLEN - 1);
+                strnz__cpy(
+                    em1, "You may write the data to a file and edit that file",
+                    MAXLEN - 1);
+                strnz__cpy(em2, "use the w command to initiate the write",
+                           MAXLEN - 1);
+                strnz__cpy(em3, "and try again.", MAXLEN - 1);
                 break;
             }
             editor_ptr = getenv("DEFAULTEDITOR");
@@ -605,6 +631,70 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
             full_screen_shell(shell_cmd_spec);
             return 0;
+            /// Write to File Commanda
+            /// Writes the current viewed file to a specified output file.
+            /// The output file is determined by reading a filename from
+            /// a temporary file created using a form.
+            /// @note This command is useful for saving the contents of the
+            /// viewed file to a new location, especially when viewing data from
+            /// standard input or a pipe.
+            /// @note The command uses a form to prompt the user for the output
+            /// filename, ensuring that the user can specify a valid path.
+            /// @note Error handling is included to manage issues with file
+            /// operations, such as opening or writing to the output file.
+            /// @note Upon successful writing, a confirmation message is
+            /// displayed to the user.
+        case 'w':
+            strnz__cpy(earg_str,
+                       "form -d filename.f -o \"~/menuapp/data/form-out\"",
+                       MAXLEN - 1);
+            eargc = str_to_args(eargv, earg_str, MAX_ARGS);
+            zero_opt_args(init);
+            parse_opt_args(init, eargc, eargv);
+            begy = view->begy + view->lines - 7;
+            begx = 4;
+            init_form(init, eargc, eargv, begy, begx);
+            strnz__cpy(tmp_str, "~/menuapp/data/form-out", MAXLEN - 1);
+            verify_spec_arg(view->in_spec, tmp_str, "~/menuapp/data", ".",
+                            R_OK);
+            view->in_fp = fopen(view->in_spec, "r");
+            if (view->in_fp == NULL) {
+                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                          __LINE__ - 2);
+                strnz__cpy(em1, "fopen ", MAXLEN - 1);
+                strnz__cat(em1, view->in_spec, MAXLEN - 1);
+                strerror_r(errno, em2, MAXLEN - 1);
+                display_error(em0, em1, em2, NULL);
+                return (1);
+            }
+            fgets(tmp_str, MAXLEN - 1, view->in_fp);
+            fclose(view->in_fp);
+            l = strlen(tmp_str);
+            if (l > 0 && tmp_str[l - 1] == '\n')
+                tmp_str[l - 1] = '\0';
+            view->f_out_spec = verify_spec_arg(
+                view->out_spec, tmp_str, "~/menuapp/data", ".", W_OK | S_QUIET);
+            view->out_fd =
+                open(view->out_spec, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+            bytes_written = write(view->out_fd, view->buf, view->file_size);
+            if (bytes_written != view->file_size) {
+                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                          __LINE__ - 2);
+                strnz__cpy(em1, "fwrite ", MAXLEN - 1);
+                strnz__cat(em1, view->out_spec, MAXLEN - 1);
+                strerror_r(errno, em2, MAXLEN - 1);
+                strnz__cpy(em3, "Not all bytes written", MAXLEN - 1);
+                display_error(em0, em1, em2, em3);
+                return (1);
+            }
+            close(view->out_fd);
+            ssnprintf(tmp_str, MAXLEN - 1, "Wrote %ld bytes to %s",
+                      (long)bytes_written, view->out_spec);
+            cmd_line_prompt(view, tmp_str);
+            view->f_redisplay_page = true;
+            break;
+        case CT_VIEW:
+            break;
             /// Version Information
         case 'V':
             Perror("View: Version 8.0");
@@ -649,7 +739,7 @@ int get_cmd_char(View *view, long *n) {
     return (c);
 }
 ///  ╭───────────────────────────────────────────────────────────────╮
-///  │ GET_CMD_SPEC                                                  │
+///  │ GET_CMD_ARG                                                   │
 ///  ╰───────────────────────────────────────────────────────────────╯
 ///  Get Command Argument String
 ///  Returns 0 on Enter, @, F9, ESC, or Mouse Event
@@ -724,7 +814,6 @@ int get_cmd_arg(View *view, char *prompt) {
             break;
         case KEY_ENTER:
         case '\n':
-        case '\r':
             return 0;
         case '@':
         case KEY_F(9):
@@ -1018,7 +1107,8 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         //  ╰───────────────────────────────────────────────────────────╯
         //  Perform regular expression matching
         //  ANSI characters and Unicode characters are stripped before
-        //  matching, so the match positions correspond to the displayed line.
+        //  matching, so the match positions correspond to the displayed
+        //  line.
         reti = regexec(&compiled_regex, view->stripped_line_out,
                        compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
         //  ╭───────────────────────────────────────────────────────────╮
@@ -1078,9 +1168,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         //  ╭───────────────────────────────────────────────────────╮
         //  │ SEARCH - HIGHLIGHT ALL MATCHES ON CURRENT LINE        │
         //  ╰───────────────────────────────────────────────────────╯
-        //  Highlight all matches on the current line, even those not displayed
-        //  on the screen. Track first and last match columns for prompt
-        //  display.
+        //  Highlight all matches on the current line, even those not
+        //  displayed on the screen. Track first and last match columns for
+        //  prompt display.
         //
         view->first_match_x = -1;
         view->last_match_x = 0;
@@ -1119,9 +1209,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             reti = regexec(&compiled_regex, view->line_out_p,
                            compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
             /// @note lines may be much longer than the screen width, so
-            /// continue searching even if the line is not displayed completely.
-            /// The pad's complex characters (cchar_t) will handle the display,
-            /// even if horizantal scrolling is needed.
+            /// continue searching even if the line is not displayed
+            /// completely. The pad's complex characters (cchar_t) will
+            /// handle the display, even if horizantal scrolling is needed.
             if (reti == REG_NOMATCH)
                 break;
             if (reti) {

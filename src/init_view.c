@@ -87,10 +87,12 @@ int init_view_boxwin(Init *init, char *title) {
         strnz__cpy(view->title, title, MAXLEN - 1);
     else if (view->argv[0] != NULL && view->argv[0][0] != '\0')
         strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
-    if (win_new(view->lines, view->cols, view->begy, view->begx, view->title)) {
+    if (win_new(view->lines, view->cols, view->begy, view->begx, view->title,
+                F_VIEW)) {
         snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        snprintf(em1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s) failed",
-                 view->lines, view->cols, view->begy, view->begx, "NULL");
+        snprintf(em1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s, %b) failed",
+                 view->lines, view->cols, view->begy, view->begx, "NULL",
+                 F_VIEW);
         em2[0] = '\0';
         display_error(em0, em1, em2, NULL);
         return (-1);
@@ -103,8 +105,9 @@ int init_view_boxwin(Init *init, char *title) {
     view->smincol = view->begx + 1;
     view->smaxrow = view->begy + view->lines;
     view->smaxcol = view->begx + view->cols;
-    view->win = newpad(view->lines, MAX_COLS);
-    if (view->win == NULL) {
+    win_win[win_ptr] = newpad(view->lines, MAX_COLS);
+    view->win = win_win[win_ptr];
+    if (win_win[win_ptr] == NULL) {
         snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
         snprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
                  MAX_COLS);

@@ -42,25 +42,26 @@ unsigned int form_engine(Init *);
 /// │ INIT_FORM                                                      │
 /// ╰────────────────────────────────────────────────────────────────╯
 int init_form(Init *init, int argc, char **argv, int begy, int begx) {
+    int rc;
     if (init->form != NULL)
         close_form(init);
     init->form = new_form(init, argc, argv, begy, begx);
     form = init->form;
     if (!form->f_mapp_spec) {
         if (form->mapp_spec[0] == '\0') {
-            Perror("Error: No form specification file given");
+            rc = Perror("Error: No form specification file given");
         } else {
             strnz__cpy(tmp_str, "form->mapp_spec: ", MAXLEN - 1);
             strnz__cat(tmp_str, form->mapp_spec, MAXLEN - 1);
             strnz__cat(tmp_str, " not found", MAXLEN - 1);
-            Perror(tmp_str);
+            rc = Perror(tmp_str);
         }
-        close_curses();
-        restore_shell_tioctl();
-        return 1;
+        return rc;
     }
-    form->begy = begy + 1;
-    form->begx = begx + 4;
+    if (begy != 0)
+        form->begy = begy;
+    if (begx != 0)
+        form->begx = begx;
     if ((form->f_in_spec && (form->in_spec[0] == '\0')) ||
         (strcmp(form->in_spec, "-") == 0) ||
         strcmp(form->in_spec, "/dev/stdin") == 0) {
@@ -114,7 +115,7 @@ unsigned int form_engine(Init *init) {
             }
             break;
         case P_END:
-            if (form->f_out_spec)
+            if (form->f_out_spec || form->out_spec[0] != '\0')
                 form_write(form);
             if (form->f_receiver_cmd) {
                 form_exec_cmd(init);
@@ -381,10 +382,11 @@ unsigned int form_display_screen(Init *init) {
             form->fcnt = n;
     }
     form->cols += 2;
-    if (form->cols > (COLS - form->begx - 1))
-        form->cols = COLS - form->begx - 1;
-    if (win_new(form->lines, form->cols, form->begy, form->begx, form->title)) {
-        strnz__cpy(tmp_str, "win_new failed: ", MAXLEN - 1);
+    if (form->cols > (COLS - form->begx - 3))
+        form->cols = COLS - form->begx - 3;
+    if (win_new(form->lines, form->cols, form->begy, form->begx, form->title,
+                0)) {
+        strnz__cpy(tmp_str, "kwin_new failed: ", MAXLEN - 1);
         strnz__cat(tmp_str, form->title, MAXLEN - 1);
         Perror(tmp_str);
         return (1);
@@ -393,7 +395,7 @@ unsigned int form_display_screen(Init *init) {
     form->win = win_win[win_ptr];
     form->box = win_box[win_ptr];
     for (n = 0; n < form->dcnt; n++) {
-        strnz(form->text[n]->str, form->cols);
+        strnz(form->text[n]->str, form->cols - 3);
         mvwaddstr(form->win, form->text[n]->line, form->text[n]->col,
                   form->text[n]->str);
 #ifdef DEBUG
@@ -407,8 +409,8 @@ void form_display_fields(Form *form) {
     int n;
     char fill_char = form->fill_char[0];
     for (n = 0; n < form->fcnt; n++) {
-        if (form->field[n]->len > form->cols)
-            form->field[n]->len = form->cols;
+        if (form->field[n]->col + form->field[n]->len + 2 > form->cols)
+            form->field[n]->len = form->cols - (form->field[n]->col + 2);
         strnfill(form->field[n]->filler_s, fill_char, form->field[n]->len);
         strnz(form->field[n]->display_s, form->field[n]->len);
         form_display_field_n(form, n);
@@ -722,24 +724,28 @@ int form_read_data(Form *form) {
     char in_buf[MAXLEN];
     char field[MAXLEN];
 
-    if (!form->f_in_pipe)
-        if ((lstat(form->in_spec, &sb) == -1) || (sb.st_size == 0) ||
-            ((form->in_fp = fopen(form->in_spec, "rb")) == NULL)) {
-            strnz__cat(em0, form->in_spec, MAXLEN - 1);
-            // if (errno)
-            // strerror_r(errno, em1, MAXLEN - 1);
-            // else
-            if (sb.st_size == 0)
-                strnz__cpy(em1, "File is empty", MAXLEN - 1);
-            else
-                strnz__cpy(em1, "File does not exist", MAXLEN - 1);
-            strnz__cpy(em2, "Fields will be blank or zero", MAXLEN - 1);
-            cmd_key = display_error(em0, em1, em2, NULL);
-            if (cmd_key == KEY_F(9))
+    if (!form->f_in_pipe) {
+        if (form->f_in_spec && form->in_spec[0] != '\0') {
+            if ((lstat(form->in_spec, &sb) == -1) || (sb.st_size == 0) ||
+                ((form->in_fp = fopen(form->in_spec, "rb")) == NULL)) {
+                strnz__cat(em0, form->in_spec, MAXLEN - 1);
+                // if (errno)
+                // strerror_r(errno, em1, MAXLEN - 1);
+                // else
+                if (sb.st_size == 0)
+                    strnz__cpy(em1, "File is empty", MAXLEN - 1);
+                else
+                    strnz__cpy(em1, "File does not exist", MAXLEN - 1);
+                strnz__cpy(em2, "Fields will be blank or zero", MAXLEN - 1);
+                cmd_key = display_error(em0, em1, em2, NULL);
+                if (cmd_key == KEY_F(9))
+                    return (1);
+            }
+            if (form->in_fp == NULL)
                 return (1);
-        }
-    if (form->in_fp == NULL)
-        return (1);
+        } else
+            return (0);
+    }
     form->fidx = 0;
     while ((fgets(in_buf, MAXLEN, form->in_fp)) != NULL) {
         if (form->fidx < MAXFIELDS)
@@ -773,8 +779,7 @@ int form_exec_cmd(Init *init) {
 /// ╰───────────────────────────────────────────────────────────────╯
 int form_write(Form *form) {
     int n;
-    if (!form->f_out_spec || (form->out_spec[0] == '\0') ||
-        (strcmp(form->out_spec, "-") == 0) ||
+    if (form->out_spec[0] == '\0' || strcmp(form->out_spec, "-") == 0 ||
         strcmp(form->out_spec, "/dev/stdout") == 0) {
         /// ╭───────────────────────────────────────────────────────╮
         /// │ NO OUT SPEC PROVIDED, USE STDOUT                      │

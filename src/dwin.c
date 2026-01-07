@@ -23,7 +23,7 @@ WINDOW *win_box[MAXWIN];
 
 void open_curses(Init *);
 void close_curses();
-int win_new(int, int, int, int, char *);
+int win_new(int, int, int, int, char *, int);
 void win_redraw(WINDOW *);
 void win_resize(int wlines, int wcols, char *title);
 WINDOW *win_open_box(int, int, int, int, char *);
@@ -530,7 +530,8 @@ void close_curses() {
 //  │ WIN_NEW                                                       │
 //  ╰───────────────────────────────────────────────────────────────╯
 /// Create a new window with optional box and title
-int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
+int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
+            int flag) {
     int maxx;
     if (win_ptr < MAXWIN) {
         if (win_ptr > 0)
@@ -561,24 +562,25 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle) {
                     mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
             }
             wnoutrefresh(win_box[win_ptr]);
-
-            win_win[win_ptr] = newwin(wlines, wcols, wbegy + 1, wbegx + 1);
-            wbkgd(win_win[win_ptr], COLOR_PAIR(cp_norm) | ' ');
+            wbegy += 1;
+            wbegx += 1;
         } else {
             win_box[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
             if (win_box[win_ptr] == NULL)
                 return (1);
-            wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
+        }
+        wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
+        if (!(flag & F_VIEW)) {
             win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
             wbkgd(win_win[win_ptr], COLOR_PAIR(cp_norm) | ' ');
+            if (win_win[win_ptr] == NULL)
+                return (1);
+            keypad(win_win[win_ptr], TRUE);
+            idlok(win_win[win_ptr], false);
+            idcok(win_win[win_ptr], false);
+            immedok(win_win[win_ptr], true);
         }
-        if (win_win[win_ptr] == NULL)
-            return (1);
-        keypad(win_win[win_ptr], TRUE);
-        idlok(win_win[win_ptr], false);
-        idcok(win_win[win_ptr], false);
     }
-    immedok(win_win[win_ptr], true);
     return (0);
 }
 //  ╭───────────────────────────────────────────────────────────────╮
@@ -726,8 +728,9 @@ int error_message(char **argv) {
         line = (LINES - 4) / 2;
 
         strnz__cpy(title, "Error", msg_max_len - 7);
-        if (win_new(lines, cols + 2, line, pos, title)) {
-            sprintf(tmp_str, "win_new(%d, %d, %d) failed", cols, line, pos);
+        if (win_new(lines, cols + 2, line, pos, title, 0)) {
+            sprintf(tmp_str, "win_new(%d, %d, %d, %s, %b) failed", cols, line,
+                    pos, title, 0);
             abend(-1, tmp_str);
         }
         error_win = win_win[win_ptr];
@@ -781,7 +784,7 @@ int error_message(char **argv) {
 /// @param em3 Fourth error message line
 ///
 int display_error(char *em0, char *em1, char *em2, char *em3) {
-    char title[64];
+    char title[MAXLEN];
     WINDOW *error_win;
     int line, pos, em_l, em0_l, em1_l, em2_l, em3_l, cmd_l;
     char cmd[] = " F1 Help | F9 Cancel | F10 Continue ";
@@ -809,9 +812,9 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     pos = (COLS - em_l - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (win_new(5, em_l + 2, line, pos, title)) {
-        sprintf(title, "win_new(%d, %d, %d, %d) failed", 5, em_l + 2, line,
-                pos);
+    if (win_new(5, em_l + 2, line, pos, title, 0)) {
+        ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
+                  5, em_l + 2, line, pos, title, 0);
         abend(-1, title);
     }
     error_win = win_win[win_ptr];
@@ -847,10 +850,9 @@ int Perror(char *emsg_str) {
     unsigned cmd_key;
     WINDOW *error_win;
     int len, line, pos;
-    char title[64];
+    char title[MAXLEN];
 
-    strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
-    len = strlen(emsg);
+    len = strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
         return (1);
@@ -860,8 +862,9 @@ int Perror(char *emsg_str) {
     if (len < 39)
         len = 39;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (win_new(2, len + 2, line, pos, title)) {
-        sprintf(title, "win_new(%d, %d, %d, %d) failed", 4, line, line, pos);
+    if (win_new(2, len + 2, line, pos, title, 0)) {
+        ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
+                  4, line, line, pos, title, 0);
         abend(-1, title);
     }
     error_win = win_win[win_ptr];

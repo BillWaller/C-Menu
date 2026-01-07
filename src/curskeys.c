@@ -33,7 +33,7 @@ int display_curses_keys() {
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
                   BUTTON_CTRL | BUTTON_ALT,
               NULL);
-    if (win_new(lines, cols, begy, begx, Title)) {
+    if (win_new(lines, cols, begy, begx, Title, 0)) {
         strnz__cpy(tmp, "win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
         Perror(tmp);
@@ -164,6 +164,9 @@ int display_curses_keys() {
             break;
         case KEY_CATAB:
             strnz__cpy(kstr, "KEY_CATAB clear - all - tabs key", KSTRLEN - 1);
+            break;
+        case '\n':
+            strnz__cpy(kstr, "KEY_ENTER newline key", KSTRLEN - 1);
             break;
         case KEY_ENTER:
             strnz__cpy(kstr, "KEY_ENTER enter / send key", KSTRLEN - 1);

@@ -50,7 +50,7 @@
 #define EIGHT 8
 #define MAX_COLOR_PAIRS 512
 #define MAX_COLORS 512
-
+#define F_VIEW 0x01
 #define S_WCOK 0x1000
 #define S_QUIET 0x2000
 #define P_READ 0
@@ -743,6 +743,8 @@ typedef struct {
     bool f_timer;
     bool f_provider_cmd;
     bool f_receiver_cmd;
+    bool f_in_spec;
+    bool f_out_spec;
     bool f_cmd;
     bool f_cmd_all;
     char cmd[MAXLEN];
@@ -798,6 +800,8 @@ typedef struct {
     int first_match_x;
     int last_match_x;
     //
+    char in_spec[MAXLEN];
+    char out_spec[MAXLEN];
     char *file_spec_ptr;
     char *next_file_spec_ptr;
     char *tmp_file_name_ptr;
@@ -812,6 +816,7 @@ typedef struct {
     //
     bool f_in_pipe;
     int in_fd;
+    int out_fd;
     FILE *in_fp;
     int stdin_fd;
     FILE *stdin_fp;
@@ -905,6 +910,8 @@ typedef struct {
     int tty_fd;
     FILE *tty_fp;
     // window
+    WINDOW *active_window;
+
     char cmd[MAXLEN];          // -V: command to execute at start of program
     char cmd_all[MAXLEN];      // -V: command to execute at start of program
     char provider_cmd[MAXLEN]; // -S: receiver
@@ -999,7 +1006,7 @@ extern void zero_opt_args(Init *);
 extern int write_config(Init *);
 extern bool derive_file_spec(char *, char *, char *);
 extern void open_curses(Init *init);
-extern int win_new(int, int, int, int, char *);
+extern int win_new(int, int, int, int, char *, int);
 extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
 extern int rgb_to_xterm256_idx(RGB);
