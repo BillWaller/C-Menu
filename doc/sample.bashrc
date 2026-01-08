@@ -26,9 +26,6 @@
 # GENERAL SETTINGS
 # -------------------------------------------------------------------
 # set a few environment variables
-if [ "$BASHRC" == "1" ]; then
-	exit 0
-fi
 export BASHRC=1
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -38,9 +35,6 @@ export HISTCONTROL=ignoredups:erasedups
 export HISTSIZE=10000
 export HISTFILESIZE=20000
 export HISTTIMEFORMAT="%F %T "
-export LESSOPEN="| /usr/bin/lesspipe %s"
-export LESS='-R -M --shift 5'
-shopt -s checkwinsize
 IFS="
 "
 # Shell Log
@@ -65,6 +59,18 @@ prepend_path() {
 		;;
 	esac
 }
+
+# Start with a minimal PATH to avoid inheriting unwanted directories
+# from the environment. The prepend_path function is designed to ignore
+# duplicate occurrences of the same path.
+#
+# The order of directories in PATH matters. In this list, precedence
+# is in reverse order, ie. last one prepended has highest precedence.
+#
+# -WARNING- /usr/bin/view, which is generally a link to vim will
+# obscure C-Menu View if /usr/bin is prepended after $HOME/menuapp/bin
+# Examine your PATH environment variable if you have issues starting
+# C-Menu View by typing "view" at the shell prompt.
 
 export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 [ -d "/usr/lib/qt6/bin" ] && prepend_path "/usr/lib/qt6/bin"
@@ -161,8 +167,6 @@ xx() {
 
 x() { exit >/dev/null 2>&1; }
 
-# old habits die hard - use vi command to start nvim
-
 # for gdb inferior tty
 which sleep >/dev/null 2>&1 && s() {
 	TTY=$(tty)
@@ -173,6 +177,8 @@ which sleep >/dev/null 2>&1 && s() {
 	echo "sleeping"
 	sleep 50000
 }
+
+# old habits die hard - use vi command to start nvim
 
 which nvim >/dev/null 2>&1 && vi() { nvim "$@"; }
 
@@ -187,7 +193,9 @@ which menu >/dev/null 2>&1 && mm() {
 }
 
 # colorize ls output if possible
-
+# lsd is a modern replacement for ls with more features and better defaults
+# set PREFER_LSD to 1 to prefer lsd over ls
+# set PREFER_LSD to 0 to prefer ls over lsd
 PREFER_LSD=1
 if [ "$PREFER_LSD" = "1" ]; then
 	which lsd >/dev/null 2>&1 && ls() { /usr/bin/lsd "$@"; }
@@ -200,38 +208,41 @@ fi
 which gdb >/dev/null 2>&1 && gdb() { /usr/bin/gdb --silent "$@"; }
 
 # persistent project directory
-
+# kk - change to cmenu source directory
+# useful for development and debugging
+# This is stupidly simple, but it works for me.
 kk() { cd /usr/local/src/cmenu/src || return; }
-
-alias v="gdb --args view sup.log"
 
 # -------------------------------------------------------------------
 # CURSES
 # -------------------------------------------------------------------
 # shorter delay for curses escape sequences
-
+# This may cause problems over a slow connection.
+# Adjust the value as needed. The default is 1000 milliseconds (1 second).
 export ESCDELAY=50
-
 # CURSES end
 
 # -------------------------------------------------------------------
 # SHELL PROMPT
 # -------------------------------------------------------------------
-
 export PS1="\[\e[1;32m\]\u@\h(\l)\w->\[\e[0m\] "
 export XUSER="$(id -un)"
 [ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h(\l)\w->\[\e[0m\] "
-
 # SHELL PROMPT end
 
 # -------------------------------------------------------------------
 # MANUAL PAGES
 # -------------------------------------------------------------------
-# If you find your manual pages looking dreary and uninviting,
-# consider using nvim as your man pager. It offers syntax highlighting
-# and a more pleasant reading experience.
+# If you find your manual pages boring, consider using nvim
+# as your man pager. It offers syntax highlighting and a more
+# pleasant reading experience. It won't interfere with the Man
+# function below, which uses C-Menu View.
 export MANPAGER="nvim +Man!"
 export MANWIDTH=200
+# The Man function below pipes the output of man through a sed script
+# that reformats the manual pages for better readability in C-Menu's View.
+# It then opens the reformatted output in C-Menu View.
+which man >/dev/null 2>&1 && Man() { man -Tutf8 "$@" | sed -f ~/menuapp/msrc/man.sed | view; }
 # MANUAL PAGES end
 
 export ESCDELAY=50
