@@ -6,6 +6,22 @@
 # It is intended to be a starting point for customizing your
 # bash environment. You can copy this file to your home directory
 # as .bashrc and modify it to suit your needs.
+# WARNING: This file contains commands that are specific to
+# certain systems or configurations. Use caution when copying
+# and modifying this file. Make sure you understand what each
+# command does before using it. Some commands may require
+# specific software or settings to work properly.
+# This file is provided "as is" without warranty of any kind.
+# Use at your own risk.
+# The author is not responsible for any damage or loss
+# that may result from using this file.
+# By using this file, you agree to the terms and conditions
+# stated above.
+# The purpos of including this file is to provide a source of
+# snippets and ideas for customizing your bash environment.
+# You may choose to use some or all of the commands in this file,
+# or none at all. The choice is yours.
+# Enjoy!
 # -------------------------------------------------------------------
 # GENERAL SETTINGS
 # -------------------------------------------------------------------
