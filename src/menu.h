@@ -55,38 +55,36 @@
 #define S_QUIET 0x2000
 #define P_READ 0
 #define P_WRITE 1
-//  ╭───────────────────────────────────────────────────────────────────╮
-//  │ Miscelaneous                                                      │
-//  ╰───────────────────────────────────────────────────────────────────╯
-
+#define TRUE 1
+#define FALSE 0
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ Structures for Future Refinements                                 │
+/// ╰───────────────────────────────────────────────────────────────────╯
 typedef struct {
     char *p;
     size_t al; // allocated characters
 } Arg;
-
 typedef struct {
     Arg **p;
     size_t av; // allocated vector elements
     int argc;
 } Argv;
-
 typedef struct {
     char *p;
     size_t al; // allocated length
 } Str;
-
 typedef struct {
     wchar_t *p;
     size_t al; // allocated length
 } WCStr;
-
 typedef struct {
     cchar_t *p;
     size_t al; // allocated length
 } CCStr;
 
-extern int tty_fd;
-extern int dbgfd;
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ GLOBAL VARIABLES                                                  │
+/// ╰───────────────────────────────────────────────────────────────────╯
 extern int src_line;
 extern char *src_name;
 extern char fn[MAXLEN];
@@ -95,8 +93,25 @@ extern char em1[MAXLEN];
 extern char em2[MAXLEN];
 extern char em3[MAXLEN];
 extern char *eargv[MAXARGS];
+extern int tty_fd;
+extern int dbgfd;
+extern int stdin_fd;
+extern int stdout_fd;
+extern int stderr_fd;
+extern const char *mapp_version;
+extern bool f_debug;
+extern bool f_stop_on_error;
+extern char tmp_str[MAXLEN];
+extern char *tmp_ptr;
+extern unsigned int cmd_key;
+extern int exit_code;
 
 enum Caller { VIEW, FORM, PICK, MENU };
+
+//  ╭───────────────────────────────────────────────────────────────────╮
+//  │ OPTION PROCESSING                                                 │
+//  ╰───────────────────────────────────────────────────────────────────╯
+
 enum OptType {
     OT_STRING,
     OT_INT,
@@ -112,6 +127,7 @@ enum OptGroup {
     OG_FLAGS,
     OG_COL
 };
+
 extern void dump_opts();
 
 typedef struct {
@@ -126,21 +142,17 @@ typedef struct {
 
 extern void dump_opts_by_use(char *, char *);
 
-#define TRUE 1
-#define FALSE 0
-
-extern const char *mapp_version;
+//  ╭───────────────────────────────────────────────────────────────────╮
+//  │ OPTION PROCESSING                                                 │
+//  ╰───────────────────────────────────────────────────────────────────╯
 
 #define to_uppercase(c)                                                        \
     if (c >= 'a' && c <= 'z')                                                  \
     c -= ' '
 
-extern bool f_debug;
-extern bool f_stop_on_error;
-
-//  ╭───────────────────────────────────────────────────────────────────╮
-//  │ SCREEN I/O                                                        │
-//  ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ SCREEN I/O                                                        │
+/// ╰───────────────────────────────────────────────────────────────────╯
 
 extern struct termios shell_tioctl, curses_tioctl;
 extern struct termios shell_in_tioctl, curses_in_tioctl;
@@ -159,27 +171,25 @@ extern bool restore_curses_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
 
-//  ╭───────────────────────────────────────────────────────────────────╮
-//  │ Signal Processing                                                 │
-//  ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ Signal Processing                                                 │
+/// ╰───────────────────────────────────────────────────────────────────╯
 extern void signal_handler(int);
 extern void sig_prog_mode();
 extern void sig_dfl_mode();
 
-//  ╭───────────────────────────────────────────────────────────────────╮
-//  │ NCurses                                                           │
-//  ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ NCurses                                                           │
+/// ╰───────────────────────────────────────────────────────────────────╯
 #define REASSIGN_STDIN
 
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ NCurses Key Definitions                                           │
+/// ╰───────────────────────────────────────────────────────────────────╯
 #undef key_left
 #undef key_right
 #undef key_down
 #undef key_up
-
-// #define KEY_TAB 0x09
-
-// Extended NCurses key definitions
-
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n))
 #define KEY_ALTINS 0x223
@@ -249,12 +259,6 @@ extern void sig_dfl_mode();
 //     KEY_ALTZ,
 // };
 
-// #define key_left 8   // ^H
-// #define key_down 10  // ^J
-// #define key_up 11    // ^K
-// #define key_right 12 // ^L
-// #define key_cr 13    // ^M
-
 typedef struct {
     char text[32];
     int keycode;
@@ -262,6 +266,30 @@ typedef struct {
 } key_cmd_tbl;
 
 extern key_cmd_tbl key_cmd[20];
+
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ COLOR PROCESSING                                                  │
+/// ╰───────────────────────────────────────────────────────────────────╯
+
+enum Color {
+    black,
+    red,
+    green,
+    yellow,
+    blue,
+    magenta,
+    cyan,
+    white,
+    bblack,
+    bred,
+    bgreen,
+    byellow,
+    bblue,
+    bmagenta,
+    bcyan,
+    bwhite,
+    orange
+};
 
 typedef struct {
     int r;
@@ -275,6 +303,7 @@ typedef struct {
 
 extern int cp_default;
 extern int cp_norm;
+extern int cp_box;
 extern int cp_reverse;
 extern int clr_idx;
 extern int clr_cnt;
@@ -284,11 +313,6 @@ extern void apply_gamma(RGB *);
 extern void color_correction(RGB *);
 extern char const colors_text[][10];
 
-extern int cp_default;
-extern int cp_norm;
-extern int cp_box;
-extern int cp_reverse;
-
 typedef struct {
     int fg;
     int bg;
@@ -297,7 +321,10 @@ typedef struct {
 
 extern ColorPair clr_pairs[MAX_COLOR_PAIRS];
 
-// box Wide Unicode
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ WIDE CHARACTER SUPPORT                                            │
+/// ╰───────────────────────────────────────────────────────────────────╯
+
 #define BW_HO L'\x2500'
 #define BW_VE L'\x2502'
 #define BW_TL L'\x250C'
@@ -365,30 +392,6 @@ extern int mbegx;
 extern int mg_action, mg_col, mg_line;
 extern int mouse_support;
 
-enum Color {
-    black,
-    red,
-    green,
-    yellow,
-    blue,
-    magenta,
-    cyan,
-    white,
-    bblack,
-    bred,
-    bgreen,
-    byellow,
-    bblue,
-    bmagenta,
-    bcyan,
-    bwhite,
-    orange
-};
-
-extern char tmp_str[MAXLEN];
-extern char *tmp_ptr;
-extern unsigned int cmd_key;
-
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ WINDOWS FUNCTIONS                                                 │
 //  ╰───────────────────────────────────────────────────────────────────╯
@@ -453,8 +456,9 @@ enum {
     CT_UNDEFINED
 };
 
-extern int exit_code;
-
+//  ╭───────────────────────────────────────────────────────────────────╮
+//  │ MENU DATA STRUCTURE                                               │
+//  ╰───────────────────────────────────────────────────────────────────╯
 typedef struct {
     unsigned int type;
     char *raw_text;
@@ -505,7 +509,7 @@ typedef struct {
 extern Menu *menu;
 
 //  ╭───────────────────────────────────────────────────────────────────╮
-//  │ FORM                                                              │
+//  │ FORM DATA STRUCTURE                                               │
 //  ╰───────────────────────────────────────────────────────────────────╯
 enum FieldFormat {
     FF_STRING,
@@ -610,7 +614,7 @@ extern int form_fmt_field(Form *, char *s);
 extern void form_help(char *);
 
 //  ╭───────────────────────────────────────────────────────────────────╮
-//  │ PICK                                                              │
+//  │ PICK DATA STRUCTURE                                               │
 //  ╰───────────────────────────────────────────────────────────────────╯
 #define OBJ_MAXLEN 80
 #define OBJ_MAXCNT 1024
@@ -683,7 +687,7 @@ typedef struct {
 extern Pick *pick;
 
 //  ╭───────────────────────────────────────────────────────────────────╮
-//  │ VIEW                                                              │
+//  │ VIEW DATA STRUCTURE                                               │
 //  ╰───────────────────────────────────────────────────────────────────╯
 #define NPOS 256
 #define NMARKS 256
@@ -831,7 +835,7 @@ typedef struct {
 extern View *view;
 
 //  ╭───────────────────────────────────────────────────────────────────╮
-//  │ INIT                                                              │
+//  │ INIT DATA STRUCTURE                                               │
 //  ╰───────────────────────────────────────────────────────────────────╯
 typedef struct {
     // colors & geometry
@@ -872,6 +876,7 @@ typedef struct {
     int cp_bold;
     int cp_title;
     int cp_highlight;
+    // Future Implementation of Enhanced Color Options
     // char bg[COLOR_LEN];
     // char hfg[COLOR_LEN];
     // char title_fg[COLOR_LEN];
@@ -911,7 +916,6 @@ typedef struct {
     FILE *tty_fp;
     // window
     WINDOW *active_window;
-
     char cmd[MAXLEN];          // -V: command to execute at start of program
     char cmd_all[MAXLEN];      // -V: command to execute at start of program
     char provider_cmd[MAXLEN]; // -S: receiver
@@ -933,7 +937,6 @@ typedef struct {
     bool f_erase_remainder;   // -e: erase remainder of line on enter
     char brackets[3];         // -f: field_brackets
     bool help;
-
     // directories
     char mapp_home[MAXLEN]; // -m: home directory
     char mapp_data[MAXLEN]; //     --mapp_data
@@ -964,12 +967,11 @@ typedef struct {
     char help_spec[MAXLEN]; // -H: help qualified path
     char in_spec[MAXLEN];   // -i: input file qualified path
     char out_spec[MAXLEN];  // -o: output file qualified path
-    // pick
+    // Pick
     int select_max; // -n: maximum number of selections
-    // view
+    // View
     int tab_stop; // -t: number of spaces per tab
-    // structures
-    // ----------------------------------------------------
+    // Structures
     Menu *menu;
     int menu_cnt;
     Form *form;
@@ -988,14 +990,11 @@ extern int init_cnt;
 extern char minitrc[MAXLEN];
 
 extern void mapp_initialization(Init *init, int, char **);
-
-extern int view_file(Init *);
 extern Init *new_init(int, char **);
 extern View *new_view(Init *init, int, char **, int, int);
 extern Form *new_form(Init *init, int, char **, int, int);
 extern Pick *new_pick(Init *init, int, char **, int, int);
 extern Menu *new_menu(Init *init, int, char **, int, int);
-extern bool init_menu_files(Init *, int, char **);
 extern Menu *close_menu(Init *init);
 extern Pick *close_pick(Init *init);
 extern Form *close_form(Init *init);
@@ -1013,6 +1012,7 @@ extern int rgb_to_xterm256_idx(RGB);
 extern RGB xterm256_idx_to_rgb(int);
 extern void init_clr_palette(Init *);
 extern int get_clr_pair(int, int);
+extern int view_file(Init *);
 
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ PICK                                                              │
@@ -1033,6 +1033,7 @@ extern int mpick(int, char **, int, int, int, int, char *, int);
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ MENU                                                              │
 //  ╰───────────────────────────────────────────────────────────────────╯
+extern bool init_menu_files(Init *, int, char **);
 extern unsigned int menu_engine(Init *);
 extern unsigned int menu_loop(Init *);
 extern unsigned int parse_menu_description(Init *);
@@ -1078,10 +1079,11 @@ extern char *rep_substring(const char *, const char *, const char *);
 extern void strnfill(char *, char, int);
 extern void str_subc(char *, char *, char, char *, int);
 extern void chrep(char *, char, char);
+extern double str_to_double(char *);
+
 extern int get_color_number(char *);
 extern int rgb_clr_to_cube(int);
 extern void list_colors();
-extern double str_to_double(char *);
 
 //  ╭───────────────────────────────────────────────────────────────────╮
 //  │ EXEC UTILITIES                                                    │
@@ -1099,9 +1101,6 @@ extern char errmsg[];
 extern void get_rfc3339_s(char *, size_t);
 extern int open_log(char *);
 extern void write_log(char *);
-//  ╭───────────────────────────────────────────────────────────────────╮
-//  │ UTILITIES                                                         │
-//  ╰───────────────────────────────────────────────────────────────────╯
 extern void set_fkey(int, char *);
 extern bool is_set_fkey(int);
 extern void unset_fkey(int);
@@ -1139,7 +1138,4 @@ extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool locate_file_in_path(char *, char *);
 extern int canonicalize_file_spec(char *);
 
-//  ╭───────────────────────────────────────────────────────────────────╮
-//  │ DEPRECATED                                                        │
-//  ╰───────────────────────────────────────────────────────────────────╯
 #endif

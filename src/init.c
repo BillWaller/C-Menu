@@ -82,7 +82,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
     strnz__cpy(init->mapp_data, "~/menuapp/data", MAXLEN - 1);
     strnz__cpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
-
     // Priority-4 - cfg_args
     parse_config(init);
     if (f_debug)
