@@ -15,7 +15,7 @@
 !form receipt.f -i receipt.dat -o receipt.dat
 :     Form Data Types
 !form -d fields.f -i fields.dat -o fields.dat
-:     Edit .c Files in CMenu Source Tree
+:     Edit .c Files in Current Directory
 !pick -S project_src -M -c vi -T "Project Tree - Select File to Edit"
 :     View CMenu Source with Tree-Sitter
 !pick -S project_src -n 1 -T "Select Project File to Highlight" -c "view -S \"tree-sitter highlight %%\""
