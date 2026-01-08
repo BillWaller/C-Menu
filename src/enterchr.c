@@ -31,6 +31,7 @@
 #include "menu.h"
 #include <fcntl.h>
 #include <stdbool.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -39,7 +40,12 @@ int main(int argc, char **argv) {
     char c = 'Y';
     char *msg;
     struct termios raw_tioctl;
+    char errmsg[128];
 
+    if (argc < 2)
+        strcpy(errmsg, "Press any key");
+    else
+        strcpy(errmsg, argv[1]);
     capture_shell_tioctl();
     // sig_prog_mode();
     raw_tioctl = shell_tioctl;
@@ -48,7 +54,7 @@ int main(int argc, char **argv) {
     // tcflush(1, TCOFLUSH);
     // tcflush(2, TCOFLUSH);
     while (1) {
-        msg = argv[1];
+        msg = errmsg;
         while (*msg) {
             write(2, msg++, 1);
         }

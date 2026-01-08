@@ -96,6 +96,8 @@ int m_cols;
 int m_begy = -1;
 int m_begx = -1;
 int mouse_support;
+int stdin_fd;
+int stdout_fd;
 
 enum colors_enum {
     CLR_BLACK = COLOR_BLACK,
@@ -251,6 +253,9 @@ void open_curses(Init *init) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
 
+    stdin_fd = dup(STDIN_FILENO);
+    stdout_fd = dup(STDOUT_FILENO);
+    /// Get the terminal device name from STDERR_FILENO
     if (ttyname_r(STDERR_FILENO, tty_name, sizeof(tty_name)) != 0) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "ttyname_r failed ", MAXLEN - 1);
@@ -982,8 +987,8 @@ void user_end() {
 void abend(int ec, char *s) {
     close_curses();
     sig_dfl_mode();
-    fprintf(stderr, "\n\nABEND: %s code: %d\n", s, ec);
-    fprintf(stderr, "Press a key to exit program");
+    fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
+    fprintf(stderr, "Press any key");
     di_getch();
     close_init(init);
     win_del();

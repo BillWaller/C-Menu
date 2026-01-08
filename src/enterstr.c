@@ -20,6 +20,7 @@
 #include "menu.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -29,14 +30,19 @@ int main(int argc, char **argv) {
     char in_str[BUFSIZ];
     char *in_ptr = in_str;
     char *msg;
+    char errmsg[128];
 
+    if (argc < 2)
+        strcpy(errmsg, "input:");
+    else
+        strcpy(errmsg, argv[1]);
     capture_shell_tioctl();
     sig_prog_mode();
     new_tioctl = shell_tioctl;
     new_tioctl.c_lflag |= ICANON;
     tcsetattr(2, TCSAFLUSH, &new_tioctl);
     while (1) {
-        msg = argv[1];
+        msg = errmsg;
         while (*msg)
             write(2, msg++, 1);
         if (read(2, in_str, BUFSIZ) > -1)

@@ -74,7 +74,7 @@ bool restore_curses_tioctl() {
 
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ SET_SANE_IOCTL                                                │
-///  │ I like ISIG and IXANY.                                        │
+///  │ Reasonable termios Settings                                   │
 ///  ╰───────────────────────────────────────────────────────────────╯
 bool set_sane_tioctl(struct termios *t_p) {
     tcgetattr(0, t_p);
@@ -89,11 +89,12 @@ bool set_sane_tioctl(struct termios *t_p) {
     tcsetattr(0, TCSANOW, t_p);
     return true;
 }
-
 ///  ╭───────────────────────────────────────────────────────────────╮
-///  │ MK_RAW_IOCTL                                                  │
+///  │ MK_RAW_IOCTL - Set terminal to raw mode                       │
 ///  │ unlike cfmakeraw(), this leaves ISIG enabled.                 │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  @params t_p - pointer to termios structure to modify
+///  @note - unlike cfmakeraw(), this leaves ISIG enabled.
 bool mk_raw_tioctl(struct termios *t_p) {
     tcgetattr(0, t_p);
     // t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
@@ -109,25 +110,24 @@ bool mk_raw_tioctl(struct termios *t_p) {
     tcsetattr(0, TCSAFLUSH, t_p);
     return true;
 }
-
 ///  ╭───────────────────────────────────────────────────────────────╮
-///  │ DI_GETCH                                                      │
-///  │ accepts a single character                                    │
+///  │ DI_GETCH - Get Single Character in Raw Mode                   │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  @return - single character read from terminal
 char di_getch() {
     struct termios org_tioctl, new_tioctl;
     char buf;
 
-    if (tcgetattr(0, &org_tioctl) == -1) {
-        fprintf(stderr, "standard error not a tty\n");
+    if (tcgetattr(2, &org_tioctl) == -1) {
+        fprintf(stderr, "\ndi_getch: tcgetattr failed\n");
         return (0);
     }
     new_tioctl = org_tioctl;
     new_tioctl.c_lflag &= ~(ECHO | ICANON);
     new_tioctl.c_cc[VMIN] = 1;
     new_tioctl.c_cc[VTIME] = 0;
-    tcsetattr(0, TCSAFLUSH, &new_tioctl);
-    read(0, &buf, 1);
-    tcsetattr(0, TCSAFLUSH, &org_tioctl);
+    tcsetattr(2, TCSAFLUSH, &new_tioctl);
+    read(2, &buf, 1);
+    tcsetattr(2, TCSAFLUSH, &org_tioctl);
     return (buf);
 }

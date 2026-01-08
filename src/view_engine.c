@@ -1756,124 +1756,158 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     char *ansi_p = ansi_str + 2;
     extended_pair_content(*cpx, &fg, &bg);
     RGB rgb;
-    tok = strtok((char *)ansi_p, ";m");
-    if (tok == NULL)
-        return;
-    ansi_p = NULL;
-    len = strlen(tok);
-    if (len == 2) {
-        if (tok[0] == '3' && tok[1] == '8') {
-            //  ╭───────────────────────────────────────────────╮
-            //  │ 38 - FOREGROUND                               │
-            //  ╰───────────────────────────────────────────────╯
-            tok = strtok((char *)ansi_p, ";m");
-            ansi_p = 0;
-            if (tok != NULL && strcmp(tok, "5") == 0) {
-                //  ╭───────────────────────────────────────────╮
-                //  │ 5 - 256 CLR PALETTE                       │
-                //  ╰───────────────────────────────────────────╯
+    while (1) {
+        tok = strtok((char *)ansi_p, ";m");
+        if (tok == NULL)
+            break;
+        ansi_p = NULL;
+        len = strlen(tok);
+        if (len == 2) {
+            if (tok[0] == '3' && tok[1] == '8') {
+                //  ╭───────────────────────────────────────────────╮
+                //  │ 38 - FOREGROUND                               │
+                //  ╰───────────────────────────────────────────────╯
                 tok = strtok((char *)ansi_p, ";m");
-                ansi_p = NULL;
-                if (tok != NULL) {
-                    //  ╭───────────────────────────────────────╮
-                    //  │ XTERM_IDX_TO_RGB                      │
-                    //  ╰───────────────────────────────────────╯
-                    x_idx = atoi(tok);
-                    if (fg != x_idx) {
-                        fg = x_idx;
-                        f_fg = true;
-                    }
-                }
-            } else {
-                if (tok != NULL && strcmp(tok, "2") == 0) {
+                ansi_p = 0;
+                if (tok != NULL && strcmp(tok, "5") == 0) {
                     //  ╭───────────────────────────────────────────╮
-                    //  │ 2 - RGB                                   │
+                    //  │ 5 - 256 CLR PALETTE                       │
                     //  ╰───────────────────────────────────────────╯
                     tok = strtok((char *)ansi_p, ";m");
                     ansi_p = NULL;
-                    rgb.r = atoi(tok);
-                    tok = strtok((char *)ansi_p, ";m");
-                    ansi_p = NULL;
-                    rgb.g = atoi(tok);
-                    tok = strtok((char *)ansi_p, ";m");
-                    ansi_p = NULL;
-                    rgb.b = atoi(tok);
-                    x_idx = rgb_to_xterm256_idx(rgb);
-                    if (fg != x_idx) {
-                        fg = x_idx;
-                        f_fg = true;
+                    if (tok != NULL) {
+                        //  ╭───────────────────────────────────────╮
+                        //  │ XTERM_IDX_TO_RGB                      │
+                        //  ╰───────────────────────────────────────╯
+                        x_idx = atoi(tok);
+                        if (fg != x_idx) {
+                            fg = x_idx;
+                            f_fg = true;
+                        }
+                    }
+                } else {
+                    if (tok != NULL && strcmp(tok, "2") == 0) {
+                        //  ╭───────────────────────────────────────────╮
+                        //  │ 2 - RGB                                   │
+                        //  ╰───────────────────────────────────────────╯
+                        tok = strtok((char *)ansi_p, ";m");
+                        ansi_p = NULL;
+                        rgb.r = atoi(tok);
+                        tok = strtok((char *)ansi_p, ";m");
+                        ansi_p = NULL;
+                        rgb.g = atoi(tok);
+                        tok = strtok((char *)ansi_p, ";m");
+                        ansi_p = NULL;
+                        rgb.b = atoi(tok);
+                        x_idx = rgb_to_xterm256_idx(rgb);
+                        if (fg != x_idx) {
+                            fg = x_idx;
+                            f_fg = true;
+                        }
                     }
                 }
-            }
-        } else if (tok[0] == '4' && tok[1] == '8') {
-            //  ╭───────────────────────────────────────────────╮
-            //  │ 48 - BACKGROUND                               │
-            //  ╰───────────────────────────────────────────────╯
-            tok = strtok((char *)ansi_p, ";m");
-            ansi_p = NULL;
-            if (tok != NULL && strcmp(tok, "5") == 0) {
-                //  ╭───────────────────────────────────────────╮
-                //  │ 5 - 256 CLR PALETTE                       │
-                //  ╰───────────────────────────────────────────╯
+            } else if (tok[0] == '4' && tok[1] == '8') {
+                //  ╭───────────────────────────────────────────────╮
+                //  │ 48 - BACKGROUND                               │
+                //  ╰───────────────────────────────────────────────╯
                 tok = strtok((char *)ansi_p, ";m");
                 ansi_p = NULL;
-                if (tok != NULL) {
-                    //  ╭───────────────────────────────────────╮
-                    //  │ XTERM_IDX_TO_RGB                      │
-                    //  ╰───────────────────────────────────────╯
-                    int x_idx = atoi(tok);
-                    if (bg != x_idx) {
-                        bg = x_idx;
-                        f_bg = true;
-                    }
-                }
-            } else {
-                if (tok != NULL && strcmp(tok, "2") == 0) {
+                if (tok != NULL && strcmp(tok, "5") == 0) {
                     //  ╭───────────────────────────────────────────╮
-                    //  │ 2 - RGB COLOR                             │
+                    //  │ 5 - 256 CLR PALETTE                       │
                     //  ╰───────────────────────────────────────────╯
                     tok = strtok((char *)ansi_p, ";m");
                     ansi_p = NULL;
-                    rgb.r = atoi(tok);
-                    tok = strtok((char *)ansi_p, ";m");
-                    ansi_p = NULL;
-                    rgb.g = atoi(tok);
-                    tok = strtok((char *)ansi_p, ";m");
-                    ansi_p = NULL;
-                    rgb.b = atoi(tok);
-                    x_idx = rgb_to_xterm256_idx(rgb);
-                    if (bg != x_idx) {
-                        bg = x_idx;
-                        f_bg = true;
+                    if (tok != NULL) {
+                        //  ╭───────────────────────────────────────╮
+                        //  │ XTERM_IDX_TO_RGB                      │
+                        //  ╰───────────────────────────────────────╯
+                        int x_idx = atoi(tok);
+                        if (bg != x_idx) {
+                            bg = x_idx;
+                            f_bg = true;
+                        }
+                    }
+                } else {
+                    if (tok != NULL && strcmp(tok, "2") == 0) {
+                        //  ╭───────────────────────────────────────────╮
+                        //  │ 2 - RGB COLOR                             │
+                        //  ╰───────────────────────────────────────────╯
+                        tok = strtok((char *)ansi_p, ";m");
+                        ansi_p = NULL;
+                        rgb.r = atoi(tok);
+                        tok = strtok((char *)ansi_p, ";m");
+                        ansi_p = NULL;
+                        rgb.g = atoi(tok);
+                        tok = strtok((char *)ansi_p, ";m");
+                        ansi_p = NULL;
+                        rgb.b = atoi(tok);
+                        x_idx = rgb_to_xterm256_idx(rgb);
+                        if (bg != x_idx) {
+                            bg = x_idx;
+                            f_bg = true;
+                        }
                     }
                 }
-            }
-        } else if (tok[0] == '3' && tok[1] == '9') {
-            if (fg != COLOR_WHITE) {
-                fg = COLOR_WHITE;
-                f_fg = true;
-            }
-        } else if (tok[0] == '4' && tok[1] == '9') {
-            if (bg != COLOR_BLACK) {
-                bg = COLOR_BLACK;
-                f_bg = true;
-            }
-        } else if ((tok[0] == '3' || tok[0] == '4') && tok[1] >= '0' &&
-                   tok[1] <= '7') {
-            if (tok[0] == '3') {
-                i = atoi(&tok[1]);
-                if (fg != i) {
-                    fg = i;
+            } else if (tok[0] == '3' && tok[1] == '9') {
+                if (fg != COLOR_WHITE) {
+                    fg = COLOR_WHITE;
                     f_fg = true;
                 }
-            } else if (tok[0] == '4') {
-                i = atoi(&tok[1]);
-                if (bg != i) {
-                    bg = i;
+            } else if (tok[0] == '4' && tok[1] == '9') {
+                if (bg != COLOR_BLACK) {
+                    bg = COLOR_BLACK;
                     f_bg = true;
                 }
-            }
-        } else if (tok[0] == '0' && tok[1] == '1') {
+            } else if ((tok[0] == '3' || tok[0] == '4') && tok[1] >= '0' &&
+                       tok[1] <= '7') {
+                if (tok[0] == '3') {
+                    i = atoi(&tok[1]);
+                    if (fg != i) {
+                        fg = i;
+                        f_fg = true;
+                    }
+                } else if (tok[0] == '4') {
+                    i = atoi(&tok[1]);
+                    if (bg != i) {
+                        bg = i;
+                        f_bg = true;
+                    }
+                }
+            } else if (tok[0] == '0' && tok[1] == '1') {
+                *attr = A_NORMAL;
+                if (fg != COLOR_WHITE) {
+                    fg = COLOR_WHITE;
+                    f_fg = true;
+                }
+                if (bg != COLOR_BLACK) {
+                    bg = COLOR_BLACK;
+                    f_fg = true;
+                }
+            } else if (tok[0] == '0' && tok[1] == '1')
+                *attr = A_BOLD;
+            else if (tok[0] == '0' && tok[1] == '2')
+                *attr = A_REVERSE;
+            else if (tok[0] == '0' && tok[1] == '3')
+                *attr = A_ITALIC;
+        } else if (len == 1) {
+            if (tok[0] == '0') {
+                *attr = A_NORMAL;
+                if (fg != COLOR_WHITE) {
+                    fg = COLOR_WHITE;
+                    f_fg = true;
+                }
+                if (bg != COLOR_BLACK) {
+                    bg = COLOR_BLACK;
+                    f_fg = true;
+                }
+            } else if (tok[0] == '1')
+                *attr = A_BOLD;
+            else if (tok[0] == '2')
+                *attr = A_REVERSE;
+            else if (tok[0] == '3')
+                *attr = A_ITALIC;
+        } else if (len == 0) {
             *attr = A_NORMAL;
             if (fg != COLOR_WHITE) {
                 fg = COLOR_WHITE;
@@ -1883,38 +1917,6 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 bg = COLOR_BLACK;
                 f_fg = true;
             }
-        } else if (tok[0] == '0' && tok[1] == '1')
-            *attr = A_BOLD;
-        else if (tok[0] == '0' && tok[1] == '2')
-            *attr = A_REVERSE;
-        else if (tok[0] == '0' && tok[1] == '3')
-            *attr = A_ITALIC;
-    } else if (len == 1) {
-        if (tok[0] == '0') {
-            *attr = A_NORMAL;
-            if (fg != COLOR_WHITE) {
-                fg = COLOR_WHITE;
-                f_fg = true;
-            }
-            if (bg != COLOR_BLACK) {
-                bg = COLOR_BLACK;
-                f_fg = true;
-            }
-        } else if (tok[0] == '1')
-            *attr = A_BOLD;
-        else if (tok[0] == '2')
-            *attr = A_REVERSE;
-        else if (tok[0] == '3')
-            *attr = A_ITALIC;
-    } else if (len == 0) {
-        *attr = A_NORMAL;
-        if (fg != COLOR_WHITE) {
-            fg = COLOR_WHITE;
-            f_fg = true;
-        }
-        if (bg != COLOR_BLACK) {
-            bg = COLOR_BLACK;
-            f_fg = true;
         }
     }
     /// Update Color Pair if Needed
