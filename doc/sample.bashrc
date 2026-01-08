@@ -187,7 +187,14 @@ which nvim >/dev/null 2>&1 && vi() { nvim "$@"; }
 which grep >/dev/null 2>&1 && grep() { /usr/bin/grep -Hn "$@"; }
 
 # typing mm takes less time than menu if you use it often
-
+# You must prepend $HOME/menuapp/bin to your PATH before the following
+# the following function is defined.
+# The statement sourcing cmenu_path at the end of this file will not
+# work for this function. The PATH must be set before this function is
+# defined. You don't need to set the path three times as I have done
+# in this .bashrc file. Just make sure $HOME/menuapp/bin is in your PATH
+# before this function is defined.
+. "$HOME"/menuapp/bin/cmenu_path
 which menu >/dev/null 2>&1 && mm() {
 	menu "$@"
 }
@@ -296,3 +303,4 @@ if [ "$BASHLOG" ]; then
 	fi
 fi
 . "$HOME/.cargo/env"
+. "$HOME"/menuapp/bin/cmenu_path
