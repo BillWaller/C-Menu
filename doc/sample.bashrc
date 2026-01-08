@@ -10,6 +10,10 @@
 # GENERAL SETTINGS
 # -------------------------------------------------------------------
 # set a few environment variables
+if [ "$BASHRC" == "1" ]; then
+	exit 0
+fi
+export BASHRC=1
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
@@ -23,7 +27,6 @@ export LESS='-R -M --shift 5'
 shopt -s checkwinsize
 IFS="
 "
-export BASHRC=1
 # Shell Log
 unset BASHLOG
 unset GH_TOKEN
