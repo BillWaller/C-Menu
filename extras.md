@@ -43,7 +43,6 @@ You can verify the installation by checking the Rust version:
 This should display the installed Rust version, confirming that Rust is successfully installed on your system.
 
 Rust comes with Cargo, the Rust package manager, which you can use to install additional Rust-based tools.
-
 You can update Rust and Cargo at any time by running:
 
 ```bash
@@ -221,7 +220,60 @@ To install Tree-Sitter parsers for various programming languages, you can use th
 
 ### On Linux
 
-After installing Rust, you can install Tree-Sitter parsers using Cargo, Rust's package manager:
+After installing Rust, you can install Tree-Sitter parsers using Cargo, Rust's package manager. As always, I highly recommend installing only the parsers you need. Here are some examples:
+
+```bash
+    cargo install tree-sitter-python
+    cargo install tree-sitter-javascript
+    cargo install tree-sitter-rust
+    cargo install tree-sitter-go
+    cargo install tree-sitter-cpp
+```
+
+I installed my tree-sitter parsers in the following directory structure:
+
+```
+~/.config/tree-sitter
+    ├── config.json
+    └── parsers
+        ├── tree-sitter-awk
+        ├── tree-sitter-bash
+        ├── tree-sitter-cpp
+        ├── tree-sitter-c
+        ├── tree-sitter-go
+        ├── tree-sitter-lua
+        ├── tree-sitter-markdown
+        ├── tree-sitter-rust
+        └── tree-sitter-zig
+```
+
+The `config.json` file contains configuration settings for Tree-Sitter.
+The `parsers` directory contains the installed Tree-Sitter parsers for different programming languages.
+
+```
+
+
+"parser-directories": [
+		"/home/bill/.config/tree-sitter/parsers"
+	],
+```
+
+You can also configure a custom color scheme in the config.json file if you like. Here's a sample of mine:
+
+```json
+
+	"theme": {
+		"attribute": {
+			"color": 214,
+			"italic": true
+		},
+		"comment": {
+			"color": 39,
+			"italic": true
+```
+
+The colors in my configuration are from the Xterm 256 color palette, but I believe
+you can use HTML style six digit hex numbers such as "#000000"
 
 ```bash
     cargo install tree-sitter-<language>

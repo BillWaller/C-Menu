@@ -3,12 +3,11 @@
 //  MIT License
 //  billxwaller@gmail.com
 //
-/// Strips ANSI escape codes from a string
-/// Returns length of stripped string
-/// Usage: stripansi <file_with_ansi_codes>
-/// Outputs stripped text to stdout
-/// Example ANSI escape code: \033[31m (red text)
-/// Only handles basic SGR codes ending with 'm'
+/// Strips ANSI SGR escape sequences (ending in 'm') from a string
+/// strip_ansi() Returns length of stripped string
+/// @params  Usage: stripansi <file_with_ansi_codes>
+/// Stripped output goes to stdout
+/// Example ANSI escape code: 0x1b[31m (red text)
 
 #include <stdint.h>
 #include <stdio.h>
