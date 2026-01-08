@@ -17,11 +17,11 @@
 # that may result from using this file.
 # By using this file, you agree to the terms and conditions
 # stated above.
-# The purpos of including this file is to provide a source of
+# The purpose of including this file is to provide a source of
 # snippets and ideas for customizing your bash environment.
 # You may choose to use some or all of the commands in this file,
 # or none at all. The choice is yours.
-# Enjoy!
+# Enjoy! :-)
 # -------------------------------------------------------------------
 # GENERAL SETTINGS
 # -------------------------------------------------------------------
