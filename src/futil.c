@@ -646,18 +646,17 @@ bool dir_name(char *buf, char *path) {
 /// S_WCOK - Write or Create
 /// S_QUIET - Suppress Error Messages
 bool verify_dir(char *spec, int imode) {
-    int rc;
     int mode = imode & ~(S_WCOK | S_QUIET);
     expand_tilde(spec, MAXLEN);
     struct stat sb;
     errno = 0;
     src_line = 0;
 
-    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) != 0) {
-        src_line = __LINE__ - 1;
+    if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) != 0) {
+        src_line = __LINE__ - 2;
         src_name = __FILE__;
         strnz__cpy(fn, "faccessat", MAXLEN - 1);
-    } else if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) != 0) {
+    } else if (fstatat(AT_FDCWD, spec, &sb, 0) != 0) {
         src_line = __LINE__ - 1;
         src_name = __FILE__;
         strnz__cpy(fn, "fstatat", MAXLEN - 1);

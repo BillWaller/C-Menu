@@ -276,6 +276,8 @@ void save_object(Pick *pick, char *s) {
             s[OBJ_MAXLEN - 1] = '\0';
         if (l > pick->tbl_col_width)
             pick->tbl_col_width = l;
+        if (l < 1)
+            l = 1;
         pick->object[pick->obj_idx] = (char *)calloc(l + 1, sizeof(char));
         strnz__cpy(pick->object[pick->obj_idx], s, l);
         pick->f_selected[pick->obj_idx] = FALSE;
@@ -662,6 +664,10 @@ int exec_objects(Init *init) {
         }
     }
     margv[margc] = NULL;
+    if (margc == 0) {
+        Perror("No pick exec command available");
+        return (1);
+    }
     if (strcmp(margv[0], "view") == 0) {
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
