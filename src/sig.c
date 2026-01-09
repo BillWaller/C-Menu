@@ -62,7 +62,7 @@ void signal_handler(int sig_num) {
         msg = "unknown signal";
         break;
     }
-    snprintf(tmp_str, MAXLEN - 1, "\nCaught signal %d - %s\n", sig_num, msg);
+    ssnprintf(tmp_str, MAXLEN - 1, "\nCaught signal %d - %s\n", sig_num, msg);
     if (!f_curses_open) {
         msg = tmp_str;
         while (*msg)

@@ -3,8 +3,8 @@
 //  MIT License
 //  billxwaller@gmail.com
 /// enterstr - enter a string from keyboard
+///
 /// Enter a string from the terminal in cooked mode and return it to the caller.
-/// This is used by the menu system to get strings from the user.
 /// This program is designed to be called from shell scripts initiated by the
 /// menu system. It writes the prompt to stderr, reads the input from stdin,
 /// and writes the user's answer to stdout so it can be captured by shell

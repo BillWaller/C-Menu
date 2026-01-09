@@ -2,7 +2,7 @@
 // Bill Waller Copyright (c) 2025
 // billxwaller@gmail.com
 /// pick.c
-/// Command Line Start-up for mapp C-Menu Pick View
+/// Command Line Start-up for C-Menu Pick
 #include "menu.h"
 
 int main(int argc, char **argv) {

@@ -24,6 +24,13 @@ This document outlines the planned features and improvements for CMENU, aimed at
 
 ## Short-Term Goals (Next 3-6 Months)
 
+- Implement **CI/CD Pipelines** to automate testing and deployment processes.
+- Unit tests for core modules to ensure code reliability.
+- Static code analysis integration to catch potential issues early
+- **Data Structure Improvements**: Enhance existing data structures for better
+  performance and scalability.
+- Replace simple arrays with data structures that include dimensions
+  (e.g., a String type that includes length information).
 - **Enhanced Plugin System**: Improve the plugin architecture to allow for easier
   integration of third-party plugins.
 - **Documentation Update**: Revise and expand the developer documentation to include

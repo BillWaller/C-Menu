@@ -864,8 +864,8 @@ bool lf_find_files(char *dir, char *re) {
             } else if (reti) {
                 char msgbuf[100];
                 regerror(reti, &compiled_re, msgbuf, sizeof(msgbuf));
-                snprintf(tmp_str, MAXLEN - 1, "Regex match failed: %s\n",
-                         msgbuf);
+                ssnprintf(tmp_str, MAXLEN - 1, "Regex match failed: %s\n",
+                          msgbuf);
                 perror(tmp_str);
                 return false;
             } else {

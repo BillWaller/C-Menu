@@ -4,7 +4,6 @@
 #include "menu.h"
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
@@ -37,9 +36,9 @@ int init_view_full_screen(Init *init) {
     view->smaxcol = view->cols - 1;
     view->win = newpad(view->lines, MAX_COLS);
     if (view->win == NULL) {
-        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        snprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
-                 MAX_COLS);
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        ssnprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
+                  MAX_COLS);
         em2[0] = '\0';
         display_error(em0, em1, em2, NULL);
         abend(-1, "init_view_full_screen: newpad() failed");
@@ -89,10 +88,10 @@ int init_view_boxwin(Init *init, char *title) {
         strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
     if (win_new(view->lines, view->cols, view->begy, view->begx, view->title,
                 F_VIEW)) {
-        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        snprintf(em1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s, %b) failed",
-                 view->lines, view->cols, view->begy, view->begx, "NULL",
-                 F_VIEW);
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s, %b) failed",
+                  view->lines, view->cols, view->begy, view->begx, "NULL",
+                  F_VIEW);
         em2[0] = '\0';
         display_error(em0, em1, em2, NULL);
         return (-1);
@@ -108,9 +107,9 @@ int init_view_boxwin(Init *init, char *title) {
     win_win[win_ptr] = newpad(view->lines, MAX_COLS);
     view->win = win_win[win_ptr];
     if (win_win[win_ptr] == NULL) {
-        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        snprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
-                 MAX_COLS);
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        ssnprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
+                  MAX_COLS);
         em2[0] = '\0';
         display_error(em0, em1, em2, NULL);
         return -1;
@@ -189,17 +188,17 @@ bool view_init_input(View *view, char *file_name) {
             /// Open the input file for reading and get its size.
             view->in_fd = open(file_name, O_RDONLY);
             if (view->in_fd == -1) {
-                snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
-                         __LINE__ - 2);
-                snprintf(em1, MAXLEN - 65, "open %s", file_name);
+                ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                          __LINE__ - 2);
+                ssnprintf(em1, MAXLEN - 65, "open %s", file_name);
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, NULL);
                 return false;
             }
             if (fstat(view->in_fd, &sb) == -1) {
-                snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
-                         __LINE__ - 1);
-                snprintf(em1, MAXLEN - 65, "fstat %s", file_name);
+                ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                          __LINE__ - 1);
+                ssnprintf(em1, MAXLEN - 65, "fstat %s", file_name);
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, NULL);
                 close(view->in_fd);
@@ -257,8 +256,8 @@ bool view_init_input(View *view, char *file_name) {
     view->buf =
         mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, view->in_fd, 0);
     if (view->buf == MAP_FAILED) {
-        snprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        snprintf(em1, MAXLEN - 65, "mmap %s", file_name);
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
+        ssnprintf(em1, MAXLEN - 65, "mmap %s", file_name);
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, NULL);
         close(view->in_fd);

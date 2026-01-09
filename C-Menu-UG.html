@@ -1,554 +1,384 @@
-<!doctype html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="generator" content="pandoc" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, user-scalable=yes"
-        />
-        <title>-</title>
-        <style>
-            /* Default styles provided by pandoc.
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>-</title>
+  <style>
+    /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
     */
-            html {
-                color: #f0f0f0;
-                background-color: #000027;
-            }
-            body {
-                margin: 0 auto;
-                max-width: 36em;
-                padding-left: 50px;
-                padding-right: 50px;
-                padding-top: 50px;
-                padding-bottom: 50px;
-                hyphens: auto;
-                overflow-wrap: break-word;
-                text-rendering: optimizeLegibility;
-                font-kerning: normal;
-            }
-            @media (max-width: 600px) {
-                body {
-                    font-size: 0.9em;
-                    padding: 12px;
-                }
-                h1 {
-                    font-size: 1.8em;
-                }
-            }
-            @media print {
-                html {
-                    background-color: white;
-                }
-                body {
-                    background-color: transparent;
-                    color: black;
-                    font-size: 12pt;
-                }
-                p,
-                h2,
-                h3 {
-                    orphans: 3;
-                    widows: 3;
-                }
-                h2,
-                h3,
-                h4 {
-                    page-break-after: avoid;
-                }
-            }
-            p {
-                margin: 1em 0;
-            }
-            a {
-                color: #c0c0c0;
-            }
-            a:visited {
-                color: #708090;
-            }
-            img {
-                max-width: 100%;
-            }
-            svg {
-                height: auto;
-                max-width: 100%;
-            }
-            h1,
-            h2,
-            h3,
-            h4,
-            h5,
-            h6 {
-                margin-top: 1.4em;
-            }
-            h5,
-            h6 {
-                font-size: 1em;
-                font-style: italic;
-            }
-            h6 {
-                font-weight: normal;
-            }
-            ol,
-            ul {
-                padding-left: 1.7em;
-                margin-top: 1em;
-            }
-            li > ol,
-            li > ul {
-                margin-top: 0;
-            }
-            blockquote {
-                margin: 1em 0 1em 1.7em;
-                padding-left: 1em;
-                border-left: 2px solid #2f4f8f;
-                color: #e0e0e0;
-            }
-            code {
-                font-family:
-                    Menlo, Monaco, Consolas, "Lucida Console", monospace;
-                font-size: 85%;
-                margin: 0;
-                hyphens: manual;
-            }
-            pre {
-                margin: 1em 0;
-                overflow: auto;
-            }
-            pre code {
-                padding: 0;
-                overflow: visible;
-                overflow-wrap: normal;
-            }
-            .sourceCode {
-                background-color: transparent;
-                overflow: visible;
-            }
-            hr {
-                border: none;
-                border-top: 1px solid #1a1a1a;
-                height: 1px;
-                margin: 1em 0;
-            }
-            table {
-                margin: 1em 0;
-                border-collapse: collapse;
-                width: 100%;
-                overflow-x: auto;
-                display: block;
-                font-variant-numeric: lining-nums tabular-nums;
-            }
-            table caption {
-                margin-bottom: 0.75em;
-            }
-            tbody {
-                margin-top: 0.5em;
-                border-top: 1px solid #1a1a1a;
-                border-bottom: 1px solid #1a1a1a;
-            }
-            th {
-                border-top: 1px solid #1a1a1a;
-                padding: 0.25em 0.5em 0.25em 0.5em;
-            }
-            td {
-                padding: 0.125em 0.5em 0.25em 0.5em;
-            }
-            header {
-                margin-bottom: 4em;
-                text-align: center;
-            }
-            #TOC li {
-                list-style: none;
-            }
-            #TOC ul {
-                padding-left: 1.3em;
-            }
-            #TOC > ul {
-                padding-left: 0;
-            }
-            #TOC a:not(:hover) {
-                text-decoration: none;
-            }
-            code {
-                white-space: pre-wrap;
-            }
-            span.smallcaps {
-                font-variant: small-caps;
-            }
-            div.columns {
-                display: flex;
-                gap: min(4vw, 1.5em);
-            }
-            div.column {
-                flex: auto;
-                overflow-x: auto;
-            }
-            div.hanging-indent {
-                margin-left: 1.5em;
-                text-indent: -1.5em;
-            }
-            /* The extra [class] is a hack that increases specificity enough to
+    html {
+      background-color: #000027;
+      color: #f0f0f0;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #c0c0c0;
+    }
+    a:visited {
+      color: #708090;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-radius: 8px;
+      background-color: #2f4f8f;
+      color: #e0e0e0;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
        override a similar rule in reveal.js */
-            ul.task-list[class] {
-                list-style: none;
-            }
-            ul.task-list li input[type="checkbox"] {
-                font-size: inherit;
-                width: 0.8em;
-                margin: 0 0.8em 0.2em -1.6em;
-                vertical-align: middle;
-            }
-            /* CSS for syntax highlighting */
-            html {
-                -webkit-text-size-adjust: 100%;
-            }
-            pre > code.sourceCode {
-                white-space: pre;
-                position: relative;
-            }
-            pre > code.sourceCode > span {
-                display: inline-block;
-                line-height: 1.25;
-            }
-            pre > code.sourceCode > span:empty {
-                height: 1.2em;
-            }
-            .sourceCode {
-                overflow: visible;
-            }
-            code.sourceCode > span {
-                color: inherit;
-                text-decoration: inherit;
-            }
-            div.sourceCode {
-                margin: 1em 0;
-            }
-            pre.sourceCode {
-                margin: 0;
-            }
-            @media screen {
-                div.sourceCode {
-                    overflow: auto;
-                }
-            }
-            @media print {
-                pre > code.sourceCode {
-                    white-space: pre-wrap;
-                }
-                pre > code.sourceCode > span {
-                    text-indent: -5em;
-                    padding-left: 5em;
-                }
-            }
-            pre.numberSource code {
-                counter-reset: source-line 0;
-            }
-            pre.numberSource code > span {
-                position: relative;
-                left: -4em;
-                counter-increment: source-line;
-            }
-            pre.numberSource code > span > a:first-child::before {
-                content: counter(source-line);
-                position: relative;
-                left: -1em;
-                text-align: right;
-                vertical-align: baseline;
-                border: none;
-                display: inline-block;
-                -webkit-touch-callout: none;
-                -webkit-user-select: none;
-                -khtml-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
-                padding: 0 4px;
-                width: 4em;
-                color: #aaaaaa;
-            }
-            pre.numberSource {
-                margin-left: 3em;
-                border-left: 1px solid #aaaaaa;
-                padding-left: 4px;
-            }
-            div.sourceCode {
-            }
-            @media screen {
-                pre > code.sourceCode > span > a:first-child::before {
-                    text-decoration: underline;
-                }
-            }
-            code span.al {
-                color: #ff0000;
-                font-weight: bold;
-            } /* Alert */
-            code span.an {
-                color: #60a0b0;
-                font-weight: bold;
-                font-style: italic;
-            } /* Annotation */
-            code span.at {
-                color: #7d9029;
-            } /* Attribute */
-            code span.bn {
-                color: #40a070;
-            } /* BaseN */
-            code span.bu {
-                color: #008000;
-            } /* BuiltIn */
-            code span.cf {
-                color: #007020;
-                font-weight: bold;
-            } /* ControlFlow */
-            code span.ch {
-                color: #4070a0;
-            } /* Char */
-            code span.cn {
-                color: #880000;
-            } /* Constant */
-            code span.co {
-                color: #60a0b0;
-                font-style: italic;
-            } /* Comment */
-            code span.cv {
-                color: #60a0b0;
-                font-weight: bold;
-                font-style: italic;
-            } /* CommentVar */
-            code span.do {
-                color: #ba2121;
-                font-style: italic;
-            } /* Documentation */
-            code span.dt {
-                color: #902000;
-            } /* DataType */
-            code span.dv {
-                color: #40a070;
-            } /* DecVal */
-            code span.er {
-                color: #ff0000;
-                font-weight: bold;
-            } /* Error */
-            code span.ex {
-            } /* Extension */
-            code span.fl {
-                color: #40a070;
-            } /* Float */
-            code span.fu {
-                color: #06287e;
-            } /* Function */
-            code span.im {
-                color: #008000;
-                font-weight: bold;
-            } /* Import */
-            code span.in {
-                color: #60a0b0;
-                font-weight: bold;
-                font-style: italic;
-            } /* Information */
-            code span.kw {
-                color: #007020;
-                font-weight: bold;
-            } /* Keyword */
-            code span.op {
-                color: #666666;
-            } /* Operator */
-            code span.ot {
-                color: #007020;
-            } /* Other */
-            code span.pp {
-                color: #bc7a00;
-            } /* Preprocessor */
-            code span.sc {
-                color: #4070a0;
-            } /* SpecialChar */
-            code span.ss {
-                color: #bb6688;
-            } /* SpecialString */
-            code span.st {
-                color: #4070a0;
-            } /* String */
-            code span.va {
-                color: #19177c;
-            } /* Variable */
-            code span.vs {
-                color: #4070a0;
-            } /* VerbatimString */
-            code span.wa {
-                color: #60a0b0;
-                font-weight: bold;
-                font-style: italic;
-            } /* Warning */
-        </style>
-    </head>
-    <body>
-        <h1 id="c-menu-user-guide">C-Menu User Guide</h1>
-        <h2 id="table-of-contents">Table of Contents</h2>
-        <ol>
-            <li><a href="#introduction">Introduction</a></li>
-            <li><a href="#prerequisites">Prerequisites</a></li>
-            <li><a href="#getting-started">Getting Started</a></li>
-            <li>
-                <a href="#menu">Menu</a>
-                <ul>
-                    <li><a href="#menu-example">Menu Example</a></li>
-                    <li>
-                        <a href="#menu-description-file-format"
-                            >Menu Description File Format</a
-                        >
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <a href="#c-menu-form">C-Menu Form</a>
-                <ul>
-                    <li>
-                        <a href="#form-description-file-example"
-                            >Form Description File Example</a
-                        >
-                    </li>
-                    <li>
-                        <a href="#form-line-type-specifiers--h-t-f-and-"
-                            >Form Line Type Specifiers (#, H, T, F, and ?)</a
-                        >
-                    </li>
-                    <li>
-                        <a href="#form-field-delimiters"
-                            >Form Field Delimiters</a
-                        >
-                    </li>
-                    <li><a href="#form-data-types">Form Data Types</a></li>
-                    <li><a href="#form-line-syntax">Form Line Syntax</a></li>
-                    <li><a href="#form-options">Form Options</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="#c-menu-pick">C-Menu Pick</a>
-                <ul>
-                    <li><a href="#pick-usage">Pick Usage</a></li>
-                    <li><a href="#pick-options">Pick Options</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="#c-menu-view">C-Menu View</a>
-                <ul>
-                    <li><a href="#view-options">View Options</a></li>
-                </ul>
-            </li>
-            <li><a href="#c-menu-options">C-Menu Options</a></li>
-            <li><a href="#lf">lf</a></li>
-            <li><a href="#troubleshooting">Troubleshooting</a></li>
-        </ol>
-        <h2 id="introduction">Introduction</h2>
-        <p>
-            The C-Menu is a versatile and user-friendly menu system designed for
-            various applications. This guide provides detailed instructions on
-            how to use and customize the C-Menu to fit your needs.
-        </p>
-        <h2 id="prerequisites">Prerequisites</h2>
-        <ul>
-            <li>A compatible operating system (e.g., Linux, macOS).</li>
-            <li>Basic knowledge of command-line operations.</li>
-        </ul>
-        <h3 id="not-required-but-recommended">Not Required, But Recommended</h3>
-        <ul>
-            <li>Familiarity with a text editor and configuration files.</li>
-            <li>Rust Cargo for installing ancillary tools.</li>
-            <li>Tree-sitter-cli for enhanced syntax highlighting.</li>
-            <li>Root access for certain advanced features.</li>
-        </ul>
-        <h2 id="getting-started">Getting Started</h2>
-        <p>To begin using the C-Menu, follow these steps:</p>
-        <ol>
-            <li>Install the C-Menu package from the official repository.</li>
-            <li>
-                Copy the sample menuapp directory structure to your home
-                directory Initialize the C-Menu with default settings. Copy the
-                sample /menuapp/minitrc to your home directory as ~/.minitrc:
-            </li>
-            <li>Build C-Menu:</li>
-            <li>
-                Explore the ~/menuapp directory to familiarize yourself with its
-                features.
-            </li>
-        </ol>
-        <div class="sourceCode" id="cb1">
-            <pre
-                class="sourceCode bash"
-            ><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">1.</span>  gh repo clone BillWaller/C-Menu</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ex">2.</span>  cp <span class="at">-Rdup</span> C-Menu/menuapp ~/</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cp</span> ~/menuapp/minitrc ~/.minitrc</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ex">3.</span>  cd C-Menu/src</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">make</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sudo</span> make install</span></code></pre>
-        </div>
-        <p>
-            To enable root access features, you need to install the RSH (Remote
-            Shell) program with setuid root permissions. This allows certain
-            menu items to execute commands with root privileges.
-        </p>
-        <p>
-            WARNING: Do not install RSH unless you understand the security
-            implications of setuid root programs. RSH allows users to execute
-            commands with root privileges, which can pose significant security
-            risks if not managed properly.
-        </p>
-        <h2 id="menu">Menu</h2>
-        <p>
-            C-Menu parses a menu description file, which contains text lines to
-            display and command lines, which are essentially operating system
-            commands.
-        </p>
-        <h3 id="menu-example">Menu Example</h3>
-        <pre><code>:     APPLICATIONS
-:     Neovim
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="c-menu-user-guide">C-Menu User Guide</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#menu">Menu</a>
+<ul>
+<li><a href="#menu-example">Menu Example</a></li>
+<li><a href="#menu-description-file-format">Menu Description File
+Format</a></li>
+</ul></li>
+<li><a href="#c-menu-form">C-Menu Form</a>
+<ul>
+<li><a href="#form-description-file-example">Form Description File
+Example</a></li>
+<li><a href="#form-line-type-specifiers--#-h-t-f-and-">Form Line Type
+Specifiers (#, H, T, F, and ?)</a></li>
+<li><a href="#form-field-delimiters">Form Field Delimiters</a></li>
+<li><a href="#form-data-types">Form Data Types</a></li>
+<li><a href="#form-line-syntax">Form Line Syntax</a></li>
+<li><a href="#form-options">Form Options</a></li>
+</ul></li>
+<li><a href="#c-menu-pick">C-Menu Pick</a>
+<ul>
+<li><a href="#pick-usage">Pick Usage</a></li>
+<li><a href="#pick-options">Pick Options</a></li>
+</ul></li>
+<li><a href="#c-menu-view">C-Menu View</a>
+<ul>
+<li><a href="#view-options">View Options</a></li>
+</ul></li>
+<li><a href="#c-menu-options">C-Menu Options</a></li>
+<li><a href="#lf">lf</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ol>
+<h2 id="introduction">Introduction</h2>
+<p>The C-Menu is a versatile and user-friendly User Interface Builder
+suitable for a wide variety of applications. This guide provides
+detailed instructions on how to use and customize the C-Menu to fit your
+needs.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>A compatible operating system (e.g., Linux, macOS).</li>
+<li>Basic knowledge of command-line operations.</li>
+</ul>
+<h3 id="not-required-but-recommended">Not Required, But Recommended</h3>
+<ul>
+<li>Familiarity with a text editor and configuration files.</li>
+<li>Rust Cargo for installing ancillary tools.</li>
+<li>Tree-sitter-cli for enhanced syntax highlighting.</li>
+<li>Root access for certain advanced features.</li>
+</ul>
+<h2 id="getting-started">Getting Started</h2>
+<p>To begin, follow these steps:</p>
+<ol>
+<li>Install the C-Menu package from the official repository.</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> repo clone BillWaller/C-Menu</span></code></pre></div>
+<ol>
+<li><p>Copy the sample menuapp directory structure to your home
+directory Initialize the C-Menu with default settings. Copy the sample
+/menuapp/minitrc to your home directory as ~/.minitrc:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-Rdup</span> C-Menu/menuapp ~/</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> ~/menuapp/minitrc ~/.minitrc</span></code></pre></div></li>
+<li><p>Install bashrc-cmenu to your home directory as ~/.bashrc-cmenu
+and source it from your ~/.bashrc:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> C-Menu/menuapp/bashrc-cmenu ~/.bashrc-cmenu</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&#39;source ~/.bashrc-cmenu&#39;</span> <span class="op">&gt;&gt;</span> ~/.bashrc</span></code></pre></div></li>
+<li><p>Build C-Menu:</p></li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>   <span class="bu">cd</span> C-Menu/src</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">make</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>   <span class="fu">sudo</span> make install</span></code></pre></div>
+<p>To enable root access features, you need to install the RSH (Remote
+Shell) program with setuid root permissions. This allows certain menu
+items to execute commands with root privileges.</p>
+<p>WARNING: Do not install RSH unless you understand the security
+implications of setuid root programs. RSH allows users to execute
+commands with root privileges, which can pose significant security risks
+if not managed properly.</p>
+<p>Once RSH, "xx", and "x" are installed, subsequent make install
+processes will appear as follows:</p>
+<p><img src="screenshots/Makefile-out.png" /></p>
+<ol>
+<li>Explore the ~/menuapp directory to familiarize yourself with its
+features.</li>
+</ol>
+<h2 id="menu">Menu</h2>
+<p>C-Menu parses a menu description file, which contains text lines to
+display and command lines, which are essentially operating system
+commands.</p>
+<h3 id="menu-example">Menu Example</h3>
+<pre><code>
+: APPLICATIONS
+: Neovim
 !exec nvim
-:     Root Neovim
+: Root Neovim
 !exec rsh -c nvim
-:     Full Screen (root) Shell
-!exec rsh</code></pre>
-        <p>
-            In this example, "Neovim" is a menu item that, when selected, will
-            execute the command "nvim". The user can select it by clicking on
-            "Neovim" or by typing the corresponding letter assigned to it.
-        </p>
-        <h3 id="menu-description-file-format">Menu Description File Format</h3>
-        <ul>
-            <li>Text lines start with a colon (:) in column 0.</li>
-            <li>Command lines start with a bang (!).</li>
-            <li>
-                Each menu item consists of a text line followed by its
-                corresponding command line.
-            </li>
-            <li>Blank lines and lines starting with a hash (#) are ignored.</li>
-            <li>Lines can be continued by ending them with a backslash ().</li>
-            <li>Comments can be added after a hash (#) on any line.</li>
-            <li>Leading and trailing whitespace on lines is ignored.</li>
-            <li>
-                Menu items can be grouped into sections by using text lines
-                without corresponding command lines.
-            </li>
-        </ul>
-        <h2 id="c-menu-form">C-Menu Form</h2>
-        <p>
-            Form is a companion tool for C-Menu that allows users to create and
-            manage forms for data entry and editing. It can be used to gather
-            user input before executing commands from the C-Menu.
-        </p>
-        <h3 id="form-description-file-example">
-            Form Description File Example
-        </h3>
-        <pre><code>H:Installment Loan Calculator
+: Full Screen (root) Shell
+!exec rsh
+</code></pre>
+<p>In this example, "Neovim" is a menu item that, when selected, will
+execute the command <code>nvim</code>. The user can select it by
+clicking on "Neovim" or by typing the corresponding letter assigned to
+it.</p>
+<h3 id="menu-description-file-format">Menu Description File Format</h3>
+<ul>
+<li>Text lines start with a colon (:) in column 0.</li>
+<li>Command lines start with a bang (!).</li>
+<li>Each menu item consists of a text line followed by its corresponding
+command line.</li>
+<li>Blank lines and lines starting with a hash (#) are ignored.</li>
+<li>Lines can be continued by ending them with a backslash ().</li>
+<li>Comments can be added after a hash (#) on any line.</li>
+<li>Leading and trailing whitespace on lines is ignored.</li>
+<li>Menu items can be grouped into sections by using text lines without
+corresponding command lines.</li>
+</ul>
+<h2 id="c-menu-form">C-Menu Form</h2>
+<p>Form is a companion tool for C-Menu that allows users to create and
+manage forms for data entry and editing. It can be used to gather user
+input before executing commands from the C-Menu.</p>
+<h3 id="form-description-file-example">Form Description File
+Example</h3>
+<pre><code>
+H:Installment Loan Calculator
+
 #
+
 T:1:4:Enter any three of the four values to calculate the fourth.
 T:2:4:Only one field can be left blank or zero.
 T:3:4:Press F5 to calculate the missing value.
+
 #
+
 #
+
 T:5:14:Principal Amount:
 F:5:33:14:Currency
 T:6:14:Number of Months:
@@ -560,208 +390,184 @@ F:8:33:12:Currency
 T:10:1:First Payment Date (Yyyymmdd):
 F:10:33:10:Yyyymmdd
 C
-?iloan.hlp</code></pre>
-        <h4 id="form-line-type-speecifiers--h-t-f-and-">
-            Form Line Type Speecifiers (#, H, T, F, and ?)
-        </h4>
-        <pre><code> # - Comment line (ignored)
- H - The header to be displayed at the top of the form
- T - Text field (line:column:length:text)
- F - Input field (line:column:length:type)
- ? - A user supplied help file for the form. If no path is given, Form will look fora file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.</code></pre>
-        <h4 id="form-field-delimiters">Form Field Delimiters</h4>
-        <p>
-            The ":" character is used as a delimiter in the fields above, but
-            any character that is placed immediately after the line designator
-            (H, T, F, ?) can be used as a delimiter. For example, the following
-            two lines are equivalent:
-        </p>
-        <pre><code>T:2:4:Enter any three of the four values to calculate the fourth.
-T|2|4|Enter any three of the four values to calculate the fourth.</code></pre>
-        <h3 id="form-data-types">Form Data Types</h3>
-        <pre><code>       String: Any text
-  Decimal_Int: Integer number
-      Hex_Int: Hexadecimal integer
-        Float: Floating point number
-       Double: Double precision floating point number
-     Currency: Currency amount
-          APR: Annual Percentage Rate
-     Yyyymmdd: Date in YYYYMMDD format
-       HHMMSS: Time in HHMMSS format</code></pre>
-        <p>
-            Data types determine the format of displayed data. Of course, all
-            data is initially a text string, but Form converts numeric data to
-            internal numeric binary according to the data type specified.
-        </p>
-        <p>
-            WARNING: For applications that require extreme accuracy, such as
-            banking, financial, or scientific applications, none of the data
-            types currently available in Form are recommended. The plan is to
-            add 128-bit BCD support via decNumber or rust-decimal in a future
-            release.
-        </p>
-        <p>
-            The Field Format Specifiers can be any combination of upper and
-            lower case, and new types can be easily added by modifying the
-            source code.
-        </p>
-        <h4 id="form-line-syntax">Form Line Syntax</h4>
-        <pre><code> H&lt;delimiter&gt;Header Text
- T&lt;delimiter&gt;Line&lt;delimiter&gt;Column&lt;delimiter&gt;Length&lt;delimiter&gt;Text
- F&lt;delimiter&gt;Line&lt;delimiter&gt;Column&lt;delimiter&gt;Length&lt;delimiter&gt;Type
- ?&lt;delimiter&gt;Help File Path
- # Comment line (ignored)
+?iloan.hlp
 </code></pre>
-        <h4 id="form-options">Form Options</h4>
-        <pre><code> -h            Display help information
- -v            Display version information
- -d &lt;file&gt;     Specify the form description file
- -o &lt;file&gt;     Specify the output file for form data
- -i &lt;file&gt;     Specify the input file for pre-filling form data
- -S &lt;string&gt;   Command to provide input via a STDIN pipe
- -R &lt;string&gt;   Command to receive output via a STDOUT pipe
- -c &lt;string&gt;   Command to be executed with arguments provided by form</code></pre>
-        <h2 id="c-menu-pick">C-Menu Pick</h2>
-        <p>
-            C-Menu Pick is a utility that allows users to create and manage pick
-            lists for selection within the C-Menu system, or stand-alone. It can
-            be used to present a list of options for the user to choose from.
-        </p>
-        <h3 id="pick-usage">Pick Usage</h3>
-        <p>
-            Pick does not have a description file, but instead takes its input
-            from standard input (stdin) or a file. Each line of input represents
-            a separate pick item. The user can select an item by clicking on it
-            or moving the cursor to highlight it and pressing the space bar to
-            toggle it on or off. The number of items that can be selected is
-            configurable by a command-line option (-n).
-        </p>
-        <p>
-            Pick can be invoked from within C-Menu or from the command line
-            using the following syntax:
-        </p>
-        <pre><code>pick [options] [input_file]
+<h4 id="form-line-type-speecifiers--h-t-f-and-">Form Line Type
+Speecifiers (#, H, T, F, and ?)</h4>
+<pre><code>
+# - Comment line (ignored)
+
+H - The header to be displayed at the top of the form
+T - Text field (line:column:length:text)
+F - Input field (line:column:length:type)
+? - A user supplied help file for the form. If no path is given, Form will look fora file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.
+</code></pre>
+<h4 id="form-field-delimiters">Form Field Delimiters</h4>
+<p>The ":" character is used as a delimiter in the fields above, but any
+character that is placed immediately after the line designator (H, T, F,
+?) can be used as a delimiter. For example, the following two lines are
+equivalent:</p>
+<pre><code>
+T:2:4:Enter any three of the four values to calculate the fourth.
+T|2|4|Enter any three of the four values to calculate the fourth.
+</code></pre>
+<h3 id="form-data-types">Form Data Types</h3>
+<pre><code>
+       String: Any text
+
+Decimal_Int: Integer number
+Hex_Int: Hexadecimal integer
+Float: Floating point number
+Double: Double precision floating point number
+Currency: Currency amount
+APR: Annual Percentage Rate
+Yyyymmdd: Date in YYYYMMDD format
+HHMMSS: Time in HHMMSS format
+</code></pre>
+<p>Data types determine the format of displayed data. Of course, all
+data is initially a text string, but Form converts numeric data to
+internal numeric binary according to the data type specified.</p>
+<p>WARNING: For applications that require extreme accuracy, such as
+banking, financial, or scientific applications, none of the data types
+currently available in Form are recommended. The plan is to add 128-bit
+BCD support via decNumber or rust-decimal in a future release.</p>
+<p>The Field Format Specifiers can be any combination of upper and lower
+case, and new types can be easily added by modifying the source
+code.</p>
+<h4 id="form-line-syntax">Form Line Syntax</h4>
+<pre><code>
+H&lt;delimiter&gt;Header Text
+T&lt;delimiter&gt;Line&lt;delimiter&gt;Column&lt;delimiter&gt;Length&lt;delimiter&gt;Text
+F&lt;delimiter&gt;Line&lt;delimiter&gt;Column&lt;delimiter&gt;Length&lt;delimiter&gt;Type
+?&lt;delimiter&gt;Help File Path
+
+# Comment line (ignored)
+</code></pre>
+<h4 id="form-options">Form Options</h4>
+<pre><code>
+-h Display help information
+-v Display version information
+-d &lt;file&gt; Specify the form description file
+-o &lt;file&gt; Specify the output file for form data
+-i &lt;file&gt; Specify the input file for pre-filling form data
+-S &lt;string&gt; Command to provide input via a STDIN pipe
+-R &lt;string&gt; Command to receive output via a STDOUT pipe
+-c &lt;string&gt; Command to be executed with arguments provided by form
+</code></pre>
+<h2 id="c-menu-pick">C-Menu Pick</h2>
+<p>C-Menu Pick is a utility that allows users to create and manage pick
+lists for selection within the C-Menu system, or stand-alone. It can be
+used to present a list of options for the user to choose from.</p>
+<h3 id="pick-usage">Pick Usage</h3>
+<p>Pick does not have a description file, but instead takes its input
+from standard input (stdin) or a file. Each line of input represents a
+separate pick item. The user can select an item by clicking on it or
+moving the cursor to highlight it and pressing the space bar to toggle
+it on or off. The number of items that can be selected is configurable
+by a command-line option (-n).</p>
+<p>Pick can be invoked from within C-Menu or from the command line using
+the following syntax:</p>
+<pre><code>
+pick [options] [input_file]
 
 or
 
-some_command | pick [options]</code></pre>
-        <h3 id="pick-options">Pick Options</h3>
-        <pre><code> -n &lt;number&gt;   Set the maximum number of items that can be selected
- -h            Display help information
- -T            Title to be displayed at the top of the pick list
- -S &lt;string&gt;   Command to provide input via a STDIN pipe
- -R &lt;string&gt;   Command to receive output via a STDOUT pipe
- -c &lt;string&gt;   Command to be executed with arguments provided by pick
- -v            Display version information</code></pre>
-        <h2 id="c-menu-view">C-Menu View</h2>
-        <p>
-            C-Menu View is a utility that allows users to view text files within
-            the C-Menu system, or stand-alone. It provides a simple interface
-            for reading files without the need for an external text editor.
-        </p>
-        <h3 id="view-options">View Options</h3>
-        <pre><code> -L &lt;number&gt;   Set the number of lines for the view window
- -C &lt;number&gt;   Set the number of columns for the view window
- -y &lt;number&gt;   Set the beginning line for the view window
- -x &lt;number&gt;   Set the beginning column for the view window
- -h            Display help information
- -T            Title to be displayed at the top of the pick list
- -S &lt;string&gt;   Command to provide input via a STDIN pipe
- -v            Display version information</code></pre>
-        <p>
-            If -L and -C are not specified, View will attempt to use the
-            terminal size. If -L and -C are set, view will open in a box window.
-        </p>
-        <p>
-            View supports syntax highlighting via tree-sitter. To enable this
-            feature, ensure that tree-sitter-cli is installed and that the
-            appropriate grammar files are available. Alternatively, you can use
-            "pygmentize" or "bat", but tree-sitter is preferred for performance
-            and flexibility.
-        </p>
-        <p>
-            View uses complex-characters (cchar_t) for rendering text, which
-            allows it to handle a wide range of character sets and encodings
-            including ASCII, UTF-8, multi-byte, and wide-character (wchar_t)
-            formats. View does not write ANSI escape sequences to the display,
-            but instead converts and incorporates character attributes directly
-            into the character data structures.
-        </p>
-        <p>
-            View displays its output on a virtual pad, which can be larger than
-            the actual display window enabling the user to scroll horizontally
-            and vertically.
-        </p>
-        <p>
-            View supports extended regular expressions (regex) for advanced text
-            searching capabilities.
-        </p>
-        <h2 id="c-menu-options">C-Menu Options</h2>
-        <p><img src="screenshots/options.png" title="C-Menu Options" /></p>
-        <h2 id="lf">lf</h2>
-        <p>
-            "lf" is a very lightweight alternative to find. It was designed to
-            provide input to C-Menu Pick, but can be used stand-alone as well.
-            It is similar to the Unix "find" command, but with a much simpler
-            syntax and fewer features.
-        </p>
-        <pre><code>Usage: lf [options] [directory] [regexp]
+some_command | pick [options]
+</code></pre>
+<h3 id="pick-options">Pick Options</h3>
+<pre><code>
+-n &lt;number&gt; Set the maximum number of items that can be selected
+-h Display help information
+-T Title to be displayed at the top of the pick list
+-S &lt;string&gt; Command to provide input via a STDIN pipe
+-R &lt;string&gt; Command to receive output via a STDOUT pipe
+-c &lt;string&gt; Command to be executed with arguments provided by pick
+-v Display version information
+</code></pre>
+<h2 id="c-menu-view">C-Menu View</h2>
+<p>C-Menu View is a utility that allows users to view text files within
+the C-Menu system, or stand-alone. It provides a simple interface for
+reading files without the need for an external text editor.</p>
+<h3 id="view-options">View Options</h3>
+<pre><code>
+-L &lt;number&gt; Set the number of lines for the view window
+-C &lt;number&gt; Set the number of columns for the view window
+-y &lt;number&gt; Set the beginning line for the view window
+-x &lt;number&gt; Set the beginning column for the view window
+-h Display help information
+-T Title to be displayed at the top of the pick list
+-S &lt;string&gt; Command to provide input via a STDIN pipe
+-v Display version information
+</code></pre>
+<p>If -L and -C are not specified, View will attempt to use the terminal
+size. If -L and -C are set, view will open in a box window.</p>
+<p>View supports syntax highlighting via tree-sitter. To enable this
+feature, ensure that tree-sitter-cli is installed and that the
+appropriate grammar files are available. Alternatively, you can use
+"pygmentize" or "bat", but tree-sitter is preferred for performance and
+flexibility.</p>
+<p>View uses complex-characters (cchar_t) for rendering text, which
+allows it to handle a wide range of character sets and encodings
+including ASCII, UTF-8, multi-byte, and wide-character (wchar_t)
+formats. View does not write ANSI escape sequences to the display, but
+instead converts and incorporates character attributes directly into the
+character data structures.</p>
+<p>View displays its output on a virtual pad, which can be larger than
+the actual display window enabling the user to scroll horizontally and
+vertically.</p>
+<p>View supports extended regular expressions (regex) for advanced text
+searching capabilities.</p>
+<h2 id="c-menu-options">C-Menu Options</h2>
+<p><img src="screenshots/options.png" title="C-Menu Options" /></p>
+<h2 id="lf">lf</h2>
+<p>"lf" is a very lightweight alternative to find. It was designed to
+provide input to C-Menu Pick, but can be used stand-alone as well. It is
+similar to the Unix "find" command, but with a much simpler syntax and
+fewer features.</p>
+<pre><code>
+Usage: lf [options] [directory] [regexp]
 Options:
-  -a        List all files (including hidden files)
-  -d        maximum depth of subdirectories to examine
-  -h        show this help message
-  -i        ignore case in search
-  -r        recurse into subdirectories
-  -v        show version information</code></pre>
-        <p>
-            The syntax for "lf" is different from "find" in that the directory
-            to search is specified first, followed by the regular expression to
-            match file names against. If no directory is specified, the current
-            directory is used. If no regular expression is specified, all files
-            are listed.
-        </p>
-        <p>
-            The syntax for "lf" is also different from "ls" in that it uses
-            regular expressions instead of shell expansion of wildcards. This
-            allows for more complex matching patterns.
-        </p>
-        <p>Example:</p>
-        <pre><code>lf -r -i /home/user &#39;.*\.[ch]$&#39;</code></pre>
-        <h2 id="troubleshooting">Troubleshooting</h2>
-        <p>
-            If you encounter issues while using C-Menu, consider the following
-            troubleshooting steps:
-        </p>
-        <ul>
-            <li>
-                Ensure that the menu description file is correctly formatted.
-            </li>
-            <li>Check for any syntax errors in command lines.</li>
-            <li>Verify that all required dependencies are installed.</li>
-            <li>Consult the FAQs section for common issues and solutions.</li>
-            <li>
-                Try running commands from a command line to isolate problems.
-            </li>
-            <li>
-                Check your PATH environment variable to ensure all necessary
-                executables are accessible. For example, if view doesn't seem to
-                be working, verify its location. -dd On some systems,
-                "/usr/bin/view" may be a link to "/usr/bin/vim" or
-                "/usr/bin/alts". Make sure ~/menuapp/bin is at the front of your
-                PATH. You can check the location of a command using:
-            </li>
-        </ul>
-        <div class="sourceCode" id="cb14">
-            <pre
-                class="sourceCode bash"
-            ><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> <span class="op">&lt;</span>command_name<span class="op">&gt;</span></span></code></pre>
-        </div>
-        <ul>
-            <li>
-                If you experience issues with root access features, ensure that
-                RSH is installed with the correct permissions and that you
-                understand the security implications.
-            </li>
-        </ul>
-    </body>
+-a List all files (including hidden files)
+-d maximum depth of subdirectories to examine
+-h show this help message
+-i ignore case in search
+-r recurse into subdirectories
+-v show version information
+</code></pre>
+<p>The syntax for "lf" is different from "find" in that the directory to
+search is specified first, followed by the regular expression to match
+file names against. If no directory is specified, the current directory
+is used. If no regular expression is specified, all files are
+listed.</p>
+<p>The syntax for "lf" is also different from "ls" in that it uses
+regular expressions instead of shell expansion of wildcards. This allows
+for more complex matching patterns.</p>
+<p>Example:</p>
+<pre><code>
+lf -r -i /home/user &#39;.\*\.[ch]$&#39;
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>If you encounter issues while using C-Menu, consider the following
+troubleshooting steps:</p>
+<ul>
+<li>Ensure that the menu description file is correctly formatted.</li>
+<li>Check for any syntax errors in command lines.</li>
+<li>Verify that all required dependencies are installed.</li>
+<li>Consult the FAQs section for common issues and solutions.</li>
+<li>Try running commands from a command line to isolate problems.</li>
+<li>Check your PATH environment variable to ensure all necessary
+executables are accessible. For example, if view doesn't seem to be
+working, verify its location. On some systems, "/usr/bin/view" may be a
+link to "/usr/bin/vim" or "/usr/bin/alts". Make sure ~/menuapp/bin is at
+the front of your PATH. You can check the location of a command
+using:</li>
+</ul>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> <span class="op">&lt;</span>command_name<span class="op">&gt;</span></span></code></pre></div>
+<ul>
+<li>If you experience issues with root access features, ensure that RSH
+is installed with the correct permissions and that you understand the
+security implications.</li>
+</ul>
+</body>
 </html>

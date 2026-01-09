@@ -559,8 +559,8 @@ int view_cmd_processor(Init *init) {
             prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                      view->smincol, view->smaxrow, view->smaxcol);
             shell(shell_cmd_spec);
-            snprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
-                     view->tmp_file_name_ptr);
+            ssnprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
+                      view->tmp_file_name_ptr);
             strnz__cpy(shell_cmd_spec, "rm ", MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
@@ -1072,9 +1072,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 if (!view->f_wrap) {
                     view->f_wrap = true;
                 } else {
-                    snprintf(tmp_str, MAXLEN - 1,
-                             "Search complete: %ld bytes for %s",
-                             view->file_size, regex_pattern);
+                    ssnprintf(tmp_str, MAXLEN - 1,
+                              "Search complete: %ld bytes for %s",
+                              view->file_size, regex_pattern);
                     cmd_line_prompt(view, tmp_str);
                     regfree(&compiled_regex);
                     return false;
@@ -1091,9 +1091,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 if (!view->f_wrap) {
                     view->f_wrap = true;
                 } else {
-                    snprintf(tmp_str, MAXLEN - 1,
-                             "Search complete: %ld bytes for %s",
-                             view->file_size, regex_pattern);
+                    ssnprintf(tmp_str, MAXLEN - 1,
+                              "Search complete: %ld bytes for %s",
+                              view->file_size, regex_pattern);
                     cmd_line_prompt(view, tmp_str);
                     regfree(&compiled_regex);
                     return false;
@@ -1235,16 +1235,16 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     view->file_pos = srch_curr_pos;
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
-        snprintf(view->tmp_prompt_str, MAXLEN - 1,
-                 "%c%s Match Cols %d-%d of %d-%d (%d%%)", search_cmd,
-                 regex_pattern, view->first_match_x, view->last_match_x,
-                 view->pmincol, view->smaxcol - view->begx,
-                 (int)(view->page_bot_pos * 100 / view->file_size));
+        ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
+                  "%c%s Match Cols %d-%d of %d-%d (%d%%)", search_cmd,
+                  regex_pattern, view->first_match_x, view->last_match_x,
+                  view->pmincol, view->smaxcol - view->begx,
+                  (int)(view->page_bot_pos * 100 / view->file_size));
     else
-        snprintf(view->tmp_prompt_str, MAXLEN - 1, "%c%s lines %ld-%ld (%d%%)",
-                 search_cmd, regex_pattern, view->page_top_pos,
-                 view->page_bot_pos,
-                 (int)(view->page_bot_pos * 100 / view->file_size));
+        ssnprintf(view->tmp_prompt_str, MAXLEN - 1, "%c%s lines %ld-%ld (%d%%)",
+                  search_cmd, regex_pattern, view->page_top_pos,
+                  view->page_bot_pos,
+                  (int)(view->page_bot_pos * 100 / view->file_size));
     regfree(&compiled_regex);
     return true;
 }

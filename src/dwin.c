@@ -15,17 +15,14 @@
 #include <unistd.h>
 #include <wchar.h>
 
-char *eargv[MAXARGS];
-
-WINDOW *win;
-WINDOW *win_win[MAXWIN];
-WINDOW *win_box[MAXWIN];
-
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ FUNCTION PROTOTYPES                                           │
+/// ╰───────────────────────────────────────────────────────────────╯
 void open_curses(Init *);
 void close_curses();
 int win_new(int, int, int, int, char *, int);
 void win_redraw(WINDOW *);
-void win_resize(int wlines, int wcols, char *title);
+void win_resize(int, int, char *);
 WINDOW *win_open_box(int, int, int, int, char *);
 WINDOW *win_open_win(int, int, int, int);
 WINDOW *win_del();
@@ -45,7 +42,7 @@ void abend(int, char *);
 void user_end();
 int nf_error(int, char *);
 void list_colors();
-int get_color_number(char *s);
+int get_color_number(char *);
 int rgb_clr_to_cube(int);
 void set_fkey(int, char *);
 bool is_set_fkey(int);
@@ -54,37 +51,44 @@ void def_clr_pairs();
 RGB hex_clr_str_to_rgb(char *);
 void init_hex_clr(int, char *);
 void color_correction(RGB *);
-
-int src_line;
-char *src_name;
-char fn[MAXLEN];
-char em0[MAXLEN];
-char em1[MAXLEN];
-char em2[MAXLEN];
-char em3[MAXLEN];
-char *eargv[MAXARGS];
-
-RGB StdColors[16] = {
-    {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
-    {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
-    {128, 128, 128}, {255, 0, 0},   {0, 255, 0},   {255, 255, 0},
-    {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
-
+int chyron_mk(key_cmd_tbl *, char *);
+int get_chyron_key(key_cmd_tbl *, int);
 RGB xterm256_idx_to_rgb(int);
 int rgb_to_xterm256_idx(RGB);
 void init_clr_palette(Init *);
 void apply_gamma(RGB *);
 double rgb_to_linear(double);
 double linear_to_rgb(double);
+
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ STANDARD 16 COLOR PALLETTE                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Standard 16 color palette
+/// Used for xterm256 color conversions
+/// Note: These colors can be overridden in the Init struct
+/// from the .minitrc file
+RGB StdColors[16] = {
+    {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
+    {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
+    {128, 128, 128}, {255, 0, 0},   {0, 255, 0},   {255, 255, 0},
+    {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+
 double GRAY_GAMMA = 1.0;
 double RED_GAMMA;
 double GREEN_GAMMA;
 double BLUE_GAMMA;
+
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ GLOBAL VARIABLES                                              │
+/// ╰───────────────────────────────────────────────────────────────╯
+char *eargv[MAXARGS];
+WINDOW *win;
+WINDOW *win_win[MAXWIN];
+WINDOW *win_box[MAXWIN];
 char tmp_str[MAXLEN];
 char *tmp_ptr;
 int exit_code;
 unsigned int cmd_key;
-
 bool f_sigwench = false;
 int win_attr_Odd;
 int win_attr_Even;
@@ -98,6 +102,27 @@ int m_begx = -1;
 int mouse_support;
 int stdin_fd;
 int stdout_fd;
+int src_line;
+char *src_name;
+char fn[MAXLEN];
+char em0[MAXLEN];
+char em1[MAXLEN];
+char em2[MAXLEN];
+char em3[MAXLEN];
+char *eargv[MAXARGS];
+int cp_default;
+int cp_norm;
+int cp_box;
+int cp_reverse;
+int clr_cnt = 0;
+int clr_idx = 0;
+int clr_pair_idx = 1;
+int clr_pair_cnt = 1;
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ GLOBAL FILE/PIPE NUMBERS                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Global file/pipe numbers
+int tty_fd, pipe_in, pipe_out;
 
 enum colors_enum {
     CLR_BLACK = COLOR_BLACK,
@@ -125,19 +150,9 @@ char const colors_text[][10] = {
     "white",   "orange", "bg",    "abg",      "bblack", "bred",    "bgreen",
     "byellow", "bblue",  "bcyan", "bmagenta", "bwhite", "borange", ""};
 
-int cp_default;
-int cp_norm;
-int cp_box;
-int cp_reverse;
-
-int clr_cnt = 0;
-int clr_idx = 0;
-int clr_pair_idx = 1;
-int clr_pair_cnt = 1;
-
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ UNICODE BOX DRAWING CHARACTERS                                │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ UNICODE BOX DRAWING CHARACTERS                                │
+/// ╰───────────────────────────────────────────────────────────────╯
 const wchar_t bw_ho = BW_HO;
 const wchar_t bw_ve = BW_VE;
 const wchar_t bw_tl = BW_RTL;
@@ -148,19 +163,20 @@ const wchar_t bw_lt = BW_LT;
 const wchar_t bw_rt = BW_RT;
 const wchar_t bw_sp = BW_SP;
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ WIN_INIT_ATTRS                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
-void win_init_attrs(WINDOW *win, int fg_color, int bg_color, int bo_color) {
-    init_extended_pair(cp_norm, fg_color, bg_color);
-    init_extended_pair(cp_box, bo_color, bg_color);
-    return;
-}
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ FKEY_CMD_TBL                                                  │
-//  │ if text is "", key is not processed                           │
-//  │ F_KEYS 0 - 10 are defined as a convenience                    │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ FKEY_CMD_TBL                                                  │
+/// │ if text is "", key is not processed                           │
+/// │ F_KEYS 0 - 10 are defined as a convenience                    │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Function key command table
+/// @note This table will be used to create the chyron
+/// @note The end_pos values are set in chyron_mk
+/// @note The keycode values are used in get_chyron_key
+/// @note If text is "", the key is not processed
+/// @note The keycode values use NCurses key definitions
+/// @note The table can be modified on the fly using set_fkey and unset_fkey
+/// @note The table can be extended to 20 function keys if needed
+/// @see set_fkey
 key_cmd_tbl key_cmd[20] = {
     {"", KEY_F(0), 0},
     {"F1 Help", KEY_F(1), 0},
@@ -180,16 +196,37 @@ key_cmd_tbl key_cmd[20] = {
 
 enum key_idx { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, PgUp, PgDn, END };
 
-int tty_fd, pipe_in, pipe_out;
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ WIN_INIT_ATTRS                                                │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Initialize window attributes
+/// @param win Pointer to window
+/// @param fg_color Foreground color index
+/// @param bg_color Background color index
+/// @param bo_color Box color index
+/// note This function initializes color pairs for the window
+/// note cp_norm and cp_box are global variables
+/// see get_clr_pair
+void win_init_attrs(WINDOW *win, int fg_color, int bg_color, int bo_color) {
+    init_extended_pair(cp_norm, fg_color, bg_color);
+    init_extended_pair(cp_box, bo_color, bg_color);
+    return;
+}
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ IS_SET_FKEY                                                   │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Check if function key label is set
+/// @param k Function key index (0-19)
+/// @return true if set, false if not set
 bool is_set_fkey(int k) {
     if (key_cmd[k].text[0] != '\0')
         return true;
     else
         return false;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ SET_FKEY                                                      │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ SET_FKEY                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Set function key label
 /// @param k Function key index (0-19)
 /// @note This table will be used to change function keys on the fly
@@ -199,16 +236,18 @@ void set_fkey(int k, char *s) {
     else
         key_cmd[k].text[0] = '\0';
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ SET_FKEY                                                      │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ UNSET_FKEY                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Unset function key label in key_cmd table
 void unset_fkey(int k) { key_cmd[k].text[0] = '\0'; }
-int chyron_mk(key_cmd_tbl *ck, char *chyron_s);
-int get_chyron_key(key_cmd_tbl *ck, int choice);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ CHYRON_MK                                                     │
-//  ╰───────────────────────────────────────────────────────────────╯
-/// Create chyron string from key_cmd_tbl
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CHYRON_MK                                                     │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Create chyron string from key_cmd_tbl and set end_pos values
+/// @param fc Pointer to key_cmd_tbl
+/// @param s Pointer to chyron string
+/// @return Length of chyron string
 int chyron_mk(key_cmd_tbl *fc, char *s) {
     int end_pos = 0;
     int i = 0;
@@ -231,11 +270,15 @@ int chyron_mk(key_cmd_tbl *fc, char *s) {
         strnz__cat(s, " ", MAXLEN - strlen(s) - 1);
     return strlen(s);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_CHYRON_KEY                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
-/// Get keycode from chyron choice position
-/// @note Used to identify key based on mouse position
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ GET_CHYRON_KEY                                                │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Get keycode from chyron mouse position
+/// @param fc Pointer to key_cmd_tbl
+/// @param x Mouse X position
+/// @return Keycode
+/// note This function uses the end_pos values set in chyron_mk
+/// to determine which key was clicked
 int get_chyron_key(key_cmd_tbl *fc, int x) {
     int i;
     for (i = 0; fc[i].end_pos != -1; i++)
@@ -243,11 +286,11 @@ int get_chyron_key(key_cmd_tbl *fc, int x) {
             break;
     return fc[i].keycode;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ OPEN_CURSES                                                   │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ OPEN_CURSES                                                   │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Initialize NCurses
-/// @note We borrow the terminal from STDERR_FILENO
+/// @note Terminal File Number borrowed from STDERR_FILENO
 void open_curses(Init *init) {
     char tty_name[256];
     char tmp_str[MAXLEN];
@@ -281,7 +324,7 @@ void open_curses(Init *init) {
     /// We use SCREEN and newterm so we can specify the terminal FILE pointer
     SCREEN *screen = newterm(NULL, init->tty_fp, init->tty_fp);
     //  ╭───────────────────────────────────────────────────────────────╮
-    //  │ Beyond this point, NCurses has the con.                       │
+    //  │ Beyond this point, NCurses controls the terminal              │
     //  ╰───────────────────────────────────────────────────────────────╯
     if (screen == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -314,15 +357,15 @@ void open_curses(Init *init) {
     idlok(stdscr, false);
     idcok(stdscr, false);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_CLR_PAIR                                                  │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ GET_CLR_PAIR                                                  │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Get color pair index for fg/bg colors
 /// @note If the pair does not exist, it is created
 /// @note If the maximum number of color pairs is reached, ERR is returned
 /// @note This function uses extended color functions to support more than 8
 /// colors
-/// @note Curses can display up to 256*256*256 = 16,777,216 colors, at least
+/// @note Curses can display up to 256*256*256 = 16,777,216 colors
 /// @note However, some terminals support only 256 colors
 /// @param fg Foreground color index
 /// @param bg Background color index
@@ -343,13 +386,15 @@ int get_clr_pair(int fg, int bg) {
         clr_pair_cnt++;
     return i;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_CLR                                                       │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ GET_CLR                                                       │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Get color index for RGB color
 /// Curses Uses 0-1000 for RGB values
 /// @param rgb RGB color
 /// @return Color index
+/// @note If the color does not exist, it is created along with a new color
+/// index
 int get_clr(RGB rgb) {
     int i;
     int r, g, b;
@@ -370,10 +415,12 @@ int get_clr(RGB rgb) {
     }
     return ERR;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ RGB_TO_XTERM256_IDX                                           │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ RGB_TO_XTERM256_IDX                                           │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Convert RGB to XTerm 256 color index
+/// @param rgb RGB color
+/// @return XTerm 256 color index
 int rgb_to_xterm256_idx(RGB rgb) {
     if (rgb.r == rgb.g && rgb.g == rgb.b) {
         if (rgb.r < 8)
@@ -388,10 +435,12 @@ int rgb_to_xterm256_idx(RGB rgb) {
         return 16 + (36 * r_index) + (6 * g_index) + b_index;
     }
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ XTERM256_IDX_TO_RGB                                           │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ XTERM256_IDX_TO_RGB                                           │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Convert XTerm 256 color index to RGB
+/// @param code XTerm 256 color index
+/// @return RGB color
 RGB xterm256_idx_to_rgb(int code) {
     RGB rgb;
     if (code > 255)
@@ -413,10 +462,14 @@ RGB xterm256_idx_to_rgb(int code) {
     }
     return rgb;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ APPLY_GAMMA                                                   │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ APPLY_GAMMA                                                   │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Apply gamma correction to RGB color
+/// @param rgb Pointer to RGB color
+/// @note This function modifies the RGB color in place
+/// @note Gamma values are set in the Init struct
+///       from the .minitrc file
 void apply_gamma(RGB *rgb) {
     if (rgb->r == rgb->g && rgb->r == rgb->b) {
         if (GRAY_GAMMA > 0.0f && GRAY_GAMMA != 1.0f) {
@@ -433,9 +486,9 @@ void apply_gamma(RGB *rgb) {
     if (rgb->b != 0 && BLUE_GAMMA > 0.0f && BLUE_GAMMA != 1.0f)
         rgb->b = (int)(pow((rgb->b / 255.0f), 1.0f / BLUE_GAMMA) * 255.0f);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ INIT_CLR_PALETTE                                              │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ INIT_CLR_PALETTE                                              │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Initialize the xterm256 color palette
 /// @note This function also applies any color overrides from the Init struct
 /// @param init Pointer to Init struct
@@ -451,11 +504,11 @@ void init_clr_palette(Init *init) {
         bb = (rgb.b * 1000) / 255;
         init_extended_color(i, rr, gg, bb);
     }
-    //  ╭───────────────────────────────────────────────────────────╮
-    //  │ C-Menu colors override the standard palette               │
-    //  ╰───────────────────────────────────────────────────────────╯
-    /// If a color override is specified, apply it
-    /// The color strings are in the format "#RRGGBB"
+    /// ╭───────────────────────────────────────────────────────────╮
+    /// │ C-Menu colors override the standard palette               │
+    /// ╰───────────────────────────────────────────────────────────╯
+    /// @note If a color override is specified, apply it
+    /// @note The color strings are in the format "#RRGGBB"
     if (init->black[0])
         init_hex_clr(CLR_BLACK, init->black);
     if (init->red[0])
@@ -489,12 +542,14 @@ void init_clr_palette(Init *init) {
     if (init->bwhite[0])
         init_hex_clr(CLR_BWHITE, init->bwhite);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ INIT_HEX_CLR                                                  │
-//  │ Convert #ffffff to NCurses rgb                                │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ INIT_HEX_CLR                                                  │
+/// │ Convert #ffffff to NCurses rgb                                │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// init_extended_color from hex color string
 /// @param idx Color index
+/// @param s Hex color string
+/// @note NCursesw uses 0-1000 for RGB values
 void init_hex_clr(int idx, char *s) {
     RGB rgb;
     rgb = hex_clr_str_to_rgb(s);
@@ -508,18 +563,19 @@ void init_hex_clr(int idx, char *s) {
     rgb.b = (rgb.b * 1000) / 255;
     init_extended_color(idx, rgb.r, rgb.g, rgb.b);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ HEX_CLR_STR_TO_RGB                                            │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ HEX_CLR_STR_TO_RGB                                            │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Convert #RRGGBB string to RGB struct
+/// @param s Hex color string
 RGB hex_clr_str_to_rgb(char *s) {
     RGB rgb;
     sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
     return rgb;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ CLOSE_CURSES                                                  │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CLOSE_CURSES                                                  │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Close NCurses
 void close_curses() {
     if (f_curses_open) {
@@ -531,10 +587,20 @@ void close_curses() {
     restore_shell_tioctl();
     sig_dfl_mode();
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ WIN_NEW                                                       │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ WIN_NEW                                                       │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Create a new window with optional box and title
+/// @param wlines Number of lines
+/// @param wcols Number of columns
+/// @param wbegy Beginning Y position
+/// @param wbegx Beginning X position
+/// @param WTitle Window title
+/// @param flag Window flags
+/// @flags F_VIEW - View uses PAD, so only create box
+/// return 0 if successful, 1 if error
+/// note If wbegy or wbegx are non-zero, or if wlines or wcols are less
+///
 int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
             int flag) {
     int maxx;
@@ -588,10 +654,13 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
     }
     return (0);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ WIN_RESIZE                                                    │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ WIN_RESIZE                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Resize current window
+/// @param wlines Number of lines
+/// @param wcols Number of columns
+/// @param title Window title
 void win_resize(int wlines, int wcols, char *title) {
     int maxx;
 
@@ -624,17 +693,17 @@ void win_resize(int wlines, int wcols, char *title) {
     idcok(win_win[win_ptr], false);
 }
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ WIN_REDRAW                                                    │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ WIN_REDRAW                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Redraw window
 void win_redraw(WINDOW *win) {
     werase(win);
     wnoutrefresh(win);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ WIN_DEL                                                       │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ WIN_DEL                                                       │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Delete the current window and it's associated box
 WINDOW *win_del() {
     int i;
@@ -660,9 +729,9 @@ WINDOW *win_del() {
     }
     return (0);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ RESTORE_WINS                                                  │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ RESTORE_WINS                                                  │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Restore all windows after a screen resize
 void restore_wins() {
     int i;
@@ -677,10 +746,11 @@ void restore_wins() {
         wnoutrefresh(win_win[i]);
     }
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ CBOX                                                          │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CBOX                                                          │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Draw a box around the given window
+/// @param box Pointer to window
 void cbox(WINDOW *box) {
     int x, y;
     int maxx;
@@ -703,10 +773,12 @@ void cbox(WINDOW *box) {
         waddnwstr(box, &bw_ho, 1);
     waddnwstr(box, &bw_br, 1);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ ERROR_MESSAGE                                                 │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ERROR_MESSAGE                                                 │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Display an error message window or print to stderr
+/// @return Key code of user command
+/// @param argv Array of error message lines
 int error_message(char **argv) {
     const int msg_max_len = 71;
     WINDOW *error_win;
@@ -773,14 +845,13 @@ int error_message(char **argv) {
     }
     return (cmd_key);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ DISPLAY_ERROR                                                 │
-//  │     em0 - source file and line number (dwin.c 736)            │
-//  │     em1 - predicate and subject (open file-name)              │
-//  │     em2 - explanation (could not open file)                   │
-//  │     to be added:                                              │
-//  │     em3 - hint (check permissions)                            │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ DISPLAY_ERROR                                                 │
+/// │     em0 - source file and line number (dwin.c 736)            │
+/// │     em1 - predicate and subject (open file-name)              │
+/// │     em2 - explanation (could not open file)                   │
+/// │     em3 - hint (check permissions)                            │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Display an error message window or print to stderr
 /// @return Key code of user command
 /// @param em0 First error message line
@@ -846,9 +917,12 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     win_del();
     return (cmd_key);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ PERROR - simple one-line error                                │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ PERROR - simple one-line error                                │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Display a simple error message window or print to stderr
+/// @return Key code of user command
+/// @param emsg_str Error message string
 int Perror(char *emsg_str) {
     char emsg[80];
     int emsg_max_len = 80;
@@ -883,10 +957,15 @@ int Perror(char *emsg_str) {
     win_del();
     return (cmd_key);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ MVWADDSTR_FILL                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ MVWADDSTR_FILL                                                │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// For lines shorter than their display area, fill the rest with spaces
+/// @param w Pointer to window
+/// @param y Y coordinate
+/// @param x X coordinate
+/// @param s String to display
+/// @param l Length of display area
 void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     char *d, *e;
     char tmp_str[MAXLEN];
@@ -903,10 +982,12 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     *d++ = '\0';
     mvwaddstr(w, y, x, tmp_str);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ GET_COLOR_NUMBER                                              │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ GET_COLOR_NUMBER                                              │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Get color number from color name
+/// @param s Color name
+/// @return Color number or -1 if not found
 int get_color_number(char *s) {
     int i = 0;
     int n = NCOLORS;
@@ -921,9 +1002,9 @@ int get_color_number(char *s) {
         return (-1);
     return (i);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ LIST_COLORS                                                   │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ LIST_COLORS                                                   │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// List available colors to stderr
 void list_colors() {
     int i, col;
@@ -941,10 +1022,12 @@ void list_colors() {
     }
     fprintf(stderr, "\n");
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ DISPLAY_ARGV_ERROR_MSG                                        │
-//  ╰───────────────────────────────────────────────────────────────╯
-/// Display argv error message
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ DISPLAY_ARGV_ERROR_MSG                                        │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Display argument vectors and error message
+/// @param emsg Error message
+/// @param argv Argument vector
 void display_argv_error_msg(char *emsg, char **argv) {
     int argc;
 
@@ -957,10 +1040,12 @@ void display_argv_error_msg(char *emsg, char **argv) {
     wrefresh(stdscr);
     wgetch(stdscr);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ NF_ERROR                                                      │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ NF_ERROR                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Display error message and wait for key press
+/// @param ec Error code
+/// @param s Error message
 int nf_error(int ec, char *s) {
     fprintf(stderr, "ERROR: %s code: %d\n", s, ec);
     fprintf(stderr, "Press a key to continue");
@@ -968,9 +1053,9 @@ int nf_error(int ec, char *s) {
     fprintf(stderr, "\n");
     return ec;
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ USER_END                                                      │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ USER_END                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Normal program exit
 void user_end() {
     close_curses();
@@ -980,10 +1065,12 @@ void user_end() {
     fprintf(stderr, "\n");
     exit(EXIT_SUCCESS);
 }
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ ABEND                                                         │
-//  ╰───────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ABEND                                                         │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Abnormal program termination
+/// @param ec Exit code
+/// @param s Error message
 void abend(int ec, char *s) {
     sig_dfl_mode();
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
