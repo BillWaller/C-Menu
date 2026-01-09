@@ -985,7 +985,6 @@ void user_end() {
 //  ╰───────────────────────────────────────────────────────────────╯
 /// Abnormal program termination
 void abend(int ec, char *s) {
-    close_curses();
     sig_dfl_mode();
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     fprintf(stderr, "Press any key");

@@ -146,7 +146,7 @@ int view_file(Init *init) {
                 next_page(view);
                 view_cmd_processor(init);
                 munmap(view->buf, view->file_size);
-                close(view->in_fd);
+                // close(view->in_fd);
             }
         } else {
             view->curr_argc++;
