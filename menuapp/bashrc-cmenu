@@ -5,14 +5,15 @@
 # include or source this file in your ~/.bashrc to get cmenu features
 # see sample.bashrc for documentation
 # For more advanced developers, see bashrc-advanced in ~/menuapp/doc/bashrc-advanced
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export LANGUAGE=en_US.UTF-8
-export TERM=xterm-256color
-# Customize TTYPATH for your system - Used by chktty
-export TTYPATH=/dev/pts
 IFS="
 "
+# Set locale
+export LANG=en_US.UTF-8
+export LC_ALL="$LANG"
+export LANGUAGE="$LANG"
+export TERM=xterm-256color
+# Customize TTYPATH for your system - Used by chktty
+export TTYPATH=$(dirname $(tty))
 prepend_path() {
 	case ":${PATH}:" in
 	*:"$1":*) ;;
