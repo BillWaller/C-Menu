@@ -19,7 +19,9 @@ billxwaller@gmail.com
 
 [Augmenting C-Menu](extras.md)
 
----
+## C-Menu API
+
+[C-Menu API](API.md)
 
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 

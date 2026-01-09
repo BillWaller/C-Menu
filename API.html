@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>-</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      background-color: #000027;
+      color: #f0f0f0;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #c0c0c0;
+    }
+    a:visited {
+      color: #708090;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-radius: 8px;
+      background-color: #2f4f8f;
+      color: #e0e0e0;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<h1 id="c-menu-api-documentation">C-Menu API Documentation</h1>
+<h2 id="overview">Overview</h2>
+<p>C-Menu is a User Interface Builder. It allows developers to create
+and manage UI components quickly and easily. In developing C-Menu, we
+focused on modularity, ease of use, and flexibility. This documentation
+provides an overview of the API, including its main features and how to
+use them.</p>
+<h2 id="utility-functions">Utility Functions</h2>
+<h3 id="int-rtrimchar-str">int rtrim(char *str)</h3>
+<p>Removes trailing whitespace characters from the given string.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *str</code>: The string to be trimmed.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>int</code>: The new length of the trimmed string.</li>
+</ul></li>
+</ul>
+<h4 id="int-trimchar-str">int trim(char *str)</h4>
+<p>Removes leading and trailing whitespace characters from the given
+string.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *str</code>: The string to be trimmed.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>int</code>: The new length of the trimmed string.</li>
+</ul></li>
+</ul>
+<h4 id="ssnprintfchar-str-size_t-size-const-char-format-">ssnprintf(char
+<em>str, size_t size, const char </em>format, ...)</h4>
+<p>A safe version of snprintf that ensures the output string is
+null-terminated.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *str</code>: The buffer to write the formatted string
+to.</li>
+<li><code>size_t size</code>: The size of the buffer.</li>
+<li><code>const char *format</code>: The format string.</li>
+<li><code>...</code>: Additional arguments to be formatted.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>int</code>: The number of characters written, excluding the
+null terminator.</li>
+</ul></li>
+</ul>
+<h4 id="str_to_argschar-argv-char-arg_str-int-max_args">str_to_args(char
+<em>argv[], char </em>arg_str, int max_args)</h4>
+<p>Splits a string into an array of arguments based on whitespace.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *argv[]</code>: The array to store the arguments.</li>
+<li><code>char *arg_str</code>: The input string to be split.</li>
+<li><code>int max_args</code>: The maximum number of arguments to
+extract.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>int</code>: The number of arguments extracted.</li>
+</ul></li>
+</ul>
+<p>Text surrounded by double quotes '"' will be treated as a single
+argument.</p>
+<h4 id="str_to_lowerchar-str">str_to_lower(char *str)</h4>
+<p>Converts all characters in the string to lowercase.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *str</code>: The string to be converted.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>char *</code>: A pointer to the converted string.</li>
+</ul></li>
+</ul>
+<h4 id="str_to_upperchar-str">str_to_upper(char *str)</h4>
+<p>Converts all characters in the string to uppercase.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *str</code>: The string to be converted.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>char *</code>: A pointer to the converted string.</li>
+</ul></li>
+</ul>
+<h4 id="strnz__cpy">strnz__cpy</h4>
+<p>Copies a string from source to destination with a specified maximum
+length.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *dest</code>: The destination buffer.</li>
+<li><code>const char *src</code>: The source string.</li>
+<li><code>size_t n</code>: The maximum number of characters in the
+resulting string.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li>int: The length of the resulting string</li>
+</ul></li>
+</ul>
+<p>strnz<strong>cpy differs from strncpy in that it is limited, not by
+the number of characters copied, but by the size of the destination
+buffer, ensuring null-termination. With strnz</strong>cpy, you can
+prevent a buffer overrun by setting the third parameter to the size of
+the destination buffer - 1, leaving space for the null terminator.</p>
+<h4 id="strnz__cat">strnz__cat</h4>
+<p>Concatenates a source string to a destination string with a specified
+maximum length.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *dest</code>: The destination buffer.</li>
+<li><code>const char *src</code>: The source string.</li>
+<li><code>size_t n</code>: The maximum size of the destination
+buffer.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li>int: The length of the resulting string</li>
+</ul></li>
+</ul>
+<p>strnz<strong>cat differs from strncat in that it is limited, not by
+the number of characters concatenated, but by the size of the
+destination buffer, ensuring null-termination. With strnz</strong>cat,
+you can prevent a buffer overrun by setting the third parameter to the
+size of the destination buffer - 1, leaving space for the null
+terminator.</p>
+<h4 id="strnzchar-str-int-max_len">strnz(char *str, int max_len)</h4>
+<p>Ensures that a string is null-terminated within a specified maximum
+length. Terminates the string on encountering a line-feed ('\n') or
+carriage-return ('\r').</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *str</code>: The string to be checked.</li>
+<li><code>int max_len</code>: The maximum length of the string.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li>int: Length of the null-terminated string.</li>
+</ul></li>
+</ul>
+<h4 id="strnz_dupchar-str-int-max_len">strnz_dup(char *str, int
+max_len)</h4>
+<p>Duplicates a string up to a specified maximum length, a line-feed
+('\n'), or a carriage-return ('\r'), ensuring null-termination. Because
+strnz_dup allocates memory, it is up to the caller to free the memory
+when it is no longer needed.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *str</code>: The string to be duplicated.</li>
+<li><code>int max_len</code>: The maximum length of the string.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li>char *: A pointer to the newly allocated duplicated string.</li>
+</ul></li>
+</ul>
+<h4
+id="void-str_subcchar-d-char-s-char-replacechr-char-withstr-int-l">void
+str_subc(char <em>d, char </em>s, char ReplaceChr, char *Withstr, int
+l)</h4>
+<p>Replaces all occurrences of a specified character in a string with
+another string.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *d</code>: The destination buffer.</li>
+<li><code>char *s</code>: The source string.</li>
+<li><code>char ReplaceChr</code>: The character to be replaced.</li>
+<li><code>char *Withstr</code>: The string to replace the character
+with.</li>
+<li><code>int l</code>: The maximum length of the destination
+string.</li>
+</ul></li>
+</ul>
+<h4 id="bool-stripz_quoteschar-s">bool stripz_quotes(char *s)</h4>
+<p>Removes surrounding double quotes from a string if they exist.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *s</code>: The string to be processed.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if quotes were removed, false
+otherwise.</li>
+</ul></li>
+</ul>
+<h4 id="chrepchar-s-char-old_chr-char-new_chr">chrep(char *s, char
+old_chr, char new_chr)</h4>
+<p>Replaces all occurrences of a specified character in a string with
+another character.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *s</code>: The string to be processed.</li>
+<li><code>char old_chr</code>: The character to be replaced.</li>
+<li><code>char new_chr</code>: The character to replace with.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li>void: no return</li>
+</ul></li>
+</ul>
+<h4 id="file_spec_pathchar-fp-char-fs">file_spec_path(char <em>fp, char
+</em>fs)</h4>
+<p>Extracts the path component from a file specification and places it
+in fp. It is the caller's responsibility to ensure that fp has enough
+space to hold the path.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *fp</code>: The buffer to store the extracted path.</li>
+<li><code>char *fs</code>: The file specification string.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>void</code>: no return</li>
+</ul></li>
+</ul>
+<p>Unlike the POSIX implementation of basename(), this function does not
+modify the input string. Also, a character array may be used as the
+first argument, obviating the need for dynamic memory allocation.</p>
+<h4 id="file_spec_namechar-fn-char-fs">file_spec_name(char <em>fn, char
+</em>fs)</h4>
+<p>Extracts the file name component from a file specification and places
+it in fn. It is the caller's responsibility to ensure that fn has enough
+space to hold the file name.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char *fn</code>: The buffer to store the extracted file
+name.</li>
+<li><code>char *fs</code>: The file specification string.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>void</code>: no return</li>
+</ul></li>
+</ul>
+<p>Unlike the POSIX implementation of dirname(), this function does not
+modify the input string. Also, a character array may be used as the
+first argument, obviating the need for dynamic memory allocation. There
+is no GNU version of dirname().</p>
+</body>
+</html>
