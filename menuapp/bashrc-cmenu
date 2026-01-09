@@ -1,0 +1,42 @@
+#!/bin/bash
+# .bashrc
+# bashrc-cmenu
+# for a more advanced configuration, see ~/menuapp/doc/bashrc-advanced
+# include or source this file in your ~/.bashrc to get cmenu features
+# see sample.bashrc for documentation
+# For more advanced developers, see bashrc-advanced in ~/menuapp/doc/bashrc-advanced
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export TERM=xterm-256color
+# Customize TTYPATH for your system - Used by chktty
+export TTYPATH=/dev/pts
+IFS="
+"
+prepend_path() {
+	case ":${PATH}:" in
+	*:"$1":*) ;;
+	*)
+		PATH="$1:$PATH"
+		;;
+	esac
+}
+[ -d "$HOME/menuapp/bin" ] && prepend_path "$HOME/menuapp/bin"
+export PATH
+xx() {
+	if file "$HOME"/menuapp/bin/rsh | grep setuid >/dev/null 2>&1; then
+		"$HOME"/menuapp/bin/rsh
+	else
+		if file /usr/local/bin/rsh | grep setuid >/dev/null 2>&1; then
+			/usr/local/bin/rsh
+		fi
+	fi
+}
+x() { exit >/dev/null 2>&1; }
+which menu >/dev/null 2>&1 && mm() {
+	menu "$@"
+}
+export ESCDELAY=200
+export PS1="\[\e[1;32m\]\u@\h(\l)\w->\[\e[0m\] "
+export XUSER="$(id -un)"
+[ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h(\l)\w->\[\e[0m\] "

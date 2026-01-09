@@ -2,7 +2,7 @@
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-/// Command Line Start-up for mapp C-Menu Form
+/// Command Line Start-up for C-Menu Form
 
 #include "menu.h"
 

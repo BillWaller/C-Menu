@@ -61,8 +61,8 @@ int executor = 0;
 void mapp_initialization(Init *init, int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
     if (!init) {
-        snprintf(tmp_str, sizeof(tmp_str), "%s",
-                 "init struct not allocated on entry");
+        ssnprintf(tmp_str, sizeof(tmp_str), "%s",
+                  "init struct not allocated on entry");
         abend(-1, tmp_str);
     }
     if (init->minitrc[0] == '\0')
@@ -136,6 +136,12 @@ void zero_opt_args(Init *init) {
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ PARSE_OPT_ARGS                                                    │
 /// ╰───────────────────────────────────────────────────────────────────╯
+/// Parse command-line options and set Init struct values accordingly
+/// @params init - pointer to Init struct
+/// @params argc - argument count
+/// @params argv - argument vector
+/// Returns index of first non-option argument
+/// @note Accepts both short and long options
 int parse_opt_args(Init *init, int argc, char **argv) {
     int i;
     int opt;
@@ -337,6 +343,8 @@ int parse_opt_args(Init *init, int argc, char **argv) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ PARSE_CONFIG FILE                                              │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Parse the configuration file and set Init struct values accordingly
+/// Returns 0 on success, -1 on failure
 int parse_config(Init *init) {
     char ts[MAXLEN];
     char *sp, *dp;
@@ -602,6 +610,9 @@ int parse_config(Init *init) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ PROMPT_STR_TO_INT                                              │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Convert prompt type string to integer constant
+/// @param s - prompt type string
+/// returns prompt type integer constant
 int prompt_str_to_int(char *s) {
     int prompt_type;
     str_to_lower(s);
@@ -619,6 +630,10 @@ int prompt_str_to_int(char *s) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ PROMPT_INT_TO_STR                                              │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Convert prompt type integer constant to string
+/// @param s - prompt type string
+/// @param prompt_type - prompt type integer constant
+/// returns prompt type string
 void prompt_int_to_str(char *s, int prompt_type) {
     switch (prompt_type) {
     case PT_SHORT:
@@ -638,6 +653,8 @@ void prompt_int_to_str(char *s, int prompt_type) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ WRITE_CONFIG FILE                                              │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Write the current configuration to a file
+/// Returns 0 on success, -1 on failure
 int write_config(Init *init) {
     char *e;
     char minitrc_dmp[MAXLEN];
@@ -735,6 +752,15 @@ int write_config(Init *init) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ DERIVE_FILE_SPEC                                               │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Derive full file specification from directory and file name
+/// @param file_spec - output full file specification
+/// @param dir - directory path
+/// @param file_name - file name
+/// returns true if file_spec is derived, false otherwise
+/// @note If dir is NULL, use MAPP_DIR environment variable or default
+/// directory ~/menuapp
+/// @note file_spec should be a pre-allocated char array of size MAXLEN
+/// to hold the resulting file specification
 bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     char ts[MAXLEN];
     char ts2[MAXLEN];
@@ -767,11 +793,13 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ DISPLAY_VERSION                                                │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// C-Menu version display
 void display_version() { fprintf(stderr, "\nVersion %s\n", mapp_version); }
 
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ USAGE                                                          │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Display usage prompt and wait for user input
 void usage() {
     (void)fprintf(stderr, "\n\nPress any key to continue...");
     di_getch();
@@ -780,6 +808,10 @@ void usage() {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ OPT_PRT_CHAR                                                   │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Print option of type character string
+/// @param o - option flag
+/// @param name - option name
+/// @param value - option value
 void opt_prt_char(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
@@ -787,6 +819,10 @@ void opt_prt_char(const char *o, const char *name, const char *value) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ USAGE                                                          │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Print option of type character string
+/// @param o - option flag
+/// @param name - option name
+/// @param value - option value
 void opt_prt_str(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
@@ -794,6 +830,10 @@ void opt_prt_str(const char *o, const char *name, const char *value) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ OPT_PRT_INT                                                    │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Print option of type integer
+/// @param o - option flag
+/// @param name - option name
+/// @param value - option value
 void opt_prt_int(const char *o, const char *name, int value) {
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
 }
@@ -801,18 +841,29 @@ void opt_prt_int(const char *o, const char *name, int value) {
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ OPT_PRT_DOUBLE                                                 │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Print option of type double
+/// @param o - option flag
+/// @param name - option name
+/// @param value - option value
 void opt_prt_double(const char *o, const char *name, double value) {
     fprintf(stdout, "%3s %-15s: %0.2f\n", o, name, value);
 }
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ OPT_PRT_BOOL                                                   │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Print option of type boolean
+/// @param o - option flag
+/// @param name - option name
+/// @param value - option value
 void opt_prt_bool(const char *o, const char *name, bool value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ DUMP_CONFIG                                                    │
 /// ╰────────────────────────────────────────────────────────────────╯
+/// Dump the current configuration to stdout
+/// @param init - Init struct
+/// @param msg - message to display
 void dump_config(Init *init, char *msg) {
     opt_prt_str("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-C:", "--cols", init->cols);

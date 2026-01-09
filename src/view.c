@@ -4,8 +4,7 @@
 //  Command Line Start-up for C-Menu Menu
 //  billxwaller@gmail.com
 /// view.c
-/// Command Line Start-up for mapp C-Menu View
-///
+/// Command Line Start-up for C-Menu View
 #include "menu.h"
 #include <stdlib.h>
 #include <termios.h>

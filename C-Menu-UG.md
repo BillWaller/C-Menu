@@ -6,27 +6,27 @@
 2. [Prerequisites](#prerequisites)
 3. [Getting Started](#getting-started)
 4. [Menu](#menu)
-    - [Menu Example](#menu-example)
-    - [Menu Description File Format](#menu-description-file-format)
+   - [Menu Example](#menu-example)
+   - [Menu Description File Format](#menu-description-file-format)
 5. [C-Menu Form](#c-menu-form)
-    - [Form Description File Example](#form-description-file-example)
-    - [Form Line Type Specifiers (#, H, T, F, and ?)](#form-line-type-specifiers--#-h-t-f-and-)
-    - [Form Field Delimiters](#form-field-delimiters)
-    - [Form Data Types](#form-data-types)
-    - [Form Line Syntax](#form-line-syntax)
-    - [Form Options](#form-options)
+   - [Form Description File Example](#form-description-file-example)
+   - [Form Line Type Specifiers (#, H, T, F, and ?)](#form-line-type-specifiers--#-h-t-f-and-)
+   - [Form Field Delimiters](#form-field-delimiters)
+   - [Form Data Types](#form-data-types)
+   - [Form Line Syntax](#form-line-syntax)
+   - [Form Options](#form-options)
 6. [C-Menu Pick](#c-menu-pick)
-    - [Pick Usage](#pick-usage)
-    - [Pick Options](#pick-options)
+   - [Pick Usage](#pick-usage)
+   - [Pick Options](#pick-options)
 7. [C-Menu View](#c-menu-view)
-    - [View Options](#view-options)
+   - [View Options](#view-options)
 8. [C-Menu Options](#c-menu-options)
 9. [lf](#lf)
 10. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
-The C-Menu is a versatile and user-friendly menu system designed for various applications. This guide provides detailed instructions on how to use and customize the C-Menu to fit your needs.
+The C-Menu is a versatile and user-friendly User Interface Builder suitable for a wide variety of applications. This guide provides detailed instructions on how to use and customize the C-Menu to fit your needs.
 
 ## Prerequisites
 
@@ -42,7 +42,7 @@ The C-Menu is a versatile and user-friendly menu system designed for various app
 
 ## Getting Started
 
-To begin using the C-Menu, follow these steps:
+To begin, follow these steps:
 
 1. Install the C-Menu package from the official repository.
 
@@ -52,24 +52,35 @@ gh repo clone BillWaller/C-Menu
 
 2. Copy the sample menuapp directory structure to your home directory Initialize the C-Menu with default settings. Copy the sample /menuapp/minitrc to your home directory as ~/.minitrc:
 
-    ```bash
-    cp -Rdup C-Menu/menuapp ~/
-    cp ~/menuapp/minitrc ~/.minitrc
-    ```
+   ```bash
+   cp -Rdup C-Menu/menuapp ~/
+   cp ~/menuapp/minitrc ~/.minitrc
+   ```
 
-3. Build C-Menu:
+3. Install bashrc-cmenu to your home directory as ~/.bashrc-cmenu and source it from your ~/.bashrc:
 
-    ```bash
-    cd C-Menu/src
-    make
-    sudo make install
-    ```
+   ```bash
+   cp C-Menu/menuapp/bashrc-cmenu ~/.bashrc-cmenu
+   echo 'source ~/.bashrc-cmenu' >> ~/.bashrc
+   ```
+
+4. Build C-Menu:
+
+```bash
+   cd C-Menu/src
+   make
+   sudo make install
+```
 
 To enable root access features, you need to install the RSH (Remote Shell) program with setuid root permissions. This allows certain menu items to execute commands with root privileges.
 
 WARNING: Do not install RSH unless you understand the security implications of setuid root programs. RSH allows users to execute commands with root privileges, which can pose significant security risks if not managed properly.
 
-4. Explore the ~/menuapp directory to familiarize yourself with its features.
+Once RSH, "xx", and "x" are installed, subsequent make install processes will appear as follows:
+
+<img src="screenshots/Makefile-out.png" />
+
+5. Explore the ~/menuapp directory to familiarize yourself with its features.
 
 ## Menu
 
@@ -78,13 +89,15 @@ C-Menu parses a menu description file, which contains text lines to display and 
 ### Menu Example
 
 ```
-:     APPLICATIONS
-:     Neovim
+
+: APPLICATIONS
+: Neovim
 !exec nvim
-:     Root Neovim
+: Root Neovim
 !exec rsh -c nvim
-:     Full Screen (root) Shell
+: Full Screen (root) Shell
 !exec rsh
+
 ```
 
 In this example, "Neovim" is a menu item that, when selected, will execute the command `nvim`. The user can select it by clicking on "Neovim" or by typing the corresponding letter assigned to it.
@@ -107,13 +120,19 @@ Form is a companion tool for C-Menu that allows users to create and manage forms
 ### Form Description File Example
 
 ```
+
 H:Installment Loan Calculator
+
 #
+
 T:1:4:Enter any three of the four values to calculate the fourth.
 T:2:4:Only one field can be left blank or zero.
 T:3:4:Press F5 to calculate the missing value.
+
 #
+
 #
+
 T:5:14:Principal Amount:
 F:5:33:14:Currency
 T:6:14:Number of Months:
@@ -126,16 +145,20 @@ T:10:1:First Payment Date (Yyyymmdd):
 F:10:33:10:Yyyymmdd
 C
 ?iloan.hlp
+
 ```
 
 #### Form Line Type Speecifiers (#, H, T, F, and ?)
 
 ```
- # - Comment line (ignored)
- H - The header to be displayed at the top of the form
- T - Text field (line:column:length:text)
- F - Input field (line:column:length:type)
- ? - A user supplied help file for the form. If no path is given, Form will look fora file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.
+
+# - Comment line (ignored)
+
+H - The header to be displayed at the top of the form
+T - Text field (line:column:length:text)
+F - Input field (line:column:length:type)
+? - A user supplied help file for the form. If no path is given, Form will look fora file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.
+
 ```
 
 #### Form Field Delimiters
@@ -146,22 +169,27 @@ can be used as a delimiter. For example, the following two lines are
 equivalent:
 
 ```
+
 T:2:4:Enter any three of the four values to calculate the fourth.
 T|2|4|Enter any three of the four values to calculate the fourth.
+
 ```
 
 ### Form Data Types
 
 ```
+
        String: Any text
-  Decimal_Int: Integer number
-      Hex_Int: Hexadecimal integer
-        Float: Floating point number
-       Double: Double precision floating point number
-     Currency: Currency amount
-          APR: Annual Percentage Rate
-     Yyyymmdd: Date in YYYYMMDD format
-       HHMMSS: Time in HHMMSS format
+
+Decimal_Int: Integer number
+Hex_Int: Hexadecimal integer
+Float: Floating point number
+Double: Double precision floating point number
+Currency: Currency amount
+APR: Annual Percentage Rate
+Yyyymmdd: Date in YYYYMMDD format
+HHMMSS: Time in HHMMSS format
+
 ```
 
 Data types determine the format of displayed data. Of course, all data is initially a text string, but Form converts numeric data to internal numeric binary according to the data type specified.
@@ -174,25 +202,29 @@ and new types can be easily added by modifying the source code.
 #### Form Line Syntax
 
 ```
- H<delimiter>Header Text
- T<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Text
- F<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Type
- ?<delimiter>Help File Path
- # Comment line (ignored)
+
+H<delimiter>Header Text
+T<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Text
+F<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Type
+?<delimiter>Help File Path
+
+# Comment line (ignored)
 
 ```
 
 #### Form Options
 
 ```
- -h            Display help information
- -v            Display version information
- -d <file>     Specify the form description file
- -o <file>     Specify the output file for form data
- -i <file>     Specify the input file for pre-filling form data
- -S <string>   Command to provide input via a STDIN pipe
- -R <string>   Command to receive output via a STDOUT pipe
- -c <string>   Command to be executed with arguments provided by form
+
+-h Display help information
+-v Display version information
+-d <file> Specify the form description file
+-o <file> Specify the output file for form data
+-i <file> Specify the input file for pre-filling form data
+-S <string> Command to provide input via a STDIN pipe
+-R <string> Command to receive output via a STDOUT pipe
+-c <string> Command to be executed with arguments provided by form
+
 ```
 
 ## C-Menu Pick
@@ -206,23 +238,27 @@ Pick does not have a description file, but instead takes its input from standard
 Pick can be invoked from within C-Menu or from the command line using the following syntax:
 
 ```
+
 pick [options] [input_file]
 
 or
 
 some_command | pick [options]
+
 ```
 
 ### Pick Options
 
 ```
- -n <number>   Set the maximum number of items that can be selected
- -h            Display help information
- -T            Title to be displayed at the top of the pick list
- -S <string>   Command to provide input via a STDIN pipe
- -R <string>   Command to receive output via a STDOUT pipe
- -c <string>   Command to be executed with arguments provided by pick
- -v            Display version information
+
+-n <number> Set the maximum number of items that can be selected
+-h Display help information
+-T Title to be displayed at the top of the pick list
+-S <string> Command to provide input via a STDIN pipe
+-R <string> Command to receive output via a STDOUT pipe
+-c <string> Command to be executed with arguments provided by pick
+-v Display version information
+
 ```
 
 ## C-Menu View
@@ -232,14 +268,16 @@ C-Menu View is a utility that allows users to view text files within the C-Menu 
 ### View Options
 
 ```
- -L <number>   Set the number of lines for the view window
- -C <number>   Set the number of columns for the view window
- -y <number>   Set the beginning line for the view window
- -x <number>   Set the beginning column for the view window
- -h            Display help information
- -T            Title to be displayed at the top of the pick list
- -S <string>   Command to provide input via a STDIN pipe
- -v            Display version information
+
+-L <number> Set the number of lines for the view window
+-C <number> Set the number of columns for the view window
+-y <number> Set the beginning line for the view window
+-x <number> Set the beginning column for the view window
+-h Display help information
+-T Title to be displayed at the top of the pick list
+-S <string> Command to provide input via a STDIN pipe
+-v Display version information
+
 ```
 
 If -L and -C are not specified, View will attempt to use the terminal size. If -L and
@@ -262,14 +300,16 @@ View supports extended regular expressions (regex) for advanced text searching c
 "lf" is a very lightweight alternative to find. It was designed to provide input to C-Menu Pick, but can be used stand-alone as well. It is similar to the Unix "find" command, but with a much simpler syntax and fewer features.
 
 ```
+
 Usage: lf [options] [directory] [regexp]
 Options:
-  -a        List all files (including hidden files)
-  -d        maximum depth of subdirectories to examine
-  -h        show this help message
-  -i        ignore case in search
-  -r        recurse into subdirectories
-  -v        show version information
+-a List all files (including hidden files)
+-d maximum depth of subdirectories to examine
+-h show this help message
+-i ignore case in search
+-r recurse into subdirectories
+-v show version information
+
 ```
 
 The syntax for "lf" is different from "find" in that the directory to search is specified first, followed by the regular expression to match file names against. If no directory is specified, the current directory is used. If no regular expression is specified, all files are listed.
@@ -279,8 +319,10 @@ The syntax for "lf" is also different from "ls" in that it uses regular expressi
 Example:
 
 ```
-lf -r -i /home/user '.*\.[ch]$'
-```
+
+lf -r -i /home/user '.\*\.[ch]$'
+
+````
 
 ## Troubleshooting
 
@@ -296,6 +338,6 @@ If you encounter issues while using C-Menu, consider the following troubleshooti
 
 ```bash
 which <command_name>
-```
+````
 
 - If you experience issues with root access features, ensure that RSH is installed with the correct permissions and that you understand the security implications.
