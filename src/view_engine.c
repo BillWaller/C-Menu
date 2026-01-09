@@ -384,8 +384,6 @@ int view_cmd_processor(Init *init) {
                 break;
             case 'p':
                 cmd_line_prompt(view, "(Short Long or No prompt)->");
-                if (c >= 'A' && c <= 'Z')
-                    c += ' ';
                 c = tolower(get_cmd_char(view, &n_cmd));
                 switch (c) {
                 case 's':
@@ -558,9 +556,8 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
             lp(view->cur_file_str, view->cmd_arg);
-            rc =
-                prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-                         view->smincol, view->smaxrow, view->smaxcol);
+            prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
+                     view->smincol, view->smaxrow, view->smaxcol);
             shell(shell_cmd_spec);
             snprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
                      view->tmp_file_name_ptr);
@@ -1004,7 +1001,7 @@ int go_to_line(View *view, long line_idx) {
 ///  ╰───────────────────────────────────────────────────────────────╯
 ///  Go to Percent of File
 void go_to_percent(View *view, int Percent) {
-    int c;
+    int c = 0;
     if (view->file_size < 0) {
         Perror("Cannot determine file length");
         return;
@@ -1018,6 +1015,7 @@ void go_to_percent(View *view, int Percent) {
             break;
     }
     get_next_char();
+    next_page(view);
 }
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ GO_TO_POSITION                                                │
@@ -1256,7 +1254,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
 /// Resize Page
 void resize_page(Init *init) {
     int scr_lines, scr_cols;
-    bool f_resize;
+    bool f_resize = false;
     view = init->view;
     if (view->f_full_screen) {
         getmaxyx(stdscr, view->lines, view->cols);

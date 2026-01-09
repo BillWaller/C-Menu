@@ -747,13 +747,15 @@ int form_read_data(Form *form) {
             return (0);
     }
     form->fidx = 0;
-    while ((fgets(in_buf, MAXLEN, form->in_fp)) != NULL) {
-        if (form->fidx < MAXFIELDS)
-            strnz__cpy(field, in_buf, MAXLEN - 1);
-        form_fmt_field(form, field);
-        form->fidx++;
+    if (form->in_fp != NULL) {
+        while ((fgets(in_buf, MAXLEN, form->in_fp)) != NULL) {
+            if (form->fidx < MAXFIELDS)
+                strnz__cpy(field, in_buf, MAXLEN - 1);
+            form_fmt_field(form, field);
+            form->fidx++;
+        }
+        fclose(form->in_fp);
     }
-    fclose(form->in_fp);
     return (0);
 }
 /// ╭───────────────────────────────────────────────────────────────╮
@@ -810,6 +812,14 @@ int form_write(Form *form) {
             display_error(em0, em1, em2, NULL);
             return (1);
         }
+    }
+    if (form->out_fp == NULL) {
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        strnz__cpy(em1, "fopen ", MAXLEN - 65);
+        strnz__cat(em1, form->out_spec, MAXLEN - 1);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, NULL);
+        return (1);
     }
     for (n = 0; n < form->fcnt; n++)
         fprintf(form->out_fp, "%s\n", form->field[n]->accept_s);
