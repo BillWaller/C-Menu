@@ -266,13 +266,18 @@ View *close_view(Init *init) {
     init->view_cnt--;
     return init->view;
 }
-///
-///  VERIFY_SPEC_ARG(
+/// ╭────────────────────────────────────────────────────────────────╮
+/// │ VERIFY_SPEC_ARG                                                │
+/// ╰────────────────────────────────────────────────────────────────╯
+///  Verify file specification argument
 ///  @param  char *spec,      -> menu->spec, form->spec, etc.
-///          char *src_spec,  -> init->._spec | argv[optind]
-///          char *dir,       -> init->._. directory
-///          char *alt_dir,   -> literal, "~/menuapp/data", etc.
-///          int mode)        -> R_OK, W_OK, X_OK
+///  @param  char *src_spec,  -> init->._spec | argv[optind]
+///  @param  char *dir,       -> init->._. directory
+///  @param  char *alt_dir,   -> literal, "~/menuapp/data", etc.
+///  @param  int mode)        -> R_OK, W_OK, X_OK, WC_OK, S_QUIET
+///  @flags S_QUIET - suppress error messages
+///  @flags WC_OK - write create ok
+///  @return bool - true if file verified
 bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                      int mode) {
     bool f_dir = false;
@@ -285,7 +290,9 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
 
     if (!org_spec[0])
         return false;
-    /// copy just the file name from src_spec
+    /// ╭────────────────────────────────────────────────────────────╮
+    /// │ USE FILE_NAME FROM SRC_SPEC                                │
+    /// ╰────────────────────────────────────────────────────────────╯
     strnz__cpy(try_spec, org_spec, MAXLEN - 1);
     f_quote = stripz_quotes(try_spec);
     if (f_quote) {
@@ -343,6 +350,9 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                     f_spec = true;
                 }
             }
+            ///  ╭──────────────────────────────────────────────────╮
+            ///  │ PRESERVE QUOTES                                  │
+            ///  ╰──────────────────────────────────────────────────╯
             if (f_quote)
                 /// preserve quotes
                 strnz__cpy(spec, org_spec, MAXLEN - 1);
