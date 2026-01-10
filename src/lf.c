@@ -19,6 +19,9 @@
 
 #define MAXLEN 256
 
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ FLAGS                                                             │
+/// ╰───────────────────────────────────────────────────────────────────╯
 #define ALL 0x01
 #define RECURSE 0x02
 #define ICASE 0x04
@@ -33,6 +36,18 @@ int strnz__cat(char *, char *, int);
 int strnz__cpy(char *, char *, int);
 int max_depth = 16;
 int depth = 0;
+
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ LF EXECUTABLE                                                     │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// @params   Usage: lf [options] [directory] [regexp]
+/// @params   Options:\n");
+/// @params     -a        List all files (including hidden files)
+/// @params     -d        maximum depth of subdirectories to examine
+/// @params     -h        show this help message
+/// @params     -i        ignore case in search
+/// @params     -r        recurse into subdirectories
+/// @params     -v        show version information
 
 int main(int argc, char **argv) {
     char dir[MAXLEN] = "";
@@ -102,6 +117,11 @@ int main(int argc, char **argv) {
     return true;
 }
 
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ LF_FIND_DIRS                                                      │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// Recursively find directories and call lf_find_files on each
+/// directory found
 bool lf_find_dirs(char *dir, char *re, int flags) {
     struct stat sb;
     struct dirent *dir_st;
@@ -141,6 +161,10 @@ bool lf_find_dirs(char *dir, char *re, int flags) {
     return true;
 }
 
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ LF_FIND_FILES                                                     │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// Find files in a directory matching a regular expression
 bool lf_find_files(char *dir, char *re, int flags) {
     struct stat sb;
     struct dirent *dir_st;

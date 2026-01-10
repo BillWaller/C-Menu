@@ -57,7 +57,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         abend(-1, "init->pick != pick\n");
 
     /// ╭────────────────────────────────────────────────────────────╮
-    /// │ Start provider_cmd, attach pipe to its STDOUT              │
+    /// │ START PROVIDER_CMD, attach pipe to its STDOUT              │
     /// ╰────────────────────────────────────────────────────────────╯
     if (pick->provider_cmd[0] != '\0') {
         str_to_args(s_argv, pick->provider_cmd, MAXARGS - 1);
@@ -85,15 +85,17 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
-        /// Back to parent
-        /// Parent doesn't need write end of pipe
+        /// ╭───────────────────────────────────────────────────────╮
+        /// │ BACK TO PARENT                                        │
+        /// ╰───────────────────────────────────────────────────────╯
+        /// @note Parent doesn't need write end of pipe
         close(pipe_fd[P_WRITE]);
         /// Open a file pointer on read end of pipe
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
         pick->f_in_pipe = true;
     } else {
         /// ╭────────────────────────────────────────────────────────╮
-        /// │ INPUT IS STDIN                                         │
+        /// │ PREPARE STDIN AS INPUT                                 │
         /// ╰────────────────────────────────────────────────────────╯
         if ((pick->in_spec[0] == '\0') || strcmp(pick->in_spec, "-") == 0 ||
             strcmp(pick->in_spec, "/dev/stdin") == 0) {
@@ -209,6 +211,9 @@ int pick_engine(Init *init) {
     getmaxyx(stdscr, maxy, maxx);
 
     win_maxy = (maxy * 8) / 10;
+    /// ╭────────────────────────────────────────────────────────────╮
+    /// │ Window can't be larger than physical display - 2           │
+    /// ╰────────────────────────────────────────────────────────────╯
     if (win_maxy > (maxy - pick->begy) - 2)
         win_maxy = (maxy - pick->begy) - 2;
     win_maxx = (maxx * 9) / 10;
@@ -218,12 +223,18 @@ int pick_engine(Init *init) {
         chyron_l = strnz(pick->chyron_s, win_maxx);
     if (pick->tbl_col_width < 4)
         pick->tbl_col_width = 4;
+    /// ╭────────────────────────────────────────────────────────────╮
+    /// │ Column can't be larger than physical display - 2           │
+    /// ╰────────────────────────────────────────────────────────────╯
     if (pick->tbl_col_width > win_maxx - 2)
         pick->tbl_col_width = win_maxx - 2;
     pick->tbl_cols = (win_maxx / (pick->tbl_col_width + 1));
     pick->win_width = (pick->tbl_col_width + 1) * pick->tbl_cols;
     if (pick->win_width < chyron_l)
         pick->win_width = chyron_l;
+    /// ╭────────────────────────────────────────────────────────────╮
+    /// │ Calculate final dimensions                                 │
+    /// ╰────────────────────────────────────────────────────────────╯
     pick->tbl_lines = ((pick->obj_cnt - 1) / pick->tbl_cols) + 1;
     pick->tbl_pages = (pick->tbl_lines / (win_maxy - 1)) + 1;
     pick->pg_lines = (pick->tbl_lines / pick->tbl_pages) + 1;
@@ -256,6 +267,9 @@ int pick_engine(Init *init) {
     pick->x = 1;
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     picker(init);
+    /// ╭────────────────────────────────────────────────────────────╮
+    /// │ PICK FINISHED - Perform Output                             │
+    /// ╰────────────────────────────────────────────────────────────╯
     if (pick->select_cnt > 0) {
         if (pick->f_out_spec && pick->out_spec[0])
             rc = output_objects(pick);
@@ -267,6 +281,10 @@ int pick_engine(Init *init) {
 /// ╭────────────────────────────────────────────────────────────╮
 /// │ SAVE_OBJECT                                                │
 /// ╰────────────────────────────────────────────────────────────╯
+/// Save object string into pick structure
+/// @param pick Pointer to Pick structure
+/// @param s String to save
+/// @return void
 void save_object(Pick *pick, char *s) {
     int l;
 
@@ -300,16 +318,25 @@ int picker(Init *init) {
         if (cmd_key == 0)
             cmd_key = wgetch(pick->win);
         switch (cmd_key) {
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_F(9), 'Q', 'q' - Cancel                               │
+            /// ╰───────────────────────────────────────────────────────────╯
         case 'q':
         case 'Q':
         case KEY_F(9):
             return -1;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ 'H' - Help                                                │
+            /// ╰───────────────────────────────────────────────────────────╯
         case 'H': /// Help
             display_pick_help(init);
             display_page(pick);
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ 't', 'T', ' ' - Toggle item                               │
+            /// ╰───────────────────────────────────────────────────────────╯
         case ' ':
         case 't':
         case 'T': /// Toggle
@@ -318,12 +345,16 @@ int picker(Init *init) {
                 return pick->select_cnt;
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_F(10), KEY_ENTER - Accept Selections                  │
+            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_F(10):
-            return pick->select_cnt;
         case '\n':
         case KEY_ENTER:
-            toggle_object(pick);
             return pick->select_cnt;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_END - Display last page                               │
+            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_END:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
@@ -339,6 +370,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_RIGHT, 'l' - Move right one column                    │
+            /// ╰───────────────────────────────────────────────────────────╯
         case 'l':
         case KEY_RIGHT:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -354,6 +388,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_LEFT, 'h' - Move left one column                      │
+            /// ╰───────────────────────────────────────────────────────────╯
         case 'h':
         case KEY_LEFT:
         case KEY_BACKSPACE:
@@ -366,6 +403,9 @@ int picker(Init *init) {
             cmd_key = 0;
             reverse_object(pick);
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_DOWN, 'j' - Move down one row                         │
+            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_DOWN:
         case 'j':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -381,6 +421,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_UP, 'k' - Move up one row                             │
+            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_UP:
         case 'k':
             mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -392,6 +435,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_NPAGE, CTRL(F) - Display next page                    │
+            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_NPAGE:
         case '\06':
             if (pick->tbl_page < pick->tbl_pages - 1) {
@@ -405,6 +451,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_PPAGE, CTRL(B) - Display previous page                │
+            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_PPAGE:
         case '\02':
             if (pick->tbl_page > 0)
@@ -415,6 +464,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_HOME - Display First Page                             │
+            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_HOME:
             pick->tbl_page = 0;
             pick->tbl_line = 0;
@@ -425,6 +477,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /// ╭───────────────────────────────────────────────────────────╮
+            /// │ KEY_LL (END) - Display Last Page                          │
+            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_LL:
             pick->tbl_page = pick->tbl_pages - 1;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
@@ -436,6 +491,8 @@ int picker(Init *init) {
         ///  ╭───────────────────────────────────────────────────────╮
         ///  │ PICK MOUSE EVENT                                      │
         ///  ╰───────────────────────────────────────────────────────╯
+        /// BUTTON1 CLICK or DOUBLE_CLICK Toggles Selection
+        /// or Activates Chyron Keys
         case KEY_MOUSE:
             if (getmouse(&event) != OK) {
                 cmd_key = 0;
@@ -736,27 +793,4 @@ void display_pick_help(Init *init) {
     margv[margc] = NULL;
     mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4,
           pick->title);
-}
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ CALC_TBL                                                       │
-/// ╰────────────────────────────────────────────────────────────────╯
-void calc_tbl_coord(int pg_lines, int tbl_cols, int obj_idx, int *tbl_page,
-                    int *tbl_line, int *tbl_col) {
-    *tbl_page = obj_idx / (pg_lines * tbl_cols);
-    *tbl_line = (obj_idx / tbl_cols) % pg_lines;
-    *tbl_col = obj_idx % tbl_cols;
-}
-
-int calc_tbl_page(int pg_lines, int tbl_cols, int obj_idx) {
-    return obj_idx / (pg_lines * tbl_cols);
-}
-int calc_tbl_line(int tbl_cols, int obj_idx) {
-    return (obj_idx / tbl_cols) % pg_lines;
-}
-int calc_tbl_col(int obj_idx) { return obj_idx % tbl_cols; }
-
-int calc_obj_idx(int tbl_pages, int pg_lines, int tbl_cols, int tbl_page,
-                 int tbl_line, int tbl_col) {
-    obj_idx = tbl_page * (pg_lines * tbl_cols) + tbl_line * tbl_cols + tbl_col;
-    return obj_idx;
 }

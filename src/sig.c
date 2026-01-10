@@ -13,7 +13,6 @@
 #include "menu.h"
 #include <signal.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
 

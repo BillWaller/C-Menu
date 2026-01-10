@@ -58,10 +58,7 @@ int form_accept_field(Form *form) {
     char *filler_s = form->field[form->fidx]->filler_s;
 
     form_fmt_field(form, accept_s);
-    // mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION |
-    // NCURSES_BUTTON_CLICKED,
-    //          NULL);
-    mousemask(NCURSES_BUTTON_CLICKED, NULL);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     MEVENT event;
     event.y = event.x = -1;
     /// ╭───────────────────────────────────────────────────────────────╮
@@ -83,7 +80,9 @@ int form_accept_field(Form *form) {
             in_key = mvwgetch(win, flin, x);
         }
         switch (in_key) {
-        /// Accept Field
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ ACCEPT FIELD                                                  │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_F(10):
             form_fmt_field(form, accept_s);
             form_display_field(form);
@@ -91,37 +90,44 @@ int form_accept_field(Form *form) {
                 continue;
             return (in_key);
 
-        /// Abort Operation
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_F(9) BREAK                                                │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_BREAK:
         case KEY_F(9):
             form_display_field(form);
             in_key = KEY_F(9);
             return (in_key);
-        /// Backtab or Up Arrow (Previous Field)
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_UP BACKTAB                                                │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_BTAB:
         case KEY_UP:
             form_fmt_field(form, accept_s);
             form_display_field(form);
             in_key = KEY_UP;
             return (in_key);
-
-        /// Tab or Down Arrow (Next Field)
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_DOWN TAB                                                  │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case '\t':
         case KEY_DOWN:
             form_fmt_field(form, accept_s);
             form_display_field(form);
             in_key = KEY_DOWN;
             return (in_key);
-
-        /// Last position in field
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_END                                                       │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_END:
             while (*p != '\0')
                 p++;
             x = fcol + (p - fstart);
             in_key = 0;
             continue;
-
-        /// Ends field input/edit, erases remainder if option set
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_ENTER CTRL(N)                                             │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case '\n':
         case KEY_ENTER:
             if (form->f_erase_remainder)
@@ -130,7 +136,9 @@ int form_accept_field(Form *form) {
             form_display_field(form);
             in_key = KEY_ENTER;
             return (in_key);
-        /// Insert Character toggle
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_INSERT                                                    │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_IC:
             if (f_insert)
                 f_insert = FALSE;
@@ -138,7 +146,9 @@ int form_accept_field(Form *form) {
                 f_insert = TRUE;
             in_key = 0;
             continue;
-        /// Delete Character
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_DEL                                                       │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_DC:
             s = p + 1;
             d = p;
@@ -149,13 +159,17 @@ int form_accept_field(Form *form) {
             f_insert = FALSE;
             in_key = 0;
             continue;
-        /// Beginning of line
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_HOME                                                      │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_HOME:
             p = fstart;
             x = fcol;
             in_key = 0;
             continue;
-        /// Backspace (destructively deletes character to left of cursor)
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_BACKSPACE - Destructive Delete                            │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_BACKSPACE:
             if (p > fstart) {
                 p--;
@@ -169,8 +183,9 @@ int form_accept_field(Form *form) {
             str_end = d; // new end of string
             in_key = 0;
             continue;
-
-        /// move left 1 character
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_LEFT                                                      │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_LEFT:
             if (p > fstart) {
                 p--;
@@ -178,7 +193,9 @@ int form_accept_field(Form *form) {
             }
             in_key = 0;
             continue;
-        /// move right 1 character
+        /// ╭───────────────────────────────────────────────────────────────╮
+        /// │ KEY_RIGHT                                                     │
+        /// ╰───────────────────────────────────────────────────────────────╯
         case KEY_RIGHT:
             if (p < fend)
                 if (p <= str_end) {

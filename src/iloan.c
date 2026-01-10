@@ -158,6 +158,9 @@ int main(int argc, char **argv) {
     signal(SIGHUP, SIG_DFL);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ACCEPT PV                                                     │
+/// ╰───────────────────────────────────────────────────────────────╯
 double accept_pv() {
     double pv;
     while (1) {
@@ -178,6 +181,9 @@ double accept_pv() {
     return (pv);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ACCEPT_N                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 double accept_n() {
     double n;
     while (1) {
@@ -194,6 +200,9 @@ double accept_n() {
     return (n);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ACCEPT_I                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 double accept_i() {
     double i;
     while (1) {
@@ -214,6 +223,9 @@ double accept_i() {
     return (i);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ACCEPT_PMT                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 double accept_pmt() {
     double pmt;
     while (1) {
@@ -231,12 +243,18 @@ double accept_pmt() {
     return (pmt);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ERROR_PRESS_ANY_KEY                                           │
+/// ╰───────────────────────────────────────────────────────────────╯
 void error_press_any_key(char *s) {
     printf("%s", s);
     getc(stdin);
     printf("\n\n");
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CALCULATE PV                                                  │
+/// ╰───────────────────────────────────────────────────────────────╯
 double calculate_pv(double n, double i, double pmt) {
     double i1, pv;
 
@@ -250,6 +268,9 @@ double calculate_pv(double n, double i, double pmt) {
     return (pv);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CALCULATE_N                                                   │
+/// ╰───────────────────────────────────────────────────────────────╯
 double calculate_n(double pv, double i, double pmt) {
     double i1, n;
     if (pv == 0 || i == 0 || pmt == 0)
@@ -262,6 +283,9 @@ double calculate_n(double pv, double i, double pmt) {
     return (n);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CALCULATE_I                                                   │
+/// ╰───────────────────────────────────────────────────────────────╯
 double calculate_i(double pv, double n, double pmt) {
     double i1 = 0, i;
     double delta = 0.0000001;
@@ -299,6 +323,9 @@ double calculate_i(double pv, double n, double pmt) {
     return (i);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CALCULATE_PMT                                                 │
+/// ╰───────────────────────────────────────────────────────────────╯
 double calculate_pmt(double pv, double n, double i) {
     double i1, pmt;
     if (pv == 0 || n == 0 || i == 0)
@@ -311,6 +338,9 @@ double calculate_pmt(double pv, double n, double i) {
     return (pmt);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ IS_NUMERIC                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 int is_numeric(char *s) {
     char c;
 
@@ -320,11 +350,17 @@ int is_numeric(char *s) {
     return (TRUE);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ACCEPT_STR                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 void accept_str(char *s) {
     fprintf(stderr, "%s", s);
     read(0, in_str, BUFSIZ);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ FORMAT_CURRENCY                                               │
+/// ╰───────────────────────────────────────────────────────────────╯
 char *format_currency(float a) {
     int digit_count, left_of_point;
     static char sstr[80];
@@ -364,6 +400,9 @@ char *format_currency(float a) {
     return (sptr);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ FORMAT_INTEREST                                               │
+/// ╰───────────────────────────────────────────────────────────────╯
 char *format_interest(float a) {
     static char sstr[80];
     char *s;
@@ -373,11 +412,17 @@ char *format_interest(float a) {
     return (s);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ ABEND                                                         │
+/// ╰───────────────────────────────────────────────────────────────╯
 void ABEND(int e) {
     printf("ABEND: Error %d:\n", e);
     exit(EXIT_FAILURE);
 }
 
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ NUMBERS                                                       │
+/// ╰───────────────────────────────────────────────────────────────╯
 void numbers(char *d, char *s) {
     while (*s != '\0') {
         if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))

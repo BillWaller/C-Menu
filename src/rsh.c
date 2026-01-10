@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     case -1:
         ABEND(EXIT_FAILURE, "fork() fatal error");
         break;
-    case 0:
+    case 0: // Child
         if (argv[0] && strstr(argv[0], "rsh")) {
             if (setuid(0) || setgid(0))
                 ABEND(EXIT_FAILURE, "setuid(0) fatal error");
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
         execvp(exec_cmd, cargv);
         ABEND(EXIT_FAILURE, "execvp() fatal error");
         break;
-    default:
+    default: // Parent
         waitpid(pid, &status, 0);
         if (f_verbose) {
             if (WIFEXITED(status)) {

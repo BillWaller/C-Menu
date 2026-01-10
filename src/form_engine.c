@@ -142,9 +142,8 @@ unsigned int form_engine(Init *init) {
     }
     return 0;
 }
-
 ///  ╭───────────────────────────────────────────────────────────────╮
-///  │ FORM_CALCULATE                                                │
+///  │ FORM_END_FIELDS                                               │
 ///  ╰───────────────────────────────────────────────────────────────╯
 int form_end_fields(Init *init) {
     int c, rc;
@@ -205,6 +204,10 @@ int form_end_fields(Init *init) {
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ FORM_CALCULATE                                                │
 /// ╰───────────────────────────────────────────────────────────────╯
+/// form_calculate(init)
+/// Forks and execs the provider command with the current field values
+/// Creates a pipe to read the output from the provider command
+/// Reads the output and updates the form fields
 int form_calculate(Init *init) {
     int i, c, rc;
     char earg_str[MAXLEN + 1];
@@ -717,7 +720,7 @@ int form_parse_desc(Form *form) {
     return (0);
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ READ FORM IN FILE                                             │
+/// │ READ FORM IN_FILE                                             │
 /// ╰───────────────────────────────────────────────────────────────╯
 int form_read_data(Form *form) {
     struct stat sb;
