@@ -61,25 +61,24 @@
 /// │ Structures for Future Refinements                                 │
 /// ╰───────────────────────────────────────────────────────────────────╯
 typedef struct {
-    char *p;
-    size_t al; // allocated characters
+    char *s;
+    size_t l; // allocated length
 } Arg;
 typedef struct {
-    Arg **p;
-    size_t av; // allocated vector elements
-    int argc;
+    Arg **v;
+    size_t n; // allocated array elements
 } Argv;
 typedef struct {
-    char *p;
-    size_t al; // allocated length
-} Str;
+    char *s;
+    size_t l; // allocated length
+} String;
 typedef struct {
-    wchar_t *p;
-    size_t al; // allocated length
+    wchar_t *s;
+    size_t l; // allocated length
 } WCStr;
 typedef struct {
-    cchar_t *p;
-    size_t al; // allocated length
+    cchar_t *s;
+    size_t l; // allocated length
 } CCStr;
 
 /// ╭───────────────────────────────────────────────────────────────────╮

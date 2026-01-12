@@ -35,6 +35,7 @@ if [ "$#" -eq 1 ]; then
             if which lsd >/dev/null 2>&1; then
                 LS=$(awk '{printf("%s ", $2)}
                 END {printf("\n")}' installed)
+                # Don't double quote $LS below
                 # Sometimes globbing and word-splitting is what you want.
                 # If you double quote this, it will not work as intended.
                 lsd -l --icon-theme unicode $LS
@@ -51,6 +52,14 @@ if [ "$#" -eq 1 ]; then
     fi
     if [ "$1" = "--" ]; then
         rm -f installed
+        exit 0
+    fi
+    if [ "$1" = "-h" ]; then
+        echo usage: inst.sh FileName Directory DestName Mode Owner Group
+        echo "    -l      list installed files"
+        echo "    -m      echo message to terminal"
+        echo "    -p      create ~/menuapp/bin/project_src"
+        echo "    --      clear installed files list"
         exit 0
     fi
     if [ "$1" = "-m" ]; then
