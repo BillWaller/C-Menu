@@ -3,12 +3,6 @@
 //  MIT License
 //  billxwaller@gmail.com
 //
-/// Strips ANSI SGR escape sequences (ending in 'm') from a string
-/// strip_ansi() Returns length of stripped string
-/// @params  Usage: stripansi <file_with_ansi_codes>
-/// Stripped output goes to stdout
-/// Example ANSI escape code: 0x1b[31m (red text)
-
 #include <stdint.h>
 #include <stdio.h>
 int strip_ansi(char *, char *);
@@ -32,7 +26,26 @@ int main(int argc, char *argv[]) {
     fclose(in_fp);
     return 0;
 }
-
+/// int strip_ansi(char *d, char *s)
+/// Strips ANSI SGR escape sequences (ending in 'm') from string s to d
+/// Returns length of stripped string
+/// @param d Destination string
+/// @param s Source string
+/// @return Length of stripped string
+/// Example:
+/// char dest[1024];
+/// char src[] = "\033[31mThis is red text\033[0m
+/// int len = strip_ansi(dest, src);
+/// Result: dest = "This is red text", len = 17
+/// Note: Only handles SGR sequences ending in 'm'
+/// Skips non-ASCII characters
+/// @note The caller must ensure that d has enough space to hold the stripped
+/// string
+/// @note This function does not allocate memory; it assumes d is pre-allocated
+/// @note This function processes the entire string until the null terminator
+/// @note This function does not modify the source string s
+/// @note This function returns the length of the resulting string, including
+/// the null terminator
 int strip_ansi(char *d, char *s) {
     int l;
     while (*s) {
@@ -51,5 +64,5 @@ int strip_ansi(char *d, char *s) {
         }
     }
     *d = '\0';
-    return l;
+    return l + 1;
 }

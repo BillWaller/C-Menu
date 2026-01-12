@@ -73,9 +73,12 @@ bool restore_curses_tioctl() {
 }
 
 ///  ╭───────────────────────────────────────────────────────────────╮
-///  │ SET_SANE_IOCTL                                                │
+///  │ SET_SANE_TIOCTL                                               │
 ///  │ Reasonable termios Settings                                   │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  set_sane_tioctl(struct termios *t_p) - set terminal to sane settings
+///  @params t_p - pointer to termios structure to modify
+///  @return - true on success
 bool set_sane_tioctl(struct termios *t_p) {
     tcgetattr(0, t_p);
     t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
@@ -93,7 +96,9 @@ bool set_sane_tioctl(struct termios *t_p) {
 ///  │ MK_RAW_IOCTL - Set terminal to raw mode                       │
 ///  │ unlike cfmakeraw(), this leaves ISIG enabled.                 │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  mk_raw_tioctl(struct termios *t_p) - set terminal to raw mode
 ///  @params t_p - pointer to termios structure to modify
+///  @return - true on success
 ///  @note - unlike cfmakeraw(), this leaves ISIG enabled.
 bool mk_raw_tioctl(struct termios *t_p) {
     tcgetattr(0, t_p);
@@ -113,7 +118,8 @@ bool mk_raw_tioctl(struct termios *t_p) {
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ DI_GETCH - Get Single Character in Raw Mode                   │
 ///  ╰───────────────────────────────────────────────────────────────╯
-///  @return - single character read from terminal
+///  di_getch() - get single character from terminal in raw mode
+///  @return - the character read from terminal
 char di_getch() {
     struct termios org_tioctl, new_tioctl;
     char buf;

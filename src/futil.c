@@ -51,6 +51,11 @@ bool verify_file(char *, int);
 bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
 int canonicalize_file_spec(char *);
+void string_cpy(String *, const String *);
+void string_cat(String *, const String *);
+String to_string(const char *);
+String mk_string(size_t);
+String free_string(String);
 char errmsg[MAXLEN];
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ RTRIM - Removes Trailing Whitespace                               │
@@ -457,6 +462,7 @@ double str_to_double(char *s) {
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ STR_TO_BOOL - Converts String to Boolean true or false            │
 /// ╰───────────────────────────────────────────────────────────────────╯
+/// bool str_to_bool(const char *s);
 /// @params s - string to convert
 /// @returns converted boolean value
 bool str_to_bool(const char *s) {
@@ -880,10 +886,11 @@ bool lf_find_files(char *dir, char *re) {
     closedir(dirp);
     return true;
 }
-
 /// ╭───────────────────────────────────────────────────────╮
 /// │ trim at first space and remove quotes                 │
 /// ╰───────────────────────────────────────────────────────╯
+/// canonicalize_file_spec(char *spec)
+/// Removes quotes and trims at first space
 /// @params spec - file specification to canonicalize
 /// @returns length of resulting string
 int canonicalize_file_spec(char *spec) {
@@ -912,6 +919,7 @@ int canonicalize_file_spec(char *spec) {
 /// ╭───────────────────────────────────────────────────────╮
 /// │ REP_SUBSTRING - Replace Substring                     │
 /// ╰───────────────────────────────────────────────────────╯
+/// char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s)
 /// @params org_s - original string
 /// @params tgt_s - target substring to replace
 /// @params rep_s - replacement substring
@@ -943,4 +951,133 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     }
     strnz__cpy(tmp, ip, MAXLEN - 1);
     return out_s;
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRING STRUCT FUNCTIONS                                           │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// @use:  These functions were designed to manage strings with dynamic
+/// memory allocation, encapsulated in a String struct.
+///
+/// @params s - string to trim
+/// fn to_string(char *s) -> String
+/// Convert C string to String struct
+/// @param: s C string
+/// @note: The returned String struct contains a dynamically allocated copy
+/// of the input string.
+/// @note: the caller is responsible for freeing the allocated memory.
+/// @see: free_string
+/// @return: String struct
+/// @example:
+///
+///   String str = to_string("Hello, World!");
+///   //   // Use str.s and str.l
+///   str = free_string(str);
+/// typedef struct {
+///     char *s;   // pointer to string
+///     size_t l;  // length of string including null terminator
+/// } String;
+/// Eventually this may be expanded to include more string functions.
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ TO_STRING - Convert C string to String struct                     │
+/// ╰───────────────────────────────────────────────────────────────────╯
+String to_string(const char *s) {
+    String str;
+    str.l = strlen(s) + 1;
+    str.s = (char *)malloc(str.l);
+    strcpy(str.s, s);
+    return str;
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ MK_STRING - Make a String of length l                             │
+/// ╰───────────────────────────────────────────────────────────────────╯
+String mk_string(size_t l) {
+    String str;
+    str.l = l + 1;
+    str.s = (char *)malloc(str.l);
+    str.s[0] = '\0';
+    return str;
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ FREE_STRING - Free String and zero the length                     │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// @param: str String struct to free
+/// @note: Frees the dynamically allocated string and sets length to 0.
+/// @return: String struct with NULL pointer and length 0
+String free_string(String str) {
+    free(str.s);
+    str.l = 0;
+    str.s = NULL;
+    return str;
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRING_CPY - like strcpy, but reallocs instead of overwriting     │
+/// │              buffer                                               │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// void string_cpy(String *dest, const String *src);
+/// copies src to dest, reallocating dest if necessary
+/// @params dest - destination String struct
+/// @params src - source String struct
+void string_cpy(String *dest, const String *src) {
+    if (dest->l < src->l) {
+        dest->s = (char *)realloc(dest->s, src->l);
+        dest->l = src->l;
+    }
+    strcpy(dest->s, src->s);
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRING_CAT - like strcat, but reallocs instead of overwriting     │
+/// │              buffer                                               │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// void string_cat(String *dest, const String *src);
+/// concatenates src to dest, reallocating dest if necessary
+/// @params dest - destination String struct
+/// @params src - source String struct
+void string_cat(String *dest, const String *src) {
+    size_t new_len = strlen(dest->s) + strlen(src->s) + 1;
+    if (dest->l < new_len) {
+        dest->s = (char *)realloc(dest->s, new_len);
+        dest->l = new_len;
+    }
+    strcat(dest->s, src->s);
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRING_NCAT - like strncat, but reallocs instead of overwriting   │
+/// │              buffer                                               │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// void string_ncat(String *dest, const String *src, size_t n);
+/// concatenates up to n characters from src to dest, reallocating dest if
+/// necessary
+/// @params dest - destination String struct
+/// @params src - source String struct
+/// @params n - maximum number of characters to concatenate
+void string_ncat(String *dest, const String *src, size_t n) {
+    size_t dest_len = strlen(dest->s);
+    size_t src_len = strlen(src->s);
+    size_t cat_len = (n < src_len) ? n : src_len;
+    size_t new_len = dest_len + cat_len + 1;
+    if (dest->l < new_len) {
+        dest->s = (char *)realloc(dest->s, new_len);
+        dest->l = new_len;
+    }
+    strncat(dest->s, src->s, cat_len);
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STRING_NCPY - like strncpy, but reallocs instead of overwriting   │
+/// │              buffer                                               │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// void string_ncpy(String *dest, const String *src, size_t n);
+/// copies up to n characters from src to dest, reallocating dest if necessary
+/// @params dest - destination String struct
+/// @params src - source String struct
+/// @params n - maximum number of characters to copy
+void string_ncpy(String *dest, const String *src, size_t n) {
+    size_t src_len = strlen(src->s);
+    size_t cpy_len = (n < src_len) ? n : src_len;
+    size_t new_len = cpy_len + 1;
+    if (dest->l < new_len) {
+        dest->s = (char *)realloc(dest->s, new_len);
+        dest->l = new_len;
+    }
+    strncpy(dest->s, src->s, cpy_len);
+    dest->s[cpy_len] = '\0';
 }
