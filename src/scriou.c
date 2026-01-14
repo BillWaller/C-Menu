@@ -77,7 +77,7 @@ bool restore_curses_tioctl() {
 ///  │ Reasonable termios Settings                                   │
 ///  ╰───────────────────────────────────────────────────────────────╯
 ///  set_sane_tioctl(struct termios *t_p) - set terminal to sane settings
-///  @params t_p - pointer to termios structure to modify
+///  @param t_p - pointer to termios structure to modify
 ///  @return - true on success
 bool set_sane_tioctl(struct termios *t_p) {
     tcgetattr(0, t_p);
@@ -97,7 +97,7 @@ bool set_sane_tioctl(struct termios *t_p) {
 ///  │ unlike cfmakeraw(), this leaves ISIG enabled.                 │
 ///  ╰───────────────────────────────────────────────────────────────╯
 ///  mk_raw_tioctl(struct termios *t_p) - set terminal to raw mode
-///  @params t_p - pointer to termios structure to modify
+///  @param t_p - pointer to termios structure to modify
 ///  @return - true on success
 ///  @note - unlike cfmakeraw(), this leaves ISIG enabled.
 bool mk_raw_tioctl(struct termios *t_p) {
