@@ -232,7 +232,7 @@ bool view_init_input(View *view, char *file_name) {
                 abend(-1, "unable to write tmp");
                 exit(EXIT_FAILURE);
             }
-        if (bytes_read == -1) {
+        if (bytes_read == 0) {
             abend(-1, "unable to read stdin");
             exit(EXIT_FAILURE);
         }
