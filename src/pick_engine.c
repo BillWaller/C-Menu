@@ -788,7 +788,7 @@ void display_pick_help(Init *init) {
     strnz__cpy(tmp_spec, "~/menuapp/help/pick.help", MAXLEN - 1);
     pick->f_help_spec = verify_spec_arg(
         pick->help_spec, tmp_spec, "~/menuapp/help", init->mapp_help, R_OK);
-    margv[margc++] = "mview";
+    margv[margc++] = strdup("mview");
     margv[margc++] = pick->help_spec;
     margv[margc] = NULL;
     mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4,
