@@ -56,6 +56,7 @@ void string_cat(String *, const String *);
 String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
+char *str_tok(char *, const char *, char);
 char errmsg[MAXLEN];
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ RTRIM - Removes Trailing Whitespace                               │
@@ -1080,4 +1081,28 @@ void string_ncpy(String *dest, const String *src, size_t n) {
     }
     strncpy(dest->s, src->s, cpy_len);
     dest->s[cpy_len] = '\0';
+}
+/// ╭───────────────────────────────────────────────────────────────────╮
+/// │ STR_TOK - like strtok(), but saves the delimiter found in delim   │
+/// ╰───────────────────────────────────────────────────────────────────╯
+/// char *str_tok(char *str, const char *delims, char delim);
+/// @params str - string to tokenize
+/// @params delims - delimiter characters
+/// @params delim - character to receive the delimiter found
+/// @returns pointer to next token
+char *str_tok(char *str, const char *delims, char delim) {
+    static char *token;
+    size_t l;
+
+    if (str != NULL)
+        token = str;
+    l = strcspn(token, delims);
+    delim = token[l];
+    if (delim != '\0')
+        l++;
+    char *result = token;
+    token += l;
+    if (delim != '\0')
+        result[l - 1] = '\0';
+    return result;
 }

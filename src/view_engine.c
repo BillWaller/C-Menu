@@ -187,6 +187,7 @@ int view_cmd_processor(Init *init) {
     double elapsed = 0;
     bool f_clock_started = false;
     long n_cmd = 0L;
+    char delim = '\0';
     view = init->view;
     view->f_timer = false;
     view->cmd[0] = '\0';
@@ -456,7 +457,7 @@ int view_cmd_processor(Init *init) {
         case 'e':
         case 'E':
             if (get_cmd_arg(view, "File name:") == 0) {
-                strtok(view->cmd_arg, " ");
+                str_tok(view->cmd_arg, " ", delim);
                 view->next_file_spec_ptr = strdup(view->cmd_arg);
                 view->f_redisplay_page = true;
                 return 0;
@@ -1670,7 +1671,7 @@ void fmt_line(View *view) {
     /// @param view->maxcol is the maximum column on the page
     /// @return void
     attr_t attr = A_NORMAL;
-    char ansi_tok[64];
+    char ansi_tok[MAXLEN];
     int cpx = cp_default;
     int i = 0, j = 0;
     int len;
@@ -1679,6 +1680,7 @@ void fmt_line(View *view) {
     cchar_t cc;
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
+    char delim;
     rtrim(view->line_out_s);
     /// Initialize multibyte to wide char conversion
     /// mbtowc, setcchar, and getcchar can sometimes behave badly,
@@ -1687,16 +1689,44 @@ void fmt_line(View *view) {
     mbtowc(NULL, NULL, 0);
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
-            char *start_seq = (char *)&in_str[i];
-            char *end_seq = strchr(start_seq, 'm');
-            if (end_seq) {
-                strnz__cpy(ansi_tok, start_seq, end_seq - start_seq + 1);
-                ansi_tok[end_seq - start_seq + 1] = '\0';
-                parse_ansi_str(ansi_tok, &attr, &cpx);
-                i = (end_seq - in_str) + 1;
-            } else {
-                i++;
+            len = strcspn(&in_str[i], "mK ") + 1;
+            delim = in_str[i + len];
+            delim = delim;
+            memcpy(ansi_tok, &in_str[i], len + 1);
+            ansi_tok[len] = '\0';
+            if (ansi_tok[0] == '\0') {
+                if (i + 2 < MAXLEN)
+                    i += 2;
+                continue;
             }
+            if (len == 0 || in_str[i + len - 1] == ' ') {
+                i += 2;
+                continue;
+            } else if (in_str[i + len - 1] == 'K') {
+                i += len;
+                continue;
+            } else if (len == 4 && in_str[i + len - 1] == 'm') {
+                ansi_tok[0] = '\033';
+                ansi_tok[1] = '[';
+                ansi_tok[2] = '0';
+                ansi_tok[3] = 'm';
+                ansi_tok[4] = '\0';
+                len = 4;
+            }
+            parse_ansi_str(ansi_tok, &attr, &cpx);
+            i += len;
+
+            //  char *start_seq = &in_str[i];
+            //  char *end_seq = strchr(start_seq, 'm');
+            //  if (end_seq) {
+            //      strnz__cpy(ansi_tok, start_seq, end_seq - start_seq + 1);
+            //      ansi_tok[end_seq - start_seq + 1] = '\0';
+            //      parse_ansi_str(ansi_tok, &attr, &cpx);
+            //      i = (end_seq - in_str) + 1;
+            //  } else {
+            //      i++;
+            //  }
+
         } else {
             if (in_str[i] == '\033') {
                 i++;
@@ -1751,12 +1781,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     int i, len, x_idx;
     bool f_fg = false, f_bg = false;
     int fg, bg;
+    char delim = '\0';
     char *ansi_p = ansi_str + 2;
     extended_pair_content(*cpx, &fg, &bg);
     RGB rgb;
     while (1) {
-        tok = strtok((char *)ansi_p, ";m");
-        if (tok == NULL)
+        tok = str_tok((char *)ansi_p, ";m", delim);
+        if (tok == NULL || *tok == '\0')
             break;
         ansi_p = NULL;
         len = strlen(tok);
@@ -1765,13 +1796,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 //  ╭───────────────────────────────────────────────╮
                 //  │ 38 - FOREGROUND                               │
                 //  ╰───────────────────────────────────────────────╯
-                tok = strtok((char *)ansi_p, ";m");
+                tok = str_tok((char *)ansi_p, ";m", delim);
                 ansi_p = 0;
                 if (tok != NULL && strcmp(tok, "5") == 0) {
                     //  ╭───────────────────────────────────────────╮
                     //  │ 5 - 256 CLR PALETTE                       │
                     //  ╰───────────────────────────────────────────╯
-                    tok = strtok((char *)ansi_p, ";m");
+                    tok = str_tok((char *)ansi_p, ";m", delim);
                     ansi_p = NULL;
                     if (tok != NULL) {
                         //  ╭───────────────────────────────────────╮
@@ -1788,13 +1819,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         //  ╭───────────────────────────────────────────╮
                         //  │ 2 - RGB                                   │
                         //  ╰───────────────────────────────────────────╯
-                        tok = strtok((char *)ansi_p, ";m");
+                        tok = str_tok((char *)ansi_p, ";m", delim);
                         ansi_p = NULL;
                         rgb.r = atoi(tok);
-                        tok = strtok((char *)ansi_p, ";m");
+                        tok = str_tok((char *)ansi_p, ";m", delim);
                         ansi_p = NULL;
                         rgb.g = atoi(tok);
-                        tok = strtok((char *)ansi_p, ";m");
+                        tok = str_tok((char *)ansi_p, ";m", delim);
                         ansi_p = NULL;
                         rgb.b = atoi(tok);
                         x_idx = rgb_to_xterm256_idx(rgb);
@@ -1808,13 +1839,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 //  ╭───────────────────────────────────────────────╮
                 //  │ 48 - BACKGROUND                               │
                 //  ╰───────────────────────────────────────────────╯
-                tok = strtok((char *)ansi_p, ";m");
+                tok = str_tok((char *)ansi_p, ";m", delim);
                 ansi_p = NULL;
                 if (tok != NULL && strcmp(tok, "5") == 0) {
                     //  ╭───────────────────────────────────────────╮
                     //  │ 5 - 256 CLR PALETTE                       │
                     //  ╰───────────────────────────────────────────╯
-                    tok = strtok((char *)ansi_p, ";m");
+                    tok = str_tok((char *)ansi_p, ";m", delim);
                     ansi_p = NULL;
                     if (tok != NULL) {
                         //  ╭───────────────────────────────────────╮
@@ -1829,15 +1860,15 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 } else {
                     if (tok != NULL && strcmp(tok, "2") == 0) {
                         //  ╭───────────────────────────────────────────╮
-                        //  │ 2 - RGB COLOR                             │
+                        //  │ 2 - RGB                                   │
                         //  ╰───────────────────────────────────────────╯
-                        tok = strtok((char *)ansi_p, ";m");
+                        tok = str_tok((char *)ansi_p, ";m", delim);
                         ansi_p = NULL;
                         rgb.r = atoi(tok);
-                        tok = strtok((char *)ansi_p, ";m");
+                        tok = str_tok((char *)ansi_p, ";m", delim);
                         ansi_p = NULL;
                         rgb.g = atoi(tok);
-                        tok = strtok((char *)ansi_p, ";m");
+                        tok = str_tok((char *)ansi_p, ";m", delim);
                         ansi_p = NULL;
                         rgb.b = atoi(tok);
                         x_idx = rgb_to_xterm256_idx(rgb);
@@ -1859,6 +1890,9 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 }
             } else if ((tok[0] == '3' || tok[0] == '4') && tok[1] >= '0' &&
                        tok[1] <= '7') {
+                // ╭───────────────────────────────────────────────╮
+                // │ 30-37 / 40-47 - STANDARD FG/BG COLORS         │
+                // ╰───────────────────────────────────────────────╯
                 if (tok[0] == '3') {
                     i = atoi(&tok[1]);
                     if (fg != i) {
@@ -1873,22 +1907,16 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                     }
                 }
             } else if (tok[0] == '0' && tok[1] == '1') {
-                *attr = A_NORMAL;
-                if (fg != COLOR_WHITE) {
-                    fg = COLOR_WHITE;
-                    f_fg = true;
-                }
-                if (bg != COLOR_BLACK) {
-                    bg = COLOR_BLACK;
-                    f_fg = true;
-                }
-            } else if (tok[0] == '0' && tok[1] == '1')
                 *attr = A_BOLD;
-            else if (tok[0] == '0' && tok[1] == '2')
+            } else if (tok[0] == '0' && tok[1] == '2') {
                 *attr = A_REVERSE;
-            else if (tok[0] == '0' && tok[1] == '3')
+            } else if (tok[0] == '0' && tok[1] == '3') {
                 *attr = A_ITALIC;
+            }
         } else if (len == 1) {
+            // ╭───────────────────────────────────────────────╮
+            // │ 0-9 - TEXT ATTRIBUTES                         │
+            // ╰───────────────────────────────────────────────╯
             if (tok[0] == '0') {
                 *attr = A_NORMAL;
                 if (fg != COLOR_WHITE) {
@@ -1899,12 +1927,14 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                     bg = COLOR_BLACK;
                     f_fg = true;
                 }
-            } else if (tok[0] == '1')
-                *attr = A_BOLD;
-            else if (tok[0] == '2')
-                *attr = A_REVERSE;
-            else if (tok[0] == '3')
-                *attr = A_ITALIC;
+            } else {
+                if (tok[0] == '1')
+                    *attr = A_BOLD;
+                else if (tok[0] == '2')
+                    *attr = A_REVERSE;
+                else if (tok[0] == '3')
+                    *attr = A_ITALIC;
+            }
         } else if (len == 0) {
             *attr = A_NORMAL;
             if (fg != COLOR_WHITE) {
