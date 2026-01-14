@@ -1,4 +1,4 @@
-//  menu
+//  meextern nu
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  One large include file for C-Menu Menu, Form, Pick, and View
@@ -1078,6 +1078,12 @@ extern char *rep_substring(const char *, const char *, const char *);
 extern void strnfill(char *, char, int);
 extern void str_subc(char *, char *, char, char *, int);
 extern void chrep(char *, char, char);
+extern void string_cpy(String *, const String *);
+extern void string_cat(String *, const String *);
+extern String to_string(const char *);
+extern String mk_string(size_t);
+extern String free_string(String);
+extern char *str_tok(char *, const char *, char);
 extern double str_to_double(char *);
 
 extern int get_color_number(char *);
