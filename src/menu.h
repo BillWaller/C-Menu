@@ -764,7 +764,7 @@ typedef struct {
     char line_number_s[20];
     char *line_in_beg_p;
     char *line_in_end_p;
-    long srch_beg_pos;
+    off_t srch_beg_pos;
     //
     WINDOW *pad;
     // *newpad(int plines, int pcols);
@@ -809,13 +809,13 @@ typedef struct {
     char *next_file_spec_ptr;
     char *tmp_file_name_ptr;
     //
-    long file_size;
-    long file_pos;
-    long prev_file_pos;
-    long page_top_pos;
-    long page_bot_pos;
-    // long pos_tbl[NPOS];
-    long mark_tbl[NMARKS];
+    ssize_t file_size;
+    off_t file_pos;
+    off_t prev_file_pos;
+    off_t page_top_pos;
+    off_t page_bot_pos;
+    // off_t pos_tbl[NPOS];
+    off_t mark_tbl[NMARKS];
     //
     bool f_in_pipe;
     int in_fd;
