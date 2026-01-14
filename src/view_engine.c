@@ -31,7 +31,7 @@
 #define MO_BO_GOT_BS_EXPECT_SAME 6 //    ^H      same char
 #define Ctrl(c) ((c) & 0x1f)
 
-/// ssize_t file_size; %zd
+/// size_t file_size; %zd
 /// off_t file_pos; %jd
 
 /// Macros to get next and previous character skipping over carriage returns
@@ -183,7 +183,7 @@ int view_cmd_processor(Init *init) {
     int rc, i;
     int n = 0;
     int l = 0;
-    ssize_t bytes_written;
+    size_t bytes_written;
     char *editor_ptr;
     char shell_cmd_spec[MAXLEN];
     struct timespec start, end;
@@ -884,7 +884,7 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
         }
     }
     if (!view->f_eod && prompt_type != PT_NONE) { // Percent
-        if (view->file_size > (ssize_t)0 && view->page_bot_pos != (off_t)0) {
+        if (view->file_size > (size_t)0 && view->page_bot_pos != (off_t)0) {
             sprintf(tmp_str, "(%jd%%)",
                     ((off_t)100 * view->page_bot_pos) / (off_t)view->file_size);
             if (prompt_str[0] != '\0')
@@ -1010,7 +1010,7 @@ void go_to_percent(View *view, int Percent) {
         Perror("Cannot determine file length");
         return;
     }
-    view->file_pos = ((ssize_t)Percent * view->file_size) / (ssize_t)100;
+    view->file_pos = ((size_t)Percent * view->file_size) / (size_t)100;
     view->f_forward = true;
     get_next_char();
     while (c != '\n') {

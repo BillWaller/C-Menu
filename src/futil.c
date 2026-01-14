@@ -30,14 +30,11 @@ int trim(char *);
 int rtrim(char *);
 bool stripz_quotes(char *);
 void strip_quotes(char *);
-int ssnprintf(char *, size_t, const char *, ...);
 bool str_to_bool(const char *);
 int str_to_args(char **, char *, int);
 double str_to_double(char *);
 void str_to_lower(char *);
 void str_to_upper(char *);
-int strnz__cpy(char *, const char *, int);
-int strnz__cat(char *, const char *, int);
 void strz(char *);
 int strnz(char *, int);
 char *strz_dup(char *);
@@ -51,12 +48,17 @@ bool verify_file(char *, int);
 bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
 int canonicalize_file_spec(char *);
-void string_cpy(String *, const String *);
-void string_cat(String *, const String *);
+size_t ssnprintf(char *, size_t, const char *, ...);
+size_t strnz__cpy(char *, const char *, size_t);
+size_t strnz__cat(char *, const char *, size_t);
+size_t string_cpy(String *, const String *);
+size_t string_cat(String *, const String *);
+size_t string_ncat(String *, const String *, size_t);
+size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
-char *str_tok(char *, const char *, char);
+char *str_tok(char *, const char *, const char);
 char errmsg[MAXLEN];
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ RTRIM - Removes Trailing Whitespace                               │
@@ -94,7 +96,7 @@ int trim(char *s) {
 /// A safe snprintf function that ensures the buffer is not overflowed.
 /// Returns the number of characters that would have been written if
 /// enough space had been available.
-int ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
+size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     int n;
     va_list args;
 
@@ -189,7 +191,7 @@ void str_to_upper(char *s) {
 /// @params s - source string
 /// @params max_len - maximum length to copy
 /// @returns length of resulting string
-int strnz__cpy(char *d, const char *s, int max_len) {
+size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     char *e;
     int len = 0;
 
@@ -211,7 +213,7 @@ int strnz__cpy(char *d, const char *s, int max_len) {
 /// @params s - source string
 /// @params max_len - maximum length to copy
 /// @returns length of resulting string
-int strnz__cat(char *d, const char *s, int max_len) {
+size_t strnz__cat(char *d, const char *s, size_t max_len) {
     char *e;
     int len = 0;
 
@@ -1014,16 +1016,17 @@ String free_string(String str) {
 /// │ STRING_CPY - like strcpy, but reallocs instead of overwriting     │
 /// │              buffer                                               │
 /// ╰───────────────────────────────────────────────────────────────────╯
-/// void string_cpy(String *dest, const String *src);
+/// size_t string_cpy(String *dest, const String *src);
 /// copies src to dest, reallocating dest if necessary
 /// @params dest - destination String struct
 /// @params src - source String struct
-void string_cpy(String *dest, const String *src) {
+size_t string_cpy(String *dest, const String *src) {
     if (dest->l < src->l) {
         dest->s = (char *)realloc(dest->s, src->l);
         dest->l = src->l;
     }
     strcpy(dest->s, src->s);
+    return src->l;
 }
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ STRING_CAT - like strcat, but reallocs instead of overwriting     │
@@ -1033,13 +1036,14 @@ void string_cpy(String *dest, const String *src) {
 /// concatenates src to dest, reallocating dest if necessary
 /// @params dest - destination String struct
 /// @params src - source String struct
-void string_cat(String *dest, const String *src) {
+size_t string_cat(String *dest, const String *src) {
     size_t new_len = strlen(dest->s) + strlen(src->s) + 1;
     if (dest->l < new_len) {
         dest->s = (char *)realloc(dest->s, new_len);
         dest->l = new_len;
     }
     strcat(dest->s, src->s);
+    return new_len;
 }
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ STRING_NCAT - like strncat, but reallocs instead of overwriting   │
@@ -1051,7 +1055,7 @@ void string_cat(String *dest, const String *src) {
 /// @params dest - destination String struct
 /// @params src - source String struct
 /// @params n - maximum number of characters to concatenate
-void string_ncat(String *dest, const String *src, size_t n) {
+size_t string_ncat(String *dest, const String *src, size_t n) {
     size_t dest_len = strlen(dest->s);
     size_t src_len = strlen(src->s);
     size_t cat_len = (n < src_len) ? n : src_len;
@@ -1061,6 +1065,7 @@ void string_ncat(String *dest, const String *src, size_t n) {
         dest->l = new_len;
     }
     strncat(dest->s, src->s, cat_len);
+    return new_len;
 }
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ STRING_NCPY - like strncpy, but reallocs instead of overwriting   │
@@ -1071,7 +1076,7 @@ void string_ncat(String *dest, const String *src, size_t n) {
 /// @params dest - destination String struct
 /// @params src - source String struct
 /// @params n - maximum number of characters to copy
-void string_ncpy(String *dest, const String *src, size_t n) {
+size_t string_ncpy(String *dest, const String *src, size_t n) {
     size_t src_len = strlen(src->s);
     size_t cpy_len = (n < src_len) ? n : src_len;
     size_t new_len = cpy_len + 1;
@@ -1081,11 +1086,12 @@ void string_ncpy(String *dest, const String *src, size_t n) {
     }
     strncpy(dest->s, src->s, cpy_len);
     dest->s[cpy_len] = '\0';
+    return new_len;
 }
 /// ╭───────────────────────────────────────────────────────────────────╮
 /// │ STR_TOK - like strtok(), but saves the delimiter found in delim   │
 /// ╰───────────────────────────────────────────────────────────────────╯
-/// char *str_tok(char *str, const char *delims, char delim);
+/// char *str_tok(char *str, const char *delims, const char delim);
 /// @params str - string to tokenize
 /// @params delims - delimiter characters
 /// @params delim - character to receive the delimiter found
