@@ -19,9 +19,13 @@
 
 #define MAXLEN 256
 
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ FLAGS                                                             │
-/// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ FLAGS                                                         │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// Search flags
+/// ALL     List all files including hidden files
+/// RECURSE Recurse into subdirectories
+/// ICASE   Ignore case in search
 #define ALL 0x01
 #define RECURSE 0x02
 #define ICASE 0x04
@@ -37,17 +41,17 @@ int strnz__cpy(char *, char *, int);
 int max_depth = 16;
 int depth = 0;
 
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ LF EXECUTABLE                                                     │
-/// ╰───────────────────────────────────────────────────────────────────╯
-/// @params   Usage: lf [options] [directory] [regexp]
-/// @params   Options:\n");
-/// @params     -a        List all files (including hidden files)
-/// @params     -d        maximum depth of subdirectories to examine
-/// @params     -h        show this help message
-/// @params     -i        ignore case in search
-/// @params     -r        recurse into subdirectories
-/// @params     -v        show version information
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ LF EXECUTABLE                                                 │
+/// ╰───────────────────────────────────────────────────────────────╯
+/// @usage   Usage: lf [options] [directory] [regexp]
+/// @usage   Options:\n");
+/// @param     -a        List all files (including hidden files)
+/// @param     -d        maximum depth of subdirectories to examine
+/// @param     -h        show this help message
+/// @param     -i        ignore case in search
+/// @param     -r        recurse into subdirectories
+/// @param     -v        show version information
 
 int main(int argc, char **argv) {
     char dir[MAXLEN] = "";
@@ -117,11 +121,15 @@ int main(int argc, char **argv) {
     return true;
 }
 
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ LF_FIND_DIRS                                                      │
-/// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ LF_FIND_DIRS                                                  │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Recursively find directories and call lf_find_files on each
 /// directory found
+/// @param dir   starting directory
+/// @param re    regular expression to match files
+/// @param flags search flags
+/// return      true if successful, false otherwise
 bool lf_find_dirs(char *dir, char *re, int flags) {
     struct stat sb;
     struct dirent *dir_st;
@@ -161,10 +169,14 @@ bool lf_find_dirs(char *dir, char *re, int flags) {
     return true;
 }
 
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ LF_FIND_FILES                                                     │
-/// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ LF_FIND_FILES                                                 │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Find files in a directory matching a regular expression
+/// @param dir   directory to search
+/// @param re    regular expression to match files
+/// @param flags search flags
+/// return      true if successful, false otherwise
 bool lf_find_files(char *dir, char *re, int flags) {
     struct stat sb;
     struct dirent *dir_st;
@@ -226,12 +238,12 @@ bool lf_find_files(char *dir, char *re, int flags) {
     return true;
 }
 
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ STRNZ_CPY                                                         │
-/// │ stops at max_len, newline, or carriage return                     │
-/// │ max_len limits the destination buffer size                        │
-/// │ returns length of resulting string                                │
-/// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ STRNZ_CPY                                                     │
+/// │ stops at max_len, newline, or carriage return                 │
+/// │ max_len limits the destination buffer size                    │
+/// │ returns length of resulting string                            │
+/// ╰───────────────────────────────────────────────────────────────╯
 int strnz__cpy(char *d, char *s, int max_len) {
     char *e;
     int len = 0;
@@ -244,12 +256,12 @@ int strnz__cpy(char *d, char *s, int max_len) {
     *d = '\0';
     return len;
 }
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ STRNZ_CAT                                                         │
-/// │ stops at max_len, newline, or carriage return                     │
-/// │ max_len limits the destination buffer size                        │
-/// │ returns length of resulting string                                │
-/// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ STRNZ_CAT                                                     │
+/// │ stops at max_len, newline, or carriage return                 │
+/// │ max_len limits the destination buffer size                    │
+/// │ returns length of resulting string                            │
+/// ╰───────────────────────────────────────────────────────────────╯
 int strnz__cat(char *d, char *s, int max_len) {
     char *e;
     int len = 0;
