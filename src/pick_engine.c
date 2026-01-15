@@ -55,7 +55,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     Pick *pick = new_pick(init, argc, argv, begy, begx);
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
-
     /// ╭────────────────────────────────────────────────────────────╮
     /// │ START PROVIDER_CMD, attach pipe to its STDOUT              │
     /// ╰────────────────────────────────────────────────────────────╯
@@ -187,7 +186,6 @@ int read_pick_input(Init *init) {
     pick->obj_idx = 0;
     return 0;
 }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ PICK_ENGINE                                                    │
 /// ╰────────────────────────────────────────────────────────────────╯

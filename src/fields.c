@@ -14,15 +14,15 @@
 
 bool is_valid_date(int, int, int);
 bool is_valid_time(int, int, int);
-double form_fmt_currency(Form *form, char *currency_s);
-int form_fmt_decimal_int(Form *form, char *decimal_int_s);
-int form_fmt_hex_int(Form *form, char *hex_int_s);
-float form_fmt_float(Form *form, char *float_s);
-double form_fmt_double(Form *form, char *double_s);
-int form_fmt_field(Form *, char *s);
+double form_fmt_currency(Form *, char *);
+int form_fmt_decimal_int(Form *, char *);
+int form_fmt_hex_int(Form *, char *);
+float form_fmt_float(Form *, char *);
+double form_fmt_double(Form *, char *);
+int form_fmt_field(Form *, char *);
 void numeric(char *, char *);
-void right_justify(char *s, int fl);
-void left_justify(char *s, int fl);
+void right_justify(char *, int);
+void left_justify(char *, int);
 
 char ff_tbl[][26] = {"string",   "decimal_int", "hex_int", "float", "double",
                      "currency", "yyyymmdd",    "hhmmss",  "apr",   ""};
@@ -43,6 +43,26 @@ void mk_filler(char *, int);
 /// for field editing
 /// @param form Pointer to Form structure
 /// @return int Key code of action taken
+///
+/// form_accept_field() manages user input for editing form fields.
+/// It supports various navigation keys (e.g., arrow keys, home/end),
+/// editing keys (e.g., insert, delete, backspace), and mouse events.
+/// The function validates input based on the field's format and
+/// updates the display accordingly. It returns the key code of the
+/// action taken, such as accepting the field, tabbing to the next field,
+/// or breaking out of the input loop.
+///
+/// This is a state machine that processes user input based on the state
+/// of the Form data structure. It uses a loop to continuously read input
+/// until a terminating condition is met (e.g., field accepted, tabbed out).
+///
+/// The Form description file defines the fields, their formats, and any
+/// validation rules. The function uses this information to enforce input
+/// constraints and provide feedback to the user.
+///
+/// The function also handles special keys for navigation and editing,
+/// such as KEY_HOME, KEY_END, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN,
+/// KEY_IC (insert), KEY_DC (delete), and KEY_BACKSPACE.
 ///
 int form_accept_field(Form *form) {
     bool f_insert = FALSE;
@@ -89,7 +109,6 @@ int form_accept_field(Form *form) {
             if (form_validate_field(form) != 0)
                 continue;
             return (in_key);
-
         /// ╭───────────────────────────────────────────────────────────────╮
         /// │ KEY_F(9) BREAK                                                │
         /// ╰───────────────────────────────────────────────────────────────╯
@@ -319,7 +338,6 @@ int form_accept_field(Form *form) {
         }
     }
 }
-
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ DISPLAY_FIELD_N                                               │
 /// ╰───────────────────────────────────────────────────────────────╯
@@ -555,7 +573,6 @@ int form_validate_field(Form *form) {
     }
     return (0);
 }
-
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ MK_FILLER_S                                                   │
 /// ╰───────────────────────────────────────────────────────────────╯
@@ -569,9 +586,10 @@ void mk_filler(char *s, int fl) {
         *s++ = c;
     *s = '\0';
 }
-
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ LEFT_JUSTIFY                                                  │
+///  ╰───────────────────────────────────────────────────────────────╯
 void left_justify(char *s, int fl) { trim(s); }
-
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ RIGHT_JUSTIFY                                                 │
 ///  ╰───────────────────────────────────────────────────────────────╯

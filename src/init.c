@@ -362,7 +362,11 @@ int parse_config(Init *init) {
         fprintf(stderr, "failed to read file: %s\n", init->minitrc);
         return (-1);
     }
+    /// get each line from the config file
     while (fgets(ts, sizeof(ts), config_fp)) {
+        /// lines beginning with '#" are comments, discard
+        /// copy line to tmp_str removing quotes, spaces, semicolons, and
+        /// newlines
         if (ts[0] != '#') {
             sp = ts;
             dp = tmp_str;
@@ -376,6 +380,11 @@ int parse_config(Init *init) {
                     sp++;
                 }
             }
+            *dp = '\0';
+            /// parse key=value pairs
+            /// skip lines without '='
+            /// set init struct values based on key
+            /// skip unknown keys
             char *key = strtok(tmp_str, "=");
             char *value = strtok(NULL, "=");
             if (value == NULL)
@@ -606,7 +615,6 @@ int parse_config(Init *init) {
     (void)fclose(config_fp);
     return 0;
 }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ PROMPT_STR_TO_INT                                              │
 /// ╰────────────────────────────────────────────────────────────────╯
@@ -626,7 +634,6 @@ int prompt_str_to_int(char *s) {
         prompt_type = PT_NONE;
     return prompt_type;
 }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ PROMPT_INT_TO_STR                                              │
 /// ╰────────────────────────────────────────────────────────────────╯
@@ -789,13 +796,11 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     strnz__cat(file_spec, file_name, MAXLEN - 1);
     return true;
 }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ DISPLAY_VERSION                                                │
 /// ╰────────────────────────────────────────────────────────────────╯
 /// C-Menu version display
 void display_version() { fprintf(stderr, "\nVersion %s\n", mapp_version); }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ USAGE                                                          │
 /// ╰────────────────────────────────────────────────────────────────╯
@@ -804,7 +809,6 @@ void usage() {
     (void)fprintf(stderr, "\n\nPress any key to continue...");
     di_getch();
 }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ OPT_PRT_CHAR                                                   │
 /// ╰────────────────────────────────────────────────────────────────╯
@@ -815,7 +819,6 @@ void usage() {
 void opt_prt_char(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ USAGE                                                          │
 /// ╰────────────────────────────────────────────────────────────────╯
@@ -826,7 +829,6 @@ void opt_prt_char(const char *o, const char *name, const char *value) {
 void opt_prt_str(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ OPT_PRT_INT                                                    │
 /// ╰────────────────────────────────────────────────────────────────╯
@@ -837,7 +839,6 @@ void opt_prt_str(const char *o, const char *name, const char *value) {
 void opt_prt_int(const char *o, const char *name, int value) {
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
 }
-
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ OPT_PRT_DOUBLE                                                 │
 /// ╰────────────────────────────────────────────────────────────────╯
