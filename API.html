@@ -169,6 +169,71 @@
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
 </head>
 <body>
@@ -185,37 +250,38 @@ use them.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *str</code>: The string to be trimmed.</li>
+<li><code>char \*str</code>: The string to be trimmed.</li>
 </ul></li>
 <li><strong>Returns</strong>:
 <ul>
 <li><code>int</code>: The new length of the trimmed string.</li>
 </ul></li>
 </ul>
-<h4 id="int-trimchar-str">int trim(char *str)</h4>
+<h3 id="int-trimchar-str">int trim(char *str)</h3>
 <p>Removes leading and trailing whitespace characters from the given
 string.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *str</code>: The string to be trimmed.</li>
+<li><code>char \*str</code>: The string to be trimmed.</li>
 </ul></li>
 <li><strong>Returns</strong>:
 <ul>
 <li><code>int</code>: The new length of the trimmed string.</li>
 </ul></li>
 </ul>
-<h4 id="ssnprintfchar-str-size_t-size-const-char-format-">ssnprintf(char
-<em>str, size_t size, const char </em>format, ...)</h4>
+<h3
+id="ssnprintfchar-str-size_t-size-const-char-format-...">ssnprintf(char
+*str, size_t size, const char *format, ...)</h3>
 <p>A safe version of snprintf that ensures the output string is
 null-terminated.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *str</code>: The buffer to write the formatted string
+<li><code>char \*str</code>: The buffer to write the formatted string
 to.</li>
 <li><code>size_t size</code>: The size of the buffer.</li>
-<li><code>const char *format</code>: The format string.</li>
+<li><code>const char \*format</code>: The format string.</li>
 <li><code>...</code>: Additional arguments to be formatted.</li>
 </ul></li>
 <li><strong>Returns</strong>:
@@ -224,14 +290,14 @@ to.</li>
 null terminator.</li>
 </ul></li>
 </ul>
-<h4 id="str_to_argschar-argv-char-arg_str-int-max_args">str_to_args(char
-<em>argv[], char </em>arg_str, int max_args)</h4>
+<h3 id="str_to_argschar-argv-char-arg_str-int-max_args">str_to_args(char
+*argv[], char *arg_str, int max_args)</h3>
 <p>Splits a string into an array of arguments based on whitespace.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *argv[]</code>: The array to store the arguments.</li>
-<li><code>char *arg_str</code>: The input string to be split.</li>
+<li><code>char \*argv[]</code>: The array to store the arguments.</li>
+<li><code>char \*arg_str</code>: The input string to be split.</li>
 <li><code>int max_args</code>: The maximum number of arguments to
 extract.</li>
 </ul></li>
@@ -242,38 +308,38 @@ extract.</li>
 </ul>
 <p>Text surrounded by double quotes '"' will be treated as a single
 argument.</p>
-<h4 id="str_to_lowerchar-str">str_to_lower(char *str)</h4>
+<h3 id="str_to_lowerchar-str">str_to_lower(char *str)</h3>
 <p>Converts all characters in the string to lowercase.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *str</code>: The string to be converted.</li>
+<li><code>char \*str</code>: The string to be converted.</li>
 </ul></li>
 <li><strong>Returns</strong>:
 <ul>
-<li><code>char *</code>: A pointer to the converted string.</li>
+<li><code>char \*</code>: A pointer to the converted string.</li>
 </ul></li>
 </ul>
-<h4 id="str_to_upperchar-str">str_to_upper(char *str)</h4>
+<h3 id="str_to_upperchar-str">str_to_upper(char *str)</h3>
 <p>Converts all characters in the string to uppercase.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *str</code>: The string to be converted.</li>
+<li><code>char \*str</code>: The string to be converted.</li>
 </ul></li>
 <li><strong>Returns</strong>:
 <ul>
-<li><code>char *</code>: A pointer to the converted string.</li>
+<li><code>char \*</code>: A pointer to the converted string.</li>
 </ul></li>
 </ul>
-<h4 id="strnz__cpy">strnz__cpy</h4>
+<h3 id="strnz__cpy">strnz__cpy</h3>
 <p>Copies a string from source to destination with a specified maximum
 length.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *dest</code>: The destination buffer.</li>
-<li><code>const char *src</code>: The source string.</li>
+<li><code>char \*dest</code>: The destination buffer.</li>
+<li><code>const char \*src</code>: The source string.</li>
 <li><code>size_t n</code>: The maximum number of characters in the
 resulting string.</li>
 </ul></li>
@@ -287,14 +353,14 @@ the number of characters copied, but by the size of the destination
 buffer, ensuring null-termination. With strnz</strong>cpy, you can
 prevent a buffer overrun by setting the third parameter to the size of
 the destination buffer - 1, leaving space for the null terminator.</p>
-<h4 id="strnz__cat">strnz__cat</h4>
+<h3 id="strnz__cat">strnz__cat</h3>
 <p>Concatenates a source string to a destination string with a specified
 maximum length.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *dest</code>: The destination buffer.</li>
-<li><code>const char *src</code>: The source string.</li>
+<li><code>char \*dest</code>: The destination buffer.</li>
+<li><code>const char \*src</code>: The source string.</li>
 <li><code>size_t n</code>: The maximum size of the destination
 buffer.</li>
 </ul></li>
@@ -309,14 +375,14 @@ destination buffer, ensuring null-termination. With strnz</strong>cat,
 you can prevent a buffer overrun by setting the third parameter to the
 size of the destination buffer - 1, leaving space for the null
 terminator.</p>
-<h4 id="strnzchar-str-int-max_len">strnz(char *str, int max_len)</h4>
+<h3 id="strnzchar-str-int-max_len">strnz(char *str, int max_len)</h3>
 <p>Ensures that a string is null-terminated within a specified maximum
 length. Terminates the string on encountering a line-feed ('\n') or
 carriage-return ('\r').</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *str</code>: The string to be checked.</li>
+<li><code>char \*str</code>: The string to be checked.</li>
 <li><code>int max_len</code>: The maximum length of the string.</li>
 </ul></li>
 <li><strong>Returns</strong>:
@@ -324,8 +390,8 @@ carriage-return ('\r').</p>
 <li>int: Length of the null-terminated string.</li>
 </ul></li>
 </ul>
-<h4 id="strnz_dupchar-str-int-max_len">strnz_dup(char *str, int
-max_len)</h4>
+<h3 id="strnz_dupchar-str-int-max_len">strnz_dup(char *str, int
+max_len)</h3>
 <p>Duplicates a string up to a specified maximum length, a line-feed
 ('\n'), or a carriage-return ('\r'), ensuring null-termination. Because
 strnz_dup allocates memory, it is up to the caller to free the memory
@@ -333,7 +399,7 @@ when it is no longer needed.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *str</code>: The string to be duplicated.</li>
+<li><code>char \*str</code>: The string to be duplicated.</li>
 <li><code>int max_len</code>: The maximum length of the string.</li>
 </ul></li>
 <li><strong>Returns</strong>:
@@ -341,30 +407,29 @@ when it is no longer needed.</p>
 <li>char *: A pointer to the newly allocated duplicated string.</li>
 </ul></li>
 </ul>
-<h4
+<h3
 id="void-str_subcchar-d-char-s-char-replacechr-char-withstr-int-l">void
-str_subc(char <em>d, char </em>s, char ReplaceChr, char *Withstr, int
-l)</h4>
+str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l)</h3>
 <p>Replaces all occurrences of a specified character in a string with
 another string.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *d</code>: The destination buffer.</li>
-<li><code>char *s</code>: The source string.</li>
+<li><code>char \*d</code>: The destination buffer.</li>
+<li><code>char \*s</code>: The source string.</li>
 <li><code>char ReplaceChr</code>: The character to be replaced.</li>
-<li><code>char *Withstr</code>: The string to replace the character
+<li><code>char \*Withstr</code>: The string to replace the character
 with.</li>
 <li><code>int l</code>: The maximum length of the destination
 string.</li>
 </ul></li>
 </ul>
-<h4 id="bool-stripz_quoteschar-s">bool stripz_quotes(char *s)</h4>
+<h3 id="bool-stripz_quoteschar-s">bool stripz_quotes(char *s)</h3>
 <p>Removes surrounding double quotes from a string if they exist.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *s</code>: The string to be processed.</li>
+<li><code>char \*s</code>: The string to be processed.</li>
 </ul></li>
 <li><strong>Returns</strong>:
 <ul>
@@ -372,14 +437,14 @@ string.</li>
 otherwise.</li>
 </ul></li>
 </ul>
-<h4 id="chrepchar-s-char-old_chr-char-new_chr">chrep(char *s, char
-old_chr, char new_chr)</h4>
+<h3 id="chrepchar-s-char-old_chr-char-new_chr">chrep(char *s, char
+old_chr, char new_chr)</h3>
 <p>Replaces all occurrences of a specified character in a string with
 another character.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *s</code>: The string to be processed.</li>
+<li><code>char \*s</code>: The string to be processed.</li>
 <li><code>char old_chr</code>: The character to be replaced.</li>
 <li><code>char new_chr</code>: The character to replace with.</li>
 </ul></li>
@@ -388,16 +453,16 @@ another character.</p>
 <li>void: no return</li>
 </ul></li>
 </ul>
-<h4 id="file_spec_pathchar-fp-char-fs">file_spec_path(char <em>fp, char
-</em>fs)</h4>
+<h3 id="file_spec_pathchar-fp-char-fs">file_spec_path(char *fp, char
+*fs)</h3>
 <p>Extracts the path component from a file specification and places it
 in fp. It is the caller's responsibility to ensure that fp has enough
 space to hold the path.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *fp</code>: The buffer to store the extracted path.</li>
-<li><code>char *fs</code>: The file specification string.</li>
+<li><code>char \*fp</code>: The buffer to store the extracted path.</li>
+<li><code>char \*fs</code>: The file specification string.</li>
 </ul></li>
 <li><strong>Returns</strong>:
 <ul>
@@ -407,17 +472,17 @@ space to hold the path.</p>
 <p>Unlike the POSIX implementation of basename(), this function does not
 modify the input string. Also, a character array may be used as the
 first argument, obviating the need for dynamic memory allocation.</p>
-<h4 id="file_spec_namechar-fn-char-fs">file_spec_name(char <em>fn, char
-</em>fs)</h4>
+<h3 id="file_spec_namechar-fn-char-fs">file_spec_name(char *fn, char
+*fs)</h3>
 <p>Extracts the file name component from a file specification and places
 it in fn. It is the caller's responsibility to ensure that fn has enough
 space to hold the file name.</p>
 <ul>
 <li><strong>Parameters</strong>:
 <ul>
-<li><code>char *fn</code>: The buffer to store the extracted file
+<li><code>char \*fn</code>: The buffer to store the extracted file
 name.</li>
-<li><code>char *fs</code>: The file specification string.</li>
+<li><code>char \*fs</code>: The file specification string.</li>
 </ul></li>
 <li><strong>Returns</strong>:
 <ul>
@@ -428,5 +493,405 @@ name.</li>
 modify the input string. Also, a character array may be used as the
 first argument, obviating the need for dynamic memory allocation. There
 is no GNU version of dirname().</p>
+<h3 id="bool-str_to_boolconst-char">bool str_to_bool(const char *)</h3>
+<p>Converts a string representation of a boolean value to its
+corresponding boolean type based on the first character of the
+string.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>const char \*</code>: The string to be converted.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: The boolean value represented by the string.
+Returns true for 'Y', '1' and false for 'f', 'F', 'n', 'N', '0'. For any
+other character, the function returns false.</li>
+</ul></li>
+</ul>
+<h3
+id="bool-expand_tildechar-out_buf-const-char-in_buf-size_t-buf_size">bool
+expand_tilde(char *out_buf, const char *in_buf, size_t buf_size)</h3>
+<p>Expands a tilde ('~') at the beginning of a file path to the user's
+home directory.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*out_buf</code>: The buffer to store the expanded file
+path.</li>
+<li><code>const char \*in_buf</code>: The input file path that may
+contain a tilde.</li>
+<li><code>size_t buf_size</code>: The size of the output buffer.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if the expansion was successful, false
+otherwise. If the input path does not start with a tilde, the function
+copies the input path to the output buffer without modification.</li>
+</ul></li>
+</ul>
+<h3 id="bool-trim_pathchar-char">bool trim_path(char *char) {</h3>
+<p>Trims redundant slashes and resolves relative path components ('.'
+and '..') in a file path.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*path</code>: The file path to be trimmed and
+resolved.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if the path was successfully trimmed and
+resolved, false otherwise. The function modifies the input path in
+place. It is up to the caller to ensure that the input path is valid and
+writable, and that the receiving string pointer has enough space to hold
+the modified path.</li>
+</ul></li>
+</ul>
+<h3 id="bool-trim_extchar-buf-char-filename">bool trim_ext(char *buf,
+char *filename)</h3>
+<p>Removes the file extension from a given filename.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*buf</code>: The buffer to store the filename without
+the extension.</li>
+<li><code>char \*filename</code>: The original filename with the
+extension.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if the extension was successfully removed,
+false otherwise. The function modifies the input filename in place. It
+is up to the caller to ensure that the input filename is valid and
+writable, and that the receiving string pointer has enough space to hold
+the modified filename.</li>
+</ul></li>
+</ul>
+<h3 id="base_namechar-buf-const-char-filename">base_name(char *buf,
+const char *filename)</h3>
+<p>Extracts the base name (file name without path) from a given file
+path.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*buf</code>: The buffer to store the base name.</li>
+<li><code>const char \*filename</code>: The original file path.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if the base name was successfully extracted,
+false otherwise.</li>
+</ul></li>
+</ul>
+<p>The function leaves the input filename intact and copies the basename
+to buf.</p>
+<p>It is up to the caller to ensure that the input filename is valid,
+and that the receiving string pointer has enough space to hold the base
+name.</p>
+<h3 id="bool-dir_namechar-buf-char-path">bool dir_name(char *buf, char
+*path)</h3>
+<p>Extracts the directory name (path without file name) from a given
+file path.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*buf</code>: The buffer to store the directory
+name.</li>
+<li><code>char \*path</code>: The original file path.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if the directory name was successfully
+extracted, false otherwise. The function leaves the input path intact
+and copies the dirname to buf. It is up to the caller to ensure that the
+input path is valid, and that the receiving string pointer has enough
+space to hold the directory name.</li>
+</ul></li>
+</ul>
+<h3 id="bool-verify_dirchar-spec-int-imode">bool verify_dir(char *spec,
+int imode)</h3>
+<p>Verifies the existence of a directory specified by the given
+path.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*spec</code>: The directory path to be verified.</li>
+<li><code>int imode</code>: The mode of verification (e.g., existence,
+readability, writability).</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if the directory exists and meets the
+specified mode, false otherwise. The function checks if the directory
+specified by spec exists and meets the criteria defined by imode. It is
+up to the caller to ensure that the input path is valid.</li>
+</ul></li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>        modes<span class="op">:</span> R_OK<span class="op">,</span> W_OK<span class="op">,</span> X_OK<span class="op">,</span> F_OK<span class="op">,</span> see access<span class="op">(</span><span class="dv">2</span><span class="op">)</span> <span class="cf">for</span> details<span class="op">.</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>        extended modes<span class="op">:</span> S_WCOK <span class="op">-</span> write or create OK</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        S_QUIET <span class="op">-</span> Don<span class="ch">&#39;t</span><span class="er"> complain about errors</span></span></code></pre></div>
+<h3 id="bool-verify_filechar-in_spec-int-imode">bool verify_file(char
+*in_spec, int imode)</h3>
+<p>Verifies the existence of or ability to create a file specified by
+the given path.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*in_spec</code>: The file path to be verified.</li>
+<li><code>int imode</code>: The mode: see below</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if the file exists and meets the specified
+mode, or can be created if S_WCOK is specified, false otherwise.</li>
+</ul></li>
+</ul>
+<p>The function checks if the file specified exists and meets the
+criteria defined by imode, or if it can be created when S_WCOK is
+specified.</p>
+<p>It is up to the caller to ensure that the input path is valid.</p>
+<h3 id="bool-locate_file_in_pathchar-file_spec-char-file_name">bool
+locate_file_in_path(char *file_spec, char *file_name)</h3>
+<p>Searches for a file in the system's PATH environment variable and
+returns its full path if found.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*file_spec</code>: The buffer to store the full path of
+the found file.</li>
+<li><code>char \*file_name</code>: The name of the file to be
+located.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>bool</code>: True if the file was found in the PATH, false
+otherwise.</li>
+</ul></li>
+</ul>
+<p>The function searches through the directories listed in the PATH
+environment variable for the specified file name. It is up to the caller
+to ensure that the receiving string pointer has enough space to hold the
+full path of the found file.</p>
+<h3 id="list_fileschar-dir-char-regexp-bool-f_recurse">list_files(char
+*dir, char *regexp, bool f_recurse)</h3>
+<p>Lists files in a specified directory that match a given regular
+expression, with an option to recurse into subdirectories.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*dir</code>: The directory to search for files.</li>
+<li><code>char \*regexp</code>: The regular expression to match file
+names against.</li>
+<li><code>bool f_recurse</code>: A flag indicating whether to recurse
+into subdirectories.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>list_t \*</code>: A pointer to a list of matching file names.
+The function searches the specified directory for files that match the
+provided regular expression. If f_recurse is true, the function will
+also search in subdirectories. It is up to the caller to free the
+returned list when it is no longer needed.</li>
+</ul></li>
+</ul>
+<h3 id="lf_find_dirschar-dir-char-re">lf_find_dirs(char *dir, char
+*re)</h3>
+<p>Finds directories within a specified directory that match a given
+regular expression.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*dir</code>: The directory ato search for
+subdirectories.</li>
+<li><code>char \*re</code>: The regular expression to match directory
+names against.</li>
+</ul></li>
+<li><strong>Returns</strong>: true if a matching file is found or false
+otherwise</li>
+</ul>
+<p>The function searches the specified directory for subdirectories for
+files that match the provided regular expression.</p>
+<h3 id="lf_find_fileschar-dir-char-re">lf_find_files(char *dir, char
+*re)</h3>
+<p>Finds files within a specified directory that match a given regular
+expression.</p>
+<ul>
+<li><p><strong>Parameters</strong>:</p>
+<ul>
+<li><code>char \*dir</code>: The directory to search for files.</li>
+<li><code>char \*re</code>: The regular expression to match file names
+against.</li>
+</ul></li>
+<li><p><strong>Returns</strong>: true if a matching file is found or
+false otherwise.</p>
+<p>The function searches the specified directory for files that match
+the provided regular expression.</p></li>
+</ul>
+<h3 id="canonicalize_file_specchar-spec">canonicalize_file_spec(char
+*spec)</h3>
+<p>Removes quotes and trims at first space.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>char \*spec</code>: The file specification to be
+canonicalized.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li>void: length of resulting file specification string</li>
+</ul></li>
+</ul>
+<p>The function modifies the input file specification in place.</p>
+<h3
+id="rep_substringconst-char-org_s-const-char-tgt_s-const-char-rep_s">rep_substring(const
+char *org_s, const char *tgt_s, const char *rep_s)</h3>
+<p>Replaces all occurrences of a target substring within an original
+string with a replacement substring.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>const char \*org_s</code>: The original string.</li>
+<li><code>const char \*tgt_s</code>: The target substring to be
+replaced.</li>
+<li><code>const char \*rep_s</code>: The replacement substring.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><p><code>char \*</code>: A pointer to the newly allocated string
+with replacements made.</p>
+<p>The function allocates memory for the new string, which must be freed
+by the caller when no longer needed.</p></li>
+</ul></li>
+</ul>
+<h2 id="string-functions">String functions</h2>
+<h3 id="string-struct">String struct</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>str<span class="op">;</span>     <span class="co">// Pointer to the string data</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="dt">size_t</span> length<span class="op">;</span>  <span class="co">// Length of the string</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> String<span class="op">;</span></span></code></pre></div>
+<p>Represents a dynamic string with its length.</p>
+<h3 id="string-to_stringconst-char-s">String to_string(const char
+*s)</h3>
+<p>Creates a new String object from a C-style string.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>const char \*s</code>: The C-style string to be
+converted.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>String</code>: The newly created String object.</li>
+</ul></li>
+</ul>
+<h3 id="string-mk_stringsize_t-l">String mk_string(size_t l)</h3>
+<p>Creates a new String object with a specified length.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>size_t l</code>: The length of the string to be created.</li>
+<li>char *s: The string data to be assigned to the String object.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>String</code>: The newly created String object.</li>
+</ul></li>
+</ul>
+<p>if l is 0, str is set to NULL.</p>
+<h3 id="free_stringstring-s">free_string(String s)</h3>
+<p>Frees the memory allocated for a String object.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>String s</code>: The String object to be freed.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>void</code>: no return</li>
+</ul></li>
+</ul>
+<h3 id="size_t-string_cpystring-d-const-char-s">size_t string_cpy(String
+*d, const char *s)</h3>
+<p>Copies a C-style string to a String object.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>String \*d</code>: Pointer to the destination String
+object.</li>
+<li><code>const char \*s</code>: The source C-style string to be
+copied.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>size_t</code>: length of resulting string</li>
+</ul></li>
+</ul>
+<p>If the source string is longer than the destination String's current
+length, the destination String's str pointer is reallocated to
+accommodate the new string.</p>
+<h3 id="size_t-string_catstring-d-const-char-s">size_t string_cat(String
+*d, const char *s)</h3>
+<p>Concatenates a C-style string to a String object.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>String \*d</code>: Pointer to the destination String
+object.</li>
+<li><code>const char \*s</code>: The source C-style string to be
+concatenated.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>size_t</code>: length of resulting string</li>
+</ul></li>
+</ul>
+<p>If the concatenation would result in a string longer than the
+destination String's length, the destination String's str pointer is
+reallocated.</p>
+<h3 id="size_t-string_ncatstring-d-const-char-s-size_t-n">size_t
+string_ncat(String *d, const char *s, size_t n)</h3>
+<p>Concatenates up to n characters of a C-style string to a String
+object. Concatenates characters from a source String object to a
+destination String.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>String \*d</code>: Pointer to the destination String
+object.</li>
+<li><code>const char \*s</code>: The source C-style string to be
+concatenated.</li>
+<li><code>size_t n</code>: The maximum number of characters to
+concatenate.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>size_t</code>: length of resulting string</li>
+</ul></li>
+</ul>
+<p>If the resulting string would be longer than the destination String's
+length, the destination String's str pointer is reallocated.</p>
+<h3 id="size_t-string_ncpystring-dest-const-string-src-size_t-n">size_t
+string_ncpy(String *dest, const String *src, size_t n)</h3>
+<p>Copies up to "n" characters from a C-style string to a destination
+String object.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>String \*dest</code>: Pointer to the destination String
+object.</li>
+<li><code>const String \*src</code>: Pointer to the source String
+object.</li>
+<li><code>size_t n</code>: The maximum number of characters to
+copy.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>size_t</code>: length of resulting string</li>
+</ul></li>
+</ul>
+<p>If the resulting string would be longer than the destination String's
+length, the destination String's str pointer is reallocated.</p>
 </body>
 </html>
