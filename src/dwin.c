@@ -708,7 +708,6 @@ void win_resize(int wlines, int wcols, char *title) {
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
 }
-
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ WIN_REDRAW                                                    │
 /// ╰───────────────────────────────────────────────────────────────╯

@@ -219,7 +219,8 @@ bool view_init_input(View *view, char *file_name) {
         /// stdin and write to a temporary file.
         char tmp_filename[] = "/tmp/view_XXXXXX";
         char buf[VBUFSIZ];
-        ssize_t bytes_read;
+        ssize_t bytes_read = 0;
+        ssize_t bytes_written = 0;
         close(view->in_fd);
         view->in_fd = mkstemp(tmp_filename);
         if (view->in_fd == -1) {
@@ -227,12 +228,14 @@ bool view_init_input(View *view, char *file_name) {
             exit(EXIT_FAILURE);
         }
         unlink(tmp_filename);
-        while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0)
+        while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0) {
             if (write(view->in_fd, buf, bytes_read) != bytes_read) {
                 abend(-1, "unable to write tmp");
                 exit(EXIT_FAILURE);
             }
-        if (bytes_read == 0) {
+            bytes_written += bytes_read;
+        }
+        if (bytes_written == 0) {
             abend(-1, "unable to read stdin");
             exit(EXIT_FAILURE);
         }
