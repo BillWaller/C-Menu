@@ -31,9 +31,6 @@
 #define MO_BO_GOT_BS_EXPECT_SAME 6 //    ^H      same char
 #define Ctrl(c) ((c) & 0x1f)
 
-/// size_t file_size; %zd
-/// off_t file_pos; %jd
-
 /// Macros to get next and previous character skipping over carriage returns
 /// leaving the file position cursor at the next character to be read.
 /// @note When reading forward, if the file position cursor (FPC) reaches
@@ -56,7 +53,7 @@
 ///
 #define get_next_char()                                                        \
     do {                                                                       \
-        if (view->file_pos == (off_t)view->file_size) {                        \
+        if (view->file_pos == view->file_size) {                               \
             view->f_eod = true;                                                \
             break;                                                             \
         } else                                                                 \
@@ -148,7 +145,7 @@ int view_file(Init *init) {
                 view->file_pos = 0;
                 next_page(view);
                 view_cmd_processor(init);
-                munmap(view->buf, (off_t)view->file_size);
+                munmap(view->buf, view->file_size);
                 // close(view->in_fd);
             }
         } else {
@@ -183,7 +180,7 @@ int view_cmd_processor(Init *init) {
     int rc, i;
     int n = 0;
     int l = 0;
-    size_t bytes_written;
+    ssize_t bytes_written;
     char *editor_ptr;
     char shell_cmd_spec[MAXLEN];
     struct timespec start, end;
@@ -341,7 +338,7 @@ int view_cmd_processor(Init *init) {
                     view->next_file_spec_ptr = view->file_spec_ptr;
                     str_subc(shell_cmd_spec, view->cmd_arg, '%',
                              view->cur_file_str, MAXLEN - 1);
-                    munmap(view->buf, (off_t)view->file_size);
+                    munmap(view->buf, view->file_size);
                 } else
                     strnz__cpy(shell_cmd_spec, view->cmd_arg, MAXLEN - 1);
                 full_screen_shell(shell_cmd_spec);
@@ -681,7 +678,7 @@ int view_cmd_processor(Init *init) {
             view->out_fd =
                 open(view->out_spec, O_CREAT | O_TRUNC | O_WRONLY, 0644);
             bytes_written = write(view->out_fd, view->buf, view->file_size);
-            if (bytes_written != (off_t)view->file_size) {
+            if (bytes_written != (ssize_t)view->file_size) {
                 ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 2);
                 strnz__cpy(em1, "fwrite ", MAXLEN - 1);
@@ -871,7 +868,7 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
     if (prompt_type == PT_LONG) { // Byte of Byte
         if (view->page_top_pos == NULL_POSITION)
             view->page_top_pos = view->file_size;
-        sprintf(tmp_str, "Pos %ld-%ld", view->page_top_pos, view->page_bot_pos);
+        sprintf(tmp_str, "Pos %zd-%zd", view->page_top_pos, view->page_bot_pos);
         if (prompt_str[0] != '\0') {
             strnz__cat(prompt_str, " ", MAXLEN - 1);
             strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
@@ -884,9 +881,9 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
         }
     }
     if (!view->f_eod && prompt_type != PT_NONE) { // Percent
-        if (view->file_size > (size_t)0 && view->page_bot_pos != (off_t)0) {
-            sprintf(tmp_str, "(%jd%%)",
-                    ((off_t)100 * view->page_bot_pos) / (off_t)view->file_size);
+        if (view->file_size > 0 && view->page_bot_pos != 0) {
+            sprintf(tmp_str, "(%zd%%)",
+                    (100 * view->page_bot_pos) / view->file_size);
             if (prompt_str[0] != '\0')
                 strnz__cat(prompt_str, " ", MAXLEN - 1);
             strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
@@ -965,7 +962,7 @@ void go_to_eof(View *view) {
         if (view->f_eod)
             view->file_pos--;
     } else
-        view->file_pos = (off_t)view->file_size;
+        view->file_pos = view->file_size;
     view->page_top_pos = view->file_pos;
     get_prev_char();
     prev_page(view);
@@ -1010,7 +1007,7 @@ void go_to_percent(View *view, int Percent) {
         Perror("Cannot determine file length");
         return;
     }
-    view->file_pos = ((size_t)Percent * view->file_size) / (size_t)100;
+    view->file_pos = (Percent * view->file_size) / 100;
     view->f_forward = true;
     get_next_char();
     while (c != '\n') {
@@ -1069,8 +1066,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     //  ╰───────────────────────────────────────────────────────────────╯
     while (1) {
         if (search_cmd == '/') {
-            if (srch_curr_pos == (off_t)view->file_size &&
-                view->srch_beg_pos == 0)
+            if (srch_curr_pos == view->file_size && view->srch_beg_pos == 0)
                 srch_curr_pos = 0;
             if (srch_curr_pos == view->srch_beg_pos) {
                 if (!view->f_wrap) {
@@ -1088,15 +1084,14 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 return true;
             srch_curr_pos = get_next_line(view, srch_curr_pos);
         } else {
-            if (srch_curr_pos == 0 &&
-                view->srch_beg_pos == (off_t)view->file_size)
-                srch_curr_pos = (off_t)view->file_size;
+            if (srch_curr_pos == 0 && view->srch_beg_pos == view->file_size)
+                srch_curr_pos = view->file_size;
             if (srch_curr_pos == view->srch_beg_pos) {
                 if (!view->f_wrap) {
                     view->f_wrap = true;
                 } else {
                     ssnprintf(tmp_str, MAXLEN - 1,
-                              "Search complete: %jd bytes for %s",
+                              "Search complete: %ld bytes for %s",
                               view->file_size, regex_pattern);
                     cmd_line_prompt(view, tmp_str);
                     regfree(&compiled_regex);
@@ -1240,15 +1235,15 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
         ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-                  "%c%s Match Cols %d-%d of %d-%zu (%d%%)", search_cmd,
+                  "%c%s Match Cols %d-%d of %d-%d (%zd%%)", search_cmd,
                   regex_pattern, view->first_match_x, view->last_match_x,
                   view->pmincol, view->smaxcol - view->begx,
-                  (int)(view->page_bot_pos * 100 / (off_t)view->file_size));
+                  (view->page_bot_pos * 100 / view->file_size));
     else
-        ssnprintf(view->tmp_prompt_str, MAXLEN - 1, "%c%s lines %zu-%zu (%d%%)",
-                  search_cmd, regex_pattern, view->page_top_pos,
-                  view->page_bot_pos,
-                  (int)(view->page_bot_pos * 100 / (off_t)view->file_size));
+        ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
+                  "%c%s lines %zu-%zu (%zd%%)", search_cmd, regex_pattern,
+                  view->page_top_pos, view->page_bot_pos,
+                  (view->page_bot_pos * 100 / view->file_size));
     regfree(&compiled_regex);
     return true;
 }
@@ -1331,7 +1326,7 @@ void redisplay_page(Init *init) {
 
 void next_page(View *view) {
     int i;
-    if (view->page_bot_pos == (off_t)view->file_size)
+    if (view->page_bot_pos == view->file_size)
         return;
     view->maxcol = 0;
     view->f_forward = true;
@@ -1391,7 +1386,7 @@ void prev_page(View *view) {
 ///  @return void
 void scroll_down_n_lines(View *view, int n) {
     int i = 0;
-    if (view->page_bot_pos == (off_t)view->file_size)
+    if (view->page_bot_pos == view->file_size)
         return;
     view->f_forward = true;
     // Locate New Top of Page
@@ -1479,7 +1474,7 @@ off_t get_next_line(View *view, off_t pos) {
     view->file_pos = pos;
     view->f_forward = true;
     do {
-        if (view->file_pos == (off_t)view->file_size) {
+        if (view->file_pos == view->file_size) {
             view->f_eod = true;
             break;
         }
@@ -1497,7 +1492,7 @@ off_t get_next_line(View *view, off_t pos) {
             break;
         *line_in_p++ = c;
         do {
-            if (view->file_pos == (off_t)view->file_size) {
+            if (view->file_pos == view->file_size) {
                 view->f_eod = true;
                 break;
             }
@@ -1562,7 +1557,7 @@ off_t get_prev_line(View *view, off_t pos) {
         if (view->f_bod)
             break;
     }
-    if (view->file_pos < (off_t)view->file_size)
+    if (view->file_pos < view->file_size)
         view->f_eod = false;
     return view->file_pos;
 }
@@ -1575,7 +1570,7 @@ off_t get_prev_line(View *view, off_t pos) {
 /// @return updated file position pointer
 off_t get_pos_next_line(View *view, off_t pos) {
     uchar c;
-    if (pos == (off_t)view->file_size) {
+    if (pos == view->file_size) {
         view->f_eod = true;
         return view->file_pos;
     }
@@ -1709,27 +1704,11 @@ void fmt_line(View *view) {
                 i += len;
                 continue;
             } else if (len == 4 && in_str[i + len - 1] == 'm') {
-                ansi_tok[0] = '\033';
-                ansi_tok[1] = '[';
-                ansi_tok[2] = '0';
-                ansi_tok[3] = 'm';
-                ansi_tok[4] = '\0';
+                sprintf(ansi_tok, "%lx", 0x1b5b306d00);
                 len = 4;
             }
             parse_ansi_str(ansi_tok, &attr, &cpx);
             i += len;
-
-            //  char *start_seq = &in_str[i];
-            //  char *end_seq = strchr(start_seq, 'm');
-            //  if (end_seq) {
-            //      strnz__cpy(ansi_tok, start_seq, end_seq - start_seq + 1);
-            //      ansi_tok[end_seq - start_seq + 1] = '\0';
-            //      parse_ansi_str(ansi_tok, &attr, &cpx);
-            //      i = (end_seq - in_str) + 1;
-            //  } else {
-            //      i++;
-            //  }
-
         } else {
             if (in_str[i] == '\033') {
                 i++;

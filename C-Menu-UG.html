@@ -253,8 +253,8 @@ Format</a></li>
 <ul>
 <li><a href="#form-description-file-example">Form Description File
 Example</a></li>
-<li><a href="#form-line-type-specifiers--#-h-t-f-and-">Form Line Type
-Specifiers (#, H, T, F, and ?)</a></li>
+<li><a href="#form-line-type-specifiers">Form Line Type
+Specifiers</a></li>
 <li><a href="#form-field-delimiters">Form Field Delimiters</a></li>
 <li><a href="#form-data-types">Form Data Types</a></li>
 <li><a href="#form-line-syntax">Form Line Syntax</a></li>
@@ -293,28 +293,26 @@ needs.</p>
 <h2 id="getting-started">Getting Started</h2>
 <p>To begin, follow these steps:</p>
 <ol>
-<li>Install the C-Menu package from the official repository.</li>
-</ol>
+<li><p>Install the C-Menu package from the official repository.</p>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> repo clone BillWaller/C-Menu</span></code></pre></div>
-<ol>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> repo clone BillWaller/C-Menu</span></code></pre></div></li>
 <li><p>Copy the sample menuapp directory structure to your home
 directory Initialize the C-Menu with default settings. Copy the sample
-/menuapp/minitrc to your home directory as ~/.minitrc:</p>
+/menuapp/minitrc to your home directory as ~/.minitrc</p>
 <div class="sourceCode" id="cb2"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-Rdup</span> C-Menu/menuapp ~/</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> ~/menuapp/minitrc ~/.minitrc</span></code></pre></div></li>
 <li><p>Install bashrc-cmenu to your home directory as ~/.bashrc-cmenu
-and source it from your ~/.bashrc:</p>
+and source it from your ~/.bashrc</p>
 <div class="sourceCode" id="cb3"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> C-Menu/menuapp/bashrc-cmenu ~/.bashrc-cmenu</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&#39;source ~/.bashrc-cmenu&#39;</span> <span class="op">&gt;&gt;</span> ~/.bashrc</span></code></pre></div></li>
-<li><p>Build C-Menu:</p></li>
-</ol>
+<li><p>Build C-Menu:</p>
 <div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>   <span class="bu">cd</span> C-Menu/src</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">make</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>   <span class="fu">sudo</span> make install</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> C-Menu/src</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make install</span></code></pre></div></li>
+</ol>
 <p>To enable root access features, you need to install the RSH (Remote
 Shell) program with setuid root permissions. This allows certain menu
 items to execute commands with root privileges.</p>
@@ -324,11 +322,12 @@ commands with root privileges, which can pose significant security risks
 if not managed properly.</p>
 <p>Once RSH, "xx", and "x" are installed, subsequent make install
 processes will appear as follows:</p>
-<p><img src="screenshots/Makefile-out.png" /></p>
-<ol>
-<li>Explore the ~/menuapp directory to familiarize yourself with its
-features.</li>
-</ol>
+<figure>
+<img src="screenshots/Makefile-out.png" alt="make" />
+<figcaption aria-hidden="true">make</figcaption>
+</figure>
+<p>When finished, take some time to explore the ~/menuapp directory to
+familiarize yourself with its features.</p>
 <h2 id="menu">Menu</h2>
 <p>C-Menu parses a menu description file, which contains text lines to
 display and command lines, which are essentially operating system
@@ -392,38 +391,25 @@ F:10:33:10:Yyyymmdd
 C
 ?iloan.hlp
 </code></pre>
-<h4 id="form-line-type-speecifiers--h-t-f-and-">Form Line Type
-Speecifiers (#, H, T, F, and ?)</h4>
-<pre><code>
-# - Comment line (ignored)
-
-H - The header to be displayed at the top of the form
-T - Text field (line:column:length:text)
-F - Input field (line:column:length:type)
-? - A user supplied help file for the form. If no path is given, Form will look fora file with the same name as the form but with a .hlp extension. It will search in the current directory and then in the menu help directory, ~/menuapp/help.
-</code></pre>
+<h4 id="form-line-type-specifiers">Form Line Type Specifiers</h4>
+<p># - Comment line (ignored)</p>
+<p>H - The header to be displayed at the top of the form T - Text field
+(line:column:length:text) F - Input field (line:column:length:type)</p>
+<p>will look for a file with the same name as the form but with a .hlp
+extension. It will search in the current directory and then in the menu
+help directory, ~/menuapp/help.</p>
 <h4 id="form-field-delimiters">Form Field Delimiters</h4>
 <p>The ":" character is used as a delimiter in the fields above, but any
 character that is placed immediately after the line designator (H, T, F,
 ?) can be used as a delimiter. For example, the following two lines are
 equivalent:</p>
-<pre><code>
-T:2:4:Enter any three of the four values to calculate the fourth.
-T|2|4|Enter any three of the four values to calculate the fourth.
-</code></pre>
-<h3 id="form-data-types">Form Data Types</h3>
-<pre><code>
-       String: Any text
-
-Decimal_Int: Integer number
-Hex_Int: Hexadecimal integer
-Float: Floating point number
-Double: Double precision floating point number
-Currency: Currency amount
-APR: Annual Percentage Rate
-Yyyymmdd: Date in YYYYMMDD format
-HHMMSS: Time in HHMMSS format
-</code></pre>
+<pre><code>T:2:4:Enter any three of the four values to calculate the fourth.
+T|2|4|Enter any three of the four values to calculate the fourth.</code></pre>
+<h4 id="form-data-types">Form Data Types</h4>
+<p>String: Any text Decimal_Int: Integer number Hex_Int: Hexadecimal
+integer Float: Floating point number Double: Double precision floating
+point number Currency: Currency amount APR: Annual Percentage Rate
+Yyyymmdd: Date in YYYYMMDD format HHMMSS: Time in HHMMSS format</p>
 <p>Data types determine the format of displayed data. Of course, all
 data is initially a text string, but Form converts numeric data to
 internal numeric binary according to the data type specified.</p>
@@ -467,38 +453,33 @@ it on or off. The number of items that can be selected is configurable
 by a command-line option (-n).</p>
 <p>Pick can be invoked from within C-Menu or from the command line using
 the following syntax:</p>
-<pre><code>
-pick [options] [input_file]
+<pre><code>pick [options] [input_file]
 
 or
 
 some_command | pick [options]
 </code></pre>
 <h3 id="pick-options">Pick Options</h3>
-<pre><code>
--n &lt;number&gt; Set the maximum number of items that can be selected
+<pre><code>-n &lt;number&gt; Set the maximum number of items that can be selected
 -h Display help information
 -T Title to be displayed at the top of the pick list
 -S &lt;string&gt; Command to provide input via a STDIN pipe
 -R &lt;string&gt; Command to receive output via a STDOUT pipe
 -c &lt;string&gt; Command to be executed with arguments provided by pick
--v Display version information
-</code></pre>
+-v Display version information</code></pre>
 <h2 id="c-menu-view">C-Menu View</h2>
 <p>C-Menu View is a utility that allows users to view text files within
 the C-Menu system, or stand-alone. It provides a simple interface for
 reading files without the need for an external text editor.</p>
 <h3 id="view-options">View Options</h3>
-<pre><code>
--L &lt;number&gt; Set the number of lines for the view window
+<pre><code>-L &lt;number&gt; Set the number of lines for the view window
 -C &lt;number&gt; Set the number of columns for the view window
 -y &lt;number&gt; Set the beginning line for the view window
 -x &lt;number&gt; Set the beginning column for the view window
 -h Display help information
 -T Title to be displayed at the top of the pick list
 -S &lt;string&gt; Command to provide input via a STDIN pipe
--v Display version information
-</code></pre>
+-v Display version information</code></pre>
 <p>If -L and -C are not specified, View will attempt to use the terminal
 size. If -L and -C are set, view will open in a box window.</p>
 <p>View supports syntax highlighting via tree-sitter. To enable this
@@ -517,23 +498,31 @@ the actual display window enabling the user to scroll horizontally and
 vertically.</p>
 <p>View supports extended regular expressions (regex) for advanced text
 searching capabilities.</p>
-<h2 id="c-menu-options">C-Menu Options</h2>
-<p><img src="screenshots/options.png" title="C-Menu Options" /></p>
-<h2 id="lf">lf</h2>
+<h3 id="c-menu-options">C-Menu Options</h3>
+<p>C-Menu Options can be provided by command line arguments or via a
+configuration file, ~/.minitrc. Command line arguments take precedence
+over configuration file settings.</p>
+<p>All of the following options may be specified in the configuration
+file, one per line, without the leading hyphen (-).</p>
+<p>The single letter options in column 6 may be specified on the command
+line as hyphen[letter], such as (-a). Some of the options, specifically
+those without a designated letter, may be entered from the command line
+as hyphen[option]=[value], such as (-mapp_data="My
+C-Menu_Data_Directory").</p>
+<pre><code>![C-Menu Options](screenshots/options.png)</code></pre>
+<h4 id="lf">lf</h4>
 <p>"lf" is a very lightweight alternative to find. It was designed to
 provide input to C-Menu Pick, but can be used stand-alone as well. It is
 similar to the Unix "find" command, but with a much simpler syntax and
 fewer features.</p>
-<pre><code>
-Usage: lf [options] [directory] [regexp]
+<pre><code>Usage: lf [options] [directory] [regexp]
 Options:
 -a List all files (including hidden files)
 -d maximum depth of subdirectories to examine
 -h show this help message
 -i ignore case in search
 -r recurse into subdirectories
--v show version information
-</code></pre>
+-v show version information</code></pre>
 <p>The syntax for "lf" is different from "find" in that the directory to
 search is specified first, followed by the regular expression to match
 file names against. If no directory is specified, the current directory
@@ -543,9 +532,7 @@ listed.</p>
 regular expressions instead of shell expansion of wildcards. This allows
 for more complex matching patterns.</p>
 <p>Example:</p>
-<pre><code>
-lf -r -i /home/user &#39;.\*\.[ch]$&#39;
-</code></pre>
+<pre><code>lf -r -i /home/user &#39;.\*\.[ch]$&#39;</code></pre>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <p>If you encounter issues while using C-Menu, consider the following
 troubleshooting steps:</p>
@@ -557,13 +544,13 @@ troubleshooting steps:</p>
 <li>Try running commands from a command line to isolate problems.</li>
 <li>Check your PATH environment variable to ensure all necessary
 executables are accessible. For example, if view doesn't seem to be
-working, verify its location. On some systems, "/usr/bin/view" may be a
-link to "/usr/bin/vim" or "/usr/bin/alts". Make sure ~/menuapp/bin is at
-the front of your PATH. You can check the location of a command
-using:</li>
+working, verify its location.</li>
 </ul>
-<div class="sourceCode" id="cb17"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> <span class="op">&lt;</span>command_name<span class="op">&gt;</span></span></code></pre></div>
+<p>On some systems, "/usr/bin/view" may be a link to "/usr/bin/vim" or
+"/usr/bin/alts". Make sure ~/menuapp/bin is at the front of your PATH.
+You can check the location of a command using:</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> <span class="op">&lt;</span>command_name<span class="op">&gt;</span></span></code></pre></div>
 <ul>
 <li>If you experience issues with root access features, ensure that RSH
 is installed with the correct permissions and that you understand the

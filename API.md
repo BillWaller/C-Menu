@@ -7,7 +7,11 @@ manage UI components quickly and easily. In developing C-Menu, we focused
 on modularity, ease of use, and flexibility. This documentation provides an
 overview of the API, including its main features and how to use them.
 
+=======================================================================================
+
 ## Utility Functions
+
+---
 
 ### int rtrim(char \*str)
 
@@ -18,6 +22,8 @@ Removes trailing whitespace characters from the given string.
 - **Returns**:
   - `int`: The new length of the trimmed string.
 
+---
+
 ### int trim(char \*str)
 
 Removes leading and trailing whitespace characters from the given string.
@@ -26,6 +32,8 @@ Removes leading and trailing whitespace characters from the given string.
   - `char \*str`: The string to be trimmed.
 - **Returns**:
   - `int`: The new length of the trimmed string.
+
+---
 
 ### ssnprintf(char \*str, size_t size, const char \*format, ...)
 
@@ -38,6 +46,8 @@ A safe version of snprintf that ensures the output string is null-terminated.
   - `...`: Additional arguments to be formatted.
 - **Returns**:
   - `int`: The number of characters written, excluding the null terminator.
+
+---
 
 ### str_to_args(char \*argv[], char \*arg_str, int max_args)
 
@@ -52,6 +62,8 @@ Splits a string into an array of arguments based on whitespace.
 
 Text surrounded by double quotes '"' will be treated as a single argument.
 
+---
+
 ### str_to_lower(char \*str)
 
 Converts all characters in the string to lowercase.
@@ -61,6 +73,8 @@ Converts all characters in the string to lowercase.
 - **Returns**:
   - `char \*`: A pointer to the converted string.
 
+---
+
 ### str_to_upper(char \*str)
 
 Converts all characters in the string to uppercase.
@@ -69,6 +83,8 @@ Converts all characters in the string to uppercase.
   - `char \*str`: The string to be converted.
 - **Returns**:
   - `char \*`: A pointer to the converted string.
+
+---
 
 ### strnz\_\_cpy
 
@@ -87,6 +103,8 @@ ensuring null-termination. With strnz**cpy, you can prevent a buffer
 overrun by setting the third parameter to the size of the destination
 buffer - 1, leaving space for the null terminator.
 
+---
+
 ### strnz\_\_cat
 
 Concatenates a source string to a destination string with a specified maximum length.
@@ -104,6 +122,8 @@ ensuring null-termination. With strnz**cat, you can prevent a buffer
 overrun by setting the third parameter to the size of the destination
 buffer - 1, leaving space for the null terminator.
 
+---
+
 ### strnz(char \*str, int max_len)
 
 Ensures that a string is null-terminated within a specified maximum length.
@@ -115,6 +135,8 @@ carriage-return ('\r').
   - `int max_len`: The maximum length of the string.
 - **Returns**:
   - int: Length of the null-terminated string.
+
+---
 
 ### strnz_dup(char \*str, int max_len)
 
@@ -129,6 +151,8 @@ the memory when it is no longer needed.
 - **Returns**:
   - char \*: A pointer to the newly allocated duplicated string.
 
+---
+
 ### void str_subc(char \*d, char \*s, char ReplaceChr, char \*Withstr, int l)
 
 Replaces all occurrences of a specified character in a string with another string.
@@ -140,6 +164,8 @@ Replaces all occurrences of a specified character in a string with another strin
   - `char \*Withstr`: The string to replace the character with.
   - `int l`: The maximum length of the destination string.
 
+---
+
 ### bool stripz_quotes(char \*s)
 
 Removes surrounding double quotes from a string if they exist.
@@ -148,6 +174,8 @@ Removes surrounding double quotes from a string if they exist.
   - `char \*s`: The string to be processed.
 - **Returns**:
   - `bool`: True if quotes were removed, false otherwise.
+
+---
 
 ### chrep(char \*s, char old_chr, char new_chr)
 
@@ -159,6 +187,8 @@ Replaces all occurrences of a specified character in a string with another chara
   - `char new_chr`: The character to replace with.
 - **Returns**:
   - void: no return
+
+---
 
 ### file_spec_path(char \*fp, char \*fs)
 
@@ -175,6 +205,8 @@ hold the path.
 Unlike the POSIX implementation of basename(), this function does not
 modify the input string. Also, a character array may be used as the first
 argument, obviating the need for dynamic memory allocation.
+
+---
 
 ### file_spec_name(char \*fn, char \*fs)
 
@@ -193,6 +225,8 @@ the input string. Also, a character array may be used as the first
 argument, obviating the need for dynamic memory allocation. There is no GNU
 version of dirname().
 
+---
+
 ### bool str_to_bool(const char \*)
 
 Converts a string representation of a boolean value to its corresponding
@@ -204,6 +238,8 @@ boolean type based on the first character of the string.
   - `bool`: The boolean value represented by the string. Returns true for
     'Y', '1' and false for 'f', 'F', 'n', 'N', '0'. For any
     other character, the function returns false.
+
+---
 
 ### bool expand_tilde(char \*out_buf, const char \*in_buf, size_t buf_size)
 
@@ -217,6 +253,8 @@ Expands a tilde ('~') at the beginning of a file path to the user's home directo
   - `bool`: True if the expansion was successful, false otherwise. If the
     input path does not start with a tilde, the function copies the input
     path to the output buffer without modification.
+
+---
 
 ### bool trim_path(char \*char) {
 
@@ -232,6 +270,8 @@ Trims redundant slashes and resolves relative path components ('.' and
     writable, and that the receiving string pointer has enough space to hold
     the modified path.
 
+---
+
 ### bool trim_ext(char \*buf, char \*filename)
 
 Removes the file extension from a given filename.
@@ -245,6 +285,8 @@ Removes the file extension from a given filename.
     It is up to the caller to ensure that the input filename is valid and
     writable, and that the receiving string pointer has enough space to hold
     the modified filename.
+
+---
 
 ### base_name(char \*buf, const char \*filename)
 
@@ -263,6 +305,8 @@ It is up to the caller to ensure that the input filename is valid,
 and that the receiving string pointer has enough space to hold the
 base name.
 
+---
+
 ### bool dir_name(char \*buf, char \*path)
 
 Extracts the directory name (path without file name) from a given file path.
@@ -276,6 +320,8 @@ Extracts the directory name (path without file name) from a given file path.
     copies the dirname to buf. It is up to the caller to ensure that
     the input path is valid, and that the receiving string pointer has
     enough space to hold the directory name.
+
+---
 
 ### bool verify_dir(char \*spec, int imode)
 
@@ -296,6 +342,8 @@ Verifies the existence of a directory specified by the given path.
         S_QUIET - Don't complain about errors
 ```
 
+---
+
 ### bool verify_file(char \*in_spec, int imode)
 
 Verifies the existence of or ability to create a file specified by the given path.
@@ -313,6 +361,8 @@ is specified.
 
 It is up to the caller to ensure that the input path is valid.
 
+---
+
 ### bool locate_file_in_path(char \*file_spec, char \*file_name)
 
 Searches for a file in the system's PATH environment variable and
@@ -328,6 +378,8 @@ The function searches through the directories listed in the PATH
 environment variable for the specified file name. It is up to the
 caller to ensure that the receiving string pointer has enough
 space to hold the full path of the found file.
+
+---
 
 ### list_files(char \*dir, char \*regexp, bool f_recurse)
 
@@ -345,6 +397,8 @@ expression, with an option to recurse into subdirectories.
     will also search in subdirectories. It is up to the caller to free
     the returned list when it is no longer needed.
 
+---
+
 ### lf_find_dirs(char \*dir, char \*re)
 
 Finds directories within a specified directory that match a given regular expression.
@@ -358,6 +412,8 @@ Finds directories within a specified directory that match a given regular expres
 The function searches the specified directory for subdirectories for
 files that match the provided regular expression.
 
+---
+
 ### lf_find_files(char \*dir, char \*re)
 
 Finds files within a specified directory that match a given regular expression.
@@ -370,6 +426,8 @@ Finds files within a specified directory that match a given regular expression.
   The function searches the specified directory for files that match
   the provided regular expression.
 
+---
+
 ### canonicalize_file_spec(char \*spec)
 
 Removes quotes and trims at first space.
@@ -380,6 +438,8 @@ Removes quotes and trims at first space.
   - void: length of resulting file specification string
 
 The function modifies the input file specification in place.
+
+---
 
 ### rep_substring(const char \*org_s, const char \*tgt_s, const char \*rep_s)
 
@@ -394,10 +454,14 @@ string with a replacement substring.
   - `char \*`: A pointer to the newly allocated string with
     replacements made.
 
-    The function allocates memory for the new string, which must be
-    freed by the caller when no longer needed.
+        The function allocates memory for the new string, which must be
+        freed by the caller when no longer needed.
+
+=====================================================================================
 
 ## String functions
+
+---
 
 ### String struct
 
@@ -411,6 +475,8 @@ size_t length;  // Length of the string
 
 Represents a dynamic string with its length.
 
+---
+
 ### String to_string(const char \*s)
 
 Creates a new String object from a C-style string.
@@ -419,6 +485,8 @@ Creates a new String object from a C-style string.
   - `const char \*s`: The C-style string to be converted.
 - **Returns**:
   - `String`: The newly created String object.
+
+---
 
 ### String mk_string(size_t l)
 
@@ -432,6 +500,8 @@ Creates a new String object with a specified length.
 
 if l is 0, str is set to NULL.
 
+---
+
 ### free_string(String s)
 
 Frees the memory allocated for a String object.
@@ -440,6 +510,8 @@ Frees the memory allocated for a String object.
   - `String s`: The String object to be freed.
 - **Returns**:
   - `void`: no return
+
+---
 
 ### size_t string_cpy(String \*d, const char \*s)
 
@@ -455,6 +527,8 @@ If the source string is longer than the destination String's
 current length, the destination String's str pointer is reallocated
 to accommodate the new string.
 
+---
+
 ### size_t string_cat(String \*d, const char \*s)
 
 Concatenates a C-style string to a String object.
@@ -468,6 +542,8 @@ Concatenates a C-style string to a String object.
 If the concatenation would result in a string longer than the
 destination String's length, the destination String's str pointer
 is reallocated.
+
+---
 
 ### size_t string_ncat(String \*d, const char \*s, size_t n)
 
@@ -484,6 +560,8 @@ String.
 
 If the resulting string would be longer than the destination String's
 length, the destination String's str pointer is reallocated.
+
+---
 
 ### size_t string_ncpy(String \*dest, const String \*src, size_t n)
 

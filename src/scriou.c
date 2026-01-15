@@ -39,12 +39,14 @@ struct termios shell_err_tioctl, curses_err_tioctl;
 
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ CAPTURE_SHELL_IOCTL                                           │
-///  │ Yes, this is gross overkill implemented in the wee hours of   │
-///  │ the morning while trying to resolve an issue with what        │
-///  │ appeared to be a randomly occurring event in which the bottom │
-///  │ line of my terminal emulator would assume an xoff condition.  │
-///  │ I don't think it was ever resolved. Any ideas? Let me know.   │
+///  │ This is probably overkill.                                    │
+///  │ Capture and Restore tioctl settings                           │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  capture_shell_tioctl() - capture shell terminal settings
+///  restore_shell_tioctl() - restore shell terminal settings
+///  capture_curses_tioctl() - capture curses terminal settings
+///  restore_curses_tioctl() - restore curses terminal settings
+///  Uses global flag variables
 bool capture_shell_tioctl() {
     if (f_have_shell_tioctl)
         return true;
