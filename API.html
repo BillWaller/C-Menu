@@ -238,14 +238,33 @@
 </head>
 <body>
 <h1 id="c-menu-api-documentation">C-Menu API Documentation</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#utility-functions">Utility Functions</a></li>
+<li><a href="#string-functions">String Functions</a></li>
+<li><a href="#chyron-functions">Chyron Functions</a></li>
+<li><a href="#color-functions">Color Functions</a></li>
+</ul>
 <h2 id="overview">Overview</h2>
 <p>C-Menu is a User Interface Builder. It allows developers to create
 and manage UI components quickly and easily. In developing C-Menu, we
 focused on modularity, ease of use, and flexibility. This documentation
 provides an overview of the API, including its main features and how to
 use them.</p>
+<p>Note 1: This documentation assumes familiarity with C programming and
+basic concepts of user interface design.</p>
+<p>Note 2: The C-Menu API is designed to work with the NCurses library
+for terminal-based user interfaces. Ensure that you have NCurses
+installed and properly configured in your development environment.</p>
+<p>Note 3: This document is a work-in-progress and will be updated
+regularly. Only a fraction of the API functions are documented here at
+present with many more to be added.</p>
+<p>===============================================================</p>
 <h2 id="utility-functions">Utility Functions</h2>
-<h3 id="int-rtrimchar-str">int rtrim(char *str)</h3>
+<hr />
+<h3 id="rtrim">RTRIM</h3>
+<p>int rtrim(char *str)</p>
 <p>Removes trailing whitespace characters from the given string.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -257,7 +276,9 @@ use them.</p>
 <li><code>int</code>: The new length of the trimmed string.</li>
 </ul></li>
 </ul>
-<h3 id="int-trimchar-str">int trim(char *str)</h3>
+<hr />
+<h3 id="trim">TRIM</h3>
+<p>int trim(char *str)</p>
 <p>Removes leading and trailing whitespace characters from the given
 string.</p>
 <ul>
@@ -270,9 +291,9 @@ string.</p>
 <li><code>int</code>: The new length of the trimmed string.</li>
 </ul></li>
 </ul>
-<h3
-id="ssnprintfchar-str-size_t-size-const-char-format-...">ssnprintf(char
-*str, size_t size, const char *format, ...)</h3>
+<hr />
+<h3 id="ssnprintf">SSNPRINTF</h3>
+<p>ssnprintf(char *str, size_t size, const char *format, ...)</p>
 <p>A safe version of snprintf that ensures the output string is
 null-terminated.</p>
 <ul>
@@ -290,8 +311,9 @@ to.</li>
 null terminator.</li>
 </ul></li>
 </ul>
-<h3 id="str_to_argschar-argv-char-arg_str-int-max_args">str_to_args(char
-*argv[], char *arg_str, int max_args)</h3>
+<hr />
+<h3 id="str_to_args">STR_TO_ARGS</h3>
+<p>str_to_args(char *argv[], char *arg_str, int max_args)</p>
 <p>Splits a string into an array of arguments based on whitespace.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -308,7 +330,9 @@ extract.</li>
 </ul>
 <p>Text surrounded by double quotes '"' will be treated as a single
 argument.</p>
-<h3 id="str_to_lowerchar-str">str_to_lower(char *str)</h3>
+<hr />
+<h3 id="str_to_lower">STR_TO_LOWER</h3>
+<p>str_to_lower(char *str)</p>
 <p>Converts all characters in the string to lowercase.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -320,7 +344,9 @@ argument.</p>
 <li><code>char \*</code>: A pointer to the converted string.</li>
 </ul></li>
 </ul>
-<h3 id="str_to_upperchar-str">str_to_upper(char *str)</h3>
+<hr />
+<h3 id="str_to_upper">STR_TO_UPPER</h3>
+<p>str_to_upper(char *str)</p>
 <p>Converts all characters in the string to uppercase.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -332,7 +358,9 @@ argument.</p>
 <li><code>char \*</code>: A pointer to the converted string.</li>
 </ul></li>
 </ul>
-<h3 id="strnz__cpy">strnz__cpy</h3>
+<hr />
+<h3 id="strnz__cpy">STRNZ__CPY</h3>
+<p>strnz__cpy</p>
 <p>Copies a string from source to destination with a specified maximum
 length.</p>
 <ul>
@@ -353,7 +381,9 @@ the number of characters copied, but by the size of the destination
 buffer, ensuring null-termination. With strnz</strong>cpy, you can
 prevent a buffer overrun by setting the third parameter to the size of
 the destination buffer - 1, leaving space for the null terminator.</p>
-<h3 id="strnz__cat">strnz__cat</h3>
+<hr />
+<h3 id="strnz__cat">STRNZ__CAT</h3>
+<p>strnz__cat</p>
 <p>Concatenates a source string to a destination string with a specified
 maximum length.</p>
 <ul>
@@ -375,7 +405,9 @@ destination buffer, ensuring null-termination. With strnz</strong>cat,
 you can prevent a buffer overrun by setting the third parameter to the
 size of the destination buffer - 1, leaving space for the null
 terminator.</p>
-<h3 id="strnzchar-str-int-max_len">strnz(char *str, int max_len)</h3>
+<hr />
+<h3 id="strnz">STRNZ</h3>
+<p>strnz(char *str, int max_len)</p>
 <p>Ensures that a string is null-terminated within a specified maximum
 length. Terminates the string on encountering a line-feed ('\n') or
 carriage-return ('\r').</p>
@@ -390,8 +422,9 @@ carriage-return ('\r').</p>
 <li>int: Length of the null-terminated string.</li>
 </ul></li>
 </ul>
-<h3 id="strnz_dupchar-str-int-max_len">strnz_dup(char *str, int
-max_len)</h3>
+<hr />
+<h3 id="strnz_dup">STRNZ_DUP</h3>
+<p>strnz_dup(char *str, int max_len)</p>
 <p>Duplicates a string up to a specified maximum length, a line-feed
 ('\n'), or a carriage-return ('\r'), ensuring null-termination. Because
 strnz_dup allocates memory, it is up to the caller to free the memory
@@ -407,9 +440,10 @@ when it is no longer needed.</p>
 <li>char *: A pointer to the newly allocated duplicated string.</li>
 </ul></li>
 </ul>
-<h3
-id="void-str_subcchar-d-char-s-char-replacechr-char-withstr-int-l">void
-str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l)</h3>
+<hr />
+<h3 id="str_subc">STR_SUBC</h3>
+<p>void str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int
+l)</p>
 <p>Replaces all occurrences of a specified character in a string with
 another string.</p>
 <ul>
@@ -424,7 +458,9 @@ with.</li>
 string.</li>
 </ul></li>
 </ul>
-<h3 id="bool-stripz_quoteschar-s">bool stripz_quotes(char *s)</h3>
+<hr />
+<h3 id="stripz_quotes">STRIPZ_QUOTES</h3>
+<p>bool stripz_quotes(char *s)</p>
 <p>Removes surrounding double quotes from a string if they exist.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -437,8 +473,9 @@ string.</li>
 otherwise.</li>
 </ul></li>
 </ul>
-<h3 id="chrepchar-s-char-old_chr-char-new_chr">chrep(char *s, char
-old_chr, char new_chr)</h3>
+<hr />
+<h3 id="chrep">CHREP</h3>
+<p>chrep(char *s, char old_chr, char new_chr)</p>
 <p>Replaces all occurrences of a specified character in a string with
 another character.</p>
 <ul>
@@ -453,8 +490,9 @@ another character.</p>
 <li>void: no return</li>
 </ul></li>
 </ul>
-<h3 id="file_spec_pathchar-fp-char-fs">file_spec_path(char *fp, char
-*fs)</h3>
+<hr />
+<h3 id="file_spec_path">FILE_SPEC_PATH</h3>
+<p>file_spec_path(char *fp, char *fs)</p>
 <p>Extracts the path component from a file specification and places it
 in fp. It is the caller's responsibility to ensure that fp has enough
 space to hold the path.</p>
@@ -472,8 +510,9 @@ space to hold the path.</p>
 <p>Unlike the POSIX implementation of basename(), this function does not
 modify the input string. Also, a character array may be used as the
 first argument, obviating the need for dynamic memory allocation.</p>
-<h3 id="file_spec_namechar-fn-char-fs">file_spec_name(char *fn, char
-*fs)</h3>
+<hr />
+<h3 id="file_spec_name">FILE_SPEC_NAME</h3>
+<p>file_spec_name(char *fn, char *fs)</p>
 <p>Extracts the file name component from a file specification and places
 it in fn. It is the caller's responsibility to ensure that fn has enough
 space to hold the file name.</p>
@@ -493,7 +532,9 @@ name.</li>
 modify the input string. Also, a character array may be used as the
 first argument, obviating the need for dynamic memory allocation. There
 is no GNU version of dirname().</p>
-<h3 id="bool-str_to_boolconst-char">bool str_to_bool(const char *)</h3>
+<hr />
+<h3 id="str_to_bool">STR_TO_BOOL</h3>
+<p>bool str_to_bool(const char *)</p>
 <p>Converts a string representation of a boolean value to its
 corresponding boolean type based on the first character of the
 string.</p>
@@ -509,9 +550,10 @@ Returns true for 'Y', '1' and false for 'f', 'F', 'n', 'N', '0'. For any
 other character, the function returns false.</li>
 </ul></li>
 </ul>
-<h3
-id="bool-expand_tildechar-out_buf-const-char-in_buf-size_t-buf_size">bool
-expand_tilde(char *out_buf, const char *in_buf, size_t buf_size)</h3>
+<hr />
+<h3 id="expand_tilde">EXPAND_TILDE</h3>
+<p>bool expand_tilde(char *out_buf, const char *in_buf, size_t
+buf_size)</p>
 <p>Expands a tilde ('~') at the beginning of a file path to the user's
 home directory.</p>
 <ul>
@@ -530,7 +572,9 @@ otherwise. If the input path does not start with a tilde, the function
 copies the input path to the output buffer without modification.</li>
 </ul></li>
 </ul>
-<h3 id="bool-trim_pathchar-char">bool trim_path(char *char) {</h3>
+<hr />
+<h3 id="trim_path">TRIM_PATH</h3>
+<p>bool trim_path(char *char) {</p>
 <p>Trims redundant slashes and resolves relative path components ('.'
 and '..') in a file path.</p>
 <ul>
@@ -548,8 +592,9 @@ writable, and that the receiving string pointer has enough space to hold
 the modified path.</li>
 </ul></li>
 </ul>
-<h3 id="bool-trim_extchar-buf-char-filename">bool trim_ext(char *buf,
-char *filename)</h3>
+<hr />
+<h3 id="trim_ext">TRIM_EXT</h3>
+<p>bool trim_ext(char *buf, char *filename)</p>
 <p>Removes the file extension from a given filename.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -568,8 +613,9 @@ writable, and that the receiving string pointer has enough space to hold
 the modified filename.</li>
 </ul></li>
 </ul>
-<h3 id="base_namechar-buf-const-char-filename">base_name(char *buf,
-const char *filename)</h3>
+<hr />
+<h3 id="base_name">BASE_NAME</h3>
+<p>bool base_name(char *buf, const char *filename)</p>
 <p>Extracts the base name (file name without path) from a given file
 path.</p>
 <ul>
@@ -589,8 +635,9 @@ to buf.</p>
 <p>It is up to the caller to ensure that the input filename is valid,
 and that the receiving string pointer has enough space to hold the base
 name.</p>
-<h3 id="bool-dir_namechar-buf-char-path">bool dir_name(char *buf, char
-*path)</h3>
+<hr />
+<h3 id="dir_name">DIR_NAME</h3>
+<p>bool dir_name(char *buf, char *path)</p>
 <p>Extracts the directory name (path without file name) from a given
 file path.</p>
 <ul>
@@ -609,8 +656,9 @@ input path is valid, and that the receiving string pointer has enough
 space to hold the directory name.</li>
 </ul></li>
 </ul>
-<h3 id="bool-verify_dirchar-spec-int-imode">bool verify_dir(char *spec,
-int imode)</h3>
+<hr />
+<h3 id="verify_dir">VERIFY_DIR</h3>
+<p>bool verify_dir(char *spec, int imode)</p>
 <p>Verifies the existence of a directory specified by the given
 path.</p>
 <ul>
@@ -631,8 +679,9 @@ up to the caller to ensure that the input path is valid.</li>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>        modes<span class="op">:</span> R_OK<span class="op">,</span> W_OK<span class="op">,</span> X_OK<span class="op">,</span> F_OK<span class="op">,</span> see access<span class="op">(</span><span class="dv">2</span><span class="op">)</span> <span class="cf">for</span> details<span class="op">.</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>        extended modes<span class="op">:</span> S_WCOK <span class="op">-</span> write or create OK</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        S_QUIET <span class="op">-</span> Don<span class="ch">&#39;t</span><span class="er"> complain about errors</span></span></code></pre></div>
-<h3 id="bool-verify_filechar-in_spec-int-imode">bool verify_file(char
-*in_spec, int imode)</h3>
+<hr />
+<h3 id="verify_file">VERIFY_FILE</h3>
+<p>bool verify_file(char *in_spec, int imode)</p>
 <p>Verifies the existence of or ability to create a file specified by
 the given path.</p>
 <ul>
@@ -651,8 +700,9 @@ mode, or can be created if S_WCOK is specified, false otherwise.</li>
 criteria defined by imode, or if it can be created when S_WCOK is
 specified.</p>
 <p>It is up to the caller to ensure that the input path is valid.</p>
-<h3 id="bool-locate_file_in_pathchar-file_spec-char-file_name">bool
-locate_file_in_path(char *file_spec, char *file_name)</h3>
+<hr />
+<h3 id="locate_file_in_path">LOCATE_FILE_IN_PATH</h3>
+<p>bool locate_file_in_path(char *file_spec, char *file_name)</p>
 <p>Searches for a file in the system's PATH environment variable and
 returns its full path if found.</p>
 <ul>
@@ -673,8 +723,9 @@ otherwise.</li>
 environment variable for the specified file name. It is up to the caller
 to ensure that the receiving string pointer has enough space to hold the
 full path of the found file.</p>
-<h3 id="list_fileschar-dir-char-regexp-bool-f_recurse">list_files(char
-*dir, char *regexp, bool f_recurse)</h3>
+<hr />
+<h3 id="list_files">LIST_FILES</h3>
+<p>bool list_files(char *dir, char *regexp, bool f_recurse)</p>
 <p>Lists files in a specified directory that match a given regular
 expression, with an option to recurse into subdirectories.</p>
 <ul>
@@ -695,8 +746,9 @@ also search in subdirectories. It is up to the caller to free the
 returned list when it is no longer needed.</li>
 </ul></li>
 </ul>
-<h3 id="lf_find_dirschar-dir-char-re">lf_find_dirs(char *dir, char
-*re)</h3>
+<hr />
+<h3 id="lf_find_dirs">LF_FIND_DIRS</h3>
+<p>bool lf_find_dirs(char *dir, char *re)</p>
 <p>Finds directories within a specified directory that match a given
 regular expression.</p>
 <ul>
@@ -712,6 +764,7 @@ otherwise</li>
 </ul>
 <p>The function searches the specified directory for subdirectories for
 files that match the provided regular expression.</p>
+<hr />
 <h3 id="lf_find_fileschar-dir-char-re">lf_find_files(char *dir, char
 *re)</h3>
 <p>Finds files within a specified directory that match a given regular
@@ -728,8 +781,9 @@ false otherwise.</p>
 <p>The function searches the specified directory for files that match
 the provided regular expression.</p></li>
 </ul>
-<h3 id="canonicalize_file_specchar-spec">canonicalize_file_spec(char
-*spec)</h3>
+<hr />
+<h3 id="canonicalize_file_spec">CANONICALIZE_FILE_SPEC</h3>
+<p>int canonicalize_file_spec(char *spec)</p>
 <p>Removes quotes and trims at first space.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -743,9 +797,10 @@ canonicalized.</li>
 </ul></li>
 </ul>
 <p>The function modifies the input file specification in place.</p>
-<h3
-id="rep_substringconst-char-org_s-const-char-tgt_s-const-char-rep_s">rep_substring(const
-char *org_s, const char *tgt_s, const char *rep_s)</h3>
+<hr />
+<h3 id="rep_substring">REP_SUBSTRING</h3>
+<p>char *rep_substring(const char *org_s, const char *tgt_s, const char
+*rep_s)</p>
 <p>Replaces all occurrences of a target substring within an original
 string with a replacement substring.</p>
 <ul>
@@ -760,20 +815,23 @@ replaced.</li>
 <ul>
 <li><p><code>char \*</code>: A pointer to the newly allocated string
 with replacements made.</p>
-<p>The function allocates memory for the new string, which must be freed
-by the caller when no longer needed.</p></li>
+<pre><code>The function allocates memory for the new string, which must be
+freed by the caller when no longer needed.</code></pre></li>
 </ul></li>
 </ul>
+<p>===============================================================</p>
 <h2 id="string-functions">String functions</h2>
-<h3 id="string-struct">String struct</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>str<span class="op">;</span>     <span class="co">// Pointer to the string data</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="dt">size_t</span> length<span class="op">;</span>  <span class="co">// Length of the string</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> String<span class="op">;</span></span></code></pre></div>
+<hr />
+<h3 id="string-struct">STRING STRUCT</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>str<span class="op">;</span>     <span class="co">// Pointer to the string data</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="dt">size_t</span> length<span class="op">;</span>  <span class="co">// Length of the string</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> String<span class="op">;</span></span></code></pre></div>
 <p>Represents a dynamic string with its length.</p>
-<h3 id="string-to_stringconst-char-s">String to_string(const char
-*s)</h3>
+<hr />
+<h3 id="to_string">TO_STRING</h3>
+<p>String to_string(const char *s)</p>
 <p>Creates a new String object from a C-style string.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -786,7 +844,9 @@ converted.</li>
 <li><code>String</code>: The newly created String object.</li>
 </ul></li>
 </ul>
-<h3 id="string-mk_stringsize_t-l">String mk_string(size_t l)</h3>
+<hr />
+<h3 id="mk_string">MK_STRING</h3>
+<p>String mk_string(size_t l)</p>
 <p>Creates a new String object with a specified length.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -800,7 +860,9 @@ converted.</li>
 </ul></li>
 </ul>
 <p>if l is 0, str is set to NULL.</p>
-<h3 id="free_stringstring-s">free_string(String s)</h3>
+<hr />
+<h3 id="free_string">FREE_STRING</h3>
+<p>free_string(String s)</p>
 <p>Frees the memory allocated for a String object.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -812,8 +874,9 @@ converted.</li>
 <li><code>void</code>: no return</li>
 </ul></li>
 </ul>
-<h3 id="size_t-string_cpystring-d-const-char-s">size_t string_cpy(String
-*d, const char *s)</h3>
+<hr />
+<h3 id="string_cpy">STRING_CPY</h3>
+<p>size_t string_cpy(String *d, const char *s)</p>
 <p>Copies a C-style string to a String object.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -831,8 +894,9 @@ copied.</li>
 <p>If the source string is longer than the destination String's current
 length, the destination String's str pointer is reallocated to
 accommodate the new string.</p>
-<h3 id="size_t-string_catstring-d-const-char-s">size_t string_cat(String
-*d, const char *s)</h3>
+<hr />
+<h3 id="string_cat">STRING_CAT</h3>
+<p>size_t string_cat(String *d, const char *s)</p>
 <p>Concatenates a C-style string to a String object.</p>
 <ul>
 <li><strong>Parameters</strong>:
@@ -850,8 +914,9 @@ concatenated.</li>
 <p>If the concatenation would result in a string longer than the
 destination String's length, the destination String's str pointer is
 reallocated.</p>
-<h3 id="size_t-string_ncatstring-d-const-char-s-size_t-n">size_t
-string_ncat(String *d, const char *s, size_t n)</h3>
+<hr />
+<h3 id="string_ncat">STRING_NCAT</h3>
+<p>size_t string_ncat(String *d, const char *s, size_t n)</p>
 <p>Concatenates up to n characters of a C-style string to a String
 object. Concatenates characters from a source String object to a
 destination String.</p>
@@ -872,8 +937,9 @@ concatenate.</li>
 </ul>
 <p>If the resulting string would be longer than the destination String's
 length, the destination String's str pointer is reallocated.</p>
-<h3 id="size_t-string_ncpystring-dest-const-string-src-size_t-n">size_t
-string_ncpy(String *dest, const String *src, size_t n)</h3>
+<hr />
+<h3 id="string_ncpy">STRING_NCPY</h3>
+<p>size_t string_ncpy(String *dest, const String *src, size_t n)</p>
 <p>Copies up to "n" characters from a C-style string to a destination
 String object.</p>
 <ul>
@@ -893,5 +959,247 @@ copy.</li>
 </ul>
 <p>If the resulting string would be longer than the destination String's
 length, the destination String's str pointer is reallocated.</p>
+<p>===============================================================</p>
+<h2 id="chyron-functions">Chyron Functions</h2>
+<hr />
+<h3 id="chyron-overview">Chyron Overview</h3>
+<p>Chyrons are text overlays used in video production to display
+information such as names, titles, or other relevant data. The C-Menu
+API provides functions to create, manage, and render chyrons in a user
+interface. Though not exactly like they chyrons you see on TV news
+broadcasts, they serve a similar purpose in providing on-screen
+information in a banner across the bottom of the screen and present
+options, in the form of function keys to the user. The Function Key
+command can be selected by pressing the indicated F Key or clicking on
+the chyron within the vertical bars separating the F Keys.</p>
+<figure>
+<img src="screenshots/Pick.png" alt="C-Menu Pick Chyron" />
+<figcaption aria-hidden="true">C-Menu Pick Chyron</figcaption>
+</figure>
+<h3 id="key_cmd_tbl">KEY_CMD_TBL</h3>
+<figure>
+<img src="screenshots/cmd_tbl.png" alt="C-Menu key_cmd_tbl" />
+<figcaption aria-hidden="true">C-Menu key_cmd_tbl</figcaption>
+</figure>
+<p>As you can see in the table above, the key_cmd_tbl structure keeps
+track of the function key commands and their positions within the
+chyron. This allows the program to determine which function key was
+selected based on the x-coordinate of a mouse click.</p>
+<p>Usually, not all function keys are used in the chyron. This is
+because the chyron is designed to be flexible and can accommodate
+different numbers of function keys depending on the application's needs.
+The unused function keys are not displayed in the chyron.</p>
+<p>You may have also noticed, Function Keys are just one way to use the
+chyron system. The keycode can be any integer value you choose, allowing
+for custom commands or actions. You don't have to use a key at all. You
+could populate the chyron with unicode glyphs or other symbols to create
+a custom menu bar.</p>
+<hr />
+<h3 id="set_fkey">SET_FKEY</h3>
+<p>void set_fkey(int k, char *s)</p>
+<p>Assigns a command string to a function key where k is the function
+key number, currently 1 through 14, and s is the command description
+associated with the function key. For example, to insert "F5 Calculate"
+into the chyron, you would call</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>setkey<span class="op">(</span><span class="dv">5</span><span class="op">,</span> <span class="st">&quot;Calculate&quot;</span><span class="op">);</span></span></code></pre></div>
+<hr />
+<h3 id="unset_fkey">UNSET_FKEY</h3>
+<p>void unset_fkey(int k)</p>
+<p>Removes a function key command from the chyron. For example, to
+remove the command associated with function key 5, you would call</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>unset_fkey<span class="op">(</span><span class="dv">5</span><span class="op">);</span></span></code></pre></div>
+<hr />
+<h3 id="chyron_mk">CHYRON_MK</h3>
+<p>int chyron_mk(key_cmd_tbl <em>fc, char </em>s)</p>
+<p>Creates a chyron with function key commands, keeping track of the
+function key coordinates within the chyron so that a mouse click can be
+mapped to the appropriate function key command. The function key table
+pointer fc is passed to the chyron so that when a function key is
+selected, the corresponding command string can be retrieved from the
+table. The string s is the chyron text, which contains the function key
+commands to be displayed on the bottom of the screen.</p>
+<p>chyron_mk returns the length of the chyron string to be displayed,
+and position information is stored in the structure, key_cmd_tbl.</p>
+<hr />
+<h3 id="get_chyron_key">GET_CHYRON_KEY</h3>
+<p>int get_chyron_key(key_cmd_tbl *fc, int x)</p>
+<p>Determines which function key was selected based on the x-coordinate
+of a mouse click. get_chyron_key returns the number of the function key
+clicked.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>cmdkey <span class="op">=</span> get_chyron_key<span class="op">(&amp;</span>fkey_table<span class="op">,</span> mouse_x<span class="op">);</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> is_set_fkey<span class="op">(</span><span class="dt">int</span> k<span class="op">)</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>Checks <span class="cf">if</span> a function key command is set in the chyron<span class="op">.</span> The use <span class="cf">case</span> is to</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>determine <span class="cf">if</span> a key_cmd_tbl element is already in use so that you don<span class="ch">&#39;t</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>accidentally overwrite it with a new assignment<span class="op">.</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="op">**</span>Parameters<span class="op">**:</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> `int k`<span class="op">:</span> The function key number to check<span class="op">.</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> <span class="op">**</span>Returns<span class="op">**:</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="op">-</span> `bool`<span class="op">:</span> True <span class="cf">if</span> the function key command is set<span class="op">,</span> <span class="kw">false</span> otherwise<span class="op">.</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<p>===============================================================</p>
+<h2 id="color-functions">Color Functions</h2>
+<p>Note 1: These functions require NCurses to be initialized with color
+support.</p>
+<p>Note 2: NCurses uses color pairs to manage foreground and background
+colors. A color pair is a combination of a foreground color and a
+background color. Each color pair is assigned a unique index, which is
+used to apply the colors to text and other UI elements.</p>
+<p>Note 3: The maximum number of colors and color pairs is determined by
+the terminal emulator and NCurses configuration. The constants
+MAX_COLORS and MAX_COLOR_PAIRS define these limits.</p>
+<p>Note 4: RGB is a structure representing a color in terms of its red,
+green, and blue components. The RGB structure is defined as follows:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">char</span> r<span class="op">;</span> <span class="co">// Red component (0-255)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">char</span> g<span class="op">;</span> <span class="co">// Green component (0-255)</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">char</span> b<span class="op">;</span> <span class="co">// Blue component (0-255)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> RGB<span class="op">;</span></span></code></pre></div>
+<p>Note 5: NCurses uses a 0-1000 scale for RGB values, so the RGB values
+must be converted from the standard 0-255 scale to the 0-1000 scale
+before being used with NCurses functions.</p>
+<hr />
+<h3 id="get_clr_pair">GET_CLR_PAIR</h3>
+<p>int get_clr_pair(int fg, int bg)</p>
+<p>Retrieves a color pair index for the specified foreground and
+background colors, or if the color pair doesn't exist, creates it. If
+the maximum number of colors, MAX_COLOR_PAIRS, is reached, ERR is
+returned. This function allows NCurses to manage color pairs efficiently
+by reusing existing pairs when possible.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>int fg</code>: The foreground color index.</li>
+<li><code>int bg</code>: The background color index.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>int</code>: The color pair index, or ERR if the maximum number
+of color pairs has been reached.</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="get_clr">GET_CLR</h3>
+<p>int get_clr(RGB rgb)</p>
+<p>Retrieves the color index for the specified RGB color, or if the
+color doesn't exist, creates it. If the maximum number of colors,
+MAX_COLORS, is reached, ERR is returned. This function allows NCurses to
+manage colors efficiently by reusing existing colors when possible.
+Choose from 16,777,216 if your terminal supports it.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>RGB rgb</code>: The RGB color to be retrieved or created.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>int</code>: The color index, or ERR if the maximum number of
+colors has been reached.</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="rgb_to_xter256_idx">RGB_TO_XTER256_IDX</h3>
+<p>int rgb_to_xterm256_idx(RGB rgb)</p>
+<p>This function maps the RGB color to the nearest color in the
+xterm-256 palette, which consists of 256 colors.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>RGB rgb</code>: The RGB color to be converted.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>int</code>: The xterm-256 color index corresponding to the
+given RGB color.</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="xterm256_idx_to_rgb">XTERM256_IDX_TO_RGB</h3>
+<p>RGB xterm256_idx_to_rgb(int idx)</p>
+<p>Converts an xterm-256 color index to its corresponding RGB color.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>int idx</code>: The xterm-256 color index to be
+converted.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>RGB</code>: The RGB color corresponding to the given xterm-256
+color index.</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="apply_gamma">APPLY_GAMMA</h3>
+<p>void apply_gama(RGB *rgb)</p>
+<p>Applies gamma correction to the given RGB color. Gamma correction
+adjusts the brightness of colors to account for the non-linear way
+humans perceive light and color. C-Menu View uses a default gamma value
+of 2.2 for correction, but the user can modify this value in the
+.minitrc configuration.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>RGB *rgb</code>: Pointer to the RGB color to be
+corrected.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>void</code>: no return</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="init_clr_palette">INIT_CLR_PALETTE</h3>
+<p>void init_clr_palette(Init *init)</p>
+<p>Initializes an xterm 256 color palette as a starting point. This
+works well in practice because most terminal emulators support at least
+256 colors, and many programs use these colors. When the get_clr()
+function above is called, it checks this table first, and if a match is
+found, it returns the corresponding color index. If the color requested
+is not found in the palette, get_clr() creates a new color entry.</p>
+<p>NCurses assigns names to the first 16 colors (the EGA/ANSI palette),
+but these colors can be redefined in C-Menu's configuration, .minitrc,
+using RGB values. init_clr_palette() any of these named colors with the
+RGB values specified in the configuration file.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>Init *init</code>: Pointer to the initialization structure
+containing configuration data.</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>void</code>: no return</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="init_hex_color">INIT_HEX_COLOR</h3>
+<p>void init_hex_color(int idx, char *s)</p>
+<p>The function converts the hexadecimal color string to an RGB color
+and initializes the color at the specified index using the RGB
+values.</p>
+<ul>
+<li><strong>Parameters</strong>:
+<ul>
+<li><code>int idx</code>: The index at which to initialize the
+color.</li>
+<li><code>char *s</code>: The hexadecimal color string (e.g.,
+"#RRGGBB").</li>
+</ul></li>
+<li><strong>Returns</strong>:
+<ul>
+<li><code>void</code>: no return</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="hex_clr_str_to_rgb">HEX_CLR_STR_TO_RGB</h3>
+<p>RGB hex_clr_str_to_rgb()</p>
+<p>Converts a hexadecimal color string to an RGB color.</p>
+<hr />
 </body>
 </html>
