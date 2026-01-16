@@ -60,7 +60,6 @@ and NCurses header files. It's also a good way to identify which keys
 are reserved by your terminal emulator, and gives you the specific key
 codes so you can easily add your own Extended NCurses keys.
 
-![C-Menu Sample Description File](screenshots/applications_menu.m.png)
 ![C-Menu Keys](screenshots/ckeys-alt.png)
 ![Extend Your Keyboard](screenshots/extended-keys.png)
 C-Menu C-Keys also provides diagnostics for mouse actions and geometry.
