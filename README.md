@@ -7,18 +7,18 @@ Copyright 2025
 
 ---
 
-[New: C-Menu FAQ](FAQ.md)
+[New: C-Menu FAQ](FAQ.html)
 
-[New: C-Menu User Guide](C-Menu-UG.md)
+[New: C-Menu User Guide](C-Menu-UG.html)
 
-[New: Augmenting C-Menu](extras.md)
+[New: Augmenting C-Menu](extras.html)
 
-[New: C-Menu API](API.md)
+[New: C-Menu API](API.html)
 
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 
-![C-Menu Splash](screenshots/minitrc.png)
-
+![C-Menu](screenshots/minitrc.png)
+ 
 C-Menu is a lightweight, flexible, and easy-to-use suite of programs
 for creating a sophisticated user interface for your applications.
 Menus, Form, Pick, and View with, using a classical text-based terminal
@@ -73,6 +73,7 @@ Just add hot water, stir, and Bob's your uncle, you have soup!
 ### C-Menu Pick - A Picker
 
 ![C-Menu Pick](screenshots/Pick.png)
+
 This program provides a list of objects from arguments, piped input, or
 a text file and lets the user select those to be written to a file,
 piped to standard output, or provided as arguments to an executable
@@ -151,6 +152,7 @@ processed by a specified command or script. Internally, the numeric
 entries are converted to binary integer, long, float, or double.
 
 ![C-Menu Form - Example](screenshots/Receipt.png)
+
 The two Cash Receipts entry forms above are identical except the top
 form has field brackets turned on and the bottom form has fill
 characters set to underscore. This is a simple configuration option

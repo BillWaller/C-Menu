@@ -42,7 +42,7 @@
 ///
 ///   String str = to_string("Hello, World!");
 ///   //   // Use str.s and str.l
-///   str = free_string(str);
+///   free_string(str);
 ///
 typedef struct {
     char *s;  // pointer to string
@@ -84,7 +84,7 @@ String to_string(const char *s) {
 /// @note: This function frees the memory allocated for the string
 /// in the String struct and sets its length to 0 and pointer to NULL.
 /// @return: String struct with NULL pointer and length 0
-String free_string(String str) {
+void free_string(String str) {
     free(str.s);
     str.l = 0;
     str.s = NULL;

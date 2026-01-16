@@ -1043,7 +1043,7 @@ extern size_t string_ncat(String *, const String *, size_t);
 extern size_t string_ncpy(String *, const String *, size_t);
 extern String to_string(const char *);
 extern String mk_string(size_t);
-extern String free_string(String);
+extern void free_string(String);
 extern char *str_tok(char *, const char *, char);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ COLOR UTILITIES                                               │
