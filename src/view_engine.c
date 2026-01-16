@@ -275,8 +275,17 @@ int view_cmd_processor(Init *init) {
         case 'L':
             if (n_cmd <= 0)
                 n_cmd = 1;
-            if ((view->pmincol + n_cmd) > (view->maxcol - view->smaxcol))
-                view->pmincol = view->maxcol - view->smaxcol;
+            //  pmincol = begx + 1
+            //  smincol = 0
+            //  smaxcol = view->cols - 1,
+            //  maxcol longest line currently displayed
+            //  pmincol = 10
+            //  smincol = 0
+            //  smaxcol = 80
+            //  maxcol - smaxcol
+            if ((view->pmincol + n_cmd) >
+                (view->maxcol - view->smaxcol + view->smincol))
+                view->pmincol = view->maxcol - view->smaxcol + view->smincol;
             else
                 view->pmincol += n_cmd;
             break;
