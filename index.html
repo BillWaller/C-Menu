@@ -1,608 +1,873 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
-<head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>-</title>
-  <style>
-    /* Default styles provided by pandoc.
+  <head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="pandoc" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>-</title>
+    <style>
+      /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
     */
-    html {
-      background-color: #000027;
-      color: #f0f0f0;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 36em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
       html {
-        background-color: white;
+        background-color: #000027;
+        color: #f0f0f0;
       }
       body {
+        margin: 0 auto;
+        max-width: 36em;
+        padding-left: 50px;
+        padding-right: 50px;
+        padding-top: 50px;
+        padding-bottom: 50px;
+        hyphens: auto;
+        overflow-wrap: break-word;
+        text-rendering: optimizeLegibility;
+        font-kerning: normal;
+      }
+      @media (max-width: 600px) {
+        body {
+          font-size: 0.9em;
+          padding: 12px;
+        }
+        h1 {
+          font-size: 1.8em;
+        }
+      }
+      @media print {
+        html {
+          background-color: white;
+        }
+        body {
+          background-color: transparent;
+          color: black;
+          font-size: 12pt;
+        }
+        p,
+        h2,
+        h3 {
+          orphans: 3;
+          widows: 3;
+        }
+        h2,
+        h3,
+        h4 {
+          page-break-after: avoid;
+        }
+      }
+      p {
+        margin: 1em 0;
+      }
+      a {
+        color: #c0c0c0;
+      }
+      a:visited {
+        color: #708090;
+      }
+      img {
+        max-width: 100%;
+      }
+      svg {
+        height: auto;
+        max-width: 100%;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        margin-top: 1.4em;
+      }
+      h5,
+      h6 {
+        font-size: 1em;
+        font-style: italic;
+      }
+      h6 {
+        font-weight: normal;
+      }
+      ol,
+      ul {
+        padding-left: 1.7em;
+        margin-top: 1em;
+      }
+      li > ol,
+      li > ul {
+        margin-top: 0;
+      }
+      blockquote {
+        margin: 1em 0 1em 1.7em;
+        padding-left: 1em;
+        border-radius: 8px;
+        background-color: #2f4f8f;
+        color: #e0e0e0;
+      }
+      code {
+        font-family: Menlo, Monaco, Consolas, "Lucida Console", monospace;
+        font-size: 85%;
+        margin: 0;
+        hyphens: manual;
+      }
+      pre {
+        margin: 1em 0;
+        overflow: auto;
+      }
+      pre code {
+        padding: 0;
+        overflow: visible;
+        overflow-wrap: normal;
+      }
+      .sourceCode {
         background-color: transparent;
-        color: black;
-        font-size: 12pt;
+        overflow: visible;
       }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
+      hr {
+        border: none;
+        border-top: 1px solid #1a1a1a;
+        height: 1px;
+        margin: 1em 0;
       }
-      h2, h3, h4 {
-        page-break-after: avoid;
+      table {
+        margin: 1em 0;
+        border-collapse: collapse;
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+        font-variant-numeric: lining-nums tabular-nums;
       }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #c0c0c0;
-    }
-    a:visited {
-      color: #708090;
-    }
-    img {
-      max-width: 100%;
-    }
-    svg {
-      height: auto;
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-radius: 8px;
-      background-color: #2f4f8f;
-      color: #e0e0e0;
-    }
-    code {
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      border: none;
-      border-top: 1px solid #1a1a1a;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
+      table caption {
+        margin-bottom: 0.75em;
+      }
+      tbody {
+        margin-top: 0.5em;
+        border-top: 1px solid #1a1a1a;
+        border-bottom: 1px solid #1a1a1a;
+      }
+      th {
+        border-top: 1px solid #1a1a1a;
+        padding: 0.25em 0.5em 0.25em 0.5em;
+      }
+      td {
+        padding: 0.125em 0.5em 0.25em 0.5em;
+      }
+      header {
+        margin-bottom: 4em;
+        text-align: center;
+      }
+      #TOC li {
+        list-style: none;
+      }
+      #TOC ul {
+        padding-left: 1.3em;
+      }
+      #TOC > ul {
+        padding-left: 0;
+      }
+      #TOC a:not(:hover) {
+        text-decoration: none;
+      }
+      code {
+        white-space: pre-wrap;
+      }
+      span.smallcaps {
+        font-variant: small-caps;
+      }
+      div.columns {
+        display: flex;
+        gap: min(4vw, 1.5em);
+      }
+      div.column {
+        flex: auto;
+        overflow-x: auto;
+      }
+      div.hanging-indent {
+        margin-left: 1.5em;
+        text-indent: -1.5em;
+      }
+      /* The extra [class] is a hack that increases specificity enough to
        override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    /* CSS for syntax highlighting */
-    html { -webkit-text-size-adjust: 100%; }
-    pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-    pre > code.sourceCode > span:empty { height: 1.2em; }
-    .sourceCode { overflow: visible; }
-    code.sourceCode > span { color: inherit; text-decoration: inherit; }
-    div.sourceCode { margin: 1em 0; }
-    pre.sourceCode { margin: 0; }
-    @media screen {
-    div.sourceCode { overflow: auto; }
-    }
-    @media print {
-    pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-    }
-    pre.numberSource code
-      { counter-reset: source-line 0; }
-    pre.numberSource code > span
-      { position: relative; left: -4em; counter-increment: source-line; }
-    pre.numberSource code > span > a:first-child::before
-      { content: counter(source-line);
-        position: relative; left: -1em; text-align: right; vertical-align: baseline;
-        border: none; display: inline-block;
-        -webkit-touch-callout: none; -webkit-user-select: none;
-        -khtml-user-select: none; -moz-user-select: none;
-        -ms-user-select: none; user-select: none;
-        padding: 0 4px; width: 4em;
+      ul.task-list[class] {
+        list-style: none;
+      }
+      ul.task-list li input[type="checkbox"] {
+        font-size: inherit;
+        width: 0.8em;
+        margin: 0 0.8em 0.2em -1.6em;
+        vertical-align: middle;
+      }
+      /* CSS for syntax highlighting */
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      pre > code.sourceCode {
+        white-space: pre;
+        position: relative;
+      }
+      pre > code.sourceCode > span {
+        display: inline-block;
+        line-height: 1.25;
+      }
+      pre > code.sourceCode > span:empty {
+        height: 1.2em;
+      }
+      .sourceCode {
+        overflow: visible;
+      }
+      code.sourceCode > span {
+        color: inherit;
+        text-decoration: inherit;
+      }
+      div.sourceCode {
+        margin: 1em 0;
+      }
+      pre.sourceCode {
+        margin: 0;
+      }
+      @media screen {
+        div.sourceCode {
+          overflow: auto;
+        }
+      }
+      @media print {
+        pre > code.sourceCode {
+          white-space: pre-wrap;
+        }
+        pre > code.sourceCode > span {
+          text-indent: -5em;
+          padding-left: 5em;
+        }
+      }
+      pre.numberSource code {
+        counter-reset: source-line 0;
+      }
+      pre.numberSource code > span {
+        position: relative;
+        left: -4em;
+        counter-increment: source-line;
+      }
+      pre.numberSource code > span > a:first-child::before {
+        content: counter(source-line);
+        position: relative;
+        left: -1em;
+        text-align: right;
+        vertical-align: baseline;
+        border: none;
+        display: inline-block;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        padding: 0 4px;
+        width: 4em;
         color: #aaaaaa;
       }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-    div.sourceCode
-      {   }
-    @media screen {
-    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-    }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { color: #008000; } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { color: #008000; font-weight: bold; } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-  </style>
-</head>
-<body>
-<h1 id="c-menu---user-interface-builder">C-Menu - User Interface
-Builder</h1>
-<p>Bill Waller Copyright 2025</p>
-<p><a href="emailto:billxwaller@gmail.com">Bill Waller email</a></p>
-<hr />
-<p><a href="FAQ.md">New: C-Menu FAQ</a></p>
-<p><a href="C-Menu-UG.md">New: C-Menu User Guide</a></p>
-<p><a href="extras.md">New: Augmenting C-Menu</a></p>
-<p><a href="API.md">New: C-Menu API</a></p>
-<h2 id="c-menu-menu-form-pick-view-rsh-and-c-keys">C-Menu Menu, Form,
-Pick, View, RSH, and C-Keys</h2>
-<figure>
-<img src="screenshots/minitrc.png" alt="C-Menu Splash" />
-<figcaption aria-hidden="true">C-Menu Splash</figcaption>
-</figure>
-<p>C-Menu is a lightweight, flexible, and easy-to-use suite of programs
-for creating a sophisticated user interface for your applications.
-Menus, Form, Pick, and View with, using a classical text-based terminal
-interface(TUI) for applications running on Linux and Unix-like operating
-systems. C-Menu is designed to be simple to use while providing powerful
-features to implement menu driven frameworks for applications.</p>
-<hr />
-<h3 id="c-menu-menu">C-Menu Menu</h3>
-<p>At the top of the stack is C-Menu Menu, which reads a simple
-description file like the one above and displays a colorful and easy-to
--follow menu to the user. When the user selects an item, with either
-keyboard or mouse, C-Menu executes the corresponding command. It's like
-writing shell scripts, but with a snazzy menu interface.</p>
-<p><img src="screenshots/applications_menu.png"
-alt="C-Menu Sample Menu" /> <img
-src="screenshots/applications_menu.m.png"
-alt="C-Menu Sample Description File" /> From the above examples, you can
-get an idea of how C-Menu works. Examine line-21 in "main.m" above.
-C-Menu Menu starts C-Menu View, which in turn executes "tree-sitter
-highlight view_engine.c". Tree -Sitter doesn't need to know anything
-about C-Menu View. It just sends output to it's standard output device,
-which happens to be a pipe into C-Menu View's receiver. C-Menu View maps
-Tree-Sitter's output to the Kernel's demand paged virtual memory and you
-get:</p>
-<h2 id="c-menu-tree-sitter"><img src="screenshots/tree-sitter.png"
-alt="C-Menu Tree-Sitter" /></h2>
-<h3 id="c-menu-c-keys---diagnose-keyboardmouse-input">C-Menu C-Keys -
-Diagnose Keyboard/Mouse Input</h3>
-<p>With C-Menu C-Keys, you can diagnose and resolve keyboard and mouse
-issues quickly and easily. Just press a key and get the Octal,
-Decimal,</p>
-<p>Hexadecimal, the escape sequence binding, and the NCurses identifier.
-It's definitely easier than rummaging through hardware documentation and
-NCurses header files. It's also a good way to identify which keys are
-reserved by your terminal emulator, and gives you the specific key codes
-so you can easily add your own Extended NCurses keys.</p>
-<p><img src="screenshots/ckeys-alt.png" alt="C-Menu Keys" /> <img
-src="screenshots/extended-keys.png" alt="Extend Your Keyboard" /> C-Menu
-C-Keys also provides diagnostics for mouse actions and geometry.</p>
-<figure>
-<img src="screenshots/ckeys-mouse.png" alt="Ckeys Mouse" />
-<figcaption aria-hidden="true">Ckeys Mouse</figcaption>
-</figure>
-<p>Just add hot water, stir, and Bob's your uncle, you have soup!</p>
-<hr />
-<h3 id="c-menu-pick---a-picker">C-Menu Pick - A Picker</h3>
-<p><img src="screenshots/Pick.png" alt="C-Menu Pick" /> This program
-provides a list of objects from arguments, piped input, or a text file
-and lets the user select those to be written to a file, piped to
-standard output, or provided as arguments to an executable files
-specified in the description file. Of course, you can select objects and
-commands with keyboard or mouse. C-Menu Pick does not currently support
-a Brain-Computer Interface (BCI), at least, not yet. iThe simplest use
-of C-Menu Pick is:</p>
-<p>Pick a file to view using "lf", a utility to search for files using
-regular expressions, and which is included with C-Menu:</p>
-<pre><code>view -S &quot;lf -r . .*\.c$&quot;</code></pre>
-<p>Execute a program or script on a picked file:</p>
-<pre><code>pick -S &quot;lf -r . .*\.c$&quot; -n 1 -c my_executable</code></pre>
-<p>Note that the syntax for "lf" (list files) is not similar to Unix
-"ls".</p>
-<p>The usage of "lf" is:</p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">lf</span> <span class="pp">[</span><span class="ss">directory</span><span class="pp">]</span> [regular expression]</span></code></pre></div>
-<p>If you type "lf *.c", it will fail for lack of a valid regular
-expression. That's because "ls" uses shell expansion, while "lf" uses
-regular expressions. Find supports regular expressions, but such a
-comprehensive program carries a penalty in size and overhead. "lf"
-is</p>
-<p>streamlined to provide input for a picker.</p>
-<pre><code>find -regex &#39;.*\.c$&#39; | sed &#39;s/^..//&#39;</code></pre>
-<pre><code>lf . &#39;.*\.c$&#39;</code></pre>
-<hr />
-<h3 id="c-menu-form-for-data-entry-and-editing">C-Menu Form for Data
-Entry and Editing</h3>
-<p>FORM is a lightweight and flexible form handling library designed to
-simplify the process of creating, validating, and managing forms.</p>
-<p>It provides a straightforward API for defining form fields, handling
-user input, and performing validation checks.</p>
-<h3 id="c-menu-form-key-features">C-Menu Form Key Features</h3>
-<ul>
-<li>Easy Form Creation: Define forms with various field types such as
-text, number, email, and more.</li>
-<li>Validation: Built-in validation rules to ensure data integrity,
-including required fields, format checks, and custom validators.</li>
-<li>User Input Handling: Seamlessly capture and process user input from
-the command line or text-based interfaces.</li>
-<li>Customizable: Extendable architecture allowing developers to create
-custom field types and validation rules.</li>
-<li>Integration: Designed to work well with other components of the C
--Menu Project, enabling a cohesive development experience.</li>
-</ul>
-<h3 id="c-menu-form-data-types">C-Menu Form Data Types</h3>
-<p><img src="screenshots/data-types.f.png" alt="Data Types" /> <img
-src="screenshots/data-types.png" alt="Data Types" /></p>
-<p>FORM displays data entry forms based on a description file. It allows
-users to input data in a structured manner. The entered data can then be
-processed by a specified command or script. Internally, the numeric
-entries are converted to binary integer, long, float, or double.</p>
-<p><img src="screenshots/Receipt.png" alt="C-Menu Form - Example" /> The
-two Cash Receipts entry forms above are identical except the top form
-has field brackets turned on and the bottom form has fill characters set
-to underscore. This is a simple configuration option from the command
-line or the configuration file.</p>
-<p>If you make a mistake, in the form description syntax, as I did
-below, you will get a notification pinpointing the problem. In this
-message, we can see that the format field on line 3 of "receipt.f" is
-invalid.</p>
-<p>I have a "3", and it should have been "String". The corrected line
-would be: "F!2!18!10!String".</p>
-<figure>
-<img src="screenshots/form-error.png" alt="Form Error" />
-<figcaption aria-hidden="true">Form Error</figcaption>
-</figure>
-<p>Need quick and easy Cash Receipts, General Journal, or wedding
-invitation list? FORM has you covered. The application shown above took
-about 10 minutes from design to test. It doesn't post transactions, or
-keep running balances yet, but that's why we have people like you.</p>
-<p>FORM also makes a great front-end for SQL database queries.</p>
-<hr />
-<h3 id="c-menu-sample-menu-description-file">C-Menu Sample Menu
-Description File</h3>
-<p><img src="screenshots/applications_menu.m.png"
-alt="C-Menu Sample Description File" /> As you can see, the description
-file is straightforward and easy to read. Each menu item consists of a
-label and a command to execute. The label is displayed in the menu, and
-the command is executed when the user selects that item.</p>
-<figure>
-<img src="screenshots/pick-edit.png" alt="C-Menu Pick" />
-<figcaption aria-hidden="true">C-Menu Pick</figcaption>
-</figure>
-<p>Here's just one example of how easy it is to create useful programs
-with the C-Menu Form facility.</p>
-<figure>
-<img src="screenshots/iloan_f.png"
-alt="Iloan - A Simple Demonstration" />
-<figcaption aria-hidden="true">Iloan - A Simple
-Demonstration</figcaption>
-</figure>
-<p><img src="screenshots/iloan.png" alt="Iloan Display" /> We hope you
-find C-Menu useful for your projects. It's a powerful tool that can
-greatly simplify the process of creating text-based user interfaces for
-your applications.</p>
-<hr />
-<h3 id="c-menu-view">C-Menu View</h3>
-<p>VIEW is an easy-to-use text file viewer that allows users to view
-text files in a terminal environment. It supports basic navigation,
-regular expression search functionality, horizontal scrolling, ANSI
-escape highlighting, Unicode, and NCurses wide characters. VIEW can be
-invoked from within MENU, FORM, or PICK to provide contextual help or
-stand -alone, full-screen as a system pager.</p>
-<h4 id="log-file-with-editor">Log File With Editor</h4>
-<figure>
-<img src="screenshots/nvim-log.png" alt="Log File With Editor" />
-<figcaption aria-hidden="true">Log File With Editor</figcaption>
-</figure>
-<h4 id="screenshot-of-the-same-file-with-c-menu-view">Screenshot of the
-Same File With C-Menu View</h4>
-<p><img src="screenshots/view.png" alt="C-Menu View Log File" /> One
-especially useful feature of C-Menu View is its incredible speed with
-large text files, like system logs. C-Menu View can open and display
-multi-gigabyte text files almost instantaneously. Seek from beginning to
-end of a 1Gb file takes a few milliseconds.</p>
-<h3 id="c-menu-view-and-color-manual-pages">C-Menu View and Color Manual
-Pages</h3>
-<p>C-Menu View can also be used as a pager for manual pages. By setting
-the "MANPAGER" environment variable to "view", users can enjoy the
-benefits of C-Menu View's features while reading manual pages.</p>
-<p>To use C-Menu View as your system pager, add the following line to
-your shell configuration file (e.g., .bashrc or .zshrc):</p>
-<pre><code>    export PAGER=&quot;view&quot;</code></pre>
-<p>You can also filter manual pages through ~/menuapp/msrc/man.sed to
-colorize underlined,emboldened, and italicized text. This sed script is
-included with C-Menu. To use it, you can run the following command in
-your terminal:</p>
-<pre><code>    man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view</code></pre>
-<h3 id="example-manual-page-using-editor">Example Manual Page Using
-Editor</h3>
-<figure>
-<img src="screenshots/nvim-man-page.png"
-alt="Manual Page With Editor" />
-<figcaption aria-hidden="true">Manual Page With Editor</figcaption>
-</figure>
-<h3 id="example-c-menu-manual-page">Example C-Menu Manual Page</h3>
-<figure>
-<img src="screenshots/man-page.png"
-alt="Manual Page With C-Menu View" />
-<figcaption aria-hidden="true">Manual Page With C-Menu View</figcaption>
-</figure>
-<h3 id="c-menu-view---demand-paged-virtual-address-space">C-Menu View -
-Demand Paged Virtual Address Space</h3>
-<ul>
-<li>C-Menu View doesn't employ seek and read operations in a complicated
-buffering scheme. There is a better way.</li>
-<li>C-Menu View accesses files as arrays, using the Kernel's
-sophisticated demand paged virtual memory.</li>
-<li>Lazy loading means that that C-Menu View doesn't waste time seeking,
-reading, and populating buffers that will never be used.</li>
-<li>Zero-Copy I/O - Conventional programs copy file buffers into heap
-address space. C-Menu View bypasses that step and reads directly from
-the Kernel's virtual memory.</li>
-<li>Simplicity - C-Menu View has no reads, no seeks, no complicated
-buffer management schemes, not for view. The following snippet
-includes</li>
-</ul>
-<p>"all" of View's file I/O on lines 22 and 12.</p>
-<p><img src="screenshots/file-io.png" alt="C-Menu View File I/O" /> In
-technical parlance, I'll explain precisely how it works. See if you can
-follow me. 😁 C-Menu View's File I/O subsystem does three things:</p>
-<ul>
-<li>Get the next byte,</li>
-<li>Get the previous byte, or</li>
-<li>Get a byte from a specified position</li>
-</ul>
-<p>C-Menu View is blazingly fast because it leverages the Kernel's
-demand paged virtual memory system. When a file is opened, C-Menu View
-maps the file into the process's virtual address space using the mmap
-system call. Zero-copy I/O is achieved by mapping the file directly from
-kernel address space.</p>
-<p>When C-Menu View needs to access a byte at a specific position, it
-simply calculates the corresponding memory address based on the file
-offset and reads the byte directly from that address. If the required
-page is not already in memory, the Kernel automatically handles the page
-fault by loading the necessary data from the file into memory. This
-approach eliminates the need for explicit read and seek operations, and
-copying data to the processes memory, resulting in faster access times
-and reduced overhead.</p>
-<h3 id="c-menu-view---other-features">C-Menu View - Other Features</h3>
-<ul>
-<li><p>Horizontal scrolling for long lines. C-Menu View writes output to
-a virtual screen, an Ncurses pad, to accommodate lines longer than the
-physical screen.</p></li>
-<li><p>C-Menu View has full support for Unicode, translating ASCII text
-and multi-byte sequences to wide characters (wchar_t), and wide
-characters and ANSI SGR sequences to complex characters (cchar_t). The
-complex characters combine displayable characters plus attributes such
-as bold, italic, underline, reverse and foreground and background
-colors. NCurses can display more than 16 million colors.</p></li>
-<li><p>C-Menu View supports mouse wheel vertical scrolling.</p></li>
-</ul>
-<h3 id="c-menu-3-channel-gamma-correction">C-Menu 3-Channel Gamma
-Correction</h3>
-<p>When using utilities such as "tree-sitter highlighter", "pygmentize",
-or "bat" to highlight files, the text is sometimes almost unreadable. On
-the left-hand side of the following screenshot, "less" does a great job
-of rendering the output of pygmentize, but C-Menu with gamma correction
-can do better. It's all about perceptual luminance. Either from the
-command line or the minitrc file, the user can specify a gamma
-correction value for each of the three color channels, red, green, and
-blue. It's a minor thing, really, but we programmers aren't "automitons"
-A pleasing visual appearance makes work more fun.</p>
-<figure>
-<img src="screenshots/gamma.png" alt="Gamma Correction" />
-<figcaption aria-hidden="true">Gamma Correction</figcaption>
-</figure>
-<p><a href="https://pubmed.ncbi.nlm.nih.gov/6534013/">Bezold-Brücke hue
-shift</a> <a href="https://www.w3.org/TR/WCAG22/">Web Content
-Accessibility Guidelines (WCAG) 2.2</a></p>
-<h4 id="view-menuapphelpview.help">VIEW ~/menuapp/help/view.help</h4>
-<figure>
-<img src="screenshots/view-help.png" alt="C-Menu View Help File" />
-<figcaption aria-hidden="true">C-Menu View Help File</figcaption>
-</figure>
-<h4 id="thats-a-bobby-dazzler">That's a Bobby Dazzler</h4>
-<p>(Australian TV show)</p>
-<p>With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma
-correction, your application is bound to <strong>Wow</strong> your
-clients. Nobody wants an ugly program. Of course, beauty is in the eye
-of the beholder. That's why we give you control.</p>
-<hr />
-<h2 id="rsh">RSH</h2>
-<figure>
-<img src="screenshots/rsh.png" alt="RSH Source" />
-<figcaption aria-hidden="true">RSH Source</figcaption>
-</figure>
-<p>Despite its name, RSH is not a shell. It is a shell runner, which
-allows you to specify your shell of choice, and provides a consistent
-environment for running shell scripts and commands. RSH was designed to
-be invoked from within MENU, FORM, or PICK to execute commands that
-require elevated privileges, but its functionality extends beyond
-that.</p>
-<p>You can execute commands in either user or root mode, making it a
-versatile tool for developing aplication front-ends. RSH ensures that
-your scripts and executables run in a controlled environment, reducing
-the chances of unexpected behavior due to differing shell environments.
-RSH forks and waits for its spawn to complete before returning control
-to the calling program. When executed under C-Menu's signal handler, it
-catches and displays the exit status of the command, allowing for better
-error handling. Instead of using su -c or sudo to run commands as root,
-you can use rsh -c to achieve the same result in a more streamlined
-manner. You can literally have root access within a fraction of a
-second, making it ideal for work that requires frequent switching
-between user and root modes for various administrative tasks.</p>
-<p>Many system administrators and developers find RSH invaluable for
-tasks that require elevated privileges. RSH eliminates the need to
-repeatedly enter passwords or switch users, streamlining workflows and
-improving efficiency. We all know it's not a good idea to run everything
-as root, but sometimes a user want's to avoid precious seconds it takes
-to enter passwords for su. With RSH, it takes three keystrokes to enter
-root mode and two keystrokes to get out.</p>
-<h3 id="maintaining-security-with-rsh">Maintaining Security With
-RSH</h3>
-<p>Here's an example of the proper way to use RSH.</p>
-<ol>
-<li>Type "xx" to assume root privileges.</li>
-<li>Type "make install"</li>
-<li>Type "x" to relinquish root privileges.</li>
-</ol>
-<p><img src="screenshots/Makefile-out.png" alt="Accepted Practices" />
-Notice that the bash prompt changes from green to red as a reminder that
-you are wielding a loaded gun with the safety off. In this state, it
-only takes a minor typo. You mean to type "rm -r tmp/*", but
-inadvertently put an extra space after tmp. I can't even type the
-resulting expression.</p>
-<pre><code>rm -r tmp/*</code></pre>
-<p>Be very careful when using RSH in setuid root mode. Keep the
-executable protected in your home directory with appropriate permissions
-to prevent promiscuous access by unauthorized users. RSH should be
-provided only to trusted users who understand the implications of
-executing commands with elevated privileges. Used inappropriately, it
-can lead to system instability or security vulnerabilities.</p>
-<p>RSH is as safe or unsafe as we choose to make it. It requires root
-access to install, and the installer should make sure it cannot be used
-by other users. If you are reading this, you know how to do that. Please
-use it responsibly.</p>
-<hr />
-<h2 id="c-menu-features">C-Menu Features</h2>
-<ul>
-<li><p>Create and manage multiple menus, forms, and pickers</p></li>
-<li><p>Define interfaces using simple configuration files</p></li>
-<li><p>Perfect for shell scripting, command-line, and terminal based
-applications</p></li>
-<li><p>Made for Linux and Unix-like operating systems</p></li>
-<li><p>Blazingly fast, even on older hardware</p></li>
-<li><p>Text-based user interface (TUI) using ncurses</p></li>
-<li><p>Easily customize menu options and actions</p></li>
-<li><p>Any level of sub-menus</p></li>
-<li><p>Navigation using keyboard inputs the way God intended</p></li>
-<li><p>Configurable appearance and behavior</p></li>
-<li><p>Cross-platform compatibility</p></li>
-<li><p>Open-source and free to use</p></li>
-</ul>
-<hr />
-<h2 id="c-menu-configuration">C-Menu Configuration</h2>
-<p>User's can have multiple runtime configurations. In the snippet
-above, the standard ISO 6429 / ECMA-48 colors have been redefined and
-orange has been added.</p>
-<hr />
-<h2 id="c-menu-installation">C-Menu Installation</h2>
-<p>To install C-Menu, simply download the source code from the
-repository and follow the installation instructions provided in the
-INSTALL.md file.</p>
-</body>
+      pre.numberSource {
+        margin-left: 3em;
+        border-left: 1px solid #aaaaaa;
+        padding-left: 4px;
+      }
+      div.sourceCode {
+      }
+      @media screen {
+        pre > code.sourceCode > span > a:first-child::before {
+          text-decoration: underline;
+        }
+      }
+      code span.al {
+        color: #ff0000;
+        font-weight: bold;
+      } /* Alert */
+      code span.an {
+        color: #60a0b0;
+        font-weight: bold;
+        font-style: italic;
+      } /* Annotation */
+      code span.at {
+        color: #7d9029;
+      } /* Attribute */
+      code span.bn {
+        color: #40a070;
+      } /* BaseN */
+      code span.bu {
+        color: #008000;
+      } /* BuiltIn */
+      code span.cf {
+        color: #007020;
+        font-weight: bold;
+      } /* ControlFlow */
+      code span.ch {
+        color: #4070a0;
+      } /* Char */
+      code span.cn {
+        color: #880000;
+      } /* Constant */
+      code span.co {
+        color: #60a0b0;
+        font-style: italic;
+      } /* Comment */
+      code span.cv {
+        color: #60a0b0;
+        font-weight: bold;
+        font-style: italic;
+      } /* CommentVar */
+      code span.do {
+        color: #ba2121;
+        font-style: italic;
+      } /* Documentation */
+      code span.dt {
+        color: #902000;
+      } /* DataType */
+      code span.dv {
+        color: #40a070;
+      } /* DecVal */
+      code span.er {
+        color: #ff0000;
+        font-weight: bold;
+      } /* Error */
+      code span.ex {
+      } /* Extension */
+      code span.fl {
+        color: #40a070;
+      } /* Float */
+      code span.fu {
+        color: #06287e;
+      } /* Function */
+      code span.im {
+        color: #008000;
+        font-weight: bold;
+      } /* Import */
+      code span.in {
+        color: #60a0b0;
+        font-weight: bold;
+        font-style: italic;
+      } /* Information */
+      code span.kw {
+        color: #007020;
+        font-weight: bold;
+      } /* Keyword */
+      code span.op {
+        color: #666666;
+      } /* Operator */
+      code span.ot {
+        color: #007020;
+      } /* Other */
+      code span.pp {
+        color: #bc7a00;
+      } /* Preprocessor */
+      code span.sc {
+        color: #4070a0;
+      } /* SpecialChar */
+      code span.ss {
+        color: #bb6688;
+      } /* SpecialString */
+      code span.st {
+        color: #4070a0;
+      } /* String */
+      code span.va {
+        color: #19177c;
+      } /* Variable */
+      code span.vs {
+        color: #4070a0;
+      } /* VerbatimString */
+      code span.wa {
+        color: #60a0b0;
+        font-weight: bold;
+        font-style: italic;
+      } /* Warning */
+    </style>
+  </head>
+  <body>
+    <h1 id="c-menu---user-interface-builder">
+      C-Menu - User Interface Builder
+    </h1>
+    <p>Bill Waller Copyright 2025</p>
+    <p><a href="emailto:billxwaller@gmail.com">Bill Waller email</a></p>
+    <hr />
+    <p><a href="FAQ.html">New: C-Menu FAQ</a></p>
+    <p><a href="C-Menu-UG.html">New: C-Menu User Guide</a></p>
+    <p><a href="extras.html">New: Augmenting C-Menu</a></p>
+    <p><a href="API.html">New: C-Menu API</a></p>
+    <h2 id="c-menu-menu-form-pick-view-rsh-and-c-keys">
+      C-Menu Menu, Form, Pick, View, RSH, and C-Keys
+    </h2>
+    <figure>
+      <img src="screenshots/minitrc.png" alt="C-Menu Splash" />
+      <figcaption aria-hidden="true">C-Menu Splash</figcaption>
+    </figure>
+    <p>
+      C-Menu is a lightweight, flexible, and easy-to-use suite of programs for
+      creating a sophisticated user interface for your applications. Menus,
+      Form, Pick, and View with, using a classical text-based terminal
+      interface(TUI) for applications running on Linux and Unix-like operating
+      systems. C-Menu is designed to be simple to use while providing powerful
+      features to implement menu driven frameworks for applications.
+    </p>
+    <hr />
+    <h3 id="c-menu-menu">C-Menu Menu</h3>
+    <p>
+      At the top of the stack is C-Menu Menu, which reads a simple description
+      file like the one above and displays a colorful and easy-to -follow menu
+      to the user. When the user selects an item, with either keyboard or mouse,
+      C-Menu executes the corresponding command. It's like writing shell
+      scripts, but with a snazzy menu interface.
+    </p>
+    <p>
+      <img src="screenshots/applications_menu.png" alt="C-Menu Sample Menu" />
+      <img
+        src="screenshots/applications_menu.m.png"
+        alt="C-Menu Sample Description File"
+      />
+      From the above examples, you can get an idea of how C-Menu works. Examine
+      line-21 in "main.m" above. C-Menu Menu starts C-Menu View, which in turn
+      executes "tree-sitter highlight view_engine.c". Tree -Sitter doesn't need
+      to know anything about C-Menu View. It just sends output to it's standard
+      output device, which happens to be a pipe into C-Menu View's receiver.
+      C-Menu View maps Tree-Sitter's output to the Kernel's demand paged virtual
+      memory and you get:
+    </p>
+    <h2 id="c-menu-tree-sitter">
+      <img src="screenshots/tree-sitter.png" alt="C-Menu Tree-Sitter" />
+    </h2>
+    <h3 id="c-menu-c-keys---diagnose-keyboardmouse-input">
+      C-Menu C-Keys - Diagnose Keyboard/Mouse Input
+    </h3>
+    <p>
+      With C-Menu C-Keys, you can diagnose and resolve keyboard and mouse issues
+      quickly and easily. Just press a key and get the Octal, Decimal,
+    </p>
+    <p>
+      Hexadecimal, the escape sequence binding, and the NCurses identifier. It's
+      definitely easier than rummaging through hardware documentation and
+      NCurses header files. It's also a good way to identify which keys are
+      reserved by your terminal emulator, and gives you the specific key codes
+      so you can easily add your own Extended NCurses keys.
+    </p>
+    <p>
+      <img src="screenshots/ckeys-alt.png" alt="C-Menu Keys" />
+      <img src="screenshots/extended-keys.png" alt="Extend Your Keyboard" />
+      C-Menu C-Keys also provides diagnostics for mouse actions and geometry.
+    </p>
+    <figure>
+      <img src="screenshots/ckeys-mouse.png" alt="Ckeys Mouse" />
+      <figcaption aria-hidden="true">Ckeys Mouse</figcaption>
+    </figure>
+    <p>Just add hot water, stir, and Bob's your uncle, you have soup!</p>
+    <hr />
+    <h3 id="c-menu-pick---a-picker">C-Menu Pick - A Picker</h3>
+    <p>
+      <img src="screenshots/Pick.png" alt="C-Menu Pick" /> This program provides
+      a list of objects from arguments, piped input, or a text file and lets the
+      user select those to be written to a file, piped to standard output, or
+      provided as arguments to an executable files specified in the description
+      file. Of course, you can select objects and commands with keyboard or
+      mouse. C-Menu Pick does not currently support a Brain-Computer Interface
+      (BCI), at least, not yet. iThe simplest use of C-Menu Pick is:
+    </p>
+    <p>
+      Pick a file to view using "lf", a utility to search for files using
+      regular expressions, and which is included with C-Menu:
+    </p>
+    <pre><code>view -S &quot;lf -r . .*\.c$&quot;</code></pre>
+    <p>Execute a program or script on a picked file:</p>
+    <pre><code>pick -S &quot;lf -r . .*\.c$&quot; -n 1 -c my_executable</code></pre>
+    <p>
+      Note that the syntax for "lf" (list files) is not similar to Unix "ls".
+    </p>
+    <p>The usage of "lf" is:</p>
+    <div class="sourceCode" id="cb3">
+      <pre
+        class="sourceCode bash"
+      ><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">lf</span> <span class="pp">[</span><span class="ss">directory</span><span class="pp">]</span> [regular expression]</span></code></pre>
+    </div>
+    <p>
+      If you type "lf *.c", it will fail for lack of a valid regular expression.
+      That's because "ls" uses shell expansion, while "lf" uses regular
+      expressions. Find supports regular expressions, but such a comprehensive
+      program carries a penalty in size and overhead. "lf" is
+    </p>
+    <p>streamlined to provide input for a picker.</p>
+    <pre><code>find -regex &#39;.*\.c$&#39; | sed &#39;s/^..//&#39;</code></pre>
+    <pre><code>lf . &#39;.*\.c$&#39;</code></pre>
+    <hr />
+    <h3 id="c-menu-form-for-data-entry-and-editing">
+      C-Menu Form for Data Entry and Editing
+    </h3>
+    <p>
+      FORM is a lightweight and flexible form handling library designed to
+      simplify the process of creating, validating, and managing forms.
+    </p>
+    <p>
+      It provides a straightforward API for defining form fields, handling user
+      input, and performing validation checks.
+    </p>
+    <h3 id="c-menu-form-key-features">C-Menu Form Key Features</h3>
+    <ul>
+      <li>
+        Easy Form Creation: Define forms with various field types such as text,
+        number, email, and more.
+      </li>
+      <li>
+        Validation: Built-in validation rules to ensure data integrity,
+        including required fields, format checks, and custom validators.
+      </li>
+      <li>
+        User Input Handling: Seamlessly capture and process user input from the
+        command line or text-based interfaces.
+      </li>
+      <li>
+        Customizable: Extendable architecture allowing developers to create
+        custom field types and validation rules.
+      </li>
+      <li>
+        Integration: Designed to work well with other components of the C -Menu
+        Project, enabling a cohesive development experience.
+      </li>
+    </ul>
+    <h3 id="c-menu-form-data-types">C-Menu Form Data Types</h3>
+    <p>
+      <img src="screenshots/data-types.f.png" alt="Data Types" />
+      <img src="screenshots/data-types.png" alt="Data Types" />
+    </p>
+    <p>
+      FORM displays data entry forms based on a description file. It allows
+      users to input data in a structured manner. The entered data can then be
+      processed by a specified command or script. Internally, the numeric
+      entries are converted to binary integer, long, float, or double.
+    </p>
+    <p>
+      <img src="screenshots/Receipt.png" alt="C-Menu Form - Example" /> The two
+      Cash Receipts entry forms above are identical except the top form has
+      field brackets turned on and the bottom form has fill characters set to
+      underscore. This is a simple configuration option from the command line or
+      the configuration file.
+    </p>
+    <p>
+      If you make a mistake, in the form description syntax, as I did below, you
+      will get a notification pinpointing the problem. In this message, we can
+      see that the format field on line 3 of "receipt.f" is invalid.
+    </p>
+    <p>
+      I have a "3", and it should have been "String". The corrected line would
+      be: "F!2!18!10!String".
+    </p>
+    <figure>
+      <img src="screenshots/form-error.png" alt="Form Error" />
+      <figcaption aria-hidden="true">Form Error</figcaption>
+    </figure>
+    <p>
+      Need quick and easy Cash Receipts, General Journal, or wedding invitation
+      list? FORM has you covered. The application shown above took about 10
+      minutes from design to test. It doesn't post transactions, or keep running
+      balances yet, but that's why we have people like you.
+    </p>
+    <p>FORM also makes a great front-end for SQL database queries.</p>
+    <hr />
+    <h3 id="c-menu-sample-menu-description-file">
+      C-Menu Sample Menu Description File
+    </h3>
+    <p>
+      <img
+        src="screenshots/applications_menu.m.png"
+        alt="C-Menu Sample Description File"
+      />
+      As you can see, the description file is straightforward and easy to read.
+      Each menu item consists of a label and a command to execute. The label is
+      displayed in the menu, and the command is executed when the user selects
+      that item.
+    </p>
+    <figure>
+      <img src="screenshots/pick-edit.png" alt="C-Menu Pick" />
+      <figcaption aria-hidden="true">C-Menu Pick</figcaption>
+    </figure>
+    <p>
+      Here's just one example of how easy it is to create useful programs with
+      the C-Menu Form facility.
+    </p>
+    <figure>
+      <img src="screenshots/iloan_f.png" alt="Iloan - A Simple Demonstration" />
+      <figcaption aria-hidden="true">Iloan - A Simple Demonstration</figcaption>
+    </figure>
+    <p>
+      <img src="screenshots/iloan.png" alt="Iloan Display" /> We hope you find
+      C-Menu useful for your projects. It's a powerful tool that can greatly
+      simplify the process of creating text-based user interfaces for your
+      applications.
+    </p>
+    <hr />
+    <h3 id="c-menu-view">C-Menu View</h3>
+    <p>
+      VIEW is an easy-to-use text file viewer that allows users to view text
+      files in a terminal environment. It supports basic navigation, regular
+      expression search functionality, horizontal scrolling, ANSI escape
+      highlighting, Unicode, and NCurses wide characters. VIEW can be invoked
+      from within MENU, FORM, or PICK to provide contextual help or stand
+      -alone, full-screen as a system pager.
+    </p>
+    <h4 id="log-file-with-editor">Log File With Editor</h4>
+    <figure>
+      <img src="screenshots/nvim-log.png" alt="Log File With Editor" />
+      <figcaption aria-hidden="true">Log File With Editor</figcaption>
+    </figure>
+    <h4 id="screenshot-of-the-same-file-with-c-menu-view">
+      Screenshot of the Same File With C-Menu View
+    </h4>
+    <p>
+      <img src="screenshots/view.png" alt="C-Menu View Log File" /> One
+      especially useful feature of C-Menu View is its incredible speed with
+      large text files, like system logs. C-Menu View can open and display
+      multi-gigabyte text files almost instantaneously. Seek from beginning to
+      end of a 1Gb file takes a few milliseconds.
+    </p>
+    <h3 id="c-menu-view-and-color-manual-pages">
+      C-Menu View and Color Manual Pages
+    </h3>
+    <p>
+      C-Menu View can also be used as a pager for manual pages. By setting the
+      "MANPAGER" environment variable to "view", users can enjoy the benefits of
+      C-Menu View's features while reading manual pages.
+    </p>
+    <p>
+      To use C-Menu View as your system pager, add the following line to your
+      shell configuration file (e.g., .bashrc or .zshrc):
+    </p>
+    <pre><code>    export PAGER=&quot;view&quot;</code></pre>
+    <p>
+      You can also filter manual pages through ~/menuapp/msrc/man.sed to
+      colorize underlined,emboldened, and italicized text. This sed script is
+      included with C-Menu. To use it, you can run the following command in your
+      terminal:
+    </p>
+    <pre><code>    man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view</code></pre>
+    <h3 id="example-manual-page-using-editor">
+      Example Manual Page Using Editor
+    </h3>
+    <figure>
+      <img src="screenshots/nvim-man-page.png" alt="Manual Page With Editor" />
+      <figcaption aria-hidden="true">Manual Page With Editor</figcaption>
+    </figure>
+    <h3 id="example-c-menu-manual-page">Example C-Menu Manual Page</h3>
+    <figure>
+      <img src="screenshots/man-page.png" alt="Manual Page With C-Menu View" />
+      <figcaption aria-hidden="true">Manual Page With C-Menu View</figcaption>
+    </figure>
+    <h3 id="c-menu-view---demand-paged-virtual-address-space">
+      C-Menu View - Demand Paged Virtual Address Space
+    </h3>
+    <ul>
+      <li>
+        C-Menu View doesn't employ seek and read operations in a complicated
+        buffering scheme. There is a better way.
+      </li>
+      <li>
+        C-Menu View accesses files as arrays, using the Kernel's sophisticated
+        demand paged virtual memory.
+      </li>
+      <li>
+        Lazy loading means that that C-Menu View doesn't waste time seeking,
+        reading, and populating buffers that will never be used.
+      </li>
+      <li>
+        Zero-Copy I/O - Conventional programs copy file buffers into heap
+        address space. C-Menu View bypasses that step and reads directly from
+        the Kernel's virtual memory.
+      </li>
+      <li>
+        Simplicity - C-Menu View has no reads, no seeks, no complicated buffer
+        management schemes, not for view. The following snippet includes
+      </li>
+    </ul>
+    <p>"all" of View's file I/O on lines 22 and 12.</p>
+    <p>
+      <img src="screenshots/file-io.png" alt="C-Menu View File I/O" /> In
+      technical parlance, I'll explain precisely how it works. See if you can
+      follow me. 😁 C-Menu View's File I/O subsystem does three things:
+    </p>
+    <ul>
+      <li>Get the next byte,</li>
+      <li>Get the previous byte, or</li>
+      <li>Get a byte from a specified position</li>
+    </ul>
+    <p>
+      C-Menu View is blazingly fast because it leverages the Kernel's demand
+      paged virtual memory system. When a file is opened, C-Menu View maps the
+      file into the process's virtual address space using the mmap system call.
+      Zero-copy I/O is achieved by mapping the file directly from kernel address
+      space.
+    </p>
+    <p>
+      When C-Menu View needs to access a byte at a specific position, it simply
+      calculates the corresponding memory address based on the file offset and
+      reads the byte directly from that address. If the required page is not
+      already in memory, the Kernel automatically handles the page fault by
+      loading the necessary data from the file into memory. This approach
+      eliminates the need for explicit read and seek operations, and copying
+      data to the processes memory, resulting in faster access times and reduced
+      overhead.
+    </p>
+    <h3 id="c-menu-view---other-features">C-Menu View - Other Features</h3>
+    <ul>
+      <li>
+        <p>
+          Horizontal scrolling for long lines. C-Menu View writes output to a
+          virtual screen, an Ncurses pad, to accommodate lines longer than the
+          physical screen.
+        </p>
+      </li>
+      <li>
+        <p>
+          C-Menu View has full support for Unicode, translating ASCII text and
+          multi-byte sequences to wide characters (wchar_t), and wide characters
+          and ANSI SGR sequences to complex characters (cchar_t). The complex
+          characters combine displayable characters plus attributes such as
+          bold, italic, underline, reverse and foreground and background colors.
+          NCurses can display more than 16 million colors.
+        </p>
+      </li>
+      <li><p>C-Menu View supports mouse wheel vertical scrolling.</p></li>
+    </ul>
+    <h3 id="c-menu-3-channel-gamma-correction">
+      C-Menu 3-Channel Gamma Correction
+    </h3>
+    <p>
+      When using utilities such as "tree-sitter highlighter", "pygmentize", or
+      "bat" to highlight files, the text is sometimes almost unreadable. On the
+      left-hand side of the following screenshot, "less" does a great job of
+      rendering the output of pygmentize, but C-Menu with gamma correction can
+      do better. It's all about perceptual luminance. Either from the command
+      line or the minitrc file, the user can specify a gamma correction value
+      for each of the three color channels, red, green, and blue. It's a minor
+      thing, really, but we programmers aren't "automitons" A pleasing visual
+      appearance makes work more fun.
+    </p>
+    <figure>
+      <img src="screenshots/gamma.png" alt="Gamma Correction" />
+      <figcaption aria-hidden="true">Gamma Correction</figcaption>
+    </figure>
+    <p>
+      <a href="https://pubmed.ncbi.nlm.nih.gov/6534013/"
+        >Bezold-Brücke hue shift</a
+      >
+      <a href="https://www.w3.org/TR/WCAG22/"
+        >Web Content Accessibility Guidelines (WCAG) 2.2</a
+      >
+    </p>
+    <h4 id="view-menuapphelpview.help">VIEW ~/menuapp/help/view.help</h4>
+    <figure>
+      <img src="screenshots/view-help.png" alt="C-Menu View Help File" />
+      <figcaption aria-hidden="true">C-Menu View Help File</figcaption>
+    </figure>
+    <h4 id="thats-a-bobby-dazzler">That's a Bobby Dazzler</h4>
+    <p>(Australian TV show)</p>
+    <p>
+      With Unicode glyphs, ANSI escape highlighting, and 3-Channel gamma
+      correction, your application is bound to <strong>Wow</strong> your
+      clients. Nobody wants an ugly program. Of course, beauty is in the eye of
+      the beholder. That's why we give you control.
+    </p>
+    <hr />
+    <h2 id="rsh">RSH</h2>
+    <figure>
+      <img src="screenshots/rsh.png" alt="RSH Source" />
+      <figcaption aria-hidden="true">RSH Source</figcaption>
+    </figure>
+    <p>
+      Despite its name, RSH is not a shell. It is a shell runner, which allows
+      you to specify your shell of choice, and provides a consistent environment
+      for running shell scripts and commands. RSH was designed to be invoked
+      from within MENU, FORM, or PICK to execute commands that require elevated
+      privileges, but its functionality extends beyond that.
+    </p>
+    <p>
+      You can execute commands in either user or root mode, making it a
+      versatile tool for developing aplication front-ends. RSH ensures that your
+      scripts and executables run in a controlled environment, reducing the
+      chances of unexpected behavior due to differing shell environments. RSH
+      forks and waits for its spawn to complete before returning control to the
+      calling program. When executed under C-Menu's signal handler, it catches
+      and displays the exit status of the command, allowing for better error
+      handling. Instead of using su -c or sudo to run commands as root, you can
+      use rsh -c to achieve the same result in a more streamlined manner. You
+      can literally have root access within a fraction of a second, making it
+      ideal for work that requires frequent switching between user and root
+      modes for various administrative tasks.
+    </p>
+    <p>
+      Many system administrators and developers find RSH invaluable for tasks
+      that require elevated privileges. RSH eliminates the need to repeatedly
+      enter passwords or switch users, streamlining workflows and improving
+      efficiency. We all know it's not a good idea to run everything as root,
+      but sometimes a user want's to avoid precious seconds it takes to enter
+      passwords for su. With RSH, it takes three keystrokes to enter root mode
+      and two keystrokes to get out.
+    </p>
+    <h3 id="maintaining-security-with-rsh">Maintaining Security With RSH</h3>
+    <p>Here's an example of the proper way to use RSH.</p>
+    <ol>
+      <li>Type "xx" to assume root privileges.</li>
+      <li>Type "make install"</li>
+      <li>Type "x" to relinquish root privileges.</li>
+    </ol>
+    <p>
+      <img src="screenshots/Makefile-out.png" alt="Accepted Practices" /> Notice
+      that the bash prompt changes from green to red as a reminder that you are
+      wielding a loaded gun with the safety off. In this state, it only takes a
+      minor typo. You mean to type "rm -r tmp/*", but inadvertently put an extra
+      space after tmp. I can't even type the resulting expression.
+    </p>
+    <pre><code>rm -r tmp/*</code></pre>
+    <p>
+      Be very careful when using RSH in setuid root mode. Keep the executable
+      protected in your home directory with appropriate permissions to prevent
+      promiscuous access by unauthorized users. RSH should be provided only to
+      trusted users who understand the implications of executing commands with
+      elevated privileges. Used inappropriately, it can lead to system
+      instability or security vulnerabilities.
+    </p>
+    <p>
+      RSH is as safe or unsafe as we choose to make it. It requires root access
+      to install, and the installer should make sure it cannot be used by other
+      users. If you are reading this, you know how to do that. Please use it
+      responsibly.
+    </p>
+    <hr />
+    <h2 id="c-menu-features">C-Menu Features</h2>
+    <ul>
+      <li><p>Create and manage multiple menus, forms, and pickers</p></li>
+      <li><p>Define interfaces using simple configuration files</p></li>
+      <li>
+        <p>
+          Perfect for shell scripting, command-line, and terminal based
+          applications
+        </p>
+      </li>
+      <li><p>Made for Linux and Unix-like operating systems</p></li>
+      <li><p>Blazingly fast, even on older hardware</p></li>
+      <li><p>Text-based user interface (TUI) using ncurses</p></li>
+      <li><p>Easily customize menu options and actions</p></li>
+      <li><p>Any level of sub-menus</p></li>
+      <li><p>Navigation using keyboard inputs the way God intended</p></li>
+      <li><p>Configurable appearance and behavior</p></li>
+      <li><p>Cross-platform compatibility</p></li>
+      <li><p>Open-source and free to use</p></li>
+    </ul>
+    <hr />
+    <h2 id="c-menu-configuration">C-Menu Configuration</h2>
+    <p>
+      User's can have multiple runtime configurations. In the snippet above, the
+      standard ISO 6429 / ECMA-48 colors have been redefined and orange has been
+      added.
+    </p>
+    <hr />
+    <h2 id="c-menu-installation">C-Menu Installation</h2>
+    <p>
+      To install C-Menu, simply download the source code from the repository and
+      follow the installation instructions provided in the INSTALL.md file.
+    </p>
+  </body>
 </html>
