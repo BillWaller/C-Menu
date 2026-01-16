@@ -54,7 +54,7 @@ Removes leading and trailing whitespace characters from the given string.
 
 ---
 
-### ssnprintf(char \*str, size_t size, const char \*format, ...)
+### int ssnprintf(char \*str, size_t size, const char \*format, ...)
 
 A safe version of snprintf that ensures the output string is null-terminated.
 
@@ -68,7 +68,7 @@ A safe version of snprintf that ensures the output string is null-terminated.
 
 ---
 
-### str_to_args(char \*argv[], char \*arg_str, int max_args)
+### int str_to_args(char \*argv[], char \*arg_str, int max_args)
 
 Splits a string into an array of arguments based on whitespace.
 
@@ -83,7 +83,7 @@ Text surrounded by double quotes \'"\' will be treated as a single argument.
 
 ---
 
-### str_to_lower(char \*str)
+### char \*str_to_lower(char \*str)
 
 Converts all characters in the string to lowercase.
 
@@ -94,7 +94,7 @@ Converts all characters in the string to lowercase.
 
 ---
 
-### str_to_upper(char \*str)
+### char \*str_to_upper(char \*str)
 
 Converts all characters in the string to uppercase.
 
@@ -197,7 +197,7 @@ Removes surrounding double quotes from a string if they exist.
 
 ---
 
-### chrep(char \*s, char old_chr, char new_chr)
+### void chrep(char \*s, char old_chr, char new_chr)
 
 Replaces all occurrences of a specified character in a string with another character.
 
@@ -210,7 +210,7 @@ Replaces all occurrences of a specified character in a string with another chara
 
 ---
 
-### file_spec_path(char \*fp, char \*fs)
+### void file_spec_path(char \*fp, char \*fs)
 
 Extracts the path component from a file specification and places it in fp.
 It is the caller\'s responsibility to ensure that fp has enough space to
@@ -434,7 +434,7 @@ files that match the provided regular expression.
 
 ---
 
-### lf_find_files(char \*dir, char \*re)
+### bool lf_find_files(char \*dir, char \*re)
 
 Finds files within a specified directory that match a given regular expression.
 
@@ -474,8 +474,8 @@ string with a replacement substring.
   - `char *`: A pointer to the newly allocated string with
     replacements made.
 
-        The function allocates memory for the new string, which must be
-        freed by the caller when no longer needed.
+The function allocates memory for the new string, which must be
+freed by the caller when no longer needed.
 
 ===============================================================
 
@@ -609,11 +609,12 @@ length, the destination String\'s str pointer is reallocated.
 Chyrons are text overlays used in video production to display information
 such as names, titles, or other relevant data. The C-Menu API provides
 functions to create, manage, and render chyrons in a user interface. Though
-not exactly like they chyrons you see on TV news broadcasts, they serve a similar
+not exactly like the chyrons you see on TV news broadcasts, they serve a similar
 purpose in providing on-screen information in a banner across the bottom of
-the screen and present options, in the form of function keys to the user.
-The Function Key command can be selected by pressing the indicated F Key or
-clicking on the chyron within the vertical bars separating the F Keys.
+the screen and present options, in the form of command keys to the user.
+The Function Key or command key can be selected by pressing the indicated
+F Key or clicking on the chyron within the vertical bars separating the
+F Keys.
 
 ![C-Menu Pick Chyron](screenshots/Pick.png)
 
@@ -709,21 +710,26 @@ accidentally overwrite it with a new assignment.
 
 The following concepts are fundamental to using NCurses successfully.
 
-- NCurses must be initialized with color support. Using C-Menu\'s open_curses() function takes care of the details.
+NCurses must be initialized with color support. Using C-Menu\'s
+open_curses() function takes care of the details.
 
-- NCurses uses init_extended_colors(i, r, g, b) to register individual colors
-  specified by the caller, where i is the index number of the color, and r, g, b
-  are color component values scaled 0 - 1000. (one billion colors). Each element
-  in the color table may represent a foreground or background color.
+NCurses uses init_extended_colors(i, r, g, b) to register individual
+colors specified by the caller, where i is the index number of the color,
+and r, g, b are color component values scaled 0 - 1000. (one billion
+colors). Each element in the color table may represent a foreground or
+background color.
 
-- NCurses uses init_extended_pair(pair_index, foreground_color,
-  background_color) to register color pairs, which are composed of a
-  foreground and background color from the color table created with init_extended_colors(). The foreground/background pairs will be integrated
-  into the complex character structures (cchar_t) that will be displayed on
-  the screen.
+NCurses uses init_extended_pair(pair_index, foreground_color,
+background_color) to register color pairs, which are composed of a
+foreground and background color from the color table created with
+init_extended_colors(). The foreground/background pairs will be
+integrated into the complex character structures (cchar_t) that will
+be displayed on the screen.
 
-- RGB is a structure representing a color in terms of its red, green, and blue
-  components. The RGB structure is defined as follows:
+RGB is a structure representing a color in terms of its red, green, and blue
+components. The RGB structure is defined as follows:
+
+### typedef struct RGB
 
 ```c
 typedef struct {
@@ -733,9 +739,9 @@ typedef struct {
 } RGB;
 ```
 
-- NCurses uses a 0-1000 scale for RGB values, so the RGB values
-  must be converted from the standard 0-255 scale to the 0-1000 scale
-  before being used with NCurses functions.
+NCurses uses a 0-1000 scale for RGB values, so the RGB values
+must be converted from the standard 0-255 scale to the 0-1000 scale
+before being used with NCurses functions.
 
 ```c
 ncurses_r = (rgb_r * 1000) / 255;
@@ -763,10 +769,11 @@ NCurses to manage color pairs efficiently by reusing existing pairs when possibl
 
 ### int get_clr(RGB rgb)
 
-Retrieves the color index for the specified RGB color, or if the color doesn\'t exist,
-creates it. If the maximum number of colors, MAX_COLORS, is reached, ERR is returned.
-This function allows NCurses to manage colors efficiently by reusing existing colors
-when possible. Choose from 16,777,216 if your terminal supports it.
+Retrieves the color index for the specified RGB color, or if the color does
+not exist, creates it. If the maximum number of colors, MAX_COLORS, is
+reached, ERR is returned. This function allows NCurses to manage colors
+efficiently by reusing existing colors when possible. Choose from 16,777,216
+if your terminal supports it.
 
 - Parameters:
   - `RGB rgb`: The RGB color to be retrieved or created.
@@ -820,7 +827,7 @@ in practice because most terminal emulators support at least 256 colors, and
 many programs use these colors. When the get_clr() function above is called, it
 checks this table first, and if a match is found, it returns the corresponding
 color index. If the color requested is not found in the palette, get_clr()
-creates a new color entry.
+creates a new color entry.ZZ
 
 NCurses assigns names to the first 16 colors (the EGA/ANSI palette), but these
 colors can be redefined in C-Menu\'s configuration, .minitrc, using RGB values.
