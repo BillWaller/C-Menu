@@ -846,7 +846,7 @@ when possible. Choose from 16,777,216 if your terminal supports it.
 
 ---
 
-### RGB_TO_XTER256_IDX
+### RGB_TO_XTERM256_IDX
 
 int rgb_to_xterm256_idx(RGB rgb)
 
