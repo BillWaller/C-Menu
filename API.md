@@ -1,5 +1,13 @@
 # C-Menu API Documentation
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Utility Functions](#utility-functions)
+- [String Functions](#string-functions)
+- [Chyron Functions](#chyron-functions)
+- [Color Functions](#color-functions)
+
 ## Overview
 
 C-Menu is a User Interface Builder. It allows developers to create and
@@ -7,13 +15,26 @@ manage UI components quickly and easily. In developing C-Menu, we focused
 on modularity, ease of use, and flexibility. This documentation provides an
 overview of the API, including its main features and how to use them.
 
-=======================================================================================
+Note 1: This documentation assumes familiarity with C programming and
+basic concepts of user interface design.
+
+Note 2: The C-Menu API is designed to work with the NCurses library for
+terminal-based user interfaces. Ensure that you have NCurses installed and
+properly configured in your development environment.
+
+Note 3: This document is a work-in-progress and will be updated regularly.
+Only a fraction of the API functions are documented here at present with many
+more to be added.
+
+===============================================================
 
 ## Utility Functions
 
 ---
 
-### int rtrim(char \*str)
+### RTRIM
+
+int rtrim(char \*str)
 
 Removes trailing whitespace characters from the given string.
 
@@ -24,7 +45,9 @@ Removes trailing whitespace characters from the given string.
 
 ---
 
-### int trim(char \*str)
+### TRIM
+
+int trim(char \*str)
 
 Removes leading and trailing whitespace characters from the given string.
 
@@ -35,7 +58,9 @@ Removes leading and trailing whitespace characters from the given string.
 
 ---
 
-### ssnprintf(char \*str, size_t size, const char \*format, ...)
+### SSNPRINTF
+
+ssnprintf(char \*str, size_t size, const char \*format, ...)
 
 A safe version of snprintf that ensures the output string is null-terminated.
 
@@ -49,7 +74,9 @@ A safe version of snprintf that ensures the output string is null-terminated.
 
 ---
 
-### str_to_args(char \*argv[], char \*arg_str, int max_args)
+### STR_TO_ARGS
+
+str_to_args(char \*argv[], char \*arg_str, int max_args)
 
 Splits a string into an array of arguments based on whitespace.
 
@@ -64,7 +91,9 @@ Text surrounded by double quotes '"' will be treated as a single argument.
 
 ---
 
-### str_to_lower(char \*str)
+### STR_TO_LOWER
+
+str_to_lower(char \*str)
 
 Converts all characters in the string to lowercase.
 
@@ -75,7 +104,9 @@ Converts all characters in the string to lowercase.
 
 ---
 
-### str_to_upper(char \*str)
+### STR_TO_UPPER
+
+str_to_upper(char \*str)
 
 Converts all characters in the string to uppercase.
 
@@ -86,7 +117,9 @@ Converts all characters in the string to uppercase.
 
 ---
 
-### strnz\_\_cpy
+### STRNZ\_\_CPY
+
+strnz\_\_cpy
 
 Copies a string from source to destination with a specified maximum length.
 
@@ -105,7 +138,9 @@ buffer - 1, leaving space for the null terminator.
 
 ---
 
-### strnz\_\_cat
+### STRNZ\_\_CAT
+
+strnz\_\_cat
 
 Concatenates a source string to a destination string with a specified maximum length.
 
@@ -124,7 +159,9 @@ buffer - 1, leaving space for the null terminator.
 
 ---
 
-### strnz(char \*str, int max_len)
+### STRNZ
+
+strnz(char \*str, int max_len)
 
 Ensures that a string is null-terminated within a specified maximum length.
 Terminates the string on encountering a line-feed ('\n') or
@@ -138,7 +175,9 @@ carriage-return ('\r').
 
 ---
 
-### strnz_dup(char \*str, int max_len)
+### STRNZ_DUP
+
+strnz_dup(char \*str, int max_len)
 
 Duplicates a string up to a specified maximum length, a line-feed
 ('\n'), or a carriage-return ('\r'), ensuring null-termination.
@@ -153,7 +192,9 @@ the memory when it is no longer needed.
 
 ---
 
-### void str_subc(char \*d, char \*s, char ReplaceChr, char \*Withstr, int l)
+### STR_SUBC
+
+void str_subc(char \*d, char \*s, char ReplaceChr, char \*Withstr, int l)
 
 Replaces all occurrences of a specified character in a string with another string.
 
@@ -166,7 +207,9 @@ Replaces all occurrences of a specified character in a string with another strin
 
 ---
 
-### bool stripz_quotes(char \*s)
+### STRIPZ_QUOTES
+
+bool stripz_quotes(char \*s)
 
 Removes surrounding double quotes from a string if they exist.
 
@@ -177,7 +220,9 @@ Removes surrounding double quotes from a string if they exist.
 
 ---
 
-### chrep(char \*s, char old_chr, char new_chr)
+### CHREP
+
+chrep(char \*s, char old_chr, char new_chr)
 
 Replaces all occurrences of a specified character in a string with another character.
 
@@ -190,7 +235,9 @@ Replaces all occurrences of a specified character in a string with another chara
 
 ---
 
-### file_spec_path(char \*fp, char \*fs)
+### FILE_SPEC_PATH
+
+file_spec_path(char \*fp, char \*fs)
 
 Extracts the path component from a file specification and places it in fp.
 It is the caller's responsibility to ensure that fp has enough space to
@@ -208,7 +255,9 @@ argument, obviating the need for dynamic memory allocation.
 
 ---
 
-### file_spec_name(char \*fn, char \*fs)
+### FILE_SPEC_NAME
+
+file_spec_name(char \*fn, char \*fs)
 
 Extracts the file name component from a file specification and places it in
 fn. It is the caller's responsibility to ensure that fn has enough space to
@@ -227,7 +276,9 @@ version of dirname().
 
 ---
 
-### bool str_to_bool(const char \*)
+### STR_TO_BOOL
+
+bool str_to_bool(const char \*)
 
 Converts a string representation of a boolean value to its corresponding
 boolean type based on the first character of the string.
@@ -241,7 +292,9 @@ boolean type based on the first character of the string.
 
 ---
 
-### bool expand_tilde(char \*out_buf, const char \*in_buf, size_t buf_size)
+### EXPAND_TILDE
+
+bool expand_tilde(char \*out_buf, const char \*in_buf, size_t buf_size)
 
 Expands a tilde ('~') at the beginning of a file path to the user's home directory.
 
@@ -256,7 +309,9 @@ Expands a tilde ('~') at the beginning of a file path to the user's home directo
 
 ---
 
-### bool trim_path(char \*char) {
+### TRIM_PATH
+
+bool trim_path(char \*char) {
 
 Trims redundant slashes and resolves relative path components ('.' and
 '..') in a file path.
@@ -272,7 +327,9 @@ Trims redundant slashes and resolves relative path components ('.' and
 
 ---
 
-### bool trim_ext(char \*buf, char \*filename)
+### TRIM_EXT
+
+bool trim_ext(char \*buf, char \*filename)
 
 Removes the file extension from a given filename.
 
@@ -288,7 +345,9 @@ Removes the file extension from a given filename.
 
 ---
 
-### base_name(char \*buf, const char \*filename)
+### BASE_NAME
+
+bool base_name(char \*buf, const char \*filename)
 
 Extracts the base name (file name without path) from a given file path.
 
@@ -307,7 +366,9 @@ base name.
 
 ---
 
-### bool dir_name(char \*buf, char \*path)
+### DIR_NAME
+
+bool dir_name(char \*buf, char \*path)
 
 Extracts the directory name (path without file name) from a given file path.
 
@@ -323,7 +384,9 @@ Extracts the directory name (path without file name) from a given file path.
 
 ---
 
-### bool verify_dir(char \*spec, int imode)
+### VERIFY_DIR
+
+bool verify_dir(char \*spec, int imode)
 
 Verifies the existence of a directory specified by the given path.
 
@@ -344,7 +407,9 @@ Verifies the existence of a directory specified by the given path.
 
 ---
 
-### bool verify_file(char \*in_spec, int imode)
+### VERIFY_FILE
+
+bool verify_file(char \*in_spec, int imode)
 
 Verifies the existence of or ability to create a file specified by the given path.
 
@@ -363,7 +428,9 @@ It is up to the caller to ensure that the input path is valid.
 
 ---
 
-### bool locate_file_in_path(char \*file_spec, char \*file_name)
+### LOCATE_FILE_IN_PATH
+
+bool locate_file_in_path(char \*file_spec, char \*file_name)
 
 Searches for a file in the system's PATH environment variable and
 returns its full path if found.
@@ -381,7 +448,9 @@ space to hold the full path of the found file.
 
 ---
 
-### list_files(char \*dir, char \*regexp, bool f_recurse)
+### LIST_FILES
+
+bool list_files(char \*dir, char \*regexp, bool f_recurse)
 
 Lists files in a specified directory that match a given regular
 expression, with an option to recurse into subdirectories.
@@ -399,7 +468,9 @@ expression, with an option to recurse into subdirectories.
 
 ---
 
-### lf_find_dirs(char \*dir, char \*re)
+### LF_FIND_DIRS
+
+bool lf_find_dirs(char \*dir, char \*re)
 
 Finds directories within a specified directory that match a given regular expression.
 
@@ -428,7 +499,9 @@ Finds files within a specified directory that match a given regular expression.
 
 ---
 
-### canonicalize_file_spec(char \*spec)
+### CANONICALIZE_FILE_SPEC
+
+int canonicalize_file_spec(char \*spec)
 
 Removes quotes and trims at first space.
 
@@ -441,7 +514,9 @@ The function modifies the input file specification in place.
 
 ---
 
-### rep_substring(const char \*org_s, const char \*tgt_s, const char \*rep_s)
+### REP_SUBSTRING
+
+char \*rep_substring(const char \*org_s, const char \*tgt_s, const char \*rep_s)
 
 Replaces all occurrences of a target substring within an original
 string with a replacement substring.
@@ -457,13 +532,13 @@ string with a replacement substring.
         The function allocates memory for the new string, which must be
         freed by the caller when no longer needed.
 
-=====================================================================================
+===============================================================
 
 ## String functions
 
 ---
 
-### String struct
+### STRING STRUCT
 
 ```c
 
@@ -477,7 +552,9 @@ Represents a dynamic string with its length.
 
 ---
 
-### String to_string(const char \*s)
+### TO_STRING
+
+String to_string(const char \*s)
 
 Creates a new String object from a C-style string.
 
@@ -488,7 +565,9 @@ Creates a new String object from a C-style string.
 
 ---
 
-### String mk_string(size_t l)
+### MK_STRING
+
+String mk_string(size_t l)
 
 Creates a new String object with a specified length.
 
@@ -502,7 +581,9 @@ if l is 0, str is set to NULL.
 
 ---
 
-### free_string(String s)
+### FREE_STRING
+
+free_string(String s)
 
 Frees the memory allocated for a String object.
 
@@ -513,7 +594,9 @@ Frees the memory allocated for a String object.
 
 ---
 
-### size_t string_cpy(String \*d, const char \*s)
+### STRING_CPY
+
+size_t string_cpy(String \*d, const char \*s)
 
 Copies a C-style string to a String object.
 
@@ -529,7 +612,9 @@ to accommodate the new string.
 
 ---
 
-### size_t string_cat(String \*d, const char \*s)
+### STRING_CAT
+
+size_t string_cat(String \*d, const char \*s)
 
 Concatenates a C-style string to a String object.
 
@@ -545,7 +630,9 @@ is reallocated.
 
 ---
 
-### size_t string_ncat(String \*d, const char \*s, size_t n)
+### STRING_NCAT
+
+size_t string_ncat(String \*d, const char \*s, size_t n)
 
 Concatenates up to n characters of a C-style string to a String object.
 Concatenates characters from a source String object to a destination
@@ -563,7 +650,9 @@ length, the destination String's str pointer is reallocated.
 
 ---
 
-### size_t string_ncpy(String \*dest, const String \*src, size_t n)
+### STRING_NCPY
+
+size_t string_ncpy(String \*dest, const String \*src, size_t n)
 
 Copies up to "n" characters from a C-style string to a destination
 String object.
@@ -577,3 +666,272 @@ String object.
 
 If the resulting string would be longer than the destination String's
 length, the destination String's str pointer is reallocated.
+
+===============================================================
+
+## Chyron Functions
+
+---
+
+### Chyron Overview
+
+Chyrons are text overlays used in video production to display information
+such as names, titles, or other relevant data. The C-Menu API provides
+functions to create, manage, and render chyrons in a user interface. Though
+not exactly like they chyrons you see on TV news broadcasts, they serve a similar
+purpose in providing on-screen information in a banner across the bottom of
+the screen and present options, in the form of function keys to the user.
+The Function Key command can be selected by pressing the indicated F Key or
+clicking on the chyron within the vertical bars separating the F Keys.
+
+![C-Menu Pick Chyron](screenshots/Pick.png)
+
+### KEY_CMD_TBL
+
+![C-Menu key_cmd_tbl](screenshots/cmd_tbl.png)
+
+As you can see in the table above, the key_cmd_tbl structure keeps track of
+the function key commands and their positions within the chyron. This allows
+the program to determine which function key was selected based on the x-coordinate
+of a mouse click.
+
+Usually, not all function keys are used in the chyron. This is because the
+chyron is designed to be flexible and can accommodate different numbers of
+function keys depending on the application's needs. The unused function keys
+are not displayed in the chyron.
+
+You may have also noticed, Function Keys are just one way to use the chyron
+system. The keycode can be any integer value you choose, allowing for
+custom commands or actions. You don't have to use a key at all. You could
+populate the chyron with unicode glyphs or other symbols to create a custom
+menu bar.
+
+---
+
+### SET_FKEY
+
+void set_fkey(int k, char \*s)
+
+Assigns a command string to a function key where k is the function key number,
+currently 1 through 14, and s is the command description associated with the
+function key. For example, to insert "F5 Calculate" into the chyron, you would
+call
+
+```c
+setkey(5, "Calculate");
+```
+
+---
+
+### UNSET_FKEY
+
+void unset_fkey(int k)
+
+Removes a function key command from the chyron. For example, to remove the
+command associated with function key 5, you would call
+
+```c
+unset_fkey(5);
+```
+
+---
+
+### CHYRON_MK
+
+int chyron_mk(key_cmd_tbl *fc, char *s)
+
+Creates a chyron with function key commands, keeping track of the function key
+coordinates within the chyron so that a mouse click can be mapped to the appropriate
+function key command. The function key table pointer fc is passed to the chyron
+so that when a function key is selected, the corresponding command string can be
+retrieved from the table. The string s is the chyron text, which contains the
+function key commands to be displayed on the bottom of the screen.
+
+chyron_mk returns the length of the chyron string to be displayed, and position
+information is stored in the structure, key_cmd_tbl.
+
+---
+
+### GET_CHYRON_KEY
+
+int get_chyron_key(key_cmd_tbl \*fc, int x)
+
+Determines which function key was selected based on the x-coordinate of a mouse
+click. get_chyron_key returns the number of the function key clicked.
+
+```c
+
+cmdkey = get_chyron_key(&fkey_table, mouse_x);
+
+---
+
+bool is_set_fkey(int k)
+
+Checks if a function key command is set in the chyron. The use case is to
+determine if a key_cmd_tbl element is already in use so that you don't
+accidentally overwrite it with a new assignment.
+
+- **Parameters**:
+  - `int k`: The function key number to check.
+- **Returns**:
+  - `bool`: True if the function key command is set, false otherwise.
+
+
+```
+
+===============================================================
+
+## Color Functions
+
+Note 1: These functions require NCurses to be initialized with color support.
+
+Note 2: NCurses uses color pairs to manage foreground and background colors. A
+color pair is a combination of a foreground color and a background color. Each
+color pair is assigned a unique index, which is used to apply the colors to text
+and other UI elements.
+
+Note 3: The maximum number of colors and color pairs is determined by the terminal
+emulator and NCurses configuration. The constants MAX_COLORS and MAX_COLOR_PAIRS
+define these limits.
+
+Note 4: RGB is a structure representing a color in terms of its red, green,
+and blue components. The RGB structure is defined as follows:
+
+```c
+typedef struct {
+    unsigned char r; // Red component (0-255)
+    unsigned char g; // Green component (0-255)
+    unsigned char b; // Blue component (0-255)
+} RGB;
+```
+
+Note 5: NCurses uses a 0-1000 scale for RGB values, so the RGB values
+must be converted from the standard 0-255 scale to the 0-1000 scale
+before being used with NCurses functions.
+
+---
+
+### GET_CLR_PAIR
+
+int get_clr_pair(int fg, int bg)
+
+Retrieves a color pair index for the specified foreground and background
+colors, or if the color pair doesn't exist, creates it. If the maximum number
+of colors, MAX_COLOR_PAIRS, is reached, ERR is returned. This function allows
+NCurses to manage color pairs efficiently by reusing existing pairs when possible.
+
+- **Parameters**:
+  - `int fg`: The foreground color index.
+  - `int bg`: The background color index.
+- **Returns**:
+  - `int`: The color pair index, or ERR if the maximum number of color pairs
+    has been reached.
+
+---
+
+### GET_CLR
+
+int get_clr(RGB rgb)
+
+Retrieves the color index for the specified RGB color, or if the color doesn't exist,
+creates it. If the maximum number of colors, MAX_COLORS, is reached, ERR is returned.
+This function allows NCurses to manage colors efficiently by reusing existing colors
+when possible. Choose from 16,777,216 if your terminal supports it.
+
+- **Parameters**:
+  - `RGB rgb`: The RGB color to be retrieved or created.
+- **Returns**:
+  - `int`: The color index, or ERR if the maximum number of colors has been
+    reached.
+
+---
+
+### RGB_TO_XTER256_IDX
+
+int rgb_to_xterm256_idx(RGB rgb)
+
+This function maps the RGB color to the nearest color in the xterm-256
+palette, which consists of 256 colors.
+
+- **Parameters**:
+  - `RGB rgb`: The RGB color to be converted.
+- **Returns**:
+  - `int`: The xterm-256 color index corresponding to the given RGB color.
+
+---
+
+### XTERM256_IDX_TO_RGB
+
+RGB xterm256_idx_to_rgb(int idx)
+
+Converts an xterm-256 color index to its corresponding RGB color.
+
+- **Parameters**:
+  - `int idx`: The xterm-256 color index to be converted.
+- **Returns**:
+  - `RGB`: The RGB color corresponding to the given xterm-256 color index.
+
+---
+
+### APPLY_GAMMA
+
+void apply_gama(RGB \*rgb)
+
+Applies gamma correction to the given RGB color. Gamma correction adjusts the
+brightness of colors to account for the non-linear way humans perceive light and
+color. C-Menu View uses a default gamma value of 2.2 for correction, but the
+user can modify this value in the .minitrc configuration.
+
+- **Parameters**:
+  - `RGB *rgb`: Pointer to the RGB color to be corrected.
+- **Returns**:
+  - `void`: no return
+
+---
+
+### INIT_CLR_PALETTE
+
+void init_clr_palette(Init \*init)
+
+Initializes an xterm 256 color palette as a starting point. This works well
+in practice because most terminal emulators support at least 256 colors, and
+many programs use these colors. When the get_clr() function above is called, it
+checks this table first, and if a match is found, it returns the corresponding
+color index. If the color requested is not found in the palette, get_clr()
+creates a new color entry.
+
+NCurses assigns names to the first 16 colors (the EGA/ANSI palette), but these
+colors can be redefined in C-Menu's configuration, .minitrc, using RGB values.
+init_clr_palette() any of these named colors with the RGB values specified
+in the configuration file.
+
+- **Parameters**:
+  - `Init *init`: Pointer to the initialization structure containing configuration
+    data.
+- **Returns**:
+  - `void`: no return
+
+---
+
+### INIT_HEX_COLOR
+
+void init_hex_color(int idx, char \*s)
+
+The function converts the hexadecimal color string to an RGB color and
+initializes the color at the specified index using the RGB values.
+
+- **Parameters**:
+  - `int idx`: The index at which to initialize the color.
+  - `char *s`: The hexadecimal color string (e.g., "#RRGGBB").
+- **Returns**:
+  - `void`: no return
+
+---
+
+### HEX_CLR_STR_TO_RGB
+
+RGB hex_clr_str_to_rgb()
+
+Converts a hexadecimal color string to an RGB color.
+
+---
