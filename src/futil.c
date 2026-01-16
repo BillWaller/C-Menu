@@ -57,7 +57,7 @@ size_t string_ncat(String *, const String *, size_t);
 size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
-String free_string(String);
+void free_string(String);
 char *str_tok(char *, const char *, const char);
 char errmsg[MAXLEN];
 ///--------------------------------------------------------------
@@ -1008,11 +1008,11 @@ String mk_string(size_t l) {
 /// @param: str String struct to free
 /// @note: Frees the dynamically allocated string and sets length to 0.
 /// @return: String struct with NULL pointer and length 0
-String free_string(String str) {
+void free_string(String str) {
     free(str.s);
     str.l = 0;
     str.s = NULL;
-    return str;
+    return;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ STRING_CPY - like strcpy, but reallocs instead of overwriting │
