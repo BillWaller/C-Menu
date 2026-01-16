@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     char in_buf[1024];
     char out_buf[1024];
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s <file_with_ansi_codes>\n", argv[0]);
+        fprintf(stderr, "Usage: %s [file_with_ansi_codes]\n", argv[0]);
         return 1;
     }
     FILE *in_fp = fopen(argv[1], "r");
@@ -50,9 +50,9 @@ int strip_ansi(char *d, char *s) {
     int l;
     while (*s) {
         if (*s == '\033') {
-            while (*s && *s != 'm')
+            while (*s && *s != 'm' && *s != 'K')
                 s++;
-            if (*s == 'm')
+            if (*s == 'm' || *s == 'K')
                 s++;
             continue;
         } else {
