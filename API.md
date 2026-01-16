@@ -738,7 +738,7 @@ unset_fkey(5);
 
 ### CHYRON_MK
 
-int chyron_mk(key_cmd_tbl *fc, char *s)
+int chyron_mk(key_cmd_tbl \*fc, char \*s)
 
 Creates a chyron with function key commands, keeping track of the function key
 coordinates within the chyron so that a mouse click can be mapped to the appropriate
@@ -762,8 +762,11 @@ click. get_chyron_key returns the number of the function key clicked.
 ```c
 
 cmdkey = get_chyron_key(&fkey_table, mouse_x);
+```
 
 ---
+
+### IS_SET_FKEY
 
 bool is_set_fkey(int k)
 
@@ -775,9 +778,6 @@ accidentally overwrite it with a new assignment.
   - `int k`: The function key number to check.
 - **Returns**:
   - `bool`: True if the function key command is set, false otherwise.
-
-
-```
 
 ===============================================================
 
