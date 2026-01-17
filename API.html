@@ -51,8 +51,8 @@ string.</p>
 </ul></li>
 </ul>
 <hr />
-<h3 id="ssnprintfchar-str-size_t-size-const-char-format">ssnprintf(char
-*str, size_t size, const char *format, …)</h3>
+<h3 id="int-ssnprintfchar-str-size_t-size-const-char-format">int
+ssnprintf(char *str, size_t size, const char *format, …)</h3>
 <p>A safe version of snprintf that ensures the output string is
 null-terminated.</p>
 <ul>
@@ -71,8 +71,8 @@ null terminator.</li>
 </ul></li>
 </ul>
 <hr />
-<h3 id="str_to_argschar-argv-char-arg_str-int-max_args">str_to_args(char
-*argv[], char *arg_str, int max_args)</h3>
+<h3 id="int-str_to_argschar-argv-char-arg_str-int-max_args">int
+str_to_args(char *argv[], char *arg_str, int max_args)</h3>
 <p>Splits a string into an array of arguments based on whitespace.</p>
 <ul>
 <li>Parameters:
@@ -90,7 +90,7 @@ extract.</li>
 <p>Text surrounded by double quotes '“' will be treated as a single
 argument.</p>
 <hr />
-<h3 id="str_to_lowerchar-str">str_to_lower(char *str)</h3>
+<h3 id="char-str_to_lowerchar-str">char *str_to_lower(char *str)</h3>
 <p>Converts all characters in the string to lowercase.</p>
 <ul>
 <li>Parameters:
@@ -103,7 +103,7 @@ argument.</p>
 </ul></li>
 </ul>
 <hr />
-<h3 id="str_to_upperchar-str">str_to_upper(char *str)</h3>
+<h3 id="char-str_to_upperchar-str">char *str_to_upper(char *str)</h3>
 <p>Converts all characters in the string to uppercase.</p>
 <ul>
 <li>Parameters:
@@ -116,8 +116,8 @@ argument.</p>
 </ul></li>
 </ul>
 <hr />
-<h3 id="strnz__cpychar-dest-char-src-size_t-max_len">strnz__cpy(char
-*dest, char *src, size_t max_len)</h3>
+<h3 id="size_t-strnz__cpychar-dest-char-src-size_t-max_len">size_t
+strnz__cpy(char *dest, char *src, size_t max_len)</h3>
 <p>Copies a string from source to destination with a specified maximum
 length.</p>
 <ul>
@@ -139,8 +139,8 @@ ensuring null-termination. With strnzcpy, you can prevent a buffer
 overrun by setting the third parameter to the size of the destination
 buffer - 1, leaving space for the null terminator.</p>
 <hr />
-<h3 id="strnz__catchar-dest-char-src-size_t-max_len">strnz__cat(char
-*dest, char *src, size_t max_len)</h3>
+<h3 id="size_t-strnz__catchar-dest-char-src-size_t-max_len">size_t
+strnz__cat(char *dest, char *src, size_t max_len)</h3>
 <p>Concatenates a source string to a destination string with a specified
 maximum length.</p>
 <ul>
@@ -162,7 +162,8 @@ buffer, ensuring null-termination. With strnzcat, you can prevent a
 buffer overrun by setting the third parameter to the size of the
 destination buffer - 1, leaving space for the null terminator.</p>
 <hr />
-<h3 id="strnzchar-str-int-max_len">strnz(char *str, int max_len)</h3>
+<h3 id="void-strnzchar-str-int-max_len">void strnz(char *str, int
+max_len)</h3>
 <p>Ensures that a string is null-terminated within a specified maximum
 length. Terminates the string on encountering a line-feed ('') or
 carriage-return ('.</p>
@@ -178,8 +179,8 @@ carriage-return ('.</p>
 </ul></li>
 </ul>
 <hr />
-<h3 id="strnz_dupchar-str-int-max_len">strnz_dup(char *str, int
-max_len)</h3>
+<h3 id="char-strnz_dupchar-str-int-max_len">char *strnz_dup(char *str,
+int max_len)</h3>
 <p>Duplicates a string up to a specified maximum length, a line-feed
 (''), or a carriage-return (', ensuring null-termination. Because
 strnz_dup allocates memory, it is up to the caller to free the memory
@@ -214,6 +215,22 @@ string.</li>
 </ul></li>
 </ul>
 <hr />
+<h3 id="void-strnfillchar-s-char-c-n">void strnfill(char *s, char c,
+n)</h3>
+<p>Fills a string with a specified character up to a given length.</p>
+<ul>
+<li>Parameters:
+<ul>
+<li><code>char *s</code>: The string to be filled.</li>
+<li><code>char c</code>: The character to fill the string with.</li>
+<li><code>int n</code>: The number of characters to fill.</li>
+</ul></li>
+<li>Returns:
+<ul>
+<li><code>void</code>: no return4</li>
+</ul></li>
+</ul>
+<hr />
 <h3 id="bool-stripz_quoteschar-s">bool stripz_quotes(char *s)</h3>
 <p>Removes surrounding double quotes from a string if they exist.</p>
 <ul>
@@ -228,8 +245,8 @@ otherwise.</li>
 </ul></li>
 </ul>
 <hr />
-<h3 id="chrepchar-s-char-old_chr-char-new_chr">chrep(char *s, char
-old_chr, char new_chr)</h3>
+<h3 id="void-chrepchar-s-char-old_chr-char-new_chr">void chrep(char *s,
+char old_chr, char new_chr)</h3>
 <p>Replaces all occurrences of a specified character in a string with
 another character.</p>
 <ul>
@@ -245,8 +262,24 @@ another character.</p>
 </ul></li>
 </ul>
 <hr />
-<h3 id="file_spec_pathchar-fp-char-fs">file_spec_path(char *fp, char
-*fs)</h3>
+<h3 id="void-normalize_file_specchar-spec">void normalize_file_spec(char
+*spec)</h3>
+<p>Normalizes a file specification by converting backslashes to forward
+slashes.</p>
+<ul>
+<li>Parameters:
+<ul>
+<li><code>char *spec</code>: The file specification to be
+normalized.</li>
+</ul></li>
+<li>Returns:
+<ul>
+<li><code>void</code>: no return</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="void-file_spec_pathchar-fp-char-fs">void file_spec_path(char
+*fp, char *fs)</h3>
 <p>Extracts the path component from a file specification and places it
 in fp. It is the caller's responsibility to ensure that fp has enough
 space to hold the path.</p>
@@ -563,21 +596,21 @@ replaced.</li>
 </ul></li>
 <li>Returns:
 <ul>
-<li><p><code>char *</code>: A pointer to the newly allocated string with
-replacements made.</p>
-<pre><code>The function allocates memory for the new string, which must be
-freed by the caller when no longer needed.</code></pre></li>
+<li><code>char *</code>: A pointer to the newly allocated string with
+replacements made.</li>
 </ul></li>
 </ul>
+<p>The function allocates memory for the new string, which must be freed
+by the caller when no longer needed.</p>
 <p>===============================================================</p>
 <h2 id="string-functions">STRING FUNCTIONS</h2>
 <hr />
 <h3 id="typedef-struct-string">typedef struct String</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">*</span>str<span class="op">;</span>     <span class="co">// Pointer to the string data</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> length<span class="op">;</span>  <span class="co">// Length of the string</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> String<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">*</span>str<span class="op">;</span>     <span class="co">// Pointer to the string data</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> length<span class="op">;</span>  <span class="co">// Length of the string</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> String<span class="op">;</span></span></code></pre></div>
 <p>Represents a dynamic string with its length.</p>
 <hr />
 <h3 id="string-to_stringconst-char-s">String to_string(const char
@@ -713,22 +746,22 @@ length, the destination String's str pointer is reallocated.</p>
 <p>Chyrons are text overlays used in video production to display
 information such as names, titles, or other relevant data. The C-Menu
 API provides functions to create, manage, and render chyrons in a user
-interface. Though not exactly like they chyrons you see on TV news
+interface. Though not exactly like the chyrons you see on TV news
 broadcasts, they serve a similar purpose in providing on-screen
 information in a banner across the bottom of the screen and present
-options, in the form of function keys to the user. The Function Key
-command can be selected by pressing the indicated F Key or clicking on
-the chyron within the vertical bars separating the F Keys.</p>
+options, in the form of command keys to the user. The Function Key or
+command key can be selected by pressing the indicated F Key or clicking
+on the chyron within the vertical bars separating the F Keys.</p>
 <figure>
 <img src="screenshots/Pick.png" alt="C-Menu Pick Chyron" />
 <figcaption aria-hidden="true">C-Menu Pick Chyron</figcaption>
 </figure>
 <h3 id="struct-key_cmd_tbl">struct key_cmd_tbl</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> text<span class="op">[</span><span class="dv">32</span><span class="op">];</span>    <span class="co">// displayed in the chyron</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> keycode<span class="op">;</span>      <span class="co">// any unique integer value</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> end_pos<span class="op">;</span>      <span class="co">// end position in the chyron</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> key_cmd_tbl<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> text<span class="op">[</span><span class="dv">32</span><span class="op">];</span>    <span class="co">// displayed in the chyron</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> keycode<span class="op">;</span>      <span class="co">// any unique integer value</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> end_pos<span class="op">;</span>      <span class="co">// end position in the chyron</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> key_cmd_tbl<span class="op">;</span></span></code></pre></div>
 <figure>
 <img src="screenshots/cmd_tbl.png" alt="key_cmd_tbl" />
 <figcaption aria-hidden="true">key_cmd_tbl</figcaption>
@@ -736,12 +769,11 @@ the chyron within the vertical bars separating the F Keys.</p>
 <p>As you can see in the table above, the key_cmd_tbl structure keeps
 track of the function key commands and their positions within the
 chyron. This allows the program to determine which function key was
-selected based on the x-coordinate of a mouse click.</p>
-<p>Usually, not all function keys are used in the chyron. The chyron is
-designed to be flexible and can accommodate different numbers of
-function keys depending on the application's needs. The unused function
-keys, those in which the text is set to '\0', are not displayed in the
-chyron.</p>
+selected based on the x-coordinate of a mouse click. Usually, not all
+function keys are used in the chyron. The chyron is designed to be
+flexible and can accommodate different numbers of function keys
+depending on the application's needs. The unused function keys, those in
+which the text is set to '\0', are not displayed in the chyron.</p>
 <p>You also notice, Function Keys are just one way to use the chyron
 system. The keycode can be any integer value you choose, allowing for
 custom commands or actions. You don't have to use a key at all. You
@@ -752,12 +784,12 @@ could populate the chyron with Unicode glyphs or other symbols.</p>
 key number, currently 1 through 14, and s is the command description
 associated with the function key. For example, to insert “F5 Calculate”
 into the chyron, you would call</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>setkey<span class="op">(</span><span class="dv">5</span><span class="op">,</span> <span class="st">&quot;Calculate&quot;</span><span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>setkey<span class="op">(</span><span class="dv">5</span><span class="op">,</span> <span class="st">&quot;Calculate&quot;</span><span class="op">);</span></span></code></pre></div>
 <hr />
 <h3 id="void-unset_fkeyint-k">void unset_fkey(int k)</h3>
 <p>Removes a function key command from the chyron. For example, to
 remove the command associated with function key 5, you would call</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>unset_fkey<span class="op">(</span><span class="dv">5</span><span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>unset_fkey<span class="op">(</span><span class="dv">5</span><span class="op">);</span></span></code></pre></div>
 <hr />
 <h3 id="int-chyron_mkkey_cmd_tbl-fc-char-s">int chyron_mk(key_cmd_tbl
 *fc, char *s)</h3>
@@ -776,8 +808,8 @@ get_chyron_key(key_cmd_tbl *fc, int x)</h3>
 <p>Determines which function key was selected based on the x-coordinate
 of a mouse click. get_chyron_key returns the number of the function key
 clicked.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cmdkey <span class="op">=</span> get_chyron_key<span class="op">(&amp;</span>fkey_table<span class="op">,</span> mouse_x<span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>cmdkey <span class="op">=</span> get_chyron_key<span class="op">(&amp;</span>fkey_table<span class="op">,</span> mouse_x<span class="op">);</span></span></code></pre></div>
 <hr />
 <h3 id="bool-is_set_fkeyint-k">bool is_set_fkey(int k)</h3>
 <p>Checks if a function key command is set in the chyron. The use case
@@ -798,37 +830,33 @@ otherwise.</li>
 <h2 id="color-functions">COLOR FUNCTIONS</h2>
 <p>The following concepts are fundamental to using NCurses
 successfully.</p>
-<ul>
-<li><p>NCurses must be initialized with color support. Using C-Menu's
-open_curses() function takes care of the details.</p></li>
-<li><p>NCurses uses init_extended_colors(i, r, g, b) to register
-individual colors specified by the caller, where i is the index number
-of the color, and r, g, b are color component values scaled 0 - 1000.
-(one billion colors). Each element in the color table may represent a
-foreground or background color.</p></li>
-<li><p>NCurses uses init_extended_pair(pair_index, foreground_color,
+<p>NCurses must be initialized with color support. Using C-Menu's
+open_curses() function takes care of the details.</p>
+<p>NCurses uses init_extended_colors(i, r, g, b) to register individual
+colors specified by the caller, where i is the index number of the
+color, and r, g, b are color component values scaled 0 - 1000. (one
+billion colors). Each element in the color table may represent a
+foreground or background color.</p>
+<p>NCurses uses init_extended_pair(pair_index, foreground_color,
 background_color) to register color pairs, which are composed of a
 foreground and background color from the color table created with
 init_extended_colors(). The foreground/background pairs will be
 integrated into the complex character structures (cchar_t) that will be
-displayed on the screen.</p></li>
-<li><p>RGB is a structure representing a color in terms of its red,
-green, and blue components. The RGB structure is defined as
-follows:</p></li>
-</ul>
-<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r<span class="op">;</span> <span class="co">// Red component (0-255)</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> g<span class="op">;</span> <span class="co">// Green component (0-255)</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> b<span class="op">;</span> <span class="co">// Blue component (0-255)</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> RGB<span class="op">;</span></span></code></pre></div>
-<ul>
-<li>NCurses uses a 0-1000 scale for RGB values, so the RGB values must
-be converted from the standard 0-255 scale to the 0-1000 scale before
-being used with NCurses functions.</li>
-</ul>
-<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ncurses_r <span class="op">=</span> <span class="op">(</span>rgb_r <span class="op">*</span> <span class="dv">1000</span><span class="op">)</span> <span class="op">/</span> <span class="dv">255</span><span class="op">;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ncurses_g <span class="op">=</span> <span class="op">(</span>rgb_g <span class="op">*</span> <span class="dv">1000</span><span class="op">)</span> <span class="op">/</span> <span class="dv">255</span><span class="op">;</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>ncurses_b <span class="op">=</span> <span class="op">(</span>rgb_b <span class="op">*</span> <span class="dv">1000</span><span class="op">)</span> <span class="op">/</span> <span class="dv">255</span><span class="op">;</span></span></code></pre></div>
+displayed on the screen.</p>
+<p>RGB is a structure representing a color in terms of its red, green,
+and blue components. The RGB structure is defined as follows:</p>
+<h3 id="typedef-struct-rgb">typedef struct RGB</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r<span class="op">;</span> <span class="co">// Red component (0-255)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> g<span class="op">;</span> <span class="co">// Green component (0-255)</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> b<span class="op">;</span> <span class="co">// Blue component (0-255)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> RGB<span class="op">;</span></span></code></pre></div>
+<p>NCurses uses a 0-1000 scale for RGB values, so the RGB values must be
+converted from the standard 0-255 scale to the 0-1000 scale before being
+used with NCurses functions.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ncurses_r <span class="op">=</span> <span class="op">(</span>rgb_r <span class="op">*</span> <span class="dv">1000</span><span class="op">)</span> <span class="op">/</span> <span class="dv">255</span><span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ncurses_g <span class="op">=</span> <span class="op">(</span>rgb_g <span class="op">*</span> <span class="dv">1000</span><span class="op">)</span> <span class="op">/</span> <span class="dv">255</span><span class="op">;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ncurses_b <span class="op">=</span> <span class="op">(</span>rgb_b <span class="op">*</span> <span class="dv">1000</span><span class="op">)</span> <span class="op">/</span> <span class="dv">255</span><span class="op">;</span></span></code></pre></div>
 <hr />
 <h3 id="int-get_clr_pairint-fg-int-bg">int get_clr_pair(int fg, int
 bg)</h3>
@@ -852,7 +880,7 @@ of color pairs has been reached.</li>
 <hr />
 <h3 id="int-get_clrrgb-rgb">int get_clr(RGB rgb)</h3>
 <p>Retrieves the color index for the specified RGB color, or if the
-color doesn't exist, creates it. If the maximum number of colors,
+color does not exist, creates it. If the maximum number of colors,
 MAX_COLORS, is reached, ERR is returned. This function allows NCurses to
 manage colors efficiently by reusing existing colors when possible.
 Choose from 16,777,216 if your terminal supports it.</p>
@@ -964,3 +992,88 @@ color.</li>
 <h3 id="rgb-hex_clr_str_to_rgb">RGB hex_clr_str_to_rgb()</h3>
 <p>Converts a hexadecimal color string to an RGB color.</p>
 <hr />
+<p>===============================================================</p>
+<h2 id="initialization">INITIALIZATION</h2>
+<p>The initializaiton module poopulates the C-Menu data structures from
+the configuration file, .minitrc, and as well as the command line with
+which the program was started. The Init structure serves multiple roles,
+storing system-wide runtime parameters for all components, but also
+component-specific parameters for Menu, Form, Pick, and View as they are
+parsed from the command line. The initialization module may be invoked
+at startup by any of the C-Menu components, Menu, Form, Pick, or View,
+or it may be invoked by a call from another component.</p>
+<p>Init also provides options to dump to stdout or write to
+~/menuapp/minitrc.dmp the configuration, which may be copied to
+~/.minitrc to serve as a new configuration file.</p>
+<h3 id="void-mapp_initializationinit-init-int-argc-char-argv">void
+mapp_initialization(Init *init, int argc, char **argv)</h3>
+<ul>
+<li>Parameters:
+<ul>
+<li><code>Init *init</code>: Pointer to the initialization structure
+containing configuration data.</li>
+<li><code>int argc</code>: The number of command-line arguments.</li>
+<li><code>char **argv</code>: The array of command-line argument
+strings.</li>
+</ul></li>
+<li>Returns:
+<ul>
+<li><code>void</code>: no return</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="int-parse_opt_argsinit-init-int-argc-char-argv">int
+parse_opt_args(Init *init, int argc, char **argv)</h3>
+<p>Each component of the C-Menu suite, Menu, Form, Pick, and View, has
+its own data structure which is initialized, either at startup, or when
+the component is called by another program. The component can get much
+of the information it needs from the Init structure, but other
+information may need to be derived from internal commands passed to it
+by the caller. That is the purpose of this function.</p>
+<ul>
+<li>Parameters:
+<ul>
+<li><code>Init *init</code>: Pointer to the initialization structure to
+be populated.</li>
+<li><code>int argc</code>: The number of command-line arguments.</li>
+<li><code>char **argv</code>: The array of command-line argument
+strings.</li>
+</ul></li>
+<li>Returns:
+<ul>
+<li>int optind, a pointer to non-options arguments that could not be
+processed by getopt. These are positional arguments which will be
+processed in mem.c, after allocating memory for component data
+structures, including as Menu, Form, Pick, and View.</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="int-parse_configinit-init">int parse_config(Init *init)</h3>
+<p>Parses the C-Menu configuration file, .minitrc, to populate the Init
+structure.</p>
+<ul>
+<li>Parameters:
+<ul>
+<li><code>Init *init</code>: Pointer to the initialization structure to
+be populated.</li>
+</ul></li>
+<li>Returns:
+<ul>
+<li><code>int</code>: 0 on success, or a negative error code on failure.
+The function reads the .minitrc file, processes its contents, and fills
+the Init structure with the configuration settings. It is up to the
+caller to ensure that the Init structure is properly allocated before
+calling this function.</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="void-zero_opt_argsinit-init">void zero_opt_args(Init *init)</h3>
+<p>Data that is specific to individual components is stored in the Init
+structure’s temporary space until the component data structure is
+initialzied. After the component data structure is initialized, the
+component-specific data is copied from the Init structure to the
+component data structure. This temporary space in the Init structure
+could confuse the next component that calls parse_opt_args, so it needs
+to be cleared before processing another command line for another
+component. That is the purpose of zero_opt_args. It’s like the
+restaurant cleaning the table before seating the next customer. 😎</p>

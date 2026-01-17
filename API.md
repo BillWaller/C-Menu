@@ -105,7 +105,7 @@ Converts all characters in the string to uppercase.
 
 ---
 
-### strnz\_\_cpy(char \*dest, char \*src, size_t max_len)
+### size_t strnz\_\_cpy(char \*dest, char \*src, size_t max_len)
 
 Copies a string from source to destination with a specified maximum length.
 
@@ -124,7 +124,7 @@ buffer - 1, leaving space for the null terminator.
 
 ---
 
-### strnz\_\_cat(char \*dest, char \*src, size_t max_len)
+### size_t strnz\_\_cat(char \*dest, char \*src, size_t max_len)
 
 Concatenates a source string to a destination string with a specified maximum length.
 
@@ -143,7 +143,7 @@ buffer - 1, leaving space for the null terminator.
 
 ---
 
-### strnz(char \*str, int max_len)
+### void strnz(char \*str, int max_len)
 
 Ensures that a string is null-terminated within a specified maximum length.
 Terminates the string on encountering a line-feed (\'\n\') or
@@ -157,7 +157,7 @@ carriage-return (\'\r\').
 
 ---
 
-### strnz_dup(char \*str, int max_len)
+### char \*strnz_dup(char \*str, int max_len)
 
 Duplicates a string up to a specified maximum length, a line-feed
 (\'\n\'), or a carriage-return (\'\r\'), ensuring null-termination.
@@ -186,6 +186,19 @@ string.
 
 ---
 
+### void strnfill(char \*s, char c, n)
+
+Fills a string with a specified character up to a given length.
+
+- Parameters:
+  - `char *s`: The string to be filled.
+  - `char c`: The character to fill the string with.
+  - `int n`: The number of characters to fill.
+- Returns:
+  - `void`: no return4
+
+---
+
 ### bool stripz_quotes(char \*s)
 
 Removes surrounding double quotes from a string if they exist.
@@ -207,6 +220,17 @@ Replaces all occurrences of a specified character in a string with another chara
   - `char new_chr`: The character to replace with.
 - Returns:
   - void: no return
+
+---
+
+### void normalize_file_spec(char \*spec)
+
+Normalizes a file specification by converting backslashes to forward slashes.
+
+- Parameters:
+  - `char *spec`: The file specification to be normalized.
+- Returns:
+  - `void`: no return
 
 ---
 
@@ -434,7 +458,7 @@ files that match the provided regular expression.
 
 ---
 
-### bool lf_find_files(char \*dir, char \*re)
+### lf_find_files(char \*dir, char \*re)
 
 Finds files within a specified directory that match a given regular expression.
 
@@ -633,12 +657,16 @@ typedef struct {
 
 As you can see in the table above, the key_cmd_tbl structure keeps track of
 the function key commands and their positions within the chyron. This allows
-the program to determine which function key was selected based on the x-coordinate of a mouse click.
+the program to determine which function key was selected based on the
+x-coordinate of a mouse click. Usually, not all function keys are used in
+the chyron. The chyron is designed to be flexible and can accommodate different
+numbers of function keys depending on the application\'s needs. The unused
+function keys, those in which the text is set to \'\0\', are not displayed
+in the chyron.
 
-Usually, not all function keys are used in the chyron. The chyron is designed to be flexible and can accommodate different numbers of function keys depending on the application\'s needs. The unused function keys, those in which the text is
-set to \'\0\', are not displayed in the chyron.
-
-You also notice, Function Keys are just one way to use the chyron system. The keycode can be any integer value you choose, allowing for custom commands or actions. You don\'t have to use a key at all. You could populate the chyron with
+You also notice, Function Keys are just one way to use the chyron system. The keycode
+can be any integer value you choose, allowing for custom commands or actions.
+You don\'t have to use a key at all. You could populate the chyron with
 Unicode glyphs or other symbols.
 
 ---
@@ -827,7 +855,7 @@ in practice because most terminal emulators support at least 256 colors, and
 many programs use these colors. When the get_clr() function above is called, it
 checks this table first, and if a match is found, it returns the corresponding
 color index. If the color requested is not found in the palette, get_clr()
-creates a new color entry.ZZ
+creates a new color entry.
 
 NCurses assigns names to the first 16 colors (the EGA/ANSI palette), but these
 colors can be redefined in C-Menu\'s configuration, .minitrc, using RGB values.
@@ -860,3 +888,80 @@ initializes the color at the specified index using the RGB values.
 Converts a hexadecimal color string to an RGB color.
 
 ---
+
+===============================================================
+
+## INITIALIZATION
+
+The initializaiton module poopulates the C-Menu data structures from
+the configuration file, .minitrc, and as well as the command line with
+which the program was started. The Init structure serves multiple
+roles, storing system-wide runtime parameters for all components, but
+also component-specific parameters for Menu, Form, Pick, and View as they
+are parsed from the command line. The initialization module may be invoked
+at startup by any of the C-Menu components, Menu, Form, Pick, or View, or
+it may be invoked by a call from another component.
+
+Init also provides options to dump to stdout or write to ~/menuapp/minitrc.dmp
+the configuration, which may be copied to ~/.minitrc to serve as a new
+configuration file.
+
+### void mapp_initialization(Init \*init, int argc, char \*\*argv)
+
+- Parameters:
+  - `Init *init`: Pointer to the initialization structure containing configuration
+    data.
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+- Returns:
+  - `void`: no return
+
+---
+
+### int parse_opt_args(Init \*init, int argc, char \*\*argv)
+
+Each component of the C-Menu suite, Menu, Form, Pick, and View, has its own
+data structure which is initialized, either at startup, or when the
+component is called by another program. The component can get much of the
+information it needs from the Init structure, but other information may
+need to be derived from internal commands passed to it by the caller. That
+is the purpose of this function.
+
+- Parameters:
+  - `Init *init`: Pointer to the initialization structure to be populated.
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+- Returns:
+  - int optind, a pointer to non-options arguments that could not be processed
+    by getopt. These are positional arguments which will be processed in mem.c,
+    after allocating memory for component data structures, including as Menu,
+    Form, Pick, and View.
+
+---
+
+### int parse_config(Init \*init)
+
+Parses the C-Menu configuration file, .minitrc, to populate the Init structure.
+
+- Parameters:
+  - `Init *init`: Pointer to the initialization structure to be populated.
+- Returns:
+  - `int`: 0 on success, or a negative error code on failure.
+    The function reads the .minitrc file, processes its contents, and fills
+    the Init structure with the configuration settings. It is up to the caller to
+    ensure that the Init structure is properly allocated before calling this
+    function.
+
+---
+
+### void zero_opt_args(Init \*init)
+
+Data that is specific to individual components is stored in the Init
+structure's temporary space until the component data structure is
+initialzied. After the component data structure is initialized, the
+component-specific data is copied from the Init structure to the component
+data structure. This temporary space in the Init structure could confuse
+the next component that calls parse_opt_args, so it needs to be cleared
+before processing another command line for another component. That is
+the purpose of zero_opt_args. It's like the restaurant cleaning the table
+before seating the next customer. 😎
