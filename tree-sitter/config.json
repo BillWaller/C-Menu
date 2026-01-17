@@ -1,67 +1,65 @@
 {
 	"parser-directories": [
-		"/home/bill/github",
 		"/home/bill/src",
-		"/home/bill/source",
-		"/home/bill/projects",
-		"/home/bill/dev",
-		"/home/bill/git"
+		"/home/bill/.config/tree-sitter/parsers"
 	],
 	"theme": {
 		"attribute": {
-			"color": 214,
+			"color": "#f9a080",
 			"italic": true
 		},
 		"comment": {
-			"color": 39,
+			"color": "#c0c0c0",
 			"italic": true
 		},
-		"constant": 124,
+		"constant": "#00ff00",
 		"constant.builtin": {
 			"bold": true,
-			"color": 124
+			"color": "#f000f0"
 		},
-		"constructor": 214,
+		"constructor": "#00ffbf",
 		"embedded": null,
-		"function": 32,
+		"function": "#ff5f00",
+		"function_definition": "#f0f000",
+		"function_declaration": "#f0f000",
 		"function.builtin": {
 			"bold": true,
-			"color": 45
+			"color": "#f0f000"
 		},
-		"keyword": 250,
-		"module": 196,
+		"keyword": "#00afff",
+		"module": "#0000f0",
 		"number": {
 			"bold": true,
-			"color": 160
+			"color": "#f0cf00"
 		},
 		"operator": {
 			"bold": true,
-			"color": 202
+			"color": "#f000f0"
 		},
-		"property": 184,
+		"property": "#ffcf00",
 		"property.builtin": {
 			"bold": true,
-			"color": 184
+			"color": "#ffcf00"
 		},
-		"punctuation": 171,
-		"punctuation.bracket": 171,
-		"punctuation.delimiter": 171,
-		"punctuation.special": 171,
-		"string": 46,
-		"string.special": 30,
-		"tag": 13,
-		"type": 51,
+		"punctuation": "#f000f0",
+		"punctuation.bracket": "#f000f0",
+		"punctuation.delimiter": "#f000f0",
+		"punctuation.special": "#f000f0",
+		"string": "#00ff80",
+		"string.special": "#f07fff",
+		"tag": "#ff0000",
+		"type": "#3fefff",
 		"type.builtin": {
 			"bold": true,
-			"color": 27
+			"color": "#ff5070"
 		},
-		"variable": 202,
+		"variable": "#00d050",
 		"variable.builtin": {
 			"bold": true,
-			"color": 208
+			"color": "#00d050"
 		},
 		"variable.parameter": {
-			"color": 208,
+			"color": "#00d050",
 			"underline": true
 		}
 	}

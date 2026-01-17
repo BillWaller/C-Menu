@@ -10,15 +10,19 @@
 6. [Tree-Sitter](#tree-sitter)
 7. [Tree-Sitter-CLI](#tree-sitter-cli)
 8. [Tree-Sitter Parsers](#tree-sitter-parsers)
-9. [Yazi](#yazi)
-10. [Rustlings](#rustlings)
-11. [Neovim](#neovim)
+9. [Rustlings](#rustlings)
+10. [Neovim](#neovim)
 
 ## Installing Rust
 
 C-Menu is written in C, but there are many amazing tools written in Rust that
-can augment your experience using C-Menu. Below are instructions on how to
+can augment your experience using C-Menu. Even if you never plan to write code
+in rust, the Cargo package manager that comes with Rust is worth the effort to
+install Rust. Cargo is generally the easiest and most reliable way to install
+Rust-based tools and their dependencies. Below are instructions on how to
 install Rust and some of my favorite Rust-based tools.
+
+### Installing Rust On Linux and macOS
 
 Run the following in your terminal, then follow the onscreen instructions.
 
@@ -45,24 +49,29 @@ You can verify the installation by checking the Rust version:
 This should display the installed Rust version, confirming that Rust is
 successfully installed on your system.
 
-Rust comes with Cargo, the Rust package manager, which you can use to install
-additional Rust-based tools.
-
 You can update Rust and Cargo at any time by running:
 
 ```bash
     rustup update
 ```
 
+---
+
 ## About C-Menu and R-Menu
 
-Eventually, if there is enough interest in C-Menu, it will be ported to Rust
-as well! And, they it will be called R-Menu. 😀
+Eventually, if there is enough interest in C-Menu, it will be ported to Rust.
+The plan is to thoroughly test and debug the C version, and incrementally
+incorporate Rust-like coding paradigms into the C codebase. Once the C version
+is stable and feature complete, a full port to Rust will be undertaken.
+And, then it will be called R-Menu. 😀
+
+---
 
 ## Installing Bat
 
-To install Bat, a cat clone with syntax highlighting and Git integration, you
-can use the following commands based on your operating system:
+Bat is a popular Rust-based tool that serves as a cat clone with syntax
+highlighting. It's easier to install than Tree-Sitter. To install Bat,
+you can use the following commands based on your operating system:
 
 ### Bat On Linux
 
@@ -94,11 +103,15 @@ After installation, you can verify that Bat is installed correctly by running:
 This should display the installed Bat version, confirming that Bat is successfully
 installed on your system.
 
+---
+
 ## Installing Ripgrep
 
-To install Ripgrep, a line-oriented search tool that recursively searches your
-current directory for a regex pattern, you can use the following commands based
-on your operating system
+Ripgrep is a modernized and powerful replacement for grep. It is amazingly fast
+and incorporates many features not available in grep.
+
+To install Ripgrep, you can use the following commands depending on your
+operating system
 
 ### Ripgrep On Linux
 
@@ -128,6 +141,8 @@ After installation, you can verify that Ripgrep is installed correctly by runnin
 
 This should display the installed Ripgrep version, confirming that Ripgrep
 is successfully installed on your system.
+
+---
 
 ## lsd
 
@@ -163,10 +178,31 @@ After installation, you can verify that lsd is installed correctly by running:
 This should display the installed lsd version, confirming that lsd is successfully
 installed on your system
 
+---
+
 ## Tree-Sitter
 
-To install Tree-Sitter, a parser generator tool and an incremental parsing library,
-you can use the following commands based on your operating system:
+To put it mildly, Tree-Sitter is a game-changer when it comes to parsing and
+analyzing source code. It provides a robust and efficient way to build
+incremental parsers for programming languages, enabling advanced features like
+syntax highlighting, code folding, and more. Tree-Sitter is widely adopted in
+various code editors and IDEs, making it an essential tool for developers who
+work with code on a regular basis.
+
+The syntax highlighting provided by Tree-Sitter is top-notch, offering
+precise and context-aware highlighting that enhances code readability and
+understanding. It can handle complex language constructs and edge cases that
+traditional syntax highlighters often struggle with.
+
+In a phrase, it'll knock your socks off! 😮
+
+![Tree-Sitter](screenshots/Tree-sitter-small.png)
+Tree-Sitter works with Neovim, C-Menu, and many other editors and pagers to
+provide advanced syntax highlighting and code analysis features.
+
+![Tree-Sitter in C-Menu View](screenshots/view_engine.png)
+To install Tree-Sitter, you can use the following commands depending on your
+operating system:
 
 ### Tree-Sitter On Linux
 
@@ -196,6 +232,8 @@ After installation, you can verify that Tree-Sitter is installed correctly by ru
 
 This should display the installed Tree-Sitter version, confirming that Tree-Sitter
 is successfully installed on your system.
+
+---
 
 ## Tree-Sitter-CLI
 
@@ -233,6 +271,8 @@ running:
 This should display the installed Tree-Sitter-CLI version, confirming that
 Tree-Sitter-CLI is successfully installed on your system.
 
+---
+
 ## Tree-Sitter Parsers
 
 To install Tree-Sitter parsers for various programming languages, you can use the
@@ -255,47 +295,42 @@ need. Here are some examples:
 I installed my tree-sitter parsers in the following directory structure:
 
 ```
-~/.config/tree-sitter
-    ├── config.json
-    └── parsers
-        ├── tree-sitter-awk
-        ├── tree-sitter-bash
-        ├── tree-sitter-cpp
-        ├── tree-sitter-c
-        ├── tree-sitter-go
-        ├── tree-sitter-lua
-        ├── tree-sitter-markdown
-        ├── tree-sitter-rust
-        └── tree-sitter-zig
+
 ```
+
+~/.config/tree-sitter
+├── config.json
+└── parsers
+├── tree-sitter-awk
+├── tree-sitter-bash
+├── tree-sitter-cpp
+├── tree-sitter-c
+├── tree-sitter-go
+├── tree-sitter-lua
+├── tree-sitter-markdown
+├── tree-sitter-rust
+└── tree-sitter-zig
+
+````
 
 The `config.json` file contains configuration settings for Tree-Sitter.
-The `parsers` directory contains the installed Tree-Sitter parsers for different programming languages.
-
-```
-
-
-"parser-directories": [
-		"/home/bill/.config/tree-sitter/parsers"
-	],
-```
-
-You can also configure a custom color scheme in the config.json file if you like. Here's a sample of mine:
+The `parsers` directory contains the installed Tree-Sitter parsers for
+different programming languages.
 
 ```json
+"parser-directories": [
+        /home/bill/.config/tree-sitter/parsers
+]
+````
 
-	"theme": {
-		"attribute": {
-			"color": 214,
-			"italic": true
-		},
-		"comment": {
-			"color": 39,
-			"italic": true
-```
+You can also configure a custom color scheme in the config.json file if you like.
+Here's a sample of mine:
 
-The colors in my configuration are from the Xterm 256 color palette, but I believe
-you can use HTML style six digit hex numbers such as "#000000"
+![~/.config/tree-sitter/config.json](screenshots/tree-sitter-config.json.png)
+
+The ~/tree-sitter/config.json distributed with tree-sitter uses the 256 color
+xterm palette, but you can also use HTML style six digit hex numbers as shown
+above.
 
 ```bash
     cargo install tree-sitter-<language>
@@ -325,50 +360,27 @@ language, confirming that it is successfully installed on your system.
 Replace `<language>` with the specific programming language you want to install
 the parser for, such as `python`, `javascript`, `rust`, etc.
 
-## Yazi
-
-Yazi is a simple and elegant terminal-based markdown viewer built with Rust. It
-provides a clean and distraction-free way to read markdown files directly in
-your terminal. To install Yazi, you can use the following commands based on
-your operating system:
-
-### Yazi On Linux
-
-After installing Rust, you can install Yazi using Cargo, Rust's package manager:
-
-```bash
-    cargo install yazi
-```
-
-### Yazi On macOS
-
-```bash
-    brew install yazi
-```
-
-### Yazi On Windows
-
-```powershell
-    choco install yazi
-```
-
-After installation, you can verify that Yazi is installed correctly by running:
-
-```bash
-    yazi --version
-```
-
-This should display the installed Yazi version, confirming that Yazi is successfully
-installed on your system
+---
 
 ## Rustlings
 
-Another tool I have really enjoyed is Rustlings. The Rustlings tutorials are an
-invaluable companion to the Rust Book.
+Even if you are an experienced programmer, Rust is not an easy language
+to learn. The ownership model and borrow checker are unique concepts that
+require a different way of thinking about memory management and data lifetimes.
+If you are new to programming, Rust can be even more challenging because it
+requires a solid understanding of programming fundamentals.
+
+However, with dedication and practice, anyone can learn Rust. There are many
+great resources available online, including the official Rust documentation,
+tutorials, and community forums. Additionally, there are many books and courses
+that can help you learn Rust from scratch.
+
+Start with the Rust Book, and concurrently do the exercises in Rustlings.
+Rustlings is an invaluable companion to the Rust Book.
 
 [The Rust Book](https://doc.rust-lang.org/book/)
 
-<img src="screenshots/rustlings1.png" title="Rustlings 1" />
+![Rustlings](screenshots/rustlings1.png)
 
 ![Rustlings](screenshots/rustlings2.png)
 
@@ -382,6 +394,58 @@ more.
 
 ![Neovim](screenshots/Neovim.png)
 
+## Lazyvim
+
+Lazyvim is a Neovim configuration that is designed to be fast, minimal, and
+easy to use. It comes with a set of pre-configured plugins and settings that
+enhance the Neovim experience. Lazyvim is highly customizable, allowing users
+to tailor their Neovim setup to their specific needs.
+
+![Lazyvim](screenshots/Lazyvim.png)
+
+To install Neovim and Lazyvim, follow the instructions on the
+[Lazyvim website](https://www.lazyvim.org/).
+
+## Ghostty
+
+Ghostty is a terminal emulator that is designed to be fast, lightweight, and
+highly customizable. It is built using Rust and leverages modern technologies
+to provide a smooth and efficient terminal experience. Ghostty supports
+features such as GPU acceleration, ligatures, and a wide range of customization
+options.
+
+To install Ghostty, you can use the following commands based on your operating
+system:
+
+### Ghostty On Linux
+
+![Ghostty With Neovim and Lazyvim](screenshots/Ghostty.png)
+
+After installing Rust, you can install Ghostty using Cargo, Rust's package
+manager:
+
+```bash
+    cargo install ghostty
+```
+
+### Ghostty On macOS
+
+```bash
+    brew install ghostty
+```
+
+### Ghostty On Windows
+
+```powershell
+    choco install ghostty
+```
+
+After installation, you can verify that Ghostty is installed correctly by running:
+
+```bash
+    ghostty --version
+```
+
 ## Additional Resources
 
 For more information on Rust and its tools, you can visit the following resources:
@@ -394,7 +458,15 @@ For more information on Rust and its tools, you can visit the following resource
 
 - [Bat GitHub Repository](https://github.com/sharkdp/bat)
 
+- [Bat Official Website](https://bat.dev/)
+
 - [Ripgrep GitHub Repository](https://github.com/BurntSushi/ripgrep)
+
+- [Tree-Sitter GitHub Repository](tree-sitter.github.io/tree-sitter)
+
+- [Neovim Official Website](https://neovim.io/)
+
+- [Lazyvim](https://www.lazyvim.org/)
 
 ## Conclusion
 

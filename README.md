@@ -27,6 +27,16 @@ operating systems. C-Menu is designed to be simple to use while
 providing powerful features to implement menu driven frameworks for
 applications.
 
+This is a real TUI. No GUI libraries, no X11, no Wayland, no
+dependencies on bloated toolkits. Just good old-fashioned text mode,
+using NCurses for terminal handling.
+
+While C-Menu does support mouse input, the primary mode of operation is
+keyboard driven, as God intended. You can navigate menus, fill out
+forms, and pick items using only the keyboard. This makes C-Menu ideal
+for use in terminal environments where mouse input may not be available
+or practical.
+
 ---
 
 ### C-Menu Menu
