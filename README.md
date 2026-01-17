@@ -7,18 +7,18 @@ Copyright 2025
 
 ---
 
-[New: C-Menu FAQ](FAQ.html)
+[New: C-Menu FAQ](FAQ.md)
 
-[New: C-Menu User Guide](C-Menu-UG.html)
+[New: C-Menu User Guide](C-Menu-UG.md)
 
-[New: Augmenting C-Menu](extras.html)
+[New: Augmenting C-Menu](extras.md)
 
-[New: C-Menu API](API.html)
+[New: C-Menu API](API.md)
 
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 
 ![C-Menu](screenshots/minitrc.png)
- 
+
 C-Menu is a lightweight, flexible, and easy-to-use suite of programs
 for creating a sophisticated user interface for your applications.
 Menus, Form, Pick, and View with, using a classical text-based terminal
