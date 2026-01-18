@@ -1,6 +1,4 @@
-# Installing Programs to Augment C-Menu
-
-## Table of Contents
+# Table of Contents
 
 1. [Installing Rust](#installing-rust)
 2. [About C-Menu and R-Menu](#about-c-menu-and-r-menu)
