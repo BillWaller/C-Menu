@@ -18,7 +18,7 @@
 
 C-Menu is a lightweight, flexible, and easy-to-use suite of programs
 for creating a sophisticated user interface for your applications.
-Menus, Form, Pick, and View with, using a classical text-based terminal
+Menus, Form, Pick, and View, using a classical text-based terminal
 interface(TUI) for applications running on Linux and Unix-like
 operating systems. C-Menu is designed to be simple to use while
 providing powerful features to implement menu driven frameworks for
@@ -39,13 +39,13 @@ or practical.
 ### C-Menu Menu
 
 At the top of the stack is C-Menu Menu, which reads a simple
-description file like the one above and displays a colorful and easy-to
+description file like the one below and displays a colorful and easy-to
 -follow menu to the user. When the user selects an item, with either
 keyboard or mouse, C-Menu executes the corresponding command. It's like
 writing shell scripts, but with a snazzy menu interface.
 
-![C-Menu Sample Menu](screenshots/applications_menu.png)
 ![C-Menu Sample Description File](screenshots/applications_menu.m.png)
+![C-Menu Sample Menu](screenshots/applications_menu.png)
 From the above examples, you can get an idea of how C-Menu works.
 Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View,
 which in turn executes "tree-sitter highlight view_engine.c". Tree
@@ -62,8 +62,7 @@ Kernel's demand paged virtual memory and you get:
 
 With C-Menu C-Keys, you can diagnose and resolve keyboard and mouse
 issues quickly and easily. Just press a key and get the Octal, Decimal,
-
-Hexadecimal, the escape sequence binding, and the NCurses identifier.
+Hexadecimal, the Escape Sequence Binding, and the NCurses Identifier.
 It's definitely easier than rummaging through hardware documentation
 and NCurses header files. It's also a good way to identify which keys
 are reserved by your terminal emulator, and gives you the specific key
@@ -75,9 +74,7 @@ C-Menu C-Keys also provides diagnostics for mouse actions and geometry.
 
 ![Ckeys Mouse](screenshots/ckeys-mouse.png)
 
-Just add hot water, stir, and Bob's your uncle, you have soup!
-
----
+Just add hot water, stir, and Bob's your uncle, you have soup! 😀
 
 ### C-Menu Pick - A Picker
 
@@ -89,7 +86,8 @@ piped to standard output, or provided as arguments to an executable
 files specified in the description file. Of course, you can select
 objects and commands with keyboard or mouse. C-Menu Pick does not
 currently support a Brain-Computer Interface (BCI), at least, not yet.
-iThe simplest use of C-Menu Pick is:
+
+Here's a simple way to use C-Menu Pick:
 
 Pick a file to view using "lf", a utility to search for files using
 regular expressions, and which is included with C-Menu:
@@ -237,7 +235,7 @@ of C-Menu View's features while reading manual pages.
 To use C-Menu View as your system pager, add the following line to your
 shell configuration file (e.g., .bashrc or .zshrc):
 
-```
+```bash
     export PAGER="view"
 ```
 
@@ -246,7 +244,7 @@ colorize underlined,emboldened, and italicized text. This sed script is
 included with C-Menu. To use it, you can run the following command in
 your terminal:
 
-```
+```bash
     man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
 ```
 
@@ -391,7 +389,7 @@ that you are wielding a loaded gun with the safety off. In this state,
 it only takes a minor typo. You mean to type "rm -r tmp/\*", but
 inadvertently put an extra space after tmp. I can't even type the resulting expression.
 
-```
+```bash
 rm -r tmp/*
 ```
 
@@ -438,6 +436,8 @@ Open-source and free to use
 ---
 
 ## C-Menu Configuration
+
+![C-Menu Configuration File](screenshots/options.png)
 
 User's can have multiple runtime configurations. In the snippet above,
 the standard ISO 6429 / ECMA-48 colors have been redefined and orange
