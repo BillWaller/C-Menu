@@ -1,9 +1,6 @@
 # C-Menu - User Interface Builder
 
-Bill Waller
-Copyright 2025
-
-[Bill Waller email](emailto:billxwaller@gmail.com)
+[Bill Waller email](sendto:billxwaller@gmail.com)
 
 ---
 
@@ -57,7 +54,9 @@ output to it's standard output device, which happens to be a pipe into
 C-Menu View's receiver. C-Menu View maps Tree-Sitter's output to the
 Kernel's demand paged virtual memory and you get:
 
-## ![C-Menu Tree-Sitter](screenshots/tree-sitter.png)
+![C-Menu Tree-Sitter](screenshots/tree-sitter.png)
+
+---
 
 ### C-Menu C-Keys - Diagnose Keyboard/Mouse Input
 
@@ -95,13 +94,13 @@ iThe simplest use of C-Menu Pick is:
 Pick a file to view using "lf", a utility to search for files using
 regular expressions, and which is included with C-Menu:
 
-```
+```bash
 view -S "lf -r . .*\.c$"
 ```
 
 Execute a program or script on a picked file:
 
-```
+```bash
 pick -S "lf -r . .*\.c$" -n 1 -c my_executable
 ```
 
@@ -110,7 +109,7 @@ Note that the syntax for "lf" (list files) is not similar to Unix "ls".
 The usage of "lf" is:
 
 ```bash
-lf [directory] [regular expression]
+lf directory regular_expression
 ```
 
 If you type "lf \*.c", it will fail for lack of a valid regular
@@ -120,11 +119,11 @@ comprehensive program carries a penalty in size and overhead. "lf" is
 
 streamlined to provide input for a picker.
 
-```
+```bash
 find -regex '.*\.c$' | sed 's/^..//'
 ```
 
-```
+```bash
 lf . '.*\.c$'
 ```
 
@@ -300,18 +299,18 @@ faster access times and reduced overhead.
 
 ### C-Menu View - Other Features
 
-- Horizontal scrolling for long lines. C-Menu View writes output to a
-  virtual screen, an Ncurses pad, to accommodate lines longer than the
-  physical screen.
+Horizontal scrolling for long lines. C-Menu View writes output to a
+virtual screen, an Ncurses pad, to accommodate lines longer than the
+physical screen.
 
-- C-Menu View has full support for Unicode, translating ASCII text and
-  multi-byte sequences to wide characters (wchar_t), and wide characters
-  and ANSI SGR sequences to complex characters (cchar_t). The complex
-  characters combine displayable characters plus attributes such as
-  bold, italic, underline, reverse and foreground and background colors.
-  NCurses can display more than 16 million colors.
+C-Menu View has full support for Unicode, translating ASCII text and
+multi-byte sequences to wide characters (wchar_t), and wide characters
+and ANSI SGR sequences to complex characters (cchar_t). The complex
+characters combine displayable characters plus attributes such as
+bold, italic, underline, reverse and foreground and background colors.
+NCurses can display more than 16 million colors.
 
-- C-Menu View supports mouse wheel vertical scrolling.
+C-Menu View supports mouse wheel vertical scrolling.
 
 ### C-Menu 3-Channel Gamma Correction
 
@@ -412,29 +411,29 @@ Please use it responsibly.
 
 ## C-Menu Features
 
-- Create and manage multiple menus, forms, and pickers
+Create and manage multiple menus, forms, and pickers
 
-- Define interfaces using simple configuration files
+Define interfaces using simple configuration files
 
-- Perfect for shell scripting, command-line, and terminal based applications
+Perfect for shell scripting, command-line, and terminal based applications
 
-- Made for Linux and Unix-like operating systems
+Made for Linux and Unix-like operating systems
 
-- Blazingly fast, even on older hardware
+Blazingly fast, even on older hardware
 
-- Text-based user interface (TUI) using ncurses
+Text-based user interface (TUI) using ncurses
 
-- Easily customize menu options and actions
+Easily customize menu options and actions
 
-- Any level of sub-menus
+Any level of sub-menus
 
-- Navigation using keyboard inputs the way God intended
+Navigation using keyboard inputs the way God intended
 
-- Configurable appearance and behavior
+Configurable appearance and behavior
 
-- Cross-platform compatibility
+Cross-platform compatibility
 
-- Open-source and free to use
+Open-source and free to use
 
 ---
 

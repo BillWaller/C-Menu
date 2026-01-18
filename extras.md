@@ -197,6 +197,7 @@ traditional syntax highlighters often struggle with.
 In a phrase, it'll knock your socks off! 😮
 
 ![Tree-Sitter](screenshots/Tree-sitter-small.png)
+
 Tree-Sitter works with Neovim, C-Menu, and many other editors and pagers to
 provide advanced syntax highlighting and code analysis features.
 
@@ -294,34 +295,30 @@ need. Here are some examples:
 
 I installed my tree-sitter parsers in the following directory structure:
 
-```
-
-```
-
+```bash
 ~/.config/tree-sitter
-├── config.json
-└── parsers
-├── tree-sitter-awk
-├── tree-sitter-bash
-├── tree-sitter-cpp
-├── tree-sitter-c
-├── tree-sitter-go
-├── tree-sitter-lua
-├── tree-sitter-markdown
-├── tree-sitter-rust
-└── tree-sitter-zig
-
-````
+  ├── config.json
+  └── parsers
+  ├── tree-sitter-awk
+  ├── tree-sitter-bash
+  ├── tree-sitter-cpp
+  ├── tree-sitter-c
+  ├── tree-sitter-go
+  ├── tree-sitter-lua
+  ├── tree-sitter-markdown
+  ├── tree-sitter-rust
+  └── tree-sitter-zig
+```
 
 The `config.json` file contains configuration settings for Tree-Sitter.
 The `parsers` directory contains the installed Tree-Sitter parsers for
 different programming languages.
 
-```json
+```bash
 "parser-directories": [
         /home/bill/.config/tree-sitter/parsers
 ]
-````
+```
 
 You can also configure a custom color scheme in the config.json file if you like.
 Here's a sample of mine:
@@ -421,8 +418,18 @@ system:
 
 ![Ghostty With Neovim and Lazyvim](screenshots/Ghostty.png)
 
+![Ghostty With Neovim and Lazyvim](screenshots/Neovim-v.png)
+
 After installing Rust, you can install Ghostty using Cargo, Rust's package
 manager:
+
+What you see above may not be useful for development projects, but it
+demonstrates Neovim, Ghostty, and Lazyvim working together in harmony to
+provide great flexibility.
+
+This feature is actually quite useful when searching for a particular source
+file among many files in a large project. You can quickly preview files
+without opening them fully in Neovim.
 
 ```bash
     cargo install ghostty
