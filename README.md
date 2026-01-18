@@ -1,6 +1,4 @@
-# C-Menu - User Interface Builder
-
-[Bill Waller email](sendto:billxwaller@gmail.com)
+# C-Menu User Interface Builder
 
 ---
 

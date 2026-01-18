@@ -1,6 +1,4 @@
-# C-Menu API Documentation
-
-## Table of Contents
+# Table of Contents
 
 - [Overview](#overview)
 - [Utility Functions](#utility-functions)

@@ -1,6 +1,4 @@
-# C-Menu User Guide
-
-## Table of Contents
+# Table of Contents
 
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
@@ -47,36 +45,33 @@ your needs.
 
 To begin, follow these steps:
 
-1. Install the C-Menu package from the official repository.
+- Install the C-Menu package
 
-   ```bash
+```bash
    gh repo clone BillWaller/C-Menu
-   ```
+```
 
-1. Copy the sample menuapp directory structure to your home directory
-   Initialize the C-Menu with default settings. Copy the sample
-   /menuapp/minitrc to your home directory as ~/.minitrc
+- Copy the sample menuapp to your home directory
 
-   ```bash
+```bash
    cp -Rdup C-Menu/menuapp ~/
    cp ~/menuapp/minitrc ~/.minitrc
-   ```
+```
 
-1. Install bashrc-cmenu to your home directory as ~/.bashrc-cmenu and
-   source it from your ~/.bashrc
+- Install bashrc-cmenu
 
-   ```bash
+```bash
    cp C-Menu/menuapp/bashrc-cmenu ~/.bashrc-cmenu
    echo 'source ~/.bashrc-cmenu' >> ~/.bashrc
-   ```
+```
 
-1. Build C-Menu:
+- Build C-Menu
 
-   ```bash
+```bash
    cd C-Menu/src
    make
    sudo make install
-   ```
+```
 
 To enable root access features, you need to install the RSH (Remote
 Shell) program with setuid root permissions. This allows certain menu
@@ -95,29 +90,22 @@ processes will appear as follows:
 When finished, take some time to explore the ~/menuapp directory to
 familiarize yourself with its features.
 
+---
+
 ## Menu
 
 C-Menu parses a menu description file, which contains text lines to
 display and command lines, which are essentially operating system
 commands.
 
-### Menu Example
+Menu Example
 
-```
-
-: APPLICATIONS
-: Neovim
-!exec nvim
-: Root Neovim
-!exec rsh -c nvim
-: Full Screen (root) Shell
-!exec rsh
-
-```
-
+![C-Menu Application Menu](screenshots/menu-desc.png)
 In this example, "Neovim" is a menu item that, when selected, will
 execute the command `nvim`. The user can select it by clicking on
 "Neovim" or by typing the corresponding letter assigned to it.
+
+![C-Menu Applications Menu](screenshots/applications_menu.png)
 
 ### Menu Description File Format
 
@@ -131,6 +119,8 @@ execute the command `nvim`. The user can select it by clicking on
 - Menu items can be grouped into sections by using text lines without
   corresponding command lines.
 
+---
+
 ## C-Menu Form
 
 Form is a companion tool for C-Menu that allows users to create and
@@ -139,44 +129,21 @@ input before executing commands from the C-Menu.
 
 ### Form Description File Example
 
-```
+![Form Description File](screenshots/iloan.f.png)
 
-H:Installment Loan Calculator
-
-#
-
-T:1:4:Enter any three of the four values to calculate the fourth.
-T:2:4:Only one field can be left blank or zero.
-T:3:4:Press F5 to calculate the missing value.
-
-#
-
-#
-
-T:5:14:Principal Amount:
-F:5:33:14:Currency
-T:6:14:Number of Months:
-F:6:33:5:Decimal_Int
-T:7:10:Annual Interest Rate:
-F:7:33:5:APR
-T:8:16:Payment Amount:
-F:8:33:12:Currency
-T:10:1:First Payment Date (Yyyymmdd):
-F:10:33:10:Yyyymmdd
-C
-?iloan.hlp
-
-```
+![Installment Loan Form](screenshots/iloan.png)
 
 #### Form Line Type Specifiers
 
-\# - Comment line (ignored)
-
+```bash
+? - Help file
+# - Comment line (ignored)
 H - The header to be displayed at the top of the form
 T - Text field (line:column:length:text)
 F - Input field (line:column:length:type)
+```
 
-will look for a file with the same name as the form but with a .hlp
+Form will look for a file with the same name as the form but with a .hlp
 extension. It will search in the current directory and then in the
 menu help directory, ~/menuapp/help.
 
@@ -187,7 +154,7 @@ character that is placed immediately after the line designator (H, T, F, ?)
 can be used as a delimiter. For example, the following two lines are
 equivalent:
 
-```
+```bash
 T:2:4:Enter any three of the four values to calculate the fourth.
 T|2|4|Enter any three of the four values to calculate the fourth.
 ```
@@ -218,21 +185,17 @@ case, and new types can be easily added by modifying the source code.
 
 #### Form Line Syntax
 
-```
-
+```bash
 H<delimiter>Header Text
 T<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Text
 F<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Type
 ?<delimiter>Help File Path
-
 # Comment line (ignored)
-
 ```
 
 #### Form Options
 
-```
-
+```bash
 -h Display help information
 -v Display version information
 -d <file> Specify the form description file
@@ -241,8 +204,9 @@ F<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Type
 -S <string> Command to provide input via a STDIN pipe
 -R <string> Command to receive output via a STDOUT pipe
 -c <string> Command to be executed with arguments provided by form
-
 ```
+
+---
 
 ## C-Menu Pick
 
@@ -262,7 +226,7 @@ by a command-line option (-n).
 Pick can be invoked from within C-Menu or from the command line using
 the following syntax:
 
-```
+```bash
 pick [options] [input_file]
 
 or
@@ -273,7 +237,7 @@ some_command | pick [options]
 
 ### Pick Options
 
-```
+```bash
 -n <number> Set the maximum number of items that can be selected
 -h Display help information
 -T Title to be displayed at the top of the pick list
@@ -291,7 +255,7 @@ reading files without the need for an external text editor.
 
 ### View Options
 
-```
+```bash
 -L <number> Set the number of lines for the view window
 -C <number> Set the number of columns for the view window
 -y <number> Set the beginning line for the view window
@@ -325,6 +289,8 @@ vertically.
 View supports extended regular expressions (regex) for advanced text
 searching capabilities.
 
+---
+
 ### C-Menu Options
 
 C-Menu Options can be provided by command line arguments or via a
@@ -340,18 +306,18 @@ specifically those without a designated letter, may be entered from
 the command line as hyphen\[option\]=\[value\], such as (-mapp_data="My
 C-Menu_Data_Directory").
 
-```
 ![C-Menu Options](screenshots/options.png)
-```
 
-#### lf
+---
+
+#### lf (list files)
 
 "lf" is a very lightweight alternative to find. It was designed to
 provide input to C-Menu Pick, but can be used stand-alone as well. It
 is similar to the Unix "find" command, but with a much simpler syntax
 and fewer features.
 
-```
+```bash
 Usage: lf [options] [directory] [regexp]
 Options:
 -a List all files (including hidden files)
@@ -373,7 +339,7 @@ more complex matching patterns.
 
 Example:
 
-```
+```bash
 lf -r -i /home/user '.\*\.[ch]$'
 ```
 

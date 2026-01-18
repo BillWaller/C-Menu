@@ -1,14 +1,4 @@
-# C-Menu FAQ
-
-## Author
-
-Bill Waller Copyright 2025
-
-## [Bill Waller email](sendto:billxwaller@gmail.com)
-
-## C-Menu Frequently Asked Questions
-
-### Table of Contents
+# Table of Contents
 
 1. [Why View Displays Question Marks](#why-view-displays-question-marks)
 2. [C-Menu View - How to Colorize Manual Pages](#c-menu-view---how-to-colorize-manual-pages)
@@ -23,7 +13,7 @@ Bill Waller Copyright 2025
 11. [C-Menu lf - Where Are My Header Files?](#c-menu-lf---where-are-my-header-files)
 12. [C-Menu View - View In A Box Window](#c-menu-view---view-in-a-box-window)
 
-### Why View displays question marks
+## Why View displays question marks
 
 Q: When I try to view a document that contains line-drawing characters,
 C-Menu View displays question marks instead of the line-drawing
@@ -52,7 +42,7 @@ line-drawing characters.
 
 ---
 
-### C-Menu View - How to Colorize Manual Pages
+## C-Menu View - How to Colorize Manual Pages
 
 Q: How can I add color to manual pages?
 
@@ -98,7 +88,7 @@ C-Menu View.
 
 ---
 
-### C-Menu View - How to Colorize HTML Color Codes
+## C-Menu View - How to Colorize HTML Color Codes
 
 Q: I want to colorize six digit html style hexadecimal colors, such as
 \#RRGGBB, in C-Menu View. How can I do this?
@@ -122,7 +112,7 @@ and after colorizing.
 
 ---
 
-### C-Menu View - How to Customize Colors
+## C-Menu View - How to Customize Colors
 
 Q: How can I customize the color scheme in C-Menu View?
 
@@ -134,7 +124,7 @@ revert to their previous state.
 
 ![C-Menu Configuration File](screenshots/minitrc.png)
 
-### C-Menu Menu, Form, Pick and View API
+## C-Menu Menu, Form, Pick and View API
 
 Q: I want to use the C-Menu API to develop my own code. How can I do that.
 
@@ -147,7 +137,7 @@ the API.
 
 ---
 
-### C-Menu View - How to Use Tree-sitter With View
+## C-Menu View - How to Use Tree-sitter With View
 
 Q: How do I use the tree-sitter highlighter with C-Menu View?
 
@@ -155,7 +145,7 @@ A: Documentation on this feature is sparse at the moment.
 
 Here are the basic steps to get started with tree-sitter and C-Menu View.
 
-### Install tree-sitter-cli
+## Install tree-sitter-cli
 
 ```bash
 cargo install tree-sitter-cli
@@ -175,7 +165,7 @@ tree-sitter build
 tree-sitter generate
 ```
 
-#### download from github
+### download from github
 
 [tree-sitter-c](https://github.com/tree-sitter/tree-sitter-c)
 
@@ -202,7 +192,7 @@ revise and clarify in the future.
 
 ---
 
-### C-Menu Form - Integrating External Executables
+## C-Menu Form - Integrating External Executables
 
 Q: How can I integrate external programs into C-Menu Form, such as an
 SQL Query or calculation?
@@ -251,7 +241,7 @@ C-Menu Form will complain that "iloan.dat" does not exist the first
 time you run the form. This is normal. C-Menu Form will create the
 file when you exit the form.
 
-### C-Menu - Using the Installment Loan Calculator
+## C-Menu - Using the Installment Loan Calculator
 
 ![Installment Loan Calculator](screenshots/iloan.png)
 
@@ -267,7 +257,7 @@ The next time you run the form, C-Menu Form will read the values from
 
 Here's a summary of the important parts of the form file format:
 
-### C-Menu Form - Line Type Speecifiers (H, T, F, and ?)
+## C-Menu Form - Line Type Speecifiers (H, T, F, and ?)
 
 - \# Comment line (ignored)
 - H - The header to be displayed at the top of the form
@@ -278,7 +268,7 @@ Here's a summary of the important parts of the form file format:
   .hlp extension. It will search in the current directory and then in
   the menu help directory, ~/menuapp/help.
 
-### C-Menu Form - Field Delimiters
+## C-Menu Form - Field Delimiters
 
 The ":" character is used as a delimiter in the fields above, but any
 character that is placed immediately after the line designator (H, T, F, ?)
@@ -288,7 +278,7 @@ equivalent:
 T:2:4:Enter any three of the four values to calculate the fourth.
 T|2|4|Enter any three of the four values to calculate the fourth.
 
-### C-Menu Form - Data Types
+## C-Menu Form - Data Types
 
 The following data types are currently supported for input fields:
 
@@ -316,7 +306,7 @@ case, and new types can be easily added by modifying the source code.
 
 ---
 
-### C-Menu - Interprocess Communications
+## C-Menu - Interprocess Communications
 
 Q: How does C-Menu send and receive data to external programs?
 
@@ -346,7 +336,7 @@ Rust to take advantage of tools like the Tokio and Serde crates.
 
 ---
 
-### C-Menu - What Happened to Delete by Inode
+## C-Menu - What Happened to Delete by Inode
 
 Q: I noticed you have a menu option named, "Delete by Inode", but it doesn't work.
 
@@ -376,7 +366,7 @@ as saving deleted files in a trash bin, on an opt-out basis.
 
 ---
 
-### C-Menu Pick - Selecting Multiple Files
+## C-Menu Pick - Selecting Multiple Files
 
 Q: In C-Menu Pick, how can I select multiple files to edit with vi?
 
@@ -395,7 +385,7 @@ View, you can type: \":n\<enter\>\" to open the next file.
 
 ---
 
-### C-Menu lf - Where Are My Header Files?
+## C-Menu lf - Where Are My Header Files?
 
 Q: You have an option to edit C source files in the Project Tree menu,
 but it doesn't list my header files. Can you fix that?
@@ -411,7 +401,7 @@ Edit"
 
 ---
 
-### C-Menu View - View In A Box Window
+## C-Menu View - View In A Box Window
 
 Q: How do I highlight a C source file using tree-sitter and view it in
 a C-Menu View box window.
