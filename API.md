@@ -32,7 +32,9 @@ more to be added.
 
 ---
 
-### int rtrim(char \*str)
+```c
+int rtrim(char *str)
+```
 
 Removes trailing whitespace characters from the given string.
 
@@ -43,7 +45,9 @@ Removes trailing whitespace characters from the given string.
 
 ---
 
-### int trim(char \*str)
+```c
+int trim(char *str)
+```
 
 Removes leading and trailing whitespace characters from the given string.
 
@@ -54,7 +58,9 @@ Removes leading and trailing whitespace characters from the given string.
 
 ---
 
-### int ssnprintf(char \*str, size_t size, const char \*format, ...)
+```c
+int ssnprintf(char *str, size_t size, const char *format, ...)
+```
 
 A safe version of snprintf that ensures the output string is null-terminated.
 
@@ -68,9 +74,11 @@ A safe version of snprintf that ensures the output string is null-terminated.
 
 ---
 
-### int str_to_args(char \*argv[], char \*arg_str, int max_args)
+```c
+int str_to_args(char *argv[], char *arg_str, int max_args)
+```
 
-Splits a string into an array of arguments based on whitespace.
+Splits a string into an array of arguments basedon whitespace.
 
 - Parameters:
   - `char *argv[]`: The array to store the arguments.
@@ -83,7 +91,9 @@ Text surrounded by double quotes \'"\' will be treated as a single argument.
 
 ---
 
-### char \*str_to_lower(char \*str)
+```c
+char *str_to_lower(char *str)
+```
 
 Converts all characters in the string to lowercase.
 
@@ -94,7 +104,9 @@ Converts all characters in the string to lowercase.
 
 ---
 
-### char \*str_to_upper(char \*str)
+```c
+char *str_to_upper(char *str)
+```
 
 Converts all characters in the string to uppercase.
 
@@ -105,7 +117,9 @@ Converts all characters in the string to uppercase.
 
 ---
 
-### size_t strnz\_\_cpy(char \*dest, char \*src, size_t max_len)
+```c
+size_t strnz__cpy(char *dest, char *src, size_t max_len)
+```
 
 Copies a string from source to destination with a specified maximum length.
 
@@ -124,7 +138,9 @@ buffer - 1, leaving space for the null terminator.
 
 ---
 
-### size_t strnz\_\_cat(char \*dest, char \*src, size_t max_len)
+```c
+size_t strnz__cat(char *dest, char *src, size_t max_len)
+```
 
 Concatenates a source string to a destination string with a specified maximum length.
 
@@ -143,7 +159,9 @@ buffer - 1, leaving space for the null terminator.
 
 ---
 
-### void strnz(char \*str, int max_len)
+```c
+void strnz(char *str, int max_len)
+```
 
 Ensures that a string is null-terminated within a specified maximum length.
 Terminates the string on encountering a line-feed (\'\n\') or
@@ -157,7 +175,9 @@ carriage-return (\'\r\').
 
 ---
 
-### char \*strnz_dup(char \*str, int max_len)
+```c
+char *strnz_dup(char *str, int max_len)
+```
 
 Duplicates a string up to a specified maximum length, a line-feed
 (\'\n\'), or a carriage-return (\'\r\'), ensuring null-termination.
@@ -172,7 +192,9 @@ the memory when it is no longer needed.
 
 ---
 
-### void str_subc(char \*d, char \*s, char replace_chr, char \*with_str, int l)
+```c
+void str_subc(char *d, char *s, char replace_chr, char *with_str, int l)
+```
 
 Replaces all occurrences of a specified character in a string with another
 string.
@@ -186,7 +208,9 @@ string.
 
 ---
 
-### void strnfill(char \*s, char c, n)
+```c
+void strnfill(char *s, char c, n)
+```
 
 Fills a string with a specified character up to a given length.
 
@@ -199,7 +223,9 @@ Fills a string with a specified character up to a given length.
 
 ---
 
-### bool stripz_quotes(char \*s)
+```c
+bool stripz_quotes(char *s)
+```
 
 Removes surrounding double quotes from a string if they exist.
 
@@ -210,7 +236,9 @@ Removes surrounding double quotes from a string if they exist.
 
 ---
 
-### void chrep(char \*s, char old_chr, char new_chr)
+```c
+void chrep(char *s, char old_chr, char new_chr)
+```
 
 Replaces all occurrences of a specified character in a string with another character.
 
@@ -223,7 +251,9 @@ Replaces all occurrences of a specified character in a string with another chara
 
 ---
 
-### void normalize_file_spec(char \*spec)
+```c
+void normalize_file_spec(char *spec)
+```
 
 Normalizes a file specification by converting backslashes to forward slashes.
 
@@ -234,7 +264,9 @@ Normalizes a file specification by converting backslashes to forward slashes.
 
 ---
 
-### void file_spec_path(char \*fp, char \*fs)
+```c
+void file_spec_path(char *fp, char *fs)
+```
 
 Extracts the path component from a file specification and places it in fp.
 It is the caller\'s responsibility to ensure that fp has enough space to
@@ -252,7 +284,9 @@ argument, obviating the need for dynamic memory allocation.
 
 ---
 
-### void file_spec_name(char \*fn, char \*fs)
+```c
+void file_spec_name(char *fn, char *fs)
+```
 
 Extracts the file name component from a file specification and places it in
 fn. It is the caller\'s responsibility to ensure that fn has enough space to
@@ -271,7 +305,9 @@ version of dirname().
 
 ---
 
-### bool str_to_bool(const char \*)
+```c
+bool str_to_bool(const char *)
+```
 
 Converts a string representation of a boolean value to its corresponding
 boolean type based on the first character of the string.
@@ -285,7 +321,9 @@ boolean type based on the first character of the string.
 
 ---
 
-### bool expand_tilde(char \*out_buf, const char \*in_buf, size_t buf_size)
+```c
+bool expand_tilde(char *out_buf, const char *in_buf, size_t buf_size)
+```
 
 Expands a tilde (\'~\') at the beginning of a file path to the user\'s home directory.
 
@@ -300,7 +338,9 @@ Expands a tilde (\'~\') at the beginning of a file path to the user\'s home dire
 
 ---
 
-### bool trim_path(char \*char) {
+```c
+bool trim_path(char *char) {
+```
 
 Trims redundant slashes and resolves relative path components (\'.\' and
 \'..\') in a file path.
@@ -316,7 +356,9 @@ Trims redundant slashes and resolves relative path components (\'.\' and
 
 ---
 
-### bool trim_ext(char \*buf, char \*filename)
+```c
+bool trim_ext(char *buf, char *filename)
+```
 
 Removes the file extension from a given filename.
 
@@ -332,7 +374,9 @@ Removes the file extension from a given filename.
 
 ---
 
-### bool base_name(char \*buf, const char \*filename)
+```c
+bool base_name(char *buf, const char *filename)
+```
 
 Extracts the base name (file name without path) from a given file path.
 
@@ -351,7 +395,9 @@ base name.
 
 ---
 
-### bool dir_name(char \*buf, char \*path)
+```c
+bool dir_name(char *buf, char *path)
+```
 
 Extracts the directory name (path without file name) from a given file path.
 
@@ -367,7 +413,9 @@ Extracts the directory name (path without file name) from a given file path.
 
 ---
 
-### bool verify_dir(char \*spec, int imode)
+```c
+bool verify_dir(char *spec, int imode)
+```
 
 Verifies the existence of a directory specified by the given path.
 
@@ -388,7 +436,9 @@ Verifies the existence of a directory specified by the given path.
 
 ---
 
-### bool verify_file(char \*in_spec, int imode)
+```c
+bool verify_file(char *in_spec, int imode)
+```
 
 Verifies the existence of or ability to create a file specified by the given path.
 
@@ -407,7 +457,9 @@ It is up to the caller to ensure that the input path is valid.
 
 ---
 
-### bool locate_file_in_path(char \*file_spec, char \*file_name)
+```c
+bool locate_file_in_path(char *file_spec, char *file_name)
+```
 
 Searches for a file in the system\'s PATH environment variable and
 returns its full path if found.
@@ -425,7 +477,9 @@ space to hold the full path of the found file.
 
 ---
 
-### bool list_files(char \*dir, char \*regexp, bool f_recurse)
+```c
+bool list_files(char *dir, char *regexp, bool f_recurse)
+```
 
 Lists files in a specified directory that match a given regular
 expression, with an option to recurse into subdirectories.
@@ -443,7 +497,9 @@ expression, with an option to recurse into subdirectories.
 
 ---
 
-### bool lf_find_dirs(char \*dir, char \*re)
+```c
+bool lf_find_dirs(char *dir, char *re)
+```
 
 Finds directories within a specified directory that match a given regular expression.
 
@@ -458,7 +514,9 @@ files that match the provided regular expression.
 
 ---
 
-### lf_find_files(char \*dir, char \*re)
+```c
+lf_find_files(char *dir, char *re)
+```
 
 Finds files within a specified directory that match a given regular expression.
 
@@ -472,7 +530,9 @@ Finds files within a specified directory that match a given regular expression.
 
 ---
 
-### int canonicalize_file_spec(char \*spec)
+```c
+int canonicalize_file_spec(char *spec)
+```
 
 Removes quotes and trims at first space.
 
@@ -485,7 +545,9 @@ The function modifies the input file specification in place.
 
 ---
 
-### char \*rep_substring(const char \*org_s, const char \*tgt_s, const char \*rep_s)
+```c
+char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s)
+```
 
 Replaces all occurrences of a target substring within an original
 string with a replacement substring.
@@ -507,7 +569,8 @@ freed by the caller when no longer needed.
 
 ---
 
-### typedef struct String
+````c
+typedef struct String
 
 ```c
 
@@ -515,13 +578,15 @@ typedef struct {
     char *str;     // Pointer to the string data
     size_t length;  // Length of the string
 } String;
-```
+````
 
 Represents a dynamic string with its length.
 
 ---
 
-### String to_string(const char \*s)
+```c
+String to_string(const char *s)
+```
 
 Creates a new String object from a C-style string.
 
@@ -532,7 +597,9 @@ Creates a new String object from a C-style string.
 
 ---
 
-### String mk_string(size_t l)
+```c
+String mk_string(size_t l)
+```
 
 Creates a new String object with a specified length.
 
@@ -546,7 +613,9 @@ if l is 0, str is set to NULL.
 
 ---
 
-### void free_string(String s)
+```c
+void free_string(String s)
+```
 
 Frees the memory allocated for a String object.
 
@@ -557,7 +626,9 @@ Frees the memory allocated for a String object.
 
 ---
 
-### size_t string_cpy(String \*d, const char \*s)
+```c
+size_t string_cpy(String *d, const char *s)
+```
 
 Copies a C-style string to a String object.
 
@@ -573,7 +644,9 @@ to accommodate the new string.
 
 ---
 
-### size_t string_cat(String \*d, const char \*s)
+```c
+size_t string_cat(String *d, const char *s)
+```
 
 Concatenates a C-style string to a String object.
 
@@ -589,7 +662,9 @@ is reallocated.
 
 ---
 
-### size_t string_ncat(String \*d, const char \*s, size_t n)
+```c
+size_t string_ncat(String *d, const char *s, size_t n)
+```
 
 Concatenates up to n characters of a C-style string to a String object.
 Concatenates characters from a source String object to a destination
@@ -607,7 +682,9 @@ length, the destination String\'s str pointer is reallocated.
 
 ---
 
-### size_t string_ncpy(String \*dest, const String \*src, size_t n)
+```c
+size_t string_ncpy(String *dest, const String *src, size_t n)
+```
 
 Copies up to "n" characters from a C-style string to a destination
 String object.
@@ -642,7 +719,9 @@ F Keys.
 
 ![C-Menu Pick Chyron](screenshots/Pick.png)
 
-### struct key_cmd_tbl
+```c
+struct key_cmd_tbl
+```
 
 ```c
 typedef struct {
@@ -671,7 +750,9 @@ Unicode glyphs or other symbols.
 
 ---
 
-### void set_fkey(int k, char \*s)
+```c
+void set_fkey(int k, char *s)
+```
 
 Assigns a command string to a function key where k is the function key number,
 currently 1 through 14, and s is the command description associated with the
@@ -684,7 +765,9 @@ setkey(5, "Calculate");
 
 ---
 
-### void unset_fkey(int k)
+```c
+void unset_fkey(int k)
+```
 
 Removes a function key command from the chyron. For example, to remove the
 command associated with function key 5, you would call
@@ -695,7 +778,9 @@ unset_fkey(5);
 
 ---
 
-### int chyron_mk(key_cmd_tbl \*fc, char \*s)
+```c
+int chyron_mk(key_cmd_tbl *fc, char *s)
+```
 
 Creates a chyron with function key commands, keeping track of the function key
 coordinates within the chyron so that a mouse click can be mapped to the appropriate
@@ -709,19 +794,22 @@ information is stored in the structure, key_cmd_tbl.
 
 ---
 
-### int get_chyron_key(key_cmd_tbl \*fc, int x)
+```c
+int get_chyron_key(key_cmd_tbl *fc, int x)
+```
 
 Determines which function key was selected based on the x-coordinate of a mouse
 click. get_chyron_key returns the number of the function key clicked.
 
 ```c
-
 cmdkey = get_chyron_key(&fkey_table, mouse_x);
 ```
 
 ---
 
-### bool is_set_fkey(int k)
+```c
+bool is_set_fkey(int k)
+```
 
 Checks if a function key command is set in the chyron. The use case is to
 determine if a key_cmd_tbl element is already in use so that you don\'t
@@ -757,7 +845,7 @@ be displayed on the screen.
 RGB is a structure representing a color in terms of its red, green, and blue
 components. The RGB structure is defined as follows:
 
-### typedef struct RGB
+---
 
 ```c
 typedef struct {
@@ -779,7 +867,9 @@ ncurses_b = (rgb_b * 1000) / 255;
 
 ---
 
-### int get_clr_pair(int fg, int bg)
+```c
+int get_clr_pair(int fg, int bg)
+```
 
 Retrieves a color pair index for the specified foreground and background
 colors, or if the color pair doesn\'t exist, creates it. If the maximum number
@@ -795,7 +885,9 @@ NCurses to manage color pairs efficiently by reusing existing pairs when possibl
 
 ---
 
-### int get_clr(RGB rgb)
+```c
+int get_clr(RGB rgb)
+```
 
 Retrieves the color index for the specified RGB color, or if the color does
 not exist, creates it. If the maximum number of colors, MAX_COLORS, is
@@ -811,7 +903,9 @@ if your terminal supports it.
 
 ---
 
-### int rgb_to_xterm256_idx(RGB rgb)
+```c
+int rgb_to_xterm256_idx(RGB rgb)
+```
 
 This function maps the RGB color to the nearest color in the xterm-256
 palette, which consists of 256 colors.
@@ -823,7 +917,9 @@ palette, which consists of 256 colors.
 
 ---
 
-### RGB xterm256_idx_to_rgb(int idx)
+```c
+RGB xterm256_idx_to_rgb(int idx)
+```
 
 Converts an xterm-256 color index to its corresponding RGB color.
 
@@ -834,7 +930,9 @@ Converts an xterm-256 color index to its corresponding RGB color.
 
 ---
 
-### void apply_gama(RGB \*rgb)
+```c
+void apply_gama(RGB *rgb)
+```
 
 Applies gamma correction to the given RGB color. Gamma correction adjusts the
 brightness of colors to account for the non-linear way humans perceive light and
@@ -848,7 +946,9 @@ user can modify this value in the .minitrc configuration.
 
 ---
 
-### void init_clr_palette(Init \*init)
+```c
+void init_clr_palette(Init *init)
+```
 
 Initializes an xterm 256 color palette as a starting point. This works well
 in practice because most terminal emulators support at least 256 colors, and
@@ -870,7 +970,9 @@ in the configuration file.
 
 ---
 
-### void init_hex_color(int idx, char \*s)
+```c
+void init_hex_color(int idx, char *s)
+```
 
 The function converts the hexadecimal color string to an RGB color and
 initializes the color at the specified index using the RGB values.
@@ -883,7 +985,9 @@ initializes the color at the specified index using the RGB values.
 
 ---
 
-### RGB hex_clr_str_to_rgb()
+```c
+RGB hex_clr_str_to_rgb()
+```
 
 Converts a hexadecimal color string to an RGB color.
 
@@ -906,7 +1010,9 @@ Init also provides options to dump to stdout or write to ~/menuapp/minitrc.dmp
 the configuration, which may be copied to ~/.minitrc to serve as a new
 configuration file.
 
-### void mapp_initialization(Init \*init, int argc, char \*\*argv)
+```c
+void mapp_initialization(Init *init, int argc, char **argv)
+```
 
 - Parameters:
   - `Init *init`: Pointer to the initialization structure containing configuration
@@ -918,7 +1024,9 @@ configuration file.
 
 ---
 
-### int parse_opt_args(Init \*init, int argc, char \*\*argv)
+```c
+int parse_opt_args(Init *init, int argc, char **argv)
+```
 
 Each component of the C-Menu suite, Menu, Form, Pick, and View, has its own
 data structure which is initialized, either at startup, or when the
@@ -939,7 +1047,9 @@ is the purpose of this function.
 
 ---
 
-### int parse_config(Init \*init)
+```c
+int parse_config(Init *init)
+```
 
 Parses the C-Menu configuration file, .minitrc, to populate the Init structure.
 
@@ -954,7 +1064,9 @@ Parses the C-Menu configuration file, .minitrc, to populate the Init structure.
 
 ---
 
-### void zero_opt_args(Init \*init)
+```c
+void zero_opt_args(Init *init)
+```
 
 Data that is specific to individual components is stored in the Init
 structure's temporary space until the component data structure is
