@@ -4,157 +4,12 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>-</title>
+  <meta name="author" content="Bill Waller" />
+  <title>C-Menu Main</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
     */
-    html {
-      background-color: #000027;
-      color: #f0f0f0;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 36em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #c0c0c0;
-    }
-    a:visited {
-      color: #708090;
-    }
-    img {
-      max-width: 100%;
-    }
-    svg {
-      height: auto;
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-radius: 8px;
-      background-color: #2f4f8f;
-      color: #e0e0e0;
-    }
-    code {
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      border: none;
-      border-top: 1px solid #1a1a1a;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -169,6 +24,7 @@
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
     /* CSS for syntax highlighting */
     html { -webkit-text-size-adjust: 100%; }
     pre > code.sourceCode { white-space: pre; position: relative; }
@@ -235,8 +91,14 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
+  <link rel="stylesheet" href="dark2.css" />
 </head>
 <body>
+<header id="title-block-header">
+<h1 class="title">C-Menu Main</h1>
+<p class="author">Bill Waller</p>
+<p class="date">2026-01-17T17:48:38-06:00</p>
+</header>
 <h1 id="c-menu-faq">C-Menu FAQ</h1>
 <h2 id="author">Author</h2>
 <p>Bill Waller Copyright 2025</p>
@@ -245,7 +107,7 @@ Waller email</a></h2>
 <h2 id="c-menu-frequently-asked-questions">C-Menu Frequently Asked
 Questions</h2>
 <h3 id="table-of-contents">Table of Contents</h3>
-<ol>
+<ol type="1">
 <li><a href="#why-view-displays-question-marks">Why View Displays
 Question Marks</a></li>
 <li><a href="#c-menu-view---how-to-colorize-manual-pages">C-Menu View -
@@ -276,10 +138,10 @@ marks</h3>
 <p>Q: When I try to view a document that contains line-drawing
 characters, C-Menu View displays question marks instead of the
 line-drawing characters. How can I fix this?</p>
-<p>A: The file may contain characters above 0x80, which can't be
-translated by C-Menu View's character translators. If the offending
+<p>A: The file may contain characters above 0x80, which can’t be
+translated by C-Menu View’s character translators. If the offending
 characters CP-437 line drawing characters, you can convert the file to
-UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you
+UTF-8 encoding using a tool like ‘iconv’ or ‘recode’. For example, you
 can use the following command:</p>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    <span class="fu">iconv</span> <span class="at">-f</span> CP437 <span class="at">-t</span> UTF-8 inputfile.txt <span class="at">-o</span> outputfile.txt</span></code></pre></div>
@@ -290,9 +152,9 @@ using iconv.</p>
 alt="Convert CP437 to Unicode" />
 <figcaption aria-hidden="true">Convert CP437 to Unicode</figcaption>
 </figure>
-<p>As an interesting note, this also works for "less", which displays
+<p>As an interesting note, this also works for “less”, which displays
 the decimal representation of of the CP437 characters. This could be
-handy if you have been coding since the 1980's and recognize them as
+handy if you have been coding since the 1980’s and recognize them as
 CP437 line-drawing characters.</p>
 <figure>
 <img src="screenshots/cp437-line-draw-less.png" alt="CP437 less" />
@@ -303,27 +165,27 @@ CP437 line-drawing characters.</p>
 Colorize Manual Pages</h3>
 <p>Q: How can I add color to manual pages?</p>
 <p>A: Manual pages use ANSI SGR escape sequences to add color.</p>
-<pre><code>0x1b[1m bold
-0x1b[2m dim
-0x1b[3m italic
-0x1b[4m underline
-0x1b[22m normal intensity (bold/dim off)
-0x1b[23m italic off
-0x1b[24m underline off</code></pre>
+<p>0x1b[1m bold</p>
+<p>0x1b[2m dim</p>
+<p>0x1b[3m italic</p>
+<p>0x1b[4m underline</p>
+<p>0x1b[22m normal intensity (bold/dim off)</p>
+<p>0x1b[23m italic off</p>
+<p>0x1b[24m underline off</p>
 <p>You can use the following sed script to substitute your own
 colors:</p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode sed"><code class="sourceCode sed"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">2m/</span><span class="ch">\[</span><span class="st">35;1m/g</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">3m/</span><span class="ch">\[</span><span class="st">33;3;1m/g</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">4m/</span><span class="ch">\[</span><span class="st">31;1m/g</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">22m/</span><span class="ch">\[</span><span class="st">22;0m/g</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">23m/</span><span class="ch">\[</span><span class="st">23;0m/g</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">24m/</span><span class="ch">\[</span><span class="st">24;0m/g</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode sed"><code class="sourceCode sed"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">2m/</span><span class="ch">\[</span><span class="st">35;1m/g</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">3m/</span><span class="ch">\[</span><span class="st">33;3;1m/g</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">4m/</span><span class="ch">\[</span><span class="st">31;1m/g</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">22m/</span><span class="ch">\[</span><span class="st">22;0m/g</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">23m/</span><span class="ch">\[</span><span class="st">23;0m/g</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">s</span><span class="cn">/</span><span class="ch">\[</span><span class="st">24m/</span><span class="ch">\[</span><span class="st">24;0m/g</span></span></code></pre></div>
 <p>You can save this script to a file, or use the one that comes with
 C-Menu, (~/menuapp/msrc/man.sed) and then use it like this:</p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">man</span> bash</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">man</span> <span class="at">-Tutf8</span> bash <span class="kw">|</span> <span class="fu">sed</span> <span class="at">-f</span> ~/menuapp/msrc/man.sed <span class="kw">|</span> <span class="ex">view</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">man</span> bash</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">man</span> <span class="at">-Tutf8</span> bash <span class="kw">|</span> <span class="fu">sed</span> <span class="at">-f</span> ~/menuapp/msrc/man.sed <span class="kw">|</span> <span class="ex">view</span></span></code></pre></div>
 <p>This will display the bash manual page with the specified colors in
 C-Menu View.</p>
 <figure>
@@ -337,8 +199,8 @@ How to Colorize HTML Color Codes</h3>
 as #RRGGBB, in C-Menu View. How can I do this?</p>
 <p>A: You can use the following awk script to colorize six digit html
 style hexadecimal colors in C-Menu View:</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">awk</span> <span class="at">-f</span> ~/menuapp/msrc/colorize.awk yourfile.txt <span class="kw">|</span> <span class="ex">view</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">awk</span> <span class="at">-f</span> ~/menuapp/msrc/colorize.awk yourfile.txt <span class="kw">|</span> <span class="ex">view</span></span></code></pre></div>
 <p>This script matches six digit hexadecimal colors in the format
 #RRGGBB and adds the ANSI escape sequences to set the background color
 to the specified RGB values.</p>
@@ -358,13 +220,15 @@ Customize Colors</h3>
 foreground and background. You can also redefine the standard ANSI color
 palette in ~/.minitrc. When you exit C-Menu, your system colors revert
 to their previous state.</p>
-<h2 id="c-menu-configuration-file"><img src="screenshots/minitrc.png"
-alt="C-Menu Configuration File" /></h2>
+<figure>
+<img src="screenshots/minitrc.png" alt="C-Menu Configuration File" />
+<figcaption aria-hidden="true">C-Menu Configuration File</figcaption>
+</figure>
 <h3 id="c-menu-menu-form-pick-and-view-api">C-Menu Menu, Form, Pick and
 View API</h3>
 <p>Q: I want to use the C-Menu API to develop my own code. How can I do
 that.</p>
-<p>A: At the moment, you will have to rely on C-Menu's source code for
+<p>A: At the moment, you will have to rely on C-Menu’s source code for
 documentation. If build C-Menu using CMake in the build directory, a C
 library will be installed in the lib64 directory, which you can link to
 your own executables. If there is sufficient interest, that capability
@@ -378,31 +242,31 @@ How to Use Tree-sitter With View</h3>
 <p>Here are the basic steps to get started with tree-sitter and C-Menu
 View.</p>
 <h3 id="install-tree-sitter-cli">Install tree-sitter-cli</h3>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> install tree-sitter-cli</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> install tree-sitter-cli</span></code></pre></div>
 <p>Verify installation:</p>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> <span class="at">--version</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> <span class="at">--version</span></span></code></pre></div>
 <p><a
 href="https://github.com/tree-sitter/tree-sitter-rust">tree-sitter-rust</a></p>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> tree-sitter-rust</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> build</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> generate</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> tree-sitter-rust</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> build</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> generate</span></code></pre></div>
 <h4 id="download-from-github">download from github</h4>
 <p><a
 href="https://github.com/tree-sitter/tree-sitter-c">tree-sitter-c</a></p>
-<div class="sourceCode" id="cb9"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> tree-sitter-c</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> build</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> generate</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> tree-sitter-c</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> build</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> generate</span></code></pre></div>
 <p>You should edit ~/.config/tree-sitter/config.json to include the
 languages you want to use with C-Menu View.</p>
-<p>You will find an example config.json in C-Menu's tree-sitter
+<p>You will find an example config.json in C-Menu’s tree-sitter
 directory.</p>
 <p>Type the following command:</p>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">tree-sitter</span> highlight source-file <span class="kw">|</span> <span class="ex">view</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">tree-sitter</span> highlight source-file <span class="kw">|</span> <span class="ex">view</span></span></code></pre></div>
 <p><img src="screenshots/tree-sitter.png"
 alt="C-Menu View - Tree-Sitter" /> These instructions are admittedly
 sketchy and hard to follow. We will revise and clarify in the
@@ -412,57 +276,40 @@ future.</p>
 Integrating External Executables</h3>
 <p>Q: How can I integrate external programs into C-Menu Form, such as an
 SQL Query or calculation?</p>
-<p>A: We can use the executable "iloan" included with C-Menu as an
+<p>A: We can use the executable “iloan” included with C-Menu as an
 example.</p>
 <p>The Form will have four fields. The user must enter any three of the
 four values. Only one field may be zero. Iloan will calculate the value
 of the missing field and C-Menu Form will display it.</p>
-<p>First, create a form file named "~/menuapp/msrc/iloan.f" with the
+<p>First, create a form file named “~/menuapp/msrc/iloan.f” with the
 following contents:</p>
-<pre><code>H:Installment Loan Calculator
-
-T:5:14:Principal Amount:
-F:5:33:14:Currency
-
-T:6:14:Number of Months:
-F:6:33:5:Decimal_Int
-
-T:7:10:Annual Interest Rate:
-F:7:33:5:APR
-
-T:8:16:Payment Amount:
-F:8:33:12:Currency
-
-T:10:1:First Payment Date (Yyyymmdd):
-F:10:33:10:Yyyymmdd
-
-C
-?iloan.hlp</code></pre>
-<p>Next, create a help file named "~/menuapp/help/iloan.hlp" with the
+<figure>
+<img src="screenshots/iloan.f.png"
+alt="Installment Loan Description File" />
+<figcaption aria-hidden="true">Installment Loan Description
+File</figcaption>
+</figure>
+<p>Next, create a help file named “~/menuapp/help/iloan.hlp” with the
 following contents:</p>
-<pre class="help"><code>Installment Loan Calculator Help
-
-This form calculates the missing value of an installment loan.
-
-Enter any three of the four values. Leave the value to be calculated as
-zero. Only one field may be zero.
-
-Fields:
-    Principal Amount - The total amount of the loan.
-    Number of Months - The total number of monthly payments.
-    Annual Interest Rate - The annual interest rate as a percentage.
-    Payment Amount - The amount of each monthly payment.
-    First Payment Date - The date of the first payment in YYYYMMDD format.</code></pre>
-<p>Add the following two lines to "~/menuapp/msrc/main.m":</p>
-<pre><code>:     Installment Loan Calculations
-!form iloan.f -i iloan.dat -S iloan -o iloan.dat</code></pre>
+<p>Installment Loan Calculator Help</p>
+<p>This form calculates the missing value of an installment loan.</p>
+<p>Enter any three of the four values. Leave the value to be calculated
+as zero. Only one field may be zero.</p>
+<p>Fields: Principal Amount - The total amount of the loan. Number of
+Months - The total number of monthly payments. Annual Interest Rate -
+The annual interest rate as a percentage. Payment Amount - The amount of
+each monthly payment. First Payment Date - The date of the first payment
+in YYYYMMDD format.</p>
+<p>Add the following two lines to “~/menuapp/msrc/main.m”:</p>
+<p>: Installment Loan Calculations</p>
+<p>!form iloan.f -i iloan.dat -S iloan -o iloan.dat</p>
 <p>This will add a menu item to the Main Menu that will launch the Iloan
-Form. When you select the "Installment Loan Calculations" menu item,
+Form. When you select the “Installment Loan Calculations” menu item,
 C-Menu Form will display the Iloan Form. After you enter any three of
-the four values and press Enter, C-Menu Form will call the "iloan"
+the four values and press Enter, C-Menu Form will call the “iloan”
 executable to calculate the missing value and display it in the
 form.</p>
-<p>C-Menu Form will complain that "iloan.dat" does not exist the first
+<p>C-Menu Form will complain that “iloan.dat” does not exist the first
 time you run the form. This is normal. C-Menu Form will create the file
 when you exit the form.</p>
 <h3 id="c-menu---using-the-installment-loan-calculator">C-Menu - Using
@@ -471,16 +318,16 @@ the Installment Loan Calculator</h3>
 <img src="screenshots/iloan.png" alt="Installment Loan Calculator" />
 <figcaption aria-hidden="true">Installment Loan Calculator</figcaption>
 </figure>
-<p>After you enter the three values, you will see an option "F5
-Calculate". Press F5 to calculate the missing value. When the
+<p>After you enter the three values, you will see an option “F5
+Calculate”. Press F5 to calculate the missing value. When the
 calculation is complete, the missing value will be displayed in the
-form. You will then see an option, "F8 Edit", which will allow you to
-make changes and try again. If you don't wish to make changes, press
-"F10 Accept" to write all four values to "iloan.dat" and exit the
+form. You will then see an option, “F8 Edit”, which will allow you to
+make changes and try again. If you don’t wish to make changes, press
+“F10 Accept” to write all four values to “iloan.dat” and exit the
 form.</p>
 <p>The next time you run the form, C-Menu Form will read the values from
-"iloan.dat" and display them in the form.</p>
-<p>Here's a summary of the important parts of the form file format:</p>
+“iloan.dat” and display them in the form.</p>
+<p>Here’s a summary of the important parts of the form file format:</p>
 <h3 id="c-menu-form---line-type-speecifiers-h-t-f-and">C-Menu Form -
 Line Type Speecifiers (H, T, F, and ?)</h3>
 <ul>
@@ -495,12 +342,12 @@ help directory, ~/menuapp/help.</li>
 </ul>
 <h3 id="c-menu-form---field-delimiters">C-Menu Form - Field
 Delimiters</h3>
-<p>The ":" character is used as a delimiter in the fields above, but any
+<p>The “:” character is used as a delimiter in the fields above, but any
 character that is placed immediately after the line designator (H, T, F,
 ?) can be used as a delimiter. For example, the following two lines are
 equivalent:</p>
-<pre><code>T:2:4:Enter any three of the four values to calculate the fourth.
-T|2|4|Enter any three of the four values to calculate the fourth.</code></pre>
+<p>T:2:4:Enter any three of the four values to calculate the fourth.
+T|2|4|Enter any three of the four values to calculate the fourth.</p>
 <h3 id="c-menu-form---data-types">C-Menu Form - Data Types</h3>
 <p>The following data types are currently supported for input
 fields:</p>
@@ -520,7 +367,7 @@ numeric data is converted to its corresponding internal binary format,
 so that calculations can be performed. Both text and internal numeric
 binary data are available to the developer.</p>
 <p>For applications that demand extreme accuracy, our plan is to
-integrate the "decNumber C Library", Copyright © IBM Corporation 2010,
+integrate the “decNumber C Library”, Copyright © IBM Corporation 2010,
 to provide 128 bit BCD (Binary Coded Decimal) in a future release.</p>
 <p>The Field Format Specifiers can be any combination of upper and lower
 case, and new types can be easily added by modifying the source
@@ -532,16 +379,14 @@ Communications</h3>
 <p>A: Currently, C-Menu is limited to communicating through files or
 pipes.</p>
 <p>When you start C-Menu Form, Pick, or View, you can specify</p>
-<pre><code>    -S executable
-       or
-    -R executable</code></pre>
+<p>-S executable or -R executable</p>
 <p>-S runs executables that provide input data to C-Menu via pipe, and
 -R runs executables that receive output data from C-Menu via pipe.</p>
 <p>The way it works is, C-Menu creates dual ended pipes, each with a
 read and write end before forking and spawning the executables. In the
 example (Installment Loan Calculations) above, C-Menu Form substitutes a
 write pipe for the standard output of the child process, and opens the
-read end of the pipe for it's input. The called executable writes data
+read end of the pipe for it’s input. The called executable writes data
 to the pipe and C-Menu form reads the other end.</p>
 <p>We can just as easily use named pipes or network sockets, although it
 requires a bit more configuration. If there is sufficient interest, C
@@ -551,17 +396,19 @@ Rust to take advantage of tools like the Tokio and Serde crates.</p>
 <hr />
 <h3 id="c-menu---what-happened-to-delete-by-inode">C-Menu - What
 Happened to Delete by Inode</h3>
-<p>Q: I noticed you have a menu option named, "Delete by Inode", but it
-doesn't work.</p>
+<p>Q: I noticed you have a menu option named, “Delete by Inode”, but it
+doesn’t work.</p>
 <p>A: Thanks for reminding me. I will remove that choice from the menu
 until I can figure out a way to make it safe.</p>
 <p>The original command was:</p>
-<pre><code>find . -inum [inode-number] -delete</code></pre>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> . <span class="at">-inum</span> <span class="pp">[</span><span class="ss">inode</span><span class="pp">-</span><span class="ss">number</span><span class="pp">]</span> <span class="at">-delete</span></span></code></pre></div>
 <p>That is too dangerous if the user makes a mistake, so I replaced the
-find with "rm -i".</p>
-<pre><code>  !pick -S &quot;ls -i&quot; -n 1 -R &quot;rm -i&quot;</code></pre>
-<p>It doesn't delete files by inode, but at least it prompts the user
-before deleting files. Still, it's not what I intended, so it will be
+find with “rm -i”.</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>  <span class="ex">!pick</span> <span class="at">-S</span> <span class="st">&quot;ls -i&quot;</span> <span class="at">-n</span> 1 <span class="at">-R</span> <span class="st">&quot;rm -i&quot;</span></span></code></pre></div>
+<p>It doesn’t delete files by inode, but at least it prompts the user
+before deleting files. Still, it’s not what I intended, so it will be
 removed until I find a better solution.</p>
 <p>I may eventually write a C or Rust program that will safely delete
 files by inode after confirming the correct file with the user as well
@@ -574,8 +421,8 @@ vi?</p>
 <p>A: You can use the -M option to enable multi-select in C-Menu Pick.
 Here is an example command that allows you to select multiple files and
 open them in C-Menu Vi:</p>
-<pre><code>!pick -S &quot;lf -r ./ .*\.[ch]$&quot; -M -R vi -T &quot;Project Tree - Select Files to Edit&quot;
-</code></pre>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">\!pick</span> <span class="at">-S</span> <span class="st">&quot;lf -r ./ .*\.[ch]$&quot;</span> <span class="at">-M</span> <span class="at">-R</span> vi <span class="at">-T</span> <span class="st">&quot;Project Tree - Select Files to Edit&quot;</span></span></code></pre></div>
 <p>Select as many files as you want to edit and press F10. C-Menu Pick
 will open the first file. If you are using Nvim, Vim, Less, or C-Menu
 View, you can type: ":n&lt;enter&gt;" to open the next file.</p>
@@ -583,22 +430,26 @@ View, you can type: ":n&lt;enter&gt;" to open the next file.</p>
 <h3 id="c-menu-lf---where-are-my-header-files">C-Menu lf - Where Are My
 Header Files?</h3>
 <p>Q: You have an option to edit C source files in the Project Tree
-menu, but it doesn't list my header files. Can you fix that?</p>
+menu, but it doesn’t list my header files. Can you fix that?</p>
 <p>A: Sure. My bad. Of course you want your header files to be listed
 with your C files. Here is the new C-Menu line with the regular
 expression corrected to include both .c and .h files:</p>
-<pre><code>!pick -S &quot;lf -r ./ .\*\.[ch]$&quot; -n 1 -R vi -T &quot;Project Tree - Select File to Edit&quot;</code></pre>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">\!pick</span> <span class="at">-S</span> <span class="st">&quot;lf -r ./ .\*\.[ch]$&quot;</span> <span class="at">-n</span> 1 <span class="at">-R</span> vi <span class="at">-T</span> <span class="st">&quot;Project Tree - Select File to</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="st">Edit&quot;</span></span></code></pre></div>
 <hr />
 <h3 id="c-menu-view---view-in-a-box-window">C-Menu View - View In A Box
 Window</h3>
 <p>Q: How do I highlight a C source file using tree-sitter and view it
 in a C-Menu View box window.</p>
-<pre><code>view -L 40 -C 80 -S &quot;tree-sitter highlight view_engine.c&quot;</code></pre>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">view</span> <span class="at">-L</span> 40 <span class="at">-C</span> 80 <span class="at">-S</span> <span class="st">&quot;tree-sitter highlight view_engine.c&quot;</span></span></code></pre></div>
 <p>Leave out the -L 40 and -C 80 to display the file in full screen.</p>
 <p>Alternatively, you can use the following command.</p>
-<pre><code>tree-sitter highlight view_engine.c | view -L 40 -C 80 -T &quot;Highlighted view_engine.c&quot;</code></pre>
-<p>The "-S" option will tell view to execute the command and display the
-output. As an added bonus, if you don't provide a title with "-T, view
-will use the "-S" command as the title:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">tree-sitter</span> highlight view_engine.c <span class="kw">|</span> <span class="ex">view</span> <span class="at">-L</span> 40 <span class="at">-C</span> 80 <span class="at">-T</span> <span class="st">&quot;Highlighted view_engine.c&quot;</span></span></code></pre></div>
+<p>The “-S” option will tell view to execute the command and display the
+output. As an added bonus, if you don’t provide a title with “-T, view
+will use the”-S” command as the title:</p>
 </body>
 </html>

@@ -58,15 +58,19 @@ Q: How can I add color to manual pages?
 
 A: Manual pages use ANSI SGR escape sequences to add color.
 
-```
 0x1b[1m bold
+
 0x1b[2m dim
+
 0x1b[3m italic
+
 0x1b[4m underline
+
 0x1b[22m normal intensity (bold/dim off)
+
 0x1b[23m italic off
+
 0x1b[24m underline off
-```
 
 You can use the following sed script to substitute your own colors:
 
@@ -128,7 +132,7 @@ foreground and background. You can also redefine the standard ANSI
 color palette in ~/.minitrc. When you exit C-Menu, your system colors
 revert to their previous state.
 
-## ![C-Menu Configuration File](screenshots/minitrc.png)
+![C-Menu Configuration File](screenshots/minitrc.png)
 
 ### C-Menu Menu, Form, Pick and View API
 
@@ -212,31 +216,11 @@ value of the missing field and C-Menu Form will display it.
 First, create a form file named "~/menuapp/msrc/iloan.f" with the
 following contents:
 
-```
-H:Installment Loan Calculator
+![Installment Loan Description File](screenshots/iloan.f.png)
 
-T:5:14:Principal Amount:
-F:5:33:14:Currency
+Next, create a help file named "~/menuapp/help/iloan.hlp" with the following
+contents:
 
-T:6:14:Number of Months:
-F:6:33:5:Decimal_Int
-
-T:7:10:Annual Interest Rate:
-F:7:33:5:APR
-
-T:8:16:Payment Amount:
-F:8:33:12:Currency
-
-T:10:1:First Payment Date (Yyyymmdd):
-F:10:33:10:Yyyymmdd
-
-C
-?iloan.hlp
-```
-
-Next, create a help file named "~/menuapp/help/iloan.hlp" with the following contents:
-
-```help
 Installment Loan Calculator Help
 
 This form calculates the missing value of an installment loan.
@@ -245,19 +229,17 @@ Enter any three of the four values. Leave the value to be calculated as
 zero. Only one field may be zero.
 
 Fields:
-    Principal Amount - The total amount of the loan.
-    Number of Months - The total number of monthly payments.
-    Annual Interest Rate - The annual interest rate as a percentage.
-    Payment Amount - The amount of each monthly payment.
-    First Payment Date - The date of the first payment in YYYYMMDD format.
-```
+Principal Amount - The total amount of the loan.
+Number of Months - The total number of monthly payments.
+Annual Interest Rate - The annual interest rate as a percentage.
+Payment Amount - The amount of each monthly payment.
+First Payment Date - The date of the first payment in YYYYMMDD format.
 
 Add the following two lines to "~/menuapp/msrc/main.m":
 
-```
-:     Installment Loan Calculations
+\: Installment Loan Calculations
+
 !form iloan.f -i iloan.dat -S iloan -o iloan.dat
-```
 
 This will add a menu item to the Main Menu that will launch the Iloan
 Form. When you select the "Installment Loan Calculations" menu item,
@@ -303,10 +285,8 @@ character that is placed immediately after the line designator (H, T, F, ?)
 can be used as a delimiter. For example, the following two lines are
 equivalent:
 
-```
 T:2:4:Enter any three of the four values to calculate the fourth.
 T|2|4|Enter any three of the four values to calculate the fourth.
-```
 
 ### C-Menu Form - Data Types
 
@@ -344,11 +324,9 @@ A: Currently, C-Menu is limited to communicating through files or pipes.
 
 When you start C-Menu Form, Pick, or View, you can specify
 
-```
-    -S executable
-       or
-    -R executable
-```
+-S executable
+or
+-R executable
 
 -S runs executables that provide input data to C-Menu via pipe, and
 -R runs executables that receive output data from C-Menu via pipe.
@@ -377,14 +355,14 @@ until I can figure out a way to make it safe.
 
 The original command was:
 
-```
+```bash
 find . -inum [inode-number] -delete
 ```
 
 That is too dangerous if the user makes a mistake, so I replaced the
 find with "rm -i".
 
-```
+```bash
   !pick -S "ls -i" -n 1 -R "rm -i"
 ```
 
@@ -406,8 +384,8 @@ A: You can use the -M option to enable multi-select in C-Menu Pick.
 Here is an example command that allows you to select multiple files and
 open them in C-Menu Vi:
 
-```
-!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
+```bash
+\!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
 
 ```
 
@@ -426,8 +404,9 @@ A: Sure. My bad. Of course you want your header files to be listed with
 your C files. Here is the new C-Menu line with the regular expression
 corrected to include both .c and .h files:
 
-```
-!pick -S "lf -r ./ .\*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to Edit"
+```bash
+\!pick -S "lf -r ./ .\*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to
+Edit"
 ```
 
 ---
@@ -437,7 +416,7 @@ corrected to include both .c and .h files:
 Q: How do I highlight a C source file using tree-sitter and view it in
 a C-Menu View box window.
 
-```
+```bash
 view -L 40 -C 80 -S "tree-sitter highlight view_engine.c"
 ```
 
@@ -445,7 +424,7 @@ Leave out the -L 40 and -C 80 to display the file in full screen.
 
 Alternatively, you can use the following command.
 
-```
+```bash
 tree-sitter highlight view_engine.c | view -L 40 -C 80 -T "Highlighted view_engine.c"
 ```
 
