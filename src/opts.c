@@ -46,7 +46,7 @@ Opts opts[] = {
     {"begy", 1, 4, "mpfv", "Y:", "begin on line"},
     {"title", 0, 3, "mpfv", "T:", "title"},
     {"help", 2, 5, "mpfv", "h", "help"},
-    {"cd-mapp-home", 2, 5, "mpfv", "D", "cd ~/menuapp on start"},
+    {"cd_mapp_home", 2, 5, "mpfv", "D", "cd ~/menuapp on start"},
     {"black", 0, 4, "mpfv", "", "black (#000000)"},
     {"red", 0, 4, "mpfv", "", "red (#bf0000)"},
     {"green", 0, 4, "mpfv", "", "green (#00cf00)"},
