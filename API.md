@@ -431,7 +431,7 @@ Verifies the existence of a directory specified by the given path.
 ```c
         modes: R_OK, W_OK, X_OK, F_OK, see access(2) for details.
         extended modes: S_WCOK - write or create OK
-        S_QUIET - Don\'t complain about errors
+        S_QUIET - Don't complain about errors
 ```
 
 ---
@@ -501,7 +501,7 @@ expression, with an option to recurse into subdirectories.
 bool lf_find_dirs(char *dir, char *re)
 ```
 
-Finds directories within a specified directory that match a given regular expression.
+Finds directories within a specified directory matching a regular expression.
 
 - Parameters:
   - `char *dir`: The directory ato search for subdirectories.
@@ -518,15 +518,15 @@ files that match the provided regular expression.
 lf_find_files(char *dir, char *re)
 ```
 
-Finds files within a specified directory that match a given regular expression.
+Finds files within a specified directory matching a regular expression.
 
 - Parameters:
   - `char *dir`: The directory to search for files.
   - `char *re`: The regular expression to match file names against.
 - Returns: true if a matching file is found or false otherwise.
 
-  The function searches the specified directory for files that match
-  the provided regular expression.
+The function searches the specified directory for files that match
+the provided regular expression.
 
 ---
 
@@ -549,8 +549,7 @@ The function modifies the input file specification in place.
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s)
 ```
 
-Replaces all occurrences of a target substring within an original
-string with a replacement substring.
+Replaces all occurrences of a target substring.
 
 - Parameters:
   - `const char *org_s`: The original string.

@@ -484,7 +484,7 @@ font-style: italic;
 <header id="title-block-header">
 <h1 class="title">C-Menu API</h1>
 <p class="author">Bill Waller</p>
-<p class="date">2026-01-17T22:10:12-06:00</p>
+<p class="date">2026-01-17T22:19:52-06:00</p>
 </header>
 <h1 id="c-menu-api-documentation">C-Menu API Documentation</h1>
 <h2 id="table-of-contents">Table of Contents</h2>
@@ -931,7 +931,7 @@ up to the caller to ensure that the input path is valid.</li>
 </ul>
 <div class="sourceCode" id="cb25"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>        modes<span class="op">:</span> R_OK<span class="op">,</span> W_OK<span class="op">,</span> X_OK<span class="op">,</span> F_OK<span class="op">,</span> see access<span class="op">(</span><span class="dv">2</span><span class="op">)</span> <span class="cf">for</span> details<span class="op">.</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>        extended modes<span class="op">:</span> S_WCOK <span class="op">-</span> write or create OK</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>        S_QUIET <span class="op">-</span> Don\<span class="ch">&#39;t</span><span class="er"> complain about errors</span></span></code></pre></div>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>        S_QUIET <span class="op">-</span> Don<span class="ch">&#39;t</span><span class="er"> complain about errors</span></span></code></pre></div>
 <hr />
 <div class="sourceCode" id="cb26"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> verify_file<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>in_spec<span class="op">,</span> <span class="dt">int</span> imode<span class="op">)</span></span></code></pre></div>
 <p>Verifies the existence of or ability to create a file specified by
@@ -998,8 +998,8 @@ returned list when it is no longer needed.</li>
 </ul>
 <hr />
 <div class="sourceCode" id="cb29"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> lf_find_dirs<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>dir<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>re<span class="op">)</span></span></code></pre></div>
-<p>Finds directories within a specified directory that match a given
-regular expression.</p>
+<p>Finds directories within a specified directory matching a regular
+expression.</p>
 <ul>
 <li>Parameters:
 <ul>
@@ -1014,19 +1014,19 @@ names against.</li>
 files that match the provided regular expression.</p>
 <hr />
 <div class="sourceCode" id="cb30"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>lf_find_files<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>dir<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>re<span class="op">)</span></span></code></pre></div>
-<p>Finds files within a specified directory that match a given regular
+<p>Finds files within a specified directory matching a regular
 expression.</p>
 <ul>
-<li><p>Parameters:</p>
+<li>Parameters:
 <ul>
 <li><code>char *dir</code>: The directory to search for files.</li>
 <li><code>char *re</code>: The regular expression to match file names
 against.</li>
 </ul></li>
-<li><p>Returns: true if a matching file is found or false otherwise.</p>
-<p>The function searches the specified directory for files that match
-the provided regular expression.</p></li>
+<li>Returns: true if a matching file is found or false otherwise.</li>
 </ul>
+<p>The function searches the specified directory for files that match
+the provided regular expression.</p>
 <hr />
 <div class="sourceCode" id="cb31"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> canonicalize_file_spec<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>spec<span class="op">)</span></span></code></pre></div>
 <p>Removes quotes and trims at first space.</p>
@@ -1044,8 +1044,7 @@ canonicalized.</li>
 <p>The function modifies the input file specification in place.</p>
 <hr />
 <div class="sourceCode" id="cb32"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>rep_substring<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>org_s<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>tgt_s<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>rep_s<span class="op">)</span></span></code></pre></div>
-<p>Replaces all occurrences of a target substring within an original
-string with a replacement substring.</p>
+<p>Replaces all occurrences of a target substring.</p>
 <ul>
 <li>Parameters:
 <ul>
