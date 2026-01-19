@@ -31,7 +31,7 @@ more to be added.
 ---
 
 ```c
-int rtrim(char *str)
+size_t rtrim(char *str)
 ```
 
 Removes trailing whitespace characters from the given string.
@@ -39,12 +39,12 @@ Removes trailing whitespace characters from the given string.
 - Parameters:
   - `char *str`: The string to be trimmed.
 - Returns:
-  - `int`: The new length of the trimmed string.
+  - `int`: The new length of the trimmed string or zero if string is empty
 
 ---
 
 ```c
-int trim(char *str)
+size_t trim(char *str)
 ```
 
 Removes leading and trailing whitespace characters from the given string.
@@ -52,7 +52,7 @@ Removes leading and trailing whitespace characters from the given string.
 - Parameters:
   - `char *str`: The string to be trimmed.
 - Returns:
-  - `int`: The new length of the trimmed string.
+  - `int`: The new length of the trimmed string or zero if string is empty
 
 ---
 
@@ -90,7 +90,7 @@ Text surrounded by double quotes \'"\' will be treated as a single argument.
 ---
 
 ```c
-char *str_to_lower(char *str)
+bool str_to_lower(char *str)
 ```
 
 Converts all characters in the string to lowercase.
@@ -98,12 +98,12 @@ Converts all characters in the string to lowercase.
 - Parameters:
   - `char *str`: The string to be converted.
 - Returns:
-  - `char *`: A pointer to the converted string.
+  - `bool`: false on failure, true on success.
 
 ---
 
 ```c
-char *str_to_upper(char *str)
+bool str_to_upper(char *str)
 ```
 
 Converts all characters in the string to uppercase.
@@ -111,7 +111,7 @@ Converts all characters in the string to uppercase.
 - Parameters:
   - `char *str`: The string to be converted.
 - Returns:
-  - `char *`: A pointer to the converted string.
+  - `bool`: false on failure, true on success.
 
 ---
 
@@ -158,7 +158,7 @@ buffer - 1, leaving space for the null terminator.
 ---
 
 ```c
-void strnz(char *str, int max_len)
+size_t strnz(char *str, int max_len)
 ```
 
 Ensures that a string is null-terminated within a specified maximum length.
@@ -186,12 +186,13 @@ the memory when it is no longer needed.
   - `char *str`: The string to be duplicated.
   - `int max_len`: The maximum length of the string.
 - Returns:
-  - char \*: A pointer to the newly allocated duplicated string.
+  - char \*: A pointer to the newly allocated duplicated string or NULL
+    on failure.
 
 ---
 
 ```c
-void str_subc(char *d, char *s, char replace_chr, char *with_str, int l)
+bool str_subc(char *d, char *s, char replace_chr, char *with_str, int l)
 ```
 
 Replaces all occurrences of a specified character in a string with another
@@ -203,11 +204,13 @@ string.
   - `char ReplaceChr`: The character to be replaced.
   - `char *Withstr`: The string to replace the character with.
   - `int l`: The maximum length of the destination string.
+- Returne:
+  - `bool`: True on success, false on failure.
 
 ---
 
 ```c
-void strnfill(char *s, char c, n)
+bool strnfill(char *s, char c, n)
 ```
 
 Fills a string with a specified character up to a given length.
@@ -217,7 +220,7 @@ Fills a string with a specified character up to a given length.
   - `char c`: The character to fill the string with.
   - `int n`: The number of characters to fill.
 - Returns:
-  - `void`: no return4
+  - `bool`: True on success, false on failure.
 
 ---
 
@@ -235,7 +238,7 @@ Removes surrounding double quotes from a string if they exist.
 ---
 
 ```c
-void chrep(char *s, char old_chr, char new_chr)
+bool chrep(char *s, char old_chr, char new_chr)
 ```
 
 Replaces all occurrences of a specified character in a string with another character.
@@ -245,12 +248,12 @@ Replaces all occurrences of a specified character in a string with another chara
   - `char old_chr`: The character to be replaced.
   - `char new_chr`: The character to replace with.
 - Returns:
-  - void: no return
+  - bool: True on success, false on failure
 
 ---
 
 ```c
-void normalize_file_spec(char *spec)
+bool normalize_file_spec(char *spec)
 ```
 
 Normalizes a file specification by converting backslashes to forward slashes.
@@ -258,12 +261,12 @@ Normalizes a file specification by converting backslashes to forward slashes.
 - Parameters:
   - `char *spec`: The file specification to be normalized.
 - Returns:
-  - `void`: no return
+  - `bool`: True on success, false on failure.
 
 ---
 
 ```c
-void file_spec_path(char *fp, char *fs)
+bool file_spec_path(char *fp, char *fs)
 ```
 
 Extracts the path component from a file specification and places it in fp.
@@ -274,7 +277,7 @@ hold the path.
   - `char *fp`: The buffer to store the extracted path.
   - `char *fs`: The file specification string.
 - Returns:
-  - `void`: no return
+  - `bool`: True on success, false on failure.
 
 Unlike the POSIX implementation of basename(), this function does not
 modify the input string. Also, a character array may be used as the first
@@ -283,7 +286,7 @@ argument, obviating the need for dynamic memory allocation.
 ---
 
 ```c
-void file_spec_name(char *fn, char *fs)
+bool file_spec_name(char *fn, char *fs)
 ```
 
 Extracts the file name component from a file specification and places it in
@@ -294,7 +297,7 @@ hold the file name.
   - `char *fn`: The buffer to store the extracted file name.
   - `char *fs`: The file specification string.
 - Returns:
-  - `void`: no return
+  - `bool`: True on success, false on failure.
 
 Unlike the POSIX implementation of dirname(), this function does not modify
 the input string. Also, a character array may be used as the first
@@ -513,7 +516,7 @@ files that match the provided regular expression.
 ---
 
 ```c
-lf_find_files(char *dir, char *re)
+bool lf_find_files(char *dir, char *re)
 ```
 
 Finds files within a specified directory matching a regular expression.
@@ -529,7 +532,7 @@ the provided regular expression.
 ---
 
 ```c
-int canonicalize_file_spec(char *spec)
+size_t canonicalize_file_spec(char *spec)
 ```
 
 Removes quotes and trims at first space.
@@ -537,7 +540,7 @@ Removes quotes and trims at first space.
 - Parameters:
   - `char *spec`: The file specification to be canonicalized.
 - Returns:
-  - void: length of resulting file specification string
+  - `size_t` length of resulting file specification string
 
 The function modifies the input file specification in place.
 
@@ -555,7 +558,7 @@ Replaces all occurrences of a target substring.
   - `const char *rep_s`: The replacement substring.
 - Returns:
   - `char *`: A pointer to the newly allocated string with
-    replacements made.
+    replacements made or NULL on failure.
 
 The function allocates memory for the new string, which must be
 freed by the caller when no longer needed.
@@ -566,18 +569,51 @@ freed by the caller when no longer needed.
 
 ---
 
-````c
+```c
 typedef struct String
+```
+
+Represents a dynamic stringi.
+capacity - number of array elements allocated for String.str
 
 ```c
-
 typedef struct {
-    char *str;     // Pointer to the string data
-    size_t length;  // Length of the string
+    char *str; // Pointer to the string data
+    size_t capacity; // Number of array elements
 } String;
-````
+```
 
-Represents a dynamic string with its length.
+---
+
+```c
+typedef struct WC_String
+```
+
+Represents a dynamic array of wide characters (wchar_t)
+capacity - number of array elements allocated for WC_String.str
+
+```c
+typedef struct {
+    wchar_t *str; // Pointer to the string data
+    size_t capacity; // Number of array elements
+} WC_String;
+```
+
+---
+
+```c
+typedef struct CC_String
+```
+
+Represents a dynamic array of complex characters (cchar_t)
+capacity - number of array elements allocated for CC_String.str
+
+```c
+typedef struct {
+    wchar_t *str; // Pointer to the string data
+    size_t capacity; // Number of array elements
+} CC_String;
+```
 
 ---
 

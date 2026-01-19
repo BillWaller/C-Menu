@@ -1017,22 +1017,21 @@ extern char err_msg[MAXLEN];
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ STRING UTILITIES                                              │
 //  ╰───────────────────────────────────────────────────────────────╯
-extern int trim(char *);
-extern int rtrim(char *);
+extern size_t trim(char *);
+extern size_t rtrim(char *);
 extern bool stripz_quotes(char *);
-extern void strip_quotes(char *);
+extern bool strip_quotes(char *);
 extern bool str_to_bool(const char *);
 extern int str_to_args(char **, char *, int);
-extern void str_to_lower(char *);
-extern void str_to_upper(char *);
-extern void str(char *);
-extern int strnz(char *, int);
+extern bool str_to_lower(char *);
+extern bool str_to_upper(char *);
+extern bool strnfill(char *, char, int);
+extern bool str_subc(char *, char *, char, char *, int);
+extern size_t strnz(char *, int);
 extern char *strz_dup(char *);
 extern char *strnz_dup(char *, int);
 extern char *rep_substring(const char *, const char *, const char *);
-extern void strnfill(char *, char, int);
-extern void str_subc(char *, char *, char, char *, int);
-extern void chrep(char *, char, char);
+extern bool chrep(char *, char, char);
 extern double str_to_double(char *);
 extern size_t ssnprintf(char *, size_t, const char *, ...);
 extern size_t strnz__cpy(char *, const char *, size_t);
@@ -1043,7 +1042,7 @@ extern size_t string_ncat(String *, const String *, size_t);
 extern size_t string_ncpy(String *, const String *, size_t);
 extern String to_string(const char *);
 extern String mk_string(size_t);
-extern void free_string(String);
+extern bool free_string(String);
 extern char *str_tok(char *, const char *, char);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ COLOR UTILITIES                                               │
@@ -1086,9 +1085,9 @@ extern int form_desc_error(int, char *, char *);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ FILE UTILITIES                                                │
 //  ╰───────────────────────────────────────────────────────────────╯
-extern void normalize_file_spec(char *);
-extern void file_spec_path(char *, char *);
-extern void file_spec_name(char *, char *);
+extern bool normalize_file_spec(char *);
+extern bool file_spec_path(char *, char *);
+extern bool file_spec_name(char *, char *);
 extern bool dir_name(char *, char *);
 extern bool base_name(char *, char *);
 extern bool trim_ext(char *, char *);
@@ -1101,6 +1100,6 @@ extern bool verify_dir_q(char *, int);
 extern bool verify_spec_arg(char *, char *, char *, char *, int);
 extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool locate_file_in_path(char *, char *);
-extern int canonicalize_file_spec(char *);
+extern size_t canonicalize_file_spec(char *);
 
 #endif
