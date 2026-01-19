@@ -44,6 +44,7 @@ writing shell scripts, but with a snazzy menu interface.
 
 ![C-Menu Sample Description File](screenshots/applications_menu.m.png)
 ![C-Menu Sample Menu](screenshots/applications_menu.png)
+
 From the above examples, you can get an idea of how C-Menu works.
 Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View,
 which in turn executes "tree-sitter highlight view_engine.c". Tree
