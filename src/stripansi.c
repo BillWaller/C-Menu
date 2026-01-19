@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 /// @note This function returns the length of the resulting string, including
 /// the null terminator
 int strip_ansi(char *d, char *s) {
-    int l;
+    int l = 0;
     while (*s) {
         if (*s == '\033') {
             while (*s && *s != 'm' && *s != 'K')
@@ -64,5 +64,5 @@ int strip_ansi(char *d, char *s) {
         }
     }
     *d = '\0';
-    return l + 1;
+    return l;
 }

@@ -628,8 +628,10 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
         if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 ||
             wcols < COLS - 2) {
             win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
-            if (win_box[win_ptr] == NULL)
+            if (win_box[win_ptr] == NULL) {
+                win_ptr--;
                 return (1);
+            }
             wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
             cbox(win_box[win_ptr]);
             if (WTitle != NULL && *WTitle != '\0') {
@@ -652,15 +654,20 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
             wbegx += 1;
         } else {
             win_box[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
-            if (win_box[win_ptr] == NULL)
+            if (win_box[win_ptr] == NULL) {
+                win_ptr--;
                 return (1);
+            }
         }
         wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
         if (!(flag & F_VIEW)) {
             win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
             wbkgd(win_win[win_ptr], COLOR_PAIR(cp_norm) | ' ');
-            if (win_win[win_ptr] == NULL)
+            if (win_win[win_ptr] == NULL) {
+                delwin(win_box[win_ptr]);
+                win_ptr--;
                 return (1);
+            }
             keypad(win_win[win_ptr], TRUE);
             idlok(win_win[win_ptr], false);
             idcok(win_win[win_ptr], false);
@@ -730,10 +737,12 @@ WINDOW *win_del() {
         touchwin(win_win[win_ptr]);
         wnoutrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
+
         wclear(win_box[win_ptr]);
         touchwin(win_box[win_ptr]);
         wnoutrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
+
         touchwin(stdscr);
         wnoutrefresh(stdscr);
         for (i = 0; i < win_ptr; i++) {
@@ -906,7 +915,10 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
         em_l = em3_l;
     if (em_l < cmd_l)
         em_l = cmd_l;
-    pos = (COLS - em_l - 4) / 2;
+    if (em_l > (COLS - 4))
+        em_l = COLS - 4;
+
+    pos = ((COLS - em_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
     if (win_new(5, em_l + 2, line, pos, title, 0)) {

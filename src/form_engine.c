@@ -212,6 +212,7 @@ int form_calculate(Init *init) {
     int i, c, rc;
     char earg_str[MAXLEN + 1];
     char *eargv[MAXARGS];
+    char file_spec[MAXLEN];
     bool loop = true;
     pid_t pid;
     int pipe_fd[2];
@@ -240,6 +241,8 @@ int form_calculate(Init *init) {
                     strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
                 }
                 str_to_args(eargv, earg_str, MAXARGS);
+                strnz__cpy(file_spec, eargv[0], MAXLEN - 1);
+                base_name(eargv[0], file_spec);
                 /// ╭───────────────────────────────────────────────╮
                 /// │ SETUP PIPE FORK EXEC                          │
                 /// ╰───────────────────────────────────────────────╯
@@ -256,13 +259,17 @@ int form_calculate(Init *init) {
                     dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
                     close(pipe_fd[P_WRITE]);
                     execvp(eargv[0], eargv);
-                    strnz__cpy(tmp_str,
-                               "Can't exec form start cmd: ", MAXLEN - 1);
-                    strnz__cat(tmp_str, eargv[0], MAXLEN - 1);
-                    Perror(tmp_str);
+                    ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                              __LINE__ - 2);
+                    strnz__cpy(em1, "execvp(", MAXLEN - 1);
+                    strnz__cat(em1, eargv[0], MAXLEN - 1);
+                    strnz__cat(em1, ", ", MAXLEN - 1);
+                    strnz__cat(em1, earg_str, MAXLEN - 1);
+                    strnz__cat(em1, ")", MAXLEN - 1);
+                    strerror_r(errno, em2, MAXLEN);
+                    display_error(em0, em1, em2, NULL);
                     exit(EXIT_FAILURE);
-                }
-                // Back to parent
+                } // Back to parent
                 close(pipe_fd[P_WRITE]);
                 form->in_fp = fdopen(pipe_fd[P_READ], "rb");
                 form->f_in_pipe = true;

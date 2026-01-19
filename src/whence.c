@@ -147,18 +147,21 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
         }
     if (strlen(file_spec) == 0) {
         strnz__cpy(file_spec, "./", MAXLEN - 1);
-        strnz__cpy(file_path, "./", MAXLEN - 1);
         file_name[0] = '\0';
         return (0);
     }
     strnz__cpy(tmp_file_spec, file_spec, MAXLEN - 1);
-    file_spec_l = strlen(file_spec);
     last_slash = -1;
-    i = 0;
-    while (i < file_spec_l) {
-        if (tmp_file_spec[i] == '/')
-            last_slash = i;
-        i++;
+    file_spec_l = strlen(tmp_file_spec);
+    if (file_spec_l > 0) {
+        i = 0;
+        while (i < file_spec_l && tmp_file_spec[i] != '\0') {
+            if (tmp_file_spec[i] == '/') {
+                last_slash = i;
+                break;
+            }
+            i++;
+        }
     }
     if (last_slash < 0) {
         strnz__cpy(file_path, "./", MAXLEN - 1);
