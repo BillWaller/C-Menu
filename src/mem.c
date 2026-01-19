@@ -38,16 +38,25 @@ View *view;
 /// Create and initialize an Init structure
 Init *new_init(int argc, char **argv) {
     int i = 0;
-    Init *init = (Init *)calloc(1, sizeof(Init));
-    if (!init) {
+    // Initialize Init Structure
+    Init *init = calloc(1, sizeof(Init));
+    if (init == NULL) {
         abend(-1, "calloc init failed");
+        return NULL;
     }
-    init->argv = (char **)calloc((MAXARGS + 1), sizeof(char *));
-    if (!init->argv) {
-        abend(-1, "new_init() calloc init->argv failed");
+    init->argv = calloc(MAXARGS + 1, sizeof(char *));
+    if (init->argv == NULL) {
+        free(init);
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "init->argv = calloc(%d, %d) failed\n",
+                  MAXARGS + 1, sizeof(char *));
+        display_error(em0, em1, NULL, NULL);
+        abend(-1, "User terminated program");
+        return NULL;
     }
     init->argc = argc;
     for (i = 0; i < init->argc; i++) {
+        // Allocate memory for each argument strings
         init->argv[i] = strdup(argv[i]);
     }
     init->argv[i] = NULL;
@@ -141,6 +150,15 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
         abend(-1, "init_pick_files failed");
         return NULL;
     }
+    pick->object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
+    if (pick->object == NULL) {
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1,
+                  "calloc pick->object = calloc(%d, %d) failed\n",
+                  OBJ_MAXCNT + 1, sizeof(char *));
+        display_error(em0, em1, NULL, NULL);
+        abend(-1, "User terminated program");
+    }
     pick->begy = begy;
     pick->begx = begx;
     return init->pick;
@@ -213,42 +231,28 @@ Form *close_form(Init *init) {
 /// ╰────────────────────────────────────────────────────────────────╯
 /// Create and initialize a View structure
 View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
+
+    init->view_cnt++;
     init->view = (View *)calloc(1, sizeof(View));
     if (!init->view) {
         Perror("calloc init->view failed");
         return NULL;
     }
     view = init->view;
-    init->view_cnt++;
     view->argc = argc;
-    view->argv = (char **)calloc((view->argc + 1), sizeof(char *));
-    if (!view->argv) {
-        Perror("calloc view->argv failed");
-        return NULL;
+    view->argv = calloc((view->argc + 1), sizeof(char *));
+    if (view->argv == NULL) {
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
+                  view->argc + 1, sizeof(char *));
+        display_error(em0, em1, NULL, NULL);
+        abend(-1, "User terminated program");
     }
     if (!init_view_files(init, view->argc, argv)) {
         abend(-1, "init_view_files failed");
         return NULL;
     }
-    view->lines = init->lines;
-    view->cols = init->cols;
-    view->begy = begy;
-    view->begx = begx;
-    view->fg_color = init->fg_color;
-    view->bg_color = init->bg_color;
-    view->bo_color = init->bo_color;
-    view->prompt_type = init->prompt_type;
-    strnz__cpy(view->prompt_str, init->prompt_str, MAXLEN - 1);
-    strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
-    strnz__cpy(view->cmd, init->cmd, MAXLEN - 1);
-    if (view->provider_cmd[0] != '\0')
-        strip_quotes(view->provider_cmd);
-    if (init->title[0] == '\0')
-        strnz__cpy(init->title, init->provider_cmd, MAXLEN - 1);
-    else
-        strip_quotes(init->title);
-
-    return init->view;
+    return view;
 }
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ CLOSE_VIEW                                                     │
@@ -283,7 +287,10 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     bool f_dir = false;
     bool f_spec = false;
     bool f_quote = true;
-    char *sp;
+    char *s1;
+    char *s2;
+    char s1_s[MAXLEN];
+    char s2_s[MAXLEN];
     char file_name[MAXLEN];
     char try_spec[MAXLEN];
     char idio_spec[MAXLEN];
@@ -293,13 +300,15 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     /// ╭────────────────────────────────────────────────────────────╮
     /// │ USE FILE_NAME FROM SRC_SPEC                                │
     /// ╰────────────────────────────────────────────────────────────╯
+    idio_spec[0] = '\0';
     strnz__cpy(try_spec, org_spec, MAXLEN - 1);
     f_quote = stripz_quotes(try_spec);
-    if (f_quote) {
-        sp = strtok(try_spec, " \t\n");
-        strnz__cpy(try_spec, sp, MAXLEN - 1);
-    }
-    strnz__cpy(file_name, try_spec, MAXLEN - 1);
+    s1 = strtok(try_spec, " \t\n");
+    strnz__cpy(s1_s, s1, MAXLEN - 1);
+    s2 = strtok(NULL, "\n");
+    strnz__cpy(s2_s, s2, MAXLEN - 1);
+    strnz__cpy(file_name, s1, MAXLEN - 1);
+    strnz__cpy(try_spec, file_name, MAXLEN - 1);
     canonicalize_file_spec(try_spec);
     if (try_spec[0]) {
         expand_tilde(try_spec, MAXLEN - 1);
@@ -316,24 +325,34 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                 ///  ╭───────────────────────────────────────────────────╮
                 ///  │ IDIOMATIC (PREFERRED) SPEC                        │
                 ///  ╰───────────────────────────────────────────────────╯
-                strnz__cpy(try_spec, dir, MAXLEN - 1);
-                expand_tilde(try_spec, MAXLEN - 1);
-                f_dir = verify_dir(try_spec, mode);
-                if (f_dir) {
-                    strnz__cat(try_spec, "/", MAXLEN - 1);
-                    strnz__cat(try_spec, file_name, MAXLEN - 1);
-                    strnz__cpy(idio_spec, try_spec, MAXLEN - 1);
-                    f_spec = verify_file(idio_spec, mode | S_QUIET);
+                if (strcmp(dir, "$PATH") == 0) {
+                    strnz__cpy(try_spec, file_name, MAXLEN - 1);
+                    f_spec = locate_file_in_path(try_spec, file_name);
+                } else {
+                    strnz__cpy(try_spec, dir, MAXLEN - 1);
+                    expand_tilde(try_spec, MAXLEN - 1);
+                    f_dir = verify_dir(try_spec, mode);
+                    if (f_dir) {
+                        strnz__cat(try_spec, "/", MAXLEN - 1);
+                        strnz__cat(try_spec, file_name, MAXLEN - 1);
+                        strnz__cpy(idio_spec, try_spec, MAXLEN - 1);
+                        f_spec = verify_file(idio_spec, mode | S_QUIET);
+                    }
                 }
             }
-            if (!f_spec && alt_dir[0]) {
-                strnz__cpy(try_spec, alt_dir, MAXLEN - 1);
-                expand_tilde(try_spec, MAXLEN - 1);
-                f_dir = verify_dir(try_spec, mode | S_QUIET);
-                if (f_dir) {
-                    strnz__cat(try_spec, "/", MAXLEN - 1);
-                    strnz__cat(try_spec, file_name, MAXLEN - 1);
-                    f_spec = verify_file(try_spec, mode | S_QUIET);
+            if (!f_spec && alt_dir && alt_dir[0] != '\0') {
+                if (strcmp(alt_dir, "$PATH") == 0) {
+                    strnz__cpy(try_spec, file_name, MAXLEN - 1);
+                    f_spec = locate_file_in_path(try_spec, file_name);
+                } else {
+                    strnz__cpy(try_spec, alt_dir, MAXLEN - 1);
+                    expand_tilde(try_spec, MAXLEN - 1);
+                    f_dir = verify_dir(try_spec, mode);
+                    if (f_dir) {
+                        strnz__cat(try_spec, "/", MAXLEN - 1);
+                        strnz__cat(try_spec, file_name, MAXLEN - 1);
+                        f_spec = verify_file(try_spec, mode | S_QUIET);
+                    }
                 }
             }
             if (!f_spec) {
@@ -362,6 +381,10 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                 strnz__cpy(spec, idio_spec, MAXLEN - 1);
             else
                 strnz__cpy(spec, try_spec, MAXLEN - 1);
+            if (s2_s[0] != '\0') {
+                strnz__cat(spec, " ", MAXLEN - 1);
+                strnz__cat(spec, s2_s, MAXLEN - 1);
+            }
             return f_spec;
         }
     }
@@ -486,22 +509,24 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     /// │ PICK PROVIDER_CMD - OPT ARG -S: - Priority 5              │
     /// ╰───────────────────────────────────────────────────────────╯
     if (init->provider_cmd[0] != '\0') {
-        strnz__cpy(pick->provider_cmd, init->provider_cmd, MAXLEN - 1);
-        pick->f_provider_cmd = true;
+        pick->f_provider_cmd =
+            verify_spec_arg(pick->provider_cmd, init->provider_cmd,
+                            "~/menuapp/bin", "$PATH", X_OK | S_QUIET);
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ PICK CMD - OPT ARG -c: - Priority 5                       │
     /// ╰───────────────────────────────────────────────────────────╯
     if (init->cmd[0] != '\0') {
-        strnz__cpy(pick->cmd, init->cmd, MAXLEN - 1);
-        pick->f_cmd = true;
+        pick->f_cmd = verify_spec_arg(pick->cmd, init->cmd, "~/menuapp/bin",
+                                      "$PATH", X_OK | S_QUIET);
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ PICK RECEIVER_CMD - OPT ARG -R: - Priority 5              │
     /// ╰───────────────────────────────────────────────────────────╯
     if (init->receiver_cmd[0] != '\0') {
-        strnz__cpy(pick->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
-        pick->f_receiver_cmd = true;
+        pick->f_receiver_cmd =
+            verify_spec_arg(pick->receiver_cmd, init->receiver_cmd,
+                            "~/menuapp/bin", "$PATH", X_OK | S_QUIET);
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ PICK TITLE    - OPT ARG -T: - Priority 5                  │
@@ -538,24 +563,46 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     /// │ PICK PROVIDER_CMD - POSITIONAL ARG 3 - Priority 4         │
     /// ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !pick->f_provider_cmd) {
-        strnz__cpy(pick->provider_cmd, argv[optind], MAXLEN - 1);
-        pick->f_provider_cmd = true;
+        if (argv[optind][0] != '\0') {
+            pick->f_provider_cmd =
+                verify_spec_arg(pick->provider_cmd, argv[optind],
+                                "~/menuapp/bin", NULL, X_OK | S_QUIET);
+            if (!pick->f_provider_cmd) {
+                base_name(tmp_str, argv[optind]);
+                pick->f_provider_cmd =
+                    locate_file_in_path(pick->provider_cmd, tmp_str);
+            }
+        }
         optind++;
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ PICK CMD - POSITIONAL ARG 4 - Priority 4                  │
     /// ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !pick->f_cmd) {
-        strnz__cpy(pick->cmd, argv[optind], MAXLEN - 1);
-        pick->f_cmd = true;
+        if (argv[optind][0] != '\0') {
+            pick->f_cmd = verify_spec_arg(
+                pick->cmd, argv[optind], "~/menuapp/bin", NULL, X_OK | S_QUIET);
+            if (!pick->f_cmd) {
+                base_name(tmp_str, argv[optind]);
+                pick->f_cmd = locate_file_in_path(pick->cmd, tmp_str);
+            }
+        }
         optind++;
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ PICK RECEIVER_SPEC - POSITIONAL ARG 5 - Priority 4        │
     /// ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !pick->f_receiver_cmd) {
-        strnz__cpy(pick->receiver_cmd, argv[optind], MAXLEN - 1);
-        pick->f_receiver_cmd = true;
+        if (argv[optind][0] != '\0') {
+            pick->f_receiver_cmd =
+                verify_spec_arg(pick->receiver_cmd, argv[optind],
+                                "~/menuapp/bin", NULL, X_OK | S_QUIET);
+            if (!pick->f_receiver_cmd) {
+                base_name(tmp_str, argv[optind]);
+                pick->f_receiver_cmd =
+                    locate_file_in_path(pick->receiver_cmd, tmp_str);
+            }
+        }
         optind++;
     }
     /// ╭───────────────────────────────────────────────────────────╮
@@ -603,22 +650,24 @@ bool init_form_files(Init *init, int argc, char **argv) {
     /// │ FORM PROVIDER_CMD - OPT ARG -S: - Priority 5              │
     /// ╰───────────────────────────────────────────────────────────╯
     if (init->provider_cmd[0] != '\0') {
-        strnz__cpy(form->provider_cmd, init->provider_cmd, MAXLEN - 1);
-        form->f_provider_cmd = true;
+        form->f_provider_cmd =
+            verify_spec_arg(form->provider_cmd, init->provider_cmd,
+                            "~/menuapp/bin", "$PATH", X_OK | S_QUIET);
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ FORM CMD - OPT ARG -c: - Priority 5                       │
     /// ╰───────────────────────────────────────────────────────────╯
-    if (init->provider_cmd[0] != '\0') {
-        strnz__cpy(form->provider_cmd, init->provider_cmd, MAXLEN - 1);
-        form->f_provider_cmd = true;
+    if (init->cmd[0] != '\0') {
+        form->f_cmd = verify_spec_arg(form->cmd, init->cmd, "~/menuapp/bin",
+                                      "$PATH", X_OK | S_QUIET);
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ FORM RECEIVER_CMD - OPT ARG -R: - Priority 5              │
     /// ╰───────────────────────────────────────────────────────────╯
     if (init->receiver_cmd[0] != '\0') {
-        strnz__cpy(form->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
-        form->f_receiver_cmd = true;
+        form->f_receiver_cmd =
+            verify_spec_arg(form->receiver_cmd, init->receiver_cmd,
+                            "~/menuapp/bin", "$PATH", X_OK | S_QUIET);
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ FORM HELP_SPEC - OPT ARG -H: - Priority 5                 │
@@ -660,24 +709,46 @@ bool init_form_files(Init *init, int argc, char **argv) {
     /// │ FORM PROVIDER_CMD - POSITIONAL ARG 4 - Priority 4         │
     /// ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !form->f_provider_cmd) {
-        strnz__cpy(form->provider_cmd, argv[optind], MAXLEN - 1);
-        form->f_provider_cmd = true;
+        if (argv[optind][0] != '\0') {
+            form->f_provider_cmd =
+                verify_spec_arg(form->provider_cmd, argv[optind],
+                                "~/menuapp/bin", NULL, X_OK | S_QUIET);
+            if (!form->f_provider_cmd) {
+                base_name(tmp_str, argv[optind]);
+                form->f_provider_cmd =
+                    locate_file_in_path(form->provider_cmd, tmp_str);
+            }
+        }
         optind++;
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ FORM CMD - POSITIONAL ARG 5 - Priority 4                  │
     /// ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !form->f_cmd) {
-        strnz__cpy(form->cmd, argv[optind], MAXLEN - 1);
-        form->f_cmd = true;
+        if (argv[optind][0] != '\0') {
+            form->f_cmd = verify_spec_arg(
+                form->cmd, argv[optind], "~/menuapp/bin", NULL, X_OK | S_QUIET);
+            if (!form->f_cmd) {
+                base_name(tmp_str, argv[optind]);
+                form->f_cmd = locate_file_in_path(form->cmd, tmp_str);
+            }
+        }
         optind++;
     }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ FORM RECEIVER_SPEC - POSITIONAL ARG 5 - Priority 4        │
     /// ╰───────────────────────────────────────────────────────────╯
     if (optind < argc && !form->f_receiver_cmd) {
-        strnz__cpy(form->receiver_cmd, argv[optind], MAXLEN - 1);
-        form->f_receiver_cmd = true;
+        if (argv[optind][0] != '\0') {
+            form->f_receiver_cmd =
+                verify_spec_arg(form->receiver_cmd, argv[optind],
+                                "~/menuapp/bin", NULL, X_OK | S_QUIET);
+            if (!form->f_receiver_cmd) {
+                base_name(tmp_str, argv[optind]);
+                form->f_receiver_cmd =
+                    locate_file_in_path(form->receiver_cmd, tmp_str);
+            }
+        }
         optind++;
     }
     /// ╭───────────────────────────────────────────────────────────╮
@@ -695,10 +766,10 @@ bool init_form_files(Init *init, int argc, char **argv) {
     form->bo_color = init->bo_color;
     form->f_stop_on_error = init->f_stop_on_error;
     form->f_erase_remainder = init->f_erase_remainder;
-    strip_quotes(init->title);
-    strnz__cpy(form->title, init->title, MAXLEN - 1);
-    strip_quotes(init->provider_cmd);
-    strnz__cpy(form->provider_cmd, init->provider_cmd, MAXLEN - 1);
+    if (form->title[0] == '\0' && init->title[0] != '\0') {
+        strip_quotes(init->title);
+        strnz__cpy(form->title, init->title, MAXLEN - 1);
+    }
     return true;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
@@ -707,12 +778,22 @@ bool init_form_files(Init *init, int argc, char **argv) {
 /// Initialize View file specifications
 bool init_view_files(Init *init, int argc, char **argv) {
     view = init->view;
-    int s = 1;
-    int d = 0;
 
+    view->argv = calloc((argc - optind + 1), sizeof(char *));
+    if (view->argv == NULL) {
+        free(view);
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
+                  (argc - optind + 1), sizeof(char *));
+        display_error(em0, em1, NULL, NULL);
+        abend(-1, "User terminated program");
+        return false;
+    }
     /// we presume that no unprocessed options remain in argv
     /// so we just copy all args from argv[1..argc-1] to view
-    s = optind;
+    // s = optind;
+    int s = optind;
+    int d = 0;
     while (s < argc)
         view->argv[d++] = strdup(argv[s++]);
     view->argv[d] = NULL;

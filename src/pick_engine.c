@@ -55,6 +55,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     Pick *pick = new_pick(init, argc, argv, begy, begx);
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
+
     /// ╭────────────────────────────────────────────────────────────╮
     /// │ START PROVIDER_CMD, attach pipe to its STDOUT              │
     /// ╰────────────────────────────────────────────────────────────╯
@@ -148,8 +149,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         return (1);
     }
     pick_engine(init);
-    if (pick->win)
-        win_del();
+    win_del();
     close_pick(init);
     return 0;
 }
@@ -164,13 +164,6 @@ int read_pick_input(Init *init) {
     pick->obj_cnt = pick->pg_lines = pick->tbl_cols = 0;
     pick->obj_idx = pick->tbl_page = pick->y = pick->tbl_col = pick->x = 0;
     pick->tbl_pages = 1;
-
-    pick->object = (char **)calloc(OBJ_MAXCNT, sizeof(char *));
-    if (pick->object == NULL) {
-        sprintf(errmsg, "fpick: pick->object=(char **)calloc(%d)\n",
-                OBJ_MAXLEN + 1);
-        abend(-1, errmsg);
-    }
 
     if (pick->in_fp) {
         while (fgets(pick->in_buf, sizeof(pick->in_buf), pick->in_fp) != NULL)
@@ -649,8 +642,9 @@ int exec_objects(Init *init) {
     int margc;
     char *margv[MAXARGS];
     char tmp_str[MAXLEN];
-    char org_arg[MAXLEN];
-    char *new_arg;
+    char sav_arg[MAXLEN];
+    char *out_s = NULL;
+    int margx = 0;
     int i = 0;
     pid_t pid = 0;
     bool f_append_args = false;
@@ -689,19 +683,21 @@ int exec_objects(Init *init) {
         ///  @note Only process first occurrence of %%
         ///  @param %% is replaced with selected objects
         ///         as a parameter list separated by spaces
+        f_append_args = false;
         i = 0;
         while (i < margc) {
             if (strstr(margv[i], "%%") != NULL) {
                 tmp_str[0] = '\0';
                 f_append_args = true;
+                strnz__cpy(sav_arg, margv[i], MAXLEN - 1);
+                margx = i;
                 break;
             }
             i++;
         }
-        margc--;
-        strnz__cpy(org_arg, margv[margc], MAXLEN - 1);
-        for (i = 0; i < pick->obj_cnt; i++) {
-            if (pick->f_selected[i] && margc < MAXARGS) {
+        /// Add selected objects
+        for (i = 0; i < pick->obj_cnt - 1; i++) {
+            if (pick->f_selected[i] && margc < MAXARGS - 1) {
                 if (f_append_args == true) {
                     if (tmp_str[0] != '\0')
                         strnz__cat(tmp_str, " ", MAXLEN - 1);
@@ -711,24 +707,63 @@ int exec_objects(Init *init) {
                 margv[margc++] = strdup(pick->object[i]);
             }
         }
-        if (f_append_args == true && margc < MAXARGS) {
-            strnz__cpy(org_arg, margv[margc], MAXLEN - 1);
-            new_arg = rep_substring(org_arg, "%%", tmp_str);
-            free(margv[margc]);
-            margv[margc++] = strdup(new_arg);
+        if (f_append_args == true) {
+            if (margv[margx] != NULL) {
+                free(margv[margx]);
+                margv[margx] = NULL;
+            }
+            out_s = rep_substring(sav_arg, "%%", tmp_str);
+            if (out_s == NULL) {
+                i = 0;
+                while (i < margc - 1) {
+                    if (margv[i] != NULL)
+                        free(margv[i]);
+                    i++;
+                }
+                Perror("rep_substring() failed in exec_objects");
+                return 1;
+            }
+            margv[margx] = strdup(out_s);
+            if (out_s != NULL) {
+                free(out_s);
+                out_s = NULL;
+            }
         }
     }
     margv[margc] = NULL;
     if (margc == 0) {
         Perror("No pick exec command available");
-        return (1);
+        return 1;
     }
-    if (strcmp(margv[0], "view") == 0) {
+    strnz__cpy(tmp_str, margv[0], MAXLEN - 1);
+    char *s1;
+    s1 = strtok(tmp_str, " ");
+    if (s1 != NULL && (strcmp(s1, "view") == 0 || strcmp(s1, "mview") == 0)) {
+        ///  ╭───────────────────────────────────────────────────────╮
+        ///  │ SPECIAL CASE FOR VIEW / MVIEW                         │
+        ///  ╰───────────────────────────────────────────────────────╯
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
         mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4, NULL);
-    } else {
+        i = 0;
+        while (i < margc) {
+            if (margv[i] != NULL)
+                free(margv[i]);
+            i++;
+        }
+        return 0;
+    }
+    ///  ╭───────────────────────────────────────────────────────╮
+    ///  │ FORK/EXEC PICK COMMAND                                │
+    ///  ╰───────────────────────────────────────────────────────╯
+    else {
         if ((pid = fork()) == -1) {
+            i = 0;
+            while (i < margc) {
+                if (margv[i] != NULL)
+                    free(margv[i]);
+                i++;
+            }
             Perror("fork() failed in exec_objects");
             return (1);
         }
@@ -744,9 +779,12 @@ int exec_objects(Init *init) {
     }
     /// Parent
     waitpid(pid, NULL, 0);
-    margc = 0;
-    while (margv[margc] != NULL)
-        free(margv[margc++]);
+    i = 0;
+    while (i < margc) {
+        if (margv[i] != NULL)
+            free(margv[i]);
+        i++;
+    }
     restore_curses_tioctl();
     sig_prog_mode();
     keypad(pick->win, true);

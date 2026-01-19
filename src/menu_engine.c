@@ -53,7 +53,6 @@ unsigned int menu_engine(Init *init) {
             while ((action = menu_cmd_processor(init)) == MA_ENTER_OPTION)
                 ;
         }
-        win_del();
         menu->win = win_win[win_ptr];
         menu->box = win_box[win_ptr];
         if (action == MA_INIT) {
@@ -92,7 +91,7 @@ unsigned int menu_cmd_processor(Init *init) {
                    menu->line[menu->line_idx]->choice_text, menu->cols);
     wattroff(menu->win, A_REVERSE);
     event.y = event.x = -1;
-    tcflush(2, TCIFLUSH);
+    // tcflush(2, TCIFLUSH);
     in_key = mvwgetch(menu->win, menu->line_idx, 1);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);

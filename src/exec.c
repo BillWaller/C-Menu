@@ -179,7 +179,7 @@ int fork_exec(char **argv) {
         ssnprintf(tmp_str, sizeof(tmp_str), "execvp failed: %s, errno: %d",
                   argv[0], errno);
         Perror(tmp_str);
-        return (-1);
+        exit(-1);
     default: // parent
         rc = 0;
         restore_curses_tioctl();
@@ -252,13 +252,23 @@ int bg_fork_exec_pipe(char **argv, int *pipe_fd, pid_t pid) {
         close(pipe_fd[P_WRITE]);
         ttyname_r(STDERR_FILENO, tmp_str, sizeof(tmp_str));
         FILE *tty_fp = fopen(tmp_str, "r+");
-        tty_fd = fileno(tty_fp);
-        dup2(tty_fd, STDIN_FILENO);
-        fclose(tty_fp);
-        restore_curses_tioctl();
-        sig_prog_mode();
-        keypad(stdscr, true);
-        break;
+        if (tty_fp == NULL) {
+            restore_curses_tioctl();
+            sig_prog_mode();
+            keypad(stdscr, true);
+            ssnprintf(tmp_str, sizeof(tmp_str),
+                      "failed to open tty %s, errno: %d", tmp_str, errno);
+            Perror(tmp_str);
+            break;
+        } else {
+            tty_fd = fileno(tty_fp);
+            dup2(tty_fd, STDIN_FILENO);
+            fclose(tty_fp);
+            restore_curses_tioctl();
+            sig_prog_mode();
+            keypad(stdscr, true);
+            break;
+        }
     }
     return pid;
 }

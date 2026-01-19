@@ -124,7 +124,6 @@ int str_to_args(char *argv[], char *arg_str, int max_args) {
     int argc = 0;
     char *p = arg_str;
     char tmp_str[MAXLEN];
-    char *arg_start;
     int in_quotes = 0;
     char *d = tmp_str;
 
@@ -160,10 +159,9 @@ int str_to_args(char *argv[], char *arg_str, int max_args) {
         }
         *d = '\0';
         d = tmp_str;
-        arg_start = (char *)malloc(strlen(tmp_str) + 1);
-        strnz__cpy(arg_start, tmp_str, MAXLEN - 1);
-        argv[argc++] = arg_start;
+        argv[argc++] = strdup(tmp_str);
     }
+    argv[argc] = NULL;
     return argc;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
@@ -408,7 +406,7 @@ bool stripz_quotes(char *s) {
     if (s == NULL || strlen(s) < 2)
         return false;
     int l = strlen(s);
-    if (l > 1 && s[l - 1] == '\"') {
+    if (l > 1 && s[0] == '\"' && s[l - 1] == '\"') {
         memmove(s, s + 1, l - 2);
         s[l - 2] = '\0';
         return true;
@@ -735,18 +733,19 @@ bool verify_dir(char *spec, int imode) {
         src_line = __LINE__ - 2;
         src_name = __FILE__;
         strnz__cpy(fn, "faccessat", MAXLEN - 1);
-    } else if (fstatat(AT_FDCWD, spec, &sb, 0) != 0) {
-        src_line = __LINE__ - 1;
-        src_name = __FILE__;
-        strnz__cpy(fn, "fstatat", MAXLEN - 1);
-    }
-    if (errno != 0)
-        strerror_r(errno, em2, MAXLEN - 1);
-    else if ((sb.st_mode & S_IFMT) != S_IFDIR) {
-        src_line = __LINE__ - 1;
-        src_name = __FILE__;
-        strnz__cpy(fn, "verify_file", MAXLEN - 1);
-        strnz__cpy(em2, "Not a regular file.", MAXLEN - 1);
+    } else {
+        if (fstatat(AT_FDCWD, spec, &sb, 0) != 0) {
+            src_line = __LINE__ - 1;
+            src_name = __FILE__;
+            strnz__cpy(fn, "fstatat", MAXLEN - 1);
+        } else {
+            if ((sb.st_mode & S_IFMT) != S_IFDIR) {
+                src_line = __LINE__ - 1;
+                src_name = __FILE__;
+                strnz__cpy(fn, "verify_file", MAXLEN - 1);
+                strnz__cpy(em2, "Not a regular file.", MAXLEN - 1);
+            }
+        }
     }
     if (src_line != 0) {
         ssnprintf(em0, MAXLEN - 1, "%s failed in %s at line %d", fn, src_name,
@@ -769,7 +768,6 @@ bool verify_dir(char *spec, int imode) {
 bool verify_file(char *in_spec, int imode) {
     if (in_spec == NULL || *in_spec == '\0')
         return false;
-    int rc;
     struct stat sb;
     char spec[MAXLEN];
     strnz__cpy(spec, in_spec, MAXLEN - 1);
@@ -778,22 +776,23 @@ bool verify_file(char *in_spec, int imode) {
     src_line = 0;
     canonicalize_file_spec(spec);
     expand_tilde(spec, MAXLEN);
-    if ((rc = faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) != 0) {
+    if ((faccessat(AT_FDCWD, spec, mode, AT_EACCESS)) != 0) {
         src_line = __LINE__ - 1;
         src_name = __FILE__;
         strnz__cpy(fn, "faccessat", MAXLEN - 1);
-    } else if ((rc = fstatat(AT_FDCWD, spec, &sb, 0)) != 0) {
-        src_line = __LINE__ - 1;
-        src_name = __FILE__;
-        strnz__cpy(fn, "fstatat", MAXLEN - 1);
-    }
-    if (errno != 0)
-        strerror_r(errno, em2, MAXLEN - 1);
-    else if ((sb.st_mode & S_IFMT) != S_IFREG) {
-        src_line = __LINE__ - 1;
-        src_name = __FILE__;
-        strnz__cpy(fn, "verify_file", MAXLEN - 1);
-        strnz__cpy(em2, "Not a regular file.", MAXLEN - 1);
+    } else {
+        if ((fstatat(AT_FDCWD, spec, &sb, 0)) != 0) {
+            src_line = __LINE__ - 1;
+            src_name = __FILE__;
+            strnz__cpy(fn, "fstatat", MAXLEN - 1);
+        } else {
+            if ((sb.st_mode & S_IFMT) != S_IFREG) {
+                src_line = __LINE__ - 1;
+                src_name = __FILE__;
+                strnz__cpy(fn, "verify_file", MAXLEN - 1);
+                strnz__cpy(em2, "Not a regular file.", MAXLEN - 1);
+            }
+        }
     }
     if (src_line != 0) {
         if (imode & S_QUIET)
@@ -1026,8 +1025,9 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
         ip = tmp + tgt_l;
     }
     out_s = malloc(strlen(org_s) + (rep_l - tgt_l) * n + 1);
-    if (!out_s)
+    if (!out_s) {
         return NULL;
+    }
     tmp = out_s;
     ip = (char *)org_s;
     while (n--) {
@@ -1215,6 +1215,12 @@ char *str_tok(char *str, const char *delims, char delim) {
 
     if (str != NULL)
         token = str;
+    if (delims == NULL || *delims == '\0' || token == NULL || *token == '\0')
+        return NULL;
+    // skip leading delimiters
+    token += strspn(token, delims);
+    if (*token == '\0')
+        return NULL;
     l = strcspn(token, delims);
     delim = token[l];
     if (delim != '\0')

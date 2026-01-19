@@ -165,9 +165,10 @@ double accept_pv() {
     double pv;
     while (1) {
         accept_str("Present Value - - -> ");
-        if (in_str[0] == '\0')
+        if (in_str[0] == '\0') {
             pv = 0;
-        else {
+            break;
+        } else {
             if (is_numeric(in_str)) {
                 pv = atof(in_str);
                 if (pv < 0)
@@ -207,9 +208,10 @@ double accept_i() {
     double i;
     while (1) {
         accept_str("Rate (annual) - - -> ");
-        if (in_str[0] == '\0')
+        if (in_str[0] == '\0') {
             i = 0;
-        else {
+            break;
+        } else {
             if (is_numeric(in_str)) {
                 i = atof(in_str);
                 if (i < 0)
@@ -230,9 +232,10 @@ double accept_pmt() {
     double pmt;
     while (1) {
         accept_str("Payment Amount  - -> ");
-        if (in_str[0] == '\0')
+        if (in_str[0] == '\0') {
             pmt = 0;
-        else {
+            break;
+        } else {
             if (is_numeric(in_str)) {
                 pmt = atof(in_str);
                 break;

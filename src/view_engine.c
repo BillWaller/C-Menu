@@ -16,19 +16,21 @@
 #include <time.h>
 #include <unistd.h>
 
-#define MAXCHAR (uchar)0xfa
-#define UL_START (uchar)0xfb
-#define UL_END (uchar)0xfc
-#define BO_START (uchar)0xfd
-#define BO_END (uchar)0xfe
-
-#define MO_NORMAL 0                //
-#define MO_UL_EXPECT_CHR 1         //            next char
-#define MO_UL_GOT_CHR_EXPECT_BS 2  //    char    ^H
-#define MO_UL_GOT_BS_EXPECT_CHR 3  //    ^H      next char
-#define MO_BO_EXPECT_CHR 4         //            next char
-#define MO_BO_GOT_CHR_EXPECT_BS 5  //    char    ^H
-#define MO_BO_GOT_BS_EXPECT_SAME 6 //    ^H      same char
+/// Modes for Underline and Bold Parsing State Machine
+/// Deprecated in favor of ANSI parsing
+// #define MAXCHAR (uchar)0xfa
+// #define UL_START (uchar)0xfb
+// #define UL_END (uchar)0xfc
+// #define BO_START (uchar)0xfd
+// #define BO_END (uchar)0xfe
+// #define MO_NORMAL 0                //
+// #define MO_UL_EXPECT_CHR 1         //            next char
+// #define MO_UL_GOT_CHR_EXPECT_BS 2  //    char    ^H
+// #define MO_UL_GOT_BS_EXPECT_CHR 3  //    ^H      next char
+// #define MO_BO_EXPECT_CHR 4         //            next char
+// #define MO_BO_GOT_CHR_EXPECT_BS 5  //    char    ^H
+// #define MO_BO_GOT_BS_EXPECT_SAME 6 //    ^H      same char
+//
 #define Ctrl(c) ((c) & 0x1f)
 
 /// Macros to get next and previous character skipping over carriage returns
@@ -41,14 +43,12 @@
 ///       backward movement of the FPC.
 /// @note Once either flag, EOD OR BOD, is set, no more characters will be
 ///       read until the FPC moves or the direction of reading changes.
-///
 /// @note C-Menu View mapps input to the Kernel's demand paged virtual address
 ///       space, so the entire file is accessible via a memory pointer. One of
 ///       the reasons C-Menu View is so responsive, is that it doesn't make
 ///       you wait while it loads data you will never use.
 /// @note This is called lazy loading, and for a pager like C-Menu View, it is
 ///       lean and performant.
-///
 /// The character read is returned in variable 'c'.
 ///
 #define get_next_char()                                                        \
@@ -80,7 +80,6 @@ int get_cmd_arg(View *, char *);
 void build_prompt(View *, int, char *, double elapsed);
 void cat_file(View *);
 void lp(char *, char *);
-
 void go_to_mark(View *, int);
 void go_to_eof(View *);
 int go_to_line(View *, off_t);
@@ -187,7 +186,6 @@ int view_cmd_processor(Init *init) {
     double elapsed = 0;
     bool f_clock_started = false;
     off_t n_cmd = 0L;
-    char delim = '\0';
     view = init->view;
     view->f_timer = false;
     view->cmd[0] = '\0';
@@ -468,7 +466,7 @@ int view_cmd_processor(Init *init) {
         case 'e':
         case 'E':
             if (get_cmd_arg(view, "File name:") == 0) {
-                str_tok(view->cmd_arg, " ", delim);
+                strtok(view->cmd_arg, " ");
                 view->next_file_spec_ptr = strdup(view->cmd_arg);
                 view->f_redisplay_page = true;
                 return 0;
@@ -753,7 +751,7 @@ int get_cmd_char(View *view, off_t *n) {
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ GET_CMD_ARG                                                  │
 ///  ╰──────────────────────────────────────────────────────────────╯
-///  Get Command Argument String
+///  Get Argument String from View's Command Line
 ///  Returns 0 on Enter, @, F9, ESC, or Mouse Event
 int get_cmd_arg(View *view, char *prompt) {
     int c;
@@ -1274,10 +1272,11 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             }
         }
     }
-    //  ╭───────────────────────────────────────────────────────────╮
-    //  │ SEARCH - SUCCESS - PREPARE PROMPT                         │
-    //  ╰───────────────────────────────────────────────────────────╯
-    //  Update view positions and prepare prompt string
+    /// ╭───────────────────────────────────────────────────────────╮
+    /// │ SEARCH - SUCCESS - PREPARE PROMPT                         │
+    /// ╰───────────────────────────────────────────────────────────╯
+    /// Update view positions and prepare prompt string
+    /// for match information
     view->file_pos = srch_curr_pos;
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
@@ -1298,6 +1297,13 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
 ///  │ REDISPLAY_PAGE                                               │
 ///  ╰──────────────────────────────────────────────────────────────╯
 /// Resize Page
+/// This function adjusts the size of the viewing window based
+/// on the current terminal dimensions and the view's settings.
+/// If the view is set to full screen, it resizes to occupy
+/// the entire terminal. Otherwise, it checks if the view's
+/// dimensions exceed the terminal size and adjusts them accordingly.
+/// If a resize occurs, it sets a flag to indicate that the page
+/// needs to be redisplayed.
 void resize_page(Init *init) {
     int scr_lines, scr_cols;
     bool f_resize = false;
@@ -1737,7 +1743,6 @@ int fmt_line(View *view) {
     cchar_t cc;
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
-    char delim;
     rtrim(view->line_out_s);
     /// Initialize multibyte to wide char conversion
     /// mbtowc, setcchar, and getcchar can sometimes behave badly,
@@ -1750,8 +1755,6 @@ int fmt_line(View *view) {
             //  │ ANSI ESCAPE SEQUENCE ENCOUNTERED                  │
             //  ╰───────────────────────────────────────────────────╯
             len = strcspn(&in_str[i], "mK ") + 1;
-            delim = in_str[i + len];
-            delim = delim;
             memcpy(ansi_tok, &in_str[i], len + 1);
             ansi_tok[len] = '\0';
             if (ansi_tok[0] == '\0') {
@@ -1833,12 +1836,11 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     int i, len, x_idx;
     bool f_fg = false, f_bg = false;
     int fg, bg;
-    char delim = '\0';
     char *ansi_p = ansi_str + 2;
     extended_pair_content(*cpx, &fg, &bg);
     RGB rgb;
     while (1) {
-        tok = str_tok((char *)ansi_p, ";m", delim);
+        tok = strtok((char *)ansi_p, ";m");
         if (tok == NULL || *tok == '\0')
             break;
         ansi_p = NULL;
@@ -1848,13 +1850,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 //  ╭───────────────────────────────────────────────╮
                 //  │ 38 - FOREGROUND                               │
                 //  ╰───────────────────────────────────────────────╯
-                tok = str_tok((char *)ansi_p, ";m", delim);
+                tok = strtok((char *)ansi_p, ";m");
                 ansi_p = 0;
                 if (tok != NULL && strcmp(tok, "5") == 0) {
                     //  ╭───────────────────────────────────────────╮
                     //  │ 5 - Xterm 256 COLOR PALETTE               │
                     //  ╰───────────────────────────────────────────╯
-                    tok = str_tok((char *)ansi_p, ";m", delim);
+                    tok = strtok((char *)ansi_p, ";m");
                     ansi_p = NULL;
                     if (tok != NULL) {
                         //  ╭───────────────────────────────────────╮
@@ -1871,13 +1873,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         //  ╭───────────────────────────────────────╮
                         //  │ 2 - RGB 16,777,216 COLOR PALETTE      │
                         //  ╰───────────────────────────────────────╯
-                        tok = str_tok((char *)ansi_p, ";m", delim);
+                        tok = strtok((char *)ansi_p, ";m");
                         ansi_p = NULL;
                         rgb.r = atoi(tok);
-                        tok = str_tok((char *)ansi_p, ";m", delim);
+                        tok = strtok((char *)ansi_p, ";m");
                         ansi_p = NULL;
                         rgb.g = atoi(tok);
-                        tok = str_tok((char *)ansi_p, ";m", delim);
+                        tok = strtok((char *)ansi_p, ";m");
                         ansi_p = NULL;
                         rgb.b = atoi(tok);
                         x_idx = rgb_to_xterm256_idx(rgb);
@@ -1891,13 +1893,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 //  ╭───────────────────────────────────────────────╮
                 //  │ 48 - BACKGROUND                               │
                 //  ╰───────────────────────────────────────────────╯
-                tok = str_tok((char *)ansi_p, ";m", delim);
+                tok = strtok((char *)ansi_p, ";m");
                 ansi_p = NULL;
                 if (tok != NULL && strcmp(tok, "5") == 0) {
                     //  ╭───────────────────────────────────────────╮
                     //  │ 5 - Xterm 256 COLOR PALETTE               │
                     //  ╰───────────────────────────────────────────╯
-                    tok = str_tok((char *)ansi_p, ";m", delim);
+                    tok = strtok((char *)ansi_p, ";m");
                     ansi_p = NULL;
                     if (tok != NULL) {
                         //  ╭───────────────────────────────────────╮
@@ -1914,13 +1916,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         //  ╭───────────────────────────────────────╮
                         //  │ 2 - RGB 16,777,216 COLOR PALETTE      │
                         //  ╰───────────────────────────────────────╯
-                        tok = str_tok((char *)ansi_p, ";m", delim);
+                        tok = strtok((char *)ansi_p, ";m");
                         ansi_p = NULL;
                         rgb.r = atoi(tok);
-                        tok = str_tok((char *)ansi_p, ";m", delim);
+                        tok = strtok((char *)ansi_p, ";m");
                         ansi_p = NULL;
                         rgb.g = atoi(tok);
-                        tok = str_tok((char *)ansi_p, ";m", delim);
+                        tok = strtok((char *)ansi_p, ";m");
                         ansi_p = NULL;
                         rgb.b = atoi(tok);
                         x_idx = rgb_to_xterm256_idx(rgb);
