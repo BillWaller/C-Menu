@@ -6,7 +6,6 @@
 
 #include "menu.h"
 #include <ncursesw/ncurses.h>
-#include <string.h>
 #include <unistd.h>
 #define KSTRLEN 100
 #define MAXLEN 256

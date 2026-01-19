@@ -28,9 +28,10 @@
 #define MAX_MENU_LINES 256
 #define PICK_MAX_ARG_LEN 256
 #define NCOLORS 16
-#define MAXARGS 1024
+#define MAXARGS 64
 #define MAX_ARGS 64
 #define MAXFIELDS 50
+#define MAX_PICK_OBJS 1024
 #define ACCEPT_PROMPT_CHAR '_'
 #define DEFAULTEDITOR "vi"
 #define MENU_HELP_FILE "~/menuapp/help/menu.help"

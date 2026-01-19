@@ -64,6 +64,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         ssnprintf(tmp_str, sizeof(tmp_str), "%s",
                   "init struct not allocated on entry");
         abend(-1, tmp_str);
+        exit(-1);
     }
     if (init->minitrc[0] == '\0')
         strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
