@@ -60,16 +60,25 @@ You can update Rust and Cargo at any time by running:
 Eventually, if there is enough interest in C-Menu, it will be ported to Rust.
 The plan is to thoroughly test and debug the C version, and incrementally
 incorporate Rust-like coding paradigms into the C codebase. Once the C version
-is stable and feature complete, a full port to Rust will be undertaken.
-And, then it will be called R-Menu. 😀
+is stable and feature complete, we begin the porting process, we will begin
+refactoring C-Menu to use more modular code structures and rust-like paradigms
+that will facilitate the eventual port to Rust.
+
+Come along with us on this exciting journey. If you already know Rust, we
+could use your help. If you don't know Rust, you can learn with us.
+You can contribute to R-Menu's evolution, and get involved in the Rust
+community. Add Rust to your CV or Resume.
+
+And, then you can say, you were a part of the team that created R-Menu. 😀
 
 ---
 
 ## Installing Bat
 
 Bat is a popular Rust-based tool that serves as a cat clone with syntax
-highlighting. It's easier to install than Tree-Sitter. To install Bat,
-you can use the following commands based on your operating system:
+highlighting. It's easier to install and accommodates a variety of file
+types not addressed by Tree-Sitter, and. To install Bat, use the following
+commands based on your operating system:
 
 ### Bat On Linux
 
@@ -450,6 +459,8 @@ After installation, you can verify that Ghostty is installed correctly by runnin
 ```bash
     ghostty --version
 ```
+
+---
 
 ## Additional Resources
 
