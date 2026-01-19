@@ -183,7 +183,12 @@ After installation, you can verify that lsd is installed correctly by running:
 ```
 
 This should display the installed lsd version, confirming that lsd is successfully
-installed on your system
+installed on your system.
+
+A word of caution here, "lsd"" in a different context, is an acronym for a
+powerful hallucinogenic drug. Don't casually tell your grandmother you have
+been using lsd without explaining that it's the Deluxe version of "ls", a
+file listing utility, and not the "lsd" she remembers from her college days. 😵‍💫
 
 ---
 
@@ -318,23 +323,43 @@ I installed my tree-sitter parsers in the following directory structure:
 ```
 
 The `config.json` file contains configuration settings for Tree-Sitter.
+You will find a sample config.json file in the tree-sitter directory of thie
+repository.
+
 The `parsers` directory contains the installed Tree-Sitter parsers for
 different programming languages.
 
+To let Tree-Sitter know where to find your custom parsers, you need to
+specify the parser directories in the `config.json` file. Tree-sitter will
+automatically look in ~/.config/tree-sitter. Here's an example of how to
+do this:
+
 ```bash
+cd ~/.config/tree-sitter
+vi config.json
+
 "parser-directories": [
         /home/bill/.config/tree-sitter/parsers
 ]
 ```
 
 You can also configure a custom color scheme in the config.json file if you like.
-Here's a sample of mine:
+Here's mine:
 
 ![~/.config/tree-sitter/config.json](screenshots/tree-sitter-config.json.png)
 
 The ~/tree-sitter/config.json distributed with tree-sitter uses the 256 color
 xterm palette, but you can also use HTML style six digit hex numbers as shown
-above.
+above. Refer to the Tree-Sitter documentation for more details on configuring
+the color scheme.
+
+Note: I find it much easier to use the six-digit hex color codes when configuring
+Tree-Sitter colors. This way, I can easily match the colors used in my terminal
+emulator and other applications. The 256 color xterm palette can be limiting
+and may not provide the exact colors I want for syntax highlighting. Using
+hex codes gives me more flexibility and allows for a more consistent color
+scheme across my development environment. They are also more intuitive to
+work with since they directly represent RGB values.
 
 ```bash
     cargo install tree-sitter-<language>
