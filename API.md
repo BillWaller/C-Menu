@@ -199,6 +199,44 @@ the memory when it is no longer needed.
 ---
 
 ```c
+char *str_tok(char *s, const char *delim, char **sp, char delim_found)
+```
+
+Copyright (c) 2005-2024 by Michael J. Fromberger. All rights reserved.
+Released under the MIT License. See LICENSE file for details.
+Modified by ChatGPT to add delim_found parameter.
+
+Parse string S into tokens separated by characters in DELIM.
+
+- Parameters:
+  - str - string to tokenize
+  - delim - delimiter characters
+  - delim_found - character to receive the delimiter found
+- Returns:
+  - returns pointer to next token
+
+Use case: When the delimiter character found is significant.
+It will be returned in delim_found.
+
+If string S is NULL, the saved pointer in SAVE_PTR is used as
+the next starting point. For example:
+
+```c
+char s[] = "-abc-=-def";
+char *sp;
+char delim_found;
+
+x = str_tok_r(s,    "-",  &sp, delim_found); // x = "abc", sp = "=-def"
+x = str_tok_r(NULL, "-=", &sp, delim_found); // x = "def", sp = NULL
+x = str_tok_r(NULL, "=",  &sp, delim_found); // x = NULL
+```
+
+Notes: If no delimiter is found, delim_found is set to '\0'.
+Maintains thread-safety just as strtok_r.
+
+---
+
+```c
 bool str_subc(char *d, char *s, char replace_chr, char *with_str, int l)
 ```
 

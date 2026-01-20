@@ -58,7 +58,7 @@ size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
 bool free_string(String);
-char *str_tok(char *, const char *, const char);
+char *str_tok_r(char *, const char *, char *, const char);
 char errmsg[MAXLEN];
 ///--------------------------------------------------------------
 /// ╭───────────────────────────────────────────────────────────╮
@@ -1199,35 +1199,64 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
     return new_len;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ STR_TOK - like strtok(), but saves the delimiter found in     │
+/// │ STR_TOK_R - like strtok(), but saves the delimiter found in   │
 /// │              delim                                            │
 /// ╰───────────────────────────────────────────────────────────────╯
-/// char *str_tok(char *str, const char *delims, const char delim);
+/// Reentrant string tokenizer with delimiter found
+/// char *str_tok(char *str, const char *delims, char **save_ptr, char
+/// Copyright (c) 2005-2024 by Michael J. Fromberger. All rights reserved.
+/// Released under the MIT License.  See LICENSE file for details.
+/// Modified by ChatGPT to add delim_found parameter.
+///
 /// @param str - string to tokenize
-/// @param delims - delimiter characters
-/// @param delim - character to receive the delimiter found
+/// @param delim - delimiter characters
+/// @param delim_found - character to receive the delimiter found
 /// @returns pointer to next token
-char *str_tok(char *str, const char *delims, char delim) {
-    if (delims == NULL || *delims == '\0')
+///
+/// Parse S into tokens separated by characters in DELIM.
+///
+/// If S is NULL, the saved pointer in SAVE_PTR is used as
+/// the next starting point.  For example:
+///
+///	char s[] = "-abc-=-def";
+///	char *sp;
+///	char delim_found;
+///
+///	x = str_tok_r(s, "-", &sp, delim_found);	    // x = "abc", sp =
+///"=-def" 	x = str_tok_r(NULL, "-=", &sp, delim_found);	// x = "def", sp
+///= NULL 	x = str_tok_r(NULL, "=", &sp, delim_found);	    // x = NULL
+///		                                            // s = "abc\0-def\0"
+///
+///	Use when the delimiter character is significant.
+///	The delimiter character found will be returned in delim_found.
+/// If no delimiter is found, delim_found is set to '\0'
+///	Maintains thread-safety just as strtok_r.
+/// The user is responsible for providing char *save_ptr and char delim_found
+///
+char *str_tok_r(char *s, const char *delim, char **save_ptr, char delim_found) {
+    char *end;
+    if (s == NULL)
+        s = *save_ptr;
+    if (*s == '\0') {
+        *save_ptr = s;
         return NULL;
-    static char *token;
-    size_t l;
-
-    if (str != NULL)
-        token = str;
-    if (delims == NULL || *delims == '\0' || token == NULL || *token == '\0')
+    }
+    delim_found = '\0';
+    /// Scan leading delimiters
+    s += strspn(s, delim);
+    if (*s == '\0') {
+        *save_ptr = s;
         return NULL;
-    // skip leading delimiters
-    token += strspn(token, delims);
-    if (*token == '\0')
-        return NULL;
-    l = strcspn(token, delims);
-    delim = token[l];
-    if (delim != '\0')
-        l++;
-    char *result = token;
-    token += l;
-    if (delim != '\0')
-        result[l - 1] = '\0';
-    return result;
+    }
+    /// Find the end of the token.
+    end = s + strcspn(s, delim);
+    if (*end == '\0') {
+        *save_ptr = end;
+        return s;
+    }
+    delim_found = *end;
+    /// Terminate the token and make *SAVE_PTR point past it.
+    *end = '\0';
+    *save_ptr = end + 1;
+    return s;
 }
