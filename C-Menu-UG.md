@@ -82,6 +82,31 @@ implications of setuid root programs. RSH allows users to execute
 commands with root privileges, which can pose significant security
 risks if not managed properly.
 
+### RSH Safety Features
+
+1. root privilege is required install RSH in its setuid form. This helps
+   prevent unauthorized users from installing it.
+2. the bash functions, "fn xx()" and "fn x()" make it convenient to
+   enter and exit a root shell expeditiously.
+3. a red shell prompt provides a conspicuous indicator that you are
+   operating with elevated privileges. Be mindful of it and don't
+   linger any longer than necessary.
+
+You can install these features in you $HOME/.bashrc by navigating
+to the "C-Menu/rsh" directory and running
+
+```bash
+   cd ../rsh
+   ./cmenu_bashrc.sh
+```
+
+Of course, you should never install anything in your .bashrc that you
+do not understand or trust.
+
+Note: the following listing uses "lsd" by default, and may not look the
+same on your system if you do not have "lsd" installed. You can modify
+the "Makefile" to use "ls" instead.
+
 Once RSH, "xx", and "x" are installed, subsequent make install
 processes will appear as follows:
 
@@ -98,7 +123,7 @@ C-Menu parses a menu description file, which contains text lines to
 display and command lines, which are essentially operating system
 commands.
 
-Menu Example
+### Menu Example
 
 ![C-Menu Application Menu](screenshots/menu-desc.png)
 In this example, "Neovim" is a menu item that, when selected, will
@@ -223,6 +248,16 @@ moving the cursor to highlight it and pressing the space bar to toggle
 it on or off. The number of items that can be selected is configurable
 by a command-line option (-n).
 
+#### Selecting Items
+
+To select an item, the user can either click on it with the mouse or
+move the cursor to highlight it and press the space bar to toggle it on
+or off. Once the desired items are selected, the user can press the Enter
+key to confirm the selection and exit Pick.
+
+If "number of selections" (-n) is set to 1, selecting an item will
+automatically confirm the selection and exit Pick.
+
 Pick can be invoked from within C-Menu or from the command line using
 the following syntax:
 
@@ -289,6 +324,36 @@ vertically.
 View supports extended regular expressions (regex) for advanced text
 searching capabilities.
 
+#### Searching Forward
+
+To search forward for a pattern, press the "/" key, enter the desired
+pattern, and press Enter. View will highlight the first occurrence of
+the pattern after the current cursor position. To find the next
+occurrence, press the "n" key.
+
+#### Searching Backward
+
+To search backward for a pattern, press the "?" key, enter the desired
+pattern, and press Enter. View will highlight the first occurrence of
+the pattern before the current cursor position. To find the next
+occurrence, press the "N" key.
+
+#### Horizontal Scrolling
+
+To scroll horizontally, use the left and right arrow keys. You can also
+use the "h" and "l" keys for left and right scrolling, respectively.
+
+#### Motion Keys
+
+View supports a variety of motion keys for navigating through the text:
+
+- Arrow Keys: Move the cursor up, down, left, or right.
+- Page Up/Page Down: Scroll up or down by one page.
+- Home/End: Move to the beginning or end of the line.
+- Ctrl+F/Ctrl+B: Scroll forward or backward by one page.
+- Ctrl+D/Ctrl+U: Scroll down or up by half a page.
+- G: Move to the beginning or end of the file.
+
 ---
 
 ### C-Menu Options
@@ -310,7 +375,9 @@ C-Menu_Data_Directory").
 
 ---
 
-#### lf (list files)
+### lf
+
+(list files)
 
 "lf" is a very lightweight alternative to find. It was designed to
 provide input to C-Menu Pick, but can be used stand-alone as well. It
