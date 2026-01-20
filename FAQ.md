@@ -186,7 +186,7 @@ Type the following command:
     tree-sitter highlight source-file | view
 ```
 
-![C-Menu View - Tree-Sitter](screenshots/tree-sitter.png)
+![C-Menu View - Tree-Sitter](screenshots/tree-sitter1.png)
 These instructions are admittedly sketchy and hard to follow. We will
 revise and clarify in the future.
 
