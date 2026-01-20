@@ -16,9 +16,16 @@ overview of the API, including its main features and how to use them.
 Note 1: This documentation assumes familiarity with C programming and
 basic concepts of user interface design.
 
-Note 2: The C-Menu API is designed to work with the NCurses library for
-terminal-based user interfaces. Ensure that you have NCurses installed and
-properly configured in your development environment.
+Note 2: The C-Menu API is designed to work with the NCursesw library for
+terminal-based user interfaces. Ensure that you have NCursesw installed and
+properly configured in your development environment. Generally, the best
+way to install NCursesw is through your system's package manager. Building
+NCursesw from source can be complex and is not recommended for most users.
+If you need to build from source, refer to the official NCursesw documentation
+for detailed instructions and be mindful that some shells and editors
+rely on specific features of NCursesw, tinfo, and readline libraries that
+also rely on each other. A version mismatch can easily break your shell or
+editor.
 
 Note 3: This document is a work-in-progress and will be updated regularly.
 Only a fraction of the API functions are documented here at present with many
