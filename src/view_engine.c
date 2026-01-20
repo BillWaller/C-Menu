@@ -1383,6 +1383,7 @@ void redisplay_page(Init *init) {
 void next_page(View *view) {
     int i;
     int line_len;
+    curs_set(0);
     if (view->page_bot_pos == view->file_size)
         return;
     view->maxcol = 0;
@@ -1402,6 +1403,7 @@ void next_page(View *view) {
         display_line(view);
     }
     view->page_bot_pos = view->file_pos;
+    curs_set(1);
 }
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ PREV_PAGE                                                    │
@@ -1418,6 +1420,7 @@ void next_page(View *view) {
 /// from view->page_top_pos
 void prev_page(View *view) {
     int i;
+    curs_set(0);
     if (view->page_top_pos == 0)
         return;
     view->maxcol = 0;
@@ -1446,6 +1449,7 @@ void prev_page(View *view) {
 void scroll_down_n_lines(View *view, int n) {
     int i = 0;
     int line_len;
+    curs_set(0);
     if (view->page_bot_pos == view->file_size)
         return;
     view->f_forward = true;
@@ -1473,6 +1477,7 @@ void scroll_down_n_lines(View *view, int n) {
         display_line(view);
     }
     view->page_bot_pos = view->file_pos;
+    curs_set(1);
 }
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ SCROLL_BACK_N_LINES                                          │
@@ -1486,6 +1491,7 @@ void scroll_down_n_lines(View *view, int n) {
 void scroll_up_n_lines(View *view, int n) {
     int i;
     int line_len;
+    curs_set(0);
     if (view->page_top_pos == 0)
         return;
     // Locate New Top of Page
@@ -1518,6 +1524,7 @@ void scroll_up_n_lines(View *view, int n) {
             view->maxcol = line_len;
         display_line(view);
     }
+    curs_set(1);
     return;
 }
 ///  ╭──────────────────────────────────────────────────────────────╮
