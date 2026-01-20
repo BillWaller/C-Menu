@@ -77,7 +77,7 @@ And, then you can say, you were a part of the team that created R-Menu. 😀
 
 Bat is a popular Rust-based tool that serves as a cat clone with syntax
 highlighting. It's easier to install and accommodates a variety of file
-types not addressed by Tree-Sitter, and. To install Bat, use the following
+types not addressed by Tree-Sitter. To install Bat, use the following
 commands based on your operating system:
 
 ### Bat On Linux
@@ -213,7 +213,7 @@ In a phrase, it'll knock your socks off! 😮
 Tree-Sitter works with Neovim, C-Menu, and many other editors and pagers to
 provide advanced syntax highlighting and code analysis features.
 
-![Tree-Sitter in C-Menu View](screenshots/view_engine.png)
+![Tree-Sitter in C-Menu View](screenshots/tree-sitter1.png)
 To install Tree-Sitter, you can use the following commands depending on your
 operating system:
 
@@ -491,23 +491,23 @@ After installation, you can verify that Ghostty is installed correctly by runnin
 
 For more information on Rust and its tools, you can visit the following resources:
 
-- [The Rust Programming Language Book](https://doc.rust-lang.org/book/)
+[The Rust Programming Language Book](https://doc.rust-lang.org/book/)
 
-- [Rustlings Exercises](https://rustlings.rust-lang.org/)
+[Rustlings Exercises](https://rustlings.rust-lang.org/)
 
-- [Cargo Documentation](https://doc.rust-lang.org/cargo/)
+[Cargo Documentation](https://doc.rust-lang.org/cargo/)
 
-- [Bat GitHub Repository](https://github.com/sharkdp/bat)
+[Bat GitHub Repository](https://github.com/sharkdp/bat)
 
-- [Bat Official Website](https://bat.dev/)
+[Bat Official Website](https://bat.dev/)
 
-- [Ripgrep GitHub Repository](https://github.com/BurntSushi/ripgrep)
+[Ripgrep GitHub Repository](https://github.com/BurntSushi/ripgrep)
 
-- [Tree-Sitter GitHub Repository](tree-sitter.github.io/tree-sitter)
+[Tree-Sitter GitHub Repository](tree-sitter.github.io/tree-sitter)
 
-- [Neovim Official Website](https://neovim.io/)
+[Neovim Official Website](https://neovim.io/)
 
-- [Lazyvim](https://www.lazyvim.org/)
+[Lazyvim](https://www.lazyvim.org/)
 
 ## Conclusion
 
