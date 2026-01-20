@@ -11,14 +11,43 @@
 9. [Rustlings](#rustlings)
 10. [Neovim](#neovim)
 
+## Introduction
+
+C-Menu is a powerful C-based suite of programs that you can use to create
+a front-end infrastructure for applications. It includes Menu, Form, Pick,
+View, lf (list files), C-Keys, and RSH. Howver, the C-Menu examples
+rely on software that may not be included in all OS distributions.
+You may very well already have some or all of these tools installed.
+
+Because Rust's Cargo, is generally the easiest to use, and most
+dependable, the installation methods described in this document use
+Cargo whereever practical. You may prefer to use another package manager.
+If so, please refer to the documentation for that package manager for
+installation instructions. This guide will walk you through the
+installation process for Rust and some of the most useful tools that
+complement C-Menu.
+
+Ghostty is written in Zig and Neovim is written in C. I havent listed the
+terminal emulators, Kitty or Alacritty, both of which are excellent choices for
+a terminal emulator. I have all three installed on my desktop.I use Ghostty
+because it lives up to the ethos of Rust. It's solid, fast, and reliable.
+
+The ability to span two worlds (C and Rust) is far more valuable than being
+proficient in either language. (One computer language is never enough.)
+By using C-Menu now, and better yet, contributing to the C-Menu project,
+you can gain a unique perspective on the migration process, shape the future
+of the tool, and add software migration expert to your skill set.
+
 ## Installing Rust
 
 C-Menu is written in C, but there are many amazing tools written in Rust that
 can augment your experience using C-Menu. Even if you never plan to write code
 in rust, the Cargo package manager that comes with Rust is worth the effort to
-install Rust. Cargo is generally the easiest and most reliable way to install
-Rust-based tools and their dependencies. Below are instructions on how to
-install Rust and some of my favorite Rust-based tools.
+install Rust. You will notice immediately that Cargo is the easiest and most
+reliable way to install Rust-based tools and their dependencies. Below are
+instructions on how to install Rust and some of my favorite Rust-based tools.
+
+So much for the preamble. Let's jump in.
 
 ### Installing Rust On Linux and macOS
 
