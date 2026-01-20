@@ -1044,7 +1044,7 @@ extern size_t string_ncpy(String *, const String *, size_t);
 extern String to_string(const char *);
 extern String mk_string(size_t);
 extern bool free_string(String);
-extern char *str_tok(char *, const char *, char);
+extern char *str_tok_r(char *, const char *, char **, char);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ COLOR UTILITIES                                               │
 //  ╰───────────────────────────────────────────────────────────────╯
