@@ -383,12 +383,20 @@ int get_clr_pair(int fg, int bg) {
         if (pfg == fg && pbg == bg)
             return i;
     }
-    if (i < MAX_COLOR_PAIRS - 1) {
+    if (i >= COLOR_PAIRS) {
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 65, "NCurses COLOR_PAIRS (%d) exceeded (%d)",
+                  COLOR_PAIRS, i);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, NULL);
+        return (EXIT_FAILURE);
+    }
+    if (i < COLOR_PAIRS) {
         rc = init_extended_pair(i, fg, bg);
         if (rc == ERR)
             return ERR;
     }
-    if (i < MAX_COLOR_PAIRS)
+    if (i < COLOR_PAIRS)
         clr_pair_cnt++;
     return i;
 }
@@ -435,7 +443,7 @@ int rgb_to_xterm256_idx(RGB rgb) {
             return 16;
         if (rgb.r > 248)
             return 231;
-        return ((rgb.r - 8) / 10) + 232;
+        return ((rgb.r - 8) / 10) + 231;
     } else {
         int r_index = (rgb.r < 45) ? 0 : (rgb.r - 60) / 40 + 1;
         int g_index = (rgb.g < 45) ? 0 : (rgb.g - 60) / 40 + 1;

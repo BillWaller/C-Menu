@@ -39,7 +39,7 @@
 # The default is to compile without -DVERBOSE.
 #
 # for release, use
-REL_CFLAGS = -O2
+REL_CFLAGS = -O1
 # for debugging with GDB, use
 DBG_CFLAGS = -O0 -g3
 #

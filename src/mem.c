@@ -812,12 +812,20 @@ bool init_view_files(Init *init, int argc, char **argv) {
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
     strnz__cpy(view->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
     strnz__cpy(view->cmd_all, init->cmd_all, MAXLEN - 1);
-    if (init->title[0] != '\0') {
-        strnz__cpy(view->title, init->title, MAXLEN - 1);
-    } else if (view->provider_cmd[0] != '\0')
-        strnz__cpy(view->title, view->provider_cmd, MAXLEN - 1);
-    else
-        strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
+    if (view->title[0] == '\0') {
+        if (init->title[0] != '\0') {
+            strnz__cpy(view->title, init->title, MAXLEN - 1);
+        } else {
+            if (view->provider_cmd[0] != '\0')
+                strnz__cpy(view->title, view->provider_cmd, MAXLEN - 1);
+            else {
+                if (view->argv[0] != NULL && view->argv[0][0] != '\0')
+                    strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
+                else
+                    strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
+            }
+        }
+    }
     strip_quotes(view->title);
     if (view->tab_stop == 0)
         view->tab_stop = 4;
