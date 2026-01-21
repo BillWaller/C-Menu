@@ -10,9 +10,9 @@ function ansi_color(hex_color) {
     if (substr(hex_color, 1, 1) == "#") {
         hex_color = substr(hex_color, 2)
     }
-    r = hex_to_dec(substr(hex_color, 1, 2))
-    g = hex_to_dec(substr(hex_color, 3, 2))
-    b = hex_to_dec(substr(hex_color, 5, 2))
+    rr = r = hex_to_dec(substr(hex_color, 1, 2))
+    gg = g = hex_to_dec(substr(hex_color, 3, 2))
+    bb = b = hex_to_dec(substr(hex_color, 5, 2))
     r /= 255 
     g /= 255
     b /= 255
@@ -24,7 +24,8 @@ function ansi_color(hex_color) {
     b = int(blue * 255 + 0.5)
     l = 0.2126 * r + 0.7152 * g + 0.0722 * b
     fg = (l > 128) ? "\x1b[38;2;0;0;0m" : "\x1b[38;2;255;255;255m"
-    return sprintf("%s\x1b[48;2;%d;%d;%dm", fg, r, g, b)
+
+    return sprintf("%s\x1b[48;2;%d;%d;%dm", fg, rr, gg, bb)
 }
 
 function process_line() {
@@ -55,6 +56,8 @@ BEGIN {
                     line = p3
                     continue
                 }
+                else
+                    line = ""
             }
             else
                 lineout = sprintf("%s%s", lineout, line)
