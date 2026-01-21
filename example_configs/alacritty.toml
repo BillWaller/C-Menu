@@ -1,0 +1,56 @@
+# /home/bill/.config/alacritty/alacritty.toml
+# Bill Waller
+
+[terminal.shell]
+program = "/usr/local/bin/xsh"
+
+[general]
+
+# import = [
+#     "~/.config/alacritty/fonts/default_font.toml",
+#     "~/.config/alacritty/themes/default_theme.toml",
+# ]
+
+[font]
+# BEGIN_ALACRITTY_FONT
+normal = { family = "JetBrainsMono NFM", style = "Regular" }
+bold = { family = "JetBrainsMono NFM", style = "ExtraBold" }
+italic = { family = "JetBrainsMono NFM", style = "Italic" }
+bold_italic = { family = "JetBrainsMono NFM", style = "Bold Italic" }
+# END_ALACRITTY_FONT
+size = 15
+
+# dynamic_title = true
+# decorations = "Full"
+# decorations_theme_variant = "Dark"
+
+[window]
+dimensions = { columns = 95, lines = 50 }
+
+[scrolling]
+history = 10000
+
+[colors.primary]
+background  = '#000000'
+foreground  = '#c0c0c0'
+
+[colors.normal]
+black       = '#000000'
+red         = '#FF0000'
+green       = '#00FF8f'
+yellow      = '#FFc700'
+blue        = '#009FFF'
+magenta     = '#e070e0'
+cyan        = '#00CFDF'
+white       = '#FF7f00'
+[colors.bright]
+black       = '#7f7f7f'
+red         = '#FF7F00'
+green       = '#00FFa0'
+yellow      = '#FFEf00'
+blue        = '#0000FF'
+magenta     = '#FF00FF'
+cyan        = '#00ffff'
+white       = '#FFFFFF'
+
+[terminal]
