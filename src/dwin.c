@@ -42,6 +42,7 @@ void user_end();
 int nf_error(int, char *);
 void list_colors();
 int get_color_number(char *);
+int rgb_to_curses_clr(RGB rgb);
 int rgb_clr_to_cube(int);
 void set_fkey(int, char *);
 bool is_set_fkey(int);
@@ -54,7 +55,7 @@ int chyron_mk(key_cmd_tbl *, char *);
 int get_chyron_key(key_cmd_tbl *, int);
 RGB xterm256_idx_to_rgb(int);
 int rgb_to_xterm256_idx(RGB);
-void init_clr_palette(Init *);
+bool init_clr_palette(Init *);
 void apply_gamma(RGB *);
 double rgb_to_linear(double);
 double linear_to_rgb(double);
@@ -108,7 +109,6 @@ char em0[MAXLEN];
 char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
-char *eargv[MAXARGS];
 int cp_default;
 int cp_norm;
 int cp_box;
@@ -326,7 +326,8 @@ void open_curses(Init *init) {
     }
     /// Attach the terminal descriptor to the STDERR_FILENO
     dup2(fileno(init->tty_fp), STDERR_FILENO);
-    /// We use SCREEN and newterm so we can specify the terminal FILE pointer
+    /// We use SCREEN and newterm so we can specify the terminal FILE
+    /// pointer
     SCREEN *screen = newterm(NULL, init->tty_fp, init->tty_fp);
     //  ╭───────────────────────────────────────────────────────────────╮
     //  │ Beyond this point, NCurses controls the terminal              │
@@ -345,6 +346,7 @@ void open_curses(Init *init) {
         abend(-1, "terminal color support required");
     }
     start_color();
+
     init_clr_palette(init);
     /// Set gamma correction values
     /// These are read from ~/.minitrc
@@ -401,22 +403,22 @@ int get_clr_pair(int fg, int bg) {
     return i;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ GET_CLR                                                       │
+/// │ RGB_TO_CURSES_CLR                                             │
 /// ╰───────────────────────────────────────────────────────────────╯
-/// get_clr(RGB rgb)
+/// rgb_to_curses_clr(RGB rgb)
 /// Get color index for RGB color
 /// Curses Uses 0-1000 for RGB values
 /// @param rgb RGB color
-/// @return Color index
+/// @return NCurses color idx
 /// @note If the color does not exist, it is created along with a new color
 /// index
-int get_clr(RGB rgb) {
+int rgb_to_curses_clr(RGB rgb) {
     int i;
     int r, g, b;
 
-    r = (rgb.r * 1000) / 255;
-    g = (rgb.g * 1000) / 255;
-    b = (rgb.b * 1000) / 255;
+    rgb.r = (rgb.r * 1000) / 255;
+    rgb.g = (rgb.g * 1000) / 255;
+    rgb.b = (rgb.b * 1000) / 255;
     for (i = 0; i < clr_cnt; i++) {
         extended_color_content(i, &r, &g, &b);
         if (rgb.r == r && rgb.g == g && rgb.b == b) {
@@ -424,7 +426,7 @@ int get_clr(RGB rgb) {
         }
     }
     if (i < COLORS) {
-        init_extended_color(i, r, g, b);
+        init_extended_color(i, rgb.r, rgb.g, rgb.b);
         clr_cnt++;
         return clr_cnt - 1;
     }
@@ -491,38 +493,40 @@ RGB xterm256_idx_to_rgb(int code) {
 void apply_gamma(RGB *rgb) {
     if (rgb->r == rgb->g && rgb->r == rgb->b) {
         if (GRAY_GAMMA > 0.0f && GRAY_GAMMA != 1.0f) {
-            rgb->r = (int)(pow((rgb->r / 255.0f), 1.0f / GRAY_GAMMA) * 255.0f);
+            rgb->r =
+                (int)(pow((rgb->r / 1000.0f), 1.0f / GRAY_GAMMA) * 1000.0f);
             rgb->g = rgb->r;
             rgb->b = rgb->r;
         }
         return;
     }
     if (rgb->r != 0 && RED_GAMMA > 0.0f && RED_GAMMA != 1.0f)
-        rgb->r = (int)(pow((rgb->r / 255.0f), 1.0f / RED_GAMMA) * 255.0f);
+        rgb->r = (int)(pow((rgb->r / 1000.0f), 1.0f / RED_GAMMA) * 1000.0f);
     if (rgb->g != 0 && GREEN_GAMMA > 0.0f && GREEN_GAMMA != 1.0f)
-        rgb->g = (int)(pow((rgb->g / 255.0f), 1.0f / GREEN_GAMMA) * 255.0f);
+        rgb->g = (int)(pow((rgb->g / 1000.0f), 1.0f / GREEN_GAMMA) * 1000.0f);
     if (rgb->b != 0 && BLUE_GAMMA > 0.0f && BLUE_GAMMA != 1.0f)
-        rgb->b = (int)(pow((rgb->b / 255.0f), 1.0f / BLUE_GAMMA) * 255.0f);
+        rgb->b = (int)(pow((rgb->b / 1000.0f), 1.0f / BLUE_GAMMA) * 1000.0f);
 }
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ INIT_CLR_PALETTE                                              │
 /// ╰───────────────────────────────────────────────────────────────╯
-/// void init_clr_palette(Init *init)
+/// bool init_clr_palette(Init *init)
 /// Initialize the xterm256 color palette
-/// @note This function also applies any color overrides from the Init struct
+/// @note This function also applies any color overrides from the Init
+/// struct
 /// @param init Pointer to Init struct
-void init_clr_palette(Init *init) {
-    int i;
-    int rr, gg, bb;
-    RGB rgb;
+bool init_clr_palette(Init *init) {
+    // int i;
+    // int rr, gg, bb;
+    // RGB rgb;
 
-    for (i = 0; i < 256; i++) {
-        rgb = xterm256_idx_to_rgb(i);
-        rr = (rgb.r * 1000) / 255;
-        gg = (rgb.g * 1000) / 255;
-        bb = (rgb.b * 1000) / 255;
-        init_extended_color(i, rr, gg, bb);
-    }
+    // for (i = 0; i < 256; i++) {
+    //     rgb = xterm256_idx_to_rgb(i);
+    //     rr = (rgb.r * 1000) / 255;
+    //     gg = (rgb.g * 1000) / 255;
+    //     bb = (rgb.b * 1000) / 255;
+    //     init_extended_color(i, rr, gg, bb);
+    // }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ C-Menu colors override the standard palette               │
     /// ╰───────────────────────────────────────────────────────────╯
@@ -560,6 +564,8 @@ void init_clr_palette(Init *init) {
         init_hex_clr(CLR_BCYAN, init->bcyan);
     if (init->bwhite[0])
         init_hex_clr(CLR_BWHITE, init->bwhite);
+    clr_cnt = 16;
+    return true;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ INIT_HEX_CLR                                                  │
@@ -612,8 +618,8 @@ void close_curses() {
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ WIN_NEW                                                       │
 /// ╰───────────────────────────────────────────────────────────────╯
-/// int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle, int
-/// flag) Create a new window with optional box and title
+/// int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
+/// int flag) Create a new window with optional box and title
 /// @param wlines Number of lines
 /// @param wcols Number of columns
 /// @param wbegy Beginning Y position

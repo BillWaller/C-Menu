@@ -961,8 +961,9 @@ extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
 extern int rgb_to_xterm256_idx(RGB);
 extern RGB xterm256_idx_to_rgb(int);
-extern void init_clr_palette(Init *);
+extern bool init_clr_palette(Init *);
 extern int get_clr_pair(int, int);
+extern int rgb_to_curses_clr(RGB rgb);
 extern int view_file(Init *);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ PICK                                                          │
@@ -1041,7 +1042,7 @@ extern size_t string_ncpy(String *, const String *, size_t);
 extern String to_string(const char *);
 extern String mk_string(size_t);
 extern bool free_string(String);
-extern char *str_tok_r(char *, const char *, char **, char);
+extern char *str_tok_r(char *, const char *, char **, char *);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ COLOR UTILITIES                                               │
 //  ╰───────────────────────────────────────────────────────────────╯

@@ -643,11 +643,12 @@ int exec_objects(Init *init) {
     char *margv[MAXARGS];
     char tmp_str[MAXLEN];
     char sav_arg[MAXLEN];
-    char *out_s = NULL;
+    char *out_s;
     int margx = 0;
     int i = 0;
     pid_t pid = 0;
     bool f_append_args = false;
+    char *s1;
 
     if (pick->cmd[0] == '\0')
         return -1;
@@ -713,7 +714,7 @@ int exec_objects(Init *init) {
                 margv[margx] = NULL;
             }
             out_s = rep_substring(sav_arg, "%%", tmp_str);
-            if (out_s == NULL) {
+            if (out_s == NULL || out_s[0] == '\0') {
                 i = 0;
                 while (i < margc - 1) {
                     if (margv[i] != NULL)
@@ -730,15 +731,23 @@ int exec_objects(Init *init) {
             }
         }
     }
-    margv[margc] = NULL;
-    if (margc == 0) {
-        Perror("No pick exec command available");
-        return 1;
-    }
     strnz__cpy(tmp_str, margv[0], MAXLEN - 1);
-    char *s1;
-    s1 = strtok(tmp_str, " ");
-    if (s1 != NULL && (strcmp(s1, "view") == 0 || strcmp(s1, "mview") == 0)) {
+    margv[margc] = NULL;
+    // if (margc == 0) {
+    //     Perror("No pick exec command available");
+    //     return 1;
+    // }
+    s1 = tmp_str;
+    char *sp;
+    char *tok;
+    tok = strtok_r(s1, " ", &sp);
+    strnz__cpy(sav_arg, tok, MAXLEN - 1);
+    base_name(tmp_str, sav_arg);
+    ///  ╭───────────────────────────────────────────────────────╮
+    ///  │ CHECK FOR VIEW / MVIEW COMMAND                        │
+    ///  ╰───────────────────────────────────────────────────────╯
+    if (tmp_str[0] != '\0' &&
+        (strcmp(tmp_str, "view") == 0 || strcmp(tmp_str, "mview") == 0)) {
         ///  ╭───────────────────────────────────────────────────────╮
         ///  │ SPECIAL CASE FOR VIEW / MVIEW                         │
         ///  ╰───────────────────────────────────────────────────────╯
@@ -758,6 +767,7 @@ int exec_objects(Init *init) {
     ///  ╰───────────────────────────────────────────────────────╯
     else {
         if ((pid = fork()) == -1) {
+            // fork failed, free margv and return error
             i = 0;
             while (i < margc) {
                 if (margv[i] != NULL)
@@ -769,6 +779,7 @@ int exec_objects(Init *init) {
         }
         if (pid == 0) { /// Child
             execvp(margv[0], margv);
+            // exec failed, print error and exit
             m = MAXLEN - 26;
             strnz__cpy(tmp_str, "Can't exec pick cmd: ", m);
             m -= strlen(margv[0]);
