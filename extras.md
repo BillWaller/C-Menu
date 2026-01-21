@@ -1,24 +1,30 @@
+# C-Menu Extras
+
 # Table of Contents
 
-1. [Installing Rust](#installing-rust)
-2. [About C-Menu and R-Menu](#about-c-menu-and-r-menu)
-3. [Installing Bat](#installing-bat)
-4. [Installing Ripgrep](#installing-ripgrep)
-5. [lsd](#lsd)
-6. [Tree-Sitter](#tree-sitter)
-7. [Tree-Sitter-CLI](#tree-sitter-cli)
-8. [Tree-Sitter Parsers](#tree-sitter-parsers)
-9. [Rustlings](#rustlings)
-10. [Neovim](#neovim)
-11. [Lazyvim](#lazyvim)
-12. [Ghostty](#ghostty)
-13. [Useful Configurations](#useful-configurations)
-    - [Alternate Bash Executable](#alternate-bash-executable)
-    - [Shell Configuration](#shell-configuration)
-    - [Customize Your Terminal Emulator](#customize-your-terminal-emulator)
-      - [Fonts](#fonts)
-      - [Example Terminal Configurations](#example-terminal-configurations)
-14. [Additional Resources](#additional-resources)
+- [Introduction](#introduction)
+- [Installing Rust](#installing-rust)
+- [About C-Menu and R-Menu](#about-c-menu-and-r-menu)
+- [Installing Bat](#installing-bat)
+- [Installing Ripgrep](#installing-ripgrep)
+- [lsd](#lsd)
+- [Tree-Sitter](#tree-sitter)
+- [Tree-Sitter-CLI](#tree-sitter-cli)
+- [Tree-Sitter Parsers](#tree-sitter-parsers)
+- [Rustlings](#rustlings)
+- [Neovim](#neovim)
+- [Lazyvim](#lazyvim)
+- [Ghostty](#ghostty)
+- [Useful Configurations](#useful-configurations)
+  - [Alternate Bash Executable](#alternate-bash-executable)
+  - [Shell Configuration](#shell-configuration)
+  - [Customize Your Terminal Emulator](#customize-your-terminal-emulator)
+    - [Fonts](#fonts)
+    - [Example Terminal Configurations](#example-terminal-configurations)
+      - [Ghostty Configuration](#ghostty-configuration)
+      - [Kitty Configuration](#kitty-configuration)
+      - [Alacritty Configuration](#alacritty-configuration)
+- [Additional Resources](#additional-resources)
 
 ## Introduction
 
@@ -690,147 +696,17 @@ character cells. For example, a window-width of 95 means 95 character cells
 wide. The actual pixel width of the window will depend on the font size and the
 font used.
 
-- Ghostty
+##### Ghostty Configuration
 
-```
-# ~/.config/ghostty/config
-command = xsh -i
-title = xsh
-font-family = "JetBrainsMono NFM Medium"
-font-family-bold = "JetBrainsMono NFM ExtraBold"
-font-family-italic = " JetBrainsMono NFM Italic"
-font-family-bold-italic = "JetBrainsMono NFM Bold Italic"
-font-size = 15
-window-width = 95
-window-height = 50
-background-opacity = 0.99
-window-decoration = server
-# High contrast colors
+![Ghostty Configuration](screenshots/ghostty.config.png)
 
-palette=0=#000000
-palette=1=#ff3f3f
-palette=2=#4ff07f
-palette=3=#ffef4f
-palette=4=#5fafff
-palette=5=#f077f0
-palette=6=#8fdfff
-palette=7=#ff8f5f
-palette=8=#bfbfbf
-palette=9=#ff7f00
-palette=10=#00ffa0
-palette=11=#ffcf00
-palette=12=#005fff
-palette=13=#ff00ff
-palette=14=#00ffff
-palette=15=#e0d0d0
-background = #000720
-foreground = #e0d0d0
-cursor-color = #f0f0f0
-selection-background = #e0d0d0
-selection-foreground = #000000
-```
+##### Kitty Configuration
 
-- Kitty
+![Kitty Configuration](screenshots/kitty.conf.png)
 
-```
-# ~/.config/kitty/kitty.conf
-shell xsh
-# include ~/.config/kitty/themes/default_theme
-# high_contrast3
-url_color               #a0e0ff
-cursor                  #ffffff
-cursor_text_color       #000000
-active_tab_background   #001e1e
-active_tab_foreground   #afd0ff
-inactive_tab_background #2030a0
-inactive_tab_foreground #c0c0c0
-active_border_color     #79a8ff
-inactive_border_color   #646464
-color0  #000000
-color1  #FF3f3f
-color2  #4ff07f
-color3  #FFef4f
-color4  #5faFff
-color5  #f077f0
-color6  #8fdFfF
-color7  #FF8f5f
-color8  #bfbfbf
-color9  #FF7f00
-color10 #00FFa0
-color11 #FFcf00
-color12 #005fFF
-color13 #FF00FF
-color14 #00ffff
-color15 #e0d0d0
-background           #000720
-foreground           #e0d0d0
-cursor               #f0f0f0
-selection_background #e0d0d0
-selection_foreground #000000
-# include ~/.config/kitty/fonts/default_font
-font_family      JetBrainsMono NFM Medium
-bold_font        JetBrainsMono NFM ExtraBold
-italic_font      JetBrainsMono NFM Italic
-bold_italic_font JetBrainsMono NFM Bold Italic
-remember_window_size no
-font_size 15.0
-initial_window_width    95c
-initial_window_height   50c
-```
+##### Alacritty Configuration
 
-- Alacritty
-
-```
-# /home/bill/.config/alacritty/alacritty.toml
-# Bill Waller
-
-[terminal.shell]
-program = "/usr/local/bin/xsh"
-
-[general]
-
-import = [
-    "~/.config/alacritty/fonts/default_font.toml",
-    "~/.config/alacritty/themes/default_theme.toml",
-]
-
-[font]
-size = 15
-
-# dynamic_title = true
-# decorations = "Full"
-# decorations_theme_variant = "Dark"
-
-[window]
-dimensions = { columns = 95, lines = 50 }
-
-[scrolling]
-history = 10000
-[colors.primary]
-background = '#000720'
-foreground = '#c0c0c0'
-
-[colors.normal]
-black = '#000000'
-red = '#FF0000'
-green = '#00FF8f'
-yellow = '#FFc700'
-blue = '#009FFF'
-magenta = '#e070e0'
-cyan = '#00CFDF'
-white = '#FF7f00'
-[colors.bright]
-black = '#7f7f7f'
-red = '#FF7F00'
-green = '#00FFa0'
-yellow = '#FFEf00'
-blue = '#0000FF'
-magenta = '#FF00FF'
-cyan = '#00ffff'
-white = '#FFFFFF'
-
-[terminal]
-```
+![Alacritty Configuration](screenshots/alacritty.toml.png)
 
 ---
 
