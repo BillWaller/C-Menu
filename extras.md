@@ -10,6 +10,15 @@
 8. [Tree-Sitter Parsers](#tree-sitter-parsers)
 9. [Rustlings](#rustlings)
 10. [Neovim](#neovim)
+11. [Lazyvim](#lazyvim)
+12. [Ghostty](#ghostty)
+13. [Useful Configurations](#useful-configurations)
+    - [Alternate Bash Executable](#alternate-bash-executable)
+    - [Shell Configuration](#shell-configuration)
+    - [Customize Your Terminal Emulator](#customize-your-terminal-emulator)
+      - [Fonts](#fonts)
+      - [Example Terminal Configurations](#example-terminal-configurations)
+14. [Additional Resources](#additional-resources)
 
 ## Introduction
 
@@ -21,22 +30,26 @@ You may very well already have some or all of these tools installed.
 
 Because Rust's Cargo, is generally the easiest to use, and most
 dependable, the installation methods described in this document use
-Cargo whereever practical. You may prefer to use another package manager.
-If so, please refer to the documentation for that package manager for
-installation instructions. This guide will walk you through the
-installation process for Rust and some of the most useful tools that
-complement C-Menu.
+Cargo wherever practical. You may prefer to use another package manager,
+and most Distro Package Managers are exceptional. If so, please refer to
+the documentation for that package manager for installation instructions.
 
-Ghostty is written in Zig and Neovim is written in C. I havent listed the
-terminal emulators, Kitty or Alacritty, both of which are excellent choices for
-a terminal emulator. I have all three installed on my desktop.I use Ghostty
+This guide will walk you through the installation process for Rust and
+some of the most useful tools that complement C-Menu.
+
+Not all of these applications are written in Rust. Ghostty is written in
+Zig and Neovim is written in C. I havent listed the terminal emulators,
+Kitty or Alacritty, but I have used both and they are excellent terminal
+emulators. I have all three installed on my desktop. I use Ghostty most
 because it lives up to the ethos of Rust. It's solid, fast, and reliable.
 
-The ability to span two worlds (C and Rust) is far more valuable than being
-proficient in either language. (One computer language is never enough.)
+The ability to span the two worlds of C and Rust is far more valuable than
+being proficient in either language, and one computer language is never
+enough.
+
 By using C-Menu now, and better yet, contributing to the C-Menu project,
-you can gain a unique perspective on the migration process, shape the future
-of the tool, and add software migration expert to your skill set.
+you can gain first-hand knowledge of the transition to Rust, shape the
+future of the tool, and add software migration expert to your skill set.
 
 ## Installing Rust
 
@@ -214,10 +227,10 @@ After installation, you can verify that lsd is installed correctly by running:
 This should display the installed lsd version, confirming that lsd is successfully
 installed on your system.
 
-A word of caution here, "lsd"" in a different context, is an acronym for a
-powerful hallucinogenic drug. Don't casually tell your grandmother you have
-been using lsd without explaining that it's the Deluxe version of "ls", a
-file listing utility, and not the "lsd" she remembers from her college days. 😵‍💫
+A word of caution here, "lsd" in a different context, is an acronym for a
+powerful hallucinogenic drug. Don't tell your grandmother you use lsd without
+explaining that it's "ls Deluxe", a file listing utility, and not the "LSD"
+she remembers from her college days at UC Berkeley. 😎
 
 ---
 
@@ -243,27 +256,29 @@ Tree-Sitter works with Neovim, C-Menu, and many other editors and pagers to
 provide advanced syntax highlighting and code analysis features.
 
 ![Tree-Sitter in C-Menu View](screenshots/tree-sitter1.png)
+
 To install Tree-Sitter, you can use the following commands depending on your
-operating system:
+operating system.
 
 ### Tree-Sitter On Linux
 
-After installing Rust, you can install Tree-Sitter using Cargo, Rust's package manager:
+After installing Rust, you can install Tree-Sitter using Cargo,
+Rust's package manager:
 
 ```bash
-    cargo install tree-sitter-cli
+`bash cargo install tree-sitter-cli
 ```
 
 ### Tree-Sitter On macOS
 
 ```bash
-    brew install tree-sitter
+brew install tree-sitter
 ```
 
 ### Tree-Sitter On Windows
 
 ```powershell
-    choco install tree-sitter
+choco install tree-sitter
 ```
 
 After installation, you can verify that Tree-Sitter is installed correctly by running:
@@ -512,6 +527,309 @@ After installation, you can verify that Ghostty is installed correctly by runnin
 
 ```bash
     ghostty --version
+```
+
+---
+
+## Useful Configurations
+
+This document describes some useful configurations for C-Menu and terminal
+emulators. These configurations are optional but recommended for a better
+user experience.
+
+### Alternate Bash Executable
+
+If you have had problems with the bash executable distributed with your OS,
+you may want to download the bash source distribution and build your own
+bash executable. There are many reasons why you might want to do this,
+including security concerns, bugs in the bash version provided by your OS,
+or the need for a specific feature that is not available in your OS's bash
+version.
+
+After building your own bash executable, you should consider renaming it to
+something other than "bash". For example, you might name it "jcalc", "mmdb", or
+"xmlock", something that will blend in with a ps listing. This is especially
+important if you are using a system where the default bash executable is known
+to have security vulnerabilities or other issues.
+
+There are horror stories about systems that have been compromised because
+the bash executable was exploited. In one instance, an OS update overwrote
+the bash executable with one that would only start in restricted mode. It
+wouldn't even allow running executables from /bin and /sbin. By using a
+custom-named bash executable, you can reduce the risk of such exploits
+and mistakes. You can leave the original bash executable intact as a backup.
+
+One more caveat with certain configurations of bash is that you may
+not be able to setuid on rsh from a root shell created by su. This
+depends on the distribution and configuration of your system. In
+that case, you can probably use su to start an interactive root
+shell, and manually install rsh setuid. From the cmenu src directory:
+
+```bash
+
+$ su
+Password:
+
+cp rsh ~/menuapp/bin
+chmod 4755 ~/menuapp/bin/rsh
+
+ls -l ~/menuapp/bin/rsh
+
+-rwsr-xr-x 1 root root 123456 Jan 01 12:
+
+```
+
+### Shell Configuration
+
+The following shell commands are sourced by xsh, bash, and sh.
+
+This snippet, stolen from bashfaq #24 prepends directories to PATH if the
+directories exist and aren't already in PATH. It also defines two convenience
+functions, xx and mm, to start a root shell and the menuapp, respectively. It
+sets the default shell to xsh if available, otherwise bash.
+
+It sets a shorter
+delay for curses escape sequences
+
+and configures a colorful prompt with red for root and green for normal users.
+
+- prepend_path makes it easy to prepend directories to PATH without producing
+  duplicate entries. Use it to prepend ~/menuapp/bin or other directories to PATH.
+
+```bash
+
+prepend_path() {
+case ":$PATH:" in
+        *:"$1":*) ;;
+        *) PATH="$1:$PATH" ;;
+esac
+}
+
+[ -d "$HOME/.cargo/bin" ] && prepend_path "$HOME/.cargo/bin"
+[ -d "$HOME/.local/bin" ] && prepend_path "$HOME/.local/bin"
+[ -d "$HOME/go/bin" ] && prepend_path "$HOME/go/bin"
+[ -d "$HOME/menuapp/bin" ] && prepend_path "$HOME/menuapp/bin"
+
+```
+
+- from a shell prompt, type xx to start a root shell
+
+```bash
+
+which rsh >/dev/null 2>&1 && xx() { rsh; }
+
+```
+
+- from a shell prompt, type mm to start menuapp
+
+```bash
+
+which menu >/dev/null 2>&1 && mm() { menu; }
+
+```
+
+- Prefer xsh over bash
+
+```bash
+
+export SHELL=bash
+which xsh >/dev/null 2>&1 && export SHELL=xsh
+
+```
+
+- set a shorter delay for curses escape sequences
+
+```bash
+
+export ESCDELAY=50
+
+```
+
+- set colorful prompt, red for root, green for normal user
+
+```bash
+export XUSER="$(id -un)"
+export PS1="\[\e[1;32m\]\u@\h:\w>\[\e[0m\] "
+[ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h:\w>\[\e[0m\] "
+echo PS1="$PS1"
+
+```
+
+### Customize Your Terminal Emulator
+
+The configurations herein are not required to run the C-Menu system, but
+provided as an example of how to customize the terminal emulator to your
+liking. You may want to modify the font, font size, window dimensions,
+colors, and other settings to suit your preferences.
+
+#### Fonts
+
+If you don't already have a patched font, you may want to install
+JetBrains Mono. It is a free, open-source, monospaced font designed
+for developers. It includes a large number of programming ligatures and
+is optimized for readability on screens of all sizes.
+
+The JetBrains Mono font is available from:
+
+[JetBrains](https://www.jetbrains.com/lp/mono/)
+
+Also check out Nerd Fonts for other patched fonts that include programming
+ligatures and icons.
+
+[NerdFonts](https://www.nerdfonts.com/)
+
+#### Example Terminal Configurations
+
+The standard color palette is rather drab, so you may want to include a more
+colorful palette such as the high contrast palette below.
+
+This configuration was designed for a dark terminal background and a
+resolution of 3840x2160 (4k). You may want to adjust the font size and window
+dimensions for your own display. The window dimensions are specified in
+character cells. For example, a window-width of 95 means 95 character cells
+wide. The actual pixel width of the window will depend on the font size and the
+font used.
+
+- Ghostty
+
+```
+# ~/.config/ghostty/config
+command = xsh -i
+title = xsh
+font-family = "JetBrainsMono NFM Medium"
+font-family-bold = "JetBrainsMono NFM ExtraBold"
+font-family-italic = " JetBrainsMono NFM Italic"
+font-family-bold-italic = "JetBrainsMono NFM Bold Italic"
+font-size = 15
+window-width = 95
+window-height = 50
+background-opacity = 0.99
+window-decoration = server
+# High contrast colors
+
+palette=0=#000000
+palette=1=#ff3f3f
+palette=2=#4ff07f
+palette=3=#ffef4f
+palette=4=#5fafff
+palette=5=#f077f0
+palette=6=#8fdfff
+palette=7=#ff8f5f
+palette=8=#bfbfbf
+palette=9=#ff7f00
+palette=10=#00ffa0
+palette=11=#ffcf00
+palette=12=#005fff
+palette=13=#ff00ff
+palette=14=#00ffff
+palette=15=#e0d0d0
+background = #000720
+foreground = #e0d0d0
+cursor-color = #f0f0f0
+selection-background = #e0d0d0
+selection-foreground = #000000
+```
+
+- Kitty
+
+```
+# ~/.config/kitty/kitty.conf
+shell xsh
+# include ~/.config/kitty/themes/default_theme
+# high_contrast3
+url_color               #a0e0ff
+cursor                  #ffffff
+cursor_text_color       #000000
+active_tab_background   #001e1e
+active_tab_foreground   #afd0ff
+inactive_tab_background #2030a0
+inactive_tab_foreground #c0c0c0
+active_border_color     #79a8ff
+inactive_border_color   #646464
+color0  #000000
+color1  #FF3f3f
+color2  #4ff07f
+color3  #FFef4f
+color4  #5faFff
+color5  #f077f0
+color6  #8fdFfF
+color7  #FF8f5f
+color8  #bfbfbf
+color9  #FF7f00
+color10 #00FFa0
+color11 #FFcf00
+color12 #005fFF
+color13 #FF00FF
+color14 #00ffff
+color15 #e0d0d0
+background           #000720
+foreground           #e0d0d0
+cursor               #f0f0f0
+selection_background #e0d0d0
+selection_foreground #000000
+# include ~/.config/kitty/fonts/default_font
+font_family      JetBrainsMono NFM Medium
+bold_font        JetBrainsMono NFM ExtraBold
+italic_font      JetBrainsMono NFM Italic
+bold_italic_font JetBrainsMono NFM Bold Italic
+remember_window_size no
+font_size 15.0
+initial_window_width    95c
+initial_window_height   50c
+```
+
+- Alacritty
+
+```
+# /home/bill/.config/alacritty/alacritty.toml
+# Bill Waller
+
+[terminal.shell]
+program = "/usr/local/bin/xsh"
+
+[general]
+
+import = [
+    "~/.config/alacritty/fonts/default_font.toml",
+    "~/.config/alacritty/themes/default_theme.toml",
+]
+
+[font]
+size = 15
+
+# dynamic_title = true
+# decorations = "Full"
+# decorations_theme_variant = "Dark"
+
+[window]
+dimensions = { columns = 95, lines = 50 }
+
+[scrolling]
+history = 10000
+[colors.primary]
+background = '#000720'
+foreground = '#c0c0c0'
+
+[colors.normal]
+black = '#000000'
+red = '#FF0000'
+green = '#00FF8f'
+yellow = '#FFc700'
+blue = '#009FFF'
+magenta = '#e070e0'
+cyan = '#00CFDF'
+white = '#FF7f00'
+[colors.bright]
+black = '#7f7f7f'
+red = '#FF7F00'
+green = '#00FFa0'
+yellow = '#FFEf00'
+blue = '#0000FF'
+magenta = '#FF00FF'
+cyan = '#00ffff'
+white = '#FFFFFF'
+
+[terminal]
 ```
 
 ---

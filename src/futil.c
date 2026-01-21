@@ -58,7 +58,7 @@ size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
 bool free_string(String);
-char *str_tok_r(char *, const char *, char *, const char);
+char *str_tok_r(char *, const char *, char **, char);
 char errmsg[MAXLEN];
 ///--------------------------------------------------------------
 /// ╭───────────────────────────────────────────────────────────╮
@@ -1199,8 +1199,8 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
     return new_len;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ STR_TOK_R - like strtok(), but saves the delimiter found in   │
-/// │              delim                                            │
+/// │ STR_TOK_R - like strtok_r(), but saves the delimiter found in │
+/// │              delim_found                                      │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Reentrant string tokenizer with delimiter found
 /// char *str_tok(char *str, const char *delims, char **save_ptr, char
@@ -1255,6 +1255,7 @@ char *str_tok_r(char *s, const char *delim, char **save_ptr, char delim_found) {
         return s;
     }
     delim_found = *end;
+    delim_found = delim_found;
     /// Terminate the token and make *SAVE_PTR point past it.
     *end = '\0';
     *save_ptr = end + 1;
