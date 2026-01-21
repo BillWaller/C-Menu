@@ -663,7 +663,12 @@ int view_cmd_processor(Init *init) {
             parse_opt_args(init, eargc, eargv);
             begy = view->begy + view->lines - 7;
             begx = 4;
-            init_form(init, eargc, eargv, begy, begx);
+            rc = init_form(init, eargc, eargv, begy, begx);
+            if (rc == P_CANCEL) {
+                close_form(init);
+                view->f_redisplay_page = true;
+                break;
+            }
             strnz__cpy(tmp_str, "~/menuapp/data/form-out", MAXLEN - 1);
             verify_spec_arg(view->in_spec, tmp_str, "~/menuapp/data", ".",
                             R_OK);
@@ -1717,7 +1722,7 @@ void display_line(View *view) {
     wclrtoeol(view->win);
     wadd_wchstr(view->win, view->cmplx_buf);
     view->cury++;
-    // refresh();
+    refresh();
     rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                   view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR)

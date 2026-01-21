@@ -84,8 +84,11 @@ int init_view_boxwin(Init *init, char *title) {
     }
     if (title != NULL && title[0] != '\0')
         strnz__cpy(view->title, title, MAXLEN - 1);
-    else if (view->argv[0] != NULL && view->argv[0][0] != '\0')
-        strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
+    else {
+        if (view->argv != NULL && view->argv[0] != NULL &&
+            view->argv[0][0] != '\0')
+            strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
+    }
     if (win_new(view->lines, view->cols, view->begy, view->begx, view->title,
                 F_VIEW)) {
         ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
@@ -205,6 +208,15 @@ bool view_init_input(View *view, char *file_name) {
                 return (EXIT_FAILURE);
             }
             view->file_size = sb.st_size;
+            if (view->file_size == 0) {
+                close(view->in_fd);
+                ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                          __LINE__ - 1);
+                ssnprintf(em1, MAXLEN - 65, "file %s is empty", file_name);
+                strerror_r(errno, em2, MAXLEN);
+                display_error(em0, em1, em2, NULL);
+                return (EXIT_FAILURE);
+            }
             if (!S_ISREG(sb.st_mode))
                 view->f_in_pipe = true;
         }

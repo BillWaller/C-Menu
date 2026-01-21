@@ -48,8 +48,6 @@
 #define F_NOTBLANK 2
 #define F_NOECHO 4
 #define EIGHT 8
-#define MAX_COLOR_PAIRS 512
-#define MAX_COLORS 512
 #define F_VIEW 0x01
 #define S_WCOK 0x1000
 #define S_QUIET 0x2000
@@ -305,7 +303,6 @@ typedef struct {
     int pair_id;
 } ColorPair;
 
-extern ColorPair clr_pairs[MAX_COLOR_PAIRS];
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ WIDE CHARACTER SUPPORT                                        │
 /// ╰───────────────────────────────────────────────────────────────╯

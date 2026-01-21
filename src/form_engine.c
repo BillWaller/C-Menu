@@ -36,7 +36,7 @@ int form_exec_cmd(Init *);
 int form_calculate(Init *);
 int form_end_fields(Init *);
 int init_form(Init *, int, char **, int, int);
-unsigned int form_engine(Init *);
+int form_engine(Init *);
 
 /// ╭────────────────────────────────────────────────────────────────╮
 /// │ INIT_FORM                                                      │
@@ -70,16 +70,16 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (form->title[0] == '\0')
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
-    form_engine(init);
+    rc = form_engine(init);
     if (form->win)
         win_del();
     close_form(init);
-    return 0;
+    return rc;
 }
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ FORM_ENGINE                                                   │
 ///  ╰───────────────────────────────────────────────────────────────╯
-unsigned int form_engine(Init *init) {
+int form_engine(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
     char earg_str[MAXLEN + 1];
@@ -134,7 +134,7 @@ unsigned int form_engine(Init *init) {
             form_action = P_CONTINUE;
             break;
         case P_CANCEL:
-            return 0;
+            return P_CANCEL;
         default:
             form_action = P_CONTINUE;
             break;
