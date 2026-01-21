@@ -1781,7 +1781,11 @@ int fmt_line(View *view) {
                 i += len;
                 continue;
             } else if (len == 4 && in_str[i + len - 1] == 'm') {
-                sprintf(ansi_tok, "%lx", 0x1b5b306d00);
+                ansi_tok[0] = '\033';
+                ansi_tok[1] = '[';
+                ansi_tok[2] = '0';
+                ansi_tok[3] = 'm';
+                ansi_tok[4] = '\0';
                 len = 4;
             }
             parse_ansi_str(ansi_tok, &attr, &cpx);
@@ -1845,9 +1849,11 @@ int fmt_line(View *view) {
 /// @return void
 void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     char *tok;
-    int i, len, x_idx;
+    int len, x_idx;
     bool f_fg = false, f_bg = false;
     int fg, bg;
+    // fg and bg are curses color numbers
+    int fg_clr, bg_clr;
     char *ansi_p = ansi_str + 2;
     extended_pair_content(*cpx, &fg, &bg);
     RGB rgb;
@@ -1875,10 +1881,8 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         //  │ XTERM_IDX_TO_RGB                      │
                         //  ╰───────────────────────────────────────╯
                         x_idx = atoi(tok);
-                        if (fg != x_idx) {
-                            fg = x_idx;
-                            f_fg = true;
-                        }
+                        rgb = xterm256_idx_to_rgb(x_idx);
+                        fg_clr = rgb_to_curses_clr(rgb);
                     }
                 } else {
                     if (tok != NULL && strcmp(tok, "2") == 0) {
@@ -1894,13 +1898,19 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         tok = strtok((char *)ansi_p, ";m");
                         ansi_p = NULL;
                         rgb.b = atoi(tok);
-                        x_idx = rgb_to_xterm256_idx(rgb);
-                        if (fg != x_idx) {
-                            fg = x_idx;
-                            f_fg = true;
-                        }
+                        // x_idx = rgb_to_xterm256_idx(rgb);
+                        // if (fg != x_idx) {
+                        //     fg = x_idx;
+                        //     f_fg = true;
+                        // }
+                        fg_clr = rgb_to_curses_clr(rgb);
                     }
                 }
+                if (fg_clr != fg) {
+                    fg = fg_clr;
+                    f_fg = true;
+                }
+
             } else if (tok[0] == '4' && tok[1] == '8') {
                 //  ╭───────────────────────────────────────────────╮
                 //  │ 48 - BACKGROUND                               │
@@ -1918,10 +1928,8 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         //  │ XTERM_IDX_TO_RGB                      │
                         //  ╰───────────────────────────────────────╯
                         int x_idx = atoi(tok);
-                        if (bg != x_idx) {
-                            bg = x_idx;
-                            f_bg = true;
-                        }
+                        rgb = xterm256_idx_to_rgb(x_idx);
+                        bg_clr = rgb_to_curses_clr(rgb);
                     }
                 } else {
                     if (tok != NULL && strcmp(tok, "2") == 0) {
@@ -1937,12 +1945,17 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         tok = strtok((char *)ansi_p, ";m");
                         ansi_p = NULL;
                         rgb.b = atoi(tok);
-                        x_idx = rgb_to_xterm256_idx(rgb);
-                        if (bg != x_idx) {
-                            bg = x_idx;
-                            f_bg = true;
-                        }
+                        // x_idx = rgb_to_xterm256_idx(rgb);
+                        // if (bg != x_idx) {
+                        //    bg = x_idx;
+                        //    f_bg = true;
+                        // }
+                        bg_clr = rgb_to_curses_clr(rgb);
                     }
+                }
+                if (bg_clr != bg) {
+                    bg = bg_clr;
+                    f_bg = true;
                 }
             } else if (tok[0] == '3' && tok[1] == '9') {
                 if (fg != COLOR_WHITE) {
@@ -1960,15 +1973,19 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 // │ 30-37 / 40-47 - 16 COLOR PALETTE              │
                 // ╰───────────────────────────────────────────────╯
                 if (tok[0] == '3') {
-                    i = atoi(&tok[1]);
-                    if (fg != i) {
-                        fg = i;
+                    x_idx = atoi(&tok[1]);
+                    rgb = xterm256_idx_to_rgb(x_idx);
+                    fg_clr = rgb_to_curses_clr(rgb);
+                    if (fg_clr != fg) {
+                        fg = fg_clr;
                         f_fg = true;
                     }
                 } else if (tok[0] == '4') {
-                    i = atoi(&tok[1]);
-                    if (bg != i) {
-                        bg = i;
+                    x_idx = atoi(&tok[1]);
+                    rgb = xterm256_idx_to_rgb(x_idx);
+                    bg_clr = rgb_to_curses_clr(rgb);
+                    if (bg_clr != bg) {
+                        bg = bg_clr;
                         f_bg = true;
                     }
                 }
@@ -1991,7 +2008,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 }
                 if (bg != COLOR_BLACK) {
                     bg = COLOR_BLACK;
-                    f_fg = true;
+                    f_bg = true;
                 }
             } else {
                 if (tok[0] == '1')
@@ -2009,7 +2026,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
             }
             if (bg != COLOR_BLACK) {
                 bg = COLOR_BLACK;
-                f_fg = true;
+                f_bg = true;
             }
         }
     }
@@ -2018,11 +2035,12 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     // │ APPLY GAMMA CORRECTION                                     │
     // ╰────────────────────────────────────────────────────────────╯
     /// Update Color Pair if Needed
-    /// Apply Gamma Correction if Needed
+    /// fg and bg are NCurses color numbers
+    if (f_fg == true)
+        extended_color_content(fg, &rgb.r, &rgb.g, &rgb.b);
+    if (f_bg == true)
+        extended_color_content(bg, &rgb.r, &rgb.g, &rgb.b);
     if (f_fg == true || f_bg == true) {
-        rgb = xterm256_idx_to_rgb(fg);
-        apply_gamma(&rgb);
-        fg = rgb_to_xterm256_idx(rgb);
         clr_pair_idx = get_clr_pair(fg, bg);
         *cpx = clr_pair_idx;
     }
