@@ -58,7 +58,7 @@ size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
 bool free_string(String);
-char *str_tok_r(char *, const char *, char **, char);
+char *str_tok_r(char *, const char *, char **, char *);
 char errmsg[MAXLEN];
 ///--------------------------------------------------------------
 /// ╭───────────────────────────────────────────────────────────╮
@@ -1233,7 +1233,8 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
 ///	Maintains thread-safety just as strtok_r.
 /// The user is responsible for providing char *save_ptr and char delim_found
 ///
-char *str_tok_r(char *s, const char *delim, char **save_ptr, char delim_found) {
+char *str_tok_r(char *s, const char *delim, char **save_ptr,
+                char *delim_found) {
     char *end;
     if (s == NULL)
         s = *save_ptr;
@@ -1241,7 +1242,8 @@ char *str_tok_r(char *s, const char *delim, char **save_ptr, char delim_found) {
         *save_ptr = s;
         return NULL;
     }
-    delim_found = '\0';
+    *delim_found = '\0';
+    delim_found = delim_found;
     /// Scan leading delimiters
     s += strspn(s, delim);
     if (*s == '\0') {
@@ -1254,8 +1256,7 @@ char *str_tok_r(char *s, const char *delim, char **save_ptr, char delim_found) {
         *save_ptr = end;
         return s;
     }
-    delim_found = *end;
-    delim_found = delim_found;
+    *delim_found = *end;
     /// Terminate the token and make *SAVE_PTR point past it.
     *end = '\0';
     *save_ptr = end + 1;
