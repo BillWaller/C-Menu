@@ -50,7 +50,7 @@ DBG_CFLAGS = -O0 -g3
 # libncursesw.so.6
 # libtinfo.so.6
 #
-CFLAGS = $(REL_CFLAGS) -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
+CFLAGS = $(DBG_CFLAGS) -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
 		-Wno-unused-parameter -Wno-missing-field-initializers \
 		-Wno-unused-function -DNCURSES_WIDECHAR -Wl,--gc-sections
 LIBS =  -lncursesw -ltinfo -lm
