@@ -439,6 +439,12 @@ language, confirming that it is successfully installed on your system.
 Replace `<language>` with the specific programming language you want to install
 the parser for, such as `python`, `javascript`, `rust`, etc.
 
+To put it bluntly, nothing compares with Tree-Sitter for syntax highlighting
+and code analysis. Once you start using it, you'll wonder how you ever lived
+without it.
+
+![Tree-Sitter in C-Menu View](screenshots/tree-sitter4.png)
+
 ---
 
 ## Rustlings

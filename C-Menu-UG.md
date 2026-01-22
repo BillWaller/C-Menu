@@ -112,6 +112,14 @@ processes will appear as follows:
 
 ![make](screenshots/Makefile-out.png)
 
+Here's another example with the C-Make build. You will notice that the
+compilation portion of make is executed without root privileges, while the
+installation portion is executed with root privileges. This is a safer
+approach, as it minimizes the amount of code that runs with elevated
+privileges.
+
+![make cmake](screenshots/cmake_install.png)
+
 When finished, take some time to explore the ~/menuapp directory to
 familiarize yourself with its features.
 

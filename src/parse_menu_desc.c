@@ -12,9 +12,9 @@ unsigned int parse_menu_description(Init *);
 unsigned int get_command_type(char *);
 void free_menu_line(Line *);
 
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ PARSE_MENU_DESCRIPTION                                            │
-/// ╰───────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ PARSE_MENU_DESCRIPTION                                        │
+/// ╰───────────────────────────────────────────────────────────────╯
 unsigned int parse_menu_description(Init *init) {
     FILE *fp;
     char tmp_buf[MAXLEN + 1];
@@ -66,9 +66,9 @@ unsigned int parse_menu_description(Init *init) {
             l = strlen(tmp_buf);
             if (l + 1 > MAXLEN)
                 break;
-            ///  ╭───────────────────────────────────────────────────╮
-            ///  │ MENU COMMAND_STR                                  │
-            ///  ╰───────────────────────────────────────────────────╯
+            ///  ╭──────────────────────────────────────────────────╮
+            ///  │ MENU COMMAND_STR                                 │
+            ///  ╰──────────────────────────────────────────────────╯
             menu->line[menu->line_idx]->command_str =
                 (char *)malloc(MAXLEN + 1);
             if (!menu->line[menu->line_idx]->command_str) {
@@ -91,9 +91,9 @@ unsigned int parse_menu_description(Init *init) {
                 l++;
             if (l + 1 > MAXLEN)
                 l = MAXLEN - 1;
-            ///  ╭───────────────────────────────────────────────────╮
-            ///  │ MENU COMMAND CHOICE_TEXT                          │
-            ///  ╰───────────────────────────────────────────────────╯
+            ///  ╭──────────────────────────────────────────────────╮
+            ///  │ MENU COMMAND CHOICE_TEXT                         │
+            ///  ╰──────────────────────────────────────────────────╯
             menu->line[menu->line_idx]->choice_text =
                 (char *)malloc(MAXLEN + 1);
             if (!menu->line[menu->line_idx]->choice_text) {
@@ -120,9 +120,9 @@ unsigned int parse_menu_description(Init *init) {
             menu->line_idx++;
             actions++;
             break;
-        ///  ╭───────────────────────────────────────────────────────╮
-        ///  │ ':' ====> MENU TEXT                                   │
-        ///  ╰───────────────────────────────────────────────────────╯
+        ///  ╭──────────────────────────────────────────────────────╮
+        ///  │ ':' ====> MENU TEXT                                  │
+        ///  ╰──────────────────────────────────────────────────────╯
         case ':':
             if (choices > actions) {
                 strnz__cpy(em0, "More choices than actions at", MAXLEN - 1);
@@ -146,9 +146,9 @@ unsigned int parse_menu_description(Init *init) {
                 if (l > menu->text_max_len)
                     menu->text_max_len = l;
             } else {
-                ///  ╭───────────────────────────────────────────────╮
-                ///  │ MENU TEXT LINE MALLOC                         │
-                ///  ╰───────────────────────────────────────────────╯
+                ///  ╭──────────────────────────────────────────────╮
+                ///  │ MENU TEXT LINE MALLOC                        │
+                ///  ╰──────────────────────────────────────────────╯
                 menu->line[menu->line_idx] = (Line *)malloc(sizeof(Line));
                 if (menu->line[menu->line_idx] == (Line *)0) {
                     sprintf(tmp_str,
@@ -157,9 +157,9 @@ unsigned int parse_menu_description(Init *init) {
                     abend(-1, tmp_str);
                 }
                 menu->line[menu->line_idx]->type = MT_TEXT;
-                ///  ╭───────────────────────────────────────────────╮
-                ///  │ MENU TEXT RAW_TEXT                            │
-                ///  ╰───────────────────────────────────────────────╯
+                ///  ╭──────────────────────────────────────────────╮
+                ///  │ MENU TEXT RAW_TEXT                           │
+                ///  ╰──────────────────────────────────────────────╯
                 menu->line[menu->line_idx]->raw_text = strdup(tmp_buf);
                 menu->line[menu->line_idx]->choice_text = NULL;
                 menu->line[menu->line_idx]->choice_letter = '\0';
@@ -170,9 +170,9 @@ unsigned int parse_menu_description(Init *init) {
                 choices++;
             }
             break;
-        ///  ╭───────────────────────────────────────────────────────╮
-        ///  │ '?' MYSTERY DIRECTIVE                                 │
-        ///  ╰───────────────────────────────────────────────────────╯
+        ///  ╭──────────────────────────────────────────────────────╮
+        ///  │ '?' MYSTERY DIRECTIVE                                │
+        ///  ╰──────────────────────────────────────────────────────╯
         case '?':
             break;
         case ' ':
@@ -185,9 +185,9 @@ unsigned int parse_menu_description(Init *init) {
         }
     }
     fclose(fp);
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ ASSIGN LETTERS TO MENU CHOICES                             │
-    /// ╰────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────╮
+    /// │ ASSIGN LETTERS TO MENU CHOICES                            │
+    /// ╰───────────────────────────────────────────────────────────╯
     menu->item_count = menu->line_idx;
     for (ltr = '0'; ltr < 'z'; ltr++)
         fltr[ltr] = FALSE;
@@ -288,9 +288,9 @@ unsigned int get_command_type(char *t) {
         return (CT_WRITE_CONFIG);
     return (CT_UNDEFINED);
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ FREE_MENU_LINE                                                 │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ FREE_MENU_LINE                                                │
+/// ╰───────────────────────────────────────────────────────────────╯
 void free_menu_line(Line *line) {
 
     if (line->raw_text != NULL)
