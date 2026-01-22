@@ -40,6 +40,11 @@
 #
 # for release, use
 REL_CFLAGS = -O1
+#
+# -O2 is great until it isn't. I have never had problems with it before now,
+#  but it did cause problems with C-Menu by optimizing out needed code.
+#  Use -O1 for now.
+#
 # for debugging with GDB, use
 DBG_CFLAGS = -O0 -g3
 #
