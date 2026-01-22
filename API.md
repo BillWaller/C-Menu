@@ -1,4 +1,6 @@
-# Table of Contents
+# ![C-Menu](screenshots/C-Menu.png)
+
+## API - Table of Contents
 
 - [Overview](#overview)
 - [Utility Functions](#utility-functions)
