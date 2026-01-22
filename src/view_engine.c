@@ -665,7 +665,7 @@ int view_cmd_processor(Init *init) {
             begx = 4;
             rc = init_form(init, eargc, eargv, begy, begx);
             if (rc == P_CANCEL) {
-                close_form(init);
+                destroy_form(init);
                 view->f_redisplay_page = true;
                 break;
             }

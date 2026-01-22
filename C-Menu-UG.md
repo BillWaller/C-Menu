@@ -48,29 +48,29 @@ To begin, follow these steps:
 - Install the C-Menu package
 
 ```bash
-   gh repo clone BillWaller/C-Menu
+gh repo clone BillWaller/C-Menu
 ```
 
 - Copy the sample menuapp to your home directory
 
 ```bash
-   cp -Rdup C-Menu/menuapp ~/
-   cp ~/menuapp/minitrc ~/.minitrc
+cp -Rdup C-Menu/menuapp ~/
+cp ~/menuapp/minitrc ~/.minitrc
 ```
 
 - Install bashrc-cmenu
 
 ```bash
-   cp C-Menu/menuapp/bashrc-cmenu ~/.bashrc-cmenu
-   echo 'source ~/.bashrc-cmenu' >> ~/.bashrc
+cp C-Menu/menuapp/bashrc-cmenu ~/.bashrc-cmenu
+echo 'source ~/.bashrc-cmenu' >> ~/.bashrc
 ```
 
 - Build C-Menu
 
 ```bash
-   cd C-Menu/src
-   make
-   sudo make install
+cd C-Menu/src
+make
+sudo make install
 ```
 
 To enable root access features, you need to install the RSH (Remote
@@ -96,8 +96,8 @@ You can install these features in you $HOME/.bashrc by navigating
 to the "C-Menu/rsh" directory and running
 
 ```bash
-   cd ../rsh
-   ./cmenu_bashrc.sh
+cd ../rsh
+./cmenu_bashrc.sh
 ```
 
 Of course, you should never install anything in your .bashrc that you

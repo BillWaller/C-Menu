@@ -19,6 +19,6 @@ int main(int argc, char **argv) {
     win_init_attrs(stdscr, init->fg_color, init->bg_color, init->bo_color);
     display_curses_keys();
     win_del();
-    close_curses();
+    destroy_curses();
     return (0);
 }

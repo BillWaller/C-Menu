@@ -44,7 +44,7 @@ int form_engine(Init *);
 int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     int rc;
     if (init->form != NULL)
-        close_form(init);
+        destroy_form(init);
     init->form = new_form(init, argc, argv, begy, begx);
     form = init->form;
     if (!form->f_mapp_spec) {
@@ -73,7 +73,7 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     rc = form_engine(init);
     if (form->win)
         win_del();
-    close_form(init);
+    destroy_form(init);
     return rc;
 }
 ///  ╭──────────────────────────────────────────────────────────────╮
@@ -90,7 +90,7 @@ int form_engine(Init *init) {
         Perror("FORM: form data structure is NULL");
     }
     if (form_parse_desc(form)) {
-        close_form(init);
+        destroy_form(init);
         return 0;
     }
     form_read_data(form);

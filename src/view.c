@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
               view->begx, view->title);
     } else if (!init_view_full_screen(init))
         view_file(init);
-    close_init(init);
+    destroy_init(init);
     win_del();
-    close_curses();
+    destroy_curses();
     exit(EXIT_SUCCESS);
 }
