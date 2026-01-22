@@ -1,7 +1,5 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
----
-
 [New: C-Menu FAQ](FAQ.md)
 
 [New: C-Menu User Guide](C-Menu-UG.md)
