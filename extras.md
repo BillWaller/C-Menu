@@ -8,6 +8,7 @@
 - [Installing Bat](#installing-bat)
 - [Installing Ripgrep](#installing-ripgrep)
 - [lsd](#lsd)
+- [Highlighting](#highlighting)
 - [Tree-Sitter](#tree-sitter)
 - [Tree-Sitter-CLI](#tree-sitter-cli)
 - [Tree-Sitter Parsers](#tree-sitter-parsers)
@@ -73,7 +74,7 @@ So much for the preamble. Let's jump in.
 Run the following in your terminal, then follow the onscreen instructions.
 
 ```bash
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
 For more detailed instructions, visit
@@ -83,13 +84,13 @@ For more detailed instructions, visit
 After installation, ensure that your environment is set up correctly by running:
 
 ```bash
-    source $HOME/.cargo/env
+source $HOME/.cargo/env
 ```
 
 You can verify the installation by checking the Rust version:
 
 ```bash
-    rustc --version
+rustc --version
 ```
 
 This should display the installed Rust version, confirming that Rust is
@@ -98,7 +99,7 @@ successfully installed on your system.
 You can update Rust and Cargo at any time by running:
 
 ```bash
-    rustup update
+rustup update
 ```
 
 ---
@@ -133,25 +134,25 @@ commands based on your operating system:
 After installing Rust, you can install Bat using Cargo, Rust's package manager:
 
 ```bash
-    cargo install bat
+cargo install bat
 ```
 
 ### Bat On macOS
 
 ```bash
-    brew install bat
+brew install bat
 ```
 
 ### Bat On Windows
 
 ```powershell
-    choco install bat
+choco install bat
 ```
 
 After installation, you can verify that Bat is installed correctly by running:
 
 ```bash
-    bat --version
+bat --version
 
 ```
 
@@ -173,25 +174,25 @@ operating system
 After installing Rust, you can install Ripgrep using Cargo, Rust's package manager:
 
 ```bash
-    cargo install ripgrep
+cargo install ripgrep
 ```
 
 ### Ripgrep On macOS
 
 ```bash
-    brew install ripgrep
+brew install ripgrep
 ```
 
 ### Ripgrep On Windows
 
 ```powershell
-    choco install ripgrep
+choco install ripgrep
 ```
 
 After installation, you can verify that Ripgrep is installed correctly by running:
 
 ```bash
-    rg --version
+rg --version
 ```
 
 This should display the installed Ripgrep version, confirming that Ripgrep
@@ -209,25 +210,25 @@ features, you can use the following commands based on your operating system:
 After installing Rust, you can install lsd using Cargo, Rust's package manager:
 
 ```bash
-    cargo install lsd
+cargo install lsd
 ```
 
 ### lsd On macOS
 
 ```bash
-    brew install lsd
+brew install lsd
 ```
 
 ### lsd On Windows
 
 ```powershell
-    choco install lsd
+choco install lsd
 ```
 
 After installation, you can verify that lsd is installed correctly by running:
 
 ```bash
-    lsd --version
+lsd --version
 ```
 
 This should display the installed lsd version, confirming that lsd is successfully
@@ -237,6 +238,32 @@ A word of caution here, "lsd" in a different context, is an acronym for a
 powerful hallucinogenic drug. Don't tell your grandmother you use lsd without
 explaining that it's "ls Deluxe", a file listing utility, and not the "LSD"
 she remembers from her college days at UC Berkeley. 😎
+
+## Highlighting
+
+Highlighted text is more pleasing to most, but there is more to it than mere
+aesthetics. Highlighting can improve code readability and comprehension,
+making it easier to identify syntax errors, keywords, and other important
+elements in the code. This can lead to increased productivity and reduced
+errors when working with code.
+
+Currently, there is no shortage of software for highlighting, and most are
+easy enough to install and use. Here are a few popular options:
+
+GNU's Source Highlight is a widely used and very capable tool. It works
+well with a large number of programming languages. It works better with
+some than others.
+
+Pygments, is another popular syntax highlighter written in Python. Pygments
+also offers a wide variety of language support and customization options.
+
+I have found the Rust-based tool, bat, to perform spectacularly in some
+applications, but not so well in others. It's a relatively new tool, so
+you will have to be patient with a few glitches in the edge cases.
+
+Lastly, there is Tree-Sitter, which is a powerful and efficient parsing
+library that can be used for syntax highlighting and code analysis. It
+deserves it's own section. Keep reading.
 
 ---
 
@@ -272,7 +299,7 @@ After installing Rust, you can install Tree-Sitter using Cargo,
 Rust's package manager:
 
 ```bash
-`bash cargo install tree-sitter-cli
+cargo install tree-sitter-cli
 ```
 
 ### Tree-Sitter On macOS
@@ -290,7 +317,7 @@ choco install tree-sitter
 After installation, you can verify that Tree-Sitter is installed correctly by running:
 
 ```bash
-    tree-sitter --version
+tree-sitter --version
 ```
 
 This should display the installed Tree-Sitter version, confirming that Tree-Sitter
@@ -309,26 +336,26 @@ After installing Rust, you can install Tree-Sitter-CLI using Cargo, Rust's
 package manager
 
 ```bash
-    cargo install tree-sitter-cli
+cargo install tree-sitter-cli
 ```
 
 ### Tree-Sitter-CLI On macOS
 
 ```bash
-    brew install tree-sitter-cli
+brew install tree-sitter-cli
 ```
 
 ### Tree-Sitter-CLI On Windows
 
 ```powershell
-    choco install tree-sitter-cli
+choco install tree-sitter-cli
 ```
 
 After installation, you can verify that Tree-Sitter-CLI is installed correctly by
 running:
 
 ```bash
-    tree-sitter --version
+tree-sitter --version
 ```
 
 This should display the installed Tree-Sitter-CLI version, confirming that
@@ -348,11 +375,11 @@ package manager. As always, I highly recommend installing only the parsers you
 need. Here are some examples:
 
 ```bash
-    cargo install tree-sitter-python
-    cargo install tree-sitter-javascript
-    cargo install tree-sitter-rust
-    cargo install tree-sitter-go
-    cargo install tree-sitter-cpp
+cargo install tree-sitter-python
+cargo install tree-sitter-javascript
+cargo install tree-sitter-rust
+cargo install tree-sitter-go
+cargo install tree-sitter-cpp
 ```
 
 I installed my tree-sitter parsers in the following directory structure:
@@ -389,7 +416,7 @@ cd ~/.config/tree-sitter
 vi config.json
 
 "parser-directories": [
-        /home/bill/.config/tree-sitter/parsers
+   /home/bill/.config/tree-sitter/parsers
 ]
 ```
 
@@ -412,26 +439,26 @@ scheme across my development environment. They are also more intuitive to
 work with since they directly represent RGB values.
 
 ```bash
-    cargo install tree-sitter-<language>
+cargo install tree-sitter-<language>
 ```
 
 ### Tree-Sitter Parsers On macOS
 
 ```bash
-    brew install tree-sitter-<language>
+brew install tree-sitter-<language>
 ```
 
 ### Tree-Sitter Parsers On Windows
 
 ```powershell
-    choco install tree-sitter-<language>
+choco install tree-sitter-<language>
 ```
 
 After installation, you can verify that the Tree-Sitter parser for your chosen
 language is installed correctly by running:
 
 ```bash
-    tree-sitter <language> --version
+tree-sitter <language> --version
 ```
 
 This should display the installed Tree-Sitter parser version for your chosen
@@ -520,25 +547,25 @@ file among many files in a large project. You can quickly preview files
 without opening them fully in Neovim.
 
 ```bash
-    cargo install ghostty
+cargo install ghostty
 ```
 
 ### Ghostty On macOS
 
 ```bash
-    brew install ghostty
+brew install ghostty
 ```
 
 ### Ghostty On Windows
 
 ```powershell
-    choco install ghostty
+choco install ghostty
 ```
 
 After installation, you can verify that Ghostty is installed correctly by running:
 
 ```bash
-    ghostty --version
+ghostty --version
 ```
 
 ---
@@ -612,8 +639,8 @@ and configures a colorful prompt with red for root and green for normal users.
 
 prepend_path() {
 case ":$PATH:" in
-        *:"$1":*) ;;
-        *) PATH="$1:$PATH" ;;
+    *:"$1":*) ;;
+    *) PATH="$1:$PATH" ;;
 esac
 }
 

@@ -18,15 +18,15 @@
 /// │ FUNCTION PROTOTYPES                                           │
 /// ╰───────────────────────────────────────────────────────────────╯
 void open_curses(Init *);
-void close_curses();
+void destroy_curses();
 int win_new(int, int, int, int, char *, int);
 void win_redraw(WINDOW *);
 void win_resize(int, int, char *);
 WINDOW *win_open_box(int, int, int, int, char *);
 WINDOW *win_open_win(int, int, int, int);
 WINDOW *win_del();
-void win_close_win(WINDOW *);
-void win_close_box(WINDOW *);
+void destroy_win(WINDOW *);
+void destroy_box(WINDOW *);
 void restore_wins();
 void dmvwaddstr(WINDOW *, int, int, char *);
 void cbox(WINDOW *);
@@ -342,7 +342,7 @@ void open_curses(Init *init) {
     set_term(screen);
     f_curses_open = true;
     if (!has_colors()) {
-        close_curses();
+        destroy_curses();
         abend(-1, "terminal color support required");
     }
     start_color();
@@ -603,9 +603,9 @@ RGB hex_clr_str_to_rgb(char *s) {
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ CLOSE_CURSES                                                  │
 /// ╰───────────────────────────────────────────────────────────────╯
-/// void close_curses()
+/// void destroy_curses()
 /// Close NCurses
-void close_curses() {
+void destroy_curses() {
     if (f_curses_open) {
         wclear(stdscr);
         wrefresh(stdscr);
@@ -1112,7 +1112,7 @@ int nf_error(int ec, char *s) {
 /// void user_end()
 /// User terminated program
 void user_end() {
-    close_curses();
+    destroy_curses();
     restore_shell_tioctl();
     sig_dfl_mode();
     fprintf(stderr, "Normal program exit");
@@ -1131,9 +1131,9 @@ void abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     fprintf(stderr, "Press any key");
     di_getch();
-    close_init(init);
+    destroy_init(init);
     win_del();
-    close_curses();
+    destroy_curses();
     restore_shell_tioctl();
     fprintf(stderr, "\n");
     exit(EXIT_FAILURE);

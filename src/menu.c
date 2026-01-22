@@ -38,8 +38,8 @@ int main(int argc, char **argv) {
     /// ╭───────────────────────────────────────────────────────────────────╮
     /// │ CLEANUP                                                           │
     /// ╰───────────────────────────────────────────────────────────────────╯
-    close_init(init);
+    destroy_init(init);
     win_del();
-    close_curses();
+    destroy_curses();
     return 0;
 }

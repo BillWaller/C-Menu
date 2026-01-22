@@ -26,7 +26,7 @@ UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you
 can use the following command:
 
 ```bash
-    iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt
+iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt
 ```
 
 The images below show, before, on the left, and after, on the right, using iconv.
@@ -183,7 +183,7 @@ You will find an example config.json in C-Menu's tree-sitter directory.
 Type the following command:
 
 ```bash
-    tree-sitter highlight source-file | view
+tree-sitter highlight source-file | view
 ```
 
 ![C-Menu View - Tree-Sitter](screenshots/tree-sitter1.png)

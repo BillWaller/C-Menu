@@ -15,11 +15,11 @@ Menu *new_menu(Init *init, int, char **, int, int);
 Pick *new_pick(Init *init, int, char **, int, int);
 Form *new_form(Init *init, int, char **, int, int);
 View *new_view(Init *init, int, char **, int, int);
-View *close_view(Init *init);
-Form *close_form(Init *init);
-Pick *close_pick(Init *init);
-Menu *close_menu(Init *init);
-Init *close_init(Init *init);
+View *destroy_view(Init *init);
+Form *destroy_form(Init *init);
+Pick *destroy_pick(Init *init);
+Menu *destroy_menu(Init *init);
+Init *destroy_init(Init *init);
 bool mapp_spec(Init *, int, char **);
 bool init_menu_files(Init *, int, char **);
 bool init_pick_files(Init *, int, char **);
@@ -64,41 +64,45 @@ Init *new_init(int argc, char **argv) {
     return init;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ CLOSE_INIT                                                    │
+/// │ DESTROY_INIT                                                  │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Teardown and free an Init structure
-Init *close_init(Init *init) {
+Init *destroy_init(Init *init) {
     int i;
     if (!init)
         return NULL;
     if (init->menu) {
-        init->menu = close_menu(init);
+        init->menu = destroy_menu(init);
         init->menu = NULL;
     }
     if (init->view) {
-        init->view = close_view(init);
+        init->view = destroy_view(init);
         init->view = NULL;
     }
     if (init->form) {
-        init->form = close_form(init);
+        init->form = destroy_form(init);
         init->form = NULL;
     }
     if (init->pick) {
-        init->pick = close_pick(init);
+        init->pick = destroy_pick(init);
         init->pick = NULL;
     }
     for (i = 0; i <= init->argc; i++) {
         if (init->argv[i]) {
-            free(init->argv[i]);
+            if (init->argv[i] != NULL)
+                free(init->argv[i]);
             init->argv[i] = NULL;
         }
     }
     if (init->argv) {
-        free(init->argv);
+        if (init->argv != NULL)
+            free(init->argv);
         init->argv = NULL;
     }
-    free(init);
-    init = NULL;
+    if (init != NULL) {
+        free(init);
+        init = NULL;
+    }
     init_cnt--;
     return init;
 }
@@ -123,10 +127,10 @@ Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
     return init->menu;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ CLOSE_MENU                                                    │
+/// │ DESTROY_MENU                                                  │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Destroy Menu structure
-Menu *close_menu(Init *init) {
+Menu *destroy_menu(Init *init) {
     if (!init->menu)
         return (NULL);
     free(init->menu);
@@ -164,10 +168,10 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
     return init->pick;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ CLOSE_PICK                                                    │
+/// │ DESTROY_PICK                                                  │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Destroy Pick structure
-Pick *close_pick(Init *init) {
+Pick *destroy_pick(Init *init) {
     if (!init->pick)
         return NULL;
 
@@ -203,10 +207,10 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
     return init->form;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ CLOSE_FORM                                                    │
+/// │ DESTROY_FORM                                                  │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Destroy Form structure
-Form *close_form(Init *init) {
+Form *destroy_form(Init *init) {
     int i;
 
     if (!init->form)
@@ -255,10 +259,10 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     return view;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ CLOSE_VIEW                                                    │
+/// │ DESTROY_VIEW                                                  │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Destroy View structure
-View *close_view(Init *init) {
+View *destroy_view(Init *init) {
     int i;
     view = init->view;
     for (i = 0; i <= view->argc; i++)
