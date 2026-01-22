@@ -147,12 +147,12 @@ bool view_init_input(View *view, char *file_name) {
         file_name = "/dev/stdin";
         view->f_in_pipe = true;
     }
-    /// ╭───────────────────────────────────────────────────────────────╮
-    /// │ INPUT IS FROM START_CMD                                       │
-    /// │ SETUP PIPES                                                   │
-    /// │ CHILD  P_WRITE                                                │
-    /// │ PARENT P_READ                                                 │
-    /// ╰───────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────╮
+    /// │ INPUT IS FROM START_CMD                                   │
+    /// │ SETUP PIPES                                               │
+    /// │ CHILD  P_WRITE                                            │
+    /// │ PARENT P_READ                                             │
+    /// ╰───────────────────────────────────────────────────────────╯
     /// If a provider command is specified, set up a pipe to read its output.
     /// The child process executes the command, and the parent process reads
     /// from the pipe.
@@ -182,9 +182,9 @@ bool view_init_input(View *view, char *file_name) {
         view->in_fd = dup(STDIN_FILENO);
         view->f_in_pipe = true;
     } else {
-        /// ╭───────────────────────────────────────────────────────────────╮
-        /// │ ATTEMPT to OPEN FILENAME                                      │
-        /// ╰───────────────────────────────────────────────────────────────╯
+        /// ╭───────────────────────────────────────────────────────╮
+        /// │ ATTEMPT to OPEN FILENAME                              │
+        /// ╰───────────────────────────────────────────────────────╯
         if (view->f_in_pipe)
             view->in_fd = dup(STDIN_FILENO);
         else {
@@ -264,9 +264,9 @@ bool view_init_input(View *view, char *file_name) {
         }
         waitpid(-1, NULL, 0);
     }
-    /// ╭───────────────────────────────────────────────────────────────╮
-    /// │ MMAP                                                          │
-    /// ╰───────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────╮
+    /// │ MMAP                                                      │
+    /// ╰───────────────────────────────────────────────────────────╯
     /// Memory-map the input file for efficient access.
     view->buf =
         mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, view->in_fd, 0);

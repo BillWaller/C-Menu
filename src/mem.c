@@ -32,9 +32,9 @@ Menu *menu;
 Pick *pick;
 Form *form;
 View *view;
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ NEW_INIT                                                       │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ NEW_INIT                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Create and initialize an Init structure
 Init *new_init(int argc, char **argv) {
     int i = 0;
@@ -63,9 +63,9 @@ Init *new_init(int argc, char **argv) {
     init_cnt++;
     return init;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ CLOSE_INIT                                                     │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CLOSE_INIT                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Teardown and free an Init structure
 Init *close_init(Init *init) {
     int i;
@@ -102,9 +102,9 @@ Init *close_init(Init *init) {
     init_cnt--;
     return init;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ NEW_MENU                                                       │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ NEW_MENU                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Create and initialize a Menu structure
 Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
     init->menu = (Menu *)calloc(1, sizeof(Menu));
@@ -122,9 +122,9 @@ Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
     menu->begx = begx;
     return init->menu;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ CLOSE_MENU                                                     │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CLOSE_MENU                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Destroy Menu structure
 Menu *close_menu(Init *init) {
     if (!init->menu)
@@ -134,9 +134,9 @@ Menu *close_menu(Init *init) {
     init->menu_cnt--;
     return init->menu;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ NEW_PICK                                                       │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ NEW_PICK                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Create and initialize a Pick structure
 Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
     init->pick = (Pick *)calloc(1, sizeof(Pick));
@@ -163,9 +163,9 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
     pick->begx = begx;
     return init->pick;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ CLOSE_PICK                                                     │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CLOSE_PICK                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Destroy Pick structure
 Pick *close_pick(Init *init) {
     if (!init->pick)
@@ -180,9 +180,9 @@ Pick *close_pick(Init *init) {
     init->pick_cnt--;
     return init->pick;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ NEW_FORM                                                       │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ NEW_FORM                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Create and initialize a Form structure
 Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
     init->form = (Form *)calloc(1, sizeof(Form));
@@ -202,9 +202,9 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
     form->begx = begx;
     return init->form;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ CLOSE_FORM                                                     │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CLOSE_FORM                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Destroy Form structure
 Form *close_form(Init *init) {
     int i;
@@ -226,9 +226,9 @@ Form *close_form(Init *init) {
     init->form_cnt--;
     return init->form;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ NEW_VIEW                                                       │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ NEW_VIEW                                                      │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Create and initialize a View structure
 View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
 
@@ -254,9 +254,9 @@ View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
     }
     return view;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ CLOSE_VIEW                                                     │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ CLOSE_VIEW                                                    │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Destroy View structure
 View *close_view(Init *init) {
     int i;
@@ -270,9 +270,9 @@ View *close_view(Init *init) {
     init->view_cnt--;
     return init->view;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ VERIFY_SPEC_ARG                                                │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ VERIFY_SPEC_ARG                                               │
+/// ╰───────────────────────────────────────────────────────────────╯
 ///  Verify file specification argument
 ///  @param  char *spec,      -> menu->spec, form->spec, etc.
 ///  @param  char *src_spec,  -> init->._spec | argv[optind]
@@ -322,9 +322,9 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
             return f_spec;
         } else {
             if (!f_dir && dir[0]) {
-                ///  ╭───────────────────────────────────────────────────╮
-                ///  │ IDIOMATIC (PREFERRED) SPEC                        │
-                ///  ╰───────────────────────────────────────────────────╯
+                ///  ╭──────────────────────────────────────────────╮
+                ///  │ IDIOMATIC (PREFERRED) SPEC                   │
+                ///  ╰──────────────────────────────────────────────╯
                 if (strcmp(dir, "$PATH") == 0) {
                     strnz__cpy(try_spec, file_name, MAXLEN - 1);
                     f_spec = locate_file_in_path(try_spec, file_name);
@@ -408,9 +408,9 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
 /// 4 - Command line positional arguments
 /// 5 - Command line option arguments
 ///
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ INIT_MENU_FILES                                                │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ INIT_MENU_FILES                                               │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Initialize Menu file specifications
 bool init_menu_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
@@ -423,21 +423,21 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     ///                or calling program interal to C-Menu
     ///
     ///
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ MENU MAPP_SPEC - OPT ARG -d: - Priority 5                  │
-    /// ╰────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────╮
+    /// │ MENU MAPP_SPEC - OPT ARG -d: - Priority 5                 │
+    /// ╰───────────────────────────────────────────────────────────╯
     menu->f_mapp_spec =
         verify_spec_arg(menu->mapp_spec, init->mapp_spec, init->mapp_msrc,
                         "~/menuapp/msrc", R_OK);
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ MENU HELP_SPEC - OPT ARG -H: - Priority 5                  │
-    /// ╰────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────╮
+    /// │ MENU HELP_SPEC - OPT ARG -H: - Priority 5                 │
+    /// ╰───────────────────────────────────────────────────────────╯
     menu->f_help_spec =
         verify_spec_arg(menu->help_spec, init->help_spec, init->mapp_help,
                         "~/menuapp/help", R_OK);
-    ///  ╭───────────────────────────────────────────────────────────╮
-    ///  │ MENU MAPP_SPEC - POSITIONAL ARG 1 - Priority 4            │
-    ///  ╰───────────────────────────────────────────────────────────╯
+    ///  ╭──────────────────────────────────────────────────────────╮
+    ///  │ MENU MAPP_SPEC - POSITIONAL ARG 1 - Priority 4           │
+    ///  ╰──────────────────────────────────────────────────────────╯
     if (optind < argc && !menu->f_mapp_spec) {
         menu->f_mapp_spec =
             verify_spec_arg(menu->mapp_spec, argv[optind], init->mapp_msrc,
@@ -445,9 +445,9 @@ bool init_menu_files(Init *init, int argc, char **argv) {
         if (menu->f_mapp_spec)
             optind++;
     }
-    ///  ╭───────────────────────────────────────────────────────────╮
-    ///  │ MENU HELP_SPEC - POSITIONAL ARG 2 - Priority 4            │
-    ///  ╰───────────────────────────────────────────────────────────╯
+    ///  ╭──────────────────────────────────────────────────────────╮
+    ///  │ MENU HELP_SPEC - POSITIONAL ARG 2 - Priority 4           │
+    ///  ╰──────────────────────────────────────────────────────────╯
     if (optind < argc && !menu->f_help_spec) {
         menu->f_help_spec =
             verify_spec_arg(menu->help_spec, argv[optind], init->mapp_help,
@@ -487,9 +487,9 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     menu->f_stop_on_error = init->f_stop_on_error;
     return true;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ PICK INIT_PICK_FILES                                           │
-/// ╰────────────────────────────────────────────────────────────────╯
+/// ╭───────────────────────────────────────────────────────────────╮
+/// │ PICK INIT_PICK_FILES                                          │
+/// ╰───────────────────────────────────────────────────────────────╯
 /// Initialize Pick file specifications
 bool init_pick_files(Init *init, int argc, char **argv) {
     /// @param init_pick_files(Init *init, int argc, char **argv)
@@ -623,9 +623,9 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
     return true;
 }
-// ╭───────────────────────────────────────────────────────────────╮
-// │ INIT_FORM_FILES                                               │
-// ╰───────────────────────────────────────────────────────────────╯
+// ╭────────────────────────────────────────────────────────────────╮
+// │ INIT_FORM_FILES                                                │
+// ╰────────────────────────────────────────────────────────────────╯
 /// Initialize Form file specifications
 bool init_form_files(Init *init, int argc, char **argv) {
 
