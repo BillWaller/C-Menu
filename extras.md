@@ -1,6 +1,6 @@
-# C-Menu Extras
+# ![C-Menu](screenshots/C-Menu.png)
 
-# Table of Contents
+## C-Menu Developer Tools - Table of Contents
 
 - [Introduction](#introduction)
 - [Installing Rust](#installing-rust)
@@ -728,6 +728,8 @@ dimensions for your own display. The window dimensions are specified in
 character cells. For example, a window-width of 95 means 95 character cells
 wide. The actual pixel width of the window will depend on the font size and the
 font used.
+
+You can find the following configurations in C-Menu/configs.
 
 ##### Ghostty Configuration
 

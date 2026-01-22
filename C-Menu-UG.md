@@ -1,4 +1,6 @@
-# Table of Contents
+# ![C-Menu](screenshots/C-Menu.png)
+
+## C-Menu User Guide - Table of Contents
 
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)

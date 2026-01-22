@@ -1,4 +1,6 @@
-# Table of Contents
+# ![C-Menu](screenshots/C-Menu.png)
+
+## FAQ - Table of Contents
 
 1. [Why View Displays Question Marks](#why-view-displays-question-marks)
 2. [C-Menu View - How to Colorize Manual Pages](#c-menu-view---how-to-colorize-manual-pages)
@@ -183,6 +185,7 @@ You will find an example config.json in C-Menu's tree-sitter directory.
 Type the following command:
 
 ```bash
+
 tree-sitter highlight source-file | view
 ```
 
