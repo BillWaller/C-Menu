@@ -90,7 +90,7 @@ void signal_handler(int sig_num) {
     } else {
         strnz__cpy(tmp_str, "Caught signal - Press any key", MAXLEN - 1);
         c = (char)Perror(tmp_str);
-        close_curses();
+        destroy_curses();
         sig_dfl_mode();
         restore_shell_tioctl();
         _exit(1);

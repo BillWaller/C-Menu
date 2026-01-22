@@ -306,7 +306,7 @@ pre > code.sourceCode > span:empty {
 height: 1.2em;
 }
 pre.sourceCode {
-margin-left: 4%;
+margin-left: 2%;
 }
 .sourceCode {
 overflow: visible;
@@ -484,7 +484,7 @@ font-style: italic;
 <header id="title-block-header">
 <h1 class="title">C-Menu User Guide</h1>
 <p class="author">Bill Waller</p>
-<p class="date">2026-01-22T00:12:15Z</p>
+<p class="date">2026-01-22T05:42:24Z</p>
 </header>
 <h1 id="table-of-contents">Table of Contents</h1>
 <ol type="1">
@@ -543,23 +543,23 @@ needs.</p>
 <ul>
 <li>Install the C-Menu package</li>
 </ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>   <span class="ex">gh</span> repo clone BillWaller/C-Menu</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gh</span> repo clone BillWaller/C-Menu</span></code></pre></div>
 <ul>
 <li>Copy the sample menuapp to your home directory</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>   <span class="fu">cp</span> <span class="at">-Rdup</span> C-Menu/menuapp ~/</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">cp</span> ~/menuapp/minitrc ~/.minitrc</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-Rdup</span> C-Menu/menuapp ~/</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> ~/menuapp/minitrc ~/.minitrc</span></code></pre></div>
 <ul>
 <li>Install bashrc-cmenu</li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>   <span class="fu">cp</span> C-Menu/menuapp/bashrc-cmenu ~/.bashrc-cmenu</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>   <span class="bu">echo</span> <span class="st">&#39;source ~/.bashrc-cmenu&#39;</span> <span class="op">&gt;&gt;</span> ~/.bashrc</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> C-Menu/menuapp/bashrc-cmenu ~/.bashrc-cmenu</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&#39;source ~/.bashrc-cmenu&#39;</span> <span class="op">&gt;&gt;</span> ~/.bashrc</span></code></pre></div>
 <ul>
 <li>Build C-Menu</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>   <span class="bu">cd</span> C-Menu/src</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">make</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>   <span class="fu">sudo</span> make install</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> C-Menu/src</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make install</span></code></pre></div>
 <p>To enable root access features, you need to install the RSH (Remote
 Shell) program with setuid root permissions. This allows certain menu
 items to execute commands with root privileges.</p>
@@ -579,8 +579,8 @@ any longer than necessary.</li>
 </ol>
 <p>You can install these features in you $HOME/.bashrc by navigating to
 the “C-Menu/rsh” directory and running</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>   <span class="bu">cd</span> ../rsh</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>   <span class="ex">./cmenu_bashrc.sh</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ../rsh</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./cmenu_bashrc.sh</span></span></code></pre></div>
 <p>Of course, you should never install anything in your .bashrc that you
 do not understand or trust.</p>
 <p>Note: the following listing uses “lsd” by default, and may not look

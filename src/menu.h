@@ -350,7 +350,7 @@ typedef unsigned char uchar;
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ SCRIOU                                                        │
 //  ╰───────────────────────────────────────────────────────────────╯
-extern void close_curses();
+extern void destroy_curses();
 extern void sig_prog_mode();
 extern void sig_shell_mode();
 extern char di_getch();
@@ -376,8 +376,8 @@ extern int mouse_support;
 extern WINDOW *win_open_box(int, int, int, int, char *);
 extern WINDOW *winOpenwin(int, int, int, int);
 extern WINDOW *win_del();
-extern void win_close_win(WINDOW *);
-extern void win_close_box(WINDOW *);
+extern void destroy_win(WINDOW *);
+extern void destroy_box(WINDOW *);
 extern void restore_wins();
 extern void cbox(WINDOW *);
 extern void win_init_attrs(WINDOW *, int, int, int);
@@ -946,11 +946,11 @@ extern View *new_view(Init *init, int, char **, int, int);
 extern Form *new_form(Init *init, int, char **, int, int);
 extern Pick *new_pick(Init *init, int, char **, int, int);
 extern Menu *new_menu(Init *init, int, char **, int, int);
-extern Menu *close_menu(Init *init);
-extern Pick *close_pick(Init *init);
-extern Form *close_form(Init *init);
-extern View *close_view(Init *init);
-extern Init *close_init(Init *init);
+extern Menu *destroy_menu(Init *init);
+extern Pick *destroy_pick(Init *init);
+extern Form *destroy_form(Init *init);
+extern View *destroy_view(Init *init);
+extern Init *destroy_init(Init *init);
 extern int parse_opt_args(Init *, int, char **);
 extern void zero_opt_args(Init *);
 extern int write_config(Init *);

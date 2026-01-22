@@ -235,7 +235,7 @@ To use C-Menu View as your system pager, add the following line to your
 shell configuration file (e.g., .bashrc or .zshrc):
 
 ```bash
-    export PAGER="view"
+export PAGER="view"
 ```
 
 You can also filter manual pages through ~/menuapp/msrc/man.sed to
@@ -244,7 +244,7 @@ included with C-Menu. To use it, you can run the following command in
 your terminal:
 
 ```bash
-    man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
+man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
 ```
 
 ### Example Manual Page Using Editor

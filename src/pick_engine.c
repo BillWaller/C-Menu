@@ -51,7 +51,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     pid_t pid = 0;
 
     if (init->pick != NULL)
-        close_pick(init);
+        destroy_pick(init);
     Pick *pick = new_pick(init, argc, argv, begy, begx);
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
@@ -145,12 +145,12 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (pick->obj_cnt == 0) {
         Perror("No pick objects available");
-        close_pick(init);
+        destroy_pick(init);
         return (1);
     }
     pick_engine(init);
     win_del();
-    close_pick(init);
+    destroy_pick(init);
     return 0;
 }
 /// ╭────────────────────────────────────────────────────────────────╮

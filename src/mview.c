@@ -54,6 +54,6 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
         view_file(init);
         win_del();
     }
-    close_view(init);
+    destroy_view(init);
     return 0;
 }
