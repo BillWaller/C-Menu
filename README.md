@@ -404,6 +404,13 @@ access to install, and the installer should make sure it cannot be used
 by other users. If you are reading this, you know how to do that.
 Please use it responsibly.
 
+![Building C-Menu With CMake](screenshots/cmake_install.png)
+
+You will notice that the build was completed under normal user privileges. Only
+the install portion required root access. We typed "xx" to assume root
+privileges, installed the package, and then immediately reverted to normal
+user access by typing "x".
+
 ---
 
 ## C-Menu Features
