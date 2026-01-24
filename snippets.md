@@ -253,7 +253,7 @@ Customize these settings for your system.
 ```bash
 export JAVA_HOME=/usr/lib64/jvm/java-21-openjdk-21
 export NODE_PATH="$HOME"/node_modules
-PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig
+export PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig
 export python3_host_prog=/usr/bin/python3
 export XDG_CONFIG_HOME="$HOME"/.config
 export XDG_DATA_HOME="$HOME"/.local/share
