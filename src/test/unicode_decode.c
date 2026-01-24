@@ -30,7 +30,7 @@ uint32_t utf8_decode(const unsigned char **s) {
 }
 
 int main() {
-    const unsigned char *str = (const unsigned char *)"🙍👴👵♂♀";
+    const unsigned char *str = (const unsigned char *)"█";
 
     while (*str) {
         uint32_t cp = utf8_decode(&str);

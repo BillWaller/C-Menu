@@ -33,11 +33,152 @@ Note 3: This document is a work-in-progress and will be updated regularly.
 Only a fraction of the API functions are documented here at present with many
 more to be added.
 
-===============================================================
+## C-Menu Data Structures
 
-## Utility Functions
+```c
+Init *new_init(int argc, char **argv)
+```
+
+Creates and initializes a new Init structure. The Init structure holds
+configuration and state information for the C-Menu application, including
+structures for Menu, Form, Pick, and View components.
+
+- Parameters:
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+- Returns:
+  - `Init *`: A pointer to the newly created Init structure or NULL on failure.
+
+```c
+Init *destroy_init(Init *init)
+```
+
+Frees any Menu, Form, Pick, or View structures attached to the Init structure
+before destroying the Init structure.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure to be destroyed.
+- Returns:
+  - `Init *`: NULL
 
 ---
+
+```c
+Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx)
+```
+
+Creates and initializes a new Menu Structure, init->menu. The init->menu
+structure holds configuration and state information for the Menu component.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure.
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+  - `int begy`: The y-coordinate for the top-left corner of the Menu window.
+  - `int begx`: The x-coordinate for the top-left corner of the Menu window.
+- Returns:
+  - `Menu *`: A pointer to the newly created Menu structure or NULL on failure.
+
+The init->menu structure is commonly aliased as menu throughout the C-Menu
+suite.
+
+```c
+Menu *destroy_menu(init *init)
+```
+
+Frees any resources associated with the Menu structure before destroying it.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure containing the Menu.
+- Returns:
+  - `Menu *`: NULL
+
+---
+
+```c
+Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx)
+```
+
+Creates and initializes a new Pick Structure, init->pick. The init->pick
+structure holds configuration and state information for the Pick component.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure.
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+  - `int begy`: The y-coordinate for the top-left corner of the Pick window.
+  - `int begx`: The x-coordinate for the top-left corner of the Pick window.
+- Returns:
+  - `Pick *`: A pointer to the newly created Pick structure or NULL on failure.
+
+The init->pick structure is commonly aliased as pick throughout the C-Menu
+suite.
+
+---
+
+```c
+Form *new_form(Init *init, int argc, char **argv, int begy, int begx)()
+```
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure.
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+  - `int begy`: The y-coordinate for the top-left corner of the Form window.
+  - `int begx`: The x-coordinate for the top-left corner of the Form window.
+- Returns:
+  - `Form *`: A pointer to the newly created Form structure or NULL on failure.
+
+The init->form structure is commonly aliased as form throughout the C-Menu
+suite.
+
+```c
+Form *destroy_form(Init *init)
+```
+
+Frees any resources associated with the Form structure before destroying it.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure containing the Form.
+- Returns:
+  - `Form *`: NULL
+
+---
+
+```c
+View *new_view(Init *init, int argc, char **argv, int begy, int begx)
+```
+
+Creates and initializes a new View Structure, init->view. The init->view
+structure holds configuration and state information for the View component.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure.
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+  - `int begy`: The y-coordinate for the top-left corner of the View window.
+  - `int begx`: The x-coordinate for the top-left corner of the View window.
+- Returns:
+  - `View *`: A pointer to the newly created View structure or NULL on failure.
+    The init->view structure is commonly aliased as view throughout the C-Menu
+    suite.
+
+```c
+View *destroy_view(Init *init)
+```
+
+Frees any resources associated with the View structure before destroying it.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure containing the View.
+- Returns:
+  - `View *`: NULL
+
+---
+
+```c
+
+```
 
 ```c
 size_t rtrim(char *str)
