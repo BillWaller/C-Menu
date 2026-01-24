@@ -150,7 +150,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int flag = 0;
 
     char *optstring =
-        "a:b:c:d:ef:g:hi:m:n:o:p:r:st:u:vw:xzA:B:C:DF:H:L:MO:P:R:S:T:VWX:Y:Z";
+        "a:b:c:d:ef:g:hi:m:n:o:p:r:st:u:vw:xzA:B:C:DF:G:H:L:MO:P:R:S:T:VWX:Y:Z";
     struct option long_options[] = {{"help", 0, &flag, MAPP_HELP},
                                     {"mapp_spec", 1, &flag, MAPP_SPEC},
                                     {"mapp_data", 1, &flag, MAPP_DATA_DIR},
@@ -218,6 +218,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'e':
             init->f_erase_remainder = true;
             break;
+        case 'f': // fill char
+            strnz__cpy(init->fill_char, optarg, 1);
+            break;
         case 'g':
             init->green_gamma = str_to_double(optarg);
             break;
@@ -256,9 +259,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'u': // brackets
             strnz__cpy(init->brackets, optarg, 2);
             break;
-        case 'f': // fill char
-            strnz__cpy(init->fill_char, optarg, 1);
-            break;
         case 'v':
         case 'V':
             f_version = true;
@@ -272,6 +272,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'z':
             init->f_at_end_clear = true;
             break;
+        case 'A':
+            strnz__cpy(init->cmd_all, optarg, MAXLEN - 1);
+            break;
         case 'B':
             init->bg_color = get_color_number(optarg);
             break;
@@ -281,11 +284,11 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'D':
             f_dump_config = true;
             break;
-        case 'S':
-            strnz__cpy(init->provider_cmd, optarg, MAXLEN - 1);
-            break;
         case 'F':
             init->fg_color = get_color_number(optarg);
+            break;
+        case 'G':
+            init->gray_gamma = str_to_double(optarg);
             break;
         case 'H':
             strnz__cpy(init->help_spec, optarg, MAXLEN - 1);
@@ -306,8 +309,8 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'R':
             strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
             break;
-        case 'A':
-            strnz__cpy(init->cmd_all, optarg, MAXLEN - 1);
+        case 'S':
+            strnz__cpy(init->provider_cmd, optarg, MAXLEN - 1);
             break;
         case 'T':
             strnz__cpy(init->title, optarg, MAXLEN - 1);
@@ -432,6 +435,10 @@ int parse_config(Init *init) {
             }
             if (!strcmp(key, "blue_gamma")) {
                 init->blue_gamma = str_to_double(value);
+                continue;
+            }
+            if (!strcmp(key, "gray_gamma")) {
+                init->gray_gamma = str_to_double(value);
                 continue;
             }
             if (!strcmp(key, "f_at_end_clear")) {
@@ -713,6 +720,7 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", init->red_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", init->green_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", init->blue_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", init->gray_gamma);
     (void)fprintf(minitrc_fp, "%s=%s\n", "brackets", init->brackets);
     (void)fprintf(minitrc_fp, "%s=%s\n", "cd_mapp_home",
                   init->cd_mapp_home ? "true" : "false");
@@ -876,8 +884,9 @@ void dump_config(Init *init, char *msg) {
     opt_prt_int("-F:", "--fg_color", init->fg_color);
     opt_prt_int("-O:", "--bo_color", init->bo_color);
     opt_prt_double("-r:", "  red_gamma", init->red_gamma);
-    opt_prt_double("-g:", "  green_gamma", init->blue_gamma);
-    opt_prt_double("-b:", "  blue_gamma", init->green_gamma);
+    opt_prt_double("-g:", "  green_gamma", init->green_gamma);
+    opt_prt_double("-b:", "  blue_gamma", init->blue_gamma);
+    opt_prt_double("-b:", "  gray_gamma", init->gray_gamma);
     opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
     opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
     opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);

@@ -294,7 +294,6 @@ extern int clr_cnt;
 extern int clr_pair_idx;
 extern int clr_pair_cnt;
 extern void apply_gamma(RGB *);
-extern void color_correction(RGB *);
 extern char const colors_text[][10];
 
 typedef struct {
@@ -798,6 +797,7 @@ typedef struct {
     double red_gamma;
     double green_gamma;
     double blue_gamma;
+    double gray_gamma;
     char black[COLOR_LEN];
     char red[COLOR_LEN];
     char green[COLOR_LEN];
