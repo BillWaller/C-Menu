@@ -50,7 +50,6 @@ void unset_fkey(int);
 void def_clr_pairs();
 RGB hex_clr_str_to_rgb(char *);
 void init_hex_clr(int, char *);
-void color_correction(RGB *);
 int chyron_mk(key_cmd_tbl *, char *);
 int get_chyron_key(key_cmd_tbl *, int);
 RGB xterm256_idx_to_rgb(int);
@@ -353,6 +352,7 @@ void open_curses(Init *init) {
     RED_GAMMA = init->red_gamma;
     GREEN_GAMMA = init->green_gamma;
     BLUE_GAMMA = init->blue_gamma;
+    GRAY_GAMMA = init->gray_gamma;
     cp_norm = get_clr_pair(init->fg_color, init->bg_color);
     cp_reverse = get_clr_pair(init->bg_color, init->fg_color);
     cp_box = get_clr_pair(init->bo_color, init->bg_color);
@@ -416,6 +416,7 @@ int rgb_to_curses_clr(RGB rgb) {
     int i;
     int r, g, b;
 
+    apply_gamma(&rgb);
     rgb.r = (rgb.r * 1000) / 255;
     rgb.g = (rgb.g * 1000) / 255;
     rgb.b = (rgb.b * 1000) / 255;
@@ -493,19 +494,18 @@ RGB xterm256_idx_to_rgb(int code) {
 void apply_gamma(RGB *rgb) {
     if (rgb->r == rgb->g && rgb->r == rgb->b) {
         if (GRAY_GAMMA > 0.0f && GRAY_GAMMA != 1.0f) {
-            rgb->r =
-                (int)(pow((rgb->r / 1000.0f), 1.0f / GRAY_GAMMA) * 1000.0f);
+            rgb->r = (int)(pow((rgb->r / 255.0f), 1.0f / GRAY_GAMMA) * 255.0f);
             rgb->g = rgb->r;
             rgb->b = rgb->r;
         }
         return;
     }
     if (rgb->r != 0 && RED_GAMMA > 0.0f && RED_GAMMA != 1.0f)
-        rgb->r = (int)(pow((rgb->r / 1000.0f), 1.0f / RED_GAMMA) * 1000.0f);
+        rgb->r = (int)(pow((rgb->r / 255.0f), 1.0f / RED_GAMMA) * 255.0f);
     if (rgb->g != 0 && GREEN_GAMMA > 0.0f && GREEN_GAMMA != 1.0f)
-        rgb->g = (int)(pow((rgb->g / 1000.0f), 1.0f / GREEN_GAMMA) * 1000.0f);
+        rgb->g = (int)(pow((rgb->g / 255.0f), 1.0f / GREEN_GAMMA) * 255.0f);
     if (rgb->b != 0 && BLUE_GAMMA > 0.0f && BLUE_GAMMA != 1.0f)
-        rgb->b = (int)(pow((rgb->b / 1000.0f), 1.0f / BLUE_GAMMA) * 1000.0f);
+        rgb->b = (int)(pow((rgb->b / 255.0f), 1.0f / BLUE_GAMMA) * 255.0f);
 }
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ INIT_CLR_PALETTE                                              │
