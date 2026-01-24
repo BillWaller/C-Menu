@@ -67,7 +67,7 @@ case ":${PATH}:" in
     *:"$1":*) ;;
     *)
         PATH="$1:$PATH"
-;;
+        ;;
 esac
 }
 PATH=/usr/bin:/bin:/usr/sbin:/sbin
@@ -329,7 +329,7 @@ mapp_user=~/menuapp/user
 
 ## Terminal Configurations
 
-Please adjust these terminal configuration for your system. In particular,
+Please adjust these terminal configurations for your system. In particular,
 you should pay attention to the screen dimensions, which I have set to 95
 columns and up to 80 lines. Make sure you have the specified fonts installed
 on your system, or change the font settings to match fonts you do have.
