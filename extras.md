@@ -635,17 +635,26 @@ and configures a colorful prompt with red for root and green for normal users.
   duplicate entries. Use it to prepend ~/menuapp/bin or other directories to PATH.
 
 ```bash
-prepend_path() {
-case ":$PATH:" in
+pp() {
+    case ":${PATH}:" in
     *:"$1":*) ;;
-    *) PATH="$1:$PATH" ;;
-esac
+    *)
+        PATH="$1:$PATH"
+        ;;
+    esac
 }
-
-[ -d "$HOME/.cargo/bin" ] && prepend_path "$HOME/.cargo/bin"
-[ -d "$HOME/.local/bin" ] && prepend_path "$HOME/.local/bin"
-[ -d "$HOME/go/bin" ] && prepend_path "$HOME/go/bin"
-[ -d "$HOME/menuapp/bin" ] && prepend_path "$HOME/menuapp/bin"
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+for P in /usr/local/sbin \
+    /usr/local/bin \
+    /usr/lib64/qt6/bin \
+    /usr/lib/qt6/bin \
+    "$HOME"/.local/bin \
+    "$HOME"/.cargo/bin \
+    /usr/local/bin/zig-0.15.2 \
+    "$HOME"/menuapp/bin; do
+    [ -d "$P" ] && pp "$P"
+done
+export PATH
 
 ```
 
