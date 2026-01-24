@@ -16,21 +16,6 @@
 #include <time.h>
 #include <unistd.h>
 
-/// Modes for Underline and Bold Parsing State Machine
-/// Deprecated in favor of ANSI parsing
-// #define MAXCHAR (uchar)0xfa
-// #define UL_START (uchar)0xfb
-// #define UL_END (uchar)0xfc
-// #define BO_START (uchar)0xfd
-// #define BO_END (uchar)0xfe
-// #define MO_NORMAL 0                //
-// #define MO_UL_EXPECT_CHR 1         //            next char
-// #define MO_UL_GOT_CHR_EXPECT_BS 2  //    char    ^H
-// #define MO_UL_GOT_BS_EXPECT_CHR 3  //    ^H      next char
-// #define MO_BO_EXPECT_CHR 4         //            next char
-// #define MO_BO_GOT_CHR_EXPECT_BS 5  //    char    ^H
-// #define MO_BO_GOT_BS_EXPECT_SAME 6 //    ^H      same char
-//
 #define Ctrl(c) ((c) & 0x1f)
 
 /// Macros to get next and previous character skipping over carriage returns
@@ -2036,9 +2021,9 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     // ╰────────────────────────────────────────────────────────────╯
     /// Update Color Pair if Needed
     /// fg and bg are NCurses color numbers
-    if (f_fg == true)
+    if (f_fg != true)
         extended_color_content(fg, &rgb.r, &rgb.g, &rgb.b);
-    if (f_bg == true)
+    if (f_bg != true)
         extended_color_content(bg, &rgb.r, &rgb.g, &rgb.b);
     if (f_fg == true || f_bg == true) {
         clr_pair_idx = get_clr_pair(fg, bg);

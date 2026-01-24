@@ -79,7 +79,6 @@ You can save this script to a file, or use the one that comes with
 C-Menu, (~/menuapp/msrc/man.sed) and then use it like this:
 
 ```bash
-man bash
 man -Tutf8 bash | sed -f ~/menuapp/msrc/man.sed | view
 ```
 
@@ -185,7 +184,6 @@ You will find an example config.json in C-Menu's tree-sitter directory.
 Type the following command:
 
 ```bash
-
 tree-sitter highlight source-file | view
 ```
 
