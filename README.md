@@ -8,6 +8,8 @@
 
 [New: C-Menu API](API.html)
 
+[New: Configuration Snippets](snippets.html)
+
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 
 ![C-Menu](screenshots/minitrc.png)
