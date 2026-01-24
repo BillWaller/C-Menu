@@ -295,6 +295,7 @@ bo_color=red
 red_gamma=2.20
 green_gamma=2.20
 blue_gamma=2.20
+gray_gamma=2.20
 brackets=
 cd_mapp_home=false
 f_at_end_clear=true

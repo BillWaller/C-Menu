@@ -1,14 +1,12 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
-[New: C-Menu FAQ](FAQ.md)
+[New: C-Menu FAQ](FAQ.html)
 
-[New: C-Menu User Guide](C-Menu-UG.md)
+[New: C-Menu User Guide](C-Menu-UG.html)
 
-[New: Augmenting C-Menu](extras.md)
+[New: Augmenting C-Menu](extras.html)
 
-[New: C-Menu API](API.md)
-
-[New: C-Menu Configuration Snippets](snippets.md)
+[New: C-Menu API](API.html)
 
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 
@@ -321,7 +319,14 @@ correction value for each of the three color channels, red, green, and
 blue. It's a minor thing, really, but we programmers aren't
 "automitons" A pleasing visual appearance makes work more fun.
 
-![Gamma Correction](screenshots/gamma.png)
+In the right-hand image below, gamma has been increased for red, green,
+and blue.
+
+![RGB Gamma Correction](screenshots/gamma1.png)
+
+In the image below, gray gamma is used to make comments more visible.
+
+![Gray Gamma Correction](screenshots/gamma2.png)
 
 [Bezold-Brücke hue shift](https://pubmed.ncbi.nlm.nih.gov/6534013/)
 [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/)
