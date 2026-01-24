@@ -15,10 +15,10 @@ it with any of the contents in the following snippets.
 Use at your own risk.
 
 ```bash
-## #!/bin/bash
-## .bashrc
-## shellcheck disable=SC2155
-## shellcheck source=/dev/null
+#!/bin/bash
+.bashrc
+shellcheck disable=SC2155
+shellcheck source=/dev/null
 ```
 
 The lines beginning with shellcheck are to prevent false positives from
