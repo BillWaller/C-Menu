@@ -605,7 +605,6 @@ that case, you can probably use su to start an interactive root
 shell, and manually install rsh setuid. From the cmenu src directory:
 
 ```bash
-
 $ su
 Password:
 
@@ -636,7 +635,6 @@ and configures a colorful prompt with red for root and green for normal users.
   duplicate entries. Use it to prepend ~/menuapp/bin or other directories to PATH.
 
 ```bash
-
 prepend_path() {
 case ":$PATH:" in
     *:"$1":*) ;;
@@ -654,7 +652,6 @@ esac
 - from a shell prompt, type xx to start a root shell
 
 ```bash
-
 which rsh >/dev/null 2>&1 && xx() { rsh; }
 
 ```
@@ -662,7 +659,6 @@ which rsh >/dev/null 2>&1 && xx() { rsh; }
 - from a shell prompt, type mm to start menuapp
 
 ```bash
-
 which menu >/dev/null 2>&1 && mm() { menu; }
 
 ```
@@ -679,7 +675,6 @@ which xsh >/dev/null 2>&1 && export SHELL=xsh
 - set a shorter delay for curses escape sequences
 
 ```bash
-
 export ESCDELAY=50
 
 ```
@@ -729,11 +724,27 @@ character cells. For example, a window-width of 95 means 95 character cells
 wide. The actual pixel width of the window will depend on the font size and the
 font used.
 
-You can find the following configurations in C-Menu/configs.
+You can find the following configurations in C-Menu/configs, or:
+
+[Snippets](snippets.md)
 
 ##### Ghostty Configuration
 
 ![Ghostty Configuration](screenshots/ghostty.config.png)
+
+Note: You can see that Colorize.awk failed to highlight the six-digit
+hex color codes on the last five lines above. That's because
+Colorize.awk was designed to highlight six hex digits immediately following
+the '#' symbol. In this case, "bat", for some reason inserted ansi codes
+after the '#' symbol, and before the six hex digits, so Colorize.awk
+didn't recognize them as hex color codes. This is an edge case that I
+haven't yet addressed in Colorize.awk, but there is a solution.
+
+I opened ghostty.config with neovim and it highlighted the six-digit hex
+color code correctly. It's always good to have multiple tools in your
+toolbox. 😀
+
+![Ghostty Configuration in Neovim](screenshots/ghostty.config2.png)
 
 ##### Kitty Configuration
 
