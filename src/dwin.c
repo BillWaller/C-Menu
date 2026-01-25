@@ -618,19 +618,19 @@ void destroy_curses() {
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ WIN_NEW                                                       │
 /// ╰───────────────────────────────────────────────────────────────╯
-/// int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
+/// int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 /// int flag) Create a new window with optional box and title
 /// @param wlines Number of lines
 /// @param wcols Number of columns
 /// @param wbegy Beginning Y position
 /// @param wbegx Beginning X position
-/// @param WTitle Window title
+/// @param wtitle Window title
 /// @param flag Window flags
 /// @flags F_VIEW - View uses PAD, so only create box
 /// return 0 if successful, 1 if error
 /// note If wbegy or wbegx are non-zero, or if wlines or wcols are less
 ///
-int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
+int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             int flag) {
     int maxx;
     if (win_ptr < MAXWIN) {
@@ -648,16 +648,16 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *WTitle,
             }
             wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
             cbox(win_box[win_ptr]);
-            if (WTitle != NULL && *WTitle != '\0') {
+            if (wtitle != NULL && *wtitle != '\0') {
                 wmove(win_box[win_ptr], 0, 1);
                 waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
                 wmove(win_box[win_ptr], 0, 2);
                 waddnstr(win_box[win_ptr], (const char *)&bw_sp, 1);
                 mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
                 mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
-                mvwaddstr(win_box[win_ptr], 0, 3, WTitle);
+                mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
                 maxx = getmaxx(win_box[win_ptr]);
-                int s = strlen(WTitle);
+                int s = strlen(wtitle);
                 if ((s + 3) < maxx)
                     mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
                 if ((s + 4) < maxx)
@@ -864,7 +864,7 @@ int error_message(char **argv) {
                   " Type \"X\" to exit or any other key to continue ");
         wattroff(error_win, A_REVERSE);
         wrefresh(error_win);
-        cmd_key = wgetch(error_win);
+        cmd_key = xwgetch(error_win);
         c = (char)cmd_key;
         to_uppercase(c);
         if (c == 'X') {
@@ -950,7 +950,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     wattroff(error_win, A_REVERSE);
     wmove(error_win, 4, cmd_l + 1);
     wrefresh(error_win);
-    cmd_key = wgetch(error_win);
+    cmd_key = xwgetch(error_win);
     switch (cmd_key) {
     case KEY_F(1):
         break;
@@ -1001,7 +1001,7 @@ int Perror(char *emsg_str) {
     wattroff(error_win, A_REVERSE);
     wmove(error_win, 1, 27);
     wrefresh(error_win);
-    cmd_key = wgetch(error_win);
+    cmd_key = xwgetch(error_win);
     win_del();
     return (cmd_key);
 }
@@ -1090,7 +1090,7 @@ void display_argv_error_msg(char *emsg, char **argv) {
     fprintf(stderr, "%s\r\n", emsg);
     fprintf(stderr, "%s", "Press any key to continue");
     wrefresh(stdscr);
-    wgetch(stdscr);
+    xwgetch(stdscr);
 }
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ NF_ERROR                                                      │
@@ -1137,4 +1137,26 @@ void abend(int ec, char *s) {
     restore_shell_tioctl();
     fprintf(stderr, "\n");
     exit(EXIT_FAILURE);
+}
+
+int xwgetch(WINDOW *win) {
+    int c;
+    while (1) {
+        c = wgetch(win);
+        if (c != ERR)
+            break;
+        else if (errno == EINTR) {
+            c = handle_signal(sig_received);
+            return -1;
+        } else
+            errno = 0;
+    }
+    return c;
+}
+
+void end_pgm(int exit_code) {
+    destroy_curses();
+    restore_shell_tioctl();
+    sig_dfl_mode();
+    exit(exit_code);
 }

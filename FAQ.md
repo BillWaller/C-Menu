@@ -15,7 +15,7 @@
 11. [C-Menu lf - Where Are My Header Files?](#c-menu-lf---where-are-my-header-files)
 12. [C-Menu View - View In A Box Window](#c-menu-view---view-in-a-box-window)
 
-## Why View displays question marks
+## Why View Displays Question Marks
 
 Q: When I try to view a document that contains line-drawing characters,
 C-Menu View displays question marks instead of the line-drawing
@@ -36,8 +36,8 @@ The images below show, before, on the left, and after, on the right, using iconv
 ![Convert CP437 to Unicode](screenshots/cp437_to_utf8.png)
 
 As an interesting note, this also works for "less", which displays the
-decimal representation of of the CP437 characters. This could be handy
-if you have been coding since the 1980's and recognize them as CP437
+decimal representation of the CP437 characters. This could be handy
+if you have been coding since the 1980s and recognize them as CP437
 line-drawing characters.
 
 ![CP437 less](screenshots/cp437-line-draw-less.png)
@@ -91,10 +91,10 @@ C-Menu View.
 
 ## C-Menu View - How to Colorize HTML Color Codes
 
-Q: I want to colorize six digit html style hexadecimal colors, such as
+Q: I want to colorize six digit HTML style hexadecimal colors, such as
 \#RRGGBB, in C-Menu View. How can I do this?
 
-A: You can use the following awk script to colorize six digit html
+A: You can use the following awk script to colorize six digit HTML
 style hexadecimal colors in C-Menu View:
 
 ```bash
@@ -138,7 +138,7 @@ the API.
 
 ---
 
-## C-Menu View - How to Use Tree-sitter With View
+## C-Menu View - How to Use Tree-Sitter with View
 
 Q: How do I use the tree-sitter highlighter with C-Menu View?
 
@@ -146,7 +146,7 @@ A: Documentation on this feature is sparse at the moment.
 
 Here are the basic steps to get started with tree-sitter and C-Menu View.
 
-## Install tree-sitter-cli
+## Install Tree-Sitter-CLI
 
 ```bash
 cargo install tree-sitter-cli
@@ -166,7 +166,7 @@ tree-sitter build
 tree-sitter generate
 ```
 
-### download from github
+### Download From Github
 
 [tree-sitter-c](https://github.com/tree-sitter/tree-sitter-c)
 
@@ -246,12 +246,12 @@ file when you exit the form.
 
 ![Installment Loan Calculator](screenshots/iloan.png)
 
-After you enter the three values, you will see an option "F5
-Calculate". Press F5 to calculate the missing value. When the
+After you enter the three values, you will see an option "F(5)
+Calculate". Press F(5) to calculate the missing value. When the
 calculation is complete, the missing value will be displayed in the
-form. You will then see an option, "F8 Edit", which will allow you to
+form. You will then see an option, "F(8) Edit", which will allow you to
 make changes and try again. If you don't wish to make changes, press
-"F10 Accept" to write all four values to "iloan.dat" and exit the form.
+"F(10) Accept" to write all four values to "iloan.dat" and exit the form.
 
 The next time you run the form, C-Menu Form will read the values from
 "iloan.dat" and display them in the form.
@@ -326,7 +326,7 @@ The way it works is, C-Menu creates dual ended pipes, each with a read
 and write end before forking and spawning the executables. In the
 example (Installment Loan Calculations) above, C-Menu Form substitutes
 a write pipe for the standard output of the child process, and opens
-the read end of the pipe for it's input. The called executable writes
+the read end of the pipe for its input. The called executable writes
 data to the pipe and C-Menu form reads the other end.
 
 We can just as easily use named pipes or network sockets, although it
@@ -420,5 +420,5 @@ tree-sitter highlight view_engine.c | view -L 40 -C 80 -T "Highlighted view_engi
 ```
 
 The "-S" option will tell view to execute the command and display the
-output. As an added bonus, if you don't provide a title with "-T, view
+output. As an added bonus, if you don't provide a title with "-T", view
 will use the "-S" command as the title:

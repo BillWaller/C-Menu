@@ -159,7 +159,7 @@ int form_end_fields(Init *init) {
         form_display_chyron(form);
         event.y = event.x = -1;
         tcflush(2, TCIFLUSH);
-        c = wgetch(form->win);
+        c = xwgetch(form->win);
         switch (c) {
         case KEY_F(1):
             return P_HELP;
@@ -227,7 +227,7 @@ int form_calculate(Init *init) {
         form_display_chyron(form);
         event.y = event.x = -1;
         tcflush(2, TCIFLUSH);
-        c = wgetch(form->win);
+        c = xwgetch(form->win);
         switch (c) {
         case KEY_F(1):
             return P_HELP;
