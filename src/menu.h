@@ -13,6 +13,7 @@
 //  │ definitions                                                   │
 //  ╰───────────────────────────────────────────────────────────────╯
 #include <ncursesw/ncurses.h>
+#include <signal.h>
 #include <stddef.h>
 #define C_MENU_VERSION "C-Menu-0.2.6"
 // #define DEBUG TRUE
@@ -152,7 +153,7 @@ extern bool f_have_shell_tioctl;
 extern bool f_have_curses_tioctl;
 extern bool f_curses_open;
 extern bool f_restore_screen;
-
+extern int xwgetch(WINDOW *);
 extern bool capture_shell_tioctl();
 extern bool restore_shell_tioctl();
 extern bool capture_curses_tioctl();
@@ -163,6 +164,8 @@ extern bool set_sane_tioctl(struct termios *);
 /// │ Signal Processing                                             │
 /// ╰───────────────────────────────────────────────────────────────╯
 extern void signal_handler(int);
+extern int handle_signal(sig_atomic_t);
+extern volatile sig_atomic_t sig_received;
 extern void sig_prog_mode();
 extern void sig_dfl_mode();
 /// ╭───────────────────────────────────────────────────────────────╮

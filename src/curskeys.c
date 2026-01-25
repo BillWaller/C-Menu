@@ -5,8 +5,10 @@
 /// Test Curses Keys
 
 #include "menu.h"
+#include <errno.h>
 #include <ncursesw/ncurses.h>
 #include <unistd.h>
+
 #define KSTRLEN 100
 #define MAXLEN 256
 int display_curses_keys();
@@ -46,10 +48,12 @@ int display_curses_keys() {
     wattroff(win, A_REVERSE);
     wnoutrefresh(box);
     mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
+    timeout(1000);
     c = '\0';
     while (!c) {
         kstr[0] = '\0';
-        c = mvwgetch(win, 1, 39);
+        wmove(win, 1, 39);
+        c = xwgetch(win);
         s = keybound(c, 0);
         switch (c) {
         case '\0':

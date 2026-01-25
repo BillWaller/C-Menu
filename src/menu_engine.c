@@ -38,6 +38,7 @@ unsigned int menu_engine(Init *init) {
         }
         menu->win = win_win[win_ptr];
         menu->box = win_box[win_ptr];
+        immedok(menu->win, TRUE);
         while (action == MA_DISPLAY_MENU) {
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
@@ -92,7 +93,8 @@ unsigned int menu_cmd_processor(Init *init) {
     wattroff(menu->win, A_REVERSE);
     event.y = event.x = -1;
     // tcflush(2, TCIFLUSH);
-    in_key = mvwgetch(menu->win, menu->line_idx, 1);
+    wmove(menu->win, menu->line_idx, 1);
+    in_key = xwgetch(menu->win);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);
     /// wclrtoeol(menu->win);

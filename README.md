@@ -79,12 +79,15 @@ Just add hot water, stir, and Bob's your uncle, you have soup! 😀
 
 ![C-Menu Pick](screenshots/Pick.png)
 
-This program provides a list of objects from arguments, piped input, or
-a text file and lets the user select those to be written to a file,
-piped to standard output, or provided as arguments to an executable
-files specified in the description file. Of course, you can select
-objects and commands with keyboard or mouse. C-Menu Pick does not
-currently support a Brain-Computer Interface (BCI), at least, not yet.
+C-Menu Pick provides a list of objects from arguments, piped input,
+or a text file. The user selects an object by using cursor movement keys,
+up, down, left, right, page-up, or page-down and pressing the space bar.
+Alternatively, the user can use the mouse and click on the object.
+When finished selecting objects, the user presses the Enter or F(10) key.
+If the "number_of_selections" variable is set to 1 (one), Pick will
+assume the user is finished and perform the specified action.
+Output can be piped to standard output, or provided as arguments to an
+executable file specified in the description file.
 
 Here's a simple way to use C-Menu Pick:
 
@@ -223,7 +226,7 @@ from within MENU, FORM, or PICK to provide contextual help or stand
 One especially useful feature of C-Menu View is its incredible speed
 with large text files, like system logs. C-Menu View can open and
 display multi-gigabyte text files almost instantaneously. Seek from
-beginning to end of a 1Gb file takes a few milliseconds.
+beginning to end of a 1 gigabyte file takes a few milliseconds.
 
 ### C-Menu View and Color Manual Pages
 
@@ -239,7 +242,7 @@ export PAGER="view"
 ```
 
 You can also filter manual pages through ~/menuapp/msrc/man.sed to
-colorize underlined,emboldened, and italicized text. This sed script is
+colorize underlined emboldened, and italicized text. This sed script is
 included with C-Menu. To use it, you can run the following command in
 your terminal:
 
@@ -261,19 +264,21 @@ man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
   buffering scheme. There is a better way.
 - C-Menu View accesses files as arrays, using the Kernel's
   sophisticated demand paged virtual memory.
-- Lazy loading means that that C-Menu View doesn't waste time seeking,
+- Lazy loading means that C-Menu View doesn't waste time seeking,
   reading, and populating buffers that will never be used.
-- Zero-Copy I/O - Conventional programs copy file buffers into heap
+- Zero-Copy I-O - Conventional programs copy file buffers into heap
   address space. C-Menu View bypasses that step and reads directly from
   the Kernel's virtual memory.
 - Simplicity - C-Menu View has no reads, no seeks, no complicated
   buffer management schemes, not for view. The following snippet includes
 
-"all" of View's file I/O on lines 22 and 12.
+"all" of View's file I-O on lines 22 and 12.
 
 ![C-Menu View File I/O](screenshots/file-io.png)
 In technical parlance, I'll explain precisely how it works. See if
-you can follow me. 😁 C-Menu View's File I/O subsystem does three things:
+you can follow me. 😁
+
+C-Menu View's File I-O subsystem does three things:
 
 - Get the next byte,
 - Get the previous byte, or
@@ -282,7 +287,7 @@ you can follow me. 😁 C-Menu View's File I/O subsystem does three things:
 C-Menu View is blazingly fast because it leverages the Kernel's demand
 paged virtual memory system. When a file is opened, C-Menu View maps the
 file into the process's virtual address space using the mmap system
-call. Zero-copy I/O is achieved by mapping the file directly from
+call. Zero-copy I-O is achieved by mapping the file directly from
 kernel address space.
 
 When C-Menu View needs to access a byte at a specific position, it
@@ -297,14 +302,14 @@ faster access times and reduced overhead.
 ### C-Menu View - Other Features
 
 Horizontal scrolling for long lines. C-Menu View writes output to a
-virtual screen, an Ncurses pad, to accommodate lines longer than the
+virtual screen, a Ncurses pad, to accommodate lines longer than the
 physical screen.
 
 C-Menu View has full support for Unicode, translating ASCII text and
-multi-byte sequences to wide characters (wchar_t), and wide characters
+multi-byte-sequences to wide characters (wchar_t), and wide characters
 and ANSI SGR sequences to complex characters (cchar_t). The complex
-characters combine displayable characters plus attributes such as
-bold, italic, underline, reverse and foreground and background colors.
+characters combine displayable characters plus attributes, such as
+bold, italic, underline, reverse, and foreground and background colors.
 NCurses can display more than 16 million colors.
 
 C-Menu View supports mouse wheel vertical scrolling.
@@ -315,11 +320,11 @@ When using utilities such as "tree-sitter highlighter", "pygmentize",
 or "bat" to highlight files, the text is sometimes almost unreadable.
 On the left-hand side of the following screenshot, "less" does a great
 job of rendering the output of pygmentize, but C-Menu with gamma
-correction can do better. It's all about perceptual luminance. Either
+correction can do better. It's all about perceptual luminosity. Either
 from the command line or the minitrc file, the user can specify a gamma
 correction value for each of the three color channels, red, green, and
 blue. It's a minor thing, really, but we programmers aren't
-"automitons" A pleasing visual appearance makes work more fun.
+"automatons" A pleasing visual appearance makes work funner.
 
 In the right-hand image below, gamma has been increased for red, green,
 and blue.
@@ -333,7 +338,7 @@ In the image below, gray gamma is used to make comments more visible.
 [Bezold-Brücke hue shift](https://pubmed.ncbi.nlm.nih.gov/6534013/)
 [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/)
 
-#### VIEW \~/menuapp/help/view.help
+#### VIEW \~/.menuapp/help/view.help
 
 ![C-Menu View Help File](screenshots/view-help.png)
 
@@ -360,7 +365,7 @@ that require elevated privileges, but its functionality extends
 beyond that.
 
 You can execute commands in either user or root mode, making it
-a versatile tool for developing aplication front-ends. RSH ensures
+a versatile tool for developing application front-ends. RSH ensures
 that your scripts and executables run in a controlled environment,
 reducing the chances of unexpected behavior due to differing shell
 environments. RSH forks and waits for its spawn to complete before
@@ -381,7 +386,7 @@ root, but sometimes a user want's to avoid precious seconds it takes to
 enter passwords for su. With RSH, it takes three keystrokes to enter
 root mode and two keystrokes to get out.
 
-### Maintaining Security With RSH
+### Maintaining Security with RSH
 
 Here's an example of the proper way to use RSH.
 
@@ -461,5 +466,5 @@ has been added.
 ## C-Menu Installation
 
 To install C-Menu, simply download the source code from the repository
-and follow the installation instructions provided in the INSTALL.md
-file.
+and follow the installation instructions provided in the
+[C-Menu User's Guide](C-Menu-UG.md).
