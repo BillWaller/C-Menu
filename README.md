@@ -1,14 +1,14 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
-[New: C-Menu FAQ](FAQ.html)
+[New: C-Menu FAQ](FAQ.md)
 
-[New: C-Menu User Guide](C-Menu-UG.html)
+[New: C-Menu User Guide](C-Menu-UG.md)
 
-[New: Augmenting C-Menu](extras.html)
+[New: Augmenting C-Menu](extras.md)
 
-[New: C-Menu API](API.html)
+[New: C-Menu API](API.md)
 
-[New: Configuration Snippets](snippets.html)
+[New: Configuration Snippets](snippets.md)
 
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 
