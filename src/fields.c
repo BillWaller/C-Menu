@@ -97,7 +97,8 @@ int form_accept_field(Form *form) {
             mvwaddstr(win, flin, fcol, accept_s);
             wmove(win, flin, x);
             tcflush(0, TCIFLUSH);
-            in_key = mvwgetch(win, flin, x);
+            wmove(win, flin, x);
+            in_key = xwgetch(win);
         }
         switch (in_key) {
         /// ╭───────────────────────────────────────────────────────╮

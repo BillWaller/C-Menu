@@ -85,11 +85,11 @@ export PATH
 ```
 
 @WARNING: /usr/bin/view is generally a link to vim, which will
-obscure C-Menu View if /usr/bin preceedes $HOME/menuapp/bin
+obscure C-Menu View if /usr/bin precedes $HOME/menuapp/bin
 in your PATH environment variable.
 
 If you use the prepend path function above and have $HOME/menuapp/bin
-early in your PATH, you should be fine. In the abovew example, it is
+early in your PATH, you should be fine. In the above example, it is
 first in the PATH because it was prepended last.
 
 If you have issues starting C-Menu View by typing "view" at
@@ -107,7 +107,7 @@ export CMENU_HOME="$HOME"/menuapp
 Having a shell with an obscure name can be beneficial. Using xsh, or some other
 alias reduces visibility and vulnerability to some automated attacks and
 even well-meaning, but misguided distributors who, in an unknown set of
-circumstancs, might turn on shell restrictions for common shells like bash.
+circumstances, might turn on shell restrictions for common shells like bash.
 
 ```bash
 export SHELL=bash

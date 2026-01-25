@@ -718,7 +718,7 @@ int get_cmd_char(View *view, off_t *n) {
     mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, NULL);
     tcflush(2, TCIFLUSH);
     do {
-        c = wgetch(view->win);
+        c = xwgetch(view->win);
         if (c == KEY_MOUSE) {
             if (getmouse(&event) != OK)
                 return (MA_ENTER_OPTION);
@@ -786,7 +786,7 @@ int get_cmd_arg(View *view, char *prompt) {
         if (rc == ERR) {
             Perror("Error refreshing screen");
         }
-        c = wgetch(view->win);
+        c = xwgetch(view->win);
         switch (c) {
         /// Basic Editing Keys for Command Line
         case KEY_LEFT:
@@ -1798,10 +1798,8 @@ int fmt_line(View *view) {
             // Use mbtowc to get the wide character and its length in bytes
             // from the multibyte string
             len = mbtowc(&wc, s, MB_CUR_MAX);
-            if (len == -1 || len == 0) {
-                wc = (wchar_t)(unsigned char)('?');
-                len = 1;
-            }
+            if (len == -1 || len == 0)
+                break;
             // Convert wide character + attributes to complex character
             if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
                 if (len > 0 && (j + len) < MAX_COLS - 1) {
@@ -2061,7 +2059,7 @@ void remove_file(View *view) {
         wmove(view->win, view->cmd_line, 0);
         waddstr(view->win, "Remove File (Y or N)->");
         wclrtoeol(view->win);
-        c = (char)wgetch(view->win);
+        c = (char)xwgetch(view->win);
         waddch(view->win, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);

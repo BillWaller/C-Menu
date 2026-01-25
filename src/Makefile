@@ -46,7 +46,7 @@ REL_CFLAGS = -O1
 #  Use -O1 for now.
 #
 # for debugging with GDB, use
-DBG_CFLAGS = -O0 -g3
+DBG_CFLAGS = -g3
 #
 # Required Libraries:
 #

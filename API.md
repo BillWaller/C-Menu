@@ -23,7 +23,7 @@ terminal-based user interfaces. Ensure that you have NCursesw installed and
 properly configured in your development environment. Generally, the best
 way to install NCursesw is through your system's package manager. Building
 NCursesw from source can be complex and is not recommended for most users.
-If you need to build from source, refer to the official NCursesw documentation
+If you build NCurses from source, refer to the official NCursesw documentation
 for detailed instructions and be mindful that some shells and editors
 rely on specific features of NCursesw, tinfo, and readline libraries that
 also rely on each other. A version mismatch can easily break your shell or
@@ -114,6 +114,17 @@ structure holds configuration and state information for the Pick component.
 The init->pick structure is commonly aliased as pick throughout the C-Menu
 suite.
 
+```c
+Pick *destroy_pick(Init *init)()
+```
+
+Frees any resources associated with the Pick structure before destroying it.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure containing the Pick.
+- Returns:
+  - `Pick *`: NULL
+
 ---
 
 ```c
@@ -153,7 +164,7 @@ Creates and initializes a new View Structure, init->view. The init->view
 structure holds configuration and state information for the View component.
 
 - Parameters:
-  - `Init *init`: A pointer to the Init structure.
+  - `Init *init`: Pointer to the Init structure.
   - `int argc`: The number of command-line arguments.
   - `char **argv`: The array of command-line argument strings.
   - `int begy`: The y-coordinate for the top-left corner of the View window.
@@ -177,8 +188,103 @@ Frees any resources associated with the View structure before destroying it.
 ---
 
 ```c
-
+bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir, int mode)
 ```
+
+Verifies a file specification argument.
+
+- Parameters:
+  - `char *spec`: The file specification to be verified.
+  - `char *org_spec`: The original file specification.
+  - `char *dir`: The directory to check for the file.
+  - `char *alt_dir`: An alternative directory to check for the file.
+  - `int mode`: The mode of verification (e.g., existence, readability, writability).
+- Returns:
+  - `bool`: True if the file specification is valid, false otherwise.
+
+```c
+// modes:
+    // R_OK - Read
+    // W_OK - Write
+    // X_OK - Execute
+    // F_OK - Existence
+// extended modes:
+    // S_WCOK - write or create
+    // S_QUIET - Don't handle error, but return false
+```
+
+See access(2) for details.
+
+A file spec argument may contain additional data, including a quoted
+parameter string, but only the characters up to the initial whitespace
+are included as the search term for this function. The "spec"
+returned will include a fully qualified file specification in place
+of the original term if possible and the original string of characters
+to the right of the initial whitespace.
+
+File specifications beginning with a "/", "~", or "." are considered to be
+absolute, so, no further searching is done.
+
+```c
+org_spec = mycommand "file1 file2 file3"
+spec = /usr/local/bin/mycommand "file1 file2 file3"
+```
+
+S_WCOK: is specified, the function determines if the process has
+sufficient permissions to create or write to the specified file.
+If the file does not exist, the function checks if the process has
+write permissions in the directory where the file is to be created
+and then opens the file in write mode to verify that it can be created.
+
+- X_OK: If only a file-name is specified, the function searches for it using
+  the PATH environment variable.
+
+- if X_OK not specified: First searches for the file in the specified directory,
+  then the specified alternate directory, then the idiomatic menuapp
+  directories , (~/menuapp/msrc, ~/menuapp/bin, ~/menuapp/help, ~/menuappa/data,
+  etc.), and then the current directory.
+
+---
+
+```c
+bool init_menu_files(Init *init, int argc, char **argv)
+```
+
+Initializes Menu-related files based on command-line arguments.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure.
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+- Returns:
+  - `bool`: True if the menu files were successfully initialized, false otherwise.
+
+The function processes command-line arguments to locate and verify
+menu-related files such as configuration files, help files, and data files.
+
+See: C-Menu Files later in this chapter.
+
+---
+
+```c
+bool init_form_files(Init *init, int argc, char **argv)
+```
+
+Initializes Form-related files based on command-line arguments.
+
+- Parameters:
+  - `Init *init`: A pointer to the Init structure.
+  - `int argc`: The number of command-line arguments.
+  - `char **argv`: The array of command-line argument strings.
+- Returns:
+  - `bool`: True if the menu files were successfully initialized, false otherwise.
+
+The function processes command-line arguments to locate and verify
+menu-related files such as configuration files, help files, and data files.
+
+## See: C-Menu Files later in this chapter.
+
+---
 
 ```c
 size_t rtrim(char *str)

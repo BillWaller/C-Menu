@@ -307,7 +307,7 @@ int picker(Init *init) {
     while (1) {
         tcflush(tty_fd, TCIFLUSH);
         if (cmd_key == 0)
-            cmd_key = wgetch(pick->win);
+            cmd_key = xwgetch(pick->win);
         switch (cmd_key) {
             /// ╭───────────────────────────────────────────────────────────╮
             /// │ KEY_F(9), 'Q', 'q' - Cancel                               │

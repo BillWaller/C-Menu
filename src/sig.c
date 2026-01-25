@@ -13,8 +13,20 @@
 #include "menu.h"
 #include <signal.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 #include <termios.h>
 #include <unistd.h>
+
+volatile sig_atomic_t sig_received = 0;
+
+static void end_pgm(void) {
+    destroy_init(init);
+    win_del();
+    destroy_curses();
+    restore_shell_tioctl();
+    exit(EXIT_FAILURE);
+}
 
 void signal_handler(int);
 void sig_prog_mode();
@@ -26,7 +38,7 @@ void sig_dfl_mode() {
 
     sa.sa_handler = SIG_DFL;
     sigemptyset(&sa.sa_mask);
-    // sa.sa_flags = SA_RESTART;
+    sa.sa_flags = SA_RESTART;
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTERM, &sa, NULL);
     sigaction(SIGQUIT, &sa, NULL);
@@ -35,27 +47,49 @@ void sig_dfl_mode() {
 void sig_prog_mode() {
     struct sigaction sa;
 
+    memset(&sa, 0, sizeof(sa));
     sa.sa_handler = signal_handler;
     sigemptyset(&sa.sa_mask);
-    // sa.sa_flags = SA_RESTART;
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGTERM, &sa, NULL);
-    sigaction(SIGQUIT, &sa, NULL);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        abend(-1, "sigaction SIGINT failed");
+        exit(EXIT_FAILURE);
+    }
+    if (sigaction(SIGTERM, &sa, NULL) == -1) {
+        abend(-1, "sigaction SIGTERM failed");
+        exit(EXIT_FAILURE);
+    };
+    if (sigaction(SIGQUIT, &sa, NULL) == -1) {
+        abend(-1, "sigaction SIGQUIT failed");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void signal_handler(int sig_num) {
-    char c;
+    if (sig_num == SIGINT) {
+        sig_received = SIGINT;
+    } else if (sig_num == SIGTERM) {
+        sig_received = SIGTERM;
+    } else if (sig_num == SIGQUIT) {
+        sig_received = SIGQUIT;
+    }
+}
+
+int handle_signal(int sig_num) {
+    int c;
     char *msg;
     char tmp_str[MAXLEN];
     switch (sig_num) {
     case SIGINT:
         msg = "SIGINT - Interrupt from keyboard";
+        return KEY_F(9);
         break;
     case SIGTERM:
         msg = "SIGTERM - Termination signal";
         break;
     case SIGQUIT:
         msg = "SIGQUIT - Quit from keyboard";
+        return KEY_F(9);
         break;
     default:
         msg = "unknown signal";
@@ -79,6 +113,7 @@ void signal_handler(int sig_num) {
             to_uppercase(c);
             if (c == 'Y') {
                 msg = "\nExiting program now.\n";
+                end_pgm();
                 while (*msg)
                     write(2, msg++, 1);
                 tcsetattr(0, TCSAFLUSH, &shell_tioctl);
@@ -96,5 +131,5 @@ void signal_handler(int sig_num) {
         _exit(1);
     }
     sig_prog_mode();
-    return;
+    return c;
 }
