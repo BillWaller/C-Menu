@@ -420,6 +420,11 @@ vi config.json
 ]
 ```
 
+Below is an example file arrangement for Tree-Sitter parsers and configuration
+files. ~/.config/tree-sitter/parsers contains the installed Tree-Sitter parsers.
+
+![Tree-Sitter Parsers](screenshots/tree-sitter-parsers.png)
+
 You can also configure a custom color scheme in the config.json file if you like.
 Here's mine:
 

@@ -1,6 +1,19 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
-## bashrc for C-Menu
+# C-Menu Configuration Snippets
+
+## Table of Contents
+
+- [C-Menu bashrc Configuration](#c-menu-bashrc-configuration)
+- [C-Menu Configuration](#c-menu-configuration)
+- [Terminal Configurations](#terminal-configurations)
+  - [Ghostty](#ghostty)
+  - [Kitty](#kitty)
+  - [Alacritty](#alacritty)
+- [Tree-Sitter](#tree-sitter)
+  - [Tree-Sitter config.json](#tree-sitter-configjson)
+
+## C-Menu bashrc Configuration
 
 This sample bashrc almost certainly contains settings that are not
 appropriate for your system. It is provided as a reference only.
@@ -85,11 +98,11 @@ export PATH
 ```
 
 @WARNING: /usr/bin/view is generally a link to vim, which will
-obscure C-Menu View if /usr/bin precedes $HOME/menuapp/bin
+obscure C-Menu View if /usr/bin preceedes $HOME/menuapp/bin
 in your PATH environment variable.
 
 If you use the prepend path function above and have $HOME/menuapp/bin
-early in your PATH, you should be fine. In the above example, it is
+early in your PATH, you should be fine. In the abovew example, it is
 first in the PATH because it was prepended last.
 
 If you have issues starting C-Menu View by typing "view" at
@@ -107,7 +120,7 @@ export CMENU_HOME="$HOME"/menuapp
 Having a shell with an obscure name can be beneficial. Using xsh, or some other
 alias reduces visibility and vulnerability to some automated attacks and
 even well-meaning, but misguided distributors who, in an unknown set of
-circumstances, might turn on shell restrictions for common shells like bash.
+circumstancs, might turn on shell restrictions for common shells like bash.
 
 ```bash
 export SHELL=bash
@@ -263,7 +276,7 @@ export LLVM_LIB_DIR=/usr/lib64
 export MASON="$HOME/.local/share/lazyvim/mason"
 ```
 
-## C-Menu .minitrc Configuration
+## C-Menu Configuration
 
 ```ini
 # ~/.minitrc
@@ -501,4 +514,82 @@ blue        = '#0000FF'
 magenta     = '#FF00FF'
 cyan        = '#00ffff'
 white       = '#FFFFFF'
+```
+
+## Tree-Sitter
+
+Before you can use Tree-Sitter-CLI, you will need to install the parsers
+for your file types. Below an example layout for parser installation.
+
+![Tree-Sitter Configuration](screenshots/tree-sitter-parsers.png)
+
+### Tree-Sitter config.json
+
+```json
+{
+  "parser-directories": [
+    "/home/bill/src",
+    "/home/bill/.config/tree-sitter/parsers"
+  ],
+  "theme": {
+    "attribute": {
+      "color": "#f9a080",
+      "italic": true
+    },
+    "comment": {
+      "color": "#a0a0a0",
+      "italic": true
+    },
+    "constant": "#00b0ff",
+    "constant.builtin": {
+      "bold": true,
+      "color": "#f000f0"
+    },
+    "constructor": "#00ffbf",
+    "embedded": null,
+    "function": "#ff4f00",
+    "function_definition": "#f07070",
+    "function_declaration": "#70b0f0",
+    "function.builtin": {
+      "bold": true,
+      "color": "#d070ff"
+    },
+    "keyword": "#00b07f",
+    "module": "#0000f0",
+    "number": {
+      "bold": true,
+      "color": "#ffaf90"
+    },
+    "operator": {
+      "bold": true,
+      "color": "#ff00ff"
+    },
+    "property": "#00b0ff",
+    "property.builtin": {
+      "bold": true,
+      "color": "#ff4f00"
+    },
+    "punctuation": "#f000f0",
+    "punctuation.bracket": "#f000f0",
+    "punctuation.delimiter": "#f000f0",
+    "punctuation.special": "#f000f0",
+    "string": "#90c0ff",
+    "string.special": "#f07fff",
+    "tag": "#ff0000",
+    "type": "#3fefff",
+    "type.builtin": {
+      "bold": true,
+      "color": "#ff5070"
+    },
+    "variable": "#f09040",
+    "variable.builtin": {
+      "bold": true,
+      "color": "#00d050"
+    },
+    "variable.parameter": {
+      "color": "#00d050",
+      "underline": true
+    }
+  }
+}
 ```
