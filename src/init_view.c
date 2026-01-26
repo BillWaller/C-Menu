@@ -1,5 +1,6 @@
-// init_view.c
-// Bill Waller 2025
+//  init_view.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
 
 #include "menu.h"
 #include <errno.h>

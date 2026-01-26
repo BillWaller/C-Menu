@@ -15,7 +15,25 @@
 #include <ncursesw/ncurses.h>
 #include <signal.h>
 #include <stddef.h>
+#include <stdlib.h>
 #define C_MENU_VERSION "C-Menu-0.2.6"
+#define __end_pgm                                                              \
+    static void end_pgm(void) {                                                \
+        destroy_init(init);                                                    \
+        win_del();                                                             \
+        destroy_curses();                                                      \
+        restore_shell_tioctl();                                                \
+        exit(EXIT_FAILURE);                                                    \
+    }
+#define __atexit                                                               \
+    {                                                                          \
+        int rc;                                                                \
+        rc = atexit(end_pgm);                                                  \
+        if (rc != 0) {                                                         \
+            fprintf(stderr, "\nCannot set exit function\n");                   \
+            exit(EXIT_FAILURE);                                                \
+        }                                                                      \
+    }
 // #define DEBUG TRUE
 #define USE_PAD TRUE
 // MAXLEN is for variables known to be limited in length

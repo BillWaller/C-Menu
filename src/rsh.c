@@ -1,6 +1,7 @@
-// rsh.c
-// Bill Waller Copyright (c) 2025
-// <billxwaller@gmail.com>
+//  rsh.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  <billxwaller@gmail.com>
 //
 /// rsh - restricted shell to run bash as root
 /// Usage: rsh [args]
