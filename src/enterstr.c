@@ -1,5 +1,5 @@
 //  enterstr.c
-//  Bill Waller
+//  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
 /// enterstr - enter a string from keyboard

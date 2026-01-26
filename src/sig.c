@@ -1,4 +1,3 @@
-/// sig.c
 ///  sig.c
 ///  Bill Waller Copyright (c) 2025
 ///  MIT License
@@ -19,14 +18,6 @@
 #include <unistd.h>
 
 volatile sig_atomic_t sig_received = 0;
-
-static void end_pgm(void) {
-    destroy_init(init);
-    win_del();
-    destroy_curses();
-    restore_shell_tioctl();
-    exit(EXIT_FAILURE);
-}
 
 void signal_handler(int);
 void sig_prog_mode();
@@ -113,12 +104,11 @@ int handle_signal(int sig_num) {
             to_uppercase(c);
             if (c == 'Y') {
                 msg = "\nExiting program now.\n";
-                end_pgm();
-                while (*msg)
-                    write(2, msg++, 1);
-                tcsetattr(0, TCSAFLUSH, &shell_tioctl);
-                sig_dfl_mode();
-                _exit(1);
+                destroy_init(init);
+                win_del();
+                destroy_curses();
+                restore_shell_tioctl();
+                exit(EXIT_FAILURE);
             }
         }
         restore_shell_tioctl();

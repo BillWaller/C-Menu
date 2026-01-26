@@ -1,5 +1,6 @@
 //  futil.c
 //  Bill Waller Copyright (c) 2025
+//  MIT License
 //  Utility functions for MENU
 //  billxwaller@gmail.com
 

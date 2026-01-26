@@ -1,7 +1,8 @@
-// parse_menu_desc.c
-// Bill Waller Copyright (c) 2025
-// billxwaller@gmail.com
-// Parse menu description file and create Menu
+//  parse_menu_desc.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  billxwaller@gmail.com
+//  Parse menu description file and create Menu
 
 #include "menu.h"
 #include <ctype.h>
