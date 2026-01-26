@@ -5,7 +5,6 @@
 /// Test Curses Keys
 
 #include "menu.h"
-#include <errno.h>
 #include <ncursesw/ncurses.h>
 #include <unistd.h>
 

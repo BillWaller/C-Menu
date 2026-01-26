@@ -64,8 +64,7 @@ double linear_to_rgb(double);
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Standard 16 color palette
 /// Used for xterm256 color conversions
-/// Note: These colors can be overridden in the Init struct
-/// from the .minitrc file
+/// Note: These colors can be overridden in ".minitrc"
 RGB StdColors[16] = {
     {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
     {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
@@ -483,14 +482,13 @@ RGB xterm256_idx_to_rgb(int code) {
     return rgb;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
-/// │ APPLY_GAMMA                                                   │
+/// │ APPLY_GAMMA___________________________________________________│
 /// ╰───────────────────────────────────────────────────────────────╯
 /// void apply_gamma(RGB *rgb)
 /// Apply gamma correction to RGB color
 /// @param rgb Pointer to RGB color
 /// @note This function modifies the RGB color in place
-/// @note Gamma values are set in the Init struct
-///       from the .minitrc file
+/// @note Gamma values are set in ".minitrc"
 void apply_gamma(RGB *rgb) {
     if (rgb->r == rgb->g && rgb->r == rgb->b) {
         if (GRAY_GAMMA > 0.0f && GRAY_GAMMA != 1.0f) {
@@ -512,14 +510,13 @@ void apply_gamma(RGB *rgb) {
 /// ╰───────────────────────────────────────────────────────────────╯
 /// bool init_clr_palette(Init *init)
 /// Initialize the xterm256 color palette
-/// @note This function also applies any color overrides from the Init
-/// struct
+/// @note this function also applies any color overrides in .minitrc
 /// @param init Pointer to Init struct
 bool init_clr_palette(Init *init) {
     // int i;
     // int rr, gg, bb;
     // RGB rgb;
-
+    //
     // for (i = 0; i < 256; i++) {
     //     rgb = xterm256_idx_to_rgb(i);
     //     rr = (rgb.r * 1000) / 255;
@@ -619,7 +616,7 @@ void destroy_curses() {
 /// │ WIN_NEW                                                       │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
-/// int flag) Create a new window with optional box and title
+/// int flag) Create a new window with optional box and title.
 /// @param wlines Number of lines
 /// @param wcols Number of columns
 /// @param wbegy Beginning Y position
@@ -628,8 +625,7 @@ void destroy_curses() {
 /// @param flag Window flags
 /// @flags F_VIEW - View uses PAD, so only create box
 /// return 0 if successful, 1 if error
-/// note If wbegy or wbegx are non-zero, or if wlines or wcols are less
-///
+/// .
 int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             int flag) {
     int maxx;
