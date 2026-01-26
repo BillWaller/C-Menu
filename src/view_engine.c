@@ -1792,23 +1792,27 @@ int fmt_line(View *view) {
                     view->stripped_line_out[j] = ' ';
                     cmplx_buf[j++] = cc;
                 }
-                i++;
-            }
-            // Handle Multi-byte Character
-            // Use mbtowc to get the wide character and its length in bytes
-            // from the multibyte string
-            len = mbtowc(&wc, s, MB_CUR_MAX);
-            if (len == -1 || len == 0)
-                break;
-            // Convert wide character + attributes to complex character
-            if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
-                if (len > 0 && (j + len) < MAX_COLS - 1) {
-                    view->stripped_line_out[j] = *s;
-                    cmplx_buf[j++] = cc;
-                    i += len;
+                len = 1;
+            } else {
+                // Handle Multibyte Character
+                // Use mbtowc to get the wide character and its length in bytes
+                // from the multibyte string
+                len = mbtowc(&wc, s, MB_CUR_MAX);
+                if (len <= 0) {
+                    // Invalid multibyte character, treat as single byte
+                    wc = (wchar_t)(uchar)(*s);
+                    len = 1;
+                }
+                // Convert wide character + attributes to complex character
+                if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
+                    if (len > 0 && (j + len) < MAX_COLS - 1) {
+                        view->stripped_line_out[j] = *s;
+                        cmplx_buf[j++] = cc;
+                    }
                 }
             }
         }
+        i += len;
     }
     if (j > view->maxcol)
         view->maxcol = j;
