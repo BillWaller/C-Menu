@@ -1799,7 +1799,7 @@ int fmt_line(View *view) {
                 // from the multibyte string
                 len = mbtowc(&wc, s, MB_CUR_MAX);
                 if (len <= 0) {
-                    i++;
+                    len = 1;
                     break;
                 }
                 // Convert wide character + attributes to complex character
@@ -1807,9 +1807,9 @@ int fmt_line(View *view) {
                     if (len > 0 && (j + len) < MAX_COLS - 1) {
                         view->stripped_line_out[j] = *s;
                         cmplx_buf[j++] = cc;
-                        i += len;
                     }
                 }
+                i += len;
             }
         }
     }
