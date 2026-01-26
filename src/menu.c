@@ -12,8 +12,8 @@
 /// to launch or scripts to execute.
 ///
 /// Several ancillary files provide supporting functionality, including
-/// handling terminal I/O settings, managing the menu structure,
-/// and rendering the interface using the ncurses library.
+/// handling terminal initialization IO settings, managing the menu structure,
+/// and rendering the interface using the NCurses library.
 
 #include "menu.h"
 __end_pgm; // Called by atexit

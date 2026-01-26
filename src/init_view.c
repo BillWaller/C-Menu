@@ -51,7 +51,7 @@ int init_view_full_screen(Init *init) {
     set_tabsize(view->tab_stop);
     wsetscrreg(view->win, 0, view->scroll_lines - 1);
     scrollok(view->win, true);
-    // immedok(view->win, true);
+    immedok(view->win, true);
     keypad(view->win, true);
     idlok(view->win, false);
     idcok(view->win, false);
