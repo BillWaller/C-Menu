@@ -1153,10 +1153,3 @@ int xwgetch(WINDOW *win) {
     }
     return c;
 }
-
-void end_pgm(int exit_code) {
-    destroy_curses();
-    restore_shell_tioctl();
-    sig_dfl_mode();
-    exit(exit_code);
-}

@@ -5,22 +5,11 @@
 /// Command Line Start-up for C-Menu Form
 
 #include "menu.h"
-#include <stdlib.h>
 
-static void end_pgm(void) {
-    destroy_init(init);
-    win_del();
-    destroy_curses();
-    restore_shell_tioctl();
-}
+__end_pgm; // Called by atexit
 
 int main(int argc, char **argv) {
-    int rc;
-    rc = atexit(end_pgm);
-    if (rc != 0) {
-        fprintf(stderr, "\nCannot set exit function\n");
-        exit(EXIT_FAILURE);
-    }
+    __atexit;
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
     mapp_initialization(init, argc, argv);

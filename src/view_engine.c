@@ -1,7 +1,7 @@
 //  view_engine.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
-///  Command Line Start-up for C-Menu Menu
+/// Command Line Start-up for C-Menu Menu
 
 #include "menu.h"
 #include <ctype.h>
@@ -1734,10 +1734,10 @@ int fmt_line(View *view) {
     char ansi_tok[MAXLEN];
     int cpx = cp_default;
     int i = 0, j = 0;
-    int len;
+    int len = 0;
     const char *s;
-    wchar_t wc;
-    cchar_t cc;
+    wchar_t wc = L'\0';
+    cchar_t cc = {0};
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
     rtrim(view->line_out_s);
