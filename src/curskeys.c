@@ -42,9 +42,9 @@ int display_curses_keys() {
     win = win_win[win_ptr];
     box = win_box[win_ptr];
     keypad(win, TRUE);
-    wattron(win, A_REVERSE);
+    wattron(win, WA_REVERSE);
     mvwaddstr(win, lines - 1, 0, " <ALT>END to exit ");
-    wattroff(win, A_REVERSE);
+    wattroff(win, WA_REVERSE);
     wnoutrefresh(box);
     mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
     timeout(1000);
