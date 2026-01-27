@@ -81,28 +81,44 @@ I use one of::
 ```bash
 export TERM=xterm-ghostty
 export TERM=xterm-kitty
+export TERM=xterm-bw
 ```
 
-For some reason, both the ghostty and kitty terminfos set Number of Colors
-to 256, and that is perfectly understandable considering that:
+xterm-bw is xterm-256color modified to support 16M colors and 65K color
+pairs. You can create your own custom terminfo entry using infocmp and tic.
+
+For some reason, both the Ghostty and Kitty terminfo files set Number
+of Colors to 256, and that is perfectly understandable considering that:
 
 1. A terminal emulator primarily deals with character cells, and 256 colors
-   is more than adequate.
+   is generally more than adequate.
 2. Neither Ghostty nor Kitty rely on NCurses for color management, so it is
-   likely they get their limits from hardware instead of terminfo.
+   likely they get their limits directly from hardware instead of terminfo.
 
 If you need more than 256 colors, you can get around this issue by using
 infocmp to create a custom terminfo entry that specifies higher color
 capabilities. Here is an example of how to do this:
 
 ```bash
-infocmp xterm-ghostty > xterm-ghostty.terminfo
+infocmp xterm-256color > xterm-myterm.ti
 ```
 
-Add or modify the following lines in the xterm-ghostty or xterm-kitty:
+Add or modify the following lines in xterm-myterm.ti
 
 ```bash
 ccc, colors#0x1000000, pairs#0x10000
+```
+
+Once you have finished editing xterm-myterm.ti, compile it using tic:
+
+```bash
+tic xterm-myterm.ti
+```
+
+And, set your TERM environment variable to your new terminfo entry:
+
+```bash
+export TERM=xterm-myterm
 ```
 
 You can also refer to this helpful list of terminals and their color
