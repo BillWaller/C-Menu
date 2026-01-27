@@ -38,7 +38,6 @@ unsigned int menu_engine(Init *init) {
         }
         menu->win = win_win[win_ptr];
         menu->box = win_box[win_ptr];
-        immedok(menu->win, TRUE);
         while (action == MA_DISPLAY_MENU) {
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
