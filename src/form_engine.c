@@ -444,9 +444,9 @@ void form_display_chyron(Form *form) {
     int l;
 
     l = chyron_mk(key_cmd, form->chyron_s);
-    wattron(form->win, A_REVERSE);
+    wattron(form->win, WA_REVERSE);
     mvwaddstr(form->win, form->lines - 1, 0, form->chyron_s);
-    wattroff(form->win, A_REVERSE);
+    wattroff(form->win, WA_REVERSE);
     wclrtoeol(form->win);
     wmove(form->win, form->lines - 1, l);
 }

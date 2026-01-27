@@ -190,6 +190,9 @@ extern void sig_dfl_mode();
 /// │ NCurses                                                       │
 /// ╰───────────────────────────────────────────────────────────────╯
 #define REASSIGN_STDIN
+extern cchar_t CCC_NORM;
+extern cchar_t CCC_BOX;
+extern cchar_t CCC_REVERSE;
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ NCurses Key Definitions                                       │
 /// ╰───────────────────────────────────────────────────────────────╯
@@ -276,26 +279,26 @@ extern key_cmd_tbl key_cmd[20];
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ COLOR PROCESSING                                              │
 /// ╰───────────────────────────────────────────────────────────────╯
-enum Color {
-    black,
-    red,
-    green,
-    yellow,
-    blue,
-    magenta,
-    cyan,
-    white,
-    bblack,
-    bred,
-    bgreen,
-    byellow,
-    bblue,
-    bmagenta,
-    bcyan,
-    bwhite,
-    orange
-};
-
+// enum Color {
+//     black,
+//     red,
+//     green,
+//     yellow,
+//     blue,
+//     magenta,
+//     cyan,
+//     white,
+//     bblack,
+//     bred,
+//     bgreen,
+//     byellow,
+//     bblue,
+//     bmagenta,
+//     bcyan,
+//     bwhite,
+//     orange
+// };
+//
 typedef struct {
     int r;
     int g;
