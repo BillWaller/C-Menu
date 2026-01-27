@@ -367,7 +367,6 @@ void open_curses(Init *init) {
     CCC_NORM = mkccc(cp_norm);
     CCC_BOX = mkccc(cp_box);
     CCC_REVERSE = mkccc(cp_reverse);
-    immedok(stdscr, true);
     noecho();
     cbreak();
     keypad(stdscr, true);
@@ -662,10 +661,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             wbkgrnd(win_box[win_ptr], &CCC_BOX);
             wbkgrndset(win_box[win_ptr], &CCC_BOX);
             if (wtitle != NULL && *wtitle != '\0') {
-                wmove(win_box[win_ptr], 0, 1);
-                waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
-                wmove(win_box[win_ptr], 0, 2);
-                waddnstr(win_box[win_ptr], (const char *)&bw_sp, 1);
+                cbox(win_box[win_ptr]);
                 mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
                 mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
                 mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
@@ -700,7 +696,6 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             keypad(win_win[win_ptr], TRUE);
             idlok(win_win[win_ptr], false);
             idcok(win_win[win_ptr], false);
-            // immedok(win_win[win_ptr], true);
         }
     }
     return (0);
