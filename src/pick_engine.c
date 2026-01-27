@@ -565,9 +565,9 @@ void pick_display_chyron(Pick *pick) {
     ssnprintf(tmp_str, MAXLEN - 65, "%s| Page %d of %d ", pick->chyron_s,
               pick->tbl_page + 1, pick->tbl_pages);
     l = strlen(tmp_str);
-    wattron(pick->win, A_REVERSE);
+    wattron(pick->win, WA_REVERSE);
     mvwaddstr(pick->win, pick->pg_lines, 0, tmp_str);
-    wattroff(pick->win, A_REVERSE);
+    wattroff(pick->win, WA_REVERSE);
     wmove(pick->win, pick->pg_lines, l);
     wclrtoeol(pick->win);
 }
@@ -578,10 +578,10 @@ void reverse_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     pick->y = pick->tbl_line;
     wmove(pick->win, pick->y, pick->x);
-    wattron(pick->win, A_REVERSE);
+    wattron(pick->win, WA_REVERSE);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
                    pick->tbl_col_width);
-    wattroff(pick->win, A_REVERSE);
+    wattroff(pick->win, WA_REVERSE);
     wrefresh(pick->win);
     wmove(pick->win, pick->y, pick->x - 1);
 }

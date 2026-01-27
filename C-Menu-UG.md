@@ -204,11 +204,11 @@ Double: Double precision floating point number
 Currency: Currency amount
 APR: Annual Percentage Rate
 Yyyymmdd: Date in YYYYMMDD format
-HHMMSS: Time in HHMMSS format
+Hhmmss: Time in HHMMSS format
 
 Data types determine the format of displayed data. Of course, all data
 is initially a text string, but Form converts numeric data to internal
-numeric binary according to the data type specified.
+numeric binary according to the datatype specified.
 
 WARNING: For applications that require extreme accuracy, such as
 banking, financial, or scientific applications, none of the data types
@@ -245,9 +245,10 @@ F<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Type
 
 ## C-Menu Pick
 
-C-Menu Pick is a utility that allows users to create and manage pick
-lists for selection within the C-Menu system, or stand-alone. It can be
-used to present a list of options for the user to choose from.
+C-Menu Pick is a utility that allows users to create and to manage
+pick lists for selection within the C-Menu system, or stand-alone.
+It can be used to present a list of options for the user to choose
+from.
 
 ### Pick Usage
 
@@ -372,11 +373,11 @@ C-Menu Options can be provided by command line arguments or via a
 configuration file, ~/.minitrc. Command line arguments take
 precedence over configuration file settings.
 
-All of the following options may be specified in the configuration file,
+The option field names may be specified in the configuration file,
 one per line, without the leading hyphen (-).
 
 The single letter options in column 6 may be specified on the command
-line as hyphen[letter], such as (-a). Some of the options,
+line as hyphen\[letter\], such as (-a). Some of the options,
 specifically those without a designated letter, may be entered from
 the command line as hyphen\[option\]=\[value\], such as (-mapp_data="My
 C-Menu_Data_Directory").

@@ -45,7 +45,7 @@ int init_view_full_screen(Init *init) {
         abend(-1, "init_view_full_screen: newpad() failed");
     }
     view->box = NULL;
-    wbkgd(view->win, COLOR_PAIR(cp_norm) | ' ');
+    wbkgrnd(view->box, &CCC_BOX);
     if (view->tab_stop <= 0)
         view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
@@ -118,7 +118,7 @@ int init_view_boxwin(Init *init, char *title) {
         display_error(em0, em1, em2, NULL);
         return -1;
     }
-    wbkgd(view->win, COLOR_PAIR(cp_norm) | ' ');
+    wbkgrnd(view->win, &CCC_BOX);
     set_tabsize(view->tab_stop);
     wsetscrreg(view->win, 0, view->scroll_lines - 1);
     scrollok(view->win, true);

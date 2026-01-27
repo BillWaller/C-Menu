@@ -198,7 +198,8 @@ Verifies a file specification argument.
   - `char *org_spec`: The original file specification.
   - `char *dir`: The directory to check for the file.
   - `char *alt_dir`: An alternative directory to check for the file.
-  - `int mode`: The mode of verification (e.g., existence, readability, writability).
+  - `int mode`: The mode of verification (e.g., existence, readability,
+    writability).
 - Returns:
   - `bool`: True if the file specification is valid, false otherwise.
 
@@ -282,7 +283,7 @@ Initializes Form-related files based on command-line arguments.
 The function processes command-line arguments to locate and verify
 menu-related files such as configuration files, help files, and data files.
 
-## See: C-Menu Files later in this chapter.
+See: C-Menu Files later in this chapter.
 
 ---
 
@@ -1039,7 +1040,7 @@ such as names, titles, or other relevant data. The C-Menu API provides
 functions to create, manage, and render chyrons in a user interface. Though
 not exactly like the chyrons you see on TV news broadcasts, they serve a similar
 purpose in providing on-screen information in a banner across the bottom of
-the screen and present options, in the form of command keys to the user.
+the screen. They also present options, in the form of command keys to the user.
 The Function Key or command key can be selected by pressing the indicated
 F Key or clicking on the chyron within the vertical bars separating the
 F Keys.
@@ -1082,7 +1083,7 @@ void set_fkey(int k, char *s)
 ```
 
 Assigns a command string to a function key where k is the function key number,
-currently 1 through 14, and s is the command description associated with the
+currently 1 through 14. "\*s" is the command description associated with the
 function key. For example, to insert "F5 Calculate" into the chyron, you would
 call
 
@@ -1157,7 +1158,7 @@ NCurses must be initialized with color support. Using C-Menu\'s
 open_curses() function takes care of the details.
 
 NCurses uses init_extended_colors(i, r, g, b) to register individual
-colors specified by the caller, where i is the index number of the color,
+colors specified by the caller, where "i"" is the index number of the color,
 and r, g, b are color component values scaled 0 - 1000. (one billion
 colors). Each element in the color table may represent a foreground or
 background color.
@@ -1324,7 +1325,7 @@ Converts a hexadecimal color string to an RGB color.
 
 ## INITIALIZATION
 
-The initializaiton module poopulates the C-Menu data structures from
+The initializaiton module populates the C-Menu data structures from
 the configuration file, .minitrc, and as well as the command line with
 which the program was started. The Init structure serves multiple
 roles, storing system-wide runtime parameters for all components, but

@@ -331,7 +331,9 @@ and blue.
 
 ![RGB Gamma Correction](screenshots/gamma1.png)
 
-In the image below, gray gamma is used to make comments more visible.
+In the image below, gray gamma is used to make comments more visible. Gray
+gamma, as you might guess, applies to shades of gray, colors in which red,
+green, and blue components are of equal value.
 
 ![Gray Gamma Correction](screenshots/gamma2.png)
 

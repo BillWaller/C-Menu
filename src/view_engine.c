@@ -1217,7 +1217,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             view->curx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
             mvwchgat(view->win, view->cury - 1, view->curx, match_len,
-                     A_REVERSE, cp_norm, NULL);
+                     WA_REVERSE, cp_norm, NULL);
             rc =
                 prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                          view->smincol, view->smaxrow, view->smaxcol);
@@ -1730,9 +1730,9 @@ int fmt_line(View *view) {
     /// @param view->tab_stop is the tab stop setting
     /// @param view->maxcol is the maximum column on the page
     /// @return length of line
-    attr_t attr = A_NORMAL;
+    attr_t attr = WA_NORMAL;
     char ansi_tok[MAXLEN];
-    int cpx = cp_default;
+    int cpx = cp_norm;
     int i = 0, j = 0;
     int len = 0;
     const char *s;
@@ -1816,7 +1816,7 @@ int fmt_line(View *view) {
     if (j > view->maxcol)
         view->maxcol = j;
     wc = L'\0';
-    setcchar(&cc, &wc, A_NORMAL, cp_default, NULL);
+    setcchar(&cc, &wc, WA_NORMAL, cpx, NULL);
     cmplx_buf[j] = cc;
     view->stripped_line_out[j] = '\0';
     return j;
@@ -1976,18 +1976,18 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                     }
                 }
             } else if (tok[0] == '0' && tok[1] == '1') {
-                *attr = A_BOLD;
+                *attr = WA_BOLD;
             } else if (tok[0] == '0' && tok[1] == '2') {
-                *attr = A_REVERSE;
+                *attr = WA_REVERSE;
             } else if (tok[0] == '0' && tok[1] == '3') {
-                *attr = A_ITALIC;
+                *attr = WA_ITALIC;
             }
         } else if (len == 1) {
             // ╭────────────────────────────────────────────────────╮
             // │ 0-9 - TEXT ATTRIBUTES                              │
             // ╰────────────────────────────────────────────────────╯
             if (tok[0] == '0') {
-                *attr = A_NORMAL;
+                *attr = WA_NORMAL;
                 if (fg != COLOR_WHITE) {
                     fg = COLOR_WHITE;
                     f_fg = true;
@@ -1998,14 +1998,14 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 }
             } else {
                 if (tok[0] == '1')
-                    *attr = A_BOLD;
+                    *attr = WA_BOLD;
                 else if (tok[0] == '2')
-                    *attr = A_REVERSE;
+                    *attr = WA_REVERSE;
                 else if (tok[0] == '3')
-                    *attr = A_ITALIC;
+                    *attr = WA_ITALIC;
             }
         } else if (len == 0) {
-            *attr = A_NORMAL;
+            *attr = WA_NORMAL;
             if (fg != COLOR_WHITE) {
                 fg = COLOR_WHITE;
                 f_fg = true;
@@ -2043,11 +2043,11 @@ void cmd_line_prompt(View *view, char *s) {
     wmove(view->win, view->cmd_line, view->pmincol);
     if (l != 0) {
         wclrtoeol(view->win);
-        wattron(view->win, A_REVERSE);
+        wattron(view->win, WA_REVERSE);
         waddstr(view->win, " ");
         waddstr(view->win, message_str);
         waddstr(view->win, " ");
-        wattroff(view->win, A_REVERSE);
+        wattroff(view->win, WA_REVERSE);
         waddstr(view->win, " ");
         wmove(view->win, view->cmd_line, view->pmincol + l + 2);
     }

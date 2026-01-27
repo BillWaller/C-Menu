@@ -58,6 +58,7 @@ bool init_clr_palette(Init *);
 void apply_gamma(RGB *);
 double rgb_to_linear(double);
 double linear_to_rgb(double);
+cchar_t mkccc(int cp);
 
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ STANDARD 16 COLOR PALLETTE                                    │
@@ -88,8 +89,6 @@ char *tmp_ptr;
 int exit_code;
 unsigned int cmd_key;
 bool f_sigwench = false;
-int win_attr_Odd;
-int win_attr_Even;
 int win_attr;
 int box_attr;
 int win_ptr;
@@ -107,7 +106,6 @@ char em0[MAXLEN];
 char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
-int cp_default;
 int cp_norm;
 int cp_box;
 int cp_reverse;
@@ -115,6 +113,9 @@ int clr_cnt = 0;
 int clr_idx = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
+cchar_t CCC_NORM;
+cchar_t CCC_BOX;
+cchar_t CCC_REVERSE;
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ GLOBAL FILE/PIPE NUMBERS                                      │
 /// ╰───────────────────────────────────────────────────────────────╯
@@ -122,14 +123,14 @@ int clr_pair_cnt = 1;
 int tty_fd, pipe_in, pipe_out;
 
 enum colors_enum {
-    CLR_BLACK = COLOR_BLACK,
-    CLR_RED = COLOR_RED,
-    CLR_GREEN = COLOR_GREEN,
-    CLR_YELLOW = COLOR_YELLOW,
-    CLR_BLUE = COLOR_BLUE,
-    CLR_MAGENTA = COLOR_MAGENTA,
-    CLR_CYAN = COLOR_CYAN,
-    CLR_WHITE = COLOR_WHITE,
+    CLR_BLACK,
+    CLR_RED,
+    CLR_GREEN,
+    CLR_YELLOW,
+    CLR_BLUE,
+    CLR_MAGENTA,
+    CLR_CYAN,
+    CLR_WHITE,
     CLR_BBLACK,
     CLR_BRED,
     CLR_BGREEN,
@@ -298,6 +299,8 @@ void open_curses(Init *init) {
     char tty_name[256];
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
+    int rc, fg_color, bg_color;
+    RGB frgb, brgb;
 
     stdin_fd = dup(STDIN_FILENO);
     stdout_fd = dup(STDOUT_FILENO);
@@ -341,10 +344,16 @@ void open_curses(Init *init) {
     f_curses_open = true;
     if (!has_colors()) {
         destroy_curses();
-        abend(-1, "terminal color support required");
+        abend(-1, "Terminal color support required");
     }
     start_color();
-
+    if (!can_change_color()) {
+        destroy_curses();
+        fprintf(stderr, "Terminal cannot change colors\n");
+        fprintf(stderr, "Check TERM environment variable\n");
+        fprintf(stderr, "Check terminfo for missing \"ccc\"\n");
+        abend(-1, "fatal error");
+    }
     init_clr_palette(init);
     /// Set gamma correction values
     /// These are read from ~/.minitrc
@@ -355,13 +364,23 @@ void open_curses(Init *init) {
     cp_norm = get_clr_pair(init->fg_color, init->bg_color);
     cp_reverse = get_clr_pair(init->bg_color, init->fg_color);
     cp_box = get_clr_pair(init->bo_color, init->bg_color);
-    wcolor_set(stdscr, cp_norm, NULL);
-    // immedok(stdscr, true);
+    CCC_NORM = mkccc(cp_norm);
+    CCC_BOX = mkccc(cp_box);
+    CCC_REVERSE = mkccc(cp_reverse);
+    immedok(stdscr, true);
     noecho();
     cbreak();
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
+    wbkgrndset(stdscr, &CCC_NORM);
+    rc = extended_pair_content(cp_norm, &fg_color, &bg_color);
+    rc = extended_color_content(fg_color, &frgb.r, &frgb.g, &frgb.b);
+    rc = extended_color_content(bg_color, &brgb.r, &brgb.g, &brgb.b);
+    if (rc == ERR) {
+        destroy_curses();
+        abend(-1, "extended_color_content failed");
+    }
 }
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ GET_CLR_PAIR                                                  │
@@ -460,23 +479,23 @@ int rgb_to_xterm256_idx(RGB rgb) {
 /// Convert XTerm 256 color index to RGB
 /// @param code XTerm 256 color index
 /// @return RGB color
-RGB xterm256_idx_to_rgb(int code) {
+RGB xterm256_idx_to_rgb(int idx) {
     RGB rgb;
-    if (code > 255)
-        code = 255;
-    if (code < 0)
-        code = 0;
-    if (code < 16) {
-        rgb.r = StdColors[code].r;
-        rgb.g = StdColors[code].g;
-        rgb.b = StdColors[code].b;
-    } else if (code >= 16 && code <= 231) {
-        code -= 16;
-        rgb.r = (code / 36) % 6 * 51;
-        rgb.g = (code / 6) % 6 * 51;
-        rgb.b = (code % 6) * 51;
-    } else if (code >= 232 && code <= 255) {
-        int gray = (code - 232) * 11;
+    if (idx > 255)
+        idx = 255;
+    if (idx < 0)
+        idx = 0;
+    if (idx < 16) {
+        rgb.r = StdColors[idx].r;
+        rgb.g = StdColors[idx].g;
+        rgb.b = StdColors[idx].b;
+    } else if (idx >= 16 && idx <= 231) {
+        idx -= 16;
+        rgb.r = (idx / 36) % 6 * 51;
+        rgb.g = (idx / 6) % 6 * 51;
+        rgb.b = (idx % 6) * 51;
+    } else if (idx >= 232 && idx <= 255) {
+        int gray = (idx - 232) * 11;
         rgb.r = rgb.g = rgb.b = gray;
     }
     return rgb;
@@ -513,17 +532,6 @@ void apply_gamma(RGB *rgb) {
 /// @note this function also applies any color overrides in .minitrc
 /// @param init Pointer to Init struct
 bool init_clr_palette(Init *init) {
-    // int i;
-    // int rr, gg, bb;
-    // RGB rgb;
-    //
-    // for (i = 0; i < 256; i++) {
-    //     rgb = xterm256_idx_to_rgb(i);
-    //     rr = (rgb.r * 1000) / 255;
-    //     gg = (rgb.g * 1000) / 255;
-    //     bb = (rgb.b * 1000) / 255;
-    //     init_extended_color(i, rr, gg, bb);
-    // }
     /// ╭───────────────────────────────────────────────────────────╮
     /// │ C-Menu colors override the standard palette               │
     /// ╰───────────────────────────────────────────────────────────╯
@@ -613,6 +621,15 @@ void destroy_curses() {
     sig_dfl_mode();
 }
 /// ╭───────────────────────────────────────────────────────────────╮
+/// │ CCC                                                           │
+/// ╰───────────────────────────────────────────────────────────────╯
+cchar_t mkccc(int cp) {
+    cchar_t cc;
+    wchar_t wc = L' ';
+    setcchar(&cc, &wc, WA_NORMAL, cp, NULL);
+    return cc;
+}
+/// ╭───────────────────────────────────────────────────────────────╮
 /// │ WIN_NEW                                                       │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
@@ -642,8 +659,8 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
                 win_ptr--;
                 return (1);
             }
-            wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
-            cbox(win_box[win_ptr]);
+            wbkgrnd(win_box[win_ptr], &CCC_BOX);
+            wbkgrndset(win_box[win_ptr], &CCC_BOX);
             if (wtitle != NULL && *wtitle != '\0') {
                 wmove(win_box[win_ptr], 0, 1);
                 waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
@@ -668,16 +685,18 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
                 win_ptr--;
                 return (1);
             }
+            wbkgrnd(win_box[win_ptr], &CCC_BOX);
+            wbkgrndset(win_box[win_ptr], &CCC_BOX);
         }
-        wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
         if (!(flag & F_VIEW)) {
             win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
-            wbkgd(win_win[win_ptr], COLOR_PAIR(cp_norm) | ' ');
             if (win_win[win_ptr] == NULL) {
                 delwin(win_box[win_ptr]);
                 win_ptr--;
                 return (1);
             }
+            wbkgrnd(win_win[win_ptr], &CCC_NORM);
+            wbkgrndset(win_win[win_ptr], &CCC_NORM);
             keypad(win_win[win_ptr], TRUE);
             idlok(win_win[win_ptr], false);
             idcok(win_win[win_ptr], false);
@@ -699,7 +718,8 @@ void win_resize(int wlines, int wcols, char *title) {
 
     wrefresh(stdscr);
     wresize(win_box[win_ptr], wlines + 2, wcols + 2);
-    wbkgd(win_box[win_ptr], COLOR_PAIR(cp_box) | ' ');
+    wbkgrnd(win_box[win_ptr], &CCC_BOX);
+    wbkgrndset(win_box[win_ptr], &CCC_BOX);
     cbox(win_box[win_ptr]);
     if (title != NULL && *title != '\0') {
         wmove(win_box[win_ptr], 0, 1);
@@ -718,8 +738,9 @@ void win_resize(int wlines, int wcols, char *title) {
     }
     wnoutrefresh(win_box[win_ptr]);
     wresize(win_win[win_ptr], wlines, wcols);
-
-    wbkgd(win_win[win_ptr], COLOR_PAIR(cp_norm) | ' ');
+    init_extended_pair(cp_norm, init->fg_color, init->bg_color);
+    wbkgrnd(win_win[win_ptr], &CCC_NORM);
+    wbkgrndset(win_win[win_ptr], &CCC_NORM);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
@@ -855,10 +876,10 @@ int error_message(char **argv) {
             mvwaddstr(error_win, i, 1, argv[i]);
             i++;
         }
-        wattron(error_win, A_REVERSE);
+        wattron(error_win, WA_REVERSE);
         mvwaddstr(error_win, i, 1,
                   " Type \"X\" to exit or any other key to continue ");
-        wattroff(error_win, A_REVERSE);
+        wattroff(error_win, WA_REVERSE);
         wrefresh(error_win);
         cmd_key = xwgetch(error_win);
         c = (char)cmd_key;
@@ -941,9 +962,9 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     mvwaddstr(error_win, 1, 1, em1);
     mvwaddstr(error_win, 2, 1, em2);
     mvwaddstr(error_win, 3, 1, em3);
-    wattron(error_win, A_REVERSE);
+    wattron(error_win, WA_REVERSE);
     mvwaddstr(error_win, 4, 1, cmd);
-    wattroff(error_win, A_REVERSE);
+    wattroff(error_win, WA_REVERSE);
     wmove(error_win, 4, cmd_l + 1);
     wrefresh(error_win);
     cmd_key = xwgetch(error_win);
@@ -992,9 +1013,9 @@ int Perror(char *emsg_str) {
     }
     error_win = win_win[win_ptr];
     mvwaddstr(error_win, 0, 1, emsg);
-    wattron(error_win, A_REVERSE);
+    wattron(error_win, WA_REVERSE);
     mvwaddstr(error_win, 1, 0, " F9 Cancel | Any other key to continue ");
-    wattroff(error_win, A_REVERSE);
+    wattroff(error_win, WA_REVERSE);
     wmove(error_win, 1, 27);
     wrefresh(error_win);
     cmd_key = xwgetch(error_win);
