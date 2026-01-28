@@ -754,7 +754,7 @@ void win_redraw(WINDOW *win) {
 /// │ WIN_DEL                                                       │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// WINDOW *win_del()
-/// Delete the current window and it's associated box
+/// Delete the current window and it's associated box window
 WINDOW *win_del() {
     int i;
 

@@ -1,14 +1,94 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
-## API - Table of Contents
+# API - Table of Contents
 
-- [Overview](#overview)
-- [Utility Functions](#utility-functions)
-- [String Functions](#string-functions)
-- [Chyron Functions](#chyron-functions)
-- [Color Functions](#color-functions)
+<!-- mtoc-start -->
 
-## Overview
+- [OVERVIEW](#overview)
+- [HOUSEKEEPING](#housekeeping)
+  - [\_\_atexit, end_pgm](#__atexit-end_pgm)
+- [MAIN DATA STRUCTURES](#main-data-structures)
+  - [new_menu](#new_menu)
+  - [new_pick](#new_pick)
+  - [destroy_pick](#destroy_pick)
+  - [new_form](#new_form)
+  - [destroy_form](#destroy_form)
+  - [new_view](#new_view)
+  - [destroy_view](#destroy_view)
+- [FILE HANDLING](#file-handling)
+  - [verify_spec_arg](#verify_spec_arg)
+  - [init_menu_files](#init_menu_files)
+  - [init_form_files](#init_form_files)
+- [STRING FUNCTIONS](#string-functions)
+  - [rtrim](#rtrim)
+  - [ssprintf](#ssprintf)
+  - [str_to_args](#str_to_args)
+  - [str_to_lower](#str_to_lower)
+  - [str_to_upper](#str_to_upper)
+  - [strnz\_\_cpy](#strnz__cpy)
+  - [strnz\_\_cat](#strnz__cat)
+  - [strnz](#strnz)
+  - [strnz_dup](#strnz_dup)
+  - [str_tok](#str_tok)
+  - [str_subc](#str_subc)
+  - [strnfill](#strnfill)
+  - [stripz_quotes](#stripz_quotes)
+  - [chrep](#chrep)
+  - [rep_substring](#rep_substring)
+  - [struct String](#struct-string)
+  - [struct WC_String](#struct-wc_string)
+  - [struct CC_String](#struct-cc_string)
+  - [to_string](#to_string)
+  - [mk_string](#mk_string)
+  - [free_string](#free_string)
+  - [string_cpy](#string_cpy)
+  - [string_cat](#string_cat)
+  - [string_ncat](#string_ncat)
+  - [string_ncpy](#string_ncpy)
+- [FILE HANDLING](#file-handling-1)
+  - [normalize_file_spec](#normalize_file_spec)
+  - [file_spec_path](#file_spec_path)
+  - [file_spec_name](#file_spec_name)
+  - [str_to_bool](#str_to_bool)
+  - [expand_tilde](#expand_tilde)
+  - [trim_path](#trim_path)
+  - [trim_ext](#trim_ext)
+  - [base_name](#base_name)
+  - [dir_name](#dir_name)
+  - [verify_dir](#verify_dir)
+  - [verify_file](#verify_file)
+  - [locate_file_in_path](#locate_file_in_path)
+  - [list_files](#list_files)
+  - [lf_find_dirs](#lf_find_dirs)
+  - [lf_find_files](#lf_find_files)
+  - [canonicalize_file_spec](#canonicalize_file_spec)
+- [CHYRON FUNCTIONS](#chyron-functions)
+  - [Chyron Overview](#chyron-overview)
+  - [table key_cmd_tbl](#table-key_cmd_tbl)
+  - [set_fkey](#set_fkey)
+  - [unset_fkey](#unset_fkey)
+  - [chyron_mk](#chyron_mk)
+  - [get_chyron_key](#get_chyron_key)
+  - [is_set_fkey](#is_set_fkey)
+- [COLOR FUNCTIONS](#color-functions)
+  - [struct RGB](#struct-rgb)
+  - [get_clr_pair](#get_clr_pair)
+  - [get_clr](#get_clr)
+  - [rgb_to_xterm256_idx](#rgb_to_xterm256_idx)
+  - [xterm256_idx_to_rgb](#xterm256_idx_to_rgb)
+  - [apply_gamma](#apply_gamma)
+  - [init_clr_palette](#init_clr_palette)
+  - [init_hex_color](#init_hex_color)
+  - [hex_clr_str_to_rgb](#hex_clr_str_to_rgb)
+- [INITIALIZATION](#initialization)
+  - [mapp_initialization](#mapp_initialization)
+  - [parse_opt_args](#parse_opt_args)
+  - [parse_config](#parse_config)
+  - [zero_opt_args](#zero_opt_args)
+
+<!-- mtoc-end -->
+
+## OVERVIEW
 
 C-Menu is a User Interface Builder. It allows developers to create and
 manage UI components quickly and easily. In developing C-Menu, we focused
@@ -33,7 +113,34 @@ Note 3: This document is a work-in-progress and will be updated regularly.
 Only a fraction of the API functions are documented here at present with many
 more to be added.
 
-## C-Menu Data Structures
+## HOUSEKEEPING
+
+### \_\_atexit, end_pgm
+
+The following macros are provided to facilitate proper cleanup
+when a C-Menu application exits.
+
+```c
+#define __end_pgm
+    static void end_pgm(void) {
+        destroy_init(init);
+        win_del();
+        destroy_curses();
+        restore_shell_tioctl();
+        exit(EXIT_FAILURE);
+    }
+#define __atexit
+    {
+        int rc;
+        rc = atexit(end_pgm);
+        if (rc != 0) {
+            fprintf(stderr, "\nCannot set atexit(end_pgm)\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+```
+
+## MAIN DATA STRUCTURES
 
 ```c
 Init *new_init(int argc, char **argv)
@@ -62,6 +169,8 @@ before destroying the Init structure.
   - `Init *`: NULL
 
 ---
+
+### new_menu
 
 ```c
 Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx)
@@ -95,6 +204,8 @@ Frees any resources associated with the Menu structure before destroying it.
 
 ---
 
+### new_pick
+
 ```c
 Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx)
 ```
@@ -114,6 +225,10 @@ structure holds configuration and state information for the Pick component.
 The init->pick structure is commonly aliased as pick throughout the C-Menu
 suite.
 
+---
+
+### destroy_pick
+
 ```c
 Pick *destroy_pick(Init *init)()
 ```
@@ -126,6 +241,8 @@ Frees any resources associated with the Pick structure before destroying it.
   - `Pick *`: NULL
 
 ---
+
+### new_form
 
 ```c
 Form *new_form(Init *init, int argc, char **argv, int begy, int begx)()
@@ -143,6 +260,8 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx)()
 The init->form structure is commonly aliased as form throughout the C-Menu
 suite.
 
+### destroy_form
+
 ```c
 Form *destroy_form(Init *init)
 ```
@@ -155,6 +274,8 @@ Frees any resources associated with the Form structure before destroying it.
   - `Form *`: NULL
 
 ---
+
+### new_view
 
 ```c
 View *new_view(Init *init, int argc, char **argv, int begy, int begx)
@@ -174,6 +295,10 @@ structure holds configuration and state information for the View component.
     The init->view structure is commonly aliased as view throughout the C-Menu
     suite.
 
+---
+
+### destroy_view
+
 ```c
 View *destroy_view(Init *init)
 ```
@@ -186,6 +311,10 @@ Frees any resources associated with the View structure before destroying it.
   - `View *`: NULL
 
 ---
+
+## FILE HANDLING
+
+### verify_spec_arg
 
 ```c
 bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir, int mode)
@@ -239,13 +368,14 @@ and then opens the file in write mode to verify that it can be created.
 
 - X_OK: If only a file-name is specified, the function searches for it using
   the PATH environment variable.
-
 - if X_OK not specified: First searches for the file in the specified directory,
   then the specified alternate directory, then the idiomatic menuapp
   directories , (~/menuapp/msrc, ~/menuapp/bin, ~/menuapp/help, ~/menuappa/data,
   etc.), and then the current directory.
 
 ---
+
+### init_menu_files
 
 ```c
 bool init_menu_files(Init *init, int argc, char **argv)
@@ -267,6 +397,8 @@ See: C-Menu Files later in this chapter.
 
 ---
 
+### init_form_files
+
 ```c
 bool init_form_files(Init *init, int argc, char **argv)
 ```
@@ -286,6 +418,10 @@ menu-related files such as configuration files, help files, and data files.
 See: C-Menu Files later in this chapter.
 
 ---
+
+## STRING FUNCTIONS
+
+### rtrim
 
 ```c
 size_t rtrim(char *str)
@@ -313,6 +449,8 @@ Removes leading and trailing whitespace characters from the given string.
 
 ---
 
+### ssprintf
+
 ```c
 int ssnprintf(char *str, size_t size, const char *format, ...)
 ```
@@ -328,6 +466,8 @@ A safe version of snprintf that ensures the output string is null-terminated.
   - `int`: The number of characters written, excluding the null terminator.
 
 ---
+
+### str_to_args
 
 ```c
 int str_to_args(char *argv[], char *arg_str, int max_args)
@@ -346,6 +486,8 @@ Text surrounded by double quotes \'"\' will be treated as a single argument.
 
 ---
 
+### str_to_lower
+
 ```c
 bool str_to_lower(char *str)
 ```
@@ -359,6 +501,8 @@ Converts all characters in the string to lowercase.
 
 ---
 
+### str_to_upper
+
 ```c
 bool str_to_upper(char *str)
 ```
@@ -371,6 +515,8 @@ Converts all characters in the string to uppercase.
   - `bool`: false on failure, true on success.
 
 ---
+
+### strnz\_\_cpy
 
 ```c
 size_t strnz__cpy(char *dest, char *src, size_t max_len)
@@ -393,6 +539,8 @@ buffer - 1, leaving space for the null terminator.
 
 ---
 
+### strnz\_\_cat
+
 ```c
 size_t strnz__cat(char *dest, char *src, size_t max_len)
 ```
@@ -414,6 +562,8 @@ buffer - 1, leaving space for the null terminator.
 
 ---
 
+### strnz
+
 ```c
 size_t strnz(char *str, int max_len)
 ```
@@ -429,6 +579,8 @@ carriage-return (\'\r\').
   - int: Length of the null-terminated string.
 
 ---
+
+### strnz_dup
 
 ```c
 char *strnz_dup(char *str, int max_len)
@@ -447,6 +599,8 @@ the memory when it is no longer needed.
     on failure.
 
 ---
+
+### str_tok
 
 ```c
 char *str_tok(char *s, const char *delim, char **sp, char delim_found)
@@ -486,6 +640,8 @@ Maintains thread-safety just as strtok_r.
 
 ---
 
+### str_subc
+
 ```c
 bool str_subc(char *d, char *s, char replace_chr, char *with_str, int l)
 ```
@@ -504,6 +660,8 @@ string.
 
 ---
 
+### strnfill
+
 ```c
 bool strnfill(char *s, char c, n)
 ```
@@ -519,6 +677,8 @@ Fills a string with a specified character up to a given length.
 
 ---
 
+### stripz_quotes
+
 ```c
 bool stripz_quotes(char *s)
 ```
@@ -531,6 +691,8 @@ Removes surrounding double quotes from a string if they exist.
   - `bool`: True if quotes were removed, false otherwise.
 
 ---
+
+### chrep
 
 ```c
 bool chrep(char *s, char old_chr, char new_chr)
@@ -547,6 +709,216 @@ Replaces all occurrences of a specified character in a string with another chara
 
 ---
 
+### rep_substring
+
+```c
+char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s)
+```
+
+Replaces all occurrences of a target substring.
+
+- Parameters:
+  - `const char *org_s`: The original string.
+  - `const char *tgt_s`: The target substring to be replaced.
+  - `const char *rep_s`: The replacement substring.
+- Returns:
+  - `char *`: A pointer to the newly allocated string with
+    replacements made or NULL on failure.
+
+The function allocates memory for the new string, which must be
+freed by the caller when no longer needed.
+
+---
+
+### struct String
+
+```c
+typedef struct String
+```
+
+Represents a dynamic stringi.
+capacity - number of array elements allocated for String.str
+
+```c
+typedef struct {
+    char *str; // Pointer to the string data
+    size_t capacity; // Number of array elements
+} String;
+```
+
+---
+
+### struct WC_String
+
+```c
+typedef struct WC_String
+```
+
+Represents a dynamic array of wide characters (wchar_t)
+capacity - number of array elements allocated for WC_String.str
+
+```c
+typedef struct {
+    wchar_t *str; // Pointer to the string data
+    size_t capacity; // Number of array elements
+} WC_String;
+```
+
+---
+
+### struct CC_String
+
+```c
+typedef struct CC_String
+```
+
+Represents a dynamic array of complex characters (cchar_t)
+capacity - number of array elements allocated for CC_String.str
+
+```c
+typedef struct {
+    wchar_t *str; // Pointer to the string data
+    size_t capacity; // Number of array elements
+} CC_String;
+```
+
+---
+
+### to_string
+
+```c
+String to_string(const char *s)
+```
+
+Creates a new String object from a C-style string.
+
+- Parameters:
+  - `const char *s`: The C-style string to be converted.
+- Returns:
+  - `String`: The newly created String object.
+
+---
+
+### mk_string
+
+```c
+String mk_string(size_t l)
+```
+
+Creates a new String object with a specified length.
+
+- Parameters:
+  - `size_t l`: The length of the string to be created.
+  - char \*s: The string data to be assigned to the String object.
+- Returns:
+  - `String`: The newly created String object.
+
+if l is 0, str is set to NULL.
+
+---
+
+### free_string
+
+```c
+void free_string(String s)
+```
+
+Frees the memory allocated for a String object.
+
+- Parameters:
+  - `String s`: The String object to be freed.
+- Returns:
+  - `void`: no return
+
+---
+
+### string_cpy
+
+```c
+size_t string_cpy(String *d, const char *s)
+```
+
+Copies a C-style string to a String object.
+
+- Parameters:
+  - `String *d`: Pointer to the destination String object.
+  - `const char *s`: The source C-style string to be copied.
+- Returns:
+  - `size_t`: length of resulting string
+
+If the source string is longer than the destination String\'s
+current length, the destination String\'s str pointer is reallocated
+to accommodate the new string.
+
+---
+
+### string_cat
+
+```c
+size_t string_cat(String *d, const char *s)
+```
+
+Concatenates a C-style string to a String object.
+
+- Parameters:
+  - `String *d`: Pointer to the destination String object.
+  - `const char *s`: The source C-style string to be concatenated.
+- Returns:
+  - `size_t`: length of resulting string
+
+If the concatenation would result in a string longer than the
+destination String\'s length, the destination String\'s str pointer
+is reallocated.
+
+---
+
+### string_ncat
+
+```c
+size_t string_ncat(String *d, const char *s, size_t n)
+```
+
+Concatenates up to n characters of a C-style string to a String object.
+Concatenates characters from a source String object to a destination
+String.
+
+- Parameters:
+  - `String *d`: Pointer to the destination String object.
+  - `const char *s`: The source C-style string to be concatenated.
+  - `size_t n`: The maximum number of characters to concatenate.
+- Returns:
+  - `size_t`: length of resulting string
+
+If the resulting string would be longer than the destination String\'s
+length, the destination String\'s str pointer is reallocated.
+
+---
+
+### string_ncpy
+
+```c
+size_t string_ncpy(String *dest, const String *src, size_t n)
+```
+
+Copies up to "n" characters from a C-style string to a destination
+String object.
+
+- Parameters:
+  - `String *dest`: Pointer to the destination String object.
+  - `const String *src`: Pointer to the source String object.
+  - `size_t n`: The maximum number of characters to copy.
+- Returns:
+  - `size_t`: length of resulting string
+
+If the resulting string would be longer than the destination String\'s
+length, the destination String\'s str pointer is reallocated.
+
+---
+
+## FILE HANDLING
+
+### normalize_file_spec
+
 ```c
 bool normalize_file_spec(char *spec)
 ```
@@ -559,6 +931,8 @@ Normalizes a file specification by converting backslashes to forward slashes.
   - `bool`: True on success, false on failure.
 
 ---
+
+### file_spec_path
 
 ```c
 bool file_spec_path(char *fp, char *fs)
@@ -579,6 +953,8 @@ modify the input string. Also, a character array may be used as the first
 argument, obviating the need for dynamic memory allocation.
 
 ---
+
+### file_spec_name
 
 ```c
 bool file_spec_name(char *fn, char *fs)
@@ -601,6 +977,8 @@ version of dirname().
 
 ---
 
+### str_to_bool
+
 ```c
 bool str_to_bool(const char *)
 ```
@@ -616,6 +994,8 @@ boolean type based on the first character of the string.
     other character, the function returns false.
 
 ---
+
+### expand_tilde
 
 ```c
 bool expand_tilde(char *out_buf, const char *in_buf, size_t buf_size)
@@ -633,6 +1013,8 @@ Expands a tilde (\'~\') at the beginning of a file path to the user\'s home dire
     path to the output buffer without modification.
 
 ---
+
+### trim_path
 
 ```c
 bool trim_path(char *char) {
@@ -652,6 +1034,8 @@ Trims redundant slashes and resolves relative path components (\'.\' and
 
 ---
 
+### trim_ext
+
 ```c
 bool trim_ext(char *buf, char *filename)
 ```
@@ -669,6 +1053,8 @@ Removes the file extension from a given filename.
     the modified filename.
 
 ---
+
+### base_name
 
 ```c
 bool base_name(char *buf, const char *filename)
@@ -691,6 +1077,8 @@ base name.
 
 ---
 
+### dir_name
+
 ```c
 bool dir_name(char *buf, char *path)
 ```
@@ -708,6 +1096,8 @@ Extracts the directory name (path without file name) from a given file path.
     enough space to hold the directory name.
 
 ---
+
+### verify_dir
 
 ```c
 bool verify_dir(char *spec, int imode)
@@ -732,6 +1122,8 @@ Verifies the existence of a directory specified by the given path.
 
 ---
 
+### verify_file
+
 ```c
 bool verify_file(char *in_spec, int imode)
 ```
@@ -753,6 +1145,8 @@ It is up to the caller to ensure that the input path is valid.
 
 ---
 
+### locate_file_in_path
+
 ```c
 bool locate_file_in_path(char *file_spec, char *file_name)
 ```
@@ -772,6 +1166,8 @@ caller to ensure that the receiving string pointer has enough
 space to hold the full path of the found file.
 
 ---
+
+### list_files
 
 ```c
 bool list_files(char *dir, char *regexp, bool f_recurse)
@@ -793,6 +1189,8 @@ expression, with an option to recurse into subdirectories.
 
 ---
 
+### lf_find_dirs
+
 ```c
 bool lf_find_dirs(char *dir, char *re)
 ```
@@ -810,6 +1208,8 @@ files that match the provided regular expression.
 
 ---
 
+### lf_find_files
+
 ```c
 bool lf_find_files(char *dir, char *re)
 ```
@@ -826,6 +1226,8 @@ the provided regular expression.
 
 ---
 
+### canonicalize_file_spec
+
 ```c
 size_t canonicalize_file_spec(char *spec)
 ```
@@ -841,197 +1243,7 @@ The function modifies the input file specification in place.
 
 ---
 
-```c
-char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s)
-```
-
-Replaces all occurrences of a target substring.
-
-- Parameters:
-  - `const char *org_s`: The original string.
-  - `const char *tgt_s`: The target substring to be replaced.
-  - `const char *rep_s`: The replacement substring.
-- Returns:
-  - `char *`: A pointer to the newly allocated string with
-    replacements made or NULL on failure.
-
-The function allocates memory for the new string, which must be
-freed by the caller when no longer needed.
-
-===============================================================
-
-## STRING FUNCTIONS
-
----
-
-```c
-typedef struct String
-```
-
-Represents a dynamic stringi.
-capacity - number of array elements allocated for String.str
-
-```c
-typedef struct {
-    char *str; // Pointer to the string data
-    size_t capacity; // Number of array elements
-} String;
-```
-
----
-
-```c
-typedef struct WC_String
-```
-
-Represents a dynamic array of wide characters (wchar_t)
-capacity - number of array elements allocated for WC_String.str
-
-```c
-typedef struct {
-    wchar_t *str; // Pointer to the string data
-    size_t capacity; // Number of array elements
-} WC_String;
-```
-
----
-
-```c
-typedef struct CC_String
-```
-
-Represents a dynamic array of complex characters (cchar_t)
-capacity - number of array elements allocated for CC_String.str
-
-```c
-typedef struct {
-    wchar_t *str; // Pointer to the string data
-    size_t capacity; // Number of array elements
-} CC_String;
-```
-
----
-
-```c
-String to_string(const char *s)
-```
-
-Creates a new String object from a C-style string.
-
-- Parameters:
-  - `const char *s`: The C-style string to be converted.
-- Returns:
-  - `String`: The newly created String object.
-
----
-
-```c
-String mk_string(size_t l)
-```
-
-Creates a new String object with a specified length.
-
-- Parameters:
-  - `size_t l`: The length of the string to be created.
-  - char \*s: The string data to be assigned to the String object.
-- Returns:
-  - `String`: The newly created String object.
-
-if l is 0, str is set to NULL.
-
----
-
-```c
-void free_string(String s)
-```
-
-Frees the memory allocated for a String object.
-
-- Parameters:
-  - `String s`: The String object to be freed.
-- Returns:
-  - `void`: no return
-
----
-
-```c
-size_t string_cpy(String *d, const char *s)
-```
-
-Copies a C-style string to a String object.
-
-- Parameters:
-  - `String *d`: Pointer to the destination String object.
-  - `const char *s`: The source C-style string to be copied.
-- Returns:
-  - `size_t`: length of resulting string
-
-If the source string is longer than the destination String\'s
-current length, the destination String\'s str pointer is reallocated
-to accommodate the new string.
-
----
-
-```c
-size_t string_cat(String *d, const char *s)
-```
-
-Concatenates a C-style string to a String object.
-
-- Parameters:
-  - `String *d`: Pointer to the destination String object.
-  - `const char *s`: The source C-style string to be concatenated.
-- Returns:
-  - `size_t`: length of resulting string
-
-If the concatenation would result in a string longer than the
-destination String\'s length, the destination String\'s str pointer
-is reallocated.
-
----
-
-```c
-size_t string_ncat(String *d, const char *s, size_t n)
-```
-
-Concatenates up to n characters of a C-style string to a String object.
-Concatenates characters from a source String object to a destination
-String.
-
-- Parameters:
-  - `String *d`: Pointer to the destination String object.
-  - `const char *s`: The source C-style string to be concatenated.
-  - `size_t n`: The maximum number of characters to concatenate.
-- Returns:
-  - `size_t`: length of resulting string
-
-If the resulting string would be longer than the destination String\'s
-length, the destination String\'s str pointer is reallocated.
-
----
-
-```c
-size_t string_ncpy(String *dest, const String *src, size_t n)
-```
-
-Copies up to "n" characters from a C-style string to a destination
-String object.
-
-- Parameters:
-  - `String *dest`: Pointer to the destination String object.
-  - `const String *src`: Pointer to the source String object.
-  - `size_t n`: The maximum number of characters to copy.
-- Returns:
-  - `size_t`: length of resulting string
-
-If the resulting string would be longer than the destination String\'s
-length, the destination String\'s str pointer is reallocated.
-
-===============================================================
-
 ## CHYRON FUNCTIONS
-
----
 
 ### Chyron Overview
 
@@ -1046,6 +1258,10 @@ F Key or clicking on the chyron within the vertical bars separating the
 F Keys.
 
 ![C-Menu Pick Chyron](screenshots/Pick.png)
+
+---
+
+### table key_cmd_tbl
 
 ```c
 struct key_cmd_tbl
@@ -1078,6 +1294,8 @@ Unicode glyphs or other symbols.
 
 ---
 
+### set_fkey
+
 ```c
 void set_fkey(int k, char *s)
 ```
@@ -1093,6 +1311,8 @@ setkey(5, "Calculate");
 
 ---
 
+### unset_fkey
+
 ```c
 void unset_fkey(int k)
 ```
@@ -1105,6 +1325,8 @@ unset_fkey(5);
 ```
 
 ---
+
+### chyron_mk
 
 ```c
 int chyron_mk(key_cmd_tbl *fc, char *s)
@@ -1122,6 +1344,8 @@ information is stored in the structure, key_cmd_tbl.
 
 ---
 
+### get_chyron_key
+
 ```c
 int get_chyron_key(key_cmd_tbl *fc, int x)
 ```
@@ -1134,6 +1358,8 @@ cmdkey = get_chyron_key(&fkey_table, mouse_x);
 ```
 
 ---
+
+### is_set_fkey
 
 ```c
 bool is_set_fkey(int k)
@@ -1148,7 +1374,7 @@ accidentally overwrite it with a new assignment.
 - Returns:
   - `bool`: True if the function key command is set, false otherwise.
 
-===============================================================
+---
 
 ## COLOR FUNCTIONS
 
@@ -1175,6 +1401,8 @@ components. The RGB structure is defined as follows:
 
 ---
 
+### struct RGB
+
 ```c
 typedef struct {
     int r; // Red component (0-255)
@@ -1195,6 +1423,8 @@ ncurses_b = (rgb_b * 1000) / 255;
 
 ---
 
+### get_clr_pair
+
 ```c
 int get_clr_pair(int fg, int bg)
 ```
@@ -1212,6 +1442,8 @@ NCurses to manage color pairs efficiently by reusing existing pairs when possibl
     has been reached.
 
 ---
+
+### get_clr
 
 ```c
 int get_clr(RGB rgb)
@@ -1231,6 +1463,8 @@ if your terminal supports it.
 
 ---
 
+### rgb_to_xterm256_idx
+
 ```c
 int rgb_to_xterm256_idx(RGB rgb)
 ```
@@ -1245,6 +1479,8 @@ palette, which consists of 256 colors.
 
 ---
 
+### xterm256_idx_to_rgb
+
 ```c
 RGB xterm256_idx_to_rgb(int idx)
 ```
@@ -1257,6 +1493,8 @@ Converts an xterm-256 color index to its corresponding RGB color.
   - `RGB`: The RGB color corresponding to the given xterm-256 color index.
 
 ---
+
+### apply_gamma
 
 ```c
 void apply_gama(RGB *rgb)
@@ -1273,6 +1511,8 @@ user can modify this value in the .minitrc configuration.
   - `void`: no return
 
 ---
+
+### init_clr_palette
 
 ```c
 void init_clr_palette(Init *init)
@@ -1298,6 +1538,8 @@ in the configuration file.
 
 ---
 
+### init_hex_color
+
 ```c
 void init_hex_color(int idx, char *s)
 ```
@@ -1313,6 +1555,8 @@ initializes the color at the specified index using the RGB values.
 
 ---
 
+### hex_clr_str_to_rgb
+
 ```c
 RGB hex_clr_str_to_rgb()
 ```
@@ -1320,8 +1564,6 @@ RGB hex_clr_str_to_rgb()
 Converts a hexadecimal color string to an RGB color.
 
 ---
-
-===============================================================
 
 ## INITIALIZATION
 
@@ -1338,6 +1580,10 @@ Init also provides options to dump to stdout or write to ~/menuapp/minitrc.dmp
 the configuration, which may be copied to ~/.minitrc to serve as a new
 configuration file.
 
+---
+
+### mapp_initialization
+
 ```c
 void mapp_initialization(Init *init, int argc, char **argv)
 ```
@@ -1351,6 +1597,8 @@ void mapp_initialization(Init *init, int argc, char **argv)
   - `void`: no return
 
 ---
+
+### parse_opt_args
 
 ```c
 int parse_opt_args(Init *init, int argc, char **argv)
@@ -1375,6 +1623,8 @@ is the purpose of this function.
 
 ---
 
+### parse_config
+
 ```c
 int parse_config(Init *init)
 ```
@@ -1392,6 +1642,8 @@ Parses the C-Menu configuration file, .minitrc, to populate the Init structure.
 
 ---
 
+### zero_opt_args
+
 ```c
 void zero_opt_args(Init *init)
 ```
@@ -1405,3 +1657,5 @@ the next component that calls parse_opt_args, so it needs to be cleared
 before processing another command line for another component. That is
 the purpose of zero_opt_args. It's like the restaurant cleaning the table
 before seating the next customer. 😎
+
+---
