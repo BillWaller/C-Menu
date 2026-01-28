@@ -89,6 +89,8 @@ void view_display_help(View *);
 void cmd_line_prompt(View *, char *);
 void remove_file(View *);
 
+int a_toi(char *s);
+
 char err_msg[MAXLEN];
 
 ///  ╭──────────────────────────────────────────────────────────────╮
@@ -1834,7 +1836,8 @@ int fmt_line(View *view) {
 /// @param cpx is the color pair index output
 /// @return void
 void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
-    char *tok, t0, t1;
+    char *tok;
+    char t0, t1;
     int len, x_idx;
     int fg, bg;
     int fg_clr, bg_clr;
@@ -1857,17 +1860,17 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                     if (tok != NULL && *tok == '5') {
                         tok = strtok(NULL, ";m");
                         if (tok != NULL) {
-                            x_idx = atoi(tok);
+                            x_idx = a_toi(tok);
                             rgb = xterm256_idx_to_rgb(x_idx);
                         }
                     } else {
                         if (tok != NULL && *tok == '2') {
                             tok = strtok(NULL, ";m");
-                            rgb.r = atoi(tok);
+                            rgb.r = a_toi(tok);
                             tok = strtok(NULL, ";m");
-                            rgb.g = atoi(tok);
+                            rgb.g = a_toi(tok);
                             tok = strtok(NULL, ";m");
-                            rgb.b = atoi(tok);
+                            rgb.b = a_toi(tok);
                         }
                     }
                     if (t0 == '3')
@@ -1881,11 +1884,11 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         bg_clr = COLOR_BLACK;
                 } else if (t1 >= '0' && t1 <= '7') {
                     if (t0 == '3') {
-                        x_idx = atoi(&t1);
+                        x_idx = a_toi(&t1);
                         rgb = xterm256_idx_to_rgb(x_idx);
                         fg_clr = rgb_to_curses_clr(rgb);
                     } else if (t0 == '4') {
-                        x_idx = atoi(&t1);
+                        x_idx = a_toi(&t1);
                         rgb = xterm256_idx_to_rgb(x_idx);
                         bg_clr = rgb_to_curses_clr(rgb);
                     }
@@ -1901,7 +1904,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 fg_clr = COLOR_WHITE;
                 bg_clr = COLOR_BLACK;
             } else {
-                switch (atoi(tok)) {
+                switch (a_toi(tok)) {
                 case 1:
                     *attr |= WA_BOLD;
                     break;
@@ -1940,6 +1943,22 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     }
     return;
 }
+
+int a_toi(char *s) {
+    int rc = -1;
+
+    errno = 0;
+    if (s && *s != 0)
+        rc = (int)strtol(s, NULL, 10);
+    if (rc < 0 || errno) {
+        rc = Perror("Invalid ANSI escape sequence");
+        if (rc != KEY_F(9))
+            rc = Perror("Unable to continue");
+        exit(EXIT_FAILURE);
+    }
+    return rc;
+}
+
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ CMD_LINE_PROMPT                                              │
 ///  ╰──────────────────────────────────────────────────────────────╯
