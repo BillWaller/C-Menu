@@ -10,6 +10,36 @@
 
 [New: Configuration Snippets](snippets.md)
 
+## Table of Contents
+
+<!-- mtoc-start -->
+
+- [C-Menu Menu, Form, Pick, View, RSH, and C-Keys](#c-menu-menu-form-pick-view-rsh-and-c-keys)
+  - [C-Menu Menu](#c-menu-menu)
+  - [C-Menu C-Keys - Diagnose Keyboard/Mouse Input](#c-menu-c-keys---diagnose-keyboardmouse-input)
+  - [C-Menu Pick - A Picker](#c-menu-pick---a-picker)
+  - [C-Menu Form for Data Entry and Editing](#c-menu-form-for-data-entry-and-editing)
+  - [C-Menu Form Key Features](#c-menu-form-key-features)
+  - [C-Menu Form Data Types](#c-menu-form-data-types)
+  - [C-Menu Sample Menu Description File](#c-menu-sample-menu-description-file)
+  - [C-Menu View](#c-menu-view)
+    - [Log File With Editor](#log-file-with-editor)
+    - [Screenshot of the Same File With C-Menu View](#screenshot-of-the-same-file-with-c-menu-view)
+  - [C-Menu View and Color Manual Pages](#c-menu-view-and-color-manual-pages)
+  - [Example Manual Page Using Editor](#example-manual-page-using-editor)
+  - [Example C-Menu Manual Page](#example-c-menu-manual-page)
+  - [Demand Paged Virtual Address Space](#demand-paged-virtual-address-space)
+  - [C-Menu View - Other Features](#c-menu-view---other-features)
+  - [C-Menu 3-Channel Gamma Correction](#c-menu-3-channel-gamma-correction)
+- [RSH](#rsh)
+  - [Maintaining Security with RSH](#maintaining-security-with-rsh)
+- [C-Menu Features](#c-menu-features)
+- [C-Menu Configuration](#c-menu-configuration)
+- [C-Menu Installation](#c-menu-installation)
+- [MIT License](#mit-license)
+
+<!-- mtoc-end -->
+
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 
 ![C-Menu](screenshots/minitrc.png)
@@ -258,7 +288,7 @@ man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
 
 ![Manual Page With C-Menu View](screenshots/man-page.png)
 
-### C-Menu View - Demand Paged Virtual Address Space
+### Demand Paged Virtual Address Space
 
 - C-Menu View doesn't employ seek and read operations in a complicated
   buffering scheme. There is a better way.
@@ -340,11 +370,9 @@ green, and blue components are of equal value.
 [Bezold-Brücke hue shift](https://pubmed.ncbi.nlm.nih.gov/6534013/)
 [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/)
 
-#### VIEW \~/.menuapp/help/view.help
-
 ![C-Menu View Help File](screenshots/view-help.png)
 
-#### That's a Bobby Dazzler
+- That's a Bobby Dazzler
 
 (Australian TV show)
 

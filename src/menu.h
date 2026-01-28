@@ -213,61 +213,6 @@ extern cchar_t CCC_REVERSE;
 #define KEY_ALTUP 0x23d
 #define KEY_ALTDOWN 0x214
 #define KEY_ALTR 0x12d
-// enum {
-//     KEY_CTLA = 0x001,
-//     KEY_CTLB,
-//     KEY_CTLC,
-//     KEY_CTLD,
-//     KEY_CTLE,
-//     KEY_CTLF,
-//     KEY_CTLG,
-//     KEY_CTLH,
-//     KEY_CTLI,
-//     KEY_CTLJ,
-//     KEY_CTLK,
-//     KEY_CTLL,
-//     KEY_CTLM,
-//     KEY_CTLN,
-//     KEY_CTLO,
-//     KEY_CTLP,
-//     KEY_CTLQ,
-//     KEY_CTLR,
-//     KEY_CTLS,
-//     KEY_CTLT,
-//     KEY_CTLU,
-//     KEY_CTLV,
-//     KEY_CTLW,
-//     KEY_CTLX,
-//     KEY_CTLY,
-//     KEY_CTLZ,
-//     KEY_ALT0 = 0x60,
-//     KEY_ALTA,
-//     KEY_ALTB,
-//     KEY_ALTC,
-//     KEY_ALTD,
-//     KEY_ALTE,
-//     KEY_ALTF,
-//     KEY_ALTG,
-//     KEY_ALTH,
-//     KEY_ALTI,
-//     KEY_ALTJ,
-//     KEY_ALTK,
-//     KEY_ALTL,
-//     KEY_ALTM,
-//     KEY_ALTN,
-//     KEY_ALTO,
-//     KEY_ALTP,
-//     KEY_ALTQ,
-//     KEY_ALTR,
-//     KEY_ALTS,
-//     KEY_ALTT,
-//     KEY_ALTU,
-//     KEY_ALTV,
-//     KEY_ALTW,
-//     KEY_ALTX,
-//     KEY_ALTY,
-//     KEY_ALTZ,
-// };
 
 typedef struct {
     char text[32];
@@ -276,29 +221,7 @@ typedef struct {
 } key_cmd_tbl;
 
 extern key_cmd_tbl key_cmd[20];
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ COLOR PROCESSING                                              │
-/// ╰───────────────────────────────────────────────────────────────╯
-// enum Color {
-//     black,
-//     red,
-//     green,
-//     yellow,
-//     blue,
-//     magenta,
-//     cyan,
-//     white,
-//     bblack,
-//     bred,
-//     bgreen,
-//     byellow,
-//     bblue,
-//     bmagenta,
-//     bcyan,
-//     bwhite,
-//     orange
-// };
-//
+
 typedef struct {
     int r;
     int g;
