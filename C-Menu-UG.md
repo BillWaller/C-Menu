@@ -1,6 +1,6 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
-## C-Menu User Guide - Table of Contents
+## Table of Contents
 
 <!-- mtoc-start -->
 

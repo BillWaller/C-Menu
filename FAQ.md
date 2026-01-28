@@ -1,6 +1,6 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
-## FAQ - Table of Contents
+## Table of Contents
 
 - [TrueColor Support](#truecolor-support)
 - [Why View Displays Question Marks](#why-view-displays-question-marks)
