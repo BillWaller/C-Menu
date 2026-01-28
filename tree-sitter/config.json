@@ -9,43 +9,43 @@
 			"italic": true
 		},
 		"comment": {
-			"color": "#c0c0c0",
+			"color": "#a0a0a0",
 			"italic": true
 		},
-		"constant": "#00ff00",
+		"constant": "#00b0ff",
 		"constant.builtin": {
 			"bold": true,
 			"color": "#f000f0"
 		},
 		"constructor": "#00ffbf",
 		"embedded": null,
-		"function": "#ff5f00",
-		"function_definition": "#f0f000",
-		"function_declaration": "#f0f000",
+		"function": "#ff4f00",
+		"function_definition": "#f07070",
+		"function_declaration": "#70b0f0",
 		"function.builtin": {
 			"bold": true,
-			"color": "#f0f000"
+			"color": "#d070ff"
 		},
-		"keyword": "#00afff",
+		"keyword": "#00b07f",
 		"module": "#0000f0",
 		"number": {
 			"bold": true,
-			"color": "#f0cf00"
+			"color": "#ffaf90"
 		},
 		"operator": {
 			"bold": true,
-			"color": "#f000f0"
+			"color": "#ff00ff"
 		},
-		"property": "#ffcf00",
+		"property": "#00b0ff",
 		"property.builtin": {
 			"bold": true,
-			"color": "#ffcf00"
+			"color": "#ff4f00"
 		},
 		"punctuation": "#f000f0",
 		"punctuation.bracket": "#f000f0",
 		"punctuation.delimiter": "#f000f0",
 		"punctuation.special": "#f000f0",
-		"string": "#00ff80",
+		"string": "#90c0ff",
 		"string.special": "#f07fff",
 		"tag": "#ff0000",
 		"type": "#3fefff",
@@ -53,7 +53,7 @@
 			"bold": true,
 			"color": "#ff5070"
 		},
-		"variable": "#00d050",
+		"variable": "#f09040",
 		"variable.builtin": {
 			"bold": true,
 			"color": "#00d050"

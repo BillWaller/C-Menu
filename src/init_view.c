@@ -117,7 +117,7 @@ int init_view_boxwin(Init *init, char *title) {
         display_error(em0, em1, em2, NULL);
         return -1;
     }
-    wbkgrnd(view->win, &CCC_BOX);
+    wbkgrnd(view->win, &CCC_NORM);
     set_tabsize(view->tab_stop);
     wsetscrreg(view->win, 0, view->scroll_lines - 1);
     scrollok(view->win, true);

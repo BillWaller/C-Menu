@@ -1765,7 +1765,7 @@ int fmt_line(View *view) {
             } else if (in_str[i + len - 1] == 'K') {
                 i += len;
                 continue;
-            } else if (len == 4 && in_str[i + len - 1] == 'm') {
+            } else if (len == 3 && in_str[i + len - 1] == 'm') {
                 ansi_tok[0] = '\033';
                 ansi_tok[1] = '[';
                 ansi_tok[2] = '0';
@@ -1834,200 +1834,108 @@ int fmt_line(View *view) {
 /// @param cpx is the color pair index output
 /// @return void
 void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
-    char *tok;
+    char *tok, t0, t1;
     int len, x_idx;
-    bool f_fg = false, f_bg = false;
     int fg, bg;
-    // fg and bg are curses color numbers
     int fg_clr, bg_clr;
     char *ansi_p = ansi_str + 2;
-    extended_pair_content(*cpx, &fg, &bg);
+    extended_pair_content(*cpx, &fg_clr, &bg_clr);
+    fg = fg_clr;
+    bg = bg_clr;
     RGB rgb;
+    tok = strtok((char *)ansi_p, ";m");
     while (1) {
-        tok = strtok((char *)ansi_p, ";m");
         if (tok == NULL || *tok == '\0')
             break;
-        ansi_p = NULL;
         len = strlen(tok);
         if (len == 2) {
-            if (tok[0] == '3' && tok[1] == '8') {
-                //  ╭───────────────────────────────────────────────╮
-                //  │ 38 - FOREGROUND                               │
-                //  ╰───────────────────────────────────────────────╯
-                tok = strtok((char *)ansi_p, ";m");
-                ansi_p = 0;
-                if (tok != NULL && strcmp(tok, "5") == 0) {
-                    //  ╭───────────────────────────────────────────╮
-                    //  │ 5 - Xterm 256 COLOR PALETTE               │
-                    //  ╰───────────────────────────────────────────╯
-                    tok = strtok((char *)ansi_p, ";m");
-                    ansi_p = NULL;
-                    if (tok != NULL) {
-                        //  ╭───────────────────────────────────────╮
-                        //  │ XTERM_IDX_TO_RGB                      │
-                        //  ╰───────────────────────────────────────╯
-                        x_idx = atoi(tok);
+            t0 = tok[0];
+            t1 = tok[1];
+            if (t0 == '3' || t0 == '4') {
+                if (t1 == '8') {
+                    tok = strtok(NULL, ";m");
+                    if (tok != NULL && *tok == '5') {
+                        tok = strtok(NULL, ";m");
+                        if (tok != NULL) {
+                            x_idx = atoi(tok);
+                            rgb = xterm256_idx_to_rgb(x_idx);
+                        }
+                    } else {
+                        if (tok != NULL && *tok == '2') {
+                            tok = strtok(NULL, ";m");
+                            rgb.r = atoi(tok);
+                            tok = strtok(NULL, ";m");
+                            rgb.g = atoi(tok);
+                            tok = strtok(NULL, ";m");
+                            rgb.b = atoi(tok);
+                        }
+                    }
+                    if (t0 == '3')
+                        fg_clr = rgb_to_curses_clr(rgb);
+                    else if (t0 == '4')
+                        bg_clr = rgb_to_curses_clr(rgb);
+                } else if (t1 == '9') {
+                    if (t0 == '3')
+                        fg_clr = COLOR_WHITE;
+                    else if (t0 == '4')
+                        bg_clr = COLOR_BLACK;
+                } else if (t1 >= '0' && t1 <= '7') {
+                    if (t0 == '3') {
+                        x_idx = atoi(&t1);
                         rgb = xterm256_idx_to_rgb(x_idx);
                         fg_clr = rgb_to_curses_clr(rgb);
-                    }
-                } else {
-                    if (tok != NULL && strcmp(tok, "2") == 0) {
-                        //  ╭───────────────────────────────────────╮
-                        //  │ 2 - RGB 16,777,216 COLOR PALETTE      │
-                        //  ╰───────────────────────────────────────╯
-                        tok = strtok((char *)ansi_p, ";m");
-                        ansi_p = NULL;
-                        rgb.r = atoi(tok);
-                        tok = strtok((char *)ansi_p, ";m");
-                        ansi_p = NULL;
-                        rgb.g = atoi(tok);
-                        tok = strtok((char *)ansi_p, ";m");
-                        ansi_p = NULL;
-                        rgb.b = atoi(tok);
-                        // x_idx = rgb_to_xterm256_idx(rgb);
-                        // if (fg != x_idx) {
-                        //     fg = x_idx;
-                        //     f_fg = true;
-                        // }
-                        fg_clr = rgb_to_curses_clr(rgb);
-                    }
-                }
-                if (fg_clr != fg) {
-                    fg = fg_clr;
-                    f_fg = true;
-                }
-
-            } else if (tok[0] == '4' && tok[1] == '8') {
-                //  ╭───────────────────────────────────────────────╮
-                //  │ 48 - BACKGROUND                               │
-                //  ╰───────────────────────────────────────────────╯
-                tok = strtok((char *)ansi_p, ";m");
-                ansi_p = NULL;
-                if (tok != NULL && strcmp(tok, "5") == 0) {
-                    //  ╭───────────────────────────────────────────╮
-                    //  │ 5 - Xterm 256 COLOR PALETTE               │
-                    //  ╰───────────────────────────────────────────╯
-                    tok = strtok((char *)ansi_p, ";m");
-                    ansi_p = NULL;
-                    if (tok != NULL) {
-                        //  ╭───────────────────────────────────────╮
-                        //  │ XTERM_IDX_TO_RGB                      │
-                        //  ╰───────────────────────────────────────╯
-                        int x_idx = atoi(tok);
+                    } else if (t0 == '4') {
+                        x_idx = atoi(&t1);
                         rgb = xterm256_idx_to_rgb(x_idx);
                         bg_clr = rgb_to_curses_clr(rgb);
                     }
-                } else {
-                    if (tok != NULL && strcmp(tok, "2") == 0) {
-                        //  ╭───────────────────────────────────────╮
-                        //  │ 2 - RGB 16,777,216 COLOR PALETTE      │
-                        //  ╰───────────────────────────────────────╯
-                        tok = strtok((char *)ansi_p, ";m");
-                        ansi_p = NULL;
-                        rgb.r = atoi(tok);
-                        tok = strtok((char *)ansi_p, ";m");
-                        ansi_p = NULL;
-                        rgb.g = atoi(tok);
-                        tok = strtok((char *)ansi_p, ";m");
-                        ansi_p = NULL;
-                        rgb.b = atoi(tok);
-                        // x_idx = rgb_to_xterm256_idx(rgb);
-                        // if (bg != x_idx) {
-                        //    bg = x_idx;
-                        //    f_bg = true;
-                        // }
-                        bg_clr = rgb_to_curses_clr(rgb);
-                    }
                 }
-                if (bg_clr != bg) {
-                    bg = bg_clr;
-                    f_bg = true;
-                }
-            } else if (tok[0] == '3' && tok[1] == '9') {
-                if (fg != COLOR_WHITE) {
-                    fg = COLOR_WHITE;
-                    f_fg = true;
-                }
-            } else if (tok[0] == '4' && tok[1] == '9') {
-                if (bg != COLOR_BLACK) {
-                    bg = COLOR_BLACK;
-                    f_bg = true;
-                }
-            } else if ((tok[0] == '3' || tok[0] == '4') && tok[1] >= '0' &&
-                       tok[1] <= '7') {
-                // ╭───────────────────────────────────────────────╮
-                // │ 30-37 / 40-47 - 16 COLOR PALETTE              │
-                // ╰───────────────────────────────────────────────╯
-                if (tok[0] == '3') {
-                    x_idx = atoi(&tok[1]);
-                    rgb = xterm256_idx_to_rgb(x_idx);
-                    fg_clr = rgb_to_curses_clr(rgb);
-                    if (fg_clr != fg) {
-                        fg = fg_clr;
-                        f_fg = true;
-                    }
-                } else if (tok[0] == '4') {
-                    x_idx = atoi(&tok[1]);
-                    rgb = xterm256_idx_to_rgb(x_idx);
-                    bg_clr = rgb_to_curses_clr(rgb);
-                    if (bg_clr != bg) {
-                        bg = bg_clr;
-                        f_bg = true;
-                    }
-                }
-            } else if (tok[0] == '0' && tok[1] == '1') {
-                *attr = WA_BOLD;
-            } else if (tok[0] == '0' && tok[1] == '2') {
-                *attr = WA_REVERSE;
-            } else if (tok[0] == '0' && tok[1] == '3') {
-                *attr = WA_ITALIC;
+            } else if (t0 == '0') {
+                *tok = t1;
+                len = 1;
             }
-        } else if (len == 1) {
-            // ╭────────────────────────────────────────────────────╮
-            // │ 0-9 - TEXT ATTRIBUTES                              │
-            // ╰────────────────────────────────────────────────────╯
-            if (tok[0] == '0') {
+        }
+        if (len == 1) {
+            if (*tok == '0') {
                 *attr = WA_NORMAL;
-                if (fg != COLOR_WHITE) {
-                    fg = COLOR_WHITE;
-                    f_fg = true;
-                }
-                if (bg != COLOR_BLACK) {
-                    bg = COLOR_BLACK;
-                    f_bg = true;
-                }
+                fg_clr = COLOR_WHITE;
+                bg_clr = COLOR_BLACK;
             } else {
-                if (tok[0] == '1')
-                    *attr = WA_BOLD;
-                else if (tok[0] == '2')
-                    *attr = WA_REVERSE;
-                else if (tok[0] == '3')
-                    *attr = WA_ITALIC;
+                switch (atoi(tok)) {
+                case 1:
+                    *attr |= WA_BOLD;
+                    break;
+                case 2:
+                    *attr |= WA_DIM;
+                    break;
+                case 3:
+                    *attr |= WA_ITALIC;
+                    break;
+                case 4:
+                    *attr |= WA_UNDERLINE;
+                    break;
+                case 5:
+                    *attr |= WA_BLINK;
+                    break;
+                case 7:
+                    *attr |= WA_REVERSE;
+                    break;
+                case 8:
+                    *attr |= WA_INVIS;
+                    break;
+                default:
+                    break;
+                }
             }
         } else if (len == 0) {
             *attr = WA_NORMAL;
-            if (fg != COLOR_WHITE) {
-                fg = COLOR_WHITE;
-                f_fg = true;
-            }
-            if (bg != COLOR_BLACK) {
-                bg = COLOR_BLACK;
-                f_bg = true;
-            }
+            fg_clr = COLOR_WHITE;
+            bg_clr = COLOR_BLACK;
         }
+        tok = strtok(NULL, ";m");
     }
-    // ╭────────────────────────────────────────────────────────────╮
-    // │ UPDATE COLOR PAIRS                                         │
-    // │ APPLY GAMMA CORRECTION                                     │
-    // ╰────────────────────────────────────────────────────────────╯
-    /// Update Color Pair if Needed
-    /// fg and bg are NCurses color numbers
-    if (f_fg != true)
-        extended_color_content(fg, &rgb.r, &rgb.g, &rgb.b);
-    if (f_bg != true)
-        extended_color_content(bg, &rgb.r, &rgb.g, &rgb.b);
-    if (f_fg == true || f_bg == true) {
-        clr_pair_idx = get_clr_pair(fg, bg);
+    if (fg_clr != fg || bg_clr != bg) {
+        clr_pair_idx = get_clr_pair(fg_clr, bg_clr);
         *cpx = clr_pair_idx;
     }
     return;
@@ -2068,9 +1976,9 @@ void remove_file(View *view) {
             remove(view->cur_file_str);
     }
 }
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ VIEW_DISPLAY_HELP                                            │
-///  ╰──────────────────────────────────────────────────────────────╯
+///  ╭──────────────────────────────────────────────────────────╮
+///  │ VIEW_DISPLAY_HELP                                        │
+///  ╰──────────────────────────────────────────────────────────╯
 /// Display View Help File
 void view_display_help(View *view) {
     int begy, begx;
