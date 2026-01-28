@@ -33,6 +33,7 @@ void sig_dfl_mode() {
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTERM, &sa, NULL);
     sigaction(SIGQUIT, &sa, NULL);
+    sigaction(SIGSEGV, &sa, NULL);
 }
 
 void sig_prog_mode() {
@@ -54,6 +55,10 @@ void sig_prog_mode() {
         abend(-1, "sigaction SIGQUIT failed");
         exit(EXIT_FAILURE);
     }
+    if (sigaction(SIGSEGV, &sa, NULL) == -1) {
+        abend(-1, "sigaction SIGSEGV failed");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void signal_handler(int sig_num) {
@@ -63,6 +68,8 @@ void signal_handler(int sig_num) {
         sig_received = SIGTERM;
     } else if (sig_num == SIGQUIT) {
         sig_received = SIGQUIT;
+    } else if (sig_num == SIGSEGV) {
+        sig_received = SIGSEGV;
     }
 }
 
@@ -80,6 +87,10 @@ int handle_signal(int sig_num) {
         break;
     case SIGQUIT:
         msg = "SIGQUIT - Quit from keyboard";
+        return KEY_F(9);
+        break;
+    case SIGSEGV:
+        msg = "SIGSEGV - Segmentation fault";
         return KEY_F(9);
         break;
     default:
