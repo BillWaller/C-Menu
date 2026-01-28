@@ -31,6 +31,7 @@
   - [Demand Paged Virtual Address Space](#demand-paged-virtual-address-space)
   - [C-Menu View - Other Features](#c-menu-view---other-features)
   - [C-Menu 3-Channel Gamma Correction](#c-menu-3-channel-gamma-correction)
+  - [Gray Gamma](#gray-gamma)
 - [RSH](#rsh)
   - [Maintaining Security with RSH](#maintaining-security-with-rsh)
 - [C-Menu Features](#c-menu-features)
@@ -39,6 +40,8 @@
 - [MIT License](#mit-license)
 
 <!-- mtoc-end -->
+
+---
 
 ## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
 
@@ -105,6 +108,8 @@ C-Menu C-Keys also provides diagnostics for mouse actions and geometry.
 
 Just add hot water, stir, and Bob's your uncle, you have soup! 😀
 
+---
+
 ### C-Menu Pick - A Picker
 
 ![C-Menu Pick](screenshots/Pick.png)
@@ -167,6 +172,8 @@ simplify the process of creating, validating, and managing forms.
 It provides a straightforward API for defining form fields, handling
 user input, and performing validation checks.
 
+---
+
 ### C-Menu Form Key Features
 
 - Easy Form Creation: Define forms with various field types such as
@@ -179,6 +186,8 @@ user input, and performing validation checks.
   custom field types and validation rules.
 - Integration: Designed to work well with other components of the C
   -Menu Project, enabling a cohesive development experience.
+
+---
 
 ### C-Menu Form Data Types
 
@@ -258,6 +267,8 @@ with large text files, like system logs. C-Menu View can open and
 display multi-gigabyte text files almost instantaneously. Seek from
 beginning to end of a 1 gigabyte file takes a few milliseconds.
 
+---
+
 ### C-Menu View and Color Manual Pages
 
 C-Menu View can also be used as a pager for manual pages. By setting the
@@ -280,13 +291,47 @@ your terminal:
 man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
 ```
 
+---
+
 ### Example Manual Page Using Editor
 
 ![Manual Page With Editor](screenshots/nvim-man-page.png)
 
+---
+
 ### Example C-Menu Manual Page
 
 ![Manual Page With C-Menu View](screenshots/man-page.png)
+
+For the screenshot above, I used the "Man" command, which is a function
+in my .bashrc.
+
+```bash
+Man() {
+    man -Tutf8 "$@" | sed -f ~/menuapp/msrc/man.sed | view
+}
+```
+
+This function formats the manual page for UTF-8 output, pipes
+it through the colorizing sed script, and then opens it in C-Menu View.
+
+```sed
+s/\[1m/\[36;1m/g
+s/\[2m/\[35;2m/g
+s/\[3m/\[33;3m/g
+s/\[4m/\[31;3;1m/g
+s/\[22m/\[22;0m/g
+s/\[23m/\[23;0m/g
+s/\[24m/\[24;0m/g
+```
+
+I don't know about you, but I find colorized manual pages much easier to
+read. The different text styles help to distinguish between various
+elements, making it easier to find the information I need. I also modified
+the underline ([4m]) to red-italics-bold ([31;3;1m) because I find that
+easier to read.
+
+---
 
 ### Demand Paged Virtual Address Space
 
@@ -303,6 +348,8 @@ man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
   buffer management schemes, not for view. The following snippet includes
 
 "all" of View's file I-O on lines 22 and 12.
+
+---
 
 ![C-Menu View File I/O](screenshots/file-io.png)
 In technical parlance, I'll explain precisely how it works. See if
@@ -329,6 +376,8 @@ This approach eliminates the need for explicit read and seek
 operations, and copying data to the processes memory, resulting in
 faster access times and reduced overhead.
 
+---
+
 ### C-Menu View - Other Features
 
 Horizontal scrolling for long lines. C-Menu View writes output to a
@@ -343,6 +392,8 @@ bold, italic, underline, reverse, and foreground and background colors.
 NCurses can display more than 16 million colors.
 
 C-Menu View supports mouse wheel vertical scrolling.
+
+---
 
 ### C-Menu 3-Channel Gamma Correction
 
@@ -361,14 +412,22 @@ and blue.
 
 ![RGB Gamma Correction](screenshots/gamma1.png)
 
-In the image below, gray gamma is used to make comments more visible. Gray
-gamma, as you might guess, applies to shades of gray, colors in which red,
-green, and blue components are of equal value.
+![More Gamma Correction](screenshots/gamma2.png)
+The image on the left, above is a source file highlighted with bat. It
+seems a little dark and difficult to read. No problem. Crank up the gamma
+in C-Menu View and Winner Winner Chicken Dinner!
 
-![Gray Gamma Correction](screenshots/gamma2.png)
+---
+
+### Gray Gamma
+
+Gray gamma, as you might guess, applies to shades of gray, colors in which
+red, green, and blue components are of equal value.
 
 [Bezold-Brücke hue shift](https://pubmed.ncbi.nlm.nih.gov/6534013/)
 [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/)
+
+---
 
 ![C-Menu View Help File](screenshots/view-help.png)
 
@@ -499,9 +558,11 @@ To install C-Menu, simply download the source code from the repository
 and follow the installation instructions provided in the
 [C-Menu User's Guide](C-Menu-UG.md).
 
+---
+
 ## MIT License
 
-```text
+```md
 MIT License
 
 Copyright (c) 2025 William Dudley (Bill) Waller
@@ -516,11 +577,12 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
 ```
