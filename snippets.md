@@ -1,7 +1,5 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
-# C-Menu Configuration Snippets
-
 ## Table of Contents
 
 <!-- mtoc-start -->
