@@ -4,7 +4,23 @@
 
 ## Table of Contents
 
+<!-- mtoc-start -->
+
 - [C-Menu bashrc Configuration](#c-menu-bashrc-configuration)
+  - [Shell Logging](#shell-logging)
+  - [Prepend Path](#prepend-path)
+  - [Helpful C-Menu Environment Variables](#helpful-c-menu-environment-variables)
+  - [Security Through Obscurity](#security-through-obscurity)
+  - [RSH Helpers](#rsh-helpers)
+  - [Privilege Indicator Shell Prompts](#privilege-indicator-shell-prompts)
+  - [Terminal and Editor Settings](#terminal-and-editor-settings)
+  - [GDB Debugging Setup](#gdb-debugging-setup)
+  - [If You Can't Stop Typing "vi"](#if-you-cant-stop-typing-vi)
+  - [C-Menu Startup with "mm"](#c-menu-startup-with-mm)
+  - [Curses Escape Delay](#curses-escape-delay)
+  - [Use lsd instead of ls](#use-lsd-instead-of-ls)
+  - [Locale Settings](#locale-settings)
+  - [System Specific Environment Variables](#system-specific-environment-variables)
 - [C-Menu Configuration](#c-menu-configuration)
 - [Terminal Configurations](#terminal-configurations)
   - [Ghostty](#ghostty)
@@ -12,6 +28,8 @@
   - [Alacritty](#alacritty)
 - [Tree-Sitter](#tree-sitter)
   - [Tree-Sitter config.json](#tree-sitter-configjson)
+
+<!-- mtoc-end -->
 
 ## C-Menu bashrc Configuration
 

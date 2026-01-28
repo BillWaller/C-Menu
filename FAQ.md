@@ -1,4 +1,4 @@
-# ![Menu](screenshots/Menu.png)
+# ![C-Menu](screenshots/C-Menu.png)
 
 ## FAQ - Table of Contents
 
@@ -40,41 +40,63 @@ awk 'BEGIN{
 }'
 ```
 
-If your terminal supports TrueColor, you should see a smooth gradient
-of colors from red to green to blue. If you see a limited number of
-colors or a blocky gradient, your terminal may not support true color.
+The above script is from:
+
+[GitHub Terminal Colors](https://github.com/termstandard/colors)
+
+If your terminal hardware supports TrueColor, you should see a smooth
+gradient of colors from red to green to blue. If you see a limited
+number of colors or a blocky gradient, your terminal may not support
+true color.
 
 ![TrueColor](screenshots/truecolor.png)
 
-Another way to check is to type:
+You can also check the COLORTERM environment variable by typing:
+
+```bash
+    echo $COLORTERM
+    truecolor
+```
+
+If the output is "truecolor" or "24bit", your terminal hardware
+supports TrueColor. For most situations, this is sufficient to confirm
+TrueColor support, and further checks are not generally not
+beneficial or necessary.
+
+Even if your terminal hardware supports TrueColor, your terminfo
+may not. Keep in mind that the number of colors set in terminfo
+only affects applications that choose to use it. A terminfo setting
+of 256 colors does not limit which of the 16M colors an NCurses
+application can display, but only the number of color pairs that
+can be displayed simultaneously.
+
+Note: The remainder of this section takes a deep dive into a rabbit
+hole that most users will not benefit from exploring. If your terminal
+hardware supports TrueColor, and the COLORTERM variable indicates
+TrueColor support, you needn't continue reading.
+
+You can check your terminfo color capabilities by typing:
 
 ```bash
     tput colors
 ```
 
-If the output is 16777216, your terminal supports true color.
+If the output is 16777216, your terminfo supports TrueColor.
 
-You can also type:
-
-```bash
-    echo $COLORTERM
-```
-
-If the output is "Truecolor" or "24bit", your terminal supports true
-color.
-
-If your hardware supports TrueColor, but the above indicators report only
-256 colors or less, you may need to set the TERM variable to a value
+Even if your hardware supports TrueColor, but the above indicators
+report only 256 colors or less, you can set the TERM variable to a value
 that supports Truecolor. For example, you can set the TERM variable to
-"xterm-direct" by adding the following line to your ~/.bashrc or ~/.zshrc file:
+"xterm-direct" by adding the following line to your
+~/.bashrc or ~/.zshrc file:
 
 ```bash
 export TERM=xterm-direct
 ```
 
-Note: When I tried xterm-direct, I found that it does indeed support 16M
-colors and 65K color pairs, but it fails to set "Can-Change-Color" ("ccc")
-to true. That work with Menu because it allows the user to define colors.
+The caveat is that xterm-direct and other terminfo files may come with
+limitations. For example, I have found that xterm-direct, lacks the "ccc"
+(Can-Change-Color) flag. This flag is advisory only for applications
+that choose to use it.
 
 I use one of::
 
@@ -84,20 +106,32 @@ export TERM=xterm-kitty
 export TERM=xterm-bw
 ```
 
-xterm-bw is xterm-256color modified to support 16M colors and 65K color
-pairs. You can create your own custom terminfo entry using infocmp and tic.
+You can create your own custom terminfo entry using infocmp and tic,
+but beware. Terminfo is a complex and sometimes arcane system, and not all
+applications will work properly with custom entries.
 
-For some reason, both the Ghostty and Kitty terminfo files set Number
-of Colors to 256, and that is perfectly understandable considering that:
+Both the Ghostty and Kitty terminfo files set Number of Colors to 256,
+and that is perfectly understandable considering that:
 
-1. A terminal emulator primarily deals with character cells, and 256 colors
-   is generally more than adequate.
-2. Neither Ghostty nor Kitty rely on NCurses for color management, so it is
-   likely they get their limits directly from hardware instead of terminfo.
+1. While 16M colors are beneficial for applications like image viewers and
+   video players, most terminal applications do not require that level
+   of color depth.
+1. A terminfo setting of 256 colors does not limit the number of colors
+   that can be displayed by an image viewing application.
+1. A terminfo setting of 256 colors does not limit which of the 16M colors
+   C-Menu can display, but only the number of colors that can be displayed
+   simultaneously.
+1. Because terminal emulators, and therefore C-Menu, operate on character
+   cells, 256 colors is far more than adequate.
+1. Neither Ghostty nor Kitty rely on NCurses for color management, so it is
+   unlikely they are limited by the content of terminfo.
+1. Setting Number of Colors to 256 ensures compatibility with applications
+   that expect a standard 256-color terminal.
 
-If you need more than 256 colors, you can get around this issue by using
-infocmp to create a custom terminfo entry that specifies higher color
-capabilities. Here is an example of how to do this:
+If you are determined to have more than 256 colors at one time, you can
+get around this issue by using infocmp to create a custom terminfo entry
+that specifies higher color capabilities. Here is an example of how to
+do this, but it is not recommended.
 
 ```bash
 infocmp xterm-256color > xterm-myterm.ti
@@ -124,10 +158,7 @@ export TERM=xterm-myterm
 You can also refer to this helpful list of terminals and their color
 support:
 
-[https://gist.github.com/XVilka/8346728](https://gist.github.com/XVilka/8346728)
-
-If your terminal still does not support true color, you can try using a
-different terminal emulator that does, such as Alacritty, Kitty, or Ghostty.
+[GitHub Terminal Colors](https://github.com/termstandard/colors)
 
 ---
 
