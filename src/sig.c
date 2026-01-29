@@ -80,18 +80,15 @@ int handle_signal(int sig_num) {
     switch (sig_num) {
     case SIGINT:
         msg = "SIGINT - Interrupt from keyboard";
-        return KEY_F(9);
         break;
     case SIGTERM:
         msg = "SIGTERM - Termination signal";
         break;
     case SIGQUIT:
         msg = "SIGQUIT - Quit from keyboard";
-        return KEY_F(9);
         break;
     case SIGSEGV:
         msg = "SIGSEGV - Segmentation fault";
-        return KEY_F(9);
         break;
     default:
         msg = "unknown signal";
@@ -114,7 +111,6 @@ int handle_signal(int sig_num) {
             read(0, &c, 1);
             to_uppercase(c);
             if (c == 'Y') {
-                msg = "\nExiting program now.\n";
                 destroy_init(init);
                 win_del();
                 destroy_curses();

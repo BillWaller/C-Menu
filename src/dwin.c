@@ -373,8 +373,9 @@ void open_curses(Init *init) {
     idlok(stdscr, false);
     idcok(stdscr, false);
     wbkgrndset(stdscr, &CCC_NORM);
-    rc = extended_pair_content(cp_norm, &fg_color, &bg_color);
-    rc = extended_color_content(fg_color, &frgb.r, &frgb.g, &frgb.b);
+    extended_pair_content(cp_norm, &fg_color, &bg_color);
+
+    extended_color_content(fg_color, &frgb.r, &frgb.g, &frgb.b);
     rc = extended_color_content(bg_color, &brgb.r, &brgb.g, &brgb.b);
     if (rc == ERR) {
         destroy_curses();
@@ -1158,8 +1159,8 @@ int xwgetch(WINDOW *win) {
         if (c != ERR)
             break;
         else if (errno == EINTR) {
-            c = handle_signal(sig_received);
-            return -1;
+            handle_signal(sig_received);
+            return c;
         } else
             errno = 0;
     }
