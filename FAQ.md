@@ -2,20 +2,30 @@
 
 ## Table of Contents
 
+<!-- mtoc-start -->
+
 - [TrueColor Support](#truecolor-support)
+- [View is Displaying ANSI Codes](#view-is-displaying-ansi-codes)
 - [Why View Displays Question Marks](#why-view-displays-question-marks)
 - [View - How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
 - [View - How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
 - [View - How to Customize Colors](#view---how-to-customize-colors)
 - [Menu, Form, Pick, and View API](#menu-form-pick-and-view-api)
 - [View - How to Use Tree-Sitter with View](#view---how-to-use-tree-sitter-with-view)
+- [Install Tree-Sitter-CLI](#install-tree-sitter-cli)
+  - [Download From GitHub](#download-from-github)
 - [Menu Form - Integrating External Executables](#menu-form---integrating-external-executables)
 - [Menu - Using the Installment Loan Calculator](#menu---using-the-installment-loan-calculator)
+- [Menu Form - Line Type Specifiers](#menu-form---line-type-specifiers)
+- [Menu Form - Field Delimiters](#menu-form---field-delimiters)
+- [Menu Form - Data Types](#menu-form---data-types)
 - [Menu - Interprocess Communications](#menu---interprocess-communications)
-- [Menu - What Happened to Delete by Inode](#menu---what-happened-to-delete-by-inode)
+- [What Happened to Delete by Inode](#what-happened-to-delete-by-inode)
 - [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
 - [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
 - [View In a Box Window](#view-in-a-box-window)
+
+<!-- mtoc-end -->
 
 ## TrueColor Support
 
@@ -162,9 +172,35 @@ support:
 
 ---
 
+## View is Displaying ANSI Codes
+
+Q: I am trying to view a program file in view, but it is displaying
+ANSI escape codes.
+
+![Double Exposure](screenshots/ts-double1.png)
+
+A: No worries. I have run into the same problem. View is not
+recognizing the ANSI escape codes. Taking a closer look at the
+file, I can see the "intro" characters repeated, "0x1b[0x1b[".
+This happens when the output file of a colorizer or highlighter
+is processed a second time by a colorizer or highlighter. It
+tries to put ANSI escape codes around the existing ANSI escape
+codes, resulting in the "0x1b[0x1b[" sequence, which View can't
+interpret.
+
+Out of curiosity, I ran the same file through less, which produced
+the same results. In the world of pagers, less is the gold-standard,
+and apparently they chose not to address this issue. Therefore, it
+seems the best resolution is to avoid double exposure in the first
+place. Below, I have included a screenshot using less.
+
+![Double Exposure with Less](screenshots/ts-double2.png)
+
+---
+
 ## Why View Displays Question Marks
 
-Q: When I try to view a document that contains line-drawing characters,
+kQ: When I try to view a document that contains line-drawing characters,
 View displays question marks instead of the line-drawing
 characters. How can I fix this?
 
@@ -313,7 +349,7 @@ tree-sitter build
 tree-sitter generate
 ```
 
-### Download From Github
+### Download From GitHub
 
 [tree-sitter-c](https://github.com/tree-sitter/tree-sitter-c)
 
@@ -405,7 +441,7 @@ The next time you run the form, Menu Form will read the values from
 
 Here's a summary of the important parts of the form file format:
 
-## Menu Form - Line Type Speecifiers (H, T, F, and ?)
+## Menu Form - Line Type Specifiers
 
 - \# Comment line (ignored)
 - H - The header to be displayed at the top of the form
@@ -484,7 +520,7 @@ Rust to take advantage of tools like the Tokio and Serde crates.
 
 ---
 
-## Menu - What Happened to Delete by Inode
+## What Happened to Delete by Inode
 
 Q: I noticed you have a menu option named, "Delete by Inode", but it doesn't work.
 

@@ -639,7 +639,6 @@ int output_objects(Pick *pick) {
 /// ╰────────────────────────────────────────────────────────────────╯
 int exec_objects(Init *init) {
     int rc = -1;
-    int m;
     int margc;
     char *margv[MAXARGS];
     char tmp_str[MAXLEN];
@@ -717,7 +716,7 @@ int exec_objects(Init *init) {
             out_s = rep_substring(sav_arg, "%%", tmp_str);
             if (out_s == NULL || out_s[0] == '\0') {
                 i = 0;
-                while (i < margc - 1) {
+                while (i < margc) {
                     if (margv[i] != NULL)
                         free(margv[i]);
                     i++;
@@ -739,6 +738,7 @@ int exec_objects(Init *init) {
     //     return 1;
     // }
     s1 = tmp_str;
+    //                Why Memory leak here?
     char *sp;
     char *tok;
     tok = strtok_r(s1, " ", &sp);
@@ -781,10 +781,8 @@ int exec_objects(Init *init) {
         if (pid == 0) { /// Child
             execvp(margv[0], margv);
             // exec failed, print error and exit
-            m = MAXLEN - 26;
-            strnz__cpy(tmp_str, "Can't exec pick cmd: ", m);
-            m -= strlen(margv[0]);
-            strnz__cat(tmp_str, margv[0], m);
+            strnz__cpy(tmp_str, "Can't exec pick cmd: ", MAXLEN - 1);
+            strnz__cat(tmp_str, margv[0], MAXLEN - 1);
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
