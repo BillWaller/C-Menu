@@ -191,7 +191,7 @@ interpret.
 Out of curiosity, I ran the same file through less, which produced
 the same results. In the world of pagers, less is the gold-standard,
 and apparently they chose not to address this issue. Therefore, it
-seems the best resolution is to avoid double exposure in the first
+seems the best solution is to avoid double exposure in the first
 place. Below, I have included a screenshot using less.
 
 ![Double Exposure with Less](screenshots/ts-double2.png)
@@ -200,28 +200,46 @@ place. Below, I have included a screenshot using less.
 
 ## Why View Displays Question Marks
 
-kQ: When I try to view a document that contains line-drawing characters,
+Q: When I try to view a document that contains line-drawing characters,
 View displays question marks instead of the line-drawing
 characters. How can I fix this?
 
 A: The file may contain characters above 0x80, which can't be
 translated by View's character translators. If the offending
-characters CP-437 line drawing characters, you can convert the file to
-UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you
-can use the following command:
+characters CP-437 line drawing characters, you can convert the file
+to UTF-8 encoding using a tool like 'iconv' or 'recode'. For example,
+you can use the following command:
 
 ```bash
 iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt
 ```
 
-The images below show, before, on the left, and after, on the right, using iconv.
+The images below show, before, on the left, and after, on the right, using
+iconv.
 
 ![Convert CP437 to Unicode](screenshots/cp437_to_utf8.png)
 
 As an interesting note, this also works for "less", which displays the
-decimal representation of the CP437 characters. This could be handy
-if you have been coding since the 1980s and recognize them as CP437
-line-drawing characters.
+ordinal values of the CP437 characters. "less" could have automaticaly
+recognized and converted the CP437 characters, but the developer chose
+not to, and it was probably a wise decision. If you are modernizing
+your document archives, you shouldn't propagate CP437 encoded files
+into the future. It's far too easy to convert them to UTF-8. The
+"less" rendition was useful for me, because I have been programming
+long enough to recognize the ordinal numbers as CP437 line-drawing
+characters. That may not be true for someone born after 1980.
+
+I am certainly not being critical of "less", nor am I suggesting that
+C-Menu's View is superior. We both ran into the same issue, and chose
+to reveal the problem with the underlying character encoding, rather
+than masking it.
+
+Below are the "less" screenshots before conversion to UTF-8 and after.
+
+Once converted to UTF-8, less displays the line-drawing characters,
+just as View does. The converted files were displayed at the same
+size, but I had to shrink the images to fit both before and after
+side by side.
 
 ![CP437 less](screenshots/cp437-line-draw-less.png)
 
