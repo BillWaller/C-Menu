@@ -179,7 +179,7 @@ ANSI escape codes.
 
 ![Double Exposure](screenshots/ts-double1.png)
 
-A: No worries. I have run into the same problem. View is not
+A: No worries. I ran into the same problem. View is not
 recognizing the ANSI escape codes. Taking a closer look at the
 file, I can see the "intro" characters repeated, "0x1b[0x1b[".
 This happens when the output file of a colorizer or highlighter
@@ -189,10 +189,15 @@ codes, resulting in the "0x1b[0x1b[" sequence, which View can't
 interpret.
 
 Out of curiosity, I ran the same file through less, which produced
-the same results. In the world of pagers, less is the gold-standard,
-and apparently they chose not to address this issue. Therefore, it
-seems the best solution is to avoid double exposure in the first
-place. Below, I have included a screenshot using less.
+the same results as C-Menu View. In the world of pagers, less is
+the gold-standard, and apparently they chose not to address this
+issue. Therefore, it seems the best solution is to avoid double
+exposure. If you have a file that has been colorized or highlighted,
+don't run it through another colorizer or highlighter. Use C-Menu's
+stripansi to remove the ANSI escape codes before re-colorizing or
+re-highlighting. This works for C-Menu View as well as less.
+
+Below, I have included a screenshot using less.
 
 ![Double Exposure with Less](screenshots/ts-double2.png)
 
@@ -236,9 +241,10 @@ than masking it.
 
 Below are the "less" screenshots before conversion to UTF-8 and after.
 
-Once converted to UTF-8, less displays the line-drawing characters,
-just as View does. The converted files were displayed at the same
-size, but I had to shrink the images to fit both before and after
+Once converted to UTF-8, less displays the line-drawing characters
+just as View does. The converted files for C-Menu View and less were
+the same size when displayed, but I had to shrink the converted less
+screenshot on the right to fit both before and after screenshots
 side by side.
 
 ![CP437 less](screenshots/cp437-line-draw-less.png)
@@ -577,7 +583,7 @@ Here is an example command that allows you to select multiple files and
 open them in Menu Vi:
 
 ```bash
-\!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
+!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
 
 ```
 
@@ -597,7 +603,7 @@ your C files. Here is the new Menu line with the regular expression
 corrected to include both .c and .h files:
 
 ```bash
-\!pick -S "lf -r ./ .\*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to
+!pick -S "lf -r ./ .\*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to
 Edit"
 ```
 
