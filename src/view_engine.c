@@ -36,7 +36,7 @@
 /// @note This is called lazy loading, and for a pager like C-Menu View,
 ///       it is lean and performant.
 /// The character read is returned in variable 'c'.
-///
+
 #define get_next_char()                                                        \
     do {                                                                       \
         if (view->file_pos == view->file_size) {                               \
@@ -1092,7 +1092,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     regmatch_t pmatch[1];
     regex_t compiled_regex;
     int reti;
-    int header_lines = 0;
+    // int header_lines = 0;
     int line_offset;
     int line_len;
     int match_len;
@@ -1140,6 +1140,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             if (cury == view->scroll_lines)
                 return true;
             srch_curr_pos = get_next_line(view, srch_curr_pos);
+            view->page_bot_pos = srch_curr_pos;
         } else {
             if (srch_curr_pos == 0 && view->srch_beg_pos == view->file_size)
                 srch_curr_pos = view->file_size;
@@ -1156,6 +1157,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 }
             }
             srch_curr_pos = get_prev_line(view, srch_curr_pos);
+            view->page_top_pos = srch_curr_pos;
         }
         fmt_line(view);
         /// ╭───────────────────────────────────────────────────────╮
@@ -1209,28 +1211,36 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 srch_curr_pos = get_pos_prev_line(view, srch_curr_pos);
             }
             view->page_top_pos = srch_curr_pos;
-            header_lines = i;
-            if (header_lines < 1)
-                header_lines = 1;
-            for (i = 0; i < header_lines; i++) {
-                srch_curr_pos = get_next_line(view, srch_curr_pos);
-                fmt_line(view);
-                display_line(view);
+            if (srch_curr_pos == view->srch_beg_pos) {
+                if (view->f_wrap)
+                    view->f_wrap = false;
             }
+            // srch_curr_pos = get_next_line(view, srch_curr_pos);
+            // view->page_bot_pos = srch_curr_pos;
+            // header_lines = i;
+            // if (header_lines < 1)
+            //     header_lines = 1;
+            // for (i = 0; i < header_lines; i++) {
+            //     srch_curr_pos = get_next_line(view, srch_curr_pos);
+            //     fmt_line(view);
+            //     display_line(view);
+            // }
+            // view->page_bot_pos = srch_curr_pos;
+            // fmt_line(view);
             f_page = true;
-        } else {
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ SEARCH - CONTINUE HIGHLIGHTING MATCHED LINES      │
-            /// ╰───────────────────────────────────────────────────╯
-            /// Search continues displaying matches until the page
-            /// is full.
-            display_line(view);
-            cury = view->cury;
+            continue;
         }
+        /// ╭───────────────────────────────────────────────────╮
+        /// │ SEARCH - CONTINUE HIGHLIGHTING MATCHED LINES      │
+        /// ╰───────────────────────────────────────────────────╯
+        /// Search continues displaying matches until the page
+        /// is full.
+        display_line(view);
+        cury = view->cury;
         /// ╭───────────────────────────────────────────────────────╮
         /// │ SEARCH - HIGHLIGHT ALL MATCHES ON CURRENT LINE        │
         /// ╰───────────────────────────────────────────────────────╯
-        /// All all matches on the current line are highlighted,
+        /// All matches on the current line are highlighted,
         /// including those not displayed on the screen. Track
         /// first and last match columns for prompt display.
         //
@@ -1825,11 +1835,11 @@ int fmt_line(View *view) {
             if (*s == '\t') {
                 //  Handle Tab Character
                 wc = L' ';
-                setcchar(&cc, &wc, attr, cpx, NULL);
-                while ((j < MAX_COLS - 2) && (j % view->tab_stop != 0)) {
+                do {
+                    setcchar(&cc, &wc, attr, cpx, NULL);
                     view->stripped_line_out[j] = ' ';
                     cmplx_buf[j++] = cc;
-                }
+                } while ((j < MAX_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
                 // Handle Multi-byte Character
