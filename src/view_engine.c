@@ -166,6 +166,7 @@ int view_cmd_processor(Init *init) {
     int begy, begx;
     int c;
     int max_n;
+    int shift = 0;
     int prev_search_cmd = 0;
     int rc, i;
     int n = 0;
@@ -254,14 +255,16 @@ int view_cmd_processor(Init *init) {
         case KEY_BACKSPACE:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            max_n = view->pmincol / view->cols;
+            shift = (view->cols / 3) * 2;
+            max_n = view->pmincol / shift;
             n = (int)n_cmd;
             if (n > max_n)
                 n = max_n;
-            if (view->pmincol - (view->cols * n) < 0)
+            shift *= n;
+            if (view->pmincol - shift < 0)
                 view->pmincol = 0;
             else
-                view->pmincol -= view->cols * n;
+                view->pmincol -= shift;
             view->f_redisplay_page = true;
             break;
         case KEY_RIGHT:
@@ -269,11 +272,18 @@ int view_cmd_processor(Init *init) {
         case 'L':
             if (n_cmd <= 0)
                 n_cmd = 1;
-            max_n = (view->maxcol - view->pmincol) / view->cols;
+            shift = (view->cols / 3) * 2;
+            max_n = (view->maxcol - view->pmincol) / shift;
             n = (int)n_cmd;
             if (n > max_n)
                 n = max_n;
-            view->pmincol += view->cols * n;
+            shift *= n;
+            if (view->pmincol + shift <= view->maxcol)
+                view->pmincol += shift;
+            else
+                view->pmincol = (view->maxcol - shift) > 0
+                                    ? (view->maxcol - view->cols)
+                                    : 0;
             view->f_redisplay_page = true;
             break;
             /// Up Arrow, k, K, Ctrl('K')
