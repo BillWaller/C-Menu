@@ -200,19 +200,38 @@ extern cchar_t CCC_REVERSE;
 #undef key_right
 #undef key_down
 #undef key_up
+
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n))
+
+#define XTERM_256COLOR_ALTKEYS = FALSE
+#define XTERM_GHOSTTY_ALTKEYS = TRUE
+
+#ifdef XTERM_GHOSTTY_ALTKEYS
+#define KEY_ALTINS 0x228
+#define KEY_ALTHOME 0x223
+#define KEY_ALTPGUP 0x237
+#define KEY_ALTDEL 0x213
+#define KEY_ALTEND 0x21e
+#define KEY_ALTPGDN 0x232
+#define KEY_ALTUP 0x242
+#define KEY_ALTLEFT 0x22d
+#define KEY_ALTDOWN 0x219
+#define KEY_ALTRIGHT 0x23c
+#define KEY_ALTR 0x72
+#else
 #define KEY_ALTINS 0x223
-#define KEY_ALTDEL 0x20e
 #define KEY_ALTHOME 0x21e
+#define KEY_ALTPGUP 0x232
+#define KEY_ALTDEL 0x20e
 #define KEY_ALTEND 0x219
 #define KEY_ALTPGDN 0x22d
-#define KEY_ALTPGUP 0x232
-#define KEY_ALTLEFT 0x228
-#define KEY_ALTRIGHT 0x237
 #define KEY_ALTUP 0x23d
+#define KEY_ALTLEFT 0x228
 #define KEY_ALTDOWN 0x214
-#define KEY_ALTR 0x12d
+#define KEY_ALTRIGHT 0x237
+#define KEY_ALTR 0x72
+#endif
 
 typedef struct {
     char text[32];
