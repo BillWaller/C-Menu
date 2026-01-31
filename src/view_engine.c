@@ -165,6 +165,7 @@ int view_cmd_processor(Init *init) {
     int eargc;
     int begy, begx;
     int c;
+    int max_n;
     int prev_search_cmd = 0;
     int rc, i;
     int n = 0;
@@ -253,28 +254,27 @@ int view_cmd_processor(Init *init) {
         case KEY_BACKSPACE:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            if ((view->pmincol - n_cmd) < 0)
+            max_n = view->pmincol / view->cols;
+            n = (int)n_cmd;
+            if (n > max_n)
+                n = max_n;
+            if (view->pmincol - (view->cols * n) < 0)
                 view->pmincol = 0;
             else
-                view->pmincol -= n_cmd;
+                view->pmincol -= view->cols * n;
+            view->f_redisplay_page = true;
             break;
         case KEY_RIGHT:
         case 'l':
         case 'L':
             if (n_cmd <= 0)
                 n_cmd = 1;
-            //  smincol = 0
-            //  smaxcol = view->cols - 1,
-            //  maxcol longest line currently displayed
-            //  pmincol = 10
-            //  smincol = 0
-            //  smaxcol = 80
-            //  maxcol - smaxcol
-            if ((view->pmincol + n_cmd) >
-                (view->maxcol - view->smaxcol + view->smincol))
-                view->pmincol = view->maxcol - view->smaxcol + view->smincol;
-            else
-                view->pmincol += n_cmd;
+            max_n = (view->maxcol - view->pmincol) / view->cols;
+            n = (int)n_cmd;
+            if (n > max_n)
+                n = max_n;
+            view->pmincol += view->cols * n;
+            view->f_redisplay_page = true;
             break;
             /// Up Arrow, k, K, Ctrl('K')
             ///
