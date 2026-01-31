@@ -1155,6 +1155,7 @@ void abend(int ec, char *s) {
 int xwgetch(WINDOW *win) {
     int c;
     while (1) {
+        wrefresh(win);
         c = wgetch(win);
         if (c != ERR)
             break;

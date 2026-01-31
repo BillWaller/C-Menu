@@ -86,7 +86,7 @@ int fmt_line(View *);
 void display_line(View *);
 bool ansi_to_cmplx();
 void parse_ansi_str(char *, attr_t *, int *);
-void view_display_help(View *);
+void view_display_help(Init *);
 void cmd_line_prompt(View *, char *);
 void remove_file(View *);
 
@@ -167,6 +167,7 @@ int view_cmd_processor(Init *init) {
     int c;
     int max_n;
     int shift = 0;
+    int search_cmd = 0;
     int prev_search_cmd = 0;
     int rc, i;
     int n = 0;
@@ -201,8 +202,6 @@ int view_cmd_processor(Init *init) {
                 cmd_line_prompt(view, view->prompt_str);
             else
                 cmd_line_prompt(view, view->tmp_prompt_str);
-            //      if (view->box)
-            //          wrefresh(view->box);
             rc =
                 prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                          view->smincol, view->smaxrow, view->smaxcol);
@@ -373,7 +372,7 @@ int view_cmd_processor(Init *init) {
                 break;
             cmd_line_prompt(view, "(C, I, P, S, T, or H for Help)->");
             c = get_cmd_char(view, &n_cmd);
-            // c = tolower(c);
+            c = tolower(c);
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
             switch (c) {
@@ -431,9 +430,10 @@ int view_cmd_processor(Init *init) {
                 /// Help Command 'H'
                 /// Displays help information about the settings commands.
                 /// Lower case 'h' is reserved for horizontal scrolling.'
+            case 'h':
             case 'H':
                 if (!view->f_displaying_help)
-                    view_display_help(view);
+                    view_display_help(init);
                 view->next_cmd_char = '-';
                 break;
             default:
@@ -451,13 +451,15 @@ int view_cmd_processor(Init *init) {
         case '?':
             strnz__cpy(tmp_str, (c == '/') ? "(forward)->" : "(backward)->",
                        MAXLEN - 1);
-            if (get_cmd_arg(view, tmp_str) == 0) {
+            search_cmd = c;
+            c = get_cmd_arg(view, tmp_str);
+            if (c == '\n') {
                 view->f_wrap = false;
-                search(view, c, view->cmd_arg, false);
-                prev_search_cmd = c;
+                search(view, search_cmd, view->cmd_arg, false);
+                prev_search_cmd = search_cmd;
                 strnz__cpy(prev_regex_pattern, view->cmd_arg, MAXLEN - 1);
+                view->srch_beg_pos = view->page_top_pos;
             }
-            view->srch_beg_pos = view->page_top_pos;
             break;
             /// Open File Command
         case 'o':
@@ -483,7 +485,7 @@ int view_cmd_processor(Init *init) {
             /// Help Command
         case KEY_F(1):
             if (!view->f_displaying_help)
-                view_display_help(view);
+                view_display_help(init);
             break;
             /// Set Mark (feature may be removed in the future)
         case 'm':
@@ -517,6 +519,10 @@ int view_cmd_processor(Init *init) {
             if (prev_search_cmd == 0) {
                 Perror("No previous search");
                 break;
+            }
+            if (view->page_bot_pos == view->file_size) {
+                view->page_top_pos = 0;
+                view->page_bot_pos = 0;
             }
             search(view, prev_search_cmd, prev_regex_pattern, true);
             break;
@@ -832,12 +838,12 @@ int get_cmd_arg(View *view, char *prompt) {
             break;
         case '\n':
         case KEY_ENTER:
-            return 0;
+            return c;
         case '\033':
         case KEY_F(9):
-            return 0;
+            return c;
         case KEY_MOUSE:
-            return 0;
+            continue;
         default:
             *cmd_p++ = (char)c;
             *cmd_p = '\0';
@@ -850,10 +856,11 @@ int get_cmd_arg(View *view, char *prompt) {
             if (cmd_p >= cmd_e)
                 return 0;
             if (numeric_arg && (c < '0' || c > '9'))
-                return (c);
+                return -1;
             break;
         }
     }
+    return c;
 }
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ BUILD_PROMPT                                                 │
@@ -1092,16 +1099,15 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     regmatch_t pmatch[1];
     regex_t compiled_regex;
     int reti;
-    // int header_lines = 0;
     int line_offset;
     int line_len;
     int match_len;
     int cury = 0;
     off_t srch_curr_pos;
     bool f_page = false;
-    int i;
     int rc;
     srch_curr_pos = view->page_top_pos;
+    view->srch_beg_pos = -1;
     if (repeat) {
         if (search_cmd == '/')
             srch_curr_pos = view->page_bot_pos;
@@ -1139,6 +1145,8 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             }
             if (cury == view->scroll_lines)
                 return true;
+            if (!view->f_wrap)
+                view->srch_beg_pos = srch_curr_pos;
             srch_curr_pos = get_next_line(view, srch_curr_pos);
             view->page_bot_pos = srch_curr_pos;
         } else {
@@ -1196,39 +1204,13 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             regfree(&compiled_regex);
             return false;
         }
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ SEARCH - MATCH - DISPLAY LEADING CONTEXT LINES        │
-        /// ╰───────────────────────────────────────────────────────╯
-        /// Display leading context lines at the top of the page.
         if (!f_page) {
             view->f_forward = true;
             view->cury = 0;
             wmove(view->win, view->cury, 0);
             wclrtobot(view->win);
-            for (i = 0; i < 4; i++) {
-                if (srch_curr_pos == 0)
-                    break;
-                srch_curr_pos = get_pos_prev_line(view, srch_curr_pos);
-            }
             view->page_top_pos = srch_curr_pos;
-            if (srch_curr_pos == view->srch_beg_pos) {
-                if (view->f_wrap)
-                    view->f_wrap = false;
-            }
-            // srch_curr_pos = get_next_line(view, srch_curr_pos);
-            // view->page_bot_pos = srch_curr_pos;
-            // header_lines = i;
-            // if (header_lines < 1)
-            //     header_lines = 1;
-            // for (i = 0; i < header_lines; i++) {
-            //     srch_curr_pos = get_next_line(view, srch_curr_pos);
-            //     fmt_line(view);
-            //     display_line(view);
-            // }
-            // view->page_bot_pos = srch_curr_pos;
-            // fmt_line(view);
             f_page = true;
-            continue;
         }
         /// ╭───────────────────────────────────────────────────╮
         /// │ SEARCH - CONTINUE HIGHLIGHTING MATCHED LINES      │
@@ -2052,6 +2034,7 @@ void cmd_line_prompt(View *view, char *s) {
         waddstr(view->win, " ");
         wmove(view->win, view->cmd_line, view->pmincol + l + 2);
     }
+    wrefresh(view->win);
 }
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ REMOVE_FILE                                                  │
@@ -2077,10 +2060,12 @@ void remove_file(View *view) {
 /// Display View Help File
 /// @param view is the current view data structure
 /// @return void
-void view_display_help(View *view) {
+void view_display_help(Init *init) {
     int begy, begx;
     int eargc;
     char *eargv[MAXARGS];
+    View *view_save = init->view;
+    init->view = NULL;
     eargv[0] = HELP_CMD;
     eargv[1] = VIEW_HELP_FILE;
     eargv[2] = NULL;
@@ -2088,4 +2073,6 @@ void view_display_help(View *view) {
     begx = view->begx + 4;
     begy = view->begy + 1;
     mview(init, eargc, eargv, 10, 54, begy, begx, "View Help");
+    view = init->view = view_save;
+    view->f_redisplay_page = true;
 }
