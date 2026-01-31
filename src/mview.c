@@ -9,6 +9,7 @@
 
 int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
           int begx, char *title) {
+    view = init->view;
     if (!view)
         view = new_view(init, argc, argv, begy, begx);
     else

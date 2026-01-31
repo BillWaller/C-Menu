@@ -59,6 +59,8 @@ int executor = 0;
 /// │ MAPP_INITIALIZATION                                               │
 /// ╰───────────────────────────────────────────────────────────────────╯
 void mapp_initialization(Init *init, int argc, char **argv) {
+    char term[MAXLEN];
+    char *t;
     setlocale(LC_ALL, "en_US.UTF-8");
     if (!init) {
         ssnprintf(tmp_str, sizeof(tmp_str), "%s",
@@ -84,6 +86,12 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(init->mapp_data, "~/menuapp/data", MAXLEN - 1);
     strnz__cpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
     // Priority-4 - cfg_args
+
+    t = getenv("TERM");
+    if (!t || *t == '\0') {
+        strnz__cpy(term, "xterm-256color", MAXLEN);
+    }
+
     parse_config(init);
     if (f_debug)
         dump_config(init, "Configuration after parse_config");
