@@ -6,6 +6,7 @@
 
 - [TrueColor Support](#truecolor-support)
 - [View is Displaying ANSI Codes](#view-is-displaying-ansi-codes)
+- [CKeys Doesn't Show Alt-Keys Correctly](#ckeys-doesnt-show-alt-keys-correctly)
 - [Why View Displays Question Marks](#why-view-displays-question-marks)
 - [View - How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
 - [View - How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
@@ -200,6 +201,52 @@ re-highlighting. This works for C-Menu View as well as less.
 Below, I have included a screenshot using less.
 
 ![Double Exposure with Less](screenshots/ts-double2.png)
+
+---
+
+## CKeys Doesn't Show Alt-Keys Correctly
+
+Q: CKeys show alt-keys correctly. How can I fix this?
+
+A: CKeys relies on the terminfo database to interpret key codes. If your
+terminal emulator is not set to a terminfo entry that matches its
+capabilities, CKeys may not recognize certain keys correctly.
+
+To fix this, ensure that your TERM environment variable is set to a
+value that accurately reflects your terminal emulator. You can check
+your current TERM setting by typing:
+
+```bash
+echo $TERM
+```
+
+If it is set to a generic value like "xterm" or "vt100", consider
+changing it to a more specific entry that matches your terminal emulator,
+such as "xterm-256color", or "xterm-ghostty". I have found that these
+terminfos produce the results I expect, while xterm-kitty produces
+different results. That doesn't mean that xterm-kitty is wrong, because
+it is simply interpreting certain alt-key codes differently. I am not
+aware of any terminal emulators that don't support xterm-256color.
+
+I started to write some code to save and load alt-keys from a file,
+but that is problematic in C. It is customary to use switch statements
+to interpret key codes, but switch statements require constant
+expressions, and file input is not a constant expression. That's not a
+limitation in Rust, which has more flexible pattern matching. When you
+start writing code in Rust, you start thinking in Rust, and C starts to
+feel like driving your Grandmother's Oldsmobile at Le Mans.
+
+You can change the TERM variable by adding the following line to your
+~/.bashrc or ~/.z.
+
+zshrc file:
+
+```bash
+export TERM=xterm-256color
+```
+
+After updating your TERM variable, restart your terminal session and run
+CKeys again. It should now recognize the keys correctly.
 
 ---
 
