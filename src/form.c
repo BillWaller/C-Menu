@@ -12,9 +12,10 @@ int main(int argc, char **argv) {
     __atexit;
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
+    SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
-    open_curses(init);
-    win_init_attrs(stdscr, init->fg_color, init->bg_color, init->bo_color);
+    open_curses(sio);
+    win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
     int begy = LINES / 14;
     int begx = COLS / 14;
     init_form(init, argc, argv, begy, begx);

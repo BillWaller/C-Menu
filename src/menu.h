@@ -1,4 +1,4 @@
-//  meextern nu
+//  menu.h
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  One large include file for C-Menu Menu, Form, Pick, and View
@@ -12,32 +12,13 @@
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ definitions                                                   │
 //  ╰───────────────────────────────────────────────────────────────╯
+#include "cm.h"
 #include <ncursesw/ncurses.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
 #define C_MENU_VERSION "C-Menu-0.2.6"
-#define __end_pgm                                                              \
-    static void end_pgm(void) {                                                \
-        destroy_init(init);                                                    \
-        win_del();                                                             \
-        destroy_curses();                                                      \
-        restore_shell_tioctl();                                                \
-        exit(EXIT_FAILURE);                                                    \
-    }
-#define __atexit                                                               \
-    {                                                                          \
-        int rc;                                                                \
-        rc = atexit(end_pgm);                                                  \
-        if (rc != 0) {                                                         \
-            fprintf(stderr, "\nCannot set exit function\n");                   \
-            exit(EXIT_FAILURE);                                                \
-        }                                                                      \
-    }
-// #define DEBUG TRUE
 #define USE_PAD TRUE
-// MAXLEN is for variables known to be limited in length
-#define MAXLEN 256
 #define MIN_COLS 40
 #define BUFSIZ 8192
 #define LINE_IN_MAX_COLS 2048
@@ -46,8 +27,6 @@
 #define COLOR_LEN 8
 #define MAX_MENU_LINES 256
 #define PICK_MAX_ARG_LEN 256
-#define NCOLORS 16
-#define MAXARGS 64
 #define MAX_ARGS 64
 #define MAXFIELDS 50
 #define MAX_PICK_OBJS 1024
@@ -73,31 +52,6 @@
 #define P_READ 0
 #define P_WRITE 1
 #define TRUE 1
-#define FALSE 0
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ Structures for Future Refinements                             │
-/// ╰───────────────────────────────────────────────────────────────╯
-typedef struct {
-    char *s;
-    size_t l; // allocated length
-} Arg;
-typedef struct {
-    Arg **v;
-    size_t n; // allocated array elements
-} Argv;
-typedef struct {
-    char *s;
-    size_t l; // allocated length
-} String;
-typedef struct {
-    wchar_t *s;
-    size_t l; // allocated length
-} WCStr;
-typedef struct {
-    cchar_t *s;
-    size_t l; // allocated length
-} CCStr;
-
 #define to_uppercase(c)                                                        \
     if (c >= 'a' && c <= 'z')                                                  \
     c -= ' '
@@ -115,12 +69,12 @@ extern char em3[MAXLEN];
 extern char *eargv[MAXARGS];
 extern int tty_fd;
 extern int dbgfd;
-extern int stdin_fd;
-extern int stdout_fd;
-extern int stderr_fd;
+// extern int stdin_fd;
+// extern int stdout_fd;
+// extern int stderr_fd;
 extern const char *mapp_version;
 extern bool f_debug;
-extern bool f_stop_on_error;
+// extern bool f_stop_on_error;
 extern char tmp_str[MAXLEN];
 extern char *tmp_ptr;
 extern unsigned int cmd_key;
@@ -159,200 +113,7 @@ typedef struct {
 } Opts;
 
 extern void dump_opts_by_use(char *, char *);
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ SCREEN I/O                                                        │
-/// ╰───────────────────────────────────────────────────────────────────╯
-extern struct termios shell_tioctl, curses_tioctl;
-extern struct termios shell_in_tioctl, curses_in_tioctl;
-extern struct termios shell_out_tioctl, curses_out_tioctl;
-extern struct termios shell_err_tioctl, curses_err_tioctl;
 
-extern bool f_have_shell_tioctl;
-extern bool f_have_curses_tioctl;
-extern bool f_curses_open;
-extern bool f_restore_screen;
-extern int xwgetch(WINDOW *);
-extern bool capture_shell_tioctl();
-extern bool restore_shell_tioctl();
-extern bool capture_curses_tioctl();
-extern bool restore_curses_tioctl();
-extern bool mk_raw_tioctl(struct termios *);
-extern bool set_sane_tioctl(struct termios *);
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ Signal Processing                                             │
-/// ╰───────────────────────────────────────────────────────────────╯
-extern void signal_handler(int);
-extern int handle_signal(sig_atomic_t);
-extern volatile sig_atomic_t sig_received;
-extern void sig_prog_mode();
-extern void sig_dfl_mode();
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ NCurses                                                       │
-/// ╰───────────────────────────────────────────────────────────────╯
-#define REASSIGN_STDIN
-extern cchar_t CCC_NORM;
-extern cchar_t CCC_BOX;
-extern cchar_t CCC_REVERSE;
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ NCurses Key Definitions                                       │
-/// ╰───────────────────────────────────────────────────────────────╯
-#undef key_left
-#undef key_right
-#undef key_down
-#undef key_up
-
-#define KEY_ALTF0 0x138
-#define KEY_ALTF(n) (KEY_ALTF0 + (n))
-
-#define XTERM_256COLOR_ALTKEYS = FALSE
-#define XTERM_GHOSTTY_ALTKEYS = TRUE
-
-#ifdef XTERM_GHOSTTY_ALTKEYS
-#define KEY_ALTINS 0x228
-#define KEY_ALTHOME 0x223
-#define KEY_ALTPGUP 0x237
-#define KEY_ALTDEL 0x213
-#define KEY_ALTEND 0x21e
-#define KEY_ALTPGDN 0x232
-#define KEY_ALTUP 0x242
-#define KEY_ALTLEFT 0x22d
-#define KEY_ALTDOWN 0x219
-#define KEY_ALTRIGHT 0x23c
-#define KEY_ALTR 0x72
-#else
-#define KEY_ALTINS 0x223
-#define KEY_ALTHOME 0x21e
-#define KEY_ALTPGUP 0x232
-#define KEY_ALTDEL 0x20e
-#define KEY_ALTEND 0x219
-#define KEY_ALTPGDN 0x22d
-#define KEY_ALTUP 0x23d
-#define KEY_ALTLEFT 0x228
-#define KEY_ALTDOWN 0x214
-#define KEY_ALTRIGHT 0x237
-#define KEY_ALTR 0x72
-#endif
-
-typedef struct {
-    char text[32];
-    int keycode;
-    int end_pos;
-} key_cmd_tbl;
-
-extern key_cmd_tbl key_cmd[20];
-
-typedef struct {
-    int r;
-    int g;
-    int b;
-} RGB;
-
-#define FG_COLOR 2 // green
-#define BG_COLOR 0 // black
-#define BO_COLOR 1 // red
-
-extern int cp_default;
-extern int cp_norm;
-extern int cp_box;
-extern int cp_reverse;
-extern int clr_idx;
-extern int clr_cnt;
-extern int clr_pair_idx;
-extern int clr_pair_cnt;
-extern void apply_gamma(RGB *);
-extern char const colors_text[][10];
-
-typedef struct {
-    int fg;
-    int bg;
-    int pair_id;
-} ColorPair;
-
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ WIDE CHARACTER SUPPORT                                        │
-/// ╰───────────────────────────────────────────────────────────────╯
-#define BW_HO L'\x2500'
-#define BW_VE L'\x2502'
-#define BW_TL L'\x250C'
-#define BW_TR L'\x2510'
-#define BW_BL L'\x2514'
-#define BW_BR L'\x2518'
-#define BW_RTL L'\x256d'
-#define BW_RTR L'\x256e'
-#define BW_RBL L'\x2570'
-#define BW_RBR L'\x256f'
-#define BW_LT L'\x251C'
-#define BW_TT L'\x252C'
-#define BW_RT L'\x2524'
-#define BW_CR L'\x253C'
-#define BW_BT L'\x2534'
-#define BW_SP L'\x20'
-
-extern const wchar_t bw_ho;
-extern const wchar_t bw_ve;
-extern const wchar_t bw_tl;
-extern const wchar_t bw_tr;
-extern const wchar_t bw_bl;
-extern const wchar_t bw_br;
-extern const wchar_t bw_lt;
-extern const wchar_t bw_tt;
-extern const wchar_t bw_rt;
-extern const wchar_t bw_cr;
-extern const wchar_t bw_bt;
-
-extern int n_lines;
-extern int n_cols;
-extern int lines;
-extern int cols;
-extern int begx;
-extern int begy;
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ Windowing                                                     │
-//  ╰───────────────────────────────────────────────────────────────╯
-#define MAXWIN 20
-
-typedef unsigned char uchar;
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ SCRIOU                                                        │
-//  ╰───────────────────────────────────────────────────────────────╯
-extern void destroy_curses();
-extern void sig_prog_mode();
-extern void sig_shell_mode();
-extern char di_getch();
-extern int enter_option();
-
-extern WINDOW *win;
-extern WINDOW *win_win[MAXWIN];
-extern WINDOW *win_box[MAXWIN];
-
-extern int win_attr;
-extern int win_attr_odd;
-extern int win_attr_even;
-extern int win_ptr;
-extern int mlines;
-extern int mcols;
-extern int mbegy;
-extern int mbegx;
-extern int mg_action, mg_col, mg_line;
-extern int mouse_support;
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ WINDOWS FUNCTIONS                                             │
-//  ╰───────────────────────────────────────────────────────────────╯
-extern WINDOW *win_open_box(int, int, int, int, char *);
-extern WINDOW *winOpenwin(int, int, int, int);
-extern WINDOW *win_del();
-extern void destroy_win(WINDOW *);
-extern void destroy_box(WINDOW *);
-extern void restore_wins();
-extern void cbox(WINDOW *);
-extern void win_init_attrs(WINDOW *, int, int, int);
-extern void win_Toggle_Attrs();
-extern void mvwaddstr_fill(WINDOW *, int, int, char *, int);
-extern int display_curses_keys();
-extern void init_stdscr();
-extern void curskeys(WINDOW *);
-extern void mouse_getch(int *, int *, int *, int *);
-extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ MENU                                                          │
 //  ╰───────────────────────────────────────────────────────────────╯
@@ -756,45 +517,12 @@ extern View *view;
 //  │ INIT DATA STRUCTURE                                           │
 //  ╰───────────────────────────────────────────────────────────────╯
 typedef struct {
+    SIO *sio;
     // colors & geometry
-    int fg_color; // -F: foreground_color
-    int bg_color; // -B: background_color
-    int bo_color; // -O: border_color
-    double red_gamma;
-    double green_gamma;
-    double blue_gamma;
-    double gray_gamma;
-    char black[COLOR_LEN];
-    char red[COLOR_LEN];
-    char green[COLOR_LEN];
-    char yellow[COLOR_LEN];
-    char blue[COLOR_LEN];
-    char magenta[COLOR_LEN];
-    char cyan[COLOR_LEN];
-    char white[COLOR_LEN];
-    char orange[COLOR_LEN];
-    char bblack[COLOR_LEN];
-    char bred[COLOR_LEN];
-    char bgreen[COLOR_LEN];
-    char byellow[COLOR_LEN];
-    char bblue[COLOR_LEN];
-    char bmagenta[COLOR_LEN];
-    char bcyan[COLOR_LEN];
-    char bwhite[COLOR_LEN];
-    char borange[COLOR_LEN];
-    char bg[COLOR_LEN];
-    char abg[COLOR_LEN];
-    int clr_cnt;
-    int clr_pair_cnt;
-    int clr_idx;
-    int clr_pair_idx;
-    int cp_default;
-    int cp_norm;
-    int cp_reverse;
-    int cp_box;
-    int cp_bold;
-    int cp_title;
-    int cp_highlight;
+    int lines; // -L: lines
+    int cols;  // -C: columns
+    int begx;  // -X: lines
+    int begy;  // -Y: lines
     // Future Implementation of Enhanced Color Options
     // char bg[COLOR_LEN];
     // char hfg[COLOR_LEN];
@@ -821,18 +549,6 @@ typedef struct {
     // char cmd_bold[COLOR_LEN];
     // char mapp_fg[COLOR_LEN];
     // char mapp_bg[COLOR_LEN];
-    int lines; // -L: lines
-    int cols;  // -C: columns
-    int begx;  // -X: lines
-    int begy;  // -Y: lines
-    int stdin_fd;
-    FILE *stdin_fp;
-    int stdout_fd;
-    FILE *stdout_fp;
-    int stderr_fd;
-    FILE *stderr_fp;
-    int tty_fd;
-    FILE *tty_fp;
     // window
     WINDOW *active_window;
     char cmd[MAXLEN];          // -V: command to execute at start of program
@@ -903,12 +619,15 @@ typedef struct {
 
 enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };
 
+//  ╭───────────────────────────────────────────────────────────────╮
+//  │                                                               │
+//  ╰───────────────────────────────────────────────────────────────╯
 extern Init *init;
 extern int init_cnt;
 extern char minitrc[MAXLEN];
 extern void mapp_initialization(Init *init, int, char **);
 extern Init *new_init(int, char **);
-extern View *new_view(Init *init, int, char **, int, int);
+extern View *new_view(Init *init, int, char **);
 extern Form *new_form(Init *init, int, char **, int, int);
 extern Pick *new_pick(Init *init, int, char **, int, int);
 extern Menu *new_menu(Init *init, int, char **, int, int);
@@ -921,15 +640,7 @@ extern int parse_opt_args(Init *, int, char **);
 extern void zero_opt_args(Init *);
 extern int write_config(Init *);
 extern bool derive_file_spec(char *, char *, char *);
-extern void open_curses(Init *init);
-extern int win_new(int, int, int, int, char *, int);
-extern void win_redraw(WINDOW *);
-extern void win_resize(int, int, char *);
-extern int rgb_to_xterm256_idx(RGB);
-extern RGB xterm256_idx_to_rgb(int);
-extern bool init_clr_palette(Init *);
-extern int get_clr_pair(int, int);
-extern int rgb_to_curses_clr(RGB rgb);
+
 extern int view_file(Init *);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ PICK                                                          │
@@ -966,11 +677,12 @@ extern int form_open_win(Form *);
 extern int form_enter_fields(Form *);
 extern int form_read_description(Form *);
 extern int form_fmt_field(Form *, char *s);
+extern int form_desc_error(int, char *, char *);
 extern void form_help(char *);
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ VIEW                                                          │
 //  ╰───────────────────────────────────────────────────────────────╯
-extern int mview(Init *, int, char **, int, int, int, int, char *);
+extern int mview(Init *, int, char **);
 extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(Init *, char *);
 extern bool view_init_input(View *, char *);
@@ -979,92 +691,4 @@ extern int get_cmd_spec(View *, char *);
 extern void go_to_position(View *, long);
 extern void cat_file(View *);
 extern char err_msg[MAXLEN];
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ STRING UTILITIES                                              │
-//  ╰───────────────────────────────────────────────────────────────╯
-extern size_t trim(char *);
-extern size_t rtrim(char *);
-extern bool stripz_quotes(char *);
-extern bool strip_quotes(char *);
-extern bool str_to_bool(const char *);
-extern int str_to_args(char **, char *, int);
-extern bool str_to_lower(char *);
-extern bool str_to_upper(char *);
-extern bool strnfill(char *, char, int);
-extern bool str_subc(char *, char *, char, char *, int);
-extern size_t strnz(char *, int);
-extern char *strz_dup(char *);
-extern char *strnz_dup(char *, int);
-extern char *rep_substring(const char *, const char *, const char *);
-extern bool chrep(char *, char, char);
-extern double str_to_double(char *);
-extern size_t ssnprintf(char *, size_t, const char *, ...);
-extern size_t strnz__cpy(char *, const char *, size_t);
-extern size_t strnz__cat(char *, const char *, size_t);
-extern size_t string_cpy(String *, const String *);
-extern size_t string_cat(String *, const String *);
-extern size_t string_ncat(String *, const String *, size_t);
-extern size_t string_ncpy(String *, const String *, size_t);
-extern String to_string(const char *);
-extern String mk_string(size_t);
-extern bool free_string(String);
-extern char *str_tok_r(char *, const char *, char **, char *);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ COLOR UTILITIES                                               │
-//  ╰───────────────────────────────────────────────────────────────╯
-extern int get_color_number(char *);
-extern int rgb_clr_to_cube(int);
-extern void list_colors();
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ EXEC UTILITIES                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
-extern int fork_exec(char **);
-extern int bg_fork_exec_pipe(char **, int *, pid_t);
-extern int full_screen_fork_exec(char **);
-extern int full_screen_shell(char *);
-extern int shell(char *);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ MISCELANEOUS UTILITIES                                        │
-//  ╰───────────────────────────────────────────────────────────────╯
-extern char errmsg[];
-extern void get_rfc3339_s(char *, size_t);
-extern int open_log(char *);
-extern void write_log(char *);
-extern void set_fkey(int, char *);
-extern bool is_set_fkey(int);
-extern void unset_fkey(int);
-extern int chyron_mk(key_cmd_tbl *, char *);
-extern int get_chyron_key(key_cmd_tbl *, int);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ ERROR HANDLING                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
-extern void abend(int, char *);
-extern void user_end();
-extern int display_error(char *, char *, char *, char *);
-extern void display_error_msg(View *, char *);
-extern int display_ok_message(char *);
-extern void display_argv_error_msg(char *, char **);
-extern int Perror(char *);
-extern int error_message(char **);
-extern int form_desc_error(int, char *, char *);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ FILE UTILITIES                                                │
-//  ╰───────────────────────────────────────────────────────────────╯
-extern bool normalize_file_spec(char *);
-extern bool file_spec_path(char *, char *);
-extern bool file_spec_name(char *, char *);
-extern bool dir_name(char *, char *);
-extern bool base_name(char *, char *);
-extern bool trim_ext(char *, char *);
-extern bool trim_path(char *);
-extern bool expand_tilde(char *, int);
-extern bool verify_file(char *, int);
-extern bool verify_file_q(char *, int);
-extern bool verify_dir(char *, int);
-extern bool verify_dir_q(char *, int);
-extern bool verify_spec_arg(char *, char *, char *, char *, int);
-extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
-extern bool locate_file_in_path(char *, char *);
-extern size_t canonicalize_file_spec(char *);
-
 #endif

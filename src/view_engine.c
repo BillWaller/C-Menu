@@ -65,7 +65,7 @@ int get_cmd_char(View *, off_t *);
 int get_cmd_arg(View *, char *);
 void build_prompt(View *, int, char *, double elapsed);
 void cat_file(View *);
-void lp(char *, char *);
+void lp(char *);
 void go_to_mark(View *, int);
 void go_to_eof(View *);
 int go_to_line(View *, off_t);
@@ -75,7 +75,7 @@ bool search(View *, int, char *, bool);
 void next_page(View *);
 void prev_page(View *);
 void resize_page(Init *);
-void redisplay_page(Init *);
+void redisplay_page(View *);
 void scroll_down_n_lines(View *, int);
 void scroll_up_n_lines(View *, int);
 off_t get_next_line(View *, off_t);
@@ -187,7 +187,7 @@ int view_cmd_processor(Init *init) {
         view->next_cmd_char = 0;
         if (!c) {
             if (view->f_redisplay_page)
-                redisplay_page(init);
+                redisplay_page(view);
             view->f_redisplay_page = false;
             if (view->f_timer && f_clock_started) {
                 clock_gettime(CLOCK_MONOTONIC, &end);
@@ -569,7 +569,7 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, ">>", MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
-            lp(view->cur_file_str, view->cmd_arg);
+            lp(view->cur_file_str);
             prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                      view->smincol, view->smaxrow, view->smaxcol);
             shell(shell_cmd_spec);
@@ -586,7 +586,7 @@ int view_cmd_processor(Init *init) {
         case Ctrl('P'):
         case KEY_CATAB:
         case KEY_PRINT:
-            lp(view->cur_file_str, NULL);
+            lp(view->cur_file_str);
             view->f_redisplay_page = true;
             break;
             /// Close Current and Open Previous File
@@ -950,7 +950,7 @@ void cat_file(View *view) {
 ///  │ LP (PRINT)                                                   │
 ///  ╰──────────────────────────────────────────────────────────────╯
 ///  Send File to Print Queue
-void lp(char *PrintFile, char *Notation) {
+void lp(char *PrintFile) {
     char *print_cmd_ptr;
     char shell_cmd_spec[MAXLEN];
     print_cmd_ptr = getenv("PRINTCMD");
@@ -986,15 +986,7 @@ void go_to_mark(View *view, int c) {
 /// Go to End of File
 void go_to_eof(View *view) {
     int c;
-    if (view->f_is_pipe) {
-        view->f_forward = true;
-        get_next_char();
-        while (!view->f_eod)
-            get_next_char();
-        if (view->f_eod)
-            view->file_pos--;
-    } else
-        view->file_pos = view->file_size;
+    view->file_pos = view->file_size;
     view->page_top_pos = view->file_pos;
     get_prev_char();
     prev_page(view);
@@ -1105,7 +1097,6 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     int cury = 0;
     off_t srch_curr_pos;
     bool f_page = false;
-    int rc;
     srch_curr_pos = view->page_top_pos;
     view->srch_beg_pos = -1;
     if (repeat) {
@@ -1167,6 +1158,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             srch_curr_pos = get_prev_line(view, srch_curr_pos);
             view->page_top_pos = srch_curr_pos;
         }
+        /// ╭───────────────────────────────────────────────────────╮
+        /// │ PROCESS LINES                                         │
+        /// ╰───────────────────────────────────────────────────────╯
         fmt_line(view);
         /// ╭───────────────────────────────────────────────────────╮
         /// │ SEARCH - CURRENT LINE                                 │
@@ -1218,6 +1212,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         /// Search continues displaying matches until the page
         /// is full.
         display_line(view);
+        //----------------------------------------------
         cury = view->cury;
         /// ╭───────────────────────────────────────────────────────╮
         /// │ SEARCH - HIGHLIGHT ALL MATCHES ON CURRENT LINE        │
@@ -1238,12 +1233,13 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
             mvwchgat(view->win, view->cury - 1, view->curx, match_len,
                      WA_REVERSE, cp_norm, NULL);
-            rc =
-                prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-                         view->smincol, view->smaxrow, view->smaxcol);
-            if (rc == ERR) {
-                Perror("Error refreshing screen");
-            }
+            // rc =
+            // prefresh(view->win, view->pminrow, view->pmincol,
+            // view->sminrow, view->smincol, view->smaxrow,
+            // view->smaxcol);
+            // if (rc == ERR) {
+            //     Perror("Error refreshing screen");
+            // }
             /// ╭───────────────────────────────────────────────────╮
             /// │ SEARCH - UPDATE LINE MATCH COLUMNS                │
             /// ╰───────────────────────────────────────────────────╯
@@ -1262,10 +1258,10 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             /// ╰───────────────────────────────────────────────────╯
             reti = regexec(&compiled_regex, view->line_out_p,
                            compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-            /// @note lines may be much off_ter than the screen width, so
+            /// @note lines may be much longer than the screen width, so
             /// continue searching even if the line is not displayed
             /// completely. The pad's complex characters (cchar_t) will
-            /// handle the display, even if horizantal scrolling is needed.
+            /// handle the display for horizantal scrolling.
             if (reti == REG_NOMATCH)
                 break;
             if (reti) {
@@ -1291,14 +1287,14 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
         ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-                  "%c%s Match Cols %d-%d of %d-%d (%zd%%)", search_cmd,
+                  "%c%s|Match Cols %d-%d of %d-%d|(%zd%%)", search_cmd,
                   regex_pattern, view->first_match_x, view->last_match_x,
                   view->pmincol, view->smaxcol - view->begx,
                   (view->page_bot_pos * 100 / view->file_size));
     else
-        ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-                  "%c%s lines %zu-%zu (%zd%%)", search_cmd, regex_pattern,
-                  view->page_top_pos, view->page_bot_pos,
+        ssnprintf(view->tmp_prompt_str, MAXLEN - 1, "%c%s|Pos %zu-%zu|(%zd%%)",
+                  search_cmd, regex_pattern, view->page_top_pos,
+                  view->page_bot_pos,
                   (view->page_bot_pos * 100 / view->file_size));
     regfree(&compiled_regex);
     return true;
@@ -1364,7 +1360,7 @@ void resize_page(Init *init) {
 ///  @return void
 ///  @note Clears the screen and displays the current page of lines
 ///  starting from view->page_top_pos
-void redisplay_page(Init *init) {
+void redisplay_page(View *view) {
     int i;
     int line_len;
     view->cury = 0;
@@ -1994,26 +1990,6 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     return;
 }
 ///  ╭──────────────────────────────────────────────────────────────╮
-///  │ A_TOI                                                        │
-///  ╰──────────────────────────────────────────────────────────────╯
-///  ASCII to Integer Conversion with Error Checking
-///  @param s is the input string
-///  @param a_toi_error is the error flag output
-///  @return converted integer value, or -1 on error
-int a_toi(char *s, bool a_toi_error) {
-    int rc = -1;
-
-    errno = 0;
-    if (s && *s != 0)
-        rc = (int)strtol(s, NULL, 10);
-    if (rc < 0 || errno) {
-        rc = -1;
-        a_toi_error = true;
-        a_toi_error = a_toi_error;
-    }
-    return rc;
-}
-///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ CMD_LINE_PROMPT                                              │
 ///  ╰──────────────────────────────────────────────────────────────╯
 /// Display Command Line Prompt
@@ -2061,7 +2037,6 @@ void remove_file(View *view) {
 /// @param view is the current view data structure
 /// @return void
 void view_display_help(Init *init) {
-    int begy, begx;
     int eargc;
     char *eargv[MAXARGS];
     View *view_save = init->view;
@@ -2070,9 +2045,12 @@ void view_display_help(Init *init) {
     eargv[1] = VIEW_HELP_FILE;
     eargv[2] = NULL;
     eargc = 2;
-    begx = view->begx + 4;
-    begy = view->begy + 1;
-    mview(init, eargc, eargv, 10, 54, begy, begx, "View Help");
+    init->lines = 10;
+    init->cols = 54;
+    init->begy = view->begy + 1;
+    init->begx = view->begx + 4;
+    strnz__cpy(init->title, "View Help", MAXLEN - 1);
+    mview(init, eargc, eargv);
     view = init->view = view_save;
     view->f_redisplay_page = true;
 }

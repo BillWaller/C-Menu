@@ -17,7 +17,7 @@
 /// echo "Username: $USERNAME"
 /// echo "Password: $PASSWORD"
 ///
-#include "menu.h"
+#include "cm.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>

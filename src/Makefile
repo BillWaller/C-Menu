@@ -6,144 +6,116 @@
 #
 # Makefile for the MENU application suite
 #
-# If you create a simpler Makefile, without increasing the size of
-# executables, please share. I have created much simpler Makefiles that
-# work, but only by linking all object files, which increases the size of
-# the executables significantly.
-#
-# This Makefile produces reasonably sized executables considering the
-# inclusion of debugging information and symbols.
-#
-# You can optimize the executables by changing -O0 to -O2, removing -g3,
-# and add -Wl,-s to the linker. As you can see, the executables get much
-# smaller.
-#
-# Here are the sizes of the executables in KB using three different
-# Makefiles:
-#
-#           Generic Custom Optimized
-# ckeys       358     260     63
-# enterchr    297     193     14
-# enterstr    328     220     35
-# form        403     360     96
-# iloan       310      98     20
-# menu        437     433    128
-# pick        394     348     95
-# rsh         293      87     14
-# view        386     326     83
-# whence      293      81     20
-# total      3499    2406    568
-#
-# If the Child Exit and Signal messages from rsh are annoying,
-# remove the -DVERBOSE flag from the rsh compile instruction.
-# The default is to compile without -DVERBOSE.
-#
-# for release, use
+
 REL_CFLAGS = -O1
-#
-# -O2 is great until it isn't. I have never had problems with it before now,
-#  but it did cause problems with C-Menu by optimizing out needed code.
-#  Use -O1 for now.
-#
-# for debugging with GDB, use
 DBG_CFLAGS = -g3
 #
-# Required Libraries:
+PREFIX=~/menuapp
+# LIBDIR could be set to ~/menuapp/lib64
+# it would need to be added to /etc/ld.so.conf
+LIBDIR=/usr/local/lib64
 #
-# libc.so.6
-# libm.so.6
-# libncursesw.so.6
-# libtinfo.so.6
-#
-CFLAGS = $(DBG_CFLAGS) -std=gnu23 -fdiagnostics-color=always -Wall -Wextra \
-		-Wno-unused-parameter -Wno-missing-field-initializers \
-		-Wno-unused-function -DNCURSES_WIDECHAR -Wl,--gc-sections
-LIBS =  -lncursesw -ltinfo -lm
-LDFLAGS = -Wl,--gc-sections
 CC = gcc
-TARGETS = menu form pick ckeys view whence rsh iloan enterchr enterstr lf \
-		  optsp stripansi
-TARGET_LIB = libmenu.a
+CFLAGS = -Wall -Wextra -g3
+LIBS =  -lcm -lncursesw -ltinfo -lm
+BINEXES = menu form pick ckeys view whence rsh iloan enterchr \
+		  enterstr lf optsp stripansi
+LIB_NAME= libcm.so
+LIB_SRCS = dwin.c futil.c scriou.c exec.c sig.c
+LIB_OBJS = $(LIB_SRCS:.c=.o)
+MENU_SRCS = menu.c menu_engine.c parse_menu_desc.c init_view.c fields.c form_engine.c pick_engine.c curskeys.c mview.c view_engine.c init.c mem.c opts.c
+MENU_OBJS= $(MENU_SRCS:.c=.o)
+FORM_SRCS = form.c fields.c form_engine.c mview.c init_view.c view_engine.c init.c mem.c opts.c 
+FORM_OBJS= $(FORM_SRCS:.c=.o)
+PICK_SRCS = pick.c pick_engine.c mview.c init_view.c view_engine.c fields.c form_engine.c init.c mem.c opts.c
+PICK_OBJS = $(PICK_SRCS:.c=.o)
+VIEW_SRCS = view.c init_view.c view_engine.c fields.c form_engine.c mview.c init.c mem.c opts.c
+VIEW_OBJS = $(VIEW_SRCS:.c=.o)
+CKEYS_SRCS = ckeys.c curskeys.c init.c mem.c opts.c
+CKEYS_OBJS = $(CKEYS_SRCS:.c=.o)
 
-all:	$(TARGETS)
+# *** IMPORTANT: USER = YOUR USERID ***
+# Unless your user ID is bill, you will need to change this
+USER=bill
+GROUP=bill
+# or, this might work if you save your user and group IDs
+# in ./user_id and ./group_id respectively
+# USER := $(shell id -u -n)
+# GROUP := $(shell id -g -n)
+
+all:	$(LIB_NAME) $(BINEXES)
 	@echo Make Complete
 
-menu:	menu.o menu_engine.o parse_menu_desc.o init_view.o \
-		form_engine.o fields.o pick_engine.o curskeys.o mview.o view_engine.o \
-		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) menu.o menu_engine.o parse_menu_desc.o init_view.o form_engine.o \
-		pick_engine.o curskeys.o mview.o view_engine.o \
-	   	dwin.o exec.o fields.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-form:	form.o form_engine.o mview.o init_view.o view_engine.o \
-		dwin.o exec.o fields.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) form.o form_engine.o mview.o init_view.o view_engine.o \
-		dwin.o exec.o fields.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-ckeys:	ckeys.o curskeys.o \
-		dwin.o futil.o init.o mem.o opts.o scriou.o exec.o sig.o
-	$(CC) $(CFLAGS) ckeys.o curskeys.o \
-		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-pick:	pick.o  pick_engine.o mview.o init_view.o \
-		view_engine.o form_engine.o fields.o \
-		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) pick.c  pick_engine.o mview.o init_view.o \
-		view_engine.o form_engine.o fields.o \
-		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o \
-		$(LDFLAGS) -o $@ $(LIBS)
-view: view.o init_view.o view_engine.o form_engine.o fields.o mview.o \
-   	dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) view.o init_view.o view_engine.o form_engine.o fields.o mview.o \
-		dwin.o exec.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-optsp:	optsp.c opts.o
-	$(CC) $(CFLAGS) $(LDFLAGS) optsp.c opts.o -o $@ $(LIBS)
-enterchr:	enterchr.o \
-		dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) enterchr.o \
-		dwin.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-enterstr:	enterstr.o \
-		dwin.o futil.o init.o mem.o opts.o scriou.o sig.o
-	$(CC) $(CFLAGS) enterstr.o \
-	   	dwin.o futil.o init.o mem.o opts.o scriou.o sig.o $(LDFLAGS) -o $@ $(LIBS)
-whence:	whence.c
-	$(CC) $(CFLAGS) $(LDFLAGS) whence.c -o $@ -lc
-iloan:	iloan.c
-	$(CC) $(CFLAGS) $(LDFLAGS) iloan.c -o $@ -lc -lm
-rsh:	rsh.c
-	$(CC) $(CFLAGS) $(LDFLAGS) rsh.c -o $@
-lf:	lf.c
-	$(CC) $(CFLAGS) $(LDFLAGS) lf.c -o $@
-stripansi:	stripansi.c
-	$(CC) $(CFLAGS) $(LDFLAGS) stripansi.c -o $@
+menu: $(MENU_OBJS) $(LIB_NAME)
+	$(CC) $(CFLAGS) $(MENU_OBJS) -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
 
-%:	%.c menu.h
-	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LIBS)
+form: $(FORM_OBJS) $(LIB_NAME)
+	$(CC) $(CFLAGS) $(FORM_OBJS) -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
 
-%.o:	%.c menu.h
-	$(CC) $(CFLAGS) -c $<
+pick: $(PICK_OBJS) $(LIB_NAME)
+	$(CC) $(CFLAGS) $(PICK_OBJS) -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+view: $(VIEW_OBJS) $(LIB_NAME)
+	$(CC) $(CFLAGS) $(VIEW_OBJS) -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+ckeys: $(CKEYS_OBJS) $(LIB_NAME)
+	$(CC) $(CFLAGS) $(CKEYS_OBJS) -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+cpick: $(CPICK_OBJS) $(LIB_NAME)
+	$(CC) $(CFLAGS) $(CPICK_OBJS) -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+optsp:	optsp.o opts.o $(LIB_NAME)
+	$(CC) optsp.o opts.o $(CFLAGS) -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+enterchr:	enterchr.o $(LIB_NAME)
+	$(CC) $(CFLAGS) enterchr.o -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+enterstr:	enterstr.o $(LIB_NAME)
+	$(CC) $(CFLAGS) enterstr.o -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+whence:	whence.o $(LIB_NAME)
+	$(CC) $(CFLAGS) whence.o -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+iloan:	iloan.o $(LIB_NAME)
+	$(CC) $(CFLAGS) iloan.o -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+rsh:	rsh.o $(LIB_NAME)
+	$(CC) $(CFLAGS) rsh.o -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+lf:	lf.o $(LIB_NAME)
+	$(CC) $(CFLAGS) lf.o -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+stripansi:	stripansi.o  $(LIB_NAME)
+	$(CC) $(CFLAGS) stripansi.o -L. $(LIBS) -o $@ -Wl,-rpath,$(LIBDIR)
+
+$(LIB_NAME): $(LIB_OBJS)
+	$(CC) $(CFLAGS) -shared -o $@ $^
+
+%.o:	%.c
+	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
 clean:
-	rm -rf core *.o $(TARGETS) make.out $(CFLOW_OUTPUT) *.o *.cflow \
-		scan-build scan-build.out installed gdbcmds tm tf tp tv x xx xxx *.out
-
-PREFIX=~/menuapp
-OWNER=bill
-GROUP=users
+	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.so \
+		*.cflow scan-build scan-build.out installed gdbcmds tm \
+	   	tf tp tv x xx xxx *.out .user_id .group_id
 
 install:
 	./inst.sh	--
-	./inst.sh	menu		$(PREFIX)/bin	menu		0711	$(OWNER)	$(GROUP)
-	./inst.sh	form		$(PREFIX)/bin	form		0711	$(OWNER)	$(GROUP)
-	./inst.sh	pick		$(PREFIX)/bin	pick		0711	$(OWNER)	$(GROUP)
-	./inst.sh	ckeys		$(PREFIX)/bin	ckeys		0711	$(OWNER)	$(GROUP)
-	./inst.sh	view		$(PREFIX)/bin	view		0711	$(OWNER)	$(GROUP)
-	./inst.sh	optsp		$(PREFIX)/bin	optsp		0711	$(OWNER)	$(GROUP)
-	./inst.sh	whence		$(PREFIX)/bin	whence		0711	$(OWNER)	$(GROUP)
-	./inst.sh	rsh		$(PREFIX)/bin	rsh		4711	root	root
-	./inst.sh	rsh		$(PREFIX)/bin	ush		0711	$(OWNER)	$(GROUP)
-	./inst.sh	enterchr	$(PREFIX)/bin	enterchr	0711	$(OWNER)	$(GROUP)
-	./inst.sh	enterstr	$(PREFIX)/bin	enterstr	0711	$(OWNER)	$(GROUP)
-	./inst.sh	iloan		$(PREFIX)/bin	iloan		0711	$(OWNER)	$(GROUP)
-	./inst.sh	stripansi	$(PREFIX)/bin	stripansi	0711	$(OWNER)	$(GROUP)
-	./inst.sh	lf		$(PREFIX)/bin	lf		0711	$(OWNER)	$(GROUP)
+	./inst.sh	libcm.so	$(LIBDIR)	0711	$(USER)	$(GROUP)
+	./inst.sh	menu		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	form		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	pick		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	ckeys		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	view		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	optsp		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	whence		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	rsh		$(PREFIX)/bin		4711	root	root
+	./inst.sh	enterchr	$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	enterstr	$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	iloan		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	stripansi	$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh	lf		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	ldconfig
 	./inst.sh -p
 	./inst.sh -l
 	./inst.sh -m
@@ -157,7 +129,7 @@ uninstall:
 			$(PREFIX)/bin/rsh \
 			$(PREFIX)/bin/ush \
 			$(PREFIX)/bin/enterchr \
-			$(PREFIX)/bin/enterstr
-			$(PREFIX)/bin/stripansi
-			$(PREFIX)/bin/lf
-
+			$(PREFIX)/bin/enterstr \
+			$(PREFIX)/bin/stripansi \
+			$(PREFIX)/bin/lf \
+			$(LIBDIR)/libcm.so

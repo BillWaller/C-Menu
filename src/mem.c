@@ -14,7 +14,7 @@ Init *new_init(int, char **);
 Menu *new_menu(Init *init, int, char **, int, int);
 Pick *new_pick(Init *init, int, char **, int, int);
 Form *new_form(Init *init, int, char **, int, int);
-View *new_view(Init *init, int, char **, int, int);
+View *new_view(Init *init, int, char **);
 View *destroy_view(Init *init);
 Form *destroy_form(Init *init);
 Pick *destroy_pick(Init *init);
@@ -60,6 +60,11 @@ Init *new_init(int argc, char **argv) {
         init->argv[i] = strdup(argv[i]);
     }
     init->argv[i] = NULL;
+    init->sio = (SIO *)calloc(1, sizeof(SIO));
+    if (!init->sio) {
+        abend(-1, "calloc sio failed");
+        return NULL;
+    }
     init_cnt++;
     return init;
 }
@@ -71,6 +76,10 @@ Init *destroy_init(Init *init) {
     int i;
     if (!init)
         return NULL;
+    if (init->sio) {
+        free(init->sio);
+        init->sio = NULL;
+    }
     if (init->menu) {
         init->menu = destroy_menu(init);
         init->menu = NULL;
@@ -234,7 +243,7 @@ Form *destroy_form(Init *init) {
 /// │ NEW_VIEW                                                      │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Create and initialize a View structure
-View *new_view(Init *init, int argc, char **argv, int begy, int begx) {
+View *new_view(Init *init, int argc, char **argv) {
 
     init->view_cnt++;
     init->view = (View *)calloc(1, sizeof(View));
@@ -485,9 +494,6 @@ bool init_menu_files(Init *init, int argc, char **argv) {
             abend(-1, tmp_str);
         }
     }
-    menu->fg_color = init->fg_color;
-    menu->bg_color = init->bg_color;
-    menu->bo_color = init->bo_color;
     menu->f_stop_on_error = init->f_stop_on_error;
     return true;
 }
@@ -619,9 +625,6 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         if (pick->f_help_spec)
             optind++;
     }
-    pick->fg_color = init->fg_color;
-    pick->bg_color = init->bg_color;
-    pick->bo_color = init->bo_color;
     pick->select_max = init->select_max;
     pick->f_stop_on_error = init->f_stop_on_error;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
@@ -765,9 +768,6 @@ bool init_form_files(Init *init, int argc, char **argv) {
         if (form->f_help_spec)
             optind++;
     }
-    form->fg_color = init->fg_color;
-    form->bg_color = init->bg_color;
-    form->bo_color = init->bo_color;
     form->f_stop_on_error = init->f_stop_on_error;
     form->f_erase_remainder = init->f_erase_remainder;
     if (form->title[0] == '\0' && init->title[0] != '\0') {
@@ -805,9 +805,6 @@ bool init_view_files(Init *init, int argc, char **argv) {
 
     view->lines = init->lines;
     view->cols = init->cols;
-    view->fg_color = init->fg_color;
-    view->bg_color = init->bg_color;
-    view->bo_color = init->bo_color;
     view->f_stop_on_error = init->f_stop_on_error;
     view->f_ignore_case = init->f_ignore_case;
     view->f_at_end_clear = init->f_at_end_clear;

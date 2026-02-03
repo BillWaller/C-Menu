@@ -9,7 +9,8 @@
 ///  continue execution. If the user chooses to exit, a confirmation
 ///  prompt will be displayed. If the user opts to continue, the program
 ///  will resume normal operation.
-#include "menu.h"
+
+#include "cm.h"
 #include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -110,21 +111,12 @@ int handle_signal(int sig_num) {
                 write(2, msg++, 1);
             read(0, &c, 1);
             to_uppercase(c);
-            if (c == 'Y') {
-                destroy_init(init);
-                win_del();
-                destroy_curses();
-                restore_shell_tioctl();
+            if (c == 'Y')
                 exit(EXIT_FAILURE);
-            }
         }
-        restore_shell_tioctl();
     } else {
         strnz__cpy(tmp_str, "Caught signal - Press any key", MAXLEN - 1);
         c = (char)Perror(tmp_str);
-        destroy_curses();
-        sig_dfl_mode();
-        restore_shell_tioctl();
         _exit(1);
     }
     sig_prog_mode();

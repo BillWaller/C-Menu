@@ -13,10 +13,10 @@
 DATE=$(rfc3339)
 FILENAME=$1
 DSTDIR=$2
-DSTNAME=$3
-FILEMOD=$4
-FILEOWN=$5
-FILEGRP=$6
+FILEMOD=$3
+FILEOWN=$4
+FILEGRP=$5
+DSTNAME=$FILENAME
 EUSER=$(whoami)
 if [ "$EUSER" != "root" ] && [ "$FILENAME" = "rsh" ]; then
     echo Root privileges recommended for install
@@ -77,8 +77,9 @@ if [ "$#" -eq 1 ]; then
         exit 0
     fi
 fi
-if [ "$#" != 6 ]; then
+if [ "$#" != 5 ]; then
     echo usage: inst.sh FileName Directory DestName Mode Owner Group
+    echo actual $#
     echo "    -l      list installed files"
     echo "    --      clear installed files list"
     exit 1
