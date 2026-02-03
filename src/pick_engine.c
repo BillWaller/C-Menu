@@ -56,7 +56,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     Pick *pick = new_pick(init, argc, argv, begy, begx);
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
-
+    SIO *sio = init->sio;
     /// ╭────────────────────────────────────────────────────────────╮
     /// │ START PROVIDER_CMD, attach pipe to its STDOUT              │
     /// ╰────────────────────────────────────────────────────────────╯
@@ -138,8 +138,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     if (pick->f_in_pipe && pid > 0) {
         waitpid(pid, NULL, 0);
         close(pipe_fd[P_READ]);
-        dup2(init->stdin_fd, STDIN_FILENO);
-        dup2(init->stdout_fd, STDOUT_FILENO);
+        dup2(sio->stdin_fd, STDIN_FILENO);
+        dup2(sio->stdout_fd, STDOUT_FILENO);
         restore_curses_tioctl();
         sig_prog_mode();
         keypad(pick->win, true);
@@ -642,6 +642,7 @@ int exec_objects(Init *init) {
     int margc;
     char *margv[MAXARGS];
     char tmp_str[MAXLEN];
+    char title[MAXLEN];
     char sav_arg[MAXLEN];
     char *out_s;
     int margx = 0;
@@ -650,6 +651,7 @@ int exec_objects(Init *init) {
     bool f_append_args = false;
     char *s1;
 
+    title[0] = '\0';
     if (pick->cmd[0] == '\0')
         return -1;
     if (pick->cmd[0] == '\\' || pick->cmd[0] == '\"') {
@@ -724,6 +726,7 @@ int exec_objects(Init *init) {
                 Perror("rep_substring() failed in exec_objects");
                 return 1;
             }
+            strnz__cpy(title, out_s, MAXLEN - 1);
             margv[margx] = strdup(out_s);
             if (out_s != NULL) {
                 free(out_s);
@@ -754,7 +757,15 @@ int exec_objects(Init *init) {
         ///  ╰──────────────────────────────────────────────────────╯
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
-        mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4, NULL);
+        init->lines = 10;
+        init->cols = 54;
+        init->begy = pick->begy + 1;
+        init->begx = pick->begx + 4;
+        if (title[0] != '\0')
+            strnz__cpy(init->title, title, MAXLEN - 1);
+        else
+            strnz__cpy(init->title, margv[margc], MAXLEN - 1);
+        mview(init, margc, margv);
         i = 0;
         while (i < margc) {
             if (margv[i] != NULL)
@@ -837,6 +848,10 @@ void display_pick_help(Init *init) {
     margv[margc++] = strdup("mview");
     margv[margc++] = pick->help_spec;
     margv[margc] = NULL;
-    mview(init, margc, margv, 0, 0, pick->begy + 1, pick->begx + 4,
-          pick->title);
+    init->lines = 10;
+    init->cols = 54;
+    init->begy = pick->begy + 1;
+    init->begx = pick->begx + 4;
+    strnz__cpy(init->title, margv[1], MAXLEN - 1);
+    mview(init, margc, margv);
 }

@@ -19,7 +19,7 @@ int display_curses_keys() {
     int lines = 10;
     int cols = 55;
     char kstr[KSTRLEN];
-    int c;
+    unsigned int c;
     char action[MAXLEN];
     char tmp[MAXLEN];
     MEVENT event;

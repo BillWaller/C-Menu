@@ -22,11 +22,18 @@
 #include <unistd.h>
 #include <wait.h>
 
-bool list_files(char *, char *, bool);
-bool lf_find_files(char *, char *);
-bool lf_find_dirs(char *, char *);
-bool lf_write_file(int, char *);
+// for lf_find_files and lf_find_dirs
+#define ALL 0x01
+#define RECURSE 0x02
+#define ICASE 0x04
 
+bool list_files(char *, char *, bool);
+bool lf_find_dirs(char *, char *, int, int);
+bool lf_find_files(char *, char *, int);
+bool lf_write_file(int, char *);
+int strip_ansi(char *, char *);
+int a_toi(char *, bool);
+bool chrep(char *, char, char);
 size_t trim(char *);
 size_t rtrim(char *);
 bool stripz_quotes(char *);
@@ -62,10 +69,10 @@ bool free_string(String);
 char *str_tok_r(char *, const char *, char **, char *);
 char errmsg[MAXLEN];
 ///--------------------------------------------------------------
-/// ╭───────────────────────────────────────────────────────────╮
-/// │ RTRIM - Removes Trailing Whitespace                       │
-/// ╰───────────────────────────────────────────────────────────╯
-/// @param s - string to trim
+///  ╭───────────────────────────────────────────────────────────╮
+///  │ RTRIM - Removes Trailing Whitespace                       │
+///  ╰───────────────────────────────────────────────────────────╯
+///  @param s - string to trim
 size_t rtrim(char *s) {
     if (s == NULL || *s == '\0')
         return 0;
@@ -78,10 +85,10 @@ size_t rtrim(char *s) {
     *d = '\0';
     return d - s;
 }
-/// ╭───────────────────────────────────────────────────────────╮
-/// │ TRIM - Removes Leading and Trailing Whitespace            │
-/// ╰───────────────────────────────────────────────────────────╯
-/// @param s - string to trim
+///  ╭───────────────────────────────────────────────────────────╮
+///  │ TRIM - Removes Leading and Trailing Whitespace            │
+///  ╰───────────────────────────────────────────────────────────╯
+///  @param s - string to trim
 size_t trim(char *s) {
     if (s == NULL || *s == '\0')
         return 0;
@@ -96,12 +103,12 @@ size_t trim(char *s) {
     *d = '\0';
     return d - s;
 }
-/// ╭───────────────────────────────────────────────────────────╮
-/// │ SSNPRINTF                                                 │
-/// ╰───────────────────────────────────────────────────────────╯
-/// A safe snprintf function that ensures the buffer is not overflowed.
-/// Returns the number of characters that would have been written if
-/// enough space had been available.
+///  ╭───────────────────────────────────────────────────────────╮
+///  │ SSNPRINTF                                                 │
+///  ╰───────────────────────────────────────────────────────────╯
+///  A safe snprintf function that ensures the buffer is not overflowed.
+///  Returns the number of characters that would have been written if
+///  enough space had been available.
 size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     int n;
     va_list args;
@@ -112,13 +119,13 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
 
     return n;
 }
-/// ╭───────────────────────────────────────────────────────────╮
-/// │ STR_TO_ARGS - Break String Into Arguments                 │
-/// ╰───────────────────────────────────────────────────────────╯
-/// @param argv - array of pointers to arguments
-/// @param arg_str - string containing arguments
-/// @param max_args - maximum number of arguments to parse
-/// @returns number of arguments parsed
+///  ╭───────────────────────────────────────────────────────────╮
+///  │ STR_TO_ARGS - Break String Into Arguments                 │
+///  ╰───────────────────────────────────────────────────────────╯
+///  @param argv - array of pointers to arguments
+///  @param arg_str - string containing arguments
+///  @param max_args - maximum number of arguments to parse
+///  @returns number of arguments parsed
 int str_to_args(char *argv[], char *arg_str, int max_args) {
     if (arg_str == NULL || *arg_str == '\0')
         return 0;
@@ -165,10 +172,10 @@ int str_to_args(char *argv[], char *arg_str, int max_args) {
     argv[argc] = NULL;
     return argc;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STR_TO_LOWER - Replace Upper with Lower Case                  │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to convert
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STR_TO_LOWER - Replace Upper with Lower Case                  │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to convert
 bool str_to_lower(char *s) {
     if (s == NULL || *s == '\0')
         return false;
@@ -179,10 +186,10 @@ bool str_to_lower(char *s) {
     }
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STR_TO_UPPER - Replace Lower with Upper Case                  │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to convert
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STR_TO_UPPER - Replace Lower with Upper Case                  │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to convert
 bool str_to_upper(char *s) {
     if (s == NULL || *s == '\0')
         return false;
@@ -193,16 +200,16 @@ bool str_to_upper(char *s) {
     }
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRNZ_CPY                                                     │
-/// │ stops at max_len, newline, or carriage return                 │
-/// │ max_len limits the destination buffer size                    │
-/// │ returns length of resulting string                            │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param d - destination string
-/// @param s - source string
-/// @param max_len - maximum length to copy
-/// @returns length of resulting string
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRNZ_CPY                                                     │
+///  │ stops at max_len, newline, or carriage return                 │
+///  │ max_len limits the destination buffer size                    │
+///  │ returns length of resulting string                            │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param d - destination string
+///  @param s - source string
+///  @param max_len - maximum length to copy
+///  @returns length of resulting string
 size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     char *e;
     int len = 0;
@@ -219,16 +226,16 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     *d = '\0';
     return len;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRNZ_CAT                                                     │
-/// │ stops at max_len, newline, or carriage return                 │
-/// │ max_len limits the destination buffer size                    │
-/// │ returns length of resulting string                            │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param d - destination string
-/// @param s - source string
-/// @param max_len - maximum length to copy
-/// @returns length of resulting string
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRNZ_CAT                                                     │
+///  │ stops at max_len, newline, or carriage return                 │
+///  │ max_len limits the destination buffer size                    │
+///  │ returns length of resulting string                            │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param d - destination string
+///  @param s - source string
+///  @param max_len - maximum length to copy
+///  @returns length of resulting string
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
     char *e;
     int len = 0;
@@ -249,11 +256,11 @@ size_t strnz__cat(char *d, const char *s, size_t max_len) {
     *d = '\0';
     return len;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRZ                                                          │
-/// │ Don't use - deprecated                                        │
-/// │ Use strnz instead                                             │
-/// ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRZ                                                          │
+///  │ Don't use - deprecated                                        │
+///  │ Use strnz instead                                             │
+///  ╰───────────────────────────────────────────────────────────────╯
 size_t strz(char *s) {
     int l = 0;
     if (s == NULL || *s == '\0')
@@ -265,14 +272,14 @@ size_t strz(char *s) {
     *s = '\0';
     return l;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRNZ                                                         │
-/// │ terminates string at '\n', '\r', or max_len                   │
-/// │ returns length of resulting string                            │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to terminate
-/// @param max_len - maximum length to scan
-/// @returns length of resulting string
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRNZ                                                         │
+///  │ terminates string at '\n', '\r', or max_len                   │
+///  │ returns length of resulting string                            │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to terminate
+///  @param max_len - maximum length to scan
+///  @returns length of resulting string
 size_t strnz(char *s, int max_len) {
     char *e;
     int len = 0;
@@ -286,14 +293,14 @@ size_t strnz(char *s, int max_len) {
     *s = '\0';
     return (len);
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRNZ_DUP                                                     │
-/// │ terminates string at '\n', '\r', or l                         │
-/// │ returns pionter to allocated memory                           │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to duplicate
-/// @param l - maximum length to copy
-/// @returns pointer to allocated memory
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRNZ_DUP                                                     │
+///  │ terminates string at '\n', '\r', or l                         │
+///  │ returns pionter to allocated memory                           │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to duplicate
+///  @param l - maximum length to copy
+///  @returns pointer to allocated memory
 char *strnz_dup(char *s, int l) {
     char *p, *rs, *e;
     int m;
@@ -310,14 +317,14 @@ char *strnz_dup(char *s, int l) {
     }
     return rs;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRZ_DUP - Duplicate String Allocating Memory                 │
-/// │ Dont use - deprecated                                         │
-/// │ Use strnz_dup instead                                         │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to duplicate
-/// @returns pointer to allocated memory
-/// @note - caller must free returned memory
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRZ_DUP - Duplicate String Allocating Memory                 │
+///  │ Dont use - deprecated                                         │
+///  │ Use strnz_dup instead                                         │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to duplicate
+///  @returns pointer to allocated memory
+///  @note - caller must free returned memory
 char *strz_dup(char *s) {
     char *p, *rs;
     int m;
@@ -333,16 +340,16 @@ char *strz_dup(char *s) {
     }
     return rs;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STR_SUBC - Substitute Character with String                   │
-/// │ Replaces "ReplaceChr" in "s" with "Withstr" in "d"            │
-/// │ won't move more than "l" bytes to "d"                         │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param d - destination string
-/// @param s - source string
-/// @param ReplaceChr - character to replace
-/// @param Withstr - string to insert
-/// @param l - maximum length to copy
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STR_SUBC - Substitute Character with String                   │
+///  │ Replaces "ReplaceChr" in "s" with "Withstr" in "d"            │
+///  │ won't move more than "l" bytes to "d"                         │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param d - destination string
+///  @param s - source string
+///  @param ReplaceChr - character to replace
+///  @param Withstr - string to insert
+///  @param l - maximum length to copy
 bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
     char *e;
     if (s == NULL || d == NULL || Withstr == NULL || l == 0) {
@@ -363,13 +370,13 @@ bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
     *d = '\0';
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRNFILL - Fill String With Character                         │
-/// │ Replace all occurrences of old_chr with new_chr in string     │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to fill
-/// @param c - character to fill with
-/// @param n - number of characters to fill
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRNFILL - Fill String With Character                         │
+///  │ Replace all occurrences of old_chr with new_chr in string     │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to fill
+///  @param c - character to fill with
+///  @param n - number of characters to fill
 bool strnfill(char *s, char c, int n) {
     if (s == NULL || n <= 0)
         return false;
@@ -381,12 +388,12 @@ bool strnfill(char *s, char c, int n) {
     *s = '\0';
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRIP_QUOTES - Remove Quotes from String                      │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to strip quotes from
-/// removes leading and trailing double quotes if present
-/// void strip_quotes(char *s);
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRIP_QUOTES - Remove Quotes from String                      │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to strip quotes from
+///  removes leading and trailing double quotes if present
+///  void strip_quotes(char *s);
 bool strip_quotes(char *s) {
     if (s == NULL)
         return false;
@@ -397,12 +404,12 @@ bool strip_quotes(char *s) {
     }
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ STRIPZ_QUOTES - Remove Quotes from String                         │
-/// ╰───────────────────────────────────────────────────────────────────╯
-/// @param s - string to strip quotes from
-/// removes leading and trailing double quotes if present
-/// @note Same as STRIP_QUOTES but returns true if quotes were removed
+///  ╭───────────────────────────────────────────────────────────────────╮
+///  │ STRIPZ_QUOTES - Remove Quotes from String                         │
+///  ╰───────────────────────────────────────────────────────────────────╯
+///  @param s - string to strip quotes from
+///  removes leading and trailing double quotes if present
+///  @note Same as STRIP_QUOTES but returns true if quotes were removed
 bool stripz_quotes(char *s) {
     if (s == NULL || strlen(s) < 2)
         return false;
@@ -414,13 +421,13 @@ bool stripz_quotes(char *s) {
     }
     return false;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ CHREP                                                         │
-/// │ Replace all occurrences of old_chr with new_chr in string     │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to modify
-/// @param old_chr - character to replace
-/// @param new_chr - character to insert
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ CHREP                                                         │
+///  │ Replace all occurrences of old_chr with new_chr in string     │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to modify
+///  @param old_chr - character to replace
+///  @param new_chr - character to insert
 bool chrep(char *s, char old_chr, char new_chr) {
     if (s == NULL)
         return false;
@@ -431,12 +438,72 @@ bool chrep(char *s, char old_chr, char new_chr) {
     }
     return true;
 }
-///------------------------------------------------------------------
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ NORMALIZE_FILE_SPEC                                           │
-/// │ Replace backslashes with slashes                              │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// replace backslashes with forward lashes
+
+///  ╭──────────────────────────────────────────────────────────────╮
+///  │ A_TOI                                                        │
+///  ╰──────────────────────────────────────────────────────────────╯
+///  ASCII to Integer Conversion with Error Checking
+///  Accepts positive integers only
+///  Negative numbers return an error (-1) in a_toi_error
+///  @param s is the input string
+int a_toi(char *s, bool a_toi_error) {
+    int rc = -1;
+
+    errno = 0;
+    if (s && *s != 0)
+        rc = (int)strtol(s, NULL, 10);
+    if (rc < 0 || errno) {
+        rc = -1;
+        a_toi_error = true;
+        a_toi_error = a_toi_error;
+    }
+    return rc;
+}
+/// int strip_ansi(char *d, char *s)
+/// Strips ANSI SGR escape sequences (ending in 'm') from string s to d
+/// Returns length of stripped string
+/// @param d Destination string
+/// @param s Source string
+/// @return Length of stripped string
+/// Example:
+/// char dest[1024];
+/// char src[] = "\033[31mThis is red text\033[0m
+/// int len = strip_ansi(dest, src);
+/// Result: dest = "This is red text", len = 17
+/// Note: Only handles SGR sequences ending in 'm'
+/// Skips non-ASCII characters
+/// @note The caller must ensure that d has enough space to hold the stripped
+/// string
+/// @note This function does not allocate memory; it assumes d is pre-allocated
+/// @note This function processes the entire string until the null terminator
+/// @note This function does not modify the source string s
+/// @note This function returns the length of the resulting string, including
+/// the null terminator
+int strip_ansi(char *d, char *s) {
+    int l = 0;
+    while (*s) {
+        if (*s == '\033') {
+            while (*s && *s != 'm' && *s != 'K')
+                s++;
+            if (*s == 'm' || *s == 'K')
+                s++;
+            continue;
+        } else {
+            if ((unsigned char)*s <= 127) {
+                *d++ = *s++;
+                l++;
+            } else
+                s++;
+        }
+    }
+    *d = '\0';
+    return l;
+}
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ NORMALIZE_FILE_SPEC                                           │
+///  │ Replace backslashes with slashes                              │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  replace backslashes with forward lashes
 bool normalize_file_spec(char *fs) {
     if (fs == NULL || *fs == '\0')
         return false;
@@ -447,13 +514,13 @@ bool normalize_file_spec(char *fs) {
     }
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FILE_SPEC_PATH                                                │
-/// │ Returns the path component of a file specification.           │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// get path component of file spec
-/// @param fp - path component to return
-/// @param fs - full file specification
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ FILE_SPEC_PATH                                                │
+///  │ Returns the path component of a file specification.           │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  get path component of file spec
+///  @param fp - path component to return
+///  @param fs - full file specification
 bool file_spec_path(char *fp, char *fs) {
     if (fs == NULL || *fs == '\0' || fp == NULL) {
         if (fp != NULL)
@@ -475,13 +542,13 @@ bool file_spec_path(char *fp, char *fs) {
         *l = '\0';
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FILE_SPEC_NAME                                                │
-/// │ Returns the file name component of a file specification.      │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// get name component of file spec
-/// @param fn - name component to return
-/// @param fs - full file specification
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ FILE_SPEC_NAME                                                │
+///  │ Returns the file name component of a file specification.      │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  get name component of file spec
+///  @param fn - name component to return
+///  @param fs - full file specification
 bool file_spec_name(char *fn, char *fs) {
     if (fs == NULL || *fs == '\0' || fn == NULL) {
         if (fn != NULL)
@@ -506,19 +573,19 @@ bool file_spec_name(char *fn, char *fs) {
     *d = '\0';
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STR_TO_DOUBLE - Convert String to Double                      │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param s - string to convert
-/// @returns converted double value
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STR_TO_DOUBLE - Convert String to Double                      │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param s - string to convert
+///  @returns converted double value
 double str_to_double(char *s) {
-    /// This function is deprecated. Do not use in new code, and
-    /// replace in old code if possible.
-    /// It has an inherent flaw. It cannot signal conversion errors.
-    /// If the string is invalid, it returns 0.0, but that is also
-    /// a valid conversion result. The caller must ensure that the
-    /// string is a valid representation of a double before calling
-    /// this function.
+    ///  This function is deprecated. Do not use in new code, and
+    ///  replace in old code if possible.
+    ///  It has an inherent flaw. It cannot signal conversion errors.
+    ///  If the string is invalid, it returns 0.0, but that is also
+    ///  a valid conversion result. The caller must ensure that the
+    ///  string is a valid representation of a double before calling
+    ///  this function.
     char *e;
     double d;
 
@@ -527,12 +594,12 @@ double str_to_double(char *s) {
     d = strtod(s, &e);
     return d;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STR_TO_BOOL - Converts String to Boolean true or false        │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// bool str_to_bool(const char *s);
-/// @param s - string to convert
-/// @returns converted boolean value
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STR_TO_BOOL - Converts String to Boolean true or false        │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  bool str_to_bool(const char *s);
+///  @param s - string to convert
+///  @returns converted boolean value
 bool str_to_bool(const char *s) {
     if (s == NULL || *s == '\0')
         return false;
@@ -558,13 +625,13 @@ bool str_to_bool(const char *s) {
     return false;
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ EXPAND_TILDE - Replace Leading Tilde With Home Directory      │
-/// │ Converts ~ to "$HOME"                                         │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param path - path to expand
-/// @param path_maxlen - maximum length of path
-/// @returns true if successful
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ EXPAND_TILDE - Replace Leading Tilde With Home Directory      │
+///  │ Converts ~ to "$HOME"                                         │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param path - path to expand
+///  @param path_maxlen - maximum length of path
+///  @returns true if successful
 bool expand_tilde(char *path, int path_maxlen) {
     if (path == NULL || *path == '\0' || path_maxlen == 0)
         return false;
@@ -590,11 +657,11 @@ bool expand_tilde(char *path, int path_maxlen) {
     }
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ TRIM_PATH - Removes Extraneous Characters From Path           │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param dir - directory path to trim
-/// @returns true if successful
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ TRIM_PATH - Removes Extraneous Characters From Path           │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param dir - directory path to trim
+///  @returns true if successful
 bool trim_path(char *dir) {
     if (!dir)
         return false;
@@ -616,13 +683,13 @@ bool trim_path(char *dir) {
     }
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ TRIM_EXT - Trim File Extension                                │
-/// │ Removes characters to the right of the rightmost period       │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param buf - buffer to receive result
-/// @param filename - filename to trim
-/// @returns true if successful
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ TRIM_EXT - Trim File Extension                                │
+///  │ Removes characters to the right of the rightmost period       │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param buf - buffer to receive result
+///  @param filename - filename to trim
+///  @returns true if successful
 bool trim_ext(char *buf, char *filename) {
     if (!filename || !*filename || !buf)
         return false;
@@ -649,13 +716,13 @@ bool trim_ext(char *buf, char *filename) {
         return false;
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ BASE_NAME - Extracts File Name from File Specification        │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param buf - buffer to receive result
-/// @param path - file specification
-/// @returns true if successful
-/// @note - "buf" must be large enough to receive the result
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ BASE_NAME - Extracts File Name from File Specification        │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param buf - buffer to receive result
+///  @param path - file specification
+///  @returns true if successful
+///  @note - "buf" must be large enough to receive the result
 bool base_name(char *buf, char *path) {
     if (!path || !*path || !buf)
         return false;
@@ -675,13 +742,13 @@ bool base_name(char *buf, char *path) {
         return false;
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ DIR_NAME - Returns the Directory Name of a File Specification │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param buf - buffer to receive result
-/// @param path - file specification
-/// @returns true if successful
-/// @note "buf" must be large enough to receive the result
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ DIR_NAME - Returns the Directory Name of a File Specification │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param buf - buffer to receive result
+///  @param path - file specification
+///  @returns true if successful
+///  @note "buf" must be large enough to receive the result
 bool dir_name(char *buf, char *path) {
     if (!path || !*path || !buf)
         return false;
@@ -709,18 +776,18 @@ bool dir_name(char *buf, char *path) {
         return false;
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ VERIFY_DIR                                                    │
-/// │ Returns true if the directory exists and is accessable with   │
-/// │ the mode specified. Does not throw an error.                  │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param spec - directory specification
-/// @param imode - access mode
-/// @returns true if successful
-/// note - imode can include S_WCOK and S_QUIET flags
-/// these flags are stripped before calling faccessat
-/// S_WCOK - Write or Create
-/// S_QUIET - Suppress Error Messages
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ VERIFY_DIR                                                    │
+///  │ Returns true if the directory exists and is accessable with   │
+///  │ the mode specified. Does not throw an error.                  │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param spec - directory specification
+///  @param imode - access mode
+///  @returns true if successful
+///  note - imode can include S_WCOK and S_QUIET flags
+///  these flags are stripped before calling faccessat
+///  S_WCOK - Write or Create
+///  S_QUIET - Suppress Error Messages
 bool verify_dir(char *spec, int imode) {
     if (spec == NULL || *spec == '\0')
         return false;
@@ -758,14 +825,14 @@ bool verify_dir(char *spec, int imode) {
     }
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ VERIFY_FILE                                                   │
-/// │ Returns true if the file exists and is accessable with the    │
-/// │ specified mode.                                               │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param in_spec - file specification
-/// @param imode - access mode
-/// @returns true if successful
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ VERIFY_FILE                                                   │
+///  │ Returns true if the file exists and is accessable with the    │
+///  │ specified mode.                                               │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param in_spec - file specification
+///  @param imode - access mode
+///  @returns true if successful
 bool verify_file(char *in_spec, int imode) {
     if (in_spec == NULL || *in_spec == '\0')
         return false;
@@ -807,15 +874,15 @@ bool verify_file(char *in_spec, int imode) {
     }
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ LOCATE_FILE_IN_PATH                                           │
-/// │ Searches all directories in the PATH environment variable and │
-/// │ returns true, along with the first matching file in           │
-/// │ "file_spec"                                                   │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param file_spec - buffer to receive located file specification
-/// @param file_name - name of file to locate
-/// @returns true if file is located
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ LOCATE_FILE_IN_PATH                                           │
+///  │ Searches all directories in the PATH environment variable and │
+///  │ returns true, along with the first matching file in           │
+///  │ "file_spec"                                                   │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param file_spec - buffer to receive located file specification
+///  @param file_name - name of file to locate
+///  @returns true if file is located
 bool locate_file_in_path(char *file_spec, char *file_name) {
     if (file_name == NULL || *file_name == '\0' || file_spec == NULL)
         return false;
@@ -845,39 +912,47 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     }
     return false;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ LIST_FILES                                                    │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param dir - directory to list files from
-/// @param regexp - regular expression to match files
-/// @param f_recurse - true to recurse into subdirectories
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ LIST_FILES                                                    │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param dir - directory to list files from
+///  @param regexp - regular expression to match files
+///  @param f_recurse - true to recurse into subdirectories
+///  @param flags: (RECURSE | ICASE)
+///  set defaults: flags = RECURSE; depth = 3;
 bool list_files(char *dir, char *regexp, bool f_recurse) {
+    int flags = RECURSE;
+    int depth = 3;
     if (dir == NULL || *dir == '\0' || regexp == NULL || *regexp == '\0')
         return false;
     normalize_file_spec(dir);
     if (f_recurse) {
-        lf_find_files(dir, regexp);
-        lf_find_dirs(dir, regexp);
+        lf_find_files(dir, regexp, flags);
+        lf_find_dirs(dir, regexp, depth, flags);
     } else {
-        lf_find_files(dir, regexp);
+        lf_find_files(dir, regexp, flags);
     }
     return true;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ LF_FIND_DIRS                                                  │
 /// ╰───────────────────────────────────────────────────────────────╯
-/// @param dir - directory to search
-/// @param re - regular expression to match
-/// @returns true if successful
-bool lf_find_dirs(char *dir, char *re) {
-    if (dir == NULL || *dir == '\0')
-        return false;
+/// Recursively find directories and call lf_find_files on each
+/// directory found
+/// @param dir   starting directory
+/// @param re    regular expression to match files
+/// @param flags search flags
+/// return      true if successful, false otherwise
+bool lf_find_dirs(char *dir, char *re, int depth, int flags) {
     struct stat sb;
     struct dirent *dir_st;
     DIR *dirp;
     char dir_s[MAXLEN];
     char file_spec[MAXLEN];
 
+    if (depth == MAX_DEPTH)
+        return true;
+    depth++;
     if ((dirp = opendir(dir)) == 0)
         return false;
     dir_st = readdir(dirp);
@@ -889,31 +964,32 @@ bool lf_find_dirs(char *dir, char *re) {
                 strnz__cat(file_spec, "/", MAXLEN - 1);
             strnz__cat(file_spec, dir_st->d_name, MAXLEN - 1);
             if (stat(file_spec, &sb) == -1) {
-                strnz__cpy(tmp_str, "can't find ", MAXLEN - 1);
-                strnz__cat(tmp_str, file_spec, MAXLEN - 1);
-                perror(tmp_str);
+                //  strnz__cpy(tmp_str, "can't stat ", MAXLEN - 1);
+                //  strnz__cat(tmp_str, file_spec, MAXLEN - strlen(tmp_str));
+                //  perror(tmp_str);
                 return false;
             }
             if ((sb.st_mode & S_IFMT) == S_IFDIR) {
                 strnz__cpy(dir_s, file_spec, MAXLEN - 1);
-                lf_find_files(dir_s, re);
-                lf_find_dirs(dir_s, re);
+                lf_find_files(dir_s, re, flags);
+                lf_find_dirs(dir_s, re, depth, flags);
             }
         }
         dir_st = readdir(dirp);
     }
     closedir(dirp);
+    depth--;
     return true;
 }
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ LF_FIND_FILES                                                 │
 /// ╰───────────────────────────────────────────────────────────────╯
-/// @param dir - directory to search
-/// @param re - regular expression to match
-/// @returns true if successful
-bool lf_find_files(char *dir, char *re) {
-    if (dir == NULL || *dir == '\0')
-        return false;
+/// Find files in a directory matching a regular expression
+/// @param dir   directory to search
+/// @param re    regular expression to match files
+/// @param flags search flags
+/// return      true if successful, false otherwise
+bool lf_find_files(char *dir, char *re, int flags) {
     struct stat sb;
     struct dirent *dir_st;
     DIR *dirp;
@@ -924,26 +1000,28 @@ bool lf_find_files(char *dir, char *re) {
     char file_spec[MAXLEN];
     char *file_spec_p;
 
-    if (re[0] == '\0')
-        return false;
+    if (flags & ICASE)
+        REG_FLAGS |= REG_ICASE;
     reti = regcomp(&compiled_re, re, REG_FLAGS);
     if (reti) {
-        perror("Invalid pattern");
+        printf("lf: \'%s\' Invalid pattern\n", re);
+        printf("for example: \'.*\\.c$\'\n\n");
         return false;
     }
     if ((dirp = opendir(dir)) == 0)
         return false;
     dir_st = readdir(dirp);
     while (dir_st != NULL) {
-        if (dir_st->d_ino != 0 && strcmp(dir_st->d_name, ".") != 0) {
+        if (dir_st->d_ino != 0 && strcmp(dir_st->d_name, ".") != 0 &&
+            strcmp(dir_st->d_name, "..") != 0) {
             strnz__cpy(file_spec, dir, MAXLEN - 1);
             if (file_spec[strlen(file_spec) - 1] != '/')
                 strnz__cat(file_spec, "/", MAXLEN - 1);
             strnz__cat(file_spec, dir_st->d_name, MAXLEN - 1);
             if (stat(file_spec, &sb) == -1) {
-                strnz__cpy(tmp_str, "can't find ", MAXLEN - 1);
-                strnz__cat(tmp_str, file_spec, MAXLEN - 1);
-                perror(tmp_str);
+                // strnz__cpy(tmp_str, "can't stat ", MAXLEN - 1);
+                // strnz__cat(tmp_str, file_spec, MAXLEN - 1);
+                // perror(tmp_str);
                 return false;
             }
             if ((sb.st_mode & S_IFMT) == S_IFDIR)
@@ -955,8 +1033,8 @@ bool lf_find_files(char *dir, char *re) {
             } else if (reti) {
                 char msgbuf[100];
                 regerror(reti, &compiled_re, msgbuf, sizeof(msgbuf));
-                ssnprintf(tmp_str, MAXLEN - 1, "Regex match failed: %s\n",
-                          msgbuf);
+                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+                strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
                 perror(tmp_str);
                 return false;
             } else {
@@ -971,14 +1049,13 @@ bool lf_find_files(char *dir, char *re) {
     closedir(dirp);
     return true;
 }
-///------------------------------------------------------------------
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ trim at first space and remove quotes                         │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// canonicalize_file_spec(char *spec)
-/// Removes quotes and trims at first space
-/// @param spec - file specification to canonicalize
-/// @returns length of resulting string
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ trim at first space and remove quotes                         │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  canonicalize_file_spec(char *spec)
+///  Removes quotes and trims at first space
+///  @param spec - file specification to canonicalize
+///  @returns length of resulting string
 size_t canonicalize_file_spec(char *spec) {
     if (spec == NULL || *spec == '\0')
         return 0;
@@ -1004,14 +1081,15 @@ size_t canonicalize_file_spec(char *spec) {
     l = strlen(spec);
     return l;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ REP_SUBSTRING - Replace Substring                             │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s)
-/// @param org_s - original string
-/// @param tgt_s - target substring to replace
-/// @param rep_s - replacement substring
-/// @returns pointer to newly allocated string with replacements
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ REP_SUBSTRING - Replace Substring                             │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  char *rep_substring(const char *org_s, const char *tgt_s, const char
+///  *rep_s)
+///  @param org_s - original string
+///  @param tgt_s - target substring to replace
+///  @param rep_s - replacement substring
+///  @returns pointer to newly allocated string with replacements
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     if (org_s == NULL || tgt_s == NULL || rep_s == NULL)
         return NULL;
@@ -1044,34 +1122,34 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     return out_s;
 }
 ///------------------------------------------------------------------
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRING STRUCT FUNCTIONS                                       │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @use:  These functions were designed to manage strings with dynamic
-/// memory allocation, encapsulated in a String struct.
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRING STRUCT FUNCTIONS                                       │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @use:  These functions were designed to manage strings with dynamic
+///  memory allocation, encapsulated in a String struct.
 ///
-/// @param s - string to trim
-/// fn to_string(char *s) -> String
-/// Convert C string to String struct
-/// @param: s C string
-/// @note: The returned String struct contains a dynamically allocated copy
-/// of the input string.
-/// @note: the caller is responsible for freeing the allocated memory.
-/// @see: free_string
-/// @return: String struct
-/// @example:
+///  @param s - string to trim
+///  fn to_string(char *s) -> String
+///  Convert C string to String struct
+///  @param: s C string
+///  @note: The returned String struct contains a dynamically allocated copy
+///  of the input string.
+///  @note: the caller is responsible for freeing the allocated memory.
+///  @see: free_string
+///  @return: String struct
+///  @example:
 ///
-///   String str = to_string("Hello, World!");
-///   //   // Use str.s and str.l
-///   str = free_string(str);
-/// typedef struct {
+///  String str = to_string("Hello, World!");
+///  //   // Use str.s and str.l
+///  str = free_string(str);
+///  typedef struct {
 ///     char *s;   // pointer to string
 ///     size_t l;  // length of string including null terminator
-/// } String;
-/// Eventually this may be expanded to include more string functions.
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ TO_STRING - Convert C string to String struct                 │
-/// ╰───────────────────────────────────────────────────────────────╯
+///  } String;
+///  Eventually this may be expanded to include more string functions.
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ TO_STRING - Convert C string to String struct                 │
+///  ╰───────────────────────────────────────────────────────────────╯
 String to_string(const char *s) {
     if (s == NULL) {
         String str;
@@ -1085,9 +1163,9 @@ String to_string(const char *s) {
     strcpy(str.s, s);
     return str;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ MK_STRING - Make a String of length l                         │
-/// ╰───────────────────────────────────────────────────────────────╯
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ MK_STRING - Make a String of length l                         │
+///  ╰───────────────────────────────────────────────────────────────╯
 String mk_string(size_t l) {
     if (l == 0) {
         String str;
@@ -1101,12 +1179,12 @@ String mk_string(size_t l) {
     str.s[0] = '\0';
     return str;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FREE_STRING - Free String and zero the length                 │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @param: str String struct to free
-/// @note: Frees the dynamically allocated string and sets length to 0.
-/// @return: String struct with NULL pointer and length 0
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ FREE_STRING - Free String and zero the length                 │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  @param: str String struct to free
+///  @note: Frees the dynamically allocated string and sets length to 0.
+///  @return: String struct with NULL pointer and length 0
 bool free_string(String str) {
     if (str.s == NULL)
         return false;
@@ -1115,14 +1193,14 @@ bool free_string(String str) {
     str.s = NULL;
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRING_CPY - like strcpy, but reallocs instead of overwriting │
-/// │              buffer                                           │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// size_t string_cpy(String *dest, const String *src);
-/// copies src to dest, reallocating dest if necessary
-/// @param dest - destination String struct
-/// @param src - source String struct
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRING_CPY - like strcpy, but reallocs instead of overwriting │
+///  │              buffer                                           │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  size_t string_cpy(String *dest, const String *src);
+///  copies src to dest, reallocating dest if necessary
+///  @param dest - destination String struct
+///  @param src - source String struct
 size_t string_cpy(String *dest, const String *src) {
     if (dest == NULL || src == NULL || src->s == NULL)
         return 0;
@@ -1133,14 +1211,14 @@ size_t string_cpy(String *dest, const String *src) {
     strcpy(dest->s, src->s);
     return src->l;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRING_CAT - like strcat, but reallocs instead of overwriting │
-/// │              buffer                                           │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// void string_cat(String *dest, const String *src);
-/// concatenates src to dest, reallocating dest if necessary
-/// @param dest - destination String struct
-/// @param src - source String struct
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRING_CAT - like strcat, but reallocs instead of overwriting │
+///  │              buffer                                           │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  void string_cat(String *dest, const String *src);
+///  concatenates src to dest, reallocating dest if necessary
+///  @param dest - destination String struct
+///  @param src - source String struct
 size_t string_cat(String *dest, const String *src) {
     if (dest == NULL || src == NULL || src->s == NULL)
         return 0;
@@ -1152,16 +1230,16 @@ size_t string_cat(String *dest, const String *src) {
     strcat(dest->s, src->s);
     return new_len;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRING_NCAT - like strncat, but reallocs instead of           │
-/// │              overwriting buffer                               │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// void string_ncat(String *dest, const String *src, size_t n);
-/// concatenates up to n characters from src to dest, reallocating dest if
-/// necessary
-/// @param dest - destination String struct
-/// @param src - source String struct
-/// @param n - maximum number of characters to concatenate
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRING_NCAT - like strncat, but reallocs instead of           │
+///  │              overwriting buffer                               │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  void string_ncat(String *dest, const String *src, size_t n);
+///  concatenates up to n characters from src to dest, reallocating dest if
+///  necessary
+///  @param dest - destination String struct
+///  @param src - source String struct
+///  @param n - maximum number of characters to concatenate
 size_t string_ncat(String *dest, const String *src, size_t n) {
     if (dest == NULL || src == NULL || src->s == NULL)
         return 0;
@@ -1176,15 +1254,15 @@ size_t string_ncat(String *dest, const String *src, size_t n) {
     strncat(dest->s, src->s, cat_len);
     return new_len;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STRING_NCPY - like strncpy, but reallocs instead of           │
-/// │              overwriting buffer                               │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// void string_ncpy(String *dest, const String *src, size_t n);
-/// copies up to n characters from src to dest, reallocating dest if necessary
-/// @param dest - destination String struct
-/// @param src - source String struct
-/// @param n - maximum number of characters to copy
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STRING_NCPY - like strncpy, but reallocs instead of           │
+///  │              overwriting buffer                               │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  void string_ncpy(String *dest, const String *src, size_t n);
+///  copies up to n characters from src to dest, reallocating dest if necessary
+///  @param dest - destination String struct
+///  @param src - source String struct
+///  @param n - maximum number of characters to copy
 size_t string_ncpy(String *dest, const String *src, size_t n) {
     if (dest == NULL || src == NULL || src->s == NULL)
         return 0;
@@ -1199,40 +1277,40 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
     dest->s[cpy_len] = '\0';
     return new_len;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ STR_TOK_R - like strtok_r(), but saves the delimiter found in │
-/// │              delim_found                                      │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Reentrant string tokenizer with delimiter found
-/// char *str_tok(char *str, const char *delims, char **save_ptr, char
-/// Copyright (c) 2005-2024 by Michael J. Fromberger. All rights reserved.
-/// Released under the MIT License.  See LICENSE file for details.
-/// Modified by ChatGPT to add delim_found parameter.
+///  ╭───────────────────────────────────────────────────────────────╮
+///  │ STR_TOK_R - like strtok_r(), but saves the delimiter found in │
+///  │              delim_found                                      │
+///  ╰───────────────────────────────────────────────────────────────╯
+///  Reentrant string tokenizer with delimiter found
+///  char *str_tok(char *str, const char *delims, char **save_ptr, char
+///  Copyright (c) 2005-2024 by Michael J. Fromberger. All rights reserved.
+///  Released under the MIT License.  See LICENSE file for details.
+///  Modified by ChatGPT to add delim_found parameter.
 ///
-/// @param str - string to tokenize
-/// @param delim - delimiter characters
-/// @param delim_found - character to receive the delimiter found
-/// @returns pointer to next token
+///  @param str - string to tokenize
+///  @param delim - delimiter characters
+///  @param delim_found - character to receive the delimiter found
+///  @returns pointer to next token
 ///
-/// Parse S into tokens separated by characters in DELIM.
+///  Parse S into tokens separated by characters in DELIM.
 ///
-/// If S is NULL, the saved pointer in SAVE_PTR is used as
-/// the next starting point.  For example:
+///  If S is NULL, the saved pointer in SAVE_PTR is used as
+///  the next starting point.  For example:
 ///
-///	char s[] = "-abc-=-def";
-///	char *sp;
-///	char delim_found;
+///  char s[] = "-abc-=-def";
+///  char *sp;
+///  char delim_found;
 ///
-///	x = str_tok_r(s, "-", &sp, delim_found);	    // x = "abc", sp =
-///"=-def" 	x = str_tok_r(NULL, "-=", &sp, delim_found);	// x = "def", sp
-///= NULL 	x = str_tok_r(NULL, "=", &sp, delim_found);	    // x = NULL
-///		                                            // s = "abc\0-def\0"
+///  x = str_tok_r(s, "-", &sp, delim_found);	    // x = "abc", sp =
+///  "=-def" 	x = str_tok_r(NULL, "-=", &sp, delim_found);	// x = "def", sp
+///  = NULL 	x = str_tok_r(NULL, "=", &sp, delim_found);	    // x = NULL
+///  	                                            // s = "abc\0-def\0"
 ///
-///	Use when the delimiter character is significant.
-///	The delimiter character found will be returned in delim_found.
-/// If no delimiter is found, delim_found is set to '\0'
-///	Maintains thread-safety just as strtok_r.
-/// The user is responsible for providing char *save_ptr and char delim_found
+///  Use when the delimiter character is significant.
+///  The delimiter character found will be returned in delim_found.
+///  If no delimiter is found, delim_found is set to '\0'
+///  Maintains thread-safety just as strtok_r.
+///  The user is responsible for providing char *save_ptr and char delim_found
 ///
 char *str_tok_r(char *s, const char *delim, char **save_ptr,
                 char *delim_found) {
@@ -1245,20 +1323,20 @@ char *str_tok_r(char *s, const char *delim, char **save_ptr,
     }
     *delim_found = '\0';
     delim_found = delim_found;
-    /// Scan leading delimiters
+    ///  Scan leading delimiters
     s += strspn(s, delim);
     if (*s == '\0') {
         *save_ptr = s;
         return NULL;
     }
-    /// Find the end of the token.
+    ///  Find the end of the token.
     end = s + strcspn(s, delim);
     if (*end == '\0') {
         *save_ptr = end;
         return s;
     }
     *delim_found = *end;
-    /// Terminate the token and make *SAVE_PTR point past it.
+    ///  Terminate the token and make *SAVE_PTR point past it.
     *end = '\0';
     *save_ptr = end + 1;
     return s;

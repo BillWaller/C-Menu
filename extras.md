@@ -323,10 +323,18 @@ operating system.
 ### Tree-Sitter On Linux
 
 After installing Rust, you can install Tree-Sitter using Cargo,
-Rust's package manager:
+Rust's package manager. Cargo install is designed for programs, and the
+tree-sitter package consists of libraries, so it has to be installed as
+a dependency. Insert a line in the Dependency section of any Cargo.toml
+and type "cargo add tree-sitter".
+ 
+```cargo
+[Dependencies]
+tree-sitter = "0.26.5"
+```
 
 ```bash
-cargo install tree-sitter-cli
+cargo add tree-sitter
 ```
 
 ### Tree-Sitter On macOS

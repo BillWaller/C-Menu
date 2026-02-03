@@ -13,10 +13,11 @@ int main(int argc, char **argv) {
     sig_prog_mode();
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
+    SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
-    open_curses(init);
+    open_curses(sio);
     capture_curses_tioctl();
-    win_init_attrs(win, init->fg_color, init->bg_color, init->bo_color);
+    win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
     init_pick(init, init->argc, init->argv, 0, 0);
     destroy_init(init);
     destroy_curses();

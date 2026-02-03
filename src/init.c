@@ -62,6 +62,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     char term[MAXLEN];
     char *t;
     setlocale(LC_ALL, "en_US.UTF-8");
+    SIO *sio = init->sio;
     if (!init) {
         ssnprintf(tmp_str, sizeof(tmp_str), "%s",
                   "init struct not allocated on entry");
@@ -70,9 +71,9 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     }
     if (init->minitrc[0] == '\0')
         strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
-    init->bg_color = BG_COLOR;                    // B: background color
-    init->fg_color = FG_COLOR;                    // F: foreground color
-    init->bo_color = BO_COLOR;                    // O: border colorZ
+    sio->bg_color = BG_COLOR;                     // B: background color
+    sio->fg_color = FG_COLOR;                     // F: foreground color
+    sio->bo_color = BO_COLOR;                     // O: border colorZ
     init->help_spec[0] = '\0';                    // H: help spec
     init->f_at_end_clear = true;                  // z  clear screen on exit
     init->f_erase_remainder = true;               // e  erase remainder on enter
@@ -170,6 +171,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
                                     {"mapp_msrc", 1, &flag, MAPP_MSRC},
                                     {0, 0, 0, 0}};
     char mapp[MAXLEN];
+    SIO *sio = init->sio;
     base_name(mapp, argv[0]);
     optind = 1;
     while ((opt = getopt_long(argc, argv, optstring, long_options,
@@ -215,7 +217,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(init->minitrc, optarg, MAXLEN - 1);
             break;
         case 'b':
-            init->blue_gamma = str_to_double(optarg);
+            sio->blue_gamma = str_to_double(optarg);
             break;
         case 'c':
             strnz__cpy(init->cmd, optarg, MAXLEN - 1);
@@ -230,7 +232,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(init->fill_char, optarg, 1);
             break;
         case 'g':
-            init->green_gamma = str_to_double(optarg);
+            sio->green_gamma = str_to_double(optarg);
             break;
         case 'h':
             f_help = true;
@@ -254,7 +256,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(init->prompt_str, optarg, MAXLEN - 1);
             break;
         case 'r':
-            init->red_gamma = str_to_double(optarg);
+            sio->red_gamma = str_to_double(optarg);
             break;
         case 's':
             init->f_squeeze = true;
@@ -284,7 +286,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(init->cmd_all, optarg, MAXLEN - 1);
             break;
         case 'B':
-            init->bg_color = get_color_number(optarg);
+            sio->bg_color = clr_name_to_idx(optarg);
             break;
         case 'C':
             init->cols = atoi(optarg);
@@ -293,10 +295,10 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             f_dump_config = true;
             break;
         case 'F':
-            init->fg_color = get_color_number(optarg);
+            sio->fg_color = clr_name_to_idx(optarg);
             break;
         case 'G':
-            init->gray_gamma = str_to_double(optarg);
+            sio->gray_gamma = str_to_double(optarg);
             break;
         case 'H':
             strnz__cpy(init->help_spec, optarg, MAXLEN - 1);
@@ -308,7 +310,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             init->f_multiple_cmd_args = true;
             break;
         case 'O':
-            init->bo_color = get_color_number(optarg);
+            sio->bo_color = clr_name_to_idx(optarg);
             break;
         case 'P':
             strnz__cpy(tmp_str, optarg, MAXLEN - 1);
@@ -361,6 +363,7 @@ int parse_config(Init *init) {
     char ts[MAXLEN];
     char *sp, *dp;
 
+    SIO *sio = init->sio;
     if (!init->minitrc[0]) {
         char *e = getenv("MINITRC");
         if (e)
@@ -422,31 +425,31 @@ int parse_config(Init *init) {
                 continue;
             }
             if (!strcmp(key, "fg_color")) {
-                init->fg_color = get_color_number(value);
+                sio->fg_color = clr_name_to_idx(value);
                 continue;
             }
             if (!strcmp(key, "bg_color")) {
-                init->bg_color = get_color_number(value);
+                sio->bg_color = clr_name_to_idx(value);
                 continue;
             }
             if (!strcmp(key, "bo_color")) {
-                init->bo_color = get_color_number(value);
+                sio->bo_color = clr_name_to_idx(value);
                 continue;
             }
             if (!strcmp(key, "red_gamma")) {
-                init->red_gamma = str_to_double(value);
+                sio->red_gamma = str_to_double(value);
                 continue;
             }
             if (!strcmp(key, "green_gamma")) {
-                init->green_gamma = str_to_double(value);
+                sio->green_gamma = str_to_double(value);
                 continue;
             }
             if (!strcmp(key, "blue_gamma")) {
-                init->blue_gamma = str_to_double(value);
+                sio->blue_gamma = str_to_double(value);
                 continue;
             }
             if (!strcmp(key, "gray_gamma")) {
-                init->gray_gamma = str_to_double(value);
+                sio->gray_gamma = str_to_double(value);
                 continue;
             }
             if (!strcmp(key, "f_at_end_clear")) {
@@ -523,83 +526,83 @@ int parse_config(Init *init) {
                 continue;
             }
             if (!strcmp(key, "bg")) {
-                strnz__cpy(init->bg, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bg, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "black")) {
-                strnz__cpy(init->black, value, COLOR_LEN - 1);
+                strnz__cpy(sio->black, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "red")) {
-                strnz__cpy(init->red, value, COLOR_LEN - 1);
+                strnz__cpy(sio->red, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "green")) {
-                strnz__cpy(init->green, value, COLOR_LEN - 1);
+                strnz__cpy(sio->green, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "yellow")) {
-                strnz__cpy(init->yellow, value, COLOR_LEN - 1);
+                strnz__cpy(sio->yellow, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "blue")) {
-                strnz__cpy(init->blue, value, COLOR_LEN - 1);
+                strnz__cpy(sio->blue, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "magenta")) {
-                strnz__cpy(init->magenta, value, COLOR_LEN - 1);
+                strnz__cpy(sio->magenta, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "cyan")) {
-                strnz__cpy(init->cyan, value, COLOR_LEN - 1);
+                strnz__cpy(sio->cyan, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "white")) {
-                strnz__cpy(init->white, value, COLOR_LEN - 1);
+                strnz__cpy(sio->white, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "orange")) {
-                strnz__cpy(init->orange, value, COLOR_LEN - 1);
+                strnz__cpy(sio->orange, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bblack")) {
-                strnz__cpy(init->bblack, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bblack, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bred")) {
-                strnz__cpy(init->bred, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bred, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bgreen")) {
-                strnz__cpy(init->bgreen, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bgreen, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "byellow")) {
-                strnz__cpy(init->byellow, value, COLOR_LEN - 1);
+                strnz__cpy(sio->byellow, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bblue")) {
-                strnz__cpy(init->bblue, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bblue, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bmagenta")) {
-                strnz__cpy(init->bmagenta, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bmagenta, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bcyan")) {
-                strnz__cpy(init->bcyan, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bcyan, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bwhite")) {
-                strnz__cpy(init->bwhite, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bwhite, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "borange")) {
-                strnz__cpy(init->borange, value, COLOR_LEN - 1);
+                strnz__cpy(sio->borange, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bg")) {
-                strnz__cpy(init->bg, value, COLOR_LEN - 1);
+                strnz__cpy(sio->bg, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "mapp_spec")) {
@@ -682,6 +685,7 @@ int write_config(Init *init) {
     char *e;
     char minitrc_dmp[MAXLEN];
 
+    SIO *sio = init->sio;
     e = getenv("HOME");
     if (e) {
         strnz__cpy(minitrc_dmp, e, MAXLEN - 1);
@@ -703,32 +707,32 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
     (void)fprintf(minitrc_fp, "%s=%s\n", "help", init->help ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "black", init->black);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "red", init->red);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "green", init->green);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "yellow", init->yellow);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "blue", init->blue);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "magenta", init->magenta);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "cyan", init->cyan);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "white", init->white);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bblack", init->bblack);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bred", init->bred);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bgreen", init->bgreen);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "byellow", init->byellow);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bblue", init->bblue);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bmagenta", init->bmagenta);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bcyan", init->bcyan);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bwhite", init->bwhite);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "red", sio->red);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "green", sio->green);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "yellow", sio->yellow);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "blue", sio->blue);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "magenta", sio->magenta);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cyan", sio->cyan);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "white", sio->white);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bblack", sio->bblack);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bred", sio->bred);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bgreen", sio->bgreen);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "byellow", sio->byellow);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bblue", sio->bblue);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bmagenta", sio->bmagenta);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bcyan", sio->bcyan);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bwhite", sio->bwhite);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bg_color",
-                  colors_text[init->bg_color]);
+                  colors_text[sio->bg_color]);
     (void)fprintf(minitrc_fp, "%s=%s\n", "fg_color",
-                  colors_text[init->fg_color]);
+                  colors_text[sio->fg_color]);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bo_color",
-                  colors_text[init->bo_color]);
-    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", init->red_gamma);
-    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", init->green_gamma);
-    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", init->blue_gamma);
-    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", init->gray_gamma);
+                  colors_text[sio->bo_color]);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", sio->red_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", sio->green_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", sio->blue_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", sio->gray_gamma);
     (void)fprintf(minitrc_fp, "%s=%s\n", "brackets", init->brackets);
     (void)fprintf(minitrc_fp, "%s=%s\n", "cd_mapp_home",
                   init->cd_mapp_home ? "true" : "false");
@@ -755,9 +759,9 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "receiver_cmd", init->receiver_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
     (void)fprintf(minitrc_fp, "%s=%d\n", "select_max", init->select_max);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "black", init->black);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bg", init->bg);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "abg", init->abg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bg", sio->bg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "abg", sio->abg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
@@ -883,18 +887,19 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
 /// @param init - Init struct
 /// @param msg - message to display
 void dump_config(Init *init, char *msg) {
+    SIO *sio = init->sio;
     opt_prt_str("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-C:", "--cols", init->cols);
     opt_prt_int("-L:", "--lines", init->lines);
     opt_prt_int("-X:", "--begx", init->begx);
     opt_prt_int("-Y:", "--begy", init->begy);
-    opt_prt_int("-B:", "--bg_color", init->bg_color);
-    opt_prt_int("-F:", "--fg_color", init->fg_color);
-    opt_prt_int("-O:", "--bo_color", init->bo_color);
-    opt_prt_double("-r:", "  red_gamma", init->red_gamma);
-    opt_prt_double("-g:", "  green_gamma", init->green_gamma);
-    opt_prt_double("-b:", "  blue_gamma", init->blue_gamma);
-    opt_prt_double("-b:", "  gray_gamma", init->gray_gamma);
+    opt_prt_int("-B:", "--bg_color", sio->bg_color);
+    opt_prt_int("-F:", "--fg_color", sio->fg_color);
+    opt_prt_int("-O:", "--bo_color", sio->bo_color);
+    opt_prt_double("-r:", "  red_gamma", sio->red_gamma);
+    opt_prt_double("-g:", "  green_gamma", sio->green_gamma);
+    opt_prt_double("-b:", "  blue_gamma", sio->blue_gamma);
+    opt_prt_double("-b:", "  gray_gamma", sio->gray_gamma);
     opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
     opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
     opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
@@ -914,26 +919,26 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("-S:", "--provider_cmd", init->provider_cmd);
     opt_prt_str("-R:", "--receiver_cmd", init->receiver_cmd);
     opt_prt_str("-T:", "--title", init->title);
-    opt_prt_str("   ", "--black", init->black);
-    opt_prt_str("   ", "--red", init->red);
-    opt_prt_str("   ", "--green", init->green);
-    opt_prt_str("   ", "--yellow", init->yellow);
-    opt_prt_str("   ", "--blue", init->blue);
-    opt_prt_str("   ", "--magenta", init->magenta);
-    opt_prt_str("   ", "--cyan", init->cyan);
-    opt_prt_str("   ", "--white", init->white);
-    opt_prt_str("   ", "--orange", init->orange);
-    opt_prt_str("   ", "--bblack", init->bblack);
-    opt_prt_str("   ", "--bred", init->bred);
-    opt_prt_str("   ", "--bgreen", init->bgreen);
-    opt_prt_str("   ", "--byellow", init->byellow);
-    opt_prt_str("   ", "--bblue", init->bblue);
-    opt_prt_str("   ", "--bmagenta", init->bmagenta);
-    opt_prt_str("   ", "--bcyan", init->bcyan);
-    opt_prt_str("   ", "--bwhite", init->bwhite);
-    opt_prt_str("   ", "--borange", init->borange);
-    opt_prt_str("   ", "--bg", init->bg);
-    opt_prt_str("   ", "--abg", init->abg);
+    opt_prt_str("   ", "--black", sio->black);
+    opt_prt_str("   ", "--red", sio->red);
+    opt_prt_str("   ", "--green", sio->green);
+    opt_prt_str("   ", "--yellow", sio->yellow);
+    opt_prt_str("   ", "--blue", sio->blue);
+    opt_prt_str("   ", "--magenta", sio->magenta);
+    opt_prt_str("   ", "--cyan", sio->cyan);
+    opt_prt_str("   ", "--white", sio->white);
+    opt_prt_str("   ", "--orange", sio->orange);
+    opt_prt_str("   ", "--bblack", sio->bblack);
+    opt_prt_str("   ", "--bred", sio->bred);
+    opt_prt_str("   ", "--bgreen", sio->bgreen);
+    opt_prt_str("   ", "--byellow", sio->byellow);
+    opt_prt_str("   ", "--bblue", sio->bblue);
+    opt_prt_str("   ", "--bmagenta", sio->bmagenta);
+    opt_prt_str("   ", "--bcyan", sio->bcyan);
+    opt_prt_str("   ", "--bwhite", sio->bwhite);
+    opt_prt_str("   ", "--borange", sio->borange);
+    opt_prt_str("   ", "--bg", sio->bg);
+    opt_prt_str("   ", "--abg", sio->abg);
     opt_prt_str("-H:", "--help_spec", init->help_spec);
     opt_prt_str("-i:", "--in_spec", init->in_spec);
     opt_prt_str("-d:", "--mapp_spec", init->mapp_spec);
