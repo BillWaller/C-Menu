@@ -28,7 +28,7 @@
 ///
 /// stdin - input stream (usually keyboard)
 
-#include "menu.h"
+#include "cm.h"
 #include <fcntl.h>
 #include <stdbool.h>
 #include <string.h>

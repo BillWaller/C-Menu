@@ -25,6 +25,7 @@
 /// $ whoami
 /// root
 
+#include "cm.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,8 +35,6 @@
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
-int strnz__cat(char *, char *, int);
-int strnz__cpy(char *, char *, int);
 
 #ifndef MAXLEN
 #define MAXLEN 256
@@ -109,45 +108,4 @@ int main(int argc, char **argv) {
 void ABEND(int e, char const *s) {
     fprintf(stderr, "%s: %d %s\n", s, e, strerror(e));
     exit(EXIT_FAILURE);
-}
-
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ STRNZ_CPY                                                         │
-/// │ stops at max_len, newline, or carriage return                     │
-/// │ max_len limits the destination buffer size                        │
-/// │ returns length of resulting string                                │
-/// ╰───────────────────────────────────────────────────────────────────╯
-int strnz__cpy(char *d, char *s, int max_len) {
-    char *e;
-    int len = 0;
-
-    e = d + max_len;
-    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
-        *d++ = *s++;
-        len++;
-    }
-    *d = '\0';
-    return len;
-}
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ STRNZ_CAT                                                         │
-/// │ stops at max_len, newline, or carriage return                     │
-/// │ max_len limits the destination buffer size                        │
-/// │ returns length of resulting string                                │
-/// ╰───────────────────────────────────────────────────────────────────╯
-int strnz__cat(char *d, char *s, int max_len) {
-    char *e;
-    int len = 0;
-
-    e = d + max_len;
-    while (*d != '\0' && *d != '\n' && *d != '\r' && d < e) {
-        d++;
-        len++;
-    }
-    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
-        *d++ = *s++;
-        len++;
-    }
-    *d = '\0';
-    return len;
 }

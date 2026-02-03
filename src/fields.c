@@ -22,7 +22,7 @@ double form_fmt_double(Form *, char *);
 int form_fmt_field(Form *, char *);
 void numeric(char *, char *);
 void right_justify(char *, int);
-void left_justify(char *, int);
+void left_justify(char *);
 
 char ff_tbl[][26] = {"string",   "decimal_int", "hex_int", "float", "double",
                      "currency", "yyyymmdd",    "hhmmss",  "apr",   ""};
@@ -479,7 +479,7 @@ int form_fmt_field(Form *form, char *s) {
     strnz(accept_s, fl);
     switch (ff) {
     case FF_STRING:
-        left_justify(s, fl);
+        left_justify(s);
         trim(s);
         strnz__cpy(input_s, s, MAXLEN - 1);
         strnz__cpy(accept_s, s, MAXLEN - 1);
@@ -543,7 +543,7 @@ int form_fmt_field(Form *form, char *s) {
         break;
     }
     strnz(accept_s, fl);
-    left_justify(accept_s, fl);
+    left_justify(accept_s);
     mk_filler(filler_s, fl);
     return 0;
 }
@@ -590,7 +590,7 @@ void mk_filler(char *s, int fl) {
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ LEFT_JUSTIFY                                                 │
 ///  ╰──────────────────────────────────────────────────────────────╯
-void left_justify(char *s, int fl) { trim(s); }
+void left_justify(char *s) { trim(s); }
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ RIGHT_JUSTIFY                                                │
 ///  ╰──────────────────────────────────────────────────────────────╯

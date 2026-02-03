@@ -7,11 +7,10 @@
 #include "menu.h"
 #include <unistd.h>
 
-int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
-          int begx, char *title) {
+int mview(Init *init, int argc, char **argv) {
     view = init->view;
     if (!view)
-        view = new_view(init, argc, argv, begy, begx);
+        view = new_view(init, argc, argv);
     else
         view = init->view;
 
@@ -20,8 +19,7 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     ///  ╰───────────────────────────────────────────────────────────╯
     if (init->lines > LINES - 3)
         init->lines = LINES - 3;
-    else if (init->lines == 0)
-        init->lines = LINES * 3 / 4;
+    init->lines = LINES * 3 / 4;
     view->lines = init->lines;
 
     ///  ╭───────────────────────────────────────────────────────────╮
@@ -29,16 +27,14 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     ///  ╰───────────────────────────────────────────────────────────╯
     if (init->cols > COLS - 3)
         init->cols = COLS - 3;
-    else if (init->cols == 0)
-        init->cols = COLS * 3 / 4;
+    init->cols = COLS * 3 / 4;
     view->cols = init->cols;
     ///  ╭───────────────────────────────────────────────────────────╮
     ///  │ view->cols      1/5      top margin                       │
     ///  ╰───────────────────────────────────────────────────────────╯
     if (init->begy + view->lines > LINES - 4)
         init->begy = LINES - view->lines - 2;
-    else if (init->begy == 0)
-        init->begy = (LINES - view->lines) / 5;
+    init->begy = (LINES - view->lines) / 5;
     view->begy = init->begy;
 
     ///  ╭───────────────────────────────────────────────────────────╮
@@ -46,12 +42,11 @@ int mview(Init *init, int argc, char **argv, int lines, int cols, int begy,
     ///  ╰───────────────────────────────────────────────────────────╯
     if (init->begx + view->cols > COLS - 4)
         init->begx = COLS - view->cols - 2;
-    else if (init->begx == 0)
-        init->begx = (COLS - view->cols) / 2;
+    init->begx = (COLS - view->cols) / 2;
     view->begx = init->begx;
 
     view->f_full_screen = false;
-    if (!init_view_boxwin(init, title)) {
+    if (!init_view_boxwin(init, init->title)) {
         view_file(init);
         win_del();
     }

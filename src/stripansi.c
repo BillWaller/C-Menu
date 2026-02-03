@@ -2,10 +2,13 @@
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
+//  removes ansi escape sequences
+//  beginning with "\033["" and ending in "m" or "K"
 //
+//
+#include "cm.h"
 #include <stdint.h>
 #include <stdio.h>
-int strip_ansi(char *, char *);
 
 int main(int argc, char *argv[]) {
     char in_buf[1024];
@@ -25,44 +28,4 @@ int main(int argc, char *argv[]) {
     }
     fclose(in_fp);
     return 0;
-}
-/// int strip_ansi(char *d, char *s)
-/// Strips ANSI SGR escape sequences (ending in 'm') from string s to d
-/// Returns length of stripped string
-/// @param d Destination string
-/// @param s Source string
-/// @return Length of stripped string
-/// Example:
-/// char dest[1024];
-/// char src[] = "\033[31mThis is red text\033[0m
-/// int len = strip_ansi(dest, src);
-/// Result: dest = "This is red text", len = 17
-/// Note: Only handles SGR sequences ending in 'm'
-/// Skips non-ASCII characters
-/// @note The caller must ensure that d has enough space to hold the stripped
-/// string
-/// @note This function does not allocate memory; it assumes d is pre-allocated
-/// @note This function processes the entire string until the null terminator
-/// @note This function does not modify the source string s
-/// @note This function returns the length of the resulting string, including
-/// the null terminator
-int strip_ansi(char *d, char *s) {
-    int l = 0;
-    while (*s) {
-        if (*s == '\033') {
-            while (*s && *s != 'm' && *s != 'K')
-                s++;
-            if (*s == 'm' || *s == 'K')
-                s++;
-            continue;
-        } else {
-            if ((unsigned char)*s <= 127) {
-                *d++ = *s++;
-                l++;
-            } else
-                s++;
-        }
-    }
-    *d = '\0';
-    return l;
 }

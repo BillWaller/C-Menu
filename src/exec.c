@@ -19,7 +19,6 @@ int full_screen_fork_exec(char **);
 int full_screen_shell(char *);
 int shell(char *);
 int fork_exec(char **);
-int bg_fork_exec_pipe(char **, int *, pid_t);
 void abend(int ec, char *s);
 void user_end();
 int nf_error(int ec, char *s);
@@ -215,61 +214,4 @@ int fork_exec(char **argv) {
     keypad(stdscr, true);
     restore_wins();
     return (rc);
-}
-/// ╭───────────────────────────────────────────────────────────────────╮
-/// │ BG_FORK_EXEC_PIPE                                                 │
-/// ╰───────────────────────────────────────────────────────────────────╯
-/// Fork and exec a command in the background with a pipe
-/// Arguments:
-///  argv - array of arguments for the command to execute
-///  pipe_fd - pointer to an array of two integers for the pipe file descriptors
-///  pid - process ID of the forked child process
-///  Returns the process ID of the forked child process
-int bg_fork_exec_pipe(char **argv, int *pipe_fd, pid_t pid) {
-
-    dup2(STDIN_FILENO, pick->in_fd);
-    if (pipe(pipe_fd) == -1) {
-        abend(-1, "failed to create pipe");
-        exit(EXIT_FAILURE);
-    }
-    pid = fork();
-    switch (pid) {
-    case -1:
-        abend(-1, "fork failed");
-        break;
-    case 0: // child
-        close(pipe_fd[P_READ]);
-        if (dup2(pipe_fd[P_WRITE], STDOUT_FILENO) == -1) {
-            abend(-1, "dup2 failed");
-            break;
-        }
-        close(pipe_fd[P_WRITE]);
-        execvp(argv[0], argv);
-        strnz__cpy(tmp_str, "execvp failed: ", sizeof(tmp_str) - 1);
-        strnz__cat(tmp_str, argv[0], sizeof(tmp_str) - strlen(tmp_str) - 1);
-        Perror(tmp_str);
-        break;
-    default: // parent
-        close(pipe_fd[P_WRITE]);
-        ttyname_r(STDERR_FILENO, tmp_str, sizeof(tmp_str));
-        FILE *tty_fp = fopen(tmp_str, "r+");
-        if (tty_fp == NULL) {
-            restore_curses_tioctl();
-            sig_prog_mode();
-            keypad(stdscr, true);
-            ssnprintf(tmp_str, sizeof(tmp_str),
-                      "failed to open tty %s, errno: %d", tmp_str, errno);
-            Perror(tmp_str);
-            break;
-        } else {
-            tty_fd = fileno(tty_fp);
-            dup2(tty_fd, STDIN_FILENO);
-            fclose(tty_fp);
-            restore_curses_tioctl();
-            sig_prog_mode();
-            keypad(stdscr, true);
-            break;
-        }
-    }
-    return pid;
 }

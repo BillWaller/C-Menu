@@ -6,6 +6,7 @@
 ///           from what place or source
 ///           in this case, a directory name
 
+#include "cm.h"
 #include <fcntl.h>
 #include <getopt.h>
 #include <limits.h>
@@ -20,7 +21,6 @@
 #define TRUE 1
 #define FALSE 0
 #define FAIL -1
-#define MAXLEN PATH_MAX
 
 bool f_all, f_display_help, f_verbose;
 char *path_p;
@@ -32,9 +32,7 @@ void whence(char *);
 int next_path(char *, char **);
 int file_spec_parts(char *, char *, char *);
 void ABEND(char *, int, char *);
-void normalend(int);
-int strnz__cpy(char *, char *, int);
-int strnz__cat(char *, char *, int);
+void normalend();
 
 int main(int argc, char **argv) {
 
@@ -58,7 +56,7 @@ int main(int argc, char **argv) {
     }
     if (f_display_help) {
         whence_usage();
-        normalend(0);
+        normalend();
     }
     path_p = getenv("PATH");
     if (path_p == NULL)
@@ -68,7 +66,7 @@ int main(int argc, char **argv) {
     while (optind < argc) {
         whence(argv[optind++]);
     }
-    normalend(0);
+    normalend();
 }
 
 void whence_usage() {
@@ -182,50 +180,9 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
     return (0);
 }
 
-void normalend(int rc) { exit(EXIT_SUCCESS); }
+void normalend() { exit(EXIT_SUCCESS); }
 
 void ABEND(char *pgmid, int rc, char *err_msg) {
     fprintf(stderr, "%s; error %d; %s\n", pgmid, rc, err_msg);
     exit(EXIT_FAILURE);
-}
-
-///  ╭───────────────────────────────────────────────────────────────────╮
-///  │ STRNZ_CPY                                                         │
-///  │ stops at max_len, newline, or carriage return                     │
-///  │ max_len limits the destination buffer size                        │
-///  │ returns length of resulting string                                │
-///  ╰───────────────────────────────────────────────────────────────────╯
-int strnz__cpy(char *d, char *s, int max_len) {
-    char *e;
-    int len = 0;
-
-    e = d + max_len;
-    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
-        *d++ = *s++;
-        len++;
-    }
-    *d = '\0';
-    return len;
-}
-///  ╭───────────────────────────────────────────────────────────────────╮
-///  │ STRNZ_CAT                                                         │
-///  │ stops at max_len, newline, or carriage return                     │
-///  │ max_len limits the destination buffer size                        │
-///  │ returns length of resulting string                                │
-///  ╰───────────────────────────────────────────────────────────────────╯
-int strnz__cat(char *d, char *s, int max_len) {
-    char *e;
-    int len = 0;
-
-    e = d + max_len;
-    while (*d != '\0' && *d != '\n' && *d != '\r' && d < e) {
-        d++;
-        len++;
-    }
-    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
-        *d++ = *s++;
-        len++;
-    }
-    *d = '\0';
-    return len;
 }

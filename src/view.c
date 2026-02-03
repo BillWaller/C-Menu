@@ -16,12 +16,12 @@ int main(int argc, char **argv) {
     __atexit;
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
+    SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
-    view = new_view(init, argc, argv, init->lines, init->cols);
-    open_curses(init);
+    open_curses(sio);
+    view = new_view(init, argc, argv);
     if (view->lines > 0 && view->cols > 0) {
-        mview(init, view->argc, view->argv, view->lines, view->cols, view->begy,
-              view->begx, view->title);
+        mview(init, view->argc, view->argv);
     } else if (!init_view_full_screen(init))
         view_file(init);
     destroy_init(init);

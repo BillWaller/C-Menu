@@ -101,9 +101,7 @@ Opts opts[] = {
     {"mapp_home", 0, 1, "mpfv", "m:", "home directory"},
     {"mapp_msrc", 0, 1, "mpfv", "", "source directory"},
     {"mapp_user", 0, 1, "mpfv", "U:", "user directory"},
-    {"", 0, 0, "",
-     ""
-     ""}}; // End marker
+    {"", 0, 0, "", "", ""}}; // End marker
 
 /// comp_out_name(const void *o1, const void *o2) - compare option names
 static int comp_opt_name(const void *o1, const void *o2) {

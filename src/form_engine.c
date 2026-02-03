@@ -33,7 +33,7 @@ int form_read_data(Form *);
 int form_write(Form *);
 void form_usage();
 int form_desc_error(int, char *, char *);
-int form_exec_cmd(Init *);
+int form_exec_cmd(Form *);
 int form_calculate(Init *);
 int form_end_fields(Init *);
 int init_form(Init *, int, char **, int, int);
@@ -119,7 +119,7 @@ int form_engine(Init *init) {
             if (form->f_out_spec || form->out_spec[0] != '\0')
                 form_write(form);
             if (form->f_receiver_cmd) {
-                form_exec_cmd(init);
+                form_exec_cmd(form);
                 form_action = P_CONTINUE;
                 continue;
             }
@@ -129,8 +129,12 @@ int form_engine(Init *init) {
             strnz__cat(earg_str, " ", MAXLEN - 1);
             strnz__cat(earg_str, form->help_spec, MAXLEN - 1);
             eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-            mview(init, eargc, eargv, 10, 68, form->begy + 1, form->begx + 4,
-                  form->title);
+            init->lines = 10;
+            init->cols = 68;
+            init->begy = form->begy + 1;
+            init->begx = form->begx + 4;
+            strnz__cpy(init->title, form->title, MAXLEN - 1);
+            mview(init, eargc, eargv);
             restore_wins();
             form_action = P_CONTINUE;
             break;
@@ -772,7 +776,7 @@ int form_read_data(Form *form) {
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ FORM_EXEC_CMD                                                 │
 /// ╰───────────────────────────────────────────────────────────────╯
-int form_exec_cmd(Init *init) {
+int form_exec_cmd(Form *form) {
     char earg_str[MAXLEN + 1];
     int i;
     strnz__cpy(earg_str, form->receiver_cmd, MAXLEN - 1);
