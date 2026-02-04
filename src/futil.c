@@ -122,10 +122,15 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
 ///  ╭───────────────────────────────────────────────────────────╮
 ///  │ STR_TO_ARGS - Break String Into Arguments                 │
 ///  ╰───────────────────────────────────────────────────────────╯
+///  Converts a string into an array of argument strings.
+///  Handles quoted strings and escaped quotes, preserving
+///  text inside quotes as individual arguments. It has been
+///  in service for many years without problems.
 ///  @param argv - array of pointers to arguments
 ///  @param arg_str - string containing arguments
 ///  @param max_args - maximum number of arguments to parse
-///  @returns number of arguments parsed
+///  @returns argc, a count of allocated vectors in argv
+///  that the caller is responsible for deallocating.
 int str_to_args(char *argv[], char *arg_str, int max_args) {
     if (arg_str == NULL || *arg_str == '\0')
         return 0;
@@ -203,8 +208,8 @@ bool str_to_upper(char *s) {
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ STRNZ_CPY                                                     │
 ///  │ stops at max_len, newline, or carriage return                 │
-///  │ max_len limits the destination buffer size                    │
-///  │ returns length of resulting string                            │
+///  │ max_len limits the size in bytes of the destination           │
+///  │ buffer.                                                       │
 ///  ╰───────────────────────────────────────────────────────────────╯
 ///  @param d - destination string
 ///  @param s - source string
@@ -226,12 +231,16 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     *d = '\0';
     return len;
 }
-///  ╭───────────────────────────────────────────────────────────────╮
-///  │ STRNZ_CAT                                                     │
-///  │ stops at max_len, newline, or carriage return                 │
-///  │ max_len limits the destination buffer size                    │
-///  │ returns length of resulting string                            │
-///  ╰───────────────────────────────────────────────────────────────╯
+///  ╭──────────────────────────────────────────────────────────────╮
+///  │ STRNZ_CAT                                                    │
+///  │ Appends a string of characters to the destination buffer.    │
+///  │ While strncat limits the number of bytes to append, it       │
+///  │ does so without accounting for the the number of bytes       │
+///  │ previously appended. The caller is responsible for           │
+///  │ calculating the number of bytes that can be copied without   │
+///  │ overrunning allocated space. strnz__cpy limits the           │
+///  │ cumulative buffer size.                                      │
+///  ╰──────────────────────────────────────────────────────────────╯
 ///  @param d - destination string
 ///  @param s - source string
 ///  @param max_len - maximum length to copy
@@ -274,10 +283,12 @@ size_t strz(char *s) {
 }
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ STRNZ                                                         │
-///  │ terminates string at '\n', '\r', or max_len                   │
-///  │ returns length of resulting string                            │
 ///  ╰───────────────────────────────────────────────────────────────╯
-///  @param s - string to terminate
+///  Terminates string at '\n', '\r', or max_len
+///  The use case is to ensure that strings read from
+///  files or user input do not contain embedded newlines or
+///  carriage returns.
+///  @param string to terminate
 ///  @param max_len - maximum length to scan
 ///  @returns length of resulting string
 size_t strnz(char *s, int max_len) {
@@ -295,9 +306,9 @@ size_t strnz(char *s, int max_len) {
 }
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ STRNZ_DUP                                                     │
-///  │ terminates string at '\n', '\r', or l                         │
-///  │ returns pionter to allocated memory                           │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  Allocates memory for and duplicates string s up to
+///  length l or until '\n' or '\r'
 ///  @param s - string to duplicate
 ///  @param l - maximum length to copy
 ///  @returns pointer to allocated memory
@@ -319,9 +330,9 @@ char *strnz_dup(char *s, int l) {
 }
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ STRZ_DUP - Duplicate String Allocating Memory                 │
-///  │ Dont use - deprecated                                         │
-///  │ Use strnz_dup instead                                         │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  Allocates memory for and duplicates string
+///  terminated with '\0'
 ///  @param s - string to duplicate
 ///  @returns pointer to allocated memory
 ///  @note - caller must free returned memory
@@ -340,11 +351,11 @@ char *strz_dup(char *s) {
     }
     return rs;
 }
-///  ╭───────────────────────────────────────────────────────────────╮
-///  │ STR_SUBC - Substitute Character with String                   │
-///  │ Replaces "ReplaceChr" in "s" with "Withstr" in "d"            │
-///  │ won't move more than "l" bytes to "d"                         │
-///  ╰───────────────────────────────────────────────────────────────╯
+///  ╭──────────────────────────────────────────────────────────────╮
+///  │ STR_SUBC - Substitute Character with String                  │
+///  ╰──────────────────────────────────────────────────────────────╯
+///  Replaces "ReplaceChr" in "s" with "Withstr" in "d"
+///  won't move more than "l" bytes to "d"
 ///  @param d - destination string
 ///  @param s - source string
 ///  @param ReplaceChr - character to replace
@@ -357,7 +368,6 @@ bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
             *d = '\0';
         return false;
     }
-
     e = d + l;
     while (*s != '\0' && d < e) {
         if (*s == ReplaceChr) {
@@ -370,10 +380,10 @@ bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
     *d = '\0';
     return true;
 }
-///  ╭───────────────────────────────────────────────────────────────╮
-///  │ STRNFILL - Fill String With Character                         │
-///  │ Replace all occurrences of old_chr with new_chr in string     │
-///  ╰───────────────────────────────────────────────────────────────╯
+///  ╭──────────────────────────────────────────────────────────────╮
+///  │ STRNFILL - Fill String With Character                        │
+///  ╰──────────────────────────────────────────────────────────────╯
+///  Fills string s with character c n
 ///  @param s - string to fill
 ///  @param c - character to fill with
 ///  @param n - number of characters to fill
@@ -381,7 +391,6 @@ bool strnfill(char *s, char c, int n) {
     if (s == NULL || n <= 0)
         return false;
     char *e;
-
     e = s + n;
     while (s < e)
         *s++ = c;
@@ -438,7 +447,6 @@ bool chrep(char *s, char old_chr, char new_chr) {
     }
     return true;
 }
-
 ///  ╭──────────────────────────────────────────────────────────────╮
 ///  │ A_TOI                                                        │
 ///  ╰──────────────────────────────────────────────────────────────╯
@@ -516,8 +524,8 @@ bool normalize_file_spec(char *fs) {
 }
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ FILE_SPEC_PATH                                                │
-///  │ Returns the path component of a file specification.           │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  Returns the path component of a file specification.
 ///  get path component of file spec
 ///  @param fp - path component to return
 ///  @param fs - full file specification
@@ -544,8 +552,8 @@ bool file_spec_path(char *fp, char *fs) {
 }
 ///  ╭───────────────────────────────────────────────────────────────╮
 ///  │ FILE_SPEC_NAME                                                │
-///  │ Returns the file name component of a file specification.      │
 ///  ╰───────────────────────────────────────────────────────────────╯
+///  Returns the file name component of a file specification.
 ///  get name component of file spec
 ///  @param fn - name component to return
 ///  @param fs - full file specification
@@ -573,9 +581,9 @@ bool file_spec_name(char *fn, char *fs) {
     *d = '\0';
     return true;
 }
-///  ╭───────────────────────────────────────────────────────────────╮
-///  │ STR_TO_DOUBLE - Convert String to Double                      │
-///  ╰───────────────────────────────────────────────────────────────╯
+///  ╭──────────────────────────────────────────────────────────────╮
+///  │ STR_TO_DOUBLE - Convert String to Double                     │
+///  ╰──────────────────────────────────────────────────────────────╯
 ///  @param s - string to convert
 ///  @returns converted double value
 double str_to_double(char *s) {
@@ -594,9 +602,10 @@ double str_to_double(char *s) {
     d = strtod(s, &e);
     return d;
 }
-///  ╭───────────────────────────────────────────────────────────────╮
-///  │ STR_TO_BOOL - Converts String to Boolean true or false        │
-///  ╰───────────────────────────────────────────────────────────────╯
+///  ╭──────────────────────────────────────────────────────────────╮
+///  │ STR_TO_BOOL - Converts String to Boolean true or false       │
+///  ╰──────────────────────────────────────────────────────────────╯
+///  Converts String to Boolean true or false
 ///  bool str_to_bool(const char *s);
 ///  @param s - string to convert
 ///  @returns converted boolean value
@@ -625,10 +634,11 @@ bool str_to_bool(const char *s) {
     return false;
 }
 
-///  ╭───────────────────────────────────────────────────────────────╮
-///  │ EXPAND_TILDE - Replace Leading Tilde With Home Directory      │
-///  │ Converts ~ to "$HOME"                                         │
-///  ╰───────────────────────────────────────────────────────────────╯
+///  ╭─────────────────────────────────────────────────────────────╮
+///  │ EXPAND_TILDE - Replace Leading Tilde With Home Directory    │
+///  ╰─────────────────────────────────────────────────────────────╯
+///  EXPAND_TILDE - Replace Leading Tilde With Home Directory
+///  Converts ~ to "$HOME"
 ///  @param path - path to expand
 ///  @param path_maxlen - maximum length of path
 ///  @returns true if successful
