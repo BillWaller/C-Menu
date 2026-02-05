@@ -89,7 +89,7 @@ clean:
 		*.cflow scan-build scan-build.out installed gdbcmds tm \
 	   	tf tp tv x xx xxx *.out .user_id .group_id
 
-install:
+install:	$(BINEXES) $(LIB_NAME)
 	./inst.sh	--
 	./inst.sh	libcm.so	$(LIB_DIR)	0711	$(USER)	$(GROUP)
 	./inst.sh	menu		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
