@@ -2,31 +2,20 @@
 
 ## Table of Contents
 
-<!-- mtoc-start -->
-
 - [TrueColor Support](#truecolor-support)
-- [View is Displaying ANSI Codes](#view-is-displaying-ansi-codes)
-- [CKeys Doesn't Show Alt-Keys Correctly](#ckeys-doesnt-show-alt-keys-correctly)
 - [Why View Displays Question Marks](#why-view-displays-question-marks)
 - [View - How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
 - [View - How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
 - [View - How to Customize Colors](#view---how-to-customize-colors)
 - [Menu, Form, Pick, and View API](#menu-form-pick-and-view-api)
 - [View - How to Use Tree-Sitter with View](#view---how-to-use-tree-sitter-with-view)
-- [Install Tree-Sitter-CLI](#install-tree-sitter-cli)
-  - [Download From GitHub](#download-from-github)
 - [Menu Form - Integrating External Executables](#menu-form---integrating-external-executables)
 - [Menu - Using the Installment Loan Calculator](#menu---using-the-installment-loan-calculator)
-- [Menu Form - Line Type Specifiers](#menu-form---line-type-specifiers)
-- [Menu Form - Field Delimiters](#menu-form---field-delimiters)
-- [Menu Form - Data Types](#menu-form---data-types)
 - [Menu - Interprocess Communications](#menu---interprocess-communications)
-- [What Happened to Delete by Inode](#what-happened-to-delete-by-inode)
+- [Menu - What Happened to Delete by Inode](#menu---what-happened-to-delete-by-inode)
 - [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
 - [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
 - [View In a Box Window](#view-in-a-box-window)
-
-<!-- mtoc-end -->
 
 ## TrueColor Support
 
@@ -173,83 +162,6 @@ support:
 
 ---
 
-## View is Displaying ANSI Codes
-
-Q: I am trying to view a program file in view, but it is displaying
-ANSI escape codes.
-
-![Double Exposure](screenshots/ts-double1.png)
-
-A: No worries. I ran into the same problem. View is not
-recognizing the ANSI escape codes. Taking a closer look at the
-file, I can see the "intro" characters repeated, "0x1b[0x1b[".
-This happens when the output file of a colorizer or highlighter
-is processed a second time by a colorizer or highlighter. It
-tries to put ANSI escape codes around the existing ANSI escape
-codes, resulting in the "0x1b[0x1b[" sequence, which View can't
-interpret.
-
-Out of curiosity, I ran the same file through less, which produced
-the same results as C-Menu View. In the world of pagers, less is
-the gold-standard, and apparently they chose not to address this
-issue. Therefore, it seems the best solution is to avoid double
-exposure. If you have a file that has been colorized or highlighted,
-don't run it through another colorizer or highlighter. Use C-Menu's
-stripansi to remove the ANSI escape codes before re-colorizing or
-re-highlighting. This works for C-Menu View as well as less.
-
-Below, I have included a screenshot using less.
-
-![Double Exposure with Less](screenshots/ts-double2.png)
-
----
-
-## CKeys Doesn't Show Alt-Keys Correctly
-
-Q: CKeys show alt-keys correctly. How can I fix this?
-
-A: CKeys relies on the terminfo database to interpret key codes. If your
-terminal emulator is not set to a terminfo entry that matches its
-capabilities, CKeys may not recognize certain keys correctly.
-
-To fix this, ensure that your TERM environment variable is set to a
-value that accurately reflects your terminal emulator. You can check
-your current TERM setting by typing:
-
-```bash
-echo $TERM
-```
-
-If it is set to a generic value like "xterm" or "vt100", consider
-changing it to a more specific entry that matches your terminal emulator,
-such as "xterm-256color", or "xterm-ghostty". I have found that these
-terminfos produce the results I expect, while xterm-kitty produces
-different results. That doesn't mean that xterm-kitty is wrong, because
-it is simply interpreting certain alt-key codes differently. I am not
-aware of any terminal emulators that don't support xterm-256color.
-
-I started to write some code to save and load alt-keys from a file,
-but that is problematic in C. It is customary to use switch statements
-to interpret key codes, but switch statements require constant
-expressions, and file input is not a constant expression. That's not a
-limitation in Rust, which has more flexible pattern matching. When you
-start writing code in Rust, you start thinking in Rust, and C starts to
-feel like driving your Grandmother's Oldsmobile at Le Mans.
-
-You can change the TERM variable by adding the following line to your
-~/.bashrc or ~/.z.
-
-zshrc file:
-
-```bash
-export TERM=xterm-256color
-```
-
-After updating your TERM variable, restart your terminal session and run
-CKeys again. It should now recognize the keys correctly.
-
----
-
 ## Why View Displays Question Marks
 
 Q: When I try to view a document that contains line-drawing characters,
@@ -258,41 +170,22 @@ characters. How can I fix this?
 
 A: The file may contain characters above 0x80, which can't be
 translated by View's character translators. If the offending
-characters CP-437 line drawing characters, you can convert the file
-to UTF-8 encoding using a tool like 'iconv' or 'recode'. For example,
-you can use the following command:
+characters CP-437 line drawing characters, you can convert the file to
+UTF-8 encoding using a tool like 'iconv' or 'recode'. For example, you
+can use the following command:
 
 ```bash
 iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt
 ```
 
-The images below show, before, on the left, and after, on the right, using
-iconv.
+The images below show, before, on the left, and after, on the right, using iconv.
 
 ![Convert CP437 to Unicode](screenshots/cp437_to_utf8.png)
 
 As an interesting note, this also works for "less", which displays the
-ordinal values of the CP437 characters. "less" could have automaticaly
-recognized and converted the CP437 characters, but the developer chose
-not to, and it was probably a wise decision. If you are modernizing
-your document archives, you shouldn't propagate CP437 encoded files
-into the future. It's far too easy to convert them to UTF-8. The
-"less" rendition was useful for me, because I have been programming
-long enough to recognize the ordinal numbers as CP437 line-drawing
-characters. That may not be true for someone born after 1980.
-
-I am certainly not being critical of "less", nor am I suggesting that
-C-Menu's View is superior. We both ran into the same issue, and chose
-to reveal the problem with the underlying character encoding, rather
-than masking it.
-
-Below are the "less" screenshots before conversion to UTF-8 and after.
-
-Once converted to UTF-8, less displays the line-drawing characters
-just as View does. The converted files for C-Menu View and less were
-the same size when displayed, but I had to shrink the converted less
-screenshot on the right to fit both before and after screenshots
-side by side.
+decimal representation of the CP437 characters. This could be handy
+if you have been coding since the 1980s and recognize them as CP437
+line-drawing characters.
 
 ![CP437 less](screenshots/cp437-line-draw-less.png)
 
@@ -420,7 +313,7 @@ tree-sitter build
 tree-sitter generate
 ```
 
-### Download From GitHub
+### Download From Github
 
 [tree-sitter-c](https://github.com/tree-sitter/tree-sitter-c)
 
@@ -512,7 +405,7 @@ The next time you run the form, Menu Form will read the values from
 
 Here's a summary of the important parts of the form file format:
 
-## Menu Form - Line Type Specifiers
+## Menu Form - Line Type Speecifiers (H, T, F, and ?)
 
 - \# Comment line (ignored)
 - H - The header to be displayed at the top of the form
@@ -591,7 +484,7 @@ Rust to take advantage of tools like the Tokio and Serde crates.
 
 ---
 
-## What Happened to Delete by Inode
+## Menu - What Happened to Delete by Inode
 
 Q: I noticed you have a menu option named, "Delete by Inode", but it doesn't work.
 
@@ -630,7 +523,7 @@ Here is an example command that allows you to select multiple files and
 open them in Menu Vi:
 
 ```bash
-!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
+\!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
 
 ```
 
@@ -650,7 +543,7 @@ your C files. Here is the new Menu line with the regular expression
 corrected to include both .c and .h files:
 
 ```bash
-!pick -S "lf -r ./ .\*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to
+\!pick -S "lf -r ./ .\*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to
 Edit"
 ```
 
