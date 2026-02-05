@@ -78,7 +78,7 @@ if [ "$#" -eq 1 ]; then
     fi
 fi
 if [ "$#" != 5 ]; then
-    echo usage: inst.sh FileName Directory DestName Mode Owner Group
+    echo usage: inst.sh FileName Directory Mode Owner Group
     echo actual $#
     echo "    -l      list installed files"
     echo "    --      clear installed files list"
