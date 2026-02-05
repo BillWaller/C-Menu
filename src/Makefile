@@ -91,7 +91,7 @@ clean:
 
 install:
 	./inst.sh	--
-	./inst.sh	libcm.so	$(LIBDIR)	0711	$(USER)	$(GROUP)
+	./inst.sh	libcm.so	$(LIB_DIR)	0711	$(USER)	$(GROUP)
 	./inst.sh	menu		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
 	./inst.sh	form		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
 	./inst.sh	pick		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
