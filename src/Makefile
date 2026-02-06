@@ -5,16 +5,40 @@
 #  billxwaller@gmail.com
 #
 # Makefile for the MENU application suite
-
+#
+# WARNING: Will Robinson
+#
+# Before using this makefile, please EDIT THE FOLLOWING VARIABLES to match your 
+# system configuration. The makefile assumes that you have a user named "bill" 
+# and a group named "bill". If your system uses different names, please update 
+# the USER and GROUP variables accordingly. Additionally, ensure that the HOME 
+# variable points to the correct home directory for the specified user.
+#
+# The $(LIB_DIR) is compiled into the binaries as the runtime library search 
+# path. If you change the LIB_DIR variable, make sure to update the runtime 
+# library search path in the binaries as well, or the applications may fail to 
+# find the shared library at runtime.
+# 
+#
+# Edit the three lines below to match your system configuration:
 USER=bill
 GROUP=bill
+HOME=/home/$(USER)
+
+# Do not edit below this line unless you know what you are doing.
+# The variables above should be sufficient for most users to build and
+# install the application suite. If you need to make changes to the build 
+# process, please ensure that you understand the implications of those changes 
+# before proceeding.
+#
+PREFIX = $(HOME)/menuapp
+LIB_DIR = $(PREFIX)/lib64
+BIN_DIR = $(PREFIX)/bin
 
 REL_CFLAGS = -O1
 DBG_CFLAGS = -g3
 
 CC = gcc -Wall -Wextra -g3
-PREFIX = ~/menuapp
-LIB_DIR =  /usr/local/lib64
 LIB_NAME= libcm.so
 
 BINEXES = menu form pick ckeys view whence rsh iloan enterchr \
@@ -105,7 +129,7 @@ install:	$(BINEXES) $(LIB_NAME)
 	./inst.sh	iloan		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
 	./inst.sh	stripansi	$(PREFIX)/bin		0711	$(USER)	$(GROUP)
 	./inst.sh	lf		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	ldconfig
+	ldconfig $(LIB_DIR)
 	./inst.sh -p
 	./inst.sh -l
 	./inst.sh -m
