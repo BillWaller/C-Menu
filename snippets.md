@@ -173,10 +173,24 @@ A green prompt for normal users, red for root. You can customize this prompt
 or use whatever prompt you like, but an obvious indicator of privilege level
 is highly recommended.
 
+This is a very minimal prompt, but serves the purpose of indicating privilege 
+level. You can customize it to include more information if you like, but be 
+careful not to make it too cluttered or slow to render. The key is to have a 
+clear visual indicator of whether you are running as root or a normal user, to 
+help prevent accidentally running commands with elevated privileges.
+
+The inclusion of \W in the prompt is a common practice to show the current 
+working directory, which can be helpful for context. If you want the full 
+directory, use \w (lower case). The color coding (green for normal users and red 
+for root) provides an immediate visual cue about the privilege level of the 
+shell session. You can even make it hot-pink if you want it to be really 
+annoying. The key is to have a clear and distinct visual indicator of privilege 
+level, to help prevent accidental misuse of root privileges.
+
 ```bash
-export PS1="\[\e[1;32m\]\u@\h(\l)\w->\[\e[0m\] "
+export PS1="\[\e[1;32m\]\u@\h(\l)\W->\[\e[0m\] "
 export XUSER="$(id -un)"
-[ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h(\l)\w->\[\e[0m\] "
+[ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h(\l)\W->\[\e[0m\] "
 ```
 
 ### Terminal and Editor Settings
