@@ -148,7 +148,7 @@ unsigned int menu_cmd_processor(Init *init) {
             strnz__cat(earg_str, d, MAXLEN - 1);
         full_screen_shell(earg_str);
         return (MA_DISPLAY_MENU);
-    case KEY_ALTR:
+    case KEY_ALTF(10):
         restore_wins();
         return (MA_DISPLAY_MENU);
         d = getenv("DEFAULTEDITOR");
@@ -268,7 +268,7 @@ unsigned int menu_cmd_processor(Init *init) {
         parse_opt_args(init, eargc, eargv);
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 4;
-        strnz__cpy(init->title, menu->line[menu->line_idx]->command_str,
+        strnz__cpy(init->title, menu->line[menu->line_idx]->raw_text,
                    MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);

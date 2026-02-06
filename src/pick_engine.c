@@ -757,10 +757,10 @@ int exec_objects(Init *init) {
         ///  ╰──────────────────────────────────────────────────────╯
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
-        init->lines = 0;
-        init->cols = 0;
-        init->begy = pick->begy + 1;
-        init->begx = pick->begx + 1;
+        if (init->begy == 0)
+            init->begy = pick->begy + 1;
+        if (init->begx == 0)
+            init->begx = pick->begx + 1;
         if (title[0] != '\0')
             strnz__cpy(init->title, title, MAXLEN - 1);
         else
@@ -848,8 +848,8 @@ void display_pick_help(Init *init) {
     margv[margc++] = strdup("mview");
     margv[margc++] = pick->help_spec;
     margv[margc] = NULL;
-    init->lines = 0;
-    init->cols = 0;
+    init->lines = 20;
+    init->cols = 60;
     init->begy = pick->begy + 1;
     init->begx = pick->begx + 4;
     strnz__cpy(init->title, margv[1], MAXLEN - 1);
