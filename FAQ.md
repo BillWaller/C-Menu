@@ -115,17 +115,18 @@ and that is perfectly understandable considering that:
 
 1. While 16M colors are beneficial for applications like image viewers and
    video players, most terminal applications do not require that level
-   of color depth.
-1. A terminfo setting of 256 colors does not limit the number of colors
+   of color depth. The image viewers built-in to Ghostty and Kitty can display 
+16M colors, the terminfo setting of 256 colors notwithstanding.
+2. A terminfo setting of 256 colors does not limit the number of colors
    that can be displayed by an image viewing application.
-1. A terminfo setting of 256 colors does not limit which of the 16M colors
+3. A terminfo setting of 256 colors does not limit which of the 16M colors
    C-Menu can display, but only the number of colors that can be displayed
    simultaneously.
-1. Because terminal emulators, and therefore C-Menu, operate on character
+4. Because terminal emulators, and therefore C-Menu, operate on character
    cells, 256 colors is far more than adequate.
-1. Neither Ghostty nor Kitty rely on NCurses for color management, so it is
+5. Neither Ghostty nor Kitty rely on NCurses for color management, so it is
    unlikely they are limited by the content of terminfo.
-1. Setting Number of Colors to 256 ensures compatibility with applications
+6. Setting Number of Colors to 256 ensures compatibility with applications
    that expect a standard 256-color terminal.
 
 If you are determined to have more than 256 colors at one time, you can
