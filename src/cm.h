@@ -131,17 +131,29 @@ extern cchar_t CCC_REVERSE;
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n))
 
-#define XTERM_256COLOR
+// #define XTERM_GHOSTTY
 // #define XTERM_GHOSTTY
 // #define XTERM_KITTY
 // #define ALACRITTY_DIRECT
 // #define XTERM_KITTY
+#define XTERM_256COLOR
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ EXTENDED NCURSES KEYS                                         │
 /// ╰───────────────────────────────────────────────────────────────╯
 /// Key code bindings are defined in terminfo
-/// xterm-256color and xterm-ghostty work with the same bindings
-#define KEY_ALTINS 0x224
+#if defined(XTERM_256COLOR)
+#define KEY_ALTINS 0x223
+#define KEY_ALTHOME 0x21e
+#define KEY_ALTPGUP 0x232
+#define KEY_ALTDEL 0x20e
+#define KEY_ALTEND 0x219
+#define KEY_ALTPGDN 0x22d
+#define KEY_ALTUP 0x23d
+#define KEY_ALTLEFT 0x228
+#define KEY_ALTDOWN 0x214
+#define KEY_ALTRIGHT 0x237
+#elif defined(XTERM_GHOSTTY)
+#define KEY_ALTINS 0x228
 #define KEY_ALTHOME 0x223
 #define KEY_ALTPGUP 0x237
 #define KEY_ALTDEL 0x213
@@ -151,7 +163,7 @@ extern cchar_t CCC_REVERSE;
 #define KEY_ALTLEFT 0x22d
 #define KEY_ALTDOWN 0x219
 #define KEY_ALTRIGHT 0x23c
-#define KEY_ALTR 0x72
+#endif
 
 /// ╭───────────────────────────────────────────────────────────────╮
 /// │ WIDE CHARACTER LINE DRAWING                                   │

@@ -18,7 +18,7 @@
 # path. If you change the LIB_DIR variable, make sure to update the runtime 
 # library search path in the binaries as well, or the applications may fail to 
 # find the shared library at runtime.
-# 
+#
 #
 # Edit the three lines below to match your system configuration:
 USER=bill
@@ -31,6 +31,12 @@ HOME=/home/$(USER)
 # process, please ensure that you understand the implications of those changes 
 # before proceeding.
 #
+# if you intstall the library, libcm.so in other than $(LIB_DIR), you must 
+# update the runtime library search path in the binaries as well, or the
+# applications may fail to find the shared library at runtime.
+#
+# ldconfig $(LIB_DIR)
+
 PREFIX = $(HOME)/menuapp
 LIB_DIR = $(PREFIX)/lib64
 BIN_DIR = $(PREFIX)/bin
@@ -39,68 +45,67 @@ REL_CFLAGS = -O1
 DBG_CFLAGS = -g3
 
 CC = gcc -Wall -Wextra -g3
-LIB_NAME= libcm.so
-
+LIB_NAME = libcm.so
 BINEXES = menu form pick ckeys view whence rsh iloan enterchr \
 		  enterstr lf optsp stripansi
 LIB_SRCS = dwin.c futil.c scriou.c exec.c sig.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 COMMON_SRCS = curskeys.c fields.c form_engine.c init.c init_view.c \
-			   mem.c mview.c opts.c pick_engine.c view_engine.c
+			  mem.c mview.c opts.c pick_engine.c view_engine.c
 COMMON_OBJS = $(COMMON_SRCS:.c=.o)
 MENU_SRCS = menu.c menu_engine.c parse_menu_desc.c
-MENU_OBJS= $(MENU_SRCS:.c=.o)
+MENU_OBJS = $(MENU_SRCS:.c=.o) $(COMMON_OBJS)
 FORM_SRCS = form.c
-FORM_OBJS= $(FORM_SRCS:.c=.o)
+FORM_OBJS = form.o $(COMMON_OBJS)
 PICK_SRCS = pick.c
-PICK_OBJS = $(PICK_SRCS:.c=.o)
+PICK_OBJS = pick.o $(COMMON_OBJS)
 VIEW_SRCS = view.c
-VIEW_OBJS = $(VIEW_SRCS:.c=.o)
+VIEW_OBJS = view.o $(COMMON_OBJS)
 CKEYS_SRCS = ckeys.c
-CKEYS_OBJS = $(CKEYS_SRCS:.c=.o)
+CKEYS_OBJS = ckeys.o $(COMMON_OBJS)
 LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_DIR)
 
 all:	$(LIB_NAME) $(BINEXES)
 	@echo Make Complete
 
-menu: 		$(MENU_OBJS)  $(COMMON_OBJS) $(LIB_NAME)
-	$(CC) 	$(MENU_OBJS)  $(COMMON_OBJS) -o $@ $(LIBS)
+menu:	menu.h cm.h $(MENU_OBJS) $(LIB_NAME)
+	$(CC) 	$(MENU_OBJS) -o $@ $(LIBS)
 
-form: 		$(FORM_OBJS)  $(COMMON_OBJS) $(LIB_NAME)
-	$(CC) 	$(FORM_OBJS)  $(COMMON_OBJS) -o $@ $(LIBS)
+form:	menu.h cm.h $(FORM_OBJS) $(LIB_NAME)
+	$(CC) 	$(FORM_OBJS) -o $@ $(LIBS)
 
-pick: 		$(PICK_OBJS)  $(COMMON_OBJS) $(LIB_NAME)
-	$(CC) 	$(PICK_OBJS)  $(COMMON_OBJS) -o $@ $(LIBS)
+pick:	menu.h cm.h $(PICK_OBJS) $(LIB_NAME)
+	$(CC) 	$(PICK_OBJS) -o $@ $(LIBS)
 
-view: 		$(VIEW_OBJS)  $(COMMON_OBJS) $(LIB_NAME)
-	$(CC) 	$(VIEW_OBJS)  $(COMMON_OBJS) -o $@ $(LIBS)
+view:	menu.h cm.h $(VIEW_OBJS) $(LIB_NAME)
+	$(CC) 	$(VIEW_OBJS) -o $@ $(LIBS)
 
-ckeys: 		$(CKEYS_OBJS) $(COMMON_OBJS) $(LIB_NAME)
-	$(CC) 	$(CKEYS_OBJS) $(COMMON_OBJS) -o $@ $(LIBS)
+ckeys:	menu.h cm.h $(CKEYS_OBJS) $(LIB_NAME)
+	$(CC) 	$(CKEYS_OBJS) -o $@ $(LIBS)
 
-enterchr:	enterchr.o 					 $(LIB_NAME)
-	$(CC) 	enterchr.o 					 -o $@ $(LIBS)
+enterchr:	cm.h enterchr.o $(LIB_NAME)
+	$(CC) 	enterchr.o -o $@ $(LIBS)
 
-optsp:		optsp.o opts.o 				 $(LIB_NAME)
-	$(CC) 	optsp.o opts.o 				 -o $@ $(LIBS)
+optsp:	optsp.o opts.o $(LIB_NAME)
+	$(CC) 	optsp.o opts.o -o $@ $(LIBS)
 
-enterstr:	enterstr.o 					 $(LIB_NAME)
-	$(CC) 	enterstr.o 					 -o $@ $(LIBS)
+enterstr:	cm.h enterstr.o $(LIB_NAME)
+	$(CC) 	enterstr.o -o $@ $(LIBS)
 
-whence:		whence.o 					 $(LIB_NAME)
-	$(CC) 	whence.o 					 -o $@ $(LIBS)
+whence:	cm.h whence.o $(LIB_NAME)
+	$(CC) 	whence.o -o $@ $(LIBS)
 
-iloan:		iloan.o 					 $(LIB_NAME)
-	$(CC) 	iloan.o 					 -o $@ $(LIBS)
+iloan:	iloan.o $(LIB_NAME)
+	$(CC) 	iloan.o -o $@ $(LIBS)
 
-rsh:	rsh.o 							 $(LIB_NAME)
-	$(CC) 	rsh.o 			-o $@ 		 $(LIBS)
+rsh:	cm.h rsh.o $(LIB_NAME)
+	$(CC) 	rsh.o -o $@ $(LIBS)
 
-lf:			lf.o 						 $(LIB_NAME)
-	$(CC) 	lf.o 			-o $@ 		 $(LIBS)
+lf: cm.h	lf.o $(LIB_NAME)
+	$(CC) 	lf.o -o $@ $(LIBS)
 
-stripansi:	stripansi.o  				 $(LIB_NAME)
-	$(CC) 	stripansi.o 	-o $@		 $(LIBS)
+stripansi:	cm.h stripansi.o $(LIB_NAME)
+	$(CC) 	stripansi.o -o $@ $(LIBS)
 
 $(LIB_NAME): $(LIB_OBJS)
 	$(CC) 	-shared -o $@ $^
@@ -114,36 +119,36 @@ clean:
 	   	tf tp tv x xx xxx *.out .user_id .group_id
 
 install:	$(BINEXES) $(LIB_NAME)
-	./inst.sh	--
-	./inst.sh	libcm.so	$(LIB_DIR)	0711	$(USER)	$(GROUP)
-	./inst.sh	menu		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	form		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	pick		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	ckeys		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	view		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	optsp		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	whence		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	rsh		$(PREFIX)/bin		4711	root	root
-	./inst.sh	enterchr	$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	enterstr	$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	iloan		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	stripansi	$(PREFIX)/bin		0711	$(USER)	$(GROUP)
-	./inst.sh	lf		$(PREFIX)/bin		0711	$(USER)	$(GROUP)
+	./inst.sh --
+	./inst.sh libcm.so	$(LIB_DIR)  0711	$(USER)	$(GROUP)
+	./inst.sh menu		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh form		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh pick		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh ckeys		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh view		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh optsp		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh whence	$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh rsh		$(BIN_DIR)	  4711	root	root
+	./inst.sh enterchr	$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh enterstr	$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh iloan		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh stripansi	$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh lf		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	ldconfig $(LIB_DIR)
 	./inst.sh -p
 	./inst.sh -l
 	./inst.sh -m
 
 uninstall:
-	rm -fv	$(PREFIX)/bin/menu	\
-			$(PREFIX)/bin/form	\
-			$(PREFIX)/bin/pick	\
-			$(PREFIX)/bin/ckeys	\
-			$(PREFIX)/bin/view \
-			$(PREFIX)/bin/rsh \
-			$(PREFIX)/bin/ush \
-			$(PREFIX)/bin/enterchr \
-			$(PREFIX)/bin/enterstr \
-			$(PREFIX)/bin/stripansi \
-			$(PREFIX)/bin/lf \
-			$(LIBDIR)/libcm.so
+	rm -fv	$(BIN_DIR)/menu	\
+			$(BIN_DIR)/form	\
+			$(BIN_DIR)/pick	\
+			$(BIN_DIR)/ckeys	\
+			$(BIN_DIR)/view \
+			$(BIN_DIR)/rsh \
+			$(BIN_DIR)/ush \
+			$(BIN_DIR)/enterchr \
+			$(BIN_DIR)/enterstr \
+			$(BIN_DIR)/stripansi \
+			$(BIN_DIR)/lf \
+			$(LIB_DIR)/libcm.so
