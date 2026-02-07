@@ -2,20 +2,94 @@
 
 ## Table of Contents
 
-- [TrueColor Support](#truecolor-support)
-- [Why View Displays Question Marks](#why-view-displays-question-marks)
-- [View - How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
-- [View - How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
-- [View - How to Customize Colors](#view---how-to-customize-colors)
-- [Menu, Form, Pick, and View API](#menu-form-pick-and-view-api)
-- [View - How to Use Tree-Sitter with View](#view---how-to-use-tree-sitter-with-view)
-- [Menu Form - Integrating External Executables](#menu-form---integrating-external-executables)
-- [Menu - Using the Installment Loan Calculator](#menu---using-the-installment-loan-calculator)
-- [Menu - Interprocess Communications](#menu---interprocess-communications)
-- [Menu - What Happened to Delete by Inode](#menu---what-happened-to-delete-by-inode)
-- [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
-- [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
-- [View In a Box Window](#view-in-a-box-window)
+<!-- mtoc-start -->
+
+* [High Precision Math With C-Menu and Gawk](#high-precision-math-with-c-menu-and-gawk)
+* [TrueColor Support](#truecolor-support)
+* [Why View Displays Question Marks](#why-view-displays-question-marks)
+* [View - How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
+* [View - How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
+* [View - How to Customize Colors](#view---how-to-customize-colors)
+* [Menu, Form, Pick, and View API](#menu-form-pick-and-view-api)
+* [View - How to Use Tree-Sitter with View](#view---how-to-use-tree-sitter-with-view)
+* [Install Tree-Sitter-CLI](#install-tree-sitter-cli)
+  * [Download From Github](#download-from-github)
+* [Menu Form - Integrating External Executables](#menu-form---integrating-external-executables)
+* [Menu - Using the Installment Loan Calculator](#menu---using-the-installment-loan-calculator)
+* [Menu Form - Line Type Speecifiers (H, T, F, and ?)](#menu-form---line-type-speecifiers-h-t-f-and-)
+* [Menu Form - Field Delimiters](#menu-form---field-delimiters)
+* [Menu Form - Data Types](#menu-form---data-types)
+* [Menu - Interprocess Communications](#menu---interprocess-communications)
+* [Menu - What Happened to Delete by Inode](#menu---what-happened-to-delete-by-inode)
+* [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
+* [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
+* [View In a Box Window](#view-in-a-box-window)
+
+<!-- mtoc-end -->
+
+## High Precision Math With C-Menu and Gawk
+
+Q: I want to do high precision calculations with data input from C-Menu Form.
+
+A: Yes, you can augment C-Menu Form with the "awk" command to perform high 
+precision math, if you have the GNU version of awk, Gawk compiled with the GNU 
+GMP and MPFR libraries.
+
+To determine if your version of Gawk supports high precision math, you can run 
+the following command:
+
+```bash
+gawk --version
+```
+
+If the output includes "GNU MPFR" and "GNU MP", then your version of Gawk 
+supports high precision math. For example, the output might look like this:
+
+```bash
+GNU Awk 5.3.2, API 4.0, PMA Avon 8-g1, (GNU MPFR 4.2.2, GNU MP 6.3.0)
+Copyright (C) 1989, 1991-2025 Free Software Foundation.
+```
+
+You can double-check by running a simple high precision math calculation. First, 
+we will try gawk with default precision to show how that looks.
+
+```bash
+echo "1/137 with default precision"
+gawk 'BEGIN {
+    x = 1/137;
+    printf("%.100f\n", x);
+}'
+```
+
+The output will be something like this:
+
+```bash
+1/137 with default precision
+0.0072992700729927004893449193900778482202440500259399414062500000000000000000000000000000000000000000
+```
+
+The default precision is usually around 16 decimal places, which is why the output becomes meaningless after 16 digits.
+
+Now we will use the -M option with Gawk and set our precision to 100 digits with
+PREC=333.
+
+```bash
+echo "1/137 with high precision"
+gawk -M -v PREC=333 'BEGIN {
+    x = 1/137;
+    printf("%.100f\n", x);
+}'
+```
+
+The output will be something like this:
+
+```bash
+1/137 with high precision
+0.0072992700729927007299270072992700729927007299270072992700729927007299270072992700729927007299270073
+```
+
+You will recognize the famous sequence, 00729927..., which repeats indefinitely. 
+With Gawk, GMP, and MPFR, you can calculate as many digits as you want.
 
 ## TrueColor Support
 
