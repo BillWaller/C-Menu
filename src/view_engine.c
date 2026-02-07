@@ -1,7 +1,8 @@
 //  view_engine.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
-/// Command Line Start-up for C-Menu Menu
+//  billxwaller@gmail.com
+/// Command Line Start-up for C-Menu View
 
 #include "menu.h"
 #include <ctype.h>
@@ -90,8 +91,7 @@ void view_display_help(Init *);
 void cmd_line_prompt(View *, char *);
 void remove_file(View *);
 
-int a_toi(char *s, bool a_toi_error);
-bool a_toi_error;
+int a_toi(char *s, bool *a_toi_error);
 
 char err_msg[MAXLEN];
 
@@ -1873,7 +1873,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     bg = bg_clr;
     RGB rgb;
     tok = strtok((char *)ansi_p, ";m");
-    a_toi_error = false;
+    bool a_toi_error = false;
     while (1) {
         if (tok == NULL || *tok == '\0')
             break;
@@ -1885,14 +1885,14 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 if (t1 == '8') {
                     tok = strtok(NULL, ";m");
                     if (tok != NULL) {
-                        a_toi(tok, a_toi_error);
+                        a_toi(tok, &a_toi_error);
                         if (*tok == '5') {
                             ///  ╭──────────────────────────────────╮
                             ///  │ [34]8;5;<xterm256>               │
                             ///  ╰──────────────────────────────────╯
                             tok = strtok(NULL, ";m");
                             if (tok != NULL) {
-                                x_idx = a_toi(tok, a_toi_error);
+                                x_idx = a_toi(tok, &a_toi_error);
                                 rgb = xterm256_idx_to_rgb(x_idx);
                             }
                         } else if (*tok == '2') {
@@ -1900,11 +1900,11 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                             ///  │ [34]8;2;<r>,<g>,<b>              │
                             ///  ╰──────────────────────────────────╯
                             tok = strtok(NULL, ";m");
-                            rgb.r = a_toi(tok, a_toi_error);
+                            rgb.r = a_toi(tok, &a_toi_error);
                             tok = strtok(NULL, ";m");
-                            rgb.g = a_toi(tok, a_toi_error);
+                            rgb.g = a_toi(tok, &a_toi_error);
                             tok = strtok(NULL, ";m");
-                            rgb.b = a_toi(tok, a_toi_error);
+                            rgb.b = a_toi(tok, &a_toi_error);
                         }
                     }
                     if (t0 == '3')
@@ -1924,11 +1924,11 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                     ///  │ [34]<pc8>                                │
                     ///  ╰──────────────────────────────────────────╯
                     if (t0 == '3') {
-                        x_idx = a_toi(&t1, a_toi_error);
+                        x_idx = a_toi(&t1, &a_toi_error);
                         rgb = xterm256_idx_to_rgb(x_idx);
                         fg_clr = rgb_to_curses_clr(rgb);
                     } else if (t0 == '4') {
-                        x_idx = a_toi(&t1, a_toi_error);
+                        x_idx = a_toi(&t1, &a_toi_error);
                         rgb = xterm256_idx_to_rgb(x_idx);
                         bg_clr = rgb_to_curses_clr(rgb);
                     }
@@ -1947,7 +1947,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 fg_clr = COLOR_WHITE;
                 bg_clr = COLOR_BLACK;
             } else {
-                switch (a_toi(tok, a_toi_error)) {
+                switch (a_toi(tok, &a_toi_error)) {
                 case 1:
                     *attr |= WA_BOLD;
                     break;

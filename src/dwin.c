@@ -1,10 +1,9 @@
-//  dwin.c
+/// dwin.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
+/// Window support for C-Menu Form Pick View
 
-///  Window support for C-Menu Form Pick View
-// #include "menu.h"
 #include "cm.h"
 #include <errno.h>
 #include <math.h>
@@ -484,6 +483,7 @@ RGB xterm256_idx_to_rgb(int idx) {
         idx = 255;
     if (idx < 0)
         idx = 0;
+    rgb.r = rgb.g = rgb.b = 0;
     if (idx < 16) {
         rgb.r = StdColors[idx].r;
         rgb.g = StdColors[idx].g;

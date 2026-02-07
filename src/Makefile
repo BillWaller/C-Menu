@@ -6,19 +6,23 @@
 #
 # Makefile for the MENU application suite
 #
-# WARNING: Will Robinson
+# Currently, the $(LIB_DIR) is compiled into the binaries as the runtime
+# library path so they can find libcm.so at runtime. That works well for 
+# development, but it is not ideal. The best option is probably to place
+# libcm.so in a standard location like /usr/lib64.
 #
+# When you are ready to distribute C-Menu menu, form, pick, view, and other 
+# binaries to users, you will probably want them in /usr/local/bin or 
+# /usr/bin/bash. However, you should not put rsh in a public directrory,
+# at least not until it has secure white-list authentication.
+#
+# WARNING: Will Robinson
+# 
 # Before using this makefile, please EDIT THE FOLLOWING VARIABLES to match your 
 # system configuration. The makefile assumes that you have a user named "bill" 
 # and a group named "bill". If your system uses different names, please update 
 # the USER and GROUP variables accordingly. Additionally, ensure that the HOME 
 # variable points to the correct home directory for the specified user.
-#
-# The $(LIB_DIR) is compiled into the binaries as the runtime library search 
-# path. If you change the LIB_DIR variable, make sure to update the runtime 
-# library search path in the binaries as well, or the applications may fail to 
-# find the shared library at runtime.
-#
 #
 # Edit the three lines below to match your system configuration:
 USER=bill

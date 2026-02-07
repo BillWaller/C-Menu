@@ -1,8 +1,8 @@
-//  mview.c
+/// mview.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-///  Startup for C-Menu View
+/// Callable Startup for C-Menu View
 
 #include "menu.h"
 #include <unistd.h>

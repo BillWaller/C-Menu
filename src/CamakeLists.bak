@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 4.1)
 set(CMAKE_C_FLAGS "-O0 -Wall -Wextra -g3")
-set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH TRUE)
 
 project(cmenu C)
 

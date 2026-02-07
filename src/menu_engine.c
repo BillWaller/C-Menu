@@ -1,8 +1,8 @@
-//  menu_engine.c
+/// menu_engine.c
 //  Bill Waller Copyright (c) 2025
 //  MIT_LICENSE
-//  The working part of C-Menu Menu
 //  billxwaller@gmail.com
+/// The working part of C-Menu Menu
 
 #include "menu.h"
 #include <ctype.h>
@@ -23,9 +23,9 @@ unsigned int menu_engine(Init *init) {
         return (1);
     }
     action = MA_INIT;
-    /// ╭───────────────────────────────────────────────────────────────╮
-    /// │ DISPLAY_MENU                                                  │
-    /// ╰───────────────────────────────────────────────────────────────╯
+    /// ╭───────────────────────────────────────────────────────────╮
+    /// │ DISPLAY_MENU                                              │
+    /// ╰───────────────────────────────────────────────────────────╯
     while (action == MA_INIT) {
         action = MA_DISPLAY_MENU;
         if (win_new(menu->lines, menu->cols, menu->begy, menu->begx,
@@ -50,8 +50,10 @@ unsigned int menu_engine(Init *init) {
                     menu->line_idx = i;
                     break;
                 }
+            //  ─────────────────────────────────────────────────────
             while ((action = menu_cmd_processor(init)) == MA_ENTER_OPTION)
                 ;
+            //  ─────────────────────────────────────────────────────
         }
         menu->win = win_win[win_ptr];
         menu->box = win_box[win_ptr];
@@ -159,9 +161,9 @@ unsigned int menu_cmd_processor(Init *init) {
         str_to_args(eargv, earg_str, MAX_ARGS);
         full_screen_fork_exec(eargv);
         return (MA_INIT);
-        /// ╭───────────────────────────────────────────────────────────────╮
-        /// │ MENU MOUSE FUNCTIONS                                          │
-        /// ╰───────────────────────────────────────────────────────────────╯
+        /// ╭───────────────────────────────────────────────────────╮
+        /// │ MENU MOUSE FUNCTIONS                                  │
+        /// ╰───────────────────────────────────────────────────────╯
     case KEY_MOUSE:
         if (getmouse(&event) != OK)
             return (MA_ENTER_OPTION);

@@ -1,9 +1,9 @@
-//  init.c
+/// init.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-///  Initialization for MAPP - Menu Application Program
-///  Handles command-line arguments and configuration file parsing
+/// Initialization for MAPP - Menu Application Program
+/// Handles command-line arguments and configuration file parsing
 ///  ╭───────────────────────────────────────────────────────────────────╮
 ///  │ Includes                                                          │
 ///  ╰───────────────────────────────────────────────────────────────────╯

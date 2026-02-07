@@ -1,8 +1,7 @@
-//  rsh.c
+/// rsh.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  <billxwaller@gmail.com>
-//
 /// rsh - restricted shell to run bash as root
 /// Usage: rsh [args]
 /// If executed as 'rsh', this program sets the user ID and group ID to 0 (root)

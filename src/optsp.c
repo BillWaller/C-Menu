@@ -1,8 +1,8 @@
-//  optsp.c
+/// optsp.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-//  print options for C-Menu
+/// print options for C-Menu
 
 #include <getopt.h>
 #include <stdbool.h>

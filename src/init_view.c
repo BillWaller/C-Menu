@@ -1,6 +1,10 @@
-//  init_view.c
+/// init_view.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
+//  Command Line Start-up for C-Menu Menu
+//  billxwaller@gmail.com
+/// This file contains functions to initialize the view for the C-Menu Menu
+/// application.
 
 #include "menu.h"
 #include <errno.h>
