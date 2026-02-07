@@ -1,4 +1,4 @@
-//  ckeys.c
+/// ckeys.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
@@ -8,10 +8,10 @@
 #include "menu.h"
 #include <sys/types.h>
 
-// __end_pgm; // Called by atexit
+__end_pgm; // Called by atexit
 
 int main(int argc, char **argv) {
-    // __atexit;
+    __atexit;
     int rc;
     capture_shell_tioctl();
     init = new_init(argc, argv);

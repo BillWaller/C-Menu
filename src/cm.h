@@ -332,7 +332,7 @@ typedef struct {
 //  ╭───────────────────────────────────────────────────────────────╮
 //  │ STRING UTILITIES                                              │
 //  ╰───────────────────────────────────────────────────────────────╯
-extern int a_toi(char *, bool);
+extern int a_toi(char *, bool *);
 extern bool chrep(char *, char, char);
 extern char *rep_substring(const char *, const char *, const char *);
 extern int strip_ansi(char *, char *);

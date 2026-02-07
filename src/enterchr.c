@@ -1,4 +1,4 @@
-//  enterchr.c
+/// enterchr.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com

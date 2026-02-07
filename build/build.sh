@@ -26,7 +26,8 @@ cmake -S ../src -B .
 echo "chown $user:$group $PREFIX/bin/*" >post_install.sh
 echo "chown $rootuser:$rootgroup $PREFIX/bin/rsh" >>post_install.sh
 echo "chmod 4711 $PREFIX/bin/rsh" >>post_install.sh
-echo "ls -l --color \$(cat install_manifest.txt)" >>post_install.sh
+echo "LS=\$(cat install_manifest.txt)" >>post_install.sh
+echo "which lsg >/dev/null 2>&1 && lsd -l \$LS || ls --color=always -l \$LS" >>post_install.sh
 echo "ldconfig $PREFIX/lib64" >>post_install.sh
 chmod a+x post_install.sh
 echo "Build complete."

@@ -1,8 +1,8 @@
-//  menu.c
+/// menu.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
-//  Command Line Start-up for C-Menu Menu
 //  billxwaller@gmail.com
+//  Command Line Start-up for C-Menu Menu
 //
 /// This is the main file for C-Menu, a terminal-based application
 /// launcher and menu system.

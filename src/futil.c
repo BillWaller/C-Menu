@@ -1,8 +1,8 @@
-//  futil.c
+/// futil.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
-//  Utility functions for MENU
 //  billxwaller@gmail.com
+/// Utility functions for MENU
 
 #include "menu.h"
 #include <ctype.h>
@@ -32,7 +32,7 @@ bool lf_find_dirs(char *, char *, int, int);
 bool lf_find_files(char *, char *, int);
 bool lf_write_file(int, char *);
 int strip_ansi(char *, char *);
-int a_toi(char *, bool);
+int a_toi(char *, bool *);
 bool chrep(char *, char, char);
 size_t trim(char *);
 size_t rtrim(char *);
@@ -454,16 +454,14 @@ bool chrep(char *s, char old_chr, char new_chr) {
 ///  Accepts positive integers only
 ///  Negative numbers return an error (-1) in a_toi_error
 ///  @param s is the input string
-int a_toi(char *s, bool a_toi_error) {
+int a_toi(char *s, bool *a_toi_error) {
     int rc = -1;
-
     errno = 0;
     if (s && *s != 0)
         rc = (int)strtol(s, NULL, 10);
     if (rc < 0 || errno) {
         rc = -1;
-        a_toi_error = true;
-        a_toi_error = a_toi_error;
+        *a_toi_error = true;
     }
     return rc;
 }
@@ -1332,7 +1330,6 @@ char *str_tok_r(char *s, const char *delim, char **save_ptr,
         return NULL;
     }
     *delim_found = '\0';
-    delim_found = delim_found;
     ///  Scan leading delimiters
     s += strspn(s, delim);
     if (*s == '\0') {

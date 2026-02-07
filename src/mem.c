@@ -1,9 +1,9 @@
-//  mem.c
+/// mem.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
-//  Memory establishment and teardown
-//  for C-Menu Menu, Pick, Form, View
 //  billxwaller@gmail.com
+/// Create and destroy data structures
+/// for C-Menu Menu, Pick, Form, View
 
 #include "menu.h"
 #include <stdlib.h>
