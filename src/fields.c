@@ -1,7 +1,7 @@
-// fields.c
-// Bill Waller Copyright (c) 2025
-// MIT License
-// billxwaller@gmail.com
+/// fields.c
+//  Bill Waller Copyright (c) 2025
+//  MIT License
+//  billxwaller@gmail.com
 /// Field Edit and Entry for C-Menu Form
 
 #include "menu.h"
@@ -256,7 +256,7 @@ int form_accept_field(Form *form) {
             case FF_STRING:
                 break;
             case FF_DECIMAL_INT:
-                if ((in_key >= '0' || in_key <= '9') || in_key == '.')
+                if ((in_key >= '0' && in_key <= '9') || in_key == '.')
                     break;
                 beep();
                 in_key = 0;

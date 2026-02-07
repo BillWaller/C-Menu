@@ -1,8 +1,8 @@
-//  lf.c
+/// lf.c
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-///  Recursively list files matching a regular expression
+/// Recursively list files matching a regular expression
 
 #include "cm.h"
 #include <dirent.h>

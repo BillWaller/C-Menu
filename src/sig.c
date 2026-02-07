@@ -1,7 +1,7 @@
 ///  sig.c
-///  Bill Waller Copyright (c) 2025
-///  MIT License
-///  billxwaller@gmail.com
+//   Bill Waller Copyright (c) 2025
+//   MIT License
+//   billxwaller@gmail.com
 ///  signal handling for interrupt signals
 ///
 ///  Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT),
