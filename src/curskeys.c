@@ -13,6 +13,8 @@
 int display_curses_keys();
 
 int display_curses_keys() {
+    /// Responds to curses keys and mouse events, displaying the key code and
+    /// description.
     WINDOW *win;
     WINDOW *box;
     char Title[] = "TEST CURSES KEYS";
@@ -441,9 +443,6 @@ int display_curses_keys() {
         case KEY_ALTF(12):
             strnz__cpy(kstr, "KEY_ALTF12 alt+F12", KSTRLEN - 1);
             break;
-            //  ╭───────────────────────────────────────────────────╮
-            //  │ MOUSE FUNCTIONS                                   │
-            //  ╰───────────────────────────────────────────────────╯
         case KEY_MOUSE:
             action[0] = '\0';
             if (getmouse(&event) == OK) {

@@ -1,8 +1,8 @@
 /// enterstr.c
+/// Enter a string from keyboard
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-/// enterstr - enter a string from keyboard
 ///
 /// Enter a string from the terminal in cooked mode and return it to the caller.
 /// This program is designed to be called from shell scripts initiated by the
@@ -26,6 +26,13 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+    /// Returns a string entered by the user in cooked mode. The string is
+    /// written to stdout, and the prompt is written to stderr. This allows the
+    /// caller to capture the string in a shell variable while still displaying
+    /// the prompt to the user. The program uses termios to set the terminal to
+    /// cooked mode, allowing for line editing and other features. It also
+    /// handles signals to ensure that the terminal settings are restored if the
+    /// program is interrupted.
     struct termios new_tioctl;
     char in_str[BUFSIZ];
     char *in_ptr = in_str;

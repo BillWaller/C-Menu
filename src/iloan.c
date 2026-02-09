@@ -1,19 +1,32 @@
 /// iloan.c
+/// Calculate installment loan values
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-/// Calculate installment loan values
 ///
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ILOAN - INSTALLMENT LOAN CALCULATOR                           │
-/// │                                                               │
-/// │ Iloan is a trivial application to demonstrate the how         │
-/// │ a command-line program can be integrated into C-Menu Form     │
-/// │ with simple file i-o.                                         │
-/// │                                                               │
-/// │ This feature clearly needs lots of work, including            │
-/// │ more sophisticated serialization and communications.          │
-/// ╰───────────────────────────────────────────────────────────────╯
+/// iloan is a trivial application to demonstrate how a command-line
+/// program can be integrated into C-Menu Form with simple file,
+/// argument, or pipe i-o.
+///
+/// The program can be used in a non-interactive way by passing the four
+/// values as arguments, with the value to be calculated set to 0.
+/// For example, to calculate the payment amount for a $10,000 loan with
+/// a 5% annual interest rate and 60 monthly payments, you could run:
+///
+/// iloan 10000 60 5 0
+///
+/// This is proof-of-concept code, and is not intended for production use.
+/// It is not designed to be robust, and does not handle all edge cases or
+/// input errors. It is intended solely to demonstrate how a simple
+/// command-line program can be integrated into C-Menu Form.
+///
+/// In the future, more sophisticated abstractions, such as async event
+/// handlers, serialization, rpc, database, and a standardized plugin
+/// interface will be integrated into C-Menu.
+///
+/// Feel free to modify and enhance this code as needed, but please do not use
+/// it in production without proper testing and validation. It is provided as-is
+/// without any warranty or support. Use at your own risk.
 
 #include <math.h>
 #include <signal.h>
@@ -159,9 +172,6 @@ int main(int argc, char **argv) {
     signal(SIGHUP, SIG_DFL);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ACCEPT PV                                                     │
-/// ╰───────────────────────────────────────────────────────────────╯
 double accept_pv() {
     double pv;
     while (1) {
@@ -183,9 +193,6 @@ double accept_pv() {
     return (pv);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ACCEPT_N                                                      │
-/// ╰───────────────────────────────────────────────────────────────╯
 double accept_n() {
     double n;
     while (1) {
@@ -202,9 +209,6 @@ double accept_n() {
     return (n);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ACCEPT_I                                                      │
-/// ╰───────────────────────────────────────────────────────────────╯
 double accept_i() {
     double i;
     while (1) {
@@ -226,9 +230,6 @@ double accept_i() {
     return (i);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ACCEPT_PMT                                                    │
-/// ╰───────────────────────────────────────────────────────────────╯
 double accept_pmt() {
     double pmt;
     while (1) {
@@ -247,18 +248,12 @@ double accept_pmt() {
     return (pmt);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ERROR_PRESS_ANY_KEY                                           │
-/// ╰───────────────────────────────────────────────────────────────╯
 void error_press_any_key(char *s) {
     printf("%s", s);
     getc(stdin);
     printf("\n\n");
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ CALCULATE PV                                                  │
-/// ╰───────────────────────────────────────────────────────────────╯
 double calculate_pv(double n, double i, double pmt) {
     double i1, pv;
 
@@ -272,9 +267,6 @@ double calculate_pv(double n, double i, double pmt) {
     return (pv);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ CALCULATE_N                                                   │
-/// ╰───────────────────────────────────────────────────────────────╯
 double calculate_n(double pv, double i, double pmt) {
     double i1, n;
     if (pv == 0 || i == 0 || pmt == 0)
@@ -287,9 +279,6 @@ double calculate_n(double pv, double i, double pmt) {
     return (n);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ CALCULATE_I                                                   │
-/// ╰───────────────────────────────────────────────────────────────╯
 double calculate_i(double pv, double n, double pmt) {
     double i1 = 0, i;
     double delta = 0.0000001;
@@ -327,9 +316,6 @@ double calculate_i(double pv, double n, double pmt) {
     return (i);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ CALCULATE_PMT                                                 │
-/// ╰───────────────────────────────────────────────────────────────╯
 double calculate_pmt(double pv, double n, double i) {
     double i1, pmt;
     if (pv == 0 || n == 0 || i == 0)
@@ -342,9 +328,6 @@ double calculate_pmt(double pv, double n, double i) {
     return (pmt);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ IS_NUMERIC                                                    │
-/// ╰───────────────────────────────────────────────────────────────╯
 int is_numeric(char *s) {
     char c;
 
@@ -354,17 +337,11 @@ int is_numeric(char *s) {
     return (TRUE);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ACCEPT_STR                                                    │
-/// ╰───────────────────────────────────────────────────────────────╯
 void accept_str(char *s) {
     fprintf(stderr, "%s", s);
     read(0, in_str, BUFSIZ);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORMAT_CURRENCY                                               │
-/// ╰───────────────────────────────────────────────────────────────╯
 char *format_currency(float a) {
     int digit_count, left_of_point;
     static char sstr[80];
@@ -404,9 +381,6 @@ char *format_currency(float a) {
     return (sptr);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORMAT_INTEREST                                               │
-/// ╰───────────────────────────────────────────────────────────────╯
 char *format_interest(float a) {
     static char sstr[80];
     char *s;
@@ -416,17 +390,11 @@ char *format_interest(float a) {
     return (s);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ABEND                                                         │
-/// ╰───────────────────────────────────────────────────────────────╯
 void ABEND(int e) {
     printf("ABEND: Error %d:\n", e);
     exit(EXIT_FAILURE);
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ NUMBERS                                                       │
-/// ╰───────────────────────────────────────────────────────────────╯
 void numbers(char *d, char *s) {
     while (*s != '\0') {
         if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))

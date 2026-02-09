@@ -1,9 +1,9 @@
 /// enterchr.c
+/// Enter a single character from keyboard
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
 //
-/// enterchr - enter a single character from keyboard
 /// Usage: enterchr "Enter Y or N: "
 /// @note does not wait for newline to be pressed
 /// @note converts character to upper case
@@ -26,8 +26,6 @@
 /// stdout returns the single character entered, converted to upper casell. If
 /// the user presses the Escape key, the program returns -1.
 ///
-/// stdin - input stream (usually keyboard)
-
 #include "cm.h"
 #include <fcntl.h>
 #include <stdbool.h>
@@ -37,6 +35,10 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+    /// Returns a single character entered by the user, converted to upper case.
+    /// If the user presses the Escape key, the program returns -1. The
+    /// character is initialized to 'Y' so that if the user presses Enter
+    /// without typing anything, it will return 'Y' by default.
     char c = 'Y';
     char *msg;
     struct termios raw_tioctl;

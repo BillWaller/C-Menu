@@ -1,18 +1,17 @@
 /// view.c
+/// Command Line Start-up for C-Menu View
 //  Bill Waller Copyright (c) 2025
 //  MIT License
-//  Command Line Start-up for C-Menu Menu
 //  billxwaller@gmail.com
-/// view.c
-/// Command Line Start-up for C-Menu View
 #include "menu.h"
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 
-__end_pgm; // Called by atexit
+__end_pgm;
 
 int main(int argc, char **argv) {
+    /// Command Line Entry Point for View
     __atexit;
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);

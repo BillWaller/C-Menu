@@ -14,6 +14,10 @@ unsigned int menu_engine(Init *);
 unsigned int menu_cmd_processor(Init *);
 
 unsigned int menu_engine(Init *init) {
+    /// This function is the main loop of the menu system. It displays the menu
+    /// and processes user input until the user exits the menu or returns to the
+    /// main menu. It returns an integer indicating the action taken by the
+    /// user, such as returning to the main menu or exiting the menu system.
     int action;
     int i;
 
@@ -23,9 +27,6 @@ unsigned int menu_engine(Init *init) {
         return (1);
     }
     action = MA_INIT;
-    /// ╭───────────────────────────────────────────────────────────╮
-    /// │ DISPLAY_MENU                                              │
-    /// ╰───────────────────────────────────────────────────────────╯
     while (action == MA_INIT) {
         action = MA_DISPLAY_MENU;
         if (win_new(menu->lines, menu->cols, menu->begy, menu->begx,
@@ -50,10 +51,8 @@ unsigned int menu_engine(Init *init) {
                     menu->line_idx = i;
                     break;
                 }
-            //  ─────────────────────────────────────────────────────
             while ((action = menu_cmd_processor(init)) == MA_ENTER_OPTION)
                 ;
-            //  ─────────────────────────────────────────────────────
         }
         menu->win = win_win[win_ptr];
         menu->box = win_box[win_ptr];
@@ -73,10 +72,11 @@ unsigned int menu_engine(Init *init) {
     }
     return (action);
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ MENU_CMD_PROCESSOR                                            │
-/// ╰───────────────────────────────────────────────────────────────╯
 unsigned int menu_cmd_processor(Init *init) {
+    /// This function processes user input for the menu. It handles navigation
+    /// through the menu options, executing commands associated with menu
+    /// choices, and responding to special keys such as function keys and mouse
+    /// clicks.
     int eargc;
     char *eargv[MAXARGS];
     char earg_str[MAXLEN];
@@ -102,6 +102,7 @@ unsigned int menu_cmd_processor(Init *init) {
     switch (in_key) {
     case 'k':
     case KEY_UP:
+        /// Move up to the previous menu choice
         i = menu->line_idx;
         while (i > 0) {
             i--;
@@ -113,6 +114,7 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_ENTER_OPTION);
     case 'j':
     case KEY_DOWN:
+        /// Move down to the next menu choice
         i = menu->line_idx;
         while (i < menu->item_count - 1) {
             i++;
@@ -124,12 +126,16 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_ENTER_OPTION);
     case '\n':
     case KEY_ENTER:
+        /// Select the current menu choice and execute its associated command
         break;
     case KEY_F(9):
         return (MA_RETURN_MAIN);
+        /// Exit the menu and return to the previous menu or exit if at top
     case KEY_BREAK:
     case KEY_DL:
         return (MA_RETURN_MAIN);
+    case KEY_ALTF(9):
+
         d = getenv("PRTCMD");
         if (d == NULL || *d == '\0')
             strnz__cpy(earg_str, PRINTCMD, MAXLEN - 1);
@@ -161,9 +167,6 @@ unsigned int menu_cmd_processor(Init *init) {
         str_to_args(eargv, earg_str, MAX_ARGS);
         full_screen_fork_exec(eargv);
         return (MA_INIT);
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ MENU MOUSE FUNCTIONS                                  │
-        /// ╰───────────────────────────────────────────────────────╯
     case KEY_MOUSE:
         if (getmouse(&event) != OK)
             return (MA_ENTER_OPTION);

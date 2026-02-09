@@ -1,16 +1,17 @@
-/// ckeys.c
+/// menu.c
+/// Test Curses Keys
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-///  Test Curses Keys
 
 #include "cm.h"
 #include "menu.h"
 #include <sys/types.h>
 
-__end_pgm; // Called by atexit
+__end_pgm;
 
 int main(int argc, char **argv) {
+    /// Entry point for Curses Keys test
     __atexit;
     int rc;
     capture_shell_tioctl();

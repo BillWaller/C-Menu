@@ -1,7 +1,6 @@
-//  menu.h
+/// One large include file for C-Menu Menu, Form, Pick, and View
 //  Bill Waller Copyright (c) 2025
 //  MIT License
-//  One large include file for C-Menu Menu, Form, Pick, and View
 //  billxwaller@gmail.com
 
 #ifndef _MENU_H
@@ -9,9 +8,6 @@
 
 #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ definitions                                                   │
-//  ╰───────────────────────────────────────────────────────────────╯
 #include "cm.h"
 #include <ncursesw/ncurses.h>
 #include <signal.h>
@@ -55,10 +51,6 @@
 #define to_uppercase(c)                                                        \
     if (c >= 'a' && c <= 'z')                                                  \
     c -= ' '
-////-----------------------------------------------------------------
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ GLOBAL VARIABLES                                              │
-/// ╰───────────────────────────────────────────────────────────────╯
 extern int src_line;
 extern char *src_name;
 extern char fn[MAXLEN];
@@ -81,9 +73,6 @@ extern unsigned int cmd_key;
 extern int exit_code;
 
 enum Caller { VIEW, FORM, PICK, MENU };
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ OPTION PROCESSING                                             │
-//  ╰───────────────────────────────────────────────────────────────╯
 enum OptType {
     OT_STRING,
     OT_INT,
@@ -114,9 +103,6 @@ typedef struct {
 
 extern void dump_opts_by_use(char *, char *);
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ MENU                                                          │
-//  ╰───────────────────────────────────────────────────────────────╯
 enum { C_MAIN = 283, C_MENU, C_OPTION };
 
 enum {
@@ -157,9 +143,6 @@ enum {
     CT_WRITE_CONFIG,
     CT_UNDEFINED
 };
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ MENU DATA STRUCTURE                                           │
-//  ╰───────────────────────────────────────────────────────────────╯
 typedef struct {
     unsigned int type;
     char *raw_text;
@@ -207,9 +190,6 @@ typedef struct {
     bool f_stop_on_error;
 } Menu;
 extern Menu *menu;
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ FORM DATA STRUCTURE                                           │
-//  ╰───────────────────────────────────────────────────────────────╯
 enum FieldFormat {
     FF_STRING,
     FF_DECIMAL_INT,
@@ -295,9 +275,6 @@ typedef struct {
     Field *field[MAXFIELDS];
 } Form;
 extern Form *form;
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ PICK DATA STRUCTURE                                           │
-//  ╰───────────────────────────────────────────────────────────────╯
 #define OBJ_MAXLEN 80
 #define OBJ_MAXCNT 1024
 
@@ -366,9 +343,6 @@ typedef struct {
     int tbl_col_width;
 } Pick;
 extern Pick *pick;
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ VIEW DATA STRUCTURE                                           │
-//  ╰───────────────────────────────────────────────────────────────╯
 #define NPOS 256
 #define NMARKS 256
 #define MAXLEN 256
@@ -513,9 +487,6 @@ typedef struct {
     char *buf_end_ptr;
 } View;
 extern View *view;
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ INIT DATA STRUCTURE                                           │
-//  ╰───────────────────────────────────────────────────────────────╯
 typedef struct {
     SIO *sio;
     // colors & geometry
@@ -619,9 +590,6 @@ typedef struct {
 
 enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };
 
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │                                                               │
-//  ╰───────────────────────────────────────────────────────────────╯
 extern Init *init;
 extern int init_cnt;
 extern char minitrc[MAXLEN];
@@ -642,9 +610,6 @@ extern int write_config(Init *);
 extern bool derive_file_spec(char *, char *, char *);
 
 extern int view_file(Init *);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ PICK                                                          │
-//  ╰───────────────────────────────────────────────────────────────╯
 extern int init_pick(Init *, int, char **, int, int);
 extern int open_pick_win(Init *);
 extern int pick_engine(Init *);
@@ -657,18 +622,12 @@ extern void reverse_object(Pick *);
 extern void toggle_object(Pick *);
 extern int output_objects(Pick *);
 extern int mpick(int, char **, int, int, int, int, char *, int);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ MENU                                                          │
-//  ╰───────────────────────────────────────────────────────────────╯
 extern bool init_menu_files(Init *, int, char **);
 extern unsigned int menu_engine(Init *);
 extern unsigned int menu_loop(Init *);
 extern unsigned int parse_menu_description(Init *);
 extern unsigned int get_command_type(char *);
 extern void free_menu_line(Line *);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ FORM                                                          │
-//  ╰───────────────────────────────────────────────────────────────╯
 extern int init_form(Init *, int, char **, int, int);
 extern int form_accept_field(Form *);
 extern int form_display_field(Form *);
@@ -679,9 +638,6 @@ extern int form_read_description(Form *);
 extern int form_fmt_field(Form *, char *s);
 extern int form_desc_error(int, char *, char *);
 extern void form_help(char *);
-//  ╭───────────────────────────────────────────────────────────────╮
-//  │ VIEW                                                          │
-//  ╰───────────────────────────────────────────────────────────────╯
 extern int mview(Init *, int, char **);
 extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(Init *, char *);
