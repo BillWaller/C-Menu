@@ -1,14 +1,15 @@
 /// form_exec.c
+/// Command Line Start-up for C-Menu Form
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-/// Command Line Start-up for C-Menu Form
 
 #include "menu.h"
 
-__end_pgm; // Called by atexit
+__end_pgm;
 
 int main(int argc, char **argv) {
+    /// Command Line entry point for C-Menu Form
     __atexit;
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);

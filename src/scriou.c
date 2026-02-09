@@ -38,11 +38,6 @@ struct termios shell_in_tioctl, curses_in_tioctl;
 struct termios shell_out_tioctl, curses_out_tioctl;
 struct termios shell_err_tioctl, curses_err_tioctl;
 
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ CAPTURE_SHELL_IOCTL                                          │
-///  │ This is probably overkill.                                   │
-///  │ Capture and Restore tioctl settings                          │
-///  ╰──────────────────────────────────────────────────────────────╯
 ///  capture_shell_tioctl() - capture shell terminal settings
 ///  restore_shell_tioctl() - restore shell terminal settings
 ///  capture_curses_tioctl() - capture curses terminal settings
@@ -75,10 +70,6 @@ bool restore_curses_tioctl() {
     return true;
 }
 
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ SET_SANE_TIOCTL                                              │
-///  │ Reasonable termios Settings                                  │
-///  ╰──────────────────────────────────────────────────────────────╯
 ///  set_sane_tioctl(struct termios *t_p) - set terminal to sane settings
 ///  @param t_p - pointer to termios structure to modify
 ///  @return - true on success
@@ -95,10 +86,6 @@ bool set_sane_tioctl(struct termios *t_p) {
     tcsetattr(0, TCSANOW, t_p);
     return true;
 }
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ MK_RAW_IOCTL - Set terminal to raw mode                      │
-///  │ unlike cfmakeraw(), this leaves ISIG enabled.                │
-///  ╰──────────────────────────────────────────────────────────────╯
 ///  mk_raw_tioctl(struct termios *t_p) - set terminal to raw mode
 ///  @param t_p - pointer to termios structure to modify
 ///  @return - true on success
@@ -118,9 +105,6 @@ bool mk_raw_tioctl(struct termios *t_p) {
     tcsetattr(0, TCSAFLUSH, t_p);
     return true;
 }
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ DI_GETCH - Get Single Character in Raw Mode                  │
-///  ╰──────────────────────────────────────────────────────────────╯
 ///  di_getch() - get single character from terminal in raw mode
 ///  @return - the character read from terminal
 char di_getch() {

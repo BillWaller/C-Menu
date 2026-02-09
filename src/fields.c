@@ -1,8 +1,8 @@
 /// fields.c
+/// Field Edit and Entry for C-Menu Form
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-/// Field Edit and Entry for C-Menu Form
 
 #include "menu.h"
 #include <monetary.h>
@@ -34,37 +34,34 @@ int form_display_field_brackets(Form *);
 int form_validate_field(Form *);
 void mk_filler(char *, int);
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ ACCEPT_FIELD                                                  │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Accept input for a field
-/// @return int Key code of action taken
-/// Handles character input, navigation keys, and mouse events
-/// for field editing
-/// @param form Pointer to Form structure
-/// @return int Key code of action taken
-///
-/// form_accept_field() manages user input for editing form fields.
-/// It supports various navigation keys (e.g., arrow keys, home/end),
-/// editing keys (e.g., insert, delete, backspace), and mouse events.
-/// The function validates input based on the field's format and
-/// updates the display accordingly. It returns the key code of the
-/// action taken, such as accepting the field, tabbing to the next field,
-/// or breaking out of the input loop.
-///
-/// This is a state machine that processes user input based on the state
-/// of the Form data structure. It uses a loop to continuously read input
-/// until a terminating condition is met (e.g., field accepted, tabbed out).
-///
-/// The Form description file defines the fields, their formats, and any
-/// validation rules. The function uses this information to enforce input
-/// constraints and provide feedback to the user.
-///
-/// The function also handles special keys for navigation and editing,
-/// such as KEY_HOME, KEY_END, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN,
-/// KEY_IC (insert), KEY_DC (delete), and KEY_BACKSPACE.
-///
 int form_accept_field(Form *form) {
+    /// Accept input for a field
+    /// @return int Key code of action taken
+    /// Handles character input, navigation keys, and mouse events
+    /// for field editing
+    /// @param form Pointer to Form structure
+    /// @return int Key code of action taken
+    ///
+    /// form_accept_field() manages user input for editing form fields.
+    /// It supports various navigation keys (e.g., arrow keys, home/end),
+    /// editing keys (e.g., insert, delete, backspace), and mouse events.
+    /// The function validates input based on the field's format and
+    /// updates the display accordingly. It returns the key code of the
+    /// action taken, such as accepting the field, tabbing to the next field,
+    /// or breaking out of the input loop.
+    ///
+    /// This is a state machine that processes user input based on the state
+    /// of the Form data structure. It uses a loop to continuously read input
+    /// until a terminating condition is met (e.g., field accepted, tabbed out).
+    ///
+    /// The Form description file defines the fields, their formats, and any
+    /// validation rules. The function uses this information to enforce input
+    /// constraints and provide feedback to the user.
+    ///
+    /// The function also handles special keys for navigation and editing,
+    /// such as KEY_HOME, KEY_END, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN,
+    /// KEY_IC (insert), KEY_DC (delete), and KEY_BACKSPACE.
+    ///
     bool f_insert = FALSE;
     int in_key;
     char *s, *d;
@@ -81,9 +78,6 @@ int form_accept_field(Form *form) {
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
     MEVENT event;
     event.y = event.x = -1;
-    /// ╭───────────────────────────────────────────────────────────╮
-    /// │ CURSOR AND FIELD POSITIONING                              │
-    /// ╰───────────────────────────────────────────────────────────╯
     char *fstart = accept_s;
     char *fend = fstart + flen;
     int x = fcol;
@@ -101,75 +95,62 @@ int form_accept_field(Form *form) {
             in_key = xwgetch(win);
         }
         switch (in_key) {
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ ACCEPT FIELD                                          │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_F(10):
+            /// KEY_F(10) is the default key for accepting the field and moving
+            /// to the next field
             form_fmt_field(form, accept_s);
             form_display_field(form);
             if (form_validate_field(form) != 0)
                 continue;
             return (in_key);
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_F(9) BREAK                                        │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_BREAK:
         case KEY_F(9):
+            /// KEY_F(9) Cancels the current operation
             form_display_field(form);
             in_key = KEY_F(9);
             return (in_key);
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_UP BACKTAB                                        │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_BTAB:
         case KEY_UP:
+            /// KEY_UP, KEY_BTAB moves to the previous field
             form_fmt_field(form, accept_s);
             form_display_field(form);
             in_key = KEY_UP;
             return (in_key);
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_DOWN TAB                                          │
-        /// ╰───────────────────────────────────────────────────────╯
         case '\t':
         case KEY_DOWN:
+            /// KEY_DOWN, '\t' moves to the next field
             form_fmt_field(form, accept_s);
             form_display_field(form);
             in_key = KEY_DOWN;
             return (in_key);
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_END                                               │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_END:
+            /// KEY_END moves cursor to end of field
             while (*p != '\0')
                 p++;
             x = fcol + (p - fstart);
             in_key = 0;
             continue;
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_ENTER CTRL(N)                                     │
-        /// ╰───────────────────────────────────────────────────────╯
         case '\n':
         case KEY_ENTER:
+            /// Enter accepts the field and moves to the next field
+            /// if form->f_erase_remainder is set, it will clear the remaining
+            /// characters above and after the current cursor location
             if (form->f_erase_remainder)
                 *p = '\0';
             form_fmt_field(form, accept_s);
             form_display_field(form);
             in_key = KEY_ENTER;
             return (in_key);
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_INSERT                                            │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_IC:
+            /// KEY_IC toggles insert mode
             if (f_insert)
                 f_insert = FALSE;
             else
                 f_insert = TRUE;
             in_key = 0;
             continue;
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_DEL                                               │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_DC:
+            /// KEY_DC deletes character at cursor
             s = p + 1;
             d = p;
             while (*s != '\0')
@@ -179,18 +160,14 @@ int form_accept_field(Form *form) {
             f_insert = FALSE;
             in_key = 0;
             continue;
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_HOME                                              │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_HOME:
+            /// KEY_HOME moves cursor to start of field
             p = fstart;
             x = fcol;
             in_key = 0;
             continue;
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_BACKSPACE - Destructive Delete                    │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_BACKSPACE:
+            /// KEY_BACKSPACE deletes character before cursor
             if (p > fstart) {
                 p--;
                 x--;
@@ -203,20 +180,16 @@ int form_accept_field(Form *form) {
             str_end = d; // new end of string
             in_key = 0;
             continue;
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_LEFT                                              │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_LEFT:
+            /// KEY_LEFT moves cursor left one character
             if (p > fstart) {
                 p--;
                 x--;
             }
             in_key = 0;
             continue;
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ KEY_RIGHT                                             │
-        /// ╰───────────────────────────────────────────────────────╯
         case KEY_RIGHT:
+            /// KEY_RIGHT moves cursor right one character
             if (p < fend)
                 if (p <= str_end) {
                     p++; // move one to the right
@@ -228,10 +201,8 @@ int form_accept_field(Form *form) {
             }
             in_key = 0;
             continue;
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ FORM MOUSE EVENT                                  │
-            /// ╰───────────────────────────────────────────────────╯
         case KEY_MOUSE:
+            /// Handles mouse events for field editing
             in_key = 0;
             if (getmouse(&event) != OK)
                 break;
@@ -248,20 +219,21 @@ int form_accept_field(Form *form) {
             continue;
 
         default:
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ FIELD CHARACTER FILTER                            │
-            /// ╰───────────────────────────────────────────────────╯
-            /// Validate character based on field format
+            /// Validates fields based on format
             switch (ff) {
             case FF_STRING:
                 break;
             case FF_DECIMAL_INT:
+                /// FF_DECIMAL_INT accepts digits 0 through 9 and decimal point
+                /// ('.')
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.')
                     break;
                 beep();
                 in_key = 0;
                 continue;
             case FF_HEX_INT:
+                /// FF_HEX_INT accepts digits 0 through 9 and letters A through
+                /// F (case-insensitive)
                 if ((in_key >= '0' && in_key <= '9') ||
                     (in_key >= 'A' && in_key <= 'F') ||
                     (in_key >= 'a' && in_key <= 'f'))
@@ -270,6 +242,8 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
             case FF_FLOAT:
+                /// FF_FLOAT accepts digits 0 through 9 and decimal point ('.')
+                /// and negative operator ('-') at the start of the field
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
                     (in_key == '-' && p == fstart))
                     break;
@@ -277,6 +251,8 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
             case FF_DOUBLE:
+                /// FF_DOUBLE accepts digits 0 through 9 and decimal point ('.')
+                /// and negative operator ('-') at the start of the field
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
                     (in_key == '-' && p == fstart))
                     break;
@@ -284,6 +260,8 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
             case FF_CURRENCY:
+                /// FF_CURRENCY accepts digits 0 through 9 and decimal point
+                /// ('.') and negative operator ('-') at the start of the field
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
                     (in_key == '-' && p == fstart))
                     break;
@@ -291,18 +269,21 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
             case FF_YYYYMMDD:
+                /// FF_YYYYMMDD accepts digits 0 through 9
                 if (in_key >= '0' && in_key <= '9')
                     break;
                 beep();
                 in_key = 0;
                 continue;
             case FF_HHMMSS:
+                /// FF_HHMMSS accepts digits 0 through 9
                 if (in_key >= '0' && in_key <= '9')
                     break;
                 beep();
                 in_key = 0;
                 continue;
             case FF_APR:
+                /// FF_APR accepts digits 0 through 9 and decimal point ('.')
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.')
                     break;
                 beep();
@@ -339,22 +320,16 @@ int form_accept_field(Form *form) {
         }
     }
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ DISPLAY_FIELD_N                                               │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Display field n
 int form_display_field_n(Form *form, int n) {
+    /// Display field n
     int fidx = form->fidx;
     form->fidx = n;
     form_display_field(form);
     form->fidx = fidx;
     return 0;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ DISPLAY_FIELD                                                 │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Display current field
 int form_display_field(Form *form) {
+    /// Display current field
     WINDOW *win = form->win;
     int flin = form->field[form->fidx]->line;
     int fcol = form->field[form->fidx]->col;
@@ -364,13 +339,10 @@ int form_display_field(Form *form) {
     wrefresh(win);
     return 0;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ DISPLAY_FIELD_BRACKETS                                        │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Display field brackets if set
-/// @param form->brackets[0] = left bracket character
-/// @param form->brackets[1] = right bracket character
 int form_display_field_brackets(Form *form) {
+    /// Display field brackets if set
+    /// @param form Pointer to Form structure
+    /// @return 0 on success, non-zero on error
     int flin, fcol;
     if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
         WINDOW *box = form->box;
@@ -384,71 +356,79 @@ int form_display_field_brackets(Form *form) {
     }
     return 0;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM_FMT_FIELD                                                │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Format field according to its format type
-/// @param form Pointer to Form structure
-/// @param s Input string to format
-/// @return 0 on success, non-zero on error
-///
-/// @param char field_s[MAXLEN];
-/// @param int decimal_int_n = 0;
-/// @param int hex_int_n = 0;
-/// @param float float_n = 0.0;
-/// @param double double_n = 0.0;
-/// @param double currency_n = 0.0;
-/// @param struct Date { int yyyy; int mm; int dd; };
-/// @param struct Time { int hh; int mm; int ss; };
-/// @note Uses helper functions is_valid_date(), is_valid_time(), numeric(),
-///      right_justify(), left_justify(), and strnz__cpy().
-///      Supports format types: FF_STRING, FF_DECIMAL_INT, FF_HEX_INT, FF_FLOAT,
-///      FF_DOUBLE, FF_CURRENCY, FF_YYYYMMDD, FF_HHMMSS, FF_APR
-///      with appropriate formatting and validation for each type.
-///      Handles field length and filler string creation.
-/// @return int 0 on success, non-zero on error
-/// @param Form *form Pointer to Form structure containing field information
-///
-/// @note As the roadmap indicates, these data types are just a start
-/// and more complex types and formats may be added in the future.
-///
-/// @param char *s Input string to format
-///
-/// @note These data types are not suitable for financial, scientific,
-/// or high-precision applications. They are intended for basic data entry and
-/// display in a text-based user interface.
-///
-/// @note In the future, we will aqdd support for additional data types and
-/// formats such as: dates with time zones, timestamps, percentages, scientific
-/// notation, and custom user-defined formats.
-///
-/// @note For high precision applications, we will be integrating support for
-/// 128-bit binary coded decimal (BCD) types and arbitrary precision decimal
-/// types using libraries such as the GNU MPFR library, IBM's decNumber, Rust
-/// Decimal, or the Intel Decimal Floating-Point Math Library.
-///
-/// @note This function currently does not handle localization or
-/// internationalization of number formats, such as different decimal separators
-/// or currency symbols. Future enhancements may include support for
-/// locale-specific formatting.
-/// @note Error handling is basic; future versions may include more detailed
-/// error reporting and logging mechanisms.
-/// @note Performance optimizations may be considered for handling large volumes
-/// of data or high-frequency updates in real-time applications.
-/// @note This function assumes that the input string is well-formed and does
-/// not contain malicious content. Input validation and sanitization should be
-/// performed at a higher level in the application.
-/// @note The function currently uses standard C library functions for string
-/// manipulation and formatting. Future versions may explore more efficient
-/// or specialized libraries for these tasks.
-/// @note The function is designed to be modular and extensible, allowing for
-/// easy addition of new data types and formats as needed.
-/// @note C-Menu Form converts each field's input string into internal numeric
-/// binary based on the field's specified format. The internal numberic binary
-/// is then formated and displayed, verifying the user's input and Form's
-/// interpretation of the user's input.
-///
 int form_fmt_field(Form *form, char *s) {
+    /// Format field according to its format type
+    /// @param form Pointer to Form structure
+    /// @param s Input string to format
+    /// @return 0 on success, non-zero on error
+    ///
+    /// This function takes the input string for the current field and formats
+    /// it according to the field's specified format type (ff). It updates the
+    /// accept_s and display_s strings for the field based on the formatted
+    /// value.
+    ///
+    /// The function handles various format types, including strings, decimal
+    /// integers, hexadecimal integers, floating-point numbers, currency, dates,
+    /// and times.
+    ///
+    /// It uses helper functions for validation and formatting, such as
+    /// is_valid_date(), is_valid_time(), numeric(), right_justify(),
+    /// left_justify(), and strnzcpy(). The function ensures that the formatted
+    /// output fits within the field's length and creates a filler string for
+    /// the field as needed. The function also handles error cases, such as
+    /// invalid formats, and provides feedback through error messages. It is
+    /// designed to be extensible, allowing for additional format types to be
+    /// added in the future as needed.
+    ///
+    /// The function assumes that the input string is well-formed and does not
+    /// contain malicious content. Input validation and sanitization should be
+    /// performed at a higher level in the application to ensure security and
+    /// robustness.
+    /// @note The function currently does not handle localization or
+    /// internationalization of number formats, such as different decimal
+    /// separators or currency symbols. Future enhancements may include support
+    /// for locale-specific formatting.
+    /// @note Error handling is basic; future versions may include more detailed
+    /// error reporting and logging mechanisms.
+    /// @note Performance optimizations may be considered for handling large
+    /// volumes of data or high-frequency updates in real-time applications.
+    /// @note The following variables and structures are used in this function:
+    ///     char field_s[MAXLEN];
+    ///     int decimal_int_n = 0;
+    ///     int hex_int_n = 0;
+    ///     float float_n = 0.0;
+    ///     double double_n = 0.0;
+    ///     double currency_n = 0.0;
+    ///     struct Date { int yyyy; int mm; int dd; };
+    ///     struct Time { int hh; int mm; int ss; };
+    /// Supports format types: FF_STRING, FF_DECIMAL_INT, FF_HEX_INT,
+    /// FF_FLOAT, FF_DOUBLE, FF_CURRENCY, FF_YYYYMMDD, FF_HHMMSS, FF_APR
+    /// with appropriate formatting and validation for each type.
+    ///
+    /// Handles field length and filler string creation.
+    ///
+    /// @note As the roadmap indicates, these data types are just a start
+    /// and more complex types and formats may be added in the future.
+    ///
+    /// @note These data types are not suitable for financial, scientific,
+    /// or high-precision applications. They are intended for basic data entry
+    /// and display in a text-based user interface.
+    ///
+    /// @note In the future, we will aqdd support for additional data types and
+    /// formats such as: dates with time zones, timestamps, percentages,
+    /// scientific notation, and custom user-defined formats.
+    ///
+    /// @note For high precision applications, we will be integrating support
+    /// for 128-bit binary coded decimal (BCD) types and arbitrary precision
+    /// decimal types using libraries such as the GNU MPFR library, IBM's
+    /// decNumber, Rust Decimal, or the Intel Decimal Floating-Point Math
+    /// Library.
+    ///
+    /// @note C-Menu Form converts each field's input string into internal
+    /// numeric binary based on the field's specified format. The internal
+    /// numberic binary is then formated and displayed, verifying the user's
+    /// input and Form's interpretation of the user's input.
+    ///
     strnz__cpy(form->field[form->fidx]->input_s, s, MAXLEN - 1);
     char *input_s = form->field[form->fidx]->input_s;
     char *accept_s = form->field[form->fidx]->accept_s;
@@ -547,14 +527,10 @@ int form_fmt_field(Form *form, char *s) {
     mk_filler(filler_s, fl);
     return 0;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ VALIDATE_FIELD                                                │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Validate current field based on flags
-/// @return 0 if valid, 1 if invalid
-/// Very underdeveloped - only checks F_NOTBLANK and F_NOMETAS
-/// for now
 int form_validate_field(Form *form) {
+    /// Validate current field based on flags
+    /// @return 0 if valid, 1 if invalid
+    /// Very underdeveloped - only checks F_NOTBLANK and F_NOMETAS
     int n = form->fidx;
     char *p = form->field[n]->accept_s;
     if (form->field[n]->ff & F_NOTBLANK) {
@@ -574,11 +550,11 @@ int form_validate_field(Form *form) {
     }
     return (0);
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ MK_FILLER_S                                                   │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Create filler string for field
 void mk_filler(char *s, int fl) {
+    /// Create filler string for field
+    /// @param s Filler string to create
+    /// @param fl Field length
+    /// @return void
     char *e = s + fl;
     unsigned char c;
 
@@ -587,14 +563,18 @@ void mk_filler(char *s, int fl) {
         *s++ = c;
     *s = '\0';
 }
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ LEFT_JUSTIFY                                                 │
-///  ╰──────────────────────────────────────────────────────────────╯
-void left_justify(char *s) { trim(s); }
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ RIGHT_JUSTIFY                                                │
-///  ╰──────────────────────────────────────────────────────────────╯
+void left_justify(char *s) {
+    /// Left justify string by removing leading spaces
+    /// @param s String to left justify
+    /// @return void
+    trim(s);
+}
 void right_justify(char *s, int fl) {
+    /// Right justify string by removing trailing spaces and adding leading
+    /// spaces
+    /// @param s String to right justify
+    /// @param fl Field length
+    /// @return void
     char *p = s;
     char *d = s + fl;
     trim(s);
@@ -609,15 +589,13 @@ void right_justify(char *s, int fl) {
         *(--d) = ' ';
     }
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ IS_VALID_DATE                                                 │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @return true if valid date, false otherwise
-/// @param yyyy Year
-/// @param mm Month
-/// @param dd Day
-/// Checks for valid date including leap years
 bool is_valid_date(int yyyy, int mm, int dd) {
+    /// Checks for valid date including leap years
+    /// @return true if valid date, false otherwise
+    /// @param yyyy Year
+    /// @param mm Month
+    /// @param dd Day
+    /// @returns true if valid date, false otherwise
     if (yyyy < 1 || mm < 1 || mm > 12 || dd < 1)
         return false;
     int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -627,27 +605,23 @@ bool is_valid_date(int yyyy, int mm, int dd) {
         return false;
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ IS_VALID_TIME                                                 │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// @return true if valid time, false otherwise
-/// @param hh Hour
-/// @param mm Minute
-/// @param ss Second
-/// Checks for valid time
 bool is_valid_time(int hh, int mm, int ss) {
+    /// Checks for valid time
+    /// @return true if valid time, false otherwise
+    /// @param hh Hour
+    /// @param mm Minute
+    /// @param ss Second
+    /// @returns true if valid time, false otherwise
     if (hh < 0 || hh > 23 || mm < 0 || mm > 59 || ss < 0 || ss > 59)
         return false;
     return true;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ NUMERIC                                                       │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// Extract numeric characters from source string to destination string
-/// ignoring dashes and periods.
-/// @param d Destination string
-/// @param s Source string
 void numeric(char *d, char *s) {
+    /// Extract numeric characters from source string to destination string
+    /// ignoring dashes and periods.
+    /// @param d Destination string
+    /// @param s Source string
+    /// @return void
     while (*s != '\0') {
         if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))
             *d++ = *s++;
