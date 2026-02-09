@@ -1,10 +1,9 @@
 /// whence.c
+/// Find the full path of a file in the directories specified by the
+/// PATH environment variable.
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-/// whence: adverb
-///           from what place or source
-///           in this case, a directory name
 
 #include "cm.h"
 #include <fcntl.h>

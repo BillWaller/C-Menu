@@ -41,10 +41,21 @@ char const pagers_editors[12][10] = {"view", "mview", "less", "more",
                                      "vi",   "vim",   "nano", "nvim",
                                      "pico", "emacs", "edit", ""};
 
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ INIT_PICK                                                      │
-/// ╰────────────────────────────────────────────────────────────────╯
 int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
+    /// @note Initializes pick structure and opens pick input file or pipe
+    /// @param init Pointer to Init structure
+    /// @param argc Argument count
+    /// @param argv Argument vector
+    /// @param begy Beginning y coordinate for pick window
+    /// @param begx Beginning x coordinate for pick window
+    /// @note If provider_cmd is specified, it takes precedence over in_spec and
+    /// input file arguments
+    /// @note provider_cmd is executed and its output is read as pick input
+    /// @note If provider_cmd is not specified, in_spec is used to read pick
+    /// input from a file or stdin
+    /// @note If provider_cmd is specified, it is executed and its output is
+    /// read as pick input
+    ///
     struct stat sb;
     char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
@@ -57,9 +68,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
     SIO *sio = init->sio;
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ START PROVIDER_CMD, attach pipe to its STDOUT              │
-    /// ╰────────────────────────────────────────────────────────────╯
     if (pick->provider_cmd[0] != '\0') {
         str_to_args(s_argv, pick->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
@@ -70,8 +78,9 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             Perror("fork() failed in init_pick");
             return (1);
         }
-        if (pid == 0) { /// Child
-            /// Child doesn't need read end of pipe
+        if (pid == 0) {
+            /// Spawn Child to execute provider_cmd
+            /// Close read end of pipe as Child only needs to write to pipe
             close(pipe_fd[P_READ]);
             /// Connect CHILD STDOUT to write end of pipe
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
@@ -86,18 +95,13 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ BACK TO PARENT                                        │
-        /// ╰───────────────────────────────────────────────────────╯
-        /// @note Parent doesn't need write end of pipe
+        /// @ Return to Parent
+        /// Close write end of pipe as Parent only needs to read from pipe
         close(pipe_fd[P_WRITE]);
         /// Open a file pointer on read end of pipe
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
         pick->f_in_pipe = true;
     } else {
-        /// ╭────────────────────────────────────────────────────────╮
-        /// │ PREPARE STDIN AS INPUT                                 │
-        /// ╰────────────────────────────────────────────────────────╯
         if ((pick->in_spec[0] == '\0') || strcmp(pick->in_spec, "-") == 0 ||
             strcmp(pick->in_spec, "/dev/stdin") == 0) {
             strnz__cpy(pick->in_spec, "/dev/stdin", MAXLEN - 1);
@@ -106,9 +110,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         }
     }
     if (!pick->f_in_pipe) {
-        ///  ╭───────────────────────────────────────────────────────╮
-        ///  │ IN SPEC IS A FILE                                     │
-        ///  ╰───────────────────────────────────────────────────────╯
+        /// No provider_cmd specified, so read pick input from file or stdin
         if (lstat(pick->in_spec, &sb) == -1) {
             m = MAXLEN - 29;
             strnz__cpy(tmp_str, "Can\'t stat pick input file: ", m);
@@ -136,6 +138,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     }
     read_pick_input(init);
     if (pick->f_in_pipe && pid > 0) {
+        /// Wait for provider_cmd child process to finish before proceeding
         waitpid(pid, NULL, 0);
         close(pipe_fd[P_READ]);
         dup2(sio->stdin_fd, STDIN_FILENO);
@@ -149,15 +152,15 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         destroy_pick(init);
         return (1);
     }
+    /// Enter pick_engine
     pick_engine(init);
     win_del();
     destroy_pick(init);
     return 0;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ READ_PICK_INPUT                                                │
-/// ╰────────────────────────────────────────────────────────────────╯
 int read_pick_input(Init *init) {
+    /// @note Reads pick input from file pointer and saves objects into pick
+    /// structure
     int i;
 
     Pick *pick = init->pick;
@@ -180,16 +183,11 @@ int read_pick_input(Init *init) {
     pick->obj_idx = 0;
     return 0;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ PICK_ENGINE                                                    │
-/// ╰────────────────────────────────────────────────────────────────╯
 int pick_engine(Init *init) {
+    /// Initialize window and data structures
     int n, chyron_l, rc;
     int maxy, maxx, win_maxy, win_maxx;
 
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ PICK TABLE LAYOUT                                          │
-    /// ╰────────────────────────────────────────────────────────────╯
     for (n = 0; key_cmd[n].end_pos != -1; n++)
         key_cmd[n].text[0] = '\0';
     strnz__cpy(key_cmd[1].text, "F1 Help", 32);
@@ -201,11 +199,9 @@ int pick_engine(Init *init) {
     strnz__cpy(key_cmd[14].text, "Enter", 32);
     chyron_l = chyron_mk(key_cmd, pick->chyron_s);
     getmaxyx(stdscr, maxy, maxx);
-
+    /// Calculate pick window size and position based on terminal size and pick
+    /// parameters
     win_maxy = (maxy * 8) / 10;
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ Window can't be larger than physical display - 2           │
-    /// ╰────────────────────────────────────────────────────────────╯
     if (win_maxy > (maxy - pick->begy) - 2)
         win_maxy = (maxy - pick->begy) - 2;
     win_maxx = (maxx * 9) / 10;
@@ -215,33 +211,21 @@ int pick_engine(Init *init) {
         chyron_l = strnz(pick->chyron_s, win_maxx);
     if (pick->tbl_col_width < 4)
         pick->tbl_col_width = 4;
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ Column can't be larger than physical display - 2           │
-    /// ╰────────────────────────────────────────────────────────────╯
     if (pick->tbl_col_width > win_maxx - 2)
         pick->tbl_col_width = win_maxx - 2;
     pick->tbl_cols = (win_maxx / (pick->tbl_col_width + 1));
     pick->win_width = (pick->tbl_col_width + 1) * pick->tbl_cols;
     if (pick->win_width < chyron_l)
         pick->win_width = chyron_l;
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ Calculate final dimensions                                 │
-    /// ╰────────────────────────────────────────────────────────────╯
     pick->tbl_lines = ((pick->obj_cnt - 1) / pick->tbl_cols) + 1;
     pick->tbl_pages = (pick->tbl_lines / (win_maxy - 1)) + 1;
     pick->pg_lines = (pick->tbl_lines / pick->tbl_pages) + 1;
     pick->win_lines = pick->pg_lines + 1;
     pick->tbl_page = 0;
-    ///  ╭───────────────────────────────────────────────────────────╮
-    ///  │ pick->win_lines 1/5      top margin                       │
-    ///  ╰───────────────────────────────────────────────────────────╯
     if (pick->begy == 0)
         pick->begy = (LINES - pick->win_lines) / 5;
     else if (pick->begy + pick->win_lines > LINES - 4)
         pick->begy = LINES - pick->win_lines - 2;
-    ///  ╭───────────────────────────────────────────────────────────╮
-    ///  │ pick->win_width               left margin                 │
-    ///  ╰───────────────────────────────────────────────────────────╯
     if (pick->begx + pick->win_width > COLS - 4)
         pick->begx = COLS - pick->win_width - 2;
     else if (pick->begx == 0)
@@ -252,16 +236,11 @@ int pick_engine(Init *init) {
         return (rc);
     display_page(pick);
     reverse_object(pick);
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ PICK MAIN LOOP                                             │
-    /// ╰────────────────────────────────────────────────────────────╯
     pick->obj_idx = 0;
     pick->x = 1;
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
+    /// Enter picker loop to handle user input and interactions
     picker(init);
-    /// ╭────────────────────────────────────────────────────────────╮
-    /// │ PICK FINISHED - Perform Output                             │
-    /// ╰────────────────────────────────────────────────────────────╯
     if (pick->select_cnt > 0) {
         if (pick->f_out_spec && pick->out_spec[0])
             rc = output_objects(pick);
@@ -270,14 +249,11 @@ int pick_engine(Init *init) {
     }
     return (rc);
 }
-/// ╭────────────────────────────────────────────────────────────╮
-/// │ SAVE_OBJECT                                                │
-/// ╰────────────────────────────────────────────────────────────╯
-/// Save object string into pick structure
-/// @param pick Pointer to Pick structure
-/// @param s String to save
-/// @return void
 void save_object(Pick *pick, char *s) {
+    /// Save object string into pick structure
+    /// @param pick Pointer to Pick structure
+    /// @param s String to save
+    /// @return void
     int l;
 
     if (pick->obj_idx < OBJ_MAXCNT - 1) {
@@ -295,10 +271,11 @@ void save_object(Pick *pick, char *s) {
     }
 }
 
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ PICKER                                                         │
-/// ╰────────────────────────────────────────────────────────────────╯
 int picker(Init *init) {
+    /// Main loop to handle user input and interactions for pick interface
+    /// @param init Pointer to Init structure
+    /// @return Number of selected objects or -1 if user cancels
+    int cmd_key;
     int display_tbl_page;
 
     pick = init->pick;
@@ -310,44 +287,38 @@ int picker(Init *init) {
         if (cmd_key == 0)
             cmd_key = xwgetch(pick->win);
         switch (cmd_key) {
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_F(9), 'Q', 'q' - Cancel                               │
-            /// ╰───────────────────────────────────────────────────────────╯
         case 'q':
         case 'Q':
         case KEY_F(9):
+            /// KEY_F(9) or 'q' Cancels selection and exits picker
             return -1;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ 'H' - Help                                                │
-            /// ╰───────────────────────────────────────────────────────────╯
         case 'H': /// Help
+            /// 'H' Displays help screen for pick interface
             display_pick_help(init);
             display_page(pick);
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ 't', 'T', ' ' - Toggle item                               │
-            /// ╰───────────────────────────────────────────────────────────╯
         case ' ':
         case 't':
-        case 'T': /// Toggle
+        case 'T':
+            /// Space or 't' Toggles selection of current object and moves to
+            /// next object If selection count reaches maximum, exits picker and
+            /// returns count of selected objects Otherwise, continues to next
+            /// object
             toggle_object(pick);
             if (pick->select_cnt == pick->select_max)
                 return pick->select_cnt;
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_F(10), KEY_ENTER - Accept Selections                  │
-            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_F(10):
         case '\n':
         case KEY_ENTER:
+            /// KEY_F(10) or Enter Accepts current selection and exits picker
+            /// Returns count of selected objects
             return pick->select_cnt;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_END - Display last page                               │
-            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_END:
+            /// KEY_END Moves selection to last object in list
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
@@ -362,11 +333,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_RIGHT, 'l' - Move right one column                    │
-            /// ╰───────────────────────────────────────────────────────────╯
         case 'l':
         case KEY_RIGHT:
+            /// KEY_RIGHT or 'l' Moves selection to next object in list
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             /// pick->obj_idx += pick->tbl_lines -> next column
@@ -380,12 +349,11 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_LEFT, 'h' - Move left one column                      │
-            /// ╰───────────────────────────────────────────────────────────╯
         case 'h':
         case KEY_LEFT:
         case KEY_BACKSPACE:
+            /// KEY_LEFT, 'h', or Backspace Moves selection to previous object
+            /// in list
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             if (pick->tbl_col > 0)
@@ -395,11 +363,9 @@ int picker(Init *init) {
             cmd_key = 0;
             reverse_object(pick);
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_DOWN, 'j' - Move down one row                         │
-            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_DOWN:
         case 'j':
+            /// KEY_DOWN or 'j' Moves selection to next object in list
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             /// pick->obj_idx++ column down
@@ -413,11 +379,10 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_UP, 'k' - Move up one row                             │
-            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_UP:
         case 'k':
+            /// KEY_UP or 'k' Moves selection to previous object in list
+            /// pick->obj_idx-- column up
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             if (pick->tbl_line > 0)
@@ -427,11 +392,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_NPAGE, CTRL(F) - Display next page                    │
-            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_NPAGE:
         case '\06':
+            /// KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects
             if (pick->tbl_page < pick->tbl_pages - 1) {
                 pick->tbl_page++;
                 pick->pg_line = 0;
@@ -443,11 +406,10 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_PPAGE, CTRL(B) - Display previous page                │
-            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_PPAGE:
         case '\02':
+            /// KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
+            /// objects
             if (pick->tbl_page > 0)
                 pick->tbl_page--;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
@@ -456,10 +418,8 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_HOME - Display First Page                             │
-            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_HOME:
+            /// KEY_HOME Moves selection to first object in list
             pick->tbl_page = 0;
             pick->tbl_line = 0;
             pick->tbl_col = 0;
@@ -469,10 +429,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /// ╭───────────────────────────────────────────────────────────╮
-            /// │ KEY_LL (END) - Display Last Page                          │
-            /// ╰───────────────────────────────────────────────────────────╯
         case KEY_LL:
+            /// KEY_LL (lower left of numeric pad) Moves selection to last
+            /// object in list
             pick->tbl_page = pick->tbl_pages - 1;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_cols * pick->pg_line + pick->tbl_col;
@@ -480,12 +439,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-        ///  ╭───────────────────────────────────────────────────────╮
-        ///  │ PICK MOUSE EVENT                                      │
-        ///  ╰───────────────────────────────────────────────────────╯
-        /// BUTTON1 CLICK or DOUBLE_CLICK Toggles Selection
-        /// or Activates Chyron Keys
         case KEY_MOUSE:
+            /// BUTTON1 CLICK or DOUBLE_CLICK Toggles Selection
+            /// or Activates Chyron Keys
             if (getmouse(&event) != OK) {
                 cmd_key = 0;
                 break;
@@ -533,10 +489,8 @@ int picker(Init *init) {
     }
     return 0;
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ DISPLAY_PAGE                                                   │
-/// ╰────────────────────────────────────────────────────────────────╯
 void display_page(Pick *pick) {
+    /// Displays current page of objects in pick window
     int y, col, pidx;
     for (y = 0; y < pick->pg_lines; y++) {
         wmove(pick->win, y, 0);
@@ -556,10 +510,8 @@ void display_page(Pick *pick) {
     }
     pick_display_chyron(pick);
 }
-///  ╭───────────────────────────────────────────────────────────────╮
-///  │ PICK_DISPLAY_CHYRON                                           │
-///  ╰───────────────────────────────────────────────────────────────╯
 void pick_display_chyron(Pick *pick) {
+    /// Displays chyron with page information at bottom of pick window
     int l;
     char tmp_str[MAXLEN];
     ssnprintf(tmp_str, MAXLEN - 65, "%s| Page %d of %d ", pick->chyron_s,
@@ -571,10 +523,8 @@ void pick_display_chyron(Pick *pick) {
     wmove(pick->win, pick->pg_lines, l);
     wclrtoeol(pick->win);
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ REVERSE_OBJECT                                                 │
-/// ╰────────────────────────────────────────────────────────────────╯
 void reverse_object(Pick *pick) {
+    /// Reverses the display of the currently selected object in pick window
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     pick->y = pick->tbl_line;
     wmove(pick->win, pick->y, pick->x);
@@ -585,10 +535,8 @@ void reverse_object(Pick *pick) {
     wrefresh(pick->win);
     wmove(pick->win, pick->y, pick->x - 1);
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ UNREVERSE_OBJECT                                               │
-/// ╰────────────────────────────────────────────────────────────────╯
 void unreverse_object(Pick *pick) {
+    /// Unreverses the display of the currently selected object in pick window
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
@@ -596,10 +544,9 @@ void unreverse_object(Pick *pick) {
     wrefresh(pick->win);
     wmove(pick->win, pick->y, pick->x - 1);
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ TOGGLE_OBJECTS                                                 │
-/// ╰────────────────────────────────────────────────────────────────╯
 void toggle_object(Pick *pick) {
+    /// Toggles the selection state of the currently selected object in pick
+    /// window
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     if (pick->f_selected[pick->obj_idx]) {
         pick->select_cnt--;
@@ -611,15 +558,10 @@ void toggle_object(Pick *pick) {
         mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
     }
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ OUTPUT_OBJECTS                                                 │
-/// ╰────────────────────────────────────────────────────────────────╯
 int output_objects(Pick *pick) {
+    /// Outputs selected objects to specified output file
     int m;
     if ((pick->out_fp = fopen(pick->out_spec, "w")) == NULL) {
-        ///  ╭───────────────────────────────────────────────────────╮
-        ///  │ OUT SPEC IS A FILE                                    │
-        ///  ╰───────────────────────────────────────────────────────╯
         m = MAXLEN - 30;
         strnz__cpy(tmp_str, "Can't open pick output file: ", m);
         m -= strlen(pick->in_spec);
@@ -634,10 +576,8 @@ int output_objects(Pick *pick) {
         fclose(pick->out_fp);
     return (0);
 }
-/// ╭────────────────────────────────────────────────────────────────╮
-/// │ EXEC_OBJECTS                                                   │
-/// ╰────────────────────────────────────────────────────────────────╯
 int exec_objects(Init *init) {
+    /// Executes specified command with selected objects as arguments
     int rc = -1;
     int margc;
     char *margv[MAXARGS];
@@ -662,12 +602,11 @@ int exec_objects(Init *init) {
             pick->cmd[len - 2] = '\0';
         }
     }
+    /// Parse command into arguments and append selected objects as arguments
     margc = str_to_args(margv, pick->cmd, MAXARGS - 1);
     tmp_str[0] = '\0';
     if (pick->f_multiple_cmd_args) {
-        ///  ╭───────────────────────────────────────────────────────╮
-        ///  │ COMBINE MULTIPLE OBJECTS IN ONE MARGV[n]              │
-        ///  ╰───────────────────────────────────────────────────────╯
+        /// Append all selected objects as a single argument to command
         for (i = 0; i < pick->obj_cnt; i++) {
             if (pick->f_selected[i] && margc < MAXARGS) {
                 if (tmp_str[0] != '\0')
@@ -677,13 +616,8 @@ int exec_objects(Init *init) {
         }
         margv[margc++] = strdup(tmp_str);
     } else {
-        ///  ╭───────────────────────────────────────────────────────╮
-        ///  │ EACH OBJECT IN A SEPARATE MARGV[n]                    │
-        ///  │ EXCEPT IF OBJECT CONTAINS %%                          │
-        ///  │ WHICH WE REPLACE WITH SELECTED OBJECTS                │
-        ///  ╰───────────────────────────────────────────────────────╯
-        ///  CHECK FOR %% IN ARGS
-        ///  @note Only process first occurrence of %%
+        ///  Check for %% in args
+        ///  @note Only processes the first occurrence of %%
         ///  @param %% is replaced with selected objects
         ///         as a parameter list separated by spaces
         f_append_args = false;
@@ -699,6 +633,10 @@ int exec_objects(Init *init) {
             i++;
         }
         /// Add selected objects
+        /// @note If f_append_args is true, selected objects are concatenated
+        /// into a single string and replace %% in the argument
+        /// @note If f_append_args is false, selected objects are added as
+        /// separate arguments to the command
         for (i = 0; i < pick->obj_cnt - 1; i++) {
             if (pick->f_selected[i] && margc < MAXARGS - 1) {
                 if (f_append_args == true) {
@@ -735,26 +673,46 @@ int exec_objects(Init *init) {
         }
     }
     strnz__cpy(tmp_str, margv[0], MAXLEN - 1);
+    /// Null-terminate argument list for execvp
+    /// @note If f_append_args is true, the argument containing %% is replaced
+    /// with the concatenated selected objects
+    /// @note If f_append_args is false, selected objects are added as separate
+    /// arguments and the original command arguments remain unchanged
+    /// @note margv is null-terminated to indicate the end of arguments for
+    /// execvp
+    /// @note Memory allocated for arguments is freed after execution to prevent
+    /// memory leaks
+    /// @note If execvp fails, an error message is printed and the child process
+    /// exits with failure status
+    /// @note The parent process waits for the child process to finish before
+    /// proceeding and restores terminal settings
+    /// @note If the command is a pager or editor, it is executed within the
+    /// pick interface using mview instead of execvp
+    /// @note The base name of the command is extracted to check if it is a
+    /// pager or editor
+    /// @note If the command is a pager or editor, the pick interface is used to
+    /// display the command output instead of executing it in a separate
+    /// terminal
+    /// @note This allows the user to view the command output without leaving
+    /// the pick interface and provides a more seamless user experience
+    /// @note If the command is not a pager or editor, it is executed in a
+    /// separate terminal and the pick interface is restored after execution
+    ///
+    /// If the command to be executed is view, an external command is not
+    /// needed,
+    /// instead the mview function can be used to display the output within the
+    /// pick interface
     margv[margc] = NULL;
-    // if (margc == 0) {
-    //     Perror("No pick exec command available");
-    //     return 1;
-    // }
     s1 = tmp_str;
-    //                Why Memory leak here?
     char *sp;
     char *tok;
     tok = strtok_r(s1, " ", &sp);
     strnz__cpy(sav_arg, tok, MAXLEN - 1);
     base_name(tmp_str, sav_arg);
-    ///  ╭──────────────────────────────────────────────────────────╮
-    ///  │ CHECK FOR VIEW / MVIEW COMMAND                           │
-    ///  ╰──────────────────────────────────────────────────────────╯
     if (tmp_str[0] != '\0' &&
         (strcmp(tmp_str, "view") == 0 || strcmp(tmp_str, "mview") == 0)) {
-        ///  ╭──────────────────────────────────────────────────────╮
-        ///  │ SPECIAL CASE FOR VIEW / MVIEW                        │
-        ///  ╰──────────────────────────────────────────────────────╯
+        /// initialize mview arguments and execute mview to display command
+        /// output within pick interface
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
         if (init->begy == 0)
@@ -773,11 +731,7 @@ int exec_objects(Init *init) {
             i++;
         }
         return 0;
-    }
-    ///  ╭──────────────────────────────────────────────────────────╮
-    ///  │ FORK/EXEC PICK COMMAND                                   │
-    ///  ╰──────────────────────────────────────────────────────────╯
-    else {
+    } else {
         if ((pid = fork()) == -1) {
             // fork failed, free margv and return error
             i = 0;
@@ -789,16 +743,18 @@ int exec_objects(Init *init) {
             Perror("fork() failed in exec_objects");
             return (1);
         }
-        if (pid == 0) { /// Child
+        if (pid == 0) {
+            /// Child process to execute command
             execvp(margv[0], margv);
-            // exec failed, print error and exit
+            /// If execvp returns, it means execution failed, so free margv and
+            /// print error message before exiting
             strnz__cpy(tmp_str, "Can't exec pick cmd: ", MAXLEN - 1);
             strnz__cat(tmp_str, margv[0], MAXLEN - 1);
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
     }
-    /// Parent
+    /// Wait for Child process to complete before continuing
     waitpid(pid, NULL, 0);
     i = 0;
     while (i < margc) {
@@ -812,11 +768,10 @@ int exec_objects(Init *init) {
     restore_wins();
     return rc;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ OPEN_PICK_WIN                                                 │
-/// ╰───────────────────────────────────────────────────────────────╯
 int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
+    /// Initializes the pick window based on the parameters specified in the
+    /// Pick structure
     pick = init->pick;
     if (win_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
                 pick->title, 0)) {
@@ -831,13 +786,10 @@ int open_pick_win(Init *init) {
     pick->box = win_box[win_ptr];
     scrollok(pick->win, FALSE);
     keypad(pick->win, true);
-    /// idcok(pick->win, true);
     return 0;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ DISPLAY_PICK_HELP                                             │
-/// ╰───────────────────────────────────────────────────────────────╯
 void display_pick_help(Init *init) {
+    /// Displays the help screen for the pick interface using mview
     pick = init->pick;
     char tmp_spec[MAXLEN];
     int margc = 0;

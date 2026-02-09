@@ -1,8 +1,7 @@
-/// form_engine.c
+/// The working part of C-Menu Form
 //  Bill Waller Copyright (c) 2025
 //  MIT License
 //  billxwaller@gmail.com
-/// The working part of C-Menu Form
 
 #include "menu.h"
 #include <errno.h>
@@ -39,10 +38,25 @@ int form_end_fields(Init *);
 int init_form(Init *, int, char **, int, int);
 int form_engine(Init *);
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ INIT_FORM                                                     │
-/// ╰───────────────────────────────────────────────────────────────╯
 int init_form(Init *init, int argc, char **argv, int begy, int begx) {
+    /// Initialize form data structure and parse its description file
+    /// The form description file is specified by the mapp_spec field of the
+    /// form data structure, which is set by the caller before calling
+    /// init_form. The description file is parsed and the form data structure is
+    /// populated with the form layout, fields, and other properties. If the
+    /// description file cannot be read or parsed, an error message is displayed
+    /// and a non-zero value is returned. If the description file is
+    /// successfully parsed, the form engine is called to display the form and
+    /// handle user interaction.
+    /// @param init Pointer to the Init structure containing form initialization
+    /// parameters and the form data structure.
+    /// @param argc The number of command line arguments passed to the form.
+    /// @param argv The array of command line arguments passed to the form.
+    /// @param begy The y-coordinate for the top-left corner of the form window.
+    /// @param begx The x-coordinate for the top-left corner of the form window.
+    /// @return 0 on success, or a non-zero value if an error occurs during
+    /// initialization or if the user cancels the form.
+    ///
     int rc;
     if (init->form != NULL)
         destroy_form(init);
@@ -77,10 +91,32 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     destroy_form(init);
     return rc;
 }
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ FORM_ENGINE                                                  │
-///  ╰──────────────────────────────────────────────────────────────╯
 int form_engine(Init *init) {
+    /// Main Form processing loop
+    /// This function is the main processing loop for the form. It initializes
+    /// the form by parsing the description file, reading any initial data, and
+    /// displaying the form on the screen. It then enters a loop to handle user
+    /// input for field entry, calculation, help, and cancellation. The loop
+    /// continues until the user accepts the form, cancels it, or exits from the
+    /// help screen. The function returns 0 on successful completion, or a
+    /// non-zero value if the user cancels the form or if an error occurs during
+    /// processing.
+    /// The sequence of operations is as follows:
+    /// 1. Parse the form description file to populate the form data structure.
+    /// 2. Read any initial data for the form fields from a specified input
+    /// source.
+    /// 3. Display the form on the screen with the initial field values.
+    /// 4. Enter a loop to handle user input for field entry, calculation, help,
+    /// and cancellation:
+    ///   a. If the user selects the accept action, perform any necessary
+    ///   calculations or post-processing, and then either return to field entry
+    ///   or exit the loop if the form is accepted.
+    ///   b. If the user selects the help action, display the help screen and
+    ///   return to the form after the user exits the help screen.
+    ///   c. If the user selects the cancel action, exit the loop and return a
+    ///   cancel status.
+    ///
+
     int eargc;
     char *eargv[MAXARGS];
     char earg_str[MAXLEN + 1];
@@ -147,13 +183,11 @@ int form_engine(Init *init) {
     }
     return 0;
 }
-///  ╭──────────────────────────────────────────────────────────────╮
-///  │ FORM_END_FIELDS                                              │
-///  ╰──────────────────────────────────────────────────────────────╯
 int form_end_fields(Init *init) {
-    int c, rc;
+    /// Post process field entry, allowing user to edit data,
+    /// execute a provider command, or write data to an output file
     bool loop = true;
-
+    int c, rc;
     form = init->form;
     wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
@@ -206,14 +240,36 @@ int form_end_fields(Init *init) {
     return rc;
 }
 
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM_CALCULATE                                                │
-/// ╰───────────────────────────────────────────────────────────────╯
-/// form_calculate(init)
-/// Forks and execs the provider command with the current field values
-/// Creates a pipe to read the output from the provider command
-/// Reads the output and updates the form fields
 int form_calculate(Init *init) {
+    /// This function provides integration with an external program.
+    /// The requirements are:
+    /// 1. The form description file must have a line starting with 'C' to
+    /// indicate that the form supports calculation.
+    /// 2. The form description file must specify the provider command using a
+    /// line starting with '!' followed by the command and its arguments.
+    /// 3. The external program must be able to accept field data from a file,
+    /// from standard input, or as command line parameters.
+    /// 4. The external program must output the calculated field values in a
+    /// format that can be read by the form (e.g., one value per line), either
+    /// to a file or to standard output.
+    ///
+    /// The sequence of operations is as follows:
+    ///
+    /// 1. The 'C' option causes Form to pause and display an KEY_F(5) Calculate
+    /// option on the chyron.
+    /// 2. The user can then cancel the operation by pressing KEY_F(9) or
+    /// activate the calculate option by pressing KEY_F(5).
+    /// 3. Form outputs its data to file, standard output, or as command line
+    /// parameters.
+    /// 4. Form executes the external program.
+    /// 5. The external program processes the data and outputs the results.
+    /// 6. Form reads the results and populates the appropriate form fields.
+    /// 7. Form presents the user with an option to edit the data, and the
+    /// sequence restarts at 1.
+    ///
+    /// This function forks and executes the provider executable as a child
+    /// process, creates a pipe to read the output from the provider command,
+    /// reads the output, and updates the Form fields.
     int i, c, rc;
     char earg_str[MAXLEN + 1];
     char *eargv[MAXARGS];
@@ -248,9 +304,6 @@ int form_calculate(Init *init) {
                 str_to_args(eargv, earg_str, MAXARGS);
                 strnz__cpy(file_spec, eargv[0], MAXLEN - 1);
                 base_name(eargv[0], file_spec);
-                /// ╭───────────────────────────────────────────────╮
-                /// │ SETUP PIPE FORK EXEC                          │
-                /// ╰───────────────────────────────────────────────╯
                 if (pipe(pipe_fd) == -1) {
                     Perror("pipe(pipe_fd) failed in init_form");
                     return (1);
@@ -324,10 +377,10 @@ int form_calculate(Init *init) {
     form_display_chyron(form);
     return rc;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM_ENTER_FIELDS                                             │
-/// ╰───────────────────────────────────────────────────────────────╯
 int form_enter_fields(Form *form) {
+    /// This function is handles user input for field entry, allowing navigation
+    /// between fields, looping until an exit action is selected.
+
     if (form->fidx < 0)
         return (-1);
     while (1) {
@@ -375,9 +428,6 @@ int form_enter_fields(Form *form) {
         }
     }
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM_DISPLAY_SCREEN                                           │
-/// ╰───────────────────────────────────────────────────────────────╯
 unsigned int form_display_screen(Init *init) {
     int n;
 
@@ -441,9 +491,6 @@ void form_display_fields(Form *form) {
     form_display_chyron(form);
     return;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM_DISPLAY_CHYRON                                           │
-/// ╰───────────────────────────────────────────────────────────────╯
 void form_display_chyron(Form *form) {
     int l;
 
@@ -454,9 +501,6 @@ void form_display_chyron(Form *form) {
     wclrtoeol(form->win);
     wmove(form->win, form->lines - 1, l);
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM_PARSE_DESCRIPTION                                        │
-/// ╰───────────────────────────────────────────────────────────────╯
 int form_parse_desc(Form *form) {
     FILE *form_desc_fp;
     char *token;
@@ -499,9 +543,6 @@ int form_parse_desc(Form *form) {
     form->fcnt = 0;
     form->cols = 34;
     form->title_line = 0;
-    /// ╭───────────────────────────────────────────────────────────╮
-    /// │ MAIN PARSE LOOP                                           │
-    /// ╰───────────────────────────────────────────────────────────╯
     while ((fgets(in_buf, MAXLEN, form_desc_fp)) != NULL) {
         s = in_buf;
         in_line_num++;
@@ -522,21 +563,12 @@ int form_parse_desc(Form *form) {
         switch ((int)directive) {
         case D_COMMENT:
             break;
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ 'C' Calculate                                         │
-        /// ╰───────────────────────────────────────────────────────╯
         case D_CALC:
             form->f_calculate = true;
             break;
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ 'Q' Query                                         │
-            /// ╰───────────────────────────────────────────────────╯
         case D_QUERY:
             form->f_query = true;
             break;
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ '!' CMD                                           │
-            /// ╰───────────────────────────────────────────────────╯
         case D_CMD:
             if (!(token = strtok(NULL, delim))) {
                 form_desc_error(in_line_num, in_buf,
@@ -545,9 +577,6 @@ int form_parse_desc(Form *form) {
             }
             strnz__cpy(form->receiver_cmd, token, MAXLEN - 1);
             break;
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ '?' HELP_FILE                                     │
-            /// ╰───────────────────────────────────────────────────╯
         case D_HELP:
             if (!(token = strtok(NULL, delim))) {
                 form_desc_error(in_line_num, in_buf,
@@ -555,13 +584,7 @@ int form_parse_desc(Form *form) {
             }
             strnz__cpy(form->help_spec, token, MAXLEN - 1);
             break;
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ 'F' FIELD F:line:column:length:format:command     │
-            /// ╰───────────────────────────────────────────────────╯
         case D_FIELD:
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ FIELD LINE                                        │
-            /// ╰───────────────────────────────────────────────────╯
             if (form->field[form->fidx] == NULL) {
                 sprintf(tmp_str, "FORM: calloc failed for fields");
                 abend(EXIT_FAILURE, tmp_str);
@@ -578,9 +601,6 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid line number");
                 return 1;
             }
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ FIELD COL                                         │
-            /// ╰───────────────────────────────────────────────────╯
             if (!(token = strtok(NULL, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: column number delimiter");
@@ -593,9 +613,6 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid column number");
                 break;
             }
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ FIELD LEN                                         │
-            /// ╰───────────────────────────────────────────────────╯
             if (!(token = strtok(NULL, delim))) {
                 strnz__cpy(tmp_str, in_buf, MAXLEN - 1);
                 form_desc_error(in_line_num, tmp_str, "FORM: length delimiter");
@@ -607,9 +624,6 @@ int form_parse_desc(Form *form) {
                 form_desc_error(in_line_num, in_buf, "FORM: invalid length");
                 break;
             }
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ FIELD FORMAT                                      │
-            /// ╰───────────────────────────────────────────────────/
             if (!(token = strtok(NULL, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: validation code delimiter");
@@ -630,30 +644,18 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid format code");
                 break;
             }
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ FORM cols   form->cols                            │
-            /// ╰───────────────────────────────────────────────────╯
             cols =
                 form->field[form->fidx]->col + form->field[form->fidx]->len + 1;
             if (cols > form->cols)
                 form->cols = cols;
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ FORM fidx                                         │
-            /// ╰───────────────────────────────────────────────────╯
             form->fidx++;
             form->fcnt = form->fidx;
             break;
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ TEXT                                              │
-            /// ╰───────────────────────────────────────────────────╯
         case D_TEXT:
             if (form->text[form->didx] == NULL) {
                 sprintf(tmp_str, "FORM: calloc failed for text");
                 abend(EXIT_FAILURE, tmp_str);
             }
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ TEXT line                                         │
-            /// ╰───────────────────────────────────────────────────╯
             if (!(token = strtok(NULL, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: line number delimiter");
@@ -666,9 +668,6 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid line number");
                 break;
             }
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ TEXT col                                          │
-            /// ╰───────────────────────────────────────────────────╯
             if (!(token = strtok(NULL, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: column number delimiter");
@@ -681,17 +680,11 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid column number");
                 break;
             }
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ TEXT str                                          │
-            /// ╰───────────────────────────────────────────────────╯
             if (!(token = strtok(NULL, delim))) {
                 form_desc_error(in_line_num, in_buf, "FORM: text delimiter");
                 break;
             }
             strnz__cpy(form->text[form->didx]->str, token, MAXLEN - 1);
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ TEXT len                                          │
-            /// ╰───────────────────────────────────────────────────╯
             form->text[form->didx]->len = strlen(form->text[form->didx]->str);
             if (form->text[form->didx]->len < 0 ||
                 form->text[form->didx]->len > MAX_COLS) {
@@ -702,15 +695,9 @@ int form_parse_desc(Form *form) {
                 form->text[form->didx]->col + form->text[form->didx]->len + 1;
             if (cols > form->cols)
                 form->cols = cols;
-            /// ╭───────────────────────────────────────────────────╮
-            /// │ TEXT didx                                         │
-            /// ╰───────────────────────────────────────────────────╯
             form->didx++;
             form->dcnt = form->didx;
             break;
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ HEADER title                                          │
-        /// ╰───────────────────────────────────────────────────────╯
         case D_HEADER:
             if ((token = strtok(NULL, delim))) {
                 strnz__cpy(form->title, token, MAXLEN - 1);
@@ -731,9 +718,6 @@ int form_parse_desc(Form *form) {
     }
     return (0);
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ READ FORM IN_FILE                                             │
-/// ╰───────────────────────────────────────────────────────────────╯
 int form_read_data(Form *form) {
     struct stat sb;
     char in_buf[MAXLEN];
@@ -773,9 +757,6 @@ int form_read_data(Form *form) {
     }
     return (0);
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM_EXEC_CMD                                                 │
-/// ╰───────────────────────────────────────────────────────────────╯
 int form_exec_cmd(Form *form) {
     char earg_str[MAXLEN + 1];
     int i;
@@ -791,17 +772,10 @@ int form_exec_cmd(Form *form) {
     shell(earg_str);
     return 0;
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ WRITE FORM                                                    │
-/// ╰───────────────────────────────────────────────────────────────╯
 int form_write(Form *form) {
     int n;
     if (form->out_spec[0] == '\0' || strcmp(form->out_spec, "-") == 0 ||
         strcmp(form->out_spec, "/dev/stdout") == 0) {
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ NO OUT SPEC PROVIDED, USE STDOUT                      │
-        /// │ BUT DETACHED FROM TTY                                 │
-        /// ╰───────────────────────────────────────────────────────╯
         strnz__cpy(form->out_spec, "/dev/stdout", MAXLEN - 1);
         close(form->out_fd);
         form->out_fd = open(form->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
@@ -818,9 +792,6 @@ int form_write(Form *form) {
         form->f_out_spec = true;
         form->f_out_pipe = true;
     } else {
-        /// ╭───────────────────────────────────────────────────────╮
-        /// │ OUT SPEC IS A FILE                                    │
-        /// ╰───────────────────────────────────────────────────────╯
         if ((form->out_fp = fopen(form->out_spec, "w")) == NULL) {
             ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
             strerror_r(errno, em2, MAXLEN);
@@ -842,17 +813,11 @@ int form_write(Form *form) {
         fclose(form->out_fp);
     return (0);
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM USAGE                                                    │
-/// ╰───────────────────────────────────────────────────────────────╯
 void form_usage() {
     dump_opts_by_use("FORML: usage: ", "..f.");
     (void)fprintf(stderr, "\n");
     Perror("press any key to continue");
 }
-/// ╭───────────────────────────────────────────────────────────────╮
-/// │ FORM_DESC_ERROR                                               │
-/// ╰───────────────────────────────────────────────────────────────╯
 int form_desc_error(int in_line_num, char *in_buf, char *em) {
     int cmd_key;
 
