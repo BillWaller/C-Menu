@@ -1,10 +1,13 @@
-/// stripansi.c
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-/// removes ansi escape sequences
-/// beginning with "\033["" and ending in "m" or "K"
-//
+/** @file stripansi.c
+ *  @brief removes ansi escape sequences beginning with "\033["" and ending in
+ * "m" or "K"
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
 #include "cm.h"
 #include <stdint.h>
 #include <stdio.h>

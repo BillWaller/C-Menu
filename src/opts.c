@@ -1,9 +1,13 @@
-/// opts.c
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-/// Sort and print options
-#include "menu.h"
+/** @file opts.c
+ *  @brief Sort and print options
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
+#include "common.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +50,6 @@ Opts opts[] = {
     {"begy", 1, 4, "mpfv", "Y:", "begin on line"},
     {"title", 0, 3, "mpfv", "T:", "title"},
     {"help", 2, 5, "mpfv", "h", "help"},
-    {"cd_mapp_home", 2, 5, "mpfv", "D", "cd ~/menuapp on start"},
     {"black", 0, 4, "mpfv", "", "black (#000000)"},
     {"red", 0, 4, "mpfv", "", "red (#bf0000)"},
     {"green", 0, 4, "mpfv", "", "green (#00cf00)"},

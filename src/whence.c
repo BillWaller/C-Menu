@@ -1,9 +1,11 @@
-/// whence.c
-/// Find the full path of a file in the directories specified by the
-/// PATH environment variable.
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file whence.c
+ *  @brief Find the full path of a file in the directories specified by the
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
 #include "cm.h"
 #include <fcntl.h>

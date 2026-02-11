@@ -1,10 +1,13 @@
-/// view_engine.c                                                 │
-/// The working part of View
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file view_engine.c
+ *  @brief The working part of View
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -126,7 +129,6 @@ int view_file(Init *init) {
         view->next_file_spec_ptr = NULL;
         if (view_init_input(view, view->file_spec_ptr)) {
             if (view->buf) {
-                view->f_new_file = true;
                 view->maxcol = 0;
                 view->f_forward = true;
                 view->page_top_pos = 0;
@@ -799,7 +801,7 @@ int get_cmd_arg(View *view, char *prompt) {
     int numeric_arg = false;
     char *cmd_p;
     char *cmd_e;
-    char prompt_s[MAX_COLS + 1];
+    char prompt_s[PAD_COLS + 1];
     char *n;
     int rc, prompt_l;
     prompt_l = strnz__cpy(prompt_s, prompt, view->cols - 4);
@@ -897,13 +899,12 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
     /// @param prompt_str Pointer to character array to store prompt
     /// @param elapsed Elapsed time in seconds for timer display
     prompt_type = PT_LONG;
-    prompt_str[0] = '\0';
-    strnz__cpy(prompt_str, "", MAXLEN - 1);
-    if (prompt_type == PT_LONG || view->f_new_file) {
+    strnz__cpy(prompt_str, " ", MAXLEN - 1);
+    if (prompt_type == PT_LONG) {
         if (view->f_is_pipe)
             strnz__cat(prompt_str, "stdin", MAXLEN - 1);
         else
-            strnz__cat(prompt_str, view->cur_file_str, MAXLEN - 1);
+            strnz__cat(prompt_str, view->file_name, MAXLEN - 1);
     }
     if (view->pmincol > 0) {
         sprintf(tmp_str, "Col %d of %d", view->pmincol, view->maxcol);
@@ -911,7 +912,7 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
             strnz__cat(prompt_str, "|", MAXLEN - 1);
         strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
     }
-    if (view->argc > 1 && (view->f_new_file || prompt_type == PT_LONG)) {
+    if (view->argc > 1 && prompt_type == PT_LONG) {
         sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
         if (prompt_str[0] != '\0') {
             strnz__cat(prompt_str, "|", MAXLEN - 1);
@@ -947,7 +948,8 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
             strnz__cat(prompt_str, " ", MAXLEN - 1);
         strnz__cat(prompt_str, "(End)", MAXLEN - 1);
         if (view->curr_argc + 1 < view->argc) {
-            sprintf(tmp_str, " Next File: %s", view->argv[view->curr_argc + 1]);
+            base_name(tmp_str, view->argv[view->curr_argc + 1]);
+            strnz__cpy(prompt_str, " Next File: ", MAXLEN - 1);
             strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
         }
     }
@@ -955,7 +957,6 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
         sprintf(tmp_str, " secs. %.6f\n", elapsed);
         strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
     }
-    view->f_new_file = false;
 }
 void cat_file(View *view) {
     /// Concatenate File to Standard Output
@@ -983,6 +984,7 @@ void lp(char *PrintFile) {
 }
 void go_to_mark(View *view, int c) {
     /// Go to Mark
+    /// @param view structure
     /// @param c Mark Character ('a' to 'z' or '\'')
     /// Marks have been disabled and may be removed in future versions
     /// of View.
@@ -1005,6 +1007,7 @@ void go_to_eof(View *view) {
 }
 int go_to_line(View *view, off_t line_idx) {
     /// Go to Specific Line
+    /// @param view structure
     /// @param line_idx Line Number to Go To (1 based)
     /// Returns EOF on error
     /// Unlike less, C-Menu View does not automatically keep track of
@@ -1013,6 +1016,8 @@ int go_to_line(View *view, off_t line_idx) {
     /// up to the specified line number. This approach can be less
     /// efficient for large files, but it simplifies the implementation
     /// and avoids the need for maintaining a line index.
+    /// This may change in the future if we decide to implement a line index
+    /// for faster access to specific lines.
     int c = 0;
     off_t line_cnt = 0;
     if (line_idx <= 1) {
@@ -1058,6 +1063,7 @@ void go_to_percent(View *view, int Percent) {
 }
 void go_to_position(View *view, off_t go_to_pos) {
     /// Go to Specific File Position
+    /// @param view structure
     /// @param go_to_pos File Position to Go To
     /// Locates the nearest line starting at or after the specified
     /// file position and displays the page starting from that line.
@@ -1242,14 +1248,14 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
         ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-                  "%c%s|Match Cols %d-%d of %d-%d|(%zd%%)", search_cmd,
-                  regex_pattern, view->first_match_x, view->last_match_x,
-                  view->pmincol, view->smaxcol - view->begx,
+                  "%s|%c%s|Match Cols %d-%d of %d-%d|(%zd%%)", view->file_name,
+                  search_cmd, regex_pattern, view->first_match_x,
+                  view->last_match_x, view->pmincol, view->smaxcol - view->begx,
                   (view->page_bot_pos * 100 / view->file_size));
     else
-        ssnprintf(view->tmp_prompt_str, MAXLEN - 1, "%c%s|Pos %zu-%zu|(%zd%%)",
-                  search_cmd, regex_pattern, view->page_top_pos,
-                  view->page_bot_pos,
+        ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
+                  "%s|%c%s|Pos %zu-%zu|(%zd%%)", view->file_name, search_cmd,
+                  regex_pattern, view->page_top_pos, view->page_bot_pos,
                   (view->page_bot_pos * 100 / view->file_size));
     regfree(&compiled_regex);
     return true;
@@ -1303,11 +1309,11 @@ void resize_page(Init *init) {
 }
 void redisplay_page(View *view) {
     /// Redisplay Current Page
-    /// @param view->page_top_pos is the top of page pointer
-    /// @param view->page_bot_pos is the bottom of page pointer
-    /// @param view->cury is the current line on the screen
-    /// @param view->maxcol is the off_test line on the page
-    /// @return void
+    /// @param view Pointer to View structure
+    /// view->page_top_pos is the top of page pointer
+    /// view->page_bot_pos is the bottom of page pointer
+    /// view->cury is the current line on the screen
+    /// view->maxcol is the off_test line on the page
     /// @note Clears the screen and displays the current page of lines
     /// starting from view->page_top_pos
     int i;
@@ -1327,13 +1333,13 @@ void redisplay_page(View *view) {
 }
 void next_page(View *view) {
     /// Advance to Next Page
-    /// @param view->file_pos is the file position pointer
-    /// @param view->page_top_pos is the top of page pointer
-    /// @param view->page_top_bot is the bottom of page pointer
-    /// @param view->cury is the current line on the screen
-    /// @param view->maxcol is the off_test line on the page
-    /// @param view->f_forward is the direction flag
-    /// @return void
+    /// @param view Pointer to View structure
+    /// view->file_pos is the file position pointer
+    /// view->page_top_pos is the top of page pointer
+    /// view->page_top_bot is the bottom of page pointer
+    /// view->cury is the current line on the screen
+    /// view->maxcol is the off_test line on the page
+    /// view->f_forward is the direction flag
     /// @note Advances the view to the next page by reading lines from
     /// view->page_bot_pos forward
     /// @note Keeps track of view->page_top_pos, which will be needed for
@@ -1365,13 +1371,13 @@ void next_page(View *view) {
 }
 void prev_page(View *view) {
     /// Go to Previous Page
-    /// @param view->file_pos is the file position pointer
-    /// @param view->page_top_pos is the top of page pointer
-    /// @param view->page_top_bot is the bottom of page pointer
-    /// @param view->cury is the current line on the screen
-    /// @param view->maxcol is the off_test line on the page
-    /// @param view->f_forward is the direction flag
-    /// @return void
+    /// @param view Pointer to View structure
+    /// view->file_pos is the file position pointer
+    /// view->page_top_pos is the top of page pointer
+    /// view->page_top_bot is the bottom of page pointer
+    /// view->cury is the current line on the screen
+    /// view->maxcol is the off_test line on the page
+    /// view->f_forward is the direction flag
     /// @note Moves the view to the previous page by reading lines backward
     /// from view->page_top_pos
     int i;
@@ -1394,11 +1400,12 @@ void prev_page(View *view) {
 }
 void scroll_down_n_lines(View *view, int n) {
     /// Scroll Forward N Lines
+    /// @param view Pointer to View structure
+    /// @param n Number of Lines to Scroll (1 to scroll_lines - 1)
     /// May be from 1 to scroll_lines - 1
     /// Adjust Page Top and Bottom Pointers
     /// Scroll Screen Up by N Lines
     /// Fill in Page Bottom with N New Lines
-    /// @return void
     int i = 0;
     int line_len;
     curs_set(0);
@@ -1433,11 +1440,12 @@ void scroll_down_n_lines(View *view, int n) {
 }
 void scroll_up_n_lines(View *view, int n) {
     /// Scroll Up (back) N Lines
+    /// @param view Pointer to View structure
+    /// @param n Number of Lines to Scroll (1 to scroll_lines - 1)
     /// May be from 1 to scroll_lines - 1
     /// Adjust Page Top and Bottom Pointers
     /// Scroll Screen Down by N Lines
     /// Fill in Page Top with N New Lines
-    /// @return void
     int i;
     int line_len;
     curs_set(0);
@@ -1478,15 +1486,18 @@ void scroll_up_n_lines(View *view, int n) {
 }
 off_t get_next_line(View *view, off_t pos) {
     /// Get Next Line from File into line_in_s
+    /// @param view struct
+    /// @param pos file position to start reading from
+    /// @return updated file position pointer
+    /// view->file_pos is the file position pointer
+    /// view->f_forward is the direction flag
     /// @note the input may contain ANSI SGR sequences or Unicode,
     /// which will be handled later during formatting for display
     /// @note Carriage Return (0x0d) characters are skipped
     /// @note Newline (0x0a) characters terminate the line
     /// @note If view->f_squeeze is set, multiple blank lines are
     /// compressed to a single blank line
-    /// @param view->file_pos is the file position pointer
-    /// @param view->f_forward is the direction flag
-    /// @return updated file position pointer
+    /// view->f_forward is the direction flag
     uchar c;
     char *line_in_p;
     view->file_pos = pos;
@@ -1502,7 +1513,7 @@ off_t get_next_line(View *view, off_t pos) {
         return view->file_pos;
     line_in_p = view->line_in_s;
     view->line_in_beg_p = view->line_in_s;
-    view->line_in_end_p = view->line_in_s + LINE_IN_MAX_COLS;
+    view->line_in_end_p = view->line_in_s + LINE_IN_PAD_COLS;
     while (1) {
         if (c == (uchar)'\n')
             break;
@@ -1534,15 +1545,10 @@ off_t get_next_line(View *view, off_t pos) {
 }
 off_t get_prev_line(View *view, off_t pos) {
     /// Get Previous Line from File into line_in_s
-    /// @note the input may contain ANSI SGR sequences and Unicode,
-    /// which will be handled later during formatting for display
-    /// @note Carriage Return (0x0d) characters are skipped
-    /// @note Newline (0x0a) characters terminate the line
-    /// @note If view->f_squeeze is set, multiple blank lines are
-    /// compressed to a single blank line
-    /// @param view->file_pos is the file position pointer
-    /// @param view->f_forward is the direction flag
+    /// @param view structure
+    /// @param pos is the file position pointer
     /// @return updated file position pointer
+    /// view->f_reverse is the direction flag
     uchar c;
     view->file_pos = pos;
     view->f_forward = false;
@@ -1578,9 +1584,12 @@ off_t get_prev_line(View *view, off_t pos) {
 }
 off_t get_pos_next_line(View *view, off_t pos) {
     /// Get Position of Next Line
-    /// @param view->file_pos is the file position pointer
-    /// @param view->f_forward is the direction flag
+    /// @param view structure
+    /// @param pos file position to start reading from
     /// @return updated file position pointer
+    /// @note Locates the nearest line starting at or after the specified
+    /// file position and returns the file position pointer for that line.
+    /// view->f_forward is the direction flag
     uchar c;
     if (pos == view->file_size) {
         view->f_eod = true;
@@ -1612,9 +1621,10 @@ off_t get_pos_next_line(View *view, off_t pos) {
 }
 off_t get_pos_prev_line(View *view, off_t pos) {
     /// Get Position of Previous Line
-    /// @param view->file_pos is the file position pointer
-    /// @param view->f_forward is the direction flag
+    /// @param view structure
+    /// @param pos is the file position pointer
     /// @return updated file position pointer
+    /// view->f_forward is the direction flag
     uchar c;
     view->file_pos = pos;
     if (view->file_pos == 0) {
@@ -1641,7 +1651,10 @@ off_t get_pos_prev_line(View *view, off_t pos) {
 }
 void display_line(View *view) {
     /// Display Line on Pad
-    /// @return void
+    ///     view->cury is the current line on the screen
+    ///     view->cmplx_buf is the complex character buffer for the line
+    ///     view->pminrow, view->pmincol, view->sminrow, view->smincol,
+    ///     view->smaxrow, view->smaxcol are the pad refresh parameters
     int rc;
     if (view->cury < 0)
         view->cury = 0;
@@ -1666,12 +1679,12 @@ int fmt_line(View *view) {
     /// @note Handle Unicode multi-byte characters
     /// @note Handle Tab characters
     /// Resulting lines must match in length and position
-    /// @param view->line_in_s is the input line with ANSI and Unicode
-    /// @param view->stripped_line_out is the output line without ANSI
-    ///       sequences, used for searching
-    /// @param view->cmplx_buf is the output complex character buffer
-    /// @param view->tab_stop is the tab stop setting
-    /// @param view->maxcol is the maximum column on the page
+    /// view->line_in_s is the input line with ANSI and Unicode
+    /// view->stripped_line_out is the output line without ANSI sequences,
+    /// used for searching
+    /// view->cmplx_buf is the output complex character buffer
+    /// view->tab_stop is the tab stop setting
+    /// view->maxcol is the maximum column on the page
     /// @return length of line
     /// This function processes the input line character by character. When it
     /// encounters an ANSI escape sequence, it parses the sequence to update the
@@ -1733,7 +1746,7 @@ int fmt_line(View *view) {
                     setcchar(&cc, &wc, attr, cpx, NULL);
                     view->stripped_line_out[j] = ' ';
                     cmplx_buf[j++] = cc;
-                } while ((j < MAX_COLS - 2) && (j % view->tab_stop != 0));
+                } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
                 // Handle Multi-byte Character
@@ -1748,7 +1761,7 @@ int fmt_line(View *view) {
                 // Convert wide character + attributes to complex
                 // character
                 if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
-                    if (len > 0 && (j + len) < MAX_COLS - 1) {
+                    if (len > 0 && (j + len) < PAD_COLS - 1) {
                         view->stripped_line_out[j] = *s;
                         cmplx_buf[j++] = cc;
                     }
@@ -1774,7 +1787,6 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     /// @param ansi_str is the ANSI SGR escape sequence string
     /// @param attr is the text attribute output
     /// @param cpx is the color pair index output
-    /// @return void
     /// @note ANSI SGR sequences can be complex, with multiple parameters
     /// separated by semicolons. This function parses the parameters and
     /// updates the text attributes and color pair index accordingly. its
@@ -1896,11 +1908,11 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
 }
 void cmd_line_prompt(View *view, char *s) {
     /// Display Command Line Prompt
+    /// @param view is the current view data structure
     /// @param s is the prompt string
-    /// @return void
-    char message_str[MAX_COLS + 1];
+    char message_str[PAD_COLS + 1];
     int l;
-    l = strnz__cpy(message_str, s, MAX_COLS);
+    l = strnz__cpy(message_str, s, PAD_COLS);
     wmove(view->win, view->cmd_line, view->pmincol);
     if (l != 0) {
         wclrtoeol(view->win);
@@ -1917,7 +1929,6 @@ void cmd_line_prompt(View *view, char *s) {
 void remove_file(View *view) {
     /// Remove File
     /// @param view is the current view data structure
-    /// @return void
     char c;
     if (view->f_at_end_remove) {
         wmove(view->win, view->cmd_line, 0);
@@ -1931,8 +1942,7 @@ void remove_file(View *view) {
 }
 void view_display_help(Init *init) {
     /// Display View Help File
-    /// @param view is the current view data structure
-    /// @return void
+    /// @param init is the current init data structure
     int eargc;
     char *eargv[MAXARGS];
     View *view_save = init->view;

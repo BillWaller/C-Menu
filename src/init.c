@@ -1,10 +1,13 @@
-/// Initialization for MAPP - Menu Application Program
-/// Handles command-line arguments and configuration file parsing
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file init.c
+ *  @brief Initialization for Menu Application Programs
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <getopt.h>
 #include <locale.h>
 #include <stdlib.h>
@@ -72,7 +75,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     sio->bg_color = BG_COLOR;                     // B: background color
     sio->fg_color = FG_COLOR;                     // F: foreground color
     sio->bo_color = BO_COLOR;                     // O: border colorZ
-    init->help_spec[0] = '\0';                    // H: help spec
     init->f_at_end_clear = true;                  // z  clear screen on exit
     init->f_erase_remainder = true;               // e  erase remainder on enter
     init->brackets[0] = '\0';                     // u  brackets
@@ -114,11 +116,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         expand_tilde(init->mapp_home, MAXLEN - 1);
         if (!verify_dir(init->mapp_home, R_OK))
             abend(-1, "MAPP_HOME directory invalid");
-        if (init->cd_mapp_home) {
-            if (chdir(init->mapp_home) != 0) {
-                abend(-1, "failed to change to MAPP_HOME directory");
-            }
-        }
     }
 }
 void zero_opt_args(Init *init) {
@@ -142,10 +139,10 @@ void zero_opt_args(Init *init) {
 }
 int parse_opt_args(Init *init, int argc, char **argv) {
     /// Parse command-line options and set Init struct values accordingly
-    /// @params init - pointer to Init struct
-    /// @params argc - argument count
-    /// @params argv - argument vector
-    /// Returns index of first non-option argument
+    /// @param init - pointer to Init struct
+    /// @param argc - argument count
+    /// @param argv - argument vector
+    /// Return index of first non-option argument
     /// @note Accepts both short and long options
     int i;
     int opt;
@@ -173,9 +170,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         switch (opt) {
         case 0:
             switch (flag) {
-            case MAPP_HELP:
-                init->help = true;
-                break;
             case MAPP_DATA_DIR:
                 strnz__cpy(init->mapp_data, optarg, MAXLEN - 1);
                 break;
@@ -227,9 +221,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'i':
             strnz__cpy(init->in_spec, optarg, MAXLEN - 1);
-            break;
-        case 'l':
-            init->cd_mapp_home = true;
             break;
         case 'm':
             strnz__cpy(init->mapp_home, optarg, MAXLEN - 1);
@@ -447,10 +438,6 @@ int parse_config(Init *init) {
             }
             if (!strcmp(key, "f_erase_remainder")) {
                 init->f_erase_remainder = str_to_bool(value);
-                continue;
-            }
-            if (!strcmp(key, "cd_mapp_home")) {
-                init->cd_mapp_home = str_to_bool(value);
                 continue;
             }
             if (!strcmp(key, "brackets")) {
@@ -682,7 +669,6 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%d\n", "begx", init->begx);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "help", init->help ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
     (void)fprintf(minitrc_fp, "%s=%s\n", "red", sio->red);
     (void)fprintf(minitrc_fp, "%s=%s\n", "green", sio->green);
@@ -710,8 +696,6 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", sio->blue_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", sio->gray_gamma);
     (void)fprintf(minitrc_fp, "%s=%s\n", "brackets", init->brackets);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "cd_mapp_home",
-                  init->cd_mapp_home ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
                   init->f_at_end_clear ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
@@ -853,9 +837,7 @@ void dump_config(Init *init, char *msg) {
     opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
     opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
     opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
-    opt_prt_bool("-h", "  help", init->help);
     opt_prt_str("-f:", "  fill_char", init->fill_char);
-    opt_prt_bool("-l:", "--cd_mapp_home", init->cd_mapp_home);
     opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
     opt_prt_bool("-Z ", "--f_stop_on_error", init->f_stop_on_error);
@@ -864,8 +846,8 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("-u", "  brackets", init->brackets);
     opt_prt_str("-P:", "--promp_type", tmp_str);
     opt_prt_int("-n:", "--select_max", init->select_max);
-    opt_prt_str("-c:", "--cmd", init->provider_cmd);
-    opt_prt_str("-A:", "--cmd_all", init->provider_cmd);
+    opt_prt_str("-c:", "--cmd", init->cmd);
+    opt_prt_str("-A:", "--cmd_all", init->cmd_all);
     opt_prt_str("-S:", "--provider_cmd", init->provider_cmd);
     opt_prt_str("-R:", "--receiver_cmd", init->receiver_cmd);
     opt_prt_str("-T:", "--title", init->title);

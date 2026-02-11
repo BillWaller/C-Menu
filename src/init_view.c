@@ -1,9 +1,13 @@
-/// Initialize View input
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file init_view.c
+ *  @brief Initialize C-Menu View Screen IO and Input
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -35,11 +39,11 @@ int init_view_full_screen(Init *init) {
     view->cmd_line = view->lines - 1;
     view->smaxrow = view->lines - 1;
     view->smaxcol = view->cols - 1;
-    view->win = newpad(view->lines, MAX_COLS);
+    view->win = newpad(view->lines, PAD_COLS);
     if (view->win == NULL) {
         ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
         ssnprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
-                  MAX_COLS);
+                  PAD_COLS);
         em2[0] = '\0';
         display_error(em0, em1, em2, NULL);
         abend(-1, "init_view_full_screen: newpad() failed");
@@ -110,12 +114,12 @@ int init_view_boxwin(Init *init, char *title) {
     view->smincol = view->begx + 1;
     view->smaxrow = view->begy + view->lines;
     view->smaxcol = view->begx + view->cols;
-    win_win[win_ptr] = newpad(view->lines, MAX_COLS);
+    win_win[win_ptr] = newpad(view->lines, PAD_COLS);
     view->win = win_win[win_ptr];
     if (win_win[win_ptr] == NULL) {
         ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
         ssnprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
-                  MAX_COLS);
+                  PAD_COLS);
         em2[0] = '\0';
         display_error(em0, em1, em2, NULL);
         return -1;
@@ -293,7 +297,6 @@ bool view_init_input(View *view, char *file_name) {
     }
     close(view->in_fd);
     view->file_size = sb.st_size;
-    view->f_new_file = true;
     view->prev_file_pos = NULL_POSITION;
     view->buf_curr_ptr = view->buf;
     if (view->cmd_all[0] != '\0')
@@ -301,9 +304,6 @@ bool view_init_input(View *view, char *file_name) {
     for (idx = 0; idx < NMARKS; idx++)
         view->mark_tbl[idx] = NULL_POSITION;
     strnz__cpy(view->cur_file_str, file_name, MAXLEN - 1);
-    if (view->f_stdout_is_tty) {
-        view->page_top_pos = 0;
-        view->page_bot_pos = 0;
-    }
+    base_name(view->file_name, view->cur_file_str);
     return true;
 }

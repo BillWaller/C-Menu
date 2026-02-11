@@ -1,10 +1,10 @@
-#  Makefile
-#  Bill Waller Copyright (c) 2025
-#  Makefile for C-Menu application suite
-#  MIT License
-#  billxwaller@gmail.com
-#
-# Makefile for the MENU application suite
+# @file Makefile
+# @brief Makefile for C-Menu application suite
+# @author Bill Waller
+# Copyright (c) 2025
+# MIT License
+# billxwaller@gmail.com
+# @date 2026-02-09
 #
 # Currently, the $(LIB_DIR) is compiled into the binaries as the runtime
 # library path so they can find libcm.so at runtime. That works well for 
@@ -54,6 +54,7 @@ BINEXES = menu form pick ckeys view whence rsh iloan enterchr \
 		  enterstr lf optsp stripansi
 LIB_SRCS = dwin.c futil.c scriou.c exec.c sig.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
+COMMON_HDRS = cm.h menu.h form.h pick.h view.h
 COMMON_SRCS = curskeys.c fields.c form_engine.c init.c init_view.c \
 			  mem.c mview.c opts.c pick_engine.c view_engine.c
 COMMON_OBJS = $(COMMON_SRCS:.c=.o)
@@ -72,19 +73,19 @@ LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_DIR)
 all:	$(LIB_NAME) $(BINEXES)
 	@echo Make Complete
 
-menu:	menu.h cm.h $(MENU_OBJS) $(LIB_NAME)
+menu:	$(COMMON_HDRS) $(MENU_OBJS) $(LIB_NAME)
 	$(CC) 	$(MENU_OBJS) -o $@ $(LIBS)
 
-form:	menu.h cm.h $(FORM_OBJS) $(LIB_NAME)
+form:	$(COMMON_HDRS) $(FORM_OBJS) $(LIB_NAME)
 	$(CC) 	$(FORM_OBJS) -o $@ $(LIBS)
 
-pick:	menu.h cm.h $(PICK_OBJS) $(LIB_NAME)
+pick:	$(COMMON_HDRS) $(PICK_OBJS) $(LIB_NAME)
 	$(CC) 	$(PICK_OBJS) -o $@ $(LIBS)
 
-view:	menu.h cm.h $(VIEW_OBJS) $(LIB_NAME)
+view:	$(COMMON_HDRS) $(VIEW_OBJS) $(LIB_NAME)
 	$(CC) 	$(VIEW_OBJS) -o $@ $(LIBS)
 
-ckeys:	menu.h cm.h $(CKEYS_OBJS) $(LIB_NAME)
+ckeys:	$(COMMON_HDRS) $(CKEYS_OBJS) $(LIB_NAME)
 	$(CC) 	$(CKEYS_OBJS) -o $@ $(LIBS)
 
 enterchr:	cm.h enterchr.o $(LIB_NAME)
@@ -121,6 +122,9 @@ clean:
 	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.so \
 		*.cflow scan-build scan-build.out installed gdbcmds tm \
 	   	tf tp tv x xx xxx *.out .user_id .group_id
+
+test: snippets/strings_test1.c
+	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)
 
 install:	$(BINEXES) $(LIB_NAME)
 	./inst.sh --

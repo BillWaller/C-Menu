@@ -1,8 +1,11 @@
-/// optsp.c
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-/// print options for C-Menu
+/** @file optsp.c
+ *  @brief print option list for C-Menu
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
 #include <getopt.h>
 #include <stdbool.h>

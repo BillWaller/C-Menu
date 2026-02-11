@@ -1,10 +1,13 @@
-/// menu_engine.c
-//  Bill Waller Copyright (c) 2025
-//  MIT_LICENSE
-//  billxwaller@gmail.com
-/// The working part of C-Menu Menu
+/** @file menu_engine.c
+ *  @brief The working part of C-Menu Menu
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <termios.h>

@@ -1,11 +1,13 @@
-/// menu.c
-/// Test Curses Keys
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file menu.c
+ *  @brief Test Curses Keys
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "cm.h"
-#include "menu.h"
+#include "common.h"
 #include <sys/types.h>
 
 __end_pgm;

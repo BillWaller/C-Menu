@@ -1,11 +1,13 @@
-/// mem.c
-/// Create and destroy main data structures
-/// for C-Menu Menu, Pick, Form, View
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file mem.c
+ *  @brief Create and destroy main data structures for C-Menu
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -34,19 +36,16 @@ Form *form;
 View *view;
 Init *new_init(int argc, char **argv) {
     /// Create and initialize Init structure
-    /// (calloc initializes all fields to zero/NULL)
-    ///
-    /// init_files
-    /// @param
-    ///  idiomatic directory usage:
+    /// @note calloc initializes all fields to zero/NULL
+    /// @param argc, argv - arguments
+    /// idiomatic directory usage:
     ///     init->mapp_msrc  description files
     ///     init->mapp_help  help files
     ///     init->mapp_data  in, out, data files
     ///     init->mapp_user  executable scripts
     ///     init->mapp_bin   binary executables
     ///
-    /// Initialize file specifications
-    /// Priority order:
+    /// Initialize file specifications in priority order:
     /// 1 - Default values
     /// 2 - Configuration file
     /// 3 - Environment variables
@@ -274,14 +273,14 @@ View *destroy_view(Init *init) {
 bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                      int mode) {
     ///  Verify file specification argument
-    ///  @param  spec,      -> menu->spec, form->spec, etc.
-    ///  @param  org_spec,  -> init->._spec | argv[optind]
-    ///  @param  dir,       -> init->._. directory
-    ///  @param  alt_dir,   -> literal, "~/menuapp/data", etc.
-    ///  @param  int mode   -> R_OK, W_OK, X_OK, WC_OK, S_QUIET
+    ///  @param  spec     - menu->spec, form->spec, etc.
+    ///  @param  org_spec - init->._spec | argv[optind]
+    ///  @param  dir      - init->._. directory
+    ///  @param  alt_dir  - literal, "~/menuapp/data", etc.
+    ///  @param  mode     - R_OK, W_OK, X_OK, WC_OK, S_QUIET
     ///  @note mode is a bitwise OR of the following flags:
-    ///  @flags S_QUIET - suppress error messages
-    ///  @flags WC_OK - write create ok
+    ///           S_QUIET - suppress error messages
+    ///           WC_OK - write create ok
     ///  @return bool - true if file verified
     bool f_dir = false;
     bool f_spec = false;
@@ -382,15 +381,14 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
 }
 bool init_menu_files(Init *init, int argc, char **argv) {
     /// Initialize Menu file specifications
-    ///  @param init_menu_files(Init *init, int argc, char **argv)
-    ///  @brief Initialize file specifications
-    ///  @param init - Init structure
-    ///  @param argc - May have been provided by command line
-    ///                ~/.minitrc
-    ///                environment variables
-    ///                or calling program interal to C-Menu
-    ///
-    ///
+    /// @brief Initialize file specifications
+    /// @param init structure
+    /// @param argc - number of arguments in argv
+    /// @param argv - Arguments may have been provided by command line,
+    ///                ~/.minitrc,
+    ///                environment variables, or
+    ///                calling program interal to C-Menu
+    /// Positional args: menu desc, help file
     char tmp_str[MAXLEN];
     menu->f_mapp_spec =
         verify_spec_arg(menu->mapp_spec, init->mapp_spec, init->mapp_msrc,
@@ -436,9 +434,14 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     return true;
 }
 bool init_pick_files(Init *init, int argc, char **argv) {
-    /// Initialize Pick file specifications
-    /// @param init_pick_files(Init *init, int argc, char **argv)
-    /// pick desc, in_file, out_file, help_file
+    /// @brief Initialize File Specifications
+    /// @param init structure
+    /// @param argc - number of arguments in argv
+    /// @param argv - Arguments may have been provided by command line,
+    ///                ~/.minitrc,
+    ///                environment variables, or
+    ///                calling program interal to C-Menu
+    /// Positional args: pick desc, in_file, out_file, help_file
     pick->f_in_spec = verify_spec_arg(pick->in_spec, init->in_spec,
                                       init->mapp_data, "~/menuapp/data", R_OK);
     pick->f_out_spec =
@@ -527,7 +530,14 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     return true;
 }
 bool init_form_files(Init *init, int argc, char **argv) {
-    /// Initialize Form file specifications
+    /// @brief Initialize Form File specifications
+    /// @param init structure
+    /// @param argc - number of arguments in argv
+    /// @param argv - Arguments may have been provided by command line,
+    ///                ~/.minitrc,
+    ///                environment variables, or
+    ///                calling program interal to C-Menu
+    /// Positional args: pick desc, in_file, out_file, help_file
 
     form->f_mapp_spec =
         verify_spec_arg(form->mapp_spec, init->mapp_spec, init->mapp_msrc,
@@ -628,7 +638,14 @@ bool init_form_files(Init *init, int argc, char **argv) {
     return true;
 }
 bool init_view_files(Init *init, int argc, char **argv) {
-    /// Initialize View file specifications
+    /// @brief Initialize View File specifications
+    /// @param init structure
+    /// @param argc - number of arguments in argv
+    /// @param argv - Arguments may have been provided by command line,
+    ///                ~/.minitrc,
+    ///                environment variables, or
+    ///                calling program interal to C-Menu
+    /// Positional args: input source 1, 2, 3, etc.
     view = init->view;
 
     view->argv = calloc((argc - optind + 1), sizeof(char *));
