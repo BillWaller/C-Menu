@@ -1,9 +1,13 @@
-/// The working part of C-Menu Form
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file form_engine.c
+ *  @brief The working part of C-Menu Form
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -542,7 +546,6 @@ int form_parse_desc(Form *form) {
     form->fidx = 0;
     form->fcnt = 0;
     form->cols = 34;
-    form->title_line = 0;
     while ((fgets(in_buf, MAXLEN, form_desc_fp)) != NULL) {
         s = in_buf;
         in_line_num++;
@@ -608,7 +611,7 @@ int form_parse_desc(Form *form) {
             }
             form->field[form->fidx]->col = atoi(token);
             if (form->field[form->fidx]->col < 0 ||
-                form->field[form->fidx]->col >= MAX_COLS) {
+                form->field[form->fidx]->col >= TBL_COLS) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: invalid column number");
                 break;
@@ -620,7 +623,7 @@ int form_parse_desc(Form *form) {
             }
             form->field[form->fidx]->len = atoi(token);
             if (form->field[form->fidx]->len < 0 ||
-                form->field[form->fidx]->len > MAX_COLS) {
+                form->field[form->fidx]->len > TBL_COLS) {
                 form_desc_error(in_line_num, in_buf, "FORM: invalid length");
                 break;
             }
@@ -675,7 +678,7 @@ int form_parse_desc(Form *form) {
             }
             form->text[form->didx]->col = atoi(token);
             if (form->text[form->didx]->col < 0 ||
-                form->text[form->didx]->col >= MAX_COLS) {
+                form->text[form->didx]->col >= TBL_COLS) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: invalid column number");
                 break;
@@ -687,7 +690,7 @@ int form_parse_desc(Form *form) {
             strnz__cpy(form->text[form->didx]->str, token, MAXLEN - 1);
             form->text[form->didx]->len = strlen(form->text[form->didx]->str);
             if (form->text[form->didx]->len < 0 ||
-                form->text[form->didx]->len > MAX_COLS) {
+                form->text[form->didx]->len > TBL_COLS) {
                 form_desc_error(in_line_num, in_buf, "FORM: invalid length");
                 break;
             }

@@ -1,14 +1,17 @@
-///  sig.c
-//   Bill Waller Copyright (c) 2025
-//   MIT License
-//   billxwaller@gmail.com
-///  signal handling for interrupt signals
-///
-///  Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT),
-///  the program will prompt the user to either exit the program or
-///  continue execution. If the user chooses to exit, a confirmation
-///  prompt will be displayed. If the user opts to continue, the program
-///  will resume normal operation.
+/** @file sig.c
+ *  @brief signal handling for interrupt signals
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
+/// Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT),
+/// the program will prompt the user to either exit the program or
+/// continue execution. If the user chooses to exit, a confirmation
+/// prompt will be displayed. If the user opts to continue, the program
+/// will resume normal operation.
 
 #include "cm.h"
 #include <signal.h>

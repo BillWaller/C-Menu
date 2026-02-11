@@ -1,10 +1,13 @@
-/// mview.c
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-/// Callable Startup for C-Menu View
+/** @file mview.c
+ *  @brief Callable Startup for C-Menu View
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <unistd.h>
 
 int mview(Init *init, int argc, char **argv) {

@@ -1,8 +1,11 @@
-/// lf.c
-/// Recursively list files matching a regular expression
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file lf.c
+ *  @brief Recursively list files matching a regular expression
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
 #include "cm.h"
 #include <dirent.h>
@@ -20,15 +23,15 @@
 char tmp_str[MAXLEN];
 
 int main(int argc, char **argv) {
-    /// lf (short for list files) is a command-line utility to recursively
     /// list files matching a regular expression.
-    /// @usage   Options:\n");
-    /// @param     -a        List all files (including hidden files)
-    /// @param     -d        maximum depth of subdirectories to examine
-    /// @param     -h        show this help message
-    /// @param     -i        ignore case in search
-    /// @param     -r        recurse into subdirectories
-    /// @param     -v        show version information
+    /// Usage: lf [options] [directory] [regexp]
+    /// Options:
+    ///            -a        List all files (including hidden files)
+    ///            -d        maximum depth of subdirectories to examine
+    ///            -h        show this help message
+    ///            -i        ignore case in search
+    ///            -r        recurse into subdirectories
+    ///            -v        show version information
     char dir[MAXLEN] = "";
     char re[MAXLEN] = "";
     bool f_help = false;

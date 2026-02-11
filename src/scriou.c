@@ -1,14 +1,17 @@
-/// scriou.c
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  Screen IO Support for MENU
-//  billxwaller@gmail.com
-//
+/** @file scriou.c
+ *  @brief Screen IO Support for MENU
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
 ///  This file contains terminal ioctl handling functions for C-MENU. It
 ///  provide sane terminal settings for C-MENU applications, and restores
 ///  the terminal to its original state when the C-MENU application exits.
 
-#include "menu.h"
+#include "cm.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <termios.h>

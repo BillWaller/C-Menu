@@ -1,9 +1,12 @@
-/// iloan.c
-/// Calculate installment loan values
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-///
+/** @file iloan.c
+ *  @brief Installment Loan Calculator
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
 /// iloan is a trivial application to demonstrate how a command-line
 /// program can be integrated into C-Menu Form with simple file,
 /// argument, or pipe i-o.

@@ -1,10 +1,13 @@
-/// fpick.c
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-/// pick from a list of choices for MENU
+/** @file pick_engine.c
+ *  @brief pick from a list of choices
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,21 +44,20 @@ char const pagers_editors[12][10] = {"view", "mview", "less", "more",
                                      "vi",   "vim",   "nano", "nvim",
                                      "pico", "emacs", "edit", ""};
 
+/** @brief Initializes pick structure and opens pick input file or pipe
+    @param init Pointer to Init structure
+    @param argc Argument count
+    @param argv Argument vector
+    @param begy Beginning y coordinate for pick window
+    @param begx Beginning x coordinate for pick window
+    @note If provider_cmd is specified, it takes precedence over in_spec and
+    input file arguments
+    @note provider_cmd is executed and its output is read as pick input
+    @note If provider_cmd is not specified, in_spec is used to read pick
+    input from a file or stdin
+    @note If provider_cmd is specified, it is executed and its output is
+    read as pick input */
 int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
-    /// @note Initializes pick structure and opens pick input file or pipe
-    /// @param init Pointer to Init structure
-    /// @param argc Argument count
-    /// @param argv Argument vector
-    /// @param begy Beginning y coordinate for pick window
-    /// @param begx Beginning x coordinate for pick window
-    /// @note If provider_cmd is specified, it takes precedence over in_spec and
-    /// input file arguments
-    /// @note provider_cmd is executed and its output is read as pick input
-    /// @note If provider_cmd is not specified, in_spec is used to read pick
-    /// input from a file or stdin
-    /// @note If provider_cmd is specified, it is executed and its output is
-    /// read as pick input
-    ///
     struct stat sb;
     char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
@@ -158,9 +160,15 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     destroy_pick(init);
     return 0;
 }
+/** @brief Reads pick input from file pointer and saves objects into pick
+   structure
+    @param init Pointer to Init structure containing pick information
+    @return 0 on success, -1 if no objects were read
+    @note Reads lines from pick->in_fp and saves them as objects in the pick
+   structure using save_object function. If no objects are read, returns -1.
+   Otherwise, sets obj_cnt to the number of objects read and resets obj_idx to 0
+   before returning 0. */
 int read_pick_input(Init *init) {
-    /// @note Reads pick input from file pointer and saves objects into pick
-    /// structure
     int i;
 
     Pick *pick = init->pick;
@@ -253,7 +261,6 @@ void save_object(Pick *pick, char *s) {
     /// Save object string into pick structure
     /// @param pick Pointer to Pick structure
     /// @param s String to save
-    /// @return void
     int l;
 
     if (pick->obj_idx < OBJ_MAXCNT - 1) {
@@ -558,6 +565,14 @@ void toggle_object(Pick *pick) {
         mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
     }
 }
+/** Outputs selected objects to specified output file
+    @param pick Pointer to Pick structure containing selected objects and output
+    file information
+    @return 0 on success, 1 on failure
+    @note If output file cannot be opened, an error message is printed and the
+   function returns 1. Otherwise, selected objects are written to the output
+   file, one per line, and the file is closed before returning 0.
+*/
 int output_objects(Pick *pick) {
     /// Outputs selected objects to specified output file
     int m;
@@ -576,8 +591,40 @@ int output_objects(Pick *pick) {
         fclose(pick->out_fp);
     return (0);
 }
+/** @brief Executes specified command with selected objects as arguments
+   @param init Pointer to Init structure
+   @return 0 on success, 1 on failure
+   @note Parses command string and appends selected objects as arguments to the
+   command. If command contains "%%", it is replaced with a space- separated
+   list of selected objects. Executes the command using execvp in a child
+   process and waits for it to finish. If the command is a pager or editor, it
+   is executed within the pick interface using mview instead of execvp.
+   @note If f_append_args is true, the argument containing %% is replaced with
+   the concatenated selected objects. If f_append_args is false, selected
+   objects are added as separate arguments and the original command arguments
+   remain unchanged.
+   @note margv should be null-terminated to indicate the end of arguments for
+   execvp
+    @note Memory allocated for arguments is freed after execution to prevent
+   memory leaks.
+    @note If execvp fails, an error message is printed and the child process
+   exits with failure status
+    @note The parent process waits for the child process to finish before
+   proceeding and restores terminal settings
+    @note If the command is a pager or editor, it is executed within the pick
+   interface using mview instead of execvp
+    @note The base name of the command is extracted to check if it is a pager or
+   editor
+    @note If the command is a pager or editor, the pick interface is used to
+   display the command output instead of executing it in a separate terminal
+   This allows the user to view the command output without leaving the pick
+   interface and provides a more seamless user experience.
+    @note If the command is not a pager or editor, it is executed in a separate
+   terminal and the pick interface is restored after execution
+    @note If the command to be executed is view, an external command is not
+   needed, instead the mview function can be used to display the output within
+   the pick interface */
 int exec_objects(Init *init) {
-    /// Executes specified command with selected objects as arguments
     int rc = -1;
     int margc;
     char *margv[MAXARGS];
@@ -595,18 +642,15 @@ int exec_objects(Init *init) {
     if (pick->cmd[0] == '\0')
         return -1;
     if (pick->cmd[0] == '\\' || pick->cmd[0] == '\"') {
-        /// Remove surrounding quotes if present
         size_t len = strlen(pick->cmd);
         if (len > 1 && pick->cmd[len - 1] == '\"') {
             memmove(pick->cmd, pick->cmd + 1, len - 2);
             pick->cmd[len - 2] = '\0';
         }
     }
-    /// Parse command into arguments and append selected objects as arguments
     margc = str_to_args(margv, pick->cmd, MAXARGS - 1);
     tmp_str[0] = '\0';
     if (pick->f_multiple_cmd_args) {
-        /// Append all selected objects as a single argument to command
         for (i = 0; i < pick->obj_cnt; i++) {
             if (pick->f_selected[i] && margc < MAXARGS) {
                 if (tmp_str[0] != '\0')
@@ -616,10 +660,6 @@ int exec_objects(Init *init) {
         }
         margv[margc++] = strdup(tmp_str);
     } else {
-        ///  Check for %% in args
-        ///  @note Only processes the first occurrence of %%
-        ///  @param %% is replaced with selected objects
-        ///         as a parameter list separated by spaces
         f_append_args = false;
         i = 0;
         while (i < margc) {
@@ -632,11 +672,6 @@ int exec_objects(Init *init) {
             }
             i++;
         }
-        /// Add selected objects
-        /// @note If f_append_args is true, selected objects are concatenated
-        /// into a single string and replace %% in the argument
-        /// @note If f_append_args is false, selected objects are added as
-        /// separate arguments to the command
         for (i = 0; i < pick->obj_cnt - 1; i++) {
             if (pick->f_selected[i] && margc < MAXARGS - 1) {
                 if (f_append_args == true) {
@@ -673,35 +708,6 @@ int exec_objects(Init *init) {
         }
     }
     strnz__cpy(tmp_str, margv[0], MAXLEN - 1);
-    /// Null-terminate argument list for execvp
-    /// @note If f_append_args is true, the argument containing %% is replaced
-    /// with the concatenated selected objects
-    /// @note If f_append_args is false, selected objects are added as separate
-    /// arguments and the original command arguments remain unchanged
-    /// @note margv is null-terminated to indicate the end of arguments for
-    /// execvp
-    /// @note Memory allocated for arguments is freed after execution to prevent
-    /// memory leaks
-    /// @note If execvp fails, an error message is printed and the child process
-    /// exits with failure status
-    /// @note The parent process waits for the child process to finish before
-    /// proceeding and restores terminal settings
-    /// @note If the command is a pager or editor, it is executed within the
-    /// pick interface using mview instead of execvp
-    /// @note The base name of the command is extracted to check if it is a
-    /// pager or editor
-    /// @note If the command is a pager or editor, the pick interface is used to
-    /// display the command output instead of executing it in a separate
-    /// terminal
-    /// @note This allows the user to view the command output without leaving
-    /// the pick interface and provides a more seamless user experience
-    /// @note If the command is not a pager or editor, it is executed in a
-    /// separate terminal and the pick interface is restored after execution
-    ///
-    /// If the command to be executed is view, an external command is not
-    /// needed,
-    /// instead the mview function can be used to display the output within the
-    /// pick interface
     margv[margc] = NULL;
     s1 = tmp_str;
     char *sp;
@@ -754,7 +760,6 @@ int exec_objects(Init *init) {
             exit(EXIT_FAILURE);
         }
     }
-    /// Wait for Child process to complete before continuing
     waitpid(pid, NULL, 0);
     i = 0;
     while (i < margc) {
@@ -768,10 +773,17 @@ int exec_objects(Init *init) {
     restore_wins();
     return rc;
 }
+/** @brief Initializes the pick window based on the parameters specified in the
+Pick structure
+    @param init Pointer to Init structure containing pick information
+    @return 0 on success, 1 on failure
+    @note Creates a new window for the pick interface using win_new function
+with the specified parameters from the Pick structure. If window creation fails,
+an error message is printed and the function returns 1. Otherwise, initializes
+the window and box pointers in the Pick structure, sets scrollok and keypad
+options for the window, and returns 0 on success. */
 int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
-    /// Initializes the pick window based on the parameters specified in the
-    /// Pick structure
     pick = init->pick;
     if (win_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
                 pick->title, 0)) {
@@ -788,6 +800,12 @@ int open_pick_win(Init *init) {
     keypad(pick->win, true);
     return 0;
 }
+/** @brief Displays the help screen for the pick interface using mview
+    @param init Pointer to Init structure containing pick information
+    @note Initializes the help_spec field in the Pick structure with the path to
+   the pick help file. Then, constructs the argument list for executing mview
+   with the help file as an argument. Finally, calls mview function to display
+   the help screen within the pick interface. */
 void display_pick_help(Init *init) {
     /// Displays the help screen for the pick interface using mview
     pick = init->pick;

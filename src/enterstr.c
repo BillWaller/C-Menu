@@ -1,9 +1,12 @@
-/// enterstr.c
-/// Enter a string from keyboard
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-///
+/** @file enterstr.c
+ *  @brief Enter a string from keyboard
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
 /// Enter a string from the terminal in cooked mode and return it to the caller.
 /// This program is designed to be called from shell scripts initiated by the
 /// menu system. It writes the prompt to stderr, reads the input from stdin,

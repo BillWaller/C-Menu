@@ -1,10 +1,13 @@
-/// curskeys.c
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-/// Test Curses Keys
+/** @file curskeys.c
+ *  @brief Test Curses Keys
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <ncursesw/ncurses.h>
 #include <unistd.h>
 

@@ -1,9 +1,12 @@
-/// menu.c
-/// Command line start-up for C-Menu
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-//
+/** @file menu.c
+ *  @brief Command line start-up for C-Menu
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
 /// This is the main file for C-Menu, a terminal-based application
 /// launcher and menu system.
 ///
@@ -15,7 +18,7 @@
 /// handling terminal initialization IO settings, managing the menu structure,
 /// and rendering the interface using the NCurses library.
 
-#include "menu.h"
+#include "common.h"
 
 __end_pgm;
 
