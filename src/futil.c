@@ -450,6 +450,7 @@ int a_toi(char *s, bool *a_toi_error) {
         char src[] = "\033[31mThis is red text\033[0m
         int len = strip_ansi(dest, src);
         Result: dest = "This is red text", len = 17
+    @example stripansi.c
     @endcode
     @note Only handles SGR sequences ending in 'm' or 'K'
     @note Skips non-ASCII characters
@@ -1182,7 +1183,7 @@ String mk_string(size_t l) {
     return str;
 }
 /** @brief Free the dynamically allocated String
-    @param: String str struct to free
+    @param: str String struct to free
     @return: String struct with NULL pointer and length 0
     @note: Frees the dynamically allocated string and sets length to 0. */
 String free_string(String str) {

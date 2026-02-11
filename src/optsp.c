@@ -1,10 +1,10 @@
 /** @file optsp.c
- *  @brief print option list for C-Menu
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief print option list for C-Menu
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include <getopt.h>
@@ -20,6 +20,15 @@ void dump_opts_by_name();
 
 char tmp_str[MAXLEN];
 
+/** @brief main function for optsp
+    @param argc argument count
+    @param argv argument vector
+    @return exit status
+    options:
+     -n sort by name
+     -s sort by short option
+     -h show help message
+ */
 int main(int argc, char **argv) {
     bool f_help = false;
     bool f_version = false;

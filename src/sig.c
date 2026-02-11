@@ -1,17 +1,11 @@
 /** @file sig.c
- *  @brief signal handling for interrupt signals
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief signal handling for interrupt signals
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
-
-/// Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT),
-/// the program will prompt the user to either exit the program or
-/// continue execution. If the user chooses to exit, a confirmation
-/// prompt will be displayed. If the user opts to continue, the program
-/// will resume normal operation.
 
 #include "cm.h"
 #include <signal.h>
@@ -27,7 +21,6 @@ void signal_handler(int);
 void sig_prog_mode();
 void sig_dfl_mode();
 bool f_curses_open = false;
-
 void sig_dfl_mode() {
     struct sigaction sa;
 
@@ -39,7 +32,12 @@ void sig_dfl_mode() {
     sigaction(SIGQUIT, &sa, NULL);
     sigaction(SIGSEGV, &sa, NULL);
 }
-
+/** @brief Set up signal handlers for interrupt signals
+    @details Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT), the
+   program will prompt the user to either exit the program or continue
+   execution. If the user chooses to exit, a confirmation prompt will be
+   displayed. If the user opts to continue, the program will resume normal
+   operation. */
 void sig_prog_mode() {
     struct sigaction sa;
 
@@ -64,7 +62,7 @@ void sig_prog_mode() {
         exit(EXIT_FAILURE);
     }
 }
-
+/** @brief Signal handler for interrupt signals */
 void signal_handler(int sig_num) {
     if (sig_num == SIGINT) {
         sig_received = SIGINT;
@@ -76,7 +74,7 @@ void signal_handler(int sig_num) {
         sig_received = SIGSEGV;
     }
 }
-
+/** @brief Handle received signals and prompt user for action */
 int handle_signal(int sig_num) {
     int c;
     char *msg;

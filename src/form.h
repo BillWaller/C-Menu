@@ -93,7 +93,8 @@ extern char
                      used for parsing the form description file and determining
                      the field formats for each field in the form. */
 
-/** Text structure for form fields */
+/** @struct Text
+   @brief structure for form fields */
 typedef struct {
     int line; /**< the line number on the form window where this text string
                  should be displayed */
@@ -105,7 +106,8 @@ typedef struct {
                 purposes */
 } Text;
 
-/** Field structure for form fields */
+/** @struct Field
+   @brief structure for form fields */
 typedef struct {
     int line; /**< the line number on the form window where this field should be
                  displayed */
@@ -136,7 +138,7 @@ typedef struct {
                                character specified in the form structure */
 } Field;
 
-/// Form structure
+/** @struct Form */
 typedef struct {
     int fg_color; /**< the foreground color for the form window */
     int bg_color; /**< the background color for the form window */

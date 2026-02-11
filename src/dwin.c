@@ -1,10 +1,10 @@
 /** @file dwin.c
- *  @brief Window support for C-Menu Menu, Form, Pick, and View
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Window support for C-Menu Menu, Form, Pick, and View
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "cm.h"
@@ -83,7 +83,7 @@ enum colors_enum {
     CLR_BORANGE,
     CLR_NCOLORS
 };
-/** @table StdColors
+/** StdColors
     @note Standard 16 colors for xterm256 color conversions
     @note These colors can be overridden in ".minitrc" */
 RGB StdColors[16] = {
@@ -91,7 +91,7 @@ RGB StdColors[16] = {
     {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
     {128, 128, 128}, {255, 0, 0},   {0, 255, 0},   {255, 255, 0},
     {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
-/** @table colors_text
+/** colors_text
     @note Color names for .minitrc overrides
     @note These names are used in .minitrc to specify color overrides
     @note The order of these names corresponds to the colors_enum values */
@@ -117,7 +117,7 @@ double GREEN_GAMMA =
 double BLUE_GAMMA =
     1.2; /**< Gamma correction value for blue colors. Set in .minitrc */
 
-/// @table key_cmd
+/// key_cmd
 /// Function key command table
 /// @note This table will be used to create the chyron
 /// @note The end_pos values are set in chyron_mk

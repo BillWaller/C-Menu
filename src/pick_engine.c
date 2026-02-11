@@ -1,10 +1,10 @@
 /** @file pick_engine.c
- *  @brief pick from a list of choices
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief pick from a list of choices
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
@@ -191,6 +191,16 @@ int read_pick_input(Init *init) {
     pick->obj_idx = 0;
     return 0;
 }
+/** @brief Initializes pick interface, calculates window size and position, and
+   enters picker loop
+    @param init Pointer to Init structure containing pick information
+    @return Count of selected objects on success, -1 if user cancels
+    @note Initializes key command strings for chyron display and calculates pick
+   window size and position based on terminal size and pick parameters.
+    @note Opens pick window and displays first page of objects. Enters picker
+   loop to handle user input and interactions. If user cancels selection,
+   returns -1.
+   @note If user accepts selection, returns count of selected objects. */
 int pick_engine(Init *init) {
     /// Initialize window and data structures
     int n, chyron_l, rc;
@@ -257,6 +267,13 @@ int pick_engine(Init *init) {
     }
     return (rc);
 }
+/** @brief Saves a string as an object in the pick structure
+    @param pick Pointer to Pick structure
+    @param s String to save as an object
+    @note If the current object index is less than the maximum allowed, saves
+   the string as an object in the pick structure. Updates the column width if
+   necessary and marks the object as not selected. Increments the object index
+   for the next object to be saved. */
 void save_object(Pick *pick, char *s) {
     /// Save object string into pick structure
     /// @param pick Pointer to Pick structure
@@ -278,6 +295,17 @@ void save_object(Pick *pick, char *s) {
     }
 }
 
+/** @brief Main loop to handle user input and interactions for pick interface
+    @param init Pointer to Init structure
+    @return Number of selected objects or -1 if user cancels
+    @note Handles user input for navigating and selecting objects in the pick
+   interface.
+    @note Supports various key commands for navigation, selection, and
+   accepting/canceling the selection.
+    @note Updates the display accordingly based on user interactions.
+    @note If the user cancels the selection, returns -1.
+    @note If the user accepts the selection, returns the count of selected
+   objects. */
 int picker(Init *init) {
     /// Main loop to handle user input and interactions for pick interface
     /// @param init Pointer to Init structure
@@ -293,39 +321,36 @@ int picker(Init *init) {
         tcflush(tty_fd, TCIFLUSH);
         if (cmd_key == 0)
             cmd_key = xwgetch(pick->win);
-        switch (cmd_key) {
+        switch (
+            cmd_key) { /** 'q', or KEY_F(9) cancel selection and exit picker */
         case 'q':
         case 'Q':
         case KEY_F(9):
-            /// KEY_F(9) or 'q' Cancels selection and exits picker
             return -1;
+            /** KEY_F(1) or 'h' Displays help screen for pick interface */
         case 'H': /// Help
-            /// 'H' Displays help screen for pick interface
             display_pick_help(init);
             display_page(pick);
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /** 't' or Space Toggles selection of current object */
         case ' ':
         case 't':
         case 'T':
-            /// Space or 't' Toggles selection of current object and moves to
-            /// next object If selection count reaches maximum, exits picker and
-            /// returns count of selected objects Otherwise, continues to next
-            /// object
             toggle_object(pick);
             if (pick->select_cnt == pick->select_max)
                 return pick->select_cnt;
             cmd_key = 0;
             break;
+            /** Enter or KEY_F(10) Accepts current selection and exits picker,
+             * returning count of selected objects */
         case KEY_F(10):
         case '\n':
         case KEY_ENTER:
-            /// KEY_F(10) or Enter Accepts current selection and exits picker
-            /// Returns count of selected objects
             return pick->select_cnt;
+            /** KEY_END Moves selection to last object in list */
         case KEY_END:
-            /// KEY_END Moves selection to last object in list
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
@@ -340,9 +365,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /** 'l' or KEY_RIGHT Moves selection to next object in list */
         case 'l':
         case KEY_RIGHT:
-            /// KEY_RIGHT or 'l' Moves selection to next object in list
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             /// pick->obj_idx += pick->tbl_lines -> next column
@@ -356,11 +381,11 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /** 'h' or KEY_LEFT or Backspace Moves selection to previous object
+             * in list */
         case 'h':
         case KEY_LEFT:
         case KEY_BACKSPACE:
-            /// KEY_LEFT, 'h', or Backspace Moves selection to previous object
-            /// in list
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             if (pick->tbl_col > 0)
@@ -370,9 +395,10 @@ int picker(Init *init) {
             cmd_key = 0;
             reverse_object(pick);
             break;
-        case KEY_DOWN:
+            /** 'j' or KEY_DOWN Moves selection to next object in list, 'k' or
+             * KEY_UP Moves selection to previous object in list */
         case 'j':
-            /// KEY_DOWN or 'j' Moves selection to next object in list
+        case KEY_DOWN:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             /// pick->obj_idx++ column down
@@ -386,8 +412,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-        case KEY_UP:
+            /** 'k' or KEY_UP Moves selection to previous object in list */
         case 'k':
+        case KEY_UP:
             /// KEY_UP or 'k' Moves selection to previous object in list
             /// pick->obj_idx-- column up
             mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -399,6 +426,7 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+        /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects, */
         case KEY_NPAGE:
         case '\06':
             /// KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects
@@ -413,6 +441,8 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /**   KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
+             * objects */
         case KEY_PPAGE:
         case '\02':
             /// KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
@@ -425,8 +455,8 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /** KEY_HOME Moves selection to first object in list */
         case KEY_HOME:
-            /// KEY_HOME Moves selection to first object in list
             pick->tbl_page = 0;
             pick->tbl_line = 0;
             pick->tbl_col = 0;
@@ -436,9 +466,9 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /** KEY_LL (lower left of numeric pad) Moves selection to last
+                object in list */
         case KEY_LL:
-            /// KEY_LL (lower left of numeric pad) Moves selection to last
-            /// object in list
             pick->tbl_page = pick->tbl_pages - 1;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_cols * pick->pg_line + pick->tbl_col;
@@ -446,13 +476,15 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
+            /** KEY_MOUSE Handles mouse events for selection and chyron key
+             * activation */
         case KEY_MOUSE:
-            /// BUTTON1 CLICK or DOUBLE_CLICK Toggles Selection
-            /// or Activates Chyron Keys
             if (getmouse(&event) != OK) {
                 cmd_key = 0;
                 break;
             }
+            /** BUTTON1 CLICK or DOUBLE_CLICK Toggles Selection
+                or Activates Chyron Keys */
             if (event.bstate == BUTTON1_CLICKED ||
                 event.bstate == BUTTON1_DOUBLE_CLICKED) {
                 if (!wenclose(pick->win, event.y, event.x)) {
@@ -496,6 +528,13 @@ int picker(Init *init) {
     }
     return 0;
 }
+/** @brief Displays current page of objects in pick window
+    @param pick Pointer to Pick structure containing objects and display
+   information
+    @note Clears the pick window and displays the current page of objects based
+   on the current table page, line, and column. Marks selected objects with an
+   asterisk. Updates the chyron with page information at the bottom of the pick
+   window. */
 void display_page(Pick *pick) {
     /// Displays current page of objects in pick window
     int y, col, pidx;
@@ -517,8 +556,13 @@ void display_page(Pick *pick) {
     }
     pick_display_chyron(pick);
 }
+/** @brief Displays chyron with page information at bottom of pick window
+    @param pick Pointer to Pick structure containing chyron information
+    @note Constructs a string for the chyron that includes the current page
+   number and total pages. Displays the chyron at the bottom of the pick window
+   with reverse video attribute. Clears any remaining space on the line after
+   the chyron text. */
 void pick_display_chyron(Pick *pick) {
-    /// Displays chyron with page information at bottom of pick window
     int l;
     char tmp_str[MAXLEN];
     ssnprintf(tmp_str, MAXLEN - 65, "%s| Page %d of %d ", pick->chyron_s,
@@ -530,8 +574,16 @@ void pick_display_chyron(Pick *pick) {
     wmove(pick->win, pick->pg_lines, l);
     wclrtoeol(pick->win);
 }
+/** @brief Reverses the display of the currently selected object in pick window
+    @param pick Pointer to Pick structure containing object and display
+   information
+    @note Calculates the x coordinate for the currently selected object based on
+   the current table column and column width. Moves the cursor to the object's
+   position in the pick window, turns on reverse video attribute, and displays
+   the object's text. Turns off reverse video attribute and refreshes the pick
+   window to show the updated display. Moves the cursor back to the position
+   before the object text for potential further interactions. */
 void reverse_object(Pick *pick) {
-    /// Reverses the display of the currently selected object in pick window
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     pick->y = pick->tbl_line;
     wmove(pick->win, pick->y, pick->x);
@@ -542,6 +594,16 @@ void reverse_object(Pick *pick) {
     wrefresh(pick->win);
     wmove(pick->win, pick->y, pick->x - 1);
 }
+/** @brief Unreverses the display of the currently selected object in pick
+   window
+    @param pick Pointer to Pick structure containing object and display
+   information
+    @note Calculates the x coordinate for the currently selected object based on
+   the current table column and column width. Moves the cursor to the object's
+   position in the pick window and displays the object's text without reverse
+   video attribute. Refreshes the pick window to show the updated display. Moves
+   the cursor back to the position before the object text for potential further
+   interactions. */
 void unreverse_object(Pick *pick) {
     /// Unreverses the display of the currently selected object in pick window
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
@@ -551,6 +613,18 @@ void unreverse_object(Pick *pick) {
     wrefresh(pick->win);
     wmove(pick->win, pick->y, pick->x - 1);
 }
+/** @brief Toggles the selection state of the currently selected object in pick
+   window
+    @param pick Pointer to Pick structure containing object and selection
+   information
+    @note Calculates the x coordinate for the currently selected object based on
+   the current table column and column width. If the object is currently
+   selected, it is deselected by updating the selection count, marking it as not
+   selected, and displaying a space before the object text. If the object is not
+   currently selected, it is selected by updating the selection count, marking
+   it as selected, and displaying an asterisk before the object text. Refreshes
+   the pick window to show the updated display. Moves the cursor back to the
+   position before the object text for potential further interactions. */
 void toggle_object(Pick *pick) {
     /// Toggles the selection state of the currently selected object in pick
     /// window

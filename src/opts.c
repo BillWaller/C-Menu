@@ -1,10 +1,10 @@
 /** @file opts.c
- *  @brief Sort and print options
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Sort and print options
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
@@ -40,8 +40,15 @@ void dump_opts();
 #define reset "\033[0m"
 Opts *select_opt(char *);
 
-/// Option table
-/// name, group, type, use mask, short option, description
+/** @struct Opts
+ *  @brief Option structure
+ *  @param name - option name
+ *  @param group - option group
+ *  @param type - option type
+ *  @param use - option use mask
+ *  @param short_opt - option short option
+ *  @param desc - option description
+ */
 Opts opts[] = {
     {"minitrc", 0, 2, "mpfv", "a:", "configuration file spec"},
     {"lines", 1, 4, "mpfv", "C:", "width in columns"},
@@ -106,67 +113,94 @@ Opts opts[] = {
     {"mapp_user", 0, 1, "mpfv", "U:", "user directory"},
     {"", 0, 0, "", "", ""}}; // End marker
 
-/// comp_out_name(const void *o1, const void *o2) - compare option names
+/** @brief compare option names
+    @param  o1 - pointer to first option
+    @param  o2 - pointer to second option
+    @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
+ */
 static int comp_opt_name(const void *o1, const void *o2) {
     const Opts *opt1 = o1;
     const Opts *opt2 = o2;
     return strcmp(opt1->name, opt2->name);
 }
-/// comp_out_group(const void *o1, const void *o2) - compare option groups
+/** @brief compare option groups
+    @param  o1 - pointer to first option
+    @param  o2 - pointer to second option
+    @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
+ */
 static int comp_opt_group(const void *o1, const void *o2) {
     const Opts *opt1 = o1;
     const Opts *opt2 = o2;
     return (opt1->group - opt2->group);
 }
-/// comp_out_desc(const void *o1, const void *o2) - compare option description
+/** @brief compare option descriptions
+    @param  o1 - pointer to first option
+    @param  o2 - pointer to second option
+    @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
+ */
 static int comp_opt_desc(const void *o1, const void *o2) {
     const Opts *opt1 = o1;
     const Opts *opt2 = o2;
     return strcmp(opt1->desc, opt2->desc);
 }
-/// comp_out_short_opt(const void *o1, const void *o2) - compare short options
+/** @brief compare option short options
+    @param  o1 - pointer to first option
+    @param  o2 - pointer to second option
+    @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
+ */
 static int comp_opt_short_opt(const void *o1, const void *o2) {
     const Opts *opt1 = o1;
     const Opts *opt2 = o2;
     return strcmp(opt1->short_opt, opt2->short_opt);
 }
-/// dump_opts_by_desc() - dump options sorted by description
+/** @brief dump options sorted by description
+ */
 void dump_opts_by_desc() {
     sort_opts_by_desc();
     dump_opts();
 }
-/// dump_opts_by_name() - dump options sorted by name
+/** @brief dump options sorted by name
+ */
 void dump_opts_by_name() {
     sort_opts_by_name();
     dump_opts();
 }
-/// dump_opts_by_group() - dump options sorted by group
+/** @brief dump options sorted by group
+ */
 void dump_opts_by_group() {
     sort_opts_by_group();
     dump_opts();
 }
-/// dump_opts_by_short_opt() - dump options sorted by short option
+/** @brief dump options sorted by short option
+ */
 void dump_opts_by_short_opt() {
     sort_opts_by_short_opt();
     dump_opts();
 }
-/// sort_opts_by_name() - sort options by name
+/** @brief dump options name
+ */
 void sort_opts_by_name() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_name);
 }
-/// sort_opts_by_group() - sort options by group
+/**  @brief sort options by group
+ */
 void sort_opts_by_group() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_group);
 }
-/// sort_opts_by_desc() - sort options by description
+/** @brief sort options by description
+ */
 void sort_opts_by_desc() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_desc);
 }
-/// sort_opts_by_short_opt() - sort options by short option
+/** @brief sort options by short option
+ */
 void sort_opts_by_short_opt() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_short_opt);
 }
-/// select_opt(char *name) - select option by name
+/** @brief select option by name
+    @param  name - option name
+    @return pointer to option, or NULL if not found
+ */
 Opts *select_opt(char *name) {
     Opts *opt;
     Opts key;
@@ -175,7 +209,8 @@ Opts *select_opt(char *name) {
     opt = bsearch(&key, opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_name);
     return opt;
 }
-/// dump_opts() - dump all options
+/** @brief dump all options
+ */
 void dump_opts() {
     /// struct Opts *opts;
     print_opt_header();
@@ -186,7 +221,10 @@ void dump_opts() {
         i++;
     }
 }
-/// dump_opts_by_use(char *usage, char *mask) - dump options by use mask
+/** @brief dump options by use mask
+    @param  usage - usage string
+    @param  mask - use mask string
+ */
 void dump_opts_by_use(char *usage, char *mask) {
     int i = 0;
     int j = 0;
@@ -207,14 +245,17 @@ void dump_opts_by_use(char *usage, char *mask) {
             print_opt(i);
     }
 }
-/// print_opt_header() - print option header
+/** @brief print option header
+ */
 void print_opt_header() {
     printf("   field name         type grp  mask opt description\n");
     printf(
         "   ------------------ ---- ---- ---- --- -------------------------\n");
 }
 
-/// print_opt(int i) - print option i
+/** @brief print option
+    @param  i - option index
+ */
 void print_opt(int i) {
     char *type;
     char *group;
