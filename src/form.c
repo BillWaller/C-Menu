@@ -11,8 +11,8 @@
 
 __end_pgm;
 
+/** Command Line entry point for C-Menu Form */
 int main(int argc, char **argv) {
-    /// Command Line entry point for C-Menu Form
     __atexit;
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);

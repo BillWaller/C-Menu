@@ -1,32 +1,11 @@
 /** @file rsh.c
- *  @brief restricted shell to run bash as root
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief restricted shell to run bash as root
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
-
-/// Usage: rsh [args]
-/// If executed as 'rsh', this program sets the user ID and group ID to 0 (root)
-/// and then executes the user's default shell (or /usr/bin/bash if SHELL is not
-/// set) with the provided arguments. If no arguments are given, it runs the
-/// shell in interactive mode.
-///
-/// Build instructions:
-///
-/// To work properly, this program must be compiled and set with the setuid bit:
-/// $ sudo -s
-/// cc rsh.c -o rsh
-/// sudo chown root:root rsh
-/// sudo chmod 4755 rsh
-/// exit
-///
-/// Test instructions:
-///
-/// $ rsh
-/// $ whoami
-/// root
 
 #include "cm.h"
 #include <stdbool.h>
@@ -51,6 +30,29 @@ bool f_verbose = false;
 
 void ABEND(int e, char const *);
 
+/** @brief Main function for rsh
+    @param argc Argument count
+    @param argv Argument vector
+    @note If executed as 'rsh', this program sets the user ID and group ID to 0
+   (root) and then executes the user's default shell (or /usr/bin/bash if SHELL
+   is not set) with the provided arguments. If no arguments are given, it runs
+   the shell in interactive mode.
+    @note To work properly, this program must be compiled and set with the
+   setuid bit:
+    @code
+    $ sudo -s
+    cc rsh.c -o rsh
+    sudo chown root:root rsh
+    sudo chmod 4755 rsh
+    exit
+    @endcode
+    @note to verify proper operation:
+    @code
+    $ rsh
+    $ whoami
+    root
+    @endcode
+    */
 int main(int argc, char **argv) {
     char *cargv[30];
     char exec_cmd[MAXLEN] = "/usr/bin/bash";

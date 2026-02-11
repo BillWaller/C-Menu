@@ -1,10 +1,10 @@
 /** @file parse_menu_desc.c
- *  @brief Parse menu description file and create Menu
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Parse menu description file and create Menu
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
@@ -16,6 +16,10 @@ unsigned int parse_menu_description(Init *);
 unsigned int get_command_type(char *);
 void free_menu_line(Line *);
 
+/** @brief Parse menu description file and create Menu
+    @param init Pointer to Init structure containing menu information
+    @return 0 on success, non-zero on failure
+ */
 unsigned int parse_menu_description(Init *init) {
     FILE *fp;
     char tmp_buf[MAXLEN + 1];
@@ -53,8 +57,12 @@ unsigned int parse_menu_description(Init *init) {
         if (!l)
             continue;
         switch (directive) {
+            /**  '#' Comment line, ignore
+             */
         case '#':
             break;
+            /**  '!' Choice line, parse and add to menu
+             */
         case '!':
             if (!menu->line_idx)
                 break;
@@ -112,6 +120,7 @@ unsigned int parse_menu_description(Init *init) {
             menu->line_idx++;
             actions++;
             break;
+            /**  ':' Text line, parse and add to menu */
         case ':':
             if (choices > actions) {
                 strnz__cpy(em0, "More choices than actions at", MAXLEN - 1);
@@ -152,9 +161,9 @@ unsigned int parse_menu_description(Init *init) {
                 menu->line_idx++;
                 choices++;
             }
-            break;
+            break; /**  '?' Help line, ignore for now */
         case '?':
-            break;
+            break; /**  ' ' Empty line, ignore */
         case ' ':
         case '\0':
         case '\n':
@@ -228,6 +237,10 @@ unsigned int parse_menu_description(Init *init) {
 
     return (0);
 }
+/** @brief Get command type from command string
+    @param t Command string
+    @return Command type as an unsigned int
+ */
 unsigned int get_command_type(char *t) {
     char *s, *p;
 
@@ -262,6 +275,9 @@ unsigned int get_command_type(char *t) {
         return (CT_WRITE_CONFIG);
     return (CT_UNDEFINED);
 }
+/** @brief Free memory allocated for a menu line
+    @param line Pointer to Line structure to free
+ */
 void free_menu_line(Line *line) {
 
     if (line->raw_text != NULL)

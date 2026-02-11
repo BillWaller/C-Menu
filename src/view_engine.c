@@ -1,10 +1,10 @@
 /** @file view_engine.c
- *  @brief The working part of View
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief The working part of View
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
@@ -22,29 +22,7 @@
 
 #define Ctrl(c) ((c) & 0x1f)
 
-/// These macros get next or previous character respectively, skipping
-/// over carriage returns and leaving the file position cursor at the next
-/// character to be read. The macros also set the EOD or BOD flags when
-/// encountering the end or beginning file_pos. These flags are reset
-/// by subseuqent movement of the file_pos or change in direction of reading.
-///
-/// @note When reading forward, if the file position cursor (FPC) reaches
-///     the end of data (EOD), the EOD flag is set, preventing further
-///     forward movement of the FPC.
-/// @note When reading backward, if the file position cursor (FPC) reaches
-///     the beginning of data (BOD), the BOD flag is set, preventing
-///     further backward movement of the FPC.
-/// @note Once either flag, EOD OR BOD, is set, no more characters will be
-///     read until the FPC moves or the direction of reading changes.
-/// @note C-Menu View mapps input to the Kernel's demand paged virtual
-///     address space, so the entire file is accessible via a memory
-///     pointer. One of the reasons C-Menu View is so responsive, is
-///     that it doesn't make you wait while it loads data you will
-///     never use.
-/// @note This is called lazy loading, and for a pager like C-Menu View,
-///     it is lean and performant.
-/// The character read is returned in variable 'c'.
-
+/** @brief read the next characater from the virtual file */
 #define get_next_char()                                                        \
     do {                                                                       \
         if (view->file_pos == view->file_size) {                               \
@@ -55,6 +33,7 @@
         c = view->buf[view->file_pos++];                                       \
     } while (c == 0x0d);
 
+/** @brief read the previous characater from the virtual file */
 #define get_prev_char()                                                        \
     do {                                                                       \
         if (view->file_pos == 0) {                                             \
@@ -101,18 +80,18 @@ void remove_file(View *);
 int a_toi(char *s, bool *a_toi_error);
 
 char err_msg[MAXLEN];
-
+/** @brief Global pointer to the current View structure, used for accessing view
+   state and data across functions.
+    @param init Pointer to Init structure
+    @return 0 on success
+    @note This function processes each file specified in the command line
+   arguments. If no files are specified, it defaults to reading from standard
+   input ("-").
+    @note For each file, it initializes the viewing context, displays the first
+   page, and enters the command processing loop.
+    @note After processing each file, it cleans up resources before moving to
+   the next file. */
 int view_file(Init *init) {
-    /// Main entry point for C-Menu View
-    /// @param init Pointer to Init structure
-    /// @return 0 on success
-    /// @note This function processes each file specified in the command
-    ///     line arguments. If no files are specified, it defaults to
-    ///     reading from standard input ("-").
-    /// @note For each file, it initializes the viewing context, displays
-    ///     the first page, and enters the command processing loop.
-    /// @note After processing each file, it cleans up resources before
-    ///     moving to the next file.
     view = init->view;
     if (view->argc < 1) {
         view->curr_argc = -1;
@@ -148,16 +127,15 @@ int view_file(Init *init) {
     }
     return 0;
 }
+/** @brief Main Command Processing Loop for View
+    @param init Pointer to Init structure
+    @return 0 on exit command
+    @details This function handles user commands for navigating and manipulating
+   the viewed file. It processes commands such as scrolling, searching, jumping
+   to specific lines, and executing shell commands.
+    @note The function maintains the state of the view and updates the display
+   as needed based on user input. */
 int view_cmd_processor(Init *init) {
-    /// Main processing loop for View
-    /// @param init Pointer to Init structure
-    /// @return 0 on exit command
-    /// @note This function handles user commands for navigating and
-    /// manipulating the viewed file. It processes commands such as
-    /// scrolling, searching, jumping to specific lines, and executing
-    /// shell commands.
-    /// @note The function maintains the state of the view and updates
-    /// the display as needed based on user input.
     int tfd;
     char tmp_str[MAXLEN];
     char earg_str[MAXLEN];
@@ -220,35 +198,47 @@ int view_cmd_processor(Init *init) {
             }
         }
         switch (c) {
-        /// KEY_(ALTHOME, ALTEND) - Horizontal Scrolling
+        /** KEY_(ALTHOME, ALTEND) - move to end of line */
         case KEY_ALTHOME:
-            /// KEY_ALTHOME - Horizontal Scroll to Beginning of Line
             view->pmincol = 0;
             break;
+            /**  KEY_ALTHOME move to the first column
+             @details KEY_ALTHOME and KEY_ALTEND are used for horizontal
+             scrolling. KEY_ALTHOME scrolls to the beginning of the line, while
+             KEY_ALTEND scrolls to the end of the line. The implementation
+             checks if the maximum column exceeds the number of columns in the
+             view to determine how to set the pmincol for scrolling to the end
+             of the line. */
         case KEY_ALTEND:
-            /// KEY_ALTEND - Horizontal Scroll to End of Line
             if (view->maxcol > view->cols)
                 view->pmincol = view->maxcol - view->cols;
             else
                 view->pmincol = 0;
             break;
+            /**  Ctrl('R') or KEY_RESIZE - Handle terminal resize events
+             @details This case handles terminal resize events, which can
+             disrupt the display of the viewed file. When a resize event is
+             detected, the function calls resize_page() to adjust the view
+             accordingly, ensuring that the content is displayed correctly after
+             the terminal size changes. */
         case Ctrl('R'):
         case KEY_RESIZE:
-            /// Handle terminal resize events, which would
-            /// otherwise disrupt the display of the viewed file.
             resize_page(init);
             break;
-        /// Cursor Movement Commands
-        /// We have tried to leave these commands including h, j, k,
-        /// and l consistent with other popular pagers.
-        /// Vertical scrolling can also be accomplished with the
-        /// mouse wheel if the terminal supports it.
-        case Ctrl('H'):
+        /**  'h', Ctrl('H'), KEY_LEFT, KEY_BACKSPACE - Scroll left by two
+         thirds of the page width
+         @details This case handles horizontal scrolling to the left. The
+         commands 'h', Ctrl('H'), KEY_LEFT, and KEY_BACKSPACE are used to scroll
+         left. If the numeric argument (n_cmd) is 0 or less, it defaults to
+         scrolling left by 2/3rds of the page width. The implementation
+         calculates the shift amount based on the view's column width and
+         updates the pmincol accordingly, ensuring that it does not scroll past
+         the beginning of the line. After updating the view's position, it sets
+         f_redisplay_page to true to trigger a refresh of the display. */
         case 'h':
+        case Ctrl('H'):
         case KEY_LEFT:
         case KEY_BACKSPACE:
-            /// 'h', KEY_LEFT, Backspace, Ctrl('H') to scroll left, if n_cmd is
-            /// 0 or less, scroll left by 2/3rds width of page
             if (n_cmd <= 0)
                 n_cmd = 1;
             shift = (view->cols / 3) * 2;
@@ -263,9 +253,19 @@ int view_cmd_processor(Init *init) {
                 view->pmincol -= shift;
             view->f_redisplay_page = true;
             break;
-        case KEY_RIGHT:
+            /**  'l', 'L', KEY_RIGHT - Scroll right by two thirds of the
+             page width
+             @details This case handles horizontal scrolling to the right. The
+             commands 'l', 'L', and KEY_RIGHT are used to scroll right. Similar
+             to the left scrolling case, if the numeric argument (n_cmd) is 0 or
+             less, it defaults to scrolling right by 2/3rds of the page width.
+             The implementation calculates the shift amount and updates pmincol
+             to scroll right, ensuring that it does not scroll past the maximum
+             column. After updating the view's position, it sets
+             f_redisplay_page to true to trigger a refresh of the display. */
         case 'l':
         case 'L':
+        case KEY_RIGHT:
             /// 'l' or Right Arrow to scroll right, if n_cmd is 0 or less,
             /// scroll right by 2/3rds width of page
             if (n_cmd <= 0)
@@ -284,11 +284,15 @@ int view_cmd_processor(Init *init) {
                                     : 0;
             view->f_redisplay_page = true;
             break;
-            /// Up Arrow, k, K, Ctrl('K')
-            ///
-        case KEY_UP:
+            /**  'k', 'K', KEY_UP, Ctrl('K') - Scroll up by a line
+             @details This case handles vertical scrolling upwards. The commands
+             'k', 'K', KEY_UP, and Ctrl('K') are used to scroll up. If the
+             numeric argument (n_cmd) is 0 or less, it defaults to scrolling up
+             by 1 line. The implementation calls the scroll_up_n_lines()
+             function with the specified number of lines to scroll up. */
         case 'k':
         case 'K':
+        case KEY_UP:
         case Ctrl('K'):
             /// 'k', KEY_UP, Ctrl('K') to scroll up a line, if n_cmd is 0 or
             /// less, scroll up 1 line
@@ -296,6 +300,14 @@ int view_cmd_processor(Init *init) {
                 n_cmd = 1;
             scroll_up_n_lines(view, n_cmd);
             break;
+            /**  'j', 'J', KEY_DOWN, KEY_ENTER, SPACE - Scroll down by a
+             line
+             @details This case handles vertical scrolling downwards. The
+             commands 'j', 'J', KEY_DOWN, KEY_ENTER, and SPACE are used to
+             scroll down. Similar to the previous case, if the numeric argument
+             (n_cmd) is 0 or less, it defaults to scrolling down by 1 line. The
+             implementation calls the scroll_down_n_lines() function with the
+             specified number of lines to scroll down. */
         case 'j':
         case 'J':
         case '\n':
@@ -310,38 +322,66 @@ int view_cmd_processor(Init *init) {
                 scroll_down_n_lines(view, n_cmd);
             }
             break;
+            /**  'b', 'B', Ctrl('B'), KEY_PPAGE - Scroll up by a page
+             @details This case handles vertical scrolling upwards by a page.
+             The commands 'b', 'B', Ctrl('B'), and KEY_PPAGE are used to scroll
+             up by a page. If the numeric argument (n_cmd) is 0 or less, it
+             defaults to scrolling up by the number of lines in the view
+             (view->scroll_lines). The implementation calls the
+             scroll_up_n_lines() function with the specified number of lines to
+             scroll up. */
         case KEY_PPAGE:
         case 'b':
         case 'B':
         case Ctrl('B'):
-            /// Page movement Commands
-            /// Previous Page, b, B, Ctrl('B'), KEY_PPAGE
             scroll_up_n_lines(view, view->scroll_lines);
             break;
-            /// Page Scrolling Commands
-            /// Next Page, f, F, Ctrl('F'), KEY_NPAGE
-        case KEY_NPAGE:
+        /**  'f', 'F', Ctrl('F'), KEY_NPAGE - Scroll down by a page
+             @details This case handles vertical scrolling downwards by a page.
+           The commands 'f', 'F', Ctrl('F'), and KEY_NPAGE are used to scroll
+           down by a page. If the numeric argument (n_cmd) is 0 or less, it
+           defaults to scrolling down by the number of lines in the view
+           (view->scroll_lines). The implementation calls the
+           scroll_down_n_lines() function with the specified number of lines to
+           scroll down. */
         case 'f':
         case 'F':
+        case KEY_NPAGE:
         case Ctrl('F'):
-            /// KEY_NPAGE, f, F, Ctrl('F') to scroll down a page
             next_page(view);
             break;
-        case KEY_HOME:
+            /**  'g', KEY_HOME - Go to the beginning of the document
+             @details This case handles the command to go to the beginning of
+             the document. The commands 'g' and KEY_HOME are used for this
+             purpose. When this command is executed, it sets pmincol to 0 to
+             ensure that the view is scrolled to the leftmost position and then
+             calls go_to_line() with a line number of 0 to move the view to the
+             top of the document. */
         case 'g':
-            /// g - Go to Beginning of Document
+        case KEY_HOME:
             view->pmincol = 0;
             go_to_line(view, 0L);
             break;
+            /**  KEY_LL - Go to the end of the document
+             @details This case handles the command to go to the end of the
+             document. The KEY_LL command is used for this purpose. When this
+             command is executed, it calls the go_to_eof() function to move the
+             view to the end of the document. */
         case KEY_LL:
-            /// KEY_LL number pad lower left key (home down)
-            /// Go to End of Document
             go_to_eof(view);
             break;
+            /**  '!', Execute Shell Command from within C-Menu View
+             @details This case handles the command to execute a shell command
+             from within the view. The '!' command allows the user to execute a
+             shell command and optionally display its output in the view. If the
+             view is currently displaying help, this command is ignored. The
+             user is prompted to enter a shell command, which can include a
+             placeholder '%' that will be replaced with the current file name.
+             The command is then executed using full_screen_shell(). If the view
+             is not displaying a pipe, it updates the file position and
+             specification to allow returning to the current file after
+             executing the shell command. */
         case '!':
-            /// '!' Execute Shell Command from within C-Menu View
-            /// The plan is to open the executable's output in view,
-            /// but for now we will just execute the command and return to view.
             if (view->f_displaying_help)
                 break;
             if (get_cmd_arg(view, "!") == 0) {
@@ -360,18 +400,29 @@ int view_cmd_processor(Init *init) {
                 }
             }
             break;
+            /**  '+', Set Startup Command
+             @details This case handles the command to set a startup command
+             that will be executed when the next file is opened. The '+' command
+             allows the user to specify a command that will be stored in the
+             view's cmd field. When the next file is opened (via an 'N' or 'P'
+             command), this startup command will be executed. The user is
+             prompted to enter the startup command, and if a valid command is
+             entered, it is copied into the view's cmd field for later
+             execution. */
         case '+':
-            /// "+" Specify a startup command
-            /// This command allows the user to specify a startup command
-            /// that will be executed when the next file is opened. The user
-            /// is prompted to enter a command, which is then stored in
-            /// view's cmd field, for the current session. When the next
-            /// file is opened (via an 'N' or 'P' command), this command will
-            /// be executed.
             if (get_cmd_arg(view, "Startup Command:") == 0)
                 strnz__cpy(view->cmd, view->cmd_arg, MAXLEN - 1);
             break;
-            /// '-' Change Settings
+            /**  '-', Change View Settings
+             @details This case handles the command to change various view
+             settings. The '-' command allows the user to modify settings such
+             as clearing the screen at the end of the file, ignoring case in
+             search, setting the prompt type, squeezing multiple blank lines,
+             and setting tab stop columns. The user is prompted to select a
+             specific setting to change, and based on the selection, additional
+             prompts are provided to configure the chosen setting. This command
+             provides a way for users to customize their viewing experience
+             within the application. */
         case '-':
             /// - Start Change Settings
             if (view->f_displaying_help)
@@ -382,6 +433,17 @@ int view_cmd_processor(Init *init) {
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
             switch (c) {
+                /**  'c' - Clear Screen at End of File
+                 @details This case handles the setting to clear the screen at
+                 the end of the file. When the user selects 'c', they are
+                 prompted to choose whether to enable or disable this setting by
+                 entering 'Y' or 'N'. If the user chooses 'Y', the view's
+                 f_at_end_clear flag is set to true, which will clear the screen
+                 when the end of the file is reached. If the user chooses 'N',
+                 the flag is set to false, and the screen will not be cleared at
+                 the end of the file. This setting allows users to control how
+                 they want the view to behave when they reach the end of a file.
+               */
             case 'c':
                 /// '-c' clear screen at end of file
                 cmd_line_prompt(view, "Clear Screen at End (Y or N)->");
@@ -390,37 +452,105 @@ int view_cmd_processor(Init *init) {
                 else if (c == 'n' || c == 'N')
                     view->f_at_end_clear = false;
                 break;
+                /**  'i' - Ignore Case in Search
+                 @details This case handles the setting to ignore case in search
+                 operations. When the user selects 'i', they are prompted to
+                 choose whether to enable or disable this setting by entering
+                 'Y' or 'N'. If the user chooses 'Y', the view's f_ignore_case
+                 flag is set to true, which will make search operations
+                 case-insensitive. If the user chooses 'N', the flag is set to
+                 false, and search operations will be case-sensitive. This
+                 setting allows users to customize their search experience based
+                 on their preferences for case sensitivity. */
             case 'i':
-                /// '-i' ignore case in search
                 cmd_line_prompt(view, "Ignore Case in search (Y or N)->");
                 if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
                     view->f_ignore_case = true;
                 else if (c == 'n' || c == 'N')
                     view->f_ignore_case = false;
                 break;
+                /**  'p' - Set Prompt Type
+                 @details This case handles the setting to configure the prompt
+                 type displayed in the view. When the user selects 'p', they are
+                 prompted to choose a prompt type by entering 'S' for short
+                 prompt, 'L' for long prompt, or 'N' for no prompt. Based on the
+                 user's selection, the view's prompt_type field is updated
+                 accordingly. The short prompt type (PT_SHORT) provides a
+                 concise display of information, while the long prompt type
+                 (PT_LONG) offers a more detailed display. The no prompt type
+                 (PT_NONE) disables the display of any prompt information. This
+                 setting allows users to customize the amount of information
+                 shown in the prompt based on their preferences. */
             case 'p':
-                /// '-p' set prompt type
                 cmd_line_prompt(view, "(Short Long or No prompt)->");
                 c = tolower(get_cmd_char(view, &n_cmd));
                 switch (c) {
+                    /**  's' - Short Prompt Type
+                     @details This case sets the prompt type to short when the
+                     user selects 'S'. The short prompt type (PT_SHORT) provides
+                     a concise display of information in the prompt, which may
+                     include essential details such as the current file name,
+                     line number, and percentage through the file. This option
+                     is suitable for users who prefer a minimalistic prompt that
+                     still conveys key information about their position in the
+                     file. */
                 case 's':
-                    /// '-ps' short prompt type
                     view->prompt_type = PT_SHORT;
                     break;
+                    /**  'l' - Long Prompt Type
+                     @details This case sets the prompt type to long when the
+                     user selects 'L'. The long prompt type (PT_LONG) provides a
+                     more detailed display of information in the prompt, which
+                     may include additional details such as the total number of
+                     lines in the file, the current line number, the percentage
+                     through the file, and possibly other contextual
+                     information. This option is suitable for users who prefer a
+                     more informative prompt that gives them a clearer
+                     understanding of their position and context within the
+                     file. */
                 case 'l':
-                    /// '-pl' long prompt type
+                    /**  'l' - Long Prompt Type
+                     @details This case sets the prompt type to long when the
+                     user selects 'L'. The long prompt type (PT_LONG) provides a
+                     more detailed display of information in the prompt, which
+                     may include additional details such as the total number of
+                     lines in the file, the current line number, the percentage
+                     through the file, and possibly other contextual
+                     information. This option is suitable for users who prefer a
+                     more informative prompt that gives them a clearer
+                     understanding of their position and context within the
+                     file. */
                     view->prompt_type = PT_LONG;
                     break;
+                    /**  'n' - No Prompt Type
+                     @details This case sets the prompt type to none when the
+                     user selects 'N'. The no prompt type (PT_NONE) disables the
+                     display of any prompt information in the view. When this
+                     option is selected, users will not see any prompt details
+                     such as file name, line number, or percentage through the
+                     file. This setting is suitable for users who prefer a clean
+                     and uncluttered view without any additional information
+                     displayed in the prompt area. */
                 case 'n':
-                    /// '-pn' no prompt type
                     view->prompt_type = PT_NONE;
                     break;
                 default:
                     break;
                 }
                 break;
+                /**  's' - Squeeze Multiple Blank Lines
+                 @details This case handles the setting to squeeze multiple
+                 blank lines in the view. When the user selects 's', they are
+                 prompted to choose whether to enable or disable this setting by
+                 entering 'Y' or 'N'. If the user chooses 'Y', the view's
+                 f_squeeze flag is set to true, which will cause multiple
+                 consecutive blank lines to be displayed as a single blank line
+                 in the view. If the user chooses 'N', the flag is set to false,
+                 and all blank lines will be displayed as they are in the file.
+                 This setting allows users to control how blank lines are
+                 displayed, which can help reduce visual clutter when viewing
+                 files with many consecutive blank lines. */
             case 's':
-                /// '-s' squeeze multiple blank lines
                 cmd_line_prompt(
                     view, "view->f_squeeze Multiple Blank lines (Y or N)->");
                 if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
@@ -428,8 +558,22 @@ int view_cmd_processor(Init *init) {
                 else if (c == 'n' || c == 'N')
                     view->f_squeeze = false;
                 break;
+                /**  't' - Set Tab Stop Columns
+                 @details This case handles the setting to configure the number
+                 of columns for tab stops in the view. When the user selects
+                 't', they are prompted to enter the number of columns for tab
+                 stops, with the current setting displayed in the prompt. The
+                 user can enter a value between 1 and 12, which will be used to
+                 determine how many spaces a tab character will represent in the
+                 view. If the user enters a valid number within the specified
+                 range, the view's tab_stop field is updated with the new value,
+                 and f_redisplay_page is set to true to refresh the display with
+                 the new tab stop settings. If the user enters an invalid value,
+                 an error message is displayed, and the tab stop settings remain
+                 unchanged. This setting allows users to customize how tab
+                 characters are displayed based on their preferences for
+                 spacing. */
             case 't':
-                /// '-t' set tab stop columns
                 sprintf(tmp_str,
                         "Tabstop Colums Currently %d:", view->tab_stop);
                 i = 0;
@@ -441,12 +585,20 @@ int view_cmd_processor(Init *init) {
                 } else
                     Perror("Tab stops not changed");
                 break;
-                /// Help Command 'H'
-                /// Displays help information about the settings commands.
-                /// Lower case 'h' is reserved for horizontal scrolling.'
+                /**  'h' or 'H' - Display Help Information about Settings
+                 Commands
+                 @details This case handles the command to display help
+                 information about the settings commands. When the user selects
+                 'h' or 'H', it checks if the view is currently displaying help
+                 information. If it is not, it calls the view_display_help()
+                 function to show the help information related to the settings
+                 commands. After displaying the help, it sets next_cmd_char to
+                 '-' to allow the user to easily return to the settings menu
+                 after viewing the help information. This provides users with a
+                 convenient way to access guidance on how to use the various
+                 settings options available in the application. */
             case 'h':
             case 'H':
-                /// 'h' or 'H' display help for settings commands
                 if (!view->f_displaying_help)
                     view_display_help(init);
                 view->next_cmd_char = '-';
@@ -455,13 +607,33 @@ int view_cmd_processor(Init *init) {
                 break;
             }
             break;
+            /**  ':' - Set a Prompt String
+             @details This case handles the command to set a custom prompt
+             string in the view. When the user enters ':', they are prompted to
+             enter a new prompt string. The input is captured using
+             get_cmd_arg(), and if a valid string is entered, it is stored in
+             the view's next_cmd_char field. This allows the user to customize
+             the prompt that will be displayed in the view, providing a way to
+             include specific information or messages in the prompt area based
+             on their preferences. */
         case ':':
-            /// ':' Set a prompt string
             view->next_cmd_char = get_cmd_arg(view, ":");
             break;
+            /**  '/' or '?' - Search Forward or Backward
+             @details This case handles the search functionality within view.
+             The '/' command is used to search forward, while the '?' command is
+             used to search backward. When either of these commands is entered,
+             the user is prompted to enter a search pattern. The input is
+             captured using get_cmd_arg(), and if a valid pattern is entered
+             (not just a newline), the search() function is called with the
+             specified search command, the search pattern, and a flag indicating
+             whether to repeat the previous search. The search results are then
+             displayed in the view, allowing users to navigate through
+             occurrences of the search pattern in the file. Additionally, the
+             previous search command and pattern are stored for easy repetition
+             with the 'n' command. */
         case '/':
         case '?':
-            /// Search forward '/' or backward '?'
             strnz__cpy(tmp_str, (c == '/') ? "(forward)->" : "(backward)->",
                        MAXLEN - 1);
             search_cmd = c;
@@ -474,11 +646,20 @@ int view_cmd_processor(Init *init) {
                 view->srch_beg_pos = view->page_top_pos;
             }
             break;
+            /**  'o' or 'O' - Open a File
+             @details This case handles the command to open a file while viewing
+             another file. The 'o' or 'O' command allows the user to specify a
+             new file to open. When this command is entered, the user is
+             prompted to enter the name of the file they wish to open. The input
+             is captured using get_cmd_arg(), and if a valid file name is
+             entered, it is stored in the view's next_file_spec_ptr field. This
+             will trigger the view to open the specified file and display its
+             contents, allowing users to easily switch between files without
+             exiting the application. */
         case 'o':
         case 'O':
         case 'e':
         case 'E':
-            /// '-o' Open File
             if (get_cmd_arg(view, "File name:") == 0) {
                 strtok(view->cmd_arg, " ");
                 view->next_file_spec_ptr = strdup(view->cmd_arg);
@@ -486,23 +667,53 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
-        case KEY_END:
+            /**  'g' or 'G' - Go to the End of the Document or a Specific
+             Line
+             @details This case handles the command to navigate to a specific
+             line or the end of the document. The 'g' command is used to go to a
+             specific line, while the 'G' command is used to go to the end of
+             the document. When either of these commands is entered, it checks
+             the numeric argument (n_cmd) provided by the user. If n_cmd is 0 or
+             less, it calls go_to_eof() to move to the end of the document. If
+             n_cmd is greater than 0, it calls go_to_line() with n_cmd as the
+             line number to navigate to. This allows users to quickly jump to a
+             specific line or the end of the file based on their input. */
         case 'G':
-            /// '-G' Go to End of Document or Specific Line
-            /// @param n_cmd Line number to go to, if 0 go to EOF
+        case KEY_END:
             if (n_cmd <= 0)
                 go_to_eof(view);
             else
                 go_to_line(view, n_cmd);
             break;
-            /// Help Command
+            /**  'F' or KEY_F(1) - Display Help Information
+             @details This case handles the command to display help information
+             about the application. The 'F' command or the F1 key is used to
+             trigger the display of help content. When this command is entered,
+             it checks if the view is currently displaying help information. If
+             it is not, it calls the view_display_help() function to show the
+             help information. This provides users with a convenient way to
+             access guidance and instructions on how to use the various features
+             and commands available in the application. */
         case KEY_F(1):
-            /// 'F1' Help
             if (!view->f_displaying_help)
                 view_display_help(init);
             break;
+            /**  'm' - Set a Mark at the Current Position
+             @note This feature is currently not implemented and may be removed
+             in the future.
+             @details This case handles the command to set a mark at the current
+             position in the file. The 'm' command allows the user to assign a
+             mark label (a-z) to the current position in the file. When this
+             command is entered, the user is prompted to enter a mark label,
+             which should be a lowercase letter from 'a' to 'z'. If a valid mark
+             label is entered, it is stored in the view's mark_tbl array at the
+             index corresponding to the letter (e.g., 'a' corresponds to index
+             0, 'b' to index 1, etc.) with the value of page_top_pos, which
+             represents the current position in the file. This feature allows
+             users to set marks at specific locations in the file for easy
+             navigation later using the corresponding uppercase letter command.
+           */
         case 'm':
-            /// Set Mark (not implemented, and may be removed)
             cmd_line_prompt(view, "Mark label (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == KEY_F(9) || c == '\033')
@@ -513,9 +724,20 @@ int view_cmd_processor(Init *init) {
             else
                 view->mark_tbl[c - 'a'] = view->page_top_pos;
             break;
-            /// Go to mark (feature may be removed in the future)
+            /**  'M' - Go to a Mark
+             @note This feature is currently not implemented and may be removed
+             in the future.
+             @details This case handles the command to navigate to a previously
+             set mark in the file. The 'M' command allows the user to jump to a
+             mark that was set using the 'm' command. When this command is
+             entered, the user is prompted to enter a mark label, which should
+             be an uppercase letter from 'A' to 'Z'. If a valid mark label is
+             entered, it is converted to lowercase (if necessary) and used to
+             retrieve the corresponding position from the view's mark_tbl array.
+             The view then navigates to that position in the file, allowing
+             users to quickly jump back to specific locations they have marked
+             for easy reference. */
         case 'M':
-            /// 'M' Go to Mark
             cmd_line_prompt(view, "Goto mark (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == KEY_F(9) || c == '\033')
@@ -528,8 +750,23 @@ int view_cmd_processor(Init *init) {
             else
                 go_to_mark(view, c);
             break;
+            /**  'n' - Repeat Previous Search
+             @details This case handles the command to repeat the previous
+             search operation. The 'n' command allows the user to repeat the
+             last search command that was executed. When this command is
+             entered, it checks if there is a previous search command stored in
+             prev_search_cmd. If there is no previous search command, it
+             displays an error message indicating that there is no previous
+             search. If there is a previous search command, it checks if the
+             current bottom position of the page (page_bot_pos) is at the end of
+             the file (file_size). If it is, it resets the top and bottom
+             positions of the page to 0 to start from the beginning of the file.
+             Then, it calls the search() function with the previous search
+             command, the previous regex pattern, and a flag set to true to
+             indicate that this is a repeat search. This allows users to quickly
+             navigate through occurrences of the previously searched pattern
+             without having to re-enter the search command. */
         case 'n':
-            /// 'n' Repeat Previous Search
             if (prev_search_cmd == 0) {
                 Perror("No previous search");
                 break;
@@ -540,8 +777,21 @@ int view_cmd_processor(Init *init) {
             }
             search(view, prev_search_cmd, prev_regex_pattern, true);
             break;
+            /**  'N' - Close Current File and Open Next File
+             @details This case handles the command to close the current file
+             and open the next file in the list of files being viewed. The 'N'
+             command allows the user to quickly move to the next file without
+             having to exit and restart the application. When this command is
+             entered, it checks if there are more files available in the view's
+             argv array based on the current index (curr_argc) and the total
+             number of files (argc). If there are no more files, it displays an
+             error message indicating that there are no more files and sets
+             curr_argc to the last valid index. If there are more files, it
+             increments curr_argc to point to the next file and updates
+             next_file_spec_ptr to point to the new file specification. This
+             will trigger the view to open the next file and display its
+             contents. */
         case 'N':
-            /// 'N' Close Current file, and Open Next File
             if (n_cmd <= 0)
                 n_cmd = 1;
             if (view->curr_argc + n_cmd >= view->argc) {
@@ -554,6 +804,18 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
+            /**  'P' or '%' - Go to a Percent of the File
+             @details This case handles the command to navigate to a specific
+             percentage of the file. The 'P' command or the '%' key is used for
+             this purpose. When this command is entered, it checks the numeric
+             argument (n_cmd) provided by the user. If n_cmd is less than 0, it
+             calls go_to_line() with a line number of 1 to move to the beginning
+             of the file. If n_cmd is 100 or greater, it calls go_to_eof() to
+             move to the end of the file. Otherwise, it calls go_to_percent()
+             with n_cmd as the percentage value to navigate to that specific
+             percentage of the file. This allows users to quickly jump to a
+             position in the file based on a percentage, which can be useful for
+             large files where line numbers may not be as meaningful. */
         case 'p':
         case '%':
             /// 'p' or '%' Go to Percent of File
@@ -564,17 +826,20 @@ int view_cmd_processor(Init *init) {
             else
                 go_to_percent(view, n_cmd);
             break;
+            /**  Ctrl('Z') - Send File to Print Queue with Notation
+             @note This feature is currently not supported for lack of testing.
+             @details This case handles the command to send the currently viewed
+             file to the print queue with an optional notation. The Ctrl('Z')
+             command allows the user to specify a notation that can be included
+             with the print job. When this command is entered, the user is
+             prompted to enter a notation, which is captured using
+             get_cmd_arg(). A temporary file is created to store the notation,
+             and shell commands are used to send the file to the print queue.
+             After the print command is executed, the temporary file is removed.
+             This feature provides users with a way to print the current file
+             while including additional information in the print job through the
+             use of notations. */
         case Ctrl('Z'):
-            /// 'Z' Send File to Print Queue, with Notation
-            /// This command allows the user to send the currently viewed file
-            /// to the print queue with an optional notation. The user is
-            /// prompted to enter a notation, which can be used to provide
-            /// additional information about the print job. The command
-            /// creates a temporary file to store the notation and then
-            /// uses shell commands to send the file to the print queue.
-            /// After the print command is executed, the temporary file
-            /// is removed.
-            /// Currently not supportd
             get_cmd_arg(view, "Enter Notation:");
             strnz__cpy(tmp_str, "/tmp/view-XXXXXX", MAXLEN - 1);
             tfd = mkstemp(tmp_str);
@@ -605,15 +870,39 @@ int view_cmd_processor(Init *init) {
             view->f_redisplay_page = true;
             unlink(tmp_str);
             break;
+            /**  'P' or KEY_CATAB or KEY_PRINT - Print Current File
+             @note this feature is currently not supported for lack of testing.
+             @details This case handles the command to print the currently
+             viewed file. The 'P' command, KEY_CATAB, and KEY_PRINT are used for
+             this purpose. When this command is entered, it simply prints the
+             name of the current file being viewed (cur_file_str) to the user.
+             After printing the file name, it sets f_redisplay_page to true to
+             refresh the display. This provides users with a quick way to see
+             the name of the file they are currently viewing, which can be
+             useful when navigating through multiple files or when working with
+             piped input. */
         case Ctrl('P'):
         case KEY_CATAB:
         case KEY_PRINT:
-            /// 'P' Print Current File
             lp(view->cur_file_str);
             view->f_redisplay_page = true;
             break;
+            /**  'P' or KEY_F(9) or ESC - Close Current File and Open
+             Previous Pile
+             @details This case handles the command to close the current file
+             and open the previous file in the list of files being viewed. The
+             'P' command, KEY_F(9), and ESC are used for this purpose. When this
+             command is entered, it checks if there are previous files available
+             in the view's argv array based on the current index (curr_argc). If
+             there are no previous files, it displays an error message
+             indicating that there is no previous file and sets curr_argc to 0.
+             If there are previous files, it decrements curr_argc to point to
+             the previous file and updates next_file_spec_ptr to point to the
+             new file specification. This will trigger the view to open the
+             previous file and display its contents, allowing users to easily
+             navigate back through their list of files without exiting the
+             application. */
         case 'P':
-            /// Close current file and open previous pile
             if (n_cmd <= 0)
                 n_cmd = 1;
             if (view->curr_argc - n_cmd < 0) {
@@ -626,6 +915,14 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
+            /**  'q' or 'Q' or KEY_F(9) or ESC - Quit the Application
+             @details This case handles the command to quit the application. The
+             'q', 'Q', KEY_F(9), and ESC commands are used for this purpose.
+             When this command is entered, it sets curr_argc to argc to indicate
+             that there are no more files to view and sets next_file_spec_ptr to
+             NULL. This will trigger the application to exit the view loop and
+             terminate, allowing users to quit the application gracefully when
+             they are finished viewing files. */
         case 'q':
         case 'Q':
         case KEY_F(9):
@@ -634,8 +931,26 @@ int view_cmd_processor(Init *init) {
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = NULL;
             return 0;
+            /**  'v' - Open Current File in Editor
+             @details This case handles the command to open the currently viewed
+             file in an external editor. The 'v' command is used for this
+             purpose. When this command is entered, it first checks if the view
+             is currently displaying help information, and if so, it ignores the
+             command. If the view is displaying piped input, it displays an
+             error message indicating that editing standard input is not
+             supported and suggests writing the data to a file and using the 'w'
+             command to save it before trying again. If the view is not
+             displaying piped input, it retrieves the default editor from the
+             environment variable DEFAULTEDITOR or uses a predefined
+             DEFAULTEDITOR if the environment variable is not set. It then
+             prepares a shell command to open the current file in the editor and
+             executes it using full_screen_shell(). After returning from the
+             editor, it updates the file position and specification to allow
+             returning to the current file when exiting the editor. This feature
+             provides users with a convenient way to edit the currently viewed
+             file using their preferred text editor directly from within the
+             application. */
         case 'v':
-            /// 'v' Open Current File in Editor
             if (view->f_displaying_help)
                 break;
             if (view->f_is_pipe) {
@@ -665,23 +980,21 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
             full_screen_shell(shell_cmd_spec);
             return 0;
+            /**  'w' - Write to File
+             @details This case handles the command to write the contents of the
+             currently viewed file to a specified output file. The 'w' command
+             allows the user to save the data being viewed, which is especially
+             useful when working with piped input. When this command is entered,
+             the user is prompted to enter the name of the output file using a
+             form. The application then verifies the specified output file path
+             and checks for write permissions. If the file can be opened
+             successfully, it writes the contents of the currently viewed file
+             to the specified output file. After writing, it displays a
+             confirmation message indicating how many bytes were written and
+             refreshes the view to reflect any changes. This feature provides
+             users with a convenient way to save the contents of their current
+             view to a new location on their filesystem. */
         case 'w':
-            /// 'w' - Write to File
-            /// @note This feature writes the file being viewed to a
-            /// specified output file.
-            /// @note The user is presented with a Form to enter the
-            /// filename.
-            /// @note View then duplicates the contents of the file or pipe
-            /// being viewed into the specified output file.
-            /// @note This command is useful for saving the contents of the
-            /// viewed file to a new location, especially when the user
-            /// wants to load piped input into an editor.
-            /// @note Error handling is included to manage issues with file
-            /// operations, such as opening or writing to the output file.
-            /// @note Upon successful writing, a confirmation message is
-            /// displayed to the user.
-            /// @note After writing, the view is refreshed to reflect any
-            /// changes.
             strnz__cpy(earg_str,
                        "form -d filename.f -o \"~/menuapp/data/form-out\"",
                        MAXLEN - 1);
@@ -747,30 +1060,33 @@ int view_cmd_processor(Init *init) {
         view->cmd_arg[0] = '\0';
     }
 }
+/** @brief Get Command Character and Numeric Argument
+   @details This function captures user input for command characters and numeric
+  arguments in the view. It handles both keyboard input and mouse events,
+  specifically for mouse wheel scrolling. The function uses the ncurses library
+  to detect mouse events and determine if the mouse wheel was scrolled up or
+  down, returning the appropriate command character for navigation. For keyboard
+  input, it captures numeric characters to build a numeric argument string,
+  which is then converted to an off_t value and stored in the provided pointer.
+  This allows the application to respond to user commands that may include
+  numeric arguments for actions such as navigating to a specific line or
+  percentage of the file.
+   @note Handling mouse events, specifically for mouse wheel scrolling, which is
+  common in terminal applications. The function uses the ncurses library's mouse
+  handling capabilities to detect mouse events and determine if the mouse wheel
+  was scrolled up or down. If a mouse event is detected, the function checks the
+  state of the mouse event to see if it corresponds to a scroll up
+  (BUTTON4_PRESSED) or scroll down (BUTTON5_PRESSED) action and returns the
+  appropriate command character (KEY_UP or KEY_DOWN).
+  @note If a mouse event is detected but does not correspond to a scroll action,
+  it returns MA_ENTER_OPTION to indicate that an option should be entered.
+   @note BUTTON4 and BUTTON5 are typically used for mouse wheel up and down
+   */
 int get_cmd_char(View *view, off_t *n) {
-    /// Get Command Character
-    /// Returns command character and numeric argument in n
-    /// Returns MA_ENTER_OPTION on mouse event
-    /// note Handles Mouse Wheel Up and Down as KEY_UP and KEY_DOWN
-    /// @param view Pointer to View structure
-    /// @param n Pointer to off_t to store numeric argument
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
-    /// Handling mouse events, specifically for mouse wheel scrolling, which is
-    /// common in terminal applications. The function uses the ncurses library's
-    /// mouse handling capabilities to detect mouse events and determine if the
-    /// mouse wheel was scrolled up or down. If a mouse event is detected, the
-    /// function checks the state of the mouse event to see if it corresponds to
-    /// a scroll up (BUTTON4_PRESSED) or scroll down (BUTTON5_PRESSED) action
-    /// and returns the appropriate command character (KEY_UP or KEY_DOWN). If a
-    /// mouse event is detected but does not correspond to a scroll action, it
-    /// returns MA_ENTER_OPTION to indicate that an option should be entered.
-    /// This allows the application to respond to mouse wheel events for
-    /// scrolling through the viewed content, enhancing the user experience by
-    /// providing an additional method of navigation.
     MEVENT event;
-    /// BUTTON4 and BUTTON5 are typically used for mouse wheel up and down
     mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, NULL);
     tcflush(2, TCIFLUSH);
     do {
@@ -795,8 +1111,6 @@ int get_cmd_char(View *view, off_t *n) {
     return (c);
 }
 int get_cmd_arg(View *view, char *prompt) {
-    /// Get Argument String from View's Command Line
-    /// Returns 0 on Enter, @, F9, ESC, or Mouse Event
     int c;
     int numeric_arg = false;
     char *cmd_p;
@@ -891,13 +1205,19 @@ int get_cmd_arg(View *view, char *prompt) {
     }
     return c;
 }
+/** @brief Build Prompt String
+   @details This function constructs the prompt string that is displayed to the
+  user in the command line area of the view. The prompt string can include
+  various pieces of information about the current state of the view, such as the
+  file name, column position, file position, percentage through the file, and
+  elapsed time for timer display. The function takes into account the specified
+  prompt type (short, long, or none) and builds the prompt string accordingly,
+  concatenating different pieces of information based on the current state of
+  the view and the provided parameters. This allows users to have a clear and
+  informative prompt that reflects their current position and context within the
+  file they are viewing. */
 void build_prompt(View *view, int prompt_type, char *prompt_str,
                   double elapsed) {
-    /// Build Prompt String
-    /// @param view Pointer to View structure
-    /// @param prompt_type Prompt Type (PT_SHORT, PT_LONG, PT_NONE)
-    /// @param prompt_str Pointer to character array to store prompt
-    /// @param elapsed Elapsed time in seconds for timer display
     prompt_type = PT_LONG;
     strnz__cpy(prompt_str, " ", MAXLEN - 1);
     if (prompt_type == PT_LONG) {
@@ -958,8 +1278,15 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
         strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
     }
 }
+/** @brief Concatenate File to Standard Output
+   @details This function reads the contents of the currently viewed file and
+  outputs it to the standard output (stdout). It uses a loop to read characters
+  from the file until it reaches the end of data (EOD). The function checks for
+  the EOD condition after each character is read, and if it is reached, it
+  breaks out of the loop. Otherwise, it outputs the character to stdout using
+  putchar(). This allows users to easily output the contents of the file they
+  are viewing to the terminal or to another command in a pipeline. */
 void cat_file(View *view) {
-    /// Concatenate File to Standard Output
     int c;
     while (1) {
         get_next_char();
@@ -968,6 +1295,15 @@ void cat_file(View *view) {
         putchar(c);
     }
 }
+/** @brief Send File to Print Queue
+   @details This function sends the currently viewed file to the print queue
+  using a specified print command. It retrieves the print command from the
+  environment variable PRINTCMD or uses a predefined PRINTCMD if the environment
+  variable is not set. The function constructs a shell command by concatenating
+  the print command with the name of the file to be printed (PrintFile) and
+  executes it using the shell() function. This allows users to easily print the
+  contents of the file they are viewing by sending it to their configured print
+  command. */
 void lp(char *PrintFile) {
     /// Send File to Print Queue
     char *print_cmd_ptr;
@@ -982,12 +1318,20 @@ void lp(char *PrintFile) {
              view->smincol, view->smaxrow, view->smaxcol);
     shell(shell_cmd_spec);
 }
+/** @brief Go to Mark
+   @note Marks have been disabled and may be removed in future versions of View.
+   @details This function allows the user to navigate to a specific mark in the
+   file being viewed. Marks are typically set by the user at specific positions
+   in the file for easy reference. The function takes a character representing
+   the mark (from 'a' to 'z' or '\'') and retrieves the corresponding file
+   position from the view's mark table. If the mark is not set (i.e., the file
+   position is NULL_POSITION), it displays an error message indicating that the
+   mark is not set. If the mark is set, it calls go_to_position() with the
+   retrieved file position to navigate to that location in the file. This
+   feature allows users to quickly jump to predefined positions in the file,
+   enhancing navigation and efficiency when working with large files. Note that
+   marks have been disabled and may be removed in future versions of View. */
 void go_to_mark(View *view, int c) {
-    /// Go to Mark
-    /// @param view structure
-    /// @param c Mark Character ('a' to 'z' or '\'')
-    /// Marks have been disabled and may be removed in future versions
-    /// of View.
     if (c == '\'')
         view->file_pos = view->mark_tbl[(NMARKS - 1)];
     else
@@ -997,27 +1341,37 @@ void go_to_mark(View *view, int c) {
     else
         go_to_position(view, view->file_pos);
 }
+/** @brief Go to End of File
+   @details This function navigates to the end of the file being viewed. It sets
+   the file position to the size of the file, which effectively moves the view
+   to the end. It also updates the page_top_pos to match the new file position.
+   After setting these positions, it calls get_prev_char() to adjust the view
+   and then calls prev_page() to display the last page of the file. This allows
+   users to quickly jump to the end of the file and view its contents from
+   there. */
 void go_to_eof(View *view) {
-    /// Go to End of File
     int c;
     view->file_pos = view->file_size;
     view->page_top_pos = view->file_pos;
     get_prev_char();
     prev_page(view);
 }
+/** @brief Go to Specific Line
+   @details This function allows the user to navigate to a specific line number
+   in the file being viewed. Since C-Menu View does not maintain an index of
+   line numbers, it reads through the file from the beginning up to the
+   specified line number. The function takes a line index (1-based) as input and
+   iterates through the file character by character, counting newline characters
+   until it reaches the desired line. If it reaches the end of data (EOD) before
+   finding the specified line, it displays an error message indicating that the
+   end of data was reached at a certain number of lines. If it successfully
+   reaches the specified line, it updates the page_top_pos to the current file
+   position and calls prev_page() to display the page starting from that line.
+   This allows users to jump to a specific line in the file, although it may be
+   less efficient for large files due to the need to read through the file
+   sequentially. Future implementations may consider adding a line index for
+   faster access to specific lines. */
 int go_to_line(View *view, off_t line_idx) {
-    /// Go to Specific Line
-    /// @param view structure
-    /// @param line_idx Line Number to Go To (1 based)
-    /// Returns EOF on error
-    /// Unlike less, C-Menu View does not automatically keep track of
-    /// line numbers in the file being viewed. Therefore, to go to a
-    /// specific line, View must read through the file from the beginning
-    /// up to the specified line number. This approach can be less
-    /// efficient for large files, but it simplifies the implementation
-    /// and avoids the need for maintaining a line index.
-    /// This may change in the future if we decide to implement a line index
-    /// for faster access to specific lines.
     int c = 0;
     off_t line_cnt = 0;
     if (line_idx <= 1) {
@@ -1061,39 +1415,40 @@ void go_to_percent(View *view, int Percent) {
     get_next_char();
     next_page(view);
 }
+/** @brief Go to Specific File Position
+   @details This function allows the user to navigate to a specific file
+   position in the file being viewed. It takes a file position (go_to_pos) as
+   input and updates the view's file_pos to that position. It also sets the
+   page_bot_pos to match the new file position. After updating these positions,
+   it calls next_page() to display the page starting from the specified file
+   position. This allows users to jump directly to a specific byte offset in the
+   file, which can be useful for large files or when navigating based on byte
+   positions rather than line numbers. The function locates the nearest line
+   starting at or after the specified file position and displays the page
+   starting from that line. */
 void go_to_position(View *view, off_t go_to_pos) {
-    /// Go to Specific File Position
-    /// @param view structure
-    /// @param go_to_pos File Position to Go To
-    /// Locates the nearest line starting at or after the specified
-    /// file position and displays the page starting from that line.
     view->f_forward = true;
     view->file_pos = go_to_pos;
     view->page_bot_pos = view->file_pos;
     next_page(view);
 }
+/** @brief Search for Regular Expression Pattern
+   @details This function performs a search for a regular expression pattern
+   within the file being viewed. It supports extended regular expressions and
+   allows for both forward and backward searching based on the search command
+   provided ('/' for forward, '?' for backward). The function takes a regex
+   pattern as input and compiles it using the regcomp() function. It then
+   iterates through the lines of the file, applying the compiled regular
+   expression to each line using regexec(). If a match is found, it displays the
+   matching line along with some leading context lines. The search continues
+   until the entire file has been searched, wrapping around to the starting
+   position if necessary. If no new matches are found after wrapping, a message
+   is displayed indicating that the search is complete. The function also
+   handles highlighting of matches in the display and provides information about
+   the location of matches in the command line prompt. This allows users to
+   efficiently search for specific patterns within large files while providing
+   visual feedback on where matches occur. */
 bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
-    /// Search for Regular Expression Pattern
-    /// Supports extended regular expressions.
-    /// @param view Pointer to View structure
-    /// @param search_cmd Search Command ('/' for forward, '?' for backward)
-    /// @param regex_pattern Regular Expression Pattern to Search For
-    /// @param repeat true to repeat previous search from current position
-    /// Returns true if match found, false if no match or error
-    /// Each time a match is found, the matching line along with
-    /// some leading context lines are displayed. The search continues
-    /// until the entire file has been searched. If the search reaches
-    /// the end (or beginning) of the file without finding a new match,
-    /// searching continues until it wraps around to the starting position.
-    /// If no new matches are found after wrapping, a message is displayed
-    /// indicating that the search is complete.
-    ///
-    /// Because we are writing complex characters to an NCurses pad, all
-    /// matches are highlighted, including those beyond the right margin of
-    /// the display. An indication of the starting and ending colums of the
-    /// match is shown in the command line prompt, so that if a match is not
-    /// visible on the screen, the user can still determine where the match
-    /// occurred and scroll horizontally to view it.
     int REG_FLAGS = 0;
     regmatch_t pmatch[1];
     regex_t compiled_regex;
@@ -1160,16 +1515,14 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             view->page_top_pos = srch_curr_pos;
         }
         fmt_line(view);
-        //  Perform extended regular expression matching. ANSI
-        //  sequences and Unicode characters are stripped before
-        //  matching, so matching corresponds to the visual
-        //  display of the line.
+        /**  Perform extended regular expression matching. ANSI sequences and
+         * Unicode characters are stripped before matching, so matching
+         * corresponds to the visual display of the line. */
         reti = regexec(&compiled_regex, view->stripped_line_out,
                        compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-        //  Once a match is found, leading context lines are
-        //  displayed at the top of the page. After that, all
-        //  subsequent lines without matches are displayed until
-        //  the page is full.
+        /** Once a match is found, leading context lines are displayed at the
+         * top of the page. After that, all subsequent lines without matches are
+         * displayed until the page is full. */
         if (reti == REG_NOMATCH) {
             if (f_page) {
                 display_line(view);
@@ -1195,15 +1548,13 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             view->page_top_pos = srch_curr_pos;
             f_page = true;
         }
-        //  Search continues displaying matches until the page
-        //  is full.
+        /** Search continues displaying matches until the page is full. */
         display_line(view);
         //----------------------------------------------
         cury = view->cury;
-        //  All matches on the current line are highlighted,
-        //  including those not displayed on the screen. Track
-        //  first and last match columns for prompt display.
-        //
+        /** All matches on the current line are highlighted, including those not
+         * displayed on the screen. Track first and last match columns for
+         * prompt display. */
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
@@ -1222,10 +1573,10 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             view->line_out_p = view->stripped_line_out + line_offset;
             reti = regexec(&compiled_regex, view->line_out_p,
                            compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-            //  @note lines may be much longer than the screen width, so
-            //  continue searching even if the line is not displayed
-            //  completely. The pad's complex characters (cchar_t) will
-            //  handle the display for horizantal scrolling.
+            /** @note lines may be much longer than the screen width, so
+             * continue searching even if the line is not displayed completely.
+             * The pad's complex characters (cchar_t) will handle the display
+             * for horizantal scrolling. */
             if (reti == REG_NOMATCH)
                 break;
             if (reti) {
@@ -1242,8 +1593,7 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             }
         }
     }
-    //  Update view positions and prepare prompt string
-    //  for match information
+    /** Update view positions and prepare prompt string for match information */
     view->file_pos = srch_curr_pos;
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
@@ -1260,15 +1610,15 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     regfree(&compiled_regex);
     return true;
 }
+/** @brief Resize Viewing Page
+   @details This function adjusts the size of the viewing window based on the
+  current terminal dimensions and the view's settings. If the view is set to
+  full screen, it resizes to occupy the entire terminal. Otherwise, it checks if
+  the view's dimensions exceed the terminal size and adjusts them accordingly.
+  If a resize occurs, it sets a flag to indicate that the page needs to be
+  redisplayed. This function ensures that the viewing window is appropriately
+  sized for the terminal, providing an optimal viewing experience for users. */
 void resize_page(Init *init) {
-    /// Resize Page
-    /// This function adjusts the size of the viewing window based
-    /// on the current terminal dimensions and the view's settings.
-    /// If the view is set to full screen, it resizes to occupy
-    /// the entire terminal. Otherwise, it checks if the view's
-    /// dimensions exceed the terminal size and adjusts them accordingly.
-    /// If a resize occurs, it sets a flag to indicate that the page
-    /// needs to be redisplayed.
     int scr_lines, scr_cols;
     bool f_resize = false;
     view = init->view;
@@ -1307,15 +1657,18 @@ void resize_page(Init *init) {
     else
         view->f_redisplay_page = false;
 }
+/** @brief Redisplay Current Page
+   @details This function is responsible for redisplaying the current page of
+   the file being viewed. It clears the screen and displays the lines starting
+   from the top of the page (view->page_top_pos) up to the bottom of the page
+   (view->page_bot_pos). The function iterates through the lines, formatting
+   each line and displaying it on the screen. It also keeps track of the maximum
+   column width encountered for proper horizontal scrolling. This function is
+   typically called when the view needs to be refreshed, such as after resizing
+   or when returning to a previously viewed page. It ensures that the current
+   page is accurately displayed to the user based on the current file position
+   and view settings. */
 void redisplay_page(View *view) {
-    /// Redisplay Current Page
-    /// @param view Pointer to View structure
-    /// view->page_top_pos is the top of page pointer
-    /// view->page_bot_pos is the bottom of page pointer
-    /// view->cury is the current line on the screen
-    /// view->maxcol is the off_test line on the page
-    /// @note Clears the screen and displays the current page of lines
-    /// starting from view->page_top_pos
     int i;
     int line_len;
     view->cury = 0;
@@ -1331,20 +1684,16 @@ void redisplay_page(View *view) {
         display_line(view);
     }
 }
+/** @brief Advance to Next Page
+   @details This function advances the view to the next page of the file being
+   viewed. It updates the file position to the bottom of the current page and
+   reads lines forward until it fills the screen with the next set of lines. The
+   function keeps track of the top and bottom positions of the page, as well as
+   the maximum column width for proper horizontal scrolling. It clears the
+   screen and displays the next page of lines based on the updated file
+   position. This allows users to navigate through the file page by page, moving
+   forward through the content. */
 void next_page(View *view) {
-    /// Advance to Next Page
-    /// @param view Pointer to View structure
-    /// view->file_pos is the file position pointer
-    /// view->page_top_pos is the top of page pointer
-    /// view->page_top_bot is the bottom of page pointer
-    /// view->cury is the current line on the screen
-    /// view->maxcol is the off_test line on the page
-    /// view->f_forward is the direction flag
-    /// @note Advances the view to the next page by reading lines from
-    /// view->page_bot_pos forward
-    /// @note Keeps track of view->page_top_pos, which will be needed for
-    /// KEY_UP and KEY_PPAGE
-    /// @note Clears the screen and displays the next page of lines
     int i;
     int line_len;
     curs_set(0);
@@ -1369,17 +1718,15 @@ void next_page(View *view) {
     view->page_bot_pos = view->file_pos;
     curs_set(1);
 }
+/** @brief display previous page
+   @details updates the file position to the top of the current page and reads
+   lines backward until it fills the screen with the previous set of lines. The
+   function keeps track of the top and bottom positions of the page, as well as
+   the maximum column width for proper horizontal scrolling. It clears the
+   screen and displays the previous page of lines based on the updated file
+   position. This allows users to navigate backward through the file page by
+   page, moving back through the content they have already viewed. */
 void prev_page(View *view) {
-    /// Go to Previous Page
-    /// @param view Pointer to View structure
-    /// view->file_pos is the file position pointer
-    /// view->page_top_pos is the top of page pointer
-    /// view->page_top_bot is the bottom of page pointer
-    /// view->cury is the current line on the screen
-    /// view->maxcol is the off_test line on the page
-    /// view->f_forward is the direction flag
-    /// @note Moves the view to the previous page by reading lines backward
-    /// from view->page_top_pos
     int i;
     curs_set(0);
     if (view->page_top_pos == 0)
@@ -1398,14 +1745,16 @@ void prev_page(View *view) {
     view->page_bot_pos = view->file_pos;
     next_page(view);
 }
+/** @brief Scroll N Lines
+   @details This function scrolls the view up or down by a specified number of
+   lines (n). It adjusts the page top and bottom pointers accordingly and
+   updates the display to reflect the new position in the file. The function
+   takes into account the direction of scrolling (forward or backward) and
+   ensures that it does not scroll beyond the beginning or end of the file. It
+   also updates the maximum column width for proper horizontal scrolling. This
+   allows users to scroll through the file line by line, providing more granular
+   control over navigation compared to page-by-page scrolling. */
 void scroll_down_n_lines(View *view, int n) {
-    /// Scroll Forward N Lines
-    /// @param view Pointer to View structure
-    /// @param n Number of Lines to Scroll (1 to scroll_lines - 1)
-    /// May be from 1 to scroll_lines - 1
-    /// Adjust Page Top and Bottom Pointers
-    /// Scroll Screen Up by N Lines
-    /// Fill in Page Bottom with N New Lines
     int i = 0;
     int line_len;
     curs_set(0);
@@ -1438,14 +1787,16 @@ void scroll_down_n_lines(View *view, int n) {
     view->page_bot_pos = view->file_pos;
     curs_set(1);
 }
+/** @brief Scroll Up N Lines
+   @details This function scrolls the view up (back) by a specified number of
+   lines (n). It adjusts the page top and bottom pointers accordingly and
+   updates the display to reflect the new position in the file. The function
+   takes into account the direction of scrolling (backward) and ensures that it
+   does not scroll beyond the beginning of the file. It also updates the maximum
+   column width for proper horizontal scrolling. This allows users to scroll
+   backward through the file line by line, providing more granular control over
+   navigation compared to page-by-page scrolling. */
 void scroll_up_n_lines(View *view, int n) {
-    /// Scroll Up (back) N Lines
-    /// @param view Pointer to View structure
-    /// @param n Number of Lines to Scroll (1 to scroll_lines - 1)
-    /// May be from 1 to scroll_lines - 1
-    /// Adjust Page Top and Bottom Pointers
-    /// Scroll Screen Down by N Lines
-    /// Fill in Page Top with N New Lines
     int i;
     int line_len;
     curs_set(0);
@@ -1484,20 +1835,17 @@ void scroll_up_n_lines(View *view, int n) {
     curs_set(1);
     return;
 }
+/** @brief Get Next Line from File
+   @details This function reads the next line from the file being viewed and
+   stores it in the view's line_in_s buffer. It takes into account various
+   factors such as skipping carriage return characters, handling newline
+   characters to terminate lines, and compressing multiple blank lines if the
+   f_squeeze flag is set. The function updates the file position pointer
+   (view->file_pos) as it reads through the file and returns the updated file
+   position after reading the line. This allows users to read lines sequentially
+   from the file while properly handling different line-ending conventions and
+   formatting requirements. */
 off_t get_next_line(View *view, off_t pos) {
-    /// Get Next Line from File into line_in_s
-    /// @param view struct
-    /// @param pos file position to start reading from
-    /// @return updated file position pointer
-    /// view->file_pos is the file position pointer
-    /// view->f_forward is the direction flag
-    /// @note the input may contain ANSI SGR sequences or Unicode,
-    /// which will be handled later during formatting for display
-    /// @note Carriage Return (0x0d) characters are skipped
-    /// @note Newline (0x0a) characters terminate the line
-    /// @note If view->f_squeeze is set, multiple blank lines are
-    /// compressed to a single blank line
-    /// view->f_forward is the direction flag
     uchar c;
     char *line_in_p;
     view->file_pos = pos;
@@ -1543,12 +1891,17 @@ off_t get_next_line(View *view, off_t pos) {
     }
     return view->file_pos;
 }
+/** @brief Get Previous Line from File
+   @details This function reads the previous line from the file being viewed and
+   stores it in the view's line_in_s buffer. It takes into account various
+   factors such as skipping carriage return characters, handling newline
+   characters to terminate lines, and compressing multiple blank lines if the
+   f_squeeze flag is set. The function updates the file position pointer
+   (view->file_pos) as it reads through the file and returns the updated file
+   position after reading the line. This allows users to read lines sequentially
+   backward from the file while properly handling different line-ending
+   conventions and formatting requirements. */
 off_t get_prev_line(View *view, off_t pos) {
-    /// Get Previous Line from File into line_in_s
-    /// @param view structure
-    /// @param pos is the file position pointer
-    /// @return updated file position pointer
-    /// view->f_reverse is the direction flag
     uchar c;
     view->file_pos = pos;
     view->f_forward = false;
@@ -1582,14 +1935,17 @@ off_t get_prev_line(View *view, off_t pos) {
         view->f_eod = false;
     return view->file_pos;
 }
+/** @brief Get Position of Next Line
+   @details This function locates the nearest line starting at or after the
+   specified file position and returns the file position pointer for that line.
+   It takes into account various factors such as skipping carriage return
+   characters, handling newline characters to terminate lines, and compressing
+   multiple blank lines if the f_squeeze flag is set. The function updates the
+   file position pointer (view->file_pos) as it reads through the file and
+   returns the updated file position after locating the next line. This allows
+   users to navigate through the file by lines, moving forward to the next line
+   based on a given file position. */
 off_t get_pos_next_line(View *view, off_t pos) {
-    /// Get Position of Next Line
-    /// @param view structure
-    /// @param pos file position to start reading from
-    /// @return updated file position pointer
-    /// @note Locates the nearest line starting at or after the specified
-    /// file position and returns the file position pointer for that line.
-    /// view->f_forward is the direction flag
     uchar c;
     if (pos == view->file_size) {
         view->f_eod = true;
@@ -1619,12 +1975,17 @@ off_t get_pos_next_line(View *view, off_t pos) {
     }
     return view->file_pos;
 }
+/** @brief Get Position of Previous Line
+   @details This function locates the nearest line starting at or before the
+   specified file position and returns the file position pointer for that line.
+   It takes into account various factors such as skipping carriage return
+   characters, handling newline characters to terminate lines, and compressing
+   multiple blank lines if the f_squeeze flag is set. The function updates the
+   file position pointer (view->file_pos) as it reads through the file and
+   returns the updated file position after locating the previous line. This
+   allows users to navigate through the file by lines, moving backward to the
+   previous line based on a given file position. */
 off_t get_pos_prev_line(View *view, off_t pos) {
-    /// Get Position of Previous Line
-    /// @param view structure
-    /// @param pos is the file position pointer
-    /// @return updated file position pointer
-    /// view->f_forward is the direction flag
     uchar c;
     view->file_pos = pos;
     if (view->file_pos == 0) {
@@ -1649,12 +2010,18 @@ off_t get_pos_prev_line(View *view, off_t pos) {
     }
     return view->file_pos;
 }
+/** @brief Display Line on Pad
+   @details This function is responsible for displaying a line of text on the
+   pad (the viewing window). It uses the current line position (view->cury) and
+   the complex character buffer (view->cmplx_buf) to render the line on the
+   screen. The function also takes into account the pad refresh parameters
+   (view->pminrow, view->pmincol, view->sminrow, view->smincol, view->smaxrow,
+   view->smaxcol) to ensure that the display is updated correctly. After
+   rendering the line, it calls prefresh() to refresh the pad and display the
+   changes on the screen. This function is typically called after formatting a
+   line for display to ensure that it is rendered properly in the viewing
+   window. */
 void display_line(View *view) {
-    /// Display Line on Pad
-    ///     view->cury is the current line on the screen
-    ///     view->cmplx_buf is the complex character buffer for the line
-    ///     view->pminrow, view->pmincol, view->sminrow, view->smincol,
-    ///     view->smaxrow, view->smaxcol are the pad refresh parameters
     int rc;
     if (view->cury < 0)
         view->cury = 0;
@@ -1670,34 +2037,20 @@ void display_line(View *view) {
     if (rc == ERR)
         Perror("Error refreshing screen");
 }
+/** @brief Format Line for Display
+   @details This function processes the input line (view->line_in_s) and formats
+   it for display on the screen. It handles ANSI SGR escape sequences to apply
+   text attributes and color pairs, as well as Unicode multi-byte characters to
+   ensure proper rendering. The function also handles tab characters by
+   inserting spaces until the next tab stop. The resulting formatted line is
+   stored in the view's cmplx_buf as complex characters (cchar_t) for display,
+   while a stripped version of the line without ANSI sequences is stored in
+   view->stripped_line_out for searching purposes. The function returns the
+   length of the processed line, which is used to track the maximum column width
+   for display and searching. This allows for accurate rendering of lines with
+   complex formatting and character sets while maintaining a clean version of
+   the line for search operations. */
 int fmt_line(View *view) {
-    /// Format Line for Display
-    /// Handle ANSI SGR Sequences and Unicode Multi-byte Characters
-    /// @return length of line
-    /// @note Convert line_in_s to line_out_s with complex characters
-    /// @note Handle ANSI SGR sequences for text attributes
-    /// @note Handle Unicode multi-byte characters
-    /// @note Handle Tab characters
-    /// Resulting lines must match in length and position
-    /// view->line_in_s is the input line with ANSI and Unicode
-    /// view->stripped_line_out is the output line without ANSI sequences,
-    /// used for searching
-    /// view->cmplx_buf is the output complex character buffer
-    /// view->tab_stop is the tab stop setting
-    /// view->maxcol is the maximum column on the page
-    /// @return length of line
-    /// This function processes the input line character by character. When it
-    /// encounters an ANSI escape sequence, it parses the sequence to update the
-    /// current text attributes and color pair index. For displayable
-    /// characters, it handles tabs by inserting spaces until the next tab stop,
-    /// and it uses mbtowc to convert multi-byte characters to wide characters.
-    /// Each character is then converted to a complex character (cchar_t) with
-    /// the appropriate attributes and stored in the cmplx_buf for display. The
-    /// stripped_line_out is also updated with the visible characters for
-    /// searching purposes. The function returns the length of the processed
-    /// line, which is used to track the maximum column for display and
-    /// searching.
-    //
     attr_t attr = WA_NORMAL;
     char ansi_tok[MAXLEN];
     int cpx = cp_norm;
@@ -1709,10 +2062,9 @@ int fmt_line(View *view) {
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
     rtrim(view->line_out_s);
-    /// Initialize multibyte to wide char conversion
-    /// mbtowc, setcchar, and getcchar can sometimes behave badly,
-    /// depending on what you feed them. Make sure your locale is set
-    /// properly before calling them.
+    /** Initialize multibyte to wide char conversion mbtowc, setcchar, and
+     * getcchar can sometimes behave badly, depending on what you feed them.
+     * Make sure your locale is set properly before calling them. */
     mbtowc(NULL, NULL, 0);
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
@@ -1740,7 +2092,7 @@ int fmt_line(View *view) {
             }
             s = &in_str[i];
             if (*s == '\t') {
-                //  Handle Tab Character
+                /**  Handle Tab Character */
                 wc = L' ';
                 do {
                     setcchar(&cc, &wc, attr, cpx, NULL);
@@ -1749,17 +2101,16 @@ int fmt_line(View *view) {
                 } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
-                // Handle Multi-byte Character
-                // Use mbtowc to get the wide character and its
-                // length in bytes from the multibyte string
+                /** Handle Multi-byte Character Use mbtowc to get the wide
+                 * character and its length in bytes from the multibyte string
+                 */
                 len = mbtowc(&wc, s, MB_CUR_MAX);
                 if (len <= 0) {
-                    // Invalid multibyte sequence, replace with '?'
+                    /** Invalid multibyte sequence, replace with '?' */
                     wc = L'?';
                     len = 1;
                 }
-                // Convert wide character + attributes to complex
-                // character
+                /** Convert wide character + attributes to complex character */
                 if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
                     if (len > 0 && (j + len) < PAD_COLS - 1) {
                         view->stripped_line_out[j] = *s;
@@ -1778,25 +2129,24 @@ int fmt_line(View *view) {
     view->stripped_line_out[j] = '\0';
     return j;
 }
+/** @brief Parse ANSI SGR Escape Sequence
+   @param ansi_str is the ANSI SGR escape sequence string to be parsed
+   @param attr is a pointer to an attr_t variable where the parsed text
+   attributes will be stored
+   @param cpx is a pointer to an integer where the parsed color pair index will
+   be stored
+   @details This function parses ANSI SGR (Select Graphic Rendition) escape
+   sequences to extract text attributes and color information. It supports SGR
+   sequences for Xterm 256-color and RGB colors, allowing for a wide range of
+   text formatting options. The function updates the provided attr_t variable
+   with the appropriate text attributes (such as bold, italic, underline) and
+   the color pair index (cpx) based on the parsed ANSI sequence. It handles
+   various forms of SGR sequences, including those for setting foreground and
+   background colors, as well as resetting to default colors. The function also
+   includes error handling for invalid parameters in the ANSI sequence. This
+   allows for dynamic and flexible text formatting based on ANSI escape codes
+   embedded in the input string. */
 void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
-    /// Parse ANSI SGR Escape Sequences
-    /// @note Supports SGR sequences for Xterm 256-color and
-    /// 256 x 256 x 256 = 16,777,216 RGB colors
-    /// @note Updates attr and cpx for text attributes and color pair index
-    /// @note The color pairs are updated dynamically as needed
-    /// @param ansi_str is the ANSI SGR escape sequence string
-    /// @param attr is the text attribute output
-    /// @param cpx is the color pair index output
-    /// @note ANSI SGR sequences can be complex, with multiple parameters
-    /// separated by semicolons. This function parses the parameters and
-    /// updates the text attributes and color pair index accordingly. its
-    /// designed to handle the various forms of SGR sequences, including those
-    /// for 256-color and RGB colors, as well as the default color reset. It
-    /// also handles errors in parameter parsing gracefully. This was made
-    /// possible by the use of strtok for tokenization and a_toi for safe
-    /// integer conversion, along with careful tracking of the current color
-    /// settings to minimize unnecessary updates to the color pair index.
-    ///
     char *tok;
     char t0, t1;
     int len, x_idx;
@@ -1906,6 +2256,16 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     }
     return;
 }
+/** @brief Display Command Line Prompt
+   @details This function displays a command line prompt at the bottom of the
+   viewing window. It takes a string (s) as input and formats it to fit within
+   the width of the pad. The prompt is displayed in reverse video (highlighted)
+   to distinguish it from the regular content. The function also ensures that
+   the prompt is properly aligned and does not exceed the maximum width of the
+   pad. After displaying the prompt, it refreshes the window to show the updated
+   content. This allows for interactive prompts to be shown to the user, such as
+   search results or command feedback, while maintaining a clear and organized
+   display. */
 void cmd_line_prompt(View *view, char *s) {
     /// Display Command Line Prompt
     /// @param view is the current view data structure
@@ -1926,6 +2286,14 @@ void cmd_line_prompt(View *view, char *s) {
     }
     wrefresh(view->win);
 }
+/** @brief Remove File
+   @details This function prompts the user to confirm the removal of the
+   currently viewed file. If the user confirms by entering 'Y' or 'y', the
+   function proceeds to remove the file from the filesystem. The prompt is
+   displayed on the command line of the viewing window, and the user's input is
+   captured to determine whether to proceed with the file removal. This allows
+   users to easily delete files directly from the view interface while providing
+   a confirmation step to prevent accidental deletions. */
 void remove_file(View *view) {
     /// Remove File
     /// @param view is the current view data structure
@@ -1940,6 +2308,16 @@ void remove_file(View *view) {
             remove(view->cur_file_str);
     }
 }
+/** @brief Display View Help File
+   @details This function displays the help file for the view feature. It sets
+   up a temporary view to show the help content, ensuring that the current view
+   is preserved and restored after displaying the help. The function prepares
+   the command-line arguments to specify the help file and configures the
+   dimensions and position of the help view. After displaying the help content,
+   it restores the original view and sets a flag to indicate that the page
+   should be redisplayed when returning to it. This allows users to access
+   helpful information about using the view feature without losing their current
+   context in the file they are viewing. */
 void view_display_help(Init *init) {
     /// Display View Help File
     /// @param init is the current init data structure

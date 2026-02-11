@@ -53,13 +53,17 @@ char *tilde_expand(char *);
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
+/** @brief Main initialization function for MAPP - Menu Application
+   @param init - pointer to Init struct to be initialized
+   @param argc - argument count from main()
+   @param argv - argument vector from main()
+   1. Read environment variables and set defaults
+   2. Parse configuration file
+   3. Parse command-line options
+   4. Set up SIO struct with colors and other settings
+   5. Handle special options like help and version
+ */
 void mapp_initialization(Init *init, int argc, char **argv) {
-    /// Main initialization function for MAPP - Menu Application
-    /// 1. Read environment variables and set defaults
-    /// 2. Parse configuration file
-    /// 3. Parse command-line options
-    /// 4. Set up SIO struct with colors and other settings
-    /// 5. Handle special options like help and version
     char term[MAXLEN];
     char *t;
     setlocale(LC_ALL, "en_US.UTF-8");
@@ -72,14 +76,14 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     }
     if (init->minitrc[0] == '\0')
         strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
-    sio->bg_color = BG_COLOR;                     // B: background color
-    sio->fg_color = FG_COLOR;                     // F: foreground color
-    sio->bo_color = BO_COLOR;                     // O: border colorZ
-    init->f_at_end_clear = true;                  // z  clear screen on exit
-    init->f_erase_remainder = true;               // e  erase remainder on enter
-    init->brackets[0] = '\0';                     // u  brackets
-    strnz__cpy(init->fill_char, "_", MAXLEN - 1); // f  fill character
-    init->prompt_type = PT_LONG;                  // P: prompt type
+    sio->bg_color = BG_COLOR;       /**< background color */
+    sio->fg_color = FG_COLOR;       /**< foreground color */
+    sio->bo_color = BO_COLOR;       /**< border color */
+    init->f_at_end_clear = true;    /**< clear screen on exit (obsolete) */
+    init->f_erase_remainder = true; /**< erase remainder on enter */
+    init->brackets[0] = '\0';       /**< field enclosure brackets */
+    strnz__cpy(init->fill_char, "_", MAXLEN - 1); /**< field fill character */
+    init->prompt_type = PT_LONG;                  /**< view prompt type */
     strnz__cpy(init->mapp_spec, "main.m", MAXLEN - 1);
     strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
     strnz__cpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
@@ -93,11 +97,11 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         strnz__cpy(term, "xterm-256color", MAXLEN);
     }
 
-    parse_config(init);
+    parse_config(init); /**< generally /home/user/.minitrc */
     if (f_debug)
         dump_config(init, "Configuration after parse_config");
-    // Priority 1 - opt_args
-    parse_opt_args(init, argc, argv);
+    parse_opt_args(init, argc,
+                   argv); /**< command-line options override config file */
     if (f_dump_config) {
         dump_config(init, "Configuration after parse_config and "
                           "parse_opt_args");
@@ -118,9 +122,14 @@ void mapp_initialization(Init *init, int argc, char **argv) {
             abend(-1, "MAPP_HOME directory invalid");
     }
 }
+/** @brief Initialize optional arguments in the Init struct to default values
+    @param init - pointer to Init struct to be initialized
+    This function sets all optional argument fields in the Init struct to
+    their default values before parsing command-line options or configuration
+    file. This ensures that any fields not specified by the user will have
+    known default values.
+ */
 void zero_opt_args(Init *init) {
-    /// Initializes the Init struct fields to default values before parsing
-    /// a new command-line.
     init->f_mapp_desc = false;
     init->f_provider_cmd = false;
     init->f_receiver_cmd = false;
@@ -137,13 +146,14 @@ void zero_opt_args(Init *init) {
     init->in_spec[0] = '\0';
     init->out_spec[0] = '\0';
 }
+/** @brief Parse command-line options and set Init struct values accordingly
+    @param init - pointer to Init struct
+    @param argc - argument count
+    @param argv - argument vector
+    Return index of first non-option argument
+    @note Accepts both short and long options
+ */
 int parse_opt_args(Init *init, int argc, char **argv) {
-    /// Parse command-line options and set Init struct values accordingly
-    /// @param init - pointer to Init struct
-    /// @param argc - argument count
-    /// @param argv - argument vector
-    /// Return index of first non-option argument
-    /// @note Accepts both short and long options
     int i;
     int opt;
     int longindex = 0;
@@ -333,8 +343,15 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     init->argc = argc;
     return optind;
 }
-/// Parse the configuration file and set Init struct values accordingly
-/// Returns 0 on success, -1 on failure
+/** @brief parse the configuration file specified in init->minitrc and set Init
+   struct values accordingly
+    @returns on success, -1 on failure
+    @note lines beginning with '#" are comments, discard
+    @note copy line to tmp_str removing quotes, spaces, semicolons, and newlines
+    @note record structure is "parse key=value pairs"
+    @note skip lines without '='
+    @note set init struct values based on key
+    @note skips unknown keys */
 int parse_config(Init *init) {
     char ts[MAXLEN];
     char *sp, *dp;
@@ -353,11 +370,7 @@ int parse_config(Init *init) {
         fprintf(stderr, "failed to read file: %s\n", init->minitrc);
         return (-1);
     }
-    /// get each line from the config file
     while (fgets(ts, sizeof(ts), config_fp)) {
-        /// lines beginning with '#" are comments, discard
-        /// copy line to tmp_str removing quotes, spaces, semicolons, and
-        /// newlines
         if (ts[0] != '#') {
             sp = ts;
             dp = tmp_str;
@@ -372,10 +385,6 @@ int parse_config(Init *init) {
                 }
             }
             *dp = '\0';
-            /// parse key=value pairs
-            /// skip lines without '='
-            /// set init struct values based on key
-            /// skip unknown keys
             char *key = strtok(tmp_str, "=");
             char *value = strtok(NULL, "=");
             if (value == NULL)
@@ -606,6 +615,12 @@ int parse_config(Init *init) {
     (void)fclose(config_fp);
     return 0;
 }
+/** @brief Convert prompt type string to integer constant
+    @param s - prompt type string
+    @returns prompt type integer constant
+    @note Valid prompt type strings are "short", "long", and "string"
+    @note Returns PT_NONE for unrecognized prompt type strings
+ */
 int prompt_str_to_int(char *s) {
     /// Convert prompt type string to integer constant
     /// @param s - prompt type string
@@ -622,11 +637,15 @@ int prompt_str_to_int(char *s) {
         prompt_type = PT_NONE;
     return prompt_type;
 }
+/** @brief Convert prompt type integer constant to string
+    @param s - output prompt type string
+    @param prompt_type - prompt type integer constant
+    @returns prompt type string
+    @note Valid prompt type integer constants are PT_SHORT, PT_LONG, and
+   PT_STRING
+    @note Returns "none" for unrecognized prompt type integer constants
+ */
 void prompt_int_to_str(char *s, int prompt_type) {
-    /// Convert prompt type integer constant to string
-    /// @param s - prompt type string
-    /// @param prompt_type - prompt type integer constant
-    /// returns prompt type string
     switch (prompt_type) {
     case PT_SHORT:
         strnz__cpy(s, "short", 7);
@@ -642,9 +661,16 @@ void prompt_int_to_str(char *s, int prompt_type) {
         break;
     }
 }
+/** @brief Write the current configuration to a file specified in init->minitrc
+    @param init - pointer to Init struct containing current configuration
+    @returns 0 on success, -1 on failure
+    @note The configuration is written in key=value format, one per line
+    @note Lines beginning with '#' are comments and are ignored when reading
+   the config file
+    @note The file is created if it does not exist, and overwritten if it does
+   exist
+ */
 int write_config(Init *init) {
-    /// Write the current configuration to a file
-    /// Returns 0 on success, -1 on failure
     char *e;
     char minitrc_dmp[MAXLEN];
 
@@ -737,16 +763,17 @@ int write_config(Init *init) {
     Perror(tmp_str);
     return 0;
 }
+/** @brief Derive full file specification from directory and file name
+    @param file_spec - output full file specification
+    @param dir - directory path
+    @param file_name - file name
+    @returns true if file_spec is derived, false otherwise
+    @note If dir is NULL, use MAPP_DIR environment variable or default directory
+   ~/menuapp
+    @note file_spec should be a pre-allocated char array of size MAXLEN to hold
+   the resulting file specification
+ */
 bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
-    /// Derive full file specification from directory and file name
-    /// @param file_spec - output full file specification
-    /// @param dir - directory path
-    /// @param file_name - file name
-    /// returns true if file_spec is derived, false otherwise
-    /// @note If dir is NULL, use MAPP_DIR environment variable or default
-    /// directory ~/menuapp
-    /// @note file_spec should be a pre-allocated char array of size MAXLEN
-    /// to hold the resulting file specification
     char ts[MAXLEN];
     char ts2[MAXLEN];
     char *e;
@@ -774,53 +801,74 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     strnz__cat(file_spec, file_name, MAXLEN - 1);
     return true;
 }
+/** @brief Display the version information of the application
+   @note The version information is defined in the mapp_version variable
+   and is printed to stderr when this function is called. */
 void display_version() { fprintf(stderr, "\nVersion %s\n", mapp_version); }
-/// C-Menu version display
-/// Display usage prompt and wait for user input
+/** @brief Display the usage information of the application
+   @note The usage information is printed to stderr when this function is
+   called. After displaying the usage information, the function waits for the
+   user to press any key before returning. */
 void usage() {
     /// Display usage prompt and wait for user input
     (void)fprintf(stderr, "\n\nPress any key to continue...");
     di_getch();
 }
+/** @brief Print an option and its value in a formatted manner
+    @param o - option flag (e.g., "-a:")
+    @param name - option name (e.g., "--minitrc")
+    @param value - option value to print
+    @note This function is used to display the current configuration options and
+   their values in a readable format. */
 void opt_prt_char(const char *o, const char *name, const char *value) {
-    /// Print option of type character string
-    /// @param o - option flag
-    /// @param name - option name
-    /// @param value - option value
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
+/** @brief Print an option and its value in a formatted manner for integer
+   values
+    @param o - option flag (e.g., "-C:")
+    @param name - option name (e.g., "--cols")
+    @param value - integer option value to print
+    @note This function is used to display the current configuration options and
+   their integer values in a readable format. */
 void opt_prt_str(const char *o, const char *name, const char *value) {
-    /// Print option of type character string
-    /// @param o - option flag
-    /// @param name - option name
-    /// @param value - option value
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
+/** @brief Print an option and its value in a formatted manner for integer
+   values
+    @param o - option flag (e.g., "-C:")
+    @param name - option name (e.g., "--cols")
+    @param value - integer option value to print
+    @note This function is used to display the current configuration options and
+   their integer values in a readable format. */
 void opt_prt_int(const char *o, const char *name, int value) {
-    /// Print option of type integer
-    /// @param o - option flag
-    /// @param name - option name
-    /// @param value - option value
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
 }
+/** @brief Print an option and its value in a formatted manner for double values
+    @param o - option flag (e.g., "-r:")
+    @param name - option name (e.g., "red_gamma")
+    @param value - double option value to print
+    @note This function is used to display the current configuration options and
+   their double values in a readable format. */
 void opt_prt_double(const char *o, const char *name, double value) {
-    /// Print option of type double
-    /// @param o - option flag
-    /// @param name - option name
-    /// @param value - option value
     fprintf(stdout, "%3s %-15s: %0.2f\n", o, name, value);
 }
+/** @brief Print an option and its value in a formatted manner for boolean
+   values
+    @param o - option flag (e.g., "-z")
+    @param name - option name (e.g., "f_at_end_clear")
+    @param value - boolean option value to print
+    @note This function is used to display the current configuration options and
+   their boolean values in a readable format, printing "true" or "false" based
+   on the value. */
 void opt_prt_bool(const char *o, const char *name, bool value) {
-    /// Print option of type boolean
-    /// @param o - option flag
-    /// @param name - option name
-    /// @param value - option value
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
+/** @brief Dump the current configuration to stderr for debugging purposes
+    @param init - pointer to Init struct containing the current configuration
+    @param msg - string to print before dumping the configuration
+    @param prints all relevant fields of the Init struct and SIO struct
+    to stderr in a readable format, prefixed by the provided title string. */
 void dump_config(Init *init, char *msg) {
-    /// Dump the current configuration to stdout
-    /// @param init - Init struct
-    /// @param msg - message to display
     SIO *sio = init->sio;
     opt_prt_str("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-C:", "--cols", init->cols);

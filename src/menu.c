@@ -1,29 +1,26 @@
 /** @file menu.c
- *  @brief Command line start-up for C-Menu
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Command line start-up for C-Menu
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
-
-/// This is the main file for C-Menu, a terminal-based application
-/// launcher and menu system.
-///
-/// It operates by reading a menu description file and displaying
-/// a navigable menu in the terminal. Users can select applications
-/// to launch or scripts to execute.
-///
-/// Several ancillary files provide supporting functionality, including
-/// handling terminal initialization IO settings, managing the menu structure,
-/// and rendering the interface using the NCurses library.
 
 #include "common.h"
 
 __end_pgm;
 
+/** @mainpage C-Menu Documentation
+    @brief This is the main file for C-Menu, a terminal-based application
+   launcher and menu system.
+    @note It operates by reading a menu description file and displaying a
+   navigable menu in the terminal. Users can select applications to launch or
+   scripts to execute.
+    @note Several ancillary files provide supporting functionality, including
+   handling terminal initialization IO settings, managing the menu structure,
+   and rendering the interface using the NCurses library. */
 int main(int argc, char **argv) {
-    /// Command Line entry point for Menu.
     __atexit;
     int begy, begx;
     capture_shell_tioctl();

@@ -1,10 +1,10 @@
 /** @file init_view.c
- *  @brief Initialize C-Menu View Screen IO and Input
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Initialize C-Menu View Screen IO and Input
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
@@ -18,16 +18,14 @@
 #include <unistd.h>
 #include <wait.h>
 
+/** @brief Initialize the C-Menu View in full screen mode.
+   This function sets up the view structure for full screen mode and creates
+   a new pad for the view. It also configures various parameters such as
+   scroll lines, command line position, and tab size.
+   @param init Pointer to the Init structure containing view settings.
+   @return 0 on success, -1 on failure.
+ */
 int init_view_full_screen(Init *init) {
-    /// C-Menu View has two modes: full screen and box windowed.
-    /// This function initializes the full screen mode. It performs the
-    /// folowing tasks:
-    ///     1. sets up the view structure, and
-    ///     2. creates a new pad for view.
-    /// It also sets various parameters for the view such as scroll lines,
-    /// command line position, and tab size.
-    /// @param init Pointer to the Init structure containing view settings.
-    /// @return 0 on success, -1 on failure.
     view = init->view;
     view->f_full_screen = true;
     getmaxyx(stdscr, view->lines, view->cols);
@@ -60,20 +58,15 @@ int init_view_full_screen(Init *init) {
     idcok(view->win, false);
     return 0;
 }
+/** @brief Initialize the C-Menu View in box window mode.
+   @note sets up the view structure for box window mode, adjusts dimensions
+   based on screen size, and creates a new pad for the view. It also configures
+   various parameters such as scroll lines, command line position, and tab size.
+   @param init Pointer to the Init structure containing view settings.
+   @param title Title for the box window.
+   @return 0 on success, -1 on failure.
+ */
 int init_view_boxwin(Init *init, char *title) {
-    /// This function initializes a box window for the C-Menu View application.
-    /// A box window is a smaller, framed window that can be positioned anywhere
-    /// on the screen. This function performs several tasks:
-    ///
-    ///     1. sets up the view structure,
-    ///     2. adjusts dimensions based on screen size, and
-    ///     3. creates a new pad for view.
-    ///
-    /// It also sets various parameters such as scroll lines, command line
-    /// position, and tab size.
-    /// @param init - pointer to the Init structure containing view settings.
-    /// @param title - title for the box window.
-    /// @return 0 on success, -1 on failure.
     int scr_lines, scr_cols;
     view = init->view;
     view->f_full_screen = false;
@@ -134,41 +127,22 @@ int init_view_boxwin(Init *init, char *title) {
     idcok(view->win, false);
     return (0);
 }
+/** @brief Initialize the input for a C-Menu View.
+   This function initializes the input for a view, which can be a file,
+   standard input, or a command to be initiated by view. It handles different
+   input sources and sets up the necessary file descriptors and memory mapping
+   for efficient access.
+   @param view Pointer to the View structure to be initialized.
+   @param file_name Name of the input file or "-" for standard input.
+   @return true on success, false on failure.
+   @note if a provider command is specified, set up a pipe to read its output.
+   @note The child process executes the command, and the parent process reads
+   from the pipe.
+   @note If input is from a pipe or standard input, clone it to a temporary
+   file. This allows for memory-mapping the input later. Read from stdin and
+   write to a temporary file.
+ */
 bool view_init_input(View *view, char *file_name) {
-    /// This function initializes the input for a view, which can be a file,
-    /// standard input, or a command to be initiated by view.
-    ///
-    /// If a command is specified, this function
-    ///
-    ///     1. sets up pipes,
-    ///     2. executes the command,
-    ///     3. attaches the command's output to the write end of a pipe, and
-    ///     4  opens the read end for input through stdin.
-    ///
-    /// If input is from stdin, this function
-    ///
-    ///     1. directs the input to a temporary file, and
-    ///     2. opens the temporary file as input.
-    ///
-    /// If input is from a regular file, this function
-    ///
-    ///     1. opens the file for reading,
-    ///     2. initiates kernel services to manage the file's virtual image, and
-    ///     3. closes the file.
-    ///
-    /// Regardless of the source, View Memory-Maps (mmap) the input directly
-    /// into View's virtual adress space. This allows the kernel to map files
-    /// directly into physical memory frames, enabling file I/O to behave like
-    /// memory access, which is highly efficient. By leveraging the kernel's
-    /// highly sophisticated demand-paged virtual memory manager, View can
-    /// access only the portions of the file that are needed at any given
-    /// time, rather than loading the entire file into memory. Zero-Copy
-    /// logic eliminates the traditional overhead of copying file buffers
-    /// into memory.
-    ///
-    /// @param view Pointer to the View structure to be initialized.
-    /// @param file_name Name of the input file or "-" for standard input.
-    /// @return true on success, false on failure.
     struct stat sb;
     int idx = 0;
     pid_t pid;
@@ -179,9 +153,6 @@ bool view_init_input(View *view, char *file_name) {
         file_name = "/dev/stdin";
         view->f_in_pipe = true;
     }
-    //  If a provider command is specified, set up a pipe to read its output.
-    //  The child process executes the command, and the parent process reads
-    //  from the pipe.
     if (view->provider_cmd[0] != '\0') {
         str_to_args(s_argv, view->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
@@ -246,9 +217,6 @@ bool view_init_input(View *view, char *file_name) {
         }
     }
     if (view->f_in_pipe) {
-        //  If input is from a pipe or standard input, clone it to a temporary
-        //  file. This allows for memory-mapping the input later. Read from
-        //  stdin and write to a temporary file.
         char tmp_filename[] = "/tmp/view_XXXXXX";
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;

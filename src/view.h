@@ -1,10 +1,10 @@
 /** @file view.h
- *  @brief View data structures, enums, types, end external declarations
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief View data structures, enums, types, end external declarations
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #ifndef _VIEW_H
