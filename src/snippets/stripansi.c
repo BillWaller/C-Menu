@@ -11,10 +11,10 @@
 #include "cm.h"
 #include <stdio.h>
 
-/**
-   @details ANSI escape sequences start with "\033[" and end with "m" or "K".
-   This function removes those sequences from the input string and writes the
-   cleaned string to stdout */
+/** @param input file with ANSI codes
+ *  @details ANSI escape sequences start with "\033[" and end with "m" or "K".
+ * This function removes those sequences from the input string and writes the
+ * cleaned string to stdout */
 
 int main(int argc, char *argv[]) {
     char in_buf[2048];

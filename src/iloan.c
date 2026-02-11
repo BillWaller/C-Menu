@@ -1,35 +1,11 @@
 /** @file iloan.c
- *  @brief Installment Loan Calculator
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Installment Loan Calculator
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
-
-/// iloan is a trivial application to demonstrate how a command-line
-/// program can be integrated into C-Menu Form with simple file,
-/// argument, or pipe i-o.
-///
-/// The program can be used in a non-interactive way by passing the four
-/// values as arguments, with the value to be calculated set to 0.
-/// For example, to calculate the payment amount for a $10,000 loan with
-/// a 5% annual interest rate and 60 monthly payments, you could run:
-///
-/// iloan 10000 60 5 0
-///
-/// This is proof-of-concept code, and is not intended for production use.
-/// It is not designed to be robust, and does not handle all edge cases or
-/// input errors. It is intended solely to demonstrate how a simple
-/// command-line program can be integrated into C-Menu Form.
-///
-/// In the future, more sophisticated abstractions, such as async event
-/// handlers, serialization, rpc, database, and a standardized plugin
-/// interface will be integrated into C-Menu.
-///
-/// Feel free to modify and enhance this code as needed, but please do not use
-/// it in production without proper testing and validation. It is provided as-is
-/// without any warranty or support. Use at your own risk.
 
 #include <math.h>
 #include <signal.h>
@@ -41,7 +17,6 @@
 
 #define FALSE 0
 #define TRUE 1
-
 char in_str[BUFSIZ + 1];
 
 void numbers(char *d, char *s);
@@ -65,6 +40,37 @@ int f_i = 0;
 int f_pmt = 0;
 bool f_quiet = false;
 
+/** @brief iloan is a trivial application to demonstrate how a command-line
+  program can be integrated into C-Menu Form with simple file, argument, or pipe
+  i-o.
+  @note Positional arguments
+        present_value The present value of the loan (the amount borrowed).
+        number_of_payments The total number of payments to be made.
+        interest_rate The annual interest rate (as a percentage).
+        payment_amount The amount of each payment.
+  @note The program calculates the missing value based on the three provided
+  values. For example, if the present value, number of payments, and interest
+  rate are provided, it will calculate the payment amount. If the present value,
+  interest rate, and payment amount are provided, it will calculate the number
+  of payments, and so on.
+  @note The program can be used in a non-interactive way by passing the four
+  values as arguments, with the value to be calculated set to 0. For example, to
+  calculate the payment amount for a $10,000 loan with a 5% annual interest rate
+  and 60 monthly payments, you could run:
+  @code
+    iloan 10000 60 5 0
+  @endcode
+  @note This is proof-of-concept code, and is not intended for production use.
+  It is not designed to be robust, and does not handle all edge cases or input
+  errors. It is intended solely to demonstrate how a simple command-line program
+  can be integrated into C-Menu Form.
+  @note In the future, more sophisticated abstractions, such as async event
+  handlers, serialization, rpc, database, and a standardized plugin interface
+  will be integrated into C-Menu.
+  @note Feel free to modify and enhance this code as needed, but please do not
+  use it in production without proper testing and validation. It is provided
+  as-is without any warranty or support. Use at your own risk.
+*/
 int main(int argc, char **argv) {
     double pv = 0, pmt = 0, i = 0, n = 0;
     char tmp_str[BUFSIZ];

@@ -1,10 +1,10 @@
 /** @file form_engine.c
- *  @brief The working part of C-Menu Form
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief The working part of C-Menu Form
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
@@ -42,25 +42,15 @@ int form_end_fields(Init *);
 int init_form(Init *, int, char **, int, int);
 int form_engine(Init *);
 
+/** @brief Initialize form data structure and parse description file
+    @param init A pointer to the Init structure containing form data and state.
+    @param argc The number of command line arguments passed to the form.
+    @param argv The array of command line arguments passed to the form.
+    @param begy The y-coordinate for the top-left corner of the form window.
+    @param begx The x-coordinate for the top-left corner of the form window.
+    @return 0 on success, or a non-zero value if an error occurs during
+*/
 int init_form(Init *init, int argc, char **argv, int begy, int begx) {
-    /// Initialize form data structure and parse its description file
-    /// The form description file is specified by the mapp_spec field of the
-    /// form data structure, which is set by the caller before calling
-    /// init_form. The description file is parsed and the form data structure is
-    /// populated with the form layout, fields, and other properties. If the
-    /// description file cannot be read or parsed, an error message is displayed
-    /// and a non-zero value is returned. If the description file is
-    /// successfully parsed, the form engine is called to display the form and
-    /// handle user interaction.
-    /// @param init Pointer to the Init structure containing form initialization
-    /// parameters and the form data structure.
-    /// @param argc The number of command line arguments passed to the form.
-    /// @param argv The array of command line arguments passed to the form.
-    /// @param begy The y-coordinate for the top-left corner of the form window.
-    /// @param begx The x-coordinate for the top-left corner of the form window.
-    /// @return 0 on success, or a non-zero value if an error occurs during
-    /// initialization or if the user cancels the form.
-    ///
     int rc;
     if (init->form != NULL)
         destroy_form(init);
@@ -95,31 +85,24 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     destroy_form(init);
     return rc;
 }
+/** @brief Form main processing loop
+    @param init A pointer to the Init structure containing form data and state.
+    @return 0 on successful completion, or a non-zero value if the user cancels
+    the form or if an error occurs during processing.
+        1. Parse the form description file to populate the form data structure.
+        2. Read any initial data for the form fields from a specified input
+        source.
+        3. Display the form on the screen with the initial field values.
+        4. Enter a loop to handle user input for field entry, calculation, help,
+        and cancellation:
+          a. If the user selects the accept action, perform any necessary
+          calculations or post-processing, and then either return to field entry
+          or exit the loop if the form is accepted.
+          b. If the user selects the help action, display the help screen and
+          return to the form after the user exits the help screen.
+          c. If the user selects the cancel action, exit the loop and return a
+          cancel status. */
 int form_engine(Init *init) {
-    /// Main Form processing loop
-    /// This function is the main processing loop for the form. It initializes
-    /// the form by parsing the description file, reading any initial data, and
-    /// displaying the form on the screen. It then enters a loop to handle user
-    /// input for field entry, calculation, help, and cancellation. The loop
-    /// continues until the user accepts the form, cancels it, or exits from the
-    /// help screen. The function returns 0 on successful completion, or a
-    /// non-zero value if the user cancels the form or if an error occurs during
-    /// processing.
-    /// The sequence of operations is as follows:
-    /// 1. Parse the form description file to populate the form data structure.
-    /// 2. Read any initial data for the form fields from a specified input
-    /// source.
-    /// 3. Display the form on the screen with the initial field values.
-    /// 4. Enter a loop to handle user input for field entry, calculation, help,
-    /// and cancellation:
-    ///   a. If the user selects the accept action, perform any necessary
-    ///   calculations or post-processing, and then either return to field entry
-    ///   or exit the loop if the form is accepted.
-    ///   b. If the user selects the help action, display the help screen and
-    ///   return to the form after the user exits the help screen.
-    ///   c. If the user selects the cancel action, exit the loop and return a
-    ///   cancel status.
-    ///
 
     int eargc;
     char *eargv[MAXARGS];
@@ -187,9 +170,12 @@ int form_engine(Init *init) {
     }
     return 0;
 }
+/** @brief Handle post-processing after field entry, allowing user to edit data,
+    execute a provider command, or write data to an output file.
+    @param init A pointer to the Init structure containing form data and state.
+    @return An integer status code indicating the next action for the form
+    processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP). */
 int form_end_fields(Init *init) {
-    /// Post process field entry, allowing user to edit data,
-    /// execute a provider command, or write data to an output file
     bool loop = true;
     int c, rc;
     form = init->form;
@@ -244,36 +230,43 @@ int form_end_fields(Init *init) {
     return rc;
 }
 
+/** @brief Handle integration with an external program for calculation, allowing
+    the user to execute a provider command and read results back into the form
+    fields.
+    @param init A pointer to the Init structure containing form data and state.
+    @return An integer status code indicating the next action for the form
+    processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP).
+    @note This function provides integration with external programs.
+        The requirements are:
+        1. The form description file must have a line starting with 'C' to
+        indicate that the form supports calculation.
+        2. The form description file must specify the provider command using a
+        line starting with '!' followed by the command and its arguments.
+        3. The external program must be able to accept field data from a file,
+        from standard input, or as command line parameters.
+        4. The external program must output the calculated field values in a
+        format that can be read by the form (e.g., one value per line), either
+        to a file or to standard output.
+
+        The sequence of operations is as follows:
+
+        1. The 'C' option causes Form to pause and display an KEY_F(5) Calculate
+        option on the chyron.
+        2. The user can then cancel the operation by pressing KEY_F(9) or
+        activate the calculate option by pressing KEY_F(5).
+        3. Form outputs its data to file, standard output, or as command line
+        parameters.
+        4. Form executes the external program.
+        5. The external program processes the data and outputs the results.
+        6. Form reads the results and populates the appropriate form fields.
+        7. Form presents the user with an option to edit the data, and the
+        sequence restarts at 1.
+
+        This function forks and executes the provider executable as a child
+        process, creates a pipe to read the output from the provider command,
+        reads the output, and updates the Form fields.
+            */
 int form_calculate(Init *init) {
-    /// This function provides integration with an external program.
-    /// The requirements are:
-    /// 1. The form description file must have a line starting with 'C' to
-    /// indicate that the form supports calculation.
-    /// 2. The form description file must specify the provider command using a
-    /// line starting with '!' followed by the command and its arguments.
-    /// 3. The external program must be able to accept field data from a file,
-    /// from standard input, or as command line parameters.
-    /// 4. The external program must output the calculated field values in a
-    /// format that can be read by the form (e.g., one value per line), either
-    /// to a file or to standard output.
-    ///
-    /// The sequence of operations is as follows:
-    ///
-    /// 1. The 'C' option causes Form to pause and display an KEY_F(5) Calculate
-    /// option on the chyron.
-    /// 2. The user can then cancel the operation by pressing KEY_F(9) or
-    /// activate the calculate option by pressing KEY_F(5).
-    /// 3. Form outputs its data to file, standard output, or as command line
-    /// parameters.
-    /// 4. Form executes the external program.
-    /// 5. The external program processes the data and outputs the results.
-    /// 6. Form reads the results and populates the appropriate form fields.
-    /// 7. Form presents the user with an option to edit the data, and the
-    /// sequence restarts at 1.
-    ///
-    /// This function forks and executes the provider executable as a child
-    /// process, creates a pipe to read the output from the provider command,
-    /// reads the output, and updates the Form fields.
     int i, c, rc;
     char earg_str[MAXLEN + 1];
     char *eargv[MAXARGS];
@@ -381,9 +374,16 @@ int form_calculate(Init *init) {
     form_display_chyron(form);
     return rc;
 }
+/** @brief Handle user input for field entry, allowing navigation between fields
+    and looping until an exit action is selected.
+    @param form A pointer to the Form structure containing form data and state.
+    @return An integer status code indicating the next action for the form
+    processing loop (e.g., P_ACCEPT, P_HELP, P_CALC, P_CANCEL).
+    @note This function manages user input for field entry, including navigation
+        between fields and handling of special keys for accepting, canceling,
+        requesting help, or performing calculations. The function loops until
+        the user selects an exit action (e.g., accept or cancel). */
 int form_enter_fields(Form *form) {
-    /// This function is handles user input for field entry, allowing navigation
-    /// between fields, looping until an exit action is selected.
 
     if (form->fidx < 0)
         return (-1);
@@ -721,6 +721,11 @@ int form_parse_desc(Form *form) {
     }
     return (0);
 }
+/** @brief Read initial data for form fields from a specified input source, such
+    as a file or standard input, and populate the form fields with the data.
+    @param form A pointer to the Form structure containing form data and state.
+    @return 0 on success, or a non-zero value if an error occurs while reading
+    the data or if the specified input source is invalid or empty. */
 int form_read_data(Form *form) {
     struct stat sb;
     char in_buf[MAXLEN];
@@ -760,6 +765,12 @@ int form_read_data(Form *form) {
     }
     return (0);
 }
+/** @brief Execute a provider command specified in the form description file,
+    passing form field values as arguments, and optionally redirecting output to
+    a file.
+    @param form A pointer to the Form structure containing form data and state.
+    @return 0 on success, or a non-zero value if an error occurs while
+    constructing or executing the command. */
 int form_exec_cmd(Form *form) {
     char earg_str[MAXLEN + 1];
     int i;

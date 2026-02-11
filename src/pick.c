@@ -1,16 +1,20 @@
 /** @file pick.c
- *  @brief Command Line Entry Point for C-Menu Pick
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Command Line Entry Point for C-Menu Pick
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
 
 __end_pgm;
-
+/**   @brief Main entry point for C-Menu Pick
+    @param argc Argument count
+    @param argv Argument vector
+    @return Exit status
+ */
 int main(int argc, char **argv) {
     __atexit;
     sig_prog_mode();

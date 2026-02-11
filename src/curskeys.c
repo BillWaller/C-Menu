@@ -1,10 +1,10 @@
 /** @file curskeys.c
- *  @brief Test Curses Keys
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Test Curses Keys
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
@@ -15,9 +15,12 @@
 #define MAXLEN 256
 int display_curses_keys();
 
+/** @brief Display Curses Keys
+    Responds to curses keys and mouse events, displaying the key code and
+    description.
+    @return 0 on success, non-zero on failure
+ */
 int display_curses_keys() {
-    /// Responds to curses keys and mouse events, displaying the key code and
-    /// description.
     WINDOW *win;
     WINDOW *box;
     char Title[] = "TEST CURSES KEYS";

@@ -1,10 +1,10 @@
 /** @file menu_engine.c
- *  @brief The working part of C-Menu Menu
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief The working part of C-Menu Menu
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
@@ -16,11 +16,15 @@
 unsigned int menu_engine(Init *);
 unsigned int menu_cmd_processor(Init *);
 
+/** @brief The main loop of the menu system.
+   @param init A pointer to an Init structure containing initialization data for
+   the menu system.
+   @returns an integer indicating the action taken by the user, such as
+   returning to the main menu or exiting the menu system.
+   @note displays the menu and processes user input until the user exits the
+   menu or returns to the main menu.
+ */
 unsigned int menu_engine(Init *init) {
-    /// This function is the main loop of the menu system. It displays the menu
-    /// and processes user input until the user exits the menu or returns to the
-    /// main menu. It returns an integer indicating the action taken by the
-    /// user, such as returning to the main menu or exiting the menu system.
     int action;
     int i;
 
@@ -75,11 +79,17 @@ unsigned int menu_engine(Init *init) {
     }
     return (action);
 }
+/** @brief Processes user input for the menu system.
+   @param init A pointer to an Init structure containing initialization data for
+   the menu system.
+   @returns an integer indicating the action taken by the user, such as
+   returning to the main menu, displaying a submenu, or executing a command
+   associated with a menu choice.
+   @note handles navigation through the menu options, executing commands
+   associated with menu choices, and responding to special keys such as function
+   keys and mouse clicks.
+ */
 unsigned int menu_cmd_processor(Init *init) {
-    /// This function processes user input for the menu. It handles navigation
-    /// through the menu options, executing commands associated with menu
-    /// choices, and responding to special keys such as function keys and mouse
-    /// clicks.
     int eargc;
     char *eargv[MAXARGS];
     char earg_str[MAXLEN];
@@ -101,11 +111,10 @@ unsigned int menu_cmd_processor(Init *init) {
     in_key = xwgetch(menu->win);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);
-    /// wclrtoeol(menu->win);
     switch (in_key) {
+    /** Move up to the previous menu choice */
     case 'k':
     case KEY_UP:
-        /// Move up to the previous menu choice
         i = menu->line_idx;
         while (i > 0) {
             i--;
@@ -127,18 +136,19 @@ unsigned int menu_cmd_processor(Init *init) {
             }
         }
         return (MA_ENTER_OPTION);
+        /** Select the current menu choice and execute its associated command */
     case '\n':
     case KEY_ENTER:
-        /// Select the current menu choice and execute its associated command
         break;
+        /** Exit the menu and return to the previous menu or exit if at top */
     case KEY_F(9):
         return (MA_RETURN_MAIN);
-        /// Exit the menu and return to the previous menu or exit if at top
+        /** Exit the menu and return to the previous menu or exit if at top */
     case KEY_BREAK:
     case KEY_DL:
         return (MA_RETURN_MAIN);
+        /** @brief send default printer output file to printer */
     case KEY_ALTF(9):
-
         d = getenv("PRTCMD");
         if (d == NULL || *d == '\0')
             strnz__cpy(earg_str, PRINTCMD, MAXLEN - 1);
@@ -159,6 +169,7 @@ unsigned int menu_cmd_processor(Init *init) {
             strnz__cat(earg_str, d, MAXLEN - 1);
         full_screen_shell(earg_str);
         return (MA_DISPLAY_MENU);
+        /** @brief open the default editor */
     case KEY_ALTF(10):
         restore_wins();
         return (MA_DISPLAY_MENU);
@@ -170,6 +181,7 @@ unsigned int menu_cmd_processor(Init *init) {
         str_to_args(eargv, earg_str, MAX_ARGS);
         full_screen_fork_exec(eargv);
         return (MA_INIT);
+        /** @brief process mouse event */
     case KEY_MOUSE:
         if (getmouse(&event) != OK)
             return (MA_ENTER_OPTION);
@@ -193,6 +205,8 @@ unsigned int menu_cmd_processor(Init *init) {
         }
         break;
     default:
+        /** @brief If the user presses a key that corresponds to a menu choice's
+         * letter, select that menu choice */
         for (i = 0; i < menu->item_count; i++) {
             if (menu->line[i]->raw_text[0] == '_') {
                 if (menu->line[i]->choice_letter == (char)in_key) {
@@ -212,8 +226,11 @@ unsigned int menu_cmd_processor(Init *init) {
     }
     c = (int)menu->line[menu->line_idx]->command_type;
     switch (c) {
+        /** @brief Return to the main menu */
     case CT_RETURNMAIN:
         return (MA_RETURN_MAIN);
+        /** @brief Execute the command associated with the selected menu choice
+         */
     case CT_EXEC:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
@@ -224,6 +241,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargv[j] = NULL;
         full_screen_fork_exec(eargv);
         return (MA_DISPLAY_MENU);
+        /** @brief Display help information for the menu system */
     case CT_HELP:
         strnz__cpy(earg_str, "view -S optsp", MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
@@ -236,6 +254,8 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
+        /** @brief Display a submenu or perform an action associated with the
+         * selected menu choice */
     case CT_MENU:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
@@ -252,6 +272,8 @@ unsigned int menu_cmd_processor(Init *init) {
         if (rc == MA_RETURN_MAIN)
             return (MA_DISPLAY_MENU);
         break;
+        /** @brief Display a pick list or form associated with the selected menu
+         * choice */
     case CT_PICK:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
@@ -260,6 +282,7 @@ unsigned int menu_cmd_processor(Init *init) {
         parse_opt_args(init, eargc, eargv);
         init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
+        /** @brief Display a form associated with the selected menu choice */
     case CT_FORM:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
@@ -268,6 +291,7 @@ unsigned int menu_cmd_processor(Init *init) {
         parse_opt_args(init, eargc, eargv);
         init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
+        /** @brief Display a view associated with the selected menu choice */
     case CT_VIEW:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
@@ -280,11 +304,14 @@ unsigned int menu_cmd_processor(Init *init) {
                    MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
+        /** @brief open ckeys (test curses keys) */
     case CT_CKEYS:
         display_curses_keys();
         return (MA_DISPLAY_MENU);
+        /** @brief return to calling program */
     case CT_RETURN:
         return (MA_RETURN);
+        /** @brief write the current menu configuration to a file */
     case CT_WRITE_CONFIG:
         write_config(init);
         return (MA_ENTER_OPTION);

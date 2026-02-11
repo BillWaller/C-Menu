@@ -1,18 +1,21 @@
 /** @file view.c
- *  @brief Command Line Start-up for C-Menu View
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Command Line Start-up for C-Menu View
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "common.h"
 
 __end_pgm;
-
+/** @brief Main entry point for C-Menu View
+ *  @param argc Argument count
+ *  @param argv Argument vector
+ *  @return Exit status
+ */
 int main(int argc, char **argv) {
-    /// Command Line Entry Point for View
     __atexit;
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);

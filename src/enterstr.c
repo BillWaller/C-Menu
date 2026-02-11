@@ -1,25 +1,12 @@
 /** @file enterstr.c
- *  @brief Enter a string from keyboard
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Enter a string from keyboard
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
-/// Enter a string from the terminal in cooked mode and return it to the caller.
-/// This program is designed to be called from shell scripts initiated by the
-/// menu system. It writes the prompt to stderr, reads the input from stdin,
-/// and writes the user's answer to stdout so it can be captured by shell
-/// variables.
-///
-/// for example:
-///
-/// USERNAME=$(enterstr "Enter your username: ")
-/// PASSWORD=$(enterstr "Enter your password: ")
-/// echo "Username: $USERNAME"
-/// echo "Password: $PASSWORD"
-///
 #include "cm.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -28,14 +15,21 @@
 #include <termios.h>
 #include <unistd.h>
 
+/** @example
+    @code
+    USERNAME=$(enterstr "Enter your username: ")
+    PASSWORD=$(enterstr "Enter your password: ")
+    echo "Username: $USERNAME"
+    echo "Password: $PASSWORD"
+    @endcode
+ */
+
+/** @brief allows the user to enter a string in cooked mode
+    @note allows line editing and other features
+    @note writes the prompt to stderr and the user's input to stdout
+    @note handles signals to ensure that the terminal settings are restored if
+   the program is interrupted. */
 int main(int argc, char **argv) {
-    /// Returns a string entered by the user in cooked mode. The string is
-    /// written to stdout, and the prompt is written to stderr. This allows the
-    /// caller to capture the string in a shell variable while still displaying
-    /// the prompt to the user. The program uses termios to set the terminal to
-    /// cooked mode, allowing for line editing and other features. It also
-    /// handles signals to ensure that the terminal settings are restored if the
-    /// program is interrupted.
     struct termios new_tioctl;
     char in_str[BUFSIZ];
     char *in_ptr = in_str;

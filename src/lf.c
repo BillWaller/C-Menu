@@ -1,10 +1,10 @@
 /** @file lf.c
- *  @brief Recursively list files matching a regular expression
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Recursively list files matching a regular expression
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include "cm.h"
@@ -22,16 +22,22 @@
 
 char tmp_str[MAXLEN];
 
+/** @brief List files in a directory matching a regular expression
+    @note parameters are
+     dir Directory to search
+     re Regular expression to match
+     flags Flags to control behavior
+       -a        List all files (including hidden files)
+       -d        maximum depth of subdirectories to examine
+       -h        show this help message
+       -i        ignore case in search
+       -r        recurse into subdirectories
+       -v        show version information
+ */
 int main(int argc, char **argv) {
     /// list files matching a regular expression.
     /// Usage: lf [options] [directory] [regexp]
     /// Options:
-    ///            -a        List all files (including hidden files)
-    ///            -d        maximum depth of subdirectories to examine
-    ///            -h        show this help message
-    ///            -i        ignore case in search
-    ///            -r        recurse into subdirectories
-    ///            -v        show version information
     char dir[MAXLEN] = "";
     char re[MAXLEN] = "";
     bool f_help = false;
