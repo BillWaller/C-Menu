@@ -1,16 +1,14 @@
 # ![C-Menu](screenshots/C-Menu.png)
 
-[New: C-Menu FAQ](FAQ.md)
+[C-Menu FAQ](FAQ.md)
 
-[New: C-Menu User Guide](C-Menu-UG.md)
+[C-Menu User Guide](C-Menu-UG.md)
 
-[New: Augmenting C-Menu](extras.md)
+[Augmenting C-Menu](extras.md)
 
-[New: C-Menu API](API.md)
+[***NEW*** -> C-Menu API <-](C-Menu-API.html)
 
-[New: Configuration Snippets](snippets.md)
-
-[New: doxygen Documentation](docs/index.html)
+[Configuration Snippets](snippets.md)
 
 ## Table of Contents
 

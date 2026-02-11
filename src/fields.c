@@ -1,10 +1,13 @@
-/// fields.c
-/// Field Edit and Entry for C-Menu Form
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file fields.c
+ *  @brief Field Edit and Entry for C-Menu Form
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <monetary.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -118,7 +121,7 @@ int form_accept_field(Form *form) {
             return (in_key);
         case '\t':
         case KEY_DOWN:
-            /// KEY_DOWN, '\t' moves to the next field
+            /// KEY_DOWN, TAB moves to the next field
             form_fmt_field(form, accept_s);
             form_display_field(form);
             in_key = KEY_DOWN;
@@ -554,7 +557,6 @@ void mk_filler(char *s, int fl) {
     /// Create filler string for field
     /// @param s Filler string to create
     /// @param fl Field length
-    /// @return void
     char *e = s + fl;
     unsigned char c;
 
@@ -566,7 +568,6 @@ void mk_filler(char *s, int fl) {
 void left_justify(char *s) {
     /// Left justify string by removing leading spaces
     /// @param s String to left justify
-    /// @return void
     trim(s);
 }
 void right_justify(char *s, int fl) {
@@ -574,7 +575,6 @@ void right_justify(char *s, int fl) {
     /// spaces
     /// @param s String to right justify
     /// @param fl Field length
-    /// @return void
     char *p = s;
     char *d = s + fl;
     trim(s);
@@ -621,7 +621,6 @@ void numeric(char *d, char *s) {
     /// ignoring dashes and periods.
     /// @param d Destination string
     /// @param s Source string
-    /// @return void
     while (*s != '\0') {
         if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))
             *d++ = *s++;

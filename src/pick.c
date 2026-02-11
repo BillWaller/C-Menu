@@ -1,15 +1,18 @@
-/// pick.c
-/// Command Line Start-up for C-Menu Pick
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-#include "menu.h"
+/** @file pick.c
+ *  @brief Command Line Entry Point for C-Menu Pick
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
+#include "common.h"
 
 __end_pgm;
 
 int main(int argc, char **argv) {
     __atexit;
-    /// Command Line Entry Point for C-Menu Pick
     sig_prog_mode();
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);

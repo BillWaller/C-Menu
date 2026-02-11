@@ -1,9 +1,12 @@
-/// enterchr.c
-/// Enter a single character from keyboard
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-//
+/** @file enterchr.c
+ *  @brief Enter a single character from keyboard
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
 /// Usage: enterchr "Enter Y or N: "
 /// @note does not wait for newline to be pressed
 /// @note converts character to upper case

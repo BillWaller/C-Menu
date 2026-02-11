@@ -1,10 +1,13 @@
-/// exec.c
-/// Functions to execute external commands
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
+/** @file pick.h
+ *  @brief Functions to execute external commands
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
 
-#include "menu.h"
+#include "common.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>

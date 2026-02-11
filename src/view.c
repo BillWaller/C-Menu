@@ -1,12 +1,13 @@
-/// view.c
-/// Command Line Start-up for C-Menu View
-//  Bill Waller Copyright (c) 2025
-//  MIT License
-//  billxwaller@gmail.com
-#include "menu.h"
-#include <stdlib.h>
-#include <termios.h>
-#include <unistd.h>
+/** @file view.c
+ *  @brief Command Line Start-up for C-Menu View
+ *  @author Bill Waller
+ *  Copyright (c) 2025
+ *  MIT License
+ *  billxwaller@gmail.com
+ *  @date 2026-02-09
+ */
+
+#include "common.h"
 
 __end_pgm;
 
