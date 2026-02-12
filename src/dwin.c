@@ -145,7 +145,6 @@ key_cmd_tbl key_cmd[20] = {
 };
 
 enum key_idx { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, PgUp, PgDn, END };
-char *eargv[MAXARGS];
 WINDOW *win;
 WINDOW *win_win[MAXWIN];
 WINDOW *win_box[MAXWIN];
@@ -897,11 +896,11 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
         return (1);
     }
     em_l = 0;
-    cmd_l = strlen(cmd);
-    em0_l = strlen(em0);
-    em1_l = strlen(em1);
-    em2_l = strlen(em2);
-    em3_l = strlen(em1);
+    cmd_l = strnz(cmd, COLS - 4);
+    em0_l = strnz(em0, COLS - 4);
+    em1_l = strnz(em1, COLS - 4);
+    em2_l = strnz(em2, COLS - 4);
+    em3_l = strnz(em1, COLS - 4);
     if (em0_l > em_l)
         em_l = em0_l;
     if (em1_l > em_l)
@@ -934,16 +933,6 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     wmove(error_win, 4, cmd_l + 1);
     wrefresh(error_win);
     cmd_key = xwgetch(error_win);
-    switch (cmd_key) {
-    case KEY_F(1):
-        break;
-    case KEY_F(9):
-        break;
-    case KEY_F(10):
-        break;
-    default:
-        break;
-    }
     win_del();
     return (cmd_key);
 }
@@ -1086,14 +1075,10 @@ void user_end() {
     @param ec Exit code
     @param s Error message */
 void abend(int ec, char *s) {
-    /// Abnormal program termination
-    /// @param ec Exit code
-    /// @param s Error message
+    destroy_curses();
+    restore_shell_tioctl();
     sig_dfl_mode();
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
-    fprintf(stderr, "Press any key");
-    di_getch();
-    fprintf(stderr, "\n");
     exit(EXIT_FAILURE);
 }
 
@@ -1101,18 +1086,17 @@ void abend(int ec, char *s) {
     @param win Pointer to window
     @return Key code or ERR if interrupted by signal */
 int xwgetch(WINDOW *win) {
-    /// xwgetch is a signal handling wgetch wrapper
     int c;
-    while (1) {
-        wrefresh(win);
+    halfdelay(1);
+    do {
         c = wgetch(win);
-        if (c != ERR)
-            break;
-        else if (errno == EINTR) {
-            handle_signal(sig_received);
-            return c;
-        } else
-            errno = 0;
-    }
+        if (sig_received != 0) {
+            if (handle_signal(sig_received))
+                c = display_error(em0, em1, em2, NULL);
+            if (c == 'q' || c == KEY_F(9))
+                exit(EXIT_FAILURE);
+            continue;
+        }
+    } while (c == ERR);
     return c;
 }

@@ -1,4 +1,4 @@
-/** @file pick.h
+/** @file exec.h
     @brief Functions to execute external commands
     @author Bill Waller
     Copyright (c) 2025
@@ -7,7 +7,7 @@
     @date 2026-02-09
  */
 
-#include "common.h"
+#include "cm.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -16,6 +16,10 @@
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
+
+int eargc;
+char *eargv[MAXARGS];
+char earg_str[MAXLEN];
 
 int full_screen_fork_exec(char **);
 int full_screen_shell(char *);

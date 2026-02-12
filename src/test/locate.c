@@ -1,3 +1,11 @@
+/** @file locate.c
+    @brief Locate a file in PATH
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
+ */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +40,6 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     }
     return false;
 }
-
 int main(int argc, char **argv) {
     char file_spec[MAXLEN];
 

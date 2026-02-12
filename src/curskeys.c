@@ -55,7 +55,7 @@ int display_curses_keys() {
     wattroff(win, WA_REVERSE);
     wnoutrefresh(box);
     mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
-    timeout(1000);
+    // timeout(1000);
     c = '\0';
     while (!c) {
         kstr[0] = '\0';

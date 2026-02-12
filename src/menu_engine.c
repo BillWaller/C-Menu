@@ -10,6 +10,7 @@
 #include "common.h"
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -90,9 +91,6 @@ unsigned int menu_engine(Init *init) {
    keys and mouse clicks.
  */
 unsigned int menu_cmd_processor(Init *init) {
-    int eargc;
-    char *eargv[MAXARGS];
-    char earg_str[MAXLEN];
     int i, c, j, rc;
     char *d;
     int in_key;
@@ -140,6 +138,22 @@ unsigned int menu_cmd_processor(Init *init) {
     case '\n':
     case KEY_ENTER:
         break;
+        /** @brief Display help information for the menu system */
+    case 'H':
+    case KEY_F(1):
+        eargv[0] = strdup("mview");
+        eargv[1] = strdup("~/menuapp/help/menu.help");
+        eargv[2] = NULL;
+        eargc = 2;
+        zero_opt_args(init);
+        parse_opt_args(init, eargc, eargv);
+        init->lines = 30;
+        init->cols = 60;
+        init->begy = menu->begy + 1;
+        init->begx = menu->begx + 4;
+        strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
+        mview(init, eargc, eargv);
+        return (MA_DISPLAY_MENU);
         /** Exit the menu and return to the previous menu or exit if at top */
     case KEY_F(9):
         return (MA_RETURN_MAIN);
@@ -243,8 +257,10 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_DISPLAY_MENU);
         /** @brief Display help information for the menu system */
     case CT_HELP:
-        strnz__cpy(earg_str, "view -S optsp", MAXLEN - 1);
-        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
+        eargv[0] = strdup("mview");
+        eargv[1] = strdup("~/menuapp/help/menu.help");
+        eargv[2] = NULL;
+        eargc = 2;
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         init->lines = 30;

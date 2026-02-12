@@ -64,62 +64,48 @@ void sig_prog_mode() {
 }
 /** @brief Signal handler for interrupt signals */
 void signal_handler(int sig_num) {
-    if (sig_num == SIGINT) {
+    switch (sig_num) {
+    case SIGINT:
         sig_received = SIGINT;
-    } else if (sig_num == SIGTERM) {
+        break;
+    case SIGTERM:
         sig_received = SIGTERM;
-    } else if (sig_num == SIGQUIT) {
+        break;
+    case SIGQUIT:
         sig_received = SIGQUIT;
-    } else if (sig_num == SIGSEGV) {
+        break;
+    case SIGSEGV:
         sig_received = SIGSEGV;
+        break;
+    default:
+        return;
     }
 }
 /** @brief Handle received signals and prompt user for action */
-int handle_signal(int sig_num) {
-    int c;
-    char *msg;
-    char tmp_str[MAXLEN];
+bool handle_signal(int sig_num) {
     switch (sig_num) {
     case SIGINT:
-        msg = "SIGINT - Interrupt from keyboard";
+        strnz__cpy(em1, "SIGINT - Interrupt from keyboard", MAXLEN - 1);
         break;
     case SIGTERM:
-        msg = "SIGTERM - Termination signal";
+        strnz__cpy(em1, "SIGTERM - Termination signal", MAXLEN - 1);
         break;
     case SIGQUIT:
-        msg = "SIGQUIT - Quit from keyboard";
+        strnz__cpy(em1, "SIGQUIT - Quit from keyboard", MAXLEN - 1);
         break;
     case SIGSEGV:
-        msg = "SIGSEGV - Segmentation fault";
+        strnz__cpy(em1, "SIGSEGV - Segmentation fault", MAXLEN - 1);
         break;
     default:
-        msg = "unknown signal";
+        strnz__cpy(em1, "unknown signal", MAXLEN - 1);
         break;
     }
-    ssnprintf(tmp_str, MAXLEN - 1, "\nCaught signal %d - %s\n", sig_num, msg);
-    if (!f_curses_open) {
-        msg = tmp_str;
-        while (*msg)
-            write(2, msg++, 1);
-        msg = "\nPress 'X' to exit, any other key to continue:";
-        while (*msg)
-            write(2, msg++, 1);
-        read(0, &c, 1);
-        to_uppercase(c);
-        if (c == 'X') {
-            msg = "\nAre you sure? 'Y' or 'N': ";
-            while (*msg)
-                write(2, msg++, 1);
-            read(0, &c, 1);
-            to_uppercase(c);
-            if (c == 'Y')
-                exit(EXIT_FAILURE);
-        }
-    } else {
-        strnz__cpy(tmp_str, "Caught signal - Press any key", MAXLEN - 1);
-        c = (char)Perror(tmp_str);
-        _exit(1);
-    }
-    sig_prog_mode();
-    return c;
+    if (!f_curses_open)
+        restore_shell_tioctl();
+    em0[0] = '\0';
+    ssnprintf(em0, MAXLEN - 1, "Caught signal %d\n", sig_num);
+    strnz__cpy(em2, "Press 'q' or F9 to exit, any other key to continue",
+               MAXLEN - 1);
+    sig_received = 0;
+    return true;
 }

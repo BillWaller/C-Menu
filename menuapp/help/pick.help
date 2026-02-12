@@ -1,47 +1,46 @@
-usage: pick
-
-   long option        type grp  mask flg description
+   field name         type grp  mask opt description
    ------------------ ---- ---- ---- --- -------------------------
-00 minitrc            str  spec mpfv -a: configuration file spec
-01 lines              int  prm  mpfv -L: width in columns     
-02 cols               int  prm  mpfv -C: height in lines      
-03 begx               int  prm  mpfv -X: begin on column      
-04 begy               int  prm  mpfv -Y: begin on line        
-05 title              str  misc mpfv -T: title                
-06 fg_color           int  prm  mpfv -F: foreground_color     
-07 bg_color           int  prm  mpfv -B: background_color     
-08 bo_color           int  prm  mpfv -O: border_color         
-09 f_at_end_clear     t/f  flag mpfv -z  clear screen at end of program
-14 f_mutiple_cmd_args int  prm  mpfv -M  multiple command arguments
-15 f_stop_on_error    t/f  flag mpfv -Z  stop on error        
-20 select_max         int  prm  .p.. -n: number of selections 
-22 cmd_spec           str  misc .pfv -c: command executable   
-23 help_spec          str  file mpfv -H: help spec            
-24 in_spec            str  file .p.. -i: input spec           
-25 out_spec           str  file .p.. -o: output spec          
-26 mapp_spec          str  file mpfv -d: description spec     
-27 mapp_data          str  dir  mpfv     data directory       
-28 mapp_help          str  dir  mpfv     help directory       
-29 mapp_home          str  dir  mpfv -m: home directory       
-30 mapp_msrc          str  dir  mpfv     source directory     
-31 mapp_user          str  dir  mpfv -u: user directory       
-32 black              hex  col  mpfv                          
-33 red                hex  col  mpfv                          
-34 green              hex  col  mpfv                          
-35 yellow             hex  col  mpfv                          
-36 blue               hex  col  mpfv                          
-37 magenta            hex  col  mpfv                          
-38 cyan               hex  col  mpfv                          
-39 white              hex  col  mpfv                          
-40 orange             hex  col  mpfv                          
-41 bblack             hex  col  mpfv                          
-42 bred               hex  col  mpfv                          
-43 bgreen             hex  col  mpfv                          
-44 byellow            hex  col  mpfv                          
-45 bblue              hex  col  mpfv                          
-46 bmagenta           hex  col  mpfv                          
-47 bcyan              hex  col  mpfv                          
-48 bwhite             hex  col  mpfv                          
-49 orange             hex  col  mpfv                          
-50 bg                 hex  col  mpfv                          
-51 abg                hex  col  mpfv                          
+00 [0;34mminitrc           [0m str  spec mfpv [0;33m-a: [0m[0;32mconfiguration file spec[0m
+03 [0;34mmapp_spec         [0m str  file mfpv [0;33m-d: [0m[0;32mdescription spec[0m
+05 [0;34mfill_char         [0m str  prm  ..p. [0;33m-f: [0m[0;32mfield fill_char[0m
+07 [0;34mhelp              [0m bool flag mfpv [0;33m-h  [0m[0;32mhelp[0m
+08 [0;34min_spec           [0m str  file ..p. [0;33m-i: [0m[0;32minput spec[0m
+09 [0;34mmapp_home         [0m str  dir  mfpv [0;33m-m: [0m[0;32mhome directory[0m
+11 [0;34mout_spec          [0m str  file ..p. [0;33m-o: [0m[0;32moutput spec[0m
+16 [0;34mbrackets          [0m str  prm  ..p. [0;33m-u: [0m[0;32mbrackets around fields[0m
+19 [0;34mf_at_end_clear    [0m bool flag mfpv [0;33m-z  [0m[0;32mclear screen at end of program[0m
+21 [0;34mbg_color          [0m int  prm  mfpv [0;33m-B: [0m[0;32mbackground_color[0m
+22 [0;34mlines             [0m int  prm  mfpv [0;33m-C: [0m[0;32mwidth in columns[0m
+23 [0;34mfg_color          [0m int  prm  mfpv [0;33m-F: [0m[0;32mforeground_color[0m
+24 [0;34mhelp_spec         [0m str  file mfpv [0;33m-H: [0m[0;32mhelp spec[0m
+25 [0;34mcols              [0m int  prm  mfpv [0;33m-L: [0m[0;32mheight in lines[0m
+26 [0;34mf_mutiple_cmd_args[0m bool flag ..p. [0;33m-M  [0m[0;32mmultiple command arguments[0m
+27 [0;34mbo_color          [0m int  prm  mfpv [0;33m-O: [0m[0;32mborder_color[0m
+31 [0;34mtitle             [0m str  misc mfpv [0;33m-T: [0m[0;32mtitle[0m
+32 [0;34mmapp_user         [0m str  dir  mfpv [0;33m-U: [0m[0;32muser directory[0m
+33 [0;34mbegx              [0m int  prm  mfpv [0;33m-X: [0m[0;32mbegin on column[0m
+34 [0;34mbegy              [0m int  prm  mfpv [0;33m-Y: [0m[0;32mbegin on line[0m
+35 [0;34mf_stop_on_error   [0m bool flag mfpv [0;33m-Z  [0m[0;32mstop on error[0m
+36 [0;34mblack             [0m str  prm  mfpv [0;33m    [0m[0;32mblack (#000000)[0m
+37 [0;34mred               [0m str  prm  mfpv [0;33m    [0m[0;32mred (#bf0000)[0m
+38 [0;34mgreen             [0m str  prm  mfpv [0;33m    [0m[0;32mgreen (#00cf00)[0m
+39 [0;34myellow            [0m str  prm  mfpv [0;33m    [0m[0;32myellow (#efbf00)[0m
+40 [0;34mblue              [0m str  prm  mfpv [0;33m    [0m[0;32mblue (#0000FF)[0m
+41 [0;34mmagenta           [0m str  prm  mfpv [0;33m    [0m[0;32mmagenta (#9f009f)[0m
+42 [0;34mcyan              [0m str  prm  mfpv [0;33m    [0m[0;32mcyan (#00dfdf)[0m
+43 [0;34mwhite             [0m str  prm  mfpv [0;33m    [0m[0;32mwhite (#d0d0d0)[0m
+44 [0;34morange            [0m str  prm  mfpv [0;33m    [0m[0;32morange (#FF5f00)[0m
+45 [0;34mbblack            [0m str  prm  mfpv [0;33m    [0m[0;32mbright black (#7f7f7f)[0m
+46 [0;34mbred              [0m str  prm  mfpv [0;33m    [0m[0;32mbright red (#FF3737)[0m
+47 [0;34mbgreen            [0m str  prm  mfpv [0;33m    [0m[0;32mbright green (#00FF7f)[0m
+48 [0;34mbyellow           [0m str  prm  mfpv [0;33m    [0m[0;32mbright yellow (#FFeF00)[0m
+49 [0;34mbblue             [0m str  prm  mfpv [0;33m    [0m[0;32mbright blue (#00cfFF)[0m
+50 [0;34mbmagenta          [0m str  prm  mfpv [0;33m    [0m[0;32mbright magenta (#FF00FF)[0m
+51 [0;34mbcyan             [0m str  prm  mfpv [0;33m    [0m[0;32mbright cyan (#00FFFF)[0m
+52 [0;34mbwhite            [0m str  prm  mfpv [0;33m    [0m[0;32mbright white (#FFFFFF)[0m
+53 [0;34mborange           [0m str  prm  mfpv [0;33m    [0m[0;32mbright orange (#FF7500)[0m
+54 [0;34mbg                [0m hex  col  mfpv [0;33m    [0m[0;32mbackground (#000720)[0m
+55 [0;34mabg               [0m hex  col  mfpv [0;33m    [0m[0;32malternate background (#000f50)[0m
+56 [0;34mmapp_data         [0m str  dir  mfpv [0;33m    [0m[0;32mdata directory[0m
+57 [0;34mmapp_help         [0m str  dir  mfpv [0;33m    [0m[0;32mhelp directory[0m
+58 [0;34mmapp_msrc         [0m str  dir  mfpv [0;33m    [0m[0;32msource directory[0m

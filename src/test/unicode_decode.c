@@ -1,4 +1,11 @@
-// decode UTF-8 encoded string to Unicode code points
+/** @file unicode_decode.c
+    @brief decode UTF-8 encoded string to Unicode code points
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
+ */
 
 #include <stdint.h>
 #include <stdio.h>
@@ -34,13 +41,7 @@ int main() {
 
     while (*str) {
         uint32_t cp = utf8_decode(&str);
-        if (cp > 0xFFFF) {
-            printf("U+%06X\n", cp);
-            continue;
-        } else {
-            printf("U+%06X < 0xFFFF\n", cp);
-            continue;
-        }
+        printf("U+%06X\n", cp);
     }
     return 0;
 }

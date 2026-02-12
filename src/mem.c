@@ -8,6 +8,7 @@
  */
 
 #include "common.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -26,7 +27,7 @@ bool mapp_spec(Init *, int, char **);
 bool init_menu_files(Init *, int, char **);
 bool init_pick_files(Init *, int, char **);
 bool init_form_files(Init *, int, char **);
-bool init_view_files(Init *, int, char **);
+bool init_view_files(Init *);
 bool verify_spec_arg(char *, char *, char *, char *, int);
 int init_cnt = 0;
 
@@ -62,16 +63,17 @@ Init *new_init(int argc, char **argv) {
     init->argv = calloc(MAXARGS + 1, sizeof(char *));
     if (init->argv == NULL) {
         free(init);
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "init->argv = calloc(%d, %d) failed\n",
-                  MAXARGS + 1, sizeof(char *));
-        display_error(em0, em1, NULL, NULL);
-        abend(-1, "User terminated program");
+        ssnprintf(em0, MAXLEN - 65, "%s, line: %d, errno: %d", __FILE__,
+                  __LINE__ - 4, errno);
+        ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+        ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
+                  (MAXARGS + 1), sizeof(char *));
+        display_error(em0, em1, em2, NULL);
+        abend(-1, "calloc init->argv failed");
         return NULL;
     }
     init->argc = argc;
     for (i = 0; i < init->argc; i++) {
-        // Allocate memory for each argument strings
         init->argv[i] = strdup(argv[i]);
     }
     init->argv[i] = NULL;
@@ -281,24 +283,39 @@ Form *destroy_form(Init *init) {
                     calling program interal to C-Menu
  */
 View *new_view(Init *init, int argc, char **argv) {
-    /// Create and initialize a View structure
     init->view_cnt++;
     init->view = (View *)calloc(1, sizeof(View));
     if (!init->view) {
-        Perror("calloc init->view failed");
-        return NULL;
+        free(init->view);
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+                  __LINE__ - 1, errno);
+        ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+        ssnprintf(em2, MAXLEN - 1, "init->view = calloc(%d, %d) failed\n",
+                  (argc - optind + 1), sizeof(char *));
+        display_error(em0, em1, em2, NULL);
+        abend(-1, "calloc init->view failed");
+        return false;
     }
     view = init->view;
-    view->argc = argc;
-    view->argv = calloc((view->argc + 1), sizeof(char *));
+    view->argv = calloc((argc - optind + 1), sizeof(char *));
     if (view->argv == NULL) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
-                  view->argc + 1, sizeof(char *));
-        display_error(em0, em1, NULL, NULL);
+        free(view->argv);
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+                  __LINE__ - 1, errno);
+        ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+        ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
+                  (argc - optind + 1), sizeof(char *));
+        display_error(em0, em1, em2, NULL);
         abend(-1, "User terminated program");
+        return false;
     }
-    if (!init_view_files(init, view->argc, argv)) {
+    int s = optind;
+    int d = 0;
+    while (s < argc)
+        view->argv[d++] = strdup(argv[s++]);
+    view->argv[d] = NULL;
+    view->argc = d;
+    if (!init_view_files(init)) {
         abend(-1, "init_view_files failed");
         return NULL;
     }
@@ -693,26 +710,8 @@ bool init_form_files(Init *init, int argc, char **argv) {
                    environment variables, or
                    calling program interal to C-Menu
     @note Positional args: pick desc, in_file, out_file, help_file */
-bool init_view_files(Init *init, int argc, char **argv) {
+bool init_view_files(Init *init) {
     view = init->view;
-
-    view->argv = calloc((argc - optind + 1), sizeof(char *));
-    if (view->argv == NULL) {
-        free(view);
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
-                  (argc - optind + 1), sizeof(char *));
-        display_error(em0, em1, NULL, NULL);
-        abend(-1, "User terminated program");
-        return false;
-    }
-    int s = optind;
-    int d = 0;
-    while (s < argc)
-        view->argv[d++] = strdup(argv[s++]);
-    view->argv[d] = NULL;
-    view->argc = d;
-
     view->lines = init->lines;
     view->cols = init->cols;
     view->f_stop_on_error = init->f_stop_on_error;

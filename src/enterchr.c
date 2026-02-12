@@ -17,10 +17,12 @@
 
 /** @example
     @code
-    USERNAME=$(enterstr "Enter your username: ")
-    PASSWORD=$(enterstr "Enter your password: ")
-    echo "Username: $USERNAME"
-    echo "Password: $PASSWORD"
+    key=$(enterchr "Are you sure?: ")
+    if [ "$key" = "Y" ]; then
+        echo "You entered Y"
+    else
+        echo "You entered N"
+    fi
     @endcode
  */
 

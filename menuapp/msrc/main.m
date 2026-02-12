@@ -24,6 +24,6 @@
 :     Menu Description
 !view -S "bat --theme ansi -l Crystal -f /home/bill/menuapp/msrc/main.m"
 :     Help
-!view view -L 54 -C 84 -S "optsp.sh"
+!help
 :     Exit Applications
 !return

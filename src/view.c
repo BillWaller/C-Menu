@@ -22,6 +22,9 @@ int main(int argc, char **argv) {
     SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
     open_curses(sio);
+    capture_curses_tioctl();
+    sig_prog_mode();
+
     view = new_view(init, argc, argv);
     if (view->lines > 0 && view->cols > 0) {
         mview(init, view->argc, view->argv);

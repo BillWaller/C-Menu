@@ -11,11 +11,19 @@
 #include "cm.h"
 #include <stdio.h>
 
-/**
+/** C function - strip_ansi(out_str, in_str)
+ * @param out_str Buffer to store the cleaned string
+ * @param in_str Input string that may contain ANSI escape sequences
+ * @details This function iterates through the input string, copying characters
+ * to the output buffer while skipping over any ANSI escape sequences. It looks
+ * for sequences that start with "\033[" and end with "m" or "K", and removes
+ * them from the output. */
+
+/** biniary executable - stripansi [input_file]
+ * @param input_file A text file that may contain ANSI escape sequences
    @details ANSI escape sequences start with "\033[" and end with "m" or "K".
    This function removes those sequences from the input string and writes the
    cleaned string to stdout */
-
 int main(int argc, char *argv[]) {
     char in_buf[2048];
     char out_buf[2048];

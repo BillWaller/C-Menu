@@ -1,4 +1,4 @@
-/** @file menu.c
+/** @file ckeys.c
     @brief Test Curses Keys
     @author Bill Waller
     Copyright (c) 2025

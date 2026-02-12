@@ -585,22 +585,24 @@ int view_cmd_processor(Init *init) {
                 } else
                     Perror("Tab stops not changed");
                 break;
-                /**  'h' or 'H' - Display Help Information about Settings
-                 Commands
-                 @details This case handles the command to display help
-                 information about the settings commands. When the user selects
-                 'h' or 'H', it checks if the view is currently displaying help
-                 information. If it is not, it calls the view_display_help()
-                 function to show the help information related to the settings
-                 commands. After displaying the help, it sets next_cmd_char to
-                 '-' to allow the user to easily return to the settings menu
-                 after viewing the help information. This provides users with a
-                 convenient way to access guidance on how to use the various
-                 settings options available in the application. */
-            case 'h':
+                /**  KEY_F(1), 'H' - Display Help Information about Settings
+                 * Commands @details This case handles the command to display
+                 * help information about the settings commands. When the user
+                 * selects 'h' or 'H', it checks if the view is currently
+                 * displaying help information. If it is not, it calls the
+                 * view_display_help() function to show the help information
+                 * related to the settings commands. After displaying the help,
+                 * it sets next_cmd_char to '-' to allow the user to easily
+                 * return to the settings menu after viewing the help
+                 * information. This provides users with a convenient way to
+                 * access guidance on how to use the various settings options
+                 * available in the application. */
             case 'H':
-                if (!view->f_displaying_help)
+            case KEY_F(1):
+                if (!view->f_displaying_help) {
                     view_display_help(init);
+                    view = init->view;
+                }
                 view->next_cmd_char = '-';
                 break;
             default:
@@ -694,9 +696,12 @@ int view_cmd_processor(Init *init) {
              help information. This provides users with a convenient way to
              access guidance and instructions on how to use the various features
              and commands available in the application. */
+        case 'H':
         case KEY_F(1):
-            if (!view->f_displaying_help)
+            if (!view->f_displaying_help) {
                 view_display_help(init);
+                view = init->view;
+            }
             break;
             /**  'm' - Set a Mark at the Current Position
              @note This feature is currently not implemented and may be removed
@@ -2309,32 +2314,24 @@ void remove_file(View *view) {
     }
 }
 /** @brief Display View Help File
-   @details This function displays the help file for the view feature. It sets
-   up a temporary view to show the help content, ensuring that the current view
-   is preserved and restored after displaying the help. The function prepares
-   the command-line arguments to specify the help file and configures the
-   dimensions and position of the help view. After displaying the help content,
-   it restores the original view and sets a flag to indicate that the page
-   should be redisplayed when returning to it. This allows users to access
-   helpful information about using the view feature without losing their current
-   context in the file they are viewing. */
+   @details This function displays the help file for the view feature. */
 void view_display_help(Init *init) {
-    /// Display View Help File
-    /// @param init is the current init data structure
     int eargc;
     char *eargv[MAXARGS];
     View *view_save = init->view;
     init->view = NULL;
-    eargv[0] = HELP_CMD;
-    eargv[1] = VIEW_HELP_FILE;
+    zero_opt_args(init);
+    eargv[0] = strdup("mview");
+    eargv[1] = strdup(VIEW_HELP_FILE);
     eargv[2] = NULL;
     eargc = 2;
-    init->lines = 10;
+    parse_opt_args(init, eargc, eargv);
+    init->lines = 40;
     init->cols = 54;
-    init->begy = view->begy + 1;
-    init->begx = view->begx + 4;
+    init->begy = 0;
+    init->begx = 0;
     strnz__cpy(init->title, "View Help", MAXLEN - 1);
     mview(init, eargc, eargv);
-    view = init->view = view_save;
-    view->f_redisplay_page = true;
+    init->view = view_save;
+    init->view->f_redisplay_page = true;
 }
