@@ -97,7 +97,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
-        /// @ Return to Parent
+        /// Return to Parent
         /// Close write end of pipe as Parent only needs to read from pipe
         close(pipe_fd[P_WRITE]);
         /// Open a file pointer on read end of pipe
@@ -327,8 +327,9 @@ int picker(Init *init) {
         case 'Q':
         case KEY_F(9):
             return -1;
-            /** KEY_F(1) or 'h' Displays help screen for pick interface */
-        case 'H': /// Help
+            /** KEY_F(1) or 'H' Displays help screen for pick interface */
+        case KEY_F(1):
+        case 'H':
             display_pick_help(init);
             display_page(pick);
             reverse_object(pick);
@@ -365,7 +366,7 @@ int picker(Init *init) {
             reverse_object(pick);
             cmd_key = 0;
             break;
-            /** 'l' or KEY_RIGHT Moves selection to next object in list */
+        /** 'l' or KEY_RIGHT Moves selection to next object in list */
         case 'l':
         case KEY_RIGHT:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -881,21 +882,19 @@ int open_pick_win(Init *init) {
    with the help file as an argument. Finally, calls mview function to display
    the help screen within the pick interface. */
 void display_pick_help(Init *init) {
-    /// Displays the help screen for the pick interface using mview
-    pick = init->pick;
-    char tmp_spec[MAXLEN];
-    int margc = 0;
-    char *margv[MAXARGS];
-    strnz__cpy(tmp_spec, "~/menuapp/help/pick.help", MAXLEN - 1);
-    pick->f_help_spec = verify_spec_arg(
-        pick->help_spec, tmp_spec, "~/menuapp/help", init->mapp_help, R_OK);
-    margv[margc++] = strdup("mview");
-    margv[margc++] = pick->help_spec;
-    margv[margc] = NULL;
-    init->lines = 20;
+    eargv[0] = strdup("view");
+    eargv[1] = strdup("~/menuapp/help/pick.help");
+    eargv[2] = NULL;
+    eargc = 2;
+    zero_opt_args(init);
+    parse_opt_args(init, eargc, eargv);
+    init->lines = 30;
     init->cols = 60;
-    init->begy = pick->begy + 1;
-    init->begx = pick->begx + 4;
-    strnz__cpy(init->title, margv[1], MAXLEN - 1);
-    mview(init, margc, margv);
+    init->begy = menu->begy + 1;
+    init->begx = menu->begx + 4;
+    strnz__cpy(init->title, "Pick Help", MAXLEN - 1);
+    mview(init, eargc, eargv);
+    free(eargv[0]);
+    free(eargv[1]);
+    return;
 }

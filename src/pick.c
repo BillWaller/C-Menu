@@ -17,12 +17,12 @@ __end_pgm;
  */
 int main(int argc, char **argv) {
     __atexit;
-    sig_prog_mode();
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
     SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
     open_curses(sio);
+    sig_prog_mode();
     capture_curses_tioctl();
     win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
     init_pick(init, init->argc, init->argv, 0, 0);

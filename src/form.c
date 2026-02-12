@@ -19,6 +19,8 @@ int main(int argc, char **argv) {
     SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
     open_curses(sio);
+    capture_curses_tioctl();
+    sig_prog_mode();
     win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
     int begy = LINES / 14;
     int begx = COLS / 14;

@@ -26,7 +26,7 @@
 #define ICASE 0x04    /**< Ignore case in search */
 #define W_BOX 0x02    /**< box window flag for win_new() */
 #define COLOR_LEN 8   /**< length of color code strings */
-
+#define DEFAULTSHELL "/bin/bash"
 #define LIBCM_VERSION "libcm-0.2.8" /**< version string for libcm */
 #define S_WCOK 0x1000               /**< write or create permitted */
 #define S_QUIET 0x2000              /**< quiet mode flag for file validation */
@@ -53,6 +53,7 @@
         win_del();                                                             \
         destroy_curses();                                                      \
         restore_shell_tioctl();                                                \
+        sig_dfl_mode();                                                        \
         exit(EXIT_FAILURE);                                                    \
     }
 /** @brief This macro registers the end_pgm function to be called when the
@@ -143,6 +144,23 @@ extern bool f_have_shell_tioctl;  /**< shell tioctl captured */
 extern bool f_have_curses_tioctl; /**< curses tioctl captured */
 extern bool f_curses_open;        /**< curses mode is active */
 extern bool f_restore_screen;     /**< whether to restore the screen */
+
+extern void dump_opts(); /**< dump options to stdout */
+
+/**
+ * @struct Opts
+ * @brief Table elements for options.
+ */
+typedef struct {
+    const char *name;      /**< long name of the option */
+    unsigned int type;     /**< data type, string, int, bool */
+    unsigned int group;    /**< file, misc, param, flag, etc */
+    const char *use;       /**< menu, pick, form, view */
+    const char *short_opt; /**< command line short option, e.g. -a -b -c */
+    const char *desc;      /**< brief description */
+} Opts;
+
+extern void dump_opts_by_use(char *, char *); /**< dump options to stdout */
 extern int xwgetch(WINDOW *);
 extern bool capture_shell_tioctl();
 extern bool restore_shell_tioctl();
@@ -154,7 +172,7 @@ extern int win_new(int, int, int, int, char *, int);
 extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
-extern int handle_signal(sig_atomic_t);
+extern bool handle_signal(sig_atomic_t);
 extern volatile sig_atomic_t sig_received;
 extern void sig_prog_mode();
 extern void sig_dfl_mode();
@@ -346,9 +364,12 @@ extern int
 #define to_lowercase(c)                                                        \
     if (c >= 'A' && c <= 'Z')                                                  \
     c += ' '
-/** earg - the argument that caused an error, for error messages */
-extern char *earg;
-/** eargv - the argument vector for the current command, for error messages */
+extern int eargc; /**< general use argument count, for external commands or
+                     error messages */
+/** earg - general use argument string */
+extern char earg_str[MAXLEN]; /**< general use argument string, for external
+                                 commands or error messages */
+/** eargv - argument vector for external commands, or error messages */
 extern char *eargv[MAXARGS];
 /** tty_fd - the file descriptor for the terminal, for error messages and other
  */

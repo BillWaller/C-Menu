@@ -94,6 +94,9 @@ int form_accept_field(Form *form) {
             in_key = KEY_F(9);
             return (in_key);
             /** KEY_UP, KEY_BTAB moves to the previous field */
+        case 'H':
+        case KEY_F(1):
+            return (in_key);
         case KEY_BTAB:
         case KEY_UP:
             form_fmt_field(form, accept_s);

@@ -1,11 +1,30 @@
+/** @file color.c
+ * @brief Test program for xterm 256-color to RGB conversion and vice versa.
+ * @details This program defines two functions: `xterm256_to_rgb` to convert an
+ * xterm 256-color code to its corresponding RGB color, and `rgb_to_xterm256` to
+ * convert an RGB color to the nearest xterm 256-color code. The main function
+ * tests these conversions by iterating through all 256 xterm color codes,
+ * converting them to RGB, and then converting back to xterm codes, printing the
+ * results.
+ * @author OpenAI's ChatGPT
+ * @date 2024-06
+ */
+
 #include <stdio.h>
 
+/** @struct RGB
+ * @brief Represents an RGB color with 8-bit components.
+ */
 typedef struct {
     unsigned char r;
     unsigned char g;
     unsigned char b;
 } RGB;
 
+/** @brief Converts an xterm 256-color code to its corresponding RGB color.
+ * @param code The xterm 256-color code (0-255).
+ * @return An RGB struct representing the corresponding color.
+ */
 RGB xterm256_to_rgb(int code) {
     RGB color;
     if (code < 16) {
@@ -47,6 +66,12 @@ RGB xterm256_to_rgb(int code) {
     return color;
 }
 
+/** @brief Converts an RGB color to the nearest xterm 256-color code.
+ * @param r The red component (0-255).
+ * @param g The green component (0-255).
+ * @param b The blue component (0-255).
+ * @return The nearest xterm 256-color code (0-255).
+ */
 int rgb_to_xterm256(unsigned char r, unsigned char g, unsigned char b) {
     if (r == g && g == b) {
         if (r < 8)
@@ -62,7 +87,6 @@ int rgb_to_xterm256(unsigned char r, unsigned char g, unsigned char b) {
         return 16 + (36 * r_index) + (6 * g_index) + b_index;
     }
 }
-
 int main(int argc, char *argv[]) {
     RGB rgb;
     RGB rgb2;
