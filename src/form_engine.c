@@ -104,9 +104,6 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
           cancel status. */
 int form_engine(Init *init) {
 
-    int eargc;
-    char *eargv[MAXARGS];
-    char earg_str[MAXLEN + 1];
     int form_action;
 
     form = init->form;
@@ -148,15 +145,17 @@ int form_engine(Init *init) {
             }
             return 0;
         case P_HELP:
-            strnz__cpy(earg_str, HELP_CMD, MAXLEN - 1);
-            strnz__cat(earg_str, " ", MAXLEN - 1);
-            strnz__cat(earg_str, form->help_spec, MAXLEN - 1);
-            eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-            init->lines = 10;
-            init->cols = 68;
-            init->begy = form->begy + 1;
-            init->begx = form->begx + 4;
-            strnz__cpy(init->title, form->title, MAXLEN - 1);
+            eargv[0] = strdup("mview");
+            eargv[1] = strdup("~/menuapp/help/form.help");
+            eargv[2] = NULL;
+            eargc = 2;
+            zero_opt_args(init);
+            parse_opt_args(init, eargc, eargv);
+            init->lines = 30;
+            init->cols = 60;
+            init->begy = menu->begy + 1;
+            init->begx = menu->begx + 4;
+            strnz__cpy(init->title, "Form Help", MAXLEN - 1);
             mview(init, eargc, eargv);
             restore_wins();
             form_action = P_CONTINUE;
@@ -828,7 +827,7 @@ int form_write(Form *form) {
     return (0);
 }
 void form_usage() {
-    dump_opts_by_use("FORML: usage: ", "..f.");
+    dump_opts_by_use("Form: usage: ", "..f.");
     (void)fprintf(stderr, "\n");
     Perror("press any key to continue");
 }

@@ -115,6 +115,7 @@ typedef struct {
                                  stripped_line_out */
     char in_spec[MAXLEN];     /**< input file spec */
     char out_spec[MAXLEN];    /**< output file spec */
+    char help_spec[MAXLEN];   /**< help file spec */
     bool f_in_spec;           /**< input file verified */
     bool f_out_spec;          /**< output file verified */
     char *file_spec_ptr;      /**< pointer to current file spec */

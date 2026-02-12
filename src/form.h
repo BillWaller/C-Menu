@@ -11,14 +11,17 @@
 #define _FORM_H 1
 #include "cm.h"
 
-#define TBL_COLS 1024
-#define MAXFIELDS 100
-
 #ifndef _COMMON_H
 typedef struct Init Init;
 #endif
 
-/** Form structures, enums, and data types */
+#define TBL_COLS 1024
+#define MAXFIELDS 100
+#define F_NOMETAS 1  /**< flag - no metacharacters allowed in field input */
+#define F_NOTBLANK 2 /**< flag - field input cannot be blank */
+#define F_NOECHO                                                               \
+    4 /**< flag - do not echo field input on the screen, e.g. for password     \
+         fields */
 
 /** Form process types */
 enum {

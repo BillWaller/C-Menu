@@ -66,6 +66,7 @@ String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
 char errmsg[MAXLEN];
+
 /**  Trims trailing spaces from string s in place.
      @param s - string to trim
      @returns length of trimmed string */
@@ -99,20 +100,19 @@ size_t trim(char *s) {
     return d - s;
 }
 /** @brief ssnprintf was designed to be a safer alternative to snprintf.
-    It ensures
-    that the buffer is not overflowed by taking the buffer size as a
-    parameter and using vsnprintf internally. It also returns the number of
-    characters that would have been written if enough space had been
-    available, allowing the caller to detect truncation. This function is
-    particularly useful in situations where the formatted string may exceed
-    the buffer size, as it prevents buffer overflows and provides a way to
-    handle such cases gracefully.
+    It ensures that the buffer is not overflowed by taking the buffer size as a
+   parameter and using vsnprintf internally. It also returns the number of
+   characters that would have been written if enough space had been available,
+   allowing the caller to detect truncation. This function is particularly
+   useful in situations where the formatted string may exceed the buffer size,
+   as it prevents buffer overflows and provides a way to handle such cases
+   gracefully.
     @param buf - buffer to receive formatted string
     @param buf_size - size of buffer
     @param format - printf-style format string
     @param ... - arguments
-    @returns number of characters that would have been written if enough
-    space had been available */
+    @returns number of characters that would have been written if enough space
+   had been available */
 size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     int n;
     va_list args;
@@ -124,9 +124,8 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     return n;
 }
 /**  @brief Converts a string into an array of argument strings.
-     Handles quoted strings and escaped quotes, preserving
-     text inside quotes as individual arguments. It has been
-     in service for many years without problems.
+     Handles quoted strings and escaped quotes, preserving text inside quotes as
+   individual arguments. It has been in service for many years without problems.
      @param argv - array of pointers to arguments
      @param arg_str - string containing arguments
      @param max_args - maximum number of arguments to parse
@@ -208,12 +207,11 @@ bool str_to_upper(char *s) {
     return true;
 }
 /** @brief safer alternative to strncpy
-    It copies string s to d, ensuring that the total length of d does not
-    exceed max_len, and that the resulting string is null-terminated. It
-    also treats newline and carriage return characters as string
-    terminators, preventing them from being included in the result. This is
-    particularly useful when copying user input or file data, where embedded
-    newlines could cause issues.
+    It copies string s to d, ensuring that the total length of d does not exceed
+   max_len, and that the resulting string is null-terminated. It also treats
+   newline and carriage return characters as string terminators, preventing them
+   from being included in the result. This is particularly useful when copying
+   user input or file data, where embedded newlines could cause issues.
      @param d - destination string
      @param s - source string
      @param max_len - maximum length to copy
@@ -235,12 +233,12 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     return len;
 }
 /** @brief safer alternative to strncat
-  It appends string s to d, ensuring that the total length of d does not
-  exceed max_len, and that the resulting string is null-terminated. It
-  also treats newline and carriage return characters as string
-  terminators, preventing them from being included in the result. This is
-  particularly useful when concatenating user input or file data, where
-  embedded newlines could cause issues.
+  It appends string s to d, ensuring that the total length of d does not exceed
+  max_len, and that the resulting string is null-terminated. It also treats
+  newline and carriage return characters as string terminators, preventing them
+  from being included in the result. This is particularly useful when
+  concatenating user input or file data, where embedded newlines could cause
+  issues.
   @param d - destination string
   @param s - source string
   @param max_len - maximum length to copy
@@ -281,9 +279,8 @@ size_t strz(char *s) {
     return l;
 }
 /**  @brief terminates string at New Line, Carriage Return, or max_len
-     The use case is to ensure that strings read from
-     files or user input do not contain embedded newlines or
-     carriage returns.
+     The use case is to ensure that strings read from files or user input do not
+   contain embedded newlines or carriage returns.
      @param s string to terminate
      @param max_len - maximum length to scan
      @returns length of resulting string */
@@ -300,8 +297,8 @@ size_t strnz(char *s, int max_len) {
     *s = '\0';
     return (len);
 }
-/**  @brief Allocates memory for and duplicates string s up to
-     length l or until line feed or carriage return
+/**  @brief Allocates memory for and duplicates string s up to length l or until
+   line feed or carriage return
      @param s - string to duplicate
      @param l - maximum length to copy
      @returns pointer to allocated memory */
@@ -321,15 +318,14 @@ char *strnz_dup(char *s, int l) {
     }
     return rs;
 }
-/** @brief Replaces "ReplaceChr" in "s" with "Withstr" in "d"
-    won't copy more than "l" bytes to "d"
-    Replaces all occurrences of a character in a string with
-    another string, copying the result to a destination buffer.
-    It ensures that the total length of the resulting string does not
-    exceed the specified limit, and that the result is null-terminated.
-    This function is useful for simple string substitutions where you
-    want to replace a single character with a longer string, such
-    as replacing spaces with underscores or tabs with spaces.
+/** @brief Replaces "ReplaceChr" in "s" with "Withstr" in "d" won't copy more
+   than "l" bytes to "d" Replaces all occurrences of a character in a string
+   with another string, copying the result to a destination buffer. It ensures
+   that the total length of the resulting string does not exceed the specified
+   limit, and that the result is null-terminated. This function is useful for
+   simple string substitutions where you want to replace a single character with
+   a longer string, such as replacing spaces with underscores or tabs with
+   spaces.
     @param d - destination string
     @param s - source string
     @param ReplaceChr - character to replace
@@ -337,10 +333,10 @@ char *strnz_dup(char *s, int l) {
     @param l - maximum length to copy
     @returns true if successful, false if any parameter is invalid
     @note The caller must ensure that "d" has enough space to receive the
-    result, and that "l" is sufficient to hold the result. This function
-    does not perform any bounds checking on "d" or "Withstr", so it is the
-    caller's responsibility to ensure that they are valid and that "l" is
-    appropriate for the operation. */
+   result, and that "l" is sufficient to hold the result. This function does not
+   perform any bounds checking on "d" or "Withstr", so it is the caller's
+   responsibility to ensure that they are valid and that "l" is appropriate for
+   the operation. */
 bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
     char *e;
     if (s == NULL || d == NULL || Withstr == NULL || l == 0) {
@@ -1039,8 +1035,8 @@ size_t canonicalize_file_spec(char *spec) {
     @param rep_s - replacement substring
     @returns A pointer to the newly allocated string with replacements or a copy
    of the replacement string if original string is the same as target string
-   This is a special case that allows for replacing the entire original string.
-   If any parameter is NULL, the function returns NULL. If "tgt_s" is not found
+    This is a special case that allows for replacing the entire original string.
+    If any parameter is NULL, the function returns NULL. If "tgt_s" is not found
    in "org_s", the function returns a copy of "org_s". If target substring is
    not found the function returns a copy of the original string.
     @note The function allocates memory for the return value, so the caller is
@@ -1048,7 +1044,7 @@ size_t canonicalize_file_spec(char *spec) {
    memory leaks.
     @note The function does not modify the original string "org_s".
     @note The function assumes that "tgt_s" and "rep_s" are null-terminated
-    strings. If they are not, the behavior is undefined.
+   strings. If they are not, the behavior is undefined.
     @note The function does not perform any bounds checking on the input
    strings, so it is the caller's responsibility to ensure that they are valid
    and that the resulting string does not exceed available memory. @note The
@@ -1060,10 +1056,9 @@ size_t canonicalize_file_spec(char *spec) {
    unexpected. The caller should ensure that "tgt_s" does not contain
    overlapping patterns to avoid this issue.
     @note The function does not handle cases where "tgt_s" is a substring of
-    "rep_s", which could lead to unintended consequences if "tgt_s" appears
-    in "rep_s". The caller should ensure that "tgt_s" and "rep_s" are
-    distinct to avoid this issue. */
-
+   "rep_s", which could lead to unintended consequences if "tgt_s" appears in
+   "rep_s". The caller should ensure that "tgt_s" and "rep_s" are distinct to
+   avoid this issue. */
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     if (org_s == NULL || tgt_s == NULL || rep_s == NULL)
         return NULL;
@@ -1072,13 +1067,8 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     if (strstr(org_s, tgt_s) == NULL)
         return strdup(org_s);
     if (strstr(rep_s, tgt_s) != NULL)
-        // Avoid unintended consequences if target substring
-        // appears in replacement string
         return NULL;
     if (tgt_s == rep_s || tgt_s == org_s || rep_s == org_s)
-        // Return a copy of the original string if
-        // (target and replacement strings) or (target and original string) or
-        // (replacement and original strings) are the same
         return strdup(org_s);
     if (strcmp(org_s, tgt_s) == 0)
         return strdup(rep_s);
@@ -1110,7 +1100,8 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     strnz__cpy(tmp, ip, MAXLEN - 1);
     return out_s;
 }
-/** These functions provide a simple string library to facilitate string
+/**
+   These functions provide a simple string library to facilitate string
    manipulation in C, allowing developers to easily create, copy, concatenate,
    and free strings without having to manage memory manually.
    @note The library includes functions to convert C strings to String structs,
@@ -1133,11 +1124,11 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
    memory for the string using malloc or realloc. It is the caller's
    responsibility to free this memory using the free_string function when it is
    no longer needed to avoid memory leaks.
-     @note The functions in this library do not perform any bounds checking on
+    @note The functions in this library do not perform any bounds checking on
    the input strings or the resulting strings. It is the caller's responsibility
    to ensure that all input strings are valid and that the resulting strings do
    not exceed available memory.
-     @note The functions in this library assume that all input strings are
+    @note The functions in this library assume that all input strings are
    null-terminated. If any input string is not null-terminated, the behavior is
    undefined.
     @example strings_test1.c
@@ -1162,12 +1153,12 @@ String to_string(const char *s) {
 }
 /** @brief Create a String struct with a dynamically allocated string of length
    l
-    @param: l length of string to create (including null terminator)
-    @return: String struct
-    @note: The returned String struct contains a dynamically allocated string of
-   the specified length
-    @see: free_string
-    @note: the caller is responsible for calling free_string to free the
+   @param: l length of string to create (including null terminator)
+   @return: String struct
+   @note: The returned String struct contains a dynamically allocated string of
+   he specified length
+   @see: free_string
+   @note: the caller is responsible for calling free_string to free the
    allocated memory. */
 String mk_string(size_t l) {
     if (l == 0) {
@@ -1211,7 +1202,7 @@ size_t string_cpy(String *dest, const String *src) {
     return src->l;
 }
 /** @brief Concatenates src String to dest String, allocating additional memory
-    for dest String if necessary
+   for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @returns new length of dest String after concatenation
@@ -1228,7 +1219,7 @@ size_t string_cat(String *dest, const String *src) {
     return new_len;
 }
 /** @brief Concatenates up to n characters from src String to dest String,
-    allocating additional memory for dest String if necessary
+   allocating additional memory for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to concatenate
@@ -1248,8 +1239,8 @@ size_t string_ncat(String *dest, const String *src, size_t n) {
     strncat(dest->s, src->s, cat_len);
     return new_len;
 }
-/** @brief copies up to n characters from src String to dest String,
-    allocating additional memory for dest String if necessary
+/** @brief copies up to n characters from src String to dest String, allocating
+   additional memory for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to copy

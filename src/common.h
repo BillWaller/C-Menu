@@ -33,20 +33,17 @@
 #define MAX_ARGS 64
 #define MAX_PICK_OBJS 1024
 #define ACCEPT_PROMPT_CHAR '_'
-#define DEFAULTEDITOR "vi"
+
 #define MENU_HELP_FILE "~/menuapp/help/menu.help"
 #define PICK_HELP_FILE "~/menuapp/help/pick.help"
 #define VIEW_HELP_FILE "~/menuapp/help/view.help"
-#define HELP_CMD "view"
 #define VIEW_PRT_FILE "~/menuapp/data/prtout"
-#define DEFAULTSHELL "/bin/bash"
+#define DEFAULTEDITOR "vi"
+
 #define MINITRC "~/.minitrc"
 #define MAPP_DIR "~/menuapp"
 #define PRINTCMD "lp -c -s"
 #define MAXOPTS 50
-#define F_NOMETAS 1
-#define F_NOTBLANK 2
-#define F_NOECHO 4
 #define EIGHT 8
 #define F_VIEW 0x01
 #define P_READ 0
@@ -75,23 +72,6 @@ enum OptGroup {
     OG_FLAGS,
     OG_COL
 };
-
-extern void dump_opts(); /**< dump options to stdout */
-
-/**
- * @struct Opts
- * @brief Table elements for options.
- */
-typedef struct {
-    const char *name;      /**< long name of the option */
-    unsigned int type;     /**< data type, string, int, bool */
-    unsigned int group;    /**< file, misc, param, flag, etc */
-    const char *use;       /**< menu, pick, form, view */
-    const char *short_opt; /**< command line short option, e.g. -a -b -c */
-    const char *desc;      /**< brief description */
-} Opts;
-
-extern void dump_opts_by_use(char *, char *); /**< dump options to stdout */
 
 typedef Menu Menu;
 typedef Form Form;
@@ -194,10 +174,10 @@ extern void zero_opt_args(Init *);
 extern int write_config(Init *);
 extern bool derive_file_spec(char *, char *, char *);
 extern bool init_menu_files(Init *, int, char **);
-extern int init_form(Init *, int, char **, int, int);
 extern unsigned int menu_engine(Init *);
 extern unsigned int menu_loop(Init *);
 extern unsigned int parse_menu_description(Init *);
+extern int init_form(Init *, int, char **, int, int);
 extern int init_pick(Init *, int, char **, int, int);
 extern int open_pick_win(Init *);
 extern int pick_engine(Init *);

@@ -45,17 +45,17 @@ PREFIX = $(HOME)/menuapp
 LIB_DIR = $(PREFIX)/lib64
 BIN_DIR = $(PREFIX)/bin
 INC_DIR = $(PREFIX)/include
-
-REL_CFLAGS = -O1
+LIB_PATH = .:$(LIB_DIR)
+REL_CFLAGS = -O0
 DBG_CFLAGS = -g3
 
-CC = gcc -Wall -Wextra -g3
+CC = gcc -Wall -Wextra $(DBG_CFLAGS)
 LIB_NAME = libcm.so
 BINEXES = menu form pick ckeys view whence rsh iloan enterchr \
 		  enterstr lf optsp stripansi
 LIB_SRCS = dwin.c futil.c scriou.c exec.c sig.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
-COMMON_HDRS = cm.h menu.h form.h pick.h view.h
+COMMON_HDRS = cm.h common.h menu.h form.h pick.h view.h
 COMMON_SRCS = curskeys.c fields.c form_engine.c init.c init_view.c \
 			  mem.c mview.c opts.c pick_engine.c view_engine.c
 COMMON_OBJS = $(COMMON_SRCS:.c=.o)
@@ -69,7 +69,7 @@ VIEW_SRCS = view.c
 VIEW_OBJS = view.o $(COMMON_OBJS)
 CKEYS_SRCS = ckeys.c
 CKEYS_OBJS = ckeys.o $(COMMON_OBJS)
-LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_DIR)
+LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_PATH)
 
 all:	$(LIB_NAME) $(BINEXES)
 	@echo Make Complete
@@ -92,7 +92,7 @@ ckeys:	$(COMMON_HDRS) $(CKEYS_OBJS) $(LIB_NAME)
 enterchr:	cm.h enterchr.o $(LIB_NAME)
 	$(CC) 	enterchr.o -o $@ $(LIBS)
 
-optsp:	optsp.o opts.o $(LIB_NAME)
+optsp:	cm.h optsp.o opts.o $(LIB_NAME)
 	$(CC) 	optsp.o opts.o -o $@ $(LIBS)
 
 enterstr:	cm.h enterstr.o $(LIB_NAME)
@@ -121,8 +121,9 @@ $(LIB_NAME): $(LIB_OBJS)
 
 clean:
 	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.so \
-		*.cflow scan-build scan-build.out installed gdbcmds tm \
-	   	tf tp tv x xx xxx *.out .user_id .group_id
+		*.cflow scan-build scan-build.out installed \
+		x xx xxx *.out .user_id .group_id
+
 
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)
