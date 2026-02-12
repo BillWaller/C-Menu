@@ -8,7 +8,7 @@
 
 [***NEW*** -> C-Menu API <-](C-Menu-API.html)
 
-[***NEW*** -> Inatallation Guide <-](INSTALL.md)
+[***NEW*** -> Inatallation Guide <-](https://billwaller.github.io/C-Menu/C-Menu-API.html)
 
 [Configuration Snippets](snippets.md)
 
