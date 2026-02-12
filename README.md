@@ -6,7 +6,9 @@
 
 [Augmenting C-Menu](extras.md)
 
-[***NEW*** -> C-Menu API <-](https://billwaller.github.io/C-Menu/C-Menu-API.html)
+[***NEW*** -> C-Menu API <-](C-Menu-API.html)
+
+[***NEW*** -> Inatallation Guide <-](INSTALL.md)
 
 [Configuration Snippets](snippets.md)
 
