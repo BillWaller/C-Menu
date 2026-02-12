@@ -28,6 +28,7 @@
 USER=bill
 GROUP=bill
 HOME=/home/$(USER)
+PREFIX = $(HOME)/menuapp
 
 # Do not edit below this line unless you know what you are doing.
 # The variables above should be sufficient for most users to build and
@@ -41,9 +42,9 @@ HOME=/home/$(USER)
 #
 # ldconfig $(LIB_DIR)
 
-PREFIX = $(HOME)/menuapp
 LIB_DIR = $(PREFIX)/lib64
 BIN_DIR = $(PREFIX)/bin
+INC_DIR = $(PREFIX)/include
 
 REL_CFLAGS = -O1
 DBG_CFLAGS = -g3
@@ -128,20 +129,26 @@ test: snippets/strings_test1.c
 
 install:	$(BINEXES) $(LIB_NAME)
 	./inst.sh --
-	./inst.sh libcm.so	$(LIB_DIR)  0711	$(USER)	$(GROUP)
-	./inst.sh menu		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh form		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh pick		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh ckeys		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh view		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh optsp		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh whence	$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh rsh		$(BIN_DIR)	  4711	root	root
-	./inst.sh enterchr	$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh enterstr	$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh iloan		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh stripansi	$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh lf		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh cm.h		$(INC_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh common.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh form.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh menu.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh pick.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh view.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh libcm.so	$(LIB_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh menu		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh form		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh pick		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh ckeys		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh view		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh optsp		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh whence	$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh rsh		$(BIN_DIR)		  4711	root	root
+	./inst.sh enterchr	$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh enterstr	$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh iloan		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh stripansi	$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh lf		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	ldconfig $(LIB_DIR)
 	./inst.sh -p
 	./inst.sh -l
