@@ -18,11 +18,6 @@
 
 int tbl_col, tbl_line, tbl_page, tbl_cols, pg_lines, tbl_pages;
 int obj_idx, calculated_idx;
-int calc_obj_idx(int, int, int, int, int, int);
-void calc_tbl_coord(int, int, int, int *, int *, int *);
-int calc_tbl_page(int, int, int);
-int calc_tbl_line(int, int);
-int calc_tbl_col(int);
 int pick_engine(Init *);
 void save_object(Pick *, char *);
 int picker(Init *);
