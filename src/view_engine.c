@@ -486,7 +486,7 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
-        /** 'P' or '%' - Go to a Percent of the File */
+        /** 'p' or '%' - Go to a Percent of the File */
         case 'p':
         case '%':
             if (n_cmd < 0)
