@@ -1174,8 +1174,8 @@ String mk_string(size_t l) {
     return str;
 }
 /** @brief Free the dynamically allocated String
-    @param: str String struct to free
-    @return: String struct with NULL pointer and length 0
+    @param: str to free
+    @return: str with NULL pointer and length 0
     @note: Frees the dynamically allocated string and sets length to 0. */
 String free_string(String str) {
     if (str.s == NULL)
