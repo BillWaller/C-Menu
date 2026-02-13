@@ -181,25 +181,24 @@ int view_cmd_processor(Init *init) {
             }
         }
         switch (c) {
-        /**  Ctrl('R') or KEY_RESIZE - Handle terminal resize events */
-        case Ctrl('R'):
+        case Ctrl('R'): /**<  Ctrl('R') or KEY_RESIZE - Handle terminal resize
+                           events */
         case KEY_RESIZE:
             resize_page(init);
             break;
-        /** KEY_ALTHOME - horizontal scroll to the first column */
-        case KEY_ALTHOME:
+        case KEY_ALTHOME: /**< KEY_ALTHOME - horizontal scroll to the first
+                             column */
             view->pmincol = 0;
             break;
-        /** KEY_ALTEND  horizontal scroll to the last column */
-        case KEY_ALTEND:
+        case KEY_ALTEND: /**< KEY_ALTEND  horizontal scroll to the last column
+                          */
             if (view->maxcol > view->cols)
                 view->pmincol = view->maxcol - view->cols;
             else
                 view->pmincol = 0;
             break;
-        /**  'h', Ctrl('H'), KEY_LEFT, KEY_BACKSPACE - Horizontal scroll left by
-         * two thirds of the page width */
-        case 'h':
+        case 'h': /**< 'h', Ctrl('H'), KEY_LEFT, KEY_BACKSPACE - Horizontal
+                     scroll left by two thirds of the page width */
         case Ctrl('H'):
         case KEY_LEFT:
         case KEY_BACKSPACE:
@@ -217,9 +216,8 @@ int view_cmd_processor(Init *init) {
                 view->pmincol -= shift;
             view->f_redisplay_page = true;
             break;
-            /**  'l', 'L', KEY_RIGHT - Horizontal scroll right by two thirds of
-             * the page width */
-        case 'l':
+        case 'l': /**< 'l', 'L', KEY_RIGHT - Horizontal scroll right by two
+                     thirds of the page width */
         case 'L':
         case KEY_RIGHT:
             if (n_cmd <= 0)
@@ -238,8 +236,7 @@ int view_cmd_processor(Init *init) {
                                     : 0;
             view->f_redisplay_page = true;
             break;
-        /** 'k', 'K', KEY_UP, Ctrl('K') - Scroll up one line */
-        case 'k':
+        case 'k': /** 'k', 'K', KEY_UP, Ctrl('K') - Scroll up one line */
         case 'K':
         case KEY_UP:
         case Ctrl('K'):

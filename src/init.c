@@ -640,7 +640,6 @@ int prompt_str_to_int(char *s) {
 /** @brief Convert prompt type integer constant to string
     @param s - output prompt type string
     @param prompt_type - prompt type integer constant
-    @returns prompt type string
     @note Valid prompt type integer constants are PT_SHORT, PT_LONG, and
    PT_STRING
     @note Returns "none" for unrecognized prompt type integer constants
@@ -866,7 +865,6 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
 /** @brief Dump the current configuration to stderr for debugging purposes
     @param init - pointer to Init struct containing the current configuration
     @param msg - string to print before dumping the configuration
-    @param prints all relevant fields of the Init struct and SIO struct
     to stderr in a readable format, prefixed by the provided title string. */
 void dump_config(Init *init, char *msg) {
     SIO *sio = init->sio;

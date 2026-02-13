@@ -1,5 +1,48 @@
-   field name         type grp  mask opt description
-   ------------------ ---- ---- ---- --- -------------------------
+                   [1;34mC-Menu View Command Keys[0m
+
+[34m                 Alt Home[0m [3;37mhorizontal scroll to the first[0m
+[34m                  Alt End[0m [3;37mhorizontal scroll to the last column[0m
+[34m           h, Ctrl(H), <-[0m [3;37mHorizontal scroll left by two thirds of the screen width[0m
+[34m                   l, ->,[0m [3;37mHorizontal scroll right by two thirds of the screen width[0m
+[34m     k, Up Arrow, Ctrl(K)[0m [3;37mScroll up one line[0m
+[34m         j, J, Down Arrow[0m [3;37mscroll down one line[0m
+[34m   b, B, Ctrl(B), Page up[0m [3;37mScroll up one page[0m
+[34m f, F, Ctrl(F), Page down[0m [3;37mscroll down one page[0m
+[34m                  g, Home[0m [3;37mGo to the beginning of the document[0m
+[34m                        G[0m [3;37mGo to the end of the document[0m
+[34m                        ![0m [3;37mExecute Shell Command from within C-Menu View[0m
+[34m                        +[0m [3;37mSet Startup Command[0m
+[34m                        -[0m [3;37mChange View Settings[0m
+[34m                        c[0m [3;37mClear Screen at End of File[0m
+[34m                        i[0m [3;37mIgnore Case in Search[0m
+[34m                        p[0m [3;37mSet Prompt Type[0m
+[34m                        l[0m [3;37mLong Prompt[0m
+[34m                        n[0m [3;37mNo Prompt[0m
+[34m                        s[0m [3;37mSqueeze Multiple Blank Lines[0m
+[34m                        t[0m [3;37mSet Tab Stop Columns[0m
+[34m                    F1, H[0m [3;37mDisplay Help[0m
+[34m                        :[0m [3;37mSet a Prompt String[0m
+[34m                     /, ?[0m [3;37mSearch Forward or Backward[0m
+[34m                        o[0m [3;37mOpen a File[0m
+[34m                     g, G[0m [3;37mGo to the End of the Document[0m
+[34m                    H, F1[0m [3;37mDisplay Help Information[0m
+[34m                        m[0m [3;37mSet Mark at the Current Position[0m
+[34m                        M[0m [3;37mGo to a Mark[0m
+[34m                        n[0m [3;37mRepeat Previous Search[0m
+[34m                        N[0m [3;37mClose Current File and Open Next[0m
+[34m                     p, %[0m [3;37mGo to a Percent of the File[0m
+[34m                  Ctrl(Z)[0m [3;37mSend File to Print Queue with Notation[0m
+[34m             P, Print Key[0m [3;37mPrint Current File[0m
+[34m                        N[0m [3;37mClose Current File and Open Next[0
+[34m                    q, F9[0m [3;37mQuit the Application[0m
+[34m                        v[0m [3;37mOpen Current File in Editor[0m
+[34m                        w[0m [3;37mWrite the current buffer to file[0m
+[34m                        V[0m [3;37mDisplay Version Information[0m
+
+               [1;34mC-Menu View Command Line Options[0m
+
+[1;35m#  name               type grp  mask opt description[0m
+[1;35m-- ------------------ ---- ---- ---- --- -----------------------------[0m
 00 [0;34mminitrc           [0m str  spec mfpv [0;33m-a: [0m[0;32mconfiguration file spec[0m
 01 [0;34mblue_gamma        [0m int  prm  ...v [0;33m-b: [0m[0;32mblue_gamma (View)[0m
 02 [0;34mcmd               [0m str  misc ...v [0;33m-c: [0m[0;32mview cmd, first file[0m

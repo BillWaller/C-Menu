@@ -1,4 +1,4 @@
-/** @file exec.h
+/** @file exec.c
     @brief Functions to execute external commands
     @author Bill Waller
     Copyright (c) 2025

@@ -704,11 +704,6 @@ bool init_form_files(Init *init, int argc, char **argv) {
 /** @brief Initialize Pick file specifications
     @brief Initialize file specifications
     @param init structure
-    @param argc - number of arguments in argv
-    @param argv - Arguments may have been provided by command line,
-                   ~/.minitrc,
-                   environment variables, or
-                   calling program interal to C-Menu
     @note Positional args: pick desc, in_file, out_file, help_file */
 bool init_view_files(Init *init) {
     view = init->view;
