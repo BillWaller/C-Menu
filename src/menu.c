@@ -11,8 +11,7 @@
 
 __end_pgm;
 
-/** @mainpage C-Menu Documentation
-    @brief This is the main file for C-Menu, a terminal-based application
+/** @brief This is the main file for C-Menu, a terminal-based application
    launcher and menu system.
     @note It operates by reading a menu description file and displaying a
    navigable menu in the terminal. Users can select applications to launch or
