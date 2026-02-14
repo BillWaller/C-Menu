@@ -2,6 +2,17 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-02-09
+
+Split the large menu.h into Separate .h files for each module, which should
+make it easier for developers who want to work on a particular feature.
+
+Modified Makefile and CMakeLists.txt to reflect the new file structure, and to add the new shared library libcm.so
+
+Many unimplemented functions have been implemented, and the project is now in a much more complete state. I am still working on the documentation, but I have made significant progress on it, and I will be uploading it to the repository as I go.
+
+I will look into adding a website for the project, and I will be uploading the documentation to the repository as I go. I am also working on a website for the project, which will be up soon.
+
 [0.2.8] - 2026-02-04
 
 - 
@@ -34,8 +45,6 @@ iloan - iloan.c
 
 lf - lf.c
  
-
-
 add_executable(form form.c)
 target_sources(form PRIVATE $<TARGET_OBJECTS:cmenu>)
 target_link_libraries(form cm ${LIBS})
