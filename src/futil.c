@@ -1151,8 +1151,7 @@ String to_string(const char *s) {
     strcpy(str.s, s);
     return str;
 }
-/** @brief Create a String struct with a dynamically allocated string of length
-   l
+/** @brief Create a String struct with a dynamically allocated string
    @param: l length of string to create (including null terminator)
    @return: String struct
    @note: The returned String struct contains a dynamically allocated string of
@@ -1174,16 +1173,16 @@ String mk_string(size_t l) {
     return str;
 }
 /** @brief Free the dynamically allocated String
-    @param: str to free
-    @return: str with NULL pointer and length 0
+    @param: string to free
+    @return: string with NULL pointer and length 0
     @note: Frees the dynamically allocated string and sets length to 0. */
-String free_string(String str) {
-    if (str.s == NULL)
-        return str;
-    free(str.s);
-    str.l = 0;
-    str.s = NULL;
-    return str;
+String free_string(String string) {
+    if (string.s == NULL)
+        return string;
+    free(string.s);
+    string.l = 0;
+    string.s = NULL;
+    return string;
 }
 /** @brief Copy src String to dest String, allocating additional memory for dest
    String if necessary

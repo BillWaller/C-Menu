@@ -323,7 +323,7 @@ style hexadecimal colors in View:
 awk -f ~/menuapp/msrc/colorize.awk yourfile.txt | view
 ```
 
-This script matches six digit hexadecimal colors in the format #RRGGBB
+This script matches six digit hexadecimal colors in the format \#RRGGBB
 and adds the ANSI escape sequences to set the background color to the
 specified RGB values.
 
@@ -450,7 +450,7 @@ First Payment Date - The date of the first payment in YYYYMMDD format.
 
 Add the following two lines to "~/menuapp/msrc/main.m":
 
-\: Installment Loan Calculations
+:Installment Loan Calculations
 
 !form iloan.f -i iloan.dat -S iloan -o iloan.dat
 

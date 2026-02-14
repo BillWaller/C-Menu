@@ -113,7 +113,7 @@ done
 export PATH
 ```
 
-@WARNING: /usr/bin/view is generally a link to vim, which will
+- WARNING: /usr/bin/view is generally a link to vim, which will
 obscure C-Menu View if /usr/bin preceedes $HOME/menuapp/bin
 in your PATH environment variable.
 
@@ -179,9 +179,9 @@ careful not to make it too cluttered or slow to render. The key is to have a
 clear visual indicator of whether you are running as root or a normal user, to 
 help prevent accidentally running commands with elevated privileges.
 
-The inclusion of \W in the prompt is a common practice to show the current 
+The inclusion of '\\W' in the prompt is a common practice to show the current 
 working directory, which can be helpful for context. If you want the full 
-directory, use \w (lower case). The color coding (green for normal users and red 
+directory, use '\\w' (lower case). The color coding (green for normal users and red 
 for root) provides an immediate visual cue about the privilege level of the 
 shell session. You can even make it hot-pink if you want it to be really 
 annoying. The key is to have a clear and distinct visual indicator of privilege 
