@@ -1,4 +1,4 @@
-# ![C-Menu](screenshots/C-Menu.png)
+# C-Menu Extras
 
 ## Table of Contents
 

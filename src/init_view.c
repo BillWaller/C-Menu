@@ -18,10 +18,9 @@
 #include <unistd.h>
 #include <wait.h>
 
-/** @brief Initialize the C-Menu View in full screen mode.
+/** @brief Initialize C-Menu View in full screen mode.
    This function sets up the view structure for full screen mode and creates
-   a new pad for the view. It also configures various parameters such as
-   scroll lines, command line position, and tab size.
+   a new pad for the view.
    @param init Pointer to the Init structure containing view settings.
    @return 0 on success, -1 on failure.
  */
@@ -128,19 +127,19 @@ int init_view_boxwin(Init *init, char *title) {
     return (0);
 }
 /** @brief Initialize the input for a C-Menu View.
-   This function initializes the input for a view, which can be a file,
-   standard input, or a command to be initiated by view. It handles different
-   input sources and sets up the necessary file descriptors and memory mapping
-   for efficient access.
+   @details This function initializes the input for view, which can be a file,
+   standard input, or a provider command to be initiated by view. It handles
+   different input sources and sets up the necessary file descriptors and memory
+   mapping for efficient access.
    @param view Pointer to the View structure to be initialized.
    @param file_name Name of the input file or "-" for standard input.
    @return true on success, false on failure.
-   @note if a provider command is specified, set up a pipe to read its output.
-   @note The child process executes the command, and the parent process reads
-   from the pipe.
+   @note if a provider command is specified, set up a pipe to read its output. A
+   child process is spawned, and view, the parent process, reads from the pipe.
    @note If input is from a pipe or standard input, clone it to a temporary
-   file. This allows for memory-mapping the input later. Read from stdin and
-   write to a temporary file.
+   file. This allows for memory-mapping the input later. It does not support
+   real-time updates to the input, but it allows for efficient access to the
+   data.
  */
 bool view_init_input(View *view, char *file_name) {
     struct stat sb;
