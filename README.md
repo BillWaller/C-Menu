@@ -1,12 +1,12 @@
-# C-Menu - A User Interface Builder
+# A User Interface Builder
 
-[***NEW*** -> C-Menu Documentation <-](https://billwaller.github.io/C-Menu/index.html)
+[***NEW*** -> Comprehensive Documentation <-](https://billwaller.github.io/C-Menu/index.html)
 
 [Configuration Snippets](snippets.md)
 
-[C-Menu FAQ](FAQ.md)
+[FAQ](FAQ.md)
 
-[C-Menu User Guide](C-Menu-UG.md)
+[User Guide](C-Menu-UG.md)
 
 [Augmenting C-Menu](extras.md)
 
@@ -17,36 +17,34 @@
 
 <!-- mtoc-start -->
 
-* [C-Menu Menu, Form, Pick, View, RSH, and C-Keys](#c-menu-menu-form-pick-view-rsh-and-c-keys)
-  * [C-Menu Menu](#c-menu-menu)
-  * [C-Menu C-Keys - Diagnose Keyboard/Mouse Input](#c-menu-c-keys---diagnose-keyboardmouse-input)
-  * [C-Menu Pick - A Picker](#c-menu-pick---a-picker)
-  * [C-Menu Form for Data Entry and Editing](#c-menu-form-for-data-entry-and-editing)
-  * [C-Menu Form Key Features](#c-menu-form-key-features)
-  * [C-Menu Form Data Types](#c-menu-form-data-types)
-  * [C-Menu Sample Menu Description File](#c-menu-sample-menu-description-file)
-  * [C-Menu View](#c-menu-view)
+* [Menu, Form, Pick, View, RSH, and C-Keys](#menu-form-pick-view-rsh-and-c-keys)
+  * [Menu](#menu)
+  * [C-Keys - Diagnose Keyboard/Mouse Input](#c-keys---diagnose-keyboardmouse-input)
+  * [Pick - A Picker](#pick---a-picker)
+  * [Form for Data Entry and Editing](#form-for-data-entry-and-editing)
+  * [Form Key Features](#form-key-features)
+  * [Form Data Types](#form-data-types)
+  * [Sample Menu Description File](#sample-menu-description-file)
+  * [View](#view)
     * [Log File With Editor](#log-file-with-editor)
-    * [Screenshot of the Same File With C-Menu View](#screenshot-of-the-same-file-with-c-menu-view)
-  * [C-Menu View and Color Manual Pages](#c-menu-view-and-color-manual-pages)
+    * [Screenshot of the Same File With View](#screenshot-of-the-same-file-with-view)
+  * [View and Color Manual Pages](#view-and-color-manual-pages)
   * [Example Manual Page Using Editor](#example-manual-page-using-editor)
-  * [Example C-Menu Manual Page](#example-c-menu-manual-page)
+  * [Example Manual Page](#example-manual-page)
   * [Demand Paged Virtual Address Space](#demand-paged-virtual-address-space)
-  * [C-Menu View - Other Features](#c-menu-view---other-features)
-  * [C-Menu 3-Channel Gamma Correction](#c-menu-3-channel-gamma-correction)
+  * [View - Other Features](#view---other-features)
+  * [3-Channel Gamma Correction](#3-channel-gamma-correction)
   * [Gray Gamma](#gray-gamma)
 * [RSH](#rsh)
   * [Maintaining Security with RSH](#maintaining-security-with-rsh)
-* [C-Menu Features](#c-menu-features)
-* [C-Menu Configuration](#c-menu-configuration)
-* [C-Menu Installation](#c-menu-installation)
+* [Features](#features)
+* [Configuration](#configuration)
+* [Installation](#installation)
 * [MIT License](#mit-license)
 
 <!-- mtoc-end -->
 
----
-
-## C-Menu Menu, Form, Pick, View, RSH, and C-Keys
+## Menu, Form, Pick, View, RSH, and C-Keys
 
 ![C-Menu](screenshots/minitrc.png)
 
@@ -70,7 +68,7 @@ or practical.
 
 ---
 
-### C-Menu Menu
+### Menu
 
 At the top of the stack is C-Menu Menu, which reads a simple
 description file like the one below and displays a colorful and easy-to
@@ -78,8 +76,8 @@ description file like the one below and displays a colorful and easy-to
 keyboard or mouse, C-Menu executes the corresponding command. It's like
 writing shell scripts, but with a snazzy menu interface.
 
-![C-Menu Sample Description File](screenshots/applications_menu.m.png)
-![C-Menu Sample Menu](screenshots/applications_menu.png)
+![Sample Description File](screenshots/applications_menu.m.png)
+![Sample Menu](screenshots/applications_menu.png)
 
 From the above examples, you can get an idea of how C-Menu works.
 Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View,
@@ -89,13 +87,13 @@ output to it's standard output device, which happens to be a pipe into
 C-Menu View's receiver. C-Menu View maps Tree-Sitter's output to the
 Kernel's demand paged virtual memory and you get:
 
-![C-Menu Tree-Sitter](screenshots/tree-sitter.png)
+![Tree-Sitter](screenshots/tree-sitter.png)
 
 ---
 
-### C-Menu C-Keys - Diagnose Keyboard/Mouse Input
+### C-Keys - Diagnose Keyboard/Mouse Input
 
-With C-Menu C-Keys, you can diagnose and resolve keyboard and mouse
+With C-Keys, you can diagnose and resolve keyboard and mouse
 issues quickly and easily. Just press a key and get the Octal, Decimal,
 Hexadecimal, the Escape Sequence Binding, and the NCurses Identifier.
 It's definitely easier than rummaging through hardware documentation
@@ -103,9 +101,9 @@ and NCurses header files. It's also a good way to identify which keys
 are reserved by your terminal emulator, and gives you the specific key
 codes so you can easily add your own Extended NCurses keys.
 
-![C-Menu Keys](screenshots/ckeys-alt.png)
+![C-Keys](screenshots/ckeys-alt.png)
 ![Extend Your Keyboard](screenshots/extended-keys.png)
-C-Menu C-Keys also provides diagnostics for mouse actions and geometry.
+C-Keys also provides diagnostics for mouse actions and geometry.
 
 ![Ckeys Mouse](screenshots/ckeys-mouse.png)
 
@@ -113,11 +111,11 @@ Just add hot water, stir, and Bob's your uncle, you have soup! 😀
 
 ---
 
-### C-Menu Pick - A Picker
+### Pick - A Picker
 
-![C-Menu Pick](screenshots/Pick.png)
+![Pick](screenshots/Pick.png)
 
-C-Menu Pick provides a list of objects from arguments, piped input,
+Pick provides a list of objects from arguments, piped input,
 or a text file. The user selects an object by using cursor movement keys,
 up, down, left, right, page-up, or page-down and pressing the space bar.
 Alternatively, the user can use the mouse and click on the object.
@@ -127,7 +125,7 @@ assume the user is finished and perform the specified action.
 Output can be piped to standard output, or provided as arguments to an
 executable file specified in the description file.
 
-Here's a simple way to use C-Menu Pick:
+Here's a simple way to use Pick:
 
 Pick a file to view using "lf", a utility to search for files using
 regular expressions, and which is included with C-Menu:
@@ -167,7 +165,7 @@ lf . '.*\.c$'
 
 ---
 
-### C-Menu Form for Data Entry and Editing
+### Form for Data Entry and Editing
 
 FORM is a lightweight and flexible form handling library designed to
 simplify the process of creating, validating, and managing forms.
@@ -177,7 +175,7 @@ user input, and performing validation checks.
 
 ---
 
-### C-Menu Form Key Features
+### Form Key Features
 
 - Easy Form Creation: Define forms with various field types such as
   text, number, email, and more.
@@ -192,7 +190,7 @@ user input, and performing validation checks.
 
 ---
 
-### C-Menu Form Data Types
+### Form Data Types
 
 ![Data Types](screenshots/data-types.f.png)
 ![Data Types](screenshots/data-types.png)
@@ -202,7 +200,7 @@ users to input data in a structured manner. The entered data can then be
 processed by a specified command or script. Internally, the numeric
 entries are converted to binary integer, long, float, or double.
 
-![C-Menu Form - Example](screenshots/Receipt.png)
+![Form - Example](screenshots/Receipt.png)
 
 The two Cash Receipts entry forms above are identical except the top
 form has field brackets turned on and the bottom form has fill
@@ -227,15 +225,15 @@ FORM also makes a great front-end for SQL database queries.
 
 ---
 
-### C-Menu Sample Menu Description File
+### Sample Menu Description File
 
-![C-Menu Sample Description File](screenshots/applications_menu.m.png)
+![Sample Description File](screenshots/applications_menu.m.png)
 As you can see, the description file is straightforward and easy to
 read. Each menu item consists of a label and a command to execute. The
 label is displayed in the menu, and the command is executed when the
 user selects that item.
 
-![C-Menu Pick](screenshots/pick-edit.png)
+![Pick](screenshots/pick-edit.png)
 
 Here's just one example of how easy it is to create useful programs
 with the C-Menu Form facility.
@@ -249,7 +247,7 @@ interfaces for your applications.
 
 ---
 
-### C-Menu View
+### View
 
 VIEW is an easy-to-use text file viewer that allows users to view text
 files in a terminal environment. It supports basic navigation, regular
@@ -262,23 +260,23 @@ from within MENU, FORM, or PICK to provide contextual help or stand
 
 ![Log File With Editor](screenshots/nvim-log.png)
 
-#### Screenshot of the Same File With C-Menu View
+#### Screenshot of the Same File With View
 
-![C-Menu View Log File](screenshots/view.png)
-One especially useful feature of C-Menu View is its incredible speed
-with large text files, like system logs. C-Menu View can open and
+![View Log File](screenshots/view.png)
+One especially useful feature of View is its incredible speed
+with large text files, like system logs. View can open and
 display multi-gigabyte text files almost instantaneously. Seek from
 beginning to end of a 1 gigabyte file takes a few milliseconds.
 
 ---
 
-### C-Menu View and Color Manual Pages
+### View and Color Manual Pages
 
-C-Menu View can also be used as a pager for manual pages. By setting the
+View can also be used as a pager for manual pages. By setting the
 "MANPAGER" environment variable to "view", users can enjoy the benefits
-of C-Menu View's features while reading manual pages.
+of View's features while reading manual pages.
 
-To use C-Menu View as your system pager, add the following line to your
+To use View as your system pager, add the following line to your
 shell configuration file (e.g., .bashrc or .zshrc):
 
 ```bash
@@ -302,9 +300,9 @@ man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
 
 ---
 
-### Example C-Menu Manual Page
+### Example Manual Page
 
-![Manual Page With C-Menu View](screenshots/man-page.png)
+![Manual Page With View](screenshots/man-page.png)
 
 For the screenshot above, I used the "Man" command, which is a function
 in my .bashrc.
@@ -316,7 +314,7 @@ Man() {
 ```
 
 This function formats the manual page for UTF-8 output, pipes
-it through the colorizing sed script, and then opens it in C-Menu View.
+it through the colorizing sed script, and then opens it in View.
 
 ```sed
 s/\[1m/\[36;1m/g
@@ -338,39 +336,39 @@ easier to read.
 
 ### Demand Paged Virtual Address Space
 
-- C-Menu View doesn't employ seek and read operations in a complicated
+- View doesn't employ seek and read operations in a complicated
   buffering scheme. There is a better way.
-- C-Menu View accesses files as arrays, using the Kernel's
+- View accesses files as arrays, using the Kernel's
   sophisticated demand paged virtual memory.
-- Lazy loading means that C-Menu View doesn't waste time seeking,
+- Lazy loading means that View doesn't waste time seeking,
   reading, and populating buffers that will never be used.
 - Zero-Copy I-O - Conventional programs copy file buffers into heap
-  address space. C-Menu View bypasses that step and reads directly from
+  address space. View bypasses that step and reads directly from
   the Kernel's virtual memory.
-- Simplicity - C-Menu View has no reads, no seeks, no complicated
+- Simplicity - View has no reads, no seeks, no complicated
   buffer management schemes, not for view. The following snippet includes
 
 "all" of View's file I-O on lines 22 and 12.
 
 ---
 
-![C-Menu View File I/O](screenshots/file-io.png)
+![View File I/O](screenshots/file-io.png)
 In technical parlance, I'll explain precisely how it works. See if
 you can follow me. 😁
 
-C-Menu View's File I-O subsystem does three things:
+View's File I-O subsystem does three things:
 
 - Get the next byte,
 - Get the previous byte, or
 - Get a byte from a specified position
 
-C-Menu View is blazingly fast because it leverages the Kernel's demand
-paged virtual memory system. When a file is opened, C-Menu View maps the
+View is blazingly fast because it leverages the Kernel's demand
+paged virtual memory system. When a file is opened, View maps the
 file into the process's virtual address space using the mmap system
 call. Zero-copy I-O is achieved by mapping the file directly from
 kernel address space.
 
-When C-Menu View needs to access a byte at a specific position, it
+When View needs to access a byte at a specific position, it
 simply calculates the corresponding memory address based on the file
 offset and reads the byte directly from that address. If the required
 page is not already in memory, the Kernel automatically handles the
@@ -381,29 +379,29 @@ faster access times and reduced overhead.
 
 ---
 
-### C-Menu View - Other Features
+### View - Other Features
 
-Horizontal scrolling for long lines. C-Menu View writes output to a
+Horizontal scrolling for long lines. View writes output to a
 virtual screen, a Ncurses pad, to accommodate lines longer than the
 physical screen.
 
-C-Menu View has full support for Unicode, translating ASCII text and
+View has full support for Unicode, translating ASCII text and
 multi-byte-sequences to wide characters (wchar_t), and wide characters
 and ANSI SGR sequences to complex characters (cchar_t). The complex
 characters combine displayable characters plus attributes, such as
 bold, italic, underline, reverse, and foreground and background colors.
 NCurses can display more than 16 million colors.
 
-C-Menu View supports mouse wheel vertical scrolling.
+View supports mouse wheel vertical scrolling.
 
 ---
 
-### C-Menu 3-Channel Gamma Correction
+### 3-Channel Gamma Correction
 
 When using utilities such as "tree-sitter highlighter", "pygmentize",
 or "bat" to highlight files, the text is sometimes almost unreadable.
 On the left-hand side of the following screenshot, "less" does a great
-job of rendering the output of pygmentize, but C-Menu with gamma
+job of rendering the output of pygmentize, but with gamma
 correction can do better. It's all about perceptual luminosity. Either
 from the command line or the minitrc file, the user can specify a gamma
 correction value for each of the three color channels, red, green, and
@@ -418,7 +416,7 @@ and blue.
 ![More Gamma Correction](screenshots/gamma2.png)
 The image on the left, above is a source file highlighted with bat. It
 seems a little dark and difficult to read. No problem. Crank up the gamma
-in C-Menu View and Winner Winner Chicken Dinner!
+in View and Winner Winner Chicken Dinner!
 
 ---
 
@@ -432,7 +430,7 @@ red, green, and blue components are of equal value.
 
 ---
 
-![C-Menu View Help File](screenshots/view-help.png)
+![View Help File](screenshots/view-help.png)
 
 - That's a Bobby Dazzler
 
@@ -517,7 +515,7 @@ user access by typing "x".
 
 ---
 
-## C-Menu Features
+## Features
 
 Create and manage multiple menus, forms, and pickers
 
@@ -545,9 +543,9 @@ MIT License - Open-source and free to use
 
 ---
 
-## C-Menu Configuration
+## Configuration
 
-![C-Menu Configuration File](screenshots/options.png)
+![Configuration File](screenshots/options.png)
 
 User's can have multiple runtime configurations. In the snippet above,
 the standard ISO 6429 / ECMA-48 colors have been redefined and orange
@@ -555,7 +553,7 @@ has been added.
 
 ---
 
-## C-Menu Installation
+## Installation
 
 To install C-Menu, simply download the source code from the repository
 and follow the installation instructions provided in the

@@ -1,4 +1,4 @@
-# C-Menu Changelog
+# Changelog
 
 ## [Released] - 2026-02-04
 
