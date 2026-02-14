@@ -1,4 +1,5 @@
-# ![C-Menu](screenshots/C-Menu.png)
+# C-Menu Installation Guide
+
 ## To Install C-Menu
 
 1. Clone the C-Menu repository:

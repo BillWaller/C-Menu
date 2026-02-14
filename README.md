@@ -1,4 +1,4 @@
-# ![C-Menu](screenshots/C-Menu.png)
+# C-Menu - A User Interface Builder
 
 [C-Menu FAQ](FAQ.md)
 
