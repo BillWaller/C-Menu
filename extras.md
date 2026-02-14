@@ -1,4 +1,4 @@
-# C-Menu Extras
+# Augmenting C-Menu
 
 ## Table of Contents
 

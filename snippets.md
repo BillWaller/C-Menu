@@ -1,4 +1,4 @@
-# C-Menu Configuration snippets
+# Configuration snippets
 
 ## Table of Contents
 

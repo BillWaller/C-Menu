@@ -1,4 +1,4 @@
-# C-Menu Installation Guide
+# Installation Guide
 
 ## To Install C-Menu
 
