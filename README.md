@@ -1,16 +1,16 @@
 # C-Menu - A User Interface Builder
 
+[***NEW*** -> C-Menu Documentation <-](https://billwaller.github.io/C-Menu/index.html)
+[Configuration Snippets](snippets.md)
+
 [C-Menu FAQ](FAQ.md)
 
 [C-Menu User Guide](C-Menu-UG.md)
 
 [Augmenting C-Menu](extras.md)
 
-[***NEW*** -> C-Menu API <-](https://billwaller.github.io/C-Menu/C-Menu-API.html)
+[Inatallation Guide](INSTALL.md)
 
-[***NEW*** -> Inatallation Guide <-](INSTALL.md)
-
-[Configuration Snippets](snippets.md)
 
 ## Table of Contents
 
