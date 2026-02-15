@@ -167,7 +167,7 @@ int view_cmd_processor(Init *init) {
                 prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                          view->smincol, view->smaxrow, view->smaxcol);
             if (rc == ERR)
-                Perror("Error refreshing screen");
+                Perror("Error refreshing pad");
             c = get_cmd_char(view, &n_cmd);
             if (view->f_timer) {
                 clock_gettime(CLOCK_MONOTONIC, &start);
@@ -654,7 +654,9 @@ int view_cmd_processor(Init *init) {
             break;
         /** 'V' - Display Version Information */
         case 'V':
-            Perror("View: Version 8.0");
+            ssnprintf(em0, MAXLEN - 1, "C-Menu Version: %s", CMENU_VERSION);
+            ssnprintf(em1, MAXLEN - 1, "LIBCM Version: %s", LIBCM_VERSION);
+            display_error(em0, em1, NULL, NULL);
             break;
         default:
             break;
@@ -732,9 +734,8 @@ int get_cmd_arg(View *view, char *prompt) {
     while (1) {
         rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol, view->smaxrow, view->smaxcol);
-        if (rc == ERR) {
+        if (rc == ERR)
             Perror("Error refreshing screen");
-        }
         c = xwgetch(view->win);
         switch (c) {
         /// Basic Editing Keys for Command Line

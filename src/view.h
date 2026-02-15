@@ -16,7 +16,6 @@
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
-#define C_MENU_VERSION "C-Menu-0.2.6"
 #ifndef _COMMON_H
 typedef struct Init Init;
 #endif

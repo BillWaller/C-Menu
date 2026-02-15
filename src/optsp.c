@@ -79,11 +79,16 @@ int main(int argc, char **argv) {
         }
     }
     if (f_help) {
-        printf("Usage: optsp [options]\n");
+        printf("\nUsage: optsp [options]\n\n");
         printf("Options:\n");
-        printf("  -n        sort by name\n");
-        printf("  -s        sort by short option\n");
-        printf("  -h        show this help message\n");
+        printf(" -n  sort by name\n");
+        printf(" -s  sort by short option\n");
+        printf(" -h  show this help message\n");
+        printf(" -m  mask: any combination in any order of m, f, p, and v\n");
+        printf("\nwhere m is menu,\n");
+        printf("      f is form,\n");
+        printf("      p is pick, and\n");
+        printf("      v is view.\n");
         exit(EXIT_SUCCESS);
     }
     if (f_version) {

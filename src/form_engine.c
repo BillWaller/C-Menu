@@ -313,7 +313,7 @@ int form_calculate(Init *init) {
                     dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
                     close(pipe_fd[P_WRITE]);
                     execvp(eargv[0], eargv);
-                    ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                    ssnprintf(em0, MAXLEN, "%s, line: %d", __FILE__,
                               __LINE__ - 2);
                     strnz__cpy(em1, "execvp(", MAXLEN - 1);
                     strnz__cat(em1, eargv[0], MAXLEN - 1);

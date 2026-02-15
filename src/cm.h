@@ -27,9 +27,9 @@
 #define W_BOX 0x02    /**< box window flag for win_new() */
 #define COLOR_LEN 8   /**< length of color code strings */
 #define DEFAULTSHELL "/bin/bash"
-#define LIBCM_VERSION "libcm-0.2.8" /**< version string for libcm */
-#define S_WCOK 0x1000               /**< write or create permitted */
-#define S_QUIET 0x2000              /**< quiet mode flag for file validation */
+#define S_WCOK 0x1000         /**< write or create permitted */
+#define S_QUIET 0x2000        /**< quiet mode flag for file validation */
+#define LIBCM_VERSION "0.2.9" /**< version of the C-Menu API library */
 /** @brief This macro defines the function, end_pgm, that is responsible
    for cleaning up the terminal state and exiting the program.
     @note This function is typically registered to be called when the program
@@ -576,7 +576,6 @@ extern void abend(int, char *);
 extern void display_argv_error_msg(char *, char **);
 extern int display_error(char *, char *, char *, char *);
 extern int display_ok_message(char *);
-extern int error_message(char **);
 extern int Perror(char *);
 extern void user_end();
 extern bool lf_find_dirs(char *, char *, int, int);

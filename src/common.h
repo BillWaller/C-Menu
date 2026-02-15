@@ -23,7 +23,6 @@
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
-#define C_MENU_VERSION "C-Menu-0.2.6"
 #define USE_PAD TRUE
 #define MIN_COLS 40
 
@@ -49,12 +48,11 @@
 #define P_READ 0
 #define P_WRITE 1
 #define TRUE 1
-
-extern const char *mapp_version; /**< C-Menu version */
+#define CMENU_VERSION "0.2.9"
 
 enum Caller { VIEW, FORM, PICK, MENU };
 
-/// option types
+/** @brief option types */
 enum OptType {
     OT_STRING,
     OT_INT,
@@ -62,7 +60,7 @@ enum OptType {
     OT_HEX,
 };
 
-/// option groups
+/** @brief option groups */
 enum OptGroup {
     OG_FILES,
     OG_DIRS,
