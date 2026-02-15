@@ -1,5 +1,6 @@
 :                APPLICATIONS
 :     Neovim
+#     Comment 
 !exec nvim
 :     Root Neovim
 !exec rsh -c nvim
@@ -22,7 +23,9 @@
 :     View Data Types Help File
 !view -T "Data Types" /home/bill/menuapp/help/fields.hlp
 :     Menu Description
-!view -S "bat --theme ansi -l Crystal -f /home/bill/menuapp/msrc/main.m"
+!view -L 30 -C 75 -S "bat --theme ansi -l Crystal -f /home/bill/menuapp/msrc/main.m"
+:     View C-Menu Command Line Options
+!view -L 62 -C 73 -S options
 :     Help
 !help
 :     Exit Applications
