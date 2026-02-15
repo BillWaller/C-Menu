@@ -23,7 +23,6 @@ Form *destroy_form(Init *init);
 Pick *destroy_pick(Init *init);
 Menu *destroy_menu(Init *init);
 Init *destroy_init(Init *init);
-bool mapp_spec(Init *, int, char **);
 bool init_menu_files(Init *, int, char **);
 bool init_pick_files(Init *, int, char **);
 bool init_form_files(Init *, int, char **);
@@ -85,6 +84,10 @@ Init *new_init(int argc, char **argv) {
     init_cnt++;
     return init;
 }
+/** @brief Destroy Init structure
+    @param init structure
+    @returns NULL
+ */
 Init *destroy_init(Init *init) {
     /// Destroy Init structure
     int i;

@@ -17,10 +17,9 @@
 
 volatile sig_atomic_t sig_received = 0;
 
-void signal_handler(int);
-void sig_prog_mode();
-void sig_dfl_mode();
 bool f_curses_open = false;
+
+/** @brief Set signal handlers to default behavior */
 void sig_dfl_mode() {
     struct sigaction sa;
 

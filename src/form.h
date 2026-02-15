@@ -391,7 +391,6 @@ extern Form
 extern int form_accept_field(Form *);
 extern int form_display_field(Form *);
 extern int form_display_field_n(Form *, int);
-extern int form_open_win(Form *);
 extern int form_enter_fields(Form *);
 extern int form_read_description(Form *);
 extern int form_fmt_field(Form *, char *s);

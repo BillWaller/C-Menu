@@ -67,7 +67,7 @@ String mk_string(size_t);
 String free_string(String);
 char errmsg[MAXLEN];
 
-/**  Trims trailing spaces from string s in place.
+/**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim
      @returns length of trimmed string */
 size_t rtrim(char *s) {

@@ -28,6 +28,13 @@ bool f_verbose = true;
 bool f_verbose = false;
 #endif
 
+/** @brief Abnormal termination - print an error message and exit
+    @param e Error code
+    @param s Error message
+    @note This function prints the provided error message along with the error
+   code and its corresponding string representation, then exits the program with
+   a failure status.
+ */
 void ABEND(int e, char const *);
 
 /** @brief Main function for rsh
