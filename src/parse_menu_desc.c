@@ -57,12 +57,10 @@ unsigned int parse_menu_description(Init *init) {
         if (!l)
             continue;
         switch (directive) {
-            /**  '#' Comment line, ignore
-             */
+        /**  '#' Comment line, ignore */
         case '#':
             break;
-            /**  '!' Choice line, parse and add to menu
-             */
+        /**  '!' Choice line, parse and add to menu */
         case '!':
             if (!menu->line_idx)
                 break;
@@ -169,8 +167,9 @@ unsigned int parse_menu_description(Init *init) {
         case '\n':
             break;
         default:
-            strnz__cpy(tmp_buf, "unrecognized operator in ", MAXLEN);
-            abend(-1, tmp_buf);
+
+            // strnz__cpy(tmp_buf, "unrecognized operator in ", MAXLEN);
+            // abend(-1, tmp_buf);
         }
     }
     fclose(fp);

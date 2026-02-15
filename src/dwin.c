@@ -31,8 +31,6 @@ void cbox(WINDOW *);
 void win_init_attrs(int, int, int);
 int display_o_k_message(char *);
 int Perror(char *);
-int error_message(char **);
-void free_error_message(char **);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 void display_argv_error_msg(char *, char **);
 void abend(int, char *);
@@ -800,85 +798,6 @@ void cbox(WINDOW *box) {
         waddnwstr(box, &bw_ho, 1);
     waddnwstr(box, &bw_br, 1);
 }
-
-/** @brief Display an error message window or print to stderr
-    @param argv Array of error message lines
-    @return Key code of user command
-    note This function displays an error message to the user. If NCurses is
-   initialized, it creates a centered window with the error messages and prompts
-   the user to press "X" to exit or any other key to continue. If NCurses is not
-   initialized, it prints the error messages to stderr and waits for the user to
-   press a key. If the user presses "X" or "x", the program exits with an error
-   code. Otherwise, it returns the key code of the pressed key. Use this
-   function to display error messages in a consistent way, whether or not
-   NCurses is available. */
-int error_message(char **argv) {
-    const int msg_max_len = 71;
-    WINDOW *error_win;
-    int len = 0, line, pos;
-    int argc, i;
-    char msg[72];
-    char title[64];
-    unsigned cmd_key;
-    char c;
-    int lines = 0, cols = 0;
-
-    argc = 0;
-    while (argv[argc] && *argv[argc] != '\0') {
-        len = strlen(argv[argc]);
-        if (len > cols)
-            cols = len;
-        argc++;
-    }
-    lines = argc + 1;
-    if (f_curses_open) {
-        if (cols > msg_max_len - 4)
-            cols = msg_max_len - 4;
-        pos = ((COLS - len) - 4) / 2;
-        line = (LINES - 4) / 2;
-
-        strnz__cpy(title, "Error", msg_max_len - 7);
-        if (win_new(lines, cols + 2, line, pos, title, 0)) {
-            sprintf(tmp_str, "win_new(%d, %d, %d, %s, %b) failed", cols, line,
-                    pos, title, 0);
-            abend(-1, tmp_str);
-        }
-        error_win = win_win[win_ptr];
-        i = 0;
-        while (i < argc) {
-            mvwaddstr(error_win, i, 1, argv[i]);
-            i++;
-        }
-        wattron(error_win, WA_REVERSE);
-        mvwaddstr(error_win, i, 1,
-                  " Type \"X\" to exit or any other key to continue ");
-        wattroff(error_win, WA_REVERSE);
-        wrefresh(error_win);
-        cmd_key = xwgetch(error_win);
-        c = (char)cmd_key;
-        to_uppercase(c);
-        if (c == 'X') {
-            exit_code = -1;
-            abend(-1, "terminated by user");
-        }
-        win_del();
-    } else {
-        i = 0;
-        while (i++ < argc) {
-            if (argv[i] == NULL)
-                break;
-            strnz__cpy(msg, argv[i], msg_max_len - 1);
-            fprintf(stderr, "%s\n", msg);
-        }
-        cmd_key = di_getch();
-        if (cmd_key == 'X' || cmd_key == 'x') {
-            exit_code = -1;
-            abend(-1, "menu terminated by user");
-        }
-    }
-    return (cmd_key);
-}
-
 /** @brief Display an error message window or print to stderr
     @param em0 First error message line
     @param em1 Second error message line

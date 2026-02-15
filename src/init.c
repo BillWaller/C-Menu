@@ -32,9 +32,6 @@ bool f_version = false;
 bool f_debug = false;
 bool f_stop_on_error = true;
 
-const char *mapp_version = "0.5.1";
-const char *PgmID = "init.c";
-
 int write_config(Init *init);
 void display_version();
 
@@ -693,7 +690,45 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%d\n", "lines", init->lines);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begx", init->begx);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
-    (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bg_color",
+                  colors_text[sio->bg_color]);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "fg_color",
+                  colors_text[sio->fg_color]);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bo_color",
+                  colors_text[sio->bo_color]);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", sio->red_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", sio->green_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", sio->blue_gamma);
+    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", sio->gray_gamma);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_all", init->cmd_all);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "out_spec", init->out_spec);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "provider_cmd", init->provider_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "receiver_cmd", init->receiver_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "select_max", init->select_max);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "brackets", init->brackets);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "tab_stop", init->tab_stop);
+    prompt_int_to_str(tmp_str, init->prompt_type);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_type", tmp_str);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd", init->cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
+                  init->f_at_end_clear ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
+                  init->f_at_end_remove ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
+                  init->f_erase_remainder ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "fill_char", init->fill_char);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_ignore_case",
+                  init->f_ignore_case ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_squeeze",
+                  init->f_squeeze ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_stop_on_error",
+                  init->f_stop_on_error ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bg", sio->bg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "abg", sio->abg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
     (void)fprintf(minitrc_fp, "%s=%s\n", "red", sio->red);
     (void)fprintf(minitrc_fp, "%s=%s\n", "green", sio->green);
@@ -710,47 +745,8 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "bmagenta", sio->bmagenta);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bcyan", sio->bcyan);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bwhite", sio->bwhite);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bg_color",
-                  colors_text[sio->bg_color]);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "fg_color",
-                  colors_text[sio->fg_color]);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bo_color",
-                  colors_text[sio->bo_color]);
-    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", sio->red_gamma);
-    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", sio->green_gamma);
-    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", sio->blue_gamma);
-    (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", sio->gray_gamma);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "brackets", init->brackets);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
-                  init->f_at_end_clear ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
-                  init->f_at_end_remove ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
-                  init->f_erase_remainder ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "fill_char", init->fill_char);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_ignore_case",
-                  init->f_ignore_case ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_squeeze",
-                  init->f_squeeze ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_stop_on_error",
-                  init->f_stop_on_error ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%d\n", "tab_stop", init->tab_stop);
-    prompt_int_to_str(tmp_str, init->prompt_type);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_type", tmp_str);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd", init->cmd);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_all", init->cmd_all);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "provider_cmd", init->provider_cmd);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "receiver_cmd", init->receiver_cmd);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
-    (void)fprintf(minitrc_fp, "%s=%d\n", "select_max", init->select_max);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bg", sio->bg);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "abg", sio->abg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "out_spec", init->out_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_data", init->mapp_data);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_help", init->mapp_help);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_home", init->mapp_home);
@@ -803,7 +799,11 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
 /** @brief Display the version information of the application
    @note The version information is defined in the mapp_version variable
    and is printed to stderr when this function is called. */
-void display_version() { fprintf(stderr, "\nVersion %s\n", mapp_version); }
+void display_version() {
+    fprintf(stderr, "\nC-Menu version: %s\n", CMENU_VERSION);
+    fprintf(stderr, "libcm version: %s\n", LIBCM_VERSION);
+    exit(EXIT_SUCCESS);
+}
 /** @brief Display the usage information of the application
    @note The usage information is printed to stderr when this function is
    called. After displaying the usage information, the function waits for the
@@ -869,62 +869,62 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
 void dump_config(Init *init, char *msg) {
     SIO *sio = init->sio;
     opt_prt_str("-a:", "--minitrc", init->minitrc);
-    opt_prt_int("-C:", "--cols", init->cols);
-    opt_prt_int("-L:", "--lines", init->lines);
-    opt_prt_int("-X:", "--begx", init->begx);
-    opt_prt_int("-Y:", "--begy", init->begy);
-    opt_prt_int("-B:", "--bg_color", sio->bg_color);
-    opt_prt_int("-F:", "--fg_color", sio->fg_color);
-    opt_prt_int("-O:", "--bo_color", sio->bo_color);
+    opt_prt_int("-L:", "  lines", init->lines);
+    opt_prt_int("-C:", "  cols", init->cols);
+    opt_prt_int("-X:", "  begx", init->begx);
+    opt_prt_int("-Y:", "  begy", init->begy);
+    opt_prt_int("-F:", "  fg_color", sio->fg_color);
+    opt_prt_int("-B:", "  bg_color", sio->bg_color);
+    opt_prt_int("-O:", "  bo_color", sio->bo_color);
+    opt_prt_str("-T:", "  title", init->title);
+    opt_prt_str("-c:", "  cmd", init->cmd);
     opt_prt_double("-r:", "  red_gamma", sio->red_gamma);
     opt_prt_double("-g:", "  green_gamma", sio->green_gamma);
     opt_prt_double("-b:", "  blue_gamma", sio->blue_gamma);
-    opt_prt_double("-b:", "  gray_gamma", sio->gray_gamma);
-    opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
-    opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
-    opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
+    opt_prt_double("-G:", "  gray_gamma", sio->gray_gamma);
     opt_prt_str("-f:", "  fill_char", init->fill_char);
-    opt_prt_bool("-x:", "--f_ignore_case", init->f_ignore_case);
-    opt_prt_bool("-s ", "--f_squeeze", init->f_squeeze);
-    opt_prt_bool("-Z ", "--f_stop_on_error", init->f_stop_on_error);
-    opt_prt_int("-t:", "--tab_stop", init->tab_stop);
-    prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_str("-u", "  brackets", init->brackets);
-    opt_prt_str("-P:", "--promp_type", tmp_str);
-    opt_prt_int("-n:", "--select_max", init->select_max);
-    opt_prt_str("-c:", "--cmd", init->cmd);
-    opt_prt_str("-A:", "--cmd_all", init->cmd_all);
-    opt_prt_str("-S:", "--provider_cmd", init->provider_cmd);
-    opt_prt_str("-R:", "--receiver_cmd", init->receiver_cmd);
-    opt_prt_str("-T:", "--title", init->title);
-    opt_prt_str("   ", "--black", sio->black);
-    opt_prt_str("   ", "--red", sio->red);
-    opt_prt_str("   ", "--green", sio->green);
-    opt_prt_str("   ", "--yellow", sio->yellow);
-    opt_prt_str("   ", "--blue", sio->blue);
-    opt_prt_str("   ", "--magenta", sio->magenta);
-    opt_prt_str("   ", "--cyan", sio->cyan);
-    opt_prt_str("   ", "--white", sio->white);
-    opt_prt_str("   ", "--orange", sio->orange);
-    opt_prt_str("   ", "--bblack", sio->bblack);
-    opt_prt_str("   ", "--bred", sio->bred);
-    opt_prt_str("   ", "--bgreen", sio->bgreen);
-    opt_prt_str("   ", "--byellow", sio->byellow);
-    opt_prt_str("   ", "--bblue", sio->bblue);
-    opt_prt_str("   ", "--bmagenta", sio->bmagenta);
-    opt_prt_str("   ", "--bcyan", sio->bcyan);
-    opt_prt_str("   ", "--bwhite", sio->bwhite);
-    opt_prt_str("   ", "--borange", sio->borange);
-    opt_prt_str("   ", "--bg", sio->bg);
-    opt_prt_str("   ", "--abg", sio->abg);
-    opt_prt_str("-H:", "--help_spec", init->help_spec);
-    opt_prt_str("-i:", "--in_spec", init->in_spec);
+    opt_prt_int("-t:", "  tab_stop", init->tab_stop);
+    opt_prt_int("-n:", "  select_max", init->select_max);
+    opt_prt_str("-i:", "  in_spec", init->in_spec);
+    opt_prt_str("-o:", "  out_spec", init->out_spec);
+    opt_prt_str("-R:", "  receiver_cmd", init->receiver_cmd);
+    opt_prt_str("-S:", "  provider_cmd", init->provider_cmd);
+    opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
+    opt_prt_bool("-s ", "  f_squeeze", init->f_squeeze);
+    opt_prt_bool("-x:", "  f_ignore_case", init->f_ignore_case);
+    opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
+    opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
+    opt_prt_bool("-Z ", "  f_stop_on_error", init->f_stop_on_error);
+    opt_prt_str("-A:", "  cmd_all", init->cmd_all);
+    opt_prt_str("-P:", "  promp_type", tmp_str);
+    prompt_int_to_str(tmp_str, init->prompt_type);
+    opt_prt_str("   ", "  black", sio->black);
+    opt_prt_str("   ", "  red", sio->red);
+    opt_prt_str("   ", "  green", sio->green);
+    opt_prt_str("   ", "  yellow", sio->yellow);
+    opt_prt_str("   ", "  blue", sio->blue);
+    opt_prt_str("   ", "  magenta", sio->magenta);
+    opt_prt_str("   ", "  cyan", sio->cyan);
+    opt_prt_str("   ", "  white", sio->white);
+    opt_prt_str("   ", "  orange", sio->orange);
+    opt_prt_str("   ", "  bblack", sio->bblack);
+    opt_prt_str("   ", "  bred", sio->bred);
+    opt_prt_str("   ", "  bgreen", sio->bgreen);
+    opt_prt_str("   ", "  byellow", sio->byellow);
+    opt_prt_str("   ", "  bblue", sio->bblue);
+    opt_prt_str("   ", "  bmagenta", sio->bmagenta);
+    opt_prt_str("   ", "  bcyan", sio->bcyan);
+    opt_prt_str("   ", "  bwhite", sio->bwhite);
+    opt_prt_str("   ", "  borange", sio->borange);
+    opt_prt_str("   ", "  bg", sio->bg);
+    opt_prt_str("   ", "  abg", sio->abg);
+    opt_prt_str("-H:", "  help_spec", init->help_spec);
     opt_prt_str("-d:", "--mapp_spec", init->mapp_spec);
-    opt_prt_str("-o:", "--out_spec", init->out_spec);
+    opt_prt_str("-m:", "--mapp_home", init->mapp_home);
     opt_prt_str("   ", "--mapp_data", init->mapp_data);
     opt_prt_str("   ", "--mapp_help", init->mapp_help);
-    opt_prt_str("-m:", "--mapp_home", init->mapp_home);
+    opt_prt_str("-U:", "--mapp_user", init->mapp_user);
     opt_prt_str("   ", "--mapp_msrc", init->mapp_msrc);
-    opt_prt_str("-u:", "--mapp_user", init->mapp_user);
     (void)fprintf(stderr, "\n%s\n\n", msg);
 }

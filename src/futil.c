@@ -1152,12 +1152,12 @@ String to_string(const char *s) {
     return str;
 }
 /** @brief Create a String struct with a dynamically allocated string
-   @param: l length of string to create (including null terminator)
-   @return: String struct
-   @note: The returned String struct contains a dynamically allocated string of
+   @param l length of string to create including null terminator
+   @returns String struct
+   @note The returned String struct contains a dynamically allocated string of
    he specified length
-   @see: free_string
-   @note: the caller is responsible for calling free_string to free the
+   @sa free_string
+   @note the caller is responsible for calling free_string to free the
    allocated memory. */
 String mk_string(size_t l) {
     if (l == 0) {
@@ -1173,9 +1173,9 @@ String mk_string(size_t l) {
     return str;
 }
 /** @brief Free the dynamically allocated String
-    @param: string to free
-    @return: string with NULL pointer and length 0
-    @note: Frees the dynamically allocated string and sets length to 0. */
+    @param string to free
+    @return string with NULL pointer and length 0
+    @note Frees the dynamically allocated string and sets length to 0. */
 String free_string(String string) {
     if (string.s == NULL)
         return string;
@@ -1189,7 +1189,7 @@ String free_string(String string) {
     @param dest - destination String struct
     @param src - source String struct
     @returns length of dest String
-    @note: the caller is responsible for freeing the allocated memory. */
+    @note the caller is responsible for freeing the allocated memory. */
 size_t string_cpy(String *dest, const String *src) {
     if (dest == NULL || src == NULL || src->s == NULL)
         return 0;
@@ -1205,7 +1205,7 @@ size_t string_cpy(String *dest, const String *src) {
     @param dest - destination String struct
     @param src - source String struct
     @returns new length of dest String after concatenation
-    @note: the caller is responsible for freeing the allocated memory. */
+    @note the caller is responsible for freeing the allocated memory. */
 size_t string_cat(String *dest, const String *src) {
     if (dest == NULL || src == NULL || src->s == NULL)
         return 0;
@@ -1223,7 +1223,7 @@ size_t string_cat(String *dest, const String *src) {
     @param src - source String struct
     @param n - maximum number of characters to concatenate
     @returns new length of dest String after concatenation
-    @note: the caller is responsible for freeing the allocated memory. */
+    @note the caller is responsible for freeing the allocated memory. */
 size_t string_ncat(String *dest, const String *src, size_t n) {
     if (dest == NULL || src == NULL || src->s == NULL)
         return 0;
@@ -1243,7 +1243,7 @@ size_t string_ncat(String *dest, const String *src, size_t n) {
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to copy
-    @note: the caller is responsible for freeing the allocated memory. */
+    @note the caller is responsible for freeing the allocated memory. */
 size_t string_ncpy(String *dest, const String *src, size_t n) {
     if (dest == NULL || src == NULL || src->s == NULL)
         return 0;

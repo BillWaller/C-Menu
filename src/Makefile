@@ -42,33 +42,50 @@ PREFIX = $(HOME)/menuapp
 #
 # ldconfig $(LIB_DIR)
 
+REL_CFLAGS = -O0
+DBG_CFLAGS = -g3
+CC = gcc -Wall -Wextra $(DBG_CFLAGS)
+
+MAJOR=0
+MINOR=2
+PATCH=9
+VERSION=$(MAJOR).$(MINOR).$(PATCH)
+
+LIB_NAME=libcm.so
+SONAME=$(LIB_NAME).$(MAJOR)
+REAL_NAME=$(LIB_NAME).$(VERSION)
+
 LIB_DIR = $(PREFIX)/lib64
 BIN_DIR = $(PREFIX)/bin
 INC_DIR = $(PREFIX)/include
 LIB_PATH = .:$(LIB_DIR)
-REL_CFLAGS = -O0
-DBG_CFLAGS = -g3
 
-CC = gcc -Wall -Wextra $(DBG_CFLAGS)
-LIB_NAME = libcm.so
 BINEXES = menu form pick ckeys view whence rsh iloan enterchr \
 		  enterstr lf optsp stripansi
+
 LIB_SRCS = dwin.c futil.c scriou.c exec.c sig.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
+
 COMMON_HDRS = cm.h common.h menu.h form.h pick.h view.h
 COMMON_SRCS = curskeys.c fields.c form_engine.c init.c init_view.c \
 			  mem.c mview.c opts.c pick_engine.c view_engine.c
 COMMON_OBJS = $(COMMON_SRCS:.c=.o)
+
 MENU_SRCS = menu.c menu_engine.c parse_menu_desc.c
 MENU_OBJS = $(MENU_SRCS:.c=.o) $(COMMON_OBJS)
+
 FORM_SRCS = form.c
 FORM_OBJS = form.o $(COMMON_OBJS)
+
 PICK_SRCS = pick.c
 PICK_OBJS = pick.o $(COMMON_OBJS)
+
 VIEW_SRCS = view.c
 VIEW_OBJS = view.o $(COMMON_OBJS)
+
 CKEYS_SRCS = ckeys.c
 CKEYS_OBJS = ckeys.o $(COMMON_OBJS)
+
 LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_PATH)
 
 all:	$(LIB_NAME) $(BINEXES)
