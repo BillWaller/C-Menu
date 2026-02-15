@@ -17,11 +17,6 @@
 
 bool is_valid_date(int, int, int);
 bool is_valid_time(int, int, int);
-double form_fmt_currency(Form *, char *);
-int form_fmt_decimal_int(Form *, char *);
-int form_fmt_hex_int(Form *, char *);
-float form_fmt_float(Form *, char *);
-double form_fmt_double(Form *, char *);
 int form_fmt_field(Form *, char *);
 void numeric(char *, char *);
 void right_justify(char *, int);
@@ -309,6 +304,15 @@ int form_accept_field(Form *form) {
         }
     }
 }
+/** @brief Display field n
+    @param form Pointer to Form structure
+    @param n Field index to display
+    @return 0 on success, non-zero on error
+    @note This function temporarily sets the form's current field index (fidx)
+   to n, calls form_display_field() to display that field, and then restores the
+   original fidx value. This allows for displaying a specific field without
+   permanently changing the form's current field index.
+ */
 int form_display_field_n(Form *form, int n) {
     /// Display field n
     int fidx = form->fidx;
@@ -317,6 +321,16 @@ int form_display_field_n(Form *form, int n) {
     form->fidx = fidx;
     return 0;
 }
+/** @brief Display current field
+    @param form Pointer to Form structure
+    @return 0 on success, non-zero on error
+    @note This function displays the current field based on the form's current
+   field index (fidx). It retrieves the line and column information for the
+   current field, displays any brackets if set, and then displays the field's
+   content using the display_s string. The function ensures that the field is
+   displayed correctly within the form's window and refreshes the display to
+   show the updated field content.
+ */
 int form_display_field(Form *form) {
     /// Display current field
     WINDOW *win = form->win;
@@ -328,6 +342,15 @@ int form_display_field(Form *form) {
     wrefresh(win);
     return 0;
 }
+/** @brief Display brackets around current field if set
+    @param form Pointer to Form structure
+    @return 0 on success, non-zero on error
+    @note This function checks if the form's brackets array has non-empty values
+   for both the left and right brackets. If so, it retrieves the line and column
+   information for the current field and uses the form's box window to display
+   the left bracket at the start of the field and the right bracket at the end
+   of the field. The display is refreshed to show the brackets around the field.
+ */
 int form_display_field_brackets(Form *form) {
     /// Display field brackets if set
     /// @param form Pointer to Form structure
@@ -345,6 +368,23 @@ int form_display_field_brackets(Form *form) {
     }
     return 0;
 }
+/** @brief Format field according to its format type
+    @param form Pointer to Form structure
+    @param s Input string to format
+    @return 0 on success, non-zero on error
+    @note This function takes the input string for the current field and formats
+   it according to the field's specified format type (ff). It updates the
+   accept_s and display_s strings for the field based on the formatted value.
+   The function handles various format types, including strings, decimal
+   integers, hexadecimal integers, floating-point numbers, currency, dates, and
+   times. It uses helper functions for validation and formatting, such as
+   is_valid_date(), is_valid_time(), numeric(), right_justify(), left_justify(),
+   and strnzcpy(). The function ensures that the formatted output fits within
+   the field's length and creates a filler string for the field as needed. The
+   function also handles error cases, such as invalid formats, and provides
+   feedback through error messages. It is designed to be extensible, allowing
+   for additional format types to be added in the future as needed.
+ */
 int form_fmt_field(Form *form, char *s) {
     /** @brief Format field according to its format type
         @param form Pointer to Form structure

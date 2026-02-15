@@ -71,7 +71,6 @@ off_t get_pos_next_line(View *, off_t);
 off_t get_pos_prev_line(View *, off_t);
 int fmt_line(View *);
 void display_line(View *);
-bool ansi_to_cmplx();
 void parse_ansi_str(char *, attr_t *, int *);
 void view_display_help(Init *);
 void cmd_line_prompt(View *, char *);
@@ -922,6 +921,7 @@ int go_to_line(View *view, off_t line_idx) {
     prev_page(view);
     return 0;
 }
+/** @brief Go to Percent of File */
 void go_to_percent(View *view, int Percent) {
     /// Go to Percent of File
     int c = 0;
@@ -1767,7 +1767,8 @@ void remove_file(View *view) {
    file display, and the original view is restored afterward.
     @note The default screen size for help can be set in the code below. If set
    to 0, mview will determine reasonable maximal size based on the terminal
-   dimensions. @ The help file may contain Unicode characters and ANSI escape
+   dimensions.
+   @note The help file may contain Unicode characters and ANSI escape
    sequences for formatting, which will be properly handled and displayed by
    mview. */
 void view_display_help(Init *init) {
@@ -1777,7 +1778,9 @@ void view_display_help(Init *init) {
     init->view = NULL;
     zero_opt_args(init);
     eargv[0] = strdup("mview");
-    eargv[1] = strdup(VIEW_HELP_FILE);
+    strnz__cpy(tmp_str, VIEW_HELP_FILE, MAXLEN - 1);
+    expand_tilde(tmp_str, MAXLEN - 1);
+    eargv[1] = strdup(tmp_str);
     eargv[2] = NULL;
     eargc = 2;
     parse_opt_args(init, eargc, eargv);

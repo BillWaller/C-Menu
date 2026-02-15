@@ -154,7 +154,7 @@ extern Init *init;
 enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };
 
 extern Init *init;
-extern int init_cnt;
+extern int init_cnt; /** number of Init data structures allocated */
 extern char minitrc[MAXLEN];
 extern void mapp_initialization(Init *init, int, char **);
 extern Init *new_init(int, char **);
@@ -173,15 +173,11 @@ extern int write_config(Init *);
 extern bool derive_file_spec(char *, char *, char *);
 extern bool init_menu_files(Init *, int, char **);
 extern unsigned int menu_engine(Init *);
-extern unsigned int menu_loop(Init *);
 extern unsigned int parse_menu_description(Init *);
 extern int init_form(Init *, int, char **, int, int);
 extern int init_pick(Init *, int, char **, int, int);
 extern int open_pick_win(Init *);
 extern int pick_engine(Init *);
-extern bool pick_help_spec(Init *, int argc, char **argv);
-extern bool pick_in_spec(Init *, int argc, char **argv);
-extern bool pick_out_spec(Init *, int argc, char **argv);
 extern int view_file(Init *);
 extern int mview(Init *, int, char **);
 extern int init_view_full_screen(Init *);

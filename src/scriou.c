@@ -17,10 +17,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-#ifndef M_TERMCAP
-SCREEN *Screen;
-#endif
-
 struct termios shell_tioctl;
 struct termios curses_tioctl;
 bool f_have_shell_tioctl = false;
@@ -31,8 +27,6 @@ bool capture_curses_tioctl();
 bool restore_curses_tioctl();
 bool set_sane_tioctl(struct termios *);
 bool mk_raw_tioctl(struct termios *);
-void set_cursor_dfl();
-void set_cursor_ins();
 char di_getch();
 
 /// Terminal IOCTL structures

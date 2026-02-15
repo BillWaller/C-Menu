@@ -142,7 +142,9 @@ unsigned int menu_cmd_processor(Init *init) {
     case 'H':
     case KEY_F(1):
         eargv[0] = strdup("mview");
-        eargv[1] = strdup("~/menuapp/help/menu.help");
+        strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);
+        expand_tilde(tmp_str, MAXLEN - 1);
+        eargv[1] = strdup(tmp_str);
         eargv[2] = NULL;
         eargc = 2;
         zero_opt_args(init);
@@ -250,15 +252,25 @@ unsigned int menu_cmd_processor(Init *init) {
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         j = 0;
-        for (i = 1; i < eargc && eargv[i] != NULL; i++)
-            eargv[j++] = eargv[i];
+        free(eargv[0]);
+        for (i = 1; i < eargc && eargv[i] != NULL; i++) {
+            if (eargv[i][0] == '~') {
+                strnz__cpy(tmp_str, eargv[i], MAXLEN - 1);
+                expand_tilde(tmp_str, MAXLEN - 1);
+                eargv[j++] = strdup(tmp_str);
+            } else
+                eargv[j++] = strdup(eargv[i]);
+            free(eargv[i]);
+        }
         eargv[j] = NULL;
         full_screen_fork_exec(eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display help information for the menu system */
     case CT_HELP:
         eargv[0] = strdup("mview");
-        eargv[1] = strdup("~/menuapp/help/menu.help");
+        strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);
+        expand_tilde(tmp_str, MAXLEN - 1);
+        eargv[1] = strdup(tmp_str);
         eargv[2] = NULL;
         eargc = 2;
         zero_opt_args(init);

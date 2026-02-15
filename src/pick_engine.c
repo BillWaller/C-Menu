@@ -31,7 +31,6 @@ int open_pick_win(Init *);
 void display_pick_help(Init *);
 void pick_display_chyron(Pick *);
 int read_pick_input(Init *);
-char *replace_substring(char *, const char *, const char *, int);
 
 int pipe_fd[2];
 
@@ -635,7 +634,7 @@ void toggle_object(Pick *pick) {
         mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
     }
 }
-/** Outputs selected objects to specified output file
+/** @brief Outputs selected objects to specified output file
     @param pick Pointer to Pick structure containing selected objects and output
     file information
     @return 0 on success, 1 on failure

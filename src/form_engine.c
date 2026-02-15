@@ -31,7 +31,6 @@ void form_display_fields(Form *);
 void form_display_chyron(Form *);
 int form_enter_fields(Form *);
 int form_parse_desc(Form *);
-int form_process_text(Form *);
 int form_read_data(Form *);
 int form_write(Form *);
 void form_usage();
@@ -146,7 +145,9 @@ int form_engine(Init *init) {
             return 0;
         case P_HELP:
             eargv[0] = strdup("mview");
-            eargv[1] = strdup("~/menuapp/help/form.help");
+            strnz__cpy(tmp_str, "~/menuapp/help/form.help", MAXLEN - 1);
+            expand_tilde(tmp_str, MAXLEN - 1);
+            eargv[1] = strdup(tmp_str);
             eargv[2] = NULL;
             eargc = 2;
             zero_opt_args(init);
@@ -431,6 +432,11 @@ int form_enter_fields(Form *form) {
         }
     }
 }
+/** @brief Display the form on the screen, including text elements and fields,
+    and set up the form window based on the form configuration.
+    @param init A pointer to the Init structure containing form data and state.
+    @return 0 on success, or a non-zero value if an error occurs while
+    creating the form window or rendering the form elements. */
 unsigned int form_display_screen(Init *init) {
     int n;
 
@@ -473,6 +479,13 @@ unsigned int form_display_screen(Init *init) {
     form_display_fields(form);
     return 0;
 }
+/** @brief Display form fields on the screen, populating field values and
+    formatting them according to the form configuration.
+    @param form A pointer to the Form structure containing form data and state.
+     This function iterates through the defined form fields, formats their
+    display values based on the specified fill character and field length, and
+    renders them on the form window. It also updates the chyron with available
+    commands for user interaction. */
 void form_display_fields(Form *form) {
     int n;
     char fill_char = form->fill_char[0];
@@ -494,6 +507,10 @@ void form_display_fields(Form *form) {
     form_display_chyron(form);
     return;
 }
+/** @brief Display the chyron (status line) at the bottom of the form window,
+   showing available commands and their corresponding function keys.
+    @param form A pointer to the Form structure containing form data and state.
+ */
 void form_display_chyron(Form *form) {
     int l;
 
@@ -504,6 +521,13 @@ void form_display_chyron(Form *form) {
     wclrtoeol(form->win);
     wmove(form->win, form->lines - 1, l);
 }
+/** @brief Parse the form description file to populate the Form data structure
+   with field definitions, text elements, and other configuration specified in
+   the description file.
+    @param form A pointer to the Form structure containing form data and state.
+    @return 0 on success, or a non-zero value if an error occurs while parsing
+    the description file (e.g., file not found, invalid format, missing
+    directives). */
 int form_parse_desc(Form *form) {
     FILE *form_desc_fp;
     char *token;
@@ -785,6 +809,11 @@ int form_exec_cmd(Form *form) {
     shell(earg_str);
     return 0;
 }
+/** @brief Write form field values to a specified output destination, such as a
+    file or standard output, based on the form configuration and user input.
+    @param form A pointer to the Form structure containing form data and state.
+    @return 0 on success, or a non-zero value if an error occurs while writing
+    the data or if the specified output destination is invalid. */
 int form_write(Form *form) {
     int n;
     if (form->out_spec[0] == '\0' || strcmp(form->out_spec, "-") == 0 ||
@@ -826,11 +855,27 @@ int form_write(Form *form) {
         fclose(form->out_fp);
     return (0);
 }
+/** @brief Display usage information for the form, including available options
+   and commands, to assist users in understanding how to interact with the form.
+    This function generates a usage message based on the options defined for the
+    form and displays it to the user, typically when they request help or when
+   an error occurs. The usage information includes details about the form's
+    configuration, available commands, and how to navigate and interact with the
+    form fields. */
 void form_usage() {
     dump_opts_by_use("Form: usage: ", "..f.");
     (void)fprintf(stderr, "\n");
     Perror("press any key to continue");
 }
+/** @brief Handle errors encountered while parsing the form description file,
+    providing detailed error messages that include the file name, line number,
+    and the specific error encountered.
+    @param in_line_num The line number in the description file where the error
+    occurred.
+    @param in_buf The content of the line that caused the error, for context.
+    @param em A specific error message describing the nature of the error.
+    @return An integer status code indicating how the user responded to the
+    error message (e.g., which key they pressed to acknowledge the error). */
 int form_desc_error(int in_line_num, char *in_buf, char *em) {
     int cmd_key;
 

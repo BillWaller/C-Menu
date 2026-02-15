@@ -46,7 +46,6 @@ void usage();
 
 void prompt_int_to_str(char *, int);
 int prompt_str_to_int(char *);
-char *tilde_expand(char *);
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
