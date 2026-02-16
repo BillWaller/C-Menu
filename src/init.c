@@ -799,8 +799,7 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
    @note The version information is defined in the mapp_version variable
    and is printed to stderr when this function is called. */
 void display_version() {
-    fprintf(stderr, "\nC-Menu version: %s\n", CMENU_VERSION);
-    fprintf(stderr, "libcm version: %s\n", LIBCM_VERSION);
+    fprintf(stderr, "\nC-Menu version: %s\n", CM_VERSION);
     exit(EXIT_SUCCESS);
 }
 /** @brief Display the usage information of the application

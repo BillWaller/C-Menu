@@ -12,6 +12,7 @@
 
 #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
+#include "version.h"
 #include <ncursesw/ncurses.h>
 #include <signal.h>
 #include <stddef.h>
@@ -27,9 +28,8 @@
 #define W_BOX 0x02    /**< box window flag for win_new() */
 #define COLOR_LEN 8   /**< length of color code strings */
 #define DEFAULTSHELL "/bin/bash"
-#define S_WCOK 0x1000         /**< write or create permitted */
-#define S_QUIET 0x2000        /**< quiet mode flag for file validation */
-#define LIBCM_VERSION "0.2.9" /**< version of the C-Menu API library */
+#define S_WCOK 0x1000  /**< write or create permitted */
+#define S_QUIET 0x2000 /**< quiet mode flag for file validation */
 /** @brief This macro defines the function, end_pgm, that is responsible
    for cleaning up the terminal state and exiting the program.
     @note This function is typically registered to be called when the program
