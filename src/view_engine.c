@@ -653,8 +653,7 @@ int view_cmd_processor(Init *init) {
             break;
         /** 'V' - Display Version Information */
         case 'V':
-            ssnprintf(em0, MAXLEN - 1, "C-Menu Version: %s", CMENU_VERSION);
-            ssnprintf(em1, MAXLEN - 1, "LIBCM Version: %s", LIBCM_VERSION);
+            ssnprintf(em0, MAXLEN - 1, "C-Menu Version: %s", CM_VERSION);
             display_error(em0, em1, NULL, NULL);
             break;
         default:

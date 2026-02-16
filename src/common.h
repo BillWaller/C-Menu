@@ -48,7 +48,6 @@
 #define P_READ 0
 #define P_WRITE 1
 #define TRUE 1
-#define CMENU_VERSION "0.2.9"
 
 enum Caller { VIEW, FORM, PICK, MENU };
 
