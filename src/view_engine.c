@@ -75,7 +75,8 @@ void parse_ansi_str(char *, attr_t *, int *);
 void view_display_help(Init *);
 void cmd_line_prompt(View *, char *);
 void remove_file(View *);
-
+int write_view_buffer(Init *, bool);
+bool enter_file_spec(Init *, char *);
 int a_toi(char *s, bool *a_toi_error);
 
 char err_msg[MAXLEN];
@@ -97,6 +98,8 @@ int view_file(Init *init) {
         view->next_file_spec_ptr = NULL;
         if (view_init_input(view, view->file_spec_ptr)) {
             if (view->buf) {
+                view->f_eod = 0;
+                view->f_bod = 0;
                 view->maxcol = 0;
                 view->f_forward = true;
                 view->page_top_pos = 0;
@@ -105,7 +108,6 @@ int view_file(Init *init) {
                 next_page(view);
                 view_cmd_processor(init);
                 munmap(view->buf, view->file_size);
-                // close(view->in_fd);
             }
         } else {
             view->curr_argc++;
@@ -119,11 +121,6 @@ int view_file(Init *init) {
 /** @brief Main Command Processing Loop for View */
 int view_cmd_processor(Init *init) {
     int tfd;
-    char tmp_str[MAXLEN];
-    char earg_str[MAXLEN];
-    char *eargv[MAX_ARGS];
-    int eargc;
-    int begy, begx;
     int c;
     int max_n;
     int shift = 0;
@@ -131,14 +128,14 @@ int view_cmd_processor(Init *init) {
     int prev_search_cmd = 0;
     int rc, i;
     int n = 0;
-    int l = 0;
     ssize_t bytes_written;
-    char *editor_ptr;
+    char *e;
     char shell_cmd_spec[MAXLEN];
     struct timespec start, end;
     double elapsed = 0;
     bool f_clock_started = false;
     off_t n_cmd = 0L;
+    off_t prev_file_pos;
     view = init->view;
     view->f_timer = false;
     view->cmd[0] = '\0';
@@ -565,87 +562,48 @@ int view_cmd_processor(Init *init) {
             return 0;
         /** 'v' - Open Current File in Editor */
         case 'v':
-            if (view->f_displaying_help)
+            if (init->editor[0] == 0) {
+                e = getenv("DEFAULTEDITOR");
+                if (e == NULL || *e == '\0')
+                    strnz__cpy(init->editor, DEFAULTEDITOR, MAXLEN);
+                else
+                    strnz__cpy(init->editor, e, MAXLEN);
+            }
+            strnz__cpy(em0,
+                       "View doesn't support editing current buffer directly",
+                       MAXLEN - 1);
+            strnz__cpy(em1, "Would you like to write the buffer to a file?",
+                       MAXLEN - 1);
+            strnz__cpy(em2, "Enter Y for yes or any other key to cancel.",
+                       MAXLEN - 1);
+            rc = display_error(em0, em1, em2, NULL);
+            if (rc != 'y' && rc != 'Y')
                 break;
-            if (view->f_is_pipe) {
-                strnz__cpy(em0,
-                           "View doesn't support editing of standard input",
-                           MAXLEN - 1);
-                strnz__cpy(
-                    em1, "You may write the data to a file and edit that file",
-                    MAXLEN - 1);
-                strnz__cpy(em2, "use the w command to initiate the write",
-                           MAXLEN - 1);
-                strnz__cpy(em3, "and try again.", MAXLEN - 1);
+            enter_file_spec(init, view->out_spec);
+            prev_file_pos = view->page_top_pos;
+            bytes_written = write_view_buffer(init, view->f_strip_ansi);
+            if (bytes_written == 0) {
+                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                          __LINE__ - 2);
+                strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
+                strerror_r(errno, em1, MAXLEN - 1);
+                display_error(em0, em1, NULL, NULL);
                 break;
             }
-            editor_ptr = getenv("DEFAULTEDITOR");
-            if (editor_ptr == NULL || *editor_ptr == '\0')
-                editor_ptr = DEFAULTEDITOR;
-            if (editor_ptr == NULL || *editor_ptr == '\0') {
-                Perror("set DEFAULTEDITOR environment variable");
-                break;
-            }
-            view->prev_file_pos = view->page_top_pos;
-            munmap(view->buf, view->file_size);
-            view->next_file_spec_ptr = view->file_spec_ptr;
-            strnz__cpy(shell_cmd_spec, editor_ptr, MAXLEN - 5);
+            view->next_file_spec_ptr = view->in_spec;
+            strnz__cpy(shell_cmd_spec, init->editor, MAXLEN - 5);
             strnz__cat(shell_cmd_spec, " ", MAXLEN - 5);
-            strnz__cat(shell_cmd_spec, view->cur_file_str, MAXLEN - 5);
+            strnz__cat(shell_cmd_spec, view->in_spec, MAXLEN - 5);
             full_screen_shell(shell_cmd_spec);
+            view->file_pos = view->page_top_pos = view->page_bot_pos =
+                prev_file_pos;
+
+            restore_wins();
+            view->f_redisplay_page = true;
             return 0;
         /** 'w' - Write the current buffer to file */
         case 'w':
-            strnz__cpy(earg_str,
-                       "form -d filename.f -o \"~/menuapp/data/form-out\"",
-                       MAXLEN - 1);
-            eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-            zero_opt_args(init);
-            parse_opt_args(init, eargc, eargv);
-            begy = view->begy + view->lines - 7;
-            begx = 4;
-            rc = init_form(init, eargc, eargv, begy, begx);
-            if (rc == P_CANCEL) {
-                destroy_form(init);
-                view->f_redisplay_page = true;
-                break;
-            }
-            strnz__cpy(tmp_str, "~/menuapp/data/form-out", MAXLEN - 1);
-            verify_spec_arg(view->in_spec, tmp_str, "~/menuapp/data", ".",
-                            R_OK);
-            view->in_fp = fopen(view->in_spec, "r");
-            if (view->in_fp == NULL) {
-                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
-                          __LINE__ - 2);
-                strnz__cpy(em1, "fopen ", MAXLEN - 1);
-                strnz__cat(em1, view->in_spec, MAXLEN - 1);
-                strerror_r(errno, em2, MAXLEN - 1);
-                display_error(em0, em1, em2, NULL);
-                return (1);
-            }
-            fgets(tmp_str, MAXLEN - 1, view->in_fp);
-            fclose(view->in_fp);
-            l = strlen(tmp_str);
-            if (l > 0 && tmp_str[l - 1] == '\n')
-                tmp_str[l - 1] = '\0';
-            view->f_out_spec = verify_spec_arg(
-                view->out_spec, tmp_str, "~/menuapp/data", ".", W_OK | S_QUIET);
-            view->out_fd =
-                open(view->out_spec, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-            bytes_written = write(view->out_fd, view->buf, view->file_size);
-            if (bytes_written != (ssize_t)view->file_size) {
-                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
-                          __LINE__ - 2);
-                strnz__cpy(em1, "fwrite ", MAXLEN - 1);
-                strnz__cat(em1, view->out_spec, MAXLEN - 1);
-                strerror_r(errno, em2, MAXLEN - 1);
-                strnz__cpy(em3, "Not all bytes written", MAXLEN - 1);
-                display_error(em0, em1, em2, em3);
-                return (1);
-            }
-            close(view->out_fd);
-            ssnprintf(tmp_str, MAXLEN - 1, "Wrote %jd bytes to %s",
-                      bytes_written, view->out_spec);
+            bytes_written = write_view_buffer(init, view->f_strip_ansi);
             cmd_line_prompt(view, tmp_str);
             view->f_redisplay_page = true;
             break;
@@ -849,6 +807,55 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
         strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
     }
 }
+/** @brief Write buffer contents to file
+    @param f_strip_ansi strip ANSI escape sequences
+    @details
+   */
+int write_view_buffer(Init *init, bool f_strip_ansi) {
+    ssize_t bytes_written = 0;
+    off_t pos;
+    View *view = init->view;
+    int rc;
+    size_t l;
+    char tmp_line_s[PAD_COLS];
+
+    if (!f_strip_ansi) {
+        strnz__cpy(em0, "Would you like to strip ansi escape sequences?",
+                   MAXLEN - 1);
+        strnz__cpy(em1, "Enter Y for yes or any other key to cancel.",
+                   MAXLEN - 1);
+        rc = display_error(em0, em1, NULL, NULL);
+        if (rc == 'y' || rc == 'Y')
+            f_strip_ansi = true;
+        else
+            f_strip_ansi = false;
+    }
+    /** write the buffer */
+    pos = 0;
+    view->out_fd = open(view->out_spec, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    if (view->out_fd == -1) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+        strnz__cpy(em1, "fwrite ", MAXLEN - 1);
+        strnz__cat(em1, view->out_spec, MAXLEN - 1);
+        strerror_r(errno, em2, MAXLEN - 1);
+        display_error(em0, em1, em2, NULL);
+        return (false);
+    }
+    bytes_written = 0;
+    while (!view->f_eod) {
+        pos = get_next_line(view, pos);
+        if (f_strip_ansi)
+            strip_ansi(tmp_line_s, view->line_in_s);
+        else
+            strnz__cpy(tmp_line_s, view->line_in_s, MAXLEN - 1);
+        l = strnlf(tmp_line_s, PAD_COLS - 1);
+        bytes_written += write(view->out_fd, tmp_line_s, l);
+    }
+    close(view->out_fd);
+    strnz__cpy(view->in_spec, view->out_spec, MAXLEN - 1);
+    return bytes_written;
+}
+
 /** @brief Concatenate File to Standard Output */
 void cat_file(View *view) {
     int c;
@@ -953,16 +960,17 @@ void go_to_position(View *view, off_t go_to_pos) {
     @param repeat Boolean Flag Indicating if this is a Repeat Search
     @returns true if a match is found and displayed, false if the search
    completes without finding a match or if an error occurs
-    @note The search performs extended regular expression matching, ignoring
-   ANSI sequences and Unicode characters. Matches are highlighted on the screen,
-   and the search continues until the page is full or the end of the file is
-   reached. If the search wraps around the file, a message is displayed
-   indicating that the search is complete.
-    @note The search state is maintained in the view structure, allowing for
-   repeat searches and tracking of the current search position.
-    @note this function highlights all matches in the current ncurses pad,
-   including those not displayed on the screen, and tracks the first and last
-   match columns for prompt display. */
+    @note The search performs extended regular expression matching,
+   ignoring ANSI sequences and Unicode characters. Matches are
+   highlighted on the screen, and the search continues until the page is
+   full or the end of the file is reached. If the search wraps around
+   the file, a message is displayed indicating that the search is
+   complete.
+    @note The search state is maintained in the view structure, allowing
+   for repeat searches and tracking of the current search position.
+    @note this function highlights all matches in the current ncurses
+   pad, including those not displayed on the screen, and tracks the
+   first and last match columns for prompt display. */
 bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
     int REG_FLAGS = 0;
     regmatch_t pmatch[1];
@@ -1030,14 +1038,15 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             view->page_top_pos = srch_curr_pos;
         }
         fmt_line(view);
-        /**  Perform extended regular expression matching. ANSI sequences and
-         * Unicode characters are stripped before matching, so matching
-         * corresponds to the visual display of the line. */
+        /**  Perform extended regular expression matching. ANSI
+         * sequences and Unicode characters are stripped before
+         * matching, so matching corresponds to the visual display of
+         * the line. */
         reti = regexec(&compiled_regex, view->stripped_line_out,
                        compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-        /** Once a match is found, leading context lines are displayed at the
-         * top of the page. After that, all subsequent lines without matches are
-         * displayed until the page is full. */
+        /** Once a match is found, leading context lines are displayed
+         * at the top of the page. After that, all subsequent lines
+         * without matches are displayed until the page is full. */
         if (reti == REG_NOMATCH) {
             if (f_page) {
                 display_line(view);
@@ -1063,13 +1072,14 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             view->page_top_pos = srch_curr_pos;
             f_page = true;
         }
-        /** Search continues displaying matches until the page is full. */
+        /** Search continues displaying matches until the page is full.
+         */
         display_line(view);
         //----------------------------------------------
         cury = view->cury;
-        /** All matches on the current line are highlighted, including those not
-         * displayed on the screen. Track first and last match columns for
-         * prompt display. */
+        /** All matches on the current line are highlighted, including
+         * those not displayed on the screen. Track first and last match
+         * columns for prompt display. */
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
@@ -1089,9 +1099,9 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             reti = regexec(&compiled_regex, view->line_out_p,
                            compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
             /** @note lines may be much longer than the screen width, so
-             * continue searching even if the line is not displayed completely.
-             * The pad's complex characters (cchar_t) will handle the display
-             * for horizantal scrolling. */
+             * continue searching even if the line is not displayed
+             * completely. The pad's complex characters (cchar_t) will
+             * handle the display for horizantal scrolling. */
             if (reti == REG_NOMATCH)
                 break;
             if (reti) {
@@ -1108,7 +1118,8 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             }
         }
     }
-    /** Update view positions and prepare prompt string for match information */
+    /** Update view positions and prepare prompt string for match
+     * information */
     view->file_pos = srch_curr_pos;
     view->page_bot_pos = srch_curr_pos;
     if (view->last_match_x > view->maxcol)
@@ -1302,7 +1313,13 @@ void scroll_up_n_lines(View *view, int n) {
     curs_set(1);
     return;
 }
-/** @brief Get Next Line from File */
+/** @brief Get Next Line from File
+    @param view struct
+    @@param pos buffer offset
+    @returns file position of next line
+    @note gets view->line_in_s
+ */
+
 off_t get_next_line(View *view, off_t pos) {
     uchar c;
     char *line_in_p;
@@ -1319,7 +1336,7 @@ off_t get_next_line(View *view, off_t pos) {
         return view->file_pos;
     line_in_p = view->line_in_s;
     view->line_in_beg_p = view->line_in_s;
-    view->line_in_end_p = view->line_in_s + LINE_IN_PAD_COLS;
+    view->line_in_end_p = view->line_in_s + PAD_COLS;
     while (1) {
         if (c == (uchar)'\n')
             break;
@@ -1459,16 +1476,17 @@ void display_line(View *view) {
         Perror("Error refreshing screen");
 }
 /** @brief Format Line for Display
-    @param view pointer to View structure containing line input and output
-   buffers
+    @param view pointer to View structure containing line input and
+   output buffers
     @return length of formatted line in characters
-    @details This function processes the input line from view->line_in_s,
-   handling ANSI escape sequences for text attributes and colors, as well as
-   multi-byte characters. It converts the input line into a formatted line
-   suitable for display in the terminal, storing the result in view->cmplx_buf
-   and view->stripped_line_out. The function returns the length of the formatted
-   line in characters, which may be used for tracking the maximum column width
-   of the displayed content.
+    @details This function processes the input line from
+   view->line_in_s, handling ANSI escape sequences for text attributes
+   and colors, as well as multi-byte characters. It converts the input
+   line into a formatted line suitable for display in the terminal,
+   storing the result in view->cmplx_buf and view->stripped_line_out.
+   The function returns the length of the formatted line in characters,
+   which may be used for tracking the maximum column width of the
+   displayed content.
  */
 int fmt_line(View *view) {
     attr_t attr = WA_NORMAL;
@@ -1482,9 +1500,10 @@ int fmt_line(View *view) {
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
     rtrim(view->line_out_s);
-    /** Initialize multibyte to wide char conversion mbtowc, setcchar, and
-     * getcchar can sometimes behave badly, depending on what you feed them.
-     * Make sure your locale is set properly before calling them. */
+    /** Initialize multibyte to wide char conversion mbtowc, setcchar,
+     * and getcchar can sometimes behave badly, depending on what you
+     * feed them. Make sure your locale is set properly before calling
+     * them. */
     mbtowc(NULL, NULL, 0);
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
@@ -1521,8 +1540,9 @@ int fmt_line(View *view) {
                 } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
-                /** Handle Multi-byte Character Use mbtowc to get the wide
-                 * character and its length in bytes from the multibyte string
+                /** Handle Multi-byte Character Use mbtowc to get the
+                 * wide character and its length in bytes from the
+                 * multibyte string
                  */
                 len = mbtowc(&wc, s, MB_CUR_MAX);
                 if (len <= 0) {
@@ -1530,7 +1550,9 @@ int fmt_line(View *view) {
                     wc = L'?';
                     len = 1;
                 }
-                /** Convert wide character + attributes to complex character */
+                /** Convert wide character + attributes to complex
+                 * character
+                 */
                 if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
                     if (len > 0 && (j + len) < PAD_COLS - 1) {
                         view->stripped_line_out[j] = *s;
@@ -1551,13 +1573,13 @@ int fmt_line(View *view) {
 }
 /** @brief Parse ANSI SGR Escape Sequence
     @param ansi_str is the ANSI escape sequence string to parse
-    @param attr is a pointer to an attr_t variable where the parsed attributes
-   will be stored
-    @param cpx is a pointer to an int variable where the parsed color pair index
-   will be stored
-    @details This function parses an ANSI SGR (Select Graphic Rendition) escape
-   sequence and updates the provided attr_t and color pair index based on the
-   attributes specified in the ANSI string.
+    @param attr is a pointer to an attr_t variable where the parsed
+   attributes will be stored
+    @param cpx is a pointer to an int variable where the parsed color
+   pair index will be stored
+    @details This function parses an ANSI SGR (Select Graphic Rendition)
+   escape sequence and updates the provided attr_t and color pair index
+   based on the attributes specified in the ANSI string.
 
     @code
 
@@ -1569,7 +1591,8 @@ int fmt_line(View *view) {
         foreground \033[38;2;r;g;bm
         background \033[48;2;r;g;bm
 
-        Where r, g, b are the red, green, and blue color components (0-255)
+        Where r, g, b are the red, green, and blue color components
+   (0-255)
 
     XTERM 256-color:
 
@@ -1585,19 +1608,20 @@ int fmt_line(View *view) {
         foreground \033[3cm
         background \033[4cm
 
-        Where c is the color code (0 for black, 1 for red, 2 for green, 3 for
-   yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for white).
+        Where c is the color code (0 for black, 1 for red, 2 for green,
+   3 for yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for white).
 
     Attributes:
 
         \033[am
 
-        Where a is the attribute code (1 for bold, 2 for dim, 3 for italic, 4
-   for underline, 5 for blink, 7 for reverse, 8 for invis). The function also
-   supports resetting attributes and colors to default using \033[0m.
+        Where a is the attribute code (1 for bold, 2 for dim, 3 for
+   italic, 4 for underline, 5 for blink, 7 for reverse, 8 for invis).
+   The function also supports resetting attributes and colors to default
+   using \033[0m.
 
-    @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(), extended_pair_content(),
-   get_clr_pair()
+    @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(),
+   extended_pair_content(), get_clr_pair()
 
     @endcode
 
@@ -1753,23 +1777,24 @@ void remove_file(View *view) {
 }
 /** @brief Display View Help File
     @param init is the current initialization data structure.
-    @note The current View context is set aside by assigning the view structure
-   to "view_save" while the help file is displayed using a new, separate view
-   structure.
-    @note The help file is specified by the VIEW_HELP_FILE macro can be set to a
-   default help file path or overridden by the user through an environment
-   variable.
-    @note  After the help file is closed, the original view is restored and the
-   page is redisplayed.
-    @note It may be necessary to reassign view after calling this function
-    because the init->view pointer is temporarily set to NULL during the help
-   file display, and the original view is restored afterward.
-    @note The default screen size for help can be set in the code below. If set
-   to 0, mview will determine reasonable maximal size based on the terminal
-   dimensions.
+    @note The current View context is set aside by assigning the view
+   structure to "view_save" while the help file is displayed using a
+   new, separate view structure.
+    @note The help file is specified by the VIEW_HELP_FILE macro can be
+   set to a default help file path or overridden by the user through an
+   environment variable.
+    @note  After the help file is closed, the original view is restored
+   and the page is redisplayed.
+    @note It may be necessary to reassign view after calling this
+   function because the init->view pointer is temporarily set to NULL
+   during the help file display, and the original view is restored
+   afterward.
+    @note The default screen size for help can be set in the code below.
+   If set to 0, mview will determine reasonable maximal size based on
+   the terminal dimensions.
    @note The help file may contain Unicode characters and ANSI escape
-   sequences for formatting, which will be properly handled and displayed by
-   mview. */
+   sequences for formatting, which will be properly handled and
+   displayed by mview. */
 void view_display_help(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
@@ -1791,4 +1816,79 @@ void view_display_help(Init *init) {
     mview(init, eargc, eargv);
     init->view = view_save;
     init->view->f_redisplay_page = true;
+}
+/** @brief use form to enter a file specification
+    @param char *file_spec pointer to file specification
+    the file_spec
+    @returns true if successful
+    @note the user must provide a character array large enough to hold
+    file_spec without overflowing
+ */
+bool enter_file_spec(Init *init, char *file_spec) {
+    char tmp_dir[MAXLEN];
+    char tmp_spec[MAXLEN];
+    int rc = false;
+    FILE *tmp_fp;
+    view = init->view;
+    /** Loop until we have an open output file */
+    strnz__cpy(tmp_dir, init->mapp_home, MAXLEN - 1);
+    strnz__cat(tmp_dir, "/tmp", MAXLEN - 1);
+    expand_tilde(tmp_dir, MAXLEN - 1);
+    if (!mk_dir(tmp_dir)) {
+        strnz__cpy(em0, "Unable to create ", MAXLEN - 1);
+        strnz__cat(em0, tmp_dir, MAXLEN - 1);
+        return false;
+    }
+    while (rc == false) {
+        strnz__cpy(tmp_spec, tmp_dir, MAXLEN - 1);
+        strnz__cat(tmp_spec, "/tmp_XXXXXX", MAXLEN - 1);
+        view->in_fd = mkstemp(tmp_spec);
+        if (view->in_fd == -1) {
+            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+            strnz__cpy(em1, "mkstemp ", MAXLEN - 1);
+            strnz__cat(em1, tmp_spec, MAXLEN - 1);
+            strerror_r(errno, em2, MAXLEN - 1);
+            display_error(em0, em1, NULL, NULL);
+            return (false);
+        }
+        /** call form to get file_name */
+        strnz__cpy(earg_str, "form -d file_name.f -o ", MAXLEN - 1);
+        strnz__cat(earg_str, tmp_spec, MAXLEN - 1);
+        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
+        zero_opt_args(init);
+        parse_opt_args(init, eargc, eargv);
+        rc = init_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
+        if (rc == P_CANCEL) {
+            destroy_form(init);
+            view->f_redisplay_page = true;
+            return (false);
+        }
+        close(view->in_fd);
+        /** read file_name from tmp_spec */
+        tmp_fp = fopen(tmp_spec, "r");
+        if (tmp_fp == NULL) {
+            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+            strnz__cpy(em1, "fopen ", MAXLEN - 1);
+            strnz__cat(em1, tmp_spec, MAXLEN - 1);
+            strerror_r(errno, em2, MAXLEN - 1);
+            display_error(em0, em1, em2, NULL);
+            return (false);
+        }
+        fgets(tmp_str, MAXLEN - 1, tmp_fp);
+        strnz(tmp_str, MAXLEN - 1);
+        fclose(tmp_fp);
+        unlink(tmp_spec);
+        if (!verify_spec_arg(file_spec, tmp_str, "~/menuapp/tmp", ".",
+                             S_WCOK | S_QUIET)) {
+            ssnprintf(em0, MAXLEN - 1, "Unable to open %s for writing",
+                      tmp_str);
+            strnz__cpy(em1, "Try again", MAXLEN - 1);
+            rc = display_error(em0, em1, NULL, NULL);
+            if (rc == 'y' || rc == 'Y')
+                continue;
+        } else {
+            return true;
+        }
+    }
+    return true;
 }

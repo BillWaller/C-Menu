@@ -27,8 +27,7 @@ typedef struct Init Init;
 #define NULL_POSITION -1
 #define VBUFSIZ 65536
 #define BUFSIZ 8192
-#define LINE_IN_PAD_COLS 2048
-#define PAD_COLS 4096
+#define PAD_COLS 2048
 
 enum PROMPT_TYPE { PT_NONE, PT_SHORT, PT_LONG, PT_STRING };
 
@@ -55,6 +54,7 @@ typedef struct {
     bool f_at_end_clear;  /**< obsolete, unneeded */
     bool f_at_end_remove; /**< obsolete, unneeded */
     bool f_squeeze; /**< View - print one line for each group of blank lines */
+    bool f_strip_ansi; /**< strip ansi escape sequences when writing buffer */
     bool f_stop_on_error;     /**< obsolete, unneeded */
     bool f_multiple_cmd_args; /**< View - put multiple arguments in a single
                                  string */
@@ -80,13 +80,13 @@ typedef struct {
     bool f_full_screen; /**< default mode if lines and columns not specified */
     bool f_timer;       /**< time commands and display elapsed time in prompt */
 
-    bool f_cmd;                        /**< cmd is verified */
-    bool f_cmd_all;                    /**< cmd_all is verified */
-    char cur_file_str[MAXLEN];         /**< file currently open for viewing */
-    char line_in_s[LINE_IN_PAD_COLS];  /**< raw input line from buffer */
-    char line_out_s[LINE_IN_PAD_COLS]; /**< scratch buffer */
-    char stripped_line_out[PAD_COLS];  /**< printable characters only */
-    cchar_t cmplx_buf[PAD_COLS];       /**< complex character buffer */
+    bool f_cmd;                       /**< cmd is verified */
+    bool f_cmd_all;                   /**< cmd_all is verified */
+    char cur_file_str[MAXLEN];        /**< file currently open for viewing */
+    char line_in_s[PAD_COLS];         /**< raw input line from buffer */
+    char line_out_s[PAD_COLS];        /**< scratch buffer */
+    char stripped_line_out[PAD_COLS]; /**< printable characters only */
+    cchar_t cmplx_buf[PAD_COLS];      /**< complex character buffer */
     char *line_out_p;         /**< pointer to current position in line_out_s */
     unsigned int line_number; /**< currently not implemented */
     char line_number_s[20];   /**< currently not implemented */

@@ -148,6 +148,7 @@ bool view_init_input(View *view, char *file_name) {
     int pipe_fd[2];
     char *s_argv[MAXARGS];
 
+    view->f_in_pipe = false;
     if (strcmp(file_name, "-") == 0) {
         file_name = "/dev/stdin";
         view->f_in_pipe = true;

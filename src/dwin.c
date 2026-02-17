@@ -844,7 +844,26 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     wattroff(error_win, WA_REVERSE);
     wmove(error_win, 4, cmd_l + 1);
     wrefresh(error_win);
-    cmd_key = xwgetch(error_win);
+    while (1) {
+        cmd_key = xwgetch(error_win);
+        switch (cmd_key) {
+        case 'n':
+        case 'N':
+        case 'q':
+        case 'Q':
+        case 'x':
+        case 'X':
+        case 'y':
+        case 'Y':
+        case KEY_F(1):
+        case KEY_F(9):
+        case KEY_F(10):
+            win_del();
+            return (cmd_key);
+        default:
+            continue;
+        }
+    }
     win_del();
     return (cmd_key);
 }

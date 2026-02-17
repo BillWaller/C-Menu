@@ -400,7 +400,10 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                         strnz__cat(try_spec, "/", MAXLEN - 1);
                         strnz__cat(try_spec, file_name, MAXLEN - 1);
                         strnz__cpy(idio_spec, try_spec, MAXLEN - 1);
-                        f_spec = verify_file(idio_spec, mode | S_QUIET);
+                        if (mode & S_WCOK)
+                            f_spec = true;
+                        else
+                            f_spec = verify_file(idio_spec, mode | S_QUIET);
                     }
                 }
             }
@@ -415,7 +418,10 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                     if (f_dir) {
                         strnz__cat(try_spec, "/", MAXLEN - 1);
                         strnz__cat(try_spec, file_name, MAXLEN - 1);
-                        f_spec = verify_file(try_spec, mode | S_QUIET);
+                        if (mode & S_WCOK)
+                            f_spec = true;
+                        else
+                            f_spec = verify_file(try_spec, mode | S_QUIET);
                     }
                 }
             }

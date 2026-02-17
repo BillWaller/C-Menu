@@ -8,6 +8,7 @@
  */
 
 #include "common.h"
+#include <errno.h>
 #include <monetary.h>
 #include <stdbool.h>
 #include <stdio.h>

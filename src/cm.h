@@ -176,7 +176,7 @@ extern bool handle_signal(sig_atomic_t);
 extern volatile sig_atomic_t sig_received;
 extern void sig_prog_mode();
 extern void sig_dfl_mode();
-
+extern bool mk_dir(char *dir);
 extern cchar_t CCC_NORM;    /**< normal color pair complex character */
 extern cchar_t CCC_BOX;     /**< box color pair complex character */
 extern cchar_t CCC_REVERSE; /**< reverse color pair complex character */
@@ -525,7 +525,7 @@ typedef struct {
 extern int a_toi(char *, bool *);
 extern bool chrep(char *, char, char);
 extern char *rep_substring(const char *, const char *, const char *);
-extern int strip_ansi(char *, char *);
+extern size_t strip_ansi(char *, char *);
 extern bool strip_quotes(char *);
 extern bool stripz_quotes(char *);
 extern int str_to_args(char **, char *, int);
@@ -534,9 +534,9 @@ extern bool str_to_lower(char *);
 extern bool str_to_upper(char *);
 extern bool strnfill(char *, char, int);
 extern bool str_subc(char *, char *, char, char *, int);
-extern size_t strnz(char *, int);
-extern char *strz_dup(char *);
-extern char *strnz_dup(char *, int);
+extern size_t strnz(char *, size_t);
+extern size_t strnlf(char *, size_t);
+extern char *strnz_dup(char *, size_t);
 extern size_t ssnprintf(char *, size_t, const char *, ...);
 extern size_t strnz__cpy(char *, const char *, size_t);
 extern size_t strnz__cat(char *, const char *, size_t);
