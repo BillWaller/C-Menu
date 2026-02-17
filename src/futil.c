@@ -32,7 +32,7 @@
 bool list_files(char *, char *, bool);
 bool lf_find_dirs(char *, char *, int, int);
 bool lf_find_files(char *, char *, int);
-int strip_ansi(char *, char *);
+size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);
 size_t trim(char *);
@@ -45,7 +45,8 @@ double str_to_double(char *);
 bool str_to_lower(char *);
 bool str_to_upper(char *);
 size_t strz(char *);
-size_t strnz(char *, int);
+size_t strnz(char *, size_t);
+size_t strnlf(char *, size_t);
 bool str_subc(char *, char *, char, char *, int);
 char *rep_substring(const char *, const char *, const char *);
 bool normalize_file_spec(char *);
@@ -80,7 +81,7 @@ size_t rtrim(char *s) {
     while (*(d - 1) == ' ' && d > s)
         d--;
     *d = '\0';
-    return d - s;
+    return (size_t)(d - s);
 }
 /** @brief Trims leading and trailing spaces from string s in place.
     @param s - string to trim
@@ -97,7 +98,7 @@ size_t trim(char *s) {
     while (*(d - 1) == ' ' && d > s)
         d--;
     *d = '\0';
-    return d - s;
+    return (size_t)(d - s);
 }
 /** @brief ssnprintf was designed to be a safer alternative to snprintf.
     It ensures that the buffer is not overflowed by taking the buffer size as a
@@ -114,7 +115,7 @@ size_t trim(char *s) {
     @returns number of characters that would have been written if enough space
    had been available */
 size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
-    int n;
+    size_t n;
     va_list args;
 
     va_start(args, format);
@@ -218,7 +219,7 @@ bool str_to_upper(char *s) {
      @returns length of resulting string */
 size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     char *e;
-    int len = 0;
+    size_t len = 0;
     if (s == NULL || d == NULL || max_len == 0) {
         if (d != NULL && max_len > 0)
             *d = '\0';
@@ -246,7 +247,7 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
  */
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
     char *e;
-    int len = 0;
+    size_t len = 0;
     if (s == NULL || d == NULL || max_len == 0) {
         if (d != NULL && max_len > 0)
             *d = '\0';
@@ -268,7 +269,7 @@ size_t strnz__cat(char *d, const char *s, size_t max_len) {
  * @param s string to terminate
  */
 size_t strz(char *s) {
-    int l = 0;
+    size_t l = 0;
     if (s == NULL || *s == '\0')
         return 0;
     while (*s != '\0' && *s != '\n' && *s != '\r') {
@@ -284,9 +285,9 @@ size_t strz(char *s) {
      @param s string to terminate
      @param max_len - maximum length to scan
      @returns length of resulting string */
-size_t strnz(char *s, int max_len) {
+size_t strnz(char *s, size_t max_len) {
     char *e;
-    int len = 0;
+    size_t len = 0;
     if (s == NULL || *s == '\0' || max_len == 0)
         return 0;
     e = s + max_len;
@@ -297,14 +298,33 @@ size_t strnz(char *s, int max_len) {
     *s = '\0';
     return (len);
 }
+/** @brief terminates string with line feed
+    @parm s string to terminate
+    @param max_len maximum length to scan
+    @returns length of resulting string */
+size_t strnlf(char *s, size_t max_len) {
+    char *e;
+    size_t len = 0;
+    if (s == NULL || *s == '\0' || max_len == 0)
+        return 0;
+    e = s + max_len;
+    while (*s != '\0' && *s != '\n' && *s != '\r' && s < e) {
+        s++;
+        len++;
+    }
+    *s++ = '\n';
+    len++;
+    *s = '\0';
+    return (len);
+}
 /**  @brief Allocates memory for and duplicates string s up to length l or until
    line feed or carriage return
      @param s - string to duplicate
      @param l - maximum length to copy
      @returns pointer to allocated memory */
-char *strnz_dup(char *s, int l) {
+char *strnz_dup(char *s, size_t l) {
     char *p, *rs, *e;
-    int m;
+    size_t m;
     if (s == NULL || *s == '\0' || l == 0)
         return NULL;
     for (p = s, m = 1; *p != '\0'; p++, m++)
@@ -444,7 +464,7 @@ int a_toi(char *s, bool *a_toi_error) {
     @code
         char dest[1024];
         char src[] = "\033[31mThis is red text\033[0m
-        int len = strip_ansi(dest, src);
+        size_t len = strip_ansi(dest, src);
         Result: dest = "This is red text", len = 17
     @example stripansi.c
     @endcode
@@ -457,8 +477,8 @@ int a_toi(char *s, bool *a_toi_error) {
     @note This function processes the entire string until the null
     terminator
     @note This function does not modify the source string s */
-int strip_ansi(char *d, char *s) {
-    int l = 0;
+size_t strip_ansi(char *d, char *s) {
+    size_t l = 0;
     while (*s) {
         if (*s == '\033') {
             while (*s && *s != 'm' && *s != 'K')
@@ -754,12 +774,11 @@ bool dir_name(char *buf, char *path) {
 bool verify_dir(char *spec, int imode) {
     if (spec == NULL || *spec == '\0')
         return false;
-    int mode = imode & ~(S_WCOK | S_QUIET);
     expand_tilde(spec, MAXLEN);
     struct stat sb;
     errno = 0;
     src_line = 0;
-
+    int mode = imode & ~(S_WCOK | S_QUIET);
     if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) != 0) {
         src_line = __LINE__ - 2;
         src_name = __FILE__;
@@ -779,11 +798,13 @@ bool verify_dir(char *spec, int imode) {
         }
     }
     if (src_line != 0) {
-        ssnprintf(em0, MAXLEN - 1, "%s failed in %s at line %d", fn, src_name,
-                  src_line);
-        strnz__cpy(em1, spec, MAXLEN - 1);
-        strnz__cpy(em3, "Check the file", MAXLEN - 1);
-        display_error(em0, em1, em2, em3);
+        if (!(mode & S_QUIET)) {
+            ssnprintf(em0, MAXLEN - 1, "%s failed in %s at line %d", fn,
+                      src_name, src_line);
+            strnz__cpy(em1, spec, MAXLEN - 1);
+            strnz__cpy(em3, "Check the file", MAXLEN - 1);
+            display_error(em0, em1, em2, em3);
+        }
         return false;
     }
     return true;
@@ -934,6 +955,26 @@ bool lf_find_dirs(char *dir, char *re, int depth, int flags) {
     }
     closedir(dirp);
     depth--;
+    return true;
+}
+/** @brief If directory doesn't exist, make it
+    @param dir directory name
+    @return true if directory now exists or false otherwise */
+bool mk_dir(char *dir) {
+    expand_tilde(dir, MAXLEN - 1);
+    if (!verify_dir(dir, S_WCOK | S_QUIET)) {
+        if (!mkdir(dir, 0755)) {
+            /** Directory does not exist and unable to create */
+            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+            strnz__cpy(em1, "mkdir ", MAXLEN - 1);
+            strnz__cat(em1, dir, MAXLEN - 1);
+            strnz__cat(em1, " failed", MAXLEN - 1);
+            strerror_r(errno, em2, MAXLEN - 1);
+            display_error(em0, em1, em2, NULL);
+            return false;
+        }
+        return true;
+    }
     return true;
 }
 /** @brief Find files in a directory matching a regular expression

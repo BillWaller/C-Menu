@@ -89,9 +89,11 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     // Priority-4 - cfg_args
 
     t = getenv("TERM");
-    if (!t || *t == '\0') {
+    if (!t || *t == '\0')
         strnz__cpy(term, "xterm-256color", MAXLEN);
-    }
+    t = getenv("EDITOR");
+    if (t && *t != '\0')
+        strnz__cpy(init->editor, "vi", MAXLEN - 1);
 
     parse_config(init); /**< generally /home/user/.minitrc */
     if (f_debug)
@@ -227,6 +229,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'i':
             strnz__cpy(init->in_spec, optarg, MAXLEN - 1);
+            break;
+        case 'j':
+            init->f_strip_ansi = true;
             break;
         case 'm':
             strnz__cpy(init->mapp_home, optarg, MAXLEN - 1);
@@ -461,6 +466,10 @@ int parse_config(Init *init) {
                 init->f_squeeze = str_to_bool(value);
                 continue;
             }
+            if (!strcmp(key, "f_strip_ansi")) {
+                init->f_strip_ansi = str_to_bool(value);
+                continue;
+            }
             if (!strcmp(key, "f_stop_on_error")) {
                 init->f_stop_on_error = str_to_bool(value);
                 continue;
@@ -580,6 +589,10 @@ int parse_config(Init *init) {
             }
             if (!strcmp(key, "bg")) {
                 strnz__cpy(sio->bg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "editor")) {
+                strnz__cpy(init->editor, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "mapp_spec")) {
@@ -719,6 +732,8 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
                   init->f_erase_remainder ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "fill_char", init->fill_char);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_strip_ansi",
+                  init->f_strip_ansi ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_ignore_case",
                   init->f_ignore_case ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_squeeze",
@@ -744,6 +759,7 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "bmagenta", sio->bmagenta);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bcyan", sio->bcyan);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bwhite", sio->bwhite);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "editor", init->editor);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_spec", init->mapp_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "help_spec", init->help_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "mapp_data", init->mapp_data);
@@ -889,6 +905,7 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("-R:", "  receiver_cmd", init->receiver_cmd);
     opt_prt_str("-S:", "  provider_cmd", init->provider_cmd);
     opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
+    opt_prt_bool("-j:", "  f_strip_ansi", init->f_strip_ansi);
     opt_prt_bool("-s ", "  f_squeeze", init->f_squeeze);
     opt_prt_bool("-x:", "  f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
@@ -917,6 +934,7 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("   ", "  borange", sio->borange);
     opt_prt_str("   ", "  bg", sio->bg);
     opt_prt_str("   ", "  abg", sio->abg);
+    opt_prt_str("   ", "  editor", init->editor);
     opt_prt_str("-H:", "  help_spec", init->help_spec);
     opt_prt_str("-d:", "--mapp_spec", init->mapp_spec);
     opt_prt_str("-m:", "--mapp_home", init->mapp_home);
@@ -924,5 +942,6 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("   ", "--mapp_help", init->mapp_help);
     opt_prt_str("-U:", "--mapp_user", init->mapp_user);
     opt_prt_str("   ", "--mapp_msrc", init->mapp_msrc);
+
     (void)fprintf(stderr, "\n%s\n\n", msg);
 }
