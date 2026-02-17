@@ -299,7 +299,7 @@ size_t strnz(char *s, size_t max_len) {
     return (len);
 }
 /** @brief terminates string with line feed
-    @parm s string to terminate
+    @param s string to terminate
     @param max_len maximum length to scan
     @returns length of resulting string */
 size_t strnlf(char *s, size_t max_len) {

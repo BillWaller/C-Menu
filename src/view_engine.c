@@ -807,7 +807,8 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
         strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
     }
 }
-/** @brief Write buffer contents to file
+/** @brief Write buffer contents to files
+    @param init data structure
     @param f_strip_ansi strip ANSI escape sequences
     @details
    */
@@ -1315,7 +1316,7 @@ void scroll_up_n_lines(View *view, int n) {
 }
 /** @brief Get Next Line from File
     @param view struct
-    @@param pos buffer offset
+    @param pos buffer offset
     @returns file position of next line
     @note gets view->line_in_s
  */
@@ -1818,7 +1819,8 @@ void view_display_help(Init *init) {
     init->view->f_redisplay_page = true;
 }
 /** @brief use form to enter a file specification
-    @param char *file_spec pointer to file specification
+    @param init data structure
+    @param file_spec - pointer to file specification
     the file_spec
     @returns true if successful
     @note the user must provide a character array large enough to hold
