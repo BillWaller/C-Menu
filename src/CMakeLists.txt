@@ -82,7 +82,7 @@ target_sources(optsp PRIVATE $<TARGET_OBJECTS:CMenu>)
 target_link_libraries(optsp cm ${LIBS})
 
 add_executable(rsh rsh.c)
-target_link_libraries(rsh cm ${LIBS})
+target_link_libraries(rsh)
 install(
   TARGETS rsh
   LIBRARY DESTINATION lib64
