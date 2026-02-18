@@ -27,7 +27,7 @@ typedef struct Init Init;
 #define NULL_POSITION -1
 #define VBUFSIZ 65536
 #define BUFSIZ 8192
-#define PAD_COLS 2048
+#define PAD_COLS 4096
 
 enum PROMPT_TYPE { PT_NONE, PT_SHORT, PT_LONG, PT_STRING };
 

@@ -4,10 +4,10 @@
 # billxwaller@gmail.com
 #
 #   echo usage: inst.sh FileName Directory DestName Mode Owner Group
-#   echo "    -l      list installed files"
+#   echo "    -l      list manifest.txt files"
 #   echo "    -m      echo message to terminal
 #   echo "    -p      create ~/menuapp/bin/project_src
-#   echo "    --      clear installed files list"
+#   echo "    --      clear manifest.txt files list"
 #
 
 DATE=$(rfc3339)
@@ -18,6 +18,23 @@ FILEOWN=$4
 FILEGRP=$5
 DSTNAME=$FILENAME
 EUSER=$(whoami)
+
+list_installed() {
+    printf "\nInstalled files:\n"
+    if which lsd >/dev/null 2>&1; then
+        LS=$(awk '{printf("%s ", $2)}
+                END {printf("\n")}' manifest.txt)
+        # Don't double quote $LS below
+        # Sometimes globbing and word-splitting is what you want.
+        # If you double quote this, it will not work as intended.
+        lsd -l --icon-theme unicode $LS
+    else
+        cat manifest.txt | while read -r line; do
+            ls --color=always -l "$line"
+        done
+    fi
+}
+
 if [ "$EUSER" != "root" ] && [ "$FILENAME" = "rsh" ]; then
     echo Root privileges recommended for install
     key=$(enterchr "Press 'C' to continue or any other key to abort.")
@@ -29,37 +46,25 @@ if [ "$EUSER" != "root" ] && [ "$FILENAME" = "rsh" ]; then
 fi
 if [ "$#" -eq 1 ]; then
     if [ "$1" = "-l" ]; then
-        if [ -f installed ]; then
-            printf "\nInstalled files:\n"
-            which lsd >/dev/null 2>&1
-            if which lsd >/dev/null 2>&1; then
-                LS=$(awk '{printf("%s ", $2)}
-                END {printf("\n")}' installed)
-                # Don't double quote $LS below
-                # Sometimes globbing and word-splitting is what you want.
-                # If you double quote this, it will not work as intended.
-                lsd -l --icon-theme unicode $LS
-            else
-                cat installed | while read -r line; do
-                    ls --color=always -l "$line"
-                done
-            fi
+        if [ -f manifest.txt ]; then
+            list_installed
+            list_installed >manifest.ls
             exit 0
         else
-            echo "No files have been installed yet."
+            echo "No files listed in manifest.txt yet."
             exit 0
         fi
     fi
     if [ "$1" = "--" ]; then
-        rm -f installed
+        rm -f manifest.txt
         exit 0
     fi
     if [ "$1" = "-h" ]; then
         echo usage: inst.sh FileName Directory DestName Mode Owner Group
-        echo "    -l      list installed files"
+        echo "    -l      list manifest.txt files"
         echo "    -m      echo message to terminal"
         echo "    -p      create ~/menuapp/bin/project_src"
-        echo "    --      clear installed files list"
+        echo "    --      clear manifest.txt files list"
         exit 0
     fi
     if [ "$1" = "-m" ]; then
@@ -80,8 +85,8 @@ fi
 if [ "$#" != 5 ]; then
     echo usage: inst.sh FileName Directory Mode Owner Group
     echo actual $#
-    echo "    -l      list installed files"
-    echo "    --      clear installed files list"
+    echo "    -l      list manifest.txt files"
+    echo "    --      clear manifest.txt files list"
     exit 1
 fi
 if [ ! -f "$FILENAME" ]; then
@@ -104,7 +109,7 @@ fi
 if [ -f "$DSTDIR/$DSTNAME" ]; then
     mv "$DSTDIR/$DSTNAME" /tmp/"$FILENAME".old
 fi
-echo "$DATE $DSTDIR/$DSTNAME" >>installed
+echo "$DATE $DSTDIR/$DSTNAME" >>manifest.txt
 cp "$FILENAME" "$DSTDIR/$DSTNAME"
 chown "$FILEOWN":"$FILEGRP" "$DSTDIR/$DSTNAME"
 chmod "$FILEMOD" "$DSTDIR/$DSTNAME"

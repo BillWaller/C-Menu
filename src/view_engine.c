@@ -579,7 +579,10 @@ int view_cmd_processor(Init *init) {
             rc = display_error(em0, em1, em2, NULL);
             if (rc != 'y' && rc != 'Y')
                 break;
-            enter_file_spec(init, view->out_spec);
+            if (!enter_file_spec(init, view->out_spec)) {
+                view->f_redisplay_page = true;
+                break;
+            }
             prev_file_pos = view->page_top_pos;
             bytes_written = write_view_buffer(init, view->f_strip_ansi);
             if (bytes_written == 0) {
@@ -603,6 +606,11 @@ int view_cmd_processor(Init *init) {
             return 0;
         /** 'w' - Write the current buffer to file */
         case 'w':
+            if (!enter_file_spec(init, view->out_spec)) {
+                view->f_redisplay_page = true;
+                break;
+            }
+            prev_file_pos = view->page_top_pos;
             bytes_written = write_view_buffer(init, view->f_strip_ansi);
             cmd_line_prompt(view, tmp_str);
             view->f_redisplay_page = true;
@@ -856,7 +864,6 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
     strnz__cpy(view->in_spec, view->out_spec, MAXLEN - 1);
     return bytes_written;
 }
-
 /** @brief Concatenate File to Standard Output */
 void cat_file(View *view) {
     int c;
@@ -1761,10 +1768,9 @@ void cmd_line_prompt(View *view, char *s) {
     }
     wrefresh(view->win);
 }
-/** @brief Remove File */
+/** @brief Remove File
+    @param view is the current view data structure */
 void remove_file(View *view) {
-    /// Remove File
-    /// @param view is the current view data structure
     char c;
     if (view->f_at_end_remove) {
         wmove(view->win, view->cmd_line, 0);
@@ -1809,8 +1815,8 @@ void view_display_help(Init *init) {
     eargv[2] = NULL;
     eargc = 2;
     parse_opt_args(init, eargc, eargv);
-    init->lines = 40;
-    init->cols = 54;
+    init->lines = 48;
+    init->cols = 60;
     init->begy = 0;
     init->begx = 0;
     strnz__cpy(init->title, "View Help", MAXLEN - 1);
@@ -1832,7 +1838,6 @@ bool enter_file_spec(Init *init, char *file_spec) {
     int rc = false;
     FILE *tmp_fp;
     view = init->view;
-    /** Loop until we have an open output file */
     strnz__cpy(tmp_dir, init->mapp_home, MAXLEN - 1);
     strnz__cat(tmp_dir, "/tmp", MAXLEN - 1);
     expand_tilde(tmp_dir, MAXLEN - 1);
@@ -1853,14 +1858,15 @@ bool enter_file_spec(Init *init, char *file_spec) {
             display_error(em0, em1, NULL, NULL);
             return (false);
         }
-        /** call form to get file_name */
+        /** call form to get file_name
+            write the name to a temporary file */
         strnz__cpy(earg_str, "form -d file_name.f -o ", MAXLEN - 1);
         strnz__cat(earg_str, tmp_spec, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         rc = init_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
-        if (rc == P_CANCEL) {
+        if (rc == P_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F(9)) {
             destroy_form(init);
             view->f_redisplay_page = true;
             return (false);

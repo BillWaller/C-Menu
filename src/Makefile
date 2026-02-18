@@ -42,6 +42,8 @@ PREFIX=$(HOME)/menuapp
 #
 # ldconfig $(LIB_DIR)
 
+SYSDATE := $(shell rfc3339)
+
 REL_CFLAGS=-O0
 DBG_CFLAGS=-g3
 CC=gcc -Wall -Wextra -I. $(DBG_CFLAGS)
@@ -121,8 +123,8 @@ whence:	cm.h whence.o $(LIB_NAME)
 iloan:	iloan.o $(LIB_NAME)
 	$(CC) 	iloan.o -o $@ $(LIBS)
 
-rsh:	cm.h rsh.o $(LIB_NAME)
-	$(CC) 	rsh.o -o $@ $(LIBS)
+rsh:	cm.h rsh.o
+	$(CC) 	rsh.o -o $@
 
 lf: cm.h	lf.o $(LIB_NAME)
 	$(CC) 	lf.o -o $@ $(LIBS)
@@ -138,9 +140,8 @@ $(LIB_NAME): $(LIB_OBJS)
 
 clean:
 	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.so \
-		*.cflow scan-build scan-build.out installed \
-		$(LIB_NAME) \
-		x xx xxx *.out .user_id .group_id
+		*.cflow scan-build scan-build.out $(LIB_NAME) \
+		x xx xxx *.out .user_id .group_id manifest.txt manifest.ls
 
 
 test: snippets/strings_test1.c
@@ -166,10 +167,14 @@ install:
 	./inst.sh enterstr	$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	./inst.sh iloan		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	./inst.sh stripansi	$(BIN_DIR)		  0711	$(USER)	$(GROUP)
-	./inst.sh lf		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	@echo $$SYSDATE
 	cp $(LIB_NAME) $(LIB_DIR)/$(REAL_NAME)
+	@echo $(SYSDATE) $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
 	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_NAME)
+	@echo $(SYSDATE) $(LIB_DIR)/$(LIB_NAME) >>manifest.txt
 	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
+	@echo $(SYSDATE) $(LIB_DIR)/$(SONAME) >>manifest.txt
+	./inst.sh lf		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	ldconfig $(LIB_DIR)
 	./inst.sh -p
 	./inst.sh -l

@@ -1,97 +1,47 @@
-                   [1;34mC-Menu View Command Keys[0m
+[1;31mView Command Keys         [1;31mCommands[0m
 
-[34m                 Alt Home[0m [3;37mhorizontal scroll to the first[0m
-[34m                  Alt End[0m [3;37mhorizontal scroll to the last column[0m
-[34m           h, Ctrl(H), <-[0m [3;37mHorizontal scroll left by two thirds of the screen width[0m
-[34m                   l, ->,[0m [3;37mHorizontal scroll right by two thirds of the screen width[0m
-[34m     k, Up Arrow, Ctrl(K)[0m [3;37mScroll up one line[0m
-[34m         j, J, Down Arrow[0m [3;37mscroll down one line[0m
-[34m   b, B, Ctrl(B), Page up[0m [3;37mScroll up one page[0m
-[34m f, F, Ctrl(F), Page down[0m [3;37mscroll down one page[0m
-[34m                  g, Home[0m [3;37mGo to the beginning of the document[0m
-[34m                        G[0m [3;37mGo to the end of the document[0m
-[34m                        ![0m [3;37mExecute Shell Command from within C-Menu View[0m
-[34m                        +[0m [3;37mSet Startup Command[0m
-[34m                        -[0m [3;37mChange View Settings[0m
-[34m                        c[0m [3;37mClear Screen at End of File[0m
-[34m                        i[0m [3;37mIgnore Case in Search[0m
-[34m                        p[0m [3;37mSet Prompt Type[0m
-[34m                        l[0m [3;37mLong Prompt[0m
-[34m                        n[0m [3;37mNo Prompt[0m
-[34m                        s[0m [3;37mSqueeze Multiple Blank Lines[0m
-[34m                        t[0m [3;37mSet Tab Stop Columns[0m
-[34m                    F1, H[0m [3;37mDisplay Help[0m
-[34m                        :[0m [3;37mSet a Prompt String[0m
-[34m                     /, ?[0m [3;37mSearch Forward or Backward[0m
-[34m                        o[0m [3;37mOpen a File[0m
-[34m                     g, G[0m [3;37mGo to the End of the Document[0m
-[34m                    H, F1[0m [3;37mDisplay Help Information[0m
-[34m                        m[0m [3;37mSet Mark at the Current Position[0m
-[34m                        M[0m [3;37mGo to a Mark[0m
-[34m                        n[0m [3;37mRepeat Previous Search[0m
-[34m                        N[0m [3;37mClose Current File and Open Next[0m
-[34m                     p, %[0m [3;37mGo to a Percent of the File[0m
-[34m                  Ctrl(Z)[0m [3;37mSend File to Print Queue with Notation[0m
-[34m             P, Print Key[0m [3;37mPrint Current File[0m
-[34m                        N[0m [3;37mClose Current File and Open Next[0
-[34m                    q, F9[0m [3;37mQuit the Application[0m
-[34m                        v[0m [3;37mOpen Current File in Editor[0m
-[34m                        w[0m [3;37mWrite the current buffer to file[0m
-[34m                        V[0m [3;37mDisplay Version Information[0m
+[1;33m                          [1;35mHorizontal Scrolling[0m
+[1;33mAlt Home[0m.................[1;32m to first column[0m
+[1;33mAlt End[0m..................[1;32m to last column[0m
+[1;33mh, Ctrl(H), <-[0m...........[1;32m left two thirds screen width[0m
+[1;33ml, ->[0m....................[1;32m right two thirds screen width[0m
 
-               [1;34mC-Menu View Command Line Options[0m
+[1;33m                          [1;35mVertical Scrollling[0m
+[1;33mk, Up Arrow, Ctrl(K)[0m.....[1;32m up one line[0m
+[1;33mj, J, Down Arrow[0m.........[1;32m down one line[0m
+[1;33mb, B, Ctrl(B), Page up[0m...[1;32m up one page[0m
+[1;33mf, F, Ctrl(F), Page down[0m.[1;32m down one page[0m
 
-[1;35m#  name               type grp  mask opt description[0m
-[1;35m-- ------------------ ---- ---- ---- --- -----------------------------[0m
-00 [0;34mminitrc           [0m str  spec mfpv [0;33m-a: [0m[0;32mconfiguration file spec[0m
-01 [0;34mblue_gamma        [0m int  prm  ...v [0;33m-b: [0m[0;32mblue_gamma (View)[0m
-02 [0;34mcmd               [0m str  misc ...v [0;33m-c: [0m[0;32mview cmd, first file[0m
-03 [0;34mmapp_spec         [0m str  file mfpv [0;33m-d: [0m[0;32mdescription spec[0m
-06 [0;34mgreen_gamma       [0m int  prm  ...v [0;33m-g: [0m[0;32mgreen_gamma (View)[0m
-07 [0;34mhelp              [0m bool flag mfpv [0;33m-h  [0m[0;32mhelp[0m
-09 [0;34mmapp_home         [0m str  dir  mfpv [0;33m-m: [0m[0;32mhome directory[0m
-12 [0;34mprompt-str        [0m str  misc ...v [0;33m-p: [0m[0;32mUser supplied string[0m
-13 [0;34mred_gamma         [0m int  prm  ...v [0;33m-r: [0m[0;32mred_gamma (View)[0m
-14 [0;34mf_squeeze         [0m bool flag ...v [0;33m-s  [0m[0;32msqueeze multiple blank lines[0m
-15 [0;34mtab_stop          [0m int  prm  ...v [0;33m-t: [0m[0;32mnumber of spaces per tab[0m
-17 [0;34mf_ignore_case     [0m bool flag ...v [0;33m-x  [0m[0;32mignore case in search[0m
-18 [0;34mf_at_end_remove   [0m bool flag ...v [0;33m-y  [0m[0;32mremove file at end of program[0m
-19 [0;34mf_at_end_clear    [0m bool flag mfpv [0;33m-z  [0m[0;32mclear screen at end of program[0m
-20 [0;34mcmd_all           [0m str  misc ...v [0;33m-A: [0m[0;32mview cmd, all files[0m
-21 [0;34mbg_color          [0m int  prm  mfpv [0;33m-B: [0m[0;32mbackground_color[0m
-22 [0;34mlines             [0m int  prm  mfpv [0;33m-C: [0m[0;32mwidth in columns[0m
-23 [0;34mfg_color          [0m int  prm  mfpv [0;33m-F: [0m[0;32mforeground_color[0m
-24 [0;34mhelp_spec         [0m str  file mfpv [0;33m-H: [0m[0;32mhelp spec[0m
-25 [0;34mcols              [0m int  prm  mfpv [0;33m-L: [0m[0;32mheight in lines[0m
-27 [0;34mbo_color          [0m int  prm  mfpv [0;33m-O: [0m[0;32mborder_color[0m
-28 [0;34mprompt-type       [0m str  misc ...v [0;33m-P: [0m[0;32mprompt (S-Short, L-Long, N-None)[string][0m
-29 [0;34mreceiver_cmd      [0m str  misc ...v [0;33m-R: [0m[0;32mexecute receiver of piped output[0m
-30 [0;34mprovider_cmd      [0m str  misc ...v [0;33m-S: [0m[0;32mexecute provider of piped input[0m
-31 [0;34mtitle             [0m str  misc mfpv [0;33m-T: [0m[0;32mtitle[0m
-32 [0;34mmapp_user         [0m str  dir  mfpv [0;33m-U: [0m[0;32muser directory[0m
-33 [0;34mbegx              [0m int  prm  mfpv [0;33m-X: [0m[0;32mbegin on column[0m
-34 [0;34mbegy              [0m int  prm  mfpv [0;33m-Y: [0m[0;32mbegin on line[0m
-35 [0;34mf_stop_on_error   [0m bool flag mfpv [0;33m-Z  [0m[0;32mstop on error[0m
-36 [0;34mblack             [0m str  prm  mfpv [0;33m    [0m[0;32mblack (#000000)[0m
-37 [0;34mred               [0m str  prm  mfpv [0;33m    [0m[0;32mred (#bf0000)[0m
-38 [0;34mgreen             [0m str  prm  mfpv [0;33m    [0m[0;32mgreen (#00cf00)[0m
-39 [0;34myellow            [0m str  prm  mfpv [0;33m    [0m[0;32myellow (#efbf00)[0m
-40 [0;34mblue              [0m str  prm  mfpv [0;33m    [0m[0;32mblue (#0000FF)[0m
-41 [0;34mmagenta           [0m str  prm  mfpv [0;33m    [0m[0;32mmagenta (#9f009f)[0m
-42 [0;34mcyan              [0m str  prm  mfpv [0;33m    [0m[0;32mcyan (#00dfdf)[0m
-43 [0;34mwhite             [0m str  prm  mfpv [0;33m    [0m[0;32mwhite (#d0d0d0)[0m
-44 [0;34morange            [0m str  prm  mfpv [0;33m    [0m[0;32morange (#FF5f00)[0m
-45 [0;34mbblack            [0m str  prm  mfpv [0;33m    [0m[0;32mbright black (#7f7f7f)[0m
-46 [0;34mbred              [0m str  prm  mfpv [0;33m    [0m[0;32mbright red (#FF3737)[0m
-47 [0;34mbgreen            [0m str  prm  mfpv [0;33m    [0m[0;32mbright green (#00FF7f)[0m
-48 [0;34mbyellow           [0m str  prm  mfpv [0;33m    [0m[0;32mbright yellow (#FFeF00)[0m
-49 [0;34mbblue             [0m str  prm  mfpv [0;33m    [0m[0;32mbright blue (#00cfFF)[0m
-50 [0;34mbmagenta          [0m str  prm  mfpv [0;33m    [0m[0;32mbright magenta (#FF00FF)[0m
-51 [0;34mbcyan             [0m str  prm  mfpv [0;33m    [0m[0;32mbright cyan (#00FFFF)[0m
-52 [0;34mbwhite            [0m str  prm  mfpv [0;33m    [0m[0;32mbright white (#FFFFFF)[0m
-53 [0;34mborange           [0m str  prm  mfpv [0;33m    [0m[0;32mbright orange (#FF7500)[0m
-54 [0;34mbg                [0m hex  col  mfpv [0;33m    [0m[0;32mbackground (#000720)[0m
-55 [0;34mabg               [0m hex  col  mfpv [0;33m    [0m[0;32malternate background (#000f50)[0m
-56 [0;34mmapp_data         [0m str  dir  mfpv [0;33m    [0m[0;32mdata directory[0m
-57 [0;34mmapp_help         [0m str  dir  mfpv [0;33m    [0m[0;32mhelp directory[0m
-58 [0;34mmapp_msrc         [0m str  dir  mfpv [0;33m    [0m[0;32msource directory[0m
+[1;33m                          [1;35mPositioning[0m
+[1;33mg, Home[0m..................[1;32m beginning of document[0m
+[1;33mG[0m........................[1;32m end of the document[0m
+[1;33mp, %[0m.....................[1;32m Go to a Percent of the File[0m
+
+[1;33m                          [1;35mSearching[0m
+[1;33m/[0m........................[1;32m Forward[0m
+[1;33m?[0m........................[1;32m Backward[0m
+[1;33mn[0m........................[1;32m Repeat Previous[0m
+
+                          [1;35mAction[0m
+[1;33mN[0m........................[1;32m Advance to Next File[0m
+[1;33mo[0m........................[1;32m Open a File[0m
+[1;33m![0m........................[1;32m Execute Shell Command[0m
+[1;33mP, Print Key[0m.............[1;32m Print Current File[0m
+[1;33mv[0m........................[1;32m Open Current File in Editor[0m
+[1;33mw[0m........................[1;32m Write the current file[0m
+
+                          [1;35mInformation[0m
+[1;33mF1, H[0m....................[1;32m Display Help[0m
+[1;33mV[0m........................[1;32m Display Version[0m
+
+                          [1;35mConfiguration[0m
+[1;33m+[0m........................[1;32m Set Startup Command[0m
+[1;33m-[0m........................[1;32m Change View Settings[0m
+[1;33m        c[0m................[1;32m Clear Screen at End of File[0m
+[1;33m        i[0m................[1;32m Ignore Case in Search[0m
+[1;33m        p[0m................[1;32m Set Prompt Type[0m
+[1;33m                l[0m........[1;32m Long Prompt[0m
+[1;33m                n[0m........[1;32m No Prompt[0m
+[1;33m        :[0m................[1;32m Set a Prompt String[0m
+[1;33m        s[0m................[1;32m Squeeze Multiple Blank Lines[0m
+[1;33m        t[0m................[1;32m Set Tab Stop Columns[0m
