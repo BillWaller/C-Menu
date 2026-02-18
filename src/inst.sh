@@ -10,7 +10,7 @@
 #   echo "    --      clear manifest.txt files list"
 #
 
-DATE=$(rfc3339)
+DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 FILENAME=$1
 DSTDIR=$2
 FILEMOD=$3

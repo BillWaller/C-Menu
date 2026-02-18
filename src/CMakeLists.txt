@@ -30,6 +30,7 @@ set_target_properties(
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
+
 set(LIBS ncursesw tinfo m)
 
 set(COMMON_SRCS
@@ -82,7 +83,11 @@ target_sources(optsp PRIVATE $<TARGET_OBJECTS:CMenu>)
 target_link_libraries(optsp cm ${LIBS})
 
 add_executable(rsh rsh.c)
-target_link_libraries(rsh)
+#[[ Remove the Comment lines to enable static linking of rsh
+set_target_properties(rsh PROPERTIES LINK_FLAGS_RELEASE -s)
+set(RSHLD -static)
+]]
+target_link_libraries(rsh ${RSHLD})
 install(
   TARGETS rsh
   LIBRARY DESTINATION lib64
@@ -111,6 +116,7 @@ install(
           ckeys
           enterchr
           enterstr
+          iloan
           lf
           optsp
           stripansi

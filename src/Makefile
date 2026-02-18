@@ -30,6 +30,9 @@ GROUP=bill
 HOME=/home/$(USER)
 PREFIX=$(HOME)/menuapp
 
+# Uncomment the following line to enable static linking of rsh
+# RSHLD=-static
+
 # Do not edit below this line unless you know what you are doing.
 # The variables above should be sufficient for most users to build and
 # install the application suite. If you need to make changes to the build 
@@ -42,7 +45,7 @@ PREFIX=$(HOME)/menuapp
 #
 # ldconfig $(LIB_DIR)
 
-SYSDATE := $(shell rfc3339)
+SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 REL_CFLAGS=-O0
 DBG_CFLAGS=-g3
@@ -124,7 +127,7 @@ iloan:	iloan.o $(LIB_NAME)
 	$(CC) 	iloan.o -o $@ $(LIBS)
 
 rsh:	cm.h rsh.o
-	$(CC) 	rsh.o -o $@
+	$(CC) $(RSHLD) rsh.o -o $@
 
 lf: cm.h	lf.o $(LIB_NAME)
 	$(CC) 	lf.o -o $@ $(LIBS)
