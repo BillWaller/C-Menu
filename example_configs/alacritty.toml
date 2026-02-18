@@ -1,4 +1,4 @@
-# /home/bill/.config/alacritty/alacritty.toml
+# $HOME/.config/alacritty/alacritty.toml
 # Bill Waller
 
 [terminal.shell]
@@ -7,17 +7,15 @@ program = "/usr/local/bin/xsh"
 [general]
 
 # import = [
-#     "~/.config/alacritty/fonts/default_font.toml",
+#     "~/.config/alacritty/fonts/default_font",
 #     "~/.config/alacritty/themes/default_theme.toml",
 # ]
 
 [font]
-# BEGIN_ALACRITTY_FONT
-normal = { family = "JetBrainsMono NFM", style = "Regular" }
+normal = { family = "JetBrainsMono NFM", style = "Medium" }
 bold = { family = "JetBrainsMono NFM", style = "ExtraBold" }
 italic = { family = "JetBrainsMono NFM", style = "Italic" }
 bold_italic = { family = "JetBrainsMono NFM", style = "Bold Italic" }
-# END_ALACRITTY_FONT
 size = 15
 
 # dynamic_title = true

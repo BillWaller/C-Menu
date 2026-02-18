@@ -7,7 +7,6 @@
     @date 2026-02-09
  */
 
-#include "cm.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +69,7 @@ int main(int argc, char **argv) {
     pid_t pid;
 
     if ((p = getenv("SHELL")))
-        strnz__cpy(exec_cmd, p, MAXLEN - 1);
+        strncpy(exec_cmd, p, MAXLEN - 1);
     cargv[0] = strdup(exec_cmd);
     c = 1;
     a = 1;
