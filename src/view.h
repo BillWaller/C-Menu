@@ -76,7 +76,8 @@ typedef struct {
     bool f_redisplay_page;  /**< flag indicating page needs to be redisplayed */
     bool f_displaying_help; /**< currently didsplaying help information */
     bool f_line_numbers;    /**< not implemented */
-    bool f_wrap; /**< wrap long lines to fit the screen - not implemented */
+    bool f_first_iter;      /**< first iteration of search */
+    bool f_search_complete; /**< Entire file has been searched */
     bool f_full_screen; /**< default mode if lines and columns not specified */
     bool f_timer;       /**< time commands and display elapsed time in prompt */
 
@@ -125,6 +126,7 @@ typedef struct {
     off_t prev_file_pos;      /**< previous file position */
     off_t page_top_pos;       /**< file position of top line displayed */
     off_t page_bot_pos;       /**< file position of last line displayed */
+    off_t srch_curr_pos;      /**< current search position */
     off_t srch_beg_pos;       /**< file position when search started */
     off_t mark_tbl[NMARKS];   /**< not implemented */
     bool f_in_pipe;           /**< input is from a pipe */

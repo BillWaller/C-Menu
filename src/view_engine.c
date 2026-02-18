@@ -58,7 +58,7 @@ void go_to_eof(View *);
 int go_to_line(View *, off_t);
 void go_to_percent(View *, int);
 void go_to_position(View *, off_t);
-bool search(View *, int, char *, bool);
+bool search(View *, int *, char *);
 void next_page(View *);
 void prev_page(View *);
 void resize_page(Init *);
@@ -152,13 +152,18 @@ int view_cmd_processor(Init *init) {
                           (end.tv_nsec - start.tv_nsec) / 1e9;
                 f_clock_started = false;
             }
-            build_prompt(view, view->prompt_type, view->prompt_str, elapsed);
-            if (view->prompt_str[0] == '\0')
-                cmd_line_prompt(view, "");
-            else if (view->tmp_prompt_str[0] == '\0')
-                cmd_line_prompt(view, view->prompt_str);
-            else
+
+            if (view->tmp_prompt_str[0] != '\0') {
                 cmd_line_prompt(view, view->tmp_prompt_str);
+                view->tmp_prompt_str[0] = '\0';
+            } else {
+                build_prompt(view, view->prompt_type, view->prompt_str,
+                             elapsed);
+                if (view->prompt_str[0] == '\0')
+                    cmd_line_prompt(view, ">");
+                else
+                    cmd_line_prompt(view, view->prompt_str);
+            }
             rc =
                 prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
                          view->smincol, view->smaxrow, view->smaxcol);
@@ -169,7 +174,6 @@ int view_cmd_processor(Init *init) {
                 clock_gettime(CLOCK_MONOTONIC, &start);
                 f_clock_started = true;
             }
-            view->tmp_prompt_str[0] = '\0';
             if (c >= '0' && c <= '9') {
                 tmp_str[0] = (char)c;
                 tmp_str[1] = '\0';
@@ -392,17 +396,33 @@ int view_cmd_processor(Init *init) {
             break;
         /**  '/' or '?' - Search Forward or Backward */
         case '/':
-        case '?':
-            strnz__cpy(tmp_str, (c == '/') ? "(forward)->" : "(backward)->",
-                       MAXLEN - 1);
+            view->f_search_complete = false;
+            strnz__cpy(tmp_str, "(forward)->", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == '\n') {
-                view->f_wrap = false;
-                search(view, search_cmd, view->cmd_arg, false);
+                view->f_first_iter = true;
+                view->srch_beg_pos = view->page_top_pos;
+                view->srch_curr_pos = view->page_top_pos;
+                view->page_bot_pos = view->srch_curr_pos;
+                search(view, &search_cmd, view->cmd_arg);
                 prev_search_cmd = search_cmd;
                 strnz__cpy(prev_regex_pattern, view->cmd_arg, MAXLEN - 1);
-                view->srch_beg_pos = view->page_top_pos;
+            }
+            break;
+        case '?':
+            view->f_search_complete = false;
+            strnz__cpy(tmp_str, "(backward)->", MAXLEN - 1);
+            search_cmd = c;
+            c = get_cmd_arg(view, tmp_str);
+            if (c == '\n') {
+                view->f_first_iter = true;
+                view->srch_beg_pos = view->page_bot_pos;
+                view->srch_curr_pos = view->page_bot_pos;
+                view->page_top_pos = view->srch_curr_pos;
+                search(view, &search_cmd, view->cmd_arg);
+                prev_search_cmd = search_cmd;
+                strnz__cpy(prev_regex_pattern, view->cmd_arg, MAXLEN - 1);
             }
             break;
         /**  'o' or 'O' - Open a File */
@@ -465,15 +485,11 @@ int view_cmd_processor(Init *init) {
             break;
         /**  'n' - Repeat Previous Search */
         case 'n':
-            if (prev_search_cmd == 0) {
-                Perror("No previous search");
+            if (prev_search_cmd == 0 || view->f_search_complete) {
+                Perror("No previous search or search complete");
                 break;
             }
-            if (view->page_bot_pos == view->file_size) {
-                view->page_top_pos = 0;
-                view->page_bot_pos = 0;
-            }
-            search(view, prev_search_cmd, prev_regex_pattern, true);
+            search(view, &prev_search_cmd, prev_regex_pattern);
             break;
         /** 'N' - Close Current File and Open Next File */
         case 'N':
@@ -756,7 +772,7 @@ int get_cmd_arg(View *view, char *prompt) {
 void build_prompt(View *view, int prompt_type, char *prompt_str,
                   double elapsed) {
     prompt_type = PT_LONG;
-    strnz__cpy(prompt_str, " ", MAXLEN - 1);
+    *prompt_str = '\0';
     if (prompt_type == PT_LONG) {
         if (view->f_is_pipe)
             strnz__cat(prompt_str, "stdin", MAXLEN - 1);
@@ -920,6 +936,7 @@ int go_to_line(View *view, off_t line_idx) {
     view->file_pos = 0;
     view->page_top_pos = view->file_pos;
     line_idx = 0;
+    view->f_eod = false;
     do {
         while (c != '\n') {
             get_next_char();
@@ -965,7 +982,6 @@ void go_to_position(View *view, off_t go_to_pos) {
     @param view Pointer to View Structure
     @param search_cmd Search Command Character ('/' or '?')
     @param regex_pattern Regular Expression Pattern to Search For
-    @param repeat Boolean Flag Indicating if this is a Repeat Search
     @returns true if a match is found and displayed, false if the search
    completes without finding a match or if an error occurs
     @note The search performs extended regular expression matching,
@@ -979,23 +995,16 @@ void go_to_position(View *view, off_t go_to_pos) {
     @note this function highlights all matches in the current ncurses
    pad, including those not displayed on the screen, and tracks the
    first and last match columns for prompt display. */
-bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
+bool search(View *view, int *search_cmd, char *regex_pattern) {
     int REG_FLAGS = 0;
     regmatch_t pmatch[1];
     regex_t compiled_regex;
     int reti;
+    int cury = 0;
     int line_offset;
     int line_len;
     int match_len;
-    int cury = 0;
-    off_t srch_curr_pos;
     bool f_page = false;
-    srch_curr_pos = view->page_top_pos;
-    view->srch_beg_pos = -1;
-    if (repeat) {
-        if (search_cmd == '/')
-            srch_curr_pos = view->page_bot_pos;
-    }
     if (view->f_ignore_case)
         REG_FLAGS = REG_ICASE | REG_EXTENDED;
     else
@@ -1006,55 +1015,43 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
         return false;
     }
     while (1) {
-        if (search_cmd == '/') {
-            if (srch_curr_pos == view->file_size && view->srch_beg_pos == 0)
-                srch_curr_pos = 0;
-            if (srch_curr_pos == view->srch_beg_pos) {
-                if (!view->f_wrap) {
-                    view->f_wrap = true;
-                } else {
-                    ssnprintf(tmp_str, MAXLEN - 1,
-                              "Search complete: %zd bytes for %s",
-                              view->file_size, regex_pattern);
-                    cmd_line_prompt(view, tmp_str);
-                    regfree(&compiled_regex);
-                    return false;
-                }
-            }
-            if (cury == view->scroll_lines)
-                return true;
-            if (!view->f_wrap)
-                view->srch_beg_pos = srch_curr_pos;
-            srch_curr_pos = get_next_line(view, srch_curr_pos);
-            view->page_bot_pos = srch_curr_pos;
+
+        if (*search_cmd == '/') {
+            if (view->srch_curr_pos == view->file_size)
+                view->srch_curr_pos = 0;
         } else {
-            if (srch_curr_pos == 0 && view->srch_beg_pos == view->file_size)
-                srch_curr_pos = view->file_size;
-            if (srch_curr_pos == view->srch_beg_pos) {
-                if (!view->f_wrap) {
-                    view->f_wrap = true;
-                } else {
-                    ssnprintf(tmp_str, MAXLEN - 1,
-                              "Search complete: %ld bytes for %s",
-                              view->file_size, regex_pattern);
-                    cmd_line_prompt(view, tmp_str);
-                    regfree(&compiled_regex);
-                    return false;
-                }
+            if (view->srch_curr_pos == 0)
+                view->srch_curr_pos = view->file_size;
+        }
+        if (view->srch_curr_pos == view->srch_beg_pos) {
+            if (view->f_first_iter == true) {
+                view->f_search_complete = false;
+                view->f_first_iter = false;
+            } else {
+                view->f_search_complete = true;
+                if (cury == 0)
+                    return true;
             }
-            srch_curr_pos = get_prev_line(view, srch_curr_pos);
-            view->page_top_pos = srch_curr_pos;
+        }
+        if (cury == view->scroll_lines)
+            return true;
+        if (*search_cmd == '/') {
+            view->srch_curr_pos = get_next_line(view, view->srch_curr_pos);
+            view->page_bot_pos = view->srch_curr_pos;
+        } else {
+            view->srch_curr_pos = get_prev_line(view, view->srch_curr_pos);
+            view->page_top_pos = view->srch_curr_pos;
         }
         fmt_line(view);
         /**  Perform extended regular expression matching. ANSI
-         * sequences and Unicode characters are stripped before
-         * matching, so matching corresponds to the visual display of
-         * the line. */
+           sequences and Unicode characters are stripped before
+           matching, so matching corresponds to the visual display */
         reti = regexec(&compiled_regex, view->stripped_line_out,
                        compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-        /** Once a match is found, leading context lines are displayed
-         * at the top of the page. After that, all subsequent lines
-         * without matches are displayed until the page is full. */
+        /** Once a match is found, leading context lines are
+           displayed at the top of the page. After that, all
+           subsequent lines without matches are displayed until the
+           page is full. */
         if (reti == REG_NOMATCH) {
             if (f_page) {
                 display_line(view);
@@ -1077,17 +1074,17 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             view->cury = 0;
             wmove(view->win, view->cury, 0);
             wclrtobot(view->win);
-            view->page_top_pos = srch_curr_pos;
+            view->page_top_pos = view->srch_curr_pos;
             f_page = true;
         }
-        /** Search continues displaying matches until the page is full.
+        /** Search continues displaying matches until the page is
+         * full.
          */
         display_line(view);
-        //----------------------------------------------
         cury = view->cury;
-        /** All matches on the current line are highlighted, including
-         * those not displayed on the screen. Track first and last match
-         * columns for prompt display. */
+        /** All matches on the current line are highlighted,
+         * including those not displayed on the screen. Track first
+         * and last match columns for prompt display. */
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
@@ -1106,10 +1103,11 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
             view->line_out_p = view->stripped_line_out + line_offset;
             reti = regexec(&compiled_regex, view->line_out_p,
                            compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-            /** @note lines may be much longer than the screen width, so
-             * continue searching even if the line is not displayed
-             * completely. The pad's complex characters (cchar_t) will
-             * handle the display for horizantal scrolling. */
+            /** @note lines may be much longer than the screen
+             * width, so continue searching even if the line is not
+             * displayed completely. The pad's complex characters
+             * (cchar_t) will handle the display for horizantal
+             * scrolling. */
             if (reti == REG_NOMATCH)
                 break;
             if (reti) {
@@ -1125,22 +1123,39 @@ bool search(View *view, int search_cmd, char *regex_pattern, bool repeat) {
                 return true;
             }
         }
+        // if (view->f_search_complete) {
+        //     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
+        //               "Search complete: %zd bytes for %s", view->file_size,
+        //               regex_pattern);
+        //     *search_cmd = 0;
+        //     break;
+        // }
     }
-    /** Update view positions and prepare prompt string for match
-     * information */
-    view->file_pos = srch_curr_pos;
-    view->page_bot_pos = srch_curr_pos;
+    /** Update view positions and prepare prompt with match info */
+    view->file_pos = view->srch_curr_pos;
+    view->page_bot_pos = view->srch_curr_pos;
+    // if (view->tmp_prompt_str[0] == '\0') {
+#define DEBUG
+#ifdef DEBUG
+    ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
+              "%s|%c%s|Pos %zu-%zu|(%zd) %zu %zu", view->file_name, search_cmd,
+              regex_pattern, view->page_top_pos, view->page_bot_pos,
+              view->file_size, view->srch_beg_pos, view->srch_curr_pos);
+#else
     if (view->last_match_x > view->maxcol)
         ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
                   "%s|%c%s|Match Cols %d-%d of %d-%d|(%zd%%)", view->file_name,
-                  search_cmd, regex_pattern, view->first_match_x,
+                  *search_cmd, regex_pattern, view->first_match_x,
                   view->last_match_x, view->pmincol, view->smaxcol - view->begx,
                   (view->page_bot_pos * 100 / view->file_size));
     else
         ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-                  "%s|%c%s|Pos %zu-%zu|(%zd%%)", view->file_name, search_cmd,
+                  "%s|%c%s|Pos %zu-%zu|(%zd%%)", view->file_name, *search_cmd,
                   regex_pattern, view->page_top_pos, view->page_bot_pos,
                   (view->page_bot_pos * 100 / view->file_size));
+#endif
+
+    // }
     regfree(&compiled_regex);
     return true;
 }
@@ -1333,6 +1348,7 @@ off_t get_next_line(View *view, off_t pos) {
     char *line_in_p;
     view->file_pos = pos;
     view->f_forward = true;
+    view->f_eod = false;
     do {
         if (view->file_pos == view->file_size) {
             view->f_eod = true;
@@ -1415,7 +1431,8 @@ off_t get_pos_next_line(View *view, off_t pos) {
     if (pos == view->file_size) {
         view->f_eod = true;
         return view->file_pos;
-    }
+    } else
+        view->f_eod = false;
     view->file_pos = pos;
     view->f_forward = true;
     get_next_char();
@@ -1488,13 +1505,13 @@ void display_line(View *view) {
    output buffers
     @return length of formatted line in characters
     @details This function processes the input line from
-   view->line_in_s, handling ANSI escape sequences for text attributes
-   and colors, as well as multi-byte characters. It converts the input
-   line into a formatted line suitable for display in the terminal,
-   storing the result in view->cmplx_buf and view->stripped_line_out.
-   The function returns the length of the formatted line in characters,
-   which may be used for tracking the maximum column width of the
-   displayed content.
+   view->line_in_s, handling ANSI escape sequences for text
+   attributes and colors, as well as multi-byte characters. It
+   converts the input line into a formatted line suitable for
+   display in the terminal, storing the result in view->cmplx_buf
+   and view->stripped_line_out. The function returns the length of
+   the formatted line in characters, which may be used for tracking
+   the maximum column width of the displayed content.
  */
 int fmt_line(View *view) {
     attr_t attr = WA_NORMAL;
@@ -1508,10 +1525,10 @@ int fmt_line(View *view) {
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
     rtrim(view->line_out_s);
-    /** Initialize multibyte to wide char conversion mbtowc, setcchar,
-     * and getcchar can sometimes behave badly, depending on what you
-     * feed them. Make sure your locale is set properly before calling
-     * them. */
+    /** Initialize multibyte to wide char conversion mbtowc,
+     * setcchar, and getcchar can sometimes behave badly, depending
+     * on what you feed them. Make sure your locale is set properly
+     * before calling them. */
     mbtowc(NULL, NULL, 0);
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
@@ -1548,13 +1565,14 @@ int fmt_line(View *view) {
                 } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
-                /** Handle Multi-byte Character Use mbtowc to get the
-                 * wide character and its length in bytes from the
-                 * multibyte string
+                /** Handle Multi-byte Character Use mbtowc to get
+                 * the wide character and its length in bytes from
+                 * the multibyte string
                  */
                 len = mbtowc(&wc, s, MB_CUR_MAX);
                 if (len <= 0) {
-                    /** Invalid multibyte sequence, replace with '?' */
+                    /** Invalid multibyte sequence, replace with '?'
+                     */
                     wc = L'?';
                     len = 1;
                 }
@@ -1583,16 +1601,18 @@ int fmt_line(View *view) {
     @param ansi_str is the ANSI escape sequence string to parse
     @param attr is a pointer to an attr_t variable where the parsed
    attributes will be stored
-    @param cpx is a pointer to an int variable where the parsed color
-   pair index will be stored
-    @details This function parses an ANSI SGR (Select Graphic Rendition)
-   escape sequence and updates the provided attr_t and color pair index
-   based on the attributes specified in the ANSI string.
+    @param cpx is a pointer to an int variable where the parsed
+   color pair index will be stored
+    @details This function parses an ANSI SGR (Select Graphic
+   Rendition) escape sequence and updates the provided attr_t and
+   color pair index based on the attributes specified in the ANSI
+   string.
 
     @code
 
-    This function converts the following SGR specification types to the
-   appropriate curses color pair index for use in the terminal display.
+    This function converts the following SGR specification types to
+   the appropriate curses color pair index for use in the terminal
+   display.
 
     RGB:
 
@@ -1609,24 +1629,26 @@ int fmt_line(View *view) {
 
         Where x is the 256-color index (0-255)
 
-        uses xterm256_idx_to_rgb() to convert the 256-color index to RGB
+        uses xterm256_idx_to_rgb() to convert the 256-color index to
+   RGB
 
     8-color:
 
         foreground \033[3cm
         background \033[4cm
 
-        Where c is the color code (0 for black, 1 for red, 2 for green,
-   3 for yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for white).
+        Where c is the color code (0 for black, 1 for red, 2 for
+   green, 3 for yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for
+   white).
 
     Attributes:
 
         \033[am
 
         Where a is the attribute code (1 for bold, 2 for dim, 3 for
-   italic, 4 for underline, 5 for blink, 7 for reverse, 8 for invis).
-   The function also supports resetting attributes and colors to default
-   using \033[0m.
+   italic, 4 for underline, 5 for blink, 7 for reverse, 8 for
+   invis). The function also supports resetting attributes and
+   colors to default using \033[0m.
 
     @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(),
    extended_pair_content(), get_clr_pair()
@@ -1747,11 +1769,10 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     }
     return;
 }
-/** @brief Display Command Line Prompt */
+/** @brief Display Command Line Prompt
+    @param view is the current view data structure
+    @param s is the prompt string */
 void cmd_line_prompt(View *view, char *s) {
-    /// Display Command Line Prompt
-    /// @param view is the current view data structure
-    /// @param s is the prompt string
     char message_str[PAD_COLS + 1];
     int l;
     l = strnz__cpy(message_str, s, PAD_COLS);
@@ -1784,24 +1805,24 @@ void remove_file(View *view) {
 }
 /** @brief Display View Help File
     @param init is the current initialization data structure.
-    @note The current View context is set aside by assigning the view
-   structure to "view_save" while the help file is displayed using a
-   new, separate view structure.
-    @note The help file is specified by the VIEW_HELP_FILE macro can be
-   set to a default help file path or overridden by the user through an
-   environment variable.
-    @note  After the help file is closed, the original view is restored
-   and the page is redisplayed.
+    @note The current View context is set aside by assigning the
+   view structure to "view_save" while the help file is displayed
+   using a new, separate view structure.
+    @note The help file is specified by the VIEW_HELP_FILE macro can
+   be set to a default help file path or overridden by the user
+   through an environment variable.
+    @note  After the help file is closed, the original view is
+   restored and the page is redisplayed.
     @note It may be necessary to reassign view after calling this
-   function because the init->view pointer is temporarily set to NULL
-   during the help file display, and the original view is restored
-   afterward.
-    @note The default screen size for help can be set in the code below.
-   If set to 0, mview will determine reasonable maximal size based on
-   the terminal dimensions.
-   @note The help file may contain Unicode characters and ANSI escape
-   sequences for formatting, which will be properly handled and
-   displayed by mview. */
+   function because the init->view pointer is temporarily set to
+   NULL during the help file display, and the original view is
+   restored afterward.
+    @note The default screen size for help can be set in the code
+   below. If set to 0, mview will determine reasonable maximal size
+   based on the terminal dimensions.
+   @note The help file may contain Unicode characters and ANSI
+   escape sequences for formatting, which will be properly handled
+   and displayed by mview. */
 void view_display_help(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
@@ -1829,8 +1850,8 @@ void view_display_help(Init *init) {
     @param file_spec - pointer to file specification
     the file_spec
     @returns true if successful
-    @note the user must provide a character array large enough to hold
-    file_spec without overflowing
+    @note the user must provide a character array large enough to
+   hold file_spec without overflowing
  */
 bool enter_file_spec(Init *init, char *file_spec) {
     char tmp_dir[MAXLEN];
