@@ -1,3 +1,23 @@
+[1m[31mPick Command Keys[0m
+
+[1m[34m h or KEY_LEFT or Backspace [0m[3m[32mPrevious object[0m
+[1m[34m              j or KEY_DOWN [0m[3m[32mNext row[0m
+[1m[34m                k or KEY_UP [0m[3m[32mPrevious row[0m
+[1m[34m             l or KEY_RIGHT [0m[3m[32mNext object[0m
+[1m[34m             q, or KEY_F(9) [0m[3m[32mCancel and exit[0m
+[1m[34m                 t or Space [0m[3m[32mSelect/Deselect[0m
+[1m[34m         Enter or KEY_F(10) [0m[3m[32mAccept selections[0m
+[1m[34m                    KEY_END [0m[3m[32mLast object[0m
+[1m[34m              KEY_F(1) or H [0m[3m[32mDisplay help[0m
+[1m[34m                   KEY_HOME [0m[3m[32mFirst object[0m
+[1m[34m        KEY_NPAGE or Ctrl+f [0m[3m[32mNext page[0m
+[1m[34m        KEY_PPAGE or Ctrl+b [0m[3m[32mPrevious page[0m
+[1m[34m              BUTTON1 CLICK [0m[3m[32mSelect/Deselect[0m
+[1m[34m       BUTTON1 DOUBLE_CLICK [0m[3m[32mSelect/Deselect[0m
+
+
+[1m[31mPick Command Line Options[0m
+
    field name         type grp  mask opt description
    ------------------ ---- ---- ---- --- -------------------------
 00 [0;34mminitrc           [0m str  spec mfpv [0;33m-a: [0m[0;32mconfiguration file spec[0m

@@ -1,5 +1,5 @@
-/** @file ISO6801.c
-    @brief ISO6801 Timestamp
+/** @file iso6801.c
+    @brief iso6801 Timestamp
     @author Bill Waller
     Copyright (c) 2025
     MIT License
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     if (argc > 1 && argv[1][0] == '-' && argv[1][1] == 'l' &&
         argv[1][2] == '\0') {
         struct tm *t = localtime(&now);
-        strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S:%z", t);
+        strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S%z", t);
     } else {
         struct tm *t = gmtime(&now);
         strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", t);
