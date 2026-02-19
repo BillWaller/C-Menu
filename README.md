@@ -1,18 +1,5 @@
 # A User Interface Builder
 
-[***NEW*** -> Comprehensive Documentation <-](https://billwaller.github.io/C-Menu/index.html)
-
-[Configuration Snippets](snippets.md)
-
-[FAQ](FAQ.md)
-
-[User Guide](C-Menu-UG.md)
-
-[Augmenting C-Menu](extras.md)
-
-[Inatallation Guide](INSTALL.md)
-
-
 ## Table of Contents
 
 <!-- mtoc-start -->
@@ -39,7 +26,6 @@
   * [Maintaining Security with RSH](#maintaining-security-with-rsh)
 * [Features](#features)
 * [Configuration](#configuration)
-* [Installation](#installation)
 * [MIT License](#mit-license)
 
 <!-- mtoc-end -->
@@ -271,10 +257,6 @@ beginning to end of a 1 gigabyte file takes a few milliseconds.
 ---
 
 ### View and Color Manual Pages
-
-View can also be used as a pager for manual pages. By setting the
-"MANPAGER" environment variable to "view", users can enjoy the benefits
-of View's features while reading manual pages.
 
 To use View as your system pager, add the following line to your
 shell configuration file (e.g., .bashrc or .zshrc):
@@ -550,14 +532,6 @@ MIT License - Open-source and free to use
 User's can have multiple runtime configurations. In the snippet above,
 the standard ISO 6429 / ECMA-48 colors have been redefined and orange
 has been added.
-
----
-
-## Installation
-
-To install C-Menu, simply download the source code from the repository
-and follow the installation instructions provided in the
-[C-Menu User's Guide](C-Menu-UG.md).
 
 ---
 
