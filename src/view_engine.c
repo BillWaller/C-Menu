@@ -1522,12 +1522,15 @@ int fmt_line(View *view) {
     cchar_t cc = {0};
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
+
     rtrim(view->line_out_s);
     /** Initialize multibyte to wide char conversion mbtowc,
      * setcchar, and getcchar can sometimes behave badly, depending
      * on what you feed them. Make sure your locale is set properly
      * before calling them. */
-    mbtowc(NULL, NULL, 0);
+    // mbtowc(NULL, NULL, 0);
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
             len = strcspn(&in_str[i], "mK ") + 1;
@@ -1567,7 +1570,7 @@ int fmt_line(View *view) {
                  * the wide character and its length in bytes from
                  * the multibyte string
                  */
-                len = mbtowc(&wc, s, MB_CUR_MAX);
+                len = mbrtowc(&wc, s, MB_CUR_MAX, &mbstate);
                 if (len <= 0) {
                     /** Invalid multibyte sequence, replace with '?'
                      */
