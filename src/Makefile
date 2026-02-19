@@ -31,7 +31,9 @@ HOME=/home/$(USER)
 PREFIX=$(HOME)/menuapp
 
 # Uncomment the following line to enable static linking of rsh
-# RSHLD=-static
+# RSH_LD = -static
+# or export RSH_LD in your environment before running cmake
+# export RSH_LD="-static"
 
 # Do not edit below this line unless you know what you are doing.
 # The variables above should be sufficient for most users to build and
@@ -127,7 +129,7 @@ iloan:	iloan.o $(LIB_NAME)
 	$(CC) 	iloan.o -o $@ $(LIBS)
 
 rsh:	cm.h rsh.o
-	$(CC) $(RSHLD) rsh.o -o $@
+	$(CC) $(RSH_LD) rsh.o -o $@
 
 lf: cm.h	lf.o $(LIB_NAME)
 	$(CC) 	lf.o -o $@ $(LIBS)

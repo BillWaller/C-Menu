@@ -4,6 +4,7 @@
 
 * [To Install C-Menu](#to-install-c-menu)
   * [Build C-Menu](#build-c-menu)
+    * [RSH Static Linking](#rsh-static-linking)
     * [Prerequisites](#prerequisites)
     * [Option 1 - Build C-Menu Using CMake Directly](#option-1---build-c-menu-using-cmake-directly)
     * [Option 2 - Build C-Menu with Provided Scripts](#option-2---build-c-menu-with-provided-scripts)
@@ -27,6 +28,23 @@ cp -r C-Menu/src/menuapp /home/yourusername/
 ```
 
 ### Build C-Menu
+
+#### RSH Static Linking
+
+C-Menu uses dynamic linking by default, but if you plan to use rsh in a rescue environment where dynamic linking may not be available, you can statically
+link rsh during the build. To do this, set the `RSH_LD` environment variable to `-static` before building C-Menu:
+
+```bash
+export RSH_LD="-static"
+```
+
+CMake or Makefile will strip symbols from the executable once it has been copied
+to its destination directory. This is done to reduce the size of the executable and improve performance. If you want to keep the symbols for debugging purposes.
+
+***NOTE*** If you choose to statically link rsh, make sure that your C compiler and linker support static linking and that you have the necessary static libraries,
+specifically, libc.a, installed on your system. Static linking can increase the size of the executable and may have implications for compatibility and security, so be sure to test the statically linked version of C-Menu in your target environment.
+
+Most distributions provide static libraries for the GNU C Library (glibc) as part of their development packages. You may need to install additional packages to obtain these static libraries, such as `glibc-static` or `libc6-dev` for glibc.
 
 #### Prerequisites
 
@@ -144,7 +162,6 @@ cp "$HOME"/menuapp/minitrc "$HOME"/.minitrc
 
 ```bash
 vi ~/.minitrc
-```
 ```
 
 🐸  Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.

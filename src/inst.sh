@@ -111,5 +111,10 @@ if [ -f "$DSTDIR/$DSTNAME" ]; then
 fi
 echo "$DATE $DSTDIR/$DSTNAME" >>manifest.txt
 cp "$FILENAME" "$DSTDIR/$DSTNAME"
+if [ "$EUSER" = "root" ] && [ "$FILENAME" = "rsh" ]; then
+    if [ "$RSH_LD" = "-static" ]; then
+        strip "$DSTDIR/$DSTNAME"
+    fi
+fi
 chown "$FILEOWN":"$FILEGRP" "$DSTDIR/$DSTNAME"
 chmod "$FILEMOD" "$DSTDIR/$DSTNAME"
