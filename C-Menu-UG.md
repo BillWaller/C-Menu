@@ -25,6 +25,7 @@
   * [Pick Options](#pick-options)
 * [C-Menu View](#c-menu-view)
   * [View Options](#view-options)
+    * [View Navigation](#view-navigation)
     * [Searching Forward](#searching-forward)
     * [Searching Backward](#searching-backward)
     * [Horizontal Scrolling](#horizontal-scrolling)
@@ -345,6 +346,53 @@ vertically.
 
 View supports extended regular expressions (regex) for advanced text
 searching capabilities.
+
+#### View Navigation
+
+Arrow Keys: Move the cursor up, down, left, or right.
+Alternatively, h, j, k, and l move left, down, up, and right, respectively.
+
+Page Up/Page Down: Scroll up or down by one page.
+Alternatively, Ctrl+F/Ctrl+B: Scroll up or down by one page.
+
+Home/End: Move to the beginning or end of the line.
+
+You can specify multiple files to view on the command line, and advance to the
+next or previous file by entering "N" or "P" respectively.
+
+"o" opens a file dialog to select a file to view.
+
+"!" executes a shell command and displays the output in the view window.
+
+"q" exits view
+
+"v" opens the current file in an external editor, such as vim or nvim,
+    based on the value of "editor" in the configuration file (~/.minitrc)
+    or the environment variable, DEFAEULTEDITOR.
+
+"w" writes the contents of the view window to a file.
+    The user will be prompted to enter a file name, and the contents of the view window will be saved to that file.
+
+"/" initiates a forward search for a pattern.
+
+"?" initiates a backward search for a pattern.
+
+"n" repeats the last search in the same direction.
+
+"V" display version
+
+"H" display help
+
+"+" sets a command that will be executed immediately after view opens a file. This can be used to set the initial search pattern, for example.
+
+"-" is a leader key to certain settings in view
+
+    "-i" toggles case-insensitive searching
+    "-s" toggles squeeze blank lines
+    "-t" set tabstops
+    "-:" enter command prompt
+    "-l" set long prompt
+    "-n" set no prompt"
 
 #### Searching Forward
 

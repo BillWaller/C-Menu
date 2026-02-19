@@ -32,21 +32,24 @@ void display_argv_error_msg(char *, char **);
 void abend(int, char *);
 void user_end();
 int nf_error(int, char *);
-void list_colors();
-int clr_name_to_idx(char *);
-int rgb_to_curses_clr(RGB rgb);
-int rgb_clr_to_cube(int);
+
 void set_fkey(int, char *);
 bool is_set_fkey(int);
 void unset_fkey(int);
-RGB hex_clr_str_to_rgb(char *);
-void init_hex_clr(int, char *);
 int chyron_mk(key_cmd_tbl *, char *);
 int get_chyron_key(key_cmd_tbl *, int);
+
+void list_colors();
+int clr_name_to_idx(char *);
+void init_hex_clr(int, char *);
+int rgb_clr_to_cube(int);
+RGB hex_clr_str_to_rgb(char *);
 RGB xterm256_idx_to_rgb(int);
-int rgb_to_xterm256_idx(RGB);
-bool init_clr_palette(SIO *);
+int rgb_to_curses_clr(RGB *);
+int rgb_to_xterm256_idx(RGB *);
 void apply_gamma(RGB *);
+
+bool init_clr_palette(SIO *);
 cchar_t mkccc(int cp);
 
 SIO *sio; /**< Global pointer to SIO struct for terminal and color settings */
@@ -381,21 +384,21 @@ int get_clr_pair(int fg, int bg) {
     @note Curses uses 0-1000 for RGB values
     @note If the color does not exist, it is created along with a new color
    index */
-int rgb_to_curses_clr(RGB rgb) {
+int rgb_to_curses_clr(RGB *rgb) {
     int i;
     int r, g, b;
-    apply_gamma(&rgb);
-    rgb.r = (rgb.r * 1000) / 255;
-    rgb.g = (rgb.g * 1000) / 255;
-    rgb.b = (rgb.b * 1000) / 255;
+    apply_gamma(rgb);
+    rgb->r = (rgb->r * 1000) / 255;
+    rgb->g = (rgb->g * 1000) / 255;
+    rgb->b = (rgb->b * 1000) / 255;
     for (i = 0; i < clr_cnt; i++) {
         extended_color_content(i, &r, &g, &b);
-        if (rgb.r == r && rgb.g == g && rgb.b == b) {
+        if (rgb->r == r && rgb->g == g && rgb->b == b) {
             return i;
         }
     }
     if (i < COLORS) {
-        init_extended_color(i, rgb.r, rgb.g, rgb.b);
+        init_extended_color(i, rgb->r, rgb->g, rgb->b);
         clr_cnt++;
         return clr_cnt - 1;
     }
@@ -409,17 +412,17 @@ int rgb_to_curses_clr(RGB rgb) {
    index. It first checks if the color is a shade of gray, and if so, it uses
    the gray ramp. Otherwise, it calculates the nearest color in the 6x6x6 color
    cube. */
-int rgb_to_xterm256_idx(RGB rgb) {
-    if (rgb.r == rgb.g && rgb.g == rgb.b) {
-        if (rgb.r < 8)
+int rgb_to_xterm256_idx(RGB *rgb) {
+    if (rgb->r == rgb->g && rgb->g == rgb->b) {
+        if (rgb->r < 8)
             return 16;
-        if (rgb.r > 248)
+        if (rgb->r > 248)
             return 231;
-        return ((rgb.r - 8) / 10) + 231;
+        return ((rgb->r - 8) / 10) + 231;
     } else {
-        int r_index = (rgb.r < 45) ? 0 : (rgb.r - 60) / 40 + 1;
-        int g_index = (rgb.g < 45) ? 0 : (rgb.g - 60) / 40 + 1;
-        int b_index = (rgb.b < 45) ? 0 : (rgb.b - 60) / 40 + 1;
+        int r_index = (rgb->r < 45) ? 0 : (rgb->r - 60) / 40 + 1;
+        int g_index = (rgb->g < 45) ? 0 : (rgb->g - 60) / 40 + 1;
+        int b_index = (rgb->b < 45) ? 0 : (rgb->b - 60) / 40 + 1;
         return 16 + (36 * r_index) + (6 * g_index) + b_index;
     }
 }
@@ -542,6 +545,7 @@ void init_hex_clr(int idx, char *s) {
     /// @note NCursesw uses 0-1000 for RGB values
     RGB rgb;
     rgb = hex_clr_str_to_rgb(s);
+    apply_gamma(&rgb);
     if (idx < 16) {
         StdColors[idx].r = rgb.r;
         StdColors[idx].g = rgb.g;

@@ -1134,11 +1134,9 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     /** Update view positions and prepare prompt with match info */
     view->file_pos = view->srch_curr_pos;
     view->page_bot_pos = view->srch_curr_pos;
-    // if (view->tmp_prompt_str[0] == '\0') {
-#define DEBUG
 #ifdef DEBUG
     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-              "%s|%c%s|Pos %zu-%zu|(%zd) %zu %zu", view->file_name, search_cmd,
+              "%s|%c%s|Pos %zu-%zu|(%zd) %zu %zu", view->file_name, *search_cmd,
               regex_pattern, view->page_top_pos, view->page_bot_pos,
               view->file_size, view->srch_beg_pos, view->srch_curr_pos);
 #else
@@ -1683,7 +1681,6 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                 if (t1 == '8') {
                     tok = strtok(NULL, ";m");
                     if (tok != NULL) {
-                        a_toi(tok, &a_toi_error);
                         if (*tok == '5') {
                             tok = strtok(NULL, ";m");
                             if (tok != NULL) {
@@ -1700,9 +1697,9 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         }
                     }
                     if (t0 == '3')
-                        fg_clr = rgb_to_curses_clr(rgb);
+                        fg_clr = rgb_to_curses_clr(&rgb);
                     else if (t0 == '4')
-                        bg_clr = rgb_to_curses_clr(rgb);
+                        bg_clr = rgb_to_curses_clr(&rgb);
                 } else if (t1 == '9') {
                     if (t0 == '3')
                         fg_clr = COLOR_WHITE;
@@ -1712,11 +1709,11 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                     if (t0 == '3') {
                         x_idx = a_toi(&t1, &a_toi_error);
                         rgb = xterm256_idx_to_rgb(x_idx);
-                        fg_clr = rgb_to_curses_clr(rgb);
+                        fg_clr = rgb_to_curses_clr(&rgb);
                     } else if (t0 == '4') {
                         x_idx = a_toi(&t1, &a_toi_error);
                         rgb = xterm256_idx_to_rgb(x_idx);
-                        bg_clr = rgb_to_curses_clr(rgb);
+                        bg_clr = rgb_to_curses_clr(&rgb);
                     }
                 }
             } else if (t0 == '0') {
