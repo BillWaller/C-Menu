@@ -139,29 +139,50 @@ Continue with [Finish the installation](#finish-the-installation) below to compl
 
 ### Finish the installation
 
-1. Register the C-Menu libraries with the dynamic linker by running the following command:
+1. Vrify that the C-Menu libraries and binaries have been installed to the correct directories (e.g., /home/yourusername/menuapp/lib64 and /home/yourusername/menuapp/bin) and that the permissions are set correctly.
+
+```bash
+ls -l "$HOME"/menuapp/lib64 "$HOME"/menuapp/bin
+```
+
+![Directory Listing](screenshots/postmakels.png)
+
+2. Register the C-Menu libraries with the dynamic linker by running the following command:
 
 ```bash
 sudo ldconfig -v "$HOME"/menuapp/lib64
 ```
 
-2. Add the C-Menu bin directory to your PATH environment variable by adding the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc):
+3. Add the C-Menu bin directory to your PATH environment variable by adding the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc):
 
 ```bash
 export PATH="/home/yourusername/menuapp/bin:"$PATH"
 ```
 
-3. Copy the sample minitrc from the C-Menu/menuapp directory to your home directory:
+4. Copy the sample minitrc from the C-Menu/menuapp directory to your home directory:
 
 ```bash
 cp "$HOME"/menuapp/minitrc "$HOME"/.minitrc
 ```
 
-3. Edit the ~/.minitrc file to customize your C-Menu configuration as needed.
-4. Start C-Menu by running the following command in your terminal:
+5. Edit the ~/.minitrc file to customize your C-Menu configuration as needed.
 
 ```bash
 vi ~/.minitrc
 ```
+
+6. Source your shell profile to apply the changes to your PATH:
+
+```bash
+source ~/.bashrc
+```
+
+7. Start C-Menu by running the following command in your terminal:
+
+```baah
+menu
+```
+
+![C-Menu Running](screenshots/mainmenu.png)
 
 🐸  Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
