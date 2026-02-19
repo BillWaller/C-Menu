@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 4.1)
+
+set(RSH_LD $ENV{RSH_LD})
+
 project(CMenu
     VERSION 0.2.9
     LANGUAGES C
@@ -29,7 +32,6 @@ set_target_properties(
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
-
 
 set(LIBS ncursesw tinfo m)
 
@@ -84,10 +86,12 @@ target_link_libraries(optsp cm ${LIBS})
 
 add_executable(rsh rsh.c)
 #[[ Remove the Comment lines to enable static linking of rsh
-set_target_properties(rsh PROPERTIES LINK_FLAGS_RELEASE -s)
-set(RSHLD -static)
+set(RSH_LD -static)
 ]]
-target_link_libraries(rsh ${RSHLD})
+if (RSH_LD STREQUAL "-static")
+    set_target_properties(rsh PROPERTIES LINK_FLAGS_RELEASE -s)
+endif()
+target_link_libraries(rsh ${RSH_LD})
 install(
   TARGETS rsh
   LIBRARY DESTINATION lib64
