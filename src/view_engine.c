@@ -101,11 +101,11 @@ int view_file(Init *init) {
                 view->f_eod = 0;
                 view->f_bod = 0;
                 view->maxcol = 0;
-                view->f_forward = true;
                 view->page_top_pos = 0;
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
                 next_page(view);
+                view->first_page_bot_pos = view->page_bot_pos;
                 view_cmd_processor(init);
                 munmap(view->buf, view->file_size);
             }
@@ -394,32 +394,49 @@ int view_cmd_processor(Init *init) {
         case ':':
             view->next_cmd_char = get_cmd_arg(view, ":");
             break;
-        /**  '/' or '?' - Search Forward or Backward */
+        /**  'n' - Repeat Previous Search */
+        case 'n':
+            if (prev_search_cmd == 0 || view->f_search_complete) {
+                Perror("No previous search or search complete");
+                break;
+            }
+            if (prev_search_cmd == '/') {
+                view->cury = 0;
+                view->srch_curr_pos = view->page_bot_pos;
+            } else {
+                view->cury = view->scroll_lines;
+                view->srch_curr_pos = view->page_top_pos;
+            }
+            view->f_first_iter = true;
+            search(view, &prev_search_cmd, prev_regex_pattern);
+            break;
+        /**  '/' or '?' - Search Forward fromk top of page */
         case '/':
             view->f_search_complete = false;
             strnz__cpy(tmp_str, "(forward)->", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == '\n') {
+                view->cury = 0;
                 view->f_first_iter = true;
                 view->srch_beg_pos = view->page_top_pos;
                 view->srch_curr_pos = view->page_top_pos;
-                view->page_bot_pos = view->srch_curr_pos;
                 search(view, &search_cmd, view->cmd_arg);
                 prev_search_cmd = search_cmd;
                 strnz__cpy(prev_regex_pattern, view->cmd_arg, MAXLEN - 1);
             }
             break;
+        /**  '?' - Search Backward */
         case '?':
             view->f_search_complete = false;
             strnz__cpy(tmp_str, "(backward)->", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == '\n') {
+                view->cury = view->scroll_lines;
                 view->f_first_iter = true;
-                view->srch_beg_pos = view->page_bot_pos;
-                view->srch_curr_pos = view->page_bot_pos;
-                view->page_top_pos = view->srch_curr_pos;
+                view->srch_beg_pos = view->page_top_pos;
+                view->srch_curr_pos = view->page_top_pos;
                 search(view, &search_cmd, view->cmd_arg);
                 prev_search_cmd = search_cmd;
                 strnz__cpy(prev_regex_pattern, view->cmd_arg, MAXLEN - 1);
@@ -482,14 +499,6 @@ int view_cmd_processor(Init *init) {
                 Perror("Not (A-Z)");
             else
                 go_to_mark(view, c);
-            break;
-        /**  'n' - Repeat Previous Search */
-        case 'n':
-            if (prev_search_cmd == 0 || view->f_search_complete) {
-                Perror("No previous search or search complete");
-                break;
-            }
-            search(view, &prev_search_cmd, prev_regex_pattern);
             break;
         /** 'N' - Close Current File and Open Next File */
         case 'N':
@@ -932,7 +941,6 @@ int go_to_line(View *view, off_t line_idx) {
         go_to_position(view, 0);
         return EOF;
     }
-    view->f_forward = true;
     view->file_pos = 0;
     view->page_top_pos = view->file_pos;
     line_idx = 0;
@@ -961,7 +969,6 @@ void go_to_percent(View *view, int Percent) {
         return;
     }
     view->file_pos = (Percent * view->file_size) / 100;
-    view->f_forward = true;
     get_next_char();
     while (c != '\n') {
         get_prev_char();
@@ -973,7 +980,6 @@ void go_to_percent(View *view, int Percent) {
 }
 /** @brief Go to Specific File Position */
 void go_to_position(View *view, off_t go_to_pos) {
-    view->f_forward = true;
     view->file_pos = go_to_pos;
     view->page_bot_pos = view->file_pos;
     next_page(view);
@@ -994,17 +1000,20 @@ void go_to_position(View *view, off_t go_to_pos) {
    for repeat searches and tracking of the current search position.
     @note this function highlights all matches in the current ncurses
    pad, including those not displayed on the screen, and tracks the
-   first and last match columns for prompt display. */
+   first and last match columns for prompt display.
+    @note ANSI sequences and Unicode characters are stripped before
+   matching, so matching corresponds to the visual display */
 bool search(View *view, int *search_cmd, char *regex_pattern) {
     int REG_FLAGS = 0;
     regmatch_t pmatch[1];
     regex_t compiled_regex;
     int reti;
-    int cury = 0;
     int line_offset;
     int line_len;
     int match_len;
     bool f_page = false;
+    if (*regex_pattern == '\0')
+        return false;
     if (view->f_ignore_case)
         REG_FLAGS = REG_ICASE | REG_EXTENDED;
     else
@@ -1014,49 +1023,57 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         Perror("Invalid pattern");
         return false;
     }
+    /**  */
     while (1) {
-
         if (*search_cmd == '/') {
-            if (view->srch_curr_pos == view->file_size)
+            if (view->srch_curr_pos == view->file_size) {
                 view->srch_curr_pos = 0;
+                if (view->srch_beg_pos == view->file_size)
+                    view->srch_beg_pos = 0;
+            }
         } else {
-            if (view->srch_curr_pos == 0)
+            if (view->srch_curr_pos == 0) {
                 view->srch_curr_pos = view->file_size;
-        }
-        if (view->srch_curr_pos == view->srch_beg_pos) {
-            if (view->f_first_iter == true) {
-                view->f_search_complete = false;
-                view->f_first_iter = false;
-            } else {
-                view->f_search_complete = true;
-                if (cury == 0)
+                if (view->srch_beg_pos == 0)
+                    view->srch_beg_pos = view->file_size;
+            }
+            if (view->srch_curr_pos == view->srch_beg_pos) {
+                if (view->f_first_iter == true) {
+                    view->f_search_complete = false;
+                    view->f_first_iter = false;
+                    if (*search_cmd == '/')
+                        view->cury = 0;
+                    else
+                        view->cury = view->scroll_lines + 1;
+                } else {
+                    view->f_search_complete = true;
                     return true;
+                }
             }
         }
-        if (cury == view->scroll_lines)
-            return true;
         if (*search_cmd == '/') {
+            if (view->cury == view->scroll_lines)
+                return true;
             view->srch_curr_pos = get_next_line(view, view->srch_curr_pos);
             view->page_bot_pos = view->srch_curr_pos;
         } else {
+            if (view->cury == 0)
+                return true;
             view->srch_curr_pos = get_prev_line(view, view->srch_curr_pos);
             view->page_top_pos = view->srch_curr_pos;
         }
         fmt_line(view);
-        /**  Perform extended regular expression matching. ANSI
-           sequences and Unicode characters are stripped before
-           matching, so matching corresponds to the visual display */
         reti = regexec(&compiled_regex, view->stripped_line_out,
                        compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-        /** Once a match is found, leading context lines are
-           displayed at the top of the page. After that, all
-           subsequent lines without matches are displayed until the
-           page is full. */
         if (reti == REG_NOMATCH) {
             if (f_page) {
+                if (*search_cmd == '?')
+                    view->cury -= 2;
                 display_line(view);
-                if (view->cury == view->scroll_lines)
+                if ((*search_cmd == '/' && view->cury == view->scroll_lines) ||
+                    (*search_cmd == '?' && view->cury == 1)) {
                     break;
+                }
             }
             continue;
         }
@@ -1070,21 +1087,16 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             return false;
         }
         if (!f_page) {
-            view->f_forward = true;
-            view->cury = 0;
             wmove(view->win, view->cury, 0);
             wclrtobot(view->win);
-            view->page_top_pos = view->srch_curr_pos;
             f_page = true;
         }
-        /** Search continues displaying matches until the page is
-         * full.
-         */
+        if (*search_cmd == '?')
+            view->cury -= 2;
         display_line(view);
-        cury = view->cury;
         /** All matches on the current line are highlighted,
-         * including those not displayed on the screen. Track first
-         * and last match columns for prompt display. */
+           including those not displayed on the screen.
+           Track first and last match columns for prompt display. */
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
@@ -1103,11 +1115,6 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             view->line_out_p = view->stripped_line_out + line_offset;
             reti = regexec(&compiled_regex, view->line_out_p,
                            compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
-            /** @note lines may be much longer than the screen
-             * width, so continue searching even if the line is not
-             * displayed completely. The pad's complex characters
-             * (cchar_t) will handle the display for horizantal
-             * scrolling. */
             if (reti == REG_NOMATCH)
                 break;
             if (reti) {
@@ -1118,18 +1125,16 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
                 regfree(&compiled_regex);
                 return false;
             }
-            if (view->cury == view->scroll_lines) {
+            if (*search_cmd == '/') {
+                if (view->cury == view->scroll_lines) {
+                    regfree(&compiled_regex);
+                    return true;
+                }
+            } else if (view->cury == 1) {
                 regfree(&compiled_regex);
                 return true;
             }
         }
-        // if (view->f_search_complete) {
-        //     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-        //               "Search complete: %zd bytes for %s", view->file_size,
-        //               regex_pattern);
-        //     *search_cmd = 0;
-        //     break;
-        // }
     }
     /** Update view positions and prepare prompt with match info */
     view->file_pos = view->srch_curr_pos;
@@ -1152,12 +1157,11 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
                   regex_pattern, view->page_top_pos, view->page_bot_pos,
                   (view->page_bot_pos * 100 / view->file_size));
 #endif
-
-    // }
     regfree(&compiled_regex);
     return true;
 }
-/** @brief Resize Viewing Page */
+/** @brief Resize Viewing Page
+    @param init data structure */
 void resize_page(Init *init) {
     int scr_lines, scr_cols;
     bool f_resize = false;
@@ -1222,7 +1226,6 @@ void next_page(View *view) {
     if (view->page_bot_pos == view->file_size)
         return;
     view->maxcol = 0;
-    view->f_forward = true;
     view->cury = 0;
     view->file_pos = view->page_bot_pos;
     view->page_top_pos = view->file_pos;
@@ -1247,7 +1250,6 @@ void prev_page(View *view) {
     if (view->page_top_pos == 0)
         return;
     view->maxcol = 0;
-    view->f_forward = false;
     view->cury = 0;
     wmove(view->win, view->cury, 0);
     view->file_pos = view->page_top_pos;
@@ -1267,7 +1269,6 @@ void scroll_down_n_lines(View *view, int n) {
     curs_set(0);
     if (view->page_bot_pos == view->file_size)
         return;
-    view->f_forward = true;
     // Locate New Top of Page
     view->file_pos = view->page_top_pos;
     for (i = 0; i < n; i++) {
@@ -1345,7 +1346,6 @@ off_t get_next_line(View *view, off_t pos) {
     uchar c;
     char *line_in_p;
     view->file_pos = pos;
-    view->f_forward = true;
     view->f_eod = false;
     do {
         if (view->file_pos == view->file_size) {
@@ -1390,38 +1390,10 @@ off_t get_next_line(View *view, off_t pos) {
 }
 /** @brief Get Previous Line from File */
 off_t get_prev_line(View *view, off_t pos) {
-    uchar c;
+    pos = get_pos_prev_line(view, pos);
     view->file_pos = pos;
-    view->f_forward = false;
-    get_prev_char();
-    if (view->f_bod)
-        return view->file_pos;
-    while ((uchar)c != '\n')
-        get_prev_char();
-    if (view->f_bod)
-        return view->file_pos;
-    if (view->f_squeeze) {
-        if ((uchar)c == '\n') {
-            while (1) {
-                get_prev_char();
-                if (view->f_bod)
-                    return view->file_pos;
-                if ((uchar)c != '\n')
-                    break;
-            }
-            get_next_char();
-        }
-    }
-    while (1) {
-        if ((uchar)c == '\n')
-            break;
-        get_prev_char();
-        if (view->f_bod)
-            break;
-    }
-    if (view->file_pos < view->file_size)
-        view->f_eod = false;
-    return view->file_pos;
+    get_next_line(view, view->file_pos);
+    return pos;
 }
 /** @brief Get Position of Next Line */
 off_t get_pos_next_line(View *view, off_t pos) {
@@ -1432,7 +1404,6 @@ off_t get_pos_next_line(View *view, off_t pos) {
     } else
         view->f_eod = false;
     view->file_pos = pos;
-    view->f_forward = true;
     get_next_char();
     if (view->f_eod)
         return view->file_pos;
@@ -1463,7 +1434,6 @@ off_t get_pos_prev_line(View *view, off_t pos) {
         view->f_bod = true;
         return view->file_pos;
     }
-    view->f_forward = false;
     get_prev_char();
     if (view->f_bod)
         return view->file_pos;
@@ -1486,8 +1456,8 @@ void display_line(View *view) {
     int rc;
     if (view->cury < 0)
         view->cury = 0;
-    if (view->cury > view->scroll_lines)
-        view->cury = view->scroll_lines;
+    if (view->cury > view->scroll_lines - 1)
+        view->cury = view->scroll_lines - 1;
     wmove(view->win, view->cury, 0);
     wclrtoeol(view->win);
     wadd_wchstr(view->win, view->cmplx_buf);
@@ -1524,15 +1494,12 @@ int fmt_line(View *view) {
     cchar_t *cmplx_buf = view->cmplx_buf;
 
     rtrim(view->line_out_s);
-    /** Initialize multibyte to wide char conversion mbtowc,
-     * setcchar, and getcchar can sometimes behave badly, depending
-     * on what you feed them. Make sure your locale is set properly
-     * before calling them. */
-    // mbtowc(NULL, NULL, 0);
+    /** Initialize multibyte to wide char conversion */
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
+            /** Handle ANSI escape sequences */
             len = strcspn(&in_str[i], "mK ") + 1;
             memcpy(ansi_tok, &in_str[i], len + 1);
             ansi_tok[len] = '\0';
@@ -1551,13 +1518,13 @@ int fmt_line(View *view) {
             parse_ansi_str(ansi_tok, &attr, &cpx);
             i += len;
         } else {
+            /** Wide and complex characters */
             if (in_str[i] == '\033') {
                 i++;
                 continue;
             }
             s = &in_str[i];
             if (*s == '\t') {
-                /**  Handle Tab Character */
                 wc = L' ';
                 do {
                     setcchar(&cc, &wc, attr, cpx, NULL);
@@ -1566,20 +1533,11 @@ int fmt_line(View *view) {
                 } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
-                /** Handle Multi-byte Character Use mbtowc to get
-                 * the wide character and its length in bytes from
-                 * the multibyte string
-                 */
                 len = mbrtowc(&wc, s, MB_CUR_MAX, &mbstate);
                 if (len <= 0) {
-                    /** Invalid multibyte sequence, replace with '?'
-                     */
                     wc = L'?';
                     len = 1;
                 }
-                /** Convert wide character + attributes to complex
-                 * character
-                 */
                 if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
                     if (len > 0 && (j + len) < PAD_COLS - 1) {
                         view->stripped_line_out[j] = *s;
@@ -1655,10 +1613,6 @@ int fmt_line(View *view) {
    extended_pair_content(), get_clr_pair()
 
     @endcode
-
-
-
-
 */
 void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     char *tok;
