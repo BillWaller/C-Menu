@@ -49,8 +49,8 @@ PREFIX=$(HOME)/menuapp
 
 SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-REL_CFLAGS=-O0
-DBG_CFLAGS=-g3
+REL_CFLAGS=-O2
+DBG_CFLAGS=-O0 -g3
 CC=gcc -Wall -Wextra -I. $(DBG_CFLAGS)
 
 MAJOR=0
