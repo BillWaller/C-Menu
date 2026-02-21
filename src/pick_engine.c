@@ -790,10 +790,10 @@ int exec_objects(Init *init) {
         /// output within pick interface
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
-        if (init->begy == 0)
-            init->begy = pick->begy + 1;
-        if (init->begx == 0)
-            init->begx = pick->begx + 1;
+        init->lines = 60;
+        init->cols = 70;
+        init->begy = pick->begy + 1;
+        init->begx = pick->begx + 1;
         if (title[0] != '\0')
             strnz__cpy(init->title, title, MAXLEN - 1);
         else
@@ -884,8 +884,8 @@ void display_pick_help(Init *init) {
     parse_opt_args(init, eargc, eargv);
     init->lines = 30;
     init->cols = 60;
-    init->begy = menu->begy + 1;
-    init->begx = menu->begx + 4;
+    init->begy = pick->begy + 1;
+    init->begx = pick->begx + 1;
     strnz__cpy(init->title, "Pick Help", MAXLEN - 1);
     mview(init, eargc, eargv);
     free(eargv[0]);

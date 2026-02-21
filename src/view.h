@@ -128,7 +128,6 @@ typedef struct {
     off_t page_bot_pos;       /**< file position of last line displayed */
     off_t srch_curr_pos;      /**< current search position */
     off_t srch_beg_pos;       /**< file position when search started */
-    off_t first_page_bot_pos; /**< file position bottom of first page */
     off_t mark_tbl[NMARKS];   /**< not implemented */
     bool f_in_pipe;           /**< input is from a pipe */
     int in_fd;                /**< input file descriptor */

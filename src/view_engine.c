@@ -105,7 +105,6 @@ int view_file(Init *init) {
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
                 next_page(view);
-                view->first_page_bot_pos = view->page_bot_pos;
                 view_cmd_processor(init);
                 munmap(view->buf, view->file_size);
             }
@@ -1025,6 +1024,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     }
     /**  */
     while (1) {
+        /** initialization */
         if (*search_cmd == '/') {
             if (view->srch_curr_pos == view->file_size) {
                 view->srch_curr_pos = 0;
@@ -1039,8 +1039,8 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             }
             if (view->srch_curr_pos == view->srch_beg_pos) {
                 if (view->f_first_iter == true) {
-                    view->f_search_complete = false;
                     view->f_first_iter = false;
+                    view->f_search_complete = false;
                     if (*search_cmd == '/')
                         view->cury = 0;
                     else
@@ -1051,6 +1051,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
                 }
             }
         }
+        /** get lines to scan */
         if (*search_cmd == '/') {
             if (view->cury == view->scroll_lines)
                 return true;
@@ -1067,6 +1068,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
                        compiled_regex.re_nsub + 1, pmatch, REG_FLAGS);
         if (reti == REG_NOMATCH) {
             if (f_page) {
+                /** non-matching page filler */
                 if (*search_cmd == '?')
                     view->cury -= 2;
                 display_line(view);
@@ -1086,6 +1088,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             regfree(&compiled_regex);
             return false;
         }
+        /** Display matching lines */
         if (!f_page) {
             wmove(view->win, view->cury, 0);
             wclrtobot(view->win);
@@ -1140,6 +1143,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     view->file_pos = view->srch_curr_pos;
     view->page_bot_pos = view->srch_curr_pos;
 #ifdef DEBUG
+    /** Statistics for debugging */
     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
               "%s|%c%s|Pos %zu-%zu|(%zd) %zu %zu", view->file_name, *search_cmd,
               regex_pattern, view->page_top_pos, view->page_bot_pos,
