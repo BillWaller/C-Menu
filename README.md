@@ -1,6 +1,6 @@
 # A User Interface Builder
 
-[***NEW*** Comprehensive HTML Documentation](index.html)
+[***NEW*** Comprehensive HTML Documentation](https://billwaller.github.io/C-Menu/)
 
 ## Table of Contents
 
