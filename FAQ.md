@@ -4,6 +4,8 @@
 
 <!-- mtoc-start -->
 
+* [Some Menu Selections Don't work](#some-menu-selections-dont-work)
+  * [Visual Aids Soap-box](#visual-aids-soap-box)
 * [High Precision Math With C-Menu and Gawk](#high-precision-math-with-c-menu-and-gawk)
 * [TrueColor Support](#truecolor-support)
 * [Why View Displays Question Marks](#why-view-displays-question-marks)
@@ -26,6 +28,24 @@
 * [View In a Box Window](#view-in-a-box-window)
 
 <!-- mtoc-end -->
+
+## Some Menu Selections Don't work
+
+Q: Some menu selections don't work. For example, "View CMenu Source with Tree-Sitter".
+
+A: Thanks for pointing that out. I need to make a note in the manual that a working
+Tree-Sitter-CLI with C grammar is required for that option.
+
+The option, "Menu Description" in the sample Main Menu included with C-Menu, is even worse, as it gives no clue that it requires a working installation of "bat".
+
+Both of those will be documented in a new addition to the manual. In the meantime, I have added "with Bat" to the "Menu Description" menu item as a hint that it requires "bat". I have also added an option in the Main Menu to view view-engine.c, which I have pre-highlighted with Tree-Sitter.
+
+### Visual Aids Soap-box
+
+Installing tools like Tree-Sitter-CLI and "bat" is not just about pretty colors. The colorization provided by Tree-Sitter reduces your cognitive load, allowing you to focus on the structure of the code and understand it more intuitively. The colors help you visually parse the code, making it easier to identify functions, variables, and other elements. This is especially helpful for complex codebases, where the structure can be difficult to understand without visual cues.
+
+According to the National Institutes of Health (NIH), color coding can improve learning and retention by up to 80%. The use of color in code editors has been shown to enhance readability and reduce errors, making it an essential tool for developers.
+That's because language and visual processing are distinct cognitive systems that interact to enhance object recognition and categorization. While vision provides raw sensory input, language acts as a top-down, categorical cue that accelerates recognition, improves memory, and organizes conceptual representations.
 
 ## High Precision Math With C-Menu and Gawk
 
@@ -351,12 +371,9 @@ revert to their previous state.
 
 Q: I want to use the Menu API to develop my own code. How can I do that.
 
-A: At the moment, you will have to rely on Menu's source code for
-documentation. If build Menu using CMake in the build directory, a C
-library will be installed in the lib64 directory, which you can link to
-your own executables. If there is sufficient interest, that capability
-will be expanded, improved, and a reference guide will be created for
-the API.
+A: Comprehensive API/ABI documentation, including Functions, Variables, Typedefs,
+Enumerations, Macros, and complete program listings has been added. General
+purpose functions have been extracted from the Menu codebase and placed in a C library, libcm.so, which is documented in the API/ABI. The API/ABI documentation is available in the root directory of the C-Menu distribution. The API/ABI documentation is generated using Doxygen, and the source code is annotated with Doxygen comments to provide detailed information about each function, variable, typedef, enumeration, and macro. The API/ABI documentation includes descriptions of the functions, their parameters, return values, and any relevant notes or examples. The API/ABI documentation is organized into modules based on functionality, making it easier for developers to find the information they need. The API/ABI documentation is intended to be a comprehensive resource for developers who want to use the Menu API to create their own applications or extend the functionality of C-Menu. The API/ABI documentation is a work in progress, and we welcome contributions and feedback from the community to improve it. We will continue to expand and enhance the API/ABI documentation as Menu evolves and new features are added.
 
 ---
 
@@ -450,7 +467,7 @@ First Payment Date - The date of the first payment in YYYYMMDD format.
 
 Add the following two lines to "~/menuapp/msrc/main.m":
 
-:Installment Loan Calculations
+: Installment Loan Calculations
 
 !form iloan.f -i iloan.dat -S iloan -o iloan.dat
 

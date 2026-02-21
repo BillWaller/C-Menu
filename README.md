@@ -1,5 +1,7 @@
 # A User Interface Builder
 
+[***NEW*** Comprehensive HTML Documentation](index.html)
+
 ## Table of Contents
 
 <!-- mtoc-start -->
