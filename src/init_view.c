@@ -38,8 +38,8 @@ int init_view_full_screen(Init *init) {
     view->smaxcol = view->cols - 1;
     view->win = newpad(view->lines, PAD_COLS);
     if (view->win == NULL) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        ssnprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+        ssnprintf(em1, MAXLEN - 1, "newpad(%d, %d) failed", view->lines,
                   PAD_COLS);
         em2[0] = '\0';
         display_error(em0, em1, em2, NULL);
@@ -90,8 +90,8 @@ int init_view_boxwin(Init *init, char *title) {
     }
     if (win_new(view->lines, view->cols, view->begy, view->begx, view->title,
                 F_VIEW)) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 65, "win_new(%d, %d, %d, %d, %s, %b) failed",
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
                   view->lines, view->cols, view->begy, view->begx, "NULL",
                   F_VIEW);
         em2[0] = '\0';
@@ -109,8 +109,8 @@ int init_view_boxwin(Init *init, char *title) {
     win_win[win_ptr] = newpad(view->lines, PAD_COLS);
     view->win = win_win[win_ptr];
     if (win_win[win_ptr] == NULL) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        ssnprintf(em1, MAXLEN - 65, "newpad(%d, %d) failed", view->lines,
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+        ssnprintf(em1, MAXLEN - 1, "newpad(%d, %d) failed", view->lines,
                   PAD_COLS);
         em2[0] = '\0';
         display_error(em0, em1, em2, NULL);
@@ -186,17 +186,17 @@ bool view_init_input(View *view, char *file_name) {
             expand_tilde(file_name, MAXLEN - 1);
             view->in_fd = open(file_name, O_RDONLY);
             if (view->in_fd == -1) {
-                ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 2);
-                ssnprintf(em1, MAXLEN - 65, "open %s", file_name);
+                ssnprintf(em1, MAXLEN - 1, "open %s", file_name);
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, NULL);
                 return false;
             }
             if (fstat(view->in_fd, &sb) == -1) {
-                ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 1);
-                ssnprintf(em1, MAXLEN - 65, "fstat %s", file_name);
+                ssnprintf(em1, MAXLEN - 1, "fstat %s", file_name);
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, NULL);
                 close(view->in_fd);
@@ -205,9 +205,9 @@ bool view_init_input(View *view, char *file_name) {
             view->file_size = sb.st_size;
             if (view->file_size == 0) {
                 close(view->in_fd);
-                ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__,
+                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 1);
-                ssnprintf(em1, MAXLEN - 65, "file %s is empty", file_name);
+                ssnprintf(em1, MAXLEN - 1, "file %s is empty", file_name);
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, NULL);
                 return (EXIT_FAILURE);
@@ -256,8 +256,8 @@ bool view_init_input(View *view, char *file_name) {
     view->buf =
         mmap(NULL, view->file_size, PROT_READ, MAP_PRIVATE, view->in_fd, 0);
     if (view->buf == MAP_FAILED) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        ssnprintf(em1, MAXLEN - 65, "mmap %s", file_name);
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+        ssnprintf(em1, MAXLEN - 1, "mmap %s", file_name);
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, NULL);
         close(view->in_fd);

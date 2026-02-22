@@ -1024,7 +1024,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     }
     /**  */
     while (1) {
-        /** initialization */
+        /** initialize iteration */
         if (*search_cmd == '/') {
             if (view->srch_curr_pos == view->file_size) {
                 view->srch_curr_pos = 0;
@@ -1051,7 +1051,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
                 }
             }
         }
-        /** get lines to scan */
+        /** get line to scan */
         if (*search_cmd == '/') {
             if (view->cury == view->scroll_lines)
                 return true;
@@ -1345,7 +1345,6 @@ void scroll_up_n_lines(View *view, int n) {
     @returns file position of next line
     @note gets view->line_in_s
  */
-
 off_t get_next_line(View *view, off_t pos) {
     uchar c;
     char *line_in_p;

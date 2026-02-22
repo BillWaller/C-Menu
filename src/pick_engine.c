@@ -560,7 +560,7 @@ void display_page(Pick *pick) {
 void pick_display_chyron(Pick *pick) {
     int l;
     char tmp_str[MAXLEN];
-    ssnprintf(tmp_str, MAXLEN - 65, "%s| Page %d of %d ", pick->chyron_s,
+    ssnprintf(tmp_str, MAXLEN - 1, "%s| Page %d of %d ", pick->chyron_s,
               pick->tbl_page + 1, pick->tbl_pages);
     l = strlen(tmp_str);
     wattron(pick->win, WA_REVERSE);
@@ -856,9 +856,9 @@ int open_pick_win(Init *init) {
     pick = init->pick;
     if (win_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
                 pick->title, 0)) {
-        ssnprintf(tmp_str, MAXLEN - 65,
-                  "win_new(%d, %d, %d, %d, %s, %b) failed", pick->win_lines,
-                  pick->win_width, pick->begy, pick->begx, pick->title, 0);
+        ssnprintf(tmp_str, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
+                  pick->win_lines, pick->win_width, pick->begy, pick->begx,
+                  pick->title, 0);
         Perror(tmp_str);
 
         return (1);

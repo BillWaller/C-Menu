@@ -544,8 +544,8 @@ int form_parse_desc(Form *form) {
 
     form_desc_fp = fopen(form->mapp_spec, "r");
     if (form_desc_fp == NULL) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 2);
-        strnz__cpy(em1, "fopen ", MAXLEN - 65);
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+        strnz__cpy(em1, "fopen ", MAXLEN - 1);
         strnz__cat(em1, form->mapp_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, NULL);
@@ -822,8 +822,8 @@ int form_write(Form *form) {
         close(form->out_fd);
         form->out_fd = open(form->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
         if (form->out_fd == -1) {
-            ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-            strnz__cpy(em1, "open ", MAXLEN - 65);
+            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+            strnz__cpy(em1, "open ", MAXLEN - 1);
             strnz__cat(em1, form->out_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN);
             display_error(em0, em1, em2, NULL);
@@ -835,15 +835,15 @@ int form_write(Form *form) {
         form->f_out_pipe = true;
     } else {
         if ((form->out_fp = fopen(form->out_spec, "w")) == NULL) {
-            ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
             strerror_r(errno, em2, MAXLEN);
             display_error(em0, em1, em2, NULL);
             return (1);
         }
     }
     if (form->out_fp == NULL) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        strnz__cpy(em1, "fopen ", MAXLEN - 65);
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        strnz__cpy(em1, "fopen ", MAXLEN - 1);
         strnz__cat(em1, form->out_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, NULL);
