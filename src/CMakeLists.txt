@@ -123,9 +123,22 @@ install(
           optsp
           stripansi
           whence
-          cm
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib64)
+  RUNTIME DESTINATION bin)
+
+target_include_directories(cm PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+install(TARGETS cm
+    DESTINATION lib64
+    EXPORT cm_export
+)
+
+install(EXPORT cm_export
+    DESTINATION lib64/cmake/cm
+    FILE cmConfig.cmake
+)
 
 include(GNUInstallDirs)
 set(LD_CONF_FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.conf")
