@@ -7,7 +7,7 @@
     @date 2026-02-09
  */
 
-#include "common.h"
+#include <common.h>
 #include <unistd.h>
 
 /** @brief subprogram entry point for C-Menu View
