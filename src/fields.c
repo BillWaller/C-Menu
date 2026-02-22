@@ -7,8 +7,7 @@
     @date 2026-02-09
  */
 
-#include "common.h"
-#include <errno.h>
+#include <common.h>
 #include <monetary.h>
 #include <stdbool.h>
 #include <stdio.h>

@@ -11,7 +11,7 @@
      provide sane terminal settings for C-MENU applications, and restores
      the terminal to its original state when the C-MENU application exits. */
 
-#include "cm.h"
+#include <cm.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <termios.h>

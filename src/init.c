@@ -7,7 +7,7 @@
  *  @date 2026-02-09
  */
 
-#include "common.h"
+#include <common.h>
 #include <getopt.h>
 #include <locale.h>
 #include <stdlib.h>

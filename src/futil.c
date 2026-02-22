@@ -6,7 +6,7 @@
     billxwaller@gmail.com
     @date 2026-02-09 */
 
-#include "cm.h"
+#include <cm.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
