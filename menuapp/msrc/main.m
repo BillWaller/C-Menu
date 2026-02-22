@@ -22,10 +22,12 @@
 !pick -S project_src -n 1 -T "Select Project File to Highlight" -c "view -L 60 -C 70 -S \"tree-sitter highlight %%\""
 :     View Data Types Help File
 !view -T "Data Types" /home/bill/menuapp/help/fields.hlp
-:     Menu Description
+:     Menu Description With Bat Syntax Highlighting
 !view -L 30 -C 75 -S "bat --theme ansi -l Crystal -f /home/bill/menuapp/msrc/main.m"
 :     View C-Menu Command Line Options
 !view -L 62 -C 73 -S options
+:     View Highlighted view_engine.c
+!view -L 60 -C 70 ~/menuapp/help/view_engine.c
 :     Help
 !help
 :     Exit Applications
