@@ -62,7 +62,7 @@ Init *new_init(int argc, char **argv) {
     init->argv = calloc(MAXARGS + 1, sizeof(char *));
     if (init->argv == NULL) {
         free(init);
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d, errno: %d", __FILE__,
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
                   __LINE__ - 4, errno);
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
@@ -195,7 +195,7 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
     }
     pick->object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
     if (pick->object == NULL) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1,
                   "calloc pick->object = calloc(%d, %d) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));

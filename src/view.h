@@ -134,14 +134,17 @@ typedef struct {
     int out_fd;               /**< output file descriptor */
     FILE *in_fp;              /**< pointer to input stream data structure */
     int stdin_fd;             /**< standard input file descriptor */
-    FILE *stdin_fp;  /**< pointer to standard input stream data structure */
-    int stdout_fd;   /**< standard output file descriptor */
-    FILE *stdout_fp; /**< pointer to standard output stream data structure */
-    char *buf;       /**< pointer to first byte of virtual file buffer */
-    char *
-        buf_curr_ptr; /**< pointer to current position in virtual file buffer */
-    char *buf_end_ptr; /**< pointer to first byte after end of data in virtual
-                          file buffer */
+    FILE *stdin_fp;     /**< pointer to standard input stream data structure */
+    int stdout_fd;      /**< standard output file descriptor */
+    FILE *stdout_fp;    /**< pointer to standard output stream data structure */
+    char *buf;          /**< pointer to first byte of virtual buffer */
+    char *buf_curr_ptr; /**< pointer to current position in virtual buffer */
+    char *buf_end_ptr;  /**< pointer to first byte after end of data in virtual
+                           buffer */
+    char *lnbuf;        /**< pointer to first byte of virtual buffer */
+    char *lnbuf_curr_ptr; /**< pointer to first byte of virtual buffer */
+    char *lnbuf_end_ptr; /**< pointer to first byte after end of data in virtual
+                          buffer */
 } View;
 extern View *view;
 

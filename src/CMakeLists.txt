@@ -6,7 +6,7 @@ project(CMenu
     VERSION 0.2.9
     LANGUAGES C
 )
-set(CMAKE_C_FLAGS "-O0 -Wall -Wextra -g3")
+set(CMAKE_C_FLAGS "-O2 -Wall -Wextra")
 set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH TRUE)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -94,9 +94,7 @@ endif()
 target_link_libraries(rsh ${RSH_LD})
 install(
   TARGETS rsh
-  LIBRARY DESTINATION lib64
-  RUNTIME
-    DESTINATION bin
+  RUNTIME DESTINATION bin
     PERMISSIONS
       OWNER_READ
       OWNER_WRITE
@@ -128,3 +126,17 @@ install(
           cm
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib64)
+
+include(GNUInstallDirs)
+set(LD_CONF_FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.conf")
+file(WRITE "${LD_CONF_FILE}" "${CMAKE_INSTALL_FULL_LIBDIR}\n")
+if(UNIX AND NOT APPLE)
+    install(FILES "${LD_CONF_FILE}"
+            DESTINATION "/etc/ld.so.conf.d"
+            COMPONENT Runtime)
+    install(CODE "
+        if(NOT \"\$ENV{DESTDIR}\")
+            execute_process(COMMAND ldconfig)
+        endif()
+    " COMPONENT Runtime)
+endif()

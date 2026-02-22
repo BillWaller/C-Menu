@@ -361,8 +361,8 @@ int get_clr_pair(int fg, int bg) {
             return i;
     }
     if (i >= COLOR_PAIRS) {
-        ssnprintf(em0, MAXLEN - 65, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 65, "NCurses COLOR_PAIRS (%d) exceeded (%d)",
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "NCurses COLOR_PAIRS (%d) exceeded (%d)",
                   COLOR_PAIRS, i);
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, NULL);
