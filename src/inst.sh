@@ -21,17 +21,15 @@ EUSER=$(whoami)
 
 list_installed() {
     printf "\nInstalled files:\n"
+    LS=$(awk '{printf("%s ", $2)}
+            END {printf("\n")}' manifest.txt)
     if which lsd >/dev/null 2>&1; then
-        LS=$(awk '{printf("%s ", $2)}
-                END {printf("\n")}' manifest.txt)
         # Don't double quote $LS below
         # Sometimes globbing and word-splitting is what you want.
         # If you double quote this, it will not work as intended.
-        lsd -l --icon-theme unicode $LS
+        lsd -Ul --icon-theme unicode $LS
     else
-        cat manifest.txt | while read -r line; do
-            ls --color=always -l "$line"
-        done
+        ls -Ul --color=always $LS
     fi
 }
 
@@ -102,6 +100,9 @@ if [ ! -d "$DSTDIR" ]; then
         echo usage: inst.sh FileName Directory DestName Mode Owner Group
         exit 1
     fi
+fi
+if [ ! -d /tmp/include ]; then
+    mkdir -p /tmp/include
 fi
 if [ -f /tmp/"$FILENAME".old ]; then
     rm -f /tmp/"$FILENAME".old

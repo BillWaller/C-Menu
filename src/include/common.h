@@ -14,11 +14,11 @@
 #define NCURSES_WIDECHAR 1
 #include <ncursesw/ncurses.h>
 
-#include "cm.h"
-#include "form.h"
-#include "menu.h"
-#include "pick.h"
-#include "view.h"
+#include <cm.h>
+#include <form.h>
+#include <menu.h>
+#include <pick.h>
+#include <view.h>
 
 #include <signal.h>
 #include <stddef.h>
