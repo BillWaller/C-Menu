@@ -1,0 +1,12 @@
+#!/bin/bash
+
+prepend_path() {
+    case ":${PATH}:" in
+    *:"$1":*) ;;
+    *)
+        PATH="$1:$PATH"
+        ;;
+    esac
+}
+[ -d "$HOME"/menuapp/bin ] && prepend_path "$HOME"/menuapp/bin
+export PATH

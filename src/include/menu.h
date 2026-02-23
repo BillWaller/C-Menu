@@ -10,7 +10,7 @@
 #ifndef _MENU_H
 #define _MENU_H 1
 
-#include "cm.h"
+#include <cm.h>
 
 #ifndef _COMMON_H
 typedef struct Init Init;
@@ -36,6 +36,7 @@ enum {
     CT_RETURNMAIN,
     CT_EXEC,
     CT_HELP,
+    CT_ABOUT,
     CT_FORM,
     CT_FORM_EXEC,
     CT_FORM_WRITE,

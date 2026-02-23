@@ -2,11 +2,19 @@ cmake_minimum_required(VERSION 4.1)
 
 set(RSH_LD $ENV{RSH_LD})
 
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "CMAKE_BUILD_TYPE not set, default to Release")
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 project(CMenu
     VERSION 0.2.9
     LANGUAGES C
 )
-set(CMAKE_C_FLAGS "-O2 -I../include -Wall -Wextra")
+
+set(CMAKE_C_FLAGS "-I../include -Wall -Wextra")
 set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH TRUE)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

@@ -403,10 +403,9 @@ int view_cmd_processor(Init *init) {
                 view->cury = 0;
                 view->srch_curr_pos = view->page_bot_pos;
             } else {
-                view->cury = view->scroll_lines;
+                view->cury = view->scroll_lines + 1;
                 view->srch_curr_pos = view->page_top_pos;
             }
-            view->f_first_iter = true;
             search(view, &prev_search_cmd, prev_regex_pattern);
             break;
         /**  '/' or '?' - Search Forward fromk top of page */
@@ -434,8 +433,8 @@ int view_cmd_processor(Init *init) {
             if (c == '\n') {
                 view->cury = view->scroll_lines;
                 view->f_first_iter = true;
-                view->srch_beg_pos = view->page_top_pos;
-                view->srch_curr_pos = view->page_top_pos;
+                view->srch_beg_pos = view->page_bot_pos;
+                view->srch_curr_pos = view->page_bot_pos;
                 search(view, &search_cmd, view->cmd_arg);
                 prev_search_cmd = search_cmd;
                 strnz__cpy(prev_regex_pattern, view->cmd_arg, MAXLEN - 1);
@@ -1026,29 +1025,23 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     while (1) {
         /** initialize iteration */
         if (*search_cmd == '/') {
-            if (view->srch_curr_pos == view->file_size) {
+            if (view->srch_curr_pos == view->file_size)
                 view->srch_curr_pos = 0;
-                if (view->srch_beg_pos == view->file_size)
-                    view->srch_beg_pos = 0;
-            }
         } else {
-            if (view->srch_curr_pos == 0) {
+            if (view->srch_curr_pos == 0)
                 view->srch_curr_pos = view->file_size;
-                if (view->srch_beg_pos == 0)
-                    view->srch_beg_pos = view->file_size;
-            }
-            if (view->srch_curr_pos == view->srch_beg_pos) {
-                if (view->f_first_iter == true) {
-                    view->f_first_iter = false;
-                    view->f_search_complete = false;
-                    if (*search_cmd == '/')
-                        view->cury = 0;
-                    else
-                        view->cury = view->scroll_lines + 1;
-                } else {
-                    view->f_search_complete = true;
-                    return true;
-                }
+        }
+        if (view->srch_curr_pos == view->srch_beg_pos) {
+            if (view->f_first_iter == true) {
+                view->f_first_iter = false;
+                view->f_search_complete = false;
+                if (*search_cmd == '/')
+                    view->cury = 0;
+                else
+                    view->cury = view->scroll_lines + 1;
+            } else {
+                view->f_search_complete = true;
+                return true;
             }
         }
         /** get line to scan */
@@ -1090,7 +1083,10 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         }
         /** Display matching lines */
         if (!f_page) {
-            wmove(view->win, view->cury, 0);
+            if (*search_cmd == '/')
+                wmove(view->win, view->cury, 0);
+            else
+                wmove(view->win, 0, 0);
             wclrtobot(view->win);
             f_page = true;
         }
@@ -1142,6 +1138,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     /** Update view positions and prepare prompt with match info */
     view->file_pos = view->srch_curr_pos;
     view->page_bot_pos = view->srch_curr_pos;
+#define DEBUG
 #ifdef DEBUG
     /** Statistics for debugging */
     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,

@@ -157,12 +157,13 @@ test: snippets/strings_test1.c
 
 install:
 	./inst.sh --
-	./inst.sh include/cm.h		$(INC_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/common.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/form.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/menu.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/pick.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/view.h	$(INC_DIR)	  0711	$(USER)	$(GROUP)
+	mkdir -p $(PREFIX)/include
+	./inst.sh include/cm.h		$(PREFIX)	  0711	$(USER)	$(GROUP)
+	./inst.sh include/common.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
+	./inst.sh include/form.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
+	./inst.sh include/menu.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
+	./inst.sh include/pick.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
+	./inst.sh include/view.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
 	./inst.sh menu			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh form			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh pick			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
@@ -176,6 +177,9 @@ install:
 	./inst.sh iloan			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh stripansi		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh lf		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	mkdir -p $(BIN_DIR)
+	cp -Rdup bin $(PREFIX)/bin
+	mkdir -p $(LIB_DIR)
 	cp $(LIB_NAME) $(LIB_DIR)/$(REAL_NAME)
 	echo `test/iso6801.sh` $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
 	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_NAME)

@@ -1,3 +1,6 @@
+#!/bin/bash
+IFS="
+"
 printf "\nInstalled files:\n"
 if [ -f install_manifest.txt ]; then
     LS=$(cat install_manifest.txt)
@@ -7,14 +10,14 @@ else
             if [ build/install_manifest.txt -nt manifest.txt ]; then
                 LS=$(cat build/install_manifest.txt)
             else
-                LS=$(cat manifest.txt)
+                LS=$(awk '{print $2}' manifest.txt)
             fi
         else
             LS=$(cat build/install_manifest.txt)
         fi
     else
         if [ -f manifest.txt ]; then
-            LS=$(cat manifest.txt)
+            LS=$(awk '{print $2}' manifest.txt)
         else
             echo no manifest.txt or install_manifest.txt
         fi

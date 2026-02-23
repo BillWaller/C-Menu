@@ -12,11 +12,11 @@
 
 #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
+#include "version.h"
 #include <ncursesw/ncurses.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <version.h>
 
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
