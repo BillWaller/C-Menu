@@ -258,6 +258,8 @@ unsigned int get_command_type(char *t) {
         return (CT_EXEC);
     else if (!strcmp(p, "help"))
         return (CT_HELP);
+    else if (!strcmp(p, "about"))
+        return (CT_ABOUT);
     else if (!strcmp(p, "menu"))
         return (CT_MENU);
     else if (!strcmp(p, "form"))

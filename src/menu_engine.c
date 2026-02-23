@@ -157,6 +157,22 @@ unsigned int menu_cmd_processor(Init *init) {
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** Exit the menu and return to the previous menu or exit if at top */
+    case KEY_F(2):
+        eargv[0] = strdup("mview");
+        strnz__cpy(tmp_str, "~/menuapp/.about", MAXLEN - 1);
+        expand_tilde(tmp_str, MAXLEN - 1);
+        eargv[1] = strdup(tmp_str);
+        eargv[2] = NULL;
+        eargc = 2;
+        zero_opt_args(init);
+        parse_opt_args(init, eargc, eargv);
+        init->lines = 10;
+        init->cols = 40;
+        init->begy = menu->begy + 1;
+        init->begx = menu->begx + 4;
+        strnz__cpy(init->title, "About CMenu", MAXLEN - 1);
+        mview(init, eargc, eargv);
+        return (MA_DISPLAY_MENU);
     case KEY_F(9):
         return (MA_RETURN_MAIN);
         /** Exit the menu and return to the previous menu or exit if at top */
@@ -266,6 +282,22 @@ unsigned int menu_cmd_processor(Init *init) {
         full_screen_fork_exec(eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display help information for the menu system */
+    case CT_ABOUT:
+        eargv[0] = strdup("mview");
+        strnz__cpy(tmp_str, "~/menuapp/.about", MAXLEN - 1);
+        expand_tilde(tmp_str, MAXLEN - 1);
+        eargv[1] = strdup(tmp_str);
+        eargv[2] = NULL;
+        eargc = 2;
+        zero_opt_args(init);
+        parse_opt_args(init, eargc, eargv);
+        init->lines = 30;
+        init->cols = 60;
+        init->begy = menu->begy + 1;
+        init->begx = menu->begx + 4;
+        strnz__cpy(init->title, "About C-Menu", MAXLEN - 1);
+        mview(init, eargc, eargv);
+        return (MA_DISPLAY_MENU);
     case CT_HELP:
         eargv[0] = strdup("mview");
         strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);

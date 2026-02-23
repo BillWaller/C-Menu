@@ -9,7 +9,7 @@
 
 #ifndef _PICK_H
 #define _PICK_H 1
-#include "cm.h"
+#include <cm.h>
 
 /** Pick structures, enums, and data types */
 

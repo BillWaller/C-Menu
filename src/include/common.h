@@ -33,13 +33,14 @@
 #define MAX_PICK_OBJS 1024
 #define ACCEPT_PROMPT_CHAR '_'
 
-#define MENU_HELP_FILE "~/menuapp/help/menu.help"
-#define PICK_HELP_FILE "~/menuapp/help/pick.help"
-#define VIEW_HELP_FILE "~/menuapp/help/view.help"
-#define VIEW_PRT_FILE "~/menuapp/data/prtout"
+#define MENU_HELP_FILE "help/menu.help"
+#define PICK_HELP_FILE "help/pick.help"
+#define VIEW_HELP_FILE "help/view.help"
+#define VIEW_PRT_FILE "data/prtout"
 #define DEFAULTEDITOR "vi"
 
-#define MINITRC "~/.minitrc"
+#define MINITRC ".minitrc"
+#define ABOUT ".about"
 #define MAPP_DIR "~/menuapp"
 #define PRINTCMD "lp -c -s"
 #define MAXOPTS 50
@@ -134,7 +135,9 @@ typedef struct {
     bool f_in_spec;         /**< in_spec verified */
     bool f_out_spec;        /**< out_spec verified */
     char editor[MAXLEN];    /**< default editor */
-    char minitrc[MAXLEN];   /**< main configuration file, e.g. ~/.minitrc */
+    char menuapp[MAXLEN];   /**< main configuration file, e.g. cmenu/.minitrc */
+    char minitrc[MAXLEN];   /**< main configuration file, e.g. cmenu/.minitrc */
+    char about_fn[MAXLEN];  /**< about information file, e.g. cmenu/.about */
     char mapp_spec[MAXLEN]; /**< description file */
     char help_spec[MAXLEN]; /**< help file */
     // Pick
