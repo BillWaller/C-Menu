@@ -12,8 +12,8 @@
 
 __end_pgm;
 
+/** Entry point for Curses Keys test */
 int main(int argc, char **argv) {
-    /// Entry point for Curses Keys test
     __atexit;
     int rc;
     capture_shell_tioctl();

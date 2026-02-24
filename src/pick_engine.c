@@ -75,13 +75,13 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             return (1);
         }
         if (pid == 0) {
-            /// Spawn Child to execute provider_cmd
-            /// Close read end of pipe as Child only needs to write to pipe
+            /** Spawn Child to execute provider_cmd
+                Close read end of pipe as Child only needs to write to pipe */
             close(pipe_fd[P_READ]);
-            /// Connect CHILD STDOUT to write end of pipe
+            /** Connect CHILD STDOUT to write end of pipe */
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
             dup2(pipe_fd[P_WRITE], STDERR_FILENO);
-            /// STDOUT attached to write end of pipe, so close pipe fd
+            /** STDOUT attached to write end of pipe, so close pipe fd */
             close(pipe_fd[P_WRITE]);
             execvp(s_argv[0], s_argv);
             m = MAXLEN - 24;
@@ -91,10 +91,10 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
-        /// Return to Parent
-        /// Close write end of pipe as Parent only needs to read from pipe
+        /** Return to Parent
+            Close write end of pipe as Parent only needs to read from pipe */
         close(pipe_fd[P_WRITE]);
-        /// Open a file pointer on read end of pipe
+        /** Open a file pointer on read end of pipe */
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
         pick->f_in_pipe = true;
     } else {
@@ -106,7 +106,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         }
     }
     if (!pick->f_in_pipe) {
-        /// No provider_cmd specified, so read pick input from file or stdin
+        /** No provider_cmd specified, so read pick input from file or stdin */
         if (lstat(pick->in_spec, &sb) == -1) {
             m = MAXLEN - 29;
             strnz__cpy(tmp_str, "Can\'t stat pick input file: ", m);
@@ -134,7 +134,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     }
     read_pick_input(init);
     if (pick->f_in_pipe && pid > 0) {
-        /// Wait for provider_cmd child process to finish before proceeding
+        /** Wait for provider_cmd child process to finish before proceeding */
         waitpid(pid, NULL, 0);
         close(pipe_fd[P_READ]);
         dup2(sio->stdin_fd, STDIN_FILENO);
@@ -148,7 +148,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         destroy_pick(init);
         return (1);
     }
-    /// Enter pick_engine
+    /** Enter pick_engine */
     pick_engine(init);
     win_del();
     destroy_pick(init);
@@ -196,7 +196,7 @@ int read_pick_input(Init *init) {
    returns -1.
    @note If user accepts selection, returns count of selected objects. */
 int pick_engine(Init *init) {
-    /// Initialize window and data structures
+    /** Initialize window and data structures */
     int n, chyron_l, rc;
     int maxy, maxx, win_maxy, win_maxx;
 
@@ -211,8 +211,8 @@ int pick_engine(Init *init) {
     strnz__cpy(key_cmd[14].text, "Enter", 32);
     chyron_l = chyron_mk(key_cmd, pick->chyron_s);
     getmaxyx(stdscr, maxy, maxx);
-    /// Calculate pick window size and position based on terminal size and pick
-    /// parameters
+    /** Calculate pick window size and position based on terminal size and pick
+        parameters */
     win_maxy = (maxy * 8) / 10;
     if (win_maxy > (maxy - pick->begy) - 2)
         win_maxy = (maxy - pick->begy) - 2;
@@ -251,7 +251,7 @@ int pick_engine(Init *init) {
     pick->obj_idx = 0;
     pick->x = 1;
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
-    /// Enter picker loop to handle user input and interactions
+    /** Enter picker loop to handle user input and interactions */
     picker(init);
     if (pick->select_cnt > 0) {
         if (pick->f_out_spec && pick->out_spec[0])
@@ -269,9 +269,6 @@ int pick_engine(Init *init) {
    necessary and marks the object as not selected. Increments the object index
    for the next object to be saved. */
 void save_object(Pick *pick, char *s) {
-    /// Save object string into pick structure
-    /// @param pick Pointer to Pick structure
-    /// @param s String to save
     int l;
 
     if (pick->obj_idx < OBJ_MAXCNT - 1) {
@@ -301,9 +298,6 @@ void save_object(Pick *pick, char *s) {
     @note If the user accepts the selection, returns the count of selected
    objects. */
 int picker(Init *init) {
-    /// Main loop to handle user input and interactions for pick interface
-    /// @param init Pointer to Init structure
-    /// @return Number of selected objects or -1 if user cancels
     int cmd_key;
     int display_tbl_page;
 
@@ -365,7 +359,7 @@ int picker(Init *init) {
         case KEY_RIGHT:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
-            /// pick->obj_idx += pick->tbl_lines -> next column
+            /** pick->obj_idx += pick->tbl_lines -> next column */
             if (pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                         (pick->tbl_col + 1) * pick->pg_lines + pick->tbl_line <
                     pick->obj_cnt - 1 &&
@@ -396,7 +390,7 @@ int picker(Init *init) {
         case KEY_DOWN:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
-            /// pick->obj_idx++ column down
+            /** pick->obj_idx++ column down */
             if (pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                         pick->tbl_col * pick->pg_lines + pick->tbl_line <
                     pick->obj_cnt - 1 &&
@@ -410,8 +404,8 @@ int picker(Init *init) {
             /** 'k' or KEY_UP Moves selection to previous object in list */
         case 'k':
         case KEY_UP:
-            /// KEY_UP or 'k' Moves selection to previous object in list
-            /// pick->obj_idx-- column up
+            /** KEY_UP or 'k' Moves selection to previous object in list
+                pick->obj_idx-- column up */
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             if (pick->tbl_line > 0)
@@ -424,7 +418,7 @@ int picker(Init *init) {
         /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects, */
         case KEY_NPAGE:
         case '\06':
-            /// KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects
+            /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects */
             if (pick->tbl_page < pick->tbl_pages - 1) {
                 pick->tbl_page++;
                 pick->pg_line = 0;
@@ -440,8 +434,8 @@ int picker(Init *init) {
              * objects */
         case KEY_PPAGE:
         case '\02':
-            /// KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
-            /// objects
+            /** KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
+                objects */
             if (pick->tbl_page > 0)
                 pick->tbl_page--;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
@@ -531,7 +525,6 @@ int picker(Init *init) {
    asterisk. Updates the chyron with page information at the bottom of the pick
    window. */
 void display_page(Pick *pick) {
-    /// Displays current page of objects in pick window
     int y, col, pidx;
     for (y = 0; y < pick->pg_lines; y++) {
         wmove(pick->win, y, 0);
@@ -600,7 +593,6 @@ void reverse_object(Pick *pick) {
    the cursor back to the position before the object text for potential further
    interactions. */
 void unreverse_object(Pick *pick) {
-    /// Unreverses the display of the currently selected object in pick window
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
@@ -621,8 +613,6 @@ void unreverse_object(Pick *pick) {
    the pick window to show the updated display. Moves the cursor back to the
    position before the object text for potential further interactions. */
 void toggle_object(Pick *pick) {
-    /// Toggles the selection state of the currently selected object in pick
-    /// window
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     if (pick->f_selected[pick->obj_idx]) {
         pick->select_cnt--;
@@ -643,7 +633,6 @@ void toggle_object(Pick *pick) {
    file, one per line, and the file is closed before returning 0.
 */
 int output_objects(Pick *pick) {
-    /// Outputs selected objects to specified output file
     int m;
     if ((pick->out_fp = fopen(pick->out_spec, "w")) == NULL) {
         m = MAXLEN - 30;
@@ -786,8 +775,8 @@ int exec_objects(Init *init) {
     base_name(tmp_str, sav_arg);
     if (tmp_str[0] != '\0' &&
         (strcmp(tmp_str, "view") == 0 || strcmp(tmp_str, "mview") == 0)) {
-        /// initialize mview arguments and execute mview to display command
-        /// output within pick interface
+        /** initialize mview arguments and execute mview to display command
+            output within pick interface */
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
         init->lines = 60;
@@ -808,7 +797,7 @@ int exec_objects(Init *init) {
         return 0;
     } else {
         if ((pid = fork()) == -1) {
-            // fork failed, free margv and return error
+            /** fork failed, free margv and return error */
             i = 0;
             while (i < margc) {
                 if (margv[i] != NULL)
@@ -819,10 +808,10 @@ int exec_objects(Init *init) {
             return (1);
         }
         if (pid == 0) {
-            /// Child process to execute command
+            /** Child process to execute command */
             execvp(margv[0], margv);
-            /// If execvp returns, it means execution failed, so free margv and
-            /// print error message before exiting
+            /** If execvp returns, it means execution failed, so free margv and
+                print error message before exiting */
             strnz__cpy(tmp_str, "Can't exec pick cmd: ", MAXLEN - 1);
             strnz__cat(tmp_str, margv[0], MAXLEN - 1);
             Perror(tmp_str);

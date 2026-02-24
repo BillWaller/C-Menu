@@ -725,7 +725,7 @@ int get_cmd_arg(View *view, char *prompt) {
             Perror("Error refreshing screen");
         c = xwgetch(view->win);
         switch (c) {
-        /// Basic Editing Keys for Command Line
+        /** Basic Editing Keys for Command Line */
         case KEY_LEFT:
         case KEY_BACKSPACE:
         case '\b':
@@ -897,9 +897,9 @@ void cat_file(View *view) {
         putchar(c);
     }
 }
-/** @brief Send File to Print Queue */
+/** @brief Send File to Print Queue
+ *  @param PrintFile - file to print */
 void lp(char *PrintFile) {
-    /// Send File to Print Queue
     char *print_cmd_ptr;
     char shell_cmd_spec[MAXLEN];
     print_cmd_ptr = getenv("PRINTCMD");
@@ -958,9 +958,11 @@ int go_to_line(View *view, off_t line_idx) {
     prev_page(view);
     return 0;
 }
-/** @brief Go to Percent of File */
+/** @brief Go to Percent of File
+    @param view data structure
+    @param percent of file
+*/
 void go_to_percent(View *view, int Percent) {
-    /// Go to Percent of File
     int c = 0;
     if (view->file_size < 0) {
         Perror("Cannot determine file length");
@@ -1137,8 +1139,10 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     }
     /** Update view positions and prepare prompt with match info */
     view->file_pos = view->srch_curr_pos;
+    // if (*search_cmd == '/')
     view->page_bot_pos = view->srch_curr_pos;
-#define DEBUG
+    // else
+    //     view->page_top_pos = view->srch_curr_pos;
 #ifdef DEBUG
     /** Statistics for debugging */
     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,

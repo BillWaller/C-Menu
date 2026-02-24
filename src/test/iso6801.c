@@ -12,9 +12,9 @@
 #include <time.h>
 
 /** This program prints the current time in ISO 6801 format. If the first
- * argument is "-l", it prints the local time with the timezone offset.
- * Otherwise, it prints the UTC time with a "Z" suffix. The output format is UTC
- * "YYYY-MM-DDTHH:MM:SSZ" LOCAL "YYYY-MM-DDTHH:MM:SS±hhmm" */
+   argument is "-l", it prints the local time with the timezone offset.
+   Otherwise, it prints the UTC time with a "Z" (Zulu) suffix. The output format
+   is UTC "YYYY-MM-DDTHH:MM:SSZ", LOCAL "YYYY-MM-DDTHH:MM:SS±hhmm" */
 
 int main(int argc, char **argv) {
     char buf[100];

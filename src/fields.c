@@ -194,7 +194,7 @@ int form_accept_field(Form *form) {
                 if (!wenclose(form->win, event.y, event.x))
                     continue;
                 wmouse_trafo(form->win, &event.y, &event.x, false);
-                /// translate mouse position to field position
+                /** translate mouse position to field position */
                 if (event.y == form->lines - 1)
                     in_key = get_chyron_key(key_cmd, event.x);
             }
@@ -314,7 +314,6 @@ int form_accept_field(Form *form) {
    permanently changing the form's current field index.
  */
 int form_display_field_n(Form *form, int n) {
-    /// Display field n
     int fidx = form->fidx;
     form->fidx = n;
     form_display_field(form);
@@ -332,7 +331,6 @@ int form_display_field_n(Form *form, int n) {
    show the updated field content.
  */
 int form_display_field(Form *form) {
-    /// Display current field
     WINDOW *win = form->win;
     int flin = form->field[form->fidx]->line;
     int fcol = form->field[form->fidx]->col;
@@ -352,9 +350,6 @@ int form_display_field(Form *form) {
    of the field. The display is refreshed to show the brackets around the field.
  */
 int form_display_field_brackets(Form *form) {
-    /// Display field brackets if set
-    /// @param form Pointer to Form structure
-    /// @return 0 on success, non-zero on error
     int flin, fcol;
     if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
         WINDOW *box = form->box;

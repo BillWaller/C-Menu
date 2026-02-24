@@ -29,7 +29,6 @@ bool set_sane_tioctl(struct termios *);
 bool mk_raw_tioctl(struct termios *);
 char di_getch();
 
-/// Terminal IOCTL structures
 struct termios shell_tioctl, curses_tioctl;
 struct termios shell_in_tioctl, curses_in_tioctl;
 struct termios shell_out_tioctl, curses_out_tioctl;

@@ -122,9 +122,9 @@ unsigned int menu_cmd_processor(Init *init) {
             }
         }
         return (MA_ENTER_OPTION);
+        /** Move down to the next menu choice */
     case 'j':
     case KEY_DOWN:
-        /// Move down to the next menu choice
         i = menu->line_idx;
         while (i < menu->item_count - 1) {
             i++;

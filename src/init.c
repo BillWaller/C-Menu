@@ -631,9 +631,6 @@ int parse_config(Init *init) {
     @note Returns PT_NONE for unrecognized prompt type strings
  */
 int prompt_str_to_int(char *s) {
-    /// Convert prompt type string to integer constant
-    /// @param s - prompt type string
-    /// returns prompt type integer constant
     int prompt_type;
     str_to_lower(s);
     if (strcmp(s, "short") == 0)
@@ -823,7 +820,6 @@ void display_version() {
    called. After displaying the usage information, the function waits for the
    user to press any key before returning. */
 void usage() {
-    /// Display usage prompt and wait for user input
     (void)fprintf(stderr, "\n\nPress any key to continue...");
     di_getch();
 }

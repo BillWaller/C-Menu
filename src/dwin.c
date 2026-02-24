@@ -111,16 +111,16 @@ double GREEN_GAMMA =
 double BLUE_GAMMA =
     1.2; /**< Gamma correction value for blue colors. Set in .minitrc */
 
-/// key_cmd
-/// Function key command table
-/// @note This table will be used to create the chyron
-/// @note The end_pos values are set in chyron_mk
-/// @note The keycode values are used in get_chyron_key
-/// @note If text is "", the key is not processed
-/// @note The keycode values use NCurses key definitions
-/// @note The table can be modified on the fly using set_fkey and unset_fkey
-/// @note The table can be extended to 20 function keys if needed
-/// @see set_fkey
+/** key_cmd
+    Function key command table
+    @note This table will be used to create the chyron
+    @note The end_pos values are set in chyron_mk
+    @note The keycode values are used in get_chyron_key
+    @note If text is "", the key is not processed
+    @note The keycode values use NCurses key definitions
+    @note The table can be modified on the fly using set_fkey and unset_fkey
+    @note The table can be extended to 20 function keys if needed
+    @see set_fkey */
 key_cmd_tbl key_cmd[20] = {
     {"", KEY_F(0), 0},
     {"F1 Help", KEY_F(1), 0},
@@ -174,7 +174,7 @@ int clr_pair_cnt = 1;
 cchar_t CCC_NORM;
 cchar_t CCC_BOX;
 cchar_t CCC_REVERSE;
-/// Global file/pipe numbers
+/** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 
 /** @brief Initialize window attributes
@@ -281,10 +281,10 @@ bool open_curses(SIO *sio) {
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    /// save stdin and stdout file descriptors
+    /** save stdin and stdout file descriptors */
     sio->stdin_fd = dup(STDIN_FILENO);
     sio->stdout_fd = dup(STDOUT_FILENO);
-    /// open the terminal device for reading and writing
+    /** open the terminal device for reading and writing */
     sio->tty_fp = fopen(sio->tty_name, "r+");
     if (sio->tty_fp == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -293,10 +293,10 @@ bool open_curses(SIO *sio) {
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    /// Attach the terminal descriptor to the STDERR_FILENO
+    /** Attach the terminal descriptor to the STDERR_FILENO */
     dup2(fileno(sio->tty_fp), STDERR_FILENO);
-    /// We use SCREEN and newterm because this allows us to
-    /// specify the terminal FILE
+    /** We use SCREEN and newterm because this allows us to */
+    /** specify the terminal FILE */
     SCREEN *screen = newterm(NULL, sio->tty_fp, sio->tty_fp);
     if (screen == NULL) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -320,9 +320,9 @@ bool open_curses(SIO *sio) {
         abend(-1, "fatal error");
     }
     init_clr_palette(sio);
-    /// Set gamma correction values
-    /// These are read from ~/.minitrc
-    /// We need these values when initializing colors
+    /** Set gamma correction values */
+    /** These are read from ~/.minitrc */
+    /** We need these values when initializing colors */
     RED_GAMMA = sio->red_gamma;
     GREEN_GAMMA = sio->green_gamma;
     BLUE_GAMMA = sio->blue_gamma;
@@ -434,9 +434,9 @@ int rgb_to_xterm256_idx(RGB *rgb) {
    first checks if the index is in the standard 16 colors, then checks if it's
    in the 6x6x6 color cube, and finally checks if it's in the gray ramp. */
 RGB xterm256_idx_to_rgb(int idx) {
-    /// Convert XTerm 256 color index to RGB
-    /// @param idx - XTerm 256 color index
-    /// @return RGB struct
+    /** Convert XTerm 256 color index to RGB
+        @param idx - XTerm 256 color index
+        @return RGB struct */
     RGB rgb;
     if (idx > 255)
         idx = 255;
@@ -539,10 +539,6 @@ bool init_clr_palette(SIO *sio) {
    array for reference.
     */
 void init_hex_clr(int idx, char *s) {
-    /// Create extended ncurses color from HTML style hex string
-    /// @param idx Color index
-    /// @param s Hex color string
-    /// @note NCursesw uses 0-1000 for RGB values
     RGB rgb;
     rgb = hex_clr_str_to_rgb(s);
     apply_gamma(&rgb);

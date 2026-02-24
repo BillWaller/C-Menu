@@ -1,19 +1,19 @@
 /** @file color.c
- * @brief Test program for xterm 256-color to RGB conversion and vice versa.
- * @details This program defines two functions: `xterm256_to_rgb` to convert an
- * xterm 256-color code to its corresponding RGB color, and `rgb_to_xterm256` to
- * convert an RGB color to the nearest xterm 256-color code. The main function
- * tests these conversions by iterating through all 256 xterm color codes,
- * converting them to RGB, and then converting back to xterm codes, printing the
- * results.
- * @author OpenAI's ChatGPT
- * @date 2024-06
+   @brief Test program for xterm 256-color to RGB conversion and vice versa.
+   @details This program defines two functions: `xterm256_to_rgb` to convert an
+   xterm 256-color code to its corresponding RGB color, and `rgb_to_xterm256` to
+   convert an RGB color to the nearest xterm 256-color code. The main function
+   tests these conversions by iterating through all 256 xterm color codes,
+   converting them to RGB, and then converting back to xterm codes, printing the
+   results.
+   @author Bill Waller
+   @date 2025-12
  */
 
 #include <stdio.h>
 
 /** @struct RGB
- * @brief Represents an RGB color with 8-bit components.
+   @brief Represents an RGB color with 8-bit components.
  */
 typedef struct {
     unsigned char r;
@@ -22,13 +22,16 @@ typedef struct {
 } RGB;
 
 /** @brief Converts an xterm 256-color code to its corresponding RGB color.
- * @param code The xterm 256-color code (0-255).
- * @return An RGB struct representing the corresponding color.
+   @param code The xterm 256-color code (0-255).
+   @return An RGB struct representing the corresponding color.
+    16 color standard palette
+   216 color xterm cube
+    24 color grayscale
  */
 RGB xterm256_to_rgb(int code) {
     RGB color;
     if (code < 16) {
-        // Standard colors
+        /** 16 color standard palette */
         static const RGB standard_colors[16] = {
             {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
             {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
@@ -36,7 +39,7 @@ RGB xterm256_to_rgb(int code) {
             {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
         color = standard_colors[code];
     } else if (code >= 16 && code <= 231) {
-        // 6x6x6 color cube
+        /** 216 (6x6x6) color xterm cube */
         int index = code - 16;
         int r = (index / 36) % 6;
         int g = (index / 6) % 6;
@@ -54,7 +57,7 @@ RGB xterm256_to_rgb(int code) {
         else
             color.b = 0;
     } else if (code >= 232 && code <= 255) {
-        // Grayscale colors
+        /** 24 color grayscale */
         int gray = (code - 232) * 10 + 8;
         color.r = gray;
         color.g = gray;
@@ -67,11 +70,10 @@ RGB xterm256_to_rgb(int code) {
 }
 
 /** @brief Converts an RGB color to the nearest xterm 256-color code.
- * @param r The red component (0-255).
- * @param g The green component (0-255).
- * @param b The blue component (0-255).
- * @return The nearest xterm 256-color code (0-255).
- */
+   @param r The red component (0-255).
+   @param g The green component (0-255).
+   @param b The blue component (0-255).
+   @return The nearest xterm 256-color code (0-255). */
 int rgb_to_xterm256(unsigned char r, unsigned char g, unsigned char b) {
     if (r == g && g == b) {
         if (r < 8)
@@ -80,7 +82,7 @@ int rgb_to_xterm256(unsigned char r, unsigned char g, unsigned char b) {
             return 231;
         return ((r - 8) / 10) + 232;
     } else {
-        // Color cube
+        /** xterm Color cube */
         int r_index = (r < 45) ? 0 : (r - 60) / 40 + 1;
         int g_index = (g < 45) ? 0 : (g - 60) / 40 + 1;
         int b_index = (b < 45) ? 0 : (b - 60) / 40 + 1;
