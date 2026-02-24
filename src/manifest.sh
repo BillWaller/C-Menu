@@ -20,6 +20,7 @@ else
             LS=$(awk '{print $2}' manifest.txt)
         else
             echo no manifest.txt or install_manifest.txt
+            exit 1
         fi
     fi
 fi

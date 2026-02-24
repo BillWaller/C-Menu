@@ -1008,6 +1008,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     regmatch_t pmatch[1];
     regex_t compiled_regex;
     int reti;
+    off_t prev_srch_pos;
     int line_offset;
     int line_len;
     int match_len;
@@ -1047,6 +1048,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             }
         }
         /** get line to scan */
+        prev_srch_pos = view->srch_curr_pos;
         if (*search_cmd == '/') {
             if (view->cury == view->scroll_lines)
                 return true;
@@ -1085,10 +1087,13 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         }
         /** Display matching lines */
         if (!f_page) {
-            if (*search_cmd == '/')
+            if (*search_cmd == '/') {
+                view->page_top_pos = prev_srch_pos;
                 wmove(view->win, view->cury, 0);
-            else
+            } else {
+                view->page_bot_pos = prev_srch_pos;
                 wmove(view->win, 0, 0);
+            }
             wclrtobot(view->win);
             f_page = true;
         }
@@ -1140,7 +1145,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     /** Update view positions and prepare prompt with match info */
     view->file_pos = view->srch_curr_pos;
     // if (*search_cmd == '/')
-    view->page_bot_pos = view->srch_curr_pos;
+    // view->page_bot_pos = view->srch_curr_pos;
     // else
     //     view->page_top_pos = view->srch_curr_pos;
 #ifdef DEBUG

@@ -780,8 +780,8 @@ int exec_objects(Init *init) {
         zero_opt_args(init);
         parse_opt_args(init, margc, margv);
         init->lines = 60;
-        init->cols = 70;
-        init->begy = pick->begy + 1;
+        init->cols = 80;
+        init->begy = pick->begy + 2;
         init->begx = pick->begx + 1;
         if (title[0] != '\0')
             strnz__cpy(init->title, title, MAXLEN - 1);
