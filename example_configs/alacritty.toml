@@ -1,4 +1,4 @@
-# $HOME/.config/alacritty/alacritty.toml
+# /home/bill/.config/alacritty/alacritty.toml
 # Bill Waller
 
 [terminal.shell]
@@ -8,47 +8,47 @@ program = "/usr/local/bin/xsh"
 
 # import = [
 #     "~/.config/alacritty/fonts/default_font",
-#     "~/.config/alacritty/themes/default_theme.toml",
-# ]
-
+# BEGIN_ALACRITTY_FONT
 [font]
 normal = { family = "JetBrainsMono NFM", style = "Medium" }
 bold = { family = "JetBrainsMono NFM", style = "ExtraBold" }
 italic = { family = "JetBrainsMono NFM", style = "Italic" }
 bold_italic = { family = "JetBrainsMono NFM", style = "Bold Italic" }
-size = 15
-
-# dynamic_title = true
-# decorations = "Full"
-# decorations_theme_variant = "Dark"
-
-[window]
-dimensions = { columns = 95, lines = 50 }
-
-[scrolling]
-history = 10000
-
+# END_ALACRITTY_FONT
+#     "~/.config/alacritty/themes/default_theme.toml",
 [colors.primary]
 background  = '#000000'
 foreground  = '#c0c0c0'
 
 [colors.normal]
 black       = '#000000'
-red         = '#FF0000'
-green       = '#00FF8f'
-yellow      = '#FFc700'
-blue        = '#009FFF'
-magenta     = '#e070e0'
-cyan        = '#00CFDF'
-white       = '#FF7f00'
+red         = '#ff2f00'
+green       = '#4ff07f'
+yellow      = '#ffef4f'
+blue        = '#5fafff'
+magenta     = '#f077f0'
+cyan        = '#8fdfff'
+white       = '#ff5f00'
 [colors.bright]
-black       = '#7f7f7f'
-red         = '#FF7F00'
+black       = '#bfbfbf'
+red         = '#ff5f00'
 green       = '#00FFa0'
-yellow      = '#FFEf00'
-blue        = '#0000FF'
+yellow      = '#FFcf00'
+blue        = '#005fff'
 magenta     = '#FF00FF'
 cyan        = '#00ffff'
-white       = '#FFFFFF'
+white       = '#e0d0d0'
+# ]
 
-[terminal]
+[font]
+size = 17
+
+# dynamic_title = true
+# decorations = "Full"
+# decorations_theme_variant = "Dark"
+
+[window]
+dimensions = { columns = 95, lines = 67 }
+
+[scrolling]
+history = 10000

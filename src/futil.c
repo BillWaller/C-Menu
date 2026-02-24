@@ -29,7 +29,7 @@
 #define RECURSE 0x02 /**< recursively search subdirectories */
 #define ICASE 0x04   /**< case-insensitive regular expression matching */
 
-bool list_files(char *, char *, bool);
+bool list_files(char *, char *, int, bool);
 bool lf_find_dirs(char *, char *, int, int);
 bool lf_find_files(char *, char *, int);
 size_t strip_ansi(char *, char *);
@@ -893,14 +893,13 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
    recursing into subdirectories.
      @param dir - directory to list files from
      @param regexp - regular expression to match files
-     @param f_recurse - true to recurse into subdirectories */
-bool list_files(char *dir, char *regexp, bool f_recurse) {
-    int flags = RECURSE;
-    int depth = 3;
+     @param depth - how many directories to descend into
+     @param flags - ALL, RECURSE */
+bool list_files(char *dir, char *regexp, int depth, bool flags) {
     if (dir == NULL || *dir == '\0' || regexp == NULL || *regexp == '\0')
         return false;
     normalize_file_spec(dir);
-    if (f_recurse) {
+    if (flags & RECURSE) {
         lf_find_files(dir, regexp, flags);
         lf_find_dirs(dir, regexp, depth, flags);
     } else {
@@ -915,16 +914,14 @@ bool list_files(char *dir, char *regexp, bool f_recurse) {
     @param depth current recursion depth
     @param flags search flags
     return      true if successful, false otherwise */
-bool lf_find_dirs(char *dir, char *re, int depth, int flags) {
+bool lf_find_dirs(char *dir, char *re, int max_depth, int flags) {
     struct stat sb;
     struct dirent *dir_st;
+    int depth = 0;
     DIR *dirp;
     char dir_s[MAXLEN];
     char file_spec[MAXLEN];
 
-    if (depth == MAX_DEPTH)
-        return true;
-    depth++;
     if ((dirp = opendir(dir)) == 0)
         return false;
     dir_st = readdir(dirp);
@@ -942,32 +939,15 @@ bool lf_find_dirs(char *dir, char *re, int depth, int flags) {
                 strnz__cpy(dir_s, file_spec, MAXLEN - 1);
                 lf_find_files(dir_s, re, flags);
                 lf_find_dirs(dir_s, re, depth, flags);
+                depth++;
             }
         }
-        dir_st = readdir(dirp);
+        if (depth < max_depth)
+            dir_st = readdir(dirp);
+        else
+            break;
     }
     closedir(dirp);
-    depth--;
-    return true;
-}
-/** @brief If directory doesn't exist, make it
-    @param dir directory name
-    @return true if directory now exists or false otherwise */
-bool mk_dir(char *dir) {
-    expand_tilde(dir, MAXLEN - 1);
-    if (!verify_dir(dir, S_WCOK | S_QUIET)) {
-        if (!mkdir(dir, 0755)) {
-            /** Directory does not exist and unable to create */
-            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-            strnz__cpy(em1, "mkdir ", MAXLEN - 1);
-            strnz__cat(em1, dir, MAXLEN - 1);
-            strnz__cat(em1, " failed", MAXLEN - 1);
-            strerror_r(errno, em2, MAXLEN - 1);
-            display_error(em0, em1, em2, NULL);
-            return false;
-        }
-        return true;
-    }
     return true;
 }
 /** @brief Find files in a directory matching a regular expression
@@ -998,41 +978,58 @@ bool lf_find_files(char *dir, char *re, int flags) {
         return false;
     dir_st = readdir(dirp);
     while (dir_st != NULL) {
-        if (dir_st->d_ino != 0 && strcmp(dir_st->d_name, ".") != 0 &&
+        if (strcmp(dir_st->d_name, ".") != 0 &&
             strcmp(dir_st->d_name, "..") != 0) {
             strnz__cpy(file_spec, dir, MAXLEN - 1);
             if (file_spec[strlen(file_spec) - 1] != '/')
                 strnz__cat(file_spec, "/", MAXLEN - 1);
             strnz__cat(file_spec, dir_st->d_name, MAXLEN - 1);
-            if (stat(file_spec, &sb) == -1) {
-                // strnz__cpy(tmp_str, "can't stat ", MAXLEN - 1);
-                // strnz__cat(tmp_str, file_spec, MAXLEN - 1);
-                // perror(tmp_str);
+            if (stat(file_spec, &sb) == -1)
                 return false;
-            }
-            if ((sb.st_mode & S_IFMT) == S_IFDIR)
-                strnz__cat(file_spec, "/", MAXLEN - 1);
-            reti = regexec(&compiled_re, file_spec, compiled_re.re_nsub + 1,
-                           pmatch, REG_FLAGS);
-            if (reti == REG_NOMATCH) {
-                // no match
-            } else if (reti) {
-                char msgbuf[100];
-                regerror(reti, &compiled_re, msgbuf, sizeof(msgbuf));
-                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
-                strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
-                perror(tmp_str);
-                return false;
-            } else {
-                file_spec_p = file_spec;
-                if (file_spec[0] == '.' && file_spec[1] == '/')
-                    file_spec_p += 2;
-                printf("%s\n", file_spec_p);
+            if ((sb.st_mode & S_IFMT) != S_IFDIR && dir_st->d_ino != 0) {
+                reti = regexec(&compiled_re, file_spec, compiled_re.re_nsub + 1,
+                               pmatch, REG_FLAGS);
+                if (reti == REG_NOMATCH) {
+                    // no match
+                } else if (reti) {
+                    char msgbuf[100];
+                    regerror(reti, &compiled_re, msgbuf, sizeof(msgbuf));
+                    strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+                    strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
+                    perror(tmp_str);
+                    return false;
+                } else {
+                    file_spec_p = file_spec;
+                    if (file_spec[0] == '.' && file_spec[1] == '/')
+                        file_spec_p += 2;
+                    if (*file_spec_p != '.' || (flags & ALL))
+                        printf("%s\n", file_spec_p);
+                }
             }
         }
         dir_st = readdir(dirp);
     }
     closedir(dirp);
+    return true;
+}
+/** @brief If directory doesn't exist, make it
+    @param dir directory name
+    @return true if directory now exists or false otherwise */
+bool mk_dir(char *dir) {
+    expand_tilde(dir, MAXLEN - 1);
+    if (!verify_dir(dir, S_WCOK | S_QUIET)) {
+        if (!mkdir(dir, 0755)) {
+            /** Directory does not exist and unable to create */
+            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+            strnz__cpy(em1, "mkdir ", MAXLEN - 1);
+            strnz__cat(em1, dir, MAXLEN - 1);
+            strnz__cat(em1, " failed", MAXLEN - 1);
+            strerror_r(errno, em2, MAXLEN - 1);
+            display_error(em0, em1, em2, NULL);
+            return false;
+        }
+        return true;
+    }
     return true;
 }
 /**  @brief Removes quotes and trims at first space
