@@ -182,7 +182,7 @@ bool view_init_input(View *view, char *file_name) {
         if (view->f_in_pipe)
             view->in_fd = dup(STDIN_FILENO);
         else {
-            /// Open the input file for reading and get its size.
+            /** Open the input file for reading and get its size. */
             expand_tilde(file_name, MAXLEN - 1);
             view->in_fd = open(file_name, O_RDONLY);
             if (view->in_fd == -1) {

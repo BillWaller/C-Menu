@@ -195,9 +195,6 @@ bool str_to_lower(char *s) {
     @param s - string to convert
     @returns true if successful, false if s is NULL or empty */
 bool str_to_upper(char *s) {
-    /// Converts a string to uppercase in place.
-    ///  @param s - string to convert
-    ///  @returns true if successful, false if s is NULL or empty
     if (s == NULL || *s == '\0')
         return false;
     while (*s != '\0') {
@@ -409,9 +406,6 @@ bool strip_quotes(char *s) {
     @returns true if quotes were removed
     @note Same as STRIP_QUOTES but returns true if quotes were removed */
 bool stripz_quotes(char *s) {
-    ///  @param s - string to strip quotes from
-    ///  removes leading and trailing double quotes if present
-    ///  @note Same as STRIP_QUOTES but returns true if quotes were removed
     if (s == NULL || strlen(s) < 2)
         return false;
     int l = strlen(s);
@@ -674,7 +668,6 @@ bool trim_path(char *dir) {
     @note The caller is responsible for ensuring that "buf" has enough space to
    receive the result. */
 bool trim_ext(char *buf, char *filename) {
-    ///  @returns true if successful
     if (!filename || !*filename || !buf)
         return false;
     char *s = filename;

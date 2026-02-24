@@ -35,9 +35,6 @@ char tmp_str[MAXLEN];
        -v        show version information
  */
 int main(int argc, char **argv) {
-    /// list files matching a regular expression.
-    /// Usage: lf [options] [directory] [regexp]
-    /// Options:
     char dir[MAXLEN] = "";
     char re[MAXLEN] = "";
     bool f_help = false;

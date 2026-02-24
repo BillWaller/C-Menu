@@ -89,7 +89,6 @@ Init *new_init(int argc, char **argv) {
     @returns NULL
  */
 Init *destroy_init(Init *init) {
-    /// Destroy Init structure
     int i;
     if (!init)
         return NULL;
@@ -142,7 +141,6 @@ Init *destroy_init(Init *init) {
     @param begy, begx - initial position of menu window
  */
 Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
-    /// Create Menu structure
     init->menu = (Menu *)calloc(1, sizeof(Menu));
     if (!init->menu) {
         abend(-1, "calloc menu failed");
@@ -163,7 +161,6 @@ Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
     @return NULL
  */
 Menu *destroy_menu(Init *init) {
-    /// Destroy Menu structure
     if (!init->menu)
         return (NULL);
     free(init->menu);
@@ -181,7 +178,6 @@ Menu *destroy_menu(Init *init) {
     @param begy, begx - initial position of pick window
  */
 Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
-    /// Create and initialize Pick structure
     init->pick = (Pick *)calloc(1, sizeof(Pick));
     if (!init->pick) {
         Perror("calloc pick failed");
@@ -211,7 +207,6 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
     @return NULL
  */
 Pick *destroy_pick(Init *init) {
-    /// Destroy Pick structure
     if (!init->pick)
         return NULL;
 
@@ -234,7 +229,6 @@ Pick *destroy_pick(Init *init) {
     @param begy, begx - initial position of form window
  */
 Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
-    /// Create and initialize Form structure
     init->form = (Form *)calloc(1, sizeof(Form));
     if (!init->form) {
         abend(-1, "calloc form failed");
@@ -257,7 +251,6 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
     @return NULL
  */
 Form *destroy_form(Init *init) {
-    /// Destroy Form structure
     int i;
 
     if (!init->form)
@@ -329,7 +322,6 @@ View *new_view(Init *init, int argc, char **argv) {
     @return NULL
  */
 View *destroy_view(Init *init) {
-    /// Destroy View structure
     int i;
     view = init->view;
     for (i = 0; i <= view->argc; i++)
@@ -382,7 +374,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
         if (try_spec[0] == '/') {
             f_spec = verify_file(try_spec, mode);
             if (f_quote)
-                /// preserve quotes
+                /** preserve quotes */
                 strnz__cpy(spec, org_spec, MAXLEN - 1);
             else
                 strnz__cpy(spec, try_spec, MAXLEN - 1);
@@ -440,7 +432,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                 }
             }
             if (f_quote)
-                /// preserve quotes
+                /** preserve quotes */
                 strnz__cpy(spec, org_spec, MAXLEN - 1);
             else if (f_spec)
                 strnz__cpy(spec, try_spec, MAXLEN - 1);

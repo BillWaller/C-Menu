@@ -134,7 +134,7 @@ unsigned int parse_menu_description(Init *init) {
             l = strlen(tmp_buf);
             if (l > menu->text_max_len)
                 menu->text_max_len = l;
-            if (!menu->title[0]) { /// in_buf -> Title
+            if (!menu->title[0]) { /**< in_buf -> Title */
                 if (l + 5 > MAXLEN)
                     l = MAXLEN - 5;
                 strnz__cpy(menu->title, tmp_buf, l);

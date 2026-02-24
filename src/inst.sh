@@ -27,7 +27,7 @@ list_installed() {
         # Don't double quote $LS below
         # Sometimes globbing and word-splitting is what you want.
         # If you double quote this, it will not work as intended.
-        lsd -Ul --icon-theme unicode $LS
+        lsd -Ul --color always --icon always --icon-theme unicode $LS
     else
         ls -Ul --color=always $LS
     fi
