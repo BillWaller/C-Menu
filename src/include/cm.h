@@ -578,6 +578,7 @@ extern int display_error(char *, char *, char *, char *);
 extern int display_ok_message(char *);
 extern int Perror(char *);
 extern void user_end();
+extern bool list_files(char *, char *, int, bool);
 extern bool lf_find_dirs(char *, char *, int, int);
 extern bool lf_find_files(char *, char *, int);
 extern size_t canonicalize_file_spec(char *);
