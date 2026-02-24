@@ -28,7 +28,7 @@ char tmp_str[MAXLEN];
      re Regular expression to match
      flags Flags to control behavior
        -a        List all files (including hidden files)
-       -d        maximum depth of subdirectories to examine
+       -d        maximum max_depth of subdirectories to examine
        -h        show this help message
        -i        ignore case in search
        -r        recurse into subdirectories
@@ -41,14 +41,14 @@ int main(int argc, char **argv) {
     bool f_version = false;
     int flags = 0;
     int opt;
-    int depth = MAX_DEPTH;
+    int max_depth = 3;
     while ((opt = getopt(argc, argv, "ad:hrv")) != -1) {
         switch (opt) {
         case 'a':
             flags |= ALL;
             break;
         case 'd':
-            depth = atoi(optarg);
+            max_depth = atoi(optarg);
             break;
         case 'h':
             f_help = true;
@@ -95,7 +95,8 @@ int main(int argc, char **argv) {
         strnz__cpy(dir, ".", MAXLEN - 1);
     if (flags & RECURSE) {
         lf_find_files(dir, re, flags);
-        lf_find_dirs(dir, re, depth, flags);
+        if (max_depth > 1)
+            lf_find_dirs(dir, re, max_depth, flags);
     } else {
         lf_find_files(dir, re, flags);
     }

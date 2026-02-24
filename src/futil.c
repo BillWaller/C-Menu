@@ -895,13 +895,14 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
      @param regexp - regular expression to match files
      @param depth - how many directories to descend into
      @param flags - ALL, RECURSE */
-bool list_files(char *dir, char *regexp, int depth, bool flags) {
+bool list_files(char *dir, char *regexp, int max_depth, bool flags) {
     if (dir == NULL || *dir == '\0' || regexp == NULL || *regexp == '\0')
         return false;
     normalize_file_spec(dir);
     if (flags & RECURSE) {
         lf_find_files(dir, regexp, flags);
-        lf_find_dirs(dir, regexp, depth, flags);
+        if (max_depth > 0)
+            lf_find_dirs(dir, regexp, max_depth, flags);
     } else {
         lf_find_files(dir, regexp, flags);
     }
@@ -917,7 +918,7 @@ bool list_files(char *dir, char *regexp, int depth, bool flags) {
 bool lf_find_dirs(char *dir, char *re, int max_depth, int flags) {
     struct stat sb;
     struct dirent *dir_st;
-    int depth = 0;
+    int depth = 1;
     DIR *dirp;
     char dir_s[MAXLEN];
     char file_spec[MAXLEN];
@@ -938,14 +939,11 @@ bool lf_find_dirs(char *dir, char *re, int max_depth, int flags) {
             if ((sb.st_mode & S_IFMT) == S_IFDIR) {
                 strnz__cpy(dir_s, file_spec, MAXLEN - 1);
                 lf_find_files(dir_s, re, flags);
-                lf_find_dirs(dir_s, re, depth, flags);
-                depth++;
+                if (depth++ < max_depth)
+                    lf_find_dirs(dir_s, re, max_depth, flags);
             }
         }
-        if (depth < max_depth)
-            dir_st = readdir(dirp);
-        else
-            break;
+        dir_st = readdir(dirp);
     }
     closedir(dirp);
     return true;
