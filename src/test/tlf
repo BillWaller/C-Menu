@@ -1,0 +1,3 @@
+# test lf depth
+
+gdb -x gdbcmds --args lf -r -d 3 /usr/local/src/cmenu '.*$'

@@ -340,7 +340,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
-        init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
+        init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 2);
         return (MA_DISPLAY_MENU);
         /** @brief Display a form associated with the selected menu choice */
     case CT_FORM:

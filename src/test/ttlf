@@ -1,0 +1,2 @@
+# test lf depth
+./lf -r -d 1 /usr/local/src/cmenu '.*$'
