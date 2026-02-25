@@ -46,11 +46,13 @@ View *view;
         init->mapp_bin   binary executables
     @endcode
     @note Initialize file specifications in priority order:
+    @code
     1 - Default values
     2 - Configuration file
     3 - Environment variables
     4 - Command line positional arguments
     5 - Command line option arguments
+    @endcode
  */
 Init *new_init(int argc, char **argv) {
     int i = 0;

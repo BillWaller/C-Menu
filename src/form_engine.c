@@ -380,9 +380,9 @@ int form_calculate(Init *init) {
     @return An integer status code indicating the next action for the form
     processing loop (e.g., P_ACCEPT, P_HELP, P_CALC, P_CANCEL).
     @note This function manages user input for field entry, including navigation
-        between fields and handling of special keys for accepting, canceling,
-        requesting help, or performing calculations. The function loops until
-        the user selects an exit action (e.g., accept or cancel). */
+   between fields and handling of special keys for accepting, canceling,
+   requesting help, or performing calculations. The function loops until the
+   user selects an exit action (e.g., accept or cancel). */
 int form_enter_fields(Form *form) {
 
     if (form->fidx < 0)
@@ -482,10 +482,10 @@ unsigned int form_display_screen(Init *init) {
 /** @brief Display form fields on the screen, populating field values and
     formatting them according to the form configuration.
     @param form A pointer to the Form structure containing form data and state.
-     This function iterates through the defined form fields, formats their
-    display values based on the specified fill character and field length, and
-    renders them on the form window. It also updates the chyron with available
-    commands for user interaction. */
+    @note This function iterates through the defined form fields, formats their
+   display values based on the specified fill character and field length, and
+   renders them on the form window. It also updates the chyron with available
+   commands for user interaction. */
 void form_display_fields(Form *form) {
     int n;
     char fill_char = form->fill_char[0];
@@ -526,8 +526,8 @@ void form_display_chyron(Form *form) {
    the description file.
     @param form A pointer to the Form structure containing form data and state.
     @return 0 on success, or a non-zero value if an error occurs while parsing
-    the description file (e.g., file not found, invalid format, missing
-    directives). */
+   the description file (e.g., file not found, invalid format, missing
+   directives). */
 int form_parse_desc(Form *form) {
     FILE *form_desc_fp;
     char *token;
@@ -857,25 +857,25 @@ int form_write(Form *form) {
 }
 /** @brief Display usage information for the form, including available options
    and commands, to assist users in understanding how to interact with the form.
-    This function generates a usage message based on the options defined for the
-    form and displays it to the user, typically when they request help or when
-   an error occurs. The usage information includes details about the form's
-    configuration, available commands, and how to navigate and interact with the
-    form fields. */
+    @note This function generates a usage message based on the options defined
+   for the form and displays it to the user, typically when they request help or
+   when an error occurs. The usage information includes details about the form's
+   configuration, available commands, and how to navigate and interact with the
+   form fields. */
 void form_usage() {
     dump_opts_by_use("Form: usage: ", "..f.");
     (void)fprintf(stderr, "\n");
     Perror("press any key to continue");
 }
 /** @brief Handle errors encountered while parsing the form description file,
-    providing detailed error messages that include the file name, line number,
-    and the specific error encountered.
+   providing detailed error messages that include the file name, line number,
+   and the specific error encountered.
     @param in_line_num The line number in the description file where the error
-    occurred.
+   occurred.
     @param in_buf The content of the line that caused the error, for context.
     @param em A specific error message describing the nature of the error.
     @return An integer status code indicating how the user responded to the
-    error message (e.g., which key they pressed to acknowledge the error). */
+   error message (e.g., which key they pressed to acknowledge the error). */
 int form_desc_error(int in_line_num, char *in_buf, char *em) {
     int cmd_key;
 

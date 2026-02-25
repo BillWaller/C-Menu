@@ -1,10 +1,10 @@
 /** @file form.c
- *  @brief Command Line Start-up for C-Menu Form
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Command Line Start-up for C-Menu Form
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include <common.h>

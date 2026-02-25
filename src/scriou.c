@@ -95,7 +95,7 @@ bool set_sane_tioctl(struct termios *t_p) {
     @note - unlike cfmakeraw(), this leaves ISIG enabled.
     @note - cfmakeraw() disables ISIG, which prevents C-MENU from handling
    signals like Ctrl-C. Instead of using cfmakeraw(), we manually set the
-    terminal to raw mode while leaving ISIG enabled.
+   terminal to raw mode while leaving ISIG enabled.
     @note - the following code is equivalent to cfmakeraw() but with ISIG left
    enabled:
     @code

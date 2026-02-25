@@ -112,9 +112,9 @@ int form_accept_field(Form *form) {
             x = fcol + (p - fstart);
             in_key = 0;
             continue;
-            /**< Enter accepts the field and moves to the next field
-                if form->f_erase_remainder is set, it will clear the remaining
-                characters above and after the current cursor location */
+            /**< Enter accepts the field and moves to the next field if
+             * form->f_erase_remainder is set, it will clear the remaining
+             * characters above and after the current cursor location */
         case '\n':
         case KEY_ENTER:
             if (form->f_erase_remainder)
@@ -207,7 +207,7 @@ int form_accept_field(Form *form) {
             case FF_STRING:
                 break;
                 /** FF_DECIMAL_INT accepts digits 0 through 9 and decimal point
-                    ('.') */
+                 * ('.') */
             case FF_DECIMAL_INT:
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.')
                     break;
@@ -215,7 +215,7 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
                 /** FF_HEX_INT accepts digits 0 through 9 and letters A through
-                    F (case-insensitive) */
+                 * F (case-insensitive) */
             case FF_HEX_INT:
                 if ((in_key >= '0' && in_key <= '9') ||
                     (in_key >= 'A' && in_key <= 'F') ||
@@ -225,7 +225,7 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
                 /** FF_FLOAT accepts digits 0 through 9 and decimal point ('.')
-                    and negative operator ('-') at the start of the field */
+                 * and negative operator ('-') at the start of the field */
             case FF_FLOAT:
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
                     (in_key == '-' && p == fstart))
@@ -234,7 +234,7 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
                 /** FF_DOUBLE accepts digits 0 through 9 and decimal point ('.')
-                    and negative operator ('-') at the start of the field */
+                 * and negative operator ('-') at the start of the field */
             case FF_DOUBLE:
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
                     (in_key == '-' && p == fstart))
@@ -243,7 +243,7 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
                 /** FF_CURRENCY accepts digits 0 through 9 and decimal point
-                    ('.') and negative operator ('-') at the start of the field
+                 * ('.') and negative operator ('-') at the start of the field
                  */
             case FF_CURRENCY:
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
@@ -385,15 +385,12 @@ int form_fmt_field(Form *form, char *s) {
         @param form Pointer to Form structure
         @param s Input string to format
         @return 0 on success, non-zero on error
-
         @note takes the input string for the current field and formats it
        according to the field's specified format type (ff). It updates the
        accept_s and display_s strings for the field based on the formatted
        value.
-
         @note handles various format types, including strings, decimal integers,
        hexadecimal integers, floating-point numbers, currency, dates, and times.
-
         @note uses helper functions for validation and formatting, such as
        is_valid_date(), is_valid_time(), numeric(), right_justify(),
        left_justify(), and strnzcpy(). The function ensures that the formatted
@@ -402,8 +399,7 @@ int form_fmt_field(Form *form, char *s) {
        formats, and provides feedback through error messages. It is designed to
        be extensible, allowing for additional format types to be added in the
        future as needed.
-
-        @ assumes that the input string is well-formed and does not contain
+        @note assumes that the input string is well-formed and does not contain
        malicious content. Input validation and sanitization should be performed
        at a higher level in the application to ensure security and robustness.
        @note The function currently does not handle localization or

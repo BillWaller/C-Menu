@@ -212,8 +212,8 @@ void set_fkey(int k, char *s) {
 }
 
 /** @brief Unset function key label in key_cmd table
- @param k key_cmd index
- @note function keys F0 through F10 idiomatically occupy key_cmd[0-12] */
+    @param k key_cmd index
+    @note function keys F0 through F10 idiomatically occupy key_cmd[0-12] */
 void unset_fkey(int k) { key_cmd[k].text[0] = '\0'; }
 /** @brief construct the chyron string from the key_cmd table
     @param fc Pointer to key_cmd_tbl
@@ -265,9 +265,11 @@ int get_chyron_key(key_cmd_tbl *fc, int x) {
     settings in the SIO struct. It also applies gamma correction to colors.
     Use this function to initialize NCurses if you don't want NCurses to receive
    data from the stdin pipe
+    @code
     1. saves stdin and stdout file descriptors in SIO
     2. opens a terminal device for NCurses screen IO
-    3. replaces STDERR_FILENO with terminal file descriptor */
+    3. replaces STDERR_FILENO with terminal file descriptor
+    @endcode */
 bool open_curses(SIO *sio) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
@@ -461,7 +463,7 @@ RGB xterm256_idx_to_rgb(int idx) {
 
 /** @brief Apply gamma correction to RGB color
     @param rgb Pointer to RGB color
-    note This function modifies the RGB color in place. It applies gamma
+    @note This function modifies the RGB color in place. It applies gamma
    correction to the RGB color based on the gamma values set in the SIO struct.
    If the color is a shade of gray, it applies the gray gamma correction.
    Otherwise, it applies the individual red, green, and blue gamma corrections.
@@ -598,8 +600,8 @@ cchar_t mkccc(int cp) {
     @param wbegx Beginning X position
     @param wtitle Window title
     @param flag Window flags
-    @note if flag set to W_BOX, Only create win_box. This is for View which
-   uses the box window for display and doesn't need a separate win_win
+    @note if flag set to W_BOX, Only create win_box. This is for View which uses
+   the box window for display and doesn't need a separate win_win
     @return 0 if successful, 1 if error */
 int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             int flag) {
@@ -702,7 +704,7 @@ void win_resize(int wlines, int wcols, char *title) {
 }
 /** @brief Redraw the specified window
     @param win Pointer to the window to redraw
-    note This function erases the contents of the specified window and then
+    @note This function erases the contents of the specified window and then
    refreshes it to update the display. Use this function when you need to clear
    and redraw a window, such as after resizing or when updating its contents. */
 void win_redraw(WINDOW *win) {
@@ -712,9 +714,9 @@ void win_redraw(WINDOW *win) {
 
 /** @brief Delete the current window and its associated box window
     @return NULL
-    note This function deletes the current window and its associated box window,
-   if they exist. It also refreshes the remaining windows to ensure the display
-   is updated correctly. After calling this function, the global win_ptr
+    @note This function deletes the current window and its associated box
+   window, if they exist. It also refreshes the remaining windows to ensure the
+   display is updated correctly. After calling this function, the global win_ptr
    variable is decremented to point to the previous window in the stack. */
 WINDOW *win_del() {
     int i;
@@ -744,11 +746,11 @@ WINDOW *win_del() {
 }
 
 /** @brief Restore all windows after a screen resize
-    note This function is used to restore the display of all windows after a
+    @note This function is used to restore the display of all windows after a
    screen resize event. It clears the standard screen and then iterates through
-   all existing windows, touching and refreshing them to ensure they are
-   redrawn correctly on the resized screen. Use this function in response to a
-   SIGWINCH signal to handle terminal resizing gracefully. */
+   all existing windows, touching and refreshing them to ensure they are redrawn
+   correctly on the resized screen. Use this function in response to a SIGWINCH
+   signal to handle terminal resizing gracefully. */
 void restore_wins() {
     int i;
 
@@ -765,10 +767,11 @@ void restore_wins() {
 
 /** @brief Draw a box around the specified window
     @param box Pointer to the window to draw the box around
-    note This function uses NCurses functions to draw a box around the specified
-   window. It adds the appropriate characters for the corners and edges of the
-   box based on the current character set. Use this function when you want to
-   visually separate a window from the rest of the screen with a border. */
+    @note This function uses NCurses functions to draw a box around the
+   specified window. It adds the appropriate characters for the corners and
+   edges of the box based on the current character set. Use this function when
+   you want to visually separate a window from the rest of the screen with a
+   border. */
 void cbox(WINDOW *box) {
     int x, y;
     int maxx;

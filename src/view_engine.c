@@ -490,7 +490,6 @@ int view_cmd_processor(Init *init) {
             c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == KEY_F(9) || c == '\033')
                 break;
-            // c = tolower(c);
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
             if (c < 'a' || c > 'z')
@@ -796,10 +795,10 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
         sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
         if (prompt_str[0] != '\0') {
             strnz__cat(prompt_str, "|", MAXLEN - 1);
-            strnz__cat(prompt_str, tmp_str, MAXLEN - 1); // File Of
+            strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
         }
     }
-    if (prompt_type == PT_LONG) { // Byte of Byte
+    if (prompt_type == PT_LONG) {
         if (view->page_top_pos == NULL_POSITION)
             view->page_top_pos = view->file_size;
         sprintf(tmp_str, "Pos %zd-%zd", view->page_top_pos, view->page_bot_pos);
@@ -814,7 +813,7 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
             }
         }
     }
-    if (!view->f_eod && prompt_type != PT_NONE) { // Percent
+    if (!view->f_eod && prompt_type != PT_NONE) {
         if (view->file_size > 0 && view->page_bot_pos != 0) {
             sprintf(tmp_str, "(%zd%%)",
                     (100 * view->page_bot_pos) / view->file_size);
@@ -823,7 +822,7 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
             strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
         }
     }
-    if (view->f_eod) { // End
+    if (view->f_eod) {
         if (prompt_str[0] != '\0')
             strnz__cat(prompt_str, " ", MAXLEN - 1);
         strnz__cat(prompt_str, "(End)", MAXLEN - 1);
@@ -907,7 +906,6 @@ void lp(char *PrintFile) {
         print_cmd_ptr = PRINTCMD;
     sprintf(shell_cmd_spec, "%s %s", print_cmd_ptr, PrintFile);
     cmd_line_prompt(view, shell_cmd_spec);
-    //  wrefresh(view->win);
     prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
              view->smincol, view->smaxrow, view->smaxcol);
     shell(shell_cmd_spec);
@@ -990,19 +988,18 @@ void go_to_position(View *view, off_t go_to_pos) {
     @param regex_pattern Regular Expression Pattern to Search For
     @returns true if a match is found and displayed, false if the search
    completes without finding a match or if an error occurs
-    @note The search performs extended regular expression matching,
-   ignoring ANSI sequences and Unicode characters. Matches are
-   highlighted on the screen, and the search continues until the page is
-   full or the end of the file is reached. If the search wraps around
-   the file, a message is displayed indicating that the search is
-   complete.
-    @note The search state is maintained in the view structure, allowing
-   for repeat searches and tracking of the current search position.
-    @note this function highlights all matches in the current ncurses
-   pad, including those not displayed on the screen, and tracks the
-   first and last match columns for prompt display.
-    @note ANSI sequences and Unicode characters are stripped before
-   matching, so matching corresponds to the visual display */
+    @note The search performs extended regular expression matching, ignoring
+   ANSI sequences and Unicode characters. Matches are highlighted on the screen,
+   and the search continues until the page is full or the end of the file is
+   reached. If the search wraps around the file, a message is displayed
+   indicating that the search is complete.
+    @note The search state is maintained in the view structure, allowing for
+   repeat searches and tracking of the current search position. @note this
+   function highlights all matches in the current ncurses pad, including those
+   not displayed on the screen, and tracks the first and last match columns for
+   prompt display.
+    @note ANSI sequences and Unicode characters are stripped before matching, so
+   matching corresponds to the visual display */
 bool search(View *view, int *search_cmd, char *regex_pattern) {
     int REG_FLAGS = 0;
     regmatch_t pmatch[1];
@@ -1142,12 +1139,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             }
         }
     }
-    /** Update view positions and prepare prompt with match info */
     view->file_pos = view->srch_curr_pos;
-    // if (*search_cmd == '/')
-    // view->page_bot_pos = view->srch_curr_pos;
-    // else
-    //     view->page_top_pos = view->srch_curr_pos;
 #ifdef DEBUG
     /** Statistics for debugging */
     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
@@ -1279,7 +1271,7 @@ void scroll_down_n_lines(View *view, int n) {
     curs_set(0);
     if (view->page_bot_pos == view->file_size)
         return;
-    // Locate New Top of Page
+    /** Locate New Top of Page */
     view->file_pos = view->page_top_pos;
     for (i = 0; i < n; i++) {
         view->page_top_pos = get_pos_next_line(view, view->file_pos);
@@ -1287,9 +1279,9 @@ void scroll_down_n_lines(View *view, int n) {
             break;
     }
     n = i;
-    // Scroll
+    /** Scroll */
     wscrl(view->win, n);
-    // Fill in Page Bottom
+    /** Fill in Page Bottom */
     view->cury = view->scroll_lines - n;
     wmove(view->win, view->cury, 0);
     view->file_pos = view->page_bot_pos;
@@ -1312,24 +1304,24 @@ void scroll_up_n_lines(View *view, int n) {
     curs_set(0);
     if (view->page_top_pos == 0)
         return;
-    // Locate New Top of Page
+    /** Locate New Top of Page */
     for (i = 0; i < n; i++) {
         if (view->f_bod)
             break;
         view->page_top_pos = get_pos_prev_line(view, view->page_top_pos);
     }
     n = i;
-    // Locate New Bottom of Page
+    /** Locate New Bottom of Page */
     view->f_bod = false;
     for (i = 0; i < n; i++) {
         if (view->f_bod)
             break;
         view->page_bot_pos = get_pos_prev_line(view, view->page_bot_pos);
     }
-    // Scroll Up
+    /** Scroll Up */
     if (n < view->scroll_lines)
         wscrl(view->win, -n);
-    // Fill in Page Top
+    /** Fill in Page Top */
     view->cury = 0;
     wmove(view->win, view->cury, 0);
     view->file_pos = view->page_top_pos;

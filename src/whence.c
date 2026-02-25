@@ -42,7 +42,7 @@ void normalend();
     -a: Show all matches (default is to show only the first match)
     -h: Display help message
     -v: Verbose mode (implies -a)
-    This function processes command-line arguments, retrieves the PATH
+    @note This function processes command-line arguments, retrieves the PATH
    environment variable, and calls the whence function for each specified file.
  */
 int main(int argc, char **argv) {
@@ -80,8 +80,8 @@ int main(int argc, char **argv) {
     normalend();
 }
 /** @brief Display usage information for the whence utility
- *  This function prints the usage instructions and available options for the
- * whence utility to the standard error stream.
+ *  @note This function prints the usage instructions and available options for
+ * the whence utility to the standard error stream.
  */
 void whence_usage() {
     fprintf(stderr, "whence_usage: whence [options] file_name\n");
@@ -92,10 +92,10 @@ void whence_usage() {
 /** @brief Find the full path of a file in the directories specified by the PATH
    environment variable
     @param file_spec_p The file specification to search for
-    This function takes a file specification, extracts the directory and file
-   name components, and searches through the directories specified in the PATH
-   environment variable to find matches. It prints the full path of each match
-   found, and if verbose mode is enabled, it also indicates whether each
+    @note This function takes a file specification, extracts the directory and
+   file name components, and searches through the directories specified in the
+   PATH environment variable to find matches. It prints the full path of each
+   match found, and if verbose mode is enabled, it also indicates whether each
    attempted path was found or not. */
 void whence(char *file_spec_p) {
     char file_spec[PATH_MAX];
@@ -130,14 +130,14 @@ void whence(char *file_spec_p) {
     }
 }
 /** @brief Extract the next directory path from the PATH string
- *  @param dp A buffer to store the extracted directory path
- *  @param sp A pointer to the current position in the PATH string
- *  @return The length of the extracted directory path
- *  This function takes a buffer and a pointer to the current position in the
- * PATH string, and extracts the next directory path. If the next character in
- * the PATH string is a colon, it treats it as an empty path and uses the
- * current working directory. Otherwise, it copies characters until it reaches a
- * colon or the end of the string, and returns the length of the extracted path.
+    @param dp A buffer to store the extracted directory path
+    @param sp A pointer to the current position in the PATH string
+    @return The length of the extracted directory path
+    @note This function takes a buffer and a pointer to the current position in
+   the PATH string, and extracts the next directory path. If the next character
+   in the PATH string is a colon, it treats it as an empty path and uses the
+   current working directory. Otherwise, it copies characters until it reaches a
+   colon or the end of the string, and returns the length of the extracted path.
  */
 int next_path(char *dp, char **sp) {
     int dl;
@@ -159,15 +159,15 @@ int next_path(char *dp, char **sp) {
     }
 }
 /** @brief Split a file specification into directory and file name components
- *  @param file_spec The full file specification to split
- *  @param file_path A buffer to store the extracted directory path
- *  @param file_name A buffer to store the extracted file name
- *  @return 0 on success
- *  This function takes a file specification, checks if it is a directory, and
- * if so, it sets the file path accordingly. If the file specification is empty,
- * it defaults to the current directory. Otherwise, it splits the file
- * specification into the directory and file name components based on the last
- * occurrence of a slash ('/'). */
+    @param file_spec The full file specification to split
+    @param file_path A buffer to store the extracted directory path
+    @param file_name A buffer to store the extracted file name
+    @return 0 on success
+    @note This function takes a file specification, checks if it is a directory,
+   and if so, it sets the file path accordingly. If the file specification is
+   empty, it defaults to the current directory. Otherwise, it splits the file
+   specification into the directory and file name components based on the last
+   occurrence of a slash ('/'). */
 int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
     int i, last_slash;
     char tmp_file_spec[PATH_MAX];
@@ -219,16 +219,16 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
     return (0);
 }
 /** @brief Exit the program successfully
- *  This function is called to exit the program with a success status. It simply
- * calls the exit function with EXIT_SUCCESS. */
+    @note This function is called to exit the program with a success status. It
+   simply calls the exit function with EXIT_SUCCESS. */
 void normalend() { exit(EXIT_SUCCESS); }
 /** @brief Exit the program with an error message
- *  @param pgmid The name of the program
- *  @param rc The return code to exit with
- *  @param err_msg The error message to display
- *  This function is called to exit the program with an error status. It prints
- * the program name, return code, and error message to the standard error
- * stream, and then exits with the specified return code. */
+    @param pgmid The name of the program
+    @param rc The return code to exit with
+    @param err_msg The error message to display
+    @note This function is called to exit the program with an error status. It
+   prints the program name, return code, and error message to the standard error
+   stream, and then exits with the specified return code. */
 void ABEND(char *pgmid, int rc, char *err_msg) {
     fprintf(stderr, "%s; error %d; %s\n", pgmid, rc, err_msg);
     exit(EXIT_FAILURE);

@@ -194,7 +194,7 @@ int read_pick_input(Init *init) {
     @note Opens pick window and displays first page of objects. Enters picker
    loop to handle user input and interactions. If user cancels selection,
    returns -1.
-   @note If user accepts selection, returns count of selected objects. */
+    @note If user accepts selection, returns count of selected objects. */
 int pick_engine(Init *init) {
     /** Initialize window and data structures */
     int n, chyron_l, rc;
@@ -650,18 +650,18 @@ int output_objects(Pick *pick) {
     return (0);
 }
 /** @brief Executes specified command with selected objects as arguments
-   @param init Pointer to Init structure
-   @return 0 on success, 1 on failure
-   @note Parses command string and appends selected objects as arguments to the
+    @param init Pointer to Init structure
+    @return 0 on success, 1 on failure
+    @note Parses command string and appends selected objects as arguments to the
    command. If command contains "%%", it is replaced with a space- separated
    list of selected objects. Executes the command using execvp in a child
    process and waits for it to finish. If the command is a pager or editor, it
    is executed within the pick interface using mview instead of execvp.
-   @note If f_append_args is true, the argument containing %% is replaced with
+    @note If f_append_args is true, the argument containing %% is replaced with
    the concatenated selected objects. If f_append_args is false, selected
    objects are added as separate arguments and the original command arguments
    remain unchanged.
-   @note margv should be null-terminated to indicate the end of arguments for
+    @note margv should be null-terminated to indicate the end of arguments for
    execvp
     @note Memory allocated for arguments is freed after execution to prevent
    memory leaks.

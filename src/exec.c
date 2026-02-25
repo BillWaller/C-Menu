@@ -29,14 +29,13 @@ void abend(int ec, char *s);
 void user_end();
 int nf_error(int ec, char *s);
 /** @brief Execute a command in full screen mode
- *  @param argv - array of arguments for the command to execute
- *  @return the return code from the executed command
- *  @note Clear the screen,
- *  @note move the cursor to the bottom, and refresh the screen before executing
- * the command.
- *  @note After the command completes, clear the screen, move the cursor to the
- * top, refresh the screen, and restore the windows.
- */
+    @param argv - array of arguments for the command to execute
+    @return the return code from the executed command
+    @note Clear the screen,
+    @note move the cursor to the bottom, and refresh the screen before executing
+   the command.
+    @note After the command completes, clear the screen, move the cursor to the
+   top, refresh the screen, and restore the windows. */
 int full_screen_fork_exec(char **argv) {
     int rc;
 
@@ -53,11 +52,11 @@ int full_screen_fork_exec(char **argv) {
     return (rc);
 }
 /** @brief Execute a shell command in full screen mode
- *  @param shellCmdPtr - pointer to the shell command string
- *  @return the return code from the executed shell command
- *  @note Clear the screen, move the cursor to the top, and refresh the screen
- * before executing the shell command.
- *  @note After the command completes, restore the windows.
+    @param shellCmdPtr - pointer to the shell command string
+    @return the return code from the executed shell command
+    @note Clear the screen, move the cursor to the top, and refresh the screen
+   before executing the shell command. @note After the command completes,
+   restore the windows.
  */
 int full_screen_shell(char *shellCmdPtr) {
     int rc;
@@ -72,11 +71,10 @@ int full_screen_shell(char *shellCmdPtr) {
     return (rc);
 }
 /** @brief Execute a shell command
- *  @param shellCmdPtr - pointer to the shell command string
- *  @return the return code from the executed shell command
- *  @note Executes the command string using the user's shell.
- *  @note If the SHELL environment variable is not set, use /bin/sh.
- */
+    @param shellCmdPtr - pointer to the shell command string
+    @return the return code from the executed shell command
+    @note Executes the command string using the user's shell.
+    @note If the SHELL environment variable is not set, use /bin/sh. */
 int shell(char *shellCmdPtr) {
     int Eargc;
     char *Eargv[MAXARGS];
@@ -96,35 +94,34 @@ int shell(char *shellCmdPtr) {
     return (rc);
 }
 /** @brief Fork and exec a command
- *  @param argv - array of arguments for the command to execute
- *  @return the return code from the executed command, or -1 on error
- *  @note Captures and restores terminal settings around the fork and exec.
- *  @note Sets signal handlers to default in the child process.
- *  @note Waits for the child process to complete in the parent process.
- *  @note Handles errors from fork and execvp, and reports child exit status.
- *  @note Restores curses mode and keypad settings after execution.
- *  @note Restores window states after execution.
- *  @note Uses a temporary string buffer tmp_str for error messages.
- *  @note Uses Perror for error reporting.
- *  @note Uses sig_dfl_mode and sig_prog_mode for signal handling.
- *  @note Uses capture_curses_tioctl and restore_curses_tioctl for terminal
- * settings.
- *  @note Uses restore_shell_tioctl for shell terminal settings.
- *  @note Uses waitpid to wait for the child process.
- *  @note Uses WIFEXITED, WEXITSTATUS, WIFSIGNALED, and WTERMSIG to interpret
- * child status.
- *  @note Uses keypad to manage keypad mode in curses.
- *  @note Uses restore_wins to restore window states.
- *  @note Uses errno for error codes.
- *  @note Uses pid_t for process IDs.
- *  @note Uses standard file descriptors STDIN_FILENO, STDOUT_FILENO,
- * STDERR_FILENO.
- *  @note Uses execvp for executing the command.
- *  @note Uses fork for creating a new process.
- *  @note Uses ssnprintf for formatting error messages.
- *  @note Uses switch-case for handling fork results.
- *  @note Uses default shell if SHELL environment variable is not set.
- */
+    @param argv - array of arguments for the command to execute
+    @return the return code from the executed command, or -1 on error
+    @note Captures and restores terminal settings around the fork and exec.
+    @note Sets signal handlers to default in the child process.
+    @note Waits for the child process to complete in the parent process.
+    @note Handles errors from fork and execvp, and reports child exit status.
+    @note Restores curses mode and keypad settings after execution.
+    @note Restores window states after execution.
+    @note Uses a temporary string buffer tmp_str for error messages.
+    @note Uses Perror for error reporting.
+    @note Uses sig_dfl_mode and sig_prog_mode for signal handling.
+    @note Uses capture_curses_tioctl and restore_curses_tioctl for terminal
+   settings.
+    @note Uses restore_shell_tioctl for shell terminal settings.
+    @note Uses waitpid to wait for the child process.
+    @note Uses WIFEXITED, WEXITSTATUS, WIFSIGNALED, and WTERMSIG to interpret
+   child status.
+    @note Uses keypad to manage keypad mode in curses.
+    @note Uses restore_wins to restore window states.
+    @note Uses errno for error codes.
+    @note Uses pid_t for process IDs.
+    @note Uses standard file descriptors STDIN_FILENO, STDOUT_FILENO,
+   STDERR_FILENO.
+    @note Uses execvp for executing the command.
+    @note Uses fork for creating a new process.
+    @note Uses ssnprintf for formatting error messages.
+    @note Uses switch-case for handling fork results.
+    @note Uses default shell if SHELL environment variable is not set. */
 int fork_exec(char **argv) {
     pid_t pid;
     int status;

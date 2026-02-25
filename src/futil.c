@@ -101,13 +101,13 @@ size_t trim(char *s) {
     return (size_t)(d - s);
 }
 /** @brief ssnprintf was designed to be a safer alternative to snprintf.
-    It ensures that the buffer is not overflowed by taking the buffer size as a
-   parameter and using vsnprintf internally. It also returns the number of
-   characters that would have been written if enough space had been available,
-   allowing the caller to detect truncation. This function is particularly
-   useful in situations where the formatted string may exceed the buffer size,
-   as it prevents buffer overflows and provides a way to handle such cases
-   gracefully.
+    @details It ensures that the buffer is not overflowed by taking the buffer
+   size as a parameter and using vsnprintf internally. It also returns the
+   number of characters that would have been written if enough space had been
+   available, allowing the caller to detect truncation. This function is
+   particularly useful in situations where the formatted string may exceed the
+   buffer size, as it prevents buffer overflows and provides a way to handle
+   such cases gracefully.
     @param buf - buffer to receive formatted string
     @param buf_size - size of buffer
     @param format - printf-style format string
@@ -124,14 +124,15 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
 
     return n;
 }
-/**  @brief Converts a string into an array of argument strings.
-     Handles quoted strings and escaped quotes, preserving text inside quotes as
-   individual arguments. It has been in service for many years without problems.
-     @param argv - array of pointers to arguments
-     @param arg_str - string containing arguments
-     @param max_args - maximum number of arguments to parse
-     @returns argc, a count of allocated vectors in argv
-     @note the caller is responsible for deallocating the strings in argv */
+/** @brief Converts a string into an array of argument strings.
+    @note Handles quoted strings and escaped quotes, preserving text inside
+   quotes as individual arguments. It has been in service for many years without
+   problems.
+    @param argv - array of pointers to arguments
+    @param arg_str - string containing arguments
+    @param max_args - maximum number of arguments to parse
+    @returns argc, a count of allocated vectors in argv
+    @note the caller is responsible for deallocating the strings in argv */
 int str_to_args(char **argv, char *arg_str, int max_args) {
     if (arg_str == NULL || *arg_str == '\0')
         return 0;
@@ -205,15 +206,16 @@ bool str_to_upper(char *s) {
     return true;
 }
 /** @brief safer alternative to strncpy
-    It copies string s to d, ensuring that the total length of d does not exceed
-   max_len, and that the resulting string is null-terminated. It also treats
-   newline and carriage return characters as string terminators, preventing them
-   from being included in the result. This is particularly useful when copying
-   user input or file data, where embedded newlines could cause issues.
-     @param d - destination string
-     @param s - source string
-     @param max_len - maximum length to copy
-     @returns length of resulting string */
+    @note It copies string s to d, ensuring that the total length of d does not
+   exceed max_len, and that the resulting string is null-terminated. It also
+   treats newline and carriage return characters as string terminators,
+   preventing them from being included in the result. This is particularly
+   useful when copying user input or file data, where embedded newlines could
+   cause issues.
+    @param d - destination string
+    @param s - source string
+    @param max_len - maximum length to copy
+    @returns length of resulting string */
 size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     char *e;
     size_t len = 0;
@@ -231,16 +233,16 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     return len;
 }
 /** @brief safer alternative to strncat
-  It appends string s to d, ensuring that the total length of d does not exceed
-  max_len, and that the resulting string is null-terminated. It also treats
-  newline and carriage return characters as string terminators, preventing them
-  from being included in the result. This is particularly useful when
-  concatenating user input or file data, where embedded newlines could cause
-  issues.
-  @param d - destination string
-  @param s - source string
-  @param max_len - maximum length to copy
-  @returns length of resulting string
+    @note It appends string s to d, ensuring that the total length of d does not
+   exceed max_len, and that the resulting string is null-terminated. It also
+   treats newline and carriage return characters as string terminators,
+   preventing them from being included in the result. This is particularly
+   useful when concatenating user input or file data, where embedded newlines
+   could cause issues.
+    @param d - destination string
+    @param s - source string
+    @param max_len - maximum length to copy
+    @returns length of resulting string
  */
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
     char *e;
@@ -263,7 +265,7 @@ size_t strnz__cat(char *d, const char *s, size_t max_len) {
     return len;
 }
 /** @brief Terminates string at new line or carriage return
- * @param s string to terminate
+    @param s string to terminate
  */
 size_t strz(char *s) {
     size_t l = 0;
@@ -277,8 +279,8 @@ size_t strz(char *s) {
     return l;
 }
 /**  @brief terminates string at New Line, Carriage Return, or max_len
-     The use case is to ensure that strings read from files or user input do not
-   contain embedded newlines or carriage returns.
+     @note The use case is to ensure that strings read from files or user input
+   do not contain embedded newlines or carriage returns.
      @param s string to terminate
      @param max_len - maximum length to scan
      @returns length of resulting string */
@@ -610,8 +612,8 @@ bool str_to_bool(const char *s) {
    to receive the result, and that "path_maxlen" is sufficient to hold the
    result. This function does not perform any bounds checking on "path", so it
    is the caller's responsibility to ensure that it is valid and that
-   "path_maxlen" is appropriate for the operation.
-     @returns true if successful */
+   "path_maxlen" is appropriate for the operation. @returns true if successful
+ */
 bool expand_tilde(char *path, int path_maxlen) {
     if (path == NULL || *path == '\0' || path_maxlen == 0)
         return false;
@@ -638,8 +640,8 @@ bool expand_tilde(char *path, int path_maxlen) {
     return true;
 }
 /** @brief Trims trailing spaces and slashes from directory path in place.
-     @param dir - directory path to trim
-     @returns true if successful */
+    @param dir - directory path to trim
+    @returns true if successful */
 bool trim_path(char *dir) {
     if (!dir)
         return false;
@@ -663,8 +665,8 @@ bool trim_path(char *dir) {
 }
 /** @brief trims the file extension from "filename" and copies the result to
    "buf"
-     @param buf - buffer to receive result
-     @param filename - filename to trim
+    @param buf - buffer to receive result
+    @param filename - filename to trim
     @note The caller is responsible for ensuring that "buf" has enough space to
    receive the result. */
 bool trim_ext(char *buf, char *filename) {
@@ -1064,8 +1066,8 @@ size_t canonicalize_file_spec(char *spec) {
     @param rep_s - replacement substring
     @returns A pointer to the newly allocated string with replacements or a copy
    of the replacement string if original string is the same as target string
-    This is a special case that allows for replacing the entire original string.
-    If any parameter is NULL, the function returns NULL. If "tgt_s" is not found
+   This is a special case that allows for replacing the entire original string.
+   If any parameter is NULL, the function returns NULL. If "tgt_s" is not found
    in "org_s", the function returns a copy of "org_s". If target substring is
    not found the function returns a copy of the original string.
     @note The function allocates memory for the return value, so the caller is
@@ -1129,38 +1131,36 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     strnz__cpy(tmp, ip, MAXLEN - 1);
     return out_s;
 }
-/**
-   These functions provide a simple string library to facilitate string
+/** @brief String functions provide a simple string library to facilitate string
    manipulation in C, allowing developers to easily create, copy, concatenate,
-   and free strings without having to manage memory manually.
-   @note The library includes functions to convert C strings to String structs,
-   create new String structs with specified lengths, copy and concatenate String
-   structs, and free the memory used by String structs. By using this library,
-   developers can avoid common pitfalls of C string handling, such as buffer
-   overflows and memory leaks, while still benefiting from the performance
-   advantages of C.
+   and free strings without having to manage memory manually. @note The library
+   includes functions to convert C strings to String structs, create new String
+   structs with specified lengths, copy and concatenate String structs, and free
+   the memory used by String structs. By using this library, developers can
+   avoid common pitfalls of C string handling, such as buffer overflows and
+   memory leaks, while still benefiting from the performance advantages of C.
    @note This library is designed to be simple and easy to use, making it a
    great choice for developers who want to work with strings in C without having
    to worry about the complexities of manual memory management.
-    @note The String struct is defined as follows:
-    @code
+   @note The String struct is defined as follows:
+   @code
      typedef struct {
          size_t l; // length of the string (including null terminator)
          char *s;  // pointer to the dynamically allocated string
      } String;
     @endcode
-    @note All functions in this library that return a String struct allocate
+   @note All functions in this library that return a String struct allocate
    memory for the string using malloc or realloc. It is the caller's
    responsibility to free this memory using the free_string function when it is
    no longer needed to avoid memory leaks.
-    @note The functions in this library do not perform any bounds checking on
-   the input strings or the resulting strings. It is the caller's responsibility
-   to ensure that all input strings are valid and that the resulting strings do
-   not exceed available memory.
-    @note The functions in this library assume that all input strings are
+   @note The functions in this library do not perform any bounds checking on the
+   input strings or the resulting strings. It is the caller's responsibility to
+   ensure that all input strings are valid and that the resulting strings do not
+   exceed available memory.
+   @note The functions in this library assume that all input strings are
    null-terminated. If any input string is not null-terminated, the behavior is
    undefined.
-    @example strings_test1.c
+   @example strings_test1.c
  */
 /** @brief Convert C string to String struct
     @param s C string
