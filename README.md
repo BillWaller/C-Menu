@@ -1,12 +1,16 @@
 # A User Interface Builder
 
-[***NEW*** Comprehensive HTML Documentation](https://billwaller.github.io/C-Menu/)
+[***NEW Comprehensive HTML Documentation***](https://billwaller.github.io/C-Menu/)
 
 ## Table of Contents
 
 <!-- mtoc-start -->
 
 * [Menu, Form, Pick, View, RSH, and C-Keys](#menu-form-pick-view-rsh-and-c-keys)
+  * [Elements of C-Menu](#elements-of-c-menu)
+  * [Key Features](#key-features)
+  * [Highlights (Pun Intended)](#highlights-pun-intended)
+  * [Just Do It!](#just-do-it)
   * [Menu](#menu)
   * [C-Keys - Diagnose Keyboard/Mouse Input](#c-keys---diagnose-keyboardmouse-input)
   * [Pick - A Picker](#pick---a-picker)
@@ -44,15 +48,64 @@ operating systems. C-Menu is designed to be simple to use while
 providing powerful features to implement menu driven frameworks for
 applications.
 
-This is a real TUI. No GUI libraries, no X11, no Wayland, no
-dependencies on bloated toolkits. Just good old-fashioned text mode,
-using NCurses for terminal handling.
+This is a real TUI, and though we may add a GUI front-end in the future,
+we won't abandon the super-responsive, low-overhead, and universally compatible
+text-based interface. It's here to stay, and it's perfect for a wide range of applications, from simple command-line tools to complex system administration utilities. C-Menu is ideal for developers who want to create intuitive and user-friendly interfaces without the need for complex GUI frameworks. With C-Menu, you can easily design and implement menus, forms, and pickers that enhance the user experience and streamline interactions with your applications.
 
-While C-Menu does support mouse input, the primary mode of operation is
-keyboard driven, as God intended. You can navigate menus, fill out
-forms, and pick items using only the keyboard. This makes C-Menu ideal
-for use in terminal environments where mouse input may not be available
-or practical.
+While we do support mouse input, we realize that hardened coders like you
+prefer the blinding speed you can achieve with the keyboard. That's why
+we never give the keyboard a back seat, and why we provide navigation
+with familiar h, j, k, and l, the way God intended. We also support more
+conventional navigation via arrow keys, page-up, page-down, home, and end keys.
+The idea is to provide you and your users with comfortable, intuitive, and
+convenient navigation.
+
+And, don't let the name fool you. C-Menu is not just a menu system, it's
+a comprehensive user interface framework designed to enhance your
+interaction with applications. It provides a structured way to navigate
+through application hierarchies, manage forms, select objects, and
+view data efficiently. And, it does so with style, offering a visually
+appealing interface that boosts comprehension through color.
+
+---
+
+### Elements of C-Menu
+
+***Menu*** - Navigate Application Hierarchy
+
+***Form*** - Field Entry, Formatting, Validation, and Editing
+
+***Pick*** - Select Objects From Lists and Tables
+
+***View*** - Search, Format, and Display Data
+
+***RSH*** - Expeditious Root Privilege On/Off
+
+***CKeys*** - Diagnose Mouse and Keyboard Issues
+
+---
+
+### Key Features
+
+- Easy to Design Menus and Forms With Simple Text Files
+- Supports Tree-Sitter Syntax Highlighting
+- Colorize Manual Pages
+- Customizable Color Schemes
+- 24-Bit (16777216-Color) True Color ANSI
+- HTML Style Six-Digit Hex Color Codes
+- User Selectable 3-Channel + Grayscale Gamma Correction
+
+### Highlights (Pun Intended)
+
+Cast some light on dull information with C-Menu's vibrant colorization features. With support for 24-bit true color ANSI and HTML-style six-digit hex color codes, you can customize your interface to suit your preferences. Whether you want to highlight important information or simply make your terminal more visually appealing, C-Menu has the tools you need.
+
+### Just Do It!
+
+C-Menu is more than just a tool; it's a gateway to a more efficient
+and enjoyable computing experience. Whether you're a developer looking
+to create intuitive interfaces or a user seeking a more engaging way
+to interact with applications, C-Menu has you covered. Dive in and
+explore the possibilities!
 
 ---
 
