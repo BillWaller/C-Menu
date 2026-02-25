@@ -895,7 +895,7 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
    recursing into subdirectories.
      @param dir - directory to list files from
      @param regexp - regular expression to match files
-     @param depth - how many directories to descend into
+     @param max_depth - how many directories to descend into
      @param flags - ALL, RECURSE */
 bool list_files(char *dir, char *regexp, int max_depth, bool flags) {
     if (dir == NULL || *dir == '\0' || regexp == NULL || *regexp == '\0')
@@ -914,7 +914,7 @@ bool list_files(char *dir, char *regexp, int max_depth, bool flags) {
    found
     @param dir   starting directory
     @param re    regular expression to match files
-    @param depth current recursion depth
+    @param max_depth current recursion depth
     @param flags search flags
     return      true if successful, false otherwise */
 bool lf_find_dirs(char *dir, char *re, int max_depth, int flags) {
