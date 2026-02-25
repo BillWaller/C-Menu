@@ -960,13 +960,13 @@ int go_to_line(View *view, off_t line_idx) {
     @param view data structure
     @param percent of file
 */
-void go_to_percent(View *view, int Percent) {
+void go_to_percent(View *view, int percent) {
     int c = 0;
     if (view->file_size < 0) {
         Perror("Cannot determine file length");
         return;
     }
-    view->file_pos = (Percent * view->file_size) / 100;
+    view->file_pos = (percent * view->file_size) / 100;
     get_next_char();
     while (c != '\n') {
         get_prev_char();
