@@ -11,10 +11,9 @@
 
 __end_pgm;
 /** @brief Main entry point for C-Menu View
- *  @param argc Argument count
- *  @param argv Argument vector
- *  @return Exit status
- */
+    @param argc Argument count
+    @param argv Argument vector
+    @return Exit status */
 int main(int argc, char **argv) {
     __atexit;
     capture_shell_tioctl();

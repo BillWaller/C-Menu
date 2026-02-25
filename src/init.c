@@ -1,10 +1,10 @@
 /** @file init.c
- *  @brief Initialization for Menu Application Programs
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Initialization for Menu Application Programs
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #include <common.h>
@@ -50,14 +50,16 @@ bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
 /** @brief Main initialization function for MAPP - Menu Application
-   @param init - pointer to Init struct to be initialized
-   @param argc - argument count from main()
-   @param argv - argument vector from main()
-   1. Read environment variables and set defaults
-   2. Parse configuration file
-   3. Parse command-line options
-   4. Set up SIO struct with colors and other settings
-   5. Handle special options like help and version
+    @param init - pointer to Init struct to be initialized
+    @param argc - argument count from main()
+    @param argv - argument vector from main()
+    @code
+    1. Read environment variables and set defaults
+    2. Parse configuration file
+    3. Parse command-line options
+    4. Set up SIO struct with colors and other settings
+    5. Handle special options like help and version
+    @endcode
  */
 void mapp_initialization(Init *init, int argc, char **argv) {
     char term[MAXLEN];
@@ -121,11 +123,10 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     }
 }
 /** @brief Initialize optional arguments in the Init struct to default values
-    @param init - pointer to Init struct to be initialized
-    This function sets all optional argument fields in the Init struct to
-    their default values before parsing command-line options or configuration
-    file. This ensures that any fields not specified by the user will have
-    known default values.
+    @param init - pointer to Init struct to be initialized This function sets
+   all optional argument fields in the Init struct to their default values
+   before parsing command-line options or configuration file. This ensures that
+   any fields not specified by the user will have known default values.
  */
 void zero_opt_args(Init *init) {
     init->f_mapp_desc = false;
@@ -670,8 +671,8 @@ void prompt_int_to_str(char *s, int prompt_type) {
     @param init - pointer to Init struct containing current configuration
     @returns 0 on success, -1 on failure
     @note The configuration is written in key=value format, one per line
-    @note Lines beginning with '#' are comments and are ignored when reading
-   the config file
+    @note Lines beginning with '#' are comments and are ignored when reading the
+   config file
     @note The file is created if it does not exist, and overwritten if it does
    exist
  */
@@ -816,7 +817,7 @@ void display_version() {
     exit(EXIT_SUCCESS);
 }
 /** @brief Display the usage information of the application
-   @note The usage information is printed to stderr when this function is
+    @note The usage information is printed to stderr when this function is
    called. After displaying the usage information, the function waits for the
    user to press any key before returning. */
 void usage() {
@@ -874,8 +875,8 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
 }
 /** @brief Dump the current configuration to stderr for debugging purposes
     @param init - pointer to Init struct containing the current configuration
-    @param msg - string to print before dumping the configuration
-    to stderr in a readable format, prefixed by the provided title string. */
+    @param msg - string to print before dumping the configuration to stderr in a
+   readable format, prefixed by the provided title string. */
 void dump_config(Init *init, char *msg) {
     SIO *sio = init->sio;
     opt_prt_str("-a:", "--minitrc", init->minitrc);

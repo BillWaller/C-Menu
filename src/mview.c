@@ -11,16 +11,15 @@
 #include <unistd.h>
 
 /** @brief subprogram entry point for C-Menu View
- *  @param init Pointer to Init structure containing initialization parameters
- *  @param argc Argument count from command line
- *  @param argv Argument vector from command line
- *  @return 0 on success, non-zero on failure
- *  @note use this function to start the C-Menu View from another program,
- * passing in the necessary initialization parameters through the Init
- * structure. The function will handle setting up the view based on the provided
- * parameters and will return 0 on success or a non-zero value if an error
- * occurs during initialization.
- */
+    @param init Pointer to Init structure containing initialization parameters
+    @param argc Argument count from command line
+    @param argv Argument vector from command line
+    @return 0 on success, non-zero on failure
+    @note use this function to start the C-Menu View from another program,
+   passing in the necessary initialization parameters through the Init
+   structure. The function will handle setting up the view based on the provided
+   parameters and will return 0 on success or a non-zero value if an error
+   occurs during initialization. */
 int mview(Init *init, int argc, char **argv) {
     view = init->view;
     if (!view)
