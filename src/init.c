@@ -810,8 +810,8 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     return true;
 }
 /** @brief Display the version information of the application
-   @note The version information is defined in the mapp_version variable
-   and is printed to stderr when this function is called. */
+    @note The version information is defined in the mapp_version variable and is
+   printed to stderr when this function is called. */
 void display_version() {
     fprintf(stderr, "\nC-Menu version: %s\n", CM_VERSION);
     exit(EXIT_SUCCESS);

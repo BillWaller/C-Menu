@@ -1,5 +1,5 @@
-/** @file iso6801.c
-    @brief iso6801 Timestamp
+/** @file iso8601.c
+    @brief iso8601 Timestamp
     @author Bill Waller
     Copyright (c) 2025
     MIT License
@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <time.h>
 
-/** This program prints the current time in ISO 6801 format. If the first
+/** This program prints the current time in ISO 8601 format. If the first
    argument is "-l", it prints the local time with the timezone offset.
    Otherwise, it prints the UTC time with a "Z" (Zulu) suffix. The output format
    is UTC "YYYY-MM-DDTHH:MM:SSZ", LOCAL "YYYY-MM-DDTHH:MM:SS±hhmm" */
