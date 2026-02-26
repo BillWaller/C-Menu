@@ -4,6 +4,8 @@
 
 <!-- mtoc-start -->
 
+* [What's the Icon?](#whats-the-icon)
+* [C-Menu's File Structure](#c-menus-file-structure)
 * [Some Menu Selections Don't work](#some-menu-selections-dont-work)
   * [Visual Aids Soap-box](#visual-aids-soap-box)
 * [High Precision Math With C-Menu and Gawk](#high-precision-math-with-c-menu-and-gawk)
@@ -28,6 +30,30 @@
 * [View In a Box Window](#view-in-a-box-window)
 
 <!-- mtoc-end -->
+
+## What's the Icon?
+
+Q: What is the icon for C-Menu?
+
+![C-Menu Icon](screenshots/decision256.png)
+
+A: I tried using the stylized C-Menu logo, but it is illegible at small sizes.
+At least temporarily, I am using the above image.
+
+My main objectives in designing the icon were to make it simple, distinctive, and visually appealing. I wanted to create an icon that would be easily recognizable and memorable, while also conveying a sense of functionality and modernity. The overlapping tilted squares in the design represent the idea of multiple layers of functionality and customization that C-Menu offers. The use of transparency and cascading effects adds depth and visual interest to the icon, while also symbolizing the flexibility and adaptability of C-Menu as a tool for developers. Overall, I aimed to create an icon that would capture the essence of C-Menu's capabilities while also being visually striking and unique.
+
+However, after querying several people as to their impression, there was no
+consensus. My wife said it looks like a diamond. My brother-in-law, Larry, a
+former US Marine and Vietnam Veteran said it looks like rank chevrons. My Son,
+Brian, said it's just overlapping tilted squares. Cousin Mike, an IBM Systems
+Analyst, said it looks like a ligature made from the less and more symbols "<>".
+What do you think? If you have a suggestion for a better icon, please let me know.
+
+## C-Menu's File Structure
+
+Q: Why don't you install cmenu in the standard directories, such as /usr/local/bin and /usr/local/lib64?
+
+A: Installing C-Menu in a standard directory would limit its flexibility and make it less portable. By keeping C-Menu in a user-specific directory, such as ~/menuapp, users can easily customize and manage their C-Menu installation without affecting the system-wide configuration. This approach allows users to have multiple versions of C-Menu or different configurations for different projects without conflicts. Additionally, it simplifies the installation process, as users can simply clone the repository into their home directory without needing administrative privileges. Overall, this design choice enhances the usability and adaptability of C-Menu for a wide range of users and use cases.
 
 ## Some Menu Selections Don't work
 
