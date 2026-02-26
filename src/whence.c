@@ -80,8 +80,8 @@ int main(int argc, char **argv) {
     normalend();
 }
 /** @brief Display usage information for the whence utility
- *  @note This function prints the usage instructions and available options for
- * the whence utility to the standard error stream.
+    @note This function prints the usage instructions and available options for
+   the whence utility to the standard error stream.
  */
 void whence_usage() {
     fprintf(stderr, "whence_usage: whence [options] file_name\n");

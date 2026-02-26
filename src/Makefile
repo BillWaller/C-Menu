@@ -181,13 +181,13 @@ install:
 	cp -Rdup bin $(PREFIX)/bin
 	mkdir -p $(LIB_DIR)
 	cp $(LIB_NAME) $(LIB_DIR)/$(REAL_NAME)
-	echo `test/iso6801.sh` $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
+	echo `test/iso8601.sh` $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
 	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_NAME)
-	echo `test/iso6801.sh` $(LIB_DIR)/$(LIB_NAME) >>manifest.txt
+	echo `test/iso8601.sh` $(LIB_DIR)/$(LIB_NAME) >>manifest.txt
 	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
-	echo `test/iso6801.sh` $(LIB_DIR)/$(SONAME) >>manifest.txt
+	echo `test/iso8601.sh` $(LIB_DIR)/$(SONAME) >>manifest.txt
 	cp CMenu.conf /etc/ld.so.conf.d
-	echo `test/iso6801.sh` /etc/ld.so.conf.d/CMenu.conf >>manifest.txt
+	echo `test/iso8601.sh` /etc/ld.so.conf.d/CMenu.conf >>manifest.txt
 	ldconfig
 	./inst.sh -p
 	./inst.sh -l

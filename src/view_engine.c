@@ -1470,17 +1470,16 @@ void display_line(View *view) {
         Perror("Error refreshing screen");
 }
 /** @brief Format Line for Display
-    @param view pointer to View structure containing line input and
-   output buffers
+    @param view pointer to View structure containing line input and output
+   buffers
     @return length of formatted line in characters
-    @details This function processes the input line from
-   view->line_in_s, handling ANSI escape sequences for text
-   attributes and colors, as well as multi-byte characters. It
-   converts the input line into a formatted line suitable for
-   display in the terminal, storing the result in view->cmplx_buf
-   and view->stripped_line_out. The function returns the length of
-   the formatted line in characters, which may be used for tracking
-   the maximum column width of the displayed content.
+    @details This function processes the input line from view->line_in_s,
+   handling ANSI escape sequences for text attributes and colors, as well as
+   multi-byte characters. It converts the input line into a formatted line
+   suitable for display in the terminal, storing the result in view->cmplx_buf
+   and view->stripped_line_out. The function returns the length of the formatted
+   line in characters, which may be used for tracking the maximum column width
+   of the displayed content.
  */
 int fmt_line(View *view) {
     attr_t attr = WA_NORMAL;
@@ -1559,20 +1558,18 @@ int fmt_line(View *view) {
 }
 /** @brief Parse ANSI SGR Escape Sequence
     @param ansi_str is the ANSI escape sequence string to parse
-    @param attr is a pointer to an attr_t variable where the parsed
-   attributes will be stored
-    @param cpx is a pointer to an int variable where the parsed
-   color pair index will be stored
-    @details This function parses an ANSI SGR (Select Graphic
-   Rendition) escape sequence and updates the provided attr_t and
-   color pair index based on the attributes specified in the ANSI
-   string.
+    @param attr is a pointer to an attr_t variable where the parsed attributes
+   will be stored
+    @param cpx is a pointer to an int variable where the parsed color pair index
+   will be stored
+    @details This function parses an ANSI SGR (Select Graphic Rendition) escape
+   sequence and updates the provided attr_t and color pair index based on the
+   attributes specified in the ANSI string.
 
     @code
 
-    This function converts the following SGR specification types to
-   the appropriate curses color pair index for use in the terminal
-   display.
+    This function converts the following SGR specification types to the
+   appropriate curses color pair index for use in the terminal display.
 
     RGB:
 
@@ -1597,21 +1594,19 @@ int fmt_line(View *view) {
         foreground \033[3cm
         background \033[4cm
 
-        Where c is the color code (0 for black, 1 for red, 2 for
-   green, 3 for yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for
-   white).
+        Where c is the color code (0 for black, 1 for red, 2 for green, 3 for
+   yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for white).
 
     Attributes:
 
         \033[am
 
-        Where a is the attribute code (1 for bold, 2 for dim, 3 for
-   italic, 4 for underline, 5 for blink, 7 for reverse, 8 for
-   invis). The function also supports resetting attributes and
-   colors to default using \033[0m.
+        Where a is the attribute code (1 for bold, 2 for dim, 3 for italic, 4
+   for underline, 5 for blink, 7 for reverse, 8 for invis). The function also
+   supports resetting attributes and colors to default using \033[0m.
 
-    @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(),
-   extended_pair_content(), get_clr_pair()
+    @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(), extended_pair_content(),
+   get_clr_pair()
 
     @endcode
 */
@@ -1760,24 +1755,22 @@ void remove_file(View *view) {
 }
 /** @brief Display View Help File
     @param init is the current initialization data structure.
-    @note The current View context is set aside by assigning the
-   view structure to "view_save" while the help file is displayed
-   using a new, separate view structure.
-    @note The help file is specified by the VIEW_HELP_FILE macro can
-   be set to a default help file path or overridden by the user
-   through an environment variable.
-    @note  After the help file is closed, the original view is
-   restored and the page is redisplayed.
-    @note It may be necessary to reassign view after calling this
-   function because the init->view pointer is temporarily set to
-   NULL during the help file display, and the original view is
-   restored afterward.
-    @note The default screen size for help can be set in the code
-   below. If set to 0, mview will determine reasonable maximal size
-   based on the terminal dimensions.
-   @note The help file may contain Unicode characters and ANSI
-   escape sequences for formatting, which will be properly handled
-   and displayed by mview. */
+    @note The current View context is set aside by assigning the view structure
+   to "view_save" while the help file is displayed using a new, separate view
+   structure.
+    @note The help file is specified by the VIEW_HELP_FILE macro can be set to a
+   default help file path or overridden by the user through an environment
+   variable.
+    @note  After the help file is closed, the original view is restored and the
+   page is redisplayed.
+    @note It may be necessary to reassign view after calling this function
+   because the init->view pointer is temporarily set to NULL during the help
+   file display, and the original view is restored afterward.
+    @note The default screen size for help can be set in the code below. If set
+   to 0, mview will determine reasonable maximal size based on the terminal
+   dimensions.
+    @note The help file may contain Unicode characters and ANSI escape sequences
+   for formatting, which will be properly handled and displayed by mview. */
 void view_display_help(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
