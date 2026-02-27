@@ -1,11 +1,11 @@
 [Desktop Entry]
 Version=1.0
-Name=C-Menu
+Name=C-Menu Ghostty
 Type=Application
 Comment=User Interface Toolkit
 TryExec=/usr/bin/ghostty
 Exec=/usr/bin/ghostty --gtk-single-instance=true -e menu
-Icon=/usr/share/icons/decision.svg
+Icon=/usr/share/pixmaps/Decision.svg
 Categories=System;TerminalEmulator;
 Keywords=terminal;tty;pty;
 StartupNotify=true

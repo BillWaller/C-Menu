@@ -92,6 +92,7 @@ typedef struct {
     char receiver_cmd[MAXLEN]; /**< command receives output */
     char cmd[MAXLEN]; /**< command to execute in foreground, e.g. an editor */
     char cmd_all[MAXLEN]; /**< View - command to execute at start of program */
+    char parent_cmd[MAXLEN]; /**< command to be executed by parent */
     char prompt_str[MAXLEN]; /**< prompt string for chyron */
     int prompt_type; /**< View - prompt type for chyron, e.g. 0=short, 1=long,
                         2=none */
