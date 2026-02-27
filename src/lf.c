@@ -24,15 +24,15 @@ char tmp_str[MAXLEN];
 
 /** @brief List files in a directory matching a regular expression
     @note parameters are
-     dir Directory to search
-     re Regular expression to match
-     flags Flags to control behavior
-       -a        List all files (including hidden files)
-       -d        maximum max_depth of subdirectories to examine
-       -h        show this help message
-       -i        ignore case in search
-       -r        recurse into subdirectories
-       -v        show version information
+    @param dir Directory to search
+    @param re Regular expression to match
+    @param options
+    @param   -a        List hidden files
+    @param   -d        maximum max_depth of subdirectories to examine
+    @param   -h        show this help message
+    @param   -i        ignore case in search
+    @param   -t        type, d - directories only, f - files only
+    @param   -v        show version information
  */
 int main(int argc, char **argv) {
     char dir[MAXLEN] = "";
@@ -42,10 +42,10 @@ int main(int argc, char **argv) {
     int flags = 0;
     int opt;
     int max_depth = 3;
-    while ((opt = getopt(argc, argv, "ad:hrv")) != -1) {
+    while ((opt = getopt(argc, argv, "ad:hit:v")) != -1) {
         switch (opt) {
         case 'a':
-            flags |= ALL;
+            flags |= LF_ALL;
             break;
         case 'd':
             max_depth = atoi(optarg);
@@ -54,10 +54,19 @@ int main(int argc, char **argv) {
             f_help = true;
             break;
         case 'i':
-            flags |= ICASE;
+            flags |= LF_ICASE;
             break;
-        case 'r':
-            flags |= RECURSE;
+        case 't':
+            switch (optarg[0]) {
+            case 'd':
+                flags |= LF_DIRS;
+                break;
+            case 'f':
+                flags |= LF_FILES;
+                break;
+            default:
+                break;
+            }
             break;
         case 'v':
             f_version = true;
@@ -69,11 +78,11 @@ int main(int argc, char **argv) {
     if (f_help) {
         printf("Usage: lf [options] [directory] [regexp]\n");
         printf("Options:\n");
-        printf("  -a        List all files (including hidden files)\n");
+        printf("  -a        List hidden files\n");
         printf("  -d        maximum depth of subdirectories to examine\n");
         printf("  -h        show this help message\n");
         printf("  -i        ignore case in search\n");
-        printf("  -r        recurse into subdirectories\n");
+        printf("  -t        type, d - directories only, f - files only\n");
         printf("  -v        show version information\n");
         exit(EXIT_SUCCESS);
     }
@@ -81,7 +90,12 @@ int main(int argc, char **argv) {
         printf("lf version 1.0\n");
         exit(EXIT_SUCCESS);
     }
+    struct stat sb;
     if (optind < argc) {
+        if (stat(argv[optind], &sb) == -1 || (sb.st_mode & S_IFMT) != S_IFDIR) {
+            Perror("First non-option argument must be a valid directory");
+            exit(EXIT_FAILURE);
+        }
         strnz__cpy(dir, argv[optind], MAXLEN - 1);
         optind++;
     }
@@ -93,12 +107,6 @@ int main(int argc, char **argv) {
         strnz__cpy(re, ".*", MAXLEN - 1);
     if (dir[0] == '\0')
         strnz__cpy(dir, ".", MAXLEN - 1);
-    if (flags & RECURSE) {
-        lf_find_files(dir, re, flags);
-        if (max_depth > 1)
-            lf_find_dirs(dir, re, max_depth, flags);
-    } else {
-        lf_find_files(dir, re, flags);
-    }
+    lf_find(dir, re, max_depth, flags);
     return true;
 }

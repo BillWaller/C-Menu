@@ -1,0 +1,182 @@
+[
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc -Dcm_EXPORTS -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -fPIC -o CMakeFiles/cm.dir/dwin.c.o -c /usr/local/src/cmenu/src/dwin.c",
+  "file": "/usr/local/src/cmenu/src/dwin.c",
+  "output": "CMakeFiles/cm.dir/dwin.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc -Dcm_EXPORTS -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -fPIC -o CMakeFiles/cm.dir/exec.c.o -c /usr/local/src/cmenu/src/exec.c",
+  "file": "/usr/local/src/cmenu/src/exec.c",
+  "output": "CMakeFiles/cm.dir/exec.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc -Dcm_EXPORTS -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -fPIC -o CMakeFiles/cm.dir/futil.c.o -c /usr/local/src/cmenu/src/futil.c",
+  "file": "/usr/local/src/cmenu/src/futil.c",
+  "output": "CMakeFiles/cm.dir/futil.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc -Dcm_EXPORTS -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -fPIC -o CMakeFiles/cm.dir/scriou.c.o -c /usr/local/src/cmenu/src/scriou.c",
+  "file": "/usr/local/src/cmenu/src/scriou.c",
+  "output": "CMakeFiles/cm.dir/scriou.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc -Dcm_EXPORTS -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -fPIC -o CMakeFiles/cm.dir/sig.c.o -c /usr/local/src/cmenu/src/sig.c",
+  "file": "/usr/local/src/cmenu/src/sig.c",
+  "output": "CMakeFiles/cm.dir/sig.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/curskeys.c.o -c /usr/local/src/cmenu/src/curskeys.c",
+  "file": "/usr/local/src/cmenu/src/curskeys.c",
+  "output": "CMakeFiles/CMenu.dir/curskeys.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/fields.c.o -c /usr/local/src/cmenu/src/fields.c",
+  "file": "/usr/local/src/cmenu/src/fields.c",
+  "output": "CMakeFiles/CMenu.dir/fields.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/form_engine.c.o -c /usr/local/src/cmenu/src/form_engine.c",
+  "file": "/usr/local/src/cmenu/src/form_engine.c",
+  "output": "CMakeFiles/CMenu.dir/form_engine.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/init_view.c.o -c /usr/local/src/cmenu/src/init_view.c",
+  "file": "/usr/local/src/cmenu/src/init_view.c",
+  "output": "CMakeFiles/CMenu.dir/init_view.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/pick_engine.c.o -c /usr/local/src/cmenu/src/pick_engine.c",
+  "file": "/usr/local/src/cmenu/src/pick_engine.c",
+  "output": "CMakeFiles/CMenu.dir/pick_engine.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/view_engine.c.o -c /usr/local/src/cmenu/src/view_engine.c",
+  "file": "/usr/local/src/cmenu/src/view_engine.c",
+  "output": "CMakeFiles/CMenu.dir/view_engine.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/init.c.o -c /usr/local/src/cmenu/src/init.c",
+  "file": "/usr/local/src/cmenu/src/init.c",
+  "output": "CMakeFiles/CMenu.dir/init.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/mem.c.o -c /usr/local/src/cmenu/src/mem.c",
+  "file": "/usr/local/src/cmenu/src/mem.c",
+  "output": "CMakeFiles/CMenu.dir/mem.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/mview.c.o -c /usr/local/src/cmenu/src/mview.c",
+  "file": "/usr/local/src/cmenu/src/mview.c",
+  "output": "CMakeFiles/CMenu.dir/mview.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/opts.c.o -c /usr/local/src/cmenu/src/opts.c",
+  "file": "/usr/local/src/cmenu/src/opts.c",
+  "output": "CMakeFiles/CMenu.dir/opts.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/menu.dir/menu.c.o -c /usr/local/src/cmenu/src/menu.c",
+  "file": "/usr/local/src/cmenu/src/menu.c",
+  "output": "CMakeFiles/menu.dir/menu.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/menu.dir/menu_engine.c.o -c /usr/local/src/cmenu/src/menu_engine.c",
+  "file": "/usr/local/src/cmenu/src/menu_engine.c",
+  "output": "CMakeFiles/menu.dir/menu_engine.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/menu.dir/parse_menu_desc.c.o -c /usr/local/src/cmenu/src/parse_menu_desc.c",
+  "file": "/usr/local/src/cmenu/src/parse_menu_desc.c",
+  "output": "CMakeFiles/menu.dir/parse_menu_desc.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/form.dir/form.c.o -c /usr/local/src/cmenu/src/form.c",
+  "file": "/usr/local/src/cmenu/src/form.c",
+  "output": "CMakeFiles/form.dir/form.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/pick.dir/pick.c.o -c /usr/local/src/cmenu/src/pick.c",
+  "file": "/usr/local/src/cmenu/src/pick.c",
+  "output": "CMakeFiles/pick.dir/pick.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/view.dir/view.c.o -c /usr/local/src/cmenu/src/view.c",
+  "file": "/usr/local/src/cmenu/src/view.c",
+  "output": "CMakeFiles/view.dir/view.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/ckeys.dir/ckeys.c.o -c /usr/local/src/cmenu/src/ckeys.c",
+  "file": "/usr/local/src/cmenu/src/ckeys.c",
+  "output": "CMakeFiles/ckeys.dir/ckeys.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/enterchr.dir/enterchr.c.o -c /usr/local/src/cmenu/src/enterchr.c",
+  "file": "/usr/local/src/cmenu/src/enterchr.c",
+  "output": "CMakeFiles/enterchr.dir/enterchr.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/enterstr.dir/enterstr.c.o -c /usr/local/src/cmenu/src/enterstr.c",
+  "file": "/usr/local/src/cmenu/src/enterstr.c",
+  "output": "CMakeFiles/enterstr.dir/enterstr.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/iloan.dir/iloan.c.o -c /usr/local/src/cmenu/src/iloan.c",
+  "file": "/usr/local/src/cmenu/src/iloan.c",
+  "output": "CMakeFiles/iloan.dir/iloan.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/lf.dir/lf.c.o -c /usr/local/src/cmenu/src/lf.c",
+  "file": "/usr/local/src/cmenu/src/lf.c",
+  "output": "CMakeFiles/lf.dir/lf.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/optsp.dir/optsp.c.o -c /usr/local/src/cmenu/src/optsp.c",
+  "file": "/usr/local/src/cmenu/src/optsp.c",
+  "output": "CMakeFiles/optsp.dir/optsp.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/rsh.dir/rsh.c.o -c /usr/local/src/cmenu/src/rsh.c",
+  "file": "/usr/local/src/cmenu/src/rsh.c",
+  "output": "CMakeFiles/rsh.dir/rsh.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/stripansi.dir/stripansi.c.o -c /usr/local/src/cmenu/src/stripansi.c",
+  "file": "/usr/local/src/cmenu/src/stripansi.c",
+  "output": "CMakeFiles/stripansi.dir/stripansi.c.o"
+},
+{
+  "directory": "/usr/local/src/cmenu/src/build",
+  "command": "/usr/bin/cc  -I/usr/local/src/cmenu/src -I/usr/local/src/cmenu/src/include -I../include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/whence.dir/whence.c.o -c /usr/local/src/cmenu/src/whence.c",
+  "file": "/usr/local/src/cmenu/src/whence.c",
+  "output": "CMakeFiles/whence.dir/whence.c.o"
+}
+]

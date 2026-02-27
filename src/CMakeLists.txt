@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 4.1)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
 set(RSH_LD $ENV{RSH_LD})
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -33,6 +36,9 @@ configure_file(
     "${PROJECT_SOURCE_DIR}/include/version.h.in"
     "${PROJECT_SOURCE_DIR}/include/version.h"
 )
+
+install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json"
+    DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c)
 set_target_properties(

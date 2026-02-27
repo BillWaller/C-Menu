@@ -178,7 +178,6 @@ install:
 	./inst.sh stripansi		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh lf		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)
-	cp -Rdup bin $(PREFIX)/bin
 	mkdir -p $(LIB_DIR)
 	cp $(LIB_NAME) $(LIB_DIR)/$(REAL_NAME)
 	echo `test/iso8601.sh` $(LIB_DIR)/$(REAL_NAME) >>manifest.txt

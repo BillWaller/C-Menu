@@ -24,14 +24,8 @@
 #include <unistd.h>
 #include <wait.h>
 
-/** flags for lf_find_files and lf_find_dirs */
-#define ALL 0x01     /**< match all files, including hidden files */
-#define RECURSE 0x02 /**< recursively search subdirectories */
-#define ICASE 0x04   /**< case-insensitive regular expression matching */
-
-bool list_files(char *, char *, int, bool);
-bool lf_find_dirs(char *, char *, int, int);
-bool lf_find_files(char *, char *, int);
+bool lf_find(const char *, const char *, int, int);
+bool lf_process(const char *, regex_t *, int, int, int);
 size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);
@@ -891,82 +885,24 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     }
     return false;
 }
-/**  @brief Lists files in a directory matching a regular expression, optionally
-   recursing into subdirectories.
-     @param dir - directory to list files from
-     @param regexp - regular expression to match files
-     @param max_depth - how many directories to descend into
-     @param flags - ALL, RECURSE */
-bool list_files(char *dir, char *regexp, int max_depth, bool flags) {
-    if (dir == NULL || *dir == '\0' || regexp == NULL || *regexp == '\0')
-        return false;
-    normalize_file_spec(dir);
-    if (flags & RECURSE) {
-        lf_find_files(dir, regexp, flags);
-        if (max_depth > 0)
-            lf_find_dirs(dir, regexp, max_depth, flags);
-    } else {
-        lf_find_files(dir, regexp, flags);
-    }
-    return true;
-}
-/** @brief Recursively find directories and call lf_find_files on each directory
-   found
-    @param dir   starting directory
-    @param re    regular expression to match files
-    @param max_depth current recursion depth
-    @param flags search flags
-    return      true if successful, false otherwise */
-bool lf_find_dirs(char *dir, char *re, int max_depth, int flags) {
-    struct stat sb;
-    struct dirent *dir_st;
-    int depth = 1;
-    DIR *dirp;
-    char dir_s[MAXLEN];
-    char file_spec[MAXLEN];
-
-    if ((dirp = opendir(dir)) == 0)
-        return false;
-    dir_st = readdir(dirp);
-    while (dir_st != NULL) {
-        if (dir_st->d_ino != 0 && strcmp(dir_st->d_name, ".") != 0 &&
-            strcmp(dir_st->d_name, "..") != 0) {
-            strnz__cpy(file_spec, dir, MAXLEN - 1);
-            if (file_spec[strlen(file_spec) - 1] != '/')
-                strnz__cat(file_spec, "/", MAXLEN - 1);
-            strnz__cat(file_spec, dir_st->d_name, MAXLEN - 1);
-            if (stat(file_spec, &sb) == -1) {
-                return false;
-            }
-            if ((sb.st_mode & S_IFMT) == S_IFDIR) {
-                strnz__cpy(dir_s, file_spec, MAXLEN - 1);
-                lf_find_files(dir_s, re, flags);
-                if (depth++ < max_depth)
-                    lf_find_dirs(dir_s, re, max_depth, flags);
-            }
-        }
-        dir_st = readdir(dirp);
-    }
-    closedir(dirp);
-    return true;
-}
 /** @brief Find files in a directory matching a regular expression
-    @param dir   directory to search
-    @param re    regular expression to match files
+    @param base_path directory to search
+    @param re    regular expression to match
     @param flags search flags
+    @code
+    LF_ALL      =  1,  List all files including hidden files
+    LF_ICASE    =  2,  Ignore case in search
+    LF_FILES    =  4,  List files
+    LF_DIRS     =  8,  List directories
+    LF_LINKS    = 16   List links
+    @endcode
     return      true if successful, false otherwise */
-bool lf_find_files(char *dir, char *re, int flags) {
-    struct stat sb;
-    struct dirent *dir_st;
-    DIR *dirp;
-    int REG_FLAGS = REG_EXTENDED;
+bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
     int reti;
-    regmatch_t pmatch[1];
     regex_t compiled_re;
-    char file_spec[MAXLEN];
-    char *file_spec_p;
+    int REG_FLAGS = REG_EXTENDED;
 
-    if (flags & ICASE)
+    if (flags & LF_ICASE)
         REG_FLAGS |= REG_ICASE;
     reti = regcomp(&compiled_re, re, REG_FLAGS);
     if (reti) {
@@ -974,42 +910,85 @@ bool lf_find_files(char *dir, char *re, int flags) {
         printf("for example: \'.*\\.c$\'\n\n");
         return false;
     }
-    if ((dirp = opendir(dir)) == 0)
+    lf_process(base_path, &compiled_re, 0, max_depth, flags);
+    return true;
+}
+
+/** @brief logic for lf_find()
+    @param base_path   directory to search
+    @param compiled_re compiled regular expression
+    @param depth recursion counter
+    @param max_depth how deep to descend into the directory structure
+    @param flags
+    @code
+    LF_ALL      =  1,  List all files including hidden files
+    LF_ICASE    =  2,  Ignore case in search
+    LF_FILES    =  4,  List files
+    LF_DIRS     =  8,  List directories
+    LF_LINKS    = 16   List links
+    @endcode
+    return      true if successful, false otherwise */
+bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
+                int max_depth, int flags) {
+    struct stat sb;
+    struct dirent *dir_st;
+    DIR *dir;
+    int REG_FLAGS = REG_EXTENDED;
+    int reti;
+    regmatch_t pmatch[1];
+    char file_spec[1024];
+    bool is_dir;
+    bool suppress;
+
+    if ((dir = opendir(base_path)) == 0)
         return false;
-    dir_st = readdir(dirp);
-    while (dir_st != NULL) {
-        if (strcmp(dir_st->d_name, ".") != 0 &&
-            strcmp(dir_st->d_name, "..") != 0) {
-            strnz__cpy(file_spec, dir, MAXLEN - 1);
-            if (file_spec[strlen(file_spec) - 1] != '/')
-                strnz__cat(file_spec, "/", MAXLEN - 1);
-            strnz__cat(file_spec, dir_st->d_name, MAXLEN - 1);
-            if (stat(file_spec, &sb) == -1)
+    while ((dir_st = readdir(dir)) != NULL) {
+        if (strcmp(dir_st->d_name, ".") == 0 ||
+            strcmp(dir_st->d_name, "..") == 0)
+            continue;
+
+        char path[1024];
+        ssnprintf(file_spec, sizeof(path), "%s/%s", base_path, dir_st->d_name);
+        if (stat(file_spec, &sb) == -1)
+            return false;
+        suppress = false;
+        if ((sb.st_mode & S_IFMT) == S_IFDIR && dir_st->d_ino != 0) {
+            if (flags & LF_FILES)
+                suppress = true;
+            is_dir = true;
+        } else {
+            if (flags & LF_DIRS)
+                suppress = true;
+            is_dir = false;
+        }
+
+        if (file_spec[0] == '.' && file_spec[1] == '/' && file_spec[2] == '.' &&
+            !(flags & LF_ALL))
+            suppress = true;
+
+        if (!suppress) {
+            reti = regexec(compiled_re, file_spec, compiled_re->re_nsub + 1,
+                           pmatch, REG_FLAGS);
+            if (reti == REG_NOMATCH) {
+                suppress = true;
+            } else if (reti) {
+                char msgbuf[100];
+                regerror(reti, compiled_re, msgbuf, sizeof(msgbuf));
+                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+                strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
+                Perror(tmp_str);
                 return false;
-            if ((sb.st_mode & S_IFMT) != S_IFDIR && dir_st->d_ino != 0) {
-                reti = regexec(&compiled_re, file_spec, compiled_re.re_nsub + 1,
-                               pmatch, REG_FLAGS);
-                if (reti == REG_NOMATCH) {
-                    // no match
-                } else if (reti) {
-                    char msgbuf[100];
-                    regerror(reti, &compiled_re, msgbuf, sizeof(msgbuf));
-                    strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
-                    strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
-                    perror(tmp_str);
-                    return false;
-                } else {
-                    file_spec_p = file_spec;
-                    if (file_spec[0] == '.' && file_spec[1] == '/')
-                        file_spec_p += 2;
-                    if (*file_spec_p != '.' || (flags & ALL))
-                        printf("%s\n", file_spec_p);
-                }
             }
         }
-        dir_st = readdir(dirp);
+        if (!suppress)
+            printf("%s\n", &file_spec[2]);
+        if (is_dir && (depth + 1 < max_depth)) {
+            depth++;
+            lf_process(file_spec, compiled_re, depth, max_depth, flags);
+        }
+        dir_st = readdir(dir);
     }
-    closedir(dirp);
+    closedir(dir);
     return true;
 }
 /** @brief If directory doesn't exist, make it
@@ -1064,32 +1043,33 @@ size_t canonicalize_file_spec(char *spec) {
     @param org_s - original string
     @param tgt_s - target substring to replace
     @param rep_s - replacement substring
-    @returns A pointer to the newly allocated string with replacements or a copy
-   of the replacement string if original string is the same as target string
-   This is a special case that allows for replacing the entire original string.
-   If any parameter is NULL, the function returns NULL. If "tgt_s" is not found
-   in "org_s", the function returns a copy of "org_s". If target substring is
-   not found the function returns a copy of the original string.
-    @note The function allocates memory for the return value, so the caller is
-   responsible for freeing this memory when it is no longer needed to avoid
-   memory leaks.
+    @returns A pointer to the newly allocated string with replacements
+   or a copy of the replacement string if original string is the same as
+   target string This is a special case that allows for replacing the
+   entire original string. If any parameter is NULL, the function
+   returns NULL. If "tgt_s" is not found in "org_s", the function
+   returns a copy of "org_s". If target substring is not found the
+   function returns a copy of the original string.
+    @note The function allocates memory for the return value, so the
+   caller is responsible for freeing this memory when it is no longer
+   needed to avoid memory leaks.
     @note The function does not modify the original string "org_s".
-    @note The function assumes that "tgt_s" and "rep_s" are null-terminated
-   strings. If they are not, the behavior is undefined.
+    @note The function assumes that "tgt_s" and "rep_s" are
+   null-terminated strings. If they are not, the behavior is undefined.
     @note The function does not perform any bounds checking on the input
-   strings, so it is the caller's responsibility to ensure that they are valid
-   and that the resulting string does not exceed available memory. @note The
-   function uses the standard library functions strlen, strstr, malloc, and
-   strcpy, which may have their own limitations and behaviors that the caller
-   should be aware of.
-    @note The function does not handle overlapping occurrences of "tgt_s" in
-   "org_s". If "tgt_s" can overlap with itself in "org_s", the behavior may be
-   unexpected. The caller should ensure that "tgt_s" does not contain
-   overlapping patterns to avoid this issue.
-    @note The function does not handle cases where "tgt_s" is a substring of
-   "rep_s", which could lead to unintended consequences if "tgt_s" appears in
-   "rep_s". The caller should ensure that "tgt_s" and "rep_s" are distinct to
-   avoid this issue. */
+   strings, so it is the caller's responsibility to ensure that they are
+   valid and that the resulting string does not exceed available memory.
+   @note The function uses the standard library functions strlen,
+   strstr, malloc, and strcpy, which may have their own limitations and
+   behaviors that the caller should be aware of.
+    @note The function does not handle overlapping occurrences of
+   "tgt_s" in "org_s". If "tgt_s" can overlap with itself in "org_s",
+   the behavior may be unexpected. The caller should ensure that "tgt_s"
+   does not contain overlapping patterns to avoid this issue.
+    @note The function does not handle cases where "tgt_s" is a
+   substring of "rep_s", which could lead to unintended consequences if
+   "tgt_s" appears in "rep_s". The caller should ensure that "tgt_s" and
+   "rep_s" are distinct to avoid this issue. */
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     if (org_s == NULL || tgt_s == NULL || rep_s == NULL)
         return NULL;
@@ -1131,17 +1111,20 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     strnz__cpy(tmp, ip, MAXLEN - 1);
     return out_s;
 }
-/** @brief String functions provide a simple string library to facilitate string
-   manipulation in C, allowing developers to easily create, copy, concatenate,
-   and free strings without having to manage memory manually. @note The library
-   includes functions to convert C strings to String structs, create new String
-   structs with specified lengths, copy and concatenate String structs, and free
-   the memory used by String structs. By using this library, developers can
-   avoid common pitfalls of C string handling, such as buffer overflows and
-   memory leaks, while still benefiting from the performance advantages of C.
-   @note This library is designed to be simple and easy to use, making it a
-   great choice for developers who want to work with strings in C without having
-   to worry about the complexities of manual memory management.
+/** @brief String functions provide a simple string library to
+   facilitate string manipulation in C, allowing developers to easily
+   create, copy, concatenate, and free strings without having to manage
+   memory manually.
+   @note The library includes functions to convert C strings to String
+   structs, create new String structs with specified lengths, copy and
+   concatenate String structs, and free the memory used by String
+   structs. By using this library, developers can avoid common pitfalls
+   of C string handling, such as buffer overflows and memory leaks,
+   while still benefiting from the performance advantages of C.
+   @note This library is designed to be simple and easy to use, making
+   it a great choice for developers who want to work with strings in C
+   without having to worry about the complexities of manual memory
+   management.
    @note The String struct is defined as follows:
    @code
      typedef struct {
@@ -1149,22 +1132,23 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
          char *s;  // pointer to the dynamically allocated string
      } String;
     @endcode
-   @note All functions in this library that return a String struct allocate
-   memory for the string using malloc or realloc. It is the caller's
-   responsibility to free this memory using the free_string function when it is
-   no longer needed to avoid memory leaks.
-   @note The functions in this library do not perform any bounds checking on the
-   input strings or the resulting strings. It is the caller's responsibility to
-   ensure that all input strings are valid and that the resulting strings do not
-   exceed available memory.
+   @note All functions in this library that return a String struct
+   allocate memory for the string using malloc or realloc. It is the
+   caller's responsibility to free this memory using the free_string
+   function when it is no longer needed to avoid memory leaks.
+   @note The functions in this library do not perform any bounds
+   checking on the input strings or the resulting strings. It is the
+   caller's responsibility to ensure that all input strings are valid
+   and that the resulting strings do not exceed available memory.
    @note The functions in this library assume that all input strings are
-   null-terminated. If any input string is not null-terminated, the behavior is
-   undefined.
+   null-terminated. If any input string is not null-terminated, the
+   behavior is undefined.
    @example strings_test1.c
  */
 /** @brief Convert C string to String struct
     @param s C string
-    @return String struct containing dynamically allocated copy of input string
+    @return String struct containing dynamically allocated copy of input
+   string
     @note the caller is responsible for freeing the allocated memory.
     */
 String to_string(const char *s) {
@@ -1183,8 +1167,8 @@ String to_string(const char *s) {
 /** @brief Create a String struct with a dynamically allocated string
    @param l length of string to create including null terminator
    @returns String struct
-   @note The returned String struct contains a dynamically allocated string of
-   he specified length
+   @note The returned String struct contains a dynamically allocated
+   string of he specified length
    @sa free_string
    @note the caller is responsible for calling free_string to free the
    allocated memory. */
@@ -1204,7 +1188,8 @@ String mk_string(size_t l) {
 /** @brief Free the dynamically allocated String
     @param string to free
     @return string with NULL pointer and length 0
-    @note Frees the dynamically allocated string and sets length to 0. */
+    @note Frees the dynamically allocated string and sets length to 0.
+ */
 String free_string(String string) {
     if (string.s == NULL)
         return string;
@@ -1213,8 +1198,8 @@ String free_string(String string) {
     string.s = NULL;
     return string;
 }
-/** @brief Copy src String to dest String, allocating additional memory for dest
-   String if necessary
+/** @brief Copy src String to dest String, allocating additional memory
+   for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @returns length of dest String
@@ -1229,8 +1214,8 @@ size_t string_cpy(String *dest, const String *src) {
     strcpy(dest->s, src->s);
     return src->l;
 }
-/** @brief Concatenates src String to dest String, allocating additional memory
-   for dest String if necessary
+/** @brief Concatenates src String to dest String, allocating additional
+   memory for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @returns new length of dest String after concatenation
@@ -1246,8 +1231,8 @@ size_t string_cat(String *dest, const String *src) {
     strcat(dest->s, src->s);
     return new_len;
 }
-/** @brief Concatenates up to n characters from src String to dest String,
-   allocating additional memory for dest String if necessary
+/** @brief Concatenates up to n characters from src String to dest
+   String, allocating additional memory for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to concatenate
@@ -1267,8 +1252,8 @@ size_t string_ncat(String *dest, const String *src, size_t n) {
     strncat(dest->s, src->s, cat_len);
     return new_len;
 }
-/** @brief copies up to n characters from src String to dest String, allocating
-   additional memory for dest String if necessary
+/** @brief copies up to n characters from src String to dest String,
+   allocating additional memory for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to copy

@@ -1,3 +1,0 @@
-#!/bin/bash
-
-optsp | awk -f /home/bill/menuapp/msrc/colorize.awk
