@@ -22,11 +22,16 @@
 #define MAXARGS 64    /**< maximum number of arguments */
 #define SCR_COLS 1024 /**< maximum number of columns in the terminal screen */
 #define MAX_DEPTH 3   /**< maximum depth for recursive file searching */
-#define ALL 0x01      /**< List all files including hidden files */
-#define RECURSE 0x02  /**< Recurse into subdirectories */
-#define ICASE 0x04    /**< Ignore case in search */
-#define W_BOX 0x02    /**< box window flag for win_new() */
-#define COLOR_LEN 8   /**< length of color code strings */
+
+enum LFFlags {
+    LF_ALL = 1,   /**< List all files including hidden files */
+    LF_ICASE = 2, /**< Ignore case in search */
+    LF_FILES = 4, /**< List files */
+    LF_DIRS = 8,  /**< List directories */
+};
+
+#define W_BOX 0x40  /**< box window flag for win_new() */
+#define COLOR_LEN 8 /**< length of color code strings */
 #define DEFAULTSHELL "/bin/bash"
 #define S_WCOK 0x1000  /**< write or create permitted */
 #define S_QUIET 0x2000 /**< quiet mode flag for file validation */
@@ -578,9 +583,7 @@ extern int display_error(char *, char *, char *, char *);
 extern int display_ok_message(char *);
 extern int Perror(char *);
 extern void user_end();
-extern bool list_files(char *, char *, int, bool);
-extern bool lf_find_dirs(char *, char *, int, int);
-extern bool lf_find_files(char *, char *, int);
+extern bool lf_find(const char *, const char *, int, int);
 extern size_t canonicalize_file_spec(char *);
 extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool file_spec_path(char *, char *);
