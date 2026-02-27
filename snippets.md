@@ -4,6 +4,7 @@
 
 <!-- mtoc-start -->
 
+* [C-Menu Desktop Files](#c-menu-desktop-files)
 * [C-Menu bashrc Configuration](#c-menu-bashrc-configuration)
   * [Shell Logging](#shell-logging)
   * [Prepend Path](#prepend-path)
@@ -28,6 +29,21 @@
   * [Tree-Sitter config.json](#tree-sitter-configjson)
 
 <!-- mtoc-end -->
+
+
+## C-Menu Desktop Files
+
+You may find it useful to create desktop files to start C-Menu by clicking a
+desktop icon. You will find desktop files to start C-Menu in Ghostty, Kitty, and
+Alacritty in the C-Menu/example_configs/Desktop directory.
+
+Each of these desktop files have two modified lines, Exec and Icon. The Exec line is the command that is executed when you click the desktop icon. You can substitute your choice of icons for Decision.svg.
+
+Icon=/usr/share/pixmaps/Decision.svg
+Exec=alacritty -e menu
+
+The script, install_desktop.sh, in the C-Menu/example_configs/Desktop directory, will copy these desktop files to your local applications directory, or you can modify it
+to copy them to a different location. You can also create your own desktop files using the examples as a templates.
 
 ## C-Menu bashrc Configuration
 
@@ -84,6 +100,8 @@ ShellLog() {
 }
 ```
 
+---
+
 ### Prepend Path
 
 This technique for managing the PATH environment variable is from bashfaq #24.
@@ -113,7 +131,7 @@ done
 export PATH
 ```
 
-- WARNING: /usr/bin/view is generally a link to vim, which will
+***WARNING:*** /usr/bin/view is generally a link to vim, which will
 obscure C-Menu View if /usr/bin preceedes $HOME/menuapp/bin
 in your PATH environment variable.
 
@@ -124,12 +142,16 @@ first in the PATH because it was prepended last.
 If you have issues starting C-Menu View by typing "view" at
 the shell prompt, examine your PATH environment variable.
 
+---
+
 ### Helpful C-Menu Environment Variables
 
 ```bash
 export CMENU_SRC=/usr/local/src/cmenu/src
 export CMENU_HOME="$HOME"/menuapp
 ```
+
+---
 
 ### Security Through Obscurity
 
@@ -142,6 +164,8 @@ circumstancs, might turn on shell restrictions for common shells like bash.
 export SHELL=bash
 which xsh >/dev/null 2>&1 && export SHELL=xsh
 ```
+
+---
 
 ### RSH Helpers
 
@@ -179,9 +203,9 @@ careful not to make it too cluttered or slow to render. The key is to have a
 clear visual indicator of whether you are running as root or a normal user, to 
 help prevent accidentally running commands with elevated privileges.
 
-The inclusion of '\\W' in the prompt is a common practice to show the current 
+The inclusion of \\W in the prompt is a common practice to show the current 
 working directory, which can be helpful for context. If you want the full 
-directory, use '\\w' (lower case). The color coding (green for normal users and red 
+directory, use \\w (lower case). The color coding (green for normal users and red 
 for root) provides an immediate visual cue about the privilege level of the 
 shell session. You can even make it hot-pink if you want it to be really 
 annoying. The key is to have a clear and distinct visual indicator of privilege 
@@ -192,6 +216,8 @@ export PS1="\[\e[1;32m\]\u@\h(\l)\W->\[\e[0m\] "
 export XUSER="$(id -un)"
 [ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h(\l)\W->\[\e[0m\] "
 ```
+
+---
 
 ### Terminal and Editor Settings
 
@@ -223,6 +249,8 @@ if [ "$VIEW_FAKE" = "false" ]; then
 fi
 ```
 
+---
+
 ### GDB Debugging Setup
 
 This is useful when debugging programs that require user input
@@ -238,6 +266,8 @@ which sleep >/dev/null 2>&1 && s() {
 }
 which gdb >/dev/null 2>&1 && gdb() { /usr/bin/gdb --silent "$@"; }
 ```
+
+---
 
 ### If You Can't Stop Typing "vi"
 
@@ -259,6 +289,8 @@ which menu >/dev/null 2>&1 && mm() {
 kk() { cd /usr/local/src/cmenu/src || return; }
 ```
 
+---
+
 ### Curses Escape Delay
 
 I use a local computer, so 50ms works fine for me. If you have a slow connection
@@ -269,10 +301,11 @@ export ESCDELAY=200
 export ESCDELAY=50
 ```
 
+---
+
 ### Use lsd instead of ls
 
 ```bash
-
 PREFER_LSD=1
 if [ "$PREFER_LSD" = "1" ]; then
     which lsd >/dev/null 2>&1 && ls() { /usr/bin/lsd "$@"; }
@@ -281,6 +314,8 @@ else
 fi
 ```
 
+---
+
 ### Locale Settings
 
 If you are in the US, you probably want to set this locale.
@@ -288,6 +323,8 @@ If you are in the US, you probably want to set this locale.
 ```bash
 export LC_ALL="en_US.UTF-8"
 ```
+
+---
 
 ### System Specific Environment Variables
 
@@ -305,6 +342,8 @@ export RUSTUP_HOME="$HOME"/.rustup
 export LLVM_LIB_DIR=/usr/lib64
 export MASON="$HOME/.local/share/lazyvim/mason"
 ```
+
+---
 
 ## C-Menu Configuration
 
@@ -371,12 +410,16 @@ mapp_msrc=~/menuapp/msrc
 mapp_user=~/menuapp/user
 ```
 
+---
+
 ## Terminal Configurations
 
 Please adjust these terminal configurations for your system. In particular,
 you should pay attention to the screen dimensions, which I have set to 95
 columns and up to 80 lines. Make sure you have the specified fonts installed
 on your system, or change the font settings to match fonts you do have.
+
+---
 
 ### Ghostty
 
@@ -426,6 +469,8 @@ cursor-color = #f0f0f0
 selection-background = #e0d0d0
 selection-foreground = #000000
 ```
+
+---
 
 ### Kitty
 
@@ -486,6 +531,8 @@ cursor                  #f0f0f0
 selection_background    #e0d0d0
 selection_foreground    #000000
 ```
+
+---
 
 ### Alacritty
 
@@ -552,6 +599,8 @@ Before you can use Tree-Sitter-CLI, you will need to install the parsers
 for your file types. Below an example layout for parser installation.
 
 ![Tree-Sitter Configuration](screenshots/tree-sitter-parsers.png)
+
+---
 
 ### Tree-Sitter config.json
 
@@ -623,3 +672,4 @@ for your file types. Below an example layout for parser installation.
   }
 }
 ```
+---
