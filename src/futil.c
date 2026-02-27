@@ -894,7 +894,6 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     LF_ICASE    =  2,  Ignore case in search
     LF_FILES    =  4,  List files
     LF_DIRS     =  8,  List directories
-    LF_LINKS    = 16   List links
     @endcode
     return      true if successful, false otherwise */
 bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
@@ -925,7 +924,6 @@ bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
     LF_ICASE    =  2,  Ignore case in search
     LF_FILES    =  4,  List files
     LF_DIRS     =  8,  List directories
-    LF_LINKS    = 16   List links
     @endcode
     return      true if successful, false otherwise */
 bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
@@ -939,6 +937,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
     char file_spec[1024];
     bool is_dir;
     bool suppress;
+    int j, i;
 
     if ((dir = opendir(base_path)) == 0)
         return false;
@@ -947,8 +946,8 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
             strcmp(dir_st->d_name, "..") == 0)
             continue;
 
-        char path[1024];
-        ssnprintf(file_spec, sizeof(path), "%s/%s", base_path, dir_st->d_name);
+        ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path,
+                  dir_st->d_name);
         if (stat(file_spec, &sb) == -1)
             return false;
         suppress = false;
@@ -962,8 +961,14 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
             is_dir = false;
         }
 
-        if (file_spec[0] == '.' && file_spec[1] == '/' && file_spec[2] == '.' &&
-            !(flags & LF_ALL))
+        if (file_spec[0] == '.' && file_spec[1] == '/') {
+            i = 2;
+            j = 0;
+            while (file_spec[i])
+                file_spec[j++] = file_spec[i++];
+            file_spec[j] = '\0';
+        }
+        if (file_spec[0] == '.' && !(flags & LF_ALL))
             suppress = true;
 
         if (!suppress) {
@@ -981,12 +986,12 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
             }
         }
         if (!suppress)
-            printf("%s\n", &file_spec[2]);
+            printf("%s\n", file_spec);
         if (is_dir && (depth + 1 < max_depth)) {
             depth++;
             lf_process(file_spec, compiled_re, depth, max_depth, flags);
+            depth--;
         }
-        dir_st = readdir(dir);
     }
     closedir(dir);
     return true;
