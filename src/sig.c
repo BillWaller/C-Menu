@@ -30,6 +30,7 @@ void sig_dfl_mode() {
     sigaction(SIGTERM, &sa, NULL);
     sigaction(SIGQUIT, &sa, NULL);
     sigaction(SIGSEGV, &sa, NULL);
+    sigaction(SIGUSR1, &sa, NULL);
 }
 /** @brief Set up signal handlers for interrupt signals
     @details Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT), the
@@ -60,6 +61,10 @@ void sig_prog_mode() {
         abend(-1, "sigaction SIGSEGV failed");
         exit(EXIT_FAILURE);
     }
+    if (sigaction(SIGUSR1, &sa, NULL) == -1) {
+        abend(-1, "sigaction SIGUSR1 failed");
+        exit(EXIT_FAILURE);
+    }
 }
 /** @brief Signal handler for interrupt signals */
 void signal_handler(int sig_num) {
@@ -75,6 +80,9 @@ void signal_handler(int sig_num) {
         break;
     case SIGSEGV:
         sig_received = SIGSEGV;
+        break;
+    case SIGUSR1:
+        sig_received = SIGUSR1;
         break;
     default:
         return;
@@ -94,6 +102,9 @@ bool handle_signal(int sig_num) {
         break;
     case SIGSEGV:
         strnz__cpy(em1, "SIGSEGV - Segmentation fault", MAXLEN - 1);
+        break;
+    case SIGUSR1:
+        strnz__cpy(em1, "SIGUSR1 - User Signal 1", MAXLEN - 1);
         break;
     default:
         strnz__cpy(em1, "unknown signal", MAXLEN - 1);

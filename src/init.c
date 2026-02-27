@@ -140,6 +140,7 @@ void zero_opt_args(Init *init) {
     init->provider_cmd[0] = init->receiver_cmd[0] = '\0';
     init->title[0] = '\0';
     init->cmd[0] = init->cmd_all[0] = '\0';
+    init->parent_cmd[0] = '\0';
     init->in_spec[0] = init->out_spec[0] = '\0';
     init->help_spec[0] = '\0';
     init->in_spec[0] = '\0';
@@ -158,8 +159,8 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int longindex = 0;
     int flag = 0;
 
-    char *optstring =
-        "a:b:c:d:ef:g:hi:m:n:o:p:r:st:u:vw:xzA:B:C:DF:G:H:L:MO:P:R:S:T:VWX:Y:Z";
+    char *optstring = "a:b:c:d:ef:g:hi:j:k:m:n:o:p:r:st:u:vw:xzA:B:C:DF:G:H:L:"
+                      "MO:P:R:S:T:VWX:Y:Z";
     struct option long_options[] = {{"help", 0, &flag, MAPP_HELP},
                                     {"mapp_spec", 1, &flag, MAPP_SPEC},
                                     {"mapp_data", 1, &flag, MAPP_DATA_DIR},
@@ -233,6 +234,9 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'j':
             init->f_strip_ansi = true;
+            break;
+        case 'k':
+            strnz__cpy(init->parent_cmd, optarg, MAXLEN - 1);
             break;
         case 'm':
             strnz__cpy(init->mapp_home, optarg, MAXLEN - 1);
@@ -504,6 +508,10 @@ int parse_config(Init *init) {
                 strnz__cpy(init->cmd_all, value, MAXLEN - 1);
                 continue;
             }
+            if (!strcmp(key, "parent_cmd")) {
+                strnz__cpy(init->parent_cmd, value, MAXLEN - 1);
+                continue;
+            }
             if (!strcmp(key, "provider_cmd")) {
                 strnz__cpy(init->provider_cmd, value, MAXLEN - 1);
                 continue;
@@ -710,11 +718,12 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", sio->green_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", sio->blue_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", sio->gray_gamma);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_all", init->cmd_all);
     (void)fprintf(minitrc_fp, "%s=%s\n", "in_spec", init->in_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "out_spec", init->out_spec);
     (void)fprintf(minitrc_fp, "%s=%s\n", "provider_cmd", init->provider_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "receiver_cmd", init->receiver_cmd);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "cmd_all", init->cmd_all);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "parent_cmd", init->parent_cmd);
     (void)fprintf(minitrc_fp, "%s=%s\n", "title", init->title);
     (void)fprintf(minitrc_fp, "%s=%d\n", "select_max", init->select_max);
     (void)fprintf(minitrc_fp, "%s=%s\n", "brackets", init->brackets);
@@ -888,7 +897,6 @@ void dump_config(Init *init, char *msg) {
     opt_prt_int("-B:", "  bg_color", sio->bg_color);
     opt_prt_int("-O:", "  bo_color", sio->bo_color);
     opt_prt_str("-T:", "  title", init->title);
-    opt_prt_str("-c:", "  cmd", init->cmd);
     opt_prt_double("-r:", "  red_gamma", sio->red_gamma);
     opt_prt_double("-g:", "  green_gamma", sio->green_gamma);
     opt_prt_double("-b:", "  blue_gamma", sio->blue_gamma);
@@ -901,6 +909,9 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("-o:", "  out_spec", init->out_spec);
     opt_prt_str("-R:", "  receiver_cmd", init->receiver_cmd);
     opt_prt_str("-S:", "  provider_cmd", init->provider_cmd);
+    opt_prt_str("-c:", "  cmd", init->cmd);
+    opt_prt_str("-A:", "  cmd_all", init->cmd_all);
+    opt_prt_str("-k:", "  parent_cmd", init->parent_cmd);
     opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
     opt_prt_bool("-j:", "  f_strip_ansi", init->f_strip_ansi);
     opt_prt_bool("-s ", "  f_squeeze", init->f_squeeze);
@@ -908,7 +919,6 @@ void dump_config(Init *init, char *msg) {
     opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
     opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
     opt_prt_bool("-Z ", "  f_stop_on_error", init->f_stop_on_error);
-    opt_prt_str("-A:", "  cmd_all", init->cmd_all);
     opt_prt_str("-P:", "  promp_type", tmp_str);
     prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_str("   ", "  black", sio->black);

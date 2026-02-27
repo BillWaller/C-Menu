@@ -1018,7 +1018,10 @@ void abend(int ec, char *s) {
 
 /** @brief Wrapper for wgetch that handles signals
     @param win Pointer to window
-    @return Key code or ERR if interrupted by signal */
+    @return Key code or ERR if interrupted by signal
+    @note This, of course, will be expanded into an event loop for message
+   queuing
+ */
 int xwgetch(WINDOW *win) {
     int c;
     halfdelay(1);

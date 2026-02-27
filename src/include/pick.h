@@ -49,6 +49,7 @@ typedef struct {
     char provider_cmd[MAXLEN];   /**< provider command spec */
     char receiver_cmd[MAXLEN];   /**< receiver command spec */
     char cmd[MAXLEN];            /**< command spec */
+    char parent_cmd[MAXLEN];     /**< command to be executed by parent */
     bool f_mapp_spec;            /**< flag: mapp spec verified */
     bool f_in_spec;              /**< flag: input spec verified */
     bool f_out_spec;             /**< flag: output spec verified */
