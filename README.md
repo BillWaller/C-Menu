@@ -28,6 +28,7 @@
   * [View - Other Features](#view---other-features)
   * [3-Channel Gamma Correction](#3-channel-gamma-correction)
   * [Gray Gamma](#gray-gamma)
+* [C-Menu Documentation](#c-menu-documentation)
 * [RSH](#rsh)
   * [Maintaining Security with RSH](#maintaining-security-with-rsh)
 * [Features](#features)
@@ -172,13 +173,13 @@ Pick a file to view using "lf", a utility to search for files using
 regular expressions, and which is included with C-Menu:
 
 ```bash
-view -S "lf -r . .*\.c$"
+view -S "lf . .*\.c$"
 ```
 
 Execute a program or script on a picked file:
 
 ```bash
-pick -S "lf -r . .*\.c$" -n 1 -c my_executable
+pick -S "lf . .*\.c$" -n 1 -c my_executable
 ```
 
 Note that the syntax for "lf" (list files) is not similar to Unix "ls".
@@ -193,7 +194,6 @@ If you type "lf \*.c", it will fail for lack of a valid regular
 expression. That's because "ls" uses shell expansion, while "lf" uses
 regular expressions. Find supports regular expressions, but such a
 comprehensive program carries a penalty in size and overhead. "lf" is
-
 streamlined to provide input for a picker.
 
 ```bash
@@ -478,6 +478,30 @@ correction, your application is bound to **Wow** your clients. Nobody
 wants an ugly program. Of course, beauty is in the eye of the beholder.
 That's why we give you control.
 
+---
+
+## C-Menu Documentation
+
+An idiom is a saying that means more than the sum of its words, such as, "A picture is worth a thousand words." Nevertheless, words are sometimes necessary to fully interpret a complex image. The same is true for software documentation. A picture can show you how to use a program, but it can't always explain the underlying concepts and features. That's why we have comprehensive API documentation to accompany C-Menu, providing detailed explanations of its internal components, features, and usage.
+
+Granted, our documentation is developer-centric, but it is our hope that developers will
+bridge the gap between C-Menu developers and end-users by creating user-friendly interfaces,
+providing us with the criticism and feedback we need to make C-Menu more accessible and
+functional for a wider audience.
+
+Here's just one thing we have done that probably won't matter to end-users, but
+is important to developers. We have documented the internal components of C-Menu, including
+the Menu, Form, Pick, View, RSH, and C-Keys programs. This documentation includes detailed explanations of the design and implementation of each component, as well as examples of how to use them effectively in your applications.
+
+When writing code using the C-Menu API, you can access this documentation directly from your
+editor. For example, if you're using Neovim, you can hover over a function or variable and
+press Shift-K to view the relevant documentation in a pop-up window. This allows you to
+quickly reference the documentation without having to leave your coding environment, making
+it easier to understand and utilize the features of C-Menu as you develop your applications.
+
+![Hover Shift-K](screenshots/ShiftK.png)
+
+![Neovim.png](screenshots/form_desc_error.png)
 ---
 
 ## RSH

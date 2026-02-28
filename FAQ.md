@@ -641,8 +641,7 @@ Here is an example command that allows you to select multiple files and
 open them in Menu Vi:
 
 ```bash
-\!pick -S "lf -r ./ .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
-
+\!pick -S "lf . .*\.[ch]$" -M -R vi -T "Project Tree - Select Files to Edit"
 ```
 
 Select as many files as you want to edit and press F10. Pick
@@ -661,7 +660,7 @@ your C files. Here is the new Menu line with the regular expression
 corrected to include both .c and .h files:
 
 ```bash
-\!pick -S "lf -r ./ .\*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to
+\!pick -S "lf . .*\.[ch]$" -n 1 -R vi -T "Project Tree - Select File to
 Edit"
 ```
 
