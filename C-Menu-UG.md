@@ -457,11 +457,12 @@ and fewer features.
 ```bash
 Usage: lf [options] [directory] [regexp]
 Options:
--a List all files (including hidden files)
+-a List hidden files
 -d maximum depth of subdirectories to examine
 -h show this help message
 -i ignore case in search
--r recurse into subdirectories
+-t d - directories (exclude files)
+-t f - files (exclude directories)
 -v show version information
 ```
 
@@ -477,7 +478,7 @@ more complex matching patterns.
 Example:
 
 ```bash
-lf -r -i /home/user '.\*\.[ch]$'
+lf -i /home/user '.*\.[ch]$'
 ```
 
 ## Troubleshooting

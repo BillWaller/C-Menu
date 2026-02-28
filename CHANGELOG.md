@@ -2,6 +2,37 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-02-27
+
+Added a number of improvements to CMake build to accommodate C-Menu's
+revised file structure. Both CMake and straight Makefile builds produce
+similar results, but CMake is more flexible, easier to work with, and less
+prone to difficult-to-solve problems.
+
+View's search function has been reworked to fix a number of issues with
+buffer and page management, such as off-by-one page top and bottom
+positioning.
+
+lf (list files) - recursive option has been replaced by a depth option and
+lf's core logic has been reworked to enhance reliability. Also removed mangled
+lf syntax which had been used in some scripts to compensate for deficiencies in
+lf's option handler.
+
+Many documentation updates - API/ABI documentation is substantially complete.
+Function Call Graphs, Called Graphs, and forward and backward references added.
+
+Every function is documented, and most variables. All documentation has been
+consolidated into a single html file available at:
+
+[C-Menu Comprehensive Reference](https://billwaller.github.io/C-Menu/)
+
+In View, replaced calls to mbtowc() with mbrtowc() because of spurious
+accent marks populating the complex characters structures (cchar_t). Apparently,
+mbtowc() is broken. mbrtowc() is the new and improved replacement.
+
+The ANSI SGR parser and gamma correction in View is working perfectly. Try a
+setting of 2.2 in ~/.minitrc to brighten up dull documents.
+
 0.2.9 - 2026-02-09
 
 Split the large menu.h into Separate .h files for each module, which should
@@ -13,9 +44,10 @@ Many unimplemented functions have been implemented, and the project is now in a 
 
 I will look into adding a website for the project, and I will be uploading the documentation to the repository as I go. I am also working on a website for the project, which will be up soon.
 
+---
+
 [0.2.8] - 2026-02-04
 
-- 
 Makefile
 
 

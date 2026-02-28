@@ -33,6 +33,7 @@
   * [Tree-Sitter Parsers On Linux](#tree-sitter-parsers-on-linux)
   * [Tree-Sitter Parsers On macOS](#tree-sitter-parsers-on-macos)
   * [Tree-Sitter Parsers On Windows](#tree-sitter-parsers-on-windows)
+  * [Testing Tree-Sitter](#testing-tree-sitter)
 * [Rustlings](#rustlings)
 * [Neovim](#neovim)
 * [Lazyvim](#lazyvim)
@@ -95,6 +96,8 @@ reliable way to install Rust-based tools and their dependencies. Below are
 instructions on how to install Rust and some of my favorite Rust-based tools.
 
 So much for the preamble. Let's jump in.
+
+---
 
 ### Installing Rust On Linux and macOS
 
@@ -266,6 +269,8 @@ powerful hallucinogenic drug. Don't tell your grandmother you use lsd without
 explaining that it's "ls Deluxe", a file listing utility, and not the "LSD"
 she remembers from her college days at UC Berkeley. 😎
 
+---
+
 ## Highlighting
 
 Highlighted text is more pleasing to most, but there is more to it than mere
@@ -403,6 +408,8 @@ Tree-Sitter-CLI is successfully installed on your system.
 To install Tree-Sitter parsers for various programming languages, you can use the
 following commands based on your operating system:
 
+---
+
 ### Tree-Sitter Parsers On Linux
 
 After installing Rust, you can install Tree-Sitter parsers using Cargo, Rust's
@@ -514,6 +521,32 @@ without it.
 
 ---
 
+### Testing Tree-Sitter
+
+To test Tree-Sitter, you can use the following command:
+
+```bash
+tree-sitter parse <source-file>
+```
+
+This command will parse the specified source file and output the syntax tree to the terminal. You can use this command to verify that Tree-Sitter is working correctly and tosee how it parses different programming languages. Replace `<source-file>` with the path to a source code file in a programming language for which you have installed a Tree-Sitter parser. For example, if you have installed the Tree-Sitter parser for Python, you can test it with a Python source file like this:
+
+```bash
+tree-sitter parse example.py
+```
+
+This will output the syntax tree for the `example.py` file, allowing you to see how Tree-Sitter parses the Python code. You can test it with source files in other programming languages as well, depending on which Tree-Sitter parsers you have installed.
+
+To test Tree-Sitter's syntax highlighting capabilities, you can use it in conjunction with a compatible code editor or pager that supports Tree-Sitter. For example, if you are using Neovim, you can enable Tree-Sitter-based syntax highlighting by configuring Neovim to use the installed Tree-Sitter parsers. Once configured, open a source code file in Neovim, and you should see enhanced syntax highlighting based on the Tree-Sitter parsing of the code.
+
+Or type:
+
+```bash
+tree-sitter highlight <source-file> | view
+```
+
+---
+
 ## Rustlings
 
 Even if you are an experienced programmer, Rust is not an easy language
@@ -536,6 +569,8 @@ Rustlings is an invaluable companion to the Rust Book.
 
 ![Rustlings](screenshots/rustlings2.png)
 
+---
+
 ## Neovim
 
 And last, but certainly not least in my list of essential tools is Neovim. I
@@ -545,6 +580,8 @@ for me, Neovim plugins seem more accessible, and it has everything I want and
 more.
 
 ![Neovim](screenshots/Neovim.png)
+
+---
 
 ## Lazyvim
 
@@ -558,6 +595,8 @@ to tailor their Neovim setup to their specific needs.
 To install Neovim and Lazyvim, follow the instructions on the
 [Lazyvim website](https://www.lazyvim.org/).
 
+---
+
 ## Ghostty
 
 Ghostty is a terminal emulator that is designed to be fast, lightweight, and
@@ -568,6 +607,8 @@ options.
 
 To install Ghostty, you can use the following commands based on your operating
 system:
+
+---
 
 ### Ghostty On Linux
 
@@ -585,6 +626,8 @@ provide great flexibility.
 This feature is actually quite useful when searching for a particular source
 file among many files in a large project. You can quickly preview files
 without opening them fully in Neovim.
+
+---
 
 ```bash
 cargo install ghostty
@@ -654,8 +697,9 @@ chmod 4755 ~/menuapp/bin/rsh
 ls -l ~/menuapp/bin/rsh
 
 -rwsr-xr-x 1 root root 123456 Jan 01 12:
-
 ```
+
+---
 
 ### Shell Configuration
 
@@ -735,8 +779,9 @@ export XUSER="$(id -un)"
 export PS1="\[\e[1;32m\]\u@\h:\w>\[\e[0m\] "
 [ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h:\w>\[\e[0m\] "
 echo PS1="$PS1"
-
 ```
+
+---
 
 ### Customize Your Terminal Emulator
 

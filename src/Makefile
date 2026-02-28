@@ -144,8 +144,23 @@ CMenu.conf:
 $(LIB_NAME): $(LIB_OBJS)
 	$(CC) 	-shared -o $@ $^
 
+dwin.o:	dwin.c
+	$(CC) 	-c $< -fPIC -o $@
+
+futil.o:	futil.c
+	$(CC) 	-c $< -fPIC -o $@
+
+scriou.o:	scriou.c
+	$(CC) 	-c $< -fPIC -o $@
+
+exec.o:	exec.c
+	$(CC) 	-c $< -fPIC -o $@
+
+sig.o:	sig.c
+	$(CC) 	-c $< -fPIC -o $@
+
 %.o:	%.c
-	$(CC) 	-c $< -fPIC	-o $@
+	$(CC) 	-c $< -o $@
 
 clean:
 	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.so \

@@ -890,10 +890,12 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     @param re    regular expression to match
     @param flags search flags
     @code
+    usage:         flags = LF_ALL | LF_ICASE | LF_FILES
+                   flags = LF_ALL | LF_ICASE | LF_DIRS
     LF_ALL      =  1,  List all files including hidden files
     LF_ICASE    =  2,  Ignore case in search
-    LF_FILES    =  4,  List files
-    LF_DIRS     =  8,  List directories
+    LF_FILES    =  4,  list files (exclude directories)
+    LF_DIRS     =  8,  list directories (exclude files)
     @endcode
     return      true if successful, false otherwise */
 bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
@@ -920,10 +922,10 @@ bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
     @param max_depth how deep to descend into the directory structure
     @param flags
     @code
-    LF_ALL      =  1,  List all files including hidden files
+    LF_ALL      =  1,  List hidden files
     LF_ICASE    =  2,  Ignore case in search
-    LF_FILES    =  4,  List files
-    LF_DIRS     =  8,  List directories
+    LF_FILES    =  4,  list files (exclude directories)
+    LF_DIRS     =  8,  list directories (exclude files)
     @endcode
     return      true if successful, false otherwise */
 bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
@@ -945,7 +947,6 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
         if (strcmp(dir_st->d_name, ".") == 0 ||
             strcmp(dir_st->d_name, "..") == 0)
             continue;
-
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path,
                   dir_st->d_name);
         if (stat(file_spec, &sb) == -1)
@@ -960,7 +961,6 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
                 suppress = true;
             is_dir = false;
         }
-
         if (file_spec[0] == '.' && file_spec[1] == '/') {
             i = 2;
             j = 0;
@@ -970,7 +970,6 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
         }
         if (file_spec[0] == '.' && !(flags & LF_ALL))
             suppress = true;
-
         if (!suppress) {
             reti = regexec(compiled_re, file_spec, compiled_re->re_nsub + 1,
                            pmatch, REG_FLAGS);

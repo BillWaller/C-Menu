@@ -1,5 +1,5 @@
 /** @file lf.c
-    @brief Recursively list files matching a regular expression
+    @brief list files matching a regular expression
     @author Bill Waller
     Copyright (c) 2025
     MIT License
@@ -31,7 +31,8 @@ char tmp_str[MAXLEN];
     @param   -d        maximum max_depth of subdirectories to examine
     @param   -h        show this help message
     @param   -i        ignore case in search
-    @param   -t        type, d - directories only, f - files only
+    @param   -t d      list directories (exclude files)
+    @param   -t f      list files (exclude directories)
     @param   -v        show version information
  */
 int main(int argc, char **argv) {
@@ -82,7 +83,8 @@ int main(int argc, char **argv) {
         printf("  -d        maximum depth of subdirectories to examine\n");
         printf("  -h        show this help message\n");
         printf("  -i        ignore case in search\n");
-        printf("  -t        type, d - directories only, f - files only\n");
+        printf("  -t f      list files (exclude directories)\n");
+        printf("  -t d      list directories (exclude files)\n");
         printf("  -v        show version information\n");
         exit(EXIT_SUCCESS);
     }
