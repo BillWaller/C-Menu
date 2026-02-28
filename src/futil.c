@@ -914,7 +914,6 @@ bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
     lf_process(base_path, &compiled_re, 0, max_depth, flags);
     return true;
 }
-
 /** @brief logic for lf_find()
     @param base_path   directory to search
     @param compiled_re compiled regular expression

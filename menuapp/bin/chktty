@@ -1,11 +1,14 @@
 #!/bin/bash
 # Check terminal settings against reference
 #
-# Before using this script, set TTYPREFIX for your system
-# If not, it will try to guess based on your current tty
+# Before using this script, you can set TTYPREFIX for your system
+# If not, the script will try to guess based on your current tty.
+# It is possible that it may be correct, or not.
 #
 if [ -z "$TTYPREFIX" ]; then
 	# Try to guess TTYPREFIX based on current tty
+	# This simple heuristic may not work in all cases.
+	# It's just a starting point.
 	TTYDIR=$(dirname $(tty))
 	TTYBASENAME=$(basename $(tty) | sed 's/[0-9]*$//')
 	TTYPREFIX="$TTYDIR/$TTYBASENAME"

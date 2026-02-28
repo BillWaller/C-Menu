@@ -1,1 +1,12 @@
-example_configs/.bashrc
+src/*.o
+src/ckeys
+src/menu
+src/form
+src/pick
+src/view
+src/stripansi
+src/iloan
+src/whence
+src/.cache
+src/build
+
