@@ -600,7 +600,7 @@ To install Neovim and Lazyvim, follow the instructions on the
 ## Ghostty
 
 Ghostty is a terminal emulator that is designed to be fast, lightweight, and
-highly customizable. It is built using Rust and leverages modern technologies
+highly customizable. It is built with Zig and leverages modern technologies
 to provide a smooth and efficient terminal experience. Ghostty supports
 features such as GPU acceleration, ligatures, and a wide range of customization
 options.
@@ -612,22 +612,8 @@ system:
 
 ### Ghostty On Linux
 
-![Ghostty With Neovim and Lazyvim](screenshots/Ghostty.png)
-
-![Ghostty With Neovim and Lazyvim](screenshots/Neovim-v.png)
-
-After installing Rust, you can install Ghostty using Cargo, Rust's package
+After installing Rust on Linux, you can install Ghostty using Cargo, Rust's package
 manager:
-
-What you see above may not be useful for development projects, but it
-demonstrates Neovim, Ghostty, and Lazyvim working together in harmony to
-provide great flexibility.
-
-This feature is actually quite useful when searching for a particular source
-file among many files in a large project. You can quickly preview files
-without opening them fully in Neovim.
-
----
 
 ```bash
 cargo install ghostty
@@ -650,6 +636,20 @@ After installation, you can verify that Ghostty is installed correctly by runnin
 ```bash
 ghostty --version
 ```
+
+---
+
+What you see below may not be essential for development projects, but it
+demonstrates Neovim, Ghostty, and Lazyvim working together in harmony to
+provide great flexibility.
+
+![Ghostty With Neovim and Lazyvim](screenshots/Ghostty.png)
+
+![Ghostty With Neovim and Lazyvim](screenshots/Neovim-v.png)
+
+This feature is actually quite useful when searching for a particular source
+file among many files in a large project. You can quickly preview files
+without opening them fully in Neovim.
 
 ---
 
@@ -680,24 +680,6 @@ the bash executable with one that would only start in restricted mode. It
 wouldn't even allow running executables from /bin and /sbin. By using a
 custom-named bash executable, you can reduce the risk of such exploits
 and mistakes. You can leave the original bash executable intact as a backup.
-
-One more caveat with certain configurations of bash is that you may
-not be able to setuid on rsh from a root shell created by su. This
-depends on the distribution and configuration of your system. In
-that case, you can probably use su to start an interactive root
-shell, and manually install rsh setuid. From the cmenu src directory:
-
-```bash
-$ su
-Password:
-
-cp rsh ~/menuapp/bin
-chmod 4755 ~/menuapp/bin/rsh
-
-ls -l ~/menuapp/bin/rsh
-
--rwsr-xr-x 1 root root 123456 Jan 01 12:
-```
 
 ---
 
