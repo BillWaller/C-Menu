@@ -23,17 +23,18 @@
 char tmp_str[MAXLEN];
 
 /** @brief List files in a directory matching a regular expression
-    @note parameters are
-    @param dir Directory to search
-    @param re Regular expression to match
-    @param options
-    @param   -a        List hidden files
-    @param   -d        maximum max_depth of subdirectories to examine
-    @param   -h        show this help message
-    @param   -i        ignore case in search
-    @param   -t d      list directories (exclude files)
-    @param   -t f      list files (exclude directories)
-    @param   -v        show version information
+    @code
+        lf [options ad:hit:v] [dir] [re]
+             -a        List hidden files
+             -d        maximum max_depth of subdirectories to examine
+             -h        show this help message
+             -i        ignore case in search
+             -t d      list directories (exclude files)
+             -t f      list files (exclude directories)
+             -v        show version information
+            dir Directory to search
+            re  Regular expression to match
+    @endcode
  */
 int main(int argc, char **argv) {
     char dir[MAXLEN] = "";

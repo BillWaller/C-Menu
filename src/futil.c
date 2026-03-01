@@ -606,7 +606,8 @@ bool str_to_bool(const char *s) {
    to receive the result, and that "path_maxlen" is sufficient to hold the
    result. This function does not perform any bounds checking on "path", so it
    is the caller's responsibility to ensure that it is valid and that
-   "path_maxlen" is appropriate for the operation. @returns true if successful
+   "path_maxlen" is appropriate for the operation.
+     @returns true if successful
  */
 bool expand_tilde(char *path, int path_maxlen) {
     if (path == NULL || *path == '\0' || path_maxlen == 0)
@@ -886,11 +887,12 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     return false;
 }
 /** @brief Find files in a directory matching a regular expression
-    @param base_path directory to search
-    @param re    regular expression to match
-    @param flags search flags
+    @param base_path  directory to search
+    @param re         regular expression to match
+    @param max_depth  depth of directories to scan
+    @param flags      search flags
     @code
-    usage:         flags = LF_ALL | LF_ICASE | LF_FILES
+                   flags = LF_ALL | LF_ICASE | LF_FILES
                    flags = LF_ALL | LF_ICASE | LF_DIRS
     LF_ALL      =  1,  List all files including hidden files
     LF_ICASE    =  2,  Ignore case in search
@@ -921,6 +923,8 @@ bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
     @param max_depth how deep to descend into the directory structure
     @param flags
     @code
+                   flags = LF_ALL | LF_ICASE | LF_FILES
+                   flags = LF_ALL | LF_ICASE | LF_DIRS
     LF_ALL      =  1,  List hidden files
     LF_ICASE    =  2,  Ignore case in search
     LF_FILES    =  4,  list files (exclude directories)
@@ -1046,33 +1050,32 @@ size_t canonicalize_file_spec(char *spec) {
     @param org_s - original string
     @param tgt_s - target substring to replace
     @param rep_s - replacement substring
-    @returns A pointer to the newly allocated string with replacements
-   or a copy of the replacement string if original string is the same as
-   target string This is a special case that allows for replacing the
-   entire original string. If any parameter is NULL, the function
-   returns NULL. If "tgt_s" is not found in "org_s", the function
-   returns a copy of "org_s". If target substring is not found the
-   function returns a copy of the original string.
-    @note The function allocates memory for the return value, so the
-   caller is responsible for freeing this memory when it is no longer
-   needed to avoid memory leaks.
+    @returns A pointer to the newly allocated string with replacements or a copy
+   of the replacement string if original string is the same as target string
+   This is a special case that allows for replacing the entire original string.
+   If any parameter is NULL, the function returns NULL. If "tgt_s" is not found
+   in "org_s", the function returns a copy of "org_s". If target substring is
+   not found the function returns a copy of the original string.
+    @note The function allocates memory for the return value, so the caller is
+   responsible for freeing this memory when it is no longer needed to avoid
+   memory leaks.
     @note The function does not modify the original string "org_s".
-    @note The function assumes that "tgt_s" and "rep_s" are
-   null-terminated strings. If they are not, the behavior is undefined.
+    @note The function assumes that "tgt_s" and "rep_s" are null-terminated
+   strings. If they are not, the behavior is undefined.
     @note The function does not perform any bounds checking on the input
-   strings, so it is the caller's responsibility to ensure that they are
-   valid and that the resulting string does not exceed available memory.
-   @note The function uses the standard library functions strlen,
-   strstr, malloc, and strcpy, which may have their own limitations and
-   behaviors that the caller should be aware of.
-    @note The function does not handle overlapping occurrences of
-   "tgt_s" in "org_s". If "tgt_s" can overlap with itself in "org_s",
-   the behavior may be unexpected. The caller should ensure that "tgt_s"
-   does not contain overlapping patterns to avoid this issue.
-    @note The function does not handle cases where "tgt_s" is a
-   substring of "rep_s", which could lead to unintended consequences if
-   "tgt_s" appears in "rep_s". The caller should ensure that "tgt_s" and
-   "rep_s" are distinct to avoid this issue. */
+   strings, so it is the caller's responsibility to ensure that they are valid
+   and that the resulting string does not exceed available memory.
+    @note The function uses the standard library functions strlen, strstr,
+   malloc, and strcpy, which may have their own limitations and behaviors that
+   the caller should be aware of.
+    @note The function does not handle overlapping occurrences of "tgt_s" in
+   "org_s". If "tgt_s" can overlap with itself in "org_s", the behavior may be
+   unexpected. The caller should ensure that "tgt_s" does not contain
+   overlapping patterns to avoid this issue.
+    @note The function does not handle cases where "tgt_s" is a substring of
+   "rep_s", which could lead to unintended consequences if "tgt_s" appears in
+   "rep_s". The caller should ensure that "tgt_s" and "rep_s" are distinct to
+   avoid this issue. */
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     if (org_s == NULL || tgt_s == NULL || rep_s == NULL)
         return NULL;
@@ -1114,20 +1117,18 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     strnz__cpy(tmp, ip, MAXLEN - 1);
     return out_s;
 }
-/** @brief String functions provide a simple string library to
-   facilitate string manipulation in C, allowing developers to easily
-   create, copy, concatenate, and free strings without having to manage
-   memory manually.
-   @note The library includes functions to convert C strings to String
-   structs, create new String structs with specified lengths, copy and
-   concatenate String structs, and free the memory used by String
-   structs. By using this library, developers can avoid common pitfalls
-   of C string handling, such as buffer overflows and memory leaks,
-   while still benefiting from the performance advantages of C.
-   @note This library is designed to be simple and easy to use, making
-   it a great choice for developers who want to work with strings in C
-   without having to worry about the complexities of manual memory
-   management.
+/** @brief String functions provide a simple string library to facilitate string
+   manipulation in C, allowing developers to easily create, copy, concatenate,
+   and free strings without having to manage memory manually.
+   @note The library includes functions to convert C strings to String structs,
+   create new String structs with specified lengths, copy and concatenate String
+   structs, and free the memory used by String structs. By using this library,
+   developers can avoid common pitfalls of C string handling, such as buffer
+   overflows and memory leaks, while still benefiting from the performance
+   advantages of C.
+   @note This library is designed to be simple and easy to use, making it a
+   great choice for developers who want to work with strings in C without having
+   to worry about the complexities of manual memory management.
    @note The String struct is defined as follows:
    @code
      typedef struct {
@@ -1135,17 +1136,17 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
          char *s;  // pointer to the dynamically allocated string
      } String;
     @endcode
-   @note All functions in this library that return a String struct
-   allocate memory for the string using malloc or realloc. It is the
-   caller's responsibility to free this memory using the free_string
-   function when it is no longer needed to avoid memory leaks.
-   @note The functions in this library do not perform any bounds
-   checking on the input strings or the resulting strings. It is the
-   caller's responsibility to ensure that all input strings are valid
-   and that the resulting strings do not exceed available memory.
+   @note All functions in this library that return a String struct allocate
+   memory for the string using malloc or realloc. It is the caller's
+   responsibility to free this memory using the free_string function when it is
+   no longer needed to avoid memory leaks.
+   @note The functions in this library do not perform any bounds checking on the
+   input strings or the resulting strings. It is the caller's responsibility to
+   ensure that all input strings are valid and that the resulting strings do not
+   exceed available memory.
    @note The functions in this library assume that all input strings are
-   null-terminated. If any input string is not null-terminated, the
-   behavior is undefined.
+   null-terminated. If any input string is not null-terminated, the behavior is
+   undefined.
    @example strings_test1.c
  */
 /** @brief Convert C string to String struct
@@ -1167,14 +1168,14 @@ String to_string(const char *s) {
     strcpy(str.s, s);
     return str;
 }
-/** @brief Create a String struct with a dynamically allocated string
-   @param l length of string to create including null terminator
+/** @brief Create a String struct with a dynamically allocated string @param l
+   length of string to create including null terminator
    @returns String struct
-   @note The returned String struct contains a dynamically allocated
-   string of he specified length
+   @note The returned String struct contains a dynamically allocated string of
+   he specified length
    @sa free_string
-   @note the caller is responsible for calling free_string to free the
-   allocated memory. */
+   @note the caller is responsible for calling free_string to free the allocated
+   memory. */
 String mk_string(size_t l) {
     if (l == 0) {
         String str;
@@ -1201,8 +1202,8 @@ String free_string(String string) {
     string.s = NULL;
     return string;
 }
-/** @brief Copy src String to dest String, allocating additional memory
-   for dest String if necessary
+/** @brief Copy src String to dest String, allocating additional memory for dest
+   String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @returns length of dest String
@@ -1217,8 +1218,8 @@ size_t string_cpy(String *dest, const String *src) {
     strcpy(dest->s, src->s);
     return src->l;
 }
-/** @brief Concatenates src String to dest String, allocating additional
-   memory for dest String if necessary
+/** @brief Concatenates src String to dest String, allocating additional memory
+   for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @returns new length of dest String after concatenation
@@ -1234,8 +1235,8 @@ size_t string_cat(String *dest, const String *src) {
     strcat(dest->s, src->s);
     return new_len;
 }
-/** @brief Concatenates up to n characters from src String to dest
-   String, allocating additional memory for dest String if necessary
+/** @brief Concatenates up to n characters from src String to dest String,
+   allocating additional memory for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to concatenate
@@ -1255,8 +1256,8 @@ size_t string_ncat(String *dest, const String *src, size_t n) {
     strncat(dest->s, src->s, cat_len);
     return new_len;
 }
-/** @brief copies up to n characters from src String to dest String,
-   allocating additional memory for dest String if necessary
+/** @brief copies up to n characters from src String to dest String, allocating
+   additional memory for dest String if necessary
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to copy
