@@ -51,7 +51,8 @@ int form_engine(Init *);
 */
 int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     int rc;
-    if (init->form != NULL)
+    char tmp_str[MAXLEN];
+    if (init->form != nullptr)
         destroy_form(init);
     init->form = new_form(init, argc, argv, begy, begx);
     form = init->form;
@@ -102,12 +103,12 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
           c. If the user selects the cancel action, exit the loop and return a
           cancel status. */
 int form_engine(Init *init) {
-
+    char tmp_str[MAXLEN];
     int form_action;
 
     form = init->form;
-    if (form == NULL) {
-        Perror("FORM: form data structure is NULL");
+    if (form == nullptr) {
+        Perror("FORM: form data structure is nullptr");
     }
     if (form_parse_desc(form)) {
         destroy_form(init);
@@ -148,7 +149,7 @@ int form_engine(Init *init) {
             strnz__cpy(tmp_str, "~/menuapp/help/form.help", MAXLEN - 1);
             expand_tilde(tmp_str, MAXLEN - 1);
             eargv[1] = strdup(tmp_str);
-            eargv[2] = NULL;
+            eargv[2] = nullptr;
             eargc = 2;
             zero_opt_args(init);
             parse_opt_args(init, eargc, eargv);
@@ -181,7 +182,7 @@ int form_end_fields(Init *init) {
     form = init->form;
     wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
     set_fkey(8, "Edit");
     while (loop) {
@@ -279,7 +280,7 @@ int form_calculate(Init *init) {
     wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
     set_fkey(5, "Calculate");
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
     while (loop) {
         form_display_chyron(form);
@@ -322,7 +323,7 @@ int form_calculate(Init *init) {
                     strnz__cat(em1, earg_str, MAXLEN - 1);
                     strnz__cat(em1, ")", MAXLEN - 1);
                     strerror_r(errno, em2, MAXLEN);
-                    display_error(em0, em1, em2, NULL);
+                    display_error(em0, em1, em2, nullptr);
                     exit(EXIT_FAILURE);
                 } // Back to parent
                 close(pipe_fd[P_WRITE]);
@@ -330,7 +331,7 @@ int form_calculate(Init *init) {
                 form->f_in_pipe = true;
                 form_read_data(form);
                 close(pipe_fd[P_READ]);
-                waitpid(pid, NULL, 0);
+                waitpid(pid, nullptr, 0);
                 form_display_fields(form);
                 set_fkey(8, "Edit");
                 continue;
@@ -439,6 +440,7 @@ int form_enter_fields(Form *form) {
     creating the form window or rendering the form elements. */
 unsigned int form_display_screen(Init *init) {
     int n;
+    char tmp_str[MAXLEN];
 
     form = init->form;
     form->lines = 0;
@@ -543,12 +545,12 @@ int form_parse_desc(Form *form) {
     char directive;
 
     form_desc_fp = fopen(form->mapp_spec, "r");
-    if (form_desc_fp == NULL) {
+    if (form_desc_fp == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
         strnz__cpy(em1, "fopen ", MAXLEN - 1);
         strnz__cat(em1, form->mapp_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, NULL);
+        display_error(em0, em1, em2, nullptr);
         return (1);
     }
     for (i = 0; i < MAXFIELDS; i++) {
@@ -569,7 +571,7 @@ int form_parse_desc(Form *form) {
     form->fidx = 0;
     form->fcnt = 0;
     form->cols = 34;
-    while ((fgets(in_buf, MAXLEN, form_desc_fp)) != NULL) {
+    while ((fgets(in_buf, MAXLEN, form_desc_fp)) != nullptr) {
         s = in_buf;
         in_line_num++;
         l = trim(in_buf);
@@ -596,7 +598,7 @@ int form_parse_desc(Form *form) {
             form->f_query = true;
             break;
         case D_CMD:
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: receiver_cmd delimiter");
                 continue;
@@ -604,18 +606,18 @@ int form_parse_desc(Form *form) {
             strnz__cpy(form->receiver_cmd, token, MAXLEN - 1);
             break;
         case D_HELP:
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: help_spec delimiter");
             }
             strnz__cpy(form->help_spec, token, MAXLEN - 1);
             break;
         case D_FIELD:
-            if (form->field[form->fidx] == NULL) {
+            if (form->field[form->fidx] == nullptr) {
                 sprintf(tmp_str, "FORM: calloc failed for fields");
                 abend(EXIT_FAILURE, tmp_str);
             }
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: line number delimiter");
                 return 1;
@@ -627,7 +629,7 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid line number");
                 return 1;
             }
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: column number delimiter");
                 return 1;
@@ -639,7 +641,7 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid column number");
                 break;
             }
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 strnz__cpy(tmp_str, in_buf, MAXLEN - 1);
                 form_desc_error(in_line_num, tmp_str, "FORM: length delimiter");
                 break;
@@ -650,7 +652,7 @@ int form_parse_desc(Form *form) {
                 form_desc_error(in_line_num, in_buf, "FORM: invalid length");
                 break;
             }
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: validation code delimiter");
                 break;
@@ -678,11 +680,11 @@ int form_parse_desc(Form *form) {
             form->fcnt = form->fidx;
             break;
         case D_TEXT:
-            if (form->text[form->didx] == NULL) {
+            if (form->text[form->didx] == nullptr) {
                 sprintf(tmp_str, "FORM: calloc failed for text");
                 abend(EXIT_FAILURE, tmp_str);
             }
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: line number delimiter");
                 break;
@@ -694,7 +696,7 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid line number");
                 break;
             }
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: column number delimiter");
                 break;
@@ -706,7 +708,7 @@ int form_parse_desc(Form *form) {
                                 "FORM: invalid column number");
                 break;
             }
-            if (!(token = strtok(NULL, delim))) {
+            if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(in_line_num, in_buf, "FORM: text delimiter");
                 break;
             }
@@ -725,7 +727,7 @@ int form_parse_desc(Form *form) {
             form->dcnt = form->didx;
             break;
         case D_HEADER:
-            if ((token = strtok(NULL, delim))) {
+            if ((token = strtok(nullptr, delim))) {
                 strnz__cpy(form->title, token, MAXLEN - 1);
             }
             break;
@@ -739,7 +741,7 @@ int form_parse_desc(Form *form) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__);
         ssnprintf(em1, MAXLEN - 1, "%s", "Error in description file:");
         ssnprintf(em2, MAXLEN - 1, "%s", form->mapp_spec);
-        display_error(em0, em1, em2, NULL);
+        display_error(em0, em1, em2, nullptr);
         return (1);
     }
     return (0);
@@ -757,7 +759,7 @@ int form_read_data(Form *form) {
     if (!form->f_in_pipe) {
         if (form->f_in_spec && form->in_spec[0] != '\0') {
             if ((lstat(form->in_spec, &sb) == -1) || (sb.st_size == 0) ||
-                ((form->in_fp = fopen(form->in_spec, "rb")) == NULL)) {
+                ((form->in_fp = fopen(form->in_spec, "rb")) == nullptr)) {
                 strnz__cat(em0, form->in_spec, MAXLEN - 1);
                 // if (errno)
                 // strerror_r(errno, em1, MAXLEN - 1);
@@ -767,18 +769,18 @@ int form_read_data(Form *form) {
                 else
                     strnz__cpy(em1, "File does not exist", MAXLEN - 1);
                 strnz__cpy(em2, "Fields will be blank or zero", MAXLEN - 1);
-                cmd_key = display_error(em0, em1, em2, NULL);
+                cmd_key = display_error(em0, em1, em2, nullptr);
                 if (cmd_key == KEY_F(9))
                     return (1);
             }
-            if (form->in_fp == NULL)
+            if (form->in_fp == nullptr)
                 return (1);
         } else
             return (0);
     }
     form->fidx = 0;
-    if (form->in_fp != NULL) {
-        while ((fgets(in_buf, MAXLEN, form->in_fp)) != NULL) {
+    if (form->in_fp != nullptr) {
+        while ((fgets(in_buf, MAXLEN, form->in_fp)) != nullptr) {
             if (form->fidx < MAXFIELDS)
                 strnz__cpy(field, in_buf, MAXLEN - 1);
             form_fmt_field(form, field);
@@ -826,7 +828,7 @@ int form_write(Form *form) {
             strnz__cpy(em1, "open ", MAXLEN - 1);
             strnz__cat(em1, form->out_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN);
-            display_error(em0, em1, em2, NULL);
+            display_error(em0, em1, em2, nullptr);
             return (1);
         }
         dup2(form->out_fd, STDOUT_FILENO);
@@ -834,24 +836,24 @@ int form_write(Form *form) {
         form->f_out_spec = true;
         form->f_out_pipe = true;
     } else {
-        if ((form->out_fp = fopen(form->out_spec, "w")) == NULL) {
+        if ((form->out_fp = fopen(form->out_spec, "w")) == nullptr) {
             ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
             strerror_r(errno, em2, MAXLEN);
-            display_error(em0, em1, em2, NULL);
+            display_error(em0, em1, em2, nullptr);
             return (1);
         }
     }
-    if (form->out_fp == NULL) {
+    if (form->out_fp == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
         strnz__cpy(em1, "fopen ", MAXLEN - 1);
         strnz__cat(em1, form->out_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, NULL);
+        display_error(em0, em1, em2, nullptr);
         return (1);
     }
     for (n = 0; n < form->fcnt; n++)
         fprintf(form->out_fp, "%s\n", form->field[n]->accept_s);
-    if (form->out_fp != NULL)
+    if (form->out_fp != nullptr)
         fclose(form->out_fp);
     return (0);
 }
@@ -883,6 +885,6 @@ int form_desc_error(int in_line_num, char *in_buf, char *em) {
     ssnprintf(em1, MAXLEN - 1, "Desc file: %s, line: %d", form->mapp_spec,
               in_line_num);
     strnz__cpy(em2, in_buf, MAXLEN - 1);
-    cmd_key = display_error(em0, em1, em2, NULL);
+    cmd_key = display_error(em0, em1, em2, nullptr);
     return cmd_key;
 }

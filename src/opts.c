@@ -204,7 +204,7 @@ void sort_opts_by_short_opt() {
 }
 /** @brief select option by name
     @param  name - option name
-    @return pointer to option, or NULL if not found
+    @return pointer to option, or nullptr if not found
  */
 Opts *select_opt(char *name) {
     Opts *opt;
@@ -219,7 +219,7 @@ Opts *select_opt(char *name) {
 void dump_opts() {
     print_opt_header();
     int i = 0;
-    while (opts[i].name != NULL) {
+    while (opts[i].name != nullptr) {
         if (opts[i].name[0] != '\0')
             print_opt(i);
         i++;
@@ -234,7 +234,7 @@ void dump_opts_by_use(char *usage, char *mask) {
     int j = 0;
     printf("\nusage: %s\n\n", usage);
     print_opt_header();
-    while (opts[i].name != NULL && opts[i].name[0] != '\0') {
+    while (opts[i].name != nullptr && opts[i].name[0] != '\0') {
         for (j = 0; j < 4; j++) {
             if (mask[j] != '.' && mask[j] == opts[i].use[j])
                 break;

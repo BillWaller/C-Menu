@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
         cargv[c++] = "-i";
     while (a < argc)
         cargv[c++] = strdup(argv[a++]);
-    cargv[c] = NULL;
+    cargv[c] = nullptr;
     pid = fork();
     switch (pid) {
     case -1:

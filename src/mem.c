@@ -35,7 +35,7 @@ Pick *pick;
 Form *form;
 View *view;
 /** @brief Create and initialize Init structure
-    @note calloc initializes all fields to zero/NULL
+    @note calloc initializes all fields to zero/nullptr
     @param argc, argv - arguments
     idiomatic directory usage:
     @code
@@ -57,78 +57,78 @@ View *view;
 Init *new_init(int argc, char **argv) {
     int i = 0;
     Init *init = calloc(1, sizeof(Init));
-    if (init == NULL) {
+    if (init == nullptr) {
         abend(-1, "calloc init failed");
-        return NULL;
+        return nullptr;
     }
     init->argv = calloc(MAXARGS + 1, sizeof(char *));
-    if (init->argv == NULL) {
+    if (init->argv == nullptr) {
         free(init);
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
                   __LINE__ - 4, errno);
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
                   (MAXARGS + 1), sizeof(char *));
-        display_error(em0, em1, em2, NULL);
+        display_error(em0, em1, em2, nullptr);
         abend(-1, "calloc init->argv failed");
-        return NULL;
+        return nullptr;
     }
     init->argc = argc;
     for (i = 0; i < init->argc; i++) {
         init->argv[i] = strdup(argv[i]);
     }
-    init->argv[i] = NULL;
+    init->argv[i] = nullptr;
     init->sio = (SIO *)calloc(1, sizeof(SIO));
     if (!init->sio) {
         abend(-1, "calloc sio failed");
-        return NULL;
+        return nullptr;
     }
     init_cnt++;
     return init;
 }
 /** @brief Destroy Init structure
     @param init structure
-    @returns NULL
+    @returns nullptr
  */
 Init *destroy_init(Init *init) {
     int i;
     if (!init)
-        return NULL;
+        return nullptr;
     if (init->sio) {
         free(init->sio);
-        init->sio = NULL;
+        init->sio = nullptr;
     }
     if (init->menu) {
         init->menu = destroy_menu(init);
-        init->menu = NULL;
+        init->menu = nullptr;
     }
     if (init->view) {
         init->view = destroy_view(init);
-        init->view = NULL;
+        init->view = nullptr;
     }
     if (init->form) {
         init->form = destroy_form(init);
-        init->form = NULL;
+        init->form = nullptr;
     }
     if (init->pick) {
         init->pick = destroy_pick(init);
-        init->pick = NULL;
+        init->pick = nullptr;
     }
     for (i = 0; i <= init->argc; i++) {
         if (init->argv[i]) {
-            if (init->argv[i] != NULL)
+            if (init->argv[i] != nullptr)
                 free(init->argv[i]);
-            init->argv[i] = NULL;
+            init->argv[i] = nullptr;
         }
     }
     if (init->argv) {
-        if (init->argv != NULL)
+        if (init->argv != nullptr)
             free(init->argv);
-        init->argv = NULL;
+        init->argv = nullptr;
     }
-    if (init != NULL) {
+    if (init != nullptr) {
         free(init);
-        init = NULL;
+        init = nullptr;
     }
     init_cnt--;
     return init;
@@ -146,13 +146,13 @@ Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
     init->menu = (Menu *)calloc(1, sizeof(Menu));
     if (!init->menu) {
         abend(-1, "calloc menu failed");
-        return NULL;
+        return nullptr;
     }
     init->menu_cnt++;
     menu = init->menu;
     if (!init_menu_files(init, argc, argv)) {
         abend(-1, "init_menu_files failed");
-        return NULL;
+        return nullptr;
     }
     menu->begy = begy;
     menu->begx = begx;
@@ -160,13 +160,13 @@ Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
 }
 /** @brief Destroy Menu structure
     @param init structure
-    @return NULL
+    @return nullptr
  */
 Menu *destroy_menu(Init *init) {
     if (!init->menu)
-        return (NULL);
+        return (nullptr);
     free(init->menu);
-    init->menu = NULL;
+    init->menu = nullptr;
     init->menu_cnt--;
     return init->menu;
 }
@@ -183,21 +183,21 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
     init->pick = (Pick *)calloc(1, sizeof(Pick));
     if (!init->pick) {
         Perror("calloc pick failed");
-        return NULL;
+        return nullptr;
     }
     init->pick_cnt++;
     pick = init->pick;
     if (!init_pick_files(init, argc, argv)) {
         abend(-1, "init_pick_files failed");
-        return NULL;
+        return nullptr;
     }
     pick->object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
-    if (pick->object == NULL) {
+    if (pick->object == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1,
                   "calloc pick->object = calloc(%d, %d) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));
-        display_error(em0, em1, NULL, NULL);
+        display_error(em0, em1, nullptr, nullptr);
         abend(-1, "User terminated program");
     }
     pick->begy = begy;
@@ -206,18 +206,18 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
 }
 /** @brief Destroy Pick structure
     @param init structure
-    @return NULL
+    @return nullptr
  */
 Pick *destroy_pick(Init *init) {
     if (!init->pick)
-        return NULL;
+        return nullptr;
 
     for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt; pick->obj_idx++)
-        if (pick->object[pick->obj_idx] != NULL)
+        if (pick->object[pick->obj_idx] != nullptr)
             free(pick->object[pick->obj_idx]);
     free(pick->object);
     free(pick);
-    init->pick = NULL;
+    init->pick = nullptr;
     init->pick_cnt--;
     return init->pick;
 }
@@ -234,13 +234,13 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
     init->form = (Form *)calloc(1, sizeof(Form));
     if (!init->form) {
         abend(-1, "calloc form failed");
-        return NULL;
+        return nullptr;
     }
     init->form_cnt++;
     form = init->form;
     if (!init_form_files(init, argc, argv)) {
         abend(-1, "init_form_files failed");
-        return NULL;
+        return nullptr;
     }
     strnz__cpy(form->brackets, init->brackets, 3);
     strnz__cpy(form->fill_char, init->fill_char, MAXLEN - 1);
@@ -250,25 +250,25 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
 }
 /** @brief Destroy Form structure
     @param init structure
-    @return NULL
+    @return nullptr
  */
 Form *destroy_form(Init *init) {
     int i;
 
     if (!init->form)
-        return NULL;
+        return nullptr;
     for (i = 0; i < init->form->fidx; i++) {
         if (init->form->field[i])
             free(init->form->field[i]);
-        init->form->field[i] = NULL;
+        init->form->field[i] = nullptr;
     }
     for (i = 0; i < init->form->didx; i++) {
         if (init->form->text[i])
             free(init->form->text[i]);
-        init->form->text[i] = NULL;
+        init->form->text[i] = nullptr;
     }
     free(init->form);
-    init->form = NULL;
+    init->form = nullptr;
     init->form_cnt--;
     return init->form;
 }
@@ -290,20 +290,20 @@ View *new_view(Init *init, int argc, char **argv) {
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "init->view = calloc(%d, %d) failed\n",
                   (argc - optind + 1), sizeof(char *));
-        display_error(em0, em1, em2, NULL);
+        display_error(em0, em1, em2, nullptr);
         abend(-1, "calloc init->view failed");
         return false;
     }
     view = init->view;
     view->argv = calloc((argc - optind + 1), sizeof(char *));
-    if (view->argv == NULL) {
+    if (view->argv == nullptr) {
         free(view->argv);
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
                   __LINE__ - 1, errno);
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
                   (argc - optind + 1), sizeof(char *));
-        display_error(em0, em1, em2, NULL);
+        display_error(em0, em1, em2, nullptr);
         abend(-1, "User terminated program");
         return false;
     }
@@ -311,17 +311,17 @@ View *new_view(Init *init, int argc, char **argv) {
     int d = 0;
     while (s < argc)
         view->argv[d++] = strdup(argv[s++]);
-    view->argv[d] = NULL;
+    view->argv[d] = nullptr;
     view->argc = d;
     if (!init_view_files(init)) {
         abend(-1, "init_view_files failed");
-        return NULL;
+        return nullptr;
     }
     return view;
 }
 /** @brief Destroy View structure
     @param init structure
-    @return NULL
+    @return nullptr
  */
 View *destroy_view(Init *init) {
     int i;
@@ -330,8 +330,8 @@ View *destroy_view(Init *init) {
         free(view->argv[i]);
     free(view->argv);
     free(view);
-    init->view = NULL;
-    view = NULL;
+    init->view = nullptr;
+    view = nullptr;
     init->view_cnt--;
     return init->view;
 }
@@ -366,7 +366,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     f_quote = stripz_quotes(try_spec);
     s1 = strtok(try_spec, " \t\n");
     strnz__cpy(s1_s, s1, MAXLEN - 1);
-    s2 = strtok(NULL, "\n");
+    s2 = strtok(nullptr, "\n");
     strnz__cpy(s2_s, s2, MAXLEN - 1);
     strnz__cpy(file_name, s1, MAXLEN - 1);
     strnz__cpy(try_spec, file_name, MAXLEN - 1);
@@ -482,7 +482,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     }
     if (!menu->f_mapp_spec) {
         menu->f_mapp_spec = verify_spec_arg(
-            menu->mapp_spec, "~/menuapp/msrc/main.m", NULL, NULL, R_OK);
+            menu->mapp_spec, "~/menuapp/msrc/main.m", nullptr, nullptr, R_OK);
         if (!menu->f_mapp_spec) {
             strnz__cpy(tmp_str, "menu cannot read description file ",
                        MAXLEN - 1);
@@ -491,8 +491,9 @@ bool init_menu_files(Init *init, int argc, char **argv) {
         }
     }
     if (!menu->f_help_spec) {
-        menu->f_help_spec = verify_spec_arg(
-            menu->help_spec, "~/menuapp/help/main.help", NULL, NULL, R_OK);
+        menu->f_help_spec =
+            verify_spec_arg(menu->help_spec, "~/menuapp/help/main.help",
+                            nullptr, nullptr, R_OK);
         if (!menu->f_help_spec) {
             strnz__cpy(tmp_str, "menu cannot read help file ", MAXLEN - 1);
             strnz__cat(tmp_str, menu->help_spec, MAXLEN - 1);
@@ -512,6 +513,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
                    calling program interal to C-Menu
     @note Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_pick_files(Init *init, int argc, char **argv) {
+    char tmp_str[MAXLEN];
     pick->f_in_spec = verify_spec_arg(pick->in_spec, init->in_spec,
                                       init->mapp_data, "~/menuapp/data", R_OK);
     pick->f_out_spec =
@@ -554,7 +556,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         if (argv[optind][0] != '\0') {
             pick->f_provider_cmd =
                 verify_spec_arg(pick->provider_cmd, argv[optind],
-                                "~/menuapp/bin", NULL, X_OK | S_QUIET);
+                                "~/menuapp/bin", nullptr, X_OK | S_QUIET);
             if (!pick->f_provider_cmd) {
                 base_name(tmp_str, argv[optind]);
                 pick->f_provider_cmd =
@@ -565,8 +567,9 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     }
     if (optind < argc && !pick->f_cmd) {
         if (argv[optind][0] != '\0') {
-            pick->f_cmd = verify_spec_arg(
-                pick->cmd, argv[optind], "~/menuapp/bin", NULL, X_OK | S_QUIET);
+            pick->f_cmd =
+                verify_spec_arg(pick->cmd, argv[optind], "~/menuapp/bin",
+                                nullptr, X_OK | S_QUIET);
             if (!pick->f_cmd) {
                 base_name(tmp_str, argv[optind]);
                 pick->f_cmd = locate_file_in_path(pick->cmd, tmp_str);
@@ -578,7 +581,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         if (argv[optind][0] != '\0') {
             pick->f_receiver_cmd =
                 verify_spec_arg(pick->receiver_cmd, argv[optind],
-                                "~/menuapp/bin", NULL, X_OK | S_QUIET);
+                                "~/menuapp/bin", nullptr, X_OK | S_QUIET);
             if (!pick->f_receiver_cmd) {
                 base_name(tmp_str, argv[optind]);
                 pick->f_receiver_cmd =
@@ -606,6 +609,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
    environment variables, or calling program interal to C-Menu
     @note Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_form_files(Init *init, int argc, char **argv) {
+    char tmp_str[MAXLEN];
     form->f_mapp_spec =
         verify_spec_arg(form->mapp_spec, init->mapp_spec, init->mapp_msrc,
                         "~/menuapp/msrc", R_OK);
@@ -656,7 +660,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
         if (argv[optind][0] != '\0') {
             form->f_provider_cmd =
                 verify_spec_arg(form->provider_cmd, argv[optind],
-                                "~/menuapp/bin", NULL, X_OK | S_QUIET);
+                                "~/menuapp/bin", nullptr, X_OK | S_QUIET);
             if (!form->f_provider_cmd) {
                 base_name(tmp_str, argv[optind]);
                 form->f_provider_cmd =
@@ -667,8 +671,9 @@ bool init_form_files(Init *init, int argc, char **argv) {
     }
     if (optind < argc && !form->f_cmd) {
         if (argv[optind][0] != '\0') {
-            form->f_cmd = verify_spec_arg(
-                form->cmd, argv[optind], "~/menuapp/bin", NULL, X_OK | S_QUIET);
+            form->f_cmd =
+                verify_spec_arg(form->cmd, argv[optind], "~/menuapp/bin",
+                                nullptr, X_OK | S_QUIET);
             if (!form->f_cmd) {
                 base_name(tmp_str, argv[optind]);
                 form->f_cmd = locate_file_in_path(form->cmd, tmp_str);
@@ -680,7 +685,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
         if (argv[optind][0] != '\0') {
             form->f_receiver_cmd =
                 verify_spec_arg(form->receiver_cmd, argv[optind],
-                                "~/menuapp/bin", NULL, X_OK | S_QUIET);
+                                "~/menuapp/bin", nullptr, X_OK | S_QUIET);
             if (!form->f_receiver_cmd) {
                 base_name(tmp_str, argv[optind]);
                 form->f_receiver_cmd =
@@ -727,7 +732,7 @@ bool init_view_files(Init *init) {
             if (view->provider_cmd[0] != '\0')
                 strnz__cpy(view->title, view->provider_cmd, MAXLEN - 1);
             else {
-                if (view->argv[0] != NULL && view->argv[0][0] != '\0')
+                if (view->argv[0] != nullptr && view->argv[0][0] != '\0')
                     strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
                 else
                     strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);

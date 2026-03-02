@@ -51,16 +51,22 @@ SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 REL_CFLAGS=-O2
 DBG_CFLAGS=-O0 -g3
-CC=gcc -Wall -Wextra -I./include $(DBG_CFLAGS)
+# CFLAGS=-static
+CFLAGS=
+CC=gcc -std=gnu23 -Wall -Wextra -I./include $(DBG_CFLAGS)
+CX=-std=gnu23
+CX=-std=c23
 
 MAJOR=0
 MINOR=2
 PATCH=9
 VERSION=$(MAJOR).$(MINOR).$(PATCH)
 
-LIB_NAME=libcm.so
-SONAME=$(LIB_NAME).$(MAJOR)
-REAL_NAME=$(LIB_NAME).$(VERSION)
+LIB_SHARED=libcm.so
+SONAME=$(LIB_SHARED).$(MAJOR)
+REAL_NAME=$(LIB_SHARED).$(VERSION)
+LIB_STATIC=libcm.a
+LIB_NAME=$(LIB_SHARED)
 
 LIB_DIR=$(PREFIX)/lib64
 BIN_DIR=$(PREFIX)/bin
@@ -96,53 +102,56 @@ CKEYS_OBJS=ckeys.o $(COMMON_OBJS)
 
 LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_PATH)
 
-all:	$(LIB_NAME) $(BINEXES) CMenu.conf
+all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Make Complete
 
 menu:	$(COMMON_HDRS) $(MENU_OBJS) $(LIB_NAME)
-	$(CC) 	$(MENU_OBJS) -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	$(MENU_OBJS) -o $@ $(LIBS)
 
 form:	$(COMMON_HDRS) $(FORM_OBJS) $(LIB_NAME)
-	$(CC) 	$(FORM_OBJS) -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	$(FORM_OBJS) -o $@ $(LIBS)
 
 pick:	$(COMMON_HDRS) $(PICK_OBJS) $(LIB_NAME)
-	$(CC) 	$(PICK_OBJS) -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	$(PICK_OBJS) -o $@ $(LIBS)
 
 view:	$(COMMON_HDRS) $(VIEW_OBJS) $(LIB_NAME)
-	$(CC) 	$(VIEW_OBJS) -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	$(VIEW_OBJS) -o $@ $(LIBS)
 
 ckeys:	$(COMMON_HDRS) $(CKEYS_OBJS) $(LIB_NAME)
-	$(CC) 	$(CKEYS_OBJS) -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	$(CKEYS_OBJS) -o $@ $(LIBS)
 
 enterchr:	include/cm.h enterchr.o $(LIB_NAME)
-	$(CC) 	enterchr.o -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	enterchr.o -o $@ $(LIBS)
 
 optsp:	include/cm.h optsp.o opts.o $(LIB_NAME)
-	$(CC) 	optsp.o opts.o -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	optsp.o opts.o -o $@ $(LIBS)
 
 enterstr:	include/cm.h enterstr.o $(LIB_NAME)
-	$(CC) 	enterstr.o -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	enterstr.o -o $@ $(LIBS)
 
 whence:	include/cm.h whence.o $(LIB_NAME)
-	$(CC) 	whence.o -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	whence.o -o $@ $(LIBS)
 
 iloan:	iloan.o $(LIB_NAME)
-	$(CC) 	iloan.o -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	iloan.o -o $@ $(LIBS)
 
 rsh:	include/cm.h rsh.o
-	$(CC) $(RSH_LD) rsh.o -o $@
+	$(CC) $(CFLAGS)	$(RSH_LD) rsh.o -o $@
 
 lf: include/cm.h	lf.o $(LIB_NAME)
-	$(CC) 	lf.o -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	lf.o -o $@ $(LIBS)
 
 stripansi:	include/cm.h stripansi.o $(LIB_NAME)
-	$(CC) 	stripansi.o -o $@ $(LIBS)
+	$(CC) $(CFLAGS)	stripansi.o -o $@ $(LIBS)
 
 CMenu.conf:
 	echo $(LIB_DIR) >CMenu.conf
 
-$(LIB_NAME): $(LIB_OBJS)
+$(LIB_SHARED): $(LIB_OBJS)
 	$(CC) 	-shared -o $@ $^
+
+$(LIB_STATIC): $(LIB_OBJS)
+	ar rcs $@ $^
 
 dwin.o:	dwin.c
 	$(CC) 	-c $< -fPIC -o $@
@@ -164,7 +173,7 @@ sig.o:	sig.c
 
 clean:
 	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.so \
-		*.cflow scan-build scan-build.out $(LIB_NAME) CMenu.conf \
+		*.cflow scan-build scan-build.out $(LIB_SHARED) CMenu.conf \
 		x xx xxx *.out .user_id .group_id manifest.txt manifest.ls
 
 test: snippets/strings_test1.c
@@ -194,10 +203,12 @@ install:
 	./inst.sh lf		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(LIB_DIR)
-	cp $(LIB_NAME) $(LIB_DIR)/$(REAL_NAME)
+	cp $(LIB_STATIC) $(LIB_DIR)
+	echo `test/iso8601.sh` $(LIB_DIR)/$(LIB_STATIC) >>manifest.txt
+	cp $(LIB_SHARED) $(LIB_DIR)/$(REAL_NAME)
 	echo `test/iso8601.sh` $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
-	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_NAME)
-	echo `test/iso8601.sh` $(LIB_DIR)/$(LIB_NAME) >>manifest.txt
+	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_SHARED)
+	echo `test/iso8601.sh` $(LIB_DIR)/$(LIB_SHARED) >>manifest.txt
 	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
 	echo `test/iso8601.sh` $(LIB_DIR)/$(SONAME) >>manifest.txt
 	cp CMenu.conf /etc/ld.so.conf.d

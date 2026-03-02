@@ -10,6 +10,7 @@
 #include <cm.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -83,12 +84,12 @@ int shell(char *shellCmdPtr) {
 
     Eargc = 0;
     shellPtr = getenv("SHELL");
-    if (shellPtr == NULL || *shellPtr == '\0')
+    if (shellPtr == nullptr || *shellPtr == '\0')
         shellPtr = DEFAULTSHELL;
     Eargv[Eargc++] = strdup(shellPtr);
     Eargv[Eargc++] = "-c";
     Eargv[Eargc++] = shellCmdPtr;
-    Eargv[Eargc++] = NULL;
+    Eargv[Eargc++] = nullptr;
     rc = fork_exec(Eargv);
     free(Eargv[0]);
     return (rc);
@@ -123,6 +124,7 @@ int shell(char *shellCmdPtr) {
     @note Uses switch-case for handling fork results.
     @note Uses default shell if SHELL environment variable is not set. */
 int fork_exec(char **argv) {
+    char tmp_str[MAXLEN];
     pid_t pid;
     int status;
     int rc;

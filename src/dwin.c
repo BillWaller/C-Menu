@@ -142,8 +142,6 @@ enum key_idx { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, PgUp, PgDn, END };
 WINDOW *win;
 WINDOW *win_win[MAXWIN];
 WINDOW *win_box[MAXWIN];
-char tmp_str[MAXLEN];
-char *tmp_ptr;
 int exit_code;
 unsigned int cmd_key;
 bool f_sigwench = false;
@@ -288,7 +286,7 @@ bool open_curses(SIO *sio) {
     sio->stdout_fd = dup(STDOUT_FILENO);
     /** open the terminal device for reading and writing */
     sio->tty_fp = fopen(sio->tty_name, "r+");
-    if (sio->tty_fp == NULL) {
+    if (sio->tty_fp == nullptr) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "fopen(sio->tty_name) failed ", MAXLEN - 1);
         strnz__cat(emsg0, tmp_str, MAXLEN - 1);
@@ -299,8 +297,8 @@ bool open_curses(SIO *sio) {
     dup2(fileno(sio->tty_fp), STDERR_FILENO);
     /** We use SCREEN and newterm because this allows us to */
     /** specify the terminal FILE */
-    SCREEN *screen = newterm(NULL, sio->tty_fp, sio->tty_fp);
-    if (screen == NULL) {
+    SCREEN *screen = newterm(nullptr, sio->tty_fp, sio->tty_fp);
+    if (screen == nullptr) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "newterm failed ", MAXLEN - 1);
         strnz__cat(emsg0, tmp_str, MAXLEN - 1);
@@ -367,7 +365,7 @@ int get_clr_pair(int fg, int bg) {
         ssnprintf(em1, MAXLEN - 1, "NCurses COLOR_PAIRS (%d) exceeded (%d)",
                   COLOR_PAIRS, i);
         strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, NULL);
+        display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
     if (i < COLOR_PAIRS) {
@@ -589,7 +587,7 @@ void destroy_curses() {
 cchar_t mkccc(int cp) {
     cchar_t cc;
     wchar_t wc = L' ';
-    setcchar(&cc, &wc, WA_NORMAL, cp, NULL);
+    setcchar(&cc, &wc, WA_NORMAL, cp, nullptr);
     return cc;
 }
 
@@ -616,13 +614,13 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 ||
             wcols < COLS - 2) {
             win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
-            if (win_box[win_ptr] == NULL) {
+            if (win_box[win_ptr] == nullptr) {
                 win_ptr--;
                 return (1);
             }
             wbkgrnd(win_box[win_ptr], &CCC_BOX);
             wbkgrndset(win_box[win_ptr], &CCC_BOX);
-            if (wtitle != NULL && *wtitle != '\0')
+            if (wtitle != nullptr && *wtitle != '\0')
                 strnz__cpy(box_title, wtitle, MAXLEN - 1);
             cbox(win_box[win_ptr]);
             mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
@@ -639,7 +637,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             wbegx += 1;
         } else {
             win_box[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
-            if (win_box[win_ptr] == NULL) {
+            if (win_box[win_ptr] == nullptr) {
                 win_ptr--;
                 return (1);
             }
@@ -648,7 +646,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         }
         if (!(flag & W_BOX)) {
             win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
-            if (win_win[win_ptr] == NULL) {
+            if (win_win[win_ptr] == nullptr) {
                 delwin(win_box[win_ptr]);
                 win_ptr--;
                 return (1);
@@ -678,7 +676,7 @@ void win_resize(int wlines, int wcols, char *title) {
     wbkgrnd(win_box[win_ptr], &CCC_BOX);
     wbkgrndset(win_box[win_ptr], &CCC_BOX);
     cbox(win_box[win_ptr]);
-    if (title != NULL && *title != '\0') {
+    if (title != nullptr && *title != '\0') {
         wmove(win_box[win_ptr], 0, 1);
         waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
         wmove(win_box[win_ptr], 0, 2);
@@ -714,7 +712,7 @@ void win_redraw(WINDOW *win) {
 }
 
 /** @brief Delete the current window and its associated box window
-    @return NULL
+    @return nullptr
     @note This function deletes the current window and its associated box
    window, if they exist. It also refreshes the remaining windows to ensure the
    display is updated correctly. After calling this function, the global win_ptr
@@ -977,7 +975,7 @@ void list_colors() {
 void display_argv_error_msg(char *emsg, char **argv) {
     int argc = 0;
     fprintf(stderr, "\r\n");
-    while (*argv != NULL && **argv != '\0')
+    while (*argv != nullptr && **argv != '\0')
         fprintf(stderr, "argv[%d] - %s\r\n", argc++, *argv++);
     fprintf(stderr, "%s\r\n", emsg);
     fprintf(stderr, "%s", "Press any key to continue");
@@ -1030,7 +1028,7 @@ int xwgetch(WINDOW *win) {
         c = wgetch(win);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
-                c = display_error(em0, em1, em2, NULL);
+                c = display_error(em0, em1, em2, nullptr);
             if (c == 'q' || c == KEY_F(9))
                 exit(EXIT_FAILURE);
             continue;
