@@ -605,6 +605,7 @@ cchar_t mkccc(int cp) {
     @return 0 if successful, 1 if error */
 int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             int flag) {
+    char box_title[MAXLEN] = "Pick Selections";
     int maxx;
     if (win_ptr < MAXWIN) {
         if (win_ptr > 0)
@@ -621,18 +622,18 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             }
             wbkgrnd(win_box[win_ptr], &CCC_BOX);
             wbkgrndset(win_box[win_ptr], &CCC_BOX);
-            if (wtitle != NULL && *wtitle != '\0') {
-                cbox(win_box[win_ptr]);
-                mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
-                mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
-                mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
-                maxx = getmaxx(win_box[win_ptr]);
-                int s = strlen(wtitle);
-                if ((s + 3) < maxx)
-                    mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
-                if ((s + 4) < maxx)
-                    mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-            }
+            if (wtitle != NULL && *wtitle != '\0')
+                strnz__cpy(box_title, wtitle, MAXLEN - 1);
+            cbox(win_box[win_ptr]);
+            mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
+            mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
+            mvwaddstr(win_box[win_ptr], 0, 3, box_title);
+            maxx = getmaxx(win_box[win_ptr]);
+            int s = strlen(box_title);
+            if ((s + 3) < maxx)
+                mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
+            if ((s + 4) < maxx)
+                mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
             wnoutrefresh(win_box[win_ptr]);
             wbegy += 1;
             wbegx += 1;
