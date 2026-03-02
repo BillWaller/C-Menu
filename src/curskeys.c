@@ -40,7 +40,7 @@ int display_curses_keys() {
 
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
                   BUTTON_CTRL | BUTTON_ALT,
-              NULL);
+              nullptr);
     if (win_new(lines, cols, begy, begx, Title, 0)) {
         strnz__cpy(tmp, "win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);

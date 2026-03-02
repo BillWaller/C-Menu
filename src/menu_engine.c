@@ -28,10 +28,11 @@ unsigned int menu_cmd_processor(Init *);
 unsigned int menu_engine(Init *init) {
     int action;
     int i;
+    char tmp_str[MAXLEN];
 
     Menu *menu = init->menu;
-    if (menu == NULL) {
-        Perror("menu_engine: menu is NULL");
+    if (menu == nullptr) {
+        Perror("menu_engine: menu is nullptr");
         return (1);
     }
     action = MA_INIT;
@@ -94,10 +95,11 @@ unsigned int menu_cmd_processor(Init *init) {
     int i, c, j, rc;
     char *d;
     int in_key;
+    char tmp_str[MAXLEN];
 
     keypad(menu->win, TRUE);
     Menu *menu = init->menu;
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
     wattron(menu->win, A_REVERSE);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
@@ -145,7 +147,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);
         expand_tilde(tmp_str, MAXLEN - 1);
         eargv[1] = strdup(tmp_str);
-        eargv[2] = NULL;
+        eargv[2] = nullptr;
         eargc = 2;
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
@@ -162,7 +164,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(tmp_str, "~/menuapp/.about", MAXLEN - 1);
         expand_tilde(tmp_str, MAXLEN - 1);
         eargv[1] = strdup(tmp_str);
-        eargv[2] = NULL;
+        eargv[2] = nullptr;
         eargc = 2;
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
@@ -182,15 +184,15 @@ unsigned int menu_cmd_processor(Init *init) {
         /** @brief send default printer output file to printer */
     case KEY_ALTF(9):
         d = getenv("PRTCMD");
-        if (d == NULL || *d == '\0')
+        if (d == nullptr || *d == '\0')
             strnz__cpy(earg_str, PRINTCMD, MAXLEN - 1);
         else
             strnz__cpy(earg_str, d, MAXLEN - 1);
         strnz__cat(earg_str, " ", MAXLEN - 1);
         d = getenv("PRTFILE");
-        if (d == NULL || *d == '\0') {
+        if (d == nullptr || *d == '\0') {
             d = getenv("HOME");
-            if (d == NULL || *d == '\0')
+            if (d == nullptr || *d == '\0')
                 strnz__cat(earg_str, VIEW_PRT_FILE, MAXLEN - 1);
             else {
                 strnz__cat(earg_str, d, MAXLEN - 1);
@@ -206,7 +208,7 @@ unsigned int menu_cmd_processor(Init *init) {
         restore_wins();
         return (MA_DISPLAY_MENU);
         d = getenv("DEFAULTEDITOR");
-        if (d == NULL || *d == '\0')
+        if (d == nullptr || *d == '\0')
             strnz__cpy(earg_str, DEFAULTEDITOR, MAXLEN - 1);
         else
             strnz__cpy(earg_str, d, MAXLEN - 1);
@@ -269,7 +271,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         j = 0;
         free(eargv[0]);
-        for (i = 1; i < eargc && eargv[i] != NULL; i++) {
+        for (i = 1; i < eargc && eargv[i] != nullptr; i++) {
             if (eargv[i][0] == '~') {
                 strnz__cpy(tmp_str, eargv[i], MAXLEN - 1);
                 expand_tilde(tmp_str, MAXLEN - 1);
@@ -278,7 +280,7 @@ unsigned int menu_cmd_processor(Init *init) {
                 eargv[j++] = strdup(eargv[i]);
             free(eargv[i]);
         }
-        eargv[j] = NULL;
+        eargv[j] = nullptr;
         full_screen_fork_exec(eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display help information for the menu system */
@@ -287,7 +289,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(tmp_str, "~/menuapp/.about", MAXLEN - 1);
         expand_tilde(tmp_str, MAXLEN - 1);
         eargv[1] = strdup(tmp_str);
-        eargv[2] = NULL;
+        eargv[2] = nullptr;
         eargc = 2;
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
@@ -303,7 +305,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);
         expand_tilde(tmp_str, MAXLEN - 1);
         eargv[1] = strdup(tmp_str);
-        eargv[2] = NULL;
+        eargv[2] = nullptr;
         eargc = 2;
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);

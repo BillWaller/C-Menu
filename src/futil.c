@@ -66,7 +66,7 @@ char errmsg[MAXLEN];
      @param s - string to trim
      @returns length of trimmed string */
 size_t rtrim(char *s) {
-    if (s == NULL || *s == '\0')
+    if (s == nullptr || *s == '\0')
         return 0;
     char *p = s;
     char *d = s;
@@ -81,7 +81,7 @@ size_t rtrim(char *s) {
     @param s - string to trim
     @returns length of trimmed string */
 size_t trim(char *s) {
-    if (s == NULL || *s == '\0')
+    if (s == nullptr || *s == '\0')
         return 0;
     char *p = s;
     char *d = s;
@@ -128,7 +128,7 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     @returns argc, a count of allocated vectors in argv
     @note the caller is responsible for deallocating the strings in argv */
 int str_to_args(char **argv, char *arg_str, int max_args) {
-    if (arg_str == NULL || *arg_str == '\0')
+    if (arg_str == nullptr || *arg_str == '\0')
         return 0;
     int argc = 0;
     char *p = arg_str;
@@ -170,14 +170,14 @@ int str_to_args(char **argv, char *arg_str, int max_args) {
         d = tmp_str;
         argv[argc++] = strdup(tmp_str);
     }
-    argv[argc] = NULL;
+    argv[argc] = nullptr;
     return argc;
 }
 /** @brief Converts a string to lowercase.
     @param s - string to convert
-    @returns true if successful, false if s is NULL or empty */
+    @returns true if successful, false if s is nullptr or empty */
 bool str_to_lower(char *s) {
-    if (s == NULL || *s == '\0')
+    if (s == nullptr || *s == '\0')
         return false;
     while (*s != '\0') {
         if (*s >= 'A' && *s <= 'Z')
@@ -188,9 +188,9 @@ bool str_to_lower(char *s) {
 }
 /** @brief Converts a string to uppercase.
     @param s - string to convert
-    @returns true if successful, false if s is NULL or empty */
+    @returns true if successful, false if s is nullptr or empty */
 bool str_to_upper(char *s) {
-    if (s == NULL || *s == '\0')
+    if (s == nullptr || *s == '\0')
         return false;
     while (*s != '\0') {
         if (*s >= 'a' && *s <= 'z')
@@ -213,8 +213,8 @@ bool str_to_upper(char *s) {
 size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     char *e;
     size_t len = 0;
-    if (s == NULL || d == NULL || max_len == 0) {
-        if (d != NULL && max_len > 0)
+    if (s == nullptr || d == nullptr || max_len == 0) {
+        if (d != nullptr && max_len > 0)
             *d = '\0';
         return 0;
     }
@@ -241,8 +241,8 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
     char *e;
     size_t len = 0;
-    if (s == NULL || d == NULL || max_len == 0) {
-        if (d != NULL && max_len > 0)
+    if (s == nullptr || d == nullptr || max_len == 0) {
+        if (d != nullptr && max_len > 0)
             *d = '\0';
         return 0;
     }
@@ -263,7 +263,7 @@ size_t strnz__cat(char *d, const char *s, size_t max_len) {
  */
 size_t strz(char *s) {
     size_t l = 0;
-    if (s == NULL || *s == '\0')
+    if (s == nullptr || *s == '\0')
         return 0;
     while (*s != '\0' && *s != '\n' && *s != '\r') {
         s++;
@@ -281,7 +281,7 @@ size_t strz(char *s) {
 size_t strnz(char *s, size_t max_len) {
     char *e;
     size_t len = 0;
-    if (s == NULL || *s == '\0' || max_len == 0)
+    if (s == nullptr || *s == '\0' || max_len == 0)
         return 0;
     e = s + max_len;
     while (*s != '\0' && *s != '\n' && *s != '\r' && s < e) {
@@ -298,7 +298,7 @@ size_t strnz(char *s, size_t max_len) {
 size_t strnlf(char *s, size_t max_len) {
     char *e;
     size_t len = 0;
-    if (s == NULL || *s == '\0' || max_len == 0)
+    if (s == nullptr || *s == '\0' || max_len == 0)
         return 0;
     e = s + max_len;
     while (*s != '\0' && *s != '\n' && *s != '\r' && s < e) {
@@ -318,12 +318,12 @@ size_t strnlf(char *s, size_t max_len) {
 char *strnz_dup(char *s, size_t l) {
     char *p, *rs, *e;
     size_t m;
-    if (s == NULL || *s == '\0' || l == 0)
-        return NULL;
+    if (s == nullptr || *s == '\0' || l == 0)
+        return nullptr;
     for (p = s, m = 1; *p != '\0'; p++, m++)
         ;
     rs = p = (char *)malloc(m);
-    if (rs != NULL) {
+    if (rs != nullptr) {
         e = rs + l;
         while (*s != '\0' && *s != '\n' && *s != '\r' && p < e)
             *p++ = *s++;
@@ -352,8 +352,8 @@ char *strnz_dup(char *s, size_t l) {
    the operation. */
 bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
     char *e;
-    if (s == NULL || d == NULL || Withstr == NULL || l == 0) {
-        if (d != NULL && l > 0)
+    if (s == nullptr || d == nullptr || Withstr == nullptr || l == 0) {
+        if (d != nullptr && l > 0)
             *d = '\0';
         return false;
     }
@@ -373,9 +373,9 @@ bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
      @param s - string to fill
      @param c - character to fill with
      @param n - number of characters to fill
-     @returns true if successful, false if s is NULL or n is non-positive */
+     @returns true if successful, false if s is nullptr or n is non-positive */
 bool strnfill(char *s, char c, int n) {
-    if (s == NULL || n <= 0)
+    if (s == nullptr || n <= 0)
         return false;
     char *e;
     e = s + n;
@@ -386,9 +386,9 @@ bool strnfill(char *s, char c, int n) {
 }
 /**  @brief removes leading and trailing double quotes if present
      @param s - string to strip quotes from
-     @returns true if successful, false if s is NULL or empty */
+     @returns true if successful, false if s is nullptr or empty */
 bool strip_quotes(char *s) {
-    if (s == NULL)
+    if (s == nullptr)
         return false;
     int l = strlen(s);
     if (l > 1 && s[l - 1] == '\"') {
@@ -402,7 +402,7 @@ bool strip_quotes(char *s) {
     @returns true if quotes were removed
     @note Same as STRIP_QUOTES but returns true if quotes were removed */
 bool stripz_quotes(char *s) {
-    if (s == NULL || strlen(s) < 2)
+    if (s == nullptr || strlen(s) < 2)
         return false;
     int l = strlen(s);
     if (l > 1 && s[0] == '\"' && s[l - 1] == '\"') {
@@ -418,7 +418,7 @@ bool stripz_quotes(char *s) {
     @param new_chr - character to insert
     @returns true if successful or false if string s is null */
 bool chrep(char *s, char old_chr, char new_chr) {
-    if (s == NULL)
+    if (s == nullptr)
         return false;
     while (*s != '\0') {
         if (*s == old_chr)
@@ -440,7 +440,7 @@ int a_toi(char *s, bool *a_toi_error) {
     *a_toi_error = false;
     errno = 0;
     if (s && *s != 0)
-        rc = (int)strtol(s, NULL, 10);
+        rc = (int)strtol(s, nullptr, 10);
     if (rc < 0 || errno) {
         rc = -1;
         *a_toi_error = true;
@@ -489,9 +489,9 @@ size_t strip_ansi(char *d, char *s) {
 }
 /**  @brief replace backslashes with forward lashes
      @param fs - file specification to normalize
-     @returns true if successful, false if fs is NULL or empty */
+     @returns true if successful, false if fs is nullptr or empty */
 bool normalize_file_spec(char *fs) {
-    if (fs == NULL || *fs == '\0')
+    if (fs == nullptr || *fs == '\0')
         return false;
     while (*fs != '\0') {
         if (*fs == '\\')
@@ -507,21 +507,21 @@ bool normalize_file_spec(char *fs) {
     @note The caller is responsible for ensuring that "fp" has enough space to
     receive the result. */
 bool file_spec_path(char *fp, char *fs) {
-    if (fs == NULL || *fs == '\0' || fp == NULL) {
-        if (fp != NULL)
+    if (fs == nullptr || *fs == '\0' || fp == nullptr) {
+        if (fp != nullptr)
             *fp = '\0';
         return false;
     }
     char *d, *l, *s;
     s = fp;
     d = fs;
-    l = NULL;
+    l = nullptr;
     while (*s != '\0') {
         if (*s == '/')
             l = d;
         *d++ = *s++;
     }
-    if (l == NULL)
+    if (l == nullptr)
         *fp = '\0'; // no slash, so no path
     else
         *l = '\0';
@@ -533,20 +533,20 @@ bool file_spec_path(char *fp, char *fs) {
      @note The caller is responsible for ensuring that "fn" has enough space to
      receive the result. */
 bool file_spec_name(char *fn, char *fs) {
-    if (fs == NULL || *fs == '\0' || fn == NULL) {
-        if (fn != NULL)
+    if (fs == nullptr || *fs == '\0' || fn == nullptr) {
+        if (fn != nullptr)
             *fn = '\0';
         return false;
     }
     char *d, *l, *s;
-    l = NULL;
+    l = nullptr;
     s = fs;
     while (*s != '\0') {
         if (*s == '/')
             l = s;
         s++;
     }
-    if (l == NULL)
+    if (l == nullptr)
         s = fs;
     else
         s = ++l;
@@ -558,7 +558,7 @@ bool file_spec_name(char *fn, char *fs) {
 }
 /**  @brief converts string to double
      @param s - string to convert
-     @returns converted double value, or 0.0 if s is NULL, empty, or invalid
+     @returns converted double value, or 0.0 if s is nullptr, empty, or invalid
      @deprecated If the string is invalid, this function returns 0.0, with no
    indication of error.
      @note The caller must ensure that the string is a valid representation
@@ -576,7 +576,7 @@ double str_to_double(char *s) {
      @param s - string to convert
      @returns boolean true or false */
 bool str_to_bool(const char *s) {
-    if (s == NULL || *s == '\0')
+    if (s == nullptr || *s == '\0')
         return false;
     switch (s[0]) {
     case 't':
@@ -610,7 +610,7 @@ bool str_to_bool(const char *s) {
      @returns true if successful
  */
 bool expand_tilde(char *path, int path_maxlen) {
-    if (path == NULL || *path == '\0' || path_maxlen == 0)
+    if (path == nullptr || *path == '\0' || path_maxlen == 0)
         return false;
     char *e;
     char ts[MAXLEN];
@@ -762,7 +762,7 @@ bool dir_name(char *buf, char *path) {
      @note S_WCOK and S_QUIET are stripped before calling faccessat
      @returns true if successful */
 bool verify_dir(char *spec, int imode) {
-    if (spec == NULL || *spec == '\0')
+    if (spec == nullptr || *spec == '\0')
         return false;
     expand_tilde(spec, MAXLEN);
     struct stat sb;
@@ -812,7 +812,7 @@ bool verify_dir(char *spec, int imode) {
      @note S_WCOK and S_QUIET are stripped before calling faccessat
      @returns true if successful */
 bool verify_file(char *in_spec, int imode) {
-    if (in_spec == NULL || *in_spec == '\0')
+    if (in_spec == nullptr || *in_spec == '\0')
         return false;
     struct stat sb;
     char spec[MAXLEN];
@@ -858,7 +858,7 @@ bool verify_file(char *in_spec, int imode) {
      @returns true if file is located
      @note file_spec must be large enough to receive the result */
 bool locate_file_in_path(char *file_spec, char *file_name) {
-    if (file_name == NULL || *file_name == '\0' || file_spec == NULL)
+    if (file_name == nullptr || *file_name == '\0' || file_spec == nullptr)
         return false;
     char path[MAXLEN];
     char fn[MAXLEN];
@@ -871,18 +871,18 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
         fnp++;
     if (*fnp == '/')
         return false;
-    if ((p = getenv("PATH")) == NULL)
+    if ((p = getenv("PATH")) == nullptr)
         return false;
     strnz__cpy(path, p, MAXLEN - 1);
     dir = strtok(path, ":");
-    while (dir != NULL) {
+    while (dir != nullptr) {
         strnz__cpy(file_spec, dir, MAXLEN - 1);
         strnz__cat(file_spec, "/", MAXLEN - 1);
         strnz__cat(file_spec, file_name, MAXLEN - 1);
         if (access(file_spec, F_OK) == 0) {
             return true;
         }
-        dir = strtok(NULL, ":");
+        dir = strtok(nullptr, ":");
     }
     return false;
 }
@@ -933,6 +933,7 @@ bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
     return      true if successful, false otherwise */
 bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
                 int max_depth, int flags) {
+    char tmp_str[MAXLEN];
     struct stat sb;
     struct dirent *dir_st;
     DIR *dir;
@@ -946,7 +947,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
 
     if ((dir = opendir(base_path)) == 0)
         return false;
-    while ((dir_st = readdir(dir)) != NULL) {
+    while ((dir_st = readdir(dir)) != nullptr) {
         if (strcmp(dir_st->d_name, ".") == 0 ||
             strcmp(dir_st->d_name, "..") == 0)
             continue;
@@ -1011,7 +1012,7 @@ bool mk_dir(char *dir) {
             strnz__cat(em1, dir, MAXLEN - 1);
             strnz__cat(em1, " failed", MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
-            display_error(em0, em1, em2, NULL);
+            display_error(em0, em1, em2, nullptr);
             return false;
         }
         return true;
@@ -1022,7 +1023,7 @@ bool mk_dir(char *dir) {
      @param spec - file specification to canonicalize
      @returns length of resulting string */
 size_t canonicalize_file_spec(char *spec) {
-    if (spec == NULL || *spec == '\0')
+    if (spec == nullptr || *spec == '\0')
         return 0;
     char tmp_s[MAXLEN];
     char *s;
@@ -1053,9 +1054,9 @@ size_t canonicalize_file_spec(char *spec) {
     @returns A pointer to the newly allocated string with replacements or a copy
    of the replacement string if original string is the same as target string
    This is a special case that allows for replacing the entire original string.
-   If any parameter is NULL, the function returns NULL. If "tgt_s" is not found
-   in "org_s", the function returns a copy of "org_s". If target substring is
-   not found the function returns a copy of the original string.
+   If any parameter is nullptr, the function returns nullptr. If "tgt_s" is not
+   found in "org_s", the function returns a copy of "org_s". If target substring
+   is not found the function returns a copy of the original string.
     @note The function allocates memory for the return value, so the caller is
    responsible for freeing this memory when it is no longer needed to avoid
    memory leaks.
@@ -1077,14 +1078,14 @@ size_t canonicalize_file_spec(char *spec) {
    "rep_s". The caller should ensure that "tgt_s" and "rep_s" are distinct to
    avoid this issue. */
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
-    if (org_s == NULL || tgt_s == NULL || rep_s == NULL)
-        return NULL;
+    if (org_s == nullptr || tgt_s == nullptr || rep_s == nullptr)
+        return nullptr;
     if (*org_s == '\0' || *tgt_s == '\0' || *rep_s == '\0')
-        return NULL;
-    if (strstr(org_s, tgt_s) == NULL)
+        return nullptr;
+    if (strstr(org_s, tgt_s) == nullptr)
         return strdup(org_s);
-    if (strstr(rep_s, tgt_s) != NULL)
-        return NULL;
+    if (strstr(rep_s, tgt_s) != nullptr)
+        return nullptr;
     if (tgt_s == rep_s || tgt_s == org_s || rep_s == org_s)
         return strdup(org_s);
     if (strcmp(org_s, tgt_s) == 0)
@@ -1095,13 +1096,13 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     int head_l;
     int n = 0;
     ip = (char *)org_s;
-    while ((tmp = strstr(ip, tgt_s)) != NULL) {
+    while ((tmp = strstr(ip, tgt_s)) != nullptr) {
         n++;
         ip = tmp + tgt_l;
     }
     out_s = malloc(strlen(org_s) + (rep_l - tgt_l) * n + 1);
     if (!out_s) {
-        return NULL;
+        return nullptr;
     }
     tmp = out_s;
     ip = (char *)org_s;
@@ -1156,10 +1157,10 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     @note the caller is responsible for freeing the allocated memory.
     */
 String to_string(const char *s) {
-    if (s == NULL) {
+    if (s == nullptr) {
         String str;
         str.l = 0;
-        str.s = NULL;
+        str.s = nullptr;
         return str;
     }
     String str;
@@ -1180,7 +1181,7 @@ String mk_string(size_t l) {
     if (l == 0) {
         String str;
         str.l = 0;
-        str.s = NULL;
+        str.s = nullptr;
         return str;
     }
     String str;
@@ -1191,15 +1192,15 @@ String mk_string(size_t l) {
 }
 /** @brief Free the dynamically allocated String
     @param string to free
-    @return string with NULL pointer and length 0
+    @return string with nullptr pointer and length 0
     @note Frees the dynamically allocated string and sets length to 0.
  */
 String free_string(String string) {
-    if (string.s == NULL)
+    if (string.s == nullptr)
         return string;
     free(string.s);
     string.l = 0;
-    string.s = NULL;
+    string.s = nullptr;
     return string;
 }
 /** @brief Copy src String to dest String, allocating additional memory for dest
@@ -1209,7 +1210,7 @@ String free_string(String string) {
     @returns length of dest String
     @note the caller is responsible for freeing the allocated memory. */
 size_t string_cpy(String *dest, const String *src) {
-    if (dest == NULL || src == NULL || src->s == NULL)
+    if (dest == nullptr || src == nullptr || src->s == nullptr)
         return 0;
     if (dest->l < src->l) {
         dest->s = (char *)realloc(dest->s, src->l);
@@ -1225,7 +1226,7 @@ size_t string_cpy(String *dest, const String *src) {
     @returns new length of dest String after concatenation
     @note the caller is responsible for freeing the allocated memory. */
 size_t string_cat(String *dest, const String *src) {
-    if (dest == NULL || src == NULL || src->s == NULL)
+    if (dest == nullptr || src == nullptr || src->s == nullptr)
         return 0;
     size_t new_len = strlen(dest->s) + strlen(src->s) + 1;
     if (dest->l < new_len) {
@@ -1243,7 +1244,7 @@ size_t string_cat(String *dest, const String *src) {
     @returns new length of dest String after concatenation
     @note the caller is responsible for freeing the allocated memory. */
 size_t string_ncat(String *dest, const String *src, size_t n) {
-    if (dest == NULL || src == NULL || src->s == NULL)
+    if (dest == nullptr || src == nullptr || src->s == nullptr)
         return 0;
     size_t dest_len = strlen(dest->s);
     size_t src_len = strlen(src->s);
@@ -1263,7 +1264,7 @@ size_t string_ncat(String *dest, const String *src, size_t n) {
     @param n - maximum number of characters to copy
     @note the caller is responsible for freeing the allocated memory. */
 size_t string_ncpy(String *dest, const String *src, size_t n) {
-    if (dest == NULL || src == NULL || src->s == NULL)
+    if (dest == nullptr || src == nullptr || src->s == nullptr)
         return 0;
     size_t src_len = strlen(src->s);
     size_t cpy_len = (n < src_len) ? n : src_len;

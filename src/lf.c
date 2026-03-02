@@ -20,8 +20,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-char tmp_str[MAXLEN];
-
 /** @brief List files in a directory matching a regular expression
     @code
         lf [options ad:hit:v] [dir] [re]

@@ -18,6 +18,10 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#if __STDC_VERSION__ < 202311L
+#define nullptr NULL
+#endif
+
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
 #define SCR_COLS 1024 /**< maximum number of columns in the terminal screen */
@@ -393,10 +397,6 @@ extern char em2[MAXLEN]; /**< error message string for error messages */
 extern char em3[MAXLEN]; /**< error message string for error messages */
 extern bool f_debug;     /**< a flag to indicate whether debug output should be
                             printed, for debugging purposes */
-extern char tmp_str[MAXLEN]; /**< a temporary string buffer for error messages
-                                and other output */
-extern char
-    *tmp_ptr; /**< a temporary pointer for error messages and other output */
 extern unsigned int cmd_key; /**< the command key for the current command, for
                                 error messages and other output */
 extern int exit_code; /**< the exit code for the program, for error messages and

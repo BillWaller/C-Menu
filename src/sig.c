@@ -26,11 +26,11 @@ void sig_dfl_mode() {
     sa.sa_handler = SIG_DFL;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGTERM, &sa, NULL);
-    sigaction(SIGQUIT, &sa, NULL);
-    sigaction(SIGSEGV, &sa, NULL);
-    sigaction(SIGUSR1, &sa, NULL);
+    sigaction(SIGINT, &sa, nullptr);
+    sigaction(SIGTERM, &sa, nullptr);
+    sigaction(SIGQUIT, &sa, nullptr);
+    sigaction(SIGSEGV, &sa, nullptr);
+    sigaction(SIGUSR1, &sa, nullptr);
 }
 /** @brief Set up signal handlers for interrupt signals
     @details Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT), the
@@ -45,23 +45,23 @@ void sig_prog_mode() {
     sa.sa_handler = signal_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
+    if (sigaction(SIGINT, &sa, nullptr) == -1) {
         abend(-1, "sigaction SIGINT failed");
         exit(EXIT_FAILURE);
     }
-    if (sigaction(SIGTERM, &sa, NULL) == -1) {
+    if (sigaction(SIGTERM, &sa, nullptr) == -1) {
         abend(-1, "sigaction SIGTERM failed");
         exit(EXIT_FAILURE);
     };
-    if (sigaction(SIGQUIT, &sa, NULL) == -1) {
+    if (sigaction(SIGQUIT, &sa, nullptr) == -1) {
         abend(-1, "sigaction SIGQUIT failed");
         exit(EXIT_FAILURE);
     }
-    if (sigaction(SIGSEGV, &sa, NULL) == -1) {
+    if (sigaction(SIGSEGV, &sa, nullptr) == -1) {
         abend(-1, "sigaction SIGSEGV failed");
         exit(EXIT_FAILURE);
     }
-    if (sigaction(SIGUSR1, &sa, NULL) == -1) {
+    if (sigaction(SIGUSR1, &sa, nullptr) == -1) {
         abend(-1, "sigaction SIGUSR1 failed");
         exit(EXIT_FAILURE);
     }

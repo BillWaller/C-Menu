@@ -10,6 +10,7 @@
 #include <common.h>
 #include <monetary.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <termios.h>
@@ -54,7 +55,7 @@ int form_accept_field(Form *form) {
     char *filler_s = form->field[form->fidx]->filler_s;
 
     form_fmt_field(form, accept_s);
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, NULL);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
     event.y = event.x = -1;
     char *fstart = accept_s;

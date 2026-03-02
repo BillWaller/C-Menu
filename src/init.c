@@ -35,7 +35,7 @@ bool f_stop_on_error = true;
 int write_config(Init *init);
 void display_version();
 
-Init *init = NULL;
+Init *init = nullptr;
 
 void mapp_initialization(Init *init, int, char **);
 int parse_opt_args(Init *, int, char **);
@@ -63,6 +63,7 @@ int executor = 0;
  */
 void mapp_initialization(Init *init, int argc, char **argv) {
     char term[MAXLEN];
+    char tmp_str[MAXLEN];
     char *t;
     setlocale(LC_ALL, "en_US.UTF-8");
     SIO *sio = init->sio;
@@ -158,7 +159,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int opt;
     int longindex = 0;
     int flag = 0;
-
+    char tmp_str[MAXLEN];
     char *optstring = "a:b:c:d:ef:g:hi:j:k:m:n:o:p:r:st:u:vw:xzA:B:C:DF:G:H:L:"
                       "MO:P:R:S:T:VWX:Y:Z";
     struct option long_options[] = {{"help", 0, &flag, MAPP_HELP},
@@ -345,7 +346,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         init->argv[i] = strdup(argv[i]);
         i++;
     }
-    init->argv[i] = NULL;
+    init->argv[i] = nullptr;
     init->argc = argc;
     return optind;
 }
@@ -361,7 +362,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
 int parse_config(Init *init) {
     char ts[MAXLEN];
     char *sp, *dp;
-
+    char tmp_str[MAXLEN];
     SIO *sio = init->sio;
     if (!init->minitrc[0]) {
         char *e = getenv("MINITRC");
@@ -392,8 +393,8 @@ int parse_config(Init *init) {
             }
             *dp = '\0';
             char *key = strtok(tmp_str, "=");
-            char *value = strtok(NULL, "=");
-            if (value == NULL)
+            char *value = strtok(nullptr, "=");
+            if (value == nullptr)
                 continue;
             if (!strcmp(key, "minitrc")) {
                 strnz__cpy(init->minitrc, value, MAXLEN - 1);
@@ -687,7 +688,7 @@ void prompt_int_to_str(char *s, int prompt_type) {
 int write_config(Init *init) {
     char *e;
     char minitrc_dmp[MAXLEN];
-
+    char tmp_str[MAXLEN];
     SIO *sio = init->sio;
     e = getenv("HOME");
     if (e) {
@@ -785,7 +786,8 @@ int write_config(Init *init) {
     @param dir - directory path
     @param file_name - file name
     @returns true if file_spec is derived, false otherwise
-    @note If dir is NULL, use MAPP_DIR environment variable or default directory
+    @note If dir is nullptr, use MAPP_DIR environment variable or default
+   directory
    ~/menuapp
     @note file_spec should be a pre-allocated char array of size MAXLEN to hold
    the resulting file specification
@@ -887,6 +889,7 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
     @param msg - string to print before dumping the configuration to stderr in a
    readable format, prefixed by the provided title string. */
 void dump_config(Init *init, char *msg) {
+    char tmp_str[MAXLEN];
     SIO *sio = init->sio;
     opt_prt_str("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-L:", "  lines", init->lines);

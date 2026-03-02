@@ -12,6 +12,7 @@
 #include <getopt.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
         normalend();
     }
     path_p = getenv("PATH");
-    if (path_p == NULL)
+    if (path_p == nullptr)
         ABEND(argv[0], FAIL, "PATH environment variable not set");
     if (f_verbose)
         printf("%s\n", path_p);

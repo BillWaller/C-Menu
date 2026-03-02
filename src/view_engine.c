@@ -90,12 +90,12 @@ int view_file(Init *init) {
     } else
         view->next_file_spec_ptr = view->argv[0];
     while (view->curr_argc < view->argc) {
-        if (view->next_file_spec_ptr == NULL ||
+        if (view->next_file_spec_ptr == nullptr ||
             *view->next_file_spec_ptr == '\0') {
             break;
         }
         view->file_spec_ptr = view->next_file_spec_ptr;
-        view->next_file_spec_ptr = NULL;
+        view->next_file_spec_ptr = nullptr;
         if (view_init_input(view, view->file_spec_ptr)) {
             if (view->buf) {
                 view->f_eod = 0;
@@ -119,6 +119,7 @@ int view_file(Init *init) {
 }
 /** @brief Main Command Processing Loop for View */
 int view_cmd_processor(Init *init) {
+    char tmp_str[MAXLEN];
     int tfd;
     int c;
     int max_n;
@@ -580,13 +581,13 @@ int view_cmd_processor(Init *init) {
         case KEY_F(9):
         case '\033':
             view->curr_argc = view->argc;
-            view->next_file_spec_ptr = NULL;
+            view->next_file_spec_ptr = nullptr;
             return 0;
         /** 'v' - Open Current File in Editor */
         case 'v':
             if (init->editor[0] == 0) {
                 e = getenv("DEFAULTEDITOR");
-                if (e == NULL || *e == '\0')
+                if (e == nullptr || *e == '\0')
                     strnz__cpy(init->editor, DEFAULTEDITOR, MAXLEN);
                 else
                     strnz__cpy(init->editor, e, MAXLEN);
@@ -598,7 +599,7 @@ int view_cmd_processor(Init *init) {
                        MAXLEN - 1);
             strnz__cpy(em2, "Enter Y for yes or any other key to cancel.",
                        MAXLEN - 1);
-            rc = display_error(em0, em1, em2, NULL);
+            rc = display_error(em0, em1, em2, nullptr);
             if (rc != 'y' && rc != 'Y')
                 break;
             if (!enter_file_spec(init, view->out_spec)) {
@@ -612,7 +613,7 @@ int view_cmd_processor(Init *init) {
                           __LINE__ - 2);
                 strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
                 strerror_r(errno, em1, MAXLEN - 1);
-                display_error(em0, em1, NULL, NULL);
+                display_error(em0, em1, nullptr, nullptr);
                 break;
             }
             view->next_file_spec_ptr = view->in_spec;
@@ -642,7 +643,7 @@ int view_cmd_processor(Init *init) {
         /** 'V' - Display Version Information */
         case 'V':
             ssnprintf(em0, MAXLEN - 1, "C-Menu Version: %s", CM_VERSION);
-            display_error(em0, em1, NULL, NULL);
+            display_error(em0, em1, nullptr, nullptr);
             break;
         default:
             break;
@@ -656,7 +657,7 @@ int get_cmd_char(View *view, off_t *n) {
     char cmd_str[33];
     cmd_str[0] = '\0';
     MEVENT event;
-    mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, NULL);
+    mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, nullptr);
     tcflush(2, TCIFLUSH);
     do {
         c = xwgetch(view->win);
@@ -777,6 +778,7 @@ int get_cmd_arg(View *view, char *prompt) {
 /** @brief Build Prompt String */
 void build_prompt(View *view, int prompt_type, char *prompt_str,
                   double elapsed) {
+    char tmp_str[MAXLEN];
     prompt_type = PT_LONG;
     *prompt_str = '\0';
     if (prompt_type == PT_LONG) {
@@ -855,7 +857,7 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
                    MAXLEN - 1);
         strnz__cpy(em1, "Enter Y for yes or any other key to cancel.",
                    MAXLEN - 1);
-        rc = display_error(em0, em1, NULL, NULL);
+        rc = display_error(em0, em1, nullptr, nullptr);
         if (rc == 'y' || rc == 'Y')
             f_strip_ansi = true;
         else
@@ -869,7 +871,7 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
         strnz__cpy(em1, "fwrite ", MAXLEN - 1);
         strnz__cat(em1, view->out_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN - 1);
-        display_error(em0, em1, em2, NULL);
+        display_error(em0, em1, em2, nullptr);
         return (false);
     }
     bytes_written = 0;
@@ -902,7 +904,7 @@ void lp(char *PrintFile) {
     char *print_cmd_ptr;
     char shell_cmd_spec[MAXLEN];
     print_cmd_ptr = getenv("PRINTCMD");
-    if (print_cmd_ptr == NULL || *print_cmd_ptr == '\0')
+    if (print_cmd_ptr == nullptr || *print_cmd_ptr == '\0')
         print_cmd_ptr = PRINTCMD;
     sprintf(shell_cmd_spec, "%s %s", print_cmd_ptr, PrintFile);
     cmd_line_prompt(view, shell_cmd_spec);
@@ -931,6 +933,7 @@ void go_to_eof(View *view) {
 }
 /** @brief Go to Specific Line */
 int go_to_line(View *view, off_t line_idx) {
+    char tmp_str[MAXLEN];
     int c = 0;
     off_t line_cnt = 0;
     if (line_idx <= 1) {
@@ -1001,6 +1004,7 @@ void go_to_position(View *view, off_t go_to_pos) {
     @note ANSI sequences and Unicode characters are stripped before matching, so
    matching corresponds to the visual display */
 bool search(View *view, int *search_cmd, char *regex_pattern) {
+    char tmp_str[MAXLEN];
     int REG_FLAGS = 0;
     regmatch_t pmatch[1];
     regex_t compiled_regex;
@@ -1108,7 +1112,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             view->curx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
             mvwchgat(view->win, view->cury - 1, view->curx, match_len,
-                     WA_REVERSE, cp_norm, NULL);
+                     WA_REVERSE, cp_norm, nullptr);
             if (view->first_match_x == -1)
                 view->first_match_x = pmatch[0].rm_so;
             view->last_match_x = line_offset + pmatch[0].rm_eo;
@@ -1527,7 +1531,7 @@ int fmt_line(View *view) {
             if (*s == '\t') {
                 wc = L' ';
                 do {
-                    setcchar(&cc, &wc, attr, cpx, NULL);
+                    setcchar(&cc, &wc, attr, cpx, nullptr);
                     view->stripped_line_out[j] = ' ';
                     cmplx_buf[j++] = cc;
                 } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
@@ -1538,7 +1542,7 @@ int fmt_line(View *view) {
                     wc = L'?';
                     len = 1;
                 }
-                if (setcchar(&cc, &wc, attr, cpx, NULL) != ERR) {
+                if (setcchar(&cc, &wc, attr, cpx, nullptr) != ERR) {
                     if (len > 0 && (j + len) < PAD_COLS - 1) {
                         view->stripped_line_out[j] = *s;
                         cmplx_buf[j++] = cc;
@@ -1551,7 +1555,7 @@ int fmt_line(View *view) {
     if (j > view->maxcol)
         view->maxcol = j;
     wc = L'\0';
-    setcchar(&cc, &wc, WA_NORMAL, cpx, NULL);
+    setcchar(&cc, &wc, WA_NORMAL, cpx, nullptr);
     cmplx_buf[j] = cc;
     view->stripped_line_out[j] = '\0';
     return j;
@@ -1624,7 +1628,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     tok = strtok((char *)ansi_p, ";m");
     bool a_toi_error = false;
     while (1) {
-        if (tok == NULL || *tok == '\0')
+        if (tok == nullptr || *tok == '\0')
             break;
         len = strlen(tok);
         if (len == 2) {
@@ -1632,20 +1636,20 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
             t1 = tok[1];
             if (t0 == '3' || t0 == '4') {
                 if (t1 == '8') {
-                    tok = strtok(NULL, ";m");
-                    if (tok != NULL) {
+                    tok = strtok(nullptr, ";m");
+                    if (tok != nullptr) {
                         if (*tok == '5') {
-                            tok = strtok(NULL, ";m");
-                            if (tok != NULL) {
+                            tok = strtok(nullptr, ";m");
+                            if (tok != nullptr) {
                                 x_idx = a_toi(tok, &a_toi_error);
                                 rgb = xterm256_idx_to_rgb(x_idx);
                             }
                         } else if (*tok == '2') {
-                            tok = strtok(NULL, ";m");
+                            tok = strtok(nullptr, ";m");
                             rgb.r = a_toi(tok, &a_toi_error);
-                            tok = strtok(NULL, ";m");
+                            tok = strtok(nullptr, ";m");
                             rgb.g = a_toi(tok, &a_toi_error);
-                            tok = strtok(NULL, ";m");
+                            tok = strtok(nullptr, ";m");
                             rgb.b = a_toi(tok, &a_toi_error);
                         }
                     }
@@ -1711,7 +1715,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
             fg_clr = COLOR_WHITE;
             bg_clr = COLOR_BLACK;
         }
-        tok = strtok(NULL, ";m");
+        tok = strtok(nullptr, ";m");
     }
     if (!a_toi_error && (fg_clr != fg || bg_clr != bg)) {
         clr_pair_idx = get_clr_pair(fg_clr, bg_clr);
@@ -1764,7 +1768,7 @@ void remove_file(View *view) {
     @note  After the help file is closed, the original view is restored and the
    page is redisplayed.
     @note It may be necessary to reassign view after calling this function
-   because the init->view pointer is temporarily set to NULL during the help
+   because the init->view pointer is temporarily set to nullptr during the help
    file display, and the original view is restored afterward.
     @note The default screen size for help can be set in the code below. If set
    to 0, mview will determine reasonable maximal size based on the terminal
@@ -1772,16 +1776,17 @@ void remove_file(View *view) {
     @note The help file may contain Unicode characters and ANSI escape sequences
    for formatting, which will be properly handled and displayed by mview. */
 void view_display_help(Init *init) {
+    char tmp_str[MAXLEN];
     int eargc;
     char *eargv[MAXARGS];
     View *view_save = init->view;
-    init->view = NULL;
+    init->view = nullptr;
     zero_opt_args(init);
     eargv[0] = strdup("mview");
     strnz__cpy(tmp_str, VIEW_HELP_FILE, MAXLEN - 1);
     expand_tilde(tmp_str, MAXLEN - 1);
     eargv[1] = strdup(tmp_str);
-    eargv[2] = NULL;
+    eargv[2] = nullptr;
     eargc = 2;
     parse_opt_args(init, eargc, eargv);
     init->lines = 48;
@@ -1803,6 +1808,7 @@ void view_display_help(Init *init) {
  */
 bool enter_file_spec(Init *init, char *file_spec) {
     char tmp_dir[MAXLEN];
+    char tmp_str[MAXLEN];
     char tmp_spec[MAXLEN];
     int rc = false;
     FILE *tmp_fp;
@@ -1824,7 +1830,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             strnz__cpy(em1, "mkstemp ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
-            display_error(em0, em1, NULL, NULL);
+            display_error(em0, em1, nullptr, nullptr);
             return (false);
         }
         /** call form to get file_name
@@ -1843,12 +1849,12 @@ bool enter_file_spec(Init *init, char *file_spec) {
         close(view->in_fd);
         /** read file_name from tmp_spec */
         tmp_fp = fopen(tmp_spec, "r");
-        if (tmp_fp == NULL) {
+        if (tmp_fp == nullptr) {
             ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
             strnz__cpy(em1, "fopen ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
-            display_error(em0, em1, em2, NULL);
+            display_error(em0, em1, em2, nullptr);
             return (false);
         }
         fgets(tmp_str, MAXLEN - 1, tmp_fp);
@@ -1860,7 +1866,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             ssnprintf(em0, MAXLEN - 1, "Unable to open %s for writing",
                       tmp_str);
             strnz__cpy(em1, "Try again", MAXLEN - 1);
-            rc = display_error(em0, em1, NULL, NULL);
+            rc = display_error(em0, em1, nullptr, nullptr);
             if (rc == 'y' || rc == 'Y')
                 continue;
         } else {

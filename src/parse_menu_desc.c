@@ -9,6 +9,7 @@
 
 #include <common.h>
 #include <ctype.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -22,8 +23,9 @@ void free_menu_line(Line *);
  */
 unsigned int parse_menu_description(Init *init) {
     FILE *fp;
-    char tmp_buf[MAXLEN + 1];
-    char in_buf[MAXLEN + 1];
+    char tmp_str[MAXLEN];
+    char tmp_buf[MAXLEN];
+    char in_buf[MAXLEN];
     char *in_buf_p;
     int Pos;
     unsigned char ltr;
@@ -36,12 +38,12 @@ unsigned int parse_menu_description(Init *init) {
     int in_fp_line = 0;
     menu = init->menu;
     fp = fopen(menu->mapp_spec, "r");
-    if (fp == NULL) {
+    if (fp == nullptr) {
         strnz__cat(tmp_buf, "file not found", MAXLEN);
         abend(-1, tmp_buf);
         exit(-1);
     }
-    while ((fgets(in_buf, MAXLEN, fp)) != NULL) {
+    while ((fgets(in_buf, MAXLEN, fp)) != nullptr) {
         if (in_buf[0] == '\0')
             continue;
         in_fp_line++;
@@ -127,7 +129,7 @@ unsigned int parse_menu_description(Init *init) {
                           in_fp_line);
                 strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
                 strnz__cat(em2, in_buf, MAXLEN - 1);
-                display_error(em0, em1, em2, NULL);
+                display_error(em0, em1, em2, nullptr);
                 abend(-1, "unrecoverable error");
             }
             chrep(tmp_buf, '\t', ' ');
@@ -151,11 +153,11 @@ unsigned int parse_menu_description(Init *init) {
                 }
                 menu->line[menu->line_idx]->type = MT_TEXT;
                 menu->line[menu->line_idx]->raw_text = strdup(tmp_buf);
-                menu->line[menu->line_idx]->choice_text = NULL;
+                menu->line[menu->line_idx]->choice_text = nullptr;
                 menu->line[menu->line_idx]->choice_letter = '\0';
                 menu->line[menu->line_idx]->letter_pos = 0;
                 menu->line[menu->line_idx]->command_type = '\0';
-                menu->line[menu->line_idx]->command_str = NULL;
+                menu->line[menu->line_idx]->command_str = nullptr;
                 menu->line_idx++;
                 choices++;
             }
@@ -281,17 +283,17 @@ unsigned int get_command_type(char *t) {
  */
 void free_menu_line(Line *line) {
 
-    if (line->raw_text != NULL)
+    if (line->raw_text != nullptr)
         free(line->raw_text);
-    if (line->choice_text != NULL)
+    if (line->choice_text != nullptr)
         free(line->choice_text);
-    if (line->command_str != NULL)
+    if (line->command_str != nullptr)
         free(line->command_str);
-    line->raw_text = NULL;
-    line->choice_text = NULL;
+    line->raw_text = nullptr;
+    line->choice_text = nullptr;
     line->choice_letter = '\0';
     line->letter_pos = 0;
     line->command_type = '\0';
-    line->command_str = NULL;
+    line->command_str = nullptr;
     free(line);
 }
