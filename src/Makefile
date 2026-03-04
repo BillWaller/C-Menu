@@ -31,7 +31,7 @@ HOME=/home/$(USER)
 PREFIX=$(HOME)/menuapp
 
 # Uncomment the following line to enable static linking of rsh
-# RSH_LD = -static
+RSH_LD = -static
 # or export RSH_LD in your environment before running cmake
 # export RSH_LD="-static"
 
@@ -53,7 +53,7 @@ REL_CFLAGS=-O2
 DBG_CFLAGS=-O0 -g3
 # CFLAGS=-static
 CFLAGS=
-CC=gcc -std=gnu23 -Wall -Wextra -I./include $(DBG_CFLAGS)
+CC=gcc -Wall -Wextra -I./include $(DBG_CFLAGS)
 CX=-std=gnu23
 CX=-std=c23
 

@@ -1,54 +1,36 @@
 cmake_minimum_required(VERSION 4.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-
 set(RSH_LD $ENV{RSH_LD})
-
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "CMAKE_BUILD_TYPE not set, default to Release")
     set(CMAKE_BUILD_TYPE "Release")
 endif()
-
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-
 project(CMenu
     VERSION 0.2.9
     LANGUAGES C
 )
-
 set(CMAKE_C_FLAGS "-I../include -Wall -Wextra")
 set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH TRUE)
-
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the build type (e.g. ebug, 
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the build type (e.g. ebug,
     Release)" FORCE)
 endif()
-
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/menuapp" CACHE PATH "Install path 
-    prefix" FORCE)
-endif()
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 configure_file(
     "${PROJECT_SOURCE_DIR}/include/version.h.in"
     "${PROJECT_SOURCE_DIR}/include/version.h"
 )
-
-install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json"
-    DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}" )
-
+install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json" DESTINATION
+"${CMAKE_CURRENT_SOURCE_DIR}")
 add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c)
 set_target_properties(
     cm PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
-
 set(LIBS ncursesw tinfo m)
-
 set(COMMON_SRCS
     curskeys.c
     fields.c
@@ -102,7 +84,7 @@ add_executable(rsh rsh.c)
 #[[ Remove the Comment lines to enable static linking of rsh
 set(RSH_LD -static)
 ]]
-if (RSH_LD STREQUAL "-static")
+if(RSH_LD STREQUAL "-static")
     set_target_properties(rsh PROPERTIES LINK_FLAGS_RELEASE -s)
 endif()
 target_link_libraries(rsh ${RSH_LD})
@@ -139,8 +121,8 @@ install(
           whence
   RUNTIME DESTINATION bin)
 
-target_include_directories(cm PUBLIC 
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> 
+target_include_directories(cm PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
@@ -156,7 +138,7 @@ install(EXPORT cm_export
 
 file(GLOB HEADERS "include/*.h")
 
-install(FILES ${HEADERS} DESTINATION include) 
+install(FILES ${HEADERS} DESTINATION include)
 
 include(GNUInstallDirs)
 set(LD_CONF_FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.conf")
