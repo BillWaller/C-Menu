@@ -38,7 +38,7 @@
 
 ## Introduction
 
-The C-Menu is a versatile and user-friendly User Interface Builder
+The C-Menu is a versatile and user-friendly User Interface Toolkit
 suitable for a wide variety of applications. This guide provides
 detailed instructions on how to use and customize the C-Menu to fit
 your needs.
