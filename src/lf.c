@@ -25,6 +25,7 @@
         lf [options ad:hit:v] [dir] [re]
              -a        List hidden files
              -d        maximum max_depth of subdirectories to examine
+             -e        exclude files matching the regular expression
              -h        show this help message
              -i        ignore case in search
              -t d      list directories (exclude files)
@@ -37,18 +38,22 @@
 int main(int argc, char **argv) {
     char dir[MAXLEN] = "";
     char re[MAXLEN] = "";
+    char ere[MAXLEN] = "";
     bool f_help = false;
     bool f_version = false;
     int flags = 0;
     int opt;
     int max_depth = 3;
-    while ((opt = getopt(argc, argv, "ad:hit:v")) != -1) {
+    while ((opt = getopt(argc, argv, "ad:e:hit:v")) != -1) {
         switch (opt) {
         case 'a':
             flags |= LF_ALL;
             break;
         case 'd':
             max_depth = atoi(optarg);
+            break;
+        case 'e':
+            strnz__cpy(ere, optarg, MAXLEN - 1);
             break;
         case 'h':
             f_help = true;
@@ -80,6 +85,7 @@ int main(int argc, char **argv) {
         printf("Options:\n");
         printf("  -a        List hidden files\n");
         printf("  -d        maximum depth of subdirectories to examine\n");
+        printf("  -e        exclude files matching the regular expression\n");
         printf("  -h        show this help message\n");
         printf("  -i        ignore case in search\n");
         printf("  -t f      list files (exclude directories)\n");
@@ -108,6 +114,6 @@ int main(int argc, char **argv) {
         strnz__cpy(re, ".*", MAXLEN - 1);
     if (dir[0] == '\0')
         strnz__cpy(dir, ".", MAXLEN - 1);
-    lf_find(dir, re, max_depth, flags);
+    lf_find(dir, re, ere, max_depth, flags);
     return true;
 }

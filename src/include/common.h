@@ -120,6 +120,7 @@ typedef struct {
 
     bool f_mapp_home; /**< flag - mapp_home verified */
     bool f_mapp_data; /**< flag - mapp_data verified */
+    bool f_mapp_spec; /**< flag - mapp_spec verified */
     bool f_mapp_help; /**< flag - mapp_help verified */
     bool f_mapp_msrc; /**< flag - mapp_msrc verified */
     bool f_mapp_user; /**< flag - mapp_user verified */

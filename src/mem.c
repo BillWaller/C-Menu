@@ -466,7 +466,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     // menu->f_help_spec =
     //     verify_spec_arg(menu->help_spec, init->help_spec, init->mapp_help,
     //                     "~/menuapp/help", R_OK);
-    if (optind < argc && !menu->f_mapp_spec) {
+    if (optind < argc && !init->f_mapp_spec) {
         menu->f_mapp_spec =
             verify_spec_arg(menu->mapp_spec, argv[optind], init->mapp_msrc,
                             "~/menuapp/msrc", R_OK);
