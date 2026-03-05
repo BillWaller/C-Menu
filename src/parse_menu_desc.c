@@ -123,7 +123,6 @@ unsigned int parse_menu_description(Init *init) {
             /**  ':' Text line, parse and add to menu */
         case ':':
             if (choices > actions) {
-                strnz__cpy(em0, "More choices than actions at", MAXLEN - 1);
                 ssnprintf(em0, MAXLEN - 1,
                           "More choices than actions at line %d of",
                           in_fp_line);
@@ -211,7 +210,7 @@ unsigned int parse_menu_description(Init *init) {
                         break;
                 if (ltr > 'z') {
                     Perror("Ran out of letters");
-                    return (0);
+                    return 0;
                 }
             }
             fltr[ltr] = TRUE;
@@ -236,7 +235,7 @@ unsigned int parse_menu_description(Init *init) {
                    MAXLEN - 1);
     }
 
-    return (0);
+    return 0;
 }
 /** @brief Get command type from command string
     @param t Command string

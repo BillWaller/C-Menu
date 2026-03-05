@@ -24,8 +24,8 @@
 #include <unistd.h>
 #include <wait.h>
 
-bool lf_find(const char *, const char *, int, int);
-bool lf_process(const char *, regex_t *, int, int, int);
+bool lf_find(const char *, const char *, const char *, int, int);
+bool lf_process(const char *, regex_t *, regex_t *, int, int, int);
 size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);
@@ -898,22 +898,50 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     LF_ICASE    =  2,  Ignore case in search
     LF_FILES    =  4,  list files (exclude directories)
     LF_DIRS     =  8,  list directories (exclude files)
+    LF_EXCLUDE  =  16, exclude files matching "ere" pattern
     @endcode
     return      true if successful, false otherwise */
-bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
+bool lf_find(const char *base_path, const char *re, const char *ere,
+             int max_depth, int flags) {
     int reti;
     regex_t compiled_re;
+    regex_t compiled_ere;
     int REG_FLAGS = REG_EXTENDED;
 
     if (flags & LF_ICASE)
         REG_FLAGS |= REG_ICASE;
     reti = regcomp(&compiled_re, re, REG_FLAGS);
     if (reti) {
-        printf("lf: \'%s\' Invalid pattern\n", re);
-        printf("for example: \'.*\\.c$\'\n\n");
+        ssnprintf(em0, MAXLEN - 1, "lf: \'%s\' Invalid pattern\n", re);
+        ssnprintf(em1, MAXLEN - 1, "for example: \'.*\\.c$\'\n\n");
+        regerror(reti, &compiled_re, em2, sizeof(em2));
+        display_error(em0, em1, em2, nullptr);
+        regfree(&compiled_re);
         return false;
     }
-    lf_process(base_path, &compiled_re, 0, max_depth, flags);
+    if (ere) {
+        regcomp(&compiled_ere, "^$", REG_FLAGS);
+        reti = regcomp(&compiled_ere, ere, REG_FLAGS);
+        if (reti) {
+            ssnprintf(em0, MAXLEN - 1, "lf: \'%s\' Invalid exclude pattern\n",
+                      re);
+            ssnprintf(em1, MAXLEN - 1, "for example: \'.*\\.c$\'\n\n");
+            regerror(reti, &compiled_ere, em2, sizeof(em2));
+            display_error(em0, em1, em2, nullptr);
+            regfree(&compiled_ere);
+            return false;
+        }
+        flags |= LF_EXCLUDE;
+    }
+    reti =
+        lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth, flags);
+
+    if (re)
+        regfree(&compiled_re);
+    if (ere)
+        regfree(&compiled_ere);
+    if (reti)
+        return false;
     return true;
 }
 /** @brief logic for lf_find()
@@ -929,10 +957,11 @@ bool lf_find(const char *base_path, const char *re, int max_depth, int flags) {
     LF_ICASE    =  2,  Ignore case in search
     LF_FILES    =  4,  list files (exclude directories)
     LF_DIRS     =  8,  list directories (exclude files)
+    LF_EXCLUDE  =  16, exclude files matching "ere" pattern
     @endcode
     return      true if successful, false otherwise */
-bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
-                int max_depth, int flags) {
+bool lf_process(const char *base_path, regex_t *compiled_re,
+                regex_t *compiled_ere, int depth, int max_depth, int flags) {
     char tmp_str[MAXLEN];
     struct stat sb;
     struct dirent *dir_st;
@@ -988,11 +1017,28 @@ bool lf_process(const char *base_path, regex_t *compiled_re, int depth,
                 return false;
             }
         }
+        if (!suppress && (flags & LF_EXCLUDE)) {
+            reti = regexec(compiled_ere, file_spec, compiled_re->re_nsub + 1,
+                           pmatch, REG_FLAGS);
+            if (reti == 0)
+                suppress = true;
+            else if (reti == REG_NOMATCH)
+                suppress = false;
+            else if (reti) {
+                char msgbuf[100];
+                regerror(reti, compiled_re, msgbuf, sizeof(msgbuf));
+                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+                strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
+                Perror(tmp_str);
+                return false;
+            }
+        }
         if (!suppress)
             printf("%s\n", file_spec);
         if (is_dir && (depth + 1 < max_depth)) {
             depth++;
-            lf_process(file_spec, compiled_re, depth, max_depth, flags);
+            lf_process(file_spec, compiled_re, compiled_ere, depth, max_depth,
+                       flags);
             depth--;
         }
     }

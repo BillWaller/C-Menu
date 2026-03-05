@@ -63,11 +63,13 @@ unsigned int menu_engine(Init *init) {
             while ((action = menu_cmd_processor(init)) == MA_ENTER_OPTION)
                 ;
         }
-        menu->win = win_win[win_ptr];
-        menu->box = win_box[win_ptr];
+        if (action == MA_RETURN) {
+            win_del();
+            menu->win = win_win[win_ptr];
+            menu->box = win_box[win_ptr];
+            return (MA_RETURN);
+        }
         if (action == MA_INIT) {
-            for (i = 0; i < menu->item_count; i++)
-                free_menu_line(menu->line[i]);
             menu->lines = 0;
             menu->cols = 0;
             menu->line_idx = 0;
@@ -92,7 +94,7 @@ unsigned int menu_engine(Init *init) {
    keys and mouse clicks.
  */
 unsigned int menu_cmd_processor(Init *init) {
-    int i, c, j, rc;
+    int i, c, j;
     char *d;
     int in_key;
     char tmp_str[MAXLEN];
@@ -158,7 +160,6 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
-        /** Exit the menu and return to the previous menu or exit if at top */
     case KEY_F(2):
         eargv[0] = strdup("mview");
         strnz__cpy(tmp_str, "~/menuapp/.about", MAXLEN - 1);
@@ -175,12 +176,12 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(init->title, "About CMenu", MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
-    case KEY_F(9):
-        return (MA_RETURN_MAIN);
         /** Exit the menu and return to the previous menu or exit if at top */
+    case 'q':
+    case KEY_F(9):
     case KEY_BREAK:
     case KEY_DL:
-        return (MA_RETURN_MAIN);
+        return (MA_RETURN);
         /** @brief send default printer output file to printer */
     case KEY_ALTF(9):
         d = getenv("PRTCMD");
@@ -326,14 +327,22 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_DISPLAY_MENU);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
-        if (!init_menu_files(init, eargc, eargv)) {
-            Perror("menu_cmd_processor: init_menu_files failed");
-            return (MA_DISPLAY_MENU);
-        }
-        rc = menu_engine(init);
-        if (rc == MA_RETURN_MAIN)
-            return (MA_DISPLAY_MENU);
-        break;
+        if (init->begy == 0)
+            init->begy = menu->begy + 1;
+        if (init->begx == 0)
+            init->begx = menu->begx + 2;
+        Menu *save_menu = init->menu;
+        init->menu = nullptr;
+        init->menu = new_menu(init, eargc, eargv, init->begy, init->begx);
+        if (!init->menu)
+            abend(-1, "menu_cmd_processor: new_menu() failed");
+        menu = init->menu;
+        parse_menu_description(init);
+        menu_engine(init);
+        init->menu = destroy_menu(init);
+        init->menu = save_menu;
+        menu = init->menu;
+        return (MA_INIT);
         /** @brief Display a pick list or form associated with the selected menu
          * choice */
     case CT_PICK:

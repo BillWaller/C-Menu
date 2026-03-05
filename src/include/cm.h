@@ -28,10 +28,11 @@
 #define MAX_DEPTH 3   /**< maximum depth for recursive file searching */
 
 enum LFFlags {
-    LF_ALL = 1,   /**< List all files including hidden files */
-    LF_ICASE = 2, /**< Ignore case in search */
-    LF_FILES = 4, /**< List files */
-    LF_DIRS = 8,  /**< List directories */
+    LF_ALL = 1,      /**< List all files including hidden files */
+    LF_ICASE = 2,    /**< Ignore case in search */
+    LF_FILES = 4,    /**< List files */
+    LF_DIRS = 8,     /**< List directories */
+    LF_EXCLUDE = 16, /**< Exclude files matching regular expression */
 };
 
 #define W_BOX 0x40  /**< box window flag for win_new() */
@@ -583,7 +584,7 @@ extern int display_error(char *, char *, char *, char *);
 extern int display_ok_message(char *);
 extern int Perror(char *);
 extern void user_end();
-extern bool lf_find(const char *, const char *, int, int);
+extern bool lf_find(const char *, const char *, const char *, int, int);
 extern size_t canonicalize_file_spec(char *);
 extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool file_spec_path(char *, char *);

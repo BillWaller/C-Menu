@@ -83,7 +83,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     init->brackets[0] = '\0';       /**< field enclosure brackets */
     strnz__cpy(init->fill_char, "_", MAXLEN - 1); /**< field fill character */
     init->prompt_type = PT_LONG;                  /**< view prompt type */
-    strnz__cpy(init->mapp_spec, "main.m", MAXLEN - 1);
+    init->mapp_spec[0] = '\0'; /**< menu specification file */
     strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
     strnz__cpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
     strnz__cpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
@@ -134,6 +134,7 @@ void zero_opt_args(Init *init) {
     init->f_provider_cmd = false;
     init->f_receiver_cmd = false;
     init->f_title = false;
+    init->f_mapp_spec = false;
     init->f_help_spec = false;
     init->f_in_spec = false;
     init->f_out_spec = false;
