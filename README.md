@@ -1,6 +1,7 @@
 # A User Interface Toolkit
 
-![***NEW C-Menu API Help in Neovim](screenshots/api-help1.png)
+![***NEW*** C-Menu Exercises](exercises.md)
+![***NEW*** C-Menu API Help in Neovim](screenshots/api-help1.png)
 
 The C-Menu API documentation is now available in Neovim. As you are typing the
 function name, a list of matching signatures appears along with a brief
