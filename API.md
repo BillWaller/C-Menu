@@ -1,4 +1,4 @@
-# A User Interface Toolkit - API
+# API
 
 ![***NEW*** C-Menu API Help in Neovim](screenshots/api-help1.png)
 
@@ -13,4 +13,4 @@ in a pop-up window.
 ***NOTE:*** Requires Neovim properly configured with support for LSP and a
 plugin that provides LSP functionality, such as nvim-lspconfig.
 
-
+================ ***INCOMPLETE*** ================
