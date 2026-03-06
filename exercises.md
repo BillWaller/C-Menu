@@ -105,10 +105,10 @@ vi ~/menuapp/bin/sddm_chbg.sh
 U=$(id -un)
 G=$(id -gn)
 bkgd_dir="/usr/share/sddm/themes/sddm-corporate-theme/Backgrounds"
+
 rsh -c "chown -R $U:$G $bkgd_dir"
 cd "$bkgd_dir"
 ln -sf "$1" default.png
-echo "ln -sf $1 default.png" >/home/bill/xx
 ```
 
 Pick will execute this script, passing the selected background image as an argument. The script will create a symbolic link named default.png that points to the selected background image, effectively changing the SDDM background.
@@ -140,6 +140,9 @@ To verify that the background has been changed, you can log out of your session 
 Or, you can check the symbolic link in the SDDM background directory to confirm it points to the correct image.
 
 ![SDDM Backgrounds](screenshots/sddm_backgrounds.png)
+
+The above image shows the SDDM background directory before and after selecting
+the space_force.png background image.
 
 ### Ghostty Configuration
 
