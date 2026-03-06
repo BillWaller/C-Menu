@@ -1,6 +1,6 @@
 :                APPLICATIONS
+#
 :     Neovim
-#     Comment 
 !exec nvim
 :     Root Neovim
 !exec rsh -c nvim
@@ -8,6 +8,8 @@
 !exec rsh
 :     Test Curses Keys
 !ckeys
+:   Workstation Configuration
+!menu workstation_config.m
 :     Installment Loan Calculations
 !form iloan.f -i iloan.dat -S iloan -o iloan.dat
 :     Listener Research
@@ -25,7 +27,7 @@
 :     Menu Description With Bat Syntax Highlighting
 !view -L 30 -C 75 -S "bat --theme ansi -l Crystal -f /home/bill/menuapp/msrc/main.m"
 :     View C-Menu Command Line Options
-!view -L 62 -C 73 -S options
+!view -L 62 -C 75 -S options
 :     View Highlighted view_engine.c
 !view -L 60 -C 70 ~/menuapp/help/view_engine.c
 :     Help

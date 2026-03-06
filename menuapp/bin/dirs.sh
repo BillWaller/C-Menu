@@ -1,0 +1,1 @@
+find . -maxdepth 1 -type d -not -name '.*' -not -name 'node_modules' -not -name 'dist' -not -name 'build' -not -name 'out' -not -name 'coverage' -not -name 'public' -not -name 'assets' -not -name 'src' | sort | sed 's/^\.\///'
