@@ -1,7 +1,7 @@
 :   WORKSTATION CONFIGURATION
 :
 :   Select SDDM Background
-!pick -n 1 -T "Select SDDM Background" -S sddm_bg.sh -c "sddm_chbg.sh.sh %%"
+!pick -n 1 -T "Select SDDM Background" -S sddm_bg.sh -c "sddm_chbg.sh %%"
 :   Select Ghostty Font
 !pick -n 1 -T "Select Ghostty Font" -S ghostty_fonts.sh -c "ghostty_chfont.sh %%"
 :   Select Ghostty Theme

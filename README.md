@@ -1,6 +1,7 @@
 # A User Interface Toolkit
 
-![***NEW*** C-Menu Exercises](exercises.md)
+***NEW*** C-Menu Exercises
+
 ![***NEW*** C-Menu API Help in Neovim](screenshots/api-help1.png)
 
 The C-Menu API documentation is now available in Neovim. As you are typing the
@@ -15,7 +16,6 @@ in a pop-up window.
 plugin that provides LSP functionality, such as nvim-lspconfig.
 
 ## Table of Contents
-
 
 <!-- mtoc-start -->
 
