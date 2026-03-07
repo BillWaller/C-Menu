@@ -2,6 +2,25 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-03-06
+
+Added -e exclude regular expression to lf, which allows users to exclude files from the listing based on a regular expression. This is a powerful feature that can be used to filter out unwanted files from the listing.
+
+Replaced mouse handling in Pick, Form, and Menu with xwgetch, which reads chyron
+mouse selections as key codes. Now all mouse events are handled through a single function. xwgetch also handles asynchronous signal events.
+
+Some code in menu_engine.c, which handled hierarchical menu navigation, had
+somehow been deleted. This was a major problem, and it caused the menu system to be completely broken. I have reimplemented it, and it is now working as intended.
+
+The addition of an Exercises section will provide a test bed for debugging as well
+as a proof-of-concept for C-Menu. The first project is a suite of Workstation
+Configuration programs for SDDM, Ghostty, Kitty, and Alacritty. These have been
+integrated into the C-Menu example main menu. I will continue to add more
+exercises along with documentation. The exercises will be designed to be both
+educational and practical, and they will cover a wide range of topics related to
+C-Menu development. One of the next projects, if time allows, will be a C-Menu
+based general ledger using SQLite as the backend database.
+
 0.2.9 - 2026-02-27
 
 Added a number of improvements to CMake build to accommodate C-Menu's
