@@ -40,7 +40,6 @@ int nf_error(int ec, char *s);
 int full_screen_fork_exec(char **argv) {
     int rc;
 
-    fprintf(stderr, "\n");
     fflush(stderr);
     wclear(stdscr);
     wmove(stdscr, LINES - 1, 0);
@@ -62,7 +61,6 @@ int full_screen_fork_exec(char **argv) {
 int full_screen_shell(char *shellCmdPtr) {
     int rc;
 
-    fprintf(stderr, "\n");
     fflush(stderr);
     wclear(stdscr);
     wmove(stdscr, 0, 0);
@@ -136,6 +134,8 @@ int fork_exec(char **argv) {
     capture_curses_tioctl();
     sig_dfl_mode();
     restore_shell_tioctl();
+
+    tmp_str[0] = '\0';
     pid = fork();
     switch (pid) {
     case -1: // parent fork failed
@@ -167,7 +167,6 @@ int fork_exec(char **argv) {
                 keypad(stdscr, true);
                 ssnprintf(tmp_str, sizeof(tmp_str),
                           "Child %s exited  with status %d", argv[0], rc);
-                Perror(tmp_str);
             }
         } else {
             if (WIFSIGNALED(status)) {
@@ -175,12 +174,10 @@ int fork_exec(char **argv) {
                 keypad(stdscr, true);
                 ssnprintf(tmp_str, sizeof(tmp_str),
                           "Child %s terminated by signal %d", argv[0], rc);
-                Perror(tmp_str);
             } else {
                 keypad(stdscr, true);
                 ssnprintf(tmp_str, sizeof(tmp_str),
                           "Child %s terminated abnormally", argv[0]);
-                Perror(tmp_str);
             }
         }
         break;
@@ -189,5 +186,8 @@ int fork_exec(char **argv) {
     sig_prog_mode();
     keypad(stdscr, true);
     restore_wins();
+    if (tmp_str[0] != '\0') {
+        Perror(tmp_str);
+    }
     return (rc);
 }

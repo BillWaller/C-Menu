@@ -218,30 +218,15 @@ unsigned int menu_cmd_processor(Init *init) {
         return (MA_INIT);
         /** @brief process mouse event */
     case KEY_MOUSE:
-        if (getmouse(&event) != OK)
+        if (click_y == -1 || click_x == -1)
             return (MA_ENTER_OPTION);
-        switch (event.bstate) {
-        case BUTTON1_PRESSED:
-        case BUTTON1_CLICKED:
-        case BUTTON1_DOUBLE_CLICKED:
-            if (!wenclose(menu->win, event.y, event.x)) {
-                return (MA_ENTER_OPTION);
-            }
-            wmouse_trafo(menu->win, &event.y, &event.x, false);
-            if (event.y < 0 || event.y >= menu->item_count) {
-                return (MA_ENTER_OPTION);
-            }
-            menu->line_idx = event.y;
-            break;
-            ;
-        default:
+        if (click_y < 0 || click_y >= menu->item_count)
             return (MA_ENTER_OPTION);
-            break;
-        }
+        menu->line_idx = click_y;
         break;
     default:
-        /** @brief If the user presses a key that corresponds to a menu choice's
-         * letter, select that menu choice */
+        /** @brief If the user presses a key that corresponds to a menu
+         * choice's letter, select that menu choice */
         for (i = 0; i < menu->item_count; i++) {
             if (menu->line[i]->raw_text[0] == '_') {
                 if (menu->line[i]->choice_letter == (char)in_key) {
@@ -264,7 +249,8 @@ unsigned int menu_cmd_processor(Init *init) {
         /** @brief Return to the main menu */
     case CT_RETURNMAIN:
         return (MA_RETURN_MAIN);
-        /** @brief Execute the command associated with the selected menu choice
+        /** @brief Execute the command associated with the selected menu
+         * choice
          */
     case CT_EXEC:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
@@ -317,8 +303,8 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
-        /** @brief Display a submenu or perform an action associated with the
-         * selected menu choice */
+        /** @brief Display a submenu or perform an action associated with
+         * the selected menu choice */
     case CT_MENU:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
@@ -343,8 +329,8 @@ unsigned int menu_cmd_processor(Init *init) {
         init->menu = save_menu;
         menu = init->menu;
         return (MA_INIT);
-        /** @brief Display a pick list or form associated with the selected menu
-         * choice */
+        /** @brief Display a pick list or form associated with the selected
+         * menu choice */
     case CT_PICK:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
@@ -353,7 +339,8 @@ unsigned int menu_cmd_processor(Init *init) {
         parse_opt_args(init, eargc, eargv);
         init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 2);
         return (MA_DISPLAY_MENU);
-        /** @brief Display a form associated with the selected menu choice */
+        /** @brief Display a form associated with the selected menu choice
+         */
     case CT_FORM:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
@@ -362,7 +349,8 @@ unsigned int menu_cmd_processor(Init *init) {
         parse_opt_args(init, eargc, eargv);
         init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
         return (MA_DISPLAY_MENU);
-        /** @brief Display a view associated with the selected menu choice */
+        /** @brief Display a view associated with the selected menu choice
+         */
     case CT_VIEW:
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);

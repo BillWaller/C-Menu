@@ -96,9 +96,10 @@ typedef struct {
     char prompt_str[MAXLEN]; /**< prompt string for chyron */
     int prompt_type; /**< View - prompt type for chyron, e.g. 0=short, 1=long,
                         2=none */
-    char title[MAXLEN];   /**< display on top line of box window */
-    int argc;             /**< command line arguments count */
-    char **argv;          /**< command line arguments vector */
+    char chyron_s[MAXLEN]; /**< chyron string */
+    char title[MAXLEN];    /**< display on top line of box window */
+    int argc;              /**< command line arguments count */
+    char **argv;           /**< command line arguments vector */
     int optind;           /**< getopt pointer to non-option arguments in argv */
     bool f_ignore_case;   /**< View - ignore case in search */
     bool f_at_end_clear;  /**< obsolete, unneeded */

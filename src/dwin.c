@@ -38,7 +38,10 @@ bool is_set_fkey(int);
 void unset_fkey(int);
 int chyron_mk(key_cmd_tbl *, char *);
 int get_chyron_key(key_cmd_tbl *, int);
-
+char chyron_s[MAXLEN];
+bool f_chyron;
+int click_y;
+int click_x;
 void list_colors();
 int clr_name_to_idx(char *);
 void init_hex_clr(int, char *);
@@ -338,6 +341,9 @@ bool open_curses(SIO *sio) {
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
+#ifdef DEBUG
+    immedok(stdscr, true);
+#endif
     wbkgrndset(stdscr, &CCC_NORM);
     extended_pair_content(cp_norm, &sio->fg_color, &sio->bg_color);
     extended_color_content(sio->fg_color, &frgb.r, &frgb.g, &frgb.b);
@@ -653,9 +659,12 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             }
             wbkgrnd(win_win[win_ptr], &CCC_NORM);
             wbkgrndset(win_win[win_ptr], &CCC_NORM);
-            keypad(win_win[win_ptr], TRUE);
+            keypad(win_win[win_ptr], true);
             idlok(win_win[win_ptr], false);
             idcok(win_win[win_ptr], false);
+#ifdef DEBUG
+            immedok(win_win[win_ptr], true);
+#endif
         }
     }
     return (0);
@@ -700,6 +709,9 @@ void win_resize(int wlines, int wcols, char *title) {
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
+#ifdef DEBUG
+    immedok(win_win[win_ptr], true);
+#endif
 }
 /** @brief Redraw the specified window
     @param win Pointer to the window to redraw
@@ -801,16 +813,26 @@ void cbox(WINDOW *box) {
     @return Key code of user command */
 int display_error(char *em0, char *em1, char *em2, char *em3) {
     char title[MAXLEN];
+    int line, pos, em_l, em0_l, em1_l, em2_l, em3_l;
     WINDOW *error_win;
-    int line, pos, em_l, em0_l, em1_l, em2_l, em3_l, cmd_l;
-    char cmd[] = " F1 Help | F9 Cancel | F10 Continue ";
+
+    /** Initialize the chyron key commands and construct the chyron string */
+    int chyron_l, n;
+
+    for (n = 0; key_cmd[n].end_pos != -1; n++)
+        key_cmd[n].end_pos = '\0';
+    strnz__cpy(key_cmd[1].text, "F1 Help", MAXLEN - 1);
+    strnz__cpy(key_cmd[9].text, "F9 Cancel", MAXLEN - 1);
+    strnz__cpy(key_cmd[10].text, "F10 Continue", MAXLEN - 1);
+    chyron_l = chyron_mk(key_cmd, chyron_s);
+
+    chyron_l = strnz(chyron_s, COLS - 4);
 
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", em0, em1, em2, em3);
         return (1);
     }
     em_l = 0;
-    cmd_l = strnz(cmd, COLS - 4);
     em0_l = strnz(em0, COLS - 4);
     em1_l = strnz(em1, COLS - 4);
     em2_l = strnz(em2, COLS - 4);
@@ -823,8 +845,8 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
         em_l = em2_l;
     if (em3_l > em_l)
         em_l = em3_l;
-    if (em_l < cmd_l)
-        em_l = cmd_l;
+    if (em_l < chyron_l)
+        em_l = chyron_l;
     if (em_l > (COLS - 4))
         em_l = COLS - 4;
 
@@ -842,9 +864,9 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     mvwaddstr(error_win, 2, 1, em2);
     mvwaddstr(error_win, 3, 1, em3);
     wattron(error_win, WA_REVERSE);
-    mvwaddstr(error_win, 4, 1, cmd);
+    mvwaddstr(error_win, 4, 1, chyron_s);
     wattroff(error_win, WA_REVERSE);
-    wmove(error_win, 4, cmd_l + 1);
+    wmove(error_win, 4, chyron_l + 1);
     wrefresh(error_win);
     while (1) {
         cmd_key = xwgetch(error_win);
@@ -881,6 +903,17 @@ int Perror(char *emsg_str) {
     int len, line, pos;
     char title[MAXLEN];
 
+    /** Initialize the chyron key commands and construct the chyron string */
+    int chyron_l, n;
+    for (n = 0; key_cmd[n].end_pos != -1; n++)
+        key_cmd[n].end_pos = '\0';
+    strnz__cpy(key_cmd[1].text, "F1 Help", MAXLEN - 1);
+    strnz__cpy(key_cmd[9].text, "F9 Cancel", MAXLEN - 1);
+    strnz__cpy(key_cmd[10].text, "F10 Continue", MAXLEN - 1);
+    chyron_l = chyron_mk(key_cmd, chyron_s);
+
+    chyron_l = strnz(chyron_s, COLS - 4);
+
     len = strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
@@ -888,6 +921,8 @@ int Perror(char *emsg_str) {
     }
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
+    if (chyron_l > len)
+        len = chyron_l;
     if (len < 39)
         len = 39;
     strnz__cpy(title, "Notification", MAXLEN - 1);
@@ -901,7 +936,7 @@ int Perror(char *emsg_str) {
     wattron(error_win, WA_REVERSE);
     mvwaddstr(error_win, 1, 0, " F9 Cancel | Any other key to continue ");
     wattroff(error_win, WA_REVERSE);
-    wmove(error_win, 1, 27);
+    wmove(error_win, 1, len);
     wrefresh(error_win);
     cmd_key = xwgetch(error_win);
     win_del();
@@ -1020,9 +1055,15 @@ void abend(int ec, char *s) {
     @return Key code or ERR if interrupted by signal
     @note This, of course, will be expanded into an event loop for message
    queuing
- */
+    @details Get mouse event and check if it's a left click or double click. If
+   the click is outside the window, ignore it. If it's on the chyron line, get
+   the corresponding key command. Otherwise, store the click coordinates as
+   click_y and click_x for later use. */
 int xwgetch(WINDOW *win) {
     int c;
+    MEVENT event;
+    event.y = event.x = -1;
+    click_y = click_x = -1;
     halfdelay(1);
     do {
         c = wgetch(win);
@@ -1032,6 +1073,33 @@ int xwgetch(WINDOW *win) {
             if (c == 'q' || c == KEY_F(9))
                 exit(EXIT_FAILURE);
             continue;
+        }
+        if (c == ERR)
+            continue;
+        if (c == KEY_MOUSE) {
+            if (getmouse(&event) != OK) {
+                c = 0;
+                continue;
+            }
+            if (event.bstate & BUTTON1_CLICKED ||
+                event.bstate & BUTTON1_DOUBLE_CLICKED) {
+                if (!wenclose(win, event.y, event.x)) {
+                    c = 0;
+                    continue;
+                }
+                wmouse_trafo(win, &event.y, &event.x, false);
+                if (event.y < 0 || event.x < 0 || event.x >= getmaxx(win) ||
+                    event.y >= getmaxy(win)) {
+                    c = 0;
+                    continue;
+                }
+                click_y = event.y;
+                click_x = event.x;
+                if (f_chyron && event.y == getmaxy(win) - 1)
+                    return get_chyron_key(key_cmd, event.x);
+                else
+                    return KEY_MOUSE;
+            }
         }
     } while (c == ERR);
     return c;
