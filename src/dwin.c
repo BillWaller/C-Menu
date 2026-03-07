@@ -28,7 +28,6 @@ void cbox(WINDOW *);
 void win_init_attrs(int, int, int);
 int Perror(char *);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
-void display_argv_error_msg(char *, char **);
 void abend(int, char *);
 void user_end();
 int nf_error(int, char *);
@@ -1002,20 +1001,6 @@ void list_colors() {
         fprintf(stderr, "%s", colors_text[i]);
     }
     fprintf(stderr, "\n");
-}
-
-/** @brief Display argument vectors and error message
-    @param emsg Error message
-    @param argv Argument vector */
-void display_argv_error_msg(char *emsg, char **argv) {
-    int argc = 0;
-    fprintf(stderr, "\r\n");
-    while (*argv != nullptr && **argv != '\0')
-        fprintf(stderr, "argv[%d] - %s\r\n", argc++, *argv++);
-    fprintf(stderr, "%s\r\n", emsg);
-    fprintf(stderr, "%s", "Press any key to continue");
-    wrefresh(stdscr);
-    xwgetch(stdscr);
 }
 
 /** @brief Display error message and wait for key press
