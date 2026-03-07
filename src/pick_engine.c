@@ -202,17 +202,6 @@ int pick_engine(Init *init) {
     int maxy, maxx, win_maxy, win_maxx;
     int tbl_max_cols, pg_max_objs;
     /** Initialize key command strings for chyron display */
-    int n, chyron_l;
-    for (n = 0; key_cmd[n].end_pos != -1; n++)
-        key_cmd[n].text[0] = '\0';
-    strnz__cpy(key_cmd[1].text, "F1 Help", 32);
-    strnz__cpy(key_cmd[9].text, "F9 Cancel", 32);
-    strnz__cpy(key_cmd[10].text, "F10 Accept", 32);
-    strnz__cpy(key_cmd[11].text, "PgUp", 32);
-    strnz__cpy(key_cmd[12].text, "PgDn", 32);
-    strnz__cpy(key_cmd[13].text, "Space", 32);
-    strnz__cpy(key_cmd[14].text, "Enter", 32);
-    chyron_l = chyron_mk(key_cmd, chyron_s);
 
     getmaxyx(stdscr, maxy, maxx);
     /** Calculate pick window size and position based on terminal size and pick
@@ -223,8 +212,6 @@ int pick_engine(Init *init) {
     win_maxx = (maxx * 9) / 10;
     if (win_maxx > (maxx - pick->begx) - 2)
         win_maxx = (maxx - pick->begx) - 2;
-    if (chyron_l > win_maxx)
-        chyron_l = strnz(chyron_s, win_maxx);
     if (pick->tbl_col_width < 4)
         pick->tbl_col_width = 4;
     if (pick->tbl_col_width > win_maxx - 2)
@@ -242,15 +229,6 @@ int pick_engine(Init *init) {
             pick->tbl_cols = pick->obj_cnt / win_maxy;
         pick->tbl_lines = pick->obj_cnt / tbl_max_cols;
     }
-
-    // pick->tbl_cols = (win_maxx / (pick->tbl_col_width + 1));
-    // pick->win_width = (pick->tbl_col_width + 1) * pick->tbl_cols;
-
-    pick->win_width = (pick->tbl_col_width + 1) * pick->tbl_cols;
-
-    if (pick->win_width < chyron_l)
-        pick->win_width = chyron_l;
-
     pick->tbl_pages = (pick->tbl_lines / (win_maxy - 1)) + 1;
     pick->pg_lines = (pick->tbl_lines / pick->tbl_pages);
     pick->win_lines = pick->pg_lines + 1;
@@ -259,6 +237,26 @@ int pick_engine(Init *init) {
         pick->begy = (LINES - pick->win_lines) / 5;
     else if (pick->begy + pick->win_lines > LINES - 4)
         pick->begy = LINES - pick->win_lines - 2;
+    pick->win_width = (pick->tbl_col_width + 1) * pick->tbl_cols;
+
+    int n, chyron_l;
+    for (n = 0; key_cmd[n].end_pos != -1; n++)
+        key_cmd[n].text[0] = '\0';
+    strnz__cpy(key_cmd[1].text, "F1 Help", 32);
+    strnz__cpy(key_cmd[9].text, "F9 Cancel", 32);
+    strnz__cpy(key_cmd[10].text, "F10 Accept", 32);
+    if (pick->tbl_pages > 1) {
+        strnz__cpy(key_cmd[11].text, "PgUp", 32);
+        strnz__cpy(key_cmd[12].text, "PgDn", 32);
+    }
+    strnz__cpy(key_cmd[13].text, "Space", 32);
+    strnz__cpy(key_cmd[14].text, "Enter", 32);
+    chyron_l = chyron_mk(key_cmd, chyron_s);
+    if (chyron_l > win_maxx)
+        chyron_l = strnz(chyron_s, win_maxx);
+    if (pick->win_width < chyron_l)
+        pick->win_width = chyron_l;
+
     if (pick->begx + pick->win_width > COLS - 4)
         pick->begx = COLS - pick->win_width - 2;
     else if (pick->begx == 0)
@@ -410,7 +408,6 @@ int picker(Init *init) {
         case KEY_DOWN:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
-            /** pick->obj_idx++ column down */
             if (pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                         pick->tbl_col * pick->pg_lines + pick->tbl_line <
                     pick->obj_cnt - 1 &&
@@ -424,8 +421,6 @@ int picker(Init *init) {
             /** 'k' or KEY_UP Moves selection to previous object in list */
         case 'k':
         case KEY_UP:
-            /** KEY_UP or 'k' Moves selection to previous object in list
-                pick->obj_idx-- column up */
             mvwaddstr_fill(pick->win, pick->y, pick->x,
                            pick->object[pick->obj_idx], pick->tbl_col_width);
             if (pick->tbl_line > 0)
@@ -438,7 +433,8 @@ int picker(Init *init) {
         /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects, */
         case KEY_NPAGE:
         case '\06':
-            /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects */
+            if (pick->tbl_pages == 1)
+                break;
             if (pick->tbl_page < pick->tbl_pages - 1) {
                 pick->tbl_page++;
                 pick->pg_line = 0;
@@ -454,8 +450,8 @@ int picker(Init *init) {
              * objects */
         case KEY_PPAGE:
         case '\02':
-            /** KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
-                objects */
+            if (pick->tbl_pages == 1)
+                break;
             if (pick->tbl_page > 0)
                 pick->tbl_page--;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
@@ -571,6 +567,7 @@ void pick_display_chyron(Pick *pick) {
 void reverse_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     pick->tbl_line = (pick->obj_idx / pick->tbl_cols) % pick->pg_lines;
+    pick->y = pick->tbl_line;
     wmove(pick->win, pick->y, pick->x);
     wattron(pick->win, WA_REVERSE);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
