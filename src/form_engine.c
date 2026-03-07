@@ -179,17 +179,19 @@ int form_engine(Init *init) {
 int form_end_fields(Init *init) {
     bool loop = true;
     int c, rc;
+    click_y = click_x = -1;
+    f_chyron = true;
     form = init->form;
     wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
-    MEVENT event;
     set_fkey(8, "Edit");
+    rc = -1;
     while (loop) {
-        form_display_chyron(form);
-        event.y = event.x = -1;
-        tcflush(2, TCIFLUSH);
-        c = xwgetch(form->win);
+        if (rc == -1) {
+            form_display_chyron(form);
+            tcflush(2, TCIFLUSH);
+            c = xwgetch(form->win);
+        }
         switch (c) {
         case KEY_F(1):
             return P_HELP;
@@ -209,19 +211,9 @@ int form_end_fields(Init *init) {
             rc = P_ACCEPT;
             break;
         case KEY_MOUSE:
-            rc = 0;
-            if (getmouse(&event) != OK)
-                break;
-            if (event.bstate == BUTTON1_PRESSED ||
-                event.bstate == BUTTON1_CLICKED ||
-                event.bstate == BUTTON1_DOUBLE_CLICKED) {
-                if (!wenclose(form->win, event.y, event.x))
-                    continue;
-                wmouse_trafo(form->win, &event.y, &event.x, false);
-                if (event.y == form->lines - 1)
-                    rc = get_chyron_key(key_cmd, event.x);
-            }
-            break;
+            if (click_y == form->lines - 1)
+                c = get_chyron_key(key_cmd, click_x);
+            continue;
         default:
             break;
         }
@@ -280,11 +272,10 @@ int form_calculate(Init *init) {
     wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
     set_fkey(5, "Calculate");
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
-    MEVENT event;
     while (loop) {
         form_display_chyron(form);
-        event.y = event.x = -1;
+        f_chyron = true;
+        click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
         c = xwgetch(form->win);
         switch (c) {
@@ -353,18 +344,8 @@ int form_calculate(Init *init) {
             rc = P_ACCEPT;
             break;
         case KEY_MOUSE:
-            rc = 0;
-            if (getmouse(&event) != OK)
-                break;
-            if (event.bstate == BUTTON1_PRESSED ||
-                event.bstate == BUTTON1_CLICKED ||
-                event.bstate == BUTTON1_DOUBLE_CLICKED) {
-                if (!wenclose(form->win, event.y, event.x))
-                    continue;
-                wmouse_trafo(form->win, &event.y, &event.x, false);
-                if (event.y == form->lines - 1)
-                    rc = get_chyron_key(key_cmd, event.x);
-            }
+            if (click_y == form->lines - 1)
+                rc = get_chyron_key(key_cmd, click_x);
             break;
         default:
             break;
@@ -516,9 +497,9 @@ void form_display_fields(Form *form) {
 void form_display_chyron(Form *form) {
     int l;
 
-    l = chyron_mk(key_cmd, form->chyron_s);
+    l = chyron_mk(key_cmd, chyron_s);
     wattron(form->win, WA_REVERSE);
-    mvwaddstr(form->win, form->lines - 1, 0, form->chyron_s);
+    mvwaddstr(form->win, form->lines - 1, 0, chyron_s);
     wattroff(form->win, WA_REVERSE);
     wclrtoeol(form->win);
     wmove(form->win, form->lines - 1, l);

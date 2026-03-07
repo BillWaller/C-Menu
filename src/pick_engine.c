@@ -198,9 +198,11 @@ int read_pick_input(Init *init) {
     @note If user accepts selection, returns count of selected objects. */
 int pick_engine(Init *init) {
     /** Initialize window and data structures */
-    int n, chyron_l, rc;
+    int rc;
     int maxy, maxx, win_maxy, win_maxx;
     int tbl_max_cols, pg_max_objs;
+    /** Initialize key command strings for chyron display */
+    int n, chyron_l;
     for (n = 0; key_cmd[n].end_pos != -1; n++)
         key_cmd[n].text[0] = '\0';
     strnz__cpy(key_cmd[1].text, "F1 Help", 32);
@@ -210,7 +212,8 @@ int pick_engine(Init *init) {
     strnz__cpy(key_cmd[12].text, "PgDn", 32);
     strnz__cpy(key_cmd[13].text, "Space", 32);
     strnz__cpy(key_cmd[14].text, "Enter", 32);
-    chyron_l = chyron_mk(key_cmd, pick->chyron_s);
+    chyron_l = chyron_mk(key_cmd, chyron_s);
+
     getmaxyx(stdscr, maxy, maxx);
     /** Calculate pick window size and position based on terminal size and pick
         parameters */
@@ -221,7 +224,7 @@ int pick_engine(Init *init) {
     if (win_maxx > (maxx - pick->begx) - 2)
         win_maxx = (maxx - pick->begx) - 2;
     if (chyron_l > win_maxx)
-        chyron_l = strnz(pick->chyron_s, win_maxx);
+        chyron_l = strnz(chyron_s, win_maxx);
     if (pick->tbl_col_width < 4)
         pick->tbl_col_width = 4;
     if (pick->tbl_col_width > win_maxx - 2)
@@ -320,8 +323,7 @@ int picker(Init *init) {
     int display_tbl_page;
 
     pick = init->pick;
-    MEVENT event;
-    event.y = event.x = -1;
+    click_y = click_x = -1;
     cmd_key = 0;
     while (1) {
         tcflush(tty_fd, TCIFLUSH);
@@ -486,46 +488,23 @@ int picker(Init *init) {
             /** KEY_MOUSE Handles mouse events for selection and chyron key
              * activation */
         case KEY_MOUSE:
-            if (getmouse(&event) != OK) {
-                cmd_key = 0;
+            if (click_y == -1 || click_x == -1)
                 break;
-            }
-            /** BUTTON1 CLICK or DOUBLE_CLICK Toggles Selection
-                or Activates Chyron Keys */
-            if (event.bstate == BUTTON1_CLICKED ||
-                event.bstate == BUTTON1_DOUBLE_CLICKED) {
-                if (!wenclose(pick->win, event.y, event.x)) {
-                    cmd_key = 0;
-                    break;
-                }
-                wmouse_trafo(pick->win, &event.y, &event.x, false);
-                if (event.y < 0 ||
-                    event.x >= (pick->tbl_cols * (pick->tbl_col_width + 1))) {
-                    cmd_key = 0;
-                    break;
-                }
-                unreverse_object(pick);
-                pick->y = event.y;
-                if (pick->y == pick->pg_lines) {
-                    cmd_key = get_chyron_key(key_cmd, event.x);
-                    continue;
-                }
-                pick->tbl_col = (event.x - 1) / (pick->tbl_col_width + 1);
-                if (pick->tbl_col < 0 || pick->tbl_col >= pick->tbl_cols) {
-                    cmd_key = 0;
-                    continue;
-                }
-                pick->obj_idx =
-                    pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                    pick->tbl_col * pick->pg_lines + pick->y;
-                toggle_object(pick);
-                reverse_object(pick);
-                if (pick->select_cnt == pick->select_max)
-                    return pick->select_cnt;
-                wrefresh(pick->win);
+            unreverse_object(pick);
+            pick->y = click_y;
+            pick->tbl_col = (click_x - 1) / (pick->tbl_col_width + 1);
+            if (pick->tbl_col < 0 || pick->tbl_col >= pick->tbl_cols) {
                 cmd_key = 0;
-                break;
+                continue;
             }
+            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                            pick->tbl_col * pick->pg_lines + pick->y;
+            toggle_object(pick);
+            reverse_object(pick);
+            if (pick->select_cnt == pick->select_max)
+                return pick->select_cnt;
+            wrefresh(pick->win);
+            click_y = click_x = -1;
             cmd_key = 0;
             break;
         default:
@@ -571,7 +550,7 @@ void display_page(Pick *pick) {
 void pick_display_chyron(Pick *pick) {
     int l;
     char tmp_str[MAXLEN];
-    ssnprintf(tmp_str, MAXLEN - 1, "%s| Page %d of %d ", pick->chyron_s,
+    ssnprintf(tmp_str, MAXLEN - 1, "%s| Page %d of %d ", chyron_s,
               pick->tbl_page + 1, pick->tbl_pages);
     l = strlen(tmp_str);
     wattron(pick->win, WA_REVERSE);
@@ -591,7 +570,7 @@ void pick_display_chyron(Pick *pick) {
    before the object text for potential further interactions. */
 void reverse_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-    pick->y = pick->tbl_line;
+    pick->tbl_line = (pick->obj_idx / pick->tbl_cols) % pick->pg_lines;
     wmove(pick->win, pick->y, pick->x);
     wattron(pick->win, WA_REVERSE);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],

@@ -55,9 +55,8 @@ int form_accept_field(Form *form) {
     char *filler_s = form->field[form->fidx]->filler_s;
 
     form_fmt_field(form, accept_s);
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
-    MEVENT event;
-    event.y = event.x = -1;
+    click_x = click_y = -1;
+    f_chyron = true;
     char *fstart = accept_s;
     char *fend = fstart + flen;
     int x = fcol;
@@ -187,18 +186,6 @@ int form_accept_field(Form *form) {
             /** Handles mouse events for field editing */
         case KEY_MOUSE:
             in_key = 0;
-            if (getmouse(&event) != OK)
-                break;
-            if (event.bstate == BUTTON1_PRESSED ||
-                event.bstate == BUTTON1_CLICKED ||
-                event.bstate == BUTTON1_DOUBLE_CLICKED) {
-                if (!wenclose(form->win, event.y, event.x))
-                    continue;
-                wmouse_trafo(form->win, &event.y, &event.x, false);
-                /** translate mouse position to field position */
-                if (event.y == form->lines - 1)
-                    in_key = get_chyron_key(key_cmd, event.x);
-            }
             continue;
 
         default:

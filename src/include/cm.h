@@ -396,8 +396,16 @@ extern char em0[MAXLEN]; /**< error message string for error messages */
 extern char em1[MAXLEN]; /**< error message string for error messages */
 extern char em2[MAXLEN]; /**< error message string for error messages */
 extern char em3[MAXLEN]; /**< error message string for error messages */
-extern bool f_debug;     /**< a flag to indicate whether debug output should be
-                            printed, for debugging purposes */
+extern bool f_chyron; /**< a flag to indicate whether the chyron is active, for
+                         displaying messages in the terminal */
+extern char chyron_s[MAXLEN]; /**< the chyron string, for displaying messages in
+the terminal */
+extern int click_y;  /**< the y coordinate of a mouse click, for handling mouse
+                        events */
+extern int click_x;  /**< the x coordinate of a mouse click, for handling mouse
+                        events */
+extern bool f_debug; /**< a flag to indicate whether debug
+output should be printed, for debugging purposes */
 extern unsigned int cmd_key; /**< the command key for the current command, for
                                 error messages and other output */
 extern int exit_code; /**< the exit code for the program, for error messages and

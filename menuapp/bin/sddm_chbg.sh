@@ -15,4 +15,3 @@ bkgd_dir="/usr/share/sddm/themes/sddm-corporate-theme/Backgrounds"
 rsh -c "chown -R $U:$G $bkgd_dir"
 cd "$bkgd_dir"
 ln -sf "$1" default.png
-echo "ln -sf $1 default.png" >/home/bill/xx

@@ -6,10 +6,10 @@
 !exec rsh -c nvim
 :     Full Screen (root) Shell
 !exec rsh
-:     Test Curses Keys
-!ckeys
 :   Workstation Configuration
 !menu workstation_config.m
+:   Diagnostic Tools
+!menu diag.m
 :     Installment Loan Calculations
 !form iloan.f -i iloan.dat -S iloan -o iloan.dat
 :     Listener Research
