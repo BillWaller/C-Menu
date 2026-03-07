@@ -8,9 +8,10 @@
 
 ## Table of Contents
 
+
 <!-- mtoc-start -->
 
-* [Menu, Form, Pick, View, RSH, and C-Keys](#menu-form-pick-view-rsh-and-c-keys)
+* [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
   * [Elements of C-Menu](#elements-of-c-menu)
   * [Key Features](#key-features)
   * [Highlights (Pun Intended)](#highlights-pun-intended)
@@ -32,15 +33,16 @@
   * [View - Other Features](#view---other-features)
   * [3-Channel Gamma Correction](#3-channel-gamma-correction)
   * [Gray Gamma](#gray-gamma)
-* [RSH](#rsh)
+  * [RSH](#rsh)
   * [Maintaining Security with RSH](#maintaining-security-with-rsh)
+  * [lf - List Files Using Regular Expressions](#lf---list-files-using-regular-expressions)
 * [Features](#features)
 * [Configuration](#configuration)
 * [MIT License](#mit-license)
 
 <!-- mtoc-end -->
 
-## Menu, Form, Pick, View, RSH, and C-Keys
+## Menu, Form, Pick, View, C-Keys, RSH, and lf
 
 ![C-Menu](screenshots/minitrc.png)
 
@@ -86,6 +88,8 @@ appealing interface that boosts comprehension through color.
 ***RSH*** - Expeditious Root Privilege On/Off
 
 ***CKeys*** - Diagnose Mouse and Keyboard Issues
+
+***lf*** - Select and List Files Using Regular Expressions
 
 ---
 
@@ -481,7 +485,7 @@ correction, your application is bound to **Wow** your clients. Nobody
 wants an ugly program. Of course, beauty is in the eye of the beholder.
 That's why we give you control.
 
-## RSH
+### RSH
 
 ![RSH Source](screenshots/rsh.png)
 
@@ -550,6 +554,34 @@ You will notice that the build was completed under normal user privileges. Only
 the install portion required root access. We typed "xx" to assume root
 privileges, installed the package, and then immediately reverted to normal
 user access by typing "x".
+
+---
+
+### lf - List Files Using Regular Expressions
+
+lf is a utility included with C-Menu that allows you to list files in a
+directory based on regular expression patterns. It provides a powerful way to
+search for files that match specific criteria
+
+```bash
+ lf [options ad:e:hit:v] [dir] [re]
+             -a        List hidden files
+             -d        maximum max_depth of subdirectories to examine
+             -e        exclude files matching the regular expression
+             -h        show this help message
+             -i        ignore case in search
+             -t d      list directories (exclude files)
+             -t f      list files (exclude directories)
+             -v        show version information
+            dir Directory to search
+            re  Regular expression to match
+```
+
+lf is a streamlined, efficient, and easy-to-use alternative to find addressing
+the majority of use cases in which the complexity of find is not required.
+
+lf is not intended to replace find, but to give the developer a simple, focused,
+and robust tool for listing files based on regular expressions.
 
 ---
 
