@@ -2,6 +2,18 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-03-07
+
+Corrected Pick Page Down and Page Up key handling, which had been broken by the integration of the chyron facility into xwgetch. This was a major problem, and it caused the Pick module to be completely unusable. I have reimplemented the key handling, and it is now working as intended.
+
+Modified Pick so that the chyron only includes Page Up and Page Down options
+when there is more than 1 page of Pick ojbects. This is part of a larger effort
+to integrate the chyron facility into all C-Menu programs. The chyron facility
+allows C-Menu to generate dynamic chyrons based on the current state of the
+program, while automatically keeping track of click zones so that xwgetch
+can interpret mouse clicks as key codes. The idea is that the chyron should
+only include relevant options.
+
 0.2.9 - 2026-03-06
 
 Added -e exclude regular expression to lf, which allows users to exclude files from the listing based on a regular expression. This is a powerful feature that can be used to filter out unwanted files from the listing.
