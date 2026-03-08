@@ -41,6 +41,7 @@ bool capture_shell_tioctl() {
     if (f_have_shell_tioctl)
         return true;
     tcgetattr(0, &shell_tioctl);
+    tcgetattr(2, &shell_err_tioctl);
     f_have_shell_tioctl = true;
     return true;
 }

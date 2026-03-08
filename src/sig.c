@@ -29,8 +29,9 @@ void sig_dfl_mode() {
     sigaction(SIGINT, &sa, nullptr);
     sigaction(SIGTERM, &sa, nullptr);
     sigaction(SIGQUIT, &sa, nullptr);
-    sigaction(SIGSEGV, &sa, nullptr);
     sigaction(SIGUSR1, &sa, nullptr);
+    sa.sa_flags = SA_SIGINFO;
+    sigaction(SIGSEGV, &sa, nullptr);
 }
 /** @brief Set up signal handlers for interrupt signals
     @details Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT), the
@@ -57,12 +58,13 @@ void sig_prog_mode() {
         abend(-1, "sigaction SIGQUIT failed");
         exit(EXIT_FAILURE);
     }
-    if (sigaction(SIGSEGV, &sa, nullptr) == -1) {
-        abend(-1, "sigaction SIGSEGV failed");
-        exit(EXIT_FAILURE);
-    }
     if (sigaction(SIGUSR1, &sa, nullptr) == -1) {
         abend(-1, "sigaction SIGUSR1 failed");
+        exit(EXIT_FAILURE);
+    }
+    sa.sa_flags = SA_SIGINFO; // Set the flag to receive siginfo_t
+    if (sigaction(SIGSEGV, &sa, nullptr) == -1) {
+        abend(-1, "sigaction SIGSEGV failed");
         exit(EXIT_FAILURE);
     }
 }
@@ -79,8 +81,19 @@ void signal_handler(int sig_num) {
         sig_received = SIGQUIT;
         break;
     case SIGSEGV:
-        sig_received = SIGSEGV;
-        break;
+        tcsetattr(0, TCSANOW, &shell_tioctl);
+        char *msg1 = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+        write(STDERR_FILENO, msg1, strlen(msg1));
+        char *msg2 = "________ SIGSEGV - Segmentation fault - Generating core "
+                     "dump ________\n\n";
+        write(STDERR_FILENO, msg2, strlen(msg2));
+        struct sigaction sa;
+        sa.sa_handler = SIG_DFL;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        sigaction(SIGSEGV, &sa, NULL);
+        kill(getpid(), SIGSEGV); // Re-raise the signal
+        _exit(EXIT_FAILURE);
     case SIGUSR1:
         sig_received = SIGUSR1;
         break;

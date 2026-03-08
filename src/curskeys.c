@@ -60,7 +60,7 @@ int display_curses_keys() {
     while (!c) {
         kstr[0] = '\0';
         wmove(win, 1, 39);
-        c = xwgetch(win);
+        c = xwgetch(win, nullptr);
         s = keybound(c, 0);
         switch (c) {
         case '\0':

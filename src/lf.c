@@ -22,7 +22,7 @@
 
 /** @brief List files in a directory matching a regular expression
     @code
-        lf [options ad:hit:v] [dir] [re]
+        lf [options ad:e:hit:v] [dir] [re]
              -a        List hidden files
              -d        maximum max_depth of subdirectories to examine
              -e        exclude files matching the regular expression

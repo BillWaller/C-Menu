@@ -53,16 +53,20 @@ int form_accept_field(Form *form) {
     int ff = form->field[form->fidx]->ff;
     char *accept_s = form->field[form->fidx]->accept_s;
     char *filler_s = form->field[form->fidx]->filler_s;
-
     form_fmt_field(form, accept_s);
     click_x = click_y = -1;
-    f_chyron = true;
     char *fstart = accept_s;
     char *fend = fstart + flen;
     int x = fcol;
     char *p = fstart = accept_s;
-    char *str_end = p;
+    char *str_end = p + strlen(p);
     in_key = 0;
+    if (f_insert)
+        set_chyron_key(form->chyron, 18, "INS", KEY_IC);
+    else
+        set_chyron_key(form->chyron, 18, "OVR", KEY_IC);
+    compile_chyron(form->chyron);
+    form_display_chyron(form);
 
     while (1) {
         if (in_key == 0) {
@@ -71,7 +75,7 @@ int form_accept_field(Form *form) {
             wmove(win, flin, x);
             tcflush(0, TCIFLUSH);
             wmove(win, flin, x);
-            in_key = xwgetch(win);
+            in_key = xwgetch(win, form->chyron);
         }
         switch (in_key) {
             /** KEY_F(10) is the default key for accepting the field and moving
@@ -125,10 +129,15 @@ int form_accept_field(Form *form) {
             return (in_key);
             /** KEY_IC toggles insert mode */
         case KEY_IC:
-            if (f_insert)
+            if (f_insert) {
                 f_insert = FALSE;
-            else
+                set_chyron_key(form->chyron, 18, "OVR", KEY_IC);
+            } else {
                 f_insert = TRUE;
+                set_chyron_key(form->chyron, 18, "INS", KEY_IC);
+            }
+            compile_chyron(form->chyron);
+            form_display_chyron(form);
             in_key = 0;
             continue;
             /** KEY_DC deletes character at cursor */
@@ -172,23 +181,34 @@ int form_accept_field(Form *form) {
             continue;
             /** KEY_RIGHT moves cursor right one character */
         case KEY_RIGHT:
-            if (p < fend)
-                if (p <= str_end) {
-                    p++; // move one to the right
-                    x++;
-                }
-            if (p > str_end) {
-                mvwaddstr(win, flin, fcol, accept_s);
-                return ('\n');
+            if (p < fend && p < str_end) {
+                p++;
+                x++;
             }
             in_key = 0;
             continue;
             /** Handles mouse events for field editing */
         case KEY_MOUSE:
+            form->fidx = form_yx_to_fidx(form, click_y, click_x);
+            x = click_x;
+            flin = click_y;
+            flen = form->field[form->fidx]->len;
+            ff = form->field[form->fidx]->ff;
+            accept_s = form->field[form->fidx]->accept_s;
+            filler_s = form->field[form->fidx]->filler_s;
+            form_fmt_field(form, accept_s);
+            fstart = accept_s;
+            fend = fstart + flen;
+            p = fstart = accept_s;
+            str_end = p;
             in_key = 0;
             continue;
 
         default:
+            if (p >= fend) {
+                in_key = 0;
+                continue;
+            }
             /** Validates fields based on format */
             switch (ff) {
                 /** FF_STRING accepts all printable characters and spaces */
@@ -270,20 +290,23 @@ int form_accept_field(Form *form) {
                     if (str_end < fend) {
                         s = str_end - 1;
                         d = str_end;
-                        *++str_end = '\0';
                         while (s >= p)
                             *d-- = *s--;
                         *p++ = in_key;
+                        str_end++;
+                        x++;
                     }
                 } else {
-                    if (p == str_end) {
-                        *p++ = in_key;
-                        *p = '\0';
-                        str_end = p;
-                        x++;
-                    } else {
-                        *p++ = in_key;
-                        x++;
+                    if (p < fend) {
+                        if (p < str_end) {
+                            *p++ = in_key;
+                            x++;
+                        } else if (p == str_end) {
+                            *p++ = in_key;
+                            *p = '\0';
+                            str_end = p;
+                            x++;
+                        }
                     }
                 }
                 in_key = 0;
@@ -292,6 +315,7 @@ int form_accept_field(Form *form) {
         }
     }
 }
+
 /** @brief Display field n
     @param form Pointer to Form structure
     @param n Field index to display

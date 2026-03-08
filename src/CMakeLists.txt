@@ -6,22 +6,30 @@ if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "CMAKE_BUILD_TYPE not set, default to Release")
     set(CMAKE_BUILD_TYPE "Release")
 endif()
+
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 project(CMenu
     VERSION 0.2.9
     LANGUAGES C
 )
-set(CMAKE_C_FLAGS "-I../include -Wall -Wextra")
+set(CMAKE_C_FLAGS "-Wall -Wextra")
 set(CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH TRUE)
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the build type (e.g. ebug,
     Release)" FORCE)
 endif()
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/menuapp" CACHE PATH "Install path
+    prefix" FORCE)
+endif()
+
 configure_file(
     "${PROJECT_SOURCE_DIR}/include/version.h.in"
     "${PROJECT_SOURCE_DIR}/include/version.h"
 )
+
 install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json" DESTINATION
 "${CMAKE_CURRENT_SOURCE_DIR}")
 add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c)
@@ -43,7 +51,6 @@ set(COMMON_SRCS
     mview.c
     opts.c)
 add_library(CMenu OBJECT ${COMMON_SRCS})
-
 add_executable(menu menu.c menu_engine.c parse_menu_desc.c)
 target_sources(menu PRIVATE $<TARGET_OBJECTS:CMenu>)
 target_link_libraries(menu cm ${LIBS})

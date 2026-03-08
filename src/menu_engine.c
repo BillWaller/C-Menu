@@ -110,7 +110,7 @@ unsigned int menu_cmd_processor(Init *init) {
     event.y = event.x = -1;
     // tcflush(2, TCIFLUSH);
     wmove(menu->win, menu->line_idx, 1);
-    in_key = xwgetch(menu->win);
+    in_key = xwgetch(menu->win, nullptr);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);
     switch (in_key) {
@@ -288,6 +288,7 @@ unsigned int menu_cmd_processor(Init *init) {
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
     case CT_HELP:
+        segmentation_fault();
         eargv[0] = strdup("mview");
         strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);
         expand_tilde(tmp_str, MAXLEN - 1);

@@ -32,13 +32,13 @@ void abend(int, char *);
 void user_end();
 int nf_error(int, char *);
 
-void set_fkey(int, char *);
-bool is_set_fkey(int);
-void unset_fkey(int);
-int chyron_mk(key_cmd_tbl *, char *);
-int get_chyron_key(key_cmd_tbl *, int);
-char chyron_s[MAXLEN];
-bool f_chyron;
+void set_chyron_key(Chyron *, int, char *, int);
+bool is_set_chyron_key(Chyron *, int);
+void unset_chyron_key(Chyron *, int);
+void compile_chyron(Chyron *);
+int get_chyron_key(Chyron *, int);
+Chyron *new_chyron();
+Chyron *destroy_chyron(Chyron *chyron);
 int click_y;
 int click_x;
 void list_colors();
@@ -113,34 +113,6 @@ double GREEN_GAMMA =
 double BLUE_GAMMA =
     1.2; /**< Gamma correction value for blue colors. Set in .minitrc */
 
-/** key_cmd
-    Function key command table
-    @note This table will be used to create the chyron
-    @note The end_pos values are set in chyron_mk
-    @note The keycode values are used in get_chyron_key
-    @note If text is "", the key is not processed
-    @note The keycode values use NCurses key definitions
-    @note The table can be modified on the fly using set_fkey and unset_fkey
-    @note The table can be extended to 20 function keys if needed
-    @see set_fkey */
-key_cmd_tbl key_cmd[20] = {
-    {"", KEY_F(0), 0},
-    {"F1 Help", KEY_F(1), 0},
-    {"", KEY_F(2), 0},
-    {"", KEY_F(3), 0},
-    {"F4 Query", KEY_F(4), 0},
-    {"F5 Calculate", KEY_F(5), 0},
-    {"F6 Edit", KEY_F(6), 0},
-    {"", KEY_F(7), 0},
-    {"", KEY_F(8), 0},
-    {"F9 Cancel", KEY_F(9), 0},
-    {"F10 Accept", KEY_F(10), 0},
-    {"PgUp", KEY_PPAGE, 0},
-    {"PgDn", KEY_NPAGE, 0},
-    {"", 0x0, -1},
-};
-
-enum key_idx { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, PgUp, PgDn, END };
 WINDOW *win;
 WINDOW *win_win[MAXWIN];
 WINDOW *win_box[MAXWIN];
@@ -189,75 +161,102 @@ void win_init_attrs(int fg_color, int bg_color, int bo_color) {
     init_extended_pair(cp_box, bo_color, bg_color);
     return;
 }
+/** @brief Create and initialize Chyron structure
+    @param chyron structure
+ */
+Chyron *new_chyron() {
+    Chyron *chyron = (Chyron *)calloc(1, sizeof(Chyron));
+    if (!chyron) {
+        abend(-1, "calloc chyron failed");
+        return nullptr;
+    }
+    for (int i = 0; i < CHYRON_KEYS; i++)
+        chyron->key[i] = (ChyronKey *)calloc(1, sizeof(ChyronKey));
+    return chyron;
+}
+/** @brief Destroy Chyron structure
+    @param init structure
+    @return nullptr
+ */
+Chyron *destroy_chyron(Chyron *chyron) {
+    int i;
 
+    if (!chyron)
+        return nullptr;
+    for (i = 0; i < CHYRON_KEYS; i++) {
+        if (chyron->key[i])
+            free(chyron->key[i]);
+        chyron->key[i] = nullptr;
+    }
+    free(chyron);
+    chyron = nullptr;
+    return chyron;
+}
 /** @brief Check if function key label is set
     @param k Function key index (0-19)
     @return true if set, false if not set */
-bool is_set_fkey(int k) {
-    if (key_cmd[k].text[0] != '\0')
+bool is_set_chyron_key(Chyron *chyron, int k) {
+    if (chyron->key[k]->text[0] != '\0')
         return true;
     else
         return false;
 }
-
-/** @brief Set function key label
-    @param k Function key index (0-19)
-    @param s Function key label
-    @note This table will be used to change function keys on the fly */
-void set_fkey(int k, char *s) {
+/** @brief Set chyron key
+    @param k chyron key index (0-19)
+    @param s chyron key label
+    @note This table will be used to change the chyron on the fly */
+void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
+    size_t y;
+    size_t x = sizeof(chyron->key[k]->text);
+    y = x;
+    x = y;
     if (*s != '\0')
-        ssnprintf(key_cmd[k].text, MAXLEN - 1, "F%d %s", k, s);
+        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
     else
-        key_cmd[k].text[0] = '\0';
+        chyron->key[k]->text[0] = '\0';
+    chyron->key[k]->keycode = kc;
 }
-
-/** @brief Unset function key label in key_cmd table
-    @param k key_cmd index
-    @note function keys F0 through F10 idiomatically occupy key_cmd[0-12] */
-void unset_fkey(int k) { key_cmd[k].text[0] = '\0'; }
-/** @brief construct the chyron string from the key_cmd table
-    @param fc Pointer to key_cmd_tbl
-    @param s Pointer to chyron string
-    @return Length of chyron string
-    note This function also sets the end_pos values in the key_cmd_tbl
-    which are used to determine which key was clicked in get_chyron_key */
-int chyron_mk(key_cmd_tbl *fc, char *s) {
+/** @brief Unset chyron key
+    @param k chyron_key index */
+void unset_chyron_key(Chyron *chyron, int k) { chyron->key[k]->text[0] = '\0'; }
+/** @brief construct the chyron string from the chyron structure
+    @param chyron
+    @note This function also sets the zones for mouse clicks */
+void compile_chyron(Chyron *chyron) {
     int end_pos = 0;
     int i = 0;
-    *s = '\0';
-    while (fc[i].end_pos != -1) {
-        if (fc[i].text[0] == '\0') {
+    chyron->s[0] = '\0';
+    chyron->l = 0;
+    while (i < CHYRON_KEYS) {
+        if (chyron->key[i]->text[0] == '\0') {
             i++;
             continue;
         }
         if (end_pos == 0)
-            strnz__cat(s, " ", MAXLEN - strlen(s) - 1);
+            strnz__cat(chyron->s, " ", MAXLEN - 1);
         else
-            strnz__cat(s, " | ", MAXLEN - strlen(s) - 1);
-        strnz__cat(s, fc[i].text, MAXLEN - strlen(s) - 1);
-        end_pos = strlen(s) + 1;
-        fc[i].end_pos = end_pos;
+            strnz__cat(chyron->s, " | ", MAXLEN - 1);
+        strnz__cat(chyron->s, chyron->key[i]->text, MAXLEN - 1);
+        end_pos = strlen(chyron->s) + 1;
+        chyron->key[i]->end_pos = end_pos;
         i++;
     }
     if (end_pos > 0)
-        strnz__cat(s, " ", MAXLEN - strlen(s) - 1);
-    return strlen(s);
+        chyron->l = strnz__cat(chyron->s, " ", MAXLEN - 1);
 }
-
-/** @brief Get keycode from chyron mouse position
-    @param fc Pointer to key_cmd_tbl
+/** @brief Get keycode from chyron
+    @param chyron structure
     @param x Mouse X position
     @return Keycode
-    note This function uses the end_pos values set in chyron_mk
+    @note This function uses the end_pos values set in compile_chyron
     to determine which key was clicked */
-int get_chyron_key(key_cmd_tbl *fc, int x) {
+int get_chyron_key(Chyron *chyron, int x) {
     int i;
-    for (i = 0; fc[i].end_pos != -1; i++)
-        if (x < fc[i].end_pos)
+    for (i = 0; chyron->key[i]->end_pos != -1; i++)
+        if (x < chyron->key[i]->end_pos)
             break;
-    return fc[i].keycode;
+    return chyron->key[i]->keycode;
 }
-
 /** @brief Initialize NCurses and color settings
     @param sio Pointer to SIO struct with terminal and color settings
     @return true if successful, false if error
@@ -804,6 +803,7 @@ void cbox(WINDOW *box) {
         waddnwstr(box, &bw_ho, 1);
     waddnwstr(box, &bw_br, 1);
 }
+
 /** @brief Display an error message window or print to stderr
     @param em0 First error message line
     @param em1 Second error message line
@@ -815,22 +815,17 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     int line, pos, em_l, em0_l, em1_l, em2_l, em3_l;
     WINDOW *error_win;
 
-    /** Initialize the chyron key commands and construct the chyron string */
-    int chyron_l, n;
-
-    for (n = 0; key_cmd[n].end_pos != -1; n++)
-        key_cmd[n].end_pos = '\0';
-    strnz__cpy(key_cmd[1].text, "F1 Help", MAXLEN - 1);
-    strnz__cpy(key_cmd[9].text, "F9 Cancel", MAXLEN - 1);
-    strnz__cpy(key_cmd[10].text, "F10 Continue", MAXLEN - 1);
-    chyron_l = chyron_mk(key_cmd, chyron_s);
-
-    chyron_l = strnz(chyron_s, COLS - 4);
-
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", em0, em1, em2, em3);
         return (1);
     }
+
+    Chyron *chyron = new_chyron();
+    set_chyron_key(chyron, 1, "F1 Help", KEY_F(1));
+    set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
+    set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
+    compile_chyron(chyron);
+
     em_l = 0;
     em0_l = strnz(em0, COLS - 4);
     em1_l = strnz(em1, COLS - 4);
@@ -844,8 +839,8 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
         em_l = em2_l;
     if (em3_l > em_l)
         em_l = em3_l;
-    if (em_l < chyron_l)
-        em_l = chyron_l;
+    if (em_l < chyron->l)
+        em_l = chyron->l;
     if (em_l > (COLS - 4))
         em_l = COLS - 4;
 
@@ -855,6 +850,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     if (win_new(5, em_l + 2, line, pos, title, 0)) {
         ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
                   5, em_l + 2, line, pos, title, 0);
+        destroy_chyron(chyron);
         abend(-1, title);
     }
     error_win = win_win[win_ptr];
@@ -863,12 +859,12 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     mvwaddstr(error_win, 2, 1, em2);
     mvwaddstr(error_win, 3, 1, em3);
     wattron(error_win, WA_REVERSE);
-    mvwaddstr(error_win, 4, 1, chyron_s);
+    mvwaddstr(error_win, 4, 1, chyron->s);
     wattroff(error_win, WA_REVERSE);
-    wmove(error_win, 4, chyron_l + 1);
+    wmove(error_win, 4, chyron->l + 1);
     wrefresh(error_win);
     while (1) {
-        cmd_key = xwgetch(error_win);
+        cmd_key = xwgetch(error_win, chyron);
         switch (cmd_key) {
         case 'n':
         case 'N':
@@ -888,6 +884,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
         }
     }
     win_del();
+    destroy_chyron(chyron);
     return (cmd_key);
 }
 
@@ -902,43 +899,40 @@ int Perror(char *emsg_str) {
     int len, line, pos;
     char title[MAXLEN];
 
-    /** Initialize the chyron key commands and construct the chyron string */
-    int chyron_l, n;
-    for (n = 0; key_cmd[n].end_pos != -1; n++)
-        key_cmd[n].end_pos = '\0';
-    strnz__cpy(key_cmd[1].text, "F1 Help", MAXLEN - 1);
-    strnz__cpy(key_cmd[9].text, "F9 Cancel", MAXLEN - 1);
-    strnz__cpy(key_cmd[10].text, "F10 Continue", MAXLEN - 1);
-    chyron_l = chyron_mk(key_cmd, chyron_s);
-
-    chyron_l = strnz(chyron_s, COLS - 4);
-
     len = strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
         return (1);
     }
+
+    Chyron *chyron = new_chyron();
+    set_chyron_key(chyron, 1, "F1 Help", KEY_F(1));
+    set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
+    set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
+    compile_chyron(chyron);
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (chyron_l > len)
-        len = chyron_l;
+    if (chyron->l > len)
+        len = chyron->l;
     if (len < 39)
         len = 39;
     strnz__cpy(title, "Notification", MAXLEN - 1);
     if (win_new(2, len + 2, line, pos, title, 0)) {
         ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title, 0);
+        destroy_chyron(chyron);
         abend(-1, title);
     }
     error_win = win_win[win_ptr];
     mvwaddstr(error_win, 0, 1, emsg);
     wattron(error_win, WA_REVERSE);
-    mvwaddstr(error_win, 1, 0, " F9 Cancel | Any other key to continue ");
+    mvwaddstr(error_win, 1, 0, chyron->s);
     wattroff(error_win, WA_REVERSE);
-    wmove(error_win, 1, len);
+    wmove(error_win, 1, chyron->l);
     wrefresh(error_win);
-    cmd_key = xwgetch(error_win);
+    cmd_key = xwgetch(error_win, chyron);
     win_del();
+    destroy_chyron(chyron);
     return (cmd_key);
 }
 
@@ -1034,8 +1028,7 @@ void abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     exit(EXIT_FAILURE);
 }
-
-/** @brief Wrapper for wgetch that handles signals
+/** @brief Wrapper for wgetch that handles signals and mouse events
     @param win Pointer to window
     @return Key code or ERR if interrupted by signal
     @note This, of course, will be expanded into an event loop for message
@@ -1044,7 +1037,7 @@ void abend(int ec, char *s) {
    the click is outside the window, ignore it. If it's on the chyron line, get
    the corresponding key command. Otherwise, store the click coordinates as
    click_y and click_x for later use. */
-int xwgetch(WINDOW *win) {
+int xwgetch(WINDOW *win, Chyron *chyron) {
     int c;
     MEVENT event;
     event.y = event.x = -1;
@@ -1080,8 +1073,8 @@ int xwgetch(WINDOW *win) {
                 }
                 click_y = event.y;
                 click_x = event.x;
-                if (f_chyron && event.y == getmaxy(win) - 1)
-                    return get_chyron_key(key_cmd, event.x);
+                if (chyron && event.y == getmaxy(win) - 1)
+                    return get_chyron_key(chyron, event.x);
                 else
                     return KEY_MOUSE;
             }
