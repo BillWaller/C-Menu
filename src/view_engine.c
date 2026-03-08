@@ -660,7 +660,7 @@ int get_cmd_char(View *view, off_t *n) {
     mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, nullptr);
     tcflush(2, TCIFLUSH);
     do {
-        c = xwgetch(view->win);
+        c = xwgetch(view->win, nullptr);
         if (c == KEY_MOUSE) {
             if (getmouse(&event) != OK)
                 return (MA_ENTER_OPTION);
@@ -723,7 +723,7 @@ int get_cmd_arg(View *view, char *prompt) {
                       view->smincol, view->smaxrow, view->smaxcol);
         if (rc == ERR)
             Perror("Error refreshing screen");
-        c = xwgetch(view->win);
+        c = xwgetch(view->win, nullptr);
         switch (c) {
         /** Basic Editing Keys for Command Line */
         case KEY_LEFT:
@@ -1751,7 +1751,7 @@ void remove_file(View *view) {
         wmove(view->win, view->cmd_line, 0);
         waddstr(view->win, "Remove File (Y or N)->");
         wclrtoeol(view->win);
-        c = (char)xwgetch(view->win);
+        c = (char)xwgetch(view->win, nullptr);
         waddch(view->win, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);

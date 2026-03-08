@@ -85,27 +85,56 @@ enum LFFlags {
         }                                                                      \
     }
 
-/** @struct key_cmd_tbl
-    @note The key_cmd_tbl structure is a simple structure that holds information
-   about a command associated with a key. It includes the command text, the key
-   code, and the end position of the command text in the chyron. This structure
-   can be used to map specific keys to commands and their positions in the
-   chyron, allowing for easy retrieval of the command associated with a
-   particular key press. By using this structure, you can manage and organize
-   the commands and their corresponding key codes in a structured way, making it
-   easier to implement functionality that responds to specific key presses in
-   the terminal interface. The key_cmd_tbl structure can be used in conjunction
-   with an array of key_cmd_tbl instances to create a mapping of multiple keys
-   to their respective commands and positions in the chyron, enabling a more
-   dynamic and interactive terminal experience. */
+/** @struct Chyron
+    @note The Chyron structure represents a key binding for a command in the
+   chyron, which is a status line or message area in the terminal interface.
+    @details The ChyronKey structure includes fields for displayable text,
+    the key code, and the end position of the command text in the chyron.
+    @note This structure allows xwgetch to map mouse clicks to key codes
+    as defined by NCursesw and the C-Menu program.
+    @note The text field holds the displayable text associated with the command.
+    xwgetch() translates a mouse click on the chyron with a particular key code
+    stored in this table.
+    @note The use case is when the developer wants a dynamic chyron that can be
+   easily changed depending on the context of the program without having to
+   worry about translating mouse click positions to key codes.
+    @note While many key codes are defined by NCursesw, the developer is free to
+   define their own key codes for custom commands in the chyron. However,
+   xwgetch() will translate mouse clicks to the key codes defined in this table,
+   even if they interfere with standard NCurses key codes, Unicode code points,
+   or ASCII characters. Just use common sense.
+    @note In addition to returning the key code associated with mouse clicks on
+   the chyron, xwgetch() also returns the key codes for standard keyboard input,
+   and sets the global variables cliek_y and click_x to the coordinates of the
+   mouse click.
+ */
+#define CHYRON_KEY_MAXLEN                                                      \
+    64                 /**< maximum length of the command text for a key       \
+                          binding in the chyron */
+#define CHYRON_KEYS 20 /**< maximum number of key bindings for the chyron */
 typedef struct {
-    char text[32]; /**< command text associated with the key */
-    int keycode;   /**< key code associated with the command */
-    int end_pos;   /**< end position of the command text in the chyron */
-} key_cmd_tbl;
+    char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code
+                                   */
+    int keycode;                  /**< key code associated with the command */
+    int end_pos; /**< end position of the command text in the chyron */
+} ChyronKey;
 
-extern key_cmd_tbl key_cmd[20]; /**< for chyron */
+typedef struct {
+    ChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
+    char s[MAXLEN]; /**< the chyron string, for displaying messages in */
+    int l;          /**< length of the chyron string, for display purposes */
+} Chyron;
 
+extern int xwgetch(WINDOW *, Chyron *);
+extern int click_y; /**< the y coordinate of a mouse click, for handling mouse
+                   events */
+extern int
+    click_x; /**< the x coordinate of a mouse click, for handling mouse */
+
+extern bool f_debug;         /**< a flag to indicate whether debug
+        output should be printed, for debugging purposes */
+extern unsigned int cmd_key; /**< the command key for the current command, for
+                                error messages and other output */
 /** @struct RGB */
 typedef struct {
     int r; /**< red component (0-255) */
@@ -171,7 +200,6 @@ typedef struct {
 } Opts;
 
 extern void dump_opts_by_use(char *, char *); /**< dump options to stdout */
-extern int xwgetch(WINDOW *);
 extern bool capture_shell_tioctl();
 extern bool restore_shell_tioctl();
 extern bool capture_curses_tioctl();
@@ -187,6 +215,8 @@ extern volatile sig_atomic_t sig_received;
 extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
+extern int segmentation_fault();
+
 extern cchar_t CCC_NORM;    /**< normal color pair complex character */
 extern cchar_t CCC_BOX;     /**< box color pair complex character */
 extern cchar_t CCC_REVERSE; /**< reverse color pair complex character */
@@ -396,16 +426,9 @@ extern char em0[MAXLEN]; /**< error message string for error messages */
 extern char em1[MAXLEN]; /**< error message string for error messages */
 extern char em2[MAXLEN]; /**< error message string for error messages */
 extern char em3[MAXLEN]; /**< error message string for error messages */
-extern bool f_chyron; /**< a flag to indicate whether the chyron is active, for
-                         displaying messages in the terminal */
-extern char chyron_s[MAXLEN]; /**< the chyron string, for displaying messages in
-the terminal */
-extern int click_y;  /**< the y coordinate of a mouse click, for handling mouse
-                        events */
-extern int click_x;  /**< the x coordinate of a mouse click, for handling mouse
-                        events */
-extern bool f_debug; /**< a flag to indicate whether debug
-output should be printed, for debugging purposes */
+
+extern bool f_debug;         /**< a flag to indicate whether debug
+        output should be printed, for debugging purposes */
 extern unsigned int cmd_key; /**< the command key for the current command, for
                                 error messages and other output */
 extern int exit_code; /**< the exit code for the program, for error messages and
@@ -581,11 +604,13 @@ extern char errmsg[];
 extern void get_rfc3339_s(char *, size_t);
 extern int open_log(char *);
 extern void write_log(char *);
-extern int chyron_mk(key_cmd_tbl *, char *);
-extern int get_chyron_key(key_cmd_tbl *, int);
-extern bool is_set_fkey(int);
-extern void set_fkey(int, char *);
-extern void unset_fkey(int);
+extern void compile_chyron(Chyron *);
+extern int get_chyron_key(Chyron *, int);
+extern bool is_set_chyron_key(Chyron *, int);
+extern void set_chyron_key(Chyron *, int, char *, int);
+extern void unset_chyron_key(Chyron *, int);
+extern Chyron *new_chyron();
+extern Chyron *destroy_chyron(Chyron *chyron);
 extern void abend(int, char *);
 extern void display_argv_error_msg(char *, char **);
 extern int display_error(char *, char *, char *, char *);

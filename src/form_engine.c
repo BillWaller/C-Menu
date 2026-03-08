@@ -40,6 +40,7 @@ int form_calculate(Init *);
 int form_end_fields(Init *);
 int init_form(Init *, int, char **, int, int);
 int form_engine(Init *);
+int form_yx_to_fidx(Form *, int, int);
 
 /** @brief Initialize form data structure and parse description file
     @param init A pointer to the Init structure containing form data and state.
@@ -180,23 +181,24 @@ int form_end_fields(Init *init) {
     bool loop = true;
     int c, rc;
     click_y = click_x = -1;
-    f_chyron = true;
     form = init->form;
     wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
-    set_fkey(8, "Edit");
+    unset_chyron_key(form->chyron, 18);
+    set_chyron_key(form->chyron, 8, "F8 Edit", KEY_F(8));
+    set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
     rc = -1;
     while (loop) {
         if (rc == -1) {
             form_display_chyron(form);
             tcflush(2, TCIFLUSH);
-            c = xwgetch(form->win);
+            c = xwgetch(form->win, form->chyron);
         }
         switch (c) {
         case KEY_F(1):
             return P_HELP;
         case KEY_F(8):
-            if (is_set_fkey(8)) {
+            if (is_set_chyron_key(form->chyron, 8)) {
                 loop = false;
                 rc = P_CONTINUE;
                 break;
@@ -211,14 +213,12 @@ int form_end_fields(Init *init) {
             rc = P_ACCEPT;
             break;
         case KEY_MOUSE:
-            if (click_y == form->lines - 1)
-                c = get_chyron_key(key_cmd, click_x);
             continue;
         default:
             break;
         }
     }
-    unset_fkey(8);
+    unset_chyron_key(form->chyron, 8);
     form_display_chyron(form);
     return rc;
 }
@@ -271,13 +271,15 @@ int form_calculate(Init *init) {
     form = init->form;
     wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
-    set_fkey(5, "Calculate");
+    unset_chyron_key(form->chyron, 18);
+    unset_chyron_key(form->chyron, 10);
+    set_chyron_key(form->chyron, 5, "F5 Calculate", KEY_F(5));
+
     while (loop) {
         form_display_chyron(form);
-        f_chyron = true;
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
-        c = xwgetch(form->win);
+        c = xwgetch(form->win, form->chyron);
         switch (c) {
         case KEY_F(1):
             return P_HELP;
@@ -324,12 +326,13 @@ int form_calculate(Init *init) {
                 close(pipe_fd[P_READ]);
                 waitpid(pid, nullptr, 0);
                 form_display_fields(form);
-                set_fkey(8, "Edit");
+                set_chyron_key(form->chyron, 8, "F5 Edit", KEY_F(5));
+                set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
                 continue;
             }
             break;
         case KEY_F(8):
-            if (is_set_fkey(8)) {
+            if (is_set_chyron_key(form->chyron, 8)) {
                 loop = false;
                 rc = P_CONTINUE;
                 break;
@@ -344,15 +347,13 @@ int form_calculate(Init *init) {
             rc = P_ACCEPT;
             break;
         case KEY_MOUSE:
-            if (click_y == form->lines - 1)
-                rc = get_chyron_key(key_cmd, click_x);
             break;
         default:
             break;
         }
     }
-    unset_fkey(8);
-    unset_fkey(5);
+    unset_chyron_key(form->chyron, 8);
+    unset_chyron_key(form->chyron, 5);
     form_display_chyron(form);
     return rc;
 }
@@ -408,12 +409,23 @@ int form_enter_fields(Form *form) {
             else if (form->fidx == form->fcnt - 1)
                 return (P_ACCEPT);
             break;
-
+        case KEY_MOUSE:
+            break;
         default:
             break;
         }
     }
 }
+int form_yx_to_fidx(Form *form, int y, int x) {
+    for (int i = 0; i < form->fcnt; i++) {
+        if (y == form->field[i]->line && x >= form->field[i]->col &&
+            x < form->field[i]->col + form->field[i]->len) {
+            return i;
+        }
+    }
+    return -1; // No field found at the given coordinates
+}
+
 /** @brief Display the form on the screen, including text elements and fields,
     and set up the form window based on the form configuration.
     @param init A pointer to the Init structure containing form data and state.
@@ -482,11 +494,11 @@ void form_display_fields(Form *form) {
         wrefresh(form->win);
 #endif
     }
-    for (n = 0; key_cmd[n].end_pos != -1; n++)
-        key_cmd[n].text[0] = '\0';
-    strnz__cpy(key_cmd[1].text, "F1 Help", 32);
-    strnz__cpy(key_cmd[9].text, "F9 Cancel", 32);
-    strnz__cpy(key_cmd[10].text, "F10 Accept", 32);
+    form->chyron = new_chyron();
+    set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
+    set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F(9));
+    set_chyron_key(form->chyron, 10, "F10 Continue", KEY_F(10));
+    compile_chyron(form->chyron);
     form_display_chyron(form);
     return;
 }
@@ -495,14 +507,12 @@ void form_display_fields(Form *form) {
     @param form A pointer to the Form structure containing form data and state.
  */
 void form_display_chyron(Form *form) {
-    int l;
-
-    l = chyron_mk(key_cmd, chyron_s);
+    compile_chyron(form->chyron);
     wattron(form->win, WA_REVERSE);
-    mvwaddstr(form->win, form->lines - 1, 0, chyron_s);
+    mvwaddstr(form->win, form->lines - 1, 0, form->chyron->s);
     wattroff(form->win, WA_REVERSE);
     wclrtoeol(form->win);
-    wmove(form->win, form->lines - 1, l);
+    wmove(form->win, form->lines - 1, form->chyron->l);
 }
 /** @brief Parse the form description file to populate the Form data structure
    with field definitions, text elements, and other configuration specified in

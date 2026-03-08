@@ -81,6 +81,7 @@ typedef struct {
     int tbl_cols;                /**< columns per table page */
     int tbl_col;                 /**< current column on table page */
     int tbl_col_width;           /**< column width on table page */
+    Chyron *chyron;              /**< chyron data structure */
 } Pick;
 extern Pick *pick; /**< pointer to Pick data structure */
 

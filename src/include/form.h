@@ -152,14 +152,10 @@ typedef struct {
                  window */
     int begx; /**< the screen column number for the upper left corner of the
                  form window */
-    WINDOW *win;           /**< ncurses window structure for form */
-    WINDOW *box;           /**< ncurses window structure for form box border */
-    char title[MAXLEN];    /**< the title of the form, displayed in the form box
-                              border */
-    char chyron_s[MAXLEN]; /**< the chyron string for the form, displayed in the
-                              form box border or at the bottom of the form
-                              window to provide instructions or information to
-                              the user during form processing */
+    WINDOW *win;        /**< ncurses window structure for form */
+    WINDOW *box;        /**< ncurses window structure for form box border */
+    char title[MAXLEN]; /**< the title of the form, displayed in the form box
+                           border */
     FILE *in_fp; /**< input stream pointer, e.g. for reading from a file or pipe
                   */
     FILE *out_fp; /**< output stream pointer, e.g. for writing to a file or pipe
@@ -377,6 +373,13 @@ typedef struct {
                               validation, formatting, and processing of user
                               input based on the specified field formats and
                               properties during form processing. */
+    Chyron *chyron; /**< a structure for managing the chyron string and its
+                   display properties on the form window during form processing.
+                   The chyron can be used to provide instructions, feedback, or
+                   other information to the user during form processing, and it
+                   can be updated dynamically based on user actions or other
+                   events to enhance the user experience and provide context-
+                   sensitive information as needed. */
 } Form;
 extern Form
     *form; /**< a pointer to the current form structure, used for managing and
@@ -396,4 +399,6 @@ extern int form_read_description(Form *);
 extern int form_fmt_field(Form *, char *s);
 extern int form_desc_error(int, char *, char *);
 extern void form_help(char *);
+extern int form_yx_to_fidx(Form *, int, int);
+extern void form_display_chyron(Form *);
 #endif

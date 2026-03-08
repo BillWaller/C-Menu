@@ -919,7 +919,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
         regfree(&compiled_re);
         return false;
     }
-    if (ere) {
+    if (ere != nullptr && *ere != '\0') {
         regcomp(&compiled_ere, "^$", REG_FLAGS);
         reti = regcomp(&compiled_ere, ere, REG_FLAGS);
         if (reti) {
@@ -938,7 +938,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
 
     if (re)
         regfree(&compiled_re);
-    if (ere)
+    if (ere != nullptr && *ere != '\0')
         regfree(&compiled_ere);
     if (reti)
         return false;
@@ -1322,4 +1322,13 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
     strncpy(dest->s, src->s, cpy_len);
     dest->s[cpy_len] = '\0';
     return new_len;
+}
+/** @brief Function to intentionally cause a segmentation fault for testing
+   purposes
+    @returns 0 (this line will not be reached due to the segmentation fault) */
+int segmentation_fault() {
+    int *p = NULL;
+    *p = 100;
+
+    return 0;
 }

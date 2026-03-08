@@ -239,23 +239,20 @@ int pick_engine(Init *init) {
         pick->begy = LINES - pick->win_lines - 2;
     pick->win_width = (pick->tbl_col_width + 1) * pick->tbl_cols;
 
-    int n, chyron_l;
-    for (n = 0; key_cmd[n].end_pos != -1; n++)
-        key_cmd[n].text[0] = '\0';
-    strnz__cpy(key_cmd[1].text, "F1 Help", 32);
-    strnz__cpy(key_cmd[9].text, "F9 Cancel", 32);
-    strnz__cpy(key_cmd[10].text, "F10 Accept", 32);
+    pick->chyron = new_chyron();
+    set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
+    set_chyron_key(pick->chyron, 9, "F9 Cancel", KEY_F(9));
+    set_chyron_key(pick->chyron, 10, "F10 Continue", KEY_F(10));
     if (pick->tbl_pages > 1) {
-        strnz__cpy(key_cmd[11].text, "PgUp", 32);
-        strnz__cpy(key_cmd[12].text, "PgDn", 32);
+        set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
+        set_chyron_key(pick->chyron, 12, "PgDn", KEY_NPAGE);
     }
-    strnz__cpy(key_cmd[13].text, "Space", 32);
-    strnz__cpy(key_cmd[14].text, "Enter", 32);
-    chyron_l = chyron_mk(key_cmd, chyron_s);
-    if (chyron_l > win_maxx)
-        chyron_l = strnz(chyron_s, win_maxx);
-    if (pick->win_width < chyron_l)
-        pick->win_width = chyron_l;
+    set_chyron_key(pick->chyron, 13, "Toggle", 32);
+    compile_chyron(pick->chyron);
+    if (pick->chyron->l > win_maxx)
+        pick->chyron->l = strnz(pick->chyron->s, win_maxx);
+    if (pick->win_width < pick->chyron->l)
+        pick->win_width = pick->chyron->l;
 
     if (pick->begx + pick->win_width > COLS - 4)
         pick->begx = COLS - pick->win_width - 2;
@@ -326,7 +323,7 @@ int picker(Init *init) {
     while (1) {
         tcflush(tty_fd, TCIFLUSH);
         if (cmd_key == 0)
-            cmd_key = xwgetch(pick->win);
+            cmd_key = xwgetch(pick->win, pick->chyron);
         switch (
             cmd_key) { /** 'q', or KEY_F(9) cancel selection and exit picker */
         case 'q':
@@ -546,7 +543,7 @@ void display_page(Pick *pick) {
 void pick_display_chyron(Pick *pick) {
     int l;
     char tmp_str[MAXLEN];
-    ssnprintf(tmp_str, MAXLEN - 1, "%s| Page %d of %d ", chyron_s,
+    ssnprintf(tmp_str, MAXLEN - 1, "%s| Page %d of %d ", pick->chyron->s,
               pick->tbl_page + 1, pick->tbl_pages);
     l = strlen(tmp_str);
     wattron(pick->win, WA_REVERSE);
