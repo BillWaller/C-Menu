@@ -33,6 +33,7 @@ enum LFFlags {
     LF_FILES = 4,    /**< List files */
     LF_DIRS = 8,     /**< List directories */
     LF_EXCLUDE = 16, /**< Exclude files matching regular expression */
+    LF_REGEX = 32,   /**< Exclude files matching regular expression */
 };
 
 #define W_BOX 0x40  /**< box window flag for win_new() */
