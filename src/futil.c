@@ -910,16 +910,18 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
 
     if (flags & LF_ICASE)
         REG_FLAGS |= REG_ICASE;
-    reti = regcomp(&compiled_re, re, REG_FLAGS);
-    if (reti) {
-        ssnprintf(em0, MAXLEN - 1, "lf: \'%s\' Invalid pattern\n", re);
-        ssnprintf(em1, MAXLEN - 1, "for example: \'.*\\.c$\'\n\n");
-        regerror(reti, &compiled_re, em2, sizeof(em2));
-        display_error(em0, em1, em2, nullptr);
-        regfree(&compiled_re);
-        return false;
+    if (flags & LF_REGEX) {
+        reti = regcomp(&compiled_re, re, REG_FLAGS);
+        if (reti) {
+            ssnprintf(em0, MAXLEN - 1, "lf: \'%s\' Invalid pattern\n", re);
+            ssnprintf(em1, MAXLEN - 1, "for example: \'.*\\.c$\'\n\n");
+            regerror(reti, &compiled_re, em2, sizeof(em2));
+            display_error(em0, em1, em2, nullptr);
+            regfree(&compiled_re);
+            return false;
+        }
     }
-    if (ere != nullptr && *ere != '\0') {
+    if (flags & LF_EXCLUDE) {
         regcomp(&compiled_ere, "^$", REG_FLAGS);
         reti = regcomp(&compiled_ere, ere, REG_FLAGS);
         if (reti) {
@@ -931,14 +933,12 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
             regfree(&compiled_ere);
             return false;
         }
-        flags |= LF_EXCLUDE;
     }
     reti =
         lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth, flags);
-
-    if (re)
+    if (flags &= LF_REGEX)
         regfree(&compiled_re);
-    if (ere != nullptr && *ere != '\0')
+    if (flags & LF_EXCLUDE)
         regfree(&compiled_ere);
     if (reti)
         return false;

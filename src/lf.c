@@ -36,14 +36,18 @@
     @endcode
  */
 int main(int argc, char **argv) {
-    char dir[MAXLEN] = "";
-    char re[MAXLEN] = "";
-    char ere[MAXLEN] = "";
+    char dir[MAXLEN];
+    char re[MAXLEN];
+    char ere[MAXLEN];
+    dir[0] = '\0';
+    re[0] = '\0';
+    ere[0] = '\0';
     bool f_help = false;
     bool f_version = false;
     int flags = 0;
     int opt;
     int max_depth = 3;
+
     while ((opt = getopt(argc, argv, "ad:e:hit:v")) != -1) {
         switch (opt) {
         case 'a':
@@ -54,6 +58,7 @@ int main(int argc, char **argv) {
             break;
         case 'e':
             strnz__cpy(ere, optarg, MAXLEN - 1);
+            flags |= LF_EXCLUDE;
             break;
         case 'h':
             f_help = true;
@@ -114,6 +119,7 @@ int main(int argc, char **argv) {
         strnz__cpy(re, ".*", MAXLEN - 1);
     if (dir[0] == '\0')
         strnz__cpy(dir, ".", MAXLEN - 1);
+    flags |= LF_REGEX;
     lf_find(dir, re, ere, max_depth, flags);
     return true;
 }
