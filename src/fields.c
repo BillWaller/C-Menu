@@ -62,9 +62,9 @@ int form_accept_field(Form *form) {
     char *str_end = p + strlen(p);
     in_key = 0;
     if (f_insert)
-        set_chyron_key(form->chyron, 18, "INS", KEY_IC);
-    else
         set_chyron_key(form->chyron, 18, "OVR", KEY_IC);
+    else
+        set_chyron_key(form->chyron, 18, "INS", KEY_IC);
     compile_chyron(form->chyron);
     form_display_chyron(form);
 
@@ -131,10 +131,10 @@ int form_accept_field(Form *form) {
         case KEY_IC:
             if (f_insert) {
                 f_insert = FALSE;
-                set_chyron_key(form->chyron, 18, "OVR", KEY_IC);
+                set_chyron_key(form->chyron, 18, "INS", KEY_IC);
             } else {
                 f_insert = TRUE;
-                set_chyron_key(form->chyron, 18, "INS", KEY_IC);
+                set_chyron_key(form->chyron, 18, "OVR", KEY_IC);
             }
             compile_chyron(form->chyron);
             form_display_chyron(form);
@@ -199,8 +199,8 @@ int form_accept_field(Form *form) {
             form_fmt_field(form, accept_s);
             fstart = accept_s;
             fend = fstart + flen;
-            p = fstart = accept_s;
-            str_end = p;
+            p = fstart + (x - form->field[form->fidx]->col);
+            str_end = fstart + strlen(fstart);
             in_key = 0;
             continue;
 
