@@ -899,6 +899,7 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     LF_FILES    =  4,  list files (exclude directories)
     LF_DIRS     =  8,  list directories (exclude files)
     LF_EXCLUDE  =  16, exclude files matching "ere" pattern
+    LF_REGEX    =  32, re is a regular expression pattern to match
     @endcode
     return      true if successful, false otherwise */
 bool lf_find(const char *base_path, const char *re, const char *ere,
@@ -958,6 +959,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     LF_FILES    =  4,  list files (exclude directories)
     LF_DIRS     =  8,  list directories (exclude files)
     LF_EXCLUDE  =  16, exclude files matching "ere" pattern
+    LF_REGEX    =  32, re is a regular expression pattern to match
     @endcode
     return      true if successful, false otherwise */
 bool lf_process(const char *base_path, regex_t *compiled_re,
