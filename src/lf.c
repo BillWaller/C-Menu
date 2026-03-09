@@ -105,11 +105,11 @@ int main(int argc, char **argv) {
     struct stat sb;
     if (optind < argc) {
         if (stat(argv[optind], &sb) == -1 || (sb.st_mode & S_IFMT) != S_IFDIR) {
-            Perror("First non-option argument must be a valid directory");
-            exit(EXIT_FAILURE);
+            strnz__cpy(dir, ".", MAXLEN - 1);
+        } else {
+            strnz__cpy(dir, argv[optind], MAXLEN - 1);
+            optind++;
         }
-        strnz__cpy(dir, argv[optind], MAXLEN - 1);
-        optind++;
     }
     if (optind < argc) {
         strnz__cpy(re, argv[optind], MAXLEN - 1);
