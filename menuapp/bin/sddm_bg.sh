@@ -23,6 +23,6 @@ G=$(id -gn)
 bkgd_dir="/usr/share/sddm/themes/sddm-corporate-theme/Backgrounds"
 rsh -c "chown -R $U:$G $bkgd_dir"
 cd "$bkgd_dir"
-for bg in $(lf -e '.*default\.png$' . '.*\.png$'); do
+for bg in $(lf -e '.*default\.png$' . '.*\.png$' | sort); do
     echo $(basename "$bg")
 done
