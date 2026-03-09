@@ -979,8 +979,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
-        if (strcmp(dir_st->d_name, ".") == 0 ||
-            strcmp(dir_st->d_name, "..") == 0)
+        if (dir_st->d_name[0] == '.')
             continue;
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path,
                   dir_st->d_name);

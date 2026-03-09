@@ -25,9 +25,9 @@ void sort_opts_by_desc();
 void sort_opts_by_short_opt();
 void print_opt_header();
 void print_opt(int);
-static int comp_opt_desc(const void *, const void *);
-static int comp_opt_group(const void *, const void *);
-static int comp_opt_desc(const void *, const void *);
+int comp_opt_desc(const void *, const void *);
+int comp_opt_group(const void *, const void *);
+int comp_opt_desc(const void *, const void *);
 void dump_opts();
 #define red "\033[0;31m"
 #define green "\033[0;32m"
@@ -123,40 +123,32 @@ Opts opts[] = {
     @param  o2 - pointer to second option
     @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
  */
-static int comp_opt_name(const void *o1, const void *o2) {
-    const Opts *opt1 = o1;
-    const Opts *opt2 = o2;
-    return strcmp(opt1->name, opt2->name);
+int comp_opt_name(const void *o1, const void *o2) {
+    return strcmp(((Opts *)o1)->name, ((Opts *)o2)->name);
 }
 /** @brief compare option groups
     @param  o1 - pointer to first option
     @param  o2 - pointer to second option
     @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
  */
-static int comp_opt_group(const void *o1, const void *o2) {
-    const Opts *opt1 = o1;
-    const Opts *opt2 = o2;
-    return (opt1->group - opt2->group);
+int comp_opt_group(const void *o1, const void *o2) {
+    return ((Opts *)o1)->group - ((Opts *)o2)->group;
 }
 /** @brief compare option descriptions
     @param  o1 - pointer to first option
     @param  o2 - pointer to second option
     @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
  */
-static int comp_opt_desc(const void *o1, const void *o2) {
-    const Opts *opt1 = o1;
-    const Opts *opt2 = o2;
-    return strcmp(opt1->desc, opt2->desc);
+int comp_opt_desc(const void *o1, const void *o2) {
+    return strcmp(((Opts *)o1)->desc, ((Opts *)o2)->desc);
 }
 /** @brief compare option short options
     @param  o1 - pointer to first option
     @param  o2 - pointer to second option
     @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
  */
-static int comp_opt_short_opt(const void *o1, const void *o2) {
-    const Opts *opt1 = o1;
-    const Opts *opt2 = o2;
-    return strcmp(opt1->short_opt, opt2->short_opt);
+int comp_opt_short_opt(const void *o1, const void *o2) {
+    return strcmp(((Opts *)o1)->short_opt, ((Opts *)o2)->short_opt);
 }
 /** @brief dump options sorted by description
  */

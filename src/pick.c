@@ -9,12 +9,12 @@
 
 #include <common.h>
 
-__end_pgm;
 /**   @brief Main entry point for C-Menu Pick
     @param argc Argument count
     @param argv Argument vector
     @return Exit status
  */
+__end_pgm;
 int main(int argc, char **argv) {
     __atexit;
     capture_shell_tioctl();
@@ -25,8 +25,11 @@ int main(int argc, char **argv) {
     sig_prog_mode();
     capture_curses_tioctl();
     win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
+
     init_pick(init, init->argc, init->argv, 0, 0);
+
     destroy_init(init);
+    win_del();
     destroy_curses();
     return 0;
 }

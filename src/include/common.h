@@ -50,6 +50,26 @@
 #define P_WRITE 1
 #define TRUE 1
 
+#define new_cmenu()                                                            \
+    __end_pgm;                                                                 \
+    int main(int argc, char **argv) {                                          \
+        __atexit;                                                              \
+        capture_shell_tioctl();                                                \
+        Init *init = new_init(argc, argv);                                     \
+        SIO *sio = init->sio;                                                  \
+        mapp_initialization(init, argc, argv);                                 \
+        open_curses(sio);                                                      \
+        sig_prog_mode();                                                       \
+        capture_curses_tioctl();                                               \
+        win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
+
+#define destroy_cmenu()                                                        \
+    destroy_init(init);                                                        \
+    win_del();                                                                 \
+    destroy_curses();                                                          \
+    return 0;                                                                  \
+    }
+
 enum Caller { VIEW, FORM, PICK, MENU };
 
 /** @brief option types */

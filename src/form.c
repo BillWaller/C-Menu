@@ -10,8 +10,6 @@
 #include <common.h>
 
 __end_pgm;
-
-/** Command Line entry point for C-Menu Form */
 int main(int argc, char **argv) {
     __atexit;
     capture_shell_tioctl();
@@ -19,12 +17,12 @@ int main(int argc, char **argv) {
     SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
     open_curses(sio);
-    capture_curses_tioctl();
     sig_prog_mode();
+    capture_curses_tioctl();
     win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
-    int begy = LINES / 14;
-    int begx = COLS / 14;
-    init_form(init, argc, argv, begy, begx);
+
+    init_form(init, argc, argv, LINES / 14, COLS / 14);
+
     destroy_init(init);
     win_del();
     destroy_curses();

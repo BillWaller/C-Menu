@@ -163,6 +163,18 @@ void win_init_attrs(int fg_color, int bg_color, int bo_color) {
 }
 /** @brief Create and initialize Chyron structure
     @param chyron structure
+    @return pointer to new Chyron structure
+    @details This function allocates memory for a new Chyron structure and
+   initializes the key pointers. Each key pointer is allocated memory for a
+   ChyronKey structure. The Chyron structure is used to manage function key
+   labels and their associated keycodes for mouse click handling in the chyron
+   area of the interface.
+    @note The use of calloc ensures that the allocated memory is initialized to
+   zero, which means that the text for each key will be initialized to an empty
+   string and the keycodes will be initialized to zero. This allows the
+   is_set_chyron_key function to check if a key is set by checking if the first
+   character of the text is not '\0'. If any memory allocation fails, the
+   function will call abend to handle the error and return nullptr.
  */
 Chyron *new_chyron() {
     Chyron *chyron = (Chyron *)calloc(1, sizeof(Chyron));
@@ -202,9 +214,17 @@ bool is_set_chyron_key(Chyron *chyron, int k) {
         return false;
 }
 /** @brief Set chyron key
+    @param chyron structure
     @param k chyron key index (0-19)
     @param s chyron key label
-    @note This table will be used to change the chyron on the fly */
+    @param kc chyron key code
+    @details This function sets the label and keycode for a chyron key. The
+   label is copied into the chyron structure, and the keycode is stored for
+   later retrieval when theire is a mouse click. The compile_chyron function
+   uses the keycode values to determine which key was clicked based on the mouse
+   X position. If the label string is empty, the key is unset by setting the
+   first character of the text to '\0'.
+*/
 void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
     size_t y;
     size_t x = sizeof(chyron->key[k]->text);
@@ -217,11 +237,18 @@ void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
     chyron->key[k]->keycode = kc;
 }
 /** @brief Unset chyron key
-    @param k chyron_key index */
+    @param chyron structure
+    @param k chyron_key index
+*/
 void unset_chyron_key(Chyron *chyron, int k) { chyron->key[k]->text[0] = '\0'; }
 /** @brief construct the chyron string from the chyron structure
     @param chyron
-    @note This function also sets the zones for mouse clicks */
+    @details The chyron string is constructed by concatenating the labels of the
+   set keys, separated by " | ". The end_pos values for each key are set to
+   determine the zones for mouse clicks. When a mouse click occurs, the
+   get_chyron_key function uses the end_pos values to determine which key was
+   clicked based on the X position of the click.
+*/
 void compile_chyron(Chyron *chyron) {
     int end_pos = 0;
     int i = 0;
@@ -249,7 +276,14 @@ void compile_chyron(Chyron *chyron) {
     @param x Mouse X position
     @return Keycode
     @note This function uses the end_pos values set in compile_chyron
-    to determine which key was clicked */
+    to determine which key was clicked
+    @note The chyron functions provide xwgetch() with a mechanism to translate
+    mouse click positions into key codes based on the labels set in the chyron
+   structure. When a mouse click occurs, xwgetch() can call get_chyron_key()
+   with the X position of the click to determine which function key was clicked,
+   allowing for dynamic and customizable function key behavior in the chyron
+   area of the interface.
+*/
 int get_chyron_key(Chyron *chyron, int x) {
     int i;
     for (i = 0; chyron->key[i]->end_pos != -1; i++)
