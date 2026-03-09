@@ -288,7 +288,6 @@ unsigned int menu_cmd_processor(Init *init) {
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
     case CT_HELP:
-        segmentation_fault();
         eargv[0] = strdup("mview");
         strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);
         expand_tilde(tmp_str, MAXLEN - 1);
