@@ -336,7 +336,6 @@ int picker(Init *init) {
             display_pick_help(init);
             display_page(pick);
             reverse_object(pick);
-            cmd_key = 0;
             break;
             /** 't' or Space Toggles selection of current object */
         case ' ':
@@ -345,7 +344,6 @@ int picker(Init *init) {
             toggle_object(pick);
             if (pick->select_cnt == pick->select_max)
                 return pick->select_cnt;
-            cmd_key = 0;
             break;
             /** Enter or KEY_F(10) Accepts current selection and exits picker,
              * returning count of selected objects */
@@ -367,7 +365,6 @@ int picker(Init *init) {
                 display_page(pick);
             }
             reverse_object(pick);
-            cmd_key = 0;
             break;
         /** 'l' or KEY_RIGHT Moves selection to next object in list */
         case 'l':
@@ -383,7 +380,6 @@ int picker(Init *init) {
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->tbl_line;
             reverse_object(pick);
-            cmd_key = 0;
             break;
             /** 'h' or KEY_LEFT or Backspace Moves selection to previous object
              * in list */
@@ -396,7 +392,6 @@ int picker(Init *init) {
                 pick->tbl_col--;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->tbl_line;
-            cmd_key = 0;
             reverse_object(pick);
             break;
             /** 'j' or KEY_DOWN Moves selection to next object in list, 'k' or
@@ -413,7 +408,6 @@ int picker(Init *init) {
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->tbl_line;
             reverse_object(pick);
-            cmd_key = 0;
             break;
             /** 'k' or KEY_UP Moves selection to previous object in list */
         case 'k':
@@ -425,7 +419,6 @@ int picker(Init *init) {
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->tbl_line;
             reverse_object(pick);
-            cmd_key = 0;
             break;
         /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects, */
         case KEY_NPAGE:
@@ -441,7 +434,6 @@ int picker(Init *init) {
                             pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
-            cmd_key = 0;
             break;
             /**   KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
              * objects */
@@ -455,7 +447,6 @@ int picker(Init *init) {
                             pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
-            cmd_key = 0;
             break;
             /** KEY_HOME Moves selection to first object in list */
         case KEY_HOME:
@@ -466,7 +457,6 @@ int picker(Init *init) {
                             pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
-            cmd_key = 0;
             break;
             /** KEY_LL (lower left of numeric pad) Moves selection to last
                 object in list */
@@ -476,7 +466,6 @@ int picker(Init *init) {
                             pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
-            cmd_key = 0;
             break;
             /** KEY_MOUSE Handles mouse events for selection and chyron key
              * activation */
@@ -486,10 +475,8 @@ int picker(Init *init) {
             unreverse_object(pick);
             pick->y = click_y;
             pick->tbl_col = (click_x - 1) / (pick->tbl_col_width + 1);
-            if (pick->tbl_col < 0 || pick->tbl_col >= pick->tbl_cols) {
-                cmd_key = 0;
-                continue;
-            }
+            if (pick->tbl_col < 0 || pick->tbl_col >= pick->tbl_cols)
+                break;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->y;
             toggle_object(pick);
@@ -498,12 +485,11 @@ int picker(Init *init) {
                 return pick->select_cnt;
             wrefresh(pick->win);
             click_y = click_x = -1;
-            cmd_key = 0;
             break;
         default:
-            cmd_key = 0;
             break;
         }
+        cmd_key = 0;
     }
     return 0;
 }

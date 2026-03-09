@@ -229,7 +229,7 @@ int form_end_fields(Init *init) {
     @param init A pointer to the Init structure containing form data and state.
     @return An integer status code indicating the next action for the form
     processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP).
-    @note This function provides integration with external programs.
+    @details This function provides integration with external programs.
         The requirements are:
         1. The form description file must have a line starting with 'C' to
         indicate that the form supports calculation.

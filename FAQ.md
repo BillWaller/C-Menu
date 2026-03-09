@@ -4,32 +4,87 @@
 
 <!-- mtoc-start -->
 
-* [What's the Icon?](#whats-the-icon)
-* [C-Menu's File Structure](#c-menus-file-structure)
-* [Some Menu Selections Don't work](#some-menu-selections-dont-work)
-  * [Visual Aids Soap-box](#visual-aids-soap-box)
-* [High Precision Math With C-Menu and Gawk](#high-precision-math-with-c-menu-and-gawk)
-* [TrueColor Support](#truecolor-support)
-* [Why View Displays Question Marks](#why-view-displays-question-marks)
-* [View - How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
-* [View - How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
-* [View - How to Customize Colors](#view---how-to-customize-colors)
-* [Menu, Form, Pick, and View API](#menu-form-pick-and-view-api)
-* [View - How to Use Tree-Sitter with View](#view---how-to-use-tree-sitter-with-view)
-* [Install Tree-Sitter-CLI](#install-tree-sitter-cli)
-  * [Download From Github](#download-from-github)
-* [Menu Form - Integrating External Executables](#menu-form---integrating-external-executables)
-* [Menu - Using the Installment Loan Calculator](#menu---using-the-installment-loan-calculator)
-* [Menu Form - Line Type Speecifiers (H, T, F, and ?)](#menu-form---line-type-speecifiers-h-t-f-and-)
-* [Menu Form - Field Delimiters](#menu-form---field-delimiters)
-* [Menu Form - Data Types](#menu-form---data-types)
-* [Menu - Interprocess Communications](#menu---interprocess-communications)
-* [Menu - What Happened to Delete by Inode](#menu---what-happened-to-delete-by-inode)
-* [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
-* [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
-* [View In a Box Window](#view-in-a-box-window)
+- [Sorted lf Output](#sorted-lf-output)
+- [Multiple Executables](#multiple-executables)
+- [Static Executables](#static-executables)
+- [What's the Icon?](#whats-the-icon)
+- [C-Menu's File Structure](#c-menus-file-structure)
+- [Some Menu Selections Don't work](#some-menu-selections-dont-work)
+  - [Visual Aids Soap-box](#visual-aids-soap-box)
+- [High Precision Math With C-Menu and Gawk](#high-precision-math-with-c-menu-and-gawk)
+- [TrueColor Support](#truecolor-support)
+- [Why View Displays Question Marks](#why-view-displays-question-marks)
+- [View - How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
+- [View - How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
+- [View - How to Customize Colors](#view---how-to-customize-colors)
+- [Menu, Form, Pick, and View API](#menu-form-pick-and-view-api)
+- [View - How to Use Tree-Sitter with View](#view---how-to-use-tree-sitter-with-view)
+- [Install Tree-Sitter-CLI](#install-tree-sitter-cli)
+  - [Download From Github](#download-from-github)
+- [Menu Form - Integrating External Executables](#menu-form---integrating-external-executables)
+- [Menu - Using the Installment Loan Calculator](#menu---using-the-installment-loan-calculator)
+- [Menu Form - Line Type Speecifiers (H, T, F, and ?)](#menu-form---line-type-speecifiers-h-t-f-and-)
+- [Menu Form - Field Delimiters](#menu-form---field-delimiters)
+- [Menu Form - Data Types](#menu-form---data-types)
+- [Menu - Interprocess Communications](#menu---interprocess-communications)
+- [Menu - What Happened to Delete by Inode](#menu---what-happened-to-delete-by-inode)
+- [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
+- [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
+- [View In a Box Window](#view-in-a-box-window)
 
 <!-- mtoc-end -->
+
+## Sorted lf Output
+
+Q: Why is the output of "lf" not sorted?
+
+A: It should be sorted. The easiest way to do that is to pipe lf output through
+"sort". The preferred method would be to use the -S option to execute a shell
+script such as ~/menuapp/bin/project_src. I have added "| sort" to that script
+based on your suggestion. Here is the new script:
+
+```bash
+#!/bin/bash
+# project_src
+# This script lists C source files in the current directory and sorts them.
+lf . .*\.[ch]$ | sort
+```
+
+I should have done that in all the C-Menu examples, and I will in the future.
+Thanks for pointing it out.
+
+## Multiple Executables
+
+Q: Why do you have multiple executables for Menu, Form, Pick, and View?
+
+A: That's a very good question. It would be very simple to have a single
+executable that behaves differently based on the name it is called with. That
+would be accomplished by creating symbolic links to the same executable with different names. I must have chosen to have separate executables for some
+reason, but I cant think of it at the moment. If you have thoughts on why
+I should change to a single executable or not, please let me know.
+
+You may have noticed that that the menu executable alone can provide all the functionality of Menu, Form, Pick, and View, so the real question may be, "are
+the other executables even necessary?"
+
+## Static Executables
+
+Q: Why don't you provide static executables for C-Menu?
+
+A: Especially in a rescue or embedded environment, I can understand why you
+might prefer static executables, and that's why the build system has a provision
+to make rsh as a static executable. However, the executables that use NCurses
+present a much more difficult challenge. While NCurses itself can be built as
+a static library, it has many dependencies, and some of those attempt to open
+dynamic libraries, even when the executable is linked with the static NCurses
+and GLibc libraries. The resulting executables would probably work fine,
+everywhere except where you needed them.
+
+It's not an unsolvable problem. Developers of embedded systems deal with such
+issues routinely. Perhaps one of them will volunteer to create a suite of
+static executables for C-Menu. C-Menu could then serve as a powerful tool for
+embedded and rescue systems development. If you happen to be one of those
+developers and are interested in contributing to the project, please let me
+know. I would be happy to collaborate with you on this.
 
 ## What's the Icon?
 
@@ -77,18 +132,18 @@ That's because language and visual processing are distinct cognitive systems tha
 
 Q: I want to do high precision calculations with data input from C-Menu Form.
 
-A: Yes, you can augment C-Menu Form with the "awk" command to perform high 
-precision math, if you have the GNU version of awk, Gawk compiled with the GNU 
+A: Yes, you can augment C-Menu Form with the "awk" command to perform high
+precision math, if you have the GNU version of awk, Gawk compiled with the GNU
 GMP and MPFR libraries.
 
-To determine if your version of Gawk supports high precision math, you can run 
+To determine if your version of Gawk supports high precision math, you can run
 the following command:
 
 ```bash
 gawk --version
 ```
 
-If the output includes "GNU MPFR" and "GNU MP", then your version of Gawk 
+If the output includes "GNU MPFR" and "GNU MP", then your version of Gawk
 supports high precision math. For example, the output might look like this:
 
 ```bash
@@ -96,7 +151,7 @@ GNU Awk 5.3.2, API 4.0, PMA Avon 8-g1, (GNU MPFR 4.2.2, GNU MP 6.3.0)
 Copyright (C) 1989, 1991-2025 Free Software Foundation.
 ```
 
-You can double-check by running a simple high precision math calculation. First, 
+You can double-check by running a simple high precision math calculation. First,
 we will try gawk with default precision to show how that looks.
 
 ```bash
@@ -134,7 +189,7 @@ The output will be something like this:
 0.0072992700729927007299270072992700729927007299270072992700729927007299270072992700729927007299270073
 ```
 
-You will recognize the famous sequence, 00729927..., which repeats indefinitely. 
+You will recognize the famous sequence, 00729927..., which repeats indefinitely.
 With Gawk, GMP, and MPFR, you can calculate as many digits as you want.
 
 ## TrueColor Support
@@ -235,8 +290,8 @@ and that is perfectly understandable considering that:
 
 1. While 16M colors are beneficial for applications like image viewers and
    video players, most terminal applications do not require that level
-   of color depth. The image viewers built-in to Ghostty and Kitty can display 
-16M colors, the terminfo setting of 256 colors notwithstanding.
+   of color depth. The image viewers built-in to Ghostty and Kitty can display
+   16M colors, the terminfo setting of 256 colors notwithstanding.
 2. A terminfo setting of 256 colors does not limit the number of colors
    that can be displayed by an image viewing application.
 3. A terminfo setting of 256 colors does not limit which of the 16M colors

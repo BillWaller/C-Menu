@@ -9,8 +9,6 @@
 
 #include <common.h>
 
-__end_pgm;
-
 /** @brief This is the main file for C-Menu, a terminal-based application
    launcher and menu system.
     @note It operates by reading a menu description file and displaying a
@@ -19,9 +17,9 @@ __end_pgm;
     @note Several ancillary files provide supporting functionality, including
    handling terminal initialization IO settings, managing the menu structure,
    and rendering the interface using the NCurses library. */
+__end_pgm;
 int main(int argc, char **argv) {
     __atexit;
-    int begy, begx;
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
     SIO *sio = init->sio;
@@ -30,12 +28,12 @@ int main(int argc, char **argv) {
     sig_prog_mode();
     capture_curses_tioctl();
     win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
-    begy = LINES / 14;
-    begx = COLS / 14;
-    new_menu(init, init->argc, init->argv, begy, begx);
+
+    new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
     menu = init->menu;
     parse_menu_description(init);
     menu_engine(init);
+
     destroy_init(init);
     win_del();
     destroy_curses();
