@@ -2,6 +2,27 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-03-09
+
+Much more work on chyron integration. Appears to be working as intended. In the
+process, I found and fixed a number of bugs in form and one in lf. The debugging
+process is somewhat tedious following disruptive feature additions, but we are
+making progress.
+
+Still more work on inte
+
+0.2.9 - 2026-03-08
+
+Continuing to work on chyron integration into Form and Pick. When using the
+Installment Loan example, the chyron has been adjusted to only include relevant
+options, and the key handling has been reworked to accommodate the new structure.
+For example, when the user finishes entering all the fields in the form, the
+chyron provides only F1 Help, F5 Calculate, and F9 Cancel, which makes sense
+because the form is still in edit mode and the user can continue to edit fields
+by using movement keys or by clicking on the fields. Once the user clicks
+calculate, the chyron changes to include F1 Help, F4 Edit, F9 Cancel, and F10
+Commit. Upon clicking F9 Commit (or pressing the F9 key), Form will execute the appropriate action specified by the user.
+
 0.2.9 - 2026-03-07
 
 Corrected Pick Page Down and Page Up key handling, which had been broken by the integration of the chyron facility into xwgetch. This was a major problem, and it caused the Pick module to be completely unusable. I have reimplemented the key handling, and it is now working as intended.
@@ -81,7 +102,6 @@ I will look into adding a website for the project, and I will be uploading the d
 
 Makefile
 
-
 menu - menu.c menu_engine.c parse_menu_desc.c
 
 form - form.c
@@ -102,12 +122,10 @@ whence - whence.c
 
 stripansi - stripansi.c
 
-
-
 iloan - iloan.c
 
 lf - lf.c
- 
+
 add_executable(form form.c)
 target_sources(form PRIVATE $<TARGET_OBJECTS:cmenu>)
 target_link_libraries(form cm ${LIBS})
@@ -128,20 +146,18 @@ add_executable(pick pick.c)
 target_sources(pick PRIVATE $<TARGET_OBJECTS:cmenu>)
 target_link_libraries(pick cm ${LIBS})
 
-
-
 TARGETS menu
-          form
-          pick
-          view
-          ckeys
-          enterchr
-          enterstr
-          lf
-          optsp
-          stripansi
-          whence
-          cm
+form
+pick
+view
+ckeys
+enterchr
+enterstr
+lf
+optsp
+stripansi
+whence
+cm
 
 dwin.c
 futil.c
@@ -150,32 +166,29 @@ exec.c
 sig.c
 
 COMMON_SRCS
-    curskeys.c
-    fields.c
-    form_engine.c
-    init_view.c
-    pick_engine.c
-    view_engine.c
-    init.c
-    mem.c
-    mview.c
-    opts.c)
-
-
-
-
-
+curskeys.c
+fields.c
+form_engine.c
+init_view.c
+pick_engine.c
+view_engine.c
+init.c
+mem.c
+mview.c
+opts.c)
 
 - 0.2.8 - 2026-02-03
 - 0.2.9 - 2026-02-04
 
 ### Fixed
-*   Prevent segmentation fault upon `close()` ([#28](link-to-pr))
+
+- Prevent segmentation fault upon `close()` ([#28](link-to-pr))
 
 ## [0.2.8]- 2026-02-04
+
 ### Added
-*   Initial release of the project ([`a1b2c3d`](link-to-commit))
+
+- Initial release of the project ([`a1b2c3d`](link-to-commit))
 
 : https://github.com/BillWAller/C-Menu/releases/tag/C-Menu-0.2.8
 : https://github.com/BillWaller/C-Menu/releases/tag/C-Menu-0.2.8
-

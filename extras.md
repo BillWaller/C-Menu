@@ -4,54 +4,55 @@
 
 <!-- mtoc-start -->
 
-* [Introduction](#introduction)
-* [Installing Rust](#installing-rust)
-  * [Installing Rust On Linux and macOS](#installing-rust-on-linux-and-macos)
-* [About C-Menu and R-Menu](#about-c-menu-and-r-menu)
-* [Installing Bat](#installing-bat)
-  * [Bat On Linux](#bat-on-linux)
-  * [Bat On macOS](#bat-on-macos)
-  * [Bat On Windows](#bat-on-windows)
-* [Installing Ripgrep](#installing-ripgrep)
-  * [Ripgrep On Linux](#ripgrep-on-linux)
-  * [Ripgrep On macOS](#ripgrep-on-macos)
-  * [Ripgrep On Windows](#ripgrep-on-windows)
-* [lsd](#lsd)
-  * [lsd On Linux](#lsd-on-linux)
-  * [lsd On macOS](#lsd-on-macos)
-  * [lsd On Windows](#lsd-on-windows)
-* [Highlighting](#highlighting)
-* [Tree-Sitter](#tree-sitter)
-  * [Tree-Sitter On Linux](#tree-sitter-on-linux)
-  * [Tree-Sitter On macOS](#tree-sitter-on-macos)
-  * [Tree-Sitter On Windows](#tree-sitter-on-windows)
-* [Tree-Sitter-CLI](#tree-sitter-cli)
-  * [Tree-Sitter-CLI On Linux](#tree-sitter-cli-on-linux)
-  * [Tree-Sitter-CLI On macOS](#tree-sitter-cli-on-macos)
-  * [Tree-Sitter-CLI On Windows](#tree-sitter-cli-on-windows)
-* [Tree-Sitter Parsers](#tree-sitter-parsers)
-  * [Tree-Sitter Parsers On Linux](#tree-sitter-parsers-on-linux)
-  * [Tree-Sitter Parsers On macOS](#tree-sitter-parsers-on-macos)
-  * [Tree-Sitter Parsers On Windows](#tree-sitter-parsers-on-windows)
-  * [Testing Tree-Sitter](#testing-tree-sitter)
-* [Rustlings](#rustlings)
-* [Neovim](#neovim)
-* [Lazyvim](#lazyvim)
-* [Ghostty](#ghostty)
-  * [Ghostty On Linux](#ghostty-on-linux)
-  * [Ghostty On macOS](#ghostty-on-macos)
-  * [Ghostty On Windows](#ghostty-on-windows)
-* [Useful Configurations](#useful-configurations)
-  * [Alternate Bash Executable](#alternate-bash-executable)
-  * [Shell Configuration](#shell-configuration)
-  * [Customize Your Terminal Emulator](#customize-your-terminal-emulator)
-    * [Fonts](#fonts)
-    * [Example Terminal Configurations](#example-terminal-configurations)
-      * [Ghostty Configuration](#ghostty-configuration)
-      * [Kitty Configuration](#kitty-configuration)
-      * [Alacritty Configuration](#alacritty-configuration)
-* [Additional Resources](#additional-resources)
-* [Conclusion](#conclusion)
+- [Introduction](#introduction)
+- [Installing Rust](#installing-rust)
+  - [Installing Rust On Linux and macOS](#installing-rust-on-linux-and-macos)
+- [About C-Menu and R-Menu](#about-c-menu-and-r-menu)
+- [Installing Bat](#installing-bat)
+  - [Bat On Linux](#bat-on-linux)
+  - [Bat On macOS](#bat-on-macos)
+  - [Bat On Windows](#bat-on-windows)
+- [Installing Ripgrep](#installing-ripgrep)
+  - [Ripgrep On Linux](#ripgrep-on-linux)
+  - [Ripgrep On macOS](#ripgrep-on-macos)
+  - [Ripgrep On Windows](#ripgrep-on-windows)
+- [lsd](#lsd)
+  - [lsd On Linux](#lsd-on-linux)
+  - [lsd On macOS](#lsd-on-macos)
+  - [lsd On Windows](#lsd-on-windows)
+- [Highlighting](#highlighting)
+- [Tree-Sitter](#tree-sitter)
+  - [Tree-Sitter On Linux](#tree-sitter-on-linux)
+  - [Tree-Sitter On macOS](#tree-sitter-on-macos)
+  - [Tree-Sitter On Windows](#tree-sitter-on-windows)
+- [Tree-Sitter-CLI](#tree-sitter-cli)
+  - [Tree-Sitter-CLI On Linux](#tree-sitter-cli-on-linux)
+  - [Tree-Sitter-CLI On macOS](#tree-sitter-cli-on-macos)
+  - [Tree-Sitter-CLI On Windows](#tree-sitter-cli-on-windows)
+- [Tree-Sitter Parsers](#tree-sitter-parsers)
+  - [Tree-Sitter Parsers On Linux](#tree-sitter-parsers-on-linux)
+  - [Tree-Sitter Parsers On macOS](#tree-sitter-parsers-on-macos)
+  - [Tree-Sitter Parsers On Windows](#tree-sitter-parsers-on-windows)
+  - [Testing Tree-Sitter](#testing-tree-sitter)
+- [Rustlings](#rustlings)
+- [Neovim](#neovim)
+- [Lazyvim](#lazyvim)
+- [Neovim Linkage to the C-Menu API](#neovim-linkage-to-the-c-menu-api)
+- [Ghostty](#ghostty)
+  - [Ghostty On Linux](#ghostty-on-linux)
+  - [Ghostty On macOS](#ghostty-on-macos)
+  - [Ghostty On Windows](#ghostty-on-windows)
+- [Useful Configurations](#useful-configurations)
+  - [Alternate Bash Executable](#alternate-bash-executable)
+  - [Shell Configuration](#shell-configuration)
+  - [Customize Your Terminal Emulator](#customize-your-terminal-emulator)
+    - [Fonts](#fonts)
+    - [Example Terminal Configurations](#example-terminal-configurations)
+      - [Ghostty Configuration](#ghostty-configuration)
+      - [Kitty Configuration](#kitty-configuration)
+      - [Alacritty Configuration](#alacritty-configuration)
+- [Additional Resources](#additional-resources)
+- [Conclusion](#conclusion)
 
 <!-- mtoc-end -->
 
@@ -332,7 +333,7 @@ Rust's package manager. Cargo install is designed for programs, and the
 tree-sitter package consists of libraries, so it has to be installed as
 a dependency. Insert a line in the Dependency section of any Cargo.toml
 and type "cargo add tree-sitter".
- 
+
 ```cargo
 [Dependencies]
 tree-sitter = "0.26.5"
@@ -593,7 +594,23 @@ to tailor their Neovim setup to their specific needs.
 ![Lazyvim](screenshots/Lazyvim.png)
 
 To install Neovim and Lazyvim, follow the instructions on the
-[Lazyvim website](https://www.lazyvim.org/).
+[Lazyvim website](https://www.lazyvim.org/installation)
+
+---
+
+## Neovim Linkage to the C-Menu API
+
+Neovim can be linked to the C-Menu API to provide an enhanced editing experience
+when working with source code files in C-Menu. By configuring Neovim to use the
+C-Menu API, you can take advantage of Neovim's powerful editing features while
+working within the C-Menu environment.
+
+For example, you want to use one of the C-Menu API functions, but you don't
+remember the exact syntax. Just type the function name in Neovim, move the
+cursor over the function name, and press Shift-K. You will get a pop-up
+documenting the function parameters, data types, and signature as below:
+
+![Neovim / C-Menu API](screenshots/ShiftK.png)
 
 ---
 

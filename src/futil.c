@@ -888,7 +888,8 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
 }
 /** @brief Find files in a directory matching a regular expression
     @param base_path  directory to search
-    @param re         regular expression to match
+    @param ere        regular expression match to exclude
+    @param re         regular expression match to include
     @param max_depth  depth of directories to scan
     @param flags      search flags
     @code
@@ -947,7 +948,8 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
 }
 /** @brief logic for lf_find()
     @param base_path   directory to search
-    @param compiled_re compiled regular expression
+    @param compiled_ere compiled regular expression to exclude
+    @param compiled_re compiled regular expression to include
     @param depth recursion counter
     @param max_depth how deep to descend into the directory structure
     @param flags
