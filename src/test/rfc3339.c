@@ -38,7 +38,6 @@
 /// @note: the caller is responsible for freeing the allocated memory.
 /// @see: free_string
 /// @return: String struct
-/// @example:
 ///
 ///   String str = to_string("Hello, World!");
 ///   //   // Use str.s and str.l
@@ -48,8 +47,7 @@ typedef struct {
     char *s;  // pointer to string
     size_t l; // length of string including null terminator
 } String;
-/// fn mk_string(size_t l) -> String
-/// Create an empty String struct with specified length
+/// @brief Create an empty String struct with specified length
 /// @param: l Length of the string (excluding null terminator)
 /// @note: The returned String struct contains a dynamically allocated
 /// string of length l + 1 (including null terminator).
@@ -63,8 +61,7 @@ String mk_string(size_t l) {
     str.s[0] = '\0';
     return str;
 }
-/// fn to_string(const char *s) -> String
-/// Convert C string to String struct
+/// @brief Convert C string to String struct
 /// @param: s C string
 /// @note: The returned String struct contains a dynamically allocated copy
 /// of the input string.
@@ -78,20 +75,18 @@ String to_string(const char *s) {
     strcpy(str.s, s);
     return str;
 }
-/// fn free_string(String str) -> String
-/// Free the memory allocated for a String struct
+/// @brief Free the memory allocated for a String struct
 /// @param: str String struct to free
 /// @note: This function frees the memory allocated for the string
 /// in the String struct and sets its length to 0 and pointer to NULL.
 /// @return: String struct with NULL pointer and length 0
-void free_string(String str) {
+String free_string(String str) {
     free(str.s);
     str.l = 0;
     str.s = NULL;
     return str;
 }
-/// fn get_rfc3339_str(String timestamp_s)
-/// Get the current timestamp in rfc3339 format
+/// @brief Get the current timestamp in rfc3339 format
 /// @param: timestamp_s String struct to store the rfc3339 timestamp
 /// @note: The caller is responsible for ensuring that timestamp_s
 /// has enough space to hold the rfc3339 timestamp (at least 30 bytes).

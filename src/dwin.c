@@ -162,7 +162,6 @@ void win_init_attrs(int fg_color, int bg_color, int bo_color) {
     return;
 }
 /** @brief Create and initialize Chyron structure
-    @param chyron structure
     @return pointer to new Chyron structure
     @details This function allocates memory for a new Chyron structure and
    initializes the key pointers. Each key pointer is allocated memory for a
@@ -187,7 +186,7 @@ Chyron *new_chyron() {
     return chyron;
 }
 /** @brief Destroy Chyron structure
-    @param init structure
+    @param chyron pointer to Chyron structure
     @return nullptr
  */
 Chyron *destroy_chyron(Chyron *chyron) {
@@ -205,6 +204,7 @@ Chyron *destroy_chyron(Chyron *chyron) {
     return chyron;
 }
 /** @brief Check if function key label is set
+*   @param chyron structure
     @param k Function key index (0-19)
     @return true if set, false if not set */
 bool is_set_chyron_key(Chyron *chyron, int k) {
@@ -1064,6 +1064,7 @@ void abend(int ec, char *s) {
 }
 /** @brief Wrapper for wgetch that handles signals and mouse events
     @param win Pointer to window
+    @param chyron Pointer to chyron for handling chyron line clicks
     @return Key code or ERR if interrupted by signal
     @note This, of course, will be expanded into an event loop for message
    queuing
