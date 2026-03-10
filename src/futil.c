@@ -983,15 +983,25 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             continue;
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path,
                   dir_st->d_name);
-        if (stat(file_spec, &sb) == -1)
+        if (lstat(file_spec, &sb) == -1)
             return false;
         suppress = false;
-        if ((sb.st_mode & S_IFMT) == S_IFDIR && dir_st->d_ino != 0) {
+        if (S_ISLNK(sb.st_mode)) {
+            if (flags & LF_DIRS)
+                suppress = true;
+            is_dir = false;
+        } else if (S_ISDIR(sb.st_mode)) {
             if (flags & LF_FILES)
                 suppress = true;
             is_dir = true;
+        } else if (S_ISREG(sb.st_mode)) {
+            if (flags & LF_DIRS)
+                suppress = true;
+            is_dir = false;
         } else {
             if (flags & LF_DIRS)
+                suppress = true;
+            if (flags & LF_FILES)
                 suppress = true;
             is_dir = false;
         }

@@ -1846,6 +1846,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             view->f_redisplay_page = true;
             return (false);
         }
+        destroy_form(init);
         close(view->in_fd);
         /** read file_name from tmp_spec */
         tmp_fp = fopen(tmp_spec, "r");
