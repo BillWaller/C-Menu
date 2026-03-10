@@ -2,6 +2,20 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-03-10
+
+Moved documentation to a separate repository and website, which is now available
+at:
+
+[C-Menu Comprehensive Reference](https://decision-inc.com/)
+
+This was necessary because the documentation had become too large and unwieldy to
+be easily navigable within the C-Menu repository, so only the main page was available.
+With the new website on Github Pages, I was able to include all the Doxygen
+pages including function cross references and diagrams.
+
+The new website is much more user-friendly and easier to navigate, and it will allow me to keep the documentation up-to-date more easily.
+
 0.2.9 - 2026-03-09
 
 Much more work on chyron integration. Appears to be working as intended. In the

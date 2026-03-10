@@ -2,11 +2,11 @@
 
 <!-- mtoc-start -->
 
-* [Exercise 1: System Configurations](#exercise-1-system-configurations)
-  * [SDDM Background Configuration](#sddm-background-configuration)
-    * [Requisites](#requisites)
-  * [Ghostty Configuration](#ghostty-configuration)
-  * [Alacritty and Kitty](#alacritty-and-kitty)
+- [Exercise 1: System Configurations](#exercise-1-system-configurations)
+  - [SDDM Background Configuration](#sddm-background-configuration)
+    - [Requisites](#requisites)
+  - [Ghostty Configuration](#ghostty-configuration)
+  - [Alacritty and Kitty](#alacritty-and-kitty)
 
 <!-- mtoc-end -->
 
@@ -33,24 +33,24 @@ assumes you have sddm installed and that the sddm theme is located in
 - A working C-Menu installation.
 - SDDM installed and configured on your system.
 - A collection of background images available in the SDDM theme directory. For
-this exercise, we will assume the SDDM theme is located at
-/usr/share/sddm/themes/sddm-corporate-theme/Backgrounds, and that they are
-of type Portable Network Graphics (*.png). This exercise assumes that the
-Backgrounds directory contains a default.png image that is currently being used
-as the SDDM background. For the sddm-corporate-theme, the background image is
-specified in Themes/corporate.conf as Background=Backgrounds/default.png.
-You may want to install the sddm-corporate-theme as it is set up perfectly for
-this exercise.
+  this exercise, we will assume the SDDM theme is located at
+  /usr/share/sddm/themes/sddm-corporate-theme/Backgrounds, and that they are
+  of type Portable Network Graphics (\*.png). This exercise assumes that the
+  Backgrounds directory contains a default.png image that is currently being used
+  as the SDDM background. For the sddm-corporate-theme, the background image is
+  specified in Themes/corporate.conf as Background=Backgrounds/default.png.
+  You may want to install the sddm-corporate-theme as it is set up perfectly for
+  this exercise.
 
 [sddm-corporate-theme](https://github.com/BillWaller/sddm-corporate-theme.git)
 
-1. In your editor, open a new file:
+1️⃣ In your editor, open a new file:
 
 ```bash
 vi ~/menuapp/msrc/workstation_config.m
 ```
 
-2. Add the following content to the file and save it:
+2️⃣ Add the following content to the file and save it:
 
 ```bash
 :   WORKSTATION CONFIGURATION
@@ -62,13 +62,13 @@ vi ~/menuapp/msrc/workstation_config.m
 !return
 ```
 
-3. Open another file to create a bash script:
+3️⃣ Open another file to create a bash script:
 
 ```bash
 vi ~/menuapp/bin/sddm_chbg.sh
 ```
 
-4. Add the following content to the file, save it, and make it executable:
+4️⃣ Add the following content to the file, save it, and make it executable:
 
 ```bash
 #!/bin/bash
@@ -91,13 +91,13 @@ forget to make the script executable.
 chmod +x ~/menuapp/bin/sddm_chbg.sh
 ```
 
-5. Now, create another bash script:
+5️⃣ Now, create another bash script:
 
 ```bash
 vi ~/menuapp/bin/sddm_chbg.sh
 ```
 
-6. Add the following content to the file, save it, and make it executable:
+6️⃣ Add the following content to the file, save it, and make it executable:
 
 ```bash
 #!/bin/bash
@@ -113,20 +113,20 @@ ln -sf "$1" default.png
 
 Pick will execute this script, passing the selected background image as an argument. The script will create a symbolic link named default.png that points to the selected background image, effectively changing the SDDM background.
 
-7. Finally, test your menu by running it from the command line:
+7️⃣ Finally, test your menu by running it from the command line:
 
 ```bash
 menu ~/menuapp/msrc/workstation_config.m
 ```
 
-8. You may want to add the Workstation Configuration option to your main menu.
-   To do this, open your main menu file:
+8️⃣ You may want to add the Workstation Configuration option to your main menu.
+To do this, open your main menu file:
 
 ```bash
 vi ~/menuapp/msrc/main.m
 ```
 
-9. Add the following lines to include the Workstation Configuration menu:
+9️⃣ Add the following lines to include the Workstation Configuration menu:
 
 ```bash
 :   Workstation Configuration
@@ -136,6 +136,7 @@ vi ~/menuapp/msrc/main.m
 From the C-Menu main menu, you should now see an option for Workstation Configuration. Selecting it will take you to the menu where you can choose a new SDDM background image.
 
 ![Select SDDM Background](screenshots/workstation_config.png)
+
 To verify that the background has been changed, you can log out of your session and return to the SDDM login screen. You should see the new background image you selected.
 Or, you can check the symbolic link in the SDDM background directory to confirm it points to the correct image.
 
@@ -146,14 +147,14 @@ the space_force.png background image.
 
 ### Ghostty Configuration
 
-1. In this exercise, we will add Ghostty configurations for color themes
+1️⃣ In this exercise, we will add Ghostty configurations for color themes
 and fonts to the Workstation Configuration. First, open the workstation_config.m file:
 
 ```bash
 vi ~/menuapp/msrc/workstation_config.m
 ```
 
-2. Add the following lines to the workstation_config.m to include options for Ghostty themes and fonts:
+2️⃣ Add the following lines to the workstation_config.m to include options for Ghostty themes and fonts:
 
 ```bash
 :   Select Ghostty Theme
@@ -162,13 +163,13 @@ vi ~/menuapp/msrc/workstation_config.m
 !pick -n 1 -T "Select Ghostty Font" -S ghostty_fonts.sh -c "ghostty_chfont.sh %%"
 ```
 
-3. Next, create the ghostty_themes.sh and ghostty_chtheme.sh scripts:
+3️⃣ Next, create the ghostty_themes.sh and ghostty_chtheme.sh scripts:
 
 ```bash
 vi ~/menuapp/bin/ghostty_themes.sh
 ```
 
-4. Add the following content to the file, save it, and make it executable:
+4️⃣ Add the following content to the file, save it, and make it executable:
 
 ```bash
 #!/bin/bash
@@ -182,8 +183,7 @@ for theme in $(lf -d 1 -t f -e '.*default_theme$' . '.*'); do
 done
 ```
 
-5. Now, create the ~/menuapp/bin/ghostty_chtheme.sh script, add the following content, save it, and make it executable.
-
+5️⃣ Now, create the ~/menuapp/bin/ghostty_chtheme.sh script, add the following content, save it, and make it executable.
 
 ```bash
 #!/bin/bash
@@ -196,7 +196,7 @@ cd "$themes_dir"
 ln -sf "$1" default_theme
 ```
 
-6. Finally, create the ghostty_fonts.sh and ghostty_chfont.sh scripts:
+6️⃣ Finally, create the ghostty_fonts.sh and ghostty_chfont.sh scripts:
 
 ```bash
 vi ~/menuapp/bin/ghostty_fonts.sh
@@ -229,7 +229,7 @@ cd "$fonts_dir"
 ln -sf "$1" default_font
 ```
 
-6. Test your menu again by running it from the command line:
+7️⃣ Test your menu again by running it from the command line:
 
 ```bash
 menu ~/menuapp/msrc/workstation_config.m
@@ -288,4 +288,3 @@ Here is the final content of the workstation_config.m file after adding the Alac
 ```
 
 ![Workstation Configuration](screenshots/workstation_config2.png)
-
