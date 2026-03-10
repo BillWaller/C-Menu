@@ -1,46 +1,71 @@
 # A User Interface Toolkit
 
-***NEW*** C-Menu Exercises
-
-
-![Exercises](screenshots/workstation_config2.png)
-![Exercises](screenshots/workstation_config.png)
-
 ## Table of Contents
-
 
 <!-- mtoc-start -->
 
-* [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
-  * [Elements of C-Menu](#elements-of-c-menu)
-  * [Key Features](#key-features)
-  * [Highlights (Pun Intended)](#highlights-pun-intended)
-  * [Just Do It!](#just-do-it)
-  * [Menu](#menu)
-  * [C-Keys - Diagnose Keyboard/Mouse Input](#c-keys---diagnose-keyboardmouse-input)
-  * [Pick - A Picker](#pick---a-picker)
-  * [Form for Data Entry and Editing](#form-for-data-entry-and-editing)
-  * [Form Key Features](#form-key-features)
-  * [Form Data Types](#form-data-types)
-  * [Sample Menu Description File](#sample-menu-description-file)
-  * [View](#view)
-    * [Log File With Editor](#log-file-with-editor)
-    * [Screenshot of the Same File With View](#screenshot-of-the-same-file-with-view)
-  * [View and Color Manual Pages](#view-and-color-manual-pages)
-  * [Example Manual Page Using Editor](#example-manual-page-using-editor)
-  * [Example Manual Page](#example-manual-page)
-  * [Demand Paged Virtual Address Space](#demand-paged-virtual-address-space)
-  * [View - Other Features](#view---other-features)
-  * [3-Channel Gamma Correction](#3-channel-gamma-correction)
-  * [Gray Gamma](#gray-gamma)
-  * [RSH](#rsh)
-  * [Maintaining Security with RSH](#maintaining-security-with-rsh)
-  * [lf - List Files Using Regular Expressions](#lf---list-files-using-regular-expressions)
-* [Features](#features)
-* [Configuration](#configuration)
-* [MIT License](#mit-license)
+- [**_NEW_** - Complete C-Menu HTML Documentation](#_new_---complete-c-menu-html-documentation)
+- [C-Menu Exercises](#c-menu-exercises)
+- [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
+  - [Elements of C-Menu](#elements-of-c-menu)
+  - [Key Features](#key-features)
+  - [Highlights (Pun Intended)](#highlights-pun-intended)
+  - [Just Do It!](#just-do-it)
+  - [Menu](#menu)
+  - [C-Keys - Diagnose Keyboard/Mouse Input](#c-keys---diagnose-keyboardmouse-input)
+  - [Pick - A Picker](#pick---a-picker)
+  - [Form for Data Entry and Editing](#form-for-data-entry-and-editing)
+  - [Form Key Features](#form-key-features)
+  - [Form Data Types](#form-data-types)
+  - [Sample Menu Description File](#sample-menu-description-file)
+  - [View](#view)
+    - [Log File With Editor](#log-file-with-editor)
+    - [Screenshot of the Same File With View](#screenshot-of-the-same-file-with-view)
+  - [View and Color Manual Pages](#view-and-color-manual-pages)
+  - [Example Manual Page Using Editor](#example-manual-page-using-editor)
+  - [Example Manual Page](#example-manual-page)
+  - [Demand Paged Virtual Address Space](#demand-paged-virtual-address-space)
+  - [View - Other Features](#view---other-features)
+  - [3-Channel Gamma Correction](#3-channel-gamma-correction)
+  - [Gray Gamma](#gray-gamma)
+  - [RSH](#rsh)
+  - [Maintaining Security with RSH](#maintaining-security-with-rsh)
+  - [lf - List Files Using Regular Expressions](#lf---list-files-using-regular-expressions)
+- [Features](#features)
+- [Configuration](#configuration)
+- [MIT License](#mit-license)
 
 <!-- mtoc-end -->
+
+## **_NEW_** - Complete C-Menu HTML Documentation
+
+[C-Menu Documentation](https://decision-inc.com/index.html)
+
+The complete documentation for C-Menu is now available in HTML format. You can view it by clicking the URL above or download it.
+
+This comprehensive documentation provides detailed information about the features, usage, and configuration of C-Menu. It includes examples, screenshots, and explanations to help users understand how to effectively utilize C-Menu for their applications. The HTML documentation is designed to be user-friendly and easily navigable, making it a valuable resource for both new and experienced users of C-Menu. You can access the complete documentation extracting the contents of C-Menu-Docs.tar.xz with the following command:
+
+To extract the contents of the C-Menu documentation archive, use the following
+command in your terminal:
+
+```bash
+tar -xf C-Menu-html.tar.xz
+```
+
+To view the documentation, open the index.html file in the html directory with your web browser:
+
+```bash
+cd html
+xdg-open index.html
+```
+
+## C-Menu Exercises
+
+The screenshots below are practical examples from the C-Menu Exercises. This is
+a new section that will be updated with more examples as they are developed. The exercises are designed to demonstrate the capabilities of C-Menu and provide users with hands-on experience in creating menus,forms, and pickers using the C-Menu framework. Each exercise will include a description of the task, the corresponding configuration files, and screenshots of the resulting interfaces. These exercises are intended to help users understand how to utilize C-Menu effectively and inspire them to create their own custom interfaces for their applications. Stay tuned for more updates in the Exercises section!
+
+![Exercises](screenshots/workstation_config2.png)
+![Exercises](screenshots/workstation_config.png)
 
 ## Menu, Form, Pick, View, C-Keys, RSH, and lf
 
@@ -77,19 +102,19 @@ appealing interface that boosts comprehension through color.
 
 ### Elements of C-Menu
 
-***Menu*** - Navigate Application Hierarchy
+**_Menu_** - Navigate Application Hierarchy
 
-***Form*** - Field Entry, Formatting, Validation, and Editing
+**_Form_** - Field Entry, Formatting, Validation, and Editing
 
-***Pick*** - Select Objects From Lists and Tables
+**_Pick_** - Select Objects From Lists and Tables
 
-***View*** - Search, Format, and Display Data
+**_View_** - Search, Format, and Display Data
 
-***RSH*** - Expeditious Root Privilege On/Off
+**_RSH_** - Expeditious Root Privilege On/Off
 
-***CKeys*** - Diagnose Mouse and Keyboard Issues
+**_CKeys_** - Diagnose Mouse and Keyboard Issues
 
-***lf*** - Select and List Files Using Regular Expressions
+**_lf_** - Select and List Files Using Regular Expressions
 
 ---
 
