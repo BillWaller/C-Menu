@@ -4,35 +4,35 @@
 
 <!-- mtoc-start -->
 
-* [Introduction](#introduction)
-* [Prerequisites](#prerequisites)
-  * [Not Required, But Recommended](#not-required-but-recommended)
-* [Getting Started](#getting-started)
-  * [RSH Safety Features](#rsh-safety-features)
-* [Menu](#menu)
-  * [Menu Example](#menu-example)
-  * [Menu Description File Format](#menu-description-file-format)
-* [C-Menu Form](#c-menu-form)
-  * [Form Description File Example](#form-description-file-example)
-    * [Form Line Type Specifiers](#form-line-type-specifiers)
-    * [Form Field Delimiters](#form-field-delimiters)
-    * [Form Data Types](#form-data-types)
-    * [Form Line Syntax](#form-line-syntax)
-    * [Form Options](#form-options)
-* [C-Menu Pick](#c-menu-pick)
-  * [Pick Usage](#pick-usage)
-    * [Selecting Items](#selecting-items)
-  * [Pick Options](#pick-options)
-* [C-Menu View](#c-menu-view)
-  * [View Options](#view-options)
-    * [View Navigation](#view-navigation)
-    * [Searching Forward](#searching-forward)
-    * [Searching Backward](#searching-backward)
-    * [Horizontal Scrolling](#horizontal-scrolling)
-    * [Motion Keys](#motion-keys)
-  * [C-Menu Options](#c-menu-options)
-  * [lf](#lf)
-* [Troubleshooting](#troubleshooting)
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+  - [Not Required, But Recommended](#not-required-but-recommended)
+- [Getting Started](#getting-started)
+  - [RSH Safety Features](#rsh-safety-features)
+- [Menu](#menu)
+  - [Menu Example](#menu-example)
+  - [Menu Description File Format](#menu-description-file-format)
+- [C-Menu Form](#c-menu-form)
+  - [Form Description File Example](#form-description-file-example)
+    - [Form Line Type Specifiers](#form-line-type-specifiers)
+    - [Form Field Delimiters](#form-field-delimiters)
+    - [Form Data Types](#form-data-types)
+    - [Form Line Syntax](#form-line-syntax)
+    - [Form Options](#form-options)
+- [C-Menu Pick](#c-menu-pick)
+  - [Pick Usage](#pick-usage)
+    - [Selecting Items](#selecting-items)
+  - [Pick Options](#pick-options)
+- [C-Menu View](#c-menu-view)
+  - [View Options](#view-options)
+    - [View Navigation](#view-navigation)
+    - [Searching Forward](#searching-forward)
+    - [Searching Backward](#searching-backward)
+    - [Horizontal Scrolling](#horizontal-scrolling)
+    - [Motion Keys](#motion-keys)
+  - [C-Menu Options](#c-menu-options)
+  - [lf](#lf)
+- [Troubleshooting](#troubleshooting)
 
 <!-- mtoc-end -->
 
@@ -367,11 +367,11 @@ next or previous file by entering "N" or "P" respectively.
 "q" exits view
 
 "v" opens the current file in an external editor, such as vim or nvim,
-    based on the value of "editor" in the configuration file (~/.minitrc)
-    or the environment variable, DEFAEULTEDITOR.
+based on the value of "editor" in the configuration file (~/.minitrc)
+or the environment variable, DEFAEULTEDITOR.
 
 "w" writes the contents of the view window to a file.
-    The user will be prompted to enter a file name, and the contents of the view window will be saved to that file.
+The user will be prompted to enter a file name, and the contents of the view window will be saved to that file.
 
 "/" initiates a forward search for a pattern.
 
@@ -459,6 +459,7 @@ Usage: lf [options] [directory] [regexp]
 Options:
 -a List hidden files
 -d maximum depth of subdirectories to examine
+-e exclude files or directories matching the specified regular expression
 -h show this help message
 -i ignore case in search
 -t d - directories (exclude files)
@@ -475,10 +476,26 @@ The syntax for "lf" is also different from "ls" in that it uses regular
 expressions instead of shell expansion of wildcards. This allows for
 more complex matching patterns.
 
-Example:
+lf does not follow symbolic links as this could result in a circular loop.
+
+lf does not report hidden files, those begin with a dot (.) in Unix-like systems, unless the -a option is used.
+
+Unless depth is specified with the -d option, lf defaults to a maximum depth of 3 subdirectories. This is to prevent excessive searching in large directory trees.
+
+Examples:
+
+List all files in the current directory and its subdirectories ending with .c or
+.h.
 
 ```bash
-lf -i /home/user '.*\.[ch]$'
+lf /home/user '.*\.[ch]$'
+```
+
+List all directories in the current directory and its subdirectories excluding
+those that end in ".jpg", ignoring case.
+
+```bash
+lf -i -e '.*\.jpg$' -t f /home/bill
 ```
 
 ## Troubleshooting
