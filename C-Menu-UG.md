@@ -491,12 +491,22 @@ List all files in the current directory and its subdirectories ending with .c or
 lf /home/user '.*\.[ch]$'
 ```
 
-List all directories in the current directory and its subdirectories excluding
+List all files in the current directory and its subdirectories excluding
 those that end in ".jpg", ignoring case.
 
 ```bash
 lf -i -e '.*\.jpg$' -t f /home/bill
 ```
+
+Exclude all files and directories that end in ".txt", ".sh", or ".md".
+
+```bash
+lf -e '.*\.(txt|sh|md)$' /home/bill
+```
+
+For a great cheat sheet on regular expressions, see
+
+[Vitor Britto's Regular Expressions](https://gist.github.com/vitorbritto/9ff58ef998100b8f19a0)
 
 ## Troubleshooting
 
