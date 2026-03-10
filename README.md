@@ -41,23 +41,9 @@
 
 [C-Menu Documentation](https://decision-inc.com/index.html)
 
-The complete documentation for C-Menu is now available in HTML format. You can view it by clicking the URL above or download it.
+The complete documentation for C-Menu is now available in HTML format. You can view it by clicking the URL above.
 
-This comprehensive documentation provides detailed information about the features, usage, and configuration of C-Menu. It includes examples, screenshots, and explanations to help users understand how to effectively utilize C-Menu for their applications. The HTML documentation is designed to be user-friendly and easily navigable, making it a valuable resource for both new and experienced users of C-Menu. You can access the complete documentation extracting the contents of C-Menu-Docs.tar.xz with the following command:
-
-To extract the contents of the C-Menu documentation archive, use the following
-command in your terminal:
-
-```bash
-tar -xf C-Menu-html.tar.xz
-```
-
-To view the documentation, open the index.html file in the html directory with your web browser:
-
-```bash
-cd html
-xdg-open index.html
-```
+This comprehensive documentation provides detailed information about the features, usage, and configuration of C-Menu. It includes examples, screenshots, and explanations to help users understand how to effectively utilize C-Menu for their applications. The HTML documentation is designed to be user-friendly and easily navigable, making it a valuable resource for both new and experienced users of C-Menu.
 
 ## C-Menu Exercises
 
