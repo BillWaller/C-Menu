@@ -977,11 +977,18 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     bool is_dir;
     bool suppress;
     int j, i;
+    bool suppress_hidden = flags & LF_ALL ? false : true;
+    char bname[MAXLEN];
 
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
-        if (dir_st->d_name[0] == '.')
+        base_name(bname, dir_st->d_name);
+        if (bname[0] == '.' && bname[1] == '\0')
+            continue;
+        else if (bname[0] == '.' && bname[1] == '.' && bname[2] == '\0')
+            continue;
+        else if (bname[0] == '.' && suppress_hidden)
             continue;
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path,
                   dir_st->d_name);
@@ -1014,7 +1021,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
                 file_spec[j++] = file_spec[i++];
             file_spec[j] = '\0';
         }
-        if (file_spec[0] == '.' && !(flags & LF_ALL))
+        if (file_spec[0] == '.' && suppress_hidden)
             suppress = true;
         if (!suppress) {
             reti = regexec(compiled_re, file_spec, compiled_re->re_nsub + 1,
@@ -1116,26 +1123,25 @@ size_t canonicalize_file_spec(char *spec) {
    If any parameter is nullptr, the function returns nullptr. If "tgt_s" is not
    found in "org_s", the function returns a copy of "org_s". If target substring
    is not found the function returns a copy of the original string.
-    @note The function allocates memory for the return value, so the caller is
-   responsible for freeing this memory when it is no longer needed to avoid
-   memory leaks.
-    @note The function does not modify the original string "org_s".
-    @note The function assumes that "tgt_s" and "rep_s" are null-terminated
-   strings. If they are not, the behavior is undefined.
-    @note The function does not perform any bounds checking on the input
-   strings, so it is the caller's responsibility to ensure that they are valid
-   and that the resulting string does not exceed available memory.
-    @note The function uses the standard library functions strlen, strstr,
-   malloc, and strcpy, which may have their own limitations and behaviors that
-   the caller should be aware of.
-    @note The function does not handle overlapping occurrences of "tgt_s" in
-   "org_s". If "tgt_s" can overlap with itself in "org_s", the behavior may be
-   unexpected. The caller should ensure that "tgt_s" does not contain
-   overlapping patterns to avoid this issue.
-    @note The function does not handle cases where "tgt_s" is a substring of
-   "rep_s", which could lead to unintended consequences if "tgt_s" appears in
-   "rep_s". The caller should ensure that "tgt_s" and "rep_s" are distinct to
-   avoid this issue. */
+    @note allocates memory for the return value, so the caller is responsible
+   for freeing this memory when it is no longer needed to avoid memory leaks.
+    @note Does not modify the original string "org_s".
+    @note Assumes that "tgt_s" and "rep_s" are null-terminated strings. If they
+   are not, the behavior is undefined.
+    @note Does not perform any bounds checking on the input strings, so it is
+   the caller's responsibility to ensure that they are valid and that the
+   resulting string does not exceed available memory.
+    @note Uses the standard library functions strlen, strstr, malloc, and
+   strcpy, which may have their own limitations and behaviors that the caller
+   should be aware of.
+    @note Does not handle overlapping occurrences of "tgt_s" in "org_s". If
+   "tgt_s" can overlap with itself in "org_s", the behavior may be unexpected.
+   The caller should ensure that "tgt_s" does not contain overlapping patterns
+   to avoid this issue.
+    @note Does not handle cases where "tgt_s" is a substring of "rep_s", which
+   could lead to unintended consequences if "tgt_s" appears in "rep_s". The
+   caller should ensure that "tgt_s" and "rep_s" are distinct to avoid this
+   issue. */
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     if (org_s == nullptr || tgt_s == nullptr || rep_s == nullptr)
         return nullptr;
@@ -1186,9 +1192,9 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
    developers can avoid common pitfalls of C string handling, such as buffer
    overflows and memory leaks, while still benefiting from the performance
    advantages of C.
-   @note This library is designed to be simple and easy to use, making it a
-   great choice for developers who want to work with strings in C without having
-   to worry about the complexities of manual memory management.
+   @note Designed to be simple and easy to use, making it a great choice for
+   developers who want to work with strings in C without having to worry about
+   the complexities of manual memory management.
    @note The String struct is defined as follows:
    @code
      typedef struct {
@@ -1200,19 +1206,18 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
    memory for the string using malloc or realloc. It is the caller's
    responsibility to free this memory using the free_string function when it is
    no longer needed to avoid memory leaks.
-   @note The functions in this library do not perform any bounds checking on the
-   input strings or the resulting strings. It is the caller's responsibility to
-   ensure that all input strings are valid and that the resulting strings do not
-   exceed available memory.
-   @note The functions in this library assume that all input strings are
+   @note The String functions in this library do not perform bounds checking on
+   the input strings or the resulting strings. It is the caller's responsibility
+   to ensure that all input strings are valid and that the resulting strings do
+   not exceed available memory.
+   @note The String functions in this library assume that all input strings are
    null-terminated. If any input string is not null-terminated, the behavior is
    undefined.
-   @example strings_test1.c
+   @see snippets/strings_test1.c
  */
 /** @brief Convert C string to String struct
     @param s C string
-    @return String struct containing dynamically allocated copy of input
-   string
+    @return String struct containing dynamically allocated copy of input string
     @note the caller is responsible for freeing the allocated memory.
     */
 String to_string(const char *s) {
@@ -1338,7 +1343,10 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
 }
 /** @brief Function to intentionally cause a segmentation fault for testing
    purposes
-    @returns 0 (this line will not be reached due to the segmentation fault) */
+    @note This function is designed to intentionally cause a segmentation fault
+   by dereferencing a null pointer. It is intended for testing purposes only and
+   should not be used in production code. The caller should be aware that
+   executing this function will crash the program. */
 int segmentation_fault() {
     int *p = NULL;
     *p = 100;

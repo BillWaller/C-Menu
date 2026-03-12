@@ -4,7 +4,7 @@
 
 <!-- mtoc-start -->
 
-- [**_NEW_** - Complete C-Menu HTML Documentation](#_new_---complete-c-menu-html-documentation)
+- [Get C-Menu on Github](#get-c-menu-on-github)
 - [C-Menu Exercises](#c-menu-exercises)
 - [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
   - [Elements of C-Menu](#elements-of-c-menu)
@@ -37,13 +37,9 @@
 
 <!-- mtoc-end -->
 
-## **_NEW_** - Complete C-Menu HTML Documentation
+## Get C-Menu on Github
 
-[C-Menu Documentation](https://decision-inc.com/index.html)
-
-The complete documentation for C-Menu is now available in HTML format. You can view it by clicking the URL above.
-
-This comprehensive documentation provides detailed information about the features, usage, and configuration of C-Menu. It includes examples, screenshots, and explanations to help users understand how to effectively utilize C-Menu for their applications. The HTML documentation is designed to be user-friendly and easily navigable, making it a valuable resource for both new and experienced users of C-Menu.
+[C-Menu on Github](https://github.com/BillWaller/C-Menu)
 
 ## C-Menu Exercises
 

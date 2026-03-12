@@ -32,6 +32,7 @@
     - [Motion Keys](#motion-keys)
   - [C-Menu Options](#c-menu-options)
   - [lf](#lf)
+  - [whence](#whence)
 - [Troubleshooting](#troubleshooting)
 
 <!-- mtoc-end -->
@@ -507,6 +508,29 @@ lf -e '.*\.(txt|sh|md)$' /home/bill
 For a great cheat sheet on regular expressions, see
 
 [Vitor Britto's Regular Expressions](https://gist.github.com/vitorbritto/9ff58ef998100b8f19a0)
+
+### whence
+
+"whence" is a simple utility that reports the location of a command in the user's PATH. It is similar to the Unix "which" command, but with a simpler syntax and fewer features. It can be used to verify that a command is accessible and to determine its location.
+
+You may be wondering whence "whence", and why it is included in the C-Menu
+package when there are already commands like "which" and "type" that provide
+similar and functionality and more. I could tell you that whence was designed
+to be a lightweight and efficient utility, but that's not the reason for its
+inclusion in the C-Menu package. The truth is that I wrote which back in the
+mid 1980's before the "which" command was widely available. I didn't invent
+it, but after using a version of whence that didn't work as I expected, I
+wrote my own version, and I have been using it since.
+
+If you will permit a tangential excursion, vi wasn't my first editor. It was the
+first editor to which I instantly bonded. Barely aware that my fingers were
+moving, code streamed onto the screen at the speed of thought. I was wired in.
+What ever happened to Jolt Cola?
+
+Whence is a loyal and trustworthy companion that has served me for many
+years, and I refuse to abandon it. Of course, if it develops a bug, I'll throw
+it out like yesterday's garbage. It is just a program. Feel free to delete it
+and use which if that makes you feel better.
 
 ## Troubleshooting
 
