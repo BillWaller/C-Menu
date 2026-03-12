@@ -39,6 +39,8 @@
 
 ## Get C-Menu on Github
 
+Click the link below to access the C-Menu Documentation:
+
 [C-Menu on Github](https://decision-inc.com)
 
 ## C-Menu Exercises
