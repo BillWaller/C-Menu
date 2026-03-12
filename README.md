@@ -39,7 +39,7 @@
 
 ## Get C-Menu on Github
 
-[C-Menu on Github](https://github.com/BillWaller/C-Menu)
+[C-Menu on Github](https://decision-inc.com)
 
 ## C-Menu Exercises
 
