@@ -2,26 +2,29 @@
 
 <!-- mtoc-start -->
 
-* [To Install C-Menu](#to-install-c-menu)
-  * [Build C-Menu](#build-c-menu)
-    * [RSH Static Linking](#rsh-static-linking)
-    * [Prerequisites](#prerequisites)
-    * [Option 1 - Build C-Menu Using CMake Directly](#option-1---build-c-menu-using-cmake-directly)
-    * [Option 2 - Build C-Menu with Provided Scripts](#option-2---build-c-menu-with-provided-scripts)
-    * [Option 3 - Build C-Menu Using Makefile](#option-3---build-c-menu-using-makefile)
-  * [Finish the installation](#finish-the-installation)
+- [Build C-Menu](#build-c-menu)
+  - [RSH Static Linking](#rsh-static-linking)
+    - [Prerequisites](#prerequisites)
+    - [Option 1 - Build C-Menu Using CMake Directly](#option-1---build-c-menu-using-cmake-directly)
+    - [Option 2 - Build C-Menu with Provided Scripts](#option-2---build-c-menu-with-provided-scripts)
+    - [Option 3 - Build C-Menu Using Makefile](#option-3---build-c-menu-using-makefile)
+  - [Finish the installation](#finish-the-installation)
 
 <!-- mtoc-end -->
 
-## To Install C-Menu
+---
 
-1️⃣  Clone the C-Menu repository:
+1️⃣ Clone the C-Menu repository:
+
+[C-Menu on Github](https://decision-inc.com)
+
+or
 
 ```bash
 gh repo clone BillWaller/C-Menu
 ```
 
-2️⃣  Copy the menuapp directory to your desired location:
+2️⃣ Copy the menuapp directory to your desired location:
 
 ```bash
 cp -r C-Menu/src/menuapp /home/yourusername/
@@ -43,7 +46,7 @@ export RSH_LD="-static"
 CMake or Makefile will strip symbols from the executable once it has been copied
 to its destination directory. This is done to reduce the size of the executable and improve performance.
 
-***NOTE*** If you choose to statically link rsh, make sure that your C compiler and linker support static linking and that you have the necessary static libraries,
+**_NOTE_** If you choose to statically link rsh, make sure that your C compiler and linker support static linking and that you have the necessary static libraries,
 specifically, libc.a, installed on your system. Static linking can increase the size of the executable and may have implications for compatibility and security, so be sure to test the statically linked version of C-Menu in your target environment.
 
 Most distributions provide static libraries for the GNU C Library (glibc) as part of their development packages. You may need to install additional packages to obtain these static libraries, such as `glibc-static` or `libc6-dev` for glibc.
@@ -53,8 +56,8 @@ Most distributions provide static libraries for the GNU C Library (glibc) as par
 #### Prerequisites
 
 - One of:
-    - CMake 3.20 or higher, or
-    - GNU Make 4.3 or higher
+  - CMake 3.20 or higher, or
+  - GNU Make 4.3 or higher
 - A C compiler that supports C23 or later (e.g., GCC 13 or later, Clang 15 or later)
 - NCursesw development libraries 6.5 or later
 - GNU GLIBC development files
@@ -64,7 +67,7 @@ Most distributions provide static libraries for the GNU C Library (glibc) as par
 
 #### Option 1 - Build C-Menu Using CMake Directly
 
-1️⃣  Navigate to the C-Menu/src directory, create a build directory, and
+1️⃣ Navigate to the C-Menu/src directory, create a build directory, and
 cd into it:
 
 ```bash
@@ -73,20 +76,20 @@ mkdir build
 cd build
 ```
 
-2️⃣  Configure the project using CMake, specifying the installation prefix and build type:
+2️⃣ Configure the project using CMake, specifying the installation prefix and build type:
 
 ```bash
 cmake -DCMAKE_INSTALL_PREFIX="$HOME"/menuapp -DCMAKE_BUILD_TYPE=Release ..
 ```
 
-3️⃣  Build the project using:
+3️⃣ Build the project using:
 
 ```bash
 make
 ```
 
 4️⃣ . If you want to use rsh in setuid mode, you must install C-Menu with root
-   privileges.
+privileges.
 
 ```bash
 sudo make install
@@ -98,14 +101,14 @@ go to [Finish the installation](#finish-the-installation) below to complete the 
 
 #### Option 2 - Build C-Menu with Provided Scripts
 
-1️⃣  Navigate to the C-Menu/build directory and run the provided build script:
+1️⃣ Navigate to the C-Menu/build directory and run the provided build script:
 
 ```bash
 cd C-Menu/build
 ./build.sh
 ```
 
-2️⃣  Assume root privileges to install C-Menu:
+2️⃣ Assume root privileges to install C-Menu:
 
 ```bash
 sudo ./install.sh
@@ -118,7 +121,7 @@ go to [Finish the installation](#finish-the-installation) below to complete the 
 #### Option 3 - Build C-Menu Using Makefile
 
 1️⃣ . Navigate to the C-Menu/src directory and edit the provided Makefile
- to set the installation PREFIX to your desired location (e.g., /home/yourusername/menuapp):
+to set the installation PREFIX to your desired location (e.g., /home/yourusername/menuapp):
 
 ```bash
 cd C-Menu/src
@@ -131,13 +134,13 @@ HOME=/home/$(USER)
 PREFIX=/home/$(USER)/menuapp
 ```
 
-2️⃣  Build the project using:
+2️⃣ Build the project using:
 
 ```bash
 make
 ```
 
-3️⃣  Assume root privileges to install C-Menu:
+3️⃣ Assume root privileges to install C-Menu:
 
 ```bash
 sudo make install
@@ -149,7 +152,7 @@ Continue with [Finish the installation](#finish-the-installation) below to compl
 
 ### Finish the installation
 
-1️⃣  Vrify that the C-Menu libraries and binaries have been installed to the correct directories (e.g., /home/yourusername/menuapp/lib64 and /home/yourusername/menuapp/bin) and that the permissions are set correctly.
+1️⃣ Vrify that the C-Menu libraries and binaries have been installed to the correct directories (e.g., /home/yourusername/menuapp/lib64 and /home/yourusername/menuapp/bin) and that the permissions are set correctly.
 
 ```bash
 ls -l "$HOME"/menuapp/lib64 "$HOME"/menuapp/bin
@@ -157,13 +160,13 @@ ls -l "$HOME"/menuapp/lib64 "$HOME"/menuapp/bin
 
 ![Directory Listing](screenshots/postmakels.png)
 
-2️⃣  Register the C-Menu libraries with the dynamic linker by running the following command:
+2️⃣ Register the C-Menu libraries with the dynamic linker by running the following command:
 
 ```bash
 sudo ldconfig -v "$HOME"/menuapp/lib64
 ```
 
-3️⃣  Add the C-Menu bin directory to your PATH environment variable by adding the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc):
+3️⃣ Add the C-Menu bin directory to your PATH environment variable by adding the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc):
 
 ```bash
 export PATH="/home/yourusername/menuapp/bin:"$PATH"
@@ -171,31 +174,30 @@ export PATH="/home/yourusername/menuapp/bin:"$PATH"
 
 (replace /home/yourusername with the actual path to your menuapp directory) and save the file. 😆
 
-4️⃣  Copy the sample minitrc from the C-Menu/menuapp directory to your home directory:
+4️⃣ Copy the sample minitrc from the C-Menu/menuapp directory to your home directory:
 
 ```bash
 cp "$HOME"/menuapp/minitrc "$HOME"/.minitrc
 ```
 
-5️⃣  Edit the ~/.minitrc file to customize your C-Menu configuration as needed.
+5️⃣ Edit the ~/.minitrc file to customize your C-Menu configuration as needed.
 
 ```bash
 vi ~/.minitrc
 ```
 
-6️⃣  Source your shell profile to apply the changes to your PATH:
+6️⃣ Source your shell profile to apply the changes to your PATH:
 
 ```bash
 source ~/.bashrc
 ```
 
-7️⃣  Start C-Menu by running the following command in your terminal:
+7️⃣ Start C-Menu by running the following command in your terminal:
 
 ```baah
 menu
 ```
 
-![C-Menu Running](screenshots/mainmenu.png)
----
-🐸  Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
----
+## ![C-Menu Running](screenshots/mainmenu.png)
+
+## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.

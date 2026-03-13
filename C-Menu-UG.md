@@ -1,5 +1,19 @@
 # User guide
 
+## Get C-Menu on Github
+
+Click the link below to access the C-Menu Documentation:
+
+[C-Menu on Github](https://decision-inc.com)
+
+[Download C-Menu from Github](https://github.com/BillWaller/C-Menu.git)
+
+```bash
+gh repo clone BillWaller/C-Menu
+```
+
+---
+
 ## Table of Contents
 
 <!-- mtoc-start -->
