@@ -7,6 +7,8 @@
 - [Get C-Menu on Github](#get-c-menu-on-github)
 - [C-Menu Exercises](#c-menu-exercises)
 - [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
+  - [C-Menu API](#c-menu-api)
+  - [C-Menu Introduction](#c-menu-introduction)
   - [Elements of C-Menu](#elements-of-c-menu)
   - [Key Features](#key-features)
   - [Highlights (Pun Intended)](#highlights-pun-intended)
@@ -43,6 +45,8 @@ Click the link below to access the C-Menu Documentation:
 
 [C-Menu on Github](https://decision-inc.com)
 
+---
+
 ## C-Menu Exercises
 
 The screenshots below are practical examples from the C-Menu Exercises. This is
@@ -51,9 +55,35 @@ a new section that will be updated with more examples as they are developed. The
 ![Exercises](screenshots/workstation_config2.png)
 ![Exercises](screenshots/workstation_config.png)
 
+---
+
 ## Menu, Form, Pick, View, C-Keys, RSH, and lf
 
 ![C-Menu](screenshots/minitrc.png)
+
+### C-Menu API
+
+The C-Menu API is a set of functions and tools that allow developers to extend
+the capabilities of C-Menu and develop custom applications that integrate
+with C-Menu, and to integrate C-Menu into applications like Neovim.
+
+![C-Menu API Help in Neovim](screenshots/api-help1.png)
+
+As you are typing the name of a C-Menu API function, a list of matching signatures
+appears along with a brief description, the function signature, and its parameters.
+This makes it easier to to use the API without having to leave your coding
+environment. You can select the function you want with the arrow keys and press
+Enter to insert it into your code. You can also hover over a function and press
+Shift-K to view the documentation in a pop-up window.
+
+But C-Menu is not just for developers. It's also a powerful tool for users who want to create custom interfaces for their applications. With C-Menu, you can easily design and implement menus, forms, and pickers that enhance the user experience and streamline interactions with your applications. Whether you're a developer looking to create intuitive interfaces or a user seeking a more engaging way to interact with applications, C-Menu has you covered. Dive in and explore the possibilities!
+
+**_NOTE:_** Requires Neovim properly configured with support for LSP and a
+plugin that provides LSP functionality, such as nvim-lspconfig.
+
+---
+
+### C-Menu Introduction
 
 C-Menu is a lightweight, flexible, and easy-to-use suite of programs
 for creating a sophisticated user interface for your applications.
@@ -65,22 +95,23 @@ applications.
 
 This is a real TUI, and though we may add a GUI front-end in the future,
 we won't abandon the super-responsive, low-overhead, and universally compatible
-text-based interface. It's here to stay, and it's perfect for a wide range of applications, from simple command-line tools to complex system administration utilities. C-Menu is ideal for developers who want to create intuitive and user-friendly interfaces without the need for complex GUI frameworks. With C-Menu, you can easily design and implement menus, forms, and pickers that enhance the user experience and streamline interactions with your applications.
+text-based interface. It's here to stay, and it's perfect for a wide range of applications, from simple command-line tools to complex system administration utilities.
 
-While we do support mouse input, we realize that hardened coders like you
-prefer the blinding speed you can achieve with the keyboard. That's why
-we never give the keyboard a back seat, and why we provide navigation
-with familiar h, j, k, and l, the way God intended. We also support more
-conventional navigation via arrow keys, page-up, page-down, home, and end keys.
-The idea is to provide you and your users with comfortable, intuitive, and
-convenient navigation.
+C-Menu is especially useful in embedded applications and server environments where resources are limited, and a graphical interface may not be feasible. It's also ideal for developers who want to create intuitive and user-friendly interfaces without the need for complex GUI frameworks. With C-Menu, you can easily design and implement menus, forms, and pickers that enhance the user experience and streamline interactions with your applications.
 
-And, don't let the name fool you. C-Menu is not just a menu system, it's
-a comprehensive user interface framework designed to enhance your
-interaction with applications. It provides a structured way to navigate
-through application hierarchies, manage forms, select objects, and
-view data efficiently. And, it does so with style, offering a visually
-appealing interface that boosts comprehension through color.
+While we do support mouse input, we realize that seasoned professional coders
+may prefer the blinding speed they can achieve with the keyboard. That's why
+we never give the keyboard a back seat, and why we provide navigation with
+familiar h, j, k, and l, the way God intended. We also support more conventional
+navigation via arrow keys, page-up, page-down, home, and end keys. The idea is
+to provide you and your users with comfortable, intuitive, and convenient
+navigation.
+
+Don't let the name fool you. C-Menu is not just a menu system, it's a comprehensive
+user interface framework designed to enhance your interaction with applications. It
+provides a structured way to navigate through application hierarchies, manage forms,
+select objects, and view data efficiently. And, it does so with style, offering a
+visually appealing interface that boosts comprehension through color.
 
 ---
 
