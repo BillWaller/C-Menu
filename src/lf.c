@@ -47,6 +47,7 @@ int main(int argc, char **argv) {
     int flags = 0;
     int opt;
     int max_depth = 3;
+    int i;
 
     while ((opt = getopt(argc, argv, "ad:e:hit:v")) != -1) {
         switch (opt) {
@@ -58,7 +59,7 @@ int main(int argc, char **argv) {
             break;
         case 'e':
             strnz__cpy(ere, optarg, MAXLEN - 1);
-            flags |= LF_EXCLUDE;
+            flags |= LF_EXC_REGEX;
             break;
         case 'h':
             f_help = true;
@@ -67,15 +68,36 @@ int main(int argc, char **argv) {
             flags |= LF_ICASE;
             break;
         case 't':
-            switch (optarg[0]) {
-            case 'd':
-                flags |= LF_DIRS;
-                break;
-            case 'f':
-                flags |= LF_FILES;
-                break;
-            default:
-                break;
+            i = 0;
+            while (optarg[i]) {
+                switch (optarg[i++]) {
+                case 'b':
+                    flags |= FT_BLK << 8;
+                    break;
+                case 'c':
+                    flags |= FT_CHR << 8;
+                    break;
+                case 'd':
+                    flags |= FT_DIR << 8;
+                    break;
+                case 'p':
+                    flags |= FT_FIFO << 8;
+                    break;
+                case 'l':
+                    flags |= FT_LNK << 8;
+                    break;
+                case 'f':
+                    flags |= FT_REG << 8;
+                    break;
+                case 's':
+                    flags |= FT_SOCK << 8;
+                    break;
+                case 'u':
+                    flags |= FT_UNKNOWN << 8;
+                    break;
+                default:
+                    break;
+                }
             }
             break;
         case 'v':
@@ -120,6 +142,28 @@ int main(int argc, char **argv) {
     if (dir[0] == '\0')
         strnz__cpy(dir, ".", MAXLEN - 1);
     flags |= LF_REGEX;
+    /*
+        printf("\n\nFT_BLK: %08b\n", FT_BLK);
+        printf("FT_CHR: %08b\n", FT_CHR);
+        printf("FT_DIR: %08b\n", FT_DIR);
+        printf("FT_FIFO: %08b\n", FT_FIFO);
+        printf("FT_LNK: %08b\n", FT_LNK);
+        printf("FT_REG: %08b\n", FT_REG);
+        printf("FT_SOCK: %08b\n", FT_SOCK);
+        printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
+        printf("flags: %016b %08b %08b\n", flags, flags >> 8, flags & 0xff);
+    */
     lf_find(dir, re, ere, max_depth, flags);
+    /*
+        printf("\n\nFT_BLK: %08b\n", FT_BLK);
+        printf("FT_CHR: %08b\n", FT_CHR);
+        printf("FT_DIR: %08b\n", FT_DIR);
+        printf("FT_FIFO: %08b\n", FT_FIFO);
+        printf("FT_LNK: %08b\n", FT_LNK);
+        printf("FT_REG: %08b\n", FT_REG);
+        printf("FT_SOCK: %08b\n", FT_SOCK);
+        printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
+        printf("flags: %016b %08b %08b\n", flags, flags >> 8, flags & 0xff);
+    */
     return true;
 }

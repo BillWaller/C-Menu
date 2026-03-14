@@ -28,13 +28,34 @@
 #define MAX_DEPTH 3   /**< maximum depth for recursive file searching */
 
 enum LFFlags {
-    LF_ALL = 1,      /**< List all files including hidden files */
-    LF_ICASE = 2,    /**< Ignore case in search */
-    LF_FILES = 4,    /**< List files */
-    LF_DIRS = 8,     /**< List directories */
-    LF_EXCLUDE = 16, /**< Exclude files matching regular expression */
-    LF_REGEX = 32,   /**< Exclude files matching regular expression */
+    LF_ALL = 1,       /**<   1 List all files including hidden files */
+    LF_ICASE = 2,     /**<   2 Ignore case in search */
+    LF_EXC_REGEX = 4, /**<   4 Exclude files matching regular expression */
+    LF_REGEX = 8,     /**<   8 Include files matching regular expression */
 };
+
+enum FTypes {
+    FT_BLK = 1,       /** b00000001 */
+    FT_CHR = 2,       /** b00000010 */
+    FT_DIR = 4,       /** b00000100 */
+    FT_FIFO = 8,      /** b00001000 */
+    FT_LNK = 16,      /** b00010000 */
+    FT_REG = 32,      /** b00100000 */
+    FT_SOCK = 64,     /** b01000000 */
+    FT_UNKNOWN = 128, /** b10000000 */
+};
+/**
+                      Include     Exclude
+                     ----------  ----------
+    LF_BLK        1  0 00000001  7 11111110 block device
+    LF_CHR        2  1 00000010  6 11111101 character device
+    LF_DIR        4  2 00000100  5 11111011 directory
+    LF_FIFO       8  3 00001000  4 11110111 named pipe
+    LF_LNK       16  4 00010000  3 11101111 link
+    LF_REG       32  5 00100000  2 11011111 regular file
+    LF_SOCK      64  6 01000000  1 10111111 socket
+    LF_UNKNOWN  128  7 10000000  0 01111111 unknown
+*/
 
 #define W_BOX 0x40  /**< box window flag for win_new() */
 #define COLOR_LEN 8 /**< length of color code strings */

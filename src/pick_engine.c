@@ -31,6 +31,7 @@ int open_pick_win(Init *);
 void display_pick_help(Init *);
 void pick_display_chyron(Pick *);
 int read_pick_input(Init *);
+void deselect_object(Pick *);
 
 int pipe_fd[2];
 
@@ -262,19 +263,26 @@ int pick_engine(Init *init) {
     rc = open_pick_win(init);
     if (rc)
         return (rc);
-    display_page(pick);
-    reverse_object(pick);
-    pick->obj_idx = 0;
-    pick->x = 1;
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     /** Enter picker loop to handle user input and interactions */
-    picker(init);
-    if (pick->select_cnt > 0) {
-        if (pick->f_out_spec && pick->out_spec[0])
-            rc = output_objects(pick);
-        if (pick->f_cmd && pick->cmd[0])
-            rc = exec_objects(init);
-    }
+    do {
+        display_page(pick);
+        reverse_object(pick);
+        pick->obj_idx = 0;
+        pick->x = 1;
+        mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
+        rc = picker(init);
+        if (rc == -1)
+            break;
+        else {
+            if (pick->select_cnt > 0) {
+                if (pick->f_out_spec && pick->out_spec[0])
+                    output_objects(pick);
+                if (pick->f_cmd && pick->cmd[0])
+                    exec_objects(init);
+            }
+        }
+        deselect_object(pick);
+    } while (1);
     return (rc);
 }
 /** @brief Saves a string as an object in the pick structure
@@ -329,6 +337,7 @@ int picker(Init *init) {
         case 'q':
         case 'Q':
         case KEY_F(9):
+            deselect_object(pick);
             return -1;
             /** KEY_F(1) or 'H' Displays help screen for pick interface */
         case KEY_F(1):
@@ -601,13 +610,23 @@ void toggle_object(Pick *pick) {
         mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
     }
 }
+/** @brief Deselects the currently selected object in pick window
+    @details like toggle, but only deselects object */
+void deselect_object(Pick *pick) {
+    pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
+    if (pick->f_selected[pick->obj_idx]) {
+        pick->select_cnt--;
+        pick->f_selected[pick->obj_idx] = FALSE;
+        mvwaddstr(pick->win, pick->y, pick->x - 1, " ");
+    }
+}
 /** @brief Outputs selected objects to specified output file
-    @param pick Pointer to Pick structure containing selected objects and output
-    file information
+    @param pick Pointer to Pick structure containing selected objects and
+   output file information
     @return 0 on success, 1 on failure
-    @note If output file cannot be opened, an error message is printed and the
-   function returns 1. Otherwise, selected objects are written to the output
-   file, one per line, and the file is closed before returning 0.
+    @note If output file cannot be opened, an error message is printed and
+   the function returns 1. Otherwise, selected objects are written to the
+   output file, one per line, and the file is closed before returning 0.
 */
 int output_objects(Pick *pick) {
     char tmp_str[MAXLEN];
@@ -630,36 +649,37 @@ int output_objects(Pick *pick) {
 /** @brief Executes specified command with selected objects as arguments
     @param init Pointer to Init structure
     @return 0 on success, 1 on failure
-    @note Parses command string and appends selected objects as arguments to the
-   command. If command contains "%%", it is replaced with a space- separated
-   list of selected objects. Executes the command using execvp in a child
-   process and waits for it to finish. If the command is a pager or editor, it
-   is executed within the pick interface using mview instead of execvp.
-    @note If f_append_args is true, the argument containing %% is replaced with
-   the concatenated selected objects. If f_append_args is false, selected
-   objects are added as separate arguments and the original command arguments
-   remain unchanged.
-    @note margv should be null-terminated to indicate the end of arguments for
-   execvp
+    @note Parses command string and appends selected objects as arguments to
+   the command. If command contains "%%", it is replaced with a space-
+   separated list of selected objects. Executes the command using execvp in
+   a child process and waits for it to finish. If the command is a pager or
+   editor, it is executed within the pick interface using mview instead of
+   execvp.
+    @note If f_append_args is true, the argument containing %% is replaced
+   with the concatenated selected objects. If f_append_args is false,
+   selected objects are added as separate arguments and the original command
+   arguments remain unchanged.
+    @note margv should be null-terminated to indicate the end of arguments
+   for execvp
     @note Memory allocated for arguments is freed after execution to prevent
    memory leaks.
     @note If execvp fails, an error message is printed and the child process
    exits with failure status
     @note The parent process waits for the child process to finish before
    proceeding and restores terminal settings
-    @note If the command is a pager or editor, it is executed within the pick
-   interface using mview instead of execvp
-    @note The base name of the command is extracted to check if it is a pager or
-   editor
+    @note If the command is a pager or editor, it is executed within the
+   pick interface using mview instead of execvp
+    @note The base name of the command is extracted to check if it is a
+   pager or editor
     @note If the command is a pager or editor, the pick interface is used to
    display the command output instead of executing it in a separate terminal
    This allows the user to view the command output without leaving the pick
    interface and provides a more seamless user experience.
-    @note If the command is not a pager or editor, it is executed in a separate
-   terminal and the pick interface is restored after execution
+    @note If the command is not a pager or editor, it is executed in a
+   separate terminal and the pick interface is restored after execution
     @note If the command to be executed is view, an external command is not
-   needed, instead the mview function can be used to display the output within
-   the pick interface */
+   needed, instead the mview function can be used to display the output
+   within the pick interface */
 int exec_objects(Init *init) {
     int rc = -1;
     int margc;
@@ -788,15 +808,19 @@ int exec_objects(Init *init) {
         if (pid == 0) {
             /** Child process to execute command */
             execvp(margv[0], margv);
-            /** If execvp returns, it means execution failed, so free margv and
-                print error message before exiting */
+            /** If execvp returns, it means execution failed, so free margv
+               and print error message before exiting */
             strnz__cpy(tmp_str, "Can't exec pick cmd: ", MAXLEN - 1);
             strnz__cat(tmp_str, margv[0], MAXLEN - 1);
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
     }
+    ssnprintf(tmp_str, MAXLEN - 1,
+              "wWaiting for child process %d to complete...", pid);
+    rc = Perror(tmp_str);
     waitpid(pid, nullptr, 0);
+    win_del();
     i = 0;
     while (i < margc) {
         if (margv[i] != nullptr)
@@ -809,15 +833,15 @@ int exec_objects(Init *init) {
     restore_wins();
     return rc;
 }
-/** @brief Initializes the pick window based on the parameters specified in the
-Pick structure
+/** @brief Initializes the pick window based on the parameters specified in
+the Pick structure
     @param init Pointer to Init structure containing pick information
     @return 0 on success, 1 on failure
     @note Creates a new window for the pick interface using win_new function
-with the specified parameters from the Pick structure. If window creation fails,
-an error message is printed and the function returns 1. Otherwise, initializes
-the window and box pointers in the Pick structure, sets scrollok and keypad
-options for the window, and returns 0 on success. */
+with the specified parameters from the Pick structure. If window creation
+fails, an error message is printed and the function returns 1. Otherwise,
+initializes the window and box pointers in the Pick structure, sets scrollok
+and keypad options for the window, and returns 0 on success. */
 int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
     pick = init->pick;
@@ -838,10 +862,10 @@ int open_pick_win(Init *init) {
 }
 /** @brief Displays the help screen for the pick interface using mview
     @param init Pointer to Init structure containing pick information
-    @note Initializes the help_spec field in the Pick structure with the path to
-   the pick help file. Then, constructs the argument list for executing mview
-   with the help file as an argument. Finally, calls mview function to display
-   the help screen within the pick interface. */
+    @note Initializes the help_spec field in the Pick structure with the
+   path to the pick help file. Then, constructs the argument list for
+   executing mview with the help file as an argument. Finally, calls mview
+   function to display the help screen within the pick interface. */
 void display_pick_help(Init *init) {
     eargv[0] = strdup("view");
     eargv[1] = strdup("~/menuapp/help/pick.help");

@@ -117,13 +117,13 @@ compatible with that version.
   C-Menu 0.x.x version, but libcm.so.1.x.x is only compatible with libcm.so.1.x.x.
   However, it is perfectly reasonable to have multiple versions of libcm installed on the same system, as long as they are properly managed and linked to the correct C-Menu application. This allows developers to work with different versions of C-Menu and ensure that their applications are compatible with the specific version they are targeting. The dynamic linker handles the loading of the correct version of libcm based on the version information specified in the C-Menu application and the available versions of libcm on the system. This allows for flexibility and compatibility when developing applications that use the C-Menu API.
 
-=== **_ INCOMPLETE CONTENT _** ===
-
 To be continued in the next version of the documentation. The C-Menu API is extensive and covers a wide range of functionality, so this documentation will be expanded to include more detailed information about each module, function, and data structure in the API. Future updates will also include examples and best practices for using the C-Menu API effectively in your applications. Stay tuned for more updates!
 
 In the meantime, you can explore the extensive C-Menu documentation available at:
 
 [C-Menu Documentation](https://decision-inc.com)
+
+#### Roadmap for API Documentation and User Guide
 
 **_Note:_** The C-Menu Documentation is developing along two tracks. The API
 documentation is geared for developers who want to use the C-Menu API to create
@@ -141,3 +141,7 @@ and to provide hands-on experience with the C-Menu API. The exercises will cover
 ---
 
 ## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
+
+---
+
+=== **_ INCOMPLETE CONTENT _** ===
