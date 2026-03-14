@@ -2,6 +2,31 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-03-13
+
+Added additional file selection options to lf. Now, you can
+list files of specific types by specifying
+-t bcdplfsu (in any order or combination)
+b block devices
+c character devices
+d directories
+p named pipes
+l symbolic links
+f regular files
+s sockets
+u unknown file types
+You can select multiple file types and any you don't select will not be emitted.
+For example, lf -t d will only list directories, while lf -t f will only list regular files. lf -t df will list both directories and regular files, and lf -t bcdplfsu will list all file types, which is the default behavior with no -t option.
+
+0.2.9 - 2026-03-13
+
+Modified Pick to return to the picker after executed the selected action. This
+is a much more intuitive behavior, and it allows the user to execute multiple
+actions without having to reopen the picker each time. One of the new Exercises
+will make this abundantly clear.
+
+Added a new Exercises section to the documentation, which includes a number of exercises designed to help developers learn how to use C-Menu and to provide a test bed for debugging. The first exercise is a suite of Workstation Configuration programs for SDDM, Ghostty, Kitty, and Alacritty. These have been integrated into the C-Menu example main menu. I will continue to add more exercises along with documentation. The exercises will be designed to be both educational and practical, and they will cover a wide range of topics related to C-Menu development. One of the next projects, if time allows, will be a C-Menu based general ledger using SQLite as the backend database.
+
 0.2.9 - 2026-03-10
 
 Moved documentation to a separate repository and website, which is now available

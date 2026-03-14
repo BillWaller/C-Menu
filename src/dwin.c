@@ -932,7 +932,11 @@ int Perror(char *emsg_str) {
     WINDOW *error_win;
     int len, line, pos;
     char title[MAXLEN];
-
+    bool f_xwgetch = true;
+    if (emsg_str[0] == '' && emsg_str[1] == 'w') {
+        emsg_str += 2;
+        f_xwgetch = false;
+    }
     len = strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
@@ -964,8 +968,12 @@ int Perror(char *emsg_str) {
     wattroff(error_win, WA_REVERSE);
     wmove(error_win, 1, chyron->l);
     wrefresh(error_win);
-    cmd_key = xwgetch(error_win, chyron);
-    win_del();
+    if (f_xwgetch) {
+        cmd_key = xwgetch(error_win, chyron);
+        win_del();
+    } else {
+        cmd_key = KEY_F(10);
+    }
     destroy_chyron(chyron);
     return (cmd_key);
 }

@@ -24,6 +24,10 @@
 #include <unistd.h>
 #include <wait.h>
 
+#define LF_LNK 1
+#define LF_DIR 2
+#define LF_REG 4
+
 bool lf_find(const char *, const char *, const char *, int, int);
 bool lf_process(const char *, regex_t *, regex_t *, int, int, int);
 size_t strip_ansi(char *, char *);
@@ -892,16 +896,7 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     @param re         regular expression match to include
     @param max_depth  depth of directories to scan
     @param flags      search flags
-    @code
-                   flags = LF_ALL | LF_ICASE | LF_FILES
-                   flags = LF_ALL | LF_ICASE | LF_DIRS
-    LF_ALL      =  1,  List all files including hidden files
-    LF_ICASE    =  2,  Ignore case in search
-    LF_FILES    =  4,  list files (exclude directories)
-    LF_DIRS     =  8,  list directories (exclude files)
-    LF_EXCLUDE  =  16, exclude files matching "ere" pattern
-    LF_REGEX    =  32, re is a regular expression pattern to match
-    @endcode
+    @see lf_process() for flag definitions
     return      true if successful, false otherwise */
 bool lf_find(const char *base_path, const char *re, const char *ere,
              int max_depth, int flags) {
@@ -909,7 +904,16 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     regex_t compiled_re;
     regex_t compiled_ere;
     int REG_FLAGS = REG_EXTENDED;
-
+    /*
+        printf("\n\nFT_BLK: %08b\n", FT_BLK);
+        printf("FT_CHR: %08b\n", FT_CHR);
+        printf("FT_DIR: %08b\n", FT_DIR);
+        printf("FT_FIFO: %08b\n", FT_FIFO);
+        printf("FT_LNK: %08b\n", FT_LNK);
+        printf("FT_REG: %08b\n", FT_REG);
+        printf("FT_SOCK: %08b\n", FT_SOCK);
+        printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
+    */
     if (flags & LF_ICASE)
         REG_FLAGS |= REG_ICASE;
     if (flags & LF_REGEX) {
@@ -923,7 +927,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
             return false;
         }
     }
-    if (flags & LF_EXCLUDE) {
+    if (flags & LF_EXC_REGEX) {
         regcomp(&compiled_ere, "^$", REG_FLAGS);
         reti = regcomp(&compiled_ere, ere, REG_FLAGS);
         if (reti) {
@@ -940,7 +944,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
         lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth, flags);
     if (flags &= LF_REGEX)
         regfree(&compiled_re);
-    if (flags & LF_EXCLUDE)
+    if (flags & LF_EXC_REGEX)
         regfree(&compiled_ere);
     if (reti)
         return false;
@@ -953,30 +957,55 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     @param depth recursion counter
     @param max_depth how deep to descend into the directory structure
     @param flags
-    @code
-                   flags = LF_ALL | LF_ICASE | LF_FILES
-                   flags = LF_ALL | LF_ICASE | LF_DIRS
-    LF_ALL      =  1,  List hidden files
-    LF_ICASE    =  2,  Ignore case in search
-    LF_FILES    =  4,  list files (exclude directories)
-    LF_DIRS     =  8,  list directories (exclude files)
-    LF_EXCLUDE  =  16, exclude files matching "ere" pattern
-    LF_REGEX    =  32, re is a regular expression pattern to match
-    @endcode
-    return      true if successful, false otherwise */
+    @return true if successful, false otherwise
+    @verbatim
+
+    LF_ALL = 1,       List all files including hidden files
+    LF_ICASE = 2,     Ignore case in search
+    LF_EXC_REGEX = 4, Exclude files matching regular expression
+    LF_REGEX = 8,     Include files matching regular expression
+    LF_BLK = 256,
+    LF_CHR = 512,
+    LF_DIR = 1024,
+    LF_FIFO = 2048,
+    LF_LNK = 4096,
+    LF_REG = 8192,
+    LF_SOCK = 16384,
+    LF_UNKNOWN = 32768,
+                      Include     Exclude
+                     ----------  ----------
+    LF_BLK        1  0 00000001  7 11111110 block device
+    LF_CHR        2  1 00000010  6 11111101 character device
+    LF_DIR        4  2 00000100  5 11111011 directory
+    LF_FIFO       8  3 00001000  4 11110111 named pipe
+    LF_LNK       16  4 00010000  3 11101111 link
+    LF_REG       32  5 00100000  2 11011111 regular file
+    LF_SOCK      64  6 01000000  1 10111111 socket
+    LF_UNKNOWN  128  7 10000000  0 01111111 unknown
+
+    bool s_blk;
+    bool s_chr;
+    bool s_dir;
+    bool s_fifo;
+    bool s_lnk;
+    bool s_reg;
+    bool s_sock;
+    bool s_unknown;
+    @endverbatim
+*/
+
 bool lf_process(const char *base_path, regex_t *compiled_re,
                 regex_t *compiled_ere, int depth, int max_depth, int flags) {
     char tmp_str[MAXLEN];
-    struct stat sb;
     struct dirent *dir_st;
     DIR *dir;
     int REG_FLAGS = REG_EXTENDED;
     int reti;
     regmatch_t pmatch[1];
     char file_spec[1024];
-    bool is_dir;
     bool suppress;
-    int j, i;
+    int f_include;
+    int f_suppress;
     bool suppress_hidden = flags & LF_ALL ? false : true;
     char bname[MAXLEN];
 
@@ -990,40 +1019,71 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             continue;
         else if (bname[0] == '.' && suppress_hidden)
             continue;
-        ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path,
-                  dir_st->d_name);
-        if (lstat(file_spec, &sb) == -1)
-            return false;
+        f_suppress = 0;
+        f_include = (flags >> 8) & 0xff;
+        if (f_include)
+            f_suppress = (f_include) ^ 0xff;
+        /*
+        printf("f_include: %08b, f_suppress: %08b\n", f_include, f_suppress);
+        printf("FT_DIR=%08b, FT_DIR&f_suppress=%08b\n", FT_DIR,
+               FT_DIR & f_suppress);
+*/
+        bool s_blk = f_suppress & FT_BLK ? 1 : 0;
+        bool s_chr = f_suppress & FT_CHR ? 1 : 0;
+        bool s_dir = f_suppress & FT_DIR ? 1 : 0;
+        bool s_fifo = f_suppress & FT_FIFO ? 1 : 0;
+        bool s_lnk = f_suppress & FT_LNK ? 1 : 0;
+        bool s_reg = f_suppress & FT_REG ? 1 : 0;
+        bool s_sock = f_suppress & FT_SOCK ? 1 : 0;
+        bool s_unknown = f_suppress & FT_UNKNOWN ? 1 : 0;
         suppress = false;
-        if (S_ISLNK(sb.st_mode)) {
-            if (flags & LF_DIRS)
-                suppress = true;
-            is_dir = false;
-        } else if (S_ISDIR(sb.st_mode)) {
-            if (flags & LF_FILES)
-                suppress = true;
-            is_dir = true;
-        } else if (S_ISREG(sb.st_mode)) {
-            if (flags & LF_DIRS)
-                suppress = true;
-            is_dir = false;
-        } else {
-            if (flags & LF_DIRS)
-                suppress = true;
-            if (flags & LF_FILES)
-                suppress = true;
-            is_dir = false;
-        }
-        if (file_spec[0] == '.' && file_spec[1] == '/') {
-            i = 2;
-            j = 0;
-            while (file_spec[i])
-                file_spec[j++] = file_spec[i++];
-            file_spec[j] = '\0';
-        }
-        if (file_spec[0] == '.' && suppress_hidden)
+        if (dir_st->d_type == DT_BLK && s_blk)
             suppress = true;
-        if (!suppress) {
+        else if ((dir_st->d_type == DT_CHR) && s_chr)
+            suppress = true;
+        else if ((dir_st->d_type == DT_DIR) && s_dir)
+            suppress = true;
+        else if ((dir_st->d_type == DT_FIFO) && s_fifo)
+            suppress = true;
+        else if ((dir_st->d_type == DT_LNK) && s_lnk)
+            suppress = true;
+        else if ((dir_st->d_type == DT_REG) && s_reg)
+            suppress = true;
+        else if ((dir_st->d_type == DT_SOCK) && s_sock)
+            suppress = true;
+        else if ((dir_st->d_type == DT_UNKNOWN) && s_unknown)
+            suppress = true;
+        if (dir_st->d_name[0] == '.' && dir_st->d_name[1] == '/')
+            strnz__cpy(file_spec, &dir_st->d_name[2], MAXLEN - 1);
+        else
+            strnz__cpy(file_spec, dir_st->d_name, MAXLEN - 1);
+        ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path, bname);
+        /*         if (s_lnk) {
+                    if (stat(file_spec, &sb) == 0) {
+                        if ((sb.st_mode & S_IFMT) == S_IFDIR)
+                            lf_type = DT_DIR;
+                        else if ((sb.st_mode & S_IFMT) == S_IFREG)
+                            lf_type = DT_REG;
+                        else if ((sb.st_mode & S_IFMT) == S_IFBLK)
+                            lf_type = DT_BLK;
+                        else if ((sb.st_mode & S_IFMT) == S_IFCHR)
+                            lf_type = DT_CHR;
+                        else if ((sb.st_mode & S_IFMT) == S_IFIFO)
+                            lf_type = DT_FIFO;
+                        else if ((sb.st_mode & S_IFMT) == S_IFLNK)
+                            lf_type = DT_LNK;
+                        else if ((sb.st_mode & S_IFMT) == S_IFSOCK)
+                            lf_type = DT_SOCK;
+                        else
+                            lf_type = DT_UNKNOWN;
+                    } else
+                        lf_type = DT_UNKNOWN;
+                } else
+                    lf_type = dir_st->d_type;
+        */
+        if (bname[0] == '.' && suppress_hidden)
+            suppress = true;
+        if (!suppress && (flags & LF_REGEX)) {
             reti = regexec(compiled_re, file_spec, compiled_re->re_nsub + 1,
                            pmatch, REG_FLAGS);
             if (reti == REG_NOMATCH) {
@@ -1037,7 +1097,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
                 return false;
             }
         }
-        if (!suppress && (flags & LF_EXCLUDE)) {
+        if (!suppress && (flags & LF_EXC_REGEX)) {
             reti = regexec(compiled_ere, file_spec, compiled_re->re_nsub + 1,
                            pmatch, REG_FLAGS);
             if (reti == 0)
@@ -1053,9 +1113,13 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
                 return false;
             }
         }
-        if (!suppress)
-            printf("%s\n", file_spec);
-        if (is_dir && (depth + 1 < max_depth)) {
+        if (!suppress) {
+            if (file_spec[0] == '.' && file_spec[1] == '/')
+                printf("%s\n", &file_spec[2]);
+            else
+                printf("%s\n", file_spec);
+        }
+        if (dir_st->d_type == DT_DIR && depth + 1 < max_depth) {
             depth++;
             lf_process(file_spec, compiled_re, compiled_ere, depth, max_depth,
                        flags);
