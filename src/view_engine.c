@@ -327,7 +327,6 @@ int view_cmd_processor(Init *init) {
                     view->next_file_spec_ptr = view->file_spec_ptr;
                     str_subc(shell_cmd_spec, view->cmd_arg, '%',
                              view->cur_file_str, MAXLEN - 1);
-                    munmap(view->buf, view->file_size);
                 } else
                     strnz__cpy(shell_cmd_spec, view->cmd_arg, MAXLEN - 1);
                 full_screen_shell(shell_cmd_spec);

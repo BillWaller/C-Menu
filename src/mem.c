@@ -326,6 +326,10 @@ View *new_view(Init *init, int argc, char **argv) {
 View *destroy_view(Init *init) {
     int i;
     view = init->view;
+    if (!view)
+        return nullptr;
+    delwin(view->ln_win);
+    free(view->ln_tbl);
     for (i = 0; i <= view->argc; i++)
         free(view->argv[i]);
     free(view->argv);
@@ -504,7 +508,6 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     return true;
 }
 /** @brief Initialize Pick file specifications
-    @brief Initialize file specifications
     @param init structure
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line,
@@ -709,8 +712,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
     }
     return true;
 }
-/** @brief Initialize Pick file specifications
-    @brief Initialize file specifications
+/** @brief Initialize View file specifications
     @param init structure
     @note Positional args: pick desc, in_file, out_file, help_file */
 bool init_view_files(Init *init) {

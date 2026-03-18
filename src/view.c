@@ -26,11 +26,6 @@ int main(int argc, char **argv) {
         mview(init, view->argc, view->argv);
     } else if (!init_view_full_screen(init))
         view_file(init);
-    wclear(view->ln_win);
-    touchwin(view->ln_win);
-    wnoutrefresh(view->ln_win);
-    delwin(view->ln_win);
-    free(view->ln_tbl);
 
     destroy_init(init);
     win_del();
