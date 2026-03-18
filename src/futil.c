@@ -207,7 +207,7 @@ bool str_to_upper(char *s) {
     return true;
 }
 /** @brief safer alternative to strncpy
-    @note It copies string s to d, ensuring that the total length of d does not
+    @details copies string s to d, ensuring that the total length of d does not
    exceed max_len, and that the resulting string is null-terminated. It also
    treats newline and carriage return characters as string terminators,
    preventing them from being included in the result. This is particularly
@@ -1026,12 +1026,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         f_suppress = 0;
         f_include = (flags >> 8) & 0xff;
         if (f_include)
-            f_suppress = (f_include) ^ 0xff;
-        /*
-        printf("f_include: %08b, f_suppress: %08b\n", f_include, f_suppress);
-        printf("FT_DIR=%08b, FT_DIR&f_suppress=%08b\n", FT_DIR,
-               FT_DIR & f_suppress);
-*/
+            f_suppress = f_include ^ 0xff;
         bool s_blk = f_suppress & FT_BLK ? 1 : 0;
         bool s_chr = f_suppress & FT_CHR ? 1 : 0;
         bool s_dir = f_suppress & FT_DIR ? 1 : 0;
@@ -1041,50 +1036,47 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         bool s_sock = f_suppress & FT_SOCK ? 1 : 0;
         bool s_unknown = f_suppress & FT_UNKNOWN ? 1 : 0;
         suppress = false;
-        if (dir_st->d_type == DT_BLK && s_blk)
-            suppress = true;
-        else if ((dir_st->d_type == DT_CHR) && s_chr)
-            suppress = true;
-        else if ((dir_st->d_type == DT_DIR) && s_dir)
-            suppress = true;
-        else if ((dir_st->d_type == DT_FIFO) && s_fifo)
-            suppress = true;
-        else if ((dir_st->d_type == DT_LNK) && s_lnk)
-            suppress = true;
-        else if ((dir_st->d_type == DT_REG) && s_reg)
-            suppress = true;
-        else if ((dir_st->d_type == DT_SOCK) && s_sock)
-            suppress = true;
-        else if ((dir_st->d_type == DT_UNKNOWN) && s_unknown)
-            suppress = true;
+        switch (dir_st->d_type) {
+        case DT_BLK:
+            if (s_blk)
+                suppress = true;
+            break;
+        case DT_CHR:
+            if (s_chr)
+                suppress = true;
+            break;
+        case DT_DIR:
+            if (s_dir)
+                suppress = true;
+            break;
+        case DT_FIFO:
+            if (s_fifo)
+                suppress = true;
+            break;
+        case DT_LNK:
+            if (s_lnk)
+                suppress = true;
+            break;
+        case DT_REG:
+            if (s_reg)
+                suppress = true;
+            break;
+        case DT_SOCK:
+            if (s_sock)
+                suppress = true;
+            break;
+        case DT_UNKNOWN:
+            if (s_unknown)
+                suppress = true;
+            break;
+        default:
+            break;
+        }
         if (dir_st->d_name[0] == '.' && dir_st->d_name[1] == '/')
             strnz__cpy(file_spec, &dir_st->d_name[2], MAXLEN - 1);
         else
             strnz__cpy(file_spec, dir_st->d_name, MAXLEN - 1);
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path, bname);
-        /*         if (s_lnk) {
-                    if (stat(file_spec, &sb) == 0) {
-                        if ((sb.st_mode & S_IFMT) == S_IFDIR)
-                            lf_type = DT_DIR;
-                        else if ((sb.st_mode & S_IFMT) == S_IFREG)
-                            lf_type = DT_REG;
-                        else if ((sb.st_mode & S_IFMT) == S_IFBLK)
-                            lf_type = DT_BLK;
-                        else if ((sb.st_mode & S_IFMT) == S_IFCHR)
-                            lf_type = DT_CHR;
-                        else if ((sb.st_mode & S_IFMT) == S_IFIFO)
-                            lf_type = DT_FIFO;
-                        else if ((sb.st_mode & S_IFMT) == S_IFLNK)
-                            lf_type = DT_LNK;
-                        else if ((sb.st_mode & S_IFMT) == S_IFSOCK)
-                            lf_type = DT_SOCK;
-                        else
-                            lf_type = DT_UNKNOWN;
-                    } else
-                        lf_type = DT_UNKNOWN;
-                } else
-                    lf_type = dir_st->d_type;
-        */
         if (bname[0] == '.' && suppress_hidden)
             suppress = true;
         if (!suppress && (flags & LF_REGEX)) {

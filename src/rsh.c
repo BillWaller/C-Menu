@@ -7,6 +7,7 @@
     @date 2026-02-09
  */
 
+#include <cm.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -79,7 +80,7 @@ int main(int argc, char **argv) {
         cargv[c++] = "-i";
     while (a < argc)
         cargv[c++] = strdup(argv[a++]);
-    cargv[c] = nullptr;
+    cargv[c] = (char *)'\0';
     pid = fork();
     switch (pid) {
     case -1:
