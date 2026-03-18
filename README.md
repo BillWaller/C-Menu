@@ -64,13 +64,29 @@ gh repo clone BillWaller/C-Menu
 
 ## ![View C Source](screenshots/new_view1.png)
 
+If you start view with the -N option, it will display line numbers. It opens a
+separate panel got line numbers, so it doesn't get pushed off the screen when
+you scroll horizontally. The line numbers are right-aligned and padded with
+spaces.
+
+New options have been added to the configuration file to allow users to
+customize the foreground and background colors of the line number panel.
+
 ### Large Log File in View
 
 ## ![View Large Log File](screenshots/new_view2.png)
 
+I really should delete these files at least weekly. That's what cron is for. I
+procrastinate.
+
 ### New Options for lf
 
 ## ![lf options](screenshots/lf-help.png)
+
+The speed of these ultra-lightweight C utilities is obscene. They are designed to be used in pipelines, and they won't slow you down. The new options for lf allow you to specify the maximum number of files to list, and to include hidden files in the results. This makes it even more versatile and useful for a wide range of applications.
+
+Check the Makefiles. I've been running the executables compiled with -g3, and they
+are still blazingly fast. You can use gprof to profile the executables and see where the time is being spent. It's a great way to understand how the code works and to identify any potential bottlenecks. But compile them with -O2 or -O3 first. The -O3 versions work fine since I replaced mbtowc with mbrtowc. (Multibyte to wide character conversion functions.)
 
 ## C-Menu Exercises
 
