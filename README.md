@@ -7,11 +7,8 @@
 - [Get C-Menu on Github](#get-c-menu-on-github)
 - [NEW Features](#new-features)
   - [View Line Numbering](#view-line-numbering)
-- [!View C Source](#view-c-source)
   - [Large Log File in View](#large-log-file-in-view)
-- [!View Large Log File](#view-large-log-file)
   - [New Options for lf](#new-options-for-lf)
-- [!lf options](#lf-options)
 - [C-Menu Exercises](#c-menu-exercises)
 - [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
   - [C-Menu API](#c-menu-api)
@@ -62,7 +59,7 @@ gh repo clone BillWaller/C-Menu
 
 ### View Line Numbering
 
-## ![View C Source](screenshots/new_view1.png)
+![View C Source](screenshots/new_view1.png)
 
 If you start view with the -N option, it will display line numbers. It opens a
 separate panel got line numbers, so it doesn't get pushed off the screen when
@@ -74,14 +71,14 @@ customize the foreground and background colors of the line number panel.
 
 ### Large Log File in View
 
-## ![View Large Log File](screenshots/new_view2.png)
+![View Large Log File](screenshots/new_view2.png)
 
 I really should delete these files at least weekly. That's what cron is for. I
 procrastinate.
 
 ### New Options for lf
 
-## ![lf options](screenshots/lf-help.png)
+![lf options](screenshots/lf-help.png)
 
 The speed of these ultra-lightweight C utilities is obscene. They are designed to be used in pipelines, and they won't slow you down. The new options for lf allow you to specify the maximum number of files to list, and to include hidden files in the results. This makes it even more versatile and useful for a wide range of applications.
 

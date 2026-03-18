@@ -55,6 +55,12 @@ int mview(Init *init, int argc, char **argv) {
         view_file(init);
         win_del();
     }
+    wclear(view->ln_win);
+    touchwin(view->ln_win);
+    wnoutrefresh(view->ln_win);
+    delwin(view->ln_win);
+    free(view->ln_tbl);
+
     destroy_view(init);
     return 0;
 }

@@ -34,7 +34,6 @@ int init_view_full_screen(Init *init) {
     set_tabsize(view->tab_stop);
     view->f_full_screen = true;
     getmaxyx(stdscr, scr_lines, scr_cols);
-
     if (view->lines == 0 || view->lines > scr_lines)
         view->lines = scr_lines;
     if (view->cols == 0 || view->cols > scr_cols)
