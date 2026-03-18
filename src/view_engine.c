@@ -277,7 +277,7 @@ int view_cmd_processor(Init *init) {
         case Ctrl('K'):
             if (n_cmd <= 0)
                 n_cmd = 1;
-            prev_page(view);
+            scroll_up_n_lines(view, n_cmd);
             // scroll_up_n_lines(view, n_cmd);
             break;
         /** 'j', 'J', KEY_DOWN, KEY_ENTER, SPACE - scroll down one line */
@@ -298,7 +298,7 @@ int view_cmd_processor(Init *init) {
         case 'b':
         case 'B':
         case Ctrl('B'):
-            scroll_up_n_lines(view, view->scroll_lines);
+            prev_page(view);
             break;
         /**  'f', 'F', Ctrl('F'), KEY_NPAGE - scroll down one page */
         case 'f':
@@ -1213,23 +1213,35 @@ int pad_refresh(View *view) {
     return rc;
 }
 /** @brief display previous page
- * @param view data structure
+   @param view data structure
+   @details Displays the previous page starting at (view->page_top_ln -
+   view->scroll_lines).
  */
 void prev_page(View *view) {
     if (view->page_top_pos == 0)
         return;
     view->cury = 0;
-    if (view->page_top_ln - view->scroll_lines >= 0)
-        view->page_top_ln -= view->scroll_lines;
+    view->ln = view->page_top_ln;
+    if (view->ln - view->scroll_lines >= 0)
+        view->ln -= view->scroll_lines;
     else
-        view->page_top_ln = 0;
-    view->page_top_pos = view->ln_tbl[view->page_top_ln];
+        view->ln = 0;
+    view->page_top_pos = view->ln_tbl[view->ln];
     view->file_pos = view->page_top_pos;
+    view->page_bot_pos = view->file_pos;
     next_page(view);
 }
 /** @brief Advance to Next Page
- * @param view data structure
- * */
+   @param view data structure
+   @details Advances from view->page_bot_pos to view the next page of content.
+   view->page_bot_pos must be set properly when calling this function.
+   If the current bottom position of the page is at the end of the file, the
+   function returns without making any changes. Otherwise, it resets the maximum
+   column and current line position to the top of the page, updates the file
+   position to the current bottom position of the page, and sets the top
+   position and line number of the page accordingly. Finally, it calls the
+   function to display the new page content.
+*/
 void next_page(View *view) {
     if (view->page_bot_pos == view->file_size)
         return;
