@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
     if (f_version) {
-        printf("optsp version 1.0\n");
+        printf("CMenu %s\n", CM_VERSION);
         exit(EXIT_SUCCESS);
     }
     if (!f_mask)

@@ -64,7 +64,10 @@ size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
+
+/** Global variables for error reporting */
 char errmsg[MAXLEN];
+bool f_debug = false;
 
 /**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim
@@ -904,7 +907,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     regex_t compiled_re;
     regex_t compiled_ere;
     int REG_FLAGS = REG_EXTENDED;
-    /*
+    if (f_debug) {
         printf("\n\nFT_BLK: %08b\n", FT_BLK);
         printf("FT_CHR: %08b\n", FT_CHR);
         printf("FT_DIR: %08b\n", FT_DIR);
@@ -913,7 +916,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
         printf("FT_REG: %08b\n", FT_REG);
         printf("FT_SOCK: %08b\n", FT_SOCK);
         printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
-    */
+    }
     if (flags & LF_ICASE)
         REG_FLAGS |= REG_ICASE;
     if (flags & LF_REGEX) {
@@ -1012,7 +1015,8 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
-        base_name(bname, dir_st->d_name);
+        // base_name(bname, dir_st->d_name);
+        strnz__cpy(bname, dir_st->d_name, MAXLEN - 1);
         if (bname[0] == '.' && bname[1] == '\0')
             continue;
         else if (bname[0] == '.' && bname[1] == '.' && bname[2] == '\0')

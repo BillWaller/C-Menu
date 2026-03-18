@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/param.h>
 #include <sys/stat.h>
 #include <termios.h>
 #include <time.h>
@@ -22,27 +23,52 @@
 
 #define Ctrl(c) ((c) & 0x1f)
 
-/** @brief read the next characater from the virtual file */
+/** @brief read the next characater from the virtual file
+   @note Line numbers are tracked when reading forward and stored in a line
+   table for quick access when moving backwards.
+   @note When reading forward, the End of Data (EOD) flag is set when the
+   position is equal to the file size, and cleared when the position or reading
+   direction changes.
+   @note Carriage-returns are ignored as they should be.
+   @note View uses the kernel's demand paged virtual address space to map files
+   directly into memory. This allows for efficient access to file contents
+   without the need for explicit buffering or read system calls, as the kernel
+   handles loading the necessary pages into memory on demand.
+ */
 #define get_next_char()                                                        \
-    do {                                                                       \
-        if (view->file_pos == view->file_size) {                               \
-            view->f_eod = true;                                                \
-            break;                                                             \
-        } else                                                                 \
-            view->f_eod = false;                                               \
-        c = view->buf[view->file_pos++];                                       \
-    } while (c == 0x0d);
-
-/** @brief read the previous characater from the virtual file */
+    {                                                                          \
+        c = 0;                                                                 \
+        do {                                                                   \
+            if (view->file_pos == view->file_size) {                           \
+                view->f_eod = true;                                            \
+                break;                                                         \
+            } else                                                             \
+                view->f_eod = false;                                           \
+            c = view->buf[view->file_pos++];                                   \
+        } while (c == 0x0d);                                                   \
+        if (c == '\n')                                                         \
+            increment_ln(view);                                                \
+    }
+/** @brief read the previous characater from the virtual file
+    @note There is no need to track line numbers when moving backwards as they
+   are stored in the line table and accessed as needed.
+    @note When reading in reverse, the Beginning of Data (BOD) flag is set when
+   the file position is zero, and cleared when the position or reading direction
+   changes.
+    @note Carriage-returns are ignored as they should be.
+ */
 #define get_prev_char()                                                        \
-    do {                                                                       \
-        if (view->file_pos == 0) {                                             \
-            view->f_bod = true;                                                \
-            break;                                                             \
-        } else                                                                 \
-            view->f_bod = false;                                               \
-        c = view->buf[--view->file_pos];                                       \
-    } while (c == 0x0d);
+    {                                                                          \
+        c = 0;                                                                 \
+        do {                                                                   \
+            if (view->file_pos == 0) {                                         \
+                view->f_bod = true;                                            \
+                break;                                                         \
+            } else                                                             \
+                view->f_bod = false;                                           \
+            c = view->buf[--view->file_pos];                                   \
+        } while (c == 0x0d);                                                   \
+    }
 
 char prev_regex_pattern[MAXLEN];
 FILE *dbgfp;
@@ -62,7 +88,6 @@ bool search(View *, int *, char *);
 void next_page(View *);
 void prev_page(View *);
 void resize_page(Init *);
-void redisplay_page(View *);
 void scroll_down_n_lines(View *, int);
 void scroll_up_n_lines(View *, int);
 off_t get_next_line(View *, off_t);
@@ -71,16 +96,28 @@ off_t get_pos_next_line(View *, off_t);
 off_t get_pos_prev_line(View *, off_t);
 int fmt_line(View *);
 void display_line(View *);
+void view_display_page(View *);
 void parse_ansi_str(char *, attr_t *, int *);
 void view_display_help(Init *);
 void cmd_line_prompt(View *, char *);
 void remove_file(View *);
 int write_view_buffer(Init *, bool);
 bool enter_file_spec(Init *, char *);
-int a_toi(char *s, bool *a_toi_error);
-
+int a_toi(char *, bool *);
+void increment_ln(View *);
+void initialize_line_table(View *);
+int pad_refresh(View *);
+void sync_ln(View *);
 char err_msg[MAXLEN];
-/** @brief Start view */
+
+/** @brief Start view
+    @param init Pointer to the Init structure containing initialization
+   parameters and state for the view application. This structure is used to pass
+   necessary information and maintain state across different functions within
+   the view application.
+    @return Returns 0 on successful completion of the view application, or a
+   non-zero value if an error occurs during initialization or execution.
+ */
 int view_file(Init *init) {
     view = init->view;
     if (view->argc < 1) {
@@ -102,8 +139,13 @@ int view_file(Init *init) {
                 view->f_bod = 0;
                 view->maxcol = 0;
                 view->page_top_pos = 0;
+                view->page_top_ln = 0;
+                view->page_bot_ln = 0;
+                view->ln_max_pos = 0;
+                view->ln = 0;
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
+                initialize_line_table(view);
                 next_page(view);
                 view_cmd_processor(init);
                 munmap(view->buf, view->file_size);
@@ -117,17 +159,20 @@ int view_file(Init *init) {
     }
     return 0;
 }
-/** @brief Main Command Processing Loop for View */
+/** @brief Main Command Processing Loop for View
+    @param Init Pointer to the Init structure containing initialization
+   parameters and state for the view application. This structure is used to pass
+   necessary information and maintain state across different functions within
+   the view application.
+*/
 int view_cmd_processor(Init *init) {
     char tmp_str[MAXLEN];
     int tfd;
     int c;
-    int max_n;
     int shift = 0;
     int search_cmd = 0;
     int prev_search_cmd = 0;
     int rc, i;
-    int n = 0;
     ssize_t bytes_written;
     char *e;
     char shell_cmd_spec[MAXLEN];
@@ -136,6 +181,8 @@ int view_cmd_processor(Init *init) {
     bool f_clock_started = false;
     off_t n_cmd = 0L;
     off_t prev_file_pos;
+    int swidth;
+    int max_pmincol;
     view = init->view;
     view->f_timer = false;
     view->cmd[0] = '\0';
@@ -144,7 +191,7 @@ int view_cmd_processor(Init *init) {
         view->next_cmd_char = 0;
         if (!c) {
             if (view->f_redisplay_page)
-                redisplay_page(view);
+                view_display_page(view);
             view->f_redisplay_page = false;
             if (view->f_timer && f_clock_started) {
                 clock_gettime(CLOCK_MONOTONIC, &end);
@@ -164,11 +211,7 @@ int view_cmd_processor(Init *init) {
                 else
                     cmd_line_prompt(view, view->prompt_str);
             }
-            rc =
-                prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-                         view->smincol, view->smaxrow, view->smaxcol);
-            if (rc == ERR)
-                Perror("Error refreshing pad");
+            pad_refresh(view);
             c = get_cmd_char(view, &n_cmd);
             if (view->f_timer) {
                 clock_gettime(CLOCK_MONOTONIC, &start);
@@ -204,17 +247,12 @@ int view_cmd_processor(Init *init) {
         case KEY_BACKSPACE:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            shift = (view->cols / 3) * 2;
-            max_n = view->pmincol / shift;
-            n = (int)n_cmd;
-            if (n > max_n)
-                n = max_n;
-            shift *= n;
-            if (view->pmincol - shift < 0)
-                view->pmincol = 0;
-            else
+            shift = (int)n_cmd;
+            swidth = view->smaxcol - view->smincol;
+            if (view->pmincol - shift > 0)
                 view->pmincol -= shift;
-            view->f_redisplay_page = true;
+            else
+                view->pmincol = 0;
             break;
         case 'l': /**< 'l', 'L', KEY_RIGHT - Horizontal scroll right by two
                      thirds of the page width */
@@ -222,19 +260,16 @@ int view_cmd_processor(Init *init) {
         case KEY_RIGHT:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            shift = (view->cols / 3) * 2;
-            max_n = (view->maxcol - view->pmincol) / shift;
-            n = (int)n_cmd;
-            if (n > max_n)
-                n = max_n;
-            shift *= n;
-            if (view->pmincol + shift <= view->maxcol)
+            shift = (int)n_cmd;
+            swidth = view->smaxcol - view->smincol + 1;
+            if (view->f_ln)
+                max_pmincol = view->maxcol - swidth + 7;
+            else
+                max_pmincol = view->maxcol - swidth;
+            if (view->pmincol + shift < max_pmincol)
                 view->pmincol += shift;
             else
-                view->pmincol = (view->maxcol - shift) > 0
-                                    ? (view->maxcol - view->cols)
-                                    : 0;
-            view->f_redisplay_page = true;
+                view->pmincol = max_pmincol;
             break;
         case 'k': /** 'k', 'K', KEY_UP, Ctrl('K') - Scroll up one line */
         case 'K':
@@ -542,8 +577,7 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
             lp(view->cur_file_str);
-            prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-                     view->smincol, view->smaxrow, view->smaxcol);
+            pad_refresh(view);
             shell(shell_cmd_spec);
             ssnprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
                       view->tmp_file_name_ptr);
@@ -660,7 +694,7 @@ int get_cmd_char(View *view, off_t *n) {
     mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, nullptr);
     tcflush(2, TCIFLUSH);
     do {
-        c = xwgetch(view->win, nullptr);
+        c = xwgetch(view->pad, nullptr);
         if (c == KEY_MOUSE) {
             if (getmouse(&event) != OK)
                 return (MA_ENTER_OPTION);
@@ -688,21 +722,21 @@ int get_cmd_arg(View *view, char *prompt) {
     char *cmd_e;
     char prompt_s[PAD_COLS + 1];
     char *n;
-    int rc, prompt_l;
+    int prompt_l;
     prompt_l = strnz__cpy(prompt_s, prompt, view->cols - 4);
     if (view->cmd_arg[0] != '\0')
         return 0;
     cmd_p = view->cmd_arg;
     cmd_e = view->cmd_arg + MAXLEN - 2;
-    wmove(view->win, view->cmd_line, 0);
+    wmove(view->pad, view->cmd_line, 0);
     if (prompt_l == 0)
         numeric_arg = true;
     if (prompt_l > 1) {
-        wstandout(view->win);
-        waddch(view->win, ' ');
-        waddstr(view->win, prompt_s);
-        waddch(view->win, ' ');
-        wstandend(view->win);
+        wstandout(view->pad);
+        waddch(view->pad, ' ');
+        waddstr(view->pad, prompt_s);
+        waddch(view->pad, ' ');
+        wstandend(view->pad);
     } else {
         if (*prompt == ':')
             numeric_arg = true;
@@ -714,16 +748,13 @@ int get_cmd_arg(View *view, char *prompt) {
                 numeric_arg = true;
             }
         }
-        waddstr(view->win, prompt_s);
-        wmove(view->win, view->cmd_line, prompt_l);
+        waddstr(view->pad, prompt_s);
+        wmove(view->pad, view->cmd_line, prompt_l);
     }
-    wclrtoeol(view->win);
+    wclrtoeol(view->pad);
     while (1) {
-        rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-                      view->smincol, view->smaxrow, view->smaxcol);
-        if (rc == ERR)
-            Perror("Error refreshing screen");
-        c = xwgetch(view->win, nullptr);
+        pad_refresh(view);
+        c = xwgetch(view->pad, nullptr);
         switch (c) {
         /** Basic Editing Keys for Command Line */
         case KEY_LEFT:
@@ -732,20 +763,20 @@ int get_cmd_arg(View *view, char *prompt) {
             if (cmd_p > view->cmd_arg) {
                 cmd_p--;
                 if (*cmd_p < ' ' || *cmd_p == 0x7f) {
-                    getyx(view->win, view->cury, view->curx);
+                    getyx(view->pad, view->cury, view->curx);
                     if (view->curx > 0) {
                         view->curx--;
-                        wmove(view->win, view->cmd_line, view->curx);
-                        waddch(view->win, ' ');
-                        wmove(view->win, view->cmd_line, view->curx);
+                        wmove(view->pad, view->cmd_line, view->curx);
+                        waddch(view->pad, ' ');
+                        wmove(view->pad, view->cmd_line, view->curx);
                     }
                 }
-                getyx(view->win, view->cury, view->curx);
+                getyx(view->pad, view->cury, view->curx);
                 if (view->curx > 0) {
                     view->curx--;
-                    wmove(view->win, view->cmd_line, view->curx);
-                    waddch(view->win, ' ');
-                    wmove(view->win, view->cmd_line, view->curx);
+                    wmove(view->pad, view->cmd_line, view->curx);
+                    waddch(view->pad, ' ');
+                    wmove(view->pad, view->cmd_line, view->curx);
                 }
             }
             break;
@@ -761,11 +792,11 @@ int get_cmd_arg(View *view, char *prompt) {
             *cmd_p++ = (char)c;
             *cmd_p = '\0';
             if ((char)c < ' ') {
-                waddch(view->win, '^');
+                waddch(view->pad, '^');
                 c |= '@';
             } else if ((uchar)c == 0x7f)
                 c = '?';
-            waddch(view->win, (char)c);
+            waddch(view->pad, (char)c);
             if (cmd_p >= cmd_e)
                 return 0;
             if (numeric_arg && (c < '0' || c > '9'))
@@ -908,8 +939,7 @@ void lp(char *PrintFile) {
         print_cmd_ptr = PRINTCMD;
     sprintf(shell_cmd_spec, "%s %s", print_cmd_ptr, PrintFile);
     cmd_line_prompt(view, shell_cmd_spec);
-    prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-             view->smincol, view->smaxrow, view->smaxcol);
+    pad_refresh(view);
     shell(shell_cmd_spec);
 }
 /** @brief Go to Mark */
@@ -922,68 +952,6 @@ void go_to_mark(View *view, int c) {
         Perror("Mark not set");
     else
         go_to_position(view, view->file_pos);
-}
-/** @brief Go to End of File */
-void go_to_eof(View *view) {
-    int c;
-    view->file_pos = view->file_size;
-    view->page_top_pos = view->file_pos;
-    get_prev_char();
-    prev_page(view);
-}
-/** @brief Go to Specific Line */
-int go_to_line(View *view, off_t line_idx) {
-    char tmp_str[MAXLEN];
-    int c = 0;
-    off_t line_cnt = 0;
-    if (line_idx <= 1) {
-        go_to_position(view, 0);
-        return EOF;
-    }
-    view->file_pos = 0;
-    view->page_top_pos = view->file_pos;
-    line_idx = 0;
-    view->f_eod = false;
-    do {
-        while (c != '\n') {
-            get_next_char();
-            if (view->f_eod) {
-                sprintf(tmp_str, "End of data at %ld lines", line_cnt - 1);
-                Perror(tmp_str);
-                return EOF;
-            }
-        }
-        get_next_char();
-    } while (line_cnt < line_idx - 1);
-    view->page_top_pos = view->file_pos;
-    prev_page(view);
-    return 0;
-}
-/** @brief Go to Percent of File
-    @param view data structure
-    @param percent of file
-*/
-void go_to_percent(View *view, int percent) {
-    int c = 0;
-    if (view->file_size < 0) {
-        Perror("Cannot determine file length");
-        return;
-    }
-    view->file_pos = (percent * view->file_size) / 100;
-    get_next_char();
-    while (c != '\n') {
-        get_prev_char();
-        if (view->f_bod)
-            break;
-    }
-    get_next_char();
-    next_page(view);
-}
-/** @brief Go to Specific File Position */
-void go_to_position(View *view, off_t go_to_pos) {
-    view->file_pos = go_to_pos;
-    view->page_bot_pos = view->file_pos;
-    next_page(view);
 }
 /** @brief Search for Regular Expression Pattern
     @param view Pointer to View Structure
@@ -1009,10 +977,11 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     regmatch_t pmatch[1];
     regex_t compiled_regex;
     int reti;
-    off_t prev_srch_pos;
     int line_offset;
     int line_len;
     int match_len;
+    off_t prev_srch_pos;
+    off_t prev_ln;
     bool f_page = false;
     if (*regex_pattern == '\0')
         return false;
@@ -1048,11 +1017,14 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
                 return true;
             }
         }
+        view->file_pos = view->srch_curr_pos;
+        sync_ln(view);
         /** get line to scan */
-        prev_srch_pos = view->srch_curr_pos;
         if (*search_cmd == '/') {
             if (view->cury == view->scroll_lines)
                 return true;
+            prev_srch_pos = view->srch_curr_pos;
+            prev_ln = view->ln;
             view->srch_curr_pos = get_next_line(view, view->srch_curr_pos);
             view->page_bot_pos = view->srch_curr_pos;
         } else {
@@ -1090,12 +1062,14 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         if (!f_page) {
             if (*search_cmd == '/') {
                 view->page_top_pos = prev_srch_pos;
-                wmove(view->win, view->cury, 0);
+                view->page_top_ln = prev_ln;
+                wmove(view->pad, view->cury, 0);
             } else {
-                view->page_bot_pos = prev_srch_pos;
-                wmove(view->win, 0, 0);
+                view->page_bot_pos = view->srch_curr_pos;
+                view->page_bot_ln = view->ln;
+                wmove(view->pad, 0, 0);
             }
-            wclrtobot(view->win);
+            wclrtobot(view->pad);
             f_page = true;
         }
         if (*search_cmd == '?')
@@ -1107,11 +1081,12 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
+
         line_offset = 0;
         while (1) {
             view->curx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
-            mvwchgat(view->win, view->cury - 1, view->curx, match_len,
+            mvwchgat(view->pad, view->cury - 1, view->curx, match_len,
                      WA_REVERSE, cp_norm, nullptr);
             if (view->first_match_x == -1)
                 view->first_match_x = pmatch[0].rm_so;
@@ -1172,17 +1147,7 @@ void resize_page(Init *init) {
     int scr_lines, scr_cols;
     bool f_resize = false;
     view = init->view;
-    if (view->f_full_screen) {
-        getmaxyx(stdscr, view->lines, view->cols);
-        view->scroll_lines = view->lines - 1;
-        view->cmd_line = view->lines - 1;
-        view->smaxrow = view->lines - 1;
-        view->smaxcol = view->cols - 1;
-        wresize(view->win, view->lines, view->cols);
-        wrefresh(view->win);
-        wsetscrreg(view->win, 0, view->scroll_lines);
-        f_resize = true;
-    } else {
+    if (!view->f_full_screen) {
         getmaxyx(stdscr, scr_lines, scr_cols);
         if (view->begy + view->lines + 2 > scr_lines) {
             view->lines = (scr_lines - view->begy) - 2;
@@ -1199,7 +1164,7 @@ void resize_page(Init *init) {
             view->smaxcol = view->cols - 1;
             win_resize(view->lines + 2, view->cols + 2, view->title);
             restore_wins();
-            wsetscrreg(view->win, 0, view->scroll_lines);
+            wsetscrreg(view->pad, 0, view->scroll_lines);
         }
     }
     if (f_resize)
@@ -1207,137 +1172,149 @@ void resize_page(Init *init) {
     else
         view->f_redisplay_page = false;
 }
-/** @brief Redisplay Current Page */
-void redisplay_page(View *view) {
-    int i;
-    int line_len;
-    view->cury = 0;
-    wmove(view->win, view->cury, 0);
-    view->page_bot_pos = view->page_top_pos;
-    for (i = 0; i < view->scroll_lines; i++) {
-        view->page_bot_pos = get_next_line(view, view->page_bot_pos);
-        if (view->f_eod)
-            break;
-        line_len = fmt_line(view);
-        if (line_len > view->maxcol)
-            view->maxcol = line_len;
-        display_line(view);
-    }
+/** @brief Refresh Pad and Line Number Window
+   @param view data structure
+   @returns OK on success, ERR on failure
+*/
+int pad_refresh(View *view) {
+    int rc;
+    wrefresh(view->ln_win);
+    if (view->f_ln)
+        rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
+                      view->smincol + 7, view->smaxrow, view->smaxcol);
+    else
+        rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
+                      view->smincol, view->smaxrow, view->smaxcol);
+    if (rc == ERR)
+        Perror("Error refreshing screen");
+    return rc;
 }
-/** @brief Advance to Next Page */
+/** @brief display previous page
+ * @param view data structure
+ */
+void prev_page(View *view) {
+    if (view->page_top_pos == 0)
+        return;
+    view->cury = 0;
+    if (view->page_top_ln - view->scroll_lines >= 0)
+        view->page_top_ln -= view->scroll_lines;
+    else
+        view->page_top_ln = 0;
+    view->page_top_pos = view->ln_tbl[view->page_top_ln];
+    view->file_pos = view->page_top_pos;
+    next_page(view);
+}
+/** @brief Advance to Next Page
+ * @param view data structure
+ * */
 void next_page(View *view) {
-    int i;
-    int line_len;
-    curs_set(0);
     if (view->page_bot_pos == view->file_size)
         return;
     view->maxcol = 0;
     view->cury = 0;
     view->file_pos = view->page_bot_pos;
     view->page_top_pos = view->file_pos;
-    wmove(view->win, view->cury, 0);
-    wclrtobot(view->win);
-    for (i = 0; i < view->scroll_lines; i++) {
-        get_next_line(view, view->file_pos);
-        if (view->f_eod)
-            break;
-        line_len = fmt_line(view);
-        if (line_len > view->maxcol)
-            view->maxcol = line_len;
-        display_line(view);
-    }
-    view->page_bot_pos = view->file_pos;
-    curs_set(1);
+    view->page_top_ln = view->ln;
+    view_display_page(view);
 }
-/** @brief display previous page */
-void prev_page(View *view) {
+/** @brief Display Current Page
+ * @param view data structure
+ * */
+void view_display_page(View *view) {
     int i;
     curs_set(0);
-    if (view->page_top_pos == 0)
-        return;
-    view->maxcol = 0;
-    view->cury = 0;
-    wmove(view->win, view->cury, 0);
-    view->file_pos = view->page_top_pos;
-    view->page_bot_pos = view->file_pos;
+    wmove(view->pad, 0, 0);
+    wclrtobot(view->pad);
     for (i = 0; i < view->scroll_lines; i++) {
-        get_pos_prev_line(view, view->file_pos);
-        if (view->f_bod)
+        if (i == 0) {
+            view->page_top_pos = view->file_pos;
+            view->page_top_ln = view->ln;
+        }
+        view->page_bot_pos = get_next_line(view, view->page_bot_pos);
+        if (view->f_eod)
             break;
+        fmt_line(view);
+        display_line(view);
     }
-    view->page_bot_pos = view->file_pos;
-    next_page(view);
+    view->page_bot_ln = view->ln;
+    curs_set(1);
 }
-/** @brief Scroll N Lines */
+/** @brief Scroll N Lines
+ * @param view data Structure
+ * @param n number of lines to scroll
+ */
 void scroll_down_n_lines(View *view, int n) {
     int i = 0;
-    int line_len;
     curs_set(0);
+    view->f_bod = false;
     if (view->page_bot_pos == view->file_size)
         return;
     /** Locate New Top of Page */
-    view->file_pos = view->page_top_pos;
-    for (i = 0; i < n; i++) {
-        view->page_top_pos = get_pos_next_line(view, view->file_pos);
-        if (view->f_eod)
-            break;
-    }
-    n = i;
+    if (view->page_top_ln + n < view->ln) {
+        view->page_top_ln += n;
+        view->page_top_pos = view->ln_tbl[view->page_top_ln];
+    } else
+        view->page_top_ln = view->ln;
     /** Scroll */
-    wscrl(view->win, n);
+    if (n > view->scroll_lines) {
+        if (view->f_ln) {
+            wmove(view->ln_win, 0, 0);
+            wclrtobot(view->ln_win);
+        }
+        wmove(view->pad, 0, 0);
+        wclrtobot(view->pad);
+    } else {
+        if (view->f_ln)
+            wscrl(view->ln_win, n);
+        wscrl(view->pad, n);
+        if (view->cury + n < view->scroll_lines)
+            view->cury = view->scroll_lines - n;
+    }
     /** Fill in Page Bottom */
-    view->cury = view->scroll_lines - n;
-    wmove(view->win, view->cury, 0);
-    view->file_pos = view->page_bot_pos;
+    wmove(view->pad, view->cury, 0);
     for (i = 0; i < n; i++) {
-        get_next_line(view, view->file_pos);
+        view->page_bot_pos = get_next_line(view, view->page_bot_pos);
+        view->page_bot_ln = view->ln;
         if (view->f_eod)
             break;
-        line_len = fmt_line(view);
-        if (line_len > view->maxcol)
-            view->maxcol = line_len;
+        fmt_line(view);
         display_line(view);
     }
-    view->page_bot_pos = view->file_pos;
     curs_set(1);
 }
-/** @brief Scroll Up N Lines */
+/** @brief Scroll Up N Lines
+ * @param view data Structure
+ * @param n number of lines to scroll
+ * */
 void scroll_up_n_lines(View *view, int n) {
     int i;
-    int line_len;
     curs_set(0);
+    view->f_eod = false;
     if (view->page_top_pos == 0)
         return;
     /** Locate New Top of Page */
-    for (i = 0; i < n; i++) {
-        if (view->f_bod)
-            break;
-        view->page_top_pos = get_pos_prev_line(view, view->page_top_pos);
-    }
-    n = i;
-    /** Locate New Bottom of Page */
-    view->f_bod = false;
-    for (i = 0; i < n; i++) {
-        if (view->f_bod)
-            break;
-        view->page_bot_pos = get_pos_prev_line(view, view->page_bot_pos);
-    }
-    /** Scroll Up */
-    if (n < view->scroll_lines)
-        wscrl(view->win, -n);
-    /** Fill in Page Top */
-    view->cury = 0;
-    wmove(view->win, view->cury, 0);
+    if (view->page_top_ln - n >= 0)
+        view->page_top_ln -= n;
+    else
+        view->page_top_ln = 1;
+    view->ln = view->page_top_ln;
+    view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->file_pos = view->page_top_pos;
+    wscrl(view->ln_win, -n);
+    wnoutrefresh(view->ln_win);
+    wscrl(view->pad, -n);
+    view->cury = 0;
+    wmove(view->pad, view->cury, 0);
+    /** Fill in Page Top */
     for (i = 0; i < n; i++) {
+        view->file_pos = get_next_line(view, view->file_pos);
         if (view->f_eod)
             break;
-        get_next_line(view, view->file_pos);
-        line_len = fmt_line(view);
-        if (line_len > view->maxcol)
-            view->maxcol = line_len;
+        fmt_line(view);
         display_line(view);
     }
+    view->page_bot_pos = view->file_pos;
+    view->page_bot_ln = view->ln;
     curs_set(1);
     return;
 }
@@ -1348,35 +1325,25 @@ void scroll_up_n_lines(View *view, int n) {
     @note gets view->line_in_s
  */
 off_t get_next_line(View *view, off_t pos) {
-    uchar c;
+    char c;
     char *line_in_p;
     view->file_pos = pos;
     view->f_eod = false;
-    do {
-        if (view->file_pos == view->file_size) {
-            view->f_eod = true;
-            break;
-        }
-        c = view->buf[view->file_pos++];
-    } while (c == 0x0d);
+
+    get_next_char();
+
     if (view->f_eod)
         return view->file_pos;
     line_in_p = view->line_in_s;
     view->line_in_beg_p = view->line_in_s;
     view->line_in_end_p = view->line_in_s + PAD_COLS;
     while (1) {
-        if (c == (uchar)'\n')
+        if (c == '\n')
             break;
         if (line_in_p >= view->line_in_end_p)
             break;
         *line_in_p++ = c;
-        do {
-            if (view->file_pos == view->file_size) {
-                view->f_eod = true;
-                break;
-            }
-            c = view->buf[view->file_pos++];
-        } while (c == 0x0d);
+        get_next_char();
         if (view->f_eod)
             return view->file_pos;
     }
@@ -1384,25 +1351,37 @@ off_t get_next_line(View *view, off_t pos) {
     if (view->f_squeeze) {
         while (1) {
             get_next_char();
-            if (view->f_eod)
+            if (c != '\n') {
                 break;
-            if (c != (uchar)'\n')
+            }
+            if (view->f_eod) {
                 break;
+            }
         }
         get_prev_char();
+        if (view->f_eod) {
+            return view->file_pos;
+        }
     }
     return view->file_pos;
 }
-/** @brief Get Previous Line from File */
+/** @brief Get Previous Line from File
+ * @param view data structure
+ * @param pos buffer offset
+ * @returns file position of previous line */
 off_t get_prev_line(View *view, off_t pos) {
     pos = get_pos_prev_line(view, pos);
     view->file_pos = pos;
     get_next_line(view, view->file_pos);
     return pos;
 }
-/** @brief Get Position of Next Line */
+/** @brief Get Position of Next Line
+ * @param view data structure
+ * @param pos buffer offset
+ * @returns file position of next line
+ * */
 off_t get_pos_next_line(View *view, off_t pos) {
-    uchar c;
+    char c;
     if (pos == view->file_size) {
         view->f_eod = true;
         return view->file_pos;
@@ -1425,53 +1404,201 @@ off_t get_pos_next_line(View *view, off_t pos) {
             return view->file_pos;
     }
     while (!view->f_eod) {
-        if (c == '\n')
+        if (c == '\n') {
             break;
+        }
         get_next_char();
     }
     return view->file_pos;
 }
-/** @brief Get Position of Previous Line */
+/** @brief Get Position of Previous Line
+    @param view data structure
+    @param pos buffer offset
+    @returns file position of previous line
+ * */
 off_t get_pos_prev_line(View *view, off_t pos) {
-    uchar c;
     view->file_pos = pos;
     if (view->file_pos == 0) {
         view->f_bod = true;
         return view->file_pos;
     }
-    get_prev_char();
-    if (view->f_bod)
-        return view->file_pos;
-    if (c == '\n') {
-        get_prev_char();
-        if (view->f_bod)
-            return view->file_pos;
-    }
-    while (!view->f_bod) {
-        if (c == '\n') {
-            get_next_char();
+    while (view->ln_tbl[view->ln] >= view->file_pos) {
+        if (view->ln == 0)
             break;
-        }
-        get_prev_char();
+        view->ln--;
     }
+    view->file_pos = view->ln_tbl[view->ln];
     return view->file_pos;
 }
-/** @brief Display Line on Pad */
+/** @brief Go to Specific File Position
+    @param view data Structure
+    @param go_to_pos
+*/
+void go_to_position(View *view, off_t go_to_pos) {
+    view->file_pos = go_to_pos;
+    view->page_top_pos = view->file_pos;
+    view->page_bot_pos = view->file_pos;
+    sync_ln(view);
+    next_page(view);
+}
+/** @brief Go to End of File */
+void go_to_eof(View *view) {
+    view->file_pos = view->file_size;
+    sync_ln(view);
+    if (view->ln > view->scroll_lines)
+        view->page_top_ln = view->ln - view->scroll_lines;
+    else
+        view->page_top_ln = 0;
+    view->page_top_pos = view->ln_tbl[view->page_top_ln];
+    view->page_bot_pos = view->page_top_pos;
+    view->file_pos = view->page_top_pos;
+    view->cury = 0;
+    next_page(view);
+}
+/** @brief Go to Percent of File
+    @param view data structure
+    @param percent of file
+*/
+void go_to_percent(View *view, int percent) {
+    if (view->file_size < 0) {
+        Perror("Cannot determine file length");
+        return;
+    }
+    view->file_pos = (percent * view->file_size) / 100;
+    sync_ln(view);
+    if (view->ln > view->scroll_lines)
+        view->page_top_ln = view->ln - view->scroll_lines;
+    else
+        view->page_top_ln = 0;
+    view->page_top_pos = view->ln_tbl[view->page_top_ln];
+    view->page_bot_pos = view->page_top_pos;
+    view->file_pos = view->page_top_pos;
+    next_page(view);
+}
+/** @brief Go to Specific Line
+    @param view data structure
+    @param line_idx line number to go to (1-based index)
+    @returns 0 on success, EOF if line index is out of bounds or end of data is
+   reached
+ */
+int go_to_line(View *view, off_t line_idx) {
+    if (line_idx <= 1) {
+        go_to_position(view, 0);
+        return EOF;
+    }
+    sync_ln(view);
+    view->page_top_pos = view->file_pos;
+    view->page_bot_pos = view->file_pos;
+    view->file_pos = view->page_top_pos;
+    next_page(view);
+    return 0;
+}
+/** @brief Initialize Line Table
+    @param view data structure
+    @details The line table is initialized with a specified increment size
+   (LINE_TBL_INCR). Memory is allocated for the line table, and the first entry
+   is set to 0, indicating the file position of the first line. The line index
+   (view->ln) is initialized to 0.
+ */
+void initialize_line_table(View *view) {
+    view->ln_tbl_size = LINE_TBL_INCR;
+    view->ln_tbl = (off_t *)malloc(view->ln_tbl_size * sizeof(off_t));
+    if (view->ln_tbl == nullptr) {
+        Perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+    view->ln_max_pos = 0;
+    view->ln_tbl[0] = 0;
+    view->ln = 0;
+}
+/** @brief Increment Line Index and Update Line Table
+    @param view data structure
+    @details This function is called when a line feed character is encountered
+   while reading the file. It increments the line index (view->ln) and checks if
+   the current file position exceeds the maximum position recorded in the line
+   table. If it does, it updates the line table with the new file position. If
+   the line index exceeds the current size of the line table, the table is
+   resized by allocating more memory.
+ */
+void increment_ln(View *view) {
+    view->ln++;
+    if (view->file_pos <= view->ln_max_pos)
+        return;
+    if (view->ln > view->ln_tbl_size - 1) {
+        view->ln_tbl_size += LINE_TBL_INCR;
+        view->ln_tbl =
+            (off_t *)realloc(view->ln_tbl, view->ln_tbl_size * sizeof(off_t));
+        if (view->ln_tbl == nullptr) {
+            Perror("Memory allocation failed");
+            exit(EXIT_FAILURE);
+        }
+    }
+    view->ln_tbl_cnt = view->ln;
+    view->ln_max_pos = view->file_pos;
+    view->ln_tbl[view->ln] = view->file_pos;
+}
+/** @brief Synchronize Line Table with Current File Position
+    @param view data Structure
+    @details The line table (view->ln_tbl) is an array that stores the file
+   position of each line. The index (view->ln + 1) corresponds to the current
+   line number. (the line number table is 0-based, while line numbering starts
+   at 1). If a user requests a line or position that is not yet in the line
+   table, this function reads forward to update the table. If a user requests a
+   line or position that is behind the current line table index, this function
+   decrements the line index until it matches the file position.
+ */
+void sync_ln(View *view) {
+    int c = 0;
+    off_t idx;
+    off_t target_pos;
+    if (view->ln_tbl[view->ln] == view->file_pos)
+        return;
+    target_pos = view->file_pos;
+    view->file_pos = view->ln_tbl[view->ln_tbl_cnt];
+    if (view->file_pos < target_pos) {
+        view->ln = view->ln_tbl_cnt;
+        while (view->ln_max_pos < target_pos) {
+            get_next_char();
+            if (view->f_eod)
+                return;
+        }
+    } else if (view->ln_tbl[view->ln] > target_pos) {
+        idx = view->ln - 1;
+        while (view->ln_tbl[idx] > target_pos)
+            idx--;
+        view->ln = idx;
+        view->file_pos = view->ln_tbl[view->ln];
+    }
+}
+/** @brief Display Line on Pad
+    param View *view data structure
+    @details This function displays a single line of text on the ncurses pad.
+    @note If line numbering is enabled (view->f_ln), it is formatted and
+   displayed at the beginning of the line with the specified attributes and
+   color pair.
+    @details Because get_next_char calls increment_ln upon encountering a line
+   feed and increment_ln advances view->ln after updating the line table, the
+   line number displayed is one greater than the index to the line table. That
+   means the line counter begins with 1, while the table origin is 0.
+  */
 void display_line(View *view) {
-    int rc;
+    char ln_s[16];
+
     if (view->cury < 0)
         view->cury = 0;
     if (view->cury > view->scroll_lines - 1)
         view->cury = view->scroll_lines - 1;
-    wmove(view->win, view->cury, 0);
-    wclrtoeol(view->win);
-    wadd_wchstr(view->win, view->cmplx_buf);
+    if (view->f_ln) {
+        ssnprintf(ln_s, 7, "%6jd", view->ln);
+        wmove(view->ln_win, view->cury, 0);
+        wclrtoeol(view->ln_win);
+        mvwaddstr(view->ln_win, view->cury, 0, ln_s);
+    }
+    wmove(view->pad, view->cury, 0);
+    wclrtoeol(view->pad);
+    wadd_wchstr(view->pad, view->cmplx_buf);
     view->cury++;
-    refresh();
-    rc = prefresh(view->win, view->pminrow, view->pmincol, view->sminrow,
-                  view->smincol, view->smaxrow, view->smaxcol);
-    if (rc == ERR)
-        Perror("Error refreshing screen");
+    pad_refresh(view);
 }
 /** @brief Format Line for Display
     @param view pointer to View structure containing line input and output
@@ -1480,20 +1607,21 @@ void display_line(View *view) {
     @details This function processes the input line from view->line_in_s,
    handling ANSI escape sequences for text attributes and colors, as well as
    multi-byte characters. It converts the input line into a formatted line
-   suitable for display in the terminal, storing the result in view->cmplx_buf
-   and view->stripped_line_out. The function returns the length of the formatted
-   line in characters, which may be used for tracking the maximum column width
-   of the displayed content.
+   suitable for display in the terminal, storing the result in
+   view->cmplx_buf and view->stripped_line_out. The function returns the
+   length of the formatted line in characters, which may be used for
+   tracking the maximum column width of the displayed content.
  */
 int fmt_line(View *view) {
-    attr_t attr = WA_NORMAL;
     char ansi_tok[MAXLEN];
-    int cpx = cp_norm;
     int i = 0, j = 0;
     int len = 0;
     const char *s;
+    attr_t attr = WA_NORMAL;
+    int cpx = cp_norm;
     wchar_t wc = L'\0';
     cchar_t cc = {0};
+
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
 
@@ -1562,15 +1690,15 @@ int fmt_line(View *view) {
 }
 /** @brief Parse ANSI SGR Escape Sequence
     @param ansi_str is the ANSI escape sequence string to parse
-    @param attr is a pointer to an attr_t variable where the parsed attributes
-   will be stored
-    @param cpx is a pointer to an int variable where the parsed color pair index
-   will be stored
-    @details This function parses an ANSI SGR (Select Graphic Rendition) escape
-   sequence and updates the provided attr_t and color pair index based on the
-   attributes specified in the ANSI string.
+    @param attr is a pointer to an attr_t variable where the parsed
+   attributes will be stored
+    @param cpx is a pointer to an int variable where the parsed color pair
+   index will be stored
+    @details This function parses an ANSI SGR (Select Graphic Rendition)
+   escape sequence and updates the provided attr_t and color pair index
+   based on the attributes specified in the ANSI string.
 
-    @code
+   @verbatim
 
     This function converts the following SGR specification types to the
    appropriate curses color pair index for use in the terminal display.
@@ -1598,21 +1726,21 @@ int fmt_line(View *view) {
         foreground \033[3cm
         background \033[4cm
 
-        Where c is the color code (0 for black, 1 for red, 2 for green, 3 for
-   yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for white).
+        Where c is the color code (0 for black, 1 for red, 2 for green, 3
+   for yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for white).
 
     Attributes:
 
         \033[am
 
-        Where a is the attribute code (1 for bold, 2 for dim, 3 for italic, 4
-   for underline, 5 for blink, 7 for reverse, 8 for invis). The function also
-   supports resetting attributes and colors to default using \033[0m.
+        Where a is the attribute code (1 for bold, 2 for dim, 3 for italic,
+   4 for underline, 5 for blink, 7 for reverse, 8 for invis). The function
+   also supports resetting attributes and colors to default using \033[0m.
 
     @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(), extended_pair_content(),
    get_clr_pair()
 
-    @endcode
+    @endverbatim
 */
 void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     char *tok;
@@ -1730,51 +1858,52 @@ void cmd_line_prompt(View *view, char *s) {
     char message_str[PAD_COLS + 1];
     int l;
     l = strnz__cpy(message_str, s, PAD_COLS);
-    wmove(view->win, view->cmd_line, view->pmincol);
+    wmove(view->pad, view->cmd_line, view->pmincol);
     if (l != 0) {
-        wclrtoeol(view->win);
-        wattron(view->win, WA_REVERSE);
-        waddstr(view->win, " ");
-        waddstr(view->win, message_str);
-        waddstr(view->win, " ");
-        wattroff(view->win, WA_REVERSE);
-        waddstr(view->win, " ");
-        wmove(view->win, view->cmd_line, view->pmincol + l + 2);
+        wclrtoeol(view->pad);
+        wattron(view->pad, WA_REVERSE);
+        waddstr(view->pad, " ");
+        waddstr(view->pad, message_str);
+        waddstr(view->pad, " ");
+        wattroff(view->pad, WA_REVERSE);
+        waddstr(view->pad, " ");
+        wmove(view->pad, view->cmd_line, view->pmincol + l + 2);
     }
-    wrefresh(view->win);
+    pad_refresh(view);
 }
 /** @brief Remove File
     @param view is the current view data structure */
 void remove_file(View *view) {
     char c;
     if (view->f_at_end_remove) {
-        wmove(view->win, view->cmd_line, 0);
-        waddstr(view->win, "Remove File (Y or N)->");
-        wclrtoeol(view->win);
-        c = (char)xwgetch(view->win, nullptr);
-        waddch(view->win, (char)toupper(c));
+        wmove(view->pad, view->cmd_line, 0);
+        waddstr(view->pad, "Remove File (Y or N)->");
+        wclrtoeol(view->pad);
+        c = (char)xwgetch(view->pad, nullptr);
+        waddch(view->pad, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);
     }
 }
 /** @brief Display View Help File
     @param init is the current initialization data structure.
-    @note The current View context is set aside by assigning the view structure
-   to "view_save" while the help file is displayed using a new, separate view
-   structure.
-    @note The help file is specified by the VIEW_HELP_FILE macro can be set to a
-   default help file path or overridden by the user through an environment
-   variable.
-    @note  After the help file is closed, the original view is restored and the
-   page is redisplayed.
+    @note The current View context is set aside by assigning the view
+   structure to "view_save" while the help file is displayed using a new,
+   separate view structure.
+    @note The help file is specified by the VIEW_HELP_FILE macro can be set
+   to a default help file path or overridden by the user through an
+   environment variable.
+    @note  After the help file is closed, the original view is restored and
+   the page is redisplayed.
     @note It may be necessary to reassign view after calling this function
-   because the init->view pointer is temporarily set to nullptr during the help
-   file display, and the original view is restored afterward.
-    @note The default screen size for help can be set in the code below. If set
-   to 0, mview will determine reasonable maximal size based on the terminal
-   dimensions.
-    @note The help file may contain Unicode characters and ANSI escape sequences
-   for formatting, which will be properly handled and displayed by mview. */
+   because the init->view pointer is temporarily set to nullptr during the
+   help file display, and the original view is restored afterward.
+    @note The default screen size for help can be set in the code below. If
+   set to 0, mview will determine reasonable maximal size based on the
+   terminal dimensions.
+    @note The help file may contain Unicode characters and ANSI escape
+   sequences for formatting, which will be properly handled and displayed by
+   mview. */
 void view_display_help(Init *init) {
     char tmp_str[MAXLEN];
     int eargc;

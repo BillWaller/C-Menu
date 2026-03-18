@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     open_curses(sio);
     sig_prog_mode();
     capture_curses_tioctl();
-    win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
+    win_init_attrs();
 
     new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
     menu = init->menu;

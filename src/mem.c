@@ -722,6 +722,7 @@ bool init_view_files(Init *init) {
     view->f_at_end_clear = init->f_at_end_clear;
     view->f_at_end_remove = init->f_at_end_remove;
     view->f_squeeze = init->f_squeeze;
+    view->f_ln = init->f_ln;
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
     strnz__cpy(view->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
     strnz__cpy(view->cmd_all, init->cmd_all, MAXLEN - 1);

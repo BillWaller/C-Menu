@@ -19,7 +19,7 @@
 #ifndef _COMMON_H
 typedef struct Init Init;
 #endif
-
+#define COLOR_LEN 8
 #define NPOS 256
 #define NMARKS 256
 #define MAXLEN 256
@@ -31,13 +31,23 @@ typedef struct Init Init;
 
 enum PROMPT_TYPE { PT_NONE, PT_SHORT, PT_LONG, PT_STRING };
 
+#define LINE_TBL_INCR                                                          \
+    1024 // number of entries to add to line_tbl when reallocating
+
 typedef struct {
-    int fg_color;              /**< foreground_color */
-    int bg_color;              /**< background_color */
-    int bo_color;              /**< bold_color */
-    int lines;                 /**< number of lines for window size */
-    int cols;                  /**< number of columns for window size */
-    int begy;                  /**< screen line upper left corner of window */
+    int fg_clr_idx;           /**< foreground_color */
+    int bg_clr_idx;           /**< background_color */
+    int bo_clr_idx;           /**< bold_color */
+    int ln_clr_idx;           /**< line_number_color */
+    int ln_bg_clr_idx;        /**< line_number_background_color */
+    char fg_clr_x[COLOR_LEN]; /**< foreground_color in hex, e.g. "#RRGGBB" */
+    char bg_clr_x[COLOR_LEN]; /**< background_color in hex, e.g. "#RRGGBB" */
+    char bo_clr_x[COLOR_LEN]; /**< bold_color in hex, e.g. "#RRGGBB" */
+    char ln_clr_x[COLOR_LEN]; /**< line_number_color in hex, e.g. "#RRGGBB" */
+    char ln_bg_clr_x[COLOR_LEN]; /**< line_number_background_color in hex */
+    int lines;                   /**< number of lines for window size */
+    int cols;                    /**< number of columns for window size */
+    int begy;                    /**< screen line upper left corner of window */
     int begx;                  /**< screen column upper left corner of window */
     char provider_cmd[MAXLEN]; /**< command provides input */
     char receiver_cmd[MAXLEN]; /**< command receives output */
@@ -75,7 +85,6 @@ typedef struct {
     char file_name[MAXLEN]; /**< basename of file being viewed */
     bool f_redisplay_page;  /**< flag indicating page needs to be redisplayed */
     bool f_displaying_help; /**< currently didsplaying help information */
-    bool f_line_numbers;    /**< not implemented */
     bool f_first_iter;      /**< first iteration of search */
     bool f_search_complete; /**< Entire file has been searched */
     bool f_full_screen; /**< default mode if lines and columns not specified */
@@ -88,21 +97,19 @@ typedef struct {
     char line_out_s[PAD_COLS];        /**< scratch buffer */
     char stripped_line_out[PAD_COLS]; /**< printable characters only */
     cchar_t cmplx_buf[PAD_COLS];      /**< complex character buffer */
-    char *line_out_p;         /**< pointer to current position in line_out_s */
-    unsigned int line_number; /**< currently not implemented */
-    char line_number_s[20];   /**< currently not implemented */
-    char *line_in_beg_p;      /**< pointer used in matching search targets */
-    char *line_in_end_p;      /**< pointer used in matching search targets */
-    WINDOW *pad;              /**< ncurses pad used by View */
-    int cury;                 /**< cury is the pad row of the cursor location */
-    int curx;         /**< curx is the pad column of the cursor location */
-    int scroll_lines; /**< number of lines to scroll */
-    int cmd_line;     /**< command line location on pad */
-    int maxcol;       /**< length of longest line on pad */
-    int pminrow;      /**< first pad row displayed in view window */
-    int pmincol;      /**< first pad column displayed in view window */
-    int sminrow;      /**< screen position of first row of pad displayed in view
-                         window */
+    char *line_out_p;    /**< pointer to current position in line_out_s */
+    char *line_in_beg_p; /**< pointer used in matching search targets */
+    char *line_in_end_p; /**< pointer used in matching search targets */
+    WINDOW *pad;         /**< ncurses pad used by View */
+    int cury;            /**< cury is the pad row of the cursor location */
+    int curx;            /**< curx is the pad column of the cursor location */
+    int scroll_lines;    /**< number of lines to scroll */
+    int cmd_line;        /**< command line location on pad */
+    int maxcol;          /**< length of longest line on pad */
+    int pminrow;         /**< first pad row displayed in view window */
+    int pmincol;         /**< first pad column displayed in view window */
+    int sminrow; /**< screen position of first row of pad displayed in view
+                    window */
     int smincol; /**< screen position of first column of pad displayed in view
                     window */
     int smaxrow; /**< screen position of last row of pad displayed in view
@@ -145,6 +152,18 @@ typedef struct {
     char *lnbuf_curr_ptr; /**< pointer to first byte of virtual buffer */
     char *lnbuf_end_ptr; /**< pointer to first byte after end of data in virtual
                           buffer */
+    WINDOW *ln_win;      /**< ncurses window used by View for line numbers */
+    int ln_win_lines;    /**< number of lines in line number window */
+    int ln_win_cols;     /**< number of columns in line number window */
+    bool f_ln;           /**< flag - number lines */
+    off_t ln;            /**< line number */
+    char ln_s[10];       /**< line number formatted string */
+    off_t *ln_tbl;       /**< line number table - array of file positions */
+    off_t ln_tbl_size;   /**< number of entries allocated in line_tbl */
+    off_t ln_tbl_cnt;    /**< number of entries used in line_tbl */
+    off_t ln_max_pos;    /**< position of last page number increment */
+    off_t page_top_ln;   /**< line number of top line displayed */
+    off_t page_bot_ln;   /**< line number of last line displayed */
 } View;
 extern View *view;
 
