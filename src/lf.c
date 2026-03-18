@@ -21,20 +21,29 @@
 #include <unistd.h>
 
 /** @brief List files in a directory matching a regular expression
-    @code
+    @verbatim
         lf [options ad:e:hit:v] [dir] [re]
-             -a        List hidden files
-             -d        maximum max_depth of subdirectories to examine
-             -e        exclude files matching the regular expression
-             -h        show this help message
-             -i        ignore case in search
-             -t d      list directories (exclude files)
-             -t f      list files (exclude directories)
-             -v        show version information
-            dir Directory to search
-            re  Regular expression to match
-    @endcode
+           -a  List hidden files
+           -d  maximum max_depth of subdirectories to examine
+           -e  exclude files matching the regular expression
+           -h  show this help message
+           -i  ignore case in search
+           -t  [bcdplfsu]
+               b          block devices
+                c         character devices
+                 d        directories
+                  p       named pipes
+                   l      symbolic links
+                    f     regular files
+                     s    sockets
+                      u   unknown
+                          (in any order or combination)
+           -v  show version information
+           dir Directory to search
+           re  Regular expression to match
+    @endverbatim
  */
+
 int main(int argc, char **argv) {
     char dir[MAXLEN];
     char re[MAXLEN];
@@ -121,7 +130,7 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
     if (f_version) {
-        printf("lf version 1.0\n");
+        printf("lf version: %s\n", CM_VERSION);
         exit(EXIT_SUCCESS);
     }
     struct stat sb;
@@ -142,19 +151,8 @@ int main(int argc, char **argv) {
     if (dir[0] == '\0')
         strnz__cpy(dir, ".", MAXLEN - 1);
     flags |= LF_REGEX;
-    /*
-        printf("\n\nFT_BLK: %08b\n", FT_BLK);
-        printf("FT_CHR: %08b\n", FT_CHR);
-        printf("FT_DIR: %08b\n", FT_DIR);
-        printf("FT_FIFO: %08b\n", FT_FIFO);
-        printf("FT_LNK: %08b\n", FT_LNK);
-        printf("FT_REG: %08b\n", FT_REG);
-        printf("FT_SOCK: %08b\n", FT_SOCK);
-        printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
-        printf("flags: %016b %08b %08b\n", flags, flags >> 8, flags & 0xff);
-    */
     lf_find(dir, re, ere, max_depth, flags);
-    /*
+    if (f_debug) {
         printf("\n\nFT_BLK: %08b\n", FT_BLK);
         printf("FT_CHR: %08b\n", FT_CHR);
         printf("FT_DIR: %08b\n", FT_DIR);
@@ -164,6 +162,6 @@ int main(int argc, char **argv) {
         printf("FT_SOCK: %08b\n", FT_SOCK);
         printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
         printf("flags: %016b %08b %08b\n", flags, flags >> 8, flags & 0xff);
-    */
+    }
     return true;
 }

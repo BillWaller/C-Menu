@@ -164,9 +164,11 @@ typedef struct {
     int b; /**< blue component (0-255) */
 } RGB;
 
-#define FG_COLOR 2 /**< default foreground color */
-#define BG_COLOR 0 /**< default background color */
-#define BO_COLOR 1 /**< default bold foreground color */
+#define FG_COLOR 2    /**< default foreground color */
+#define BG_COLOR 0    /**< default background color */
+#define BO_COLOR 1    /**< default bold foreground color */
+#define LN_COLOR 4    /**< default line number color */
+#define LN_BG_COLOR 7 /**< default line number background */
 
 extern int cp_default;   /**< default color pair index */
 extern int cp_norm;      /**< normal color pair index */
@@ -175,6 +177,8 @@ extern int cp_bold;      /**< bold color pair index */
 extern int cp_title;     /**< title color pair index */
 extern int cp_highlight; /**< highlight color pair index */
 extern int cp_reverse;   /**< reverse color pair index */
+extern int cp_ln;        /**< line number color pair index */
+extern int cp_ln_bg;     /** line number background color pair index */
 extern int clr_idx;      /**< current color index */
 extern int clr_cnt;      /**< number of colors used */
 extern int clr_pair_idx; /**< current color pair index */
@@ -242,6 +246,7 @@ extern int segmentation_fault();
 extern cchar_t CCC_NORM;    /**< normal color pair complex character */
 extern cchar_t CCC_BOX;     /**< box color pair complex character */
 extern cchar_t CCC_REVERSE; /**< reverse color pair complex character */
+extern cchar_t CCC_LN;      /* line number color pair complex character */
 
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */
@@ -449,10 +454,6 @@ extern char em1[MAXLEN]; /**< error message string for error messages */
 extern char em2[MAXLEN]; /**< error message string for error messages */
 extern char em3[MAXLEN]; /**< error message string for error messages */
 
-extern bool f_debug;         /**< a flag to indicate whether debug
-        output should be printed, for debugging purposes */
-extern unsigned int cmd_key; /**< the command key for the current command, for
-                                error messages and other output */
 extern int exit_code; /**< the exit code for the program, for error messages and
                          other output */
 
@@ -461,7 +462,7 @@ extern void destroy_win(WINDOW *);
 extern void destroy_box(WINDOW *);
 extern void restore_wins();
 extern void cbox(WINDOW *);
-extern void win_init_attrs(int, int, int);
+extern void win_init_attrs();
 extern void win_Toggle_Attrs();
 extern void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 extern int display_curses_keys();
@@ -533,53 +534,57 @@ typedef struct {
    of the terminal device. This comprehensive structure allows for efficient
    management of the terminal's state and configuration in a structured way. */
 typedef struct {
-    int fg_color;             /**< foreground color index */
-    int bg_color;             /**< background color index */
-    int bo_color;             /**< bold color index */
-    double red_gamma;         /**< red gamma correction value */
-    double green_gamma;       /**< green gamma correction value */
-    double blue_gamma;        /**< blue gamma correction value */
-    double gray_gamma;        /**< gray gamma correction value */
-    char black[COLOR_LEN];    /**< color code for black */
-    char red[COLOR_LEN];      /**< color code for red */
-    char green[COLOR_LEN];    /**< color code for green */
-    char yellow[COLOR_LEN];   /**< color code for yellow */
-    char blue[COLOR_LEN];     /**< color code for blue */
-    char magenta[COLOR_LEN];  /**< color code for magenta */
-    char cyan[COLOR_LEN];     /**< color code for cyan */
-    char white[COLOR_LEN];    /**< color code for white */
-    char orange[COLOR_LEN];   /**< color code for orange */
-    char bblack[COLOR_LEN];   /**< color code for bold black */
-    char bred[COLOR_LEN];     /**< color code for bold red */
-    char bgreen[COLOR_LEN];   /**< color code for bold green */
-    char byellow[COLOR_LEN];  /**< color code for bold yellow */
-    char bblue[COLOR_LEN];    /**< color code for bold blue */
-    char bmagenta[COLOR_LEN]; /**< color code for bold magenta */
-    char bcyan[COLOR_LEN];    /**< color code for bold cyan */
-    char bwhite[COLOR_LEN];   /**< color code for bold white */
-    char borange[COLOR_LEN];  /**< color code for bold orange */
-    char bg[COLOR_LEN];       /**< color code for background */
-    char abg[COLOR_LEN];      /**< color code for background with alpha */
-    char tty_name[MAXLEN];    /**< name of the terminal device */
-    FILE *stdin_fp;           /**< stdin stream pointer */
-    FILE *stdout_fp;          /**< stdout stream pointer */
-    FILE *stderr_fp;          /**< stderr stream pointer */
-    FILE *tty_fp;             /**< terminal device stream pointer */
-    int stdin_fd;             /**< stdin file descriptor */
-    int stdout_fd;            /**< stdout file descriptor */
-    int stderr_fd;            /**< stderr file descriptor */
-    int tty_fd;               /**< terminal device file descriptor */
-    int clr_cnt;              /**< number of colors currently in use */
-    int clr_pair_cnt;         /**< number of color pairs currently in use */
-    int clr_idx;              /**< current color index */
-    int clr_pair_idx;         /**< current color pair index */
-    int cp_default;           /**< default color pair index */
-    int cp_norm;              /**< normal color pair index */
-    int cp_reverse;           /**< reverse color pair index */
-    int cp_box;               /**< box color pair index */
-    int cp_bold;              /**< bold color pair index */
-    int cp_title;             /**< title color pair index */
-    int cp_highlight;         /**< highlight color pair index */
+    double red_gamma;            /**< red gamma correction value */
+    double green_gamma;          /**< green gamma correction value */
+    double blue_gamma;           /**< blue gamma correction value */
+    double gray_gamma;           /**< gray gamma correction value */
+    char black[COLOR_LEN];       /**< color code for black */
+    char red[COLOR_LEN];         /**< color code for red */
+    char green[COLOR_LEN];       /**< color code for green */
+    char yellow[COLOR_LEN];      /**< color code for yellow */
+    char blue[COLOR_LEN];        /**< color code for blue */
+    char magenta[COLOR_LEN];     /**< color code for magenta */
+    char cyan[COLOR_LEN];        /**< color code for cyan */
+    char white[COLOR_LEN];       /**< color code for white */
+    char orange[COLOR_LEN];      /**< color code for orange */
+    char bblack[COLOR_LEN];      /**< color code for bold black */
+    char bred[COLOR_LEN];        /**< color code for bold red */
+    char bgreen[COLOR_LEN];      /**< color code for bold green */
+    char byellow[COLOR_LEN];     /**< color code for bold yellow */
+    char bblue[COLOR_LEN];       /**< color code for bold blue */
+    char bmagenta[COLOR_LEN];    /**< color code for bold magenta */
+    char bcyan[COLOR_LEN];       /**< color code for bold cyan */
+    char bwhite[COLOR_LEN];      /**< color code for bold white */
+    char borange[COLOR_LEN];     /**< color code for bold orange */
+    char bg[COLOR_LEN];          /**< color code for background */
+    char abg[COLOR_LEN];         /**< color code for background with alpha */
+    char fg_clr_x[COLOR_LEN];    /**< foreground color index */
+    char bg_clr_x[COLOR_LEN];    /**< background color index */
+    char bo_clr_x[COLOR_LEN];    /**< bold color index */
+    char ln_clr_x[COLOR_LEN];    /**< line number color index */
+    char ln_bg_clr_x[COLOR_LEN]; /**< line number background index */
+    char tty_name[MAXLEN];       /**< name of the terminal device */
+    FILE *stdin_fp;              /**< stdin stream pointer */
+    FILE *stdout_fp;             /**< stdout stream pointer */
+    FILE *stderr_fp;             /**< stderr stream pointer */
+    FILE *tty_fp;                /**< terminal device stream pointer */
+    int stdin_fd;                /**< stdin file descriptor */
+    int stdout_fd;               /**< stdout file descriptor */
+    int stderr_fd;               /**< stderr file descriptor */
+    int tty_fd;                  /**< terminal device file descriptor */
+    int clr_cnt;                 /**< number of colors currently in use */
+    int clr_pair_cnt;            /**< number of color pairs currently in use */
+    int clr_idx;                 /**< current color index */
+    int clr_pair_idx;            /**< current color pair index */
+    int cp_default;              /**< default color pair index */
+    int cp_norm;                 /**< normal color pair index */
+    int cp_reverse;              /**< reverse color pair index */
+    int cp_box;                  /**< box color pair index */
+    int cp_bold;                 /**< bold color pair index */
+    int cp_title;                /**< title color pair index */
+    int cp_highlight;            /**< highlight color pair index */
+    int cp_ln;                   /**< line number color pair index */
+    int cp_ln_bg;                /**< line number background pair index */
 } SIO;
 extern int a_toi(char *, bool *);
 extern bool chrep(char *, char, char);

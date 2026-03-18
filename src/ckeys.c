@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     mapp_initialization(init, argc, argv);
     open_curses(sio);
     sig_prog_mode();
-    win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
+    win_init_attrs();
     rc = display_curses_keys();
     win_del();
     destroy_curses();

@@ -5,6 +5,13 @@
 <!-- mtoc-start -->
 
 - [Get C-Menu on Github](#get-c-menu-on-github)
+- [NEW Features](#new-features)
+  - [View Line Numbering](#view-line-numbering)
+- [!View C Source](#view-c-source)
+  - [Large Log File in View](#large-log-file-in-view)
+- [!View Large Log File](#view-large-log-file)
+  - [New Options for lf](#new-options-for-lf)
+- [!lf options](#lf-options)
 - [C-Menu Exercises](#c-menu-exercises)
 - [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
   - [C-Menu API](#c-menu-api)
@@ -51,7 +58,19 @@ Click the link below to access the C-Menu Documentation:
 gh repo clone BillWaller/C-Menu
 ```
 
----
+## NEW Features
+
+### View Line Numbering
+
+## ![View C Source](screenshots/new_view1.png)
+
+### Large Log File in View
+
+## ![View Large Log File](screenshots/new_view2.png)
+
+### New Options for lf
+
+## ![lf options](screenshots/lf-help.png)
 
 ## C-Menu Exercises
 
@@ -609,19 +628,7 @@ lf is a utility included with C-Menu that allows you to list files in a
 directory based on regular expression patterns. It provides a powerful way to
 search for files that match specific criteria
 
-```bash
- lf [options ad:e:hit:v] [dir] [re]
-             -a        List hidden files
-             -d        maximum max_depth of subdirectories to examine
-             -e        exclude files matching the regular expression
-             -h        show this help message
-             -i        ignore case in search
-             -t d      list directories (exclude files)
-             -t f      list files (exclude directories)
-             -v        show version information
-            dir Directory to search
-            re  Regular expression to match
-```
+![lf](screenshots/lf-help.png)
 
 lf is a streamlined, efficient, and easy-to-use alternative to find addressing
 the majority of use cases in which the complexity of find is not required.

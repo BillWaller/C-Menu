@@ -17,7 +17,7 @@
 # at least not until it has secure white-list authentication.
 #
 # WARNING: Will Robinson
-# 
+#
 # Before using this makefile, please EDIT THE FOLLOWING VARIABLES to match your 
 # system configuration. The makefile assumes that you have a user named "bill" 
 # and a group named "bill". If your system uses different names, please update 

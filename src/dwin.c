@@ -16,6 +16,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <wchar.h>
+#define DEBUG true
 
 bool open_curses(SIO *);
 void destroy_curses();
@@ -25,7 +26,7 @@ void win_resize(int, int, char *);
 WINDOW *win_del();
 void restore_wins();
 void cbox(WINDOW *);
-void win_init_attrs(int, int, int);
+void win_init_attrs();
 int Perror(char *);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 void abend(int, char *);
@@ -52,7 +53,7 @@ int rgb_to_xterm256_idx(RGB *);
 void apply_gamma(RGB *);
 
 bool init_clr_palette(SIO *);
-cchar_t mkccc(int cp);
+cchar_t mkccc(int);
 
 SIO *sio; /**< Global pointer to SIO struct for terminal and color settings */
 
@@ -77,6 +78,11 @@ enum colors_enum {
     CLR_BCYAN,
     CLR_BWHITE,
     CLR_BORANGE,
+    CLR_FG,
+    CLR_BG,
+    CLR_BO,
+    CLR_LN,
+    CLR_LN_BG,
     CLR_NCOLORS
 };
 /** StdColors
@@ -139,26 +145,25 @@ char em3[MAXLEN];
 int cp_norm;
 int cp_box;
 int cp_reverse;
+int cp_ln;
 int clr_cnt = 0;
-int clr_idx = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
 cchar_t CCC_NORM;
 cchar_t CCC_BOX;
 cchar_t CCC_REVERSE;
+cchar_t CCC_LN;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 
 /** @brief Initialize window attributes
-    @param fg_color Foreground color index
-    @param bg_color Background color index
-    @param bo_color Box color index
     note This function initializes color pairs for the window
     note cp_norm and cp_box are global variables
     see get_clr_pair */
-void win_init_attrs(int fg_color, int bg_color, int bo_color) {
-    init_extended_pair(cp_norm, fg_color, bg_color);
-    init_extended_pair(cp_box, bo_color, bg_color);
+void win_init_attrs() {
+    init_extended_pair(cp_norm, CLR_FG, CLR_BG);
+    init_extended_pair(cp_box, CLR_BO, CLR_BG);
+    init_extended_pair(cp_ln, CLR_LN, CLR_LN_BG);
     return;
 }
 /** @brief Create and initialize Chyron structure
@@ -226,10 +231,6 @@ bool is_set_chyron_key(Chyron *chyron, int k) {
    first character of the text to '\0'.
 */
 void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
-    size_t y;
-    size_t x = sizeof(chyron->key[k]->text);
-    y = x;
-    x = y;
     if (*s != '\0')
         ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
     else
@@ -307,7 +308,7 @@ bool open_curses(SIO *sio) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
     int rc;
-    RGB frgb, brgb;
+    RGB rgb;
 
     if (ttyname_r(STDERR_FILENO, sio->tty_name, sizeof(sio->tty_name)) != 0) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -362,12 +363,16 @@ bool open_curses(SIO *sio) {
     GREEN_GAMMA = sio->green_gamma;
     BLUE_GAMMA = sio->blue_gamma;
     GRAY_GAMMA = sio->gray_gamma;
-    cp_norm = get_clr_pair(sio->fg_color, sio->bg_color);
-    cp_reverse = get_clr_pair(sio->bg_color, sio->fg_color);
-    cp_box = get_clr_pair(sio->bo_color, sio->bg_color);
+
+    cp_norm = get_clr_pair(CLR_FG, CLR_BG);
+    cp_reverse = get_clr_pair(CLR_BG, CLR_FG);
+    cp_box = get_clr_pair(CLR_BO, CLR_BG);
+    cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
+
     CCC_NORM = mkccc(cp_norm);
-    CCC_BOX = mkccc(cp_box);
     CCC_REVERSE = mkccc(cp_reverse);
+    CCC_BOX = mkccc(cp_box);
+    CCC_LN = mkccc(cp_ln);
     noecho();
     cbreak();
     keypad(stdscr, true);
@@ -377,9 +382,11 @@ bool open_curses(SIO *sio) {
     immedok(stdscr, true);
 #endif
     wbkgrndset(stdscr, &CCC_NORM);
-    extended_pair_content(cp_norm, &sio->fg_color, &sio->bg_color);
-    extended_color_content(sio->fg_color, &frgb.r, &frgb.g, &frgb.b);
-    rc = extended_color_content(sio->bg_color, &brgb.r, &brgb.g, &brgb.b);
+    rc = extended_color_content(CLR_FG, &rgb.r, &rgb.g, &rgb.b);
+    rc = extended_color_content(CLR_BG, &rgb.r, &rgb.g, &rgb.b);
+    rc = extended_color_content(CLR_BO, &rgb.r, &rgb.g, &rgb.b);
+    rc = extended_color_content(CLR_LN, &rgb.r, &rgb.g, &rgb.b);
+    rc = extended_color_content(CLR_LN_BG, &rgb.r, &rgb.g, &rgb.b);
     if (rc == ERR) {
         destroy_curses();
         abend(-1, "extended_color_content failed");
@@ -564,7 +571,19 @@ bool init_clr_palette(SIO *sio) {
         init_hex_clr(CLR_BCYAN, sio->bcyan);
     if (sio->bwhite[0])
         init_hex_clr(CLR_BWHITE, sio->bwhite);
-    clr_cnt = 16;
+    if (sio->borange[0])
+        init_hex_clr(CLR_BORANGE, sio->borange);
+    if (sio->fg_clr_x[0])
+        init_hex_clr(CLR_FG, sio->fg_clr_x);
+    if (sio->bg_clr_x[0])
+        init_hex_clr(CLR_BG, sio->bg_clr_x);
+    if (sio->bo_clr_x[0])
+        init_hex_clr(CLR_BO, sio->bo_clr_x);
+    if (sio->ln_clr_x[0])
+        init_hex_clr(CLR_LN, sio->ln_clr_x);
+    if (sio->ln_bg_clr_x[0])
+        init_hex_clr(CLR_LN_BG, sio->ln_bg_clr_x);
+    clr_cnt = CLR_NCOLORS;
     return true;
 }
 
@@ -623,7 +642,7 @@ void destroy_curses() {
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
 cchar_t mkccc(int cp) {
-    cchar_t cc;
+    cchar_t cc = {0};
     wchar_t wc = L' ';
     setcchar(&cc, &wc, WA_NORMAL, cp, nullptr);
     return cc;
@@ -734,16 +753,17 @@ void win_resize(int wlines, int wcols, char *title) {
     }
     wnoutrefresh(win_box[win_ptr]);
     wresize(win_win[win_ptr], wlines, wcols);
-    init_extended_pair(cp_norm, sio->fg_color, sio->bg_color);
+    init_extended_pair(cp_norm, CLR_FG, CLR_BG);
+    init_extended_pair(cp_ln, CLR_LN, CLR_BG);
+
     wbkgrnd(win_win[win_ptr], &CCC_NORM);
     wbkgrndset(win_win[win_ptr], &CCC_NORM);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
-#ifdef DEBUG
-    immedok(win_win[win_ptr], true);
-#endif
+    if (f_debug)
+        immedok(win_win[win_ptr], true);
 }
 /** @brief Redraw the specified window
     @param win Pointer to the window to redraw

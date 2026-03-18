@@ -23,9 +23,9 @@ typedef struct Init Init;
 /** @struct Pick
    @brief Pick data structure */
 typedef struct {
-    int fg_color;                /**< foreground color */
-    int bg_color;                /**< background color */
-    int bo_color;                /**< box color */
+    int fg_clr_idx;              /**< foreground color */
+    int bg_clr_idx;              /**< background color */
+    int bo_clr_idx;              /**< box color */
     int win_lines;               /**< window lines */
     int win_width;               /**< window width (columns)*/
     int begy;                    /**< begin y screen position of window top */

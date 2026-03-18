@@ -143,11 +143,11 @@ typedef struct {
 
 /** @struct Form */
 typedef struct {
-    int fg_color; /**< the foreground color for the form window */
-    int bg_color; /**< the background color for the form window */
-    int bo_color; /**< the border color for the form window */
-    int lines;    /**< the number of lines for the form window */
-    int cols;     /**< the number of columns for the form windowi */
+    int fg_clr_idx; /**< the foreground color for the form window */
+    int bg_clr_idx; /**< the background color for the form window */
+    int bo_clr_idx; /**< the border color for the form window */
+    int lines;      /**< the number of lines for the form window */
+    int cols;       /**< the number of columns for the form windowi */
     int begy; /**< the screen line number for the upper left corner of the form
                  window */
     int begx; /**< the screen column number for the upper left corner of the

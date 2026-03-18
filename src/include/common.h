@@ -61,7 +61,7 @@
         open_curses(sio);                                                      \
         sig_prog_mode();                                                       \
         capture_curses_tioctl();                                               \
-        win_init_attrs(sio->fg_color, sio->bg_color, sio->bo_color);
+        win_init_attrs();
 
 #define destroy_cmenu()                                                        \
     destroy_init(init);                                                        \
@@ -104,10 +104,11 @@ typedef View View;
  */
 typedef struct {
     SIO *sio;
-    int lines;                 /**< number of lines for window size */
-    int cols;                  /**< number of columns for window size */
-    int begy;                  /**< screen line upper left corner of window */
-    int begx;                  /**< screen column upper left corner of window */
+    int lines; /**< number of lines for window size */
+    int cols;  /**< number of columns for window size */
+    int begy;  /**< screen line upper left corner of window */
+    int begx;  /**< screen column upper left corner of window */
+
     char provider_cmd[MAXLEN]; /**< command provides input */
     char receiver_cmd[MAXLEN]; /**< command receives output */
     char cmd[MAXLEN]; /**< command to execute in foreground, e.g. an editor */
@@ -131,6 +132,7 @@ typedef struct {
     bool f_multiple_cmd_args; /**< View - put multiple arguments in a single
                                  string */
     bool f_erase_remainder;   /**< Form - erase remainder of field on enter */
+    bool f_ln;                /**< View - show line numbers */
     char brackets[3];         /**< Form - left and right enclosing characters */
     char fill_char[2];        /**< Form - fill character for fields */
     char mapp_home[MAXLEN];   /**< home directory */

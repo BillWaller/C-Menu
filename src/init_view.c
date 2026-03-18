@@ -26,9 +26,37 @@
    @return 0 on success, -1 on failure.
  */
 int init_view_full_screen(Init *init) {
+    int scr_lines, scr_cols;
     view = init->view;
+
+    if (view->tab_stop <= 0)
+        view->tab_stop = TABSIZE;
+    set_tabsize(view->tab_stop);
     view->f_full_screen = true;
-    getmaxyx(stdscr, view->lines, view->cols);
+    getmaxyx(stdscr, scr_lines, scr_cols);
+
+    if (view->lines == 0 || view->lines > scr_lines)
+        view->lines = scr_lines;
+    if (view->cols == 0 || view->cols > scr_cols)
+        view->cols = scr_cols;
+    if (view->begy + view->lines > scr_lines)
+        view->begy = scr_lines - view->lines - 2;
+    if (view->begx + view->cols > scr_cols)
+        view->begx = scr_cols - view->cols - 2;
+    view->ln_win_lines = scr_lines;
+    view->ln_win_cols = 7;
+    view->ln_win = newwin(view->ln_win_lines - 1, view->ln_win_cols, 0, 0);
+    wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
+    scrollok(view->ln_win, true);
+    immedok(view->ln_win, true);
+    keypad(view->ln_win, true);
+    idlok(view->ln_win, false);
+    idcok(view->ln_win, false);
+    wbkgrnd(view->ln_win, &CCC_LN);
+    wbkgrndset(view->ln_win, &CCC_LN);
+    wmove(view->ln_win, 0, 0);
+    wclear(view->ln_win);
+    wnoutrefresh(view->ln_win);
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = 0;
@@ -37,8 +65,8 @@ int init_view_full_screen(Init *init) {
     view->cmd_line = view->lines - 1;
     view->smaxrow = view->lines - 1;
     view->smaxcol = view->cols - 1;
-    view->win = newpad(view->lines, PAD_COLS);
-    if (view->win == nullptr) {
+    view->pad = newpad(view->lines, PAD_COLS);
+    if (view->pad == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
         ssnprintf(em1, MAXLEN - 1, "newpad(%d, %d) failed", view->lines,
                   PAD_COLS);
@@ -46,16 +74,15 @@ int init_view_full_screen(Init *init) {
         display_error(em0, em1, em2, nullptr);
         abend(-1, "init_view_full_screen: newpad() failed");
     }
-    view->box = nullptr;
-    wbkgrnd(view->box, &CCC_BOX);
-    if (view->tab_stop <= 0)
-        view->tab_stop = TABSIZE;
-    set_tabsize(view->tab_stop);
-    wsetscrreg(view->win, 0, view->scroll_lines - 1);
-    scrollok(view->win, true);
-    keypad(view->win, true);
-    idlok(view->win, false);
-    idcok(view->win, false);
+    scrollok(view->pad, true);
+    immedok(view->pad, true);
+    keypad(view->pad, true);
+    idlok(view->pad, false);
+    idcok(view->pad, false);
+    wbkgrnd(view->pad, &CCC_NORM);
+    wbkgrndset(view->pad, &CCC_NORM);
+    wclear(view->pad);
+    wsetscrreg(view->pad, 0, view->scroll_lines - 1);
     return 0;
 }
 /** @brief Initialize the C-Menu View in box window mode.
@@ -69,9 +96,11 @@ int init_view_full_screen(Init *init) {
 int init_view_boxwin(Init *init, char *title) {
     int scr_lines, scr_cols;
     view = init->view;
+
+    if (view->tab_stop <= 0)
+        view->tab_stop = TABSIZE;
+    set_tabsize(view->tab_stop);
     view->f_full_screen = false;
-    // scr_lines = LINES;
-    // scr_cols = COLS;
     getmaxyx(stdscr, scr_lines, scr_cols);
     if (view->lines > scr_lines)
         view->lines = scr_lines;
@@ -79,9 +108,8 @@ int init_view_boxwin(Init *init, char *title) {
         view->cols = scr_cols;
     if (view->begy + view->lines > scr_lines)
         view->begy = scr_lines - view->lines - 2;
-    if (view->begx + view->cols > scr_cols) {
+    if (view->begx + view->cols > scr_cols)
         view->begx = scr_cols - view->cols - 2;
-    }
     if (title != nullptr && title[0] != '\0')
         strnz__cpy(view->title, title, MAXLEN - 1);
     else {
@@ -99,6 +127,18 @@ int init_view_boxwin(Init *init, char *title) {
         display_error(em0, em1, em2, nullptr);
         return (-1);
     }
+    view->ln_win_lines = view->lines - 1;
+    view->ln_win_cols = 7;
+    view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols, view->begy + 1,
+                          view->begx + 1);
+    view->win = win_win[win_ptr];
+    wmove(view->ln_win, 0, 0);
+    wclear(view->ln_win);
+    wbkgrnd(view->ln_win, &CCC_LN);
+    wbkgrndset(view->ln_win, &CCC_LN);
+    wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
+    scrollok(view->ln_win, true);
+    immedok(view->ln_win, true);
     view->scroll_lines = view->lines - 1;
     view->cmd_line = view->lines - 1;
     view->pminrow = 0;
@@ -107,24 +147,15 @@ int init_view_boxwin(Init *init, char *title) {
     view->smincol = view->begx + 1;
     view->smaxrow = view->begy + view->lines;
     view->smaxcol = view->begx + view->cols;
-    win_win[win_ptr] = newpad(view->lines, PAD_COLS);
-    view->win = win_win[win_ptr];
-    if (win_win[win_ptr] == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-        ssnprintf(em1, MAXLEN - 1, "newpad(%d, %d) failed", view->lines,
-                  PAD_COLS);
-        em2[0] = '\0';
-        display_error(em0, em1, em2, nullptr);
-        return -1;
-    }
-    wbkgrnd(view->win, &CCC_NORM);
-    set_tabsize(view->tab_stop);
-    wsetscrreg(view->win, 0, view->scroll_lines - 1);
-    scrollok(view->win, true);
-    // immedok(view->win, true);
-    keypad(view->win, true);
-    idlok(view->win, false);
-    idcok(view->win, false);
+    view->pad = newpad(view->lines, PAD_COLS);
+    wbkgrnd(view->pad, &CCC_NORM);
+    wbkgrndset(view->pad, &CCC_NORM);
+    wsetscrreg(view->pad, 0, view->scroll_lines - 1);
+    scrollok(view->pad, true);
+    immedok(view->pad, true);
+    keypad(view->pad, true);
+    idlok(view->pad, false);
+    idcok(view->pad, false);
     return (0);
 }
 /** @brief Initialize the input for a C-Menu View.

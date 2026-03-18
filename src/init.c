@@ -29,14 +29,12 @@ bool f_write_config = false;
 bool f_dump_config = false;
 bool f_help = false;
 bool f_version = false;
-bool f_debug = false;
 bool f_stop_on_error = true;
 
 int write_config(Init *init);
 void display_version();
 
-Init *init = nullptr;
-
+Init *init = NULL;
 void mapp_initialization(Init *init, int, char **);
 int parse_opt_args(Init *, int, char **);
 void zero_opt_args(Init *);
@@ -75,9 +73,15 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     }
     if (init->minitrc[0] == '\0')
         strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
-    sio->bg_color = BG_COLOR;       /**< background color */
-    sio->fg_color = FG_COLOR;       /**< foreground color */
-    sio->bo_color = BO_COLOR;       /**< border color */
+    strnz__cpy(sio->bg_clr_x, "#000007",
+               COLOR_LEN - 1); /**< background color */
+    strnz__cpy(sio->fg_clr_x, "#c0c0c0",
+               COLOR_LEN - 1); /**< foreground color */
+    strnz__cpy(sio->bo_clr_x, "#f00000", COLOR_LEN - 1); /**< bold color */
+    strnz__cpy(sio->ln_clr_x, "#0070ff",
+               COLOR_LEN - 1); /**< line number olor */
+    strnz__cpy(sio->ln_bg_clr_x, "#101010",
+               COLOR_LEN - 1);      /**< line number background */
     init->f_at_end_clear = true;    /**< clear screen on exit (obsolete) */
     init->f_erase_remainder = true; /**< erase remainder on enter */
     init->brackets[0] = '\0';       /**< field enclosure brackets */
@@ -162,7 +166,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int flag = 0;
     char tmp_str[MAXLEN];
     char *optstring = "a:b:c:d:ef:g:hi:j:k:m:n:o:p:r:st:u:vw:xzA:B:C:DF:G:H:L:"
-                      "MO:P:R:S:T:VWX:Y:Z";
+                      "MNO:P:Q:R:S:T:VWX:Y:Z";
     struct option long_options[] = {{"help", 0, &flag, MAPP_HELP},
                                     {"mapp_spec", 1, &flag, MAPP_SPEC},
                                     {"mapp_data", 1, &flag, MAPP_DATA_DIR},
@@ -283,7 +287,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             strnz__cpy(init->cmd_all, optarg, MAXLEN - 1);
             break;
         case 'B':
-            sio->bg_color = clr_name_to_idx(optarg);
+            strnz__cpy(sio->bg_clr_x, optarg, MAXLEN - 1);
             break;
         case 'C':
             init->cols = atoi(optarg);
@@ -292,7 +296,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             f_dump_config = true;
             break;
         case 'F':
-            sio->fg_color = clr_name_to_idx(optarg);
+            strnz__cpy(sio->fg_clr_x, optarg, MAXLEN - 1);
             break;
         case 'G':
             sio->gray_gamma = str_to_double(optarg);
@@ -306,8 +310,11 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'M':
             init->f_multiple_cmd_args = true;
             break;
+        case 'N':
+            init->f_ln = true;
+            break;
         case 'O':
-            sio->bo_color = clr_name_to_idx(optarg);
+            strnz__cpy(sio->bo_clr_x, optarg, MAXLEN - 1);
             break;
         case 'P':
             strnz__cpy(tmp_str, optarg, MAXLEN - 1);
@@ -417,16 +424,28 @@ int parse_config(Init *init) {
                 init->begx = atoi(value);
                 continue;
             }
-            if (!strcmp(key, "fg_color")) {
-                sio->fg_color = clr_name_to_idx(value);
+            if (!strcmp(key, "fg_clr_x")) {
+                strnz__cpy(sio->fg_clr_x, value, COLOR_LEN - 1);
                 continue;
             }
-            if (!strcmp(key, "bg_color")) {
-                sio->bg_color = clr_name_to_idx(value);
+            if (!strcmp(key, "bg_clr_x")) {
+                strnz__cpy(sio->bg_clr_x, value, COLOR_LEN - 1);
                 continue;
             }
-            if (!strcmp(key, "bo_color")) {
-                sio->bo_color = clr_name_to_idx(value);
+            if (!strcmp(key, "f_ln")) {
+                init->f_ln = str_to_bool(value);
+                continue;
+            }
+            if (!strcmp(key, "bo_clr_x")) {
+                strnz__cpy(sio->bo_clr_x, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "ln_clr_x")) {
+                strnz__cpy(sio->ln_clr_x, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "ln_bg_clr_x")) {
+                strnz__cpy(sio->ln_bg_clr_x, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "red_gamma")) {
@@ -710,12 +729,11 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%d\n", "lines", init->lines);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begx", init->begx);
     (void)fprintf(minitrc_fp, "%s=%d\n", "begy", init->begy);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bg_color",
-                  colors_text[sio->bg_color]);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "fg_color",
-                  colors_text[sio->fg_color]);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bo_color",
-                  colors_text[sio->bo_color]);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bg_clr_x", sio->bg_clr_x);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "fg_clr_x", sio->fg_clr_x);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bo_clr_x", sio->bo_clr_x);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "ln_clr_x", sio->ln_clr_x);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "ln_bg_clr_x", sio->ln_bg_clr_x);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", sio->red_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", sio->green_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", sio->blue_gamma);
@@ -740,6 +758,7 @@ int write_config(Init *init) {
                   init->f_at_end_remove ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
                   init->f_erase_remainder ? "true" : "false");
+    (void)fprintf(minitrc_fp, "%s=%s\n", "f_ln", init->f_ln ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "fill_char", init->fill_char);
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_strip_ansi",
                   init->f_strip_ansi ? "true" : "false");
@@ -825,7 +844,7 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     @note The version information is defined in the mapp_version variable and is
    printed to stderr when this function is called. */
 void display_version() {
-    fprintf(stderr, "\nC-Menu version: %s\n", CM_VERSION);
+    fprintf(stderr, "\nC-Menu %s\n", CM_VERSION);
     exit(EXIT_SUCCESS);
 }
 /** @brief Display the usage information of the application
@@ -833,6 +852,7 @@ void display_version() {
    called. After displaying the usage information, the function waits for the
    user to press any key before returning. */
 void usage() {
+    dump_opts();
     (void)fprintf(stderr, "\n\nPress any key to continue...");
     di_getch();
 }
@@ -897,14 +917,16 @@ void dump_config(Init *init, char *msg) {
     opt_prt_int("-C:", "  cols", init->cols);
     opt_prt_int("-X:", "  begx", init->begx);
     opt_prt_int("-Y:", "  begy", init->begy);
-    opt_prt_int("-F:", "  fg_color", sio->fg_color);
-    opt_prt_int("-B:", "  bg_color", sio->bg_color);
-    opt_prt_int("-O:", "  bo_color", sio->bo_color);
-    opt_prt_str("-T:", "  title", init->title);
-    opt_prt_double("-r:", "  red_gamma", sio->red_gamma);
-    opt_prt_double("-g:", "  green_gamma", sio->green_gamma);
-    opt_prt_double("-b:", "  blue_gamma", sio->blue_gamma);
-    opt_prt_double("-G:", "  gray_gamma", sio->gray_gamma);
+    opt_prt_str("   ", "  fg_clr_x", sio->fg_clr_x);
+    opt_prt_str("   ", "  bg_clr_x", sio->bg_clr_x);
+    opt_prt_str("   ", "  bo_clr_x", sio->bo_clr_x);
+    opt_prt_str("   ", "  ln_clr_x", sio->ln_clr_x);
+    opt_prt_str("   ", "  ln_bg_clr_x", sio->ln_bg_clr_x);
+    opt_prt_str("   ", "  title", init->title);
+    opt_prt_double("   ", "  red_gamma", sio->red_gamma);
+    opt_prt_double("   ", "  green_gamma", sio->green_gamma);
+    opt_prt_double("   ", "  blue_gamma", sio->blue_gamma);
+    opt_prt_double("   ", "  gray_gamma", sio->gray_gamma);
     opt_prt_str("-f:", "  fill_char", init->fill_char);
     opt_prt_str("-u", "  brackets", init->brackets);
     opt_prt_int("-t:", "  tab_stop", init->tab_stop);
@@ -917,7 +939,8 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("-A:", "  cmd_all", init->cmd_all);
     opt_prt_str("-k:", "  parent_cmd", init->parent_cmd);
     opt_prt_bool("-e:", "  f_erase_remainder", init->f_erase_remainder);
-    opt_prt_bool("-j:", "  f_strip_ansi", init->f_strip_ansi);
+    opt_prt_bool("-N:", "  f_ln", init->f_ln);
+    opt_prt_bool("-a ", "  f_strip_ansi", init->f_strip_ansi);
     opt_prt_bool("-s ", "  f_squeeze", init->f_squeeze);
     opt_prt_bool("-x:", "  f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
@@ -946,12 +969,12 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("   ", "  bg", sio->bg);
     opt_prt_str("   ", "  abg", sio->abg);
     opt_prt_str("   ", "  editor", init->editor);
-    opt_prt_str("-H:", "  help_spec", init->help_spec);
+    opt_prt_str("   ", "  help_spec", init->help_spec);
     opt_prt_str("-d:", "--mapp_spec", init->mapp_spec);
-    opt_prt_str("-m:", "--mapp_home", init->mapp_home);
+    opt_prt_str("   ", "--mapp_home", init->mapp_home);
     opt_prt_str("   ", "--mapp_data", init->mapp_data);
     opt_prt_str("   ", "--mapp_help", init->mapp_help);
-    opt_prt_str("-U:", "--mapp_user", init->mapp_user);
+    opt_prt_str("   ", "--mapp_user", init->mapp_user);
     opt_prt_str("   ", "--mapp_msrc", init->mapp_msrc);
 
     (void)fprintf(stderr, "\n%s\n\n", msg);
