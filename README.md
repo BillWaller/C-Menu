@@ -149,7 +149,7 @@ Don't let the name fool you. C-Menu is not just a menu system, it's a comprehens
 user interface framework designed to enhance your interaction with applications. It
 provides a structured way to navigate through application hierarchies, manage forms,
 select objects, and view data efficiently. And, it does so with style, offering a
-visually appealing interface that boosts comprehension through color.
+visually appealing interface that boosts comprehension and assimilation through color.
 
 ---
 

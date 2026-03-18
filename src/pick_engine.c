@@ -305,7 +305,7 @@ void save_object(Pick *pick, char *s) {
             l = 1;
         pick->object[pick->obj_idx] = (char *)calloc(l + 1, sizeof(char));
         strnz__cpy(pick->object[pick->obj_idx], s, l);
-        pick->f_selected[pick->obj_idx] = FALSE;
+        pick->f_selected[pick->obj_idx] = false;
         pick->obj_idx++;
     }
 }
@@ -602,7 +602,7 @@ void toggle_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     if (pick->f_selected[pick->obj_idx]) {
         pick->select_cnt--;
-        pick->f_selected[pick->obj_idx] = FALSE;
+        pick->f_selected[pick->obj_idx] = false;
         mvwaddstr(pick->win, pick->y, pick->x - 1, " ");
     } else {
         pick->select_cnt++;
@@ -616,7 +616,7 @@ void deselect_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     if (pick->f_selected[pick->obj_idx]) {
         pick->select_cnt--;
-        pick->f_selected[pick->obj_idx] = FALSE;
+        pick->f_selected[pick->obj_idx] = false;
         mvwaddstr(pick->win, pick->y, pick->x - 1, " ");
     }
 }
@@ -728,7 +728,7 @@ int exec_objects(Init *init) {
             }
             i++;
         }
-        for (i = 0; i < pick->obj_cnt - 1; i++) {
+        for (i = 0; i < pick->obj_cnt; i++) {
             if (pick->f_selected[i] && margc < MAXARGS - 1) {
                 if (f_append_args == true) {
                     if (tmp_str[0] != '\0')
@@ -856,7 +856,7 @@ int open_pick_win(Init *init) {
     }
     pick->win = win_win[win_ptr];
     pick->box = win_box[win_ptr];
-    scrollok(pick->win, FALSE);
+    scrollok(pick->win, false);
     keypad(pick->win, true);
     return 0;
 }
