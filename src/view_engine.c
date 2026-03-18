@@ -160,7 +160,7 @@ int view_file(Init *init) {
     return 0;
 }
 /** @brief Main Command Processing Loop for View
-    @param Init Pointer to the Init structure containing initialization
+    @param Init *init Pointer to the Init structure containing initialization
    parameters and state for the view application. This structure is used to pass
    necessary information and maintain state across different functions within
    the view application.
@@ -277,7 +277,8 @@ int view_cmd_processor(Init *init) {
         case Ctrl('K'):
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scroll_up_n_lines(view, n_cmd);
+            prev_page(view);
+            // scroll_up_n_lines(view, n_cmd);
             break;
         /** 'j', 'J', KEY_DOWN, KEY_ENTER, SPACE - scroll down one line */
         case 'j':
@@ -685,7 +686,16 @@ int view_cmd_processor(Init *init) {
         view->cmd_arg[0] = '\0';
     }
 }
-/** @brief Get Command Character and Numeric Argument */
+/** @brief Get Command Character and Numeric Argument
+    @param View *view Pointer to the View structure containing the state and
+   parameters of the view application. This structure is used to access and
+   modify the state of the application as needed.
+    @param off_t n Pointer to numeric argument. This allows the function to
+   return both the command character and any associated numeric argument.
+     @return Returns the command character entered by the user, or a special
+   value if a mouse event is detected. The numeric argument is stored in the
+   variable pointed to by n if applicable.
+ */
 int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
     char cmd_str[33];
@@ -714,7 +724,21 @@ int get_cmd_char(View *view, off_t *n) {
     view->cmd_arg[0] = '\0';
     return (c);
 }
-/** @brief Get Command Argument from User Input */
+/** @brief Get Command Argument from User Input
+    @param view Pointer to the View structure containing the state and
+   parameters of the view application. This structure is used to access and
+   modify the state of the application as needed.
+    @param prompt A string containing the prompt to be displayed to the user
+   when requesting input for the command argument. This prompt is shown on the
+   command line to guide the user in providing the necessary input for the
+   command being executed.
+    @return Returns the command character entered by the user, or a special
+   value if a mouse event is detected. The command argument entered by the user
+   is stored in the view->cmd_arg buffer for use by the calling function. The
+   function handles user input, including editing keys, and updates the command
+   argument buffer accordingly. If the user enters a numeric argument, it is
+   validated based on the context of the command being executed.
+*/
 int get_cmd_arg(View *view, char *prompt) {
     int c;
     int numeric_arg = false;
@@ -1327,11 +1351,10 @@ void scroll_up_n_lines(View *view, int n) {
 off_t get_next_line(View *view, off_t pos) {
     char c;
     char *line_in_p;
+
     view->file_pos = pos;
     view->f_eod = false;
-
     get_next_char();
-
     if (view->f_eod)
         return view->file_pos;
     line_in_p = view->line_in_s;
@@ -1351,17 +1374,14 @@ off_t get_next_line(View *view, off_t pos) {
     if (view->f_squeeze) {
         while (1) {
             get_next_char();
-            if (c != '\n') {
+            if (c != '\n')
                 break;
-            }
-            if (view->f_eod) {
+            if (view->f_eod)
                 break;
-            }
         }
         get_prev_char();
-        if (view->f_eod) {
+        if (view->f_eod)
             return view->file_pos;
-        }
     }
     return view->file_pos;
 }
@@ -1400,8 +1420,8 @@ off_t get_pos_next_line(View *view, off_t pos) {
                 return view->file_pos;
         }
         get_prev_char();
-        if (view->f_eod)
-            return view->file_pos;
+        // if (view->f_eod)
+        //     return view->file_pos;
     }
     while (!view->f_eod) {
         if (c == '\n') {

@@ -9,6 +9,7 @@
     - [Option 2 - Build C-Menu with Provided Scripts](#option-2---build-c-menu-with-provided-scripts)
     - [Option 3 - Build C-Menu Using Makefile](#option-3---build-c-menu-using-makefile)
   - [Finish the installation](#finish-the-installation)
+- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
 
@@ -198,6 +199,6 @@ source ~/.bashrc
 menu
 ```
 
-## ![C-Menu Running](screenshots/mainmenu.png)
+![C-Menu Running](screenshots/mainmenu.png)
 
 ## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
