@@ -26,12 +26,19 @@ The new options for lf allow you to specify the file types to list, and whether 
 ### Other Markdown files in this repository:
 
 [Change Log](docs/CHANGELOG.md)
+
 [API Documentation](docs/API.md)
+
 [C-Menu User Guide](docs/C-Menu-UG.md)
+
 [Exercises](docs/exercises.md)
+
 [Augmenting C-Menu](docs/extras.md)
+
 [Frequently Asked Questions](docs/FAQ.md)
+
 [Installation Instructions](docs/INSTALL.md)
+
 [Configuration Snippets](docs/snippets.md)
 
 ### HTML Documentation:
