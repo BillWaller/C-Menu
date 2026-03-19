@@ -1,14 +1,31 @@
 # A User Interface Toolkit
 
+## **_NEW Features_**
+
+### **_NEW View Line Numbering_**
+
+![View C Source](screenshots/new_view1.png)
+
+You can turn it on in the configuration or use the -N command line option and View creates a separate panel for line numbers, so it doesn't get pushed off the screen when you scroll horizontally. Foreground and background colors can be specified in
+the configuration file.
+
+### Large Log File in View
+
+![View Large Log File](screenshots/new_view2.png)
+
+### **_New Options for lf_**
+
+![lf options](screenshots/lf-help.png)
+
+The speed of C-Menu's ultra-lightweight executables is almost obscene. Designed to be used in pipelines, they won't slow you down.
+
+The new options for lf allow you to specify the file types to list, and whether to include hidden files in the results. If no option is specified, lf lists all files and all file types specified are listed to the exclusion of other types.
+
 ## Table of Contents
 
 <!-- mtoc-start -->
 
 - [Get C-Menu on Github](#get-c-menu-on-github)
-- [NEW Features](#new-features)
-  - [View Line Numbering](#view-line-numbering)
-  - [Large Log File in View](#large-log-file-in-view)
-  - [New Options for lf](#new-options-for-lf)
 - [C-Menu Exercises](#c-menu-exercises)
 - [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
   - [C-Menu API](#c-menu-api)
@@ -54,36 +71,6 @@ Click the link below to access the C-Menu Documentation:
 ```bash
 gh repo clone BillWaller/C-Menu
 ```
-
-## NEW Features
-
-### View Line Numbering
-
-![View C Source](screenshots/new_view1.png)
-
-If you start view with the -N option, it will display line numbers. It opens a
-separate panel got line numbers, so it doesn't get pushed off the screen when
-you scroll horizontally. The line numbers are right-aligned and padded with
-spaces.
-
-New options have been added to the configuration file to allow users to
-customize the foreground and background colors of the line number panel.
-
-### Large Log File in View
-
-![View Large Log File](screenshots/new_view2.png)
-
-I really should delete these files at least weekly. That's what cron is for. I
-procrastinate.
-
-### New Options for lf
-
-![lf options](screenshots/lf-help.png)
-
-The speed of these ultra-lightweight C utilities is obscene. They are designed to be used in pipelines, and they won't slow you down. The new options for lf allow you to specify the maximum number of files to list, and to include hidden files in the results. This makes it even more versatile and useful for a wide range of applications.
-
-Check the Makefiles. I've been running the executables compiled with -g3, and they
-are still blazingly fast. You can use gprof to profile the executables and see where the time is being spent. It's a great way to understand how the code works and to identify any potential bottlenecks. But compile them with -O2 or -O3 first. The -O3 versions work fine since I replaced mbtowc with mbrtowc. (Multibyte to wide character conversion functions.)
 
 ## C-Menu Exercises
 

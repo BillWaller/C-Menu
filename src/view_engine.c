@@ -1003,7 +1003,6 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     int line_offset;
     int line_len;
     int match_len;
-    off_t prev_srch_pos;
     off_t prev_ln;
     bool f_page = false;
     if (*regex_pattern == '\0')
@@ -1046,7 +1045,6 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         if (*search_cmd == '/') {
             if (view->cury == view->scroll_lines)
                 return true;
-            prev_srch_pos = view->srch_curr_pos;
             prev_ln = view->ln;
             view->srch_curr_pos = get_next_line(view, view->srch_curr_pos);
             view->page_bot_pos = view->srch_curr_pos;
@@ -1054,6 +1052,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             if (view->cury == 0)
                 return true;
             view->srch_curr_pos = get_prev_line(view, view->srch_curr_pos);
+            prev_ln = view->ln;
             view->page_top_pos = view->srch_curr_pos;
         }
         fmt_line(view);
@@ -1084,11 +1083,9 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         /** Display matching lines */
         if (!f_page) {
             if (*search_cmd == '/') {
-                view->page_top_pos = prev_srch_pos;
                 view->page_top_ln = prev_ln;
                 wmove(view->pad, view->cury, 0);
             } else {
-                view->page_bot_pos = view->srch_curr_pos;
                 view->page_bot_ln = view->ln;
                 wmove(view->pad, 0, 0);
             }
@@ -1226,9 +1223,6 @@ void prev_page(View *view) {
         view->ln -= view->scroll_lines;
     else
         view->ln = 0;
-    view->page_top_pos = view->ln_tbl[view->ln];
-    view->file_pos = view->page_top_pos;
-    view->page_bot_pos = view->file_pos;
     next_page(view);
 }
 /** @brief Advance to Next Page
@@ -1243,12 +1237,11 @@ void prev_page(View *view) {
    function to display the new page content.
 */
 void next_page(View *view) {
-    if (view->page_bot_pos == view->file_size)
+    view->file_pos = view->ln_tbl[view->ln];
+    if (view->file_pos == view->file_size)
         return;
     view->maxcol = 0;
     view->cury = 0;
-    view->file_pos = view->page_bot_pos;
-    view->page_top_pos = view->file_pos;
     view->page_top_ln = view->ln;
     view_display_page(view);
 }
@@ -1260,11 +1253,14 @@ void view_display_page(View *view) {
     curs_set(0);
     wmove(view->pad, 0, 0);
     wclrtobot(view->pad);
+    wmove(view->ln_win, 0, 0);
+    wclrtobot(view->ln_win);
+    view->page_top_ln = view->ln;
+    view->page_bot_ln = view->ln;
+    view->page_top_pos = view->ln_tbl[view->ln];
+    view->file_pos = view->page_top_pos;
+    view->page_bot_pos = view->file_pos;
     for (i = 0; i < view->scroll_lines; i++) {
-        if (i == 0) {
-            view->page_top_pos = view->file_pos;
-            view->page_top_ln = view->ln;
-        }
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
         if (view->f_eod)
             break;
@@ -1477,10 +1473,11 @@ void go_to_eof(View *view) {
     view->file_pos = view->file_size;
     sync_ln(view);
     if (view->ln > view->scroll_lines)
-        view->page_top_ln = view->ln - view->scroll_lines;
+        view->ln -= view->scroll_lines;
     else
         view->page_top_ln = 0;
-    view->page_top_pos = view->ln_tbl[view->page_top_ln];
+    view->page_top_ln = view->ln;
+    view->page_top_pos = view->ln_tbl[view->ln];
     view->page_bot_pos = view->page_top_pos;
     view->file_pos = view->page_top_pos;
     view->cury = 0;

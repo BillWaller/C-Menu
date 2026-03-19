@@ -52,8 +52,8 @@ SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 REL_CFLAGS=-O2
 DBG_CFLAGS=-O0 -ggdb
 # CFLAGS=-static
-CFLAGS=
-CC=gcc -Wall -Wextra -I./include $(DBG_CFLAGS)
+CFLAGS=$(DBG_CFLAGS)
+CC=gcc -Wall -Wextra -I./include $(CFLAGS)
 CX=-std=gnu23
 CX=-std=c23
 
