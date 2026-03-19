@@ -160,7 +160,7 @@ int view_file(Init *init) {
     return 0;
 }
 /** @brief Main Command Processing Loop for View
-    @param Init *init Pointer to the Init structure containing initialization
+    @param init Pointer to the Init structure containing initialization
    parameters and state for the view application. This structure is used to pass
    necessary information and maintain state across different functions within
    the view application.
@@ -686,12 +686,13 @@ int view_cmd_processor(Init *init) {
     }
 }
 /** @brief Get Command Character and Numeric Argument
-    @param View *view Pointer to the View structure containing the state and
-   parameters of the view application. This structure is used to access and
-   modify the state of the application as needed.
-    @param off_t n Pointer to numeric argument. This allows the function to
-   return both the command character and any associated numeric argument.
-     @return Returns the command character entered by the user, or a special
+    @param view Pointer to the View structure containing the state around the
+   view application. This structure is used to access and modify the state
+    @param n is used to store the numeric argument entered by the user, if
+   applicable. The function reads user input and extracts both the command
+   character and any numeric argument, allowing for commands that require a
+   numeric parameter to be processed effectively.
+    @return Returns the command character entered by the user, or a special
    value if a mouse event is detected. The numeric argument is stored in the
    variable pointed to by n if applicable.
  */

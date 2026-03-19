@@ -757,11 +757,17 @@ I don't know who created this particular Neovim Unicode Art, but it has been sha
 ██████  █████████████████████ ████ █████ █████ ████ ██████]],
 ```
 
+- Note 1: If the above Unicode Art does not display correctly, make sure you have a font that supports the necessary Unicode characters, such as a Nerd Font or a font with good Unicode coverage. Additionally, ensure that your terminal emulator is configured to use a compatible font and that it supports the Private Use Area of Unicode where some of these characters are located.
+
+- Note 2: Even if you have a compatible font, the Unicode Art may not appear as intended in your web browser. If it looks blocky or misaligned, try copying and pasting the Unicode Art into a terminal emulator that supports the necessary Unicode characters, such as Neovim or a modern terminal emulator with good Unicode support. It is likely that the Unicode code points will render correctly in a terminal emulator if you have a compatible font installed.
+
 You may have noticed that all but the first code points are in the Private Use Area of Unicode, which means they are not assigned to any specific character and can be used for custom purposes. This is a common practice in ASCII Art and Unicode Art to create unique designs without relying on standard characters. If anyone knows the original creator of this logo, please let me know so I can give them proper credit.
 
 ---
 
 Once you have Snacks.nvim installed, you can enable the Neovim logo in the splash screen by configuring the plugin settings. The logo will be displayed when you start Neovim, providing a visually appealing welcome screen.
+
+The image below shows the Neovim logo in the splash screen of Neovim when using Snacks.nvim:
 
 ![Lazyvim](screenshots/Lazyvim.png)
 
