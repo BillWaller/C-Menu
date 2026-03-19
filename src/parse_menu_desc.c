@@ -7,6 +7,11 @@
     @date 2026-02-09
  */
 
+/** @defgroup parse_menu Menu Parser
+    @brief Functions for parsing menu description files and creating Menu
+   structures
+ */
+
 #include <common.h>
 #include <ctype.h>
 #include <stddef.h>
@@ -18,6 +23,7 @@ unsigned int get_command_type(char *);
 void free_menu_line(Line *);
 
 /** @brief Parse menu description file and create Menu
+    @ingroup parse_menu
     @param init Pointer to Init structure containing menu information
     @return 0 on success, non-zero on failure
  */
@@ -238,6 +244,7 @@ unsigned int parse_menu_description(Init *init) {
     return 0;
 }
 /** @brief Get command type from command string
+    @ingroup parse_menu
     @param t Command string
     @return Command type as an unsigned int
  */
@@ -278,6 +285,7 @@ unsigned int get_command_type(char *t) {
     return (CT_UNDEFINED);
 }
 /** @brief Free memory allocated for a menu line
+    @ingroup parse_menu
     @param line Pointer to Line structure to free
  */
 void free_menu_line(Line *line) {

@@ -1,5 +1,6 @@
 /** @file init_view.c
     @brief Initialize C-Menu View Screen IO and Input
+    @ingroup init_view
     @author Bill Waller
     Copyright (c) 2025
     MIT License
@@ -7,6 +8,10 @@
     @date 2026-02-09
  */
 
+/**
+   @defgroup init_view Initializing View I/O
+   @brief Populate the C-Menu View Struct and Connect Input
+ */
 #include <common.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -20,6 +25,7 @@
 #include <wait.h>
 
 /** @brief Initialize C-Menu View in full screen mode.
+    @ingroup init_view
     @note This function sets up the view structure for full screen mode and
    creates a new pad for the view.
    @param init Pointer to the Init structure containing view settings.
@@ -85,6 +91,7 @@ int init_view_full_screen(Init *init) {
     return 0;
 }
 /** @brief Initialize the C-Menu View in box window mode.
+    @ingroup init_view
     @note sets up the view structure for box window mode, adjusts dimensions
    based on screen size, and creates a new pad for the view. It also configures
    various parameters such as scroll lines, command line position, and tab size.
@@ -158,6 +165,7 @@ int init_view_boxwin(Init *init, char *title) {
     return (0);
 }
 /** @brief Initialize the input for a C-Menu View.
+    @ingroup init_view
     @details This function initializes the input for view, which can be a file,
    standard input, or a provider command to be initiated by view. It handles
    different input sources and sets up the necessary file descriptors and memory

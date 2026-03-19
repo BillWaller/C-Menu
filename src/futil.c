@@ -6,6 +6,15 @@
     billxwaller@gmail.com
     @date 2026-02-09 */
 
+/** @defgroup utility_functions Utility functions
+    @brief string manipulation, file handling, and error reporting.
+    @details These functions provide common operations such as trimming strings,
+   converting case, safely copying and concatenating strings, verifying file and
+   directory access, and locating files in the system PATH. They are designed to
+   be robust and handle edge cases gracefully, making them useful for a wide
+   range of applications.
+ */
+
 #include <cm.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -85,6 +94,7 @@ size_t rtrim(char *s) {
     return (size_t)(d - s);
 }
 /** @brief Trims leading and trailing spaces from string s in place.
+    @ingroup utility_functions
     @param s - string to trim
     @returns length of trimmed string */
 size_t trim(char *s) {
@@ -102,6 +112,7 @@ size_t trim(char *s) {
     return (size_t)(d - s);
 }
 /** @brief ssnprintf was designed to be a safer alternative to snprintf.
+    @ingroup utility_functions
     @details It ensures that the buffer is not overflowed by taking the buffer
    size as a parameter and using vsnprintf internally. It also returns the
    number of characters that would have been written if enough space had been
@@ -126,6 +137,7 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     return n;
 }
 /** @brief Converts a string into an array of argument strings.
+    @ingroup utility_functions
     @note Handles quoted strings and escaped quotes, preserving text inside
    quotes as individual arguments. It has been in service for many years without
    problems.
@@ -181,6 +193,7 @@ int str_to_args(char **argv, char *arg_str, int max_args) {
     return argc;
 }
 /** @brief Converts a string to lowercase.
+    @ingroup utility_functions
     @param s - string to convert
     @returns true if successful, false if s is nullptr or empty */
 bool str_to_lower(char *s) {
@@ -194,6 +207,7 @@ bool str_to_lower(char *s) {
     return true;
 }
 /** @brief Converts a string to uppercase.
+    @ingroup utility_functions
     @param s - string to convert
     @returns true if successful, false if s is nullptr or empty */
 bool str_to_upper(char *s) {
@@ -207,6 +221,7 @@ bool str_to_upper(char *s) {
     return true;
 }
 /** @brief safer alternative to strncpy
+    @ingroup utility_functions
     @details copies string s to d, ensuring that the total length of d does not
    exceed max_len, and that the resulting string is null-terminated. It also
    treats newline and carriage return characters as string terminators,
@@ -234,6 +249,7 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     return len;
 }
 /** @brief safer alternative to strncat
+    @ingroup utility_functions
     @note It appends string s to d, ensuring that the total length of d does not
    exceed max_len, and that the resulting string is null-terminated. It also
    treats newline and carriage return characters as string terminators,
@@ -266,6 +282,7 @@ size_t strnz__cat(char *d, const char *s, size_t max_len) {
     return len;
 }
 /** @brief Terminates string at new line or carriage return
+    @ingroup utility_functions
     @param s string to terminate
  */
 size_t strz(char *s) {
@@ -280,6 +297,7 @@ size_t strz(char *s) {
     return l;
 }
 /**  @brief terminates string at New Line, Carriage Return, or max_len
+    @ingroup utility_functions
      @note The use case is to ensure that strings read from files or user input
    do not contain embedded newlines or carriage returns.
      @param s string to terminate
@@ -299,6 +317,7 @@ size_t strnz(char *s, size_t max_len) {
     return (len);
 }
 /** @brief terminates string with line feed
+    @ingroup utility_functions
     @param s string to terminate
     @param max_len maximum length to scan
     @returns length of resulting string */
@@ -319,6 +338,7 @@ size_t strnlf(char *s, size_t max_len) {
 }
 /**  @brief Allocates memory for and duplicates string s up to length l or until
    line feed or carriage return
+    @ingroup utility_functions
      @param s - string to duplicate
      @param l - maximum length to copy
      @returns pointer to allocated memory */
@@ -340,18 +360,19 @@ char *strnz_dup(char *s, size_t l) {
 }
 /** @brief Replaces "ReplaceChr" in "s" with "Withstr" in "d" won't copy more
    than "l" bytes to "d" Replaces all occurrences of a character in a string
-   with another string, copying the result to a destination buffer. It ensures
-   that the total length of the resulting string does not exceed the specified
-   limit, and that the result is null-terminated. This function is useful for
-   simple string substitutions where you want to replace a single character with
-   a longer string, such as replacing spaces with underscores or tabs with
-   spaces.
+   with another string, copying the result to a destination buffer.
+    @ingroup utility_functions
     @param d - destination string
     @param s - source string
     @param ReplaceChr - character to replace
     @param Withstr - string to insert
     @param l - maximum length to copy
     @returns true if successful, false if any parameter is invalid
+    @details This function ensures that the total length of the resulting string
+   does not exceed the specified limit, and that the result is null-terminated.
+   This function is useful for simple string substitutions where you want to
+   replace a single character with a longer string, such as replacing spaces
+   with underscores or tabs with spaces.
     @note The caller must ensure that "d" has enough space to receive the
    result, and that "l" is sufficient to hold the result. This function does not
    perform any bounds checking on "d" or "Withstr", so it is the caller's
@@ -377,6 +398,7 @@ bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
     return true;
 }
 /**  @brief Fills string s with character c n
+    @ingroup utility_functions
      @param s - string to fill
      @param c - character to fill with
      @param n - number of characters to fill
@@ -392,6 +414,7 @@ bool strnfill(char *s, char c, int n) {
     return true;
 }
 /**  @brief removes leading and trailing double quotes if present
+    @ingroup utility_functions
      @param s - string to strip quotes from
      @returns true if successful, false if s is nullptr or empty */
 bool strip_quotes(char *s) {
@@ -405,6 +428,7 @@ bool strip_quotes(char *s) {
     return true;
 }
 /** @brief removes leading and trailing double quotes if present
+    @ingroup utility_functions
     @param s - string to strip quotes from
     @returns true if quotes were removed
     @note Same as STRIP_QUOTES but returns true if quotes were removed */
@@ -420,6 +444,7 @@ bool stripz_quotes(char *s) {
     return false;
 }
 /** @brief Replaces all occurrences of old_chr in s with new_chr in place.
+    @ingroup utility_functions
     @param s - string to modify
     @param old_chr - character to replace
     @param new_chr - character to insert
@@ -436,6 +461,7 @@ bool chrep(char *s, char old_chr, char new_chr) {
 }
 /** @brief a safer alternative to atoi() for converting ASCII strings to
    integers.
+    @ingroup utility_functions
     @param s is the input string
     @param a_toi_error is a pointer to a boolean that will be set to true if an
    error occurs during conversion, or false if the conversion is successful.
@@ -455,6 +481,7 @@ int a_toi(char *s, bool *a_toi_error) {
     return rc;
 }
 /** @brief Strips ANSI SGR escape sequences (ending in 'm') from string s to d
+    @ingroup utility_functions
     @param d Destination string
     @param s Source string
     @returns Length of stripped string
@@ -495,6 +522,7 @@ size_t strip_ansi(char *d, char *s) {
     return l;
 }
 /**  @brief replace backslashes with forward lashes
+    @ingroup utility_functions
      @param fs - file specification to normalize
      @returns true if successful, false if fs is nullptr or empty */
 bool normalize_file_spec(char *fs) {
@@ -508,6 +536,7 @@ bool normalize_file_spec(char *fs) {
     return true;
 }
 /** @brief extracts the path component of a file specification
+    @ingroup utility_functions
     @param fp - path component to return
     @param fs - full file specification
     @returns true if successful
@@ -535,6 +564,7 @@ bool file_spec_path(char *fp, char *fs) {
     return true;
 }
 /**  @brief extracts the file name component of a file specification
+    @ingroup utility_functions
      @param fn - name component to return
      @param fs - full file specification
      @note The caller is responsible for ensuring that "fn" has enough space to
@@ -564,6 +594,7 @@ bool file_spec_name(char *fn, char *fs) {
     return true;
 }
 /**  @brief converts string to double
+    @ingroup utility_functions
      @param s - string to convert
      @returns converted double value, or 0.0 if s is nullptr, empty, or invalid
      @deprecated If the string is invalid, this function returns 0.0, with no
@@ -607,6 +638,7 @@ bool str_to_bool(const char *s) {
     return false;
 }
 /**  @brief Replace Leading Tilde With Home Directory
+    @ingroup utility_functions
      @param path - path to expand
      @param path_maxlen - maximum length of path
      @note The caller is responsible for ensuring that "path" has enough space
@@ -642,6 +674,7 @@ bool expand_tilde(char *path, int path_maxlen) {
     return true;
 }
 /** @brief Trims trailing spaces and slashes from directory path in place.
+    @ingroup utility_functions
     @param dir - directory path to trim
     @returns true if successful */
 bool trim_path(char *dir) {
@@ -667,6 +700,7 @@ bool trim_path(char *dir) {
 }
 /** @brief trims the file extension from "filename" and copies the result to
    "buf"
+    @ingroup utility_functions
     @param buf - buffer to receive result
     @param filename - filename to trim
     @note The caller is responsible for ensuring that "buf" has enough space to
@@ -698,6 +732,7 @@ bool trim_ext(char *buf, char *filename) {
     return true;
 }
 /**  @brief Returns the base name of a file specification.
+    @ingroup utility_functions
      @param buf - buffer to receive result
      @param path - file specification
      @returns true if successful
@@ -724,6 +759,7 @@ bool base_name(char *buf, char *path) {
     return true;
 }
 /**  @brief Returns the directory name of a file specification.
+    @ingroup utility_functions
      @param buf - buffer to receive result
      @param path - file specification
      @returns true if successful
@@ -758,6 +794,7 @@ bool dir_name(char *buf, char *path) {
 }
 /**  @brief Verifies that the directory specified by "spec" exists and is
    accessible with the permissions specified by "imode".
+    @ingroup utility_functions
      @param spec - directory specification
      @param imode - access mode
             F_OK - existence
@@ -808,6 +845,7 @@ bool verify_dir(char *spec, int imode) {
 }
 /**  @brief Verifies that the file specified by "in_spec" exists and is
    accessible with the permissions specified by "imode".
+    @ingroup utility_functions
      @param in_spec - directory specification
      @param imode - access mode
             F_OK - existence
@@ -860,6 +898,7 @@ bool verify_file(char *in_spec, int imode) {
     return true;
 }
 /**  @brief Locates a file in the system PATH.
+    @ingroup utility_functions
      @param file_spec - buffer to receive located file specification
      @param file_name - name of file to locate
      @returns true if file is located
@@ -894,6 +933,7 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     return false;
 }
 /** @brief Find files in a directory matching a regular expression
+    @ingroup utility_functions
     @param base_path  directory to search
     @param ere        regular expression match to exclude
     @param re         regular expression match to include
@@ -954,6 +994,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     return true;
 }
 /** @brief logic for lf_find()
+    @ingroup utility_functions
     @param base_path   directory to search
     @param compiled_ere compiled regular expression to exclude
     @param compiled_re compiled regular expression to include
@@ -1126,6 +1167,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     return true;
 }
 /** @brief If directory doesn't exist, make it
+    @ingroup utility_functions
     @param dir directory name
     @return true if directory now exists or false otherwise */
 bool mk_dir(char *dir) {
@@ -1146,6 +1188,7 @@ bool mk_dir(char *dir) {
     return true;
 }
 /**  @brief Removes quotes and trims at first space
+    @ingroup utility_functions
      @param spec - file specification to canonicalize
      @returns length of resulting string */
 size_t canonicalize_file_spec(char *spec) {
@@ -1174,6 +1217,7 @@ size_t canonicalize_file_spec(char *spec) {
     return l;
 }
 /** @brief Replace all occurrences of "tgt_s" in "org_s" with "rep_s"
+    @ingroup utility_functions
     @param org_s - original string
     @param tgt_s - target substring to replace
     @param rep_s - replacement substring
@@ -1243,9 +1287,13 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     strnz__cpy(tmp, ip, MAXLEN - 1);
     return out_s;
 }
+/** @defgroup String_Objects String Objects
+    @brief Simple String Object Library
+ */
 /** @brief String functions provide a simple string library to facilitate string
    manipulation in C, allowing developers to easily create, copy, concatenate,
    and free strings without having to manage memory manually.
+    @ingroup String_Objects
    @note The library includes functions to convert C strings to String structs,
    create new String structs with specified lengths, copy and concatenate String
    structs, and free the memory used by String structs. By using this library,
@@ -1276,6 +1324,7 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
    @see snippets/strings_test1.c
  */
 /** @brief Convert C string to String struct
+    @ingroup String_Objects
     @param s C string
     @return String struct containing dynamically allocated copy of input string
     @note the caller is responsible for freeing the allocated memory.
@@ -1315,6 +1364,7 @@ String mk_string(size_t l) {
     return str;
 }
 /** @brief Free the dynamically allocated String
+    @ingroup String_Objects
     @param string to free
     @return string with nullptr pointer and length 0
     @note Frees the dynamically allocated string and sets length to 0.
@@ -1329,6 +1379,7 @@ String free_string(String string) {
 }
 /** @brief Copy src String to dest String, allocating additional memory for dest
    String if necessary
+    @ingroup String_Objects
     @param dest - destination String struct
     @param src - source String struct
     @returns length of dest String
@@ -1345,6 +1396,7 @@ size_t string_cpy(String *dest, const String *src) {
 }
 /** @brief Concatenates src String to dest String, allocating additional memory
    for dest String if necessary
+    @ingroup String_Objects
     @param dest - destination String struct
     @param src - source String struct
     @returns new length of dest String after concatenation
@@ -1362,6 +1414,7 @@ size_t string_cat(String *dest, const String *src) {
 }
 /** @brief Concatenates up to n characters from src String to dest String,
    allocating additional memory for dest String if necessary
+    @ingroup String_Objects
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to concatenate
@@ -1383,6 +1436,7 @@ size_t string_ncat(String *dest, const String *src, size_t n) {
 }
 /** @brief copies up to n characters from src String to dest String, allocating
    additional memory for dest String if necessary
+    @ingroup String_Objects
     @param dest - destination String struct
     @param src - source String struct
     @param n - maximum number of characters to copy
@@ -1401,8 +1455,13 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
     dest->s[cpy_len] = '\0';
     return new_len;
 }
+/** @defgroup testing_functions Testing Functions
+    @brief Functions for Testing Only
+ */
+
 /** @brief Function to intentionally cause a segmentation fault for testing
    purposes
+    @ingroup testing_functions
     @note This function is designed to intentionally cause a segmentation fault
    by dereferencing a null pointer. It is intended for testing purposes only and
    should not be used in production code. The caller should be aware that

@@ -7,6 +7,16 @@
     @date 2026-02-09
  */
 
+/** @defgroup signal_handling Signal Handling
+    @brief Handles signals  such as SIGINT, SIGTERM, SIGQUIT, SIGUSR1, and
+   SIGSEGV.
+    @details This module provides functions to set up signal handlers for
+   various signals, handle received signals, and reset signal handlers to their
+   default behavior. It allows the program to respond to interrupt signals by
+   prompting the user for action and ensuring proper cleanup before exiting or
+   continuing execution.
+ */
+
 #include <cm.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -19,7 +29,13 @@ volatile sig_atomic_t sig_received = 0;
 
 bool f_curses_open = false;
 
-/** @brief Set signal handlers to default behavior */
+/** @brief Set signal handlers to default behavior
+    @ingroup signal_handling
+    @details This function sets the signal handlers for SIGINT, SIGTERM,
+   SIGQUIT, SIGUSR1, and SIGSEGV to their default behavior. This is typically
+   used when the program needs to exit or reset its signal handling to the
+   default state.
+ */
 void sig_dfl_mode() {
     struct sigaction sa;
 
@@ -34,6 +50,7 @@ void sig_dfl_mode() {
     sigaction(SIGSEGV, &sa, nullptr);
 }
 /** @brief Set up signal handlers for interrupt signals
+    @ingroup signal_handling
     @details Upon receiving an interrupt signal (SIGINT, SIGTERM, SIGQUIT), the
    program will prompt the user to either exit the program or continue
    execution. If the user chooses to exit, a confirmation prompt will be
@@ -68,7 +85,10 @@ void sig_prog_mode() {
         exit(EXIT_FAILURE);
     }
 }
-/** @brief Signal handler for interrupt signals */
+/** @brief Signal handler for interrupt signals
+    @ingroup signal_handling
+    @param sig_num The signal number received
+  */
 void signal_handler(int sig_num) {
     switch (sig_num) {
     case SIGINT:
@@ -101,7 +121,10 @@ void signal_handler(int sig_num) {
         return;
     }
 }
-/** @brief Handle received signals and prompt user for action */
+/** @brief Handle received signals and prompt user for action
+    @ingroup signal_handling
+    @param sig_num The signal number received
+  */
 bool handle_signal(int sig_num) {
     switch (sig_num) {
     case SIGINT:

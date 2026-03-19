@@ -7,6 +7,10 @@
     @date 2026-02-09
  */
 
+/** @defgroup pick_engine Object Selection
+    @brief Functions to Navigate, Select, and Perform Action on Objects
+ */
+
 #include <common.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -40,6 +44,7 @@ char const pagers_editors[12][10] = {"view", "mview", "less", "more",
                                      "pico", "emacs", "edit", ""};
 
 /** @brief Initializes pick structure and opens pick input file or pipe
+ *  @ingroup pick_engine
     @param init Pointer to Init structure
     @param argc Argument count
     @param argv Argument vector
@@ -156,7 +161,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     return 0;
 }
 /** @brief Reads pick input from file pointer and saves objects into pick
-   structure
+ structure
+ *  @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
     @return 0 on success, -1 if no objects were read
     @note Reads lines from pick->in_fp and saves them as objects in the pick
@@ -189,6 +195,7 @@ int read_pick_input(Init *init) {
 }
 /** @brief Initializes pick interface, calculates window size and position, and
    enters picker loop
+ *  @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
     @return Count of selected objects on success, -1 if user cancels
     @note Initializes key command strings for chyron display and calculates pick
@@ -286,6 +293,7 @@ int pick_engine(Init *init) {
     return (rc);
 }
 /** @brief Saves a string as an object in the pick structure
+ *  @ingroup pick_engine
     @param pick Pointer to Pick structure
     @param s String to save as an object
     @note If the current object index is less than the maximum allowed, saves
@@ -311,6 +319,7 @@ void save_object(Pick *pick, char *s) {
 }
 
 /** @brief Main loop to handle user input and interactions for pick interface
+ *  @ingroup pick_engine
     @param init Pointer to Init structure
     @return Number of selected objects or -1 if user cancels
     @note Handles user input for navigating and selecting objects in the pick
@@ -503,6 +512,7 @@ int picker(Init *init) {
     return 0;
 }
 /** @brief Displays current page of objects in pick window
+ *  @ingroup pick_engine
     @param pick Pointer to Pick structure containing objects and display
    information
     @note Clears the pick window and displays the current page of objects based
@@ -530,6 +540,7 @@ void display_page(Pick *pick) {
     pick_display_chyron(pick);
 }
 /** @brief Displays chyron with page information at bottom of pick window
+ *  @ingroup pick_engine
     @param pick Pointer to Pick structure containing chyron information
     @note Constructs a string for the chyron that includes the current page
    number and total pages. Displays the chyron at the bottom of the pick window
@@ -548,6 +559,7 @@ void pick_display_chyron(Pick *pick) {
     wclrtoeol(pick->win);
 }
 /** @brief Reverses the display of the currently selected object in pick window
+ *  @ingroup pick_engine
     @param pick Pointer to Pick structure containing object and display
    information
     @note Calculates the x coordinate for the currently selected object based on
@@ -570,6 +582,7 @@ void reverse_object(Pick *pick) {
 }
 /** @brief Unreverses the display of the currently selected object in pick
    window
+   @ingroup pick_engine
     @param pick Pointer to Pick structure containing object and display
    information
     @note Calculates the x coordinate for the currently selected object based on
@@ -588,6 +601,7 @@ void unreverse_object(Pick *pick) {
 }
 /** @brief Toggles the selection state of the currently selected object in pick
    window
+   @ingroup pick_engine
     @param pick Pointer to Pick structure containing object and selection
    information
     @note Calculates the x coordinate for the currently selected object based on
@@ -611,6 +625,7 @@ void toggle_object(Pick *pick) {
     }
 }
 /** @brief Deselects the currently selected object in pick window
+   @ingroup pick_engine
     @details like toggle, but only deselects object */
 void deselect_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
@@ -621,6 +636,7 @@ void deselect_object(Pick *pick) {
     }
 }
 /** @brief Outputs selected objects to specified output file
+   @ingroup pick_engine
     @param pick Pointer to Pick structure containing selected objects and
    output file information
     @return 0 on success, 1 on failure
@@ -647,6 +663,7 @@ int output_objects(Pick *pick) {
     return (0);
 }
 /** @brief Executes specified command with selected objects as arguments
+   @ingroup pick_engine
     @param init Pointer to Init structure
     @return 0 on success, 1 on failure
     @note Parses command string and appends selected objects as arguments to
@@ -835,6 +852,7 @@ int exec_objects(Init *init) {
 }
 /** @brief Initializes the pick window based on the parameters specified in
 the Pick structure
+   @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
     @return 0 on success, 1 on failure
     @note Creates a new window for the pick interface using win_new function
@@ -861,6 +879,7 @@ int open_pick_win(Init *init) {
     return 0;
 }
 /** @brief Displays the help screen for the pick interface using mview
+   @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
     @note Initializes the help_spec field in the Pick structure with the
    path to the pick help file. Then, constructs the argument list for

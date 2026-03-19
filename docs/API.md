@@ -140,6 +140,15 @@ and to provide hands-on experience with the C-Menu API. The exercises will cover
 
 ---
 
+#### Documentation
+
+![Topics](screenshots/topics.png)
+![Function Documentation](screenshots/function.png)
+
+![Caller Graph for xwgetch()](screenshots/graph.png)
+
+Caller and Callee graphs are provided in the HTML documentation for all API functions. These graphs show the relationships between functions in the C-Menu codebase, allowing developers to understand how different functions interact with each other and how they are used in the context of the C-Menu application. This can be particularly useful for understanding the flow of data and control in the application, as well as for identifying potential areas for optimization or improvement in the code.
+
 ## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
 
 ---

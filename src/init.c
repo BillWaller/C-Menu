@@ -7,6 +7,16 @@
     @date 2026-02-09
  */
 
+/**
+   @defgroup init C-Menu Initialization
+   @brief Capture Data from the Environment, Command Line, and
+   Configuration File and Populate the Init and SIO Data Structures
+   @verbatim
+       SIO   Struct for screen I/O settings (colors, gamma, etc.)
+       Init  Struct for application settings (file paths, commands, flags, etc.)
+   @endverbatim
+ */
+
 #include <common.h>
 #include <getopt.h>
 #include <locale.h>
@@ -48,6 +58,7 @@ bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
 /** @brief Main initialization function for MAPP - Menu Application
+    @ingroup init
     @param init - pointer to Init struct to be initialized
     @param argc - argument count from main()
     @param argv - argument vector from main()
@@ -128,6 +139,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     }
 }
 /** @brief Initialize optional arguments in the Init struct to default values
+    @ingroup init
     @param init - pointer to Init struct to be initialized This function sets
    all optional argument fields in the Init struct to their default values
    before parsing command-line options or configuration file. This ensures that
@@ -153,6 +165,7 @@ void zero_opt_args(Init *init) {
     init->out_spec[0] = '\0';
 }
 /** @brief Parse command-line options and set Init struct values accordingly
+    @ingroup init
     @param init - pointer to Init struct
     @param argc - argument count
     @param argv - argument vector
@@ -360,6 +373,7 @@ int parse_opt_args(Init *init, int argc, char **argv) {
 }
 /** @brief parse the configuration file specified in init->minitrc and set Init
    struct values accordingly
+    @ingroup init
     @returns on success, -1 on failure
     @note lines beginning with '#" are comments, discard
     @note copy line to tmp_str removing quotes, spaces, semicolons, and newlines
@@ -655,6 +669,7 @@ int parse_config(Init *init) {
     return 0;
 }
 /** @brief Convert prompt type string to integer constant
+    @ingroup init
     @param s - prompt type string
     @returns prompt type integer constant
     @note Valid prompt type strings are "short", "long", and "string"
@@ -674,6 +689,7 @@ int prompt_str_to_int(char *s) {
     return prompt_type;
 }
 /** @brief Convert prompt type integer constant to string
+    @ingroup init
     @param s - output prompt type string
     @param prompt_type - prompt type integer constant
     @note Valid prompt type integer constants are PT_SHORT, PT_LONG, and
@@ -697,6 +713,7 @@ void prompt_int_to_str(char *s, int prompt_type) {
     }
 }
 /** @brief Write the current configuration to a file specified in init->minitrc
+    @ingroup init
     @param init - pointer to Init struct containing current configuration
     @returns 0 on success, -1 on failure
     @note The configuration is written in key=value format, one per line
@@ -802,6 +819,7 @@ int write_config(Init *init) {
     return 0;
 }
 /** @brief Derive full file specification from directory and file name
+    @ingroup init
     @param file_spec - output full file specification
     @param dir - directory path
     @param file_name - file name
@@ -841,6 +859,7 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     return true;
 }
 /** @brief Display the version information of the application
+    @ingroup init
     @note The version information is defined in the mapp_version variable and is
    printed to stderr when this function is called. */
 void display_version() {
@@ -848,6 +867,7 @@ void display_version() {
     exit(EXIT_SUCCESS);
 }
 /** @brief Display the usage information of the application
+    @ingroup init
     @note The usage information is printed to stderr when this function is
    called. After displaying the usage information, the function waits for the
    user to press any key before returning. */
@@ -857,6 +877,7 @@ void usage() {
     di_getch();
 }
 /** @brief Print an option and its value in a formatted manner
+    @ingroup init
     @param o - option flag (e.g., "-a:")
     @param name - option name (e.g., "--minitrc")
     @param value - option value to print
@@ -867,6 +888,7 @@ void opt_prt_char(const char *o, const char *name, const char *value) {
 }
 /** @brief Print an option and its value in a formatted manner for integer
    values
+    @ingroup init
     @param o - option flag (e.g., "-C:")
     @param name - option name (e.g., "--cols")
     @param value - integer option value to print
@@ -877,6 +899,7 @@ void opt_prt_str(const char *o, const char *name, const char *value) {
 }
 /** @brief Print an option and its value in a formatted manner for integer
    values
+    @ingroup init
     @param o - option flag (e.g., "-C:")
     @param name - option name (e.g., "--cols")
     @param value - integer option value to print
@@ -886,6 +909,7 @@ void opt_prt_int(const char *o, const char *name, int value) {
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
 }
 /** @brief Print an option and its value in a formatted manner for double values
+    @ingroup init
     @param o - option flag (e.g., "-r:")
     @param name - option name (e.g., "red_gamma")
     @param value - double option value to print
@@ -896,6 +920,7 @@ void opt_prt_double(const char *o, const char *name, double value) {
 }
 /** @brief Print an option and its value in a formatted manner for boolean
    values
+    @ingroup init
     @param o - option flag (e.g., "-z")
     @param name - option name (e.g., "f_at_end_clear")
     @param value - boolean option value to print
@@ -906,6 +931,7 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
 /** @brief Dump the current configuration to stderr for debugging purposes
+    @ingroup init
     @param init - pointer to Init struct containing the current configuration
     @param msg - string to print before dumping the configuration to stderr in a
    readable format, prefixed by the provided title string. */
