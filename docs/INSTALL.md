@@ -159,7 +159,7 @@ Continue with [Finish the installation](#finish-the-installation) below to compl
 ls -l "$HOME"/menuapp/lib64 "$HOME"/menuapp/bin
 ```
 
-![Directory Listing](screenshots/postmakels.png)
+![Directory Listing](../screenshots/postmakels.png)
 
 2️⃣ Register the C-Menu libraries with the dynamic linker by running the following command:
 
@@ -199,6 +199,6 @@ source ~/.bashrc
 menu
 ```
 
-![C-Menu Running](screenshots/mainmenu.png)
+![C-Menu Running](../screenshots/mainmenu.png)
 
 ## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.

@@ -4,32 +4,31 @@
 
 <!-- mtoc-start -->
 
-* [C-Menu Desktop Files](#c-menu-desktop-files)
-* [C-Menu bashrc Configuration](#c-menu-bashrc-configuration)
-  * [Shell Logging](#shell-logging)
-  * [Prepend Path](#prepend-path)
-  * [Helpful C-Menu Environment Variables](#helpful-c-menu-environment-variables)
-  * [Security Through Obscurity](#security-through-obscurity)
-  * [RSH Helpers](#rsh-helpers)
-  * [Privilege Indicator Shell Prompts](#privilege-indicator-shell-prompts)
-  * [Terminal and Editor Settings](#terminal-and-editor-settings)
-  * [GDB Debugging Setup](#gdb-debugging-setup)
-  * [If You Can't Stop Typing "vi"](#if-you-cant-stop-typing-vi)
-  * [C-Menu Startup with "mm"](#c-menu-startup-with-mm)
-  * [Curses Escape Delay](#curses-escape-delay)
-  * [Use lsd instead of ls](#use-lsd-instead-of-ls)
-  * [Locale Settings](#locale-settings)
-  * [System Specific Environment Variables](#system-specific-environment-variables)
-* [C-Menu Configuration](#c-menu-configuration)
-* [Terminal Configurations](#terminal-configurations)
-  * [Ghostty](#ghostty)
-  * [Kitty](#kitty)
-  * [Alacritty](#alacritty)
-* [Tree-Sitter](#tree-sitter)
-  * [Tree-Sitter config.json](#tree-sitter-configjson)
+- [C-Menu Desktop Files](#c-menu-desktop-files)
+- [C-Menu bashrc Configuration](#c-menu-bashrc-configuration)
+  - [Shell Logging](#shell-logging)
+  - [Prepend Path](#prepend-path)
+  - [Helpful C-Menu Environment Variables](#helpful-c-menu-environment-variables)
+  - [Security Through Obscurity](#security-through-obscurity)
+  - [RSH Helpers](#rsh-helpers)
+  - [Privilege Indicator Shell Prompts](#privilege-indicator-shell-prompts)
+  - [Terminal and Editor Settings](#terminal-and-editor-settings)
+  - [GDB Debugging Setup](#gdb-debugging-setup)
+  - [If You Can't Stop Typing "vi"](#if-you-cant-stop-typing-vi)
+  - [C-Menu Startup with "mm"](#c-menu-startup-with-mm)
+  - [Curses Escape Delay](#curses-escape-delay)
+  - [Use lsd instead of ls](#use-lsd-instead-of-ls)
+  - [Locale Settings](#locale-settings)
+  - [System Specific Environment Variables](#system-specific-environment-variables)
+- [C-Menu Configuration](#c-menu-configuration)
+- [Terminal Configurations](#terminal-configurations)
+  - [Ghostty](#ghostty)
+  - [Kitty](#kitty)
+  - [Alacritty](#alacritty)
+- [Tree-Sitter](#tree-sitter)
+  - [Tree-Sitter config.json](#tree-sitter-configjson)
 
 <!-- mtoc-end -->
-
 
 ## C-Menu Desktop Files
 
@@ -131,7 +130,7 @@ done
 export PATH
 ```
 
-***WARNING:*** /usr/bin/view is generally a link to vim, which will
+**_WARNING:_** /usr/bin/view is generally a link to vim, which will
 obscure C-Menu View if /usr/bin preceedes $HOME/menuapp/bin
 in your PATH environment variable.
 
@@ -197,18 +196,18 @@ A green prompt for normal users, red for root. You can customize this prompt
 or use whatever prompt you like, but an obvious indicator of privilege level
 is highly recommended.
 
-This is a very minimal prompt, but serves the purpose of indicating privilege 
-level. You can customize it to include more information if you like, but be 
-careful not to make it too cluttered or slow to render. The key is to have a 
-clear visual indicator of whether you are running as root or a normal user, to 
+This is a very minimal prompt, but serves the purpose of indicating privilege
+level. You can customize it to include more information if you like, but be
+careful not to make it too cluttered or slow to render. The key is to have a
+clear visual indicator of whether you are running as root or a normal user, to
 help prevent accidentally running commands with elevated privileges.
 
-The inclusion of \\W in the prompt is a common practice to show the current 
-working directory, which can be helpful for context. If you want the full 
-directory, use \\w (lower case). The color coding (green for normal users and red 
-for root) provides an immediate visual cue about the privilege level of the 
-shell session. You can even make it hot-pink if you want it to be really 
-annoying. The key is to have a clear and distinct visual indicator of privilege 
+The inclusion of \\W in the prompt is a common practice to show the current
+working directory, which can be helpful for context. If you want the full
+directory, use \\w (lower case). The color coding (green for normal users and red
+for root) provides an immediate visual cue about the privilege level of the
+shell session. You can even make it hot-pink if you want it to be really
+annoying. The key is to have a clear and distinct visual indicator of privilege
 level, to help prevent accidental misuse of root privileges.
 
 ```bash
@@ -598,7 +597,7 @@ white       = '#FFFFFF'
 Before you can use Tree-Sitter-CLI, you will need to install the parsers
 for your file types. Below an example layout for parser installation.
 
-![Tree-Sitter Configuration](screenshots/tree-sitter-parsers.png)
+![Tree-Sitter Configuration](../screenshots/tree-sitter-parsers.png)
 
 ---
 
@@ -672,4 +671,5 @@ for your file types. Below an example layout for parser installation.
   }
 }
 ```
+
 ---
