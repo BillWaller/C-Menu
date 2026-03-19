@@ -23,6 +23,23 @@ The new options for lf allow you to specify the file types to list, and whether 
 
 ## Table of Contents
 
+### Other Markdown files in this repository:
+
+[Change Log](docs/CHANGELOG.md)
+[API Documentation](docs/API.md)
+[C-Menu User Guide](docs/C-Menu-UG.md)
+[Exercises](docs/exercises.md)
+[Augmenting C-Menu](docs/extras.md)
+[Frequently Asked Questions](docs/FAQ.md)
+[Installation Instructions](docs/INSTALL.md)
+[Configuration Snippets](docs/snippets.md)
+
+### HTML Documentation:
+
+[C-Menu Documentation](https://decision-inc.com)
+
+## Table of Contents
+
 <!-- mtoc-start -->
 
 - [Get C-Menu on Github](#get-c-menu-on-github)
@@ -61,10 +78,6 @@ The new options for lf allow you to specify the file types to list, and whether 
 <!-- mtoc-end -->
 
 ## Get C-Menu on Github
-
-Click the link below to access the C-Menu Documentation:
-
-[C-Menu on Github](https://decision-inc.com)
 
 [Download C-Menu from Github](https://github.com/BillWaller/C-Menu.git)
 
