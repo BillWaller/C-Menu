@@ -2,6 +2,16 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-03-19
+
+Added line numbering option "-N" to View to display line numbers in the left
+margin. The line numbers have a separate window, so it doesn't interfere with
+horizontal scrolling. The line numbers are right-aligned and padded with spaces to maintain a consistent width. The C-Menu configuration now has options for foreground and background colors for line numbers. These are six-digit hexadecimal RGB values, and they can be set to any color the user desires.
+
+Also refactored View navigation to maintain a line number table and use the
+table to improve navigation performance. The table is allocated dynamically, and
+consumes four bytes per line. The line number table is updated whenever the user scrolls vertically, and it allows for much faster navigation to specific lines, especially in large documents. The line number table is also used to maintain the correct line numbers in the left margin when the user scrolls horizontally.
+
 0.2.9 - 2026-03-13
 
 Added additional file selection options to lf. Now, you can
