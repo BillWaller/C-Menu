@@ -7,6 +7,11 @@
     @date 2026-02-09
  */
 
+/**
+   @defgroup view_engine View Engine
+   @briefs File mapping, user input, command processing, and display logic
+ */
+
 #include <common.h>
 #include <ctype.h>
 #include <errno.h>
@@ -24,6 +29,7 @@
 #define Ctrl(c) ((c) & 0x1f)
 
 /** @brief read the next characater from the virtual file
+    @ingroup view_engine
    @note Line numbers are tracked when reading forward and stored in a line
    table for quick access when moving backwards.
    @note When reading forward, the End of Data (EOD) flag is set when the
@@ -50,6 +56,7 @@
             increment_ln(view);                                                \
     }
 /** @brief read the previous characater from the virtual file
+    @ingroup view_engine
     @note There is no need to track line numbers when moving backwards as they
    are stored in the line table and accessed as needed.
     @note When reading in reverse, the Beginning of Data (BOD) flag is set when
@@ -111,6 +118,7 @@ void sync_ln(View *);
 char err_msg[MAXLEN];
 
 /** @brief Start view
+    @ingroup view_engine
     @param init Pointer to the Init structure containing initialization
    parameters and state for the view application. This structure is used to pass
    necessary information and maintain state across different functions within
@@ -160,6 +168,7 @@ int view_file(Init *init) {
     return 0;
 }
 /** @brief Main Command Processing Loop for View
+    @ingroup view_engine
     @param init Pointer to the Init structure containing initialization
    parameters and state for the view application. This structure is used to pass
    necessary information and maintain state across different functions within
@@ -686,6 +695,7 @@ int view_cmd_processor(Init *init) {
     }
 }
 /** @brief Get Command Character and Numeric Argument
+    @ingroup view_engine
     @param view Pointer to the View structure containing the state around the
    view application. This structure is used to access and modify the state
     @param n is used to store the numeric argument entered by the user, if
@@ -725,6 +735,7 @@ int get_cmd_char(View *view, off_t *n) {
     return (c);
 }
 /** @brief Get Command Argument from User Input
+    @ingroup view_engine
     @param view Pointer to the View structure containing the state and
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
@@ -830,7 +841,29 @@ int get_cmd_arg(View *view, char *prompt) {
     }
     return c;
 }
-/** @brief Build Prompt String */
+/** @brief Build Prompt String
+    @ingroup view_engine
+    @param view Pointer to the View structure containing the state and
+   parameters of the view application. This structure is used to access and
+   modify the state of the application as needed.
+    @param prompt_type An integer representing the type of prompt to be built.
+   This parameter determines the format and content of the prompt string that
+   will be constructed based on the current state of the view application.
+    @param prompt_str A character array where the constructed prompt string will
+   be stored. This buffer is used to hold the final prompt that will be
+   displayed to the user, and it should be large enough to accommodate the
+   various components of the prompt based on the view's state displayed to the
+   user, and it is expected to be of sufficient size to accommodate the
+   generated prompt.
+    @param elapsed A double representing the elapsed time in seconds, which may
+   be included in the prompt string if the timer feature is enabled in the view
+   application. This parameter allows for dynamic inclusion of timing
+   information in the prompt, providing users with feedback on the time taken
+   for certain operations or commands within the view application.
+   If the timer feature is enabled, the elapsed time will be formatted and
+   appended to the prompt string, giving users insight into the performance of
+   their actions within the view application.
+ */
 void build_prompt(View *view, int prompt_type, char *prompt_str,
                   double elapsed) {
     char tmp_str[MAXLEN];
@@ -895,6 +928,7 @@ void build_prompt(View *view, int prompt_type, char *prompt_str,
     }
 }
 /** @brief Write buffer contents to files
+    @ingroup view_engine
     @param init data structure
     @param f_strip_ansi strip ANSI escape sequences
     @details
@@ -943,7 +977,9 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
     strnz__cpy(view->in_spec, view->out_spec, MAXLEN - 1);
     return bytes_written;
 }
-/** @brief Concatenate File to Standard Output */
+/** @brief Concatenate File to Standard Output
+    @ingroup view_engine
+ */
 void cat_file(View *view) {
     int c;
     while (1) {
@@ -954,7 +990,8 @@ void cat_file(View *view) {
     }
 }
 /** @brief Send File to Print Queue
- *  @param PrintFile - file to print */
+    @ingroup view_engine
+    @param PrintFile - file to print */
 void lp(char *PrintFile) {
     char *print_cmd_ptr;
     char shell_cmd_spec[MAXLEN];
@@ -966,7 +1003,21 @@ void lp(char *PrintFile) {
     pad_refresh(view);
     shell(shell_cmd_spec);
 }
-/** @brief Go to Mark */
+/** @defgroup view_navigation View Navigation
+    @brief Navigation functions for the view application
+ */
+/** @brief Go to Mark
+    @ingroup view_navigation
+    @param view Pointer to the View structure containing the state and
+   parameters of the view application. This structure is used to access and
+   modify the state of the application as needed.
+    @param c The character representing the mark to go to. This character is
+   typically a lowercase letter (a-z) corresponding to a mark that has been set
+   previously in the view application. The function will attempt to navigate to
+   the position associated with this mark, allowing the user to quickly jump to
+   specific locations in the file based on the marks they have set. If the mark
+   is not set, an error message will be displayed to the user.
+ */
 void go_to_mark(View *view, int c) {
     if (c == '\'')
         view->file_pos = view->mark_tbl[(NMARKS - 1)];
@@ -978,6 +1029,7 @@ void go_to_mark(View *view, int c) {
         go_to_position(view, view->file_pos);
 }
 /** @brief Search for Regular Expression Pattern
+    @ingroup view_engine
     @param view Pointer to View Structure
     @param search_cmd Search Command Character ('/' or '?')
     @param regex_pattern Regular Expression Pattern to Search For
@@ -1162,7 +1214,12 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
     regfree(&compiled_regex);
     return true;
 }
+
+/** @defgroup view_display Manage View Display
+    @brief Manage the View Display
+ */
 /** @brief Resize Viewing Page
+    @ingroup view_display
     @param init data structure */
 void resize_page(Init *init) {
     int scr_lines, scr_cols;
@@ -1194,6 +1251,7 @@ void resize_page(Init *init) {
         view->f_redisplay_page = false;
 }
 /** @brief Refresh Pad and Line Number Window
+    @ingroup view_display
    @param view data structure
    @returns OK on success, ERR on failure
 */
@@ -1211,6 +1269,7 @@ int pad_refresh(View *view) {
     return rc;
 }
 /** @brief display previous page
+    @ingroup view_navigation
    @param view data structure
    @details Displays the previous page starting at (view->page_top_ln -
    view->scroll_lines).
@@ -1227,6 +1286,7 @@ void prev_page(View *view) {
     next_page(view);
 }
 /** @brief Advance to Next Page
+    @ingroup view_navigation
    @param view data structure
    @details Advances from view->page_bot_pos to view the next page of content.
    view->page_bot_pos must be set properly when calling this function.
@@ -1247,8 +1307,9 @@ void next_page(View *view) {
     view_display_page(view);
 }
 /** @brief Display Current Page
- * @param view data structure
- * */
+    @ingroup view_display
+   @param view data structure
+ */
 void view_display_page(View *view) {
     int i;
     curs_set(0);
@@ -1272,6 +1333,7 @@ void view_display_page(View *view) {
     curs_set(1);
 }
 /** @brief Scroll N Lines
+    @ingroup view_navigation
  * @param view data Structure
  * @param n number of lines to scroll
  */
@@ -1315,9 +1377,10 @@ void scroll_down_n_lines(View *view, int n) {
     curs_set(1);
 }
 /** @brief Scroll Up N Lines
- * @param view data Structure
- * @param n number of lines to scroll
- * */
+    @ingroup view_navigation
+   @param view data Structure
+   @param n number of lines to scroll
+ */
 void scroll_up_n_lines(View *view, int n) {
     int i;
     curs_set(0);
@@ -1350,7 +1413,8 @@ void scroll_up_n_lines(View *view, int n) {
     curs_set(1);
     return;
 }
-/** @brief Get Next Line from File
+/** @brief Get Next Line from View->buf
+    @ingroup view_navigation
     @param view struct
     @param pos buffer offset
     @returns file position of next line
@@ -1393,10 +1457,12 @@ off_t get_next_line(View *view, off_t pos) {
     }
     return view->file_pos;
 }
-/** @brief Get Previous Line from File
- * @param view data structure
- * @param pos buffer offset
- * @returns file position of previous line */
+/** @brief Get Previous Line from View->buf
+    @ingroup view_navigation
+   @param view data structure
+   @param pos buffer offset
+   @returns file position of previous line
+ */
 off_t get_prev_line(View *view, off_t pos) {
     pos = get_pos_prev_line(view, pos);
     view->file_pos = pos;
@@ -1404,10 +1470,11 @@ off_t get_prev_line(View *view, off_t pos) {
     return pos;
 }
 /** @brief Get Position of Next Line
- * @param view data structure
- * @param pos buffer offset
- * @returns file position of next line
- * */
+    @ingroup view_navigation
+   @param view data structure
+   @param pos buffer offset
+   @returns file position of next line
+   */
 off_t get_pos_next_line(View *view, off_t pos) {
     char c;
     if (pos == view->file_size) {
@@ -1440,10 +1507,11 @@ off_t get_pos_next_line(View *view, off_t pos) {
     return view->file_pos;
 }
 /** @brief Get Position of Previous Line
+    @ingroup view_navigation
     @param view data structure
     @param pos buffer offset
     @returns file position of previous line
- * */
+  */
 off_t get_pos_prev_line(View *view, off_t pos) {
     view->file_pos = pos;
     if (view->file_pos == 0) {
@@ -1459,6 +1527,7 @@ off_t get_pos_prev_line(View *view, off_t pos) {
     return view->file_pos;
 }
 /** @brief Go to Specific File Position
+    @ingroup view_navigation
     @param view data Structure
     @param go_to_pos
 */
@@ -1469,7 +1538,10 @@ void go_to_position(View *view, off_t go_to_pos) {
     sync_ln(view);
     next_page(view);
 }
-/** @brief Go to End of File */
+/** @brief Go to End of File
+    @ingroup view_navigation
+    @param view data structure
+ */
 void go_to_eof(View *view) {
     view->file_pos = view->file_size;
     sync_ln(view);
@@ -1485,6 +1557,7 @@ void go_to_eof(View *view) {
     next_page(view);
 }
 /** @brief Go to Percent of File
+    @ingroup view_navigation
     @param view data structure
     @param percent of file
 */
@@ -1505,6 +1578,7 @@ void go_to_percent(View *view, int percent) {
     next_page(view);
 }
 /** @brief Go to Specific Line
+    @ingroup view_navigation
     @param view data structure
     @param line_idx line number to go to (1-based index)
     @returns 0 on success, EOF if line index is out of bounds or end of data is
@@ -1523,6 +1597,7 @@ int go_to_line(View *view, off_t line_idx) {
     return 0;
 }
 /** @brief Initialize Line Table
+    @ingroup view_navigation
     @param view data structure
     @details The line table is initialized with a specified increment size
    (LINE_TBL_INCR). Memory is allocated for the line table, and the first entry
@@ -1541,6 +1616,7 @@ void initialize_line_table(View *view) {
     view->ln = 0;
 }
 /** @brief Increment Line Index and Update Line Table
+    @ingroup view_navigation
     @param view data structure
     @details This function is called when a line feed character is encountered
    while reading the file. It increments the line index (view->ln) and checks if
@@ -1567,6 +1643,7 @@ void increment_ln(View *view) {
     view->ln_tbl[view->ln] = view->file_pos;
 }
 /** @brief Synchronize Line Table with Current File Position
+    @ingroup view_navigation
     @param view data Structure
     @details The line table (view->ln_tbl) is an array that stores the file
    position of each line. The index (view->ln + 1) corresponds to the current
@@ -1600,6 +1677,7 @@ void sync_ln(View *view) {
     }
 }
 /** @brief Display Line on Pad
+    @ingroup view_display
     param View *view data structure
     @details This function displays a single line of text on the ncurses pad.
     @note If line numbering is enabled (view->f_ln), it is formatted and
@@ -1630,6 +1708,7 @@ void display_line(View *view) {
     pad_refresh(view);
 }
 /** @brief Format Line for Display
+    @ingroup view_display
     @param view pointer to View structure containing line input and output
    buffers
     @return length of formatted line in characters
@@ -1718,6 +1797,7 @@ int fmt_line(View *view) {
     return j;
 }
 /** @brief Parse ANSI SGR Escape Sequence
+    @ingroup view_display
     @param ansi_str is the ANSI escape sequence string to parse
     @param attr is a pointer to an attr_t variable where the parsed
    attributes will be stored
@@ -1881,6 +1961,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     return;
 }
 /** @brief Display Command Line Prompt
+    @ingroup view_display
     @param view is the current view data structure
     @param s is the prompt string */
 void cmd_line_prompt(View *view, char *s) {
@@ -1901,6 +1982,7 @@ void cmd_line_prompt(View *view, char *s) {
     pad_refresh(view);
 }
 /** @brief Remove File
+    @ingroup view_engine
     @param view is the current view data structure */
 void remove_file(View *view) {
     char c;
@@ -1915,6 +1997,7 @@ void remove_file(View *view) {
     }
 }
 /** @brief Display View Help File
+    @ingroup view_display
     @param init is the current initialization data structure.
     @note The current View context is set aside by assigning the view
    structure to "view_save" while the help file is displayed using a new,
@@ -1957,6 +2040,7 @@ void view_display_help(Init *init) {
     init->view->f_redisplay_page = true;
 }
 /** @brief use form to enter a file specification
+    @ingroup view_engine
     @param init data structure
     @param file_spec - pointer to file specification
     the file_spec

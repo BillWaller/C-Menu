@@ -1,10 +1,14 @@
 /** @file dwin.c
-    @brief Window support for C-Menu Menu, Form, Pick, and View
+    @brief Window support for C-Menu
     @author Bill Waller
     Copyright (c) 2025
     MIT License
     billxwaller@gmail.com
     @date 2026-02-09
+ */
+
+/** @defgroup window_support Window Support
+    @brief Manage NCurses windows and color settings
  */
 
 #include <cm.h>
@@ -157,16 +161,24 @@ cchar_t CCC_LN;
 int tty_fd, pipe_in, pipe_out;
 
 /** @brief Initialize window attributes
-    note This function initializes color pairs for the window
-    note cp_norm and cp_box are global variables
-    see get_clr_pair */
+    @ingroup window_support
+    @note This function initializes color pairs for the window
+    @note cp_norm and cp_box are global variables
+    @see get_clr_pair
+ */
 void win_init_attrs() {
     init_extended_pair(cp_norm, CLR_FG, CLR_BG);
     init_extended_pair(cp_box, CLR_BO, CLR_BG);
     init_extended_pair(cp_ln, CLR_LN, CLR_LN_BG);
     return;
 }
+
+/** @defgroup Chyron Chyron Management
+    @brief Create and manage the Chyron
+ */
+
 /** @brief Create and initialize Chyron structure
+    @ingroup Chyron
     @return pointer to new Chyron structure
     @details This function allocates memory for a new Chyron structure and
    initializes the key pointers. Each key pointer is allocated memory for a
@@ -191,6 +203,7 @@ Chyron *new_chyron() {
     return chyron;
 }
 /** @brief Destroy Chyron structure
+    @ingroup Chyron
     @param chyron pointer to Chyron structure
     @return nullptr
  */
@@ -209,7 +222,8 @@ Chyron *destroy_chyron(Chyron *chyron) {
     return chyron;
 }
 /** @brief Check if function key label is set
-*   @param chyron structure
+    @ingroup Chyron
+    @param chyron structure
     @param k Function key index (0-19)
     @return true if set, false if not set */
 bool is_set_chyron_key(Chyron *chyron, int k) {
@@ -219,6 +233,7 @@ bool is_set_chyron_key(Chyron *chyron, int k) {
         return false;
 }
 /** @brief Set chyron key
+    @ingroup Chyron
     @param chyron structure
     @param k chyron key index (0-19)
     @param s chyron key label
@@ -238,11 +253,13 @@ void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
     chyron->key[k]->keycode = kc;
 }
 /** @brief Unset chyron key
+    @ingroup Chyron
     @param chyron structure
     @param k chyron_key index
 */
 void unset_chyron_key(Chyron *chyron, int k) { chyron->key[k]->text[0] = '\0'; }
 /** @brief construct the chyron string from the chyron structure
+    @ingroup Chyron
     @param chyron
     @details The chyron string is constructed by concatenating the labels of the
    set keys, separated by " | ". The end_pos values for each key are set to
@@ -273,6 +290,7 @@ void compile_chyron(Chyron *chyron) {
         chyron->l = strnz__cat(chyron->s, " ", MAXLEN - 1);
 }
 /** @brief Get keycode from chyron
+    @ingroup Chyron
     @param chyron structure
     @param x Mouse X position
     @return Keycode
@@ -293,6 +311,7 @@ int get_chyron_key(Chyron *chyron, int x) {
     return chyron->key[i]->keycode;
 }
 /** @brief Initialize NCurses and color settings
+    @ingroup window_support
     @param sio Pointer to SIO struct with terminal and color settings
     @return true if successful, false if error
     note This function initializes NCurses and sets up color pairs based on the
@@ -393,8 +412,12 @@ bool open_curses(SIO *sio) {
     }
     return sio;
 }
-
+/** @defgroup color_management Color Management
+    @brief Conversion of Color Data Types and Management of Colors and Color
+   Pairs
+ */
 /** @brief Get color pair index for foreground and background colors
+    @ingroup color_management
     @param fg Foreground color index
     @param bg Background color index
     @return Color pair index */
@@ -424,6 +447,7 @@ int get_clr_pair(int fg, int bg) {
 }
 
 /** @brief Get color index for RGB color
+    @ingroup color_management
     @param rgb RGB color
     @return NCurses color index
     @note Curses uses 0-1000 for RGB values
@@ -451,6 +475,7 @@ int rgb_to_curses_clr(RGB *rgb) {
 }
 
 /** @brief Convert RGB color to XTerm 256 color index
+    @ingroup color_management
     @param rgb RGB color
     @return XTerm 256 color index
     note This function converts an RGB color to the nearest XTerm 256 color
@@ -473,6 +498,7 @@ int rgb_to_xterm256_idx(RGB *rgb) {
 }
 
 /** @brief Convert XTerm 256 color index to RGB color
+    @ingroup color_management
     @param idx XTerm 256 color index
     @return RGB color
     note This function converts an XTerm 256 color index to an RGB color. It
@@ -505,6 +531,7 @@ RGB xterm256_idx_to_rgb(int idx) {
 }
 
 /** @brief Apply gamma correction to RGB color
+    @ingroup color_management
     @param rgb Pointer to RGB color
     @note This function modifies the RGB color in place. It applies gamma
    correction to the RGB color based on the gamma values set in the SIO struct.
@@ -529,6 +556,7 @@ void apply_gamma(RGB *rgb) {
 }
 
 /** @brief Initialize color palette based on SIO settings
+    @ingroup color_management
     @param sio Pointer to SIO struct with color settings
     @return true if successful, false if error
     @note This function initializes the xterm256 color cube and applies any
@@ -588,6 +616,7 @@ bool init_clr_palette(SIO *sio) {
 }
 
 /** @brief Initialize extended ncurses color from HTML style hex string
+    @ingroup color_management
     @param idx Color index
     @param s Hex color string
     @note NCurses uses 0-1000 for RGB values, so the RGB values from the hex
@@ -611,6 +640,7 @@ void init_hex_clr(int idx, char *s) {
 }
 
 /** @brief Convert six-digit HTML style hex color code to RGB struct
+    @ingroup color_management
     @param s six-digit HTML style hex color code */
 RGB hex_clr_str_to_rgb(char *s) {
     RGB rgb;
@@ -619,6 +649,7 @@ RGB hex_clr_str_to_rgb(char *s) {
 }
 
 /** @brief Gracefully shut down NCurses and restore terminal settings
+    @ingroup window_support
     @note This function should be called before exiting the program to ensure
    that the terminal is left in a usable state. It checks if NCurses was
    initialized and, if so, it clears the screen, refreshes it, and ends the
@@ -638,6 +669,7 @@ void destroy_curses() {
 }
 
 /** @brief Create a cchar_t with the specified color pair index
+    @ingroup color_management
     @param cp Color pair index
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
@@ -649,6 +681,7 @@ cchar_t mkccc(int cp) {
 }
 
 /** @brief Create a new window with optional box and title
+    @ingroup window_support
     @param wlines Number of lines
     @param wcols Number of columns
     @param wbegy Beginning Y position
@@ -722,6 +755,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 }
 
 /** @brief Resize the current window and its box, and update the title
+    @ingroup window_support
     @param wlines Number of lines
     @param wcols Number of columns
     @param title Window title
@@ -766,6 +800,7 @@ void win_resize(int wlines, int wcols, char *title) {
         immedok(win_win[win_ptr], true);
 }
 /** @brief Redraw the specified window
+    @ingroup window_support
     @param win Pointer to the window to redraw
     @note This function erases the contents of the specified window and then
    refreshes it to update the display. Use this function when you need to clear
@@ -776,6 +811,7 @@ void win_redraw(WINDOW *win) {
 }
 
 /** @brief Delete the current window and its associated box window
+    @ingroup window_support
     @return nullptr
     @note This function deletes the current window and its associated box
    window, if they exist. It also refreshes the remaining windows to ensure the
@@ -809,6 +845,7 @@ WINDOW *win_del() {
 }
 
 /** @brief Restore all windows after a screen resize
+    @ingroup window_support
     @note This function is used to restore the display of all windows after a
    screen resize event. It clears the standard screen and then iterates through
    all existing windows, touching and refreshing them to ensure they are redrawn
@@ -829,6 +866,7 @@ void restore_wins() {
 }
 
 /** @brief Draw a box around the specified window
+    @ingroup window_support
     @param box Pointer to the window to draw the box around
     @note This function uses NCurses functions to draw a box around the
    specified window. It adds the appropriate characters for the corners and
@@ -858,7 +896,12 @@ void cbox(WINDOW *box) {
     waddnwstr(box, &bw_br, 1);
 }
 
+/** @defgroup error_handling Error Handling
+    @brief Display Error messages
+ */
+
 /** @brief Display an error message window or print to stderr
+    @ingroup error_handling
     @param em0 First error message line
     @param em1 Second error message line
     @param em2 Third error message line
@@ -943,6 +986,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
 }
 
 /** @brief Display a simple error message window or print to stderr
+    @ingroup error_handling
     @param emsg_str Error message string
     @return Key code of user command */
 int Perror(char *emsg_str) {
@@ -999,6 +1043,7 @@ int Perror(char *emsg_str) {
 }
 
 /** @brief For lines shorter than their display area, fill the rest with spaces
+    @ingroup window_support
     @param w Pointer to window
     @param y Y coordinate
     @param x X coordinate
@@ -1022,6 +1067,7 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
 }
 
 /** @brief Get color index from color name
+    @ingroup color_management
     @param s Color name
     @return Color index or -1 if not found */
 int clr_name_to_idx(char *s) {
@@ -1040,6 +1086,7 @@ int clr_name_to_idx(char *s) {
 }
 
 /** @brief list colors to stderr
+    @ingroup color_management
     @note only lists the first 16, since that's how many we let the
     user redefine */
 void list_colors() {
@@ -1060,6 +1107,7 @@ void list_colors() {
 }
 
 /** @brief Display error message and wait for key press
+    @ingroup error_handling
     @param ec Error code
     @param s Error message */
 int nf_error(int ec, char *s) {
@@ -1070,7 +1118,9 @@ int nf_error(int ec, char *s) {
     return ec;
 }
 
-/** @brief Program terminated by user */
+/** @brief Program terminated by user
+    @ingroup error_handling
+   */
 void user_end() {
     destroy_curses();
     restore_shell_tioctl();
@@ -1081,6 +1131,7 @@ void user_end() {
 }
 
 /** @brief Abnormal program termination
+    @ingroup error_handling
     @param ec Exit code
     @param s Error message */
 void abend(int ec, char *s) {
@@ -1091,6 +1142,7 @@ void abend(int ec, char *s) {
     exit(EXIT_FAILURE);
 }
 /** @brief Wrapper for wgetch that handles signals and mouse events
+    @ingroup window_support
     @param win Pointer to window
     @param chyron Pointer to chyron for handling chyron line clicks
     @return Key code or ERR if interrupted by signal

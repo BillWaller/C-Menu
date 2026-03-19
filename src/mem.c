@@ -7,6 +7,18 @@
     @date 2026-02-09
  */
 
+/** @defgroup mem Memory Management
+ * @brief Create, populate, and destroy main data structures for C-Menu
+   @verbatim
+   C-Menu main data structures
+   Init - main structure for initialization and global data
+   Menu - menu description, help, and state
+   Pick - pick description, help, and state
+   Form - form description, help, and state
+   View - view description, help, and state
+   @endverbatim
+*/
+
 #include <common.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -35,6 +47,7 @@ Pick *pick;
 Form *form;
 View *view;
 /** @brief Create and initialize Init structure
+    @ingroup mem
     @note calloc initializes all fields to zero/nullptr
     @param argc, argv - arguments
     idiomatic directory usage:
@@ -87,6 +100,7 @@ Init *new_init(int argc, char **argv) {
     return init;
 }
 /** @brief Destroy Init structure
+    @ingroup mem
     @param init structure
     @returns nullptr
  */
@@ -134,6 +148,7 @@ Init *destroy_init(Init *init) {
     return init;
 }
 /** @brief Create and initialize Menu structure
+    @ingroup mem
     @param init structure
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line,
@@ -159,6 +174,7 @@ Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
     return init->menu;
 }
 /** @brief Destroy Menu structure
+    @ingroup mem
     @param init structure
     @return nullptr
  */
@@ -171,6 +187,7 @@ Menu *destroy_menu(Init *init) {
     return init->menu;
 }
 /** @brief Create and initialize Pick structure
+    @ingroup mem
     @param init structure
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line,
@@ -205,6 +222,7 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
     return init->pick;
 }
 /** @brief Destroy Pick structure
+    @ingroup mem
     @param init structure
     @return nullptr
  */
@@ -222,6 +240,7 @@ Pick *destroy_pick(Init *init) {
     return init->pick;
 }
 /** @brief Create and initialize Form structure
+    @ingroup mem
     @param init structure
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line,
@@ -249,6 +268,7 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
     return init->form;
 }
 /** @brief Destroy Form structure
+    @ingroup mem
     @param init structure
     @return nullptr
  */
@@ -273,6 +293,7 @@ Form *destroy_form(Init *init) {
     return init->form;
 }
 /** @brief Create and initialize View structure
+    @ingroup mem
     @param init structure
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line,
@@ -320,6 +341,7 @@ View *new_view(Init *init, int argc, char **argv) {
     return view;
 }
 /** @brief Destroy View structure
+    @ingroup mem
     @param init structure
     @return nullptr
  */
@@ -340,6 +362,7 @@ View *destroy_view(Init *init) {
     return init->view;
 }
 /** @brief Verify file specification argument
+    @ingroup mem
     @param spec - menu->spec, form->spec, etc.
     @param org_spec - init->._spec | argv[optind]
     @param dir - init->._. directory
@@ -456,6 +479,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     return false;
 }
 /** @brief Initialize Menu file specifications
+    @ingroup mem
     @param init structure
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line,
@@ -508,6 +532,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     return true;
 }
 /** @brief Initialize Pick file specifications
+    @ingroup mem
     @param init structure
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line,
@@ -606,6 +631,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     return true;
 }
 /** @brief Initialize Form file specifications
+    @ingroup mem
     @param init pointer to init structure
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line ~/.minitrc,
@@ -713,6 +739,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
     return true;
 }
 /** @brief Initialize View file specifications
+    @ingroup mem
     @param init structure
     @note Positional args: pick desc, in_file, out_file, help_file */
 bool init_view_files(Init *init) {

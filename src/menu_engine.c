@@ -7,6 +7,14 @@
     @date 2026-02-09
  */
 
+/** @defgroup menu_engine Menu Engine
+    @brief Main loop and command processor for the C-Menu menu system
+    @details This module contains the core functionality for displaying menus,
+    processing user input, and executing commands associated with menu choices.
+    It handles navigation through menu options, responding to special keys,
+    and managing the display of submenus, pick lists, forms, and views.
+ */
+
 #include <common.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -18,6 +26,7 @@ unsigned int menu_engine(Init *);
 unsigned int menu_cmd_processor(Init *);
 
 /** @brief The main loop of the menu system.
+   @ingroup menu_engine
    @param init A pointer to an Init structure containing initialization data for
    the menu system.
    @returns an integer indicating the action taken by the user, such as
@@ -84,6 +93,7 @@ unsigned int menu_engine(Init *init) {
     return (action);
 }
 /** @brief Processes user input for the menu system.
+   @ingroup menu_engine
    @param init A pointer to an Init structure containing initialization data for
    the menu system.
    @returns an integer indicating the action taken by the user, such as

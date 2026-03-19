@@ -7,6 +7,20 @@
     @date 2026-02-09
  */
 
+/** @defgroup fields Field Edit and Entry
+    @brief Functions for handling field editing and entry
+    @details This module provides functions for handling field editing and entry
+   within in the C-Menu Form library. It includes functionality for accepting
+   user input for fields, displaying fields, formatting field content based on
+   specified formats, validating field input, and creating filler strings for
+   fields. The module supports various field formats such as strings, decimal
+   integers, hexadecimal integers, floating-point numbers, currency, dates, and
+   times. It also handles user interactions such as navigation keys and mouse
+   events for editing fields. The functions in this module are designed to be
+   used in conjunction with the overall C-Menu Form library to create
+   interactive forms in a text-based user interface.
+ */
+
 #include <common.h>
 #include <monetary.h>
 #include <stdbool.h>
@@ -34,6 +48,7 @@ int form_validate_field(Form *);
 void mk_filler(char *, int);
 
 /** @brief Accept input for a field
+    @ingroup fields
      @param form Pointer to Form structure
      @return int Key code of action taken
      @note Handles character input, navigation keys, and mouse events for field
@@ -317,6 +332,7 @@ int form_accept_field(Form *form) {
 }
 
 /** @brief Display field n
+    @ingroup fields
     @param form Pointer to Form structure
     @param n Field index to display
     @return 0 on success, non-zero on error
@@ -333,6 +349,7 @@ int form_display_field_n(Form *form, int n) {
     return 0;
 }
 /** @brief Display current field
+    @ingroup fields
     @param form Pointer to Form structure
     @return 0 on success, non-zero on error
     @note This function displays the current field based on the form's current
@@ -353,6 +370,7 @@ int form_display_field(Form *form) {
     return 0;
 }
 /** @brief Display brackets around current field if set
+    @ingroup fields
     @param form Pointer to Form structure
     @return 0 on success, non-zero on error
     @note This function checks if the form's brackets array has non-empty values
@@ -376,6 +394,7 @@ int form_display_field_brackets(Form *form) {
     return 0;
 }
 /** @brief Format field according to its format type
+    @ingroup fields
     @param form Pointer to Form structure
     @param s Input string to format
     @return 0 on success, non-zero on error
@@ -394,6 +413,7 @@ int form_display_field_brackets(Form *form) {
  */
 int form_fmt_field(Form *form, char *s) {
     /** @brief Format field according to its format type
+    @ingroup fields
         @param form Pointer to Form structure
         @param s Input string to format
         @return 0 on success, non-zero on error
@@ -553,6 +573,7 @@ int form_fmt_field(Form *form, char *s) {
     return 0;
 }
 /** @brief Validate current field based on flags
+    @ingroup fields
     @param form Pointer to Form structure
     @return 0 if valid, 1 if invalid
     @note Very underdeveloped - only checks F_NOTBLANK and F_NOMETAS
@@ -578,6 +599,7 @@ int form_validate_field(Form *form) {
     return (0);
 }
 /** @brief Create filler string for field
+    @ingroup fields
     @param s Filler string to create
     @param fl Field length
     @note Fills the string s with the fill character specified in the form's
@@ -595,6 +617,7 @@ void mk_filler(char *s, int fl) {
     *s = '\0';
 }
 /** @brief Left justify string by removing leading spaces
+    @ingroup fields
     @param s String to left justify
     @note This function takes a string s and removes any leading spaces,
    effectively left-justifying the text. It does this by finding the first
@@ -603,6 +626,7 @@ void mk_filler(char *s, int fl) {
  */
 void left_justify(char *s) { trim(s); }
 /** @brief Right justify string by removing trailing spaces and adding leading
+    @ingroup fields
    spaces
     @param s String to right justify
     @param fl Field length
@@ -628,6 +652,7 @@ void right_justify(char *s, int fl) {
     }
 }
 /** @brief Check if a given date is valid, including leap years
+    @ingroup fields
     @param yyyy Year
     @param mm Month
     @param dd Day
@@ -648,6 +673,7 @@ bool is_valid_date(int yyyy, int mm, int dd) {
     return true;
 }
 /** @brief Check if a given time is valid
+    @ingroup fields
     @param hh Hour
     @param mm Minute
     @param ss Second
@@ -663,6 +689,7 @@ bool is_valid_time(int hh, int mm, int ss) {
     return true;
 }
 /** @brief Extract numeric characters from source string to destination string
+    @ingroup fields
     @param d Destination string
     @param s Source string
     @note This function takes a source string s and extracts only the numeric

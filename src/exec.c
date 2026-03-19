@@ -7,6 +7,15 @@
     @date 2026-02-09
  */
 
+/** @defgroup exec External Commands
+    @brief This module provides functions to execute external commands
+    @note handles terminal settings, signal handling, and error reporting to
+   ensure a smooth user experience when executing commands from within the
+   application. The main functions include full_screen_fork_exec,
+   full_screen_shell, and fork_exec, which manage the execution of commands
+   while maintaining the integrity of the application's user interface.
+ */
+
 #include <cm.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -30,6 +39,7 @@ void abend(int ec, char *s);
 void user_end();
 int nf_error(int ec, char *s);
 /** @brief Execute a command in full screen mode
+    @ingroup exec
     @param argv - array of arguments for the command to execute
     @return the return code from the executed command
     @note Clear the screen,
@@ -52,6 +62,7 @@ int full_screen_fork_exec(char **argv) {
     return (rc);
 }
 /** @brief Execute a shell command in full screen mode
+    @ingroup exec
     @param shellCmdPtr - pointer to the shell command string
     @return the return code from the executed shell command
     @note Clear the screen, move the cursor to the top, and refresh the screen
@@ -70,6 +81,7 @@ int full_screen_shell(char *shellCmdPtr) {
     return (rc);
 }
 /** @brief Execute a shell command
+    @ingroup exec
     @param shellCmdPtr - pointer to the shell command string
     @return the return code from the executed shell command
     @note Executes the command string using the user's shell.
@@ -93,6 +105,7 @@ int shell(char *shellCmdPtr) {
     return (rc);
 }
 /** @brief Fork and exec a command
+    @ingroup exec
     @param argv - array of arguments for the command to execute
     @return the return code from the executed command, or -1 on error
     @note Captures and restores terminal settings around the fork and exec.

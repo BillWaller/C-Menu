@@ -7,6 +7,11 @@
     @date 2026-02-09
  */
 
+/** @defgroup form_engine Form Engine
+    @brief Parses Form Descriptions, Handles User Input, and Integrates with
+   External Commands for Calculations and Data Processing.
+ */
+
 #include <common.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -43,6 +48,7 @@ int form_engine(Init *);
 int form_yx_to_fidx(Form *, int, int);
 
 /** @brief Initialize form data structure and parse description file
+    @ingroup form_engine
     @param init A pointer to the Init structure containing form data and state.
     @param argc The number of command line arguments passed to the form.
     @param argv The array of command line arguments passed to the form.
@@ -87,6 +93,7 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     return rc;
 }
 /** @brief Form main processing loop
+    @ingroup form_engine
     @param init A pointer to the Init structure containing form data and state.
     @return 0 on successful completion, or a non-zero value if the user cancels
     the form or if an error occurs during processing.
@@ -174,6 +181,7 @@ int form_engine(Init *init) {
 }
 /** @brief Handle post-processing after field entry, allowing user to edit data,
     execute a provider command, or write data to an output file.
+    @ingroup form_engine
     @param init A pointer to the Init structure containing form data and state.
     @return An integer status code indicating the next action for the form
     processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP). */
@@ -226,6 +234,7 @@ int form_end_fields(Init *init) {
 /** @brief Handle integration with an external program for calculation, allowing
     the user to execute a provider command and read results back into the form
     fields.
+    @ingroup form_engine
     @param init A pointer to the Init structure containing form data and state.
     @return An integer status code indicating the next action for the form
     processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP).
@@ -359,6 +368,7 @@ int form_calculate(Init *init) {
 }
 /** @brief Handle user input for field entry, allowing navigation between fields
     and looping until an exit action is selected.
+    @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
     @return An integer status code indicating the next action for the form
     processing loop (e.g., P_ACCEPT, P_HELP, P_CALC, P_CANCEL).
@@ -428,6 +438,7 @@ int form_yx_to_fidx(Form *form, int y, int x) {
 
 /** @brief Display the form on the screen, including text elements and fields,
     and set up the form window based on the form configuration.
+    @ingroup form_engine
     @param init A pointer to the Init structure containing form data and state.
     @return 0 on success, or a non-zero value if an error occurs while
     creating the form window or rendering the form elements. */
@@ -476,6 +487,7 @@ unsigned int form_display_screen(Init *init) {
 }
 /** @brief Display form fields on the screen, populating field values and
     formatting them according to the form configuration.
+    @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
     @note This function iterates through the defined form fields, formats their
    display values based on the specified fill character and field length, and
@@ -504,6 +516,7 @@ void form_display_fields(Form *form) {
 }
 /** @brief Display the chyron (status line) at the bottom of the form window,
    showing available commands and their corresponding function keys.
+    @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
  */
 void form_display_chyron(Form *form) {
@@ -517,6 +530,7 @@ void form_display_chyron(Form *form) {
 /** @brief Parse the form description file to populate the Form data structure
    with field definitions, text elements, and other configuration specified in
    the description file.
+    @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
     @return 0 on success, or a non-zero value if an error occurs while parsing
    the description file (e.g., file not found, invalid format, missing
@@ -739,6 +753,7 @@ int form_parse_desc(Form *form) {
 }
 /** @brief Read initial data for form fields from a specified input source, such
     as a file or standard input, and populate the form fields with the data.
+    @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
     @return 0 on success, or a non-zero value if an error occurs while reading
     the data or if the specified input source is invalid or empty. */
@@ -784,6 +799,7 @@ int form_read_data(Form *form) {
 /** @brief Execute a provider command specified in the form description file,
     passing form field values as arguments, and optionally redirecting output to
     a file.
+    @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
     @return 0 on success, or a non-zero value if an error occurs while
     constructing or executing the command. */
@@ -804,6 +820,7 @@ int form_exec_cmd(Form *form) {
 }
 /** @brief Write form field values to a specified output destination, such as a
     file or standard output, based on the form configuration and user input.
+    @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
     @return 0 on success, or a non-zero value if an error occurs while writing
     the data or if the specified output destination is invalid. */
@@ -850,6 +867,7 @@ int form_write(Form *form) {
 }
 /** @brief Display usage information for the form, including available options
    and commands, to assist users in understanding how to interact with the form.
+    @ingroup form_engine
     @note This function generates a usage message based on the options defined
    for the form and displays it to the user, typically when they request help or
    when an error occurs. The usage information includes details about the form's
@@ -863,6 +881,7 @@ void form_usage() {
 /** @brief Handle errors encountered while parsing the form description file,
    providing detailed error messages that include the file name, line number,
    and the specific error encountered.
+   @ingroup form_engine
     @param in_line_num The line number in the description file where the error
    occurred.
     @param in_buf The content of the line that caused the error, for context.
