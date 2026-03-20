@@ -1158,8 +1158,8 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
     mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, nullptr);
     event.y = event.x = -1;
     click_y = click_x = -1;
-    tcflush(2, TCIFLUSH);
     halfdelay(1);
+    tcflush(2, TCIFLUSH);
     do {
         c = wgetch(win);
         if (sig_received != 0) {
