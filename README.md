@@ -41,6 +41,8 @@ The new options for lf allow you to specify the file types to list, and whether 
 
 [Configuration Snippets](docs/snippets.md)
 
+[Road Map](docs/ROADMAP.md)
+
 ### HTML Documentation:
 
 [C-Menu Documentation](https://decision-inc.com)
