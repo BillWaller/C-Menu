@@ -22,7 +22,7 @@ The C-Menu API is a set of functions and tools that allow developers to extend
 the capabilities of C-Menu and develop custom applications that integrate
 with C-Menu.
 
-![C-Menu API Help in Neovim](screenshots/api-help1.png)
+![C-Menu API Help in Neovim](../screenshots/api-help1.png)
 
 The C-Menu API documentation is available in Neovim. As you are typing the
 function name, a list of matching signatures appears along with a brief
@@ -45,7 +45,7 @@ src/include directories while you explore the C-Menu documentation at:
 Start by opening the C-Menu top-level directory explore the various
 subdirectories.
 
-![C-Menu Top-Level Directory](screenshots/cmenu-tree.png)
+![C-Menu Top-Level Directory](../screenshots/cmenu-tree.png)
 
 ### C-Menu Header Files
 
@@ -96,7 +96,7 @@ You can also view the contents of the default configuration by running:
 options
 ```
 
-![C-Menu Configuration](screenshots/options.png)
+![C-Menu Configuration](../screenshots/options.png)
 
 This is very useful because field name is also the name of the C variable used by the C-Menu API. For example, the "title" field in the Init structure corresponds to the "title" variable in the C-Menu API. In instances where a long option is needed, the field name is also the long option name. For example, the "mapp_help" field corresponds to the "--mapp_help" long option in the command-line interface. This allows developers to easily understand how to use the API functions and how to configure their applications using the configuration file.
 
@@ -142,10 +142,10 @@ and to provide hands-on experience with the C-Menu API. The exercises will cover
 
 #### Documentation
 
-![Topics](screenshots/topics.png)
-![Function Documentation](screenshots/function.png)
+![Topics](../screenshots/topics.png)
+![Function Documentation](../screenshots/function.png)
 
-![Caller Graph for xwgetch()](screenshots/graph.png)
+![Caller Graph for xwgetch()](../screenshots/graph.png)
 
 Caller and Callee graphs are provided in the HTML documentation for all API functions. These graphs show the relationships between functions in the C-Menu codebase, allowing developers to understand how different functions interact with each other and how they are used in the context of the C-Menu application. This can be particularly useful for understanding the flow of data and control in the application, as well as for identifying potential areas for optimization or improvement in the code.
 
