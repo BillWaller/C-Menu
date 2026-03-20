@@ -597,7 +597,7 @@ white       = '#FFFFFF'
 Before you can use Tree-Sitter-CLI, you will need to install the parsers
 for your file types. Below an example layout for parser installation.
 
-![Tree-Sitter Configuration](screenshots/tree-sitter-parsers.png)
+![Tree-Sitter Configuration](../screenshots/tree-sitter-parsers.png)
 
 ---
 
