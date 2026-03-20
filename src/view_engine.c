@@ -712,11 +712,14 @@ int get_cmd_char(View *view, off_t *n) {
     cmd_str[0] = '\0';
     do {
         c = xwgetch(view->pad, nullptr);
-        if (c >= '0' && c <= '9' && i < 32) {
+        if ((c >= '0' && c <= '9') && i < 32) {
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
         } else {
-            return c;
+            if (c >= 256)
+                return c;
+            else
+                continue;
         }
     } while (c >= '0' && c <= '9');
     *n = atol(cmd_str);
@@ -1372,7 +1375,7 @@ void scroll_down_n_lines(View *view, int n) {
  */
 void scroll_up_n_lines(View *view, int n) {
     int i;
-    curs_set(0);
+    view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->f_eod = false;
     if (view->page_top_pos == 0)
         return;
@@ -1384,6 +1387,7 @@ void scroll_up_n_lines(View *view, int n) {
     view->ln = view->page_top_ln;
     view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->file_pos = view->page_top_pos;
+    curs_set(0);
     wscrl(view->ln_win, -n);
     wnoutrefresh(view->ln_win);
     wscrl(view->pad, -n);
