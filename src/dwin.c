@@ -796,8 +796,9 @@ void win_resize(int wlines, int wcols, char *title) {
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
-    if (f_debug)
-        immedok(win_win[win_ptr], true);
+#ifdef DEBUG
+    immedok(win_win[win_ptr], true);
+#endif
 }
 /** @brief Redraw the specified window
     @ingroup window_support
@@ -1155,7 +1156,9 @@ void abend(int ec, char *s) {
 int xwgetch(WINDOW *win, Chyron *chyron) {
     int c;
     MEVENT event;
-    mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, nullptr);
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
+                  BUTTON5_PRESSED,
+              nullptr);
     event.y = event.x = -1;
     click_y = click_x = -1;
     halfdelay(1);

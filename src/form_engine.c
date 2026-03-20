@@ -471,7 +471,9 @@ unsigned int form_display_screen(Init *init) {
         Perror(tmp_str);
         return (1);
     }
-    // immedok(form->win, TRUE);
+#ifdef DEBUG
+    immedok(form->win, TRUE);
+#endif
     form->win = win_win[win_ptr];
     form->box = win_box[win_ptr];
     for (n = 0; n < form->dcnt; n++) {
