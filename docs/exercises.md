@@ -135,12 +135,12 @@ vi ~/menuapp/msrc/main.m
 
 From the C-Menu main menu, you should now see an option for Workstation Configuration. Selecting it will take you to the menu where you can choose a new SDDM background image.
 
-![Select SDDM Background](../screenshots/workstation_config.png)
+![Select SDDM Background](screenshots/workstation_config.png)
 
 To verify that the background has been changed, you can log out of your session and return to the SDDM login screen. You should see the new background image you selected.
 Or, you can check the symbolic link in the SDDM background directory to confirm it points to the correct image.
 
-![SDDM Backgrounds](../screenshots/sddm_backgrounds.png)
+![SDDM Backgrounds](screenshots/sddm_backgrounds.png)
 
 The above image shows the SDDM background directory before and after selecting
 the space_force.png background image.
@@ -287,4 +287,4 @@ Here is the final content of the workstation_config.m file after adding the Alac
 !return
 ```
 
-![Workstation Configuration](../screenshots/workstation_config2.png)
+![Workstation Configuration](screenshots/workstation_config2.png)

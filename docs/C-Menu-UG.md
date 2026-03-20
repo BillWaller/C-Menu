@@ -139,7 +139,7 @@ the "Makefile" to use "ls" instead.
 Once RSH, "xx", and "x" are installed, subsequent make install
 processes will appear as follows:
 
-![make](../screenshots/Makefile-out.png)
+![make](screenshots/Makefile-out.png)
 
 Here's another example with the C-Make build. You will notice that the
 compilation portion of make is executed without root privileges, while the
@@ -147,7 +147,7 @@ installation portion is executed with root privileges. This is a safer
 approach, as it minimizes the amount of code that runs with elevated
 privileges.
 
-![make cmake](../screenshots/cmake_install.png)
+![make cmake](screenshots/cmake_install.png)
 
 When finished, take some time to explore the ~/menuapp directory to
 familiarize yourself with its features.
@@ -162,12 +162,12 @@ commands.
 
 ### Menu Example
 
-![C-Menu Application Menu](../screenshots/menu-desc.png)
+![C-Menu Application Menu](screenshots/menu-desc.png)
 In this example, "Neovim" is a menu item that, when selected, will
 execute the command `nvim`. The user can select it by clicking on
 "Neovim" or by typing the corresponding letter assigned to it.
 
-![C-Menu Applications Menu](../screenshots/applications_menu.png)
+![C-Menu Applications Menu](screenshots/applications_menu.png)
 
 ### Menu Description File Format
 
@@ -191,9 +191,9 @@ input before executing commands from the C-Menu.
 
 ### Form Description File Example
 
-![Form Description File](../screenshots/iloan.f.png)
+![Form Description File](screenshots/iloan.f.png)
 
-![Installment Loan Form](../screenshots/iloan.png)
+![Installment Loan Form](screenshots/iloan.png)
 
 #### Form Line Type Specifiers
 
@@ -456,7 +456,7 @@ specifically those without a designated letter, may be entered from
 the command line as hyphen\[option\]=\[value\], such as (-mapp_data="My
 C-Menu_Data_Directory").
 
-![C-Menu Options](../screenshots/options.png)
+![C-Menu Options](screenshots/options.png)
 
 ---
 

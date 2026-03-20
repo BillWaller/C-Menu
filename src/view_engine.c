@@ -302,14 +302,14 @@ int view_cmd_processor(Init *init) {
                 scroll_down_n_lines(view, n_cmd);
             }
             break;
-        /** 'b', 'B', Ctrl('B'), KEY_PPAGE - Scroll up one page */
+        /** 'b', 'B', Ctrl('B'), KEY_PPAGE - Previous Page */
         case KEY_PPAGE:
         case 'b':
         case 'B':
         case Ctrl('B'):
             prev_page(view);
             break;
-        /**  'f', 'F', Ctrl('F'), KEY_NPAGE - scroll down one page */
+        /**  'f', 'F', Ctrl('F'), KEY_NPAGE Next Page */
         case 'f':
         case 'F':
         case KEY_NPAGE:
@@ -710,24 +710,13 @@ int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
-    MEVENT event;
-    mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, nullptr);
-    tcflush(2, TCIFLUSH);
     do {
         c = xwgetch(view->pad, nullptr);
-        if (c == KEY_MOUSE) {
-            if (getmouse(&event) != OK)
-                return (MA_ENTER_OPTION);
-            if (event.bstate & BUTTON4_PRESSED)
-                return (KEY_UP);
-            else if (event.bstate & BUTTON5_PRESSED) {
-                return (KEY_DOWN);
-            }
+        if (c >= '0' && c <= '9' && i < 32) {
+            cmd_str[i++] = (char)c;
+            cmd_str[i] = '\0';
         } else {
-            if (c >= '0' && c <= '9' && i < 32) {
-                cmd_str[i++] = (char)c;
-                cmd_str[i] = '\0';
-            }
+            return c;
         }
     } while (c >= '0' && c <= '9');
     *n = atol(cmd_str);
@@ -1029,7 +1018,7 @@ void go_to_mark(View *view, int c) {
         go_to_position(view, view->file_pos);
 }
 /** @brief Search for Regular Expression Pattern
-    @ingroup view_engine
+    @ingroup view_navigation
     @param view Pointer to View Structure
     @param search_cmd Search Command Character ('/' or '?')
     @param regex_pattern Regular Expression Pattern to Search For

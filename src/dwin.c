@@ -1155,8 +1155,10 @@ void abend(int ec, char *s) {
 int xwgetch(WINDOW *win, Chyron *chyron) {
     int c;
     MEVENT event;
+    mousemask(BUTTON4_PRESSED | BUTTON5_PRESSED, nullptr);
     event.y = event.x = -1;
     click_y = click_x = -1;
+    tcflush(2, TCIFLUSH);
     halfdelay(1);
     do {
         c = wgetch(win);
@@ -1174,6 +1176,10 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
                 c = 0;
                 continue;
             }
+            if (event.bstate & BUTTON4_PRESSED)
+                return (KEY_UP);
+            else if (event.bstate & BUTTON5_PRESSED)
+                return (KEY_DOWN);
             if (event.bstate & BUTTON1_CLICKED ||
                 event.bstate & BUTTON1_DOUBLE_CLICKED) {
                 if (!wenclose(win, event.y, event.x)) {
