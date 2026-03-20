@@ -53,7 +53,9 @@ int init_view_full_screen(Init *init) {
     view->ln_win = newwin(view->ln_win_lines - 1, view->ln_win_cols, 0, 0);
     wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
     scrollok(view->ln_win, true);
+#ifdef DEBUG
     immedok(view->ln_win, true);
+#endif
     keypad(view->ln_win, true);
     idlok(view->ln_win, false);
     idcok(view->ln_win, false);
@@ -80,7 +82,9 @@ int init_view_full_screen(Init *init) {
         abend(-1, "init_view_full_screen: newpad() failed");
     }
     scrollok(view->pad, true);
+#ifdef DEBUG
     immedok(view->pad, true);
+#endif
     keypad(view->pad, true);
     idlok(view->pad, false);
     idcok(view->pad, false);
@@ -144,7 +148,9 @@ int init_view_boxwin(Init *init, char *title) {
     wbkgrndset(view->ln_win, &CCC_LN);
     wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
     scrollok(view->ln_win, true);
+#ifdef DEBUG
     immedok(view->ln_win, true);
+#endif
     view->scroll_lines = view->lines - 1;
     view->cmd_line = view->lines - 1;
     view->pminrow = 0;
@@ -158,7 +164,9 @@ int init_view_boxwin(Init *init, char *title) {
     wbkgrndset(view->pad, &CCC_NORM);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
     scrollok(view->pad, true);
+#ifdef DEBUG
     immedok(view->pad, true);
+#endif
     keypad(view->pad, true);
     idlok(view->pad, false);
     idcok(view->pad, false);

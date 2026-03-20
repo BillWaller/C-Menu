@@ -366,7 +366,7 @@ int form_display_field(Form *form) {
     form_display_field_brackets(form);
     mvwaddstr(win, flin, fcol, form->field[form->fidx]->filler_s);
     mvwaddstr(win, flin, fcol, form->field[form->fidx]->display_s);
-    wrefresh(win);
+    // wrefresh(win);
     return 0;
 }
 /** @brief Display brackets around current field if set

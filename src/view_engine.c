@@ -1300,7 +1300,7 @@ void next_page(View *view) {
 }
 /** @brief Display Current Page
     @ingroup view_display
-   @param view data structure
+    @param view data structure
  */
 void view_display_page(View *view) {
     int i;
@@ -1326,8 +1326,8 @@ void view_display_page(View *view) {
 }
 /** @brief Scroll N Lines
     @ingroup view_navigation
- * @param view data Structure
- * @param n number of lines to scroll
+    @param view data Structure
+    @param n number of lines to scroll
  */
 void scroll_down_n_lines(View *view, int n) {
     int i = 0;
@@ -1370,8 +1370,8 @@ void scroll_down_n_lines(View *view, int n) {
 }
 /** @brief Scroll Up N Lines
     @ingroup view_navigation
-   @param view data Structure
-   @param n number of lines to scroll
+    @param view data Structure
+    @param n number of lines to scroll
  */
 void scroll_up_n_lines(View *view, int n) {
     int i;
@@ -1379,7 +1379,6 @@ void scroll_up_n_lines(View *view, int n) {
     view->f_eod = false;
     if (view->page_top_pos == 0)
         return;
-    /** Locate New Top of Page */
     if (view->page_top_ln - n >= 0)
         view->page_top_ln -= n;
     else
