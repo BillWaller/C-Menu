@@ -48,8 +48,8 @@ int mview(Init *init, int argc, char **argv) {
         view->begx = init->begx;
     if (view->begx == 0)
         view->begx = (COLS - view->cols) / 5;
-    if (view->begx + view->cols > COLS - 2)
-        view->begx = COLS - view->cols - 2;
+    if (view->begx + view->cols > COLS - 1)
+        view->begx = COLS - view->cols - 1;
     view->f_full_screen = false;
     if (!init_view_boxwin(init, init->title)) {
         view_file(init);

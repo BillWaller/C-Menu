@@ -1174,7 +1174,8 @@ void resize_page(Init *init) {
 */
 int pad_refresh(View *view) {
     int rc;
-    wrefresh(view->ln_win);
+    if (view->f_ln)
+        wrefresh(view->ln_win);
     if (view->f_ln)
         rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol + 7, view->smaxrow, view->smaxcol);
@@ -1232,8 +1233,10 @@ void view_display_page(View *view) {
     curs_set(0);
     wmove(view->pad, 0, 0);
     wclrtobot(view->pad);
-    wmove(view->ln_win, 0, 0);
-    wclrtobot(view->ln_win);
+    if (view->ln_win) {
+        wmove(view->ln_win, 0, 0);
+        wclrtobot(view->ln_win);
+    }
     view->page_top_ln = view->ln;
     view->page_bot_ln = view->ln;
     view->page_top_pos = view->ln_tbl[view->ln];
@@ -1312,8 +1315,10 @@ void scroll_up_n_lines(View *view, int n) {
     view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->file_pos = view->page_top_pos;
     curs_set(0);
-    wscrl(view->ln_win, -n);
-    wnoutrefresh(view->ln_win);
+    if (view->f_ln) {
+        wscrl(view->ln_win, -n);
+        wnoutrefresh(view->ln_win);
+    }
     wscrl(view->pad, -n);
     view->cury = 0;
     wmove(view->pad, view->cury, 0);
