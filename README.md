@@ -4,7 +4,7 @@
 
 ### **_NEW View Line Numbering_**
 
-![View C Source](screenshots/new_view1.png)
+![View C Source](screenshots/tree-sitter3.png)
 
 You can turn it on in the configuration or use the -N command line option and View creates a separate panel for line numbers, so it doesn't get pushed off the screen when you scroll horizontally. Foreground and background colors can be specified in
 the configuration file.
