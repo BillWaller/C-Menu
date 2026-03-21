@@ -54,18 +54,14 @@ typedef struct {
     char cmd[MAXLEN]; /**< command to execute in foreground, e.g. an editor */
     char cmd_all[MAXLEN]; /**< View - command to execute at start of program */
     char prompt_str[MAXLEN]; /**< prompt string for chyron */
-    int prompt_type; /**< View - prompt type for chyron, e.g. 0=short, 1=long,
-                        2=none */
-    char title[MAXLEN];   /**< display on top line of box window */
-    int argc;             /**< command line arguments count */
-    char **argv;          /**< command line arguments vector */
+    char title[MAXLEN];      /**< title string for window */
+    int argc;                /**< command line arguments count */
+    char **argv;             /**< command line arguments vector */
     int optind;           /**< getopt pointer to non-option arguments in argv */
     bool f_ignore_case;   /**< View - ignore case in search */
-    bool f_at_end_clear;  /**< obsolete, unneeded */
     bool f_at_end_remove; /**< obsolete, unneeded */
     bool f_squeeze; /**< View - print one line for each group of blank lines */
     bool f_strip_ansi; /**< strip ansi escape sequences when writing buffer */
-    bool f_stop_on_error;     /**< obsolete, unneeded */
     bool f_multiple_cmd_args; /**< View - put multiple arguments in a single
                                  string */
     WINDOW *win;              /**< ncurses window used by View */

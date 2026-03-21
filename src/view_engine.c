@@ -83,7 +83,7 @@ int view_file(Init *);
 int view_cmd_processor(Init *);
 int get_cmd_char(View *, off_t *);
 int get_cmd_arg(View *, char *);
-void build_prompt(View *, int, char *, double elapsed);
+void build_prompt(View *);
 void cat_file(View *);
 void lp(char *);
 void go_to_mark(View *, int);
@@ -185,15 +185,11 @@ int view_cmd_processor(Init *init) {
     ssize_t bytes_written;
     char *e;
     char shell_cmd_spec[MAXLEN];
-    struct timespec start, end;
-    double elapsed = 0;
-    bool f_clock_started = false;
     off_t n_cmd = 0L;
     off_t prev_file_pos;
     int swidth;
     int max_pmincol;
     view = init->view;
-    view->f_timer = false;
     view->cmd[0] = '\0';
     while (1) {
         c = view->next_cmd_char;
@@ -202,30 +198,10 @@ int view_cmd_processor(Init *init) {
             if (view->f_redisplay_page)
                 view_display_page(view);
             view->f_redisplay_page = false;
-            if (view->f_timer && f_clock_started) {
-                clock_gettime(CLOCK_MONOTONIC, &end);
-                elapsed = (end.tv_sec - start.tv_sec) +
-                          (end.tv_nsec - start.tv_nsec) / 1e9;
-                f_clock_started = false;
-            }
-
-            if (view->tmp_prompt_str[0] != '\0') {
-                cmd_line_prompt(view, view->tmp_prompt_str);
-                view->tmp_prompt_str[0] = '\0';
-            } else {
-                build_prompt(view, view->prompt_type, view->prompt_str,
-                             elapsed);
-                if (view->prompt_str[0] == '\0')
-                    cmd_line_prompt(view, ">");
-                else
-                    cmd_line_prompt(view, view->prompt_str);
-            }
+            build_prompt(view);
+            cmd_line_prompt(view, view->prompt_str);
             pad_refresh(view);
             c = get_cmd_char(view, &n_cmd);
-            if (view->f_timer) {
-                clock_gettime(CLOCK_MONOTONIC, &start);
-                f_clock_started = true;
-            }
             if (c >= '0' && c <= '9') {
                 tmp_str[0] = (char)c;
                 tmp_str[1] = '\0';
@@ -354,20 +330,12 @@ int view_cmd_processor(Init *init) {
         case '-':
             if (view->f_displaying_help)
                 break;
-            cmd_line_prompt(view, "(c, i, p, s, t, or h)->");
+            cmd_line_prompt(view, "(c, i, n, s, t, or h)->");
             c = get_cmd_char(view, &n_cmd);
             c = tolower(c);
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
             switch (c) {
-            /**  'c' - Clear Screen at End of File */
-            case 'c':
-                cmd_line_prompt(view, "Clear Screen at End (Y or N)->");
-                if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
-                    view->f_at_end_clear = true;
-                else if (c == 'n' || c == 'N')
-                    view->f_at_end_clear = false;
-                break;
             /**  'i' - Ignore Case in Search */
             case 'i':
                 cmd_line_prompt(view, "Ignore Case in search (Y or N)->");
@@ -376,25 +344,21 @@ int view_cmd_processor(Init *init) {
                 else if (c == 'n' || c == 'N')
                     view->f_ignore_case = false;
                 break;
-            /** 'p' - Set Prompt Type */
-            case 'p':
-                cmd_line_prompt(view, "(Short Long or No prompt)->");
-                c = tolower(get_cmd_char(view, &n_cmd));
-                switch (c) {
-                case 's':
-                    view->prompt_type = PT_SHORT;
+            case 'n':
+                if (view->f_displaying_help)
                     break;
-                /** 'l' - Long Prompt */
-                case 'l':
-                    view->prompt_type = PT_LONG;
-                    break;
-                /**  'n' - No Prompt */
-                case 'n':
-                    view->prompt_type = PT_NONE;
-                    break;
-                default:
-                    break;
-                }
+                if (view->f_ln)
+                    view->f_ln = false;
+                else
+                    view->f_ln = true;
+                view->ln = view->page_top_ln;
+                view->file_pos = view->ln_tbl[view->ln];
+                view->maxcol = 0;
+                view->cury = 0;
+                view->page_top_ln = view->ln;
+                wclear(view->pad);
+                wnoutrefresh(view->pad);
+                view_display_page(view);
                 break;
             /** 's' - Squeeze Multiple Blank Lines */
             case 's':
@@ -838,85 +802,46 @@ int get_cmd_arg(View *view, char *prompt) {
     @param view Pointer to the View structure containing the state and
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
-    @param prompt_type An integer representing the type of prompt to be built.
-   This parameter determines the format and content of the prompt string that
-   will be constructed based on the current state of the view application.
-    @param prompt_str A character array where the constructed prompt string will
-   be stored. This buffer is used to hold the final prompt that will be
-   displayed to the user, and it should be large enough to accommodate the
-   various components of the prompt based on the view's state displayed to the
-   user, and it is expected to be of sufficient size to accommodate the
-   generated prompt.
-    @param elapsed A double representing the elapsed time in seconds, which may
-   be included in the prompt string if the timer feature is enabled in the view
-   application. This parameter allows for dynamic inclusion of timing
-   information in the prompt, providing users with feedback on the time taken
-   for certain operations or commands within the view application.
-   If the timer feature is enabled, the elapsed time will be formatted and
-   appended to the prompt string, giving users insight into the performance of
-   their actions within the view application.
  */
-void build_prompt(View *view, int prompt_type, char *prompt_str,
-                  double elapsed) {
+void build_prompt(View *view) {
     char tmp_str[MAXLEN];
-    prompt_type = PT_LONG;
-    *prompt_str = '\0';
-    if (prompt_type == PT_LONG) {
-        if (view->f_is_pipe)
-            strnz__cat(prompt_str, "stdin", MAXLEN - 1);
-        else
-            strnz__cat(prompt_str, view->file_name, MAXLEN - 1);
-    }
+    if (view->f_is_pipe)
+        strnz__cpy(view->prompt_str, "stdin", MAXLEN - 1);
+    else
+        strnz__cpy(view->prompt_str, view->file_name, MAXLEN - 1);
     if (view->pmincol > 0) {
         sprintf(tmp_str, "Col %d of %d", view->pmincol, view->maxcol);
-        if (prompt_str[0] != '\0')
-            strnz__cat(prompt_str, "|", MAXLEN - 1);
-        strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
+        if (view->prompt_str[0] != '\0')
+            strnz__cat(view->prompt_str, "|", MAXLEN - 1);
+        strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
     }
-    if (view->argc > 1 && prompt_type == PT_LONG) {
-        sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
-        if (prompt_str[0] != '\0') {
-            strnz__cat(prompt_str, "|", MAXLEN - 1);
-            strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
-        }
+    sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
+    if (view->prompt_str[0] != '\0') {
+        strnz__cat(view->prompt_str, "|", MAXLEN - 1);
+        strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
     }
-    if (prompt_type == PT_LONG) {
-        if (view->page_top_pos == NULL_POSITION)
-            view->page_top_pos = view->file_size;
-        sprintf(tmp_str, "Pos %zd-%zd", view->page_top_pos, view->page_bot_pos);
-        if (prompt_str[0] != '\0') {
-            strnz__cat(prompt_str, "|", MAXLEN - 1);
-            strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
-        }
-        if (!view->f_is_pipe) {
-            if (view->file_size > 0) {
-                sprintf(tmp_str, " of %zd", view->file_size);
-                strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
-            }
-        }
+    if (view->page_top_pos == NULL_POSITION)
+        view->page_top_pos = view->file_size;
+    sprintf(tmp_str, "Pos %zd-%zd", view->page_top_pos, view->page_bot_pos);
+    if (view->prompt_str[0] != '\0') {
+        strnz__cat(view->prompt_str, "|", MAXLEN - 1);
+        strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
     }
-    if (!view->f_eod && prompt_type != PT_NONE) {
-        if (view->file_size > 0 && view->page_bot_pos != 0) {
-            sprintf(tmp_str, "(%zd%%)",
-                    (100 * view->page_bot_pos) / view->file_size);
-            if (prompt_str[0] != '\0')
-                strnz__cat(prompt_str, "|", MAXLEN - 1);
-            strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
+    if (!view->f_is_pipe) {
+        if (view->file_size > 0) {
+            sprintf(tmp_str, " of %zd", view->file_size);
+            strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
         }
     }
     if (view->f_eod) {
-        if (prompt_str[0] != '\0')
-            strnz__cat(prompt_str, " ", MAXLEN - 1);
-        strnz__cat(prompt_str, "(End)", MAXLEN - 1);
+        if (view->prompt_str[0] != '\0')
+            strnz__cat(view->prompt_str, " ", MAXLEN - 1);
+        strnz__cat(view->prompt_str, "(End)", MAXLEN - 1);
         if (view->curr_argc + 1 < view->argc) {
             base_name(tmp_str, view->argv[view->curr_argc + 1]);
-            strnz__cpy(prompt_str, " Next File: ", MAXLEN - 1);
-            strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
+            strnz__cpy(view->prompt_str, " Next File: ", MAXLEN - 1);
+            strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
         }
-    }
-    if (view->f_timer) {
-        sprintf(tmp_str, " secs. %.6f\n", elapsed);
-        strnz__cat(prompt_str, tmp_str, MAXLEN - 1);
     }
 }
 /** @brief Write buffer contents to files
@@ -2051,8 +1976,12 @@ bool enter_file_spec(Init *init, char *file_spec) {
     strnz__cat(tmp_dir, "/tmp", MAXLEN - 1);
     expand_tilde(tmp_dir, MAXLEN - 1);
     if (!mk_dir(tmp_dir)) {
-        strnz__cpy(em0, "Unable to create ", MAXLEN - 1);
-        strnz__cat(em0, tmp_dir, MAXLEN - 1);
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
+        strnz__cpy(em1, "Unable to ", MAXLEN - 1);
+        strnz__cat(em1, "mkdir", MAXLEN - 1);
+        strnz__cat(em1, tmp_dir, MAXLEN - 1);
+        strerror_r(errno, em2, MAXLEN - 1);
+        display_error(em0, em1, em2, nullptr);
         return false;
     }
     while (rc == false) {
@@ -2061,7 +1990,8 @@ bool enter_file_spec(Init *init, char *file_spec) {
         view->in_fd = mkstemp(tmp_spec);
         if (view->in_fd == -1) {
             ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-            strnz__cpy(em1, "mkstemp ", MAXLEN - 1);
+            strnz__cpy(em1, "unable to ", MAXLEN - 1);
+            strnz__cat(em1, "mkstemp ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
             display_error(em0, em1, nullptr, nullptr);
@@ -2086,7 +2016,8 @@ bool enter_file_spec(Init *init, char *file_spec) {
         tmp_fp = fopen(tmp_spec, "r");
         if (tmp_fp == nullptr) {
             ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-            strnz__cpy(em1, "fopen ", MAXLEN - 1);
+            strnz__cpy(em1, "unable to ", MAXLEN - 1);
+            strnz__cat(em1, "fopen ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
             display_error(em0, em1, em2, nullptr);
@@ -2100,13 +2031,13 @@ bool enter_file_spec(Init *init, char *file_spec) {
                              S_WCOK | S_QUIET)) {
             ssnprintf(em0, MAXLEN - 1, "Unable to open %s for writing",
                       tmp_str);
-            strnz__cpy(em1, "Try again", MAXLEN - 1);
+            strnz__cpy(em1, "Try again? y (yes) or n (no) ", MAXLEN - 1);
             rc = display_error(em0, em1, nullptr, nullptr);
             if (rc == 'y' || rc == 'Y')
                 continue;
-        } else {
+
+        } else
             return true;
-        }
     }
     return true;
 }

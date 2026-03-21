@@ -204,12 +204,6 @@ typedef struct {
                                    its type, text, choice letter, command type,
                                    and command string, and to manage the menu
                                    lines in the menu display */
-    bool f_stop_on_error; /**< A flag to indicate whether the menu application
-                             should stop on error, used for error handling
-                             purposes to determine whether the menu application
-                             should terminate or continue running when an error
-                             occurs, such as a failure to verify a file or
-                             command, or an error in processing user input */
 } Menu;
 extern Menu *menu;
 

@@ -39,7 +39,6 @@ bool f_write_config = false;
 bool f_dump_config = false;
 bool f_help = false;
 bool f_version = false;
-bool f_stop_on_error = true;
 
 int write_config(Init *init);
 void display_version();
@@ -52,8 +51,6 @@ int parse_config(Init *);
 void dump_config(Init *, char *);
 void usage();
 
-void prompt_int_to_str(char *, int);
-int prompt_str_to_int(char *);
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
@@ -93,11 +90,9 @@ void mapp_initialization(Init *init, int argc, char **argv) {
                COLOR_LEN - 1); /**< line number olor */
     strnz__cpy(sio->ln_bg_clr_x, "#101010",
                COLOR_LEN - 1);      /**< line number background */
-    init->f_at_end_clear = true;    /**< clear screen on exit (obsolete) */
     init->f_erase_remainder = true; /**< erase remainder on enter */
     init->brackets[0] = '\0';       /**< field enclosure brackets */
     strnz__cpy(init->fill_char, "_", MAXLEN - 1); /**< field fill character */
-    init->prompt_type = PT_LONG;                  /**< view prompt type */
     init->mapp_spec[0] = '\0'; /**< menu specification file */
     strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
     strnz__cpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
@@ -177,7 +172,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     int opt;
     int longindex = 0;
     int flag = 0;
-    char tmp_str[MAXLEN];
     char *optstring = "a:b:c:d:ef:g:hi:j:k:m:n:o:p:r:st:u:vw:xzA:B:C:DF:G:H:L:"
                       "MNO:P:Q:R:S:T:VWX:Y:Z";
     struct option long_options[] = {{"help", 0, &flag, MAPP_HELP},
@@ -266,9 +260,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'o':
             strnz__cpy(init->out_spec, optarg, MAXLEN - 1);
             break;
-        case 'p':
-            strnz__cpy(init->prompt_str, optarg, MAXLEN - 1);
-            break;
         case 'r':
             sio->red_gamma = str_to_double(optarg);
             break;
@@ -292,9 +283,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'y':
             init->f_at_end_remove = true;
-            break;
-        case 'z':
-            init->f_at_end_clear = true;
             break;
         case 'A':
             strnz__cpy(init->cmd_all, optarg, MAXLEN - 1);
@@ -329,10 +317,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
         case 'O':
             strnz__cpy(sio->bo_clr_x, optarg, MAXLEN - 1);
             break;
-        case 'P':
-            strnz__cpy(tmp_str, optarg, MAXLEN - 1);
-            init->prompt_type = prompt_str_to_int(tmp_str);
-            break;
         case 'R':
             strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
             break;
@@ -353,9 +337,6 @@ int parse_opt_args(Init *init, int argc, char **argv) {
             break;
         case 'Y':
             init->begy = atoi(optarg);
-            break;
-        case 'Z':
-            init->f_stop_on_error = true;
             break;
         default:
             break;
@@ -478,10 +459,6 @@ int parse_config(Init *init) {
                 sio->gray_gamma = str_to_double(value);
                 continue;
             }
-            if (!strcmp(key, "f_at_end_clear")) {
-                init->f_at_end_clear = str_to_bool(value);
-                continue;
-            }
             if (!strcmp(key, "f_at_end_remove")) {
                 init->f_at_end_remove = str_to_bool(value);
                 continue;
@@ -510,25 +487,12 @@ int parse_config(Init *init) {
                 init->f_strip_ansi = str_to_bool(value);
                 continue;
             }
-            if (!strcmp(key, "f_stop_on_error")) {
-                init->f_stop_on_error = str_to_bool(value);
-                continue;
-            }
             if (!strcmp(key, "select_max")) {
                 init->select_max = atoi(value);
                 continue;
             }
             if (!strcmp(key, "tab_stop")) {
                 init->tab_stop = atoi(value);
-                continue;
-            }
-            if (!strcmp(key, "prompt_type")) {
-                strnz__cpy(tmp_str, value, MAXLEN - 1);
-                init->prompt_type = prompt_str_to_int(tmp_str);
-                continue;
-            }
-            if (!strcmp(key, "prompt_str")) {
-                strnz__cpy(init->prompt_str, value, MAXLEN - 1);
                 continue;
             }
             if (!strcmp(key, "title")) {
@@ -668,50 +632,6 @@ int parse_config(Init *init) {
     (void)fclose(config_fp);
     return 0;
 }
-/** @brief Convert prompt type string to integer constant
-    @ingroup init
-    @param s - prompt type string
-    @returns prompt type integer constant
-    @note Valid prompt type strings are "short", "long", and "string"
-    @note Returns PT_NONE for unrecognized prompt type strings
- */
-int prompt_str_to_int(char *s) {
-    int prompt_type;
-    str_to_lower(s);
-    if (strcmp(s, "short") == 0)
-        prompt_type = PT_SHORT;
-    else if (strcmp(s, "long") == 0)
-        prompt_type = PT_LONG;
-    else if (strcmp(s, "string") == 0)
-        prompt_type = PT_STRING;
-    else
-        prompt_type = PT_NONE;
-    return prompt_type;
-}
-/** @brief Convert prompt type integer constant to string
-    @ingroup init
-    @param s - output prompt type string
-    @param prompt_type - prompt type integer constant
-    @note Valid prompt type integer constants are PT_SHORT, PT_LONG, and
-   PT_STRING
-    @note Returns "none" for unrecognized prompt type integer constants
- */
-void prompt_int_to_str(char *s, int prompt_type) {
-    switch (prompt_type) {
-    case PT_SHORT:
-        strnz__cpy(s, "short", 7);
-        break;
-    case PT_LONG:
-        strnz__cpy(s, "long", 7);
-        break;
-    case PT_STRING:
-        strnz__cpy(s, "string", 7);
-        break;
-    default:
-        strnz__cpy(s, "none", 7);
-        break;
-    }
-}
 /** @brief Write the current configuration to a file specified in init->minitrc
     @ingroup init
     @param init - pointer to Init struct containing current configuration
@@ -765,12 +685,7 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%d\n", "select_max", init->select_max);
     (void)fprintf(minitrc_fp, "%s=%s\n", "brackets", init->brackets);
     (void)fprintf(minitrc_fp, "%s=%d\n", "tab_stop", init->tab_stop);
-    prompt_int_to_str(tmp_str, init->prompt_type);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_type", tmp_str);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "prompt_str", init->prompt_str);
     (void)fprintf(minitrc_fp, "%s=%s\n", "cmd", init->cmd);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_clear",
-                  init->f_at_end_clear ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_at_end_remove",
                   init->f_at_end_remove ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_erase_remainder",
@@ -783,8 +698,6 @@ int write_config(Init *init) {
                   init->f_ignore_case ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "f_squeeze",
                   init->f_squeeze ? "true" : "false");
-    (void)fprintf(minitrc_fp, "%s=%s\n", "f_stop_on_error",
-                  init->f_stop_on_error ? "true" : "false");
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bg", sio->bg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "abg", sio->abg);
@@ -922,7 +835,7 @@ void opt_prt_double(const char *o, const char *name, double value) {
    values
     @ingroup init
     @param o - option flag (e.g., "-z")
-    @param name - option name (e.g., "f_at_end_clear")
+    @param name - option name (e.g., "f_squeeze")
     @param value - boolean option value to print
     @note This function is used to display the current configuration options and
    their boolean values in a readable format, printing "true" or "false" based
@@ -936,7 +849,6 @@ void opt_prt_bool(const char *o, const char *name, bool value) {
     @param msg - string to print before dumping the configuration to stderr in a
    readable format, prefixed by the provided title string. */
 void dump_config(Init *init, char *msg) {
-    char tmp_str[MAXLEN];
     SIO *sio = init->sio;
     opt_prt_str("-a:", "--minitrc", init->minitrc);
     opt_prt_int("-L:", "  lines", init->lines);
@@ -970,10 +882,6 @@ void dump_config(Init *init, char *msg) {
     opt_prt_bool("-s ", "  f_squeeze", init->f_squeeze);
     opt_prt_bool("-x:", "  f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-y:", "  f_at_end_remove", init->f_at_end_remove);
-    opt_prt_bool("-z ", "  f_at_end_clear", init->f_at_end_clear);
-    opt_prt_bool("-Z ", "  f_stop_on_error", init->f_stop_on_error);
-    opt_prt_str("-P:", "  promp_type", tmp_str);
-    prompt_int_to_str(tmp_str, init->prompt_type);
     opt_prt_str("   ", "  black", sio->black);
     opt_prt_str("   ", "  red", sio->red);
     opt_prt_str("   ", "  green", sio->green);
