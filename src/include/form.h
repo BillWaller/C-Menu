@@ -15,8 +15,8 @@
 typedef struct Init Init;
 #endif
 
-#define TBL_COLS 1024
-#define MAXFIELDS 100
+#define FIELD_MAXLEN 1024
+#define FIELD_MAXCNT 100
 #define F_NOMETAS 1  /**< flag - no metacharacters allowed in field input */
 #define F_NOTBLANK 2 /**< flag - field input cannot be blank */
 #define F_NOECHO                                                               \
@@ -122,23 +122,23 @@ typedef struct {
                  the FieldFormat enum values, e.g. FF_STRING, FF_DECIMAL_INT, etc.
                  This is used for validating and formatting the field input values
                  according to their specified formats. */
-    char input_s[MAXLEN]; /**< the input string for this field, used for storing
-                             the user's input value for this field during form
-                             processing */
-    char accept_s[MAXLEN];  /**< the accepted string for this field, used for
-                               storing the validated and accepted value for this
-                               field after processing the user's input during
-                               form processing */
-    char display_s[MAXLEN]; /**< the display string for this field, used for
-                               storing the formatted string that will be
+    char input_s[FIELD_MAXLEN];   /**< the input string for this field, used for
+                               storing   the user's input value for this field
+                               during form   processing */
+    char accept_s[FIELD_MAXLEN];  /**< the accepted string for this field, used
+                               for  storing the validated and accepted value for
+                               this  field after processing the user's input
+                               during  form processing */
+    char display_s[FIELD_MAXLEN]; /**< the display string for this field, used
+                               for storing the formatted string that will be
                                displayed in the field input area on the form
                                window during form processing, based on the
                                accepted value and the field format */
-    char filler_s[MAXLEN];  /**< the filler string for this field, used for
-                               storing the string that will be used to fill the
-                               field input area on the form window during form
-                               processing, based on the field length and the fill
-                               character specified in the form structure */
+    char filler_s[FIELD_MAXLEN]; /**< the filler string for this field, used for
+                              storing the string that will be used to fill the
+                              field input area on the form window during form
+                              processing, based on the field length and the fill
+                              character specified in the form structure */
 } Field;
 
 /** @struct Form */
@@ -164,7 +164,8 @@ typedef struct {
                  */
     int out_fd; /**< output file descriptor, e.g. for writing to a file or pipe
                  */
-    char mapp_spec[MAXLEN]; /**< the menu application description file spec */
+    char mapp_spec[FIELD_MAXLEN]; /**< the menu application description file
+                                     spec */
     char provider_cmd
         [MAXLEN]; /**< the provider command, which can be executed in the
                      background to provide dynamic content for a program called
@@ -342,8 +343,8 @@ typedef struct {
                  been provided for display during form processing. The dcnt can
                  also be used to dynamically allocate resources or manage memory
                  for the text data during form processing. */
-    Text *text[MAXFIELDS]; /**< an array of pointers to the text structures for
-                              the text strings to be displayed on the form
+    Text *text[FIELD_MAXCNT]; /**< an array of pointers to the text structures
+                              for the text strings to be displayed on the form
                               window, used for managing and displaying the text
                               content of the form during form processing. Each
                               pointer in this array corresponds to a Text
@@ -355,8 +356,8 @@ typedef struct {
                               displayed text based on user actions or other
                               events during form processing. */
     Field
-        *field[MAXFIELDS]; /**< an array of pointers to the field structures for
-                              the fields in this form, used for managing and
+        *field[FIELD_MAXCNT]; /**< an array of pointers to the field structures
+                              for the fields in this form, used for managing and
                               processing the form fields during form processing.
                               Each pointer in this array corresponds to a Field
                               structure that contains the line, column, length,

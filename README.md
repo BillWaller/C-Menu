@@ -1,5 +1,13 @@
 # A User Interface Toolkit
 
+Even with minimal resources on older machines over slow connections, C-Menu is responsive and visually appealing. All you need is a terminal or terminal emulator. C-Menu gives you the tools to quickly create hierarchical menus, forms, pickers, and a blazing fast text file viewer with support for ANSI escape highlighting, Unicode, and 3-channel gamma correction.
+
+With C-Menu you can interact with the machine in a way that feels natural and intuitive. On modern hardware, C-Menu is so fast and responsive you might even forget your fingers are moving as your thoughts flow effortlessly onto the screen. C-Menu integrates powerful tools like Tree-sitter to boost perceptual efficiency, comprehension, and retention of knowledge through the intelligent use of color. Want more? The C-Menu API provides documentation and auto-completion in the Neovim editor.
+
+C-Menu is perfect for **_DevOps_**, **_CI/CD_**, **_IOT_**, **_Embedded Systems_**, **_Servers_**, **_System Administration_**, **_Application Development_**, and **_Terminal Enthusiasts_**. It's a real TUI.
+
+Administrators, developers, and users of all skill levels can benefit from C-Menu's powerful features and ease of use. Whether you're managing a complex infrastructure, developing applications, or simply looking for a more efficient way to interact with your system, C-Menu has you covered. No fluff, no bloat, no distractions. Just powerful and fast. C-Menu gets out of your way and lets you focus on what matters most.
+
 ## **_NEW Features_**
 
 ### **_NEW View Line Numbering_**

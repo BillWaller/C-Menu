@@ -560,14 +560,14 @@ int form_parse_desc(Form *form) {
         display_error(em0, em1, em2, nullptr);
         return (1);
     }
-    for (i = 0; i < MAXFIELDS; i++) {
+    for (i = 0; i < FIELD_MAXCNT; i++) {
         form->field[i] = (Field *)calloc(1, sizeof(Field));
         if (!form->field[i]) {
             sprintf(tmp_str, "FORM: calloc failed for fields");
             abend(EXIT_FAILURE, tmp_str);
         }
     }
-    for (i = 0; i < MAXFIELDS; i++) {
+    for (i = 0; i < FIELD_MAXCNT; i++) {
         form->text[i] = (Text *)calloc(1, sizeof(Text));
         if (!form->field[i]) {
             sprintf(tmp_str, "FORM: calloc failed for text");
@@ -631,7 +631,7 @@ int form_parse_desc(Form *form) {
             }
             form->field[form->fidx]->line = atoi(token);
             if (form->field[form->fidx]->line < 0 ||
-                form->field[form->fidx]->line >= MAXFIELDS) {
+                form->field[form->fidx]->line >= FIELD_MAXCNT) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: invalid line number");
                 return 1;
@@ -643,7 +643,7 @@ int form_parse_desc(Form *form) {
             }
             form->field[form->fidx]->col = atoi(token);
             if (form->field[form->fidx]->col < 0 ||
-                form->field[form->fidx]->col >= TBL_COLS) {
+                form->field[form->fidx]->col >= FIELD_MAXLEN) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: invalid column number");
                 break;
@@ -655,7 +655,7 @@ int form_parse_desc(Form *form) {
             }
             form->field[form->fidx]->len = atoi(token);
             if (form->field[form->fidx]->len < 0 ||
-                form->field[form->fidx]->len > TBL_COLS) {
+                form->field[form->fidx]->len > FIELD_MAXLEN) {
                 form_desc_error(in_line_num, in_buf, "FORM: invalid length");
                 break;
             }
@@ -698,7 +698,7 @@ int form_parse_desc(Form *form) {
             }
             form->text[form->didx]->line = atoi(token);
             if (form->text[form->didx]->line < 0 ||
-                form->text[form->didx]->line >= MAXFIELDS) {
+                form->text[form->didx]->line >= FIELD_MAXCNT) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: invalid line number");
                 break;
@@ -710,7 +710,7 @@ int form_parse_desc(Form *form) {
             }
             form->text[form->didx]->col = atoi(token);
             if (form->text[form->didx]->col < 0 ||
-                form->text[form->didx]->col >= TBL_COLS) {
+                form->text[form->didx]->col >= FIELD_MAXLEN) {
                 form_desc_error(in_line_num, in_buf,
                                 "FORM: invalid column number");
                 break;
@@ -722,7 +722,7 @@ int form_parse_desc(Form *form) {
             strnz__cpy(form->text[form->didx]->str, token, MAXLEN - 1);
             form->text[form->didx]->len = strlen(form->text[form->didx]->str);
             if (form->text[form->didx]->len < 0 ||
-                form->text[form->didx]->len > TBL_COLS) {
+                form->text[form->didx]->len > FIELD_MAXLEN) {
                 form_desc_error(in_line_num, in_buf, "FORM: invalid length");
                 break;
             }
@@ -789,7 +789,7 @@ int form_read_data(Form *form) {
     form->fidx = 0;
     if (form->in_fp != nullptr) {
         while ((fgets(in_buf, MAXLEN, form->in_fp)) != nullptr) {
-            if (form->fidx < MAXFIELDS)
+            if (form->fidx < FIELD_MAXCNT)
                 strnz__cpy(field, in_buf, MAXLEN - 1);
             form_fmt_field(form, field);
             form->fidx++;
