@@ -164,7 +164,7 @@ int form_engine(Init *init) {
             init->lines = 30;
             init->cols = 60;
             init->begy = menu->begy + 1;
-            init->begx = menu->begx + 4;
+            init->begx = menu->begx + 1;
             strnz__cpy(init->title, "Form Help", MAXLEN - 1);
             mview(init, eargc, eargv);
             restore_wins();

@@ -262,7 +262,7 @@ int pick_engine(Init *init) {
     if (pick->win_width < pick->chyron->l)
         pick->win_width = pick->chyron->l;
 
-    if (pick->begx + pick->win_width > COLS - 4)
+    if (pick->begx + pick->win_width > COLS - 2)
         pick->begx = COLS - pick->win_width - 2;
     else if (pick->begx == 0)
         pick->begx = (COLS - pick->win_width) / 2;

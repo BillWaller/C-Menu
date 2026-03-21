@@ -166,7 +166,7 @@ unsigned int menu_cmd_processor(Init *init) {
         init->lines = 30;
         init->cols = 60;
         init->begy = menu->begy + 1;
-        init->begx = menu->begx + 4;
+        init->begx = menu->begx + 1;
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
@@ -182,7 +182,7 @@ unsigned int menu_cmd_processor(Init *init) {
         init->lines = 10;
         init->cols = 40;
         init->begy = menu->begy + 1;
-        init->begx = menu->begx + 4;
+        init->begx = menu->begx + 1;
         strnz__cpy(init->title, "About CMenu", MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
@@ -293,7 +293,7 @@ unsigned int menu_cmd_processor(Init *init) {
         init->lines = 30;
         init->cols = 60;
         init->begy = menu->begy + 1;
-        init->begx = menu->begx + 4;
+        init->begx = menu->begx + 1;
         strnz__cpy(init->title, "About C-Menu", MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
@@ -309,7 +309,7 @@ unsigned int menu_cmd_processor(Init *init) {
         init->lines = 30;
         init->cols = 60;
         init->begy = menu->begy + 1;
-        init->begx = menu->begx + 4;
+        init->begx = menu->begx + 1;
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         mview(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
@@ -326,7 +326,7 @@ unsigned int menu_cmd_processor(Init *init) {
         if (init->begy == 0)
             init->begy = menu->begy + 1;
         if (init->begx == 0)
-            init->begx = menu->begx + 2;
+            init->begx = menu->begx + 1;
         Menu *save_menu = init->menu;
         init->menu = nullptr;
         init->menu = new_menu(init, eargc, eargv, init->begy, init->begx);
@@ -347,7 +347,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
-        init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 2);
+        init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
         return (MA_DISPLAY_MENU);
         /** @brief Display a form associated with the selected menu choice
          */
@@ -357,7 +357,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
-        init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 4);
+        init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
         return (MA_DISPLAY_MENU);
         /** @brief Display a view associated with the selected menu choice
          */
@@ -368,7 +368,7 @@ unsigned int menu_cmd_processor(Init *init) {
         zero_opt_args(init);
         parse_opt_args(init, eargc, eargv);
         init->begy = menu->begy + 1;
-        init->begx = menu->begx + 4;
+        init->begx = menu->begx + 1;
         strnz__cpy(init->title, menu->line[menu->line_idx]->raw_text,
                    MAXLEN - 1);
         mview(init, eargc, eargv);
