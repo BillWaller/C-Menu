@@ -570,6 +570,7 @@ int display_curses_keys() {
         }
         c = '\0';
     }
+
     wclear(win);
     wrefresh(win);
     clear();

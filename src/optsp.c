@@ -20,6 +20,7 @@ void dump_opts_by_name();
 char tmp_str[MAXLEN];
 
 /** @brief check if a string contains a specified character
+    @ingroup options
     @param str the string to check
     @param c the character to look for
     @return true if the character is found, false otherwise */
