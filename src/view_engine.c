@@ -1015,14 +1015,14 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         if (*search_cmd == '/') {
             if (view->cury == view->scroll_lines)
                 return true;
-            prev_ln = view->ln;
+            prev_ln = view->ln; /**< Note placement before get_next_line */
             view->srch_curr_pos = get_next_line(view, view->srch_curr_pos);
             view->page_bot_pos = view->srch_curr_pos;
         } else {
             if (view->cury == 0)
                 return true;
             view->srch_curr_pos = get_prev_line(view, view->srch_curr_pos);
-            prev_ln = view->ln;
+            prev_ln = view->ln; /**< Note placement after get_prev_line */
             view->page_top_pos = view->srch_curr_pos;
         }
         fmt_line(view);
@@ -1169,8 +1169,8 @@ void resize_page(Init *init) {
 }
 /** @brief Refresh Pad and Line Number Window
     @ingroup view_display
-   @param view data structure
-   @returns OK on success, ERR on failure
+    @param view data structure
+    @returns OK on success, ERR on failure
 */
 int pad_refresh(View *view) {
     int rc;
@@ -1186,10 +1186,13 @@ int pad_refresh(View *view) {
         Perror("Error refreshing screen");
     return rc;
 }
+/*--------------------------------------------------------------
+   Navigation
+ *--------------------------------------------------------------- */
 /** @brief display previous page
     @ingroup view_navigation
-   @param view data structure
-   @details Displays the previous page starting at (view->page_top_ln -
+    @param view data structure
+    @details Displays the previous page starting at (view->page_top_ln -
    view->scroll_lines).
  */
 void prev_page(View *view) {
@@ -1205,15 +1208,15 @@ void prev_page(View *view) {
 }
 /** @brief Advance to Next Page
     @ingroup view_navigation
-   @param view data structure
-   @details Advances from view->page_bot_pos to view the next page of content.
-   view->page_bot_pos must be set properly when calling this function.
-   If the current bottom position of the page is at the end of the file, the
-   function returns without making any changes. Otherwise, it resets the maximum
-   column and current line position to the top of the page, updates the file
-   position to the current bottom position of the page, and sets the top
-   position and line number of the page accordingly. Finally, it calls the
-   function to display the new page content.
+    @param view data structure
+    @details Advances from view->page_bot_pos to view the next page of content.
+   view->page_bot_pos must be set properly when calling this function. If the
+   current bottom position of the page is at the end of the file, the function
+   returns without making any changes. Otherwise, it resets the maximum column
+   and current line position to the top of the page, updates the file position
+   to the current bottom position of the page, and sets the top position and
+   line number of the page accordingly. Finally, it calls the function to
+   display the new page content.
 */
 void next_page(View *view) {
     view->file_pos = view->ln_tbl[view->ln];
@@ -1598,6 +1601,10 @@ void sync_ln(View *view) {
         view->file_pos = view->ln_tbl[view->ln];
     }
 }
+/*------------------------------------------------------------
+        END NAVIGATION
+        BEGIN DISPLAY
+  ------------------------------------------------------------*/
 /** @brief Display Line on Pad
     @ingroup view_display
     param View *view data structure
@@ -1961,6 +1968,9 @@ void view_display_help(Init *init) {
     init->view = view_save;
     init->view->f_redisplay_page = true;
 }
+/*------------------------------------------------------------
+      END DISPLAY
+  ------------------------------------------------------------*/
 /** @brief use form to enter a file specification
     @ingroup view_engine
     @param init data structure

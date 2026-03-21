@@ -40,14 +40,19 @@ void dump_opts();
 #define reset "\033[0m"
 Opts *select_opt(char *);
 
+/** @defgroup options Option Processing
+    @brief Command line and configuration file options
+ */
+
 /** @struct Opts
- *  @brief Option structure
- *  @param name - option name
- *  @param group - option group
- *  @param type - option type
- *  @param use - option use mask
- *  @param short_opt - option short option
- *  @param desc - option description
+    @ingroup options
+    @brief Option structure
+    @param name - option name
+    @param group - option group
+    @param type - option type
+    @param use - option use mask
+    @param short_opt - option short option
+    @param desc - option description
  */
 Opts opts[] = {
     {"minitrc", 0, 2, "mfpv", "a:", "configuration file spec"},
@@ -116,6 +121,7 @@ Opts opts[] = {
     {"", 0, 0, "", "", ""}}; // End marker
 
 /** @brief compare option names
+    @ingroup options
     @param  o1 - pointer to first option
     @param  o2 - pointer to second option
     @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
@@ -124,6 +130,7 @@ int comp_opt_name(const void *o1, const void *o2) {
     return strcmp(((Opts *)o1)->name, ((Opts *)o2)->name);
 }
 /** @brief compare option groups
+    @ingroup options
     @param  o1 - pointer to first option
     @param  o2 - pointer to second option
     @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
@@ -132,6 +139,7 @@ int comp_opt_group(const void *o1, const void *o2) {
     return ((Opts *)o1)->group - ((Opts *)o2)->group;
 }
 /** @brief compare option descriptions
+    @ingroup options
     @param  o1 - pointer to first option
     @param  o2 - pointer to second option
     @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
@@ -140,6 +148,7 @@ int comp_opt_desc(const void *o1, const void *o2) {
     return strcmp(((Opts *)o1)->desc, ((Opts *)o2)->desc);
 }
 /** @brief compare option short options
+    @ingroup options
     @param  o1 - pointer to first option
     @param  o2 - pointer to second option
     @return negative if o1 < o2, zero if o1 == o2, positive if o1 > o2
@@ -148,40 +157,47 @@ int comp_opt_short_opt(const void *o1, const void *o2) {
     return strcmp(((Opts *)o1)->short_opt, ((Opts *)o2)->short_opt);
 }
 /** @brief dump options sorted by description
+    @ingroup options
  */
 void dump_opts_by_desc() {
     sort_opts_by_desc();
     dump_opts();
 }
 /** @brief dump options sorted by name
+    @ingroup options
  */
 void dump_opts_by_name() {
     sort_opts_by_name();
     dump_opts();
 }
 /** @brief dump options sorted by group
+    @ingroup options
  */
 void dump_opts_by_group() {
     sort_opts_by_group();
     dump_opts();
 }
 /** @brief dump options sorted by short option
+    @ingroup options
  */
 void dump_opts_by_short_opt() {
     sort_opts_by_short_opt();
     dump_opts();
 }
 /** @brief dump options name
+    @ingroup options
  */
 void sort_opts_by_name() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_name);
 }
 /**  @brief sort options by group
+    @ingroup options
  */
 void sort_opts_by_group() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_group);
 }
 /** @brief sort options by description
+    @ingroup options
  */
 void sort_opts_by_desc() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_desc);
@@ -192,6 +208,7 @@ void sort_opts_by_short_opt() {
     qsort(opts, ARRAY_SIZE(opts), sizeof(opts[0]), comp_opt_short_opt);
 }
 /** @brief select option by name
+    @ingroup options
     @param  name - option name
     @return pointer to option, or nullptr if not found
  */
@@ -204,6 +221,7 @@ Opts *select_opt(char *name) {
     return opt;
 }
 /** @brief dump all options
+    @ingroup options
  */
 void dump_opts() {
     print_opt_header();
@@ -215,6 +233,7 @@ void dump_opts() {
     }
 }
 /** @brief dump options by use mask
+    @ingroup options
     @param  usage - usage string
     @param  mask - use mask string
  */
@@ -240,6 +259,7 @@ void dump_opts_by_use(char *usage, char *mask) {
     }
 }
 /** @brief print option header
+    @ingroup options
  */
 void print_opt_header() {
     printf("   field name         type grp  mask opt description\n");
@@ -248,6 +268,7 @@ void print_opt_header() {
 }
 
 /** @brief print option
+    @ingroup options
     @param  i - option index
  */
 void print_opt(int i) {

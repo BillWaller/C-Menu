@@ -2,11 +2,13 @@
 
 Even with minimal resources on older machines over slow connections, C-Menu is responsive and visually appealing. All you need is a terminal or terminal emulator. C-Menu gives you the tools to quickly create hierarchical menus, forms, pickers, and a blazing fast text file viewer with support for ANSI escape highlighting, Unicode, and 3-channel gamma correction.
 
-With C-Menu you can interact with the machine in a way that feels natural and intuitive. On modern hardware, C-Menu is so fast and responsive you might even forget your fingers are moving as your thoughts flow effortlessly onto the screen. C-Menu integrates powerful tools like Tree-sitter to boost perceptual efficiency, comprehension, and retention of knowledge through the intelligent use of color. Want more? The C-Menu API provides documentation and auto-completion in the Neovim editor.
+With C-Menu you can interact with the machine in a way that feels natural and intuitive. On modern hardware, C-Menu is so fast and responsive you might even forget your fingers are moving as you watch your thoughts flow effortlessly onto the screen. C-Menu integrates powerful tools like Tree-sitter to boost perceptual efficiency, comprehension, and retention through the intelligent use of color. Want more? The C-Menu API provides documentation and auto-completion in the Neovim editor.
 
-C-Menu is perfect for **_DevOps_**, **_CI/CD_**, **_IOT_**, **_Embedded Systems_**, **_Servers_**, **_System Administration_**, **_Application Development_**, and **_Terminal Enthusiasts_**. It's a real TUI.
+These benefits make C-Menu a valuable adjunct for **_DevOps_**, **_CI/CD_**, **_IOT_**, **_Embedded Systems_**, **_Servers_**, **_System Administration_**, **_Application Development_**, and **_Terminal Enthusiasts_**. It's a real TUI.
 
-Administrators, developers, and users of all skill levels can benefit from C-Menu's powerful features and ease of use. Whether you're managing a complex infrastructure, developing applications, or simply looking for a more efficient way to interact with your system, C-Menu has you covered. No fluff, no bloat, no distractions. Just powerful and fast. C-Menu gets out of your way and lets you focus on what matters most.
+Administrators, developers, and users of all skill levels can benefit from C-Menu's powerful features and ease of use. Whether you're managing a complex infrastructure, developing applications, or simply looking for a more efficient way to interact with your system, C-Menu has you covered. No fluff, no bloat, no distractions. Just powerful and fast. Best of all, C-Menu gets out of your way and lets you focus on what matters most.
+
+Did I mention that C-Menu and all of its components are **_ABSOLUTELY FREE_** and open-source under the **_MIT License_**? You can use it, modify it, and share it with anyone you like. C-Menu is a labor of love, and I'm excited to share it with you and the world. I hope you find it as useful and enjoyable to use as I do.
 
 ## **_NEW Features_**
 
@@ -29,8 +31,7 @@ file, by using the -N option on the command line, or typing "-n" while in view.
 ![Neovim API Integration](screenshots/api-help.png)
 
 As you are typing the name of a C-Menu API function, a list of matching signatures
-appears along with a brief description, the function signature, and its parameters. This makes it easier to to use the API without having to leave your coding
-environment. You can select the function you want with the arrow keys and press Enter to insert it into your code. You can also hover over a function and press Shift-K to view the documentation in a pop-up window.
+appears along with a brief description and parameters. This makes it easier to to use the API without having to leave your coding environment. You can select the function you want with the arrow keys and press Enter to insert it into your code. You can also hover over a function and press Shift-K to view the documentation in a pop-up window.
 
 ### **_New Options for lf_**
 
@@ -38,7 +39,7 @@ environment. You can select the function you want with the arrow keys and press 
 
 The speed of C-Menu's ultra-lightweight executables is almost obscene. Designed to be used in pipelines, they won't slow you down.
 
-The new options for lf allow you to specify the file types to list, and whether to include hidden files in the results. If no option is specified, lf lists all files and all file types specified are listed to the exclusion of other types.
+The new options for lf allow you to specify the file types to list, and whether to include hidden files in the results. If no option is specified, lf lists all files and if any file types are specified those files are listed to the exclusion of other types.
 
 ## Table of Contents
 
@@ -202,6 +203,8 @@ visually appealing interface that boosts comprehension and assimilation through 
 ### Key Features
 
 - Easy to Design Menus and Forms With Simple Text Files
+- Highly Customizable Appearance and Behavior
+- Blazingly Fast, Even on Older Hardware
 - Supports Tree-Sitter Syntax Highlighting
 - Colorize Manual Pages
 - Customizable Color Schemes
