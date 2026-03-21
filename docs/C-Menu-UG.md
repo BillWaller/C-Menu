@@ -33,21 +33,6 @@ gh repo clone BillWaller/C-Menu
     - [Form Data Types](#form-data-types)
     - [Form Line Syntax](#form-line-syntax)
     - [Form Options](#form-options)
-- [C-Menu Pick](#c-menu-pick)
-  - [Pick Usage](#pick-usage)
-    - [Selecting Items](#selecting-items)
-  - [Pick Options](#pick-options)
-- [C-Menu View](#c-menu-view)
-  - [View Options](#view-options)
-    - [View Navigation](#view-navigation)
-    - [Searching Forward](#searching-forward)
-    - [Searching Backward](#searching-backward)
-    - [Horizontal Scrolling](#horizontal-scrolling)
-    - [Motion Keys](#motion-keys)
-  - [C-Menu Options](#c-menu-options)
-  - [lf](#lf)
-  - [whence](#whence)
-- [Troubleshooting](#troubleshooting)
 
 <!-- mtoc-end -->
 
@@ -268,6 +253,17 @@ F<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Type
 -c <string> Command to be executed with arguments provided by form
 ```
 
+The number of fields in the Form structure is currently set to a maximum of 100, and the maximum field length is set to 1024, but this can be easily modified in the source code if needed.
+
+```c
+#include <form.h>
+
+#define FIELD_MAXLEN 1024
+#define FIELD_MAXCNT 100
+```
+
+````
+
 ---
 
 ## C-Menu Pick
@@ -285,6 +281,16 @@ separate pick item. The user can select an item by clicking on it or
 moving the cursor to highlight it and pressing the space bar to toggle
 it on or off. The number of items that can be selected is configurable
 by a command-line option (-n).
+
+The table of pick objects is currently set to a maximum of 1024 items of 80
+bytes each, but this can be easily modified in the source code if needed.
+
+```c
+#include <pick.h>
+
+#define OBJ_MAXLEN 80
+#define OBJ_MAXCNT 1024
+````
 
 #### Selecting Items
 

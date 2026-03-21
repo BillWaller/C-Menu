@@ -444,7 +444,7 @@ int form_fmt_field(Form *form, char *s) {
        applications. @note The following variables and structures are used in
        this function:
         @code
-            char field_s[MAXLEN];
+            char field_s[FIELD_MAXLEN];
             int decimal_int_n = 0;
             int hex_int_n = 0;
             float float_n = 0.0;
@@ -474,7 +474,7 @@ int form_fmt_field(Form *form, char *s) {
        numberic binary is then formated and displayed, verifying the user's
        input and Form's interpretation of the user's input.
       */
-    strnz__cpy(form->field[form->fidx]->input_s, s, MAXLEN - 1);
+    strnz__cpy(form->field[form->fidx]->input_s, s, FIELD_MAXLEN - 1);
     char *input_s = form->field[form->fidx]->input_s;
     char *accept_s = form->field[form->fidx]->accept_s;
     char *display_s = form->field[form->fidx]->display_s;
@@ -482,7 +482,7 @@ int form_fmt_field(Form *form, char *s) {
     int ff = form->field[form->fidx]->ff;
     int fl = form->field[form->fidx]->len;
 
-    char field_s[MAXLEN];
+    char field_s[FIELD_MAXLEN];
     int decimal_int_n = 0;
     int hex_int_n = 0;
     float float_n = 0.0;
@@ -506,9 +506,9 @@ int form_fmt_field(Form *form, char *s) {
     case FF_STRING:
         left_justify(s);
         trim(s);
-        strnz__cpy(input_s, s, MAXLEN - 1);
-        strnz__cpy(accept_s, s, MAXLEN - 1);
-        strnz__cpy(display_s, s, MAXLEN - 1);
+        strnz__cpy(input_s, s, FIELD_MAXLEN - 1);
+        strnz__cpy(accept_s, s, FIELD_MAXLEN - 1);
+        strnz__cpy(display_s, s, FIELD_MAXLEN - 1);
         break;
     case FF_DECIMAL_INT:
         sscanf(input_s, "%d", &decimal_int_n);
@@ -543,7 +543,7 @@ int form_fmt_field(Form *form, char *s) {
         break;
     case FF_YYYYMMDD:
         Date.yyyy = Date.mm = Date.dd = 0;
-        strnz__cpy(field_s, input_s, MAXLEN - 1);
+        strnz__cpy(field_s, input_s, FIELD_MAXLEN - 1);
         sscanf(field_s, "%4d%2d%2d", &Date.yyyy, &Date.mm, &Date.dd);
         sprintf(accept_s, "%04d%02d%02d", Date.yyyy, Date.mm, Date.dd);
         if (is_valid_date(Date.yyyy, Date.mm, Date.dd))
@@ -551,7 +551,7 @@ int form_fmt_field(Form *form, char *s) {
         break;
     case FF_HHMMSS:
         Time.hh = Time.mm = Time.ss = 0;
-        strnz__cpy(field_s, input_s, MAXLEN - 1);
+        strnz__cpy(field_s, input_s, FIELD_MAXLEN - 1);
         sscanf(field_s, "%2d%2d%2d", &Time.hh, &Time.mm, &Time.ss);
         sprintf(accept_s, "%02d%02d%02d", Time.hh, Time.mm, Time.ss);
         if (is_valid_time(Time.hh, Time.mm, Time.ss))
