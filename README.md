@@ -9,9 +9,20 @@
 You can turn it on in the configuration or use the -N command line option and View creates a separate panel for line numbers, so it doesn't get pushed off the screen when you scroll horizontally. Foreground and background colors can be specified in
 the configuration file.
 
+Line numbering in view can be activated by setyting f_ln=true in the configuration
+file, by using the -N option on the command line, or typing "-n" while in view.
+
 ### Large Log File in View
 
 ![View Large Log File](screenshots/new_view2.png)
+
+### **_New API Integration With Neovim_**
+
+![Neovim API Integration](screenshots/api-help.png)
+
+As you are typing the name of a C-Menu API function, a list of matching signatures
+appears along with a brief description, the function signature, and its parameters. This makes it easier to to use the API without having to leave your coding
+environment. You can select the function you want with the arrow keys and press Enter to insert it into your code. You can also hover over a function and press Shift-K to view the documentation in a pop-up window.
 
 ### **_New Options for lf_**
 

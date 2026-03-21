@@ -260,12 +260,6 @@ typedef struct {
                      for both calculation and querying functionality within the
                      same form, depending on the needs of the application. */
 
-    bool f_stop_on_error; /**< flag - if set, causes the form processing to stop
-                             if an error is encountered, e.g. if a field value
-                             fails validation or if a command execution fails.
-                             This can be useful for ensuring data integrity and
-                             preventing further errors from occurring if an
-                             issue is detected during form processing. */
     bool help; /**< flag - if set, indicates that the user has requested help
                   during form processing, e.g. by pressing a help key or button.
                   This can be used to trigger the display of context-sensitive

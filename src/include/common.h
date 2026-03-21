@@ -123,12 +123,10 @@ typedef struct {
     char **argv;           /**< command line arguments vector */
     int optind;           /**< getopt pointer to non-option arguments in argv */
     bool f_ignore_case;   /**< View - ignore case in search */
-    bool f_at_end_clear;  /**< obsolete, unneeded */
     bool f_at_end_remove; /**< obsolete, unneeded */
     bool f_strip_ansi; /**< strip ansi escape sequences when writing buffer */
     bool f_squeeze;    /**< View - print one line for each group of blank lines
                         */
-    bool f_stop_on_error;     /** obsolete, unneeded */
     bool f_multiple_cmd_args; /**< View - put multiple arguments in a single
                                  string */
     bool f_erase_remainder;   /**< Form - erase remainder of field on enter */

@@ -528,7 +528,6 @@ bool init_menu_files(Init *init, int argc, char **argv) {
             abend(-1, tmp_str);
         }
     }
-    menu->f_stop_on_error = init->f_stop_on_error;
     return true;
 }
 /** @brief Initialize Pick file specifications
@@ -626,7 +625,6 @@ bool init_pick_files(Init *init, int argc, char **argv) {
             optind++;
     }
     pick->select_max = init->select_max;
-    pick->f_stop_on_error = init->f_stop_on_error;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
     return true;
 }
@@ -730,7 +728,6 @@ bool init_form_files(Init *init, int argc, char **argv) {
         if (form->f_help_spec)
             optind++;
     }
-    form->f_stop_on_error = init->f_stop_on_error;
     form->f_erase_remainder = init->f_erase_remainder;
     if (form->title[0] == '\0' && init->title[0] != '\0') {
         strip_quotes(init->title);
@@ -746,9 +743,7 @@ bool init_view_files(Init *init) {
     view = init->view;
     view->lines = init->lines;
     view->cols = init->cols;
-    view->f_stop_on_error = init->f_stop_on_error;
     view->f_ignore_case = init->f_ignore_case;
-    view->f_at_end_clear = init->f_at_end_clear;
     view->f_at_end_remove = init->f_at_end_remove;
     view->f_squeeze = init->f_squeeze;
     view->f_ln = init->f_ln;

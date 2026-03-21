@@ -57,7 +57,6 @@ typedef struct {
     bool f_out_pipe;             /**< flag: output spec is a pipe */
     bool f_help_spec;            /**< flag: help spec verified */
     bool f_multiple_cmd_args;    /**< flag: multiple command arguments */
-    bool f_stop_on_error;        /**< flag: stop on error */
     bool f_selected[OBJ_MAXCNT]; /**< flag: object selected */
     bool help;                   /**< flag: help requested */
     bool f_provider_cmd;         /**< flag: provider command verified */
