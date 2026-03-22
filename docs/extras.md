@@ -967,6 +967,16 @@ provided as an example of how to customize the terminal emulator to your
 liking. You may want to modify the font, font size, window dimensions,
 colors, and other settings to suit your preferences.
 
+Regardless of which terminal emulator you use, you might want tile the terminal windows side by side to maximize the use of screen real estate. For example, if you use KDE, you can edit ~/.config/kwinrc. Under the \[Windows\] section you will find Placement. Set it to Smart or MinimalOverlapping depending on your version of KDE to enable tiling of windows. You can also set the following options to prevent windows from maximizing when dragged to the top of the screen, and to allow windows to be dragged to the current desktop when dragging them from another desktop.
+
+```ini
+[Windows]
+ActivationDesktopPolicy=BringToCurrentDesktop
+ElectricBorderMaximize=false
+ElectricBorderTiling=false
+Placement=Smart
+```
+
 #### Fonts
 
 If you don't already have a patched font, you may want to install
