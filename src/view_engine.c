@@ -9,7 +9,7 @@
 
 /**
    @defgroup view_engine View Engine
-   @briefs File mapping, user input, command processing, and display logic
+   @brief File mapping, user input, command processing, and display logic
  */
 
 #include <common.h>
@@ -815,10 +815,12 @@ void build_prompt(View *view) {
             strnz__cat(view->prompt_str, "|", MAXLEN - 1);
         strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
     }
-    sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
-    if (view->prompt_str[0] != '\0') {
-        strnz__cat(view->prompt_str, "|", MAXLEN - 1);
-        strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
+    if (view->argc > 0) {
+        sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
+        if (view->prompt_str[0] != '\0') {
+            strnz__cat(view->prompt_str, "|", MAXLEN - 1);
+            strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
+        }
     }
     if (view->page_top_pos == NULL_POSITION)
         view->page_top_pos = view->file_size;
