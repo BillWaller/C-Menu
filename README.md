@@ -1,14 +1,16 @@
 # A User Interface Toolkit
 
-Even with minimal resources on older machines over slow connections, C-Menu is responsive and visually appealing. All you need is a terminal or terminal emulator. C-Menu gives you the tools to quickly create hierarchical menus, forms, pickers, and a blazing fast text file viewer with support for ANSI escape highlighting, Unicode, and 3-channel gamma correction.
+### C-Menu Introduction
 
-With C-Menu you can interact with the machine in a way that feels natural and intuitive. On modern hardware, C-Menu is so fast and responsive you might even forget your fingers are moving as you watch your thoughts flow effortlessly onto the screen. C-Menu integrates powerful tools like Tree-sitter to boost perceptual efficiency, comprehension, and retention through the intelligent use of color. Want more? The C-Menu API provides documentation and auto-completion in the Neovim editor.
+C-Menu is a Terminal based User Interface (TUI) toolkit you can use to quickly and easily create powerful and visually appealing applications. With C-Menu you can design and implement menus, forms, and pickers that improve the user experience and make your product shine.
 
-These benefits make C-Menu a valuable adjunct for **_DevOps_**, **_CI/CD_**, **_IOT_**, **_Embedded Systems_**, **_Servers_**, **_System Administration_**, **_Application Development_**, and **_Terminal Enthusiasts_**. It's a real TUI.
+C-Menu doesn't waste time rendering complex graphics. It's a real TUI. No fluff, no bloat, no distractions. Just sleek, powerful and fast. And, user interaction with C-Menu is natural and intuitive. On modern hardware, C-Menu is so fast and responsive you might even forget your fingers are moving as you watch your thoughts flow effortlessly onto the screen. As a bonus, C-Menu integrates powerful tools like Tree-sitter to boost perceptual efficiency, comprehension, and retention through the intelligent use of color. Want more? The C-Menu API provides documentation and auto-completion in the Neovim editor.
 
-Administrators, developers, and users of all skill levels can benefit from C-Menu's powerful features and ease of use. Whether you're managing a complex infrastructure, developing applications, or simply looking for a more efficient way to interact with your system, C-Menu has you covered. No fluff, no bloat, no distractions. Just powerful and fast. Best of all, C-Menu gets out of your way and lets you focus on what matters most.
+In short, C-Menu gets out of your way and lets you focus on what matters most. Even on older hardware over slow connections, C-Menu is blazingly fast, making it an ideal choice for a wide range of applications, including **_DevOps_**, **_CI/CD_**, **_IOT_**, **_Embedded Systems_**, **_Servers_**, **_System Administration_**, **_Application Development_**, and **_Terminal Enthusiasts_**. Administrators, developers, and users of all skill levels can benefit from C-Menu's powerful features and ease of use. Whether you're managing a complex infrastructure, developing applications, or simply looking for a more efficient way to interact with your system, C-Menu has you covered.
 
-Did I mention that C-Menu and all of its components are **_ABSOLUTELY FREE_** and open-source under the **_MIT License_**? You can use it, modify it, and share it with anyone you like. C-Menu is a labor of love, and I'm excited to share it with you and the world. I hope you find it as useful and enjoyable to use as I do.
+C-Menu is not just low cost, it is **_ABSOLUTELY FREE_** and open-source under the **_MIT License_**. You can use it, modify it, and share it with anyone you like. C-Menu is a labor of love, and I'm excited to share it with you and the world. I hope you find it useful, enjoyable, and profitable.
+
+---
 
 ## **_NEW Features_**
 
@@ -41,9 +43,7 @@ The speed of C-Menu's ultra-lightweight executables is almost obscene. Designed 
 
 The new options for lf allow you to specify the file types to list, and whether to include hidden files in the results. If no option is specified, lf lists all files and if any file types are specified those files are listed to the exclusion of other types.
 
-## Table of Contents
-
-### Other Markdown files in this repository:
+## Other C-Menu Documents
 
 [Change Log](docs/CHANGELOG.md)
 
@@ -63,11 +63,9 @@ The new options for lf allow you to specify the file types to list, and whether 
 
 [Road Map](docs/ROADMAP.md)
 
-### HTML Documentation:
+[C-Menu HTML Documentation](https://decision-inc.com)
 
-[C-Menu Documentation](https://decision-inc.com)
-
-## Table of Contents
+## Table of Contents:
 
 <!-- mtoc-start -->
 
@@ -75,7 +73,6 @@ The new options for lf allow you to specify the file types to list, and whether 
 - [C-Menu Exercises](#c-menu-exercises)
 - [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
   - [C-Menu API](#c-menu-api)
-  - [C-Menu Introduction](#c-menu-introduction)
   - [Elements of C-Menu](#elements-of-c-menu)
   - [Key Features](#key-features)
   - [Highlights (Pun Intended)](#highlights-pun-intended)
@@ -147,38 +144,6 @@ But C-Menu is not just for developers. It's also a powerful tool for users who w
 
 **_NOTE:_** Requires Neovim properly configured with support for LSP and a
 plugin that provides LSP functionality, such as nvim-lspconfig.
-
----
-
-### C-Menu Introduction
-
-C-Menu is a lightweight, flexible, and easy-to-use suite of programs
-for creating a sophisticated user interface for your applications.
-Menus, Form, Pick, and View, using a classical text-based terminal
-interface(TUI) for applications running on Linux and Unix-like
-operating systems. C-Menu is designed to be simple to use while
-providing powerful features to implement menu driven frameworks for
-applications.
-
-This is a real TUI, and though we may add a GUI front-end in the future,
-we won't abandon the super-responsive, low-overhead, and universally compatible
-text-based interface. It's here to stay, and it's perfect for a wide range of applications, from simple command-line tools to complex system administration utilities.
-
-C-Menu is especially useful in embedded applications and server environments where resources are limited, and a graphical interface may not be feasible. It's also ideal for developers who want to create intuitive and user-friendly interfaces without the need for complex GUI frameworks. With C-Menu, you can easily design and implement menus, forms, and pickers that enhance the user experience and streamline interactions with your applications.
-
-While we do support mouse input, we realize that seasoned professional coders
-may prefer the blinding speed they can achieve with the keyboard. That's why
-we never give the keyboard a back seat, and why we provide navigation with
-familiar h, j, k, and l, the way God intended. We also support more conventional
-navigation via arrow keys, page-up, page-down, home, and end keys. The idea is
-to provide you and your users with comfortable, intuitive, and convenient
-navigation.
-
-Don't let the name fool you. C-Menu is not just a menu system, it's a comprehensive
-user interface framework designed to enhance your interaction with applications. It
-provides a structured way to navigate through application hierarchies, manage forms,
-select objects, and view data efficiently. And, it does so with style, offering a
-visually appealing interface that boosts comprehension and assimilation through color.
 
 ---
 
@@ -746,3 +711,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ```
+
+---
+
+🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.

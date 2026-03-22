@@ -7,6 +7,7 @@
     - [Requisites](#requisites)
   - [Ghostty Configuration](#ghostty-configuration)
   - [Alacritty and Kitty](#alacritty-and-kitty)
+- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
 
@@ -288,3 +289,7 @@ Here is the final content of the workstation_config.m file after adding the Alac
 ```
 
 ![Workstation Configuration](../screenshots/workstation_config2.png)
+
+---
+
+## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.

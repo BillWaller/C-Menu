@@ -31,6 +31,7 @@
 - [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
 - [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
 - [View In a Box Window](#view-in-a-box-window)
+- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
 
@@ -741,3 +742,7 @@ tree-sitter highlight view_engine.c | view -L 40 -C 80 -T "Highlighted view_engi
 The "-S" option will tell view to execute the command and display the
 output. As an added bonus, if you don't provide a title with "-T", view
 will use the "-S" command as the title:
+
+---
+
+## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.

@@ -33,6 +33,22 @@ gh repo clone BillWaller/C-Menu
     - [Form Data Types](#form-data-types)
     - [Form Line Syntax](#form-line-syntax)
     - [Form Options](#form-options)
+- [C-Menu Pick](#c-menu-pick)
+  - [Pick Usage](#pick-usage)
+    - [Selecting Items](#selecting-items)
+  - [Pick Options](#pick-options)
+- [C-Menu View](#c-menu-view)
+  - [View Options](#view-options)
+    - [View Navigation](#view-navigation)
+    - [Searching Forward](#searching-forward)
+    - [Searching Backward](#searching-backward)
+    - [Horizontal Scrolling](#horizontal-scrolling)
+    - [Motion Keys](#motion-keys)
+  - [C-Menu Options](#c-menu-options)
+  - [lf](#lf)
+  - [whence](#whence)
+- [Troubleshooting](#troubleshooting)
+- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
 
@@ -255,15 +271,6 @@ F<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Type
 
 The number of fields in the Form structure is currently set to a maximum of 100, and the maximum field length is set to 1024, but this can be easily modified in the source code if needed.
 
-```c
-#include <form.h>
-
-#define FIELD_MAXLEN 1024
-#define FIELD_MAXCNT 100
-```
-
-````
-
 ---
 
 ## C-Menu Pick
@@ -290,7 +297,7 @@ bytes each, but this can be easily modified in the source code if needed.
 
 #define OBJ_MAXLEN 80
 #define OBJ_MAXCNT 1024
-````
+```
 
 #### Selecting Items
 
@@ -577,3 +584,7 @@ which <command_name>
 - If you experience issues with root access features, ensure that RSH
   is installed with the correct permissions and that you understand the
   security implications.
+
+---
+
+## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.

@@ -79,6 +79,7 @@ gh repo clone BillWaller/C-Menu
   - [Folke](#folke)
   - [Other Resources](#other-resources)
 - [Conclusion](#conclusion)
+- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
 
@@ -1078,3 +1079,7 @@ Folke is a prominent developer in the Neovim community, known for creating popul
 By following the above instructions, you can easily install Rust and various
 Rust-based tools to enhance your C-Menu experience. Enjoy coding with these
 powerful tools!
+
+---
+
+## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
