@@ -287,10 +287,10 @@ int view_init_input(View *view, char *file_name) {
         WINDOW *wait_win;
         int remaining;
         FD_ZERO(&read_fds);
-        FD_SET(view->in_fd, &read_fds);
+        FD_SET(STDIN_FILENO, &read_fds);
         timeout.tv_sec = 0;
         timeout.tv_usec = 100000;
-        ready = select(view->in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+        ready = select(STDIN_FILENO + 1, &read_fds, nullptr, nullptr, &timeout);
         if (ready == 0) {
             f_wait = true;
             remaining = 5;
@@ -303,11 +303,11 @@ int view_init_input(View *view, char *file_name) {
             if (cmd_key == KEY_F(9))
                 break;
             FD_ZERO(&read_fds);
-            FD_SET(view->in_fd, &read_fds);
+            FD_SET(STDIN_FILENO, &read_fds);
             timeout.tv_sec = 0;
             timeout.tv_usec = 0;
             ready =
-                select(view->in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+                select(STDIN_FILENO + 1, &read_fds, nullptr, nullptr, &timeout);
             remaining--;
         }
         if (f_wait) {
@@ -348,7 +348,7 @@ int view_init_input(View *view, char *file_name) {
             }
             return -1;
         }
-        if (ready == 1 && !FD_ISSET(view->in_fd, &read_fds)) {
+        if (ready == 1 && !FD_ISSET(STDIN_FILENO, &read_fds)) {
             Perror("Unexpected error waiting for view input");
             if (view->f_in_pipe && pid > 0) {
                 /** If unexpected error occurs while waiting for view input,
