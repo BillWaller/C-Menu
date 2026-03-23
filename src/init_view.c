@@ -192,7 +192,7 @@ int init_view_boxwin(Init *init, char *title) {
 int view_init_input(View *view, char *file_name) {
     struct stat sb;
     int idx = 0;
-    pid_t pid;
+    pid_t pid = -1;
     int pipe_fd[2];
     char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
@@ -287,8 +287,8 @@ int view_init_input(View *view, char *file_name) {
         Chyron *wait_chyron;
         WINDOW *wait_win;
         int remaining;
-        FD_SET(in_fd, &read_fds);
         FD_ZERO(&read_fds);
+        FD_SET(in_fd, &read_fds);
         timeout.tv_sec = 0;
         timeout.tv_usec = 100000; /**< 1/10th of a second */
         ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
