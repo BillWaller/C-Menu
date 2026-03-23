@@ -50,7 +50,7 @@ RSH_LD = -static
 SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 REL_CFLAGS=-O2
-DBG_CFLAGS=-O0 -ggdb
+DBG_CFLAGS=-O0 -ggdb -rdynamic
 # CFLAGS=-static
 CFLAGS=$(DBG_CFLAGS)
 CC=gcc -Wall -Wextra -I./include $(CFLAGS)
@@ -58,8 +58,8 @@ CX=-std=gnu23
 CX=-std=c23
 
 MAJOR=0
-MINOR=2
-PATCH=9
+MINOR=3
+PATCH=0
 VERSION=$(MAJOR).$(MINOR).$(PATCH)
 
 LIB_SHARED=libcm.so
@@ -204,6 +204,7 @@ install:
 	./inst.sh lf		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(LIB_DIR)
+	rm -f $(LIB_DIR)/libcm*
 	cp $(LIB_STATIC) $(LIB_DIR)
 	echo `test/iso8601.sh` $(LIB_DIR)/$(LIB_STATIC) >>manifest.txt
 	cp $(LIB_SHARED) $(LIB_DIR)/$(REAL_NAME)
