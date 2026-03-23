@@ -76,7 +76,6 @@ String free_string(String);
 
 /** Global variables for error reporting */
 char errmsg[MAXLEN];
-bool f_debug = false;
 
 /**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim
@@ -947,16 +946,6 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     regex_t compiled_re;
     regex_t compiled_ere;
     int REG_FLAGS = REG_EXTENDED;
-    if (f_debug) {
-        printf("\n\nFT_BLK: %08b\n", FT_BLK);
-        printf("FT_CHR: %08b\n", FT_CHR);
-        printf("FT_DIR: %08b\n", FT_DIR);
-        printf("FT_FIFO: %08b\n", FT_FIFO);
-        printf("FT_LNK: %08b\n", FT_LNK);
-        printf("FT_REG: %08b\n", FT_REG);
-        printf("FT_SOCK: %08b\n", FT_SOCK);
-        printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
-    }
     if (flags & LF_ICASE)
         REG_FLAGS |= REG_ICASE;
     if (flags & LF_REGEX) {

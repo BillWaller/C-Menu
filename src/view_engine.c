@@ -141,7 +141,7 @@ int view_file(Init *init) {
         }
         view->file_spec_ptr = view->next_file_spec_ptr;
         view->next_file_spec_ptr = nullptr;
-        if (view_init_input(view, view->file_spec_ptr)) {
+        if (view_init_input(view, view->file_spec_ptr) == 0) {
             if (view->buf) {
                 view->f_eod = 0;
                 view->f_bod = 0;
@@ -296,7 +296,7 @@ int view_cmd_processor(Init *init) {
         case 'g':
         case KEY_HOME:
             view->pmincol = 0;
-            go_to_line(view, 0L);
+            go_to_line(view, 0);
             break;
         /**  KEY_LL - Go to the end of the document */
         case KEY_LL:
@@ -917,7 +917,7 @@ void lp(char *PrintFile) {
     print_cmd_ptr = getenv("PRINTCMD");
     if (print_cmd_ptr == nullptr || *print_cmd_ptr == '\0')
         print_cmd_ptr = PRINTCMD;
-    sprintf(shell_cmd_spec, "%s %s", print_cmd_ptr, PrintFile);
+    ssnprintf(shell_cmd_spec, MAXLEN - 1, "%s %s", print_cmd_ptr, PrintFile);
     cmd_line_prompt(view, shell_cmd_spec);
     pad_refresh(view);
     shell(shell_cmd_spec);
@@ -1575,10 +1575,11 @@ void increment_ln(View *view) {
     @details The line table (view->ln_tbl) is an array that stores the file
    position of each line. The index (view->ln + 1) corresponds to the current
    line number. (the line number table is 0-based, while line numbering starts
-   at 1). If a user requests a line or position that is not yet in the line
-   table, this function reads forward to update the table. If a user requests a
-   line or position that is behind the current line table index, this function
-   decrements the line index until it matches the file position.
+   at 1).
+    @note If the line or position requested is not in the line table, this
+   function reads forward to sycn.
+    @note If the line or positione requested is behind the current line table
+   index, the line index will be decremented it matches the file position.
  */
 void sync_ln(View *view) {
     int c = 0;

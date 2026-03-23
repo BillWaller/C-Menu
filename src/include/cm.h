@@ -22,10 +22,19 @@
 #define nullptr NULL
 #endif
 
+#define DEBUG true
+
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
 #define SCR_COLS 1024 /**< maximum number of columns in the terminal screen */
 #define MAX_DEPTH 3   /**< maximum depth for recursive file searching */
+
+#define max(a, b)                                                              \
+    ({                                                                         \
+        typeof(a) _a = (a);                                                    \
+        typeof(b) _b = (b);                                                    \
+        _a > _b ? _a : _b;                                                     \
+    })
 
 enum LFFlags {
     LF_ALL = 1,       /**<   1 List all files including hidden files */
@@ -148,11 +157,15 @@ typedef struct {
 } Chyron;
 
 extern int xwgetch(WINDOW *, Chyron *);
+extern int xwgetch_t(WINDOW *, Chyron *, int);
 extern int click_y; /**< the y coordinate of a mouse click, for handling mouse
                    events */
 extern int
     click_x; /**< the x coordinate of a mouse click, for handling mouse */
-
+extern Chyron *wait_mk_chyron();
+extern WINDOW *wait_mk_win(Chyron *, char *);
+extern int wait_continue(WINDOW *, Chyron *, int);
+extern bool wait_destroy(Chyron *);
 extern bool f_debug;         /**< a flag to indicate whether debug
         output should be printed, for debugging purposes */
 extern unsigned int cmd_key; /**< the command key for the current command, for

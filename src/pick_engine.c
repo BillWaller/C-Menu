@@ -138,6 +138,87 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             return (1);
         }
     }
+    /*------------------------------------------------------------*/
+    bool f_wait = false;
+    int ready;
+    fd_set read_fds;
+    struct timeval timeout;
+    Chyron *wait_chyron;
+    WINDOW *wait_win;
+    int remaining;
+    int in_fd = fileno(pick->in_fp);
+    FD_SET(in_fd, &read_fds);
+    FD_ZERO(&read_fds);
+    timeout.tv_usec = 100000; /**< 1/10th of a second */
+    ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+    if (ready == 0) {
+        f_wait = true;
+        remaining = 5;
+        wait_chyron = wait_mk_chyron();
+        wait_win = wait_mk_win(wait_chyron, "WAITING for PICK INPUT");
+    }
+    cmd_key = 0;
+    while (ready == 0 && remaining > 0 && cmd_key != KEY_F(9)) {
+        cmd_key = wait_continue(wait_win, wait_chyron, remaining);
+        if (cmd_key == KEY_F(9))
+            break;
+        ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+        remaining--;
+    }
+    if (f_wait) {
+        wait_destroy(wait_chyron);
+        win_del();
+    }
+    f_wait = false;
+    if (cmd_key == KEY_F(9)) {
+        if (pick->f_in_pipe && pid > 0) {
+            /** If user cancels while waiting for pick input, kill provider_cmd
+             * child process and close pipe */
+            kill(pid, SIGKILL);
+            waitpid(pid, nullptr, 0);
+            close(pipe_fd[P_READ]);
+        }
+        Perror("No pick input available");
+        destroy_pick(init);
+        return (1);
+    }
+    if (ready == -1) {
+        Perror("Error waiting for pick input");
+        if (pick->f_in_pipe && pid > 0) {
+            /** If error occurs while waiting for pick input, kill provider_cmd
+             * child process and close pipe */
+            kill(pid, SIGKILL);
+            waitpid(pid, nullptr, 0);
+            close(pipe_fd[P_READ]);
+        }
+        destroy_pick(init);
+        return (1);
+    }
+    if (ready == 0) {
+        Perror("Timeout waiting for pick input");
+        if (pick->f_in_pipe && pid > 0) {
+            /** If timeout occurs while waiting for pick input, kill
+             * provider_cmd child process and close pipe */
+            kill(pid, SIGKILL);
+            waitpid(pid, nullptr, 0);
+            close(pipe_fd[P_READ]);
+        }
+        destroy_pick(init);
+        return (1);
+    }
+    if (ready == 1 && !FD_ISSET(in_fd, &read_fds)) {
+        Perror("Unexpected error waiting for pick input");
+        if (pick->f_in_pipe && pid > 0) {
+            /** If unexpected error occurs while waiting for pick input, kill
+             * provider_cmd child process and close pipe */
+            kill(pid, SIGKILL);
+            waitpid(pid, nullptr, 0);
+            close(pipe_fd[P_READ]);
+        }
+        destroy_pick(init);
+        return (1);
+    }
+    /*------------------------------------------------------------*/
     read_pick_input(init);
     if (pick->f_in_pipe && pid > 0) {
         /** Wait for provider_cmd child process to finish before proceeding */
