@@ -149,6 +149,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     int in_fd = fileno(pick->in_fp);
     FD_SET(in_fd, &read_fds);
     FD_ZERO(&read_fds);
+    timeout.tv_sec = 0;
     timeout.tv_usec = 100000; /**< 1/10th of a second */
     ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
     if (ready == 0) {
@@ -162,6 +163,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         cmd_key = wait_continue(wait_win, wait_chyron, remaining);
         if (cmd_key == KEY_F(9))
             break;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 0;
         ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
         remaining--;
     }

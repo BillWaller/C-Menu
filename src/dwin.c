@@ -1314,6 +1314,8 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
         }
         if (c == ERR)
             break;
+        if (c == KEY_F(9))
+            break;
         if (c == KEY_MOUSE) {
             if (getmouse(&event) != OK) {
                 c = 0;
