@@ -280,7 +280,6 @@ int view_init_input(View *view, char *file_name) {
         unlink(tmp_filename);
         /*-----------------------------------------------------------------*/
         bool f_wait = false;
-        int in_fd = dup(view->in_fd);
         int ready;
         fd_set read_fds;
         struct timeval timeout;
@@ -288,10 +287,10 @@ int view_init_input(View *view, char *file_name) {
         WINDOW *wait_win;
         int remaining;
         FD_ZERO(&read_fds);
-        FD_SET(in_fd, &read_fds);
+        FD_SET(view->in_fd, &read_fds);
         timeout.tv_sec = 0;
-        timeout.tv_usec = 100000; /**< 1/10th of a second */
-        ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+        timeout.tv_usec = 100000;
+        ready = select(view->in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
         if (ready == 0) {
             f_wait = true;
             remaining = 5;
@@ -303,9 +302,12 @@ int view_init_input(View *view, char *file_name) {
             cmd_key = wait_continue(wait_win, wait_chyron, remaining);
             if (cmd_key == KEY_F(9))
                 break;
+            FD_ZERO(&read_fds);
+            FD_SET(view->in_fd, &read_fds);
             timeout.tv_sec = 0;
             timeout.tv_usec = 0;
-            ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+            ready =
+                select(view->in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
             remaining--;
         }
         if (f_wait) {
