@@ -55,6 +55,11 @@ RGB xterm256_idx_to_rgb(int);
 int rgb_to_curses_clr(RGB *);
 int rgb_to_xterm256_idx(RGB *);
 void apply_gamma(RGB *);
+Chyron *wait_mk_chyron();
+WINDOW *wait_mk_win(Chyron *, char *);
+int wait_continue(WINDOW *, Chyron *, int);
+bool wait_destroy(Chyron *);
+int xwgetch_t(WINDOW *, Chyron *, int);
 
 bool init_clr_palette(SIO *);
 cchar_t mkccc(int);
@@ -824,12 +829,12 @@ WINDOW *win_del() {
     if (win_ptr > 0) {
         wclear(win_win[win_ptr]);
         touchwin(win_win[win_ptr]);
-        wnoutrefresh(win_win[win_ptr]);
+        wrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
 
         wclear(win_box[win_ptr]);
         touchwin(win_box[win_ptr]);
-        wnoutrefresh(win_box[win_ptr]);
+        wrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
 
         touchwin(stdscr);
@@ -1013,12 +1018,11 @@ int Perror(char *emsg_str) {
     set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(chyron);
+    len = max(strlen(title), strlen(emsg));
+    len = max(len, chyron->l);
+    len = max(len, 40);
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (chyron->l > len)
-        len = chyron->l;
-    if (len < 39)
-        len = 39;
     strnz__cpy(title, "Notification", MAXLEN - 1);
     if (win_new(2, len + 2, line, pos, title, 0)) {
         ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
@@ -1041,6 +1045,75 @@ int Perror(char *emsg_str) {
     }
     destroy_chyron(chyron);
     return (cmd_key);
+}
+/** @brief Create a Chyron struct for the wait message
+    @ingroup error_handling
+    @return Pointer to the chyron struct */
+Chyron *wait_mk_chyron() {
+    Chyron *chyron = new_chyron();
+    set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
+    compile_chyron(chyron);
+    return chyron;
+}
+/** @brief Display a popup waiting message
+    @ingroup error_handling
+    @param chyron Pointer to Chyron struct for displaying key options
+    @param title window title
+    @return WINDOW * struct */
+WINDOW *wait_mk_win(Chyron *chyron, char *title) {
+    char wm1[] = "Seconds remaining:";
+    int len;
+    int line, col;
+    WINDOW *wait_win;
+
+    if (!f_curses_open) {
+        fprintf(stderr, "\n%s\n", title);
+        fprintf(stderr, "%s\n", wm1);
+        return NULL;
+    }
+    len = max(strlen(title), strlen(wm1));
+    len = max(len, chyron->l);
+    len = max(len, 40);
+    col = (COLS - len - 4) / 2;
+    line = (LINES - 4) / 2;
+    if (win_new(2, len + 2, line, col, title, 0)) {
+        ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
+                  4, line, line, col, title, 0);
+        abend(-1, title);
+    }
+    curs_set(0);
+    wait_win = win_win[win_ptr];
+    mvwaddstr(wait_win, 0, 1, wm1);
+    wattron(wait_win, WA_REVERSE);
+    mvwaddstr(wait_win, 1, 0, chyron->s);
+    wattroff(wait_win, WA_REVERSE);
+    wmove(wait_win, 1, chyron->l);
+    return wait_win;
+}
+/** @brief Destroy the waiting message window and chyron
+    @ingroup error_handling
+    @param chyron Pointer to Chyron struct for displaying key options
+    @return true if successful */
+bool wait_destroy(Chyron *chyron) {
+    win_del();
+    destroy_chyron(chyron);
+    curs_set(1);
+    return true;
+}
+/** @brief Update the waiting message with remaining time and check for user
+   input
+    @ingroup error_handling
+    @param chyron Pointer to Chyron struct for displaying key options
+    @param wait_win Pointer to the waiting message window
+    @param remaining Time remaining for the wait in seconds
+    @return true if the wait should continue, false if it should be cancelled */
+int wait_continue(WINDOW *wait_win, Chyron *chyron, int remaining) {
+    char time_str[10];
+    ssnprintf(time_str, 9, "%d", remaining);
+    mvwaddstr(wait_win, 0, 21, time_str);
+    wmove(wait_win, 1, chyron->l);
+    cmd_key = xwgetch_t(wait_win, chyron, 1);
+    return cmd_key;
 }
 
 /** @brief For lines shorter than their display area, fill the rest with spaces
@@ -1204,5 +1277,72 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
             }
         }
     } while (c == ERR);
+    return c;
+}
+/** @brief Wrapper for wgetch that handles signals, mouse events, and checks for
+   clicks on the chyron line and times out after n Seconds
+    @ingroup window_support
+    @param win Pointer to window
+    @param chyron Pointer to chyron for handling chyron line clicks
+    @param n Number of seconds to wait before timing out
+    @return Key code or ERR if interrupted by signal
+    @note This, of course, will be expanded into an event loop for message
+   queuing
+    @details Get mouse event and check if it's a left click or double click. If
+   the click is outside the window, ignore it. If it's on the chyron line, get
+   the corresponding key command. Otherwise, store the click coordinates as
+   click_y and click_x for later use. */
+int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
+    int c;
+    MEVENT event;
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
+                  BUTTON5_PRESSED,
+              nullptr);
+    event.y = event.x = -1;
+    click_y = click_x = -1;
+    n *= 10; /** convert seconds to deciseconds for timeout */
+    halfdelay(n);
+    tcflush(2, TCIFLUSH);
+    do {
+        c = wgetch(win);
+        if (sig_received != 0) {
+            if (handle_signal(sig_received))
+                c = display_error(em0, em1, em2, nullptr);
+            if (c == 'q' || c == KEY_F(9))
+                exit(EXIT_FAILURE);
+            continue;
+        }
+        if (c == ERR)
+            break;
+        if (c == KEY_MOUSE) {
+            if (getmouse(&event) != OK) {
+                c = 0;
+                continue;
+            }
+            if (event.bstate & BUTTON4_PRESSED)
+                return (KEY_UP);
+            else if (event.bstate & BUTTON5_PRESSED)
+                return (KEY_DOWN);
+            if (event.bstate & BUTTON1_CLICKED ||
+                event.bstate & BUTTON1_DOUBLE_CLICKED) {
+                if (!wenclose(win, event.y, event.x)) {
+                    c = 0;
+                    continue;
+                }
+                wmouse_trafo(win, &event.y, &event.x, false);
+                if (event.y < 0 || event.x < 0 || event.x >= getmaxx(win) ||
+                    event.y >= getmaxy(win)) {
+                    c = 0;
+                    continue;
+                }
+                click_y = event.y;
+                click_x = event.x;
+                if (chyron && event.y == getmaxy(win) - 1)
+                    return get_chyron_key(chyron, event.x);
+                else
+                    return KEY_MOUSE;
+            }
+        }
+    } while (c != ERR);
     return c;
 }

@@ -57,7 +57,7 @@
         capture_shell_tioctl();                                                \
         Init *init = new_init(argc, argv);                                     \
         SIO *sio = init->sio;                                                  \
-        mapp_initialization(init, argc, argv);                                 \
+        mapp_initialization(init);                                             \
         open_curses(sio);                                                      \
         sig_prog_mode();                                                       \
         capture_curses_tioctl();                                               \
@@ -184,12 +184,12 @@ enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };
 extern Init *init;
 extern int init_cnt; /** number of Init data structures allocated */
 extern char minitrc[MAXLEN];
-extern void mapp_initialization(Init *init, int, char **);
+extern void mapp_initialization(Init *, int, char **);
 extern Init *new_init(int, char **);
-extern View *new_view(Init *init, int, char **);
-extern Form *new_form(Init *init, int, char **, int, int);
-extern Pick *new_pick(Init *init, int, char **, int, int);
-extern Menu *new_menu(Init *init, int, char **, int, int);
+extern View *new_view(Init *, int, char **);
+extern Form *new_form(Init *, int, char **, int, int);
+extern Pick *new_pick(Init *, int, char **, int, int);
+extern Menu *new_menu(Init *, int, char **, int, int);
 extern Menu *destroy_menu(Init *init);
 extern Pick *destroy_pick(Init *init);
 extern Form *destroy_form(Init *init);
@@ -210,6 +210,6 @@ extern int view_file(Init *);
 extern int mview(Init *, int, char **);
 extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(Init *, char *);
-extern bool view_init_input(View *, char *);
+extern int view_init_input(View *, char *);
 extern int cmd_processor(Init *);
 #endif

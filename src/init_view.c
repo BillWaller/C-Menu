@@ -189,7 +189,7 @@ int init_view_boxwin(Init *init, char *title) {
    real-time updates to the input, but it allows for efficient access to the
    data.
  */
-bool view_init_input(View *view, char *file_name) {
+int view_init_input(View *view, char *file_name) {
     struct stat sb;
     int idx = 0;
     pid_t pid;
@@ -205,11 +205,11 @@ bool view_init_input(View *view, char *file_name) {
         str_to_args(s_argv, view->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_view");
-            return (1);
+            return -1;
         }
         if ((pid = fork()) == -1) {
             Perror("fork() failed in init_view");
-            return (1);
+            return -1;
         }
         if (pid == 0) { // Child
             close(pipe_fd[P_READ]);
@@ -239,7 +239,7 @@ bool view_init_input(View *view, char *file_name) {
                 ssnprintf(em1, MAXLEN - 1, "open %s", file_name);
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, nullptr);
-                return false;
+                return -1;
             }
             if (fstat(view->in_fd, &sb) == -1) {
                 ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
@@ -248,7 +248,7 @@ bool view_init_input(View *view, char *file_name) {
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, nullptr);
                 close(view->in_fd);
-                return (EXIT_FAILURE);
+                return -1;
             }
             view->file_size = sb.st_size;
             if (view->file_size == 0) {
@@ -258,7 +258,7 @@ bool view_init_input(View *view, char *file_name) {
                 ssnprintf(em1, MAXLEN - 1, "file %s is empty", file_name);
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, nullptr);
-                return (EXIT_FAILURE);
+                return -1;
             }
             if (!S_ISREG(sb.st_mode))
                 view->f_in_pipe = true;
@@ -276,6 +276,83 @@ bool view_init_input(View *view, char *file_name) {
             exit(EXIT_FAILURE);
         }
         unlink(tmp_filename);
+        /*-----------------------------------------------------------------*/
+        bool f_wait = false;
+        int in_fd = dup(view->in_fd);
+        int ready;
+        fd_set read_fds;
+        struct timeval timeout;
+        Chyron *wait_chyron;
+        WINDOW *wait_win;
+        int remaining;
+        FD_SET(in_fd, &read_fds);
+        FD_ZERO(&read_fds);
+        timeout.tv_usec = 100000; /**< 1/10th of a second */
+        ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+        if (ready == 0) {
+            f_wait = true;
+            remaining = 5;
+            wait_chyron = wait_mk_chyron();
+            wait_win = wait_mk_win(wait_chyron, "WAITING for VIEW INPUT");
+        }
+        cmd_key = 0;
+        while (ready == 0 && remaining > 0 && cmd_key != KEY_F(9)) {
+            cmd_key = wait_continue(wait_win, wait_chyron, remaining);
+            if (cmd_key == KEY_F(9))
+                break;
+            ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+            remaining--;
+        }
+        if (f_wait) {
+            wait_destroy(wait_chyron);
+            win_del();
+        }
+        f_wait = false;
+        if (cmd_key == KEY_F(9)) {
+            if (view->f_in_pipe && pid > 0) {
+                /** If user cancels while waiting for view input, kill
+                 * provider_cmd child process and close pipe */
+                kill(pid, SIGKILL);
+                waitpid(pid, nullptr, 0);
+                close(pipe_fd[P_READ]);
+            }
+            Perror("No view input available");
+            return -1;
+        }
+        if (ready == -1) {
+            Perror("Error waiting for view input");
+            if (view->f_in_pipe && pid > 0) {
+                /** If error occurs while waiting for view input, kill
+                 * provider_cmd child process and close pipe */
+                kill(pid, SIGKILL);
+                waitpid(pid, nullptr, 0);
+                close(pipe_fd[P_READ]);
+            }
+            return -1;
+        }
+        if (ready == 0) {
+            Perror("Timeout waiting for view input");
+            if (view->f_in_pipe && pid > 0) {
+                /** If timeout occurs while waiting for view input, kill
+                 * provider_cmd child process and close pipe */
+                kill(pid, SIGKILL);
+                waitpid(pid, nullptr, 0);
+                close(pipe_fd[P_READ]);
+            }
+            return -1;
+        }
+        if (ready == 1 && !FD_ISSET(view->in_fd, &read_fds)) {
+            Perror("Unexpected error waiting for view input");
+            if (view->f_in_pipe && pid > 0) {
+                /** If unexpected error occurs while waiting for view input,
+                 * kill provider_cmd child process and close pipe */
+                kill(pid, SIGKILL);
+                waitpid(pid, nullptr, 0);
+                close(pipe_fd[P_READ]);
+            }
+            return -1;
+        }
+        /*-----------------------------------------------------------------*/
         while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0) {
             if (write(view->in_fd, buf, bytes_read) != bytes_read) {
                 abend(-1, "unable to write tmp");
@@ -309,7 +386,7 @@ bool view_init_input(View *view, char *file_name) {
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, nullptr);
         close(view->in_fd);
-        return (EXIT_FAILURE);
+        return -1;
     }
     close(view->in_fd);
     view->file_size = sb.st_size;
@@ -321,5 +398,5 @@ bool view_init_input(View *view, char *file_name) {
         view->mark_tbl[idx] = NULL_POSITION;
     strnz__cpy(view->cur_file_str, file_name, MAXLEN - 1);
     base_name(view->file_name, view->cur_file_str);
-    return true;
+    return 0;
 }

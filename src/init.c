@@ -44,7 +44,7 @@ int write_config(Init *init);
 void display_version();
 
 Init *init = NULL;
-void mapp_initialization(Init *init, int, char **);
+void mapp_initialization(Init *, int, char **);
 int parse_opt_args(Init *, int, char **);
 void zero_opt_args(Init *);
 int parse_config(Init *);
@@ -107,38 +107,35 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     t = getenv("EDITOR");
     if (t && *t != '\0')
         strnz__cpy(init->editor, "vi", MAXLEN - 1);
-
     parse_config(init); /**< generally /home/user/.minitrc */
-    if (f_debug)
-        dump_config(init, "Configuration after parse_config");
-    parse_opt_args(init, argc,
-                   argv); /**< command-line options override config file */
+    parse_opt_args(init, argc, argv);
     if (f_dump_config) {
         dump_config(init, "Configuration after parse_config and "
                           "parse_opt_args");
-    } else if (f_debug)
-        dump_config(init, "Configuration after parse_opt_args");
-    if (f_write_config) {
-        write_config(init);
-    }
-    if (f_help) {
-        dump_config(init, "Current Configuration");
-    }
-    if (f_version) {
-        display_version();
-    }
-    if (init->mapp_home[0] != '\0') {
-        expand_tilde(init->mapp_home, MAXLEN - 1);
-        if (!verify_dir(init->mapp_home, R_OK))
-            abend(-1, "MAPP_HOME directory invalid");
+        if (f_write_config) {
+            write_config(init);
+        }
+        if (f_help) {
+            dump_config(init, "Current Configuration");
+        }
+        if (f_version) {
+            display_version();
+        }
+        if (init->mapp_home[0] != '\0') {
+            expand_tilde(init->mapp_home, MAXLEN - 1);
+            if (!verify_dir(init->mapp_home, R_OK))
+                abend(-1, "MAPP_HOME directory invalid");
+        }
     }
 }
-/** @brief Initialize optional arguments in the Init struct to default values
+/** @brief Initialize optional arguments in the Init struct to default
+   values
     @ingroup init
-    @param init - pointer to Init struct to be initialized This function sets
-   all optional argument fields in the Init struct to their default values
-   before parsing command-line options or configuration file. This ensures that
-   any fields not specified by the user will have known default values.
+    @param init - pointer to Init struct to be initialized This function
+   sets all optional argument fields in the Init struct to their default
+   values before parsing command-line options or configuration file. This
+   ensures that any fields not specified by the user will have known default
+   values.
  */
 void zero_opt_args(Init *init) {
     init->f_mapp_desc = false;
@@ -352,12 +349,13 @@ int parse_opt_args(Init *init, int argc, char **argv) {
     init->argc = argc;
     return optind;
 }
-/** @brief parse the configuration file specified in init->minitrc and set Init
-   struct values accordingly
+/** @brief parse the configuration file specified in init->minitrc and set
+   Init struct values accordingly
     @ingroup init
     @returns on success, -1 on failure
     @note lines beginning with '#" are comments, discard
-    @note copy line to tmp_str removing quotes, spaces, semicolons, and newlines
+    @note copy line to tmp_str removing quotes, spaces, semicolons, and
+   newlines
     @note record structure is "parse key=value pairs"
     @note skip lines without '='
     @note set init struct values based on key
@@ -632,15 +630,16 @@ int parse_config(Init *init) {
     (void)fclose(config_fp);
     return 0;
 }
-/** @brief Write the current configuration to a file specified in init->minitrc
+/** @brief Write the current configuration to a file specified in
+   init->minitrc
     @ingroup init
     @param init - pointer to Init struct containing current configuration
     @returns 0 on success, -1 on failure
     @note The configuration is written in key=value format, one per line
-    @note Lines beginning with '#' are comments and are ignored when reading the
-   config file
-    @note The file is created if it does not exist, and overwritten if it does
-   exist
+    @note Lines beginning with '#' are comments and are ignored when reading
+   the config file
+    @note The file is created if it does not exist, and overwritten if it
+   does exist
  */
 int write_config(Init *init) {
     char *e;
@@ -740,8 +739,8 @@ int write_config(Init *init) {
     @note If dir is nullptr, use MAPP_DIR environment variable or default
    directory
    ~/menuapp
-    @note file_spec should be a pre-allocated char array of size MAXLEN to hold
-   the resulting file specification
+    @note file_spec should be a pre-allocated char array of size MAXLEN to
+   hold the resulting file specification
  */
 bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     char ts[MAXLEN];
@@ -773,8 +772,8 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
 }
 /** @brief Display the version information of the application
     @ingroup init
-    @note The version information is defined in the mapp_version variable and is
-   printed to stderr when this function is called. */
+    @note The version information is defined in the mapp_version variable
+   and is printed to stderr when this function is called. */
 void display_version() {
     fprintf(stderr, "\nC-Menu %s\n", CM_VERSION);
     exit(EXIT_SUCCESS);
@@ -782,8 +781,8 @@ void display_version() {
 /** @brief Display the usage information of the application
     @ingroup init
     @note The usage information is printed to stderr when this function is
-   called. After displaying the usage information, the function waits for the
-   user to press any key before returning. */
+   called. After displaying the usage information, the function waits for
+   the user to press any key before returning. */
 void usage() {
     dump_opts();
     (void)fprintf(stderr, "\n\nPress any key to continue...");
@@ -794,8 +793,8 @@ void usage() {
     @param o - option flag (e.g., "-a:")
     @param name - option name (e.g., "--minitrc")
     @param value - option value to print
-    @note This function is used to display the current configuration options and
-   their values in a readable format. */
+    @note This function is used to display the current configuration options
+   and their values in a readable format. */
 void opt_prt_char(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
@@ -805,8 +804,8 @@ void opt_prt_char(const char *o, const char *name, const char *value) {
     @param o - option flag (e.g., "-C:")
     @param name - option name (e.g., "--cols")
     @param value - integer option value to print
-    @note This function is used to display the current configuration options and
-   their integer values in a readable format. */
+    @note This function is used to display the current configuration options
+   and their integer values in a readable format. */
 void opt_prt_str(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
 }
@@ -816,18 +815,19 @@ void opt_prt_str(const char *o, const char *name, const char *value) {
     @param o - option flag (e.g., "-C:")
     @param name - option name (e.g., "--cols")
     @param value - integer option value to print
-    @note This function is used to display the current configuration options and
-   their integer values in a readable format. */
+    @note This function is used to display the current configuration options
+   and their integer values in a readable format. */
 void opt_prt_int(const char *o, const char *name, int value) {
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
 }
-/** @brief Print an option and its value in a formatted manner for double values
+/** @brief Print an option and its value in a formatted manner for double
+   values
     @ingroup init
     @param o - option flag (e.g., "-r:")
     @param name - option name (e.g., "red_gamma")
     @param value - double option value to print
-    @note This function is used to display the current configuration options and
-   their double values in a readable format. */
+    @note This function is used to display the current configuration options
+   and their double values in a readable format. */
 void opt_prt_double(const char *o, const char *name, double value) {
     fprintf(stdout, "%3s %-15s: %0.2f\n", o, name, value);
 }
@@ -837,17 +837,18 @@ void opt_prt_double(const char *o, const char *name, double value) {
     @param o - option flag (e.g., "-z")
     @param name - option name (e.g., "f_squeeze")
     @param value - boolean option value to print
-    @note This function is used to display the current configuration options and
-   their boolean values in a readable format, printing "true" or "false" based
-   on the value. */
+    @note This function is used to display the current configuration options
+   and their boolean values in a readable format, printing "true" or "false"
+   based on the value. */
 void opt_prt_bool(const char *o, const char *name, bool value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }
 /** @brief Dump the current configuration to stderr for debugging purposes
     @ingroup init
-    @param init - pointer to Init struct containing the current configuration
-    @param msg - string to print before dumping the configuration to stderr in a
-   readable format, prefixed by the provided title string. */
+    @param init - pointer to Init struct containing the current
+   configuration
+    @param msg - string to print before dumping the configuration to stderr
+   in a readable format, prefixed by the provided title string. */
 void dump_config(Init *init, char *msg) {
     SIO *sio = init->sio;
     opt_prt_str("-a:", "--minitrc", init->minitrc);

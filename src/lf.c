@@ -152,16 +152,5 @@ int main(int argc, char **argv) {
         strnz__cpy(dir, ".", MAXLEN - 1);
     flags |= LF_REGEX;
     lf_find(dir, re, ere, max_depth, flags);
-    if (f_debug) {
-        printf("\n\nFT_BLK: %08b\n", FT_BLK);
-        printf("FT_CHR: %08b\n", FT_CHR);
-        printf("FT_DIR: %08b\n", FT_DIR);
-        printf("FT_FIFO: %08b\n", FT_FIFO);
-        printf("FT_LNK: %08b\n", FT_LNK);
-        printf("FT_REG: %08b\n", FT_REG);
-        printf("FT_SOCK: %08b\n", FT_SOCK);
-        printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
-        printf("flags: %016b %08b %08b\n", flags, flags >> 8, flags & 0xff);
-    }
     return true;
 }
