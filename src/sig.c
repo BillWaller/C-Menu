@@ -18,12 +18,15 @@
  */
 
 #include <cm.h>
+#include <execinfo.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+
+#define MAX_FRAMES 64
 
 volatile sig_atomic_t sig_received = 0;
 
@@ -107,6 +110,21 @@ void signal_handler(int sig_num) {
         char *msg2 = "________ SIGSEGV - Segmentation fault - Generating core "
                      "dump ________\n\n";
         write(STDERR_FILENO, msg2, strlen(msg2));
+        void *addrlist[MAX_FRAMES];
+        char **symbols;
+        int frames;
+        frames = backtrace(addrlist, MAX_FRAMES);
+        symbols = backtrace_symbols(addrlist, frames);
+        if (symbols == nullptr) {
+            abend(-1, "backtrace_symbols failed");
+            _exit(EXIT_FAILURE);
+        }
+        for (int i = 0; i < frames; i++) {
+            char buf[256];
+            ssnprintf(buf, sizeof(buf), "%s\n", symbols[i]);
+            write(STDERR_FILENO, buf, strlen(buf));
+        }
+        free(symbols);
         struct sigaction sa;
         sa.sa_handler = SIG_DFL;
         sigemptyset(&sa.sa_mask);
