@@ -49,17 +49,17 @@ RSH_LD = -static
 
 SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-REL_CFLAGS=-O2
-# DBG_CFLAGS=-O0 -ggdb -rdynamic
+# REL_CFLAGS=-O2
+DBG_CFLAGS=-O0 -ggdb -rdynamic
 # CFLAGS=-static
-CFLAGS=$(REL_CFLAGS)
+CFLAGS=$(DBG_CFLAGS)
 CC=gcc -Wall -Wextra -I./include $(CFLAGS)
 CX=-std=gnu23
 CX=-std=c23
 
 MAJOR=0
-MINOR=3
-PATCH=0
+MINOR=2
+PATCH=9
 VERSION=$(MAJOR).$(MINOR).$(PATCH)
 
 LIB_SHARED=libcm.so
@@ -157,6 +157,9 @@ dwin.o:	dwin.c
 	$(CC) 	-c $< -fPIC -o $@
 
 futil.o:	futil.c
+	$(CC) 	-c $< -fPIC -o $@
+
+popups.o:	popups.c
 	$(CC) 	-c $< -fPIC -o $@
 
 scriou.o:	scriou.c
