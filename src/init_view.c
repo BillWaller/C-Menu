@@ -289,7 +289,7 @@ int view_init_input(View *view, char *file_name) {
         FD_ZERO(&read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
         timeout.tv_sec = 0;
-        timeout.tv_usec = 1000000;
+        timeout.tv_usec = 100000;
         ready = select(STDIN_FILENO + 1, &read_fds, nullptr, nullptr, &timeout);
         if (ready == 0) {
             f_wait = true;
@@ -313,8 +313,6 @@ int view_init_input(View *view, char *file_name) {
         if (f_wait) {
             if (wait_chyron != nullptr)
                 wait_destroy(wait_chyron);
-            if (wait_win != nullptr)
-                win_del();
         }
         f_wait = false;
         if (cmd_key == KEY_F(9)) {
