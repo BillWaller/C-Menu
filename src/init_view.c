@@ -283,8 +283,8 @@ int view_init_input(View *view, char *file_name) {
         int ready;
         fd_set read_fds;
         struct timeval timeout;
-        Chyron *wait_chyron;
-        WINDOW *wait_win;
+        Chyron *wait_chyron = nullptr;
+        WINDOW *wait_win = nullptr;
         int remaining;
         FD_ZERO(&read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
@@ -311,8 +311,10 @@ int view_init_input(View *view, char *file_name) {
             remaining--;
         }
         if (f_wait) {
-            wait_destroy(wait_chyron);
-            win_del();
+            if (wait_chyron != nullptr)
+                wait_destroy(wait_chyron);
+            if (wait_win != nullptr)
+                win_del();
         }
         f_wait = false;
         if (cmd_key == KEY_F(9)) {
