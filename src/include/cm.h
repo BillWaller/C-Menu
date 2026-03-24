@@ -22,7 +22,7 @@
 #define nullptr NULL
 #endif
 
-#define DEBUG true
+// #define DEBUG true
 
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
