@@ -1236,11 +1236,8 @@ void next_page(View *view) {
 void view_display_page(View *view) {
     int i;
     wmove(view->pad, 0, 0);
-    wclrtobot(view->pad);
-    if (view->ln_win) {
+    if (view->ln_win)
         wmove(view->ln_win, 0, 0);
-        wclrtobot(view->ln_win);
-    }
     view->page_top_ln = view->ln;
     view->page_bot_ln = view->ln;
     view->page_top_pos = view->ln_tbl[view->ln];
@@ -1253,6 +1250,8 @@ void view_display_page(View *view) {
         fmt_line(view);
         display_line(view);
     }
+    wclrtobot(view->ln_win);
+    wclrtobot(view->pad);
     view->page_bot_ln = view->ln;
 }
 /** @brief Scroll N Lines
