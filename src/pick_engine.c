@@ -150,7 +150,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     FD_ZERO(&read_fds);
     FD_SET(in_fd, &read_fds);
     timeout.tv_sec = 0;
-    timeout.tv_usec = 100000; /**< 1/10th of a second */
+    timeout.tv_usec =
+        200000; /**< Initial timeout of 200ms to check for pick input */
     ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
     if (ready == 0) {
         f_wait = true;

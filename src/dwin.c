@@ -36,7 +36,6 @@ void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 void abend(int, char *);
 void user_end();
 int nf_error(int, char *);
-
 void set_chyron_key(Chyron *, int, char *, int);
 bool is_set_chyron_key(Chyron *, int);
 void unset_chyron_key(Chyron *, int);
@@ -450,7 +449,6 @@ int get_clr_pair(int fg, int bg) {
         clr_pair_cnt++;
     return i;
 }
-
 /** @brief Get color index for RGB color
     @ingroup color_management
     @param rgb RGB color
@@ -478,7 +476,6 @@ int rgb_to_curses_clr(RGB *rgb) {
     }
     return ERR;
 }
-
 /** @brief Convert RGB color to XTerm 256 color index
     @ingroup color_management
     @param rgb RGB color
@@ -501,7 +498,6 @@ int rgb_to_xterm256_idx(RGB *rgb) {
         return 16 + (36 * r_index) + (6 * g_index) + b_index;
     }
 }
-
 /** @brief Convert XTerm 256 color index to RGB color
     @ingroup color_management
     @param idx XTerm 256 color index
@@ -559,7 +555,6 @@ void apply_gamma(RGB *rgb) {
     if (rgb->b != 0 && BLUE_GAMMA > 0.0f && BLUE_GAMMA != 1.0f)
         rgb->b = (int)(pow((rgb->b / 255.0f), 1.0f / BLUE_GAMMA) * 255.0f);
 }
-
 /** @brief Initialize color palette based on SIO settings
     @ingroup color_management
     @param sio Pointer to SIO struct with color settings
@@ -619,7 +614,6 @@ bool init_clr_palette(SIO *sio) {
     clr_cnt = CLR_NCOLORS;
     return true;
 }
-
 /** @brief Initialize extended ncurses color from HTML style hex string
     @ingroup color_management
     @param idx Color index
@@ -643,7 +637,6 @@ void init_hex_clr(int idx, char *s) {
     rgb.b = (rgb.b * 1000) / 255;
     init_extended_color(idx, rgb.r, rgb.g, rgb.b);
 }
-
 /** @brief Convert six-digit HTML style hex color code to RGB struct
     @ingroup color_management
     @param s six-digit HTML style hex color code */
@@ -652,7 +645,6 @@ RGB hex_clr_str_to_rgb(char *s) {
     sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
     return rgb;
 }
-
 /** @brief Gracefully shut down NCurses and restore terminal settings
     @ingroup window_support
     @note This function should be called before exiting the program to ensure
@@ -663,7 +655,7 @@ RGB hex_clr_str_to_rgb(char *s) {
    sig_dfl_mode. */
 void destroy_curses() {
     if (f_curses_open) {
-        wclear(stdscr);
+        werase(stdscr);
         wrefresh(stdscr);
         endwin();
         f_curses_open = false;
@@ -672,7 +664,6 @@ void destroy_curses() {
     sig_dfl_mode();
     return;
 }
-
 /** @brief Create a cchar_t with the specified color pair index
     @ingroup color_management
     @param cp Color pair index
@@ -684,7 +675,6 @@ cchar_t mkccc(int cp) {
     setcchar(&cc, &wc, WA_NORMAL, cp, nullptr);
     return cc;
 }
-
 /** @brief Create a new window with optional box and title
     @ingroup window_support
     @param wlines Number of lines
@@ -758,7 +748,6 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     }
     return (0);
 }
-
 /** @brief Resize the current window and its box, and update the title
     @ingroup window_support
     @param wlines Number of lines
@@ -815,7 +804,6 @@ void win_redraw(WINDOW *win) {
     werase(win);
     wnoutrefresh(win);
 }
-
 /** @brief Delete the current window and its associated box window
     @ingroup window_support
     @return nullptr
@@ -827,12 +815,12 @@ WINDOW *win_del() {
     int i;
 
     if (win_ptr > 0) {
-        wclear(win_win[win_ptr]);
+        werase(win_win[win_ptr]);
         touchwin(win_win[win_ptr]);
         wrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
 
-        wclear(win_box[win_ptr]);
+        werase(win_box[win_ptr]);
         touchwin(win_box[win_ptr]);
         wrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
@@ -849,7 +837,6 @@ WINDOW *win_del() {
     }
     return (0);
 }
-
 /** @brief Restore all windows after a screen resize
     @ingroup window_support
     @note This function is used to restore the display of all windows after a
@@ -860,7 +847,7 @@ WINDOW *win_del() {
 void restore_wins() {
     int i;
 
-    wclear(stdscr);
+    werase(stdscr);
     touchwin(stdscr);
     wnoutrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
@@ -870,7 +857,6 @@ void restore_wins() {
         wnoutrefresh(win_win[i]);
     }
 }
-
 /** @brief Draw a box around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
@@ -991,7 +977,6 @@ int Perror(char *emsg_str) {
         fprintf(stderr, "\n%s\n", emsg);
         return (1);
     }
-
     Chyron *chyron = new_chyron();
     set_chyron_key(chyron, 1, "F1 Help", KEY_F(1));
     set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
@@ -1025,7 +1010,7 @@ int Perror(char *emsg_str) {
     destroy_chyron(chyron);
     return (cmd_key);
 }
-/** @brief Create a Chyron struct for the wait message
+/** @brief Create a Chyron struct for the waiting message
     @ingroup error_handling
     @return Pointer to the chyron struct */
 Chyron *wait_mk_chyron() {
@@ -1094,7 +1079,6 @@ int wait_continue(WINDOW *wait_win, Chyron *chyron, int remaining) {
     cmd_key = xwgetch_t(wait_win, chyron, 1);
     return cmd_key;
 }
-
 /** @brief For lines shorter than their display area, fill the rest with spaces
     @ingroup window_support
     @param w Pointer to window
@@ -1118,7 +1102,6 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     *d++ = '\0';
     mvwaddstr(w, y, x, tmp_str);
 }
-
 /** @brief Get color index from color name
     @ingroup color_management
     @param s Color name
@@ -1137,7 +1120,6 @@ int clr_name_to_idx(char *s) {
         return (-1);
     return (i);
 }
-
 /** @brief list colors to stderr
     @ingroup color_management
     @note only lists the first 16, since that's how many we let the
@@ -1158,7 +1140,6 @@ void list_colors() {
     }
     fprintf(stderr, "\n");
 }
-
 /** @brief Display error message and wait for key press
     @ingroup error_handling
     @param ec Error code
@@ -1170,7 +1151,6 @@ int nf_error(int ec, char *s) {
     fprintf(stderr, "\n");
     return ec;
 }
-
 /** @brief Program terminated by user
     @ingroup error_handling
    */
@@ -1182,7 +1162,6 @@ void user_end() {
     fprintf(stderr, "\n");
     exit(EXIT_SUCCESS);
 }
-
 /** @brief Abnormal program termination
     @ingroup error_handling
     @param ec Exit code
@@ -1258,11 +1237,11 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
     } while (c == ERR);
     return c;
 }
-/** @brief Wrapper for wgetch that handles signals, mouse events, and checks for
-   clicks on the chyron line and times out after n Seconds
+/** @brief Wrapper for wgetch that handles signals, mouse events, checks for
+   clicks on the chyron line, and times out after n Seconds
     @ingroup window_support
     @param win Pointer to window
-    @param chyron Pointer to chyron for handling chyron line clicks
+    @param chyron Pointer to chyron struct
     @param n Number of seconds to wait before timing out
     @return Key code or ERR if interrupted by signal
     @note This, of course, will be expanded into an event loop for message
@@ -1280,6 +1259,10 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
     event.y = event.x = -1;
     click_y = click_x = -1;
     n *= 10; /** convert seconds to deciseconds for timeout */
+    if (n < 0)
+        n = 0;
+    if (n > 255)
+        n = 255;
     halfdelay(n);
     tcflush(2, TCIFLUSH);
     do {

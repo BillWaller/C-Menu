@@ -356,7 +356,7 @@ int view_cmd_processor(Init *init) {
                 view->maxcol = 0;
                 view->cury = 0;
                 view->page_top_ln = view->ln;
-                wclear(view->pad);
+                werase(view->pad);
                 wnoutrefresh(view->pad);
                 view_display_page(view);
                 break;
