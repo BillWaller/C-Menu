@@ -50,9 +50,9 @@ RSH_LD = -static
 SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 REL_CFLAGS=-O2
-DBG_CFLAGS=-O0 -ggdb -rdynamic
+# DBG_CFLAGS=-O0 -ggdb -rdynamic
 # CFLAGS=-static
-CFLAGS=$(DBG_CFLAGS)
+CFLAGS=$(REL_CFLAGS)
 CC=gcc -Wall -Wextra -I./include $(CFLAGS)
 CX=-std=gnu23
 CX=-std=c23

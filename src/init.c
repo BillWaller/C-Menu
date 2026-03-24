@@ -70,7 +70,7 @@ int executor = 0;
 void mapp_initialization(Init *init, int argc, char **argv) {
     char term[MAXLEN];
     char tmp_str[MAXLEN];
-    char *t;
+    char *e;
     setlocale(LC_ALL, "en_US.UTF-8");
     SIO *sio = init->sio;
     if (!init) {
@@ -79,6 +79,12 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         abend(-1, tmp_str);
         exit(-1);
     }
+
+    e = getenv("CMENURC");
+    if (!e || *e == '\0')
+        strnz__cpy(init->minitrc, "~/menuapp/.minitrc", MAXLEN);
+    else
+        strnz__cpy(init->minitrc, e, MAXLEN);
     if (init->minitrc[0] == '\0')
         strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
     strnz__cpy(sio->bg_clr_x, "#000007",
@@ -101,12 +107,16 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
     // Priority-4 - cfg_args
 
-    t = getenv("TERM");
-    if (!t || *t == '\0')
+    e = getenv("TERM");
+    if (*e == '\0')
         strnz__cpy(term, "xterm-256color", MAXLEN);
-    t = getenv("EDITOR");
-    if (t && *t != '\0')
+    else
+        strnz__cpy(term, e, MAXLEN - 1);
+    e = getenv("EDITOR");
+    if (e && *e != '\0')
         strnz__cpy(init->editor, "vi", MAXLEN - 1);
+    else
+        strnz__cpy(init->editor, e, MAXLEN - 1);
     parse_config(init); /**< generally /home/user/.minitrc */
     parse_opt_args(init, argc, argv);
     if (f_dump_config) {

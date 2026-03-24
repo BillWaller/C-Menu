@@ -346,6 +346,10 @@ export MASON="$HOME/.local/share/lazyvim/mason"
 
 ## C-Menu Configuration
 
+Set the environment variable CMENURC to the path of your C-Menu configuration
+file. This file is read by C-Menu at startup and contains various settings that
+control the behavior and appearance of C-Menu. You can customize these settings to suit your preferences and needs. Below is an example of a C-Menu configuration file.
+
 ```ini
 # ~/.minitrc
 cols=0

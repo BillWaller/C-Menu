@@ -23,7 +23,9 @@ gh repo clone BillWaller/C-Menu
   - [Not Required, But Recommended](#not-required-but-recommended)
 - [Getting Started](#getting-started)
   - [RSH Safety Features](#rsh-safety-features)
-- [Menu](#menu)
+- [Starting C-Menu](#starting-c-menu)
+- [C-Menu configuration](#c-menu-configuration)
+- [Programming C-Menu Menu](#programming-c-menu-menu)
   - [Menu Example](#menu-example)
   - [Menu Description File Format](#menu-description-file-format)
 - [C-Menu Form](#c-menu-form)
@@ -45,6 +47,7 @@ gh repo clone BillWaller/C-Menu
     - [Horizontal Scrolling](#horizontal-scrolling)
     - [Motion Keys](#motion-keys)
   - [C-Menu Options](#c-menu-options)
+  - [C-Menu configuration file example](#c-menu-configuration-file-example)
   - [lf](#lf)
   - [whence](#whence)
 - [Troubleshooting](#troubleshooting)
@@ -155,7 +158,37 @@ familiarize yourself with its features.
 
 ---
 
-## Menu
+## Starting C-Menu
+
+To start C-Menu, simply run the following command in your terminal:
+
+```bash
+menu
+```
+
+This will launch the C-Menu interface, where you can navigate through the menu items and execute commands as needed. You can also specify a menu description file to use with the -d option:
+
+```bash
+menu -d /path/to/menu_description_file
+```
+
+## C-Menu configuration
+
+C-Menu can be configured using a configuration file located at ~/.minitrc. This file allows you to customize various aspects of C-Menu, such as the default menu description file, the default editor, and other settings. You can edit this file with any text editor to suit your preferences.
+
+You don't necessarily need to use ~/.minitrc as your configuration file. You can
+specify an alternate configuration file by setting the environment variable,
+CMENURC, to the path of the desired configuration file. For example:
+
+```bash
+export CMENURC=~/menuapp/.cmenurc
+```
+
+See [Cmenu Options](#c-menu-options) for a list of available configuration options and their descriptions.
+
+---
+
+## Programming C-Menu Menu
 
 C-Menu parses a menu description file, which contains text lines to
 display and command lines, which are essentially operating system
@@ -471,6 +504,54 @@ C-Menu_Data_Directory").
 
 ![C-Menu Options](../screenshots/options.png)
 
+### C-Menu configuration file example
+
+```bash
+# ~/.minitrc
+tab_stop=4
+f_at_end_remove=false
+f_erase_remainder=true
+fill_char=_
+f_strip_ansi=false
+f_ignore_case=false
+f_squeeze=false
+f_ln=false
+red_gamma=1.2
+green_gamma=1.2
+blue_gamma=1.2
+gray_gamma=1.2
+black=#00020f
+bg=#000000
+bg_clr_x=#000000
+fg_clr_x=#c0c0c0
+bo_clr_x=#d00000
+ln_clr_x=#004fff
+ln_bg_clr_x=#001020
+black=#00020f
+red=#ff0000
+green=#00d07f
+yellow=#ffba00
+blue=#0080ff
+magenta=#f000f0
+cyan=#00dfff
+white=#c0c0c0
+bblack=#000930
+bred=#ff7f00
+bgreen=#00ff87
+byellow=#ffff00
+bblue=#00afff
+bmagenta=#ff00ff
+bcyan=#00ffff
+bwhite=#ffffff
+editor=nvim
+mapp_spec=main.m
+mapp_home=~/menuapp
+mapp_data=~/menuapp/data
+mapp_help=~/menuapp/help
+mapp_msrc=~/menuapp/msrc
+mapp_user=~/menuapp/user
+```
+
 ---
 
 ### lf
@@ -485,14 +566,22 @@ and fewer features.
 ```bash
 Usage: lf [options] [directory] [regexp]
 Options:
--a List hidden files
--d maximum depth of subdirectories to examine
--e exclude files or directories matching the specified regular expression
--h show this help message
--i ignore case in search
--t d - directories (exclude files)
--t f - files (exclude directories)
--v show version information
+  -a        List hidden files
+  -d        maximum depth of subdirectories to examine
+  -e        exclude files matching the regular expression
+  -h        show this help message
+  -i        ignore case in search
+  -t   [bcdplfsu]
+       b          block devices
+        c         character devices
+         d        directories
+          p       named pipes
+           l      symbolic links
+            f     regular files
+             s    sockets
+              u   unknown
+                  (in any order or combination)
+  -v        show version information
 ```
 
 The syntax for "lf" is different from "find" in that the directory to
@@ -517,6 +606,12 @@ List all files in the current directory and its subdirectories ending with .c or
 
 ```bash
 lf /home/user '.*\.[ch]$'
+```
+
+List all regular files in the current directory and its subdirectories that contain the word "report" in their name, ignoring case.
+
+```bash
+lf . -i -t f '.*report.*'
 ```
 
 List all files in the current directory and its subdirectories excluding
