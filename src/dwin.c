@@ -934,18 +934,11 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     em1_l = strnz(em1, COLS - 4);
     em2_l = strnz(em2, COLS - 4);
     em3_l = strnz(em1, COLS - 4);
-    if (em0_l > em_l)
-        em_l = em0_l;
-    if (em1_l > em_l)
-        em_l = em1_l;
-    if (em2_l > em_l)
-        em_l = em2_l;
-    if (em3_l > em_l)
-        em_l = em3_l;
-    if (em_l < chyron->l)
-        em_l = chyron->l;
-    if (em_l > (COLS - 4))
-        em_l = COLS - 4;
+    em_l = max(em0_l, em1_l);
+    em_l = max(em_l, em2_l);
+    em_l = max(em_l, em3_l);
+    em_l = max(em_l, chyron->l);
+    em_l = min(em_l, COLS - 4);
 
     pos = ((COLS - em_l) - 4) / 2;
     line = (LINES - 6) / 2;
@@ -966,26 +959,12 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     wattroff(error_win, WA_REVERSE);
     wmove(error_win, 4, chyron->l + 1);
     wrefresh(error_win);
-    while (1) {
+    do {
         cmd_key = xwgetch(error_win, chyron);
-        switch (cmd_key) {
-        case 'n':
-        case 'N':
-        case 'q':
-        case 'Q':
-        case 'x':
-        case 'X':
-        case 'y':
-        case 'Y':
-        case KEY_F(1):
-        case KEY_F(9):
-        case KEY_F(10):
-            win_del();
-            return (cmd_key);
-        default:
-            continue;
-        }
-    }
+        if (cmd_key == KEY_F(9) || cmd_key == KEY_F(10) || cmd_key == 'q' ||
+            cmd_key == 'Q')
+            break;
+    } while (1);
     win_del();
     destroy_chyron(chyron);
     return (cmd_key);

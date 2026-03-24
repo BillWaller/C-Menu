@@ -29,11 +29,63 @@
 #define SCR_COLS 1024 /**< maximum number of columns in the terminal screen */
 #define MAX_DEPTH 3   /**< maximum depth for recursive file searching */
 
+/** @brief max macro evaluates two expressions, returning greatest result.
+    @details These macros use compound statements to create local scopes for the
+   temporary variables _x and _y, which store the values of x and y,
+   respectively. This ensures that if x or y have side effects (such as being
+   incremented), they will only be evaluated once when the macro is expanded.
+    @note The use of typeof allows the macro to work with any data type.
+    @note The line (void)(&_x == &_y) is a compile-time check to ensure that the
+   types of the arguments are compatible.
+    @note This implementation of the min and max macros provides a safer and
+   more robust way to determine the minimum and maximum values between two
+   expressions without risking unintended consequences from multiple
+   evaluations.
+ */
 #define max(a, b)                                                              \
     ({                                                                         \
         typeof(a) _a = (a);                                                    \
         typeof(b) _b = (b);                                                    \
         _a > _b ? _a : _b;                                                     \
+    })
+/** @brief min macro evaluates two expressions, returning least result */
+#define min(x, y)                                                              \
+    ({                                                                         \
+        typeof(x) _x = (x);                                                    \
+        typeof(y) _y = (y);                                                    \
+        (void)(&_x == &_y);                                                    \
+        _x < _y ? _x : _y;                                                     \
+    })
+
+/** @note /usr/include/sys/param.h contains implementations of the MIN and MAX
+   macros, which are simple but can lead to issues with multiple evaluations of
+   the arguments if they have side effects.
+
+    @note Here are the macros from /usr/include/sys/param.h. You may comment out
+   the macros defined herein and use the macros in param.h if you prefer.
+
+    @code
+    #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+    #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+    @endcode
+*/
+/** @brief MIN and MAX macros for compatibility with code that uses these names,
+   while avoiding multiple evaluations of the arguments.
+    @note The following two macros provide safer alternatives to param.h
+ */
+#define MAX(a, b)                                                              \
+    ({                                                                         \
+        typeof(a) _a = (a);                                                    \
+        typeof(b) _b = (b);                                                    \
+        _a > _b ? _a : _b;                                                     \
+    })
+
+#define MIN(x, y)                                                              \
+    ({                                                                         \
+        typeof(x) _x = (x);                                                    \
+        typeof(y) _y = (y);                                                    \
+        (void)(&_x == &_y);                                                    \
+        _x < _y ? _x : _y;                                                     \
     })
 
 enum LFFlags {
