@@ -51,11 +51,11 @@ int full_screen_fork_exec(char **argv) {
     int rc;
 
     fflush(stderr);
-    wclear(stdscr);
+    werase(stdscr);
     wmove(stdscr, LINES - 1, 0);
     wrefresh(stdscr);
     rc = fork_exec(argv);
-    wclear(stdscr);
+    werase(stdscr);
     wmove(stdscr, 0, 0);
     wrefresh(stdscr);
     restore_wins();
@@ -73,7 +73,7 @@ int full_screen_shell(char *shellCmdPtr) {
     int rc;
 
     fflush(stderr);
-    wclear(stdscr);
+    werase(stdscr);
     wmove(stdscr, 0, 0);
     wrefresh(stdscr);
     rc = shell(shellCmdPtr);

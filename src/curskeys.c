@@ -571,9 +571,9 @@ int display_curses_keys() {
         c = '\0';
     }
 
-    wclear(win);
+    werase(win);
     wrefresh(win);
-    clear();
+    erase();
     refresh();
     win_del();
     return 0;

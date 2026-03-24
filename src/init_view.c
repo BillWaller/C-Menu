@@ -62,7 +62,7 @@ int init_view_full_screen(Init *init) {
     wbkgrnd(view->ln_win, &CCC_LN);
     wbkgrndset(view->ln_win, &CCC_LN);
     wmove(view->ln_win, 0, 0);
-    wclear(view->ln_win);
+    werase(view->ln_win);
     wnoutrefresh(view->ln_win);
     view->pminrow = 0;
     view->pmincol = 0;
@@ -90,7 +90,7 @@ int init_view_full_screen(Init *init) {
     idcok(view->pad, false);
     wbkgrnd(view->pad, &CCC_NORM);
     wbkgrndset(view->pad, &CCC_NORM);
-    wclear(view->pad);
+    werase(view->pad);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
     return 0;
 }
@@ -143,7 +143,7 @@ int init_view_boxwin(Init *init, char *title) {
                           view->begx + 1);
     view->win = win_win[win_ptr];
     wmove(view->ln_win, 0, 0);
-    wclear(view->ln_win);
+    werase(view->ln_win);
     wbkgrnd(view->ln_win, &CCC_LN);
     wbkgrndset(view->ln_win, &CCC_LN);
     wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
@@ -289,7 +289,7 @@ int view_init_input(View *view, char *file_name) {
         FD_ZERO(&read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
         timeout.tv_sec = 0;
-        timeout.tv_usec = 100000;
+        timeout.tv_usec = 200000; /**< 200ms timeout to check for input */
         ready = select(STDIN_FILENO + 1, &read_fds, nullptr, nullptr, &timeout);
         if (ready == 0) {
             f_wait = true;
