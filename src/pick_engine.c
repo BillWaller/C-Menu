@@ -173,8 +173,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     if (f_wait) {
         if (wait_chyron != nullptr)
             wait_destroy(wait_chyron);
-        if (wait_win != nullptr)
-            win_del();
     }
     f_wait = false;
     if (cmd_key == KEY_F(9)) {
