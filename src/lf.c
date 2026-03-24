@@ -124,8 +124,16 @@ int main(int argc, char **argv) {
         printf("  -e        exclude files matching the regular expression\n");
         printf("  -h        show this help message\n");
         printf("  -i        ignore case in search\n");
-        printf("  -t f      list files (exclude directories)\n");
-        printf("  -t d      list directories (exclude files)\n");
+        printf("  -t   [bcdplfsu]\n");
+        printf("       b          block devices\n");
+        printf("        c         character devices\n");
+        printf("         d        directories\n");
+        printf("          p       named pipes\n");
+        printf("           l      symbolic links\n");
+        printf("            f     regular files\n");
+        printf("             s    sockets\n");
+        printf("              u   unknown\n");
+        printf("                  (in any order or combination)\n");
         printf("  -v        show version information\n");
         exit(EXIT_SUCCESS);
     }

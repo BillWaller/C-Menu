@@ -880,7 +880,7 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
         strnz__cat(em1, view->out_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN - 1);
         display_error(em0, em1, em2, nullptr);
-        return (false);
+        return false;
     }
     bytes_written = 0;
     while (!view->f_eod) {
@@ -1235,7 +1235,6 @@ void next_page(View *view) {
  */
 void view_display_page(View *view) {
     int i;
-    curs_set(0);
     wmove(view->pad, 0, 0);
     wclrtobot(view->pad);
     if (view->ln_win) {
@@ -1255,7 +1254,6 @@ void view_display_page(View *view) {
         display_line(view);
     }
     view->page_bot_ln = view->ln;
-    curs_set(1);
 }
 /** @brief Scroll N Lines
     @ingroup view_navigation
@@ -1264,7 +1262,6 @@ void view_display_page(View *view) {
  */
 void scroll_down_n_lines(View *view, int n) {
     int i = 0;
-    curs_set(0);
     view->f_bod = false;
     if (view->page_bot_pos == view->file_size)
         return;
@@ -1299,7 +1296,6 @@ void scroll_down_n_lines(View *view, int n) {
         fmt_line(view);
         display_line(view);
     }
-    curs_set(1);
 }
 /** @brief Scroll Up N Lines
     @ingroup view_navigation
@@ -1319,7 +1315,6 @@ void scroll_up_n_lines(View *view, int n) {
     view->ln = view->page_top_ln;
     view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->file_pos = view->page_top_pos;
-    curs_set(0);
     if (view->f_ln) {
         wscrl(view->ln_win, -n);
         wnoutrefresh(view->ln_win);
@@ -1337,7 +1332,6 @@ void scroll_up_n_lines(View *view, int n) {
     }
     view->page_bot_pos = view->file_pos;
     view->page_bot_ln = view->ln;
-    curs_set(1);
     return;
 }
 /** @brief Get Next Line from View->buf
@@ -2013,7 +2007,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
             display_error(em0, em1, nullptr, nullptr);
-            return (false);
+            return false;
         }
         /** call form to get file_name
             write the name to a temporary file */
@@ -2026,7 +2020,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         if (rc == P_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F(9)) {
             destroy_form(init);
             view->f_redisplay_page = true;
-            return (false);
+            return false;
         }
         destroy_form(init);
         close(view->in_fd);
@@ -2039,7 +2033,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
             display_error(em0, em1, em2, nullptr);
-            return (false);
+            return false;
         }
         fgets(tmp_str, MAXLEN - 1, tmp_fp);
         strnz(tmp_str, MAXLEN - 1);

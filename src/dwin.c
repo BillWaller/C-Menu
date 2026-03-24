@@ -814,6 +814,7 @@ void win_redraw(WINDOW *win) {
 WINDOW *win_del() {
     int i;
 
+    curs_set(0);
     if (win_ptr > 0) {
         werase(win_win[win_ptr]);
         touchwin(win_win[win_ptr]);
@@ -835,6 +836,7 @@ WINDOW *win_del() {
         }
         win_ptr--;
     }
+    curs_set(1);
     return (0);
 }
 /** @brief Restore all windows after a screen resize
@@ -1045,7 +1047,6 @@ WINDOW *wait_mk_win(Chyron *chyron, char *title) {
                   4, line, line, col, title, 0);
         abend(-1, title);
     }
-    curs_set(0);
     wait_win = win_win[win_ptr];
     mvwaddstr(wait_win, 0, 1, wm1);
     wattron(wait_win, WA_REVERSE);
@@ -1061,7 +1062,6 @@ WINDOW *wait_mk_win(Chyron *chyron, char *title) {
 bool wait_destroy(Chyron *chyron) {
     win_del();
     destroy_chyron(chyron);
-    curs_set(1);
     return true;
 }
 /** @brief Update the waiting message with remaining time and check for user
@@ -1195,7 +1195,9 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
     halfdelay(1);
     tcflush(2, TCIFLUSH);
     do {
+        curs_set(1);
         c = wgetch(win);
+        curs_set(0);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
                 c = display_error(em0, em1, em2, nullptr);
@@ -1266,7 +1268,9 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
     halfdelay(n);
     tcflush(2, TCIFLUSH);
     do {
+        curs_set(1);
         c = wgetch(win);
+        curs_set(0);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
                 c = display_error(em0, em1, em2, nullptr);
