@@ -1250,8 +1250,14 @@ void view_display_page(View *view) {
         fmt_line(view);
         display_line(view);
     }
-    wclrtobot(view->ln_win);
-    wclrtobot(view->pad);
+    if (view->cury + 1 < view->scroll_lines) {
+        wmove(view->ln_win, view->cury + 1, 0);
+        wclrtobot(view->ln_win);
+        wmove(view->pad, view->cury + 1, 0);
+        wclrtobot(view->pad);
+    }
+    wrefresh(view->ln_win);
+    pad_refresh(view);
     view->page_bot_ln = view->ln;
 }
 /** @brief Scroll N Lines
@@ -1630,7 +1636,6 @@ void display_line(View *view) {
     wclrtoeol(view->pad);
     wadd_wchstr(view->pad, view->cmplx_buf);
     view->cury++;
-    pad_refresh(view);
 }
 /** @brief Format Line for Display
     @ingroup view_display
