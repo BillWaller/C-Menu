@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 4.1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(RSH_LD $ENV{RSH_LD})
 set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/menuapp" \
-    CACHE PATH "Install path prefix" FORCE)
+set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/menuapp" CACHE PATH "Install path prefix"
+FORCE)
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 project(CMenu
     VERSION 0.2.9
