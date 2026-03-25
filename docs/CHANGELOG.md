@@ -2,6 +2,14 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-03-24
+
+Addes SSH authentication to RSH for extra security, and also implemented logging
+to the system log for all RSH sessions. The SSH authentication is implemented using the libssh library, and it allows users to authenticate using their SSH keys instead of passwords. This is a much more secure method of authentication, and it also allows for easier management of user credentials. The logging to the system log is implemented using the syslog() function, and it allows administrators to keep track of all RSH sessions for auditing purposes. On systems with systemd, the user can type journalctl -t rsh to view the log entries for RSH sessions.
+
+Added a wait popup to View and Pick, for the unlikely cases in which a provider
+program takes longer than 200ms to respond. The wait popup is a simple window with a message that counts down in seconds until input arrives or timeout, at which time the user is presented with an option to cancel. This is a possibility in the event that the provider program produces no output or stops waiting on user input. The timer checks the open pipe for input and also checks that the provider has terminated. If the program seems to be hung, the user can press Ctrl-C to cause a SIGTERM interrupt and then choose F9 to cancel. The wait popup is implemented in the parent process, which allows the countdown to timeout to be displayed without blocking the main thread of the program. The wait popup is designed to be non-intrusive, so it doesn't interfere with the user's workflow.
+
 0.2.9 - 2026-03-19
 
 Added line numbering option "-N" to View to display line numbers in the left
