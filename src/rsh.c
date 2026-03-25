@@ -74,29 +74,28 @@ int main(int argc, char **argv) {
     int rc;
     int status;
     pid_t pid;
-#ifdef SSH
-    ssh_session my_ssh_session = ssh_new();
-    if (my_ssh_session == NULL)
+#define RSH_SSH
+#ifdef RSH_SSH
+    ssh_session _ssh_session = ssh_new();
+    if (_ssh_session == NULL)
         exit(EXIT_FAILURE);
-
-    ssh_options_set(my_ssh_session, SSH_OPTIONS_HOST, "localhost");
-    if ((rc = ssh_connect(my_ssh_session)) != SSH_OK) {
-        fprintf(stderr, "Error: %s\n", ssh_get_error(my_ssh_session));
-        ssh_free(my_ssh_session);
-        return 1;
+    // "$HOME"/.ssh/authorized_keys
+    ssh_options_set(_ssh_session, SSH_OPTIONS_HOST, "localhost");
+    if ((rc = ssh_connect(_ssh_session)) != SSH_OK) {
+        fprintf(stderr, "Error: %s\n", ssh_get_error(_ssh_session));
+        ssh_free(_ssh_session);
+        exit(EXIT_FAILURE);
     }
-    if (ssh_userauth_publickey_auto(my_ssh_session, NULL, NULL) !=
+    // Authenticate using public key
+    if (ssh_userauth_publickey_auto(_ssh_session, NULL, NULL) !=
         SSH_AUTH_SUCCESS) {
         fprintf(stderr, "SSH Public key auth failed: %s\n",
-                ssh_get_error(my_ssh_session));
-        syslog(LOG_ERR, "SSH Error: %s", ssh_get_error(my_ssh_session));
+                ssh_get_error(_ssh_session));
+        syslog(LOG_ERR, "SSH Error: %s", ssh_get_error(_ssh_session));
         exit(EXIT_FAILURE);
-    } else {
-        printf("Public key auth success!\n");
     }
-    ssh_disconnect(my_ssh_session);
-    ssh_free(my_ssh_session);
-
+    ssh_disconnect(_ssh_session);
+    ssh_free(_ssh_session);
 #endif
     p = getenv("USER");
     strncpy(rsh_user, p ? p : "unknown", sizeof(rsh_user));
