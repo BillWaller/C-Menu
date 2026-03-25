@@ -68,13 +68,11 @@ int main(int argc, char **argv) {
     char *cargv[30];
     char exec_cmd[MAXLEN] = "/usr/bin/bash";
     char rsh_user[MAXLEN];
-    char ttyname[MAXLEN];
     char *p;
     int c, a;
     int rc;
     int status;
     pid_t pid;
-#define RSH_SSH
 #ifdef RSH_SSH
     ssh_session _ssh_session = ssh_new();
     if (_ssh_session == NULL)
@@ -97,6 +95,8 @@ int main(int argc, char **argv) {
     ssh_disconnect(_ssh_session);
     ssh_free(_ssh_session);
 #endif
+#ifdef RSH_LOG
+    char ttyname[MAXLEN];
     p = getenv("USER");
     strncpy(rsh_user, p ? p : "unknown", sizeof(rsh_user));
     openlog("rsh", LOG_PID | LOG_CONS, LOG_AUTH);
@@ -104,6 +104,7 @@ int main(int argc, char **argv) {
         syslog(LOG_INFO, "rsh started by user '%s' on terminal '%s'", rsh_user,
                ttyname);
     closelog();
+#endif
     if ((p = getenv("SHELL")))
         strncpy(exec_cmd, p, MAXLEN - 1);
     cargv[0] = strdup(exec_cmd);
@@ -133,6 +134,7 @@ int main(int argc, char **argv) {
         ABEND(EXIT_FAILURE, "execvp() fatal error");
         break;
     default: // Parent
+
         waitpid(pid, &status, 0);
         if (f_verbose) {
             if (WIFEXITED(status)) {

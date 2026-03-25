@@ -30,12 +30,16 @@ GROUP=bill
 HOME=/home/$(USER)
 PREFIX=$(HOME)/menuapp
 
-# Uncomment the following line to enable static linking of rsh
+# The following line enables static linking of rsh
 # RSH_LD = -static
-RSH_LD =
-# or export RSH_LD in your environment before running cmake
-# export RSH_LD="-static"
-
+# The following line enables system logging for RSH
+RSH_CFLAGS = -DRSH_LOG
+# The following line enables SSH authentication for RSH
+# RSH_CFLAGS = $(RSH_CFLAGS) -DRSH_SSH
+# The following line enables static linking of rsh
+# If RSH_SSH is enabled, it requires the presence lf libssh.a on your system
+# RSH_LD = -static
+#
 # Do not edit below this line unless you know what you are doing.
 # The variables above should be sufficient for most users to build and
 # install the application suite. If you need to make changes to the build 
@@ -141,7 +145,7 @@ iloan:	iloan.o $(LIB_NAME)
 	$(CC) $(CFLAGS)	iloan.o -o $@ $(LIBS)
 
 rsh:	include/cm.h rsh.o
-	$(CC) $(CFLAGS)	$(RSH_LD) rsh.o -o $@ -lssh
+	$(CC) $(CFLAGS)	$(RSH_CFLAGS) rsh.o -o $@ -lssh
 
 lf: include/cm.h	lf.o $(LIB_NAME)
 	$(CC) $(CFLAGS)	lf.o -o $@ $(LIBS)
