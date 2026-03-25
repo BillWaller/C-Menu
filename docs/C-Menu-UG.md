@@ -188,11 +188,13 @@ Also, please read the section on RSH safety below to understand the safety featu
 2. The bash functions, "fn xx()" and "fn x()" make it convenient to enter and exit a root shell expeditiously.
 3. Use a bright red shell prompt to provide a conspicuous indicator that you are operating with elevated privileges. Be mindful of it and don't linger any longer than necessary.
 4. RSH authenticates with ssh to ensure that only authorized users can execute commands with root privileges. This adds an additional layer of security by leveraging existing ssh authentication mechanisms, but it doesn't ask for a password or slow you down.
-5. RSH creates a system log entry every time it is executed and exited. This allows you to monitor and audit the use of RSH on your system, which can help detect any unauthorized or suspicious activity. You may want to audit yourself to make sure you are using RSH responsibly and not leaving it open longer than necessary. On my Tumbleweed system, I can type:
+5. RSH creates a system log entry every time it is executed and exited. This allows you to monitor and audit the use of RSH on your system, which can help detect any unauthorized or suspicious activity. On my Tumbleweed system, I can type:
 
 ```bash
 sudo journalctl -t rsh
 ```
+
+The output is as follows:
 
 Mar 24 18:45:35 bw1 rsh[219176]: rsh started by user 'bill' on terminal '/dev/pts/0'
 Mar 24 18:45:39 bw1 rsh[219176]: rsh exited by user 'bill'
@@ -205,21 +207,21 @@ Mar 24 18:51:42 bw1 rsh[220255]: SSH Error:
 Mar 24 18:51:57 bw1 rsh[220479]: rsh started by user 'bill' on terminal '/dev/pts/0'
 Mar 24 18:51:59 bw1 rsh[220479]: rsh exited by user 'bill'
 
-You can see when each rsh session was started and exited, and if there were any SSH errors. This can help you keep track of your use of RSH and ensure that you are using it responsibly.
+You can see when each rsh session was started and exited, and if there were any SSH errors. This can help you keep track of your use of RSH and ensure that you are using it responsibly. Personally, I only thought I was being ultra-careful until I audited my own usage.
 
 ### Using RSH
 
-To use RSH, assuming you have it installed with setuid root permissions, you need to make sure the sshd service is running on your system and that you have an ssh key pair set up for authentication. You will need to add your public key to the ~/.ssh/authorize keys file on the host where you want to execute commands with root privileges. This allows you to authenticate securely when using RSH.
+To use RSH, assuming you have it installed with setuid root permissions, you need to make sure the sshd service is running on your system and that you have an ssh key pair set up for authentication. You will need to add your public key to the ~/.ssh/authorized_keys file on the host where you want to execute commands with root privileges. This allows you to authenticate securely when using SSH.
 
 ```bash
-    sudo ssh -i /home/bill/.ssh/id_rsa 'your_user_name@your_host_name'
+    sudo ssh-copy-id -i "$HOME"/.ssh/id_rsa.pub 'user@host_name'
 ```
 
 You can install these features in your "$HOME"/.bashrc by copying the content of "$HOME"/menuapp/bashrc_cmenu to your "$HOME"/.bashrc. I don't use zsh, so perhaps someone will want to create a zshrc_cmenu file that can be sourced from .zshrc. If you do, please share it with me and I'll include it in the next release.
 
 Of course, you should never copy anything to your .bashrc or .zshrc without first reading it and understanding what it does. The bash functions, "fn xx()" and "fn x()" are designed to make it easy to enter and exit a root shell. Once you have RSH installed, you can "xx" to enter a root shell, and "x" to exit it. The red shell prompt will serve as a constant reminder that you are operating with elevated privileges, so be mindful of it and don't linger any longer than necessary.
 
-I am sure you are way beyond the point of needing to be reminded about the dangers of running commands with root privileges, and the last thing you need is some old guy nagging about being careful.
+I am sure you are way beyond the point of needing to be reminded about the dangers of running commands with root privileges. It probably wreaks of a guilty conscience and associated trauma, and there could be a reason for that. It's far better to learn from my mistakes than yours.
 
 ### RSH - A Use Case
 
@@ -281,6 +283,7 @@ commands.
 ### Menu Example
 
 ![C-Menu Application Menu](../screenshots/menu-desc.png)
+
 In this example, "Neovim" is a menu item that, when selected, will
 execute the command `nvim`. The user can select it by clicking on
 "Neovim" or by typing the corresponding letter assigned to it.
