@@ -12,22 +12,27 @@ int popup_menu(Init *init, int begy, int begx) {
 int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
+    Pick *sav_pick = init->pick;
     init_pick(init, argc, argv, begy, begx);
     destroy_pick(init);
+    init->pick = sav_pick;
     return 0;
 }
 
 int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
+    Form *sav_form = init->form;
     init_form(init, argc, argv, begy + 1, begx + 1);
     destroy_form(init);
+    init->form = sav_form;
     return 0;
 }
 
 int popup_view(Init *init, int argc, char **argv) {
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
+    View *sav_view = init->view;
     view = init->view;
     if (!view)
         view = new_view(init, argc, argv);
@@ -63,6 +68,7 @@ int popup_view(Init *init, int argc, char **argv) {
         win_del();
     }
     destroy_view(init);
+    init->view = sav_view;
     return 0;
 }
 

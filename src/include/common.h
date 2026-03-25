@@ -33,10 +33,10 @@
 #define MAX_PICK_OBJS 1024
 #define ACCEPT_PROMPT_CHAR '_'
 
-#define MENU_HELP_FILE "help/menu.help"
-#define PICK_HELP_FILE "help/pick.help"
-#define VIEW_HELP_FILE "help/view.help"
-#define VIEW_PRT_FILE "data/prtout"
+#define MENU_HELP_FILE "menu.help"
+#define PICK_HELP_FILE "pick.help"
+#define VIEW_HELP_FILE "view.help"
+#define VIEW_PRT_FILE "prtout"
 #define DEFAULTEDITOR "vi"
 
 #define MINITRC ".minitrc"

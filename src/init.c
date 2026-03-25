@@ -80,7 +80,12 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         exit(-1);
     }
 
-    e = getenv("CMENURC");
+    e = getenv("CMENU_HOME");
+    if (!e || *e == '\0')
+        strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN);
+    else
+        strnz__cpy(init->mapp_home, e, MAXLEN);
+    e = getenv("CMENU_RC");
     if (!e || *e == '\0')
         strnz__cpy(init->minitrc, "~/menuapp/.minitrc", MAXLEN);
     else
