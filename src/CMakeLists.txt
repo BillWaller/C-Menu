@@ -49,7 +49,6 @@ set(COMMON_SRCS
     view_engine.c
     init.c
     mem.c
-    mview.c
     opts.c)
 add_library(CMenu OBJECT ${COMMON_SRCS})
 

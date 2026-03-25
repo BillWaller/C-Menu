@@ -97,12 +97,6 @@
 },
 {
   "directory": "/usr/local/src/cmenu/src/build",
-  "command": "/usr/bin/cc   -Wall -Wextra -g -o CMakeFiles/CMenu.dir/mview.c.o -c /usr/local/src/cmenu/src/mview.c",
-  "file": "/usr/local/src/cmenu/src/mview.c",
-  "output": "CMakeFiles/CMenu.dir/mview.c.o"
-},
-{
-  "directory": "/usr/local/src/cmenu/src/build",
   "command": "/usr/bin/cc   -Wall -Wextra -g -o CMakeFiles/CMenu.dir/opts.c.o -c /usr/local/src/cmenu/src/opts.c",
   "file": "/usr/local/src/cmenu/src/opts.c",
   "output": "CMakeFiles/CMenu.dir/opts.c.o"

@@ -92,7 +92,7 @@ LIB_OBJS = $(LIB_SRCS:.c=.o)
 COMMON_HDRS=include/cm.h include/common.h include/menu.h \
 		include/form.h include/pick.h include/view.h include/version.h
 COMMON_SRCS=menu_engine.c parse_menu_desc.c curskeys.c \
-			fields.c form_engine.c init.c init_view.c mem.c mview.c \
+			fields.c form_engine.c init.c init_view.c mem.c \
 			opts.c pick_engine.c popups.c view_engine.c
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 

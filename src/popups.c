@@ -76,8 +76,3 @@ int popup_view(Init *init, int argc, char **argv) {
     init->view = sav_view;
     return 0;
 }
-
-int popup_ckeys() {
-    display_curses_keys();
-    return 0;
-}

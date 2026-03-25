@@ -37,11 +37,11 @@ int main(int argc, char **argv) {
     } else if (!strcmp(pgm_name, "view")) {
         view = new_view(init, argc, argv);
         if (view->lines > 0 && view->cols > 0)
-            mview(init, view->argc, view->argv);
+            popup_view(init, view->argc, view->argv);
         else if (!init_view_full_screen(init))
             view_file(init);
     } else if (!strcmp(pgm_name, "ckeys")) {
-        display_curses_keys();
+        popup_ckeys();
     }
 
     destroy_init(init);
