@@ -121,6 +121,7 @@ typedef struct {
     char help_spec[MAXLEN];   /**< help file spec */
     bool f_in_spec;           /**< input file verified */
     bool f_out_spec;          /**< output file verified */
+    bool f_help_spec;         /**< output file verified */
     char *file_spec_ptr;      /**< pointer to current file spec */
     char *next_file_spec_ptr; /**< pointer to next file spec */
     char *tmp_file_name_ptr;  /**< pointer to temporary file spec */

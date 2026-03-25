@@ -22,7 +22,10 @@ gh repo clone BillWaller/C-Menu
 - [Prerequisites](#prerequisites)
   - [Not Required, But Recommended](#not-required-but-recommended)
 - [Getting Started](#getting-started)
+  - [C-Menu File Layout](#c-menu-file-layout)
   - [RSH Safety Features](#rsh-safety-features)
+  - [Using RSH](#using-rsh)
+  - [RSH - A Use Case](#rsh---a-use-case)
 - [Starting C-Menu](#starting-c-menu)
 - [C-Menu configuration](#c-menu-configuration)
 - [Programming C-Menu Menu](#programming-c-menu-menu)
@@ -115,33 +118,114 @@ implications of setuid root programs. RSH allows users to execute
 commands with root privileges, which can pose significant security
 risks if not managed properly.
 
-### RSH Safety Features
-
-1. root privilege is required install RSH in its setuid form. This helps
-   prevent unauthorized users from installing it.
-2. the bash functions, "fn xx()" and "fn x()" make it convenient to
-   enter and exit a root shell expeditiously.
-3. a red shell prompt provides a conspicuous indicator that you are
-   operating with elevated privileges. Be mindful of it and don't
-   linger any longer than necessary.
-
-You can install these features in you $HOME/.bashrc by navigating
-to the "C-Menu/rsh" directory and running
+### C-Menu File Layout
 
 ```bash
-cd ../rsh
-./cmenu_bashrc.sh
+   ** menuapp
+   ** ├── bin          C-Menu executable binaries and scripts
+      ├── data         Data files
+      ├── doc          C-Menu documentation files
+      ├── help         C-Menu Help files
+      ├── include      C-Menu include files (.h)
+      ├── lib64        C-Menu libraries
+      │   └── cmake    cmake configuration files
+      │       └── cm   cmake configuration files
+    * ├── msrc         C-Menu Source Description Files
+      ├── scripts      User Scripts
+      ├── test         C-Menu test files
+      │   └── tty      C-Menu tty test files
+      ├── tmp          Temporary files
+      └── user         User Files
 ```
 
-Of course, you should never install anything in your .bashrc that you
-do not understand or trust.
+You can place C-Menu files anywhere you like, so long as you configure your
+system accordingly. However, for a first-time install, it will be much easier to
+use the suggested default configuration. These instructions will assume the
+default and give you some pointers on how you can modify the layout to suit your
+objectives. These instructions will serve as an example of one way to install
+C-Menu.
 
-Note: the following listing uses "lsd" by default, and may not look the
-same on your system if you do not have "lsd" installed. You can modify
-the "Makefile" to use "ls" instead.
+First, edit your .bashrc or .zshrc and prepend the C-Menu binary directory onto
+your path:
 
-Once RSH, "xx", and "x" are installed, subsequent make install
-processes will appear as follows:
+```bash
+export "$HOME/menuapp/bin:$PATH"
+```
+
+Optionally, you can set some other environment variables that will help with
+your C-Menu setup. CMENU_SRC will come in handy if you plan to develop C-Menu.
+
+```bash
+export CMENU_HOME="$HOME"/menuapp
+export CMENU_RC="$HOME"/menuapp/.minitrc
+export CMENU_SRC=/usr/local/src/cmenu/src
+export TERM=xterm-256color
+```
+
+After copying the menuapp directory to your home directory, you are ready to
+start C-Menu. But before you do, let's take a moment to look at some of the safety
+features that are included with RSH, and how to install them.
+
+If you installed C-Menu with root privileges, you will have an incredibly useful, but potentially dangerous tool, RSH, installed on your system. That's one reason I like to install it in my home directory, where I can control access to it. RSH is a setuid root program that allows users to execute commands with root privileges. If you share a system with other users, you must mitigate the risks associated with RSH. It won't do much good to close the barn door after the horse has escaped. If you aren't sure that you have the necessary precautions in place, it would be better not to install rsh at all. Here are some precautions you should take:
+
+1. Set permissions on your menuapp directory to prevent unauthorized access. You can use the following command to set the permissions:
+
+```bash
+chmod -R 700 ~/menuapp
+```
+
+2. Only install RSH if you understand the security implications and have a specific need for it. If you do not need the root access features, it is safer to avoid installing RSH altogether or install it without setuid and setgid flags turned on. To disable setuid and setgid for rsh:
+
+```bash
+chmod u-s,g-s "$HOME"/menuapp/bin/rsh
+```
+
+Also, please read the section on RSH safety below to understand the safety features that are included with RSH and how to use them effectively.
+
+### RSH Safety Features
+
+1. Root privilege is required install RSH in its setuid form. This helps prevent unauthorized users from installing it.
+2. The bash functions, "fn xx()" and "fn x()" make it convenient to enter and exit a root shell expeditiously.
+3. Use a bright red shell prompt to provide a conspicuous indicator that you are operating with elevated privileges. Be mindful of it and don't linger any longer than necessary.
+4. RSH authenticates with ssh to ensure that only authorized users can execute commands with root privileges. This adds an additional layer of security by leveraging existing ssh authentication mechanisms, but it doesn't ask for a password or slow you down.
+5. RSH creates a system log entry every time it is executed and exited. This allows you to monitor and audit the use of RSH on your system, which can help detect any unauthorized or suspicious activity. You may want to audit yourself to make sure you are using RSH responsibly and not leaving it open longer than necessary. On my Tumbleweed system, I can type:
+
+```bash
+sudo journalctl -t rsh
+```
+
+Mar 24 18:45:35 bw1 rsh[219176]: rsh started by user 'bill' on terminal '/dev/pts/0'
+Mar 24 18:45:39 bw1 rsh[219176]: rsh exited by user 'bill'
+Mar 24 18:45:43 bw1 rsh[219399]: SSH Error:
+Mar 24 18:46:27 bw1 rsh[219557]: SSH Error:
+Mar 24 18:49:20 bw1 rsh[220025]: SSH Error:
+Mar 24 18:49:26 bw1 rsh[220027]: rsh started by user 'bill' on terminal '/dev/pts/0'
+Mar 24 18:49:26 bw1 rsh[220027]: rsh exited by user 'bill'
+Mar 24 18:51:42 bw1 rsh[220255]: SSH Error:
+Mar 24 18:51:57 bw1 rsh[220479]: rsh started by user 'bill' on terminal '/dev/pts/0'
+Mar 24 18:51:59 bw1 rsh[220479]: rsh exited by user 'bill'
+
+You can see when each rsh session was started and exited, and if there were any SSH errors. This can help you keep track of your use of RSH and ensure that you are using it responsibly.
+
+### Using RSH
+
+To use RSH, assuming you have it installed with setuid root permissions, you need to make sure the sshd service is running on your system and that you have an ssh key pair set up for authentication. You will need to add your public key to the ~/.ssh/authorize keys file on the host where you want to execute commands with root privileges. This allows you to authenticate securely when using RSH.
+
+```bash
+    sudo ssh -i /home/bill/.ssh/id_rsa 'your_user_name@your_host_name'
+```
+
+You can install these features in your "$HOME"/.bashrc by copying the content of "$HOME"/menuapp/bashrc_cmenu to your "$HOME"/.bashrc. I don't use zsh, so perhaps someone will want to create a zshrc_cmenu file that can be sourced from .zshrc. If you do, please share it with me and I'll include it in the next release.
+
+Of course, you should never copy anything to your .bashrc or .zshrc without first reading it and understanding what it does. The bash functions, "fn xx()" and "fn x()" are designed to make it easy to enter and exit a root shell. Once you have RSH installed, you can "xx" to enter a root shell, and "x" to exit it. The red shell prompt will serve as a constant reminder that you are operating with elevated privileges, so be mindful of it and don't linger any longer than necessary.
+
+I am sure you are way beyond the point of needing to be reminded about the dangers of running commands with root privileges, and the last thing you need is some old guy nagging about being careful.
+
+### RSH - A Use Case
+
+Note: the following listing uses "lsd" by default, and may not look the same on your system if you do not have "lsd" installed with patched fonts. You can modify the "Makefile" to use "ls" instead.
+
+Once RSH, "xx", and "x" are installed, subsequent make install processes will appear as follows:
 
 ![make](../screenshots/Makefile-out.png)
 

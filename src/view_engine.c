@@ -1954,8 +1954,13 @@ void view_display_help(Init *init) {
     init->view = nullptr;
     zero_opt_args(init);
     eargv[0] = strdup("mview");
-    strnz__cpy(tmp_str, VIEW_HELP_FILE, MAXLEN - 1);
-    expand_tilde(tmp_str, MAXLEN - 1);
+    if (view->f_help_spec && view->help_spec[0] != '\0')
+        strnz__cpy(tmp_str, view->help_spec, MAXLEN - 1);
+    else {
+        strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
+        strnz__cat(tmp_str, "/", MAXLEN - 1);
+        strnz__cat(tmp_str, VIEW_HELP_FILE, MAXLEN - 1);
+    }
     eargv[1] = strdup(tmp_str);
     eargv[2] = nullptr;
     eargc = 2;

@@ -740,6 +740,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
     @param init structure
     @note Positional args: pick desc, in_file, out_file, help_file */
 bool init_view_files(Init *init) {
+    char *e;
     view = init->view;
     view->lines = init->lines;
     view->cols = init->cols;
@@ -747,6 +748,18 @@ bool init_view_files(Init *init) {
     view->f_at_end_remove = init->f_at_end_remove;
     view->f_squeeze = init->f_squeeze;
     view->f_ln = init->f_ln;
+    e = getenv("VIEW_HELP_FILE");
+    if (e && e[0] != '\0') {
+        strnz__cpy(view->help_spec, e, MAXLEN - 1);
+    }
+    view->f_help_spec =
+        verify_spec_arg(view->help_spec, view->help_spec, init->mapp_help,
+                        "~/menuapp/help", R_OK);
+    if (!view->f_help_spec) {
+        strnz__cpy(view->help_spec, init->mapp_home, MAXLEN - 1);
+        strnz__cat(view->help_spec, "/help/", MAXLEN - 1);
+        strnz__cat(view->help_spec, VIEW_HELP_FILE, MAXLEN - 1);
+    }
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
     strnz__cpy(view->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
     strnz__cpy(view->cmd_all, init->cmd_all, MAXLEN - 1);

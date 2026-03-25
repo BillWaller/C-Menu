@@ -8,6 +8,7 @@
  */
 
 #include <cm.h>
+#include <libssh/libssh.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -17,6 +18,7 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <syslog.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -65,12 +67,44 @@ void ABEND(int e, char const *);
 int main(int argc, char **argv) {
     char *cargv[30];
     char exec_cmd[MAXLEN] = "/usr/bin/bash";
+    char rsh_user[MAXLEN];
+    char ttyname[MAXLEN];
     char *p;
     int c, a;
     int rc;
     int status;
     pid_t pid;
+#ifdef SSH
+    ssh_session my_ssh_session = ssh_new();
+    if (my_ssh_session == NULL)
+        exit(EXIT_FAILURE);
 
+    ssh_options_set(my_ssh_session, SSH_OPTIONS_HOST, "localhost");
+    if ((rc = ssh_connect(my_ssh_session)) != SSH_OK) {
+        fprintf(stderr, "Error: %s\n", ssh_get_error(my_ssh_session));
+        ssh_free(my_ssh_session);
+        return 1;
+    }
+    if (ssh_userauth_publickey_auto(my_ssh_session, NULL, NULL) !=
+        SSH_AUTH_SUCCESS) {
+        fprintf(stderr, "SSH Public key auth failed: %s\n",
+                ssh_get_error(my_ssh_session));
+        syslog(LOG_ERR, "SSH Error: %s", ssh_get_error(my_ssh_session));
+        exit(EXIT_FAILURE);
+    } else {
+        printf("Public key auth success!\n");
+    }
+    ssh_disconnect(my_ssh_session);
+    ssh_free(my_ssh_session);
+
+#endif
+    p = getenv("USER");
+    strncpy(rsh_user, p ? p : "unknown", sizeof(rsh_user));
+    openlog("rsh", LOG_PID | LOG_CONS, LOG_AUTH);
+    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
+        syslog(LOG_INFO, "rsh started by user '%s' on terminal '%s'", rsh_user,
+               ttyname);
+    closelog();
     if ((p = getenv("SHELL")))
         strncpy(exec_cmd, p, MAXLEN - 1);
     cargv[0] = strdup(exec_cmd);
@@ -116,6 +150,9 @@ int main(int argc, char **argv) {
         }
         break;
     }
+    openlog("rsh", LOG_PID | LOG_CONS, LOG_AUTH);
+    syslog(LOG_INFO, "rsh exited by user '%s'", rsh_user);
+    closelog();
     exit(EXIT_SUCCESS);
 }
 
