@@ -113,10 +113,9 @@ To enable root access features, you need to install the RSH (Remote
 Shell) program with setuid root permissions. This allows certain menu
 items to execute commands with root privileges.
 
-WARNING: Do not install RSH unless you understand the security
-implications of setuid root programs. RSH allows users to execute
-commands with root privileges, which can pose significant security
-risks if not managed properly.
+NOTE: The warnings below do not apply if you choose to install RSH without setuid and setgid permissions, or if your system is secure, behind a firewall, and not shared with other users. In that case, you can enjoy the convenience of RSH without the associated risks. However, if you are sharing a system with other users, it is crucial to understand the security implications.
+
+WARNING: Do not install RSH unless you understand the security implications of setuid root programs. RSH allows users to execute commands with root privileges, which can pose significant security risks if not managed properly.
 
 ### C-Menu File Layout
 
@@ -138,22 +137,15 @@ risks if not managed properly.
       └── user         User Files
 ```
 
-You can place C-Menu files anywhere you like, so long as you configure your
-system accordingly. However, for a first-time install, it will be much easier to
-use the suggested default configuration. These instructions will assume the
-default and give you some pointers on how you can modify the layout to suit your
-objectives. These instructions will serve as an example of one way to install
-C-Menu.
+You can place C-Menu files anywhere you like, so long as you configure your system accordingly. However, for a first-time install, it will be much easier to use the suggested default configuration. These instructions will assume the default and give you some pointers on how you can modify the layout to suit your objectives. These instructions will serve as an example of one way to install C-Menu.
 
-First, edit your .bashrc or .zshrc and prepend the C-Menu binary directory onto
-your path:
+First, edit your .bashrc or .zshrc and prepend the C-Menu binary directory onto your path:
 
 ```bash
 export "$HOME/menuapp/bin:$PATH"
 ```
 
-Optionally, you can set some other environment variables that will help with
-your C-Menu setup. CMENU_SRC will come in handy if you plan to develop C-Menu.
+Optionally, you can set some other environment variables that will help with your C-Menu setup. CMENU_SRC will come in handy if you plan to develop C-Menu.
 
 ```bash
 export CMENU_HOME="$HOME"/menuapp
@@ -162,9 +154,7 @@ export CMENU_SRC=/usr/local/src/cmenu/src
 export TERM=xterm-256color
 ```
 
-After copying the menuapp directory to your home directory, you are ready to
-start C-Menu. But before you do, let's take a moment to look at some of the safety
-features that are included with RSH, and how to install them.
+After copying the menuapp directory to your home directory, you are ready to start C-Menu. But before you do, let's take a moment to look at some of the safety features that are included with RSH, and how to install them.
 
 If you installed C-Menu with root privileges, you will have an incredibly useful, but potentially dangerous tool, RSH, installed on your system. That's one reason I like to install it in my home directory, where I can control access to it. RSH is a setuid root program that allows users to execute commands with root privileges. If you share a system with other users, you must mitigate the risks associated with RSH. It won't do much good to close the barn door after the horse has escaped. If you aren't sure that you have the necessary precautions in place, it would be better not to install rsh at all. Here are some precautions you should take:
 
@@ -187,8 +177,9 @@ Also, please read the section on RSH safety below to understand the safety featu
 1. Root privilege is required install RSH in its setuid form. This helps prevent unauthorized users from installing it.
 2. The bash functions, "fn xx()" and "fn x()" make it convenient to enter and exit a root shell expeditiously.
 3. Use a bright red shell prompt to provide a conspicuous indicator that you are operating with elevated privileges. Be mindful of it and don't linger any longer than necessary.
-4. RSH authenticates with ssh to ensure that only authorized users can execute commands with root privileges. This adds an additional layer of security by leveraging existing ssh authentication mechanisms, but it doesn't ask for a password or slow you down.
-5. RSH creates a system log entry every time it is executed and exited. This allows you to monitor and audit the use of RSH on your system, which can help detect any unauthorized or suspicious activity. On my Tumbleweed system, I can type:
+4. If the -DRSH_SSH is set in the Makefile or CMake configuration, RSH authenticates with ssh to ensure that only authorized users can execute commands with root privileges. This is not the default. It adds an additional layer of security by leveraging existing ssh authentication mechanisms, but it doesn't ask for a password and adds less than 300 milliseconds to RSH startup.
+5. If the -DRSH_LOG is set in the Makefile or CMake configuration, RSH creates a system log entry every time it is executed and exited. This allows you to monitor and audit the use of RSH on your system, which can help detect any unauthorized or suspicious activity. On my Tumbleweed system, I can type:
+6. If the Makefile or CMake variable, RSH_LD is set to "-static", RSH will be linked as a static executable, except if you also have the RSH_CFLAGS=-DRSH_SSH set, then a static ssh lsibrary, libssh.a, is required.
 
 ```bash
 sudo journalctl -t rsh
