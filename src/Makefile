@@ -4,79 +4,80 @@
 # Copyright (c) 2025
 # MIT License
 # billxwaller@gmail.com
-# @date 2026-02-09
+# @date 2026-03-25
 #
-# Currently, the $(LIB_DIR) is compiled into the binaries as the runtime
-# library path so they can find libcm.so at runtime. That works well for 
-# development, but it is not ideal. The best option is probably to place
-# libcm.so in a standard location like /usr/lib64.
-#
-# When you are ready to distribute C-Menu menu, form, pick, view, and other 
-# binaries to users, you will probably want them in /usr/local/bin or 
-# /usr/bin/bash. However, you should not put rsh in a public directrory,
-# at least not until it has secure white-list authentication.
-#
-# WARNING: Will Robinson
+# === BEGIN USER SECTION       ===
 #
 # Before using this makefile, please EDIT THE FOLLOWING VARIABLES to match your 
-# system configuration. The makefile assumes that you have a user named "bill" 
-# and a group named "bill". If your system uses different names, please update 
-# the USER and GROUP variables accordingly. Additionally, ensure that the HOME 
-# variable points to the correct home directory for the specified user.
+# system configuration. The lines below assume that you have a user named "bill" 
+# and a group named "bill". If your user name is not "bill", or your group name 
+# is not "bill", please update the USER and GROUP variables accordingly. 
 #
-# Edit the three lines below to match your system configuration:
+# Edit the four lines below to match your system configuration:
+#
 USER=bill
 GROUP=bill
 HOME=/home/$(USER)
 PREFIX=$(HOME)/menuapp
 
-# The following line enables static linking of rsh
-# RSH_LD = -static
-# The following line enables system logging for RSH
-RSH_CFLAGS = -DRSH_LOG
-# The following line enables SSH authentication for RSH
+# Uncomment the following line to enable logging for RSH
+# RSH_CFLAGS = -DRSH_LOG
+# 
+# -DRSH_LOG: If you enable system logging for RSH, you will need to ensure that
+# your system is configured to allow the RSH binary to write to the system log. 
+# This may involve setting appropriate permissions for the RSH binary and 
+# ensuring that it is executed with sufficient privileges to write to the log. 
+# Additionally, you may need to configure your system's syslog daemon to accept 
+# log messages from the RSH binary and to route those messages to the 
+# appropriate log file or log facility. Please consult your system's 
+# documentation for more information on how to configure logging for RSH.
+#
+# Uncomment the following line to enables SSH authentication for RSH
 # RSH_CFLAGS = $(RSH_CFLAGS) -DRSH_SSH
-# The following line enables static linking of rsh
-# If RSH_SSH is enabled, it requires the presence lf libssh.a on your system
+#
+# -DRSH_SSH: If you enable SSH authentication for RSH, you will need to ensure
+# that libssh is installed on your system and that the header files and 
+# libraries are accessible to the compiler. You may need to install the libssh 
+# development package (e.g., libssh-dev on Debian-based systems) to get the 
+# necessary files for compilation. Additionally, you may need to adjust the 
+# include and library paths in the makefile to point to the correct locations 
+# for the libssh headers and libraries on your system.
+#
+# Uncomment the following line to enable static linking of rsh
 # RSH_LD = -static
+# 
+# RSH_LD and -DRSH_SSH: If compiling with RSH_LD -static and -DRSH_SSH, you will
+# need to ensure that libssh.a is available on your system and that it is 
+# compatible with static linking. This may require additional dependencies and 
+# configuration, so please consult the documentation for libssh and your 
+# system's package manager for more information.
 #
-# Do not edit below this line unless you know what you are doing.
-# The variables above should be sufficient for most users to build and
-# install the application suite. If you need to make changes to the build 
-# process, please ensure that you understand the implications of those changes 
-# before proceeding.
+CFLAGS=-O2
 #
-# if you intstall the library, libcm.so in other than $(LIB_DIR), you must 
-# update the runtime library search path in the binaries as well, or the
-# applications may fail to find the shared library at runtime.
+# Uncomment the following line to enable Debug build flags
+# CFLAGS=-O0 -ggdb -rdynamic
 #
-# ldconfig $(LIB_DIR)
-
-SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-REL_CFLAGS=-O2
-DBG_CFLAGS=-O0 -ggdb -rdynamic
-# CFLAGS=-static
-# Use the following line for debug builds
-# CFLAGS=$(DBG_FLAGS)
-# Use the followin line for release builds
-# CFLAGS=$(REL_CFLAGS)
-CFLAGS=$(DBG_CFLAGS)
-CC=gcc -Wall -Wextra -I./include $(CFLAGS)
-CX=-std=gnu23
-CX=-std=c23
-
+# === END USER SECTION         ===
+#
+# There should be no need to edit below this line unless you are developing 
+# C-Menu.
+#
 MAJOR=0
 MINOR=2
 PATCH=9
 VERSION=$(MAJOR).$(MINOR).$(PATCH)
+
+SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+CC=gcc -Wall -Wextra -I./include $(CFLAGS)
+CX=-std=gnu23
+CX=-std=c23
 
 LIB_SHARED=libcm.so
 SONAME=$(LIB_SHARED).$(MAJOR)
 REAL_NAME=$(LIB_SHARED).$(VERSION)
 LIB_STATIC=libcm.a
 LIB_NAME=$(LIB_SHARED)
-
 LIB_DIR=$(PREFIX)/lib64
 BIN_DIR=$(PREFIX)/bin
 INC_DIR=$(PREFIX)
@@ -194,23 +195,23 @@ install:
 	./inst.sh enterstr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh iloan			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh stripansi		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh lf		$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh lf			$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(LIB_DIR)
-	rm -f $(LIB_DIR)/libcm*
-	cp $(LIB_STATIC) $(LIB_DIR)
-	echo `test/iso8601.sh` $(LIB_DIR)/$(LIB_STATIC) >>manifest.txt
-	cp $(LIB_SHARED) $(LIB_DIR)/$(REAL_NAME)
-	echo `test/iso8601.sh` $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
-	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_SHARED)
-	echo `test/iso8601.sh` $(LIB_DIR)/$(LIB_SHARED) >>manifest.txt
-	ln -sf $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
-	echo `test/iso8601.sh` $(LIB_DIR)/$(SONAME) >>manifest.txt
-	ln -sf $(BIN_DIR)/main $(BIN_DIR)/menu
-	ln -sf $(BIN_DIR)/main $(BIN_DIR)/form
-	ln -sf $(BIN_DIR)/main $(BIN_DIR)/pick
-	ln -sf $(BIN_DIR)/main $(BIN_DIR)/view
-	ln -sf $(BIN_DIR)/main $(BIN_DIR)/ckeys
+	rm -f	$(LIB_DIR)/libcm*
+	cp		$(LIB_STATIC) $(LIB_DIR)
+	echo	$(SYSDATE) $(LIB_DIR)/$(LIB_STATIC) >>manifest.txt
+	cp		$(LIB_SHARED) $(LIB_DIR)/$(REAL_NAME)
+	echo	$(SYSDATE) $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
+	ln -sf	$(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_SHARED)
+	echo	$(SYSDATE) $(LIB_DIR)/$(LIB_SHARED) >>manifest.txt
+	ln -sf	$(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
+	echo	$(SYSDATE) $(LIB_DIR)/$(SONAME) >>manifest.txt
+	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/menu
+	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/form
+	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/pick
+	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/view
+	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/ckeys
 	cp CMenu.conf /etc/ld.so.conf.d
 	echo `test/iso8601.sh` /etc/ld.so.conf.d/CMenu.conf >>manifest.txt
 	ldconfig
