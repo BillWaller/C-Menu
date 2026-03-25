@@ -194,6 +194,7 @@ extern int popup_menu(Init *, int, int);
 extern int popup_form(Init *, int, char **, int, int);
 extern int popup_pick(Init *, int, char **, int, int);
 extern int popup_view(Init *, int, char **);
+extern int popup_ckeys();
 extern Menu *destroy_menu(Init *init);
 extern Pick *destroy_pick(Init *init);
 extern Form *destroy_form(Init *init);

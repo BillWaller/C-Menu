@@ -155,36 +155,23 @@ unsigned int menu_cmd_processor(Init *init) {
         /** @brief Display help information for the menu system */
     case 'H':
     case KEY_F(1):
-        eargv[0] = strdup("mview");
-        strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);
-        expand_tilde(tmp_str, MAXLEN - 1);
+        eargv[0] = strdup("view");
+        if (menu->f_help_spec && menu->help_spec[0] != '\0')
+            strnz__cpy(tmp_str, menu->help_spec, MAXLEN - 1);
+        else {
+            strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
+            strnz__cat(tmp_str, "/", MAXLEN - 1);
+            strnz__cat(tmp_str, MENU_HELP_FILE, MAXLEN - 1);
+        }
         eargv[1] = strdup(tmp_str);
         eargv[2] = nullptr;
         eargc = 2;
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
         init->lines = 30;
         init->cols = 60;
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 1;
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
-        mview(init, eargc, eargv);
-        return (MA_DISPLAY_MENU);
-    case KEY_F(2):
-        eargv[0] = strdup("mview");
-        strnz__cpy(tmp_str, "~/menuapp/.about", MAXLEN - 1);
-        expand_tilde(tmp_str, MAXLEN - 1);
-        eargv[1] = strdup(tmp_str);
-        eargv[2] = nullptr;
-        eargc = 2;
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
-        init->lines = 10;
-        init->cols = 40;
-        init->begy = menu->begy + 1;
-        init->begx = menu->begx + 1;
-        strnz__cpy(init->title, "About CMenu", MAXLEN - 1);
-        mview(init, eargc, eargv);
+        popup_view(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** Exit the menu and return to the previous menu or exit if at top */
     case 'q':
@@ -281,37 +268,24 @@ unsigned int menu_cmd_processor(Init *init) {
         full_screen_fork_exec(eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display help information for the menu system */
-    case CT_ABOUT:
-        eargv[0] = strdup("mview");
-        strnz__cpy(tmp_str, "~/menuapp/.about", MAXLEN - 1);
-        expand_tilde(tmp_str, MAXLEN - 1);
-        eargv[1] = strdup(tmp_str);
-        eargv[2] = nullptr;
-        eargc = 2;
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
-        init->lines = 30;
-        init->cols = 60;
-        init->begy = menu->begy + 1;
-        init->begx = menu->begx + 1;
-        strnz__cpy(init->title, "About C-Menu", MAXLEN - 1);
-        mview(init, eargc, eargv);
-        return (MA_DISPLAY_MENU);
     case CT_HELP:
-        eargv[0] = strdup("mview");
-        strnz__cpy(tmp_str, "~/menuapp/help/menu.help", MAXLEN - 1);
-        expand_tilde(tmp_str, MAXLEN - 1);
+        if (menu->f_help_spec && menu->help_spec[0] != '\0')
+            strnz__cpy(tmp_str, menu->help_spec, MAXLEN - 1);
+        else {
+            strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
+            strnz__cat(tmp_str, "/", MAXLEN - 1);
+            strnz__cat(tmp_str, MENU_HELP_FILE, MAXLEN - 1);
+        }
+        eargv[0] = strdup("view");
         eargv[1] = strdup(tmp_str);
         eargv[2] = nullptr;
         eargc = 2;
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
         init->lines = 30;
         init->cols = 60;
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 1;
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
-        mview(init, eargc, eargv);
+        popup_view(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display a submenu or perform an action associated with
          * the selected menu choice */
@@ -345,9 +319,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
-        init_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
+        popup_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
         return (MA_DISPLAY_MENU);
         /** @brief Display a form associated with the selected menu choice
          */
@@ -355,9 +327,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
-        init_form(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
+        popup_form(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
         return (MA_DISPLAY_MENU);
         /** @brief Display a view associated with the selected menu choice
          */
@@ -365,17 +335,16 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
+
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 1;
         strnz__cpy(init->title, menu->line[menu->line_idx]->raw_text,
                    MAXLEN - 1);
-        mview(init, eargc, eargv);
+        popup_view(init, eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief open ckeys (test curses keys) */
     case CT_CKEYS:
-        display_curses_keys();
+        popup_ckeys();
         return (MA_DISPLAY_MENU);
         /** @brief return to calling program */
     case CT_RETURN:

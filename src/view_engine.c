@@ -1937,11 +1937,11 @@ void remove_file(View *view) {
    because the init->view pointer is temporarily set to nullptr during the
    help file display, and the original view is restored afterward.
     @note The default screen size for help can be set in the code below. If
-   set to 0, mview will determine reasonable maximal size based on the
+   set to 0, popup_view will determine reasonable maximal size based on the
    terminal dimensions.
     @note The help file may contain Unicode characters and ANSI escape
    sequences for formatting, which will be properly handled and displayed by
-   mview. */
+   popup_view. */
 void view_display_help(Init *init) {
     char tmp_str[MAXLEN];
     int eargc;

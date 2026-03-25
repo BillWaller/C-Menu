@@ -39,7 +39,7 @@ void deselect_object(Pick *);
 
 int pipe_fd[2];
 
-char const pagers_editors[12][10] = {"view", "mview", "less", "more",
+char const pagers_editors[12][10] = {"view", "view",  "less", "more",
                                      "vi",   "vim",   "nano", "nvim",
                                      "pico", "emacs", "edit", ""};
 
@@ -757,38 +757,37 @@ int output_objects(Pick *pick) {
 }
 /** @brief Executes specified command with selected objects as arguments
    @ingroup pick_engine
-    @param init Pointer to Init structure
-    @return 0 on success, 1 on failure
-    @note Parses command string and appends selected objects as arguments to
-   the command. If command contains "%%", it is replaced with a space-
-   separated list of selected objects. Executes the command using execvp in
-   a child process and waits for it to finish. If the command is a pager or
-   editor, it is executed within the pick interface using mview instead of
-   execvp.
-    @note If f_append_args is true, the argument containing %% is replaced
-   with the concatenated selected objects. If f_append_args is false,
-   selected objects are added as separate arguments and the original command
-   arguments remain unchanged.
-    @note margv should be null-terminated to indicate the end of arguments
-   for execvp
-    @note Memory allocated for arguments is freed after execution to prevent
+   @param init Pointer to Init structure
+   @return 0 on success, 1 on failure
+   @note Parses command string and appends selected objects as arguments to the
+   command. If command contains "%%", it is replaced with a space- separated
+   list of selected objects. Executes the command using execvp in a child
+   process and waits for it to finish. If the command is a pager or editor, it
+   is executed within the pick interface using popup_view instead of execvp.
+   @note If f_append_args is true, the argument containing %% is replaced with
+   the concatenated selected objects. If f_append_args is false, selected
+   objects are added as separate arguments and the original command arguments
+   remain unchanged.
+   @note margv should be null-terminated to indicate the end of arguments for
+   execvp
+   @note Memory allocated for arguments is freed after execution to prevent
    memory leaks.
-    @note If execvp fails, an error message is printed and the child process
+   @note If execvp fails, an error message is printed and the child process
    exits with failure status
-    @note The parent process waits for the child process to finish before
+   @note The parent process waits for the child process to finish before
    proceeding and restores terminal settings
-    @note If the command is a pager or editor, it is executed within the
-   pick interface using mview instead of execvp
-    @note The base name of the command is extracted to check if it is a
-   pager or editor
-    @note If the command is a pager or editor, the pick interface is used to
+   @note If the command is a pager or editor, it is executed within the pick
+   interface using popup_view instead of execvp
+   @note The base name of the command is extracted to check if it is a pager or
+   editor
+   @note If the command is a pager or editor, the pick interface is used to
    display the command output instead of executing it in a separate terminal
    This allows the user to view the command output without leaving the pick
    interface and provides a more seamless user experience.
-    @note If the command is not a pager or editor, it is executed in a
-   separate terminal and the pick interface is restored after execution
-    @note If the command to be executed is view, an external command is not
-   needed, instead the mview function can be used to display the output
+   @note If the command is not a pager or editor, it is executed in a separate
+   terminal and the pick interface is restored after execution
+   @note If the command to be executed is view, an external command is not
+   needed, instead the popup_view function can be used to display the output
    within the pick interface */
 int exec_objects(Init *init) {
     int rc = -1;
@@ -882,11 +881,9 @@ int exec_objects(Init *init) {
     strnz__cpy(sav_arg, tok, MAXLEN - 1);
     base_name(tmp_str, sav_arg);
     if (tmp_str[0] != '\0' &&
-        (strcmp(tmp_str, "view") == 0 || strcmp(tmp_str, "mview") == 0)) {
-        /** initialize mview arguments and execute mview to display command
-            output within pick interface */
-        zero_opt_args(init);
-        parse_opt_args(init, margc, margv);
+        (strcmp(tmp_str, "view") == 0 || strcmp(tmp_str, "view") == 0)) {
+        /** initialize popup_view arguments and execute popup_view to display
+           command output within pick interface */
         init->lines = 60;
         init->cols = 80;
         init->begy = pick->begy + 1;
@@ -895,7 +892,7 @@ int exec_objects(Init *init) {
             strnz__cpy(init->title, title, MAXLEN - 1);
         else
             strnz__cpy(init->title, margv[margc], MAXLEN - 1);
-        mview(init, margc, margv);
+        popup_view(init, margc, margv);
         i = 0;
         while (i < margc) {
             if (margv[i] != nullptr)
@@ -971,26 +968,32 @@ int open_pick_win(Init *init) {
     keypad(pick->win, true);
     return 0;
 }
-/** @brief Displays the help screen for the pick interface using mview
+/** @brief Displays the help screen for the pick interface using view
    @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
     @note Initializes the help_spec field in the Pick structure with the
    path to the pick help file. Then, constructs the argument list for
-   executing mview with the help file as an argument. Finally, calls mview
-   function to display the help screen within the pick interface. */
+   executing popup_view with the help file as an argument. Finally, calls
+   popup_view function to display the help screen within the pick interface. */
 void display_pick_help(Init *init) {
+    char tmp_str[MAXLEN];
+    if (pick->f_help_spec && pick->help_spec[0] != '\0')
+        strnz__cpy(tmp_str, pick->help_spec, MAXLEN - 1);
+    else {
+        strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
+        strnz__cat(tmp_str, "/", MAXLEN - 1);
+        strnz__cat(tmp_str, MENU_HELP_FILE, MAXLEN - 1);
+    }
     eargv[0] = strdup("view");
-    eargv[1] = strdup("~/menuapp/help/pick.help");
+    eargv[1] = strdup(tmp_str);
     eargv[2] = nullptr;
     eargc = 2;
-    zero_opt_args(init);
-    parse_opt_args(init, eargc, eargv);
     init->lines = 30;
     init->cols = 60;
     init->begy = pick->begy + 1;
     init->begx = pick->begx + 1;
     strnz__cpy(init->title, "Pick Help", MAXLEN - 1);
-    mview(init, eargc, eargv);
+    popup_view(init, eargc, eargv);
     free(eargv[0]);
     free(eargv[1]);
     return;

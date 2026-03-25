@@ -13,14 +13,14 @@
 
 #define KSTRLEN 100
 #define MAXLEN 256
-int display_curses_keys();
+int popup_ckeys();
 
 /** @brief Display Curses Keys
     Responds to curses keys and mouse events, displaying the key code and
     description.
     @return 0 on success, non-zero on failure
  */
-int display_curses_keys() {
+int popup_ckeys() {
     WINDOW *win;
     WINDOW *box;
     char Title[] = "TEST CURSES KEYS";

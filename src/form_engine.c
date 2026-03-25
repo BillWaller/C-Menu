@@ -153,21 +153,24 @@ int form_engine(Init *init) {
             }
             return 0;
         case P_HELP:
-            eargv[0] = strdup("mview");
-            strnz__cpy(tmp_str, "~/menuapp/help/form.help", MAXLEN - 1);
-            expand_tilde(tmp_str, MAXLEN - 1);
+            eargv[0] = strdup("view");
+
+            if (pick->f_help_spec && pick->help_spec[0] != '\0')
+                strnz__cpy(tmp_str, pick->help_spec, MAXLEN - 1);
+            else {
+                strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
+                strnz__cat(tmp_str, "/", MAXLEN - 1);
+                strnz__cat(tmp_str, PICK_HELP_FILE, MAXLEN - 1);
+            }
             eargv[1] = strdup(tmp_str);
             eargv[2] = nullptr;
             eargc = 2;
-            zero_opt_args(init);
-            parse_opt_args(init, eargc, eargv);
             init->lines = 30;
             init->cols = 60;
-            init->begy = menu->begy + 1;
-            init->begx = menu->begx + 1;
+            init->begy = form->begy + 1;
+            init->begx = form->begx + 1;
             strnz__cpy(init->title, "Form Help", MAXLEN - 1);
-            mview(init, eargc, eargv);
-            restore_wins();
+            popup_view(init, eargc, eargv);
             form_action = P_CONTINUE;
             break;
         case P_CANCEL:
