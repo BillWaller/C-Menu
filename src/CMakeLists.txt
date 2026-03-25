@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 4.1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(RSH_LD $ENV{RSH_LD})
 set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/menuapp" CACHE PATH "Install path prefix" FORCE)
+set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/menuapp" \
+    CACHE PATH "Install path prefix" FORCE)
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 project(CMenu
     VERSION 0.2.9
@@ -44,6 +45,7 @@ set(COMMON_SRCS
     menu_engine.c
     parse_menu_desc.c
     pick_engine.c
+    popups.c
     view_engine.c
     init.c
     mem.c
@@ -51,25 +53,9 @@ set(COMMON_SRCS
     opts.c)
 add_library(CMenu OBJECT ${COMMON_SRCS})
 
-add_executable(menu menu.c)
-target_sources(menu PRIVATE $<TARGET_OBJECTS:CMenu>)
-target_link_libraries(menu cm ${LIBS})
-
-add_executable(form form.c)
-target_sources(form PRIVATE $<TARGET_OBJECTS:CMenu>)
-target_link_libraries(form cm ${LIBS})
-
-add_executable(pick pick.c)
-target_sources(pick PRIVATE $<TARGET_OBJECTS:CMenu>)
-target_link_libraries(pick cm ${LIBS})
-
-add_executable(view view.c)
-target_sources(view PRIVATE $<TARGET_OBJECTS:CMenu>)
-target_link_libraries(view cm ${LIBS})
-
-add_executable(ckeys ckeys.c)
-target_sources(ckeys PRIVATE $<TARGET_OBJECTS:CMenu>)
-target_link_libraries(ckeys cm ${LIBS})
+add_executable(main main.c)
+target_sources(main PRIVATE $<TARGET_OBJECTS:CMenu>)
+target_link_libraries(main cm ${LIBS})
 
 add_executable(enterchr enterchr.c)
 target_link_libraries(enterchr cm ${LIBS})
@@ -114,11 +100,7 @@ add_executable(whence whence.c)
 target_link_libraries(whence cm ${LIBS})
 
 install(
-  TARGETS menu
-          form
-          pick
-          view
-          ckeys
+  TARGETS main
           enterchr
           enterstr
           iloan
@@ -127,6 +109,21 @@ install(
           stripansi
           whence
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(CODE "
+  set(APP_PATH \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/main\")
+  set(SYMLINK_PATH \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin\")
+  execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink \${APP_PATH}
+\${SYMLINK_PATH}/menu)
+  execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink \${APP_PATH}
+\${SYMLINK_PATH}/form)
+  execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink \${APP_PATH}
+\${SYMLINK_PATH}/pick)
+  execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink \${APP_PATH}
+\${SYMLINK_PATH}/view)
+  execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink \${APP_PATH}
+\${SYMLINK_PATH}/ckeys)
+")
 
 target_include_directories(cm PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

@@ -1201,7 +1201,7 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
         if (sig_received != 0) {
             if (handle_signal(sig_received))
                 c = display_error(em0, em1, em2, nullptr);
-            if (c == 'q' || c == KEY_F(9))
+            if (c == 'q' || c == 'Q' || c == KEY_F(9))
                 exit(EXIT_FAILURE);
             continue;
         }
@@ -1261,10 +1261,8 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
     event.y = event.x = -1;
     click_y = click_x = -1;
     n *= 10; /** convert seconds to deciseconds for timeout */
-    if (n < 0)
-        n = 0;
-    if (n > 255)
-        n = 255;
+    n = max(0, n);
+    n = min(255, n);
     halfdelay(n);
     tcflush(2, TCIFLUSH);
     do {
@@ -1274,7 +1272,7 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
         if (sig_received != 0) {
             if (handle_signal(sig_received))
                 c = display_error(em0, em1, em2, nullptr);
-            if (c == 'q' || c == KEY_F(9))
+            if (c == 'q' || c == 'Q' || c == KEY_F(9))
                 exit(EXIT_FAILURE);
             continue;
         }

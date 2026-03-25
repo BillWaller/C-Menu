@@ -88,6 +88,20 @@
         _x < _y ? _x : _y;                                                     \
     })
 
+/** @brief ABS macro for absolute value, which evaluates the expression once and
+   returns the absolute value.
+    @note This macro uses a compound statement to create a local scope for the
+   temporary variable _a, which stores the value of x. This ensures that if x
+   has side effects (such as being incremented), it will only be evaluated once
+   when the macro is expanded. The use of typeof allows the macro to work with
+   any data type that supports comparison with zero and negation.
+ */
+#define ABS(x)                                                                 \
+    ({                                                                         \
+        __typeof__(x) _a = (x);                                                \
+        _a < 0 ? -_a : _a;                                                     \
+    })
+
 enum LFFlags {
     LF_ALL = 1,       /**<   1 List all files including hidden files */
     LF_ICASE = 2,     /**<   2 Ignore case in search */

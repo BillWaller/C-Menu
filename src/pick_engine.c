@@ -301,16 +301,20 @@ int pick_engine(Init *init) {
     getmaxyx(stdscr, maxy, maxx);
     /** Calculate pick window size and position based on terminal size and pick
         parameters */
-    win_maxy = (maxy * 8) / 10;
-    if (win_maxy > (maxy - pick->begy) - 2)
-        win_maxy = (maxy - pick->begy) - 2;
-    win_maxx = (maxx * 9) / 10;
-    if (win_maxx > (maxx - pick->begx) - 2)
-        win_maxx = (maxx - pick->begx) - 2;
-    if (pick->tbl_col_width < 4)
-        pick->tbl_col_width = 4;
-    if (pick->tbl_col_width > win_maxx - 2)
-        pick->tbl_col_width = win_maxx - 2;
+    // win_maxy = (maxy * 8) / 10;
+    win_maxy = min(((maxy * 8) / 10), (maxy - pick->begy - 1));
+    // if (win_maxy > (maxy - pick->begy) - 2)
+    //     win_maxy = (maxy - pick->begy) - 2;
+    // win_maxx = (maxx * 9) / 10;
+    win_maxx = min(((maxx * 9) / 10), (maxx - pick->begx - 1));
+    // if (win_maxx > (maxx - pick->begx) - 2)
+    //     win_maxx = (maxx - pick->begx) - 2;
+    pick->tbl_col_width = max(pick->tbl_col_width, 4);
+    // if (pick->tbl_col_width < 4)
+    //     pick->tbl_col_width = 4;
+    pick->tbl_col_width = min(pick->tbl_col_width, win_maxx - 2);
+    // if (pick->tbl_col_width > win_maxx - 2)
+    //     pick->tbl_col_width = win_maxx - 2;
     // populate the columns in sequence
     if (pick->obj_cnt <= win_maxy) {
         pick->tbl_lines = pick->obj_cnt;
@@ -346,9 +350,9 @@ int pick_engine(Init *init) {
     compile_chyron(pick->chyron);
     if (pick->chyron->l > win_maxx)
         pick->chyron->l = strnz(pick->chyron->s, win_maxx);
-    if (pick->win_width < pick->chyron->l)
-        pick->win_width = pick->chyron->l;
-
+    // if (pick->win_width < pick->chyron->l)
+    //     pick->win_width = pick->chyron->l;
+    pick->win_width = max(pick->win_width, pick->chyron->l) + 2;
     if (pick->begx + pick->win_width > COLS - 2)
         pick->begx = COLS - pick->win_width - 2;
     else if (pick->begx == 0)
@@ -394,10 +398,12 @@ void save_object(Pick *pick, char *s) {
         l = strlen(s);
         if (l > OBJ_MAXLEN - 1)
             s[OBJ_MAXLEN - 1] = '\0';
-        if (l > pick->tbl_col_width)
-            pick->tbl_col_width = l;
-        if (l < 1)
-            l = 1;
+        // if (l > pick->tbl_col_width)
+        //     pick->tbl_col_width = l;
+        pick->tbl_col_width = max(pick->tbl_col_width, l);
+        // if (l < 1)
+        //     l = 1;
+        l = max(l, 1);
         pick->object[pick->obj_idx] = (char *)calloc(l + 1, sizeof(char));
         strnz__cpy(pick->object[pick->obj_idx], s, l);
         pick->f_selected[pick->obj_idx] = false;
