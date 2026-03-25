@@ -1,5 +1,10 @@
 #include "common.h"
 
+int popup_menu(Init *, int, int);
+int popup_form(Init *, int, char **, int, int);
+int popup_pick(Init *, int, char **, int, int);
+int popup_view(Init *, int, char **);
+
 int popup_menu(Init *init, int begy, int begx) {
     new_menu(init, init->argc, init->argv, begy, begx);
     menu = init->menu;
@@ -72,7 +77,7 @@ int popup_view(Init *init, int argc, char **argv) {
     return 0;
 }
 
-int popup_ckeys(Init *init) {
-    display_curses_keys(init);
+int popup_ckeys() {
+    display_curses_keys();
     return 0;
 }

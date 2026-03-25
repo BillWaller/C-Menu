@@ -187,6 +187,7 @@ sudo journalctl -t rsh
 
 The output is as follows:
 
+```
 Mar 24 18:45:35 bw1 rsh[219176]: rsh started by user 'bill' on terminal '/dev/pts/0'
 Mar 24 18:45:39 bw1 rsh[219176]: rsh exited by user 'bill'
 Mar 24 18:45:43 bw1 rsh[219399]: SSH Error:
@@ -197,6 +198,7 @@ Mar 24 18:49:26 bw1 rsh[220027]: rsh exited by user 'bill'
 Mar 24 18:51:42 bw1 rsh[220255]: SSH Error:
 Mar 24 18:51:57 bw1 rsh[220479]: rsh started by user 'bill' on terminal '/dev/pts/0'
 Mar 24 18:51:59 bw1 rsh[220479]: rsh exited by user 'bill'
+```
 
 You can see when each rsh session was started and exited, and if there were any SSH errors. This can help you keep track of your use of RSH and ensure that you are using it responsibly. Personally, I only thought I was being ultra-careful until I audited my own usage.
 

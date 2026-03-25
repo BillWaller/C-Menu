@@ -13,6 +13,7 @@
 __end_pgm;
 int main(int argc, char **argv) {
     __atexit;
+    char pgm_name[MAXLEN];
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
     SIO *sio = init->sio;
@@ -22,22 +23,24 @@ int main(int argc, char **argv) {
     capture_curses_tioctl();
     win_init_attrs();
 
-    if (strcmp(argv[0], "menu")) {
+    base_name(pgm_name, argv[0]);
+
+    if (!strcmp(pgm_name, "menu")) {
         new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
         menu = init->menu;
         parse_menu_description(init);
         menu_engine(init);
-    } else if (strcmp(argv[0], "form")) {
+    } else if (!strcmp(pgm_name, "form")) {
         init_form(init, argc, argv, LINES / 14, COLS / 14);
-    } else if (strcmp(argv[0], "pick")) {
+    } else if (!strcmp(pgm_name, "pick")) {
         init_pick(init, init->argc, init->argv, 0, 0);
-    } else if (strcmp(argv[0], "view")) {
+    } else if (!strcmp(pgm_name, "view")) {
         view = new_view(init, argc, argv);
         if (view->lines > 0 && view->cols > 0)
             mview(init, view->argc, view->argv);
         else if (!init_view_full_screen(init))
             view_file(init);
-    } else if (strcmp(argv[0], "ckeys")) {
+    } else if (!strcmp(pgm_name, "ckeys")) {
         display_curses_keys();
     }
 

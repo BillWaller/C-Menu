@@ -474,10 +474,6 @@ int view_cmd_processor(Init *init) {
         case KEY_F(1):
             if (!view->f_displaying_help) {
                 view_display_help(init);
-                /** Pedantic reassignment of view pointer as the
-                    init->view pointer was was reassigned during
-                   view_display_help */
-                view = init->view;
                 view = init->view;
             }
             break;
@@ -1950,10 +1946,7 @@ void view_display_help(Init *init) {
     char tmp_str[MAXLEN];
     int eargc;
     char *eargv[MAXARGS];
-    View *view_save = init->view;
-    init->view = nullptr;
-    zero_opt_args(init);
-    eargv[0] = strdup("mview");
+    eargv[0] = strdup("view");
     if (view->f_help_spec && view->help_spec[0] != '\0')
         strnz__cpy(tmp_str, view->help_spec, MAXLEN - 1);
     else {
@@ -1964,14 +1957,12 @@ void view_display_help(Init *init) {
     eargv[1] = strdup(tmp_str);
     eargv[2] = nullptr;
     eargc = 2;
-    parse_opt_args(init, eargc, eargv);
     init->lines = 48;
     init->cols = 60;
     init->begy = 0;
     init->begx = 0;
     strnz__cpy(init->title, "View Help", MAXLEN - 1);
-    mview(init, eargc, eargv);
-    init->view = view_save;
+    popup_view(init, eargc, eargv);
     init->view->f_redisplay_page = true;
 }
 /*------------------------------------------------------------
