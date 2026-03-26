@@ -19,6 +19,5 @@ F:8:33:12:Currency
 T:10:1:First Payment Date (Yyyymmdd):
 F:10:33:10:Yyyymmdd
 #
-C
+G
 ?iloan.hlp
-

@@ -352,6 +352,7 @@ int view_cmd_processor(Init *init) {
                 view->maxcol = 0;
                 view->cury = 0;
                 view->page_top_ln = view->ln;
+                mvwaddstr(view->pad, view->cmd_line, 0, "       ");
                 // werase(view->pad);
                 // wnoutrefresh(view->pad);
                 pad_refresh(view);

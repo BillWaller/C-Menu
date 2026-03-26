@@ -22,6 +22,8 @@
 !pick -S project_src -c nvim -T "Project Tree - Select File to Edit"
 :     View CMenu Source with Tree-Sitter
 !pick -S project_src -n 1 -T "Select Project File to Highlight" -c "view -L 60 -C 70 -S \"tree-sitter highlight %%\""
+:     View Rust Source with Tree-Sitter
+!pick -S rust_src -n 1 -T "Select Rust File to Highlight" -c "view -L 60 -C 70 -S \"tree-sitter highlight %%\""
 :     View Data Types Help File
 !view -T "Data Types" /home/bill/menuapp/help/fields.hlp
 :     Menu Description With Bat Syntax Highlighting

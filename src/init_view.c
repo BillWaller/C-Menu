@@ -35,6 +35,7 @@ int init_view_full_screen(Init *init) {
     int scr_lines, scr_cols;
     view = init->view;
 
+    view->win = stdscr;
     if (view->tab_stop <= 0)
         view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
@@ -137,7 +138,7 @@ int init_view_boxwin(Init *init, char *title) {
         display_error(em0, em1, em2, nullptr);
         return (-1);
     }
-    view->ln_win_lines = view->lines - 1;
+    view->ln_win_lines = view->lines;
     view->ln_win_cols = 7;
     view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols, view->begy + 1,
                           view->begx + 1);

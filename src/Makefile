@@ -198,20 +198,20 @@ install:
 	./inst.sh lf			$(BIN_DIR)		  0711	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(LIB_DIR)
-	rm -f	$(LIB_DIR)/libcm*
-	cp		$(LIB_STATIC) $(LIB_DIR)
+	rm -f	 $(LIB_DIR)/libcm*
+	cp	 $(LIB_STATIC) $(LIB_DIR)
 	echo	$(SYSDATE) $(LIB_DIR)/$(LIB_STATIC) >>manifest.txt
-	cp		$(LIB_SHARED) $(LIB_DIR)/$(REAL_NAME)
+	cp	 $(LIB_SHARED) $(LIB_DIR)/$(REAL_NAME)
 	echo	$(SYSDATE) $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
-	ln -sf	$(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_SHARED)
+	ln -sf	 $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_SHARED)
 	echo	$(SYSDATE) $(LIB_DIR)/$(LIB_SHARED) >>manifest.txt
-	ln -sf	$(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
+	ln -sf	 $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
 	echo	$(SYSDATE) $(LIB_DIR)/$(SONAME) >>manifest.txt
-	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/menu
-	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/form
-	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/pick
-	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/view
-	ln -sf	$(BIN_DIR)/main $(BIN_DIR)/ckeys
+	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/menu
+	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/form
+	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/pick
+	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/view
+	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/ckeys
 	cp CMenu.conf /etc/ld.so.conf.d
 	echo `test/iso8601.sh` /etc/ld.so.conf.d/CMenu.conf >>manifest.txt
 	ldconfig
