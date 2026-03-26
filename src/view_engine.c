@@ -353,8 +353,6 @@ int view_cmd_processor(Init *init) {
                 view->cury = 0;
                 view->page_top_ln = view->ln;
                 mvwaddstr(view->pad, view->cmd_line, 0, "       ");
-                // werase(view->pad);
-                // wnoutrefresh(view->pad);
                 pad_refresh(view);
                 view_display_page(view);
                 break;
@@ -1250,6 +1248,7 @@ void view_display_page(View *view) {
         wmove(view->pad, view->cury + 1, 0);
         wclrtobot(view->pad);
     }
+    mvwaddstr(view->win, view->cmd_line, 0, "       ");
     wrefresh(view->ln_win);
     pad_refresh(view);
     view->page_bot_ln = view->ln;
