@@ -328,8 +328,6 @@ int view_cmd_processor(Init *init) {
             break;
         /**  '-', Change View Settings */
         case '-':
-            if (view->f_displaying_help)
-                break;
             cmd_line_prompt(view, "(c, i, n, s, t, or h)->");
             c = get_cmd_char(view, &n_cmd);
             c = tolower(c);
@@ -345,8 +343,6 @@ int view_cmd_processor(Init *init) {
                     view->f_ignore_case = false;
                 break;
             case 'n':
-                if (view->f_displaying_help)
-                    break;
                 if (view->f_ln)
                     view->f_ln = false;
                 else
@@ -356,8 +352,9 @@ int view_cmd_processor(Init *init) {
                 view->maxcol = 0;
                 view->cury = 0;
                 view->page_top_ln = view->ln;
-                werase(view->pad);
-                wnoutrefresh(view->pad);
+                // werase(view->pad);
+                // wnoutrefresh(view->pad);
+                pad_refresh(view);
                 view_display_page(view);
                 break;
             /** 's' - Squeeze Multiple Blank Lines */

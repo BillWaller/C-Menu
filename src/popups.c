@@ -31,13 +31,13 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Form *sav_form = init->form;
-    rc = init_form(init, argc, argv, begy + 1, begx + 1);
+    rc = init_form(init, argc, argv, begy, begx);
     init->form = sav_form;
     return rc;
 }
 
 int popup_view(Init *init, int argc, char **argv) {
-    int rc;
+    int rc = 0;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     View *sav_view = init->view;
