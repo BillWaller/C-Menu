@@ -1227,6 +1227,7 @@ void next_page(View *view) {
  */
 void view_display_page(View *view) {
     int i;
+    mvwaddstr(view->win, view->cmd_line, 0, "       ");
     wmove(view->pad, 0, 0);
     if (view->ln_win)
         wmove(view->ln_win, 0, 0);
@@ -1237,8 +1238,13 @@ void view_display_page(View *view) {
     view->page_bot_pos = view->file_pos;
     for (i = 0; i < view->scroll_lines; i++) {
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
-        if (view->f_eod)
+        if (view->f_eod) {
+            wmove(view->ln_win, i, 0);
+            wclrtobot(view->ln_win);
+            wmove(view->pad, i, 0);
+            wclrtobot(view->pad);
             break;
+        }
         fmt_line(view);
         display_line(view);
     }
@@ -1248,7 +1254,6 @@ void view_display_page(View *view) {
         wmove(view->pad, view->cury + 1, 0);
         wclrtobot(view->pad);
     }
-    mvwaddstr(view->win, view->cmd_line, 0, "       ");
     wrefresh(view->ln_win);
     pad_refresh(view);
     view->page_bot_ln = view->ln;
