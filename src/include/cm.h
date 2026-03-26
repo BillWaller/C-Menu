@@ -157,6 +157,7 @@ enum FTypes {
    terminal state after the program has exited. */
 #define __end_pgm                                                              \
     static void end_pgm(void) {                                                \
+        curs_set(1);                                                           \
         win_del();                                                             \
         destroy_curses();                                                      \
         restore_shell_tioctl();                                                \
