@@ -222,9 +222,7 @@ typedef struct {
     int l;          /**< length of the chyron string, for display purposes */
 } Chyron;
 
-extern int xwgetch(WINDOW *, Chyron *);
-extern int xwgetch_t(WINDOW *, Chyron *, int);
-extern int xwgetch_s(WINDOW *, Chyron *, int);
+extern int xwgetch(WINDOW *, Chyron *, int);
 extern int click_y; /**< the y coordinate of a mouse click, for handling mouse
                    events */
 extern int

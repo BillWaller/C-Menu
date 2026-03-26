@@ -433,7 +433,7 @@ int picker(Init *init) {
     while (1) {
         tcflush(tty_fd, TCIFLUSH);
         if (cmd_key == 0)
-            cmd_key = xwgetch_s(pick->win, pick->chyron, -1);
+            cmd_key = xwgetch(pick->win, pick->chyron, -1);
         switch (
             cmd_key) { /** 'q', or KEY_F(9) cancel selection and exit picker */
         case 'q':

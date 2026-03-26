@@ -668,7 +668,7 @@ int get_cmd_char(View *view, off_t *n) {
     char cmd_str[33];
     cmd_str[0] = '\0';
     do {
-        c = xwgetch_s(view->pad, nullptr, -1);
+        c = xwgetch(view->pad, nullptr, 0);
         if ((c >= '0' && c <= '9') && i < 32) {
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
@@ -738,7 +738,7 @@ int get_cmd_arg(View *view, char *prompt) {
     wclrtoeol(view->pad);
     while (1) {
         pad_refresh(view);
-        c = xwgetch_s(view->pad, nullptr, -1);
+        c = xwgetch(view->pad, nullptr, -1);
         switch (c) {
         /** Basic Editing Keys for Command Line */
         case KEY_LEFT:
@@ -1913,7 +1913,7 @@ void remove_file(View *view) {
         wmove(view->pad, view->cmd_line, 0);
         waddstr(view->pad, "Remove File (Y or N)->");
         wclrtoeol(view->pad);
-        c = (char)xwgetch_s(view->pad, nullptr, -1);
+        c = (char)xwgetch(view->pad, nullptr, -1);
         waddch(view->pad, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);

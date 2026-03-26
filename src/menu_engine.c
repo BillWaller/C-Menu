@@ -120,7 +120,7 @@ unsigned int menu_cmd_processor(Init *init) {
     event.y = event.x = -1;
     // tcflush(2, TCIFLUSH);
     wmove(menu->win, menu->line_idx, 1);
-    in_key = xwgetch_s(menu->win, nullptr, -1);
+    in_key = xwgetch(menu->win, nullptr, -1);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);
     switch (in_key) {
