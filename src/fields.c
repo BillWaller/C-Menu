@@ -40,7 +40,7 @@ void left_justify(char *);
 char ff_tbl[][26] = {"string",   "decimal_int", "hex_int", "float", "double",
                      "currency", "yyyymmdd",    "hhmmss",  "apr",   ""};
 
-int form_accept_field(Form *);
+int field_editor(Form *);
 int form_display_field(Form *);
 int form_display_field_n(Form *, int);
 int form_display_field_brackets(Form *);
@@ -56,7 +56,7 @@ void mk_filler(char *, int);
      Returns key code of action taken (e.g., accept field, tab to next field,
      break out of input loop).
  */
-int form_accept_field(Form *form) {
+int field_editor(Form *form) {
     bool f_insert = FALSE;
     int in_key;
     char *s, *d;
@@ -90,7 +90,7 @@ int form_accept_field(Form *form) {
             wmove(win, flin, x);
             tcflush(0, TCIFLUSH);
             wmove(win, flin, x);
-            in_key = xwgetch_s(win, form->chyron, -1);
+            in_key = xwgetch(win, form->chyron, -1);
         }
         switch (in_key) {
             /** KEY_F(10) is the default key for accepting the field and moving
@@ -300,7 +300,7 @@ int form_accept_field(Form *form) {
                 in_key = 0;
                 continue;
             default:
-                Perror("form_accept_field() invalid format");
+                Perror("field_editor() invalid format");
                 break;
             }
             if (in_key >= ' ') {

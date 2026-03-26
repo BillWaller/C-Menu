@@ -58,8 +58,7 @@ Chyron *wait_mk_chyron();
 WINDOW *wait_mk_win(Chyron *, char *);
 int wait_continue(WINDOW *, Chyron *, int);
 bool wait_destroy(Chyron *);
-int xwgetch_t(WINDOW *, Chyron *, int);
-int xwgetch_s(WINDOW *, Chyron *, int);
+int xwgetch(WINDOW *, Chyron *, int);
 
 bool init_clr_palette(SIO *);
 cchar_t mkccc(int);
@@ -649,7 +648,7 @@ RGB hex_clr_str_to_rgb(char *s) {
     @ingroup window_support
     @note This function should be called before exiting the program to ensure
    that the terminal is left in a usable state. It checks if NCurses was
-   initialized and, if so, it clears the screen, refreshes it, and ends the
+   initialized and, if so, it erases the screen, refreshes it, and ends the
    NCurses session. It also restores the original terminal settings using
    restore_shell_tioctl and resets signal handlers to their default state with
    sig_dfl_mode. */
@@ -693,8 +692,6 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     if (win_ptr < MAXWIN) {
         if (win_ptr > 0)
             wrefresh(win_win[win_ptr]);
-        else
-            wrefresh(stdscr);
         win_ptr++;
         if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 ||
             wcols < COLS - 2) {
@@ -954,7 +951,7 @@ int answer_yn(char *em0, char *em1, char *em2, char *em3) {
     wmove(error_win, 4, chyron->l + 1);
     wrefresh(error_win);
     do {
-        cmd_key = xwgetch_s(error_win, chyron, -1);
+        cmd_key = xwgetch(error_win, chyron, -1);
         if (cmd_key == KEY_F(1) || cmd_key == 'N' || cmd_key == 'n' ||
             cmd_key == 'Y' || cmd_key == 'y')
             break;
@@ -1017,7 +1014,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     wmove(error_win, 4, chyron->l + 1);
     wrefresh(error_win);
     do {
-        cmd_key = xwgetch_s(error_win, chyron, -1);
+        cmd_key = xwgetch(error_win, chyron, -1);
         if (cmd_key == KEY_F(9) || cmd_key == KEY_F(10) || cmd_key == 'q' ||
             cmd_key == 'Q')
             break;
@@ -1073,7 +1070,7 @@ int Perror(char *emsg_str) {
     wmove(error_win, 1, chyron->l);
     wrefresh(error_win);
     if (f_xwgetch) {
-        cmd_key = xwgetch_s(error_win, chyron, -1);
+        cmd_key = xwgetch(error_win, chyron, -1);
         win_del();
     } else {
         cmd_key = KEY_F(10);
@@ -1145,7 +1142,7 @@ int wait_continue(WINDOW *wait_win, Chyron *chyron, int remaining) {
     ssnprintf(time_str, 9, "%d", remaining);
     mvwaddstr(wait_win, 0, 21, time_str);
     wmove(wait_win, 1, chyron->l);
-    cmd_key = xwgetch_t(wait_win, chyron, 1);
+    cmd_key = xwgetch(wait_win, chyron, 1);
     return cmd_key;
 }
 /** @brief For lines shorter than their display area, fill the rest with spaces
@@ -1242,149 +1239,6 @@ void abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     exit(EXIT_FAILURE);
 }
-/** @brief Wrapper for wgetch that handles signals and mouse events
-    @ingroup window_support
-    @param win Pointer to window
-    @param chyron Pointer to chyron for handling chyron line clicks
-    @return Key code or ERR if interrupted by signal
-    @note This, of course, will be expanded into an event loop for message
-   queuing
-    @details Get mouse event and check if it's a left click or double click. If
-   the click is outside the window, ignore it. If it's on the chyron line, get
-   the corresponding key command. Otherwise, store the click coordinates as
-   click_y and click_x for later use. */
-int xwgetch(WINDOW *win, Chyron *chyron) {
-    int c;
-    MEVENT event;
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
-                  BUTTON5_PRESSED,
-              nullptr);
-    event.y = event.x = -1;
-    click_y = click_x = -1;
-    halfdelay(1);
-    curs_set(1);
-    tcflush(2, TCIFLUSH);
-    do {
-        c = wgetch(win);
-        if (sig_received != 0) {
-            if (handle_signal(sig_received))
-                c = display_error(em0, em1, em2, nullptr);
-            if (c == 'q' || c == 'Q' || c == KEY_F(9))
-                exit(EXIT_FAILURE);
-            continue;
-        }
-        if (c == ERR)
-            continue;
-        if (c == KEY_MOUSE) {
-            if (getmouse(&event) != OK) {
-                c = 0;
-                continue;
-            }
-            if (event.bstate & BUTTON4_PRESSED) {
-                cmd_key = KEY_UP;
-                break;
-            } else if (event.bstate & BUTTON5_PRESSED) {
-                cmd_key = KEY_DOWN;
-                break;
-            }
-            if (event.bstate & BUTTON1_CLICKED ||
-                event.bstate & BUTTON1_DOUBLE_CLICKED) {
-                if (!wenclose(win, event.y, event.x)) {
-                    c = 0;
-                    continue;
-                }
-                wmouse_trafo(win, &event.y, &event.x, false);
-                if (event.y < 0 || event.x < 0 || event.x >= getmaxx(win) ||
-                    event.y >= getmaxy(win)) {
-                    c = 0;
-                    continue;
-                }
-                click_y = event.y;
-                click_x = event.x;
-                if (chyron && event.y == getmaxy(win) - 1) {
-                    c = get_chyron_key(chyron, event.x);
-                    break;
-                } else
-                    break;
-            }
-        }
-    } while (c == ERR);
-    curs_set(0);
-    return c;
-}
-/** @brief Wrapper for wgetch that handles signals, mouse events, checks for
-   clicks on the chyron line, and times out after n Seconds
-    @ingroup window_support
-    @param win Pointer to window
-    @param chyron Pointer to chyron struct
-    @param n Number of seconds to wait before timing out
-    @return Key code or ERR if interrupted by signal
-    @note This, of course, will be expanded into an event loop for message
-   queuing
-    @details Get mouse event and check if it's a left click or double click. If
-   the click is outside the window, ignore it. If it's on the chyron line, get
-   the corresponding key command. Otherwise, store the click coordinates as
-   click_y and click_x for later use. */
-int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
-    int c;
-    MEVENT event;
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
-                  BUTTON5_PRESSED,
-              nullptr);
-    event.y = event.x = -1;
-    click_y = click_x = -1;
-    n = max(0, n * 10);
-    n = min(255, n);
-    halfdelay(n);
-    tcflush(2, TCIFLUSH);
-    curs_set(1);
-    do {
-        c = wgetch(win);
-        if (sig_received != 0) {
-            if (handle_signal(sig_received))
-                c = display_error(em0, em1, em2, nullptr);
-            if (c == 'q' || c == 'Q' || c == KEY_F(9))
-                exit(EXIT_FAILURE);
-            continue;
-        }
-        if (c == ERR)
-            continue;
-        if (c == KEY_MOUSE) {
-            if (getmouse(&event) != OK) {
-                c = 0;
-                continue;
-            }
-            if (event.bstate & BUTTON4_PRESSED) {
-                cmd_key = KEY_UP;
-                break;
-            } else if (event.bstate & BUTTON5_PRESSED) {
-                cmd_key = KEY_DOWN;
-                break;
-            }
-            if (event.bstate & BUTTON1_CLICKED ||
-                event.bstate & BUTTON1_DOUBLE_CLICKED) {
-                if (!wenclose(win, event.y, event.x)) {
-                    c = 0;
-                    continue;
-                }
-                wmouse_trafo(win, &event.y, &event.x, false);
-                if (event.y < 0 || event.x < 0 || event.x >= getmaxx(win) ||
-                    event.y >= getmaxy(win)) {
-                    c = 0;
-                    continue;
-                }
-                click_y = event.y;
-                click_x = event.x;
-                if (chyron && event.y == getmaxy(win) - 1) {
-                    c = get_chyron_key(chyron, event.x);
-                    break;
-                }
-            }
-        }
-    } while (c == ERR);
-    curs_set(0);
-    return c;
-}
 /** @brief Wrapper for wgetch that handles signals, mouse events, checks for
    clicks on the chyron line, and accepts a sinigle character answer
     @ingroup window_support
@@ -1406,7 +1260,7 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
    the click is outside the window, ignore it. If it's on the chyron line, get
    the corresponding key command. Otherwise, store the click coordinates as
    click_y and click_x for later use. */
-int xwgetch_s(WINDOW *win, Chyron *chyron, int n) {
+int xwgetch(WINDOW *win, Chyron *chyron, int n) {
     int c;
     MEVENT event;
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
@@ -1415,16 +1269,14 @@ int xwgetch_s(WINDOW *win, Chyron *chyron, int n) {
     event.y = event.x = -1;
     click_y = click_x = -1;
 
-    struct termios raw_tioctl;
-    raw_tioctl = curses_tioctl;
-    mk_raw_tioctl(&raw_tioctl);
-    if (n == 0)
+    if (n == -1) {
+        struct termios raw_tioctl;
+        raw_tioctl = curses_tioctl;
+        mk_raw_tioctl(&raw_tioctl);
+    } else if (n == 0)
         halfdelay(1);
-    else {
-        n = max(0, n * 10);
-        n = min(255, n);
-        halfdelay(n);
-    }
+    else
+        halfdelay(min(255, max(0, n * 10)));
     tcflush(2, TCIFLUSH);
     curs_set(1);
     do {
@@ -1434,7 +1286,10 @@ int xwgetch_s(WINDOW *win, Chyron *chyron, int n) {
                 c = display_error(em0, em1, em2, nullptr);
             if (c == 'q' || c == 'Q' || c == KEY_F(9))
                 exit(EXIT_FAILURE);
-            noraw();
+        }
+        if (n > 0 && c == ERR) {
+            c = 0;
+            break;
         }
         if (c == ERR)
             continue;
@@ -1444,11 +1299,9 @@ int xwgetch_s(WINDOW *win, Chyron *chyron, int n) {
                 continue;
             }
             if (event.bstate & BUTTON4_PRESSED) {
-                cmd_key = KEY_UP;
-                break;
+                return KEY_UP;
             } else if (event.bstate & BUTTON5_PRESSED) {
-                cmd_key = KEY_DOWN;
-                break;
+                return KEY_DOWN;
             }
             if (event.bstate & BUTTON1_CLICKED ||
                 event.bstate & BUTTON1_DOUBLE_CLICKED) {

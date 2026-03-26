@@ -7,7 +7,7 @@
     @date 2026-02-09
  */
 
-#include <common.h>
+#include "common.h"
 #include <ncursesw/ncurses.h>
 #include <unistd.h>
 
@@ -27,7 +27,7 @@ int popup_ckeys() {
     int lines = 10;
     int cols = 55;
     char kstr[KSTRLEN];
-    unsigned int c;
+    int c;
     char action[MAXLEN];
     char tmp[MAXLEN];
     MEVENT event;
@@ -40,7 +40,7 @@ int popup_ckeys() {
 
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
                   BUTTON_CTRL | BUTTON_ALT,
-              nullptr);
+              NULL);
     if (win_new(lines, cols, begy, begx, Title, 0)) {
         strnz__cpy(tmp, "win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
@@ -55,12 +55,21 @@ int popup_ckeys() {
     wattroff(win, WA_REVERSE);
     wnoutrefresh(box);
     mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
-    // timeout(1000);
     c = '\0';
+    halfdelay(1);
     while (!c) {
         kstr[0] = '\0';
         wmove(win, 1, 39);
-        c = xwgetch_s(win, nullptr, -1);
+        do {
+            c = wgetch(win);
+            if (sig_received != 0) {
+                if (handle_signal(sig_received))
+                    c = display_error(em0, em1, em2, NULL);
+                if (c == 'q' || c == KEY_F(9))
+                    exit(EXIT_FAILURE);
+                continue;
+            }
+        } while (c == ERR);
         s = keybound(c, 0);
         switch (c) {
         case '\0':
@@ -570,10 +579,9 @@ int popup_ckeys() {
         }
         c = '\0';
     }
-
-    werase(win);
+    wclear(win);
     wrefresh(win);
-    erase();
+    clear();
     refresh();
     win_del();
     return 0;

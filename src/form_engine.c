@@ -30,19 +30,20 @@
 #define D_HEADER 'H'
 #define D_CALC 'C'
 #define D_QUERY 'Q'
+#define D_GETTER 'G'
 
 unsigned int form_display_screen(Init *);
 void form_display_fields(Form *);
 void form_display_chyron(Form *);
-int form_enter_fields(Form *);
+int field_navigator(Form *);
 int form_parse_desc(Form *);
 int form_read_data(Form *);
 int form_write(Form *);
 void form_usage();
 int form_desc_error(int, char *, char *);
 int form_exec_cmd(Form *);
-int form_calculate(Init *);
-int form_end_fields(Init *);
+int form_getter(Init *);
+int form_post(Init *);
 int init_form(Init *, int, char **, int, int);
 int form_engine(Init *);
 int form_yx_to_fidx(Form *, int, int);
@@ -112,7 +113,7 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
           cancel status. */
 int form_engine(Init *init) {
     char tmp_str[MAXLEN];
-    int form_action;
+    int form_action, rc;
 
     form = init->form;
     if (form == nullptr) {
@@ -128,13 +129,13 @@ int form_engine(Init *init) {
     form_action = 0;
     while (1) {
         if (form_action == 0 || form_action == P_CONTINUE)
-            form_action = form_enter_fields(form);
+            form_action = field_navigator(form);
         switch (form_action) {
         case P_ACCEPT:
-            if (form->f_calculate)
-                form_action = form_calculate(init);
+            if (form->f_getter || form->f_calculate || form->f_query)
+                form_action = form_getter(init);
             else
-                form_action = form_end_fields(init);
+                form_action = form_post(init);
             if (form_action == P_HELP || form_action == P_CANCEL ||
                 form_action == P_CONTINUE || form_action == P_END)
                 continue;
@@ -145,13 +146,10 @@ int form_engine(Init *init) {
             break;
         case P_END:
             if (form->f_out_spec || form->out_spec[0] != '\0')
-                form_write(form);
-            if (form->f_receiver_cmd) {
-                form_exec_cmd(form);
-                form_action = P_CONTINUE;
-                continue;
-            }
-            return 0;
+                rc = form_write(form);
+            if (form->f_receiver_cmd || form->receiver_cmd[0] != '\0')
+                rc = form_exec_cmd(form);
+            return rc;
         case P_HELP:
             eargv[0] = strdup("view");
 
@@ -188,7 +186,7 @@ int form_engine(Init *init) {
     @param init A pointer to the Init structure containing form data and state.
     @return An integer status code indicating the next action for the form
     processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP). */
-int form_end_fields(Init *init) {
+int form_post(Init *init) {
     bool loop = true;
     int c, rc;
     click_y = click_x = -1;
@@ -203,7 +201,7 @@ int form_end_fields(Init *init) {
         if (rc == -1) {
             form_display_chyron(form);
             tcflush(2, TCIFLUSH);
-            c = xwgetch_s(form->win, form->chyron, -1);
+            c = xwgetch(form->win, form->chyron, -1);
         }
         switch (c) {
         case KEY_F(1):
@@ -234,45 +232,46 @@ int form_end_fields(Init *init) {
     return rc;
 }
 
-/** @brief Handle integration with an external program for calculation, allowing
-    the user to execute a provider command and read results back into the form
-    fields.
+/** @brief Handle integration with a getter program which will provide field
+   data.
     @ingroup form_engine
     @param init A pointer to the Init structure containing form data and state.
     @return An integer status code indicating the next action for the form
     processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP).
-    @details This function provides integration with external programs.
+    @details This function provides integration with getter programs.
         The requirements are:
-        1. The form description file must have a line starting with 'C' to
-        indicate that the form supports calculation.
+        1. The form description file must have a line containing only 'C'
+   (calculate), 'Q' (query), org 'G' (getter) to indicate that the form supports
+   a getter.
         2. The form description file must specify the provider command using a
         line starting with '!' followed by the command and its arguments.
-        3. The external program must be able to accept field data from a file,
+        3. The getter program must be able to accept field data from a file,
         from standard input, or as command line parameters.
-        4. The external program must output the calculated field values in a
-        format that can be read by the form (e.g., one value per line), either
-        to a file or to standard output.
+        4. The getter program must output field values in a format that can be
+   read by the form (e.g., one value per line), either to a file or to standard
+   output.
 
         The sequence of operations is as follows:
 
-        1. The 'C' option causes Form to pause and display an KEY_F(5) Calculate
-        option on the chyron.
+        1. The 'C', 'Q', or 'G' option causes Form to pause and display an
+   KEY_F(5) Calculate, Query, or Getter. option on the chyron.
         2. The user can then cancel the operation by pressing KEY_F(9) or
-        activate the calculate option by pressing KEY_F(5).
+        activate the getter option by pressing KEY_F(5).
         3. Form outputs its data to file, standard output, or as command line
         parameters.
-        4. Form executes the external program.
-        5. The external program processes the data and outputs the results.
+        4. Form executes the getter program.
+        5. The getter program processes the data and outputs the results.
         6. Form reads the results and populates the appropriate form fields.
         7. Form presents the user with an option to edit the data, and the
         sequence restarts at 1.
 
-        This function forks and executes the provider executable as a child
+        This function forks and executes the getter executable as a child
         process, creates a pipe to read the output from the provider command,
         reads the output, and updates the Form fields.
             */
-int form_calculate(Init *init) {
+int form_getter(Init *init) {
     int i, c, rc;
+    char tmp_str[MAXLEN];
     char earg_str[MAXLEN + 1];
     char *eargv[MAXARGS];
     char file_spec[MAXLEN];
@@ -285,13 +284,21 @@ int form_calculate(Init *init) {
     wclrtoeol(form->win);
     unset_chyron_key(form->chyron, 18);
     unset_chyron_key(form->chyron, 10);
-    set_chyron_key(form->chyron, 5, "F5 Calculate", KEY_F(5));
+    strnz__cpy(tmp_str, "F5 ", MAXLEN - 1);
+
+    if (form->f_getter)
+        strnz__cat(tmp_str, "Getter", MAXLEN - 1);
+    else if (form->f_calculate)
+        strnz__cat(tmp_str, "Calculate", MAXLEN - 1);
+    else if (form->f_query)
+        strnz__cat(tmp_str, "Query", MAXLEN - 1);
+    set_chyron_key(form->chyron, 5, tmp_str, KEY_F(5));
 
     while (loop) {
         form_display_chyron(form);
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
-        c = xwgetch_s(form->win, form->chyron, -1);
+        c = xwgetch(form->win, form->chyron, -1);
         switch (c) {
         case KEY_F(1):
             return P_HELP;
@@ -379,35 +386,29 @@ int form_calculate(Init *init) {
    between fields and handling of special keys for accepting, canceling,
    requesting help, or performing calculations. The function loops until the
    user selects an exit action (e.g., accept or cancel). */
-int form_enter_fields(Form *form) {
+int field_navigator(Form *form) {
 
     if (form->fidx < 0)
         return (-1);
     while (1) {
-        cmd_key = form_accept_field(form);
-        wrefresh(form->win);
+        cmd_key = field_editor(form);
 
         switch (cmd_key) {
-
         case KEY_F(10):
             return (P_ACCEPT);
-
         case KEY_F(1):
             return (P_HELP);
-
         case KEY_F(5):
-            if (form->f_calculate)
+            if (form->f_getter)
                 return (P_CALC);
             break;
-
         case KEY_F(9):
             return (P_CANCEL);
-
+        case 'k':
         case KEY_UP:
             if (form->fidx != 0)
                 form->fidx--;
             break;
-
         case '\r':
         case KEY_ENTER:
             if (form->fidx < form->fcnt - 1)
@@ -415,7 +416,7 @@ int form_enter_fields(Form *form) {
             else if (form->fidx == form->fcnt - 1)
                 return (P_ACCEPT);
             break;
-
+        case 'j':
         case KEY_DOWN:
             if (form->fidx < form->fcnt - 1)
                 form->fidx++;
@@ -483,9 +484,6 @@ unsigned int form_display_screen(Init *init) {
         strnz(form->text[n]->str, form->cols - 3);
         mvwaddstr(form->win, form->text[n]->line, form->text[n]->col,
                   form->text[n]->str);
-#ifdef DEBUG
-        wrefresh(form->win);
-#endif
     }
     form_display_fields(form);
     return 0;
@@ -507,9 +505,6 @@ void form_display_fields(Form *form) {
         strnfill(form->field[n]->filler_s, fill_char, form->field[n]->len);
         strnz(form->field[n]->display_s, form->field[n]->len);
         form_display_field_n(form, n);
-#ifdef DEBUG
-        wrefresh(form->win);
-#endif
     }
     form->chyron = new_chyron();
     set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
@@ -606,6 +601,9 @@ int form_parse_desc(Form *form) {
             break;
         case D_QUERY:
             form->f_query = true;
+            break;
+        case D_GETTER:
+            form->f_getter = true;
             break;
         case D_CMD:
             if (!(token = strtok(nullptr, delim))) {
@@ -816,7 +814,7 @@ int form_exec_cmd(Form *form) {
         strnz__cat(earg_str, " ", MAXLEN - 1);
         strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
     }
-    if (form->f_out_spec && form->f_calculate) {
+    if (form->f_out_spec && form->f_getter) {
         strnz__cat(earg_str, " >", MAXLEN - 1);
         strnz__cat(earg_str, form->out_spec, MAXLEN - 1);
     }
