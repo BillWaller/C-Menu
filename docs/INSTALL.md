@@ -1,25 +1,32 @@
 # Installation Guide
 
-<!-- mtoc-start -->
+## C-Menu Binaries for Linux x86_64
 
-- [Build C-Menu](#build-c-menu)
-  - [RSH Static Linking](#rsh-static-linking)
-    - [Prerequisites](#prerequisites)
-    - [Option 1 - Build C-Menu Using CMake Directly](#option-1---build-c-menu-using-cmake-directly)
-    - [Option 2 - Build C-Menu with Provided Scripts](#option-2---build-c-menu-with-provided-scripts)
-    - [Option 3 - Build C-Menu Using Makefile](#option-3---build-c-menu-using-makefile)
-  - [Finish the installation](#finish-the-installation)
-- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
+1. Download the binary distribution, C-Menu-0.2.9-Linux-x86_64.xz.
 
-<!-- mtoc-end -->
+2. cd to the directory where you downloaded the file and extract it using the following command:
 
----
+```bash
+tar -xf C-Menu-0.2.9-Linux-x86_64.xz
+```
 
-1️⃣ Clone the C-Menu repository:
+This will create a directory named menuapp containing the extracted files.
 
-[C-Menu on Github](https://decision-inc.com)
+3. Configure your environment to use the C-Menu binaries and libraries:
 
-or
+Prepend the C-Menu bin directory to your PATH environment variable by adding the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc). Assuming you extracted the menuapp directory to your home directory, the line would look like this:
+
+```bash
+export PATH="$HOME"/menuapp/bin:"$PATH"
+```
+
+4. Start C-Menu by running the following command in your terminal:
+
+```bash
+menu
+```
+
+## Build C-Menu from Source
 
 ```bash
 gh repo clone BillWaller/C-Menu
@@ -32,8 +39,6 @@ cp -r C-Menu/src/menuapp /home/yourusername/
 ```
 
 ---
-
-### Build C-Menu
 
 #### RSH Static Linking
 

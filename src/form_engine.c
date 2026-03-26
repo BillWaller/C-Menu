@@ -113,7 +113,8 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
           cancel status. */
 int form_engine(Init *init) {
     char tmp_str[MAXLEN];
-    int form_action, rc;
+    int form_action;
+    int rc = 0;
 
     form = init->form;
     if (form == nullptr) {
