@@ -1,4 +1,4 @@
-/** @file main.c
+/** @file menu.c
     @brief Command line start-up for C-Menu components
     @author Bill Waller
     Copyright (c) 2025

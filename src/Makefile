@@ -83,7 +83,7 @@ BIN_DIR=$(PREFIX)/bin
 INC_DIR=$(PREFIX)
 LIB_PATH=.:$(LIB_DIR)
 
-BINEXES=main menu form pick view ckeys whence rsh iloan enterchr \
+BINEXES=menu form pick view ckeys whence rsh iloan enterchr \
 		enterstr lf optsp stripansi
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
@@ -101,19 +101,17 @@ LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_PATH)
 all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Make Complete
 
-main:	main.o $(COMMON_OBJS) $(COMMON_HDRS) $(LIB_NAME)
-	$(CC) $(COMMON_OBJS) main.o -o $@ $(LIBS)
+menu:	menu.o $(COMMON_OBJS) $(COMMON_HDRS) $(LIB_NAME)
+	$(CC) $(COMMON_OBJS) menu.o -o $@ $(LIBS)
 
-menu:	main
-	ln -sf main menu
-form:	main
-	ln -sf main form
-pick:	main
-	ln -sf main pick
-view:	main
-	ln -sf main view
-ckeys:	main
-	ln -sf main ckeys
+form:	menu
+	ln -sf menu form
+pick:	menu
+	ln -sf menu pick
+view:	menu
+	ln -sf menu view
+ckeys:	menu
+	ln -sf menu ckeys
 
 enterchr:	include/cm.h enterchr.o $(LIB_NAME)
 	$(CC) enterchr.o -o $@ $(LIBS)
@@ -187,7 +185,7 @@ install:
 	./inst.sh include/menu.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
 	./inst.sh include/pick.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
 	./inst.sh include/view.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
-	./inst.sh main			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh menu			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh optsp			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh whence		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh rsh			$(BIN_DIR)	  4711	root	root
@@ -195,7 +193,7 @@ install:
 	./inst.sh enterstr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh iloan			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh stripansi		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh lf			$(BIN_DIR)		  0711	$(USER)	$(GROUP)
+	./inst.sh lf			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(LIB_DIR)
 	rm -f	 $(LIB_DIR)/libcm*
@@ -207,11 +205,10 @@ install:
 	echo	$(SYSDATE) $(LIB_DIR)/$(LIB_SHARED) >>manifest.txt
 	ln -sf	 $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
 	echo	$(SYSDATE) $(LIB_DIR)/$(SONAME) >>manifest.txt
-	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/menu
-	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/form
-	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/pick
-	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/view
-	ln -sf	 $(BIN_DIR)/main $(BIN_DIR)/ckeys
+	ln -sf	 $(BIN_DIR)/menu $(BIN_DIR)/form
+	ln -sf	 $(BIN_DIR)/menu $(BIN_DIR)/pick
+	ln -sf	 $(BIN_DIR)/menu $(BIN_DIR)/view
+	ln -sf	 $(BIN_DIR)/menu $(BIN_DIR)/ckeys
 	cp CMenu.conf /etc/ld.so.conf.d
 	echo `test/iso8601.sh` /etc/ld.so.conf.d/CMenu.conf >>manifest.txt
 	ldconfig
@@ -220,7 +217,6 @@ install:
 	./inst.sh -m
 
 uninstall:
-			$(BIN_DIR)/main \
 			$(BIN_DIR)/menu \
 			$(BIN_DIR)/form \
 			$(BIN_DIR)/pick \

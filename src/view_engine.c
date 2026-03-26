@@ -1238,20 +1238,15 @@ void view_display_page(View *view) {
     view->page_bot_pos = view->file_pos;
     for (i = 0; i < view->scroll_lines; i++) {
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
-        if (view->f_eod) {
-            wmove(view->ln_win, i, 0);
-            wclrtobot(view->ln_win);
-            wmove(view->pad, i, 0);
-            wclrtobot(view->pad);
+        if (view->f_eod)
             break;
-        }
         fmt_line(view);
         display_line(view);
     }
     if (view->cury + 1 < view->scroll_lines) {
-        wmove(view->ln_win, view->cury + 1, 0);
+        wmove(view->ln_win, view->cury, 0);
         wclrtobot(view->ln_win);
-        wmove(view->pad, view->cury + 1, 0);
+        wmove(view->pad, view->cury, 0);
         wclrtobot(view->pad);
     }
     wrefresh(view->ln_win);
