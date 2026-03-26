@@ -671,7 +671,7 @@ int get_cmd_char(View *view, off_t *n) {
     char cmd_str[33];
     cmd_str[0] = '\0';
     do {
-        c = xwgetch(view->pad, nullptr);
+        c = xwgetch_s(view->pad, nullptr, -1);
         if ((c >= '0' && c <= '9') && i < 32) {
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
@@ -741,7 +741,7 @@ int get_cmd_arg(View *view, char *prompt) {
     wclrtoeol(view->pad);
     while (1) {
         pad_refresh(view);
-        c = xwgetch(view->pad, nullptr);
+        c = xwgetch_s(view->pad, nullptr, -1);
         switch (c) {
         /** Basic Editing Keys for Command Line */
         case KEY_LEFT:
@@ -855,18 +855,18 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
     int rc;
     size_t l;
     char tmp_line_s[PAD_COLS];
-
     if (!f_strip_ansi) {
         strnz__cpy(em0, "Would you like to strip ansi escape sequences?",
                    MAXLEN - 1);
         strnz__cpy(em1, "Enter Y for yes or any other key to cancel.",
                    MAXLEN - 1);
-        rc = display_error(em0, em1, nullptr, nullptr);
+        rc = answer_yn(nullptr, em0, em1, nullptr);
         if (rc == 'y' || rc == 'Y')
             f_strip_ansi = true;
         else
             f_strip_ansi = false;
     }
+    restore_wins();
     /** write the buffer */
     pos = 0;
     view->out_fd = open(view->out_spec, O_CREAT | O_TRUNC | O_WRONLY, 0644);
@@ -1916,7 +1916,7 @@ void remove_file(View *view) {
         wmove(view->pad, view->cmd_line, 0);
         waddstr(view->pad, "Remove File (Y or N)->");
         wclrtoeol(view->pad);
-        c = (char)xwgetch(view->pad, nullptr);
+        c = (char)xwgetch_s(view->pad, nullptr, -1);
         waddch(view->pad, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);
@@ -2011,19 +2011,18 @@ bool enter_file_spec(Init *init, char *file_spec) {
         }
         /** call form to get file_name
             write the name to a temporary file */
+
         strnz__cpy(earg_str, "form -d file_name.f -o ", MAXLEN - 1);
         strnz__cat(earg_str, tmp_spec, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
-        rc = init_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
+        rc = popup_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
         if (rc == P_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F(9)) {
-            destroy_form(init);
-            view->f_redisplay_page = true;
+            restore_wins();
             return false;
         }
-        destroy_form(init);
         close(view->in_fd);
+        restore_wins();
+        view_display_page(view);
         /** read file_name from tmp_spec */
         tmp_fp = fopen(tmp_spec, "r");
         if (tmp_fp == nullptr) {

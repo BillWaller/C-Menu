@@ -6,35 +6,38 @@ int popup_pick(Init *, int, char **, int, int);
 int popup_view(Init *, int, char **);
 
 int popup_menu(Init *init, int begy, int begx) {
+    int rc;
     new_menu(init, init->argc, init->argv, begy, begx);
     menu = init->menu;
     parse_menu_description(init);
-    menu_engine(init);
+    rc = menu_engine(init);
     destroy_menu(init);
-    return 0;
+    return rc;
 }
 
 int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
+    int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Pick *sav_pick = init->pick;
-    init_pick(init, argc, argv, begy, begx);
+    rc = init_pick(init, argc, argv, begy, begx);
     destroy_pick(init);
     init->pick = sav_pick;
-    return 0;
+    return rc;
 }
 
 int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
+    int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Form *sav_form = init->form;
-    init_form(init, argc, argv, begy + 1, begx + 1);
-    destroy_form(init);
+    rc = init_form(init, argc, argv, begy + 1, begx + 1);
     init->form = sav_form;
-    return 0;
+    return rc;
 }
 
 int popup_view(Init *init, int argc, char **argv) {
+    int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     View *sav_view = init->view;
@@ -69,10 +72,10 @@ int popup_view(Init *init, int argc, char **argv) {
         view->begx = COLS - view->cols - 1;
     view->f_full_screen = false;
     if (!init_view_boxwin(init, init->title)) {
-        view_file(init);
+        rc = view_file(init);
         win_del();
     }
     destroy_view(init);
     init->view = sav_view;
-    return 0;
+    return rc;
 }

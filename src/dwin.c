@@ -59,6 +59,7 @@ WINDOW *wait_mk_win(Chyron *, char *);
 int wait_continue(WINDOW *, Chyron *, int);
 bool wait_destroy(Chyron *);
 int xwgetch_t(WINDOW *, Chyron *, int);
+int xwgetch_s(WINDOW *, Chyron *, int);
 
 bool init_clr_palette(SIO *);
 cchar_t mkccc(int);
@@ -397,7 +398,6 @@ bool open_curses(SIO *sio) {
     CCC_BOX = mkccc(cp_box);
     CCC_LN = mkccc(cp_ln);
     noecho();
-    cbreak();
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
@@ -703,6 +703,9 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
                 win_ptr--;
                 return (1);
             }
+#ifdef DEBUG
+            immedok(win_box[win_ptr], true);
+#endif
             wbkgrnd(win_box[win_ptr], &CCC_BOX);
             wbkgrndset(win_box[win_ptr], &CCC_BOX);
             if (wtitle != nullptr && *wtitle != '\0')
@@ -726,6 +729,9 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
                 win_ptr--;
                 return (1);
             }
+#ifdef DEBUG
+            immedok(win_box[win_ptr], true);
+#endif
             wbkgrnd(win_box[win_ptr], &CCC_BOX);
             wbkgrndset(win_box[win_ptr], &CCC_BOX);
         }
@@ -736,14 +742,14 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
                 win_ptr--;
                 return (1);
             }
+#ifdef DEBUG
+            immedok(win_win[win_ptr], true);
+#endif
             wbkgrnd(win_win[win_ptr], &CCC_NORM);
             wbkgrndset(win_win[win_ptr], &CCC_NORM);
             keypad(win_win[win_ptr], true);
             idlok(win_win[win_ptr], false);
             idcok(win_win[win_ptr], false);
-#ifdef DEBUG
-            immedok(win_win[win_ptr], true);
-#endif
         }
     }
     return (0);
@@ -849,7 +855,7 @@ WINDOW *win_del() {
 void restore_wins() {
     int i;
 
-    werase(stdscr);
+    // werase(stdscr);
     touchwin(stdscr);
     wnoutrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
@@ -894,6 +900,69 @@ void cbox(WINDOW *box) {
     @brief Display Error messages
  */
 
+/** @brief Accept a single letter answer
+    @ingroup error_handling
+    @param em0 First error message line
+    @param em1 Second error message line
+    @param em2 Third error message line
+    @param em3 Fourth error message line
+    @return Key code of user command */
+int answer_yn(char *em0, char *em1, char *em2, char *em3) {
+    char title[MAXLEN];
+    int line, pos, em_l, em0_l, em1_l, em2_l, em3_l;
+    WINDOW *error_win;
+
+    if (!f_curses_open) {
+        fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", em0, em1, em2, em3);
+        return (1);
+    }
+
+    Chyron *chyron = new_chyron();
+    set_chyron_key(chyron, 1, "F1 Help", KEY_F(1));
+    set_chyron_key(chyron, 2, "N - No", 'n');
+    set_chyron_key(chyron, 3, "Y - Yes", 'y');
+    compile_chyron(chyron);
+
+    em_l = 0;
+    em0_l = strnz(em0, COLS - 4);
+    em1_l = strnz(em1, COLS - 4);
+    em2_l = strnz(em2, COLS - 4);
+    em3_l = strnz(em1, COLS - 4);
+    em_l = max(em0_l, em1_l);
+    em_l = max(em_l, em2_l);
+    em_l = max(em_l, em3_l);
+    em_l = max(em_l, chyron->l);
+    em_l = min(em_l, COLS - 4);
+
+    pos = ((COLS - em_l) - 4) / 2;
+    line = (LINES - 6) / 2;
+    strnz__cpy(title, "Notification", MAXLEN - 1);
+    if (win_new(5, em_l + 2, line, pos, title, 0)) {
+        ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
+                  5, em_l + 2, line, pos, title, 0);
+        destroy_chyron(chyron);
+        abend(-1, title);
+    }
+    error_win = win_win[win_ptr];
+    mvwaddstr(error_win, 0, 1, em0);
+    mvwaddstr(error_win, 1, 1, em1);
+    mvwaddstr(error_win, 2, 1, em2);
+    mvwaddstr(error_win, 3, 1, em3);
+    wattron(error_win, WA_REVERSE);
+    mvwaddstr(error_win, 4, 1, chyron->s);
+    wattroff(error_win, WA_REVERSE);
+    wmove(error_win, 4, chyron->l + 1);
+    wrefresh(error_win);
+    do {
+        cmd_key = xwgetch_s(error_win, chyron, -1);
+        if (cmd_key == KEY_F(1) || cmd_key == 'N' || cmd_key == 'n' ||
+            cmd_key == 'Y' || cmd_key == 'y')
+            break;
+    } while (1);
+    win_del();
+    destroy_chyron(chyron);
+    return (cmd_key);
+}
 /** @brief Display an error message window or print to stderr
     @ingroup error_handling
     @param em0 First error message line
@@ -948,7 +1017,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     wmove(error_win, 4, chyron->l + 1);
     wrefresh(error_win);
     do {
-        cmd_key = xwgetch(error_win, chyron);
+        cmd_key = xwgetch_s(error_win, chyron, -1);
         if (cmd_key == KEY_F(9) || cmd_key == KEY_F(10) || cmd_key == 'q' ||
             cmd_key == 'Q')
             break;
@@ -1004,7 +1073,7 @@ int Perror(char *emsg_str) {
     wmove(error_win, 1, chyron->l);
     wrefresh(error_win);
     if (f_xwgetch) {
-        cmd_key = xwgetch(error_win, chyron);
+        cmd_key = xwgetch_s(error_win, chyron, -1);
         win_del();
     } else {
         cmd_key = KEY_F(10);
@@ -1193,11 +1262,10 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
     event.y = event.x = -1;
     click_y = click_x = -1;
     halfdelay(1);
+    curs_set(1);
     tcflush(2, TCIFLUSH);
     do {
-        curs_set(1);
         c = wgetch(win);
-        curs_set(0);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
                 c = display_error(em0, em1, em2, nullptr);
@@ -1212,10 +1280,13 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
                 c = 0;
                 continue;
             }
-            if (event.bstate & BUTTON4_PRESSED)
-                return (KEY_UP);
-            else if (event.bstate & BUTTON5_PRESSED)
-                return (KEY_DOWN);
+            if (event.bstate & BUTTON4_PRESSED) {
+                cmd_key = KEY_UP;
+                break;
+            } else if (event.bstate & BUTTON5_PRESSED) {
+                cmd_key = KEY_DOWN;
+                break;
+            }
             if (event.bstate & BUTTON1_CLICKED ||
                 event.bstate & BUTTON1_DOUBLE_CLICKED) {
                 if (!wenclose(win, event.y, event.x)) {
@@ -1230,13 +1301,15 @@ int xwgetch(WINDOW *win, Chyron *chyron) {
                 }
                 click_y = event.y;
                 click_x = event.x;
-                if (chyron && event.y == getmaxy(win) - 1)
-                    return get_chyron_key(chyron, event.x);
-                else
-                    return KEY_MOUSE;
+                if (chyron && event.y == getmaxy(win) - 1) {
+                    c = get_chyron_key(chyron, event.x);
+                    break;
+                } else
+                    break;
             }
         }
     } while (c == ERR);
+    curs_set(0);
     return c;
 }
 /** @brief Wrapper for wgetch that handles signals, mouse events, checks for
@@ -1260,15 +1333,13 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
               nullptr);
     event.y = event.x = -1;
     click_y = click_x = -1;
-    n *= 10; /** convert seconds to deciseconds for timeout */
-    n = max(0, n);
+    n = max(0, n * 10);
     n = min(255, n);
     halfdelay(n);
     tcflush(2, TCIFLUSH);
+    curs_set(1);
     do {
-        curs_set(1);
         c = wgetch(win);
-        curs_set(0);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
                 c = display_error(em0, em1, em2, nullptr);
@@ -1277,18 +1348,19 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
             continue;
         }
         if (c == ERR)
-            break;
-        if (c == KEY_F(9))
-            break;
+            continue;
         if (c == KEY_MOUSE) {
             if (getmouse(&event) != OK) {
                 c = 0;
                 continue;
             }
-            if (event.bstate & BUTTON4_PRESSED)
-                return (KEY_UP);
-            else if (event.bstate & BUTTON5_PRESSED)
-                return (KEY_DOWN);
+            if (event.bstate & BUTTON4_PRESSED) {
+                cmd_key = KEY_UP;
+                break;
+            } else if (event.bstate & BUTTON5_PRESSED) {
+                cmd_key = KEY_DOWN;
+                break;
+            }
             if (event.bstate & BUTTON1_CLICKED ||
                 event.bstate & BUTTON1_DOUBLE_CLICKED) {
                 if (!wenclose(win, event.y, event.x)) {
@@ -1303,12 +1375,104 @@ int xwgetch_t(WINDOW *win, Chyron *chyron, int n) {
                 }
                 click_y = event.y;
                 click_x = event.x;
-                if (chyron && event.y == getmaxy(win) - 1)
-                    return get_chyron_key(chyron, event.x);
-                else
-                    return KEY_MOUSE;
+                if (chyron && event.y == getmaxy(win) - 1) {
+                    c = get_chyron_key(chyron, event.x);
+                    break;
+                }
             }
         }
-    } while (c != ERR);
+    } while (c == ERR);
+    curs_set(0);
+    return c;
+}
+/** @brief Wrapper for wgetch that handles signals, mouse events, checks for
+   clicks on the chyron line, and accepts a sinigle character answer
+    @ingroup window_support
+    @param win Pointer to window
+    @param chyron Pointer to chyron struct
+    @param n Number of seconds to wait before timing out
+    @verbatim
+
+        0: Wait indefinitely for user input (raw mode)
+            accept a single character answer, and don't wait for Enter key
+        1: Wait for 1 decisecond
+        n > 1: Wait for n/10 seconds
+
+    @endverbatim
+    @return Key code or ERR if interrupted by signal
+    @note This, of course, will be expanded into an event loop for message
+   queuing
+    @details Get mouse event and check if it's a left click or double click. If
+   the click is outside the window, ignore it. If it's on the chyron line, get
+   the corresponding key command. Otherwise, store the click coordinates as
+   click_y and click_x for later use. */
+int xwgetch_s(WINDOW *win, Chyron *chyron, int n) {
+    int c;
+    MEVENT event;
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
+                  BUTTON5_PRESSED,
+              nullptr);
+    event.y = event.x = -1;
+    click_y = click_x = -1;
+
+    struct termios raw_tioctl;
+    raw_tioctl = curses_tioctl;
+    mk_raw_tioctl(&raw_tioctl);
+    if (n == 0)
+        halfdelay(1);
+    else {
+        n = max(0, n * 10);
+        n = min(255, n);
+        halfdelay(n);
+    }
+    tcflush(2, TCIFLUSH);
+    curs_set(1);
+    do {
+        c = wgetch(win);
+        if (sig_received != 0) {
+            if (handle_signal(sig_received))
+                c = display_error(em0, em1, em2, nullptr);
+            if (c == 'q' || c == 'Q' || c == KEY_F(9))
+                exit(EXIT_FAILURE);
+            noraw();
+        }
+        if (c == ERR)
+            continue;
+        if (c == KEY_MOUSE) {
+            if (getmouse(&event) != OK) {
+                c = 0;
+                continue;
+            }
+            if (event.bstate & BUTTON4_PRESSED) {
+                cmd_key = KEY_UP;
+                break;
+            } else if (event.bstate & BUTTON5_PRESSED) {
+                cmd_key = KEY_DOWN;
+                break;
+            }
+            if (event.bstate & BUTTON1_CLICKED ||
+                event.bstate & BUTTON1_DOUBLE_CLICKED) {
+                if (!wenclose(win, event.y, event.x)) {
+                    c = 0;
+                    continue;
+                }
+                wmouse_trafo(win, &event.y, &event.x, false);
+                if (event.y < 0 || event.x < 0 || event.x >= getmaxx(win) ||
+                    event.y >= getmaxy(win)) {
+                    c = 0;
+                    continue;
+                }
+                click_y = event.y;
+                click_x = event.x;
+                if (chyron && event.y == getmaxy(win) - 1) {
+                    c = get_chyron_key(chyron, event.x);
+                    break;
+                } else
+                    break;
+            }
+        }
+    } while (c == ERR);
+    curs_set(0);
+    restore_curses_tioctl();
     return c;
 }

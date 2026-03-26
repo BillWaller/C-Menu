@@ -203,7 +203,7 @@ int form_end_fields(Init *init) {
         if (rc == -1) {
             form_display_chyron(form);
             tcflush(2, TCIFLUSH);
-            c = xwgetch(form->win, form->chyron);
+            c = xwgetch_s(form->win, form->chyron, -1);
         }
         switch (c) {
         case KEY_F(1):
@@ -291,7 +291,7 @@ int form_calculate(Init *init) {
         form_display_chyron(form);
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
-        c = xwgetch(form->win, form->chyron);
+        c = xwgetch_s(form->win, form->chyron, -1);
         switch (c) {
         case KEY_F(1):
             return P_HELP;
