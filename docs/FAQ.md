@@ -4,6 +4,7 @@
 
 <!-- mtoc-start -->
 
+- [Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.](#drop-down-and-pop-up-menus-forms-pickers-views-ckeys-etc)
 - [Sorted lf Output](#sorted-lf-output)
 - [Multiple Executables](#multiple-executables)
 - [Static Executables](#static-executables)
@@ -35,6 +36,12 @@
 
 <!-- mtoc-end -->
 
+## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
+
+Q: Are you going to add drop-down and pop-up features to C-Menu?
+
+A: Yes. Drop-down and pop-up menus are on the roadmap for future releases of C-Menu, and we are already making some progress in that direction. Stand by!
+
 ## Sorted lf Output
 
 Q: Why is the output of "lf" not sorted?
@@ -43,6 +50,14 @@ A: It should be sorted. The easiest way to do that is to pipe lf output through
 "sort". The preferred method would be to use the -S option to execute a shell
 script such as ~/menuapp/bin/project_src. I have added "| sort" to that script
 based on your suggestion. Here is the new script:
+
+A2: Please forgive the previous answer that seems a bit terse as I re-read it. Here is a more detailed answer that I believe you will appreciate.
+
+The compelling design objective for "lf" was to create an ultra-lightweight stand-in for find with a minimal memory footprint, a simple interface that is easy to learn and use, and high performance on any platform, including IOT, and embedded applications. Any features that impede rapid development or deployment to constrained resource environments would detract from "lf"'s design objectives. What we want from "lf" is more-bang-for-the-buck.
+
+"lf" isn't find, and it isn't meant to be. It is a simple utility that provides basic file listing capabilities with a focus on speed and simplicity. As you know, the manual page for find is 35 pages, while the manual page for "lf" is only 2 pages. "lf" must be simple, easy-to-use, and fast.
+
+Adding a sorting option to lf would require storing the sortable fields in a table,which would increase the memory footprint and add many instruction cycles to the process.
 
 ```bash
 #!/bin/bash
@@ -58,34 +73,17 @@ Thanks for pointing it out.
 
 Q: Why do you have multiple executables for Menu, Form, Pick, and View?
 
-A: That's a very good question. It would be very simple to have a single
-executable that behaves differently based on the name it is called with. That
-would be accomplished by creating symbolic links to the same executable with different names. I must have chosen to have separate executables for some
-reason, but I cant think of it at the moment. If you have thoughts on why
-I should change to a single executable or not, please let me know.
-
-You may have noticed that that the menu executable alone can provide all the functionality of Menu, Form, Pick, and View, so the real question may be, "are
-the other executables even necessary?"
+A: That's a very good question. Done! 2026-03-25 There is one executable now that
+replaces menu, form, pick, view, and ckeys. The usage of those executables has
+not changed from the user's perspective as they are symbolic links to main.
 
 ## Static Executables
 
 Q: Why don't you provide static executables for C-Menu?
 
-A: Especially in a rescue or embedded environment, I can understand why you
-might prefer static executables, and that's why the build system has a provision
-to make rsh as a static executable. However, the executables that use NCurses
-present a much more difficult challenge. While NCurses itself can be built as
-a static library, it has many dependencies, and some of those attempt to open
-dynamic libraries, even when the executable is linked with the static NCurses
-and GLibc libraries. The resulting executables would probably work fine,
-everywhere except where you needed them.
+A: I can understand why you might prefer static executables, especially in a rescue or embedded environment, and that's why the build system has a provision to make rsh as a static executable. However, the executables that use NCurses present a much more difficult challenge. While NCurses itself can be built as a static library, it has many dependencies, and some of those attempt to open dynamic libraries, even when the executable is linked with the static NCurses and GLibc libraries. The resulting executables would probably work fine, everywhere except where you needed them.
 
-It's not an unsolvable problem. Developers of embedded systems deal with such
-issues routinely. Perhaps one of them will volunteer to create a suite of
-static executables for C-Menu. C-Menu could then serve as a powerful tool for
-embedded and rescue systems development. If you happen to be one of those
-developers and are interested in contributing to the project, please let me
-know. I would be happy to collaborate with you on this.
+It's not an unsolvable problem. Developers of embedded systems deal with such issues routinely. However, embedded systems development is a specialized and highly technical field, and I don't have the expertise to create static executables that could be trusted to work reliably across a wide range of environments. If you happen to be an embedded systems developer are interested in contributing to the project, please let me know. I would be happy to collaborate with you on this.
 
 ## What's the Icon?
 

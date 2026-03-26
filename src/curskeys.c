@@ -60,7 +60,7 @@ int popup_ckeys() {
     while (!c) {
         kstr[0] = '\0';
         wmove(win, 1, 39);
-        c = xwgetch(win, nullptr);
+        c = xwgetch_s(win, nullptr, -1);
         s = keybound(c, 0);
         switch (c) {
         case '\0':

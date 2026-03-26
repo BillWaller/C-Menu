@@ -90,7 +90,7 @@ int form_accept_field(Form *form) {
             wmove(win, flin, x);
             tcflush(0, TCIFLUSH);
             wmove(win, flin, x);
-            in_key = xwgetch(win, form->chyron);
+            in_key = xwgetch_s(win, form->chyron, -1);
         }
         switch (in_key) {
             /** KEY_F(10) is the default key for accepting the field and moving
@@ -208,14 +208,17 @@ int form_accept_field(Form *form) {
             x = click_x;
             flin = click_y;
             flen = form->field[form->fidx]->len;
-            ff = form->field[form->fidx]->ff;
+            ff = form->field[form->fidx]->ff; /* ff - field forat */
             accept_s = form->field[form->fidx]->accept_s;
             filler_s = form->field[form->fidx]->filler_s;
             form_fmt_field(form, accept_s);
             fstart = accept_s;
             fend = fstart + flen;
-            p = fstart + (x - form->field[form->fidx]->col);
             str_end = fstart + strlen(fstart);
+            p = fstart + (x - form->field[form->fidx]->col);
+            if (p > str_end)
+                x -= p - str_end;
+            p = min(p, str_end);
             in_key = 0;
             continue;
 

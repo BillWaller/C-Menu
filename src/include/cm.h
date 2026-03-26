@@ -224,6 +224,7 @@ typedef struct {
 
 extern int xwgetch(WINDOW *, Chyron *);
 extern int xwgetch_t(WINDOW *, Chyron *, int);
+extern int xwgetch_s(WINDOW *, Chyron *, int);
 extern int click_y; /**< the y coordinate of a mouse click, for handling mouse
                    events */
 extern int
@@ -720,6 +721,7 @@ extern Chyron *destroy_chyron(Chyron *chyron);
 extern void abend(int, char *);
 extern void display_argv_error_msg(char *, char **);
 extern int display_error(char *, char *, char *, char *);
+extern int answer_yn(char *, char *, char *, char *);
 extern int display_ok_message(char *);
 extern int Perror(char *);
 extern void user_end();

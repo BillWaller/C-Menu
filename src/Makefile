@@ -55,7 +55,7 @@ PREFIX=$(HOME)/menuapp
 CFLAGS=-O2
 #
 # Uncomment the following line to enable Debug build flags
-# CFLAGS=-O0 -ggdb -rdynamic
+CFLAGS=-O0 -ggdb -rdynamic -DDEBUG
 #
 # === END USER SECTION         ===
 #
@@ -102,7 +102,7 @@ all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Make Complete
 
 main:	main.o $(COMMON_OBJS) $(COMMON_HDRS) $(LIB_NAME)
-	$(CC) $(COMMON_OBJS) $(CFLAGS) main.o -o $@ $(LIBS)
+	$(CC) $(COMMON_OBJS) main.o -o $@ $(LIBS)
 
 menu:	main
 	ln -sf main menu
@@ -116,28 +116,28 @@ ckeys:	main
 	ln -sf main ckeys
 
 enterchr:	include/cm.h enterchr.o $(LIB_NAME)
-	$(CC) $(CFLAGS)	enterchr.o -o $@ $(LIBS)
+	$(CC) enterchr.o -o $@ $(LIBS)
 
 optsp:	include/cm.h optsp.o opts.o $(LIB_NAME)
-	$(CC) $(CFLAGS)	optsp.o opts.o -o $@ $(LIBS)
+	$(CC) optsp.o opts.o -o $@ $(LIBS)
 
 enterstr:	include/cm.h enterstr.o $(LIB_NAME)
-	$(CC) $(CFLAGS)	enterstr.o -o $@ $(LIBS)
+	$(CC) enterstr.o -o $@ $(LIBS)
 
 whence:	include/cm.h whence.o $(LIB_NAME)
-	$(CC) $(CFLAGS)	whence.o -o $@ $(LIBS)
+	$(CC) whence.o -o $@ $(LIBS)
 
 iloan:	iloan.o $(LIB_NAME)
-	$(CC) $(CFLAGS)	iloan.o -o $@ $(LIBS)
+	$(CC) iloan.o -o $@ $(LIBS)
 
 rsh:	include/cm.h rsh.o
-	$(CC) $(CFLAGS)	$(RSH_CFLAGS) rsh.o -o $@ -lssh
+	$(CC) $(RSH_CFLAGS) rsh.o -o $@ -lssh
 
 lf: include/cm.h	lf.o $(LIB_NAME)
-	$(CC) $(CFLAGS)	lf.o -o $@ $(LIBS)
+	$(CC) lf.o -o $@ $(LIBS)
 
 stripansi:	include/cm.h stripansi.o $(LIB_NAME)
-	$(CC) $(CFLAGS)	stripansi.o -o $@ $(LIBS)
+	$(CC) stripansi.o -o $@ $(LIBS)
 
 CMenu.conf:
 	echo $(LIB_DIR) >CMenu.conf
