@@ -852,9 +852,8 @@ WINDOW *win_del() {
 void restore_wins() {
     int i;
 
-    // werase(stdscr);
-    touchwin(stdscr);
-    wnoutrefresh(stdscr);
+    // touchwin(stdscr);
+    // wnoutrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
         touchwin(win_box[i]);
         wnoutrefresh(win_box[i]);
@@ -1299,8 +1298,10 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
                 continue;
             }
             if (event.bstate & BUTTON4_PRESSED) {
+                curs_set(0);
                 return KEY_UP;
             } else if (event.bstate & BUTTON5_PRESSED) {
+                curs_set(0);
                 return KEY_DOWN;
             }
             if (event.bstate & BUTTON1_CLICKED ||
