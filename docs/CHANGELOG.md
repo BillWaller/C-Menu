@@ -2,7 +2,15 @@
 
 ## [Released] - 2026-02-04
 
-0.2.9 - 2026-03-|
+0.2.9 - 2026-03-30
+
+If anyone knows of bugs that I need to address, now is the time to let me know.
+I will continue working with the pop-ups and drop-downs and I will be adding more exercises to the documentation, but I want to make sure the code is as error-free as possible before moving on to the next release, as version 0.3.x will embark on some major new features.
+
+Testing has revealed a number of off-by-one errors in view, which I have fixed,
+at least all those that I know about. I have also added a wait popup to view and pick, which will be displayed in the unlikely event that a provider program takes longer than 200ms to respond. The wait popup is a simple window with a message that counts down in seconds until input arrives or timeout, at which time the user is presented with an option to cancel. This is a possibility in the event that the provider program produces no output or stops waiting on user input. The timer checks the open pipe for input and also checks that the provider has terminated. If the program seems to be hung, the user can press Ctrl-C to cause a SIGTERM interrupt and then choose F9 to cancel. The wait popup is implemented in the parent process, which allows the countdown to timeout to be displayed without blocking the main thread of the program. The wait popup is designed to be non-intrusive, so it doesn't interfere with the user's workflow.
+
+0.2.9 - 2026-03-29
 
 Accomplished the first step in refactoring the main components of C-Menu to provide pop-up and drop-down helper widgets. This is a major step in the evolution of C-Menu, and it will allow for much more flexible and powerful user interfaces. The first component to be refactored is the chyron, which is a pop-up widget that can be used to display information and options to the user. The chyron is implemented as a separate module, and it can be easily integrated into any C-Menu program. The next step will be to refactor the Pick module to use the chyron for displaying options, which will allow for much more dynamic and context-sensitive user interfaces. For example, when entering form fields, the user can press or click the help button to display a list of possible ogjects with which to fill the field and then select one with the mouse or keyboard. This will be a much more intuitive and efficient way to fill out forms, and it will also allow for much more complex forms with many fields. This is in preparation for the next major release, which will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
 
