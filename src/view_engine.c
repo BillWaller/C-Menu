@@ -1243,7 +1243,7 @@ void view_display_page(View *view) {
         fmt_line(view);
         display_line(view);
     }
-    if (view->cury + 1 < view->scroll_lines) {
+    if (view->cury <= view->cmd_line) {
         wmove(view->ln_win, view->cury, 0);
         wclrtobot(view->ln_win);
         wmove(view->pad, view->cury, 0);
