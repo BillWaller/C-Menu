@@ -1,5 +1,21 @@
 # C-Menu ROADMAP
 
+## 0.3.0 On the Horizon
+
+### Asynchronous Communication and Serialization
+
+- Currently, C-Menu can communicate via command-line arguments, pipes, or files, but a facility is needed for handling asynchronous submission over a network. One fairly simple way to get started would be to set up an MQTT broker.
+
+- As C-Menu continues to employ more sophisticated technologies, the old text file configurations are wearing thin. I would like to move the information in the description files to a more structured format, such as JSON Forms. It looks like JSON is the standard, but I would like to have some input from users.
+
+- Why not develop a C-Menu system to manage IOT devices. IOT uses M2M communication, generally over MQTT.
+
+## 0.2.9 Wrap-Up
+
+- Menu, Form, Pick, and View Pop-ups. View currently uses a Form pop-up for entering file names. That capability is being polished and expanded to be more flexible and user-friendly. The idea is to have simple function calls with minimal parameters to easily create pop-up's. Once we have that debugged and working well, we will expand the ability to create pop-ups in the description files.
+
+- Menu, Form, Pick, View, and CKeys have been combined into a single executable. The individual executables were running about 150K, and the single executable is only 158K. The individual executables have been removed from the repository. You can create form, pick, view, and ckeys as symbolic links to "menu" and from the command line, they will work exactly as the individual executables did before.
+
 ## 0.2.9 - Pre-Release
 
 Menu, Form, Pick, View, and General features are still being developed and de-bugged.When the features are ready, the version will be updated to 1.0.0 and the roadmap will be updated with the new features and enhancements.
