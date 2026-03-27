@@ -54,8 +54,10 @@ PREFIX=$(HOME)/menuapp
 #
 CFLAGS=-O2
 #
+# Uncomment the following line to enable NCurses Debug build flags
+# CFLAGS=-O0 -ggdb -rdynamic -DDEBUG
 # Uncomment the following line to enable Debug build flags
-CFLAGS=-O0 -ggdb -rdynamic -DDEBUG
+# CFLAGS=-O0 -ggdb -rdynamic
 #
 # === END USER SECTION         ===
 #
