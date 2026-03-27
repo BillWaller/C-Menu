@@ -103,9 +103,9 @@
 },
 {
   "directory": "/usr/local/src/cmenu/src/build",
-  "command": "/usr/bin/cc   -Wall -Wextra -g -o CMakeFiles/main.dir/main.c.o -c /usr/local/src/cmenu/src/main.c",
-  "file": "/usr/local/src/cmenu/src/main.c",
-  "output": "CMakeFiles/main.dir/main.c.o"
+  "command": "/usr/bin/cc   -Wall -Wextra -g -o CMakeFiles/menu.dir/menu.c.o -c /usr/local/src/cmenu/src/menu.c",
+  "file": "/usr/local/src/cmenu/src/menu.c",
+  "output": "CMakeFiles/menu.dir/menu.c.o"
 },
 {
   "directory": "/usr/local/src/cmenu/src/build",

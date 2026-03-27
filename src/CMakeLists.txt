@@ -52,9 +52,9 @@ set(COMMON_SRCS
     opts.c)
 add_library(CMenu OBJECT ${COMMON_SRCS})
 
-add_executable(main main.c)
-target_sources(main PRIVATE $<TARGET_OBJECTS:CMenu>)
-target_link_libraries(main cm ${LIBS})
+add_executable(menu menu.c)
+target_sources(menu PRIVATE $<TARGET_OBJECTS:CMenu>)
+target_link_libraries(menu cm ${LIBS})
 
 add_executable(enterchr enterchr.c)
 target_link_libraries(enterchr cm ${LIBS})
@@ -99,7 +99,7 @@ add_executable(whence whence.c)
 target_link_libraries(whence cm ${LIBS})
 
 install(
-  TARGETS main
+  TARGETS menu
           enterchr
           enterstr
           iloan
@@ -110,10 +110,8 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(CODE "
-  set(APP_PATH \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/main\")
+  set(APP_PATH \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/menu\")
   set(SYMLINK_PATH \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin\")
-  execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink \${APP_PATH}
-\${SYMLINK_PATH}/menu)
   execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink \${APP_PATH}
 \${SYMLINK_PATH}/form)
   execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink \${APP_PATH}

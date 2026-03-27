@@ -10,6 +10,8 @@
 #include <common.h>
 #include <string.h>
 
+int mview(Init *, int, char **);
+
 __end_pgm;
 int main(int argc, char **argv) {
     __atexit;
@@ -37,7 +39,7 @@ int main(int argc, char **argv) {
     } else if (!strcmp(pgm_name, "view")) {
         view = new_view(init, argc, argv);
         if (view->lines > 0 && view->cols > 0)
-            popup_view(init, view->argc, view->argv);
+            mview(init, view->argc, view->argv);
         else if (!init_view_full_screen(init))
             view_file(init);
     } else if (!strcmp(pgm_name, "ckeys")) {
@@ -47,5 +49,44 @@ int main(int argc, char **argv) {
     destroy_init(init);
     win_del();
     destroy_curses();
+    return 0;
+}
+
+int mview(Init *init, int argc, char **argv) {
+    view = init->view;
+    if (!view)
+        view = new_view(init, argc, argv);
+    else
+        view = init->view;
+    if (init->lines != 0 && view->lines == 0)
+        view->lines = init->lines;
+    if (view->lines == 0)
+        view->lines = LINES * 3 / 4;
+    if (view->lines > LINES - 3)
+        view->lines = LINES - 3;
+    if (init->cols != 0 && view->lines == 0)
+        view->cols = init->cols;
+    if (view->cols == 0)
+        view->cols = COLS * 3 / 4;
+    if (view->cols > COLS - 3)
+        view->cols = COLS - 3;
+    if (init->begy != 0 && view->begy == 0)
+        view->begy = init->begy;
+    if (view->begy == 0)
+        view->begy = (LINES - view->lines) / 5;
+    if (view->begy + view->lines > LINES - 2)
+        view->begy = LINES - view->lines - 2;
+    if (init->begx != 0 && view->begx == 0)
+        view->begx = init->begx;
+    if (view->begx == 0)
+        view->begx = (COLS - view->cols) / 5;
+    if (view->begx + view->cols > COLS - 1)
+        view->begx = COLS - view->cols - 1;
+    view->f_full_screen = false;
+    if (!init_view_boxwin(init, init->title)) {
+        view_file(init);
+        win_del();
+    }
+    destroy_view(init);
     return 0;
 }

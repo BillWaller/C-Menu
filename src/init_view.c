@@ -140,8 +140,8 @@ int init_view_boxwin(Init *init, char *title) {
     }
     view->ln_win_lines = view->lines;
     view->ln_win_cols = 7;
-    view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols, view->begy + 1,
-                          view->begx + 1);
+    view->ln_win = newwin(view->ln_win_lines - 1, view->ln_win_cols,
+                          view->begy + 1, view->begx + 1);
     view->win = win_win[win_ptr];
     wmove(view->ln_win, 0, 0);
     werase(view->ln_win);
