@@ -19,7 +19,6 @@
 
 #include <argp.h>
 #include <common.h>
-#include <getopt.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>

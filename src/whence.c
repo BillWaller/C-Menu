@@ -7,9 +7,9 @@
     @date 2026-02-09
  */
 
+#include <argp.h>
 #include <cm.h>
 #include <fcntl.h>
-#include <getopt.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -20,75 +20,96 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define TRUE 1
-#define FALSE 0
-#define FAIL -1
-
-bool f_all, f_display_help, f_verbose;
 char *path_p;
 char path_s[MAXLEN];
 char *file_name[MAXLEN + 1];
 
-void whence_usage();
-void whence(char *);
+void whence(char *, int);
 int next_path(char *, char **);
 int file_spec_parts(char *, char *, char *);
 void ABEND(char *, int, char *);
 void normalend();
-/** @brief Main function for whence utility
-    @param argc Argument count
-    @param argv Argument vector
-    @return Exit status
-    options include:
-    -a: Show all matches (default is to show only the first match)
-    -h: Display help message
-    -v: Verbose mode (implies -a)
-    @note This function processes command-line arguments, retrieves the PATH
-   environment variable, and calls the whence function for each specified file.
- */
-int main(int argc, char **argv) {
+enum { WH_ALL = 1, WH_VERBOSE = 2 };
+int wh_flags = 0;
+const char *argp_program_version = "whence-0.2.9";
+const char *argp_program_bug_address = "billxwaller@gmail.com";
+static char doc[] = "whence locate files in path";
+static char args_doc[] = "[ARG1] [ARG2]...";
 
-    int opt;
-    if (argc < 2)
-        whence_usage();
-    while ((opt = getopt(argc, argv, "ahv")) != -1) {
-        switch (opt) {
-        case 'a':
-            f_all = TRUE;
-            break;
-        case 'h':
-            f_display_help = TRUE;
-            break;
-        case 'v':
-            f_verbose = TRUE;
-            break;
-        default:
-            ABEND(argv[0], FAIL, "unrecognized option");
+static struct argp_option options[] = {
+    {"all", 'a', 0, 0, "list all matches", 0},
+    {"help", 'h', 0, 0, "display help and exit", 0},
+    {"version", 'V', 0, 0, "display version and exit", 0},
+    {"verbose", 'v', 0, 0, "verbose messages", 0},
+    {0}};
+
+struct wh_opts {
+    int flags;
+    bool help;
+    bool version;
+    char *argv[MAXARGS];
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+    struct wh_opts *wh_opts = state->input;
+    int i = 0;
+    switch (key) {
+    case 'a':
+        wh_opts->flags |= WH_ALL;
+        break;
+    case 'h':
+        wh_opts->help = true;
+        break;
+    case 'V':
+        wh_opts->version = true;
+        break;
+    case 'v':
+        wh_opts->flags |= WH_VERBOSE;
+        break;
+    case ARGP_KEY_ARG:
+        if (i >= 1) {
+            argp_usage(state);
         }
+        wh_opts->argv[i] = arg;
+        optind = i;
+        i++;
+        break;
+    case ARGP_KEY_END:
+        break;
+    default:
+        return ARGP_ERR_UNKNOWN;
     }
-    if (f_display_help) {
-        whence_usage();
-        normalend();
+    return 0;
+}
+static struct argp argp = {options, parse_opt, args_doc, doc,
+                           nullptr, nullptr,   nullptr};
+
+int main(int argc, char **argv) {
+    struct wh_opts wh_opts = {0};
+    wh_opts.flags = 0;
+    wh_opts.help = false;
+    wh_opts.version = false;
+    wh_opts.argv[0] = nullptr;
+
+    argp_parse(&argp, argc, argv, 0, 0, &wh_opts);
+
+    if (wh_opts.help) {
+        argp_help(&argp, stdout, ARGP_HELP_STD_HELP, argv[0]);
+        exit(EXIT_SUCCESS);
+    }
+    if (wh_opts.version) {
+        printf("C-Menu-%s\n", CM_VERSION);
+        exit(EXIT_SUCCESS);
     }
     path_p = getenv("PATH");
     if (path_p == nullptr)
-        ABEND(argv[0], FAIL, "PATH environment variable not set");
-    if (f_verbose)
+        ABEND(argv[0], 0, "PATH environment variable not set");
+    if (wh_opts.flags & WH_VERBOSE)
         printf("%s\n", path_p);
     while (optind < argc) {
-        whence(argv[optind++]);
+        whence(wh_opts.argv[optind++], wh_opts.flags);
     }
     normalend();
-}
-/** @brief Display usage information for the whence utility
-    @note This function prints the usage instructions and available options for
-   the whence utility to the standard error stream.
- */
-void whence_usage() {
-    fprintf(stderr, "whence_usage: whence [options] file_name\n");
-    fprintf(stderr, "       -a show all matches\n");
-    fprintf(stderr, "       -h help\n");
-    fprintf(stderr, "       -v verbose (implies -a)\n");
 }
 /** @brief Find the full path of a file in the directories specified by the PATH
    environment variable
@@ -98,7 +119,7 @@ void whence_usage() {
    PATH environment variable to find matches. It prints the full path of each
    match found, and if verbose mode is enabled, it also indicates whether each
    attempted path was found or not. */
-void whence(char *file_spec_p) {
+void whence(char *file_spec_p, int flags) {
     char file_spec[PATH_MAX];
     char file_dir[PATH_MAX];
     char file_name[PATH_MAX];
@@ -117,14 +138,14 @@ void whence(char *file_spec_p) {
         if (try_spec[path_l] != '/')
             strnz__cat(try_spec, "/", MAXLEN - 1);
         strnz__cat(try_spec, file_name, MAXLEN - 1);
-        if (f_verbose) {
+        if (flags & WH_VERBOSE) {
             if (stat(try_spec, &stat_struct) == -1)
                 printf("-      %s\n", try_spec);
             else
                 printf("found  %s\n", try_spec);
         } else if (stat(try_spec, &stat_struct) == 0) {
             printf("%s\n", try_spec);
-            if (!f_all)
+            if (!(flags & WH_ALL))
                 return;
         }
         path_l = next_path(try_dir, &path_p);
