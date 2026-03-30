@@ -117,7 +117,7 @@ void signal_handler(int sig_num) {
         symbols = backtrace_symbols(addrlist, frames);
         if (symbols == nullptr) {
             abend(-1, "backtrace_symbols failed");
-            _exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE);
         }
         for (int i = 0; i < frames; i++) {
             char buf[256];
@@ -131,7 +131,7 @@ void signal_handler(int sig_num) {
         sa.sa_flags = 0;
         sigaction(SIGSEGV, &sa, NULL);
         kill(getpid(), SIGSEGV); // Re-raise the signal
-        _exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     case SIGUSR1:
         sig_received = SIGUSR1;
         break;

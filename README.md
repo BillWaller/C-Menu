@@ -46,6 +46,8 @@
 
 ### C-Menu Introduction
 
+C-Menu-0.2.9 - 2026-03-30
+
 C-Menu is a Terminal based User Interface (TUI) toolkit you can use to quickly and easily create powerful and visually appealing applications. With C-Menu you can design and implement menus, forms, and pickers that improve the user experience and make your product shine.
 
 C-Menu doesn't waste time rendering complex graphics. It's a real TUI. No fluff, no bloat, no distractions. Just sleek, powerful and fast. And, user interaction with C-Menu is natural and intuitive. On modern hardware, C-Menu is so fast and responsive you might even forget your fingers are moving as you watch your thoughts flow effortlessly onto the screen. As a bonus, C-Menu integrates powerful tools like Tree-sitter to boost perceptual efficiency, comprehension, and retention through the intelligent use of color. Want more? The C-Menu API provides documentation and auto-completion in the Neovim editor.
@@ -71,6 +73,16 @@ file, by using the -N option on the command line, or typing "-n" while in view.
 ### Large Log File in View
 
 ![View Large Log File](screenshots/new_view2.png)
+
+Even though this lsp.log is 109Mb, it loaded instantly and traversed from
+beginning to end in a few milliseconds. View's demand paged virtual memory
+access is a game changer for working with large text files. You can open and
+navigate through multi-gigabyte log files without any lag, making it an
+invaluable tool for system administrators and developers who need to analyze
+large logs efficiently. You can already see that auto-resizing the line number
+window will be necessary to accommodate files with 1 million or more lines. When
+it goes over 1 million lines, the line numbers will but up next to the text,
+and that will be a problem. I'll get to it eventually. In the meantime, if you're working with files that large, you probably have a good idea of how to solve that problem.
 
 ### **_New API Integration With Neovim_**
 

@@ -296,11 +296,6 @@ Form *destroy_form(Init *init) {
 /** @brief Create and initialize View structure
     @ingroup mem
     @param init structure
-    @param argc - number of arguments in argv
-    @param argv - Arguments may have been provided by command line,
-                    ~/.minitrc,
-                    environment variables, or
-                    calling program interal to C-Menu
  */
 View *new_view(Init *init) {
     init->view_cnt++;

@@ -56,5 +56,5 @@ int main(int argc, char **argv) {
         write(1, in_ptr++, 1);
     sig_dfl_mode();
     restore_shell_tioctl();
-    _exit(0);
+    exit(0);
 }

@@ -114,6 +114,8 @@ int main(int argc, char **argv) {
 /** @brief Find the full path of a file in the directories specified by the PATH
    environment variable
     @param file_spec_p The file specification to search for
+    @param flags Flags to control the behavior of the search (e.g., verbose
+   mode, list all matches)
     @note This function takes a file specification, extracts the directory and
    file name components, and searches through the directories specified in the
    PATH environment variable to find matches. It prints the full path of each
