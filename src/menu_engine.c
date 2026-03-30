@@ -113,14 +113,17 @@ unsigned int menu_cmd_processor(Init *init) {
     Menu *menu = init->menu;
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
+
     wattron(menu->win, A_REVERSE);
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);
     wattroff(menu->win, A_REVERSE);
+
     event.y = event.x = -1;
     // tcflush(2, TCIFLUSH);
     wmove(menu->win, menu->line_idx, 1);
     in_key = xwgetch(menu->win, nullptr, -1);
+
     mvwaddstr_fill(menu->win, menu->line_idx, 0,
                    menu->line[menu->line_idx]->choice_text, menu->cols);
     switch (in_key) {

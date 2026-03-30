@@ -30,6 +30,12 @@
    creates a new pad for the view.
    @param init Pointer to the Init structure containing view settings.
    @return 0 on success, -1 on failure.
+   @verbatim
+   The function creates the following windows:
+   1. view->win: Status or Command Line
+   2. view->ln_win: Line Number Window
+   3. view->pad: Main Content Pad
+   @endverbatim
  */
 int init_view_full_screen(Init *init) {
     int scr_lines, scr_cols;
@@ -48,6 +54,7 @@ int init_view_full_screen(Init *init) {
         view->begy = scr_lines - view->lines;
     if (view->begx + view->cols > scr_cols)
         view->begx = scr_cols - view->cols;
+    /** view->win: status or command line window */
     view->win = newwin(1, view->cols, view->begy + view->lines - 1, view->begx);
     keypad(view->win, true);
     idlok(view->win, false);
@@ -59,7 +66,7 @@ int init_view_full_screen(Init *init) {
     immedok(view->win, true);
 #endif
 
-    // line number window
+    /** view->ln_win: line number window */
     view->ln_win_lines = scr_lines;
     view->ln_win_cols = 7;
     view->ln_win = newwin(view->ln_win_lines - 1, view->ln_win_cols, 0, 0);
@@ -74,7 +81,7 @@ int init_view_full_screen(Init *init) {
     immedok(view->ln_win, true);
 #endif
 
-    // pad
+    /** view->win: status or command line window */
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = 0;
@@ -159,7 +166,7 @@ int init_view_boxwin(Init *init, char *title) {
     immedok(view->win, true);
 #endif
 
-    // line number window
+    /** view->ln_win: line number window */
     view->ln_win_lines = view->lines - 1;
     view->ln_win_cols = 7;
     view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols, view->begy + 1,
@@ -174,7 +181,7 @@ int init_view_boxwin(Init *init, char *title) {
 #ifdef NCDEBUG
     immedok(view->ln_win, true);
 #endif
-    // pad
+    /** pad for main content */
     view->scroll_lines = view->lines - 1;
     view->cmd_line = 0;
     view->pminrow = 0;

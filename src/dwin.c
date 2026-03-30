@@ -698,11 +698,8 @@ cchar_t mkccc(int cp) {
     @return 0 if successful, 1 if error */
 int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             int flag) {
-    char box_title[MAXLEN] = "Pick Selections";
     int maxx;
     if (win_ptr < MAXWIN) {
-        // if (win_ptr > 0)
-        //    wrefresh(win_win[win_ptr]);
         win_ptr++;
         if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 ||
             wcols < COLS - 2) {
@@ -716,14 +713,12 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 #endif
             wbkgrnd(win_box[win_ptr], &CCC_BOX);
             wbkgrndset(win_box[win_ptr], &CCC_BOX);
-            if (wtitle != nullptr && *wtitle != '\0')
-                strnz__cpy(box_title, wtitle, MAXLEN - 1);
             cbox(win_box[win_ptr]);
             mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
             mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
-            mvwaddstr(win_box[win_ptr], 0, 3, box_title);
+            mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
             maxx = getmaxx(win_box[win_ptr]);
-            int s = strlen(box_title);
+            int s = strlen(wtitle);
             if ((s + 3) < maxx)
                 mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
             if ((s + 4) < maxx)
@@ -1016,9 +1011,9 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     mvwaddstr(error_win, 2, 1, em2);
     mvwaddstr(error_win, 3, 1, em3);
     wattron(error_win, WA_REVERSE);
-    mvwaddstr(error_win, 4, 1, chyron->s);
+    mvwaddstr(error_win, 4, 0, chyron->s);
     wattroff(error_win, WA_REVERSE);
-    wmove(error_win, 4, chyron->l + 1);
+    wmove(error_win, 4, chyron->l);
     wrefresh(error_win);
     do {
         cmd_key = xwgetch(error_win, chyron, -1);

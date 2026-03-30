@@ -74,11 +74,11 @@ PREFIX=$(HOME)/menuapp
 CFLAGS=-O2
 #
 # Uncomment the following line to enable Debug build flags
-CFLAGS=-O0 -ggdb -rdynamic
+# CFLAGS=-O0 -ggdb -rdynamic
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # This will cause the screen to update immediately after each change, which can be helpful for debugging screen drawing issues. However, it may also cause performance issues, so it is not recommended for production builds.
-# CFLAGS=-O0 -ggdb -rdynamic -DNCDEBUG
+CFLAGS=-O0 -ggdb -rdynamic -DNCDEBUG
 #
 # There should be no need to edit below this line unless you are developing 
 # C-Menu.
