@@ -66,6 +66,7 @@
 #define destroy_cmenu()                                                        \
     destroy_init(init);                                                        \
     win_del();                                                                 \
+    curs_set(1);                                                               \
     destroy_curses();                                                          \
     return 0;                                                                  \
     }
@@ -186,7 +187,7 @@ extern int init_cnt; /** number of Init data structures allocated */
 extern char minitrc[MAXLEN];
 extern void mapp_initialization(Init *, int, char **);
 extern Init *new_init(int, char **);
-extern View *new_view(Init *, int, char **);
+extern View *new_view(Init *);
 extern Form *new_form(Init *, int, char **, int, int);
 extern Pick *new_pick(Init *, int, char **, int, int);
 extern Menu *new_menu(Init *, int, char **, int, int);
@@ -212,7 +213,7 @@ extern int init_pick(Init *, int, char **, int, int);
 extern int open_pick_win(Init *);
 extern int pick_engine(Init *);
 extern int view_file(Init *);
-extern int mview(Init *, int, char **);
+extern int mview(Init *);
 extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(Init *, char *);
 extern int view_init_input(View *, char *);

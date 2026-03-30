@@ -6,12 +6,31 @@
 # billxwaller@gmail.com
 # @date 2026-03-25
 #
-# === BEGIN USER SECTION       ===
-#
 # Before using this makefile, please EDIT THE FOLLOWING VARIABLES to match your 
 # system configuration. The lines below assume that you have a user named "bill" 
 # and a group named "bill". If your user name is not "bill", or your group name 
 # is not "bill", please update the USER and GROUP variables accordingly. 
+#
+# Please check whether the -g3 or -ggdb debugging lines are active. If you are 
+# not using a debugger, you may want to comment out the -g3 or -ggdb flags to 
+# reduce the size of the compiled binaries and improve performance.
+#
+# Consider whether you want to use Makefile or CMake for your build system.
+# Makefile is a simple and widely used build system that is suitable for small 
+# to medium-sized projects. CMake is a more powerful and flexible build system 
+# that can handle larger and more complex projects, and it can generate build 
+# files for multiple platforms and build systems. If you are working on a small 
+# project or prefer a simpler build system, Makefile may be the better choice. 
+# If you are working on a larger project or need more advanced features, CMake 
+# may be the better choice. Ultimately, the decision between Makefile and CMake 
+# depends on your specific needs and preferences. You have both systems here,
+# so you can choose which one to use based on your project requirements advanced
+# features, and personal preferences. If you are new to build systems or prefer 
+# appropriate simplicity, Makefile may be the better choice. If you need more 
+# advanced features, cross-platform support, or better integration with IDEs,
+# CMake may be the better choice. Consider your project requirements, team 
+# preferences, and the learning curve associated with each build system when 
+# making your decision.
 #
 # Edit the four lines below to match your system configuration:
 #
@@ -54,12 +73,12 @@ PREFIX=$(HOME)/menuapp
 #
 CFLAGS=-O2
 #
-# Uncomment the following line to enable NCurses Debug build flags
-# CFLAGS=-O0 -ggdb -rdynamic -DDEBUG
 # Uncomment the following line to enable Debug build flags
-# CFLAGS=-O0 -ggdb -rdynamic
+CFLAGS=-O0 -ggdb -rdynamic
 #
-# === END USER SECTION         ===
+# Uncomment the following line to enable NCurses Debugging with immedok(true).
+# This will cause the screen to update immediately after each change, which can be helpful for debugging screen drawing issues. However, it may also cause performance issues, so it is not recommended for production builds.
+# CFLAGS=-O0 -ggdb -rdynamic -DNCDEBUG
 #
 # There should be no need to edit below this line unless you are developing 
 # C-Menu.
@@ -86,7 +105,7 @@ INC_DIR=$(PREFIX)
 LIB_PATH=.:$(LIB_DIR)
 
 BINEXES=menu form pick view ckeys whence rsh iloan enterchr \
-		enterstr lf optsp stripansi
+		enterstr lf stripansi
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
@@ -95,7 +114,7 @@ COMMON_HDRS=include/cm.h include/common.h include/menu.h \
 		include/form.h include/pick.h include/view.h include/version.h
 COMMON_SRCS=menu_engine.c parse_menu_desc.c curskeys.c \
 			fields.c form_engine.c init.c init_view.c mem.c \
-			opts.c pick_engine.c popups.c view_engine.c
+			pick_engine.c popups.c view_engine.c
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
 LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_PATH)
@@ -117,9 +136,6 @@ ckeys:	menu
 
 enterchr:	include/cm.h enterchr.o $(LIB_NAME)
 	$(CC) enterchr.o -o $@ $(LIBS)
-
-optsp:	include/cm.h optsp.o opts.o $(LIB_NAME)
-	$(CC) optsp.o opts.o -o $@ $(LIBS)
 
 enterstr:	include/cm.h enterstr.o $(LIB_NAME)
 	$(CC) enterstr.o -o $@ $(LIBS)
@@ -188,7 +204,6 @@ install:
 	./inst.sh include/pick.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
 	./inst.sh include/view.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
 	./inst.sh menu			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh optsp			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh whence		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh rsh			$(BIN_DIR)	  4711	root	root
 	./inst.sh enterchr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)

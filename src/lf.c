@@ -78,7 +78,7 @@ static struct argp_option options[] = {
     {"f_verbose", 'v', 0, 0, "verbose messages", 0},
     {0}};
 
-struct arguments {
+struct lf_opts {
     bool f_all;
     int max_depth;
     char *exclude_p;
@@ -92,52 +92,52 @@ struct arguments {
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-    struct arguments *arguments = state->input;
+    struct lf_opts *lf_opts = state->input;
     int i = 0;
     switch (key) {
     case 'a':
-        arguments->flags |= LF_ALL;
+        lf_opts->flags |= LF_ALL;
         break;
     case 'd':
-        arguments->max_depth = atoi(arg);
+        lf_opts->max_depth = atoi(arg);
         break;
     case 'e':
-        arguments->exclude_p = arg;
-        arguments->flags |= LF_EXC_REGEX;
+        lf_opts->exclude_p = arg;
+        lf_opts->flags |= LF_EXC_REGEX;
         break;
     case 'h':
-        arguments->help = true;
+        lf_opts->help = true;
         break;
     case 'i':
-        arguments->flags |= LF_ICASE;
+        lf_opts->flags |= LF_ICASE;
         break;
     case 't':
-        arguments->file_types_p = arg;
-        while (arguments->file_types_p[i]) {
-            switch (arguments->file_types_p[i++]) {
+        lf_opts->file_types_p = arg;
+        while (lf_opts->file_types_p[i]) {
+            switch (lf_opts->file_types_p[i++]) {
             case 'b':
-                arguments->flags |= FT_BLK << 8;
+                lf_opts->flags |= FT_BLK << 8;
                 break;
             case 'c':
-                arguments->flags |= FT_CHR << 8;
+                lf_opts->flags |= FT_CHR << 8;
                 break;
             case 'd':
-                arguments->flags |= FT_DIR << 8;
+                lf_opts->flags |= FT_DIR << 8;
                 break;
             case 'p':
-                arguments->flags |= FT_FIFO << 8;
+                lf_opts->flags |= FT_FIFO << 8;
                 break;
             case 'l':
-                arguments->flags |= FT_LNK << 8;
+                lf_opts->flags |= FT_LNK << 8;
                 break;
             case 'f':
-                arguments->flags |= FT_REG << 8;
+                lf_opts->flags |= FT_REG << 8;
                 break;
             case 's':
-                arguments->flags |= FT_SOCK << 8;
+                lf_opts->flags |= FT_SOCK << 8;
                 break;
             case 'u':
-                arguments->flags |= FT_UNKNOWN << 8;
+                lf_opts->flags |= FT_UNKNOWN << 8;
                 break;
             default:
                 break;
@@ -145,14 +145,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         }
         break;
     case 'V':
-        arguments->f_version = true;
+        lf_opts->f_version = true;
         break;
     case 'v':
-        arguments->f_verbose = true;
+        lf_opts->f_verbose = true;
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
-            arguments->args[state->arg_num] = arg;
+            lf_opts->args[state->arg_num] = arg;
         } else {
             argp_usage(state);
         }
@@ -173,75 +173,75 @@ int main(int argc, char **argv) {
     dir[0] = '\0';
     re[0] = '\0';
 
-    struct arguments arguments = {0};
-    arguments.f_all = false;
-    arguments.max_depth = 4;
-    arguments.exclude_p = "";
-    arguments.help = false;
-    arguments.f_ignore_case = false;
-    arguments.file_types_p = "";
-    arguments.f_version = false;
-    arguments.args[0] = nullptr;
-    arguments.args[1] = nullptr;
+    struct lf_opts lf_opts = {0};
+    lf_opts.f_all = false;
+    lf_opts.max_depth = 4;
+    lf_opts.exclude_p = "";
+    lf_opts.help = false;
+    lf_opts.f_ignore_case = false;
+    lf_opts.file_types_p = "";
+    lf_opts.f_version = false;
+    lf_opts.args[0] = nullptr;
+    lf_opts.args[1] = nullptr;
 
-    argp_parse(&argp, argc, argv, 0, 0, &arguments);
+    argp_parse(&argp, argc, argv, 0, 0, &lf_opts);
 
-    if (arguments.args[0] != nullptr) {
-        strncpy(dir, arguments.args[0], MAXLEN - 1);
+    if (lf_opts.args[0] != nullptr) {
+        strncpy(dir, lf_opts.args[0], MAXLEN - 1);
     } else {
         strncpy(dir, ".", MAXLEN - 1);
     }
-    if (arguments.args[1] != nullptr) {
-        strncpy(re, arguments.args[1], MAXLEN - 1);
-        arguments.flags |= LF_REGEX;
+    if (lf_opts.args[1] != nullptr) {
+        strncpy(re, lf_opts.args[1], MAXLEN - 1);
+        lf_opts.flags |= LF_REGEX;
     } else {
         strncpy(re, ".*", MAXLEN - 1);
     }
 
-    if (arguments.f_verbose) {
+    if (lf_opts.f_verbose) {
         // for debugging
-        printf("arguments.f_all = %s\n", arguments.f_all ? "yes" : "no");
-        printf("arguments.max_depth = %d\n", arguments.max_depth);
-        printf("arguments.exclude_p = %s\n", arguments.exclude_p);
-        printf("arguments.help = %s\n", arguments.help ? "yes" : "no");
-        printf("arguments.f_ignore_case = %s\n",
-               arguments.f_ignore_case ? "yes" : "no");
-        printf("arguments.file_types_p = %s\n", arguments.file_types_p);
-        printf("arguments.f_version = %s\n",
-               arguments.f_version ? "yes" : "no");
-        if (arguments.flags & LF_ALL)
+        printf("lf_opts.f_all = %s\n", lf_opts.f_all ? "yes" : "no");
+        printf("lf_opts.max_depth = %d\n", lf_opts.max_depth);
+        printf("lf_opts.exclude_p = %s\n", lf_opts.exclude_p);
+        printf("lf_opts.help = %s\n", lf_opts.help ? "yes" : "no");
+        printf("lf_opts.f_ignore_case = %s\n",
+               lf_opts.f_ignore_case ? "yes" : "no");
+        printf("lf_opts.file_types_p = %s\n", lf_opts.file_types_p);
+        printf("lf_opts.f_version = %s\n", lf_opts.f_version ? "yes" : "no");
+        if (lf_opts.flags & LF_ALL)
             printf("hidden files\n");
-        if (arguments.flags & LF_EXC_REGEX)
-            printf("exclude_p regex: %s\n", arguments.exclude_p);
-        if (arguments.flags & LF_ICASE)
+        if (lf_opts.flags & LF_EXC_REGEX)
+            printf("exclude_p regex: %s\n", lf_opts.exclude_p);
+        if (lf_opts.flags & LF_ICASE)
             printf("ignore case\n");
-        if (arguments.flags & FT_BLK)
+        if (lf_opts.flags & FT_BLK)
             printf("block devices\n");
-        if (arguments.flags & FT_CHR)
+        if (lf_opts.flags & FT_CHR)
             printf("character devices\n");
-        if (arguments.flags & FT_DIR)
+        if (lf_opts.flags & FT_DIR)
             printf("directories\n");
-        if (arguments.flags & FT_FIFO)
+        if (lf_opts.flags & FT_FIFO)
             printf("named pipes\n");
-        if (arguments.flags & FT_LNK)
+        if (lf_opts.flags & FT_LNK)
             printf("symbolic links\n");
-        if (arguments.flags & FT_REG)
+        if (lf_opts.flags & FT_REG)
             printf("regular files\n");
-        if (arguments.flags & FT_SOCK)
+        if (lf_opts.flags & FT_SOCK)
             printf("sockets\n");
         if (dir[0] != '\0')
             printf("dir: %s\n", dir);
         if (re[0] != '\0')
             printf("re: %s\n", re);
     }
-    if (arguments.help) {
+    if (lf_opts.help) {
         argp_help(&argp, stdout, ARGP_HELP_STD_HELP, argv[0]);
         exit(EXIT_SUCCESS);
     }
-    if (arguments.f_version) {
+    if (lf_opts.f_version) {
         printf("C-Menu-%s\n", CM_VERSION);
+        exit(EXIT_SUCCESS);
     }
-    if (arguments.f_verbose) {
+    if (lf_opts.f_verbose) {
         printf("FT_BLK: %08b\n", FT_BLK);
         printf("FT_CHR: %08b\n", FT_CHR);
         printf("FT_DIR: %08b\n", FT_DIR);
@@ -250,9 +250,10 @@ int main(int argc, char **argv) {
         printf("FT_REG: %08b\n", FT_REG);
         printf("FT_SOCK: %08b\n", FT_SOCK);
         printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
-        printf("arguments.flags: %016b %08b %08b\n", arguments.flags,
-               arguments.flags >> 8, arguments.flags & 0xff);
+        printf("lf_opts.flags: %016b %08b %08b\n", lf_opts.flags,
+               lf_opts.flags >> 8, lf_opts.flags & 0xff);
+        exit(EXIT_SUCCESS);
     }
-    lf_find(dir, re, arguments.exclude_p, arguments.max_depth, arguments.flags);
+    lf_find(dir, re, lf_opts.exclude_p, lf_opts.max_depth, lf_opts.flags);
     return true;
 }

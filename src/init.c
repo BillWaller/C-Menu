@@ -17,6 +17,7 @@
    @endverbatim
  */
 
+#include <argp.h>
 #include <common.h>
 #include <getopt.h>
 #include <locale.h>
@@ -25,19 +26,48 @@
 #include <unistd.h>
 
 enum {
-    MAPP_MSRC = 257,
+    IN_SPEC = 257,
+    OUT_SPEC,
+    BG_XCLR,
+    BO_XCLR,
+    FG_XCLR,
+    LN_BG_CLR,
+    LN_XCLR,
+    GM_BLUE,
+    GM_GRAY,
+    GM_GREEN,
+    GM_RED,
+    XBBLACK,
+    XBBLUE,
+    XBCYAN,
+    XBGREEN,
+    XBLACK,
+    XBLUE,
+    XBMAGENTA,
+    XBRED,
+    XBWHITE,
+    XBYELLOW,
+    XCYAN,
+    CM_EDITOR,
+    XGREEN,
+    XMAGENTA,
+    XRED,
+    XWHITE,
+    XYELLOW,
+    MAPP_DATA,
     MAPP_HELP,
+    MAPP_HOME,
+    MAPP_MSRC,
+    MAPP_USER,
     MAPP_HELP_DIR,
     MAPP_DATA_DIR,
     MAPP_SPEC,
     HELP_SPEC,
-    IN_SPEC,
-    OUT_SPEC
 };
 
 bool f_write_config = false;
 bool f_dump_config = false;
-bool f_help = false;
+bool help = false;
 bool f_version = false;
 
 int write_config(Init *init);
@@ -45,14 +75,244 @@ void display_version();
 
 Init *init = NULL;
 void mapp_initialization(Init *, int, char **);
-int parse_opt_args(Init *, int, char **);
 void zero_opt_args(Init *);
 int parse_config(Init *);
+int parse_opt_args(Init *, int, char **);
 void dump_config(Init *, char *);
-void usage();
 
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
+
+const char *argp_program_version = "C-Menu-0.2.9";
+const char *argp_program_bug_address = "billxwaller@gmail.com";
+static char doc[] = "C-Menu";
+static char args_doc[] = "[ARG1] [ARG2] [ARG3] [ARG4] [ARG5]";
+
+static struct argp_option options[] = {
+    {"f_dump_config", 'D', 0, 0, "dump configuration", 0},
+    {"f_write_config", 'W', 0, 0, "write configuration", 0},
+    {"help", 'h', 0, 0, "display help", 0},
+    {"minitrc", 'a', "file_spec", 0, "configuration file spec", 1},
+    {"parent_cmd", 'k', 0, 0, "parent command", 1},
+    {"begx", 'X', "number", 0, "begin on column", 2},
+    {"begy", 'Y', "number", 0, "begin on line", 2},
+    {"cols", 'C', "number", 0, "width in columns", 2},
+    {"lines", 'L', "number", 0, "height in lines", 2},
+    {"out_spec", 'o', "file_spec", 0, "output spec", 2},
+    {"select_max", 'n', "number", 0, "number of selections", 2},
+    {"cmd", 'c', "file_spec", 0, "view cmd, first file", 3},
+    {"cmd_all", 'A', "file_spec", 0, "view cmd, all files", 3},
+    {"help_spec", 'H', "file_spec", 0, "help spec", 3},
+    {"in_spec", 'i', "file_spec", 0, "input spec", 3},
+    {"mapp_spec", 'd', "file_spec", 0, "description spec", 3},
+    {"provider_cmd", 'S', "file_spec", 0, "execute provider of piped input", 3},
+    {"receiver_cmd", 'R', "file_spec", 0, "execute receiver of piped output",
+     3},
+    {"title", 'T', "text", 0, "Window title", 3},
+    {"f_erase_remainder", 'e', 0, 0, "erase remainder of line on enter", 4},
+    {"f_ignore_case", 'x', 0, 0, "ignore case in search", 4},
+    {"f_squeeze", 's', 0, 0, "squeeze multiple blank lines", 4},
+    {"f_strip_ansi", 'j', 0, 0, "always strip ansi when writing", 4},
+    {"brackets", 'u', "text", 0, "brackets around fields", 5},
+    {"fill_char", 'f', "char", 0, "field fill_char", 5},
+    {"f_ln", 'N', 0, 0, "line numbers in view", 5},
+    {"tab_stop", 't', "number", 0, "number of spaces per tab", 5},
+    {"bg_clr_x", BG_XCLR, "hex_clr", 0, "background color", 6},
+    {"bo_clr_x", BO_XCLR, "hex_clr", 0, "border color", 6},
+    {"fg_clr_x", FG_XCLR, "hex_clr", 0, "foreground color", 6},
+    {"ln__bg_clr_x", LN_BG_CLR, "hex_clr", 0, "line number background", 6},
+    {"ln_clr_x", LN_XCLR, "hex_clr", 0, "line number color", 6},
+    {"blue_gamma", GM_BLUE, "float", 0, "blue_gamma (View)", 7},
+    {"gray_gamma", GM_GRAY, "float", 0, "gray gamma (View)", 7},
+    {"green_gamma", GM_GREEN, "float", 0, "green gamma (View)", 7},
+    {"red_gamma", GM_RED, "float", 0, "red gamma (View)", 7},
+    {"bblack", XBBLACK, "hex_clr", 0, "bright black (#7f7f7f)", 8},
+    {"bblue", XBBLUE, "hex_clr", 0, "bright blue (#00cfFF)", 8},
+    {"bcyan", XBCYAN, "hex_clr", 0, "bright cyan (#00FFFF)", 8},
+    {"bgreen", XBGREEN, "hex_clr", 0, "bright green (#00FF7f)", 8},
+    {"black", XBLACK, "hex_clr", 0, "black (#000000)", 8},
+    {"blue", XBLUE, "hex_clr", 0, "blue (#0000FF)", 8},
+    {"bmagenta", XMAGENTA, "hex_clr", 0, "bright magenta (#FF00FF)", 8},
+    {"bred", XBRED, "hex_clr", 0, "bright red (#FF3737)", 8},
+    {"bwhite", XBWHITE, "hex_clr", 0, "bright white (#FFFFFF)", 8},
+    {"byellow", XBYELLOW, "hex_clr", 0, "bright yellow (#FFeF00)", 8},
+    {"cyan", XCYAN, "hex_clr", 0, "cyan (#00dfdf)", 8},
+    {"editor", CM_EDITOR, "text", 0, "default editor", 8},
+    {"green", XGREEN, "hex_clr", 0, "green (#00cf00)", 8},
+    {"magenta", XMAGENTA, "hex_clr", 0, "magenta (#9f009f)", 8},
+    {"red", XRED, "hex_clr", 0, "red (#bf0000)", 8},
+    {"white", XWHITE, "hex_clr", 0, "white (#d0d0d0)", 8},
+    {"yellow", XYELLOW, "hex_clr", 0, "yellow (#efbf00)", 8},
+    {"mapp_data", MAPP_DATA, "directory", 0, "data directory", 9},
+    {"mapp_help", MAPP_HELP, "directory", 0, "help directory", 9},
+    {"mapp_home", MAPP_HOME, "directory", 0, "home directory", 9},
+    {"mapp_msrc", MAPP_MSRC, "directory", 0, "source directory", 9},
+    {"mapp_user", MAPP_USER, "directory", 0, "user directory", 9},
+    {0},
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+    Init *init = state->input;
+    SIO *sio = init->sio;
+    switch (key) {
+    case 'a':
+        strnz__cpy(init->minitrc, arg, MAXLEN - 1);
+        break;
+    case 'b':
+        sio->blue_gamma = str_to_double(arg);
+        break;
+    case 'c':
+        strnz__cpy(init->cmd, arg, MAXLEN - 1);
+        break;
+    case 'd':
+        strnz__cpy(init->mapp_spec, arg, MAXLEN - 1);
+        break;
+    case 'e':
+        init->f_erase_remainder = true;
+        break;
+    case 'f':
+        strnz__cpy(init->fill_char, arg, 1);
+        break;
+    case 'g':
+        sio->green_gamma = str_to_double(arg);
+        break;
+    case 'h':
+        help = true;
+        break;
+    case 'i':
+        strnz__cpy(init->in_spec, arg, MAXLEN - 1);
+        break;
+    case 'j':
+        init->f_strip_ansi = true;
+        break;
+    case 'k':
+        strnz__cpy(init->parent_cmd, arg, MAXLEN - 1);
+        break;
+    case 'm':
+        strnz__cpy(init->mapp_home, arg, MAXLEN - 1);
+        break;
+    case 'n':
+        init->select_max = atoi(arg);
+        break;
+    case 'o':
+        strnz__cpy(init->out_spec, arg, MAXLEN - 1);
+        break;
+    case 'r':
+        sio->red_gamma = str_to_double(arg);
+        break;
+    case 's':
+        init->f_squeeze = true;
+        break;
+    case 't':
+        init->tab_stop = atoi(arg);
+        if (init->tab_stop < 1)
+            init->tab_stop = 1;
+        break;
+    case 'u':
+        strnz__cpy(init->brackets, arg, 2);
+        break;
+    case 'v':
+    case 'V':
+        f_version = true;
+        break;
+    case 'x':
+        init->f_ignore_case = true;
+        break;
+    case 'y':
+        init->f_at_end_remove = true;
+        break;
+    case 'A':
+        strnz__cpy(init->cmd_all, arg, MAXLEN - 1);
+        break;
+    case 'B':
+        strnz__cpy(sio->bg_clr_x, arg, MAXLEN - 1);
+        break;
+    case 'C':
+        init->cols = atoi(arg);
+        break;
+    case 'D':
+        f_dump_config = true;
+        break;
+    case 'F':
+        strnz__cpy(sio->fg_clr_x, arg, MAXLEN - 1);
+        break;
+    case 'G':
+        sio->gray_gamma = str_to_double(arg);
+        break;
+    case 'H':
+        strnz__cpy(init->help_spec, arg, MAXLEN - 1);
+        break;
+    case 'L':
+        init->lines = atoi(arg);
+        break;
+    case 'M':
+        init->f_multiple_cmd_args = true;
+        break;
+    case 'N':
+        init->f_ln = true;
+        break;
+    case 'O':
+        strnz__cpy(sio->bo_clr_x, arg, MAXLEN - 1);
+        break;
+    case 'R':
+        strnz__cpy(init->receiver_cmd, arg, MAXLEN - 1);
+        break;
+    case 'S':
+        strnz__cpy(init->provider_cmd, arg, MAXLEN - 1);
+        break;
+    case 'T':
+        strnz__cpy(init->title, arg, MAXLEN - 1);
+        break;
+    case 'U':
+        strnz__cpy(init->mapp_user, arg, MAXLEN - 1);
+        break;
+    case 'W':
+        f_write_config = true;
+        break;
+    case 'X':
+        init->begx = atoi(arg);
+        break;
+    case 'Y':
+        init->begy = atoi(arg);
+        break;
+    case MAPP_DATA_DIR:
+        strnz__cpy(init->mapp_data, arg, MAXLEN - 1);
+        break;
+    case MAPP_HELP_DIR:
+        strnz__cpy(init->mapp_help, arg, MAXLEN - 1);
+        break;
+    case MAPP_SPEC:
+        strnz__cpy(init->mapp_spec, arg, MAXLEN - 1);
+        break;
+    case HELP_SPEC:
+        strnz__cpy(init->help_spec, arg, MAXLEN - 1);
+        break;
+    case IN_SPEC:
+        strnz__cpy(init->in_spec, arg, MAXLEN - 1);
+        break;
+    case OUT_SPEC:
+        strnz__cpy(init->out_spec, arg, MAXLEN - 1);
+        break;
+    case MAPP_MSRC:
+        strnz__cpy(init->mapp_msrc, arg, MAXLEN - 1);
+        break;
+    case ARGP_KEY_ARG:
+        if (state->arg_num <= 5) {
+            init->argv[init->argc++] = arg;
+        } else
+            argp_usage(state);
+        break;
+    case ARGP_KEY_END:
+        init->argv[init->argc] = nullptr;
+        break;
+    default:
+        return ARGP_ERR_UNKNOWN;
+    }
+    return 0;
+}
+
+static struct argp argp = {options, parse_opt, args_doc, doc,
+                           nullptr, nullptr,   nullptr};
 
 /** @brief Main initialization function for MAPP - Menu Application
     @ingroup init
@@ -110,7 +370,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
     strnz__cpy(init->mapp_data, "~/menuapp/data", MAXLEN - 1);
     strnz__cpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
-    // Priority-4 - cfg_args
 
     e = getenv("TERM");
     if (*e == '\0')
@@ -122,15 +381,20 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         strnz__cpy(init->editor, "vi", MAXLEN - 1);
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
-    parse_config(init); /**< generally /home/user/.minitrc */
-    parse_opt_args(init, argc, argv);
+    parse_config(init);
+    init->argc = 0;
+    argp_parse(&argp, argc, argv, 0, 0, init);
+    if (help) {
+        argp_help(&argp, stdout, ARGP_HELP_STD_HELP, argv[0]);
+        exit(EXIT_SUCCESS);
+    }
     if (f_dump_config) {
         dump_config(init, "Configuration after parse_config and "
                           "parse_opt_args");
         if (f_write_config) {
             write_config(init);
         }
-        if (f_help) {
+        if (f_dump_config) {
             dump_config(init, "Current Configuration");
         }
         if (f_version) {
@@ -141,8 +405,16 @@ void mapp_initialization(Init *init, int argc, char **argv) {
             if (!verify_dir(init->mapp_home, R_OK))
                 abend(-1, "MAPP_HOME directory invalid");
         }
+        exit(EXIT_SUCCESS);
     }
 }
+
+int parse_opt_args(Init *init, int argc, char **argv) {
+    init->argc = 0;
+    argp_parse(&argp, argc, argv, 0, 0, init);
+    return 0;
+}
+
 /** @brief Initialize optional arguments in the Init struct to default
    values
     @ingroup init
@@ -170,199 +442,6 @@ void zero_opt_args(Init *init) {
     init->help_spec[0] = '\0';
     init->in_spec[0] = '\0';
     init->out_spec[0] = '\0';
-}
-/** @brief Parse command-line options and set Init struct values accordingly
-    @ingroup init
-    @param init - pointer to Init struct
-    @param argc - argument count
-    @param argv - argument vector
-    Return index of first non-option argument
-    @note Accepts both short and long options
- */
-int parse_opt_args(Init *init, int argc, char **argv) {
-    int i;
-    int opt;
-    int longindex = 0;
-    int flag = 0;
-    char *optstring = "a:b:c:d:ef:g:hi:j:k:m:n:o:p:r:st:u:vw:xzA:B:C:DF:G:H:L:"
-                      "MNO:P:Q:R:S:T:VWX:Y:Z";
-    struct option long_options[] = {{"help", 0, &flag, MAPP_HELP},
-                                    {"mapp_spec", 1, &flag, MAPP_SPEC},
-                                    {"mapp_data", 1, &flag, MAPP_DATA_DIR},
-                                    {"mapp_help", 1, &flag, MAPP_HELP_DIR},
-                                    {"help_spec", 1, &flag, HELP_SPEC},
-                                    {"mapp_spec", 1, &flag, MAPP_SPEC},
-                                    {"in_spec", 1, &flag, IN_SPEC},
-                                    {"out_spec", 1, &flag, OUT_SPEC},
-                                    {"mapp_msrc", 1, &flag, MAPP_MSRC},
-                                    {0, 0, 0, 0}};
-    char mapp[MAXLEN];
-    SIO *sio = init->sio;
-    base_name(mapp, argv[0]);
-    optind = 1;
-    while ((opt = getopt_long(argc, argv, optstring, long_options,
-                              &longindex)) != -1) {
-        switch (opt) {
-        case 0:
-            switch (flag) {
-            case MAPP_DATA_DIR:
-                strnz__cpy(init->mapp_data, optarg, MAXLEN - 1);
-                break;
-            case MAPP_HELP_DIR:
-                strnz__cpy(init->mapp_help, optarg, MAXLEN - 1);
-                break;
-            case MAPP_SPEC:
-                strnz__cpy(init->mapp_spec, optarg, MAXLEN - 1);
-                break;
-            case HELP_SPEC:
-                strnz__cpy(init->help_spec, optarg, MAXLEN - 1);
-                break;
-            case IN_SPEC:
-                strnz__cpy(init->in_spec, optarg, MAXLEN - 1);
-                break;
-            case OUT_SPEC:
-                strnz__cpy(init->out_spec, optarg, MAXLEN - 1);
-                break;
-            case MAPP_MSRC:
-                strnz__cpy(init->mapp_msrc, optarg, MAXLEN - 1);
-                break;
-            default:
-                break;
-            }
-            break;
-        case 'a':
-            strnz__cpy(init->minitrc, optarg, MAXLEN - 1);
-            break;
-        case 'b':
-            sio->blue_gamma = str_to_double(optarg);
-            break;
-        case 'c':
-            strnz__cpy(init->cmd, optarg, MAXLEN - 1);
-            break;
-        case 'd':
-            strnz__cpy(init->mapp_spec, optarg, MAXLEN - 1);
-            break;
-        case 'e':
-            init->f_erase_remainder = true;
-            break;
-        case 'f': // fill char
-            strnz__cpy(init->fill_char, optarg, 1);
-            break;
-        case 'g':
-            sio->green_gamma = str_to_double(optarg);
-            break;
-        case 'h':
-            f_help = true;
-            break;
-        case 'i':
-            strnz__cpy(init->in_spec, optarg, MAXLEN - 1);
-            break;
-        case 'j':
-            init->f_strip_ansi = true;
-            break;
-        case 'k':
-            strnz__cpy(init->parent_cmd, optarg, MAXLEN - 1);
-            break;
-        case 'm':
-            strnz__cpy(init->mapp_home, optarg, MAXLEN - 1);
-            break;
-        case 'n':
-            init->select_max = atoi(optarg);
-            break;
-        case 'o':
-            strnz__cpy(init->out_spec, optarg, MAXLEN - 1);
-            break;
-        case 'r':
-            sio->red_gamma = str_to_double(optarg);
-            break;
-        case 's':
-            init->f_squeeze = true;
-            break;
-        case 't':
-            init->tab_stop = atoi(optarg);
-            if (init->tab_stop < 1)
-                init->tab_stop = 1;
-            break;
-        case 'u': // brackets
-            strnz__cpy(init->brackets, optarg, 2);
-            break;
-        case 'v':
-        case 'V':
-            f_version = true;
-            break;
-        case 'x':
-            init->f_ignore_case = true;
-            break;
-        case 'y':
-            init->f_at_end_remove = true;
-            break;
-        case 'A':
-            strnz__cpy(init->cmd_all, optarg, MAXLEN - 1);
-            break;
-        case 'B':
-            strnz__cpy(sio->bg_clr_x, optarg, MAXLEN - 1);
-            break;
-        case 'C':
-            init->cols = atoi(optarg);
-            break;
-        case 'D':
-            f_dump_config = true;
-            break;
-        case 'F':
-            strnz__cpy(sio->fg_clr_x, optarg, MAXLEN - 1);
-            break;
-        case 'G':
-            sio->gray_gamma = str_to_double(optarg);
-            break;
-        case 'H':
-            strnz__cpy(init->help_spec, optarg, MAXLEN - 1);
-            break;
-        case 'L':
-            init->lines = atoi(optarg);
-            break;
-        case 'M':
-            init->f_multiple_cmd_args = true;
-            break;
-        case 'N':
-            init->f_ln = true;
-            break;
-        case 'O':
-            strnz__cpy(sio->bo_clr_x, optarg, MAXLEN - 1);
-            break;
-        case 'R':
-            strnz__cpy(init->receiver_cmd, optarg, MAXLEN - 1);
-            break;
-        case 'S':
-            strnz__cpy(init->provider_cmd, optarg, MAXLEN - 1);
-            break;
-        case 'T':
-            strnz__cpy(init->title, optarg, MAXLEN - 1);
-            break;
-        case 'U':
-            strnz__cpy(init->mapp_user, optarg, MAXLEN - 1);
-            break;
-        case 'W':
-            f_write_config = true;
-            break;
-        case 'X':
-            init->begx = atoi(optarg);
-            break;
-        case 'Y':
-            init->begy = atoi(optarg);
-            break;
-        default:
-            break;
-        }
-    }
-    init->argv[0] = strdup(argv[0]);
-    i = 0;
-    while (i < argc) {
-        init->argv[i] = strdup(argv[i]);
-        i++;
-    }
-    init->argv[i] = nullptr;
-    init->argc = argc;
-    return optind;
 }
 /** @brief parse the configuration file specified in init->minitrc and set
    Init struct values accordingly
@@ -792,16 +871,6 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
 void display_version() {
     fprintf(stderr, "\nC-Menu %s\n", CM_VERSION);
     exit(EXIT_SUCCESS);
-}
-/** @brief Display the usage information of the application
-    @ingroup init
-    @note The usage information is printed to stderr when this function is
-   called. After displaying the usage information, the function waits for
-   the user to press any key before returning. */
-void usage() {
-    dump_opts();
-    (void)fprintf(stderr, "\n\nPress any key to continue...");
-    di_getch();
 }
 /** @brief Print an option and its value in a formatted manner
     @ingroup init

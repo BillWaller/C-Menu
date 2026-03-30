@@ -1,43 +1,66 @@
-[0;31mC-Menu Menu Options:[0m
+Usage: menu [OPTION...] [ARG1] [ARG2] [ARG3] [ARG4] [ARG5]
+C-Menu
 
-   field name         type grp  mask opt description
-   ------------------ ---- ---- ---- --- -------------------------
-00 [0;34mminitrc           [0m str  spec mfpv [0;33m-a: [0m[0;32mconfiguration file spec[0m
-03 [0;34mmapp_spec         [0m str  file mfpv [0;33m-d: [0m[0;32mdescription spec[0m
-07 [0;34mhelp              [0m bool flag mfpv [0;33m-h  [0m[0;32mhelp[0m
-09 [0;34mmapp_home         [0m str  dir  mfpv [0;33m-m: [0m[0;32mhome directory[0m
-19 [0;34mf_at_end_clear    [0m bool flag mfpv [0;33m-z  [0m[0;32mclear screen at end of program[0m
-21 [0;34mbg_color          [0m int  prm  mfpv [0;33m-B: [0m[0;32mbackground_color[0m
-22 [0;34mlines             [0m int  prm  mfpv [0;33m-C: [0m[0;32mwidth in columns[0m
-23 [0;34mfg_color          [0m int  prm  mfpv [0;33m-F: [0m[0;32mforeground_color[0m
-24 [0;34mhelp_spec         [0m str  file mfpv [0;33m-H: [0m[0;32mhelp spec[0m
-25 [0;34mcols              [0m int  prm  mfpv [0;33m-L: [0m[0;32mheight in lines[0m
-27 [0;34mbo_color          [0m int  prm  mfpv [0;33m-O: [0m[0;32mborder_color[0m
-31 [0;34mtitle             [0m str  misc mfpv [0;33m-T: [0m[0;32mtitle[0m
-32 [0;34mmapp_user         [0m str  dir  mfpv [0;33m-U: [0m[0;32muser directory[0m
-33 [0;34mbegx              [0m int  prm  mfpv [0;33m-X: [0m[0;32mbegin on column[0m
-34 [0;34mbegy              [0m int  prm  mfpv [0;33m-Y: [0m[0;32mbegin on line[0m
-35 [0;34mf_stop_on_error   [0m bool flag mfpv [0;33m-Z  [0m[0;32mstop on error[0m
-36 [0;34mblack             [0m str  prm  mfpv [0;33m    [0m[0;32mblack ([38;2;255;255;255m[48;2;0;0;0m#000000[0m)[0m
-37 [0;34mred               [0m str  prm  mfpv [0;33m    [0m[0;32mred ([38;2;255;255;255m[48;2;191;0;0m#bf0000[0m)[0m
-38 [0;34mgreen             [0m str  prm  mfpv [0;33m    [0m[0;32mgreen ([38;2;0;0;0m[48;2;0;207;0m#00cf00[0m)[0m
-39 [0;34myellow            [0m str  prm  mfpv [0;33m    [0m[0;32myellow ([38;2;0;0;0m[48;2;239;191;0m#efbf00[0m)[0m
-40 [0;34mblue              [0m str  prm  mfpv [0;33m    [0m[0;32mblue ([38;2;255;255;255m[48;2;0;0;255m#0000FF[0m)[0m
-41 [0;34mmagenta           [0m str  prm  mfpv [0;33m    [0m[0;32mmagenta ([38;2;255;255;255m[48;2;159;0;159m#9f009f[0m)[0m
-42 [0;34mcyan              [0m str  prm  mfpv [0;33m    [0m[0;32mcyan ([38;2;0;0;0m[48;2;0;223;223m#00dfdf[0m)[0m
-43 [0;34mwhite             [0m str  prm  mfpv [0;33m    [0m[0;32mwhite ([38;2;0;0;0m[48;2;208;208;208m#d0d0d0[0m)[0m
-44 [0;34morange            [0m str  prm  mfpv [0;33m    [0m[0;32morange ([38;2;0;0;0m[48;2;255;95;0m#FF5f00[0m)[0m
-45 [0;34mbblack            [0m str  prm  mfpv [0;33m    [0m[0;32mbright black ([38;2;0;0;0m[48;2;127;127;127m#7f7f7f[0m)[0m
-46 [0;34mbred              [0m str  prm  mfpv [0;33m    [0m[0;32mbright red ([38;2;0;0;0m[48;2;255;55;55m#FF3737[0m)[0m
-47 [0;34mbgreen            [0m str  prm  mfpv [0;33m    [0m[0;32mbright green ([38;2;0;0;0m[48;2;0;255;127m#00FF7f[0m)[0m
-48 [0;34mbyellow           [0m str  prm  mfpv [0;33m    [0m[0;32mbright yellow ([38;2;0;0;0m[48;2;255;239;0m#FFeF00[0m)[0m
-49 [0;34mbblue             [0m str  prm  mfpv [0;33m    [0m[0;32mbright blue ([38;2;0;0;0m[48;2;0;207;255m#00cfFF[0m)[0m
-50 [0;34mbmagenta          [0m str  prm  mfpv [0;33m    [0m[0;32mbright magenta ([38;2;255;255;255m[48;2;255;0;255m#FF00FF[0m)[0m
-51 [0;34mbcyan             [0m str  prm  mfpv [0;33m    [0m[0;32mbright cyan ([38;2;0;0;0m[48;2;0;255;255m#00FFFF[0m)[0m
-52 [0;34mbwhite            [0m str  prm  mfpv [0;33m    [0m[0;32mbright white ([38;2;0;0;0m[48;2;255;255;255m#FFFFFF[0m)[0m
-53 [0;34mborange           [0m str  prm  mfpv [0;33m    [0m[0;32mbright orange ([38;2;0;0;0m[48;2;255;117;0m#FF7500[0m)[0m
-54 [0;34mbg                [0m hex  col  mfpv [0;33m    [0m[0;32mbackground ([38;2;255;255;255m[48;2;0;7;32m#000720[0m)[0m
-55 [0;34mabg               [0m hex  col  mfpv [0;33m    [0m[0;32malternate background ([38;2;255;255;255m[48;2;0;15;80m#000f50[0m)[0m
-56 [0;34mmapp_data         [0m str  dir  mfpv [0;33m    [0m[0;32mdata directory[0m
-57 [0;34mmapp_help         [0m str  dir  mfpv [0;33m    [0m[0;32mhelp directory[0m
-58 [0;34mmapp_msrc         [0m str  dir  mfpv [0;33m    [0m[0;32msource directory[0m
+  -D, --f_dump_config        dump configuration
+  -W, --f_write_config       write configuration
+  -a, --minitrc=file_spec    configuration file spec
+  -k, --parent_cmd           parent command
+  -C, --cols=number          width in columns
+  -L, --lines=number         height in lines
+  -n, --select_max=number    number of selections
+  -o, --out_spec=file_spec   output spec
+  -X, --begx=number          begin on column
+  -Y, --begy=number          begin on line
+  -A, --cmd_all=file_spec    view cmd, all files
+  -c, --cmd=file_spec        view cmd, first file
+  -d, --mapp_spec=file_spec  description spec
+  -H, --help_spec=file_spec  help spec
+  -i, --in_spec=file_spec    input spec
+  -R, --receiver_cmd=file_spec   execute receiver of piped output
+  -S, --provider_cmd=file_spec   execute provider of piped input
+  -T, --title=text           Window title
+  -e, --f_erase_remainder    erase remainder of line on enter
+  -j, --f_strip_ansi         always strip ansi when writing
+  -s, --f_squeeze            squeeze multiple blank lines
+  -x, --f_ignore_case        ignore case in search
+  -f, --fill_char=char       field fill_char
+  -N, --f_ln                 line numbers in view
+  -t, --tab_stop=number      number of spaces per tab
+  -u, --brackets=text        brackets around fields
+      --bg_clr_x=hex_clr     background color
+      --bo_clr_x=hex_clr     border color
+      --fg_clr_x=hex_clr     foreground color
+      --ln__bg_clr_x=hex_clr line number background
+      --ln_clr_x=hex_clr     line number color
+      --blue_gamma=float     blue_gamma (View)
+      --gray_gamma=float     gray gamma (View)
+      --green_gamma=float    green gamma (View)
+      --red_gamma=float      red gamma (View)
+      --bblack=hex_clr       bright black ([38;2;0;0;0m[48;2;127;127;127m#7f7f7f[0m)
+      --bblue=hex_clr        bright blue ([38;2;0;0;0m[48;2;0;207;255m#00cfFF[0m)
+      --bcyan=hex_clr        bright cyan ([38;2;0;0;0m[48;2;0;255;255m#00FFFF[0m)
+      --bgreen=hex_clr       bright green ([38;2;0;0;0m[48;2;0;255;127m#00FF7f[0m)
+      --black=hex_clr        black ([38;2;255;255;255m[48;2;0;0;0m#000000[0m)
+      --blue=hex_clr         blue ([38;2;255;255;255m[48;2;0;0;255m#0000FF[0m)
+      --bmagenta=hex_clr     bright magenta ([38;2;255;255;255m[48;2;255;0;255m#FF00FF[0m)
+      --bred=hex_clr         bright red ([38;2;0;0;0m[48;2;255;55;55m#FF3737[0m)
+      --bwhite=hex_clr       bright white ([38;2;0;0;0m[48;2;255;255;255m#FFFFFF[0m)
+      --byellow=hex_clr      bright yellow ([38;2;0;0;0m[48;2;255;239;0m#FFeF00[0m)
+      --cyan=hex_clr         cyan ([38;2;0;0;0m[48;2;0;223;223m#00dfdf[0m)
+      --editor=text          default editor
+      --green=hex_clr        green ([38;2;0;0;0m[48;2;0;207;0m#00cf00[0m)
+      --magenta=hex_clr      magenta ([38;2;255;255;255m[48;2;159;0;159m#9f009f[0m)
+      --red=hex_clr          red ([38;2;255;255;255m[48;2;191;0;0m#bf0000[0m)
+      --white=hex_clr        white ([38;2;0;0;0m[48;2;208;208;208m#d0d0d0[0m)
+      --yellow=hex_clr       yellow ([38;2;0;0;0m[48;2;239;191;0m#efbf00[0m)
+      --mapp_data=directory  data directory
+      --mapp_help=directory  help directory
+      --mapp_home=directory  home directory
+      --mapp_msrc=directory  source directory
+      --mapp_user=directory  user directory
+  -h, --help                 display help
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+Report bugs to billxwaller@gmail.com.

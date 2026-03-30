@@ -86,7 +86,8 @@ unsigned int parse_menu_description(Init *init) {
                         MAXLEN + 1, menu->line_idx);
                 abend(-1, tmp_str);
             }
-            menu->line[menu->line_idx]->command_str = strdup(tmp_buf);
+            strnz__cpy(menu->line[menu->line_idx]->command_str, tmp_buf,
+                       MAXLEN - 1);
             menu->line[menu->line_idx]->command_type =
                 get_command_type(tmp_buf);
             s = menu->line[menu->line_idx]->raw_text;

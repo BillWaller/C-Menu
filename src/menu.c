@@ -10,7 +10,7 @@
 #include <common.h>
 #include <string.h>
 
-int mview(Init *, int, char **);
+int mview(Init *);
 
 __end_pgm;
 int main(int argc, char **argv) {
@@ -37,9 +37,9 @@ int main(int argc, char **argv) {
     } else if (!strcmp(pgm_name, "pick")) {
         init_pick(init, init->argc, init->argv, 0, 0);
     } else if (!strcmp(pgm_name, "view")) {
-        view = new_view(init, argc, argv);
+        view = new_view(init);
         if (view->lines > 0 && view->cols > 0)
-            mview(init, view->argc, view->argv);
+            mview(init);
         else if (!init_view_full_screen(init))
             view_file(init);
     } else if (!strcmp(pgm_name, "ckeys")) {
@@ -52,10 +52,10 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-int mview(Init *init, int argc, char **argv) {
+int mview(Init *init) {
     view = init->view;
     if (!view)
-        view = new_view(init, argc, argv);
+        view = new_view(init);
     else
         view = init->view;
     if (init->lines != 0 && view->lines == 0)

@@ -22,7 +22,7 @@
 #define nullptr NULL
 #endif
 
-#define DEBUG true
+#define DEBUG false
 
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
@@ -291,19 +291,6 @@ extern bool f_restore_screen;     /**< whether to restore the screen */
 
 extern void dump_opts(); /**< dump options to stdout */
 
-/**
- * @struct Opts
- * @brief Table elements for options.
- */
-typedef struct {
-    const char *name;      /**< long name of the option */
-    unsigned int type;     /**< data type, string, int, bool */
-    unsigned int group;    /**< file, misc, param, flag, etc */
-    const char *use;       /**< menu, pick, form, view */
-    const char *short_opt; /**< command line short option, e.g. -a -b -c */
-    const char *desc;      /**< brief description */
-} Opts;
-
 extern void dump_opts_by_use(char *, char *); /**< dump options to stdout */
 extern bool capture_shell_tioctl();
 extern bool restore_shell_tioctl();
@@ -453,7 +440,6 @@ extern int begy;  /**< beginning y coordinate of the terminal */
 #define MAXWIN 30 /**< maximum number of windows that can be created */
 typedef unsigned char uchar;
 
-extern void destroy_curses();
 extern void sig_prog_mode();
 extern void sig_shell_mode();
 extern char di_getch();
@@ -665,6 +651,7 @@ typedef struct {
     int cp_ln;                   /**< line number color pair index */
     int cp_ln_bg;                /**< line number background pair index */
 } SIO;
+extern void destroy_curses();
 extern int a_toi(char *, bool *);
 extern bool chrep(char *, char, char);
 extern char *rep_substring(const char *, const char *, const char *);

@@ -47,7 +47,7 @@ int popup_view(Init *init, int argc, char **argv) {
     init->view = NULL;
     view = NULL;
     if (!view)
-        view = new_view(init, argc, argv);
+        view = new_view(init);
     else
         view = init->view;
     if (init->lines != 0 && view->lines == 0)

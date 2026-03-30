@@ -476,7 +476,7 @@ unsigned int form_display_screen(Init *init) {
         Perror(tmp_str);
         return (1);
     }
-#ifdef DEBUG
+#ifdef NCDEBUG
     immedok(form->win, TRUE);
 #endif
     form->win = win_win[win_ptr];
@@ -868,19 +868,6 @@ int form_write(Form *form) {
     if (form->out_fp != nullptr)
         fclose(form->out_fp);
     return (0);
-}
-/** @brief Display usage information for the form, including available options
-   and commands, to assist users in understanding how to interact with the form.
-    @ingroup form_engine
-    @note This function generates a usage message based on the options defined
-   for the form and displays it to the user, typically when they request help or
-   when an error occurs. The usage information includes details about the form's
-   configuration, available commands, and how to navigate and interact with the
-   form fields. */
-void form_usage() {
-    dump_opts_by_use("Form: usage: ", "..f.");
-    (void)fprintf(stderr, "\n");
-    Perror("press any key to continue");
 }
 /** @brief Handle errors encountered while parsing the form description file,
    providing detailed error messages that include the file name, line number,

@@ -20,7 +20,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <wchar.h>
-#define DEBUG true
+#define NC true
 
 bool open_curses(SIO *);
 void destroy_curses();
@@ -34,7 +34,6 @@ void win_init_attrs();
 int Perror(char *);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 void abend(int, char *);
-void user_end();
 int nf_error(int, char *);
 void set_chyron_key(Chyron *, int, char *, int);
 bool is_set_chyron_key(Chyron *, int);
@@ -62,6 +61,7 @@ int xwgetch(WINDOW *, Chyron *, int);
 
 bool init_clr_palette(SIO *);
 cchar_t mkccc(int);
+SCREEN *screen;
 
 SIO *sio; /**< Global pointer to SIO struct for terminal and color settings */
 
@@ -163,6 +163,7 @@ cchar_t CCC_REVERSE;
 cchar_t CCC_LN;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
+FILE *ncurses_fp;
 
 /** @brief Initialize window attributes
     @ingroup window_support
@@ -341,22 +342,20 @@ bool open_curses(SIO *sio) {
         exit(0);
     }
     /** save stdin and stdout file descriptors */
-    sio->stdin_fd = dup(STDIN_FILENO);
-    sio->stdout_fd = dup(STDOUT_FILENO);
+    // sio->stdin_fd = dup(STDIN_FILENO);
+    // sio->stdout_fd = dup(STDOUT_FILENO);
     /** open the terminal device for reading and writing */
-    sio->tty_fp = fopen(sio->tty_name, "r+");
-    if (sio->tty_fp == nullptr) {
+    ncurses_fp = fopen(sio->tty_name, "r+");
+    if (ncurses_fp == nullptr) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "fopen(sio->tty_name) failed ", MAXLEN - 1);
         strnz__cat(emsg0, tmp_str, MAXLEN - 1);
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    /** Attach the terminal descriptor to the STDERR_FILENO */
-    dup2(fileno(sio->tty_fp), STDERR_FILENO);
     /** We use SCREEN and newterm because this allows us to */
     /** specify the terminal FILE */
-    SCREEN *screen = newterm(nullptr, sio->tty_fp, sio->tty_fp);
+    screen = newterm(nullptr, ncurses_fp, ncurses_fp);
     if (screen == nullptr) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "newterm failed ", MAXLEN - 1);
@@ -400,7 +399,7 @@ bool open_curses(SIO *sio) {
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
-#ifdef DEBUG
+#ifdef NCDEBUG
     immedok(stdscr, true);
 #endif
     wbkgrndset(stdscr, &CCC_NORM);
@@ -653,12 +652,24 @@ RGB hex_clr_str_to_rgb(char *s) {
    restore_shell_tioctl and resets signal handlers to their default state with
    sig_dfl_mode. */
 void destroy_curses() {
-    if (f_curses_open) {
-        werase(stdscr);
-        wrefresh(stdscr);
-        endwin();
-        f_curses_open = false;
+    if (!f_curses_open)
+        return;
+    while (win_ptr > 0) {
+        if (win_win[win_ptr])
+            delwin(win_win[win_ptr]);
+        if (win_box[win_ptr])
+            delwin(win_box[win_ptr]);
+        win_win[win_ptr] = nullptr;
+        win_box[win_ptr] = nullptr;
+        win_ptr--;
     }
+    werase(stdscr);
+    wrefresh(stdscr);
+    endwin();
+    delscreen(screen);
+    screen = nullptr;
+    fclose(ncurses_fp);
+    f_curses_open = false;
     restore_shell_tioctl();
     sig_dfl_mode();
     return;
@@ -690,8 +701,8 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     char box_title[MAXLEN] = "Pick Selections";
     int maxx;
     if (win_ptr < MAXWIN) {
-        if (win_ptr > 0)
-            wrefresh(win_win[win_ptr]);
+        // if (win_ptr > 0)
+        //    wrefresh(win_win[win_ptr]);
         win_ptr++;
         if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 ||
             wcols < COLS - 2) {
@@ -700,7 +711,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
                 win_ptr--;
                 return (1);
             }
-#ifdef DEBUG
+#ifdef NCDEBUG
             immedok(win_box[win_ptr], true);
 #endif
             wbkgrnd(win_box[win_ptr], &CCC_BOX);
@@ -726,7 +737,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
                 win_ptr--;
                 return (1);
             }
-#ifdef DEBUG
+#ifdef NCDEBUG
             immedok(win_box[win_ptr], true);
 #endif
             wbkgrnd(win_box[win_ptr], &CCC_BOX);
@@ -739,7 +750,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
                 win_ptr--;
                 return (1);
             }
-#ifdef DEBUG
+#ifdef NCDEBUG
             immedok(win_win[win_ptr], true);
 #endif
             wbkgrnd(win_win[win_ptr], &CCC_NORM);
@@ -793,7 +804,7 @@ void win_resize(int wlines, int wcols, char *title) {
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
-#ifdef DEBUG
+#ifdef NCDEBUG
     immedok(win_win[win_ptr], true);
 #endif
 }
@@ -851,9 +862,6 @@ WINDOW *win_del() {
    signal to handle terminal resizing gracefully. */
 void restore_wins() {
     int i;
-
-    // touchwin(stdscr);
-    // wnoutrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
         touchwin(win_box[i]);
         wnoutrefresh(win_box[i]);
@@ -1219,14 +1227,6 @@ int nf_error(int ec, char *s) {
 /** @brief Program terminated by user
     @ingroup error_handling
    */
-void user_end() {
-    destroy_curses();
-    restore_shell_tioctl();
-    sig_dfl_mode();
-    fprintf(stderr, "Normal program exit");
-    fprintf(stderr, "\n");
-    exit(EXIT_SUCCESS);
-}
 /** @brief Abnormal program termination
     @ingroup error_handling
     @param ec Exit code

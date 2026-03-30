@@ -48,8 +48,7 @@ set(COMMON_SRCS
     popups.c
     view_engine.c
     init.c
-    mem.c
-    opts.c)
+    mem.c)
 add_library(CMenu OBJECT ${COMMON_SRCS})
 
 add_executable(menu menu.c)
@@ -67,10 +66,6 @@ target_link_libraries(iloan cm ${LIBS})
 
 add_executable(lf lf.c)
 target_link_libraries(lf cm ${LIBS})
-
-add_executable(optsp optsp.c)
-target_sources(optsp PRIVATE $<TARGET_OBJECTS:CMenu>)
-target_link_libraries(optsp cm ${LIBS})
 
 add_executable(rsh rsh.c)
 #[[ Remove the Comment lines to enable static linking of rsh
@@ -104,7 +99,6 @@ install(
           enterstr
           iloan
           lf
-          optsp
           stripansi
           whence
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

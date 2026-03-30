@@ -116,6 +116,7 @@ void initialize_line_table(View *);
 int pad_refresh(View *);
 void sync_ln(View *);
 char err_msg[MAXLEN];
+void view_restore_wins();
 
 /** @brief Start view
     @ingroup view_engine
@@ -192,11 +193,17 @@ int view_cmd_processor(Init *init) {
     view = init->view;
     view->cmd[0] = '\0';
     while (1) {
+        if (view->f_redisplay_page) {
+            view_display_page(view);
+            view->f_redisplay_page = false;
+        }
         c = view->next_cmd_char;
         view->next_cmd_char = 0;
         if (!c) {
             build_prompt(view);
             display_prompt(view, view->prompt_str);
+            touchwin(view->ln_win);
+            wrefresh(view->ln_win);
             c = get_cmd_char(view, &n_cmd);
             if (c >= '0' && c <= '9') {
                 tmp_str[0] = (char)c;
@@ -1163,7 +1170,6 @@ void resize_page(Init *init) {
 */
 int pad_refresh(View *view) {
     int rc;
-    // wrefresh(view->win);
     if (view->f_ln)
         rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol + 7, view->smaxrow, view->smaxcol);
@@ -1172,9 +1178,9 @@ int pad_refresh(View *view) {
                       view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR)
         Perror("Error refreshing screen");
-    // if (view->f_ln) {
-    //     wrefresh(view->ln_win);
-    // }
+    wrefresh(view->win);
+    if (view->f_ln)
+        wrefresh(view->ln_win);
     return rc;
 }
 /*--------------------------------------------------------------
@@ -1224,7 +1230,6 @@ void next_page(View *view) {
  */
 void view_display_page(View *view) {
     int i;
-    // mvwaddstr(view->win, view->cmd_line, 0, "       ");
     wmove(view->pad, 0, 0);
     if (view->ln_win)
         wmove(view->ln_win, 0, 0);
@@ -1961,6 +1966,13 @@ void view_display_help(Init *init) {
     strnz__cpy(init->title, "View Help", MAXLEN - 1);
     popup_view(init, eargc, eargv);
     init->view->f_redisplay_page = true;
+}
+
+void view_restore_wins() {
+    wnoutrefresh(view->ln_win);
+    wrefresh(view->ln_win);
+    wnoutrefresh(view->win);
+    wrefresh(view->win);
 }
 /*------------------------------------------------------------
       END DISPLAY

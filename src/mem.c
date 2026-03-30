@@ -29,7 +29,7 @@ Init *new_init(int, char **);
 Menu *new_menu(Init *init, int, char **, int, int);
 Pick *new_pick(Init *init, int, char **, int, int);
 Form *new_form(Init *init, int, char **, int, int);
-View *new_view(Init *init, int, char **);
+View *new_view(Init *init);
 View *destroy_view(Init *init);
 Form *destroy_form(Init *init);
 Pick *destroy_pick(Init *init);
@@ -76,7 +76,6 @@ Init *new_init(int argc, char **argv) {
     }
     init->argv = calloc(MAXARGS + 1, sizeof(char *));
     if (init->argv == nullptr) {
-        free(init);
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
                   __LINE__ - 4, errno);
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
@@ -87,10 +86,10 @@ Init *new_init(int argc, char **argv) {
         return nullptr;
     }
     init->argc = argc;
-    for (i = 0; i < init->argc; i++) {
-        init->argv[i] = strdup(argv[i]);
-    }
+    for (i = 0; i < init->argc; i++)
+        init->argv[i] = argv[i];
     init->argv[i] = nullptr;
+
     init->sio = (SIO *)calloc(1, sizeof(SIO));
     if (!init->sio) {
         abend(-1, "calloc sio failed");
@@ -105,7 +104,6 @@ Init *new_init(int argc, char **argv) {
     @returns nullptr
  */
 Init *destroy_init(Init *init) {
-    int i;
     if (!init)
         return nullptr;
     if (init->sio) {
@@ -128,18 +126,8 @@ Init *destroy_init(Init *init) {
         init->pick = destroy_pick(init);
         init->pick = nullptr;
     }
-    for (i = 0; i <= init->argc; i++) {
-        if (init->argv[i]) {
-            if (init->argv[i] != nullptr)
-                free(init->argv[i]);
-            init->argv[i] = nullptr;
-        }
-    }
-    if (init->argv) {
-        if (init->argv != nullptr)
-            free(init->argv);
-        init->argv = nullptr;
-    }
+    if (init->argv != nullptr)
+        free(init->argv);
     if (init != nullptr) {
         free(init);
         init = nullptr;
@@ -179,6 +167,19 @@ Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
     @return nullptr
  */
 Menu *destroy_menu(Init *init) {
+    for (menu->line_idx = 0; menu->line_idx < menu->item_count;
+         menu->line_idx++) {
+        if (menu->line[menu->line_idx]) {
+            if (menu->line[menu->line_idx]->raw_text != nullptr)
+                free(menu->line[menu->line_idx]->raw_text);
+            if (menu->line[menu->line_idx]->command_str != nullptr)
+                free(menu->line[menu->line_idx]->command_str);
+            if (menu->line[menu->line_idx]->choice_text != nullptr)
+                free(menu->line[menu->line_idx]->choice_text);
+            free(menu->line[menu->line_idx]);
+            menu->line[menu->line_idx] = nullptr;
+        }
+    }
     if (!init->menu)
         return (nullptr);
     free(init->menu);
@@ -301,7 +302,7 @@ Form *destroy_form(Init *init) {
                     environment variables, or
                     calling program interal to C-Menu
  */
-View *new_view(Init *init, int argc, char **argv) {
+View *new_view(Init *init) {
     init->view_cnt++;
     init->view = (View *)calloc(1, sizeof(View));
     if (!init->view) {
@@ -309,31 +310,31 @@ View *new_view(Init *init, int argc, char **argv) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
                   __LINE__ - 1, errno);
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
-        ssnprintf(em2, MAXLEN - 1, "init->view = calloc(%d, %d) failed\n",
-                  (argc - optind + 1), sizeof(char *));
+        ssnprintf(em2, MAXLEN - 1, "init->view = calloc(%d) failed\n",
+                  sizeof(View));
         display_error(em0, em1, em2, nullptr);
         abend(-1, "calloc init->view failed");
         return false;
     }
     view = init->view;
-    view->argv = calloc((argc - optind + 1), sizeof(char *));
+    view->argc = init->argc;
+    view->argv = calloc(view->argc, sizeof(char *));
     if (view->argv == nullptr) {
         free(view->argv);
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
                   __LINE__ - 1, errno);
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
-                  (argc - optind + 1), sizeof(char *));
+                  view->argc, sizeof(char *));
         display_error(em0, em1, em2, nullptr);
         abend(-1, "User terminated program");
         return false;
     }
-    int s = optind;
+    int s = 0;
     int d = 0;
-    while (s < argc)
-        view->argv[d++] = strdup(argv[s++]);
+    while (s < view->argc)
+        view->argv[d++] = strdup(init->argv[s++]);
     view->argv[d] = nullptr;
-    view->argc = d;
     if (!init_view_files(init)) {
         abend(-1, "init_view_files failed");
         return nullptr;
@@ -351,6 +352,7 @@ View *destroy_view(Init *init) {
     if (!view)
         return nullptr;
     delwin(view->ln_win);
+    delwin(view->win);
     free(view->ln_tbl);
     for (i = 0; i <= view->argc; i++)
         free(view->argv[i]);
@@ -494,6 +496,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     // menu->f_help_spec =
     //     verify_spec_arg(menu->help_spec, init->help_spec, init->mapp_help,
     //                     "~/menuapp/help", R_OK);
+    optind = 0;
     if (optind < argc && !init->f_mapp_spec) {
         menu->f_mapp_spec =
             verify_spec_arg(menu->mapp_spec, argv[optind], init->mapp_msrc,
@@ -541,6 +544,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     @note Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_pick_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
+    optind = 0;
     pick->f_in_spec = verify_spec_arg(pick->in_spec, init->in_spec,
                                       init->mapp_data, "~/menuapp/data", R_OK);
     pick->f_out_spec =
@@ -637,6 +641,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     @note Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_form_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
+    optind = 0;
     form->f_mapp_spec =
         verify_spec_arg(form->mapp_spec, init->mapp_spec, init->mapp_msrc,
                         "~/menuapp/msrc", R_OK);

@@ -245,13 +245,13 @@ typedef struct {
     bool f_getter;    /**< flag - if set, Form presents an option to perform an
                             external query or calculation. */
     bool f_query;     /**< flag - if set, the action key label will be "query"
-                         instead of "getter" or "calculate".
-        bool help; /**< flag - if set, indicates that the user has requested help
-                      during form processing, e.g. by pressing a help key or button.
-                      This can be used to trigger the display of context-sensitive
-                      help information for the form, providing guidance and
-                      assistance to the user based on their current actions or the
-                      specific form they are working with. */
+                         instead of "getter" or "calculate". */
+    bool help; /**< flag - if set, indicates that the user has requested help
+                during form processing, e.g. by pressing a help key or button.
+                This can be used to trigger the display of context-sensitive
+                help information for the form, providing guidance and
+                assistance to the user based on their current actions or the
+                specific form they are working with. */
     bool f_provider_cmd; /**< flag - if set, indicates that the provider command
                             has been verified and is valid for execution. This
                             can be used to ensure that the provider command
