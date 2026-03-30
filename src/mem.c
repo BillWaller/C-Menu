@@ -330,7 +330,7 @@ View *new_view(Init *init) {
         abend(-1, "User terminated program");
         return false;
     }
-    int s = 0;
+    int s = optind;
     int d = 0;
     while (s < view->argc)
         view->argv[d++] = strdup(init->argv[s++]);

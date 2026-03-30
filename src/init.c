@@ -379,7 +379,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
     parse_config(init);
-    init->argc = 0;
+    init->argc = argc;
     argp_parse(&argp, argc, argv, 0, 0, init);
     if (help) {
         argp_help(&argp, stdout, ARGP_HELP_STD_HELP, argv[0]);
@@ -405,7 +405,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
 }
 
 int parse_opt_args(Init *init, int argc, char **argv) {
-    init->argc = 0;
+    init->argc = argc;
     argp_parse(&argp, argc, argv, 0, 0, init);
     return 0;
 }
