@@ -213,7 +213,6 @@ extern int init_pick(Init *, int, char **, int, int);
 extern int open_pick_win(Init *);
 extern int pick_engine(Init *);
 extern int view_file(Init *);
-extern int mview(Init *, int, char **, int, int, int, int);
 extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(Init *, char *);
 extern int view_init_input(View *, char *);
