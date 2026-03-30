@@ -296,10 +296,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         strnz__cpy(init->mapp_msrc, arg, MAXLEN - 1);
         break;
     case ARGP_KEY_ARG:
-        optind = state->next - 1;
+        if (state->arg_num >= 5)
+            argp_usage(state);
+        init->argv[state->arg_num] = arg;
         break;
     case ARGP_KEY_END:
-        init->argv[init->argc] = nullptr;
+        init->argc = state->arg_num;
+        init->argv[state->arg_num + 1] = NULL;
         break;
     default:
         return ARGP_ERR_UNKNOWN;
@@ -404,7 +407,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
 }
 
 int parse_opt_args(Init *init, int argc, char **argv) {
-    init->argc = argc;
+    init->argc = 0;
     argp_parse(&argp, argc, argv, 0, 0, init);
     return 0;
 }

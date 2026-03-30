@@ -1,7 +1,5 @@
 # A User Interface Toolkit
 
-![***New*** Enhanced Argument Processing with Argp](screenshots/C-Menu.help.png)
-
 <!-- mtoc-start -->
 
 - [C-Menu Introduction](#c-menu-introduction)

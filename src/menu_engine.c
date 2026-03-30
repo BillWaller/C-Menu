@@ -174,7 +174,8 @@ unsigned int menu_cmd_processor(Init *init) {
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 1;
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
-        popup_view(init, eargc, eargv);
+        popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
+                   init->begx);
         return (MA_DISPLAY_MENU);
         /** Exit the menu and return to the previous menu or exit if at top */
     case 'q':
@@ -288,7 +289,8 @@ unsigned int menu_cmd_processor(Init *init) {
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 1;
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
-        popup_view(init, eargc, eargv);
+        popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
+                   init->begx);
         return (MA_DISPLAY_MENU);
         /** @brief Display a submenu or perform an action associated with
          * the selected menu choice */
@@ -338,12 +340,14 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-
+        init->lines = 66;
+        init->cols = 80;
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 1;
         strnz__cpy(init->title, menu->line[menu->line_idx]->raw_text,
                    MAXLEN - 1);
-        popup_view(init, eargc, eargv);
+        popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
+                   init->begx);
         return (MA_DISPLAY_MENU);
         /** @brief open ckeys (test curses keys) */
     case CT_CKEYS:

@@ -330,9 +330,9 @@ View *new_view(Init *init) {
         abend(-1, "User terminated program");
         return false;
     }
-    int s = optind;
+    int s = 0;
     int d = 0;
-    while (s < view->argc)
+    while (s < init->argc)
         view->argv[d++] = strdup(init->argv[s++]);
     view->argv[d] = nullptr;
     if (!init_view_files(init)) {

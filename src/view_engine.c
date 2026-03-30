@@ -1964,7 +1964,8 @@ void view_display_help(Init *init) {
     init->begy = 0;
     init->begx = 0;
     strnz__cpy(init->title, "View Help", MAXLEN - 1);
-    popup_view(init, eargc, eargv);
+    popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
+               init->begx);
     init->view->f_redisplay_page = true;
 }
 

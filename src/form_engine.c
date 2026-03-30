@@ -169,7 +169,8 @@ int form_engine(Init *init) {
             init->begy = form->begy + 1;
             init->begx = form->begx + 1;
             strnz__cpy(init->title, "Form Help", MAXLEN - 1);
-            popup_view(init, eargc, eargv);
+            popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
+                       init->begx);
             form_action = P_CONTINUE;
             break;
         case P_CANCEL:

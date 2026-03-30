@@ -892,7 +892,8 @@ int exec_objects(Init *init) {
             strnz__cpy(init->title, title, MAXLEN - 1);
         else
             strnz__cpy(init->title, margv[margc], MAXLEN - 1);
-        popup_view(init, margc, margv);
+        popup_view(init, margc, margv, init->lines, init->cols, init->begy,
+                   init->begx);
         i = 0;
         while (i < margc) {
             if (margv[i] != nullptr)
@@ -993,7 +994,8 @@ void display_pick_help(Init *init) {
     init->begy = pick->begy + 1;
     init->begx = pick->begx + 1;
     strnz__cpy(init->title, "Pick Help", MAXLEN - 1);
-    popup_view(init, eargc, eargv);
+    popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
+               init->begx);
     free(eargv[0]);
     free(eargv[1]);
     return;
