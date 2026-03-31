@@ -210,28 +210,32 @@ enum FTypes {
     64                 /**< maximum length of the command text for a key       \
                           binding in the chyron */
 #define CHYRON_KEYS 20 /**< maximum number of key bindings for the chyron */
+
 typedef struct {
     char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code
                                    */
     int keycode;                  /**< key code associated with the command */
     int end_pos; /**< end position of the command text in the chyron */
+    int cp;      /**< color pair index for the command text in the chyron */
 } ChyronKey;
 
 typedef struct {
     ChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
     char s[MAXLEN]; /**< the chyron string, for displaying messages in */
-    int l;          /**< length of the chyron string, for display purposes */
+    cchar_t cmplx_buf[MAXLEN]; /**< the chyron wide character string */
+    int l; /**< length of the chyron string, for display purposes */
 } Chyron;
 
 extern int xwgetch(WINDOW *, Chyron *, int);
-extern int click_y; /**< the y coordinate of a mouse click, for handling mouse
-                   events */
-extern int
-    click_x; /**< the x coordinate of a mouse click, for handling mouse */
+
+extern int click_y; /**< the y coordinate of a mouse click */
+extern int click_x; /**< the x coordinate of a mouse click */
+
 extern Chyron *wait_mk_chyron();
 extern WINDOW *wait_mk_win(Chyron *, char *);
 extern int wait_continue(WINDOW *, Chyron *, int);
 extern bool wait_destroy(Chyron *);
+
 extern bool f_debug;         /**< a flag to indicate whether debug
         output should be printed, for debugging purposes */
 extern unsigned int cmd_key; /**< the command key for the current command, for
@@ -249,18 +253,19 @@ typedef struct {
 #define LN_COLOR 4    /**< default line number color */
 #define LN_BG_COLOR 7 /**< default line number background */
 
-extern int cp_default;   /**< default color pair index */
-extern int cp_norm;      /**< normal color pair index */
-extern int cp_box;       /**< box color pair index */
-extern int cp_bold;      /**< bold color pair index */
-extern int cp_title;     /**< title color pair index */
-extern int cp_highlight; /**< highlight color pair index */
-extern int cp_reverse;   /**< reverse color pair index */
-extern int cp_ln;        /**< line number color pair index */
-extern int cp_ln_bg;     /** line number background color pair index */
-extern int clr_idx;      /**< current color index */
-extern int clr_cnt;      /**< number of colors used */
-extern int clr_pair_idx; /**< current color pair index */
+extern int cp_default;           /**< default color pair index */
+extern int cp_norm;              /**< normal color pair index */
+extern int cp_box;               /**< box color pair index */
+extern int cp_bold;              /**< bold color pair index */
+extern int cp_title;             /**< title color pair index */
+extern int cp_highlight;         /**< highlight color pair index */
+extern int cp_reverse;           /**< reverse color pair index */
+extern int cp_reverse_highlight; /**< reverse highlight color pair index */
+extern int cp_ln;                /**< line number color pair index */
+extern int cp_ln_bg;             /** line number background color pair index */
+extern int clr_idx;              /**< current color index */
+extern int clr_cnt;              /**< number of colors used */
+extern int clr_pair_idx;         /**< current color pair index */
 extern int clr_pair_cnt; /**< number of color pairs supported by the terminal */
 extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
 
@@ -644,6 +649,7 @@ typedef struct {
     int cp_default;              /**< default color pair index */
     int cp_norm;                 /**< normal color pair index */
     int cp_reverse;              /**< reverse color pair index */
+    int cp_reverse_highlight;    /**< reverse highlight color pair index */
     int cp_box;                  /**< box color pair index */
     int cp_bold;                 /**< bold color pair index */
     int cp_title;                /**< title color pair index */

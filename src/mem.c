@@ -491,6 +491,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     // menu->f_help_spec =
     //     verify_spec_arg(menu->help_spec, init->help_spec, init->mapp_help,
     //                     "~/menuapp/help", R_OK);
+    int optind = 1;
     if (optind < argc && !init->f_mapp_spec) {
         menu->f_mapp_spec =
             verify_spec_arg(menu->mapp_spec, argv[optind], init->mapp_msrc,
@@ -538,6 +539,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     @note Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_pick_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
+    int optind = 1;
     pick->f_in_spec = verify_spec_arg(pick->in_spec, init->in_spec,
                                       init->mapp_data, "~/menuapp/data", R_OK);
     pick->f_out_spec =
@@ -634,6 +636,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     @note Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_form_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
+    int optind = 0;
     form->f_mapp_spec =
         verify_spec_arg(form->mapp_spec, init->mapp_spec, init->mapp_msrc,
                         "~/menuapp/msrc", R_OK);

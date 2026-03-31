@@ -346,13 +346,13 @@ int pick_engine(Init *init) {
         set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
         set_chyron_key(pick->chyron, 12, "PgDn", KEY_NPAGE);
     }
-    set_chyron_key(pick->chyron, 13, "Toggle", 32);
+    set_chyron_key(pick->chyron, 13, "Toggle", 't');
     compile_chyron(pick->chyron);
     if (pick->chyron->l > win_maxx)
         pick->chyron->l = strnz(pick->chyron->s, win_maxx);
-    // if (pick->win_width < pick->chyron->l)
-    //     pick->win_width = pick->chyron->l;
-    pick->win_width = max(pick->win_width, pick->chyron->l) + 2;
+    if (pick->win_width < pick->chyron->l)
+        pick->win_width = pick->chyron->l;
+    pick->win_width = max(pick->win_width, pick->chyron->l);
     if (pick->begx + pick->win_width > COLS - 2)
         pick->begx = COLS - pick->win_width - 2;
     else if (pick->begx == 0)
@@ -642,9 +642,9 @@ void display_page(Pick *pick) {
 void pick_display_chyron(Pick *pick) {
     int l;
     char tmp_str[MAXLEN];
-    ssnprintf(tmp_str, MAXLEN - 1, "%s| Page %d of %d ", pick->chyron->s,
-              pick->tbl_page + 1, pick->tbl_pages);
-    l = strlen(tmp_str);
+    // ssnprintf(tmp_str, MAXLEN - 1, "%s| Page %d of %d ", pick->chyron->s,
+    //          pick->tbl_page + 1, pick->tbl_pages);
+    l = strnz__cpy(tmp_str, pick->chyron->s, MAXLEN - 1);
     wattron(pick->win, WA_REVERSE);
     mvwaddstr(pick->win, pick->pg_lines, 0, tmp_str);
     wattroff(pick->win, WA_REVERSE);

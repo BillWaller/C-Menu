@@ -25,8 +25,8 @@ int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
     parse_opt_args(init, argc, argv);
     Pick *sav_pick = init->pick;
     init->pick = NULL;
-    new_pick(init, argc, argv, begy, begx);
-    rc = init_pick(init, argc, argv, begy, begx);
+    new_pick(init, init->argc, init->argv, begy, begx);
+    rc = init_pick(init, init->argc, init->argv, begy, begx);
     destroy_pick(init);
     init->pick = sav_pick;
     return rc;
@@ -38,8 +38,8 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     parse_opt_args(init, argc, argv);
     Form *sav_form = init->form;
     init->form = NULL;
-    new_form(init, argc, argv, begy, begx);
-    rc = init_form(init, argc, argv, begy, begx);
+    new_form(init, init->argc, init->argv, begy, begx);
+    rc = init_form(init, init->argc, init->argv, begy, begx);
     destroy_form(init);
     init->form = sav_form;
     return rc;

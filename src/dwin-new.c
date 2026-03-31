@@ -1,5 +1,10 @@
 /** @file dwin.c
-    @brief Window support for C-Menu
+    @brief Window support for C-Menu - EXPERIMENTAL
+    @note This file contains functions for managing NCurses windows and color
+   settings for the Chyron structure for function key labels and mouse click
+   handling. This file is a work in progress and may be subject to change as the
+   C-Menu project evolves. Generally, don't try to use it yet unless you want
+   complete the half-done code modifications.
     @author Bill Waller
     Copyright (c) 2025
     MIT License
@@ -49,11 +54,13 @@ void apply_gamma(RGB *);
 
 Chyron *new_chyron();
 void set_chyron_key(Chyron *, int, char *, int);
+void set_chyron_key_cp(Chyron *, int, char *, int, int);
 bool is_set_chyron_key(Chyron *, int);
 void unset_chyron_key(Chyron *, int);
 void compile_chyron(Chyron *);
 int get_chyron_key(Chyron *, int);
 Chyron *destroy_chyron(Chyron *chyron);
+int str_to_cmplx(cchar_t *dest, char *src, int cp, int *p, int);
 
 Chyron *wait_mk_chyron();
 WINDOW *wait_mk_win(Chyron *, char *);
@@ -254,14 +261,21 @@ bool is_set_chyron_key(Chyron *chyron, int k) {
    X position. If the label string is empty, the key is unset by setting the
    first character of the text to '\0'.
 */
-void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
-
+void set_chyron_key_cp(Chyron *chyron, int k, char *s, int kc, int cp) {
     if (*s != '\0')
-
         ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
     else
         chyron->key[k]->text[0] = '\0';
     chyron->key[k]->keycode = kc;
+    chyron->key[k]->cp = cp;
+}
+void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
+    if (*s != '\0')
+        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
+    else
+        chyron->key[k]->text[0] = '\0';
+    chyron->key[k]->keycode = kc;
+    chyron->key[k]->cp = cp_norm;
 }
 /** @brief Unset chyron key
     @ingroup Chyron
@@ -280,25 +294,60 @@ void unset_chyron_key(Chyron *chyron, int k) { chyron->key[k]->text[0] = '\0'; }
 */
 void compile_chyron(Chyron *chyron) {
     int end_pos = 0;
-    int i = 0;
-    chyron->s[0] = '\0';
-    chyron->l = 0;
-    while (i < CHYRON_KEYS) {
-        if (chyron->key[i]->text[0] == '\0') {
-            i++;
+    int k = 0, p = 0;
+
+    while (k < CHYRON_KEYS) {
+        if (chyron->key[k]->text[0] == '\0') {
+            k++;
             continue;
         }
-        if (end_pos == 0)
-            strnz__cat(chyron->s, " ", MAXLEN - 1);
-        else
-            strnz__cat(chyron->s, " | ", MAXLEN - 1);
-        strnz__cat(chyron->s, chyron->key[i]->text, MAXLEN - 1);
+        if (end_pos == 0) {
+            str_to_cmplx(chyron->cmplx_buf, " ", chyron->key[k]->cp, &p,
+                         MAXLEN - 1);
+            strnz__cpy(chyron->s, " ", MAXLEN - 1);
+        } else {
+            str_to_cmplx(chyron->cmplx_buf, "|", cp_norm, &p, MAXLEN - 1);
+            strnz__cpy(chyron->s, "|", MAXLEN - 1);
+        }
+        str_to_cmplx(chyron->cmplx_buf, chyron->key[k]->text,
+                     chyron->key[k]->cp, &p, MAXLEN - 1);
+        strnz__cat(chyron->s, chyron->key[k]->text, MAXLEN - 1);
         end_pos = strlen(chyron->s) + 1;
-        chyron->key[i]->end_pos = end_pos;
-        i++;
+        chyron->key[k]->end_pos = end_pos;
     }
-    if (end_pos > 0)
-        chyron->l = strnz__cat(chyron->s, " ", MAXLEN - 1);
+    str_to_cmplx(chyron->cmplx_buf, " ", chyron->key[k]->cp, &p, MAXLEN - 1);
+    strnz__cpy(chyron->s, " ", MAXLEN - 1);
+    end_pos = strlen(chyron->s) + 1;
+    chyron->key[k]->end_pos = end_pos;
+}
+
+int str_to_cmplx(cchar_t *cmplx_buf, char *str, int cpx, int *p, int maxlen) {
+    int i = 0, len = 0;
+    attr_t attr = WA_NORMAL;
+    const char *s;
+    cchar_t cc = {0};
+    wchar_t wc = L'\0';
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    while (str[i] != '\0') {
+        s = &str[i];
+        len = mbrtowc(&wc, s, MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wc = L'?';
+            len = 1;
+        }
+        if (*p >= maxlen - 1)
+            break;
+        if (setcchar(&cc, &wc, attr, cpx, nullptr) != ERR) {
+            if (len > 0 && (*p + len) < MAXLEN - 1)
+                cmplx_buf[*p++] = cc;
+        }
+        i += len;
+    }
+    wc = L'\0';
+    setcchar(&cc, &wc, WA_NORMAL, cpx, nullptr);
+    cmplx_buf[*p] = cc;
+    return i;
 }
 /** @brief Get keycode from chyron
     @ingroup Chyron
@@ -321,6 +370,30 @@ int get_chyron_key(Chyron *chyron, int x) {
             break;
     return chyron->key[i]->keycode;
 }
+
+cchar_t *mk_cmplx_buf(const char *s) {
+    cchar_t *cmplx_buf = (cchar_t *)calloc(MAXLEN, sizeof(cchar_t));
+    int j = 0;
+    int len;
+    attr_t attr = WA_NORMAL;
+    int cpx = cp_norm;
+    wchar_t wc = L'\0';
+    cchar_t cc = {0};
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    len = mbrtowc(&wc, s, MB_CUR_MAX, &mbstate);
+    if (len <= 0) {
+        wc = L'?';
+        len = 1;
+    }
+    if (setcchar(&cc, &wc, attr, cpx, nullptr) != ERR) {
+        if (len > 0 && (j + len) < MAXLEN - 1) {
+            cmplx_buf[j++] = cc;
+        }
+    }
+    return cmplx_buf;
+}
+
 /** @brief Initialize NCurses and color settings
     @ingroup window_support
     @param sio Pointer to SIO struct with terminal and color settings
@@ -395,13 +468,13 @@ bool open_curses(SIO *sio) {
 
     cp_norm = get_clr_pair(CLR_FG, CLR_BG);
     cp_reverse = get_clr_pair(CLR_BG, CLR_FG);
-    // cp_reverse_highlight = get_clr_pair(CLR_YELLOW, CLR_FG);
+    cp_reverse_highlight = get_clr_pair(CLR_YELLOW, CLR_FG);
     cp_box = get_clr_pair(CLR_BO, CLR_BG);
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
 
     CCC_NORM = mkccc(cp_norm);
     CCC_REVERSE = mkccc(cp_reverse);
-    // CCC_REVERSE_HIGHLIGHT = mkccc(cp_reverse_highlight);
+    CCC_REVERSE_HIGHLIGHT = mkccc(cp_reverse_highlight);
     CCC_BOX = mkccc(cp_box);
     CCC_LN = mkccc(cp_ln);
     noecho();

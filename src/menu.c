@@ -33,12 +33,11 @@ int main(int argc, char **argv) {
         parse_menu_description(init);
         menu_engine(init);
     } else if (!strcmp(pgm_name, "form")) {
-        init_form(init, argc, argv, LINES / 14, COLS / 14);
+        init_form(init, init->argc, init->argv, LINES / 14, COLS / 14);
     } else if (!strcmp(pgm_name, "pick")) {
         init_pick(init, init->argc, init->argv, 0, 0);
     } else if (!strcmp(pgm_name, "view")) {
         view = new_view(init);
-        ;
         if (view->lines > 0 && view->cols > 0)
             mview(init, view->lines, view->cols, 0, 0);
         else if (!init_view_full_screen(init))
