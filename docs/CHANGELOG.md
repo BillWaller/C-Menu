@@ -2,6 +2,13 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-03-|
+
+More bugs fixed related to transition to argp.
+
+Added set_chyron_key_cp() function to allow the caller to specify a custom color pair
+for individual chyron keys. This allows for more flexible and customizable chyrons, and it can be used to highlight important options or to differentiate between different types of options. The color pair is specified as a six-digit hexadecimal RGB value, and it can be set to any color the user desires. This function is part of the larger effort to integrate the chyron facility into all C-Menu programs, which will allow for much more dynamic and context-sensitive user interfaces.
+
 0.2.9 - 2026-03-30
 
 Continued testing and debugging after having substantially refactored the main components of C-Menu to provide pop-up and drop-down helper widgets. This is a major step in the evolution of C-Menu, and it will allow for much more flexible and powerful user interfaces. The first component to be refactored is the chyron, which is a pop-up widget that can be used to display information and options to the user. The chyron is implemented as a separate module, and it can be easily integrated into any C-Menu program. The next step will be to refactor the Pick module to use the chyron for displaying options, which will allow for much more dynamic and context-sensitive user interfaces. For example, when entering form fields, the user can press or click the help button to display a list of possible objects with which to fill the field and then select one with the mouse or keyboard. This will be a much more intuitive and efficient way to fill out forms, and it will also allow for much more complex forms with many fields. This is in preparation for the next major release, which will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
