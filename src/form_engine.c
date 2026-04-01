@@ -289,12 +289,12 @@ int form_getter(Init *init) {
     strnz__cpy(tmp_str, "F5 ", MAXLEN - 1);
 
     if (form->f_getter)
-        strnz__cat(tmp_str, "Getter", MAXLEN - 1);
+        strnz__cat(tmp_str, "Process", MAXLEN - 1);
     else if (form->f_calculate)
         strnz__cat(tmp_str, "Calculate", MAXLEN - 1);
     else if (form->f_query)
         strnz__cat(tmp_str, "Query", MAXLEN - 1);
-    set_chyron_key(form->chyron, 5, tmp_str, KEY_F(5));
+    set_chyron_key_cp(form->chyron, 5, tmp_str, KEY_F(5), cp_reverse_highlight);
 
     while (loop) {
         form_display_chyron(form);
@@ -523,10 +523,9 @@ void form_display_fields(Form *form) {
  */
 void form_display_chyron(Form *form) {
     compile_chyron(form->chyron);
-    wattron(form->win, WA_REVERSE);
-    mvwaddstr(form->win, form->lines - 1, 0, form->chyron->s);
-    wattroff(form->win, WA_REVERSE);
+    wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
+    wadd_wchstr(form->win, form->chyron->cmplx_buf);
     wmove(form->win, form->lines - 1, form->chyron->l);
 }
 /** @brief Parse the form description file to populate the Form data structure

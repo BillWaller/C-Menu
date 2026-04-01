@@ -1,5 +1,10 @@
 /** @file dwin.c
-    @brief Window support for C-Menu
+    @brief Window support for C-Menu - EXPERIMENTAL
+    @note This file contains functions for managing NCurses windows and color
+   settings for the Chyron structure for function key labels and mouse click
+   handling. This file is a work in progress and may be subject to change as the
+   C-Menu project evolves. Generally, don't try to use it yet unless you want
+   complete the half-done code modifications.
     @author Bill Waller
     Copyright (c) 2025
     MIT License
@@ -49,11 +54,13 @@ void apply_gamma(RGB *);
 
 Chyron *new_chyron();
 void set_chyron_key(Chyron *, int, char *, int);
+void set_chyron_key_cp(Chyron *, int, char *, int, int);
 bool is_set_chyron_key(Chyron *, int);
 void unset_chyron_key(Chyron *, int);
 void compile_chyron(Chyron *);
 int get_chyron_key(Chyron *, int);
 Chyron *destroy_chyron(Chyron *chyron);
+int mb_to_cc(cchar_t *, char *, attr_t, int, int *, int);
 
 Chyron *wait_mk_chyron();
 WINDOW *wait_mk_win(Chyron *, char *);
@@ -156,6 +163,7 @@ char em3[MAXLEN];
 int cp_norm;
 int cp_box;
 int cp_reverse;
+int cp_reverse_highlight;
 int cp_ln;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
@@ -176,9 +184,11 @@ FILE *ncurses_fp;
     @see get_clr_pair
  */
 void win_init_attrs() {
-    init_extended_pair(cp_norm, CLR_FG, CLR_BG);
-    init_extended_pair(cp_box, CLR_BO, CLR_BG);
-    init_extended_pair(cp_ln, CLR_LN, CLR_LN_BG);
+    // init_extended_pair(cp_reverse_highlight, CLR_BLUE, CLR_YELLOW);
+    // init_extended_pair(cp_reverse, CLR_BLUE, CLR_YELLOW);
+    // init_extended_pair(cp_norm, CLR_FG, CLR_BG);
+    // init_extended_pair(cp_box, CLR_BO, CLR_BG);
+    // init_extended_pair(cp_ln, CLR_LN, CLR_LN_BG);
     return;
 }
 
@@ -254,14 +264,21 @@ bool is_set_chyron_key(Chyron *chyron, int k) {
    X position. If the label string is empty, the key is unset by setting the
    first character of the text to '\0'.
 */
-void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
-
+void set_chyron_key_cp(Chyron *chyron, int k, char *s, int kc, int cp) {
     if (*s != '\0')
-
         ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
     else
         chyron->key[k]->text[0] = '\0';
     chyron->key[k]->keycode = kc;
+    chyron->key[k]->cp = cp;
+}
+void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
+    if (*s != '\0')
+        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
+    else
+        chyron->key[k]->text[0] = '\0';
+    chyron->key[k]->keycode = kc;
+    chyron->key[k]->cp = cp_reverse;
 }
 /** @brief Unset chyron key
     @ingroup Chyron
@@ -280,25 +297,89 @@ void unset_chyron_key(Chyron *chyron, int k) { chyron->key[k]->text[0] = '\0'; }
 */
 void compile_chyron(Chyron *chyron) {
     int end_pos = 0;
-    int i = 0;
-    chyron->s[0] = '\0';
-    chyron->l = 0;
-    while (i < CHYRON_KEYS) {
-        if (chyron->key[i]->text[0] == '\0') {
-            i++;
+    int k = 0;
+    int pos = 0;
+    int cp = cp_norm;
+    cchar_t *cx;
+    // chyron->s is included to make debugging easier
+    while (k < CHYRON_KEYS) {
+        if (chyron->key[k]->text[0] == '\0') {
+            k++;
             continue;
         }
-        if (end_pos == 0)
-            strnz__cat(chyron->s, " ", MAXLEN - 1);
-        else
-            strnz__cat(chyron->s, " | ", MAXLEN - 1);
-        strnz__cat(chyron->s, chyron->key[i]->text, MAXLEN - 1);
-        end_pos = strlen(chyron->s) + 1;
-        chyron->key[i]->end_pos = end_pos;
-        i++;
+        if (end_pos == 0) {
+            cp = chyron->key[k]->cp;
+            cx = chyron->cmplx_buf;
+            mb_to_cc(cx, " ", WA_NORMAL, cp_reverse, &pos, MAXLEN - 1);
+            strnz__cpy(chyron->s, " ", MAXLEN - 1);
+        } else {
+            mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_reverse, &pos,
+                     MAXLEN - 1);
+            strnz__cat(chyron->s, "|", MAXLEN - 1);
+        }
+        cp = chyron->key[k]->cp;
+        cx = chyron->cmplx_buf;
+        mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
+        strnz__cat(chyron->s, chyron->key[k]->text, MAXLEN - 1);
+        end_pos = pos;
+        end_pos = strlen(chyron->s);
+        chyron->l = end_pos;
+        chyron->key[k]->end_pos = end_pos;
+        k++;
     }
-    if (end_pos > 0)
-        chyron->l = strnz__cat(chyron->s, " ", MAXLEN - 1);
+    mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
+    end_pos = strnz__cat(chyron->s, " ", MAXLEN - 1);
+    end_pos = pos;
+}
+/** @brief Convert multibyte string to complex character array
+    @ingroup Chyron
+    @param cmplx_buf Output buffer for complex characters
+    @param str Input multibyte string
+    @param cpx Color pair index for the complex characters
+    @param pos Pointer to current position in the output buffer, updated as
+   characters are added
+    @param maxlen Maximum length of the output buffer
+    @return Number of bytes processed from the input string
+    @details This function converts a multibyte string to an array of complex
+   characters (cchar_t) that can be used with NCurses functions. It handles
+   multibyte characters and applies the specified color pair to each character.
+   The pos parameter is updated to reflect the current position in the output
+   buffer, and the function ensures that it does not exceed the maximum length.
+*/
+int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
+             int maxlen) {
+    int i = 0, len = 0;
+    const char *s;
+    cchar_t cc = {0};
+    wchar_t wc = L'\0';
+    wchar_t wstr[2];
+    wstr[0] = L'e';
+    wstr[1] = L'\0';
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    attr = WA_NORMAL;
+    if (*pos >= maxlen - 1)
+        return 0;
+    while (str[i] != '\0') {
+        s = &str[i];
+        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wc = L'?';
+            len = 1;
+        }
+        wstr[1] = L'\0';
+        if (*pos >= maxlen - 1)
+            break;
+        if (setcchar(&cc, wstr, attr, cpx, nullptr) != ERR) {
+            if (len > 0 && (*pos + len) < MAXLEN - 1)
+                cmplx_buf[(*pos)++] = cc;
+        }
+        i += len;
+    }
+    wc = L'\0';
+    setcchar(&cc, &wc, attr, cpx, nullptr);
+    cmplx_buf[*pos] = cc;
+    return i;
 }
 /** @brief Get keycode from chyron
     @ingroup Chyron
@@ -321,6 +402,39 @@ int get_chyron_key(Chyron *chyron, int x) {
             break;
     return chyron->key[i]->keycode;
 }
+/** @brief Create complex character buffer from multibyte string
+    @ingroup Chyron
+    @param s Input multibyte string
+    @return Pointer to complex character buffer
+    @details This function creates a complex character buffer from a multibyte
+   string. It allocates memory for the buffer and converts the multibyte string
+   to complex characters using the mb_to_cc function. The color pair used for
+   the complex characters is cp_norm. The caller is responsible for freeing the
+   allocated buffer when it is no longer needed.
+*/
+cchar_t *mk_cmplx_buf(const char *s) {
+    cchar_t *cmplx_buf = (cchar_t *)calloc(MAXLEN, sizeof(cchar_t));
+    int j = 0;
+    int len;
+    attr_t attr = WA_NORMAL;
+    int cpx = cp_norm;
+    wchar_t wc = L'\0';
+    cchar_t cc = {0};
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    len = mbrtowc(&wc, s, MB_CUR_MAX, &mbstate);
+    if (len <= 0) {
+        wc = L'?';
+        len = 1;
+    }
+    if (setcchar(&cc, &wc, attr, cpx, nullptr) != ERR) {
+        if (len > 0 && (j + len) < MAXLEN - 1) {
+            cmplx_buf[j++] = cc;
+        }
+    }
+    return cmplx_buf;
+}
+
 /** @brief Initialize NCurses and color settings
     @ingroup window_support
     @param sio Pointer to SIO struct with terminal and color settings
@@ -338,8 +452,6 @@ int get_chyron_key(Chyron *chyron, int x) {
 bool open_curses(SIO *sio) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
-    int rc;
-    RGB rgb;
 
     if (ttyname_r(STDERR_FILENO, sio->tty_name, sizeof(sio->tty_name)) != 0) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -394,14 +506,14 @@ bool open_curses(SIO *sio) {
     GRAY_GAMMA = sio->gray_gamma;
 
     cp_norm = get_clr_pair(CLR_FG, CLR_BG);
-    cp_reverse = get_clr_pair(CLR_BG, CLR_FG);
-    // cp_reverse_highlight = get_clr_pair(CLR_YELLOW, CLR_FG);
+    cp_reverse = get_clr_pair(CLR_BLACK, CLR_WHITE);
+    cp_reverse_highlight = get_clr_pair(CLR_BLACK, CLR_YELLOW);
     cp_box = get_clr_pair(CLR_BO, CLR_BG);
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
 
     CCC_NORM = mkccc(cp_norm);
     CCC_REVERSE = mkccc(cp_reverse);
-    // CCC_REVERSE_HIGHLIGHT = mkccc(cp_reverse_highlight);
+    CCC_REVERSE_HIGHLIGHT = mkccc(cp_reverse_highlight);
     CCC_BOX = mkccc(cp_box);
     CCC_LN = mkccc(cp_ln);
     noecho();
@@ -411,16 +523,7 @@ bool open_curses(SIO *sio) {
 #ifdef NCDEBUG
     immedok(stdscr, true);
 #endif
-    wbkgrndset(stdscr, &CCC_NORM);
-    rc = extended_color_content(CLR_FG, &rgb.r, &rgb.g, &rgb.b);
-    rc = extended_color_content(CLR_BG, &rgb.r, &rgb.g, &rgb.b);
-    rc = extended_color_content(CLR_BO, &rgb.r, &rgb.g, &rgb.b);
-    rc = extended_color_content(CLR_LN, &rgb.r, &rgb.g, &rgb.b);
-    rc = extended_color_content(CLR_LN_BG, &rgb.r, &rgb.g, &rgb.b);
-    if (rc == ERR) {
-        destroy_curses();
-        abend(-1, "extended_color_content failed");
-    }
+    // wbkgrndset(stdscr, &CCC_NORM);
     return sio;
 }
 /** @defgroup color_management Color Management
@@ -637,7 +740,7 @@ void init_hex_clr(int idx, char *s) {
     if (idx < 16) {
         StdColors[idx].r = rgb.r;
         StdColors[idx].g = rgb.g;
-        StdColors[idx].g = rgb.g;
+        StdColors[idx].b = rgb.b;
     }
     rgb.r = (rgb.r * 1000) / 255;
     rgb.g = (rgb.g * 1000) / 255;
@@ -799,8 +902,8 @@ void win_resize(int wlines, int wcols, char *title) {
     }
     wnoutrefresh(win_box[win_ptr]);
     wresize(win_win[win_ptr], wlines, wcols);
-    init_extended_pair(cp_norm, CLR_FG, CLR_BG);
-    init_extended_pair(cp_ln, CLR_LN, CLR_BG);
+    // init_extended_pair(cp_norm, CLR_FG, CLR_BG);
+    // init_extended_pair(cp_ln, CLR_LN, CLR_BG);
 
     wbkgrnd(win_win[win_ptr], &CCC_NORM);
     wbkgrndset(win_win[win_ptr], &CCC_NORM);

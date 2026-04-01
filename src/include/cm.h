@@ -707,6 +707,7 @@ extern void compile_chyron(Chyron *);
 extern int get_chyron_key(Chyron *, int);
 extern bool is_set_chyron_key(Chyron *, int);
 extern void set_chyron_key(Chyron *, int, char *, int);
+extern void set_chyron_key_cp(Chyron *, int, char *, int, int);
 extern void unset_chyron_key(Chyron *, int);
 extern Chyron *new_chyron();
 extern Chyron *destroy_chyron(Chyron *chyron);

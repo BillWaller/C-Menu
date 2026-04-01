@@ -1654,6 +1654,9 @@ int fmt_line(View *view) {
     attr_t attr = WA_NORMAL;
     int cpx = cp_norm;
     wchar_t wc = L'\0';
+    wchar_t wstr[2];
+    wstr[0] = L'e';
+    wstr[1] = L'\0';
     cchar_t cc = {0};
 
     char *in_str = view->line_in_s;
@@ -1699,12 +1702,13 @@ int fmt_line(View *view) {
                 } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
-                len = mbrtowc(&wc, s, MB_CUR_MAX, &mbstate);
+                len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
                 if (len <= 0) {
                     wc = L'?';
                     len = 1;
                 }
-                if (setcchar(&cc, &wc, attr, cpx, nullptr) != ERR) {
+                wstr[1] = L'\0';
+                if (setcchar(&cc, wstr, attr, cpx, nullptr) != ERR) {
                     if (len > 0 && (j + len) < PAD_COLS - 1) {
                         view->stripped_line_out[j] = *s;
                         cmplx_buf[j++] = cc;
