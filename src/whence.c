@@ -31,22 +31,18 @@ void ABEND(char *, int, char *);
 void normalend();
 enum { WH_ALL = 1, WH_VERBOSE = 2 };
 int wh_flags = 0;
-const char *argp_program_version = "whence-0.2.9";
+const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
 static char doc[] = "whence locate files in path";
-static char args_doc[] = "[ARG1] [ARG2]...";
+static char args_doc[] = "";
 
 static struct argp_option options[] = {
     {"all", 'a', 0, 0, "list all matches", 0},
-    {"help", 'h', 0, 0, "display help and exit", 0},
-    {"version", 'V', 0, 0, "display version and exit", 0},
     {"verbose", 'v', 0, 0, "verbose messages", 0},
     {0}};
 
 struct wh_opts {
     int flags;
-    bool help;
-    bool version;
     char *argv[MAXARGS];
 };
 
@@ -56,12 +52,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     switch (key) {
     case 'a':
         wh_opts->flags |= WH_ALL;
-        break;
-    case 'h':
-        wh_opts->help = true;
-        break;
-    case 'V':
-        wh_opts->version = true;
         break;
     case 'v':
         wh_opts->flags |= WH_VERBOSE;
@@ -87,20 +77,9 @@ static struct argp argp = {options, parse_opt, args_doc, doc,
 int main(int argc, char **argv) {
     struct wh_opts wh_opts = {0};
     wh_opts.flags = 0;
-    wh_opts.help = false;
-    wh_opts.version = false;
     wh_opts.argv[0] = nullptr;
 
     argp_parse(&argp, argc, argv, 0, 0, &wh_opts);
-
-    if (wh_opts.help) {
-        argp_help(&argp, stdout, ARGP_HELP_STD_HELP, argv[0]);
-        exit(EXIT_SUCCESS);
-    }
-    if (wh_opts.version) {
-        printf("C-Menu-%s\n", CM_VERSION);
-        exit(EXIT_SUCCESS);
-    }
     path_p = getenv("PATH");
     if (path_p == nullptr)
         ABEND(argv[0], 0, "PATH environment variable not set");

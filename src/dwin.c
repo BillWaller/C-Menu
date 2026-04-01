@@ -257,6 +257,7 @@ bool is_set_chyron_key(Chyron *chyron, int k) {
     @param k chyron key index (0-19)
     @param s chyron key label
     @param kc chyron key code
+    @param cp color pair index for the key label
     @details This function sets the label and keycode for a chyron key. The
    label is copied into the chyron structure, and the keycode is stored for
    later retrieval when theire is a mouse click. The compile_chyron function
@@ -335,6 +336,7 @@ void compile_chyron(Chyron *chyron) {
     @ingroup Chyron
     @param cmplx_buf Output buffer for complex characters
     @param str Input multibyte string
+    @param attr Attributes to apply to the complex characters
     @param cpx Color pair index for the complex characters
     @param pos Pointer to current position in the output buffer, updated as
    characters are added
