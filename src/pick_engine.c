@@ -301,21 +301,10 @@ int pick_engine(Init *init) {
     getmaxyx(stdscr, maxy, maxx);
     /** Calculate pick window size and position based on terminal size and pick
         parameters */
-    // win_maxy = (maxy * 8) / 10;
     win_maxy = min(((maxy * 8) / 10), (maxy - pick->begy - 1));
-    // if (win_maxy > (maxy - pick->begy) - 2)
-    //     win_maxy = (maxy - pick->begy) - 2;
-    // win_maxx = (maxx * 9) / 10;
     win_maxx = min(((maxx * 9) / 10), (maxx - pick->begx - 1));
-    // if (win_maxx > (maxx - pick->begx) - 2)
-    //     win_maxx = (maxx - pick->begx) - 2;
     pick->tbl_col_width = max(pick->tbl_col_width, 4);
-    // if (pick->tbl_col_width < 4)
-    //     pick->tbl_col_width = 4;
     pick->tbl_col_width = min(pick->tbl_col_width, win_maxx - 2);
-    // if (pick->tbl_col_width > win_maxx - 2)
-    //     pick->tbl_col_width = win_maxx - 2;
-    // populate the columns in sequence
     if (pick->obj_cnt <= win_maxy) {
         pick->tbl_lines = pick->obj_cnt;
         pick->tbl_cols = 1;
@@ -398,11 +387,7 @@ void save_object(Pick *pick, char *s) {
         l = strlen(s);
         if (l > OBJ_MAXLEN - 1)
             s[OBJ_MAXLEN - 1] = '\0';
-        // if (l > pick->tbl_col_width)
-        //     pick->tbl_col_width = l;
         pick->tbl_col_width = max(pick->tbl_col_width, l);
-        // if (l < 1)
-        //     l = 1;
         l = max(l, 1);
         pick->object[pick->obj_idx] = (char *)calloc(l + 1, sizeof(char));
         strnz__cpy(pick->object[pick->obj_idx], s, l);
@@ -426,12 +411,13 @@ void save_object(Pick *pick, char *s) {
 int picker(Init *init) {
     int cmd_key;
     int display_tbl_page;
-
+    bool f_no_reset_cmd_key;
     pick = init->pick;
     click_y = click_x = -1;
     cmd_key = 0;
     while (1) {
         tcflush(tty_fd, TCIFLUSH);
+        f_no_reset_cmd_key = false;
         if (cmd_key == 0)
             cmd_key = xwgetch(pick->win, pick->chyron, -1);
         switch (
@@ -452,8 +438,9 @@ int picker(Init *init) {
         case ' ':
         case 't':
         case 'T':
+            reverse_object(pick);
             toggle_object(pick);
-            if (pick->select_cnt == pick->select_max)
+            if (pick->select_max > 0 && pick->select_cnt == pick->select_max)
                 return pick->select_cnt;
             break;
             /** Enter or KEY_F(10) Accepts current selection and exits picker,
@@ -590,17 +577,20 @@ int picker(Init *init) {
                 break;
             pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                             pick->tbl_col * pick->pg_lines + pick->y;
-            toggle_object(pick);
-            reverse_object(pick);
-            if (pick->select_cnt == pick->select_max)
-                return pick->select_cnt;
-            wrefresh(pick->win);
+            cmd_key =
+                't'; /** Set cmdkey to 't' to toggle selection on mouse click */
+            f_no_reset_cmd_key = true;
+            // toggle_object(pick);
+            // reverse_object(pick);
             click_y = click_x = -1;
+            // if (pick->select_max > 0 && pick->select_cnt == pick->select_max)
+            //     return pick->select_cnt;
             break;
         default:
             break;
         }
-        cmd_key = 0;
+        if (!f_no_reset_cmd_key)
+            cmd_key = 0;
     }
     return 0;
 }
@@ -670,7 +660,6 @@ void reverse_object(Pick *pick) {
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
                    pick->tbl_col_width);
     wattroff(pick->win, WA_REVERSE);
-    wrefresh(pick->win);
     wmove(pick->win, pick->y, pick->x - 1);
 }
 /** @brief Unreverses the display of the currently selected object in pick
@@ -689,7 +678,6 @@ void unreverse_object(Pick *pick) {
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
                    pick->tbl_col_width);
-    wrefresh(pick->win);
     wmove(pick->win, pick->y, pick->x - 1);
 }
 /** @brief Toggles the selection state of the currently selected object in pick

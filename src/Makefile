@@ -74,7 +74,7 @@ PREFIX=$(HOME)/menuapp
 CFLAGS=-O2
 #
 # Uncomment the following line to enable Debug build flags
-# CFLAGS=-O0 -ggdb -rdynamic
+CFLAGS=-O0 -ggdb -rdynamic
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # This will cause the screen to update immediately after each change, which can be helpful for debugging screen drawing issues. However, it may also cause performance issues, so it is not recommended for production builds.
@@ -149,8 +149,8 @@ iloan:	iloan.o $(LIB_NAME)
 rsh:	include/cm.h rsh.o
 	$(CC) $(RSH_CFLAGS) rsh.o -o $@ -lssh
 
-lf: include/cm.h	lf.o $(LIB_NAME)
-	$(CC) lf.o -o $@ $(LIBS)
+lf: include/cm.h	include/version.h	lf.c $(LIB_NAME)
+	$(CC) lf.c -o $@ $(LIBS)
 
 stripansi:	include/cm.h stripansi.o $(LIB_NAME)
 	$(CC) stripansi.o -o $@ $(LIBS)

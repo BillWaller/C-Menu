@@ -66,8 +66,6 @@ enum {
 
 bool f_write_config = false;
 bool f_dump_config = false;
-bool help = false;
-bool f_version = false;
 
 int write_config(Init *init);
 void display_version();
@@ -82,15 +80,15 @@ void dump_config(Init *, char *);
 bool derive_file_spec(char *, char *, char *);
 int executor = 0;
 
-const char *argp_program_version = "C-Menu-0.2.9";
+const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
-static char doc[] = "C-Menu";
-static char args_doc[] = "[ARG1] [ARG2] [ARG3] [ARG4] [ARG5]";
+static char doc[] = "C-Menu - User Interface Toolkit";
+static char args_doc[] = "[INPUT] [OUTPUT] [HELP] [ARG4] [ARG5]";
+const int opt_doc_col = 33;
 
 static struct argp_option options[] = {
     {"f_dump_config", 'D', 0, 0, "dump configuration", 0},
     {"f_write_config", 'W', 0, 0, "write configuration", 0},
-    {"help", 'h', 0, 0, "display help", 0},
     {"minitrc", 'a', "file_spec", 0, "configuration file spec", 1},
     {"parent_cmd", 'k', 0, 0, "parent command", 1},
     {"begx", 'X', "number", 0, "begin on column", 2},
@@ -175,9 +173,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'g':
         sio->green_gamma = str_to_double(arg);
         break;
-    case 'h':
-        help = true;
-        break;
     case 'i':
         strnz__cpy(init->in_spec, arg, MAXLEN - 1);
         break;
@@ -209,10 +204,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'u':
         strnz__cpy(init->brackets, arg, 2);
-        break;
-    case 'v':
-    case 'V':
-        f_version = true;
         break;
     case 'x':
         init->f_ignore_case = true;
@@ -383,16 +374,8 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     parse_config(init);
     init->argc = argc;
     argp_parse(&argp, argc, argv, 0, 0, init);
-    if (help) {
-        argp_help(&argp, stdout, ARGP_HELP_STD_HELP, argv[0]);
-        exit(EXIT_SUCCESS);
-    }
     if (f_write_config) {
         write_config(init);
-        exit(EXIT_SUCCESS);
-    }
-    if (f_version) {
-        display_version();
         exit(EXIT_SUCCESS);
     }
     if (f_dump_config) {

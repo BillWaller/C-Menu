@@ -1,4 +1,3 @@
-
 /** @file lf.c
     @brief list files matching a regular expression
     @author Bill Waller
@@ -16,78 +15,40 @@
 #include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-/** @brief List files in a directory matching a regular expression
-    @code
-        lf [options ad:e:hit:v] [dir] [re]
-             -a        List hidden files
-             -d        maximum max_depth of subdirectories to examine
-             -e        exclude files matching the regular expression
-             -h        show this help message
-             -i        ignore case in search
-             -t [bcdplfsu]
-                 b        block devices
-                  c       character devices
-                   d      directories
-                    p     named pipes
-                     l    symbolic links
-                      f   regular files
-                       s  sockets
-                        u unknown
-             -v        show version information
-            dir Directory to search
-            re  Regular expression to match
-    @endcode
-    @verbatim
-        Capabilities:
-             specify whether to list hidden files
-             list files in a directory structure matching a regular expression
-             exclude files matching a regular expression
-             ignore case in search
-             list files of specific types by specifying
-               -t [b][c][d][p][l][f][s][u] (in any order or combination)
-                   b block devices
-                   c character devices
-                   d directories
-                   p named pipes
-                   l symbolic links
-                   s sockets
-                   u unknown file types
-             specify maximum depth of subdirectory descent
-    @endverbatim
- */
-const char *argp_program_version = "lf-0.2.9";
+const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
-static char doc[] = "lf list files";
-static char args_doc[] = "[ARG1] [ARG2]";
+const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
+                   "directory to search. REGULAR_EXPRESSION is a properly "
+                   "formatted regular expression for which matching files "
+                   "will be listed.";
+
+static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 
 static struct argp_option options[] = {
     {"f_all", 'a', 0, 0, "List hidden files", 0},
     {"max_depth", 'd', "number", 0, "Depth into directory", 0},
     {"exclude", 'e', "regex", 0, "Exclude regular expression", 0},
-    {"help", 'h', 0, 0, "Display help", 0},
+    // {"help", 'h', 0, 0, "Display help", 0},
     {"f_ignore_case", 'i', 0, 0, "Search ignore case", 0},
-    {"file_types", 't', "bcdplfsu", 0, "File types", 0},
-    {"f_version", 'V', 0, 0, "Display version messages", 0},
-    {"f_verbose", 'v', 0, 0, "verbose messages", 0},
+    {"file_types", 't', "bcdplfsu", 0,
+     "b - block device, c - character device,  d - directory, p - named pipe,  "
+     "l - symbolic link,  f - regular file, s - socket, u - unknown",
+     0},
     {0}};
 
 struct lf_opts {
     bool f_all;
     int max_depth;
     char *exclude_p;
-    bool help;
     bool f_ignore_case;
     int flags;
     char *file_types_p;
-    bool f_version;
-    bool f_verbose;
     char *args[2];
 };
 
@@ -104,9 +65,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'e':
         lf_opts->exclude_p = arg;
         lf_opts->flags |= LF_EXC_REGEX;
-        break;
-    case 'h':
-        lf_opts->help = true;
         break;
     case 'i':
         lf_opts->flags |= LF_ICASE;
@@ -144,12 +102,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             }
         }
         break;
-    case 'V':
-        lf_opts->f_version = true;
-        break;
-    case 'v':
-        lf_opts->f_verbose = true;
-        break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
             lf_opts->args[state->arg_num] = arg;
@@ -177,10 +129,8 @@ int main(int argc, char **argv) {
     lf_opts.f_all = false;
     lf_opts.max_depth = 4;
     lf_opts.exclude_p = "";
-    lf_opts.help = false;
     lf_opts.f_ignore_case = false;
     lf_opts.file_types_p = "";
-    lf_opts.f_version = false;
     lf_opts.args[0] = nullptr;
     lf_opts.args[1] = nullptr;
 
@@ -198,62 +148,6 @@ int main(int argc, char **argv) {
         strncpy(re, ".*", MAXLEN - 1);
     }
 
-    if (lf_opts.f_verbose) {
-        // for debugging
-        printf("lf_opts.f_all = %s\n", lf_opts.f_all ? "yes" : "no");
-        printf("lf_opts.max_depth = %d\n", lf_opts.max_depth);
-        printf("lf_opts.exclude_p = %s\n", lf_opts.exclude_p);
-        printf("lf_opts.help = %s\n", lf_opts.help ? "yes" : "no");
-        printf("lf_opts.f_ignore_case = %s\n",
-               lf_opts.f_ignore_case ? "yes" : "no");
-        printf("lf_opts.file_types_p = %s\n", lf_opts.file_types_p);
-        printf("lf_opts.f_version = %s\n", lf_opts.f_version ? "yes" : "no");
-        if (lf_opts.flags & LF_ALL)
-            printf("hidden files\n");
-        if (lf_opts.flags & LF_EXC_REGEX)
-            printf("exclude_p regex: %s\n", lf_opts.exclude_p);
-        if (lf_opts.flags & LF_ICASE)
-            printf("ignore case\n");
-        if (lf_opts.flags & FT_BLK)
-            printf("block devices\n");
-        if (lf_opts.flags & FT_CHR)
-            printf("character devices\n");
-        if (lf_opts.flags & FT_DIR)
-            printf("directories\n");
-        if (lf_opts.flags & FT_FIFO)
-            printf("named pipes\n");
-        if (lf_opts.flags & FT_LNK)
-            printf("symbolic links\n");
-        if (lf_opts.flags & FT_REG)
-            printf("regular files\n");
-        if (lf_opts.flags & FT_SOCK)
-            printf("sockets\n");
-        if (dir[0] != '\0')
-            printf("dir: %s\n", dir);
-        if (re[0] != '\0')
-            printf("re: %s\n", re);
-    }
-    if (lf_opts.help) {
-        argp_help(&argp, stdout, ARGP_HELP_STD_HELP, argv[0]);
-        exit(EXIT_SUCCESS);
-    }
-    if (lf_opts.f_version) {
-        printf("C-Menu-%s\n", CM_VERSION);
-        exit(EXIT_SUCCESS);
-    }
-    if (lf_opts.f_verbose) {
-        printf("FT_BLK: %08b\n", FT_BLK);
-        printf("FT_CHR: %08b\n", FT_CHR);
-        printf("FT_DIR: %08b\n", FT_DIR);
-        printf("FT_FIFO: %08b\n", FT_FIFO);
-        printf("FT_LNK: %08b\n", FT_LNK);
-        printf("FT_REG: %08b\n", FT_REG);
-        printf("FT_SOCK: %08b\n", FT_SOCK);
-        printf("FT_UNKNOWN: %08b\n", FT_UNKNOWN);
-        printf("lf_opts.flags: %016b %08b %08b\n", lf_opts.flags,
-               lf_opts.flags >> 8, lf_opts.flags & 0xff);
-        exit(EXIT_SUCCESS);
-    }
     lf_find(dir, re, lf_opts.exclude_p, lf_opts.max_depth, lf_opts.flags);
     return true;
 }

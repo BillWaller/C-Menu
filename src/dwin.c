@@ -321,14 +321,14 @@ void compile_chyron(Chyron *chyron) {
         cx = chyron->cmplx_buf;
         mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
         strnz__cat(chyron->s, chyron->key[k]->text, MAXLEN - 1);
-        end_pos = pos;
-        end_pos = strlen(chyron->s);
+        end_pos = strlen(chyron->s) + 1;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
         k++;
     }
     mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
     end_pos = strnz__cat(chyron->s, " ", MAXLEN - 1);
+    pos = strlen(chyron->s);
     end_pos = pos;
 }
 /** @brief Convert multibyte string to complex character array
@@ -940,12 +940,14 @@ WINDOW *win_del() {
     if (win_ptr > 0) {
         werase(win_win[win_ptr]);
         touchwin(win_win[win_ptr]);
-        wrefresh(win_win[win_ptr]);
+        wnoutrefresh(win_win[win_ptr]);
+        // wrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
 
         werase(win_box[win_ptr]);
         touchwin(win_box[win_ptr]);
-        wrefresh(win_box[win_ptr]);
+        wnoutrefresh(win_box[win_ptr]);
+        // wrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
 
         touchwin(stdscr);
