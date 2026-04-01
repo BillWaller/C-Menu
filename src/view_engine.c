@@ -1654,10 +1654,7 @@ int fmt_line(View *view) {
     attr_t attr = WA_NORMAL;
     int cpx = cp_norm;
     cchar_t cc = {0};
-    wchar_t wc = L'\0';
-    wchar_t wstr[2];
-    wstr[0] = L'e';
-    wstr[1] = L'\0';
+    wchar_t wstr[2] = {L'\0', L'\0'};
 
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
@@ -1685,14 +1682,12 @@ int fmt_line(View *view) {
             parse_ansi_str(ansi_tok, &attr, &cpx);
             i += len;
         } else {
-            /** Wide and complex characters */
             if (in_str[i] == '\033') {
                 i++;
                 continue;
             }
             s = &in_str[i];
             if (*s == '\t') {
-                wstr[0] = L'e';
                 do {
                     wstr[1] = L'\0';
                     setcchar(&cc, wstr, attr, cpx, nullptr);
@@ -1701,7 +1696,6 @@ int fmt_line(View *view) {
                 } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
-                wstr[0] = L'e';
                 wstr[1] = L'\0';
                 len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
                 if (len <= 0) {
@@ -1721,8 +1715,9 @@ int fmt_line(View *view) {
     }
     if (j > view->maxcol)
         view->maxcol = j;
-    wc = L'\0';
-    setcchar(&cc, &wc, WA_NORMAL, cpx, nullptr);
+    wstr[0] = '\0';
+    wstr[1] = '\0';
+    setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);
     cmplx_buf[j] = cc;
     view->stripped_line_out[j] = '\0';
     return j;
