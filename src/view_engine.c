@@ -1653,21 +1653,20 @@ int fmt_line(View *view) {
     const char *s;
     attr_t attr = WA_NORMAL;
     int cpx = cp_norm;
+    cchar_t cc = {0};
+    wchar_t wc = L'\0';
     wchar_t wstr[2];
     wstr[0] = L'e';
     wstr[1] = L'\0';
-    cchar_t cc = {0};
 
     char *in_str = view->line_in_s;
     cchar_t *cmplx_buf = view->cmplx_buf;
 
     rtrim(view->line_out_s);
-    /** Initialize multibyte to wide char conversion */
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
-            /** Handle ANSI escape sequences */
             len = strcspn(&in_str[i], "mK ") + 1;
             memcpy(ansi_tok, &in_str[i], len + 1);
             ansi_tok[len] = '\0';
@@ -1693,22 +1692,23 @@ int fmt_line(View *view) {
             }
             s = &in_str[i];
             if (*s == '\t') {
-                wstr[0] = L' ';
-                wstr[1] = L'\0';
+                wstr[0] = L'e';
                 do {
+                    wstr[1] = L'\0';
                     setcchar(&cc, wstr, attr, cpx, nullptr);
                     view->stripped_line_out[j] = ' ';
                     cmplx_buf[j++] = cc;
                 } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
                 i++;
             } else {
+                wstr[0] = L'e';
+                wstr[1] = L'\0';
                 len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
                 if (len <= 0) {
                     wstr[0] = L'?';
                     wstr[1] = L'\0';
                     len = 1;
                 }
-                wstr[1] = L'\0';
                 if (setcchar(&cc, wstr, attr, cpx, nullptr) != ERR) {
                     if (len > 0 && (j + len) < PAD_COLS - 1) {
                         view->stripped_line_out[j] = *s;
@@ -1721,9 +1721,8 @@ int fmt_line(View *view) {
     }
     if (j > view->maxcol)
         view->maxcol = j;
-    wstr[0] = L' ';
-    wstr[1] = L'\0';
-    setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);
+    wc = L'\0';
+    setcchar(&cc, &wc, WA_NORMAL, cpx, nullptr);
     cmplx_buf[j] = cc;
     view->stripped_line_out[j] = '\0';
     return j;

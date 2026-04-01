@@ -2,7 +2,11 @@
 
 ## [Released] - 2026-02-04
 
-0.2.9 - 2026-03-|
+0.2.9 - 2026-04-01
+
+Most of the known bugs have been fixed, and the code is in a much more stable state. I will be doing a lot of testing and debugging to find and fix any remaining bugs, but I am confident that the code is in a good state for the next release, which will be version 0.3.x. The next release will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
+
+0.2.9 - 2026-03-31
 
 More bugs fixed related to transition to argp.
 
