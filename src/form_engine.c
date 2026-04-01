@@ -527,6 +527,8 @@ void form_display_chyron(Form *form) {
     wclrtoeol(form->win);
     wadd_wchstr(form->win, form->chyron->cmplx_buf);
     wmove(form->win, form->lines - 1, form->chyron->l);
+    wclrtoeol(form->win);
+    return;
 }
 /** @brief Parse the form description file to populate the Form data structure
    with field definitions, text elements, and other configuration specified in
