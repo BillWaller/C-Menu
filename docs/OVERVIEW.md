@@ -1,6 +1,52 @@
 # A User Interface Toolkit
 
+<!-- mtoc-start -->
+
+- [C-Menu Introduction](#c-menu-introduction)
+- [**_NEW Features_**](#_new-features_)
+  - [**_NEW View Line Numbering_**](#_new-view-line-numbering_)
+  - [Large Log File in View](#large-log-file-in-view)
+  - [**_New API Integration With Neovim_**](#_new-api-integration-with-neovim_)
+  - [**_New Options for lf_**](#_new-options-for-lf_)
+- [Other C-Menu Documents](#other-c-menu-documents)
+- [Table of Contents:](#table-of-contents)
+- [Get C-Menu on Github](#get-c-menu-on-github)
+- [C-Menu Exercises](#c-menu-exercises)
+- [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
+  - [C-Menu API](#c-menu-api)
+  - [Elements of C-Menu](#elements-of-c-menu)
+  - [Key Features](#key-features)
+  - [Highlights (Pun Intended)](#highlights-pun-intended)
+  - [Just Do It!](#just-do-it)
+  - [Menu](#menu)
+  - [C-Keys - Diagnose Keyboard/Mouse Input](#c-keys---diagnose-keyboardmouse-input)
+  - [Pick - A Picker](#pick---a-picker)
+  - [Form for Data Entry and Editing](#form-for-data-entry-and-editing)
+  - [Form Key Features](#form-key-features)
+  - [Form Data Types](#form-data-types)
+  - [Sample Menu Description File](#sample-menu-description-file)
+  - [View](#view)
+    - [Log File With Editor](#log-file-with-editor)
+    - [Screenshot of the Same File With View](#screenshot-of-the-same-file-with-view)
+  - [View and Color Manual Pages](#view-and-color-manual-pages)
+  - [Example Manual Page Using Editor](#example-manual-page-using-editor)
+  - [Example Manual Page](#example-manual-page)
+  - [Demand Paged Virtual Address Space](#demand-paged-virtual-address-space)
+  - [View - Other Features](#view---other-features)
+  - [3-Channel Gamma Correction](#3-channel-gamma-correction)
+  - [Gray Gamma](#gray-gamma)
+  - [RSH](#rsh)
+  - [Maintaining Security with RSH](#maintaining-security-with-rsh)
+  - [lf - List Files Using Regular Expressions](#lf---list-files-using-regular-expressions)
+- [Features](#features)
+- [Configuration](#configuration)
+- [MIT License](#mit-license)
+
+<!-- mtoc-end -->
+
 ### C-Menu Introduction
+
+C-Menu-0.2.9 - 2026-03-30
 
 C-Menu is a Terminal based User Interface (TUI) toolkit you can use to quickly and easily create powerful and visually appealing applications. With C-Menu you can design and implement menus, forms, and pickers that improve the user experience and make your product shine.
 
@@ -27,6 +73,16 @@ file, by using the -N option on the command line, or typing "-n" while in view.
 ### Large Log File in View
 
 ![View Large Log File](../screenshots/new_view2.png)
+
+Even though this lsp.log is 109Mb, it loaded instantly and traversed from
+beginning to end in a few milliseconds. View's demand paged virtual memory
+access is a game changer for working with large text files. You can open and
+navigate through multi-gigabyte log files without any lag, making it an
+invaluable tool for system administrators and developers who need to analyze
+large logs efficiently. You can already see that auto-resizing the line number
+window will be necessary to accommodate files with 1 million or more lines. When
+it goes over 1 million lines, the line numbers will but up next to the text,
+and that will be a problem. I'll get to it eventually. In the meantime, if you're working with files that large, you probably have a good idea of how to solve that problem.
 
 ### **_New API Integration With Neovim_**
 

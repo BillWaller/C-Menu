@@ -351,7 +351,6 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
     int i = 0, len = 0;
     const char *s;
     cchar_t cc = {0};
-    wchar_t wc = L'\0';
     wchar_t wstr[2];
     wstr[0] = L'e';
     wstr[1] = L'\0';
@@ -364,7 +363,8 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
         s = &str[i];
         len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
         if (len <= 0) {
-            wc = L'?';
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
             len = 1;
         }
         wstr[1] = L'\0';
@@ -376,9 +376,10 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
         }
         i += len;
     }
-    wc = L'\0';
-    setcchar(&cc, &wc, attr, cpx, nullptr);
-    cmplx_buf[*pos] = cc;
+    // wstr[0] = L' ';
+    // wstr[1] = L'\0';
+    // setcchar(&cc, wstr, attr, cpx, nullptr);
+    // cmplx_buf[*pos] = cc;
     return i;
 }
 /** @brief Get keycode from chyron

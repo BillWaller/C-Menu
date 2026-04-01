@@ -77,10 +77,10 @@ int field_editor(Form *form) {
     char *str_end = p + strlen(p);
     in_key = 0;
     if (f_insert)
-        set_chyron_key(form->chyron, 18, "OVR", KEY_IC);
-    else
         set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC,
                           cp_reverse_highlight);
+    else
+        set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC, cp_reverse);
     compile_chyron(form->chyron);
     form_display_chyron(form);
 
@@ -147,11 +147,11 @@ int field_editor(Form *form) {
         case KEY_IC:
             if (f_insert) {
                 f_insert = FALSE;
-                set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC,
-                                  cp_reverse_highlight);
+                set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC, cp_reverse);
             } else {
                 f_insert = TRUE;
-                set_chyron_key(form->chyron, 18, "OVR", KEY_IC);
+                set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC,
+                                  cp_reverse_highlight);
             }
             compile_chyron(form->chyron);
             form_display_chyron(form);
