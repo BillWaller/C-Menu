@@ -33,7 +33,6 @@ int output_objects(Pick *);
 int exec_objects(Init *);
 int open_pick_win(Init *);
 void display_pick_help(Init *);
-void pick_display_chyron(Pick *);
 int read_pick_input(Init *);
 void deselect_object(Pick *);
 
@@ -620,26 +619,8 @@ void display_page(Pick *pick) {
             }
         }
     }
-    pick_display_chyron(pick);
-}
-/** @brief Displays chyron with page information at bottom of pick window
- *  @ingroup pick_engine
-    @param pick Pointer to Pick structure containing chyron information
-    @note Constructs a string for the chyron that includes the current page
-   number and total pages. Displays the chyron at the bottom of the pick window
-   with reverse video attribute. Clears any remaining space on the line after
-   the chyron text. */
-void pick_display_chyron(Pick *pick) {
-    int l;
-    char tmp_str[MAXLEN];
-    // ssnprintf(tmp_str, MAXLEN - 1, "%s| Page %d of %d ", pick->chyron->s,
-    //          pick->tbl_page + 1, pick->tbl_pages);
-    l = strnz__cpy(tmp_str, pick->chyron->s, MAXLEN - 1);
-    wattron(pick->win, WA_REVERSE);
-    mvwaddstr(pick->win, pick->pg_lines, 0, tmp_str);
-    wattroff(pick->win, WA_REVERSE);
-    wmove(pick->win, pick->pg_lines, l);
-    wclrtoeol(pick->win);
+    compile_chyron(pick->chyron);
+    display_chyron(pick->win, pick->chyron, pick->pg_lines, pick->chyron->l);
 }
 /** @brief Reverses the display of the currently selected object in pick window
  *  @ingroup pick_engine

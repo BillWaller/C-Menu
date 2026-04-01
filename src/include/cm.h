@@ -704,6 +704,7 @@ extern void get_rfc3339_s(char *, size_t);
 extern int open_log(char *);
 extern void write_log(char *);
 extern void compile_chyron(Chyron *);
+extern void display_chyron(WINDOW *, Chyron *, int, int);
 extern int get_chyron_key(Chyron *, int);
 extern bool is_set_chyron_key(Chyron *, int);
 extern void set_chyron_key(Chyron *, int, char *, int);

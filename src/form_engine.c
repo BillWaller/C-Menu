@@ -34,7 +34,7 @@
 
 unsigned int form_display_screen(Init *);
 void form_display_fields(Form *);
-void form_display_chyron(Form *);
+// void form_display_chyron(Form *);
 int field_navigator(Form *);
 int form_parse_desc(Form *);
 int form_read_data(Form *);
@@ -198,10 +198,12 @@ int form_post(Init *init) {
     unset_chyron_key(form->chyron, 18);
     set_chyron_key(form->chyron, 8, "F8 Edit", KEY_F(8));
     set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
+    compile_chyron(form->chyron);
     rc = -1;
     while (loop) {
         if (rc == -1) {
-            form_display_chyron(form);
+            display_chyron(form->win, form->chyron, form->lines - 1,
+                           form->chyron->l);
             tcflush(2, TCIFLUSH);
             c = xwgetch(form->win, form->chyron, -1);
         }
@@ -230,7 +232,6 @@ int form_post(Init *init) {
         }
     }
     unset_chyron_key(form->chyron, 8);
-    form_display_chyron(form);
     return rc;
 }
 
@@ -297,7 +298,9 @@ int form_getter(Init *init) {
     set_chyron_key_cp(form->chyron, 5, tmp_str, KEY_F(5), cp_reverse_highlight);
 
     while (loop) {
-        form_display_chyron(form);
+        compile_chyron(form->chyron);
+        display_chyron(form->win, form->chyron, form->lines - 1,
+                       form->chyron->l);
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
         c = xwgetch(form->win, form->chyron, -1);
@@ -349,6 +352,7 @@ int form_getter(Init *init) {
                 form_display_fields(form);
                 set_chyron_key(form->chyron, 8, "F5 Edit", KEY_F(5));
                 set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
+                compile_chyron(form->chyron);
                 continue;
             }
             break;
@@ -375,7 +379,6 @@ int form_getter(Init *init) {
     }
     unset_chyron_key(form->chyron, 8);
     unset_chyron_key(form->chyron, 5);
-    form_display_chyron(form);
     return rc;
 }
 /** @brief Handle user input for field entry, allowing navigation between fields
@@ -513,21 +516,7 @@ void form_display_fields(Form *form) {
     set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F(9));
     set_chyron_key(form->chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(form->chyron);
-    form_display_chyron(form);
-    return;
-}
-/** @brief Display the chyron (status line) at the bottom of the form window,
-   showing available commands and their corresponding function keys.
-    @ingroup form_engine
-    @param form A pointer to the Form structure containing form data and state.
- */
-void form_display_chyron(Form *form) {
-    compile_chyron(form->chyron);
-    wmove(form->win, form->lines - 1, 0);
-    wclrtoeol(form->win);
-    wadd_wchstr(form->win, form->chyron->cmplx_buf);
-    wmove(form->win, form->lines - 1, form->chyron->l);
-    wclrtoeol(form->win);
+    display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
     return;
 }
 /** @brief Parse the form description file to populate the Form data structure

@@ -82,7 +82,7 @@ int field_editor(Form *form) {
     else
         set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC, cp_reverse);
     compile_chyron(form->chyron);
-    form_display_chyron(form);
+    display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
 
     while (1) {
         if (in_key == 0) {
@@ -154,7 +154,8 @@ int field_editor(Form *form) {
                                   cp_reverse_highlight);
             }
             compile_chyron(form->chyron);
-            form_display_chyron(form);
+            display_chyron(form->win, form->chyron, form->lines - 1,
+                           form->chyron->l);
             in_key = 0;
             continue;
             /** KEY_DC deletes character at cursor */

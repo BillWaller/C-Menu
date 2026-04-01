@@ -183,14 +183,7 @@ FILE *ncurses_fp;
     @note cp_norm and cp_box are global variables
     @see get_clr_pair
  */
-void win_init_attrs() {
-    // init_extended_pair(cp_reverse_highlight, CLR_BLUE, CLR_YELLOW);
-    // init_extended_pair(cp_reverse, CLR_BLUE, CLR_YELLOW);
-    // init_extended_pair(cp_norm, CLR_FG, CLR_BG);
-    // init_extended_pair(cp_box, CLR_BO, CLR_BG);
-    // init_extended_pair(cp_ln, CLR_LN, CLR_LN_BG);
-    return;
-}
+void win_init_attrs() { return; }
 
 /** @defgroup Chyron Chyron Management
     @brief Create and manage the Chyron
@@ -302,7 +295,6 @@ void compile_chyron(Chyron *chyron) {
     int pos = 0;
     int cp = cp_norm;
     cchar_t *cx;
-    // chyron->s is included to make debugging easier
     while (k < CHYRON_KEYS) {
         if (chyron->key[k]->text[0] == '\0') {
             k++;
@@ -312,25 +304,28 @@ void compile_chyron(Chyron *chyron) {
             cp = chyron->key[k]->cp;
             cx = chyron->cmplx_buf;
             mb_to_cc(cx, " ", WA_NORMAL, cp_reverse, &pos, MAXLEN - 1);
-            strnz__cpy(chyron->s, " ", MAXLEN - 1);
         } else {
             mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_reverse, &pos,
                      MAXLEN - 1);
-            strnz__cat(chyron->s, "|", MAXLEN - 1);
         }
         cp = chyron->key[k]->cp;
         cx = chyron->cmplx_buf;
         mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
-        strnz__cat(chyron->s, chyron->key[k]->text, MAXLEN - 1);
-        end_pos = strlen(chyron->s) + 1;
+        end_pos = pos;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
         k++;
     }
     mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
-    end_pos = strnz__cat(chyron->s, " ", MAXLEN - 1);
-    pos = strlen(chyron->s);
-    end_pos = pos;
+    chyron->l = end_pos;
+}
+void display_chyron(WINDOW *win, Chyron *chyron, int line, int col) {
+    wmove(win, line, 0);
+    wclrtoeol(win);
+    wmove(win, line, 0);
+    wadd_wchstr(win, chyron->cmplx_buf);
+    wmove(win, line, col);
+    return;
 }
 /** @brief Convert multibyte string to complex character array
     @ingroup Chyron
@@ -353,9 +348,7 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
     int i = 0, len = 0;
     const char *s;
     cchar_t cc = {0};
-    wchar_t wstr[2];
-    wstr[0] = L'e';
-    wstr[1] = L'\0';
+    wchar_t wstr[2] = {L'\0', L'\0'};
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     attr = WA_NORMAL;
@@ -378,11 +371,11 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
         }
         i += len;
     }
-    // wstr[0] = L' ';
-    // wstr[1] = L'\0';
-    // setcchar(&cc, wstr, attr, cpx, nullptr);
-    // cmplx_buf[*pos] = cc;
-    return i;
+    wstr[0] = L'\0';
+    wstr[1] = L'\0';
+    setcchar(&cc, wstr, attr, cpx, nullptr);
+    cmplx_buf[*pos] = cc;
+    return *pos;
 }
 /** @brief Get keycode from chyron
     @ingroup Chyron
@@ -463,9 +456,6 @@ bool open_curses(SIO *sio) {
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    /** save stdin and stdout file descriptors */
-    // sio->stdin_fd = dup(STDIN_FILENO);
-    // sio->stdout_fd = dup(STDOUT_FILENO);
     /** open the terminal device for reading and writing */
     ncurses_fp = fopen(sio->tty_name, "r+");
     if (ncurses_fp == nullptr) {
@@ -526,7 +516,6 @@ bool open_curses(SIO *sio) {
 #ifdef NCDEBUG
     immedok(stdscr, true);
 #endif
-    // wbkgrndset(stdscr, &CCC_NORM);
     return sio;
 }
 /** @defgroup color_management Color Management
@@ -905,9 +894,6 @@ void win_resize(int wlines, int wcols, char *title) {
     }
     wnoutrefresh(win_box[win_ptr]);
     wresize(win_win[win_ptr], wlines, wcols);
-    // init_extended_pair(cp_norm, CLR_FG, CLR_BG);
-    // init_extended_pair(cp_ln, CLR_LN, CLR_BG);
-
     wbkgrnd(win_win[win_ptr], &CCC_NORM);
     wbkgrndset(win_win[win_ptr], &CCC_NORM);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
@@ -943,13 +929,11 @@ WINDOW *win_del() {
         werase(win_win[win_ptr]);
         touchwin(win_win[win_ptr]);
         wnoutrefresh(win_win[win_ptr]);
-        // wrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
 
         werase(win_box[win_ptr]);
         touchwin(win_box[win_ptr]);
         wnoutrefresh(win_box[win_ptr]);
-        // wrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
 
         touchwin(stdscr);
@@ -1064,13 +1048,11 @@ int answer_yn(char *em0, char *em1, char *em2, char *em3) {
     mvwaddstr(error_win, 1, 1, em1);
     mvwaddstr(error_win, 2, 1, em2);
     mvwaddstr(error_win, 3, 1, em3);
-    wattron(error_win, WA_REVERSE);
-    mvwaddstr(error_win, 4, 1, chyron->s);
-    wattroff(error_win, WA_REVERSE);
-    wmove(error_win, 4, chyron->l + 1);
-    wrefresh(error_win);
+    display_chyron(error_win, chyron, 4, chyron->l + 1);
     do {
+        curs_set(1);
         cmd_key = xwgetch(error_win, chyron, -1);
+        curs_set(0);
         if (cmd_key == KEY_F(1) || cmd_key == 'N' || cmd_key == 'n' ||
             cmd_key == 'Y' || cmd_key == 'y')
             break;
@@ -1127,11 +1109,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     mvwaddstr(error_win, 1, 1, em1);
     mvwaddstr(error_win, 2, 1, em2);
     mvwaddstr(error_win, 3, 1, em3);
-    wattron(error_win, WA_REVERSE);
-    mvwaddstr(error_win, 4, 0, chyron->s);
-    wattroff(error_win, WA_REVERSE);
-    wmove(error_win, 4, chyron->l);
-    wrefresh(error_win);
+    display_chyron(error_win, chyron, 4, chyron->l + 1);
     do {
         cmd_key = xwgetch(error_win, chyron, -1);
         if (cmd_key == KEY_F(9) || cmd_key == KEY_F(10) || cmd_key == 'q' ||
@@ -1183,13 +1161,11 @@ int Perror(char *emsg_str) {
     }
     error_win = win_win[win_ptr];
     mvwaddstr(error_win, 0, 1, emsg);
-    wattron(error_win, WA_REVERSE);
-    mvwaddstr(error_win, 1, 0, chyron->s);
-    wattroff(error_win, WA_REVERSE);
-    wmove(error_win, 1, chyron->l);
-    wrefresh(error_win);
+    display_chyron(error_win, chyron, 1, chyron->l + 1);
     if (f_xwgetch) {
+        curs_set(1);
         cmd_key = xwgetch(error_win, chyron, -1);
+        curs_set(0);
         win_del();
     } else {
         cmd_key = KEY_F(10);
