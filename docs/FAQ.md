@@ -88,6 +88,8 @@ total   0m0.699s
 The find executable is actually very small at about 207 KB, but lf is even smaller at
 only about 20 KB. The performance of lf is about 2x faster than find, and it uses a fraction of the memory. That's what you call bang-for-the-buck.
 
+And, if lf needs to perform even faster, we can always go concurrent with multiple threads or processes, but that is a topic for another day.
+
 ## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
 
 Q: Are you going to add drop-down and pop-up features to C-Menu?
