@@ -516,6 +516,7 @@ bool open_curses(SIO *sio) {
 #ifdef NCDEBUG
     immedok(stdscr, true);
 #endif
+    win_ptr = -1;
     return sio;
 }
 /** @defgroup color_management Color Management
@@ -832,10 +833,9 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             wbegx += 1;
         } else {
             win_box[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
-            if (win_box[win_ptr] == nullptr) {
+            if (win_box[win_ptr] == nullptr)
                 win_ptr--;
-                return (1);
-            }
+            return (1);
 #ifdef NCDEBUG
             immedok(win_box[win_ptr], true);
 #endif
@@ -846,7 +846,6 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
             if (win_win[win_ptr] == nullptr) {
                 delwin(win_box[win_ptr]);
-                win_ptr--;
                 return (1);
             }
 #ifdef NCDEBUG
@@ -923,21 +922,24 @@ void win_redraw(WINDOW *win) {
    variable is decremented to point to the previous window in the stack. */
 WINDOW *win_del() {
     int i;
-
     curs_set(0);
-    if (win_ptr > 0) {
-        werase(win_win[win_ptr]);
+    if (win_ptr >= 0) {
         touchwin(win_win[win_ptr]);
+        werase(win_win[win_ptr]);
         wnoutrefresh(win_win[win_ptr]);
+        wrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
 
-        werase(win_box[win_ptr]);
         touchwin(win_box[win_ptr]);
+        werase(win_box[win_ptr]);
         wnoutrefresh(win_box[win_ptr]);
+        wrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
 
         touchwin(stdscr);
+        werase(stdscr);
         wnoutrefresh(stdscr);
+        wrefresh(stdscr);
         for (i = 0; i < win_ptr; i++) {
             touchwin(win_box[i]);
             wnoutrefresh(win_box[i]);

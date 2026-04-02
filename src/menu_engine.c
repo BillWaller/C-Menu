@@ -158,7 +158,6 @@ unsigned int menu_cmd_processor(Init *init) {
         /** @brief Display help information for the menu system */
     case 'H':
     case KEY_F(1):
-        eargv[0] = strdup("view");
         if (menu->f_help_spec && menu->help_spec[0] != '\0')
             strnz__cpy(tmp_str, menu->help_spec, MAXLEN - 1);
         else {

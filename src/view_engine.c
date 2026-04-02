@@ -264,7 +264,6 @@ int view_cmd_processor(Init *init) {
             if (n_cmd <= 0)
                 n_cmd = 1;
             scroll_up_n_lines(view, n_cmd);
-            // scroll_up_n_lines(view, n_cmd);
             break;
         /** 'j', 'J', KEY_DOWN, KEY_ENTER, SPACE - scroll down one line */
         case 'j':
@@ -1412,8 +1411,6 @@ off_t get_pos_next_line(View *view, off_t pos) {
                 return view->file_pos;
         }
         get_prev_char();
-        // if (view->f_eod)
-        //     return view->file_pos;
     }
     while (!view->f_eod) {
         if (c == '\n') {
@@ -1892,7 +1889,6 @@ int display_prompt(View *view, char *s) {
     char message_str[PAD_COLS + 1];
     int l;
     l = strnz__cpy(message_str, s, PAD_COLS);
-    // wmove(view->pad, view->cmd_line, view->pmincol);
     wmove(view->win, view->cmd_line, 0);
     if (l != 0) {
         wclrtoeol(view->win);

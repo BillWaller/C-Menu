@@ -175,9 +175,11 @@ unsigned int parse_menu_description(Init *init) {
         case '\n':
             break;
         default:
-
-            // strnz__cpy(tmp_buf, "unrecognized operator in ", MAXLEN);
-            // abend(-1, tmp_buf);
+            ssnprintf(em0, MAXLEN - 1, "Invalid directive '%c' at line %d of",
+                      directive, in_fp_line);
+            strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
+            strnz__cat(em2, in_buf, MAXLEN - 1);
+            display_error(em0, em1, em2, nullptr);
         }
     }
     fclose(fp);

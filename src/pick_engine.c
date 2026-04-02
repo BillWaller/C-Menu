@@ -579,11 +579,7 @@ int picker(Init *init) {
             cmd_key =
                 't'; /** Set cmdkey to 't' to toggle selection on mouse click */
             f_no_reset_cmd_key = true;
-            // toggle_object(pick);
-            // reverse_object(pick);
             click_y = click_x = -1;
-            // if (pick->select_max > 0 && pick->select_cnt == pick->select_max)
-            //     return pick->select_cnt;
             break;
         default:
             break;
