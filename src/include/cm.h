@@ -666,6 +666,7 @@ extern size_t strip_ansi(char *, char *);
 extern bool strip_quotes(char *);
 extern bool stripz_quotes(char *);
 extern int str_to_args(char **, char *, int);
+extern void destroy_argv(int argc, char **argv);
 extern bool str_to_bool(const char *);
 extern bool str_to_lower(char *);
 extern bool str_to_upper(char *);

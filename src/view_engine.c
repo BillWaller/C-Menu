@@ -1944,7 +1944,7 @@ void remove_file(View *view) {
    popup_view. */
 void view_display_help(Init *init) {
     char tmp_str[MAXLEN];
-    int eargc;
+    int eargc = 0;
     char *eargv[MAXARGS];
     eargv[0] = strdup("view");
     if (view->f_help_spec && view->help_spec[0] != '\0')
@@ -1954,9 +1954,8 @@ void view_display_help(Init *init) {
         strnz__cat(tmp_str, "/", MAXLEN - 1);
         strnz__cat(tmp_str, VIEW_HELP_FILE, MAXLEN - 1);
     }
-    eargv[1] = strdup(tmp_str);
-    eargv[2] = nullptr;
-    eargc = 2;
+    eargv[eargc++] = strdup(tmp_str);
+    eargv[eargc] = nullptr;
     init->lines = 48;
     init->cols = 60;
     init->begy = 0;
@@ -1964,6 +1963,7 @@ void view_display_help(Init *init) {
     strnz__cpy(init->title, "View Help", MAXLEN - 1);
     popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                init->begx);
+    destroy_argv(eargc, eargv);
     init->view->f_redisplay_page = true;
 }
 
@@ -2024,6 +2024,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         strnz__cat(earg_str, tmp_spec, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         rc = popup_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
+        destroy_argv(eargc, eargv);
         restore_wins();
         if (rc == P_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F(9))
             return false;

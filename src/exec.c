@@ -27,10 +27,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-int eargc;
-char *eargv[MAXARGS];
-char earg_str[MAXLEN];
-
 int full_screen_fork_exec(char **);
 int full_screen_shell(char *);
 int shell(char *);

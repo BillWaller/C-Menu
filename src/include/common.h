@@ -20,9 +20,7 @@
 #include <pick.h>
 #include <view.h>
 
-// #include <signal.h>
 #include <stddef.h>
-// #include <stdlib.h>
 #define USE_PAD TRUE
 #define MIN_COLS 40
 

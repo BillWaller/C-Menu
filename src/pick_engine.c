@@ -737,7 +737,7 @@ int output_objects(Pick *pick) {
    the concatenated selected objects. If f_append_args is false, selected
    objects are added as separate arguments and the original command arguments
    remain unchanged.
-   @note margv should be null-terminated to indicate the end of arguments for
+   @note eargv should be null-terminated to indicate the end of arguments for
    execvp
    @note Memory allocated for arguments is freed after execution to prevent
    memory leaks.
@@ -760,13 +760,13 @@ int output_objects(Pick *pick) {
    within the pick interface */
 int exec_objects(Init *init) {
     int rc = -1;
-    int margc;
-    char *margv[MAXARGS];
+    int eargc;
+    char *eargv[MAXARGS];
     char tmp_str[MAXLEN];
     char title[MAXLEN];
     char sav_arg[MAXLEN];
     char *out_s;
-    int margx = 0;
+    int eargx = 0;
     int i = 0;
     pid_t pid = 0;
     bool f_append_args = false;
@@ -782,67 +782,67 @@ int exec_objects(Init *init) {
             pick->cmd[len - 2] = '\0';
         }
     }
-    margc = str_to_args(margv, pick->cmd, MAXARGS - 1);
+    eargc = str_to_args(eargv, pick->cmd, MAXARGS - 1);
     tmp_str[0] = '\0';
     if (pick->f_multiple_cmd_args) {
         for (i = 0; i < pick->obj_cnt; i++) {
-            if (pick->f_selected[i] && margc < MAXARGS) {
+            if (pick->f_selected[i] && eargc < MAXARGS) {
                 if (tmp_str[0] != '\0')
                     strnz__cat(tmp_str, " ", MAXLEN - 1);
                 strnz__cat(tmp_str, pick->object[i], MAXLEN - 1);
             }
         }
-        margv[margc++] = strdup(tmp_str);
+        eargv[eargc++] = strdup(tmp_str);
     } else {
         f_append_args = false;
         i = 0;
-        while (i < margc) {
-            if (strstr(margv[i], "%%") != nullptr) {
+        while (i < eargc) {
+            if (strstr(eargv[i], "%%") != nullptr) {
                 tmp_str[0] = '\0';
                 f_append_args = true;
-                strnz__cpy(sav_arg, margv[i], MAXLEN - 1);
-                margx = i;
+                strnz__cpy(sav_arg, eargv[i], MAXLEN - 1);
+                eargx = i;
                 break;
             }
             i++;
         }
         for (i = 0; i < pick->obj_cnt; i++) {
-            if (pick->f_selected[i] && margc < MAXARGS - 1) {
+            if (pick->f_selected[i] && eargc < MAXARGS - 1) {
                 if (f_append_args == true) {
                     if (tmp_str[0] != '\0')
                         strnz__cat(tmp_str, " ", MAXLEN - 1);
                     strnz__cat(tmp_str, pick->object[i], MAXLEN - 1);
                     continue;
                 }
-                margv[margc++] = strdup(pick->object[i]);
+                eargv[eargc++] = strdup(pick->object[i]);
             }
         }
         if (f_append_args == true) {
-            if (margv[margx] != nullptr) {
-                free(margv[margx]);
-                margv[margx] = nullptr;
+            if (eargv[eargx] != nullptr) {
+                free(eargv[eargx]);
+                eargv[eargx] = nullptr;
             }
             out_s = rep_substring(sav_arg, "%%", tmp_str);
             if (out_s == nullptr || out_s[0] == '\0') {
                 i = 0;
-                while (i < margc) {
-                    if (margv[i] != nullptr)
-                        free(margv[i]);
+                while (i < eargc) {
+                    if (eargv[i] != nullptr)
+                        free(eargv[i]);
                     i++;
                 }
                 Perror("rep_substring() failed in exec_objects");
                 return 1;
             }
             strnz__cpy(title, out_s, MAXLEN - 1);
-            margv[margx] = strdup(out_s);
+            eargv[eargx] = strdup(out_s);
             if (out_s != nullptr) {
                 free(out_s);
                 out_s = nullptr;
             }
         }
     }
-    strnz__cpy(tmp_str, margv[0], MAXLEN - 1);
-    margv[margc] = nullptr;
+    strnz__cpy(tmp_str, eargv[0], MAXLEN - 1);
+    eargv[eargc] = nullptr;
     s1 = tmp_str;
     char *sp;
     char *tok;
@@ -860,23 +860,23 @@ int exec_objects(Init *init) {
         if (title[0] != '\0')
             strnz__cpy(init->title, title, MAXLEN - 1);
         else
-            strnz__cpy(init->title, margv[margc], MAXLEN - 1);
-        popup_view(init, margc, margv, init->lines, init->cols, init->begy,
+            strnz__cpy(init->title, eargv[eargc], MAXLEN - 1);
+        popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                    init->begx);
         i = 0;
-        while (i < margc) {
-            if (margv[i] != nullptr)
-                free(margv[i]);
+        while (i < eargc) {
+            if (eargv[i] != nullptr)
+                free(eargv[i]);
             i++;
         }
         return 0;
     } else {
         if ((pid = fork()) == -1) {
-            /** fork failed, free margv and return error */
+            /** fork failed, free eargv and return error */
             i = 0;
-            while (i < margc) {
-                if (margv[i] != nullptr)
-                    free(margv[i]);
+            while (i < eargc) {
+                if (eargv[i] != nullptr)
+                    free(eargv[i]);
                 i++;
             }
             Perror("fork() failed in exec_objects");
@@ -884,11 +884,12 @@ int exec_objects(Init *init) {
         }
         if (pid == 0) {
             /** Child process to execute command */
-            execvp(margv[0], margv);
-            /** If execvp returns, it means execution failed, so free margv
+            execvp(eargv[0], eargv);
+            /** If execvp returns, it means execution failed, so free eargv
                and print error message before exiting */
+            destroy_argv(eargc, eargv);
             strnz__cpy(tmp_str, "Can't exec pick cmd: ", MAXLEN - 1);
-            strnz__cat(tmp_str, margv[0], MAXLEN - 1);
+            strnz__cat(tmp_str, eargv[0], MAXLEN - 1);
             Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
@@ -898,12 +899,7 @@ int exec_objects(Init *init) {
     rc = Perror(tmp_str);
     waitpid(pid, nullptr, 0);
     win_del();
-    i = 0;
-    while (i < margc) {
-        if (margv[i] != nullptr)
-            free(margv[i]);
-        i++;
-    }
+    destroy_argv(eargc, eargv);
     restore_curses_tioctl();
     sig_prog_mode();
     keypad(pick->win, true);
@@ -947,17 +943,19 @@ int open_pick_win(Init *init) {
    popup_view function to display the help screen within the pick interface. */
 void display_pick_help(Init *init) {
     char tmp_str[MAXLEN];
+    eargc = 0;
     if (pick->f_help_spec && pick->help_spec[0] != '\0')
         strnz__cpy(tmp_str, pick->help_spec, MAXLEN - 1);
     else {
         strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
         strnz__cat(tmp_str, "/", MAXLEN - 1);
-        strnz__cat(tmp_str, MENU_HELP_FILE, MAXLEN - 1);
+        strnz__cat(tmp_str, PICK_HELP_FILE, MAXLEN - 1);
     }
-    eargv[0] = strdup("view");
-    eargv[1] = strdup(tmp_str);
-    eargv[2] = nullptr;
-    eargc = 2;
+    eargv[eargc++] = strdup("view");
+    eargv[eargc++] = strdup("-N");
+    eargv[eargc++] = strdup("f");
+    eargv[eargc++] = strdup(tmp_str);
+    eargv[eargc] = nullptr;
     init->lines = 30;
     init->cols = 60;
     init->begy = pick->begy + 1;
@@ -965,7 +963,6 @@ void display_pick_help(Init *init) {
     strnz__cpy(init->title, "Pick Help", MAXLEN - 1);
     popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                init->begx);
-    free(eargv[0]);
-    free(eargv[1]);
+    destroy_argv(eargc, eargv);
     return;
 }

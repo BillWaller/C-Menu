@@ -106,11 +106,12 @@ static struct argp_option options[] = {
     {"receiver_cmd", 'R', "file_spec", 0, "execute receiver of piped output",
      3},
     {"title", 'T', "text", 0, "Window title", 3},
-    {"f_erase_remainder", 'e', 0, 0, "erase remainder of line on enter", 4},
-    {"f_strip_ansi", 'j', 0, 0, "always strip ansi when writing", 4},
-    {"f_squeeze", 's', 0, 0, "squeeze multiple blank lines", 4},
-    {"f_ignore_case", 'x', 0, 0, "ignore case in search", 4},
-    {"f_ln", 'N', 0, 0, "line numbers in view", 5},
+    {"f_erase_remainder", 'e', "bool", 0, "erase remainder of line on enter",
+     4},
+    {"f_strip_ansi", 'j', "bool", 0, "always strip ansi when writing", 4},
+    {"f_squeeze", 's', "bool", 0, "squeeze multiple blank lines", 4},
+    {"f_ignore_case", 'x', "bool", 0, "ignore case in search", 4},
+    {"f_ln", 'N', "bool", 0, "line numbers in view", 5},
     {"fill_char", 'f', "char", 0, "field fill_char", 5},
     {"brackets", 'u', "text", 0, "brackets around fields", 5},
     {"editor", CM_EDITOR, "text", 0, "default editor", 8},
@@ -165,7 +166,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         strnz__cpy(init->mapp_spec, arg, MAXLEN - 1);
         break;
     case 'e':
-        init->f_erase_remainder = true;
+        init->f_erase_remainder = str_to_bool(arg);
         break;
     case 'f':
         strnz__cpy(init->fill_char, arg, 1);
@@ -195,7 +196,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         sio->red_gamma = str_to_double(arg);
         break;
     case 's':
-        init->f_squeeze = true;
+        init->f_squeeze = str_to_bool(arg);
         break;
     case 't':
         init->tab_stop = atoi(arg);
@@ -206,10 +207,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         strnz__cpy(init->brackets, arg, 2);
         break;
     case 'x':
-        init->f_ignore_case = true;
-        break;
-    case 'y':
-        init->f_at_end_remove = true;
+        init->f_ignore_case = str_to_bool(arg);
         break;
     case 'A':
         strnz__cpy(init->cmd_all, arg, MAXLEN - 1);
@@ -236,10 +234,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         init->lines = atoi(arg);
         break;
     case 'M':
-        init->f_multiple_cmd_args = true;
+        init->f_multiple_cmd_args = str_to_bool(arg);
         break;
     case 'N':
-        init->f_ln = true;
+        init->f_ln = str_to_bool(arg);
         break;
     case 'O':
         strnz__cpy(sio->bo_clr_x, arg, MAXLEN - 1);

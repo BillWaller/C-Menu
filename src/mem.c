@@ -518,7 +518,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     }
     if (!menu->f_help_spec) {
         menu->f_help_spec =
-            verify_spec_arg(menu->help_spec, "~/menuapp/help/main.help",
+            verify_spec_arg(menu->help_spec, "~/menuapp/help/menu.help",
                             nullptr, nullptr, R_OK);
         if (!menu->f_help_spec) {
             strnz__cpy(tmp_str, "menu cannot read help file ", MAXLEN - 1);

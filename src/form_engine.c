@@ -115,6 +115,7 @@ int form_engine(Init *init) {
     char tmp_str[MAXLEN];
     int form_action;
     int rc = 0;
+    char *eargv[MAXARGS];
 
     form = init->form;
     if (form == nullptr) {
@@ -152,8 +153,6 @@ int form_engine(Init *init) {
                 rc = form_exec_cmd(form);
             return rc;
         case P_HELP:
-            eargv[0] = strdup("view");
-
             if (form->f_help_spec && form->help_spec[0] != '\0')
                 strnz__cpy(tmp_str, form->help_spec, MAXLEN - 1);
             else {
@@ -161,16 +160,20 @@ int form_engine(Init *init) {
                 strnz__cat(tmp_str, "/", MAXLEN - 1);
                 strnz__cat(tmp_str, FORM_HELP_FILE, MAXLEN - 1);
             }
-            eargv[1] = strdup(tmp_str);
-            eargv[2] = nullptr;
-            eargc = 2;
+            eargc = 0;
+            eargv[eargc++] = strdup("view");
+            eargv[eargc++] = strdup("-N");
+            eargv[eargc++] = strdup("f");
+            eargv[eargc++] = strdup(tmp_str);
+            eargv[eargc] = nullptr;
             init->lines = 30;
-            init->cols = 60;
+            init->cols = 66;
             init->begy = form->begy + 1;
             init->begx = form->begx + 1;
             strnz__cpy(init->title, "Form Help", MAXLEN - 1);
             popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                        init->begx);
+            destroy_argv(eargc, eargv);
             form_action = P_CONTINUE;
             break;
         case P_CANCEL:
@@ -320,10 +323,12 @@ int form_getter(Init *init) {
                 strnz__cpy(file_spec, eargv[0], MAXLEN - 1);
                 base_name(eargv[0], file_spec);
                 if (pipe(pipe_fd) == -1) {
+                    destroy_argv(eargc, eargv);
                     Perror("pipe(pipe_fd) failed in init_form");
                     return (1);
                 }
                 if ((pid = fork()) == -1) {
+                    destroy_argv(eargc, eargv);
                     Perror("fork() failed in init_form");
                     return (1);
                 }
@@ -332,6 +337,7 @@ int form_getter(Init *init) {
                     dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
                     close(pipe_fd[P_WRITE]);
                     execvp(eargv[0], eargv);
+                    destroy_argv(eargc, eargv);
                     ssnprintf(em0, MAXLEN, "%s, line: %d", __FILE__,
                               __LINE__ - 2);
                     strnz__cpy(em1, "execvp(", MAXLEN - 1);
@@ -344,6 +350,7 @@ int form_getter(Init *init) {
                     exit(EXIT_FAILURE);
                 } // Back to parent
                 close(pipe_fd[P_WRITE]);
+                destroy_argv(eargc, eargv);
                 form->in_fp = fdopen(pipe_fd[P_READ], "rb");
                 form->f_in_pipe = true;
                 form_read_data(form);

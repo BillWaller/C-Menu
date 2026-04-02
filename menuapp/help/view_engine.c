@@ -7,7 +7,7 @@
     @date 2026-02-09
  */[0m
 
-[38;2;0;223;175m#include[0m [38;2;240;240;144m"common.h"[0m
+[38;2;0;223;175m#include[0m [38;2;240;240;144m<common.h>[0m
 [38;2;0;223;175m#include[0m [38;2;240;240;144m<ctype.h>[0m
 [38;2;0;223;175m#include[0m [38;2;240;240;144m<errno.h>[0m
 [38;2;0;223;175m#include[0m [38;2;240;240;144m<fcntl.h>[0m
@@ -403,10 +403,9 @@
                 [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m;
                 [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m;
             } [38;2;0;223;175melse[0m {
-                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mscroll_lines[0m;
+                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mscroll_lines[0m [1m[38;2;255;0;255m+[0m [1m[38;2;192;255;224m1[0m;
                 [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m;
             }
-            [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_first_iter[0m [1m[38;2;255;0;255m=[0m true;
             [38;2;255;79;0msearch[0m([38;2;255;191;0mview[0m, [1m[38;2;255;0;255m&[0m[38;2;255;191;0mprev_search_cmd[0m, [38;2;255;191;0mprev_regex_pattern[0m);
             [38;2;0;223;175mbreak[0m;
         [1m[3m[38;2;192;192;192m/**  '/' or '?' - Search Forward fromk top of page */[0m
@@ -434,8 +433,8 @@
             [38;2;0;223;175mif[0m ([38;2;255;191;0mc[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m'\n'[0m) {
                 [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mscroll_lines[0m;
                 [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_first_iter[0m [1m[38;2;255;0;255m=[0m true;
-                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_beg_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m;
-                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m;
+                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_beg_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m;
+                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m;
                 [38;2;255;79;0msearch[0m([38;2;255;191;0mview[0m, [1m[38;2;255;0;255m&[0m[38;2;255;191;0msearch_cmd[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcmd_arg[0m);
                 [38;2;255;191;0mprev_search_cmd[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0msearch_cmd[0m;
                 [38;2;255;79;0mstrnz__cpy[0m([38;2;255;191;0mprev_regex_pattern[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcmd_arg[0m, [38;2;112;208;255mMAXLEN[0m [1m[38;2;255;0;255m-[0m [1m[38;2;192;255;224m1[0m);
@@ -491,7 +490,6 @@
             [38;2;255;191;0mc[0m [1m[38;2;255;0;255m=[0m [38;2;255;79;0mget_cmd_char[0m([38;2;255;191;0mview[0m, [1m[38;2;255;0;255m&[0m[38;2;255;191;0mn_cmd[0m);
             [38;2;0;223;175mif[0m ([38;2;255;191;0mc[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m'@'[0m [1m[38;2;255;0;255m||[0m [38;2;255;191;0mc[0m [1m[38;2;255;0;255m==[0m [38;2;255;79;0mKEY_F[0m([1m[38;2;192;255;224m9[0m) [1m[38;2;255;0;255m||[0m [38;2;255;191;0mc[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m'\033'[0m)
                 [38;2;0;223;175mbreak[0m;
-            [1m[3m[38;2;192;192;192m// c = tolower(c);[0m
             [38;2;0;223;175mif[0m ([38;2;255;191;0mc[0m >= [1m[38;2;192;255;224m'A'[0m [1m[38;2;255;0;255m&&[0m [38;2;255;191;0mc[0m <= [1m[38;2;192;255;224m'Z'[0m)
                 [38;2;255;191;0mc[0m [1m[38;2;255;0;255m+=[0m [1m[38;2;192;255;224m' '[0m;
             [38;2;0;223;175mif[0m ([38;2;255;191;0mc[0m [1m[38;2;255;0;255m<[0m [1m[38;2;192;255;224m'a'[0m [1m[38;2;255;0;255m||[0m [38;2;255;191;0mc[0m [1m[38;2;255;0;255m>[0m [1m[38;2;192;255;224m'z'[0m)
@@ -726,7 +724,7 @@
             [38;2;255;79;0mPerror[0m([38;2;240;240;144m"Error refreshing screen"[0m);
         [38;2;255;191;0mc[0m [1m[38;2;255;0;255m=[0m [38;2;255;79;0mxwgetch[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m);
         [38;2;0;223;175mswitch[0m ([38;2;255;191;0mc[0m) {
-        [1m[3m[38;2;192;192;192m/// Basic Editing Keys for Command Line[0m
+        [1m[3m[38;2;192;192;192m/** Basic Editing Keys for Command Line */[0m
         [38;2;0;223;175mcase[0m [38;2;112;208;255mKEY_LEFT[0m:
         [38;2;0;223;175mcase[0m [38;2;112;208;255mKEY_BACKSPACE[0m:
         [38;2;0;223;175mcase[0m [1m[38;2;192;255;224m'\b'[0m:
@@ -797,10 +795,10 @@
         [38;2;255;79;0msprintf[0m([38;2;255;191;0mtmp_str[0m, [38;2;240;240;144m"File %d of %d"[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcurr_argc[0m [1m[38;2;255;0;255m+[0m [1m[38;2;192;255;224m1[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255margc[0m);
         [38;2;0;223;175mif[0m ([38;2;255;191;0mprompt_str[0m[[1m[38;2;192;255;224m0[0m] [1m[38;2;255;0;255m!=[0m [1m[38;2;192;255;224m'\0'[0m) {
             [38;2;255;79;0mstrnz__cat[0m([38;2;255;191;0mprompt_str[0m, [38;2;240;240;144m"|"[0m, [38;2;112;208;255mMAXLEN[0m [1m[38;2;255;0;255m-[0m [1m[38;2;192;255;224m1[0m);
-            [38;2;255;79;0mstrnz__cat[0m([38;2;255;191;0mprompt_str[0m, [38;2;255;191;0mtmp_str[0m, [38;2;112;208;255mMAXLEN[0m [1m[38;2;255;0;255m-[0m [1m[38;2;192;255;224m1[0m); [1m[3m[38;2;192;192;192m// File Of[0m
+            [38;2;255;79;0mstrnz__cat[0m([38;2;255;191;0mprompt_str[0m, [38;2;255;191;0mtmp_str[0m, [38;2;112;208;255mMAXLEN[0m [1m[38;2;255;0;255m-[0m [1m[38;2;192;255;224m1[0m);
         }
     }
-    [38;2;0;223;175mif[0m ([38;2;255;191;0mprompt_type[0m [1m[38;2;255;0;255m==[0m [38;2;112;208;255mPT_LONG[0m) { [1m[3m[38;2;192;192;192m// Byte of Byte[0m
+    [38;2;0;223;175mif[0m ([38;2;255;191;0mprompt_type[0m [1m[38;2;255;0;255m==[0m [38;2;112;208;255mPT_LONG[0m) {
         [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m [1m[38;2;255;0;255m==[0m [38;2;112;208;255mNULL_POSITION[0m)
             [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m;
         [38;2;255;79;0msprintf[0m([38;2;255;191;0mtmp_str[0m, [38;2;240;240;144m"Pos %zd-%zd"[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m);
@@ -815,7 +813,7 @@
             }
         }
     }
-    [38;2;0;223;175mif[0m (![38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_eod[0m [1m[38;2;255;0;255m&&[0m [38;2;255;191;0mprompt_type[0m [1m[38;2;255;0;255m!=[0m [38;2;112;208;255mPT_NONE[0m) { [1m[3m[38;2;192;192;192m// Percent[0m
+    [38;2;0;223;175mif[0m (![38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_eod[0m [1m[38;2;255;0;255m&&[0m [38;2;255;191;0mprompt_type[0m [1m[38;2;255;0;255m!=[0m [38;2;112;208;255mPT_NONE[0m) {
         [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m [1m[38;2;255;0;255m>[0m [1m[38;2;192;255;224m0[0m [1m[38;2;255;0;255m&&[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m [1m[38;2;255;0;255m!=[0m [1m[38;2;192;255;224m0[0m) {
             [38;2;255;79;0msprintf[0m([38;2;255;191;0mtmp_str[0m, [38;2;240;240;144m"(%zd%%)"[0m,
                     ([1m[38;2;192;255;224m100[0m [1m[38;2;255;0;255m*[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m) / [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m);
@@ -824,7 +822,7 @@
             [38;2;255;79;0mstrnz__cat[0m([38;2;255;191;0mprompt_str[0m, [38;2;255;191;0mtmp_str[0m, [38;2;112;208;255mMAXLEN[0m [1m[38;2;255;0;255m-[0m [1m[38;2;192;255;224m1[0m);
         }
     }
-    [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_eod[0m) { [1m[3m[38;2;192;192;192m// End[0m
+    [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_eod[0m) {
         [38;2;0;223;175mif[0m ([38;2;255;191;0mprompt_str[0m[[1m[38;2;192;255;224m0[0m] [1m[38;2;255;0;255m!=[0m [1m[38;2;192;255;224m'\0'[0m)
             [38;2;255;79;0mstrnz__cat[0m([38;2;255;191;0mprompt_str[0m, [38;2;240;240;144m" "[0m, [38;2;112;208;255mMAXLEN[0m [1m[38;2;255;0;255m-[0m [1m[38;2;192;255;224m1[0m);
         [38;2;255;79;0mstrnz__cat[0m([38;2;255;191;0mprompt_str[0m, [38;2;240;240;144m"(End)"[0m, [38;2;112;208;255mMAXLEN[0m [1m[38;2;255;0;255m-[0m [1m[38;2;192;255;224m1[0m);
@@ -898,9 +896,9 @@
         [38;2;255;79;0mputchar[0m([38;2;255;191;0mc[0m);
     }
 }
-[1m[3m[38;2;192;192;192m/** @brief Send File to Print Queue */[0m
+[1m[3m[38;2;192;192;192m/** @brief Send File to Print Queue
+ *  @param PrintFile - file to print */[0m
 [38;2;15;127;255mvoid[0m [38;2;255;79;0mlp[0m([38;2;15;127;255mchar[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mPrintFile[0m) {
-    [1m[3m[38;2;192;192;192m/// Send File to Print Queue[0m
     [38;2;15;127;255mchar[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mprint_cmd_ptr[0m;
     [38;2;15;127;255mchar[0m [38;2;255;191;0mshell_cmd_spec[0m[[38;2;112;208;255mMAXLEN[0m];
     [38;2;255;191;0mprint_cmd_ptr[0m [1m[38;2;255;0;255m=[0m [38;2;255;79;0mgetenv[0m([38;2;240;240;144m"PRINTCMD"[0m);
@@ -908,7 +906,6 @@
         [38;2;255;191;0mprint_cmd_ptr[0m [1m[38;2;255;0;255m=[0m [38;2;112;208;255mPRINTCMD[0m;
     [38;2;255;79;0msprintf[0m([38;2;255;191;0mshell_cmd_spec[0m, [38;2;240;240;144m"%s %s"[0m, [38;2;255;191;0mprint_cmd_ptr[0m, [38;2;255;191;0mPrintFile[0m);
     [38;2;255;79;0mcmd_line_prompt[0m([38;2;255;191;0mview[0m, [38;2;255;191;0mshell_cmd_spec[0m);
-    [1m[3m[38;2;192;192;192m//  wrefresh(view->win);[0m
     [38;2;255;79;0mprefresh[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpminrow[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpmincol[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msminrow[0m,
              [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msmincol[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msmaxrow[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msmaxcol[0m);
     [38;2;255;79;0mshell[0m([38;2;255;191;0mshell_cmd_spec[0m);
@@ -959,15 +956,17 @@
     [38;2;255;79;0mprev_page[0m([38;2;255;191;0mview[0m);
     [38;2;0;223;175mreturn[0m [1m[38;2;192;255;224m0[0m;
 }
-[1m[3m[38;2;192;192;192m/** @brief Go to Percent of File */[0m
-[38;2;15;127;255mvoid[0m [38;2;255;79;0mgo_to_percent[0m([38;2;15;127;255mView[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mview[0m, [38;2;15;127;255mint[0m [38;2;255;191;0mPercent[0m) {
-    [1m[3m[38;2;192;192;192m/// Go to Percent of File[0m
+[1m[3m[38;2;192;192;192m/** @brief Go to Percent of File
+    @param view data structure
+    @param percent of file
+*/[0m
+[38;2;15;127;255mvoid[0m [38;2;255;79;0mgo_to_percent[0m([38;2;15;127;255mView[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mview[0m, [38;2;15;127;255mint[0m [38;2;255;191;0mpercent[0m) {
     [38;2;15;127;255mint[0m [38;2;255;191;0mc[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m;
     [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m [1m[38;2;255;0;255m<[0m [1m[38;2;192;255;224m0[0m) {
         [38;2;255;79;0mPerror[0m([38;2;240;240;144m"Cannot determine file length"[0m);
         [38;2;0;223;175mreturn[0m;
     }
-    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_pos[0m [1m[38;2;255;0;255m=[0m ([38;2;255;191;0mPercent[0m [1m[38;2;255;0;255m*[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m) / [1m[38;2;192;255;224m100[0m;
+    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_pos[0m [1m[38;2;255;0;255m=[0m ([38;2;255;191;0mpercent[0m [1m[38;2;255;0;255m*[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m) / [1m[38;2;192;255;224m100[0m;
     [38;2;255;79;0mget_next_char[0m();
     [38;2;0;223;175mwhile[0m ([38;2;255;191;0mc[0m [1m[38;2;255;0;255m!=[0m [1m[38;2;192;255;224m'\n'[0m) {
         [38;2;255;79;0mget_prev_char[0m();
@@ -989,24 +988,24 @@
     @param regex_pattern Regular Expression Pattern to Search For
     @returns true if a match is found and displayed, false if the search
    completes without finding a match or if an error occurs
-    @note The search performs extended regular expression matching,
-   ignoring ANSI sequences and Unicode characters. Matches are
-   highlighted on the screen, and the search continues until the page is
-   full or the end of the file is reached. If the search wraps around
-   the file, a message is displayed indicating that the search is
-   complete.
-    @note The search state is maintained in the view structure, allowing
-   for repeat searches and tracking of the current search position.
-    @note this function highlights all matches in the current ncurses
-   pad, including those not displayed on the screen, and tracks the
-   first and last match columns for prompt display.
-    @note ANSI sequences and Unicode characters are stripped before
-   matching, so matching corresponds to the visual display */[0m
+    @note The search performs extended regular expression matching, ignoring
+   ANSI sequences and Unicode characters. Matches are highlighted on the screen,
+   and the search continues until the page is full or the end of the file is
+   reached. If the search wraps around the file, a message is displayed
+   indicating that the search is complete.
+    @note The search state is maintained in the view structure, allowing for
+   repeat searches and tracking of the current search position. @note this
+   function highlights all matches in the current ncurses pad, including those
+   not displayed on the screen, and tracks the first and last match columns for
+   prompt display.
+    @note ANSI sequences and Unicode characters are stripped before matching, so
+   matching corresponds to the visual display */[0m
 [38;2;15;127;255mbool[0m [38;2;255;79;0msearch[0m([38;2;15;127;255mView[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mview[0m, [38;2;15;127;255mint[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0msearch_cmd[0m, [38;2;15;127;255mchar[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mregex_pattern[0m) {
     [38;2;15;127;255mint[0m [38;2;112;208;255mREG_FLAGS[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m;
     [38;2;15;127;255mregmatch_t[0m [38;2;255;191;0mpmatch[0m[[1m[38;2;192;255;224m1[0m];
     [38;2;15;127;255mregex_t[0m [38;2;255;191;0mcompiled_regex[0m;
     [38;2;15;127;255mint[0m [38;2;255;191;0mreti[0m;
+    [38;2;15;127;255moff_t[0m [38;2;255;191;0mprev_srch_pos[0m;
     [38;2;15;127;255mint[0m [38;2;255;191;0mline_offset[0m;
     [38;2;15;127;255mint[0m [38;2;255;191;0mline_len[0m;
     [38;2;15;127;255mint[0m [38;2;255;191;0mmatch_len[0m;
@@ -1024,34 +1023,29 @@
     }
     [1m[3m[38;2;192;192;192m/**  */[0m
     [38;2;0;223;175mwhile[0m ([1m[38;2;192;255;224m1[0m) {
-        [1m[3m[38;2;192;192;192m/** initialization */[0m
+        [1m[3m[38;2;192;192;192m/** initialize iteration */[0m
         [38;2;0;223;175mif[0m ([1m[38;2;255;0;255m*[0m[38;2;255;191;0msearch_cmd[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m'/'[0m) {
-            [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m==[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m) {
+            [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m==[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m)
                 [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m;
-                [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_beg_pos[0m [1m[38;2;255;0;255m==[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m)
-                    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_beg_pos[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m;
-            }
         } [38;2;0;223;175melse[0m {
-            [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m0[0m) {
+            [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m0[0m)
                 [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m;
-                [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_beg_pos[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m0[0m)
-                    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_beg_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m;
-            }
-            [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m==[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_beg_pos[0m) {
-                [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_first_iter[0m [1m[38;2;255;0;255m==[0m true) {
-                    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_first_iter[0m [1m[38;2;255;0;255m=[0m false;
-                    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_search_complete[0m [1m[38;2;255;0;255m=[0m false;
-                    [38;2;0;223;175mif[0m ([1m[38;2;255;0;255m*[0m[38;2;255;191;0msearch_cmd[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m'/'[0m)
-                        [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m;
-                    [38;2;0;223;175melse[0m
-                        [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mscroll_lines[0m [1m[38;2;255;0;255m+[0m [1m[38;2;192;255;224m1[0m;
-                } [38;2;0;223;175melse[0m {
-                    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_search_complete[0m [1m[38;2;255;0;255m=[0m true;
-                    [38;2;0;223;175mreturn[0m true;
-                }
+        }
+        [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m [1m[38;2;255;0;255m==[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_beg_pos[0m) {
+            [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_first_iter[0m [1m[38;2;255;0;255m==[0m true) {
+                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_first_iter[0m [1m[38;2;255;0;255m=[0m false;
+                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_search_complete[0m [1m[38;2;255;0;255m=[0m false;
+                [38;2;0;223;175mif[0m ([1m[38;2;255;0;255m*[0m[38;2;255;191;0msearch_cmd[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m'/'[0m)
+                    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m;
+                [38;2;0;223;175melse[0m
+                    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mscroll_lines[0m [1m[38;2;255;0;255m+[0m [1m[38;2;192;255;224m1[0m;
+            } [38;2;0;223;175melse[0m {
+                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_search_complete[0m [1m[38;2;255;0;255m=[0m true;
+                [38;2;0;223;175mreturn[0m true;
             }
         }
-        [1m[3m[38;2;192;192;192m/** get lines to scan */[0m
+        [1m[3m[38;2;192;192;192m/** get line to scan */[0m
+        [38;2;255;191;0mprev_srch_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m;
         [38;2;0;223;175mif[0m ([1m[38;2;255;0;255m*[0m[38;2;255;191;0msearch_cmd[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m'/'[0m) {
             [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m==[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mscroll_lines[0m)
                 [38;2;0;223;175mreturn[0m true;
@@ -1090,7 +1084,13 @@
         }
         [1m[3m[38;2;192;192;192m/** Display matching lines */[0m
         [38;2;0;223;175mif[0m (![38;2;255;191;0mf_page[0m) {
-            [38;2;255;79;0mwmove[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m, [1m[38;2;192;255;224m0[0m);
+            [38;2;0;223;175mif[0m ([1m[38;2;255;0;255m*[0m[38;2;255;191;0msearch_cmd[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m'/'[0m) {
+                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mprev_srch_pos[0m;
+                [38;2;255;79;0mwmove[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m, [1m[38;2;192;255;224m0[0m);
+            } [38;2;0;223;175melse[0m {
+                [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mprev_srch_pos[0m;
+                [38;2;255;79;0mwmove[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m, [1m[38;2;192;255;224m0[0m, [1m[38;2;192;255;224m0[0m);
+            }
             [38;2;255;79;0mwclrtobot[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m);
             [38;2;255;191;0mf_page[0m [1m[38;2;255;0;255m=[0m true;
         }
@@ -1139,9 +1139,7 @@
             }
         }
     }
-    [1m[3m[38;2;192;192;192m/** Update view positions and prepare prompt with match info */[0m
     [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m;
-    [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255msrch_curr_pos[0m;
 [38;2;0;223;175m#ifdef[0m [38;2;112;208;255mDEBUG[0m
     [1m[3m[38;2;192;192;192m/** Statistics for debugging */[0m
     [38;2;255;79;0mssnprintf[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mtmp_prompt_str[0m, [38;2;112;208;255mMAXLEN[0m [1m[38;2;255;0;255m-[0m [1m[38;2;192;255;224m1[0m,
@@ -1273,7 +1271,7 @@
     [38;2;255;79;0mcurs_set[0m([1m[38;2;192;255;224m0[0m);
     [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m [1m[38;2;255;0;255m==[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_size[0m)
         [38;2;0;223;175mreturn[0m;
-    [1m[3m[38;2;192;192;192m// Locate New Top of Page[0m
+    [1m[3m[38;2;192;192;192m/** Locate New Top of Page */[0m
     [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m;
     [38;2;0;223;175mfor[0m ([38;2;255;191;0mi[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m; [38;2;255;191;0mi[0m [1m[38;2;255;0;255m<[0m [38;2;255;191;0mn[0m; [38;2;255;191;0mi[0m[1m[38;2;255;0;255m++[0m) {
         [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;79;0mget_pos_next_line[0m([38;2;255;191;0mview[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_pos[0m);
@@ -1281,9 +1279,9 @@
             [38;2;0;223;175mbreak[0m;
     }
     [38;2;255;191;0mn[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mi[0m;
-    [1m[3m[38;2;192;192;192m// Scroll[0m
+    [1m[3m[38;2;192;192;192m/** Scroll */[0m
     [38;2;255;79;0mwscrl[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m, [38;2;255;191;0mn[0m);
-    [1m[3m[38;2;192;192;192m// Fill in Page Bottom[0m
+    [1m[3m[38;2;192;192;192m/** Fill in Page Bottom */[0m
     [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mscroll_lines[0m [1m[38;2;255;0;255m-[0m [38;2;255;191;0mn[0m;
     [38;2;255;79;0mwmove[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m, [1m[38;2;192;255;224m0[0m);
     [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m;
@@ -1306,24 +1304,24 @@
     [38;2;255;79;0mcurs_set[0m([1m[38;2;192;255;224m0[0m);
     [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m [1m[38;2;255;0;255m==[0m [1m[38;2;192;255;224m0[0m)
         [38;2;0;223;175mreturn[0m;
-    [1m[3m[38;2;192;192;192m// Locate New Top of Page[0m
+    [1m[3m[38;2;192;192;192m/** Locate New Top of Page */[0m
     [38;2;0;223;175mfor[0m ([38;2;255;191;0mi[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m; [38;2;255;191;0mi[0m [1m[38;2;255;0;255m<[0m [38;2;255;191;0mn[0m; [38;2;255;191;0mi[0m[1m[38;2;255;0;255m++[0m) {
         [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_bod[0m)
             [38;2;0;223;175mbreak[0m;
         [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;79;0mget_pos_prev_line[0m([38;2;255;191;0mview[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m);
     }
     [38;2;255;191;0mn[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mi[0m;
-    [1m[3m[38;2;192;192;192m// Locate New Bottom of Page[0m
+    [1m[3m[38;2;192;192;192m/** Locate New Bottom of Page */[0m
     [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_bod[0m [1m[38;2;255;0;255m=[0m false;
     [38;2;0;223;175mfor[0m ([38;2;255;191;0mi[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m; [38;2;255;191;0mi[0m [1m[38;2;255;0;255m<[0m [38;2;255;191;0mn[0m; [38;2;255;191;0mi[0m[1m[38;2;255;0;255m++[0m) {
         [38;2;0;223;175mif[0m ([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mf_bod[0m)
             [38;2;0;223;175mbreak[0m;
         [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;79;0mget_pos_prev_line[0m([38;2;255;191;0mview[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_bot_pos[0m);
     }
-    [1m[3m[38;2;192;192;192m// Scroll Up[0m
+    [1m[3m[38;2;192;192;192m/** Scroll Up */[0m
     [38;2;0;223;175mif[0m ([38;2;255;191;0mn[0m [1m[38;2;255;0;255m<[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mscroll_lines[0m)
         [38;2;255;79;0mwscrl[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m, [1m[38;2;255;0;255m-[0m[38;2;255;191;0mn[0m);
-    [1m[3m[38;2;192;192;192m// Fill in Page Top[0m
+    [1m[3m[38;2;192;192;192m/** Fill in Page Top */[0m
     [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m [1m[38;2;255;0;255m=[0m [1m[38;2;192;255;224m0[0m;
     [38;2;255;79;0mwmove[0m([38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mwin[0m, [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mcury[0m, [1m[38;2;192;255;224m0[0m);
     [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mfile_pos[0m [1m[38;2;255;0;255m=[0m [38;2;255;191;0mview[0m[1m[38;2;255;0;255m->[0m[38;2;0;191;255mpage_top_pos[0m;
@@ -1345,7 +1343,6 @@
     @returns file position of next line
     @note gets view->line_in_s
  */[0m
-
 [38;2;15;127;255moff_t[0m [38;2;255;79;0mget_next_line[0m([38;2;15;127;255mView[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mview[0m, [38;2;15;127;255moff_t[0m [38;2;255;191;0mpos[0m) {
     [38;2;15;127;255muchar[0m [38;2;255;191;0mc[0m;
     [38;2;15;127;255mchar[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mline_in_p[0m;
@@ -1473,17 +1470,16 @@
         [38;2;255;79;0mPerror[0m([38;2;240;240;144m"Error refreshing screen"[0m);
 }
 [1m[3m[38;2;192;192;192m/** @brief Format Line for Display
-    @param view pointer to View structure containing line input and
-   output buffers
+    @param view pointer to View structure containing line input and output
+   buffers
     @return length of formatted line in characters
-    @details This function processes the input line from
-   view->line_in_s, handling ANSI escape sequences for text
-   attributes and colors, as well as multi-byte characters. It
-   converts the input line into a formatted line suitable for
-   display in the terminal, storing the result in view->cmplx_buf
-   and view->stripped_line_out. The function returns the length of
-   the formatted line in characters, which may be used for tracking
-   the maximum column width of the displayed content.
+    @details This function processes the input line from view->line_in_s,
+   handling ANSI escape sequences for text attributes and colors, as well as
+   multi-byte characters. It converts the input line into a formatted line
+   suitable for display in the terminal, storing the result in view->cmplx_buf
+   and view->stripped_line_out. The function returns the length of the formatted
+   line in characters, which may be used for tracking the maximum column width
+   of the displayed content.
  */[0m
 [38;2;15;127;255mint[0m [38;2;255;79;0mfmt_line[0m([38;2;15;127;255mView[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0mview[0m) {
     [38;2;15;127;255mattr_t[0m [38;2;255;191;0mattr[0m [1m[38;2;255;0;255m=[0m [38;2;112;208;255mWA_NORMAL[0m;
@@ -1562,20 +1558,18 @@
 }
 [1m[3m[38;2;192;192;192m/** @brief Parse ANSI SGR Escape Sequence
     @param ansi_str is the ANSI escape sequence string to parse
-    @param attr is a pointer to an attr_t variable where the parsed
-   attributes will be stored
-    @param cpx is a pointer to an int variable where the parsed
-   color pair index will be stored
-    @details This function parses an ANSI SGR (Select Graphic
-   Rendition) escape sequence and updates the provided attr_t and
-   color pair index based on the attributes specified in the ANSI
-   string.
+    @param attr is a pointer to an attr_t variable where the parsed attributes
+   will be stored
+    @param cpx is a pointer to an int variable where the parsed color pair index
+   will be stored
+    @details This function parses an ANSI SGR (Select Graphic Rendition) escape
+   sequence and updates the provided attr_t and color pair index based on the
+   attributes specified in the ANSI string.
 
     @code
 
-    This function converts the following SGR specification types to
-   the appropriate curses color pair index for use in the terminal
-   display.
+    This function converts the following SGR specification types to the
+   appropriate curses color pair index for use in the terminal display.
 
     RGB:
 
@@ -1600,21 +1594,19 @@
         foreground \033[3cm
         background \033[4cm
 
-        Where c is the color code (0 for black, 1 for red, 2 for
-   green, 3 for yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for
-   white).
+        Where c is the color code (0 for black, 1 for red, 2 for green, 3 for
+   yellow, 4 for blue, 5 for magenta, 6 for cyan, 7 for white).
 
     Attributes:
 
         \033[am
 
-        Where a is the attribute code (1 for bold, 2 for dim, 3 for
-   italic, 4 for underline, 5 for blink, 7 for reverse, 8 for
-   invis). The function also supports resetting attributes and
-   colors to default using \033[0m.
+        Where a is the attribute code (1 for bold, 2 for dim, 3 for italic, 4
+   for underline, 5 for blink, 7 for reverse, 8 for invis). The function also
+   supports resetting attributes and colors to default using \033[0m.
 
-    @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(),
-   extended_pair_content(), get_clr_pair()
+    @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(), extended_pair_content(),
+   get_clr_pair()
 
     @endcode
 */[0m
@@ -1763,24 +1755,22 @@
 }
 [1m[3m[38;2;192;192;192m/** @brief Display View Help File
     @param init is the current initialization data structure.
-    @note The current View context is set aside by assigning the
-   view structure to "view_save" while the help file is displayed
-   using a new, separate view structure.
-    @note The help file is specified by the VIEW_HELP_FILE macro can
-   be set to a default help file path or overridden by the user
-   through an environment variable.
-    @note  After the help file is closed, the original view is
-   restored and the page is redisplayed.
-    @note It may be necessary to reassign view after calling this
-   function because the init->view pointer is temporarily set to
-   NULL during the help file display, and the original view is
-   restored afterward.
-    @note The default screen size for help can be set in the code
-   below. If set to 0, mview will determine reasonable maximal size
-   based on the terminal dimensions.
-   @note The help file may contain Unicode characters and ANSI
-   escape sequences for formatting, which will be properly handled
-   and displayed by mview. */[0m
+    @note The current View context is set aside by assigning the view structure
+   to "view_save" while the help file is displayed using a new, separate view
+   structure.
+    @note The help file is specified by the VIEW_HELP_FILE macro can be set to a
+   default help file path or overridden by the user through an environment
+   variable.
+    @note  After the help file is closed, the original view is restored and the
+   page is redisplayed.
+    @note It may be necessary to reassign view after calling this function
+   because the init->view pointer is temporarily set to NULL during the help
+   file display, and the original view is restored afterward.
+    @note The default screen size for help can be set in the code below. If set
+   to 0, mview will determine reasonable maximal size based on the terminal
+   dimensions.
+    @note The help file may contain Unicode characters and ANSI escape sequences
+   for formatting, which will be properly handled and displayed by mview. */[0m
 [38;2;15;127;255mvoid[0m [38;2;255;79;0mview_display_help[0m([38;2;15;127;255mInit[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0minit[0m) {
     [38;2;15;127;255mint[0m [38;2;255;191;0meargc[0m;
     [38;2;15;127;255mchar[0m [1m[38;2;255;0;255m*[0m[38;2;255;191;0meargv[0m[[38;2;112;208;255mMAXARGS[0m];

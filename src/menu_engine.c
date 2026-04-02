@@ -166,9 +166,12 @@ unsigned int menu_cmd_processor(Init *init) {
             strnz__cat(tmp_str, "/", MAXLEN - 1);
             strnz__cat(tmp_str, MENU_HELP_FILE, MAXLEN - 1);
         }
-        eargv[1] = strdup(tmp_str);
-        eargv[2] = nullptr;
-        eargc = 2;
+        eargc = 0;
+        eargv[eargc++] = strdup("view");
+        eargv[eargc++] = strdup("-N");
+        eargv[eargc++] = strdup("f");
+        eargv[eargc++] = strdup(tmp_str);
+        eargv[eargc] = nullptr;
         init->lines = 30;
         init->cols = 60;
         init->begy = menu->begy + 1;
@@ -176,6 +179,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                    init->begx);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** Exit the menu and return to the previous menu or exit if at top */
     case 'q':
@@ -216,6 +220,7 @@ unsigned int menu_cmd_processor(Init *init) {
             strnz__cpy(earg_str, d, MAXLEN - 1);
         str_to_args(eargv, earg_str, MAX_ARGS);
         full_screen_fork_exec(eargv);
+        destroy_argv(eargc, eargv);
         return (MA_INIT);
         /** @brief process mouse event */
     case KEY_MOUSE:
@@ -270,6 +275,7 @@ unsigned int menu_cmd_processor(Init *init) {
         }
         eargv[j] = nullptr;
         full_screen_fork_exec(eargv);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display help information for the menu system */
     case CT_HELP:
@@ -280,10 +286,12 @@ unsigned int menu_cmd_processor(Init *init) {
             strnz__cat(tmp_str, "/", MAXLEN - 1);
             strnz__cat(tmp_str, MENU_HELP_FILE, MAXLEN - 1);
         }
-        eargv[0] = strdup("view");
-        eargv[1] = strdup(tmp_str);
-        eargv[2] = nullptr;
-        eargc = 2;
+        eargc = 0;
+        eargv[eargc++] = strdup("view");
+        eargv[eargc++] = strdup("-N");
+        eargv[eargc++] = strdup("f");
+        eargv[eargc++] = strdup(tmp_str);
+        eargv[eargc] = nullptr;
         init->lines = 66;
         init->cols = 80;
         init->begy = menu->begy + 1;
@@ -291,6 +299,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                    init->begx);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display a submenu or perform an action associated with
          * the selected menu choice */
@@ -314,6 +323,7 @@ unsigned int menu_cmd_processor(Init *init) {
         menu = init->menu;
         parse_menu_description(init);
         menu_engine(init);
+        destroy_argv(eargc, eargv);
         init->menu = destroy_menu(init);
         init->menu = save_menu;
         menu = init->menu;
@@ -325,6 +335,7 @@ unsigned int menu_cmd_processor(Init *init) {
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         popup_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display a form associated with the selected menu choice
          */
@@ -333,6 +344,7 @@ unsigned int menu_cmd_processor(Init *init) {
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         popup_form(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display a view associated with the selected menu choice
          */
@@ -348,6 +360,7 @@ unsigned int menu_cmd_processor(Init *init) {
                    MAXLEN - 1);
         popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                    init->begx);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief open ckeys (test curses keys) */
     case CT_CKEYS:

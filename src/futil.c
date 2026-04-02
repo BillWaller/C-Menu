@@ -37,6 +37,10 @@
 #define LF_DIR 2
 #define LF_REG 4
 
+char earg_str[MAXLEN];
+int eargc;
+char *eargv[MAXARGS];
+
 bool lf_find(const char *, const char *, const char *, int, int);
 bool lf_process(const char *, regex_t *, regex_t *, int, int, int);
 size_t strip_ansi(char *, char *);
@@ -190,6 +194,22 @@ int str_to_args(char **argv, char *arg_str, int max_args) {
     }
     argv[argc] = nullptr;
     return argc;
+}
+/** @brief Deallocates memory allocated for argument strings in argv.
+    @ingroup utility_functions
+    @param argc - count of allocated vectors in argv
+    @param argv - array of pointers to arguments
+    @note the caller must ensure that argc accurately reflects the number of
+   allocated strings in argv, and that argv is not null. After calling this
+   function, the pointers in argv will be set to nullptr to prevent dangling
+   pointers. */
+void destroy_argv(int argc, char **argv) {
+    for (int i = 0; i < argc; i++) {
+        if (argv[i] != nullptr) {
+            free(argv[i]);
+            argv[i] = nullptr;
+        }
+    }
 }
 /** @brief Converts a string to lowercase.
     @ingroup utility_functions
