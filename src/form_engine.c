@@ -159,7 +159,7 @@ int form_engine(Init *init) {
             else {
                 strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
                 strnz__cat(tmp_str, "/", MAXLEN - 1);
-                strnz__cat(tmp_str, PICK_HELP_FILE, MAXLEN - 1);
+                strnz__cat(tmp_str, FORM_HELP_FILE, MAXLEN - 1);
             }
             eargv[1] = strdup(tmp_str);
             eargv[2] = nullptr;

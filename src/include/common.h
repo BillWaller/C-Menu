@@ -34,6 +34,7 @@
 #define ACCEPT_PROMPT_CHAR '_'
 
 #define MENU_HELP_FILE "menu.help"
+#define FORM_HELP_FILE "form.help"
 #define PICK_HELP_FILE "pick.help"
 #define VIEW_HELP_FILE "view.help"
 #define VIEW_PRT_FILE "prtout"

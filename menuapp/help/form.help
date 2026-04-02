@@ -1,43 +1,76 @@
-   field name         type grp  mask opt description
-   ------------------ ---- ---- ---- --- -------------------------
-00 [0;34mminitrc           [0m str  spec mfpv [0;33m-a: [0m[0;32mconfiguration file spec[0m
-03 [0;34mmapp_spec         [0m str  file mfpv [0;33m-d: [0m[0;32mdescription spec[0m
-04 [0;34mf_erase_remainder [0m bool flag .f.. [0;33m-e  [0m[0;32merase remainder of line on enter[0m
-07 [0;34mhelp              [0m bool flag mfpv [0;33m-h  [0m[0;32mhelp[0m
-09 [0;34mmapp_home         [0m str  dir  mfpv [0;33m-m: [0m[0;32mhome directory[0m
-10 [0;34mselect_max        [0m int  prm  .f.. [0;33m-n: [0m[0;32mnumber of selections[0m
-19 [0;34mf_at_end_clear    [0m bool flag mfpv [0;33m-z  [0m[0;32mclear screen at end of program[0m
-21 [0;34mbg_color          [0m int  prm  mfpv [0;33m-B: [0m[0;32mbackground_color[0m
-22 [0;34mlines             [0m int  prm  mfpv [0;33m-C: [0m[0;32mwidth in columns[0m
-23 [0;34mfg_color          [0m int  prm  mfpv [0;33m-F: [0m[0;32mforeground_color[0m
-24 [0;34mhelp_spec         [0m str  file mfpv [0;33m-H: [0m[0;32mhelp spec[0m
-25 [0;34mcols              [0m int  prm  mfpv [0;33m-L: [0m[0;32mheight in lines[0m
-27 [0;34mbo_color          [0m int  prm  mfpv [0;33m-O: [0m[0;32mborder_color[0m
-31 [0;34mtitle             [0m str  misc mfpv [0;33m-T: [0m[0;32mtitle[0m
-32 [0;34mmapp_user         [0m str  dir  mfpv [0;33m-U: [0m[0;32muser directory[0m
-33 [0;34mbegx              [0m int  prm  mfpv [0;33m-X: [0m[0;32mbegin on column[0m
-34 [0;34mbegy              [0m int  prm  mfpv [0;33m-Y: [0m[0;32mbegin on line[0m
-35 [0;34mf_stop_on_error   [0m bool flag mfpv [0;33m-Z  [0m[0;32mstop on error[0m
-36 [0;34mblack             [0m str  prm  mfpv [0;33m    [0m[0;32mblack (#000000)[0m
-37 [0;34mred               [0m str  prm  mfpv [0;33m    [0m[0;32mred (#bf0000)[0m
-38 [0;34mgreen             [0m str  prm  mfpv [0;33m    [0m[0;32mgreen (#00cf00)[0m
-39 [0;34myellow            [0m str  prm  mfpv [0;33m    [0m[0;32myellow (#efbf00)[0m
-40 [0;34mblue              [0m str  prm  mfpv [0;33m    [0m[0;32mblue (#0000FF)[0m
-41 [0;34mmagenta           [0m str  prm  mfpv [0;33m    [0m[0;32mmagenta (#9f009f)[0m
-42 [0;34mcyan              [0m str  prm  mfpv [0;33m    [0m[0;32mcyan (#00dfdf)[0m
-43 [0;34mwhite             [0m str  prm  mfpv [0;33m    [0m[0;32mwhite (#d0d0d0)[0m
-44 [0;34morange            [0m str  prm  mfpv [0;33m    [0m[0;32morange (#FF5f00)[0m
-45 [0;34mbblack            [0m str  prm  mfpv [0;33m    [0m[0;32mbright black (#7f7f7f)[0m
-46 [0;34mbred              [0m str  prm  mfpv [0;33m    [0m[0;32mbright red (#FF3737)[0m
-47 [0;34mbgreen            [0m str  prm  mfpv [0;33m    [0m[0;32mbright green (#00FF7f)[0m
-48 [0;34mbyellow           [0m str  prm  mfpv [0;33m    [0m[0;32mbright yellow (#FFeF00)[0m
-49 [0;34mbblue             [0m str  prm  mfpv [0;33m    [0m[0;32mbright blue (#00cfFF)[0m
-50 [0;34mbmagenta          [0m str  prm  mfpv [0;33m    [0m[0;32mbright magenta (#FF00FF)[0m
-51 [0;34mbcyan             [0m str  prm  mfpv [0;33m    [0m[0;32mbright cyan (#00FFFF)[0m
-52 [0;34mbwhite            [0m str  prm  mfpv [0;33m    [0m[0;32mbright white (#FFFFFF)[0m
-53 [0;34mborange           [0m str  prm  mfpv [0;33m    [0m[0;32mbright orange (#FF7500)[0m
-54 [0;34mbg                [0m hex  col  mfpv [0;33m    [0m[0;32mbackground (#000720)[0m
-55 [0;34mabg               [0m hex  col  mfpv [0;33m    [0m[0;32malternate background (#000f50)[0m
-56 [0;34mmapp_data         [0m str  dir  mfpv [0;33m    [0m[0;32mdata directory[0m
-57 [0;34mmapp_help         [0m str  dir  mfpv [0;33m    [0m[0;32mhelp directory[0m
-58 [0;34mmapp_msrc         [0m str  dir  mfpv [0;33m    [0m[0;32msource directory[0m
+C-Menu Form Help
+
+FIELD EDITOR: Upon starting Form, you will find the cursor
+positioned in one of the fields. This is the field editor.
+
+If the field contains a value, you can use the arrow keys to move
+forward and backward within the field.
+
+If the field is empty, the cursor will be positioned at the
+beginning of the field and you will be allowed to enter the
+desired information.
+
+If the f_erase_remainder is set to true in the configuration, any
+information above and to the right of the current cursor position
+will be erased when you press enter.
+
+FIELD NAVIGATOR: You can use the following keys to navigate within
+the field editor:
+
+You may Click on a field to move the cursor to that field, or use
+the keyboard to navigate to the desired field. As you 
+
+ The following keys are available for navigation:
+
+    Key  Alternate     Action
+     l   right arrow   right
+     h   left  arrow   left
+     j   arrow down    next field
+     k   arrow up      previous field
+    F10  tab           accept current field and move to next
+    C-k  shift-tab     accept current field and move to previous
+    C-a  home          beginning of field
+    C-e  end           end of field
+    ins  insert        toggle insert/overwrite mode
+
+
+The Chyron is a banner at the bottom of the form that contains
+information about the program, including a selection of user
+commands. You may activate the commands by pressing the
+corresponding function key or clicking on the command label
+the chyron.
+
+Note the label, "INS" in the Chyron. Click the label or press
+the insert key to toggle between insert and overwrite modes.
+The default is overwrite. When toggled on, the INS background
+will be highlighted indicating that the field editor is in
+insert mode.
+
+In the field editor, the following commands are available for
+all but the last field:
+
+    F1  display this help file
+    F9  cancel the form and return to the calling program
+    F10 accept the current field and move to the next.
+
+FORM PROCESSOR: When positioned on the last field, tab or F10
+accepts the form, exits the field editor, and enters the form
+processor. Depending on the configuration of the form, you may
+have a label, "F5 Process" in the Chyron. Pressing or clicking
+on this label will hand the form data off to an external
+program, which may perform a calculation, validation, database
+update or any other processing of the form data. If the form is
+configured to use the form processor, the F5 Process command
+will be available in the Chyron. Pressing the F5 Process
+command will call an external command defined in the form
+configuration, passing the form data as arguments. When the
+external command completes, the form will be redisplayed in
+the field editor/navigator with any changes to the form data.
+One example of this is the included example installment loan
+calculator, which calls an external command to calculate a
+missing field.
+
+Even if the form is not configured with the F5 Process command,
+it may be configured to save the data to a file, send it over a
+network, or execute an external program. The difference is that
+the data will not be redisplayed as confirmation of processing.

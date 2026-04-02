@@ -26,8 +26,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#define Ctrl(c) ((c) & 0x1f)
-
 /** @brief read the next characater from the virtual file
     @ingroup view_engine
    @note Line numbers are tracked when reading forward and stored in a line

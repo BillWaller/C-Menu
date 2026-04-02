@@ -127,6 +127,7 @@ int field_editor(Form *form) {
             return (in_key);
             /** KEY_END moves cursor to end of field */
         case KEY_END:
+        case Ctrl('e'):
             while (*p != '\0')
                 p++;
             x = fcol + (p - fstart);
@@ -171,6 +172,7 @@ int field_editor(Form *form) {
             continue;
             /** KEY_HOME moves cursor to start of field */
         case KEY_HOME:
+        case Ctrl('a'):
             p = fstart;
             x = fcol;
             in_key = 0;

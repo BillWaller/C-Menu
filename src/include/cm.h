@@ -27,7 +27,8 @@
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
 #define SCR_COLS 1024 /**< maximum number of columns in the terminal screen */
-#define MAX_DEPTH 3   /**< maximum depth for recursive file searching */
+#define MAX_DEPTH 3   /**< default depth for recursive file searching */
+#define Ctrl(c) ((c) & 0x1f)
 
 /** @brief max macro evaluates two expressions, returning greatest result.
     @details These macros use compound statements to create local scopes for the
