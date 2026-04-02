@@ -4,6 +4,7 @@
 
 <!-- mtoc-start -->
 
+- [Can lf match files with multiple suffixes](#can-lf-match-files-with-multiple-suffixes)
 - [Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.](#drop-down-and-pop-up-menus-forms-pickers-views-ckeys-etc)
 - [Sorted lf Output](#sorted-lf-output)
 - [Multiple Executables](#multiple-executables)
@@ -35,6 +36,35 @@
 - [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
+
+## Can lf match files with multiple suffixes
+
+Q: With find, you can search for files with multiple extensions in the following
+manner:
+
+A: Yes. You can use a regular expression to match multiple suffixes with lf. For example, you can use the following command:
+
+```bash
+lf -a -d 5 . '.*\.([ch]|cpp|rs|sh)$' >lf.out
+```
+
+This is equivalent to the following find command:
+
+```bash
+find . -maxdepth 5 \( -name "*.[ch]" -o -name "*.cpp" -o -name "*.rs" -o -name "*.sh" \) | sed 's/^\.\//' >find.out
+```
+
+Once you get the hang of using regular expressions, you will find that they are more powerful and flexible than the options provided by find. Regular expressions allow you to match complex patterns in file names, and they can be easily modified to include or exclude specific patterns as needed. Arguably, regular expressions are more intuitive and easier to read than the complex syntax of find when it comes to matching multiple patterns.
+
+To confirm that the output of both commands is the same, you can use the following command:
+
+```bash
+diff lf.out find.out
+echo $?
+0
+```
+
+**_Voilà_**, they match perfectly. You can use regular expressions with lf to match files with multiple suffixes, and it provides a more powerful and flexible way to search for files compared to find. Less typing, more power, and more fun!
 
 ## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
 
