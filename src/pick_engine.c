@@ -59,6 +59,7 @@ char const pagers_editors[12][10] = {"view", "view",  "less", "more",
 int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     struct stat sb;
     char *s_argv[MAXARGS];
+    int s_argc;
     char tmp_str[MAXLEN];
     int m;
     pid_t pid = 0;
@@ -70,7 +71,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         abend(-1, "init->pick != pick\n");
     SIO *sio = init->sio;
     if (pick->provider_cmd[0] != '\0') {
-        str_to_args(s_argv, pick->provider_cmd, MAXARGS - 1);
+        s_argc = str_to_args(s_argv, pick->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_pick");
             return (1);
@@ -102,6 +103,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         /** Open a file pointer on read end of pipe */
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
         pick->f_in_pipe = true;
+        destroy_argv(s_argc, s_argv);
     } else {
         if ((pick->in_spec[0] == '\0') || strcmp(pick->in_spec, "-") == 0 ||
             strcmp(pick->in_spec, "/dev/stdin") == 0) {

@@ -42,7 +42,7 @@ int form_write(Form *);
 void form_usage();
 int form_desc_error(int, char *, char *);
 int form_exec_cmd(Form *);
-int form_getter(Init *);
+int form_process(Init *);
 int form_post(Init *);
 int init_form(Init *, int, char **, int, int);
 int form_engine(Init *);
@@ -134,8 +134,8 @@ int form_engine(Init *init) {
             form_action = field_navigator(form);
         switch (form_action) {
         case P_ACCEPT:
-            if (form->f_getter || form->f_calculate || form->f_query)
-                form_action = form_getter(init);
+            if (form->f_process || form->f_calculate || form->f_query)
+                form_action = form_process(init);
             else
                 form_action = form_post(init);
             if (form_action == P_HELP || form_action == P_CANCEL ||
@@ -275,7 +275,7 @@ int form_post(Init *init) {
         process, creates a pipe to read the output from the provider command,
         reads the output, and updates the Form fields.
             */
-int form_getter(Init *init) {
+int form_process(Init *init) {
     int i, c, rc;
     char tmp_str[MAXLEN];
     char earg_str[MAXLEN + 1];
@@ -292,7 +292,7 @@ int form_getter(Init *init) {
     unset_chyron_key(form->chyron, 10);
     strnz__cpy(tmp_str, "F5 ", MAXLEN - 1);
 
-    if (form->f_getter)
+    if (form->f_process)
         strnz__cat(tmp_str, "Process", MAXLEN - 1);
     else if (form->f_calculate)
         strnz__cat(tmp_str, "Calculate", MAXLEN - 1);
@@ -319,7 +319,7 @@ int form_getter(Init *init) {
                     strnz__cat(earg_str, " ", MAXLEN - 1);
                     strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
                 }
-                str_to_args(eargv, earg_str, MAXARGS);
+                eargc = str_to_args(eargv, earg_str, MAXARGS);
                 strnz__cpy(file_spec, eargv[0], MAXLEN - 1);
                 base_name(eargv[0], file_spec);
                 if (pipe(pipe_fd) == -1) {
@@ -337,7 +337,6 @@ int form_getter(Init *init) {
                     dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
                     close(pipe_fd[P_WRITE]);
                     execvp(eargv[0], eargv);
-                    destroy_argv(eargc, eargv);
                     ssnprintf(em0, MAXLEN, "%s, line: %d", __FILE__,
                               __LINE__ - 2);
                     strnz__cpy(em1, "execvp(", MAXLEN - 1);
@@ -350,12 +349,12 @@ int form_getter(Init *init) {
                     exit(EXIT_FAILURE);
                 } // Back to parent
                 close(pipe_fd[P_WRITE]);
-                destroy_argv(eargc, eargv);
                 form->in_fp = fdopen(pipe_fd[P_READ], "rb");
                 form->f_in_pipe = true;
                 form_read_data(form);
                 close(pipe_fd[P_READ]);
                 waitpid(pid, nullptr, 0);
+                destroy_argv(eargc, eargv);
                 form_display_fields(form);
                 set_chyron_key(form->chyron, 8, "F5 Edit", KEY_F(5));
                 set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
@@ -411,7 +410,7 @@ int field_navigator(Form *form) {
         case KEY_F(1):
             return (P_HELP);
         case KEY_F(5):
-            if (form->f_getter)
+            if (form->f_process)
                 return (P_CALC);
             break;
         case KEY_F(9):
@@ -602,7 +601,7 @@ int form_parse_desc(Form *form) {
             form->f_query = true;
             break;
         case D_GETTER:
-            form->f_getter = true;
+            form->f_process = true;
             break;
         case D_CMD:
             if (!(token = strtok(nullptr, delim))) {
@@ -813,7 +812,7 @@ int form_exec_cmd(Form *form) {
         strnz__cat(earg_str, " ", MAXLEN - 1);
         strnz__cat(earg_str, form->field[i]->accept_s, MAXLEN - 1);
     }
-    if (form->f_out_spec && form->f_getter) {
+    if (form->f_out_spec && form->f_process) {
         strnz__cat(earg_str, " >", MAXLEN - 1);
         strnz__cat(earg_str, form->out_spec, MAXLEN - 1);
     }
