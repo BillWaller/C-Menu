@@ -66,6 +66,28 @@ echo $?
 
 **_Voilà_**, they match perfectly. You can use regular expressions with lf to match files with multiple suffixes, and it provides a more powerful and flexible way to search for files compared to find. Less typing, more power, and more fun!
 
+You may be wondering how lf stacks up against find in performance. To make the
+test more realistic (so we aren't dealing with 10s of milliseconds, I increased
+the depth to 6 on both. Here are the results:)
+
+```
+$ time find . -maxdepth 6 \( -name "*.[ch]" -o -name "*.cpp" -o -name "*.rs" -o
+-name "*.sh" \) | sed 's/^\.\//' >find.outkkjjjj
+real    0m0.589s
+user    0m0.440s
+sys     0m0.151s
+total   0.0.1280s
+
+time lf -a -d 6 . '.*\.[ch]|cpp|rs|sh]$' >lf.out
+real    0m0.351s
+user    0m0.237s
+sys     0m0.111s
+total   0m0.699s
+```
+
+The find executable is actually very small at about 207 KB, but lf is even smaller at
+only about 20 KB. The performance of lf is about 2x faster than find, and it uses a fraction of the memory. That's what you call bang-for-the-buck.
+
 ## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
 
 Q: Are you going to add drop-down and pop-up features to C-Menu?
