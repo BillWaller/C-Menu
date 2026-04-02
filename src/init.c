@@ -360,7 +360,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
 
     e = getenv("TERM");
-    if (*e == '\0')
+    if (e == nullptr || *e == '\0')
         strnz__cpy(term, "xterm-256color", MAXLEN);
     else
         strnz__cpy(term, e, MAXLEN - 1);

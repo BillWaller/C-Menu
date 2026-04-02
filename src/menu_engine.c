@@ -325,7 +325,7 @@ unsigned int menu_cmd_processor(Init *init) {
         destroy_argv(eargc, eargv);
         init->menu = destroy_menu(init);
         init->menu = save_menu;
-        menu = init->menu;
+        // menu = init->menu;
         return (MA_INIT);
         /** @brief Display a pick list or form associated with the selected
          * menu choice */

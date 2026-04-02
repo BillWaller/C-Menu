@@ -102,6 +102,16 @@
         __typeof__(x) _a = (x);                                                \
         _a < 0 ? -_a : _a;                                                     \
     })
+#define S_TOLOWER(c)                                                           \
+    ({                                                                         \
+        int __c = (c);                                                         \
+        (__c >= 'A' && __c <= 'Z') ? (__c + ('a' - 'A')) : __c;                \
+    })
+#define S_TOUPPER(c)                                                           \
+    ({                                                                         \
+        int __c = (c);                                                         \
+        (__c >= 'a' && __c <= 'z') ? (__c - ('a' - 'A')) : __c;                \
+    })
 
 enum LFFlags {
     LF_ALL = 1,       /**<   1 List all files including hidden files */

@@ -293,7 +293,7 @@ void compile_chyron(Chyron *chyron) {
     int end_pos = 0;
     int k = 0;
     int pos = 0;
-    int cp = cp_norm;
+    int cp;
     cchar_t *cx;
     while (k < CHYRON_KEYS) {
         if (chyron->key[k]->text[0] == '\0') {
@@ -301,21 +301,24 @@ void compile_chyron(Chyron *chyron) {
             continue;
         }
         if (end_pos == 0) {
-            cp = chyron->key[k]->cp;
+            // cp = chyron->key[k]->cp;
             cx = chyron->cmplx_buf;
             mb_to_cc(cx, " ", WA_NORMAL, cp_reverse, &pos, MAXLEN - 1);
         } else {
             mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_reverse, &pos,
                      MAXLEN - 1);
         }
-        cp = chyron->key[k]->cp;
+        // cp = chyron->key[k]->cp;
         cx = chyron->cmplx_buf;
+        cp = chyron->key[k]->cp;
         mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
         end_pos = pos;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
         k++;
     }
+    if (cp == 0)
+        cp = cp_reverse;
     mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
     chyron->l = end_pos;
 }
@@ -530,7 +533,7 @@ bool open_curses(SIO *sio) {
     @return Color pair index */
 int get_clr_pair(int fg, int bg) {
     int rc, i, pfg, pbg;
-    for (i = 0; i < clr_pair_cnt; i++) {
+    for (i = 1; i < clr_pair_cnt; i++) {
         extended_pair_content(i, &pfg, &pbg);
         if (pfg == fg && pbg == bg)
             return i;
@@ -1025,7 +1028,6 @@ int answer_yn(char *em0, char *em1, char *em2, char *em3) {
     set_chyron_key(chyron, 3, "Y - Yes", 'y');
     compile_chyron(chyron);
 
-    em_l = 0;
     em0_l = strnz(em0, COLS - 4);
     em1_l = strnz(em1, COLS - 4);
     em2_l = strnz(em2, COLS - 4);
@@ -1086,7 +1088,6 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(chyron);
 
-    em_l = 0;
     em0_l = strnz(em0, COLS - 4);
     em1_l = strnz(em1, COLS - 4);
     em2_l = strnz(em2, COLS - 4);
@@ -1139,7 +1140,7 @@ int Perror(char *emsg_str) {
         emsg_str += 2;
         f_xwgetch = false;
     }
-    len = strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
+    strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
         return (1);

@@ -147,6 +147,11 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     Chyron *wait_chyron;
     WINDOW *wait_win;
     int remaining;
+    if (pick->in_fp == nullptr) {
+        Perror("No pick input available");
+        destroy_pick(init);
+        return (1);
+    }
     int in_fd = fileno(pick->in_fp);
     FD_ZERO(&read_fds);
     FD_SET(in_fd, &read_fds);
@@ -176,7 +181,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         if (wait_chyron != nullptr)
             wait_destroy(wait_chyron);
     }
-    f_wait = false;
     if (cmd_key == KEY_F(9)) {
         if (pick->f_in_pipe && pid > 0) {
             /** If user cancels while waiting for pick input, kill provider_cmd
@@ -768,7 +772,7 @@ int exec_objects(Init *init) {
     int i = 0;
     pid_t pid = 0;
     bool f_append_args = false;
-    char *s1;
+    // char *s1;
 
     title[0] = '\0';
     if (pick->cmd[0] == '\0')
@@ -841,10 +845,10 @@ int exec_objects(Init *init) {
     }
     strnz__cpy(tmp_str, eargv[0], MAXLEN - 1);
     eargv[eargc] = nullptr;
-    s1 = tmp_str;
+    // s1 = tmp_str;
     char *sp;
     char *tok;
-    tok = strtok_r(s1, " ", &sp);
+    tok = strtok_r(tmp_str, " ", &sp);
     strnz__cpy(sav_arg, tok, MAXLEN - 1);
     base_name(tmp_str, sav_arg);
     if (tmp_str[0] != '\0' &&

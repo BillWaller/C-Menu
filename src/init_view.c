@@ -345,7 +345,6 @@ int view_init_input(View *view, char *file_name) {
             if (wait_chyron != nullptr)
                 wait_destroy(wait_chyron);
         }
-        f_wait = false;
         if (cmd_key == KEY_F(9)) {
             if (view->f_in_pipe && pid > 0) {
                 /** If user cancels while waiting for view input, kill

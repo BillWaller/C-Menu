@@ -189,7 +189,7 @@ clean:
 	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.a \
 		libcm.so *.cflow scan-build scan-build.out $(LIB_SHARED) \
 		CMenu.conf x xx xxx *.out .user_id .group_id manifest.txt \
-		manifest.ls
+		manifest.ls valgrind.*
 
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)

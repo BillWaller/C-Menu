@@ -7,9 +7,10 @@
     @date 2026-02-09
  */
 
-/** @defgroup screen_io Terminal Handling
-   @brief Provides Terminal Settings for C-MENU Applications and Restores
-   Terminal State on Exit
+/** Terminal Handling
+    @ingroup screen_io
+    @brief Provides Terminal Settings for C-MENU Applications and Restores
+    Terminal State on Exit
  */
 
 #include <cm.h>
@@ -36,7 +37,7 @@ struct termios shell_out_tioctl, curses_out_tioctl;
 struct termios shell_err_tioctl, curses_err_tioctl;
 
 /** @brief capture_shell_tioctl() - capture shell terminal settings
- *  @ingroup screen_io
+    @ingroup screen_io
     @return - true on success
     @note - captures terminal settings for stdin, stdout, and stderr */
 bool capture_shell_tioctl() {
@@ -48,7 +49,7 @@ bool capture_shell_tioctl() {
     return true;
 }
 /** @brief restore_shell_tioctl() - restore shell terminal settings
- *  @ingroup screen_io
+    @ingroup screen_io
     @return - true on success
     @note - restores terminal settings for stdin, stdout, and stderr */
 bool restore_shell_tioctl() {
@@ -58,7 +59,7 @@ bool restore_shell_tioctl() {
     return true;
 }
 /** @brief capture_curses_tioctl() - capture curses terminal settings
- *  @ingroup screen_io
+    @ingroup screen_io
     @return - true on success
     @note - captures terminal settings for stdin, stdout, and stderr */
 bool capture_curses_tioctl() {
@@ -69,7 +70,7 @@ bool capture_curses_tioctl() {
     return true;
 }
 /** @brief restore_curses_tioctl() - restore curses terminal settings
- *  @ingroup screen_io
+    @ingroup screen_io
     @return - true on success
     @note - restores terminal settings for stdin, stdout, and stderr */
 bool restore_curses_tioctl() {
@@ -79,7 +80,7 @@ bool restore_curses_tioctl() {
     return true;
 }
 /** @brief set_sane_tioctl() - set terminal to sane settings for C-MENU
- *  @ingroup screen_io
+    @ingroup screen_io
     @param t_p - pointer to termios structure to modify
     @return - true on success
      @note - sets terminal to sane settings for C-MENU applications */
@@ -97,7 +98,7 @@ bool set_sane_tioctl(struct termios *t_p) {
     return true;
 }
 /** @brief mk_raw_tioctl() - set terminal to raw mode
- *  @ingroup screen_io
+    @ingroup screen_io
     @param t_p - pointer to termios structure to modify
     @return - true on success
     @note - unlike cfmakeraw(), this leaves ISIG enabled.
@@ -124,7 +125,7 @@ bool mk_raw_tioctl(struct termios *t_p) {
     return true;
 }
 /** @brief  sget single character from terminal in raw mode
- *  @ingroup screen_io
+    @ingroup screen_io
     @return - the character read from terminal
     @note restores terminal settings */
 char di_getch() {

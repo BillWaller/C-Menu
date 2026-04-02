@@ -1476,8 +1476,8 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
    should not be used in production code. The caller should be aware that
    executing this function will crash the program. */
 int segmentation_fault() {
-    int *p = NULL;
-    *p = 100;
+    // int *p = NULL;
+    // *p = 100;
 
     return 0;
 }

@@ -82,8 +82,7 @@ Init *new_init(int argc, char **argv) {
         ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
                   (MAXARGS + 1), sizeof(char *));
         display_error(em0, em1, em2, nullptr);
-        abend(-1, "calloc init->argv failed");
-        return nullptr;
+        exit(EXIT_FAILURE);
     }
     init->argc = argc;
     for (i = 0; i < init->argc; i++)
@@ -92,8 +91,8 @@ Init *new_init(int argc, char **argv) {
 
     init->sio = (SIO *)calloc(1, sizeof(SIO));
     if (!init->sio) {
-        abend(-1, "calloc sio failed");
-        return nullptr;
+        Perror("calloc sio failed");
+        exit(EXIT_FAILURE);
     }
     init_cnt++;
     return init;

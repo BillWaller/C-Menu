@@ -234,7 +234,7 @@ int view_cmd_processor(Init *init) {
             if (n_cmd <= 0)
                 n_cmd = 1;
             shift = (int)n_cmd;
-            swidth = view->smaxcol - view->smincol;
+            // swidth = view->smaxcol - view->smincol;
             if (view->pmincol - shift > 0)
                 view->pmincol -= shift;
             else
@@ -330,7 +330,7 @@ int view_cmd_processor(Init *init) {
         case '-':
             display_prompt(view, "(c, i, n, s, t, or h)->");
             c = get_cmd_char(view, &n_cmd);
-            c = tolower(c);
+            c = S_TOLOWER(c);
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
             switch (c) {
@@ -631,8 +631,16 @@ int view_cmd_processor(Init *init) {
                 view->f_redisplay_page = true;
                 break;
             }
-            prev_file_pos = view->page_top_pos;
+            // prev_file_pos = view->page_top_pos;
             bytes_written = write_view_buffer(init, view->f_strip_ansi);
+            if (bytes_written == 0) {
+                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                          __LINE__ - 2);
+                strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
+                strerror_r(errno, em1, MAXLEN - 1);
+                display_error(em0, em1, nullptr, nullptr);
+                break;
+            }
             display_prompt(view, tmp_str);
             view->f_redisplay_page = true;
             break;
@@ -1942,7 +1950,6 @@ void view_display_help(Init *init) {
     char tmp_str[MAXLEN];
     int eargc = 0;
     char *eargv[MAXARGS];
-    eargv[0] = strdup("view");
     if (view->f_help_spec && view->help_spec[0] != '\0')
         strnz__cpy(tmp_str, view->help_spec, MAXLEN - 1);
     else {
@@ -1950,10 +1957,13 @@ void view_display_help(Init *init) {
         strnz__cat(tmp_str, "/", MAXLEN - 1);
         strnz__cat(tmp_str, VIEW_HELP_FILE, MAXLEN - 1);
     }
+    eargv[eargc++] = strdup("view");
+    eargv[eargc++] = strdup("-N");
+    eargv[eargc++] = strdup("f");
     eargv[eargc++] = strdup(tmp_str);
     eargv[eargc] = nullptr;
     init->lines = 48;
-    init->cols = 60;
+    init->cols = 72;
     init->begy = 0;
     init->begx = 0;
     strnz__cpy(init->title, "View Help", MAXLEN - 1);
