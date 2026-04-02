@@ -39,8 +39,8 @@
 
 ## Can lf match files with multiple suffixes
 
-Q: With find, you can search for files with multiple extensions in the following
-manner:
+Q: With find, you can search for files with multiple extensions. Is there a way
+to do that with lf?
 
 A: Yes. You can use a regular expression to match multiple suffixes with lf. For example, you can use the following command:
 
