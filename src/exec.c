@@ -45,14 +45,8 @@ int full_screen_fork_exec(char **argv) {
     int rc;
 
     fflush(stderr);
-    werase(stdscr);
     wmove(stdscr, LINES - 1, 0);
-    wrefresh(stdscr);
     rc = fork_exec(argv);
-    werase(stdscr);
-    wmove(stdscr, 0, 0);
-    wrefresh(stdscr);
-    restore_wins();
     return (rc);
 }
 /** @brief Execute a shell command in full screen mode
@@ -71,7 +65,10 @@ int full_screen_shell(char *shellCmdPtr) {
     wmove(stdscr, 0, 0);
     wrefresh(stdscr);
     rc = shell(shellCmdPtr);
+    touchwin(stdscr);
+    wnoutrefresh(stdscr);
     restore_wins();
+    wrefresh(stdscr);
     return (rc);
 }
 /** @brief Execute a shell command
@@ -189,10 +186,13 @@ int fork_exec(char **argv) {
         }
         break;
     }
+    touchwin(stdscr);
+    wnoutrefresh(stdscr);
+    restore_wins();
+    wrefresh(stdscr);
     restore_curses_tioctl();
     sig_prog_mode();
     keypad(stdscr, true);
-    restore_wins();
     if (tmp_str[0] != '\0') {
         Perror(tmp_str);
     }
