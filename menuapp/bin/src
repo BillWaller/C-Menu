@@ -1,0 +1,3 @@
+#!/bin/bash
+
+lf -d 5 . '.*\.(rs|[ch]|lua)$' | sort
