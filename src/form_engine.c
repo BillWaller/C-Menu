@@ -154,8 +154,8 @@ int form_engine(Init *init) {
         case P_HELP:
             eargv[0] = strdup("view");
 
-            if (pick->f_help_spec && pick->help_spec[0] != '\0')
-                strnz__cpy(tmp_str, pick->help_spec, MAXLEN - 1);
+            if (form->f_help_spec && form->help_spec[0] != '\0')
+                strnz__cpy(tmp_str, form->help_spec, MAXLEN - 1);
             else {
                 strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
                 strnz__cat(tmp_str, "/", MAXLEN - 1);
