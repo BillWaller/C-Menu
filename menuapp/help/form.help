@@ -53,6 +53,11 @@ all but the last field:
     F9  cancel the form and return to the calling program
     F10 accept the current field and move to the next.
 
+In Pick, View, and sometimes Menu, the 'q' key may be used to
+expeditiously exit the current operation, but this is not
+available in the field editor because 'q' is a valid input
+character for some fields.
+
 FORM PROCESSOR: When positioned on the last field, tab or F10
 accepts the form, exits the field editor, and enters the form
 processor. Depending on the configuration of the form, you may

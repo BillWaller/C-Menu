@@ -1,5 +1,44 @@
 [1;31mView Command Keys         [1;31mCommands[0m
 
+View uses regular expressions for searching. Sounds simple, right. Just
+regular old expressions. But if you have never used regular expressions
+before, they can be a little intimidating. So here is a quick primer on
+regular expressions. If you already know regular expressions, you can
+skip this section.
+
+The "." is a wildcard character that matches any single character. For
+example, "c.t" would match "cat", "cot", "cut", etc. The "*" is a
+quantifier that matches zero or more of the preceding character. For
+example, "ca*t" would match "ct", "cat", "caat", "caaat", etc. The "+"
+is a quantifier that matches one or more of the preceding character.
+For example, "ca+t" would match "cat", "caat", "caaat", etc. The "?"
+is a quantifier that matches zero or one of the preceding character.
+For example, "ca?t" would match "ct" and "cat". The "^" is an anchor
+that matches the beginning of a line. For example, "^cat" would match
+any line that starts with "cat". The "$" is an anchor that matches
+the end of a line. For example, "cat$" would match any line that ends
+with "cat". The "|" is an alternation operator that matches either
+the expression before or after it. For example, "cat|dog" would match
+either "cat" or "dog". The parentheses are used for grouping. For
+example, "(cat|dog)s" would match either "cats" or "dogs".
+
+Admittedly, this is a very brief introduction to regular expressions.
+There are many more features and nuances to regular expressions that
+are not covered here. But this should be enough to get you started
+with using regular expressions in View. One of the best sources of
+information on regular expressions is a website named
+https://regex101.com. It has a great interactive regex tester and a 
+comprehensive reference for regular expression syntax.
+
+Other than that, the navigation in view is fairly straightforward.
+You can use the arrow keys to scroll up and down one line at a time,
+use page up and down to page through the document, or use the Scroll
+wheel on your mouse. For the seasoned professionals, the standard h,
+j, k, and l keys also work for moving around in the document. There
+are also various other ways to move around in view, by going to
+specific line numbers or searching for all matches with extended
+regular expressions.
+
 [1;33m                          [1;35mHorizontal Scrolling[0m
 [1;33mAlt Home[0m.................[1;32m to first column[0m
 [1;33mAlt End[0m..................[1;32m to last column[0m
@@ -8,7 +47,7 @@
 
 [1;33m                          [1;35mVertical Scrollling[0m
 [1;33mk, Up Arrow, Ctrl(K)[0m.....[1;32m up one line[0m
-[1;33mj, J, Down Arrow[0m.........[1;32m down one line[0m
+[1;33mj, Down Arrow[0m.........[1;32m down one line[0m
 [1;33mb, B, Ctrl(B), Page up[0m...[1;32m up one page[0m
 [1;33mf, F, Ctrl(F), Page down[0m.[1;32m down one page[0m
 

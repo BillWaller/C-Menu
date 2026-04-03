@@ -23,7 +23,7 @@
 :     View CMenu Source with Tree-Sitter
 !pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60 -C 70 -S \"tree-sitter highlight %%\""
 :     View Source with Tree-Sitter
-!pick -S src -n 1 -T "Select Rust File to Highlight" -c "view -L 60 -C 70 -S \"tree-sitter highlight %%\""
+!pick -S src -n 1 -T "Select Rust File to Highlight" -c "view -L 60 -C 70 -S \"ts_hl.sh %%\""
 :     View Data Types Help File
 !view -N f -T "Data Types" /home/bill/menuapp/help/fields.hlp
 :     Menu Description With Bat Syntax Highlighting
