@@ -104,7 +104,7 @@ unsigned int menu_engine(Init *init) {
    keys and mouse clicks.
  */
 unsigned int menu_cmd_processor(Init *init) {
-    int i, c, j;
+    int i, c;
     char *d;
     int in_key;
     char tmp_str[MAXLEN];
@@ -258,21 +258,11 @@ unsigned int menu_cmd_processor(Init *init) {
          * choice
          */
     case CT_EXEC:
-        strnz__cpy(earg_str, menu->line[menu->line_idx]->command_str,
-                   MAXLEN - 1);
-        eargc = str_to_args(eargv, earg_str, MAX_ARGS);
-        j = 0;
-        free(eargv[0]);
-        for (i = 1; i < eargc && eargv[i] != nullptr; i++) {
-            if (eargv[i][0] == '~') {
-                strnz__cpy(tmp_str, eargv[i], MAXLEN - 1);
-                expand_tilde(tmp_str, MAXLEN - 1);
-                eargv[j++] = strdup(tmp_str);
-            } else
-                eargv[j++] = strdup(eargv[i]);
-            free(eargv[i]);
-        }
-        eargv[j] = nullptr;
+        char *s;
+        s = strpbrk(menu->line[menu->line_idx]->command_str, " \t\f\v");
+        trim(s);
+        strnz__cpy(earg_str, s, MAXLEN - 1);
+        eargc = str_to_args(eargv, s, MAX_ARGS);
         full_screen_fork_exec(eargv);
         destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);

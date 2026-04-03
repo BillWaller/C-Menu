@@ -136,6 +136,7 @@ int fork_exec(char **argv) {
         return (-1);
     }
     capture_curses_tioctl();
+    curs_set(1);
     sig_dfl_mode();
     restore_shell_tioctl();
 

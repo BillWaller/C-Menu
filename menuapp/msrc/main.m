@@ -5,7 +5,7 @@
 :     Root Neovim
 !exec rsh -c nvim
 :     Full Screen (root) Shell
-!exec rsh
+!exec rsh -c "clear; bash"
 :   Workstation Configuration
 !menu workstation_config.m
 :   Diagnostic Tools
