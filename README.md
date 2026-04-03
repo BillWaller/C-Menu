@@ -1,5 +1,9 @@
 # A User Interface Toolkit
 
+[**_NEW_** C-Menu Form In Depth](docs/C-Menu-UG.md)
+
+![C-Menu Form](screenshots/iloan.png)
+
 <!-- mtoc-start -->
 
 - [Other C-Menu Documents](#other-c-menu-documents)

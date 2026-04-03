@@ -1,5 +1,7 @@
 # User guide
 
+[**_NEW_** C-Menu Form In Depth](#c-menu-form-in-depth)
+
 ## Get C-Menu on Github
 
 Click the link below to access the C-Menu Documentation:
@@ -31,8 +33,8 @@ gh repo clone BillWaller/C-Menu
 - [Programming C-Menu Menu](#programming-c-menu-menu)
   - [Menu Example](#menu-example)
   - [Menu Description File Format](#menu-description-file-format)
-- [C-Menu Form](#c-menu-form)
-  - [Form Description File Example](#form-description-file-example)
+- [C-Menu Form In Depth](#c-menu-form-in-depth)
+  - [Form field editor](#form-field-editor)
     - [Form Line Type Specifiers](#form-line-type-specifiers)
     - [Form Field Delimiters](#form-field-delimiters)
     - [Form Data Types](#form-data-types)
@@ -297,17 +299,73 @@ execute the command `nvim`. The user can select it by clicking on
 
 ---
 
-## C-Menu Form
+## C-Menu Form In Depth
 
-Form is a companion tool for C-Menu that allows users to create and
-manage forms for data entry and editing. It can be used to gather user
-input before executing commands from the C-Menu.
+Form is a utility that provides the user with a way to enter and edit information in a structured format.
 
-### Form Description File Example
+Form can take its input from file, standard input, or an external executable.
+A description file, which might be named myform.f, contains the layout and content of the form.
+
+When started, form parses the description file and displays the form according to the specifications. It then reads from the specified input source and populates the on-screen form fields with the data. If no input source is specified, the form will be displayed with empty fields ready for user input.
+
+The cursor will be positioned at the first input field, and the user can navigate through the form using the arrow keys or other designated navigation keys. The user can enter or edit the field data, and upon submission, the form will optionally output the entered data to a file, standard output, or an external executable for further processing.
+
+The user can navigate through the form fields, enter data, and when ready, use the F10 key to submit the form. Upon submission, form can:
+
+    - write the form data to a specified file
+
+    - write the form data to standard output (stdout)
+
+    - execute an external command with the form data as input
+
+    - provide form data to an external command via a pipe
+
+    - provide form data to an external command via command-line arguments
+
+### Form field editor
+
+In the image below, Form is configured to use '\_' as the fill character, which
+gives the user a visual cue of the field length.
+
+![Form Initial Display](../screenshots/iloan.png)
+
+The default field entry mode is overwrite, which can be toggled to insert by
+pressing the insert key, or clicking the "INS" label in they chyron. When Form
+is in insert mode, the "INS" label will be highlighted.
+
+If the field is a decimal numeric type, then only numbers and a single decimal
+point can be entered.
+
+In overwrite mode, each character entered will replace the existing character at the cursor position. In insert mode, characters will be inserted at the cursor position, pushing existing characters to the right. The user can toggle between these modes as needed while filling out the form. Insert mode is not effective when the field is full.
+
+When entering times or dates, don't enter punctuation, just numbers. When you
+press tab or enter to accept the field, Form will convert the input to the appropriate format. For example, if you enter "20240601" in a date field, Form will convert it to "2024-06-01" when you move to the next field.
+
+Each field has a display mode and an edit mode. In display mode, formatted
+numbers are right-aligned and text is left-aligned. In edit mode, fields are left-aligned. The cursor is initially positioned at the first character of the field.
+
+When finished entering or editing a field, the user can press the Tab key to move to the next field, or Shift+Tab to move to the previous field. Pressing Enter will also move to the next field. However, the tab and enter keys work differently depending on the setting of the configuration flag, "f_erase_remainder". When set to true, pressing the enter key will accept the field and erase any remaining characters to the right of the cursor, while pressing tab will move to the next field without erasing any characters. When "f_erase_remainder" is set to false, pressing the enter key will accept the field without erasing any characters.
+
+When finished entering or editing the form, the can press F10 to continue with submission.
+
+![After F10 Continue](../screenshots/iloan2.png)
+
+Notice, in the above image, the Number of Months has been changed from 120 to 180. The user pressed enter in the Payment Amount field giving it a value of 0.
+
+When the User pressed F10, the chyron changed, adding a command "F5 Process",
+which is highlighted with a yellow background as a clue to the user that it is
+the next logical step.
+
+The user presses F5 or clicks on the "F5 Process" label, and with no
+flickering or disruption of the screen, the Payment Amount is instantly calculated and
+the Payment Amount field is updated. The chyron changes again, adding "F5 Edit" and "F10 Commit" commands.
+
+![After F5 Process](../screenshots/iloan3.png)
+
+The user can try another calculation by pressing the "F5 Edit" key or "F10
+Commit" to have Form dispatch the final data according to the configuration.
 
 ![Form Description File](../screenshots/iloan.f.png)
-
-![Installment Loan Form](../screenshots/iloan.png)
 
 #### Form Line Type Specifiers
 
