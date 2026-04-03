@@ -324,7 +324,7 @@ int view_init_input(View *view, char *file_name) {
         ready = select(STDIN_FILENO + 1, &read_fds, nullptr, nullptr, &timeout);
         if (ready == 0) {
             f_wait = true;
-            remaining = 5;
+            remaining = wait_timer;
             wait_chyron = wait_mk_chyron();
             wait_win = wait_mk_win(wait_chyron, "WAITING for VIEW INPUT");
         }

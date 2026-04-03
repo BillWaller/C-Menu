@@ -106,6 +106,7 @@ static struct argp_option options[] = {
     {"receiver_cmd", 'R', "file_spec", 0, "execute receiver of piped output",
      3},
     {"title", 'T', "text", 0, "Window title", 3},
+    {"wait_timer", 'w', "seconds", 0, "Wait timer", 3},
     {"f_erase_remainder", 'e', "bool", 0, "erase remainder of line on enter",
      4},
     {"f_strip_ansi", 'j', "bool", 0, "always strip ansi when writing", 4},
@@ -202,6 +203,11 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         init->tab_stop = atoi(arg);
         if (init->tab_stop < 1)
             init->tab_stop = 1;
+        break;
+    case 'w':
+        wait_timer = atoi(arg);
+        wait_timer = min(wait_timer, 1);
+        wait_timer = max(wait_timer, 29);
         break;
     case 'u':
         strnz__cpy(init->brackets, arg, 2);
@@ -565,6 +571,10 @@ int parse_config(Init *init) {
                 init->tab_stop = atoi(value);
                 continue;
             }
+            if (!strcmp(key, "wait_timer")) {
+                wait_timer = atoi(value);
+                continue;
+            }
             if (!strcmp(key, "title")) {
                 strnz__cpy(init->title, value, MAXLEN - 1);
                 continue;
@@ -761,6 +771,7 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "fill_char", init->fill_char);
     (void)fprintf(minitrc_fp, "%s=%s\n", "editor", init->editor);
     (void)fprintf(minitrc_fp, "%s=%d\n", "tab_stop", init->tab_stop);
+    (void)fprintf(minitrc_fp, "%s=%d\n", "wait_timer", wait_timer);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bg_clr_x", sio->bg_clr_x);
     (void)fprintf(minitrc_fp, "%s=%s\n", "bo_clr_x", sio->bo_clr_x);
     (void)fprintf(minitrc_fp, "%s=%s\n", "fg_clr_x", sio->fg_clr_x);
@@ -931,6 +942,7 @@ void dump_config(Init *init, char *msg) {
     opt_prt_bool("-x:", "  f_ignore_case", init->f_ignore_case);
     opt_prt_bool("-N:", "  f_ln", init->f_ln);
     opt_prt_int("-t:", "  tab_stop", init->tab_stop);
+    opt_prt_int("-w:", "  wait_timer", wait_timer);
     opt_prt_str("-u ", "  brackets", init->brackets);
     opt_prt_str("-f:", "  fill_char", init->fill_char);
     opt_prt_str("   ", "  editor", init->editor);

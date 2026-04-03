@@ -161,7 +161,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
     if (ready == 0) {
         f_wait = true;
-        remaining = 5;
+        remaining = wait_timer;
         wait_chyron = wait_mk_chyron();
         wait_win = wait_mk_win(wait_chyron, "WAITING for PICK INPUT");
     }
@@ -959,7 +959,7 @@ void display_pick_help(Init *init) {
     eargv[eargc++] = strdup(tmp_str);
     eargv[eargc] = nullptr;
     init->lines = 30;
-    init->cols = 60;
+    init->cols = 76;
     init->begy = pick->begy + 1;
     init->begx = pick->begx + 1;
     strnz__cpy(init->title, "Pick Help", MAXLEN - 1);

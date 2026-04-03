@@ -57,7 +57,6 @@
         (void)(&_x == &_y);                                                    \
         _x < _y ? _x : _y;                                                     \
     })
-
 /** @note /usr/include/sys/param.h contains implementations of the MIN and MAX
    macros, which are simple but can lead to issues with multiple evaluations of
    the arguments if they have side effects.
@@ -70,9 +69,9 @@
     #define MAX(a, b) (((a) > (b)) ? (a) : (b))
     @endcode
 */
-/** @brief MIN and MAX macros for compatibility with code that uses these names,
+/** @brief MIN macro for compatibility with code that uses the same name,
    while avoiding multiple evaluations of the arguments.
-    @note The following two macros provide safer alternatives to param.h
+    @note The following macro provides a safer alternative to param.h
  */
 #define MAX(a, b)                                                              \
     ({                                                                         \
@@ -80,7 +79,10 @@
         typeof(b) _b = (b);                                                    \
         _a > _b ? _a : _b;                                                     \
     })
-
+/** @brief MAX macro for compatibility with code that uses the same name,
+   while avoiding multiple evaluations of the arguments.
+    @note The following macro provides a safer alternative to param.h
+ */
 #define MIN(x, y)                                                              \
     ({                                                                         \
         typeof(x) _x = (x);                                                    \
@@ -88,7 +90,6 @@
         (void)(&_x == &_y);                                                    \
         _x < _y ? _x : _y;                                                     \
     })
-
 /** @brief ABS macro for absolute value, which evaluates the expression once and
    returns the absolute value.
     @note This macro uses a compound statement to create a local scope for the
@@ -447,9 +448,9 @@ extern const wchar_t bw_bt; /**< bottom tee */
 extern int n_lines; /**< number of lines in the terminal */
 extern int n_cols;  /**< number of columns in the terminal */
 extern int lines; /**< current number of lines (may be less than n_lines if the
-                     terminal is resized) */
+                       terminal is resized) */
 extern int cols;  /**< current number of columns (may be less than n_cols if the
-                     terminal is resized) */
+                       terminal is resized) */
 extern int begx;  /**< beginning x coordinate of the terminal */
 extern int begy;  /**< beginning y coordinate of the terminal */
 
@@ -503,7 +504,6 @@ extern int mg_col;    /**< window column, which can be used to determine the
 extern int
     mg_line; /**< window line, which can be used to determine the current line
                 position in the window for displaying text or other content. */
-
 /** to_uppercase(c) - convert a lowercase letter to uppercase */
 #define to_uppercase(c)                                                        \
     if (c >= 'a' && c <= 'z')                                                  \
@@ -595,12 +595,10 @@ typedef struct {
     cchar_t *s; /**< pointer to the complex character string */
     size_t l;   /**< allocated length */
 } CCStr;
-
 /** simple macro to convert a character to uppercase */
 #define to_uppercase(c)                                                        \
     if (c >= 'a' && c <= 'z')                                                  \
     c -= ' '
-
 /** @struct SIO
     @brief The SIO structure encapsulates various aspects of the terminal's
    state and configuration, including color management, file pointers, and
@@ -668,6 +666,7 @@ typedef struct {
     int cp_ln;                   /**< line number color pair index */
     int cp_ln_bg;                /**< line number background pair index */
 } SIO;
+extern int wait_timer;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);
 extern bool chrep(char *, char, char);
@@ -736,6 +735,8 @@ extern size_t canonicalize_file_spec(char *);
 extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool file_spec_path(char *, char *);
 extern bool file_spec_name(char *, char *);
+extern bool is_directory(const char *);
+extern bool is_valid_regex(const char *);
 extern bool dir_name(char *, char *);
 extern bool base_name(char *, char *);
 extern bool expand_tilde(char *, int);

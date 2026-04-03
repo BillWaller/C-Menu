@@ -50,6 +50,7 @@ struct lf_opts {
     int flags;
     char *file_types_p;
     char *args[2];
+    int argc;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -105,6 +106,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
             lf_opts->args[state->arg_num] = arg;
+            lf_opts->argc = state->arg_num + 1;
         } else {
             argp_usage(state);
         }
@@ -133,21 +135,35 @@ int main(int argc, char **argv) {
     lf_opts.file_types_p = "";
     lf_opts.args[0] = nullptr;
     lf_opts.args[1] = nullptr;
-
     argp_parse(&argp, argc, argv, 0, 0, &lf_opts);
-
-    if (lf_opts.args[0] != nullptr) {
-        strncpy(dir, lf_opts.args[0], MAXLEN - 1);
-    } else {
+    if (lf_opts.argc > 0) {
+        if (is_directory(lf_opts.args[0])) {
+            strnz__cpy(dir, lf_opts.args[0], MAXLEN - 1);
+        } else {
+            if (is_valid_regex(lf_opts.args[0])) {
+                strnz__cpy(re, lf_opts.args[0], MAXLEN - 1);
+                lf_opts.flags |= LF_REGEX;
+            } else {
+                printf("arg1: '%s' is neither a directory nor a valid regex.\n",
+                       lf_opts.args[0]);
+            }
+        }
+    }
+    if (lf_opts.argc > 1) {
+        if (dir[0] == '\0' && is_directory(lf_opts.args[1])) {
+            strnz__cpy(dir, lf_opts.args[1], MAXLEN - 1);
+        } else {
+            if (re[0] == '\0' && is_valid_regex(lf_opts.args[1])) {
+                strnz__cpy(re, lf_opts.args[1], MAXLEN - 1);
+                lf_opts.flags |= LF_REGEX;
+            } else {
+                printf("arg2: '%s' is neither a directory nor a valid regex.\n",
+                       lf_opts.args[1]);
+            }
+        }
+    }
+    if (dir[0] == '\0')
         strncpy(dir, ".", MAXLEN - 1);
-    }
-    if (lf_opts.args[1] != nullptr) {
-        strncpy(re, lf_opts.args[1], MAXLEN - 1);
-        lf_opts.flags |= LF_REGEX;
-    } else {
-        strncpy(re, ".*", MAXLEN - 1);
-    }
-
     lf_find(dir, re, lf_opts.exclude_p, lf_opts.max_depth, lf_opts.flags);
     return true;
 }

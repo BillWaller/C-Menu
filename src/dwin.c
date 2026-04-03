@@ -1315,9 +1315,6 @@ int nf_error(int ec, char *s) {
     fprintf(stderr, "\n");
     return ec;
 }
-/** @brief Program terminated by user
-    @ingroup error_handling
-   */
 /** @brief Abnormal program termination
     @ingroup error_handling
     @param ec Exit code

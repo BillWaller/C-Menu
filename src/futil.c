@@ -67,6 +67,8 @@ bool verify_file(char *, int);
 bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
 size_t canonicalize_file_spec(char *);
+bool is_directory(const char *);
+bool is_valid_regex(const char *);
 size_t ssnprintf(char *, size_t, const char *, ...);
 size_t strnz__cpy(char *, const char *, size_t);
 size_t strnz__cat(char *, const char *, size_t);
@@ -80,7 +82,20 @@ String free_string(String);
 
 /** Global variables for error reporting */
 char errmsg[MAXLEN];
-
+typedef struct {
+    char fn[MAXLEN];
+    char em0[MAXLEN];
+    char em1[MAXLEN];
+    char em2[MAXLEN];
+    char em3[MAXLEN];
+} error_info_t;
+typedef struct {
+    char *src_name;
+    int src_line;
+} error_source_t;
+error_info_t error_info;
+error_source_t error_source;
+int wait_timer;
 /**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim
      @returns length of trimmed string */
@@ -1046,7 +1061,6 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     bool s_unknown;
     @endverbatim
 */
-
 bool lf_process(const char *base_path, regex_t *compiled_re,
                 regex_t *compiled_ere, int depth, int max_depth, int flags) {
     char tmp_str[MAXLEN];
@@ -1061,11 +1075,9 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     int f_suppress;
     bool suppress_hidden = flags & LF_ALL ? false : true;
     char bname[MAXLEN];
-
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
-        // base_name(bname, dir_st->d_name);
         strnz__cpy(bname, dir_st->d_name, MAXLEN - 1);
         if (bname[0] == '.' && bname[1] == '\0')
             continue;
@@ -1224,6 +1236,27 @@ size_t canonicalize_file_spec(char *spec) {
     strnz__cpy(spec, tmp_s, MAXLEN - 1);
     l = strlen(spec);
     return l;
+}
+/** @brief Checks if the given path is a directory
+    @ingroup utility_functions
+    @param path - path to check
+    @returns true if the path is a directory, false otherwise */
+bool is_directory(const char *path) {
+    struct stat statbuf;
+    if (stat(path, &statbuf) != 0) {
+        return false;
+    }
+    return S_ISDIR(statbuf.st_mode);
+}
+/** @brief Checks if the given regular expression pattern is valid
+    @ingroup utility_functions
+    @param pattern - regular expression pattern to check
+    @returns true if the pattern is valid, false otherwise */
+bool is_valid_regex(const char *pattern) {
+    regex_t regex;
+    int ret = regcomp(&regex, pattern, REG_EXTENDED);
+    regfree(&regex);
+    return (ret == 0);
 }
 /** @brief Replace all occurrences of "tgt_s" in "org_s" with "rep_s"
     @ingroup utility_functions
