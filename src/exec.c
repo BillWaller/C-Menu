@@ -151,6 +151,8 @@ int fork_exec(char **argv) {
         return (-1);
     case 0: // child
         restore_shell_tioctl();
+        wclear(stdscr);
+        wrefresh(stdscr);
         execvp(argv[0], argv);
         restore_curses_tioctl();
         sig_prog_mode();
