@@ -356,11 +356,11 @@ int pick_engine(Init *init) {
     if (rc)
         return (rc);
     /** Enter picker loop to handle user input and interactions */
+    pick->obj_idx = 0;
+    pick->x = 1;
     do {
         display_page(pick);
         reverse_object(pick);
-        pick->obj_idx = 0;
-        pick->x = 1;
         mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
         rc = picker(init);
         if (rc == -1)
