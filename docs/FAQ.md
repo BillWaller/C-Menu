@@ -137,7 +137,7 @@ It's not an unsolvable problem. Developers of embedded systems deal with such is
 
 Q: What is the icon for C-Menu?
 
-![C-Menu Icon](../screenshots/decision256.png)
+![C-Menu Icon](screenshots/decision256.png)
 
 A: I tried using the stylized C-Menu logo, but it is illegible at small sizes.
 At least temporarily, I am using the above image.
@@ -271,7 +271,7 @@ gradient of colors from red to green to blue. If you see a limited
 number of colors or a blocky gradient, your terminal may not support
 true color.
 
-![TrueColor](../screenshots/truecolor.png)
+![TrueColor](screenshots/truecolor.png)
 
 You can also check the COLORTERM environment variable by typing:
 
@@ -403,14 +403,14 @@ iconv -f CP437 -t UTF-8 inputfile.txt -o outputfile.txt
 
 The images below show, before, on the left, and after, on the right, using iconv.
 
-![Convert CP437 to Unicode](../screenshots/cp437_to_utf8.png)
+![Convert CP437 to Unicode](screenshots/cp437_to_utf8.png)
 
 As an interesting note, this also works for "less", which displays the
 decimal representation of the CP437 characters. This could be handy
 if you have been coding since the 1980s and recognize them as CP437
 line-drawing characters.
 
-![CP437 less](../screenshots/cp437-line-draw-less.png)
+![CP437 less](screenshots/cp437-line-draw-less.png)
 
 ---
 
@@ -455,7 +455,7 @@ man -Tutf8 bash | sed -f ~/menuapp/msrc/man.sed | view
 This will display the bash manual page with the specified colors in
 View.
 
-![View Manual Page](../screenshots/man-page.png)
+![View Manual Page](screenshots/man-page.png)
 
 ---
 
@@ -479,7 +479,7 @@ This will display the contents of yourfile.txt in View with the
 specified hexadecimal colors colorized. The image below shows before
 and after colorizing.
 
-![Colorizer](../screenshots/Colorizer.png)
+![Colorizer](screenshots/Colorizer.png)
 
 ---
 
@@ -493,7 +493,7 @@ foreground and background. You can also redefine the standard ANSI
 color palette in ~/.minitrc. When you exit Menu, your system colors
 revert to their previous state.
 
-![Menu Configuration File](../screenshots/minitrc.png)
+![Menu Configuration File](screenshots/minitrc.png)
 
 ## Menu, Form, Pick, and View API
 
@@ -554,7 +554,7 @@ Type the following command:
 tree-sitter highlight source-file | view
 ```
 
-![View - Tree-Sitter](../screenshots/tree-sitter1.png)
+![View - Tree-Sitter](screenshots/tree-sitter1.png)
 These instructions are admittedly sketchy and hard to follow. We will
 revise and clarify in the future.
 
@@ -574,7 +574,7 @@ value of the missing field and Menu Form will display it.
 First, create a form file named "~/menuapp/msrc/iloan.f" with the
 following contents:
 
-![Installment Loan Description File](../screenshots/iloan.f.png)
+![Installment Loan Description File](screenshots/iloan.f.png)
 
 Next, create a help file named "~/menuapp/help/iloan.hlp" with the following
 contents:
@@ -611,7 +611,7 @@ file when you exit the form.
 
 ## Menu - Using the Installment Loan Calculator
 
-![Installment Loan Calculator](../screenshots/iloan.png)
+![Installment Loan Calculator](screenshots/iloan.png)
 
 After you enter the three values, you will see an option "F(5)
 Calculate". Press F(5) to calculate the missing value. When the

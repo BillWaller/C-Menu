@@ -514,6 +514,8 @@ bool open_curses(SIO *sio) {
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
+    wbkgrnd(stdscr, &CCC_NORM);
+    wbkgrndset(stdscr, &CCC_NORM);
 #ifdef NCDEBUG
     immedok(stdscr, true);
 #endif
@@ -961,6 +963,8 @@ WINDOW *win_del() {
    signal to handle terminal resizing gracefully. */
 void restore_wins() {
     int i;
+    erase();
+    refresh();
     for (i = 0; i <= win_ptr; i++) {
         touchwin(win_box[i]);
         wnoutrefresh(win_box[i]);

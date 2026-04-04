@@ -138,13 +138,11 @@ int fork_exec(char **argv) {
     capture_curses_tioctl();
     curs_set(1);
     sig_dfl_mode();
-    restore_shell_tioctl();
 
     tmp_str[0] = '\0';
     pid = fork();
     switch (pid) {
     case -1: // parent fork failed
-        restore_curses_tioctl();
         sig_prog_mode();
         keypad(stdscr, true);
         ssnprintf(tmp_str, sizeof(tmp_str), "fork failed: %s, errno: %d",
@@ -187,13 +185,12 @@ int fork_exec(char **argv) {
         }
         break;
     }
-    touchwin(stdscr);
-    wnoutrefresh(stdscr);
-    restore_wins();
-    wrefresh(stdscr);
     restore_curses_tioctl();
     sig_prog_mode();
-    keypad(stdscr, true);
+    wclear(stdscr);
+    restore_wins();
+    wrefresh(stdscr);
+    tmp_str[0] = '\0';
     if (tmp_str[0] != '\0') {
         Perror(tmp_str);
     }

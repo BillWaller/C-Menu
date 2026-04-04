@@ -260,8 +260,8 @@ unsigned int menu_cmd_processor(Init *init) {
     case CT_EXEC:
         char *s;
         s = strpbrk(menu->line[menu->line_idx]->command_str, " \t\f\v");
-        trim(s);
         strnz__cpy(earg_str, s, MAXLEN - 1);
+        trim(earg_str);
         eargc = str_to_args(eargv, s, MAX_ARGS);
         full_screen_fork_exec(eargv);
         destroy_argv(eargc, eargv);

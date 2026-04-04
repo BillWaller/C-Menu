@@ -8,7 +8,7 @@
  */
 
 /** Terminal Handling
-    @ingroup screen_io
+    @defgroup screen_io Screen IO Support
     @brief Provides Terminal Settings for C-MENU Applications and Restores
     Terminal State on Exit
  */
