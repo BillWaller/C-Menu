@@ -4,6 +4,7 @@
 
 <!-- mtoc-start -->
 
+- [lf is fast, but I rely on find's features](#lf-is-fast-but-i-rely-on-finds-features)
 - [Can lf match files with multiple suffixes](#can-lf-match-files-with-multiple-suffixes)
 - [Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.](#drop-down-and-pop-up-menus-forms-pickers-views-ckeys-etc)
 - [Sorted lf Output](#sorted-lf-output)
@@ -36,6 +37,31 @@
 - [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
+
+## lf is fast, but I rely on find's features
+
+Q: I use find all the time to delete, move, and process files. find's -exec argument can apply any executable to found files. Does lf have something like that?
+
+A: Of course. "find"" uses the xargs utility to execute commands on its output,
+and xargs is available in the public domain. For example, you can use the following command to remove all files found with find:
+
+```bash
+find . -type f -exec rm -f {} \;
+```
+
+You can do the same thing with lf. Use the following command to delete all files found by lf:
+
+```bash
+lf -t f | xargs rm -f
+```
+
+You can also use xargs to apply any executable to the files found by lf. For example, you can use the following command to list all files found by lf in long format:
+
+```bash
+lf -t f | xargs ls -l
+```
+
+As always, the lf command is a little shorter than the equivalent find command because we don't like to punish you for using our software, and it is much faster. You can use xargs with lf to apply any executable to the files found by lf, just like you can with find.
 
 ## Can lf match files with multiple suffixes
 

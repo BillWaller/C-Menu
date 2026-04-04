@@ -24,6 +24,7 @@
 
 #define DEBUG false
 
+#define MAX_ARGS 64   /**< maximum number of arguments for external commands */
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
 #define SCR_COLS 1024 /**< maximum number of columns in the terminal screen */
@@ -119,6 +120,7 @@ enum LFFlags {
     LF_ICASE = 2,     /**<   2 Ignore case in search */
     LF_EXC_REGEX = 4, /**<   4 Exclude files matching regular expression */
     LF_REGEX = 8,     /**<   8 Include files matching regular expression */
+    LF_EXEC = 16,     /**<  16 Execute command each file */
 };
 
 enum FTypes {

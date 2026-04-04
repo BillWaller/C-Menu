@@ -34,7 +34,6 @@ static struct argp_option options[] = {
     {"f_all", 'a', 0, 0, "List hidden files", 0},
     {"max_depth", 'd', "number", 0, "Depth into directory", 0},
     {"exclude", 'e', "regex", 0, "Exclude regular expression", 0},
-    // {"help", 'h', 0, 0, "Display help", 0},
     {"f_ignore_case", 'i', 0, 0, "Search ignore case", 0},
     {"file_types", 't', "bcdplfsu", 0,
      "b - block device, c - character device,  d - directory, p - named pipe,  "
@@ -42,10 +41,10 @@ static struct argp_option options[] = {
      0},
     {0}};
 
-struct lf_opts {
+struct lf {
     bool f_all;
     int max_depth;
-    char *exclude_p;
+    char *exclude;
     bool f_ignore_case;
     int flags;
     char *file_types_p;
@@ -54,49 +53,49 @@ struct lf_opts {
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-    struct lf_opts *lf_opts = state->input;
+    struct lf *lf = state->input;
     int i = 0;
     switch (key) {
     case 'a':
-        lf_opts->flags |= LF_ALL;
+        lf->flags |= LF_ALL;
         break;
     case 'd':
-        lf_opts->max_depth = atoi(arg);
+        lf->max_depth = atoi(arg);
         break;
     case 'e':
-        lf_opts->exclude_p = arg;
-        lf_opts->flags |= LF_EXC_REGEX;
+        lf->exclude = arg;
+        lf->flags |= LF_EXC_REGEX;
         break;
     case 'i':
-        lf_opts->flags |= LF_ICASE;
+        lf->flags |= LF_ICASE;
         break;
     case 't':
-        lf_opts->file_types_p = arg;
-        while (lf_opts->file_types_p[i]) {
-            switch (lf_opts->file_types_p[i++]) {
+        lf->file_types_p = arg;
+        while (lf->file_types_p[i]) {
+            switch (lf->file_types_p[i++]) {
             case 'b':
-                lf_opts->flags |= FT_BLK << 8;
+                lf->flags |= FT_BLK << 8;
                 break;
             case 'c':
-                lf_opts->flags |= FT_CHR << 8;
+                lf->flags |= FT_CHR << 8;
                 break;
             case 'd':
-                lf_opts->flags |= FT_DIR << 8;
+                lf->flags |= FT_DIR << 8;
                 break;
             case 'p':
-                lf_opts->flags |= FT_FIFO << 8;
+                lf->flags |= FT_FIFO << 8;
                 break;
             case 'l':
-                lf_opts->flags |= FT_LNK << 8;
+                lf->flags |= FT_LNK << 8;
                 break;
             case 'f':
-                lf_opts->flags |= FT_REG << 8;
+                lf->flags |= FT_REG << 8;
                 break;
             case 's':
-                lf_opts->flags |= FT_SOCK << 8;
+                lf->flags |= FT_SOCK << 8;
                 break;
             case 'u':
-                lf_opts->flags |= FT_UNKNOWN << 8;
+                lf->flags |= FT_UNKNOWN << 8;
                 break;
             default:
                 break;
@@ -105,8 +104,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
-            lf_opts->args[state->arg_num] = arg;
-            lf_opts->argc = state->arg_num + 1;
+            lf->args[state->arg_num] = arg;
+            lf->argc = state->arg_num + 1;
         } else {
             argp_usage(state);
         }
@@ -127,43 +126,43 @@ int main(int argc, char **argv) {
     dir[0] = '\0';
     re[0] = '\0';
 
-    struct lf_opts lf_opts = {0};
-    lf_opts.f_all = false;
-    lf_opts.max_depth = 4;
-    lf_opts.exclude_p = "";
-    lf_opts.f_ignore_case = false;
-    lf_opts.file_types_p = "";
-    lf_opts.args[0] = nullptr;
-    lf_opts.args[1] = nullptr;
-    argp_parse(&argp, argc, argv, 0, 0, &lf_opts);
-    if (lf_opts.argc > 0) {
-        if (is_directory(lf_opts.args[0])) {
-            strnz__cpy(dir, lf_opts.args[0], MAXLEN - 1);
+    struct lf lf = {0};
+    lf.f_all = false;
+    lf.max_depth = 4;
+    lf.exclude = nullptr;
+    lf.f_ignore_case = false;
+    lf.file_types_p = 0;
+    lf.args[0] = nullptr;
+    lf.args[1] = nullptr;
+    argp_parse(&argp, argc, argv, 0, 0, &lf);
+    if (lf.argc > 0) {
+        if (is_directory(lf.args[0])) {
+            strnz__cpy(dir, lf.args[0], MAXLEN - 1);
         } else {
-            if (is_valid_regex(lf_opts.args[0])) {
-                strnz__cpy(re, lf_opts.args[0], MAXLEN - 1);
-                lf_opts.flags |= LF_REGEX;
+            if (is_valid_regex(lf.args[0])) {
+                strnz__cpy(re, lf.args[0], MAXLEN - 1);
+                lf.flags |= LF_REGEX;
             } else {
                 printf("arg1: '%s' is neither a directory nor a valid regex.\n",
-                       lf_opts.args[0]);
+                       lf.args[0]);
             }
         }
     }
-    if (lf_opts.argc > 1) {
-        if (dir[0] == '\0' && is_directory(lf_opts.args[1])) {
-            strnz__cpy(dir, lf_opts.args[1], MAXLEN - 1);
+    if (lf.argc > 1) {
+        if (dir[0] == '\0' && is_directory(lf.args[1])) {
+            strnz__cpy(dir, lf.args[1], MAXLEN - 1);
         } else {
-            if (re[0] == '\0' && is_valid_regex(lf_opts.args[1])) {
-                strnz__cpy(re, lf_opts.args[1], MAXLEN - 1);
-                lf_opts.flags |= LF_REGEX;
+            if (re[0] == '\0' && is_valid_regex(lf.args[1])) {
+                strnz__cpy(re, lf.args[1], MAXLEN - 1);
+                lf.flags |= LF_REGEX;
             } else {
                 printf("arg2: '%s' is neither a directory nor a valid regex.\n",
-                       lf_opts.args[1]);
+                       lf.args[1]);
             }
         }
     }
     if (dir[0] == '\0')
         strncpy(dir, ".", MAXLEN - 1);
-    lf_find(dir, re, lf_opts.exclude_p, lf_opts.max_depth, lf_opts.flags);
+    lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags);
     return true;
 }

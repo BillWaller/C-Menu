@@ -27,7 +27,6 @@
 #define MAX_WIDE_LEN 1024
 #define COLOR_LEN 8
 #define PICK_MAX_ARG_LEN 256
-#define MAX_ARGS 64
 #define MAX_PICK_OBJS 1024
 #define ACCEPT_PROMPT_CHAR '_'
 

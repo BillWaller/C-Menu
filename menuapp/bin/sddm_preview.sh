@@ -20,9 +20,8 @@
 
 U=$(id -un)
 G=$(id -gn)
-bkgd_dir="/usr/share/sddm/themes/sddm-corporate-theme/Backgrounds"
-rsh -c "chown -R $U:$G $bkgd_dir"
-cd "$bkgd_dir"
-for bg in $(lf -e '.*default\.png$' . '.*\.png$' | sort); do
-    echo $(basename "$bg")
+preview_dir="/usr/share/sddm/themes/sddm-corporate-theme/Previews"
+cd "$preview_dir"
+for preview in $(lf -e '.*default\.png$' . '.*\.png$' | sort); do
+    sxiv -g 930x540 $(basename "$preview") &
 done

@@ -2,14 +2,25 @@ cmake_minimum_required(VERSION 4.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(RSH_LD $ENV{RSH_LD})
-set(CMAKE_BUILD_TYPE "Debug")
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "Setting build type to 'Release' as none was specified.")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+    # Set the possible values for cmake-gui
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+"MinSizeRel" "RelWithDebInfo")
+endif()
+
 set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/menuapp" CACHE PATH "Install path prefix"
 FORCE)
+
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 project(CMenu
     VERSION 0.2.9
     LANGUAGES C
 )
+
 set(CMAKE_C_FLAGS "-Wall -Wextra")
 
 set(CMAKE_SKIP_BUILD_RPATH FALSE)

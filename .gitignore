@@ -27,5 +27,6 @@ src/libcm.so
 src/manifest.ls
 src/manifest.txt
 src/rsh
+build/.cmake
 x
 xx

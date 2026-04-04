@@ -293,7 +293,7 @@ void compile_chyron(Chyron *chyron) {
     int end_pos = 0;
     int k = 0;
     int pos = 0;
-    int cp;
+    int cp = cp_reverse;
     cchar_t *cx;
     while (k < CHYRON_KEYS) {
         if (chyron->key[k]->text[0] == '\0') {
@@ -317,8 +317,6 @@ void compile_chyron(Chyron *chyron) {
         chyron->key[k]->end_pos = end_pos;
         k++;
     }
-    if (cp == 0)
-        cp = cp_reverse;
     mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
     chyron->l = end_pos;
 }

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-lf -d 3 . '.*\.(h|c|rs)$' | sort
+lf -d 5 . '.*\.(h|c|rs|sh|cpp)$' | sort
