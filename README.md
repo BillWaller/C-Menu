@@ -1,5 +1,7 @@
 # A User Interface Toolkit
 
+![**_NEW_** Performance: lf vs find](screenshots/lf-vs-find.png)
+
 [**_NEW_** C-Menu Form In Depth](docs/C-Menu-UG.md)
 
 ![C-Menu Form](screenshots/iloan.png)

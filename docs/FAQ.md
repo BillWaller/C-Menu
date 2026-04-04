@@ -82,53 +82,6 @@ find . -maxdepth 5 \( -name "*.[ch]" -o -name "*.cpp" -o -name "*.rs" -o -name "
 
 Once you get the hang of using regular expressions, you will find that they are more powerful and flexible than the options provided by find. Regular expressions allow you to match complex patterns in file names, and lf allows you to include or exclude (with the -e option) specific patterns as needed. Arguably, regular expressions are more intuitive and easier to read than the complex syntax of find when it comes to matching multiple patterns.
 
-To confirm that the output of both commands is the same, you can use the following command:
-
-```bash
-diff lf.out find.out
-echo $?
-0
-```
-
-**_Voilà_**, they match perfectly. You can use regular expressions with lf to match files with multiple suffixes, and it provides a more powerful and flexible way to search for files compared to find. Less typing, more power, and more fun!
-
-You may be wondering how lf stacks up against find in performance. To make the
-test more realistic (so we aren't dealing with 10s of milliseconds, I increased
-the depth to 6 on both. Here are the results:)
-
-```bash
-time find . -maxdepth 6 \( -name "*.[ch]" -o -name "*.cpp" -o -name "*.rs" -o
--name "*.sh" \) | sed 's/^\.\//' | sort >find.out
-real    0m0.589s
-user    0m0.440s
-sys     0m0.151s
-total   0.0.1280s
-
-time lf -a -d 6 . '.*\.[ch]|cpp|rs|sh]$' | sort >lf.out
-real    0m0.351s
-user    0m0.237s
-sys     0m0.111s
-total   0m0.699s
-```
-
-The find executable is actually very small at about 207 KB, but lf is even smaller at
-only about 20 KB. The performance of lf is about 2x faster than find, and it uses a fraction of the memory. That's what you call bang-for-the-buck.
-
-And, if lf needs to perform even faster, we can always go concurrent with multiple threads or processes, but that is a topic for another day.
-
-Here's another example of using regular expressions with lf to match files with multiple suffixes:
-
-```bash
-lf -d 5 . '.*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$' | sort > lf.out
-```
-
-Or, you could use find with the following command:
-
-```bash
-$ time find . -maxdepth 5 \( -name "*.rs" -o -name "*.c" -o -name "*.h" -o -name "*.sh" -o -name "*.lua" -o -name "*.py" -o -name "*.cpp" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) | sed 's/^\.\//' | sort >find.out
-```
-
-With all of its options, find is known for being persnickety. Get something out of order and it complains, and refuses to run until you figure out how you displeased it. lf, on the other hand, is designed to be simple, intuitive, and agreeable. Get the directory and regular expression backwards, no problem. lf is smart enough to figure it out - no complaining, no hissy fits, it's just happy to help you find your files.
 🐸
 
 ## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
