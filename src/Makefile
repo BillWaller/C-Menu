@@ -80,6 +80,8 @@ CFLAGS=-O0 -ggdb -rdynamic
 # This will cause the screen to update immediately after each change, which can be helpful for debugging screen drawing issues. However, it may also cause performance issues, so it is not recommended for production builds.
 CFLAGS=-O0 -ggdb -rdynamic -DNCDEBUG
 #
+# Uncomment the following line to enable coverage.
+# CFLAGS=--coverage -O0 -ggdb -rdynamic -DNCDEBUG
 # There should be no need to edit below this line unless you are developing 
 # C-Menu.
 #
@@ -189,7 +191,7 @@ clean:
 	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.a \
 		libcm.so *.cflow scan-build scan-build.out $(LIB_SHARED) \
 		CMenu.conf x xx xxx *.out .user_id .group_id manifest.txt \
-		manifest.ls valgrind.*
+		manifest.ls valgrind.* *.gc..
 
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)
