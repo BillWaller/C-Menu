@@ -21,6 +21,14 @@
 U=$(id -un)
 G=$(id -gn)
 preview_dir="/usr/share/sddm/themes/sddm-corporate-theme/Previews"
+if [ ! -d "$preview_dir" ]; then
+    echo "$0 can't find Preview directory: $preview_dir"
+    echo "You must have sddm-corporate-theme installed to use this script."
+    echo "Download from:"
+    echo https://github.com/BillWaller/sddm-corporate-theme.git
+    enterchr "Press any key to continue..."
+    exit 1
+fi
 cd "$preview_dir"
 for preview in $(lf -e '.*default\.png$' . '.*\.png$' | sort); do
     sxiv -g 930x540 $(basename "$preview") &

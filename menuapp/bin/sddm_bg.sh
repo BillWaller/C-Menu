@@ -21,6 +21,14 @@
 U=$(id -un)
 G=$(id -gn)
 bkgd_dir="/usr/share/sddm/themes/sddm-corporate-theme/Backgrounds"
+if [ ! -d "$bkgd_dir" ]; then
+    echo "$0 can't find Background directory: $bkgd_dir"
+    echo "You must have sddm-corporate-theme installed to use this script."
+    echo "Download from:"
+    echo https://github.com/BillWaller/sddm-corporate-theme.git
+    enterchr "Press any key to continue..."
+    exit 1
+fi
 rsh -c "chown -R $U:$G $bkgd_dir"
 cd "$bkgd_dir"
 for bg in $(lf -e '.*default\.png$' . '.*\.png$' | sort); do

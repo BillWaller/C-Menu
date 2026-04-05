@@ -1,5 +1,7 @@
 :   WORKSTATION CONFIGURATION
 :
+:   View SDDM Previews
+!exec sddm_preview.sh
 :   Select SDDM Background
 !pick -n 1 -T "Select SDDM Background" -S sddm_bg.sh -c "sddm_chbg.sh %%"
 :   Select Ghostty Font

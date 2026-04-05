@@ -173,7 +173,12 @@ enum FTypes {
     static void end_pgm(void) {                                                \
         curs_set(1);                                                           \
         win_del();                                                             \
+        wbkgrnd(stdscr, &CCC_NORM);                                            \
+        wbkgrndset(stdscr, &CCC_NORM);                                         \
+        wclear(stdscr);                                                        \
+        wrefresh(stdscr);                                                      \
         destroy_curses();                                                      \
+        printf("\033[H\033[2J");                                               \
         restore_shell_tioctl();                                                \
         sig_dfl_mode();                                                        \
         exit(EXIT_FAILURE);                                                    \

@@ -1,11 +1,11 @@
 :                APPLICATIONS
 #
 :     Neovim
-!exec nvim
+!exec nvim.sh
 :     Root Neovim
-!exec rsh -c nvim
+!exec rsh -c nvim.sh
 :     Full Screen (root) Shell
-!exec rsh -c "clear; bash"
+!exec rsh -c xsh
 :   Workstation Configuration
 !menu workstation_config.m
 :   Diagnostic Tools

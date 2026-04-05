@@ -151,8 +151,8 @@ int fork_exec(char **argv) {
         return (-1);
     case 0: // child
         restore_shell_tioctl();
-        wclear(stdscr);
-        wrefresh(stdscr);
+        // wclear(stdscr);
+        // wrefresh(stdscr);
         execvp(argv[0], argv);
         restore_curses_tioctl();
         sig_prog_mode();
@@ -189,9 +189,7 @@ int fork_exec(char **argv) {
     }
     restore_curses_tioctl();
     sig_prog_mode();
-    wclear(stdscr);
     restore_wins();
-    wrefresh(stdscr);
     tmp_str[0] = '\0';
     if (tmp_str[0] != '\0') {
         Perror(tmp_str);
