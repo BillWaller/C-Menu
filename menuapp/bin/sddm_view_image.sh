@@ -13,7 +13,8 @@ U=$(id -un)
 G=$(id -gn)
 preview_dir="/usr/share/sddm/themes/sddm-corporate-theme/Backgrounds"
 if [ ! -d "$preview_dir" ]; then
-    echo "$0 can't find Preview directory: $preview_dir"
+    echo "$0"
+    echo "can't find Preview directory: $preview_dir"
     echo "You must have sddm-corporate-theme installed to use this script."
     echo "Download from:"
     echo https://github.com/BillWaller/sddm-corporate-theme.git
