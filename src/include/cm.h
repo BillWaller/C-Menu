@@ -45,19 +45,19 @@
    evaluations.
  */
 #define max(a, b)                                                              \
-    ({                                                                         \
-        typeof(a) _a = (a);                                                    \
-        typeof(b) _b = (b);                                                    \
-        _a > _b ? _a : _b;                                                     \
-    })
+  ({                                                                           \
+    typeof(a) _a = (a);                                                        \
+    typeof(b) _b = (b);                                                        \
+    _a > _b ? _a : _b;                                                         \
+  })
 /** @brief min macro evaluates two expressions, returning least result */
 #define min(x, y)                                                              \
-    ({                                                                         \
-        typeof(x) _x = (x);                                                    \
-        typeof(y) _y = (y);                                                    \
-        (void)(&_x == &_y);                                                    \
-        _x < _y ? _x : _y;                                                     \
-    })
+  ({                                                                           \
+    typeof(x) _x = (x);                                                        \
+    typeof(y) _y = (y);                                                        \
+    (void)(&_x == &_y);                                                        \
+    _x < _y ? _x : _y;                                                         \
+  })
 /** @note /usr/include/sys/param.h contains implementations of the MIN and MAX
    macros, which are simple but can lead to issues with multiple evaluations of
    the arguments if they have side effects.
@@ -75,22 +75,22 @@
     @note The following macro provides a safer alternative to param.h
  */
 #define MAX(a, b)                                                              \
-    ({                                                                         \
-        typeof(a) _a = (a);                                                    \
-        typeof(b) _b = (b);                                                    \
-        _a > _b ? _a : _b;                                                     \
-    })
+  ({                                                                           \
+    typeof(a) _a = (a);                                                        \
+    typeof(b) _b = (b);                                                        \
+    _a > _b ? _a : _b;                                                         \
+  })
 /** @brief MAX macro for compatibility with code that uses the same name,
    while avoiding multiple evaluations of the arguments.
     @note The following macro provides a safer alternative to param.h
  */
 #define MIN(x, y)                                                              \
-    ({                                                                         \
-        typeof(x) _x = (x);                                                    \
-        typeof(y) _y = (y);                                                    \
-        (void)(&_x == &_y);                                                    \
-        _x < _y ? _x : _y;                                                     \
-    })
+  ({                                                                           \
+    typeof(x) _x = (x);                                                        \
+    typeof(y) _y = (y);                                                        \
+    (void)(&_x == &_y);                                                        \
+    _x < _y ? _x : _y;                                                         \
+  })
 /** @brief ABS macro for absolute value, which evaluates the expression once and
    returns the absolute value.
     @note This macro uses a compound statement to create a local scope for the
@@ -100,38 +100,38 @@
    any data type that supports comparison with zero and negation.
  */
 #define ABS(x)                                                                 \
-    ({                                                                         \
-        __typeof__(x) _a = (x);                                                \
-        _a < 0 ? -_a : _a;                                                     \
-    })
+  ({                                                                           \
+    __typeof__(x) _a = (x);                                                    \
+    _a < 0 ? -_a : _a;                                                         \
+  })
 #define S_TOLOWER(c)                                                           \
-    ({                                                                         \
-        int __c = (c);                                                         \
-        (__c >= 'A' && __c <= 'Z') ? (__c + ('a' - 'A')) : __c;                \
-    })
+  ({                                                                           \
+    int __c = (c);                                                             \
+    (__c >= 'A' && __c <= 'Z') ? (__c + ('a' - 'A')) : __c;                    \
+  })
 #define S_TOUPPER(c)                                                           \
-    ({                                                                         \
-        int __c = (c);                                                         \
-        (__c >= 'a' && __c <= 'z') ? (__c - ('a' - 'A')) : __c;                \
-    })
+  ({                                                                           \
+    int __c = (c);                                                             \
+    (__c >= 'a' && __c <= 'z') ? (__c - ('a' - 'A')) : __c;                    \
+  })
 
 enum LFFlags {
-    LF_ALL = 1,       /**<   1 List all files including hidden files */
-    LF_ICASE = 2,     /**<   2 Ignore case in search */
-    LF_EXC_REGEX = 4, /**<   4 Exclude files matching regular expression */
-    LF_REGEX = 8,     /**<   8 Include files matching regular expression */
-    LF_EXEC = 16,     /**<  16 Execute command each file */
+  LF_ALL = 1,       /**<   1 List all files including hidden files */
+  LF_ICASE = 2,     /**<   2 Ignore case in search */
+  LF_EXC_REGEX = 4, /**<   4 Exclude files matching regular expression */
+  LF_REGEX = 8,     /**<   8 Include files matching regular expression */
+  LF_EXEC = 16,     /**<  16 Execute command each file */
 };
 
 enum FTypes {
-    FT_BLK = 1,       /** b00000001 */
-    FT_CHR = 2,       /** b00000010 */
-    FT_DIR = 4,       /** b00000100 */
-    FT_FIFO = 8,      /** b00001000 */
-    FT_LNK = 16,      /** b00010000 */
-    FT_REG = 32,      /** b00100000 */
-    FT_SOCK = 64,     /** b01000000 */
-    FT_UNKNOWN = 128, /** b10000000 */
+  FT_BLK = 1,       /** b00000001 */
+  FT_CHR = 2,       /** b00000010 */
+  FT_DIR = 4,       /** b00000100 */
+  FT_FIFO = 8,      /** b00001000 */
+  FT_LNK = 16,      /** b00010000 */
+  FT_REG = 32,      /** b00100000 */
+  FT_SOCK = 64,     /** b01000000 */
+  FT_UNKNOWN = 128, /** b10000000 */
 };
 /**
                       Include     Exclude
@@ -170,19 +170,21 @@ enum FTypes {
    terminal is properly cleaned up and restored, preventing any issues with the
    terminal state after the program has exited. */
 #define __end_pgm                                                              \
-    static void end_pgm(void) {                                                \
-        curs_set(1);                                                           \
-        win_del();                                                             \
-        wbkgrnd(stdscr, &CCC_NORM);                                            \
-        wbkgrndset(stdscr, &CCC_NORM);                                         \
-        wclear(stdscr);                                                        \
-        wrefresh(stdscr);                                                      \
-        destroy_curses();                                                      \
-        printf("\033[H\033[2J");                                               \
-        restore_shell_tioctl();                                                \
-        sig_dfl_mode();                                                        \
-        exit(EXIT_FAILURE);                                                    \
-    }
+  static void end_pgm(void) {                                                  \
+    curs_set(1);                                                               \
+    win_del();                                                                 \
+    destroy_curses();                                                          \
+    restore_shell_tioctl();                                                    \
+    sig_dfl_mode();                                                            \
+    exit(EXIT_SUCCESS);                                                        \
+  }
+/* wclear(stdscr);
+wbkgrnd(stdscr, &CCC_NORM);
+wbkgrndset(stdscr, &CCC_NORM);
+wrefresh(stdscr);
+    printf("\033[H\033[2J");
+
+*/
 /** @brief This macro registers the end_pgm function to be called when the
    program exits.
     @note It checks the return value of atexit() to ensure that the
@@ -193,14 +195,14 @@ enum FTypes {
     restored to its original state, even if the program encounters an error or
     is terminated unexpectedly. */
 #define __atexit                                                               \
-    {                                                                          \
-        int rc;                                                                \
-        rc = atexit(end_pgm);                                                  \
-        if (rc != 0) {                                                         \
-            fprintf(stderr, "\nCannot set exit function\n");                   \
-            exit(EXIT_FAILURE);                                                \
-        }                                                                      \
-    }
+  {                                                                            \
+    int rc;                                                                    \
+    rc = atexit(end_pgm);                                                      \
+    if (rc != 0) {                                                             \
+      fprintf(stderr, "\nCannot set exit function\n");                         \
+      exit(EXIT_FAILURE);                                                      \
+    }                                                                          \
+  }
 
 /** @struct Chyron
     @note The Chyron structure represents a key binding for a command in the
@@ -226,23 +228,23 @@ enum FTypes {
    mouse click.
  */
 #define CHYRON_KEY_MAXLEN                                                      \
-    64                 /**< maximum length of the command text for a key       \
+  64                   /**< maximum length of the command text for a key       \
                           binding in the chyron */
 #define CHYRON_KEYS 20 /**< maximum number of key bindings for the chyron */
 
 typedef struct {
-    char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code
-                                   */
-    int keycode;                  /**< key code associated with the command */
-    int end_pos; /**< end position of the command text in the chyron */
-    int cp;      /**< color pair index for the command text in the chyron */
+  char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code
+                                 */
+  int keycode;                  /**< key code associated with the command */
+  int end_pos; /**< end position of the command text in the chyron */
+  int cp;      /**< color pair index for the command text in the chyron */
 } ChyronKey;
 
 typedef struct {
-    ChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
-    char s[MAXLEN]; /**< the chyron string, for displaying messages in */
-    cchar_t cmplx_buf[MAXLEN]; /**< the chyron wide character string */
-    int l; /**< length of the chyron string, for display purposes */
+  ChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
+  char s[MAXLEN]; /**< the chyron string, for displaying messages in */
+  cchar_t cmplx_buf[MAXLEN]; /**< the chyron wide character string */
+  int l; /**< length of the chyron string, for display purposes */
 } Chyron;
 
 extern int xwgetch(WINDOW *, Chyron *, int);
@@ -264,9 +266,9 @@ extern unsigned int cmd_key; /**< the command key for the current command, for
                                 error messages and other output */
 /** @struct RGB */
 typedef struct {
-    int r; /**< red component (0-255) */
-    int g; /**< green component (0-255) */
-    int b; /**< blue component (0-255) */
+  int r; /**< red component (0-255) */
+  int g; /**< green component (0-255) */
+  int b; /**< blue component (0-255) */
 } RGB;
 
 #define FG_COLOR 2    /**< default foreground color */
@@ -300,9 +302,9 @@ extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
   of the different color pairs you have defined and apply them to various
   elements in your terminal interface. */
 typedef struct {
-    int fg;      /**< foreground color index */
-    int bg;      /**< background color index */
-    int pair_id; /**< color pair index */
+  int fg;      /**< foreground color index */
+  int bg;      /**< background color index */
+  int pair_id; /**< color pair index */
 } ColorPair;
 
 /**< see termios.h */
@@ -516,12 +518,12 @@ extern int
                 position in the window for displaying text or other content. */
 /** to_uppercase(c) - convert a lowercase letter to uppercase */
 #define to_uppercase(c)                                                        \
-    if (c >= 'a' && c <= 'z')                                                  \
-    c -= ' '
+  if (c >= 'a' && c <= 'z')                                                    \
+  c -= ' '
 /** to_lowercase(c) - convert an uppercase letter to lowercase */
 #define to_lowercase(c)                                                        \
-    if (c >= 'A' && c <= 'Z')                                                  \
-    c += ' '
+  if (c >= 'A' && c <= 'Z')                                                    \
+  c += ' '
 extern int eargc; /**< general use argument count, for external commands or
                      error messages */
 /** earg - general use argument string */
@@ -566,23 +568,23 @@ extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
    @brief The Arg structure represents a string argument with a pointer to the
    string and its allocated length. */
 typedef struct {
-    char *s;  /**< pointer to the string argument */
-    size_t l; /**< allocated length */
+  char *s;  /**< pointer to the string argument */
+  size_t l; /**< allocated length */
 } Arg;
 /** @struct Argv
    @brief The Argv structure represents an argument vector, which is an array of
    Arg structures, along with the number of allocated elements in the array. */
 typedef struct {
-    Arg **v; /**< pointer to an array of Arg pointers, representing the argument
-                vector */
-    size_t n; /**< allocated array elements */
+  Arg **v;  /**< pointer to an array of Arg pointers, representing the argument
+               vector */
+  size_t n; /**< allocated array elements */
 } Argv;
 /** @struct String
     @brief The String structure represents a string object with a pointer to the
    string and its allocated length. */
 typedef struct {
-    char *s;  /**< pointer to the string */
-    size_t l; /**< allocated length */
+  char *s;  /**< pointer to the string */
+  size_t l; /**< allocated length */
 } String;
 /** @struct WCStr
    @brief wide character string object with a pointer to the wide character
@@ -590,8 +592,8 @@ typedef struct {
    @note The WCStr structure represents a wide character string with a pointer
    to the wide character string and its allocated length. */
 typedef struct {
-    wchar_t *s; /**< pointer to the wide character string */
-    size_t l;   /**< @brief allocated length */
+  wchar_t *s; /**< pointer to the wide character string */
+  size_t l;   /**< @brief allocated length */
 } WCStr;
 /** @struct CCStr
    @brief complex character objectl with a pointer to the complex character
@@ -602,13 +604,13 @@ typedef struct {
    to the complex character string and its allocated length, allowing for
    dynamic handling of complex character strings in the terminal interface. */
 typedef struct {
-    cchar_t *s; /**< pointer to the complex character string */
-    size_t l;   /**< allocated length */
+  cchar_t *s; /**< pointer to the complex character string */
+  size_t l;   /**< allocated length */
 } CCStr;
 /** simple macro to convert a character to uppercase */
 #define to_uppercase(c)                                                        \
-    if (c >= 'a' && c <= 'z')                                                  \
-    c -= ' '
+  if (c >= 'a' && c <= 'z')                                                    \
+  c -= ' '
 /** @struct SIO
     @brief The SIO structure encapsulates various aspects of the terminal's
    state and configuration, including color management, file pointers, and
@@ -623,58 +625,58 @@ typedef struct {
    of the terminal device. This comprehensive structure allows for efficient
    management of the terminal's state and configuration in a structured way. */
 typedef struct {
-    double red_gamma;            /**< red gamma correction value */
-    double green_gamma;          /**< green gamma correction value */
-    double blue_gamma;           /**< blue gamma correction value */
-    double gray_gamma;           /**< gray gamma correction value */
-    char black[COLOR_LEN];       /**< color code for black */
-    char red[COLOR_LEN];         /**< color code for red */
-    char green[COLOR_LEN];       /**< color code for green */
-    char yellow[COLOR_LEN];      /**< color code for yellow */
-    char blue[COLOR_LEN];        /**< color code for blue */
-    char magenta[COLOR_LEN];     /**< color code for magenta */
-    char cyan[COLOR_LEN];        /**< color code for cyan */
-    char white[COLOR_LEN];       /**< color code for white */
-    char orange[COLOR_LEN];      /**< color code for orange */
-    char bblack[COLOR_LEN];      /**< color code for bold black */
-    char bred[COLOR_LEN];        /**< color code for bold red */
-    char bgreen[COLOR_LEN];      /**< color code for bold green */
-    char byellow[COLOR_LEN];     /**< color code for bold yellow */
-    char bblue[COLOR_LEN];       /**< color code for bold blue */
-    char bmagenta[COLOR_LEN];    /**< color code for bold magenta */
-    char bcyan[COLOR_LEN];       /**< color code for bold cyan */
-    char bwhite[COLOR_LEN];      /**< color code for bold white */
-    char borange[COLOR_LEN];     /**< color code for bold orange */
-    char bg[COLOR_LEN];          /**< color code for background */
-    char abg[COLOR_LEN];         /**< color code for background with alpha */
-    char fg_clr_x[COLOR_LEN];    /**< foreground color index */
-    char bg_clr_x[COLOR_LEN];    /**< background color index */
-    char bo_clr_x[COLOR_LEN];    /**< bold color index */
-    char ln_clr_x[COLOR_LEN];    /**< line number color index */
-    char ln_bg_clr_x[COLOR_LEN]; /**< line number background index */
-    char tty_name[MAXLEN];       /**< name of the terminal device */
-    FILE *stdin_fp;              /**< stdin stream pointer */
-    FILE *stdout_fp;             /**< stdout stream pointer */
-    FILE *stderr_fp;             /**< stderr stream pointer */
-    FILE *tty_fp;                /**< terminal device stream pointer */
-    int stdin_fd;                /**< stdin file descriptor */
-    int stdout_fd;               /**< stdout file descriptor */
-    int stderr_fd;               /**< stderr file descriptor */
-    int tty_fd;                  /**< terminal device file descriptor */
-    int clr_cnt;                 /**< number of colors currently in use */
-    int clr_pair_cnt;            /**< number of color pairs currently in use */
-    int clr_idx;                 /**< current color index */
-    int clr_pair_idx;            /**< current color pair index */
-    int cp_default;              /**< default color pair index */
-    int cp_norm;                 /**< normal color pair index */
-    int cp_reverse;              /**< reverse color pair index */
-    int cp_reverse_highlight;    /**< reverse highlight color pair index */
-    int cp_box;                  /**< box color pair index */
-    int cp_bold;                 /**< bold color pair index */
-    int cp_title;                /**< title color pair index */
-    int cp_highlight;            /**< highlight color pair index */
-    int cp_ln;                   /**< line number color pair index */
-    int cp_ln_bg;                /**< line number background pair index */
+  double red_gamma;            /**< red gamma correction value */
+  double green_gamma;          /**< green gamma correction value */
+  double blue_gamma;           /**< blue gamma correction value */
+  double gray_gamma;           /**< gray gamma correction value */
+  char black[COLOR_LEN];       /**< color code for black */
+  char red[COLOR_LEN];         /**< color code for red */
+  char green[COLOR_LEN];       /**< color code for green */
+  char yellow[COLOR_LEN];      /**< color code for yellow */
+  char blue[COLOR_LEN];        /**< color code for blue */
+  char magenta[COLOR_LEN];     /**< color code for magenta */
+  char cyan[COLOR_LEN];        /**< color code for cyan */
+  char white[COLOR_LEN];       /**< color code for white */
+  char orange[COLOR_LEN];      /**< color code for orange */
+  char bblack[COLOR_LEN];      /**< color code for bold black */
+  char bred[COLOR_LEN];        /**< color code for bold red */
+  char bgreen[COLOR_LEN];      /**< color code for bold green */
+  char byellow[COLOR_LEN];     /**< color code for bold yellow */
+  char bblue[COLOR_LEN];       /**< color code for bold blue */
+  char bmagenta[COLOR_LEN];    /**< color code for bold magenta */
+  char bcyan[COLOR_LEN];       /**< color code for bold cyan */
+  char bwhite[COLOR_LEN];      /**< color code for bold white */
+  char borange[COLOR_LEN];     /**< color code for bold orange */
+  char bg[COLOR_LEN];          /**< color code for background */
+  char abg[COLOR_LEN];         /**< color code for background with alpha */
+  char fg_clr_x[COLOR_LEN];    /**< foreground color index */
+  char bg_clr_x[COLOR_LEN];    /**< background color index */
+  char bo_clr_x[COLOR_LEN];    /**< bold color index */
+  char ln_clr_x[COLOR_LEN];    /**< line number color index */
+  char ln_bg_clr_x[COLOR_LEN]; /**< line number background index */
+  char tty_name[MAXLEN];       /**< name of the terminal device */
+  FILE *stdin_fp;              /**< stdin stream pointer */
+  FILE *stdout_fp;             /**< stdout stream pointer */
+  FILE *stderr_fp;             /**< stderr stream pointer */
+  FILE *tty_fp;                /**< terminal device stream pointer */
+  int stdin_fd;                /**< stdin file descriptor */
+  int stdout_fd;               /**< stdout file descriptor */
+  int stderr_fd;               /**< stderr file descriptor */
+  int tty_fd;                  /**< terminal device file descriptor */
+  int clr_cnt;                 /**< number of colors currently in use */
+  int clr_pair_cnt;            /**< number of color pairs currently in use */
+  int clr_idx;                 /**< current color index */
+  int clr_pair_idx;            /**< current color pair index */
+  int cp_default;              /**< default color pair index */
+  int cp_norm;                 /**< normal color pair index */
+  int cp_reverse;              /**< reverse color pair index */
+  int cp_reverse_highlight;    /**< reverse highlight color pair index */
+  int cp_box;                  /**< box color pair index */
+  int cp_bold;                 /**< bold color pair index */
+  int cp_title;                /**< title color pair index */
+  int cp_highlight;            /**< highlight color pair index */
+  int cp_ln;                   /**< line number color pair index */
+  int cp_ln_bg;                /**< line number background pair index */
 } SIO;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);

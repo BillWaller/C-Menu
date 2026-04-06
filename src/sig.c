@@ -104,11 +104,10 @@ void signal_handler(int sig_num) {
         sig_received = SIGQUIT;
         break;
     case SIGSEGV:
-        tcsetattr(0, TCSANOW, &shell_tioctl);
+        set_sane_tioctl(&shell_tioctl);
         char *msg1 = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
         write(STDERR_FILENO, msg1, strlen(msg1));
-        char *msg2 = "________ SIGSEGV - Segmentation fault - Generating core "
-                     "dump ________\n\n";
+        char *msg2 = "SIGSEGV - Segmentation fault - Stack trace\n\n";
         write(STDERR_FILENO, msg2, strlen(msg2));
         void *addrlist[MAX_FRAMES];
         char **symbols;
@@ -125,6 +124,8 @@ void signal_handler(int sig_num) {
             write(STDERR_FILENO, buf, strlen(buf));
         }
         free(symbols);
+        msg2 = "\nSIGSEGV Segmentation fault - Writing core to file\n\n";
+        write(STDERR_FILENO, msg2, strlen(msg2));
         struct sigaction sa;
         sa.sa_handler = SIG_DFL;
         sigemptyset(&sa.sa_mask);

@@ -22,18 +22,11 @@ typedef struct Init Init;
 enum { MT_NULL = 0x320, MT_TEXT, MT_CHOICE };
 
 /**< Menu Action types */
-enum {
-    MA_INIT = 350,
-    MA_RETURN,
-    MA_RETURN_MAIN,
-    MA_DISPLAY_MENU,
-    MA_ENTER_OPTION
-};
+enum { MA_NEW = 350, MA_RETURN, MA_DISPLAY_MENU, MA_RESET_MENU, MA_CONTINUE };
 
 /**< Menu command types */
 enum {
     CT_NULL = 0x396,
-    CT_RETURNMAIN,
     CT_EXEC,
     CT_HELP,
     CT_ABOUT,

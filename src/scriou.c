@@ -89,7 +89,7 @@ bool set_sane_tioctl(struct termios *t_p) {
     t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
                       IGNCR | ICRNL | IXON | IXOFF);
     t_p->c_iflag |= IUTF8;
-    t_p->c_oflag |= OPOST | OCRNL;
+    t_p->c_oflag |= OPOST | ONLCR;
     t_p->c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN);
     t_p->c_lflag |= (ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK);
     t_p->c_cflag &= ~(CSIZE | PARENB);

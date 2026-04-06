@@ -38,70 +38,80 @@ unsigned int menu_engine(Init *init) {
     int action;
     int i;
     char tmp_str[MAXLEN];
-
     Menu *menu = init->menu;
     if (menu == nullptr) {
         Perror("menu_engine: menu is nullptr");
         return (1);
     }
-    action = MA_INIT;
-    while (action == MA_INIT) {
-        action = MA_DISPLAY_MENU;
-        if (win_new(menu->lines, menu->cols, menu->begy, menu->begx,
-                    menu->title, 0)) {
-            ssnprintf(tmp_str, MAXLEN - 1,
-                      "win_new(%d, %d, %d, %d, %s, %b) failed", menu->lines,
-                      menu->cols, menu->begy, menu->begx, menu->title, 0);
-            Perror(tmp_str);
-            return (1);
-        }
-        menu->win = win_win[win_ptr];
-        menu->box = win_box[win_ptr];
-        while (action == MA_DISPLAY_MENU) {
+    if (win_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title,
+                0)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
+                  menu->lines, menu->cols, menu->begy, menu->begx, menu->title,
+                  0);
+        Perror(tmp_str);
+        return 1;
+    }
+    menu->win = win_win[win_ptr];
+    menu->box = win_box[win_ptr];
+    menu->lines = 0;
+    menu->cols = 0;
+    menu->line_idx = 0;
+    menu->item_count = 0;
+    menu->title[0] = '\0';
+    menu->choice_max_len = 0;
+    menu->text_max_len = 0;
+    parse_menu_description(init);
+
+    action = MA_DISPLAY_MENU;
+    while (action) {
+        switch (action) {
+        case MA_RETURN:
+            win_del();
+            if (win_ptr < 0) {
+                return 0;
+            }
+            menu->win = win_win[win_ptr];
+            menu->box = win_box[win_ptr];
+            restore_wins();
+            return 0;
+        case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
                 mvwaddstr(menu->win, menu->line_idx, 0,
                           menu->line[menu->line_idx]->choice_text);
             }
+            action = MA_RESET_MENU;
+            break;
+        case MA_RESET_MENU:
             menu->line_idx = 0;
-            for (i = 0; i < menu->item_count; i++)
+            for (i = 0; i < menu->item_count; i++) {
                 if (menu->line[i]->type == MT_CHOICE) {
                     menu->line_idx = i;
                     break;
                 }
-            while ((action = menu_cmd_processor(init)) == MA_ENTER_OPTION)
+            }
+            action = MA_CONTINUE;
+            break;
+        case MA_CONTINUE:
+            while ((action = menu_cmd_processor(init)) == MA_CONTINUE)
                 ;
-        }
-        if (action == MA_RETURN) {
-            win_del();
-            menu->win = win_win[win_ptr];
-            menu->box = win_box[win_ptr];
-            return (MA_RETURN);
-        }
-        if (action == MA_INIT) {
-            menu->lines = 0;
-            menu->cols = 0;
-            menu->line_idx = 0;
-            menu->item_count = 0;
-            menu->title[0] = '\0';
-            menu->choice_max_len = 0;
-            menu->text_max_len = 0;
-            if (parse_menu_description(init))
-                return (MA_RETURN);
+            break;
+        default:
+            break;
         }
     }
-    return (action);
+    return 0;
 }
 /** @brief Processes user input for the menu system.
    @ingroup menu_engine
-   @param init A pointer to an Init structure containing initialization data for
-   the menu system.
+   @param init A pointer to an Init structure containing initialization data
+   for the menu system.
    @returns an integer indicating the action taken by the user, such as
    returning to the main menu, displaying a submenu, or executing a command
    associated with a menu choice.
    @note handles navigation through the menu options, executing commands
-   associated with menu choices, and responding to special keys such as function
-   keys and mouse clicks.
+   associated with menu choices, and responding to special keys such as
+   function keys and mouse clicks.
  */
 unsigned int menu_cmd_processor(Init *init) {
     int i, c;
@@ -128,7 +138,6 @@ unsigned int menu_cmd_processor(Init *init) {
                    menu->line[menu->line_idx]->choice_text, menu->cols);
     switch (in_key) {
     /** Move up to the previous menu choice */
-    case 'k':
     case KEY_UP:
         i = menu->line_idx;
         while (i > 0) {
@@ -138,9 +147,8 @@ unsigned int menu_cmd_processor(Init *init) {
                 break;
             }
         }
-        return (MA_ENTER_OPTION);
+        return (MA_CONTINUE);
         /** Move down to the next menu choice */
-    case 'j':
     case KEY_DOWN:
         i = menu->line_idx;
         while (i < menu->item_count - 1) {
@@ -150,13 +158,14 @@ unsigned int menu_cmd_processor(Init *init) {
                 break;
             }
         }
-        return (MA_ENTER_OPTION);
-        /** Select the current menu choice and execute its associated command */
+        return (MA_CONTINUE);
+        /** Select the current menu choice and execute its associated
+         * command */
     case '\n':
     case KEY_ENTER:
         break;
         /** @brief Display help information for the menu system */
-    case 'H':
+    case '?':
     case KEY_F(1):
         if (menu->f_help_spec && menu->help_spec[0] != '\0')
             strnz__cpy(tmp_str, menu->help_spec, MAXLEN - 1);
@@ -180,11 +189,10 @@ unsigned int menu_cmd_processor(Init *init) {
                    init->begx);
         destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
-        /** Exit the menu and return to the previous menu or exit if at top */
-    case 'q':
+        /** Exit the menu and return to the previous menu or exit if at top
+         */
     case KEY_F(9):
     case KEY_BREAK:
-    case KEY_DL:
         return (MA_RETURN);
         /** @brief send default printer output file to printer */
     case KEY_ALTF(9):
@@ -212,21 +220,12 @@ unsigned int menu_cmd_processor(Init *init) {
     case KEY_ALTF(10):
         restore_wins();
         return (MA_DISPLAY_MENU);
-        d = getenv("DEFAULTEDITOR");
-        if (d == nullptr || *d == '\0')
-            strnz__cpy(earg_str, DEFAULTEDITOR, MAXLEN - 1);
-        else
-            strnz__cpy(earg_str, d, MAXLEN - 1);
-        str_to_args(eargv, earg_str, MAX_ARGS);
-        full_screen_fork_exec(eargv);
-        destroy_argv(eargc, eargv);
-        return (MA_INIT);
         /** @brief process mouse event */
     case KEY_MOUSE:
         if (click_y == -1 || click_x == -1)
-            return (MA_ENTER_OPTION);
+            return (MA_CONTINUE);
         if (click_y < 0 || click_y >= menu->item_count)
-            return (MA_ENTER_OPTION);
+            return (MA_CONTINUE);
         menu->line_idx = click_y;
         break;
     default:
@@ -246,14 +245,11 @@ unsigned int menu_cmd_processor(Init *init) {
             }
         }
         if (i >= menu->item_count)
-            return (MA_ENTER_OPTION);
+            return (MA_CONTINUE);
         break;
     }
     c = (int)menu->line[menu->line_idx]->command_type;
     switch (c) {
-        /** @brief Return to the main menu */
-    case CT_RETURNMAIN:
-        return (MA_RETURN_MAIN);
         /** @brief Execute the command associated with the selected menu
          * choice
          */
@@ -315,8 +311,8 @@ unsigned int menu_cmd_processor(Init *init) {
         destroy_argv(eargc, eargv);
         init->menu = destroy_menu(init);
         init->menu = save_menu;
-        // menu = init->menu;
-        return (MA_INIT);
+        menu = init->menu;
+        return (MA_RESET_MENU);
         /** @brief Display a pick list or form associated with the selected
          * menu choice */
     case CT_PICK:
@@ -361,9 +357,9 @@ unsigned int menu_cmd_processor(Init *init) {
         /** @brief write the current menu configuration to a file */
     case CT_WRITE_CONFIG:
         write_config(init);
-        return (MA_ENTER_OPTION);
+        return (MA_CONTINUE);
     default:
-        return (MA_ENTER_OPTION);
+        return (MA_CONTINUE);
     }
     return 0;
 }

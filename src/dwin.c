@@ -931,13 +931,13 @@ WINDOW *win_del() {
         touchwin(win_win[win_ptr]);
         werase(win_win[win_ptr]);
         wnoutrefresh(win_win[win_ptr]);
-        wrefresh(win_win[win_ptr]);
+        // wrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
 
         touchwin(win_box[win_ptr]);
         werase(win_box[win_ptr]);
         wnoutrefresh(win_box[win_ptr]);
-        wrefresh(win_box[win_ptr]);
+        // wrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
 
         // touchwin(stdscr);

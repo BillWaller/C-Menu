@@ -261,9 +261,7 @@ unsigned int get_command_type(char *t) {
         s++;
     }
     *s = '\0';
-    if (!strcmp(p, "returnmain"))
-        return (CT_RETURNMAIN);
-    else if (!strcmp(p, "ckeys"))
+    if (!strcmp(p, "ckeys"))
         return (CT_CKEYS);
     else if (!strcmp(p, "exec"))
         return (CT_EXEC);
