@@ -254,6 +254,9 @@ extern Chyron *wait_mk_chyron();
 extern WINDOW *wait_mk_win(Chyron *, char *);
 extern int wait_continue(WINDOW *, Chyron *, int);
 extern bool wait_destroy(Chyron *);
+extern bool waitpid_with_timeout(pid_t, int);
+extern int wait_timeout;
+extern bool action_disposition(char *title, char *action_str);
 
 extern bool f_debug;         /**< a flag to indicate whether debug
         output should be printed, for debugging purposes */
@@ -673,7 +676,6 @@ typedef struct {
     int cp_ln;                   /**< line number color pair index */
     int cp_ln_bg;                /**< line number background pair index */
 } SIO;
-extern int wait_timer;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);
 extern bool chrep(char *, char, char);

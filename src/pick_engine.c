@@ -161,7 +161,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
     if (ready == 0) {
         f_wait = true;
-        remaining = wait_timer;
+        remaining = wait_timeout;
         wait_chyron = wait_mk_chyron();
         wait_win = wait_mk_win(wait_chyron, "WAITING for PICK INPUT");
     }
@@ -233,7 +233,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     read_pick_input(init);
     if (pick->f_in_pipe && pid > 0) {
         /** Wait for provider_cmd child process to finish before proceeding */
-        waitpid(pid, nullptr, 0);
+        waitpid_with_timeout(pid, wait_timeout);
+        // waitpid(pid, nullptr, 0);
         close(pipe_fd[P_READ]);
         dup2(sio->stdin_fd, STDIN_FILENO);
         dup2(sio->stdout_fd, STDOUT_FILENO);
@@ -896,15 +897,13 @@ int exec_objects(Init *init) {
             exit(EXIT_FAILURE);
         }
     }
-    ssnprintf(tmp_str, MAXLEN - 1,
-              "wWaiting for child process %d to complete...", pid);
-    rc = Perror(tmp_str);
-    waitpid(pid, nullptr, 0);
-    win_del();
+    waitpid_with_timeout(pid, wait_timeout);
+    action_disposition("Notification", "Command executed");
+    // waitpid(pid, nullptr, 0);
+    // win_del();
     destroy_argv(eargc, eargv);
     restore_curses_tioctl();
     sig_prog_mode();
-    keypad(pick->win, true);
     restore_wins();
     return rc;
 }

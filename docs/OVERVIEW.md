@@ -2,15 +2,14 @@
 
 <!-- mtoc-start -->
 
-- [C-Menu Introduction](#c-menu-introduction)
+- [Other C-Menu Documents](#other-c-menu-documents)
+- [Get C-Menu on Github](#get-c-menu-on-github)
+  - [C-Menu Introduction](#c-menu-introduction)
 - [**_NEW Features_**](#_new-features_)
   - [**_NEW View Line Numbering_**](#_new-view-line-numbering_)
   - [Large Log File in View](#large-log-file-in-view)
   - [**_New API Integration With Neovim_**](#_new-api-integration-with-neovim_)
   - [**_New Options for lf_**](#_new-options-for-lf_)
-- [Other C-Menu Documents](#other-c-menu-documents)
-- [Table of Contents:](#table-of-contents)
-- [Get C-Menu on Github](#get-c-menu-on-github)
 - [C-Menu Exercises](#c-menu-exercises)
 - [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
   - [C-Menu API](#c-menu-api)
@@ -43,61 +42,6 @@
 - [MIT License](#mit-license)
 
 <!-- mtoc-end -->
-
-### C-Menu Introduction
-
-C-Menu-0.2.9 - 2026-03-30
-
-C-Menu is a Terminal based User Interface (TUI) toolkit you can use to quickly and easily create powerful and visually appealing applications. With C-Menu you can design and implement menus, forms, and pickers that improve the user experience and make your product shine.
-
-C-Menu doesn't waste time rendering complex graphics. It's a real TUI. No fluff, no bloat, no distractions. Just sleek, powerful and fast. And, user interaction with C-Menu is natural and intuitive. On modern hardware, C-Menu is so fast and responsive you might even forget your fingers are moving as you watch your thoughts flow effortlessly onto the screen. As a bonus, C-Menu integrates powerful tools like Tree-sitter to boost perceptual efficiency, comprehension, and retention through the intelligent use of color. Want more? The C-Menu API provides documentation and auto-completion in the Neovim editor.
-
-In short, C-Menu gets out of your way and lets you focus on what matters most. Even on older hardware over slow connections, C-Menu is blazingly fast, making it an ideal choice for a wide range of applications, including **_DevOps_**, **_CI/CD_**, **_IOT_**, **_Embedded Systems_**, **_Servers_**, **_System Administration_**, **_Application Development_**, and **_Terminal Enthusiasts_**. Administrators, developers, and users of all skill levels can benefit from C-Menu's powerful features and ease of use. Whether you're managing a complex infrastructure, developing applications, or simply looking for a more efficient way to interact with your system, C-Menu has you covered.
-
-C-Menu is not just low cost, it is **_ABSOLUTELY FREE_** and open-source under the **_MIT License_**. You can use it, modify it, and share it with anyone you like. C-Menu is a labor of love, and I'm excited to share it with you and the world. I hope you find it useful, enjoyable, and profitable.
-
----
-
-## **_NEW Features_**
-
-### **_NEW View Line Numbering_**
-
-![View C Source](screenshots/tree-sitter3.png)
-
-You can turn it on in the configuration or use the -N command line option and View creates a separate panel for line numbers, so it doesn't get pushed off the screen when you scroll horizontally. Foreground and background colors can be specified in
-the configuration file.
-
-Line numbering in view can be activated by setyting f_ln=true in the configuration
-file, by using the -N option on the command line, or typing "-n" while in view.
-
-### Large Log File in View
-
-![View Large Log File](screenshots/new_view2.png)
-
-Even though this lsp.log is 109Mb, it loaded instantly and traversed from
-beginning to end in a few milliseconds. View's demand paged virtual memory
-access is a game changer for working with large text files. You can open and
-navigate through multi-gigabyte log files without any lag, making it an
-invaluable tool for system administrators and developers who need to analyze
-large logs efficiently. You can already see that auto-resizing the line number
-window will be necessary to accommodate files with 1 million or more lines. When
-it goes over 1 million lines, the line numbers will but up next to the text,
-and that will be a problem. I'll get to it eventually. In the meantime, if you're working with files that large, you probably have a good idea of how to solve that problem.
-
-### **_New API Integration With Neovim_**
-
-![Neovim API Integration](screenshots/api-help.png)
-
-As you are typing the name of a C-Menu API function, a list of matching signatures
-appears along with a brief description and parameters. This makes it easier to to use the API without having to leave your coding environment. You can select the function you want with the arrow keys and press Enter to insert it into your code. You can also hover over a function and press Shift-K to view the documentation in a pop-up window.
-
-### **_New Options for lf_**
-
-![lf options](screenshots/lf-help.png)
-
-The speed of C-Menu's ultra-lightweight executables is almost obscene. Designed to be used in pipelines, they won't slow you down.
-
-The new options for lf allow you to specify the file types to list, and whether to include hidden files in the results. If no option is specified, lf lists all files and if any file types are specified those files are listed to the exclusion of other types.
 
 ## Other C-Menu Documents
 
@@ -121,44 +65,6 @@ The new options for lf allow you to specify the file types to list, and whether 
 
 [C-Menu HTML Documentation](https://decision-inc.com)
 
-## Table of Contents:
-
-<!-- mtoc-start -->
-
-- [Get C-Menu on Github](#get-c-menu-on-github)
-- [C-Menu Exercises](#c-menu-exercises)
-- [Menu, Form, Pick, View, C-Keys, RSH, and lf](#menu-form-pick-view-c-keys-rsh-and-lf)
-  - [C-Menu API](#c-menu-api)
-  - [Elements of C-Menu](#elements-of-c-menu)
-  - [Key Features](#key-features)
-  - [Highlights (Pun Intended)](#highlights-pun-intended)
-  - [Just Do It!](#just-do-it)
-  - [Menu](#menu)
-  - [C-Keys - Diagnose Keyboard/Mouse Input](#c-keys---diagnose-keyboardmouse-input)
-  - [Pick - A Picker](#pick---a-picker)
-  - [Form for Data Entry and Editing](#form-for-data-entry-and-editing)
-  - [Form Key Features](#form-key-features)
-  - [Form Data Types](#form-data-types)
-  - [Sample Menu Description File](#sample-menu-description-file)
-  - [View](#view)
-    - [Log File With Editor](#log-file-with-editor)
-    - [Screenshot of the Same File With View](#screenshot-of-the-same-file-with-view)
-  - [View and Color Manual Pages](#view-and-color-manual-pages)
-  - [Example Manual Page Using Editor](#example-manual-page-using-editor)
-  - [Example Manual Page](#example-manual-page)
-  - [Demand Paged Virtual Address Space](#demand-paged-virtual-address-space)
-  - [View - Other Features](#view---other-features)
-  - [3-Channel Gamma Correction](#3-channel-gamma-correction)
-  - [Gray Gamma](#gray-gamma)
-  - [RSH](#rsh)
-  - [Maintaining Security with RSH](#maintaining-security-with-rsh)
-  - [lf - List Files Using Regular Expressions](#lf---list-files-using-regular-expressions)
-- [Features](#features)
-- [Configuration](#configuration)
-- [MIT License](#mit-license)
-
-<!-- mtoc-end -->
-
 ## Get C-Menu on Github
 
 [Download C-Menu from Github](https://github.com/BillWaller/C-Menu.git)
@@ -166,6 +72,50 @@ The new options for lf allow you to specify the file types to list, and whether 
 ```bash
 gh repo clone BillWaller/C-Menu
 ```
+
+### C-Menu Introduction
+
+C-Menu-0.2.9 - 2026-03-30
+
+C-Menu is a Terminal based User Interface (TUI) toolkit you can use to quickly and easily create powerful and visually appealing applications. With C-Menu you can design and implement menus, forms, pickers, and View to improve the user experience and make your product shine.
+
+C-Menu doesn't waste space or time rendering complex graphics. At only 151k, the executable is lean, efficient, and easy to maintain. It's a real TUI. No fluff, no bloat, no distractions. Just sleek, powerful and fast.
+
+User interaction with C-Menu is natural and intuitive. On modern hardware, C-Menu is so fast and responsive you might even forget your fingers are moving as you watch your thoughts flow effortlessly onto the screen. As a bonus, C-Menu integrates powerful tools like Tree-sitter to boost perceptual efficiency, comprehension, and retention through the intelligent use of color. Want more? The C-Menu API provides documentation and auto-completion in the Neovim editor.
+
+In short, C-Menu gets out of your way and lets you focus on what matters most. Even on older hardware over slow connections, C-Menu is blazingly fast, making it an ideal choice for a wide range of applications, including **_DevOps_**, **_CI/CD_**, **_IOT_**, **_Embedded Systems_**, **_Servers_**, **_System Administration_**, **_Application Development_**, and **_Terminal Enthusiasts_**. Administrators, developers, and users of all skill levels can benefit from C-Menu's powerful features and ease of use. Whether you're managing a complex infrastructure, developing applications, or simply looking for a more efficient way to interact with your system, C-Menu has you covered.
+
+C-Menu is not just low cost, it is **_ABSOLUTELY FREE_** and open-source under the **_MIT License_**. You can use it, modify it, and share it with anyone you like. C-Menu is a labor of love, and I'm excited to share it with you and the world. I hope you find it useful, enjoyable, and profitable.
+
+---
+
+## **_NEW Features_**
+
+### **_NEW View Line Numbering_**
+
+![View C Source](screenshots/tree-sitter3.png)
+
+Turn line numbering on in the configuration by setting f_ln to true or use the -N command line option. View creates a separate panel for line numbers, so it doesn't get pushed off the screen when you scroll horizontally. Foreground and background colors for the line number panel can be specified in the configuration file.
+
+### Large Log File in View
+
+![View Large Log File](screenshots/new_view2.png)
+
+Even though this lsp.log is 109Mb, it loads instantly and traversal from beginning to takes only a few milliseconds. View's demand paged virtual memory is a game changer for working with large text files. You can open and navigate through multi-gigabyte log files without any lag, making it an invaluable tool for system administrators and developers who need to analyze large logs efficiently.
+
+### **_New API Integration With Neovim_**
+
+![Neovim API Integration](screenshots/api-help.png)
+
+Step aside CodeView. As you are typing the name of a C-Menu API function, a list of matching signatures appears along with a brief description and parameters. This makes it easier to to use the API without having to leave your coding environment. You can select the function you want with the arrow keys and press Enter to insert it into your code. You can also hover over a function and press Shift-K to view the documentation in a pop-up window.
+
+### **_New Options for lf_**
+
+![lf options](screenshots/lf-help.png)
+
+The speed of C-Menu's ultra-lightweight executables is almost obscene. Designed to be used in pipelines, they won't slow you down.
+
+The new options for lf allow you to specify the file types to list, and whether to include hidden files in the results. If no option is specified, lf lists all files and if any file types are specified those files are listed to the exclusion of other types.
 
 ## C-Menu Exercises
 
@@ -700,6 +650,10 @@ the majority of use cases in which the complexity of find is not required.
 
 lf is not intended to replace find, but to give the developer a simple, focused,
 and robust tool for listing files based on regular expressions.
+
+lf is very fast compared to find. In some instances, it can be up to 50 times faster than find, especially when searching for files in large directories or when using complex regular expressions. The performance difference is due to lf's optimized algorithms and streamlined codebase, which minimizes overhead and maximizes efficiency.
+
+![**_NEW_** Performance: lf vs find](screenshots/lf-vs-find.png)
 
 ---
 

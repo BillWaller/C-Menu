@@ -95,7 +95,7 @@ typedef struct {
 } error_source_t;
 error_info_t error_info;
 error_source_t error_source;
-int wait_timer;
+int wait_timeout;
 /**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim
      @returns length of trimmed string */

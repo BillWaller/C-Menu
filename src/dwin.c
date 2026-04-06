@@ -24,6 +24,7 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+#include <wait.h>
 #include <wchar.h>
 #define NC true
 
@@ -939,10 +940,10 @@ WINDOW *win_del() {
         wrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
 
-        touchwin(stdscr);
-        werase(stdscr);
-        wnoutrefresh(stdscr);
-        wrefresh(stdscr);
+        // touchwin(stdscr);
+        // werase(stdscr);
+        // wnoutrefresh(stdscr);
+        // wrefresh(stdscr);
         for (i = 0; i < win_ptr; i++) {
             touchwin(win_box[i]);
             wnoutrefresh(win_box[i]);
@@ -963,8 +964,8 @@ WINDOW *win_del() {
    signal to handle terminal resizing gracefully. */
 void restore_wins() {
     int i;
-    erase();
-    refresh();
+    // erase();
+    // refresh();
     for (i = 0; i <= win_ptr; i++) {
         touchwin(win_box[i]);
         wnoutrefresh(win_box[i]);
@@ -1215,9 +1216,7 @@ WINDOW *wait_mk_win(Chyron *chyron, char *title) {
     }
     wait_win = win_win[win_ptr];
     mvwaddstr(wait_win, 0, 1, wm1);
-    wattron(wait_win, WA_REVERSE);
-    mvwaddstr(wait_win, 1, 0, chyron->s);
-    wattroff(wait_win, WA_REVERSE);
+    display_chyron(wait_win, chyron, 1, 0);
     wmove(wait_win, 1, chyron->l);
     return wait_win;
 }
@@ -1239,12 +1238,44 @@ bool wait_destroy(Chyron *chyron) {
     @return true if the wait should continue, false if it should be cancelled */
 int wait_continue(WINDOW *wait_win, Chyron *chyron, int remaining) {
     char time_str[10];
-    ssnprintf(time_str, 9, "%d", remaining);
+    ssnprintf(time_str, 9, "%-4d", remaining);
     mvwaddstr(wait_win, 0, 21, time_str);
+    display_chyron(wait_win, chyron, 1, 0);
     wmove(wait_win, 1, chyron->l);
     cmd_key = xwgetch(wait_win, chyron, 1);
     return cmd_key;
 }
+bool action_disposition(char *title, char *action_str) {
+    int len;
+    int line, col;
+    WINDOW *action_disposition_win;
+
+    if (!f_curses_open) {
+        fprintf(stderr, "\n%s\n", title);
+        fprintf(stderr, "%s\n", action_str);
+        return true;
+    }
+    Chyron *chyron = new_chyron();
+    set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
+    compile_chyron(chyron);
+    len = max(strlen(title), strlen(action_str));
+    col = (COLS - len - 4) / 2;
+    line = (LINES - 4) / 2;
+    if (win_new(2, len + 2, line, col, title, 0)) {
+        ssnprintf(em0, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed", 4,
+                  line, line, col, title, 0);
+        Perror(em0);
+    }
+    action_disposition_win = win_win[win_ptr];
+    mvwaddstr(action_disposition_win, 0, 1, action_str);
+    display_chyron(action_disposition_win, chyron, 1, 0);
+    wmove(action_disposition_win, 1, chyron->l);
+    cmd_key = xwgetch(action_disposition_win, chyron, 1);
+    win_del();
+    destroy_chyron(chyron);
+    return true;
+}
+
 /** @brief For lines shorter than their display area, fill the rest with spaces
     @ingroup window_support
     @param w Pointer to window
@@ -1419,4 +1450,36 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
     curs_set(0);
     restore_curses_tioctl();
     return c;
+}
+
+bool waitpid_with_timeout(pid_t pid, int timeout) {
+    int status;
+    int rc;
+    Chyron *wait_chyron;
+    WINDOW *wait_win;
+    int remaining = timeout;
+
+    usleep(100000); // Sleep for 200ms */
+    rc = waitpid(pid, &status, WNOHANG);
+    if (rc == pid)
+        return true;
+    if (rc == -1) {
+        ssnprintf(em0, MAXLEN - 1, "Error waiting for process %d", pid);
+        Perror(em0);
+        return false;
+    }
+    wait_chyron = wait_mk_chyron();
+    ssnprintf(em0, MAXLEN - 1, "Waiting for process %d to finish...", pid);
+    wait_win = wait_mk_win(wait_chyron, em0);
+    cmd_key = 0;
+    while (rc == 0 && remaining > 0 && cmd_key != KEY_F(9)) {
+        cmd_key = wait_continue(wait_win, wait_chyron, remaining);
+        if (cmd_key == KEY_F(9))
+            break;
+        remaining--;
+    }
+    wait_destroy(wait_chyron);
+    if (rc == pid)
+        return true;
+    return false;
 }

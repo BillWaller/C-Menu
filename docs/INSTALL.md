@@ -1,5 +1,20 @@
 # Installation Guide
 
+## Introduction
+
+C-Menu is a suite of programs that provides an attractive and user-friendly
+interface that is blazingly fast and highly customizable. It is designed to be used
+in rescue, embedded, server, and development environments, where the overhead of a graphical user interface would be counter-productive. Using features of modern C, C-Menu's performance is on a scale unheard of with conventional tools, and it is built with security in mind, making it a reliable choice for critical applications.
+
+C-Menu's View is a pager that provides highlighting, Unicode support, line
+numbering, regular expression searching, and zero-copy direct Kernel
+demand-paged virtual memory file access for incredible speed, especially with
+very large files.
+
+C-Menu's lf is an alternative to find that supports regular expression
+searching. In benchmarks, lf is up to 50 times faster than find when searching
+large directory structures.
+
 ## C-Menu Binaries for Linux x86_64
 
 1. Download the binary distribution, C-Menu-0.2.9-Linux-x86_64.xz.

@@ -353,7 +353,8 @@ int form_process(Init *init) {
                 form->f_in_pipe = true;
                 form_read_data(form);
                 close(pipe_fd[P_READ]);
-                waitpid(pid, nullptr, 0);
+                waitpid_with_timeout(pid, wait_timeout);
+                // waitpid(pid, nullptr, 0);
                 destroy_argv(eargc, eargv);
                 form_display_fields(form);
                 set_chyron_key(form->chyron, 8, "F5 Edit", KEY_F(5));

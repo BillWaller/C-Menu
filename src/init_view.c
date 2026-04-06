@@ -324,7 +324,7 @@ int view_init_input(View *view, char *file_name) {
         ready = select(STDIN_FILENO + 1, &read_fds, nullptr, nullptr, &timeout);
         if (ready == 0) {
             f_wait = true;
-            remaining = wait_timer;
+            remaining = wait_timeout;
             wait_chyron = wait_mk_chyron();
             wait_win = wait_mk_win(wait_chyron, "WAITING for VIEW INPUT");
         }
@@ -412,7 +412,8 @@ int view_init_input(View *view, char *file_name) {
             abend(-1, tmp_str);
             exit(EXIT_FAILURE);
         }
-        waitpid(-1, nullptr, 0);
+        waitpid_with_timeout(pid, wait_timeout);
+        // waitpid(-1, nullptr, 0);
     }
     //  Memory-map the input file for efficient access.
     view->buf =
