@@ -2,18 +2,31 @@
 
 ## Introduction
 
-C-Menu is a suite of programs that provides an attractive and user-friendly
-interface that is blazingly fast and highly customizable. It is designed to be used
-in rescue, embedded, server, and development environments, where the overhead of a graphical user interface would be counter-productive. Using features of modern C, C-Menu's performance is on a scale unheard of with conventional tools, and it is built with security in mind, making it a reliable choice for critical applications.
+With the C-Menu Toolkit, you can quickly and easily develop menu-driven user
+interfaces to give your applications a professional look and feel. The main
+components are:
 
-C-Menu's View is a pager that provides highlighting, Unicode support, line
-numbering, regular expression searching, and zero-copy direct Kernel
-demand-paged virtual memory file access for incredible speed, especially with
-very large files.
+**_Menu_** - Hierarchical menus
 
-C-Menu's lf is an alternative to find that supports regular expression
-searching. In benchmarks, lf is up to 50 times faster than find when searching
-large directory structures.
+**_Form_** - On-screen forms for entering, editing, validating, processing, and submitting data.
+
+**_Pick_** - Lists objects for user selection
+
+**_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, and regular expression searching. Features include Unicode support,highlighting, line numbering, and regular expression searching. View
+
+**_RSH_** - RSH provides an alternative to su and sudo for executing commands with elevated privileges. It allows developers and system administrators to get in and out of root shells and execute commands with root privileges without the need for a password, for example, by authenticating with an ssh key.
+
+**_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command.
+
+**_API_** - A C library that provides a simple and consistent interface for creating menu-driven user interfaces in C. The API includes tools specific to C-Menu, but also many general purpose tools that can be used in a wide range of applications. The API documentation is available in html and integrated into Neovim's completion engine, making it easy for developers to learn and use the API effectively.
+
+All of the C-Menu binaries, including executables and libcm.so are less than 350k, a tiny footprint for such powerful tools, and no GUI is required. The only dependencies are the GNU C Library, GNU Math Library, NCursesw, and a terminal emulator. That makes C-Menu especially well suited for rescue, embedded, server, development, and other resource-constrained environments, where the overhead of a graphical user interface would be counter-productive.
+
+Oh, and C-Menu is free, distributed under the MIT License.
+
+Are you ready to get started? Below, you will find several options for installing C-Menu on your Linux system. I haven't yet provided a packaged binary distribution, but that will be coming soon in version 0.3.0.
+
+Choose the option that best suits your needs and follow the instructions to get C-Menu up and running on your system.
 
 ## C-Menu Binaries for Linux x86_64
 
