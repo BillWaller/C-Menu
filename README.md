@@ -12,7 +12,7 @@ components are:
 
 **_Pick_** - Lists objects for user selection
 
-**_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, and regular expression searching. Features include Unicode support,highlighting, line numbering, and regular expression searching. View
+**_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, and regular expression searching.
 
 **_RSH_** - RSH provides an alternative to su and sudo for executing commands with elevated privileges. It allows developers and system administrators to get in and out of root shells and execute commands with root privileges without the need for a password, for example, by authenticating with an ssh key.
 
