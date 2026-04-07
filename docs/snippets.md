@@ -1,3 +1,5 @@
+![Configuration](../screenshots/System-Configuration.png)
+
 # Configuration snippets
 
 ## Table of Contents
