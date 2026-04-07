@@ -1,4 +1,4 @@
-<img src="https://github.com/BillWaller/C-Menu/screenshots/C-Menu.png" width=272>
+![C-Menu](file://usr/local/src/C-Menu/screenshots/installation-guide.png)
 
 # Installation Guide
 
