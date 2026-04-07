@@ -800,6 +800,7 @@ int exec_objects(Init *init) {
         f_append_args = false;
         i = 0;
         while (i < eargc) {
+            /** This is the line that gets the selected objects */
             if (strstr(eargv[i], "%%") != nullptr) {
                 tmp_str[0] = '\0';
                 f_append_args = true;
@@ -810,6 +811,7 @@ int exec_objects(Init *init) {
             i++;
         }
         for (i = 0; i < pick->obj_cnt; i++) {
+            /** append arguments onto tmp_str */
             if (pick->f_selected[i] && eargc < MAXARGS - 1) {
                 if (f_append_args == true) {
                     if (tmp_str[0] != '\0')
@@ -848,6 +850,9 @@ int exec_objects(Init *init) {
     eargv[eargc] = nullptr;
     // s1 = tmp_str;
     char *sp;
+    // Scan-build false positive: strtok_r modifies the input string, but
+    // tmp_str is a local array and is not used after this point, so it is safe
+    // to modify it with strtok_r
     char *tok;
     tok = strtok_r(tmp_str, " ", &sp);
     strnz__cpy(sav_arg, tok, MAXLEN - 1);
@@ -897,13 +902,15 @@ int exec_objects(Init *init) {
             exit(EXIT_FAILURE);
         }
     }
-    waitpid_with_timeout(pid, wait_timeout);
-    action_disposition("Notification", "Command executed");
-    // waitpid(pid, nullptr, 0);
+    // waitpid_with_timeout(pid, wait_timeout);
+    // action_disposition("Notification", "Command executed");
+    waitpid(pid, nullptr, 0);
     // win_del();
     destroy_argv(eargc, eargv);
     restore_curses_tioctl();
     sig_prog_mode();
+    werase(stdscr);
+    wrefresh(stdscr);
     restore_wins();
     return rc;
 }

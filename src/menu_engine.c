@@ -305,7 +305,7 @@ unsigned int menu_cmd_processor(Init *init) {
         init->menu = new_menu(init, eargc, eargv, init->begy, init->begx);
         if (!init->menu)
             abend(-1, "menu_cmd_processor: new_menu() failed");
-        menu = init->menu;
+        // menu = init->menu;
         parse_menu_description(init);
         menu_engine(init);
         destroy_argv(eargc, eargv);
