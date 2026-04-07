@@ -49,6 +49,24 @@ Are you ready to get started? Below, you will find several options for installin
 
 Choose the option that best suits your needs and follow the instructions to get C-Menu up and running on your system.
 
+## Other C-Menu documentation
+
+[C-Menu HTML Documentation](https://decision-inc.com)
+
+[API](docs/API.md)
+
+[User Guide](docs/C-Menu-UG.md)
+
+[CHANGELOG](docs/CHANGELOG.md)
+
+[Exercises](docs/exercises.md)
+
+[Augmentation](docs/extras.md)
+
+[Overview](docs/OVERVIEW.md)
+
+[Configuration Snippets](docs/snippets.md)
+
 ---
 
 ## C-Menu Binaries for Linux x86_64
