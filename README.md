@@ -8,17 +8,31 @@ components are:
 
 **_Menu_** - Hierarchical menus
 
+![Hierarchical Menus](screenshots/workstation_config2.png)
+
 **_Form_** - On-screen forms for entering, editing, validating, processing, and submitting data.
+
+![On-Screen Forms](screenshots/iloan.png)
 
 **_Pick_** - Lists objects for user selection
 
-**_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, and regular expression searching.
+**_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, and regular expression searching. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. It can also strip the ansi codes from files for convenient editing.
 
-**_RSH_** - RSH provides an alternative to su and sudo for executing commands with elevated privileges. It allows developers and system administrators to get in and out of root shells and execute commands with root privileges without the need for a password, for example, by authenticating with an ssh key.
+![C-Menu View with Syntax Highlighting](screenshots/tree-sitter.png)
+
+**_RSH_** - RSH provides an alternative to su and sudo for executing commands with elevated privileges. It allows developers and system administrators to get in and out of root shells and execute commands with root privileges without the need for a password, for example, by authenticating with an ssh key as you do on gethub.
+
+![RSH SSH Authentication](screenshots/Makefile-out.png)
+
+- Green prompt indicates user privileges, and red root privileges.
 
 **_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command.
 
+![lf File Finder](screenshots/lf-vs-find.png)
+
 **_API_** - A C library that provides a simple and consistent interface for creating menu-driven user interfaces in C. The API includes tools specific to C-Menu, but also many general purpose tools that can be used in a wide range of applications. The API documentation is available in html and integrated into Neovim's completion engine, making it easy for developers to learn and use the API effectively.
+
+![C-Menu Completions in Neovim](screenshots/api-help1.png)
 
 All of the C-Menu binaries, including executables and libcm.so are less than 350k, a tiny footprint for such powerful tools, and no GUI is required. The only dependencies are the GNU C Library, GNU Math Library, NCursesw, and a terminal emulator. That makes C-Menu especially well suited for rescue, embedded, server, development, and other resource-constrained environments, where the overhead of a graphical user interface would be counter-productive.
 
@@ -27,6 +41,8 @@ Oh, and C-Menu is free, distributed under the MIT License.
 Are you ready to get started? Below, you will find several options for installing C-Menu on your Linux system. I haven't yet provided a packaged binary distribution, but that will be coming soon in version 0.3.0.
 
 Choose the option that best suits your needs and follow the instructions to get C-Menu up and running on your system.
+
+---
 
 ## C-Menu Binaries for Linux x86_64
 
