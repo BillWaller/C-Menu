@@ -18,7 +18,7 @@ components are:
 
 **_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, and regular expression searching. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. It can also strip the ansi codes from files for convenient editing.
 
-![C-Menu View with Syntax Highlighting](screenshots/tree-sitter.png)
+![C-Menu View with Syntax Highlighting](screenshots/tree-sitter5.png)
 
 **_RSH_** - RSH provides an alternative to su and sudo for executing commands with elevated privileges. It allows developers and system administrators to get in and out of root shells and execute commands with root privileges without the need for a password, for example, by authenticating with an ssh key as you do on gethub.
 
