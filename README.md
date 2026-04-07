@@ -28,7 +28,7 @@ In the following example, make install requires root privilege, so the user type
 
 - Green prompt indicates user privileges, and red root privileges.
 
-**_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command. The following is an actual benchmark of lf vs find for searching directories. Admittedly, the benchmarks appear hyperbolic, but they are real and reproducible. You may have to run the benchmarks a few times to see the performance difference, but once you do, you'll be amazed at how much faster lf is compared to find.
+**_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command. The following is an actual benchmark of lf vs find for searching directories. Admittedly, the benchmarks appear hyperbolic, but they are real and reproducible. You may have to run the benchmarks a few times to believe the performance difference, but once you do, you'll be amazed at how much faster lf is compared to find.
 
 ![lf File Finder](screenshots/lf-vs-find5.png)
 
