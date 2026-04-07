@@ -1,4 +1,4 @@
-![C-Menu Overview](screenshots/Overview.png)
+![C-Menu Overview](../screenshots/Overview.png)
 
 # Table of Contents
 
@@ -95,25 +95,25 @@ C-Menu is not just low cost, it is **_ABSOLUTELY FREE_** and open-source under t
 
 ### **_NEW View Line Numbering_**
 
-![View C Source](screenshots/tree-sitter3.png)
+![View C Source](../screenshots/tree-sitter3.png)
 
 Turn line numbering on in the configuration by setting f_ln to true or use the -N command line option. View creates a separate panel for line numbers, so it doesn't get pushed off the screen when you scroll horizontally. Foreground and background colors for the line number panel can be specified in the configuration file.
 
 ### Large Log File in View
 
-![View Large Log File](screenshots/new_view2.png)
+![View Large Log File](../screenshots/new_view2.png)
 
 Even though this lsp.log is 109Mb, it loads instantly and traversal from beginning to takes only a few milliseconds. View's demand paged virtual memory is a game changer for working with large text files. You can open and navigate through multi-gigabyte log files without any lag, making it an invaluable tool for system administrators and developers who need to analyze large logs efficiently.
 
 ### **_New API Integration With Neovim_**
 
-![Neovim API Integration](screenshots/api-help.png)
+![Neovim API Integration](../screenshots/api-help.png)
 
 Step aside CodeView. As you are typing the name of a C-Menu API function, a list of matching signatures appears along with a brief description and parameters. This makes it easier to to use the API without having to leave your coding environment. You can select the function you want with the arrow keys and press Enter to insert it into your code. You can also hover over a function and press Shift-K to view the documentation in a pop-up window.
 
 ### **_New Options for lf_**
 
-![lf options](screenshots/lf-help.png)
+![lf options](../screenshots/lf-help.png)
 
 The speed of C-Menu's ultra-lightweight executables is almost obscene. Designed to be used in pipelines, they won't slow you down.
 
@@ -121,17 +121,17 @@ The new options for lf allow you to specify the file types to list, and whether 
 
 ## C-Menu Exercises
 
-The screenshots below are practical examples from the C-Menu Exercises. This is
-a new section that will be updated with more examples as they are developed. The exercises are designed to demonstrate the capabilities of C-Menu and provide users with hands-on experience in creating menus,forms, and pickers using the C-Menu framework. Each exercise will include a description of the task, the corresponding configuration files, and screenshots of the resulting interfaces. These exercises are intended to help users understand how to utilize C-Menu effectively and inspire them to create their own custom interfaces for their applications. Stay tuned for more updates in the Exercises section!
+The ../screenshots below are practical examples from the C-Menu Exercises. This is
+a new section that will be updated with more examples as they are developed. The exercises are designed to demonstrate the capabilities of C-Menu and provide users with hands-on experience in creating menus,forms, and pickers using the C-Menu framework. Each exercise will include a description of the task, the corresponding configuration files, and ../screenshots of the resulting interfaces. These exercises are intended to help users understand how to utilize C-Menu effectively and inspire them to create their own custom interfaces for their applications. Stay tuned for more updates in the Exercises section!
 
-![Exercises](screenshots/workstation_config2.png)
-![Exercises](screenshots/workstation_config.png)
+![Exercises](../screenshots/workstation_config2.png)
+![Exercises](../screenshots/workstation_config.png)
 
 ---
 
 ## Menu, Form, Pick, View, C-Keys, RSH, and lf
 
-![C-Menu](screenshots/minitrc.png)
+![C-Menu](../screenshots/minitrc.png)
 
 ### C-Menu API
 
@@ -139,7 +139,7 @@ The C-Menu API is a set of functions and tools that allow developers to extend
 the capabilities of C-Menu and develop custom applications that integrate
 with C-Menu, and to integrate C-Menu into applications like Neovim.
 
-![C-Menu API Help in Neovim](screenshots/api-help1.png)
+![C-Menu API Help in Neovim](../screenshots/api-help1.png)
 
 As you are typing the name of a C-Menu API function, a list of matching signatures
 appears along with a brief description, the function signature, and its parameters.
@@ -207,8 +207,8 @@ description file like the one below and displays a colorful and easy-to
 keyboard or mouse, C-Menu executes the corresponding command. It's like
 writing shell scripts, but with a snazzy menu interface.
 
-![Sample Description File](screenshots/applications_menu.m.png)
-![Sample Menu](screenshots/applications_menu.png)
+![Sample Description File](../screenshots/applications_menu.m.png)
+![Sample Menu](../screenshots/applications_menu.png)
 
 From the above examples, you can get an idea of how C-Menu works.
 Examine line-21 in "main.m" above. C-Menu Menu starts C-Menu View,
@@ -218,7 +218,7 @@ output to it's standard output device, which happens to be a pipe into
 C-Menu View's receiver. C-Menu View maps Tree-Sitter's output to the
 Kernel's demand paged virtual memory and you get:
 
-![Tree-Sitter](screenshots/tree-sitter.png)
+![Tree-Sitter](../screenshots/tree-sitter.png)
 
 ---
 
@@ -232,11 +232,11 @@ and NCurses header files. It's also a good way to identify which keys
 are reserved by your terminal emulator, and gives you the specific key
 codes so you can easily add your own Extended NCurses keys.
 
-![C-Keys](screenshots/ckeys-alt.png)
-![Extend Your Keyboard](screenshots/extended-keys.png)
+![C-Keys](../screenshots/ckeys-alt.png)
+![Extend Your Keyboard](../screenshots/extended-keys.png)
 C-Keys also provides diagnostics for mouse actions and geometry.
 
-![Ckeys Mouse](screenshots/ckeys-mouse.png)
+![Ckeys Mouse](../screenshots/ckeys-mouse.png)
 
 Just add hot water, stir, and Bob's your uncle, you have soup! 😀
 
@@ -244,7 +244,7 @@ Just add hot water, stir, and Bob's your uncle, you have soup! 😀
 
 ### Pick - A Picker
 
-![Pick](screenshots/Pick.png)
+![Pick](../screenshots/Pick.png)
 
 Pick provides a list of objects from arguments, piped input,
 or a text file. The user selects an object by using cursor movement keys,
@@ -322,15 +322,15 @@ user input, and performing validation checks.
 
 ### Form Data Types
 
-![Data Types](screenshots/data-types.f.png)
-![Data Types](screenshots/data-types.png)
+![Data Types](../screenshots/data-types.f.png)
+![Data Types](../screenshots/data-types.png)
 
 FORM displays data entry forms based on a description file. It allows
 users to input data in a structured manner. The entered data can then be
 processed by a specified command or script. Internally, the numeric
 entries are converted to binary integer, long, float, or double.
 
-![Form - Example](screenshots/Receipt.png)
+![Form - Example](../screenshots/Receipt.png)
 
 The two Cash Receipts entry forms above are identical except the top
 form has field brackets turned on and the bottom form has fill
@@ -344,7 +344,7 @@ we can see that the format field on line 3 of "receipt.f" is invalid.
 I have a "3", and it should have been "String". The corrected line
 would be: "F!2!18!10!String".
 
-![Form Error](screenshots/form-error.png)
+![Form Error](../screenshots/form-error.png)
 
 Need quick and easy Cash Receipts, General Journal, or wedding
 invitation list? FORM has you covered. The application shown above took
@@ -357,20 +357,20 @@ FORM also makes a great front-end for SQL database queries.
 
 ### Sample Menu Description File
 
-![Sample Description File](screenshots/applications_menu.m.png)
+![Sample Description File](../screenshots/applications_menu.m.png)
 As you can see, the description file is straightforward and easy to
 read. Each menu item consists of a label and a command to execute. The
 label is displayed in the menu, and the command is executed when the
 user selects that item.
 
-![Pick](screenshots/pick-edit.png)
+![Pick](../screenshots/pick-edit.png)
 
 Here's just one example of how easy it is to create useful programs
 with the C-Menu Form facility.
 
-![Iloan - A Simple Demonstration](screenshots/iloan_f.png)
+![Iloan - A Simple Demonstration](../screenshots/iloan_f.png)
 
-![Iloan Display](screenshots/iloan.png)
+![Iloan Display](../screenshots/iloan.png)
 We hope you find C-Menu useful for your projects. It's a powerful tool
 that can greatly simplify the process of creating text-based user
 interfaces for your applications.
@@ -388,11 +388,11 @@ from within MENU, FORM, or PICK to provide contextual help or stand
 
 #### Log File With Editor
 
-![Log File With Editor](screenshots/nvim-log.png)
+![Log File With Editor](../screenshots/nvim-log.png)
 
 #### Screenshot of the Same File With View
 
-![View Log File](screenshots/view.png)
+![View Log File](../screenshots/view.png)
 One especially useful feature of View is its incredible speed
 with large text files, like system logs. View can open and
 display multi-gigabyte text files almost instantaneously. Seek from
@@ -422,13 +422,13 @@ man -Tutf8 bash.ls | sed -f ~/menuapp/msrc/man.sed | view
 
 ### Example Manual Page Using Editor
 
-![Manual Page With Editor](screenshots/nvim-man-page.png)
+![Manual Page With Editor](../screenshots/nvim-man-page.png)
 
 ---
 
 ### Example Manual Page
 
-![Manual Page With View](screenshots/man-page.png)
+![Manual Page With View](../screenshots/man-page.png)
 
 For the screenshot above, I used the "Man" command, which is a function
 in my .bashrc.
@@ -478,7 +478,7 @@ easier to read.
 
 ---
 
-![View File I/O](screenshots/file-io.png)
+![View File I/O](../screenshots/file-io.png)
 In technical parlance, I'll explain precisely how it works. See if
 you can follow me. 😁
 
@@ -537,9 +537,9 @@ blue. It's a minor thing, really, but we programmers aren't
 In the right-hand image below, gamma has been increased for red, green,
 and blue.
 
-![RGB Gamma Correction](screenshots/gamma1.png)
+![RGB Gamma Correction](../screenshots/gamma1.png)
 
-![More Gamma Correction](screenshots/gamma2.png)
+![More Gamma Correction](../screenshots/gamma2.png)
 The image on the left, above is a source file highlighted with bat. It
 seems a little dark and difficult to read. No problem. Crank up the gamma
 in View and Winner Winner Chicken Dinner!
@@ -556,7 +556,7 @@ red, green, and blue components are of equal value.
 
 ---
 
-![View Help File](screenshots/view-help.png)
+![View Help File](../screenshots/view-help.png)
 
 - That's a Bobby Dazzler
 
@@ -569,7 +569,7 @@ That's why we give you control.
 
 ### RSH
 
-![RSH Source](screenshots/rsh.png)
+![RSH Source](../screenshots/rsh.png)
 
 Despite its name, RSH is not a shell. It is a shell runner, which
 allows you to specify your shell of choice, and provides a consistent
@@ -608,7 +608,7 @@ Here's an example of the proper way to use RSH.
 2. Type "make install"
 3. Type "x" to relinquish root privileges.
 
-![Accepted Practices](screenshots/Makefile-out.png)
+![Accepted Practices](../screenshots/Makefile-out.png)
 Notice that the bash prompt changes from green to red as a reminder
 that you are wielding a loaded gun with the safety off. In this state,
 it only takes a minor typo. You mean to type "rm -r tmp/\*", but
@@ -630,7 +630,7 @@ access to install, and the installer should make sure it cannot be used
 by other users. If you are reading this, you know how to do that.
 Please use it responsibly.
 
-![Building C-Menu With CMake](screenshots/cmake_install.png)
+![Building C-Menu With CMake](../screenshots/cmake_install.png)
 
 You will notice that the build was completed under normal user privileges. Only
 the install portion required root access. We typed "xx" to assume root
@@ -645,7 +645,7 @@ lf is a utility included with C-Menu that allows you to list files in a
 directory based on regular expression patterns. It provides a powerful way to
 search for files that match specific criteria
 
-![lf](screenshots/lf-help.png)
+![lf](../screenshots/lf-help.png)
 
 lf is a streamlined, efficient, and easy-to-use alternative to find addressing
 the majority of use cases in which the complexity of find is not required.
@@ -655,7 +655,7 @@ and robust tool for listing files based on regular expressions.
 
 lf is very fast compared to find. In some instances, it can be up to 50 times faster than find, especially when searching for files in large directories or when using complex regular expressions. The performance difference is due to lf's optimized algorithms and streamlined codebase, which minimizes overhead and maximizes efficiency.
 
-![**_NEW_** Performance: lf vs find](screenshots/lf-vs-find.png)
+![**_NEW_** Performance: lf vs find](../screenshots/lf-vs-find.png)
 
 ---
 
@@ -689,7 +689,7 @@ MIT License - Open-source and free to use
 
 ## Configuration
 
-![Configuration File](screenshots/options.png)
+![Configuration File](../screenshots/options.png)
 
 User's can have multiple runtime configurations. In the snippet above,
 the standard ISO 6429 / ECMA-48 colors have been redefined and orange
