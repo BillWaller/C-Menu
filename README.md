@@ -2,6 +2,11 @@
 
 ## Introduction
 
+The following is a very brief introduction to the C-Menu Toolkit and only covers
+a very tiny fraction of its features and capabilities. For more detailed information, please refer to the html documentation at:
+
+[decision-inc.com](https://decision-inc.com)
+
 With the C-Menu Toolkit, you can quickly and easily develop menu-driven user
 interfaces to give your applications a professional look and feel. The main
 components are:
@@ -10,13 +15,13 @@ components are:
 
 ![Hierarchical Menus](screenshots/workstation_config2.png)
 
-**_Form_** - On-screen forms for entering, editing, validating, processing, and submitting data.
+**_Form_** - On-screen forms for entering, editing, validating, processing, and submitting data. Notice the chyron at the bottom of the screen, which provides helpful instructions and feedback to the user. Of course, all C-Menu components provide navigation by mouse and keyboard, and in many cases by the standard h, j, k, and l keys that programmers are accustomed to.
 
 ![On-Screen Forms](screenshots/iloan.png)
 
 **_Pick_** - Lists objects for user selection
 
-**_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, and regular expression searching. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. It can also strip the ansi codes from files for convenient editing.
+**_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, regular expression searching and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. It can strip the ansi codes from files for convenient editing.
 
 ![C-Menu View with Syntax Highlighting](screenshots/tree-sitter5.png)
 
