@@ -1,7 +1,10 @@
-# EXERCISES
+![C-Menu Exercises](screenshots/Exercises.png)
+
+# Table of Contents
 
 <!-- mtoc-start -->
 
+- [Introduction](#introduction)
 - [Exercise 1: System Configurations](#exercise-1-system-configurations)
   - [SDDM Background Configuration](#sddm-background-configuration)
     - [Requisites](#requisites)
@@ -10,6 +13,8 @@
 - [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
+
+## Introduction
 
 The purpose of the EXERCISES section is to provide you with practice problems
 similar to those you might encounter as a developer or system administrator.

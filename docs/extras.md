@@ -1,4 +1,6 @@
-# Augmenting C-Menu
+![Augmenting C-Menu](screenshots/Augmentation.png)
+
+# How to get C-Menu
 
 ## Get C-Menu on Github
 

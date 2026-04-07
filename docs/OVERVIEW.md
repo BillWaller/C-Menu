@@ -1,4 +1,6 @@
-# A User Interface Toolkit
+![C-Menu Overview](screenshots/Overview.png)
+
+# Table of Contents
 
 <!-- mtoc-start -->
 

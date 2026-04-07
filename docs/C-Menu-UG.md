@@ -1,4 +1,6 @@
-# User guide
+![C-Menu User Guide](screenshots/User-Guide.png)
+
+# How to get C-Menu
 
 [**_NEW_** C-Menu Form In Depth](#c-menu-form-in-depth)
 

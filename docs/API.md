@@ -1,4 +1,6 @@
-# API
+![API Reference](screenshots/API-Reference.png)
+
+# How to get C-Menu
 
 ## Get C-Menu on Github
 

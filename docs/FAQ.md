@@ -1,4 +1,6 @@
-# Frequently Asked Questions
+![Frequently Asked Questions](screenshots/FAQ.png)
+
+# Table of Contents
 
 ## Table of Contents
 
