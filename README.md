@@ -1,3 +1,6 @@
+![C-Menu](https://github.com/BillWaller/C-Menu/screenshots/C-Menu.png
+width=272)
+
 # Installation Guide
 
 ## Introduction
