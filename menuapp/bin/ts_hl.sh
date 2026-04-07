@@ -1,6 +1,6 @@
 #!/bin/bash
 # ts_hl.sh
-if [ $(which tree-sitter) ]; then
+if [ "$(which tree-sitter)" ]; then
     tree-sitter highlight "$@" 2>/dev/null
 else
     echo "tree-sitter not found."

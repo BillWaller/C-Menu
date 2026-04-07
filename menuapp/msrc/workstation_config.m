@@ -9,7 +9,7 @@
 :   Select Ghostty Theme
 !pick -n 1 -T "Select Ghostty Theme" -S ghostty_themes.sh -c "ghostty_chtheme.sh %%"
 :   Select Kitty Font
-!pick -n 1 -T "Select Kitty Font" -S kitty_font.sh -c "kitty_chfont.sh %%"
+!pick -n 1 -T "Select Kitty Font" -S kitty_fonts.sh -c "kitty_chfont.sh %%"
 :   Select Kitty Theme
 !pick -n 1 -T "Select Kitty Theme" -S kitty_themes.sh -c "kitty_chtheme.sh %%"
 :   Select Alacritty Font

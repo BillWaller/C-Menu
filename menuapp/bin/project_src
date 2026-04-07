@@ -1,3 +1,9 @@
 #!/bin/bash
 
-lf -d 5 . '.*\.(h|c|rs|sh|cpp)$' | sort
+if [ -d "$CMENU_SRC" ]; then
+    cd "$CMENU_SRC"
+else
+    echo "Error: CMENU_SRC environment variable is not set or points to a non-existent directory."
+    exit 1
+fi
+lf -d 5 "$CMENU_SRC" '.*\.(h|c|rs|sh|cpp)$' | sort

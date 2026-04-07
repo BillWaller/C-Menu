@@ -1,1 +1,8 @@
-sed -f /home/bill/menuapp/bin/man.sed
+#!/bin/bash
+
+if [ -f "$HOME"/menuapp/bin/man.sed ]; then
+    sed -f "$HOME"/menuapp/bin/man.sed
+else
+    echo "can't locate "$HOME"/menuapp/bin/man.sed"
+    enterchr "Press any key to continue..."
+fi
