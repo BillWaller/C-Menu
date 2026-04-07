@@ -1,8 +1,6 @@
 ![C-Menu](screenshots/installation-guide.png)
 
-# Installation Guide
-
-## Introduction
+# Introduction
 
 The following is a very brief introduction to the C-Menu Toolkit and only covers
 a very tiny fraction of its features and capabilities. For more detailed information, please refer to the html documentation at:
