@@ -1,4 +1,4 @@
-![C-Menu](file://usr/local/src/C-Menu/screenshots/installation-guide.png)
+![C-Menu](screenshots/installation-guide.png)
 
 # Installation Guide
 
