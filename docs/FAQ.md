@@ -2,8 +2,6 @@
 
 # Table of Contents
 
-## Table of Contents
-
 <!-- mtoc-start -->
 
 - [lf is fast, but I rely on find's features](#lf-is-fast-but-i-rely-on-finds-features)
@@ -36,102 +34,26 @@
 - [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
 - [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
 - [View In a Box Window](#view-in-a-box-window)
-- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
 
+
 ## lf is fast, but I rely on find's features
 
-Q: I use find all the time to delete, move, and process files. find's -exec argument can apply any executable to found files. Does lf have something like that?
+Q: I use find all the time to delete, move, and process files. find's -exec argument can apply any executable to found files. How can I do that with lf?
 
-A: Of course. "find"" uses the xargs utility to execute commands on its output,
-and xargs is available in the public domain. For example, you can use the following command to remove all files found with find:
-
-```bash
-find . -type f -exec rm -f {} \;
-```
-
-You can do the same thing with lf. Use the following command to delete all files found by lf:
+A: The xargs utility, which is distributed with find, is available in the public domain. You can use it with lf. For example:
 
 ```bash
-lf -t f | xargs rm -f
+lf -a -t f | xargs rm -f
+
+lf -a -t f | xargs ls -l
 ```
 
-You can also use xargs to apply any executable to the files found by lf. For example, you can use the following command to list all files found by lf in long format:
+And, you will find the performance of lf is spectacular compared to find.
 
-```bash
-lf -t f | xargs ls -l
-```
+![lf vs find performance](../screenshots/lf-vs-find5.png)
 
-As always, the lf command is a little shorter than the equivalent find command because we don't like to punish you for using our software, and it is much faster. You can use xargs with lf to apply any executable to the files found by lf, just like you can with find.
-
-## Can lf match files with multiple suffixes
-
-Q: With find, you can search for files with multiple extensions. Is there a way
-to do that with lf?
-
-A: Yes. You can use a regular expression to match multiple suffixes with lf. For example, you can use the following command:
-
-```bash
-lf -a -d 5 . '.*\.([ch]|cpp|rs|sh)$' | sort >lf.out
-```
-
-This is equivalent to the following find command:
-
-```bash
-find . -maxdepth 5 \( -name "*.[ch]" -o -name "*.cpp" -o -name "*.rs" -o -name "*.sh" \) | sed 's/^\.\//' | sort >find.out
-```
-
-Once you get the hang of using regular expressions, you will find that they are more powerful and flexible than the options provided by find. Regular expressions allow you to match complex patterns in file names, and lf allows you to include or exclude (with the -e option) specific patterns as needed. Arguably, regular expressions are more intuitive and easier to read than the complex syntax of find when it comes to matching multiple patterns.
-
-## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
-
-Q: Are you going to add drop-down and pop-up features to C-Menu?
-
-A: Yes. Drop-down and pop-up menus are on the roadmap for future releases of C-Menu, and we are already making some progress in that direction. Stand by!
-
-## Sorted lf Output
-
-Q: Why is the output of "lf" not sorted?
-
-A: It should be sorted. The easiest way to do that is to pipe lf output through
-"sort". The preferred method would be to use the -S option to execute a shell
-script such as ~/menuapp/bin/project_src. I have added "| sort" to that script
-based on your suggestion. Here is the new script:
-
-A2: Please forgive the previous answer that seems a bit terse as I re-read it. Here is a more detailed answer that I believe you will appreciate.
-
-The compelling design objective for "lf" was to create an ultra-lightweight stand-in for find with a minimal memory footprint, a simple interface that is easy to learn and use, and high performance on any platform, including IOT, and embedded applications. Any features that impede rapid development or deployment to constrained resource environments would detract from "lf"'s design objectives. What we want from "lf" is more-bang-for-the-buck.
-
-"lf" isn't find, and it isn't meant to be. It is a simple utility that provides basic file listing capabilities with a focus on speed and simplicity. As you know, the manual page for find is 35 pages, while the manual page for "lf" is only 2 pages. "lf" must be simple, easy-to-use, and fast.
-
-Adding a sorting option to lf would require storing the sortable fields in a table,which would increase the memory footprint and add many instruction cycles to the process.
-
-```bash
-#!/bin/bash
-# project_src
-# This script lists C source files in the current directory and sorts them.
-lf . .*\.[ch]$ | sort
-```
-
-I should have done that in all the C-Menu examples, and I will in the future.
-Thanks for pointing it out.
-
-## Multiple Executables
-
-Q: Why do you have multiple executables for Menu, Form, Pick, and View?
-
-A: That's a very good question. Done! 2026-03-25 There is one executable now that
-replaces menu, form, pick, view, and ckeys. The usage of those executables has
-not changed from the user's perspective as they are symbolic links to main.
-
-## Static Executables
-
-Q: Why don't you provide static executables for C-Menu?
-
-A: I can understand why you might prefer static executables, especially in a rescue or embedded environment, and that's why the build system has a provision to make rsh as a static executable. However, the executables that use NCurses present a much more difficult challenge. While NCurses itself can be built as a static library, it has many dependencies, and some of those attempt to open dynamic libraries, even when the executable is linked with the static NCurses and GLibc libraries. The resulting executables would probably work fine, everywhere except where you needed them.
-
-It's not an unsolvable problem. Developers of embedded systems deal with such issues routinely. However, embedded systems development is a specialized and highly technical field, and I don't have the expertise to create static executables that could be trusted to work reliably across a wide range of environments. If you happen to be an embedded systems developer are interested in contributing to the project, please let me know. I would be happy to collaborate with you on this.
 
 ## What's the Icon?
 
@@ -791,4 +713,4 @@ will use the "-S" command as the title:
 
 ---
 
-## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
+Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
