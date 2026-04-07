@@ -84,8 +84,6 @@ find . -maxdepth 5 \( -name "*.[ch]" -o -name "*.cpp" -o -name "*.rs" -o -name "
 
 Once you get the hang of using regular expressions, you will find that they are more powerful and flexible than the options provided by find. Regular expressions allow you to match complex patterns in file names, and lf allows you to include or exclude (with the -e option) specific patterns as needed. Arguably, regular expressions are more intuitive and easier to read than the complex syntax of find when it comes to matching multiple patterns.
 
-🐸
-
 ## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
 
 Q: Are you going to add drop-down and pop-up features to C-Menu?
