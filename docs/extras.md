@@ -1,4 +1,4 @@
-![Augmenting C-Menu](../screenshots/Augmentation.png)
+![Augmenting C-Menu](screenshots/Augmentation.png)
 
 # How to get C-Menu
 
@@ -345,12 +345,12 @@ traditional syntax highlighters often struggle with.
 
 In a phrase, it'll knock your socks off! 😮
 
-![Tree-Sitter](../screenshots/Tree-sitter-small.png)
+![Tree-Sitter](screenshots/Tree-sitter-small.png)
 
 Tree-Sitter works with Neovim, C-Menu, and many other editors and pagers to
 provide advanced syntax highlighting and code analysis features.
 
-![Tree-Sitter in C-Menu View](../screenshots/tree-sitter1.png)
+![Tree-Sitter in C-Menu View](screenshots/tree-sitter1.png)
 
 To install Tree-Sitter, you can use the following commands depending on your
 operating system.
@@ -495,12 +495,12 @@ vi config.json
 Below is an example file arrangement for Tree-Sitter parsers and configuration
 files. ~/.config/tree-sitter/parsers contains the installed Tree-Sitter parsers.
 
-![Tree-Sitter Parsers](../screenshots/tree-sitter-parsers.png)
+![Tree-Sitter Parsers](screenshots/tree-sitter-parsers.png)
 
 You can also configure a custom color scheme in the config.json file if you like.
 Here's mine:
 
-![~/.config/tree-sitter/config.json](../screenshots/tree-sitter-config.json.png)
+![~/.config/tree-sitter/config.json](screenshots/tree-sitter-config.json.png)
 
 The ~/tree-sitter/config.json distributed with tree-sitter uses the 256 color
 xterm palette, but you can also use HTML style six digit hex numbers as shown
@@ -547,7 +547,7 @@ To put it bluntly, nothing compares with Tree-Sitter for syntax highlighting
 and code analysis. Once you start using it, you'll wonder how you ever lived
 without it.
 
-![Tree-Sitter in C-Menu View](../screenshots/tree-sitter4.png)
+![Tree-Sitter in C-Menu View](screenshots/tree-sitter4.png)
 
 ---
 
@@ -595,9 +595,9 @@ Rustlings is an invaluable companion to the Rust Book.
 
 [The Rust Book](https://doc.rust-lang.org/book/)
 
-![Rustlings](../screenshots/rustlings1.png)
+![Rustlings](screenshots/rustlings1.png)
 
-![Rustlings](../screenshots/rustlings2.png)
+![Rustlings](screenshots/rustlings2.png)
 
 ---
 
@@ -605,7 +605,7 @@ Rustlings is an invaluable companion to the Rust Book.
 
 I consider Vim/Neovim not just essential, but indispensable. I loved vim and used it for many years. I can't say whether Vim or Neovim is better because both have evolved to provide competitive features. I can say, for me, Neovim plugins seem more accessible, and it has everything I want.
 
-![Neovim](../screenshots/Neovim.png)
+![Neovim](screenshots/Neovim.png)
 
 ---
 
@@ -772,7 +772,7 @@ Once you have Snacks.nvim installed, you can enable the Neovim logo in the splas
 
 The image below shows the Neovim logo in the splash screen of Neovim when using Snacks.nvim:
 
-![Lazyvim](../screenshots/Lazyvim.png)
+![Lazyvim](screenshots/Lazyvim.png)
 
 To install Neovim and Lazyvim, follow the instructions on the
 [Lazyvim website](https://www.lazyvim.org/installation)
@@ -791,7 +791,7 @@ remember the exact syntax. Just type the function name in Neovim, move the
 cursor over the function name, and press Shift-K. You will get a pop-up
 documenting the function parameters, data types, and signature as below:
 
-![Neovim / C-Menu API](../screenshots/ShiftK.png)
+![Neovim / C-Menu API](screenshots/ShiftK.png)
 
 ---
 
@@ -841,9 +841,9 @@ What you see below may not be essential for development projects, but it
 demonstrates Neovim, Ghostty, and Lazyvim working together in harmony to
 provide great flexibility.
 
-![Ghostty With Neovim and Lazyvim](../screenshots/Ghostty.png)
+![Ghostty With Neovim and Lazyvim](screenshots/Ghostty.png)
 
-![Ghostty With Neovim and Lazyvim](../screenshots/Neovim-v.png)
+![Ghostty With Neovim and Lazyvim](screenshots/Neovim-v.png)
 
 This feature is actually quite useful when searching for a particular source
 file among many files in a large project. You can quickly preview files
@@ -1014,7 +1014,7 @@ You can find the following configurations in C-Menu/configs, or:
 
 ##### Ghostty Configuration
 
-![Ghostty Configuration](../screenshots/ghostty.config.png)
+![Ghostty Configuration](screenshots/ghostty.config.png)
 
 Note: You can see that Colorize.awk failed to highlight the six-digit
 hex color codes on the last five lines above. That's because
@@ -1028,15 +1028,15 @@ I opened ghostty.config with neovim and it highlighted the six-digit hex
 color code correctly. It's always good to have multiple tools in your
 toolbox. 😀
 
-![Ghostty Configuration in Neovim](../screenshots/ghostty.config2.png)
+![Ghostty Configuration in Neovim](screenshots/ghostty.config2.png)
 
 ##### Kitty Configuration
 
-![Kitty Configuration](../screenshots/kitty.conf.png)
+![Kitty Configuration](screenshots/kitty.conf.png)
 
 ##### Alacritty Configuration
 
-![Alacritty Configuration](../screenshots/alacritty.toml.png)
+![Alacritty Configuration](screenshots/alacritty.toml.png)
 
 ---
 

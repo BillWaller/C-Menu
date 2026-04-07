@@ -49,23 +49,20 @@ Are you ready to get started? Below, you will find several options for installin
 
 Choose the option that best suits your needs and follow the instructions to get C-Menu up and running on your system.
 
-## Other C-Menu documentation
+---
 
-[C-Menu HTML Documentation](https://decision-inc.com)
+## Other documentation
 
-[API](docs/API.md)
+- [Comprehensive HTML Documentation](https://decision-inc.com)
 
-[User Guide](docs/C-Menu-UG.md)
-
-[CHANGELOG](docs/CHANGELOG.md)
-
-[Exercises](docs/exercises.md)
-
-[Augmentation](docs/extras.md)
-
-[Overview](docs/OVERVIEW.md)
-
-[Configuration Snippets](docs/snippets.md)
+- [API Reference](docs/API.md)
+- [Augmentation](docs/extras.md)
+- [CHANGELOG](docs/CHANGELOG.md)
+- [Exercises](docs/exercises.md)
+- [Frequently Asked Questions](docs/FAQ.md)
+- [Overview](docs/OVERVIEW.md)
+- [ROADMAP](docs/ROADMAP.md)
+- [User Guide](docs/C-Menu-UG.md)
 
 ---
 

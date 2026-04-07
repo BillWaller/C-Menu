@@ -1,4 +1,4 @@
-![C-Menu](../screenshots/installation-guide.png)
+![C-Menu](screenshots/installation-guide.png)
 
 # Introduction
 
@@ -13,33 +13,33 @@ components are:
 
 **_Menu_** - Hierarchical menus
 
-![Hierarchical Menus](../screenshots/workstation_config2.png)
+![Hierarchical Menus](screenshots/workstation_config2.png)
 
 **_Form_** - On-screen forms for entering, editing, validating, processing, and submitting data. Notice the chyron at the bottom of the screen, which provides helpful instructions and feedback to the user. Of course, all C-Menu components provide navigation by mouse and keyboard, and in many cases by the standard h, j, k, and l keys that programmers are accustomed to.
 
-![On-Screen Forms](../screenshots/iloan.png)
+![On-Screen Forms](screenshots/iloan.png)
 
 **_Pick_** - Lists objects for user selection
 
 **_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, regular expression searching and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. It can strip the ansi codes from files for convenient editing.
 
-![C-Menu View with Syntax Highlighting](../screenshots/tree-sitter5.png)
+![C-Menu View with Syntax Highlighting](screenshots/tree-sitter5.png)
 
 **_RSH_** - RSH provides an alternative to su and sudo for executing commands with elevated privileges. It allows developers and system administrators to get in and out of root shells and execute commands with root privileges without the need for a password, for example, by authenticating with an ssh key as you do on gethub.
 
 In the following example, make install requires root privilege, so the user types xx, is authenticated with an ssh key, and then types make install. When the make install is finished, the user types x to exit the root shell and relinquish root privilege.
 
-![RSH SSH Authentication](../screenshots/Makefile-out.png)
+![RSH SSH Authentication](screenshots/Makefile-out.png)
 
 - The Green prompt indicates user privilege, and Red indicates root privilege.
 
 **_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command. The following is an actual benchmark of lf vs find for searching directories. Admittedly, the benchmarks appear hyperbolic, but they are real and reproducible. You may have to run the benchmarks a few times to believe the performance of lf.
 
-![lf File Finder](../screenshots/lf-vs-find2.png)
+![lf File Finder](screenshots/lf-vs-find2.png)
 
 **_API_** - A C library that provides a simple and consistent interface for creating menu-driven user interfaces in C. The API includes tools specific to C-Menu, but also many general purpose tools that can be used in a wide range of applications. The API documentation is available in html and integrated into Neovim's completion engine, making it easy for developers to learn and use the API effectively.
 
-![C-Menu Completions in Neovim](../screenshots/api-help1.png)
+![C-Menu Completions in Neovim](screenshots/api-help1.png)
 
 All of the C-Menu binaries, including executables and libcm.so are less than 350k, a tiny footprint for such powerful tools, and no GUI is required. The only dependencies are the GNU C Library, GNU Math Library, NCursesw, and a terminal emulator. That makes C-Menu especially well suited for rescue, embedded, server, development, and other resource-constrained environments, where the overhead of a graphical user interface would be counter-productive.
 
@@ -215,7 +215,7 @@ Continue with [Finish the installation](#finish-the-installation) below to compl
 ls -l "$HOME"/menuapp/lib64 "$HOME"/menuapp/bin
 ```
 
-![Directory Listing](../screenshots/postmakels.png)
+![Directory Listing](screenshots/postmakels.png)
 
 2️⃣ Register the C-Menu libraries with the dynamic linker by running the following command:
 
@@ -255,6 +255,6 @@ source ~/.bashrc
 menu
 ```
 
-![C-Menu Running](../screenshots/mainmenu.png)
+![C-Menu Running](screenshots/mainmenu.png)
 
 ## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
