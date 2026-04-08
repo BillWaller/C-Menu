@@ -81,6 +81,7 @@ unsigned int menu_engine(Init *init) {
                           menu->line[menu->line_idx]->choice_text);
             }
             action = MA_RESET_MENU;
+
             break;
         case MA_RESET_MENU:
             menu->line_idx = 0;
@@ -215,7 +216,7 @@ unsigned int menu_cmd_processor(Init *init) {
         } else
             strnz__cat(earg_str, d, MAXLEN - 1);
         full_screen_shell(earg_str);
-        return (MA_DISPLAY_MENU);
+        return (MA_RESET_MENU);
         /** @brief open the default editor */
     case KEY_ALTF(10):
         restore_wins();

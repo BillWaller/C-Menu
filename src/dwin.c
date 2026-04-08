@@ -968,6 +968,7 @@ void restore_wins() {
     // refresh();
     touchwin(stdscr);
     wnoutrefresh(stdscr);
+    wrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
         touchwin(win_box[i]);
         wnoutrefresh(win_box[i]);
