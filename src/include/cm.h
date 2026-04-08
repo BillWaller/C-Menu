@@ -117,7 +117,7 @@
     })
 
 enum LFFlags {
-    LF_ALL = 1,       /**<   1 List all files including hidden files */
+    LF_HIDE = 1,      /**<   1 Don't list hidden files */
     LF_ICASE = 2,     /**<   2 Ignore case in search */
     LF_EXC_REGEX = 4, /**<   4 Exclude files matching regular expression */
     LF_REGEX = 8,     /**<   8 Include files matching regular expression */

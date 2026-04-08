@@ -31,10 +31,10 @@ const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 
 static struct argp_option options[] = {
-    {"f_all", 'a', 0, 0, "List hidden files", 0},
     {"max_depth", 'd', "number", 0, "Depth into directory", 0},
     {"exclude", 'e', "regex", 0, "Exclude regular expression", 0},
-    {"f_ignore_case", 'i', 0, 0, "Search ignore case", 0},
+    {"f_ignore_case", 'i', "bool", 0, "Search ignore case", 0},
+    {"f_hide", 'n', 0, 0, "Don't list hidden files", 0},
     {"file_types", 't', "bcdplfsu", 0,
      "b - block device, c - character device,  d - directory, p - named pipe,  "
      "l - symbolic link,  f - regular file, s - socket, u - unknown",
@@ -42,7 +42,6 @@ static struct argp_option options[] = {
     {0}};
 
 struct lf {
-    bool f_all;
     int max_depth;
     char *exclude;
     bool f_ignore_case;
@@ -56,9 +55,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     struct lf *lf = state->input;
     int i = 0;
     switch (key) {
-    case 'a':
-        lf->flags |= LF_ALL;
-        break;
     case 'd':
         lf->max_depth = atoi(arg);
         break;
@@ -68,6 +64,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'i':
         lf->flags |= LF_ICASE;
+        break;
+    case 'n':
+        lf->flags |= LF_HIDE;
         break;
     case 't':
         lf->file_types_p = arg;
@@ -127,7 +126,6 @@ int main(int argc, char **argv) {
     re[0] = '\0';
 
     struct lf lf = {0};
-    lf.f_all = false;
     lf.max_depth = 0;
     lf.exclude = nullptr;
     lf.f_ignore_case = false;
@@ -164,5 +162,5 @@ int main(int argc, char **argv) {
     if (dir[0] == '\0')
         strncpy(dir, ".", MAXLEN - 1);
     lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags);
-    return true;
+    return 0;
 }

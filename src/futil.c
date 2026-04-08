@@ -1073,7 +1073,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     bool suppress;
     int f_include;
     int f_suppress;
-    bool suppress_hidden = flags & LF_ALL ? false : true;
+    bool suppress_hidden = flags & LF_HIDE ? true : false;
     char bname[MAXLEN];
     if ((dir = opendir(base_path)) == 0)
         return false;
