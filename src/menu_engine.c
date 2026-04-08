@@ -261,7 +261,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, s, MAX_ARGS);
         full_screen_fork_exec(eargv);
         destroy_argv(eargc, eargv);
-        return (MA_DISPLAY_MENU);
+        return (MA_RESET_MENU);
         /** @brief Display help information for the menu system */
     case CT_HELP:
         if (menu->f_help_spec && menu->help_spec[0] != '\0')

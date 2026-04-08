@@ -966,11 +966,15 @@ void restore_wins() {
     int i;
     // erase();
     // refresh();
+    touchwin(stdscr);
+    wnoutrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
         touchwin(win_box[i]);
         wnoutrefresh(win_box[i]);
+        wrefresh(win_box[i]);
         touchwin(win_win[i]);
         wnoutrefresh(win_win[i]);
+        wrefresh(win_win[i]);
     }
 }
 /** @brief Draw a box around the specified window
