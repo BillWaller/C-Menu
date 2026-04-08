@@ -33,7 +33,46 @@ In the following example, make install requires root privilege, so the user type
 
 - The Green prompt indicates user privilege, and Red indicates root privilege.
 
-**_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command. The following is an actual benchmark of lf vs find for searching directories. Admittedly, the benchmarks appear hyperbolic, but they are real and reproducible. You may have to run the benchmarks a few times to believe the performance of lf.
+**_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command. The following is an actual benchmark of execution times for lf and find. The find and lf commands, approximate common usage, and produce identical results.
+
+```bash
+time find . -maxdepth 9 -type f -regex '.*\.[ch]$' > find.out
+
+real    0m0.975s
+user    0m0.728s
+sys     0m0.243s
+
+time lf -a -d 9 -t f '.*\.[ch]$' > lf.out
+
+real    0m0.632s
+user    0m0.425s
+sys     0m0.207s
+```
+
+Verify that the output files are identical:
+
+```bash
+wc -l find.out lf.out
+
+  2489 find.out
+  2489 lf.out
+  4978 total
+```
+
+The results show that lf is about 35% faster than find in this benchmark, and the output files are identical.
+
+Next, we will add "-exec ls -l {} \;", a common use of find, and see how that affects performance. The resulting benchmarks are so extreme, they may strain credulity at first, but they are real and easily reproducible. Just run lf and find commands on your system in a variety of directories.
+
+```bash
+time find . -maxdepth 5 -type f -exec -l {} \; >find.out
+time lf -a -d 5 -t f | xargs ls -l >lf.out
+```
+
+CAUTION: A simple mistake such as forgetting to include the -a option for lf may give lf an unfair advantage because lf omits hidden files and directories by default. Therefore, you must examine the number of files found to verify the accuracy of the benchmark.
+
+```bash
+wc -l find.out lf.out
+```
 
 ![lf File Finder](screenshots/lf-vs-find2.png)
 
