@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
 
     struct lf lf = {0};
     lf.f_all = false;
-    lf.max_depth = 4;
+    lf.max_depth = 0;
     lf.exclude = nullptr;
     lf.f_ignore_case = false;
     lf.file_types_p = 0;

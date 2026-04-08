@@ -1,4 +1,6 @@
-![C-Menu](screenshots/installation-guide.png)
+### C-Menu - A User Interface Toolkit
+
+![](screenshots/installation-guide.png)
 
 # Introduction
 

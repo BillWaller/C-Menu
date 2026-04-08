@@ -1177,7 +1177,8 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             else
                 printf("%s\n", file_spec);
         }
-        if (dir_st->d_type == DT_DIR && depth + 1 < max_depth) {
+        if (max_depth == 0 ||
+            (dir_st->d_type == DT_DIR && depth + 1 < max_depth)) {
             depth++;
             lf_process(file_spec, compiled_re, compiled_ere, depth, max_depth,
                        flags);
