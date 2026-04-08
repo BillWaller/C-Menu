@@ -23,11 +23,13 @@ components are:
 
 **_Pick_** - Lists objects for user selection
 
-**_View_** - A pager for viewing large files with highlighting, Unicode support, line numbering, regular expression searching and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. It can strip the ansi codes from files for convenient editing.
+**_View_** - A pager for viewing files with highlighting, Unicode support, line numbering, regular expression searching and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. View doesn't alter the file you are viewing. It uses the highlighter in a pipe, and reads the output, so the original file is never changed. If you happen to have a file that has been highlighted by another application, view can strip the ANSI codes for convenient editing. And view is lightning fast, especially with huge log files.
+
+Why is View so fast? Even if an application has a super-fast buffering scheme, it still has to wait on the kernel to provide data, and then copy data into it's own buffers, duplicating work the Kernel has already done. Why waste the time and memory? To be fair, it may be that many applications were written before direct accesses to the Kernel's demand paged virtual address space was available. Whatever the reason, View takes advantage of direct-to-Kernel memory mapped files to achieve maximum performance, reliability, and resource economy. If you work with large datasets, you will love view. No fluff, no bloat, no nonsense, just blazing fast performance.
 
 ![C-Menu View with Syntax Highlighting](screenshots/tree-sitter5.png)
 
-**_RSH_** - RSH provides an alternative to su and sudo for executing commands with elevated privileges. It allows developers and system administrators to get in and out of root shells and execute commands with root privileges without the need for a password, for example, by authenticating with an ssh key as you do on gethub.
+**_RSH_** - RSH provides an alternative to su and sudo for executing commands with elevated privileges. It allows developers and system administrators to get in and out of root shells and execute commands with root privileges without the need for a password, for example, by authenticating with an ssh key as you would on gethub.
 
 In the following example, make install requires root privilege, so the user types xx, is authenticated with an ssh key, and then types make install. When the make install is finished, the user types x to exit the root shell and relinquish root privilege.
 
@@ -65,12 +67,14 @@ The results show that lf is about 35% faster than find in this benchmark, and th
 
 Next, we will add "-exec ls -l {} \;", a common use of find, and see how that affects performance. The resulting benchmarks are so extreme, they may strain credulity at first, but they are real and easily reproducible. Just run lf and find commands on your system in a variety of directories.
 
+Note 1: The -a (List hidden files) has been replaced with -n (Don't list hidden files), so that the default behavior is more like find, thus mitigating the probability of confusion.
+
+Note 2: The default maximum depth for lf was 3 as that was convenient for development, but otherwise it didn't make sense. The default maximum depth for lf is now 0, which means no limit, and thus more consistent with find.
+
 ```bash
 time find . -maxdepth 5 -type f -exec -l {} \; >find.out
 time lf -a -d 5 -t f | xargs ls -l >lf.out
 ```
-
-CAUTION: A simple mistake such as forgetting to include the -a option for lf may give lf an unfair advantage because lf omits hidden files and directories by default. Therefore, you must examine the number of files found to verify the accuracy of the benchmark.
 
 ```bash
 wc -l find.out lf.out
