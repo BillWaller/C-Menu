@@ -308,27 +308,29 @@ View *new_view(Init *init) {
                   sizeof(View));
         display_error(em0, em1, em2, nullptr);
         abend(-1, "calloc init->view failed");
-        return false;
+        return nullptr;
     }
     view = init->view;
     view->argc = init->argc;
-    view->argv = calloc(view->argc, sizeof(char *));
-    if (view->argv == nullptr) {
-        free(view->argv);
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
-                  __LINE__ - 1, errno);
-        ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
-        ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
-                  view->argc, sizeof(char *));
-        display_error(em0, em1, em2, nullptr);
-        abend(-1, "User terminated program");
-        return false;
+    if (view->argc > 0) {
+        view->argv = calloc(view->argc + 1, sizeof(char *));
+        if (view->argv == nullptr) {
+            free(view->argv);
+            ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+                      __LINE__ - 1, errno);
+            ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+            ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
+                      view->argc, sizeof(char *));
+            display_error(em0, em1, em2, nullptr);
+            abend(-1, "User terminated program");
+            return nullptr;
+        }
+        int s = 0;
+        int d = 0;
+        while (s < init->argc)
+            view->argv[d++] = strnz_dup(init->argv[s++], MAXLEN - 1);
+        view->argv[d] = nullptr;
     }
-    int s = 0;
-    int d = 0;
-    while (s < init->argc)
-        view->argv[d++] = strdup(init->argv[s++]);
-    view->argv[d] = nullptr;
     if (!init_view_files(init)) {
         abend(-1, "init_view_files failed");
         return nullptr;

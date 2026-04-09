@@ -45,7 +45,7 @@ unsigned int parse_menu_description(Init *init) {
     menu = init->menu;
     fp = fopen(menu->mapp_spec, "r");
     if (fp == nullptr) {
-        strnz__cat(tmp_buf, "file not found", MAXLEN);
+        strnz__cpy(tmp_buf, "file not found", MAXLEN);
         abend(-1, tmp_buf);
         exit(-1);
     }
@@ -134,7 +134,7 @@ unsigned int parse_menu_description(Init *init) {
                           "More choices than actions at line %d of",
                           in_fp_line);
                 strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
-                strnz__cat(em2, in_buf, MAXLEN - 1);
+                strnz__cpy(em2, in_buf, MAXLEN - 1);
                 display_error(em0, em1, em2, nullptr);
                 abend(-1, "unrecoverable error");
             }
@@ -178,7 +178,7 @@ unsigned int parse_menu_description(Init *init) {
             ssnprintf(em0, MAXLEN - 1, "Invalid directive '%c' at line %d of",
                       directive, in_fp_line);
             strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
-            strnz__cat(em2, in_buf, MAXLEN - 1);
+            strnz__cpy(em2, in_buf, MAXLEN - 1);
             display_error(em0, em1, em2, nullptr);
         }
     }
@@ -291,17 +291,20 @@ unsigned int get_command_type(char *t) {
  */
 void free_menu_line(Line *line) {
 
-    if (line->raw_text != nullptr)
+    if (line->raw_text != nullptr) {
         free(line->raw_text);
-    if (line->choice_text != nullptr)
+        line->raw_text = nullptr;
+    }
+    if (line->choice_text != nullptr) {
         free(line->choice_text);
-    if (line->command_str != nullptr)
+        line->choice_text = nullptr;
+    }
+    if (line->command_str != nullptr) {
         free(line->command_str);
-    line->raw_text = nullptr;
-    line->choice_text = nullptr;
+        line->command_str = nullptr;
+    }
     line->choice_letter = '\0';
     line->letter_pos = 0;
     line->command_type = '\0';
-    line->command_str = nullptr;
     free(line);
 }

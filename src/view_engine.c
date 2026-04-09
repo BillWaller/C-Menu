@@ -142,7 +142,8 @@ int view_file(Init *init) {
         }
         view->file_spec_ptr = view->next_file_spec_ptr;
         view->next_file_spec_ptr = nullptr;
-        if (view_init_input(view, view->file_spec_ptr) == 0) {
+        strnz__cpy(view->cur_file_str, view->file_spec_ptr, MAXLEN - 1);
+        if (view_init_input(view, view->cur_file_str) == 0) {
             if (view->buf) {
                 view->f_eod = 0;
                 view->f_bod = 0;
