@@ -12,7 +12,7 @@
 
 #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
-#define _GNU_SOURCE 1
+#define _GNU_SOURCE
 #include "version.h"
 #include <ncursesw/ncurses.h>
 #include <signal.h>

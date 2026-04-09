@@ -302,14 +302,12 @@ void compile_chyron(Chyron *chyron) {
             continue;
         }
         if (end_pos == 0) {
-            // cp = chyron->key[k]->cp;
             cx = chyron->cmplx_buf;
             mb_to_cc(cx, " ", WA_NORMAL, cp_reverse, &pos, MAXLEN - 1);
         } else {
             mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_reverse, &pos,
                      MAXLEN - 1);
         }
-        // cp = chyron->key[k]->cp;
         cx = chyron->cmplx_buf;
         cp = chyron->key[k]->cp;
         mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
@@ -931,19 +929,13 @@ WINDOW *win_del() {
         touchwin(win_win[win_ptr]);
         werase(win_win[win_ptr]);
         wnoutrefresh(win_win[win_ptr]);
-        // wrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
 
         touchwin(win_box[win_ptr]);
         werase(win_box[win_ptr]);
         wnoutrefresh(win_box[win_ptr]);
-        // wrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);
 
-        // touchwin(stdscr);
-        // werase(stdscr);
-        // wnoutrefresh(stdscr);
-        // wrefresh(stdscr);
         for (i = 0; i < win_ptr; i++) {
             touchwin(win_box[i]);
             wnoutrefresh(win_box[i]);
@@ -964,8 +956,6 @@ WINDOW *win_del() {
    signal to handle terminal resizing gracefully. */
 void restore_wins() {
     int i;
-    // erase();
-    // refresh();
     touchwin(stdscr);
     wnoutrefresh(stdscr);
     wrefresh(stdscr);

@@ -1,15 +1,18 @@
 /** @file common.h
- *  @brief Headder for C-Menu Menu, Form, Pick, and View components
- *  @author Bill Waller
- *  Copyright (c) 2025
- *  MIT License
- *  billxwaller@gmail.com
- *  @date 2026-02-09
+    @brief Headder for C-Menu Menu, Form, Pick, and View components
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
  */
 
 #ifndef _COMMON_H
 #define _COMMON_H 1
 
+/** Without #define _GNU_SOURCE you may get errors like
+   locale_t undefined in time.h */
+#define _GNU_SOURCE
 #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
 #include <ncursesw/ncurses.h>

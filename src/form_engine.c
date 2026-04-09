@@ -34,7 +34,6 @@
 
 unsigned int form_display_screen(Init *);
 void form_display_fields(Form *);
-// void form_display_chyron(Form *);
 int field_navigator(Form *);
 int form_parse_desc(Form *);
 int form_read_data(Form *);
@@ -354,7 +353,6 @@ int form_process(Init *init) {
                 form_read_data(form);
                 close(pipe_fd[P_READ]);
                 waitpid_with_timeout(pid, wait_timeout);
-                // waitpid(pid, nullptr, 0);
                 destroy_argv(eargc, eargv);
                 form_display_fields(form);
                 set_chyron_key(form->chyron, 8, "F5 Edit", KEY_F(5));
@@ -769,9 +767,6 @@ int form_read_data(Form *form) {
             if ((lstat(form->in_spec, &sb) == -1) || (sb.st_size == 0) ||
                 ((form->in_fp = fopen(form->in_spec, "rb")) == nullptr)) {
                 strnz__cat(em0, form->in_spec, MAXLEN - 1);
-                // if (errno)
-                // strerror_r(errno, em1, MAXLEN - 1);
-                // else
                 if (sb.st_size == 0)
                     strnz__cpy(em1, "File is empty", MAXLEN - 1);
                 else

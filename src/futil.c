@@ -1171,6 +1171,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
                 return false;
             }
         }
+
         if (!suppress) {
             if (file_spec[0] == '.' && file_spec[1] == '/')
                 printf("%s\n", &file_spec[2]);

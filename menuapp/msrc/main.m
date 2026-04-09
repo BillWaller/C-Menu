@@ -32,5 +32,7 @@
 !view -N f -L 66 -C 75 ~/menuapp/help/menu.help
 :     View Highlighted view_engine.c
 !view -L 66 -C 70 ~/menuapp/help/view_engine.c
+:     Tree View of Current Directory
+!view -L 40 -C 50 -T "Tree View" -S "treeview.sh %%"
 :     Exit Applications
 !return
