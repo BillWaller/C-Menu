@@ -350,7 +350,7 @@ View *destroy_view(Init *init) {
     delwin(view->ln_win);
     delwin(view->win);
     free(view->ln_tbl);
-    for (i = 0; i <= view->argc; i++)
+    for (i = 0; i < view->argc; i++)
         free(view->argv[i]);
     free(view->argv);
     free(view);
