@@ -10,11 +10,42 @@
 #include <common.h>
 #include <string.h>
 
+/** @brief This function is responsible for cleaning up the terminal state and
+   exiting the program.
+    @note This function is typically registered to be called when the program
+   exits, ensuring that the terminal is properly restored to its original state,
+   even if the program encounters an error or is terminated unexpectedly. The
+   end_pgm function performs the following actions:
+    1. It calls win_del() to delete any windows that may have been created
+   during the program's execution.
+    2. It calls destroy_curses() to clean up the ncurses library and restore the
+   terminal to its normal state.
+    3. It calls restore_shell_tioctl() to restore the terminal's input/output
+   settings to their original state.
+    4. Finally, it calls exit(EXIT_FAILURE) to terminate the program with a
+   failure status, indicating that the program has encountered an error or is
+   exiting due to an unexpected condition. By defining this function and
+   registering it to be called on program exit, you can help ensure that the
+   terminal is properly cleaned up and restored, preventing any issues with the
+   terminal state after the program has exited. */
+static void end_pgm(void) {
+    curs_set(1);
+    win_del();
+    destroy_curses();
+    restore_shell_tioctl();
+    sig_dfl_mode();
+    exit(EXIT_SUCCESS);
+}
+
 int mview(Init *);
 
-__end_pgm;
 int main(int argc, char **argv) {
-    __atexit;
+    int rc;
+    rc = atexit(end_pgm);
+    if (rc != 0) {
+        fprintf(stderr, "\nCannot set exit function\n");
+        exit(EXIT_FAILURE);
+    }
     char pgm_name[MAXLEN];
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
@@ -44,10 +75,7 @@ int main(int argc, char **argv) {
     } else if (!strcmp(pgm_name, "ckeys")) {
         popup_ckeys();
     }
-    destroy_init(init);
-    win_del();
-    destroy_curses();
-    return 0;
+    exit(EXIT_SUCCESS);
 }
 
 int mview(Init *init) {
