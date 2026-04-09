@@ -43,6 +43,14 @@ unsigned int menu_engine(Init *init) {
         Perror("menu_engine: menu is nullptr");
         return (1);
     }
+    menu->lines = 0;
+    menu->cols = 0;
+    menu->line_idx = 0;
+    menu->item_count = 0;
+    menu->title[0] = '\0';
+    menu->choice_max_len = 0;
+    menu->text_max_len = 0;
+    parse_menu_description(init);
     if (win_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title,
                 0)) {
         ssnprintf(tmp_str, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
@@ -53,14 +61,6 @@ unsigned int menu_engine(Init *init) {
     }
     menu->win = win_win[win_ptr];
     menu->box = win_box[win_ptr];
-    menu->lines = 0;
-    menu->cols = 0;
-    menu->line_idx = 0;
-    menu->item_count = 0;
-    menu->title[0] = '\0';
-    menu->choice_max_len = 0;
-    menu->text_max_len = 0;
-    parse_menu_description(init);
 
     action = MA_DISPLAY_MENU;
     while (action) {
@@ -68,6 +68,7 @@ unsigned int menu_engine(Init *init) {
         case MA_RETURN:
             win_del();
             if (win_ptr < 0) {
+                destroy_menu(init);
                 return 0;
             }
             menu->win = win_win[win_ptr];
@@ -81,7 +82,6 @@ unsigned int menu_engine(Init *init) {
                           menu->line[menu->line_idx]->choice_text);
             }
             action = MA_RESET_MENU;
-
             break;
         case MA_RESET_MENU:
             menu->line_idx = 0;
@@ -101,6 +101,7 @@ unsigned int menu_engine(Init *init) {
             break;
         }
     }
+    destroy_menu(init);
     return 0;
 }
 /** @brief Processes user input for the menu system.

@@ -376,6 +376,7 @@ int pick_engine(Init *init) {
         }
         deselect_object(pick);
     } while (1);
+    destroy_chyron(pick->chyron);
     return (rc);
 }
 /** @brief Saves a string as an object in the pick structure

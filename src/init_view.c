@@ -225,6 +225,7 @@ int view_init_input(View *view, char *file_name) {
     int idx = 0;
     pid_t pid = -1;
     int pipe_fd[2];
+    int s_argc = 0;
     char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
     view->f_in_pipe = false;
@@ -233,7 +234,7 @@ int view_init_input(View *view, char *file_name) {
         view->f_in_pipe = true;
     }
     if (view->provider_cmd[0] != '\0') {
-        str_to_args(s_argv, view->provider_cmd, MAXARGS - 1);
+        s_argc = str_to_args(s_argv, view->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
             Perror("pipe(pipe_fd) failed in init_view");
             return -1;
@@ -253,6 +254,7 @@ int view_init_input(View *view, char *file_name) {
             exit(EXIT_FAILURE);
         }
         // Back to parent
+        destroy_argv(s_argc, s_argv);
         close(pipe_fd[P_WRITE]);
         dup2(pipe_fd[P_READ], STDIN_FILENO);
         view->in_fd = dup(STDIN_FILENO);

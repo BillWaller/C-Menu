@@ -125,6 +125,7 @@ Init *destroy_init(Init *init) {
         init->pick = destroy_pick(init);
         init->pick = nullptr;
     }
+    destroy_argv(init->argc, init->argv);
     if (init->argv != nullptr)
         free(init->argv);
     if (init != nullptr) {
@@ -166,6 +167,7 @@ Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
     @return nullptr
  */
 Menu *destroy_menu(Init *init) {
+    menu = init->menu;
     for (menu->line_idx = 0; menu->line_idx < menu->item_count;
          menu->line_idx++) {
         if (menu->line[menu->line_idx]) {
@@ -179,9 +181,9 @@ Menu *destroy_menu(Init *init) {
             menu->line[menu->line_idx] = nullptr;
         }
     }
-    if (!init->menu)
-        return (nullptr);
     free(init->menu);
+    init->menu = nullptr;
+    menu = nullptr;
     init->menu = nullptr;
     init->menu_cnt--;
     return init->menu;
@@ -343,15 +345,13 @@ View *new_view(Init *init) {
     @return nullptr
  */
 View *destroy_view(Init *init) {
-    int i;
     view = init->view;
     if (!view)
         return nullptr;
     delwin(view->ln_win);
     delwin(view->win);
     free(view->ln_tbl);
-    for (i = 0; i < view->argc; i++)
-        free(view->argv[i]);
+    destroy_argv(view->argc, view->argv);
     free(view->argv);
     free(view);
     init->view = nullptr;

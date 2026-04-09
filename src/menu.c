@@ -30,7 +30,6 @@ int main(int argc, char **argv) {
     if (!strcmp(pgm_name, "menu")) {
         new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
         menu = init->menu;
-        parse_menu_description(init);
         menu_engine(init);
     } else if (!strcmp(pgm_name, "form")) {
         init_form(init, init->argc, init->argv, LINES / 14, COLS / 14);

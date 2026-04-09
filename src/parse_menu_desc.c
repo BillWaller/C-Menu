@@ -20,7 +20,6 @@
 
 unsigned int parse_menu_description(Init *);
 unsigned int get_command_type(char *);
-void free_menu_line(Line *);
 
 /** @brief Parse menu description file and create Menu
     @ingroup parse_menu
@@ -64,11 +63,10 @@ unsigned int parse_menu_description(Init *init) {
         l = strlen(tmp_buf);
         if (!l)
             continue;
+        if (directive == '#')
+            continue;
         switch (directive) {
-        /**  '#' Comment line, ignore */
-        case '#':
-            break;
-        /**  '!' Choice line, parse and add to menu */
+        /**  '!' Command */
         case '!':
             if (!menu->line_idx)
                 break;
@@ -79,7 +77,7 @@ unsigned int parse_menu_description(Init *init) {
             if (l + 1 > MAXLEN)
                 break;
             menu->line[menu->line_idx]->command_str =
-                (char *)malloc(MAXLEN + 1);
+                calloc(MAXLEN + 1, sizeof(char));
             if (!menu->line[menu->line_idx]->command_str) {
                 sprintf(tmp_str,
                         "0-malloc(%d bytes) failed M-L[%d]->command_str",
@@ -102,7 +100,7 @@ unsigned int parse_menu_description(Init *init) {
             if (l + 1 > MAXLEN)
                 l = MAXLEN - 1;
             menu->line[menu->line_idx]->choice_text =
-                (char *)malloc(MAXLEN + 1);
+                calloc(MAXLEN + 1, sizeof(char));
             if (!menu->line[menu->line_idx]->choice_text) {
                 sprintf(tmp_str,
                         "1-malloc(%d bytes) failed M-L[%d]->choice_text",
@@ -150,7 +148,7 @@ unsigned int parse_menu_description(Init *init) {
                 if (l > menu->text_max_len)
                     menu->text_max_len = l;
             } else {
-                menu->line[menu->line_idx] = (Line *)malloc(sizeof(Line));
+                menu->line[menu->line_idx] = calloc(1, sizeof(Line));
                 if (menu->line[menu->line_idx] == (Line *)0) {
                     sprintf(tmp_str,
                             "2-malloc(%ld bytes) failed menu->line[%d]",
@@ -167,7 +165,7 @@ unsigned int parse_menu_description(Init *init) {
                 menu->line_idx++;
                 choices++;
             }
-            break; /**  '?' Help line, ignore for now */
+            break;
         case '?':
             break; /**  ' ' Empty line, ignore */
         case ' ':
@@ -243,7 +241,6 @@ unsigned int parse_menu_description(Init *init) {
         strnz__cpy(menu->line[menu->line_idx]->choice_text, tmp_buf,
                    MAXLEN - 1);
     }
-
     return 0;
 }
 /** @brief Get command type from command string
@@ -284,27 +281,4 @@ unsigned int get_command_type(char *t) {
     else if (!strcmp(p, "write_config"))
         return (CT_WRITE_CONFIG);
     return (CT_UNDEFINED);
-}
-/** @brief Free memory allocated for a menu line
-    @ingroup parse_menu
-    @param line Pointer to Line structure to free
- */
-void free_menu_line(Line *line) {
-
-    if (line->raw_text != nullptr) {
-        free(line->raw_text);
-        line->raw_text = nullptr;
-    }
-    if (line->choice_text != nullptr) {
-        free(line->choice_text);
-        line->choice_text = nullptr;
-    }
-    if (line->command_str != nullptr) {
-        free(line->command_str);
-        line->command_str = nullptr;
-    }
-    line->choice_letter = '\0';
-    line->letter_pos = 0;
-    line->command_type = '\0';
-    free(line);
 }

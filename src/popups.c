@@ -12,7 +12,6 @@ int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
     Menu *sav_menu = init->menu;
     init->menu = NULL;
     new_menu(init, init->argc, init->argv, begy, begx);
-    parse_menu_description(init);
     rc = menu_engine(init);
     destroy_menu(init);
     init->menu = sav_menu;
