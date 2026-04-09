@@ -184,7 +184,6 @@ Menu *destroy_menu(Init *init) {
     free(init->menu);
     init->menu = nullptr;
     menu = nullptr;
-    init->menu = nullptr;
     init->menu_cnt--;
     return init->menu;
 }
