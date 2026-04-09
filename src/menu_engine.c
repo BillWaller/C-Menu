@@ -332,7 +332,7 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         popup_form(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
         destroy_argv(eargc, eargv);
-        return (MA_DISPLAY_MENU);
+        return (MA_RESET_MENU);
         /** @brief Display a view associated with the selected menu choice
          */
     case CT_VIEW:

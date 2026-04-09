@@ -278,12 +278,12 @@ Form *destroy_form(Init *init) {
 
     if (!init->form)
         return nullptr;
-    for (i = 0; i < init->form->fidx; i++) {
+    for (i = 0; i < FIELD_MAXCNT; i++) {
         if (init->form->field[i])
             free(init->form->field[i]);
         init->form->field[i] = nullptr;
     }
-    for (i = 0; i < init->form->didx; i++) {
+    for (i = 0; i < FIELD_MAXCNT; i++) {
         if (init->form->text[i])
             free(init->form->text[i]);
         init->form->text[i] = nullptr;

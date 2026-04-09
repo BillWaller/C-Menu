@@ -72,6 +72,7 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
             strnz__cat(tmp_str, " not found", MAXLEN - 1);
             rc = Perror(tmp_str);
         }
+        destroy_form(init);
         return rc;
     }
     if (begy != 0)
@@ -89,7 +90,7 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     rc = form_engine(init);
     if (form->win)
         win_del();
-    destroy_form(init);
+    destroy_chyron(form->chyron);
     return rc;
 }
 /** @brief Form main processing loop
@@ -121,9 +122,9 @@ int form_engine(Init *init) {
         Perror("FORM: form data structure is nullptr");
     }
     if (form_parse_desc(form)) {
-        destroy_form(init);
         return 0;
     }
+
     form_read_data(form);
     form_display_screen(init);
     form->fidx = 0;
@@ -556,14 +557,14 @@ int form_parse_desc(Form *form) {
         return (1);
     }
     for (i = 0; i < FIELD_MAXCNT; i++) {
-        form->field[i] = (Field *)calloc(1, sizeof(Field));
+        form->field[i] = calloc(1, sizeof(Field));
         if (!form->field[i]) {
             sprintf(tmp_str, "FORM: calloc failed for fields");
             abend(EXIT_FAILURE, tmp_str);
         }
     }
     for (i = 0; i < FIELD_MAXCNT; i++) {
-        form->text[i] = (Text *)calloc(1, sizeof(Text));
+        form->text[i] = calloc(1, sizeof(Text));
         if (!form->field[i]) {
             sprintf(tmp_str, "FORM: calloc failed for text");
             abend(EXIT_FAILURE, tmp_str);

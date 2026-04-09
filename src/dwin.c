@@ -772,9 +772,9 @@ void destroy_curses() {
     }
     werase(stdscr);
     wrefresh(stdscr);
-    endwin();
-    delscreen(screen);
-    screen = nullptr;
+    // endwin();
+    // delscreen(screen);
+    // screen = nullptr;
     fclose(ncurses_fp);
     f_curses_open = false;
     restore_shell_tioctl();
