@@ -4,8 +4,9 @@
 
 # Introduction
 
-The following is a very brief introduction to the C-Menu Toolkit and only covers
-a very tiny fraction of its features and capabilities. For more detailed information, please refer to the html documentation at:
+The following is a brief introduction to the C-Menu Toolkit covering a fraction of its features and capabilities. Who is C-Menu for? Anyone who demands performance with a professional look and feel for their applications, without the overhead of a graphical user interface. C-Menu is especially well suited for rescue, embedded, server, development, and other resource-constrained environments, but it also also appeals to the purist programmer who wants to create powerful, efficient, and user-friendly applications without the bloat of a GUI.
+
+For more detailed information, please refer to the html documentation at:
 
 [decision-inc.com](https://decision-inc.com)
 
@@ -82,11 +83,11 @@ wc -l find.out lf.out
 
 ![lf File Finder](screenshots/lf-vs-find2.png)
 
-**_API_** - A C library that provides a simple and consistent interface for creating menu-driven user interfaces in C. The API includes tools specific to C-Menu, but also many general purpose tools that can be used in a wide range of applications. The API documentation is available in html and integrated into Neovim's completion engine, making it easy for developers to learn and use the API effectively.
+**_API_** - C-Menu provides a simple and consistent API for creating menu-driven user interfaces in C. The API includes tools specific to C-Menu, but also many general purpose tools that can be used in a wide range of applications. The API documentation is available in html and integrated into Neovim's completion engine, making it easy for developers to learn and use the API effectively.
 
 ![C-Menu Completions in Neovim](screenshots/api-help1.png)
 
-All of the C-Menu binaries, including executables and libcm.so are less than 350k, a tiny footprint for such powerful tools, and no GUI is required. The only dependencies are the GNU C Library, GNU Math Library, NCursesw, and a terminal emulator. That makes C-Menu especially well suited for rescue, embedded, server, development, and other resource-constrained environments, where the overhead of a graphical user interface would be counter-productive.
+All of the C-Menu binaries, including executables and libcm.so are less than 350k, a tiny footprint for such powerful tools, and no GUI is required. The only dependencies are the GNU C Library, GNU Math Library, NCursesw, and a terminal emulator.
 
 Oh, and C-Menu is free, distributed under the MIT License.
 

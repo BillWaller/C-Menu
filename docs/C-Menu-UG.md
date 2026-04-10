@@ -26,39 +26,10 @@ gh repo clone BillWaller/C-Menu
 - [Prerequisites](#prerequisites)
   - [Not Required, But Recommended](#not-required-but-recommended)
 - [Getting Started](#getting-started)
-  - [C-Menu File Layout](#c-menu-file-layout)
-  - [RSH Safety Features](#rsh-safety-features)
-  - [Using RSH](#using-rsh)
-  - [RSH - A Use Case](#rsh---a-use-case)
-- [Starting C-Menu](#starting-c-menu)
-- [C-Menu configuration](#c-menu-configuration)
-- [Programming C-Menu Menu](#programming-c-menu-menu)
-  - [Menu Example](#menu-example)
-  - [Menu Description File Format](#menu-description-file-format)
-- [C-Menu Form In Depth](#c-menu-form-in-depth)
-  - [Form field editor](#form-field-editor)
-    - [Form Line Type Specifiers](#form-line-type-specifiers)
-    - [Form Field Delimiters](#form-field-delimiters)
-    - [Form Data Types](#form-data-types)
-    - [Form Line Syntax](#form-line-syntax)
-    - [Form Options](#form-options)
-- [C-Menu Pick](#c-menu-pick)
-  - [Pick Usage](#pick-usage)
-    - [Selecting Items](#selecting-items)
-  - [Pick Options](#pick-options)
-- [C-Menu View](#c-menu-view)
-  - [View Options](#view-options)
-    - [View Navigation](#view-navigation)
-    - [Searching Forward](#searching-forward)
-    - [Searching Backward](#searching-backward)
-    - [Horizontal Scrolling](#horizontal-scrolling)
-    - [Motion Keys](#motion-keys)
-  - [C-Menu Options](#c-menu-options)
-  - [C-Menu configuration file example](#c-menu-configuration-file-example)
-  - [lf](#lf)
-  - [whence](#whence)
-- [Troubleshooting](#troubleshooting)
-- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
+  - [C-Menu Environment Variables](#c-menu-environment-variables)
+- [- Comment line (ignored)](#--comment-line-ignored)
+- [Comment line (ignored)](#comment-line-ignored)
+- [~/.minitrc](#minitrc)
 
 <!-- mtoc-end -->
 
@@ -121,6 +92,18 @@ NOTE: The warnings below do not apply if you choose to install RSH without setui
 
 WARNING: Do not install RSH unless you understand the security implications of setuid root programs. RSH allows users to execute commands with root privileges, which can pose significant security risks if not managed properly.
 
+### C-Menu Environment Variables
+
+Set the following environment variables, according to your file layout, in your
+.bashrc or .zshrc file. The C-Menu programs rely on these variables to find files. It is assumed that if you don't use the suggested C-Menu file layout, you have the knowledge to configure your system accordingly. If you are new to C-Menu, it is recommended to use the suggested file layout and environment variable configuration for a smoother experience.
+
+```bash
+CMENU_SRC=/usr/local/src/C-Menu/src
+CMENU_HOME="$HOME"/menuapp
+CMENU_APPNAME=C-Menu_dev
+```
+
+````
 ### C-Menu File Layout
 
 ```bash
@@ -139,7 +122,7 @@ WARNING: Do not install RSH unless you understand the security implications of s
       │   └── tty      C-Menu tty test files
       ├── tmp          Temporary files
       └── user         User Files
-```
+````
 
 You can place C-Menu files anywhere you like, so long as you configure your system accordingly. However, for a first-time install, it will be much easier to use the suggested default configuration. These instructions will assume the default and give you some pointers on how you can modify the layout to suit your objectives. These instructions will serve as an example of one way to install C-Menu.
 
