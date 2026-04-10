@@ -43,7 +43,8 @@ struct termios shell_err_tioctl, curses_err_tioctl;
 bool capture_shell_tioctl() {
     if (f_have_shell_tioctl)
         return true;
-    tcgetattr(0, &shell_tioctl);
+    tcgetattr(0, &shell_in_tioctl);
+    tcgetattr(1, &shell_out_tioctl);
     tcgetattr(2, &shell_err_tioctl);
     f_have_shell_tioctl = true;
     return true;
@@ -55,7 +56,9 @@ bool capture_shell_tioctl() {
 bool restore_shell_tioctl() {
     if (!f_have_shell_tioctl)
         return false;
-    tcsetattr(0, TCSANOW, &shell_tioctl);
+    tcsetattr(0, TCSANOW, &shell_in_tioctl);
+    tcsetattr(1, TCSANOW, &shell_out_tioctl);
+    tcsetattr(2, TCSANOW, &shell_err_tioctl);
     return true;
 }
 /** @brief capture_curses_tioctl() - capture curses terminal settings
@@ -65,7 +68,9 @@ bool restore_shell_tioctl() {
 bool capture_curses_tioctl() {
     if (f_have_curses_tioctl)
         return true;
-    tcgetattr(0, &curses_tioctl);
+    tcgetattr(0, &curses_in_tioctl);
+    tcgetattr(1, &curses_out_tioctl);
+    tcgetattr(2, &curses_err_tioctl);
     f_have_curses_tioctl = true;
     return true;
 }
@@ -76,7 +81,10 @@ bool capture_curses_tioctl() {
 bool restore_curses_tioctl() {
     if (!f_have_curses_tioctl)
         return false;
-    tcsetattr(0, TCSANOW, &curses_tioctl);
+    tcsetattr(0, TCSANOW, &curses_in_tioctl);
+    tcsetattr(1, TCSANOW, &curses_out_tioctl);
+    tcsetattr(2, TCSANOW, &curses_err_tioctl);
+
     return true;
 }
 /** @brief set_sane_tioctl() - set terminal to sane settings for C-MENU

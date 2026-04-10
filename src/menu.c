@@ -75,6 +75,11 @@ int main(int argc, char **argv) {
     } else if (!strcmp(pgm_name, "ckeys")) {
         popup_ckeys();
     }
+    curs_set(1);
+    win_del();
+    destroy_curses();
+    restore_shell_tioctl();
+    sig_dfl_mode();
     exit(EXIT_SUCCESS);
 }
 
