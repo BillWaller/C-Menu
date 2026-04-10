@@ -1180,7 +1180,7 @@ int pad_refresh(View *view) {
     int rc;
     if (view->f_ln)
         rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
-                      view->smincol + 7, view->smaxrow, view->smaxcol);
+                      view->smincol + 8, view->smaxrow, view->smaxcol);
     else
         rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol, view->smaxrow, view->smaxcol);
@@ -1635,7 +1635,7 @@ void display_line(View *view) {
     if (view->cury > view->scroll_lines - 1)
         view->cury = view->scroll_lines - 1;
     if (view->f_ln) {
-        ssnprintf(ln_s, 7, "%6jd", view->ln);
+        ssnprintf(ln_s, 8, "%7jd", view->ln);
         wmove(view->ln_win, view->cury, 0);
         wclrtoeol(view->ln_win);
         mvwaddstr(view->ln_win, view->cury, 0, ln_s);

@@ -68,7 +68,7 @@ int init_view_full_screen(Init *init) {
 
     /** view->ln_win: line number window */
     view->ln_win_lines = scr_lines;
-    view->ln_win_cols = 7;
+    view->ln_win_cols = 8;
     view->ln_win = newwin(view->ln_win_lines - 1, view->ln_win_cols, 0, 0);
     keypad(view->ln_win, false);
     idlok(view->ln_win, false);
