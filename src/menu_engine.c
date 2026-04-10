@@ -121,8 +121,8 @@ unsigned int menu_cmd_processor(Init *init) {
     int in_key;
     char tmp_str[MAXLEN];
 
-    keypad(menu->win, TRUE);
     Menu *menu = init->menu;
+    keypad(menu->win, TRUE);
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
 
