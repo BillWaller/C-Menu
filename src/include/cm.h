@@ -116,6 +116,35 @@
         (__c >= 'a' && __c <= 'z') ? (__c - ('a' - 'A')) : __c;                \
     })
 
+/** @enum colors_enum
+    @note Used for xterm256 color conversions
+    @note These colors can be overridden in ".minitrc" */
+enum colors_enum {
+    CLR_BLACK,
+    CLR_RED,
+    CLR_GREEN,
+    CLR_YELLOW,
+    CLR_BLUE,
+    CLR_MAGENTA,
+    CLR_CYAN,
+    CLR_WHITE,
+    CLR_BBLACK,
+    CLR_BRED,
+    CLR_BGREEN,
+    CLR_BYELLOW,
+    CLR_BBLUE,
+    CLR_BMAGENTA,
+    CLR_BCYAN,
+    CLR_BWHITE,
+    CLR_BORANGE,
+    CLR_FG,
+    CLR_BG,
+    CLR_BO,
+    CLR_LN,
+    CLR_LN_BG,
+    CLR_NCOLORS
+};
+
 enum LFFlags {
     LF_HIDE = 1,      /**<   1 Don't list hidden files */
     LF_ICASE = 2,     /**<   2 Ignore case in search */

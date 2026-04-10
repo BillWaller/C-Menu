@@ -1828,9 +1828,9 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         bg_clr = rgb_to_curses_clr(&rgb);
                 } else if (t1 == '9') {
                     if (t0 == '3')
-                        fg_clr = COLOR_WHITE;
+                        fg_clr = CLR_FG;
                     else if (t0 == '4')
-                        bg_clr = COLOR_BLACK;
+                        bg_clr = CLR_BG;
                 } else if (t1 >= '0' && t1 <= '7') {
                     if (t0 == '3') {
                         x_idx = a_toi(&t1, &a_toi_error);
@@ -1850,8 +1850,8 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
         if (len == 1) {
             if (*tok == '0') {
                 *attr = WA_NORMAL;
-                fg_clr = COLOR_WHITE;
-                bg_clr = COLOR_BLACK;
+                fg_clr = CLR_FG;
+                bg_clr = CLR_BG;
             } else {
                 switch (a_toi(tok, &a_toi_error)) {
                 case 1:
@@ -1881,8 +1881,8 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
             }
         } else if (len == 0) {
             *attr = WA_NORMAL;
-            fg_clr = COLOR_WHITE;
-            bg_clr = COLOR_BLACK;
+            fg_clr = CLR_FG;
+            bg_clr = CLR_BG;
         }
         tok = strtok(nullptr, ";m");
     }
