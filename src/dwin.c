@@ -925,7 +925,6 @@ WINDOW *win_del() {
         }
         win_ptr--;
     }
-    curs_set(1);
     return (0);
 }
 /** @brief Restore all windows after a screen resize
