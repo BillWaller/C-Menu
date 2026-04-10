@@ -77,6 +77,8 @@ int main(int argc, char **argv) {
     }
     curs_set(1);
     win_del();
+    // erase();
+    // refresh();
     destroy_curses();
     restore_shell_tioctl();
     sig_dfl_mode();
