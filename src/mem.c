@@ -485,7 +485,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     @note Positional args: [menu desc], [help file] */
 bool init_menu_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
-    int optind = 1;
+    int optind = 0;
     if (optind < argc && !init->f_mapp_spec) {
         menu->f_mapp_spec =
             verify_spec_arg(menu->mapp_spec, argv[optind], init->mapp_msrc,

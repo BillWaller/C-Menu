@@ -296,24 +296,8 @@ unsigned int menu_cmd_processor(Init *init) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         if (eargc == 0)
             return (MA_DISPLAY_MENU);
-        zero_opt_args(init);
-        parse_opt_args(init, eargc, eargv);
-        if (init->begy == 0)
-            init->begy = menu->begy + 1;
-        if (init->begx == 0)
-            init->begx = menu->begx + 1;
-        Menu *save_menu = init->menu;
-        init->menu = nullptr;
-        init->menu = new_menu(init, eargc, eargv, init->begy, init->begx);
-        if (!init->menu)
-            abend(-1, "menu_cmd_processor: new_menu() failed");
-        // menu = init->menu;
-        parse_menu_description(init);
-        menu_engine(init);
+        popup_menu(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
         destroy_argv(eargc, eargv);
-        init->menu = destroy_menu(init);
-        init->menu = save_menu;
-        menu = init->menu;
         return (MA_RESET_MENU);
         /** @brief Display a pick list or form associated with the selected
          * menu choice */

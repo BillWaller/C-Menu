@@ -10,8 +10,8 @@ int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Menu *sav_menu = init->menu;
-    init->menu = NULL;
-    new_menu(init, init->argc, init->argv, begy, begx);
+    init->menu = nullptr;
+    init->menu = new_menu(init, init->argc, init->argv, begy, begx);
     rc = menu_engine(init);
     destroy_menu(init);
     init->menu = sav_menu;
