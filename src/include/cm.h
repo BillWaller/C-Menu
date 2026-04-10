@@ -247,6 +247,7 @@ typedef struct {
 
 extern int cp_default;           /**< default color pair index */
 extern int cp_norm;              /**< normal color pair index */
+extern int cp_win;               /**< window color pair index */
 extern int cp_box;               /**< box color pair index */
 extern int cp_bold;              /**< bold color pair index */
 extern int cp_title;             /**< title color pair index */
@@ -307,6 +308,7 @@ extern bool mk_dir(char *dir);
 extern int segmentation_fault();
 
 extern cchar_t CCC_NORM;    /**< normal color pair complex character */
+extern cchar_t CCC_WIN;     /**< window color pair complex character */
 extern cchar_t CCC_BOX;     /**< box color pair complex character */
 extern cchar_t CCC_REVERSE; /**< reverse color pair complex character */
 extern cchar_t CCC_LN;      /* line number color pair complex character */
@@ -637,6 +639,7 @@ typedef struct {
     int clr_pair_idx;            /**< current color pair index */
     int cp_default;              /**< default color pair index */
     int cp_norm;                 /**< normal color pair index */
+    int cp_win;                  /**< window color pair index */
     int cp_reverse;              /**< reverse color pair index */
     int cp_reverse_highlight;    /**< reverse highlight color pair index */
     int cp_box;                  /**< box color pair index */

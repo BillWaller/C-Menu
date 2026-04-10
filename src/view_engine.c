@@ -1081,7 +1081,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             view->curx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
             mvwchgat(view->pad, view->cury - 1, view->curx, match_len,
-                     WA_REVERSE, cp_norm, nullptr);
+                     WA_REVERSE, cp_win, nullptr);
             if (view->first_match_x == -1)
                 view->first_match_x = pmatch[0].rm_so;
             view->last_match_x = line_offset + pmatch[0].rm_eo;
@@ -1658,7 +1658,7 @@ int fmt_line(View *view) {
     int len = 0;
     const char *s;
     attr_t attr = WA_NORMAL;
-    int cpx = cp_norm;
+    int cpx = cp_win;
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
 

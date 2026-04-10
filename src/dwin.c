@@ -162,6 +162,7 @@ char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
 int cp_norm;
+int cp_win;
 int cp_box;
 int cp_reverse;
 int cp_reverse_highlight;
@@ -170,6 +171,8 @@ int clr_cnt = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
 cchar_t CCC_NORM;
+cchar_t CCC_WIN;
+cchar_t CCC_BG;
 cchar_t CCC_BOX;
 cchar_t CCC_REVERSE;
 cchar_t CCC_REVERSE_HIGHLIGHT;
@@ -181,7 +184,7 @@ FILE *ncurses_fp;
 /** @brief Initialize window attributes
     @ingroup window_support
     @note This function initializes color pairs for the window
-    @note cp_norm and cp_box are global variables
+    @note cp_norm, cp_win, and cp_box are global variables
     @see get_clr_pair
  */
 void win_init_attrs() { return; }
@@ -413,7 +416,7 @@ cchar_t *mk_cmplx_buf(const char *s) {
     int j = 0;
     int len;
     attr_t attr = WA_NORMAL;
-    int cpx = cp_norm;
+    int cpx = cp_win;
     wchar_t wc = L'\0';
     cchar_t cc = {0};
     mbstate_t mbstate;
@@ -498,13 +501,15 @@ bool open_curses(SIO *sio) {
     BLUE_GAMMA = sio->blue_gamma;
     GRAY_GAMMA = sio->gray_gamma;
 
-    cp_norm = get_clr_pair(CLR_FG, CLR_BG);
+    cp_win = get_clr_pair(CLR_FG, CLR_BG);
+    cp_norm = get_clr_pair(CLR_WHITE, CLR_BLACK);
     cp_reverse = get_clr_pair(CLR_BLACK, CLR_WHITE);
     cp_reverse_highlight = get_clr_pair(CLR_BLACK, CLR_YELLOW);
     cp_box = get_clr_pair(CLR_BO, CLR_BG);
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
 
     CCC_NORM = mkccc(cp_norm);
+    CCC_WIN = mkccc(cp_win);
     CCC_REVERSE = mkccc(cp_reverse);
     CCC_REVERSE_HIGHLIGHT = mkccc(cp_reverse_highlight);
     CCC_BOX = mkccc(cp_box);
@@ -853,8 +858,8 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 #ifdef NCDEBUG
             immedok(win_win[win_ptr], true);
 #endif
-            wbkgrnd(win_win[win_ptr], &CCC_NORM);
-            wbkgrndset(win_win[win_ptr], &CCC_NORM);
+            wbkgrnd(win_win[win_ptr], &CCC_WIN);
+            wbkgrndset(win_win[win_ptr], &CCC_WIN);
             keypad(win_win[win_ptr], true);
             idlok(win_win[win_ptr], false);
             idcok(win_win[win_ptr], false);
@@ -895,8 +900,8 @@ void win_resize(int wlines, int wcols, char *title) {
     }
     wnoutrefresh(win_box[win_ptr]);
     wresize(win_win[win_ptr], wlines, wcols);
-    wbkgrnd(win_win[win_ptr], &CCC_NORM);
-    wbkgrndset(win_win[win_ptr], &CCC_NORM);
+    wbkgrnd(win_win[win_ptr], &CCC_WIN);
+    wbkgrndset(win_win[win_ptr], &CCC_WIN);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
@@ -927,11 +932,15 @@ WINDOW *win_del() {
     curs_set(0);
     if (win_ptr >= 0) {
         touchwin(win_win[win_ptr]);
+        wbkgrnd(win_win[win_ptr], &CCC_NORM);
+        wbkgrndset(win_win[win_ptr], &CCC_NORM);
         werase(win_win[win_ptr]);
         wnoutrefresh(win_win[win_ptr]);
         delwin(win_win[win_ptr]);
 
         touchwin(win_box[win_ptr]);
+        wbkgrnd(win_box[win_ptr], &CCC_NORM);
+        wbkgrndset(win_box[win_ptr], &CCC_NORM);
         werase(win_box[win_ptr]);
         wnoutrefresh(win_box[win_ptr]);
         delwin(win_box[win_ptr]);

@@ -2,6 +2,17 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-04-10
+
+Used valgrind to find and fix a number of memory leaks and other memory-related issues. At this point, C-Menu is exiting with no memory leaks.
+
+Removed the -a (list hidden files) option from lf, made that the default
+behavior, and added -n option to exclude hidden files.
+
+Until now, the default maximum depth for lf was set to 3, which was convenient for testing, but could be confusing for users accustomed to find. The default maximum depth has been changed to 0, which means no limit. Users may want to specify a reasonable maximum depth to avoid unnecessary voluminous output.
+
+In benchmark testing, lf performed exceptionally well. It's fast.
+
 0.2.9 - 2026-04-01
 
 Most of the known bugs have been fixed, and the code is in a much more stable state. I will be doing a lot of testing and debugging to find and fix any remaining bugs, but I am confident that the code is in a good state for the next release, which will be version 0.3.x. The next release will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.

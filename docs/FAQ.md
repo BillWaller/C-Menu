@@ -5,9 +5,8 @@
 <!-- mtoc-start -->
 
 - [lf is fast, but I rely on find's features](#lf-is-fast-but-i-rely-on-finds-features)
-- [Can lf match files with multiple suffixes](#can-lf-match-files-with-multiple-suffixes)
 - [Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.](#drop-down-and-pop-up-menus-forms-pickers-views-ckeys-etc)
-- [Sorted lf Output](#sorted-lf-output)
+- [Can lf match files with multiple suffixes](#can-lf-match-files-with-multiple-suffixes)
 - [Multiple Executables](#multiple-executables)
 - [Static Executables](#static-executables)
 - [What's the Icon?](#whats-the-icon)
@@ -37,7 +36,6 @@
 
 <!-- mtoc-end -->
 
-
 ## lf is fast, but I rely on find's features
 
 Q: I use find all the time to delete, move, and process files. find's -exec argument can apply any executable to found files. How can I do that with lf?
@@ -54,6 +52,44 @@ And, you will find the performance of lf is spectacular compared to find.
 
 ![lf vs find performance](../screenshots/lf-vs-find5.png)
 
+## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
+
+Q: Why don't you have drop-down and pop-up menus, forms, pickers, views, ckeys, etc.?
+
+A: That capability is being implemented and refined. I think the key is to make
+the drop-down and pop-up menus, forms, pickers, views, ckeys, etc. easy for the
+developer to use and reliable for the user.
+
+## Can lf match files with multiple suffixes
+
+Q: Can lf match files with multiple suffixes, such as .c and .h files?
+
+A: Yes, you can use regular expressions to match files with multiple suffixes. For example, the following command will match both .c and .h files:
+
+```bash
+lf -t f '.*\.[ch]$'
+```
+
+You can also match multiple suffixes with a slightly more complex regular expression. For example, the following command will match .c, .h, .cpp, .hpp, .cc, .hh, .cxx, .hxx, .rs, and .sh files:
+
+```bash
+lf -t f '.*\.\(c|h|cpp|hpp|cc|hh|cxx|hxx|rs|sh\)$'
+```
+
+## Multiple Executables
+
+Q: Why do you have separate executables for Menu, Form, Pick, and View? Why not just one executable with different modes?
+
+A: I can't think of any justification for that, so I removed the separate
+executables and added symbolic links to the Menu executable. Everything works
+exactly as before, and the binary distribution is smaller and simpler. Thank you
+for the suggestion.
+
+## Static Executables
+
+Q: Why don't you compile static executables? That would make installation easier and more portable.
+
+A: Of course you are right, and it is very possible that static executables will be available in the future. Currently, you can compile RSH as a static executable by setting "RSH_LD = -static". Menu, Form, Pick, and View can be compiled with static libc, libm, libncurses, and libcm. However, in testing the statically linked executables, I ran into problems with the ncurses library failing when it tried to dlopen shared library components. I will need to investigate further to determine if the issues can be resolved.
 
 ## What's the Icon?
 
