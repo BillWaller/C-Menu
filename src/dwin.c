@@ -937,9 +937,9 @@ WINDOW *win_del() {
    signal to handle terminal resizing gracefully. */
 void restore_wins() {
     int i;
-    touchwin(stdscr);
-    wnoutrefresh(stdscr);
-    wrefresh(stdscr);
+    // touchwin(stdscr);
+    // wnoutrefresh(stdscr);
+    // wrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
         touchwin(win_box[i]);
         wnoutrefresh(win_box[i]);

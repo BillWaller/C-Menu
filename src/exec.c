@@ -189,6 +189,9 @@ int fork_exec(char **argv) {
     }
     restore_curses_tioctl();
     sig_prog_mode();
+    touchwin(stdscr);
+    wnoutrefresh(stdscr);
+    wrefresh(stdscr);
     restore_wins();
     tmp_str[0] = '\0';
     if (tmp_str[0] != '\0') {
