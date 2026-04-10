@@ -1314,13 +1314,14 @@ void scroll_up_n_lines(View *view, int n) {
     view->f_eod = false;
     if (view->page_top_pos == 0)
         return;
-    if (view->page_top_ln - n >= 0)
+    if (view->page_top_ln - n >= 0) {
         view->page_top_ln -= n;
-    else
+    } else
         view->page_top_ln = 1;
     view->ln = view->page_top_ln;
     view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->file_pos = view->page_top_pos;
+
     if (view->f_ln) {
         wscrl(view->ln_win, -n);
         wnoutrefresh(view->ln_win);
@@ -1336,8 +1337,13 @@ void scroll_up_n_lines(View *view, int n) {
         fmt_line(view);
         display_line(view);
     }
-    view->page_bot_pos = view->file_pos;
-    view->page_bot_ln = view->ln;
+    if (view->page_bot_ln - n >= view->scroll_lines)
+        view->page_bot_ln -= n;
+    else
+        view->page_bot_ln = view->scroll_lines;
+    view->ln = view->page_bot_ln;
+    view->page_bot_pos = view->ln_tbl[view->page_bot_ln];
+    view->file_pos = view->page_bot_pos;
     return;
 }
 /** @brief Get Next Line from View->buf
