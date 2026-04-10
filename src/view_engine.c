@@ -252,7 +252,7 @@ int view_cmd_processor(Init *init) {
             shift = (int)n_cmd;
             swidth = view->smaxcol - view->smincol + 1;
             if (view->f_ln)
-                max_pmincol = view->maxcol - swidth + 7;
+                max_pmincol = view->maxcol - swidth + 8;
             else
                 max_pmincol = view->maxcol - swidth;
             if (view->pmincol + shift < max_pmincol)
@@ -331,13 +331,17 @@ int view_cmd_processor(Init *init) {
             break;
         /**  '-', Change View Settings */
         case '-':
-            display_prompt(view, "(c, i, n, s, t, or h)->");
+            display_prompt(view, "(i, n, s, t, or h)->");
             c = get_cmd_char(view, &n_cmd);
             c = S_TOLOWER(c);
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
             switch (c) {
-            /**  'i' - Ignore Case in Search */
+            /**   -i   ignore_case in search */
+            /**   -n   line numbers */
+            /**   -s   squeeze multiple blank lines */
+            /**   -t n set tab stop columns */
+            /**   -h   display help */
             case 'i':
                 display_prompt(view, "Ignore Case in search (Y or N)->");
                 if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
@@ -345,6 +349,7 @@ int view_cmd_processor(Init *init) {
                 else if (c == 'n' || c == 'N')
                     view->f_ignore_case = false;
                 break;
+            /**   -n   line numbers */
             case 'n':
                 if (view->f_ln)
                     view->f_ln = false;
@@ -359,7 +364,7 @@ int view_cmd_processor(Init *init) {
                 pad_refresh(view);
                 view_display_page(view);
                 break;
-            /** 's' - Squeeze Multiple Blank Lines */
+            /**  -s  Squeeze Multiple Blank Lines */
             case 's':
                 display_prompt(
                     view, "view->f_squeeze Multiple Blank lines (Y or N)->");
@@ -368,7 +373,7 @@ int view_cmd_processor(Init *init) {
                 else if (c == 'n' || c == 'N')
                     view->f_squeeze = false;
                 break;
-            /** 't' - Set Tab Stop Columns */
+            /**  -t  n Set Tab Stop Columns */
             case 't':
                 sprintf(tmp_str,
                         "Tabstop Colums Currently %d:", view->tab_stop);
@@ -381,8 +386,8 @@ int view_cmd_processor(Init *init) {
                 } else
                     Perror("Tab stops not changed");
                 break;
-            /** KEY_F(1), 'H' - Display Help */
-            case 'H':
+            /**  -h  Display Help */
+            case 'h':
             case KEY_F(1):
                 if (!view->f_displaying_help) {
                     view_display_help(init);

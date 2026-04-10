@@ -168,7 +168,7 @@ int init_view_boxwin(Init *init, char *title) {
 
     /** view->ln_win: line number window */
     view->ln_win_lines = view->lines - 1;
-    view->ln_win_cols = 7;
+    view->ln_win_cols = 8;
     view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols, view->begy + 1,
                           view->begx + 1);
     keypad(view->ln_win, false);
