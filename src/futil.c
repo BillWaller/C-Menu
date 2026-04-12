@@ -1521,6 +1521,8 @@ int segmentation_fault() {
 
     return 0;
 }
+/** @brief Open new C-Menu log file
+    @ingroup utility_functions */
 void open_cmenu_log() {
     char ttyname[MAXLEN];
     char cmenu_user[MAXLEN];
@@ -1534,6 +1536,10 @@ void open_cmenu_log() {
               cmenu_user, ttyname);
     write_cmenu_log(em0);
 }
+/** @brief Write message to C-Menu log file with timestamp
+    @ingroup utility_functions
+    @param msg - string to write to log file
+ */
 void write_cmenu_log(char *msg) {
     char time_buf[100];
     time_t now = time(NULL);
@@ -1546,6 +1552,10 @@ void write_cmenu_log(char *msg) {
     write(cmenu_log_fd, "\n", 1);
     return;
 }
+/** @brief Write message to C-Menu log file without timestamp
+    @ingroup utility_functions
+    @param msg - string to write to log file
+ */
 void write_cmenu_log_nt(char *msg) {
     write(cmenu_log_fd, msg, strlen(msg));
     write(cmenu_log_fd, "\n", 1);

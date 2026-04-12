@@ -19,6 +19,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+extern int cmenu_log_fd;
+
 #if __STDC_VERSION__ < 202311L
 #define nullptr NULL
 #endif

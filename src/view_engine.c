@@ -94,7 +94,6 @@ void go_to_position(View *, off_t);
 bool search(View *, int *, char *);
 void next_page(View *);
 void prev_page(View *);
-void view_resize(Init *, int, int);
 void scroll_down_n_lines(View *, int);
 void scroll_up_n_lines(View *, int);
 off_t get_next_line(View *, off_t);
@@ -218,7 +217,7 @@ int view_cmd_processor(Init *init) {
         case 'x':
         case KEY_RESIZE:
             getmaxyx(stdscr, view->lines, view->cols);
-#ifdef DEBUG
+#ifdef DEBUG_RESIZE
             ssnprintf(em0, MAXLEN - 1,
                       "view->page_top_ln=%d, resized to lines: %d, cols: %d\n",
                       view->page_top_ln, view->lines, view->cols);
@@ -1135,7 +1134,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
         }
     }
     view->file_pos = view->srch_curr_pos;
-#ifdef DEBUG
+#ifdef DEBUG_SEARCH
     /** Statistics for debugging */
     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
               "%s|%c%s|Pos %zu-%zu|(%zd) %zu %zu", view->file_name, *search_cmd,
@@ -1161,20 +1160,6 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
 /** @defgroup view_display Manage View Display
     @brief Manage the View Display
  */
-/** @brief Resize Viewing Page
-    @ingroup view_display
-    @param init data structure */
-void view_resize(Init *init, int scr_lines, int scr_cols) {
-    view = init->view;
-    if (!view->f_full_screen) {
-        if (scr_lines != view->lines || scr_cols != view->cols) {
-            view->lines = scr_lines;
-            view->cols = scr_cols;
-            view_win_resize(init, view->title);
-        }
-    }
-    view->f_redisplay_page = false;
-}
 /** @brief Refresh Pad and Line Number Window
     @ingroup view_display
     @param view data structure

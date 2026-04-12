@@ -169,6 +169,9 @@ bool handle_signal(int sig_num) {
         restore_shell_tioctl();
     em0[0] = '\0';
     ssnprintf(em0, MAXLEN - 1, "Caught signal %d\n", sig_num);
+#ifdef DEBUG_LOG
+    write_cmenu_log(em0);
+#endif
     strnz__cpy(em2, "Press 'q' or F9 to exit, any other key to continue",
                MAXLEN - 1);
     sig_received = 0;

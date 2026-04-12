@@ -50,6 +50,14 @@ int init_view_full_screen(Init *init) {
     set_tabsize(view->tab_stop);
     view->f_full_screen = true;
     view_calc_full_screen_dimensions(init);
+#ifdef DEBUG_RESIZE
+    ssnprintf(em0, MAXLEN - 1,
+              "init_view_full_screen(): lines=%d, cols=%d, "
+              "ln_win_lines=%d, ln_win_cols=%d, "
+              "scroll_lines=%d",
+              view->lines, view->cols, view->ln_win_lines, view->ln_win_cols,
+              view->scroll_lines);
+#endif
     /** view->cmdln_win: status or command line window */
     view->cmdln_win =
         newwin(1, view->cols, view->begy + view->lines - 1, view->begx);
@@ -96,6 +104,14 @@ int init_view_full_screen(Init *init) {
 #endif
     return 0;
 }
+/** @brief Resize the full screen view and its components.
+    @ingroup window_support
+    @param init Pointer to the Init structure containing view settings.
+    @note This function resizes the full screen view and its components,
+   including the command line window, line number window, and main content pad.
+   It also recalculates the dimensions for the full screen mode and updates the
+   scroll regions accordingly.
+ */
 void view_full_screen_resize(Init *init) {
     erase();
     wnoutrefresh(stdscr);
@@ -105,28 +121,40 @@ void view_full_screen_resize(Init *init) {
     wresize(view->cmdln_win, 1, view->cols);
     wnoutrefresh(view->cmdln_win);
 
-    wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
+    // wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
+    wresize(view->ln_win, view->ln_win_lines - 1, view->ln_win_cols);
     wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
     wnoutrefresh(view->ln_win);
 
     wresize(view->pad, view->lines - 1, PAD_COLS);
     wsetscrreg(view->pad, 0, view->lines - 1);
 }
+/** @brief Calculate the dimensions for full screen mode.
+    @ingroup init_view
+    @details This function calculates the dimensions for the full screen mode of
+   the C-Menu View. It retrieves the maximum dimensions of the standard screen
+   and sets the view parameters accordingly. It also resizes the line number
+   window and command line window based on the new dimensions.
+    @param init Pointer to the Init structure containing view settings.
+ */
 void view_calc_full_screen_dimensions(Init *init) {
     view = init->view;
     getmaxyx(stdscr, view->lines, view->cols);
     view->ln_win_lines = view->lines;
     view->ln_win_cols = 8;
-    wresize(view->ln_win, view->ln_win_lines - 1, view->ln_win_cols);
-    mvwin(view->cmdln_win, view->lines - 1, 0);
-    wresize(view->cmdln_win, 1, view->cols);
-    wresize(view->pad, view->lines - 1, PAD_COLS);
+    view->scroll_lines = view->lines - 1;
+#ifdef DEBUG_RESIZE
+    ssnprintf(
+        em0, MAXLEN - 1,
+        "view->lines=%d, view->cols=%d, view->maxrows=%d, view->maxcols=%d",
+        view->lines, view->cols, view->smaxrow, view->smaxcol);
+    write_cmenu_log_nt(em0);
+#endif
+    view->cmd_line = 0;
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = 0;
     view->smincol = 0;
-    view->scroll_lines = view->lines - 1;
-    view->cmd_line = 0;
     view->smaxrow = view->lines - 1;
     view->smaxcol = view->cols - 1;
     view->ln = view->page_top_ln + view->scroll_lines;
@@ -191,23 +219,24 @@ int init_view_boxwin(Init *init, char *title) {
 
     /** view->ln_win: line number window */
 #ifdef DEBUG_RESIZE
-    ssnprintf(
-        em0, MAXLEN - 1,
-        "(195)init_view_boxwin(): view->ln_win: begy=%d, begx=%d, lines=%d, "
-        "cols=%d, scroll_lines=%d",
-        view->begy, view->begx, view->lines + 2, view->cols + 2,
-        view->scroll_lines);
+    ssnprintf(em0, MAXLEN - 1,
+              "init_view_boxwin(): view->ln_win: begy=%d, begx=%d, lines=%d, "
+              "cols=%d, scroll_lines=%d",
+              view->begy, view->begx, view->ln_win_lines, view->ln_win_cols,
+              view->scroll_lines);
     write_cmenu_log_nt(em0);
 #endif
-    view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols, view->begy + 1,
-                          view->begx + 1);
-    keypad(view->ln_win, false);
-    idlok(view->ln_win, false);
-    idcok(view->ln_win, false);
-    wbkgrnd(view->ln_win, &CCC_LN);
-    wbkgrndset(view->ln_win, &CCC_LN);
-    scrollok(view->ln_win, true);
-    wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
+    if (view->f_ln) {
+        view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols,
+                              view->begy + 1, view->begx + 1);
+        keypad(view->ln_win, false);
+        idlok(view->ln_win, false);
+        idcok(view->ln_win, false);
+        wbkgrnd(view->ln_win, &CCC_LN);
+        wbkgrndset(view->ln_win, &CCC_LN);
+        scrollok(view->ln_win, true);
+        wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
+    }
 #ifdef DEBUG_IMMEDOK
     immedok(view->ln_win, true);
 #endif
@@ -306,6 +335,17 @@ void view_win_resize(Init *init, char *title) {
     wresize(view->pad, view->lines - 1, PAD_COLS);
     wsetscrreg(view->pad, 0, view->scroll_lines);
 }
+/** @brief Calculate the dimensions and position of the box window for C-Menu
+   View.
+    @ingroup init_view
+    @details This function calculates the dimensions and position of the box
+   window for the C-Menu View based on the screen size and any specified
+   parameters in the Init structure. It ensures that the box window fits within
+   the screen dimensions and adjusts its size and position accordingly.
+    @param init Pointer to the Init structure containing view settings.
+    @param title Title for the box window, used to ensure minimum width if
+   provided.
+ */
 void view_calc_win_dimensions(Init *init, char *title) {
     int scr_lines, scr_cols;
     view = init->view;

@@ -334,7 +334,9 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         abend(-1, tmp_str);
         exit(-1);
     }
+#ifdef DEBUG_LOG
     open_cmenu_log();
+#endif
     e = getenv("CMENU_HOME");
     if (!e || *e == '\0')
         strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN);
