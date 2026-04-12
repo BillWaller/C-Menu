@@ -78,7 +78,9 @@ CFLAGS=-O0 -ggdb -rdynamic
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # This will cause the screen to update immediately after each change, which can be helpful for debugging screen drawing issues. However, it may also cause performance issues, so it is not recommended for production builds.
-# CFLAGS=-O0 -ggdb -rdynamic -DNCDEBUG
+# -DDEBUG_RESIZE
+# -DDEUBG_IMMEDOK
+#  CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_RESIZE -DDEBUG_IMMEDOK
 #
 # Uncomment the following line to enable coverage.
 # CFLAGS=--coverage -O0 -ggdb -rdynamic -DNCDEBUG

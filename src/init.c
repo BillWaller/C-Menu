@@ -22,11 +22,8 @@
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syslog.h>
 #include <time.h>
 #include <unistd.h>
-
-void open_cmenu_system_log();
 
 enum {
     IN_SPEC = 257,
@@ -337,7 +334,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         abend(-1, tmp_str);
         exit(-1);
     }
-    open_cmenu_system_log();
+    open_cmenu_log();
     e = getenv("CMENU_HOME");
     if (!e || *e == '\0')
         strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN);
@@ -727,18 +724,6 @@ int parse_config(Init *init) {
     @note The file is created if it does not exist, and overwritten if it
    does exist
  */
-void open_cmenu_system_log() {
-    char ttyname[MAXLEN];
-    char cmenu_user[MAXLEN];
-    char *p;
-    p = getenv("USER");
-    strncpy(cmenu_user, p ? p : "unknown", sizeof(cmenu_user));
-    openlog("cmenu", LOG_PID | LOG_CONS, LOG_AUTH);
-    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
-        syslog(LOG_INFO, "C-Menu started by user '%s' on terminal '%s'",
-               cmenu_user, ttyname);
-}
-
 int write_config(Init *init) {
     char *e;
     char minitrc_dmp[MAXLEN];

@@ -30,12 +30,17 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 #include <wait.h>
 
 #define LF_LNK 1
 #define LF_DIR 2
 #define LF_REG 4
+
+void write_cmenu_log(char *);
+void open_cmenu_log();
+int cmenu_log_fd;
 
 char earg_str[MAXLEN];
 int eargc;
@@ -1515,4 +1520,34 @@ int segmentation_fault() {
     // *p = 100;
 
     return 0;
+}
+void open_cmenu_log() {
+    char ttyname[MAXLEN];
+    char cmenu_user[MAXLEN];
+    char *p;
+    cmenu_log_fd = open("/tmp/cmenu.log", O_WRONLY | O_CREAT | O_TRUNC);
+    p = getenv("USER");
+    strnz__cpy(cmenu_user, p, MAXLEN - 1);
+    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
+        strnz__cpy(em0, ttyname, MAXLEN - 1);
+    ssnprintf(em0, MAXLEN - 1, "C-Menu started by user '%s' on terminal '%s'\n",
+              cmenu_user, ttyname);
+    write_cmenu_log(em0);
+}
+void write_cmenu_log(char *msg) {
+    char time_buf[100];
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(time_buf, sizeof(time_buf), "%Y-%m-%dT%H:%M:%S%z", t);
+    strnz__cpy(em1, time_buf, MAXLEN - 1);
+    strnz__cat(em1, " ", MAXLEN - 1);
+    strnz__cat(em1, msg, MAXLEN - 1);
+    write(cmenu_log_fd, em1, strlen(em1));
+    write(cmenu_log_fd, "\n", 1);
+    return;
+}
+void write_cmenu_log_nt(char *msg) {
+    write(cmenu_log_fd, msg, strlen(msg));
+    write(cmenu_log_fd, "\n", 1);
+    return;
 }

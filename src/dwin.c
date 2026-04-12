@@ -493,7 +493,7 @@ bool open_curses(SIO *sio) {
     idcok(stdscr, false);
     wbkgrnd(stdscr, &CCC_NORM);
     wbkgrndset(stdscr, &CCC_NORM);
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(stdscr, true);
 #endif
     win_ptr = -1;
@@ -795,7 +795,7 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         win_ptr--;
         return 1;
     }
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
     wbkgrnd(win_box[win_ptr], &CCC_BOX);
@@ -825,7 +825,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
         delwin(win_box[win_ptr]);
         return 1;
     }
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
     wbkgrnd(win_win[win_ptr], &CCC_WIN);
@@ -874,7 +874,7 @@ void win_resize(int wlines, int wcols, char *title) {
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
 }

@@ -23,8 +23,6 @@
 #define nullptr NULL
 #endif
 
-#define DEBUG false
-
 #define MAX_ARGS 64   /**< maximum number of arguments for external commands */
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
@@ -466,7 +464,10 @@ extern const wchar_t bw_rt; /**< right tee */
 extern const wchar_t bw_cr; /**< cross */
 extern const wchar_t bw_bt; /**< bottom tee */
 
-extern FILE *debug_fp;
+extern void write_cmenu_log_nt(char *);
+extern void write_cmenu_log(char *);
+extern void open_cmenu_log();
+extern FILE *cmenu_log_fp;
 extern int n_lines; /**< number of lines in the terminal */
 extern int n_cols;  /**< number of columns in the terminal */
 extern int lines; /**< current number of lines (may be less than n_lines if the

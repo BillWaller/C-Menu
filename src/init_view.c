@@ -20,7 +20,6 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <sys/syslog.h>
 #include <sys/sysmacros.h>
 #include <unistd.h>
 #include <wait.h>
@@ -60,7 +59,7 @@ int init_view_full_screen(Init *init) {
     wbkgrnd(view->cmdln_win, &CCC_WIN);
     wbkgrndset(view->cmdln_win, &CCC_WIN);
     scrollok(view->cmdln_win, false);
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(view->cmdln_win, true);
 #endif
     /** view->ln_win: line number window */
@@ -72,7 +71,7 @@ int init_view_full_screen(Init *init) {
     wbkgrndset(view->ln_win, &CCC_LN);
     scrollok(view->ln_win, true);
     wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(view->ln_win, true);
 #endif
     /** view->cmdln_win: status or command line window */
@@ -92,7 +91,7 @@ int init_view_full_screen(Init *init) {
     wbkgrndset(view->pad, &CCC_WIN);
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(view->pad, true);
 #endif
     return 0;
@@ -158,6 +157,14 @@ int init_view_boxwin(Init *init, char *title) {
             view->argv[0][0] != '\0')
             strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
     }
+#ifdef DEBUG_RESIZE
+    ssnprintf(em0, MAXLEN - 1,
+              "init_view_boxwin(): view->box: begy=%d, begx=%d, lines=%d, "
+              "cols=%d, title=%s",
+              view->begy, view->begx, view->lines + 2, view->cols + 2,
+              view->title);
+    write_cmenu_log_nt(em0);
+#endif
     if (box_new(view->lines, view->cols, view->begy, view->begx, view->title,
                 false)) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
@@ -178,11 +185,20 @@ int init_view_boxwin(Init *init, char *title) {
     wbkgrnd(view->cmdln_win, &CCC_WIN);
     wbkgrndset(view->cmdln_win, &CCC_WIN);
     scrollok(view->cmdln_win, false);
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(view->cmdln_win, true);
 #endif
 
     /** view->ln_win: line number window */
+#ifdef DEBUG_RESIZE
+    ssnprintf(
+        em0, MAXLEN - 1,
+        "(195)init_view_boxwin(): view->ln_win: begy=%d, begx=%d, lines=%d, "
+        "cols=%d, scroll_lines=%d",
+        view->begy, view->begx, view->lines + 2, view->cols + 2,
+        view->scroll_lines);
+    write_cmenu_log_nt(em0);
+#endif
     view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols, view->begy + 1,
                           view->begx + 1);
     keypad(view->ln_win, false);
@@ -192,7 +208,7 @@ int init_view_boxwin(Init *init, char *title) {
     wbkgrndset(view->ln_win, &CCC_LN);
     scrollok(view->ln_win, true);
     wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(view->ln_win, true);
 #endif
     /** pad for main content */
@@ -204,7 +220,7 @@ int init_view_boxwin(Init *init, char *title) {
     wbkgrndset(view->pad, &CCC_WIN);
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(view->pad, true);
 #endif
     return (0);
@@ -224,6 +240,11 @@ void view_win_resize(Init *init, char *title) {
     wnoutrefresh(stdscr);
     wrefresh(stdscr);
     view_calc_win_dimensions(init, title);
+#ifdef DEBUG_RESIZE
+    ssnprintf(em0, MAXLEN - 1, "view->box: begy=%d, begx=%d, lines=%d, cols=%d",
+              view->begy, view->begx, view->lines + 2, view->cols + 2);
+    write_cmenu_log_nt(em0);
+#endif
     mvwin(view->box, view->begy, view->begx);
     wresize(view->box, view->lines + 2, view->cols + 2);
     wbkgrnd(view->box, &CCC_BOX);
@@ -250,18 +271,40 @@ void view_win_resize(Init *init, char *title) {
             mvwaddnwstr(view->box, 0, (s + 4), &bw_lt, 1);
     }
     wnoutrefresh(view->box);
-
+#ifdef DEBUG_RESIZE
+    ssnprintf(em0, MAXLEN - 1,
+              "view->cmdln_win: begy=%d, begx=%d, lines=%d, cols=%d",
+              view->begy + view->lines, view->begx + 1, 1, view->cols);
+    write_cmenu_log_nt(em0);
+#endif
     mvwin(view->cmdln_win, view->begy + view->lines, view->begx + 1);
     wresize(view->cmdln_win, 1, view->cols);
     wnoutrefresh(view->cmdln_win);
-
+#ifdef DEBUG_RESIZE
+    ssnprintf(em0, MAXLEN - 1,
+              "(285)view->ln_win: begy=%d, begx=%d, lines=%d, cols=%d, "
+              "scroll_lines %d",
+              view->begy + 1, view->begx + 1, view->ln_win_lines + 2,
+              view->ln_win_cols, view->scroll_lines);
+    write_cmenu_log_nt(em0);
+#endif
     mvwin(view->ln_win, view->begy + 1, view->begx + 1);
     wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
-    wsetscrreg(view->ln_win, 0, view->ln_win_lines);
+    wsetscrreg(view->ln_win, 0, view->scroll_lines);
     wnoutrefresh(view->ln_win);
 
+    view->sminrow = view->begy + 1;
+    view->smincol = view->begx + 1;
+    view->smaxrow = view->begy + view->lines;
+    view->smaxcol = view->begx + view->cols;
+#ifdef DEBUG_RESIZE
+    ssnprintf(em0, MAXLEN - 1,
+              "view->pad: sminrow=%d, smincol=%d, smaxrow=%d, smaxcol=%d",
+              view->sminrow, view->smincol, view->smaxrow, view->smaxcol);
+    write_cmenu_log_nt(em0);
+#endif
     wresize(view->pad, view->lines - 1, PAD_COLS);
-    wsetscrreg(view->pad, 0, view->lines - 1);
+    wsetscrreg(view->pad, 0, view->scroll_lines);
 }
 void view_calc_win_dimensions(Init *init, char *title) {
     int scr_lines, scr_cols;
@@ -301,13 +344,14 @@ void view_calc_win_dimensions(Init *init, char *title) {
     if (view->begx == 0)
         view->begx = (scr_cols - view->cols) / 5;
     if (view->begx + view->cols > scr_cols - 2)
-        view->begx = scr_cols - view->begx - 2;
+        view->begx = scr_cols - view->cols - 2;
 
     view->ln_win_lines = view->lines - 1;
     if (view->f_ln)
         view->ln_win_cols = 8;
     else
         view->ln_win_cols = 0;
+
     view->scroll_lines = view->lines - 1;
     view->cmd_line = 0;
 
@@ -320,9 +364,6 @@ void view_calc_win_dimensions(Init *init, char *title) {
 
     view->ln = view->page_top_ln + view->scroll_lines;
     view->page_bot_ln = view->ln;
-
-    ssnprintf(em0, MAXLEN - 1, "%d lines, %d cols", view->lines, view->cols);
-    syslog(LOG_INFO, "Calculated size %s\n", em0);
 }
 /** @brief Initialize the input for a C-Menu View.
 @ingroup init_view

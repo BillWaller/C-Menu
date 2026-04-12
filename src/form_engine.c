@@ -486,7 +486,7 @@ unsigned int form_display_screen(Init *init) {
         Perror(tmp_str);
         return (1);
     }
-#ifdef NCDEBUG
+#ifdef DEBUG_IMMEDOK
     immedok(form->win, TRUE);
 #endif
     form->win = win_win[win_ptr];

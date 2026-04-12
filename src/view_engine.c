@@ -24,7 +24,6 @@
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <sys/syslog.h>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
@@ -219,14 +218,18 @@ int view_cmd_processor(Init *init) {
         case 'x':
         case KEY_RESIZE:
             getmaxyx(stdscr, view->lines, view->cols);
-            ssnprintf(em0, MAXLEN - 1, "%d lines, %d cols", view->lines,
-                      view->cols);
-            syslog(LOG_INFO, "Terminal resized to %s\n", em0);
+#ifdef DEBUG
+            ssnprintf(em0, MAXLEN - 1,
+                      "view->page_top_ln=%d, resized to lines: %d, cols: %d\n",
+                      view->page_top_ln, view->lines, view->cols);
+            write_cmenu_log_nt(em0);
+#endif
             if (view->f_full_screen) {
                 view_full_screen_resize(init);
             } else {
                 view_win_resize(init, view->title);
             }
+            view->f_redisplay_page = true;
             continue;
         case KEY_ALTHOME: /**< KEY_ALTHOME - horizontal scroll to the first
                              column */
@@ -1239,10 +1242,11 @@ void next_page(View *view) {
  */
 void view_display_page(View *view) {
     int i;
+    view->cury = 0;
     wmove(view->pad, 0, 0);
     if (view->ln_win)
         wmove(view->ln_win, 0, 0);
-    view->page_top_ln = view->ln;
+    view->ln = view->page_top_ln;
     view->page_bot_ln = view->ln;
     view->page_top_pos = view->ln_tbl[view->ln];
     view->file_pos = view->page_top_pos;
