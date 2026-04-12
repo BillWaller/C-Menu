@@ -348,7 +348,9 @@ View *destroy_view(Init *init) {
     if (!view)
         return nullptr;
     delwin(view->ln_win);
-    delwin(view->win);
+    delwin(view->cmdln_win);
+    delwin(view->box);
+    delwin(view->pad);
     free(view->ln_tbl);
     destroy_argv(view->argc, view->argv);
     free(view->argv);

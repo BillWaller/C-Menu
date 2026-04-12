@@ -41,14 +41,14 @@ int popup_ckeys() {
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
                   BUTTON_CTRL | BUTTON_ALT,
               NULL);
-    if (win_new(lines, cols, begy, begx, Title, 0)) {
-        strnz__cpy(tmp, "win_new failed: ", MAXLEN - 1);
+    if (box_new(lines, cols, begy, begx, Title, true)) {
+        strnz__cpy(tmp, "box_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
         Perror(tmp);
         return 0;
     }
-    win = win_win[win_ptr];
     box = win_box[win_ptr];
+    win = win_win[win_ptr];
     keypad(win, TRUE);
     wattron(win, WA_REVERSE);
     mvwaddstr(win, lines - 1, 0, " <ALT>END to exit ");

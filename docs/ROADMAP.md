@@ -1,5 +1,15 @@
 # C-Menu ROADMAP
 
+## 0.2.9 Tasks to Complete before 0.3.0
+
+Before we added the Ncurses virtual pad and line numbers, C-Menu View's window
+would resize automatically if the user decreased the size of the terminal
+window. That capability was broken by adding the pad, the line number window,
+and a separate command line window. Now, we must go back and resize all four
+windows instead of two. It's not just a matter of resizing but also sequencing
+the resizing and redrawing of the windows to avoid flickering and other visual
+artifacts. This is a non-trivial task, but it is necessary to ensure that C-Menu View remains user-friendly and visually appealing.
+
 ## 0.3.0 On the Horizon
 
 ### Asynchronous Communication and Serialization

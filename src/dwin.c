@@ -30,7 +30,8 @@
 
 bool open_curses(SIO *);
 void destroy_curses();
-int win_new(int, int, int, int, char *, int);
+int box_new(int, int, int, int, char *, bool);
+int win_new(int, int, int, int);
 void win_redraw(WINDOW *);
 void win_resize(int, int, char *);
 WINDOW *win_del();
@@ -777,67 +778,62 @@ cchar_t mkccc(int cp) {
     @param wbegx Beginning X position
     @param wtitle Window title
     @param flag Window flags
-    @note if flag set to W_BOX, Only create win_box. This is for View which uses
-   the box window for display and doesn't need a separate win_win
     @return 0 if successful, 1 if error */
-int win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
-            int flag) {
+
+int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
+            bool win_pair) {
     int maxx;
-    if (win_ptr < MAXWIN) {
-        win_ptr++;
-        if (wbegy != 0 || wbegx != 0 || wlines < LINES - 2 ||
-            wcols < COLS - 2) {
-            win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
-            if (win_box[win_ptr] == nullptr) {
-                win_ptr--;
-                return (1);
-            }
-#ifdef NCDEBUG
-            immedok(win_box[win_ptr], true);
-#endif
-            wbkgrnd(win_box[win_ptr], &CCC_BOX);
-            wbkgrndset(win_box[win_ptr], &CCC_BOX);
-            cbox(win_box[win_ptr]);
-            mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
-            mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
-            mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
-            maxx = getmaxx(win_box[win_ptr]);
-            int s = strlen(wtitle);
-            if ((s + 3) < maxx)
-                mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
-            if ((s + 4) < maxx)
-                mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-            wnoutrefresh(win_box[win_ptr]);
-            wbegy += 1;
-            wbegx += 1;
-        } else {
-            win_box[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
-            if (win_box[win_ptr] == nullptr)
-                win_ptr--;
-            return (1);
-#ifdef NCDEBUG
-            immedok(win_box[win_ptr], true);
-#endif
-            wbkgrnd(win_box[win_ptr], &CCC_BOX);
-            wbkgrndset(win_box[win_ptr], &CCC_BOX);
-        }
-        if (!(flag & W_BOX)) {
-            win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
-            if (win_win[win_ptr] == nullptr) {
-                delwin(win_box[win_ptr]);
-                return (1);
-            }
-#ifdef NCDEBUG
-            immedok(win_win[win_ptr], true);
-#endif
-            wbkgrnd(win_win[win_ptr], &CCC_WIN);
-            wbkgrndset(win_win[win_ptr], &CCC_WIN);
-            keypad(win_win[win_ptr], true);
-            idlok(win_win[win_ptr], false);
-            idcok(win_win[win_ptr], false);
-        }
+    if (win_ptr >= MAXWIN) {
+        ssnprintf(em0, MAXLEN - 1, "Maximum number of windows (%d) exceeded");
+        abend(-1, em0);
     }
-    return (0);
+    win_ptr++;
+    wlines = min(wlines, LINES - 2);
+    wcols = min(wcols, COLS - 2);
+    win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
+    if (win_box[win_ptr] == nullptr) {
+        win_ptr--;
+        return 1;
+    }
+#ifdef NCDEBUG
+    immedok(win_box[win_ptr], true);
+#endif
+    wbkgrnd(win_box[win_ptr], &CCC_BOX);
+    wbkgrndset(win_box[win_ptr], &CCC_BOX);
+    cbox(win_box[win_ptr]);
+    mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
+    mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
+    mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
+    maxx = getmaxx(win_box[win_ptr]);
+    int s = strlen(wtitle);
+    if ((s + 3) < maxx)
+        mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
+    if ((s + 4) < maxx)
+        mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
+    wnoutrefresh(win_box[win_ptr]);
+    win_win[win_ptr] = nullptr;
+    if (win_pair)
+        win_new(wlines, wcols, wbegy, wbegx);
+    return 0;
+}
+
+int win_new(int wlines, int wcols, int wbegy, int wbegx) {
+    wbegy += 1;
+    wbegx += 1;
+    win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
+    if (win_win[win_ptr] == nullptr) {
+        delwin(win_box[win_ptr]);
+        return 1;
+    }
+#ifdef NCDEBUG
+    immedok(win_win[win_ptr], true);
+#endif
+    wbkgrnd(win_win[win_ptr], &CCC_WIN);
+    wbkgrndset(win_win[win_ptr], &CCC_WIN);
+    keypad(win_win[win_ptr], true);
+    idlok(win_win[win_ptr], false);
+    idcok(win_win[win_ptr], false);
+    return 0;
 }
 /** @brief Resize the current window and its box, and update the title
     @ingroup window_support
@@ -903,29 +899,35 @@ WINDOW *win_del() {
     int i;
     curs_set(0);
     if (win_ptr >= 0) {
-        touchwin(win_win[win_ptr]);
-        wbkgrnd(win_win[win_ptr], &CCC_NORM);
-        wbkgrndset(win_win[win_ptr], &CCC_NORM);
-        werase(win_win[win_ptr]);
-        wnoutrefresh(win_win[win_ptr]);
-        delwin(win_win[win_ptr]);
-
-        touchwin(win_box[win_ptr]);
-        wbkgrnd(win_box[win_ptr], &CCC_NORM);
-        wbkgrndset(win_box[win_ptr], &CCC_NORM);
-        werase(win_box[win_ptr]);
-        wnoutrefresh(win_box[win_ptr]);
-        delwin(win_box[win_ptr]);
-
+        if (win_win[win_ptr] != nullptr) {
+            touchwin(win_win[win_ptr]);
+            wbkgrnd(win_win[win_ptr], &CCC_NORM);
+            wbkgrndset(win_win[win_ptr], &CCC_NORM);
+            werase(win_win[win_ptr]);
+            wnoutrefresh(win_win[win_ptr]);
+            delwin(win_win[win_ptr]);
+        }
+        if (win_box[win_ptr] != nullptr) {
+            touchwin(win_box[win_ptr]);
+            wbkgrnd(win_box[win_ptr], &CCC_NORM);
+            wbkgrndset(win_box[win_ptr], &CCC_NORM);
+            werase(win_box[win_ptr]);
+            wnoutrefresh(win_box[win_ptr]);
+            delwin(win_box[win_ptr]);
+        }
         for (i = 0; i < win_ptr; i++) {
-            touchwin(win_box[i]);
-            wnoutrefresh(win_box[i]);
+            if (win_box[i] != nullptr) {
+                touchwin(win_box[i]);
+                wnoutrefresh(win_box[i]);
+            }
+            if (win_win[i] == nullptr)
+                continue;
             touchwin(win_win[i]);
             wnoutrefresh(win_win[i]);
         }
         win_ptr--;
     }
-    return (0);
+    return 0;
 }
 /** @brief Restore all windows after a screen resize
     @ingroup window_support
@@ -940,9 +942,13 @@ void restore_wins() {
     // wnoutrefresh(stdscr);
     // wrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
-        touchwin(win_box[i]);
-        wnoutrefresh(win_box[i]);
-        wrefresh(win_box[i]);
+        if (win_box[i] != nullptr) {
+            touchwin(win_box[i]);
+            wnoutrefresh(win_box[i]);
+            wrefresh(win_box[i]);
+        }
+        if (win_win[i] == nullptr)
+            continue;
         touchwin(win_win[i]);
         wnoutrefresh(win_win[i]);
         wrefresh(win_win[i]);
@@ -997,7 +1003,7 @@ int answer_yn(char *em0, char *em1, char *em2, char *em3) {
 
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", em0, em1, em2, em3);
-        return (1);
+        return 1;
     }
 
     Chyron *chyron = new_chyron();
@@ -1019,9 +1025,9 @@ int answer_yn(char *em0, char *em1, char *em2, char *em3) {
     pos = ((COLS - em_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (win_new(5, em_l + 2, line, pos, title, 0)) {
-        ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
-                  5, em_l + 2, line, pos, title, 0);
+    if (box_new(5, em_l + 2, line, pos, title, true)) {
+        ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 5,
+                  em_l + 2, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
     }
@@ -1057,7 +1063,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
 
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", em0, em1, em2, em3);
-        return (1);
+        return 1;
     }
 
     Chyron *chyron = new_chyron();
@@ -1079,9 +1085,9 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     pos = ((COLS - em_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (win_new(5, em_l + 2, line, pos, title, 0)) {
-        ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
-                  5, em_l + 2, line, pos, title, 0);
+    if (box_new(5, em_l + 2, line, pos, title, true)) {
+        ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 5,
+                  em_l + 2, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
     }
@@ -1121,7 +1127,7 @@ int Perror(char *emsg_str) {
     strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
-        return (1);
+        return 1;
     }
     Chyron *chyron = new_chyron();
     set_chyron_key(chyron, 1, "F1 Help", KEY_F(1));
@@ -1134,9 +1140,9 @@ int Perror(char *emsg_str) {
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (win_new(2, len + 2, line, pos, title, 0)) {
-        ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
-                  4, line, line, pos, title, 0);
+    if (box_new(2, len + 2, line, pos, title, true)) {
+        ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s, %b) failed",
+                  4, line, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
     }
@@ -1184,9 +1190,9 @@ WINDOW *wait_mk_win(Chyron *chyron, char *title) {
     len = max(len, 40);
     col = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (win_new(2, len + 2, line, col, title, 0)) {
-        ssnprintf(title, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
-                  4, line, line, col, title, 0);
+    if (box_new(2, len + 2, line, col, title, true)) {
+        ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 4,
+                  line, line, col, title);
         abend(-1, title);
     }
     wait_win = win_win[win_ptr];
@@ -1236,9 +1242,9 @@ bool action_disposition(char *title, char *action_str) {
     len = max(strlen(title), strlen(action_str));
     col = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (win_new(2, len + 2, line, col, title, 0)) {
-        ssnprintf(em0, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed", 4,
-                  line, line, col, title, 0);
+    if (box_new(2, len + 2, line, col, title, true)) {
+        ssnprintf(em0, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 4,
+                  line, line, col, title);
         Perror(em0);
     }
     action_disposition_win = win_win[win_ptr];

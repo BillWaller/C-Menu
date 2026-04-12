@@ -2,6 +2,20 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-04-12
+
+Refactoring of View's live resizing for both full screen and box window modes.
+If you need to shrink the View window, simply resize the terminal window.
+
+0.2.9 - 2026-04-11
+
+Major progress is being made in refactoring the main components of C-Menu to provide pop-up and drop-down helper widgets. This is a major step in the evolution of C-Menu, and it will allow for much more flexible and powerful user interfaces. The first component to be refactored is the chyron, which is a pop-up widget that can be used to display information and options to the user. The chyron is implemented as a separate module, and it can be easily integrated into any C-Menu program. The next step will be to refactor the Pick module to use the chyron for displaying options, which will allow for much more dynamic and context-sensitive user interfaces. For example, when entering form fields, the user can press or click the help button to display a list of possible ogjects with which to fill the field and then select one with the mouse or keyboard. This will be a much more intuitive and efficient way to fill out forms, and it will also allow for much more complex forms with many fields. This is in preparation for the next major release, which will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
+
+Resizing of the View windows is underway. This will require much testing as
+there are four windows within the View window, the box window, the line number
+window, the command line window, and the virtual pad that must be resized and
+sequenced perfectly to avoid distracting artifacts.
+
 0.2.9 - 2026-04-10
 
 Used valgrind to find and fix a number of memory leaks and other memory-related issues. At this point, C-Menu is exiting with no memory leaks.

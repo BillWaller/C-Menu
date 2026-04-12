@@ -928,11 +928,11 @@ and keypad options for the window, and returns 0 on success. */
 int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
     pick = init->pick;
-    if (win_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
-                pick->title, 0)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
+    if (box_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
+                pick->title, true)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed",
                   pick->win_lines, pick->win_width, pick->begy, pick->begx,
-                  pick->title, 0);
+                  pick->title);
         Perror(tmp_str);
 
         return (1);

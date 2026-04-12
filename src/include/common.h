@@ -46,7 +46,6 @@
 #define PRINTCMD "lp -c -s"
 #define MAXOPTS 50
 #define EIGHT 8
-#define F_VIEW 0x01
 #define P_READ 0
 #define P_WRITE 1
 #define TRUE 1
@@ -213,9 +212,13 @@ extern int init_form(Init *, int, char **, int, int);
 extern int init_pick(Init *, int, char **, int, int);
 extern int open_pick_win(Init *);
 extern int pick_engine(Init *);
+extern int cmd_processor(Init *);
 extern int view_file(Init *);
 extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(Init *, char *);
 extern int view_init_input(View *, char *);
-extern int cmd_processor(Init *);
+extern void view_calc_full_screen_dimensions(Init *);
+extern void view_full_screen_resize(Init *);
+extern void view_calc_win_dimensions(Init *, char *title);
+extern void view_win_resize(Init *, char *);
 #endif

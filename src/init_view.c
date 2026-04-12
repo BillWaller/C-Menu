@@ -20,9 +20,15 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/syslog.h>
 #include <sys/sysmacros.h>
 #include <unistd.h>
 #include <wait.h>
+
+void view_calc_full_screen_dimensions(Init *);
+void view_full_screen_resize(Init *);
+void view_calc_win_dimensions(Init *, char *title);
+void view_win_resize(Init *, char *);
 
 /** @brief Initialize C-Menu View in full screen mode.
     @ingroup init_view
@@ -32,43 +38,32 @@
    @return 0 on success, -1 on failure.
    @verbatim
    The function creates the following windows:
-   1. view->win: Status or Command Line
+   1. view->cmdln_win: Status or Command Line
    2. view->ln_win: Line Number Window
    3. view->pad: Main Content Pad
    @endverbatim
  */
 int init_view_full_screen(Init *init) {
-    int scr_lines, scr_cols;
     view = init->view;
 
     if (view->tab_stop <= 0)
         view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
     view->f_full_screen = true;
-    getmaxyx(stdscr, scr_lines, scr_cols);
-    if (view->lines == 0 || view->lines > scr_lines)
-        view->lines = scr_lines;
-    if (view->cols == 0 || view->cols > scr_cols)
-        view->cols = scr_cols;
-    if (view->begy + view->lines > scr_lines)
-        view->begy = scr_lines - view->lines;
-    if (view->begx + view->cols > scr_cols)
-        view->begx = scr_cols - view->cols;
-    /** view->win: status or command line window */
-    view->win = newwin(1, view->cols, view->begy + view->lines - 1, view->begx);
-    keypad(view->win, true);
-    idlok(view->win, false);
-    idcok(view->win, false);
-    wbkgrnd(view->win, &CCC_WIN);
-    wbkgrndset(view->win, &CCC_WIN);
-    scrollok(view->win, false);
+    view_calc_full_screen_dimensions(init);
+    /** view->cmdln_win: status or command line window */
+    view->cmdln_win =
+        newwin(1, view->cols, view->begy + view->lines - 1, view->begx);
+    keypad(view->cmdln_win, true);
+    idlok(view->cmdln_win, false);
+    idcok(view->cmdln_win, false);
+    wbkgrnd(view->cmdln_win, &CCC_WIN);
+    wbkgrndset(view->cmdln_win, &CCC_WIN);
+    scrollok(view->cmdln_win, false);
 #ifdef NCDEBUG
-    immedok(view->win, true);
+    immedok(view->cmdln_win, true);
 #endif
-
     /** view->ln_win: line number window */
-    view->ln_win_lines = scr_lines;
-    view->ln_win_cols = 8;
     view->ln_win = newwin(view->ln_win_lines - 1, view->ln_win_cols, 0, 0);
     keypad(view->ln_win, false);
     idlok(view->ln_win, false);
@@ -80,16 +75,7 @@ int init_view_full_screen(Init *init) {
 #ifdef NCDEBUG
     immedok(view->ln_win, true);
 #endif
-
-    /** view->win: status or command line window */
-    view->pminrow = 0;
-    view->pmincol = 0;
-    view->sminrow = 0;
-    view->smincol = 0;
-    view->scroll_lines = view->lines - 1;
-    view->cmd_line = 0;
-    view->smaxrow = view->lines - 1;
-    view->smaxcol = view->cols - 1;
+    /** view->cmdln_win: status or command line window */
     view->pad = newpad(view->lines - 1, PAD_COLS);
     if (view->pad == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
@@ -111,6 +97,42 @@ int init_view_full_screen(Init *init) {
 #endif
     return 0;
 }
+void view_full_screen_resize(Init *init) {
+    erase();
+    wnoutrefresh(stdscr);
+    wrefresh(stdscr);
+    view_calc_full_screen_dimensions(init);
+    mvwin(view->cmdln_win, view->lines - 1, 0);
+    wresize(view->cmdln_win, 1, view->cols);
+    wnoutrefresh(view->cmdln_win);
+
+    wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
+    wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
+    wnoutrefresh(view->ln_win);
+
+    wresize(view->pad, view->lines - 1, PAD_COLS);
+    wsetscrreg(view->pad, 0, view->lines - 1);
+}
+void view_calc_full_screen_dimensions(Init *init) {
+    view = init->view;
+    getmaxyx(stdscr, view->lines, view->cols);
+    view->ln_win_lines = view->lines;
+    view->ln_win_cols = 8;
+    wresize(view->ln_win, view->ln_win_lines - 1, view->ln_win_cols);
+    mvwin(view->cmdln_win, view->lines - 1, 0);
+    wresize(view->cmdln_win, 1, view->cols);
+    wresize(view->pad, view->lines - 1, PAD_COLS);
+    view->pminrow = 0;
+    view->pmincol = 0;
+    view->sminrow = 0;
+    view->smincol = 0;
+    view->scroll_lines = view->lines - 1;
+    view->cmd_line = 0;
+    view->smaxrow = view->lines - 1;
+    view->smaxcol = view->cols - 1;
+    view->ln = view->page_top_ln + view->scroll_lines;
+    view->page_bot_ln = view->ln;
+}
 /** @brief Initialize the C-Menu View in box window mode.
     @ingroup init_view
     @note sets up the view structure for box window mode, adjusts dimensions
@@ -121,22 +143,14 @@ int init_view_full_screen(Init *init) {
     @return 0 on success, -1 on failure.
  */
 int init_view_boxwin(Init *init, char *title) {
-    int scr_lines, scr_cols;
     view = init->view;
 
     if (view->tab_stop <= 0)
         view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
     view->f_full_screen = false;
-    getmaxyx(stdscr, scr_lines, scr_cols);
-    if (view->lines > scr_lines)
-        view->lines = scr_lines;
-    if (view->cols > scr_cols)
-        view->cols = scr_cols;
-    if (view->begy + view->lines > scr_lines)
-        view->begy = scr_lines - view->lines - 2;
-    if (view->begx + view->cols > scr_cols)
-        view->begx = scr_cols - view->cols - 2;
+
+    view_calc_win_dimensions(init, title);
     if (title != nullptr && title[0] != '\0')
         strnz__cpy(view->title, title, MAXLEN - 1);
     else {
@@ -144,31 +158,31 @@ int init_view_boxwin(Init *init, char *title) {
             view->argv[0][0] != '\0')
             strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
     }
-    if (win_new(view->lines, view->cols, view->begy, view->begx, view->title,
-                F_VIEW)) {
+    if (box_new(view->lines, view->cols, view->begy, view->begx, view->title,
+                false)) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
-                  view->lines, view->cols, view->begy, view->begx, "nullptr",
-                  F_VIEW);
+        ssnprintf(em1, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s) failed",
+                  view->lines, view->cols, view->begy, view->begx, view->title);
         em2[0] = '\0';
         display_error(em0, em1, em2, nullptr);
         return (-1);
     }
+    view->box = win_box[win_ptr];
 
-    view->win = newwin(1, view->cols, view->begy + view->lines, view->begx + 1);
-    keypad(view->win, true);
-    idlok(view->win, false);
-    idcok(view->win, false);
-    wbkgrnd(view->win, &CCC_WIN);
-    wbkgrndset(view->win, &CCC_WIN);
-    scrollok(view->win, false);
+    /** view->cmdln_win: status or command line window */
+    view->cmdln_win =
+        newwin(1, view->cols, view->begy + view->lines, view->begx + 1);
+    keypad(view->cmdln_win, true);
+    idlok(view->cmdln_win, false);
+    idcok(view->cmdln_win, false);
+    wbkgrnd(view->cmdln_win, &CCC_WIN);
+    wbkgrndset(view->cmdln_win, &CCC_WIN);
+    scrollok(view->cmdln_win, false);
 #ifdef NCDEBUG
-    immedok(view->win, true);
+    immedok(view->cmdln_win, true);
 #endif
 
     /** view->ln_win: line number window */
-    view->ln_win_lines = view->lines - 1;
-    view->ln_win_cols = 8;
     view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols, view->begy + 1,
                           view->begx + 1);
     keypad(view->ln_win, false);
@@ -182,14 +196,6 @@ int init_view_boxwin(Init *init, char *title) {
     immedok(view->ln_win, true);
 #endif
     /** pad for main content */
-    view->scroll_lines = view->lines - 1;
-    view->cmd_line = 0;
-    view->pminrow = 0;
-    view->pmincol = 0;
-    view->sminrow = view->begy + 1;
-    view->smincol = view->begx + 1;
-    view->smaxrow = view->begy + view->lines;
-    view->smaxcol = view->begx + view->cols;
     view->pad = newpad(view->lines - 1, PAD_COLS);
     keypad(view->pad, true);
     idlok(view->pad, false);
@@ -203,23 +209,138 @@ int init_view_boxwin(Init *init, char *title) {
 #endif
     return (0);
 }
+/** @brief Resize the current window and its box, and update the title
+    @ingroup window_support
+    @param wlines Number of lines
+    @param wcols Number of columns
+    @param title Window title
+    @note This function resizes the current window and its associated box window
+   to the specified number of lines and columns. It also updates the title of
+   the box window if a title is provided. After resizing, it refreshes the
+   windows to apply the changes. */
+void view_win_resize(Init *init, char *title) {
+    int maxx;
+    erase();
+    wnoutrefresh(stdscr);
+    wrefresh(stdscr);
+    view_calc_win_dimensions(init, title);
+    mvwin(view->box, view->begy, view->begx);
+    wresize(view->box, view->lines + 2, view->cols + 2);
+    wbkgrnd(view->box, &CCC_BOX);
+    wbkgrndset(view->box, &CCC_BOX);
+    cbox(view->box);
+    if (title != nullptr && *title != '\0') {
+        wmove(view->box, 0, 1);
+        waddnstr(view->box, (const char *)&bw_rt, 1);
+        wmove(view->box, 0, 2);
+        waddnstr(view->box, (const char *)&bw_sp, 1);
+        mvwaddnwstr(view->box, 0, 1, &bw_rt, 1);
+        mvwaddnwstr(view->box, 0, 2, &bw_sp, 1);
+        int len = strlen(title);
+        if (len > (view->cols - 4)) {
+            len -= (view->cols - 4);
+            mvwaddstr(view->box, 0, 3, &title[len]);
+        } else
+            mvwaddstr(view->box, 0, 3, title);
+        maxx = getmaxx(view->box);
+        int s = strlen(title);
+        if ((s + 3) < maxx)
+            mvwaddch(view->box, 0, (s + 3), ' ');
+        if ((s + 4) < maxx)
+            mvwaddnwstr(view->box, 0, (s + 4), &bw_lt, 1);
+    }
+    wnoutrefresh(view->box);
+
+    mvwin(view->cmdln_win, view->begy + view->lines, view->begx + 1);
+    wresize(view->cmdln_win, 1, view->cols);
+    wnoutrefresh(view->cmdln_win);
+
+    mvwin(view->ln_win, view->begy + 1, view->begx + 1);
+    wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
+    wsetscrreg(view->ln_win, 0, view->ln_win_lines);
+    wnoutrefresh(view->ln_win);
+
+    wresize(view->pad, view->lines - 1, PAD_COLS);
+    wsetscrreg(view->pad, 0, view->lines - 1);
+}
+void view_calc_win_dimensions(Init *init, char *title) {
+    int scr_lines, scr_cols;
+    view = init->view;
+    getmaxyx(stdscr, scr_lines, scr_cols);
+    int len = strlen(title);
+
+    /** Use view->lines and view->cols if set, otherwise calculate based on
+     * screen size with some padding. Ensure the view fits within the screen
+     * dimensions. */
+
+    if (init->lines != 0 && view->lines == 0)
+        view->lines = init->lines;
+    if (view->lines == 0)
+        view->lines = scr_lines * 3 / 4;
+    if (view->lines > scr_lines - 3)
+        view->lines = scr_lines - 3;
+
+    if (init->cols != 0 && view->cols == 0)
+        view->cols = init->cols;
+    if (view->cols == 0)
+        view->cols = scr_cols * 3 / 4;
+    if (view->cols < len + 4)
+        view->cols = len + 4;
+    if (view->cols > scr_cols - 4)
+        view->cols = scr_cols - 4;
+
+    if (init->begy != 0 && view->begy == 0)
+        view->begy = init->begy;
+    if (view->begy == 0)
+        view->begy = (scr_lines - view->lines) / 5;
+    if (view->begy + view->lines > scr_lines - 2)
+        view->begy = scr_lines - view->lines - 2;
+
+    if (init->begx != 0 && view->begx == 0)
+        view->begx = init->begx;
+    if (view->begx == 0)
+        view->begx = (scr_cols - view->cols) / 5;
+    if (view->begx + view->cols > scr_cols - 2)
+        view->begx = scr_cols - view->begx - 2;
+
+    view->ln_win_lines = view->lines - 1;
+    if (view->f_ln)
+        view->ln_win_cols = 8;
+    else
+        view->ln_win_cols = 0;
+    view->scroll_lines = view->lines - 1;
+    view->cmd_line = 0;
+
+    view->pminrow = 0;
+    view->pmincol = 0;
+    view->sminrow = view->begy + 1;
+    view->smincol = view->begx + 1;
+    view->smaxrow = view->begy + view->lines;
+    view->smaxcol = view->begx + view->cols;
+
+    view->ln = view->page_top_ln + view->scroll_lines;
+    view->page_bot_ln = view->ln;
+
+    ssnprintf(em0, MAXLEN - 1, "%d lines, %d cols", view->lines, view->cols);
+    syslog(LOG_INFO, "Calculated size %s\n", em0);
+}
 /** @brief Initialize the input for a C-Menu View.
-    @ingroup init_view
-    @details This function initializes the input for view, which can be a file,
-   standard input, or a provider command to be initiated by view. It handles
-   different input sources and sets up the necessary file descriptors and memory
-   mapping for efficient access.
-    @param view Pointer to the View structure to be initialized.
-    @param file_name Name of the input file or "-" for standard input.
-    @return true on success, false on failure.
-    @note if a provider command is specified, set up a pipe to read its output.
-   A child process is spawned, and view, the parent process, reads from the
-   pipe.
-    @note If input is from a pipe or standard input, clone it to a temporary
-   file. This allows for memory-mapping the input later. It does not support
-   real-time updates to the input, but it allows for efficient access to the
-   data.
- */
+@ingroup init_view
+@details This function initializes the input for view, which can be a file,
+standard input, or a provider command to be initiated by view. It handles
+different input sources and sets up the necessary file descriptors and memory
+mapping for efficient access.
+@param view Pointer to the View structure to be initialized.
+@param file_name Name of the input file or "-" for standard input.
+@return true on success, false on failure.
+@note if a provider command is specified, set up a pipe to read its output.
+A child process is spawned, and view, the parent process, reads from the
+pipe.
+@note If input is from a pipe or standard input, clone it to a temporary
+file. This allows for memory-mapping the input later. It does not support
+real-time updates to the input, but it allows for efficient access to the
+data.
+*/
 int view_init_input(View *view, char *file_name) {
     struct stat sb;
     int idx = 0;

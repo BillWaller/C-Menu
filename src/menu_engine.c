@@ -51,11 +51,10 @@ unsigned int menu_engine(Init *init) {
     menu->choice_max_len = 0;
     menu->text_max_len = 0;
     parse_menu_description(init);
-    if (win_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title,
-                0)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s, %b) failed",
-                  menu->lines, menu->cols, menu->begy, menu->begx, menu->title,
-                  0);
+    if (box_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title,
+                true)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed",
+                  menu->lines, menu->cols, menu->begy, menu->begx, menu->title);
         Perror(tmp_str);
         return 1;
     }

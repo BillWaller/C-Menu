@@ -64,8 +64,11 @@ typedef struct {
     bool f_strip_ansi; /**< strip ansi escape sequences when writing buffer */
     bool f_multiple_cmd_args; /**< View - put multiple arguments in a single
                                  string */
-    WINDOW *win;              /**< ncurses window used by View */
-    WINDOW *box; /**< ncurses window used by View for box around win */
+    WINDOW *box;       /**< ncurses window used by View for box around win */
+    WINDOW *cmdln_win; /**< ncurses command line window used by View */
+    WINDOW *pad;       /**< ncurses pad used by View */
+    WINDOW *ln_win;    /**< ncurses window used by View for line numbers */
+
     char tmp_prompt_str[MAXLEN]; /**< temporary prompt string used when building
                                     prompt */
     int curr_argc;        /**< current argument count when processing multiple
@@ -96,7 +99,6 @@ typedef struct {
     char *line_out_p;    /**< pointer to current position in line_out_s */
     char *line_in_beg_p; /**< pointer used in matching search targets */
     char *line_in_end_p; /**< pointer used in matching search targets */
-    WINDOW *pad;         /**< ncurses pad used by View */
     int cury;            /**< cury is the pad row of the cursor location */
     int curx;            /**< curx is the pad column of the cursor location */
     int scroll_lines;    /**< number of lines to scroll */
@@ -149,7 +151,6 @@ typedef struct {
     char *lnbuf_curr_ptr; /**< pointer to first byte of virtual buffer */
     char *lnbuf_end_ptr; /**< pointer to first byte after end of data in virtual
                           buffer */
-    WINDOW *ln_win;      /**< ncurses window used by View for line numbers */
     int ln_win_lines;    /**< number of lines in line number window */
     int ln_win_cols;     /**< number of columns in line number window */
     bool f_ln;           /**< flag - number lines */

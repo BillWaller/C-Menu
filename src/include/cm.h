@@ -176,7 +176,6 @@ enum FTypes {
     LF_UNKNOWN  128  7 10000000  0 01111111 unknown
 */
 
-#define W_BOX 0x40  /**< box window flag for win_new() */
 #define COLOR_LEN 8 /**< length of color code strings */
 #define DEFAULTSHELL "/bin/bash"
 #define S_WCOK 0x1000  /**< write or create permitted */
@@ -325,7 +324,8 @@ extern bool capture_curses_tioctl();
 extern bool restore_curses_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
-extern int win_new(int, int, int, int, char *, int);
+extern int box_new(int, int, int, int, char *, bool);
+extern int win_new(int, int, int, int);
 extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
@@ -437,6 +437,16 @@ extern cchar_t CCC_LN;      /* line number color pair complex character */
 #define BW_BT L'\x2534'  /**< bottom tee */
 #define BW_SP L'\x20'    /**< space */
 
+extern const wchar_t bw_ho; /**< horizontal line */
+extern const wchar_t bw_ve; /**< vertical line */
+extern const wchar_t bw_tl; /**< top left corner */
+extern const wchar_t bw_tr; /**< top right corner */
+extern const wchar_t bw_bl; /**< bottom left corner */
+extern const wchar_t bw_br; /**< bottom right corner */
+extern const wchar_t bw_lt; /**< left tee */
+extern const wchar_t bw_rt; /**< right tee */
+extern const wchar_t bw_sp; /**< tee space */
+
 /** The following are the actual wchar_t variables that will hold the box
     drawing characters. These correspond to the above Unicode code points. By
     defining them as wchar_t, we can use them in the ncurses library to draw
@@ -456,6 +466,7 @@ extern const wchar_t bw_rt; /**< right tee */
 extern const wchar_t bw_cr; /**< cross */
 extern const wchar_t bw_bt; /**< bottom tee */
 
+extern FILE *debug_fp;
 extern int n_lines; /**< number of lines in the terminal */
 extern int n_cols;  /**< number of columns in the terminal */
 extern int lines; /**< current number of lines (may be less than n_lines if the
@@ -486,12 +497,14 @@ extern int
                      which may be different from the attributes for even lines
                      to create a striped effect in the window. */
 extern int
-    win_attr_even;  /**< Ncurses attributes for the current window even lines,
-                       which may be different from the attributes for odd lines
-                       to create a striped effect in the window. */
-extern int win_ptr; /**< Pointer to the current window pair, box and window,
-                       which can be used to keep track of the currently active
-                       window and its associated box. */
+    win_attr_even;    /**< Ncurses attributes for the current window even lines,
+                         which may be different from the attributes for odd lines
+                         to create a striped effect in the window. */
+extern int win_ptr;   /**< Pointer to the current window pair, box and window,
+                         which can be used to keep track of the currently active
+                         window and its associated box. */
+extern bool win_pair; /**< Flag to indicate whether the current window is part
+                         of a window pair */
 extern int
     mlines; /**< number of lines in the current window, which may be less than
                the total number of lines in the terminal if the window is

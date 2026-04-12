@@ -24,6 +24,7 @@
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/syslog.h>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
@@ -94,7 +95,7 @@ void go_to_position(View *, off_t);
 bool search(View *, int *, char *);
 void next_page(View *);
 void prev_page(View *);
-void resize_page(Init *);
+void view_resize(Init *, int, int);
 void scroll_down_n_lines(View *, int);
 void scroll_up_n_lines(View *, int);
 off_t get_next_line(View *, off_t);
@@ -213,16 +214,26 @@ int view_cmd_processor(Init *init) {
             }
         }
         switch (c) {
-        case Ctrl('R'): /**<  Ctrl('R') or KEY_RESIZE - Handle terminal resize
-                           events */
+        case Ctrl(
+            'R'): /**<  Ctrl('R') or KEY_RESIZE - Handle terminal resize */
+        case 'x':
         case KEY_RESIZE:
-            resize_page(init);
-            break;
+            getmaxyx(stdscr, view->lines, view->cols);
+            ssnprintf(em0, MAXLEN - 1, "%d lines, %d cols", view->lines,
+                      view->cols);
+            syslog(LOG_INFO, "Terminal resized to %s\n", em0);
+            if (view->f_full_screen) {
+                view_full_screen_resize(init);
+            } else {
+                view_win_resize(init, view->title);
+            }
+            continue;
         case KEY_ALTHOME: /**< KEY_ALTHOME - horizontal scroll to the first
                              column */
             view->pmincol = 0;
             break;
-        case KEY_ALTEND: /**< KEY_ALTEND  horizontal scroll to the last column
+        case KEY_ALTEND: /**< KEY_ALTEND  horizontal scroll to the last
+                          * column
                           */
             if (view->maxcol > view->cols)
                 view->pmincol = view->maxcol - view->cols;
@@ -667,8 +678,9 @@ int view_cmd_processor(Init *init) {
 }
 /** @brief Get Command Character and Numeric Argument
     @ingroup view_engine
-    @param view Pointer to the View structure containing the state around the
-   view application. This structure is used to access and modify the state
+    @param view Pointer to the View structure containing the state around
+   the view application. This structure is used to access and modify the
+   state
     @param n is used to store the numeric argument entered by the user, if
    applicable. The function reads user input and extracts both the command
    character and any numeric argument, allowing for commands that require a
@@ -682,9 +694,9 @@ int get_cmd_char(View *view, off_t *n) {
     char cmd_str[33];
     cmd_str[0] = '\0';
     pad_refresh(view);
-    wmove(view->win, view->cmd_line, view->curx);
+    wmove(view->cmdln_win, view->cmd_line, view->curx);
     do {
-        c = xwgetch(view->win, nullptr, 0);
+        c = xwgetch(view->cmdln_win, nullptr, 0);
         if ((c >= '0' && c <= '9') && i < 32) {
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
@@ -705,15 +717,16 @@ int get_cmd_char(View *view, off_t *n) {
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
     @param prompt A string containing the prompt to be displayed to the user
-   when requesting input for the command argument. This prompt is shown on the
-   command line to guide the user in providing the necessary input for the
-   command being executed.
+   when requesting input for the command argument. This prompt is shown on
+   the command line to guide the user in providing the necessary input for
+   the command being executed.
     @return Returns the command character entered by the user, or a special
-   value if a mouse event is detected. The command argument entered by the user
-   is stored in the view->cmd_arg buffer for use by the calling function. The
-   function handles user input, including editing keys, and updates the command
-   argument buffer accordingly. If the user enters a numeric argument, it is
-   validated based on the context of the command being executed.
+   value if a mouse event is detected. The command argument entered by the
+   user is stored in the view->cmd_arg buffer for use by the calling
+   function. The function handles user input, including editing keys, and
+   updates the command argument buffer accordingly. If the user enters a
+   numeric argument, it is validated based on the context of the command
+   being executed.
 */
 int get_cmd_arg(View *view, char *prompt) {
     int c;
@@ -728,15 +741,15 @@ int get_cmd_arg(View *view, char *prompt) {
         return 0;
     cmd_p = view->cmd_arg;
     cmd_e = view->cmd_arg + MAXLEN - 2;
-    wmove(view->win, view->cmd_line, 0);
+    wmove(view->cmdln_win, view->cmd_line, 0);
     if (prompt_l == 0)
         numeric_arg = true;
     if (prompt_l > 1) {
-        wstandout(view->win);
-        waddch(view->win, ' ');
-        waddstr(view->win, prompt_s);
-        waddch(view->win, ' ');
-        wstandend(view->win);
+        wstandout(view->cmdln_win);
+        waddch(view->cmdln_win, ' ');
+        waddstr(view->cmdln_win, prompt_s);
+        waddch(view->cmdln_win, ' ');
+        wstandend(view->cmdln_win);
     } else {
         if (*prompt == ':')
             numeric_arg = true;
@@ -748,12 +761,12 @@ int get_cmd_arg(View *view, char *prompt) {
                 numeric_arg = true;
             }
         }
-        waddstr(view->win, prompt_s);
-        wmove(view->win, view->cmd_line, prompt_l);
+        waddstr(view->cmdln_win, prompt_s);
+        wmove(view->cmdln_win, view->cmd_line, prompt_l);
     }
-    wclrtoeol(view->win);
+    wclrtoeol(view->cmdln_win);
     while (1) {
-        c = xwgetch(view->win, nullptr, -1);
+        c = xwgetch(view->cmdln_win, nullptr, -1);
         switch (c) {
         /** Basic Editing Keys for Command Line */
         case KEY_LEFT:
@@ -762,20 +775,20 @@ int get_cmd_arg(View *view, char *prompt) {
             if (cmd_p > view->cmd_arg) {
                 cmd_p--;
                 if (*cmd_p < ' ' || *cmd_p == 0x7f) {
-                    getyx(view->win, view->cury, view->curx);
+                    getyx(view->cmdln_win, view->cury, view->curx);
                     if (view->curx > 0) {
                         view->curx--;
-                        wmove(view->win, view->cmd_line, view->curx);
-                        waddch(view->win, ' ');
-                        wmove(view->win, view->cmd_line, view->curx);
+                        wmove(view->cmdln_win, view->cmd_line, view->curx);
+                        waddch(view->cmdln_win, ' ');
+                        wmove(view->cmdln_win, view->cmd_line, view->curx);
                     }
                 }
-                getyx(view->win, view->cury, view->curx);
+                getyx(view->cmdln_win, view->cury, view->curx);
                 if (view->curx > 0) {
                     view->curx--;
-                    wmove(view->win, view->cmd_line, view->curx);
-                    waddch(view->win, ' ');
-                    wmove(view->win, view->cmd_line, view->curx);
+                    wmove(view->cmdln_win, view->cmd_line, view->curx);
+                    waddch(view->cmdln_win, ' ');
+                    wmove(view->cmdln_win, view->cmd_line, view->curx);
                 }
             }
             break;
@@ -791,11 +804,11 @@ int get_cmd_arg(View *view, char *prompt) {
             *cmd_p++ = (char)c;
             *cmd_p = '\0';
             if ((char)c < ' ') {
-                waddch(view->win, '^');
+                waddch(view->cmdln_win, '^');
                 c |= '@';
             } else if ((uchar)c == 0x7f)
                 c = '?';
-            waddch(view->win, (char)c);
+            waddch(view->cmdln_win, (char)c);
             if (cmd_p >= cmd_e)
                 return 0;
             if (numeric_arg && (c < '0' || c > '9'))
@@ -938,11 +951,12 @@ void lp(char *PrintFile) {
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
     @param c The character representing the mark to go to. This character is
-   typically a lowercase letter (a-z) corresponding to a mark that has been set
-   previously in the view application. The function will attempt to navigate to
-   the position associated with this mark, allowing the user to quickly jump to
-   specific locations in the file based on the marks they have set. If the mark
-   is not set, an error message will be displayed to the user.
+   typically a lowercase letter (a-z) corresponding to a mark that has been
+   set previously in the view application. The function will attempt to
+   navigate to the position associated with this mark, allowing the user to
+   quickly jump to specific locations in the file based on the marks they
+   have set. If the mark is not set, an error message will be displayed to
+   the user.
  */
 void go_to_mark(View *view, int c) {
     if (c == '\'')
@@ -962,17 +976,17 @@ void go_to_mark(View *view, int c) {
     @returns true if a match is found and displayed, false if the search
    completes without finding a match or if an error occurs
     @note The search performs extended regular expression matching, ignoring
-   ANSI sequences and Unicode characters. Matches are highlighted on the screen,
-   and the search continues until the page is full or the end of the file is
-   reached. If the search wraps around the file, a message is displayed
-   indicating that the search is complete.
+   ANSI sequences and Unicode characters. Matches are highlighted on the
+   screen, and the search continues until the page is full or the end of the
+   file is reached. If the search wraps around the file, a message is
+   displayed indicating that the search is complete.
     @note The search state is maintained in the view structure, allowing for
    repeat searches and tracking of the current search position. @note this
-   function highlights all matches in the current ncurses pad, including those
-   not displayed on the screen, and tracks the first and last match columns for
-   prompt display.
-    @note ANSI sequences and Unicode characters are stripped before matching, so
-   matching corresponds to the visual display */
+   function highlights all matches in the current ncurses pad, including
+   those not displayed on the screen, and tracks the first and last match
+   columns for prompt display.
+    @note ANSI sequences and Unicode characters are stripped before
+   matching, so matching corresponds to the visual display */
 bool search(View *view, int *search_cmd, char *regex_pattern) {
     char tmp_str[MAXLEN];
     int REG_FLAGS = 0;
@@ -1147,34 +1161,16 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
 /** @brief Resize Viewing Page
     @ingroup view_display
     @param init data structure */
-void resize_page(Init *init) {
-    int scr_lines, scr_cols;
-    bool f_resize = false;
+void view_resize(Init *init, int scr_lines, int scr_cols) {
     view = init->view;
     if (!view->f_full_screen) {
-        getmaxyx(stdscr, scr_lines, scr_cols);
-        if (view->begy + view->lines + 2 > scr_lines) {
-            view->lines = (scr_lines - view->begy) - 2;
-            f_resize = true;
-        }
-        if (view->begx + view->cols + 2 > scr_cols) {
-            view->cols = (scr_cols - view->begx) - 2;
-            f_resize = true;
-        }
-        if (f_resize) {
-            view->scroll_lines = view->lines - 1;
-            view->cmd_line = 0;
-            view->smaxrow = view->lines - 1;
-            view->smaxcol = view->cols - 1;
-            win_resize(view->lines + 2, view->cols + 2, view->title);
-            restore_wins();
-            wsetscrreg(view->pad, 0, view->scroll_lines);
+        if (scr_lines != view->lines || scr_cols != view->cols) {
+            view->lines = scr_lines;
+            view->cols = scr_cols;
+            view_win_resize(init, view->title);
         }
     }
-    if (f_resize)
-        view->f_redisplay_page = true;
-    else
-        view->f_redisplay_page = false;
+    view->f_redisplay_page = false;
 }
 /** @brief Refresh Pad and Line Number Window
     @ingroup view_display
@@ -1191,7 +1187,7 @@ int pad_refresh(View *view) {
                       view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR)
         Perror("Error refreshing screen");
-    wrefresh(view->win);
+    wrefresh(view->cmdln_win);
     if (view->f_ln)
         wrefresh(view->ln_win);
     return rc;
@@ -1219,14 +1215,14 @@ void prev_page(View *view) {
 /** @brief Advance to Next Page
     @ingroup view_navigation
     @param view data structure
-    @details Advances from view->page_bot_pos to view the next page of content.
-   view->page_bot_pos must be set properly when calling this function. If the
-   current bottom position of the page is at the end of the file, the function
-   returns without making any changes. Otherwise, it resets the maximum column
-   and current line position to the top of the page, updates the file position
-   to the current bottom position of the page, and sets the top position and
-   line number of the page accordingly. Finally, it calls the function to
-   display the new page content.
+    @details Advances from view->page_bot_pos to view the next page of
+   content. view->page_bot_pos must be set properly when calling this
+   function. If the current bottom position of the page is at the end of the
+   file, the function returns without making any changes. Otherwise, it
+   resets the maximum column and current line position to the top of the
+   page, updates the file position to the current bottom position of the
+   page, and sets the top position and line number of the page accordingly.
+   Finally, it calls the function to display the new page content.
 */
 void next_page(View *view) {
     view->file_pos = view->ln_tbl[view->ln];
@@ -1517,8 +1513,8 @@ void go_to_percent(View *view, int percent) {
     @ingroup view_navigation
     @param view data structure
     @param line_idx line number to go to (1-based index)
-    @returns 0 on success, EOF if line index is out of bounds or end of data is
-   reached
+    @returns 0 on success, EOF if line index is out of bounds or end of data
+   is reached
  */
 int go_to_line(View *view, off_t line_idx) {
     if (line_idx <= 1) {
@@ -1536,9 +1532,9 @@ int go_to_line(View *view, off_t line_idx) {
     @ingroup view_navigation
     @param view data structure
     @details The line table is initialized with a specified increment size
-   (LINE_TBL_INCR). Memory is allocated for the line table, and the first entry
-   is set to 0, indicating the file position of the first line. The line index
-   (view->ln) is initialized to 0.
+   (LINE_TBL_INCR). Memory is allocated for the line table, and the first
+   entry is set to 0, indicating the file position of the first line. The
+   line index (view->ln) is initialized to 0.
  */
 void initialize_line_table(View *view) {
     view->ln_tbl_size = LINE_TBL_INCR;
@@ -1554,12 +1550,12 @@ void initialize_line_table(View *view) {
 /** @brief Increment Line Index and Update Line Table
     @ingroup view_navigation
     @param view data structure
-    @details This function is called when a line feed character is encountered
-   while reading the file. It increments the line index (view->ln) and checks if
-   the current file position exceeds the maximum position recorded in the line
-   table. If it does, it updates the line table with the new file position. If
-   the line index exceeds the current size of the line table, the table is
-   resized by allocating more memory.
+    @details This function is called when a line feed character is
+   encountered while reading the file. It increments the line index
+   (view->ln) and checks if the current file position exceeds the maximum
+   position recorded in the line table. If it does, it updates the line
+   table with the new file position. If the line index exceeds the current
+   size of the line table, the table is resized by allocating more memory.
  */
 void increment_ln(View *view) {
     view->ln++;
@@ -1582,13 +1578,14 @@ void increment_ln(View *view) {
     @ingroup view_navigation
     @param view data Structure
     @details The line table (view->ln_tbl) is an array that stores the file
-   position of each line. The index (view->ln + 1) corresponds to the current
-   line number. (the line number table is 0-based, while line numbering starts
-   at 1).
+   position of each line. The index (view->ln + 1) corresponds to the
+   current line number. (the line number table is 0-based, while line
+   numbering starts at 1).
     @note If the line or position requested is not in the line table, this
    function reads forward to sycn.
-    @note If the line or positione requested is behind the current line table
-   index, the line index will be decremented it matches the file position.
+    @note If the line or positione requested is behind the current line
+   table index, the line index will be decremented it matches the file
+   position.
  */
 void sync_ln(View *view) {
     int c = 0;
@@ -1623,14 +1620,16 @@ void sync_ln(View *view) {
 /** @brief Display Line on Pad
     @ingroup view_display
     param View *view data structure
-    @details This function displays a single line of text on the ncurses pad.
+    @details This function displays a single line of text on the ncurses
+   pad.
     @note If line numbering is enabled (view->f_ln), it is formatted and
    displayed at the beginning of the line with the specified attributes and
    color pair.
-    @details Because get_next_char calls increment_ln upon encountering a line
-   feed and increment_ln advances view->ln after updating the line table, the
-   line number displayed is one greater than the index to the line table. That
-   means the line counter begins with 1, while the table origin is 0.
+    @details Because get_next_char calls increment_ln upon encountering a
+   line feed and increment_ln advances view->ln after updating the line
+   table, the line number displayed is one greater than the index to the
+   line table. That means the line counter begins with 1, while the table
+   origin is 0.
   */
 void display_line(View *view) {
     char ln_s[16];
@@ -1911,17 +1910,17 @@ int display_prompt(View *view, char *s) {
     char message_str[PAD_COLS + 1];
     int l;
     l = strnz__cpy(message_str, s, PAD_COLS);
-    wmove(view->win, view->cmd_line, 0);
+    wmove(view->cmdln_win, view->cmd_line, 0);
     if (l != 0) {
-        wclrtoeol(view->win);
-        wattron(view->win, WA_REVERSE);
-        waddstr(view->win, " ");
-        waddstr(view->win, message_str);
-        waddstr(view->win, " ");
-        wattroff(view->win, WA_REVERSE);
-        waddstr(view->win, " ");
+        wclrtoeol(view->cmdln_win);
+        wattron(view->cmdln_win, WA_REVERSE);
+        waddstr(view->cmdln_win, " ");
+        waddstr(view->cmdln_win, message_str);
+        waddstr(view->cmdln_win, " ");
+        wattroff(view->cmdln_win, WA_REVERSE);
+        waddstr(view->cmdln_win, " ");
         view->curx = l + 2;
-        wmove(view->win, view->cmd_line, view->curx);
+        wmove(view->cmdln_win, view->cmd_line, view->curx);
     }
     return (view->curx);
 }
@@ -1934,7 +1933,7 @@ void remove_file(View *view) {
         wmove(view->pad, view->cmd_line, 0);
         waddstr(view->pad, "Remove File (Y or N)->");
         wclrtoeol(view->pad);
-        c = (char)xwgetch(view->win, nullptr, -1);
+        c = (char)xwgetch(view->cmdln_win, nullptr, -1);
         waddch(view->pad, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);
@@ -1990,8 +1989,8 @@ void view_display_help(Init *init) {
 void view_restore_wins() {
     wnoutrefresh(view->ln_win);
     wrefresh(view->ln_win);
-    wnoutrefresh(view->win);
-    wrefresh(view->win);
+    wnoutrefresh(view->cmdln_win);
+    wrefresh(view->cmdln_win);
 }
 /*------------------------------------------------------------
       END DISPLAY
