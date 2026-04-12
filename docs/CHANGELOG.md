@@ -6,6 +6,12 @@
 
 Refactoring of View's live resizing for both full screen and box window modes.
 If you need to shrink the View window, simply resize the terminal window.
+Expansion is a little more complicated. The issue is not so much technical, but
+rather expectations. If the View window is in box mode, and it is originally
+sized to be 3/4 of the terminal window, on resizing of the terminal window,
+should it calculate resize lines and columns based on the ratio of the View
+window to the terminal window, should it add the difference in size to the View
+window, or should it fill the terminal emulator screen? My current impulse is to implement the first option, which is to calculate the new size based on the ratio of the View window to the terminal window. This seems to be the most intuitive and consistent behavior, but I am open to feedback on this.
 
 0.2.9 - 2026-04-11
 
