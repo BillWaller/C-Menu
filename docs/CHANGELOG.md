@@ -2,6 +2,12 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-04-14
+
+After thinking about the resizing issue in view, I decided to implement yet another option, and that is to fill the terminal emulator screen. My reasoning was that a user typically shrinks the terminal window to make more room for another application window, not to make the viewing area smaller. And, when a user expands the terminal window which contains the view window, they want to see more of the document. So, when resizing, the view window will first fill the terminal emulator window, and the user can continue to shrink the terminal window, but no viewing area will be lost to blank space. The objective is to achieve the most efficient use of screen area.
+
+The really obnoxious bugs that emerged during the resizing refactor have been fixed, and I will be doing a lot of testing to find and fix any remaining bugs. The resizing code is sort of complicated, and it is likely that there are still some edge cases that I haven't encountered yet.
+
 0.2.9 - 2026-04-12
 
 Refactoring of View's live resizing for both full screen and box window modes.

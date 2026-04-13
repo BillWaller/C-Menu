@@ -207,6 +207,13 @@ description file like the one below and displays a colorful and easy-to
 keyboard or mouse, C-Menu executes the corresponding command. It's like
 writing shell scripts, but with a snazzy menu interface.
 
+A Menu description file consists of Choices and Commands. The Choice is the label that appears in the menu, and the Command is the shell command that gets executed when the user selects that choice. Some commands are internal, such as menu, form, pick, view, and ckeys, which invoke the corresponding C-Menu applications. Other commands can be any shell command, including scripts and executables.
+
+The description file can also include comments, which are lines that start with a hash symbol (#). These comments are ignored by C-Menu and can be used to provide explanations or notes about the menu items.
+
+If you can think of a way to make a menu builder easier to use, please let
+me know and I will build it into C-Menu.
+
 ![Sample Description File](../screenshots/applications_menu.m.png)
 ![Sample Menu](../screenshots/applications_menu.png)
 
@@ -655,7 +662,7 @@ and robust tool for listing files based on regular expressions.
 
 lf is very fast compared to find. In some instances, it can be up to 50 times faster than find, especially when searching for files in large directories or when using complex regular expressions. The performance difference is due to lf's optimized algorithms and streamlined codebase, which minimizes overhead and maximizes efficiency.
 
-![**_NEW_** Performance: lf vs find](../screenshots/lf-vs-find.png)
+![**_NEW_** Performance: lf vs find](../screenshots/lf-vs-find2.png)
 
 ---
 

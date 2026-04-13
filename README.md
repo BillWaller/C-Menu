@@ -4,7 +4,7 @@
 
 # Introduction
 
-The following is a brief introduction to the C-Menu Toolkit covering a fraction of its features and capabilities. Who is C-Menu for? Anyone who demands performance with a professional look and feel for their applications, without the overhead of a graphical user interface. C-Menu is especially well suited for rescue, embedded, server, development, and other resource-constrained environments, but it also also appeals to the purist programmer who wants to create powerful, efficient, and user-friendly applications without the bloat of a GUI.
+The following is a brief introduction to the C-Menu Toolkit covering a fraction of its features and capabilities. Who is C-Menu for? Anyone who demands performance with a professional look and feel for their applications, without the overhead of a graphical user interface. C-Menu is especially well suited for rescue, embedded, server, development, and other resource-constrained environments, but it also also appeals to the purist who wants powerful, efficient, and user-friendly applications without the bloat of a GUI.
 
 For more detailed information, please refer to the html documentation at:
 
@@ -24,7 +24,7 @@ components are:
 
 **_Pick_** - Lists objects for user selection
 
-**_View_** - A pager for viewing files with highlighting, Unicode support, line numbering, regular expression searching and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. View doesn't alter the file you are viewing. It uses the highlighter in a pipe, and reads the output, so the original file is never changed. If you happen to have a file that has been highlighted by another application, view can strip the ANSI codes for convenient editing. And view is lightning fast, especially with huge log files.
+**_View_** - A pager for viewing files. View has Unicode support, line numbering, regular expression searching, and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. View doesn't alter the file you are viewing. It uses the highlighter in a pipe, and reads the output, so the original file is never changed. And, if you happen to have a file that has been highlighted by another application, view can strip the ANSI codes for convenient editing. View is lightning fast, especially with huge log files.
 
 Why is View so fast? Even if an application has a super-fast buffering scheme, it still has to wait on the kernel to provide data, and then copy data into it's own buffers, duplicating work the Kernel has already done. Why waste the time and memory? To be fair, it may be that many applications were written before direct accesses to the Kernel's demand paged virtual address space was available. Whatever the reason, View takes advantage of direct-to-Kernel memory mapped files to achieve maximum performance, reliability, and resource economy. If you work with large datasets, you will love view. No fluff, no bloat, no nonsense, just blazing fast performance.
 

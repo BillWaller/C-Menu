@@ -168,6 +168,8 @@ Also, please read the section on RSH safety below to understand the safety featu
 5. If the -DRSH_LOG is set in the Makefile or CMake configuration, RSH creates a system log entry every time it is executed and exited. This allows you to monitor and audit the use of RSH on your system, which can help detect any unauthorized or suspicious activity. On my Tumbleweed system, I can type:
 6. If the Makefile or CMake variable, RSH_LD is set to "-static", RSH will be linked as a static executable, except if you also have the RSH_CFLAGS=-DRSH_SSH set, then a static ssh lsibrary, libssh.a, is required.
 
+If you install C-Menu on a system shared with other users and you are concerned about security, enable RSH_SSH and RSH_LOG. RSH_SSH authenticates users with SSH and RSH_LOG keeps a record of every time RSH is executed, by whom, when, and from which terminal. This allows you to monitor and audit the use of RSH on your system, which can help detect any unauthorized or suspicious activity. You can view the RSH logs using the following command:
+
 ```bash
 sudo journalctl -t rsh
 ```
