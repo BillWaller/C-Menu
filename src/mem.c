@@ -347,11 +347,29 @@ View *destroy_view(Init *init) {
     view = init->view;
     if (!view)
         return nullptr;
-    delwin(view->ln_win);
+    if (view->ln_tbl) {
+        free(view->ln_tbl);
+        view->ln_tbl = nullptr;
+    }
+    if (view->ln_win) {
+        delwin(view->ln_win);
+        view->ln_win = nullptr;
+    }
+    if (view->cmdln_win) {
+        delwin(view->cmdln_win);
+        view->cmdln_win = nullptr;
+    }
     delwin(view->cmdln_win);
+    if (view->box) {
+        delwin(view->box);
+        view->box = nullptr;
+    }
     delwin(view->box);
+    if (view->pad) {
+        delwin(view->pad);
+        view->pad = nullptr;
+    }
     delwin(view->pad);
-    free(view->ln_tbl);
     destroy_argv(view->argc, view->argv);
     free(view->argv);
     free(view);

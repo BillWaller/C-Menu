@@ -1091,7 +1091,9 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         else if (bname[0] == '.' && suppress_hidden)
             continue;
         f_suppress = 0;
+        /** The high 8-bits are file type flags */
         f_include = (flags >> 8) & 0xff;
+        /** suppress file types that aren't included */
         if (f_include)
             f_suppress = f_include ^ 0xff;
         bool s_blk = f_suppress & FT_BLK ? 1 : 0;
@@ -1146,6 +1148,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path, bname);
         if (bname[0] == '.' && suppress_hidden)
             suppress = true;
+        /* Exclude non-matching files */
         if (!suppress && (flags & LF_REGEX)) {
             reti = regexec(compiled_re, file_spec, compiled_re->re_nsub + 1,
                            pmatch, REG_FLAGS);
@@ -1160,6 +1163,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
                 return false;
             }
         }
+        /* Exclude matching files */
         if (!suppress && (flags & LF_EXC_REGEX)) {
             reti = regexec(compiled_ere, file_spec, compiled_re->re_nsub + 1,
                            pmatch, REG_FLAGS);

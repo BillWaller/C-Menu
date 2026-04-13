@@ -347,8 +347,6 @@ int view_cmd_processor(Init *init) {
             display_prompt(view, "(i, n, s, t, or h)->");
             c = get_cmd_char(view, &n_cmd);
             c = S_TOLOWER(c);
-            if (c >= 'A' && c <= 'Z')
-                c += ' ';
             switch (c) {
             /**   -i   ignore_case in search */
             /**   -n   line numbers */

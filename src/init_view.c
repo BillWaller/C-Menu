@@ -317,11 +317,28 @@ void view_win_resize(Init *init, char *title) {
               view->ln_win_cols, view->scroll_lines);
     write_cmenu_log_nt(em0);
 #endif
-    mvwin(view->ln_win, view->begy + 1, view->begx + 1);
-    wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
-    wsetscrreg(view->ln_win, 0, view->scroll_lines);
-    wnoutrefresh(view->ln_win);
-
+    if (view->f_ln) {
+        if (view->ln_win == nullptr) {
+            view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols,
+                                  view->begy + 1, view->begx + 1);
+            keypad(view->ln_win, false);
+            idlok(view->ln_win, false);
+            idcok(view->ln_win, false);
+            wbkgrnd(view->ln_win, &CCC_LN);
+            wbkgrndset(view->ln_win, &CCC_LN);
+            scrollok(view->ln_win, true);
+            wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
+#ifdef DEBUG_IMMEDOK
+            immedok(view->ln_win, true);
+#endif
+        } else {
+            mvwin(view->ln_win, view->begy + 1, view->begx + 1);
+            wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
+            wsetscrreg(view->ln_win, 0, view->scroll_lines);
+            wnoutrefresh(view->ln_win);
+        }
+    } else if (view->ln_win != nullptr)
+        delwin(view->ln_win);
     view->sminrow = view->begy + 1;
     view->smincol = view->begx + 1;
     view->smaxrow = view->begy + view->lines;

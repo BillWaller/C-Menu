@@ -113,7 +113,7 @@ static struct argp_option options[] = {
     {"f_strip_ansi", 'j', "bool", 0, "always strip ansi when writing", 4},
     {"f_squeeze", 's', "bool", 0, "squeeze multiple blank lines", 4},
     {"f_ignore_case", 'x', "bool", 0, "ignore case in search", 4},
-    {"f_ln", 'N', "bool", 0, "line numbers in view", 5},
+    {"f_ln", 'N', "bool", OPTION_ARG_OPTIONAL, "line numbers in view", 5},
     {"fill_char", 'f', "char", 0, "field fill_char", 5},
     {"brackets", 'u', "text", 0, "brackets around fields", 5},
     {"editor", CM_EDITOR, "text", 0, "default editor", 8},
@@ -244,7 +244,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         init->f_multiple_cmd_args = str_to_bool(arg);
         break;
     case 'N':
-        init->f_ln = str_to_bool(arg);
+        if (arg == nullptr)
+            init->f_ln = true;
+        else
+            init->f_ln = str_to_bool(arg);
         break;
     case 'O':
         strnz__cpy(sio->bo_clr_x, arg, MAXLEN - 1);

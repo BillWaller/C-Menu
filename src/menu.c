@@ -54,9 +54,7 @@ int main(int argc, char **argv) {
     sig_prog_mode();
     capture_curses_tioctl();
     win_init_attrs();
-
     base_name(pgm_name, argv[0]);
-
     if (!strcmp(pgm_name, "menu")) {
         new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
         menu = init->menu;
@@ -72,14 +70,7 @@ int main(int argc, char **argv) {
                 view_file(init);
         } else if (!init_view_full_screen(init))
             view_file(init);
-    } else if (!strcmp(pgm_name, "ckeys")) {
+    } else if (!strcmp(pgm_name, "ckeys"))
         popup_ckeys();
-    }
-    curs_set(1);
-    win_del();
-    destroy_curses();
-    restore_shell_tioctl();
-    sig_dfl_mode();
-    close(cmenu_log_fd);
-    exit(EXIT_SUCCESS);
+    end_pgm();
 }

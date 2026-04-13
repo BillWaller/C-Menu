@@ -2,6 +2,10 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-04-15
+
+The -N option (line numbering) in view originally required an argument of true, false, yes, no, t, f, y, or n, but a user suggested that this was a little clumsy, and that it would be more intuitive if the -N option simply turned on line numbering when included, and turned it off when omitted. I agreed with this suggestion, and I have changed the behavior of the -N option accordingly. So, the -N option has been changed to be consistent with other boolean options. Line numbering will be turned on by specifying the -N option, whether or not it is followed by an affirmative indicator. In the case that you have f_ln set to true in your configuration, you can still turn off line numbering by including the "-N f" or "-N n" option, which will override the configuration setting. You can also toggle line numbering on and off from within view by pressing -N from a command prompt. I am trying to keep View's operation as close to vi, vim, nvim, and less as possible
+
 0.2.9 - 2026-04-14
 
 After thinking about the resizing issue in view, I decided to implement yet another option, and that is to fill the terminal emulator screen. My reasoning was that a user typically shrinks the terminal window to make more room for another application window, not to make the viewing area smaller. And, when a user expands the terminal window which contains the view window, they want to see more of the document. So, when resizing, the view window will first fill the terminal emulator window, and the user can continue to shrink the terminal window, but no viewing area will be lost to blank space. The objective is to achieve the most efficient use of screen area.
