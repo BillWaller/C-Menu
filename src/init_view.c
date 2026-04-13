@@ -337,8 +337,10 @@ void view_win_resize(Init *init, char *title) {
             wsetscrreg(view->ln_win, 0, view->scroll_lines);
             wnoutrefresh(view->ln_win);
         }
-    } else if (view->ln_win != nullptr)
+    } else if (view->ln_win != nullptr) {
         delwin(view->ln_win);
+        view->ln_win = nullptr;
+    }
     view->sminrow = view->begy + 1;
     view->smincol = view->begx + 1;
     view->smaxrow = view->begy + view->lines;

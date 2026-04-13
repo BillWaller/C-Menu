@@ -202,8 +202,10 @@ int view_cmd_processor(Init *init) {
         if (!c) {
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            touchwin(view->ln_win);
-            wrefresh(view->ln_win);
+            if (view->f_ln) {
+                touchwin(view->ln_win);
+                wrefresh(view->ln_win);
+            }
             c = get_cmd_char(view, &n_cmd);
             if (c >= '0' && c <= '9') {
                 tmp_str[0] = (char)c;
@@ -366,6 +368,7 @@ int view_cmd_processor(Init *init) {
                     view->f_ln = false;
                 else
                     view->f_ln = true;
+                view_win_resize(init, view->title);
                 view->ln = view->page_top_ln;
                 view->file_pos = view->ln_tbl[view->ln];
                 view->maxcol = 0;
