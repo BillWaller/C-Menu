@@ -6,12 +6,12 @@
 # It is possible that it may be correct, or not.
 #
 if [ -z "$TTYPREFIX" ]; then
-	# Try to guess TTYPREFIX based on current tty
-	# This simple heuristic may not work in all cases.
-	# It's just a starting point.
-	TTYDIR=$(dirname $(tty))
-	TTYBASENAME=$(basename $(tty) | sed 's/[0-9]*$//')
-	TTYPREFIX="$TTYDIR/$TTYBASENAME"
+    # Try to guess TTYPREFIX based on current tty
+    # This simple heuristic may not work in all cases.
+    # It's just a starting point.
+    TTYDIR=$(dirname $(tty))
+    TTYBASENAME=$(basename $(tty) | sed 's/[0-9]*$//')
+    TTYPREFIX="$TTYDIR/$TTYBASENAME"
 fi
 #
 # For example, on Linux systems, you might set:
@@ -34,46 +34,46 @@ fi
 # Usage: chktty terminal-number [-r to create reference]
 #
 if [ $# -lt 1 ]; then
-	echo usage: "$0" terminal-number [-r to create reference] [optional file extension prefix]
-	exit 1
+    echo usage: "$0" terminal-number [-r to create reference] [optional file extension prefix]
+    exit 1
 fi
 tty_num="$1"
 tty_dev="$TTYPREFIX$tty_num"
 if [ ! -e "$tty_dev" ]; then
-	echo "$tty_dev does not exist"
-	echo "You may need to set TTYPREFIX"
-	exit 1
+    echo "$tty_dev does not exist"
+    echo "You may need to set TTYPREFIX"
+    exit 1
 fi
 shift
 mkref=0
 if [ $# -gt 0 ] && [ "$1" = "-r" ]; then
-	mkref="1"
-	shift
+    mkref="1"
+    shift
 fi
 if [ $# -gt 0 ] && [ "$1" != "" ]; then
-	ext="$1.ref"
+    ext="$1.ref"
 else
-	ext="ref"
+    ext="ref"
 fi
 ref_file="$CMENU_HOME"/test/tty/stty."$ext"
 if [ "$mkref" = "1" ]; then
-	echo "Creating reference stty settings in" "$ref_file"
-	mkdir -p "$CMENU_HOME"/test/tty
-	echo stty."$ext" >"$ref_file"
-	stty -a <"$tty_dev" | sed 's/ = /=/g
+    echo "Creating reference stty settings in" "$ref_file"
+    mkdir -p "$CMENU_HOME"/test/tty
+    echo stty."$ext" >"$ref_file"
+    stty -a <"$tty_dev" | sed 's/ = /=/g
 s/speed /speed~/
 s/rows /rows~/
 s/columns /columns~/
 s/\s*$//
 s/;//g' | tr ' ' '\n' | tr '~' ' ' >>"$ref_file"
-	stty -g <"$tty_dev" >"$ref_file".g
-	exit 0
+    stty -g <"$tty_dev" >"$ref_file".g
+    exit 0
 fi
 if [ ! -e "$ref_file" ]; then
-	echo "Reference file" "$ref_file" "not found!"
-	echo "Create reference by running:"
-	echo "$0 terminal-number -r"
-	exit 1
+    echo "Reference file" "$ref_file" "not found!"
+    echo "Create reference by running:"
+    echo "$0 terminal-number -r"
+    exit 1
 fi
 echo "Comparing tty" "$tty_dev" "to reference" "$ref_file"
 chk_file="$CMENU_HOME"/test/tty/stty"$tty_num".a
@@ -88,22 +88,22 @@ s/;//g' | tr ' ' '\n' | tr '~' ' ' >>"$chk_file"
 diff -W40 -y --suppress-common-lines "$ref_file" "$chk_file" >"$diff_file"
 lines=$(wc -l "$diff_file" | awk '{print $1}')
 if [ "$lines" -eq 1 ]; then
-	echo "No differences found."
-	rm -f "$chk_file" "$diff_file"
+    echo "No differences found."
+    rm -f "$chk_file" "$diff_file"
 else
-	echo "Differences found!"
-	cat "$diff_file"
-	echo Would you like to use "stty" "$ref_file".g "to fix settings?"
-	a=$(enterchr "Apply reference settings to $tty_dev (y/n)?")
-	if [ "$a" != "y" ] && [ "$a" != "Y" ]; then
-		echo
-		echo "Not applying settings."
-		exit 0
-	fi
-	echo
-	echo "Applying reference settings to" "$tty_dev"
-	settings=$(cat "$ref_file".g)
-	echo "stty $settings <$tty_dev"
-	stty "$settings" <"$tty_dev"
-	echo "Done! At your command, Master."
+    echo "Differences found!"
+    cat "$diff_file"
+    echo Would you like to use "stty" "$ref_file".g "to fix settings?"
+    a=$(enterchr "Apply reference settings to $tty_dev (y/n)?")
+    if [ "$a" != "y" ] && [ "$a" != "Y" ]; then
+        echo
+        echo "Not applying settings."
+        exit 0
+    fi
+    echo
+    echo "Applying reference settings to" "$tty_dev"
+    settings=$(cat "$ref_file".g)
+    echo "stty $settings >$tty_dev"
+    stty "$settings" <"$tty_dev"
+    echo "Done! At your command, Master."
 fi

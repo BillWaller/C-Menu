@@ -25,14 +25,12 @@
 :     View Source with Tree-Sitter
 !pick -S src -n 1 -T "Select Source File to Highlight" -c "view -L 60 -C 70 -S \"ts_hl.sh %%\""
 :     View Data Types Help File
-!view -N f -T "Data Types" /home/bill/menuapp/help/fields.hlp
+!view -Nf -T "Data Types" /home/bill/menuapp/help/fields.hlp
 :     Menu Description With Bat Syntax Highlighting
-!view -N f -L 30 -C 75 -S "bat --theme ansi -l Crystal -f /home/bill/menuapp/msrc/main.m"
+!view -Nf -L30 -C 75 -S "bat --theme ansi -l Crystal -f /home/bill/menuapp/msrc/main.m"
 :     View C-Menu Command Line Options
-!view -N f -L 66 -C 75 ~/menuapp/help/menu.help
+!view -Nf -L66 -C75 ~/menuapp/help/menu.help
 :     View Highlighted view_engine.c
-!view -L 66 -C 70 ~/menuapp/help/view_engine.c
-:     Tree View of Current Directory
-!view -L 40 -C 50 -T "Tree View" -S "treeview.sh %%"
+!view -L66 -C70 ~/menuapp/help/view_engine.c
 :     Exit Applications
 !return

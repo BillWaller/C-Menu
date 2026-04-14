@@ -39,6 +39,7 @@ static struct argp_option options[] = {
      "b - block device, c - character device,  d - directory, p - named pipe,  "
      "l - symbolic link,  f - regular file, s - socket, u - unknown",
      0},
+    {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {0}};
 
 struct lf {
@@ -101,6 +102,16 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             }
         }
         break;
+    case 'u': {
+        struct passwd *pwd = getpwnam(arg);
+        if (pwd) {
+            lf->flags |= (pwd->pw_uid & 0xffffffff) << 16;
+            lf->flags |= LF_USER;
+        } else {
+            printf("User '%s' not found.\n", arg);
+            exit(EXIT_FAILURE);
+        }
+    } break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
             lf->args[state->arg_num] = arg;

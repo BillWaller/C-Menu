@@ -1014,7 +1014,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     }
     reti =
         lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth, flags);
-    if (flags &= LF_REGEX)
+    if (flags & LF_REGEX)
         regfree(&compiled_re);
     if (flags & LF_EXC_REGEX)
         regfree(&compiled_ere);
@@ -1073,6 +1073,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     DIR *dir;
     int REG_FLAGS = REG_EXTENDED;
     int reti;
+    uintmax_t user_id;
     regmatch_t pmatch[1];
     char file_spec[1024];
     bool suppress;
@@ -1080,6 +1081,8 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     int f_suppress;
     bool suppress_hidden = flags & LF_HIDE ? true : false;
     char bname[MAXLEN];
+    if (flags & LF_USER)
+        user_id = (uintmax_t)(flags >> 16);
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
@@ -1182,6 +1185,13 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         }
 
         if (!suppress) {
+            if (flags & LF_USER) {
+                struct stat sb;
+                if (stat(file_spec, &sb) == 0) {
+                    if (sb.st_uid != user_id)
+                        continue;
+                }
+            }
             if (file_spec[0] == '.' && file_spec[1] == '/')
                 printf("%s\n", &file_spec[2]);
             else

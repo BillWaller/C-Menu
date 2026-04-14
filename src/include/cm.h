@@ -151,6 +151,7 @@ enum LFFlags {
     LF_EXC_REGEX = 4, /**<   4 Exclude files matching regular expression */
     LF_REGEX = 8,     /**<   8 Include files matching regular expression */
     LF_EXEC = 16,     /**<  16 Execute command each file */
+    LF_USER = 32,     /**<  32 Select User Name */
 };
 
 enum FTypes {
