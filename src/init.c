@@ -1,4 +1,4 @@
-/** @file init.c
+/** @file init.
     @brief Initialization for Menu Application Programs
     @author Bill Waller
     Copyright (c) 2025
@@ -244,10 +244,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         init->f_multiple_cmd_args = str_to_bool(arg);
         break;
     case 'N':
-        if (arg == nullptr)
-            init->f_ln = true;
-        else
+        if (arg)
             init->f_ln = str_to_bool(arg);
+        else
+            init->f_ln = true;
         break;
     case 'O':
         strnz__cpy(sio->bo_clr_x, arg, MAXLEN - 1);
@@ -415,6 +415,10 @@ int parse_opt_args(Init *init, int argc, char **argv) {
    values.
  */
 void zero_opt_args(Init *init) {
+    init->lines = 0;
+    init->cols = 0;
+    init->begx = 0;
+    init->begy = 0;
     init->f_mapp_desc = false;
     init->f_provider_cmd = false;
     init->f_receiver_cmd = false;

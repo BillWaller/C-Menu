@@ -278,8 +278,8 @@ unsigned int menu_cmd_processor(Init *init) {
         eargv[eargc++] = strdup("f");
         eargv[eargc++] = strdup(tmp_str);
         eargv[eargc] = nullptr;
-        init->lines = 66;
-        init->cols = 80;
+        init->lines = 40;
+        init->cols = 60;
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 1;
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);

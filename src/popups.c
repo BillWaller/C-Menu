@@ -5,6 +5,27 @@ int popup_form(Init *, int, char **, int, int);
 int popup_pick(Init *, int, char **, int, int);
 int popup_view(Init *, int, char **, int, int, int, int);
 
+/** @brief instantiate a menu popup window
+    @param init the Init struct pointer
+    @param argc the number of command line arguments
+    @param argv the command line arguments
+    @param begy the y coordinate for the menu window
+    @param begx the x coordinate for the menu window
+    @details begy and begx may be set as command line option arguments, in which
+   case, they will take precedence over arguments passed in the function
+   arguments.
+    @note parse_opt_args derives the following variables from the command line
+    @param init->begy
+    @param init->begx
+    @verbatim
+    begy, and begx may be set by
+       1. the calling function
+          or
+       2. command line arguments
+    Non-zero command line arguments will override the calling function's
+   arguments.
+    @endverbatim
+*/
 int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
     int rc;
     zero_opt_args(init);
@@ -17,7 +38,27 @@ int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
     init->menu = sav_menu;
     return rc;
 }
-
+/** @brief instantiate a form view window
+    @param init the Init struct pointer
+    @param argc the number of command line arguments
+    @param argv the command line arguments
+    @param begy the y coordinate for the form window
+    @param begx the x coordinate for the form window
+    @details begy and begx may be set as command line option arguments, in which
+   case, they will take precedence over arguments passed in the function
+   arguments.
+    @note parse_opt_args derives the following variables from the command line
+    @param init->begy
+    @param init->begx
+    @verbatim
+    begy, and begx may be set by
+       1. the calling function
+          or
+       2. command line arguments
+    Non-zero command line arguments will override the calling function's
+   arguments.
+    @endverbatim
+*/
 int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
     int rc;
     zero_opt_args(init);
@@ -30,7 +71,27 @@ int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
     init->pick = sav_pick;
     return rc;
 }
-
+/** @brief instantiate a form window
+    @param init the Init struct pointer
+    @param argc the number of command line arguments
+    @param argv the command line arguments
+    @param begy the y coordinate for the form window
+    @param begx the x coordinate for the form window
+    @details begy and begx may be set as command line option arguments, in which
+   case, they will take precedence over arguments passed in the function
+   arguments.
+    @note parse_opt_args derives the following variables from the command line
+    @param init->begy
+    @param init->begx
+    @verbatim
+    begy, and begx may be set by
+       1. the calling function
+          or
+       2. command line arguments
+    Non-zero command line arguments will override the calling function's
+   arguments.
+    @endverbatim
+*/
 int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     int rc;
     zero_opt_args(init);
@@ -44,6 +105,31 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     return rc;
 }
 
+/** @brief instantiate a view view window
+    @param init the Init struct pointer
+    @param argc the number of command line arguments
+    @param argv the command line arguments
+    @param lines the number of lines for the view window
+    @param cols the number of columns for the view window
+    @param begy the y coordinate for the view window
+    @param begx the x coordinate for the view window
+    @details lines, cols, begy, and begx may also be set as command line option
+   arguments, in which case, they will take precedence over arguments passed in
+   the function arguments.
+    @note parse_opt_args derives the following variables from the command line
+    @param init->lines
+    @param init->cols
+    @param init->begy
+    @param init->begx
+    @verbatim
+    lines, cols, begy, and begx may be set by
+       1. the calling function
+          or
+       2. command line arguments
+    Non-zero command line arguments will override the calling function's
+   arguments.
+    @endverbatim
+*/
 int popup_view(Init *init, int argc, char **argv, int lines, int cols, int begy,
                int begx) {
     int rc = 0;
@@ -56,14 +142,19 @@ int popup_view(Init *init, int argc, char **argv, int lines, int cols, int begy,
         view = new_view(init);
     else
         view = init->view;
-    if (lines > 0)
-        view->lines = lines;
-    if (cols > 0)
-        view->cols = cols;
-    if (begy > 0)
-        view->begy = begy;
-    if (begx > 0)
-        view->begx = begx;
+
+    if (init->lines > 0 && init->cols > 0) {
+        lines = init->lines;
+        cols = init->cols;
+    }
+    if (init->begy > 0 || init->begx > 0) {
+        begy = init->begy;
+        begx = init->begx;
+    }
+    view->lines = lines;
+    view->cols = cols;
+    view->begy = begy;
+    view->begx = begx;
     view_calc_win_dimensions(init, view->title);
     view->f_full_screen = false;
     if (!init_view_boxwin(init, view->title)) {

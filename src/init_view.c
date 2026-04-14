@@ -490,7 +490,7 @@ int view_init_input(View *view, char *file_name) {
             view->in_fd = open(file_name, O_RDONLY);
             if (view->in_fd == -1) {
                 ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
-                          __LINE__ - 2);
+                          __LINE__ - 3);
                 ssnprintf(em1, MAXLEN - 1, "open %s", file_name);
                 strerror_r(errno, em2, MAXLEN);
                 display_error(em0, em1, em2, nullptr);
