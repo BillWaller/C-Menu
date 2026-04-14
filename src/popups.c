@@ -38,7 +38,7 @@ int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
     init->menu = sav_menu;
     return rc;
 }
-/** @brief instantiate a form view window
+/** @brief instantiate a pick popup window
     @param init the Init struct pointer
     @param argc the number of command line arguments
     @param argv the command line arguments
@@ -71,7 +71,7 @@ int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
     init->pick = sav_pick;
     return rc;
 }
-/** @brief instantiate a form window
+/** @brief instantiate a form popup window
     @param init the Init struct pointer
     @param argc the number of command line arguments
     @param argv the command line arguments
@@ -105,7 +105,7 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     return rc;
 }
 
-/** @brief instantiate a view view window
+/** @brief instantiate a view popup window
     @param init the Init struct pointer
     @param argc the number of command line arguments
     @param argv the command line arguments
