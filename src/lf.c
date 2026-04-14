@@ -46,7 +46,7 @@ struct lf {
     int max_depth;
     char *exclude;
     bool f_ignore_case;
-    int flags;
+    long flags;
     char *file_types_p;
     char *args[2];
     int argc;
@@ -105,7 +105,19 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'u': {
         struct passwd *pwd = getpwnam(arg);
         if (pwd) {
-            lf->flags |= (pwd->pw_uid & 0xffffffff) << 16;
+            /** The user ID is stored in the upper 32 bits of the flags field,
+                and the LF_USER flag is set to indicate that the user filter is
+               active. This allows for efficient checking of the user filter
+                during file processing.
+                It should be noted that pwd->pw_uid is a type uid_t, which is
+               typically an unsigned integer type (4 bytes). lf->flags is a long
+                (8 bytes). By shifting the user ID 32 bits to the left, we
+               ensure that it occupies the upper 4 bytes of the flags field,
+               leaving the lower 4 bytes for other flags. This approach allows
+               us to store both the user ID and the LF_USER flag in a single
+               long variable without overlap.
+            */
+            lf->flags |= ((long)pwd->pw_uid & 0xffffffff) << 32;
             lf->flags |= LF_USER;
         } else {
             printf("User '%s' not found.\n", arg);

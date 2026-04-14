@@ -46,8 +46,8 @@ char earg_str[MAXLEN];
 int eargc;
 char *eargv[MAXARGS];
 
-bool lf_find(const char *, const char *, const char *, int, int);
-bool lf_process(const char *, regex_t *, regex_t *, int, int, int);
+bool lf_find(const char *, const char *, const char *, int, long);
+bool lf_process(const char *, regex_t *, regex_t *, int, int, long);
 size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);
@@ -981,7 +981,7 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     @see lf_process() for flag definitions
     return      true if successful, false otherwise */
 bool lf_find(const char *base_path, const char *re, const char *ere,
-             int max_depth, int flags) {
+             int max_depth, long flags) {
     int reti;
     regex_t compiled_re;
     regex_t compiled_ere;
@@ -1067,7 +1067,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     @endverbatim
 */
 bool lf_process(const char *base_path, regex_t *compiled_re,
-                regex_t *compiled_ere, int depth, int max_depth, int flags) {
+                regex_t *compiled_ere, int depth, int max_depth, long flags) {
     char tmp_str[MAXLEN];
     struct dirent *dir_st;
     DIR *dir;
@@ -1082,7 +1082,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     bool suppress_hidden = flags & LF_HIDE ? true : false;
     char bname[MAXLEN];
     if (flags & LF_USER)
-        user_id = (uintmax_t)(flags >> 16);
+        user_id = (uintmax_t)(flags >> 32);
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
@@ -1189,9 +1189,11 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
                 struct stat sb;
                 if (stat(file_spec, &sb) == 0) {
                     if (sb.st_uid != user_id)
-                        continue;
+                        suppress = true;
                 }
             }
+        }
+        if (!suppress) {
             if (file_spec[0] == '.' && file_spec[1] == '/')
                 printf("%s\n", &file_spec[2]);
             else
