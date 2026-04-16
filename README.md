@@ -38,7 +38,18 @@ In the following example, make install requires root privilege, so the user type
 
 - The Green prompt indicates user privilege, and Red indicates root privilege.
 
-**_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command. The following is an actual benchmark of execution times for lf and find. The find and lf commands, approximate common usage, and produce identical results.
+**_lf_** - A "regular expression" file finder that's a smaller, easier-to-use, and much faster alternative to the Unix find command.
+
+![lf help](screenshots/lf-help.png)
+
+The screenshot above is the help output of lf piped through bat and displayed in
+View.
+
+![lf File Finder](screenshots/lf-dates.png)
+
+The screenshot above is an example of how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We hope you find the format format to be intuitive and easy to use.
+
+The following is an actual benchmark of execution times for lf and find. The find and lf commands, approximate common usage, and produce identical results.
 
 ```bash
 time find . -maxdepth 9 -type f -regex '.*\.[ch]$' > find.out

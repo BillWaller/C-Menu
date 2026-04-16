@@ -7,6 +7,10 @@
     @date 2026-02-09
  */
 
+#include <stdio.h>
+#define __USE_XOPEN
+#include <time.h>
+
 #include <argp.h>
 #include <cm.h>
 #include <dirent.h>
@@ -21,6 +25,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+struct tm tm_info;
 const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
 const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
@@ -31,13 +36,17 @@ const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 
 static struct argp_option options[] = {
-    {"max_depth", 'd', "number", 0, "Depth into directory", 0},
+    {"after", 'a', "time", 0, "Modified after YYYY-MM-DDTHH:MM:SS", 0},
+    {"before", 'b', "time", 0, "Modified before YYYY-MM-DDTHH:MM:SS", 0},
+    {"max_depth", 'd', "number", 0, "Depth into directory tree", 0},
     {"exclude", 'e', "regex", 0, "Exclude regular expression", 0},
     {"f_ignore_case", 'i', "bool", 0, "Search ignore case", 0},
-    {"f_hide", 'n', 0, 0, "Don't list hidden files", 0},
-    {"file_types", 't', "bcdplfsu", 0,
-     "b - block device, c - character device,  d - directory, p - named pipe,  "
-     "l - symbolic link,  f - regular file, s - socket, u - unknown",
+    {"f_hide", 'n', 0, 0, "Do not list hidden files", 0},
+    {"permissions", 'p', "sgrwx", 0,
+     "s-setuid, g-setgid, r-read, w-write, x-execute", 0},
+    {"file_types", 't', "bcdplrsu", 0,
+     "b-block, c-character, d-directory, p-pipe, l-link, r-regular, s-"
+     "socket, u-unknown",
      0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {0}};
@@ -46,16 +55,46 @@ struct lf {
     int max_depth;
     char *exclude;
     bool f_ignore_case;
-    long flags;
+    int flags;
+    int older_than;
+    int newer_than;
     char *file_types_p;
     char *args[2];
     int argc;
+    time_t after;
+    time_t before;
 };
 
+/** @brief Parse a single option.  */
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     struct lf *lf = state->input;
     int i = 0;
+
     switch (key) {
+    case 'a':
+        memset(&tm_info, 0, sizeof(struct tm));
+        if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL) {
+            printf("-a Failed to parse time string.\n");
+            return 1;
+        }
+        lf->after = mktime(&tm_info);
+        if (lf->after && lf->before && lf->after > lf->before) {
+            printf("-a time must be before -b time.\n");
+            return 1;
+        }
+        break;
+    case 'b':
+        memset(&tm_info, 0, sizeof(struct tm));
+        if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL) {
+            printf("-b Failed to parse time string.\n");
+            return 1;
+        }
+        lf->before = mktime(&tm_info);
+        if (lf->after && lf->before && lf->after > lf->before) {
+            printf("-a time must be before -b time.\n");
+            return 1;
+        }
+        break;
     case 'd':
         lf->max_depth = atoi(arg);
         break;
@@ -68,6 +107,29 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'n':
         lf->flags |= LF_HIDE;
+        break;
+    case 'p':
+        for (i = 0; arg[i]; i++) {
+            switch (arg[i]) {
+            case 'g':
+                lf->flags |= LF_SETGID << 16;
+                break;
+            case 'r':
+                lf->flags |= LF_PERM_R << 16;
+                break;
+            case 's':
+                lf->flags |= LF_SETUID << 16;
+                break;
+            case 'w':
+                lf->flags |= LF_PERM_W << 16;
+                break;
+            case 'x':
+                lf->flags |= LF_PERM_X << 16;
+                break;
+            default:
+                break;
+            }
+        }
         break;
     case 't':
         lf->file_types_p = arg;
@@ -89,6 +151,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                 lf->flags |= FT_LNK << 8;
                 break;
             case 'f':
+            case 'r':
                 lf->flags |= FT_REG << 8;
                 break;
             case 's':
@@ -105,19 +168,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'u': {
         struct passwd *pwd = getpwnam(arg);
         if (pwd) {
-            /** The user ID is stored in the upper 32 bits of the flags field,
-                and the LF_USER flag is set to indicate that the user filter is
-               active. This allows for efficient checking of the user filter
-                during file processing.
-                It should be noted that pwd->pw_uid is a type uid_t, which is
-               typically an unsigned integer type (4 bytes). lf->flags is a long
-                (8 bytes). By shifting the user ID 32 bits to the left, we
-               ensure that it occupies the upper 4 bytes of the flags field,
-               leaving the lower 4 bytes for other flags. This approach allows
-               us to store both the user ID and the LF_USER flag in a single
-               long variable without overlap.
-            */
-            lf->flags |= ((long)pwd->pw_uid & 0xffffffff) << 32;
+            if (pwd->pw_uid > 0xffff) {
+                printf("User '%s' has UID %d which is too large for this "
+                       "program.\n",
+                       arg, pwd->pw_uid);
+                exit(EXIT_FAILURE);
+            }
+            lf->flags |= (long)(pwd->pw_uid) << 24;
             lf->flags |= LF_USER;
         } else {
             printf("User '%s' not found.\n", arg);
@@ -155,6 +212,9 @@ int main(int argc, char **argv) {
     lf.file_types_p = 0;
     lf.args[0] = nullptr;
     lf.args[1] = nullptr;
+    lf.after = 0;
+    lf.before = 0;
+    setenv("ARGP_HELP_FMT", "opt-doc-col=30", 1);
     argp_parse(&argp, argc, argv, 0, 0, &lf);
     if (lf.argc > 0) {
         if (is_directory(lf.args[0])) {
@@ -184,6 +244,6 @@ int main(int argc, char **argv) {
     }
     if (dir[0] == '\0')
         strncpy(dir, ".", MAXLEN - 1);
-    lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags);
+    lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags, lf.after, lf.before);
     return 0;
 }

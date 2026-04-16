@@ -46,8 +46,10 @@ char earg_str[MAXLEN];
 int eargc;
 char *eargv[MAXARGS];
 
-bool lf_find(const char *, const char *, const char *, int, long);
-bool lf_process(const char *, regex_t *, regex_t *, int, int, long);
+bool lf_find(const char *, const char *, const char *, int, long, time_t,
+             time_t);
+bool lf_process(const char *, regex_t *, regex_t *, int, int, long, time_t,
+                time_t);
 size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);
@@ -978,10 +980,10 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     @param re         regular expression match to include
     @param max_depth  depth of directories to scan
     @param flags      search flags
-    @see lf_process() for flag definitions
-    return      true if successful, false otherwise */
+    @see lf_process()
+    @return      true if successful, false otherwise */
 bool lf_find(const char *base_path, const char *re, const char *ere,
-             int max_depth, long flags) {
+             int max_depth, long flags, time_t after_t, time_t before_t) {
     int reti;
     regex_t compiled_re;
     regex_t compiled_ere;
@@ -1012,8 +1014,8 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
             return false;
         }
     }
-    reti =
-        lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth, flags);
+    reti = lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth,
+                      flags, after_t, before_t);
     if (flags & LF_REGEX)
         regfree(&compiled_re);
     if (flags & LF_EXC_REGEX)
@@ -1022,67 +1024,76 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
         return false;
     return true;
 }
-/** @brief logic for lf_find()
+
+/** @brief Process files in a directory matching regular expressions and flags
     @ingroup utility_functions
-    @param base_path   directory to search
-    @param compiled_ere compiled regular expression to exclude
-    @param compiled_re compiled regular expression to include
-    @param depth recursion counter
-    @param max_depth how deep to descend into the directory structure
-    @param flags
+    @param base_path  directory to search
+    @param compiled_re        compiled regular expression to include
+    @param compiled_ere       compiled regular expression to exclude
+    @param depth       current depth of directory traversal
+    @param max_depth   maximum depth of directory traversal
+    @param flags       search flags
+    @see lf_find()
     @return true if successful, false otherwise
     @verbatim
 
-    LF_ALL = 1,       List all files including hidden files
-    LF_ICASE = 2,     Ignore case in search
-    LF_EXC_REGEX = 4, Exclude files matching regular expression
-    LF_REGEX = 8,     Include files matching regular expression
-    LF_BLK = 256,
-    LF_CHR = 512,
-    LF_DIR = 1024,
-    LF_FIFO = 2048,
-    LF_LNK = 4096,
-    LF_REG = 8192,
-    LF_SOCK = 16384,
-    LF_UNKNOWN = 32768,
-                      Include     Exclude
-                     ----------  ----------
-    LF_BLK        1  0 00000001  7 11111110 block device
-    LF_CHR        2  1 00000010  6 11111101 character device
-    LF_DIR        4  2 00000100  5 11111011 directory
-    LF_FIFO       8  3 00001000  4 11110111 named pipe
-    LF_LNK       16  4 00010000  3 11101111 link
-    LF_REG       32  5 00100000  2 11011111 regular file
-    LF_SOCK      64  6 01000000  1 10111111 socket
-    LF_UNKNOWN  128  7 10000000  0 01111111 unknown
+    lf_find(), lf_process() options
 
-    bool s_blk;
-    bool s_chr;
-    bool s_dir;
-    bool s_fifo;
-    bool s_lnk;
-    bool s_reg;
-    bool s_sock;
-    bool s_unknown;
+       bit variable         mask
+        24 user_id          0xffff
+        16 permissions      0xff
+         8 file_types       0xff
+         0 selection_flags  0xff
+
+    File types
+    FT_BLK          00000001    1 block device
+    FT_CHR          00000010    2 character device
+    FT_DIR          00000100    4 directory
+    FT_FIFO         00001000    8 named pipe
+    FT_LNK          00010000   16 link
+    FT_REG          00100000   32 regular file
+    FT_SOCK         01000000   64 socket
+    FT_UNKNOWN      10000000  128 unknown
+
+    Permissions
+    LF_PERM         00000001    1 Permissions
+    LF_SETUID       00000010    2 Select Setuid Files
+    LF_SETGID       00000100    4 Select Setgid Files
+    LF_PERM_R       00001000    8 Select Files with Read Permission
+    LF_PERM_W       00010000   16 Select Files with Write Permission
+    LF_PERM_X       00100000   32 Select Files with Execute Permission
+
+    Selection Flags
+    LF_HIDE         00000001    1 Don't list hidden files
+    LF_ICASE        00000010    2 Ignore case in search
+    LF_EXC_REGEX    00000100    4 Exclude files matching regex
+    LF_REGEX        00001000    8 Include files matching regex
+    LF_EXEC         00010000   16 Execute command each file
+    LF_USER         00100000   32 Select User Name
+
     @endverbatim
 */
+
 bool lf_process(const char *base_path, regex_t *compiled_re,
-                regex_t *compiled_ere, int depth, int max_depth, long flags) {
+                regex_t *compiled_ere, int depth, int max_depth, long flags,
+                time_t after_t, time_t before_t) {
     char tmp_str[MAXLEN];
     struct dirent *dir_st;
     DIR *dir;
     int REG_FLAGS = REG_EXTENDED;
     int reti;
+    int permissions = flags >> 16 & 0xff;
     uintmax_t user_id;
     regmatch_t pmatch[1];
     char file_spec[1024];
     bool suppress;
+    bool f_stat = false;
     int f_include;
     int f_suppress;
     bool suppress_hidden = flags & LF_HIDE ? true : false;
     char bname[MAXLEN];
     if (flags & LF_USER)
-        user_id = (uintmax_t)(flags >> 32);
+        user_id = flags >> 24 & 0xffff;
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
@@ -1094,8 +1105,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         else if (bname[0] == '.' && suppress_hidden)
             continue;
         f_suppress = 0;
-        /** The high 8-bits are file type flags */
-        f_include = (flags >> 8) & 0xff;
+        f_include = flags >> 8 & 0xff;
         /** suppress file types that aren't included */
         if (f_include)
             f_suppress = f_include ^ 0xff;
@@ -1183,15 +1193,48 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
                 return false;
             }
         }
-
+        f_stat = false;
+        struct stat sb;
+        /** Exclude files not owned by specified user */
         if (!suppress) {
-            if (flags & LF_USER) {
-                struct stat sb;
-                if (stat(file_spec, &sb) == 0) {
-                    if (sb.st_uid != user_id)
-                        suppress = true;
-                }
+            if ((flags & LF_USER) && stat(file_spec, &sb) == 0) {
+                f_stat = true;
+                if (sb.st_uid != user_id)
+                    suppress = true;
             }
+        }
+        if (!suppress && permissions) {
+            if (!f_stat) {
+                if (stat(file_spec, &sb) == 0)
+                    f_stat = true;
+            }
+            suppress = true;
+            if ((permissions & LF_SETUID) && (sb.st_mode & S_ISUID))
+                suppress = false;
+            else if ((permissions & LF_SETGID) && (sb.st_mode & S_ISGID))
+                suppress = false;
+            else if ((permissions & LF_PERM_R) && (sb.st_mode & S_IRUSR))
+                suppress = false;
+            else if ((permissions & LF_PERM_W) && (sb.st_mode & S_IWUSR))
+                suppress = false;
+            else if ((permissions & LF_PERM_X) && (sb.st_mode & S_IXUSR))
+                suppress = false;
+        }
+        if (!suppress && before_t) {
+            if (!f_stat) {
+                if (stat(file_spec, &sb) == 0)
+                    f_stat = true;
+            }
+            if (f_stat && sb.st_mtime > before_t)
+                suppress = true;
+        }
+        if (!suppress && after_t) {
+            if (!f_stat) {
+                if (stat(file_spec, &sb) == 0)
+                    f_stat = true;
+            }
+            if (f_stat && sb.st_mtime < after_t)
+                suppress = true;
         }
         if (!suppress) {
             if (file_spec[0] == '.' && file_spec[1] == '/')
@@ -1203,7 +1246,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             (dir_st->d_type == DT_DIR && depth + 1 < max_depth)) {
             depth++;
             lf_process(file_spec, compiled_re, compiled_ere, depth, max_depth,
-                       flags);
+                       flags, after_t, before_t);
             depth--;
         }
     }
@@ -1286,31 +1329,33 @@ bool is_valid_regex(const char *pattern) {
     @param org_s - original string
     @param tgt_s - target substring to replace
     @param rep_s - replacement substring
-    @returns A pointer to the newly allocated string with replacements or a copy
-   of the replacement string if original string is the same as target string
-   This is a special case that allows for replacing the entire original string.
-   If any parameter is nullptr, the function returns nullptr. If "tgt_s" is not
-   found in "org_s", the function returns a copy of "org_s". If target substring
-   is not found the function returns a copy of the original string.
-    @note allocates memory for the return value, so the caller is responsible
-   for freeing this memory when it is no longer needed to avoid memory leaks.
+    @returns A pointer to the newly allocated string with replacements or a
+   copy of the replacement string if original string is the same as target
+   string This is a special case that allows for replacing the entire
+   original string. If any parameter is nullptr, the function returns
+   nullptr. If "tgt_s" is not found in "org_s", the function returns a copy
+   of "org_s". If target substring is not found the function returns a copy
+   of the original string.
+    @note allocates memory for the return value, so the caller is
+   responsible for freeing this memory when it is no longer needed to avoid
+   memory leaks.
     @note Does not modify the original string "org_s".
-    @note Assumes that "tgt_s" and "rep_s" are null-terminated strings. If they
-   are not, the behavior is undefined.
-    @note Does not perform any bounds checking on the input strings, so it is
-   the caller's responsibility to ensure that they are valid and that the
+    @note Assumes that "tgt_s" and "rep_s" are null-terminated strings. If
+   they are not, the behavior is undefined.
+    @note Does not perform any bounds checking on the input strings, so it
+   is the caller's responsibility to ensure that they are valid and that the
    resulting string does not exceed available memory.
     @note Uses the standard library functions strlen, strstr, malloc, and
-   strcpy, which may have their own limitations and behaviors that the caller
-   should be aware of.
+   strcpy, which may have their own limitations and behaviors that the
+   caller should be aware of.
     @note Does not handle overlapping occurrences of "tgt_s" in "org_s". If
-   "tgt_s" can overlap with itself in "org_s", the behavior may be unexpected.
-   The caller should ensure that "tgt_s" does not contain overlapping patterns
-   to avoid this issue.
-    @note Does not handle cases where "tgt_s" is a substring of "rep_s", which
-   could lead to unintended consequences if "tgt_s" appears in "rep_s". The
-   caller should ensure that "tgt_s" and "rep_s" are distinct to avoid this
-   issue. */
+   "tgt_s" can overlap with itself in "org_s", the behavior may be
+   unexpected. The caller should ensure that "tgt_s" does not contain
+   overlapping patterns to avoid this issue.
+    @note Does not handle cases where "tgt_s" is a substring of "rep_s",
+   which could lead to unintended consequences if "tgt_s" appears in
+   "rep_s". The caller should ensure that "tgt_s" and "rep_s" are distinct
+   to avoid this issue. */
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     if (org_s == nullptr || tgt_s == nullptr || rep_s == nullptr)
         return nullptr;
@@ -1355,19 +1400,19 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
 /** @defgroup String_Objects String Objects
     @brief Simple String Object Library
  */
-/** @brief String functions provide a simple string library to facilitate string
-   manipulation in C, allowing developers to easily create, copy, concatenate,
-   and free strings without having to manage memory manually.
+/** @brief String functions provide a simple string library to facilitate
+   string manipulation in C, allowing developers to easily create, copy,
+   concatenate, and free strings without having to manage memory manually.
     @ingroup String_Objects
-   @note The library includes functions to convert C strings to String structs,
-   create new String structs with specified lengths, copy and concatenate String
-   structs, and free the memory used by String structs. By using this library,
-   developers can avoid common pitfalls of C string handling, such as buffer
-   overflows and memory leaks, while still benefiting from the performance
-   advantages of C.
+   @note The library includes functions to convert C strings to String
+   structs, create new String structs with specified lengths, copy and
+   concatenate String structs, and free the memory used by String structs.
+   By using this library, developers can avoid common pitfalls of C string
+   handling, such as buffer overflows and memory leaks, while still
+   benefiting from the performance advantages of C.
    @note Designed to be simple and easy to use, making it a great choice for
-   developers who want to work with strings in C without having to worry about
-   the complexities of manual memory management.
+   developers who want to work with strings in C without having to worry
+   about the complexities of manual memory management.
    @note The String struct is defined as follows:
    @code
      typedef struct {
@@ -1377,21 +1422,22 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     @endcode
    @note All functions in this library that return a String struct allocate
    memory for the string using malloc or realloc. It is the caller's
-   responsibility to free this memory using the free_string function when it is
-   no longer needed to avoid memory leaks.
-   @note The String functions in this library do not perform bounds checking on
-   the input strings or the resulting strings. It is the caller's responsibility
-   to ensure that all input strings are valid and that the resulting strings do
-   not exceed available memory.
-   @note The String functions in this library assume that all input strings are
-   null-terminated. If any input string is not null-terminated, the behavior is
-   undefined.
+   responsibility to free this memory using the free_string function when it
+   is no longer needed to avoid memory leaks.
+   @note The String functions in this library do not perform bounds checking
+   on the input strings or the resulting strings. It is the caller's
+   responsibility to ensure that all input strings are valid and that the
+   resulting strings do not exceed available memory.
+   @note The String functions in this library assume that all input strings
+   are null-terminated. If any input string is not null-terminated, the
+   behavior is undefined.
    @see snippets/strings_test1.c
  */
 /** @brief Convert C string to String struct
     @ingroup String_Objects
     @param s C string
-    @return String struct containing dynamically allocated copy of input string
+    @return String struct containing dynamically allocated copy of input
+   string
     @note the caller is responsible for freeing the allocated memory.
     */
 String to_string(const char *s) {
@@ -1407,14 +1453,14 @@ String to_string(const char *s) {
     strcpy(str.s, s);
     return str;
 }
-/** @brief Create a String struct with a dynamically allocated string @param l
-   length of string to create including null terminator
+/** @brief Create a String struct with a dynamically allocated string @param
+   l length of string to create including null terminator
    @returns String struct
-   @note The returned String struct contains a dynamically allocated string of
-   he specified length
+   @note The returned String struct contains a dynamically allocated string
+   of he specified length
    @sa free_string
-   @note the caller is responsible for calling free_string to free the allocated
-   memory. */
+   @note the caller is responsible for calling free_string to free the
+   allocated memory. */
 String mk_string(size_t l) {
     if (l == 0) {
         String str;
@@ -1442,8 +1488,8 @@ String free_string(String string) {
     string.s = nullptr;
     return string;
 }
-/** @brief Copy src String to dest String, allocating additional memory for dest
-   String if necessary
+/** @brief Copy src String to dest String, allocating additional memory for
+   dest String if necessary
     @ingroup String_Objects
     @param dest - destination String struct
     @param src - source String struct
@@ -1459,8 +1505,8 @@ size_t string_cpy(String *dest, const String *src) {
     strcpy(dest->s, src->s);
     return src->l;
 }
-/** @brief Concatenates src String to dest String, allocating additional memory
-   for dest String if necessary
+/** @brief Concatenates src String to dest String, allocating additional
+   memory for dest String if necessary
     @ingroup String_Objects
     @param dest - destination String struct
     @param src - source String struct
@@ -1499,8 +1545,8 @@ size_t string_ncat(String *dest, const String *src, size_t n) {
     strncat(dest->s, src->s, cat_len);
     return new_len;
 }
-/** @brief copies up to n characters from src String to dest String, allocating
-   additional memory for dest String if necessary
+/** @brief copies up to n characters from src String to dest String,
+   allocating additional memory for dest String if necessary
     @ingroup String_Objects
     @param dest - destination String struct
     @param src - source String struct
@@ -1527,10 +1573,10 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
 /** @brief Function to intentionally cause a segmentation fault for testing
    purposes
     @ingroup testing_functions
-    @note This function is designed to intentionally cause a segmentation fault
-   by dereferencing a null pointer. It is intended for testing purposes only and
-   should not be used in production code. The caller should be aware that
-   executing this function will crash the program. */
+    @note This function is designed to intentionally cause a segmentation
+   fault by dereferencing a null pointer. It is intended for testing
+   purposes only and should not be used in production code. The caller
+   should be aware that executing this function will crash the program. */
 int segmentation_fault() {
     // int *p = NULL;
     // *p = 100;

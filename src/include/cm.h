@@ -146,24 +146,32 @@ enum colors_enum {
 };
 
 enum LFFlags {
-    LF_HIDE = 1,      /**<   1 Don't list hidden files */
-    LF_ICASE = 2,     /**<   2 Ignore case in search */
-    LF_EXC_REGEX = 4, /**<   4 Exclude files matching regular expression */
-    LF_REGEX = 8,     /**<   8 Include files matching regular expression */
-    LF_EXEC = 16,     /**<  16 Execute command each file */
-    LF_USER = 32,     /**<  32 Select User Name */
+    /** byte 0 - bits 0-7  Selection Flags*/
+    LF_HIDE = 0b00000001,      /**< 1 Don't list hidden files */
+    LF_ICASE = 0b00000010,     /**< 2 Ignore case in search */
+    LF_EXC_REGEX = 0b00000100, /**< 4 Exclude files matching regex */
+    LF_REGEX = 0b00001000,     /**< 8 Include files matching regex */
+    LF_EXEC = 0b00010000,      /**< 16 Execute command each file */
+    LF_USER = 0b00100000,      /**< 32 Select User Name */
+    LF_SETUID = 0b10000000,    /**< 64 Select Setuid Files */
+    LF_SETGID = 0b01000000,    /**< 128 Select Setgid Files */
+    LF_PERM_R = 0b00100001,    /**< 256 Select Files with Read Permission */
+    LF_PERM_W = 0b00010000,    /**< 512 Select Files with Write Permission */
+    LF_PERM_X = 0b00001000,    /**< 1024 Select Files with Execute Permission */
 };
 
+/** byte 2 - bits 16-23 File types*/
 enum FTypes {
-    FT_BLK = 1,       /** b00000001 */
-    FT_CHR = 2,       /** b00000010 */
-    FT_DIR = 4,       /** b00000100 */
-    FT_FIFO = 8,      /** b00001000 */
-    FT_LNK = 16,      /** b00010000 */
-    FT_REG = 32,      /** b00100000 */
-    FT_SOCK = 64,     /** b01000000 */
-    FT_UNKNOWN = 128, /** b10000000 */
+    FT_BLK = 0b00000001,    /**< 1 block device */
+    FT_CHR = 0b00000010,    /**< 2 character device */
+    FT_DIR = 0b00000100,    /**< 4 directory */
+    FT_FIFO = 0b00001000,   /**< 8 named pipe */
+    FT_LNK = 0b00010000,    /**< 16 link */
+    FT_REG = 0b00100000,    /**< 32 regular file */
+    FT_SOCK = 0b01000000,   /**< 64 socket */
+    FT_UNKNOWN = 0b10000000 /**< 128 unknown */
 };
+
 /**
                       Include     Exclude
                      ----------  ----------
@@ -758,7 +766,8 @@ extern int answer_yn(char *, char *, char *, char *);
 extern int display_ok_message(char *);
 extern int Perror(char *);
 extern void user_end();
-extern bool lf_find(const char *, const char *, const char *, int, long);
+extern bool lf_find(const char *, const char *, const char *, int, long, time_t,
+                    time_t);
 extern size_t canonicalize_file_spec(char *);
 extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool file_spec_path(char *, char *);
