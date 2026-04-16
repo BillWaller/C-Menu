@@ -16,6 +16,8 @@
  */
 
 #include <cm.h>
+#include <stdint.h>
+
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
@@ -47,9 +49,9 @@ int eargc;
 char *eargv[MAXARGS];
 
 bool lf_find(const char *, const char *, const char *, int, long, time_t,
-             time_t);
+             time_t, intmax_t);
 bool lf_process(const char *, regex_t *, regex_t *, int, int, long, time_t,
-                time_t);
+                time_t, intmax_t);
 size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);
@@ -521,6 +523,22 @@ int a_toi(char *s, bool *a_toi_error) {
     }
     return rc;
 }
+unsigned long long a_to_ull(const char *str) {
+    char *endptr;
+    unsigned long long value = strtoull(str, &endptr, 10);
+    if (endptr == str)
+        return 0;
+    switch (tolower(*endptr)) {
+    case 'g':
+        return value * 1024ULL * 1024ULL * 1024ULL;
+    case 'm':
+        return value * 1024ULL * 1024ULL;
+    case 'k':
+        return value * 1024ULL;
+    default:
+        return value;
+    }
+}
 /** @brief Strips ANSI SGR escape sequences (ending in 'm') from string s to d
     @ingroup utility_functions
     @param d Destination string
@@ -983,7 +1001,8 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     @see lf_process()
     @return      true if successful, false otherwise */
 bool lf_find(const char *base_path, const char *re, const char *ere,
-             int max_depth, long flags, time_t after_t, time_t before_t) {
+             int max_depth, long flags, time_t after_t, time_t before_t,
+             intmax_t file_size_min) {
     int reti;
     regex_t compiled_re;
     regex_t compiled_ere;
@@ -1015,7 +1034,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
         }
     }
     reti = lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth,
-                      flags, after_t, before_t);
+                      flags, after_t, before_t, file_size_min);
     if (flags & LF_REGEX)
         regfree(&compiled_re);
     if (flags & LF_EXC_REGEX)
@@ -1076,7 +1095,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
 
 bool lf_process(const char *base_path, regex_t *compiled_re,
                 regex_t *compiled_ere, int depth, int max_depth, long flags,
-                time_t after_t, time_t before_t) {
+                time_t after_t, time_t before_t, intmax_t file_size_min) {
     char tmp_str[MAXLEN];
     struct dirent *dir_st;
     DIR *dir;
@@ -1236,6 +1255,14 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             if (f_stat && sb.st_mtime < after_t)
                 suppress = true;
         }
+        if (!suppress && file_size_min) {
+            if (!f_stat) {
+                if (stat(file_spec, &sb) == 0)
+                    f_stat = true;
+            }
+            if (f_stat && sb.st_size < file_size_min)
+                suppress = true;
+        }
         if (!suppress) {
             if (file_spec[0] == '.' && file_spec[1] == '/')
                 printf("%s\n", &file_spec[2]);
@@ -1246,7 +1273,7 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             (dir_st->d_type == DT_DIR && depth + 1 < max_depth)) {
             depth++;
             lf_process(file_spec, compiled_re, compiled_ere, depth, max_depth,
-                       flags, after_t, before_t);
+                       flags, after_t, before_t, file_size_min);
             depth--;
         }
     }

@@ -7,6 +7,7 @@
     @date 2026-02-09
  */
 
+#include <stdint.h>
 #include <stdio.h>
 #define __USE_XOPEN
 #include <time.h>
@@ -44,6 +45,8 @@ static struct argp_option options[] = {
     {"f_hide", 'n', 0, 0, "Do not list hidden files", 0},
     {"permissions", 'p', "sgrwx", 0,
      "s-setuid, g-setgid, r-read, w-write, x-execute", 0},
+    {"file_size_min", 's', "size", 0,
+     "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
     {"file_types", 't', "bcdplrsu", 0,
      "b-block, c-character, d-directory, p-pipe, l-link, r-regular, s-"
      "socket, u-unknown",
@@ -56,8 +59,7 @@ struct lf {
     char *exclude;
     bool f_ignore_case;
     int flags;
-    int older_than;
-    int newer_than;
+    intmax_t file_size_min;
     char *file_types_p;
     char *args[2];
     int argc;
@@ -130,6 +132,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                 break;
             }
         }
+        break;
+    case 's':
+        long long ull = a_to_ull(arg);
+        lf->file_size_min = (intmax_t)ull;
         break;
     case 't':
         lf->file_types_p = arg;
@@ -214,7 +220,8 @@ int main(int argc, char **argv) {
     lf.args[1] = nullptr;
     lf.after = 0;
     lf.before = 0;
-    setenv("ARGP_HELP_FMT", "opt-doc-col=30", 1);
+    lf.file_size_min = 0;
+    // setenv("ARGP_HELP_FMT", "opt-doc-col=30", 1);
     argp_parse(&argp, argc, argv, 0, 0, &lf);
     if (lf.argc > 0) {
         if (is_directory(lf.args[0])) {
@@ -244,6 +251,7 @@ int main(int argc, char **argv) {
     }
     if (dir[0] == '\0')
         strncpy(dir, ".", MAXLEN - 1);
-    lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags, lf.after, lf.before);
+    lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags, lf.after, lf.before,
+            lf.file_size_min);
     return 0;
 }

@@ -573,12 +573,10 @@ The user will be prompted to enter a file name, and the contents of the view win
 
 "-" is a leader key to certain settings in view
 
+    "-n" toggles line numbers
     "-i" toggles case-insensitive searching
     "-s" toggles squeeze blank lines
     "-t" set tabstops
-    "-:" enter command prompt
-    "-l" set long prompt
-    "-n" set no prompt"
 
 #### Searching Forward
 
@@ -688,41 +686,9 @@ provide input to C-Menu Pick, but can be used stand-alone as well. It
 is similar to the Unix "find" command, but with a much simpler syntax
 and fewer features.
 
-```bash
-Usage: lf [options] [directory] [regexp]
-Options:
-  -a        List hidden files
-  -d        maximum depth of subdirectories to examine
-  -e        exclude files matching the regular expression
-  -h        show this help message
-  -i        ignore case in search
-  -t   [bcdplfsu]
-       b          block devices
-        c         character devices
-         d        directories
-          p       named pipes
-           l      symbolic links
-            f     regular files
-             s    sockets
-              u   unknown
-                  (in any order or combination)
-  -v        show version information
-```
+![lf help](../screenshots/lf-help.png)
 
-The syntax for "lf" is different from "find" in that the directory to
-search is specified first, followed by the regular expression to match
-file names against. If no directory is specified, the current directory
-is used. If no regular expression is specified, all files are listed.
-
-The syntax for "lf" is also different from "ls" in that it uses regular
-expressions instead of shell expansion of wildcards. This allows for
-more complex matching patterns.
-
-lf does not follow symbolic links as this could result in a circular loop.
-
-lf does not report hidden files, those begin with a dot (.) in Unix-like systems, unless the -a option is used.
-
-Unless depth is specified with the -d option, lf defaults to a maximum depth of 3 subdirectories. This is to prevent excessive searching in large directory trees.
+Unless depth is specified with the -d option, lf defaults to unlimited depth.
 
 Examples:
 
@@ -739,6 +705,13 @@ List all regular files in the current directory and its subdirectories that cont
 lf . -i -t f '.*report.*'
 ```
 
+The above and below commands produce identical results as "r" and "f" are
+synonyms in lf.
+
+```bash
+lf . -i -t r '.*report.*'
+```
+
 List all files in the current directory and its subdirectories excluding
 those that end in ".jpg", ignoring case.
 
@@ -751,6 +724,55 @@ Exclude all files and directories that end in ".txt", ".sh", or ".md".
 ```bash
 lf -e '.*\.(txt|sh|md)$' /home/bill
 ```
+
+![lf File Finder](../screenshots/lf-dates.png)
+
+The screenshot above is an example of how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We hope you find the format format to be intuitive and easy to use.
+
+The following is an actual benchmark of execution times for lf and find. The find and lf commands, approximate common usage, and produce identical results.
+
+```bash
+time find . -maxdepth 9 -type f -regex '.*\.[ch]$' > find.out
+
+real    0m0.975s
+user    0m0.728s
+sys     0m0.243s
+
+time lf -a -d 9 -t f '.*\.[ch]$' > lf.out
+
+real    0m0.632s
+user    0m0.425s
+sys     0m0.207s
+```
+
+Verify that the output files are identical:
+
+```bash
+wc -l find.out lf.out
+
+  2489 find.out
+  2489 lf.out
+  4978 total
+```
+
+The results show that lf is about 35% faster than find in this benchmark, and the output files are identical.
+
+Next, we will add "-exec ls -l {} \;", a common use of find, and see how that affects performance. The resulting benchmarks are so extreme, they may strain credulity at first, but they are real and easily reproducible. Just run lf and find commands on your system in a variety of directories.
+
+Note 1: The -a (List hidden files) has been replaced with -n (Don't list hidden files), so that the default behavior is more like find, thus mitigating the probability of confusion.
+
+Note 2: The default maximum depth for lf was 3 as that was convenient for development, but otherwise it didn't make sense. The default maximum depth for lf is now 0, which means no limit, and thus more consistent with find.
+
+```bash
+time find . -maxdepth 5 -type f -exec -l {} \; >find.out
+time lf -a -d 5 -t f | xargs ls -l >lf.out
+```
+
+```bash
+wc -l find.out lf.out
+```
+
+![lf File Finder](screenshots/lf-vs-find2.png)
 
 For a great cheat sheet on regular expressions, see
 

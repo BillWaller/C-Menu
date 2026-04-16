@@ -767,7 +767,8 @@ extern int display_ok_message(char *);
 extern int Perror(char *);
 extern void user_end();
 extern bool lf_find(const char *, const char *, const char *, int, long, time_t,
-                    time_t);
+                    time_t, intmax_t);
+extern unsigned long long a_to_ull(const char *);
 extern size_t canonicalize_file_spec(char *);
 extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool file_spec_path(char *, char *);

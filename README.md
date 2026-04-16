@@ -4,9 +4,9 @@
 
 # Introduction
 
-The following is a brief introduction to the C-Menu Toolkit covering a fraction of its features and capabilities. Who is C-Menu for? Anyone who demands performance with a professional look and feel for their applications, without the overhead of a graphical user interface. C-Menu is especially well suited for rescue, embedded, server, development, and other resource-constrained environments, but it also also appeals to the purist who wants powerful, efficient, and user-friendly applications without the bloat of a GUI.
+The following is a brief introduction to the C-Menu Toolkit covering a fraction of its features and capabilities. C-Menu is much more than just a tool to create menus. It's a set of powerful tools for creating menu-driven user interfaces. C-Menu provides a consistent and intuitive user experience across all of its components, making it easy for users to navigate and interact with your applications. The toolkit is designed to be flexible and customizable, allowing developers to create unique and engaging user interfaces that meet the specific needs of their applications.
 
-For more detailed information, please refer to the html documentation at:
+For comprehensive html documentation, please refer to the website:
 
 [decision-inc.com](https://decision-inc.com)
 
