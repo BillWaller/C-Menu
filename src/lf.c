@@ -41,7 +41,7 @@ static struct argp_option options[] = {
     {"before", 'b', "time", 0, "Modified before YYYY-MM-DDTHH:MM:SS", 0},
     {"max_depth", 'd', "number", 0, "Depth into directory tree", 0},
     {"exclude", 'e', "regex", 0, "Exclude regular expression", 0},
-    {"f_ignore_case", 'i', "bool", 0, "Search ignore case", 0},
+    {"f_ignore_case", 'i', 0, 0, "Search ignore case", 0},
     {"f_hide", 'n', 0, 0, "Do not list hidden files", 0},
     {"permissions", 'p', "sgrwx", 0,
      "s-setuid, g-setgid, r-read, w-write, x-execute", 0},
@@ -59,6 +59,7 @@ struct lf {
     char *exclude;
     bool f_ignore_case;
     int flags;
+    bool f_hide;
     intmax_t file_size_min;
     char *file_types_p;
     char *args[2];
@@ -108,6 +109,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         lf->flags |= LF_ICASE;
         break;
     case 'n':
+        lf->f_hide = true;
         lf->flags |= LF_HIDE;
         break;
     case 'p':
