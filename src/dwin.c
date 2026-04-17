@@ -766,8 +766,13 @@ void destroy_curses() {
     as the wide character */
 cchar_t mkccc(int cp) {
     cchar_t cc = {0};
-    wchar_t wc = L' ';
-    setcchar(&cc, &wc, WA_NORMAL, cp, nullptr);
+    wchar_t wstr[2] = {L'\0', L'\0'};
+    attr_t attr = WA_NORMAL;
+    char *s = " ";
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+    setcchar(&cc, wstr, attr, cp, nullptr);
     return cc;
 }
 /** @brief Create a new window with optional box and title

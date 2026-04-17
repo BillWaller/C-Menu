@@ -80,6 +80,10 @@ CFLAGS=-O2
 # -DDEBUG_RESIZE
 # -DDEUBG_IMMEDOK
 CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_RESIZE -DDEBUG_IMMEDOK -DDEBUG_LOG
+#	   -fsanitize=address
+# -fsanitize=leak -fsanitize=undefined \
+# -fno-omit-frame-pointer -fno-sanitize-recover=all
+# LIBASANE=-lasan
 #
 # Uncomment the following line to enable coverage.
 # CFLAGS=--coverage -O0 -ggdb -rdynamic -DNCDEBUG
@@ -121,7 +125,7 @@ COMMON_SRCS=menu_engine.c parse_menu_desc.c curskeys.c \
 			pick_engine.c popups.c view_engine.c
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
-LIBS = -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_PATH)
+LIBS = $(LIBASAN) -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_PATH)
 
 all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Make Complete
