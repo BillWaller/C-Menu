@@ -1,4 +1,4 @@
-/** @file init.
+/** @file init.c
     @brief Initialization for Menu Application Programs
     @author Bill Waller
     Copyright (c) 2025

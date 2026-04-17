@@ -14,9 +14,6 @@ int popup_view(Init *, int, char **, int, int, int, int);
     @details begy and begx may be set as command line option arguments, in which
    case, they will take precedence over arguments passed in the function
    arguments.
-    @note parse_opt_args derives the following variables from the command line
-    @param init->begy
-    @param init->begx
     @verbatim
     begy, and begx may be set by
        1. the calling function
@@ -47,9 +44,6 @@ int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
     @details begy and begx may be set as command line option arguments, in which
    case, they will take precedence over arguments passed in the function
    arguments.
-    @note parse_opt_args derives the following variables from the command line
-    @param init->begy
-    @param init->begx
     @verbatim
     begy, and begx may be set by
        1. the calling function
@@ -80,9 +74,6 @@ int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
     @details begy and begx may be set as command line option arguments, in which
    case, they will take precedence over arguments passed in the function
    arguments.
-    @note parse_opt_args derives the following variables from the command line
-    @param init->begy
-    @param init->begx
     @verbatim
     begy, and begx may be set by
        1. the calling function
@@ -116,11 +107,6 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     @details lines, cols, begy, and begx may also be set as command line option
    arguments, in which case, they will take precedence over arguments passed in
    the function arguments.
-    @note parse_opt_args derives the following variables from the command line
-    @param init->lines
-    @param init->cols
-    @param init->begy
-    @param init->begx
     @verbatim
     lines, cols, begy, and begx may be set by
        1. the calling function

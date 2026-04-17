@@ -998,6 +998,10 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     @param re         regular expression match to include
     @param max_depth  depth of directories to scan
     @param flags      search flags
+    @param after_t select files modified after this time (0 to ignore)
+    @param before_t select files modified before this time (0 to ignore)
+    @param file_size_min select files with size greater than or equal to this
+   size (0 to ignore)
     @see lf_process()
     @return      true if successful, false otherwise */
 bool lf_find(const char *base_path, const char *re, const char *ere,
@@ -1052,6 +1056,10 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     @param depth       current depth of directory traversal
     @param max_depth   maximum depth of directory traversal
     @param flags       search flags
+    @param after_t     select files modified after this time (0 to ignore)
+    @param before_t    select files modified before this time (0 to ignore)
+    @param file_size_min select files with size greater than or equal to this
+   size (0 to ignore)
     @see lf_find()
     @return true if successful, false otherwise
     @verbatim

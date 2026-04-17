@@ -10,8 +10,6 @@
 #ifndef _COMMON_H
 #define _COMMON_H 1
 
-/** Without #define _GNU_SOURCE you may get errors like
-   locale_t undefined in time.h */
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1

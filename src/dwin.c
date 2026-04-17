@@ -777,7 +777,7 @@ cchar_t mkccc(int cp) {
     @param wbegy Beginning Y position
     @param wbegx Beginning X position
     @param wtitle Window title
-    @param flag Window flags
+    @param win_pair If true, creates a pair of windows (box and inner window)
     @return 0 if successful, 1 if error */
 
 int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,

@@ -256,8 +256,7 @@ int init_view_boxwin(Init *init, char *title) {
 }
 /** @brief Resize the current window and its box, and update the title
     @ingroup window_support
-    @param wlines Number of lines
-    @param wcols Number of columns
+    @param init Pointer to the Init structure containing view settings.
     @param title Window title
     @note This function resizes the current window and its associated box window
    to the specified number of lines and columns. It also updates the title of
