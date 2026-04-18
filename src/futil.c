@@ -1104,27 +1104,28 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
 bool lf_process(const char *base_path, regex_t *compiled_re,
                 regex_t *compiled_ere, int depth, int max_depth, long flags,
                 time_t after_t, time_t before_t, intmax_t file_size_min) {
-    char tmp_str[MAXLEN];
+    char tmp_str[PATH_MAX];
+    char msgbuf[PATH_MAX];
+    char file_spec[PATH_MAX];
+    char bname[PATH_MAX];
     struct dirent *dir_st;
     DIR *dir;
     int REG_FLAGS = REG_EXTENDED;
     int reti;
     int permissions = flags >> 16 & 0xff;
     uintmax_t user_id;
-    regmatch_t pmatch[1];
-    char file_spec[1024];
+    regmatch_t pmatch[2];
     bool suppress;
     bool f_stat = false;
     int f_include;
     int f_suppress;
     bool suppress_hidden = flags & LF_HIDE ? true : false;
-    char bname[MAXLEN];
     if (flags & LF_USER)
         user_id = flags >> 24 & 0xffff;
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
-        strnz__cpy(bname, dir_st->d_name, MAXLEN - 1);
+        strnz__cpy(bname, dir_st->d_name, PATH_MAX - 1);
         if (bname[0] == '.' && bname[1] == '\0')
             continue;
         else if (bname[0] == '.' && bname[1] == '.' && bname[2] == '\0')
@@ -1182,9 +1183,9 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             break;
         }
         if (dir_st->d_name[0] == '.' && dir_st->d_name[1] == '/')
-            strnz__cpy(file_spec, &dir_st->d_name[2], MAXLEN - 1);
+            strnz__cpy(file_spec, &dir_st->d_name[2], PATH_MAX - 1);
         else
-            strnz__cpy(file_spec, dir_st->d_name, MAXLEN - 1);
+            strnz__cpy(file_spec, dir_st->d_name, PATH_MAX - 1);
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path, bname);
         if (bname[0] == '.' && suppress_hidden)
             suppress = true;
@@ -1195,10 +1196,9 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             if (reti == REG_NOMATCH) {
                 suppress = true;
             } else if (reti) {
-                char msgbuf[100];
                 regerror(reti, compiled_re, msgbuf, sizeof(msgbuf));
-                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
-                strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
+                strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
+                strnz__cat(tmp_str, msgbuf, PATH_MAX - 1);
                 Perror(tmp_str);
                 return false;
             }
@@ -1212,10 +1212,9 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             else if (reti == REG_NOMATCH)
                 suppress = false;
             else if (reti) {
-                char msgbuf[100];
                 regerror(reti, compiled_re, msgbuf, sizeof(msgbuf));
-                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
-                strnz__cat(tmp_str, msgbuf, MAXLEN - 1);
+                strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
+                strnz__cat(tmp_str, msgbuf, PATH_MAX - 1);
                 Perror(tmp_str);
                 return false;
             }

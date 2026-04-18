@@ -17,6 +17,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <grp.h>
+#include <linux/limits.h>
 #include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
@@ -208,8 +209,8 @@ static struct argp argp = {options, parse_opt, args_doc, doc,
                            nullptr, nullptr,   nullptr};
 
 int main(int argc, char **argv) {
-    char dir[MAXLEN];
-    char re[MAXLEN];
+    char dir[PATH_MAX];
+    char re[PATH_MAX];
     dir[0] = '\0';
     re[0] = '\0';
 
