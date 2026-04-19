@@ -565,7 +565,7 @@ int form_parse_desc(Form *form) {
     }
     for (i = 0; i < FIELD_MAXCNT; i++) {
         form->text[i] = calloc(1, sizeof(Text));
-        if (!form->field[i]) {
+        if (!form->text[i]) {
             sprintf(tmp_str, "FORM: calloc failed for text");
             abend(EXIT_FAILURE, tmp_str);
         }

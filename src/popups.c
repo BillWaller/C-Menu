@@ -58,8 +58,9 @@ int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Pick *sav_pick = init->pick;
-    init->pick = NULL;
-    new_pick(init, init->argc, init->argv, begy, begx);
+    init->pick = nullptr;
+    pick = nullptr;
+    // new_pick(init, init->argc, init->argv, begy, begx);
     rc = init_pick(init, init->argc, init->argv, begy, begx);
     destroy_pick(init);
     init->pick = sav_pick;
@@ -88,7 +89,8 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Form *sav_form = init->form;
-    init->form = NULL;
+    init->form = nullptr;
+    form = nullptr;
     new_form(init, init->argc, init->argv, begy, begx);
     rc = init_form(init, init->argc, init->argv, begy, begx);
     destroy_form(init);
@@ -122,8 +124,8 @@ int popup_view(Init *init, int argc, char **argv, int lines, int cols, int begy,
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     View *sav_view = init->view;
-    init->view = NULL;
-    view = NULL;
+    init->view = nullptr;
+    view = nullptr;
     if (!view)
         view = new_view(init);
     else

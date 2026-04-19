@@ -33,6 +33,7 @@ typedef struct {
     int y;                       /**< current y (line)*/
     int x;                       /**< current x (column) */
     WINDOW *win;                 /**< pointer to window */
+    WINDOW *win2;                /**< pointer to 2nd window */
     WINDOW *box;                 /**< pointer to box */
     char title[MAXLEN];          /**< title string */
     int argc;                    /**< argument count */

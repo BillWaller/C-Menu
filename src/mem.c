@@ -784,9 +784,10 @@ bool init_view_files(Init *init) {
             if (view->provider_cmd[0] != '\0')
                 strnz__cpy(view->title, view->provider_cmd, MAXLEN - 1);
             else {
-                if (view->argv[0] != nullptr && view->argv[0][0] != '\0')
+                if (view->argv != nullptr && view->argv[0] != nullptr &&
+                    view->argv[0][0] != '\0') {
                     strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
-                else
+                } else
                     strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
             }
         }

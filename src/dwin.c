@@ -31,12 +31,14 @@
 bool open_curses(SIO *);
 void destroy_curses();
 int box_new(int, int, int, int, char *, bool);
+int box2_new(int, int, int, int, char *, bool);
 int win_new(int, int, int, int);
 void win_redraw(WINDOW *);
 void win_resize(int, int, char *);
 WINDOW *win_del();
 void restore_wins();
 void cbox(WINDOW *);
+void cbox2(WINDOW *);
 void win_init_attrs();
 int Perror(char *);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
@@ -102,6 +104,8 @@ const wchar_t bw_br = BW_RBR; /**< bottom right corner */
 const wchar_t bw_lt = BW_LT;  /**< left tee */
 const wchar_t bw_rt = BW_RT;  /**< right tee */
 const wchar_t bw_sp = BW_SP;  /**< tee space */
+const wchar_t bw_ra = BW_RA;  /**< right arrow */
+
 double GRAY_GAMMA =
     1.2; /**< Gamma correction value for gray colors. Set in .minitrc */
 double RED_GAMMA =
@@ -113,6 +117,7 @@ double BLUE_GAMMA =
 
 WINDOW *win;
 WINDOW *win_win[MAXWIN];
+WINDOW *win_win2[MAXWIN];
 WINDOW *win_box[MAXWIN];
 int exit_code;
 unsigned int cmd_key;
@@ -742,9 +747,12 @@ void destroy_curses() {
     while (win_ptr > 0) {
         if (win_win[win_ptr])
             delwin(win_win[win_ptr]);
+        if (win_win2[win_ptr])
+            delwin(win_win2[win_ptr]);
         if (win_box[win_ptr])
             delwin(win_box[win_ptr]);
         win_win[win_ptr] = nullptr;
+        win_win2[win_ptr] = nullptr;
         win_box[win_ptr] = nullptr;
         win_ptr--;
     }
@@ -784,7 +792,56 @@ cchar_t mkccc(int cp) {
     @param wtitle Window title
     @param win_pair If true, creates a pair of windows (box and inner window)
     @return 0 if successful, 1 if error */
-
+int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
+             bool win_pair) {
+    int maxx;
+    if (win_ptr >= MAXWIN) {
+        ssnprintf(em0, MAXLEN - 1, "Maximum number of windows (%d) exceeded");
+        abend(-1, em0);
+    }
+    win_ptr++;
+    wlines = min(wlines, LINES - 2);
+    wcols = min(wcols, COLS - 2);
+    win_box[win_ptr] = newwin(wlines + 5, wcols + 2, wbegy, wbegx);
+    if (win_box[win_ptr] == nullptr) {
+        win_ptr--;
+        return 1;
+    }
+#ifdef DEBUG_IMMEDOK
+    immedok(win_box[win_ptr], true);
+#endif
+    wbkgrnd(win_box[win_ptr], &CCC_BOX);
+    wbkgrndset(win_box[win_ptr], &CCC_BOX);
+    cbox2(win_box[win_ptr]);
+    mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
+    mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
+    mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
+    maxx = getmaxx(win_box[win_ptr]);
+    int s = strlen(wtitle);
+    if ((s + 3) < maxx)
+        mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
+    if ((s + 4) < maxx)
+        mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
+    mvwaddnwstr(win_box[win_ptr], wlines + 1, 1, &bw_ra, 1);
+    wnoutrefresh(win_box[win_ptr]);
+    win_win[win_ptr] = nullptr;
+    win_win2[win_ptr] = nullptr;
+    if (win_pair) {
+        win_new(wlines - 1, wcols, wbegy, wbegx);
+        win2_new(2, wcols, wbegy + wlines, wbegx);
+    }
+    mvwaddnwstr(win_box[win_ptr], wlines + 1, 1, &bw_ra, 1);
+    return 0;
+}
+/** @brief Create a new window with optional box and title
+    @ingroup window_support
+    @param wlines Number of lines
+    @param wcols Number of columns
+    @param wbegy Beginning Y position
+    @param wbegx Beginning X position
+    @param wtitle Window title
+    @param win_pair If true, creates a pair of windows (box and inner window)
+    @return 0 if successful, 1 if error */
 int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             bool win_pair) {
     int maxx;
@@ -821,7 +878,13 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         win_new(wlines, wcols, wbegy, wbegx);
     return 0;
 }
-
+/** @brief Create a new window with specified dimensions and position
+    @ingroup window_support
+    @param wlines Number of lines
+    @param wcols Number of columns
+    @param wbegy Beginning Y position
+    @param wbegx Beginning X position
+    @return 0 if successful, 1 if error */
 int win_new(int wlines, int wcols, int wbegy, int wbegx) {
     wbegy += 1;
     wbegx += 1;
@@ -838,6 +901,32 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
+    scrollok(win_win[win_ptr], true);
+    return 0;
+}
+/** @brief Create a new window with specified dimensions and position
+    @ingroup window_support
+    @param wlines Number of lines
+    @param wcols Number of columns
+    @param wbegy Beginning Y position
+    @param wbegx Beginning X position
+    @return 0 if successful, 1 if error */
+int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
+    wbegy += 1;
+    wbegx += 1;
+    win_win2[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
+    if (win_win2[win_ptr] == nullptr) {
+        delwin(win_box[win_ptr]);
+        return 1;
+    }
+#ifdef DEBUG_IMMEDOK
+    immedok(win_win2[win_ptr], true);
+#endif
+    wbkgrnd(win_win2[win_ptr], &CCC_WIN);
+    wbkgrndset(win_win2[win_ptr], &CCC_WIN);
+    keypad(win_win2[win_ptr], true);
+    idlok(win_win2[win_ptr], false);
+    idcok(win_win2[win_ptr], false);
     return 0;
 }
 /** @brief Resize the current window and its box, and update the title
@@ -879,6 +968,7 @@ void win_resize(int wlines, int wcols, char *title) {
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
+    scrollok(win_win[win_ptr], true);
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
@@ -985,6 +1075,43 @@ void cbox(WINDOW *box) {
         mvwaddnwstr(box, y, maxx, &bw_ve, 1);
     }
     mvwaddnwstr(box, maxy, 0, &bw_bl, 1);
+    for (x = 1; x < maxx; x++)
+        waddnwstr(box, &bw_ho, 1);
+    waddnwstr(box, &bw_br, 1);
+}
+
+void cbox2(WINDOW *box) {
+    int x, y;
+    int maxx;
+    int maxy;
+
+    maxx = getmaxx(box);
+    maxx--;
+    mvwaddnwstr(box, 0, 0, &bw_tl, 1);
+    for (x = 1; x < maxx; x++)
+        waddnwstr(box, &bw_ho, 1);
+    waddnwstr(box, &bw_tr, 1);
+    maxy = getmaxy(box);
+    // Verticals
+    for (y = 1; y < maxy - 5; y++) {
+        mvwaddnwstr(box, y, 0, &bw_ve, 1);
+        mvwaddnwstr(box, y, maxx, &bw_ve, 1);
+    }
+    // Separator line
+    mvwaddnwstr(box, y, 0, &bw_lt, 1);
+    for (x = 1; x < maxx; x++)
+        waddnwstr(box, &bw_ho, 1);
+    waddnwstr(box, &bw_rt, 1);
+    // Window 2
+    y++;
+    mvwaddnwstr(box, y, 0, &bw_ve, 1);
+    mvwaddnwstr(box, y, maxx, &bw_ve, 1);
+    y++;
+    mvwaddnwstr(box, y, 0, &bw_ve, 1);
+    mvwaddnwstr(box, y, maxx, &bw_ve, 1);
+    // Bottom
+    y++;
+    mvwaddnwstr(box, y, 0, &bw_bl, 1);
     for (x = 1; x < maxx; x++)
         waddnwstr(box, &bw_ho, 1);
     waddnwstr(box, &bw_br, 1);

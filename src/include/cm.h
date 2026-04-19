@@ -334,7 +334,9 @@ extern bool restore_curses_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
 extern int box_new(int, int, int, int, char *, bool);
+extern int box2_new(int, int, int, int, char *, bool);
 extern int win_new(int, int, int, int);
+extern int win2_new(int, int, int, int);
 extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
@@ -344,6 +346,7 @@ extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
+extern int line_editor(WINDOW *, WINDOW *, Chyron *, int, char *);
 
 extern cchar_t CCC_NORM;    /**< normal color pair complex character */
 extern cchar_t CCC_WIN;     /**< window color pair complex character */
@@ -445,16 +448,7 @@ extern cchar_t CCC_LN;      /* line number color pair complex character */
 #define BW_CR L'\x253C'  /**< cross */
 #define BW_BT L'\x2534'  /**< bottom tee */
 #define BW_SP L'\x20'    /**< space */
-
-extern const wchar_t bw_ho; /**< horizontal line */
-extern const wchar_t bw_ve; /**< vertical line */
-extern const wchar_t bw_tl; /**< top left corner */
-extern const wchar_t bw_tr; /**< top right corner */
-extern const wchar_t bw_bl; /**< bottom left corner */
-extern const wchar_t bw_br; /**< bottom right corner */
-extern const wchar_t bw_lt; /**< left tee */
-extern const wchar_t bw_rt; /**< right tee */
-extern const wchar_t bw_sp; /**< tee space */
+#define BW_RA L'\xFF1E'  /**< right arrow */
 
 /** The following are the actual wchar_t variables that will hold the box
     drawing characters. These correspond to the above Unicode code points. By
@@ -474,6 +468,8 @@ extern const wchar_t bw_tt; /**< top tee */
 extern const wchar_t bw_rt; /**< right tee */
 extern const wchar_t bw_cr; /**< cross */
 extern const wchar_t bw_bt; /**< bottom tee */
+extern const wchar_t bw_ra; /**< right arrow */
+extern const wchar_t bw_sp; /**< tee space */
 
 extern void write_cmenu_log_nt(char *);
 extern void write_cmenu_log(char *);
@@ -499,6 +495,8 @@ extern int enter_option();
 extern WINDOW *win; /**< generic window pointer, used for various purposes */
 extern WINDOW
     *win_win[MAXWIN]; /**< array of pointers to windows, indexed by window ID */
+extern WINDOW *
+    win_win2[MAXWIN]; /**< array of pointers to windows, indexed by window ID */
 extern WINDOW *win_box[MAXWIN]; /**< array of pointers to box windows, indexed
                                    by window ID */
 

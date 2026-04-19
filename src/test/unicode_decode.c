@@ -38,10 +38,12 @@ uint32_t utf8_decode(const unsigned char **s) {
 
 int main() {
     const unsigned char *str = (const unsigned char *)"█";
-
+    uint32_t cp;
     while (*str) {
-        uint32_t cp = utf8_decode(&str);
+        cp = utf8_decode(&str);
         printf("U+%06X\n", cp);
     }
+    cp = L'＞'; // U+FF1E FULLWIDTH GREATER-THAN SIGN
+    printf("U+%06x %c\n", cp, cp);
     return 0;
 }

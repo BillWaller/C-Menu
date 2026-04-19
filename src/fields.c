@@ -401,86 +401,68 @@ int form_display_field_brackets(Form *form) {
     return 0;
 }
 /** @brief Format field according to its format type
-    @ingroup fields
+@ingroup fields
     @param form Pointer to Form structure
     @param s Input string to format
     @return 0 on success, non-zero on error
-    @note This function takes the input string for the current field and formats
-   it according to the field's specified format type (ff). It updates the
-   accept_s and display_s strings for the field based on the formatted value.
-   The function handles various format types, including strings, decimal
-   integers, hexadecimal integers, floating-point numbers, currency, dates, and
-   times. It uses helper functions for validation and formatting, such as
-   is_valid_date(), is_valid_time(), numeric(), right_justify(), left_justify(),
-   and strnzcpy(). The function ensures that the formatted output fits within
-   the field's length and creates a filler string for the field as needed. The
-   function also handles error cases, such as invalid formats, and provides
-   feedback through error messages. It is designed to be extensible, allowing
-   for additional format types to be added in the future as needed.
- */
+    @note takes the input string for the current field and formats it
+   according to the field's specified format type (ff). It updates the
+   accept_s and display_s strings for the field based on the formatted
+   value.
+    @note handles various format types, including strings, decimal integers,
+   hexadecimal integers, floating-point numbers, currency, dates, and times.
+    @note uses helper functions for validation and formatting, such as
+   is_valid_date(), is_valid_time(), numeric(), right_justify(),
+   left_justify(), and strnzcpy(). The function ensures that the formatted
+   output fits within the field's length and creates a filler string for the
+   field as needed. The function also handles error cases, such as invalid
+   formats, and provides feedback through error messages. It is designed to
+   be extensible, allowing for additional format types to be added in the
+   future as needed.
+    @note assumes that the input string is well-formed and does not contain
+   malicious content. Input validation and sanitization should be performed
+   at a higher level in the application to ensure security and robustness.
+   @note The function currently does not handle localization or
+   internationalization of number formats, such as different decimal
+   separators or currency symbols. Future enhancements may include support
+   for locale-specific formatting. @note Error handling is basic; future
+   versions may include more detailed error reporting and logging
+   mechanisms. @note Performance optimizations may be considered for
+   handling large volumes of data or high-frequency updates in real-time
+   applications. @note The following variables and structures are used in
+   this function:
+    @code
+        char field_s[FIELD_MAXLEN];
+        int decimal_int_n = 0;
+        int hex_int_n = 0;
+        float float_n = 0.0;
+        double double_n = 0.0;
+        double currency_n = 0.0;
+        struct Date { int yyyy; int mm; int dd; };
+        struct Time { int hh; int mm; int ss; };
+    @endcode
+    @note supports format types: FF_STRING, FF_DECIMAL_INT, FF_HEX_INT,
+   FF_FLOAT, FF_DOUBLE, FF_CURRENCY, FF_YYYYMMDD, FF_HHMMSS, FF_APR with
+   appropriate formatting and validation for each type. @note Handles field
+   length and filler string creation. @note As the roadmap indicates, these
+   data types are just a start and more complex types and formats may be
+   added in the future. @note These data types are not suitable for
+   financial, scientific, or high-precision applications. They are intended
+   for basic data entry and display in a text-based user interface.
+    @note In the future, we will aqdd support for additional data types and
+   formats such as: dates with time zones, timestamps, percentages,
+   scientific notation, and custom user-defined formats.
+    @note For high precision applications, we will be integrating support
+   for 128-bit binary coded decimal (BCD) types and arbitrary precision
+   decimal types using libraries such as the GNU MPFR library, IBM's
+   decNumber, Rust Decimal, or the Intel Decimal Floating-Point Math
+   Library.
+    @note C-Menu Form converts each field's input string into internal
+   numeric binary based on the field's specified format. The internal
+   numberic binary is then formated and displayed, verifying the user's
+   input and Form's interpretation of the user's input.
+  */
 int form_fmt_field(Form *form, char *s) {
-    /** @brief Format field according to its format type
-    @ingroup fields
-        @param form Pointer to Form structure
-        @param s Input string to format
-        @return 0 on success, non-zero on error
-        @note takes the input string for the current field and formats it
-       according to the field's specified format type (ff). It updates the
-       accept_s and display_s strings for the field based on the formatted
-       value.
-        @note handles various format types, including strings, decimal integers,
-       hexadecimal integers, floating-point numbers, currency, dates, and times.
-        @note uses helper functions for validation and formatting, such as
-       is_valid_date(), is_valid_time(), numeric(), right_justify(),
-       left_justify(), and strnzcpy(). The function ensures that the formatted
-       output fits within the field's length and creates a filler string for the
-       field as needed. The function also handles error cases, such as invalid
-       formats, and provides feedback through error messages. It is designed to
-       be extensible, allowing for additional format types to be added in the
-       future as needed.
-        @note assumes that the input string is well-formed and does not contain
-       malicious content. Input validation and sanitization should be performed
-       at a higher level in the application to ensure security and robustness.
-       @note The function currently does not handle localization or
-       internationalization of number formats, such as different decimal
-       separators or currency symbols. Future enhancements may include support
-       for locale-specific formatting. @note Error handling is basic; future
-       versions may include more detailed error reporting and logging
-       mechanisms. @note Performance optimizations may be considered for
-       handling large volumes of data or high-frequency updates in real-time
-       applications. @note The following variables and structures are used in
-       this function:
-        @code
-            char field_s[FIELD_MAXLEN];
-            int decimal_int_n = 0;
-            int hex_int_n = 0;
-            float float_n = 0.0;
-            double double_n = 0.0;
-            double currency_n = 0.0;
-            struct Date { int yyyy; int mm; int dd; };
-            struct Time { int hh; int mm; int ss; };
-        @endcode
-        @note supports format types: FF_STRING, FF_DECIMAL_INT, FF_HEX_INT,
-       FF_FLOAT, FF_DOUBLE, FF_CURRENCY, FF_YYYYMMDD, FF_HHMMSS, FF_APR with
-       appropriate formatting and validation for each type. @note Handles field
-       length and filler string creation. @note As the roadmap indicates, these
-       data types are just a start and more complex types and formats may be
-       added in the future. @note These data types are not suitable for
-       financial, scientific, or high-precision applications. They are intended
-       for basic data entry and display in a text-based user interface.
-        @note In the future, we will aqdd support for additional data types and
-       formats such as: dates with time zones, timestamps, percentages,
-       scientific notation, and custom user-defined formats.
-        @note For high precision applications, we will be integrating support
-       for 128-bit binary coded decimal (BCD) types and arbitrary precision
-       decimal types using libraries such as the GNU MPFR library, IBM's
-       decNumber, Rust Decimal, or the Intel Decimal Floating-Point Math
-       Library.
-        @note C-Menu Form converts each field's input string into internal
-       numeric binary based on the field's specified format. The internal
-       numberic binary is then formated and displayed, verifying the user's
-       input and Form's interpretation of the user's input.
-      */
     strnz__cpy(form->field[form->fidx]->input_s, s, FIELD_MAXLEN - 1);
     char *input_s = form->field[form->fidx]->input_s;
     char *accept_s = form->field[form->fidx]->accept_s;
