@@ -86,10 +86,10 @@ CFLAGS=-O2
 # -fno-sanitize-recover=all
 #  Uncomment the following two lines to enable Address Sanitizer and Leak 
 #  Sanitizer.
-CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_IMMEDOK
-# -DDEBUG_RESIZE -DDEBUG_IMMEDOK -DDEBUG_LOG
-# 	-fsanitize=address -fsanitize=leak -fno-omit-frame-pointer 
-# 	-fno-sanitize-recover=all
+CFLAGS=-O0 -ggdb -rdynamic \
+#	-DDEBUG_IMMEDOK # -DDEBUG_RESIZE -DDEBUG_IMMEDOK \
+#	-DDEBUG_LOG -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer \
+#	-fno-sanitize-recover=all
 # LIBASANE=-lasan
 #
 # Uncomment the following line to enable coverage.

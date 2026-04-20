@@ -110,15 +110,12 @@ int wait_timeout;
      @returns length of trimmed string */
 size_t rtrim(char *s) {
     if (s == nullptr || *s == '\0')
-        return 0;
-    char *p = s;
-    char *d = s;
-    while (*p != '\0')
-        *d++ = *p++;
-    while (*(d - 1) == ' ' && d > s)
-        d--;
-    *d = '\0';
-    return (size_t)(d - s);
+        return (size_t)0;
+    char *p = s + strlen(s) - 1;
+    while (p >= s && *p == ' ')
+        p--;
+    *(p + 1) = '\0';
+    return (size_t)(p - s + 1);
 }
 /** @brief Trims leading and trailing spaces from string s in place.
     @ingroup utility_functions

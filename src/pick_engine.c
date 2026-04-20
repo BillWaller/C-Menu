@@ -375,7 +375,7 @@ int pick_engine(Init *init) {
             rc = picker(init);
             if (rc == '\t') {
                 rc = line_editor(pick->win, pick->win2, pick->chyron,
-                                 pick->win_width - 4, &field[0]);
+                                 pick->win_width - 4, field);
             }
         }
         if (rc == 0)
@@ -1035,22 +1035,28 @@ void display_pick_help(Init *init) {
 
 int line_editor(WINDOW *win, WINDOW *win2, Chyron *chyron, int flen,
                 char *field) {
-    MEVENT event;
-    bool f_insert = false;
-    int line = 0;
-    int col = 2;
-    int in_key = 0;
-    int pos = 2;
-
-    char *s, *d;
-    char *e;
-    char filler_s[MAXLEN];
-    char *accept_s = field;
-    char *fstart = field;
-    char *ptr = field;
-    char *fend = fstart + flen;
-    char *str_end = ptr + strlen(field);
+    MEVENT event;          /** Mouse event structure for handling mouse input */
+    bool f_insert = false; /**< Flag to indicate if insert mode is active */
     int click_x = -1;
+    char filler_s[MAXLEN]; /**< buffer for filling the field with spaces */
+    int line = 0;          /**< Starting line for field input */
+    int col = 2; /**< Starting column for field input leaving space for > */
+    int in_key = 0;
+    int pos = 2;    /** Current cursor position within the field */
+    char *s;        /**< source pointer for editing operations */
+    char *d;        /**< destination pointer for editing operations */
+    char *e;        /**< end pointer for editing operations */
+    char *accept_s; /**< pointer to field buffer */
+    char *fstart;   /** pointer to start of field buffer */
+    char *ptr;  /**< pointer to current cursor position within field buffer */
+    char *fend; /**< pointer to end of field buffer (start + flen) */
+    char *str_end; /**< pointer to end of content in field buffer (start +
+                      strlen) */
+    accept_s = field;
+    fstart = accept_s;
+    fend = fstart + flen;
+    ptr = accept_s;
+    str_end = fstart + strlen(fstart); /**< End of content in the field */
 
     if (f_insert)
         set_chyron_key_cp(chyron, 18, "INS", KEY_IC, cp_reverse_highlight);
@@ -1062,7 +1068,7 @@ int line_editor(WINDOW *win, WINDOW *win2, Chyron *chyron, int flen,
 
     while (1) {
         if (in_key == 0) {
-            if (accept_s[0] != '\0') {
+            if (accept_s != nullptr && accept_s[0] != '\0') { // Error
                 if (match_objects(pick, accept_s) == 0) {
                     in_key = KEY_BACKSPACE;
                     continue;
@@ -1070,14 +1076,14 @@ int line_editor(WINDOW *win, WINDOW *win2, Chyron *chyron, int flen,
                 display_page(pick);
             }
             reverse_object(pick);
-            rtrim(accept_s);
+            rtrim(accept_s); // Error
             s = &filler_s[0];
             e = s + flen;
             while (s != e)
                 *s++ = ' ';
             *s = '\0';
             mvwaddstr(win2, line, col, filler_s);
-            mvwaddstr(win2, line, col, accept_s);
+            mvwaddstr(win2, line, col, accept_s); // Error
             wmove(win2, line, pos);
             tcflush(0, TCIFLUSH);
             wmove(win2, line, pos);
