@@ -128,6 +128,7 @@ Choose the option that best suits your needs and follow the instructions to get 
 - [Overview](docs/OVERVIEW.md)
 - [ROADMAP](docs/ROADMAP.md)
 - [User Guide](docs/C-Menu-UG.md)
+- [Valgrind / Memory Checking](docs/valgrind.md)
 
 ---
 
