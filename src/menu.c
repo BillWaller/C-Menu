@@ -32,6 +32,8 @@ static void end_pgm(void) {
     curs_set(1);
     win_del();
     destroy_curses();
+    destroy_init(init);
+    init = nullptr;
     restore_shell_tioctl();
     sig_dfl_mode();
     close(cmenu_log_fd);
@@ -47,7 +49,7 @@ int main(int argc, char **argv) {
     }
     char pgm_name[MAXLEN];
     capture_shell_tioctl();
-    Init *init = new_init(argc, argv);
+    init = new_init(argc, argv);
     SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
     open_curses(sio);

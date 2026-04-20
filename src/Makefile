@@ -209,6 +209,15 @@ clean:
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)
 
+# Run Valgrind with the project suppression file.
+# Any remaining output after applying suppressions indicates a real leak.
+# See docs/valgrind.md for full details.
+valgrind: menu
+	valgrind --leak-check=full --show-leak-kinds=all \
+		--leak-resolution=high --track-origins=yes \
+		--suppressions=valgrind.supp \
+		./menu
+
 install:
 	./inst.sh --
 	mkdir -p $(PREFIX)/include
