@@ -24,6 +24,14 @@ components are:
 
 **_Pick_** - Lists objects for user selection
 
+The image below shows how pick works with the lf file finder to select files in
+a directory. The screen on the left is the first to appear, and it shows the
+output of lf. In the bottom window, the user can refine the list of files by
+entering a search expression, and as the user types each character, Pick updates
+the list of files in real time. When the user finds the desired file, they can
+move the highlighted bar to the file and press enter. Pick is fun to use and is lightning fast, even with huge lists of objects. Pick is a great way to navigate and select files, processes, network connections, and other objects in your applications.
+
+![Pick](screenshots/New-Picker.png)
 **_View_** - A pager for viewing files. View has Unicode support, line numbering, regular expression searching, and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. View doesn't alter the file you are viewing. It uses the highlighter in a pipe, and reads the output, so the original file is never changed. And, if you happen to have a file that has been highlighted by another application, view can strip the ANSI codes for convenient editing. View is lightning fast, especially with huge log files.
 
 Why is View so fast? Even if an application has a super-fast buffering scheme, it still has to wait on the kernel to provide data, and then copy data into it's own buffers, duplicating work the Kernel has already done. Why waste the time and memory? To be fair, it may be that many applications were written before direct accesses to the Kernel's demand paged virtual address space was available. Whatever the reason, View takes advantage of direct-to-Kernel memory mapped files to achieve maximum performance, reliability, and resource economy. If you work with large datasets, you will love view. No fluff, no bloat, no nonsense, just blazing fast performance.
@@ -135,7 +143,7 @@ tar -xf C-Menu-0.2.9-Linux-x86_64.xz
 
 This will create a directory named menuapp containing the extracted files.
 
-3. Configure your environment to use the C-Menu binaries and libraries:
+1. Configure your environment to use the C-Menu binaries and libraries:
 
 Prepend the C-Menu bin directory to your PATH environment variable by adding the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc). Assuming you extracted the menuapp directory to your home directory, the line would look like this:
 
@@ -143,7 +151,7 @@ Prepend the C-Menu bin directory to your PATH environment variable by adding the
 export PATH="$HOME"/menuapp/bin:"$PATH"
 ```
 
-4. Start C-Menu by running the following command in your terminal:
+1. Start C-Menu by running the following command in your terminal:
 
 ```bash
 menu
@@ -329,4 +337,4 @@ menu
 
 ![C-Menu Running](screenshots/mainmenu.png)
 
-## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
+## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository

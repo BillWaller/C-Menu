@@ -1,2 +1,2 @@
-b futil.c:1111
-run
+b pick_engine.c:275
+run < <(cat view_engine.c)

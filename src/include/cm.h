@@ -30,6 +30,7 @@ extern int cmenu_log_fd;
 #define MAXARGS 64    /**< maximum number of arguments */
 #define SCR_COLS 1024 /**< maximum number of columns in the terminal screen */
 #define MAX_DEPTH 3   /**< default depth for recursive file searching */
+#define SCREEN_MAX_LINES 100
 #define Ctrl(c) ((c) & 0x1f)
 
 /** @brief max macro evaluates two expressions, returning greatest result.

@@ -1400,16 +1400,16 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     char *d, *e;
     char tmp_str[MAXLEN];
 
-    d = tmp_str;
-    if (l > MAXLEN - 1)
-        l = MAXLEN - 1;
-    e = tmp_str + l;
-    while (d < e)
+    l = min(l, MAXLEN - 1);
+    e = d = tmp_str;
+    e += l;
+    while (d < e) {
         if (*s == '\0' || *s == '\n')
             *d++ = ' ';
         else
             *d++ = *s++;
-    *d++ = '\0';
+    }
+    *d = '\0';
     mvwaddstr(w, y, x, tmp_str);
 }
 /** @brief Get color index from color name

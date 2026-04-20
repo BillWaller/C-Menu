@@ -13,6 +13,7 @@
 
 #include <common.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -165,10 +166,10 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         wait_chyron = wait_mk_chyron();
         wait_win = wait_mk_win(wait_chyron, "WAITING for PICK INPUT");
     }
-    cmd_key = 0;
-    while (ready == 0 && remaining > 0 && cmd_key != KEY_F(9)) {
-        cmd_key = wait_continue(wait_win, wait_chyron, remaining);
-        if (cmd_key == KEY_F(9))
+    int in_key = 0;
+    while (ready == 0 && remaining > 0 && in_key != KEY_F(9)) {
+        in_key = wait_continue(wait_win, wait_chyron, remaining);
+        if (in_key == KEY_F(9))
             break;
         FD_ZERO(&read_fds);
         FD_SET(in_fd, &read_fds);
@@ -181,7 +182,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         if (wait_chyron != nullptr)
             wait_destroy(wait_chyron);
     }
-    if (cmd_key == KEY_F(9)) {
+    if (in_key == KEY_F(9)) {
         if (pick->f_in_pipe && pid > 0) {
             /** If user cancels while waiting for pick input, kill provider_cmd
              * child process and close pipe */
@@ -242,12 +243,17 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         sig_prog_mode();
         keypad(pick->win, true);
     }
-    if (pick->obj_cnt == 0) {
+    if (pick->m_cnt == 0) {
         Perror("No pick objects available");
         destroy_pick(init);
         return (1);
     }
     /** Enter pick_engine */
+    pick->m_idx = 0;
+    pick->d_idx = 0;
+    while (pick->m_idx < pick->m_cnt)
+        pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx++];
+    pick->d_cnt = pick->d_idx;
     pick_engine(init);
     win_del();
     destroy_pick(init);
@@ -267,8 +273,8 @@ int read_pick_input(Init *init) {
 
     Pick *pick = init->pick;
     pick->select_cnt = 0;
-    pick->obj_cnt = pick->pg_lines = pick->tbl_cols = 0;
-    pick->obj_idx = pick->tbl_page = pick->y = pick->tbl_col = pick->x = 0;
+    pick->m_cnt = pick->pg_lines = pick->tbl_cols = 0;
+    pick->m_idx = pick->tbl_page = pick->y = pick->tbl_col = pick->x = 0;
     pick->tbl_pages = 1;
 
     if (pick->in_fp) {
@@ -280,10 +286,10 @@ int read_pick_input(Init *init) {
             save_object(pick, pick->argv[i]);
     if (pick->in_fp != nullptr)
         fclose(pick->in_fp);
-    if (!pick->obj_idx)
+    if (!pick->m_idx)
         return (-1);
-    pick->obj_cnt = pick->obj_idx;
-    pick->obj_idx = 0;
+    pick->m_cnt = pick->m_idx;
+    pick->m_idx = 0;
     return 0;
 }
 /** @brief Initializes pick interface, calculates window size and position, and
@@ -298,7 +304,7 @@ int read_pick_input(Init *init) {
    returns -1.
     @note If user accepts selection, returns count of selected objects. */
 int pick_engine(Init *init) {
-    /** Initialize window and data structures */
+    char field[MAXLEN];
     int rc;
     int maxy, maxx, win_maxy, win_maxx;
     int tbl_max_cols, pg_max_objs;
@@ -311,17 +317,17 @@ int pick_engine(Init *init) {
     win_maxx = min(((maxx * 9) / 10), (maxx - pick->begx - 1));
     pick->tbl_col_width = max(pick->tbl_col_width, 4);
     pick->tbl_col_width = min(pick->tbl_col_width, win_maxx - 2);
-    if (pick->obj_cnt <= win_maxy) {
-        pick->tbl_lines = pick->obj_cnt;
+    if (pick->d_cnt <= win_maxy) {
+        pick->tbl_lines = pick->d_cnt;
         pick->tbl_cols = 1;
     } else {
         tbl_max_cols = (win_maxx / (pick->tbl_col_width + 1));
         pg_max_objs = win_maxy * tbl_max_cols;
-        if (pick->obj_cnt > pg_max_objs)
+        if (pick->d_cnt > pg_max_objs)
             pick->tbl_cols = tbl_max_cols;
         else
-            pick->tbl_cols = pick->obj_cnt / win_maxy;
-        pick->tbl_lines = pick->obj_cnt / tbl_max_cols;
+            pick->tbl_cols = pick->d_cnt / win_maxy;
+        pick->tbl_lines = pick->d_cnt / tbl_max_cols;
     }
     pick->tbl_pages = (pick->tbl_lines / (win_maxy - 1)) + 1;
     pick->pg_lines = (pick->tbl_lines / pick->tbl_pages);
@@ -335,13 +341,13 @@ int pick_engine(Init *init) {
 
     pick->chyron = new_chyron();
     set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
-    set_chyron_key(pick->chyron, 9, "F9 Cancel", KEY_F(9));
-    set_chyron_key(pick->chyron, 10, "F10 Continue", KEY_F(10));
+    set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
+    set_chyron_key(pick->chyron, 3, "F10 Continue", KEY_F(10));
+    set_chyron_key(pick->chyron, 4, "Sp Toggle", 't');
     if (pick->tbl_pages > 1) {
         set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
         set_chyron_key(pick->chyron, 12, "PgDn", KEY_NPAGE);
     }
-    set_chyron_key(pick->chyron, 13, "Toggle", 't');
     compile_chyron(pick->chyron);
     if (pick->chyron->l > win_maxx)
         pick->chyron->l = strnz(pick->chyron->s, win_maxx);
@@ -356,14 +362,24 @@ int pick_engine(Init *init) {
     rc = open_pick_win(init);
     if (rc)
         return (rc);
+
     /** Enter picker loop to handle user input and interactions */
-    pick->obj_idx = 0;
+    pick->d_idx = 0;
     pick->x = 1;
     do {
         display_page(pick);
         reverse_object(pick);
         mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
-        rc = picker(init);
+        rc = '\t';
+        while (rc == '\t') {
+            rc = picker(init);
+            if (rc == '\t') {
+                rc = line_editor(pick->win, pick->win2, pick->chyron,
+                                 pick->win_width - 4, &field[0]);
+            }
+        }
+        if (rc == 0)
+            continue;
         if (rc == -1)
             break;
         else {
@@ -390,16 +406,16 @@ int pick_engine(Init *init) {
 void save_object(Pick *pick, char *s) {
     int l;
 
-    if (pick->obj_idx < OBJ_MAXCNT - 1) {
+    if (pick->m_idx < OBJ_MAXCNT - 1) {
         l = strlen(s);
         if (l > OBJ_MAXLEN - 1)
             s[OBJ_MAXLEN - 1] = '\0';
         pick->tbl_col_width = max(pick->tbl_col_width, l);
         l = max(l, 1);
-        pick->object[pick->obj_idx] = (char *)calloc(l + 1, sizeof(char));
-        strnz__cpy(pick->object[pick->obj_idx], s, l);
-        pick->f_selected[pick->obj_idx] = false;
-        pick->obj_idx++;
+        pick->m_object[pick->m_idx] = (char *)calloc(l + 1, sizeof(char));
+        strnz__cpy(pick->m_object[pick->m_idx], s, l);
+        pick->f_selected[pick->m_idx] = false;
+        pick->m_idx++;
     }
 }
 
@@ -416,40 +432,43 @@ void save_object(Pick *pick, char *s) {
     @note If the user accepts the selection, returns the count of selected
    objects. */
 int picker(Init *init) {
-    int cmd_key;
+    int in_key;
     int display_tbl_page;
-    bool f_no_reset_cmd_key;
+    bool f_no_reset_in_key;
     pick = init->pick;
     click_y = click_x = -1;
-    cmd_key = 0;
+    in_key = 0;
+    compile_chyron(pick->chyron);
+    display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
     while (1) {
         tcflush(tty_fd, TCIFLUSH);
-        f_no_reset_cmd_key = false;
-        if (cmd_key == 0)
-            cmd_key = xwgetch(pick->win, pick->chyron, -1);
-        switch (
-            cmd_key) { /** 'q', or KEY_F(9) cancel selection and exit picker */
-        case 'q':
-        case 'Q':
-        case KEY_F(9):
-            deselect_object(pick);
-            return -1;
+        f_no_reset_in_key = false;
+        if (in_key == 0)
+            in_key = xwgetch(pick->win, pick->chyron, -1);
+
+        switch (in_key) {
+
             /** KEY_F(1) or 'H' Displays help screen for pick interface */
         case KEY_F(1):
-        case 'H':
             display_pick_help(init);
             display_page(pick);
             reverse_object(pick);
             break;
-            /** 't' or Space Toggles selection of current object */
-        case ' ':
+
+        case KEY_F(7):
         case 't':
-        case 'T':
+        case ' ':
             reverse_object(pick);
             toggle_object(pick);
             if (pick->select_max > 0 && pick->select_cnt == pick->select_max)
                 return pick->select_cnt;
             break;
+
+            /** 'q', or KEY_F(9) cancel selection and exit picker */
+        case KEY_F(9):
+            deselect_object(pick);
+            return -1;
+
             /** Enter or KEY_F(10) Accepts current selection and exits picker,
              * returning count of selected objects */
         case KEY_F(10):
@@ -459,73 +478,82 @@ int picker(Init *init) {
             /** KEY_END Moves selection to last object in list */
         case KEY_END:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
-                           pick->object[pick->obj_idx], pick->tbl_col_width);
+                           pick->d_object[pick->d_idx], pick->tbl_col_width);
             display_tbl_page = pick->tbl_page;
-            pick->obj_idx = pick->obj_cnt - 1;
-            pick->tbl_page = pick->obj_idx / (pick->pg_lines * pick->tbl_cols);
-            pick->tbl_line = (pick->obj_idx / pick->tbl_cols) % pick->pg_lines;
-            pick->tbl_col = pick->obj_idx % pick->tbl_cols;
+            pick->d_idx = pick->d_cnt - 1;
+            pick->tbl_page = pick->d_idx / (pick->pg_lines * pick->tbl_cols);
+            pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+            pick->tbl_col = pick->d_idx % pick->tbl_cols;
             pick->y = pick->tbl_line;
-            if (display_tbl_page != pick->tbl_page) {
+            if (display_tbl_page != pick->tbl_page)
                 display_page(pick);
-            }
             reverse_object(pick);
             break;
-        /** 'l' or KEY_RIGHT Moves selection to next object in list */
-        case 'l':
-        case KEY_RIGHT:
-            mvwaddstr_fill(pick->win, pick->y, pick->x,
-                           pick->object[pick->obj_idx], pick->tbl_col_width);
-            /** pick->obj_idx += pick->tbl_lines -> next column */
-            if (pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                        (pick->tbl_col + 1) * pick->pg_lines + pick->tbl_line <
-                    pick->obj_cnt - 1 &&
-                pick->tbl_col < pick->tbl_cols - 1)
-                pick->tbl_col++;
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_col * pick->pg_lines + pick->tbl_line;
-            reverse_object(pick);
-            break;
+
+            /** 't' or Space Toggles selection of current object */
+        case '\t':
+            return in_key;
+
             /** 'h' or KEY_LEFT or Backspace Moves selection to previous object
              * in list */
         case 'h':
         case KEY_LEFT:
         case KEY_BACKSPACE:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
-                           pick->object[pick->obj_idx], pick->tbl_col_width);
+                           pick->d_object[pick->d_idx], pick->tbl_col_width);
             if (pick->tbl_col > 0)
                 pick->tbl_col--;
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_col * pick->pg_lines + pick->tbl_line;
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_col * pick->pg_lines + pick->tbl_line;
             reverse_object(pick);
             break;
+
             /** 'j' or KEY_DOWN Moves selection to next object in list, 'k' or
              * KEY_UP Moves selection to previous object in list */
         case 'j':
         case KEY_DOWN:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
-                           pick->object[pick->obj_idx], pick->tbl_col_width);
+                           pick->d_object[pick->d_idx], pick->tbl_col_width);
             if (pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                         pick->tbl_col * pick->pg_lines + pick->tbl_line <
-                    pick->obj_cnt - 1 &&
+                    pick->d_cnt - 1 &&
                 pick->tbl_line < pick->pg_lines - 1)
                 pick->tbl_line++;
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_col * pick->pg_lines + pick->tbl_line;
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_col * pick->pg_lines + pick->tbl_line;
             reverse_object(pick);
             break;
+
             /** 'k' or KEY_UP Moves selection to previous object in list */
         case 'k':
         case KEY_UP:
             mvwaddstr_fill(pick->win, pick->y, pick->x,
-                           pick->object[pick->obj_idx], pick->tbl_col_width);
+                           pick->d_object[pick->d_idx], pick->tbl_col_width);
             if (pick->tbl_line > 0)
                 pick->tbl_line--;
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_col * pick->pg_lines + pick->tbl_line;
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_col * pick->pg_lines + pick->tbl_line;
             reverse_object(pick);
             break;
-        /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects, */
+
+        /** 'l' or KEY_RIGHT Moves selection to next object in list */
+        case 'l':
+        case KEY_RIGHT:
+            mvwaddstr_fill(pick->win, pick->y, pick->x,
+                           pick->d_object[pick->d_idx], pick->tbl_col_width);
+            /** pick->obj_idx += pick->tbl_lines -> next column */
+            if (pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                        (pick->tbl_col + 1) * pick->pg_lines + pick->tbl_line <
+                    pick->d_cnt - 1 &&
+                pick->tbl_col < pick->tbl_cols - 1)
+                pick->tbl_col++;
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_col * pick->pg_lines + pick->tbl_line;
+            reverse_object(pick);
+            break;
+
+            /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of objects,
+             */
         case KEY_NPAGE:
         case '\06':
             if (pick->tbl_pages == 1)
@@ -535,11 +563,12 @@ int picker(Init *init) {
                 pick->pg_line = 0;
                 pick->tbl_col = 0;
             }
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_cols * pick->pg_line + pick->tbl_col;
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
             break;
+
             /**   KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
              * objects */
         case KEY_PPAGE:
@@ -548,32 +577,35 @@ int picker(Init *init) {
                 break;
             if (pick->tbl_page > 0)
                 pick->tbl_page--;
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_cols * pick->pg_line + pick->tbl_col;
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
             break;
             /** KEY_HOME Moves selection to first object in list */
+
         case KEY_HOME:
             pick->tbl_page = 0;
             pick->tbl_line = 0;
             pick->tbl_col = 0;
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_cols * pick->pg_line + pick->tbl_col;
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
             break;
+
             /** KEY_LL (lower left of numeric pad) Moves selection to last
                 object in list */
         case KEY_LL:
             pick->tbl_page = pick->tbl_pages - 1;
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_cols * pick->pg_line + pick->tbl_col;
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_cols * pick->pg_line + pick->tbl_col;
             display_page(pick);
             reverse_object(pick);
             break;
             /** KEY_MOUSE Handles mouse events for selection and chyron key
              * activation */
+
         case KEY_MOUSE:
             if (click_y == -1 || click_x == -1)
                 break;
@@ -582,18 +614,19 @@ int picker(Init *init) {
             pick->tbl_col = (click_x - 1) / (pick->tbl_col_width + 1);
             if (pick->tbl_col < 0 || pick->tbl_col >= pick->tbl_cols)
                 break;
-            pick->obj_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
-                            pick->tbl_col * pick->pg_lines + pick->y;
-            cmd_key =
+            pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                          pick->tbl_col * pick->pg_lines + pick->y;
+            in_key =
                 't'; /** Set cmdkey to 't' to toggle selection on mouse click */
-            f_no_reset_cmd_key = true;
+            f_no_reset_in_key = true;
             click_y = click_x = -1;
             break;
+
         default:
             break;
         }
-        if (!f_no_reset_cmd_key)
-            cmd_key = 0;
+        if (!f_no_reset_in_key)
+            in_key = 0;
     }
     return 0;
 }
@@ -606,25 +639,47 @@ int picker(Init *init) {
    asterisk. Updates the chyron with page information at the bottom of the pick
    window. */
 void display_page(Pick *pick) {
-    int y, col, pidx;
+    int y, col;
     for (y = 0; y < pick->pg_lines; y++) {
         wmove(pick->win, y, 0);
         wclrtoeol(pick->win);
     }
-    pidx = pick->tbl_page * pick->pg_lines * pick->tbl_cols;
+    pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols;
     for (col = 0; col < pick->tbl_cols; col++) {
         pick->x = col * (pick->tbl_col_width + 1) + 1;
-        for (y = 0; y < pick->pg_lines; y++, pidx++) {
-            if (pidx < pick->obj_cnt) {
-                if (pick->f_selected[pidx])
-                    mvwaddstr(pick->win, y, pick->x - 1, "*");
-                mvwaddstr_fill(pick->win, y, pick->x, pick->object[pidx],
-                               pick->tbl_col_width);
-            }
+        y = 0;
+        while (pick->d_idx < pick->d_cnt) {
+            if (pick->f_selected[pick->d_idx])
+                mvwaddstr(pick->win, y, pick->x - 1, "*");
+            mvwaddstr_fill(pick->win, y++, pick->x,
+                           pick->d_object[pick->d_idx++], pick->tbl_col_width);
         }
     }
-    compile_chyron(pick->chyron);
-    display_chyron(pick->win, pick->chyron, pick->pg_lines, pick->chyron->l);
+    if (y < pick->pg_lines) {
+        pick->y_offset = pick->pg_lines - y;
+        wscrl(pick->win, -pick->y_offset);
+    }
+}
+/** @brief Displays current page of objects in pick window
+    @ingroup pick_engine
+    @param pick Pointer to Pick structure containing objects and display
+   information
+    @note Clears the pick window and displays the current page of objects based
+   on the current table page, line, and column. Marks selected objects with an
+   asterisk. Updates the chyron with page information at the bottom of the pick
+   window. */
+int match_objects(Pick *pick, char *s) {
+    pick->m_idx = 0;
+    pick->d_idx = 0;
+    while (pick->m_idx < pick->m_cnt) {
+        if (s == nullptr || s[0] == '\0' ||
+            strstr(pick->m_object[pick->m_idx], s) != nullptr) {
+            pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx];
+        }
+        pick->m_idx++;
+    }
+    pick->d_cnt = pick->d_idx;
+    return pick->d_cnt;
 }
 /** @brief Reverses the display of the currently selected object in pick window
  *  @ingroup pick_engine
@@ -637,12 +692,14 @@ void display_page(Pick *pick) {
    window to show the updated display. Moves the cursor back to the position
    before the object text for potential further interactions. */
 void reverse_object(Pick *pick) {
+    if (pick->d_idx >= pick->d_cnt)
+        pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-    pick->tbl_line = (pick->obj_idx / pick->tbl_cols) % pick->pg_lines;
-    pick->y = pick->tbl_line;
+    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+    pick->y = pick->tbl_line + pick->y_offset;
     wmove(pick->win, pick->y, pick->x);
     wattron(pick->win, WA_REVERSE);
-    mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
+    mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width);
     wattroff(pick->win, WA_REVERSE);
     wmove(pick->win, pick->y, pick->x - 1);
@@ -659,9 +716,10 @@ void reverse_object(Pick *pick) {
    the cursor back to the position before the object text for potential further
    interactions. */
 void unreverse_object(Pick *pick) {
+
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
     wmove(pick->win, pick->y, pick->x);
-    mvwaddstr_fill(pick->win, pick->y, pick->x, pick->object[pick->obj_idx],
+    mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width);
     wmove(pick->win, pick->y, pick->x - 1);
 }
@@ -680,13 +738,13 @@ void unreverse_object(Pick *pick) {
    position before the object text for potential further interactions. */
 void toggle_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-    if (pick->f_selected[pick->obj_idx]) {
+    if (pick->f_selected[pick->d_idx]) {
         pick->select_cnt--;
-        pick->f_selected[pick->obj_idx] = false;
+        pick->f_selected[pick->d_idx] = false;
         mvwaddstr(pick->win, pick->y, pick->x - 1, " ");
     } else {
         pick->select_cnt++;
-        pick->f_selected[pick->obj_idx] = true;
+        pick->f_selected[pick->d_idx] = true;
         mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
     }
 }
@@ -695,9 +753,9 @@ void toggle_object(Pick *pick) {
     @details like toggle, but only deselects object */
 void deselect_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-    if (pick->f_selected[pick->obj_idx]) {
+    if (pick->f_selected[pick->d_idx]) {
         pick->select_cnt--;
-        pick->f_selected[pick->obj_idx] = false;
+        pick->f_selected[pick->d_idx] = false;
         mvwaddstr(pick->win, pick->y, pick->x - 1, " ");
     }
 }
@@ -719,9 +777,9 @@ int output_objects(Pick *pick) {
         m -= strlen(pick->in_spec);
         strnz__cat(tmp_str, pick->out_spec, m);
     }
-    for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt; pick->obj_idx++) {
-        if (pick->f_selected[pick->obj_idx])
-            fprintf(stdout, "%s\n", pick->object[pick->obj_idx]);
+    for (pick->d_idx = 0; pick->d_idx < pick->d_cnt; pick->d_idx++) {
+        if (pick->f_selected[pick->d_idx])
+            fprintf(stdout, "%s\n", pick->d_object[pick->d_idx]);
     }
     fflush(stdout);
     if (pick->out_fp != nullptr)
@@ -789,11 +847,11 @@ int exec_objects(Init *init) {
     eargc = str_to_args(eargv, pick->cmd, MAXARGS - 1);
     tmp_str[0] = '\0';
     if (pick->f_multiple_cmd_args) {
-        for (i = 0; i < pick->obj_cnt; i++) {
+        for (i = 0; i < pick->d_cnt; i++) {
             if (pick->f_selected[i] && eargc < MAXARGS) {
                 if (tmp_str[0] != '\0')
                     strnz__cat(tmp_str, " ", MAXLEN - 1);
-                strnz__cat(tmp_str, pick->object[i], MAXLEN - 1);
+                strnz__cat(tmp_str, pick->d_object[i], MAXLEN - 1);
             }
         }
         eargv[eargc++] = strdup(tmp_str);
@@ -811,16 +869,16 @@ int exec_objects(Init *init) {
             }
             i++;
         }
-        for (i = 0; i < pick->obj_cnt; i++) {
+        for (i = 0; i < pick->d_cnt; i++) {
             /** append arguments onto tmp_str */
             if (pick->f_selected[i] && eargc < MAXARGS - 1) {
                 if (f_append_args == true) {
                     if (tmp_str[0] != '\0')
                         strnz__cat(tmp_str, " ", MAXLEN - 1);
-                    strnz__cat(tmp_str, pick->object[i], MAXLEN - 1);
+                    strnz__cat(tmp_str, pick->d_object[i], MAXLEN - 1);
                     continue;
                 }
-                eargv[eargc++] = strdup(pick->object[i]);
+                eargv[eargc++] = strdup(pick->d_object[i]);
             }
         }
         if (f_append_args == true) {
@@ -928,18 +986,17 @@ and keypad options for the window, and returns 0 on success. */
 int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
     pick = init->pick;
-    if (box_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
-                pick->title, true)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed",
+    if (box2_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
+                 pick->title, true)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "box2_new(%d, %d, %d, %d, %s) failed",
                   pick->win_lines, pick->win_width, pick->begy, pick->begx,
                   pick->title);
         Perror(tmp_str);
-
         return (1);
     }
     pick->win = win_win[win_ptr];
+    pick->win2 = win_win2[win_ptr];
     pick->box = win_box[win_ptr];
-    scrollok(pick->win, false);
     keypad(pick->win, true);
     return 0;
 }
@@ -974,4 +1031,222 @@ void display_pick_help(Init *init) {
                init->begx);
     destroy_argv(eargc, eargv);
     return;
+}
+
+int line_editor(WINDOW *win, WINDOW *win2, Chyron *chyron, int flen,
+                char *field) {
+    MEVENT event;
+    bool f_insert = false;
+    int line = 0;
+    int col = 2;
+    int in_key = 0;
+    int pos = 2;
+
+    char *s, *d;
+    char *e;
+    char filler_s[MAXLEN];
+    char *accept_s = field;
+    char *fstart = field;
+    char *ptr = field;
+    char *fend = fstart + flen;
+    char *str_end = ptr + strlen(field);
+    int click_x = -1;
+
+    if (f_insert)
+        set_chyron_key_cp(chyron, 18, "INS", KEY_IC, cp_reverse_highlight);
+    else
+        set_chyron_key_cp(chyron, 18, "INS", KEY_IC, cp_reverse);
+
+    compile_chyron(chyron);
+    display_chyron(win2, chyron, 1, chyron->l);
+
+    while (1) {
+        if (in_key == 0) {
+            if (accept_s[0] != '\0') {
+                if (match_objects(pick, accept_s) == 0) {
+                    in_key = KEY_BACKSPACE;
+                    continue;
+                }
+                display_page(pick);
+            }
+            reverse_object(pick);
+            rtrim(accept_s);
+            s = &filler_s[0];
+            e = s + flen;
+            while (s != e)
+                *s++ = ' ';
+            *s = '\0';
+            mvwaddstr(win2, line, col, filler_s);
+            mvwaddstr(win2, line, col, accept_s);
+            wmove(win2, line, pos);
+            tcflush(0, TCIFLUSH);
+            wmove(win2, line, pos);
+            in_key = xwgetch(win2, chyron, -1);
+        }
+        switch (in_key) {
+
+        case '\n':
+        case KEY_ENTER:
+            return (in_key);
+
+            /** KEY_IC toggles insert mode */
+            /** Tab toggles between windows */
+        case KEY_BTAB:
+        case KEY_UP:
+        case '\t':
+            return (in_key);
+
+        case KEY_F(1):
+            return (in_key);
+
+        /** KEY_F(9) Cancels the current operation */
+        case KEY_BREAK:
+        case KEY_F(9):
+            in_key = KEY_F(9);
+            return (in_key);
+
+            /** KEY_F(10) is the default key for accepting the field */
+        case KEY_F(10):
+            return (in_key);
+
+        case KEY_END:
+        case Ctrl('e'):
+            while (*ptr != '\0')
+                ptr++;
+            pos = col + (ptr - fstart);
+            in_key = 0;
+            continue;
+
+            /**< Enter accepts the field and moves to the next field if
+             * f_erase_remainder is set, it will clear the remaining
+             * characters above and after the current cursor location */
+        case KEY_IC:
+            if (f_insert) {
+                f_insert = FALSE;
+                set_chyron_key_cp(chyron, 18, "INS", KEY_IC, cp_reverse);
+            } else {
+                f_insert = TRUE;
+                set_chyron_key_cp(chyron, 18, "INS", KEY_IC,
+                                  cp_reverse_highlight);
+            }
+            compile_chyron(chyron);
+            display_chyron(win2, chyron, 1, chyron->l);
+            in_key = 0;
+            continue;
+
+            /** KEY_DC deletes character at cursor */
+        case KEY_DC:
+            s = ptr + 1;
+            d = ptr;
+            while (*s != '\0')
+                *d++ = *s++;
+            *d = '\0';
+            str_end = d;
+            f_insert = FALSE;
+            in_key = 0;
+            continue;
+            /** KEY_HOME moves cursor to start of field */
+
+        case KEY_HOME:
+        case Ctrl('a'):
+            ptr = fstart;
+            pos = col;
+            in_key = 0;
+            continue;
+            /** KEY_BACKSPACE deletes character before cursor */
+
+        case KEY_BACKSPACE:
+            if (ptr > fstart) {
+                ptr--;
+                pos--;
+            }
+            s = ptr + 1;
+            d = ptr;
+            while (*s != '\0')
+                *d++ = *s++;
+            *d = '\0';
+            str_end = d;
+            in_key = 0;
+            continue;
+            /** KEY_LEFT moves cursor left one character */
+
+        case KEY_LEFT:
+            if (ptr > fstart) {
+                ptr--;
+                pos--;
+            }
+            in_key = 0;
+            continue;
+            /** KEY_RIGHT moves cursor right one character */
+
+        case KEY_RIGHT:
+            if (ptr < fend && ptr < str_end) {
+                ptr++;
+                pos++;
+            }
+            in_key = 0;
+            continue;
+            /** Handles mouse events for field editing */
+
+        case KEY_MOUSE:
+            if (getmouse(&event) == OK) {
+                if (wenclose(win, event.y, event.x)) {
+                    if (wmouse_trafo(win, &event.y, &event.x, FALSE)) {
+                        click_y = event.y;
+                        click_x = event.x;
+                        return '\t';
+                    }
+                } else if (wenclose(win2, event.y, event.x)) {
+                    if (wmouse_trafo(win2, &event.y, &event.x, FALSE)) {
+                        click_y = event.y;
+                        click_x = event.x;
+                        continue;
+                    }
+                }
+            }
+            pos = click_x;
+            fstart = accept_s;
+            fend = fstart + flen;
+            str_end = fstart + strlen(fstart);
+            ptr = fstart + (pos - 3);
+            if (ptr > str_end)
+                pos -= ptr - str_end;
+            ptr = min(ptr, str_end);
+            in_key = 0;
+            continue;
+
+        default:
+            if (ptr >= fend) {
+                in_key = 0;
+                continue;
+            }
+            if (in_key >= ' ') {
+                if (f_insert) {
+                    if (str_end < fend) {
+                        s = str_end - 1;
+                        d = str_end;
+                        while (s >= ptr)
+                            *d-- = *s--;
+                        *ptr++ = in_key;
+                        str_end++;
+                        pos++;
+                    }
+                } else {
+                    if (ptr < fend) {
+                        if (ptr < str_end) {
+                            *ptr++ = in_key;
+                            pos++;
+                        } else if (ptr == str_end) {
+                            *ptr++ = in_key;
+                            *ptr = '\0';
+                            str_end = ptr;
+                            pos++;
+                        }
+                    }
+                }
+                in_key = 0;
+                continue;
+            }
+        }
+    }
 }

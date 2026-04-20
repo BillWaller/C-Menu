@@ -46,7 +46,6 @@ typedef struct {
     char in_spec[MAXLEN];        /**< input file spec or input pipe spec */
     char out_spec[MAXLEN];       /**< output file spec or output pipe spec */
     char help_spec[MAXLEN];      /**< help file spec */
-    char chyron_s[MAXLEN];       /**< chyron string */
     char provider_cmd[MAXLEN];   /**< provider command spec */
     char receiver_cmd[MAXLEN];   /**< receiver command spec */
     char cmd[MAXLEN];            /**< command spec */
@@ -64,24 +63,28 @@ typedef struct {
     bool f_receiver_cmd;         /**< flag: receiver command verified */
     bool f_cmd;                  /**< flag: command verified */
     char in_buf[BUFSIZ];         /**< input buffer */
-    char **object;               /**< object array */
-    int select_idx;              /**< index of current selected object */
-    int select_cnt;              /**< count of selected objects */
-    int select_max;              /**< maximum number of selected objects */
-    int obj_cnt;                 /**< count of objects */
-    int obj_idx;                 /**< index of current object */
-    int pg_line;                 /**< current line on page */
-    int pg_lines;                /**< lines per page */
-    int pg_objs;                 /**< objects per page */
-    int tab_idx;                 /**< index of current tab */
-    int tbl_pages;               /**< total number of table pages */
-    int tbl_page;                /**< current table page */
-    int tbl_line;                /**< current line on table page */
-    int tbl_lines;               /**< lines per table page */
-    int tbl_cols;                /**< columns per table page */
-    int tbl_col;                 /**< current column on table page */
-    int tbl_col_width;           /**< column width on table page */
-    Chyron *chyron;              /**< chyron data structure */
+    char **m_object; /**< master object table (as read from input) */
+    int select_idx;  /**< index of current selected object */
+    int select_cnt;  /**< count of selected objects */
+    int select_max;  /**< maximum number of selected objects */
+    int m_cnt;
+    int d_cnt;
+    int m_idx;       /**< count of objects */
+    int d_idx;       /**< index of current object */
+    char **d_object; /**< derived object table */
+    int y_offset;
+    int pg_line;       /**< current line on page */
+    int pg_lines;      /**< lines per page */
+    int pg_objs;       /**< objects per page */
+    int tab_idx;       /**< index of current tab */
+    int tbl_pages;     /**< total number of table pages */
+    int tbl_page;      /**< current table page */
+    int tbl_line;      /**< current line on table page */
+    int tbl_lines;     /**< lines per table page */
+    int tbl_cols;      /**< columns per table page */
+    int tbl_col;       /**< current column on table page */
+    int tbl_col_width; /**< column width on table page */
+    Chyron *chyron;    /**< chyron data structure */
 } Pick;
 extern Pick *pick; /**< pointer to Pick data structure */
 

@@ -209,11 +209,20 @@ Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
         abend(-1, "init_pick_files failed");
         return nullptr;
     }
-    pick->object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
-    if (pick->object == nullptr) {
+    pick->m_object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
+    if (pick->m_object == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1,
-                  "calloc pick->object = calloc(%d, %d) failed\n",
+                  "calloc pick->m_object = calloc(%d, %d) failed\n",
+                  OBJ_MAXCNT + 1, sizeof(char *));
+        display_error(em0, em1, nullptr, nullptr);
+        abend(-1, "User terminated program");
+    }
+    pick->d_object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
+    if (pick->d_object == nullptr) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1,
+                  "calloc pick->d_object = calloc(%d, %d) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));
         display_error(em0, em1, nullptr, nullptr);
         abend(-1, "User terminated program");
@@ -231,10 +240,14 @@ Pick *destroy_pick(Init *init) {
     if (!init->pick)
         return nullptr;
 
-    for (pick->obj_idx = 0; pick->obj_idx < pick->obj_cnt; pick->obj_idx++)
-        if (pick->object[pick->obj_idx] != nullptr)
-            free(pick->object[pick->obj_idx]);
-    free(pick->object);
+    for (pick->m_idx = 0; pick->m_idx < OBJ_MAXCNT; pick->m_idx++) {
+        if (pick->m_object[pick->m_idx] != nullptr)
+            free(pick->m_object[pick->m_idx]);
+        // if (pick->d_object[pick->d_idx] != nullptr)
+        //    free(pick->d_object[pick->d_idx]);
+    }
+    free(pick->m_object);
+    free(pick->d_object);
     free(pick);
     init->pick = nullptr;
     init->pick_cnt--;
