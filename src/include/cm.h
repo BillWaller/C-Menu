@@ -449,7 +449,10 @@ extern cchar_t CCC_LN;      /* line number color pair complex character */
 #define BW_CR L'\x253C'  /**< cross */
 #define BW_BT L'\x2534'  /**< bottom tee */
 #define BW_SP L'\x20'    /**< space */
-#define BW_RA L'\xFF1E'  /**< right arrow */
+#define BW_RA L'\x2B95'  /**< right arrow */
+#define BW_LA L'\x2B05'  /**< left arrow */
+#define BW_UA L'\x2B06'  /**< up arrow */
+#define BW_DA L'\x2B07'  /**< down arrow */
 
 /** The following are the actual wchar_t variables that will hold the box
     drawing characters. These correspond to the above Unicode code points. By
@@ -470,6 +473,9 @@ extern const wchar_t bw_rt; /**< right tee */
 extern const wchar_t bw_cr; /**< cross */
 extern const wchar_t bw_bt; /**< bottom tee */
 extern const wchar_t bw_ra; /**< right arrow */
+extern const wchar_t bw_la; /**< left arrow */
+extern const wchar_t bw_ua; /**< up arrow */
+extern const wchar_t bw_da; /**< down arrow */
 extern const wchar_t bw_sp; /**< tee space */
 
 extern void write_cmenu_log_nt(char *);

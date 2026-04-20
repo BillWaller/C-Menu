@@ -10,11 +10,11 @@ C-Menu and what to expect in its output.
 Valgrind's `--show-leak-kinds=all` mode reports four categories of memory at
 program exit:
 
-| Category | Meaning |
-|---|---|
-| **definitely lost** | Memory that can no longer be reached — a true leak. |
-| **indirectly lost** | Memory reachable only through a definitely-lost block. |
-| **possibly lost** | Heuristic: may or may not be reachable. |
+| Category            | Meaning                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **definitely lost** | Memory that can no longer be reached — a true leak.                                                             |
+| **indirectly lost** | Memory reachable only through a definitely-lost block.                                                          |
+| **possibly lost**   | Heuristic: may or may not be reachable.                                                                         |
 | **still reachable** | Memory still pointed to by a live pointer at exit. Often intentional (library caches, global singletons, etc.). |
 
 C-Menu aims for **zero** `definitely lost` / `indirectly lost` /
@@ -28,7 +28,7 @@ allocations that the ncurses library intentionally retains as global caches.
 `src/valgrind.supp` suppresses the following known-harmless ncurses
 `still reachable` records (all rooted in frames such as `_nc_first_db`,
 `_nc_setupterm`, `_nc_acs_map`, and `update_getenv` inside `libncursesw` /
-`libtinfo`).  These allocations are reachable through ncurses global state and
+`libtinfo`). These allocations are reachable through ncurses global state and
 are freed by the OS on process exit; suppressing them keeps Valgrind output
 actionable.
 

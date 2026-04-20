@@ -27,9 +27,39 @@ gh repo clone BillWaller/C-Menu
   - [Not Required, But Recommended](#not-required-but-recommended)
 - [Getting Started](#getting-started)
   - [C-Menu Environment Variables](#c-menu-environment-variables)
-- [- Comment line (ignored)](#--comment-line-ignored)
-- [Comment line (ignored)](#comment-line-ignored)
-- [~/.minitrc](#minitrc)
+  - [C-Menu File Layout](#c-menu-file-layout)
+  - [RSH Safety Features](#rsh-safety-features)
+  - [Using RSH](#using-rsh)
+  - [RSH - A Use Case](#rsh---a-use-case)
+- [Starting C-Menu](#starting-c-menu)
+- [C-Menu configuration](#c-menu-configuration)
+- [Programming C-Menu Menu](#programming-c-menu-menu)
+  - [Menu Example](#menu-example)
+  - [Menu Description File Format](#menu-description-file-format)
+- [C-Menu Form In Depth](#c-menu-form-in-depth)
+  - [Form field editor](#form-field-editor)
+    - [Form Line Type Specifiers](#form-line-type-specifiers)
+    - [Form Field Delimiters](#form-field-delimiters)
+    - [Form Data Types](#form-data-types)
+    - [Form Line Syntax](#form-line-syntax)
+    - [Form Options](#form-options)
+- [C-Menu Pick](#c-menu-pick)
+  - [Pick Usage](#pick-usage)
+    - [Selecting Items](#selecting-items)
+  - [Pick Options](#pick-options)
+- [C-Menu View](#c-menu-view)
+  - [View Options](#view-options)
+    - [View Navigation](#view-navigation)
+    - [Searching Forward](#searching-forward)
+    - [Searching Backward](#searching-backward)
+    - [Horizontal Scrolling](#horizontal-scrolling)
+    - [Motion Keys](#motion-keys)
+  - [C-Menu Options](#c-menu-options)
+  - [C-Menu configuration file example](#c-menu-configuration-file-example)
+  - [lf](#lf)
+  - [whence](#whence)
+- [Troubleshooting](#troubleshooting)
+- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
 
@@ -103,7 +133,6 @@ CMENU_HOME="$HOME"/menuapp
 CMENU_APPNAME=C-Menu_dev
 ```
 
-````
 ### C-Menu File Layout
 
 ```bash
@@ -122,7 +151,7 @@ CMENU_APPNAME=C-Menu_dev
       │   └── tty      C-Menu tty test files
       ├── tmp          Temporary files
       └── user         User Files
-````
+```
 
 You can place C-Menu files anywhere you like, so long as you configure your system accordingly. However, for a first-time install, it will be much easier to use the suggested default configuration. These instructions will assume the default and give you some pointers on how you can modify the layout to suit your objectives. These instructions will serve as an example of one way to install C-Menu.
 
@@ -151,7 +180,7 @@ If you installed C-Menu with root privileges, you will have an incredibly useful
 chmod -R 700 ~/menuapp
 ```
 
-2. Only install RSH if you understand the security implications and have a specific need for it. If you do not need the root access features, it is safer to avoid installing RSH altogether or install it without setuid and setgid flags turned on. To disable setuid and setgid for rsh:
+1. Only install RSH if you understand the security implications and have a specific need for it. If you do not need the root access features, it is safer to avoid installing RSH altogether or install it without setuid and setgid flags turned on. To disable setuid and setgid for rsh:
 
 ```bash
 chmod u-s,g-s "$HOME"/menuapp/bin/rsh
@@ -411,7 +440,6 @@ H<delimiter>Header Text
 T<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Text
 F<delimiter>Line<delimiter>Column<delimiter>Length<delimiter>Type
 ?<delimiter>Help File Path
-# Comment line (ignored)
 ```
 
 #### Form Options
@@ -476,7 +504,6 @@ pick [options] [input_file]
 or
 
 some_command | pick [options]
-
 ```
 
 ### Pick Options
@@ -791,14 +818,14 @@ mid 1980's before the "which" command was widely available. I didn't invent
 it, but after using a version of whence that didn't work as I expected, I
 wrote my own version, and I have been using it since.
 
-If you will permit a tangential excursion, vi wasn't my first editor. It was the
+If you will permit a tangential excursion, vi was not my first editor. It was the
 first editor to which I instantly bonded. Barely aware that my fingers were
 moving, code streamed onto the screen at the speed of thought. I was wired in.
 What ever happened to Jolt Cola?
 
 Whence is a loyal and trustworthy companion that has served me for many
-years, and I refuse to abandon it. Of course, if it develops a bug, I'll throw
-it out like yesterday's garbage. It is just a program. Feel free to delete it
+years, and I refuse to abandon it. Of course, if it develops a bug, I will throw
+it out like yesterday\'s garbage. It is just a program. Feel free to delete it
 and use which if that makes you feel better.
 
 ## Troubleshooting
@@ -820,7 +847,7 @@ On some systems, "/usr/bin/view" may be a link to "/usr/bin/vim" or
 You can check the location of a command using:
 
 ```bash
-which <command_name>
+which [command_name]
 ```
 
 - If you experience issues with root access features, ensure that RSH
@@ -829,4 +856,4 @@ which <command_name>
 
 ---
 
-## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
+## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository

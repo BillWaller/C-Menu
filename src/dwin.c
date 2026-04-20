@@ -74,7 +74,7 @@ bool wait_destroy(Chyron *);
 int xwgetch(WINDOW *, Chyron *, int);
 
 bool init_clr_palette(SIO *);
-cchar_t mkccc(int);
+cchar_t mkccc(int, attr_t, char *);
 SCREEN *screen;
 
 SIO *sio; /**< Global pointer to SIO struct for terminal and color settings */
@@ -379,39 +379,6 @@ int get_chyron_key(Chyron *chyron, int x) {
             break;
     return chyron->key[i]->keycode;
 }
-/** @brief Create complex character buffer from multibyte string
-    @ingroup Chyron
-    @param s Input multibyte string
-    @return Pointer to complex character buffer
-    @details This function creates a complex character buffer from a multibyte
-   string. It allocates memory for the buffer and converts the multibyte string
-   to complex characters using the mb_to_cc function. The color pair used for
-   the complex characters is cp_norm. The caller is responsible for freeing the
-   allocated buffer when it is no longer needed.
-*/
-cchar_t *mk_cmplx_buf(const char *s) {
-    cchar_t *cmplx_buf = (cchar_t *)calloc(MAXLEN, sizeof(cchar_t));
-    int j = 0;
-    int len;
-    attr_t attr = WA_NORMAL;
-    int cpx = cp_win;
-    wchar_t wc = L'\0';
-    cchar_t cc = {0};
-    mbstate_t mbstate;
-    memset(&mbstate, 0, sizeof(mbstate));
-    len = mbrtowc(&wc, s, MB_CUR_MAX, &mbstate);
-    if (len <= 0) {
-        wc = L'?';
-        len = 1;
-    }
-    if (setcchar(&cc, &wc, attr, cpx, nullptr) != ERR) {
-        if (len > 0 && (j + len) < MAXLEN - 1) {
-            cmplx_buf[j++] = cc;
-        }
-    }
-    return cmplx_buf;
-}
-
 /** @brief Initialize NCurses and color settings
     @ingroup window_support
     @param sio Pointer to SIO struct with terminal and color settings
@@ -486,12 +453,12 @@ bool open_curses(SIO *sio) {
     cp_box = get_clr_pair(CLR_BO, CLR_BG);
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
 
-    CCC_NORM = mkccc(cp_norm);
-    CCC_WIN = mkccc(cp_win);
-    CCC_REVERSE = mkccc(cp_reverse);
-    CCC_REVERSE_HIGHLIGHT = mkccc(cp_reverse_highlight);
-    CCC_BOX = mkccc(cp_box);
-    CCC_LN = mkccc(cp_ln);
+    CCC_NORM = mkccc(cp_norm, WA_NORMAL, " ");
+    CCC_WIN = mkccc(cp_win, WA_NORMAL, " ");
+    CCC_REVERSE = mkccc(cp_reverse, WA_NORMAL, " ");
+    CCC_REVERSE_HIGHLIGHT = mkccc(cp_reverse_highlight, WA_NORMAL, " ");
+    CCC_BOX = mkccc(cp_box, WA_NORMAL, " ");
+    CCC_LN = mkccc(cp_ln, WA_NORMAL, " ");
     noecho();
     keypad(stdscr, true);
     idlok(stdscr, false);
@@ -772,17 +739,16 @@ void destroy_curses() {
     @param cp Color pair index
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
-cchar_t mkccc(int cp) {
+cchar_t mkccc(int cp, attr_t attr, char *s) {
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
-    attr_t attr = WA_NORMAL;
-    char *s = " ";
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
     setcchar(&cc, wstr, attr, cp, nullptr);
     return cc;
 }
+
 /** @brief Create a new window with optional box and title
     @ingroup window_support
     @param wlines Number of lines
@@ -822,8 +788,8 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
     if ((s + 4) < maxx)
         mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-    mvwaddnwstr(win_box[win_ptr], wlines + 1, 1, &bw_ra, 1);
     wnoutrefresh(win_box[win_ptr]);
+    mvwaddnwstr(win_box[win_ptr], wlines + 1, 1, &bw_ra, 1);
     win_win[win_ptr] = nullptr;
     win_win2[win_ptr] = nullptr;
     if (win_pair) {

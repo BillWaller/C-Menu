@@ -86,7 +86,8 @@ CFLAGS=-O2
 # -fno-sanitize-recover=all
 #  Uncomment the following two lines to enable Address Sanitizer and Leak 
 #  Sanitizer.
-CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_IMMEDOK
+CFLAGS=-O0 -ggdb -rdynamic \
+#	-DDEBUG_IMMEDOK
 #	-DDEBUG_RESIZE -DDEBUG_IMMEDOK -DDEBUG_LOG \
 #	-fsanitize=address -fsanitize=leak -fno-omit-frame-pointer \
 #	-fno-sanitize-recover=all
@@ -204,7 +205,7 @@ clean:
 	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.a \
 		libcm.so *.cflow scan-build scan-build.out $(LIB_SHARED) \
 		CMenu.conf x xx xxx *.out .user_id .group_id manifest.txt \
-		manifest.ls valgrind.* *.gc..
+		manifest.ls *.gc..
 
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)

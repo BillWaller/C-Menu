@@ -379,6 +379,8 @@ int pick_engine(Init *init) {
                                  pick->win_width - 4, field);
             }
         }
+        if (rc == KEY_F(9))
+            break;
         if (rc == 0)
             continue;
         if (rc == -1)
@@ -441,6 +443,15 @@ int picker(Init *init) {
     in_key = 0;
     compile_chyron(pick->chyron);
     display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
+    cchar_t cc = {0};
+    // wchar_t wstr[2] = {BW_RA, L'\0'};
+    // wchar_t wstr[2] = {L'\x2B95', L'\0'};
+    // wchar_t wstr[2] = {L'\x0203A', L'\0'};
+    wchar_t wstr[2] = {L'\x0276F', L'\0'};
+    setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
+    mvwadd_wch(pick->win2, 0, 0, &cc);
+    wrefresh(pick->win2);
+
     while (1) {
         tcflush(tty_fd, TCIFLUSH);
         f_no_reset_in_key = false;
@@ -466,6 +477,7 @@ int picker(Init *init) {
             break;
 
             /** 'q', or KEY_F(9) cancel selection and exit picker */
+        case 'q':
         case KEY_F(9):
             deselect_object(pick);
             return -1;
@@ -649,7 +661,7 @@ void display_page(Pick *pick) {
     for (col = 0; col < pick->tbl_cols; col++) {
         pick->x = col * (pick->tbl_col_width + 1) + 1;
         y = 0;
-        while (pick->d_idx < pick->d_cnt) {
+        while (pick->d_idx < pick->d_cnt && y < pick->pg_lines) {
             if (pick->f_selected[pick->d_idx])
                 mvwaddstr(pick->win, y, pick->x - 1, "*");
             mvwaddstr_fill(pick->win, y++, pick->x,
@@ -665,6 +677,7 @@ void display_page(Pick *pick) {
     @ingroup pick_engine
     @param pick Pointer to Pick structure containing objects and display
    information
+    @param s String to filter objects by
     @note Clears the pick window and displays the current page of objects based
    on the current table page, line, and column. Marks selected objects with an
    asterisk. Updates the chyron with page information at the bottom of the pick
@@ -696,8 +709,12 @@ void reverse_object(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
         pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
-    pick->y = pick->tbl_line + pick->y_offset;
+    pick->tbl_line = pick->pg_lines - 1;
+    pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                  pick->tbl_col * pick->pg_lines + pick->tbl_line;
+    pick->y = pick->pg_lines - 1;
+    // pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+    // pick->y = pick->tbl_line + pick->y_offset;
     wmove(pick->win, pick->y, pick->x);
     wattron(pick->win, WA_REVERSE);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
@@ -1041,9 +1058,9 @@ int line_editor(WINDOW *win, WINDOW *win2, Chyron *chyron, int flen,
     int click_x = -1;
     char filler_s[MAXLEN]; /**< buffer for filling the field with spaces */
     int line = 0;          /**< Starting line for field input */
-    int col = 2; /**< Starting column for field input leaving space for > */
     int in_key = 0;
-    int pos = 2;    /** Current cursor position within the field */
+    int col = 1;    /**< Starting column for field input leaving space for > */
+    int pos = col;  /** Current cursor position within the field */
     char *s;        /**< source pointer for editing operations */
     char *d;        /**< destination pointer for editing operations */
     char *e;        /**< end pointer for editing operations */
@@ -1076,14 +1093,15 @@ int line_editor(WINDOW *win, WINDOW *win2, Chyron *chyron, int flen,
                 display_page(pick);
             }
             reverse_object(pick);
-            rtrim(accept_s); // Error
+            wrefresh(pick->win);
+            rtrim(accept_s);
             s = &filler_s[0];
             e = s + flen;
             while (s != e)
                 *s++ = ' ';
             *s = '\0';
             mvwaddstr(win2, line, col, filler_s);
-            mvwaddstr(win2, line, col, accept_s); // Error
+            mvwaddstr(win2, line, col, accept_s);
             wmove(win2, line, pos);
             tcflush(0, TCIFLUSH);
             wmove(win2, line, pos);

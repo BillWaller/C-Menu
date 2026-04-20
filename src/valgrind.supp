@@ -1,0 +1,71 @@
+# Valgrind suppression file for C-Menu
+# Suppresses known ncurses "still reachable" allocations that are intentionally
+# held as global caches by the ncurses library at program exit.  These are not
+# true leaks: the memory is reachable and is freed by the OS on process exit.
+#
+# Usage:
+#   valgrind --leak-check=full --show-leak-kinds=all \
+#            --suppressions=src/valgrind.supp ./menu
+#
+# See docs/valgrind.md for the full recommended command.
+
+# ncurses caches the TERM environment variable lookup in a global strdup'd
+# string inside _nc_first_db / update_getenv (db_iterator.c).
+{
+   ncurses_update_getenv_term
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:update_getenv
+   fun:cache_getenv
+   fun:_nc_first_db
+   ...
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:open_curses
+}
+
+# ncurses allocates a DB iterator block in _nc_first_db (db_iterator.c:367).
+{
+   ncurses_first_db_calloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_first_db
+   ...
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:open_curses
+}
+
+# ncurses allocates a path string in _nc_first_db (db_iterator.c:352).
+{
+   ncurses_first_db_malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_first_db
+   ...
+   fun:_nc_setupterm
+   fun:newterm_sp
+   fun:newterm
+   fun:open_curses
+}
+
+# ncurses allocates the ACS (alternate character set) map as a global
+# singleton in _nc_acs_map (lib_acs.c:51).
+{
+   ncurses_acs_map
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_nc_acs_map
+   fun:_nc_init_acs_sp
+   fun:_nc_setupscreen_sp
+   fun:newterm_sp
+   fun:newterm
+   fun:open_curses
+}
