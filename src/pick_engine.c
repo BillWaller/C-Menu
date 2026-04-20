@@ -1051,8 +1051,7 @@ int line_editor(WINDOW *win, WINDOW *win2, Chyron *chyron, int flen,
     char *fstart;   /** pointer to start of field buffer */
     char *ptr;  /**< pointer to current cursor position within field buffer */
     char *fend; /**< pointer to end of field buffer (start + flen) */
-    char *str_end; /**< pointer to end of content in field buffer (start +
-                      strlen) */
+    char *str_end; /**< pointer to end of content in field buffer */
     accept_s = field;
     fstart = accept_s;
     fend = fstart + flen;
