@@ -1,348 +1,245 @@
-==481164== Memcheck, a memory error detector
-==481164== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
-==481164== Using Valgrind-3.26.0-218cee2feb-20251024 and LibVEX; rerun with -h for copyright info
-==481164== Command: menu
-==481164== Parent PID: 481163
-==481164== 
---481164-- 
---481164-- Valgrind options:
---481164--    -v
---481164--    --log-file=valgrind.out
---481164--    --leak-check=full
---481164--    --leak-resolution=high
---481164--    --show-leak-kinds=all
---481164--    --track-origins=yes
---481164-- Contents of /proc/version:
---481164--   Linux version 6.19.10-1-default (geeko@buildhost) (gcc (SUSE Linux) 15.2.1 20260202, GNU ld (GNU Binutils; openSUSE Tumbleweed) 2.45.0.20251103-2) #1 SMP PREEMPT_DYNAMIC Wed Mar 25 11:02:57 UTC 2026 (a439317)
---481164-- 
---481164-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-rdtscp-sse3-ssse3-avx
---481164-- Page sizes: currently 4096, max supported 4096
---481164-- Valgrind library directory: /usr/libexec/valgrind
---481164-- Reading syms from /home/bill/menuapp/bin/menu
---481164-- Reading syms from /usr/lib64/ld-linux-x86-64.so.2
---481164--   Considering /usr/lib/debug/.build-id/fd/b51dd914c8a1c199be64513639e2a7e9f8338e.debug ..
---481164--   .. build-id is valid
---481164-- Reading syms from /usr/libexec/valgrind/memcheck-amd64-linux
---481164--    object doesn't have a dynamic symbol table
---481164-- Scheduler: using generic scheduler lock implementation.
---481164-- Reading suppressions file: /usr/libexec/valgrind/default.supp
-==481164== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-481164-by-bill-on-bw1
-==481164== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-481164-by-bill-on-bw1
-==481164== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-481164-by-bill-on-bw1
-==481164== 
-==481164== TO CONTROL THIS PROCESS USING vgdb (which you probably
-==481164== don't want to do, unless you know exactly what you're doing,
-==481164== or are doing some strange experiment):
-==481164==   /usr/libexec/valgrind/../../bin/vgdb --pid=481164 ...command...
-==481164== 
-==481164== TO DEBUG THIS PROCESS USING GDB: start GDB like this
-==481164==   /path/to/gdb menu
-==481164== and then give GDB the following command
-==481164==   target remote | /usr/libexec/valgrind/../../bin/vgdb --pid=481164
-==481164== --pid is optional if only one valgrind process is running
-==481164== 
-==481164== Downloading debug info for /usr/libexec/valgrind/memcheck-amd64-linux...
---481164--   Considering /home/bill/.cache/debuginfod_client/cc8a9fce2a3fdd6334693d08eeaef96afe57dad7/debuginfo ..
---481164--   .. CRC is valid
-==481164== Successfully downloaded debug file for /usr/libexec/valgrind/memcheck-amd64-linux
---481164-- REDIR: 0x4028ace (ld-linux-x86-64.so.2:strlen) redirected to 0x5823a86e (vgPlain_amd64_linux_REDIR_FOR_strlen)
---481164-- REDIR: 0x402741e (ld-linux-x86-64.so.2:strcmp) redirected to 0x5823a888 (vgPlain_amd64_linux_REDIR_FOR_strcmp)
---481164-- REDIR: 0x40271de (ld-linux-x86-64.so.2:index) redirected to 0x5823a8c1 (vgPlain_amd64_linux_REDIR_FOR_index)
---481164-- Reading syms from /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
---481164-- Reading syms from /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
-==481164== WARNING: new redirection conflicts with existing -- ignoring it
---481164--     old: 0x0402741e (strcmp              ) R-> (0000.0) 0x5823a888 vgPlain_amd64_linux_REDIR_FOR_strcmp
-==481164== Downloading debug info for /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so...
---481164--   Considering /home/bill/.cache/debuginfod_client/6369fbd14065571a434f385d67196ff9bc9f2445/debuginfo ..
---481164--   .. CRC is valid
-==481164== Successfully downloaded debug file for /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
---481164--     new: 0x0402741e (strcmp              ) R-> (2016.0) 0x048532b0 strcmp
-==481164== WARNING: new redirection conflicts with existing -- ignoring it
---481164--     old: 0x04028ace (strlen              ) R-> (0000.0) 0x5823a86e vgPlain_amd64_linux_REDIR_FOR_strlen
---481164--     new: 0x04028ace (strlen              ) R-> (2007.0) 0x04852040 strlen
---481164-- REDIR: 0x40267fe (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4857900 (mempcpy)
---481164-- Reading syms from /usr/local/src/C-Menu/src/libcm.so
---481164-- Reading syms from /usr/lib64/libncursesw.so.6.6
---481164-- Reading syms from /usr/lib64/libtinfo.so.6.6
---481164-- Reading syms from /usr/lib64/libm.so.6
---481164-- Reading syms from /usr/lib64/libc.so.6
---481164--   Considering /usr/lib/debug/.build-id/18/77ff923c3d7eea4bc6aacc6c37c1bd67bb166d.debug ..
---481164--   .. build-id is valid
---481164-- REDIR: 0x4028c7e (ld-linux-x86-64.so.2:strncmp) redirected to 0x4852b20 (strncmp)
-==481164== Downloading debug info for /usr/libexec/valgrind/vgpreload_core-amd64-linux.so...
---481164--   Considering /home/bill/.cache/debuginfod_client/2f08aad92c15984df8288a43cb64ad784c185367/debuginfo ..
---481164--   .. CRC is valid
-==481164== Successfully downloaded debug file for /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
---481164-- REDIR: 0x4ad55de (libc.so.6:strnlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad566e (libc.so.6:strpbrk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad338e (libc.so.6:strcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4aeafce (libc.so.6:wcsnlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad233e (libc.so.6:memset) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4aea5ee (libc.so.6:wcslen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4b4dc8e (libc.so.6:__memcpy_chk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad22ae (libc.so.6:memrchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4aeaf4e (libc.so.6:wcsncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad17be (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ae930e (libc.so.6:wcschr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad326e (libc.so.6:index) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad56ae (libc.so.6:rindex) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ae93ce (libc.so.6:wcscmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad25de (libc.so.6:stpncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4af6a8e (libc.so.6:wmemchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad545e (libc.so.6:strncmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad264e (libc.so.6:strcasecmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad459e (libc.so.6:strcspn) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4aea38e (libc.so.6:wcscpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad31ee (libc.so.6:strcat) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad533e (libc.so.6:strncasecmp_l) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad32fe (libc.so.6:strchrnul) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad16ae (libc.so.6:bcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad451e (libc.so.6:strcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad26fe (libc.so.6:strcasecmp_l) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad51fe (libc.so.6:strlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad550e (libc.so.6:strncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4af6b1e (libc.so.6:wmemcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4b4ddae (libc.so.6:__memmove_chk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
-==481164== WARNING: new redirection conflicts with existing -- ignoring it
---481164--     old: 0x04ad928e (__memcpy_chk_sse2_un) R-> (2030.0) 0x04857a00 __memcpy_chk
---481164--     new: 0x04ad928e (__memcpy_chk_sse2_un) R-> (2024.0) 0x04857320 __memmove_chk
---481164-- REDIR: 0x4ad255e (libc.so.6:stpcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad206e (libc.so.6:memmove) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad161e (libc.so.6:memchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad58de (libc.so.6:strspn) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ae8ede (libc.so.6:wcpncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad218e (libc.so.6:mempcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad528e (libc.so.6:strncasecmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ad617e (libc.so.6:strstr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
---481164-- REDIR: 0x4ae646e (libc.so.6:__strrchr_sse2) redirected to 0x4851820 (__strrchr_sse2)
---481164-- REDIR: 0x4ace7ae (libc.so.6:calloc) redirected to 0x484fc10 (calloc)
---481164-- REDIR: 0x4bb5c3e (libc.so.6:__strcmp_sse42) redirected to 0x4853270 (__strcmp_sse42)
---481164-- REDIR: 0x4ae050e (libc.so.6:__strlen_sse2) redirected to 0x4851f80 (__strlen_sse2)
---481164-- REDIR: 0x4bb864e (libc.so.6:__strncmp_sse42) redirected to 0x4852a60 (__strncmp_sse42)
---481164-- REDIR: 0x4ade24e (libc.so.6:__strchr_sse2) redirected to 0x48519a0 (__strchr_sse2)
---481164-- REDIR: 0x4ad891e (libc.so.6:__memchr_sse2) redirected to 0x4853330 (memchr)
---481164-- REDIR: 0x4ade48e (libc.so.6:__strchrnul_sse2) redirected to 0x48573c0 (strchrnul)
---481164-- REDIR: 0x4acd74e (libc.so.6:malloc) redirected to 0x4848750 (malloc)
---481164-- REDIR: 0x4ad926e (libc.so.6:__mempcpy_sse2_unaligned) redirected to 0x4857500 (mempcpy)
---481164-- REDIR: 0x4ad92ae (libc.so.6:memcpy@GLIBC_2.2.5) redirected to 0x48533e0 (memcpy@GLIBC_2.2.5)
---481164-- REDIR: 0x4acdd5e (libc.so.6:free) redirected to 0x484b720 (free)
---481164-- REDIR: 0x4ace12e (libc.so.6:realloc) redirected to 0x484fe70 (realloc)
---481164-- REDIR: 0x4bb43ee (libc.so.6:__strcasecmp_l_sse42) redirected to 0x4852dc0 (strcasecmp_l)
---481164-- REDIR: 0x4ad928e (libc.so.6:__memcpy_chk_sse2_unaligned) redirected to 0x4857a00 (__memcpy_chk)
---481164-- REDIR: 0x4ada0fe (libc.so.6:__stpcpy_sse2_unaligned) redirected to 0x4856030 (__stpcpy_sse2_unaligned)
---481164-- REDIR: 0x4ae623e (libc.so.6:__strnlen_sse2) redirected to 0x4851ec0 (strnlen)
---481164-- REDIR: 0x4bb979e (libc.so.6:__strspn_sse42) redirected to 0x4857d30 (strspn)
---481164-- REDIR: 0x4bb6a0e (libc.so.6:__strcspn_sse42) redirected to 0x4857c30 (strcspn)
-==481164== Downloading debug info for /usr/lib64/libtinfo.so.6.6...
---481164--   Considering /home/bill/.cache/debuginfod_client/92d8a9a557cffd7cc2dd051843e79c8b756d1d6b/debuginfo ..
---481164--   .. CRC is valid
-==481164== Successfully downloaded debug file for /usr/lib64/libtinfo.so.6.6
-==481164== Downloading debug info for /usr/lib64/libncursesw.so.6.6...
---481164--   Considering /home/bill/.cache/debuginfod_client/3756bdeadce580f5c48116750d5e7b484ab5b0bc/debuginfo ..
---481164--   .. CRC is valid
-==481164== Successfully downloaded debug file for /usr/lib64/libncursesw.so.6.6
---481164-- REDIR: 0x4ad518e (libc.so.6:strlcpy) redirected to 0x4852800 (strlcpy)
---481164-- REDIR: 0x4ad9c8e (libc.so.6:__memset_sse2_unaligned_erms) redirected to 0x48564c0 (memset)
---481164-- REDIR: 0x4ae671e (libc.so.6:__strstr_sse2_unaligned) redirected to 0x4857a70 (strstr)
---481164-- REDIR: 0x4bb9c0e (libc.so.6:__wcslen_sse4_1) redirected to 0x4857e70 (wcslen)
-==481164== Conditional jump or move depends on uninitialised value(s)
-==481164==    at 0x4851F85: __strlen_sse2 (vg_replace_strmem.c:508)
-==481164==    by 0x41BD0E: line_editor (pick_engine.c:1052)
-==481164==    by 0x419749: pick_engine (pick_engine.c:377)
-==481164==    by 0x418F04: init_pick (pick_engine.c:257)
-==481164==    by 0x41C6B2: popup_pick (popups.c:64)
-==481164==    by 0x407CC1: menu_cmd_processor (menu_engine.c:307)
-==481164==    by 0x407008: menu_engine (menu_engine.c:96)
-==481164==    by 0x42305D: main (menu.c:61)
-==481164==  Uninitialised value was created by a stack allocation
-==481164==    at 0x4190E8: pick_engine (pick_engine.c:306)
-==481164== 
-==481164== Conditional jump or move depends on uninitialised value(s)
-==481164==    at 0x41BDC3: line_editor (pick_engine.c:1065)
-==481164==    by 0x419749: pick_engine (pick_engine.c:377)
-==481164==    by 0x418F04: init_pick (pick_engine.c:257)
-==481164==    by 0x41C6B2: popup_pick (popups.c:64)
-==481164==    by 0x407CC1: menu_cmd_processor (menu_engine.c:307)
-==481164==    by 0x407008: menu_engine (menu_engine.c:96)
-==481164==    by 0x42305D: main (menu.c:61)
-==481164==  Uninitialised value was created by a stack allocation
-==481164==    at 0x4190E8: pick_engine (pick_engine.c:306)
-==481164== 
-==481164== Conditional jump or move depends on uninitialised value(s)
-==481164==    at 0x486AE61: rtrim (futil.c:112)
-==481164==    by 0x41BE14: line_editor (pick_engine.c:1073)
-==481164==    by 0x419749: pick_engine (pick_engine.c:377)
-==481164==    by 0x418F04: init_pick (pick_engine.c:257)
-==481164==    by 0x41C6B2: popup_pick (popups.c:64)
-==481164==    by 0x407CC1: menu_cmd_processor (menu_engine.c:307)
-==481164==    by 0x407008: menu_engine (menu_engine.c:96)
-==481164==    by 0x42305D: main (menu.c:61)
-==481164==  Uninitialised value was created by a stack allocation
-==481164==    at 0x4190E8: pick_engine (pick_engine.c:306)
-==481164== 
-==481164== Conditional jump or move depends on uninitialised value(s)
-==481164==    at 0x48B44D8: waddnstr (lib_addstr.c:69)
-==481164==    by 0x41BEC6: line_editor (pick_engine.c:1080)
-==481164==    by 0x419749: pick_engine (pick_engine.c:377)
-==481164==    by 0x418F04: init_pick (pick_engine.c:257)
-==481164==    by 0x41C6B2: popup_pick (popups.c:64)
-==481164==    by 0x407CC1: menu_cmd_processor (menu_engine.c:307)
-==481164==    by 0x407008: menu_engine (menu_engine.c:96)
-==481164==    by 0x42305D: main (menu.c:61)
-==481164==  Uninitialised value was created by a stack allocation
-==481164==    at 0x4190E8: pick_engine (pick_engine.c:306)
-==481164== 
---481164-- WARNING: Serious problem when reading debug info from /tmp/view_DwABtv (deleted):
---481164-- WARNING: Valgrind will continue to execute but error messages may be degraded.
---481164-- failed to stat64/stat this file
-==481164== 
-==481164== HEAP SUMMARY:
-==481164==     in use at exit: 7,334 bytes in 8 blocks
-==481164==   total heap usage: 1,540 allocs, 1,532 frees, 8,037,605 bytes allocated
-==481164== 
-==481164== Searching for pointers to 8 not-freed blocks
-==481164== Checked 207,880 bytes
-==481164== 
-==481164== 11 bytes in 1 blocks are still reachable in loss record 1 of 8
-==481164==    at 0x48487C4: malloc (vg_replace_malloc.c:447)
-==481164==    by 0x4AD45FD: strdup (strdup.c:42)
-==481164==    by 0x48F4027: update_getenv (db_iterator.c:131)
-==481164==    by 0x48F7356: cache_getenv (db_iterator.c:158)
-==481164==    by 0x48F7356: _nc_first_db (db_iterator.c:331)
-==481164==    by 0x48F7356: _nc_first_db (db_iterator.c:285)
-==481164==    by 0x49078FC: _nc_read_entry2 (read_entry.c:897)
-==481164==    by 0x490079F: _nc_setup_tinfo (lib_setup.c:674)
-==481164==    by 0x490094E: _nc_setupterm (lib_setup.c:972)
-==481164==    by 0x48C1931: newterm_sp (lib_newterm.c:212)
-==481164==    by 0x48C320F: newterm (lib_newterm.c:370)
-==481164==    by 0x48664E7: open_curses (dwin.c:451)
-==481164==    by 0x422F96: main (menu.c:53)
-==481164== 
-==481164== 20 bytes in 1 blocks are still reachable in loss record 2 of 8
-==481164==    at 0x48487C4: malloc (vg_replace_malloc.c:447)
-==481164==    by 0x4AD45FD: strdup (strdup.c:42)
-==481164==    by 0x48F4027: update_getenv (db_iterator.c:131)
-==481164==    by 0x48F7328: cache_getenv (db_iterator.c:158)
-==481164==    by 0x48F7328: _nc_first_db (db_iterator.c:329)
-==481164==    by 0x48F7328: _nc_first_db (db_iterator.c:285)
-==481164==    by 0x49078FC: _nc_read_entry2 (read_entry.c:897)
-==481164==    by 0x490079F: _nc_setup_tinfo (lib_setup.c:674)
-==481164==    by 0x490094E: _nc_setupterm (lib_setup.c:972)
-==481164==    by 0x48C1931: newterm_sp (lib_newterm.c:212)
-==481164==    by 0x48C320F: newterm (lib_newterm.c:370)
-==481164==    by 0x48664E7: open_curses (dwin.c:451)
-==481164==    by 0x422F96: main (menu.c:53)
-==481164== 
-==481164== 48 bytes in 1 blocks are still reachable in loss record 3 of 8
-==481164==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
-==481164==    by 0x48F6F23: _nc_first_db (db_iterator.c:367)
-==481164==    by 0x48F6F23: _nc_first_db (db_iterator.c:285)
-==481164==    by 0x49078FC: _nc_read_entry2 (read_entry.c:897)
-==481164==    by 0x490079F: _nc_setup_tinfo (lib_setup.c:674)
-==481164==    by 0x490094E: _nc_setupterm (lib_setup.c:972)
-==481164==    by 0x48C1931: newterm_sp (lib_newterm.c:212)
-==481164==    by 0x48C320F: newterm (lib_newterm.c:370)
-==481164==    by 0x48664E7: open_curses (dwin.c:451)
-==481164==    by 0x422F96: main (menu.c:53)
-==481164== 
-==481164== 103 bytes in 1 blocks are still reachable in loss record 4 of 8
-==481164==    at 0x48487C4: malloc (vg_replace_malloc.c:447)
-==481164==    by 0x48F6E68: _nc_first_db (db_iterator.c:352)
-==481164==    by 0x48F6E68: _nc_first_db (db_iterator.c:285)
-==481164==    by 0x49078FC: _nc_read_entry2 (read_entry.c:897)
-==481164==    by 0x490079F: _nc_setup_tinfo (lib_setup.c:674)
-==481164==    by 0x490094E: _nc_setupterm (lib_setup.c:972)
-==481164==    by 0x48C1931: newterm_sp (lib_newterm.c:212)
-==481164==    by 0x48C320F: newterm (lib_newterm.c:370)
-==481164==    by 0x48664E7: open_curses (dwin.c:451)
-==481164==    by 0x422F96: main (menu.c:53)
-==481164== 
-==481164== 512 bytes in 1 blocks are still reachable in loss record 5 of 8
-==481164==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
-==481164==    by 0x48F740A: _nc_acs_map (lib_acs.c:51)
-==481164==    by 0x48FE9B1: _nc_init_acs_sp (lib_acs.c:83)
-==481164==    by 0x48C1E92: _nc_setupscreen_sp (lib_set_term.c:640)
-==481164==    by 0x48C1E92: newterm_sp (lib_newterm.c:234)
-==481164==    by 0x48C320F: newterm (lib_newterm.c:370)
-==481164==    by 0x48664E7: open_curses (dwin.c:451)
-==481164==    by 0x422F96: main (menu.c:53)
-==481164== 
-==481164== 520 bytes in 1 blocks are still reachable in loss record 6 of 8
-==481164==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
-==481164==    by 0x415768: new_init (mem.c:77)
-==481164==    by 0x422F60: main (menu.c:50)
-==481164== 
-==481164== 600 bytes in 1 blocks are still reachable in loss record 7 of 8
-==481164==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
-==481164==    by 0x4158B3: new_init (mem.c:92)
-==481164==    by 0x422F60: main (menu.c:50)
-==481164== 
-==481164== 5,520 bytes in 1 blocks are still reachable in loss record 8 of 8
-==481164==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
-==481164==    by 0x415735: new_init (mem.c:72)
-==481164==    by 0x422F60: main (menu.c:50)
-==481164== 
-==481164== LEAK SUMMARY:
-==481164==    definitely lost: 0 bytes in 0 blocks
-==481164==    indirectly lost: 0 bytes in 0 blocks
-==481164==      possibly lost: 0 bytes in 0 blocks
-==481164==    still reachable: 7,334 bytes in 8 blocks
-==481164==         suppressed: 0 bytes in 0 blocks
-==481164== 
-==481164== ERROR SUMMARY: 4 errors from 4 contexts (suppressed: 0 from 0)
-==481164== 
-==481164== 1 errors in context 1 of 4:
-==481164== Conditional jump or move depends on uninitialised value(s)
-==481164==    at 0x48B44D8: waddnstr (lib_addstr.c:69)
-==481164==    by 0x41BEC6: line_editor (pick_engine.c:1080)
-==481164==    by 0x419749: pick_engine (pick_engine.c:377)
-==481164==    by 0x418F04: init_pick (pick_engine.c:257)
-==481164==    by 0x41C6B2: popup_pick (popups.c:64)
-==481164==    by 0x407CC1: menu_cmd_processor (menu_engine.c:307)
-==481164==    by 0x407008: menu_engine (menu_engine.c:96)
-==481164==    by 0x42305D: main (menu.c:61)
-==481164==  Uninitialised value was created by a stack allocation
-==481164==    at 0x4190E8: pick_engine (pick_engine.c:306)
-==481164== 
-==481164== 
-==481164== 1 errors in context 2 of 4:
-==481164== Conditional jump or move depends on uninitialised value(s)
-==481164==    at 0x486AE61: rtrim (futil.c:112)
-==481164==    by 0x41BE14: line_editor (pick_engine.c:1073)
-==481164==    by 0x419749: pick_engine (pick_engine.c:377)
-==481164==    by 0x418F04: init_pick (pick_engine.c:257)
-==481164==    by 0x41C6B2: popup_pick (popups.c:64)
-==481164==    by 0x407CC1: menu_cmd_processor (menu_engine.c:307)
-==481164==    by 0x407008: menu_engine (menu_engine.c:96)
-==481164==    by 0x42305D: main (menu.c:61)
-==481164==  Uninitialised value was created by a stack allocation
-==481164==    at 0x4190E8: pick_engine (pick_engine.c:306)
-==481164== 
-==481164== 
-==481164== 1 errors in context 3 of 4:
-==481164== Conditional jump or move depends on uninitialised value(s)
-==481164==    at 0x41BDC3: line_editor (pick_engine.c:1065)
-==481164==    by 0x419749: pick_engine (pick_engine.c:377)
-==481164==    by 0x418F04: init_pick (pick_engine.c:257)
-==481164==    by 0x41C6B2: popup_pick (popups.c:64)
-==481164==    by 0x407CC1: menu_cmd_processor (menu_engine.c:307)
-==481164==    by 0x407008: menu_engine (menu_engine.c:96)
-==481164==    by 0x42305D: main (menu.c:61)
-==481164==  Uninitialised value was created by a stack allocation
-==481164==    at 0x4190E8: pick_engine (pick_engine.c:306)
-==481164== 
-==481164== 
-==481164== 1 errors in context 4 of 4:
-==481164== Conditional jump or move depends on uninitialised value(s)
-==481164==    at 0x4851F85: __strlen_sse2 (vg_replace_strmem.c:508)
-==481164==    by 0x41BD0E: line_editor (pick_engine.c:1052)
-==481164==    by 0x419749: pick_engine (pick_engine.c:377)
-==481164==    by 0x418F04: init_pick (pick_engine.c:257)
-==481164==    by 0x41C6B2: popup_pick (popups.c:64)
-==481164==    by 0x407CC1: menu_cmd_processor (menu_engine.c:307)
-==481164==    by 0x407008: menu_engine (menu_engine.c:96)
-==481164==    by 0x42305D: main (menu.c:61)
-==481164==  Uninitialised value was created by a stack allocation
-==481164==    at 0x4190E8: pick_engine (pick_engine.c:306)
-==481164== 
-==481164== ERROR SUMMARY: 4 errors from 4 contexts (suppressed: 0 from 0)
+==482252== Memcheck, a memory error detector
+==482252== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==482252== Using Valgrind-3.26.0-218cee2feb-20251024 and LibVEX; rerun with -h for copyright info
+==482252== Command: menu
+==482252== Parent PID: 482251
+==482252== 
+--482252-- 
+--482252-- Valgrind options:
+--482252--    -v
+--482252--    --log-file=valgrind.out
+--482252--    --leak-check=full
+--482252--    --leak-resolution=high
+--482252--    --show-leak-kinds=all
+--482252--    --track-origins=yes
+--482252-- Contents of /proc/version:
+--482252--   Linux version 6.19.10-1-default (geeko@buildhost) (gcc (SUSE Linux) 15.2.1 20260202, GNU ld (GNU Binutils; openSUSE Tumbleweed) 2.45.0.20251103-2) #1 SMP PREEMPT_DYNAMIC Wed Mar 25 11:02:57 UTC 2026 (a439317)
+--482252-- 
+--482252-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-rdtscp-sse3-ssse3-avx
+--482252-- Page sizes: currently 4096, max supported 4096
+--482252-- Valgrind library directory: /usr/libexec/valgrind
+--482252-- Reading syms from /home/bill/menuapp/bin/menu
+--482252-- Reading syms from /usr/lib64/ld-linux-x86-64.so.2
+--482252--   Considering /usr/lib/debug/.build-id/fd/b51dd914c8a1c199be64513639e2a7e9f8338e.debug ..
+--482252--   .. build-id is valid
+--482252-- Reading syms from /usr/libexec/valgrind/memcheck-amd64-linux
+--482252--    object doesn't have a dynamic symbol table
+--482252-- Scheduler: using generic scheduler lock implementation.
+--482252-- Reading suppressions file: /usr/libexec/valgrind/default.supp
+==482252== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-482252-by-bill-on-bw1
+==482252== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-482252-by-bill-on-bw1
+==482252== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-482252-by-bill-on-bw1
+==482252== 
+==482252== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==482252== don't want to do, unless you know exactly what you're doing,
+==482252== or are doing some strange experiment):
+==482252==   /usr/libexec/valgrind/../../bin/vgdb --pid=482252 ...command...
+==482252== 
+==482252== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==482252==   /path/to/gdb menu
+==482252== and then give GDB the following command
+==482252==   target remote | /usr/libexec/valgrind/../../bin/vgdb --pid=482252
+==482252== --pid is optional if only one valgrind process is running
+==482252== 
+==482252== Downloading debug info for /usr/libexec/valgrind/memcheck-amd64-linux...
+--482252--   Considering /home/bill/.cache/debuginfod_client/cc8a9fce2a3fdd6334693d08eeaef96afe57dad7/debuginfo ..
+--482252--   .. CRC is valid
+==482252== Successfully downloaded debug file for /usr/libexec/valgrind/memcheck-amd64-linux
+--482252-- REDIR: 0x4028ace (ld-linux-x86-64.so.2:strlen) redirected to 0x5823a86e (vgPlain_amd64_linux_REDIR_FOR_strlen)
+--482252-- REDIR: 0x402741e (ld-linux-x86-64.so.2:strcmp) redirected to 0x5823a888 (vgPlain_amd64_linux_REDIR_FOR_strcmp)
+--482252-- REDIR: 0x40271de (ld-linux-x86-64.so.2:index) redirected to 0x5823a8c1 (vgPlain_amd64_linux_REDIR_FOR_index)
+--482252-- Reading syms from /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
+--482252-- Reading syms from /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
+==482252== WARNING: new redirection conflicts with existing -- ignoring it
+--482252--     old: 0x0402741e (strcmp              ) R-> (0000.0) 0x5823a888 vgPlain_amd64_linux_REDIR_FOR_strcmp
+==482252== Downloading debug info for /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so...
+--482252--   Considering /home/bill/.cache/debuginfod_client/6369fbd14065571a434f385d67196ff9bc9f2445/debuginfo ..
+--482252--   .. CRC is valid
+==482252== Successfully downloaded debug file for /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
+--482252--     new: 0x0402741e (strcmp              ) R-> (2016.0) 0x048532b0 strcmp
+==482252== WARNING: new redirection conflicts with existing -- ignoring it
+--482252--     old: 0x04028ace (strlen              ) R-> (0000.0) 0x5823a86e vgPlain_amd64_linux_REDIR_FOR_strlen
+--482252--     new: 0x04028ace (strlen              ) R-> (2007.0) 0x04852040 strlen
+--482252-- REDIR: 0x40267fe (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4857900 (mempcpy)
+--482252-- Reading syms from /usr/local/src/C-Menu/src/libcm.so
+--482252-- Reading syms from /usr/lib64/libncursesw.so.6.6
+--482252-- Reading syms from /usr/lib64/libtinfo.so.6.6
+--482252-- Reading syms from /usr/lib64/libm.so.6
+--482252-- Reading syms from /usr/lib64/libc.so.6
+--482252--   Considering /usr/lib/debug/.build-id/18/77ff923c3d7eea4bc6aacc6c37c1bd67bb166d.debug ..
+--482252--   .. build-id is valid
+--482252-- REDIR: 0x4028c7e (ld-linux-x86-64.so.2:strncmp) redirected to 0x4852b20 (strncmp)
+==482252== Downloading debug info for /usr/libexec/valgrind/vgpreload_core-amd64-linux.so...
+--482252--   Considering /home/bill/.cache/debuginfod_client/2f08aad92c15984df8288a43cb64ad784c185367/debuginfo ..
+--482252--   .. CRC is valid
+==482252== Successfully downloaded debug file for /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
+--482252-- REDIR: 0x4ad55de (libc.so.6:strnlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad566e (libc.so.6:strpbrk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad338e (libc.so.6:strcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4aeafce (libc.so.6:wcsnlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad233e (libc.so.6:memset) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4aea5ee (libc.so.6:wcslen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4b4dc8e (libc.so.6:__memcpy_chk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad22ae (libc.so.6:memrchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4aeaf4e (libc.so.6:wcsncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad17be (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ae930e (libc.so.6:wcschr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad326e (libc.so.6:index) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad56ae (libc.so.6:rindex) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ae93ce (libc.so.6:wcscmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad25de (libc.so.6:stpncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4af6a8e (libc.so.6:wmemchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad545e (libc.so.6:strncmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad264e (libc.so.6:strcasecmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad459e (libc.so.6:strcspn) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4aea38e (libc.so.6:wcscpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad31ee (libc.so.6:strcat) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad533e (libc.so.6:strncasecmp_l) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad32fe (libc.so.6:strchrnul) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad16ae (libc.so.6:bcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad451e (libc.so.6:strcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad26fe (libc.so.6:strcasecmp_l) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad51fe (libc.so.6:strlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad550e (libc.so.6:strncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4af6b1e (libc.so.6:wmemcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4b4ddae (libc.so.6:__memmove_chk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+==482252== WARNING: new redirection conflicts with existing -- ignoring it
+--482252--     old: 0x04ad928e (__memcpy_chk_sse2_un) R-> (2030.0) 0x04857a00 __memcpy_chk
+--482252--     new: 0x04ad928e (__memcpy_chk_sse2_un) R-> (2024.0) 0x04857320 __memmove_chk
+--482252-- REDIR: 0x4ad255e (libc.so.6:stpcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad206e (libc.so.6:memmove) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad161e (libc.so.6:memchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad58de (libc.so.6:strspn) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ae8ede (libc.so.6:wcpncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad218e (libc.so.6:mempcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad528e (libc.so.6:strncasecmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ad617e (libc.so.6:strstr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--482252-- REDIR: 0x4ae646e (libc.so.6:__strrchr_sse2) redirected to 0x4851820 (__strrchr_sse2)
+--482252-- REDIR: 0x4ace7ae (libc.so.6:calloc) redirected to 0x484fc10 (calloc)
+--482252-- REDIR: 0x4bb5c3e (libc.so.6:__strcmp_sse42) redirected to 0x4853270 (__strcmp_sse42)
+--482252-- REDIR: 0x4ae050e (libc.so.6:__strlen_sse2) redirected to 0x4851f80 (__strlen_sse2)
+--482252-- REDIR: 0x4bb864e (libc.so.6:__strncmp_sse42) redirected to 0x4852a60 (__strncmp_sse42)
+--482252-- REDIR: 0x4ade24e (libc.so.6:__strchr_sse2) redirected to 0x48519a0 (__strchr_sse2)
+--482252-- REDIR: 0x4ad891e (libc.so.6:__memchr_sse2) redirected to 0x4853330 (memchr)
+--482252-- REDIR: 0x4ade48e (libc.so.6:__strchrnul_sse2) redirected to 0x48573c0 (strchrnul)
+--482252-- REDIR: 0x4acd74e (libc.so.6:malloc) redirected to 0x4848750 (malloc)
+--482252-- REDIR: 0x4ad926e (libc.so.6:__mempcpy_sse2_unaligned) redirected to 0x4857500 (mempcpy)
+--482252-- REDIR: 0x4ad92ae (libc.so.6:memcpy@GLIBC_2.2.5) redirected to 0x48533e0 (memcpy@GLIBC_2.2.5)
+--482252-- REDIR: 0x4acdd5e (libc.so.6:free) redirected to 0x484b720 (free)
+--482252-- REDIR: 0x4ace12e (libc.so.6:realloc) redirected to 0x484fe70 (realloc)
+--482252-- REDIR: 0x4bb43ee (libc.so.6:__strcasecmp_l_sse42) redirected to 0x4852dc0 (strcasecmp_l)
+--482252-- REDIR: 0x4ad928e (libc.so.6:__memcpy_chk_sse2_unaligned) redirected to 0x4857a00 (__memcpy_chk)
+--482252-- REDIR: 0x4ada0fe (libc.so.6:__stpcpy_sse2_unaligned) redirected to 0x4856030 (__stpcpy_sse2_unaligned)
+--482252-- REDIR: 0x4ae623e (libc.so.6:__strnlen_sse2) redirected to 0x4851ec0 (strnlen)
+--482252-- REDIR: 0x4bb979e (libc.so.6:__strspn_sse42) redirected to 0x4857d30 (strspn)
+--482252-- REDIR: 0x4bb6a0e (libc.so.6:__strcspn_sse42) redirected to 0x4857c30 (strcspn)
+==482252== Downloading debug info for /usr/lib64/libtinfo.so.6.6...
+--482252--   Considering /home/bill/.cache/debuginfod_client/92d8a9a557cffd7cc2dd051843e79c8b756d1d6b/debuginfo ..
+--482252--   .. CRC is valid
+==482252== Successfully downloaded debug file for /usr/lib64/libtinfo.so.6.6
+==482252== Downloading debug info for /usr/lib64/libncursesw.so.6.6...
+--482252--   Considering /home/bill/.cache/debuginfod_client/3756bdeadce580f5c48116750d5e7b484ab5b0bc/debuginfo ..
+--482252--   .. CRC is valid
+==482252== Successfully downloaded debug file for /usr/lib64/libncursesw.so.6.6
+--482252-- REDIR: 0x4ad518e (libc.so.6:strlcpy) redirected to 0x4852800 (strlcpy)
+--482252-- REDIR: 0x4ad9c8e (libc.so.6:__memset_sse2_unaligned_erms) redirected to 0x48564c0 (memset)
+--482252-- REDIR: 0x4ae671e (libc.so.6:__strstr_sse2_unaligned) redirected to 0x4857a70 (strstr)
+--482252-- REDIR: 0x4bb9c0e (libc.so.6:__wcslen_sse4_1) redirected to 0x4857e70 (wcslen)
+--482252-- WARNING: Serious problem when reading debug info from /tmp/view_Qr1aF3 (deleted):
+--482252-- WARNING: Valgrind will continue to execute but error messages may be degraded.
+--482252-- failed to stat64/stat this file
+==482252== 
+==482252== HEAP SUMMARY:
+==482252==     in use at exit: 7,334 bytes in 8 blocks
+==482252==   total heap usage: 1,537 allocs, 1,529 frees, 8,034,498 bytes allocated
+==482252== 
+==482252== Searching for pointers to 8 not-freed blocks
+==482252== Checked 207,880 bytes
+==482252== 
+==482252== 11 bytes in 1 blocks are still reachable in loss record 1 of 8
+==482252==    at 0x48487C4: malloc (vg_replace_malloc.c:447)
+==482252==    by 0x4AD45FD: strdup (strdup.c:42)
+==482252==    by 0x48F4027: update_getenv (db_iterator.c:131)
+==482252==    by 0x48F7356: cache_getenv (db_iterator.c:158)
+==482252==    by 0x48F7356: _nc_first_db (db_iterator.c:331)
+==482252==    by 0x48F7356: _nc_first_db (db_iterator.c:285)
+==482252==    by 0x49078FC: _nc_read_entry2 (read_entry.c:897)
+==482252==    by 0x490079F: _nc_setup_tinfo (lib_setup.c:674)
+==482252==    by 0x490094E: _nc_setupterm (lib_setup.c:972)
+==482252==    by 0x48C1931: newterm_sp (lib_newterm.c:212)
+==482252==    by 0x48C320F: newterm (lib_newterm.c:370)
+==482252==    by 0x48664E7: open_curses (dwin.c:451)
+==482252==    by 0x422EB6: main (menu.c:53)
+==482252== 
+==482252== 20 bytes in 1 blocks are still reachable in loss record 2 of 8
+==482252==    at 0x48487C4: malloc (vg_replace_malloc.c:447)
+==482252==    by 0x4AD45FD: strdup (strdup.c:42)
+==482252==    by 0x48F4027: update_getenv (db_iterator.c:131)
+==482252==    by 0x48F7328: cache_getenv (db_iterator.c:158)
+==482252==    by 0x48F7328: _nc_first_db (db_iterator.c:329)
+==482252==    by 0x48F7328: _nc_first_db (db_iterator.c:285)
+==482252==    by 0x49078FC: _nc_read_entry2 (read_entry.c:897)
+==482252==    by 0x490079F: _nc_setup_tinfo (lib_setup.c:674)
+==482252==    by 0x490094E: _nc_setupterm (lib_setup.c:972)
+==482252==    by 0x48C1931: newterm_sp (lib_newterm.c:212)
+==482252==    by 0x48C320F: newterm (lib_newterm.c:370)
+==482252==    by 0x48664E7: open_curses (dwin.c:451)
+==482252==    by 0x422EB6: main (menu.c:53)
+==482252== 
+==482252== 48 bytes in 1 blocks are still reachable in loss record 3 of 8
+==482252==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
+==482252==    by 0x48F6F23: _nc_first_db (db_iterator.c:367)
+==482252==    by 0x48F6F23: _nc_first_db (db_iterator.c:285)
+==482252==    by 0x49078FC: _nc_read_entry2 (read_entry.c:897)
+==482252==    by 0x490079F: _nc_setup_tinfo (lib_setup.c:674)
+==482252==    by 0x490094E: _nc_setupterm (lib_setup.c:972)
+==482252==    by 0x48C1931: newterm_sp (lib_newterm.c:212)
+==482252==    by 0x48C320F: newterm (lib_newterm.c:370)
+==482252==    by 0x48664E7: open_curses (dwin.c:451)
+==482252==    by 0x422EB6: main (menu.c:53)
+==482252== 
+==482252== 103 bytes in 1 blocks are still reachable in loss record 4 of 8
+==482252==    at 0x48487C4: malloc (vg_replace_malloc.c:447)
+==482252==    by 0x48F6E68: _nc_first_db (db_iterator.c:352)
+==482252==    by 0x48F6E68: _nc_first_db (db_iterator.c:285)
+==482252==    by 0x49078FC: _nc_read_entry2 (read_entry.c:897)
+==482252==    by 0x490079F: _nc_setup_tinfo (lib_setup.c:674)
+==482252==    by 0x490094E: _nc_setupterm (lib_setup.c:972)
+==482252==    by 0x48C1931: newterm_sp (lib_newterm.c:212)
+==482252==    by 0x48C320F: newterm (lib_newterm.c:370)
+==482252==    by 0x48664E7: open_curses (dwin.c:451)
+==482252==    by 0x422EB6: main (menu.c:53)
+==482252== 
+==482252== 512 bytes in 1 blocks are still reachable in loss record 5 of 8
+==482252==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
+==482252==    by 0x48F740A: _nc_acs_map (lib_acs.c:51)
+==482252==    by 0x48FE9B1: _nc_init_acs_sp (lib_acs.c:83)
+==482252==    by 0x48C1E92: _nc_setupscreen_sp (lib_set_term.c:640)
+==482252==    by 0x48C1E92: newterm_sp (lib_newterm.c:234)
+==482252==    by 0x48C320F: newterm (lib_newterm.c:370)
+==482252==    by 0x48664E7: open_curses (dwin.c:451)
+==482252==    by 0x422EB6: main (menu.c:53)
+==482252== 
+==482252== 520 bytes in 1 blocks are still reachable in loss record 6 of 8
+==482252==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
+==482252==    by 0x415683: new_init (mem.c:77)
+==482252==    by 0x422E80: main (menu.c:50)
+==482252== 
+==482252== 600 bytes in 1 blocks are still reachable in loss record 7 of 8
+==482252==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
+==482252==    by 0x4157CE: new_init (mem.c:92)
+==482252==    by 0x422E80: main (menu.c:50)
+==482252== 
+==482252== 5,520 bytes in 1 blocks are still reachable in loss record 8 of 8
+==482252==    at 0x484FCBF: calloc (vg_replace_malloc.c:1678)
+==482252==    by 0x415650: new_init (mem.c:72)
+==482252==    by 0x422E80: main (menu.c:50)
+==482252== 
+==482252== LEAK SUMMARY:
+==482252==    definitely lost: 0 bytes in 0 blocks
+==482252==    indirectly lost: 0 bytes in 0 blocks
+==482252==      possibly lost: 0 bytes in 0 blocks
+==482252==    still reachable: 7,334 bytes in 8 blocks
+==482252==         suppressed: 0 bytes in 0 blocks
+==482252== 
+==482252== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

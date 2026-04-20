@@ -309,6 +309,7 @@ int pick_engine(Init *init) {
     int maxy, maxx, win_maxy, win_maxx;
     int tbl_max_cols, pg_max_objs;
     /** Initialize key command strings for chyron display */
+    field[0] = '\0';
 
     getmaxyx(stdscr, maxy, maxx);
     /** Calculate pick window size and position based on terminal size and pick
