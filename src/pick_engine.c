@@ -447,8 +447,8 @@ int picker(Init *init) {
     // wchar_t wstr[2] = {BW_RA, L'\0'};
     // wchar_t wstr[2] = {L'\x2B95', L'\0'};
     // wchar_t wstr[2] = {L'\x0203A', L'\0'};
-    // wchar_t wstr[2] = {L'\x0276F', L'\0'};
-    wchar_t wstr[2] = {L'\x108FC', L'\0'};
+    // wchar_t wstr[2] = {L'\x108FC', L'\0'};
+    wchar_t wstr[2] = {L'\x0276F', L'\0'};
     setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
     mvwadd_wch(pick->win2, 0, 0, &cc);
     wrefresh(pick->win2);
