@@ -28,8 +28,9 @@ The image below shows how pick works with the lf file finder to select files in
 a directory. The screen on the left is the first to appear, and it shows the
 output of lf. In the bottom window, the user can refine the list of files by
 entering a search expression, and as the user types each character, Pick updates
-the list of files in real time. When the user finds the desired file, they can
-move the highlighted bar to the file and press enter. Pick is fun to use and is lightning fast, even with huge lists of objects. Pick is a great way to navigate and select files, processes, network connections, and other objects in your applications.
+the list of files in real time. When you find the file you want, you can select
+it with the mouse, or use the arrow keys to move the highlighted bar to the file
+and press space bar to select it. Pick is fun to use and it's lightning fast, even with huge lists of objects. Pick is a great way to navigate and select files, users, network connections, and other objects in your applications.
 
 ![Pick](screenshots/New-Picker.png)
 **_View_** - A pager for viewing files. View has Unicode support, line numbering, regular expression searching, and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. View doesn't alter the file you are viewing. It uses the highlighter in a pipe, and reads the output, so the original file is never changed. And, if you happen to have a file that has been highlighted by another application, view can strip the ANSI codes for convenient editing. View is lightning fast, especially with huge log files.
