@@ -46,6 +46,7 @@ void abend(int, char *);
 int nf_error(int, char *);
 int click_y;
 int click_x;
+WINDOW *mouse_win;
 void list_colors();
 int clr_name_to_idx(char *);
 void init_hex_clr(int, char *);
@@ -95,16 +96,21 @@ char const colors_text[][10] = {
     "black",   "red",    "green", "yellow",   "blue",   "magenta", "cyan",
     "white",   "orange", "bg",    "abg",      "bblack", "bred",    "bgreen",
     "byellow", "bblue",  "bcyan", "bmagenta", "bwhite", "borange", ""};
-const wchar_t bw_ho = BW_HO;  /**< horizontal line */
-const wchar_t bw_ve = BW_VE;  /**< vertical line */
-const wchar_t bw_tl = BW_RTL; /**< top left corner */
-const wchar_t bw_tr = BW_RTR; /**< top right corner */
-const wchar_t bw_bl = BW_RBL; /**< bottom left corner */
-const wchar_t bw_br = BW_RBR; /**< bottom right corner */
-const wchar_t bw_lt = BW_LT;  /**< left tee */
-const wchar_t bw_rt = BW_RT;  /**< right tee */
-const wchar_t bw_sp = BW_SP;  /**< tee space */
-const wchar_t bw_ra = BW_RA;  /**< right arrow */
+const wchar_t bw_ho = BW_HO;   /**< horizontal line */
+const wchar_t bw_ve = BW_VE;   /**< vertical line */
+const wchar_t bw_tl = BW_RTL;  /**< top left corner */
+const wchar_t bw_tr = BW_RTR;  /**< top right corner */
+const wchar_t bw_bl = BW_RBL;  /**< bottom left corner */
+const wchar_t bw_br = BW_RBR;  /**< bottom right corner */
+const wchar_t bw_lt = BW_LT;   /**< left tee */
+const wchar_t bw_rt = BW_RT;   /**< right tee */
+const wchar_t bw_sp = BW_SP;   /**< tee space */
+const wchar_t bw_ra = BW_RA;   /**< right arrow */
+const wchar_t bw_la = BW_LA;   /**< right arrow */
+const wchar_t bw_ua = BW_UA;   /**< right arrow */
+const wchar_t bw_da = BW_DA;   /**< right arrow */
+const wchar_t bw_ran = BW_RAN; /**< right angle */
+const wchar_t bw_lan = BW_LAN; /**< right angle */
 
 double GRAY_GAMMA =
     1.2; /**< Gamma correction value for gray colors. Set in .minitrc */
@@ -789,7 +795,6 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     if ((s + 4) < maxx)
         mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
     wnoutrefresh(win_box[win_ptr]);
-    mvwaddnwstr(win_box[win_ptr], wlines + 1, 1, &bw_ra, 1);
     win_win[win_ptr] = nullptr;
     win_win2[win_ptr] = nullptr;
     if (win_pair) {
@@ -1437,6 +1442,44 @@ void abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     exit(EXIT_FAILURE);
 }
+/** @brief Wait for a process to finish with a timeout and optional user
+   cancellation
+    @ingroup error_handling
+    @param pid Process ID to wait for
+    @param timeout Time in seconds to wait before timing out
+    @return true if the process finished, false if it timed out or was cancelled
+ */
+bool waitpid_with_timeout(pid_t pid, int timeout) {
+    int status;
+    int rc;
+    Chyron *wait_chyron;
+    WINDOW *wait_win;
+    int remaining = timeout;
+
+    usleep(100000); // Sleep for 200ms */
+    rc = waitpid(pid, &status, WNOHANG);
+    if (rc == pid)
+        return true;
+    if (rc == -1) {
+        ssnprintf(em0, MAXLEN - 1, "Error waiting for process %d", pid);
+        Perror(em0);
+        return false;
+    }
+    wait_chyron = wait_mk_chyron();
+    ssnprintf(em0, MAXLEN - 1, "Waiting for process %d to finish...", pid);
+    wait_win = wait_mk_win(wait_chyron, em0);
+    cmd_key = 0;
+    while (rc == 0 && remaining > 0 && cmd_key != KEY_F(9)) {
+        cmd_key = wait_continue(wait_win, wait_chyron, remaining);
+        if (cmd_key == KEY_F(9))
+            break;
+        remaining--;
+    }
+    wait_destroy(wait_chyron);
+    if (rc == pid)
+        return true;
+    return false;
+}
 /** @brief Wrapper for wgetch that handles signals, mouse events, checks for
    clicks on the chyron line, and accepts a sinigle character answer
     @ingroup window_support
@@ -1505,13 +1548,7 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
             }
             if (event.bstate & BUTTON1_CLICKED ||
                 event.bstate & BUTTON1_DOUBLE_CLICKED) {
-                if (!wenclose(win, event.y, event.x)) {
-                    c = 0;
-                    continue;
-                }
-                wmouse_trafo(win, &event.y, &event.x, false);
-                if (event.y < 0 || event.x < 0 || event.x >= getmaxx(win) ||
-                    event.y >= getmaxy(win)) {
+                if (wenclose(win, event.y, event.x)) {
                     c = 0;
                     continue;
                 }
@@ -1529,35 +1566,71 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
     restore_curses_tioctl();
     return c;
 }
+int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
+    int c;
+    MEVENT event;
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
+                  BUTTON5_PRESSED,
+              nullptr);
+    event.y = event.x = -1;
+    click_y = click_x = -1;
 
-bool waitpid_with_timeout(pid_t pid, int timeout) {
-    int status;
-    int rc;
-    Chyron *wait_chyron;
-    WINDOW *wait_win;
-    int remaining = timeout;
-
-    usleep(100000); // Sleep for 200ms */
-    rc = waitpid(pid, &status, WNOHANG);
-    if (rc == pid)
-        return true;
-    if (rc == -1) {
-        ssnprintf(em0, MAXLEN - 1, "Error waiting for process %d", pid);
-        Perror(em0);
-        return false;
-    }
-    wait_chyron = wait_mk_chyron();
-    ssnprintf(em0, MAXLEN - 1, "Waiting for process %d to finish...", pid);
-    wait_win = wait_mk_win(wait_chyron, em0);
-    cmd_key = 0;
-    while (rc == 0 && remaining > 0 && cmd_key != KEY_F(9)) {
-        cmd_key = wait_continue(wait_win, wait_chyron, remaining);
-        if (cmd_key == KEY_F(9))
+    if (n == -1) {
+        struct termios raw_tioctl;
+        raw_tioctl = curses_tioctl;
+        mk_raw_tioctl(&raw_tioctl);
+    } else if (n == 0)
+        halfdelay(1);
+    else
+        halfdelay(min(255, max(0, n * 10)));
+    tcflush(2, TCIFLUSH);
+    curs_set(1);
+    do {
+        c = wgetch(win);
+        if (sig_received != 0) {
+            if (handle_signal(sig_received))
+                c = display_error(em0, em1, em2, nullptr);
+            if (c == 'q' || c == 'Q' || c == KEY_F(9))
+                exit(EXIT_FAILURE);
+        }
+        if (n > 0 && c == ERR) {
+            c = 0;
             break;
-        remaining--;
-    }
-    wait_destroy(wait_chyron);
-    if (rc == pid)
-        return true;
-    return false;
+        }
+        if (c == ERR)
+            continue;
+        if (c == KEY_MOUSE) {
+            if (getmouse(&event) != OK) {
+                c = 0;
+                continue;
+            }
+            if (event.bstate & BUTTON4_PRESSED) {
+                curs_set(0);
+                return KEY_UP;
+            } else if (event.bstate & BUTTON5_PRESSED) {
+                curs_set(0);
+                return KEY_DOWN;
+            }
+            if (event.bstate & BUTTON1_CLICKED ||
+                event.bstate & BUTTON1_DOUBLE_CLICKED) {
+                mouse_win = nullptr;
+                if (wenclose(win, event.y, event.x))
+                    mouse_win = win;
+                if (win2 != nullptr && wenclose(win2, event.y, event.x))
+                    mouse_win = win2;
+                if (mouse_win == nullptr) {
+                    c = 0;
+                    break;
+                }
+                click_y = event.y;
+                click_x = event.x;
+                if (chyron && event.y == getmaxy(mouse_win) - 1)
+                    c = get_chyron_key(chyron, event.x);
+                break;
+            }
+        }
+    } while (c == ERR);
+    curs_set(0);
+    restore_curses_tioctl();
+    return c;
 }

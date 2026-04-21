@@ -254,9 +254,11 @@ typedef struct {
 } Chyron;
 
 extern int xwgetch(WINDOW *, Chyron *, int);
+extern int dxwgetch(WINDOW *, WINDOW *, Chyron *, int);
 
-extern int click_y; /**< the y coordinate of a mouse click */
-extern int click_x; /**< the x coordinate of a mouse click */
+extern int click_y;       /**< the y coordinate of a mouse click */
+extern int click_x;       /**< the x coordinate of a mouse click */
+extern WINDOW *mouse_win; /**< input from window n */
 
 extern Chyron *wait_mk_chyron();
 extern WINDOW *wait_mk_win(Chyron *, char *);
@@ -347,7 +349,6 @@ extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
-extern int line_editor(WINDOW *, WINDOW *, Chyron *, int, char *);
 
 extern cchar_t CCC_NORM;    /**< normal color pair complex character */
 extern cchar_t CCC_WIN;     /**< window color pair complex character */
@@ -449,10 +450,12 @@ extern cchar_t CCC_LN;      /* line number color pair complex character */
 #define BW_CR L'\x253C'  /**< cross */
 #define BW_BT L'\x2534'  /**< bottom tee */
 #define BW_SP L'\x20'    /**< space */
-#define BW_RA L'\x2B95'  /**< right arrow */
-#define BW_LA L'\x2B05'  /**< left arrow */
-#define BW_UA L'\x2B06'  /**< up arrow */
-#define BW_DA L'\x2B07'  /**< down arrow */
+#define BW_RA L'\x2192'  /**< large right arrow */
+#define BW_LA L'\x2190'  /**< large left arrow */
+#define BW_UA L'\x2191'  /**< large up arrow */
+#define BW_DA L'\x2193'  /**< large down arrow */
+#define BW_RAN L'\x276F' /**< right_angle */
+#define BW_LAN L'\x276E' /**< left_angle */
 
 /** The following are the actual wchar_t variables that will hold the box
     drawing characters. These correspond to the above Unicode code points. By
@@ -461,22 +464,24 @@ extern cchar_t CCC_LN;      /* line number color pair complex character */
     to indicate that they are box (wide) drawing characters, and they will be
     initialized with the corresponding Unicode characters defined above. */
 
-extern const wchar_t bw_ho; /**< horizontal line */
-extern const wchar_t bw_ve; /**< vertical line */
-extern const wchar_t bw_tl; /**< top left corner */
-extern const wchar_t bw_tr; /**< top right corner */
-extern const wchar_t bw_bl; /**< bottom left corner */
-extern const wchar_t bw_br; /**< bottom right corner */
-extern const wchar_t bw_lt; /**< left tee */
-extern const wchar_t bw_tt; /**< top tee */
-extern const wchar_t bw_rt; /**< right tee */
-extern const wchar_t bw_cr; /**< cross */
-extern const wchar_t bw_bt; /**< bottom tee */
-extern const wchar_t bw_ra; /**< right arrow */
-extern const wchar_t bw_la; /**< left arrow */
-extern const wchar_t bw_ua; /**< up arrow */
-extern const wchar_t bw_da; /**< down arrow */
-extern const wchar_t bw_sp; /**< tee space */
+extern const wchar_t bw_ho;  /**< horizontal line */
+extern const wchar_t bw_ve;  /**< vertical line */
+extern const wchar_t bw_tl;  /**< top left corner */
+extern const wchar_t bw_tr;  /**< top right corner */
+extern const wchar_t bw_bl;  /**< bottom left corner */
+extern const wchar_t bw_br;  /**< bottom right corner */
+extern const wchar_t bw_lt;  /**< left tee */
+extern const wchar_t bw_tt;  /**< top tee */
+extern const wchar_t bw_rt;  /**< right tee */
+extern const wchar_t bw_cr;  /**< cross */
+extern const wchar_t bw_bt;  /**< bottom tee */
+extern const wchar_t bw_sp;  /**< space */
+extern const wchar_t bw_ra;  /**< right arrow */
+extern const wchar_t bw_la;  /**< left arrow */
+extern const wchar_t bw_ua;  /**< up arrow */
+extern const wchar_t bw_da;  /**< down arrow */
+extern const wchar_t bw_ran; /**< right piointing angle */
+extern const wchar_t bw_lan; /**< left piointing angle */
 
 extern void write_cmenu_log_nt(char *);
 extern void write_cmenu_log(char *);
