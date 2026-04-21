@@ -455,6 +455,8 @@ int picker(Init *init) {
 
     while (1) {
         tcflush(tty_fd, TCIFLUSH);
+        pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+        pick->y = pick->tbl_line + pick->y_offset;
         f_no_reset_in_key = false;
         if (in_key == 0)
             in_key = xwgetch(pick->win, pick->chyron, -1);
@@ -653,26 +655,36 @@ int picker(Init *init) {
    asterisk. Updates the chyron with page information at the bottom of the pick
    window. */
 void display_page(Pick *pick) {
-    int y, col;
-    for (y = 0; y < pick->pg_lines; y++) {
-        wmove(pick->win, y, 0);
+    int col;
+    for (pick->y = 0; pick->y < pick->pg_lines; pick->y++) {
+        wmove(pick->win, pick->y, 0);
         wclrtoeol(pick->win);
     }
     pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols;
     for (col = 0; col < pick->tbl_cols; col++) {
         pick->x = col * (pick->tbl_col_width + 1) + 1;
-        y = 0;
-        while (pick->d_idx < pick->d_cnt && y < pick->pg_lines) {
+        pick->y = 0;
+        while (pick->d_idx < pick->d_cnt && pick->y < pick->pg_lines) {
             if (pick->f_selected[pick->d_idx])
-                mvwaddstr(pick->win, y, pick->x - 1, "*");
-            mvwaddstr_fill(pick->win, y++, pick->x,
+                mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
+            mvwaddstr_fill(pick->win, pick->y++, pick->x,
                            pick->d_object[pick->d_idx++], pick->tbl_col_width);
         }
     }
-    if (y < pick->pg_lines) {
-        pick->y_offset = pick->pg_lines - y;
+    if (pick->y < pick->pg_lines) {
+        pick->y_offset = pick->pg_lines - pick->y;
         wscrl(pick->win, -pick->y_offset);
     }
+    // if (pick->tbl_pages > 1) {
+    //     char page_info[20];
+    //     snprintf(page_info, sizeof(page_info), "Page %d/%d", pick->tbl_page +
+    //     1,
+    //              pick->tbl_pages);
+    //     display_chyron(pick->win2, pick->chyron, 11, page_info);
+    // }
+    // Add page information to chyron later, after we add a function to
+    // accomodate it
+    wrefresh(pick->win);
 }
 /** @brief Displays current page of objects in pick window
     @ingroup pick_engine
@@ -710,12 +722,10 @@ void reverse_object(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
         pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-    pick->tbl_line = pick->pg_lines - 1;
+    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+    pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                   pick->tbl_col * pick->pg_lines + pick->tbl_line;
-    pick->y = pick->pg_lines - 1;
-    // pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
-    // pick->y = pick->tbl_line + pick->y_offset;
     wmove(pick->win, pick->y, pick->x);
     wattron(pick->win, WA_REVERSE);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],

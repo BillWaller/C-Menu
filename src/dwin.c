@@ -796,7 +796,6 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         win_new(wlines - 1, wcols, wbegy, wbegx);
         win2_new(2, wcols, wbegy + wlines, wbegx);
     }
-    mvwaddnwstr(win_box[win_ptr], wlines + 1, 1, &bw_ra, 1);
     return 0;
 }
 /** @brief Create a new window with optional box and title
