@@ -483,10 +483,12 @@ void reverse_object(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
         pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
+
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                   pick->tbl_col * pick->pg_lines + pick->tbl_line;
+
     wmove(pick->win, pick->y, pick->x);
     wattron(pick->win, WA_REVERSE);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
@@ -506,8 +508,15 @@ void reverse_object(Pick *pick) {
    the cursor back to the position before the object text for potential further
    interactions. */
 void unreverse_object(Pick *pick) {
-
+    if (pick->d_idx >= pick->d_cnt)
+        pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
+
+    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+    pick->y = pick->tbl_line + pick->y_offset;
+    pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
+                  pick->tbl_col * pick->pg_lines + pick->tbl_line;
+
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width);
@@ -822,11 +831,23 @@ void display_pick_help(Init *init) {
     destroy_argv(eargc, eargv);
     return;
 }
-
+/** @brief Main loop for handling user input and interactions in the pick
+   interface
+   @ingroup pick_engine
+    @param init Pointer to Init structure containing pick information
+    @return Count of selected objects on success, -1 if user cancels
+    @note The first loop handles navigation through the pick table.
+    The second loop handles user input for selecting/deselecting objects,
+   accepting the selection, or canceling the selection. Depending on the key
+   pressed, the appropriate action is taken, such as toggling selection, moving
+   to the next/previous object, or displaying the help screen. If the user
+   accepts the selection, the count of selected objects is returned. If the user
+   cancels the selection, -1 is returned.
+    */
 int picker(Init *init) {
     MEVENT event;          /** Mouse event structure for handling mouse input */
     bool f_insert = false; /**< Flag to indicate if insert mode is active */
-    char field[MAXLEN];
+    char field[MAXLEN];    /**< Buffer for user input in the field */
     char filler_s[MAXLEN]; /**< buffer for filling the field with spaces */
     int line = 0;          /**< Starting line for field input */
     int col = 1;    /**< Starting column for field input leaving space for > */
@@ -855,7 +876,6 @@ int picker(Init *init) {
 
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     display_page(pick);
-    reverse_object(pick);
     f_insert = false;
     set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_reverse);
     compile_chyron(pick->chyron);
@@ -873,6 +893,7 @@ int picker(Init *init) {
                 Pick Objects Loop
                 ===============================================================
              */
+            reverse_object(pick);
             tcflush(tty_fd, TCIFLUSH);
             pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
             pick->y = pick->tbl_line + pick->y_offset;
@@ -1081,6 +1102,8 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
             }
+            unreverse_object(pick);
+            in_key = 0;
             break;
         }
         /** ===============================================================
@@ -1095,7 +1118,7 @@ int picker(Init *init) {
                     }
                     display_page(pick);
                 }
-                reverse_object(pick);
+                // reverse_object(pick);
                 wrefresh(win);
                 rtrim(accept_s);
                 s = &filler_s[0];
