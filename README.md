@@ -104,6 +104,9 @@ pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60
   file as an argument, and the output will be displayed in view with the
   specified options.
 
+Now, want to see something really cool? In the line editor window, try to type
+"text" or some other string that doesn't match any files.
+
 ---
 
 ## View - A pager for viewing files
