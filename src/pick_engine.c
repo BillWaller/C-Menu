@@ -1122,7 +1122,6 @@ int picker(Init *init) {
                     display_page(pick);
                 }
                 // reverse_object(pick);
-                wrefresh(win);
                 rtrim(accept_s);
                 s = &filler_s[0];
                 e = s + flen;
@@ -1133,6 +1132,8 @@ int picker(Init *init) {
                 mvwaddstr(win2, line, col, accept_s);
                 tcflush(0, TCIFLUSH);
                 wmove(win2, line, pos);
+                wrefresh(win);
+                wrefresh(win2);
                 in_key = dxwgetch(win, win2, pick->chyron, -1);
             }
 

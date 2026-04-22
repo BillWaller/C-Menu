@@ -799,8 +799,6 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     win_win2[win_ptr] = nullptr;
     if (win_pair) {
         win_new(wlines - 1, wcols, wbegy, wbegx);
-        wbkgrnd(win_box[win_ptr], &CCC_LN);
-        wbkgrndset(win_box[win_ptr], &CCC_LN);
         win2_new(2, wcols, wbegy + wlines, wbegx);
     }
     return 0;
