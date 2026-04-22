@@ -74,5 +74,5 @@ int main(int argc, char **argv) {
             view_file(init);
     } else if (!strcmp(pgm_name, "ckeys"))
         popup_ckeys();
-    end_pgm();
+    // end_pgm();
 }

@@ -1786,6 +1786,7 @@ int fmt_line(View *view) {
 void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
     char *tok;
     char t0, t1;
+    char tstr[3];
     int len, x_idx;
     int fg, bg;
     int fg_clr, bg_clr;
@@ -1833,11 +1834,15 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         bg_clr = CLR_BG;
                 } else if (t1 >= '0' && t1 <= '7') {
                     if (t0 == '3') {
-                        x_idx = a_toi(&t1, &a_toi_error);
+                        tstr[0] = t1;
+                        tstr[1] = '\0';
+                        x_idx = a_toi(tstr, &a_toi_error);
                         rgb = xterm256_idx_to_rgb(x_idx);
                         fg_clr = rgb_to_curses_clr(&rgb);
                     } else if (t0 == '4') {
-                        x_idx = a_toi(&t1, &a_toi_error);
+                        tstr[0] = t1;
+                        tstr[1] = '\0';
+                        x_idx = a_toi(tstr, &a_toi_error);
                         rgb = xterm256_idx_to_rgb(x_idx);
                         bg_clr = rgb_to_curses_clr(&rgb);
                     }
@@ -1995,6 +2000,9 @@ void view_restore_wins() {
    hold file_spec without overflowing
  */
 bool enter_file_spec(Init *init, char *file_spec) {
+    char earg_str[MAXLEN];
+    char *eargv[MAXARGS];
+    int eargc;
     char tmp_dir[MAXLEN];
     char tmp_str[MAXLEN];
     char tmp_spec[MAXLEN];

@@ -65,8 +65,8 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     int m;
     pid_t pid = 0;
 
-    if (init->pick != nullptr)
-        destroy_pick(init);
+    // if (init->pick != nullptr)
+    // destroy_pick(init);
     Pick *pick = new_pick(init, argc, argv, begy, begx);
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
@@ -104,7 +104,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         /** Open a file pointer on read end of pipe */
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
         pick->f_in_pipe = true;
-        destroy_argv(s_argc, s_argv);
+        s_argc = destroy_argv(s_argc, s_argv);
     } else {
         if ((pick->in_spec[0] == '\0') || strcmp(pick->in_spec, "-") == 0 ||
             strcmp(pick->in_spec, "/dev/stdin") == 0) {
@@ -150,7 +150,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     int remaining;
     if (pick->in_fp == nullptr) {
         Perror("No pick input available");
-        destroy_pick(init);
+        // destroy_pick(init);
         return (1);
     }
     int in_fd = fileno(pick->in_fp);
@@ -191,7 +191,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             close(pipe_fd[P_READ]);
         }
         Perror("No pick input available");
-        destroy_pick(init);
+        // destroy_pick(init);
         return (1);
     }
     if (ready == -1) {
@@ -203,7 +203,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             waitpid(pid, nullptr, 0);
             close(pipe_fd[P_READ]);
         }
-        destroy_pick(init);
+        // destroy_pick(init);
         return (1);
     }
     if (ready == 0) {
@@ -215,7 +215,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             waitpid(pid, nullptr, 0);
             close(pipe_fd[P_READ]);
         }
-        destroy_pick(init);
+        // destroy_pick(init);
         return (1);
     }
     if (ready == 1 && !FD_ISSET(in_fd, &read_fds)) {
@@ -227,7 +227,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             waitpid(pid, nullptr, 0);
             close(pipe_fd[P_READ]);
         }
-        destroy_pick(init);
+        // destroy_pick(init);
         return (1);
     }
     /*------------------------------------------------------------*/
@@ -245,7 +245,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (pick->m_cnt == 0) {
         Perror("No pick objects available");
-        destroy_pick(init);
+        // destroy_pick(init);
         return (1);
     }
     /** Enter pick_engine */
@@ -256,7 +256,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     pick->d_cnt = pick->d_idx;
     pick_engine(init);
     win_del();
-    destroy_pick(init);
+    // destroy_pick(init);
     return 0;
 }
 /** @brief Reads pick input from file pointer and saves objects into pick
@@ -753,7 +753,6 @@ int exec_objects(Init *init) {
             execvp(eargv[0], eargv);
             /** If execvp returns, it means execution failed, so free eargv
                and print error message before exiting */
-            destroy_argv(eargc, eargv);
             strnz__cpy(tmp_str, "Can't exec pick cmd: ", MAXLEN - 1);
             strnz__cat(tmp_str, eargv[0], MAXLEN - 1);
             Perror(tmp_str);
@@ -764,7 +763,7 @@ int exec_objects(Init *init) {
     // action_disposition("Notification", "Command executed");
     waitpid(pid, nullptr, 0);
     // win_del();
-    destroy_argv(eargc, eargv);
+    eargc = destroy_argv(eargc, eargv);
     restore_curses_tioctl();
     sig_prog_mode();
     werase(stdscr);
@@ -807,8 +806,9 @@ int open_pick_win(Init *init) {
    executing popup_view with the help file as an argument. Finally, calls
    popup_view function to display the help screen within the pick interface. */
 void display_pick_help(Init *init) {
+    int eargc;
+    char *eargv[MAXARGS];
     char tmp_str[MAXLEN];
-    eargc = 0;
     if (pick->f_help_spec && pick->help_spec[0] != '\0')
         strnz__cpy(tmp_str, pick->help_spec, MAXLEN - 1);
     else {
@@ -816,10 +816,11 @@ void display_pick_help(Init *init) {
         strnz__cat(tmp_str, "/", MAXLEN - 1);
         strnz__cat(tmp_str, PICK_HELP_FILE, MAXLEN - 1);
     }
+    eargc = 0;
     eargv[eargc++] = strdup("view");
     eargv[eargc++] = strdup("-Nf");
     eargv[eargc++] = strdup(tmp_str);
-    eargv[eargc] = nullptr;
+    eargv[eargc] = NULL;
     init->lines = 30;
     init->cols = 76;
     init->begy = pick->begy + 1;
@@ -827,7 +828,7 @@ void display_pick_help(Init *init) {
     strnz__cpy(init->title, "Pick Help", MAXLEN - 1);
     popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                init->begx);
-    destroy_argv(eargc, eargv);
+    eargc = destroy_argv(eargc, eargv);
     return;
 }
 /** @brief Main loop for handling user input and interactions in the pick
@@ -873,6 +874,7 @@ int picker(Init *init) {
     click_y = click_x = -1;
 
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
+
     display_page(pick);
     f_insert = false;
     set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_reverse);
@@ -904,7 +906,15 @@ int picker(Init *init) {
             case KEY_F(1):
                 display_pick_help(init);
                 display_page(pick);
-                reverse_object(pick);
+                f_insert = false;
+                set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_reverse);
+                compile_chyron(pick->chyron);
+                display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
+                cchar_t cc = {0};
+                wchar_t wstr[2] = {BW_RAN, L'\0'};
+                setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
+                mvwadd_wch(pick->win2, 0, 0, &cc);
+                wrefresh(pick->win2);
                 in_key = 0;
                 continue;
 
@@ -946,7 +956,6 @@ int picker(Init *init) {
                 pick->y = pick->tbl_line;
                 if (display_tbl_page != pick->tbl_page)
                     display_page(pick);
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -966,7 +975,6 @@ int picker(Init *init) {
                     pick->tbl_col--;
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_col * pick->pg_lines + pick->tbl_line;
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -984,7 +992,6 @@ int picker(Init *init) {
                     pick->tbl_line++;
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_col * pick->pg_lines + pick->tbl_line;
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -998,7 +1005,6 @@ int picker(Init *init) {
                     pick->tbl_line--;
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_col * pick->pg_lines + pick->tbl_line;
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1017,7 +1023,6 @@ int picker(Init *init) {
                     pick->tbl_col++;
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_col * pick->pg_lines + pick->tbl_line;
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1035,7 +1040,6 @@ int picker(Init *init) {
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_page(pick);
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1050,7 +1054,6 @@ int picker(Init *init) {
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_page(pick);
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1062,7 +1065,6 @@ int picker(Init *init) {
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_page(pick);
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1073,7 +1075,6 @@ int picker(Init *init) {
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_page(pick);
-                reverse_object(pick);
                 in_key = 0;
                 continue;
 

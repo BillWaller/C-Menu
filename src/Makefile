@@ -213,10 +213,15 @@ test: snippets/strings_test1.c
 # Any remaining output after applying suppressions indicates a real leak.
 # See docs/valgrind.md for full details.
 valgrind: menu
-	valgrind --leak-check=full --show-leak-kinds=all \
-		--leak-resolution=high --track-origins=yes \
+	valgrind -v \
+    	--log-file=valgrind.out \
+		--leak-check=full \
+		--show-leak-kinds=all \
+		--leak-resolution=high \
+		--track-origins=yes \
 		--suppressions=valgrind.supp \
 		./menu
+# --tool=memcheck
 
 install:
 	./inst.sh --

@@ -159,8 +159,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             case 'l':
                 lf->flags |= FT_LNK << 8;
                 break;
-            case 'f':
-            case 'r':
+            case 'f': // for regular files, 'f' is more intuitive than 'r'
+            case 'r': // regular files are the most common type, so 'r' is also
+                      // accepted
                 lf->flags |= FT_REG << 8;
                 break;
             case 's':

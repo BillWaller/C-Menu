@@ -558,15 +558,6 @@ extern int
 #define to_lowercase(c)                                                        \
     if (c >= 'A' && c <= 'Z')                                                  \
     c += ' '
-extern int eargc; /**< general use argument count, for external commands or
-                     error messages */
-/** earg - general use argument string */
-extern char earg_str[MAXLEN]; /**< general use argument string, for external
-                                 commands or error messages */
-/** eargv - argument vector for external commands, or error messages */
-extern char *eargv[MAXARGS];
-/** tty_fd - the file descriptor for the terminal, for error messages and other
- */
 extern int tty_fd; /**< the file descriptor for the terminal, for error messages
                       and other output */
 extern int
@@ -721,7 +712,7 @@ extern size_t strip_ansi(char *, char *);
 extern bool strip_quotes(char *);
 extern bool stripz_quotes(char *);
 extern int str_to_args(char **, char *, int);
-extern void destroy_argv(int argc, char **argv);
+extern int destroy_argv(int argc, char **argv);
 extern bool str_to_bool(const char *);
 extern bool str_to_lower(char *);
 extern bool str_to_upper(char *);

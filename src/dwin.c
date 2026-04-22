@@ -1619,20 +1619,23 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
             }
             if (event.bstate & BUTTON1_CLICKED ||
                 event.bstate & BUTTON1_DOUBLE_CLICKED) {
+                // Check if the click is in win or win2, and set mouse_win
+                // accordingly
+                // don't free mouse_win, since it is borrowed
                 mouse_win = nullptr;
                 if (wenclose(win, event.y, event.x)) {
                     if (wmouse_trafo(win, &event.y, &event.x, false))
                         mouse_win = win;
-                }
-                if (win2 != nullptr && wenclose(win2, event.y, event.x) &&
-                    wmouse_trafo(win2, &event.y, &event.x, false))
+                } else if (win2 != nullptr &&
+                           wenclose(win2, event.y, event.x) &&
+                           wmouse_trafo(win2, &event.y, &event.x, false))
                     mouse_win = win2;
+                click_y = event.y;
+                click_x = event.x;
                 if (mouse_win == nullptr) {
                     c = 0;
                     break;
                 }
-                click_y = event.y;
-                click_x = event.x;
                 if (chyron && event.y == getmaxy(mouse_win) - 1)
                     c = get_chyron_key(chyron, event.x);
                 break;

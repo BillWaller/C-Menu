@@ -1,3 +1,30 @@
+/** @file popups.c
+    @brief functions to create popup windows
+    @author Bill Waller
+    @date 2026-03
+    @details This file contains functions to create popup windows for menu,
+   form, pick, and view. The functions in this file are called by the main
+   function in main.c when the user selects a menu option that requires a popup
+   window. The functions in this file also handle command line arguments that
+   may be passed to the popup windows, such as the number of lines and columns
+   for the view window, and the y and x coordinates for the popup windows. The
+   functions in this file also save the current state of the popup windows
+   before creating a new one, and restore the state after the popup window is
+   closed. The functions in this file also call the appropriate functions to
+   initialize and destroy the popup windows, and to handle the user input for
+   the popup windows. The functions in this file also return the appropriate
+   return codes to the main function in main.c, which will determine how to
+   proceed based on the return codes. The functions in this file also handle any
+   errors that may occur during the creation and handling of the popup windows,
+   and will return appropriate error codes to the main function in main.c, which
+   will determine how to proceed based on the error codes. The functions in this
+   file also handle any cleanup that may be necessary after the popup windows
+   are closed, such as freeing memory and resetting variables. The functions in
+   this file also handle any necessary updates to the main window after the
+   popup windows are closed, such as refreshing the main window and updating any
+   relevant data.
+*/
+
 #include "common.h"
 
 int popup_menu(Init *, int, char **, int, int);
@@ -60,7 +87,6 @@ int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
     Pick *sav_pick = init->pick;
     init->pick = nullptr;
     pick = nullptr;
-    // new_pick(init, init->argc, init->argv, begy, begx);
     rc = init_pick(init, init->argc, init->argv, begy, begx);
     destroy_pick(init);
     init->pick = sav_pick;
@@ -126,10 +152,7 @@ int popup_view(Init *init, int argc, char **argv, int lines, int cols, int begy,
     View *sav_view = init->view;
     init->view = nullptr;
     view = nullptr;
-    if (!view)
-        view = new_view(init);
-    else
-        view = init->view;
+    view = new_view(init);
 
     if (init->lines > 0 && init->cols > 0) {
         lines = init->lines;

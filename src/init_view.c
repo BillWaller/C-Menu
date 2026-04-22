@@ -474,7 +474,7 @@ int view_init_input(View *view, char *file_name) {
             exit(EXIT_FAILURE);
         }
         // Back to parent
-        destroy_argv(s_argc, s_argv);
+        s_argc = destroy_argv(s_argc, s_argv);
         close(pipe_fd[P_WRITE]);
         dup2(pipe_fd[P_READ], STDIN_FILENO);
         view->in_fd = dup(STDIN_FILENO);

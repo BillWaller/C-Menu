@@ -125,7 +125,7 @@ Init *destroy_init(Init *init) {
         init->pick = destroy_pick(init);
         init->pick = nullptr;
     }
-    destroy_argv(init->argc, init->argv);
+    init->argc = destroy_argv(init->argc, init->argv);
     if (init->argv != nullptr)
         free(init->argv);
     if (init != nullptr) {
@@ -383,7 +383,7 @@ View *destroy_view(Init *init) {
         view->pad = nullptr;
     }
     delwin(view->pad);
-    destroy_argv(view->argc, view->argv);
+    view->argc = destroy_argv(view->argc, view->argv);
     free(view->argv);
     free(view);
     init->view = nullptr;

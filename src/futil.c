@@ -224,13 +224,15 @@ int str_to_args(char **argv, char *arg_str, int max_args) {
    allocated strings in argv, and that argv is not null. After calling this
    function, the pointers in argv will be set to nullptr to prevent dangling
    pointers. */
-void destroy_argv(int argc, char **argv) {
+int destroy_argv(int argc, char **argv) {
     for (int i = 0; i < argc; i++) {
         if (argv[i] != nullptr) {
             free(argv[i]);
             argv[i] = nullptr;
         }
     }
+    argc = 0;
+    return argc;
 }
 /** @brief Converts a string to lowercase.
     @ingroup utility_functions

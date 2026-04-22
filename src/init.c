@@ -297,7 +297,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case ARGP_KEY_ARG:
         if (state->arg_num >= 5)
             argp_usage(state);
-        init->argv[state->arg_num] = arg;
+        init->argv[state->arg_num] = strdup(arg);
         break;
     case ARGP_KEY_END:
         init->argc = state->arg_num;
@@ -400,7 +400,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
 }
 
 int parse_opt_args(Init *init, int argc, char **argv) {
-    init->argc = 0;
+    init->argc = destroy_argv(init->argc, init->argv);
     argp_parse(&argp, argc, argv, 0, 0, init);
     return 0;
 }

@@ -116,6 +116,7 @@ int form_engine(Init *init) {
     int form_action;
     int rc = 0;
     char *eargv[MAXARGS];
+    int eargc;
 
     form = init->form;
     if (form == nullptr) {
@@ -173,7 +174,7 @@ int form_engine(Init *init) {
             strnz__cpy(init->title, "Form Help", MAXLEN - 1);
             popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                        init->begx);
-            destroy_argv(eargc, eargv);
+            eargc = destroy_argv(eargc, eargv);
             form_action = P_CONTINUE;
             break;
         case P_CANCEL:
@@ -280,6 +281,7 @@ int form_process(Init *init) {
     char tmp_str[MAXLEN];
     char earg_str[MAXLEN + 1];
     char *eargv[MAXARGS];
+    int eargc;
     char file_spec[MAXLEN];
     bool loop = true;
     pid_t pid;
@@ -323,12 +325,12 @@ int form_process(Init *init) {
                 strnz__cpy(file_spec, eargv[0], MAXLEN - 1);
                 base_name(eargv[0], file_spec);
                 if (pipe(pipe_fd) == -1) {
-                    destroy_argv(eargc, eargv);
+                    eargc = destroy_argv(eargc, eargv);
                     Perror("pipe(pipe_fd) failed in init_form");
                     return (1);
                 }
                 if ((pid = fork()) == -1) {
-                    destroy_argv(eargc, eargv);
+                    eargc = destroy_argv(eargc, eargv);
                     Perror("fork() failed in init_form");
                     return (1);
                 }
@@ -354,7 +356,7 @@ int form_process(Init *init) {
                 form_read_data(form);
                 close(pipe_fd[P_READ]);
                 waitpid_with_timeout(pid, wait_timeout);
-                destroy_argv(eargc, eargv);
+                eargc = destroy_argv(eargc, eargv);
                 form_display_fields(form);
                 set_chyron_key(form->chyron, 8, "F5 Edit", KEY_F(5));
                 set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
