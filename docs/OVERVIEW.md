@@ -189,7 +189,7 @@ plugin that provides LSP functionality, such as nvim-lspconfig.
 
 Cast some light on dull information with C-Menu's vibrant colorization features. With support for 24-bit true color ANSI and HTML-style six-digit hex color codes, you can customize your interface to suit your preferences. Whether you want to highlight important information or simply make your terminal more visually appealing, C-Menu has the tools you need.
 
-### Just Do It!
+### Just Do It
 
 C-Menu is more than just a tool; it's a gateway to a more efficient
 and enjoyable computing experience. Whether you're a developer looking
@@ -662,7 +662,7 @@ and robust tool for listing files based on regular expressions.
 
 lf is very fast compared to find. In some instances, it can be up to 50 times faster than find, especially when searching for files in large directories or when using complex regular expressions. The performance difference is due to lf's optimized algorithms and streamlined codebase, which minimizes overhead and maximizes efficiency.
 
-![**_NEW_** Performance: lf vs find](../screenshots/lf-vs-find2.png)
+![**_NEW_** Performance: lf vs find](../screenshots/lf-vs-find.png)
 
 ---
 

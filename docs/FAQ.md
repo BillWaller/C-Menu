@@ -50,9 +50,9 @@ lf -a -t f | xargs ls -l
 
 And, you will find the performance of lf is spectacular compared to find.
 
-![lf vs find performance](../screenshots/lf-vs-find5.png)
+![lf vs find performance](../screenshots/lf-vs-find.png)
 
-## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.
+## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc
 
 Q: Why don't you have drop-down and pop-up menus, forms, pickers, views, ckeys, etc.?
 
