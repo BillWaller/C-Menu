@@ -88,9 +88,10 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     if (form->title[0] == '\0')
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
     rc = form_engine(init);
+    destroy_chyron(form->chyron);
     if (form->win)
         win_del();
-    destroy_chyron(form->chyron);
+    destroy_form(init);
     return rc;
 }
 /** @brief Form main processing loop
@@ -114,7 +115,6 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
 int form_engine(Init *init) {
     char tmp_str[MAXLEN];
     int form_action;
-    int rc = 0;
     char *eargv[MAXARGS];
     int eargc;
 
@@ -128,6 +128,12 @@ int form_engine(Init *init) {
 
     form_read_data(form);
     form_display_screen(init);
+    form->chyron = new_chyron();
+    set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
+    set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F(9));
+    set_chyron_key(form->chyron, 10, "F10 Continue", KEY_F(10));
+    compile_chyron(form->chyron);
+    display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
     form->fidx = 0;
     form_action = 0;
     while (1) {
@@ -149,10 +155,10 @@ int form_engine(Init *init) {
             break;
         case P_END:
             if (form->f_out_spec || form->out_spec[0] != '\0')
-                rc = form_write(form);
+                form_write(form);
             if (form->f_receiver_cmd || form->receiver_cmd[0] != '\0')
-                rc = form_exec_cmd(form);
-            return rc;
+                form_exec_cmd(form);
+            break;
         case P_HELP:
             if (form->f_help_spec && form->help_spec[0] != '\0')
                 strnz__cpy(tmp_str, form->help_spec, MAXLEN - 1);
@@ -183,6 +189,8 @@ int form_engine(Init *init) {
             form_action = P_CONTINUE;
             break;
         }
+        if (form_action == P_END)
+            break;
     }
     return 0;
 }
@@ -519,12 +527,6 @@ void form_display_fields(Form *form) {
         strnz(form->field[n]->display_s, form->field[n]->len);
         form_display_field_n(form, n);
     }
-    form->chyron = new_chyron();
-    set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
-    set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F(9));
-    set_chyron_key(form->chyron, 10, "F10 Continue", KEY_F(10));
-    compile_chyron(form->chyron);
-    display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
     return;
 }
 /** @brief Parse the form description file to populate the Form data structure

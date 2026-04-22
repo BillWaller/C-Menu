@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     pid_t pid;
 #ifdef RSH_SSH
     ssh_session _ssh_session = ssh_new();
-    if (_ssh_session == NULL)
+    if (_ssh_session == nullptr)
         exit(EXIT_FAILURE);
     // "$HOME"/.ssh/authorized_keys
     ssh_options_set(_ssh_session, SSH_OPTIONS_HOST, "localhost");

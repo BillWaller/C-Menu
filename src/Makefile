@@ -90,7 +90,7 @@ CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_IMMEDOK
 #	-DDEBUG_RESIZE -DDEBUG_IMMEDOK -DDEBUG_LOG \
 #	-fsanitize=address -fsanitize=leak -fno-omit-frame-pointer \
 #	-fno-sanitize-recover=all
-# LIBASANE=-lasan
+# LIBASAN=-lasan
 #
 # Uncomment the following line to enable coverage.
 # CFLAGS=--coverage -O0 -ggdb -rdynamic -DNCDEBUG

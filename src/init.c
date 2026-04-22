@@ -71,7 +71,7 @@ bool f_dump_config = false;
 int write_config(Init *init);
 void display_version();
 
-Init *init = NULL;
+Init *init = nullptr;
 void mapp_initialization(Init *, int, char **);
 void zero_opt_args(Init *);
 int parse_config(Init *);
@@ -301,7 +301,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case ARGP_KEY_END:
         init->argc = state->arg_num;
-        init->argv[state->arg_num + 1] = NULL;
+        init->argv[state->arg_num + 1] = nullptr;
         break;
     default:
         return ARGP_ERR_UNKNOWN;

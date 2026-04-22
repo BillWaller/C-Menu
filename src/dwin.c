@@ -774,7 +774,7 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     win_ptr++;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
-    win_box[win_ptr] = newwin(wlines + 5, wcols + 2, wbegy, wbegx);
+    win_box[win_ptr] = newwin(wlines + 4, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
         win_ptr--;
         return 1;
@@ -799,6 +799,8 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     win_win2[win_ptr] = nullptr;
     if (win_pair) {
         win_new(wlines - 1, wcols, wbegy, wbegx);
+        wbkgrnd(win_box[win_ptr], &CCC_LN);
+        wbkgrndset(win_box[win_ptr], &CCC_LN);
         win2_new(2, wcols, wbegy + wlines, wbegx);
     }
     return 0;
@@ -1063,7 +1065,7 @@ void cbox2(WINDOW *box) {
     waddnwstr(box, &bw_tr, 1);
     maxy = getmaxy(box);
     // Verticals
-    for (y = 1; y < maxy - 5; y++) {
+    for (y = 1; y < maxy - 4; y++) {
         mvwaddnwstr(box, y, 0, &bw_ve, 1);
         mvwaddnwstr(box, y, maxx, &bw_ve, 1);
     }

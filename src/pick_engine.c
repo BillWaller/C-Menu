@@ -820,7 +820,7 @@ void display_pick_help(Init *init) {
     eargv[eargc++] = strdup("view");
     eargv[eargc++] = strdup("-Nf");
     eargv[eargc++] = strdup(tmp_str);
-    eargv[eargc] = NULL;
+    eargv[eargc] = nullptr;
     init->lines = 30;
     init->cols = 76;
     init->begy = pick->begy + 1;
