@@ -817,8 +817,7 @@ void display_pick_help(Init *init) {
         strnz__cat(tmp_str, PICK_HELP_FILE, MAXLEN - 1);
     }
     eargv[eargc++] = strdup("view");
-    eargv[eargc++] = strdup("-N");
-    eargv[eargc++] = strdup("f");
+    eargv[eargc++] = strdup("-Nf");
     eargv[eargc++] = strdup(tmp_str);
     eargv[eargc] = nullptr;
     init->lines = 30;
@@ -845,7 +844,6 @@ void display_pick_help(Init *init) {
    cancels the selection, -1 is returned.
     */
 int picker(Init *init) {
-    MEVENT event;          /** Mouse event structure for handling mouse input */
     bool f_insert = false; /**< Flag to indicate if insert mode is active */
     char field[MAXLEN];    /**< Buffer for user input in the field */
     char filler_s[MAXLEN]; /**< buffer for filling the field with spaces */
@@ -1241,21 +1239,6 @@ int picker(Init *init) {
 
             /** Handles mouse events for field editing */
             case KEY_MOUSE:
-                if (getmouse(&event) == OK) {
-                    if (wenclose(win, event.y, event.x)) {
-                        if (wmouse_trafo(win, &event.y, &event.x, FALSE)) {
-                            click_y = event.y;
-                            click_x = event.x;
-                            return '\t';
-                        }
-                    } else if (wenclose(win2, event.y, event.x)) {
-                        if (wmouse_trafo(win2, &event.y, &event.x, FALSE)) {
-                            click_y = event.y;
-                            click_x = event.x;
-                            continue;
-                        }
-                    }
-                }
                 pos = click_x;
                 fstart = accept_s;
                 fend = fstart + flen;

@@ -2,6 +2,11 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-04-22
+
+A line editor has been added to the Pick Engine, which allows the user to enter
+a match string to filter the Pick objects. The user can toggle between the Pick window and the line editor by pressing the tab key.
+
 0.2.9 - 2026-04-15
 
 The -N option (line numbering) in view originally required an argument of true, false, yes, no, t, f, y, or n, but a user suggested that this was a little clumsy, and that it would be more intuitive if the -N option simply turned on line numbering when included, and turned it off when omitted. I agreed with this suggestion, and I have changed the behavior of the -N option accordingly. So, the -N option has been changed to be consistent with other boolean options. Line numbering will be turned on by specifying the -N option, whether or not it is followed by an affirmative indicator. In the case that you have f_ln set to true in your configuration, you can still turn off line numbering by including the "-N f" or "-N n" option, which will override the configuration setting. You can also toggle line numbering on and off from within view by pressing -N from a command prompt. I am trying to keep View's operation as close to vi, vim, nvim, and less as possible
@@ -330,5 +335,5 @@ opts.c)
 
 - Initial release of the project ([`a1b2c3d`](link-to-commit))
 
-: https://github.com/BillWAller/C-Menu/releases/tag/C-Menu-0.2.8
-: https://github.com/BillWaller/C-Menu/releases/tag/C-Menu-0.2.8
+: <https://github.com/BillWAller/C-Menu/releases/tag/C-Menu-0.2.8>
+: <https://github.com/BillWaller/C-Menu/releases/tag/C-Menu-0.2.8>
