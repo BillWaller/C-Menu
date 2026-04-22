@@ -772,16 +772,16 @@ int exec_objects(Init *init) {
     restore_wins();
     return rc;
 }
-/** @brief Initializes the pick window based on the parameters specified in
-the Pick structure
+/** @brief Initializes the pick window based on the parameters specified in the
+Pick structure
    @ingroup pick_engine
-    @param init Pointer to Init structure containing pick information
-    @return 0 on success, 1 on failure
-    @note Creates a new window for the pick interface using win_new function
-with the specified parameters from the Pick structure. If window creation
-fails, an error message is printed and the function returns 1. Otherwise,
-initializes the window and box pointers in the Pick structure, sets scrollok
-and keypad options for the window, and returns 0 on success. */
+   @param init Pointer to Init structure containing pick information
+   @return 0 on success, 1 on failure
+   @note Creates a new window for the pick interface using win_new function
+with the specified parameters from the Pick structure. If window creation fails,
+an error message is printed and the function returns 1. Otherwise, initializes
+the window and box pointers in the Pick structure, sets scrollok and keypad
+options for the window, and returns 0 on success. */
 int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
     pick = init->pick;
@@ -902,7 +902,7 @@ int picker(Init *init) {
 
             switch (in_key) {
 
-                /** KEY_F(1) or 'H' Displays help screen for pick interface */
+            /** KEY_F(1) or 'H' Displays help screen for pick interface */
             case KEY_F(1):
                 display_pick_help(init);
                 display_page(pick);
@@ -921,14 +921,14 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-                /** 'q', or KEY_F(9) cancel selection and exit picker */
+            /** 'q', or KEY_F(9) cancel selection and exit picker */
             case 'q':
             case KEY_F(9):
                 deselect_object(pick);
                 return -1;
 
-                /** Enter or KEY_F(10) Accepts current selection and exits
-                 * picker, returning count of selected objects */
+            /** Enter or KEY_F(10) Accepts current selection and exits
+             * picker, returning count of selected objects */
             case KEY_F(10):
             case '\n':
             case KEY_ENTER:
@@ -972,8 +972,8 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-                /** 'j' or KEY_DOWN Moves selection to next object in list, 'k'
-                 * or KEY_UP Moves selection to previous object in list */
+            /** 'j' or KEY_DOWN Moves selection to next object in list, 'k'
+                or KEY_UP Moves selection to previous object in list */
             case 'j':
             case KEY_DOWN:
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -990,7 +990,7 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-                /** 'k' or KEY_UP Moves selection to previous object in list */
+            /** 'k' or KEY_UP Moves selection to previous object in list */
             case 'k':
             case KEY_UP:
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -1023,9 +1023,8 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-                /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of
-                 * objects,
-                 */
+            /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of
+               objects */
             case KEY_NPAGE:
             case '\06':
                 if (pick->tbl_pages == 1)
@@ -1042,8 +1041,8 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-                /**   KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
-                 * objects */
+            /**   KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
+             * objects */
             case KEY_PPAGE:
             case '\02':
                 if (pick->tbl_pages == 1)
@@ -1056,8 +1055,8 @@ int picker(Init *init) {
                 reverse_object(pick);
                 in_key = 0;
                 continue;
-                /** KEY_HOME Moves selection to first object in list */
 
+            /** KEY_HOME Moves selection to first object in list */
             case KEY_HOME:
                 pick->tbl_page = 0;
                 pick->tbl_line = 0;
@@ -1069,8 +1068,8 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-                /** KEY_LL (lower left of numeric pad) Moves selection to last
-                    object in list */
+            /** KEY_LL (lower left of numeric pad) Moves selection to last
+                object in list */
             case KEY_LL:
                 pick->tbl_page = pick->tbl_pages - 1;
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
@@ -1079,6 +1078,7 @@ int picker(Init *init) {
                 reverse_object(pick);
                 in_key = 0;
                 continue;
+
                 /** KEY_MOUSE Handles mouse events for selection and chyron key
                  * activation */
 
@@ -1159,7 +1159,7 @@ int picker(Init *init) {
                 in_key = KEY_F(9);
                 return (in_key);
 
-                /** KEY_F(10) is the default key for accepting the field */
+            /** KEY_F(10) is the default key for accepting the field */
             case KEY_F(10):
                 return (in_key);
 
@@ -1186,7 +1186,7 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-                /** KEY_DC deletes character at cursor */
+            /** KEY_DC deletes character at cursor */
             case KEY_DC:
                 s = ptr + 1;
                 d = ptr;
@@ -1197,16 +1197,16 @@ int picker(Init *init) {
                 f_insert = FALSE;
                 in_key = 0;
                 continue;
-                /** KEY_HOME moves cursor to start of field */
 
+            /** KEY_HOME moves cursor to start of field */
             case KEY_HOME:
             case Ctrl('a'):
                 ptr = fstart;
                 pos = col;
                 in_key = 0;
                 continue;
-                /** KEY_BACKSPACE deletes character before cursor */
 
+            /** KEY_BACKSPACE deletes character before cursor */
             case KEY_BACKSPACE:
                 if (ptr > fstart) {
                     ptr--;
@@ -1220,8 +1220,8 @@ int picker(Init *init) {
                 str_end = d;
                 in_key = 0;
                 continue;
-                /** KEY_LEFT moves cursor left one character */
 
+            /** KEY_LEFT moves cursor left one character */
             case KEY_LEFT:
                 if (ptr > fstart) {
                     ptr--;
@@ -1229,8 +1229,8 @@ int picker(Init *init) {
                 }
                 in_key = 0;
                 continue;
-                /** KEY_RIGHT moves cursor right one character */
 
+            /** KEY_RIGHT moves cursor right one character */
             case KEY_RIGHT:
                 if (ptr < fend && ptr < str_end) {
                     ptr++;
@@ -1238,8 +1238,8 @@ int picker(Init *init) {
                 }
                 in_key = 0;
                 continue;
-                /** Handles mouse events for field editing */
 
+            /** Handles mouse events for field editing */
             case KEY_MOUSE:
                 if (getmouse(&event) == OK) {
                     if (wenclose(win, event.y, event.x)) {
