@@ -1,8 +1,0 @@
-int line_editor(..., int flen, char *field) {
-    if (field == nullptr) return KEY_F(9);   // or some error code
-    field[flen] = '\0';                      // ensure termination within limit (if flen < MAXLEN)
-    ...
-}
-
-
-

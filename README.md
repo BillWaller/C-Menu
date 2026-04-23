@@ -104,8 +104,7 @@ pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60
   file as an argument, and the output will be displayed in view with the
   specified options.
 
-Now, want to see something really cool? In the line editor window, try to type
-"text" or some other string that doesn't match any files.
+Now, want to see something really cool? In the line editor window, try to type "text" or some other string that doesn't match any files. In the dataset shown above, there are no files that match "tex", so Pick responds as you type "te", but refuses to accept the letter "x" because it would result in an empty list. Pick is designed to be fast and responsive, even with large datasets, and it provides a great user experience for navigating and selecting files and other objects in your applications.
 
 ---
 

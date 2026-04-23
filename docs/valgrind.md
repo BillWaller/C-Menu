@@ -1,5 +1,7 @@
 # Running Valgrind Against C-Menu
 
+The "grind" is pronounced with a short 'i' -- ie. "grinned" (rhymes with send, mend, tinned, friend, spend, lend, bend, fend, blend").
+
 This document explains how to run [Valgrind](https://valgrind.org/) against
 C-Menu and what to expect in its output.
 

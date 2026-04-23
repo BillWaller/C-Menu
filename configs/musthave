@@ -1,0 +1,33 @@
+Indespensable tools.
+
+llvm/clang..... It delivers.
+
+Rust........... Deep learning curve, great possibilities.
+
+rustup......... curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+CMake.......... Picks up where Makefile leaves off.
+
+ghostty........ Terminal Emulator
+                https://github.com/ghostty-org/ghostty/releases/tag/tip
+
+neovim-nightly. Latest Neovim
+https://github.com/neovim/neovim/releases/download/nightly/nvim-linux-x86_64.tar.gz
+
+tree-sitter.... Abstract Syntax Tree (AST)
+                https://github.com/tree-sitter/tree-sitter.git
+
+Lazyvim........ Neovim plugin manager
+                https://github.com/LazyVim/LazyVim.git
+
+doxygen........ Documentation Tool
+                https://github.com/doxygen/doxygen.git
+
+doxygen-awesome-css Enhancement for doxygen
+                https://github.com/jothepro/doxygen-awesome-css.git
+
+pandoc......... Document Processing, Markdown, PDF, HTML, etc.
+                https://github.com/jgm/pandoc.git
+
+C-Menu......... Big Medicine, small footprint, no compromise
+                https://github.com/BillWaller/C-Menu

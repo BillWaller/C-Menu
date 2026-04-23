@@ -1030,8 +1030,10 @@ int picker(Init *init) {
                objects */
             case KEY_NPAGE:
             case '\06':
-                if (pick->tbl_pages == 1)
+                if (pick->tbl_pages == 1) {
+                    in_key = 0;
                     continue;
+                }
                 if (pick->tbl_page < pick->tbl_pages - 1) {
                     pick->tbl_page++;
                     pick->pg_line = 0;
@@ -1047,8 +1049,10 @@ int picker(Init *init) {
              * objects */
             case KEY_PPAGE:
             case '\02':
-                if (pick->tbl_pages == 1)
+                if (pick->tbl_pages == 1) {
+                    in_key = 0;
                     continue;
+                }
                 if (pick->tbl_page > 0)
                     pick->tbl_page--;
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +

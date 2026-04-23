@@ -84,14 +84,22 @@ CFLAGS=-O2
 # -fsanitize=undefined
 # -fno-omit-frame-pointer
 # -fno-sanitize-recover=all
-#  Uncomment the following two lines to enable Address Sanitizer and Leak 
-#  Sanitizer.
-CFLAGS=-O0 -ggdb -rdynamic
-#	-DDEBUG_IMMEDOK
-#	-DDEBUG_RESIZE -DDEBUG_IMMEDOK -DDEBUG_LOG \
+#
+# Uncomment the following line to enable debugging
+CFLAGS=-O0 -g3
+# Additional debugging flags for C-Menu
+#	-DDEBUG_IMMEDOK -DDEBUG_RESIZE -DDEBUG_LOG
+# Additional flags for debugging with Address Sanitizer
+# ASAN_FLAGS=-no-pie -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer 
+# -fno-sanitize-recover=all
+# CFLAGS=-O0 -ggdb -rdynamic $(ASAN_FLAGS)
+# LIBASAN=-lasan $(ASAN_FLAGS)
+#	$(ASAN_FLAGS)
 #	-fsanitize=address -fsanitize=leak -fno-omit-frame-pointer \
 #	-fno-sanitize-recover=all
-# LIBASAN=-lasan
+# LIBASAN=-lasan $(ASAN_FLAGS)
+# export LD_PRELOAD=/usr/lib64/libasan.so.8
+# export ASAN_OPTIONS="log_path=asan.log:detect_leaks=1:color=never"
 #
 # Uncomment the following line to enable coverage.
 # CFLAGS=--coverage -O0 -ggdb -rdynamic -DNCDEBUG
