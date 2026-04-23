@@ -436,6 +436,7 @@ void display_page(Pick *pick) {
         pick->y_offset = pick->pg_lines - pick->y;
         wscrl(pick->win, -pick->y_offset);
     }
+    wrefresh(pick->win);
     // if (pick->tbl_pages > 1) {
     //     char page_info[20];
     //     snprintf(page_info, sizeof(page_info), "Page %d/%d", pick->tbl_page +
@@ -445,7 +446,6 @@ void display_page(Pick *pick) {
     // }
     // Add page information to chyron later, after we add a function to
     // accomodate it
-    wrefresh(pick->win);
 }
 /** @brief Displays current page of objects in pick window
     @ingroup pick_engine
@@ -968,6 +968,10 @@ int picker(Init *init) {
             case 'h':
             case KEY_LEFT:
             case KEY_BACKSPACE:
+                if (pick->tbl_col == 0) {
+                    in_key = 0;
+                    continue;
+                }
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width);
@@ -982,6 +986,10 @@ int picker(Init *init) {
                 or KEY_UP Moves selection to previous object in list */
             case 'j':
             case KEY_DOWN:
+                if (pick->tbl_line == pick->tbl_lines - 1) {
+                    in_key = 0;
+                    break;
+                }
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width);
@@ -1011,6 +1019,10 @@ int picker(Init *init) {
             /** 'l' or KEY_RIGHT Moves selection to next object in list */
             case 'l':
             case KEY_RIGHT:
+                if (pick->tbl_col == pick->tbl_cols - 1) {
+                    in_key = 0;
+                    continue;
+                }
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width);
@@ -1082,8 +1094,8 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-                /** KEY_MOUSE Handles mouse events for selection and chyron key
-                 * activation */
+                /** KEY_MOUSE Handles mouse events for selection and chyron
+                 * key activation */
 
             case KEY_MOUSE:
                 if (click_y == -1 || click_x == -1)
@@ -1095,8 +1107,8 @@ int picker(Init *init) {
                     continue;
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_col * pick->pg_lines + pick->y;
-                in_key = 't'; /** Set cmdkey to 't' to toggle selection on mouse
-                                 click */
+                in_key = 't'; /** Set cmdkey to 't' to toggle selection on
+                                 mouse click */
                 click_y = click_x = -1;
                 in_key = 0;
                 continue;
@@ -1115,7 +1127,8 @@ int picker(Init *init) {
             Field editing loop
 
             ===============================================================
-            =============================================================== */
+            ===============================================================
+         */
         while (1) {
             if (in_key == 0) {
                 if (accept_s != nullptr && accept_s[0] != '\0') { // Error
