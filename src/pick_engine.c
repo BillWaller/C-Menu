@@ -893,12 +893,15 @@ int picker(Init *init) {
                 ===============================================================
              */
             reverse_object(pick);
-            tcflush(tty_fd, TCIFLUSH);
             pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
             pick->y = pick->tbl_line + pick->y_offset;
-            if (in_key == 0)
+            if (in_key == 0) {
+                mouse_win = nullptr;
+                tcflush(tty_fd, TCIFLUSH);
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
-
+                if (mouse_win == win2)
+                    break;
+            }
             switch (in_key) {
 
             /** KEY_F(1) or 'H' Displays help screen for pick interface */
@@ -1111,7 +1114,6 @@ int picker(Init *init) {
                 in_key = 't'; /** Set cmdkey to 't' to toggle selection on
                                  mouse click */
                 click_y = click_x = -1;
-                in_key = 0;
                 continue;
 
             default:
@@ -1128,14 +1130,14 @@ int picker(Init *init) {
          */
         while (1) {
             if (in_key == 0) {
-                if (accept_s != nullptr && accept_s[0] != '\0') { // Error
+                mouse_win = nullptr;
+                if (accept_s != nullptr && accept_s[0] != '\0') {
                     if (match_objects(pick, accept_s) == 0) {
                         in_key = KEY_BACKSPACE;
                         continue;
                     }
                     display_page(pick);
                 }
-                // reverse_object(pick);
                 rtrim(accept_s);
                 s = &filler_s[0];
                 e = s + flen;
@@ -1149,6 +1151,8 @@ int picker(Init *init) {
                 wrefresh(win);
                 wrefresh(win2);
                 in_key = dxwgetch(win, win2, pick->chyron, -1);
+                if (mouse_win == win)
+                    break;
             }
 
             switch (in_key) {
@@ -1225,6 +1229,9 @@ int picker(Init *init) {
                 if (ptr > fstart) {
                     ptr--;
                     pos--;
+                } else {
+                    in_key = 0;
+                    continue;
                 }
                 s = ptr + 1;
                 d = ptr;
@@ -1232,6 +1239,10 @@ int picker(Init *init) {
                     *d++ = *s++;
                 *d = '\0';
                 str_end = d;
+                if (ptr == fstart) {
+                    match_objects(pick, accept_s);
+                    display_page(pick);
+                }
                 in_key = 0;
                 continue;
 
@@ -1255,14 +1266,18 @@ int picker(Init *init) {
 
             /** Handles mouse events for field editing */
             case KEY_MOUSE:
+                if (click_x < col || click_x >= col + flen) {
+                    in_key = 0;
+                    continue;
+                }
                 pos = click_x;
                 fstart = accept_s;
                 fend = fstart + flen;
                 str_end = fstart + strlen(fstart);
-                ptr = fstart + (pos - 3);
-                if (ptr > str_end)
-                    pos -= ptr - str_end;
+                ptr = fstart + (pos - col);
                 ptr = min(ptr, str_end);
+                pos = col + (ptr - fstart);
+                click_x = -1;
                 in_key = 0;
                 continue;
 
