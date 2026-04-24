@@ -85,7 +85,7 @@ const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
 static char doc[] = "C-Menu - User Interface Toolkit";
 static char args_doc[] = "[INPUT] [OUTPUT] [HELP] [ARG4] [ARG5]";
-const int opt_doc_col = 33;
+// const int opt_doc_col = 33;
 
 static struct argp_option options[] = {
     {"f_dump_config", 'D', 0, 0, "dump configuration", 0},

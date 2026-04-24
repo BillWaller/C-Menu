@@ -11,6 +11,6 @@
 #include <stdlib.h>
 
 int main() {
-    printf("test failure\n");
+    fprintf(stderr, "test failure\n");
     exit(EXIT_FAILURE);
 }

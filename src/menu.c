@@ -42,16 +42,16 @@ static void end_pgm(void) {
 
 int main(int argc, char **argv) {
     int rc;
-    rc = atexit(end_pgm);
-    if (rc != 0) {
-        fprintf(stderr, "\nCannot set exit function\n");
-        exit(EXIT_FAILURE);
-    }
     char pgm_name[MAXLEN];
     capture_shell_tioctl();
     init = new_init(argc, argv);
     SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
+    rc = atexit(end_pgm);
+    if (rc != 0) {
+        fprintf(stderr, "\nCannot set exit function\n");
+        exit(EXIT_FAILURE);
+    }
     open_curses(sio);
     sig_prog_mode();
     capture_curses_tioctl();
