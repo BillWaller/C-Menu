@@ -58,6 +58,8 @@ and engaging user interfaces that meet the specific needs of their applications.
 The menu system provides a consistent and intuitive user experience across all
 of its components, making it easy for users to navigate and interact with your applications.
 
+![C-Menu-Help](screenshots/C-Menu-help.png)
+
 ![Hierarchical Menus](screenshots/SDDM_previews.png)
 
 ---

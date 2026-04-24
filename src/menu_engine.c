@@ -180,12 +180,11 @@ unsigned int menu_cmd_processor(Init *init) {
         }
         eargc = 0;
         eargv[eargc++] = strdup("view");
-        eargv[eargc++] = strdup("-N");
-        eargv[eargc++] = strdup("f");
+        eargv[eargc++] = strdup("-Nf");
         eargv[eargc++] = strdup(tmp_str);
         eargv[eargc] = nullptr;
-        init->lines = 30;
-        init->cols = 60;
+        init->lines = 51;
+        init->cols = 86;
         init->begy = menu->begy + 1;
         init->begx = menu->begx + 1;
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
