@@ -238,6 +238,8 @@ engine, making it easy for developers to learn and use the API effectively.
 
 ![C-Menu Completions in Neovim](screenshots/api-help1.png)
 
+![Neovim Integration](screenshots/Neovim.png)
+
 ---
 
 ## Summary - Performance and Footprint
