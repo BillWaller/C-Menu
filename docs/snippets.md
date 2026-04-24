@@ -17,7 +17,7 @@
   - [If You Can't Stop Typing "vi"](#if-you-cant-stop-typing-vi)
   - [C-Menu Startup with "mm"](#c-menu-startup-with-mm)
   - [Curses Escape Delay](#curses-escape-delay)
-  - [Use lsd instead of ls](#use-lsd-instead-of-ls)
+  - [Use lsd or eza instead of ls](#use-lsd-or-eza-instead-of-ls)
   - [Locale Settings](#locale-settings)
   - [System Specific Environment Variables](#system-specific-environment-variables)
 - [C-Menu Configuration](#c-menu-configuration)
@@ -302,15 +302,28 @@ export ESCDELAY=50
 
 ---
 
-### Use lsd instead of ls
+### Use lsd or eza instead of ls
 
 ```bash
-PREFER_LSD=1
-if [ "$PREFER_LSD" = "1" ]; then
-    which lsd >/dev/null 2>&1 && ls() { /usr/bin/lsd "$@"; }
-else
-    which ls >/dev/null 2>&1 && ls() { /bin/ls --color=auto "$@"; }
-fi
+# LS=eza
+LS=lsd
+export LS
+ls() {
+    if [ "$LS" = eza ] && which eza >/dev/null 2>&1; then
+        echo using eza
+        /usr/bin/eza --color=always --icons=always "$@"
+    else
+        if [ "$LS" = "lsd" ] && which lsd >/dev/null 2>&1; then
+            echo using lsd
+            /usr/bin/lsd --color always --icon always --icon-theme fancy "$@"
+        else
+            if which ls >/dev/null 2>&1; then
+                echo using ls
+                /usr/bin/ls --color=auto "$@"
+            fi
+        fi
+    fi
+}
 ```
 
 ---
