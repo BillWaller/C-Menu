@@ -435,7 +435,8 @@ void display_page(Pick *pick) {
     if (pick->y < pick->pg_lines) {
         pick->y_offset = pick->pg_lines - pick->y;
         wscrl(pick->win, -pick->y_offset);
-    }
+    } else
+        pick->y_offset = 0;
     wrefresh(pick->win);
     // if (pick->tbl_pages > 1) {
     //     char page_info[20];
