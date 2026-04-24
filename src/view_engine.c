@@ -1670,6 +1670,7 @@ int fmt_line(View *view) {
     memset(&mbstate, 0, sizeof(mbstate));
     while (in_str[i] != '\0') {
         if (in_str[i] == '\033' && in_str[i + 1] == '[') {
+            /** This section calls the decoder for ANSI escape sequences */
             len = strcspn(&in_str[i], "mK ") + 1;
             memcpy(ansi_tok, &in_str[i], len + 1);
             ansi_tok[len] = '\0';
@@ -1688,6 +1689,11 @@ int fmt_line(View *view) {
             parse_ansi_str(ansi_tok, &attr, &cpx);
             i += len;
         } else {
+            /** This section converts the input string to wide characters,
+                handling tabs and multi-byte characters, and stores the result
+                in the complex buffer for display. ANSI escape sequences are
+                ignored in this section since they are handled separately above.
+             */
             if (in_str[i] == '\033') {
                 i++;
                 continue;
@@ -1735,9 +1741,12 @@ int fmt_line(View *view) {
    attributes will be stored
     @param cpx is a pointer to an int variable where the parsed color pair
    index will be stored
-    @details This function parses an ANSI SGR (Select Graphic Rendition)
-   escape sequence and updates the provided attr_t and color pair index
-   based on the attributes specified in the ANSI string.
+    @details This function parses an ANSI escape sequence and updates the color
+   pair and color tables according to the attributes specified. Despite the
+   depth of nested conditionals, with an understanding of the ANSI Select
+   Graphics Rendition (SGR) scheme, which is defined in the ECMA-48 standard
+   (ISO/IEC 6429), you will find that it is exceptionally simple and
+   straightforward.
 
    @verbatim
 

@@ -874,7 +874,6 @@ int picker(Init *init) {
     click_y = click_x = -1;
 
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
-
     display_page(pick);
     f_insert = false;
     set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_reverse);
@@ -918,6 +917,7 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
+            /** Toggle Select Object */
             case KEY_F(7):
             case 't':
             case ' ':
@@ -936,12 +936,13 @@ int picker(Init *init) {
                 return -1;
 
             /** Enter or KEY_F(10) Accepts current selection and exits
-             * picker, returning count of selected objects */
+               picker, returning count of selected objects */
             case KEY_F(10):
             case '\n':
             case KEY_ENTER:
                 return pick->select_cnt;
-                /** KEY_END Moves selection to last object in list */
+
+            /** KEY_END Moves selection to last object in list */
             case KEY_END:
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
@@ -963,8 +964,8 @@ int picker(Init *init) {
                 in_key = 0;
                 break;
 
-                /** 'h' or KEY_LEFT or Backspace Moves selection to previous
-                 * object in list */
+            /** 'h' or KEY_LEFT or Backspace Moves selection to previous
+               object in list */
             case 'h':
             case KEY_LEFT:
             case KEY_BACKSPACE:
@@ -1058,7 +1059,7 @@ int picker(Init *init) {
                 continue;
 
             /**   KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
-             * objects */
+               objects */
             case KEY_PPAGE:
             case '\02':
                 if (pick->tbl_pages == 1) {
@@ -1122,11 +1123,7 @@ int picker(Init *init) {
             break;
         }
         /** ===============================================================
-            ===============================================================
-
-            Field editing loop
-
-            ===============================================================
+            Line editor loop
             ===============================================================
          */
         while (1) {
