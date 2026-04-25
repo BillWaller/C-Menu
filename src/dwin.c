@@ -733,7 +733,6 @@ void destroy_curses() {
     wrefresh(stdscr);
     endwin();
     delscreen(screen);
-    // screen = nullptr;
     fclose(ncurses_fp);
     f_curses_open = false;
     restore_shell_tioctl();
@@ -1003,9 +1002,6 @@ WINDOW *win_del() {
    signal to handle terminal resizing gracefully. */
 void restore_wins() {
     int i;
-    // touchwin(stdscr);
-    // wnoutrefresh(stdscr);
-    // wrefresh(stdscr);
     for (i = 0; i <= win_ptr; i++) {
         if (win_box[i] != nullptr) {
             touchwin(win_box[i]);

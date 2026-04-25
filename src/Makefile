@@ -87,6 +87,7 @@ CFLAGS=-O2
 #
 # Uncomment the following line to enable debugging
 CFLAGS=-O0 -g3
+# -DDEBUG_IMMEDOK
 # Additional debugging flags for C-Menu
 #	-DDEBUG_IMMEDOK -DDEBUG_RESIZE -DDEBUG_LOG
 # Additional flags for debugging with Address Sanitizer

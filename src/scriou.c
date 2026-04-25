@@ -130,6 +130,12 @@ bool mk_raw_tioctl(struct termios *t_p) {
     t_p->c_cc[VMIN] = 1;
     t_p->c_cc[VTIME] = 0;
     tcsetattr(0, TCSAFLUSH, t_p);
+    tcgetattr(2, t_p);
+    t_p->c_lflag |= ISIG;
+    t_p->c_lflag &= ~(ECHO | ICANON);
+    t_p->c_cc[VMIN] = 1;
+    t_p->c_cc[VTIME] = 0;
+    tcsetattr(2, TCSAFLUSH, t_p);
     return true;
 }
 /** @brief  sget single character from terminal in raw mode

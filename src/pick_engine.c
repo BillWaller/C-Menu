@@ -25,7 +25,7 @@ int tbl_col, tbl_line, tbl_page, tbl_cols, pg_lines, tbl_pages;
 int obj_idx, calculated_idx;
 int pick_engine(Init *);
 void save_object(Pick *, char *);
-int picker(Init *);
+int picker(Init *, char *field);
 void display_page(Pick *);
 void reverse_object(Pick *);
 void unreverse_object(Pick *);
@@ -65,8 +65,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     int m;
     pid_t pid = 0;
 
-    // if (init->pick != nullptr)
-    // destroy_pick(init);
     Pick *pick = new_pick(init, argc, argv, begy, begx);
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
@@ -87,7 +85,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             close(pipe_fd[P_READ]);
             /** Connect CHILD STDOUT to write end of pipe */
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
-            dup2(pipe_fd[P_WRITE], STDERR_FILENO);
             /** STDOUT attached to write end of pipe, so close pipe fd */
             close(pipe_fd[P_WRITE]);
             execvp(s_argv[0], s_argv);
@@ -150,7 +147,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     int remaining;
     if (pick->in_fp == nullptr) {
         Perror("No pick input available");
-        // destroy_pick(init);
         return (1);
     }
     int in_fd = fileno(pick->in_fp);
@@ -191,7 +187,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             close(pipe_fd[P_READ]);
         }
         Perror("No pick input available");
-        // destroy_pick(init);
         return (1);
     }
     if (ready == -1) {
@@ -203,7 +198,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             waitpid(pid, nullptr, 0);
             close(pipe_fd[P_READ]);
         }
-        // destroy_pick(init);
         return (1);
     }
     if (ready == 0) {
@@ -215,7 +209,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             waitpid(pid, nullptr, 0);
             close(pipe_fd[P_READ]);
         }
-        // destroy_pick(init);
         return (1);
     }
     if (ready == 1 && !FD_ISSET(in_fd, &read_fds)) {
@@ -227,7 +220,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             waitpid(pid, nullptr, 0);
             close(pipe_fd[P_READ]);
         }
-        // destroy_pick(init);
         return (1);
     }
     /*------------------------------------------------------------*/
@@ -235,7 +227,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     if (pick->f_in_pipe && pid > 0) {
         /** Wait for provider_cmd child process to finish before proceeding */
         waitpid_with_timeout(pid, wait_timeout);
-        // waitpid(pid, nullptr, 0);
         close(pipe_fd[P_READ]);
         dup2(sio->stdin_fd, STDIN_FILENO);
         dup2(sio->stdout_fd, STDOUT_FILENO);
@@ -245,7 +236,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (pick->m_cnt == 0) {
         Perror("No pick objects available");
-        // destroy_pick(init);
         return (1);
     }
     /** Enter pick_engine */
@@ -256,7 +246,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     pick->d_cnt = pick->d_idx;
     pick_engine(init);
     win_del();
-    // destroy_pick(init);
     return 0;
 }
 /** @brief Reads pick input from file pointer and saves objects into pick
@@ -273,8 +262,6 @@ int read_pick_input(Init *init) {
 
     Pick *pick = init->pick;
     pick->select_cnt = 0;
-    pick->m_cnt = pick->pg_lines = pick->tbl_cols = 0;
-    pick->m_idx = pick->tbl_page = pick->y = pick->tbl_col = pick->x = 0;
     pick->tbl_pages = 1;
 
     if (pick->in_fp) {
@@ -289,7 +276,6 @@ int read_pick_input(Init *init) {
     if (!pick->m_idx)
         return (-1);
     pick->m_cnt = pick->m_idx;
-    pick->m_idx = 0;
     return 0;
 }
 /** @brief Initializes pick interface, calculates window size and position, and
@@ -364,8 +350,10 @@ int pick_engine(Init *init) {
     /** Enter picker loop to handle user input and interactions */
     pick->d_idx = 0;
     pick->x = 1;
+    char field[MAXLEN]; /**< Buffer for user input in the field */
+    field[0] = '\0';
     do {
-        rc = picker(init);
+        rc = picker(init, field);
         if (rc == KEY_F(9))
             break;
         if (rc == -1)
@@ -432,21 +420,13 @@ void display_page(Pick *pick) {
                            pick->d_object[pick->d_idx++], pick->tbl_col_width);
         }
     }
+    pick->d_idx -= 1;
     if (pick->y < pick->pg_lines) {
         pick->y_offset = pick->pg_lines - pick->y;
         wscrl(pick->win, -pick->y_offset);
     } else
         pick->y_offset = 0;
     wrefresh(pick->win);
-    // if (pick->tbl_pages > 1) {
-    //     char page_info[20];
-    //     snprintf(page_info, sizeof(page_info), "Page %d/%d", pick->tbl_page +
-    //     1,
-    //              pick->tbl_pages);
-    //     display_chyron(pick->win2, pick->chyron, 11, page_info);
-    // }
-    // Add page information to chyron later, after we add a function to
-    // accomodate it
 }
 /** @brief Displays current page of objects in pick window
     @ingroup pick_engine
@@ -458,6 +438,8 @@ void display_page(Pick *pick) {
    asterisk. Updates the chyron with page information at the bottom of the pick
    window. */
 int match_objects(Pick *pick, char *s) {
+    /** pick->m_idx  Master  (as read from input) */
+    /** pick->d_idx  Display (to display) */
     pick->m_idx = 0;
     pick->d_idx = 0;
     while (pick->m_idx < pick->m_cnt) {
@@ -486,10 +468,10 @@ void reverse_object(Pick *pick) {
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
 
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                   pick->tbl_col * pick->pg_lines + pick->tbl_line;
-
     wmove(pick->win, pick->y, pick->x);
     wattron(pick->win, WA_REVERSE);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
@@ -512,12 +494,10 @@ void unreverse_object(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
         pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                   pick->tbl_col * pick->pg_lines + pick->tbl_line;
-
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width);
@@ -632,7 +612,6 @@ int exec_objects(Init *init) {
     int i = 0;
     pid_t pid = 0;
     bool f_append_args = false;
-    // char *s1;
 
     title[0] = '\0';
     if (pick->cmd[0] == '\0')
@@ -707,11 +686,7 @@ int exec_objects(Init *init) {
     }
     strnz__cpy(tmp_str, eargv[0], MAXLEN - 1);
     eargv[eargc] = nullptr;
-    // s1 = tmp_str;
     char *sp;
-    // Scan-build false positive: strtok_r modifies the input string, but
-    // tmp_str is a local array and is not used after this point, so it is safe
-    // to modify it with strtok_r
     char *tok;
     tok = strtok_r(tmp_str, " ", &sp);
     strnz__cpy(sav_arg, tok, MAXLEN - 1);
@@ -760,10 +735,7 @@ int exec_objects(Init *init) {
             exit(EXIT_FAILURE);
         }
     }
-    // waitpid_with_timeout(pid, wait_timeout);
-    // action_disposition("Notification", "Command executed");
     waitpid(pid, nullptr, 0);
-    // win_del();
     eargc = destroy_argv(eargc, eargv);
     restore_curses_tioctl();
     sig_prog_mode();
@@ -845,9 +817,8 @@ void display_pick_help(Init *init) {
    accepts the selection, the count of selected objects is returned. If the user
    cancels the selection, -1 is returned.
     */
-int picker(Init *init) {
+int picker(Init *init, char *field) {
     bool f_insert = false; /**< Flag to indicate if insert mode is active */
-    char field[MAXLEN];    /**< Buffer for user input in the field */
     char filler_s[MAXLEN]; /**< buffer for filling the field with spaces */
     int line = 0;          /**< Starting line for field input */
     int col = 1;    /**< Starting column for field input leaving space for > */
@@ -862,15 +833,15 @@ int picker(Init *init) {
     char *str_end; /**< pointer to end of content in field buffer */
     accept_s = field;
     fstart = accept_s;
-    field[0] = '\0';
     int flen = pick->win_width - 4;
 
     pick = init->pick;
     win = pick->win;
     WINDOW *win2 = pick->win2;
     fend = fstart + flen;
-    ptr = accept_s;
     str_end = fstart + strlen(fstart); /**< End of field content */
+    ptr = str_end;
+    pos = col + strlen(accept_s);
     click_x = -1;
     click_y = click_x = -1;
 
@@ -896,9 +867,17 @@ int picker(Init *init) {
             reverse_object(pick);
             pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
             pick->y = pick->tbl_line + pick->y_offset;
+            rtrim(accept_s);
+            s = &filler_s[0];
+            e = s + flen;
+            while (s != e)
+                *s++ = ' ';
+            *s = '\0';
+            mvwaddstr(win2, line, col, filler_s);
+            mvwaddstr(win2, line, col, accept_s);
             if (in_key == 0) {
                 mouse_win = nullptr;
-                tcflush(tty_fd, TCIFLUSH);
+                keypad(pick->win, true);
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
                 if (mouse_win == win2)
                     break;
@@ -987,8 +966,7 @@ int picker(Init *init) {
                 in_key = 0;
                 continue;
 
-            /** 'j' or KEY_DOWN Moves selection to next object in list, 'k'
-                or KEY_UP Moves selection to previous object in list */
+            /** 'j' or KEY_DOWN Moves selection to next object in list */
             case 'j':
             case KEY_DOWN:
                 if (pick->tbl_line == pick->tbl_lines - 1) {
@@ -1147,7 +1125,7 @@ int picker(Init *init) {
                 *s = '\0';
                 mvwaddstr(win2, line, col, filler_s);
                 mvwaddstr(win2, line, col, accept_s);
-                tcflush(0, TCIFLUSH);
+                pos = col + strlen(accept_s);
                 wmove(win2, line, pos);
                 wrefresh(win);
                 wrefresh(win2);

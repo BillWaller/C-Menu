@@ -76,7 +76,7 @@ bool verify_file(char *, int);
 bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
 size_t canonicalize_file_spec(char *);
-bool is_directory(const char *);
+int is_directory(const char *);
 bool is_valid_regex(const char *);
 size_t ssnprintf(char *, size_t, const char *, ...);
 size_t strnz__cpy(char *, const char *, size_t);
@@ -1340,12 +1340,11 @@ size_t canonicalize_file_spec(char *spec) {
     @ingroup utility_functions
     @param path - path to check
     @returns true if the path is a directory, false otherwise */
-bool is_directory(const char *path) {
+int is_directory(const char *path) {
     struct stat statbuf;
-    if (stat(path, &statbuf) != 0) {
-        return false;
-    }
-    return S_ISDIR(statbuf.st_mode);
+    if (stat(path, &statbuf) == 0)
+        return S_ISDIR(statbuf.st_mode);
+    return 0;
 }
 /** @brief Checks if the given regular expression pattern is valid
     @ingroup utility_functions
