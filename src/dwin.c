@@ -1066,8 +1066,7 @@ void cbox2(WINDOW *box) {
     // Separator line
     mvwaddnwstr(box, y, 0, &bw_lt, 1);
     // line 00, page 00
-    mvwaddnwstr(box, y, 1, &bw_ho, 1);
-    mvwaddnwstr(box, y, 2, &bw_rt, 1);
+    mvwaddnwstr(box, y, 1, &bw_rt, 1);
     mvwaddnwstr(box, y, 24, &bw_lt, 1);
     for (x = 25; x < maxx; x++)
         waddnwstr(box, &bw_ho, 1);

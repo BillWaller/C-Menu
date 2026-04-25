@@ -856,9 +856,9 @@ int picker(Init *init, char *field) {
     cchar_t cc = {0};
     wchar_t wstr[2] = {BW_RAN, L'\0'};
     setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
-    mvwadd_wch(pick->win2, 0, 0, &cc);
-    wrefresh(pick->win2);
+    mvwadd_wch(pick->box, pick->separator_line + 1, 1, &cc);
     keypad(pick->win, true);
+    wrefresh(pick->win2);
 
     int in_key = 0;
     while (1) {
@@ -872,7 +872,7 @@ int picker(Init *init, char *field) {
             pick->y = pick->tbl_line + pick->y_offset;
             ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                       pick->tbl_line, pick->tbl_page + 1, pick->tbl_pages);
-            mvwaddstr(pick->box, pick->separator_line, 4, tmp_str);
+            mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
             wrefresh(pick->box);
             // rtrim(accept_s);
             // s = &filler_s[0];
