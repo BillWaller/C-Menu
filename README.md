@@ -31,14 +31,7 @@
 
 ## Introduction
 
-The following is a brief introduction to the C-Menu Toolkit covering a fraction
-of its features and capabilities. C-Menu is much more than just a tool to create
-menus. It's a set of powerful tools for creating menu-driven user interfaces.
-C-Menu provides a consistent and intuitive user experience across all of its
-components, making it easy for users to navigate and interact with your
-applications. The toolkit is designed to be flexible and customizable, allowing
-developers to create unique and engaging user interfaces that meet the specific
-needs of their applications.
+The name, C-Menu, represents but one facet of a tool-set that you can use to give your users presentation-grade experience. C-Menu provides powerful tools for creating intuitive and easy-to-use interfaces, free from the bloat and overhead of a GUI. C-Menu is designed to be flexible and customizable, allowing developers to create unique, and engaging interfaces.
 
 For comprehensive html documentation, please refer to the website:
 
