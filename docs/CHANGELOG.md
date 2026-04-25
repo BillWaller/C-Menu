@@ -2,6 +2,13 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-04-25
+
+The recent changes to the Pick Engine have introduced a number of bugs, or
+euphemistically, opportunities for refinement. Please be assured that testing
+continues and issues are being handled as they arise with the objective of
+having a stable release.
+
 0.2.9 - 2026-04-22
 
 A line editor has been added to the Pick Engine, which allows the user to enter

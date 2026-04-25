@@ -31,29 +31,23 @@
 
 ## Introduction
 
-The name, C-Menu, represents but one facet of a tool-set that you can use to give your users presentation-grade experience. C-Menu provides powerful tools for creating intuitive and easy-to-use interfaces, free from the bloat and overhead of a GUI. C-Menu is designed to be flexible and customizable, allowing developers to create unique, and engaging interfaces.
+C-Menu is a tool-set that gives you the ability to quickly and easily build functional, intuitive, and attractive applications with a minimal footprint. Because C-Menu is terminal-based, it is perfect for resource constrained environments such as embedded, server, SOC, IOT, DEVOPS, CI/CD pipelines, and terminal enthusiasts, or any other situations in which a GUI might be impractical or undesirable.
 
 For comprehensive html documentation, please refer to the website:
 
 [decision-inc.com](https://decision-inc.com)
 
-With the C-Menu Toolkit, you can quickly and easily develop menu-driven user
-interfaces to give your applications a professional look and feel. The main
-components are:
-
 ---
 
 ## Menu - Hierarchical Menus
 
-Create hierarchical menus with multiple levels of sub-menus. The menu system is
-designed to be flexible and customizable, allowing developers to create unique
-and engaging user interfaces that meet the specific needs of their applications.
-The menu system provides a consistent and intuitive user experience across all
-of its components, making it easy for users to navigate and interact with your applications.
-
-![C-Menu-Help](screenshots/C-Menu-help.png)
+In typical use, C-Menu requires only a few lines of code to create hierarchical menus with multiple levels of sub-menus. In the example Workstation Configuration menu below, C-Menu uses one line of code to execute an external command to find and display previews of SDDM login screens.
 
 ![Hierarchical Menus](screenshots/SDDM_previews.png)
+
+C-Menu is highly customizable, and provides a wide range of options for creating unique and engaging interfaces. The help screens below show some of the options available for customizing the appearance and behavior of C-Menu's components.
+
+![C-Menu-Help](screenshots/C-Menu-help.png)
 
 ---
 
@@ -67,8 +61,7 @@ Enter, edit, validate, process, and submit data. Notice the chyron at the bottom
 
 ## Pick - Object Selection
 
-The image below shows how pick works with C-Menu's lf file finder to select files
-in a directory. The screen on the left is the first to appear, and it shows the
+The image below shows how pick works with C-Menu's lf (lightweight find) to select files in a directory. The screen on the left is the first to appear, and it shows the
 output of lf. In the bottom window, the user can refine the list of files by
 entering a search expression, and as the user types each character, Pick updates
 the list of files in real time. When you find the file you want, you can select
@@ -99,7 +92,7 @@ pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60
   file as an argument, and the output will be displayed in view with the
   specified options.
 
-Now, want to see something really cool? In the line editor window, try to type "text" or some other string that doesn't match any files. In the dataset shown above, there are no files that match "tex", so Pick responds as you type "te", but refuses to accept the letter "x" because it would result in an empty list. Pick is designed to be fast and responsive, even with large datasets, and it provides a great user experience for navigating and selecting files and other objects in your applications.
+Now, want to see something really cool? In the line editor window, try to type "text" or some other string that doesn't match any files. In the dataset shown above, there are no files that match "tex", so Pick responds as you type "te", but refuses to accept the letter "x" because it would result in an empty list. When you use the backspace key, the Pick engine reverses and repopulates the object selector's with the previous list of files. This is just one example of the intuitive and responsive features built into C-Menu.
 
 ---
 
@@ -149,8 +142,7 @@ and relinquish root privilege.
 
 ## lf - A Regular Expression File Finder
 
-**_lf_** - A "regular expression" file finder that's a smaller, easier-to-use,
-and much faster alternative to the Unix find command.
+**_lf_** - is a sleek, easy-to-use, and fast alternative to the Unix find command. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
 
 ![lf help](screenshots/lf-help.png)
 
@@ -161,7 +153,7 @@ View.
 
 The screenshot above is an example of how you might use the date-time options
 of lf to list files between two date-times (after and before) and the sample
-output. We hope you find the format format to be intuitive and easy to use.
+output. We believe you will find this format intuitive and easy to use.
 
 The following is an actual benchmark of execution times for lf and find. The
 find and lf commands, approximate common usage, and produce identical results.
@@ -198,13 +190,16 @@ affects performance. The resulting benchmarks are so extreme, they may strain
 credulity at first, but they are real and easily reproducible. Just run lf and
 find commands on your system in a variety of directories.
 
-Note 1: The -a (List hidden files) has been replaced with -n (Don't list hidden
-files), so that the default behavior is more like find, thus mitigating the
-probability of confusion.
+Note: There have been some changes to lf's options since these benchmarks were
+run, specifically.
 
-Note 2: The default maximum depth for lf was 3 as that was convenient for
-development, but otherwise it didn't make sense. The default maximum depth
-for lf is now 0, which means no limit, and thus more consistent with find.
+- The -a (List hidden files) has been replaced with -n (Don't list hidden
+  files), so that the default behavior is more like find, thus mitigating the
+  probability of confusion.
+
+- The default maximum depth for lf was 3 as that was convenient for
+  development, but otherwise it didn't make sense. The default maximum depth
+  for lf is now 0, which means no limit, and thus more consistent with find.
 
 ```bash
 time find . -maxdepth 5 -type f -exec -l {} \; >find.out
@@ -232,6 +227,10 @@ engine, making it easy for developers to learn and use the API effectively.
 ## C-Menu API Completions in Neovim
 
 ![C-Menu Completions in Neovim](screenshots/api-help1.png)
+
+C-Menu's API documentation is integrated into Neovim's completion engine, providing developers with easy access to API information and examples while they code. This integration allows developers to quickly look up function signatures, parameter descriptions, and usage examples without leaving their coding environment, enhancing productivity and making it easier to learn and use the C-Menu API effectively.
+
+Hopefully, you will not find this plug for Neovim, LazyVim, and Lazy.Nvim too gratuitous as they are not prerequisites for C-Menu. Nevertheless, they do add considerably to the development experience. The screen below is the LazyVim dashboard in Neovim.
 
 ![Neovim Integration](screenshots/Neovim.png)
 
