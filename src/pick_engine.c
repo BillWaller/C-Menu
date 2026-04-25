@@ -879,7 +879,7 @@ int picker(Init *init, char *field) {
                 mouse_win = nullptr;
                 keypad(pick->win, true);
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
-                if (mouse_win == win2)
+                if (mouse_win == win2 && click_y == 0)
                     break;
             }
             switch (in_key) {
