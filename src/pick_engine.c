@@ -765,6 +765,7 @@ int open_pick_win(Init *init) {
         Perror(tmp_str);
         return (1);
     }
+    pick->separator_line = pick->win_lines;
     pick->win = win_win[win_ptr];
     pick->win2 = win_win2[win_ptr];
     pick->box = win_box[win_ptr];
@@ -844,6 +845,7 @@ int picker(Init *init, char *field) {
     pos = col + strlen(accept_s);
     click_x = -1;
     click_y = click_x = -1;
+    char tmp_str[MAXLEN];
 
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     display_page(pick);
@@ -856,6 +858,7 @@ int picker(Init *init, char *field) {
     setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
     mvwadd_wch(pick->win2, 0, 0, &cc);
     wrefresh(pick->win2);
+    keypad(pick->win, true);
 
     int in_key = 0;
     while (1) {
@@ -867,17 +870,20 @@ int picker(Init *init, char *field) {
             reverse_object(pick);
             pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
             pick->y = pick->tbl_line + pick->y_offset;
-            rtrim(accept_s);
-            s = &filler_s[0];
-            e = s + flen;
-            while (s != e)
-                *s++ = ' ';
-            *s = '\0';
-            mvwaddstr(win2, line, col, filler_s);
-            mvwaddstr(win2, line, col, accept_s);
+            ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
+                      pick->tbl_line, pick->tbl_page + 1, pick->tbl_pages);
+            mvwaddstr(pick->box, pick->separator_line, 4, tmp_str);
+            wrefresh(pick->box);
+            // rtrim(accept_s);
+            // s = &filler_s[0];
+            // e = s + flen;
+            // while (s != e)
+            //     *s++ = ' ';
+            // *s = '\0';
+            // mvwaddstr(win2, line, col, filler_s);
+            // mvwaddstr(win2, line, col, accept_s);
             if (in_key == 0) {
                 mouse_win = nullptr;
-                keypad(pick->win, true);
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
                 if (mouse_win == win2 && click_y == 0)
                     break;

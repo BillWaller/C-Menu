@@ -73,18 +73,20 @@ typedef struct {
     int d_idx;       /**< index of current object */
     char **d_object; /**< derived object table */
     int y_offset;
-    int pg_line;       /**< current line on page */
-    int pg_lines;      /**< lines per page */
-    int pg_objs;       /**< objects per page */
-    int tab_idx;       /**< index of current tab */
-    int tbl_pages;     /**< total number of table pages */
-    int tbl_page;      /**< current table page */
-    int tbl_line;      /**< current line on table page */
-    int tbl_lines;     /**< lines per table page */
-    int tbl_cols;      /**< columns per table page */
-    int tbl_col;       /**< current column on table page */
-    int tbl_col_width; /**< column width on table page */
-    Chyron *chyron;    /**< chyron data structure */
+    int pg_line;        /**< current line on page */
+    int pg_lines;       /**< lines per page */
+    int pg_objs;        /**< objects per page */
+    int tab_idx;        /**< index of current tab */
+    int tbl_pages;      /**< total number of table pages */
+    int tbl_page;       /**< current table page */
+    int tbl_line;       /**< current line on table page */
+    int tbl_lines;      /**< lines per table page */
+    int tbl_cols;       /**< columns per table page */
+    int tbl_col;        /**< current column on table page */
+    int tbl_col_width;  /**< column width on table page */
+    int separator_line; /**< separator between object selector and line editor
+                         */
+    Chyron *chyron;     /**< chyron data structure */
 } Pick;
 extern Pick *pick; /**< pointer to Pick data structure */
 
