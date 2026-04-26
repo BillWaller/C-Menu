@@ -150,6 +150,15 @@ int fork_exec(char **argv) {
         Perror(tmp_str);
         return (-1);
     case 0: // child
+        /** Prevent child process from writing to terminal */
+        int dev_null = open("/dev/null", O_WRONLY);
+        if (dev_null == -1) {
+            Perror("open(/dev/null) failed in init_pick child process");
+            exit(EXIT_FAILURE);
+        }
+        dup2(dev_null, STDOUT_FILENO);
+        dup2(dev_null, STDERR_FILENO);
+        close(dev_null);
         restore_shell_tioctl();
         werase(stdscr);
         wrefresh(stdscr);

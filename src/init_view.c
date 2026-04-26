@@ -464,6 +464,15 @@ int view_init_input(View *view, char *file_name) {
             return -1;
         }
         if (pid == 0) { // Child
+            /** Prevent child process from writing to terminal */
+            int dev_null = open("/dev/null", O_WRONLY);
+            if (dev_null == -1) {
+                Perror("open(/dev/null) failed in init_pick child process");
+                exit(EXIT_FAILURE);
+            }
+            dup2(dev_null, STDOUT_FILENO);
+            dup2(dev_null, STDERR_FILENO);
+            close(dev_null);
             close(pipe_fd[P_READ]);
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
             close(pipe_fd[P_WRITE]);

@@ -80,7 +80,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             return (1);
         }
         if (pid == 0) {
-            /** Spawn Child to execute provider_cmd */
+            /** Prevent child process from writing to terminal */
             int dev_null = open("/dev/null", O_WRONLY);
             if (dev_null == -1) {
                 Perror("open(/dev/null) failed in init_pick child process");
@@ -95,6 +95,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
             /** STDOUT attached to write end of pipe, so close pipe fd */
             close(pipe_fd[P_WRITE]);
+            /** Spawn Child to execute provider_cmd */
             rc = execvp(s_argv[0], s_argv);
             if (rc == -1) {
                 strnz__cpy(tmp_str, "Can't exec pick start cmd: ", MAXLEN - 1);
@@ -730,6 +731,15 @@ int exec_objects(Init *init) {
             return (1);
         }
         if (pid == 0) {
+            /** Prevent child process from writing to terminal */
+            int dev_null = open("/dev/null", O_WRONLY);
+            if (dev_null == -1) {
+                Perror("open(/dev/null) failed in init_pick child process");
+                exit(EXIT_FAILURE);
+            }
+            dup2(dev_null, STDOUT_FILENO);
+            dup2(dev_null, STDERR_FILENO);
+            close(dev_null);
             /** Child process to execute command */
             execvp(eargv[0], eargv);
             /** If execvp returns, it means execution failed, so free eargv
