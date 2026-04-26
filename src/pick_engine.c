@@ -420,7 +420,10 @@ void display_page(Pick *pick) {
                            pick->d_object[pick->d_idx++], pick->tbl_col_width);
         }
     }
+    pick->d_cnt = pick->d_idx;
     pick->d_idx -= 1;
+    pick->tbl_lines = pick->d_cnt;
+    pick->tbl_pages = (pick->tbl_lines / (pick->pg_lines - 1)) + 1;
     if (pick->y < pick->pg_lines) {
         pick->y_offset = pick->pg_lines - pick->y;
         wscrl(pick->win, -pick->y_offset);
@@ -871,7 +874,9 @@ int picker(Init *init, char *field) {
             pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
             pick->y = pick->tbl_line + pick->y_offset;
             ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
-                      pick->tbl_line, pick->tbl_page + 1, pick->tbl_pages);
+                      pick->tbl_line + 1, pick->tbl_page + 1, pick->tbl_pages);
+            strnz__cat(tmp_str, "     ", MAXLEN - 1);
+            tmp_str[22] = '\0';
             mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
             wrefresh(pick->box);
             rtrim(accept_s);
@@ -1136,6 +1141,13 @@ int picker(Init *init, char *field) {
                         continue;
                     }
                     display_page(pick);
+                    ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
+                              pick->tbl_line + 1, pick->tbl_page + 1,
+                              pick->tbl_pages);
+                    strnz__cat(tmp_str, "     ", MAXLEN - 1);
+                    tmp_str[22] = '\0';
+                    mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
+                    wrefresh(pick->box);
                 }
                 rtrim(accept_s);
                 s = &filler_s[0];

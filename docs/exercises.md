@@ -10,7 +10,7 @@
     - [Requisites](#requisites)
   - [Ghostty Configuration](#ghostty-configuration)
   - [Alacritty and Kitty](#alacritty-and-kitty)
-- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
+  - [Rustlings Exercises](#rustlings-exercises)
 
 <!-- mtoc-end -->
 
@@ -297,4 +297,73 @@ Here is the final content of the workstation_config.m file after adding the Alac
 
 ---
 
-## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository.
+### Rustlings Exercises
+
+The objective of this exercise is to streamline the process of iteratively editing
+the Rustlings exercises with C-Menu Pick. Of course, there is a simpler and
+fully automatic way to do this, but this exercise is meant to give you practice
+with C-Menu Pick for similar projects without the built-in tracking that
+Rustlings provides. For example, see the following bash script:
+
+```bash
+#!/bin/bash
+while true; do
+    {
+        vi $(find exercises -name $(sed -n '3p' .rustlings-state.txt).rs)
+        echo Edit $(sed -n '3p' .rustlings-state.txt).rs
+        if [ $(enterchr "Y or N") != "Y" ]; then
+            echo
+            exit 0
+        fi
+    }
+done
+```
+
+But, don't use the above script. It hasn't been fully tested and there are probably
+instances in which it won't work. C-Menu Pick is more fun, and it provides a more controlled way to edit the Rustlings exercises.
+
+Before starting this exercise, you will need to install the Rust toolchain and Rustlings. The easiest way to do this is as follows:
+
+- Install Rustup:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+- Install Rustlings in your home directory:
+
+[See Rustlings](https://rustlings.rust-lang.org/setup/)
+
+---
+
+- Create a bash script with the following content and save it in ~/menuapp/bin/rust_src.
+
+```bash
+lf rustlings -d 5 'exercises.*\.rs$' | sort
+```
+
+- Add the following two lines to ~/menuapp/msrc/main.m if it isn't already
+  there.
+
+```bash
+:     Rustlings Source
+!pick -S rust_src -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%
+```
+
+Start Rustlings:
+
+```bash
+    cd rustlings
+    rustlings
+```
+
+At the bottom of the display, you will notice the line, "Current exercise: " and
+the relative path of the Rust source file for the current exercise. This is the file you will be editing with C-Menu Pick.
+
+Start C-Menu and select the Rustlings Source option. This will list the Rust source files for the exercises. Type the last few characters of the file name in the line editor window. For example, if the current exercise is "exercises/variables/variables1.rs", you can type "bles1". As you type, the list of files will be filtered to match your input. When you see the file you want to edit, select it.
+
+When you select a file, it will open in Neovim (or your preferred editor if you change nvim.sh) for editing.
+
+After you finish editing, save the file, and Rustlings will check your work automatically. If you were successful, you can press "n" in the Rustlings terminal to advance to the next exercise.
+
+🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository
