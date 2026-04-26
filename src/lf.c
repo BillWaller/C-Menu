@@ -242,9 +242,10 @@ int main(int argc, char **argv) {
     if (lf.argc > 1) {
         if (dir[0] == '\0' && is_directory(lf.args[1]))
             strnz__cpy(dir, lf.args[1], MAXLEN - 1);
-        else if (dir[0] == '\0' && is_symlink_to_dir(lf.args[0]))
-            strnz__cpy(dir, lf.args[0], MAXLEN - 1);
-        else if (re[0] == '\0' && is_valid_regex(lf.args[1])) {
+        else if (dir[0] == '\0' && is_symlink_to_dir(lf.args[1]))
+            strnz__cpy(dir, lf.args[1], MAXLEN - 1);
+        else if (is_valid_regex(lf.args[1])) {
+            dir[0] = '\0';
             strnz__cpy(re, lf.args[1], MAXLEN - 1);
             lf.flags |= LF_REGEX;
         } else
