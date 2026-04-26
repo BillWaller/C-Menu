@@ -228,30 +228,28 @@ int main(int argc, char **argv) {
     // setenv("ARGP_HELP_FMT", "opt-doc-col=30", 1);
     argp_parse(&argp, argc, argv, 0, 0, &lf);
     if (lf.argc > 0) {
-        if (is_directory(lf.args[0])) {
+        if (is_directory(lf.args[0]))
             strnz__cpy(dir, lf.args[0], MAXLEN - 1);
-        } else {
-            if (is_valid_regex(lf.args[0])) {
-                strnz__cpy(re, lf.args[0], MAXLEN - 1);
-                lf.flags |= LF_REGEX;
-            } else {
-                printf("arg1: '%s' is neither a directory nor a valid regex.\n",
-                       lf.args[0]);
-            }
-        }
+        else if (is_symlink_to_dir(lf.args[0]))
+            strnz__cpy(dir, lf.args[0], MAXLEN - 1);
+        else if (is_valid_regex(lf.args[0])) {
+            strnz__cpy(re, lf.args[0], MAXLEN - 1);
+            lf.flags |= LF_REGEX;
+        } else
+            printf("arg1: '%s' is neither a directory nor a valid regex.\n",
+                   lf.args[0]);
     }
     if (lf.argc > 1) {
-        if (dir[0] == '\0' && is_directory(lf.args[1])) {
+        if (dir[0] == '\0' && is_directory(lf.args[1]))
             strnz__cpy(dir, lf.args[1], MAXLEN - 1);
-        } else {
-            if (re[0] == '\0' && is_valid_regex(lf.args[1])) {
-                strnz__cpy(re, lf.args[1], MAXLEN - 1);
-                lf.flags |= LF_REGEX;
-            } else {
-                printf("arg2: '%s' is neither a directory nor a valid regex.\n",
-                       lf.args[1]);
-            }
-        }
+        else if (dir[0] == '\0' && is_symlink_to_dir(lf.args[0]))
+            strnz__cpy(dir, lf.args[0], MAXLEN - 1);
+        else if (re[0] == '\0' && is_valid_regex(lf.args[1])) {
+            strnz__cpy(re, lf.args[1], MAXLEN - 1);
+            lf.flags |= LF_REGEX;
+        } else
+            printf("arg2: '%s' is neither a directory nor a valid regex.\n",
+                   lf.args[1]);
     }
     if (dir[0] == '\0')
         strncpy(dir, ".", MAXLEN - 1);

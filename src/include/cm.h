@@ -775,6 +775,7 @@ extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool file_spec_path(char *, char *);
 extern bool file_spec_name(char *, char *);
 extern int is_directory(const char *);
+extern int is_symlink_to_dir(const char *);
 extern bool is_valid_regex(const char *);
 extern bool dir_name(char *, char *);
 extern bool base_name(char *, char *);

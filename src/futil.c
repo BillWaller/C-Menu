@@ -1346,6 +1346,19 @@ int is_directory(const char *path) {
         return S_ISDIR(statbuf.st_mode);
     return 0;
 }
+/** @brief Checks if the given path is a symbolic link to a directory
+    @ingroup utility_functions
+    @param path - path to check
+    @returns true if the path is a symbolic link to a directory, false otherwise
+ */
+int is_symlink_to_dir(const char *path) {
+    struct stat l_statbuf, statbuf;
+    if (lstat(path, &l_statbuf) != 0)
+        return 0;
+    if (stat(path, &statbuf) != 0)
+        return 0;
+    return S_ISLNK(l_statbuf.st_mode) && S_ISDIR(statbuf.st_mode);
+}
 /** @brief Checks if the given regular expression pattern is valid
     @ingroup utility_functions
     @param pattern - regular expression pattern to check
