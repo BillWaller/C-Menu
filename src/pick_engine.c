@@ -874,6 +874,20 @@ int picker(Init *init, char *field) {
                       pick->tbl_line, pick->tbl_page + 1, pick->tbl_pages);
             mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
             wrefresh(pick->box);
+            rtrim(accept_s);
+            s = &filler_s[0];
+            e = s + flen;
+            while (s != e)
+                *s++ = ' ';
+            *s = '\0';
+            mvwaddstr(win2, line, col, filler_s);
+            mvwaddstr(win2, line, col, accept_s);
+            pos = col + strlen(accept_s);
+            wmove(win2, line, pos);
+            curs_set(0);
+            wrefresh(win2);
+            curs_set(1);
+            wrefresh(win);
             // rtrim(accept_s);
             // s = &filler_s[0];
             // e = s + flen;
@@ -1151,6 +1165,7 @@ int picker(Init *init, char *field) {
             case KEY_UP:
             case '\t':
                 in_key = 0;
+                curs_set(0);
                 break;
 
             case KEY_F(1):
