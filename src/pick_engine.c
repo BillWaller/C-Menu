@@ -876,7 +876,7 @@ int picker(Init *init, char *field) {
             ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                       pick->tbl_line + 1, pick->tbl_page + 1, pick->tbl_pages);
             strnz__cat(tmp_str, "     ", MAXLEN - 1);
-            tmp_str[22] = '\0';
+            tmp_str[21] = '\0';
             mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
             wrefresh(pick->box);
             rtrim(accept_s);
@@ -1145,7 +1145,7 @@ int picker(Init *init, char *field) {
                               pick->tbl_line + 1, pick->tbl_page + 1,
                               pick->tbl_pages);
                     strnz__cat(tmp_str, "     ", MAXLEN - 1);
-                    tmp_str[22] = '\0';
+                    tmp_str[21] = '\0';
                     mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
                     wrefresh(pick->box);
                 }
