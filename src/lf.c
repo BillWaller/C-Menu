@@ -78,24 +78,24 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'a':
         memset(&tm_info, 0, sizeof(struct tm));
         if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL) {
-            printf("-a Failed to parse time string.\n");
+            fprintf(stderr, "-a Failed to parse time string.\n");
             return 1;
         }
         lf->after = mktime(&tm_info);
         if (lf->after && lf->before && lf->after > lf->before) {
-            printf("-a time must be before -b time.\n");
+            fprintf(stderr, "-a time must be before -b time.\n");
             return 1;
         }
         break;
     case 'b':
         memset(&tm_info, 0, sizeof(struct tm));
         if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL) {
-            printf("-b Failed to parse time string.\n");
+            fprintf(stderr, "-b Failed to parse time string.\n");
             return 1;
         }
         lf->before = mktime(&tm_info);
         if (lf->after && lf->before && lf->after > lf->before) {
-            printf("-a time must be before -b time.\n");
+            fprintf(stderr, "-a time must be before -b time.\n");
             return 1;
         }
         break;
@@ -179,15 +179,16 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         struct passwd *pwd = getpwnam(arg);
         if (pwd) {
             if (pwd->pw_uid > 0xffff) {
-                printf("User '%s' has UID %d which is too large for this "
-                       "program.\n",
-                       arg, pwd->pw_uid);
+                fprintf(stderr,
+                        "User '%s' has UID %d which is too large for this "
+                        "program.\n",
+                        arg, pwd->pw_uid);
                 exit(EXIT_FAILURE);
             }
             lf->flags |= (long)(pwd->pw_uid) << 24;
             lf->flags |= LF_USER;
         } else {
-            printf("User '%s' not found.\n", arg);
+            fprintf(stderr, "User '%s' not found.\n", arg);
             exit(EXIT_FAILURE);
         }
     } break;
@@ -235,9 +236,12 @@ int main(int argc, char **argv) {
         else if (is_valid_regex(lf.args[0])) {
             strnz__cpy(re, lf.args[0], MAXLEN - 1);
             lf.flags |= LF_REGEX;
-        } else
-            printf("arg1: '%s' is neither a directory nor a valid regex.\n",
-                   lf.args[0]);
+        } else {
+            fprintf(stderr,
+                    "arg1: '%s' is neither a directory nor a valid regex.\n",
+                    lf.args[0]);
+            exit(EXIT_FAILURE);
+        }
     }
     if (lf.argc > 1) {
         if (dir[0] == '\0' && is_directory(lf.args[1]))
@@ -246,14 +250,18 @@ int main(int argc, char **argv) {
             strnz__cpy(dir, lf.args[1], MAXLEN - 1);
         else if (is_valid_regex(lf.args[1])) {
             if (lf.flags & LF_REGEX) {
-                printf("lf: %s is not a valid directory.\n", lf.args[0]);
+                fprintf(stderr, "lf: %s is not a valid directory.\n",
+                        lf.args[0]);
                 exit(EXIT_FAILURE);
             }
             strnz__cpy(re, lf.args[1], MAXLEN - 1);
             lf.flags |= LF_REGEX;
-        } else
-            printf("arg2: '%s' is neither a directory nor a valid regex.\n",
-                   lf.args[1]);
+        } else {
+            fprintf(stderr,
+                    "arg2: '%s' is neither a directory nor a valid regex.\n",
+                    lf.args[1]);
+            exit(EXIT_FAILURE);
+        }
     }
     if (dir[0] == '\0')
         strncpy(dir, ".", MAXLEN - 1);

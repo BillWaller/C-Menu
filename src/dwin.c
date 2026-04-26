@@ -1450,33 +1450,30 @@ void abend(int ec, char *s) {
  */
 bool waitpid_with_timeout(pid_t pid, int timeout) {
     int status;
-    int rc;
     Chyron *wait_chyron;
     WINDOW *wait_win;
     int remaining = timeout;
 
-    usleep(100000); // Sleep for 200ms */
-    rc = waitpid(pid, &status, WNOHANG);
-    if (rc == pid)
+    waitpid(pid, &status, WNOHANG);
+    if (WIFEXITED(status) || WIFSIGNALED(status))
         return true;
-    if (rc == -1) {
-        ssnprintf(em0, MAXLEN - 1, "Error waiting for process %d", pid);
-        Perror(em0);
-        return false;
-    }
+    usleep(100000); // Sleep for 200ms */
     wait_chyron = wait_mk_chyron();
     ssnprintf(em0, MAXLEN - 1, "Waiting for process %d to finish...", pid);
     wait_win = wait_mk_win(wait_chyron, em0);
     cmd_key = 0;
-    while (rc == 0 && remaining > 0 && cmd_key != KEY_F(9)) {
+    while (remaining > 0 && cmd_key != KEY_F(9)) {
         cmd_key = wait_continue(wait_win, wait_chyron, remaining);
         if (cmd_key == KEY_F(9))
             break;
         remaining--;
+        waitpid(pid, &status, WNOHANG);
+        if (WIFEXITED(status) || WIFSIGNALED(status)) {
+            wait_destroy(wait_chyron);
+            return true;
+        }
     }
     wait_destroy(wait_chyron);
-    if (rc == pid)
-        return true;
     return false;
 }
 /** @brief Wrapper for wgetch that handles signals, mouse events, checks for

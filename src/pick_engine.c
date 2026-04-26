@@ -62,7 +62,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     char *s_argv[MAXARGS];
     int s_argc;
     char tmp_str[MAXLEN];
-    int m;
+    int rc;
     pid_t pid = 0;
 
     Pick *pick = new_pick(init, argc, argv, begy, begx);
@@ -80,20 +80,28 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             return (1);
         }
         if (pid == 0) {
-            /** Spawn Child to execute provider_cmd
-                Close read end of pipe as Child only needs to write to pipe */
+            /** Spawn Child to execute provider_cmd */
+            int dev_null = open("/dev/null", O_WRONLY);
+            if (dev_null == -1) {
+                Perror("open(/dev/null) failed in init_pick child process");
+                exit(EXIT_FAILURE);
+            }
+            dup2(dev_null, STDOUT_FILENO);
+            dup2(dev_null, STDERR_FILENO);
+            close(dev_null);
+            /** Close read end of pipe as Child only needs to write to pipe */
             close(pipe_fd[P_READ]);
             /** Connect CHILD STDOUT to write end of pipe */
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
             /** STDOUT attached to write end of pipe, so close pipe fd */
             close(pipe_fd[P_WRITE]);
-            execvp(s_argv[0], s_argv);
-            m = MAXLEN - 24;
-            strnz__cpy(tmp_str, "Can't exec pick start cmd: ", m);
-            m -= strlen(s_argv[0]);
-            strnz__cat(tmp_str, s_argv[0], m);
-            Perror(tmp_str);
-            exit(EXIT_FAILURE);
+            rc = execvp(s_argv[0], s_argv);
+            if (rc == -1) {
+                strnz__cpy(tmp_str, "Can't exec pick start cmd: ", MAXLEN - 1);
+                strnz__cat(tmp_str, s_argv[0], MAXLEN - 1);
+                Perror(tmp_str);
+                exit(EXIT_FAILURE);
+            }
         }
         /** Return to Parent
             Close write end of pipe as Parent only needs to read from pipe */
@@ -113,26 +121,20 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     if (!pick->f_in_pipe) {
         /** No provider_cmd specified, so read pick input from file or stdin */
         if (lstat(pick->in_spec, &sb) == -1) {
-            m = MAXLEN - 29;
-            strnz__cpy(tmp_str, "Can\'t stat pick input file: ", m);
-            m -= strlen(pick->in_spec);
-            strnz__cat(tmp_str, pick->in_spec, m);
+            strnz__cpy(tmp_str, "Can\'t stat pick input file: ", MAXLEN - 1);
+            strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
             Perror(tmp_str);
             return (1);
         }
         if (sb.st_size == 0) {
-            m = MAXLEN - 24;
-            strnz__cpy(tmp_str, "Pick input file empty: ", m);
-            m -= strlen(pick->in_spec);
-            strnz__cat(tmp_str, pick->in_spec, m);
+            strnz__cpy(tmp_str, "Pick input file empty: ", MAXLEN - 1);
+            strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
             Perror(tmp_str);
             return (1);
         }
         if ((pick->in_fp = fopen(pick->in_spec, "rb")) == nullptr) {
-            m = MAXLEN - 29;
-            strnz__cpy(tmp_str, "Can't open pick input file: ", m);
-            m -= strlen(pick->in_spec);
-            strnz__cat(tmp_str, pick->in_spec, m);
+            strnz__cpy(tmp_str, "Can't open pick input file: ", MAXLEN - 1);
+            strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
             Perror(tmp_str);
             return (1);
         }
@@ -866,19 +868,22 @@ int picker(Init *init, char *field) {
     int in_key = 0;
     while (1) {
         while (1) {
-            /** ===============================================================
+            /** ===========================================================
                 Pick Objects Loop
-                ===============================================================
-             */
+                =========================================================== */
             reverse_object(pick);
             pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
             pick->y = pick->tbl_line + pick->y_offset;
+
+            /** display_page_info */
             ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                       pick->tbl_line + 1, pick->tbl_page + 1, pick->tbl_pages);
             strnz__cat(tmp_str, "     ", MAXLEN - 1);
             tmp_str[21] = '\0';
             mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
             wrefresh(pick->box);
+
+            /** display_field_content */
             rtrim(accept_s);
             s = &filler_s[0];
             e = s + flen;
@@ -891,16 +896,11 @@ int picker(Init *init, char *field) {
             wmove(win2, line, pos);
             curs_set(0);
             wrefresh(win2);
+            /** end display_field_content */
+
             curs_set(1);
             wrefresh(win);
-            // rtrim(accept_s);
-            // s = &filler_s[0];
-            // e = s + flen;
-            // while (s != e)
-            //     *s++ = ' ';
-            // *s = '\0';
-            // mvwaddstr(win2, line, col, filler_s);
-            // mvwaddstr(win2, line, col, accept_s);
+
             if (in_key == 0) {
                 mouse_win = nullptr;
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
@@ -1130,8 +1130,7 @@ int picker(Init *init, char *field) {
         }
         /** ===============================================================
             Line editor loop
-            ===============================================================
-         */
+            =============================================================== */
         while (1) {
             if (in_key == 0) {
                 mouse_win = nullptr;
@@ -1141,6 +1140,7 @@ int picker(Init *init, char *field) {
                         continue;
                     }
                     display_page(pick);
+                    /** display_page_info */
                     ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                               pick->tbl_line + 1, pick->tbl_page + 1,
                               pick->tbl_pages);
@@ -1149,6 +1149,7 @@ int picker(Init *init, char *field) {
                     mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
                     wrefresh(pick->box);
                 }
+                /** display_field_content */
                 rtrim(accept_s);
                 s = &filler_s[0];
                 e = s + flen;
