@@ -245,7 +245,10 @@ int main(int argc, char **argv) {
         else if (dir[0] == '\0' && is_symlink_to_dir(lf.args[1]))
             strnz__cpy(dir, lf.args[1], MAXLEN - 1);
         else if (is_valid_regex(lf.args[1])) {
-            dir[0] = '\0';
+            if (lf.flags & LF_REGEX) {
+                printf("lf: %s is not a valid directory.\n", lf.args[0]);
+                exit(EXIT_FAILURE);
+            }
             strnz__cpy(re, lf.args[1], MAXLEN - 1);
             lf.flags |= LF_REGEX;
         } else
