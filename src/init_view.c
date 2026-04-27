@@ -470,7 +470,6 @@ int view_init_input(View *view, char *file_name) {
                 Perror("open(/dev/null) failed in init_pick child process");
                 exit(EXIT_FAILURE);
             }
-            dup2(dev_null, STDOUT_FILENO);
             dup2(dev_null, STDERR_FILENO);
             close(dev_null);
             close(pipe_fd[P_READ]);
@@ -483,7 +482,7 @@ int view_init_input(View *view, char *file_name) {
             exit(EXIT_FAILURE);
         }
         // Back to parent
-        s_argc = destroy_argv(s_argc, s_argv);
+        destroy_argv(s_argc, s_argv);
         close(pipe_fd[P_WRITE]);
         dup2(pipe_fd[P_READ], STDIN_FILENO);
         view->in_fd = dup(STDIN_FILENO);

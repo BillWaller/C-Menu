@@ -1634,7 +1634,8 @@ void open_cmenu_log() {
     char ttyname[MAXLEN];
     char cmenu_user[MAXLEN];
     char *p;
-    cmenu_log_fd = open("/tmp/cmenu.log", O_WRONLY | O_CREAT | O_TRUNC);
+    cmenu_log_fd = open("/tmp/cmenu.log", O_WRONLY | O_CREAT | O_TRUNC,
+                        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     p = getenv("USER");
     strnz__cpy(cmenu_user, p, MAXLEN - 1);
     if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)

@@ -86,7 +86,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
                 Perror("open(/dev/null) failed in init_pick child process");
                 exit(EXIT_FAILURE);
             }
-            dup2(dev_null, STDOUT_FILENO);
             dup2(dev_null, STDERR_FILENO);
             close(dev_null);
             /** Close read end of pipe as Child only needs to write to pipe */
@@ -110,7 +109,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         /** Open a file pointer on read end of pipe */
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
         pick->f_in_pipe = true;
-        s_argc = destroy_argv(s_argc, s_argv);
+        destroy_argv(s_argc, s_argv);
     } else {
         if ((pick->in_spec[0] == '\0') || strcmp(pick->in_spec, "-") == 0 ||
             strcmp(pick->in_spec, "/dev/stdin") == 0) {
@@ -426,7 +425,7 @@ void display_page(Pick *pick) {
     pick->d_cnt = pick->d_idx;
     pick->d_idx -= 1;
     pick->tbl_lines = pick->d_cnt;
-    pick->tbl_pages = (pick->tbl_lines / (pick->pg_lines - 1)) + 1;
+    pick->tbl_pages = (pick->tbl_lines / pick->pg_lines);
     if (pick->y < pick->pg_lines) {
         pick->y_offset = pick->pg_lines - pick->y;
         wscrl(pick->win, -pick->y_offset);
@@ -737,7 +736,6 @@ int exec_objects(Init *init) {
                 Perror("open(/dev/null) failed in init_pick child process");
                 exit(EXIT_FAILURE);
             }
-            dup2(dev_null, STDOUT_FILENO);
             dup2(dev_null, STDERR_FILENO);
             close(dev_null);
             /** Child process to execute command */
@@ -751,7 +749,7 @@ int exec_objects(Init *init) {
         }
     }
     waitpid(pid, nullptr, 0);
-    eargc = destroy_argv(eargc, eargv);
+    destroy_argv(eargc, eargv);
     restore_curses_tioctl();
     sig_prog_mode();
     werase(stdscr);
@@ -838,7 +836,6 @@ int picker(Init *init, char *field) {
     char filler_s[MAXLEN]; /**< buffer for filling the field with spaces */
     int line = 0;          /**< Starting line for field input */
     int col = 1;    /**< Starting column for field input leaving space for > */
-    int pos = col;  /** Current cursor position within the field */
     char *s;        /**< source pointer for editing operations */
     char *d;        /**< destination pointer for editing operations */
     char *e;        /**< end pointer for editing operations */
@@ -850,6 +847,7 @@ int picker(Init *init, char *field) {
     accept_s = field;
     fstart = accept_s;
     int flen = pick->win_width - 4;
+    int pos;
 
     pick = init->pick;
     win = pick->win;
@@ -857,7 +855,6 @@ int picker(Init *init, char *field) {
     fend = fstart + flen;
     str_end = fstart + strlen(fstart); /**< End of field content */
     ptr = str_end;
-    pos = col + strlen(accept_s);
     click_x = -1;
     click_y = click_x = -1;
     char tmp_str[MAXLEN];

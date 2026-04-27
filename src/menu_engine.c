@@ -190,7 +190,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                    init->begx);
-        eargc = destroy_argv(eargc, eargv);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** Exit the menu and return to the previous menu or exit if at top
          */
@@ -263,7 +263,7 @@ unsigned int menu_cmd_processor(Init *init) {
         trim(earg_str);
         eargc = str_to_args(eargv, s, MAX_ARGS);
         full_screen_fork_exec(eargv);
-        eargc = destroy_argv(eargc, eargv);
+        destroy_argv(eargc, eargv);
         return (MA_RESET_MENU);
         /** @brief Display help information for the menu system */
     case CT_HELP:
@@ -287,7 +287,7 @@ unsigned int menu_cmd_processor(Init *init) {
         strnz__cpy(init->title, "Menu Help", MAXLEN - 1);
         popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                    init->begx);
-        eargc = destroy_argv(eargc, eargv);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display a submenu or perform an action associated with
          * the selected menu choice */
@@ -298,7 +298,7 @@ unsigned int menu_cmd_processor(Init *init) {
         if (eargc == 0)
             return (MA_DISPLAY_MENU);
         popup_menu(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
-        eargc = destroy_argv(eargc, eargv);
+        destroy_argv(eargc, eargv);
         return (MA_RESET_MENU);
         /** @brief Display a pick list or form associated with the selected
          * menu choice */
@@ -307,7 +307,7 @@ unsigned int menu_cmd_processor(Init *init) {
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         popup_pick(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
-        eargc = destroy_argv(eargc, eargv);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief Display a form associated with the selected menu choice
          */
@@ -316,7 +316,7 @@ unsigned int menu_cmd_processor(Init *init) {
                    MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         popup_form(init, eargc, eargv, menu->begy + 1, menu->begx + 1);
-        eargc = destroy_argv(eargc, eargv);
+        destroy_argv(eargc, eargv);
         return (MA_RESET_MENU);
         /** @brief Display a view associated with the selected menu choice
          */
@@ -332,7 +332,7 @@ unsigned int menu_cmd_processor(Init *init) {
                    MAXLEN - 1);
         popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                    init->begx);
-        eargc = destroy_argv(eargc, eargv);
+        destroy_argv(eargc, eargv);
         return (MA_DISPLAY_MENU);
         /** @brief open ckeys (test curses keys) */
     case CT_CKEYS:
