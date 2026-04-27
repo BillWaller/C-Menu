@@ -742,6 +742,9 @@ void destroy_curses() {
 /** @brief Create a cchar_t with the specified color pair index
     @ingroup color_management
     @param cp Color pair index
+    @param attr Attributes to apply to the cchar_t
+    @param s Multibyte string to convert to wide character (only the first
+   character is used)
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
 cchar_t mkccc(int cp, attr_t attr, char *s) {

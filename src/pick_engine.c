@@ -62,7 +62,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     char *s_argv[MAXARGS];
     int s_argc;
     char tmp_str[MAXLEN];
-    int rc;
     pid_t pid = 0;
 
     Pick *pick = new_pick(init, argc, argv, begy, begx);
@@ -95,13 +94,11 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             /** STDOUT attached to write end of pipe, so close pipe fd */
             close(pipe_fd[P_WRITE]);
             /** Spawn Child to execute provider_cmd */
-            rc = execvp(s_argv[0], s_argv);
-            if (rc == -1) {
-                strnz__cpy(tmp_str, "Can't exec pick start cmd: ", MAXLEN - 1);
-                strnz__cat(tmp_str, s_argv[0], MAXLEN - 1);
-                Perror(tmp_str);
-                exit(EXIT_FAILURE);
-            }
+            execvp(s_argv[0], s_argv);
+            strnz__cpy(tmp_str, "Can't exec pick start cmd: ", MAXLEN - 1);
+            strnz__cat(tmp_str, s_argv[0], MAXLEN - 1);
+            Perror(tmp_str);
+            exit(EXIT_FAILURE);
         }
         /** Return to Parent
             Close write end of pipe as Parent only needs to read from pipe */
@@ -819,6 +816,7 @@ void display_pick_help(Init *init) {
    interface
    @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
+    @param field Buffer for user input in the field
     @return Count of selected objects on success, -1 if user cancels
     @note The first loop handles navigation through the pick table.
     The second loop handles user input for selecting/deselecting objects,
@@ -837,9 +835,9 @@ int picker(Init *init, char *field) {
     char *d;        /**< destination pointer for editing operations */
     char *e;        /**< end pointer for editing operations */
     char *accept_s; /**< pointer to field buffer */
-    char *fstart;   /** pointer to start of field buffer */
-    char *fend;     /**< pointer to end of field buffer (start + flen) */
-    char *str_end;  /**< pointer to end of content in field buffer */
+    char *fstart;   /**< start of field buffer */
+    char *fend;     /**< end of field buffer */
+    char *str_end;  /**< end of content string */
     accept_s = field;
     fstart = accept_s;
     int flen = pick->win_width - 4;
@@ -878,37 +876,39 @@ int picker(Init *init, char *field) {
             /** ===========================================================
                 Pick Objects Loop
                 =========================================================== */
-            reverse_object(pick);
-            pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
-            pick->y = pick->tbl_line + pick->y_offset;
-
-            /** display_page_info */
-            ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
-                      pick->tbl_line + 1, pick->tbl_page + 1, pick->tbl_pages);
-            strnz__cat(tmp_str, "     ", MAXLEN - 1);
-            tmp_str[21] = '\0';
-            mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
-            wrefresh(pick->box);
-
-            /** display_field_content */
-            rtrim(accept_s);
-            s = &filler_s[0];
-            e = s + flen;
-            while (s != e)
-                *s++ = ' ';
-            *s = '\0';
-            mvwaddstr(win2, line, col, filler_s);
-            mvwaddstr(win2, line, col, accept_s);
-            pos = col + strlen(accept_s);
-            wmove(win2, line, pos);
-            curs_set(0);
-            wrefresh(win2);
-            /** end display_field_content */
-
-            curs_set(1);
-            wrefresh(win);
 
             if (in_key == 0) {
+                reverse_object(pick);
+                pick->tbl_line =
+                    (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+                pick->y = pick->tbl_line + pick->y_offset;
+
+                /** box display_page_info */
+                ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
+                          pick->tbl_line + 1, pick->tbl_page + 1,
+                          pick->tbl_pages);
+                strnz__cat(tmp_str, "     ", MAXLEN - 1);
+                tmp_str[21] = '\0';
+                mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
+                wrefresh(pick->box);
+
+                /** win2 display_field_content */
+                rtrim(accept_s);
+                s = &filler_s[0];
+                e = s + flen;
+                while (s != e)
+                    *s++ = ' ';
+                *s = '\0';
+                mvwaddstr(win2, line, col, filler_s);
+                mvwaddstr(win2, line, col, accept_s);
+                pos = col + strlen(accept_s);
+                wmove(win2, line, pos);
+                curs_set(0);
+                wrefresh(win2);
+                /** end display_field_content */
+
+                curs_set(1);
+                wrefresh(win);
                 mouse_win = nullptr;
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
                 if (mouse_win == win2 && click_y == 0)
@@ -955,6 +955,8 @@ int picker(Init *init, char *field) {
             case KEY_F(10):
             case '\n':
             case KEY_ENTER:
+                reverse_object(pick);
+                toggle_object(pick);
                 return pick->select_cnt;
 
             /** KEY_END Moves selection to last object in list */
@@ -1113,6 +1115,10 @@ int picker(Init *init, char *field) {
             case KEY_MOUSE:
                 if (click_y == -1 || click_x == -1)
                     continue;
+                if (click_y < pick->y_offset) {
+                    in_key = 0;
+                    continue;
+                }
                 unreverse_object(pick);
                 pick->y = click_y;
                 pick->tbl_col = (click_x - 1) / (pick->tbl_col_width + 1);

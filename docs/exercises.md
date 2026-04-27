@@ -362,6 +362,10 @@ the relative path of the Rust source file for the current exercise. This is the 
 
 Start C-Menu and select the Rustlings Source option. This will list the Rust source files for the exercises. Type the last few characters of the file name in the line editor window. For example, if the current exercise is "exercises/variables/variables1.rs", you can type "bles1". As you type, the list of files will be filtered to match your input. When you see the file you want to edit, select it.
 
+If the line editor refuses to accept a typed character, it is probably because
+of the preemptive error checking. If the character you are trying to enter would
+result in no matches, the line editor will reject it.
+
 When you select a file, it will open in Neovim (or your preferred editor if you change nvim.sh) for editing.
 
 After you finish editing, save the file, and Rustlings will check your work automatically. If you were successful, you can press "n" in the Rustlings terminal to advance to the next exercise.
