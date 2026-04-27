@@ -422,7 +422,7 @@ void display_page(Pick *pick) {
                            pick->d_object[pick->d_idx++], pick->tbl_col_width);
         }
     }
-    pick->d_cnt = pick->d_idx;
+    // pick->d_cnt = pick->d_idx;
     pick->d_idx -= 1;
     pick->tbl_lines = pick->d_cnt;
     pick->tbl_pages = (pick->tbl_lines / pick->pg_lines);
