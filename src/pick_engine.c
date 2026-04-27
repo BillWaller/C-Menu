@@ -422,7 +422,6 @@ void display_page(Pick *pick) {
                            pick->d_object[pick->d_idx++], pick->tbl_col_width);
         }
     }
-    // pick->d_cnt = pick->d_idx;
     pick->d_idx -= 1;
     pick->tbl_lines = pick->d_cnt;
     pick->tbl_pages = (pick->tbl_lines / pick->pg_lines);
@@ -471,9 +470,7 @@ void reverse_object(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
         pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
-
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                   pick->tbl_col * pick->pg_lines + pick->tbl_line;
@@ -815,7 +812,7 @@ void display_pick_help(Init *init) {
     strnz__cpy(init->title, "Pick Help", MAXLEN - 1);
     popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                init->begx);
-    eargc = destroy_argv(eargc, eargv);
+    destroy_argv(eargc, eargv);
     return;
 }
 /** @brief Main loop for handling user input and interactions in the pick
@@ -841,13 +838,16 @@ int picker(Init *init, char *field) {
     char *e;        /**< end pointer for editing operations */
     char *accept_s; /**< pointer to field buffer */
     char *fstart;   /** pointer to start of field buffer */
-    char *ptr;  /**< pointer to current cursor position within field buffer */
-    char *fend; /**< pointer to end of field buffer (start + flen) */
-    char *str_end; /**< pointer to end of content in field buffer */
+    char *fend;     /**< pointer to end of field buffer (start + flen) */
+    char *str_end;  /**< pointer to end of content in field buffer */
     accept_s = field;
     fstart = accept_s;
     int flen = pick->win_width - 4;
+    char *ptr; /**< pointer to current cursor position within field buffer */
     int pos;
+    char prev_field[MAXLEN];
+    int prev_pos;
+    char *prev_ptr;
 
     pick = init->pick;
     win = pick->win;
@@ -976,7 +976,6 @@ int picker(Init *init, char *field) {
                 continue;
 
             case '\t':
-                in_key = 0;
                 break;
 
             /** 'h' or KEY_LEFT or Backspace Moves selection to previous
@@ -1002,7 +1001,6 @@ int picker(Init *init, char *field) {
             case 'j':
             case KEY_DOWN:
                 if (pick->tbl_line == pick->tbl_lines - 1) {
-                    in_key = 0;
                     break;
                 }
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
@@ -1143,18 +1141,20 @@ int picker(Init *init, char *field) {
                 mouse_win = nullptr;
                 if (accept_s != nullptr && accept_s[0] != '\0') {
                     if (match_objects(pick, accept_s) == 0) {
-                        in_key = KEY_BACKSPACE;
-                        continue;
+                        strnz__cpy(field, prev_field, MAXLEN - 1);
+                        pos = prev_pos;
+                        ptr = prev_ptr;
+                    } else {
+                        display_page(pick);
+                        /** display_page_info */
+                        ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
+                                  pick->tbl_line + 1, pick->tbl_page + 1,
+                                  pick->tbl_pages);
+                        strnz__cat(tmp_str, "     ", MAXLEN - 1);
+                        tmp_str[21] = '\0';
+                        mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
+                        wrefresh(pick->box);
                     }
-                    display_page(pick);
-                    /** display_page_info */
-                    ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
-                              pick->tbl_line + 1, pick->tbl_page + 1,
-                              pick->tbl_pages);
-                    strnz__cat(tmp_str, "     ", MAXLEN - 1);
-                    tmp_str[21] = '\0';
-                    mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
-                    wrefresh(pick->box);
                 }
                 /** display_field_content */
                 rtrim(accept_s);
@@ -1165,7 +1165,7 @@ int picker(Init *init, char *field) {
                 *s = '\0';
                 mvwaddstr(win2, line, col, filler_s);
                 mvwaddstr(win2, line, col, accept_s);
-                pos = col + strlen(accept_s);
+                // pos = col + strlen(accept_s);
                 wmove(win2, line, pos);
                 wrefresh(win);
                 wrefresh(win2);
@@ -1173,7 +1173,9 @@ int picker(Init *init, char *field) {
                 if (mouse_win == win)
                     break;
             }
-
+            strnz__cpy(prev_field, accept_s, MAXLEN - 1);
+            prev_pos = pos;
+            prev_ptr = ptr;
             switch (in_key) {
             case '\n':
             case KEY_ENTER:
@@ -1277,7 +1279,7 @@ int picker(Init *init, char *field) {
 
             /** KEY_RIGHT moves cursor right one character */
             case KEY_RIGHT:
-                if (ptr < fend && ptr < str_end) {
+                if (ptr < fend && ptr <= str_end) {
                     ptr++;
                     pos++;
                 }

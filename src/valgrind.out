@@ -1,0 +1,172 @@
+==358533== Memcheck, a memory error detector
+==358533== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==358533== Using Valgrind-3.26.0-218cee2feb-20251024 and LibVEX; rerun with -h for copyright info
+==358533== Command: ./menu
+==358533== Parent PID: 358532
+==358533== 
+--358533-- 
+--358533-- Valgrind options:
+--358533--    -v
+--358533--    --log-file=valgrind.out
+--358533--    --leak-check=full
+--358533--    --show-leak-kinds=all
+--358533--    --leak-resolution=high
+--358533--    --track-origins=yes
+--358533--    --suppressions=valgrind.supp
+--358533-- Contents of /proc/version:
+--358533--   Linux version 6.19.12-1-default (geeko@buildhost) (gcc (SUSE Linux) 15.2.1 20260202, GNU ld (GNU Binutils; openSUSE Tumbleweed) 2.45.0.20251103-2) #1 SMP PREEMPT_DYNAMIC Sun Apr 12 17:36:53 UTC 2026 (c7234f7)
+--358533-- 
+--358533-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-rdtscp-sse3-ssse3-avx
+--358533-- Page sizes: currently 4096, max supported 4096
+--358533-- Valgrind library directory: /usr/libexec/valgrind
+--358533-- Reading syms from /usr/local/src/C-Menu/src/menu
+--358533-- Reading syms from /usr/lib64/ld-linux-x86-64.so.2
+--358533--   Considering /usr/lib/debug/.build-id/fd/b51dd914c8a1c199be64513639e2a7e9f8338e.debug ..
+--358533--   .. build-id is valid
+--358533-- Reading syms from /usr/libexec/valgrind/memcheck-amd64-linux
+--358533--    object doesn't have a dynamic symbol table
+--358533-- Scheduler: using generic scheduler lock implementation.
+--358533-- Reading suppressions file: valgrind.supp
+--358533-- Reading suppressions file: /usr/libexec/valgrind/default.supp
+==358533== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-358533-by-bill-on-bw1
+==358533== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-358533-by-bill-on-bw1
+==358533== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-358533-by-bill-on-bw1
+==358533== 
+==358533== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==358533== don't want to do, unless you know exactly what you're doing,
+==358533== or are doing some strange experiment):
+==358533==   /usr/libexec/valgrind/../../bin/vgdb --pid=358533 ...command...
+==358533== 
+==358533== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==358533==   /path/to/gdb ./menu
+==358533== and then give GDB the following command
+==358533==   target remote | /usr/libexec/valgrind/../../bin/vgdb --pid=358533
+==358533== --pid is optional if only one valgrind process is running
+==358533== 
+==358533== Downloading debug info for /usr/libexec/valgrind/memcheck-amd64-linux...
+--358533--   Considering /home/bill/.cache/debuginfod_client/cc8a9fce2a3fdd6334693d08eeaef96afe57dad7/debuginfo ..
+--358533--   .. CRC is valid
+==358533== Successfully downloaded debug file for /usr/libexec/valgrind/memcheck-amd64-linux
+--358533-- REDIR: 0x4028ace (ld-linux-x86-64.so.2:strlen) redirected to 0x5823a86e (vgPlain_amd64_linux_REDIR_FOR_strlen)
+--358533-- REDIR: 0x402741e (ld-linux-x86-64.so.2:strcmp) redirected to 0x5823a888 (vgPlain_amd64_linux_REDIR_FOR_strcmp)
+--358533-- REDIR: 0x40271de (ld-linux-x86-64.so.2:index) redirected to 0x5823a8c1 (vgPlain_amd64_linux_REDIR_FOR_index)
+--358533-- Reading syms from /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
+--358533-- Reading syms from /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
+==358533== WARNING: new redirection conflicts with existing -- ignoring it
+--358533--     old: 0x0402741e (strcmp              ) R-> (0000.0) 0x5823a888 vgPlain_amd64_linux_REDIR_FOR_strcmp
+==358533== Downloading debug info for /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so...
+--358533--   Considering /home/bill/.cache/debuginfod_client/6369fbd14065571a434f385d67196ff9bc9f2445/debuginfo ..
+--358533--   .. CRC is valid
+==358533== Successfully downloaded debug file for /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
+--358533--     new: 0x0402741e (strcmp              ) R-> (2016.0) 0x048532b0 strcmp
+==358533== WARNING: new redirection conflicts with existing -- ignoring it
+--358533--     old: 0x04028ace (strlen              ) R-> (0000.0) 0x5823a86e vgPlain_amd64_linux_REDIR_FOR_strlen
+--358533--     new: 0x04028ace (strlen              ) R-> (2007.0) 0x04852040 strlen
+--358533-- REDIR: 0x40267fe (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4857900 (mempcpy)
+--358533-- Reading syms from /usr/local/src/C-Menu/src/libcm.so
+--358533-- Reading syms from /usr/lib64/libncursesw.so.6.6
+--358533-- Reading syms from /usr/lib64/libtinfo.so.6.6
+--358533-- Reading syms from /usr/lib64/libm.so.6
+--358533-- Reading syms from /usr/lib64/libc.so.6
+--358533--   Considering /usr/lib/debug/.build-id/18/77ff923c3d7eea4bc6aacc6c37c1bd67bb166d.debug ..
+--358533--   .. build-id is valid
+--358533-- REDIR: 0x4028c7e (ld-linux-x86-64.so.2:strncmp) redirected to 0x4852b20 (strncmp)
+==358533== Downloading debug info for /usr/libexec/valgrind/vgpreload_core-amd64-linux.so...
+--358533--   Considering /home/bill/.cache/debuginfod_client/2f08aad92c15984df8288a43cb64ad784c185367/debuginfo ..
+--358533--   .. CRC is valid
+==358533== Successfully downloaded debug file for /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
+--358533-- REDIR: 0x4ad65de (libc.so.6:strnlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad666e (libc.so.6:strpbrk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad438e (libc.so.6:strcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4aebfce (libc.so.6:wcsnlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad333e (libc.so.6:memset) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4aeb5ee (libc.so.6:wcslen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4b4ec8e (libc.so.6:__memcpy_chk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad32ae (libc.so.6:memrchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4aebf4e (libc.so.6:wcsncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad27be (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4aea30e (libc.so.6:wcschr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad426e (libc.so.6:index) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad66ae (libc.so.6:rindex) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4aea3ce (libc.so.6:wcscmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad35de (libc.so.6:stpncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4af7a8e (libc.so.6:wmemchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad645e (libc.so.6:strncmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad364e (libc.so.6:strcasecmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad559e (libc.so.6:strcspn) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4aeb38e (libc.so.6:wcscpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad41ee (libc.so.6:strcat) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad633e (libc.so.6:strncasecmp_l) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad42fe (libc.so.6:strchrnul) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad26ae (libc.so.6:bcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad551e (libc.so.6:strcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad36fe (libc.so.6:strcasecmp_l) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad61fe (libc.so.6:strlen) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad650e (libc.so.6:strncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4af7b1e (libc.so.6:wmemcmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4b4edae (libc.so.6:__memmove_chk) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+==358533== WARNING: new redirection conflicts with existing -- ignoring it
+--358533--     old: 0x04ada28e (__memcpy_chk_sse2_un) R-> (2030.0) 0x04857a00 __memcpy_chk
+--358533--     new: 0x04ada28e (__memcpy_chk_sse2_un) R-> (2024.0) 0x04857320 __memmove_chk
+--358533-- REDIR: 0x4ad355e (libc.so.6:stpcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad306e (libc.so.6:memmove) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad261e (libc.so.6:memchr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad68de (libc.so.6:strspn) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ae9ede (libc.so.6:wcpncpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad318e (libc.so.6:mempcpy) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad628e (libc.so.6:strncasecmp) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ad717e (libc.so.6:strstr) redirected to 0x483e1b0 (_vgnU_ifunc_wrapper)
+--358533-- REDIR: 0x4ae746e (libc.so.6:__strrchr_sse2) redirected to 0x4851820 (__strrchr_sse2)
+--358533-- REDIR: 0x4acf7ae (libc.so.6:calloc) redirected to 0x484fc10 (calloc)
+--358533-- REDIR: 0x4bb6c3e (libc.so.6:__strcmp_sse42) redirected to 0x4853270 (__strcmp_sse42)
+--358533-- REDIR: 0x4ae150e (libc.so.6:__strlen_sse2) redirected to 0x4851f80 (__strlen_sse2)
+--358533-- REDIR: 0x4bb964e (libc.so.6:__strncmp_sse42) redirected to 0x4852a60 (__strncmp_sse42)
+--358533-- REDIR: 0x4adf24e (libc.so.6:__strchr_sse2) redirected to 0x48519a0 (__strchr_sse2)
+--358533-- REDIR: 0x4ad991e (libc.so.6:__memchr_sse2) redirected to 0x4853330 (memchr)
+--358533-- REDIR: 0x4adf48e (libc.so.6:__strchrnul_sse2) redirected to 0x48573c0 (strchrnul)
+--358533-- REDIR: 0x4ace74e (libc.so.6:malloc) redirected to 0x4848750 (malloc)
+--358533-- REDIR: 0x4ada26e (libc.so.6:__mempcpy_sse2_unaligned) redirected to 0x4857500 (mempcpy)
+--358533-- REDIR: 0x4ada2ae (libc.so.6:memcpy@GLIBC_2.2.5) redirected to 0x48533e0 (memcpy@GLIBC_2.2.5)
+--358533-- REDIR: 0x4aced5e (libc.so.6:free) redirected to 0x484b720 (free)
+--358533-- REDIR: 0x4acf12e (libc.so.6:realloc) redirected to 0x484fe70 (realloc)
+--358533-- REDIR: 0x4bb53ee (libc.so.6:__strcasecmp_l_sse42) redirected to 0x4852dc0 (strcasecmp_l)
+--358533-- REDIR: 0x4ada28e (libc.so.6:__memcpy_chk_sse2_unaligned) redirected to 0x4857a00 (__memcpy_chk)
+--358533-- REDIR: 0x4adb0fe (libc.so.6:__stpcpy_sse2_unaligned) redirected to 0x4856030 (__stpcpy_sse2_unaligned)
+--358533-- REDIR: 0x4ae723e (libc.so.6:__strnlen_sse2) redirected to 0x4851ec0 (strnlen)
+--358533-- REDIR: 0x4bba79e (libc.so.6:__strspn_sse42) redirected to 0x4857d30 (strspn)
+--358533-- REDIR: 0x4bb7a0e (libc.so.6:__strcspn_sse42) redirected to 0x4857c30 (strcspn)
+==358533== Downloading debug info for /usr/lib64/libtinfo.so.6.6...
+--358533--   Considering /home/bill/.cache/debuginfod_client/f9b1cd5481b83bb134e93b8d635d926c1b375c45/debuginfo ..
+--358533--   .. CRC is valid
+==358533== Successfully downloaded debug file for /usr/lib64/libtinfo.so.6.6
+==358533== Downloading debug info for /usr/lib64/libncursesw.so.6.6...
+--358533--   Considering /home/bill/.cache/debuginfod_client/316b82032340c54ebf015aed02ebf8de12dc8d15/debuginfo ..
+--358533--   .. CRC is valid
+==358533== Successfully downloaded debug file for /usr/lib64/libncursesw.so.6.6
+--358533-- REDIR: 0x4ad618e (libc.so.6:strlcpy) redirected to 0x4852800 (strlcpy)
+--358533-- REDIR: 0x4adac8e (libc.so.6:__memset_sse2_unaligned_erms) redirected to 0x48564c0 (memset)
+--358533-- REDIR: 0x4ae771e (libc.so.6:__strstr_sse2_unaligned) redirected to 0x4857a70 (strstr)
+--358533-- REDIR: 0x4bbac0e (libc.so.6:__wcslen_sse4_1) redirected to 0x4857e70 (wcslen)
+==358533== 
+==358533== HEAP SUMMARY:
+==358533==     in use at exit: 694 bytes in 5 blocks
+==358533==   total heap usage: 1,363 allocs, 1,358 frees, 968,272 bytes allocated
+==358533== 
+==358533== Searching for pointers to 5 not-freed blocks
+==358533== Checked 201,336 bytes
+==358533== 
+==358533== LEAK SUMMARY:
+==358533==    definitely lost: 0 bytes in 0 blocks
+==358533==    indirectly lost: 0 bytes in 0 blocks
+==358533==      possibly lost: 0 bytes in 0 blocks
+==358533==    still reachable: 0 bytes in 0 blocks
+==358533==         suppressed: 694 bytes in 5 blocks
+==358533== 
+==358533== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+--358533-- 
+--358533-- used_suppression:      1 ncurses_acs_map valgrind.supp:61 suppressed: 512 bytes in 1 blocks
+--358533-- used_suppression:      1 ncurses_first_db_malloc valgrind.supp:46 suppressed: 103 bytes in 1 blocks
+--358533-- used_suppression:      1 ncurses_first_db_calloc valgrind.supp:32 suppressed: 48 bytes in 1 blocks
+--358533-- used_suppression:      2 ncurses_update_getenv_term valgrind.supp:15 suppressed: 31 bytes in 2 blocks
+==358533== 
+==358533== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

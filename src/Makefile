@@ -34,6 +34,15 @@
 #
 # Edit the four lines below to match your system configuration:
 #
+# It's better not to use "USER=$(id -un)" and "GROUP=$(id -gn)" in the makefile, 
+# as it can lead to issues with permissions and ownership when installing the 
+# binaries and libraries. Instead, it's recommended to set the USER and GROUP 
+# variables to specific values that match your system configuration. This way, 
+# you can ensure that the installed files have the correct ownership and 
+# permissions, and you can avoid potential issues with file access and security.
+#
+# Please update the USER and GROUP variables to match your system configuration 
+# before running the make command.
 USER=bill
 GROUP=bill
 HOME=/home/$(USER)
@@ -51,7 +60,7 @@ PREFIX=$(HOME)/menuapp
 # appropriate log file or log facility. Please consult your system's 
 # documentation for more information on how to configure logging for RSH.
 #
-# Uncomment the following line to enables SSH authentication for RSH
+# Uncomment the following line to enable SSH authentication for RSH
 # RSH_CFLAGS = $(RSH_CFLAGS) -DRSH_SSH
 #
 # -DRSH_SSH: If you enable SSH authentication for RSH, you will need to ensure
@@ -75,7 +84,20 @@ CFLAGS=-O2
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_LOG -DDEBUG_IMMEDOK -DDEBUG_RESIZE
-# This will cause the screen to update immediately after each change, which can be helpful for debugging screen drawing issues. However, it may also cause performance issues, so it is not recommended for production builds.
+# -DEBUG_IMMEDOK will cause the screen to update immediately after each change, 
+#  which can be helpful for debugging screen drawing issues. However, it may 
+#  also cause performance issues, so it is not recommended for production 
+#  builds.
+#
+# -rdynamic passes -export-dynamic to the linker, which allows the symbols from
+#   the executable to be available for dynamic linking. This is necessary for 
+#   debugging with tools like gdb, as it allows gdb to access the symbols and 
+#   functions defined in the executable. Without -rdynamic, gdb may not be able 
+#   to access the symbols, making it more difficult to debug the program. 
+#   However, it may also increase the size of the executable and may not be 
+#   necessary for production builds, so it is typically used only for debugging 
+#   purposes.
+#
 # CFLAGS=-O0 ggdb rdynamic
 # CFLAGS=-DDEBUG_RESIZE DDEUBG_IMMEDOK DDEBUG_LOG
 #  Uncomment the following line to enable Address Sanitizer, Leak Sanitizer, and 
@@ -86,7 +108,7 @@ CFLAGS=-O2
 # -fno-sanitize-recover=all
 #
 # Uncomment the following line to enable debugging
-CFLAGS=-O0 -g3
+CFLAGS=-O0 -g3 -rdynamic
 # -DDEBUG_IMMEDOK
 # Additional debugging flags for C-Menu
 #	-DDEBUG_IMMEDOK -DDEBUG_RESIZE -DDEBUG_LOG
