@@ -1,14 +1,24 @@
 #!/bin/bash
 
-if [ $(which nvim) ]; then
-    nvim "$@"
+if [ "$EDITOR" != "" ]; then
+    $EDITOR "$@"
 else
-    if [ $(which vim) ]; then
-        vim "$@"
+    if [ "$(which nvim)" ]; then
+        nvim "$@"
     else
-        echo "Comeon man! Neither nvim nor vim is installed."
-        enterchr "Press any key to exit..."
-        exit 1
+        if [ "$(which vim)" ]; then
+            vim "$@"
+        else
+            if [ "$(which nano)" ]; then
+                nano "$@"
+            else
+                echo Cannot find EDITOR "($EDITOR)"
+                echo Cannot find nvim, vim, or nano.
+                echo Please install an editor and try again.
+                enterchr Press any key to exit...
+                exit 1
+            fi
+        fi
     fi
 fi
 tput smcup

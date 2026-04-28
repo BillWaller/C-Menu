@@ -1,7 +1,9 @@
 #!/bin/bash
-# inst.sh install files
-# Bill Waller
+# @name inst.sh
+# @brief install files
+# @author Bill Waller
 # billxwaller@gmail.com
+# decision-inc.com
 #
 #   echo usage: inst.sh FileName Directory DestName Mode Owner Group
 #   echo "    -l      list manifest.txt files"

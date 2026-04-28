@@ -1,4 +1,6 @@
 #!/bin/bash
+# @file alacritty_themes.sh
+# @brief list theme configuration files
 U=$(id -un)
 G=$(id -gn)
 themes_dir="$HOME"/.config/alacritty/themes

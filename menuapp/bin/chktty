@@ -105,5 +105,5 @@ else
     settings=$(cat "$ref_file".g)
     echo "stty $settings >$tty_dev"
     stty "$settings" <"$tty_dev"
-    echo "Done! At your command, Master."
+    echo "Done!"
 fi

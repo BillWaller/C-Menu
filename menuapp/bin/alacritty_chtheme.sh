@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# @file alacritty_chtheme.sh
+# @brief link selected theme configuration file to default_theme
 U=$(id -un)
 G=$(id -gn)
 themes_dir="$HOME"/.config/alacritty/themes

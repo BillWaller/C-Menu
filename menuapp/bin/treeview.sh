@@ -1,5 +1,7 @@
 #!/bin/bash
-
+# @name treeview.sh
+# @brief Display a tree view of the current directory
+# @author ChatGPT
 lf |
     awk -F'/' '
 {

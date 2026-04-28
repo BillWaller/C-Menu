@@ -1,5 +1,7 @@
 #!/bin/bash
-
+# @file kitty_chfont.sh
+# @brief link selected font configuration file to default_font
+#
 U=$(id -un)
 G=$(id -gn)
 fonts_dir="$HOME"/.config/kitty/fonts

@@ -1,3 +1,9 @@
 #!/bin/bash
+# @name rust_src
+# @brief This script lists all the exercises in the Rustlings repository, sorted
+# alphabetically.
+# @details It assumes that the Rustlings exercises are located in a
+# directory named rustlings, which contains an exercises subdirectory containing
+# rust source files for each exercise.
 
-lf -d 5 . '.*\.rs$' | sort
+lf rustlings -d 5 'exercises.*\.rs$' | sort

@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# @name man
+# @brief Display a manual page with substituted colors
 if [ -f "$HOME"/menuapp/bin/man.sed ]; then
     sed -f "$HOME"/menuapp/bin/man.sed
 else

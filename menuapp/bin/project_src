@@ -1,4 +1,7 @@
 #!/bin/bash
+# @name project_src
+# @brief This script lists source files in a directory specified by the CMENU_SRC
+# environment variable.
 
 if [ -d "$CMENU_SRC" ]; then
     cd "$CMENU_SRC"

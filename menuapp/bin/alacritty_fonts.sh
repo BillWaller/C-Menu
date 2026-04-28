@@ -1,4 +1,6 @@
 #!/bin/bash
+# @name alacritty_fonts.sh
+# @brief list font configuration files
 U=$(id -un)
 G=$(id -gn)
 fonts_dir="$HOME"/.config/alacritty/fonts

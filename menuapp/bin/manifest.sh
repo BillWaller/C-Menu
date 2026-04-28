@@ -1,4 +1,6 @@
 #!/bin/bash
+# @name manifest.sh
+# @brief list files installed by make or cmake
 IFS="
 "
 printf "\nInstalled files:\n"

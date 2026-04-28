@@ -1,14 +1,99 @@
-C-Menu Menu Help
-
-This is jthe help menu for C-Menu. As you may have guessed,
-you can select and highlight the item you want by pressing
-the up and down arrows or the "k" and "h" keys respectively.
-Once the item you want is highlighted, press the "Enter" key
-to execute it. You can also click the mouse pointer on a
-menu item to execute it.
-
-You can also press the F1 key to open this help menu from
-any menu and you may have help as one of the menu items.
-
-Press the F9 key or "q" to exit the menu and return to the
-previous menu.
+─────┬──────────────────────────────────────────────────────────────────────────
+     │ File: [1mmenu.help[0m
+─────┼──────────────────────────────────────────────────────────────────────────
+   1 │ [33mUsage[0m: menu [[33mOPTION[0m...] [[33mINPUT[0m] [[33mOUTPUT[0m] [[33mHELP[0m] [[33mARG4[0m] [[33mARG5[0m]
+   2 │ [33mC[0m[35m-[0m[33mMenu[0m [35m-[0m [33mUser[0m [33mInterface[0m [33mToolkit[0m
+   3 │ 
+   4 │   [35m-[0m[33mD[0m, [35m-[0m[35m-[0mf_dump_config        dump configuration
+   5 │   [35m-[0m[33mW[0m, [35m-[0m[35m-[0mf_write_config       write configuration
+   6 │   [35m-[0ma, [35m-[0m[35m-[0mminitrc[35m=[0mfile_spec    configuration file spec
+   7 │   [35m-[0mk, [35m-[0m[35m-[0mparent_cmd           parent command
+   8 │   [35m-[0m[33mC[0m, [35m-[0m[35m-[0mcols[35m=[0mnumber          width [35min[0m columns
+   9 │   [35m-[0m[33mL[0m, [35m-[0m[35m-[0mlines[35m=[0mnumber         height [35min[0m lines
+  10 │   [35m-[0mn, [35m-[0m[35m-[0mselect_max[35m=[0mnumber    number [35mof[0m selections
+  11 │   [35m-[0mo, [35m-[0m[35m-[0mout_spec[35m=[0mfile_spec   output spec
+  12 │   [35m-[0m[33mX[0m, [35m-[0m[35m-[0mbegx[35m=[0mnumber          [35mbegin[0m on column
+  13 │   [35m-[0m[33mY[0m, [35m-[0m[35m-[0mbegy[35m=[0mnumber          [35mbegin[0m on line
+  14 │   [35m-[0m[33mA[0m, [35m-[0m[35m-[0mcmd_all[35m=[0mfile_spec    view cmd, all files
+  15 │   [35m-[0mc, [35m-[0m[35m-[0mcmd[35m=[0mfile_spec        view cmd, first file
+  16 │   [35m-[0md, [35m-[0m[35m-[0mmapp_spec[35m=[0mfile_spec  description spec
+  17 │   [35m-[0m[33mH[0m, [35m-[0m[35m-[0mhelp_spec[35m=[0mfile_spec  help spec
+  18 │   [35m-[0mi, [35m-[0m[35m-[0min_spec[35m=[0mfile_spec    input spec
+  19 │   [35m-[0m[33mR[0m, [35m-[0m[35m-[0mreceiver_cmd[35m=[0mfile_spec   execute receiver [35mof[0m piped output
+  20 │   [35m-[0m[33mS[0m, [35m-[0m[35m-[0mprovider_cmd[35m=[0mfile_spec   execute provider [35mof[0m piped input
+  21 │   [35m-[0m[33mT[0m, [35m-[0m[35m-[0mtitle[35m=[0mtext           [33mWindow[0m title
+  22 │   [35m-[0mw, [35m-[0m[35m-[0mwait_timeout[35m=[0mseconds [33mWait[0m timer
+  23 │   [35m-[0me, [35m-[0m[35m-[0mf_erase_remainder[35m=[0mbool   erase remainder [35mof[0m line on enter
+  24 │   [35m-[0mj, [35m-[0m[35m-[0mf_strip_ansi[35m=[0mbool    always strip ansi [35mwhen[0m writing
+  25 │   [35m-[0ms, [35m-[0m[35m-[0mf_squeeze[35m=[0mbool       squeeze multiple blank lines
+  26 │   [35m-[0mx, [35m-[0m[35m-[0mf_ignore_case[35m=[0mbool   ignore [35mcase[0m [35min[0m search
+  27 │   [35m-[0mf, [35m-[0m[35m-[0mfill_char[35m=[0mchar       field fill_char
+  28 │   [35m-[0m[33mN[0m, [35m-[0m[35m-[0mf_ln[[35m=[0mbool]          line numbers [35min[0m view
+  29 │   [35m-[0mt, [35m-[0m[35m-[0mtab_stop[35m=[0mnumber      number [35mof[0m spaces per tab
+  30 │   [35m-[0mu, [35m-[0m[35m-[0mbrackets[35m=[0mtext        brackets around fields
+  31 │       [35m-[0m[35m-[0mbg_clr_x[35m=[0mhex_clr     background color
+  32 │       [35m-[0m[35m-[0mbo_clr_x[35m=[0mhex_clr     border color
+  33 │       [35m-[0m[35m-[0mfg_clr_x[35m=[0mhex_clr     foreground color
+  34 │       [35m-[0m[35m-[0mln__bg_clr_x[35m=[0mhex_clr line number background
+  35 │       [35m-[0m[35m-[0mln_clr_x[35m=[0mhex_clr     line number color
+  36 │       [35m-[0m[35m-[0mblue_gamma[35m=[0mfloat     blue_gamma ([33mView[0m)
+  37 │       [35m-[0m[35m-[0mgray_gamma[35m=[0mfloat     gray gamma ([33mView[0m)
+  38 │       [35m-[0m[35m-[0mgreen_gamma[35m=[0mfloat    green gamma ([33mView[0m)
+  39 │       [35m-[0m[35m-[0mred_gamma[35m=[0mfloat      red gamma ([33mView[0m)
+  40 │       [35m-[0m[35m-[0mbblack[35m=[0mhex_clr       bright black ([38;2;0;0;0m[48;2;127;127;127m#7f7f7f[0m)[0m
+  41 │       [35m-[0m[35m-[0mbblue[35m=[0mhex_clr        bright blue ([38;2;0;0;0m[48;2;0;207;255m#00cfFF[0m)[0m
+  42 │       [35m-[0m[35m-[0mbcyan[35m=[0mhex_clr        bright cyan ([38;2;0;0;0m[48;2;0;255;255m#00FFFF[0m)[0m
+  43 │       [35m-[0m[35m-[0mbgreen[35m=[0mhex_clr       bright green ([38;2;0;0;0m[48;2;0;255;127m#00FF7f[0m)[0m
+  44 │       [35m-[0m[35m-[0mblack[35m=[0mhex_clr        black ([38;2;255;255;255m[48;2;0;0;0m#000000[0m)[0m
+  45 │       [35m-[0m[35m-[0mblue[35m=[0mhex_clr         blue ([38;2;255;255;255m[48;2;0;0;255m#0000FF[0m)[0m
+  46 │       [35m-[0m[35m-[0mbmagenta[35m=[0mhex_clr     bright magenta ([38;2;255;255;255m[48;2;255;0;255m#FF00FF[0m)[0m
+  47 │       [35m-[0m[35m-[0mbred[35m=[0mhex_clr         bright red ([38;2;0;0;0m[48;2;255;55;55m#FF3737[0m)[0m
+  48 │       [35m-[0m[35m-[0mbwhite[35m=[0mhex_clr       bright white ([38;2;0;0;0m[48;2;255;255;255m#FFFFFF[0m)[0m
+  49 │       [35m-[0m[35m-[0mbyellow[35m=[0mhex_clr      bright yellow ([38;2;0;0;0m[48;2;255;239;0m#FFeF00[0m)[0m
+  50 │       [35m-[0m[35m-[0mcyan[35m=[0mhex_clr         cyan ([38;2;0;0;0m[48;2;0;223;223m#00dfdf[0m)[0m
+  51 │       [35m-[0m[35m-[0meditor[35m=[0mtext          default editor
+  52 │       [35m-[0m[35m-[0mgreen[35m=[0mhex_clr        green ([38;2;0;0;0m[48;2;0;207;0m#00cf00[0m)[0m
+  53 │       [35m-[0m[35m-[0mmagenta[35m=[0mhex_clr      magenta ([38;2;255;255;255m[48;2;159;0;159m#9f009f[0m)[0m
+  54 │       [35m-[0m[35m-[0mred[35m=[0mhex_clr          red ([38;2;255;255;255m[48;2;191;0;0m#bf0000[0m)[0m
+  55 │       [35m-[0m[35m-[0mwhite[35m=[0mhex_clr        white ([38;2;0;0;0m[48;2;208;208;208m#d0d0d0[0m)[0m
+  56 │       [35m-[0m[35m-[0myellow[35m=[0mhex_clr       yellow ([38;2;0;0;0m[48;2;239;191;0m#efbf00[0m)[0m
+  57 │       [35m-[0m[35m-[0mmapp_data[35m=[0mdirectory  data directory
+  58 │       [35m-[0m[35m-[0mmapp_help[35m=[0mdirectory  help directory
+  59 │       [35m-[0m[35m-[0mmapp_home[35m=[0mdirectory  home directory
+  60 │       [35m-[0m[35m-[0mmapp_msrc[35m=[0mdirectory  source directory
+  61 │       [35m-[0m[35m-[0mmapp_user[35m=[0mdirectory  user directory
+  62 │   [35m-[0m?, [35m-[0m[35m-[0mhelp                 [33mGive[0m this help list
+  63 │       [35m-[0m[35m-[0musage                [33mGive[0m a short usage message
+  64 │   [35m-[0m[33mV[0m, [35m-[0m[35m-[0mversion              [33mPrint[0m program version
+  65 │ 
+  66 │ [33mMandatory[0m [35mor[0m optional arguments to long options are also mandatory [35mor[0m optional
+  67 │ [35mfor[0m any corresponding short options.
+  68 │ 
+  69 │ [33mUsage[0m: menu [[35m-[0m[33mDWk[0m?[33mV[0m] [[35m-[0ma file_spec] [[35m-[0m[33mC[0m number] [[35m-[0m[33mL[0m number] [[35m-[0mn number]
+  70 │             [[35m-[0mo file_spec] [[35m-[0m[33mX[0m number] [[35m-[0m[33mY[0m number] [[35m-[0m[33mA[0m file_spec]
+  71 │             [[35m-[0mc file_spec] [[35m-[0md file_spec] [[35m-[0m[33mH[0m file_spec] [[35m-[0mi file_spec]
+  72 │             [[35m-[0m[33mR[0m file_spec] [[35m-[0m[33mS[0m file_spec] [[35m-[0m[33mT[0m text] [[35m-[0mw seconds] [[35m-[0me bool]
+  73 │             [[35m-[0mj bool] [[35m-[0ms bool] [[35m-[0mx bool] [[35m-[0mf char] [[35m-[0m[33mN[0m[bool]] [[35m-[0mt number]
+  74 │             [[35m-[0mu text] [[35m-[0m[35m-[0mf_dump_config] [[35m-[0m[35m-[0mf_write_config]
+  75 │             [[35m-[0m[35m-[0mminitrc[35m=[0mfile_spec] [[35m-[0m[35m-[0mparent_cmd] [[35m-[0m[35m-[0mcols[35m=[0mnumber]
+  76 │             [[35m-[0m[35m-[0mlines[35m=[0mnumber] [[35m-[0m[35m-[0mselect_max[35m=[0mnumber] [[35m-[0m[35m-[0mout_spec[35m=[0mfile_spec]
+  77 │             [[35m-[0m[35m-[0mbegx[35m=[0mnumber] [[35m-[0m[35m-[0mbegy[35m=[0mnumber] [[35m-[0m[35m-[0mcmd_all[35m=[0mfile_spec]
+  78 │             [[35m-[0m[35m-[0mcmd[35m=[0mfile_spec] [[35m-[0m[35m-[0mmapp_spec[35m=[0mfile_spec] [[35m-[0m[35m-[0mhelp_spec[35m=[0mfile_spec]
+  79 │             [[35m-[0m[35m-[0min_spec[35m=[0mfile_spec] [[35m-[0m[35m-[0mreceiver_cmd[35m=[0mfile_spec]
+  80 │             [[35m-[0m[35m-[0mprovider_cmd[35m=[0mfile_spec] [[35m-[0m[35m-[0mtitle[35m=[0mtext] [[35m-[0m[35m-[0mwait_timeout[35m=[0mseconds]
+  81 │             [[35m-[0m[35m-[0mf_erase_remainder[35m=[0mbool] [[35m-[0m[35m-[0mf_strip_ansi[35m=[0mbool]
+  82 │             [[35m-[0m[35m-[0mf_squeeze[35m=[0mbool] [[35m-[0m[35m-[0mf_ignore_case[35m=[0mbool] [[35m-[0m[35m-[0mfill_char[35m=[0mchar]
+  83 │             [[35m-[0m[35m-[0mf_ln[[35m=[0mbool]] [[35m-[0m[35m-[0mtab_stop[35m=[0mnumber] [[35m-[0m[35m-[0mbrackets[35m=[0mtext]
+  84 │             [[35m-[0m[35m-[0mbg_clr_x[35m=[0mhex_clr] [[35m-[0m[35m-[0mbo_clr_x[35m=[0mhex_clr] [[35m-[0m[35m-[0mfg_clr_x[35m=[0mhex_clr]
+  85 │             [[35m-[0m[35m-[0mln__bg_clr_x[35m=[0mhex_clr] [[35m-[0m[35m-[0mln_clr_x[35m=[0mhex_clr] [[35m-[0m[35m-[0mblue_gamma[35m=[0mfloat]
+  86 │             [[35m-[0m[35m-[0mgray_gamma[35m=[0mfloat] [[35m-[0m[35m-[0mgreen_gamma[35m=[0mfloat] [[35m-[0m[35m-[0mred_gamma[35m=[0mfloat]
+  87 │             [[35m-[0m[35m-[0mbblack[35m=[0mhex_clr] [[35m-[0m[35m-[0mbblue[35m=[0mhex_clr] [[35m-[0m[35m-[0mbcyan[35m=[0mhex_clr]
+  88 │             [[35m-[0m[35m-[0mbgreen[35m=[0mhex_clr] [[35m-[0m[35m-[0mblack[35m=[0mhex_clr] [[35m-[0m[35m-[0mblue[35m=[0mhex_clr]
+  89 │             [[35m-[0m[35m-[0mbmagenta[35m=[0mhex_clr] [[35m-[0m[35m-[0mbred[35m=[0mhex_clr] [[35m-[0m[35m-[0mbwhite[35m=[0mhex_clr]
+  90 │             [[35m-[0m[35m-[0mbyellow[35m=[0mhex_clr] [[35m-[0m[35m-[0mcyan[35m=[0mhex_clr] [[35m-[0m[35m-[0meditor[35m=[0mtext]
+  91 │             [[35m-[0m[35m-[0mgreen[35m=[0mhex_clr] [[35m-[0m[35m-[0mmagenta[35m=[0mhex_clr] [[35m-[0m[35m-[0mred[35m=[0mhex_clr]
+  92 │             [[35m-[0m[35m-[0mwhite[35m=[0mhex_clr] [[35m-[0m[35m-[0myellow[35m=[0mhex_clr] [[35m-[0m[35m-[0mmapp_data[35m=[0mdirectory]
+  93 │             [[35m-[0m[35m-[0mmapp_help[35m=[0mdirectory] [[35m-[0m[35m-[0mmapp_home[35m=[0mdirectory]
+  94 │             [[35m-[0m[35m-[0mmapp_msrc[35m=[0mdirectory] [[35m-[0m[35m-[0mmapp_user[35m=[0mdirectory] [[35m-[0m[35m-[0mhelp] [[35m-[0m[35m-[0musage]
+  95 │             [[35m-[0m[35m-[0mversion] [[33mINPUT[0m] [[33mOUTPUT[0m] [[33mHELP[0m] [[33mARG4[0m] [[33mARG5[0m]
+─────┴──────────────────────────────────────────────────────────────────────────

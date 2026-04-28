@@ -1,1 +1,4 @@
+# @name options
+# @brief display C-Menu options with colorized hex color codes 
+
 menu -? | awk -f /home/bill/menuapp/msrc/colorize.awk

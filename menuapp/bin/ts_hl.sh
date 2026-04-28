@@ -1,5 +1,8 @@
 #!/bin/bash
-# ts_hl.sh
+# @name ts_hl.sh
+# @brief Uses tree-sitter CLI to highlight code
+# @details requires tree-sitter CLI and appropriate parser installed for the language
+# @usage ts_hl.sh <file>
 if [ "$(which tree-sitter)" ]; then
     tree-sitter highlight "$@" 2>/dev/null
 else
