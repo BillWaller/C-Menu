@@ -173,6 +173,8 @@ enum FTypes {
     FT_UNKNOWN = 0b10000000 /**< 128 unknown */
 };
 
+#define F_NO_STDERR 1
+
 /**
                       Include     Exclude
                      ----------  ----------

@@ -1185,7 +1185,9 @@ int picker(Init *init, char *field) {
             switch (in_key) {
             case '\n':
             case KEY_ENTER:
-                return (in_key);
+                in_key = 0;
+                curs_set(0);
+                break;
 
                 /** KEY_IC toggles insert mode */
                 /** Tab toggles between windows */
