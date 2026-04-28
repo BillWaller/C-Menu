@@ -326,7 +326,8 @@ int pick_engine(Init *init) {
     set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
     set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
     set_chyron_key(pick->chyron, 3, "F10 Continue", KEY_F(10));
-    set_chyron_key(pick->chyron, 4, "Sp Toggle", 't');
+    set_chyron_key(pick->chyron, 4, "Sp Toggle", KEY_F(13));
+    set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
     if (pick->tbl_pages > 1) {
         set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
         set_chyron_key(pick->chyron, 12, "PgDn", KEY_NPAGE);
@@ -336,7 +337,7 @@ int pick_engine(Init *init) {
         pick->chyron->l = strnz(pick->chyron->s, win_maxx);
     if (pick->win_width < pick->chyron->l)
         pick->win_width = pick->chyron->l;
-    pick->win_width = max(pick->win_width, pick->chyron->l) + 1;
+    pick->win_width = max(pick->win_width, pick->chyron->l) + 5;
     if (pick->begx + pick->win_width > COLS - 2)
         pick->begx = COLS - pick->win_width - 2;
     else if (pick->begx == 0)
@@ -877,6 +878,9 @@ int picker(Init *init, char *field) {
                 Pick Objects Loop
                 =========================================================== */
 
+            set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
+            compile_chyron(pick->chyron);
+            display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
             if (in_key == 0) {
                 reverse_object(pick);
                 pick->tbl_line =
@@ -933,7 +937,7 @@ int picker(Init *init, char *field) {
                 continue;
 
             /** Toggle Select Object */
-            case KEY_F(7):
+            case KEY_F(13):
             case 't':
             case ' ':
                 reverse_object(pick);
@@ -978,6 +982,7 @@ int picker(Init *init, char *field) {
                 continue;
 
             case '\t':
+                in_key = 0;
                 break;
 
             /** 'h' or KEY_LEFT or Backspace Moves selection to previous
@@ -1126,8 +1131,7 @@ int picker(Init *init, char *field) {
                     continue;
                 pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                               pick->tbl_col * pick->pg_lines + pick->y;
-                in_key = 't'; /** Set cmdkey to 't' to toggle selection on
-                                 mouse click */
+                in_key = KEY_F(13); /** toggle selection on mouse click */
                 click_y = click_x = -1;
                 continue;
 
@@ -1142,6 +1146,9 @@ int picker(Init *init, char *field) {
         /** ===============================================================
             Line editor loop
             =============================================================== */
+        set_chyron_key(pick->chyron, 5, "Tab Pick", '\t');
+        compile_chyron(pick->chyron);
+        display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
         while (1) {
             if (in_key == 0) {
                 mouse_win = nullptr;
@@ -1178,6 +1185,10 @@ int picker(Init *init, char *field) {
                 in_key = dxwgetch(win, win2, pick->chyron, -1);
                 if (mouse_win == win)
                     break;
+                if (in_key == KEY_F(13)) {
+                    in_key = 0;
+                    continue;
+                }
             }
             strnz__cpy(prev_field, accept_s, MAXLEN - 1);
             prev_pos = pos;
