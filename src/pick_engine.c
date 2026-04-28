@@ -421,7 +421,7 @@ void display_page(Pick *pick) {
     }
     pick->d_idx -= 1;
     pick->tbl_lines = pick->d_cnt;
-    pick->tbl_pages = (pick->tbl_lines / pick->pg_lines);
+    pick->tbl_pages = ((pick->tbl_lines + pick->pg_lines - 1) / pick->pg_lines);
     if (pick->y < pick->pg_lines) {
         pick->y_offset = pick->pg_lines - pick->y;
         wscrl(pick->win, -pick->y_offset);
