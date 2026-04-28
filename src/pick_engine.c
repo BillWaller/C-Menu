@@ -1270,6 +1270,13 @@ int picker(Init *init, char *field) {
                 if (ptr == fstart) {
                     match_objects(pick, accept_s);
                     display_page(pick);
+                    ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
+                              pick->tbl_line + 1, pick->tbl_page + 1,
+                              pick->tbl_pages);
+                    strnz__cat(tmp_str, "     ", MAXLEN - 1);
+                    tmp_str[21] = '\0';
+                    mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
+                    wrefresh(pick->box);
                 }
                 in_key = 0;
                 continue;
