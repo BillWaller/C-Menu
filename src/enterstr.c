@@ -25,9 +25,9 @@
  */
 
 /** @brief allows the user to enter a string in cooked mode
-    @note allows line editing and other features
-    @note writes the prompt to stderr and the user's input to stdout
-    @note handles signals to ensure that the terminal settings are restored if
+    @details allows line editing and other features
+    writes the prompt to stderr and the user's input to stdout
+    handles signals to ensure that the terminal settings are restored if
    the program is interrupted. */
 int main(int argc, char **argv) {
     struct termios new_tioctl;

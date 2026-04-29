@@ -27,10 +27,10 @@
  */
 
 /** @brief Capture the current terminal settings for later restoration.
-    @note can be used in scripts to get a single character response from a
+    @details can be used in scripts to get a single character response from a
     user. For example: response=$(./enterchr "Enter Y or N: ") if [ "$response"
     = "Y" ]; then echo "You entered Yes" else echo "You entered No" fi
-    @note This function saves the current terminal settings into a global
+    This function saves the current terminal settings into a global
    variable so that they can be restored later. It should be called before
    modifying the terminal settings to ensure that the original settings can be
    restored when the program exits or is interrupted.

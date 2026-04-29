@@ -51,8 +51,8 @@ void mk_filler(char *, int);
     @ingroup fields
      @param form Pointer to Form structure
      @return int Key code of action taken
-     @note Handles character input, navigation keys, and mouse events for field
-     editing. Validates input based on field format and updates display.
+     @details Handles character input, navigation keys, and mouse events for
+   field editing. Validates input based on field format and updates display.
      Returns key code of action taken (e.g., accept field, tab to next field,
      break out of input loop).
  */
@@ -343,10 +343,10 @@ int field_editor(Form *form) {
     @param form Pointer to Form structure
     @param n Field index to display
     @return 0 on success, non-zero on error
-    @note This function temporarily sets the form's current field index (fidx)
-   to n, calls form_display_field() to display that field, and then restores the
-   original fidx value. This allows for displaying a specific field without
-   permanently changing the form's current field index.
+    @details This function temporarily sets the form's current field index
+   (fidx) to n, calls form_display_field() to display that field, and then
+   restores the original fidx value. This allows for displaying a specific field
+   without permanently changing the form's current field index.
  */
 int form_display_field_n(Form *form, int n) {
     int fidx = form->fidx;
@@ -359,12 +359,12 @@ int form_display_field_n(Form *form, int n) {
     @ingroup fields
     @param form Pointer to Form structure
     @return 0 on success, non-zero on error
-    @note This function displays the current field based on the form's current
-   field index (fidx). It retrieves the line and column information for the
-   current field, displays any brackets if set, and then displays the field's
-   content using the display_s string. The function ensures that the field is
-   displayed correctly within the form's window and refreshes the display to
-   show the updated field content.
+    @details This function displays the current field based on the form's
+   current field index (fidx). It retrieves the line and column information for
+   the current field, displays any brackets if set, and then displays the
+   field's content using the display_s string. The function ensures that the
+   field is displayed correctly within the form's window and refreshes the
+   display to show the updated field content.
  */
 int form_display_field(Form *form) {
     WINDOW *win = form->win;
@@ -380,11 +380,12 @@ int form_display_field(Form *form) {
     @ingroup fields
     @param form Pointer to Form structure
     @return 0 on success, non-zero on error
-    @note This function checks if the form's brackets array has non-empty values
-   for both the left and right brackets. If so, it retrieves the line and column
-   information for the current field and uses the form's box window to display
-   the left bracket at the start of the field and the right bracket at the end
-   of the field. The display is refreshed to show the brackets around the field.
+    @details This function checks if the form's brackets array has non-empty
+   values for both the left and right brackets. If so, it retrieves the line and
+   column information for the current field and uses the form's box window to
+   display the left bracket at the start of the field and the right bracket at
+   the end of the field. The display is refreshed to show the brackets around
+   the field.
  */
 int form_display_field_brackets(Form *form) {
     int flin, fcol;
@@ -405,13 +406,13 @@ int form_display_field_brackets(Form *form) {
     @param form Pointer to Form structure
     @param s Input string to format
     @return 0 on success, non-zero on error
-    @note takes the input string for the current field and formats it
+    @details takes the input string for the current field and formats it
    according to the field's specified format type (ff). It updates the
    accept_s and display_s strings for the field based on the formatted
    value.
-    @note handles various format types, including strings, decimal integers,
+    Handles various format types, including strings, decimal integers,
    hexadecimal integers, floating-point numbers, currency, dates, and times.
-    @note uses helper functions for validation and formatting, such as
+    Uses helper functions for validation and formatting, such as
    is_valid_date(), is_valid_time(), numeric(), right_justify(),
    left_justify(), and strnzcpy(). The function ensures that the formatted
    output fits within the field's length and creates a filler string for the
@@ -419,17 +420,19 @@ int form_display_field_brackets(Form *form) {
    formats, and provides feedback through error messages. It is designed to
    be extensible, allowing for additional format types to be added in the
    future as needed.
-    @note assumes that the input string is well-formed and does not contain
+    Assumes that the input string is well-formed and does not contain
    malicious content. Input validation and sanitization should be performed
    at a higher level in the application to ensure security and robustness.
-   @note The function currently does not handle localization or
+   The function currently does not handle localization or
    internationalization of number formats, such as different decimal
    separators or currency symbols. Future enhancements may include support
-   for locale-specific formatting. @note Error handling is basic; future
+   for locale-specific formatting.
+    Error handling is basic; future
    versions may include more detailed error reporting and logging
-   mechanisms. @note Performance optimizations may be considered for
+   mechanisms.
+    Performance optimizations may be considered for
    handling large volumes of data or high-frequency updates in real-time
-   applications. @note The following variables and structures are used in
+   applications. The following variables and structures are used in
    this function:
     @code
         char field_s[FIELD_MAXLEN];
@@ -441,23 +444,25 @@ int form_display_field_brackets(Form *form) {
         struct Date { int yyyy; int mm; int dd; };
         struct Time { int hh; int mm; int ss; };
     @endcode
-    @note supports format types: FF_STRING, FF_DECIMAL_INT, FF_HEX_INT,
+    Supports format types: FF_STRING, FF_DECIMAL_INT, FF_HEX_INT,
    FF_FLOAT, FF_DOUBLE, FF_CURRENCY, FF_YYYYMMDD, FF_HHMMSS, FF_APR with
-   appropriate formatting and validation for each type. @note Handles field
-   length and filler string creation. @note As the roadmap indicates, these
+   appropriate formatting and validation for each type.
+    Handles field length and filler string creation.
+    As the roadmap indicates, these
    data types are just a start and more complex types and formats may be
-   added in the future. @note These data types are not suitable for
+   added in the future.
+    These data types are not suitable for
    financial, scientific, or high-precision applications. They are intended
    for basic data entry and display in a text-based user interface.
-    @note In the future, we will aqdd support for additional data types and
+    In the future, we will aqdd support for additional data types and
    formats such as: dates with time zones, timestamps, percentages,
    scientific notation, and custom user-defined formats.
-    @note For high precision applications, we will be integrating support
+    For high precision applications, we will be integrating support
    for 128-bit binary coded decimal (BCD) types and arbitrary precision
    decimal types using libraries such as the GNU MPFR library, IBM's
    decNumber, Rust Decimal, or the Intel Decimal Floating-Point Math
    Library.
-    @note C-Menu Form converts each field's input string into internal
+    C-Menu Form converts each field's input string into internal
    numeric binary based on the field's specified format. The internal
    numberic binary is then formated and displayed, verifying the user's
    input and Form's interpretation of the user's input.
@@ -565,7 +570,7 @@ int form_fmt_field(Form *form, char *s) {
     @ingroup fields
     @param form Pointer to Form structure
     @return 0 if valid, 1 if invalid
-    @note Very underdeveloped - only checks F_NOTBLANK and F_NOMETAS
+    @details Very underdeveloped - only checks F_NOTBLANK and F_NOMETAS
  */
 int form_validate_field(Form *form) {
     int n = form->fidx;
@@ -591,7 +596,7 @@ int form_validate_field(Form *form) {
     @ingroup fields
     @param s Filler string to create
     @param fl Field length
-    @note Fills the string s with the fill character specified in the form's
+    @details Fills the string s with the fill character specified in the form's
    fill_char array, repeated for the length of the field (fl). The resulting
    string is null-terminated. This filler string can be used to display empty
    fields or to clear the field area before displaying new content.
@@ -608,7 +613,7 @@ void mk_filler(char *s, int fl) {
 /** @brief Left justify string by removing leading spaces
     @ingroup fields
     @param s String to left justify
-    @note This function takes a string s and removes any leading spaces,
+    @details This function takes a string s and removes any leading spaces,
    effectively left-justifying the text. It does this by finding the first
    non-space character and shifting the string to the left, overwriting the
    leading spaces. The resulting string is null-terminated.
@@ -619,10 +624,10 @@ void left_justify(char *s) { trim(s); }
    spaces
     @param s String to right justify
     @param fl Field length
-    @note This function takes a string s and right-justifies it within a field
-   of length fl. It first removes any trailing spaces from the string, then
-   shifts the characters to the right end of the field, filling the left side
-   with spaces. The resulting string is null-terminated and fits within the
+    @details This function takes a string s and right-justifies it within a
+   field of length fl. It first removes any trailing spaces from the string,
+   then shifts the characters to the right end of the field, filling the left
+   side with spaces. The resulting string is null-terminated and fits within the
    specified field length.
  */
 void right_justify(char *s, int fl) {
@@ -646,10 +651,10 @@ void right_justify(char *s, int fl) {
     @param mm Month
     @param dd Day
     @return true if the date is valid, false otherwise
-    @note This function checks if the provided year, month, and day constitute a
-   valid date. It accounts for leap years when determining the number of days in
-   February. The function returns true if the date is valid and false if it is
-   not.
+    @details This function checks if the provided year, month, and day
+   constitute a valid date. It accounts for leap years when determining the
+   number of days in February. The function returns true if the date is valid
+   and false if it is not.
  */
 bool is_valid_date(int yyyy, int mm, int dd) {
     if (yyyy < 1 || mm < 1 || mm > 12 || dd < 1)
@@ -667,7 +672,7 @@ bool is_valid_date(int yyyy, int mm, int dd) {
     @param mm Minute
     @param ss Second
     @return true if the time is valid, false otherwise
-    @note This function checks if the provided hour, minute, and second
+    @details This function checks if the provided hour, minute, and second
    constitute a valid time. It ensures that hours are between 0 and 23, minutes
    and seconds are between 0 and 59. The function returns true if the time is
    valid and false if it is not.
@@ -681,7 +686,7 @@ bool is_valid_time(int hh, int mm, int ss) {
     @ingroup fields
     @param d Destination string
     @param s Source string
-    @note This function takes a source string s and extracts only the numeric
+    @details This function takes a source string s and extracts only the numeric
    characters (digits 0-9), as well as dashes ('-') and periods ('.'), copying
    them into the destination string d. The resulting string in d is
    null-terminated. This is useful for processing input that may contain

@@ -9,7 +9,7 @@
 
 /** @defgroup exec External Commands
     @brief This module provides functions to execute external commands
-    @note handles terminal settings, signal handling, and error reporting to
+    @details Handles terminal settings, signal handling, and error reporting to
    ensure a smooth user experience when executing commands from within the
    application. The main functions include full_screen_fork_exec,
    full_screen_shell, and fork_exec, which manage the execution of commands
@@ -36,10 +36,10 @@ int nf_error(int ec, char *s);
     @ingroup exec
     @param argv - array of arguments for the command to execute
     @return the return code from the executed command
-    @note Clear the screen,
-    @note move the cursor to the bottom, and refresh the screen before executing
+    @details Clear the screen,
+    move the cursor to the bottom, and refresh the screen before executing
    the command.
-    @note After the command completes, clear the screen, move the cursor to the
+    After the command completes, clear the screen, move the cursor to the
    top, refresh the screen, and restore the windows. */
 int full_screen_fork_exec(char **argv) {
     int rc;
@@ -53,8 +53,8 @@ int full_screen_fork_exec(char **argv) {
     @ingroup exec
     @param shellCmdPtr - pointer to the shell command string
     @return the return code from the executed shell command
-    @note Clear the screen, move the cursor to the top, and refresh the screen
-   before executing the shell command. @note After the command completes,
+    @details Clear the screen, move the cursor to the top, and refresh the
+   screen before executing the shell command. After the command completes,
    restore the windows.
  */
 int full_screen_shell(char *shellCmdPtr) {
@@ -75,8 +75,8 @@ int full_screen_shell(char *shellCmdPtr) {
     @ingroup exec
     @param shellCmdPtr - pointer to the shell command string
     @return the return code from the executed shell command
-    @note Executes the command string using the user's shell.
-    @note If the SHELL environment variable is not set, use /bin/sh. */
+    @details Executes the command string using the user's shell.
+    If the SHELL environment variable is not set, use /bin/sh. */
 int shell(char *shellCmdPtr) {
     int Eargc;
     char *Eargv[MAXARGS];
@@ -99,32 +99,32 @@ int shell(char *shellCmdPtr) {
     @ingroup exec
     @param argv - array of arguments for the command to execute
     @return the return code from the executed command, or -1 on error
-    @note Captures and restores terminal settings around the fork and exec.
-    @note Sets signal handlers to default in the child process.
-    @note Waits for the child process to complete in the parent process.
-    @note Handles errors from fork and execvp, and reports child exit status.
-    @note Restores curses mode and keypad settings after execution.
-    @note Restores window states after execution.
-    @note Uses a temporary string buffer tmp_str for error messages.
-    @note Uses Perror for error reporting.
-    @note Uses sig_dfl_mode and sig_prog_mode for signal handling.
-    @note Uses capture_curses_tioctl and restore_curses_tioctl for terminal
+    @details Captures and restores terminal settings around the fork and exec.
+    Sets signal handlers to default in the child process.
+    Waits for the child process to complete in the parent process.
+    Handles errors from fork and execvp, and reports child exit status.
+    Restores curses mode and keypad settings after execution.
+    Restores window states after execution.
+    Uses a temporary string buffer tmp_str for error messages.
+    Uses Perror for error reporting.
+    Uses sig_dfl_mode and sig_prog_mode for signal handling.
+    Uses capture_curses_tioctl and restore_curses_tioctl for terminal
    settings.
-    @note Uses restore_shell_tioctl for shell terminal settings.
-    @note Uses waitpid to wait for the child process.
-    @note Uses WIFEXITED, WEXITSTATUS, WIFSIGNALED, and WTERMSIG to interpret
+    Uses restore_shell_tioctl for shell terminal settings.
+    Uses waitpid to wait for the child process.
+    Uses WIFEXITED, WEXITSTATUS, WIFSIGNALED, and WTERMSIG to interpret
    child status.
-    @note Uses keypad to manage keypad mode in curses.
-    @note Uses restore_wins to restore window states.
-    @note Uses errno for error codes.
-    @note Uses pid_t for process IDs.
-    @note Uses standard file descriptors STDIN_FILENO, STDOUT_FILENO,
+    Uses keypad to manage keypad mode in curses.
+    Uses restore_wins to restore window states.
+    Uses errno for error codes.
+    Uses pid_t for process IDs.
+    Uses standard file descriptors STDIN_FILENO, STDOUT_FILENO,
    STDERR_FILENO.
-    @note Uses execvp for executing the command.
-    @note Uses fork for creating a new process.
-    @note Uses ssnprintf for formatting error messages.
-    @note Uses switch-case for handling fork results.
-    @note Uses default shell if SHELL environment variable is not set. */
+    Uses execvp for executing the command.
+    Uses fork for creating a new process.
+    Uses ssnprintf for formatting error messages.
+    Uses switch-case for handling fork results.
+    Uses default shell if SHELL environment variable is not set. */
 int fork_exec(char **argv) {
     char tmp_str[MAXLEN];
     pid_t pid;

@@ -12,7 +12,7 @@
 
 /** @brief This function is responsible for cleaning up the terminal state and
    exiting the program.
-    @note This function is typically registered to be called when the program
+    @details This function is typically registered to be called when the program
    exits, ensuring that the terminal is properly restored to its original state,
    even if the program encounters an error or is terminated unexpectedly. The
    end_pgm function performs the following actions:

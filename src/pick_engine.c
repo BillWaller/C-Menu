@@ -8,7 +8,7 @@
  */
 
 /** @defgroup pick_engine Object Selection
-    @brief Functions to Navigate, Select, and Perform Action on Objects
+    @brief Navigate, Select, and Perform Action on Objects
  */
 
 #include <common.h>
@@ -50,12 +50,12 @@ char const pagers_editors[12][10] = {"view", "view",  "less", "more",
     @param argv Argument vector
     @param begy Beginning y coordinate for pick window
     @param begx Beginning x coordinate for pick window
-    @note If provider_cmd is specified, it takes precedence over in_spec and
-    input file arguments
-    @note provider_cmd is executed and its output is read as pick input
-    @note If provider_cmd is not specified, in_spec is used to read pick
+    @details If provider_cmd is specified, it takes precedence over in_spec and
+    input file arguments.
+    provider_cmd is executed and its output is read as pick input
+    If provider_cmd is not specified, in_spec is used to read pick
     input from a file or stdin
-    @note If provider_cmd is specified, it is executed and its output is
+    If provider_cmd is specified, it is executed and its output is
     read as pick input */
 int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     struct stat sb;
@@ -252,7 +252,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
  *  @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
     @return 0 on success, -1 if no objects were read
-    @note Reads lines from pick->in_fp and saves them as objects in the pick
+    @details Reads lines from pick->in_fp and saves them as objects in the pick
    structure using save_object function. If no objects are read, returns -1.
    Otherwise, sets obj_cnt to the number of objects read and resets obj_idx to 0
    before returning 0. */
@@ -282,12 +282,11 @@ int read_pick_input(Init *init) {
  *  @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
     @return Count of selected objects on success, -1 if user cancels
-    @note Initializes key command strings for chyron display and calculates pick
-   window size and position based on terminal size and pick parameters.
-    @note Opens pick window and displays first page of objects. Enters picker
-   loop to handle user input and interactions. If user cancels selection,
-   returns -1.
-    @note If user accepts selection, returns count of selected objects. */
+    @details Initializes key command strings for chyron display and calculates
+ pick window size and position based on terminal size and pick parameters. Opens
+ pick window and displays first page of objects. Enters picker loop to handle
+ user input and interactions. If user cancels selection, returns -1. If user
+ accepts selection, returns count of selected objects. */
 int pick_engine(Init *init) {
     int rc;
     int maxy, maxx, win_maxy, win_maxx;
@@ -325,7 +324,7 @@ int pick_engine(Init *init) {
     pick->chyron = new_chyron();
     set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
     set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
-    set_chyron_key(pick->chyron, 3, "F10 Continue", KEY_F(10));
+    set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F(10));
     set_chyron_key(pick->chyron, 4, "Sp Toggle", KEY_F(13));
     set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
     if (pick->tbl_pages > 1) {
@@ -375,7 +374,7 @@ int pick_engine(Init *init) {
  *  @ingroup pick_engine
     @param pick Pointer to Pick structure
     @param s String to save as an object
-    @note If the current object index is less than the maximum allowed, saves
+    @details If the current object index is less than the maximum allowed, saves
    the string as an object in the pick structure. Updates the column width if
    necessary and marks the object as not selected. Increments the object index
    for the next object to be saved. */
@@ -399,9 +398,9 @@ void save_object(Pick *pick, char *s) {
  *  @ingroup pick_engine
     @param pick Pointer to Pick structure containing objects and display
    information
-    @note Clears the pick window and displays the current page of objects based
-   on the current table page, line, and column. Marks selected objects with an
-   asterisk. Updates the chyron with page information at the bottom of the pick
+    @details Clears the pick window and displays the current page of objects
+ based on the current table page, line, and column. Marks selected objects with
+ an asterisk. Updates the chyron with page information at the bottom of the pick
    window. */
 void display_page(Pick *pick) {
     int col;
@@ -435,10 +434,10 @@ void display_page(Pick *pick) {
     @param pick Pointer to Pick structure containing objects and display
    information
     @param s String to filter objects by
-    @note Clears the pick window and displays the current page of objects based
-   on the current table page, line, and column. Marks selected objects with an
-   asterisk. Updates the chyron with page information at the bottom of the pick
-   window. */
+    @details Clears the pick window and displays the current page of objects
+   based on the current table page, line, and column. Marks selected objects
+   with an asterisk. Updates the chyron with page information at the bottom of
+   the pick window. */
 int match_objects(Pick *pick, char *s) {
     /** pick->m_idx  Master  (as read from input) */
     /** pick->d_idx  Display (to display) */
@@ -458,8 +457,8 @@ int match_objects(Pick *pick, char *s) {
  *  @ingroup pick_engine
     @param pick Pointer to Pick structure containing object and display
    information
-    @note Calculates the x coordinate for the currently selected object based on
-   the current table column and column width. Moves the cursor to the object's
+    @details Calculates the x coordinate for the currently selected object based
+ on the current table column and column width. Moves the cursor to the object's
    position in the pick window, turns on reverse video attribute, and displays
    the object's text. Turns off reverse video attribute and refreshes the pick
    window to show the updated display. Moves the cursor back to the position
@@ -484,12 +483,12 @@ void reverse_object(Pick *pick) {
    @ingroup pick_engine
     @param pick Pointer to Pick structure containing object and display
    information
-    @note Calculates the x coordinate for the currently selected object based on
-   the current table column and column width. Moves the cursor to the object's
-   position in the pick window and displays the object's text without reverse
-   video attribute. Refreshes the pick window to show the updated display. Moves
-   the cursor back to the position before the object text for potential further
-   interactions. */
+    @details Calculates the x coordinate for the currently selected object based
+   on the current table column and column width. Moves the cursor to the
+   object's position in the pick window and displays the object's text without
+   reverse video attribute. Refreshes the pick window to show the updated
+   display. Moves the cursor back to the position before the object text for
+   potential further interactions. */
 void unreverse_object(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
         pick->d_idx = pick->d_cnt - 1;
@@ -508,8 +507,8 @@ void unreverse_object(Pick *pick) {
    @ingroup pick_engine
     @param pick Pointer to Pick structure containing object and selection
    information
-    @note Calculates the x coordinate for the currently selected object based on
-   the current table column and column width. If the object is currently
+    @details Calculates the x coordinate for the currently selected object based
+   on the current table column and column width. If the object is currently
    selected, it is deselected by updating the selection count, marking it as not
    selected, and displaying a space before the object text. If the object is not
    currently selected, it is selected by updating the selection count, marking
@@ -544,7 +543,7 @@ void deselect_object(Pick *pick) {
     @param pick Pointer to Pick structure containing selected objects and
    output file information
     @return 0 on success, 1 on failure
-    @note If output file cannot be opened, an error message is printed and
+    @details If output file cannot be opened, an error message is printed and
    the function returns 1. Otherwise, selected objects are written to the
    output file, one per line, and the file is closed before returning 0.
 */
@@ -570,34 +569,34 @@ int output_objects(Pick *pick) {
    @ingroup pick_engine
    @param init Pointer to Init structure
    @return 0 on success, 1 on failure
-   @note Parses command string and appends selected objects as arguments to the
-   command. If command contains "%%", it is replaced with a space- separated
+   @details Parses command string and appends selected objects as arguments to
+   the command. If command contains "%%", it is replaced with a space- separated
    list of selected objects. Executes the command using execvp in a child
    process and waits for it to finish. If the command is a pager or editor, it
    is executed within the pick interface using popup_view instead of execvp.
-   @note If f_append_args is true, the argument containing %% is replaced with
+   If f_append_args is true, the argument containing %% is replaced with
    the concatenated selected objects. If f_append_args is false, selected
    objects are added as separate arguments and the original command arguments
    remain unchanged.
-   @note eargv should be null-terminated to indicate the end of arguments for
+   eargv should be null-terminated to indicate the end of arguments for
    execvp
-   @note Memory allocated for arguments is freed after execution to prevent
+   Memory allocated for arguments is freed after execution to prevent
    memory leaks.
-   @note If execvp fails, an error message is printed and the child process
+   If execvp fails, an error message is printed and the child process
    exits with failure status
-   @note The parent process waits for the child process to finish before
+   The parent process waits for the child process to finish before
    proceeding and restores terminal settings
-   @note If the command is a pager or editor, it is executed within the pick
+   If the command is a pager or editor, it is executed within the pick
    interface using popup_view instead of execvp
-   @note The base name of the command is extracted to check if it is a pager or
+   The base name of the command is extracted to check if it is a pager or
    editor
-   @note If the command is a pager or editor, the pick interface is used to
+   If the command is a pager or editor, the pick interface is used to
    display the command output instead of executing it in a separate terminal
    This allows the user to view the command output without leaving the pick
    interface and provides a more seamless user experience.
-   @note If the command is not a pager or editor, it is executed in a separate
+   If the command is not a pager or editor, it is executed in a separate
    terminal and the pick interface is restored after execution
-   @note If the command to be executed is view, an external command is not
+   If the command to be executed is view, an external command is not
    needed, instead the popup_view function can be used to display the output
    within the pick interface */
 int exec_objects(Init *init) {
@@ -757,7 +756,7 @@ Pick structure
    @ingroup pick_engine
    @param init Pointer to Init structure containing pick information
    @return 0 on success, 1 on failure
-   @note Creates a new window for the pick interface using win_new function
+   @details Creates a new window for the pick interface using win_new function
 with the specified parameters from the Pick structure. If window creation fails,
 an error message is printed and the function returns 1. Otherwise, initializes
 the window and box pointers in the Pick structure, sets scrollok and keypad
@@ -783,7 +782,7 @@ int open_pick_win(Init *init) {
 /** @brief Displays the help screen for the pick interface using view
    @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
-    @note Initializes the help_spec field in the Pick structure with the
+    @details Initializes the help_spec field in the Pick structure with the
    path to the pick help file. Then, constructs the argument list for
    executing popup_view with the help file as an argument. Finally, calls
    popup_view function to display the help screen within the pick interface. */
@@ -819,7 +818,7 @@ void display_pick_help(Init *init) {
     @param init Pointer to Init structure containing pick information
     @param field Buffer for user input in the field
     @return Count of selected objects on success, -1 if user cancels
-    @note The first loop handles navigation through the pick table.
+    @details The first loop handles navigation through the pick table.
     The second loop handles user input for selecting/deselecting objects,
    accepting the selection, or canceling the selection. Depending on the key
    pressed, the appropriate action is taken, such as toggling selection, moving
@@ -828,21 +827,21 @@ void display_pick_help(Init *init) {
    cancels the selection, -1 is returned.
     */
 int picker(Init *init, char *field) {
-    bool f_insert = false; /**< Flag to indicate if insert mode is active */
-    char filler_s[MAXLEN]; /**< buffer for filling the field with spaces */
-    int line = 0;          /**< Starting line for field input */
-    int col = 1;    /**< Starting column for field input leaving space for > */
-    char *s;        /**< source pointer for editing operations */
-    char *d;        /**< destination pointer for editing operations */
-    char *e;        /**< end pointer for editing operations */
-    char *accept_s; /**< pointer to field buffer */
-    char *fstart;   /**< start of field buffer */
-    char *fend;     /**< end of field buffer */
-    char *str_end;  /**< end of content string */
+    bool f_insert = false; /* Flag to indicate if insert mode is active */
+    char filler_s[MAXLEN]; /* buffer for filling the field with spaces */
+    int line = 0;          /* Starting line for field input */
+    int col = 1;    /* Starting column for field input leaving space for > */
+    char *s;        /* source pointer for editing operations */
+    char *d;        /* destination pointer for editing operations */
+    char *e;        /* end pointer for editing operations */
+    char *accept_s; /* pointer to field buffer */
+    char *fstart;   /* start of field buffer */
+    char *fend;     /* end of field buffer */
+    char *str_end;  /* end of content string */
     accept_s = field;
     fstart = accept_s;
     int flen = pick->win_width - 4;
-    char *ptr; /**< pointer to current cursor position within field buffer */
+    char *ptr; /* pointer to current cursor position within field buffer */
     int pos;
     char prev_field[MAXLEN];
     int prev_pos;
@@ -852,7 +851,8 @@ int picker(Init *init, char *field) {
     win = pick->win;
     WINDOW *win2 = pick->win2;
     fend = fstart + flen;
-    str_end = fstart + strlen(fstart); /**< End of field content */
+    str_end = fstart + strlen(fstart); /* End of field content */
+
     ptr = str_end;
     click_x = -1;
     click_y = click_x = -1;

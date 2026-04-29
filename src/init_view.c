@@ -31,10 +31,10 @@ void view_win_resize(Init *, char *);
 
 /** @brief Initialize C-Menu View in full screen mode.
     @ingroup init_view
-    @note This function sets up the view structure for full screen mode and
-   creates a new pad for the view.
    @param init Pointer to the Init structure containing view settings.
    @return 0 on success, -1 on failure.
+   @details This function sets up the view structure for full screen mode and
+   creates a new pad for the view.
    @verbatim
    The function creates the following windows:
    1. view->cmdln_win: Status or Command Line
@@ -107,7 +107,7 @@ int init_view_full_screen(Init *init) {
 /** @brief Resize the full screen view and its components.
     @ingroup window_support
     @param init Pointer to the Init structure containing view settings.
-    @note This function resizes the full screen view and its components,
+    @details This function resizes the full screen view and its components,
    including the command line window, line number window, and main content pad.
    It also recalculates the dimensions for the full screen mode and updates the
    scroll regions accordingly.
@@ -162,12 +162,12 @@ void view_calc_full_screen_dimensions(Init *init) {
 }
 /** @brief Initialize the C-Menu View in box window mode.
     @ingroup init_view
-    @note sets up the view structure for box window mode, adjusts dimensions
-   based on screen size, and creates a new pad for the view. It also configures
-   various parameters such as scroll lines, command line position, and tab size.
     @param init Pointer to the Init structure containing view settings.
     @param title Title for the box window.
     @return 0 on success, -1 on failure.
+    @details sets up the view structure for box window mode, adjusts dimensions
+   based on screen size, and creates a new pad for the view. It also configures
+   various parameters such as scroll lines, command line position, and tab size.
  */
 int init_view_boxwin(Init *init, char *title) {
     view = init->view;
@@ -258,10 +258,10 @@ int init_view_boxwin(Init *init, char *title) {
     @ingroup window_support
     @param init Pointer to the Init structure containing view settings.
     @param title Window title
-    @note This function resizes the current window and its associated box window
-   to the specified number of lines and columns. It also updates the title of
-   the box window if a title is provided. After resizing, it refreshes the
-   windows to apply the changes. */
+    @details This function resizes the current window and its associated box
+   window to the specified number of lines and columns. It also updates the
+   title of the box window if a title is provided. After resizing, it refreshes
+   the windows to apply the changes. */
 void view_win_resize(Init *init, char *title) {
     int maxx;
     erase();
@@ -432,10 +432,10 @@ mapping for efficient access.
 @param view Pointer to the View structure to be initialized.
 @param file_name Name of the input file or "-" for standard input.
 @return true on success, false on failure.
-@note if a provider command is specified, set up a pipe to read its output.
+@details if a provider command is specified, set up a pipe to read its output.
 A child process is spawned, and view, the parent process, reads from the
 pipe.
-@note If input is from a pipe or standard input, clone it to a temporary
+If input is from a pipe or standard input, clone it to a temporary
 file. This allows for memory-mapping the input later. It does not support
 real-time updates to the input, but it allows for efficient access to the
 data.

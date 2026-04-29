@@ -5,16 +5,15 @@
     MIT License
     billxwaller@gmail.com
     @date 2026-02-09
+    @details This program prints the current time in ISO 8601 format. If the
+   first argument is "-l", it prints the local time with the timezone offset.
+   Otherwise, it prints the UTC time with a "Z" (Zulu) suffix. The output format
+   is UTC "YYYY-MM-DDTHH:MM:SSZ", LOCAL "YYYY-MM-DDTHH:MM:SS±hhmm"
  */
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
-
-/** This program prints the current time in ISO 8601 format. If the first
-   argument is "-l", it prints the local time with the timezone offset.
-   Otherwise, it prints the UTC time with a "Z" (Zulu) suffix. The output format
-   is UTC "YYYY-MM-DDTHH:MM:SSZ", LOCAL "YYYY-MM-DDTHH:MM:SS±hhmm" */
 
 int main(int argc, char **argv) {
     char buf[100];

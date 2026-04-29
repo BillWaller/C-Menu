@@ -398,7 +398,17 @@ void mapp_initialization(Init *init, int argc, char **argv) {
             abend(-1, "MAPP_HOME directory invalid");
     }
 }
-
+/** @brief Parse command-line options and set Init struct values accordingly
+    @ingroup init
+    @param init - pointer to Init struct to be populated with option values
+    @param argc - argument count from main()
+    @param argv - argument vector from main()
+    @returns 0 on success, -1 on failure
+    @details This function uses the argp library to parse command-line
+   options defined in the options array. It updates the Init struct with
+   values from the options and handles any special flags for dumping or
+   writing configuration.
+ */
 int parse_opt_args(Init *init, int argc, char **argv) {
     init->argc = destroy_argv(init->argc, init->argv);
     argp_parse(&argp, argc, argv, 0, 0, init);
@@ -441,13 +451,13 @@ void zero_opt_args(Init *init) {
    Init struct values accordingly
     @ingroup init
     @returns on success, -1 on failure
-    @note lines beginning with '#" are comments, discard
-    @note copy line to tmp_str removing quotes, spaces, semicolons, and
-   newlines
-    @note record structure is "parse key=value pairs"
-    @note skip lines without '='
-    @note set init struct values based on key
-    @note skips unknown keys */
+    @details Lines beginning with '#" are comments, discard.
+    Copy line to tmp_str removing quotes, spaces, semicolons, and
+   newlines.
+    Record structure is "parse key=value pairs".
+    Skip lines without '='.
+    Set init struct values based on key.
+    Skip unknown keys. */
 int parse_config(Init *init) {
     char ts[MAXLEN];
     char *sp, *dp;
@@ -727,10 +737,10 @@ int parse_config(Init *init) {
     @ingroup init
     @param init - pointer to Init struct containing current configuration
     @returns 0 on success, -1 on failure
-    @note The configuration is written in key=value format, one per line
-    @note Lines beginning with '#' are comments and are ignored when reading
-   the config file
-    @note The file is created if it does not exist, and overwritten if it
+    @details The configuration is written in key=value format, one per line.
+    Lines beginning with '#' are comments and are ignored when reading
+   the config file.
+    The file is created if it does not exist, and overwritten if it
    does exist
  */
 int write_config(Init *init) {
@@ -825,10 +835,9 @@ int write_config(Init *init) {
     @param dir - directory path
     @param file_name - file name
     @returns true if file_spec is derived, false otherwise
-    @note If dir is nullptr, use MAPP_DIR environment variable or default
-   directory
-   ~/menuapp
-    @note file_spec should be a pre-allocated char array of size MAXLEN to
+    @details If dir is nullptr, use MAPP_DIR environment variable or default
+   directory, ~/menuapp.
+    file_spec should be a pre-allocated char array of size MAXLEN to
    hold the resulting file specification
  */
 bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
@@ -861,7 +870,7 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
 }
 /** @brief Display the version information of the application
     @ingroup init
-    @note The version information is defined in the mapp_version variable
+    @details The version information is defined in the mapp_version variable
    and is printed to stdout when this function is called. */
 void display_version() {
     fprintf(stdout, "\nC-Menu %s\n", CM_VERSION);
@@ -873,7 +882,7 @@ void display_version() {
     @param o - option flag (e.g., "-a:")
     @param name - option name (e.g., "--minitrc")
     @param value - option value to print
-    @note This function is used to display the current configuration options
+    @details This function is used to display the current configuration options
    and their values in a readable format. */
 void opt_prt_char(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
@@ -884,7 +893,7 @@ void opt_prt_char(const char *o, const char *name, const char *value) {
     @param o - option flag (e.g., "-C:")
     @param name - option name (e.g., "--cols")
     @param value - integer option value to print
-    @note This function is used to display the current configuration options
+    @details This function is used to display the current configuration options
    and their integer values in a readable format. */
 void opt_prt_str(const char *o, const char *name, const char *value) {
     fprintf(stdout, "%3s %-15s: %s\n", o, name, value);
@@ -895,7 +904,7 @@ void opt_prt_str(const char *o, const char *name, const char *value) {
     @param o - option flag (e.g., "-C:")
     @param name - option name (e.g., "--cols")
     @param value - integer option value to print
-    @note This function is used to display the current configuration options
+    @details This function is used to display the current configuration options
    and their integer values in a readable format. */
 void opt_prt_int(const char *o, const char *name, int value) {
     fprintf(stdout, "%3s %-15s: %d\n", o, name, value);
@@ -906,7 +915,7 @@ void opt_prt_int(const char *o, const char *name, int value) {
     @param o - option flag (e.g., "-r:")
     @param name - option name (e.g., "red_gamma")
     @param value - double option value to print
-    @note This function is used to display the current configuration options
+    @details This function is used to display the current configuration options
    and their double values in a readable format. */
 void opt_prt_double(const char *o, const char *name, double value) {
     fprintf(stdout, "%3s %-15s: %0.2f\n", o, name, value);
@@ -917,7 +926,7 @@ void opt_prt_double(const char *o, const char *name, double value) {
     @param o - option flag (e.g., "-z")
     @param name - option name (e.g., "f_squeeze")
     @param value - boolean option value to print
-    @note This function is used to display the current configuration options
+    @details This function is used to display the current configuration options
    and their boolean values in a readable format, printing "true" or "false"
    based on the value. */
 void opt_prt_bool(const char *o, const char *name, bool value) {

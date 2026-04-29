@@ -162,14 +162,14 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
 }
 /** @brief Converts a string into an array of argument strings.
     @ingroup utility_functions
-    @note Handles quoted strings and escaped quotes, preserving text inside
-   quotes as individual arguments. It has been in service for many years without
-   problems.
     @param argv - array of pointers to arguments
     @param arg_str - string containing arguments
     @param max_args - maximum number of arguments to parse
     @returns argc, a count of allocated vectors in argv
-    @note the caller is responsible for deallocating the strings in argv */
+    @details Handles quoted strings and escaped quotes, preserving text inside
+   quotes as individual arguments. It has been in service for many years without
+   problems.
+    @note The caller is responsible for deallocating the strings in argv. */
 int str_to_args(char **argv, char *arg_str, int max_args) {
     if (arg_str == nullptr || *arg_str == '\0')
         return 0;
@@ -292,16 +292,16 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
 }
 /** @brief safer alternative to strncat
     @ingroup utility_functions
-    @note It appends string s to d, ensuring that the total length of d does not
+    @param d - destination string
+    @param s - source string
+    @param max_len - maximum length to copy
+    @returns length of resulting string
+    @details Append string s to d, ensuring that the total length of d does not
    exceed max_len, and that the resulting string is null-terminated. It also
    treats newline and carriage return characters as string terminators,
    preventing them from being included in the result. This is particularly
    useful when concatenating user input or file data, where embedded newlines
    could cause issues.
-    @param d - destination string
-    @param s - source string
-    @param max_len - maximum length to copy
-    @returns length of resulting string
  */
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
     char *e;
@@ -340,11 +340,11 @@ size_t strz(char *s) {
 }
 /**  @brief terminates string at New Line, Carriage Return, or max_len
     @ingroup utility_functions
-     @note The use case is to ensure that strings read from files or user input
-   do not contain embedded newlines or carriage returns.
      @param s string to terminate
      @param max_len - maximum length to scan
-     @returns length of resulting string */
+     @returns length of resulting string
+     @details The use case is to ensure that strings read from files or user
+   input do not contain embedded newlines or carriage returns. */
 size_t strnz(char *s, size_t max_len) {
     char *e;
     size_t len = 0;
@@ -473,7 +473,7 @@ bool strip_quotes(char *s) {
     @ingroup utility_functions
     @param s - string to strip quotes from
     @returns true if quotes were removed
-    @note Same as STRIP_QUOTES but returns true if quotes were removed */
+    @details Same as STRIP_QUOTES but returns true if quotes were removed */
 bool stripz_quotes(char *s) {
     if (s == nullptr || strlen(s) < 2)
         return false;
@@ -507,9 +507,9 @@ bool chrep(char *s, char old_chr, char new_chr) {
     @param s is the input string
     @param a_toi_error is a pointer to a boolean that will be set to true if an
    error occurs during conversion, or false if the conversion is successful.
-    @note accepts positive integers only.
-    @note sets a_toi_error to (-1) on error
-    @returns converted integer value, or -1 if an error occurs */
+    @returns converted integer value, or -1 if an error occurs
+    @details Accepts positive integers only.
+    Sets a_toi_error to (-1) on error */
 int a_toi(char *s, bool *a_toi_error) {
     int rc = -1;
     *a_toi_error = false;
@@ -522,6 +522,18 @@ int a_toi(char *s, bool *a_toi_error) {
     }
     return rc;
 }
+/** @brief Converts a string to an unsigned long long integer, with support for
+   suffixes K, M, and G for kilobytes, megabytes, and gigabytes respectively.
+    @ingroup utility_functions
+    @param str - string to convert
+    @returns converted unsigned long long value, or 0 if str is nullptr, empty,
+   or invalid
+    @details This function is useful for parsing human-readable file sizes or
+   memory sizes that may include suffixes to indicate the scale of the value.
+    If the string is invalid (e.g., contains non-numeric characters other than
+   the optional suffix), this function returns 0. The caller must ensure that
+   the input string is a valid representation of an unsigned long long integer
+   with an optional suffix before calling this function. */
 unsigned long long a_to_ull(const char *str) {
     char *endptr;
     unsigned long long value = strtoull(str, &endptr, 10);
@@ -550,15 +562,15 @@ unsigned long long a_to_ull(const char *str) {
         Result: dest = "This is red text", len = 17
     @example stripansi.c
     @endcode
-    @note Only handles SGR sequences ending in 'm' or 'K'
-    @note Skips non-ASCII characters
-    @note The caller must ensure that d has enough space to hold the
+    @details Only handles SGR sequences ending in 'm' or 'K'
+    Skips non-ASCII characters
+    The caller must ensure that d has enough space to hold the
     stripped string
-    @note This function does not allocate memory; it assumes d is
+    This function does not allocate memory; it assumes d is
     pre-allocated
-    @note This function processes the entire string until the null
+    This function processes the entire string until the null
     terminator
-    @note This function does not modify the source string s */
+    This function does not modify the source string s */
 size_t strip_ansi(char *d, char *s) {
     size_t l = 0;
     while (*s) {
@@ -699,12 +711,12 @@ bool str_to_bool(const char *s) {
     @ingroup utility_functions
      @param path - path to expand
      @param path_maxlen - maximum length of path
+     @returns true if successful
      @note The caller is responsible for ensuring that "path" has enough space
    to receive the result, and that "path_maxlen" is sufficient to hold the
    result. This function does not perform any bounds checking on "path", so it
    is the caller's responsibility to ensure that it is valid and that
    "path_maxlen" is appropriate for the operation.
-     @returns true if successful
  */
 bool expand_tilde(char *path, int path_maxlen) {
     if (path == nullptr || *path == '\0' || path_maxlen == 0)
@@ -861,8 +873,8 @@ bool dir_name(char *buf, char *path) {
             X_OK - Execute
             S_WCOK - Write or Create
             S_QUIET - Suppress Error Messages
-     @note S_WCOK and S_QUIET are stripped before calling faccessat
-     @returns true if successful */
+     @returns true if successful
+     @details S_WCOK and S_QUIET are stripped before calling faccessat */
 bool verify_dir(char *spec, int imode) {
     if (spec == nullptr || *spec == '\0')
         return false;
@@ -912,8 +924,8 @@ bool verify_dir(char *spec, int imode) {
             X_OK - Execute
             S_WCOK - Write or Create
             S_QUIET - Suppress Error Messages
-     @note S_WCOK and S_QUIET are stripped before calling faccessat
-     @returns true if successful */
+     @returns true if successful
+     @details S_WCOK and S_QUIET are stripped before calling faccessat */
 bool verify_file(char *in_spec, int imode) {
     if (in_spec == nullptr || *in_spec == '\0')
         return false;
@@ -1381,23 +1393,23 @@ bool is_valid_regex(const char *pattern) {
    nullptr. If "tgt_s" is not found in "org_s", the function returns a copy
    of "org_s". If target substring is not found the function returns a copy
    of the original string.
-    @note allocates memory for the return value, so the caller is
+    @details allocates memory for the return value, so the caller is
    responsible for freeing this memory when it is no longer needed to avoid
    memory leaks.
-    @note Does not modify the original string "org_s".
-    @note Assumes that "tgt_s" and "rep_s" are null-terminated strings. If
+    Does not modify the original string "org_s".
+   @note Assumes that "tgt_s" and "rep_s" are null-terminated strings. If
    they are not, the behavior is undefined.
-    @note Does not perform any bounds checking on the input strings, so it
+   @note Does not perform any bounds checking on the input strings, so it
    is the caller's responsibility to ensure that they are valid and that the
    resulting string does not exceed available memory.
-    @note Uses the standard library functions strlen, strstr, malloc, and
+   @note Uses the standard library functions strlen, strstr, malloc, and
    strcpy, which may have their own limitations and behaviors that the
    caller should be aware of.
-    @note Does not handle overlapping occurrences of "tgt_s" in "org_s". If
+   @note Does not handle overlapping occurrences of "tgt_s" in "org_s". If
    "tgt_s" can overlap with itself in "org_s", the behavior may be
    unexpected. The caller should ensure that "tgt_s" does not contain
    overlapping patterns to avoid this issue.
-    @note Does not handle cases where "tgt_s" is a substring of "rep_s",
+   @note Does not handle cases where "tgt_s" is a substring of "rep_s",
    which could lead to unintended consequences if "tgt_s" appears in
    "rep_s". The caller should ensure that "tgt_s" and "rep_s" are distinct
    to avoid this issue. */
@@ -1449,23 +1461,23 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
    string manipulation in C, allowing developers to easily create, copy,
    concatenate, and free strings without having to manage memory manually.
     @ingroup String_Objects
-   @note The library includes functions to convert C strings to String
+   @details The library includes functions to convert C strings to String
    structs, create new String structs with specified lengths, copy and
    concatenate String structs, and free the memory used by String structs.
    By using this library, developers can avoid common pitfalls of C string
    handling, such as buffer overflows and memory leaks, while still
    benefiting from the performance advantages of C.
-   @note Designed to be simple and easy to use, making it a great choice for
+   Designed to be simple and easy to use, making it a great choice for
    developers who want to work with strings in C without having to worry
    about the complexities of manual memory management.
-   @note The String struct is defined as follows:
+   The String struct is defined as follows:
    @code
      typedef struct {
          size_t l; // length of the string (including null terminator)
          char *s;  // pointer to the dynamically allocated string
      } String;
     @endcode
-   @note All functions in this library that return a String struct allocate
+   All functions in this library that return a String struct allocate
    memory for the string using malloc or realloc. It is the caller's
    responsibility to free this memory using the free_string function when it
    is no longer needed to avoid memory leaks.
@@ -1476,7 +1488,6 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
    @note The String functions in this library assume that all input strings
    are null-terminated. If any input string is not null-terminated, the
    behavior is undefined.
-   @see snippets/strings_test1.c
  */
 /** @brief Convert C string to String struct
     @ingroup String_Objects
@@ -1501,9 +1512,8 @@ String to_string(const char *s) {
 /** @brief Create a String struct with a dynamically allocated string @param
    l length of string to create including null terminator
    @returns String struct
-   @note The returned String struct contains a dynamically allocated string
+   @details The returned String struct contains a dynamically allocated string
    of he specified length
-   @sa free_string
    @note the caller is responsible for calling free_string to free the
    allocated memory. */
 String mk_string(size_t l) {
@@ -1523,7 +1533,7 @@ String mk_string(size_t l) {
     @ingroup String_Objects
     @param string to free
     @return string with nullptr pointer and length 0
-    @note Frees the dynamically allocated string and sets length to 0.
+    @details Frees the dynamically allocated string and sets length to 0.
  */
 String free_string(String string) {
     if (string.s == nullptr)
@@ -1618,7 +1628,7 @@ size_t string_ncpy(String *dest, const String *src, size_t n) {
 /** @brief Function to intentionally cause a segmentation fault for testing
    purposes
     @ingroup testing_functions
-    @note This function is designed to intentionally cause a segmentation
+    @details This function is designed to intentionally cause a segmentation
    fault by dereferencing a null pointer. It is intended for testing
    purposes only and should not be used in production code. The caller
    should be aware that executing this function will crash the program. */

@@ -1,6 +1,6 @@
 /** @file dwin.c
     @brief Window support for C-Menu - EXPERIMENTAL
-    @note This file contains functions for managing NCurses windows and color
+    @details This file contains functions for managing NCurses windows and color
    settings for the Chyron structure for function key labels and mouse click
    handling. This file is a work in progress and may be subject to change as the
    C-Menu project evolves. Generally, don't try to use it yet unless you want
@@ -50,7 +50,6 @@ WINDOW *mouse_win;
 void list_colors();
 int clr_name_to_idx(char *);
 void init_hex_clr(int, char *);
-int rgb_clr_to_cube(int);
 RGB hex_clr_str_to_rgb(char *);
 RGB xterm256_idx_to_rgb(int);
 int rgb_to_curses_clr(RGB *);
@@ -81,17 +80,17 @@ SCREEN *screen;
 SIO *sio; /**< Global pointer to SIO struct for terminal and color settings */
 
 /** StdColors
-    @note Standard 16 colors for xterm256 color conversions
-    @note These colors can be overridden in ".minitrc" */
+    @details Standard 16 colors for xterm256 color conversions These colors can
+   be overridden in ".minitrc" */
 RGB StdColors[16] = {
     {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
     {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
     {128, 128, 128}, {255, 0, 0},   {0, 255, 0},   {255, 255, 0},
     {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 /** colors_text
-    @note Color names for .minitrc overrides
-    @note These names are used in .minitrc to specify color overrides
-    @note The order of these names corresponds to the colors_enum values */
+    @brief Color names for .minitrc overrides
+    @details These names are used in .minitrc to specify color overrides The
+   order of these names corresponds to the colors_enum values */
 char const colors_text[][10] = {
     "black",   "red",    "green", "yellow",   "blue",   "magenta", "cyan",
     "white",   "orange", "bg",    "abg",      "bblack", "bred",    "bgreen",
@@ -167,9 +166,8 @@ FILE *ncurses_fp;
 
 /** @brief Initialize window attributes
     @ingroup window_support
-    @note This function initializes color pairs for the window
-    @note cp_norm, cp_win, and cp_box are global variables
-    @see get_clr_pair
+    @details This function initializes color pairs for the window
+    cp_norm, cp_win, and cp_box are global variables
  */
 void win_init_attrs() { return; }
 
@@ -185,7 +183,7 @@ void win_init_attrs() { return; }
    ChyronKey structure. The Chyron structure is used to manage function key
    labels and their associated keycodes for mouse click handling in the chyron
    area of the interface.
-    @note The use of calloc ensures that the allocated memory is initialized to
+    The use of calloc ensures that the allocated memory is initialized to
    zero, which means that the text for each key will be initialized to an empty
    string and the keycodes will be initialized to zero. This allows the
    is_set_chyron_key function to check if a key is set by checking if the first
@@ -232,20 +230,15 @@ bool is_set_chyron_key(Chyron *chyron, int k) {
     else
         return false;
 }
-/** @brief Set chyron key
+/** @brief Set chyron key with color pair (cp)
     @ingroup Chyron
     @param chyron structure
     @param k chyron key index (0-19)
     @param s chyron key label
     @param kc chyron key code
     @param cp color pair index for the key label
-    @details This function sets the label and keycode for a chyron key. The
-   label is copied into the chyron structure, and the keycode is stored for
-   later retrieval when theire is a mouse click. The compile_chyron function
-   uses the keycode values to determine which key was clicked based on the mouse
-   X position. If the label string is empty, the key is unset by setting the
-   first character of the text to '\0'.
-*/
+    @details This function is like set_chyron_key, except it includes a color
+   pair numbers */
 void set_chyron_key_cp(Chyron *chyron, int k, char *s, int kc, int cp) {
     if (*s != '\0')
         ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
@@ -306,6 +299,16 @@ void compile_chyron(Chyron *chyron) {
     mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
     chyron->l = end_pos;
 }
+/** @brief Display chyron on window
+    @ingroup Chyron
+    @param win NCurses window to display chyron on
+    @param chyron Chyron structure containing the compiled chyron string
+    @param line Line number to display the chyron on
+    @param col Column number to start displaying the chyron from
+    @details This function clears the line where the chyron will be displayed,
+   then uses wadd_wchstr to add the compiled chyron string (cmplx_buf) to the
+   window. Finally, it moves the cursor to the specified column position.
+*/
 void display_chyron(WINDOW *win, Chyron *chyron, int line, int col) {
     wmove(win, line, 0);
     wclrtoeol(win);
@@ -369,9 +372,9 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
     @param chyron structure
     @param x Mouse X position
     @return Keycode
-    @note This function uses the end_pos values set in compile_chyron
-    to determine which key was clicked
-    @note The chyron functions provide xwgetch() with a mechanism to translate
+    @details This function uses the end_pos values set in compile_chyron
+    to determine which key was clicked.
+    The chyron functions provide xwgetch() with a mechanism to translate
     mouse click positions into key codes based on the labels set in the chyron
    structure. When a mouse click occurs, xwgetch() can call get_chyron_key()
    with the X position of the click to determine which function key was clicked,
@@ -389,8 +392,8 @@ int get_chyron_key(Chyron *chyron, int x) {
     @ingroup window_support
     @param sio Pointer to SIO struct with terminal and color settings
     @return true if successful, false if error
-    note This function initializes NCurses and sets up color pairs based on the
-    settings in the SIO struct. It also applies gamma correction to colors.
+    @details This function initializes NCurses and sets up color pairs based on
+   the settings in the SIO struct. It also applies gamma correction to colors.
     Use this function to initialize NCurses if you don't want NCurses to receive
    data from the stdin pipe
     @code
@@ -514,9 +517,8 @@ int get_clr_pair(int fg, int bg) {
     @ingroup color_management
     @param rgb RGB color
     @return NCurses color index
-    @note Curses uses 0-1000 for RGB values
-    @note If the color does not exist, it is created along with a new color
-   index */
+    @details Curses uses 0-1000 for RGB values. If the color does not exist, it
+   is created along with a new color index */
 int rgb_to_curses_clr(RGB *rgb) {
     int i;
     int r, g, b;
@@ -541,7 +543,7 @@ int rgb_to_curses_clr(RGB *rgb) {
     @ingroup color_management
     @param rgb RGB color
     @return XTerm 256 color index
-    note This function converts an RGB color to the nearest XTerm 256 color
+    @details This function converts an RGB color to the nearest XTerm 256 color
    index. It first checks if the color is a shade of gray, and if so, it uses
    the gray ramp. Otherwise, it calculates the nearest color in the 6x6x6 color
    cube. */
@@ -563,7 +565,7 @@ int rgb_to_xterm256_idx(RGB *rgb) {
     @ingroup color_management
     @param idx XTerm 256 color index
     @return RGB color
-    note This function converts an XTerm 256 color index to an RGB color. It
+    @details This function converts an XTerm 256 color index to an RGB color. It
    first checks if the index is in the standard 16 colors, then checks if it's
    in the 6x6x6 color cube, and finally checks if it's in the gray ramp. */
 RGB xterm256_idx_to_rgb(int idx) {
@@ -595,7 +597,7 @@ RGB xterm256_idx_to_rgb(int idx) {
 /** @brief Apply gamma correction to RGB color
     @ingroup color_management
     @param rgb Pointer to RGB color
-    @note This function modifies the RGB color in place. It applies gamma
+    @details This function modifies the RGB color in place. It applies gamma
    correction to the RGB color based on the gamma values set in the SIO struct.
    If the color is a shade of gray, it applies the gray gamma correction.
    Otherwise, it applies the individual red, green, and blue gamma corrections.
@@ -620,13 +622,13 @@ void apply_gamma(RGB *rgb) {
     @ingroup color_management
     @param sio Pointer to SIO struct with color settings
     @return true if successful, false if error
-    @note This function initializes the xterm256 color cube and applies any
+    @details This function initializes the xterm256 color cube and applies any
    color overrides specified in the SIO struct. The color strings in the SIO
    struct are expected to be six-digit HTML style hex color codes (e.g.,
    "#RRGGBB"). If a color override is specified for any of the standard colors,
    it is applied using the init_hex_clr function. After processing all colors,
-   the clr_cnt variable is set to 16 to indicate that the standard colors have
-   been initialized. */
+   the clr_cnt variable is set to CLR_NCOLORS to indicate that the standard
+   colors have been initialized. */
 bool init_clr_palette(SIO *sio) {
     if (sio->black[0])
         init_hex_clr(CLR_BLACK, sio->black);
@@ -679,7 +681,7 @@ bool init_clr_palette(SIO *sio) {
     @ingroup color_management
     @param idx Color index
     @param s Hex color string
-    @note NCurses uses 0-1000 for RGB values, so the RGB values from the hex
+    @details NCurses uses 0-1000 for RGB values, so the RGB values from the hex
    string are converted to this range before initializing the color. If the
    color index is less than 16, the RGB values are also stored in the StdColors
    array for reference.
@@ -708,7 +710,7 @@ RGB hex_clr_str_to_rgb(char *s) {
 }
 /** @brief Gracefully shut down NCurses and restore terminal settings
     @ingroup window_support
-    @note This function should be called before exiting the program to ensure
+    @details This function should be called before exiting the program to ensure
    that the terminal is left in a usable state. It checks if NCurses was
    initialized and, if so, it erases the screen, refreshes it, and ends the
    NCurses session. It also restores the original terminal settings using
@@ -906,10 +908,10 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
     @param wlines Number of lines
     @param wcols Number of columns
     @param title Window title
-    @note This function resizes the current window and its associated box window
-   to the specified number of lines and columns. It also updates the title of
-   the box window if a title is provided. After resizing, it refreshes the
-   windows to apply the changes. */
+    @details This function resizes the current window and its associated box
+   window to the specified number of lines and columns. It also updates the
+   title of the box window if a title is provided. After resizing, it refreshes
+   the windows to apply the changes. */
 void win_resize(int wlines, int wcols, char *title) {
     int maxx;
     wrefresh(stdscr);
@@ -948,7 +950,7 @@ void win_resize(int wlines, int wcols, char *title) {
 /** @brief Redraw the specified window
     @ingroup window_support
     @param win Pointer to the window to redraw
-    @note This function erases the contents of the specified window and then
+    @details This function erases the contents of the specified window and then
    refreshes it to update the display. Use this function when you need to clear
    and redraw a window, such as after resizing or when updating its contents. */
 void win_redraw(WINDOW *win) {
@@ -958,7 +960,7 @@ void win_redraw(WINDOW *win) {
 /** @brief Delete the current window and its associated box window
     @ingroup window_support
     @return nullptr
-    @note This function deletes the current window and its associated box
+    @details This function deletes the current window and its associated box
    window, if they exist. It also refreshes the remaining windows to ensure the
    display is updated correctly. After calling this function, the global win_ptr
    variable is decremented to point to the previous window in the stack. */
@@ -998,7 +1000,7 @@ WINDOW *win_del() {
 }
 /** @brief Restore all windows after a screen resize
     @ingroup window_support
-    @note This function is used to restore the display of all windows after a
+    @details This function is used to restore the display of all windows after a
    screen resize event. It clears the standard screen and then iterates through
    all existing windows, touching and refreshing them to ensure they are redrawn
    correctly on the resized screen. Use this function in response to a SIGWINCH
@@ -1021,7 +1023,7 @@ void restore_wins() {
 /** @brief Draw a box around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
-    @note This function uses NCurses functions to draw a box around the
+    @details This function uses NCurses functions to draw a box around the
    specified window. It adds the appropriate characters for the corners and
    edges of the box based on the current character set. Use this function when
    you want to visually separate a window from the rest of the screen with a
@@ -1048,7 +1050,15 @@ void cbox(WINDOW *box) {
         waddnwstr(box, &bw_ho, 1);
     waddnwstr(box, &bw_br, 1);
 }
-
+/** @brief Draw a box with a separator line around the specified window
+    @ingroup window_support
+    @param box Pointer to the window to draw the box around
+    @details This function draws a box around the specified window, similar to
+   cbox(), but it also includes a horizontal separator line that divides the box
+   into two sections. The separator line is drawn at a fixed position (line 00,
+   page 00) and extends across the width of the box. Use this function when you
+   want to visually separate two sections within a window, such as for a header
+   and content area. */
 void cbox2(WINDOW *box) {
     int x, y;
     int maxx;
@@ -1330,6 +1340,11 @@ int wait_continue(WINDOW *wait_win, Chyron *chyron, int remaining) {
     cmd_key = xwgetch(wait_win, chyron, 1);
     return cmd_key;
 }
+/** @brief Display a simple action disposition message window or print to stderr
+    @ingroup error_handling
+    @param title Window title
+    @param action_str Action description string
+    @return true if successful */
 bool action_disposition(char *title, char *action_str) {
     int len;
     int line, col;
@@ -1404,7 +1419,7 @@ int clr_name_to_idx(char *s) {
 }
 /** @brief list colors to stderr
     @ingroup color_management
-    @note only lists the first 16, since that's how many we let the
+    @details only lists the first 16, since that's how many we let the
     user redefine */
 void list_colors() {
     int i, col;
@@ -1494,8 +1509,6 @@ bool waitpid_with_timeout(pid_t pid, int timeout) {
 
     @endverbatim
     @return Key code or ERR if interrupted by signal
-    @note This, of course, will be expanded into an event loop for message
-   queuing
     @details Get mouse event and check if it's a left click or double click. If
    the click is outside the window, ignore it. If it's on the chyron line, get
    the corresponding key command. Otherwise, store the click coordinates as

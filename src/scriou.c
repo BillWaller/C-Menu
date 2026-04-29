@@ -39,7 +39,7 @@ struct termios shell_err_tioctl, curses_err_tioctl;
 /** @brief capture_shell_tioctl() - capture shell terminal settings
     @ingroup screen_io
     @return - true on success
-    @note - captures terminal settings for stdin, stdout, and stderr */
+    @details - captures terminal settings for stdin, stdout, and stderr */
 bool capture_shell_tioctl() {
     if (f_have_shell_tioctl)
         return true;
@@ -52,7 +52,7 @@ bool capture_shell_tioctl() {
 /** @brief restore_shell_tioctl() - restore shell terminal settings
     @ingroup screen_io
     @return - true on success
-    @note - restores terminal settings for stdin, stdout, and stderr */
+    @details - restores terminal settings for stdin, stdout, and stderr */
 bool restore_shell_tioctl() {
     if (!f_have_shell_tioctl)
         return false;
@@ -64,7 +64,7 @@ bool restore_shell_tioctl() {
 /** @brief capture_curses_tioctl() - capture curses terminal settings
     @ingroup screen_io
     @return - true on success
-    @note - captures terminal settings for stdin, stdout, and stderr */
+    @details - captures terminal settings for stdin, stdout, and stderr */
 bool capture_curses_tioctl() {
     if (f_have_curses_tioctl)
         return true;
@@ -77,7 +77,7 @@ bool capture_curses_tioctl() {
 /** @brief restore_curses_tioctl() - restore curses terminal settings
     @ingroup screen_io
     @return - true on success
-    @note - restores terminal settings for stdin, stdout, and stderr */
+    @details - restores terminal settings for stdin, stdout, and stderr */
 bool restore_curses_tioctl() {
     if (!f_have_curses_tioctl)
         return false;
@@ -91,7 +91,7 @@ bool restore_curses_tioctl() {
     @ingroup screen_io
     @param t_p - pointer to termios structure to modify
     @return - true on success
-     @note - sets terminal to sane settings for C-MENU applications */
+     @details - sets terminal to sane settings for C-MENU applications */
 bool set_sane_tioctl(struct termios *t_p) {
     tcgetattr(0, t_p);
     t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
@@ -109,11 +109,11 @@ bool set_sane_tioctl(struct termios *t_p) {
     @ingroup screen_io
     @param t_p - pointer to termios structure to modify
     @return - true on success
-    @note - unlike cfmakeraw(), this leaves ISIG enabled.
-    @note - cfmakeraw() disables ISIG, which prevents C-MENU from handling
+    @details - unlike cfmakeraw(), this leaves ISIG enabled.
+    cfmakeraw() disables ISIG, which prevents C-MENU from handling
    signals like Ctrl-C. Instead of using cfmakeraw(), we manually set the
    terminal to raw mode while leaving ISIG enabled.
-    @note - the following code is equivalent to cfmakeraw() but with ISIG left
+    The following code is equivalent to cfmakeraw() but with ISIG left
    enabled:
     @code
     t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
@@ -141,7 +141,7 @@ bool mk_raw_tioctl(struct termios *t_p) {
 /** @brief  sget single character from terminal in raw mode
     @ingroup screen_io
     @return - the character read from terminal
-    @note restores terminal settings */
+    @details restores terminal settings */
 char di_getch() {
     struct termios org_tioctl, new_tioctl;
     char buf;

@@ -48,8 +48,8 @@ Form *form;
 View *view;
 /** @brief Create and initialize Init structure
     @ingroup mem
-    @note calloc initializes all fields to zero/nullptr
     @param argc, argv - arguments
+    @details calloc initializes all fields to zero/nullptr
     idiomatic directory usage:
     @code
         init->mapp_msrc  description files
@@ -58,7 +58,7 @@ View *view;
         init->mapp_user  executable scripts
         init->mapp_bin   binary executables
     @endcode
-    @note Initialize file specifications in priority order:
+    Initialize file specifications in priority order:
     @code
     1 - Default values
     2 - Configuration file
@@ -398,7 +398,7 @@ View *destroy_view(Init *init) {
     @param dir - init->._. directory
     @param alt_dir - literal, "~/menuapp/data", etc.
     @param mode - R_OK, W_OK, X_OK, WC_OK, S_QUIET
-    @note mode is a bitwise OR of the following flags:
+    @details mode is a bitwise OR of the following flags:
               S_QUIET - suppress error messages
               WC_OK - write create ok
     @return bool - true if file verified
@@ -515,7 +515,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     @param argv - Arguments may have been provided by command line,
                    ~/.minitrc, environment variables, or calling program
                    interal to C-Menu
-    @note Positional args: [menu desc], [help file] */
+    @details Positional args: [menu desc], [help file] */
 bool init_menu_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
     int optind = 0;
@@ -563,7 +563,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
                    ~/.minitrc,
                    environment variables, or
                    calling program interal to C-Menu
-    @note Positional args: [pick desc], [in_file], [out_file], [help_file] */
+    @details Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_pick_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
     int optind = 1;
@@ -660,7 +660,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     @param argc - number of arguments in argv
     @param argv - Arguments may have been provided by command line ~/.minitrc,
    environment variables, or calling program interal to C-Menu
-    @note Positional args: [pick desc], [in_file], [out_file], [help_file] */
+    @details Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_form_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
     int optind = 0;
@@ -765,7 +765,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
 /** @brief Initialize View file specifications
     @ingroup mem
     @param init structure
-    @note Positional args: pick desc, in_file, out_file, help_file */
+    @details Positional args: pick desc, in_file, out_file, help_file */
 bool init_view_files(Init *init) {
     char *e;
     view = init->view;

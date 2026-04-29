@@ -412,10 +412,10 @@ int form_process(Init *init) {
     @param form A pointer to the Form structure containing form data and state.
     @return An integer status code indicating the next action for the form
     processing loop (e.g., P_ACCEPT, P_HELP, P_CALC, P_CANCEL).
-    @note This function manages user input for field entry, including navigation
-   between fields and handling of special keys for accepting, canceling,
-   requesting help, or performing calculations. The function loops until the
-   user selects an exit action (e.g., accept or cancel). */
+    @details This function manages user input for field entry, including
+   navigation between fields and handling of special keys for accepting,
+   canceling, requesting help, or performing calculations. The function loops
+   until the user selects an exit action (e.g., accept or cancel). */
 int field_navigator(Form *form) {
 
     if (form->fidx < 0)
@@ -522,10 +522,10 @@ unsigned int form_display_screen(Init *init) {
     formatting them according to the form configuration.
     @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
-    @note This function iterates through the defined form fields, formats their
-   display values based on the specified fill character and field length, and
-   renders them on the form window. It also updates the chyron with available
-   commands for user interaction. */
+    @details This function iterates through the defined form fields, formats
+   their display values based on the specified fill character and field length,
+   and renders them on the form window. It also updates the chyron with
+   available commands for user interaction. */
 void form_display_fields(Form *form) {
     int n;
     char fill_char = form->fill_char[0];

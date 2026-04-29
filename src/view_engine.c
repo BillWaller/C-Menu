@@ -30,13 +30,13 @@
 
 /** @brief read the next characater from the virtual file
     @ingroup view_engine
-   @note Line numbers are tracked when reading forward and stored in a line
+   @details Line numbers are tracked when reading forward and stored in a line
    table for quick access when moving backwards.
-   @note When reading forward, the End of Data (EOD) flag is set when the
+   When reading forward, the End of Data (EOD) flag is set when the
    position is equal to the file size, and cleared when the position or reading
    direction changes.
-   @note Carriage-returns are ignored as they should be.
-   @note View uses the kernel's demand paged virtual address space to map files
+   Carriage-returns are ignored as they should be.
+   View uses the kernel's demand paged virtual address space to map files
    directly into memory. This allows for efficient access to file contents
    without the need for explicit buffering or read system calls, as the kernel
    handles loading the necessary pages into memory on demand.
@@ -57,12 +57,12 @@
     }
 /** @brief read the previous characater from the virtual file
     @ingroup view_engine
-    @note There is no need to track line numbers when moving backwards as they
+    There is no need to track line numbers when moving backwards as they
    are stored in the line table and accessed as needed.
-    @note When reading in reverse, the Beginning of Data (BOD) flag is set when
+    When reading in reverse, the Beginning of Data (BOD) flag is set when
    the file position is zero, and cleared when the position or reading direction
    changes.
-    @note Carriage-returns are ignored as they should be.
+    Carriage-returns are ignored as they should be.
  */
 #define get_prev_char()                                                        \
     {                                                                          \
@@ -978,17 +978,17 @@ void go_to_mark(View *view, int c) {
     @param regex_pattern Regular Expression Pattern to Search For
     @returns true if a match is found and displayed, false if the search
    completes without finding a match or if an error occurs
-    @note The search performs extended regular expression matching, ignoring
+    @details The search performs extended regular expression matching, ignoring
    ANSI sequences and Unicode characters. Matches are highlighted on the
    screen, and the search continues until the page is full or the end of the
    file is reached. If the search wraps around the file, a message is
    displayed indicating that the search is complete.
-    @note The search state is maintained in the view structure, allowing for
-   repeat searches and tracking of the current search position. @note this
+    The search state is maintained in the view structure, allowing for
+   repeat searches and tracking of the current search position. This
    function highlights all matches in the current ncurses pad, including
    those not displayed on the screen, and tracks the first and last match
    columns for prompt display.
-    @note ANSI sequences and Unicode characters are stripped before
+    ANSI sequences and Unicode characters are stripped before
    matching, so matching corresponds to the visual display */
 bool search(View *view, int *search_cmd, char *regex_pattern) {
     char tmp_str[MAXLEN];
@@ -1342,7 +1342,7 @@ void scroll_up_n_lines(View *view, int n) {
     @param view struct
     @param pos buffer offset
     @returns file position of next line
-    @note gets view->line_in_s
+    @details gets view->line_in_s
  */
 off_t get_next_line(View *view, off_t pos) {
     char c;
@@ -1571,9 +1571,9 @@ void increment_ln(View *view) {
    position of each line. The index (view->ln + 1) corresponds to the
    current line number. (the line number table is 0-based, while line
    numbering starts at 1).
-    @note If the line or position requested is not in the line table, this
+    @details If the line or position requested is not in the line table, this
    function reads forward to sycn.
-    @note If the line or positione requested is behind the current line
+    If the line or positione requested is behind the current line
    table index, the line index will be decremented it matches the file
    position.
  */
@@ -1612,7 +1612,7 @@ void sync_ln(View *view) {
     param View *view data structure
     @details This function displays a single line of text on the ncurses
    pad.
-    @note If line numbering is enabled (view->f_ln), it is formatted and
+    If line numbering is enabled (view->f_ln), it is formatted and
    displayed at the beginning of the line with the specified attributes and
    color pair.
     @details Because get_next_char calls increment_ln upon encountering a
@@ -1946,21 +1946,21 @@ void remove_file(View *view) {
 /** @brief Display View Help File
     @ingroup view_display
     @param init is the current initialization data structure.
-    @note The current View context is set aside by assigning the view
+    @details The current View context is set aside by assigning the view
    structure to "view_save" while the help file is displayed using a new,
    separate view structure.
-    @note The help file is specified by the VIEW_HELP_FILE macro can be set
+    The help file is specified by the VIEW_HELP_FILE macro can be set
    to a default help file path or overridden by the user through an
    environment variable.
-    @note  After the help file is closed, the original view is restored and
+    After the help file is closed, the original view is restored and
    the page is redisplayed.
-    @note It may be necessary to reassign view after calling this function
+    It may be necessary to reassign view after calling this function
    because the init->view pointer is temporarily set to nullptr during the
    help file display, and the original view is restored afterward.
-    @note The default screen size for help can be set in the code below. If
+    The default screen size for help can be set in the code below. If
    set to 0, popup_view will determine reasonable maximal size based on the
    terminal dimensions.
-    @note The help file may contain Unicode characters and ANSI escape
+    The help file may contain Unicode characters and ANSI escape
    sequences for formatting, which will be properly handled and displayed by
    popup_view. */
 void view_display_help(Init *init) {
@@ -1989,7 +1989,13 @@ void view_display_help(Init *init) {
     destroy_argv(eargc, eargv);
     init->view->f_redisplay_page = true;
 }
-
+/** @brief Restore View Windows
+    @ingroup view_display
+    @details This function restores the content of the view windows (line
+   number window and command line window) after they may have been
+   overwritten by a popup or other temporary display. It uses wnoutrefresh to
+   update the virtual screen with the content of the windows and then calls
+   wrefresh to update the physical screen. */
 void view_restore_wins() {
     wnoutrefresh(view->ln_win);
     wrefresh(view->ln_win);
@@ -2005,7 +2011,7 @@ void view_restore_wins() {
     @param file_spec - pointer to file specification
     the file_spec
     @returns true if successful
-    @note the user must provide a character array large enough to
+    @details the user must provide a character array large enough to
    hold file_spec without overflowing
  */
 bool enter_file_spec(Init *init, char *file_spec) {

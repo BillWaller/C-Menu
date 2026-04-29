@@ -35,21 +35,20 @@ bool f_verbose = false;
 /** @brief Abnormal termination - print an error message and exit
     @param e Error code
     @param s Error message
-    @note This function prints the provided error message along with the error
-   code and its corresponding string representation, then exits the program with
-   a failure status.
+    @details This function prints the provided error message along with the
+   error code and its corresponding string representation, then exits the
+   program with a failure status.
  */
 void ABEND(int e, char const *);
 
 /** @brief Main function for rsh
     @param argc Argument count
     @param argv Argument vector
-    @note If executed as 'rsh', this program sets the user ID and group ID to 0
-   (root) and then executes the user's default shell (or /usr/bin/bash if SHELL
-   is not set) with the provided arguments. If no arguments are given, it runs
-   the shell in interactive mode.
-    @note To work properly, this program must be compiled and set with the
-   setuid bit:
+    @details If executed as 'rsh', this program sets the user ID and group ID to
+   0 (root) and then executes the user's default shell (or /usr/bin/bash if
+   SHELL is not set) with the provided arguments. If no arguments are given, it
+   runs the shell in interactive mode. To work properly, this program must be
+   compiled and set with the setuid bit:
     @code
     $ sudo -s
     cc rsh.c -o rsh
@@ -57,7 +56,7 @@ void ABEND(int e, char const *);
     sudo chmod 4755 rsh
     exit
     @endcode
-    @note to verify proper operation:
+    to verify proper operation:
     @code
     $ rsh
     $ whoami

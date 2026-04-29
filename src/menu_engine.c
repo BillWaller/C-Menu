@@ -31,7 +31,7 @@ unsigned int menu_cmd_processor(Init *);
    the menu system.
    @returns an integer indicating the action taken by the user, such as
    returning to the main menu or exiting the menu system.
-   @note displays the menu and processes user input until the user exits the
+   @details displays the menu and processes user input until the user exits the
    menu or returns to the main menu.
  */
 unsigned int menu_engine(Init *init) {
@@ -110,7 +110,7 @@ unsigned int menu_engine(Init *init) {
    @returns an integer indicating the action taken by the user, such as
    returning to the main menu, displaying a submenu, or executing a command
    associated with a menu choice.
-   @note handles navigation through the menu options, executing commands
+   @details handles navigation through the menu options, executing commands
    associated with menu choices, and responding to special keys such as
    function keys and mouse clicks.
  */
