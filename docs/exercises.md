@@ -357,17 +357,33 @@ Start Rustlings:
     rustlings
 ```
 
-At the bottom of the display, you will notice the line, "Current exercise: " and
-the relative path of the Rust source file for the current exercise. This is the file you will be editing with C-Menu Pick.
+![Rustlings A1](../screenshots/rustlings-a1.png)
 
-Start C-Menu and select the Rustlings Source option. This will list the Rust source files for the exercises. Type the last few characters of the file name in the line editor window. For example, if the current exercise is "exercises/variables/variables1.rs", you can type "bles1". As you type, the list of files will be filtered to match your input. When you see the file you want to edit, select it.
+At the bottom of the rustlings display, you will notice the line, "Current exercise: " and the relative path of the Rust source file for the current exercise. This is the file you will be editing with C-Menu Pick.
+
+Start C-Menu and select the Rustlings Source option. When it appears, press the tab key to activate the line editor. Type the last few characters of the file name in the line editor window. For example, "maps2".
+
+Press the tab key again to activate the object selector. Select the line
+containing the file name that matches the current exercise. In this case, there
+is only one file that matches, so press the space bar to select it. The selected
+file will be opened in Neovim (or your preferred editor if you change nvim.sh) for editing.
+
+![Rustlings A2](../screenshots/rustlings-a2.png)
+
+Edit the Rustlings source file to correct the compiler errors and save it.
+
+![Rustlings 5](../screenshots/rustlings5.png)
+
+When you save the file, Rustlings will automatically check your work.
+
+![Rustlings 6](../screenshots/rustlings6.png)
+
+If you were successful, you can press "n" in the Rustlings terminal to advance to the next exercise.
+
+Then, repeat the process of selecting the Rustlings Source option in C-Menu and editing the next exercise.
 
 If the line editor refuses to accept a typed character, it is probably because
 of the preemptive error checking. If the character you are trying to enter would
 result in no matches, the line editor will reject it.
-
-When you select a file, it will open in Neovim (or your preferred editor if you change nvim.sh) for editing.
-
-After you finish editing, save the file, and Rustlings will check your work automatically. If you were successful, you can press "n" in the Rustlings terminal to advance to the next exercise.
 
 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository
