@@ -1,0 +1,9 @@
+menuapp: /home/bill/menuapp
+minitrc: /home/bill/menuapp/.minitrc
+C-Menu Version: 0.2.9
+mapp_spec=main.m
+mapp_data=~/menuapp/data
+mapp_help=~/menuapp/help
+mapp_home=~/menuapp
+mapp_msrc=~/menuapp/msrc
+mapp_user=~/menuapp/user
