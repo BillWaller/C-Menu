@@ -906,6 +906,8 @@ int picker(Init *init, char *field) {
                 mvwaddstr(win2, line, col, filler_s);
                 mvwaddstr(win2, line, col, accept_s);
                 pos = col + strlen(accept_s);
+                prev_pos = pos;
+                prev_ptr = accept_s;
                 wmove(win2, line, pos);
                 curs_set(0);
                 wrefresh(win2);

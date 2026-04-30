@@ -1,4 +1,4 @@
-![C-Menu User Guide](../../screenshots/User-Guide.png)
+![C-Menu User Guide](../screenshots/User-Guide.png)
 
 # How to get C-Menu
 
@@ -33,8 +33,8 @@ gh repo clone BillWaller/C-Menu
   - [RSH - A Use Case](#rsh---a-use-case)
 - [Starting C-Menu](#starting-c-menu)
 - [C-Menu configuration](#c-menu-configuration)
-- [Programming C-Menu Menu](#programming-c-menu-menu)
-  - [Menu Example](#menu-example)
+- [How C-Menu Menu Works](#how-c-menu-menu-works)
+  - [C-Menu Example Applications Menu](#c-menu-example-applications-menu)
   - [Menu Description File Format](#menu-description-file-format)
 - [C-Menu Form In Depth](#c-menu-form-in-depth)
   - [Form field editor](#form-field-editor)
@@ -240,7 +240,7 @@ Note: the following listing uses "lsd" by default, and may not look the same on 
 
 Once RSH, "xx", and "x" are installed, subsequent make install processes will appear as follows:
 
-![make](../../screenshots/Makefile-out.png)
+![make](../screenshots/Makefile-out.png)
 
 Here's another example with the C-Make build. You will notice that the
 compilation portion of make is executed without root privileges, while the
@@ -248,7 +248,7 @@ installation portion is executed with root privileges. This is a safer
 approach, as it minimizes the amount of code that runs with elevated
 privileges.
 
-![make cmake](../../screenshots/cmake_install.png)
+![make cmake](../screenshots/cmake_install.png)
 
 When finished, take some time to explore the ~/menuapp directory to
 familiarize yourself with its features.
@@ -285,21 +285,19 @@ See [Cmenu Options](#c-menu-options) for a list of available configuration optio
 
 ---
 
-## Programming C-Menu Menu
+## How C-Menu Menu Works
 
 C-Menu parses a menu description file, which contains text lines to
 display and command lines, which are essentially operating system
 commands.
 
-### Menu Example
-
-![C-Menu Application Menu](../../screenshots/menu-desc.png)
+### C-Menu Example Applications Menu
 
 In this example, "Neovim" is a menu item that, when selected, will
 execute the command `nvim`. The user can select it by clicking on
 "Neovim" or by typing the corresponding letter assigned to it.
 
-![C-Menu Applications Menu](../../screenshots/applications_menu.png)
+![C-Menu Applications Menu](../screenshots/applications_menu.png)
 
 ### Menu Description File Format
 
@@ -313,7 +311,7 @@ execute the command `nvim`. The user can select it by clicking on
 - Menu items can be grouped into sections by using text lines without
   corresponding command lines.
 
----
+## ![C-Menu Application Menu](../screenshots/applications_menu.m.png)
 
 ## C-Menu Form In Depth
 
@@ -343,7 +341,7 @@ The user can navigate through the form fields, enter data, and when ready, use t
 In the image below, Form is configured to use '\_' as the fill character, which
 gives the user a visual cue of the field length.
 
-![Form Initial Display](../../screenshots/iloan.png)
+![Form Initial Display](../screenshots/iloan.png)
 
 The default field entry mode is overwrite, which can be toggled to insert by
 pressing the insert key, or clicking the "INS" label in they chyron. When Form
@@ -364,7 +362,7 @@ When finished entering or editing a field, the user can press the Tab key to mov
 
 When finished entering or editing the form, the can press F10 to continue with submission.
 
-![After F10 Continue](../../screenshots/iloan2.png)
+![After F10 Continue](../screenshots/iloan2.png)
 
 Notice, in the above image, the Number of Months has been changed from 120 to 180. The user pressed enter in the Payment Amount field giving it a value of 0.
 
@@ -376,12 +374,12 @@ The user presses F5 or clicks on the "F5 Process" label, and with no
 flickering or disruption of the screen, the Payment Amount is instantly calculated and
 the Payment Amount field is updated. The chyron changes again, adding "F5 Edit" and "F10 Commit" commands.
 
-![After F5 Process](../../screenshots/iloan3.png)
+![After F5 Process](../screenshots/iloan3.png)
 
 The user can try another calculation by pressing the "F5 Edit" key or "F10
 Commit" to have Form dispatch the final data according to the configuration.
 
-![Form Description File](../../screenshots/iloan.f.png)
+![Form Description File](../screenshots/iloan.f.png)
 
 #### Form Line Type Specifiers
 
@@ -652,7 +650,7 @@ specifically those without a designated letter, may be entered from
 the command line as hyphen\[option\]=\[value\], such as (-mapp_data="My
 C-Menu_Data_Directory").
 
-![C-Menu Options](../../screenshots/options.png)
+![C-Menu Options](../screenshots/options.png)
 
 ### C-Menu configuration file example
 
@@ -713,7 +711,7 @@ provide input to C-Menu Pick, but can be used stand-alone as well. It
 is similar to the Unix "find" command, but with a much simpler syntax
 and fewer features.
 
-![lf help](../../screenshots/lf-help.png)
+![lf help](../screenshots/lf-help.png)
 
 Unless depth is specified with the -d option, lf defaults to unlimited depth.
 
@@ -752,7 +750,7 @@ Exclude all files and directories that end in ".txt", ".sh", or ".md".
 lf -e '.*\.(txt|sh|md)$' /home/bill
 ```
 
-![lf File Finder](../../screenshots/lf-dates.png)
+![lf File Finder](../screenshots/lf-dates.png)
 
 The screenshot above is an example of how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We hope you find the format format to be intuitive and easy to use.
 
