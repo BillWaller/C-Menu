@@ -32,7 +32,7 @@ the list of files in real time. When you find the file you want, you can select
 it with the mouse, or use the arrow keys to move the highlighted bar to the file
 and press space bar to select it. Pick is fun to use and it's lightning fast, even with huge lists of objects. Pick is a great way to navigate and select files, users, network connections, and other objects in your applications.
 
-![Pick](../screenshots/New-Picker.png)
+![Pick](../screenshots/Pick.png)
 **_View_** - A pager for viewing files. View has Unicode support, line numbering, regular expression searching, and a large virtual pad for horizontal scrolling. View works great with tree-sitter, source-highlight, pygments, bat, manual pages, and other syntax highlighters. View doesn't alter the file you are viewing. It uses the highlighter in a pipe, and reads the output, so the original file is never changed. And, if you happen to have a file that has been highlighted by another application, view can strip the ANSI codes for convenient editing. View is lightning fast, especially with huge log files.
 
 Why is View so fast? Even if an application has a super-fast buffering scheme, it still has to wait on the kernel to provide data, and then copy data into it's own buffers, duplicating work the Kernel has already done. Why waste the time and memory? To be fair, it may be that many applications were written before direct accesses to the Kernel's demand paged virtual address space was available. Whatever the reason, View takes advantage of direct-to-Kernel memory mapped files to achieve maximum performance, reliability, and resource economy. If you work with large datasets, you will love view. No fluff, no bloat, no nonsense, just blazing fast performance.
@@ -101,7 +101,7 @@ time lf -a -d 5 -t f | xargs ls -l >lf.out
 wc -l find.out lf.out
 ```
 
-![lf File Finder](../screenshots/lf-vs-find.png)
+![lf File Finder](../screenshots/lf-benchmarks.png)
 
 **_API_** - C-Menu provides a simple and consistent API for creating menu-driven user interfaces in C. The API includes tools specific to C-Menu, but also many general purpose tools that can be used in a wide range of applications. The API documentation is available in html and integrated into Neovim's completion engine, making it easy for developers to learn and use the API effectively.
 

@@ -18,7 +18,7 @@
   - [Elements of C-Menu](#elements-of-c-menu)
   - [Key Features](#key-features)
   - [Highlights (Pun Intended)](#highlights-pun-intended)
-  - [Just Do It!](#just-do-it)
+  - [Just Do It](#just-do-it)
   - [Menu](#menu)
   - [C-Keys - Diagnose Keyboard/Mouse Input](#c-keys---diagnose-keyboardmouse-input)
   - [Pick - A Picker](#pick---a-picker)
@@ -662,7 +662,7 @@ and robust tool for listing files based on regular expressions.
 
 lf is very fast compared to find. In some instances, it can be up to 50 times faster than find, especially when searching for files in large directories or when using complex regular expressions. The performance difference is due to lf's optimized algorithms and streamlined codebase, which minimizes overhead and maximizes efficiency.
 
-![**_NEW_** Performance: lf vs find](../screenshots/lf-vs-find.png)
+![**_NEW_** Performance: lf vs find](../screenshots/lf-benchmarks.png)
 
 ---
 

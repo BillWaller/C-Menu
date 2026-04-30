@@ -5,7 +5,7 @@
 <!-- mtoc-start -->
 
 - [lf is fast, but I rely on find's features](#lf-is-fast-but-i-rely-on-finds-features)
-- [Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc.](#drop-down-and-pop-up-menus-forms-pickers-views-ckeys-etc)
+- [Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc](#drop-down-and-pop-up-menus-forms-pickers-views-ckeys-etc)
 - [Can lf match files with multiple suffixes](#can-lf-match-files-with-multiple-suffixes)
 - [Multiple Executables](#multiple-executables)
 - [Static Executables](#static-executables)
@@ -50,7 +50,7 @@ lf -a -t f | xargs ls -l
 
 And, you will find the performance of lf is spectacular compared to find.
 
-![lf vs find performance](../screenshots/lf-vs-find.png)
+![lf vs find performance](../screenshots/lf-benchmarks.png)
 
 ## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc
 

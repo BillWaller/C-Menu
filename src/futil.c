@@ -1375,7 +1375,7 @@ bool is_valid_regex(const char *pattern) {
    nullptr. If "tgt_s" is not found in "org_s", the function returns a copy
    of "org_s". If target substring is not found the function returns a copy
    of the original string.
-    @details allocates memory for the return value, so the caller is
+   @note allocates memory for the return value, so the caller is
    responsible for freeing this memory when it is no longer needed to avoid
    memory leaks.
     Does not modify the original string "org_s".

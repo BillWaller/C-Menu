@@ -43,7 +43,7 @@ For comprehensive html documentation, please refer to the website:
 
 In typical use, C-Menu requires only a few lines of code to create hierarchical menus with multiple levels of sub-menus. In the example Workstation Configuration menu below, C-Menu uses one line of code to execute an external command to find and display previews of SDDM login screens.
 
-![Hierarchical Menus](screenshots/SDDM_previews.png)
+![Hierarchical Menus](screenshots/applications_menu.png)
 
 C-Menu is highly customizable, and provides a wide range of options for creating unique and engaging interfaces. The help screens below show some of the options available for customizing the appearance and behavior of C-Menu's components.
 
@@ -70,7 +70,7 @@ and press space bar to select it. Pick is fun to use and it's lightning fast,
 even with huge lists of objects. Pick is a great way to navigate and select
 files, users, network connections, and other objects in your applications.
 
-![Pick](screenshots/New-Picker.png)
+![Pick](screenshots/Pick.png)
 To duplicate the above screenshots:
 
 ```bash
@@ -210,7 +210,7 @@ time lf -a -d 5 -t f | xargs ls -l >lf.out
 wc -l find.out lf.out
 ```
 
-![lf File Finder](screenshots/lf-vs-find.png)
+![lf File Finder](screenshots/lf-benchmarks.png)
 
 ---
 

@@ -36,6 +36,7 @@ gh repo clone BillWaller/C-Menu
 - [How C-Menu Menu Works](#how-c-menu-menu-works)
   - [C-Menu Example Applications Menu](#c-menu-example-applications-menu)
   - [Menu Description File Format](#menu-description-file-format)
+- [!C-Menu Application Menu](#c-menu-application-menu)
 - [C-Menu Form In Depth](#c-menu-form-in-depth)
   - [Form field editor](#form-field-editor)
     - [Form Line Type Specifiers](#form-line-type-specifiers)
@@ -797,7 +798,7 @@ time lf -a -d 5 -t f | xargs ls -l >lf.out
 wc -l find.out lf.out
 ```
 
-![lf File Finder](../screenshots/lf-vs-find.png)
+![lf File Finder](../screenshots/lf-benchmarks.png)
 
 For a great cheat sheet on regular expressions, see
 
