@@ -707,40 +707,22 @@ bool str_to_bool(const char *s) {
     }
     return false;
 }
-/**  @brief Replace Leading Tilde With Home Directory
+/** @brief Replaces "~/" in string with the user's home directory.
     @ingroup utility_functions
-     @param path - path to expand
-     @param path_maxlen - maximum length of path
-     @returns true if successful
-     @note The caller is responsible for ensuring that "path" has enough space
-   to receive the result, and that "path_maxlen" is sufficient to hold the
-   result. This function does not perform any bounds checking on "path", so it
-   is the caller's responsibility to ensure that it is valid and that
-   "path_maxlen" is appropriate for the operation.
- */
-bool expand_tilde(char *path, int path_maxlen) {
-    if (path == nullptr || *path == '\0' || path_maxlen == 0)
+    @param str - string to modify
+    @returns true if successful, false if str is nullptr or empty */
+bool expand_tilde(char *str, int path_maxlen) {
+    if (str == nullptr || *str == '\0')
         return false;
-    char *e;
-    char ts[MAXLEN];
-    char *tp;
-
-    if (!path || !*path || !path_maxlen)
-        return false;
-    tp = path;
-    if (*tp == '~') {
-        tp++;
-        while (*tp == '/') {
-            tp++;
-        }
-        e = getenv("HOME");
-        if (e) {
-            strnz__cpy(ts, e, path_maxlen - 1);
-            strnz__cat(ts, "/", path_maxlen - 1);
-            strnz__cat(ts, tp, path_maxlen - 1);
-            strnz__cpy(path, ts, path_maxlen - 1);
-        }
-    }
+    const char tgt[3] = "~/";
+    char path[MAXLEN];
+    char *e = getenv("HOME");
+    strnz__cpy(path, e, MAXLEN - 1);
+    strnz__cat(path, "/", MAXLEN - 1);
+    char *tmp;
+    tmp = rep_substring(str, tgt, path);
+    strnz__cpy(str, tmp, path_maxlen - 1);
+    free(tmp);
     return true;
 }
 /** @brief Trims trailing spaces and slashes from directory path in place.

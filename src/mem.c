@@ -650,6 +650,10 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         if (pick->f_help_spec)
             optind++;
     }
+    if (pick->provider_cmd[0] != '\0')
+        expand_tilde(pick->provider_cmd, MAXLEN - 1);
+    if (pick->receiver_cmd[0] != '\0')
+        expand_tilde(pick->receiver_cmd, MAXLEN - 1);
     pick->select_max = init->select_max;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
     return true;
@@ -755,6 +759,12 @@ bool init_form_files(Init *init, int argc, char **argv) {
         if (form->f_help_spec)
             optind++;
     }
+    if (form->cmd[0] != '\0')
+        expand_tilde(form->cmd, MAXLEN - 1);
+    if (form->provider_cmd[0] != '\0')
+        expand_tilde(form->provider_cmd, MAXLEN - 1);
+    if (form->receiver_cmd[0] != '\0')
+        expand_tilde(form->receiver_cmd, MAXLEN - 1);
     form->f_erase_remainder = init->f_erase_remainder;
     if (form->title[0] == '\0' && init->title[0] != '\0') {
         strip_quotes(init->title);
@@ -790,6 +800,12 @@ bool init_view_files(Init *init) {
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
     strnz__cpy(view->receiver_cmd, init->receiver_cmd, MAXLEN - 1);
     strnz__cpy(view->cmd_all, init->cmd_all, MAXLEN - 1);
+    if (view->cmd[0] != '\0')
+        expand_tilde(view->cmd, MAXLEN - 1);
+    if (view->provider_cmd[0] != '\0')
+        expand_tilde(view->provider_cmd, MAXLEN - 1);
+    if (view->receiver_cmd[0] != '\0')
+        expand_tilde(view->receiver_cmd, MAXLEN - 1);
     if (view->title[0] == '\0') {
         if (init->title[0] != '\0') {
             strnz__cpy(view->title, init->title, MAXLEN - 1);
