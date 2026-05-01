@@ -41,7 +41,7 @@ For comprehensive html documentation, please refer to the website:
 
 ## Menu - Hierarchical Menus
 
-In typical use, C-Menu requires only a few lines of code to create hierarchical menus with multiple levels of sub-menus. In the example Workstation Configuration menu below, C-Menu uses one line of code to execute an external command to find and display previews of SDDM login screens.
+In typical use, C-Menu requires only a few lines of code to create hierarchical menus with multiple levels of sub-menus. The Applications Menu contains an eclectic set of selections designed to demonstrate the diversity of the C-Menu toolkit.
 
 ![Hierarchical Menus](screenshots/applications_menu.png)
 
