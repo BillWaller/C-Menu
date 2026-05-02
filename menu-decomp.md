@@ -40,6 +40,7 @@ venerable Unix find command. C-Menu's lf is a file finder that uses the same und
 The following benchmarks compare equivalent commands by find and lf, which produce identical results:
 
 time find . -maxdepth 5 -type f -exec ls -l {} \; >find.out
+
 time lf -d 4 -t f | xargs ls -l >lf.out
 
 | Command | real     | user     | sys      | files found |
@@ -48,6 +49,7 @@ time lf -d 4 -t f | xargs ls -l >lf.out
 | lf      | 0m0.008s | 0m0.004s | 0m0.006s | 142         |
 
 time find . -maxdepth 4 -type f -exec ls -l {} \; >find.out
+
 time lf -d 4 -t f | xargs ls -l >lf.out
 
 | Command | real     | user     | sys      | files found |
