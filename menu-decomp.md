@@ -28,21 +28,29 @@ that can be called directly from the command line without the need for an extern
 
 Relative performance:
 
-| Performance level | Description                    | Elapsed Time |
-| ----------------- | ------------------------------ | ------------ |
-| Somewhat Slugish  | Shell based execution          | 10-100 ms    |
-| Fast              | C-Menu direct execution        | 1-10 ms      |
-| Blazingly Fast    | C-Menu internal function calls | 0.001 ms     |
+| Performance level | Description             | Elapsed Time |
+| ----------------- | ----------------------- | ------------ |
+| Somewhat Slugish  | Shell based execution   | 10-100 ms    |
+| Fast              | Direct execution        | 1-10 ms      |
+| Instantaneous     | Internal function calls | 0.001 ms     |
 
-Admittedly, no one really cares whether a program loads in 0.001 ms or 1,000
-times slower at 1 ms, but in practical applications iterative processes often
-take thousands of cycles to complete. At 200 ms response, a user will perceive an application as sluggish. At 20 ms, the user will perceive a smooth and responsive experience. At 1 ms, the user will perceive an instantaneous response. That's why C-Menu strives for sub-millisecond response wherever and whenever possible.
+At 200 ms response, a user will perceive an application as sluggish. At 20 ms, the user will perceive a smooth and responsive experience. At 1 ms, the user will perceive an instantaneous response. Admittedly, no one really cares whether a program loads in 0.001 ms or 1,000 times slower at 1 ms, but in practical applications iterative processes often take thousands of cycles to complete. That's why C-Menu strives for sub-millisecond response wherever and whenever possible.
 
-C-Menu's performance is not limited to C-Menu's launcher. We designed lf (lightweight find) as an alternative to Unix find because find became a bottleneck for some tasks. Don't get me wrong, find is an extremely powerful tool, tested and true, but it can be unwieldy at times with a 40 page Unix manual page entry. We wanted a replacement that would work for the majority of applications, but easier to use, and 30% faster than find. Take a look at the performance benchmarks below comparing C-Menu's lf with the
-venerable Unix find command. Most benchmarks were not as dramatic as those that
-follow. It appears that find's -exec option is inefficient. If you are going to use find, use xargs instead of -exec. lf has a much smaller footprint and is much easier to use than find.
+Many applications can be executed directly without the need for a shell, which is what C-Menu does by default when it encounters a command line starting with "!". Nevertheless, you can explicitly invoke a shell by including "sh -c" or a shell script on the command line.
 
-The following benchmarks compare equivalent commands by find and lf, which produce identical results:
+Because C-Menu was designed to execute external programs directly, it provides conveniences such as tilde expansion and file location based on the environment.
+
+Instead of using I/O redirection on the command line with pipe symbols, C-Menu provides more controllable features such as "-S" for specifying a command to execute as a provider (source) of input to a form, pick, or view, "-R" for specifying a command to receive standard output from a form, pick, or view, and "-c" for specifying a command to execute with the selected item as an argument. These features allow you to create powerful and flexible menu items that can interact with other applications and scripts in a more controlled and efficient manner.
+
+Another optimization is that C-Menu does not necessarily launch a new process for each command line. Instead, it uses internal function calls. In the Example Applications Menu, all except the first command line are internal function calls. Calling an internal function takes nanoseconds, while an external executable is 1,000-100,000 times slower. C-Menu provides a rich set of internal functions that can be used to create complex and interactive menu items, often without the need for external applications or scripts. This allows you to create a seamless and responsive user experience while still providing powerful functionality.
+
+## C-Menu Lightweight Find (lf)
+
+C-Menu's launcher is only one aspect of its performance. C-Menu's lf (lightweight find) is an alternative to Unix find. Unix find is an extremely powerful tool, and it is not slow, but it can be unwieldy at times (see the 40 page manual). It does everything you could want, but with unnecessary overhead. C-Menu's lf is smaller, faster, and easier to use than Unix find, yet covers most of the day-to-day use cases.
+
+One of find's most often used features is the built-in exec option, which executes a specified command on each file found. lf does not have a built-in -exec option. lf achieves the same result, by piping the output of lf into xargs. How does that stack up against find with -exec? Lets see.
+
+We compared C-Menu's lf with xargs and find with its built-in -exec option. Both methods produced identical results, but take a look at the performance difference.
 
 time find . -maxdepth 5 -type f -exec ls -l {} \; >find.out
 
@@ -62,16 +70,13 @@ time lf -d 4 -t f | xargs ls -l >lf.out
 | find    | 0m2.123s | 0m0.788s | 0m0.281s | 598         |
 | lf      | 0m0.014s | 0m0.007s | 0m0.009s | 598         |
 
-Many applications can be executed directly without the need for a shell, which is what C-Menu does by default when it encounters a command line starting with "!". Nevertheless, you can explicitly invoke a shell by including "sh -c" or a shell script on the command line.
+Intuitively, it makes sense that find with its built-in exec option would be
+faster than using an external xargs command, but in practice, the opposite is true. The built-in exec option of find is significantly slower than using xargs with lf. This is because find's built-in exec option executes the specified command for each file found, which can be very inefficient when dealing with a large number of files. In contrast, using xargs allows you to execute the command on multiple files at once, which can significantly reduce the overhead and improve performance. You can improve the performance of find dramatically by piping its output into xargs instead of using its built-in -exec option.
 
-Because C-Menu was designed to execute external programs directly, it provides conveniences such as tilde expansion and file location based on the environment.
-
-Instead of using I/O redirection on the command line with pipe symbols, C-Menu provides more controllable features such as "-S" for specifying a command to execute as a provider (source) of input to a form, pick, or view, "-R" for specifying a command to receive standard output from a form, pick, or view, and "-c" for specifying a command to execute with the selected item as an argument. These features allow you to create powerful and flexible menu items that can interact with other applications and scripts in a more controlled and efficient manner.
-
-Another optimization is that C-Menu does not necessarily launch a new process for each command line. Instead, it uses internal function calls. In the Example Applications Menu, all except the first command line are internal function calls. Calling an internal function takes nanoseconds, while an external executable is 1,000-100,000 times slower. C-Menu provides a rich set of internal functions that can be used to create complex and interactive menu items, often without the need for external applications or scripts. This allows you to create a seamless and responsive user experience while still providing powerful functionality.
+# C-Menu View
 
 Throughout C-Menu, and especially View, you will find many optimizations that
-contribute to it's efficiency. For example, C-Menu's View does not use traditional seek and read file buffering, but direct-to-kernel, demand paged, memory mapped, virtual address space. That eliminates time and memory consumed by copying kernel data to user-space buffers, and bypasses inefficiencies, limitations, and errors built into custom, one-off buffering systems. The result is unmatched reliability and instant access to any part of multi-gigabyte files without the overhead of user-space buffer management.
+contribute to it's efficiency and speed. Traditionally, large file I-O has relied on user-space buffering schemes in which chunks of data are copied from mass storage into local buffers using seek and read operations. The application must keep track of buffer contents, manage buffer lifecycles, and handle edge cases such as partial reads, end-of-file conditions, and error handling. This approach can be complex, error-prone, and inefficient, especially when dealing with large files or high-throughput applications. C-Menu's view takes a different approach to large file I-O by leveraging the operating system's virtual memory management capabilities to provide direct access to file data through memory mapping. Instead of relying on user-space buffering, C-Menu's view provides a direct-to-kernel, demand paged, memory mapped virtual address space for file access. This eliminates the overhead and complexity associated with user-space buffering, and allows for more efficient and reliable access to large files. With C-Menu's view, applications can access any part of a multi-gigabyte file instantly without the need for copying data into user-space buffers or managing buffer lifecycles. This results in unmatched reliability and performance when working with large files, making C-Menu's view an ideal choice for applications that require high-throughput file access or need to work with large datasets.
 
 ---
 

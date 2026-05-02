@@ -32,7 +32,7 @@
 **_NEW_** You may be interested in a new, but incomplete series of C-Menu
 documents that are being developed in parallel with the documentation on the website. The documents in this series are intended to provide a more concise and focused overview of C-Menu's features and capabilities, and to serve as a quick reference guide for users who want to get up and running with C-Menu quickly. The documents in this series include:
 
-[C-Menu Menu Decomposition](menu-decomp.md)
+[C-Menu Menu Performance](C-Menu-Performance.md)
 
 ## Introduction
 
