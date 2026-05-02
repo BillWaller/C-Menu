@@ -34,8 +34,13 @@ Relative performance:
 | Fast              | C-Menu direct execution        | 1-10 ms      |
 | Blazingly Fast    | C-Menu internal function calls | 0.001 ms     |
 
-Just take a look at the performance benchmarks for C-Menu's lf compared to the
-venerable Unix find command. C-Menu's lf is a file finder that uses the same underlying file system traversal as find, but with a more efficient implementation and optimized for interactive use.
+Admittedly, no one really cares whether a program loads in 0.001 ms or 1,000
+times slower at 1 ms, but in practical applications iterative processes often
+take thousands of cycles to complete. At 200 ms response, a user will perceive an application as sluggish. At 20 ms, the user will perceive a smooth and responsive experience. At 1 ms, the user will perceive an instantaneous response. That's why C-Menu strives for sub-millisecond response wherever and whenever possible.
+
+C-Menu's performance is not limited to C-Menu's launcher. We designed lf (lightweight find) as an alternative to Unix find because find became a bottleneck for some tasks. Don't get me wrong, find is an extremely powerful tool, tested and true, but it can be unwieldy at times with a 40 page Unix manual page entry. We wanted a replacement that would work for the majority of applications, but easier to use, and 30% faster than find. Take a look at the performance benchmarks below comparing C-Menu's lf with the
+venerable Unix find command. Most benchmarks were not as dramatic as those that
+follow. It appears that find's -exec option is inefficient. If you are going to use find, use xargs instead of -exec. lf has a much smaller footprint and is much easier to use than find.
 
 The following benchmarks compare equivalent commands by find and lf, which produce identical results:
 
