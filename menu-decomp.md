@@ -1,42 +1,67 @@
 # C-Menu Decomposition
 
-This section will break down Example C-Menu Applications and explain how they
-work. With this understanding, you will be ready to create custom software products with a small footprint, that are intuitive, uniform, dependable, flexible, appealing, and fast.
+This section will break down Example C-Menu Applications and explain how they work from the perspective of a developer using C-Menu to build applications. With this understanding, you will be ready to create custom software products that are intuitive, uniform, dependable, flexible, appealing, and fast with a minimal footprint.
 
 ## Example Application Menu
 
 ![Applications Menu](screenshots/applications_menu.png)
 
-The menu above is an example designed to demonstrate a variety of features and techniques that can be applied to your projects. It is not meant to be a practical menu for everyday use, but rather a showcase of what is possible with C-Menu. Think of yourself as an artist and C-Menu as your canvas. What will you create?
+The menu above is intended to demonstrate a variety of features and techniques that can be applied to your projects. It is not meant to be a practical menu for everyday use, but rather a showcase of what is possible with C-Menu. Think of yourself as an artist and C-Menu as your canvas. What will you create?
 
-Below is the example source used to create the above menu. This is the part you design as the top-level framework for your application. C-Menu uses a building-block approach to integrate C-Menu internals, external applications, scripts, and executables, as you will see in just a moment. C-Menu includes a set of useful and powerful components you put together like Leggos to make consistent, attractive, and intuitive software products. C-Menu's main components include Menu, Form, Pick, View, RSH, lf, and C-Keys, each of which will be explained in detail in the following sections.
+Below is an example of source defining the above menu. This is the part you design as the top-level framework for your application. C-Menu uses a building-block approach to integrate C-Menu internals, external applications, scripts, and executables, as you will see in just a moment. C-Menu includes a set of useful and powerful components you assemble like Leggos to create innovative software products. C-Menu's main components include Menu, Form, Pick, View, RSH, lf, and C-Keys, each of which will be explained in detail in the following sections.
 
 ![Applications Menu Description File](screenshots/applications_menu.m.png)
-Lets examine the Menu source file above and break down how it works. The source file is a simple text file that contains a series of commands and directives that C-Menu interprets to build the menu structure and define the behavior of each menu item.
+Lets examine the Menu source above and break down how it works. The source file is a simple text file that contains a series of User Choices and Commands.
 
-Lines beginning with ":" are the choices presented in the menu.
+Lines beginning with ":" are the User Choices.
 
-Lines beginning with "!" are command lines that C-Menu executes when the corresponding menu item is selected. These commands can be used to launch applications, run scripts, display forms, or perform any other action that can be executed from the command line.
-
----
+Lines beginning with "!" are commands to be executed by Menu when the corresponding menu item is selected. These commands can be used to invoke internal C-Menu functions execute external commands, and run shell scripts.
 
 ## C-Menu Design Philosophy and Optimizations
 
-Before we dive into the line-by-line breakdown of the menu source file, let's discuss some of the design philosophy and optimizations that C-Menu incorporates to achieve its performance and responsiveness. This will make writing command-lines for C-Menu much more intuitive, and help you understand how to leverage C-Menu's features effectively.
+Before diving into the line-by-line breakdown of the menu source, let's discuss some of the design philosophy and optimizations that C-Menu incorporates to achieve its performance and responsiveness. This will make writing command-lines for C-Menu much more intuitive, help you understand how to leverage C-Menu's features, and enable you to create highly responsive applications.
 
-When you use C-Menu, you may notice that most menu selections respond instantaneously with no perceptible delay. It just snaps. This optimization is achieved by avoiding the overhead and unpredictability of launching a shell to execute command lines. Instead, C-Menu executes command lines directly, which results in start-up times an order of magnitude faster than traditional shell-based menu systems. Shell startup typically takes tens to hundreds of milliseconds, while C-Menu's direct execution can be as fast as a few milliseconds. And, don't forget that shell start-up invokes thousands of lines of code, which you can only hope is bug and malware free. Eliminate it and worry less. This is a key advantage of C-Menu and contributes to its responsiveness, efficiency, and safety.
+When you use C-Menu's Example Application Menu, notice that most menu selections respond virtually instantaneously with no perceptible delay. It just snaps. That level of optimization is achieved in part by avoiding the overhead and unpredictability of using a shell to execute command lines. Instead, C-Menu executes command lines directly, which results in start-up times an order of magnitude faster than traditional shell-based menu systems. Shell startup typically takes tens to hundreds of milliseconds, while C-Menu's direct execution can be as fast as a few milliseconds.
 
-You can still execute command lines that require a shell by explicitly invoking a shell in the command line, such as "sh -c 'your command here'" or include a shell script for execution. However, most applications can be executed directly without the need for a shell, which is what C-Menu does by default when it encounters a command line starting with "!".
+C-Menu also takes performance to the next level by providing internal functions
+that can be called directly from the command line without the need for an external executable. For example, in the Example Applications Menu, all except the first command line are internal function calls, which execute in nanoseconds compared to the milliseconds it takes to launch an external executable.
 
-Even without a shell, C-Menu provides conveniences such as tilde expansion and
-file location based on PATH and other environment variables.
+Relative performance:
 
-Instead of using I/O redirection with pipe symbols, C-Menu provides more controllable features such as "-S" for specifying a command to execute as a provider (source) of input to a form, pick, or view, "-R" for specifying a command to receive standard output from a form, pick, or view, and "-c" for specifying a command to execute with the selected item as an argument. These features allow you to create powerful and flexible menu items that can interact with other applications and scripts in a more controlled and efficient manner.
+| Performance level | Description                    | Elapsed Time |
+| ----------------- | ------------------------------ | ------------ |
+| Somewhat Slugish  | Shell based execution          | 10-100 ms    |
+| Fast              | C-Menu direct execution        | 1-10 ms      |
+| Blazingly Fast    | C-Menu internal function calls | 0.001 ms     |
 
-Another optimization is that C-Menu does not launch a new process for each command line execution. Instead, it uses a single process to execute all command lines, which further reduces overhead and improves performance. This is achieved through the use of a built-in command execution engine that can handle multiple commands and manage their execution efficiently.
+Just take a look at the performance benchmarks for C-Menu's lf compared to the
+venerable Unix find command. C-Menu's lf is a file finder that uses the same underlying file system traversal as find, but with a more efficient implementation and optimized for interactive use.
 
-In the Example Applications Menu, all except the first command line are not
-executable commands, but C-Menu internal function calls. Calling an internal function is much faster than launching an external executable, and C-Menu provides a rich set of internal functions that can be used to create complex and interactive menu items, often without the need for external applications or scripts. This allows you to create a seamless and responsive user experience while still providing powerful functionality.
+The following benchmarks compare equivalent commands by find and lf, which produce identical results:
+
+time find . -maxdepth 5 -type f -exec ls -l {} \; >find.out
+time lf -d 4 -t f | xargs ls -l >lf.out
+
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m0.469s | 0m0.160s | 0m0.288s | 142         |
+| lf      | 0m0.008s | 0m0.004s | 0m0.006s | 142         |
+
+time find . -maxdepth 4 -type f -exec ls -l {} \; >find.out
+time lf -d 4 -t f | xargs ls -l >lf.out
+
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m2.123s | 0m0.788s | 0m0.281s | 598         |
+| lf      | 0m0.014s | 0m0.007s | 0m0.009s | 598         |
+
+Many applications can be executed directly without the need for a shell, which is what C-Menu does by default when it encounters a command line starting with "!". Nevertheless, you can explicitly invoke a shell by including "sh -c" or a shell script on the command line.
+
+Because C-Menu was designed to execute external programs directly, it provides conveniences such as tilde expansion and file location based on the environment.
+
+Instead of using I/O redirection on the command line with pipe symbols, C-Menu provides more controllable features such as "-S" for specifying a command to execute as a provider (source) of input to a form, pick, or view, "-R" for specifying a command to receive standard output from a form, pick, or view, and "-c" for specifying a command to execute with the selected item as an argument. These features allow you to create powerful and flexible menu items that can interact with other applications and scripts in a more controlled and efficient manner.
+
+Another optimization is that C-Menu does not necessarily launch a new process for each command line. Instead, it uses internal function calls. In the Example Applications Menu, all except the first command line are internal function calls. Calling an internal function takes nanoseconds, while an external executable is 1,000-100,000 times slower. C-Menu provides a rich set of internal functions that can be used to create complex and interactive menu items, often without the need for external applications or scripts. This allows you to create a seamless and responsive user experience while still providing powerful functionality.
 
 Throughout C-Menu, and especially View, you will find many optimizations that
 contribute to it's efficiency. For example, C-Menu's View does not use traditional seek and read file buffering, but direct-to-kernel, demand paged, memory mapped, virtual address space. That eliminates time and memory consumed by copying kernel data to user-space buffers, and bypasses inefficiencies, limitations, and errors built into custom, one-off buffering systems. The result is unmatched reliability and instant access to any part of multi-gigabyte files without the overhead of user-space buffer management.
@@ -126,22 +151,22 @@ supplied to the -S executable would be C for Create, R for Read, U for Update, a
 !form receipt.f -i receipt.dat -o receipt.dat
 ```
 
+---
+
 Form Data Types simply displays several values of different data types.
 
-```
+```bash
 :     Form Data Types
 !form -d fields.f -i fields.dat -o fields.dat
 ```
 
-Rustlings Source is a particularly useful demonstration of C-Menu Pick. The use
-case is any situation in which you have a large number of files to choose from,
-and you need an organized and efficient way to navigate and select the file you
-want to work with. In this example, we have a directory containing the Rustlings source code, which consists of hundreds of files organized into multiple subdirectories. C-Menu Pick allows us to navigate through this directory structure and select file-after-file in a very efficient manner.
+---
 
-This feature is so useful, it has its own section in the document labeled,
-"exercises".
+Rustlings Source is a particularly useful demonstration of how C-Menu Pick can
+be used to navigate and select files from a large directory structure. This
+demonstration is so useful, it has it's own section in the C-Menu User Guide.
 
-```
+```bash
 :     Rustlings Source
 !pick -S rust_src -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%
 ```
