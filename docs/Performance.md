@@ -1,4 +1,4 @@
-![C-Menu Performance](screenshots/Performance.png)
+![C-Menu Performance](../screenshots/Performance.png)
 
 # Design Philosophy and Optimizations
 

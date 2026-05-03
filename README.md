@@ -1,504 +1,90 @@
-# C-Menu - A User Interface Toolkit
+![C-Menu Performance](screenshots/Performance.png)
 
-![Installation Guide](screenshots/installation-guide.png)
+**_NEW_** C-Menu Installation Guide
 
-## Table of Contents
+[C-Menu Installation Guide](INSTALL.md)
 
-<!-- mtoc-start -->
+# Design Philosophy and Optimizations
 
-- [Introduction](#introduction)
-- [Menu - Hierarchical Menus](#menu---hierarchical-menus)
-- [Form - On Screen Forms](#form---on-screen-forms)
-- [Pick - Object Selection](#pick---object-selection)
-- [View - A pager for viewing files](#view---a-pager-for-viewing-files)
-- [RSH - A Root Shell Alternative](#rsh---a-root-shell-alternative)
-- [lf - A Regular Expression File Finder](#lf---a-regular-expression-file-finder)
-- [C-Menu API](#c-menu-api)
-- [C-Menu API Completions in Neovim](#c-menu-api-completions-in-neovim)
-- [Summary - Performance and Footprint](#summary---performance-and-footprint)
-- [Other documentation](#other-documentation)
-- [C-Menu Binaries for Linux x86_64](#c-menu-binaries-for-linux-x86_64)
-- [Build C-Menu from Source](#build-c-menu-from-source)
-  - [RSH Static Linking](#rsh-static-linking)
-    - [Prerequisites](#prerequisites)
-    - [Option 1 - Build C-Menu Using CMake Directly](#option-1---build-c-menu-using-cmake-directly)
-    - [Option 2 - Build C-Menu with Provided Scripts](#option-2---build-c-menu-with-provided-scripts)
-    - [Option 3 - Build C-Menu Using Makefile](#option-3---build-c-menu-using-makefile)
-  - [Finish the installation](#finish-the-installation)
-- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
+To build truly outstanding applications with C-Menu, it is essential to understand the design philosophy and optimizations that C-Menu provides and how to leverage them to create extremely performant applications.
 
-<!-- mtoc-end -->
+The C-Menu design philosophy is centered around simplicity, efficiency, and directness. C-Menu provides a powerful set of internal functions that allow you to create complex and responsive applications without the overhead of external executables or shells. By using C-Menu's internal functions and direct execution capabilities, you can achieve performance levels that are orders of magnitude faster than traditional shell and GUI based menu systems.
 
-**_NEW_** You may be interested in a new, but incomplete series of C-Menu
-documents that are being developed in parallel with the documentation on the website. The documents in this series are intended to provide a more concise and focused overview of C-Menu's features and capabilities, and to serve as a quick reference guide for users who want to get up and running with C-Menu quickly. The documents in this series include:
+You may have noticed that hard-core, veteran programmers tend to prefer the black
+screen terminal over the flashy GUI. This is not just a matter of aesthetics, but also a reflection of the underlying design philosophy and optimizations that terminal-based applications can provide. Terminal applications often have a more direct and efficient interface to the underlying system, allowing for faster performance and greater control over resources. In contrast, GUI applications often rely on layers of abstraction and additional overhead to provide a more user-friendly experience, which can lead to slower performance and increased resource usage. By embracing the design philosophy of simplicity and efficiency, terminal-based applications can offer a powerful and responsive experience that is often preferred by experienced programmers.
 
-[C-Menu Menu Performance](Performance.md)
+It is understandable that less experienced users prefer a GUI interface. GUI
+interfaces are generally more intuitive and user-friendly, especially for those who are not familiar with command-line interfaces. They provide visual cues and interactive elements that can make it easier for users to navigate and perform tasks without needing to remember complex commands or syntax. Unfortunately, GUI-based applications are inherently less efficient than terminal-based applications due to the additional layers of abstraction and overhead required to provide a graphical interface. This can lead to slower performance and increased resource usage, which may not be ideal for users who prioritize speed and efficiency. C-Menu's design philosophy is to deliver the speed and efficiency of terminal-based applications in a user-friendly manner, providing a compelling alternative to traditional GUI applications.
 
-## Introduction
+With the C-Menu applications you create, intelligent users will have a new sense of freedom because their cognition is not constantly disrupted by sluggish response times.
 
-C-Menu is a tool-set that gives you the ability to quickly and easily build functional, intuitive, and attractive applications with a minimal footprint. Because C-Menu is terminal-based, it is perfect for resource constrained environments such as embedded, server, SOC, IOT, DEVOPS, CI/CD pipelines, and terminal enthusiasts, or any other situations in which a GUI might be impractical or undesirable.
+## C-Menu Launcher
 
-For comprehensive html documentation, please refer to the website:
+When you use C-Menu's Example Application Menu, you will notice that most menu selections respond instantaneously with no perceptible delay. It just snaps. That level of optimization is achieved in part by avoiding the overhead and unpredictability of using a shell to execute command lines. C-Menu provides direct execution, which results in start-up times an order of magnitude faster than traditional shell-based menu systems. But, C-Menu has something even faster. You can take C-Menu performance to the next level by letting C-Menu call it's internal functions directly, bypassing the start-up overhead of external executables. Menu, Form, Pick, View, and CKeys are internal functions. In the Example Applications Menu, all except the first command line are internal function calls, which execute in nanoseconds compared to the milliseconds it takes to launch an external executable.
 
-[decision-inc.com](https://decision-inc.com)
+Here's a breakdown of the performance levels you can expect when using C-Menu:
 
----
+Relative performance:
 
-## Menu - Hierarchical Menus
+| Performance level | Description             | Elapsed Time |
+| ----------------- | ----------------------- | ------------ |
+| Somewhat Slugish  | Shell based execution   | 10-100 ms    |
+| Fast              | Direct execution        | 1-10 ms      |
+| Instantaneous     | Internal function calls | 0.001 ms     |
 
-In typical use, C-Menu requires only a few lines of code to create hierarchical menus with multiple levels of sub-menus. The Applications Menu contains an eclectic set of selections designed to demonstrate the diversity of the C-Menu toolkit.
+At 200 ms response, a user will perceive an application as sluggish. At 20 ms, the user will perceive a smooth and responsive experience. At 1 ms, the user will perceive an instantaneous response. Admittedly, no one really cares whether a program loads in 0.001 ms or 1,000 times slower at 1 ms, but in practical applications iterative processes often take thousands of cycles to complete.
 
-![Hierarchical Menus](screenshots/applications_menu.png)
+Sometimes it is expedient to use a shell to execute a command line, such as when you want to use shell features like globbing, variable expansion, or complex command pipelines. In those cases, you can explicitly invoke a shell by including "sh -c" or a shell script on the command line.
 
-C-Menu is highly customizable, and provides a wide range of options for creating unique and engaging interfaces. The help screens below show some of the options available for customizing the appearance and behavior of C-Menu's components.
+When designing with C-Menu, you should select a method in the following order:
 
-![C-Menu-Help](screenshots/C-Menu-help.png)
+- C-Menu internals, such as Menu, Form, Pick, and View
+- direct execution
+- shell
+
+If an internal function call will work, use an internal function call. If not, consider direct execution. Finally, if you need features provided by a shell, use a shell. There is nothing wrong with using a shell when it is appropriate, but you should be aware of the performance implications and use it judiciously.
+
+C-Menu was designed to support internal function calls and direct execution, so it provides the most commonly needed conveniences such as tilde expansion, file location based on the environment, and piped input and output.
+
+For piped input and output with internal function calls and direct execution, C-Menu allows the specification of providers and receivers for pipe I-O. Instead of using I/O redirection on the command line with pipe symbols, C-Menu provides more controllable alternatives such as "-S" for specifying a command to execute as a provider (source) of input to a form, pick, or view, "-R" for specifying a command to receive standard output from a form, pick, or view, and "-c" for specifying a command to execute with the selected item as an argument. These features allow you to create powerful and flexible menu items that can interact with other applications and scripts in a more controlled and efficient manner.
 
 ---
 
-## Form - On Screen Forms
+## C-Menu Lightweight Find (lf)
 
-Enter, edit, validate, process, and submit data. Notice the chyron at the bottom of the screen, which provides helpful instructions and feedback to the user. Of course, all C-Menu components provide navigation by mouse and keyboard, and in many cases by the standard h, j, k, and l keys that programmers are accustomed to.
+C-Menu's lf (lightweight find) is an alternative to Unix find. Although Unix find is an extremely powerful tool, and it is not slow, it can be unwieldy at times (see the 40 page manual). It does everything you could want, but with unnecessary overhead and complexity. C-Menu's lf is smaller, faster, and easier to use than Unix find, yet covers most of the day-to-day use cases.
 
-![On-Screen Forms](screenshots/iloan.png)
+One of find's most often used features is the built-in -exec option, which executes a specified command on each file found. Conspicuously, lf does not have a built-in -exec option, and that is one of the first things people notice. However, lf achieves the same result, by piping the output of lf into xargs. Intuitively, it makes sense that find with its built-in exec option would be faster than lf using an external xargs command. We compared C-Menu's lf with xargs and find with its built-in -exec option. Both methods produced identical and accurate results, but the performance benchmarks were not what we expected.
 
----
+time find . -maxdepth 5 -type f -exec ls -l {} \; >find.out
 
-## Pick - Object Selection
+time lf -d 4 -t f | xargs ls -l >lf.out
 
-The image below shows how pick works with C-Menu's lf (lightweight find) to select files in a directory. The screen on the left is the first to appear, and it shows the
-output of lf. In the bottom window, the user can refine the list of files by
-entering a search expression, and as the user types each character, Pick updates
-the list of files in real time. When you find the file you want, you can select
-it with the mouse, or use the arrow keys to move the highlighted bar to the file
-and press space bar to select it. Pick is fun to use and it's lightning fast,
-even with huge lists of objects. Pick is a great way to navigate and select
-files, users, network connections, and other objects in your applications.
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m0.469s | 0m0.160s | 0m0.288s | 142         |
+| lf      | 0m0.008s | 0m0.004s | 0m0.006s | 142         |
 
-![Pick](screenshots/Pick.png)
-To duplicate the above screenshots:
+time find . -maxdepth 4 -type f -exec ls -l {} \; >find.out
 
-```bash
-pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60
--C 85 -S \"tree-sitter highlight %%\""
-```
+time lf -d 4 -t f | xargs ls -l >lf.out
 
-- Press the tab key to activate the line editor.
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m2.123s | 0m0.788s | 0m0.281s | 598         |
+| lf      | 0m0.014s | 0m0.007s | 0m0.009s | 598         |
 
-- Type "test" and watch the list of files update in real time.
+lf with xargs is significantly faster than find with its built-in -exec option. find, with its built-in exec option executes the specified command for each file found, which can be very inefficient when dealing with a large number of files. In contrast, using xargs allows you to execute the command on multiple files at once, which can significantly reduce the overhead and improve performance. In fairness, you can improve the performance of find dramatically by piping its output into xargs instead of using its built-in -exec option. In other benchmarks, lf performed about 35% faster than find.
 
-- Press the tab key again to deactivate the line editor and return to the file list.
+Even if lf wasn't faster than find, it would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for common file searching tasks. Additionally, lf's performance advantages make it an attractive choice for users who need to search through large directories or perform complex searches.
 
-- Use the arrow keys to move the highlighted bar to the file you want to view.
-
-- Press the space bar to select it.
-
-- The command specified with the -c option will be executed with the selected
-  file as an argument, and the output will be displayed in view with the
-  specified options.
-
-Now, want to see something really cool? In the line editor window, try to type "text" or some other string that doesn't match any files. In the dataset shown above, there are no files that match "tex", so Pick responds as you type "te", but refuses to accept the letter "x" because it would result in an empty list. When you use the backspace key, the Pick engine reverses and repopulates the object selector's with the previous list of files. This is just one example of the intuitive and responsive features built into C-Menu.
+With a variety of tools in your toolbox, use a tool that is fit for purpose. Don't drive tacks with pile driver or piles with a tack hammer. If the task calls for the full power of find, use find. If not, use lf.
 
 ---
 
-## View - A pager for viewing files
+## C-Menu View
 
-View has Unicode support, line numbering, regular expression searching, and a
-large virtual pad for horizontal scrolling. View works great with tree-sitter,
-source-highlight, pygments, bat, manual pages, and other syntax highlighters.
-View doesn't alter the file you are viewing. It uses the highlighter in a
-pipe, and reads the output, so the original file is never changed. And, if
-you happen to have a file that has been highlighted by another application,
-view can strip the ANSI codes for convenient editing. View is lightning fast,
-especially with huge log files.
-
-Why is View so fast? Even if an application has a super-fast buffering scheme,
-it still has to wait on the kernel to provide data, and then copy data into it's
-own buffers, duplicating work the Kernel has already done. Why waste the time
-and memory? To be fair, we must appreciate that many applications were written
-before direct accesses to the Kernel's demand paged virtual address space was
-available. Whatever the reason, View takes advantage of direct-to-Kernel memory
-mapped files to achieve maximum performance, reliability, and resource economy.
-If you work with large datasets, you will love view. No fluff, no bloat, no
-nonsense, just blazing fast performance.
-
-![C-Menu View with Syntax Highlighting](screenshots/tree-sitter5.png)
+Throughout C-Menu, and especially View, you will find many optimizations that
+contribute to it's efficiency and speed. Traditionally, large file I-O has relied on user-space buffering schemes in which chunks of data are copied from mass storage into local buffers using seek and read operations. The application must keep track of buffer contents, manage buffer lifecycles, and handle edge cases such as partial reads, end-of-file conditions, and error handling. This approach can be complex, error-prone, and inefficient, especially when dealing with large files or high-throughput applications. C-Menu's view takes a different approach to large file I-O by leveraging the operating system's virtual memory management capabilities to provide direct access to file data through memory mapping. Instead of relying on user-space buffering, C-Menu's view provides a direct-to-kernel, demand paged, memory mapped virtual address space for file access. This eliminates the overhead and complexity associated with user-space buffering, and allows for more efficient and reliable access to large files. With C-Menu's view, applications can access any part of a multi-gigabyte file instantly without the need for copying data into user-space buffers or managing buffer lifecycles. This results in unmatched reliability and performance when working with large files, making C-Menu's view an ideal choice for applications that require high-throughput file access or need to work with large datasets.
 
 ---
-
-## RSH - A Root Shell Alternative
-
-**_RSH_** - RSH provides an alternative to su and sudo for executing commands
-with elevated privileges. It allows developers and system administrators to
-get in and out of root shells and execute commands with root privileges
-without the need for a password, for example, by authenticating with an ssh
-key as you would on gethub.
-
-In the following example, make install requires root privilege, so the user
-types xx, is authenticated with an ssh key, and then types make install.
-When the make install is finished, the user types x to exit the root shell
-and relinquish root privilege.
-
-![RSH SSH Authentication](screenshots/Makefile-out.png)
-
-- The Green prompt indicates user privilege, and Red indicates root privilege.
-
----
-
-## lf - A Regular Expression File Finder
-
-**_lf_** - is a sleek, easy-to-use, and fast alternative to the Unix find command. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
-
-![lf help](screenshots/lf-help.png)
-
-The screenshot above is the help output of lf piped through bat and displayed in
-View.
-
-![lf File Finder](screenshots/lf-dates.png)
-
-The screenshot above is an example of how you might use the date-time options
-of lf to list files between two date-times (after and before) and the sample
-output. We believe you will find this format intuitive and easy to use.
-
-The following is an actual benchmark of execution times for lf and find. The
-find and lf commands, approximate common usage, and produce identical results.
-
-```bash
-time find . -maxdepth 9 -type f -regex '.*\.[ch]$' > find.out
-
-real    0m0.975s
-user    0m0.728s
-sys     0m0.243s
-
-time lf -a -d 9 -t f '.*\.[ch]$' > lf.out
-
-real    0m0.632s
-user    0m0.425s
-sys     0m0.207s
-```
-
-Verify that the output files are identical:
-
-```bash
-wc -l find.out lf.out
-
-  2489 find.out
-  2489 lf.out
-  4978 total
-```
-
-The results show that lf is about 35% faster than find in this benchmark, and
-the output files are identical.
-
-Next, we will add "-exec ls -l {} \;", a common use of find, and see how that
-affects performance. The resulting benchmarks are so extreme, they may strain
-credulity at first, but they are real and easily reproducible. Just run lf and
-find commands on your system in a variety of directories.
-
-Note: There have been some changes to lf's options since these benchmarks were
-run, specifically.
-
-- The -a (List hidden files) has been replaced with -n (Don't list hidden
-  files), so that the default behavior is more like find, thus mitigating the
-  probability of confusion.
-
-- The default maximum depth for lf was 3 as that was convenient for
-  development, but otherwise it didn't make sense. The default maximum depth
-  for lf is now 0, which means no limit, and thus more consistent with find.
-
-```bash
-time find . -maxdepth 5 -type f -exec -l {} \; >find.out
-time lf -a -d 5 -t f | xargs ls -l >lf.out
-```
-
-```bash
-wc -l find.out lf.out
-```
-
-![lf File Finder](screenshots/lf-benchmarks.png)
-
----
-
-## C-Menu API
-
-**_API_** - C-Menu provides a simple and consistent API for creating menu-driven
-user interfaces in C. The API includes tools specific to C-Menu, but also many
-general purpose tools that can be used in a wide range of applications. The API
-documentation is available in html and integrated into Neovim's completion
-engine, making it easy for developers to learn and use the API effectively.
-
----
-
-## C-Menu API Completions in Neovim
-
-![C-Menu Completions in Neovim](screenshots/api-help1.png)
-
-C-Menu's API documentation is integrated into Neovim's completion engine, providing developers with easy access to API information and examples while they code. This integration allows developers to quickly look up function signatures, parameter descriptions, and usage examples without leaving their coding environment, enhancing productivity and making it easier to learn and use the C-Menu API effectively.
-
-Hopefully, you will not find this plug for Neovim, LazyVim, and Lazy.Nvim too gratuitous as they are not prerequisites for C-Menu. Nevertheless, they do add considerably to the development experience. The screen below is the LazyVim dashboard in Neovim.
-
-![Neovim Integration](screenshots/Neovim.png)
-
----
-
-## Summary - Performance and Footprint
-
-All of the C-Menu binaries, including executables and libcm.so are less than
-350k, a tiny footprint for such powerful tools, and no GUI is required. The
-only dependencies are the GNU C Library, GNU Math Library, NCursesw, and a
-terminal emulator.
-
-Oh, and C-Menu is free, distributed under the MIT License.
-
-Are you ready to get started? Below, you will find several options for
-installing C-Menu on your Linux system. I haven't yet provided a packaged
-binary distribution, but that will be coming soon in version 0.3.0.
-
-Choose the option that best suits your needs and follow the instructions to get
-C-Menu up and running on your system.
-
----
-
-## Other documentation
-
-- [Comprehensive HTML Documentation](https://decision-inc.com)
-- [API Reference](docs/API.md)
-- [Augmentation](docs/extras.md)
-- [CHANGELOG](docs/CHANGELOG.md)
-- [Exercises](docs/exercises.md)
-- [Frequently Asked Questions](docs/FAQ.md)
-- [Overview](docs/OVERVIEW.md)
-- [ROADMAP](docs/ROADMAP.md)
-- [User Guide](docs/C-Menu-UG.md)
-- [Valgrind / Memory Checking](docs/valgrind.md)
-
----
-
-## C-Menu Binaries for Linux x86_64
-
-- Download the binary distribution, C-Menu-0.2.9-Linux-x86_64.xz.
-
-- cd to the directory where you downloaded the file and extract it using the following command:
-
-```bash
-tar -xf C-Menu-0.2.9-Linux-x86_64.xz
-```
-
-This will create a directory named menuapp containing the extracted files.
-
-- Configure your environment to use the C-Menu binaries and libraries:
-
-Prepend the C-Menu bin directory to your PATH environment variable by adding the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc). Assuming you extracted the menuapp directory to your home directory, the line would look like this:
-
-```bash
-export PATH="$HOME"/menuapp/bin:"$PATH"
-```
-
-- Start C-Menu by running the following command in your terminal:
-
-```bash
-menu
-```
-
----
-
-## Build C-Menu from Source
-
-```bash
-gh repo clone BillWaller/C-Menu
-```
-
-- Copy the menuapp directory to your desired location:
-
-```bash
-cp -r C-Menu/src/menuapp /home/yourusername/
-```
-
----
-
-### RSH Static Linking
-
-C-Menu uses dynamic linking by default, but if you plan to use rsh in a rescue
-environment where dynamic linking may not be available, you can statically
-link rsh during the build. To do this, set the `RSH_LD` environment variable
-to `-static` before building C-Menu:
-
-```bash
-export RSH_LD="-static"
-```
-
-CMake or Makefile will strip symbols from the executable once it has been copied
-to its destination directory. This is done to reduce the size of the executable
-and improve performance.
-
-**_NOTE_** If you choose to statically link rsh, make sure that your C compiler
-and linker support static linking and that you have the necessary static
-libraries, specifically, libc.a, installed on your system. Static linking
-can increase the size of the executable and may have implications for
-compatibility and security, so be sure to test the statically linked version
-of C-Menu in your target environment.
-
-Most distributions provide static libraries for the GNU C Library (glibc) as
-part of their development packages. You may need to install additional
-packages to obtain these static libraries, such as `glibc-static` or
-`libc6-dev` for glibc.
-
----
-
-#### Prerequisites
-
-- One of:
-  - CMake 3.20 or higher, or
-  - GNU Make 4.3 or higher
-- A C compiler that supports C23 or later (e.g., GCC 13 or later, Clang 15 or later)
-- NCursesw development libraries 6.5 or later
-- GNU GLIBC development files
-- GNU Math Library (libm) development files
-
----
-
-#### Option 1 - Build C-Menu Using CMake Directly
-
-- Navigate to the C-Menu/src directory, create a build directory, and
-  cd into it:
-
-```bash
-cd C-Menu/src
-mkdir build
-cd build
-```
-
-- Configure the project using CMake, specifying the installation prefix and build type:
-
-```bash
-cmake -DCMAKE_INSTALL_PREFIX="$HOME"/menuapp -DCMAKE_BUILD_TYPE=Release ..
-```
-
-- Build the project using:
-
-```bash
-make
-```
-
-- If you want to use rsh in setuid mode, you must install C-Menu with root
-  privileges.
-
-```bash
-sudo make install
-```
-
-- go to [Finish the installation](#finish-the-installation) below to complete
-  the installation process.
-
----
-
-#### Option 2 - Build C-Menu with Provided Scripts
-
-- Navigate to the C-Menu/build directory and run the provided build script:
-
-```bash
-cd C-Menu/build
-./build.sh
-```
-
-- Assume root privileges to install C-Menu:
-
-```bash
-sudo ./install.sh
-```
-
-- go to [Finish the installation](#finish-the-installation) below to complete
-  the installation process.
-
----
-
-#### Option 3 - Build C-Menu Using Makefile
-
-- Navigate to the C-Menu/src directory and edit the provided Makefile
-  to set the installation PREFIX to your desired location
-  (e.g., /home/yourusername/menuapp):
-
-```bash
-cd C-Menu/src
-```
-
-```Makefile
-USER=yourusername
-GROUP=yourgroup
-HOME=/home/$(USER)
-PREFIX=/home/$(USER)/menuapp
-```
-
-- Build the project using:
-
-```bash
-make
-```
-
-- Assume root privileges to install C-Menu:
-
-```bash
-sudo make install
-```
-
-- Continue with [Finish the installation](#finish-the-installation) below
-  to complete the installation process.
-
----
-
-### Finish the installation
-
-- Vrify that the C-Menu libraries and binaries have been installed to the
-  correct directories (e.g., /home/yourusername/menuapp/lib64 and
-  /home/yourusername/menuapp/bin) and that the permissions are set correctly.
-
-```bash
-ls -l "$HOME"/menuapp/lib64 "$HOME"/menuapp/bin
-```
-
-![Directory Listing](screenshots/postmakels.png)
-
-- Register the C-Menu libraries with the dynamic linker by running the
-  following command:
-
-```bash
-sudo ldconfig -v "$HOME"/menuapp/lib64
-```
-
-- Add the C-Menu bin directory to your PATH environment variable by adding the
-  following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc):
-
-```bash
-export PATH="/home/yourusername/menuapp/bin:"$PATH"
-```
-
-(replace /home/yourusername with the actual path to your menuapp directory) and
-save the file. 😆
-
-- Copy the sample minitrc from the C-Menu/menuapp directory to your home directory:
-
-```bash
-cp "$HOME"/menuapp/minitrc "$HOME"/.minitrc
-```
-
-- Edit the ~/.minitrc file to customize your C-Menu configuration as needed.
-
-```bash
-vi ~/.minitrc
-```
-
-- Source your shell profile to apply the changes to your PATH:
-
-```bash
-source ~/.bashrc
-```
-
-- Start C-Menu by running the following command in your terminal:
-
-```bash
-menu
-```
-
-![C-Menu Running](screenshots/mainmenu.png)
-
-## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository
