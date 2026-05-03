@@ -2,6 +2,8 @@
 
 **_NEW_** C-Menu Installation Guide
 
+[C-Menu How it Works](C-Menu-Decomp.md)
+
 [C-Menu Installation Guide](docs/INSTALL.md)
 
 # Design Philosophy and Optimizations
