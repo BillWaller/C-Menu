@@ -16,7 +16,7 @@ screen terminal over the flashy GUI. This is not just a matter of aesthetics, bu
 It is understandable that less experienced users prefer a GUI interface. GUI
 interfaces are generally more intuitive and user-friendly, especially for those who are not familiar with command-line interfaces. They provide visual cues and interactive elements that can make it easier for users to navigate and perform tasks without needing to remember complex commands or syntax. Unfortunately, GUI-based applications are inherently less efficient than terminal-based applications due to the additional layers of abstraction and overhead required to provide a graphical interface. This can lead to slower performance and increased resource usage, which may not be ideal for users who prioritize speed and efficiency. C-Menu's design philosophy is to deliver the speed and efficiency of terminal-based applications in a user-friendly manner, providing a compelling alternative to traditional GUI applications.
 
-With the C-Menu applications you create, intelligent users will have a new sense of freedom because their cognition is not constantly disrupted by sluggish response times.
+With the C-Menu applications you create, intelligent users will discover a new sense of freedom, unbridled by slugish response times that wreck continuity of thought.
 
 ## C-Menu Launcher
 
