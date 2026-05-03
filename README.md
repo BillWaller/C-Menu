@@ -6,7 +6,7 @@
 
 # Design Philosophy and Optimizations
 
-To build truly outstanding applications with C-Menu, it is essential to understand the design philosophy and optimizations that C-Menu provides and how to leverage them to create extremely performant applications.
+To build truly outstanding applications with C-Menu, it is essential to understand the design philosophy and optimizations that C-Menu provides and how to leverage them.
 
 The C-Menu design philosophy is centered around simplicity, efficiency, and directness. C-Menu provides a powerful set of internal functions that allow you to create complex and responsive applications without the overhead of external executables or shells. By using C-Menu's internal functions and direct execution capabilities, you can achieve performance levels that are orders of magnitude faster than traditional shell and GUI based menu systems.
 
