@@ -1,3 +1,5 @@
+![C-Menu Performance](screenshots/Performance.png)
+
 # C-Menu Performance
 
 ## Design Philosophy and Optimizations
