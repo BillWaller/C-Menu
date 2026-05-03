@@ -962,7 +962,6 @@ int picker(Init *init, char *field) {
             case '\n':
             case KEY_ENTER:
                 reverse_object(pick);
-                toggle_object(pick);
                 return pick->select_cnt;
 
             /** KEY_END Moves selection to last object in list */
