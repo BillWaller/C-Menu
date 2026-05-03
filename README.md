@@ -2,7 +2,7 @@
 
 **_NEW_** C-Menu Installation Guide
 
-[C-Menu Installation Guide](INSTALL.md)
+[C-Menu Installation Guide](docs/INSTALL.md)
 
 # Design Philosophy and Optimizations
 
