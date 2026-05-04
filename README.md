@@ -23,12 +23,19 @@
 ## Other C-Menu Documentation
 
 [API](docs/API.md)
+
 [CHANGELOG](docs/CHANGELOG.md)
+
 [USER GUIDE](docs/C-Menu-UG.md)
+
 [AUGMENTATION](docs/extras.md)
+
 [FREQUENTLY ASKED QUESTIONS](docs/FAQ.md)
+
 [INSTALLATION](docs/INSTALL.md)
+
 [PERFORMANCE](docs/Performance.md)
+
 [VALGRIND](docs/valgrind.md)
 
 ---
