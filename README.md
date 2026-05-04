@@ -431,6 +431,8 @@ Why don't developers do this? Given time, they do, but top developers often have
 !view -Nf -L66 -C75 ~/menuapp/help/menu.help
 ```
 
+![C-Menu Help](screenshots/C-Menu-help.png)
+
 ---
 
 Finally, a super simple command line that does two things, it closes the
