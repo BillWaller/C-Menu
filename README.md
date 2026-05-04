@@ -262,25 +262,23 @@ developer who can write external executables or scripts to provide database inte
 
 ![Cash Receipts](screenshots/Receipt.png)
 
-The top screen above demonstrates the use of brackets to enclose fields in the
-Form screen. This is a setting that can be specified on the command line or in
-the C-Menu configuration file, ~/.minitrc.
+The left hand Form window demonstrates the use of fill characters to signify allocated, but unpopulated field space. This is a setting that can be specified on the command line or in the C-Menu configuration file, ~/.minitrc.
 
 Usage Examples:
 
 ```bash
-brackets=[]
-brackets={}
-```
-
-The bottom screen above demonstrates the use of fill characters to fill the
-blank space in fields. This is also a setting that can be specified on the command line or in the C-Menu configuration file, ~/.minitrc.
-
-Usage Examples:
-
-```bash
+# .minitrc
 fill_character=_
 fill_character=.
+```
+
+The right hand screen above demonstrates the use of brackets to enclose the
+space for entering field data. This is also a setting that can be specified on the command line or in the C-Menu configuration file, ~/.minitrc.
+
+```bash
+# .minitrc
+brackets=[]
+brackets={}
 ```
 
 ---
