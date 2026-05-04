@@ -13,10 +13,14 @@
     - [Text](#text)
     - [Fields](#fields)
     - [Directives](#directives)
-  - [Form Usage](#form-usage)
-  - [Example](#example)
-  - [Workflow](#workflow)
-    - [C-Menu Pick Usage](#c-menu-pick-usage)
+  - [Examples](#examples)
+    - [Installment Loan Calculations](#installment-loan-calculations)
+    - [Cash Receipts](#cash-receipts)
+- [C-Menu Pick](#c-menu-pick)
+  - [Rustlings Source](#rustlings-source)
+  - [Edit .c Files in Current Directory](#edit-c-files-in-current-directory)
+  - [View C-Menu Source With Tree-Sitter](#view-c-menu-source-with-tree-sitter)
+- [Sneaky Optimization Techniques](#sneaky-optimization-techniques)
 
 <!-- mtoc-end -->
 
@@ -37,6 +41,8 @@
 [PERFORMANCE](docs/Performance.md)
 
 [VALGRIND](docs/valgrind.md)
+
+[C-Menu HTML Documentation](https://decision-inc.com)
 
 ---
 
@@ -198,7 +204,9 @@ operation.
 
 ---
 
-### Form Usage
+### Examples
+
+#### Installment Loan Calculations
 
 Specification:
 
@@ -231,16 +239,10 @@ If the user presses F10 Accept, Form will execute "iloan" with form data as argu
 
 If a "-o" option was specified on the form command line, and the user presses F10 Accept again, the updated data will be written to the output file specified. The user may alternatively press F5 to go back into edit mode.
 
----
-
-### Example
-
 ![iloan](screenshots/iloan.png)
 
 iloan is a trivial application to demonstrate how to use external executables
 with C-Menu Form. For the purpose of demonstration, we shall designate the images above as 1) upper left, 2) upper right, and 3) lower left.
-
-### Workflow
 
 - The user selects the "Installment Loan Calculations" menu item, which executes the form command with the specified description file, iloan.f. Form opens the input file, iloan.dat, reads field data, and displays screen 1) it in the Form window. The user edits the data, changing the Principal Amount to $100,000. The user tabs down to the Payment Amount field and presses enter which erases the field above and to the right of the cursor. (this behavior is controlled by the setting --erase_remainder which is generally set in ~/menuapp/.minitrc) This sets the Payment Amount to zero. When finished editing, the user presses F10 Accept.
 
@@ -249,6 +251,8 @@ with C-Menu Form. For the purpose of demonstration, we shall designate the image
 - If any three of the data values are present and valid, iloan will calculate any remaining value which is set to zero and write the resulting data to standard output. Form displays Screen 3) with the resulting data. If the user enters all four values, iloan will simply output the data as received from Form without performing any calculations. The user can return to edit mode by pressing F5 Edit or F10 Accept to save the data to the specified output-file, iloan.dat.
 
 ---
+
+#### Cash Receipts
 
 **_Cash Receipts_** also works like Installment Loan Calculations, except no external
 executable is specified to process data. Obviously, this menu item is not very
@@ -283,7 +287,7 @@ brackets={}
 
 ---
 
-#### C-Menu Pick Usage
+## C-Menu Pick
 
 C-Menu Pick displays a list of items from which the user can select.
 
@@ -314,6 +318,8 @@ and read input from the command's standard output. The command specified with th
 -o output_file directs Pick to write selected items to the specified file when the user presses F10 Accept.
 
 Pick must have exactly one input method, either -i input_file or -S executable_provider_command. Combining -o and -c options is permissible, and will direct Pick to write the list of selected items to the specified file and also pass the list of selected items to the command specified by -c according to the presence or absence of the -m option. The selections are written to file before executing the specified command, so the command can read the selections from the file if needed.
+
+### Rustlings Source
 
 Example:
 
@@ -354,6 +360,8 @@ When finished editing, the user can type <shift>"zz" to exit nvim. When nvim clo
 
 ---
 
+### Edit .c Files in Current Directory
+
 Edit .c Files in Current Directory is an example of how to use C-Menu lf and Pick to
 navigate and select files from a directory. Once a file is selected, it is passed to the nvim.sh script to be opened in Neovim. This demonstrates how you can integrate C-Menu with external applications and scripts to create a seamless user experience.
 
@@ -384,7 +392,9 @@ Look Mom! No scripts! Just direct command lines. This is the most efficient way 
 
 ---
 
-**_View C-Menu Source with Tree-sitter_** demonstrates how to use shell scripts to
+### View C-Menu Source With Tree-Sitter
+
+View C-Menu Source with Tree-sitter demonstrates how to use shell scripts to
 simplify complex command lines. The command line below uses a shell script , "tree-sitter highlight", to apply syntax highlighting to the selected source file using Tree-Sitter.
 
 ```bash
@@ -405,23 +415,16 @@ configuration file, you can also use "-N" on the command line to enable line num
 
 ---
 
-View Source With Tree-Sitter is an example of another complex command line that uses
-two shell scripts, "src" and "ts_hl.sh". The "src" script is used to navigate to the source directory and select a file, while the "ts_hl.sh" script is used to apply syntax highlighting to the selected file using Tree-Sitter. This demonstrates how you can use shell scripts to create powerful and flexible commands that can be easily reused across your application. It's up to you to balance the trade-offs between efficiency and maintainability when deciding whether to use direct command lines or shell scripts in your menu commands.
+## Sneaky Optimization Techniques
 
-```bash
-: View Source with Tree-Sitter
-!pick -S src -n 1 -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"ts_hl.
-sh %%\""
-```
+**_View C-Menu Command Line Options_** is an example of a smart way to improve
+and optimize your C-Menu applications. Instead of writing a complicated command line to display the C-Menu help file with syntax highlighting, highlight the file in advance and save the highlighted file as menu.help. Then, simply execute the view command directly, specifying the highlighted file as an argument. This is one of many ways to improve and optimize the applications you design with C-Menu. You will most likely miss opportunities for improvement and optimization on your first pass, and that's understandable. You want to finish the project. But, great software results from developers revisiting their own code and looking for opportunities for improvement and optimization.
 
----
+Don't get distracted trying to write perfect code on the first pass. Get it working, and then polish it. The key is to prioritize using cost/benefit analysis. The cost is your time and the benefit is increased demand for your product. It's up to you to quantify that relationship, but generally, try to get the most bang for the buck and favor the least expensive (time consuming) improvements and optimizations. The more time a project takes, the more likely you are to suffer interruptions, breaking your continuity of thought. Once interrupted, your highly tuned mental context begins to fade immediately, and it takes time to reestablish.
 
-View C-Menu Command Line Options is an example of a sneaky way to optimize your
-menu help. Instead of writing a complicated command line to display the
-C-Menu help file with syntax highlighting, we can highlight the file in advance
-and save the highlighted file as menu.help. Then, we can simply execute the
-view command directly, specifying the highlighted file as an argument. This
-eliminates the need for an external script and allows us to display the highlighted help file with a simple and efficient command line.
+Getting a second set of eyes on the code can vastly increase your chances to spot improvement and optimization opportunities you might have missed.
+
+Why don't developers do this? Given time, they do, but top developers often have such intense demands on their time, they don't have the luxury of carefully reviewing and optimizing their code. But you, dear reader, are an artist and you have the time to create beautiful and efficient command lines that will make your applications spectacular.
 
 ```bash
 : View C-Menu Command Line Options
