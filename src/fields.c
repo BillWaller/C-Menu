@@ -91,6 +91,7 @@ int field_editor(Form *form) {
             wmove(win, flin, x);
             tcflush(0, TCIFLUSH);
             wmove(win, flin, x);
+            wrefresh(form->box);
             in_key = xwgetch(win, form->chyron, -1);
         }
         switch (in_key) {
@@ -235,6 +236,8 @@ int field_editor(Form *form) {
             switch (ff) {
                 /** FF_STRING accepts all printable characters and spaces */
             case FF_STRING:
+                if (in_key < ' ' || in_key > '~')
+                    in_key = 0;
                 break;
                 /** FF_DECIMAL_INT accepts digits 0 through 9 and decimal point
                  * ('.') */
@@ -397,7 +400,6 @@ int form_display_field_brackets(Form *form) {
         waddch(box, form->brackets[0]);
         wmove(box, flin, fcol + form->field[form->fidx]->len + 1);
         waddch(box, form->brackets[1]);
-        wrefresh(box);
     }
     return 0;
 }

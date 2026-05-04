@@ -375,7 +375,8 @@ int form_process(Init *init) {
                 waitpid_with_timeout(pid, wait_timeout);
                 destroy_argv(eargc, eargv);
                 form_display_fields(form);
-                set_chyron_key(form->chyron, 8, "F5 Edit", KEY_F(5));
+                set_chyron_key_cp(form->chyron, 5, "F5 Edit", KEY_F(5),
+                                  cp_reverse_highlight);
                 set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
                 compile_chyron(form->chyron);
                 continue;
@@ -536,6 +537,7 @@ void form_display_fields(Form *form) {
         strnz(form->field[n]->display_s, form->field[n]->len);
         form_display_field_n(form, n);
     }
+    wrefresh(form->box);
     return;
 }
 /** @brief Parse the form description file to populate the Form data structure
