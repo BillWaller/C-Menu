@@ -603,7 +603,7 @@ int exec_objects(Init *init) {
     int rc = -1;
     int eargc;
     char *eargv[MAXARGS];
-    char tmp_str[MAXLEN];
+    char tmp_str[MAXLEN] = {'\0'};
     char title[MAXLEN];
     char sav_arg[MAXLEN];
     char *out_s;

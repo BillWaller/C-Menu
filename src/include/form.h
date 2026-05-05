@@ -240,6 +240,7 @@ typedef struct {
                               in a field. This is essential for veteran keyboard
                               users, accountants and the like, who rarely even
                               look at the screen during data entry. */
+    bool f_multiple_cmd_args; /**< flag: multiple command arguments */
     bool f_calculate; /**< flag - if set, Form presents an option to perform an
                          external query or calculation. */
     bool f_process;   /**< flag - if set, Form presents an option to perform an

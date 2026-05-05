@@ -43,12 +43,11 @@ char ff_tbl[][26] = {"string",   "decimal_int", "hex_int", "float", "double",
 int field_editor(Form *);
 int form_display_field(Form *);
 int form_display_field_n(Form *, int);
-int form_display_field_brackets(Form *);
 int form_validate_field(Form *);
 void mk_filler(char *, int);
 
 /** @brief Accept input for a field
-    @ingroup fields
+    @ingroup field_editor
      @param form Pointer to Form structure
      @return int Key code of action taken
      @details Handles character input, navigation keys, and mouse events for
@@ -341,7 +340,7 @@ int field_editor(Form *form) {
 }
 
 /** @brief Display field n
-    @ingroup fields
+    @ingroup field_editor
     @param form Pointer to Form structure
     @param n Field index to display
     @return 0 on success, non-zero on error
@@ -358,7 +357,7 @@ int form_display_field_n(Form *form, int n) {
     return 0;
 }
 /** @brief Display current field
-    @ingroup fields
+    @ingroup field_editor
     @param form Pointer to Form structure
     @return 0 on success, non-zero on error
     @details This function displays the current field based on the form's
@@ -376,7 +375,7 @@ int form_display_field(Form *form) {
     return 0;
 }
 /** @brief Display brackets around current field if set
-    @ingroup fields
+    @ingroup field_editor
     @param form Pointer to Form structure
     @return 0 on success, non-zero on error
     @details This function checks if the form's brackets array has non-empty
@@ -386,21 +385,8 @@ int form_display_field(Form *form) {
    the end of the field. The display is refreshed to show the brackets around
    the field.
  */
-int form_display_field_brackets(Form *form) {
-    int flin, fcol;
-    if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
-        flin = form->field[form->fidx]->line + 1;
-        fcol = form->field[form->fidx]->col;
-        // mvwadd_wch(form->box, flin, fcol, &form->brktl);
-        mvwaddch(form->box, flin, fcol, form->brackets[0]);
-        fcol += form->field[form->fidx]->len + 1;
-        // mvwadd_wch(box, flin, fcol, &form->brktr);
-        mvwaddch(form->box, flin, fcol, form->brackets[1]);
-    }
-    return 0;
-}
 /** @brief Format field according to its format type
-@ingroup fields
+    @ingroup field_editor
     @param form Pointer to Form structure
     @param s Input string to format
     @return 0 on success, non-zero on error
@@ -565,7 +551,7 @@ int form_fmt_field(Form *form, char *s) {
     return 0;
 }
 /** @brief Validate current field based on flags
-    @ingroup fields
+    @ingroup field_editor
     @param form Pointer to Form structure
     @return 0 if valid, 1 if invalid
     @details Very underdeveloped - only checks F_NOTBLANK and F_NOMETAS
@@ -591,7 +577,7 @@ int form_validate_field(Form *form) {
     return (0);
 }
 /** @brief Create filler string for field
-    @ingroup fields
+    @ingroup field_editor
     @param s Filler string to create
     @param fl Field length
     @details Fills the string s with the fill character specified in the form's
@@ -609,7 +595,7 @@ void mk_filler(char *s, int fl) {
     *s = '\0';
 }
 /** @brief Left justify string by removing leading spaces
-    @ingroup fields
+    @ingroup field_editor
     @param s String to left justify
     @details This function takes a string s and removes any leading spaces,
    effectively left-justifying the text. It does this by finding the first
@@ -618,7 +604,7 @@ void mk_filler(char *s, int fl) {
  */
 void left_justify(char *s) { trim(s); }
 /** @brief Right justify string by removing trailing spaces and adding leading
-    @ingroup fields
+    @ingroup field_editor
    spaces
     @param s String to right justify
     @param fl Field length
@@ -644,7 +630,7 @@ void right_justify(char *s, int fl) {
     }
 }
 /** @brief Check if a given date is valid, including leap years
-    @ingroup fields
+    @ingroup field_editor
     @param yyyy Year
     @param mm Month
     @param dd Day
@@ -665,7 +651,7 @@ bool is_valid_date(int yyyy, int mm, int dd) {
     return true;
 }
 /** @brief Check if a given time is valid
-    @ingroup fields
+    @ingroup field_editor
     @param hh Hour
     @param mm Minute
     @param ss Second
@@ -681,7 +667,7 @@ bool is_valid_time(int hh, int mm, int ss) {
     return true;
 }
 /** @brief Extract numeric characters from source string to destination string
-    @ingroup fields
+    @ingroup field_editor
     @param d Destination string
     @param s Source string
     @details This function takes a source string s and extracts only the numeric

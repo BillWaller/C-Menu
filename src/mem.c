@@ -770,6 +770,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
         strip_quotes(init->title);
         strnz__cpy(form->title, init->title, MAXLEN - 1);
     }
+    form->f_multiple_cmd_args = init->f_multiple_cmd_args;
     return true;
 }
 /** @brief Initialize View file specifications

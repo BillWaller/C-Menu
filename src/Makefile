@@ -151,7 +151,7 @@ BIN_DIR=$(PREFIX)/bin
 INC_DIR=$(PREFIX)
 LIB_PATH=.:$(LIB_DIR)
 
-BINEXES=menu form pick view ckeys whence rsh iloan enterchr \
+BINEXES=menu form pick view ckeys whence rsh iloan amort enterchr \
 		enterstr lf stripansi
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
@@ -192,6 +192,9 @@ whence:	include/cm.h whence.o $(LIB_NAME)
 
 iloan:	iloan.o $(LIB_NAME)
 	$(CC) iloan.o -o $@ $(LIBS)
+
+amort:	amort.o $(LIB_NAME)
+	$(CC) amort.o -o $@ $(LIBS)
 
 rsh:	include/cm.h rsh.o
 	$(CC) $(RSH_CFLAGS) rsh.o -o $@ -lssh
@@ -270,6 +273,7 @@ install:
 	./inst.sh enterchr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh enterstr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh iloan			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh amort			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh stripansi		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh lf			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)

@@ -41,6 +41,7 @@ int form_write(Form *);
 void form_usage();
 int form_desc_error(int, char *, char *);
 int form_exec_cmd(Form *);
+int form_exec_receiver(Init *);
 int form_process(Init *);
 int form_post(Init *);
 int init_form(Init *, int, char **, int, int);
@@ -131,12 +132,6 @@ int form_engine(Init *init) {
     }
 
     form_read_data(form);
-    // if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
-    //     char brkt[2] = {form->brackets[0], '\0'};
-    //     form->brktl = mkccc(cp_box, WA_NORMAL, brkt);
-    //     brkt[0] = form->brackets[1];
-    //     form->brktr = mkccc(cp_box, WA_NORMAL, brkt);
-    // }
     display_form(init);
     form->chyron = new_chyron();
     set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
@@ -167,7 +162,7 @@ int form_engine(Init *init) {
             if (form->f_out_spec || form->out_spec[0] != '\0')
                 form_write(form);
             if (form->f_receiver_cmd || form->receiver_cmd[0] != '\0')
-                form_exec_cmd(form);
+                form_exec_receiver(init);
             break;
         case P_HELP:
             if (form->f_help_spec && form->help_spec[0] != '\0')
@@ -866,6 +861,158 @@ int form_exec_cmd(Form *form) {
     }
     shell(earg_str);
     return 0;
+}
+int form_exec_receiver(Init *init) {
+    int rc = -1;
+    int eargc;
+    char *eargv[MAXARGS];
+    char tmp_str[MAXLEN] = {'\0'};
+    char title[MAXLEN];
+    char sav_arg[MAXLEN];
+    char *out_s;
+    int eargx = 0;
+    int i = 0;
+    pid_t pid = 0;
+    bool f_append_args = false;
+
+    title[0] = '\0';
+    if (form->receiver_cmd[0] == '\0')
+        return -1;
+    if (form->receiver_cmd[0] == '\\' || form->receiver_cmd[0] == '\"') {
+        size_t len = strlen(form->receiver_cmd);
+        if (len > 1 && form->receiver_cmd[len - 1] == '\"') {
+            memmove(form->receiver_cmd, form->receiver_cmd + 1, len - 2);
+            form->receiver_cmd[len - 2] = '\0';
+        }
+    }
+    eargc = str_to_args(eargv, form->receiver_cmd, MAXARGS - 1);
+    tmp_str[0] = '\0';
+    if (form->f_multiple_cmd_args) {
+        for (i = 0; i < form->fcnt; i++) {
+            if (form->field[i]->accept_s[0] && eargc < MAXARGS) {
+                if (tmp_str[0] != '\0')
+                    strnz__cat(tmp_str, " ", MAXLEN - 1);
+                strnz__cat(tmp_str, form->field[i]->accept_s, MAXLEN - 1);
+            }
+        }
+        eargv[eargc++] = strdup(tmp_str);
+    } else {
+        f_append_args = false;
+        i = 0;
+        while (i < eargc) {
+            /** This is the line that gets the selected objects */
+            if (strstr(eargv[i], "%%") != nullptr) {
+                tmp_str[0] = '\0';
+                f_append_args = true;
+                strnz__cpy(sav_arg, eargv[i], MAXLEN - 1);
+                eargx = i;
+                break;
+            }
+            i++;
+        }
+        for (i = 0; i < form->fcnt; i++) {
+            /** append arguments onto tmp_str */
+            if (form->field[i]->accept_s[0] && eargc < MAXARGS - 1) {
+                if (f_append_args == true) {
+                    if (tmp_str[0] != '\0')
+                        strnz__cat(tmp_str, " ", MAXLEN - 1);
+                    strnz__cat(tmp_str, form->field[i]->accept_s, MAXLEN - 1);
+                    continue;
+                }
+                eargv[eargc++] = strdup(form->field[i]->accept_s);
+            }
+        }
+        if (f_append_args == true) {
+            if (eargv[eargx] != nullptr) {
+                free(eargv[eargx]);
+                eargv[eargx] = nullptr;
+            }
+            out_s = rep_substring(sav_arg, "%%", tmp_str);
+            if (out_s == nullptr || out_s[0] == '\0') {
+                i = 0;
+                while (i < eargc) {
+                    if (eargv[i] != nullptr)
+                        free(eargv[i]);
+                    i++;
+                }
+                Perror("rep_substring() failed in form_exec_objects");
+                return 1;
+            }
+            strnz__cpy(title, out_s, MAXLEN - 1);
+            eargv[eargx] = strdup(out_s);
+            if (out_s != nullptr) {
+                free(out_s);
+                out_s = nullptr;
+            }
+        }
+    }
+    strnz__cpy(tmp_str, eargv[0], MAXLEN - 1);
+    eargv[eargc] = nullptr;
+    char *sp;
+    char *tok;
+    tok = strtok_r(tmp_str, " ", &sp);
+    strnz__cpy(sav_arg, tok, MAXLEN - 1);
+    base_name(tmp_str, sav_arg);
+    if (tmp_str[0] != '\0' &&
+        (strcmp(tmp_str, "view") == 0 || strcmp(tmp_str, "view") == 0)) {
+        /** initialize popup_view arguments and execute popup_view to display
+           command output within form interface */
+        init->lines = 60;
+        init->cols = 80;
+        init->begy = form->begy + 1;
+        init->begx = form->begx + 1;
+        if (title[0] != '\0')
+            strnz__cpy(init->title, title, MAXLEN - 1);
+        else
+            strnz__cpy(init->title, eargv[eargc], MAXLEN - 1);
+        popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
+                   init->begx);
+        i = 0;
+        while (i < eargc) {
+            if (eargv[i] != nullptr)
+                free(eargv[i]);
+            i++;
+        }
+        return 0;
+    } else {
+        if ((pid = fork()) == -1) {
+            /** fork failed, free eargv and return error */
+            i = 0;
+            while (i < eargc) {
+                if (eargv[i] != nullptr)
+                    free(eargv[i]);
+                i++;
+            }
+            Perror("fork() failed in form_exec_objects");
+            return (1);
+        }
+        if (pid == 0) {
+            /** Prevent child process from writing to terminal */
+            int dev_null = open("/dev/null", O_WRONLY);
+            if (dev_null == -1) {
+                Perror("open(/dev/null) failed in init_form child process");
+                exit(EXIT_FAILURE);
+            }
+            dup2(dev_null, STDERR_FILENO);
+            close(dev_null);
+            /** Child process to execute command */
+            execvp(eargv[0], eargv);
+            /** If execvp returns, it means execution failed, so free eargv
+               and print error message before exiting */
+            strnz__cpy(tmp_str, "Can't exec form cmd: ", MAXLEN - 1);
+            strnz__cat(tmp_str, eargv[0], MAXLEN - 1);
+            Perror(tmp_str);
+            exit(EXIT_FAILURE);
+        }
+    }
+    waitpid(pid, nullptr, 0);
+    destroy_argv(eargc, eargv);
+    restore_curses_tioctl();
+    sig_prog_mode();
+    werase(stdscr);
+    wrefresh(stdscr);
+    restore_wins();
+    return rc;
 }
 /** @brief Write form field values to a specified output destination, such
    as a file or standard output, based on the form configuration and user
