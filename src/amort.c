@@ -68,8 +68,12 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
     memset(&tm, 0, sizeof(tm));
-    strptime(argv[5], "%Y-%m-%d", &tm);
+    if (strptime(argv[5], "%Y-%m-%d", &tm) == NULL)
+        if (strptime(argv[5], "%Y%m%d", &tm) == NULL)
+            printf("Error: Invalid date format. Use yyyy-mm-dd or yyyymmdd.\n"),
+                exit(EXIT_FAILURE);
     amort->year_total_interest = 0;
+
     printf("First Payment: %04d-%02d-%02d\n\n", tm.tm_year + 1900,
            tm.tm_mon + 1, tm.tm_mday);
     printf(" Per  Mth Year    Balance     Payment   Principal  Interest\n");
