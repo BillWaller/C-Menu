@@ -117,7 +117,6 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     Form *sav_form = init->form;
     init->form = nullptr;
     form = nullptr;
-    new_form(init, init->argc, init->argv, begy, begx);
     rc = init_form(init, init->argc, init->argv, begy, begx);
     destroy_form(init);
     init->form = sav_form;
