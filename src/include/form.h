@@ -287,6 +287,12 @@ typedef struct {
                 help to visually separate the field input areas from other text
                 on the form, making it easier for users to identify where they
                 need to enter their input during form processing. */
+    cchar_t brktl; /**< the ncurses cchar_t representation of the left bracket
+                      character, used for displaying the left bracket in the
+                      form window during form processing. */
+    cchar_t brktr; /**< the ncurses cchar_t representation of the right bracket
+                      character, used for displaying the right bracket in the
+                      form window during form processing. */
     char fill_char[2]; /**< the character used to fill the field input areas in
                           the form, e.g. "_" for underscores or " " for spaces.
                           This character is used to visually indicate the input

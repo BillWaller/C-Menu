@@ -351,12 +351,15 @@ extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
+extern cchar_t mkccc(int, attr_t, char *);
 
 extern cchar_t CCC_NORM;    /**< normal color pair complex character */
 extern cchar_t CCC_WIN;     /**< window color pair complex character */
 extern cchar_t CCC_BOX;     /**< box color pair complex character */
 extern cchar_t CCC_REVERSE; /**< reverse color pair complex character */
 extern cchar_t CCC_LN;      /* line number color pair complex character */
+extern cchar_t CCC_BRKTL;   /* left field bracket */
+extern cchar_t CCC_BRKTR;   /* right field bracket */
 
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */

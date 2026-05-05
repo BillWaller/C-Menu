@@ -160,6 +160,8 @@ cchar_t CCC_BOX;
 cchar_t CCC_REVERSE;
 cchar_t CCC_REVERSE_HIGHLIGHT;
 cchar_t CCC_LN;
+cchar_t CCC_BRKTL;
+cchar_t CCC_BRKTR;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 FILE *ncurses_fp;
@@ -472,7 +474,7 @@ bool open_curses(SIO *sio) {
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
-    wbkgrnd(stdscr, &CCC_NORM);
+    // wbkgrnd(stdscr, &CCC_NORM);
     wbkgrndset(stdscr, &CCC_NORM);
 #ifdef DEBUG_IMMEDOK
     immedok(stdscr, true);
@@ -786,7 +788,7 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 #ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
-    wbkgrnd(win_box[win_ptr], &CCC_BOX);
+    // wbkgrnd(win_box[win_ptr], &CCC_BOX);
     wbkgrndset(win_box[win_ptr], &CCC_BOX);
     cbox2(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
@@ -834,7 +836,7 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 #ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
-    wbkgrnd(win_box[win_ptr], &CCC_BOX);
+    // wbkgrnd(win_box[win_ptr], &CCC_BOX);
     wbkgrndset(win_box[win_ptr], &CCC_BOX);
     cbox(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
@@ -870,7 +872,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
-    wbkgrnd(win_win[win_ptr], &CCC_WIN);
+    // wbkgrnd(win_win[win_ptr], &CCC_WIN);
     wbkgrndset(win_win[win_ptr], &CCC_WIN);
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
@@ -896,7 +898,7 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win2[win_ptr], true);
 #endif
-    wbkgrnd(win_win2[win_ptr], &CCC_WIN);
+    // wbkgrnd(win_win2[win_ptr], &CCC_WIN);
     wbkgrndset(win_win2[win_ptr], &CCC_WIN);
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
@@ -916,7 +918,7 @@ void win_resize(int wlines, int wcols, char *title) {
     int maxx;
     wrefresh(stdscr);
     wresize(win_box[win_ptr], wlines + 2, wcols + 2);
-    wbkgrnd(win_box[win_ptr], &CCC_BOX);
+    // wbkgrnd(win_box[win_ptr], &CCC_BOX);
     wbkgrndset(win_box[win_ptr], &CCC_BOX);
     cbox(win_box[win_ptr]);
     if (title != nullptr && *title != '\0') {
@@ -936,7 +938,7 @@ void win_resize(int wlines, int wcols, char *title) {
     }
     wnoutrefresh(win_box[win_ptr]);
     wresize(win_win[win_ptr], wlines, wcols);
-    wbkgrnd(win_win[win_ptr], &CCC_WIN);
+    // wbkgrnd(win_win[win_ptr], &CCC_WIN);
     wbkgrndset(win_win[win_ptr], &CCC_WIN);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
     keypad(win_win[win_ptr], TRUE);
@@ -970,7 +972,7 @@ WINDOW *win_del() {
     if (win_ptr >= 0) {
         if (win_win[win_ptr] != nullptr) {
             touchwin(win_win[win_ptr]);
-            wbkgrnd(win_win[win_ptr], &CCC_NORM);
+            // wbkgrnd(win_win[win_ptr], &CCC_NORM);
             wbkgrndset(win_win[win_ptr], &CCC_NORM);
             werase(win_win[win_ptr]);
             wnoutrefresh(win_win[win_ptr]);
@@ -978,7 +980,7 @@ WINDOW *win_del() {
         }
         if (win_box[win_ptr] != nullptr) {
             touchwin(win_box[win_ptr]);
-            wbkgrnd(win_box[win_ptr], &CCC_NORM);
+            // wbkgrnd(win_box[win_ptr], &CCC_NORM);
             wbkgrndset(win_box[win_ptr], &CCC_NORM);
             werase(win_box[win_ptr]);
             wnoutrefresh(win_box[win_ptr]);

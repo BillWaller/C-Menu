@@ -32,7 +32,7 @@
 #define D_QUERY 'Q'
 #define D_GETTER 'G'
 
-unsigned int form_display_screen(Init *);
+unsigned int display_form(Init *);
 void form_display_fields(Form *);
 int field_navigator(Form *);
 int form_parse_desc(Form *);
@@ -87,6 +87,10 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (form->title[0] == '\0')
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
+#ifdef DEBUG_IMMEDOK
+    immedok(form->win, true);
+    immedok(form->box, true);
+#endif
     rc = form_engine(init);
     destroy_chyron(form->chyron);
     if (form->win)
@@ -127,7 +131,13 @@ int form_engine(Init *init) {
     }
 
     form_read_data(form);
-    form_display_screen(init);
+    // if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
+    //     char brkt[2] = {form->brackets[0], '\0'};
+    //     form->brktl = mkccc(cp_box, WA_NORMAL, brkt);
+    //     brkt[0] = form->brackets[1];
+    //     form->brktr = mkccc(cp_box, WA_NORMAL, brkt);
+    // }
+    display_form(init);
     form->chyron = new_chyron();
     set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
     set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F(9));
@@ -169,8 +179,7 @@ int form_engine(Init *init) {
             }
             eargc = 0;
             eargv[eargc++] = strdup("view");
-            eargv[eargc++] = strdup("-N");
-            eargv[eargc++] = strdup("f");
+            eargv[eargc++] = strdup("-Nf");
             eargv[eargc++] = strdup(tmp_str);
             eargv[eargc] = nullptr;
             init->lines = 30;
@@ -217,6 +226,7 @@ int form_post(Init *init) {
             display_chyron(form->win, form->chyron, form->lines - 1,
                            form->chyron->l);
             tcflush(2, TCIFLUSH);
+            wrefresh(form->box);
             c = xwgetch(form->win, form->chyron, -1);
         }
         switch (c) {
@@ -316,6 +326,7 @@ int form_process(Init *init) {
                        form->chyron->l);
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
+        wrefresh(form->box);
         c = xwgetch(form->win, form->chyron, -1);
         switch (c) {
         case KEY_F(1):
@@ -477,8 +488,8 @@ int form_yx_to_fidx(Form *form, int y, int x) {
     @param init A pointer to the Init structure containing form data and state.
     @return 0 on success, or a non-zero value if an error occurs while
     creating the form window or rendering the form elements. */
-unsigned int form_display_screen(Init *init) {
-    int n;
+unsigned int display_form(Init *init) {
+    int n, flin, fcol;
     char tmp_str[MAXLEN];
 
     form = init->form;
@@ -509,12 +520,26 @@ unsigned int form_display_screen(Init *init) {
 #ifdef DEBUG_IMMEDOK
     immedok(form->win, TRUE);
 #endif
-    form->win = win_win[win_ptr];
     form->box = win_box[win_ptr];
+    form->win = win_win[win_ptr];
+    wnoutrefresh(form->win);
+    for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
+        if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
+            flin = form->field[form->fidx]->line + 1;
+            fcol = form->field[form->fidx]->col;
+            // mvwadd_wch(form->box, flin, fcol, &form->brktl);
+            mvwaddch(form->box, flin, fcol, form->brackets[0]);
+            fcol += form->field[form->fidx]->len + 1;
+            // mvwadd_wch(box, flin, fcol, &form->brktr);
+            mvwaddch(form->box, flin, fcol, form->brackets[1]);
+        }
+    }
+    wnoutrefresh(form->box);
     for (n = 0; n < form->dcnt; n++) {
         strnz(form->text[n]->str, form->cols - 3);
         mvwaddstr(form->win, form->text[n]->line, form->text[n]->col,
                   form->text[n]->str);
+        wnoutrefresh(form->win);
     }
     form_display_fields(form);
     return 0;
@@ -522,32 +547,40 @@ unsigned int form_display_screen(Init *init) {
 /** @brief Display form fields on the screen, populating field values and
     formatting them according to the form configuration.
     @ingroup form_engine
-    @param form A pointer to the Form structure containing form data and state.
+    @param form A pointer to the Form structure containing form data and
+   state.
     @details This function iterates through the defined form fields, formats
-   their display values based on the specified fill character and field length,
-   and renders them on the form window. It also updates the chyron with
-   available commands for user interaction. */
+   their display values based on the specified fill character and field
+   length, and renders them on the form window. It also updates the chyron
+   with available commands for user interaction. */
 void form_display_fields(Form *form) {
-    int n;
+    int flin, fcol;
     char fill_char = form->fill_char[0];
-    for (n = 0; n < form->fcnt; n++) {
-        if (form->field[n]->col + form->field[n]->len + 2 > form->cols)
-            form->field[n]->len = form->cols - (form->field[n]->col + 2);
-        strnfill(form->field[n]->filler_s, fill_char, form->field[n]->len);
-        strnz(form->field[n]->display_s, form->field[n]->len);
-        form_display_field_n(form, n);
+    for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
+        if (form->field[form->fidx]->col + form->field[form->fidx]->len + 2 >
+            form->cols)
+            form->field[form->fidx]->len =
+                form->cols - (form->field[form->fidx]->col + 2);
+        strnfill(form->field[form->fidx]->filler_s, fill_char,
+                 form->field[form->fidx]->len);
+        strnz(form->field[form->fidx]->display_s, form->field[form->fidx]->len);
+        flin = form->field[form->fidx]->line;
+        fcol = form->field[form->fidx]->col;
+        mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->filler_s);
+        mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->display_s);
+        wnoutrefresh(form->win);
     }
-    wrefresh(form->box);
     return;
 }
-/** @brief Parse the form description file to populate the Form data structure
-   with field definitions, text elements, and other configuration specified in
-   the description file.
+/** @brief Parse the form description file to populate the Form data
+   structure with field definitions, text elements, and other configuration
+   specified in the description file.
     @ingroup form_engine
-    @param form A pointer to the Form structure containing form data and state.
-    @return 0 on success, or a non-zero value if an error occurs while parsing
-   the description file (e.g., file not found, invalid format, missing
-   directives). */
+    @param form A pointer to the Form structure containing form data and
+   state.
+    @return 0 on success, or a non-zero value if an error occurs while
+   parsing the description file (e.g., file not found, invalid format,
+   missing directives). */
 int form_parse_desc(Form *form) {
     FILE *form_desc_fp;
     char *token;
@@ -767,12 +800,14 @@ int form_parse_desc(Form *form) {
     }
     return (0);
 }
-/** @brief Read initial data for form fields from a specified input source, such
-    as a file or standard input, and populate the form fields with the data.
+/** @brief Read initial data for form fields from a specified input source,
+   such as a file or standard input, and populate the form fields with the
+   data.
     @ingroup form_engine
-    @param form A pointer to the Form structure containing form data and state.
-    @return 0 on success, or a non-zero value if an error occurs while reading
-    the data or if the specified input source is invalid or empty. */
+    @param form A pointer to the Form structure containing form data and
+   state.
+    @return 0 on success, or a non-zero value if an error occurs while
+   reading the data or if the specified input source is invalid or empty. */
 int form_read_data(Form *form) {
     struct stat sb;
     char in_buf[MAXLEN];
@@ -809,11 +844,12 @@ int form_read_data(Form *form) {
     }
     return (0);
 }
-/** @brief Execute a provider command specified in the form description file,
-    passing form field values as arguments, and optionally redirecting output to
-    a file.
+/** @brief Execute a provider command specified in the form description
+   file, passing form field values as arguments, and optionally redirecting
+   output to a file.
     @ingroup form_engine
-    @param form A pointer to the Form structure containing form data and state.
+    @param form A pointer to the Form structure containing form data and
+   state.
     @return 0 on success, or a non-zero value if an error occurs while
     constructing or executing the command. */
 int form_exec_cmd(Form *form) {
@@ -831,12 +867,14 @@ int form_exec_cmd(Form *form) {
     shell(earg_str);
     return 0;
 }
-/** @brief Write form field values to a specified output destination, such as a
-    file or standard output, based on the form configuration and user input.
+/** @brief Write form field values to a specified output destination, such
+   as a file or standard output, based on the form configuration and user
+   input.
     @ingroup form_engine
-    @param form A pointer to the Form structure containing form data and state.
-    @return 0 on success, or a non-zero value if an error occurs while writing
-    the data or if the specified output destination is invalid. */
+    @param form A pointer to the Form structure containing form data and
+   state.
+    @return 0 on success, or a non-zero value if an error occurs while
+   writing the data or if the specified output destination is invalid. */
 int form_write(Form *form) {
     int n;
     if (form->out_spec[0] == '\0' || strcmp(form->out_spec, "-") == 0 ||
@@ -878,13 +916,14 @@ int form_write(Form *form) {
         fclose(form->out_fp);
     return (0);
 }
-/** @brief Handle errors encountered while parsing the form description file,
-   providing detailed error messages that include the file name, line number,
-   and the specific error encountered.
+/** @brief Handle errors encountered while parsing the form description
+   file, providing detailed error messages that include the file name, line
+   number, and the specific error encountered.
    @ingroup form_engine
-    @param in_line_num The line number in the description file where the error
-   occurred.
-    @param in_buf The content of the line that caused the error, for context.
+    @param in_line_num The line number in the description file where the
+   error occurred.
+    @param in_buf The content of the line that caused the error, for
+   context.
     @param em A specific error message describing the nature of the error.
     @return An integer status code indicating how the user responded to the
    error message (e.g., which key they pressed to acknowledge the error). */

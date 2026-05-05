@@ -90,7 +90,6 @@ int field_editor(Form *form) {
             mvwaddstr(win, flin, fcol, accept_s);
             wmove(win, flin, x);
             tcflush(0, TCIFLUSH);
-            wmove(win, flin, x);
             wrefresh(form->box);
             in_key = xwgetch(win, form->chyron, -1);
         }
@@ -370,13 +369,10 @@ int form_display_field_n(Form *form, int n) {
    display to show the updated field content.
  */
 int form_display_field(Form *form) {
-    WINDOW *win = form->win;
     int flin = form->field[form->fidx]->line;
     int fcol = form->field[form->fidx]->col;
-    form_display_field_brackets(form);
-    mvwaddstr(win, flin, fcol, form->field[form->fidx]->filler_s);
-    mvwaddstr(win, flin, fcol, form->field[form->fidx]->display_s);
-    // wrefresh(win);
+    mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->filler_s);
+    mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->display_s);
     return 0;
 }
 /** @brief Display brackets around current field if set
@@ -393,13 +389,13 @@ int form_display_field(Form *form) {
 int form_display_field_brackets(Form *form) {
     int flin, fcol;
     if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
-        WINDOW *box = form->box;
         flin = form->field[form->fidx]->line + 1;
         fcol = form->field[form->fidx]->col;
-        wmove(box, flin, fcol);
-        waddch(box, form->brackets[0]);
-        wmove(box, flin, fcol + form->field[form->fidx]->len + 1);
-        waddch(box, form->brackets[1]);
+        // mvwadd_wch(form->box, flin, fcol, &form->brktl);
+        mvwaddch(form->box, flin, fcol, form->brackets[0]);
+        fcol += form->field[form->fidx]->len + 1;
+        // mvwadd_wch(box, flin, fcol, &form->brktr);
+        mvwaddch(form->box, flin, fcol, form->brackets[1]);
     }
     return 0;
 }
