@@ -20,7 +20,7 @@
   - [Rustlings Source](#rustlings-source)
   - [Edit .c Files in Current Directory](#edit-c-files-in-current-directory)
   - [View C-Menu Source With Tree-Sitter](#view-c-menu-source-with-tree-sitter)
-- [Sneaky Optimization Techniques](#sneaky-optimization-techniques)
+- [Sneakey Optimization Techniques](#sneakey-optimization-techniques)
 
 <!-- mtoc-end -->
 
@@ -415,7 +415,7 @@ configuration file, you can also use "-N" on the command line to enable line num
 
 ---
 
-## Sneaky Optimization Techniques
+## Sneakey Optimization Techniques
 
 **_View C-Menu Command Line Options_** is an example of a smart way to improve
 and optimize your C-Menu applications. Instead of writing a complicated command line to display the C-Menu help file with syntax highlighting, highlight the file in advance and save the highlighted file as menu.help. Then, simply execute the view command directly, specifying the highlighted file as an argument. This is one of many ways to improve and optimize the applications you design with C-Menu. You will most likely miss opportunities for improvement and optimization on your first pass, and that's understandable. You want to finish the project. But, great software results from developers revisiting their own code and looking for opportunities for improvement and optimization.

@@ -1331,37 +1331,39 @@ int picker(Init *init, char *field) {
                 continue;
 
             default:
+                if (in_key < ' ' || in_key > '~') {
+                    in_key = 0;
+                    continue;
+                }
                 if (ptr >= fend) {
                     in_key = 0;
                     continue;
                 }
-                if (in_key >= ' ') {
-                    if (f_insert) {
-                        if (str_end < fend) {
-                            s = str_end - 1;
-                            d = str_end;
-                            while (s >= ptr)
-                                *d-- = *s--;
+                if (f_insert) {
+                    if (str_end < fend) {
+                        s = str_end - 1;
+                        d = str_end;
+                        while (s >= ptr)
+                            *d-- = *s--;
+                        *ptr++ = in_key;
+                        str_end++;
+                        pos++;
+                    }
+                } else {
+                    if (ptr < fend) {
+                        if (ptr < str_end) {
                             *ptr++ = in_key;
-                            str_end++;
+                            pos++;
+                        } else if (ptr == str_end) {
+                            *ptr++ = in_key;
+                            *ptr = '\0';
+                            str_end = ptr;
                             pos++;
                         }
-                    } else {
-                        if (ptr < fend) {
-                            if (ptr < str_end) {
-                                *ptr++ = in_key;
-                                pos++;
-                            } else if (ptr == str_end) {
-                                *ptr++ = in_key;
-                                *ptr = '\0';
-                                str_end = ptr;
-                                pos++;
-                            }
-                        }
                     }
-                    in_key = 0;
-                    continue;
                 }
+                in_key = 0;
+                continue;
             }
             break;
         }

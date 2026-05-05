@@ -236,8 +236,6 @@ int field_editor(Form *form) {
             switch (ff) {
                 /** FF_STRING accepts all printable characters and spaces */
             case FF_STRING:
-                if (in_key < ' ' || in_key > '~')
-                    in_key = 0;
                 break;
                 /** FF_DECIMAL_INT accepts digits 0 through 9 and decimal point
                  * ('.') */
@@ -310,33 +308,35 @@ int field_editor(Form *form) {
                 Perror("field_editor() invalid format");
                 break;
             }
-            if (in_key >= ' ') {
-                if (f_insert) {
-                    if (str_end < fend) {
-                        s = str_end - 1;
-                        d = str_end;
-                        while (s >= p)
-                            *d-- = *s--;
-                        *p++ = in_key;
-                        str_end++;
-                        x++;
-                    }
-                } else {
-                    if (p < fend) {
-                        if (p < str_end) {
-                            *p++ = in_key;
-                            x++;
-                        } else if (p == str_end) {
-                            *p++ = in_key;
-                            *p = '\0';
-                            str_end = p;
-                            x++;
-                        }
-                    }
-                }
+            if (in_key < ' ' || in_key > '~') {
                 in_key = 0;
                 continue;
             }
+            if (f_insert) {
+                if (str_end < fend) {
+                    s = str_end - 1;
+                    d = str_end;
+                    while (s >= p)
+                        *d-- = *s--;
+                    *p++ = in_key;
+                    str_end++;
+                    x++;
+                }
+            } else {
+                if (p < fend) {
+                    if (p < str_end) {
+                        *p++ = in_key;
+                        x++;
+                    } else if (p == str_end) {
+                        *p++ = in_key;
+                        *p = '\0';
+                        str_end = p;
+                        x++;
+                    }
+                }
+            }
+            in_key = 0;
+            continue;
         }
     }
 }
