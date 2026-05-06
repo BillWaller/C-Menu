@@ -46,6 +46,17 @@ int form_display_field_n(Form *, int);
 int form_validate_field(Form *);
 void mk_filler(char *, int);
 
+/** @defgroup field_editor Field Editor
+   @brief File mapping, user input, command processing, and display logic
+    @brief Main loop for field editing and entry
+    @details This function handles the main loop for field editing and entry.
+   It processes user input, including character input, navigation keys, and
+   mouse events, to allow the user to edit the content of a field. The function
+   validates input based on the field's specified format and updates the display
+   accordingly. It returns the key code of the action taken, such as accepting
+   the field, tabbing to the next field, or breaking out of the input loop.
+ */
+
 /** @brief Accept input for a field
     @ingroup field_editor
      @param form Pointer to Form structure
@@ -374,17 +385,6 @@ int form_display_field(Form *form) {
     mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->display_s);
     return 0;
 }
-/** @brief Display brackets around current field if set
-    @ingroup field_editor
-    @param form Pointer to Form structure
-    @return 0 on success, non-zero on error
-    @details This function checks if the form's brackets array has non-empty
-   values for both the left and right brackets. If so, it retrieves the line and
-   column information for the current field and uses the form's box window to
-   display the left bracket at the start of the field and the right bracket at
-   the end of the field. The display is refreshed to show the brackets around
-   the field.
- */
 /** @brief Format field according to its format type
     @ingroup field_editor
     @param form Pointer to Form structure
@@ -428,28 +428,6 @@ int form_display_field(Form *form) {
         struct Date { int yyyy; int mm; int dd; };
         struct Time { int hh; int mm; int ss; };
     @endcode
-    Supports format types: FF_STRING, FF_DECIMAL_INT, FF_HEX_INT,
-   FF_FLOAT, FF_DOUBLE, FF_CURRENCY, FF_YYYYMMDD, FF_HHMMSS, FF_APR with
-   appropriate formatting and validation for each type.
-    Handles field length and filler string creation.
-    As the roadmap indicates, these
-   data types are just a start and more complex types and formats may be
-   added in the future.
-    These data types are not suitable for
-   financial, scientific, or high-precision applications. They are intended
-   for basic data entry and display in a text-based user interface.
-    In the future, we will aqdd support for additional data types and
-   formats such as: dates with time zones, timestamps, percentages,
-   scientific notation, and custom user-defined formats.
-    For high precision applications, we will be integrating support
-   for 128-bit binary coded decimal (BCD) types and arbitrary precision
-   decimal types using libraries such as the GNU MPFR library, IBM's
-   decNumber, Rust Decimal, or the Intel Decimal Floating-Point Math
-   Library.
-    C-Menu Form converts each field's input string into internal
-   numeric binary based on the field's specified format. The internal
-   numberic binary is then formated and displayed, verifying the user's
-   input and Form's interpretation of the user's input.
   */
 int form_fmt_field(Form *form, char *s) {
     strnz__cpy(form->field[form->fidx]->input_s, s, FIELD_MAXLEN - 1);

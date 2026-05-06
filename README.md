@@ -3,6 +3,9 @@
 <!-- mtoc-start -->
 
 - [Other C-Menu Documentation](#other-c-menu-documentation)
+- [C-Menu Overview](#c-menu-overview)
+  - [C-Menu Features](#c-menu-features)
+  - [C-Menu Start-up Options](#c-menu-start-up-options)
 - [C-Menu Menu](#c-menu-menu)
 - [Menu Line-by-Line Breakdown](#menu-line-by-line-breakdown)
   - [Title Line](#title-line)
@@ -20,6 +23,9 @@
   - [Rustlings Source](#rustlings-source)
   - [Edit .c Files in Current Directory](#edit-c-files-in-current-directory)
   - [View C-Menu Source With Tree-Sitter](#view-c-menu-source-with-tree-sitter)
+- [C-Menu View](#c-menu-view)
+- [RSH - A Root Shell Alternative](#rsh---a-root-shell-alternative)
+- [lf - A Regular Expression File Finder](#lf---a-regular-expression-file-finder)
 - [Sneakey Optimization Techniques](#sneakey-optimization-techniques)
 
 <!-- mtoc-end -->
@@ -44,9 +50,34 @@
 
 [C-Menu HTML Documentation](https://decision-inc.com)
 
----
+## C-Menu Overview
 
-This section will break down Example C-Menu Applications and explain how they work from the perspective of a developer using C-Menu to build applications. With this understanding, you will be ready to create custom software products that are intuitive, uniform, dependable, flexible, appealing, and fast with a minimal footprint.
+C-Menu is a toolkit of software components that can be assembled like Legos to create intuitive and responsive applications.
+
+C-Menu's building blocks are purpose-built, optimized, and highly customizable, allowing developers to create unique and engaging interfaces with minimal investment of time and effort. C-Menu's components include Menu, Form, Pick, View, RSH, lf (lightweight find), and C-Keys (a keyboard and mouse diagnostic tool). These components can be used to create a wide range of applications, from simple command-line tools to complex workflows.
+
+Because C-Menu is written in C and terminal-based, it is super-fast and has a minimal footprint. C-Menu requires only a Linux kernel and the standard C library, it is perfect for resource constrained environments such as embedded applications, servers, IOT, and SOC.
+
+### C-Menu Features
+
+- All C-Menu components provide navigation by mouse and keyboard, and in many cases by the standard h, j, k, and l keys that programmers are accustomed to.
+
+- C-Menu's building-block approach allows you to integrate C-Menu internals, external applications, scripts, and executables in a seamless way. For example, you can use C-Menu Form to create a form-based interface for data entry and validation, and then use an external executable to process the form data and display the results in a C-Menu View window.
+
+- C-Menu's configuration file, ~/.minitrc, allows you to set default options for all C-Menu components, such as color schemes, key bindings, and field settings. This allows you to create a consistent look and feel across all your applications and optimize the user experience.
+
+- Auto sizing and resizing: By default, C-Menu's components, Menu, Form, Pick, and View open in pop-up windows overlaying the calling C-Menu window. If you don't specify window geometry, or if you specify window geometry that is inappropriate, C-Menu will apply an auto-sizing algorithm to determine the optimal window size and position based on the content being displayed and the current terminal size. C-Menu View responds to terminal resize events, dynamically adjusting its size and position to maximize the space available.
+
+- The built-in F1 Help facility allows you to create context-sensitive help for
+  your application, which can be ordinary text or custom highlighted text with Unicode support.
+
+### C-Menu Start-up Options
+
+All of C-Menu's long options, shown as, --option_name, in the following screen can be
+can be set on the command line or in the C-Menu configuration file, ~/.minitrc.
+The "--" prefix is omitted in the configuration file. Options commonly used on the command line also have a single-letter short option equivalent. Command line options override configuration file options, allowing you to customize the behavior of your applications on a per-instance basis.
+
+![C-Menu-Help](screenshots/C-Menu-help.png)
 
 ## C-Menu Menu
 
@@ -55,6 +86,10 @@ This section will break down Example C-Menu Applications and explain how they wo
 The menu above is intended to demonstrate a variety of features and techniques that can be applied to your projects. It is not meant to be a practical menu for everyday use, but rather a showcase of what is possible with C-Menu. Think of yourself as an artist and C-Menu as your canvas. What will you create?
 
 Below is an example of source defining the above menu. This is the part you design as the top-level framework for your application. C-Menu uses a building-block approach to integrate C-Menu internals, external applications, scripts, and executables, as you will see in just a moment. C-Menu includes a set of useful and powerful components you assemble like Leggos to create innovative software products. C-Menu's main components include Menu, Form, Pick, View, RSH, lf, and C-Keys, each of which will be explained in detail in the following sections.
+
+---
+
+This section will break down Example C-Menu Applications and explain how they work from the perspective of a developer using C-Menu to build applications. With this understanding, you will be ready to create custom software products that are intuitive, uniform, dependable, flexible, appealing, and fast with a minimal footprint.
 
 ![Menu Description File](screenshots/applications_menu.m.png)
 Lets examine the Menu source above and break down how it works. The source file is a simple text file that contains a series of User Choices and Commands.
@@ -122,7 +157,7 @@ Diagnostic Tools is another menu item that specifies a menu description file, "d
 
 ## C-Menu Form
 
-C-Menu Form provides on-screen forms for entering and editing data.
+Use C-Menu Form when you need to enter, edit, validate, process, and submit data.
 
 The C-Menu form command specifies a description file which defines the on-screen
 form.
@@ -254,8 +289,22 @@ time and Form will dispatch View with the data fields from the form.
 iloan and amort are trivial applications to demonstrate how to use external executables
 with C-Menu Form. For the purpose of demonstration, we shall designate the images above as 1) upper left, 2) upper right, 3) lower left, and 4) lower right.
 
-You may notice in window 4), I have set the field brackets in the configuration
+Notice in window 4), I have set the field brackets in the configuration
 file, ~/menuapp/.minitrc. The brackets tend to look good so long as you don't over-crowd the form with 10 or 15 fields on some lines.
+
+**_Chyron_**
+
+Also notice the chyron, the line at the bottom of the form window. It is
+used to convey state information to the user and to present the user with a set
+of relevant commands. In the Form windows 2) and 3) above, the chyron highlights
+the most likely next steps for the user, which are F5 Process and F5 Edit
+respectively. The user can select commands with the keys indicated or by
+clicking the command with the mouse. For example, if the user clicks "INS" in
+the chyron or presses the insert key, the field mode changes from overwrite to
+insert and the "INS" in the chyron will be highlighted to indicate the current
+field mode. Press insert or click "INS" again to toggle back to overwrite mode.
+
+Here's the workflow for the Installment Loan Calculations menu item:
 
 - The user selects the "Installment Loan Calculations" menu item, which executes the form command with the specified description file, iloan.f. Form opens the input file, iloan.dat, reads field data, and displays screen 1) it in the Form window. The user edits the data, changing the Principal Amount to $100,000. The user tabs down to the Payment Amount field and presses enter which erases the field above and to the right of the cursor. (this behavior is controlled by the setting --erase_remainder which is generally set in ~/menuapp/.minitrc) This sets the Payment Amount to zero. When finished editing, the user presses F10 Accept.
 
@@ -374,11 +423,21 @@ executing pick as a stand-alone executable. In this instance, Pick launches "rus
 
 The center window above shows Pick as it appears just after selecting Rustlings Source in the Applications Menu.
 
-The user presses <tab> to activate the line editor and types "maps2", the last few
+The user presses tab to activate the line editor and types "maps2", the last few
 characters of the exercise name, and the Pick window on the right appears. The
-"maps2" expression filtered out all but one file name. So, the user presses <tab><spacebar> and the selected rust source file opens in nvim. If there had been more than one file listed, the user could select a file with the mouse, arrow keys, or j for down, k for up, and when the desired file is highlighted, press <spacebar> to select. When you use the mouse to select, it is not necessary to press the <spacebar>.
+"maps2" expression filtered out all but one file name. The user doesn't need to
+press enter to accept the filter expression because Pick updates the Pick window in real time as the user types.
 
-When finished editing, the user can type <shift>"zz" to exit nvim. When nvim closes, the user will be returned to the Pick window as it was before selecting the file. The user can type <tab><backspace><3><tab><spacebar> and nvim opens the next rust source file in sequence, hashmaps3.rs. This is a very quick and effortless way to step through the Rustlings exercises, but it can also apply to many other situations.
+At any time, the user can press tab to jump back to the selection window, and
+select the desired file with the mouse or position the cursor on the desired
+file and press spacebar to select. In this case, there is only one file listed,
+so the user can simply press spacebar to select the file. Because the "-n 1"
+option in the Pick command line directs Pick to automatically accept when the
+user has selected the specified number of files.
+
+So, the user presses tab, the cursor jumps to the only file listed, and the user presses the spacebar to open the selected file with nvim. If there had been more than one file listed, the user could select a file with the mouse, arrow keys, or j for down, k for up, and when the desired file is highlighted, and pressing spacebar to select. When using the mouse to select, it is not necessary to press the spacebar.
+
+When finished editing in nvim, the user can type shift "zz" to exit. nvim closes, and the user is returned to the Pick window as it was before selecting the file. The user can press tab, backspace, 3, tab, spacebar, and nvim opens hashmaps3.rs, the next source file in the Rustlings sequence. This is a very quick and almost effortless way to step through the Rustlings exercises, but it can also apply to many other situations.
 
 ---
 
@@ -434,6 +493,89 @@ when you have several pages of files.
 This image of the View window has line numbers because f_ln is set to true in
 the C-Menu configuration file. If you don't have f_ln set to true in the
 configuration file, you can also use "-N" on the command line to enable line numbers. If you have f_ln set to true in the configuration file, and you don't want line numbers, you can specify "-Nf" on the command line to disable line numbers for that particular view instance.
+
+---
+
+## C-Menu View
+
+View has Unicode support, line numbering, regular expression searching, and a
+large virtual pad for horizontal scrolling. View works great with tree-sitter,
+source-highlight, pygments, bat, manual pages, and other syntax highlighters.
+View doesn't alter the file you are viewing. It uses the highlighter in a
+pipe, and reads the output, so the original file is never changed. And, if
+you happen to have a file that has been highlighted by another application,
+view can strip the ANSI codes for convenient editing. View is lightning fast,
+especially with huge log files.
+
+Throughout C-Menu, and especially View, you will find many optimizations that
+contribute to it's efficiency and speed. Traditionally, large file I-O has relied on user-space buffering schemes in which chunks of data are copied from mass storage into local buffers using seek and read operations. The application must keep track of buffer contents, manage buffer lifecycles, and handle edge cases such as partial reads, end-of-file conditions, and error handling. This approach can be complex, error-prone, and inefficient, especially when dealing with large files or high-throughput applications. C-Menu's view takes a different approach to large file I-O by leveraging the operating system's virtual memory management capabilities to provide direct access to file data through memory mapping. Instead of relying on user-space buffering, C-Menu's view provides a direct-to-kernel, demand paged, memory mapped virtual address space for file access. This eliminates the overhead and complexity associated with user-space buffering, and allows for more efficient and reliable access to large files. With C-Menu's view, applications can access any part of a multi-gigabyte file instantly without the need for copying data into user-space buffers or managing buffer lifecycles. This results in unmatched reliability and performance when working with large files, making C-Menu's view ideal for applications that require high-throughput file access or need to work with large datasets.
+
+If you work with large datasets, you will love view. No fluff, no bloat, no
+nonsense, just blazing fast performance.
+
+![C-Menu View with Syntax Highlighting](screenshots/tree-sitter5.png)
+
+---
+
+## RSH - A Root Shell Alternative
+
+**_RSH_** - RSH provides an alternative to su and sudo for executing commands
+with elevated privileges. It allows developers and system administrators to
+get in and out of root shells and execute commands with root privileges
+without the need for a password, for example, by authenticating with an ssh
+key as you would on gethub.
+
+In the following example, make install requires root privilege, so the user
+types xx, is authenticated with an ssh key, and then types make install.
+When the make install is finished, the user types x to exit the root shell
+and relinquish root privilege.
+
+![RSH SSH Authentication](screenshots/Makefile-out.png)
+
+- The Green prompt indicates user privilege, and Red indicates root privilege.
+
+---
+
+## lf - A Regular Expression File Finder
+
+**_lf_** - is a sleek, easy-to-use, and fast alternative to the Unix find command. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
+
+![lf help](screenshots/lf-help.png)
+
+The screenshot above is the help output of lf piped through bat and displayed in
+View.
+
+C-Menu's lf (lightweight find) is an alternative to Unix find. Although Unix find is an extremely powerful tool, and it is not slow, it can be unwieldy at times (see the 40 page manual). It does everything you could want, but with unnecessary overhead and complexity. C-Menu's lf is smaller, faster, and easier to use than Unix find, yet covers most day-to-day use cases.
+
+One of find's most often used features is the built-in -exec option, which executes a specified command on each file found. Conspicuously, lf does not have a built-in -exec option, and that is one of the first things people notice. However, lf achieves the same result, by piping the output of lf into xargs. Intuitively, it makes sense that find with its built-in exec option would be faster than lf using an external xargs command. We compared C-Menu's lf with xargs and find with its built-in -exec option. Both methods produced identical and accurate results.
+
+time find . -maxdepth 5 -type f -exec ls -l {} \; >find.out
+
+time lf -d 4 -t f | xargs ls -l >lf.out
+
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m0.469s | 0m0.160s | 0m0.288s | 142         |
+| lf      | 0m0.008s | 0m0.004s | 0m0.006s | 142         |
+
+time find . -maxdepth 4 -type f -exec ls -l {} \; >find.out
+
+time lf -d 4 -t f | xargs ls -l >lf.out
+
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m2.123s | 0m0.788s | 0m0.281s | 598         |
+| lf      | 0m0.014s | 0m0.007s | 0m0.009s | 598         |
+
+As you can see, lf with xargs is significantly faster than find with its built-in -exec option. find, with its built-in exec option executes the specified command for each file found, which can be very inefficient when dealing with a large number of files. In contrast, using xargs allows you to execute the command on multiple files at once, which can significantly reduce the overhead and improve performance.
+
+Even if lf wasn't faster than find, it would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for common file searching tasks.
+
+Here's an example:
+
+![lf File Finder](screenshots/lf-dates.png)
+
+The screenshot above shows how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We believe you will find this format intuitive and easy to use.
 
 ---
 

@@ -31,17 +31,6 @@ typedef struct {
 
 void print_totals(Amort *);
 
-/** @brief amort is a trivial application to demonstrate how a command-line
-   program can be integrated into C-Menu Form with simple file, argument, or
-   pipe i-o.
-    @details Positional arguments:
-    @param present_value The present value of the loan (the amount borrowed).
-    @param number_of_payments The total number of payments to be made.
-    @param interest_rate The annual interest rate (as a percentage).
-    @param payment_amount The amount of each payment.
-    @param first_payment_date yyyy-mm-dd
-    The program prints a monthly schedule showing principal, interest, and
-   balance. test data: amort 100000 120 6.99 1161.08 2025-05-01 */
 int main(int argc, char **argv) {
     setlocale(LC_NUMERIC, "");
     if (argc > 1 &&

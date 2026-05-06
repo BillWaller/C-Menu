@@ -2,8 +2,6 @@
 
 # How to get C-Menu
 
-[**_NEW_** C-Menu Form In Depth](#c-menu-form-in-depth)
-
 ## Get C-Menu on Github
 
 Click the link below to access the C-Menu Documentation:
@@ -36,8 +34,6 @@ gh repo clone BillWaller/C-Menu
 - [How C-Menu Menu Works](#how-c-menu-menu-works)
   - [C-Menu Example Applications Menu](#c-menu-example-applications-menu)
   - [Menu Description File Format](#menu-description-file-format)
-- [!C-Menu Application Menu](#c-menu-application-menu)
-- [C-Menu Form In Depth](#c-menu-form-in-depth)
   - [Form field editor](#form-field-editor)
     - [Form Line Type Specifiers](#form-line-type-specifiers)
     - [Form Field Delimiters](#form-field-delimiters)
@@ -312,9 +308,9 @@ execute the command `nvim`. The user can select it by clicking on
 - Menu items can be grouped into sections by using text lines without
   corresponding command lines.
 
-## ![C-Menu Application Menu](../screenshots/applications_menu.m.png)
+![C-Menu Application Menu](../screenshots/applications_menu.m.png)
 
-## C-Menu Form In Depth
+In Depth
 
 Form is a utility that provides the user with a way to enter and edit information in a structured format.
 

@@ -839,12 +839,10 @@ int form_read_data(Form *form) {
     }
     return (0);
 }
-/** @brief Execute a provider command specified in the form description
-   file, passing form field values as arguments, and optionally redirecting
-   output to a file.
+/** @brief Execute a command specified in the form description file, passing
+   form field values as arguments, and optionally redirecting output to a file.
     @ingroup form_engine
-    @param form A pointer to the Form structure containing form data and
-   state.
+    @param form A pointer to the Form structure containing form data and state.
     @return 0 on success, or a non-zero value if an error occurs while
     constructing or executing the command. */
 int form_exec_cmd(Form *form) {
@@ -862,6 +860,18 @@ int form_exec_cmd(Form *form) {
     shell(earg_str);
     return 0;
 }
+/** @brief Execute a command specified by the -R option on the form command line
+    @ingroup form_engine
+    @param form A pointer to the Init structure
+    @return 0 on success, or a non-zero value if an error occurs while
+   constructing or executing the command.
+    @details This function constructs a command by taking the receiver_cmd
+   appending field values as arguments, and handling special cases such as
+   multiple command arguments or placeholder substitution. It then executes the
+   command, either displaying the output in a popup view if the command is
+   "view", or executing it directly in a child process for other commands. The
+   function also handles error cases and ensures that resources are properly
+   freed. */
 int form_exec_receiver(Init *init) {
     int rc = -1;
     int eargc;
@@ -873,11 +883,12 @@ int form_exec_receiver(Init *init) {
     int eargx = 0;
     int i = 0;
     pid_t pid = 0;
-    bool f_append_args = false;
+    bool f_append_values = false;
 
     title[0] = '\0';
     if (form->receiver_cmd[0] == '\0')
         return -1;
+    // Eliminate leading and trailing quotes
     if (form->receiver_cmd[0] == '\\' || form->receiver_cmd[0] == '\"') {
         size_t len = strlen(form->receiver_cmd);
         if (len > 1 && form->receiver_cmd[len - 1] == '\"') {
@@ -888,6 +899,7 @@ int form_exec_receiver(Init *init) {
     eargc = str_to_args(eargv, form->receiver_cmd, MAXARGS - 1);
     tmp_str[0] = '\0';
     if (form->f_multiple_cmd_args) {
+        // concatenate fields into a single argument
         for (i = 0; i < form->fcnt; i++) {
             if (form->field[i]->accept_s[0] && eargc < MAXARGS) {
                 if (tmp_str[0] != '\0')
@@ -897,13 +909,14 @@ int form_exec_receiver(Init *init) {
         }
         eargv[eargc++] = strdup(tmp_str);
     } else {
-        f_append_args = false;
+        f_append_values = false;
+        // find lines with "%%" to determine where to insert field values
         i = 0;
         while (i < eargc) {
             /** This is the line that gets the selected objects */
             if (strstr(eargv[i], "%%") != nullptr) {
                 tmp_str[0] = '\0';
-                f_append_args = true;
+                f_append_values = true;
                 strnz__cpy(sav_arg, eargv[i], MAXLEN - 1);
                 eargx = i;
                 break;
@@ -911,9 +924,9 @@ int form_exec_receiver(Init *init) {
             i++;
         }
         for (i = 0; i < form->fcnt; i++) {
-            /** append arguments onto tmp_str */
+            // concatenate field values onto tmp_str
             if (form->field[i]->accept_s[0] && eargc < MAXARGS - 1) {
-                if (f_append_args == true) {
+                if (f_append_values == true) {
                     if (tmp_str[0] != '\0')
                         strnz__cat(tmp_str, " ", MAXLEN - 1);
                     strnz__cat(tmp_str, form->field[i]->accept_s, MAXLEN - 1);
@@ -922,7 +935,8 @@ int form_exec_receiver(Init *init) {
                 eargv[eargc++] = strdup(form->field[i]->accept_s);
             }
         }
-        if (f_append_args == true) {
+        // replace "%%" with concatenated field values
+        if (f_append_values == true) {
             if (eargv[eargx] != nullptr) {
                 free(eargv[eargx]);
                 eargv[eargx] = nullptr;

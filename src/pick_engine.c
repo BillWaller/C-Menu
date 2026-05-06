@@ -574,8 +574,8 @@ int output_objects(Pick *pick) {
    list of selected objects. Executes the command using execvp in a child
    process and waits for it to finish. If the command is a pager or editor, it
    is executed within the pick interface using popup_view instead of execvp.
-   If f_append_args is true, the argument containing %% is replaced with
-   the concatenated selected objects. If f_append_args is false, selected
+   If f_append_objects is true, the argument containing %% is replaced with
+   the concatenated selected objects. If f_append_objects is false, selected
    objects are added as separate arguments and the original command arguments
    remain unchanged.
    eargv should be null-terminated to indicate the end of arguments for
@@ -610,7 +610,7 @@ int exec_objects(Init *init) {
     int eargx = 0;
     int i = 0;
     pid_t pid = 0;
-    bool f_append_args = false;
+    bool f_append_objects = false;
 
     title[0] = '\0';
     if (pick->cmd[0] == '\0')
@@ -634,13 +634,13 @@ int exec_objects(Init *init) {
         }
         eargv[eargc++] = strdup(tmp_str);
     } else {
-        f_append_args = false;
+        f_append_objects = false;
         i = 0;
         while (i < eargc) {
             /** This is the line that gets the selected objects */
             if (strstr(eargv[i], "%%") != nullptr) {
                 tmp_str[0] = '\0';
-                f_append_args = true;
+                f_append_objects = true;
                 strnz__cpy(sav_arg, eargv[i], MAXLEN - 1);
                 eargx = i;
                 break;
@@ -650,7 +650,7 @@ int exec_objects(Init *init) {
         for (i = 0; i < pick->d_cnt; i++) {
             /** append arguments onto tmp_str */
             if (pick->f_selected[i] && eargc < MAXARGS - 1) {
-                if (f_append_args == true) {
+                if (f_append_objects == true) {
                     if (tmp_str[0] != '\0')
                         strnz__cat(tmp_str, " ", MAXLEN - 1);
                     strnz__cat(tmp_str, pick->d_object[i], MAXLEN - 1);
@@ -659,7 +659,7 @@ int exec_objects(Init *init) {
                 eargv[eargc++] = strdup(pick->d_object[i]);
             }
         }
-        if (f_append_args == true) {
+        if (f_append_objects == true) {
             if (eargv[eargx] != nullptr) {
                 free(eargv[eargx]);
                 eargv[eargx] = nullptr;

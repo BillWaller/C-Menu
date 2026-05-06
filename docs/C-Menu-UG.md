@@ -329,11 +329,11 @@ executing pick as a stand-alone executable. In this instance, Pick launches "rus
 
 The center window above shows Pick as it appears just after selecting Rustlings Source in the Applications Menu.
 
-The user presses <tab> to activate the line editor and types "maps2", the last few
+The user presses tab to activate the line editor and types "maps2", the last few
 characters of the exercise name, and the Pick window on the right appears. The
-"maps2" expression filtered out all but one file name. So, the user presses <tab><spacebar> and the selected rust source file opens in nvim. If there had been more than one file listed, the user could select a file with the mouse, arrow keys, or j for down, k for up, and when the desired file is highlighted, press <spacebar> to select. When you use the mouse to select, it is not necessary to press the <spacebar>.
+"maps2" expression filtered out all but one file name. So, the user presses tab spacebar and the selected rust source file opens in nvim. If there had been more than one file listed, the user could select a file with the mouse, arrow keys, or j for down, k for up, and when the desired file is highlighted, press spacebar to select. When you use the mouse to select, it is not necessary to press the spacebar.
 
-When finished editing, the user can type <shift>"zz" to exit nvim. When nvim closes, the user will be returned to the Pick window as it was before selecting the file. The user can type <tab><backspace><3><tab><spacebar> and nvim opens the next rust source file in sequence, hashmaps3.rs. This is a very quick and effortless way to step through the Rustlings exercises, but it can also apply to many other situations.
+When finished editing, the user can type shift "zz" to exit nvim. When nvim closes, the user will be returned to the Pick window as it was before selecting the file. The user can type tab backspace 3 tab spacebar and nvim opens the next rust source file in sequence, hashmaps3.rs. This is a very quick and effortless way to step through the Rustlings exercises, but it can also apply to many other situations.
 
 ---
 

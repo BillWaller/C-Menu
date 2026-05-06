@@ -710,6 +710,7 @@ bool str_to_bool(const char *s) {
 /** @brief Replaces "~/" in string with the user's home directory.
     @ingroup utility_functions
     @param str - string to modify
+    @param path_maxlen - maximum length of resulting string
     @returns true if successful, false if str is nullptr or empty */
 bool expand_tilde(char *str, int path_maxlen) {
     if (str == nullptr || *str == '\0')
