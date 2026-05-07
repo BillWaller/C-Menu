@@ -586,9 +586,12 @@ and optimize your C-Menu applications. Instead of writing a complicated command 
 
 Don't get distracted trying to write perfect code on the first pass. Get it working, and then polish it. The key is to prioritize using cost/benefit analysis. The cost is your time and the benefit is increased demand for your product. It's up to you to quantify that relationship, but generally, try to get the most bang for the buck and favor the least expensive (time consuming) improvements and optimizations. The more time a project takes, the more likely you are to suffer interruptions, breaking your continuity of thought. Once interrupted, your highly tuned mental context begins to fade immediately, and it takes time to reestablish.
 
-Getting a second set of eyes on the code can vastly increase your chances to spot improvement and optimization opportunities you might have missed.
+The truth is that this particular optimization is anything but sneaky. The title
+is just a little tongue-in-cheek. In fact, this optimization is obvious, and
+anyone should have noticed it on the first pass. I didn't, and I was frankly a little
+embarrassed when it was pointed out to me. The moral is that getting a second set of eyes on your code can vastly increase your chances to spot improvement and optimization opportunities you might have missed.
 
-Why don't developers do this? Given time, they do, but top developers often have such intense demands on their time, they don't have the luxury of carefully reviewing and optimizing their code. But you, dear reader, are an artist and you have the time to create beautiful and efficient command lines that will make your applications spectacular.
+Why don't all developers do this? Given time, most do, but top developers often have such intense demands on their time, they often don't have the luxury of time to carefully review and optimize their code. But you, dear reader, are an artist and you have the time to create beautiful and efficient command lines that will make your applications spectacular.
 
 ```bash
 : View C-Menu Command Line Options
