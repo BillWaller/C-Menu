@@ -98,7 +98,7 @@ CFLAGS=-O3
 #   necessary for production builds, so it is typically used only for debugging 
 #   purposes.
 #
-# CFLAGS=-O0 ggdb rdynamic
+CFLAGS=-O0 -ggdb -rdynamic
 # CFLAGS=-DDEBUG_RESIZE DDEUBG_IMMEDOK DDEBUG_LOG
 #  Uncomment the following line to enable Address Sanitizer, Leak Sanitizer, and 
 #  Undefined Behavior Sanitizer.

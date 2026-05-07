@@ -7,48 +7,50 @@
 <!-- mtoc-start -->
 
 - [Introduction](#introduction)
-- [Menu - Hierarchical Menus](#menu---hierarchical-menus)
-- [Form - On Screen Forms](#form---on-screen-forms)
-- [Pick - Object Selection](#pick---object-selection)
-- [View - A pager for viewing files](#view---a-pager-for-viewing-files)
-- [RSH - A Root Shell Alternative](#rsh---a-root-shell-alternative)
-- [lf - A Regular Expression File Finder](#lf---a-regular-expression-file-finder)
-- [C-Menu API](#c-menu-api)
-- [C-Menu API Completions in Neovim](#c-menu-api-completions-in-neovim)
-- [Summary - Performance and Footprint](#summary---performance-and-footprint)
-- [Other documentation](#other-documentation)
-- [C-Menu Binaries for Linux x86_64](#c-menu-binaries-for-linux-x86_64)
-- [Build C-Menu from Source](#build-c-menu-from-source)
-  - [RSH Static Linking](#rsh-static-linking)
+- [C-Menu Previews](#c-menu-previews)
+  - [Menu](#menu)
+  - [Form](#form)
+  - [Pick - Object Selection](#pick---object-selection)
+  - [View - A pager for viewing files](#view---a-pager-for-viewing-files)
+  - [RSH - A Root Shell Alternative](#rsh---a-root-shell-alternative)
+  - [lf - A Regular Expression File Finder](#lf---a-regular-expression-file-finder)
+- [API](#api)
+  - [Completions in Neovim](#completions-in-neovim)
+  - [Performance and Footprint](#performance-and-footprint)
+- [C-Menu INSTALLATION](#c-menu-installation)
+  - [C-Menu Binaries for Linux x86_64](#c-menu-binaries-for-linux-x86_64)
+  - [Build C-Menu from Source](#build-c-menu-from-source)
+    - [RSH Static Linking](#rsh-static-linking)
     - [Prerequisites](#prerequisites)
     - [Option 1 - Build C-Menu Using CMake Directly](#option-1---build-c-menu-using-cmake-directly)
     - [Option 2 - Build C-Menu with Provided Scripts](#option-2---build-c-menu-with-provided-scripts)
     - [Option 3 - Build C-Menu Using Makefile](#option-3---build-c-menu-using-makefile)
   - [Finish the installation](#finish-the-installation)
-- [🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository](#-enjoy-using-c-menu-if-you-encounter-any-issues-or-have-questions-feel-free-to-open-an-issue-on-the-c-menu-github-repository)
 
 <!-- mtoc-end -->
 
-**_NEW_** You may be interested in a new, but incomplete series of C-Menu
-documents that are being developed in parallel with the documentation on the website. The documents in this series are intended to provide a more concise and focused overview of C-Menu's features and capabilities, and to serve as a quick reference guide for users who want to get up and running with C-Menu quickly. The documents in this series include:
-
-[C-Menu Menu Performance](Performance.md)
+You may also be interested in the [C-Menu User Guide](C-Menu-UG.md)
 
 ## Introduction
 
-C-Menu is a tool-set that gives you the ability to quickly and easily build functional, intuitive, and attractive applications with a minimal footprint. Because C-Menu is terminal-based, it is perfect for resource constrained environments such as embedded, server, SOC, IOT, DEVOPS, CI/CD pipelines, and terminal enthusiasts, or any other situations in which a GUI might be impractical or undesirable.
+C-Menu is a user interface development toolkit that gives you the ability to quickly and easily build functional, intuitive, and attractive applications with minimal effort and a tiny footprint. Because C-Menu is written in C and terminal-based, it is perfect for resource constrained environments such as embedded, server, SOC, IOT, DEVOPS, and CI/CD pipelines, or any other situations in which a GUI might be impractical or undesirable.
 
-For comprehensive html documentation, please refer to the website:
+C-Menu is also ideal for developers who prefer to work in a terminal environment and want to create powerful applications without the overhead of a GUI framework. C-Menu provides a wide range of components and tools for building menu-driven interfaces, including hierarchical menus, on-screen forms, object selection, file viewing, and more. With C-Menu, you can create applications that are both efficient and user-friendly, making it a great choice for a wide range of use cases.
 
-[decision-inc.com](https://decision-inc.com)
+You may also be interested in [C-Menu Comprehensive HTML Documentation](https://decision-inc.com)
 
 ---
 
-## Menu - Hierarchical Menus
+## C-Menu Previews
+
+If you have made up your mind and are ready to install C-Menu, you can skip
+directly to the installation instructions below.
+
+### Menu
 
 In typical use, C-Menu requires only a few lines of code to create hierarchical menus with multiple levels of sub-menus. The Applications Menu contains an eclectic set of selections designed to demonstrate the diversity of the C-Menu toolkit.
 
-![Hierarchical Menus](../screenshots/applications_menu.png)
+![Hierarchical Menus](../screenshots/workstation_config.png)
 
 C-Menu is highly customizable, and provides a wide range of options for creating unique and engaging interfaces. The help screens below show some of the options available for customizing the appearance and behavior of C-Menu's components.
 
@@ -56,7 +58,7 @@ C-Menu is highly customizable, and provides a wide range of options for creating
 
 ---
 
-## Form - On Screen Forms
+### Form
 
 Enter, edit, validate, process, and submit data. Notice the chyron at the bottom of the screen, which provides helpful instructions and feedback to the user. Of course, all C-Menu components provide navigation by mouse and keyboard, and in many cases by the standard h, j, k, and l keys that programmers are accustomed to.
 
@@ -64,7 +66,7 @@ Enter, edit, validate, process, and submit data. Notice the chyron at the bottom
 
 ---
 
-## Pick - Object Selection
+### Pick - Object Selection
 
 The image below shows how pick works with C-Menu's lf (lightweight find) to select files in a directory. The screen on the left is the first to appear, and it shows the
 output of lf. In the bottom window, the user can refine the list of files by
@@ -101,7 +103,7 @@ Now, want to see something really cool? In the line editor window, try to type "
 
 ---
 
-## View - A pager for viewing files
+### View - A pager for viewing files
 
 View has Unicode support, line numbering, regular expression searching, and a
 large virtual pad for horizontal scrolling. View works great with tree-sitter,
@@ -126,7 +128,7 @@ nonsense, just blazing fast performance.
 
 ---
 
-## RSH - A Root Shell Alternative
+### RSH - A Root Shell Alternative
 
 **_RSH_** - RSH provides an alternative to su and sudo for executing commands
 with elevated privileges. It allows developers and system administrators to
@@ -145,7 +147,7 @@ and relinquish root privilege.
 
 ---
 
-## lf - A Regular Expression File Finder
+### lf - A Regular Expression File Finder
 
 **_lf_** - is a sleek, easy-to-use, and fast alternative to the Unix find command. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
 
@@ -160,66 +162,9 @@ The screenshot above is an example of how you might use the date-time options
 of lf to list files between two date-times (after and before) and the sample
 output. We believe you will find this format intuitive and easy to use.
 
-The following is an actual benchmark of execution times for lf and find. The
-find and lf commands, approximate common usage, and produce identical results.
-
-```bash
-time find . -maxdepth 9 -type f -regex '.*\.[ch]$' > find.out
-
-real    0m0.975s
-user    0m0.728s
-sys     0m0.243s
-
-time lf -a -d 9 -t f '.*\.[ch]$' > lf.out
-
-real    0m0.632s
-user    0m0.425s
-sys     0m0.207s
-```
-
-Verify that the output files are identical:
-
-```bash
-wc -l find.out lf.out
-
-  2489 find.out
-  2489 lf.out
-  4978 total
-```
-
-The results show that lf is about 35% faster than find in this benchmark, and
-the output files are identical.
-
-Next, we will add "-exec ls -l {} \;", a common use of find, and see how that
-affects performance. The resulting benchmarks are so extreme, they may strain
-credulity at first, but they are real and easily reproducible. Just run lf and
-find commands on your system in a variety of directories.
-
-Note: There have been some changes to lf's options since these benchmarks were
-run, specifically.
-
-- The -a (List hidden files) has been replaced with -n (Don't list hidden
-  files), so that the default behavior is more like find, thus mitigating the
-  probability of confusion.
-
-- The default maximum depth for lf was 3 as that was convenient for
-  development, but otherwise it didn't make sense. The default maximum depth
-  for lf is now 0, which means no limit, and thus more consistent with find.
-
-```bash
-time find . -maxdepth 5 -type f -exec -l {} \; >find.out
-time lf -a -d 5 -t f | xargs ls -l >lf.out
-```
-
-```bash
-wc -l find.out lf.out
-```
-
-![lf File Finder](../screenshots/lf-benchmarks.png)
-
 ---
 
-## C-Menu API
+## API
 
 **_API_** - C-Menu provides a simple and consistent API for creating menu-driven
 user interfaces in C. The API includes tools specific to C-Menu, but also many
@@ -229,7 +174,7 @@ engine, making it easy for developers to learn and use the API effectively.
 
 ---
 
-## C-Menu API Completions in Neovim
+### Completions in Neovim
 
 ![C-Menu Completions in Neovim](../screenshots/api-help1.png)
 
@@ -241,7 +186,7 @@ Hopefully, you will not find this plug for Neovim, LazyVim, and Lazy.Nvim too gr
 
 ---
 
-## Summary - Performance and Footprint
+### Performance and Footprint
 
 All of the C-Menu binaries, including executables and libcm.so are less than
 350k, a tiny footprint for such powerful tools, and no GUI is required. The
@@ -259,22 +204,20 @@ C-Menu up and running on your system.
 
 ---
 
-## Other documentation
+## C-Menu INSTALLATION
 
-- [Comprehensive HTML Documentation](https://decision-inc.com)
-- [API Reference](docs/API.md)
-- [Augmentation](docs/extras.md)
-- [CHANGELOG](docs/CHANGELOG.md)
-- [Exercises](docs/exercises.md)
-- [Frequently Asked Questions](docs/FAQ.md)
-- [Overview](docs/OVERVIEW.md)
-- [ROADMAP](docs/ROADMAP.md)
-- [User Guide](docs/C-Menu-UG.md)
-- [Valgrind / Memory Checking](docs/valgrind.md)
+The instructions below will guide you through the process of installing C-Menu on your Linux system. You can choose to install C-Menu using pre-built binaries or by building it from source. Building from source is recommended to ensure you have the latest features and bug fixes, but if you prefer to use pre-built binaries, you can follow the instructions in the next section.
 
 ---
 
-## C-Menu Binaries for Linux x86_64
+### C-Menu Binaries for Linux x86_64
+
+Unfortunately, I have not kept the binary distribution up to date with the
+latest source, and it is seriously obsolete. Before you download the binary
+distribution, please check the release date and avoid downloading if it is more
+than a couple of weeks old. As you can see from the CHANGELOG, there have been many changes and improvements to C-Menu since the last binary release, and the old binaries may not work correctly or may be missing important features and bug fixes.
+
+However, if you do notice a recent binary release, you can follow the instructions below to install it on your Linux x86_64 system.
 
 - Download the binary distribution, C-Menu-0.2.9-Linux-x86_64.xz.
 
@@ -302,7 +245,9 @@ menu
 
 ---
 
-## Build C-Menu from Source
+### Build C-Menu from Source
+
+Currently, building from source is the recommended way to install C-Menu, as it ensures that you have the latest features and bug fixes. The instructions below will guide you through the process of building and installing C-Menu on your Linux system.
 
 ```bash
 gh repo clone BillWaller/C-Menu
@@ -316,10 +261,10 @@ cp -r C-Menu/src/menuapp /home/yourusername/
 
 ---
 
-### RSH Static Linking
+#### RSH Static Linking
 
 C-Menu uses dynamic linking by default, but if you plan to use rsh in a rescue
-environment where dynamic linking may not be available, you can statically
+environment where dynamic linking may not be practical, you can statically
 link rsh during the build. To do this, set the `RSH_LD` environment variable
 to `-static` before building C-Menu:
 
@@ -500,5 +445,3 @@ menu
 ```
 
 ![C-Menu Running](../screenshots/mainmenu.png)
-
-## 🐸 Enjoy using C-Menu! If you encounter any issues or have questions, feel free to open an issue on the C-Menu GitHub repository
