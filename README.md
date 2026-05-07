@@ -591,7 +591,7 @@ is just a little tongue-in-cheek. In fact, this optimization is obvious, and
 anyone should have noticed it on the first pass. I didn't, and I was frankly a little
 embarrassed when it was pointed out to me. The moral is that getting a second set of eyes on your code can vastly increase your chances to spot improvement and optimization opportunities you might have missed.
 
-Why don't all developers do this? Given time, most do, but top developers often have such intense demands on their time, they often don't have the luxury of time to carefully review and optimize their code. But you, dear reader, are an artist and you have the time to create beautiful and efficient command lines that will make your applications spectacular.
+Why don't all developers do this? Given time, most do, but top developers often have such intense demands on their time, they often don't have the luxury of time to carefully review and optimize their code. But you, dear reader, are an artist and you have the time to create beautiful and efficient code that will make your applications spectacular.
 
 ```bash
 : View C-Menu Command Line Options
