@@ -19,13 +19,19 @@ typedef struct Init Init;
 #define MAX_MENU_LINES 256 /** Maximum number of menu lines in a menu */
 
 /**< Menu line types */
-enum { MT_NULL = 0x320, MT_TEXT, MT_CHOICE };
+typedef enum { MT_NULL = 0x320, MT_TEXT, MT_CHOICE } MenuLineType;
 
-/**< Menu Action types */
-enum { MA_NEW = 350, MA_RETURN, MA_DISPLAY_MENU, MA_RESET_MENU, MA_CONTINUE };
+/**< Menu Actions */
+typedef enum {
+    MA_NEW = 350,
+    MA_RETURN,
+    MA_DISPLAY_MENU,
+    MA_RESET_MENU,
+    MA_CONTINUE
+} MenuAction;
 
 /**< Menu command types */
-enum {
+typedef enum {
     CT_NULL = 0x396,
     CT_EXEC,
     CT_HELP,
@@ -41,7 +47,7 @@ enum {
     CT_TOGGLE,
     CT_WRITE_CONFIG,
     CT_UNDEFINED
-};
+} MenuCommandType;
 
 /** @struct Line
     @brief The Line strutures are attached to the Menu main structure */

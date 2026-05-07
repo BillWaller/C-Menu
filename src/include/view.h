@@ -29,7 +29,7 @@ typedef struct Init Init;
 #define BUFSIZ 8192
 #define PAD_COLS 4096
 
-enum PROMPT_TYPE { PT_NONE, PT_SHORT, PT_LONG, PT_STRING };
+typedef enum { PT_NONE, PT_SHORT, PT_LONG, PT_STRING } PromptType;
 
 #define LINE_TBL_INCR                                                          \
     1024 // number of entries to add to line_tbl when reallocating

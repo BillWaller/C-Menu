@@ -38,10 +38,10 @@ extern int cmenu_log_fd;
    temporary variables _x and _y, which store the values of x and y,
    respectively. This ensures that if x or y have side effects (such as being
    incremented), they will only be evaluated once when the macro is expanded.
-    @note The use of typeof allows the macro to work with any data type.
-    @note The line (void)(&_x == &_y) is a compile-time check to ensure that the
+    The use of typeof allows the macro to work with any data type.
+    The line (void)(&_x == &_y) is a compile-time check to ensure that the
    types of the arguments are compatible.
-    @note This implementation of the min and max macros provides a safer and
+    This implementation of the min and max macros provides a safer and
    more robust way to determine the minimum and maximum values between two
    expressions without risking unintended consequences from multiple
    evaluations.
@@ -60,20 +60,20 @@ extern int cmenu_log_fd;
         (void)(&_x == &_y);                                                    \
         _x < _y ? _x : _y;                                                     \
     })
-/** @note /usr/include/sys/param.h contains implementations of the MIN and MAX
+/**
+ */
+/** @brief MIN macro for compatibility with code that uses the same name,
+   while avoiding multiple evaluations of the arguments.
+   @details /usr/include/sys/param.h contains implementations of the MIN and MAX
    macros, which are simple but can lead to issues with multiple evaluations of
-   the arguments if they have side effects.
-
-    @note Here are the macros from /usr/include/sys/param.h. You may comment out
-   the macros defined herein and use the macros in param.h if you prefer.
-
+   the arguments if they have side effects. These macros provides a safer
+   alternative to param.h Here are the macros from /usr/include/sys/param.h. You
+   may comment out the macros defined herein and use the macros in param.h if
+   you prefer.
     @code
     #define MIN(a, b) (((a) < (b)) ? (a) : (b))
     #define MAX(a, b) (((a) > (b)) ? (a) : (b))
     @endcode
-*/
-/** @brief MIN macro for compatibility with code that uses the same name,
-   while avoiding multiple evaluations of the arguments.
     @note The following macro provides a safer alternative to param.h
  */
 #define MAX(a, b)                                                              \
@@ -95,11 +95,11 @@ extern int cmenu_log_fd;
     })
 /** @brief ABS macro for absolute value, which evaluates the expression once and
    returns the absolute value.
-    @note This macro uses a compound statement to create a local scope for the
-   temporary variable _a, which stores the value of x. This ensures that if x
-   has side effects (such as being incremented), it will only be evaluated once
-   when the macro is expanded. The use of typeof allows the macro to work with
-   any data type that supports comparison with zero and negation.
+    @details This macro uses a compound statement to create a local scope for
+   the temporary variable _a, which stores the value of x. This ensures that if
+   x has side effects (such as being incremented), it will only be evaluated
+   once when the macro is expanded. The use of typeof allows the macro to work
+   with any data type that supports comparison with zero and negation.
  */
 #define ABS(x)                                                                 \
     ({                                                                         \
@@ -117,10 +117,10 @@ extern int cmenu_log_fd;
         (__c >= 'a' && __c <= 'z') ? (__c - ('a' - 'A')) : __c;                \
     })
 
-/** @enum colors_enum
-    @note Used for xterm256 color conversions
-    @note These colors can be overridden in ".minitrc" */
-enum colors_enum {
+/**
+    @brief Used for xterm256 color conversions
+ */
+typedef enum {
     CLR_BLACK,
     CLR_RED,
     CLR_GREEN,
@@ -144,9 +144,9 @@ enum colors_enum {
     CLR_LN,
     CLR_LN_BG,
     CLR_NCOLORS
-};
+} ColorsEnum;
 
-enum LFFlags {
+typedef enum {
     /** byte 0 - bits 0-7  Selection Flags*/
     LF_HIDE = 0b00000001,      /**< 1 Don't list hidden files */
     LF_ICASE = 0b00000010,     /**< 2 Ignore case in search */
@@ -159,10 +159,10 @@ enum LFFlags {
     LF_PERM_R = 0b00100001,    /**< 256 Select Files with Read Permission */
     LF_PERM_W = 0b00010000,    /**< 512 Select Files with Write Permission */
     LF_PERM_X = 0b00001000,    /**< 1024 Select Files with Execute Permission */
-};
+} LFFlags;
 
 /** byte 2 - bits 16-23 File types*/
-enum FTypes {
+typedef enum {
     FT_BLK = 0b00000001,    /**< 1 block device */
     FT_CHR = 0b00000010,    /**< 2 character device */
     FT_DIR = 0b00000100,    /**< 4 directory */
@@ -171,7 +171,7 @@ enum FTypes {
     FT_REG = 0b00100000,    /**< 32 regular file */
     FT_SOCK = 0b01000000,   /**< 64 socket */
     FT_UNKNOWN = 0b10000000 /**< 128 unknown */
-};
+} FTypes;
 
 #define F_NO_STDERR 1
 
@@ -195,7 +195,7 @@ enum FTypes {
 
 /** @brief This macro registers the end_pgm function to be called when the
    program exits.
-    @note It checks the return value of atexit() to ensure that the
+    @details It checks the return value of atexit() to ensure that the
     registration was successful, and if not, it prints an error message and
     exits with a failure status. Programs using libcm should call __atexit in
     their main function to ensure that the end_pgm function is registered to be
@@ -213,24 +213,24 @@ enum FTypes {
     }
 
 /** @struct Chyron
-    @note The Chyron structure represents a key binding for a command in the
+    @details The Chyron structure represents a key binding for a command in the
    chyron, which is a status line or message area in the terminal interface.
-    @details The ChyronKey structure includes fields for displayable text,
+    The ChyronKey structure includes fields for displayable text,
     the key code, and the end position of the command text in the chyron.
-    @note This structure allows xwgetch to map mouse clicks to key codes
+    This structure allows xwgetch to map mouse clicks to key codes
     as defined by NCursesw and the C-Menu program.
-    @note The text field holds the displayable text associated with the command.
+    The text field holds the displayable text associated with the command.
     xwgetch() translates a mouse click on the chyron with a particular key code
     stored in this table.
-    @note The use case is when the developer wants a dynamic chyron that can be
+    The use case is when the developer wants a dynamic chyron that can be
    easily changed depending on the context of the program without having to
    worry about translating mouse click positions to key codes.
-    @note While many key codes are defined by NCursesw, the developer is free to
+    While many key codes are defined by NCursesw, the developer is free to
    define their own key codes for custom commands in the chyron. However,
    xwgetch() will translate mouse clicks to the key codes defined in this table,
    even if they interfere with standard NCurses key codes, Unicode code points,
    or ASCII characters. Just use common sense.
-    @note In addition to returning the key code associated with mouse clicks on
+    In addition to returning the key code associated with mouse clicks on
    the chyron, xwgetch() also returns the key codes for standard keyboard input,
    and sets the global variables cliek_y and click_x to the coordinates of the
    mouse click.
@@ -305,7 +305,7 @@ extern int clr_pair_cnt; /**< number of color pairs supported by the terminal */
 extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
 
 /** @struct ColorPair
-  @note The ColorPair structure is a simple structure that holds information
+  @details The ColorPair structure is a simple structure that holds information
   about a color pair, including the foreground color index, background color
   index, and the color pair index. This structure can be used to manage and
   apply color pairs in the ncurses library, allowing for easy customization of
@@ -619,8 +619,8 @@ typedef struct {
 /** @struct WCStr
    @brief wide character string object with a pointer to the wide character
    string and its allocated length
-   @note The WCStr structure represents a wide character string with a pointer
-   to the wide character string and its allocated length. */
+   @details The WCStr structure represents a wide character string with a
+   pointer to the wide character string and its allocated length. */
 typedef struct {
     wchar_t *s; /**< pointer to the wide character string */
     size_t l;   /**< @brief allocated length */
@@ -628,8 +628,8 @@ typedef struct {
 /** @struct CCStr
    @brief complex character objectl with a pointer to the complex character
    string and its allocated length
-   @note The CCStr structure represents a complex character string, which is a
-   string that can contain both regular characters and attributes (such as
+   @details The CCStr structure represents a complex character string, which is
+   a string that can contain both regular characters and attributes (such as
    color, bold, etc.) in the ncurses library. This structure includes a pointer
    to the complex character string and its allocated length, allowing for
    dynamic handling of complex character strings in the terminal interface. */
@@ -644,16 +644,17 @@ typedef struct {
 /** @struct SIO
     @brief The SIO structure encapsulates various aspects of the terminal's
    state and configuration, including color management, file pointers, and
-   terminal device information. @note The SIO structure serves as a central
-   repository for all relevant information needed to manage the terminal's
-   appearance and behavior effectively, allowing for a highly customizable and
-   visually appealing terminal experience. @note The SIO structure includes
-   fields for managing colors, gamma correction values, color codes for
-   different colors, file pointers and descriptors for standard
-   input/output/error and the terminal device, as well as counters and indices
-   for color management. Additionally, it contains a field for storing the name
-   of the terminal device. This comprehensive structure allows for efficient
-   management of the terminal's state and configuration in a structured way. */
+   terminal device information.
+   @details The SIO structure serves as a central repository for all relevant
+   information needed to manage the terminal's appearance and behavior
+   effectively, allowing for a highly customizable and visually appealing
+   terminal experience. The SIO structure includes fields for managing colors,
+   gamma correction values, color codes for different colors, file pointers and
+   descriptors for standard input/output/error and the terminal device, as well
+   as counters and indices for color management. Additionally, it contains a
+   field for storing the name of the terminal device. This comprehensive
+   structure allows for efficient management of the terminal's state and
+   configuration in a structured way. */
 typedef struct {
     double red_gamma;            /**< red gamma correction value */
     double green_gamma;          /**< green gamma correction value */

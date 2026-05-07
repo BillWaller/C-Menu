@@ -47,11 +47,24 @@ int cmenu_log_fd;
 char earg_str[MAXLEN];
 int eargc;
 char *eargv[MAXARGS];
-
+typedef struct {
+    uintmax_t user_id;
+    int include_types;
+    int suppress_types;
+    bool include;
+    bool blk;
+    bool chr;
+    bool dir;
+    bool fifo;
+    bool lnk;
+    bool reg;
+    bool sock;
+    bool unknown;
+} FileFlags;
 bool lf_find(const char *, const char *, const char *, int, long, time_t,
              time_t, intmax_t);
 bool lf_process(const char *, regex_t *, regex_t *, int, int, long, time_t,
-                time_t, intmax_t);
+                time_t, intmax_t, FileFlags *);
 size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);
@@ -1001,6 +1014,23 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
 bool lf_find(const char *base_path, const char *re, const char *ere,
              int max_depth, long flags, time_t after_t, time_t before_t,
              intmax_t file_size_min) {
+    FileFlags *f;
+    f = malloc(sizeof(FileFlags));
+    if (flags & LF_USER)
+        f->user_id = flags >> 24 & 0xffff;
+    f->suppress_types = 0;
+    f->include_types = flags >> 8 & 0xff;
+    /** suppress file types that aren't included */
+    if (f->include_types)
+        f->suppress_types = f->include_types ^ 0xff;
+    f->blk = f->suppress_types & FT_BLK ? 1 : 0;
+    f->chr = f->suppress_types & FT_CHR ? 1 : 0;
+    f->dir = f->suppress_types & FT_DIR ? 1 : 0;
+    f->fifo = f->suppress_types & FT_FIFO ? 1 : 0;
+    f->lnk = f->suppress_types & FT_LNK ? 1 : 0;
+    f->reg = f->suppress_types & FT_REG ? 1 : 0;
+    f->sock = f->suppress_types & FT_SOCK ? 1 : 0;
+    f->unknown = f->suppress_types & FT_UNKNOWN ? 1 : 0;
     int reti;
     regex_t compiled_re;
     regex_t compiled_ere;
@@ -1032,11 +1062,12 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
         }
     }
     reti = lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth,
-                      flags, after_t, before_t, file_size_min);
+                      flags, after_t, before_t, file_size_min, f);
     if (flags & LF_REGEX)
         regfree(&compiled_re);
     if (flags & LF_EXC_REGEX)
         regfree(&compiled_ere);
+    free(f);
     if (reti)
         return false;
     return true;
@@ -1056,6 +1087,22 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
    size (0 to ignore)
     @see lf_find()
     @return true if successful, false otherwise
+    @details This function is reentrant and is called recursively to traverse
+   directories up to max_depth. The flags parameter controls various aspects of
+   the search, including which file types to include or exclude, whether to
+   ignore case in regular expression matching, and whether to execute a command
+   for each matching file. The user_id field in flags can be used to select
+   files owned by a specific user. The permissions field can be used to select
+   files based on their permission bits. The selection_flags field can be used
+   to control additional filtering options, such as whether to exclude hidden
+   files or whether to use regular expressions for inclusion or exclusion. When
+   modifying this code, take special care to only call stat when it is needed to
+   provide information not available in the dirent structure.
+    @note The caller must ensure that the compiled regular expressions are valid
+   and that the base_path is a valid directory. This function does not perform
+   any error handling for invalid regular expressions or inaccessible
+   directories, so it is the caller's responsibility to ensure that the inputs
+   are valid before calling this function.
     @verbatim
 
     lf_find(), lf_process() options
@@ -1097,7 +1144,8 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
 
 bool lf_process(const char *base_path, regex_t *compiled_re,
                 regex_t *compiled_ere, int depth, int max_depth, long flags,
-                time_t after_t, time_t before_t, intmax_t file_size_min) {
+                time_t after_t, time_t before_t, intmax_t file_size_min,
+                FileFlags *f) {
     char tmp_str[PATH_MAX];
     char msgbuf[PATH_MAX];
     char file_spec[PATH_MAX];
@@ -1107,15 +1155,10 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     int REG_FLAGS = REG_EXTENDED;
     int reti;
     int permissions = flags >> 16 & 0xff;
-    uintmax_t user_id;
     regmatch_t pmatch[2];
-    bool suppress;
+    bool suppress_file;
     bool f_stat = false;
-    int f_include;
-    int f_suppress;
     bool suppress_hidden = flags & LF_HIDE ? true : false;
-    if (flags & LF_USER)
-        user_id = flags >> 24 & 0xffff;
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
@@ -1126,52 +1169,40 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             continue;
         else if (bname[0] == '.' && suppress_hidden)
             continue;
-        f_suppress = 0;
-        f_include = flags >> 8 & 0xff;
-        /** suppress file types that aren't included */
-        if (f_include)
-            f_suppress = f_include ^ 0xff;
-        bool s_blk = f_suppress & FT_BLK ? 1 : 0;
-        bool s_chr = f_suppress & FT_CHR ? 1 : 0;
-        bool s_dir = f_suppress & FT_DIR ? 1 : 0;
-        bool s_fifo = f_suppress & FT_FIFO ? 1 : 0;
-        bool s_lnk = f_suppress & FT_LNK ? 1 : 0;
-        bool s_reg = f_suppress & FT_REG ? 1 : 0;
-        bool s_sock = f_suppress & FT_SOCK ? 1 : 0;
-        bool s_unknown = f_suppress & FT_UNKNOWN ? 1 : 0;
-        suppress = false;
+
+        suppress_file = false;
         switch (dir_st->d_type) {
         case DT_BLK:
-            if (s_blk)
-                suppress = true;
+            if (f->blk)
+                suppress_file = true;
             break;
         case DT_CHR:
-            if (s_chr)
-                suppress = true;
+            if (f->chr)
+                suppress_file = true;
             break;
         case DT_DIR:
-            if (s_dir)
-                suppress = true;
+            if (f->dir)
+                suppress_file = true;
             break;
         case DT_FIFO:
-            if (s_fifo)
-                suppress = true;
+            if (f->fifo)
+                suppress_file = true;
             break;
         case DT_LNK:
-            if (s_lnk)
-                suppress = true;
+            if (f->lnk)
+                suppress_file = true;
             break;
         case DT_REG:
-            if (s_reg)
-                suppress = true;
+            if (f->reg)
+                suppress_file = true;
             break;
         case DT_SOCK:
-            if (s_sock)
-                suppress = true;
+            if (f->sock)
+                suppress_file = true;
             break;
         case DT_UNKNOWN:
-            if (s_unknown)
-                suppress = true;
+            if (f->unknown)
+                suppress_file = true;
             break;
         default:
             break;
@@ -1182,13 +1213,13 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             strnz__cpy(file_spec, dir_st->d_name, PATH_MAX - 1);
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path, bname);
         if (bname[0] == '.' && suppress_hidden)
-            suppress = true;
+            suppress_file = true;
         /* Exclude non-matching files */
-        if (!suppress && (flags & LF_REGEX)) {
+        if (!suppress_file && (flags & LF_REGEX)) {
             reti = regexec(compiled_re, file_spec, compiled_re->re_nsub + 1,
                            pmatch, REG_FLAGS);
             if (reti == REG_NOMATCH) {
-                suppress = true;
+                suppress_file = true;
             } else if (reti) {
                 regerror(reti, compiled_re, msgbuf, sizeof(msgbuf));
                 strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
@@ -1198,13 +1229,13 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             }
         }
         /* Exclude matching files */
-        if (!suppress && (flags & LF_EXC_REGEX)) {
+        if (!suppress_file && (flags & LF_EXC_REGEX)) {
             reti = regexec(compiled_ere, file_spec, compiled_re->re_nsub + 1,
                            pmatch, REG_FLAGS);
             if (reti == 0)
-                suppress = true;
+                suppress_file = true;
             else if (reti == REG_NOMATCH)
-                suppress = false;
+                suppress_file = false;
             else if (reti) {
                 regerror(reti, compiled_re, msgbuf, sizeof(msgbuf));
                 strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
@@ -1216,65 +1247,65 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         f_stat = false;
         struct stat sb;
         /** Exclude files not owned by specified user */
-        if (!suppress) {
+        if (!suppress_file) {
             if ((flags & LF_USER) && stat(file_spec, &sb) == 0) {
                 f_stat = true;
-                if (sb.st_uid != user_id)
-                    suppress = true;
+                if (sb.st_uid != f->user_id)
+                    suppress_file = true;
             }
         }
-        if (!suppress && permissions) {
+        if (!suppress_file && permissions) {
             if (!f_stat) {
                 if (stat(file_spec, &sb) == 0)
                     f_stat = true;
             }
-            suppress = true;
-            if ((permissions & LF_SETUID) && (sb.st_mode & S_ISUID))
-                suppress = false;
-            else if ((permissions & LF_SETGID) && (sb.st_mode & S_ISGID))
-                suppress = false;
-            else if ((permissions & LF_PERM_R) && (sb.st_mode & S_IRUSR))
-                suppress = false;
+            suppress_file = true;
+            if ((permissions & LF_PERM_R) && (sb.st_mode & S_IRUSR))
+                suppress_file = false;
             else if ((permissions & LF_PERM_W) && (sb.st_mode & S_IWUSR))
-                suppress = false;
+                suppress_file = false;
             else if ((permissions & LF_PERM_X) && (sb.st_mode & S_IXUSR))
-                suppress = false;
+                suppress_file = false;
+            else if ((permissions & LF_SETUID) && (sb.st_mode & S_ISUID))
+                suppress_file = false;
+            else if ((permissions & LF_SETGID) && (sb.st_mode & S_ISGID))
+                suppress_file = false;
         }
-        if (!suppress && before_t) {
+        if (!suppress_file && before_t) {
             if (!f_stat) {
                 if (stat(file_spec, &sb) == 0)
                     f_stat = true;
             }
             if (f_stat && sb.st_mtime > before_t)
-                suppress = true;
+                suppress_file = true;
         }
-        if (!suppress && after_t) {
+        if (!suppress_file && after_t) {
             if (!f_stat) {
                 if (stat(file_spec, &sb) == 0)
                     f_stat = true;
             }
             if (f_stat && sb.st_mtime < after_t)
-                suppress = true;
+                suppress_file = true;
         }
-        if (!suppress && file_size_min) {
+        if (!suppress_file && file_size_min) {
             if (!f_stat) {
                 if (stat(file_spec, &sb) == 0)
                     f_stat = true;
             }
             if (f_stat && sb.st_size < file_size_min)
-                suppress = true;
+                suppress_file = true;
         }
-        if (!suppress) {
+        if (!suppress_file) {
             if (file_spec[0] == '.' && file_spec[1] == '/')
                 printf("%s\n", &file_spec[2]);
             else
                 printf("%s\n", file_spec);
         }
-        if (max_depth == 0 ||
-            (dir_st->d_type == DT_DIR && depth + 1 < max_depth)) {
+        if (dir_st->d_type == DT_DIR &&
+            (max_depth == 0 || depth + 1 < max_depth)) {
             depth++;
             lf_process(file_spec, compiled_re, compiled_ere, depth, max_depth,
-                       flags, after_t, before_t, file_size_min);
+                       flags, after_t, before_t, file_size_min, f);
             depth--;
         }
     }

@@ -142,29 +142,29 @@ int form_engine(Init *init) {
     form->fidx = 0;
     form_action = 0;
     while (1) {
-        if (form_action == 0 || form_action == P_CONTINUE)
+        if (form_action == 0 || form_action == FA_CONTINUE)
             form_action = field_navigator(form);
         switch (form_action) {
-        case P_ACCEPT:
+        case FA_ACCEPT:
             if (form->f_process || form->f_calculate || form->f_query)
                 form_action = form_process(init);
             else
                 form_action = form_post(init);
-            if (form_action == P_HELP || form_action == P_CANCEL ||
-                form_action == P_CONTINUE || form_action == P_END)
+            if (form_action == FA_HELP || form_action == FA_CANCEL ||
+                form_action == FA_CONTINUE || form_action == FA_END)
                 continue;
-            if (form_action == P_ACCEPT) {
-                form_action = P_END;
+            if (form_action == FA_ACCEPT) {
+                form_action = FA_END;
                 continue;
             }
             break;
-        case P_END:
+        case FA_END:
             if (form->f_out_spec || form->out_spec[0] != '\0')
                 form_write(form);
             if (form->f_receiver_cmd || form->receiver_cmd[0] != '\0')
                 form_exec_receiver(init);
             break;
-        case P_HELP:
+        case FA_HELP:
             if (form->f_help_spec && form->help_spec[0] != '\0')
                 strnz__cpy(tmp_str, form->help_spec, MAXLEN - 1);
             else {
@@ -185,15 +185,15 @@ int form_engine(Init *init) {
             popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                        init->begx);
             destroy_argv(eargc, eargv);
-            form_action = P_CONTINUE;
+            form_action = FA_CONTINUE;
             break;
-        case P_CANCEL:
-            return P_CANCEL;
+        case FA_CANCEL:
+            return FA_CANCEL;
         default:
-            form_action = P_CONTINUE;
+            form_action = FA_CONTINUE;
             break;
         }
-        if (form_action == P_END)
+        if (form_action == FA_END)
             break;
     }
     return 0;
@@ -203,7 +203,7 @@ int form_engine(Init *init) {
     @ingroup form_engine
     @param init A pointer to the Init structure containing form data and state.
     @return An integer status code indicating the next action for the form
-    processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP). */
+    processing loop (e.g., FA_CONTINUE, FA_CANCEL, FA_ACCEPT, FA_HELP). */
 int form_post(Init *init) {
     bool loop = true;
     int c, rc;
@@ -226,21 +226,21 @@ int form_post(Init *init) {
         }
         switch (c) {
         case KEY_F(1):
-            return P_HELP;
+            return FA_HELP;
         case KEY_F(8):
             if (is_set_chyron_key(form->chyron, 8)) {
                 loop = false;
-                rc = P_CONTINUE;
+                rc = FA_CONTINUE;
                 break;
             }
             continue;
         case KEY_F(9):
             loop = false;
-            rc = P_CANCEL;
+            rc = FA_CANCEL;
             break;
         case KEY_F(10):
             loop = false;
-            rc = P_ACCEPT;
+            rc = FA_ACCEPT;
             break;
         case KEY_MOUSE:
             continue;
@@ -257,7 +257,7 @@ int form_post(Init *init) {
     @ingroup form_engine
     @param init A pointer to the Init structure containing form data and state.
     @return An integer status code indicating the next action for the form
-    processing loop (e.g., P_CONTINUE, P_CANCEL, P_ACCEPT, P_HELP).
+    processing loop (e.g., FA_CONTINUE, FA_CANCEL, FA_ACCEPT, FA_HELP).
     @details This function provides integration with getter programs.
         The requirements are:
         1. The form description file must have a line containing only 'C'
@@ -325,7 +325,7 @@ int form_process(Init *init) {
         c = xwgetch(form->win, form->chyron, -1);
         switch (c) {
         case KEY_F(1):
-            return P_HELP;
+            return FA_HELP;
         case KEY_F(5):
             if (form->f_out_spec)
                 form_write(form);
@@ -391,17 +391,17 @@ int form_process(Init *init) {
         case KEY_F(8):
             if (is_set_chyron_key(form->chyron, 8)) {
                 loop = false;
-                rc = P_CONTINUE;
+                rc = FA_CONTINUE;
                 break;
             }
             continue;
         case KEY_F(9):
             loop = false;
-            rc = P_CANCEL;
+            rc = FA_CANCEL;
             break;
         case KEY_F(10):
             loop = false;
-            rc = P_ACCEPT;
+            rc = FA_ACCEPT;
             break;
         case KEY_MOUSE:
             break;
@@ -418,7 +418,7 @@ int form_process(Init *init) {
     @ingroup form_engine
     @param form A pointer to the Form structure containing form data and state.
     @return An integer status code indicating the next action for the form
-    processing loop (e.g., P_ACCEPT, P_HELP, P_CALC, P_CANCEL).
+    processing loop (e.g., FA_ACCEPT, FA_HELP, FA_CALC, FA_CANCEL).
     @details This function manages user input for field entry, including
    navigation between fields and handling of special keys for accepting,
    canceling, requesting help, or performing calculations. The function loops
@@ -432,15 +432,15 @@ int field_navigator(Form *form) {
 
         switch (cmd_key) {
         case KEY_F(10):
-            return (P_ACCEPT);
+            return (FA_ACCEPT);
         case KEY_F(1):
-            return (P_HELP);
+            return (FA_HELP);
         case KEY_F(5):
             if (form->f_process)
-                return (P_CALC);
+                return (FA_CALC);
             break;
         case KEY_F(9):
-            return (P_CANCEL);
+            return (FA_CANCEL);
         case 'k':
         case KEY_UP:
             if (form->fidx != 0)
@@ -451,14 +451,14 @@ int field_navigator(Form *form) {
             if (form->fidx < form->fcnt - 1)
                 form->fidx++;
             else if (form->fidx == form->fcnt - 1)
-                return (P_ACCEPT);
+                return (FA_ACCEPT);
             break;
         case 'j':
         case KEY_DOWN:
             if (form->fidx < form->fcnt - 1)
                 form->fidx++;
             else if (form->fidx == form->fcnt - 1)
-                return (P_ACCEPT);
+                return (FA_ACCEPT);
             break;
         case KEY_MOUSE:
             break;

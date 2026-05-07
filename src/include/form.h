@@ -23,29 +23,29 @@ typedef struct Init Init;
     4 /**< flag - do not echo field input on the screen, e.g. for password     \
          fields */
 
-/** Form process types */
-enum {
-    P_CONTINUE =
-        302,  /**< continue processing the form, e.g. after accepting a field */
-    P_ACCEPT, /**< accept the form, e.g. after accepting a field and all fields
+/** FormAction Directives */
+typedef enum {
+    FA_CONTINUE =
+        302, /**< continue processing the form, e.g. after accepting a field */
+    FA_ACCEPT, /**< accept the form, e.g. after accepting a field and all fields
                  are valid */
-    P_HELP, /**< display the help information for the form, e.g. after accepting
-               a field and the user requests help */
-    P_CANCEL, /**< cancel the form, e.g. after accepting a field and the user
+    FA_HELP,   /**< display the help information for the form, e.g. after
+                 accepting   a field and the user requests help */
+    FA_CANCEL, /**< cancel the form, e.g. after accepting a field and the user
                  cancels the form */
-    P_REFUSE, /**< refuse the form, e.g. after accepting a field and the field
+    FA_REFUSE, /**< refuse the form, e.g. after accepting a field and the field
                  value is invalid */
-    P_CALC,   /**< process the form, e.g. after accepting a field and
+    FA_CALC,   /**< process the form, e.g. after accepting a field and
                  calculating the values of other fields based on the accepted
                  field value */
-    P_EDIT,   /**< edit the form, e.g. after accepting a field and allowing the
+    FA_EDIT,   /**< edit the form, e.g. after accepting a field and allowing the
                  user to edit the form fields */
-    P_END     /**< end the form processing, e.g. after accepting a field and all
-                 fields are valid and the form is accepted */
-};
+    FA_END /**< end the form processing, e.g. after accepting a field and all
+             fields are valid and the form is accepted */
+} FormAction;
 
 /** Form field formats */
-enum FieldFormat {
+typedef enum {
     FF_STRING, /**< a string field format, e.g. for accepting a name or other
                   text input */
     FF_DECIMAL_INT, /**< a decimal integer field format, e.g. for accepting an
@@ -78,7 +78,7 @@ enum FieldFormat {
      * FF_URL - a URL field format, e.g. for accepting a URL input, formatted as
      * a string that matches a regular expression for valid
      */
-};
+} FieldFormat;
 
 /** ff_tbl - a table of field format strings used in the Form description
  *  file to identify field data types

@@ -69,18 +69,18 @@
     return 0;                                                                  \
     }
 
-enum Caller { VIEW, FORM, PICK, MENU };
+typedef enum { VIEW, FORM, PICK, MENU } Caller;
 
 /** @brief option types */
-enum OptType {
+typedef enum {
     OT_STRING,
     OT_INT,
     OT_BOOL,
     OT_HEX,
-};
+} OptType;
 
 /** @brief option groups */
-enum OptGroup {
+typedef enum {
     OG_FILES,
     OG_DIRS,
     OG_SPECS,
@@ -88,7 +88,7 @@ enum OptGroup {
     OG_PARMS,
     OG_FLAGS,
     OG_COL
-};
+} OptGroup;
 
 typedef Menu Menu;
 typedef Form Form;
@@ -175,10 +175,6 @@ typedef struct {
     View *view;   /**< view data structure */
     int view_cnt; /**< number of view data structures allocated */
 } Init;
-
-extern Init *init;
-
-enum { IC_MENU, IC_PICK, IC_FORM, IC_VIEW };
 
 extern Init *init;
 extern int init_cnt; /** number of Init data structures allocated */

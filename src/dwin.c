@@ -90,7 +90,7 @@ RGB StdColors[16] = {
 /** colors_text
     @brief Color names for .minitrc overrides
     @details These names are used in .minitrc to specify color overrides The
-   order of these names corresponds to the colors_enum values */
+   order of these names corresponds to the ColorsEnum values */
 char const colors_text[][10] = {
     "black",   "red",    "green", "yellow",   "blue",   "magenta", "cyan",
     "white",   "orange", "bg",    "abg",      "bblack", "bred",    "bgreen",

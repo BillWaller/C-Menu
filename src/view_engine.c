@@ -2058,7 +2058,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         rc = popup_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
         destroy_argv(eargc, eargv);
         restore_wins();
-        if (rc == P_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F(9))
+        if (rc == FA_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F(9))
             return false;
         close(view->in_fd);
         tmp_fp = fopen(tmp_spec, "r");

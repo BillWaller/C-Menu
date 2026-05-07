@@ -29,7 +29,7 @@ int next_path(char *, char **);
 int file_spec_parts(char *, char *, char *);
 void ABEND(char *, int, char *);
 void normalend();
-enum { WH_ALL = 1, WH_VERBOSE = 2 };
+typedef enum { WH_ALL = 1, WH_VERBOSE = 2 } WhenceFlags;
 int wh_flags = 0;
 const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";

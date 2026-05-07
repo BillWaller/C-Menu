@@ -569,7 +569,28 @@ time lf -d 4 -t f | xargs ls -l >lf.out
 
 As you can see, lf with xargs is significantly faster than find with its built-in -exec option. find, with its built-in exec option executes the specified command for each file found, which can be very inefficient when dealing with a large number of files. In contrast, using xargs allows you to execute the command on multiple files at once, which can significantly reduce the overhead and improve performance.
 
-Even if lf wasn't faster than find, it would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for common file searching tasks.
+Note that benchmark performance can vary based on the specific use case, the size of the dataset, and the system's hardware capabilities. However, in general, using xargs with lf can provide a significant performance boost compared to using find with its built-in -exec option.
+
+The point is the absence of a built-in -exec option is not a disadvantage for lf.
+
+In fairness, we must disclose that the performance of find with xargs instead of its built-in -exec brings it closer, but still short of lf's performance.
+
+Hats off to the developers of xargs for creating such an incredibly efficient and powerful tool.
+
+A simpler invocation of find and lf is more indicative of the actual performance differential.
+
+time find . >find.out
+
+time lf >lf.out
+
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m0.846s | 0m0.338s | 0m0.508s | 321057      |
+| lf      | 0m0.589s | 0m0.160s | 0m0.427s | 321057      |
+
+With a large number of files, the current release of lf is about 30% faster than find, and it is likely that planned optimizations will reduce lf's execution times to a fraction of what they are now.
+
+But, even if lf wasn't faster than find, it would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for the most common file searching tasks.
 
 Here's an example:
 

@@ -80,7 +80,7 @@ PREFIX=$(HOME)/menuapp
 # configuration, so please consult the documentation for libssh and your 
 # system's package manager for more information.
 #
-CFLAGS=-O2
+CFLAGS=-O3
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_LOG -DDEBUG_IMMEDOK -DDEBUG_RESIZE
@@ -108,7 +108,7 @@ CFLAGS=-O2
 # -fno-sanitize-recover=all
 #
 # Uncomment the following line to enable debugging
-CFLAGS=-O0 -g3 -rdynamic
+# CFLAGS=-O0 -g3 -rdynamic
 # -DDEBUG_IMMEDOK
 # Additional debugging flags for C-Menu
 #	-DDEBUG_IMMEDOK -DDEBUG_RESIZE -DDEBUG_LOG

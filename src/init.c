@@ -25,7 +25,7 @@
 #include <time.h>
 #include <unistd.h>
 
-enum {
+typedef enum {
     IN_SPEC = 257,
     OUT_SPEC,
     BG_XCLR,
@@ -63,7 +63,7 @@ enum {
     MAPP_DATA_DIR,
     MAPP_SPEC,
     HELP_SPEC,
-};
+} InitVariables;
 
 bool f_write_config = false;
 bool f_dump_config = false;

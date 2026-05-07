@@ -14,6 +14,7 @@ src/.cache
 src/build
 src/*.o
 src/gdbcmds
+src/tlf
 src/tm
 src/tf
 src/tp

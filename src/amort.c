@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
            tm.tm_mon + 1, tm.tm_mday);
     printf(" Per  Mth Year    Balance     Payment   Principal  Interest\n");
     printf("----  --- ---- ------------ ---------- ---------- ----------\n");
-    int m;
+    int m = 0;
     for (int x = 0; x < amort->n; x++) {
         if (amort->pv <= 0)
             break;
