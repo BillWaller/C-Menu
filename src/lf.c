@@ -25,6 +25,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 struct tm tm_info;
@@ -53,25 +54,32 @@ static struct argp_option options[] = {
      "socket, u-unknown",
      0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
+    {"exec", 'x', "command", 0, "execute external command", 0},
+    {"f_sort", 'S', "r", OPTION_ARG_OPTIONAL, "sort arg=r reverse", 0},
     {0}};
 
-struct lf {
+struct LF {
     int max_depth;
     char *exclude;
     bool f_ignore_case;
+    bool f_sort;
+    bool f_reverse;
     int flags;
     bool f_hide;
     intmax_t file_size_min;
     char *file_types_p;
     char *args[2];
     int argc;
+    char exec[MAXLEN];
     time_t after;
     time_t before;
 };
 
+void external_receiver_command(struct LF lf, char *, char *, char **);
+
 /** @brief Parse a single option.  */
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-    struct lf *lf = state->input;
+    struct LF *lf = state->input;
     int i = 0;
 
     switch (key) {
@@ -175,7 +183,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             }
         }
         break;
-    case 'u': {
+    case 'u':
         struct passwd *pwd = getpwnam(arg);
         if (pwd) {
             if (pwd->pw_uid > 0xffff) {
@@ -191,7 +199,15 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             fprintf(stderr, "User '%s' not found.\n", arg);
             exit(EXIT_FAILURE);
         }
-    } break;
+        break;
+    case 'x':
+        strnz__cpy(lf->exec, arg, MAXLEN - 1);
+        break;
+    case 'S':
+        lf->f_sort = true;
+        if (arg && (arg[0] == 'r' || arg[0] == 'R'))
+            lf->f_reverse = true;
+        break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
             lf->args[state->arg_num] = arg;
@@ -216,13 +232,16 @@ int main(int argc, char **argv) {
     dir[0] = '\0';
     re[0] = '\0';
 
-    struct lf lf = {0};
+    struct LF lf = {0};
     lf.max_depth = 0;
     lf.exclude = nullptr;
     lf.f_ignore_case = false;
+    lf.f_sort = false;
+    lf.f_reverse = false;
     lf.file_types_p = 0;
     lf.args[0] = nullptr;
     lf.args[1] = nullptr;
+    lf.exec[0] = '\0';
     lf.after = 0;
     lf.before = 0;
     lf.file_size_min = 0;
@@ -263,9 +282,52 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
     }
+    int eargc = 0;
+    char *eargv[MAXARGS];
     if (dir[0] == '\0')
         strncpy(dir, ".", MAXLEN - 1);
+    if (lf.f_sort) {
+        eargv[eargc++] = strdup("sort");
+        if (lf.f_reverse)
+            eargv[eargc++] = strdup("-r");
+        eargv[eargc] = nullptr;
+        external_receiver_command(lf, dir, re, eargv);
+    } else
+        lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags, lf.after,
+                lf.before, lf.file_size_min);
+    exit(EXIT_SUCCESS);
+}
+/** @brief Execute an external command with the output of lf_find as input.
+    @param lf The LF struct containing the options and flags for lf_find.
+    @param dir The directory to search for files.
+    @param re The regular expression to match file names against.
+    @param eargv The argument vector for the external command to execute.
+    @details This function creates a child process to execute the external
+   command specified by the user. It sets up a pipe to redirect the output of
+   lf_find to the standard input of the external command. The parent process
+   runs lf_find and writes its output to the pipe, while the child process reads
+   from the pipe and executes the external command. After lf_find completes, the
+   parent process waits for the child process to finish before exiting.
+   */
+void external_receiver_command(struct LF lf, char *dir, char *re,
+                               char **eargv) {
+    int wstatus;
+    int save_fd = dup(STDOUT_FILENO); // save current STDOUT
+    int fds[2];
+    pipe(fds); // Create the pipes
+    pid_t pid1 = fork();
+    if (pid1 == 0) {
+        close(fds[1]);              // Close child write pipe
+        dup2(fds[0], STDIN_FILENO); // Clone child read pipe to STDIN_FILENO
+        close(fds[0]);              // Close child read pipe after cloning
+        execvp(eargv[0], eargv);    // Execute the external command
+    }
+    close(fds[0]);               // Close read end of pipe
+    dup2(fds[1], STDOUT_FILENO); // Clone write pipe to STDOUT_FILENO
+    close(fds[1]);               // Close duplicated write pipe
+    setvbuf(stdout, NULL, _IOLBF, 0);
     lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags, lf.after, lf.before,
-            lf.file_size_min);
-    return 0;
+            lf.file_size_min);    // Generate the output for external command
+    dup2(save_fd, STDOUT_FILENO); // restore STDOUT
+    waitpid(pid1, &wstatus, 0);
 }

@@ -1,5 +1,6 @@
 .gitignore
 src/*.o
+src/amort
 src/ckeys
 src/menu
 src/form
@@ -7,6 +8,7 @@ src/pick
 src/view
 src/stripansi
 src/iloan
+src/rustlings
 src/whence
 src/.cache
 src/build

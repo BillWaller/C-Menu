@@ -138,10 +138,13 @@ bool mk_raw_tioctl(struct termios *t_p) {
     tcsetattr(2, TCSAFLUSH, t_p);
     return true;
 }
-/** @brief  sget single character from terminal in raw mode
+/** @brief get single character from terminal in raw mode
     @ingroup screen_io
     @return - the character read from terminal
-    @details restores terminal settings */
+    @details intended to be used when curses is not active
+    @note restores terminal settings before returning
+
+ */
 char di_getch() {
     struct termios org_tioctl, new_tioctl;
     char buf;
