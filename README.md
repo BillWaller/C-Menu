@@ -153,16 +153,17 @@ and relinquish root privilege.
 
 ![lf help](screenshots/lf-help.png)
 
-The screenshot above is the help output of lf piped through bat and displayed in
-View.
+The screenshot above is the help output of lf -? (help) piped through bat and displayed in View.
 
 ![lf File Finder](screenshots/lf-dates.png)
 
 The screenshot above is an example of how you might use the date-time options
 of lf to list files between two date-times (after and before) and the sample
-output. We believe you will find this format intuitive and easy to use.
+output. lf is definitely intuitive and very easy to use.
 
-Currently, lf is faster than find, but it isn't nearly as fast as fd. We belive the planned optimizations for lf will make it faster than fd, but even in its current state, lf is a great tool for finding files with regular expressions and date-time criteria. lf is designed to be simple and easy to use, with a focus on performance and usability.
+With C-Menu, you can use lf, find, or fd depending on your specific needs and preferences. If you need a powerful and flexible file finder with a very light footprint, lf is a great choice. For a more traditional file finder with a wide range of options and compatibility with older systems, find may be a better choice for your target platform. If you want the fastest possible file finder and don't mind its relatively large footprint, fd is the way to go. fd is written in Rust, which is great for any number of reasons, but applications written in Rust require significantly more disk space than applications written in C. fd's executable alone is 3.8 Mb on my system, it has more than a few dependencies, and portability can be an issue. lf, on the other hand, is written in C, has a 20 Kb executable, and minimal dependencies.
+
+Currently, lf is faster than find, but not nearly as fast as fd. The planned multi-threading optimizations for lf will make it much faster, but even in its current state, lf is a great tool for finding files with regular expressions and date-time criteria. lf is designed to be simple and easy to use, with a focus on portability, performance, and usability.
 
 ---
 
@@ -172,7 +173,7 @@ Currently, lf is faster than find, but it isn't nearly as fast as fd. We belive 
 user interfaces in C. The API includes tools specific to C-Menu, but also many
 general purpose tools that can be used in a wide range of applications. The API
 documentation is available in html and integrated into Neovim's completion
-engine, making it easy for developers to learn and use the API effectively.
+engine, making it convenient for developers to learn and use the API effectively.
 
 ---
 
