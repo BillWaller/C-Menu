@@ -47,6 +47,7 @@ int cmenu_log_fd;
 char earg_str[MAXLEN];
 int eargc;
 char *eargv[MAXARGS];
+/** @brief Structure to hold file type flags for filtering in lf_process */
 typedef struct {
     uintmax_t user_id;
     int include_types;
@@ -1085,6 +1086,7 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     @param before_t    select files modified before this time (0 to ignore)
     @param file_size_min select files with size greater than or equal to this
    size (0 to ignore)
+    @param f           FileFlags structure
     @see lf_find()
     @return true if successful, false otherwise
     @details This function is reentrant and is called recursively to traverse

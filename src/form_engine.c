@@ -862,7 +862,7 @@ int form_exec_cmd(Form *form) {
 }
 /** @brief Execute a command specified by the -R option on the form command line
     @ingroup form_engine
-    @param form A pointer to the Init structure
+    @param init A pointer to the Init structure
     @return 0 on success, or a non-zero value if an error occurs while
    constructing or executing the command.
     @details This function constructs a command by taking the receiver_cmd

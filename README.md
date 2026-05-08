@@ -162,6 +162,8 @@ The screenshot above is an example of how you might use the date-time options
 of lf to list files between two date-times (after and before) and the sample
 output. We believe you will find this format intuitive and easy to use.
 
+Currently, lf is faster than find, but it isn't nearly as fast as fd. We belive the planned optimizations for lf will make it faster than fd, but even in its current state, lf is a great tool for finding files with regular expressions and date-time criteria. lf is designed to be simple and easy to use, with a focus on performance and usability.
+
 ---
 
 ## API
