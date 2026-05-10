@@ -590,6 +590,20 @@ time lf >lf.out
 
 With a large number of files, the current release of lf is about 30% faster than find, and it is likely that planned optimizations will reduce lf's execution times to a fraction of what they are now.
 
+**_NEW_** The latest updates have incorporated concurrent directory processing resulting in significant performance gains for lf. I have not had time to dig in and find out why fd only listed 291969 files, but it is likely that fd is not following symbolic links, which would account for the difference in file counts. The performance of fd is also significantly slower than lf, which is surprising given that fd is written in Rust and is generally considered to be a fast file searching tool. It is possible that fd's performance could be improved with some optimizations, but as it stands, lf appears to be the superior choice for file searching tasks.
+
+time find . -type f | wc
+
+time lf . -t f | wc
+
+time fd . -H -t f | wc
+
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m0.793s | 0m0.470s | 0m0.453s | 307440      |
+| lf      | 0m0.214s | 0m0.036s | 0m0.214s | 307440      |
+| fd      | 0m0.221s | 0m0.319s | 0m0.821s | 291969      |
+
 But, even if lf wasn't faster than find, it would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for the most common file searching tasks.
 
 Here's an example:

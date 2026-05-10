@@ -47,9 +47,25 @@ int cmenu_log_fd;
 char earg_str[MAXLEN];
 int eargc;
 char *eargv[MAXARGS];
-/** @brief Structure to hold file type flags for filtering in lf_process */
 typedef struct {
+    char re[PATH_MAX];
+    char ere[PATH_MAX];
+    regex_t compiled_re;
+    regex_t compiled_ere;
+    long flags;
+    time_t after;
+    time_t before;
     uintmax_t user_id;
+    intmax_t file_size_min;
+    int max_depth;
+    bool f_ignore_case;
+    bool f_sort;
+    bool f_reverse;
+    bool f_hide;
+    char *file_types_p;
+    char *args[2];
+    int argc;
+    char exec[MAXLEN];
     int include_types;
     int suppress_types;
     bool include;
@@ -61,11 +77,10 @@ typedef struct {
     bool reg;
     bool sock;
     bool unknown;
-} FileFlags;
-bool lf_find(const char *, const char *, const char *, int, long, time_t,
-             time_t, intmax_t);
-bool lf_process(const char *, regex_t *, regex_t *, int, int, long, time_t,
-                time_t, intmax_t, FileFlags *);
+} SearchFilters;
+
+// bool init_find(const char *, SearchFilters *);
+// int scan_files(const char *, SearchFilters *, int depth);
 size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);
@@ -999,29 +1014,17 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     }
     return false;
 }
-/** @brief Find files in a directory matching a regular expression
+/* @brief Find files in a directory matching a regular expression
     @ingroup utility_functions
     @param base_path  directory to search
-    @param ere        regular expression match to exclude
-    @param re         regular expression match to include
-    @param max_depth  depth of directories to scan
-    @param flags      search flags
-    @param after_t select files modified after this time (0 to ignore)
-    @param before_t select files modified before this time (0 to ignore)
-    @param file_size_min select files with size greater than or equal to this
-   size (0 to ignore)
+    @param f           SearchFilters structure
     @see lf_process()
-    @return      true if successful, false otherwise */
-bool lf_find(const char *base_path, const char *re, const char *ere,
-             int max_depth, long flags, time_t after_t, time_t before_t,
-             intmax_t file_size_min) {
-    FileFlags *f;
-    f = malloc(sizeof(FileFlags));
-    if (flags & LF_USER)
-        f->user_id = flags >> 24 & 0xffff;
+    @return      true if successful, false otherwise
+bool init_find(const char *base_path, SearchFilters *f) {
+    if (f->flags & LF_USER)
+        f->user_id = f->flags >> 24 & 0xffff;
     f->suppress_types = 0;
-    f->include_types = flags >> 8 & 0xff;
-    /** suppress file types that aren't included */
+    f->include_types = f->flags >> 8 & 0xff;
     if (f->include_types)
         f->suppress_types = f->include_types ^ 0xff;
     f->blk = f->suppress_types & FT_BLK ? 1 : 0;
@@ -1033,61 +1036,49 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     f->sock = f->suppress_types & FT_SOCK ? 1 : 0;
     f->unknown = f->suppress_types & FT_UNKNOWN ? 1 : 0;
     int reti;
-    regex_t compiled_re;
-    regex_t compiled_ere;
     int REG_FLAGS = REG_EXTENDED;
-    if (flags & LF_ICASE)
+    if (f->flags & LF_ICASE)
         REG_FLAGS |= REG_ICASE;
-    if (flags & LF_REGEX) {
-        reti = regcomp(&compiled_re, re, REG_FLAGS);
+    if (f->flags & LF_REGEX) {
+        reti = regcomp(&f->compiled_re, f->re, REG_FLAGS);
         if (reti) {
-            ssnprintf(em0, MAXLEN - 1, "lf: \'%s\' Invalid pattern\n", re);
+            ssnprintf(em0, MAXLEN - 1, "lf: \'%s\' Invalid pattern\n", f->re);
             ssnprintf(em1, MAXLEN - 1, "for example: \'.*\\.c$\'\n\n");
-            regerror(reti, &compiled_re, em2, sizeof(em2));
+            regerror(reti, &f->compiled_re, em2, sizeof(em2));
             display_error(em0, em1, em2, nullptr);
-            regfree(&compiled_re);
+            regfree(&f->compiled_re);
             return false;
         }
     }
-    if (flags & LF_EXC_REGEX) {
-        regcomp(&compiled_ere, "^$", REG_FLAGS);
-        reti = regcomp(&compiled_ere, ere, REG_FLAGS);
+    if (f->flags & LF_EXC_REGEX) {
+        regcomp(&f->compiled_ere, "^$", REG_FLAGS);
+        reti = regcomp(&f->compiled_ere, f->ere, REG_FLAGS);
         if (reti) {
             ssnprintf(em0, MAXLEN - 1, "lf: \'%s\' Invalid exclude pattern\n",
-                      re);
+                      f->re);
             ssnprintf(em1, MAXLEN - 1, "for example: \'.*\\.c$\'\n\n");
-            regerror(reti, &compiled_ere, em2, sizeof(em2));
+            regerror(reti, &f->compiled_ere, em2, sizeof(em2));
             display_error(em0, em1, em2, nullptr);
-            regfree(&compiled_ere);
+            regfree(&f->compiled_ere);
             return false;
         }
     }
-    reti = lf_process(base_path, &compiled_re, &compiled_ere, 0, max_depth,
-                      flags, after_t, before_t, file_size_min, f);
-    if (flags & LF_REGEX)
-        regfree(&compiled_re);
-    if (flags & LF_EXC_REGEX)
-        regfree(&compiled_ere);
+    reti = scan_files(base_path, f, 0);
+    if (f->flags & LF_REGEX)
+        regfree(&f->compiled_re);
+    if (f->flags & LF_EXC_REGEX)
+        regfree(&f->compiled_ere);
     free(f);
     if (reti)
         return false;
     return true;
 }
+ */
 
-/** @brief Process files in a directory matching regular expressions and flags
+/* @brief Process files in a directory matching regular expressions and flags
     @ingroup utility_functions
     @param base_path  directory to search
-    @param compiled_re        compiled regular expression to include
-    @param compiled_ere       compiled regular expression to exclude
-    @param depth       current depth of directory traversal
-    @param max_depth   maximum depth of directory traversal
-    @param flags       search flags
-    @param after_t     select files modified after this time (0 to ignore)
-    @param before_t    select files modified before this time (0 to ignore)
-    @param file_size_min select files with size greater than or equal to this
-   size (0 to ignore)
-    @param f           FileFlags structure
-    @see lf_find()
+    @param f           SearchFilters structure
     @return true if successful, false otherwise
     @details This function is reentrant and is called recursively to traverse
    directories up to max_depth. The flags parameter controls various aspects of
@@ -1142,12 +1133,8 @@ bool lf_find(const char *base_path, const char *re, const char *ere,
     LF_USER         00100000   32 Select User Name
 
     @endverbatim
-*/
 
-bool lf_process(const char *base_path, regex_t *compiled_re,
-                regex_t *compiled_ere, int depth, int max_depth, long flags,
-                time_t after_t, time_t before_t, intmax_t file_size_min,
-                FileFlags *f) {
+int scan_files(const char *base_path, SearchFilters *f, int depth) {
     char tmp_str[PATH_MAX];
     char msgbuf[PATH_MAX];
     char file_spec[PATH_MAX];
@@ -1156,11 +1143,11 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
     DIR *dir;
     int REG_FLAGS = REG_EXTENDED;
     int reti;
-    int permissions = flags >> 16 & 0xff;
+    int permissions = f->flags >> 16 & 0xff;
     regmatch_t pmatch[2];
     bool suppress_file;
     bool f_stat = false;
-    bool suppress_hidden = flags & LF_HIDE ? true : false;
+    bool suppress_hidden = f->flags & LF_HIDE ? true : false;
     if ((dir = opendir(base_path)) == 0)
         return false;
     while ((dir_st = readdir(dir)) != nullptr) {
@@ -1216,30 +1203,28 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         ssnprintf(file_spec, sizeof(file_spec), "%s/%s", base_path, bname);
         if (bname[0] == '.' && suppress_hidden)
             suppress_file = true;
-        /* Exclude non-matching files */
-        if (!suppress_file && (flags & LF_REGEX)) {
-            reti = regexec(compiled_re, file_spec, compiled_re->re_nsub + 1,
-                           pmatch, REG_FLAGS);
+        if (!suppress_file && (f->flags & LF_REGEX)) {
+            reti = regexec(&f->compiled_re, file_spec,
+                           f->compiled_re.re_nsub + 1, pmatch, REG_FLAGS);
             if (reti == REG_NOMATCH) {
                 suppress_file = true;
             } else if (reti) {
-                regerror(reti, compiled_re, msgbuf, sizeof(msgbuf));
+                regerror(reti, &f->compiled_re, msgbuf, sizeof(msgbuf));
                 strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
                 strnz__cat(tmp_str, msgbuf, PATH_MAX - 1);
                 Perror(tmp_str);
                 return false;
             }
         }
-        /* Exclude matching files */
-        if (!suppress_file && (flags & LF_EXC_REGEX)) {
-            reti = regexec(compiled_ere, file_spec, compiled_re->re_nsub + 1,
-                           pmatch, REG_FLAGS);
+        if (!suppress_file && (f->flags & LF_EXC_REGEX)) {
+            reti = regexec(&f->compiled_ere, file_spec,
+                           f->compiled_re.re_nsub + 1, pmatch, REG_FLAGS);
             if (reti == 0)
                 suppress_file = true;
             else if (reti == REG_NOMATCH)
                 suppress_file = false;
             else if (reti) {
-                regerror(reti, compiled_re, msgbuf, sizeof(msgbuf));
+                regerror(reti, &f->compiled_re, msgbuf, sizeof(msgbuf));
                 strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
                 strnz__cat(tmp_str, msgbuf, PATH_MAX - 1);
                 Perror(tmp_str);
@@ -1248,9 +1233,8 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
         }
         f_stat = false;
         struct stat sb;
-        /** Exclude files not owned by specified user */
         if (!suppress_file) {
-            if ((flags & LF_USER) && stat(file_spec, &sb) == 0) {
+            if ((f->flags & LF_USER) && stat(file_spec, &sb) == 0) {
                 f_stat = true;
                 if (sb.st_uid != f->user_id)
                     suppress_file = true;
@@ -1273,28 +1257,28 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
             else if ((permissions & LF_SETGID) && (sb.st_mode & S_ISGID))
                 suppress_file = false;
         }
-        if (!suppress_file && before_t) {
+        if (!suppress_file && f->before) {
             if (!f_stat) {
                 if (stat(file_spec, &sb) == 0)
                     f_stat = true;
             }
-            if (f_stat && sb.st_mtime > before_t)
+            if (f_stat && sb.st_mtime > f->before)
                 suppress_file = true;
         }
-        if (!suppress_file && after_t) {
+        if (!suppress_file && f->after) {
             if (!f_stat) {
                 if (stat(file_spec, &sb) == 0)
                     f_stat = true;
             }
-            if (f_stat && sb.st_mtime < after_t)
+            if (f_stat && sb.st_mtime < f->after)
                 suppress_file = true;
         }
-        if (!suppress_file && file_size_min) {
+        if (!suppress_file && f->file_size_min) {
             if (!f_stat) {
                 if (stat(file_spec, &sb) == 0)
                     f_stat = true;
             }
-            if (f_stat && sb.st_size < file_size_min)
+            if (f_stat && sb.st_size < f->file_size_min)
                 suppress_file = true;
         }
         if (!suppress_file) {
@@ -1304,16 +1288,16 @@ bool lf_process(const char *base_path, regex_t *compiled_re,
                 printf("%s\n", file_spec);
         }
         if (dir_st->d_type == DT_DIR &&
-            (max_depth == 0 || depth + 1 < max_depth)) {
+            (f->max_depth == 0 || depth + 1 < f->max_depth)) {
             depth++;
-            lf_process(file_spec, compiled_re, compiled_ere, depth, max_depth,
-                       flags, after_t, before_t, file_size_min, f);
+            scan_files(file_spec, f, depth);
             depth--;
         }
     }
     closedir(dir);
     return true;
 }
+*/
 /** @brief If directory doesn't exist, make it
     @ingroup utility_functions
     @param dir directory name

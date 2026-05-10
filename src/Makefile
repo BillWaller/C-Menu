@@ -98,7 +98,7 @@ CFLAGS=-O3
 #   necessary for production builds, so it is typically used only for debugging 
 #   purposes.
 #
-CFLAGS=-O0 -ggdb -rdynamic
+# CFLAGS=-O0 -ggdb -rdynamic
 # CFLAGS=-DDEBUG_RESIZE DDEUBG_IMMEDOK DDEBUG_LOG
 #  Uncomment the following line to enable Address Sanitizer, Leak Sanitizer, and 
 #  Undefined Behavior Sanitizer.
@@ -247,7 +247,7 @@ test: snippets/strings_test1.c
 # Run Valgrind with the project suppression file.
 # Any remaining output after applying suppressions indicates a real leak.
 # See docs/valgrind.md for full details.
-valgrind: menu
+valgrind: lf
 	valgrind -v \
     	--log-file=valgrind.out \
 		--leak-check=full \
@@ -255,7 +255,7 @@ valgrind: menu
 		--leak-resolution=high \
 		--track-origins=yes \
 		--suppressions=valgrind.supp \
-		./menu
+		./lf
 # --tool=memcheck
 
 install:

@@ -6,11 +6,7 @@
     billxwaller@gmail.com
     @date 2026-02-09
  */
-
-#include <stdint.h>
-#include <stdio.h>
-#define __USE_XOPEN
-#include <time.h>
+#define _GNU_SOURCE
 
 #include <argp.h>
 #include <cm.h>
@@ -18,14 +14,20 @@
 #include <fcntl.h>
 #include <grp.h>
 #include <linux/limits.h>
+#include <pthread.h>
 #include <pwd.h>
 #include <regex.h>
+#include <stdatomic.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <unistd.h>
 
 struct tm tm_info;
@@ -42,7 +44,7 @@ static struct argp_option options[] = {
     {"after", 'a', "time", 0, "Modified after YYYY-MM-DDTHH:MM:SS", 0},
     {"before", 'b', "time", 0, "Modified before YYYY-MM-DDTHH:MM:SS", 0},
     {"max_depth", 'd', "number", 0, "Depth into directory tree", 0},
-    {"exclude", 'e', "regex", 0, "Exclude regular expression", 0},
+    {"ere", 'e', "regex", 0, "Exclude regular expression", 0},
     {"f_ignore_case", 'i', 0, 0, "Search ignore case", 0},
     {"f_hide", 'n', 0, 0, "Do not list hidden files", 0},
     {"permissions", 'p', "sgrwx", 0,
@@ -55,32 +57,64 @@ static struct argp_option options[] = {
      0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {"exec", 'x', "command", 0, "execute external command", 0},
+    {"debug", 'D', "level", OPTION_ARG_OPTIONAL, "Output debugging information",
+     0},
     {"f_sort", 'S', "r", OPTION_ARG_OPTIONAL, "sort arg=r reverse", 0},
     {0}};
 
-struct LF {
+typedef struct {
+    char base_path[PATH_MAX];
+    char re[MAXLEN];
+    char ere[MAXLEN];
+    regex_t compiled_re;
+    regex_t compiled_ere;
+    long flags;
+    time_t after;
+    time_t before;
+    uintmax_t user_id;
+    intmax_t file_size_min;
     int max_depth;
-    char *exclude;
     bool f_ignore_case;
     bool f_sort;
     bool f_reverse;
-    int flags;
     bool f_hide;
-    intmax_t file_size_min;
     char *file_types_p;
     char *args[2];
     int argc;
     char exec[MAXLEN];
-    time_t after;
-    time_t before;
-};
+    int include_types;
+    int suppress_types;
+    bool include;
+    bool blk;
+    bool chr;
+    bool dir;
+    bool fifo;
+    bool lnk;
+    bool reg;
+    bool sock;
+    bool unknown;
+    int debug;
+} SearchFilters;
 
-void external_receiver_command(struct LF lf, char *, char *, char **);
+typedef struct Node {
+    char path[PATH_MAX]; /**< Directory path to process */
+    int depth;           /**< Current depth in the directory tree */
+    struct Node *next;   /**< Pointer to the next node in the queue */
+} Node;                  /**< Queue Node (for work-stealing) */
+
+bool init_find(SearchFilters *);
+int scan_file(char *, SearchFilters *, struct dirent *);
+
+void enqueue(const char *, int);
+Node *dequeue();
+void *worker(void *);
+// void exec_external(SearchFilters *, char **);
 
 /** @brief Parse a single option.  */
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-    struct LF *lf = state->input;
+    SearchFilters *f = state->input;
     int i = 0;
+    bool a_toi_error = false;
 
     switch (key) {
     case 'a':
@@ -89,8 +123,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             fprintf(stderr, "-a Failed to parse time string.\n");
             return 1;
         }
-        lf->after = mktime(&tm_info);
-        if (lf->after && lf->before && lf->after > lf->before) {
+        f->after = mktime(&tm_info);
+        if (f->after && f->before && f->after > f->before) {
             fprintf(stderr, "-a time must be before -b time.\n");
             return 1;
         }
@@ -101,43 +135,50 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             fprintf(stderr, "-b Failed to parse time string.\n");
             return 1;
         }
-        lf->before = mktime(&tm_info);
-        if (lf->after && lf->before && lf->after > lf->before) {
+        f->before = mktime(&tm_info);
+        if (f->after && f->before && f->after > f->before) {
             fprintf(stderr, "-a time must be before -b time.\n");
             return 1;
         }
         break;
     case 'd':
-        lf->max_depth = atoi(arg);
+        if (arg && arg[0] != '\0')
+            f->max_depth = a_toi(arg, &a_toi_error);
+        break;
+    case 'D':
+        if (arg && arg[0] != '\0')
+            f->debug = a_toi(arg, &a_toi_error);
+        else
+            f->debug = 1;
         break;
     case 'e':
-        lf->exclude = arg;
-        lf->flags |= LF_EXC_REGEX;
+        strnz__cpy(f->ere, arg, MAXLEN - 1);
+        f->flags |= LF_EXC_REGEX;
         break;
     case 'i':
-        lf->flags |= LF_ICASE;
+        f->flags |= LF_ICASE;
         break;
     case 'n':
-        lf->f_hide = true;
-        lf->flags |= LF_HIDE;
+        f->f_hide = true;
+        f->flags |= LF_HIDE;
         break;
     case 'p':
         for (i = 0; arg[i]; i++) {
             switch (arg[i]) {
             case 'g':
-                lf->flags |= LF_SETGID << 16;
+                f->flags |= LF_SETGID << 16;
                 break;
             case 'r':
-                lf->flags |= LF_PERM_R << 16;
+                f->flags |= LF_PERM_R << 16;
                 break;
             case 's':
-                lf->flags |= LF_SETUID << 16;
+                f->flags |= LF_SETUID << 16;
                 break;
             case 'w':
-                lf->flags |= LF_PERM_W << 16;
+                f->flags |= LF_PERM_W << 16;
                 break;
             case 'x':
-                lf->flags |= LF_PERM_X << 16;
+                f->flags |= LF_PERM_X << 16;
                 break;
             default:
                 break;
@@ -146,37 +187,37 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 's':
         long long ull = a_to_ull(arg);
-        lf->file_size_min = (intmax_t)ull;
+        f->file_size_min = (intmax_t)ull;
         break;
     case 't':
-        lf->file_types_p = arg;
-        while (lf->file_types_p[i]) {
-            switch (lf->file_types_p[i++]) {
+        f->file_types_p = arg;
+        while (f->file_types_p[i]) {
+            switch (f->file_types_p[i++]) {
             case 'b':
-                lf->flags |= FT_BLK << 8;
+                f->flags |= FT_BLK << 8;
                 break;
             case 'c':
-                lf->flags |= FT_CHR << 8;
+                f->flags |= FT_CHR << 8;
                 break;
             case 'd':
-                lf->flags |= FT_DIR << 8;
+                f->flags |= FT_DIR << 8;
                 break;
             case 'p':
-                lf->flags |= FT_FIFO << 8;
+                f->flags |= FT_FIFO << 8;
                 break;
             case 'l':
-                lf->flags |= FT_LNK << 8;
+                f->flags |= FT_LNK << 8;
                 break;
             case 'f': // for regular files, 'f' is more intuitive than 'r'
             case 'r': // regular files are the most common type, so 'r' is also
                       // accepted
-                lf->flags |= FT_REG << 8;
+                f->flags |= FT_REG << 8;
                 break;
             case 's':
-                lf->flags |= FT_SOCK << 8;
+                f->flags |= FT_SOCK << 8;
                 break;
             case 'u':
-                lf->flags |= FT_UNKNOWN << 8;
+                f->flags |= FT_UNKNOWN << 8;
                 break;
             default:
                 break;
@@ -193,25 +234,25 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                         arg, pwd->pw_uid);
                 exit(EXIT_FAILURE);
             }
-            lf->flags |= (long)(pwd->pw_uid) << 24;
-            lf->flags |= LF_USER;
+            f->flags |= (long)(pwd->pw_uid) << 24;
+            f->flags |= LF_USER;
         } else {
             fprintf(stderr, "User '%s' not found.\n", arg);
             exit(EXIT_FAILURE);
         }
         break;
     case 'x':
-        strnz__cpy(lf->exec, arg, MAXLEN - 1);
+        strnz__cpy(f->exec, arg, MAXLEN - 1);
         break;
     case 'S':
-        lf->f_sort = true;
+        f->f_sort = true;
         if (arg && (arg[0] == 'r' || arg[0] == 'R'))
-            lf->f_reverse = true;
+            f->f_reverse = true;
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
-            lf->args[state->arg_num] = arg;
-            lf->argc = state->arg_num + 1;
+            f->args[state->arg_num] = arg;
+            f->argc = state->arg_num + 1;
         } else {
             argp_usage(state);
         }
@@ -226,108 +267,445 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 static struct argp argp = {options, parse_opt, args_doc, doc,
                            nullptr, nullptr,   nullptr};
 
-int main(int argc, char **argv) {
-    char dir[PATH_MAX];
-    char re[PATH_MAX];
-    dir[0] = '\0';
-    re[0] = '\0';
+/** @brief Global Synchronization State */
+Node *head = NULL, *tail = NULL;
+pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
+atomic_int active_tasks = 0;
+int shutdown = 0;
 
-    struct LF lf = {0};
-    lf.max_depth = 0;
-    lf.exclude = nullptr;
-    lf.f_ignore_case = false;
-    lf.f_sort = false;
-    lf.f_reverse = false;
-    lf.file_types_p = 0;
-    lf.args[0] = nullptr;
-    lf.args[1] = nullptr;
-    lf.exec[0] = '\0';
-    lf.after = 0;
-    lf.before = 0;
-    lf.file_size_min = 0;
-    // setenv("ARGP_HELP_FMT", "opt-doc-col=30", 1);
-    argp_parse(&argp, argc, argv, 0, 0, &lf);
-    if (lf.argc > 0) {
-        if (is_directory(lf.args[0]))
-            strnz__cpy(dir, lf.args[0], MAXLEN - 1);
-        else if (is_symlink_to_dir(lf.args[0]))
-            strnz__cpy(dir, lf.args[0], MAXLEN - 1);
-        else if (is_valid_regex(lf.args[0])) {
-            strnz__cpy(re, lf.args[0], MAXLEN - 1);
-            lf.flags |= LF_REGEX;
+int main(int argc, char **argv) {
+
+    SearchFilters *f = (SearchFilters *)calloc(1, sizeof(SearchFilters));
+    f->base_path[0] = '\0';
+    f->max_depth = 0;
+    f->re[0] = '\0';
+    f->ere[0] = '\0';
+    f->f_ignore_case = false;
+    f->f_sort = false;
+    f->f_reverse = false;
+    f->file_types_p = 0;
+    f->args[0] = nullptr;
+    f->args[1] = nullptr;
+    f->exec[0] = '\0';
+    f->after = 0;
+    f->before = 0;
+    f->file_size_min = 0;
+    // etenv("ARGP_HELP_FMT", "opt-doc-col=30", 1);
+    argp_parse(&argp, argc, argv, 0, 0, f);
+    if (f->argc > 0) {
+        if (is_directory(f->args[0]))
+            strnz__cpy(f->base_path, f->args[0], MAXLEN - 1);
+        else if (is_symlink_to_dir(f->args[0]))
+            strnz__cpy(f->base_path, f->args[0], MAXLEN - 1);
+        else if (is_valid_regex(f->args[0])) {
+            strnz__cpy(f->re, f->args[0], MAXLEN - 1);
+            f->flags |= LF_REGEX;
         } else {
             fprintf(stderr,
                     "arg1: '%s' is neither a directory nor a valid regex.\n",
-                    lf.args[0]);
+                    f->args[0]);
             exit(EXIT_FAILURE);
         }
     }
-    if (lf.argc > 1) {
-        if (dir[0] == '\0' && is_directory(lf.args[1]))
-            strnz__cpy(dir, lf.args[1], MAXLEN - 1);
-        else if (dir[0] == '\0' && is_symlink_to_dir(lf.args[1]))
-            strnz__cpy(dir, lf.args[1], MAXLEN - 1);
-        else if (is_valid_regex(lf.args[1])) {
-            if (lf.flags & LF_REGEX) {
+    if (f->argc > 1) {
+        if (f->base_path[0] == '\0' && is_directory(f->args[1]))
+            strnz__cpy(f->base_path, f->args[1], MAXLEN - 1);
+        else if (f->base_path[0] == '\0' && is_symlink_to_dir(f->args[1]))
+            strnz__cpy(f->base_path, f->args[1], MAXLEN - 1);
+        else if (is_valid_regex(f->args[1])) {
+            if (f->flags & LF_REGEX) {
                 fprintf(stderr, "lf: %s is not a valid directory.\n",
-                        lf.args[0]);
+                        f->args[0]);
                 exit(EXIT_FAILURE);
             }
-            strnz__cpy(re, lf.args[1], MAXLEN - 1);
-            lf.flags |= LF_REGEX;
+            strnz__cpy(f->re, f->args[1], MAXLEN - 1);
+            f->flags |= LF_REGEX;
         } else {
             fprintf(stderr,
                     "arg2: '%s' is neither a directory nor a valid regex.\n",
-                    lf.args[1]);
+                    f->args[1]);
             exit(EXIT_FAILURE);
         }
     }
-    int eargc = 0;
-    char *eargv[MAXARGS];
-    if (dir[0] == '\0')
-        strncpy(dir, ".", MAXLEN - 1);
-    if (lf.f_sort) {
+    if (f->base_path[0] == '\0')
+        strnz__cpy(f->base_path, ".", MAXLEN - 1);
+    if (f->f_sort) {
+        int eargc = 0;
+        char *eargv[MAXARGS];
         eargv[eargc++] = strdup("sort");
-        if (lf.f_reverse)
+        if (f->f_reverse)
             eargv[eargc++] = strdup("-r");
         eargv[eargc] = nullptr;
-        external_receiver_command(lf, dir, re, eargv);
+        int wstatus;
+        int save_fd = dup(STDOUT_FILENO); // save current STDOUT
+        int fds[2];
+        pipe(fds); // Create the pipes
+        pid_t pid1 = fork();
+        if (pid1 == 0) {
+            close(fds[1]);              // Close child write pipe
+            dup2(fds[0], STDIN_FILENO); // Clone child read pipe to STDIN_FILENO
+            close(fds[0]);              // Close child read pipe after cloning
+            execvp(eargv[0], eargv);    // Execute the external command
+        }
+        close(fds[0]);               // Close read end of pipe
+        dup2(fds[1], STDOUT_FILENO); // Clone write pipe to STDOUT_FILENO
+        close(fds[1]);               // Close duplicated write pipe
+        setvbuf(stdout, NULL, _IOLBF, 0);
+        init_find(f);                 // File finder uses pthreads
+        dup2(save_fd, STDOUT_FILENO); // restore STDOUT
+        waitpid(pid1, &wstatus, 0);
     } else
-        lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags, lf.after,
-                lf.before, lf.file_size_min);
+        init_find(f); // This invocation of file finder using pthreads works
     exit(EXIT_SUCCESS);
 }
-/** @brief Execute an external command with the output of lf_find as input.
-    @param lf The LF struct containing the options and flags for lf_find.
+/** @brief Execute an external command with the output of init_find as input.
+    @param lf The LF struct containing the options and flags for init_find.
     @param dir The directory to search for files.
     @param re The regular expression to match file names against.
     @param eargv The argument vector for the external command to execute.
     @details This function creates a child process to execute the external
    command specified by the user. It sets up a pipe to redirect the output of
-   lf_find to the standard input of the external command. The parent process
-   runs lf_find and writes its output to the pipe, while the child process reads
-   from the pipe and executes the external command. After lf_find completes, the
-   parent process waits for the child process to finish before exiting.
+   init_find to the standard input of the external command. The parent process
+   runs init_find and writes its output to the pipe, while the child process
+   reads from the pipe and executes the external command. After init_find
+   completes, the parent process waits for the child process to finish before
+   exiting.
    */
-void external_receiver_command(struct LF lf, char *dir, char *re,
-                               char **eargv) {
-    int wstatus;
-    int save_fd = dup(STDOUT_FILENO); // save current STDOUT
-    int fds[2];
-    pipe(fds); // Create the pipes
-    pid_t pid1 = fork();
-    if (pid1 == 0) {
-        close(fds[1]);              // Close child write pipe
-        dup2(fds[0], STDIN_FILENO); // Clone child read pipe to STDIN_FILENO
-        close(fds[0]);              // Close child read pipe after cloning
-        execvp(eargv[0], eargv);    // Execute the external command
+
+// void exec_external(SearchFilters *f, char **eargv) {}
+
+bool init_find(SearchFilters *f) {
+    if (f->flags & LF_USER)
+        f->user_id = f->flags >> 24 & 0xffff;
+    f->suppress_types = 0;
+    f->include_types = f->flags >> 8 & 0xff;
+    /** suppress file types that aren't included */
+    if (f->include_types)
+        f->suppress_types = f->include_types ^ 0xff;
+    if (f->debug) {
+        fprintf(stderr, "\n");
+        fprintf(stderr, " include_types=%08b\n", f->include_types);
+        fprintf(stderr, "suppress_types=%08b\n", f->suppress_types);
+        fprintf(stderr, "\n");
     }
-    close(fds[0]);               // Close read end of pipe
-    dup2(fds[1], STDOUT_FILENO); // Clone write pipe to STDOUT_FILENO
-    close(fds[1]);               // Close duplicated write pipe
-    setvbuf(stdout, NULL, _IOLBF, 0);
-    lf_find(dir, re, lf.exclude, lf.max_depth, lf.flags, lf.after, lf.before,
-            lf.file_size_min);    // Generate the output for external command
-    dup2(save_fd, STDOUT_FILENO); // restore STDOUT
-    waitpid(pid1, &wstatus, 0);
+    f->blk = f->suppress_types & FT_BLK ? true : false;
+    f->chr = f->suppress_types & FT_CHR ? true : false;
+    f->dir = f->suppress_types & FT_DIR ? true : false;
+    f->fifo = f->suppress_types & FT_FIFO ? true : false;
+    f->lnk = f->suppress_types & FT_LNK ? true : false;
+    f->reg = f->suppress_types & FT_REG ? true : false;
+    f->sock = f->suppress_types & FT_SOCK ? true : false;
+    f->unknown = f->suppress_types & FT_UNKNOWN ? true : false;
+    int reti = 0;
+    int REG_FLAGS = REG_EXTENDED;
+    if (f->flags & LF_ICASE)
+        REG_FLAGS |= REG_ICASE;
+    if (f->flags & LF_REGEX) {
+        reti = regcomp(&f->compiled_re, f->re, REG_FLAGS);
+        if (reti) {
+            fprintf(stderr, "lf: '%s' Invalid pattern\n", f->re);
+            regfree(&f->compiled_re);
+            return false;
+        }
+    }
+    if (f->flags & LF_EXC_REGEX) {
+        reti = regcomp(&f->compiled_ere, f->ere, REG_FLAGS);
+        if (reti) {
+            fprintf(stderr, "lf: '%s' Invalid exclude pattern\n", f->ere);
+            regfree(&f->compiled_ere);
+            return false;
+        }
+    }
+    if (f->debug) {
+        fprintf(stderr, "Starting search in: %s\n", f->base_path);
+        if (f->flags & LF_REGEX)
+            fprintf(stderr, "Include regex: %s\n", f->re);
+        if (f->flags & LF_EXC_REGEX)
+            fprintf(stderr, "Exclude regex: %s\n", f->ere);
+        if (f->flags & LF_USER)
+            fprintf(stderr, "User ID filter: %ju\n", f->user_id);
+        if (f->after)
+            fprintf(stderr, "Modified after: %s", ctime(&f->after));
+        if (f->before)
+            fprintf(stderr, "Modified before: %s", ctime(&f->before));
+        if (f->file_size_min)
+            fprintf(stderr, "Minimum file size: %jd bytes\n",
+                    (intmax_t)f->file_size_min);
+        if (f->max_depth)
+            fprintf(stderr, "Max depth: %d\n", f->max_depth);
+        if (f->f_hide)
+            fprintf(stderr, "Hidden files will be suppressed.\n");
+        if (f->include_types) {
+            fprintf(stderr, "Included file types:");
+            if (f->include_types & FT_BLK)
+                fprintf(stderr, " block");
+            if (f->include_types & FT_CHR)
+                fprintf(stderr, " character");
+            if (f->include_types & FT_CHR)
+                fprintf(stderr, " character");
+            if (f->include_types & FT_DIR)
+                fprintf(stderr, " directory");
+            if (f->include_types & FT_FIFO)
+                fprintf(stderr, " pipe");
+            if (f->include_types & FT_LNK)
+                fprintf(stderr, " link");
+            if (f->include_types & FT_REG)
+                fprintf(stderr, " regular");
+            if (f->include_types & FT_SOCK)
+                fprintf(stderr, " socket");
+            if (f->include_types & FT_UNKNOWN)
+                fprintf(stderr, " unknown");
+            fprintf(stderr, "\n");
+        }
+    }
+
+    enqueue(f->base_path, 0);
+    int thread_count = get_nprocs();
+    pthread_t threads[thread_count];
+    for (int i = 0; i < thread_count; i++)
+        pthread_create(&threads[i], NULL, worker, f);
+    pthread_mutex_lock(&queue_mutex);
+    while (!shutdown) {
+        pthread_cond_wait(&cond_var, &queue_mutex);
+    }
+    pthread_mutex_unlock(&queue_mutex);
+    for (int i = 0; i < thread_count; i++)
+        pthread_join(threads[i], NULL);
+    if (f->flags & LF_REGEX)
+        regfree(&f->compiled_re);
+    if (f->flags & LF_EXC_REGEX)
+        regfree(&f->compiled_ere);
+    free(f);
+    if (reti)
+        return false;
+    return true;
+}
+
+void enqueue(const char *path, int depth) {
+    Node *new_node = malloc(sizeof(Node));
+    strnz__cpy(new_node->path, path, PATH_MAX - 1);
+    new_node->depth = depth;
+    new_node->next = NULL;
+
+    pthread_mutex_lock(&queue_mutex);
+    if (tail)
+        tail->next = new_node;
+    else
+        head = new_node;
+    tail = new_node;
+    pthread_cond_signal(&cond_var);
+    pthread_mutex_unlock(&queue_mutex);
+}
+
+Node *dequeue() {
+    pthread_mutex_lock(&queue_mutex);
+    while (head == NULL && !shutdown) {
+        // Exit condition: No work in queue AND no threads busy
+        if (atomic_load(&active_tasks) == 0) {
+            shutdown = 1;
+            pthread_cond_broadcast(&cond_var);
+            break;
+        }
+        pthread_cond_wait(&cond_var, &queue_mutex);
+    }
+    if (shutdown && head == NULL) {
+        pthread_mutex_unlock(&queue_mutex);
+        return NULL;
+    }
+    Node *temp = head;
+    head = head->next;
+    if (!head)
+        tail = NULL;
+    pthread_mutex_unlock(&queue_mutex);
+    return temp;
+}
+
+void *worker(void *arg) {
+    SearchFilters *f = (SearchFilters *)arg;
+    // regmatch_t pmatch;
+
+    while (1) {
+        Node *current = dequeue();
+        if (!current)
+            break;
+
+        atomic_fetch_add(&active_tasks, 1);
+
+        DIR *dir = opendir(current->path);
+        if (dir) {
+            struct dirent *entry;
+            while ((entry = readdir(dir)) != NULL) {
+                if (strcmp(entry->d_name, ".") == 0 ||
+                    strcmp(entry->d_name, "..") == 0)
+                    continue;
+                char full_path[PATH_MAX];
+                strnz__cpy(full_path, current->path, PATH_MAX - 1);
+                strnz__cat(full_path, "/", PATH_MAX - 1);
+                strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
+                if (entry->d_type == DT_DIR) {
+                    if (!((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))) {
+                        if (f->max_depth == 0 ||
+                            current->depth + 1 < f->max_depth) {
+                            enqueue(full_path, current->depth + 1);
+                        }
+                    }
+                } else {
+                    scan_file(current->path, f, entry);
+                }
+            }
+            closedir(dir);
+        }
+
+        free(current);
+        atomic_fetch_sub(&active_tasks, 1);
+        pthread_cond_broadcast(
+            &cond_var); // Wake up threads checking for idle exit
+    }
+    return NULL;
+}
+int scan_file(char *current_path, SearchFilters *f, struct dirent *dir_st) {
+    char tmp_str[PATH_MAX];
+    char msgbuf[PATH_MAX];
+    char file_spec[PATH_MAX];
+    int REG_FLAGS = REG_EXTENDED;
+    int reti;
+    int permissions = f->flags >> 16 & 0xff;
+    regmatch_t pmatch[2];
+    bool f_stat = false;
+    bool suppress_file = false;
+    bool suppress_hidden = f->flags & LF_HIDE ? true : false;
+    if (dir_st->d_name[0] == '.' && suppress_hidden)
+        suppress_file = true;
+    if (!suppress_file) {
+        switch (dir_st->d_type) {
+        case DT_BLK:
+            if (f->blk)
+                suppress_file = true;
+            break;
+        case DT_CHR:
+            if (f->chr)
+                suppress_file = true;
+            break;
+        case DT_DIR:
+            if (f->dir)
+                suppress_file = true;
+            break;
+        case DT_FIFO:
+            if (f->fifo)
+                suppress_file = true;
+            break;
+        case DT_LNK:
+            if (f->lnk)
+                suppress_file = true;
+            break;
+        case DT_REG:
+            if (f->reg)
+                suppress_file = true;
+            break;
+        case DT_SOCK:
+            if (f->sock)
+                suppress_file = true;
+            break;
+        case DT_UNKNOWN:
+            if (f->unknown)
+                suppress_file = true;
+            break;
+        default:
+            break;
+        }
+    }
+    if (!suppress_file) {
+        strnz__cpy(file_spec, current_path, PATH_MAX - 1);
+        strnz__cat(file_spec, "/", PATH_MAX - 1);
+        strnz__cat(file_spec, dir_st->d_name, PATH_MAX - 1);
+    }
+    /* Exclude non-matching files */
+    if (!suppress_file && (f->flags & LF_REGEX)) {
+        reti = regexec(&f->compiled_re, file_spec, f->compiled_re.re_nsub + 1,
+                       pmatch, REG_FLAGS);
+        if (reti == REG_NOMATCH) {
+            suppress_file = true;
+        } else if (reti) {
+            regerror(reti, &f->compiled_re, msgbuf, sizeof(msgbuf));
+            strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
+            strnz__cat(tmp_str, msgbuf, PATH_MAX - 1);
+            Perror(tmp_str);
+            return false;
+        }
+    }
+    /* Exclude matching files */
+    if (!suppress_file && (f->flags & LF_EXC_REGEX)) {
+        reti = regexec(&f->compiled_ere, file_spec, f->compiled_re.re_nsub + 1,
+                       pmatch, REG_FLAGS);
+        if (reti == 0)
+            suppress_file = true;
+        else if (reti == REG_NOMATCH)
+            suppress_file = false;
+        else if (reti) {
+            regerror(reti, &f->compiled_re, msgbuf, sizeof(msgbuf));
+            strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
+            strnz__cat(tmp_str, msgbuf, PATH_MAX - 1);
+            Perror(tmp_str);
+            return false;
+        }
+    }
+    f_stat = false;
+    struct stat sb;
+    /** Exclude files not owned by specified user */
+    if (!suppress_file) {
+        if ((f->flags & LF_USER) && stat(file_spec, &sb) == 0) {
+            f_stat = true;
+            if (sb.st_uid != f->user_id)
+                suppress_file = true;
+        }
+    }
+    if (!suppress_file && permissions) {
+        if (!f_stat) {
+            if (stat(file_spec, &sb) == 0)
+                f_stat = true;
+        }
+        suppress_file = true;
+        if ((permissions & LF_PERM_R) && (sb.st_mode & S_IRUSR))
+            suppress_file = false;
+        else if ((permissions & LF_PERM_W) && (sb.st_mode & S_IWUSR))
+            suppress_file = false;
+        else if ((permissions & LF_PERM_X) && (sb.st_mode & S_IXUSR))
+            suppress_file = false;
+        else if ((permissions & LF_SETUID) && (sb.st_mode & S_ISUID))
+            suppress_file = false;
+        else if ((permissions & LF_SETGID) && (sb.st_mode & S_ISGID))
+            suppress_file = false;
+    }
+    if (!suppress_file && f->before) {
+        if (!f_stat) {
+            if (stat(file_spec, &sb) == 0)
+                f_stat = true;
+        }
+        if (f_stat && sb.st_mtime > f->before)
+            suppress_file = true;
+    }
+    if (!suppress_file && f->after) {
+        if (!f_stat) {
+            if (stat(file_spec, &sb) == 0)
+                f_stat = true;
+        }
+        if (f_stat && sb.st_mtime < f->after)
+            suppress_file = true;
+    }
+    if (!suppress_file && f->file_size_min) {
+        if (!f_stat) {
+            if (stat(file_spec, &sb) == 0)
+                f_stat = true;
+        }
+        if (f_stat && sb.st_size < f->file_size_min)
+            suppress_file = true;
+    }
+    if (!suppress_file) {
+        if (file_spec[0] == '.' && file_spec[1] == '/')
+            printf("%s\n", &file_spec[2]);
+        else
+            printf("%s\n", file_spec);
+    }
+    return true;
 }
