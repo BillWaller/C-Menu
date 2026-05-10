@@ -161,11 +161,14 @@ The screenshot above is an example of how you might use the date-time options
 of lf to list files between two date-times (after and before) and the sample
 output. lf is definitely intuitive and very easy to use.
 
-With C-Menu, you can use lf, find, or fd depending on your specific needs and preferences. If you need a powerful and flexible file finder with a very light footprint, lf is a great choice. For a more traditional file finder with a wide range of options and compatibility with older systems, find may be a better choice for your target platform. If you want the fastest possible file finder and don't mind its relatively large footprint, fd is the way to go. fd is written in Rust, which is great for any number of reasons, but applications written in Rust require significantly more disk space than applications written in C. fd's executable alone is 3.8 Mb on my system, it has more than a few dependencies, and portability can be an issue. lf, on the other hand, is written in C, has a 20 Kb executable, and minimal dependencies.
+With C-Menu, you can use lf, find, or fd depending on your specific needs and preferences. If you need a powerful and flexible file finder with a very small footprint, lf is a great choice. For a more traditional file finder with a wider range of options and compatibility with older systems, find may be a better choice for your target platform. If you want the fastest possible file finder ~~and don't mind its relatively large footprint, fd~~ lf is the way to go.
 
-Currently, lf is faster than find, but not nearly as fast as fd. The planned multi-threading optimizations for lf will make it much faster, but even in its current state, lf is a great tool for finding files with regular expressions and date-time criteria. lf is designed to be simple and easy to use, with a focus on portability, performance, and usability.
+fd is written in Rust, which is great for any number of reasons, but applications written in Rust require significantly more disk space than applications written in C. fd's executable alone is 3.8 Mb on my system, it has more than a few dependencies, and portability can be an issue. Nevertheless, fd is a very fast file finder, and it has a lot of great features.
 
-**_NEW_** Erase the above two paragraphs. The latest updates have incorporated concurrent directory processing resulting in significant performance gains for lf. I have not had time to dig in and find out why fd only listed 291969 files, but it is likely that fd is not following symbolic links, which would account for the difference in file counts. The performance of fd is also significantly slower than lf, which is surprising given that fd is written in Rust and is generally considered to be a fast file searching tool. It is possible that fd's performance could be improved with some optimizations, but as it stands, lf appears to be the superior choice for file searching tasks.
+Currently, lf is faster than find and fd, ~~but not nearly as fast as fd~~. The ~~planned~~ recently completed multi-threading optimizations for lf ~~will make it~~ have made it much faster, ~~but even in its current state,~~ so lf is a superior tool for finding files with regular expressions and date-time criteria. lf is designed to be simple and easy to use, with a focus on portability, performance, and usability.
+
+**_NEW_** Erase the above two paragraphs. The latest updates have incorporated concurrent directory processing resulting in significant performance gains for lf. I have not had time to dig in and find out why fd only listed 291969 files, but it is likely that fd is not following symbolic links, which would account for the difference in file counts. Regardless of the reason, picking up fewer files may falsely indicate better peormance. However, fd is still significantly slower than lf, which is surprising given that fd is written in Rust and known to be a highly performant finder. Both
+There is certainly nothing wrong with find or fd, but lf appears to be the fastest and lightest choice.
 
 time find . -type f | wc
 
@@ -179,7 +182,11 @@ time fd . -H -t f | wc
 | lf      | 0m0.214s | 0m0.036s | 0m0.214s | 307440      |
 | fd      | 0m0.221s | 0m0.319s | 0m0.821s | 291969      |
 
-But, even if lf wasn't faster than find, it would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for the most common file searching tasks.
+Even without its speed advantage, lf would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for the most common file searching tasks.
+
+Note: The results above demonstrate the performance of lf just after the first pass of refactoring to add concurrent directory processing. There is no doubt that subsequent code iterations will continue to achieve even better performance.
+
+It is unlikely that a finder written in any language other than modern C could deliver the portability, small footprint, and blazing speed of lf. If you need a powerful and efficient file finder that can be easily integrated into your C-Menu applications, lf is an excellent choice.
 
 ---
 

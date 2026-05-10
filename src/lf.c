@@ -46,7 +46,6 @@ static struct argp_option options[] = {
     {"max_depth", 'd', "number", 0, "Depth into directory tree", 0},
     {"ere", 'e', "regex", 0, "Exclude regular expression", 0},
     {"f_ignore_case", 'i', 0, 0, "Search ignore case", 0},
-    {"f_hide", 'n', 0, 0, "Do not list hidden files", 0},
     {"permissions", 'p', "sgrwx", 0,
      "s-setuid, g-setgid, r-read, w-write, x-execute", 0},
     {"file_size_min", 's', "size", 0,
@@ -59,6 +58,7 @@ static struct argp_option options[] = {
     {"exec", 'x', "command", 0, "execute external command", 0},
     {"debug", 'D', "level", OPTION_ARG_OPTIONAL, "Output debugging information",
      0},
+    {"f_hidden", 'H', 0, 0, "Include hidden files", 0},
     {"f_sort", 'S', "r", OPTION_ARG_OPTIONAL, "sort arg=r reverse", 0},
     {0}};
 
@@ -77,7 +77,7 @@ typedef struct {
     bool f_ignore_case;
     bool f_sort;
     bool f_reverse;
-    bool f_hide;
+    bool f_hidden;
     char *file_types_p;
     int reg_flags;
     char *args[2];
@@ -108,9 +108,9 @@ typedef struct Node {
 bool init_find(SearchFilters *);
 int scan_file(char *, SearchFilters *, struct dirent *);
 
-void enqueue(const char *, int);
-Node *dequeue();
-void *worker(void *);
+void enqueue_dir(const char *, int);
+Node *dequeue_dir();
+void *finder(void *);
 // void exec_external(SearchFilters *, char **);
 
 /** @brief Parse a single option.  */
@@ -158,12 +158,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         strnz__cpy(f->ere, arg, MAXLEN - 1);
         f->flags |= LF_EXC_REGEX;
         break;
+    case 'H':
+        f->f_hidden = true;     // Include hidden files
+        f->flags &= ~(LF_HIDE); // Don't hide hidden files
+        break;
     case 'i':
         f->flags |= LF_ICASE;
-        break;
-    case 'n':
-        f->f_hide = true;
-        f->flags |= LF_HIDE;
         break;
     case 'p':
         for (i = 0; arg[i]; i++) {
@@ -280,20 +280,14 @@ int shutdown = 0;
 int main(int argc, char **argv) {
 
     SearchFilters *f = (SearchFilters *)calloc(1, sizeof(SearchFilters));
-    f->base_path[0] = '\0';
-    f->max_depth = 0;
-    f->re[0] = '\0';
-    f->ere[0] = '\0';
     f->f_ignore_case = false;
     f->f_sort = false;
     f->f_reverse = false;
-    f->file_types_p = 0;
+    f->f_hidden = false; // By default, hidden files are suppressed. Use -H to
+                         // include them.
+    f->flags |= LF_HIDE; // Hide hidden files
     f->args[0] = nullptr;
     f->args[1] = nullptr;
-    f->exec[0] = '\0';
-    f->after = 0;
-    f->before = 0;
-    f->file_size_min = 0;
     argp_parse(&argp, argc, argv, 0, 0, f);
     if (f->argc > 0) {
         if (is_directory(f->args[0]))
@@ -340,8 +334,8 @@ int main(int argc, char **argv) {
          * process will run the file finder and write its output to the pipe,
          * while the child process will read from the pipe and execute the sort
          * command. */
-        int eargc = 0;
         char *eargv[MAXARGS];
+        int eargc = 0;
         eargv[eargc++] = strdup("sort");
         if (f->f_reverse)
             eargv[eargc++] = strdup("-r");
@@ -351,12 +345,13 @@ int main(int argc, char **argv) {
         int fds[2];
         pipe(fds); // Create the pipes
         pid_t pid1 = fork();
-        if (pid1 == 0) {
+        if (pid1 == 0) {                // Child process
             close(fds[1]);              // Close child write pipe
             dup2(fds[0], STDIN_FILENO); // Clone child read pipe to STDIN_FILENO
             close(fds[0]);              // Close child read pipe after cloning
             execvp(eargv[0], eargv);    // Execute the external command
         }
+        // Parent process
         close(fds[0]);               // Close read end of pipe
         dup2(fds[1], STDOUT_FILENO); // Clone write pipe to STDOUT_FILENO
         close(fds[1]);               // Close duplicated write pipe
@@ -376,7 +371,7 @@ int main(int argc, char **argv) {
     exit(EXIT_SUCCESS);
 }
 /** @brief Initialize the file search based on the provided SearchFilters and
-   start worker threads.
+   start finder threads.
     @param f A pointer to a SearchFilters struct containing the options and
    flags for filtering.
     @return true if the search was initialized successfully, false if an error
@@ -384,15 +379,14 @@ int main(int argc, char **argv) {
     @details This function processes the flags and options specified in the
    SearchFilters struct to set up the search criteria. It compiles any regular
    expressions provided by the user and initializes the queue with the base
-   directory. It then creates a number of worker threads equal to the number of
+   directory. It then creates a number of finder threads equal to the number of
    CPU cores to perform the directory traversal and file scanning concurrently.
-   The function waits for all worker threads to complete before cleaning up
+   The function waits for all finder threads to complete before cleaning up
    resources and returning.
    */
 bool init_find(SearchFilters *f) {
     if (f->flags & LF_USER)
         f->user_id = f->flags >> 24 & 0xffff;
-    f->suppress_types = 0;
     f->include_types = f->flags >> 8 & 0xff;
     /** suppress file types that aren't included */
     if (f->include_types)
@@ -448,8 +442,8 @@ bool init_find(SearchFilters *f) {
                     (intmax_t)f->file_size_min);
         if (f->max_depth)
             fprintf(stderr, "Max depth: %d\n", f->max_depth);
-        if (f->f_hide)
-            fprintf(stderr, "Hidden files will be suppressed.\n");
+        if (f->f_hidden)
+            fprintf(stderr, "Include hidden files.\n");
         if (f->include_types) {
             fprintf(stderr, "Included file types:");
             if (f->include_types & FT_BLK)
@@ -473,11 +467,10 @@ bool init_find(SearchFilters *f) {
             fprintf(stderr, "\n");
         }
     }
-
-    enqueue(f->base_path, 0);
+    enqueue_dir(f->base_path, 0);
     pthread_t threads[thread_count];
     for (int i = 0; i < thread_count; i++)
-        pthread_create(&threads[i], NULL, worker, f);
+        pthread_create(&threads[i], NULL, finder, f);
     pthread_mutex_lock(&queue_mutex);
     while (!shutdown) {
         pthread_cond_wait(&cond_var, &queue_mutex);
@@ -485,6 +478,7 @@ bool init_find(SearchFilters *f) {
     pthread_mutex_unlock(&queue_mutex);
     for (int i = 0; i < thread_count; i++)
         pthread_join(threads[i], NULL);
+    // End Program
     if (f->flags & LF_REGEX)
         regfree(&f->compiled_re);
     if (f->flags & LF_EXC_REGEX)
@@ -494,16 +488,16 @@ bool init_find(SearchFilters *f) {
         return false;
     return true;
 }
-/** @brief Enqueue a directory path for processing by worker threads.
+/** @brief Enqueue a directory path for processing by finder threads.
     @param path The directory path to enqueue.
     @param depth The current depth in the directory tree for the given path.
     @details This function creates a new Node containing the specified directory
    path and depth, and adds it to the global queue. It uses a mutex to ensure
-   thread-safe access to the queue, and signals worker threads that new work is
+   thread-safe access to the queue, and signals finder threads that new work is
    available. The function also checks for shutdown conditions to prevent
    enqueuing new work when the program is exiting.
    */
-void enqueue(const char *path, int depth) {
+void enqueue_dir(const char *path, int depth) {
     Node *new_node = malloc(sizeof(Node));
     strnz__cpy(new_node->path, path, PATH_MAX - 1);
     new_node->depth = depth;
@@ -518,16 +512,16 @@ void enqueue(const char *path, int depth) {
     pthread_cond_signal(&cond_var);
     pthread_mutex_unlock(&queue_mutex);
 }
-/** @brief Dequeue a directory path for processing by worker threads.
+/** @brief Dequeue a directory path for processing by finder threads.
     @return A pointer to a Node containing the directory path and depth, or NULL
    if the queue is empty and shutdown has been initiated.
     @details This function removes and returns the next Node from the global
    queue. It uses a mutex to ensure thread-safe access to the queue, and waits
    on a condition variable if the queue is empty. The function also checks for
-   shutdown conditions to allow worker threads to exit gracefully when there is
+   shutdown conditions to allow finder threads to exit gracefully when there is
    no more work to process.
    */
-Node *dequeue() {
+Node *dequeue_dir() {
     pthread_mutex_lock(&queue_mutex);
     while (head == NULL && !shutdown) {
         // Exit condition: No work in queue AND no threads busy
@@ -561,12 +555,12 @@ Node *dequeue() {
    function uses atomic operations to track active tasks and condition variables
    to manage thread synchronization and shutdown when all work is complete.
    */
-void *worker(void *arg) {
+void *finder(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;
     // regmatch_t pmatch;
 
     while (1) {
-        Node *current = dequeue();
+        Node *current = dequeue_dir();
         if (!current)
             break;
 
@@ -587,7 +581,7 @@ void *worker(void *arg) {
                     if (!((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))) {
                         if (f->max_depth == 0 ||
                             current->depth + 1 < f->max_depth) {
-                            enqueue(full_path, current->depth + 1);
+                            enqueue_dir(full_path, current->depth + 1);
                         }
                     }
                 } else {
@@ -618,7 +612,7 @@ void *worker(void *arg) {
    criteria, its path is printed to standard output. If any errors occur during
    processing (e.g., regex compilation failure), an error message is printed to
    standard error and the function returns false.
-    @note This function is called by worker threads for each file encountered
+    @note This function is called by finder threads for each file encountered
    during the directory traversal. It is designed to be thread-safe and
    efficient, minimizing redundant system calls. For example, it only calls
    stat() when necessary for filters that require file metadata, and it caches
