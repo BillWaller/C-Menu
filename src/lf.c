@@ -79,12 +79,15 @@ typedef struct {
     bool f_reverse;
     bool f_hide;
     char *file_types_p;
+    int reg_flags;
     char *args[2];
     int argc;
     char exec[MAXLEN];
     int include_types;
     int suppress_types;
     bool include;
+    int permissions;
+    bool suppress_hidden;
     bool blk;
     bool chr;
     bool dir;
@@ -291,7 +294,6 @@ int main(int argc, char **argv) {
     f->after = 0;
     f->before = 0;
     f->file_size_min = 0;
-    // etenv("ARGP_HELP_FMT", "opt-doc-col=30", 1);
     argp_parse(&argp, argc, argv, 0, 0, f);
     if (f->argc > 0) {
         if (is_directory(f->args[0]))
@@ -331,6 +333,13 @@ int main(int argc, char **argv) {
     if (f->base_path[0] == '\0')
         strnz__cpy(f->base_path, ".", MAXLEN - 1);
     if (f->f_sort) {
+        /** If sorting is requested, execute the file finder and pipe its output
+         * to the sort command. We can achieve this by creating a child process
+         * that runs the sort command, and redirecting the output of the file
+         * finder to the input of the sort command using a pipe. The parent
+         * process will run the file finder and write its output to the pipe,
+         * while the child process will read from the pipe and execute the sort
+         * command. */
         int eargc = 0;
         char *eargv[MAXARGS];
         eargv[eargc++] = strdup("sort");
@@ -352,29 +361,34 @@ int main(int argc, char **argv) {
         dup2(fds[1], STDOUT_FILENO); // Clone write pipe to STDOUT_FILENO
         close(fds[1]);               // Close duplicated write pipe
         setvbuf(stdout, NULL, _IOLBF, 0);
-        init_find(f);                 // File finder uses pthreads
+        // line buffering is essential to ensure that output is flushed to the
+        // sort process in a timely manner, preventing deadlocks and ensuring
+        // that the sort process can start processing input as soon as it is
+        // available. Without line buffering, the output may be buffered until
+        // the buffer is full, which could lead to delays in processing and
+        // potential deadlocks if the sort process is waiting for input that
+        // hasn't been flushed yet.
+        init_find(f); // Initialize and transfer control to the file finder
         dup2(save_fd, STDOUT_FILENO); // restore STDOUT
         waitpid(pid1, &wstatus, 0);
     } else
-        init_find(f); // This invocation of file finder using pthreads works
+        init_find(f); // Initialize and transfer control to the file finder
     exit(EXIT_SUCCESS);
 }
-/** @brief Execute an external command with the output of init_find as input.
-    @param lf The LF struct containing the options and flags for init_find.
-    @param dir The directory to search for files.
-    @param re The regular expression to match file names against.
-    @param eargv The argument vector for the external command to execute.
-    @details This function creates a child process to execute the external
-   command specified by the user. It sets up a pipe to redirect the output of
-   init_find to the standard input of the external command. The parent process
-   runs init_find and writes its output to the pipe, while the child process
-   reads from the pipe and executes the external command. After init_find
-   completes, the parent process waits for the child process to finish before
-   exiting.
+/** @brief Initialize the file search based on the provided SearchFilters and
+   start worker threads.
+    @param f A pointer to a SearchFilters struct containing the options and
+   flags for filtering.
+    @return true if the search was initialized successfully, false if an error
+   occurred during initialization (e.g., regex compilation failure).
+    @details This function processes the flags and options specified in the
+   SearchFilters struct to set up the search criteria. It compiles any regular
+   expressions provided by the user and initializes the queue with the base
+   directory. It then creates a number of worker threads equal to the number of
+   CPU cores to perform the directory traversal and file scanning concurrently.
+   The function waits for all worker threads to complete before cleaning up
+   resources and returning.
    */
-
-// void exec_external(SearchFilters *f, char **eargv) {}
-
 bool init_find(SearchFilters *f) {
     if (f->flags & LF_USER)
         f->user_id = f->flags >> 24 & 0xffff;
@@ -383,12 +397,8 @@ bool init_find(SearchFilters *f) {
     /** suppress file types that aren't included */
     if (f->include_types)
         f->suppress_types = f->include_types ^ 0xff;
-    if (f->debug) {
-        fprintf(stderr, "\n");
-        fprintf(stderr, " include_types=%08b\n", f->include_types);
-        fprintf(stderr, "suppress_types=%08b\n", f->suppress_types);
-        fprintf(stderr, "\n");
-    }
+    f->permissions = f->flags >> 16 & 0xff;
+    f->suppress_hidden = f->flags & LF_HIDE ? true : false;
     f->blk = f->suppress_types & FT_BLK ? true : false;
     f->chr = f->suppress_types & FT_CHR ? true : false;
     f->dir = f->suppress_types & FT_DIR ? true : false;
@@ -398,11 +408,11 @@ bool init_find(SearchFilters *f) {
     f->sock = f->suppress_types & FT_SOCK ? true : false;
     f->unknown = f->suppress_types & FT_UNKNOWN ? true : false;
     int reti = 0;
-    int REG_FLAGS = REG_EXTENDED;
+    f->reg_flags = REG_EXTENDED;
     if (f->flags & LF_ICASE)
-        REG_FLAGS |= REG_ICASE;
+        f->reg_flags |= REG_ICASE;
     if (f->flags & LF_REGEX) {
-        reti = regcomp(&f->compiled_re, f->re, REG_FLAGS);
+        reti = regcomp(&f->compiled_re, f->re, f->reg_flags);
         if (reti) {
             fprintf(stderr, "lf: '%s' Invalid pattern\n", f->re);
             regfree(&f->compiled_re);
@@ -410,15 +420,19 @@ bool init_find(SearchFilters *f) {
         }
     }
     if (f->flags & LF_EXC_REGEX) {
-        reti = regcomp(&f->compiled_ere, f->ere, REG_FLAGS);
+        reti = regcomp(&f->compiled_ere, f->ere, f->reg_flags);
         if (reti) {
             fprintf(stderr, "lf: '%s' Invalid exclude pattern\n", f->ere);
             regfree(&f->compiled_ere);
             return false;
         }
     }
+    int thread_count = get_nprocs();
     if (f->debug) {
         fprintf(stderr, "Starting search in: %s\n", f->base_path);
+        fprintf(stderr, "Using %d threads\n", thread_count);
+        fprintf(stderr, " include_types=%08b\n", f->include_types);
+        fprintf(stderr, "suppress_types=%08b\n", f->suppress_types);
         if (f->flags & LF_REGEX)
             fprintf(stderr, "Include regex: %s\n", f->re);
         if (f->flags & LF_EXC_REGEX)
@@ -461,7 +475,6 @@ bool init_find(SearchFilters *f) {
     }
 
     enqueue(f->base_path, 0);
-    int thread_count = get_nprocs();
     pthread_t threads[thread_count];
     for (int i = 0; i < thread_count; i++)
         pthread_create(&threads[i], NULL, worker, f);
@@ -481,7 +494,15 @@ bool init_find(SearchFilters *f) {
         return false;
     return true;
 }
-
+/** @brief Enqueue a directory path for processing by worker threads.
+    @param path The directory path to enqueue.
+    @param depth The current depth in the directory tree for the given path.
+    @details This function creates a new Node containing the specified directory
+   path and depth, and adds it to the global queue. It uses a mutex to ensure
+   thread-safe access to the queue, and signals worker threads that new work is
+   available. The function also checks for shutdown conditions to prevent
+   enqueuing new work when the program is exiting.
+   */
 void enqueue(const char *path, int depth) {
     Node *new_node = malloc(sizeof(Node));
     strnz__cpy(new_node->path, path, PATH_MAX - 1);
@@ -497,7 +518,15 @@ void enqueue(const char *path, int depth) {
     pthread_cond_signal(&cond_var);
     pthread_mutex_unlock(&queue_mutex);
 }
-
+/** @brief Dequeue a directory path for processing by worker threads.
+    @return A pointer to a Node containing the directory path and depth, or NULL
+   if the queue is empty and shutdown has been initiated.
+    @details This function removes and returns the next Node from the global
+   queue. It uses a mutex to ensure thread-safe access to the queue, and waits
+   on a condition variable if the queue is empty. The function also checks for
+   shutdown conditions to allow worker threads to exit gracefully when there is
+   no more work to process.
+   */
 Node *dequeue() {
     pthread_mutex_lock(&queue_mutex);
     while (head == NULL && !shutdown) {
@@ -520,7 +549,18 @@ Node *dequeue() {
     pthread_mutex_unlock(&queue_mutex);
     return temp;
 }
-
+/** @brief Worker thread function to process directories from the queue.
+    @param arg Pointer to the SearchFilters struct containing the options and
+   flags for filtering.
+    @return NULL
+    @details This function continuously dequeues directory paths from the global
+   queue and processes them. For each directory, it lists its contents and
+   applies the specified filters to each file. If a subdirectory is found and it
+   meets the criteria for further searching (e.g., not hidden if hidden files
+   are suppressed, and within max depth), it is enqueued for processing. The
+   function uses atomic operations to track active tasks and condition variables
+   to manage thread synchronization and shutdown when all work is complete.
+   */
 void *worker(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;
     // regmatch_t pmatch;
@@ -564,18 +604,49 @@ void *worker(void *arg) {
     }
     return NULL;
 }
+/** @brief Scan a single file against the search filters and print if it
+   matches.
+    @param current_path The directory path of the file being scanned.
+    @param f The SearchFilters struct containing the options and flags for
+   filtering.
+    @param dir_st The dirent struct representing the file being scanned.
+    @return true if the file was processed successfully, false if an error
+   occurred.
+    @details This function checks the specified file against the various filters
+   defined in the SearchFilters struct, including file type, regex patterns,
+   ownership, permissions, modification time, and size. If the file matches all
+   criteria, its path is printed to standard output. If any errors occur during
+   processing (e.g., regex compilation failure), an error message is printed to
+   standard error and the function returns false.
+    @note This function is called by worker threads for each file encountered
+   during the directory traversal. It is designed to be thread-safe and
+   efficient, minimizing redundant system calls. For example, it only calls
+   stat() when necessary for filters that require file metadata, and it caches
+   the results to avoid multiple stat() calls for the same file.
+    @note regex matching is opttimized by pre-compiling the regular expressions
+   in init_find() and using regexec() for each file, which is more efficient
+   than compiling the regex for each file. Additionally, the function minimizes
+   calls to regexec() by first checking simpler filters (like file type and
+   hidden status) before performing regex matching, thus avoiding unnecessary
+   regex evaluations for files that are already excluded by other criteria.
+    @todo Can we come up with a more efficient data structure for managing the
+   queue of directories to process, such as a lock-free queue or work-stealing
+   deque? A work stealing dequeue would allow idle threads to steal work from
+   busier threads, improving load balancing and reducing idle time. This would
+   involve implementing a thread-safe deque data structure that supports
+   concurrent push and pop operations from both ends, allowing threads to
+   efficiently share the workload without excessive locking or contention.
+   */
 int scan_file(char *current_path, SearchFilters *f, struct dirent *dir_st) {
+
     char tmp_str[PATH_MAX];
-    char msgbuf[PATH_MAX];
     char file_spec[PATH_MAX];
-    int REG_FLAGS = REG_EXTENDED;
-    int reti;
-    int permissions = f->flags >> 16 & 0xff;
+
     regmatch_t pmatch[2];
     bool f_stat = false;
     bool suppress_file = false;
-    bool suppress_hidden = f->flags & LF_HIDE ? true : false;
-    if (dir_st->d_name[0] == '.' && suppress_hidden)
+
+    if (dir_st->d_name[0] == '.' && f->suppress_hidden)
         suppress_file = true;
     if (!suppress_file) {
         switch (dir_st->d_type) {
@@ -622,30 +693,30 @@ int scan_file(char *current_path, SearchFilters *f, struct dirent *dir_st) {
     }
     /* Exclude non-matching files */
     if (!suppress_file && (f->flags & LF_REGEX)) {
-        reti = regexec(&f->compiled_re, file_spec, f->compiled_re.re_nsub + 1,
-                       pmatch, REG_FLAGS);
+        int reti = regexec(&f->compiled_re, file_spec,
+                           f->compiled_re.re_nsub + 1, pmatch, f->reg_flags);
         if (reti == REG_NOMATCH) {
             suppress_file = true;
         } else if (reti) {
-            regerror(reti, &f->compiled_re, msgbuf, sizeof(msgbuf));
+            regerror(reti, &f->compiled_re, tmp_str, sizeof(tmp_str));
             strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
-            strnz__cat(tmp_str, msgbuf, PATH_MAX - 1);
+            strnz__cat(tmp_str, tmp_str, PATH_MAX - 1);
             Perror(tmp_str);
             return false;
         }
     }
     /* Exclude matching files */
     if (!suppress_file && (f->flags & LF_EXC_REGEX)) {
-        reti = regexec(&f->compiled_ere, file_spec, f->compiled_re.re_nsub + 1,
-                       pmatch, REG_FLAGS);
+        int reti = regexec(&f->compiled_ere, file_spec,
+                           f->compiled_re.re_nsub + 1, pmatch, f->reg_flags);
         if (reti == 0)
             suppress_file = true;
         else if (reti == REG_NOMATCH)
             suppress_file = false;
         else if (reti) {
-            regerror(reti, &f->compiled_re, msgbuf, sizeof(msgbuf));
+            regerror(reti, &f->compiled_re, tmp_str, sizeof(tmp_str));
             strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
-            strnz__cat(tmp_str, msgbuf, PATH_MAX - 1);
+            strnz__cat(tmp_str, tmp_str, PATH_MAX - 1);
             Perror(tmp_str);
             return false;
         }
@@ -660,21 +731,21 @@ int scan_file(char *current_path, SearchFilters *f, struct dirent *dir_st) {
                 suppress_file = true;
         }
     }
-    if (!suppress_file && permissions) {
+    if (!suppress_file && f->permissions) {
         if (!f_stat) {
             if (stat(file_spec, &sb) == 0)
                 f_stat = true;
         }
         suppress_file = true;
-        if ((permissions & LF_PERM_R) && (sb.st_mode & S_IRUSR))
+        if ((f->permissions & LF_PERM_R) && (sb.st_mode & S_IRUSR))
             suppress_file = false;
-        else if ((permissions & LF_PERM_W) && (sb.st_mode & S_IWUSR))
+        else if ((f->permissions & LF_PERM_W) && (sb.st_mode & S_IWUSR))
             suppress_file = false;
-        else if ((permissions & LF_PERM_X) && (sb.st_mode & S_IXUSR))
+        else if ((f->permissions & LF_PERM_X) && (sb.st_mode & S_IXUSR))
             suppress_file = false;
-        else if ((permissions & LF_SETUID) && (sb.st_mode & S_ISUID))
+        else if ((f->permissions & LF_SETUID) && (sb.st_mode & S_ISUID))
             suppress_file = false;
-        else if ((permissions & LF_SETGID) && (sb.st_mode & S_ISGID))
+        else if ((f->permissions & LF_SETGID) && (sb.st_mode & S_ISGID))
             suppress_file = false;
     }
     if (!suppress_file && f->before) {
