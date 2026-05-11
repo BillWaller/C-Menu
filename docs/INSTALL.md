@@ -35,7 +35,7 @@ You may also be interested in the [C-Menu User Guide](C-Menu-UG.md)
 
 C-Menu is a user interface development toolkit that gives you the ability to quickly and easily build functional, intuitive, and attractive applications with minimal effort and a tiny footprint. Because C-Menu is written in C and terminal-based, it is perfect for resource constrained environments such as embedded, server, SOC, IOT, DEVOPS, and CI/CD pipelines, or any other situations in which a GUI might be impractical or undesirable.
 
-C-Menu is also ideal for developers who prefer to work in a terminal environment and want to create powerful applications without the overhead of a GUI framework. C-Menu provides a wide range of components and tools for building menu-driven interfaces, including hierarchical menus, on-screen forms, object selection, file viewing, and more. With C-Menu, you can create applications that are both efficient and user-friendly, making it a great choice for a wide range of use cases.
+C-Menu is also ideal for developers who prefer to work in a terminal environment and want to create powerful applications without the overhead of a GUI framework. C-Menu provides a wide range of components and tools for building menu-driven interfaces, including hierarchical menus, on-../screen forms, object selection, file viewing, and more. With C-Menu, you can create applications that are both efficient and user-friendly, making it a great choice for a wide range of use cases.
 
 You may also be interested in [C-Menu Comprehensive HTML Documentation](https://decision-inc.com)
 
@@ -52,7 +52,7 @@ In typical use, C-Menu requires only a few lines of code to create hierarchical 
 
 ![Hierarchical Menus](../screenshots/workstation_config.png)
 
-C-Menu is highly customizable, and provides a wide range of options for creating unique and engaging interfaces. The help screens below show some of the options available for customizing the appearance and behavior of C-Menu's components.
+C-Menu is highly customizable, and provides a wide range of options for creating unique and engaging interfaces. The help ../screens below show some of the options available for customizing the appearance and behavior of C-Menu's components.
 
 ![C-Menu-Help](../screenshots/C-Menu-help.png)
 
@@ -60,7 +60,7 @@ C-Menu is highly customizable, and provides a wide range of options for creating
 
 ### Form
 
-Enter, edit, validate, process, and submit data. Notice the chyron at the bottom of the screen, which provides helpful instructions and feedback to the user. Of course, all C-Menu components provide navigation by mouse and keyboard, and in many cases by the standard h, j, k, and l keys that programmers are accustomed to.
+Enter, edit, validate, process, and submit data. Notice the chyron at the bottom of the ../screen, which provides helpful instructions and feedback to the user. Of course, all C-Menu components provide navigation by mouse and keyboard, and in many cases by the standard h, j, k, and l keys that programmers are accustomed to.
 
 ![On-Screen Forms](../screenshots/iloan.png)
 
@@ -68,7 +68,7 @@ Enter, edit, validate, process, and submit data. Notice the chyron at the bottom
 
 ### Pick - Object Selection
 
-The image below shows how pick works with C-Menu's lf (lightweight find) to select files in a directory. The screen on the left is the first to appear, and it shows the
+The image below shows how pick works with C-Menu's lf (lightweight find) to select files in a directory. The ../screen on the left is the first to appear, and it shows the
 output of lf. In the bottom window, the user can refine the list of files by
 entering a search expression, and as the user types each character, Pick updates
 the list of files in real time. When you find the file you want, you can select
@@ -153,14 +153,40 @@ and relinquish root privilege.
 
 ![lf help](../screenshots/lf-help.png)
 
-The screenshot above is the help output of lf piped through bat and displayed in
-View.
+The ../screenshot above is the help output of lf -? (help) piped through bat and displayed in View.
 
 ![lf File Finder](../screenshots/lf-dates.png)
 
-The screenshot above is an example of how you might use the date-time options
+The ../screenshot above is an example of how you might use the date-time options
 of lf to list files between two date-times (after and before) and the sample
-output. We believe you will find this format intuitive and easy to use.
+output. lf is definitely intuitive and very easy to use.
+
+With C-Menu, you can use lf, find, or fd depending on your specific needs and preferences. If you need a powerful and flexible file finder with a very small footprint, lf is a great choice. For a more traditional file finder with a wider range of options and compatibility with older systems, find may be a better choice for your target platform. If you want the fastest possible file finder ~~and don't mind its relatively large footprint, fd~~ lf is the way to go.
+
+fd is written in Rust, which is great for any number of reasons, but applications written in Rust require significantly more disk space than applications written in C. fd's executable alone is 3.8 Mb on my system, it has more than a few dependencies, and portability can be an issue. Nevertheless, fd is a very fast file finder, and it has a lot of great features.
+
+Currently, lf is faster than find and fd, ~~but not nearly as fast as fd~~. The ~~planned~~ recently completed multi-threading optimizations for lf ~~will make it~~ have made it much faster, ~~but even in its current state,~~ so lf is a superior tool for finding files with regular expressions and date-time criteria. lf is designed to be simple and easy to use, with a focus on portability, performance, and usability.
+
+**_NEW_** Erase the above two paragraphs. The latest updates have incorporated concurrent directory processing resulting in significant performance gains for lf. I have not had time to dig in and find out why fd only listed 291969 files, but it is likely that fd is not following symbolic links, which would account for the difference in file counts. Regardless of the reason, picking up fewer files may falsely indicate better peormance. However, fd is still significantly slower than lf, which is surprising given that fd is written in Rust and known to be a highly performant finder. Both
+There is certainly nothing wrong with find or fd, but lf appears to be the fastest and lightest choice.
+
+time find . -type f | wc
+
+time lf . -t f | wc
+
+time fd . -H -t f | wc
+
+| Command | real     | user     | sys      | files found |
+| ------- | -------- | -------- | -------- | ----------- |
+| find    | 0m0.793s | 0m0.470s | 0m0.453s | 307440      |
+| lf      | 0m0.214s | 0m0.036s | 0m0.214s | 307440      |
+| fd      | 0m0.221s | 0m0.319s | 0m0.821s | 291969      |
+
+Even without its speed advantage, lf would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for the most common file searching tasks.
+
+Note: The results above demonstrate the performance of lf just after the first pass of refactoring to add concurrent directory processing. There is no doubt that subsequent code iterations will continue to achieve even better performance.
+
+It is unlikely that a finder written in any language other than modern C could deliver the portability, small footprint, and blazing speed of lf. If you need a powerful and efficient file finder that can be easily integrated into your C-Menu applications, lf is an excellent choice.
 
 ---
 
@@ -170,7 +196,7 @@ output. We believe you will find this format intuitive and easy to use.
 user interfaces in C. The API includes tools specific to C-Menu, but also many
 general purpose tools that can be used in a wide range of applications. The API
 documentation is available in html and integrated into Neovim's completion
-engine, making it easy for developers to learn and use the API effectively.
+engine, making it convenient for developers to learn and use the API effectively.
 
 ---
 
@@ -180,7 +206,7 @@ engine, making it easy for developers to learn and use the API effectively.
 
 C-Menu's API documentation is integrated into Neovim's completion engine, providing developers with easy access to API information and examples while they code. This integration allows developers to quickly look up function signatures, parameter descriptions, and usage examples without leaving their coding environment, enhancing productivity and making it easier to learn and use the C-Menu API effectively.
 
-Hopefully, you will not find this plug for Neovim, LazyVim, and Lazy.Nvim too gratuitous as they are not prerequisites for C-Menu. Nevertheless, they do add considerably to the development experience. The screen below is the LazyVim dashboard in Neovim.
+Hopefully, you will not find this plug for Neovim, LazyVim, and Lazy.Nvim too gratuitous as they are not prerequisites for C-Menu. Nevertheless, they do add considerably to the development experience. The ../screen below is the LazyVim dashboard in Neovim.
 
 ![Neovim Integration](../screenshots/Neovim.png)
 
@@ -316,7 +342,7 @@ cd build
 - Configure the project using CMake, specifying the installation prefix and build type:
 
 ```bash
-cmake -DCMAKE_INSTALL_PREFIX="$HOME"/menuapp -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_INSTALL_PREFIX="$HOME"/menuapp -DCMAKE_BUILD_TYPE=Release
 ```
 
 - Build the project using:
