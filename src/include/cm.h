@@ -154,11 +154,13 @@ typedef enum {
     LF_REGEX = 0b00001000,     /**< 8 Include files matching regex */
     LF_EXEC = 0b00010000,      /**< 16 Execute command each file */
     LF_USER = 0b00100000,      /**< 32 Select User Name */
-    LF_SETUID = 0b10000000,    /**< 64 Select Setuid Files */
-    LF_SETGID = 0b01000000,    /**< 128 Select Setgid Files */
-    LF_PERM_R = 0b00100001,    /**< 256 Select Files with Read Permission */
-    LF_PERM_W = 0b00010000,    /**< 512 Select Files with Write Permission */
-    LF_PERM_X = 0b00001000,    /**< 1024 Select Files with Execute Permission */
+                               /** << 16 */
+    /** byte 1 - bits 8-15 */
+    LF_SETUID = 0b10000000, /**< 64 Select Setuid Files */
+    LF_SETGID = 0b01000000, /**< 128 Select Setgid Files */
+    LF_PERM_R = 0b00100001, /**< 256 Select Files with Read Permission */
+    LF_PERM_W = 0b00010000, /**< 512 Select Files with Write Permission */
+    LF_PERM_X = 0b00001000, /**< 1024 Select Files with Execute Permission */
 } LFFlags;
 
 /** byte 2 - bits 16-23 File types*/
@@ -178,14 +180,14 @@ typedef enum {
 /**
                       Include     Exclude
                      ----------  ----------
-    LF_BLK        1  0 00000001  7 11111110 block device
-    LF_CHR        2  1 00000010  6 11111101 character device
-    LF_DIR        4  2 00000100  5 11111011 directory
-    LF_FIFO       8  3 00001000  4 11110111 named pipe
-    LF_LNK       16  4 00010000  3 11101111 link
-    LF_REG       32  5 00100000  2 11011111 regular file
-    LF_SOCK      64  6 01000000  1 10111111 socket
-    LF_UNKNOWN  128  7 10000000  0 01111111 unknown
+    FT_BLK        1  0 00000001  7 11111110 block device
+    FT_CHR        2  1 00000010  6 11111101 character device
+    FT_DIR        4  2 00000100  5 11111011 directory
+    FT_FIFO       8  3 00001000  4 11110111 named pipe
+    FT_LNK       16  4 00010000  3 11101111 link
+    FT_REG       32  5 00100000  2 11011111 regular file
+    FT_SOCK      64  6 01000000  1 10111111 socket
+    FT_UNKNOWN  128  7 10000000  0 01111111 unknown
 */
 
 #define COLOR_LEN 8 /**< length of color code strings */

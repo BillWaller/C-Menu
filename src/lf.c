@@ -59,6 +59,7 @@ static struct argp_option options[] = {
     {"debug", 'D', "level", OPTION_ARG_OPTIONAL, "Output debugging information",
      0},
     {"f_hidden", 'H', 0, 0, "Include hidden files", 0},
+    {"f_lnk_dir", 'L', 0, 0, "Follow symbolic links", 0},
     {"f_sort", 'S', "r", OPTION_ARG_OPTIONAL, "sort arg=r reverse", 0},
     {0}};
 
@@ -78,6 +79,7 @@ typedef struct {
     bool f_sort;
     bool f_reverse;
     bool f_hidden;
+    bool f_lnk_dir;
     char *file_types_p;
     int reg_flags;
     char *args[2];
@@ -161,6 +163,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'H':
         f->f_hidden = true;     // Include hidden files
         f->flags &= ~(LF_HIDE); // Don't hide hidden files
+        break;
+    case 'L':
+        f->f_lnk_dir = true; // follow symbolic links
         break;
     case 'i':
         f->flags |= LF_ICASE;
@@ -283,9 +288,11 @@ int main(int argc, char **argv) {
     f->f_ignore_case = false;
     f->f_sort = false;
     f->f_reverse = false;
-    f->f_hidden = false; // By default, hidden files are suppressed. Use -H to
-                         // include them.
-    f->flags |= LF_HIDE; // Hide hidden files
+    f->f_hidden = false;  // By default, hidden files are suppressed. Use -H to
+                          // include them.
+    f->flags |= LF_HIDE;  // Hide hidden files
+    f->f_lnk_dir = false; // By default, symbolic links are not followed. Use -L
+                          // to follow them.
     f->args[0] = nullptr;
     f->args[1] = nullptr;
     argp_parse(&argp, argc, argv, 0, 0, f);
@@ -444,6 +451,8 @@ bool init_find(SearchFilters *f) {
             fprintf(stderr, "Max depth: %d\n", f->max_depth);
         if (f->f_hidden)
             fprintf(stderr, "Include hidden files.\n");
+        if (f->f_lnk_dir)
+            fprintf(stderr, "Follow symbolic links.\n");
         if (f->include_types) {
             fprintf(stderr, "Included file types:");
             if (f->include_types & FT_BLK)
@@ -557,6 +566,7 @@ Node *dequeue_dir() {
    */
 void *finder(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;
+    struct stat st;
     // regmatch_t pmatch;
 
     while (1) {
@@ -577,6 +587,17 @@ void *finder(void *arg) {
                 strnz__cpy(full_path, current->path, PATH_MAX - 1);
                 strnz__cat(full_path, "/", PATH_MAX - 1);
                 strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
+                int isdir = 0;
+                bool suppress = false;
+                if (entry->d_type == DT_LNK) {
+                    if (stat(full_path, &st) == 0) {
+                        isdir = S_ISDIR(st.st_mode);
+                        if (isdir && f->f_lnk_dir)
+                            entry->d_type = DT_DIR;
+                        else
+                            suppress = true;
+                    }
+                }
                 if (entry->d_type == DT_DIR) {
                     if (!((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))) {
                         if (f->max_depth == 0 ||
@@ -585,7 +606,8 @@ void *finder(void *arg) {
                         }
                     }
                 } else {
-                    scan_file(current->path, f, entry);
+                    if (!suppress)
+                        scan_file(current->path, f, entry);
                 }
             }
             closedir(dir);
