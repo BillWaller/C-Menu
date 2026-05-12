@@ -4,12 +4,9 @@
 
 - [Other C-Menu Documentation](#other-c-menu-documentation)
 - [C-Menu Overview](#c-menu-overview)
-  - [C-Menu Features](#c-menu-features)
   - [C-Menu Start-up Options](#c-menu-start-up-options)
 - [C-Menu Menu](#c-menu-menu)
-- [Menu Line-by-Line Breakdown](#menu-line-by-line-breakdown)
-  - [Title Line](#title-line)
-  - [Text Lines](#text-lines)
+- [Menu Description File](#menu-description-file)
   - [Sub-Menus](#sub-menus)
 - [C-Menu Form](#c-menu-form)
   - [Description File](#description-file)
@@ -26,7 +23,6 @@
 - [C-Menu View](#c-menu-view)
 - [RSH - A Root Shell Alternative](#rsh---a-root-shell-alternative)
 - [lf - A Regular Expression File Finder](#lf---a-regular-expression-file-finder)
-- [Sneakey Optimization Techniques](#sneakey-optimization-techniques)
 
 <!-- mtoc-end -->
 
@@ -52,24 +48,11 @@
 
 ## C-Menu Overview
 
-C-Menu is a toolkit of software components that can be assembled like Legos to create intuitive and responsive applications.
+C-Menu is a toolkit of software components that can be assembled like Legos to create intuitive and responsive applications. C-Menu's building blocks are purpose-built, optimized, and highly customizable, allowing developers to create unique and engaging interfaces with minimal investment of time and effort.
 
-C-Menu's building blocks are purpose-built, optimized, and highly customizable, allowing developers to create unique and engaging interfaces with minimal investment of time and effort. C-Menu's components include Menu, Form, Pick, View, RSH, lf (lightweight find), and C-Keys (a keyboard and mouse diagnostic tool). These components can be used to create a wide range of applications, from simple command-line tools to complex workflows.
+C-Menu's components include Menu, Form, Pick, View, RSH, lf (lightweight find), and C-Keys (a keyboard and mouse diagnostic tool). These components can be used to create a wide range of applications, from simple command-line tools to complex workflows.
 
 Because C-Menu is written in C and terminal-based, it is super-fast and has a minimal footprint. C-Menu requires only a Linux kernel and the standard C library, it is perfect for resource constrained environments such as embedded applications, servers, IOT, and SOC.
-
-### C-Menu Features
-
-- All C-Menu components provide navigation by mouse and keyboard, and in many cases by the standard h, j, k, and l keys that programmers are accustomed to.
-
-- C-Menu's building-block approach allows you to integrate C-Menu internals, external applications, scripts, and executables in a seamless way. For example, you can use C-Menu Form to create a form-based interface for data entry and validation, and then use an external executable to process the form data and display the results in a C-Menu View window.
-
-- C-Menu's configuration file, ~/.minitrc, allows you to set default options for all C-Menu components, such as color schemes, key bindings, and field settings. This allows you to create a consistent look and feel across all your applications and optimize the user experience.
-
-- Auto sizing and resizing: By default, C-Menu's components, Menu, Form, Pick, and View open in pop-up windows overlaying the calling C-Menu window. If you don't specify window geometry, or if you specify window geometry that is inappropriate, C-Menu will apply an auto-sizing algorithm to determine the optimal window size and position based on the content being displayed and the current terminal size. C-Menu View responds to terminal resize events, dynamically adjusting its size and position to maximize the space available.
-
-- The built-in F1 Help facility allows you to create context-sensitive help for
-  your application, which can be ordinary text or custom highlighted text with Unicode support.
 
 ### C-Menu Start-up Options
 
@@ -85,64 +68,59 @@ The "--" prefix is omitted in the configuration file. Options commonly used on t
 
 The menu above is intended to demonstrate a variety of features and techniques that can be applied to your projects. It is not meant to be a practical menu for everyday use, but rather a showcase of what is possible with C-Menu. Think of yourself as an artist and C-Menu as your canvas. What will you create?
 
-Below is an example of source defining the above menu. This is the part you design as the top-level framework for your application. C-Menu uses a building-block approach to integrate C-Menu internals, external applications, scripts, and executables, as you will see in just a moment. C-Menu includes a set of useful and powerful components you assemble like Leggos to create innovative software products. C-Menu's main components include Menu, Form, Pick, View, RSH, lf, and C-Keys, each of which will be explained in detail in the following sections.
+## Menu Description File
 
----
+Below is an example of source defining the above menu. This is the part you design as the top-level framework for your application.
 
-This section will break down Example C-Menu Applications and explain how they work from the perspective of a developer using C-Menu to build applications. With this understanding, you will be ready to create custom software products that are intuitive, uniform, dependable, flexible, appealing, and fast with a minimal footprint.
+This section will break down the Example C-Menu Applications Menu and explain how it works from the perspective of a developer using C-Menu to build applications. With this understanding, you will be ready to create custom software products with C-Menu.
 
 ![Menu Description File](../screenshots/applications_menu.m.png)
+
 Lets examine the Menu source above and break down how it works. The source file is a simple text file that contains a series of User Choices and Commands.
 
 Lines beginning with ":" are the User Choices.
 
 Lines beginning with "!" are commands to be executed by Menu when the corresponding menu item is selected. These commands can be used to invoke internal C-Menu functions execute external commands, and run shell scripts.
 
----
+Lines beginning with "#" are comments.
 
-## Menu Line-by-Line Breakdown
-
-Lines beginning with '#" are comments.
-
-### Title Line
-
-The first text line will be used as the Menu title to be displayed in the top
-window border.
+The first text line will be used as the Menu title to be displayed at the top window border.
 
 ```bash
-:                APPLICATIONS
+: APPLICATIONS
 ```
 
----
+Subsequent lines beginning with ":" are user choices that will be displayed in
+the menu.
 
-### Text Lines
+The command line, beginning with "!" following each menu choice is executed by
+C-Menu Menu when the user selects that menu item. The user can click the desired
+Menu line with the mouse, position the cursor over the desired Menu line by
+using navigation keys, up and down arrow keys, or j and k, and the pressing
+enter or pressing the letter on the left of the desired Menu item.
 
-Subsequent lines beginning with ":" are menu choices that will be displayed in the menu.
+Menu items always consist of the text displayed in the menu and a command to be
+executed when the menu item is selected. The command can be an internal C-Menu function, an external command, or a shell script. The command can also include options and arguments to customize its behavior.
 
-The command line, beginning with "!" following each menu choice is executed when the corresponding menu item is selected.
-
-We present these lines in pairs because that's how they work.
+Example:
 
 ```bash
-:     Full Screen (root) Shell
+:     Full Screen Shell
 !exec rsh
 ```
 
----
-
 ### Sub-Menus
 
-The following menu item specifies a menu description file,
-"workstation_config.m", which will be loaded and displayed when the menu item is selected. This allows you to create nested menus and organize your application into multiple levels of menus.
+The following menu item, Workstation Configuration, demonstrates how to create a
+sub-menu by specifying a menu description file, "workstation_config.m", which
+will be loaded and displayed when the menu item is selected. This allows you to create a hierarchical menu structure, with multiple levels of sub-menus, to organize your application and provide a more intuitive user experience.
 
 ```bash
-:   Workstation Configuration
+:     Workstation Configuration
 !menu workstation_config.m
 ```
 
 ![Workstation Configuration](../screenshots/workstation_config.png)
-
----
 
 Diagnostic Tools is another menu item that specifies a menu description file, "diag.m", which will be loaded and displayed when the menu item is selected. This demonstrates how you can create multiple menus for different purposes and link them together through menu items.
 
@@ -439,8 +417,6 @@ So, the user presses tab, the cursor jumps to the only file listed, and the user
 
 When finished editing in nvim, the user can type shift "zz" to exit. nvim closes, and the user is returned to the Pick window as it was before selecting the file. The user can press tab, backspace, 3, tab, spacebar, and nvim opens hashmaps3.rs, the next source file in the Rustlings sequence. This is a very quick and almost effortless way to step through the Rustlings exercises, but it can also apply to many other situations.
 
----
-
 ### Edit .c Files in Current Directory
 
 Edit .c Files in Current Directory is an example of how to use C-Menu lf and Pick to
@@ -471,8 +447,6 @@ replaced by a direct command line, such as "lf -d 5 '.\*\.c$'", that would be mo
 
 Look Mom! No scripts! Just direct command lines. This is the most efficient way to write your menu commands, but it may not always be the most practical or maintainable way, especially if you have complex command lines that are difficult to read and understand. In those cases, using shell scripts can help simplify your command lines and make them more readable and maintainable.
 
----
-
 ### View C-Menu Source With Tree-Sitter
 
 View C-Menu Source with Tree-sitter demonstrates how to use shell scripts to
@@ -494,8 +468,6 @@ This image of the View window has line numbers because f_ln is set to true in
 the C-Menu configuration file. If you don't have f_ln set to true in the
 configuration file, you can also use "-N" on the command line to enable line numbers. If you have f_ln set to true in the configuration file, and you don't want line numbers, you can specify "-Nf" on the command line to disable line numbers for that particular view instance.
 
----
-
 ## C-Menu View
 
 View has Unicode support, line numbering, regular expression searching, and a
@@ -515,8 +487,6 @@ nonsense, just blazing fast performance.
 
 ![C-Menu View with Syntax Highlighting](../screenshots/tree-sitter5.png)
 
----
-
 ## RSH - A Root Shell Alternative
 
 **_RSH_** - RSH provides an alternative to su and sudo for executing commands
@@ -534,20 +504,18 @@ and relinquish root privilege.
 
 - The Green prompt indicates user privilege, and Red indicates root privilege.
 
----
-
 ## lf - A Regular Expression File Finder
 
-**_lf_** - is a sleek, easy-to-use, and fast alternative to the Unix find command. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
+**_lf_** - is a sleek, easy-to-use, and fast file finder. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
 
 ![lf help](../screenshots/lf-help.png)
 
 The ../screenshot above is the help output of lf piped through bat and displayed in
 View.
 
-C-Menu's lf (lightweight find) is an alternative to Unix find. Although Unix find is an extremely powerful tool, and it is not slow, it can be unwieldy at times (see the 40 page manual). It does everything you could want, but with unnecessary overhead and complexity. C-Menu's lf is smaller, faster, and easier to use than Unix find, yet covers most day-to-day use cases.
+Note: lf's default behavior of including hidden files has been changed and the default is now to exclude hidden files. Before this update, the "-n" option directed lf to exclude hidden files, but that is no longer necessary and a new "-H" option has been added to direct lf to include hidden files. This change was made to align with the behavior of other popular file finders such as fd and find.
 
-One of find's most often used features is the built-in -exec option, which executes a specified command on each file found. Conspicuously, lf does not have a built-in -exec option, and that is one of the first things people notice. However, lf achieves the same result, by piping the output of lf into xargs. Intuitively, it makes sense that find with its built-in exec option would be faster than lf using an external xargs command. We compared C-Menu's lf with xargs and find with its built-in -exec option. Both methods produced identical and accurate results.
+Find's built-in -exec is one of its most often used options and conspicuously, lf doesn't have a built-in -exec option. However, lf achieves identical results in a fraction of the time by piping the output of lf into xargs. There would be no benefit to adding an -exec option to lf because xargs leaves nothing to be desired.
 
 time find . -maxdepth 5 -type f -exec ls -l {} \; >find.out
 
@@ -567,30 +535,9 @@ time lf -d 4 -t f | xargs ls -l >lf.out
 | find    | 0m2.123s | 0m0.788s | 0m0.281s | 598         |
 | lf      | 0m0.014s | 0m0.007s | 0m0.009s | 598         |
 
-As you can see, lf with xargs is significantly faster than find with its built-in -exec option. find, with its built-in exec option executes the specified command for each file found, which can be very inefficient when dealing with a large number of files. In contrast, using xargs allows you to execute the command on multiple files at once, which can significantly reduce the overhead and improve performance.
+The results were unequivocal. lf with xargs is significantly faster than find with its built-in exec option.
 
-Note that benchmark performance can vary based on the specific use case, the size of the dataset, and the system's hardware capabilities. However, in general, using xargs with lf can provide a significant performance boost compared to using find with its built-in -exec option.
-
-The point is the absence of a built-in -exec option is not a disadvantage for lf.
-
-In fairness, we must disclose that the performance of find with xargs instead of its built-in -exec brings it closer, but still short of lf's performance.
-
-Hats off to the developers of xargs for creating such an incredibly efficient and powerful tool.
-
-A simpler invocation of find and lf is more indicative of the actual performance differential.
-
-time find . >find.out
-
-time lf >lf.out
-
-| Command | real     | user     | sys      | files found |
-| ------- | -------- | -------- | -------- | ----------- |
-| find    | 0m0.846s | 0m0.338s | 0m0.508s | 321057      |
-| lf      | 0m0.589s | 0m0.160s | 0m0.427s | 321057      |
-
-With a large number of files, the current release of lf is about 30% faster than find, and it is likely that planned optimizations will reduce lf's execution times to a fraction of what they are now.
-
-**_NEW_** The latest updates have incorporated concurrent directory processing resulting in significant performance gains for lf. I have not had time to dig in and find out why fd only listed 291969 files, but it is likely that fd is not following symbolic links, which would account for the difference in file counts. The performance of fd is also significantly slower than lf, which is surprising given that fd is written in Rust and is generally considered to be a fast file searching tool. It is possible that fd's performance could be improved with some optimizations, but as it stands, lf appears to be the superior choice for file searching tasks.
+The command lines below are simple and straightforward, with no complex options or filters. Benchmark comparisons are notoriously subject to manipulation, so take them with a grain of salt. There are so many variations in hardware, file systems, the actual data, and system caching states that can skew results. You wouldn't buy a new Corvette without a test drive, so take C-Menu for a spin, do your own comparisons, and decide for yourself. (Why does it feel so sneaky to say that? (-: (-: )
 
 time find . -type f | wc
 
@@ -604,44 +551,21 @@ time fd . -H -t f | wc
 | lf      | 0m0.214s | 0m0.036s | 0m0.214s | 307440      |
 | fd      | 0m0.221s | 0m0.319s | 0m0.821s | 291969      |
 
-But, even if lf wasn't faster than find, it would still be a compelling alternative due to its simplicity and ease of use. With fewer options and a more intuitive syntax, lf can be easier to learn and use for the most common file searching tasks.
+Even without its speed advantage, lf would still be a compelling alternative due to its simplicity, portability, and ease of use. With fewer options and a more intuitive syntax, lf is a breeze to learn and use for the most common file searching tasks.
 
-Here's an example:
+Here's an example of how easy it is to use lf to find files modified between two
+dates. The command line below uses lf to find files modified after 2024-01-01 and before 2024-06-01, and then pipes the output to xargs to execute ls -l on the found files.
+
+- You don't have to enter the T00:00:00 time component if you just want to
+  include files modified between two dates. Keep in mind that the time will
+  default to 00:00:00 if you specify a date without a time component, so
+  -b 2026-06-01 will include files modified through the end of the day on
+  2026-05-31, but will exclude files modified on 2026-06-01.
+
+```bash
+lf -d 5 -t f -a 2024-01-01 -b 2024-06-01 | xargs ls -l
+```
 
 ![lf File Finder](../screenshots/lf-dates.png)
 
-The screenshot above shows how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We believe you will find this format intuitive and easy to use.
-
----
-
-## Sneakey Optimization Techniques
-
-**_View C-Menu Command Line Options_** is an example of a smart way to improve
-and optimize your C-Menu applications. Instead of writing a complicated command line to display the C-Menu help file with syntax highlighting, highlight the file in advance and save the highlighted file as menu.help. Then, simply execute the view command directly, specifying the highlighted file as an argument. This is one of many ways to improve and optimize the applications you design with C-Menu. You will most likely miss opportunities for improvement and optimization on your first pass, and that's understandable. You want to finish the project. But, great software results from developers revisiting their own code and looking for opportunities for improvement and optimization.
-
-Don't get distracted trying to write perfect code on the first pass. Get it working, and then polish it. The key is to prioritize using cost/benefit analysis. The cost is your time and the benefit is increased demand for your product. It's up to you to quantify that relationship, but generally, try to get the most bang for the buck and favor the least expensive (time consuming) improvements and optimizations. The more time a project takes, the more likely you are to suffer interruptions, breaking your continuity of thought. Once interrupted, your highly tuned mental context begins to fade immediately, and it takes time to reestablish.
-
-The truth is that this particular optimization is anything but sneaky. The title
-is just a little tongue-in-cheek. In fact, this optimization is obvious, and
-anyone should have noticed it on the first pass. I didn't, and I was frankly a little
-embarrassed when it was pointed out to me. The moral is that getting a second set of eyes on your code can vastly increase your chances to spot improvement and optimization opportunities you might have missed.
-
-Why don't all developers do this? Given time, most do, but top developers often have such intense demands on their time, they often don't have the luxury of time to carefully review and optimize their code. But you, dear reader, are an artist and you have the time to create beautiful and efficient code that will make your applications spectacular.
-
-```bash
-: View C-Menu Command Line Options
-!view -Nf -L66 -C75 ~/menuapp/help/menu.help
-```
-
-![C-Menu Help](../screenshots/C-Menu-help.png)
-
----
-
-Finally, a super simple command line that does two things, it closes the
-current menu and returns to the previous menu.
-
-```bash
-!return
-```
-
----
+The ../screenshot above shows how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We believe you will find this format intuitive and easy to use.

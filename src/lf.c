@@ -594,7 +594,6 @@ void *finder(void *arg) {
                 strnz__cat(full_path, "/", PATH_MAX - 1);
                 strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
                 int isdir = 0;
-                bool suppress = false;
                 if (entry->d_type == DT_LNK) {
                     if (stat(full_path, &st) == 0) {
                         isdir = S_ISDIR(st.st_mode);
@@ -605,19 +604,15 @@ void *finder(void *arg) {
                 if (entry->d_type == DT_DIR) {
                     if (!((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))) {
                         if (f->max_depth == 0 ||
-                            current->depth + 1 < f->max_depth) {
+                            current->depth + 1 < f->max_depth)
                             enqueue_dir(full_path, current->depth + 1);
-                            scan_file(current->path, f, entry);
-                        }
                     }
                 } else {
-                    if (!suppress)
-                        scan_file(current->path, f, entry);
+                    scan_file(current->path, f, entry);
                 }
             }
-            closedir(dir);
         }
-
+        closedir(dir);
         free(current);
         atomic_fetch_sub(&active_tasks, 1);
         pthread_cond_broadcast(

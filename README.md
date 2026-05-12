@@ -7,9 +7,6 @@
   - [C-Menu Start-up Options](#c-menu-start-up-options)
 - [C-Menu Menu](#c-menu-menu)
 - [Menu Description File](#menu-description-file)
-- [Menu Line-by-Line Breakdown](#menu-line-by-line-breakdown)
-  - [Title Line](#title-line)
-  - [Text Lines](#text-lines)
   - [Sub-Menus](#sub-menus)
 - [C-Menu Form](#c-menu-form)
   - [Description File](#description-file)
@@ -26,7 +23,6 @@
 - [C-Menu View](#c-menu-view)
 - [RSH - A Root Shell Alternative](#rsh---a-root-shell-alternative)
 - [lf - A Regular Expression File Finder](#lf---a-regular-expression-file-finder)
-- [Sneakey Optimization Techniques](#sneakey-optimization-techniques)
 
 <!-- mtoc-end -->
 
@@ -79,57 +75,52 @@ Below is an example of source defining the above menu. This is the part you desi
 This section will break down the Example C-Menu Applications Menu and explain how it works from the perspective of a developer using C-Menu to build applications. With this understanding, you will be ready to create custom software products with C-Menu.
 
 ![Menu Description File](screenshots/applications_menu.m.png)
+
 Lets examine the Menu source above and break down how it works. The source file is a simple text file that contains a series of User Choices and Commands.
 
 Lines beginning with ":" are the User Choices.
 
 Lines beginning with "!" are commands to be executed by Menu when the corresponding menu item is selected. These commands can be used to invoke internal C-Menu functions execute external commands, and run shell scripts.
 
----
+Lines beginning with "#" are comments.
 
-## Menu Line-by-Line Breakdown
-
-Lines beginning with '#" are comments.
-
-### Title Line
-
-The first text line will be used as the Menu title to be displayed in the top
-window border.
+The first text line will be used as the Menu title to be displayed at the top window border.
 
 ```bash
-:                APPLICATIONS
+: APPLICATIONS
 ```
 
----
+Subsequent lines beginning with ":" are user choices that will be displayed in
+the menu.
 
-### Text Lines
+The command line, beginning with "!" following each menu choice is executed by
+C-Menu Menu when the user selects that menu item. The user can click the desired
+Menu line with the mouse, position the cursor over the desired Menu line by
+using navigation keys, up and down arrow keys, or j and k, and the pressing
+enter or pressing the letter on the left of the desired Menu item.
 
-Subsequent lines beginning with ":" are menu choices that will be displayed in the menu.
+Menu items always consist of the text displayed in the menu and a command to be
+executed when the menu item is selected. The command can be an internal C-Menu function, an external command, or a shell script. The command can also include options and arguments to customize its behavior.
 
-The command line, beginning with "!" following each menu choice is executed when the corresponding menu item is selected.
-
-We present these lines in pairs because that's how they work.
+Example:
 
 ```bash
-:     Full Screen (root) Shell
+:     Full Screen Shell
 !exec rsh
 ```
 
----
-
 ### Sub-Menus
 
-The following menu item specifies a menu description file,
-"workstation_config.m", which will be loaded and displayed when the menu item is selected. This allows you to create nested menus and organize your application into multiple levels of menus.
+The following menu item, Workstation Configuration, demonstrates how to create a
+sub-menu by specifying a menu description file, "workstation_config.m", which
+will be loaded and displayed when the menu item is selected. This allows you to create a hierarchical menu structure, with multiple levels of sub-menus, to organize your application and provide a more intuitive user experience.
 
 ```bash
-:   Workstation Configuration
+:     Workstation Configuration
 !menu workstation_config.m
 ```
 
 ![Workstation Configuration](screenshots/workstation_config.png)
-
----
 
 Diagnostic Tools is another menu item that specifies a menu description file, "diag.m", which will be loaded and displayed when the menu item is selected. This demonstrates how you can create multiple menus for different purposes and link them together through menu items.
 
@@ -426,8 +417,6 @@ So, the user presses tab, the cursor jumps to the only file listed, and the user
 
 When finished editing in nvim, the user can type shift "zz" to exit. nvim closes, and the user is returned to the Pick window as it was before selecting the file. The user can press tab, backspace, 3, tab, spacebar, and nvim opens hashmaps3.rs, the next source file in the Rustlings sequence. This is a very quick and almost effortless way to step through the Rustlings exercises, but it can also apply to many other situations.
 
----
-
 ### Edit .c Files in Current Directory
 
 Edit .c Files in Current Directory is an example of how to use C-Menu lf and Pick to
@@ -458,8 +447,6 @@ replaced by a direct command line, such as "lf -d 5 '.\*\.c$'", that would be mo
 
 Look Mom! No scripts! Just direct command lines. This is the most efficient way to write your menu commands, but it may not always be the most practical or maintainable way, especially if you have complex command lines that are difficult to read and understand. In those cases, using shell scripts can help simplify your command lines and make them more readable and maintainable.
 
----
-
 ### View C-Menu Source With Tree-Sitter
 
 View C-Menu Source with Tree-sitter demonstrates how to use shell scripts to
@@ -481,8 +468,6 @@ This image of the View window has line numbers because f_ln is set to true in
 the C-Menu configuration file. If you don't have f_ln set to true in the
 configuration file, you can also use "-N" on the command line to enable line numbers. If you have f_ln set to true in the configuration file, and you don't want line numbers, you can specify "-Nf" on the command line to disable line numbers for that particular view instance.
 
----
-
 ## C-Menu View
 
 View has Unicode support, line numbering, regular expression searching, and a
@@ -502,8 +487,6 @@ nonsense, just blazing fast performance.
 
 ![C-Menu View with Syntax Highlighting](screenshots/tree-sitter5.png)
 
----
-
 ## RSH - A Root Shell Alternative
 
 **_RSH_** - RSH provides an alternative to su and sudo for executing commands
@@ -520,8 +503,6 @@ and relinquish root privilege.
 ![RSH SSH Authentication](screenshots/Makefile-out.png)
 
 - The Green prompt indicates user privilege, and Red indicates root privilege.
-
----
 
 ## lf - A Regular Expression File Finder
 
@@ -588,32 +569,3 @@ lf -d 5 -t f -a 2024-01-01 -b 2024-06-01 | xargs ls -l
 ![lf File Finder](screenshots/lf-dates.png)
 
 The screenshot above shows how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We believe you will find this format intuitive and easy to use.
-
----
-
-## Sneakey Optimization Techniques
-
-**_View C-Menu Command Line Options_** is an example of a smart way to improve
-and optimize your C-Menu applications. Instead of writing a complicated command line to display the C-Menu help file with syntax highlighting, highlight the file in advance and save the highlighted file as menu.help. Then, simply execute the view command directly, specifying the highlighted file as an argument.
-
-This optimization is obvious, and anyone should have noticed it on the first pass. I didn't, and I was frankly a little embarrassed when it was pointed out to me. It is always helpful to get a second set of eyes on your code.
-
-Most developers intend to review and optimize their code, but time to do so can be a scarce resource. However you, dear reader, are an artist and you will take the time to craft beautiful, robust, and efficient code that will make your applications spectacular.
-
-```bash
-: View C-Menu Command Line Options
-!view -Nf -L66 -C75 ~/menuapp/help/menu.help
-```
-
-![C-Menu Help](screenshots/C-Menu-help.png)
-
----
-
-Finally, a super simple command line that even I can understand. It closes the
-current menu and returns to the previous menu.
-
-```bash
-!return
-```
-
----
