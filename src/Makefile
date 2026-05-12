@@ -98,7 +98,7 @@ CFLAGS=-O3
 #   necessary for production builds, so it is typically used only for debugging 
 #   purposes.
 #
-# CFLAGS=-O0 -ggdb -rdynamic
+CFLAGS=-O0 -ggdb -rdynamic
 # CFLAGS=-DDEBUG_RESIZE DDEUBG_IMMEDOK DDEBUG_LOG
 #  Uncomment the following line to enable Address Sanitizer, Leak Sanitizer, and 
 #  Undefined Behavior Sanitizer.
@@ -164,7 +164,7 @@ COMMON_SRCS=menu_engine.c parse_menu_desc.c curskeys.c \
 			pick_engine.c popups.c view_engine.c
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
-LIBS = $(LIBASAN) -L. -lcm -lncursesw -ltinfo -lm -Wl,-rpath,$(LIB_PATH)
+LIBS = $(LIBASAN) -L. -lcm -lncursesw -ltinfo -lm -luring -Wl,-rpath,$(LIB_PATH)
 
 all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Make Complete

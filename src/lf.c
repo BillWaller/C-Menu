@@ -580,9 +580,15 @@ void *finder(void *arg) {
         if (dir) {
             struct dirent *entry;
             while ((entry = readdir(dir)) != NULL) {
-                if (strcmp(entry->d_name, ".") == 0 ||
-                    strcmp(entry->d_name, "..") == 0)
+                if (strcmp(current->path, f->base_path) == 0)
+                    if (strcmp(entry->d_name, ".") == 0) {
+                        scan_file(current->path, f, entry);
+                        continue;
+                    }
+                if ((strcmp(entry->d_name, ".") == 0) ||
+                    (strcmp(entry->d_name, "..") == 0)) {
                     continue;
+                }
                 char full_path[PATH_MAX];
                 strnz__cpy(full_path, current->path, PATH_MAX - 1);
                 strnz__cat(full_path, "/", PATH_MAX - 1);
@@ -594,8 +600,6 @@ void *finder(void *arg) {
                         isdir = S_ISDIR(st.st_mode);
                         if (isdir && f->f_lnk_dir)
                             entry->d_type = DT_DIR;
-                        else
-                            suppress = true;
                     }
                 }
                 if (entry->d_type == DT_DIR) {
@@ -603,6 +607,7 @@ void *finder(void *arg) {
                         if (f->max_depth == 0 ||
                             current->depth + 1 < f->max_depth) {
                             enqueue_dir(full_path, current->depth + 1);
+                            scan_file(current->path, f, entry);
                         }
                     }
                 } else {
