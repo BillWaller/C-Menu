@@ -37,8 +37,8 @@ const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
                    "directory to search. REGULAR_EXPRESSION is a properly "
                    "formatted regular expression for which matching files "
                    "will be listed.";
-
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
+int threads;
 
 static struct argp_option options[] = {
     {"after", 'a', "time", 0, "Modified after YYYY-MM-DDTHH:MM:SS", 0},
@@ -60,6 +60,7 @@ static struct argp_option options[] = {
      0},
     {"f_hidden", 'H', 0, 0, "Include hidden files", 0},
     {"f_lnk_dir", 'L', 0, 0, "Follow symbolic links", 0},
+    {"threads", 'T', "threads", 0, "Number of threads", 0},
     {"f_sort", 'S', "r", OPTION_ARG_OPTIONAL, "sort arg=r reverse", 0},
     {0}};
 
@@ -166,6 +167,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'L':
         f->f_lnk_dir = true; // follow symbolic links
+        break;
+    case 'T':
+        if (arg && arg[0] != '\0')
+            threads = a_toi(arg, &a_toi_error);
         break;
     case 'i':
         f->flags |= LF_ICASE;
@@ -429,6 +434,14 @@ bool init_find(SearchFilters *f) {
         }
     }
     int thread_count = get_nprocs();
+    if (threads == 0 && thread_count > 6)
+        threads = 6; // Limit default thread count to 6 to avoid excessive
+                     // resource usage
+    else if (threads < 0)
+        thread_count =
+            max(1, thread_count + threads); // Allow negative values to specify
+                                            // threads to leave idle
+    thread_count = min(thread_count, max(1, threads));
     if (f->debug) {
         fprintf(stderr, "Starting search in: %s\n", f->base_path);
         fprintf(stderr, "Using %d threads\n", thread_count);
@@ -533,7 +546,6 @@ void enqueue_dir(const char *path, int depth) {
 Node *dequeue_dir() {
     pthread_mutex_lock(&queue_mutex);
     while (head == NULL && !shutdown) {
-        // Exit condition: No work in queue AND no threads busy
         if (atomic_load(&active_tasks) == 0) {
             shutdown = 1;
             pthread_cond_broadcast(&cond_var);
@@ -567,6 +579,7 @@ Node *dequeue_dir() {
 void *finder(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;
     struct stat st;
+    char full_path[PATH_MAX];
     // regmatch_t pmatch;
 
     while (1) {
@@ -580,24 +593,23 @@ void *finder(void *arg) {
         if (dir) {
             struct dirent *entry;
             while ((entry = readdir(dir)) != NULL) {
-                if (strcmp(current->path, f->base_path) == 0)
-                    if (strcmp(entry->d_name, ".") == 0) {
-                        scan_file(current->path, f, entry);
+                if (entry->d_name[0] == '.') {
+                    if (entry->d_name[1] == '\0') {
+                        strnz__cpy(full_path, current->path, PATH_MAX - 1);
+                        strnz__cat(full_path, "/", PATH_MAX - 1);
+                        strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
+                        scan_file(full_path, f, entry);
                         continue;
-                    }
-                if ((strcmp(entry->d_name, ".") == 0) ||
-                    (strcmp(entry->d_name, "..") == 0)) {
-                    continue;
+                    } else if (entry->d_name[1] == '.' &&
+                               entry->d_name[2] == '\0')
+                        continue;
                 }
-                char full_path[PATH_MAX];
                 strnz__cpy(full_path, current->path, PATH_MAX - 1);
                 strnz__cat(full_path, "/", PATH_MAX - 1);
                 strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
-                int isdir = 0;
                 if (entry->d_type == DT_LNK) {
                     if (stat(full_path, &st) == 0) {
-                        isdir = S_ISDIR(st.st_mode);
-                        if (isdir && f->f_lnk_dir)
+                        if (S_ISDIR(st.st_mode) && f->f_lnk_dir)
                             entry->d_type = DT_DIR;
                     }
                 }
@@ -606,11 +618,11 @@ void *finder(void *arg) {
                         if (f->max_depth == 0 ||
                             current->depth + 1 < f->max_depth) {
                             enqueue_dir(full_path, current->depth + 1);
-                            scan_file(current->path, f, entry);
+                            scan_file(full_path, f, entry);
                         }
                     }
                 } else {
-                    scan_file(current->path, f, entry);
+                    scan_file(full_path, f, entry);
                 }
             }
         }
@@ -655,146 +667,117 @@ void *finder(void *arg) {
    concurrent push and pop operations from both ends, allowing threads to
    efficiently share the workload without excessive locking or contention.
    */
-int scan_file(char *current_path, SearchFilters *f, struct dirent *dir_st) {
+int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
 
-    char tmp_str[PATH_MAX];
-    char file_spec[PATH_MAX];
+    char tmp_str[MAXLEN];
 
     regmatch_t pmatch[2];
     bool f_stat = false;
-    bool suppress_file = false;
 
-    if (dir_st->d_name[0] == '.' && f->suppress_hidden)
-        suppress_file = true;
-    if (!suppress_file) {
-        switch (dir_st->d_type) {
-        case DT_BLK:
-            if (f->blk)
-                suppress_file = true;
-            break;
-        case DT_CHR:
-            if (f->chr)
-                suppress_file = true;
-            break;
-        case DT_DIR:
-            if (f->dir)
-                suppress_file = true;
-            break;
-        case DT_FIFO:
-            if (f->fifo)
-                suppress_file = true;
-            break;
-        case DT_LNK:
-            if (f->lnk)
-                suppress_file = true;
-            break;
-        case DT_REG:
-            if (f->reg)
-                suppress_file = true;
-            break;
-        case DT_SOCK:
-            if (f->sock)
-                suppress_file = true;
-            break;
-        case DT_UNKNOWN:
-            if (f->unknown)
-                suppress_file = true;
-            break;
-        default:
+    while (1) {
+        if (dir_st->d_name[0] == '.' && f->suppress_hidden) {
             break;
         }
-    }
-    if (!suppress_file) {
-        strnz__cpy(file_spec, current_path, PATH_MAX - 1);
-        strnz__cat(file_spec, "/", PATH_MAX - 1);
-        strnz__cat(file_spec, dir_st->d_name, PATH_MAX - 1);
-    }
-    /* Exclude non-matching files */
-    if (!suppress_file && (f->flags & LF_REGEX)) {
-        int reti = regexec(&f->compiled_re, file_spec,
-                           f->compiled_re.re_nsub + 1, pmatch, f->reg_flags);
-        if (reti == REG_NOMATCH) {
-            suppress_file = true;
-        } else if (reti) {
-            regerror(reti, &f->compiled_re, tmp_str, sizeof(tmp_str));
-            strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
-            strnz__cat(tmp_str, tmp_str, PATH_MAX - 1);
-            Perror(tmp_str);
-            return false;
+        if (f->suppress_types) {
+            if (f->reg && dir_st->d_type == DT_REG)
+                break;
+            if (f->dir && dir_st->d_type == DT_DIR)
+                break;
+            if (f->lnk && dir_st->d_type == DT_LNK)
+                break;
+            if (f->blk && dir_st->d_type == DT_BLK)
+                break;
+            if (f->chr && dir_st->d_type == DT_CHR)
+                break;
+            if (f->fifo && dir_st->d_type == DT_FIFO)
+                break;
+            if (f->sock && dir_st->d_type == DT_SOCK)
+                break;
+            if (f->unknown && dir_st->d_type == DT_UNKNOWN)
+                break;
         }
-    }
-    /* Exclude matching files */
-    if (!suppress_file && (f->flags & LF_EXC_REGEX)) {
-        int reti = regexec(&f->compiled_ere, file_spec,
-                           f->compiled_re.re_nsub + 1, pmatch, f->reg_flags);
-        if (reti == 0)
-            suppress_file = true;
-        else if (reti == REG_NOMATCH)
-            suppress_file = false;
-        else if (reti) {
-            regerror(reti, &f->compiled_re, tmp_str, sizeof(tmp_str));
-            strnz__cpy(tmp_str, "Regex match failed: ", PATH_MAX - 1);
-            strnz__cat(tmp_str, tmp_str, PATH_MAX - 1);
-            Perror(tmp_str);
-            return false;
+        /* Exclude non-matching files */
+        if (f->flags & LF_REGEX) {
+            int reti =
+                regexec(&f->compiled_re, file_spec, f->compiled_re.re_nsub + 1,
+                        pmatch, f->reg_flags);
+            if (reti == REG_NOMATCH) {
+                break;
+            } else if (reti) {
+                regerror(reti, &f->compiled_re, tmp_str, sizeof(tmp_str));
+                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+                strnz__cat(tmp_str, tmp_str, MAXLEN - 1);
+                perror(tmp_str);
+                break;
+            }
         }
-    }
-    f_stat = false;
-    struct stat sb;
-    /** Exclude files not owned by specified user */
-    if (!suppress_file) {
+        /* Exclude matching files */
+        if (f->flags & LF_EXC_REGEX) {
+            int reti =
+                regexec(&f->compiled_ere, file_spec, f->compiled_re.re_nsub + 1,
+                        pmatch, f->reg_flags);
+            if (reti == 0) // Match
+                break;
+            else if (reti) {
+                regerror(reti, &f->compiled_re, tmp_str, sizeof(tmp_str));
+                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+                strnz__cat(tmp_str, tmp_str, MAXLEN - 1);
+                perror(tmp_str);
+            }
+        }
+        f_stat = false;
+        struct stat sb;
+        /** Exclude files not owned by specified user */
         if ((f->flags & LF_USER) && stat(file_spec, &sb) == 0) {
             f_stat = true;
             if (sb.st_uid != f->user_id)
-                suppress_file = true;
+                break;
         }
-    }
-    if (!suppress_file && f->permissions) {
-        if (!f_stat) {
-            if (stat(file_spec, &sb) == 0)
-                f_stat = true;
+        if (f->permissions) {
+            if (!f_stat) {
+                if (stat(file_spec, &sb) == 0)
+                    f_stat = true;
+            }
+            if ((f->permissions & LF_PERM_R) && !(sb.st_mode & S_IRUSR))
+                break;
+            else if ((f->permissions & LF_PERM_W) && !(sb.st_mode & S_IWUSR))
+                break;
+            else if ((f->permissions & LF_PERM_X) && !(sb.st_mode & S_IXUSR))
+                break;
+            else if ((f->permissions & LF_SETUID) && !(sb.st_mode & S_ISUID))
+                break;
+            else if ((f->permissions & LF_SETGID) && !(sb.st_mode & S_ISGID))
+                break;
         }
-        suppress_file = true;
-        if ((f->permissions & LF_PERM_R) && (sb.st_mode & S_IRUSR))
-            suppress_file = false;
-        else if ((f->permissions & LF_PERM_W) && (sb.st_mode & S_IWUSR))
-            suppress_file = false;
-        else if ((f->permissions & LF_PERM_X) && (sb.st_mode & S_IXUSR))
-            suppress_file = false;
-        else if ((f->permissions & LF_SETUID) && (sb.st_mode & S_ISUID))
-            suppress_file = false;
-        else if ((f->permissions & LF_SETGID) && (sb.st_mode & S_ISGID))
-            suppress_file = false;
-    }
-    if (!suppress_file && f->before) {
-        if (!f_stat) {
-            if (stat(file_spec, &sb) == 0)
-                f_stat = true;
+        if (f->before) {
+            if (!f_stat) {
+                if (stat(file_spec, &sb) == 0)
+                    f_stat = true;
+            }
+            if (f_stat && sb.st_mtime > f->before)
+                break;
         }
-        if (f_stat && sb.st_mtime > f->before)
-            suppress_file = true;
-    }
-    if (!suppress_file && f->after) {
-        if (!f_stat) {
-            if (stat(file_spec, &sb) == 0)
-                f_stat = true;
+        if (f->after) {
+            if (!f_stat) {
+                if (stat(file_spec, &sb) == 0)
+                    f_stat = true;
+            }
+            if (f_stat && sb.st_mtime < f->after)
+                break;
         }
-        if (f_stat && sb.st_mtime < f->after)
-            suppress_file = true;
-    }
-    if (!suppress_file && f->file_size_min) {
-        if (!f_stat) {
-            if (stat(file_spec, &sb) == 0)
-                f_stat = true;
+        if (f->file_size_min) {
+            if (!f_stat) {
+                if (stat(file_spec, &sb) == 0)
+                    f_stat = true;
+            }
+            if (f_stat && sb.st_size < f->file_size_min)
+                break;
         }
-        if (f_stat && sb.st_size < f->file_size_min)
-            suppress_file = true;
-    }
-    if (!suppress_file) {
         if (file_spec[0] == '.' && file_spec[1] == '/')
             printf("%s\n", &file_spec[2]);
         else
             printf("%s\n", file_spec);
+        break;
     }
     return true;
 }

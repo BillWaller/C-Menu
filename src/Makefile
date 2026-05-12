@@ -80,7 +80,7 @@ PREFIX=$(HOME)/menuapp
 # configuration, so please consult the documentation for libssh and your 
 # system's package manager for more information.
 #
-CFLAGS=-O3
+CFLAGS=-O2
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_LOG -DDEBUG_IMMEDOK -DDEBUG_RESIZE
@@ -98,7 +98,7 @@ CFLAGS=-O3
 #   necessary for production builds, so it is typically used only for debugging 
 #   purposes.
 #
-CFLAGS=-O0 -ggdb -rdynamic
+# CFLAGS=-O0 -ggdb -rdynamic
 # CFLAGS=-DDEBUG_RESIZE DDEUBG_IMMEDOK DDEBUG_LOG
 #  Uncomment the following line to enable Address Sanitizer, Leak Sanitizer, and 
 #  Undefined Behavior Sanitizer.
@@ -108,14 +108,16 @@ CFLAGS=-O0 -ggdb -rdynamic
 # -fno-sanitize-recover=all
 #
 # Uncomment the following line to enable debugging
-# CFLAGS=-O0 -g3 -rdynamic
+CFLAGS=-O3
+# -rdynamic
 # -DDEBUG_IMMEDOK
 # Additional debugging flags for C-Menu
 #	-DDEBUG_IMMEDOK -DDEBUG_RESIZE -DDEBUG_LOG
 # Additional flags for debugging with Address Sanitizer
 # ASAN_FLAGS=-no-pie -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer 
 # -fno-sanitize-recover=all
-# CFLAGS=-O0 -ggdb -rdynamic $(ASAN_FLAGS)
+# CFLAGS=-O3 -g -fno-omit-frame-pointer -rdynamic
+# $(ASAN_FLAGS)
 # LIBASAN=-lasan $(ASAN_FLAGS)
 #	$(ASAN_FLAGS)
 #	-fsanitize=address -fsanitize=leak -fno-omit-frame-pointer \
@@ -200,7 +202,7 @@ rsh:	include/cm.h rsh.o
 	$(CC) $(RSH_CFLAGS) rsh.o -o $@ -lssh
 
 lf: include/cm.h	include/version.h	lf.c $(LIB_NAME)
-	$(CC) lf.c -o $@ $(LIBS)
+	$(CC) lf.c -o $@  $(LIBS)
 
 stripansi:	include/cm.h stripansi.o $(LIB_NAME)
 	$(CC) stripansi.o -o $@ $(LIBS)
