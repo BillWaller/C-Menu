@@ -604,8 +604,10 @@ void *finder(void *arg) {
                 if (entry->d_type == DT_DIR) {
                     if (!((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))) {
                         if (f->max_depth == 0 ||
-                            current->depth + 1 < f->max_depth)
+                            current->depth + 1 < f->max_depth) {
                             enqueue_dir(full_path, current->depth + 1);
+                            scan_file(current->path, f, entry);
+                        }
                     }
                 } else {
                     scan_file(current->path, f, entry);
