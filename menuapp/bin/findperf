@@ -1,0 +1,13 @@
+#!/bin/bash
+# @name findperf
+# @desc Compare the performance of fd, find, and lf with -H -L options
+# @usage findperf <directory>
+
+echo
+echo
+/usr/bin/time -f "%C %e" fd --full-path $1 -H -L | wc -l
+echo
+/usr/bin/time -f "%C %e" find -H -L $1 | wc -l
+echo
+/usr/bin/time -f "%C %e" lf $1 -H -L -T 6 | wc -l
+echo

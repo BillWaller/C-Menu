@@ -339,11 +339,11 @@ int main(int argc, char **argv) {
     if (f->base_path[0] == '\0')
         strnz__cpy(f->base_path, ".", MAXLEN - 1);
     if (f->f_sort) {
-        /** If sorting is requested, execute the file finder and pipe its output
+        /** If sorting is requested, execute the finder and pipe its output
          * to the sort command. We can achieve this by creating a child process
          * that runs the sort command, and redirecting the output of the file
          * finder to the input of the sort command using a pipe. The parent
-         * process will run the file finder and write its output to the pipe,
+         * process will run the finder and write its output to the pipe,
          * while the child process will read from the pipe and execute the sort
          * command. */
         char *eargv[MAXARGS];
@@ -375,11 +375,11 @@ int main(int argc, char **argv) {
         // the buffer is full, which could lead to delays in processing and
         // potential deadlocks if the sort process is waiting for input that
         // hasn't been flushed yet.
-        init_find(f); // Initialize and transfer control to the file finder
+        init_find(f); // Initialize and transfer control to the finder
         dup2(save_fd, STDOUT_FILENO); // restore STDOUT
         waitpid(pid1, &wstatus, 0);
     } else
-        init_find(f); // Initialize and transfer control to the file finder
+        init_find(f); // Initialize and transfer control to the finder
     exit(EXIT_SUCCESS);
 }
 /** @brief Initialize the file search based on the provided SearchFilters and
@@ -579,7 +579,7 @@ Node *dequeue_dir() {
 void *finder(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;
     struct stat st;
-    char full_path[PATH_MAX];
+    char full_path[PATH_MAX] = {'\0'};
     // regmatch_t pmatch;
 
     while (1) {
@@ -595,13 +595,9 @@ void *finder(void *arg) {
             while ((entry = readdir(dir)) != NULL) {
                 if (entry->d_name[0] == '.') {
                     if (entry->d_name[1] == '\0') {
-                        strnz__cpy(full_path, current->path, PATH_MAX - 1);
-                        strnz__cat(full_path, "/", PATH_MAX - 1);
-                        strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
-                        scan_file(full_path, f, entry);
                         continue;
-                    } else if (entry->d_name[1] == '.' &&
-                               entry->d_name[2] == '\0')
+                    }
+                    if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
                         continue;
                 }
                 strnz__cpy(full_path, current->path, PATH_MAX - 1);
@@ -636,7 +632,7 @@ void *finder(void *arg) {
 }
 /** @brief Scan a single file against the search filters and print if it
    matches.
-    @param current_path The directory path of the file being scanned.
+    @param file_spec The full specification of the file being scanned.
     @param f The SearchFilters struct containing the options and flags for
    filtering.
     @param dir_st The dirent struct representing the file being scanned.
