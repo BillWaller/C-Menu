@@ -489,6 +489,8 @@ bool init_find(SearchFilters *f) {
             fprintf(stderr, "\n");
         }
     }
+    //--------------------------------------------------------------------
+    // Set-up for Concurrent Directory Traversal
     enqueue_dir(f->base_path, 0);
     pthread_t threads[thread_count];
     for (int i = 0; i < thread_count; i++)
@@ -500,6 +502,7 @@ bool init_find(SearchFilters *f) {
     pthread_mutex_unlock(&queue_mutex);
     for (int i = 0; i < thread_count; i++)
         pthread_join(threads[i], NULL);
+    //--------------------------------------------------------------------
     // End Program
     if (f->flags & LF_REGEX)
         regfree(&f->compiled_re);
@@ -588,45 +591,49 @@ void *finder(void *arg) {
             break;
 
         atomic_fetch_add(&active_tasks, 1);
-
-        DIR *dir = opendir(current->path);
+        int dir_fd = openat(AT_FDCWD, current->path, O_RDONLY | O_DIRECTORY);
+        if (dir_fd == -1) {
+            perror("openat");
+        }
+        DIR *dir = fdopendir(dir_fd);
+        if (dir == NULL) {
+            perror("fdopendir");
+            close(dir_fd); // Close fd if fdopendir fails
+            free(current);
+            return NULL;
+        }
         if (dir) {
             struct dirent *entry;
             while ((entry = readdir(dir)) != NULL) {
                 if (entry->d_name[0] == '.') {
-                    if (entry->d_name[1] == '\0') {
+                    if (entry->d_name[1] == '\0')
                         continue;
-                    }
                     if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
                         continue;
                 }
-                strnz__cpy(full_path, current->path, PATH_MAX - 1);
-                strnz__cat(full_path, "/", PATH_MAX - 1);
-                strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
                 if (entry->d_type == DT_LNK) {
-                    if (stat(full_path, &st) == 0) {
+                    if (fstatat(dir_fd, entry->d_name, &st, 0) == 0)
                         if (S_ISDIR(st.st_mode) && f->f_lnk_dir)
                             entry->d_type = DT_DIR;
-                    }
                 }
                 if (entry->d_type == DT_DIR) {
-                    if (!((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))) {
-                        if (f->max_depth == 0 ||
-                            current->depth + 1 < f->max_depth) {
-                            enqueue_dir(full_path, current->depth + 1);
-                            scan_file(full_path, f, entry);
-                        }
-                    }
-                } else {
-                    scan_file(full_path, f, entry);
+                    if ((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))
+                        continue;
+                    if (f->max_depth > 0 && current->depth + 1 >= f->max_depth)
+                        continue;
                 }
+                ssnprintf(full_path, PATH_MAX - 1, "%s/%s", current->path,
+                          entry->d_name);
+                if (entry->d_type == DT_DIR)
+                    enqueue_dir(full_path, current->depth + 1);
+                scan_file(full_path, f, entry);
             }
         }
         closedir(dir);
         free(current);
         atomic_fetch_sub(&active_tasks, 1);
-        pthread_cond_broadcast(
-            &cond_var); // Wake up threads checking for idle exit
+        // Wake up threads checking for idle exit
+        pthread_cond_broadcast(&cond_var);
     }
     return NULL;
 }
