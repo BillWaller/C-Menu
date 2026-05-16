@@ -2,6 +2,7 @@
 
 <!-- mtoc-start -->
 
+- [lf - A Regular Expression File Finder](#lf---a-regular-expression-file-finder)
 - [Other C-Menu Documentation](#other-c-menu-documentation)
 - [C-Menu Overview](#c-menu-overview)
   - [C-Menu Start-up Options](#c-menu-start-up-options)
@@ -22,9 +23,78 @@
   - [View C-Menu Source With Tree-Sitter](#view-c-menu-source-with-tree-sitter)
 - [C-Menu View](#c-menu-view)
 - [RSH - A Root Shell Alternative](#rsh---a-root-shell-alternative)
-- [lf - A Regular Expression File Finder](#lf---a-regular-expression-file-finder)
 
 <!-- mtoc-end -->
+
+## lf - A Regular Expression File Finder
+
+**_lf_** - is a sleek, easy-to-use, and fast file finder. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
+
+![lf help](screenshots/lf-help.png)
+
+The screenshot above is the help output of lf piped through bat and displayed in
+View.
+
+My most recent performance benchmarks produced the following results. Again,
+these benchmarks depend on many factors including hardware and the particular
+dataset involved. Take them with a grain of salt. Run your own benchmarks. These
+were invoked by the script,
+
+```bash
+#!/bin/bash
+# @name findperf
+# @desc Compare the performance of fd, find, and lf with -H -L options
+# @usage findperf <directory>
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <directory>"
+    exit 1
+fi
+echo
+echo
+files="$(/usr/bin/time -f "%C (%euser)" fd . --full-path $1 -H -L -I | wc -l)"
+echo "$files" files
+echo
+files="$(/usr/bin/time -f "%C (%euser)" find -H -L $1 | wc -l)"
+echo "$files" files \(may need to subtract 1 for base path\)
+echo
+files="$(/usr/bin/time -f '%C (%euser)' lf $1 -H -L -T 6 | wc -l)"
+echo "$files" files
+echo
+```
+
+It is paramount that discrepancies in the number of files found be accounted for. Output comparisons reveal that find includes the base path in its output, which is not an error, but a developer preference. The point is that you need to subtract 1 from find's file count to compare it with fd and lf.
+
+```bash
+fd . --full-path /home/bill -H -L -I (0.11user)
+345544 files
+
+find -H -L /home/bill (0.72user)
+345545 files (may need to subtract 1 for base path)
+
+lf /home/bill -H -L -T 6 (0.20user)
+345544 files
+```
+
+With C-Menu, you can use any file finder you like, and you can even use multiple file finders in the same application.
+
+lf is still very young, and even remotely approaching fd's performance is a great accomplishment. I am very happy with lf's performance as it stands. Nevertheless, I will continue to optimize it, and hope you find it useful.
+
+Here's an example of how easy it is to use lf to find files modified between two dates. The command line below uses lf to find files modified after 2024-01-01 and before 2024-06-01, and then pipes the output to xargs to execute ls -l on the found files.
+
+- You don't have to enter the T00:00:00 time component if you just want to
+  include files modified between two dates. Keep in mind that the time will
+  default to 00:00:00 if you specify a date without a time component, so
+  -b 2026-06-01 will include files modified through the end of the day on
+  2026-05-31, but will exclude files modified on 2026-06-01.
+
+```bash
+lf -d 5 -t f -a 2024-01-01 -b 2024-06-01 | xargs ls -l
+```
+
+![lf File Finder](screenshots/lf-dates.png)
+
+The screenshot above shows how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We believe you will find this format intuitive and easy to use.
 
 ## Other C-Menu Documentation
 
@@ -503,88 +573,3 @@ and relinquish root privilege.
 ![RSH SSH Authentication](screenshots/Makefile-out.png)
 
 - The Green prompt indicates user privilege, and Red indicates root privilege.
-
-## lf - A Regular Expression File Finder
-
-**_lf_** - is a sleek, easy-to-use, and fast file finder. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
-
-![lf help](screenshots/lf-help.png)
-
-The screenshot above is the help output of lf piped through bat and displayed in
-View.
-
-Note: lf's default behavior of including hidden files has been changed and the default is now to exclude hidden files. Before this update, the "-n" option directed lf to exclude hidden files, but that is no longer necessary and a new "-H" option has been added to direct lf to include hidden files. This change was made to align with the behavior of other popular file finders such as fd and find.
-
-Find's built-in -exec is one of its most often used options and conspicuously, lf doesn't have a built-in -exec option. However, lf achieves identical results in a fraction of the time by piping the output of lf into xargs. There would be no benefit to adding an -exec option to lf because xargs leaves nothing to be desired. In fairness, I must say that you can optimize find by using +exec instead of -exec, and you can also use xargs with find.
-
-Whether or not lf is faster than find , it still has a compelling advantage due to its simplicity, portability, and ease of use. With fewer options and a more intuitive syntax, lf is a breeze to learn and use for the most common file searching tasks.
-
-I retract my previous position that lf was faster than fd. I was mistaken. What I missed was the -I options, which disables fd's ignore exclusions, such as .gitignore. I had assumed that fd's reporting of fewer files indicated a performance deficit, but
-the opposite is true. By adding the -I option to fd, its performance increases
-significantly. The filter to deselect file based on an ignore list was obviously time consuming. I hope you will forgive me for my careless mistake. By adding the
--I option, fd's performance doubled. That's not an excuse. I should have exhaustively investigated the issue before making any claims about lf's relative performance. I apologize for any confusion my previous statements may have caused.
-
-My most recent performance benchmarks produced the following results. Again,
-these benchmarks depend on many factors including hardware and the particular
-dataset involved. Take them with a grain of salt. Run your own benchmarks. These
-were invoked by the script,
-
-```bash
-#!/bin/bash
-# @name findperf
-# @desc Compare the performance of fd, find, and lf with -H -L options
-# @usage findperf <directory>
-
-if [ -z "$1" ]; then
-    echo "Usage: $0 <directory>"
-    exit 1
-fi
-echo
-echo
-files="$(/usr/bin/time -f "%C (%euser)" fd . --full-path $1 -H -L -I | wc -l)"
-echo "$files" files
-echo
-files="$(/usr/bin/time -f "%C (%euser)" find -H -L $1 | wc -l)"
-echo "$files" files \(may need to subtract 1 for base path\)
-echo
-files="$(/usr/bin/time -f '%C (%euser)' lf $1 -H -L -T 6 | wc -l)"
-echo "$files" files
-echo
-```
-
-It is paramount that discrepancies in the number of files found be accounted for. Output comparisons reveal that that find includes the base path, which is not an error, just a different perspective. So long as we know what to expect, one file would not constitute a significant error in the reported performance numbers.
-
-```bash
-fd . --full-path /home/bill -H -L -I (0.11user)
-345544 files
-
-find -H -L /home/bill (0.72user)
-345545 files (may need to subtract 1 for base path)
-
-lf /home/bill -H -L -T 6 (0.20user)
-345544 files
-```
-
-As you can see, contrary to my previous statements, fd is almost twice as fast as lf, and both are significantly faster than find, at least that's the way it appears to me at this time. Personally, I don't care about lf being faster than other file finders, but I do believe that the performance of file finders is incredibly important because they are the core of so many useful applications.
-
-The good thing about C-Menu is that you can use any file finder you like, and
-you can even use multiple file finders in the same application. Don't worry
-about hurting my feelings. 😥 I'll take a dose of io_uring and be fine. 😀
-
-lf is still very young, and even remotely approaching fd's performance is a great accomplishment. I am very happy with lf's performance as it stands. I will continue to optimize it, and I hope you will find it useful in its current state. It's certainly no slouch.
-
-Here's an example of how easy it is to use lf to find files modified between two dates. The command line below uses lf to find files modified after 2024-01-01 and before 2024-06-01, and then pipes the output to xargs to execute ls -l on the found files.
-
-- You don't have to enter the T00:00:00 time component if you just want to
-  include files modified between two dates. Keep in mind that the time will
-  default to 00:00:00 if you specify a date without a time component, so
-  -b 2026-06-01 will include files modified through the end of the day on
-  2026-05-31, but will exclude files modified on 2026-06-01.
-
-```bash
-lf -d 5 -t f -a 2024-01-01 -b 2024-06-01 | xargs ls -l
-```
-
-![lf File Finder](screenshots/lf-dates.png)
-
-The screenshot above shows how you might use the date-time options of lf to list files between two date-times (after and before) and the sample output. We believe you will find this format intuitive and easy to use.
