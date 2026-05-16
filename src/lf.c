@@ -23,41 +23,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
-#include <sys/syscall.h>
 #include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-
-/* SPDX-License-Identifier: GPL-2.0 */
-#ifndef _LINUX_DIRENT_H
-#define _LINUX_DIRENT_H
-
-// struct linux_dirent64 {
-// 	u64		d_ino;
-// 	s64		d_off;
-// 	unsigned short	d_reclen;
-// 	unsigned char	d_type;
-// 	char		d_name[];
-// };
-
-#include <stdint.h>
-typedef struct linux_dirent64 {
-    uint64_t d_ino;          // Inode number
-    uint64_t d_off;          // Offset to the next dirent
-    unsigned short d_reclen; // Length of this record
-    unsigned char d_type;    // Type of file
-    char d_name[];           // Filename (null-terminated)
-} linux_dirent64;
-
-#endif
-
-#define ENTRIES_BUF_SIZE (2 ^ 20)
-// 16MB buffer for directory entries, can be adjusted based on
-// performance testing
 
 struct tm tm_info;
 const char *argp_program_version = CM_VERSION;
@@ -137,12 +108,8 @@ typedef struct Node {
 } Node;                  /**< Queue Node (for work-stealing) */
 
 bool init_find(SearchFilters *);
-// #define MMAP
-#ifdef MMAP
-int scan_file(char *, SearchFilters *, struct linux_dirent64 *);
-#else
 int scan_file(char *, SearchFilters *, struct dirent *);
-#endif
+
 void enqueue_dir(const char *, int);
 Node *dequeue_dir();
 void *finder(void *);
@@ -626,88 +593,52 @@ void *finder(void *arg) {
             break;
 
         atomic_fetch_add(&active_tasks, 1);
-#ifdef MMAP
-        long nread;
-        int dir =
+        int dir_fd =
             openat(AT_FDCWD, current->path, O_RDONLY | O_DIRECTORY | O_NOATIME);
-        if (dir == -1) {
-            perror("openat");
-        }
-        if (fstat(dir, &st) == -1) {
-            perror("fstat");
-            close(dir);
-            free(current);
-            return NULL;
-        }
-        struct linux_dirent64 *entry;
-        size_t entries_buf_size =
-            st.st_size > ENTRIES_BUF_SIZE ? st.st_size : ENTRIES_BUF_SIZE;
-        void *buf = mmap(NULL, entries_buf_size, PROT_READ | PROT_WRITE,
-                         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-        if (buf == MAP_FAILED) {
-            perror("mmap");
-            close(dir);
+        if (dir_fd < 0) {
+            fprintf(stderr, "openat failed for directory: %s\n", current->path);
+            close(dir_fd);
             free(current);
             atomic_fetch_sub(&active_tasks, 1);
             continue;
         }
-        nread = syscall(SYS_getdents64, dir, buf, entries_buf_size);
-        if (nread == -1) {
-            perror("getdents64");
-            break;
-        }
-        if (nread == 0)
-            break;
-        for (size_t bpos = 0; bpos < (size_t)nread; bpos += entry->d_reclen) {
-            entry = (struct linux_dirent64 *)(buf + bpos);
-#else
-        int dir_fd =
-            openat(AT_FDCWD, current->path, O_RDONLY | O_DIRECTORY | O_NOATIME);
-        if (dir_fd == -1) {
-            perror("openat");
-        }
         DIR *dir = fdopendir(dir_fd);
         if (dir == NULL) {
-            perror("fdopendir");
-            close(dir_fd); // Close fd if fdopendir fails
+            fprintf(stderr, "fdopen failed for directory: %s\n", current->path);
+            closedir(dir);
+            close(dir_fd);
             free(current);
-            return NULL;
+            atomic_fetch_sub(&active_tasks, 1);
+            continue;
         }
-        struct dirent *entry;
-        while ((entry = readdir(dir)) != NULL) {
-#endif
-            if (entry->d_name[0] == '.') {
-                if (entry->d_name[1] == '\0')
-                    continue;
-                if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
-                    continue;
+        if (dir) {
+            struct dirent *entry;
+            while ((entry = readdir(dir)) != NULL) {
+                if (entry->d_name[0] == '.') {
+                    if (entry->d_name[1] == '\0')
+                        continue;
+                    if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
+                        continue;
+                }
+                if (entry->d_type == DT_LNK) {
+                    if (fstatat(dir_fd, entry->d_name, &st, 0) == 0)
+                        if (S_ISDIR(st.st_mode) && f->f_lnk_dir)
+                            entry->d_type = DT_DIR;
+                }
+                if (entry->d_type == DT_DIR) {
+                    if ((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))
+                        continue;
+                    if (f->max_depth > 0 && current->depth + 1 >= f->max_depth)
+                        continue;
+                }
+                ssnprintf(full_path, PATH_MAX - 1, "%s/%s", current->path,
+                          entry->d_name);
+                if (entry->d_type == DT_DIR)
+                    enqueue_dir(full_path, current->depth + 1);
+                scan_file(full_path, f, entry);
             }
-            if (entry->d_type == DT_LNK) {
-#ifdef MMAP
-                if (fstatat(dir, entry->d_name, &st, 0) == 0)
-#else
-                if (fstatat(dir_fd, entry->d_name, &st, 0) == 0)
-#endif
-                    if (S_ISDIR(st.st_mode) && f->f_lnk_dir)
-                        entry->d_type = DT_DIR;
-            }
-            if (entry->d_type == DT_DIR) {
-                if ((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))
-                    continue;
-                if (f->max_depth > 0 && current->depth + 1 >= f->max_depth)
-                    continue;
-            }
-            ssnprintf(full_path, PATH_MAX - 1, "%s/%s", current->path,
-                      entry->d_name);
-            if (entry->d_type == DT_DIR)
-                enqueue_dir(full_path, current->depth + 1);
-            scan_file(full_path, f, entry);
         }
-#ifdef MMAP
-        close(dir);
-#else
         closedir(dir);
-#endif
         free(current);
         atomic_fetch_sub(&active_tasks, 1);
         // Wake up threads checking for idle exit
@@ -752,12 +683,8 @@ void *finder(void *arg) {
    ends, allowing threads to efficiently share the workload without
    excessive locking or contention.
    */
-#ifdef MMAP
-int scan_file(char *file_spec, SearchFilters *f,
-              struct linux_dirent64 *dir_st) {
-#else
 int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
-#endif
+
     char tmp_str[MAXLEN];
 
     regmatch_t pmatch[2];
@@ -861,8 +788,8 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
             if (f_stat && sb.st_size < f->file_size_min)
                 break;
         }
-        if (dir_st->d_type == DT_DIR)
-            printf("%s/\n", file_spec);
+        if (file_spec[0] == '.' && file_spec[1] == '/')
+            printf("%s\n", &file_spec[2]);
         else
             printf("%s\n", file_spec);
         break;

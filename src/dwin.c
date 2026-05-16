@@ -1169,7 +1169,10 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     WINDOW *error_win;
 
     if (!f_curses_open) {
-        fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", em0, em1, em2, em3);
+        fprintf(stderr, "\n\n%s\n", em0);
+        fprintf(stderr, "%s\n", em1);
+        fprintf(stderr, "%s\n", em2);
+        fprintf(stderr, "%s\n\n", em3);
         return 1;
     }
 

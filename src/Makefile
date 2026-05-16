@@ -80,6 +80,8 @@ PREFIX=$(HOME)/menuapp
 # configuration, so please consult the documentation for libssh and your 
 # system's package manager for more information.
 #
+# CFLAGS = -Ofast -flto
+# LINKOPT = -flto
 CFLAGS=-O3
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
@@ -166,7 +168,7 @@ COMMON_SRCS=menu_engine.c parse_menu_desc.c curskeys.c \
 			pick_engine.c popups.c view_engine.c
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
-LIBS = $(LIBASAN) -L. -lcm -lncursesw -ltinfo -lm -luring -Wl,-rpath,$(LIB_PATH)
+LIBS = $(LIBASAN) $(LINKOPT) -L. -lcm -lncursesw -ltinfo -lm -luring -Wl,-rpath,$(LIB_PATH)
 
 all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Make Complete
