@@ -2,6 +2,20 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-05-16
+
+Performance improvements to lf have resulted in a significant increase in speed, especially when listing large directories. The improvements include optimized file system traversal and more efficient filtering of files based on the specified options. In benchmark testing, lf performed exceptionally well, and it is now one of the fastest file listing utilities available.
+
+The optimization strategy currently in place is thread pool with a circular
+queue. The thread pool allows for multiple threads to be used for file system traversal, which can significantly speed up the process, especially on systems with multiple CPU cores. The circular queue is used to manage the tasks for the threads, allowing for efficient scheduling and load balancing. This approach has proven to be effective in improving the performance of lf, and it has been well-received by users.
+
+The next step in the optimization process will be to implement a more sophisticated task scheduling algorithm using io_uring to further improve performance, especially on systems with high I/O workloads. This will allow for even faster file listing and better responsiveness, particularly when dealing with large directories or complex file structures.
+
+I also tried and rejected using mmap for directories, as it is not well-suited for this purpose due to the dynamic nature of directory contents and the need for efficient traversal and filtering. The thread pool with a circular queue has proven to be a more effective solution for optimizing lf's performance.
+
+You can specify the number of threads by using lf's -T option. If you don't
+specify a -T option, lf will choose a reasonable number of threads based on the number of CPU cores available on the system.
+
 0.2.9 - 2026-04-25
 
 The recent changes to the Pick Engine have introduced a number of bugs, or
