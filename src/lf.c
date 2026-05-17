@@ -1,3 +1,15 @@
+/** NOTICE: This file is part of the lf project, which is currently under
+ * development. There are two reasons not to use it at this time. First,
+ * it is not yet fully functional and may contain bugs or incomplete,
+ * unoptimized code. Second, the API and features are still being finalized,
+ * so using it now may lead to compatibility issues in the future as changes
+ * are made. Once the project is more mature and stable, this file will be
+ * ready for use. In the meantime, it serves as a work in progress and may
+ * be subject to significant changes as development continues.
+ *
+ * Thank you for your patients and understanding.
+ */
+
 /** @file lf.c
     @brief list files matching a regular expression
     @author Bill Waller
@@ -38,7 +50,7 @@ const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
                    "formatted regular expression for which matching files "
                    "will be listed.";
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
-int threads;
+int nthreads;
 
 static struct argp_option options[] = {
     {"after", 'a', "time", 0, "Modified after YYYY-MM-DDTHH:MM:SS", 0},
@@ -56,10 +68,11 @@ static struct argp_option options[] = {
      0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {"exec", 'x', "command", 0, "execute external command", 0},
-    {"debug", 'D', "level", OPTION_ARG_OPTIONAL, "1-info-only, 2-run", 0},
-    {"f_hidden", 'H', 0, 0, "Include hidden files", 0},
+    {"debug", 'D', "level", OPTION_ARG_OPTIONAL, "1-init, 2-post-init, 3-all",
+     0},
+    {"f_include_hidden", 'H', 0, 0, "Include hidden files", 0},
     {"f_lnk_dir", 'L', 0, 0, "Follow symbolic links", 0},
-    {"threads", 'T', "threads", 0, "Number of threads", 0},
+    {"nthreads", 'T', "nthreads", 0, "Number of nthreads", 0},
     {"f_sort", 'S', "r", OPTION_ARG_OPTIONAL, "sort arg=r reverse", 0},
     {0}};
 
@@ -78,7 +91,7 @@ typedef struct {
     bool f_ignore_case;
     bool f_sort;
     bool f_reverse;
-    bool f_hidden;
+    bool f_include_hidden;
     bool f_lnk_dir;
     char *file_types_p;
     int reg_flags;
@@ -89,7 +102,6 @@ typedef struct {
     int suppress_types;
     bool include;
     int permissions;
-    bool suppress_hidden;
     bool blk;
     bool chr;
     bool dir;
@@ -101,17 +113,23 @@ typedef struct {
     int debug;
 } SearchFilters;
 
-typedef struct Node {
-    char path[PATH_MAX]; /**< Directory path to process */
-    int depth;           /**< Current depth in the directory tree */
-    struct Node *next;   /**< Pointer to the next node in the queue */
-} Node;                  /**< Queue Node (for work-stealing) */
+typedef struct {
+    dev_t dev;
+    ino_t ino;
+} PathNode;
+
+typedef struct TaskNode {
+    char *dir_path;        /**< Directory path to process */
+    PathNode *history;     /**< Array of dev/ino pairs for cycle detection */
+    int depth;             /**< Current depth in the directory tree */
+    struct TaskNode *next; /**< Pointer to the next node in the queue */
+} TaskNode;                /**< Queue TaskNode (for work-stealing) */
 
 bool init_find(SearchFilters *);
 int scan_file(char *, SearchFilters *, struct dirent *);
 
-void enqueue_dir(const char *, int);
-Node *dequeue_dir();
+void enqueue_dir(TaskNode *);
+TaskNode *dequeue_dir();
 void *finder(void *);
 // void exec_external(SearchFilters *, char **);
 
@@ -161,15 +179,17 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         f->flags |= LF_EXC_REGEX;
         break;
     case 'H':
-        f->f_hidden = true;     // Include hidden files
-        f->flags &= ~(LF_HIDE); // Don't hide hidden files
+        f->f_include_hidden = true; // Include hidden files
+        f->flags &= ~(LF_HIDE);     // Turn hide flag off
+                                    // LF_HIDE = 0 - include hidden files,
+                                    // LF_HIDE = 1 - suppress hidden files
         break;
     case 'L':
         f->f_lnk_dir = true; // follow symbolic links
         break;
     case 'T':
         if (arg && arg[0] != '\0')
-            threads = a_toi(arg, &a_toi_error);
+            nthreads = a_toi(arg, &a_toi_error);
         break;
     case 'i':
         f->flags |= LF_ICASE;
@@ -280,7 +300,7 @@ static struct argp argp = {options, parse_opt, args_doc, doc,
                            nullptr, nullptr,   nullptr};
 
 /** @brief Global Synchronization State */
-Node *head = NULL, *tail = NULL;
+TaskNode *head = NULL, *tail = NULL;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
 atomic_int active_tasks = 0;
@@ -292,9 +312,11 @@ int main(int argc, char **argv) {
     f->f_ignore_case = false;
     f->f_sort = false;
     f->f_reverse = false;
-    f->f_hidden = false;  // By default, hidden files are suppressed. Use -H to
-                          // include them.
-    f->flags |= LF_HIDE;  // Hide hidden files
+    f->f_include_hidden = false; // By default, hidden files are suppressed. Use
+                                 // -H to include them.
+    // LF_HIDE = 0 - include hidden files,
+    // LF_HIDE = 1 - suppress hidden files
+    f->flags |= LF_HIDE;  // Turn hide flag on
     f->f_lnk_dir = false; // By default, symbolic links are not followed. Use -L
                           // to follow them.
     char tmp_str[MAXLEN];
@@ -321,7 +343,7 @@ int main(int argc, char **argv) {
             expand_tilde(tmp_str, MAXLEN - 1);
             if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str))
                 strnz__cpy(f->base_path, tmp_str, MAXLEN - 1);
-            else if (is_valid_regex(f->args[1])) {
+            else if ((!(f->flags & LF_REGEX)) && is_valid_regex(f->args[1])) {
                 strnz__cpy(f->re, f->args[1], MAXLEN - 1);
                 f->flags |= LF_REGEX;
             } else {
@@ -402,7 +424,9 @@ bool init_find(SearchFilters *f) {
     if (f->include_types)
         f->suppress_types = f->include_types ^ 0xff;
     f->permissions = f->flags >> 16 & 0xff;
-    f->suppress_hidden = f->flags & LF_HIDE ? true : false;
+    // LF_HIDE = 0 - include hidden files,
+    // LF_HIDE = 1 - suppress hidden files
+    f->f_include_hidden = f->flags & ~LF_HIDE ? true : false;
     f->blk = f->suppress_types & FT_BLK ? true : false;
     f->chr = f->suppress_types & FT_CHR ? true : false;
     f->dir = f->suppress_types & FT_DIR ? true : false;
@@ -432,15 +456,15 @@ bool init_find(SearchFilters *f) {
         }
     }
     int thread_count = get_nprocs();
-    if (threads == 0 && thread_count > 6)
-        threads = 6; // Limit default thread count to 6 to avoid excessive
-                     // resource usage
-    else if (threads < 0)
+    if (nthreads == 0 && thread_count > 6)
+        nthreads = 6; // Limit default thread count to 6 to avoid excessive
+                      // resource usage
+    else if (nthreads < 0)
         thread_count =
-            max(1, thread_count + threads); // Allow negative values to
-                                            // specify threads to leave idle
-    thread_count = min(thread_count, max(1, threads));
-    if (f->debug) {
+            max(1, thread_count + nthreads); // Allow negative values to
+                                             // specify threads to leave idle
+    thread_count = min(thread_count, max(1, nthreads));
+    if (f->debug == 1 || f->debug == 3) {
         fprintf(stderr, "lf: debug=%d\n", f->debug);
         fprintf(stderr, "Starting search in: %s\n", f->base_path);
         fprintf(stderr, "Using %d threads\n", thread_count);
@@ -461,7 +485,7 @@ bool init_find(SearchFilters *f) {
                     (intmax_t)f->file_size_min);
         if (f->max_depth)
             fprintf(stderr, "Max depth: %d\n", f->max_depth);
-        if (f->f_hidden)
+        if (f->f_include_hidden)
             fprintf(stderr, "Include hidden files.\n");
         if (f->f_lnk_dir)
             fprintf(stderr, "Follow symbolic links.\n");
@@ -491,18 +515,36 @@ bool init_find(SearchFilters *f) {
             exit(EXIT_SUCCESS);
     }
     //--------------------------------------------------------------------
-    // read directories concurrently and list files
-    enqueue_dir(f->base_path, 0);
-    pthread_t threads[thread_count];
-    for (int i = 0; i < thread_count; i++)
-        pthread_create(&threads[i], NULL, finder, f);
-    pthread_mutex_lock(&queue_mutex);
-    while (!shutdown) {
-        pthread_cond_wait(&cond_var, &queue_mutex);
+    // Create and enqueue the first TaskNode
+    struct stat st;
+    if (stat(f->base_path, &st) == 0) {
+        if (S_ISDIR(st.st_mode)) {
+            TaskNode *child_task = malloc(sizeof(TaskNode));
+            child_task->dir_path = strdup(f->base_path);
+            child_task->depth = 0;
+            child_task->next = NULL;
+            child_task->history = malloc(sizeof(PathNode));
+            child_task->history[0].dev = st.st_dev;
+            child_task->history[0].ino = st.st_ino;
+            enqueue_dir(child_task);
+            pthread_t threads[thread_count];
+            for (int i = 0; i < thread_count; i++) {
+                pthread_create(&threads[i], NULL, finder, f);
+            }
+            pthread_mutex_lock(&queue_mutex);
+            while (!shutdown) {
+                pthread_cond_wait(&cond_var, &queue_mutex);
+            }
+            pthread_mutex_unlock(&queue_mutex);
+            for (int i = 0; i < thread_count; i++)
+                pthread_join(threads[i], NULL);
+        } else {
+            fprintf(stderr,
+                    "Warning: Base path '%s' is not a directory. No "
+                    "files will be found.\n",
+                    f->base_path);
+        }
     }
-    pthread_mutex_unlock(&queue_mutex);
-    for (int i = 0; i < thread_count; i++)
-        pthread_join(threads[i], NULL);
     //--------------------------------------------------------------------
     // End Program
     if (f->flags & LF_REGEX)
@@ -514,40 +556,35 @@ bool init_find(SearchFilters *f) {
         return false;
     return true;
 }
-/** @brief Enqueue a directory path for processing by finder threads.
-    @param path The directory path to enqueue.
+/** @brief Enqueue a directory dir_path for processing by finder threads.
+    @param dir_path The directory path to enqueue.
     @param depth The current depth in the directory tree for the given path.
-    @details This function creates a new Node containing the specified
+    @details This function creates a new TaskNode containing the specified
    directory path and depth, and adds it to the global queue. It uses a
    mutex to ensure thread-safe access to the queue, and signals finder
    threads that new work is available. The function also checks for shutdown
    conditions to prevent enqueuing new work when the program is exiting.
    */
-void enqueue_dir(const char *path, int depth) {
-    Node *new_node = malloc(sizeof(Node));
-    strnz__cpy(new_node->path, path, PATH_MAX - 1);
-    new_node->depth = depth;
-    new_node->next = NULL;
-
+void enqueue_dir(TaskNode *new_task) {
     pthread_mutex_lock(&queue_mutex);
     if (tail)
-        tail->next = new_node;
+        tail->next = new_task;
     else
-        head = new_node;
-    tail = new_node;
+        head = new_task;
+    tail = new_task;
     pthread_cond_signal(&cond_var);
     pthread_mutex_unlock(&queue_mutex);
 }
-/** @brief Dequeue a directory path for processing by finder threads.
-    @return A pointer to a Node containing the directory path and depth, or
-   NULL if the queue is empty and shutdown has been initiated.
-    @details This function removes and returns the next Node from the global
-   queue. It uses a mutex to ensure thread-safe access to the queue, and
-   waits on a condition variable if the queue is empty. The function also
-   checks for shutdown conditions to allow finder threads to exit gracefully
-   when there is no more work to process.
+/** @brief Dequeue a directory dir_path for processing by finder threads.
+    @return A pointer to a TaskNode containing the directory dir_path and
+   depth, or NULL if the queue is empty and shutdown has been initiated.
+    @details This function removes and returns the next TaskNode from the
+   global queue. It uses a mutex to ensure thread-safe access to the queue,
+   and waits on a condition variable if the queue is empty. The function
+   also checks for shutdown conditions to allow finder threads to exit
+   gracefully when there is no more work to process.
    */
-Node *dequeue_dir() {
+TaskNode *dequeue_dir() {
     pthread_mutex_lock(&queue_mutex);
     while (head == NULL && !shutdown) {
         if (atomic_load(&active_tasks) == 0) {
@@ -561,7 +598,7 @@ Node *dequeue_dir() {
         pthread_mutex_unlock(&queue_mutex);
         return NULL;
     }
-    Node *temp = head;
+    TaskNode *temp = head;
     head = head->next;
     if (!head)
         tail = NULL;
@@ -572,7 +609,7 @@ Node *dequeue_dir() {
     @param arg Pointer to the SearchFilters struct containing the options
    and flags for filtering.
     @return NULL
-    @details This function continuously dequeues directory paths from the
+    @details This function continuously dequeues directory dir_path from the
    global queue and processes them. For each directory, it lists its
    contents and applies the specified filters to each file. If a
    subdirectory is found and it meets the criteria for further searching
@@ -588,60 +625,147 @@ void *finder(void *arg) {
     // regmatch_t pmatch;
 
     while (1) {
-        Node *current = dequeue_dir();
-        if (!current)
+        TaskNode *current_task = dequeue_dir();
+        if (!current_task)
             break;
 
         atomic_fetch_add(&active_tasks, 1);
-        int dir_fd =
-            openat(AT_FDCWD, current->path, O_RDONLY | O_DIRECTORY | O_NOATIME);
-        if (dir_fd < 0) {
-            fprintf(stderr, "openat failed for directory: %s\n", current->path);
-            close(dir_fd);
-            free(current);
+        //-------------------------------------------------------------
+
+        struct dirent *entry;
+        if (lstat(current_task->dir_path, &st) != 0) {
+            fprintf(stderr,
+                    "[DEBUG] Processing directory: %s (dev=%ju, ino=%ju)\n",
+                    current_task->dir_path, (uintmax_t)st.st_dev,
+                    (uintmax_t)st.st_ino);
+            free(current_task->dir_path);
+            free(current_task->history);
+            free(current_task);
             atomic_fetch_sub(&active_tasks, 1);
-            continue;
+            return NULL;
+        }
+        // Resolve Symlinks if the current directory is a symlink and the -L
+        // flag is set. We need to resolve the symlink to get the correct
+        // dev/inode for cycle detection and to ensure we are processing the
+        // actual target directory. If the symlink is broken (i.e., it
+        // points to a non-existent target), we log an error and skip
+        // processing this directory.
+        if (S_ISLNK(st.st_mode)) {
+            if (stat(current_task->dir_path, &st) != 0) {
+                fprintf(stderr, "[ERROR] Broken symlink %s\n",
+                        current_task->dir_path);
+                free(current_task->dir_path);
+                free(current_task->history);
+                free(current_task);
+                atomic_fetch_sub(&active_tasks, 1);
+                return NULL;
+            }
+        }
+        // Check if the current path is a directory. If it's not a
+        // directory, we skip processing it and clean up the task. This can
+        // happen if the base path provided by the user is a file instead of
+        // a directory, or if we encounter a non-directory entry in the
+        // queue due to some error.
+        if (!S_ISDIR(st.st_mode)) {
+            free(current_task->dir_path);
+            free(current_task->history);
+            free(current_task);
+            atomic_fetch_sub(&active_tasks, 1);
+            return NULL;
+        }
+        // Check for cycles by comparing the current directory's
+        // dev/inode with the history of dev/inode pairs from parent
+        // directories. If a match is found, it indicates a cycle and we
+        // skip processing this directory.
+        for (int i = 0; i < current_task->depth; i++) {
+            printf("\n%s %ju %ju\n", current_task->dir_path, st.st_ino,
+                   current_task->history[i].ino);
+            if (current_task->history[i].dev == st.st_dev &&
+                current_task->history[i].ino == st.st_ino) {
+                fprintf(stderr, "[LOOP] Skipping recursive link: %s\n",
+                        current_task->dir_path);
+                free(current_task->dir_path);
+                free(current_task->history);
+                free(current_task);
+                atomic_fetch_sub(&active_tasks, 1);
+                return NULL;
+            }
+        }
+        //-------------------------------------------------------------
+        // Open the directory using openat and fdopendir to minimize
+        // redundant path Open
+        int dir_fd =
+            openat(AT_FDCWD, current_task->dir_path, O_RDONLY | O_DIRECTORY);
+        if (dir_fd < 0) {
+            if (f->debug == 2 || f->debug == 3)
+                fprintf(stderr, "\nopenat failed for directory: %s, %s\n",
+                        current_task->dir_path, strerror(errno));
+            close(dir_fd);
+            free(current_task);
+            atomic_fetch_sub(&active_tasks, 1);
+            return NULL;
         }
         DIR *dir = fdopendir(dir_fd);
         if (dir == NULL) {
-            fprintf(stderr, "fdopen failed for directory: %s\n", current->path);
+            if (f->debug == 2 || f->debug == 3)
+                fprintf(stderr, "\nfdopen failed for directory: %s, %s\n",
+                        current_task->dir_path, strerror(errno));
             closedir(dir);
             close(dir_fd);
-            free(current);
+            free(current_task);
             atomic_fetch_sub(&active_tasks, 1);
-            continue;
+            return NULL;
         }
-        if (dir) {
-            struct dirent *entry;
-            while ((entry = readdir(dir)) != NULL) {
-                if (entry->d_name[0] == '.') {
-                    if (entry->d_name[1] == '\0')
-                        continue;
-                    if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
-                        continue;
-                }
-                if (entry->d_type == DT_LNK) {
-                    if (fstatat(dir_fd, entry->d_name, &st, 0) == 0)
-                        if (S_ISDIR(st.st_mode) && f->f_lnk_dir)
-                            entry->d_type = DT_DIR;
-                }
-                if (entry->d_type == DT_DIR) {
-                    if ((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))
-                        continue;
-                    if (f->max_depth > 0 && current->depth + 1 >= f->max_depth)
-                        continue;
-                }
-                ssnprintf(full_path, PATH_MAX - 1, "%s/%s", current->path,
-                          entry->d_name);
-                if (entry->d_type == DT_DIR)
-                    enqueue_dir(full_path, current->depth + 1);
-                scan_file(full_path, f, entry);
+        //-------------------------------------------------------------
+        // Read directory contentrs and process each entry
+        while ((entry = readdir(dir)) != NULL) {
+            if (entry->d_name[0] == '.') {
+                if (!f->f_include_hidden)
+                    continue;
+                if (entry->d_name[1] == '\0')
+                    continue;
+                if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
+                    continue;
             }
+            ssnprintf(full_path, PATH_MAX - 1, "%s/%s", current_task->dir_path,
+                      entry->d_name);
+            if (entry->d_type == DT_LNK) {
+                if (stat(entry->d_name, &st) == 0) {
+                    if (S_ISDIR(st.st_mode) && f->f_lnk_dir)
+                        entry->d_type = DT_DIR;
+                }
+            }
+            if (entry->d_type == DT_DIR) {
+                if ((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))
+                    continue;
+            }
+            if (entry->d_type == DT_DIR &&
+                (f->max_depth == 0 || current_task->depth + 1 < f->max_depth)) {
+                // Prepare the new history array for the next level of
+                // recursion, copying the current history and adding the
+                // current directory's dev/ino array
+                TaskNode *child_task = malloc(sizeof(TaskNode));
+                child_task->dir_path = strdup(full_path);
+                child_task->depth = current_task->depth + 1;
+                child_task->next = NULL;
+                child_task->history =
+                    malloc(sizeof(PathNode) * child_task->depth);
+                if (current_task->depth > 0) {
+                    memcpy(child_task->history, current_task->history,
+                           sizeof(PathNode) * current_task->depth);
+                }
+                child_task->history[current_task->depth].dev = st.st_dev;
+                child_task->history[current_task->depth].ino = st.st_ino;
+                enqueue_dir(child_task);
+            }
+            scan_file(full_path, f, entry);
         }
         closedir(dir);
-        free(current);
+        close(dir_fd);
+        free(current_task->dir_path);
+        free(current_task->history);
+        free(current_task);
         atomic_fetch_sub(&active_tasks, 1);
-        // Wake up threads checking for idle exit
         pthread_cond_broadcast(&cond_var);
     }
     return NULL;
@@ -649,39 +773,39 @@ void *finder(void *arg) {
 /** @brief Scan a single file against the search filters and print if it
    matches.
     @param file_spec The full specification of the file being scanned.
-    @param f The SearchFilters struct containing the options and flags for
-   filtering.
+    @param f The SearchFilters struct containing the options and flags
+   for filtering.
     @param dir_st The dirent struct representing the file being scanned.
-    @return true if the file was processed successfully, false if an error
-   occurred.
+    @return true if the file was processed successfully, false if an
+   error occurred.
     @details This function checks the specified file against the various
-   filters defined in the SearchFilters struct, including file type, regex
-   patterns, ownership, permissions, modification time, and size. If the
-   file matches all criteria, its path is printed to standard output. If any
-   errors occur during processing (e.g., regex compilation failure), an
-   error message is printed to standard error and the function returns
-   false.
+   filters defined in the SearchFilters struct, including file type,
+   regex patterns, ownership, permissions, modification time, and size.
+   If the file matches all criteria, its path is printed to standard
+   output. If any errors occur during processing (e.g., regex
+   compilation failure), an error message is printed to standard error
+   and the function returns false.
     @note This function is called by finder threads for each file
    encountered during the directory traversal. It is designed to be
    thread-safe and efficient, minimizing redundant system calls. For
    example, it only calls stat() when necessary for filters that require
-   file metadata, and it caches the results to avoid multiple stat() calls
-   for the same file.
+   file metadata, and it caches the results to avoid multiple stat()
+   calls for the same file.
     @note regex matching is opttimized by pre-compiling the regular
-   expressions in init_find() and using regexec() for each file, which is
-   more efficient than compiling the regex for each file. Additionally, the
-   function minimizes calls to regexec() by first checking simpler filters
-   (like file type and hidden status) before performing regex matching, thus
-   avoiding unnecessary regex evaluations for files that are already
-   excluded by other criteria.
-    @todo Can we come up with a more efficient data structure for managing
-   the queue of directories to process, such as a lock-free queue or
-   work-stealing deque? A work stealing dequeue would allow idle threads to
-   steal work from busier threads, improving load balancing and reducing
-   idle time. This would involve implementing a thread-safe deque data
-   structure that supports concurrent push and pop operations from both
-   ends, allowing threads to efficiently share the workload without
-   excessive locking or contention.
+   expressions in init_find() and using regexec() for each file, which
+   is more efficient than compiling the regex for each file.
+   Additionally, the function minimizes calls to regexec() by first
+   checking simpler filters (like file type and hidden status) before
+   performing regex matching, thus avoiding unnecessary regex
+   evaluations for files that are already excluded by other criteria.
+    @todo Can we come up with a more efficient data structure for
+   managing the queue of directories to process, such as a lock-free
+   queue or work-stealing deque? A work stealing dequeue would allow
+   idle threads to steal work from busier threads, improving load
+   balancing and reducing idle time. This would involve implementing a
+   thread-safe deque data structure that supports concurrent push and
+   pop operations from both ends, allowing threads to efficiently share
+   the workload without excessive locking or contention.
    */
 int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
 
@@ -691,7 +815,7 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
     bool f_stat = false;
 
     while (1) {
-        if (dir_st->d_name[0] == '.' && f->suppress_hidden)
+        if (dir_st->d_name[0] == '.' && !f->f_include_hidden)
             break;
         if (f->suppress_types) {
             if (f->reg && (dir_st->d_type == DT_REG))
@@ -789,9 +913,12 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
                 break;
         }
         if (file_spec[0] == '.' && file_spec[1] == '/')
-            printf("%s\n", &file_spec[2]);
+            strnz__cpy(tmp_str, &file_spec[2], PATH_MAX - 1);
         else
-            printf("%s\n", file_spec);
+            strnz__cpy(tmp_str, file_spec, PATH_MAX - 1);
+        if (dir_st->d_type == DT_DIR)
+            strnz__cat(tmp_str, "/", PATH_MAX - 1);
+        printf("%s\n", tmp_str);
         break;
     }
     return true;

@@ -105,8 +105,6 @@ bool verify_file(char *, int);
 bool verify_dir(char *, int);
 bool locate_file_in_path(char *, char *);
 size_t canonicalize_file_spec(char *);
-int is_directory(const char *);
-bool is_valid_regex(const char *);
 size_t ssnprintf(char *, size_t, const char *, ...);
 size_t strnz__cpy(char *, const char *, size_t);
 size_t strnz__cat(char *, const char *, size_t);
@@ -1067,25 +1065,32 @@ size_t canonicalize_file_spec(char *spec) {
 /** @brief Checks if the given path is a directory
     @ingroup utility_functions
     @param path - path to check
-    @returns true if the path is a directory, false otherwise */
-int is_directory(const char *path) {
+    @returns     0 exists
+                 1 is a directory
+                -1 does not exist */
+bool is_directory(const char *path) {
     struct stat statbuf;
     if (stat(path, &statbuf) == 0)
-        return S_ISDIR(statbuf.st_mode);
-    return 0;
+        if (S_ISDIR(statbuf.st_mode))
+            return true;
+    return false;
 }
 /** @brief Checks if the given path is a symbolic link to a directory
     @ingroup utility_functions
     @param path - path to check
-    @returns true if the path is a symbolic link to a directory, false otherwise
- */
-int is_symlink_to_dir(const char *path) {
-    struct stat l_statbuf, statbuf;
-    if (lstat(path, &l_statbuf) != 0)
-        return 0;
-    if (stat(path, &statbuf) != 0)
-        return 0;
-    return S_ISLNK(l_statbuf.st_mode) && S_ISDIR(statbuf.st_mode);
+    @returns     0 exists
+                 1 symbolic link to a directory
+                -1 does not exist or not a symbolic link to a directory */
+bool is_symlink_to_dir(const char *path) {
+    struct stat link_stat;
+    struct stat target_stat;
+
+    if (lstat(path, &link_stat) == 0)
+        if (S_ISLNK(link_stat.st_mode))
+            if (stat(path, &target_stat) == 0)
+                if (S_ISDIR(target_stat.st_mode))
+                    return true; // symbolic link to a directory
+    return false;
 }
 /** @brief Checks if the given regular expression pattern is valid
     @ingroup utility_functions
@@ -1095,7 +1100,9 @@ bool is_valid_regex(const char *pattern) {
     regex_t regex;
     int ret = regcomp(&regex, pattern, REG_EXTENDED);
     regfree(&regex);
-    return (ret == 0);
+    if (ret == 0)
+        return true;
+    return false;
 }
 /** @brief Replace all occurrences of "tgt_s" in "org_s" with "rep_s"
     @ingroup utility_functions
@@ -1228,8 +1235,8 @@ String to_string(const char *s) {
 /** @brief Create a String struct with a dynamically allocated string @param
    l length of string to create including null terminator
    @returns String struct
-   @details The returned String struct contains a dynamically allocated string
-   of he specified length
+   @details The returned String struct contains a dynamically allocated
+   string of he specified length
    @note the caller is responsible for calling free_string to free the
    allocated memory. */
 String mk_string(size_t l) {
