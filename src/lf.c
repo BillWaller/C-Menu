@@ -7,7 +7,7 @@
  * ready for use. In the meantime, it serves as a work in progress and may
  * be subject to significant changes as development continues.
  *
- * Thank you for your patients and understanding.
+ * Thank you for your patience and understanding.
  */
 
 /** @file lf.c
@@ -23,6 +23,7 @@
 #include <argp.h>
 #include <cm.h>
 #include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
 #include <linux/limits.h>
@@ -60,20 +61,22 @@ static struct argp_option options[] = {
     {"f_ignore_case", 'i', 0, 0, "Search ignore case", 0},
     {"permissions", 'p', "sgrwx", 0,
      "s-setuid, g-setgid, r-read, w-write, x-execute", 0},
-    {"file_size_min", 's', "size", 0,
-     "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
+    {"re", 'r', "regex", 0, "Regular expression to search for", 0},
     {"file_types", 't', "bcdplrsu", 0,
      "b-block, c-character, d-directory, p-pipe, l-link, r-regular, s-"
      "socket, u-unknown",
      0},
+    {"file_size_min", 's', "size", 0,
+     "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {"exec", 'x', "command", 0, "execute external command", 0},
-    {"debug", 'D', "level", OPTION_ARG_OPTIONAL, "1-init, 2-post-init, 3-all",
-     0},
+    {"debug", 'D', "123", OPTION_ARG_OPTIONAL, "1-init, 2-post-init, 3-all", 0},
+    {"f_rlnks", 'E', 0, 0, "Output link errors to stderr", 0},
     {"f_include_hidden", 'H', 0, 0, "Include hidden files", 0},
     {"f_lnk_dir", 'L', 0, 0, "Follow symbolic links", 0},
-    {"nthreads", 'T', "nthreads", 0, "Number of nthreads", 0},
-    {"f_sort", 'S', "r", OPTION_ARG_OPTIONAL, "sort arg=r reverse", 0},
+    {"f_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
+    {"f_sort", 'S', 0, 0, "Sort in Ascending order", 0},
+    {"nthreads", 'T', "threads", 0, "Number of nthreads", 0},
     {0}};
 
 typedef struct {
@@ -93,6 +96,7 @@ typedef struct {
     bool f_reverse;
     bool f_include_hidden;
     bool f_lnk_dir;
+    bool f_rlnks;
     char *file_types_p;
     int reg_flags;
     char *args[5];
@@ -114,6 +118,7 @@ typedef struct {
 } SearchFilters;
 
 typedef struct {
+    mode_t mode;
     dev_t dev;
     ino_t ino;
 } PathNode;
@@ -126,7 +131,7 @@ typedef struct TaskNode {
 } TaskNode;                /**< Queue TaskNode (for work-stealing) */
 
 bool init_find(SearchFilters *);
-int scan_file(char *, SearchFilters *, struct dirent *);
+int scan_file(char *, SearchFilters *, struct dirent *, unsigned char);
 
 void enqueue_dir(TaskNode *);
 TaskNode *dequeue_dir();
@@ -178,21 +183,20 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         strnz__cpy(f->ere, arg, MAXLEN - 1);
         f->flags |= LF_EXC_REGEX;
         break;
+    case 'E':
+        f->f_rlnks = true;
+        break;
     case 'H':
         f->f_include_hidden = true; // Include hidden files
         f->flags &= ~(LF_HIDE);     // Turn hide flag off
                                     // LF_HIDE = 0 - include hidden files,
                                     // LF_HIDE = 1 - suppress hidden files
         break;
-    case 'L':
-        f->f_lnk_dir = true; // follow symbolic links
-        break;
-    case 'T':
-        if (arg && arg[0] != '\0')
-            nthreads = a_toi(arg, &a_toi_error);
-        break;
     case 'i':
         f->flags |= LF_ICASE;
+        break;
+    case 'L':
+        f->f_lnk_dir = true; // follow symbolic links
         break;
     case 'p':
         for (i = 0; arg[i]; i++) {
@@ -217,9 +221,23 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             }
         }
         break;
+    case 'R':
+        f->f_reverse = true;
+        break;
+    case 'r':
+        strnz__cpy(f->re, arg, MAXLEN - 1);
+        f->flags |= LF_REGEX;
+        break;
+    case 'S':
+        f->f_sort = true;
+        break;
     case 's':
         long long ull = a_to_ull(arg);
         f->file_size_min = (intmax_t)ull;
+        break;
+    case 'T':
+        if (arg && arg[0] != '\0')
+            nthreads = a_toi(arg, &a_toi_error);
         break;
     case 't':
         f->file_types_p = arg;
@@ -275,11 +293,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'x':
         strnz__cpy(f->exec, arg, MAXLEN - 1);
-        break;
-    case 'S':
-        f->f_sort = true;
-        if (arg && (arg[0] == 'r' || arg[0] == 'R'))
-            f->f_reverse = true;
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
@@ -426,7 +439,7 @@ bool init_find(SearchFilters *f) {
     f->permissions = f->flags >> 16 & 0xff;
     // LF_HIDE = 0 - include hidden files,
     // LF_HIDE = 1 - suppress hidden files
-    f->f_include_hidden = f->flags & ~LF_HIDE ? true : false;
+    f->f_include_hidden = !(f->flags & LF_HIDE);
     f->blk = f->suppress_types & FT_BLK ? true : false;
     f->chr = f->suppress_types & FT_CHR ? true : false;
     f->dir = f->suppress_types & FT_DIR ? true : false;
@@ -493,8 +506,6 @@ bool init_find(SearchFilters *f) {
             fprintf(stderr, "Included file types:");
             if (f->include_types & FT_BLK)
                 fprintf(stderr, " block");
-            if (f->include_types & FT_CHR)
-                fprintf(stderr, " character");
             if (f->include_types & FT_CHR)
                 fprintf(stderr, " character");
             if (f->include_types & FT_DIR)
@@ -602,6 +613,7 @@ TaskNode *dequeue_dir() {
     head = head->next;
     if (!head)
         tail = NULL;
+    atomic_fetch_add(&active_tasks, 1);
     pthread_mutex_unlock(&queue_mutex);
     return temp;
 }
@@ -629,40 +641,44 @@ void *finder(void *arg) {
         if (!current_task)
             break;
 
-        atomic_fetch_add(&active_tasks, 1);
         //-------------------------------------------------------------
-
+        // Perform an lstat on the current dir_path to determine if it
+        // is a link.
+        // Provides mode, dev, and inode of the link itself.
         struct dirent *entry;
         if (lstat(current_task->dir_path, &st) != 0) {
-            fprintf(stderr,
-                    "[DEBUG] Processing directory: %s (dev=%ju, ino=%ju)\n",
-                    current_task->dir_path, (uintmax_t)st.st_dev,
-                    (uintmax_t)st.st_ino);
+            if (f->debug == 2 || f->debug == 3)
+                fprintf(stderr, "lstat failed: %s, %s\n",
+                        current_task->dir_path, strerror(errno));
             free(current_task->dir_path);
             free(current_task->history);
             free(current_task);
             atomic_fetch_sub(&active_tasks, 1);
-            return NULL;
+            pthread_cond_broadcast(&cond_var);
+            continue;
         }
-        // Resolve Symlinks if the current directory is a symlink and the -L
-        // flag is set. We need to resolve the symlink to get the correct
-        // dev/inode for cycle detection and to ensure we are processing the
-        // actual target directory. If the symlink is broken (i.e., it
-        // points to a non-existent target), we log an error and skip
-        // processing this directory.
+        // Resolve Symlinks
+        // Overwrites link st with target st
+        // Provides mode, dev, and inode of target
         if (S_ISLNK(st.st_mode)) {
             if (stat(current_task->dir_path, &st) != 0) {
-                fprintf(stderr, "[ERROR] Broken symlink %s\n",
-                        current_task->dir_path);
+                if (f->f_rlnks)
+                    fprintf(stderr, "[ERROR] Broken symlink %s: %s\n",
+                            current_task->dir_path, strerror(errno));
                 free(current_task->dir_path);
                 free(current_task->history);
                 free(current_task);
                 atomic_fetch_sub(&active_tasks, 1);
-                return NULL;
+                pthread_cond_broadcast(&cond_var);
+                continue;
             }
         }
-        // Check if the current path is a directory. If it's not a
-        // directory, we skip processing it and clean up the task. This can
+        // Not sure why we need the above two paragraphs as the dev/inode
+        // numbers are stored in history.
+        //
+        //-------------------------------------------------------------
+        // Check if the current path is a directory or symlink to a directory.
+        // If it's not, we skip processing it and clean up the task. This can
         // happen if the base path provided by the user is a file instead of
         // a directory, or if we encounter a non-directory entry in the
         // queue due to some error.
@@ -671,25 +687,34 @@ void *finder(void *arg) {
             free(current_task->history);
             free(current_task);
             atomic_fetch_sub(&active_tasks, 1);
-            return NULL;
+            pthread_cond_broadcast(&cond_var);
+            continue;
         }
         // Check for cycles by comparing the current directory's
         // dev/inode with the history of dev/inode pairs from parent
         // directories. If a match is found, it indicates a cycle and we
         // skip processing this directory.
-        for (int i = 0; i < current_task->depth; i++) {
-            printf("\n%s %ju %ju\n", current_task->dir_path, st.st_ino,
-                   current_task->history[i].ino);
+        // Here, we use the dev and inode of the resolved target directory.
+        bool cycle_found = false;
+        for (int i = 0; i < current_task->depth - 1; i++) {
+            fprintf(stderr, "%ju %ju\n", current_task->history[i].ino,
+                    st.st_ino);
             if (current_task->history[i].dev == st.st_dev &&
                 current_task->history[i].ino == st.st_ino) {
-                fprintf(stderr, "[LOOP] Skipping recursive link: %s\n",
-                        current_task->dir_path);
-                free(current_task->dir_path);
-                free(current_task->history);
-                free(current_task);
-                atomic_fetch_sub(&active_tasks, 1);
-                return NULL;
+                cycle_found = true;
+                break;
             }
+        }
+        if (cycle_found) {
+            if (f->f_rlnks)
+                fprintf(stderr, "[LOOP] Recursive link: %s\n",
+                        current_task->dir_path);
+            free(current_task->dir_path);
+            free(current_task->history);
+            free(current_task);
+            atomic_fetch_sub(&active_tasks, 1);
+            pthread_cond_broadcast(&cond_var);
+            continue;
         }
         //-------------------------------------------------------------
         // Open the directory using openat and fdopendir to minimize
@@ -700,25 +725,31 @@ void *finder(void *arg) {
             if (f->debug == 2 || f->debug == 3)
                 fprintf(stderr, "\nopenat failed for directory: %s, %s\n",
                         current_task->dir_path, strerror(errno));
-            close(dir_fd);
+            free(current_task->dir_path);
+            free(current_task->history);
             free(current_task);
             atomic_fetch_sub(&active_tasks, 1);
-            return NULL;
+            pthread_cond_broadcast(&cond_var);
+            continue;
         }
         DIR *dir = fdopendir(dir_fd);
         if (dir == NULL) {
             if (f->debug == 2 || f->debug == 3)
-                fprintf(stderr, "\nfdopen failed for directory: %s, %s\n",
+                fprintf(stderr, "\nfdopendir failed for directory: %s, %s\n",
                         current_task->dir_path, strerror(errno));
-            closedir(dir);
             close(dir_fd);
+            free(current_task->dir_path);
+            free(current_task->history);
             free(current_task);
             atomic_fetch_sub(&active_tasks, 1);
-            return NULL;
+            pthread_cond_broadcast(&cond_var);
+            continue;
         }
         //-------------------------------------------------------------
-        // Read directory contentrs and process each entry
+        // Read directory contents and process each entry
         while ((entry = readdir(dir)) != NULL) {
+            unsigned char real_type = '\0';
+            unsigned char effective_type = '\0';
             if (entry->d_name[0] == '.') {
                 if (!f->f_include_hidden)
                     continue;
@@ -727,41 +758,71 @@ void *finder(void *arg) {
                 if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
                     continue;
             }
+            if (fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW) == 0) {
+                if (S_ISLNK(st.st_mode)) {
+                    real_type = DT_LNK;
+                    // dereference the link to determine if it's a link to a
+                    // directory
+                    if (fstatat(dir_fd, entry->d_name, &st, 0) != 0) {
+                        fprintf(stderr, "[BAD LINK] %s/%s: %s\n",
+                                current_task->dir_path, entry->d_name,
+                                strerror(errno));
+                        continue;
+                    }
+                }
+                if (S_ISREG(st.st_mode))
+                    effective_type = DT_REG;
+                else if (S_ISDIR(st.st_mode)) {
+                    if (!f->f_lnk_dir && real_type == DT_LNK)
+                        effective_type = DT_LNK;
+                    else
+                        effective_type = DT_DIR;
+                } else if (S_ISLNK(st.st_mode))
+                    effective_type = DT_LNK;
+                else if (S_ISBLK(st.st_mode))
+                    effective_type = DT_BLK;
+                else if (S_ISCHR(st.st_mode))
+                    effective_type = DT_CHR;
+                else if (S_ISFIFO(st.st_mode))
+                    effective_type = DT_FIFO;
+                else if (S_ISSOCK(st.st_mode))
+                    effective_type = DT_SOCK;
+                else
+                    effective_type = DT_UNKNOWN;
+            } else {
+                effective_type = DT_UNKNOWN;
+            }
             ssnprintf(full_path, PATH_MAX - 1, "%s/%s", current_task->dir_path,
                       entry->d_name);
-            if (entry->d_type == DT_LNK) {
-                if (stat(entry->d_name, &st) == 0) {
-                    if (S_ISDIR(st.st_mode) && f->f_lnk_dir)
-                        entry->d_type = DT_DIR;
-                }
-            }
-            if (entry->d_type == DT_DIR) {
+            if (effective_type == DT_DIR) {
                 if ((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))
                     continue;
-            }
-            if (entry->d_type == DT_DIR &&
-                (f->max_depth == 0 || current_task->depth + 1 < f->max_depth)) {
-                // Prepare the new history array for the next level of
-                // recursion, copying the current history and adding the
-                // current directory's dev/ino array
-                TaskNode *child_task = malloc(sizeof(TaskNode));
-                child_task->dir_path = strdup(full_path);
-                child_task->depth = current_task->depth + 1;
-                child_task->next = NULL;
-                child_task->history =
-                    malloc(sizeof(PathNode) * child_task->depth);
-                if (current_task->depth > 0) {
-                    memcpy(child_task->history, current_task->history,
-                           sizeof(PathNode) * current_task->depth);
+                if (f->max_depth == 0 ||
+                    (current_task->depth + 1 < f->max_depth)) {
+                    // Prepare the new history array for the next level
+                    // of recursion, copying the current history and
+                    // adding the current directory's dev/ino array
+                    TaskNode *child_task = malloc(sizeof(TaskNode));
+                    child_task->dir_path = strdup(full_path);
+                    child_task->depth = current_task->depth + 1;
+                    child_task->next = NULL;
+                    child_task->history =
+                        malloc(sizeof(PathNode) * child_task->depth);
+                    if (current_task->depth > 0) {
+                        memcpy(child_task->history, current_task->history,
+                               sizeof(PathNode) * current_task->depth);
+                    }
+                    // Here, we use the dev and inode of the link itself
+                    // This may be an error
+                    child_task->history[current_task->depth].mode = st.st_mode;
+                    child_task->history[current_task->depth].dev = st.st_dev;
+                    child_task->history[current_task->depth].ino = st.st_ino;
+                    enqueue_dir(child_task);
                 }
-                child_task->history[current_task->depth].dev = st.st_dev;
-                child_task->history[current_task->depth].ino = st.st_ino;
-                enqueue_dir(child_task);
             }
-            scan_file(full_path, f, entry);
+            scan_file(full_path, f, entry, effective_type);
         }
         closedir(dir);
-        close(dir_fd);
         free(current_task->dir_path);
         free(current_task->history);
         free(current_task);
@@ -770,44 +831,49 @@ void *finder(void *arg) {
     }
     return NULL;
 }
-/** @brief Scan a single file against the search filters and print if it
-   matches.
-    @param file_spec The full specification of the file being scanned.
-    @param f The SearchFilters struct containing the options and flags
-   for filtering.
-    @param dir_st The dirent struct representing the file being scanned.
+/** @brief Scan a single file against the search filters and print
+   if it matches.
+    @param file_spec The full specification of the file being
+   scanned.
+    @param f The SearchFilters struct containing the options and
+   flags for filtering.
+    @param dir_st The dirent struct representing the file being
+   scanned.
     @return true if the file was processed successfully, false if an
    error occurred.
-    @details This function checks the specified file against the various
-   filters defined in the SearchFilters struct, including file type,
-   regex patterns, ownership, permissions, modification time, and size.
-   If the file matches all criteria, its path is printed to standard
-   output. If any errors occur during processing (e.g., regex
-   compilation failure), an error message is printed to standard error
-   and the function returns false.
+    @details This function checks the specified file against the
+   various filters defined in the SearchFilters struct, including
+   file type, regex patterns, ownership, permissions, modification
+   time, and size. If the file matches all criteria, its path is
+   printed to standard output. If any errors occur during processing
+   (e.g., regex compilation failure), an error message is printed to
+   standard error and the function returns false.
     @note This function is called by finder threads for each file
    encountered during the directory traversal. It is designed to be
    thread-safe and efficient, minimizing redundant system calls. For
-   example, it only calls stat() when necessary for filters that require
-   file metadata, and it caches the results to avoid multiple stat()
-   calls for the same file.
+   example, it only calls stat() when necessary for filters that
+   require file metadata, and it caches the results to avoid
+   multiple stat() calls for the same file.
     @note regex matching is opttimized by pre-compiling the regular
-   expressions in init_find() and using regexec() for each file, which
-   is more efficient than compiling the regex for each file.
+   expressions in init_find() and using regexec() for each file,
+   which is more efficient than compiling the regex for each file.
    Additionally, the function minimizes calls to regexec() by first
-   checking simpler filters (like file type and hidden status) before
-   performing regex matching, thus avoiding unnecessary regex
-   evaluations for files that are already excluded by other criteria.
+   checking simpler filters (like file type and hidden status)
+   before performing regex matching, thus avoiding unnecessary regex
+   evaluations for files that are already excluded by other
+   criteria.
     @todo Can we come up with a more efficient data structure for
    managing the queue of directories to process, such as a lock-free
    queue or work-stealing deque? A work stealing dequeue would allow
    idle threads to steal work from busier threads, improving load
-   balancing and reducing idle time. This would involve implementing a
-   thread-safe deque data structure that supports concurrent push and
-   pop operations from both ends, allowing threads to efficiently share
-   the workload without excessive locking or contention.
+   balancing and reducing idle time. This would involve implementing
+   a thread-safe deque data structure that supports concurrent push
+   and pop operations from both ends, allowing threads to
+   efficiently share the workload without excessive locking or
+   contention.
    */
-int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
+int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st,
+              unsigned char effective_type) {
 
     char tmp_str[MAXLEN];
 
@@ -818,21 +884,21 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
         if (dir_st->d_name[0] == '.' && !f->f_include_hidden)
             break;
         if (f->suppress_types) {
-            if (f->reg && (dir_st->d_type == DT_REG))
+            if (f->reg && (effective_type == DT_REG))
                 break;
-            if (f->dir && (dir_st->d_type == DT_DIR))
+            if (f->dir && (effective_type == DT_DIR))
                 break;
-            if (f->lnk && (dir_st->d_type == DT_LNK))
+            if (f->lnk && (effective_type == DT_LNK))
                 break;
-            if (f->blk && (dir_st->d_type == DT_BLK))
+            if (f->blk && (effective_type == DT_BLK))
                 break;
-            if (f->chr && (dir_st->d_type == DT_CHR))
+            if (f->chr && (effective_type == DT_CHR))
                 break;
-            if (f->fifo && (dir_st->d_type == DT_FIFO))
+            if (f->fifo && (effective_type == DT_FIFO))
                 break;
-            if (f->sock && (dir_st->d_type == DT_SOCK))
+            if (f->sock && (effective_type == DT_SOCK))
                 break;
-            if (f->unknown && (dir_st->d_type == DT_UNKNOWN))
+            if (f->unknown && (effective_type == DT_UNKNOWN))
                 break;
         }
         /* Exclude non-matching files */
@@ -843,10 +909,9 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
             if (reti == REG_NOMATCH) {
                 break;
             } else if (reti) {
-                regerror(reti, &f->compiled_re, tmp_str, sizeof(tmp_str));
-                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
-                strnz__cat(tmp_str, tmp_str, MAXLEN - 1);
-                perror(tmp_str);
+                char errbuf[MAXLEN];
+                regerror(reti, &f->compiled_re, errbuf, sizeof(errbuf));
+                fprintf(stderr, "Regex match failed: %s\n", errbuf);
                 break;
             }
         }
@@ -858,10 +923,10 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
             if (reti == 0) // Match
                 break;
             else if (reti) {
-                regerror(reti, &f->compiled_re, tmp_str, sizeof(tmp_str));
-                strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
-                strnz__cat(tmp_str, tmp_str, MAXLEN - 1);
-                perror(tmp_str);
+                char errbuf[MAXLEN];
+                regerror(reti, &f->compiled_ere, errbuf, sizeof(errbuf));
+                fprintf(stderr, "Exclude regex match failed: %s\n", errbuf);
+                break;
             }
         }
         f_stat = false;
@@ -916,7 +981,7 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st) {
             strnz__cpy(tmp_str, &file_spec[2], PATH_MAX - 1);
         else
             strnz__cpy(tmp_str, file_spec, PATH_MAX - 1);
-        if (dir_st->d_type == DT_DIR)
+        if (effective_type == DT_DIR)
             strnz__cat(tmp_str, "/", PATH_MAX - 1);
         printf("%s\n", tmp_str);
         break;
