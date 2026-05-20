@@ -70,8 +70,8 @@ static struct argp_option options[] = {
      "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {"exec", 'x', "command", 0, "execute external command", 0},
-    {"debug", 'D', "123", OPTION_ARG_OPTIONAL, "1-init, 2-post-init, 3-all", 0},
-    {"f_rlnks", 'E', 0, 0, "Output link errors to stderr", 0},
+    {"debug", 'D', "1234567", 0,
+     "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all", 0},
     {"f_include_hidden", 'H', 0, 0, "Include hidden files", 0},
     {"f_lnk_dir", 'L', 0, 0, "Follow symbolic links", 0},
     {"f_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
@@ -96,7 +96,6 @@ typedef struct {
     bool f_reverse;
     bool f_include_hidden;
     bool f_lnk_dir;
-    bool f_rlnks;
     char *file_types_p;
     int reg_flags;
     char *args[5];
@@ -114,8 +113,17 @@ typedef struct {
     bool reg;
     bool sock;
     bool unknown;
-    int debug;
+    bool debug;
+    bool report_config;
+    bool report_info;
+    bool report_warnings;
+    bool report_errors;
+    bool report_badlinks;
+    bool report_trace;
+    bool report_all;
 } SearchFilters;
+
+#define DT_LNK_DIR 14
 
 typedef struct {
     mode_t mode;
@@ -175,16 +183,42 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'D':
         if (arg && arg[0] != '\0')
-            f->debug = a_toi(arg, &a_toi_error);
-        else
-            f->debug = 1;
+            f->debug = true;
+        switch (a_toi(arg, &a_toi_error)) {
+        case 1:
+            f->report_config = true;
+            break;
+        case 2:
+            f->report_info = true;
+            break;
+        case 3:
+            f->report_warnings = true;
+            break;
+        case 4:
+            f->report_errors = true;
+            break;
+        case 5:
+            f->report_badlinks = true;
+            break;
+        case 6:
+            f->report_trace = true;
+            break;
+        case 7:
+            f->report_config = true;
+            f->report_info = true;
+            f->report_warnings = true;
+            f->report_errors = true;
+            f->report_badlinks = true;
+            f->report_all = true;
+            break;
+        default:
+            f->report_errors = true;
+            break;
+        }
         break;
     case 'e':
         strnz__cpy(f->ere, arg, MAXLEN - 1);
         f->flags |= LF_EXC_REGEX;
-        break;
-    case 'E':
-        f->f_rlnks = true;
         break;
     case 'H':
         f->f_include_hidden = true; // Include hidden files
@@ -264,7 +298,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                 f->flags |= FT_REG << 8;
                 break;
             case 's':
-                f->flags |= FT_SOCK << 8;
+                f->flags |= FT_SOCK << 6;
                 break;
             case 'u':
                 f->flags |= FT_UNKNOWN << 8;
@@ -337,9 +371,9 @@ int main(int argc, char **argv) {
     if (f->argc > 0) {
         strnz__cpy(tmp_str, f->args[0], MAXLEN - 1);
         expand_tilde(tmp_str, MAXLEN - 1);
-        if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str))
+        if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str)) {
             strnz__cpy(f->base_path, tmp_str, MAXLEN - 1);
-        else if (is_valid_regex(f->args[0])) {
+        } else if (is_valid_regex(f->args[0])) {
             strnz__cpy(f->re, f->args[0], MAXLEN - 1);
             f->flags |= LF_REGEX;
         } else {
@@ -468,19 +502,32 @@ bool init_find(SearchFilters *f) {
             return false;
         }
     }
-    int thread_count = get_nprocs();
-    if (nthreads == 0 && thread_count > 6)
+    int n = get_nprocs();
+    if (nthreads == 0 && n > 6)
         nthreads = 6; // Limit default thread count to 6 to avoid excessive
                       // resource usage
     else if (nthreads < 0)
-        thread_count =
-            max(1, thread_count + nthreads); // Allow negative values to
-                                             // specify threads to leave idle
-    thread_count = min(thread_count, max(1, nthreads));
-    if (f->debug == 1 || f->debug == 3) {
-        fprintf(stderr, "lf: debug=%d\n", f->debug);
+        n = max(1, n + nthreads); // Allow negative values to
+                                  // specify threads to leave idle
+    nthreads = min(n, max(1, nthreads));
+    if (f->debug && (f->report_config || f->report_all)) {
+        fprintf(stderr, "debug=%d\n", f->debug);
+        fprintf(stderr, "  1-report_config %s\n",
+                f->report_config ? "true" : "false");
+        fprintf(stderr, "  2-report_info %s\n",
+                f->report_info ? "true" : "false");
+        fprintf(stderr, "  3-report_warnings %s\n",
+                f->report_warnings ? "true" : "false");
+        fprintf(stderr, "  4-report_errors %s\n",
+                f->report_errors ? "true" : "false");
+        fprintf(stderr, "  5-bad links %s\n",
+                f->report_trace ? "true" : "false");
+        fprintf(stderr, "  6-report_trace %s\n",
+                f->report_trace ? "true" : "false");
+        fprintf(stderr, "  7-report_all %s\n",
+                f->report_all ? "true" : "false");
         fprintf(stderr, "Starting search in: %s\n", f->base_path);
-        fprintf(stderr, "Using %d threads\n", thread_count);
+        fprintf(stderr, "Using %d threads\n", nthreads);
         fprintf(stderr, " include_types=%08b\n", f->include_types);
         fprintf(stderr, "suppress_types=%08b\n", f->suppress_types);
         if (f->flags & LF_REGEX)
@@ -505,24 +552,28 @@ bool init_find(SearchFilters *f) {
         if (f->include_types) {
             fprintf(stderr, "Included file types:");
             if (f->include_types & FT_BLK)
-                fprintf(stderr, " block");
+                fprintf(stderr, " block\n");
             if (f->include_types & FT_CHR)
-                fprintf(stderr, " character");
+                fprintf(stderr, " character\n");
             if (f->include_types & FT_DIR)
-                fprintf(stderr, " directory");
+                fprintf(stderr, " directory\n");
             if (f->include_types & FT_FIFO)
-                fprintf(stderr, " pipe");
+                fprintf(stderr, " pipe\n");
             if (f->include_types & FT_LNK)
-                fprintf(stderr, " link");
+                fprintf(stderr, " link\n");
             if (f->include_types & FT_REG)
-                fprintf(stderr, " regular");
+                fprintf(stderr, " regular\n");
             if (f->include_types & FT_SOCK)
-                fprintf(stderr, " socket");
+                fprintf(stderr, " socket\n");
             if (f->include_types & FT_UNKNOWN)
-                fprintf(stderr, " unknown");
-            fprintf(stderr, "\n");
+                fprintf(stderr, " unknown\n");
         }
-        if (f->debug == 1)
+        fprintf(stderr, "\n");
+        fprintf(stderr, "DT_BLK=%d\nDT_CHR=%d\nDT_DIR=%d\nDT_FIFO=%d\n", DT_BLK,
+                DT_CHR, DT_DIR, DT_FIFO);
+        fprintf(stderr, "DT_LNK=%d\nDT_REG=%d\nDT_SOCK=%d\nDT_UNKNOWN=%d\n\n",
+                DT_LNK, DT_REG, DT_SOCK, DT_UNKNOWN);
+        if (f->report_config && !f->report_all)
             exit(EXIT_SUCCESS);
     }
     //--------------------------------------------------------------------
@@ -538,8 +589,8 @@ bool init_find(SearchFilters *f) {
             child_task->history[0].dev = st.st_dev;
             child_task->history[0].ino = st.st_ino;
             enqueue_dir(child_task);
-            pthread_t threads[thread_count];
-            for (int i = 0; i < thread_count; i++) {
+            pthread_t threads[nthreads];
+            for (int i = 0; i < nthreads; i++) {
                 pthread_create(&threads[i], NULL, finder, f);
             }
             pthread_mutex_lock(&queue_mutex);
@@ -547,7 +598,7 @@ bool init_find(SearchFilters *f) {
                 pthread_cond_wait(&cond_var, &queue_mutex);
             }
             pthread_mutex_unlock(&queue_mutex);
-            for (int i = 0; i < thread_count; i++)
+            for (int i = 0; i < nthreads; i++)
                 pthread_join(threads[i], NULL);
         } else {
             fprintf(stderr,
@@ -634,6 +685,8 @@ void *finder(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;
     struct stat st;
     char full_path[PATH_MAX] = {'\0'};
+    char lnk_path[PATH_MAX] = {'\0'};
+    struct dirent *entry;
     // regmatch_t pmatch;
 
     while (1) {
@@ -642,87 +695,13 @@ void *finder(void *arg) {
             break;
 
         //-------------------------------------------------------------
-        // Perform an lstat on the current dir_path to determine if it
-        // is a link.
-        // Provides mode, dev, and inode of the link itself.
-        struct dirent *entry;
-        if (lstat(current_task->dir_path, &st) != 0) {
-            if (f->debug == 2 || f->debug == 3)
-                fprintf(stderr, "lstat failed: %s, %s\n",
-                        current_task->dir_path, strerror(errno));
-            free(current_task->dir_path);
-            free(current_task->history);
-            free(current_task);
-            atomic_fetch_sub(&active_tasks, 1);
-            pthread_cond_broadcast(&cond_var);
-            continue;
-        }
-        // Resolve Symlinks
-        // Overwrites link st with target st
-        // Provides mode, dev, and inode of target
-        if (S_ISLNK(st.st_mode)) {
-            if (stat(current_task->dir_path, &st) != 0) {
-                if (f->f_rlnks)
-                    fprintf(stderr, "[ERROR] Broken symlink %s: %s\n",
-                            current_task->dir_path, strerror(errno));
-                free(current_task->dir_path);
-                free(current_task->history);
-                free(current_task);
-                atomic_fetch_sub(&active_tasks, 1);
-                pthread_cond_broadcast(&cond_var);
-                continue;
-            }
-        }
-        // Not sure why we need the above two paragraphs as the dev/inode
-        // numbers are stored in history.
-        //
-        //-------------------------------------------------------------
-        // Check if the current path is a directory or symlink to a directory.
-        // If it's not, we skip processing it and clean up the task. This can
-        // happen if the base path provided by the user is a file instead of
-        // a directory, or if we encounter a non-directory entry in the
-        // queue due to some error.
-        if (!S_ISDIR(st.st_mode)) {
-            free(current_task->dir_path);
-            free(current_task->history);
-            free(current_task);
-            atomic_fetch_sub(&active_tasks, 1);
-            pthread_cond_broadcast(&cond_var);
-            continue;
-        }
-        // Check for cycles by comparing the current directory's
-        // dev/inode with the history of dev/inode pairs from parent
-        // directories. If a match is found, it indicates a cycle and we
-        // skip processing this directory.
-        // Here, we use the dev and inode of the resolved target directory.
-        bool cycle_found = false;
-        for (int i = 0; i < current_task->depth - 1; i++) {
-            fprintf(stderr, "%ju %ju\n", current_task->history[i].ino,
-                    st.st_ino);
-            if (current_task->history[i].dev == st.st_dev &&
-                current_task->history[i].ino == st.st_ino) {
-                cycle_found = true;
-                break;
-            }
-        }
-        if (cycle_found) {
-            if (f->f_rlnks)
-                fprintf(stderr, "[LOOP] Recursive link: %s\n",
-                        current_task->dir_path);
-            free(current_task->dir_path);
-            free(current_task->history);
-            free(current_task);
-            atomic_fetch_sub(&active_tasks, 1);
-            pthread_cond_broadcast(&cond_var);
-            continue;
-        }
-        //-------------------------------------------------------------
         // Open the directory using openat and fdopendir to minimize
         // redundant path Open
         int dir_fd =
             openat(AT_FDCWD, current_task->dir_path, O_RDONLY | O_DIRECTORY);
         if (dir_fd < 0) {
-            if (f->debug == 2 || f->debug == 3)
+            if (f->debug && (f->report_warnings || f->report_errors ||
+                             f->report_badlinks || f->report_all))
                 fprintf(stderr, "\nopenat failed for directory: %s, %s\n",
                         current_task->dir_path, strerror(errno));
             free(current_task->dir_path);
@@ -734,7 +713,8 @@ void *finder(void *arg) {
         }
         DIR *dir = fdopendir(dir_fd);
         if (dir == NULL) {
-            if (f->debug == 2 || f->debug == 3)
+            if (f->debug && (f->report_warnings || f->report_errors ||
+                             f->report_badlinks || f->report_all))
                 fprintf(stderr, "\nfdopendir failed for directory: %s, %s\n",
                         current_task->dir_path, strerror(errno));
             close(dir_fd);
@@ -751,74 +731,124 @@ void *finder(void *arg) {
             unsigned char real_type = '\0';
             unsigned char effective_type = '\0';
             if (entry->d_name[0] == '.') {
-                if (!f->f_include_hidden)
-                    continue;
                 if (entry->d_name[1] == '\0')
                     continue;
                 if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
                     continue;
+                if (!f->f_include_hidden)
+                    continue;
             }
-            if (fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW) == 0) {
-                if (S_ISLNK(st.st_mode)) {
-                    real_type = DT_LNK;
-                    // dereference the link to determine if it's a link to a
-                    // directory
-                    if (fstatat(dir_fd, entry->d_name, &st, 0) != 0) {
-                        fprintf(stderr, "[BAD LINK] %s/%s: %s\n",
-                                current_task->dir_path, entry->d_name,
-                                strerror(errno));
-                        continue;
+            // if (strcmp(entry->d_name, "crashes") == 0)
+            //     fprintf(stderr, "Found crashes directory: %s/%s\n",
+            //             current_task->dir_path, entry->d_name);
+            real_type = 0;
+            // Get the link's metadata
+            if (fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW) != 0) {
+                if (f->debug && (f->report_warnings || f->report_errors ||
+                                 f->report_badlinks || f->report_all))
+                    fprintf(stderr, "BAD LINK T1 %s/%s\n",
+                            current_task->dir_path, entry->d_name);
+                continue;
+            }
+            full_path[0] = '\0';
+            if (S_ISLNK(st.st_mode)) {
+                real_type = DT_LNK;
+                ssnprintf(full_path, PATH_MAX - 1, "%s/%s",
+                          current_task->dir_path, entry->d_name);
+                // Get the target's metadata
+                if (fstatat(dir_fd, entry->d_name, &st, 0) != 0) {
+                    if (f->debug && (f->report_all || f->report_warnings ||
+                                     f->report_errors || f->report_badlinks)) {
+                        fprintf(stderr, "BADTGT, %s", full_path);
+                        ssize_t len =
+                            readlink(full_path, lnk_path, sizeof(lnk_path) - 1);
+                        if (len != -1) {
+                            lnk_path[len] = '\0';
+                            fprintf(stderr, " => %s", lnk_path);
+                        }
+                        fprintf(stderr, "\n");
                     }
+                    continue;
                 }
-                if (S_ISREG(st.st_mode))
-                    effective_type = DT_REG;
-                else if (S_ISDIR(st.st_mode)) {
-                    if (!f->f_lnk_dir && real_type == DT_LNK)
-                        effective_type = DT_LNK;
-                    else
-                        effective_type = DT_DIR;
-                } else if (S_ISLNK(st.st_mode))
-                    effective_type = DT_LNK;
-                else if (S_ISBLK(st.st_mode))
-                    effective_type = DT_BLK;
-                else if (S_ISCHR(st.st_mode))
-                    effective_type = DT_CHR;
-                else if (S_ISFIFO(st.st_mode))
-                    effective_type = DT_FIFO;
-                else if (S_ISSOCK(st.st_mode))
-                    effective_type = DT_SOCK;
-                else
-                    effective_type = DT_UNKNOWN;
-            } else {
-                effective_type = DT_UNKNOWN;
             }
+            if (S_ISREG(st.st_mode))
+                effective_type = DT_REG;
+            else if (S_ISDIR(st.st_mode)) {
+                if (!f->f_lnk_dir && real_type == DT_LNK) {
+                    real_type = DT_LNK_DIR;
+                    effective_type = DT_LNK;
+                } else
+                    effective_type = DT_DIR;
+            } else if (S_ISLNK(st.st_mode))
+                effective_type = DT_LNK;
+            else if (S_ISBLK(st.st_mode))
+                effective_type = DT_BLK;
+            else if (S_ISCHR(st.st_mode))
+                effective_type = DT_CHR;
+            else if (S_ISFIFO(st.st_mode))
+                effective_type = DT_FIFO;
+            else if (S_ISSOCK(st.st_mode))
+                effective_type = DT_SOCK;
+            else
+                effective_type = DT_UNKNOWN;
             ssnprintf(full_path, PATH_MAX - 1, "%s/%s", current_task->dir_path,
                       entry->d_name);
-            if (effective_type == DT_DIR) {
-                if ((f->flags & LF_HIDE) && (entry->d_name[0] == '.'))
-                    continue;
-                if (f->max_depth == 0 ||
-                    (current_task->depth + 1 < f->max_depth)) {
-                    // Prepare the new history array for the next level
-                    // of recursion, copying the current history and
-                    // adding the current directory's dev/ino array
-                    TaskNode *child_task = malloc(sizeof(TaskNode));
-                    child_task->dir_path = strdup(full_path);
-                    child_task->depth = current_task->depth + 1;
-                    child_task->next = NULL;
-                    child_task->history =
-                        malloc(sizeof(PathNode) * child_task->depth);
-                    if (current_task->depth > 0) {
-                        memcpy(child_task->history, current_task->history,
-                               sizeof(PathNode) * current_task->depth);
+            if (effective_type == DT_DIR &&
+                (f->max_depth == 0 || current_task->depth + 1 < f->max_depth)) {
+                // Check for cycles by comparing the current directory's
+                // dev/inode with the history of dev/inode pairs from parent
+                // directories. If a match is found, it indicates a cycle
+                // and we skip processing this directory. Here, we use the
+                // dev and inode of the resolved target directory.
+                bool cycle_found = false;
+                if (f->debug && (f->report_trace || f->report_all))
+                    fprintf(stderr, "Checking for cycles in: %s\n",
+                            current_task->dir_path);
+                for (int i = 0; i < current_task->depth; i++) {
+                    if (f->debug && (f->report_trace || f->report_all))
+                        fprintf(stderr, "%ju %ju\n",
+                                current_task->history[i].ino, st.st_ino);
+                    if (current_task->history[i].dev == st.st_dev &&
+                        current_task->history[i].ino == st.st_ino) {
+                        cycle_found = true;
+                        break;
                     }
-                    // Here, we use the dev and inode of the link itself
-                    // This may be an error
-                    child_task->history[current_task->depth].mode = st.st_mode;
-                    child_task->history[current_task->depth].dev = st.st_dev;
-                    child_task->history[current_task->depth].ino = st.st_ino;
-                    enqueue_dir(child_task);
                 }
+                if (cycle_found) {
+                    if (f->debug && (f->report_warnings || f->report_errors ||
+                                     f->report_trace || f->report_badlinks ||
+                                     f->report_all)) {
+                        fprintf(stderr, "CYCLIC, %s", full_path);
+                        ssize_t len =
+                            readlink(full_path, lnk_path, sizeof(lnk_path) - 1);
+                        if (len != -1) {
+                            lnk_path[len] = '\0';
+                            fprintf(stderr, " => %s", lnk_path);
+                        }
+                        fprintf(stderr, "\n");
+                    }
+                    continue;
+                }
+                //-------------------------------------------------------
+                // Prepare the new history array for the next level
+                // of recursion, copying the current history and
+                // adding the current directory's dev/ino array
+                TaskNode *child_task = malloc(sizeof(TaskNode));
+                child_task->dir_path = strdup(full_path);
+                child_task->depth = current_task->depth + 1;
+                child_task->next = NULL;
+                child_task->history =
+                    malloc(sizeof(PathNode) * child_task->depth);
+                if (current_task->depth > 0) {
+                    memcpy(child_task->history, current_task->history,
+                           sizeof(PathNode) * current_task->depth);
+                }
+                // Here, we use the dev and inode of the link itself
+                // This may be an error
+                child_task->history[current_task->depth].mode = st.st_mode;
+                child_task->history[current_task->depth].dev = st.st_dev;
+                child_task->history[current_task->depth].ino = st.st_ino;
+                enqueue_dir(child_task);
             }
             scan_file(full_path, f, entry, effective_type);
         }
@@ -911,7 +941,8 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st,
             } else if (reti) {
                 char errbuf[MAXLEN];
                 regerror(reti, &f->compiled_re, errbuf, sizeof(errbuf));
-                fprintf(stderr, "Regex match failed: %s\n", errbuf);
+                if (f->debug && (f->report_errors || f->report_all))
+                    fprintf(stderr, "Regex error: %s\n", errbuf);
                 break;
             }
         }
@@ -925,7 +956,8 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st,
             else if (reti) {
                 char errbuf[MAXLEN];
                 regerror(reti, &f->compiled_ere, errbuf, sizeof(errbuf));
-                fprintf(stderr, "Exclude regex match failed: %s\n", errbuf);
+                if (f->debug && (f->report_errors || f->report_all))
+                    fprintf(stderr, "Exclude regex error: %s\n", errbuf);
                 break;
             }
         }
