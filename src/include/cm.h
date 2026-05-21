@@ -164,16 +164,16 @@ typedef enum {
 } LFFlags;
 
 /** byte 2 - bits 16-23 File types*/
-typedef enum {
-    FT_BLK = 0b00000001,    /**< 1 block device */
-    FT_CHR = 0b00000010,    /**< 2 character device */
-    FT_DIR = 0b00000100,    /**< 4 directory */
-    FT_FIFO = 0b00001000,   /**< 8 named pipe */
-    FT_LNK = 0b00010000,    /**< 16 link */
-    FT_REG = 0b00100000,    /**< 32 regular file */
-    FT_SOCK = 0b01000000,   /**< 64 socket */
-    FT_UNKNOWN = 0b10000000 /**< 128 unknown */
-} FTypes;
+// typedef enum {
+//     FT_BLK = 0b00000001,    /**< 1 block device */
+//     FT_CHR = 0b00000010,    /**< 2 character device */
+//     FT_DIR = 0b00000100,    /**< 4 directory */
+//     FT_FIFO = 0b00001000,   /**< 8 named pipe */
+//     FT_LNK = 0b00010000,    /**< 16 link */
+//     FT_REG = 0b00100000,    /**< 32 regular file */
+//     FT_SOCK = 0b01000000,   /**< 64 socket */
+//     FT_UNKNOWN = 0b10000000 /**< 128 unknown */
+// } FTypes;
 
 #define F_NO_STDERR 1
 

@@ -19,11 +19,13 @@
     @date 2026-02-09
  */
 #define _GNU_SOURCE
-
+// #define LF_DEBUG
 #include <argp.h>
 #include <cm.h>
 #include <dirent.h>
+#ifdef LF_DEBUG
 #include <errno.h>
+#endif
 #include <fcntl.h>
 #include <grp.h>
 #include <linux/limits.h>
@@ -70,8 +72,10 @@ static struct argp_option options[] = {
      "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {"exec", 'x', "command", 0, "execute external command", 0},
+#ifdef LF_DEBUG
     {"debug", 'D', "1234567", 0,
      "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all", 0},
+#endif
     {"f_include_hidden", 'H', 0, 0, "Include hidden files", 0},
     {"f_lnk_dir", 'L', 0, 0, "Follow symbolic links", 0},
     {"f_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
@@ -96,23 +100,20 @@ typedef struct {
     bool f_reverse;
     bool f_include_hidden;
     bool f_lnk_dir;
-    char *file_types_p;
     int reg_flags;
-    char *args[5];
-    int argc;
     char exec[MAXLEN];
-    int include_types;
-    int suppress_types;
+    unsigned char include_types;
+    unsigned char suppress_types;
     bool include;
     int permissions;
-    bool blk;
-    bool chr;
-    bool dir;
-    bool fifo;
-    bool lnk;
-    bool reg;
-    bool sock;
-    bool unknown;
+    // bool blk;
+    // bool chr;
+    // bool dir;
+    // bool fifo;
+    // bool lnk;
+    // bool reg;
+    // bool sock;
+    // bool unknown;
     bool debug;
     bool report_config;
     bool report_info;
@@ -121,12 +122,14 @@ typedef struct {
     bool report_badlinks;
     bool report_trace;
     bool report_all;
+    char *args[3];
+    int argc;
+    char *file_types_p;
 } SearchFilters;
 
 #define DT_LNK_DIR 14
 
 typedef struct {
-    mode_t mode;
     dev_t dev;
     ino_t ino;
 } PathNode;
@@ -139,7 +142,7 @@ typedef struct TaskNode {
 } TaskNode;                /**< Queue TaskNode (for work-stealing) */
 
 bool init_find(SearchFilters *);
-int scan_file(char *, SearchFilters *, struct dirent *, unsigned char);
+int scan_file(char *, SearchFilters *, unsigned char);
 
 void enqueue_dir(TaskNode *);
 TaskNode *dequeue_dir();
@@ -181,6 +184,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         if (arg && arg[0] != '\0')
             f->max_depth = a_toi(arg, &a_toi_error);
         break;
+#ifdef LF_DEBUG
     case 'D':
         if (arg && arg[0] != '\0')
             f->debug = true;
@@ -216,6 +220,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             break;
         }
         break;
+#endif
     case 'e':
         strnz__cpy(f->ere, arg, MAXLEN - 1);
         f->flags |= LF_EXC_REGEX;
@@ -278,30 +283,30 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         while (f->file_types_p[i]) {
             switch (f->file_types_p[i++]) {
             case 'b':
-                f->flags |= FT_BLK << 8;
+                f->flags |= DT_BLK << 8;
                 break;
             case 'c':
-                f->flags |= FT_CHR << 8;
+                f->flags |= DT_CHR << 8;
                 break;
             case 'd':
-                f->flags |= FT_DIR << 8;
+                f->flags |= DT_DIR << 8;
                 break;
             case 'p':
-                f->flags |= FT_FIFO << 8;
+                f->flags |= DT_FIFO << 8;
                 break;
             case 'l':
-                f->flags |= FT_LNK << 8;
+                f->flags |= DT_LNK << 8;
                 break;
             case 'f': // for regular files, 'f' is more intuitive than 'r'
             case 'r': // regular files are the most common type, so 'r' is also
                       // accepted
-                f->flags |= FT_REG << 8;
+                f->flags |= DT_REG << 8;
                 break;
             case 's':
-                f->flags |= FT_SOCK << 6;
+                f->flags |= DT_SOCK << 8;
                 break;
             case 'u':
-                f->flags |= FT_UNKNOWN << 8;
+                f->flags |= DT_UNKNOWN << 8;
                 break;
             default:
                 break;
@@ -474,14 +479,6 @@ bool init_find(SearchFilters *f) {
     // LF_HIDE = 0 - include hidden files,
     // LF_HIDE = 1 - suppress hidden files
     f->f_include_hidden = !(f->flags & LF_HIDE);
-    f->blk = f->suppress_types & FT_BLK ? true : false;
-    f->chr = f->suppress_types & FT_CHR ? true : false;
-    f->dir = f->suppress_types & FT_DIR ? true : false;
-    f->fifo = f->suppress_types & FT_FIFO ? true : false;
-    f->lnk = f->suppress_types & FT_LNK ? true : false;
-    f->reg = f->suppress_types & FT_REG ? true : false;
-    f->sock = f->suppress_types & FT_SOCK ? true : false;
-    f->unknown = f->suppress_types & FT_UNKNOWN ? true : false;
     int reti = 0;
     f->reg_flags = REG_EXTENDED;
     if (f->flags & LF_ICASE)
@@ -551,28 +548,23 @@ bool init_find(SearchFilters *f) {
             fprintf(stderr, "Follow symbolic links.\n");
         if (f->include_types) {
             fprintf(stderr, "Included file types:");
-            if (f->include_types & FT_BLK)
+            if (f->include_types & DT_BLK)
                 fprintf(stderr, " block\n");
-            if (f->include_types & FT_CHR)
+            if (f->include_types & DT_CHR)
                 fprintf(stderr, " character\n");
-            if (f->include_types & FT_DIR)
+            if (f->include_types & DT_DIR)
                 fprintf(stderr, " directory\n");
-            if (f->include_types & FT_FIFO)
+            if (f->include_types & DT_FIFO)
                 fprintf(stderr, " pipe\n");
-            if (f->include_types & FT_LNK)
+            if (f->include_types & DT_LNK)
                 fprintf(stderr, " link\n");
-            if (f->include_types & FT_REG)
+            if (f->include_types & DT_REG)
                 fprintf(stderr, " regular\n");
-            if (f->include_types & FT_SOCK)
+            if (f->include_types & DT_SOCK)
                 fprintf(stderr, " socket\n");
-            if (f->include_types & FT_UNKNOWN)
+            if (f->include_types & DT_UNKNOWN)
                 fprintf(stderr, " unknown\n");
         }
-        fprintf(stderr, "\n");
-        fprintf(stderr, "DT_BLK=%d\nDT_CHR=%d\nDT_DIR=%d\nDT_FIFO=%d\n", DT_BLK,
-                DT_CHR, DT_DIR, DT_FIFO);
-        fprintf(stderr, "DT_LNK=%d\nDT_REG=%d\nDT_SOCK=%d\nDT_UNKNOWN=%d\n\n",
-                DT_LNK, DT_REG, DT_SOCK, DT_UNKNOWN);
         if (f->report_config && !f->report_all)
             exit(EXIT_SUCCESS);
     }
@@ -683,10 +675,9 @@ TaskNode *dequeue_dir() {
    */
 void *finder(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;
-    struct stat st;
-    char full_path[PATH_MAX] = {'\0'};
+#ifdef LF_DEBUG
     char lnk_path[PATH_MAX] = {'\0'};
-    struct dirent *entry;
+#endif
     // regmatch_t pmatch;
 
     while (1) {
@@ -700,10 +691,12 @@ void *finder(void *arg) {
         int dir_fd =
             openat(AT_FDCWD, current_task->dir_path, O_RDONLY | O_DIRECTORY);
         if (dir_fd < 0) {
+#ifdef LF_DEBUG
             if (f->debug && (f->report_warnings || f->report_errors ||
                              f->report_badlinks || f->report_all))
                 fprintf(stderr, "\nopenat failed for directory: %s, %s\n",
                         current_task->dir_path, strerror(errno));
+#endif
             free(current_task->dir_path);
             free(current_task->history);
             free(current_task);
@@ -713,10 +706,12 @@ void *finder(void *arg) {
         }
         DIR *dir = fdopendir(dir_fd);
         if (dir == NULL) {
+#ifdef LF_DEBUG
             if (f->debug && (f->report_warnings || f->report_errors ||
                              f->report_badlinks || f->report_all))
                 fprintf(stderr, "\nfdopendir failed for directory: %s, %s\n",
                         current_task->dir_path, strerror(errno));
+#endif
             close(dir_fd);
             free(current_task->dir_path);
             free(current_task->history);
@@ -725,11 +720,17 @@ void *finder(void *arg) {
             pthread_cond_broadcast(&cond_var);
             continue;
         }
+        char *p;
+        unsigned char real_type;
+        unsigned char effective_type;
         //-------------------------------------------------------------
         // Read directory contents and process each entry
+        struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
-            unsigned char real_type = '\0';
-            unsigned char effective_type = '\0';
+            struct stat st;
+            real_type = '\0';
+            effective_type = '\0';
+            char full_path[PATH_MAX] = {'\0'};
             if (entry->d_name[0] == '.') {
                 if (entry->d_name[1] == '\0')
                     continue;
@@ -738,28 +739,26 @@ void *finder(void *arg) {
                 if (!f->f_include_hidden)
                     continue;
             }
-            // if (strcmp(entry->d_name, "crashes") == 0)
-            //     fprintf(stderr, "Found crashes directory: %s/%s\n",
-            //             current_task->dir_path, entry->d_name);
-            real_type = 0;
-            // Get the link's metadata
+            // Get link's metadata
             if (fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW) != 0) {
-                if (f->debug && (f->report_warnings || f->report_errors ||
+#ifdef LF_DEBUG
+                if (f->debug && (f->report_errors || f->report_warnings ||
                                  f->report_badlinks || f->report_all))
-                    fprintf(stderr, "BAD LINK T1 %s/%s\n",
-                            current_task->dir_path, entry->d_name);
+                    fprintf(stderr, "BADLNK, %s/%s\n", current_task->dir_path,
+                            entry->d_name);
+#endif
                 continue;
             }
-            full_path[0] = '\0';
             if (S_ISLNK(st.st_mode)) {
                 real_type = DT_LNK;
-                ssnprintf(full_path, PATH_MAX - 1, "%s/%s",
-                          current_task->dir_path, entry->d_name);
                 // Get the target's metadata
                 if (fstatat(dir_fd, entry->d_name, &st, 0) != 0) {
+#ifdef LF_DEBUG
                     if (f->debug && (f->report_all || f->report_warnings ||
                                      f->report_errors || f->report_badlinks)) {
-                        fprintf(stderr, "BADTGT, %s", full_path);
+                        ssnprintf(full_path, PATH_MAX - 1, "%s/%s",
+                                  current_task->dir_path, entry->d_name);
+                        fprintf(stderr, "BADTGT, %s\n", full_path);
                         ssize_t len =
                             readlink(full_path, lnk_path, sizeof(lnk_path) - 1);
                         if (len != -1) {
@@ -768,46 +767,68 @@ void *finder(void *arg) {
                         }
                         fprintf(stderr, "\n");
                     }
-                    continue;
+#endif
+                    // continue;
                 }
             }
-            if (S_ISREG(st.st_mode))
-                effective_type = DT_REG;
-            else if (S_ISDIR(st.st_mode)) {
-                if (!f->f_lnk_dir && real_type == DT_LNK) {
-                    real_type = DT_LNK_DIR;
-                    effective_type = DT_LNK;
-                } else
-                    effective_type = DT_DIR;
-            } else if (S_ISLNK(st.st_mode))
-                effective_type = DT_LNK;
-            else if (S_ISBLK(st.st_mode))
+            switch (st.st_mode & S_IFMT) {
+            case S_IFBLK:
                 effective_type = DT_BLK;
-            else if (S_ISCHR(st.st_mode))
+                break;
+            case S_IFCHR:
                 effective_type = DT_CHR;
-            else if (S_ISFIFO(st.st_mode))
+                break;
+            case S_IFDIR:
+                if (!f->f_lnk_dir && real_type == DT_LNK)
+                    effective_type = DT_LNK;
+                else
+                    effective_type = DT_DIR;
+                break;
+            case S_IFIFO:
                 effective_type = DT_FIFO;
-            else if (S_ISSOCK(st.st_mode))
+                break;
+            case S_IFLNK:
+                effective_type = DT_LNK;
+                break;
+            case S_IFREG:
+                effective_type = DT_REG;
+                break;
+            case S_IFSOCK:
                 effective_type = DT_SOCK;
-            else
-                effective_type = DT_UNKNOWN;
-            ssnprintf(full_path, PATH_MAX - 1, "%s/%s", current_task->dir_path,
-                      entry->d_name);
-            if (effective_type == DT_DIR &&
-                (f->max_depth == 0 || current_task->depth + 1 < f->max_depth)) {
-                // Check for cycles by comparing the current directory's
-                // dev/inode with the history of dev/inode pairs from parent
-                // directories. If a match is found, it indicates a cycle
-                // and we skip processing this directory. Here, we use the
-                // dev and inode of the resolved target directory.
+                break;
+            default:
+                effective_type = 0;
+                break;
+            }
+            p = full_path;
+            p = stpcpy(p, current_task->dir_path);
+            p = stpcpy(p, "/");
+            stpcpy(p, entry->d_name);
+            if (effective_type == DT_DIR) {
+                if (f->max_depth != 0 && current_task->depth == f->max_depth)
+                    continue;
+                // Check for cycles by comparing the current
+                // directory's dev/inode with the history of
+                // dev/inode pairs from parent directories. If a
+                // match is found, it indicates a cycle and we skip
+                // processing this directory.
                 bool cycle_found = false;
+#ifdef LF_DEBUG
                 if (f->debug && (f->report_trace || f->report_all))
-                    fprintf(stderr, "Checking for cycles in: %s\n",
-                            current_task->dir_path);
+                    fprintf(stderr, "Checking for cycles in: %s\n", full_path);
+#endif
                 for (int i = 0; i < current_task->depth; i++) {
-                    if (f->debug && (f->report_trace || f->report_all))
-                        fprintf(stderr, "%ju %ju\n",
-                                current_task->history[i].ino, st.st_ino);
+#ifdef LF_DEBUG
+                    if (f->debug && (f->report_trace || f->report_all)) {
+
+                        if (current_task->history[i].ino == st.st_ino)
+                            fprintf(stderr, "%3d %ju %ju<===========\n", i,
+                                    current_task->history[i].ino, st.st_ino);
+                        else
+                            fprintf(stderr, "%3d %ju %ju\n", i,
+                                    current_task->history[i].ino, st.st_ino);
+                    }
+#endif
                     if (current_task->history[i].dev == st.st_dev &&
                         current_task->history[i].ino == st.st_ino) {
                         cycle_found = true;
@@ -815,6 +836,7 @@ void *finder(void *arg) {
                     }
                 }
                 if (cycle_found) {
+#ifdef LF_DEBUG
                     if (f->debug && (f->report_warnings || f->report_errors ||
                                      f->report_trace || f->report_badlinks ||
                                      f->report_all)) {
@@ -827,6 +849,7 @@ void *finder(void *arg) {
                         }
                         fprintf(stderr, "\n");
                     }
+#endif
                     continue;
                 }
                 //-------------------------------------------------------
@@ -845,12 +868,11 @@ void *finder(void *arg) {
                 }
                 // Here, we use the dev and inode of the link itself
                 // This may be an error
-                child_task->history[current_task->depth].mode = st.st_mode;
                 child_task->history[current_task->depth].dev = st.st_dev;
                 child_task->history[current_task->depth].ino = st.st_ino;
                 enqueue_dir(child_task);
             }
-            scan_file(full_path, f, entry, effective_type);
+            scan_file(full_path, f, effective_type);
         }
         closedir(dir);
         free(current_task->dir_path);
@@ -902,33 +924,26 @@ void *finder(void *arg) {
    efficiently share the workload without excessive locking or
    contention.
    */
-int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st,
-              unsigned char effective_type) {
-
-    char tmp_str[MAXLEN];
+int scan_file(char *file_spec, SearchFilters *f, unsigned char effective_type) {
 
     regmatch_t pmatch[2];
     bool f_stat = false;
 
     while (1) {
-        if (dir_st->d_name[0] == '.' && !f->f_include_hidden)
-            break;
         if (f->suppress_types) {
-            if (f->reg && (effective_type == DT_REG))
+            if (f->suppress_types & DT_REG & effective_type)
                 break;
-            if (f->dir && (effective_type == DT_DIR))
+            if (f->suppress_types & DT_DIR & effective_type)
                 break;
-            if (f->lnk && (effective_type == DT_LNK))
+            if (f->suppress_types & DT_LNK & effective_type)
                 break;
-            if (f->blk && (effective_type == DT_BLK))
+            if (f->suppress_types & DT_BLK & effective_type)
                 break;
-            if (f->chr && (effective_type == DT_CHR))
+            if (f->suppress_types & DT_CHR & effective_type)
                 break;
-            if (f->fifo && (effective_type == DT_FIFO))
+            if (f->suppress_types & DT_FIFO & effective_type)
                 break;
-            if (f->sock && (effective_type == DT_SOCK))
-                break;
-            if (f->unknown && (effective_type == DT_UNKNOWN))
+            if (f->suppress_types & DT_SOCK & effective_type)
                 break;
         }
         /* Exclude non-matching files */
@@ -937,14 +952,21 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st,
                 regexec(&f->compiled_re, file_spec, f->compiled_re.re_nsub + 1,
                         pmatch, f->reg_flags);
             if (reti == REG_NOMATCH) {
+#ifdef LF_DEBUG
+                if (f->debug && (f->report_info || f->report_all))
+                    fprintf(stderr, "Regex no match: %s\n", file_spec);
+#endif
                 break;
-            } else if (reti) {
+            }
+#ifdef LF_DEBUG
+            else if (reti) {
                 char errbuf[MAXLEN];
                 regerror(reti, &f->compiled_re, errbuf, sizeof(errbuf));
                 if (f->debug && (f->report_errors || f->report_all))
                     fprintf(stderr, "Regex error: %s\n", errbuf);
                 break;
             }
+#endif
         }
         /* Exclude matching files */
         if (f->flags & LF_EXC_REGEX) {
@@ -953,6 +975,7 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st,
                         pmatch, f->reg_flags);
             if (reti == 0) // Match
                 break;
+#ifdef LF_DEBUG
             else if (reti) {
                 char errbuf[MAXLEN];
                 regerror(reti, &f->compiled_ere, errbuf, sizeof(errbuf));
@@ -960,6 +983,7 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st,
                     fprintf(stderr, "Exclude regex error: %s\n", errbuf);
                 break;
             }
+#endif
         }
         f_stat = false;
         struct stat sb;
@@ -1009,13 +1033,16 @@ int scan_file(char *file_spec, SearchFilters *f, struct dirent *dir_st,
             if (f_stat && sb.st_size < f->file_size_min)
                 break;
         }
+        if (effective_type == DT_DIR) {
+            char *file_p = file_spec;
+            while (*file_p++ != '\0')
+                ;
+            *file_p = '/';
+        }
         if (file_spec[0] == '.' && file_spec[1] == '/')
-            strnz__cpy(tmp_str, &file_spec[2], PATH_MAX - 1);
+            printf("%s\n", &file_spec[2]);
         else
-            strnz__cpy(tmp_str, file_spec, PATH_MAX - 1);
-        if (effective_type == DT_DIR)
-            strnz__cat(tmp_str, "/", PATH_MAX - 1);
-        printf("%s\n", tmp_str);
+            printf("%s\n", file_spec);
         break;
     }
     return true;

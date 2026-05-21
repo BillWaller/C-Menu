@@ -1,0 +1,18 @@
+#!/bin/bash
+# @name findtest1
+# @desc Compare the oujtput of fd, find, and lf
+# @usage findperf1 <directory>
+
+# if [ -z "$1" ]; then
+#     echo "Usage: $0 <directory>"
+#     exit 1
+# fi
+path=/home/bill
+fd . --full-path --show-errors "$path" -H -L -I 2>fd.e | sort | sed 's/\/$//' >fd1.s
+# find -H -L "$path" 2>find.e | sort >find1.s
+lf "$path" -H -L -T6 2>lf.e | sort | sed 's/\/$//' >lf1.s
+diff -U0 fd1.s lf1.s | grep -v -e '^@' -e '---' -e '+++' | sed 's/^+/fd    lf+ /
+s/^-/fd+   lf  /' >test1.diff
+echo ----------------------------------------- >>test1.diff
+diff -U0 find1.s lf1.s | grep -v -e '^@' -e '---' -e '+++' | sed 's/^+/find lf+ /
+s/^-/find+ lf  /' >>test1.diff

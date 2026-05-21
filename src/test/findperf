@@ -1,0 +1,31 @@
+#!/bin/bash
+# @name findperf
+# @desc Compare the performance of fd, find, and lf with -H -L options
+# @usage findperf <directory>
+fd=1
+find=1
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <directory>"
+    exit 1
+fi
+echo
+echo
+if [ "$fd" -eq 1 ]; then
+    echo "Testing fd..."
+    echo fd: -H inlude hidden files, -L follow links, -I no ignore files
+    files="$(/usr/bin/time -f "%C (%euser)" fd . --full-path "$1" -H -L -I | wc -l)"
+    echo "$files" files
+fi
+if [ "$find" -eq 1 ]; then
+    echo
+    echo "Testing find..."
+    echo find: -H inlude hidden files, -L follow links
+    files="$(/usr/bin/time -f "%C (%euser)" find -H -L "$1" | wc -l)"
+    echo "$files" files \(may need to subtract 1 for base path\)
+fi
+echo
+echo lf: -H inlude hidden files, -L follow links, -T threads
+files="$(/usr/bin/time -f '%C (%euser)' lf "$1" -H -L -T7 | wc -l)"
+echo "$files" files
+echo

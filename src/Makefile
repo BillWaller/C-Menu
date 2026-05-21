@@ -81,8 +81,10 @@ PREFIX=$(HOME)/menuapp
 # system's package manager for more information.
 #
 # CFLAGS = -Ofast -flto
-# LINKOPT = -flto
-CFLAGS=-O3
+# LINKOPT = -flto -pthread
+#   -DLF_DEBUG \
+CFLAGS=-Ofast \
+	   -march=native -flto -pthread -fno-omit-frame-pointer
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_LOG -DDEBUG_IMMEDOK -DDEBUG_RESIZE
@@ -100,8 +102,18 @@ CFLAGS=-O3
 #   necessary for production builds, so it is typically used only for debugging 
 #   purposes.
 #
-# CFLAGS=-O0 -ggdb -rdynamic
+# Standard Debugging Flags
+# CFLAGS=-O0 -ggdb -rdynamic -fno-omit-frame-pointer -march=native
 # CFLAGS=-DDEBUG_RESIZE DDEUBG_IMMEDOK DDEBUG_LOG
+#
+# Helgrind Debugging Flags
+# CFLAGS=-O0 -g -pthread
+#
+# CFLAGS=-g -O3 -fsanitize=thread
+#
+# CFLAGS=-g -O3 -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer \
+# -fno-sanitize-recover=all
+#
 #  Uncomment the following line to enable Address Sanitizer, Leak Sanitizer, and 
 #  Undefined Behavior Sanitizer.
 # -fsanitize=address fsanitize=leak
@@ -110,7 +122,7 @@ CFLAGS=-O3
 # -fno-sanitize-recover=all
 #
 # Uncomment the following line to enable debugging
-# CFLAGS=-O0 -g3 -rdynamic -DDEBUG_IMMEDOK
+# CFLAGS=-O0 -g3 -pthread
 # -rdynamic
 # -DDEBUG_IMMEDOK
 # Additional debugging flags for C-Menu
@@ -240,13 +252,16 @@ sig.o:	sig.c
 	$(CC) 	-c $< -o $@
 
 clean:
-	rm -rf core *.o $(BINEXES) make.out $(CFLOW_OUTPUT) *.o libcm.a \
-		libcm.so *.cflow scan-build scan-build.out $(LIB_SHARED) \
-		CMenu.conf x xx xxx *.out .user_id .group_id manifest.txt \
-		manifest.ls *.gc..
+	rm -rf core *.o $(BINEXES) $(CFLOW_OUTPUT) *.[aeos] *.diff \
+		*.so *.cflow scan-build* CMenu.conf x xx* *.out \
+	   	.user_id .group_id manifest.txt manifest.ls *.gc.. \
+		perf.*
 
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)
+
+helgrind: lf
+	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf
 
 # Run Valgrind with the project suppression file.
 # Any remaining output after applying suppressions indicates a real leak.
