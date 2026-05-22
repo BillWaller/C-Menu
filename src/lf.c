@@ -55,16 +55,95 @@ const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 int nthreads;
 
+// Search Filters
+typedef struct {
+    uintmax_t user_id;
+    intmax_t file_size_min;
+    long flags;
+    time_t after;
+    time_t before;
+    int max_depth;
+    int reg_flags;
+    char *file_types_p;
+    char *base_path;
+    char *re;
+    char *ere;
+    regex_t compiled_re;
+    regex_t compiled_ere;
+    unsigned char include_perms;
+    unsigned char include_types;
+    unsigned char suppress_types;
+    bool ignore_case;
+    bool sort;
+    bool sort_reverse;
+    bool include_hidden;
+    bool follow_links;
+    bool debug;
+    bool report_config;
+    bool report_info;
+    bool report_warnings;
+    bool report_errors;
+    bool report_badlinks;
+    bool report_trace;
+    bool report_all;
+} SearchFilters;
+
+#define DT_LNK_DIR 14
+
+int lfargc;
+char *lfargs[3];
+char exec[MAXLEN];
+
+typedef struct {
+    dev_t dev;
+    ino_t ino;
+} History;
+
+typedef struct TaskNode TaskNode;
+struct TaskNode {
+    int depth;      /**< Current depth in the directory tree */
+    char *dir_path; /**< Directory path to process */
+    History alignas(16) *
+        history;    /**< Array of dev/ino pairs for cycle detection */
+    TaskNode *next; /**< Pointer to the next node in the queue */
+}; /**< Queue TaskNode (for work-stealing) */
+
+// typedef struct { /** not used yet */
+//     TaskNode alignas(8) * head;
+//     TaskNode alignas(8) * tail;
+// } TaskQueue;
+// ---------------------------------------------------------------
+//                              ╭──────────╮
+// ╭───────────╮     ╭──────────╯ dir_path ╰───────────╮
+// │ TaskQueue ├─────┤ TaskNode   history    dev/inode │
+// ╰───────────╯     ╰──────────╮ depth    ╭───────────╯
+//                              │ next     │
+//                              ╰──────────╯
+// ---------------------------------------------------------------
+TaskNode alignas(8) *head = NULL;
+TaskNode alignas(8) *tail = NULL;
+pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
+atomic_int alignas(8) active_tasks = 0;
+int shutdown = 0;
+bool init_find(SearchFilters *);
+int scan_file(char *, const SearchFilters *, const unsigned char);
+
+void enqueue_dir(TaskNode *);
+TaskNode *dequeue_dir();
+void *finder(void *);
+// ---------------------------------------------------------------
+
 static struct argp_option options[] = {
     {"after", 'a', "time", 0, "Modified after YYYY-MM-DDTHH:MM:SS", 0},
     {"before", 'b', "time", 0, "Modified before YYYY-MM-DDTHH:MM:SS", 0},
     {"max_depth", 'd', "number", 0, "Depth into directory tree", 0},
     {"ere", 'e', "regex", 0, "Exclude regular expression", 0},
-    {"f_ignore_case", 'i', 0, 0, "Search ignore case", 0},
-    {"permissions", 'p', "sgrwx", 0,
+    {"ignore_case", 'i', 0, 0, "Search ignore case", 0},
+    {"include_perms", 'p', "sgrwx", 0,
      "s-setuid, g-setgid, r-read, w-write, x-execute", 0},
     {"re", 'r', "regex", 0, "Regular expression to search for", 0},
-    {"file_types", 't', "bcdplrsu", 0,
+    {"include_types", 't', "bcdplrsu", 0,
      "b-block, c-character, d-directory, p-pipe, l-link, r-regular, s-"
      "socket, u-unknown",
      0},
@@ -76,78 +155,12 @@ static struct argp_option options[] = {
     {"debug", 'D', "1234567", 0,
      "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all", 0},
 #endif
-    {"f_include_hidden", 'H', 0, 0, "Include hidden files", 0},
-    {"f_lnk_dir", 'L', 0, 0, "Follow symbolic links", 0},
-    {"f_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
-    {"f_sort", 'S', 0, 0, "Sort in Ascending order", 0},
+    {"include_hidden", 'H', 0, 0, "Include hidden files", 0},
+    {"follow_links", 'L', 0, 0, "Follow symbolic links", 0},
+    {"sort_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
+    {"sort", 'S', 0, 0, "Sort in Ascending order", 0},
     {"nthreads", 'T', "threads", 0, "Number of nthreads", 0},
     {0}};
-
-typedef struct {
-    char base_path[PATH_MAX];
-    char re[MAXLEN];
-    char ere[MAXLEN];
-    regex_t compiled_re;
-    regex_t compiled_ere;
-    long flags;
-    time_t after;
-    time_t before;
-    uintmax_t user_id;
-    intmax_t file_size_min;
-    int max_depth;
-    bool f_ignore_case;
-    bool f_sort;
-    bool f_reverse;
-    bool f_include_hidden;
-    bool f_lnk_dir;
-    int reg_flags;
-    char exec[MAXLEN];
-    unsigned char include_types;
-    unsigned char suppress_types;
-    bool include;
-    int permissions;
-    // bool blk;
-    // bool chr;
-    // bool dir;
-    // bool fifo;
-    // bool lnk;
-    // bool reg;
-    // bool sock;
-    // bool unknown;
-    bool debug;
-    bool report_config;
-    bool report_info;
-    bool report_warnings;
-    bool report_errors;
-    bool report_badlinks;
-    bool report_trace;
-    bool report_all;
-    char *args[3];
-    int argc;
-    char *file_types_p;
-} SearchFilters;
-
-#define DT_LNK_DIR 14
-
-typedef struct {
-    dev_t dev;
-    ino_t ino;
-} PathNode;
-
-typedef struct TaskNode {
-    char *dir_path;        /**< Directory path to process */
-    PathNode *history;     /**< Array of dev/ino pairs for cycle detection */
-    int depth;             /**< Current depth in the directory tree */
-    struct TaskNode *next; /**< Pointer to the next node in the queue */
-} TaskNode;                /**< Queue TaskNode (for work-stealing) */
-
-bool init_find(SearchFilters *);
-int scan_file(char *, SearchFilters *, unsigned char);
-
-void enqueue_dir(TaskNode *);
-TaskNode *dequeue_dir();
-void *finder(void *);
-// void exec_external(SearchFilters *, char **);
 
 /** @brief Parse a single option.  */
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -226,34 +239,34 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         f->flags |= LF_EXC_REGEX;
         break;
     case 'H':
-        f->f_include_hidden = true; // Include hidden files
-        f->flags &= ~(LF_HIDE);     // Turn hide flag off
-                                    // LF_HIDE = 0 - include hidden files,
-                                    // LF_HIDE = 1 - suppress hidden files
+        f->include_hidden = true; // Include hidden files
+        f->flags &= ~(LF_HIDE);   // Turn hide flag off
+                                  // LF_HIDE = 0 - include hidden files,
+                                  // LF_HIDE = 1 - suppress hidden files
         break;
     case 'i':
         f->flags |= LF_ICASE;
         break;
     case 'L':
-        f->f_lnk_dir = true; // follow symbolic links
+        f->follow_links = true; // follow symbolic links
         break;
     case 'p':
         for (i = 0; arg[i]; i++) {
             switch (arg[i]) {
             case 'g':
-                f->flags |= LF_SETGID << 16;
+                f->include_perms |= LF_ISGID;
                 break;
             case 'r':
-                f->flags |= LF_PERM_R << 16;
+                f->include_perms |= LF_IWUSR;
                 break;
             case 's':
-                f->flags |= LF_SETUID << 16;
+                f->include_perms |= LF_ISUID;
                 break;
             case 'w':
-                f->flags |= LF_PERM_W << 16;
+                f->include_perms |= LF_IWUSR;
                 break;
             case 'x':
-                f->flags |= LF_PERM_X << 16;
+                f->include_perms |= LF_IXUSR;
                 break;
             default:
                 break;
@@ -261,14 +274,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         }
         break;
     case 'R':
-        f->f_reverse = true;
+        f->sort_reverse = true;
         break;
     case 'r':
         strnz__cpy(f->re, arg, MAXLEN - 1);
         f->flags |= LF_REGEX;
         break;
     case 'S':
-        f->f_sort = true;
+        f->sort = true;
         break;
     case 's':
         long long ull = a_to_ull(arg);
@@ -283,30 +296,30 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         while (f->file_types_p[i]) {
             switch (f->file_types_p[i++]) {
             case 'b':
-                f->flags |= DT_BLK << 8;
+                f->include_types |= DT_BLK;
                 break;
             case 'c':
-                f->flags |= DT_CHR << 8;
+                f->include_types |= DT_CHR;
                 break;
             case 'd':
-                f->flags |= DT_DIR << 8;
+                f->include_types |= DT_DIR;
                 break;
             case 'p':
-                f->flags |= DT_FIFO << 8;
+                f->include_types |= DT_FIFO;
                 break;
             case 'l':
-                f->flags |= DT_LNK << 8;
+                f->include_types |= DT_LNK;
                 break;
             case 'f': // for regular files, 'f' is more intuitive than 'r'
             case 'r': // regular files are the most common type, so 'r' is also
                       // accepted
-                f->flags |= DT_REG << 8;
+                f->include_types |= DT_REG;
                 break;
             case 's':
-                f->flags |= DT_SOCK << 8;
+                f->include_types |= DT_SOCK;
                 break;
             case 'u':
-                f->flags |= DT_UNKNOWN << 8;
+                f->include_types |= DT_UNKNOWN;
                 break;
             default:
                 break;
@@ -331,12 +344,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         }
         break;
     case 'x':
-        strnz__cpy(f->exec, arg, MAXLEN - 1);
+        strnz__cpy(exec, arg, MAXLEN - 1);
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
-            f->args[state->arg_num] = arg;
-            f->argc = state->arg_num + 1;
+            lfargs[state->arg_num] = arg;
+            lfargc = state->arg_num + 1;
         } else {
             argp_usage(state);
         }
@@ -351,65 +364,58 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 static struct argp argp = {options, parse_opt, args_doc, doc,
                            nullptr, nullptr,   nullptr};
 
-/** @brief Global Synchronization State */
-TaskNode *head = NULL, *tail = NULL;
-pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
-atomic_int active_tasks = 0;
-int shutdown = 0;
-
 int main(int argc, char **argv) {
 
     SearchFilters *f = (SearchFilters *)calloc(1, sizeof(SearchFilters));
-    f->f_ignore_case = false;
-    f->f_sort = false;
-    f->f_reverse = false;
-    f->f_include_hidden = false; // By default, hidden files are suppressed. Use
-                                 // -H to include them.
+    f->ignore_case = false;
+    f->sort = false;
+    f->sort_reverse = false;
+    f->include_hidden = false; // By default, hidden files are suppressed. Use
+                               // -H to include them.
     // LF_HIDE = 0 - include hidden files,
     // LF_HIDE = 1 - suppress hidden files
-    f->flags |= LF_HIDE;  // Turn hide flag on
-    f->f_lnk_dir = false; // By default, symbolic links are not followed. Use -L
-                          // to follow them.
-    char tmp_str[MAXLEN];
+    f->flags |= LF_HIDE;     // Turn hide flag on
+    f->follow_links = false; // By default, symbolic links are not followed. Use
+                             // -L to follow them.
+    char tmp_str[PATH_MAX];
     argp_parse(&argp, argc, argv, 0, 0, f);
-    if (f->argc > 0) {
-        strnz__cpy(tmp_str, f->args[0], MAXLEN - 1);
+    if (lfargc > 0) {
+        strnz__cpy(tmp_str, lfargs[0], MAXLEN - 1);
         expand_tilde(tmp_str, MAXLEN - 1);
         if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str)) {
-            strnz__cpy(f->base_path, tmp_str, MAXLEN - 1);
-        } else if (is_valid_regex(f->args[0])) {
-            strnz__cpy(f->re, f->args[0], MAXLEN - 1);
+            f->base_path = strdup(tmp_str);
+        } else if (is_valid_regex(lfargs[0])) {
+            f->re = strdup(lfargs[0]);
             f->flags |= LF_REGEX;
         } else {
             fprintf(
                 stderr,
                 "lf: arg1: '%s' is neither a directory nor a valid regex.\n",
-                f->args[0]);
+                lfargs[0]);
             exit(EXIT_FAILURE);
         }
     }
-    if (f->argc > 1) {
+    if (lfargc > 1) {
         if (f->base_path[0] == '\0') {
-            strnz__cpy(tmp_str, f->args[1], MAXLEN - 1);
+            strnz__cpy(tmp_str, lfargs[1], MAXLEN - 1);
             expand_tilde(tmp_str, MAXLEN - 1);
             if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str))
-                strnz__cpy(f->base_path, tmp_str, MAXLEN - 1);
-            else if ((!(f->flags & LF_REGEX)) && is_valid_regex(f->args[1])) {
-                strnz__cpy(f->re, f->args[1], MAXLEN - 1);
+                f->base_path = strdup(tmp_str);
+            else if ((!(f->flags & LF_REGEX)) && is_valid_regex(lfargs[1])) {
+                f->re = strdup(lfargs[1]);
                 f->flags |= LF_REGEX;
             } else {
                 fprintf(stderr,
                         "lf: arg2: '%s' is neither a directory nor a valid "
                         "regular expression.\n",
-                        f->args[1]);
+                        lfargs[1]);
                 exit(EXIT_FAILURE);
             }
         }
     }
-    if (f->base_path[0] == '\0')
-        strnz__cpy(f->base_path, ".", MAXLEN - 1);
-    if (f->f_sort) {
+    if (f->base_path == nullptr || f->base_path[0] == '\0')
+        f->base_path = strdup(".");
+    if (f->sort) {
         /** If sorting is requested, execute the finder and pipe its output
          * to the sort command. We can achieve this by creating a child
          * process that runs the sort command, and redirecting the output of
@@ -420,7 +426,7 @@ int main(int argc, char **argv) {
         char *eargv[MAXARGS];
         int eargc = 0;
         eargv[eargc++] = strdup("sort");
-        if (f->f_reverse)
+        if (f->sort_reverse)
             eargv[eargc++] = strdup("-r");
         eargv[eargc] = nullptr;
         int wstatus;
@@ -475,10 +481,9 @@ bool init_find(SearchFilters *f) {
     /** suppress file types that aren't included */
     if (f->include_types)
         f->suppress_types = f->include_types ^ 0xff;
-    f->permissions = f->flags >> 16 & 0xff;
     // LF_HIDE = 0 - include hidden files,
     // LF_HIDE = 1 - suppress hidden files
-    f->f_include_hidden = !(f->flags & LF_HIDE);
+    f->include_hidden = !(f->flags & LF_HIDE);
     int reti = 0;
     f->reg_flags = REG_EXTENDED;
     if (f->flags & LF_ICASE)
@@ -542,9 +547,9 @@ bool init_find(SearchFilters *f) {
                     (intmax_t)f->file_size_min);
         if (f->max_depth)
             fprintf(stderr, "Max depth: %d\n", f->max_depth);
-        if (f->f_include_hidden)
+        if (f->include_hidden)
             fprintf(stderr, "Include hidden files.\n");
-        if (f->f_lnk_dir)
+        if (f->follow_links)
             fprintf(stderr, "Follow symbolic links.\n");
         if (f->include_types) {
             fprintf(stderr, "Included file types:");
@@ -577,7 +582,7 @@ bool init_find(SearchFilters *f) {
             child_task->dir_path = strdup(f->base_path);
             child_task->depth = 0;
             child_task->next = NULL;
-            child_task->history = malloc(sizeof(PathNode));
+            child_task->history = malloc(sizeof(History));
             child_task->history[0].dev = st.st_dev;
             child_task->history[0].ino = st.st_ino;
             enqueue_dir(child_task);
@@ -605,6 +610,9 @@ bool init_find(SearchFilters *f) {
         regfree(&f->compiled_re);
     if (f->flags & LF_EXC_REGEX)
         regfree(&f->compiled_ere);
+    free(f->base_path);
+    free(f->re);
+    free(f->ere);
     free(f);
     if (reti)
         return false;
@@ -720,7 +728,6 @@ void *finder(void *arg) {
             pthread_cond_broadcast(&cond_var);
             continue;
         }
-        char *p;
         unsigned char real_type;
         unsigned char effective_type;
         //-------------------------------------------------------------
@@ -730,17 +737,21 @@ void *finder(void *arg) {
             struct stat st;
             real_type = '\0';
             effective_type = '\0';
-            char full_path[PATH_MAX] = {'\0'};
             if (entry->d_name[0] == '.') {
                 if (entry->d_name[1] == '\0')
                     continue;
                 if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
                     continue;
-                if (!f->f_include_hidden)
+                if (!f->include_hidden)
                     continue;
             }
+            char full_path[PATH_MAX] = {'\0'};
+            stpcpy(stpcpy(stpcpy(full_path, current_task->dir_path), "/"),
+                   entry->d_name);
             // Get link's metadata
-            if (fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW) != 0) {
+            int rc;
+            rc = fstatat(AT_FDCWD, full_path, &st, AT_SYMLINK_NOFOLLOW);
+            if (rc != 0) {
 #ifdef LF_DEBUG
                 if (f->debug && (f->report_errors || f->report_warnings ||
                                  f->report_badlinks || f->report_all))
@@ -752,12 +763,10 @@ void *finder(void *arg) {
             if (S_ISLNK(st.st_mode)) {
                 real_type = DT_LNK;
                 // Get the target's metadata
-                if (fstatat(dir_fd, entry->d_name, &st, 0) != 0) {
+                if (fstatat(AT_FDCWD, full_path, &st, 0) != 0) {
 #ifdef LF_DEBUG
                     if (f->debug && (f->report_all || f->report_warnings ||
                                      f->report_errors || f->report_badlinks)) {
-                        ssnprintf(full_path, PATH_MAX - 1, "%s/%s",
-                                  current_task->dir_path, entry->d_name);
                         fprintf(stderr, "BADTGT, %s\n", full_path);
                         ssize_t len =
                             readlink(full_path, lnk_path, sizeof(lnk_path) - 1);
@@ -779,7 +788,7 @@ void *finder(void *arg) {
                 effective_type = DT_CHR;
                 break;
             case S_IFDIR:
-                if (!f->f_lnk_dir && real_type == DT_LNK)
+                if (!f->follow_links && real_type == DT_LNK)
                     effective_type = DT_LNK;
                 else
                     effective_type = DT_DIR;
@@ -800,10 +809,6 @@ void *finder(void *arg) {
                 effective_type = 0;
                 break;
             }
-            p = full_path;
-            p = stpcpy(p, current_task->dir_path);
-            p = stpcpy(p, "/");
-            stpcpy(p, entry->d_name);
             if (effective_type == DT_DIR) {
                 if (f->max_depth != 0 && current_task->depth == f->max_depth)
                     continue;
@@ -815,7 +820,8 @@ void *finder(void *arg) {
                 bool cycle_found = false;
 #ifdef LF_DEBUG
                 if (f->debug && (f->report_trace || f->report_all))
-                    fprintf(stderr, "Checking for cycles in: %s\n", full_path);
+                   entry->d_name);
+                fprintf(stderr, "Checking for cycles in: %s\n", full_path);
 #endif
                 for (int i = 0; i < current_task->depth; i++) {
 #ifdef LF_DEBUG
@@ -861,10 +867,10 @@ void *finder(void *arg) {
                 child_task->depth = current_task->depth + 1;
                 child_task->next = NULL;
                 child_task->history =
-                    malloc(sizeof(PathNode) * child_task->depth);
+                    malloc(child_task->depth * sizeof(History));
                 if (current_task->depth > 0) {
                     memcpy(child_task->history, current_task->history,
-                           sizeof(PathNode) * current_task->depth);
+                           sizeof(History) * current_task->depth);
                 }
                 // Here, we use the dev and inode of the link itself
                 // This may be an error
@@ -874,6 +880,7 @@ void *finder(void *arg) {
             }
             scan_file(full_path, f, effective_type);
         }
+        //
         closedir(dir);
         free(current_task->dir_path);
         free(current_task->history);
@@ -924,28 +931,15 @@ void *finder(void *arg) {
    efficiently share the workload without excessive locking or
    contention.
    */
-int scan_file(char *file_spec, SearchFilters *f, unsigned char effective_type) {
+int scan_file(char *file_spec, const SearchFilters *f,
+              const unsigned char effective_type) {
 
     regmatch_t pmatch[2];
-    bool f_stat = false;
+    bool stat_cached = false;
 
     while (1) {
-        if (f->suppress_types) {
-            if (f->suppress_types & DT_REG & effective_type)
-                break;
-            if (f->suppress_types & DT_DIR & effective_type)
-                break;
-            if (f->suppress_types & DT_LNK & effective_type)
-                break;
-            if (f->suppress_types & DT_BLK & effective_type)
-                break;
-            if (f->suppress_types & DT_CHR & effective_type)
-                break;
-            if (f->suppress_types & DT_FIFO & effective_type)
-                break;
-            if (f->suppress_types & DT_SOCK & effective_type)
-                break;
-        }
+        if (f->suppress_types & effective_type)
+            break;
         /* Exclude non-matching files */
         if (f->flags & LF_REGEX) {
             int reti =
@@ -985,52 +979,52 @@ int scan_file(char *file_spec, SearchFilters *f, unsigned char effective_type) {
             }
 #endif
         }
-        f_stat = false;
+        stat_cached = false;
         struct stat sb;
         /** Exclude files not owned by specified user */
         if ((f->flags & LF_USER) && stat(file_spec, &sb) == 0) {
-            f_stat = true;
+            stat_cached = true;
             if (sb.st_uid != f->user_id)
                 break;
         }
-        if (f->permissions) {
-            if (!f_stat) {
+        if (f->include_perms) {
+            if (!stat_cached) {
                 if (stat(file_spec, &sb) == 0)
-                    f_stat = true;
+                    stat_cached = true;
             }
-            if ((f->permissions & LF_PERM_R) && !(sb.st_mode & S_IRUSR))
+            if ((f->include_perms & LF_IWUSR) && !(sb.st_mode & S_IRUSR))
                 break;
-            else if ((f->permissions & LF_PERM_W) && !(sb.st_mode & S_IWUSR))
+            else if ((f->include_perms & LF_IWUSR) && !(sb.st_mode & S_IWUSR))
                 break;
-            else if ((f->permissions & LF_PERM_X) && !(sb.st_mode & S_IXUSR))
+            else if ((f->include_perms & LF_IXUSR) && !(sb.st_mode & S_IXUSR))
                 break;
-            else if ((f->permissions & LF_SETUID) && !(sb.st_mode & S_ISUID))
+            else if ((f->include_perms & LF_ISUID) && !(sb.st_mode & S_ISUID))
                 break;
-            else if ((f->permissions & LF_SETGID) && !(sb.st_mode & S_ISGID))
+            else if ((f->include_perms & LF_ISGID) && !(sb.st_mode & S_ISGID))
                 break;
         }
         if (f->before) {
-            if (!f_stat) {
+            if (!stat_cached) {
                 if (stat(file_spec, &sb) == 0)
-                    f_stat = true;
+                    stat_cached = true;
             }
-            if (f_stat && sb.st_mtime > f->before)
+            if (stat_cached && sb.st_mtime > f->before)
                 break;
         }
         if (f->after) {
-            if (!f_stat) {
+            if (!stat_cached) {
                 if (stat(file_spec, &sb) == 0)
-                    f_stat = true;
+                    stat_cached = true;
             }
-            if (f_stat && sb.st_mtime < f->after)
+            if (stat_cached && sb.st_mtime < f->after)
                 break;
         }
         if (f->file_size_min) {
-            if (!f_stat) {
+            if (!stat_cached) {
                 if (stat(file_spec, &sb) == 0)
-                    f_stat = true;
+                    stat_cached = true;
             }
-            if (f_stat && sb.st_size < f->file_size_min)
+            if (stat_cached && sb.st_size < f->file_size_min)
                 break;
         }
         if (effective_type == DT_DIR) {

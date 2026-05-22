@@ -546,7 +546,7 @@ int view_init_input(View *view, char *file_name) {
         struct timeval timeout;
         Chyron *wait_chyron = nullptr;
         WINDOW *wait_win = nullptr;
-        int remaining;
+        int remaining = 0;
         FD_ZERO(&read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
         timeout.tv_sec = 0;

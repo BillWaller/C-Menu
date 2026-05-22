@@ -143,7 +143,7 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     struct timeval timeout;
     Chyron *wait_chyron;
     WINDOW *wait_win;
-    int remaining;
+    int remaining = 0;
     if (pick->in_fp == nullptr) {
         Perror("No pick input available");
         return (1);
@@ -160,33 +160,33 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         remaining = wait_timeout;
         wait_chyron = wait_mk_chyron();
         wait_win = wait_mk_win(wait_chyron, "WAITING for PICK INPUT");
-    }
-    int in_key = 0;
-    while (ready == 0 && remaining > 0 && in_key != KEY_F(9)) {
-        in_key = wait_continue(wait_win, wait_chyron, remaining);
-        if (in_key == KEY_F(9))
-            break;
-        FD_ZERO(&read_fds);
-        FD_SET(in_fd, &read_fds);
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 0;
-        ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
-        remaining--;
-    }
-    if (f_wait) {
-        if (wait_chyron != nullptr)
-            wait_destroy(wait_chyron);
-    }
-    if (in_key == KEY_F(9)) {
-        if (pick->f_in_pipe && pid > 0) {
-            /** If user cancels while waiting for pick input, kill provider_cmd
-             * child process and close pipe */
-            kill(pid, SIGKILL);
-            waitpid(pid, nullptr, 0);
-            close(pipe_fd[P_READ]);
+        int in_key = 0;
+        while (ready == 0 && remaining > 0 && in_key != KEY_F(9)) {
+            in_key = wait_continue(wait_win, wait_chyron, remaining);
+            if (in_key == KEY_F(9))
+                break;
+            FD_ZERO(&read_fds);
+            FD_SET(in_fd, &read_fds);
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 0;
+            ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+            remaining--;
         }
-        Perror("No pick input available");
-        return (1);
+        if (f_wait) {
+            if (wait_chyron != nullptr)
+                wait_destroy(wait_chyron);
+        }
+        if (in_key == KEY_F(9)) {
+            if (pick->f_in_pipe && pid > 0) {
+                /** If user cancels while waiting for pick input, kill
+                 * provider_cmd child process and close pipe */
+                kill(pid, SIGKILL);
+                waitpid(pid, nullptr, 0);
+                close(pipe_fd[P_READ]);
+            }
+            Perror("No pick input available");
+            return (1);
+        }
     }
     if (ready == -1) {
         Perror("Error waiting for pick input");

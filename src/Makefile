@@ -81,10 +81,10 @@ PREFIX=$(HOME)/menuapp
 # system's package manager for more information.
 #
 # CFLAGS = -Ofast -flto
-# LINKOPT = -flto -pthread
+LINKOPT = -pthread
 #   -DLF_DEBUG \
-CFLAGS=-Ofast \
-	   -march=native -flto -pthread -fno-omit-frame-pointer
+# CFLAGS = -Ofast \
+#	   -march=native -flto -pthread -fno-omit-frame-pointer
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_LOG -DDEBUG_IMMEDOK -DDEBUG_RESIZE
@@ -103,7 +103,7 @@ CFLAGS=-Ofast \
 #   purposes.
 #
 # Standard Debugging Flags
-# CFLAGS=-O0 -ggdb -rdynamic -fno-omit-frame-pointer -march=native
+CFLAGS=-Og -g3 -pg -pthread -fno-omit-frame-pointer -rdynamic
 # CFLAGS=-DDEBUG_RESIZE DDEUBG_IMMEDOK DDEBUG_LOG
 #
 # Helgrind Debugging Flags

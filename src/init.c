@@ -295,7 +295,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         strnz__cpy(init->mapp_msrc, arg, MAXLEN - 1);
         break;
     case ARGP_KEY_ARG:
-        if (state->arg_num >= 5)
+        if (state->arg_num >= 35)
             argp_usage(state);
         init->argv[state->arg_num] = strdup(arg);
         break;

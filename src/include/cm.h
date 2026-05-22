@@ -156,11 +156,11 @@ typedef enum {
     LF_USER = 0b00100000,      /**< 32 Select User Name */
                                /** << 16 */
     /** byte 1 - bits 8-15 */
-    LF_SETUID = 0b10000000, /**< 64 Select Setuid Files */
-    LF_SETGID = 0b01000000, /**< 128 Select Setgid Files */
-    LF_PERM_R = 0b00100001, /**< 256 Select Files with Read Permission */
-    LF_PERM_W = 0b00010000, /**< 512 Select Files with Write Permission */
-    LF_PERM_X = 0b00001000, /**< 1024 Select Files with Execute Permission */
+    LF_IXUSR = 0b00000001, /**< 1 Select Files with Execute Permission */
+    LF_IWUSR = 0b00000010, /**< 2 Select Files with Write Permission */
+    LF_IRUSR = 0b00000100, /**< 4 Select Files with Read Permission */
+    LF_ISGID = 0b00010000, /**< 16 Select Setgid Files */
+    LF_ISUID = 0b00100000, /**< 32 Select Setuid Files */
 } LFFlags;
 
 /** byte 2 - bits 16-23 File types*/
