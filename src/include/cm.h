@@ -365,13 +365,17 @@ extern bool mk_dir(char *dir);
 extern int segmentation_fault();
 extern cchar_t mkccc(int, attr_t, char *);
 
-extern cchar_t CCC_NORM;    /**< normal color pair complex character */
-extern cchar_t CCC_WIN;     /**< window color pair complex character */
-extern cchar_t CCC_BOX;     /**< box color pair complex character */
-extern cchar_t CCC_REVERSE; /**< reverse color pair complex character */
-extern cchar_t CCC_LN;      /* line number color pair complex character */
-extern cchar_t CCC_BRKTL;   /* left field bracket */
-extern cchar_t CCC_BRKTR;   /* right field bracket */
+extern cchar_t CCC_NORM;      /**< normal color pair complex character */
+extern cchar_t CCC_NT;        /**< normal text pair complex character */
+extern cchar_t CCC_NT_REV;    /**< normal text reverse */
+extern cchar_t CCC_NT_HL;     /**< normal text reverse */
+extern cchar_t CCC_NT_HL_REV; /**< normal text highlight reverse */
+extern cchar_t CCC_WIN;       /**< window color pair complex character */
+extern cchar_t CCC_BOX;       /**< box color pair complex character */
+extern cchar_t CCC_REVERSE;   /**< reverse color pair complex character */
+extern cchar_t CCC_LN;        /* line number color pair complex character */
+extern cchar_t CCC_BRKTL;     /* left field bracket */
+extern cchar_t CCC_BRKTR;     /* right field bracket */
 
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */
@@ -697,14 +701,16 @@ typedef struct {
     char bo_clr_x[COLOR_LEN];    /**< bold color index */
     char ln_clr_x[COLOR_LEN];    /**< line number color index */
     char ln_bg_clr_x[COLOR_LEN]; /**< line number background index */
+    char nt_fg[COLOR_LEN];       /**< color code for normal text foreground */
+    char nt_bg[COLOR_LEN];       /**< color code for normal text background */
+    char nt_rev_fg[COLOR_LEN];   /**< normal text reverse foreground */
+    char nt_rev_bg[COLOR_LEN];   /**< normal text reverse background */
+    char nt_hl_fg[COLOR_LEN];    /**< normal text highlight foreground */
+    char nt_hl_bg[COLOR_LEN];    /**< normal text highlight background */
     char
         nt_hl_rev_fg[COLOR_LEN]; /** normal text highlight reverse foreground */
     char
         nt_hl_rev_bg[COLOR_LEN]; /** normal text highlight reverse background */
-    char nt_hl_fg[COLOR_LEN];    /**< normal text highlight foreground */
-    char nt_hl_bg[COLOR_LEN];    /**< normal text highlight background */
-    char nt_rev_fg[COLOR_LEN];   /**< normal text reverse foreground */
-    char nt_rev_bg[COLOR_LEN];   /**< normal text reverse background */
     char tty_name[MAXLEN];       /**< name of the terminal device */
     FILE *stdin_fp;              /**< stdin stream pointer */
     FILE *stdout_fp;             /**< stdout stream pointer */
@@ -722,8 +728,8 @@ typedef struct {
     int cp_norm;                 /**< normal color pair index */
     int cp_win;                  /**< window color pair index */
     int cp_nt_rev;               /**< reverse color pair index */
-    int cp_nt_hl_rev;            /**< reverse highlight color pair index */
     int cp_nt_hl;                /**< highlight color pair index */
+    int cp_nt_hl_rev;            /**< reverse highlight color pair index */
     int cp_box;                  /**< box color pair index */
     int cp_bold;                 /**< bold color pair index */
     int cp_title;                /**< title color pair index */

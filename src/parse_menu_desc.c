@@ -101,6 +101,7 @@ unsigned int parse_menu_description(Init *init) {
                         menu->line[menu->line_idx]->choice_letter = *s;
                     }
                 }
+                s++;
             }
             strnz__cpy(tmp_buf, " x - ", MAXLEN - 1);
             strnz__cat(tmp_buf, s, MAXLEN - 1);
@@ -164,20 +165,39 @@ unsigned int parse_menu_description(Init *init) {
         menu->line[menu->line_idx]->letter_pos = 0;
         // Try to get a choice_letter
         // skip past " x - "
-        if (menu->line[menu->line_idx]->choice_letter == '\0') {
-            s = menu->line[menu->line_idx]->choice_text + 5;
+        ltr = '\0';
+        if (menu->line[menu->line_idx]->choice_letter != '\0') {
+            ltr = menu->line[menu->line_idx]->choice_letter;
+            s = menu->line[menu->line_idx]->choice_text;
             while (*s != '\0') {
-                if (*s != ' ')
-                    if (!fltr[(int)(uintptr_t)*s])
-                        break;
+                if (*s == ltr) {
+                    menu->line[menu->line_idx]->letter_pos =
+                        s - menu->line[menu->line_idx]->choice_text;
+                    break;
+                }
                 s++;
             }
-            fltr[(int)(uintptr_t)*s] = true;
+            fltr[ltr] = true;
+        } else {
+            s = menu->line[menu->line_idx]->choice_text + 5;
+            // Search string for first character that is not a space and not
+            // already used as a choice_letter
+            while (*s != '\0') {
+                if (*s != ' ')
+                    if (!fltr[(int)(uintptr_t)*s]) {
+                        ltr = *s;
+                        fltr[ltr] = true;
+                        break;
+                    }
+                s++;
+            }
             if (*s != '\0') {
                 menu->line[menu->line_idx]->letter_pos =
                     s - menu->line[menu->line_idx]->choice_text;
                 ltr = *s;
             } else {
+                // If no letter found in choice text, find the first unused
+                // letter in the ASCII range 32-126
                 for (ltr = '0'; ltr < 127; ltr++)
                     if (!fltr[ltr]) {
                         fltr[ltr] = true;
@@ -188,9 +208,9 @@ unsigned int parse_menu_description(Init *init) {
                     return 0;
                 }
             }
-            menu->line[menu->line_idx]->choice_letter = ltr;
-            menu->line[menu->line_idx]->choice_text[1] = ltr;
         }
+        menu->line[menu->line_idx]->choice_letter = ltr;
+        menu->line[menu->line_idx]->choice_text[1] = ltr;
     }
     menu->lines = menu->item_count;
     if (menu->text_max_len > (menu->choice_max_len + 6))

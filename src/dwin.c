@@ -159,6 +159,7 @@ cchar_t CCC_NORM;
 cchar_t CCC_WIN;
 cchar_t CCC_BG;
 cchar_t CCC_BOX;
+cchar_t CCC_NT;
 cchar_t CCC_NT_REV;
 cchar_t CCC_NT_HL_REV;
 cchar_t CCC_NT_HL;
@@ -462,6 +463,7 @@ bool open_curses(SIO *sio) {
 
     cp_win = get_clr_pair(CLR_FG, CLR_BG);
     cp_norm = get_clr_pair(CLR_WHITE, CLR_BLACK);
+    cp_nt = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
     cp_nt_rev = get_clr_pair(CLR_NT_REV_FG, CLR_NT_REV_BG);
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
@@ -469,6 +471,7 @@ bool open_curses(SIO *sio) {
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
     CCC_NORM = mkccc(cp_norm, WA_NORMAL, " ");
     CCC_WIN = mkccc(cp_win, WA_NORMAL, " ");
+    CCC_NT = mkccc(cp_nt, WA_NORMAL, " ");
     CCC_NT_REV = mkccc(cp_nt_rev, WA_NORMAL, " ");
     CCC_NT_HL_REV = mkccc(cp_nt_hl_rev, WA_NORMAL, " ");
     CCC_NT_HL = mkccc(cp_nt_hl, WA_NORMAL, " ");
@@ -478,7 +481,7 @@ bool open_curses(SIO *sio) {
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
-    wbkgrndset(stdscr, &CCC_NORM);
+    wbkgrndset(stdscr, &CCC_NT);
 #ifdef DEBUG_IMMEDOK
     immedok(stdscr, true);
 #endif
@@ -680,6 +683,11 @@ bool init_clr_palette(SIO *sio) {
     if (sio->ln_bg_clr_x[0])
         init_hex_clr(CLR_LN_BG, sio->ln_bg_clr_x);
 
+    if (sio->nt_fg[0])
+        init_hex_clr(CLR_NT_FG, sio->nt_fg);
+    if (sio->nt_bg[0])
+        init_hex_clr(CLR_NT_BG, sio->nt_bg);
+
     if (sio->nt_rev_fg[0])
         init_hex_clr(CLR_NT_REV_FG, sio->nt_rev_fg);
     if (sio->nt_rev_bg[0])
@@ -694,6 +702,7 @@ bool init_clr_palette(SIO *sio) {
         init_hex_clr(CLR_NT_HL_REV_FG, sio->nt_hl_rev_fg);
     if (sio->nt_hl_rev_bg[0])
         init_hex_clr(CLR_NT_HL_REV_BG, sio->nt_hl_rev_bg);
+
     clr_cnt = CLR_NCOLORS;
     return true;
 }
@@ -888,7 +897,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
-    wbkgrndset(win_win[win_ptr], &CCC_WIN);
+    wbkgrndset(win_win[win_ptr], &CCC_NT);
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
@@ -913,7 +922,7 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win2[win_ptr], true);
 #endif
-    wbkgrndset(win_win2[win_ptr], &CCC_WIN);
+    wbkgrndset(win_win2[win_ptr], &CCC_NT);
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
     idcok(win_win2[win_ptr], false);
@@ -951,7 +960,7 @@ void win_resize(int wlines, int wcols, char *title) {
     }
     wnoutrefresh(win_box[win_ptr]);
     wresize(win_win[win_ptr], wlines, wcols);
-    wbkgrndset(win_win[win_ptr], &CCC_WIN);
+    wbkgrndset(win_win[win_ptr], &CCC_NT);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
@@ -984,14 +993,14 @@ WINDOW *win_del() {
     if (win_ptr >= 0) {
         if (win_win[win_ptr] != nullptr) {
             touchwin(win_win[win_ptr]);
-            wbkgrndset(win_win[win_ptr], &CCC_NORM);
+            wbkgrndset(win_win[win_ptr], &CCC_NT);
             werase(win_win[win_ptr]);
             wnoutrefresh(win_win[win_ptr]);
             delwin(win_win[win_ptr]);
         }
         if (win_box[win_ptr] != nullptr) {
             touchwin(win_box[win_ptr]);
-            wbkgrndset(win_box[win_ptr], &CCC_NORM);
+            wbkgrndset(win_box[win_ptr], &CCC_NT);
             werase(win_box[win_ptr]);
             wnoutrefresh(win_box[win_ptr]);
             delwin(win_box[win_ptr]);
