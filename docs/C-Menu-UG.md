@@ -4,9 +4,13 @@
 
 - [Other C-Menu Documentation](#other-c-menu-documentation)
 - [C-Menu Overview](#c-menu-overview)
+  - [C-Menu Portability](#c-menu-portability)
   - [C-Menu Start-up Options](#c-menu-start-up-options)
-- [C-Menu Menu](#c-menu-menu)
-- [Menu Description File](#menu-description-file)
+  - [C-Menu Menu](#c-menu-menu)
+  - [Menu Description File](#menu-description-file)
+  - [Menu Description File](#menu-description-file-1)
+  - [Menu Key characters](#menu-key-characters)
+  - [User Choices, Commands, and comments](#user-choices-commands-and-comments)
   - [Sub-Menus](#sub-menus)
 - [C-Menu Form](#c-menu-form)
   - [Description File](#description-file)
@@ -54,6 +58,31 @@ C-Menu's components include Menu, Form, Pick, View, RSH, lf (lightweight find), 
 
 Because C-Menu is written in C and terminal-based, it is super-fast and has a minimal footprint. C-Menu requires only a Linux kernel and the standard C library, it is perfect for resource constrained environments such as embedded applications, servers, IOT, and SOC.
 
+### C-Menu Portability
+
+C-Menu is designed so that you can design an application on your development machine and deploy it to a production environment without modifications by following a few simple conventions.
+
+- Keep the C-Menu application separate, generally in the user's home directory.
+  Set the environment variable CMENU_HOME to the path of the C-Menu application directory. This will allow you to keep C-Menu applications organized and easily accessible.
+
+- Remove write access to the C-Menu application for all users except the owner. This will prevent accidental or malicious modifications to the C-Menu application and ensure that it remains stable and secure.
+
+- Don't distribute C-Menu rsh unless you have a specific use case for it. RSH is designed to provide an alternative to su and sudo for executing commands with elevated privileges, but it should be used with caution and only in situations where it is necessary. If you do need to distribute RSH, make sure to properly secure it and restrict access to it to prevent unauthorized use.
+
+- Use tilde ("~") to specify the home directory in your command lines and configuration files, and C-Menu will expand the tilde to the appropriate path on the target system. This will localize the C-Menu application to the user's home directory.
+
+- Before updates, back up the user's configuration, ~/.minitrc and any menu description files, and restore them on the target system. This will ensure that the user's custom settings and menu configurations are preserved when deploying to a new environment.
+
+- Use C-Menu's installation to install C-Menu executables and libraries into the
+  C-Menu applications directory. At least until C-Menu version 1 is released, don't mix executable, library, configuration, and application files.
+
+- For testing a User's C-Menu application, copy the application directory to your test bed giving it a unique and descriptive name, such as "menuapp_ralphino_sanitation_20260601", and then extract the C-Menu application tarball into that directory. Set CMENU_HOME to the path of the copied application directory. This will allow you to test the application in a clean environment without risking overwriting your existing C-Menu application.
+
+```bash
+tar xf menuapp.tar -C menuapp_ralphino_sanitation_20260601
+export CMENU_HOME="$HOME"/menuapp_ralphino_sanitation_20260601
+```
+
 ### C-Menu Start-up Options
 
 All of C-Menu's long options, shown as, --option_name, in the following ../screen can be
@@ -62,13 +91,13 @@ The "--" prefix is omitted in the configuration file. Options commonly used on t
 
 ![C-Menu-Help](../screenshots/C-Menu-help.png)
 
-## C-Menu Menu
+### C-Menu Menu
 
 ![Applications Menu](../screenshots/applications_menu.png)
 
 The menu above is intended to demonstrate a variety of features and techniques that can be applied to your projects. It is not meant to be a practical menu for everyday use, but rather a showcase of what is possible with C-Menu. Think of yourself as an artist and C-Menu as your canvas. What will you create?
 
-## Menu Description File
+### Menu Description File
 
 Below is an example of source defining the above menu. This is the part you design as the top-level framework for your application.
 
@@ -77,6 +106,61 @@ This section will break down the Example C-Menu Applications Menu and explain ho
 ![Menu Description File](../screenshots/applications_menu.m.png)
 
 Lets examine the Menu source above and break down how it works. The source file is a simple text file that contains a series of User Choices and Commands.
+
+### Menu Description File
+
+The menu description file is a simple text file that contains a series of User Choices and Commands. The first line of the menu description file is used as the Menu title, which is displayed at the top of the Menu window. Subsequent lines beginning with ":" are user choices that will be displayed in the menu. Lines beginning with "!" are commands to be executed by Menu when the corresponding menu item is selected. Lines beginning with "#" are comments.
+
+There are no requirements for naming menu description files, but it is common practice to use the ".m" file extension for menu description files. The menu description file can be located anywhere in the file system, but it is common practice to store menu description files in a dedicated directory, such as ~/menuapp/msrc. If you follow this convention, you can simply specify the menu description file name without a path when referencing it in a command line, and Menu will look for the file in the ~/menuapp/msrc directory.
+
+### Menu Key characters
+
+Each menu item has a key character that the user can press to select that menu item.
+
+Earlier versions of C-Menu allowed only upper case letters as menu key
+characters. This became an impediment for larger menus, so we expanded the range
+of valid menu key characters to "!" through "~" (0x21 - 0x7e).
+
+Menu uses a rudamentary algorithm to determine the key characters for menu
+items. It scans the menu text for the first character that is not a space, not
+already reserved, and in the valid key character range. If no such character is
+found, Menu will select the first unreserved letter in the valid range, even
+though it may not be in the menu text.
+
+You may specify any character as a key by including it immediately (no space
+separation) following a dash ("-") as the first non-blank character in the the
+menu item text.
+
+```bash
+:      -TDiagnostic Tools
+```
+
+The above menu item will be displayed as " T - Diagnostic Tools" and the "T" will be the key character for that menu item.
+
+Lower case ("q") is reserved as a key for the hidden "Quit", "Exit", "Return",
+etc. menu item which is part of every menu.
+
+As an additional visual queue, key characters in the menu text will be displayed
+using "nt_hl_rev_fg" and "nt_hl_rev_bg" color pair. If you prefer not to use
+this visual queue, you can set "nt_hl_rev_fg" to the same color as "nt_rev_fg"
+and "nt_hl_rev_bg" to the same color as "nt_rev_bg" to the same color.
+
+These colors are defined in the C-Menu configuration as six-digit hex RGB
+values:
+
+```bash
+# ~/menuapp/.minitrc
+nt_fg=#d0d0d0
+nt_bg=#000000
+nt_rev_fg=#000000
+nt_rev_bg=#d0d0d0
+nt_hl_fg=#f00000
+nt_hl_bg=#000000
+nt_hl_rev_fg=#a00000
+nt_hl_rev_bg=#f0f0f0
+```
+
+### User Choices, Commands, and comments
 
 Lines beginning with ":" are the User Choices.
 
