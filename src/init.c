@@ -619,6 +619,30 @@ int parse_config(Init *init) {
                 strnz__cpy(init->receiver_cmd, value, MAXLEN - 1);
                 continue;
             }
+            if (!strcmp(key, "nt_hl_rev_fg")) {
+                strnz__cpy(sio->nt_hl_rev_fg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "nt_hl_rev_bg")) {
+                strnz__cpy(sio->nt_hl_rev_bg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "nt_hl_fg")) {
+                strnz__cpy(sio->nt_hl_fg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "nt_hl_bg")) {
+                strnz__cpy(sio->nt_hl_bg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "nt_rev_fg")) {
+                strnz__cpy(sio->nt_rev_fg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "nt_rev_bg")) {
+                strnz__cpy(sio->nt_rev_bg, value, COLOR_LEN - 1);
+                continue;
+            }
             if (!strcmp(key, "bg")) {
                 strnz__cpy(sio->bg, value, COLOR_LEN - 1);
                 continue;
@@ -801,6 +825,12 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", sio->gray_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", sio->green_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "red_gamma", sio->red_gamma);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "nt_hl_rev_fg", sio->nt_hl_rev_fg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "nt_hl_rev_bg", sio->nt_hl_rev_bg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "nt_rev_fg", sio->nt_rev_fg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "nt_rev_bg", sio->nt_rev_bg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "nt_hl_fg", sio->nt_hl_fg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "nt_hl_bg", sio->nt_hl_bg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
     (void)fprintf(minitrc_fp, "%s=%s\n", "red", sio->red);
     (void)fprintf(minitrc_fp, "%s=%s\n", "green", sio->green);

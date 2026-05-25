@@ -861,13 +861,15 @@ int picker(Init *init, char *field) {
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     display_page(pick);
     f_insert = false;
-    set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_reverse);
+    set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_nt_rev);
     compile_chyron(pick->chyron);
     display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
+
     cchar_t cc = {0};
     wchar_t wstr[2] = {BW_RAN, L'\0'};
     setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
     mvwadd_wch(pick->box, pick->separator_line + 1, 1, &cc);
+
     keypad(pick->win, true);
     wrefresh(pick->win2);
 
@@ -927,7 +929,7 @@ int picker(Init *init, char *field) {
                 display_pick_help(init);
                 display_page(pick);
                 f_insert = false;
-                set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_reverse);
+                set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_nt_rev);
                 compile_chyron(pick->chyron);
                 display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
                 cchar_t cc = {0};
@@ -1235,11 +1237,11 @@ int picker(Init *init, char *field) {
                 if (f_insert) {
                     f_insert = FALSE;
                     set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC,
-                                      cp_reverse);
+                                      cp_nt_rev);
                 } else {
                     f_insert = TRUE;
                     set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC,
-                                      cp_reverse_highlight);
+                                      cp_nt_hl_rev);
                 }
                 compile_chyron(pick->chyron);
                 display_chyron(win2, pick->chyron, 1, pick->chyron->l);

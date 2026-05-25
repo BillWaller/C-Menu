@@ -1701,6 +1701,7 @@ int fmt_line(View *view) {
             s = &in_str[i];
             if (*s == '\t') {
                 do {
+                    wstr[0] = L' ';
                     wstr[1] = L'\0';
                     setcchar(&cc, wstr, attr, cpx, nullptr);
                     view->stripped_line_out[j] = ' ';

@@ -32,13 +32,12 @@ unsigned int parse_menu_description(Init *init) {
     char tmp_buf[MAXLEN];
     char in_buf[MAXLEN];
     char *in_buf_p;
-    int Pos;
     unsigned char ltr;
-    unsigned char fltr[127];
+    bool fltr[127];
     int directive;
     int l;
-    char *s, *d, *e;
-    int actions = 0;
+    char *s;
+    int commands = 0;
     int choices = 0;
     int in_fp_line = 0;
     menu = init->menu;
@@ -52,19 +51,27 @@ unsigned int parse_menu_description(Init *init) {
         if (in_buf[0] == '\0')
             continue;
         in_fp_line++;
+        // Replace carriage returns, newlines, and tabs in in_buf with null
+        // terminators and spaces
         chrep(in_buf, '\r', '\0');
         chrep(in_buf, '\n', '\0');
         chrep(in_buf, '\t', ' ');
         in_buf_p = in_buf;
         directive = *in_buf_p;
         in_buf_p++;
+
         strnz__cpy(tmp_buf, in_buf_p, MAXLEN);
         trim(tmp_buf);
         l = strlen(tmp_buf);
-        if (!l)
+        if (l == 0)
             continue;
         if (directive == '#')
             continue;
+        for (ltr = 0; ltr < 32; ltr++)
+            fltr[ltr] = true;
+        for (ltr = 32; ltr < 127; ltr++)
+            fltr[ltr] = false;
+        fltr['q'] = true;
         switch (directive) {
         /**  '!' Command */
         case '!':
@@ -72,82 +79,57 @@ unsigned int parse_menu_description(Init *init) {
                 break;
             if (menu->line[menu->line_idx - 1]->type != MT_TEXT)
                 break;
+
+            // Convert tmp_buf to command_str and determine command_type
             menu->line_idx--;
-            l = strlen(tmp_buf);
-            if (l + 1 > MAXLEN)
-                break;
-            menu->line[menu->line_idx]->command_str =
-                calloc(MAXLEN + 1, sizeof(char));
-            if (!menu->line[menu->line_idx]->command_str) {
-                sprintf(tmp_str,
-                        "0-malloc(%d bytes) failed M-L[%d]->command_str",
-                        MAXLEN + 1, menu->line_idx);
-                abend(-1, tmp_str);
-            }
-            strnz__cpy(menu->line[menu->line_idx]->command_str, tmp_buf,
-                       MAXLEN - 1);
+            menu->line[menu->line_idx]->command_str = strdup(tmp_buf);
             menu->line[menu->line_idx]->command_type =
                 get_command_type(tmp_buf);
             s = menu->line[menu->line_idx]->raw_text;
-            if (*s == '-' || *s == '_') {
-                s++;
-                ltr = *s++;
-            } else
-                ltr = *s;
-            l = 0;
-            while (*s++ != '\0')
-                l++;
-            if (l + 1 > MAXLEN)
-                l = MAXLEN - 1;
-            menu->line[menu->line_idx]->choice_text =
-                calloc(MAXLEN + 1, sizeof(char));
-            if (!menu->line[menu->line_idx]->choice_text) {
-                sprintf(tmp_str,
-                        "1-malloc(%d bytes) failed M-L[%d]->choice_text",
-                        MAXLEN + 1, menu->line_idx);
-                abend(-1, tmp_str);
-            }
-            d = menu->line[menu->line_idx]->choice_text;
-            e = d + l;
-            s = menu->line[menu->line_idx]->raw_text;
-            if (*s == '-' || *s == '_')
-                s += 2;
-            while (*s != '\0' && d < e)
-                *d++ = *s++;
-            *d = (char)'\0';
+            l = min(strlen(s), (size_t)(MAXLEN - 1));
             if (l > menu->choice_max_len)
                 menu->choice_max_len = l;
-            if (menu->line[menu->line_idx]->command_type == CT_RETURN)
-                menu->line[menu->line_idx]->choice_letter = 'Q';
-            else
-                menu->line[menu->line_idx]->choice_letter = ltr;
+            // if the choice text starts with '-' or '_',
+            // reserve the next character as the choice_letter
+            // and remove the choice_letter designator from the choice text
+            if (*s == '-' || *s == '_') {
+                s++;
+                ltr = *s;
+                if (ltr > 31 && ltr < 127) {
+                    if (!fltr[ltr]) {
+                        fltr[ltr] = true;
+                        menu->line[menu->line_idx]->choice_letter = *s;
+                    }
+                }
+            }
+            strnz__cpy(tmp_buf, " x - ", MAXLEN - 1);
+            strnz__cat(tmp_buf, s, MAXLEN - 1);
+            menu->line[menu->line_idx]->choice_text = strdup(tmp_buf);
             menu->line[menu->line_idx]->type = MT_CHOICE;
             menu->line_idx++;
-            actions++;
+            commands++;
             break;
-            /**  ':' Text line, parse and add to menu */
+            /**  ':' Choice */
         case ':':
-            if (choices > actions) {
+            if (choices > commands) {
                 ssnprintf(em0, MAXLEN - 1,
-                          "More choices than actions at line %d of",
+                          "More choices than commands at line %d of",
                           in_fp_line);
                 strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
                 strnz__cpy(em2, in_buf, MAXLEN - 1);
                 display_error(em0, em1, em2, nullptr);
                 abend(-1, "unrecoverable error");
             }
-            chrep(tmp_buf, '\t', ' ');
             l = strlen(tmp_buf);
-            if (l > menu->text_max_len)
-                menu->text_max_len = l;
+            menu->text_max_len = max(menu->text_max_len, l);
             if (!menu->title[0]) { /**< in_buf -> Title */
-                if (l + 5 > MAXLEN)
-                    l = MAXLEN - 5;
+                // if menu title is not set, use this line as the title,
+                l = min(l, (MAXLEN - 5));
                 strnz__cpy(menu->title, tmp_buf, l);
                 l += 4;
-                if (l > menu->text_max_len)
-                    menu->text_max_len = l;
+                menu->text_max_len = max(menu->text_max_len, l);
             } else {
+                // otherwise add it as a text line
                 menu->line[menu->line_idx] = calloc(1, sizeof(Line));
                 if (menu->line[menu->line_idx] == (Line *)0) {
                     sprintf(tmp_str,
@@ -157,11 +139,6 @@ unsigned int parse_menu_description(Init *init) {
                 }
                 menu->line[menu->line_idx]->type = MT_TEXT;
                 menu->line[menu->line_idx]->raw_text = strdup(tmp_buf);
-                menu->line[menu->line_idx]->choice_text = nullptr;
-                menu->line[menu->line_idx]->choice_letter = '\0';
-                menu->line[menu->line_idx]->letter_pos = 0;
-                menu->line[menu->line_idx]->command_type = '\0';
-                menu->line[menu->line_idx]->command_str = nullptr;
                 menu->line_idx++;
                 choices++;
             }
@@ -182,48 +159,38 @@ unsigned int parse_menu_description(Init *init) {
     }
     fclose(fp);
     menu->item_count = menu->line_idx;
-    for (ltr = '0'; ltr < 'z'; ltr++)
-        fltr[ltr] = FALSE;
-    fltr['Q'] = TRUE;
     for (menu->line_idx = 0; menu->line_idx < menu->item_count;
          menu->line_idx++) {
-        ltr = menu->line[menu->line_idx]->choice_letter;
-        if (ltr < '0' || ltr > 'z')
-            ltr = '0';
-        if (!fltr[ltr] ||
-            (menu->line[menu->line_idx]->command_type == CT_RETURN &&
-             ltr == 'Q')) {
-            fltr[ltr] = TRUE;
-            s = menu->line[menu->line_idx]->choice_text;
-            Pos = 0;
+        menu->line[menu->line_idx]->letter_pos = 0;
+        // Try to get a choice_letter
+        // skip past " x - "
+        if (menu->line[menu->line_idx]->choice_letter == '\0') {
+            s = menu->line[menu->line_idx]->choice_text + 5;
             while (*s != '\0') {
-                if (*s == ltr)
-                    break;
+                if (*s != ' ')
+                    if (!fltr[(int)(uintptr_t)*s])
+                        break;
                 s++;
-                Pos++;
             }
-        } else {
-            Pos = 0;
-            while (ltr != '\0') {
-                Pos++;
-                ltr = toupper(menu->line[menu->line_idx]->choice_text[Pos]);
-                if (ltr >= '0' && ltr <= 'Z')
-                    if (!fltr[ltr])
+            fltr[(int)(uintptr_t)*s] = true;
+            if (*s != '\0') {
+                menu->line[menu->line_idx]->letter_pos =
+                    s - menu->line[menu->line_idx]->choice_text;
+                ltr = *s;
+            } else {
+                for (ltr = '0'; ltr < 127; ltr++)
+                    if (!fltr[ltr]) {
+                        fltr[ltr] = true;
                         break;
-            }
-            if (ltr == '\0') {
-                for (ltr = '0'; ltr < 'Z'; ltr++)
-                    if (!fltr[ltr])
-                        break;
-                if (ltr > 'z') {
+                    }
+                if (ltr > 126) {
                     Perror("Ran out of letters");
                     return 0;
                 }
             }
-            fltr[ltr] = TRUE;
             menu->line[menu->line_idx]->choice_letter = ltr;
+            menu->line[menu->line_idx]->choice_text[1] = ltr;
         }
-        menu->line[menu->line_idx]->letter_pos = Pos;
     }
     menu->lines = menu->item_count;
     if (menu->text_max_len > (menu->choice_max_len + 6))
@@ -232,15 +199,6 @@ unsigned int parse_menu_description(Init *init) {
         menu->cols = menu->choice_max_len + 6;
     if (menu->cols >= MAXLEN)
         Perror("line too long");
-    for (menu->line_idx = 0; menu->line_idx < menu->item_count;
-         menu->line_idx++) {
-        strnz__cpy(tmp_buf, " x - ", MAXLEN - 1);
-        tmp_buf[1] = menu->line[menu->line_idx]->choice_letter;
-        strnz__cat(tmp_buf, menu->line[menu->line_idx]->choice_text,
-                   MAXLEN - 1);
-        strnz__cpy(menu->line[menu->line_idx]->choice_text, tmp_buf,
-                   MAXLEN - 1);
-    }
     return 0;
 }
 /** @brief Get command type from command string

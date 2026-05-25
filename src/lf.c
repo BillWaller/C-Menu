@@ -19,13 +19,10 @@
     @date 2026-02-09
  */
 #define _GNU_SOURCE
-// #define LF_DEBUG
 #include <argp.h>
 #include <cm.h>
 #include <dirent.h>
-#ifdef LF_DEBUG
 #include <errno.h>
-#endif
 #include <fcntl.h>
 #include <grp.h>
 #include <linux/limits.h>
@@ -64,7 +61,6 @@ typedef struct {
     time_t before;
     int max_depth;
     int reg_flags;
-    char *file_types_p;
     char *base_path;
     char *re;
     char *ere;
@@ -86,13 +82,10 @@ typedef struct {
     bool report_badlinks;
     bool report_trace;
     bool report_all;
+    bool only_errors;
 } SearchFilters;
 
 #define DT_LNK_DIR 14
-
-int lfargc;
-char *lfargs[3];
-char exec[MAXLEN];
 
 typedef struct {
     dev_t dev;
@@ -101,37 +94,43 @@ typedef struct {
 
 typedef struct TaskNode TaskNode;
 struct TaskNode {
-    int depth;      /**< Current depth in the directory tree */
-    char *dir_path; /**< Directory path to process */
-    History alignas(16) *
-        history;    /**< Array of dev/ino pairs for cycle detection */
-    TaskNode *next; /**< Pointer to the next node in the queue */
+    History *history;    /**< Array of dev/ino pairs for cycle detection */
+    TaskNode *next_task; /**< Pointer to the next node in the queue */
+    int depth;           /**< Current depth in the directory tree */
+    char *dir_path;      /**< Directory path to process */
 }; /**< Queue TaskNode (for work-stealing) */
 
 // typedef struct { /** not used yet */
-//     TaskNode alignas(8) * head;
-//     TaskNode alignas(8) * tail;
+//     TaskNode alignas(8) * qhead;
+//     TaskNode alignas(8) * qtail;
 // } TaskQueue;
 // ---------------------------------------------------------------
-//                              ╭──────────╮
-// ╭───────────╮     ╭──────────╯ dir_path ╰───────────╮
-// │ TaskQueue ├─────┤ TaskNode   history    dev/inode │
-// ╰───────────╯     ╰──────────╮ depth    ╭───────────╯
-//                              │ next     │
-//                              ╰──────────╯
+//                              ╭───────────╮
+// ╭───────────╮     ╭──────────╯ dir_path  ╰───────────╮
+// │ TaskQueue ├─────┤ TaskNode   history     dev/inode │
+// ╰───────────╯     ╰──────────╮ depth     ╭───────────╯
+//                              │ next_task │
+//                              ╰───────────╯
 // ---------------------------------------------------------------
-TaskNode alignas(8) *head = NULL;
-TaskNode alignas(8) *tail = NULL;
+TaskNode alignas(8) *qhead = NULL;
+TaskNode alignas(8) *qtail = NULL;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
 atomic_int alignas(8) active_tasks = 0;
 int shutdown = 0;
+int termination_status = EXIT_SUCCESS;
+int lfargc;
+char *lfargs[3];
+char exec[MAXLEN];
+char *file_types_p;
+char *perms_p;
+char *debug_p;
 bool init_find(SearchFilters *);
-int scan_file(char *, const SearchFilters *, const unsigned char);
-
+void sort_lf_output(SearchFilters *);
 void enqueue_dir(TaskNode *);
 TaskNode *dequeue_dir();
 void *finder(void *);
+int scan_file(char *, const SearchFilters *, const unsigned char);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
@@ -151,10 +150,10 @@ static struct argp_option options[] = {
      "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {"exec", 'x', "command", 0, "execute external command", 0},
-#ifdef LF_DEBUG
-    {"debug", 'D', "1234567", 0,
-     "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all", 0},
-#endif
+    {"debug", 'D', "12345678", 0,
+     "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, "
+     "8-only_errors",
+     0},
     {"include_hidden", 'H', 0, 0, "Include hidden files", 0},
     {"follow_links", 'L', 0, 0, "Follow symbolic links", 0},
     {"sort_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
@@ -197,43 +196,50 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         if (arg && arg[0] != '\0')
             f->max_depth = a_toi(arg, &a_toi_error);
         break;
-#ifdef LF_DEBUG
     case 'D':
-        if (arg && arg[0] != '\0')
-            f->debug = true;
-        switch (a_toi(arg, &a_toi_error)) {
-        case 1:
-            f->report_config = true;
-            break;
-        case 2:
-            f->report_info = true;
-            break;
-        case 3:
-            f->report_warnings = true;
-            break;
-        case 4:
-            f->report_errors = true;
-            break;
-        case 5:
-            f->report_badlinks = true;
-            break;
-        case 6:
-            f->report_trace = true;
-            break;
-        case 7:
-            f->report_config = true;
-            f->report_info = true;
-            f->report_warnings = true;
-            f->report_errors = true;
-            f->report_badlinks = true;
-            f->report_all = true;
-            break;
-        default:
-            f->report_errors = true;
-            break;
+        f->debug = true;
+        if (arg && arg[0] != '\0') {
+            debug_p = strdup(arg);
+            i = 0;
+            while (debug_p[i]) {
+                switch (debug_p[i]) {
+                case '1':
+                    f->report_config = true;
+                    break;
+                case '2':
+                    f->report_info = true;
+                    break;
+                case '3':
+                    f->report_warnings = true;
+                    break;
+                case '4':
+                    f->report_errors = true;
+                    break;
+                case '5':
+                    f->report_badlinks = true;
+                    break;
+                case '6':
+                    f->report_trace = true;
+                    break;
+                case '7':
+                    f->report_config = true;
+                    f->report_info = true;
+                    f->report_warnings = true;
+                    f->report_errors = true;
+                    f->report_badlinks = true;
+                    f->report_all = true;
+                    break;
+                case '8':
+                    f->only_errors = true;
+                    break;
+                default:
+                    break;
+                }
+                i++;
+            }
+            free(debug_p);
         }
         break;
-#endif
     case 'e':
         strnz__cpy(f->ere, arg, MAXLEN - 1);
         f->flags |= LF_EXC_REGEX;
@@ -251,8 +257,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         f->follow_links = true; // follow symbolic links
         break;
     case 'p':
-        for (i = 0; arg[i]; i++) {
-            switch (arg[i]) {
+        perms_p = arg;
+        while (perms_p[i]) {
+            switch (perms_p[i++]) {
             case 'g':
                 f->include_perms |= LF_ISGID;
                 break;
@@ -292,9 +299,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             nthreads = a_toi(arg, &a_toi_error);
         break;
     case 't':
-        f->file_types_p = arg;
-        while (f->file_types_p[i]) {
-            switch (f->file_types_p[i++]) {
+        file_types_p = arg;
+        while (file_types_p[i]) {
+            switch (file_types_p[i++]) {
             case 'b':
                 f->include_types |= DT_BLK;
                 break;
@@ -396,18 +403,23 @@ int main(int argc, char **argv) {
         }
     }
     if (lfargc > 1) {
-        if (f->base_path[0] == '\0') {
+        if (!f->base_path || f->base_path[0] == '\0') {
             strnz__cpy(tmp_str, lfargs[1], MAXLEN - 1);
             expand_tilde(tmp_str, MAXLEN - 1);
-            if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str))
+            if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str)) {
                 f->base_path = strdup(tmp_str);
-            else if ((!(f->flags & LF_REGEX)) && is_valid_regex(lfargs[1])) {
+            } else {
+                fprintf(stderr, "lf: Neither %s nor %s is a valid directory\n",
+                        lfargs[0], lfargs[1]);
+                exit(EXIT_FAILURE);
+            }
+            if ((!(f->flags & LF_REGEX)) && is_valid_regex(lfargs[1])) {
                 f->re = strdup(lfargs[1]);
                 f->flags |= LF_REGEX;
             } else {
                 fprintf(stderr,
-                        "lf: arg2: '%s' is neither a directory nor a valid "
-                        "regular expression.\n",
+                        "lf: '%s' is neither a directory nor a valid regular "
+                        "expression.\n",
                         lfargs[1]);
                 exit(EXIT_FAILURE);
             }
@@ -415,50 +427,54 @@ int main(int argc, char **argv) {
     }
     if (f->base_path == nullptr || f->base_path[0] == '\0')
         f->base_path = strdup(".");
-    if (f->sort) {
-        /** If sorting is requested, execute the finder and pipe its output
-         * to the sort command. We can achieve this by creating a child
-         * process that runs the sort command, and redirecting the output of
-         * the file finder to the input of the sort command using a pipe.
-         * The parent process will run the finder and write its output to
-         * the pipe, while the child process will read from the pipe and
-         * execute the sort command. */
-        char *eargv[MAXARGS];
-        int eargc = 0;
-        eargv[eargc++] = strdup("sort");
-        if (f->sort_reverse)
-            eargv[eargc++] = strdup("-r");
-        eargv[eargc] = nullptr;
-        int wstatus;
-        int save_fd = dup(STDOUT_FILENO); // save current STDOUT
-        int fds[2];
-        pipe(fds); // Create the pipes
-        pid_t pid1 = fork();
-        if (pid1 == 0) {   // Child process
-            close(fds[1]); // Close child write pipe
-            dup2(fds[0],
-                 STDIN_FILENO);      // Clone child read pipe to STDIN_FILENO
-            close(fds[0]);           // Close child read pipe after cloning
-            execvp(eargv[0], eargv); // Execute the external command
-        }
-        // Parent process
-        close(fds[0]);               // Close read end of pipe
-        dup2(fds[1], STDOUT_FILENO); // Clone write pipe to STDOUT_FILENO
-        close(fds[1]);               // Close duplicated write pipe
-        setvbuf(stdout, NULL, _IOLBF, 0);
-        // line buffering is essential to ensure that output is flushed to
-        // the sort process in a timely manner, preventing deadlocks and
-        // ensuring that the sort process can start processing input as soon
-        // as it is available. Without line buffering, the output may be
-        // buffered until the buffer is full, which could lead to delays in
-        // processing and potential deadlocks if the sort process is waiting
-        // for input that hasn't been flushed yet.
-        init_find(f); // Initialize and transfer control to the finder
-        dup2(save_fd, STDOUT_FILENO); // restore STDOUT
-        waitpid(pid1, &wstatus, 0);
+    if (!f->sort) {
+        init_find(f);
     } else
-        init_find(f); // Initialize and transfer control to the finder
-    exit(EXIT_SUCCESS);
+        sort_lf_output(f);
+    exit(termination_status);
+}
+// Initialize and transfer control to the finder
+/** If sorting is requested, execute the finder and pipe its output
+ * to the sort command. We can achieve this by creating a child
+ * process that runs the sort command, and redirecting the output of
+ * the file finder to the input of the sort command using a pipe.
+ * The parent process will run the finder and write its output to
+ * the pipe, while the child process will read from the pipe and
+ * execute the sort command. */
+void sort_lf_output(SearchFilters *f) {
+    char *eargv[MAXARGS];
+    int eargc = 0;
+    eargv[eargc++] = strdup("sort");
+    if (f->sort_reverse)
+        eargv[eargc++] = strdup("-r");
+    eargv[eargc] = nullptr;
+    int wstatus;
+    int save_fd = dup(STDOUT_FILENO); // save current STDOUT
+    int fds[2];
+    pipe(fds); // Create the pipes
+    pid_t pid1 = fork();
+    if (pid1 == 0) {   // Child process
+        close(fds[1]); // Close child write pipe
+        dup2(fds[0],
+             STDIN_FILENO);      // Clone child read pipe to STDIN_FILENO
+        close(fds[0]);           // Close child read pipe after cloning
+        execvp(eargv[0], eargv); // Execute the external command
+    }
+    // Parent process
+    close(fds[0]);               // Close read end of pipe
+    dup2(fds[1], STDOUT_FILENO); // Clone write pipe to STDOUT_FILENO
+    close(fds[1]);               // Close duplicated write pipe
+    setvbuf(stdout, NULL, _IOLBF, 0);
+    // line buffering is essential to ensure that output is flushed to
+    // the sort process in a timely manner, preventing deadlocks and
+    // ensuring that the sort process can start processing input as soon
+    // as it is available. Without line buffering, the output may be
+    // buffered until the buffer is full, which could lead to delays in
+    // processing and potential deadlocks if the sort process is waiting
+    // for input that hasn't been flushed yet.
+    dup2(save_fd, STDOUT_FILENO); // restore STDOUT
+    waitpid(pid1, &wstatus, 0);
+    init_find(f); // Initialize and transfer control to the finder
 }
 /** @brief Initialize the file search based on the provided SearchFilters
    and start finder threads.
@@ -581,7 +597,7 @@ bool init_find(SearchFilters *f) {
             TaskNode *child_task = malloc(sizeof(TaskNode));
             child_task->dir_path = strdup(f->base_path);
             child_task->depth = 0;
-            child_task->next = NULL;
+            child_task->next_task = NULL;
             child_task->history = malloc(sizeof(History));
             child_task->history[0].dev = st.st_dev;
             child_task->history[0].ino = st.st_ino;
@@ -619,21 +635,36 @@ bool init_find(SearchFilters *f) {
     return true;
 }
 /** @brief Enqueue a directory dir_path for processing by finder threads.
-    @param dir_path The directory path to enqueue.
-    @param depth The current depth in the directory tree for the given path.
-    @details This function creates a new TaskNode containing the specified
-   directory path and depth, and adds it to the global queue. It uses a
-   mutex to ensure thread-safe access to the queue, and signals finder
-   threads that new work is available. The function also checks for shutdown
-   conditions to prevent enqueuing new work when the program is exiting.
+    @param new_task A pointer to a TaskNode containing the directory path and
+ depth to be enqueued for processing by finder threads.
+    @details This function adds a new TaskNode to the global queue of
+ directories to be processed by finder threads.
+ // It uses a mutex to ensure thread-safe access to the queue and signals one
+ waiting thread that a new task is available.
+ // If shutdown has been initiated, the signal will wake up any waiting threads
+ so they can check the shutdown condition and exit gracefully.
    */
 void enqueue_dir(TaskNode *new_task) {
     pthread_mutex_lock(&queue_mutex);
-    if (tail)
-        tail->next = new_task;
+    if (qtail)
+        // Add the new task to the end of the queue. If qtail is not NULL, it
+        // means there are already tasks in the queue, so we set the next_task
+        // pointer of the current tail to point to the new task. This
+        // effectively adds the new task to the end of the queue.
+        qtail->next_task = new_task;
     else
-        head = new_task;
-    tail = new_task;
+        // If qtail is NULL, it means the queue is currently empty, so we set
+        // qhead to point to the new task, making it the first and only task in
+        // the queue
+        qhead = new_task;
+    // Finally, we update qtail to point to the new task, ensuring that it
+    // always points to the last task in the queue.
+    qtail = new_task;
+    // Signal one waiting thread that a new task is available. If shutdown
+    // hasn't been initiated, this will wake up a finder thread to process the
+    // new task. If shutdown has been initiated, the signal will wake up any
+    // waiting threads so they can check the shutdown condition and exit
+    // gracefully.
     pthread_cond_signal(&cond_var);
     pthread_mutex_unlock(&queue_mutex);
 }
@@ -648,22 +679,52 @@ void enqueue_dir(TaskNode *new_task) {
    */
 TaskNode *dequeue_dir() {
     pthread_mutex_lock(&queue_mutex);
-    while (head == NULL && !shutdown) {
+
+    // Wait until there is a task in the queue or shutdown has been initiated.
+    // The loop condition checks if the queue is empty (qhead == NULL) and if
+    // shutdown has not been initiated (!shutdown). If both conditions are true,
+    // it means there are no tasks to process and the thread should wait. The
+    // thread will be woken up when a new task is enqueued (via
+    // pthread_cond_signal in enqueue_dir) or when shutdown is initiated (via
+    // pthread_cond_broadcast in enqueue_dir or when active_tasks count reaches
+    // zero). This ensures that threads do not wait indefinitely when there are
+    // no tasks left to process and allows for a graceful shutdown of the
+    // program.
+    while (qhead == NULL && !shutdown) {
+        // If there are no active tasks and the queue is empty, we can safely
+        // initiate shutdown. This check is necessary to prevent a potential
+        // race condition where a thread could be waiting indefinitely on the
+        // condition variable if all tasks have been completed and no new tasks
+        // will be enqueued. By checking the active_tasks count, we can
+        // determine when it's safe to signal shutdown
         if (atomic_load(&active_tasks) == 0) {
             shutdown = 1;
+            // and wake up any waiting threads so they can exit gracefully.
             pthread_cond_broadcast(&cond_var);
             break;
         }
+        // Wait for a task to be enqueued or shutdown initiated. The thread will
+        // be woken up when a new task is added to the queue (via
+        // pthread_cond_signal in enqueue_dir) or when shutdown is initiated
+        // (via pthread_cond_broadcast in enqueue_dir or when active_tasks count
+        // reaches zero). This allows the thread to check the conditions again
+        // and either process a new task or exit if shutdown has been initiated.
         pthread_cond_wait(&cond_var, &queue_mutex);
     }
-    if (shutdown && head == NULL) {
+    if (shutdown && qhead == NULL) {
         pthread_mutex_unlock(&queue_mutex);
         return NULL;
     }
-    TaskNode *temp = head;
-    head = head->next;
-    if (!head)
-        tail = NULL;
+    TaskNode *temp = qhead;
+    // Move the head pointer to the next task in the queue. If the queue becomes
+    // empty after this operation (qhead becomes NULL), we also set qtail to
+    // NULL to indicate that the queue is empty. This ensures that both qhead
+    // and qtail accurately reflect the state of the queue, preventing potential
+    // issues with enqueuing new tasks or checking for an empty queue in future
+    // operations.
+    qhead = qhead->next_task;
+    if (!qhead)
+        qtail = NULL;
     atomic_fetch_add(&active_tasks, 1);
     pthread_mutex_unlock(&queue_mutex);
     return temp;
@@ -683,9 +744,7 @@ TaskNode *dequeue_dir() {
    */
 void *finder(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;
-#ifdef LF_DEBUG
     char lnk_path[PATH_MAX] = {'\0'};
-#endif
     // regmatch_t pmatch;
 
     while (1) {
@@ -694,17 +753,23 @@ void *finder(void *arg) {
             break;
 
         //-------------------------------------------------------------
-        // Open the directory using openat and fdopendir to minimize
-        // redundant path Open
+        // Open the directory for reading. We use openat with AT_FDCWD to open
+        // the directory specified by current_task->dir_path, and then use
+        // fdopendir to get a DIR* stream for reading the directory entries.
+        // This approach allows us to handle directories with special characters
+        // in their names more robustly, as it avoids issues that can arise with
+        // functions like opendir that take a path string directly. If openat or
+        // fdopendir fails, we log the error (if debugging is enabled), clean up
+        // resources for the current task, and continue to the next iteration of
+        // the loop to process another task.
         int dir_fd =
             openat(AT_FDCWD, current_task->dir_path, O_RDONLY | O_DIRECTORY);
-        if (dir_fd < 0) {
-#ifdef LF_DEBUG
+        if (dir_fd == -1) {
             if (f->debug && (f->report_warnings || f->report_errors ||
                              f->report_badlinks || f->report_all))
-                fprintf(stderr, "\nopenat failed for directory: %s, %s\n",
-                        current_task->dir_path, strerror(errno));
-#endif
+                fprintf(stderr, "OPEN_FAIL,%s,%s\n", current_task->dir_path,
+                        strerror(errno));
+            termination_status = EXIT_FAILURE;
             free(current_task->dir_path);
             free(current_task->history);
             free(current_task);
@@ -714,13 +779,12 @@ void *finder(void *arg) {
         }
         DIR *dir = fdopendir(dir_fd);
         if (dir == NULL) {
-#ifdef LF_DEBUG
             if (f->debug && (f->report_warnings || f->report_errors ||
                              f->report_badlinks || f->report_all))
-                fprintf(stderr, "\nfdopendir failed for directory: %s, %s\n",
+                fprintf(stderr, "\nFDOPENDIR_FAIL,%s,%s\n",
                         current_task->dir_path, strerror(errno));
-#endif
             close(dir_fd);
+            termination_status = EXIT_FAILURE;
             free(current_task->dir_path);
             free(current_task->history);
             free(current_task);
@@ -728,14 +792,13 @@ void *finder(void *arg) {
             pthread_cond_broadcast(&cond_var);
             continue;
         }
-        unsigned char real_type;
+        // unsigned char real_type;
         unsigned char effective_type;
         //-------------------------------------------------------------
-        // Read directory contents and process each entry
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
             struct stat st;
-            real_type = '\0';
+            // real_type = '\0';
             effective_type = '\0';
             if (entry->d_name[0] == '.') {
                 if (entry->d_name[1] == '\0')
@@ -750,81 +813,69 @@ void *finder(void *arg) {
                    entry->d_name);
             // Get link's metadata
             int rc;
+            // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of
+            // the symbolic link itself, rather than the target it points to.
+            // This allows us to determine if the entry is a symbolic link and
+            // handle it according to the user's options (e.g., whether to
+            // follow links or not). If fstatat fails, we log the error (if
+            // debugging is enabled) and continue to the next entry without
+            // processing this one further.
             rc = fstatat(AT_FDCWD, full_path, &st, AT_SYMLINK_NOFOLLOW);
-            if (rc != 0) {
-#ifdef LF_DEBUG
+            if (rc == -1) {
                 if (f->debug && (f->report_errors || f->report_warnings ||
                                  f->report_badlinks || f->report_all))
-                    fprintf(stderr, "BADLNK, %s/%s\n", current_task->dir_path,
-                            entry->d_name);
-#endif
+                    fprintf(stderr, "LSTAT_FAIL,%s,%s\n", full_path,
+                            strerror(errno));
+                termination_status = EXIT_FAILURE;
                 continue;
             }
+            effective_type = (st.st_mode & S_IFMT) >> 12;
+            // Determine the real type of the entry. If the entry is a symbolic
+            // link, we set real_type to DT_LNK and then attempt to get the
+            // metadata of the target it points to using fstatat without
+            // AT_SYMLINK_NOFOLLOW. This allows us to determine the effective
+            // type of the entry based on the target's metadata, which is
+            // important for deciding how to process it (e.g., whether it's a
+            // directory that we should enqueue for further searching). If
+            // fstatat fails when trying to get the target's metadata, we log
+            // the error (if debugging is enabled) but continue processing the
+            // entry based on its symbolic link metadata.
             if (S_ISLNK(st.st_mode)) {
-                real_type = DT_LNK;
                 // Get the target's metadata
-                if (fstatat(AT_FDCWD, full_path, &st, 0) != 0) {
-#ifdef LF_DEBUG
+                rc = fstatat(AT_FDCWD, full_path, &st, 0);
+                if (rc == -1) {
                     if (f->debug && (f->report_all || f->report_warnings ||
                                      f->report_errors || f->report_badlinks)) {
-                        fprintf(stderr, "BADTGT, %s\n", full_path);
-                        ssize_t len =
-                            readlink(full_path, lnk_path, sizeof(lnk_path) - 1);
-                        if (len != -1) {
-                            lnk_path[len] = '\0';
-                            fprintf(stderr, " => %s", lnk_path);
-                        }
-                        fprintf(stderr, "\n");
+                        fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
+                                strerror(errno));
                     }
-#endif
-                    // continue;
+                    termination_status = EXIT_FAILURE;
+                    continue;
                 }
+                if (f->follow_links)
+                    effective_type = (st.st_mode & S_IFMT) >> 12;
             }
-            switch (st.st_mode & S_IFMT) {
-            case S_IFBLK:
-                effective_type = DT_BLK;
-                break;
-            case S_IFCHR:
-                effective_type = DT_CHR;
-                break;
-            case S_IFDIR:
-                if (!f->follow_links && real_type == DT_LNK)
-                    effective_type = DT_LNK;
-                else
-                    effective_type = DT_DIR;
-                break;
-            case S_IFIFO:
-                effective_type = DT_FIFO;
-                break;
-            case S_IFLNK:
-                effective_type = DT_LNK;
-                break;
-            case S_IFREG:
-                effective_type = DT_REG;
-                break;
-            case S_IFSOCK:
-                effective_type = DT_SOCK;
-                break;
-            default:
-                effective_type = 0;
-                break;
-            }
+            // Determine the effective type of the entry. We use the st_mode
+            // field from the stat struct to determine the file type by
+            // applying the S_IFMT mask and shifting it to get a value that
+            // corresponds to the DT_* constants. If the entry is a symbolic
+            // link and the user has chosen not to follow links, we treat it
+            // as a directory for the purpose of deciding whether to enqueue
+            // it for further searching. This allows us to handle symbolic
+            // links that point to directories in a way that respects the
+            // user's options while still allowing for traversal of linked
+            // directories if desired.
             if (effective_type == DT_DIR) {
                 if (f->max_depth != 0 && current_task->depth == f->max_depth)
                     continue;
                 // Check for cycles by comparing the current
-                // directory's dev/inode with the history of
-                // dev/inode pairs from parent directories. If a
-                // match is found, it indicates a cycle and we skip
-                // processing this directory.
+                // directory's dev/inode with the history of dev/inode pairs
+                // from parent directories. If a match is found, it indicates a
+                // cycle and we skip processing this directory.
                 bool cycle_found = false;
-#ifdef LF_DEBUG
                 if (f->debug && (f->report_trace || f->report_all))
-                   entry->d_name);
-                fprintf(stderr, "Checking for cycles in: %s\n", full_path);
-#endif
+                    fprintf(stderr, "Checking for cycles in: %s\n", full_path);
                 for (int i = 0; i < current_task->depth; i++) {
-#ifdef LF_DEBUG
                     if (f->debug && (f->report_trace || f->report_all)) {
 
                         if (current_task->history[i].ino == st.st_ino)
@@ -834,7 +885,6 @@ void *finder(void *arg) {
                             fprintf(stderr, "%3d %ju %ju\n", i,
                                     current_task->history[i].ino, st.st_ino);
                     }
-#endif
                     if (current_task->history[i].dev == st.st_dev &&
                         current_task->history[i].ino == st.st_ino) {
                         cycle_found = true;
@@ -842,51 +892,56 @@ void *finder(void *arg) {
                     }
                 }
                 if (cycle_found) {
-#ifdef LF_DEBUG
                     if (f->debug && (f->report_warnings || f->report_errors ||
                                      f->report_trace || f->report_badlinks ||
                                      f->report_all)) {
-                        fprintf(stderr, "CYCLIC, %s", full_path);
                         ssize_t len =
                             readlink(full_path, lnk_path, sizeof(lnk_path) - 1);
                         if (len != -1) {
                             lnk_path[len] = '\0';
-                            fprintf(stderr, " => %s", lnk_path);
-                        }
-                        fprintf(stderr, "\n");
+                            fprintf(stderr, "CYCLIC_LINK,%s,%s\n", full_path,
+                                    lnk_path);
+                        } else
+                            fprintf(stderr, "CYCLIC_LINK,%s\n", full_path);
                     }
-#endif
+                    termination_status = EXIT_FAILURE;
                     continue;
                 }
                 //-------------------------------------------------------
-                // Prepare the new history array for the next level
-                // of recursion, copying the current history and
-                // adding the current directory's dev/ino array
+                // Create a new TaskNode for the subdirectory and enqueue it
+                // for processing by finder threads. We duplicate the
+                // current history of dev/inode pairs and add the current
+                // directory's dev/inode to the new history for the child
+                // task. This allows us to maintain a record of the
+                // directories we've visited in the current path, which is
+                // essential for cycle detection. By checking this history
+                // for each new directory we encounter, we can effectively
+                // prevent infinite loops caused by symbolic links or hard
+                // links that create cycles in the directory structure.
+                //
+                // What about using realloc? NO! All the directories in this
+                // subdirectory must share the same history array.
                 TaskNode *child_task = malloc(sizeof(TaskNode));
                 child_task->dir_path = strdup(full_path);
                 child_task->depth = current_task->depth + 1;
-                child_task->next = NULL;
+                child_task->next_task = NULL;
                 child_task->history =
-                    malloc(child_task->depth * sizeof(History));
+                    malloc((child_task->depth) * sizeof(History));
                 if (current_task->depth > 0) {
                     memcpy(child_task->history, current_task->history,
                            sizeof(History) * current_task->depth);
                 }
-                // Here, we use the dev and inode of the link itself
-                // This may be an error
                 child_task->history[current_task->depth].dev = st.st_dev;
                 child_task->history[current_task->depth].ino = st.st_ino;
                 enqueue_dir(child_task);
             }
             scan_file(full_path, f, effective_type);
         }
-        //
         closedir(dir);
         free(current_task->dir_path);
         free(current_task->history);
         free(current_task);
         atomic_fetch_sub(&active_tasks, 1);
-        pthread_cond_broadcast(&cond_var);
     }
     return NULL;
 }
@@ -946,21 +1001,17 @@ int scan_file(char *file_spec, const SearchFilters *f,
                 regexec(&f->compiled_re, file_spec, f->compiled_re.re_nsub + 1,
                         pmatch, f->reg_flags);
             if (reti == REG_NOMATCH) {
-#ifdef LF_DEBUG
                 if (f->debug && (f->report_info || f->report_all))
                     fprintf(stderr, "Regex no match: %s\n", file_spec);
-#endif
                 break;
-            }
-#ifdef LF_DEBUG
-            else if (reti) {
+            } else if (reti) {
                 char errbuf[MAXLEN];
                 regerror(reti, &f->compiled_re, errbuf, sizeof(errbuf));
                 if (f->debug && (f->report_errors || f->report_all))
-                    fprintf(stderr, "Regex error: %s\n", errbuf);
+                    fprintf(stderr, "regex error: %s\n", errbuf);
+                termination_status = EXIT_FAILURE;
                 break;
             }
-#endif
         }
         /* Exclude matching files */
         if (f->flags & LF_EXC_REGEX) {
@@ -969,15 +1020,14 @@ int scan_file(char *file_spec, const SearchFilters *f,
                         pmatch, f->reg_flags);
             if (reti == 0) // Match
                 break;
-#ifdef LF_DEBUG
             else if (reti) {
                 char errbuf[MAXLEN];
                 regerror(reti, &f->compiled_ere, errbuf, sizeof(errbuf));
                 if (f->debug && (f->report_errors || f->report_all))
                     fprintf(stderr, "Exclude regex error: %s\n", errbuf);
+                termination_status = EXIT_FAILURE;
                 break;
             }
-#endif
         }
         stat_cached = false;
         struct stat sb;
@@ -1033,6 +1083,8 @@ int scan_file(char *file_spec, const SearchFilters *f,
                 ;
             *file_p = '/';
         }
+        if (f->only_errors)
+            break;
         if (file_spec[0] == '.' && file_spec[1] == '/')
             printf("%s\n", &file_spec[2]);
         else

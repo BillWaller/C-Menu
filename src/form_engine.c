@@ -313,7 +313,7 @@ int form_process(Init *init) {
         strnz__cat(tmp_str, "Calculate", MAXLEN - 1);
     else if (form->f_query)
         strnz__cat(tmp_str, "Query", MAXLEN - 1);
-    set_chyron_key_cp(form->chyron, 5, tmp_str, KEY_F(5), cp_reverse_highlight);
+    set_chyron_key_cp(form->chyron, 5, tmp_str, KEY_F(5), cp_nt_hl_rev);
 
     while (loop) {
         compile_chyron(form->chyron);
@@ -382,7 +382,7 @@ int form_process(Init *init) {
                 destroy_argv(eargc, eargv);
                 form_display_fields(form);
                 set_chyron_key_cp(form->chyron, 5, "F5 Edit", KEY_F(5),
-                                  cp_reverse_highlight);
+                                  cp_nt_hl_rev);
                 set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
                 compile_chyron(form->chyron);
                 continue;

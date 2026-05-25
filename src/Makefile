@@ -80,11 +80,11 @@ PREFIX=$(HOME)/menuapp
 # configuration, so please consult the documentation for libssh and your 
 # system's package manager for more information.
 #
-# CFLAGS = -Ofast -flto
-LINKOPT = -pthread
+CFLAGS = -Ofast -flto -pthread
+LINKOPT = -pthread -flto
 #   -DLF_DEBUG \
 # CFLAGS = -Ofast \
-#	   -march=native -flto -pthread -fno-omit-frame-pointer
+#    -march=native -flto -pthread -fno-omit-frame-pointer
 #
 # Uncomment the following line to enable NCurses Debugging with immedok(true).
 # CFLAGS=-O0 -ggdb -rdynamic -DDEBUG_LOG -DDEBUG_IMMEDOK -DDEBUG_RESIZE
@@ -103,8 +103,9 @@ LINKOPT = -pthread
 #   purposes.
 #
 # Standard Debugging Flags
-CFLAGS=-Og -g3 -pg -pthread -fno-omit-frame-pointer -rdynamic
-# CFLAGS=-DDEBUG_RESIZE DDEUBG_IMMEDOK DDEBUG_LOG
+CFLAGS=-O0 -g -pthread -fno-omit-frame-pointer -rdynamic -DDEUBG_IMMEDOK
+LINKOPT = -pthread
+# CFLAGS=-DDEBUG_RESIZE -DDEUBG_IMMEDOK -DDEBUG_LOG
 #
 # Helgrind Debugging Flags
 # CFLAGS=-O0 -g -pthread
@@ -127,6 +128,8 @@ CFLAGS=-Og -g3 -pg -pthread -fno-omit-frame-pointer -rdynamic
 # -DDEBUG_IMMEDOK
 # Additional debugging flags for C-Menu
 #	-DDEBUG_IMMEDOK -DDEBUG_RESIZE -DDEBUG_LOG
+# Add -gp for profiling
+# CFLAGS=-O0 -gp -rdynamic -DDEBUG_IMMEDOK -DDEBUG_RESIZE -DDEBUG_LOG
 # Additional flags for debugging with Address Sanitizer
 # ASAN_FLAGS=-no-pie -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer 
 # -fno-sanitize-recover=all
@@ -261,7 +264,7 @@ test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)
 
 helgrind: lf
-	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf
+	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf -H -L -T6 /home/bill 1>/dev/null 2>/dev/null
 
 # Run Valgrind with the project suppression file.
 # Any remaining output after applying suppressions indicates a real leak.
@@ -274,7 +277,7 @@ valgrind: lf
 		--leak-resolution=high \
 		--track-origins=yes \
 		--suppressions=valgrind.supp \
-		./lf
+		./lf -H -L -T6 /home/bill
 # --tool=memcheck
 
 install:

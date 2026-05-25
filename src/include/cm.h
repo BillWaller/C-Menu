@@ -143,6 +143,14 @@ typedef enum {
     CLR_BO,
     CLR_LN,
     CLR_LN_BG,
+    CLR_NT_FG,
+    CLR_NT_BG,
+    CLR_NT_REV_FG,
+    CLR_NT_REV_BG,
+    CLR_NT_HL_FG,
+    CLR_NT_HL_BG,
+    CLR_NT_HL_REV_FG,
+    CLR_NT_HL_REV_BG,
     CLR_NCOLORS
 } ColorsEnum;
 
@@ -289,20 +297,22 @@ typedef struct {
 #define LN_COLOR 4    /**< default line number color */
 #define LN_BG_COLOR 7 /**< default line number background */
 
-extern int cp_default;           /**< default color pair index */
-extern int cp_norm;              /**< normal color pair index */
-extern int cp_win;               /**< window color pair index */
-extern int cp_box;               /**< box color pair index */
-extern int cp_bold;              /**< bold color pair index */
-extern int cp_title;             /**< title color pair index */
-extern int cp_highlight;         /**< highlight color pair index */
-extern int cp_reverse;           /**< reverse color pair index */
-extern int cp_reverse_highlight; /**< reverse highlight color pair index */
-extern int cp_ln;                /**< line number color pair index */
-extern int cp_ln_bg;             /** line number background color pair index */
-extern int clr_idx;              /**< current color index */
-extern int clr_cnt;              /**< number of colors used */
-extern int clr_pair_idx;         /**< current color pair index */
+extern int cp_default;   /**< default color pair index */
+extern int cp_norm;      /**< normal color pair index */
+extern int cp_win;       /**< window color pair index */
+extern int cp_box;       /**< box color pair index */
+extern int cp_bold;      /**< bold color pair index */
+extern int cp_title;     /**< title color pair index */
+extern int cp_highlight; /**< highlight color pair index */
+extern int cp_nt;        /**< reverse color pair index */
+extern int cp_nt_rev;    /**< reverse color pair index */
+extern int cp_nt_hl;     /**< highlight color pair index */
+extern int cp_nt_hl_rev; /**< reverse highlight color pair index */
+extern int cp_ln;        /**< line number color pair index */
+extern int cp_ln_bg;     /** line number background color pair index */
+extern int clr_idx;      /**< current color index */
+extern int clr_cnt;      /**< number of colors used */
+extern int clr_pair_idx; /**< current color pair index */
 extern int clr_pair_cnt; /**< number of color pairs supported by the terminal */
 extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
 
@@ -687,6 +697,14 @@ typedef struct {
     char bo_clr_x[COLOR_LEN];    /**< bold color index */
     char ln_clr_x[COLOR_LEN];    /**< line number color index */
     char ln_bg_clr_x[COLOR_LEN]; /**< line number background index */
+    char
+        nt_hl_rev_fg[COLOR_LEN]; /** normal text highlight reverse foreground */
+    char
+        nt_hl_rev_bg[COLOR_LEN]; /** normal text highlight reverse background */
+    char nt_hl_fg[COLOR_LEN];    /**< normal text highlight foreground */
+    char nt_hl_bg[COLOR_LEN];    /**< normal text highlight background */
+    char nt_rev_fg[COLOR_LEN];   /**< normal text reverse foreground */
+    char nt_rev_bg[COLOR_LEN];   /**< normal text reverse background */
     char tty_name[MAXLEN];       /**< name of the terminal device */
     FILE *stdin_fp;              /**< stdin stream pointer */
     FILE *stdout_fp;             /**< stdout stream pointer */
@@ -703,8 +721,9 @@ typedef struct {
     int cp_default;              /**< default color pair index */
     int cp_norm;                 /**< normal color pair index */
     int cp_win;                  /**< window color pair index */
-    int cp_reverse;              /**< reverse color pair index */
-    int cp_reverse_highlight;    /**< reverse highlight color pair index */
+    int cp_nt_rev;               /**< reverse color pair index */
+    int cp_nt_hl_rev;            /**< reverse highlight color pair index */
+    int cp_nt_hl;                /**< highlight color pair index */
     int cp_box;                  /**< box color pair index */
     int cp_bold;                 /**< bold color pair index */
     int cp_title;                /**< title color pair index */

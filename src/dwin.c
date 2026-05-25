@@ -147,8 +147,10 @@ char em3[MAXLEN];
 int cp_norm;
 int cp_win;
 int cp_box;
-int cp_reverse;
-int cp_reverse_highlight;
+int cp_nt;
+int cp_nt_rev;
+int cp_nt_hl;
+int cp_nt_hl_rev;
 int cp_ln;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
@@ -157,8 +159,9 @@ cchar_t CCC_NORM;
 cchar_t CCC_WIN;
 cchar_t CCC_BG;
 cchar_t CCC_BOX;
-cchar_t CCC_REVERSE;
-cchar_t CCC_REVERSE_HIGHLIGHT;
+cchar_t CCC_NT_REV;
+cchar_t CCC_NT_HL_REV;
+cchar_t CCC_NT_HL;
 cchar_t CCC_LN;
 cchar_t CCC_BRKTL;
 cchar_t CCC_BRKTR;
@@ -255,7 +258,7 @@ void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
     else
         chyron->key[k]->text[0] = '\0';
     chyron->key[k]->keycode = kc;
-    chyron->key[k]->cp = cp_reverse;
+    chyron->key[k]->cp = cp_nt_rev;
 }
 /** @brief Unset chyron key
     @ingroup Chyron
@@ -276,7 +279,7 @@ void compile_chyron(Chyron *chyron) {
     int end_pos = 0;
     int k = 0;
     int pos = 0;
-    int cp = cp_reverse;
+    int cp = cp_nt_rev;
     cchar_t *cx;
     while (k < CHYRON_KEYS) {
         if (chyron->key[k]->text[0] == '\0') {
@@ -285,9 +288,9 @@ void compile_chyron(Chyron *chyron) {
         }
         if (end_pos == 0) {
             cx = chyron->cmplx_buf;
-            mb_to_cc(cx, " ", WA_NORMAL, cp_reverse, &pos, MAXLEN - 1);
+            mb_to_cc(cx, " ", WA_NORMAL, cp_nt_rev, &pos, MAXLEN - 1);
         } else {
-            mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_reverse, &pos,
+            mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_nt_rev, &pos,
                      MAXLEN - 1);
         }
         cx = chyron->cmplx_buf;
@@ -459,15 +462,16 @@ bool open_curses(SIO *sio) {
 
     cp_win = get_clr_pair(CLR_FG, CLR_BG);
     cp_norm = get_clr_pair(CLR_WHITE, CLR_BLACK);
-    cp_reverse = get_clr_pair(CLR_BLACK, CLR_WHITE);
-    cp_reverse_highlight = get_clr_pair(CLR_BLACK, CLR_YELLOW);
+    cp_nt_rev = get_clr_pair(CLR_NT_REV_FG, CLR_NT_REV_BG);
+    cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
+    cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
     cp_box = get_clr_pair(CLR_BO, CLR_BG);
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
-
     CCC_NORM = mkccc(cp_norm, WA_NORMAL, " ");
     CCC_WIN = mkccc(cp_win, WA_NORMAL, " ");
-    CCC_REVERSE = mkccc(cp_reverse, WA_NORMAL, " ");
-    CCC_REVERSE_HIGHLIGHT = mkccc(cp_reverse_highlight, WA_NORMAL, " ");
+    CCC_NT_REV = mkccc(cp_nt_rev, WA_NORMAL, " ");
+    CCC_NT_HL_REV = mkccc(cp_nt_hl_rev, WA_NORMAL, " ");
+    CCC_NT_HL = mkccc(cp_nt_hl, WA_NORMAL, " ");
     CCC_BOX = mkccc(cp_box, WA_NORMAL, " ");
     CCC_LN = mkccc(cp_ln, WA_NORMAL, " ");
     noecho();
@@ -675,6 +679,21 @@ bool init_clr_palette(SIO *sio) {
         init_hex_clr(CLR_LN, sio->ln_clr_x);
     if (sio->ln_bg_clr_x[0])
         init_hex_clr(CLR_LN_BG, sio->ln_bg_clr_x);
+
+    if (sio->nt_rev_fg[0])
+        init_hex_clr(CLR_NT_REV_FG, sio->nt_rev_fg);
+    if (sio->nt_rev_bg[0])
+        init_hex_clr(CLR_NT_REV_BG, sio->nt_rev_bg);
+
+    if (sio->nt_hl_fg[0])
+        init_hex_clr(CLR_NT_HL_FG, sio->nt_hl_fg);
+    if (sio->nt_hl_bg[0])
+        init_hex_clr(CLR_NT_HL_BG, sio->nt_hl_bg);
+
+    if (sio->nt_hl_rev_fg[0])
+        init_hex_clr(CLR_NT_HL_REV_FG, sio->nt_hl_rev_fg);
+    if (sio->nt_hl_rev_bg[0])
+        init_hex_clr(CLR_NT_HL_REV_BG, sio->nt_hl_rev_bg);
     clr_cnt = CLR_NCOLORS;
     return true;
 }
@@ -1558,15 +1577,15 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
                 event.bstate & BUTTON1_DOUBLE_CLICKED) {
                 if (wenclose(win, event.y, event.x)) {
                     wmouse_trafo(win, &event.y, &event.x, false);
-                } else {
-                    c = 0;
-                    continue;
+                    click_y = event.y;
+                    click_x = event.x;
+                    if (chyron && event.y == getmaxy(win) - 1) {
+                        c = get_chyron_key(chyron, event.x);
+                        break;
+                    }
                 }
-                click_y = event.y;
-                click_x = event.x;
-                if (chyron && event.y == getmaxy(win) - 1)
-                    c = get_chyron_key(chyron, event.x);
-                break;
+                c = 0;
+                continue;
             }
         }
     } while (c == ERR);
