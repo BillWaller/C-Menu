@@ -960,15 +960,10 @@ int form_exec_receiver(Init *init) {
             }
         }
     }
-    strnz__cpy(tmp_str, eargv[0], MAXLEN - 1);
-    eargv[eargc] = nullptr;
-    char *sp;
-    char *tok;
-    tok = strtok_r(tmp_str, " ", &sp);
-    strnz__cpy(sav_arg, tok, MAXLEN - 1);
-    base_name(tmp_str, sav_arg);
-    if (tmp_str[0] != '\0' &&
-        (strcmp(tmp_str, "view") == 0 || strcmp(tmp_str, "view") == 0)) {
+    if (eargc > 0)
+        eargv[eargc] = nullptr;
+    base_name(tmp_str, eargv[0]);
+    if (tmp_str[0] != '\0' && (strcmp(tmp_str, "view") == 0)) {
         /** initialize popup_view arguments and execute popup_view to display
            command output within form interface */
         init->lines = 60;

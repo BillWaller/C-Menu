@@ -101,8 +101,8 @@ struct TaskNode {
 }; /**< Queue TaskNode (for work-stealing) */
 
 // typedef struct { /** not used yet */
-//     TaskNode alignas(8) * qhead;
-//     TaskNode alignas(8) * qtail;
+//     TaskNode *qhead;
+//     TaskNode *qtail;
 // } TaskQueue;
 // ---------------------------------------------------------------
 //                              ╭───────────╮
@@ -112,11 +112,11 @@ struct TaskNode {
 //                              │ next_task │
 //                              ╰───────────╯
 // ---------------------------------------------------------------
-TaskNode alignas(8) *qhead = NULL;
-TaskNode alignas(8) *qtail = NULL;
+TaskNode *qhead = NULL;
+TaskNode *qtail = NULL;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
-atomic_int alignas(8) active_tasks = 0;
+atomic_int active_tasks = 0;
 int shutdown = 0;
 int termination_status = EXIT_SUCCESS;
 int lfargc;
@@ -373,7 +373,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     return 0;
 }
 static struct argp argp = {options, parse_opt, args_doc, doc,
-                           nullptr, nullptr,   nullptr};
+                           nullptr, nullptr, nullptr};
 
 int main(int argc, char **argv) {
 
@@ -520,13 +520,13 @@ bool init_find(SearchFilters *f) {
         }
     }
     int n = get_nprocs();
-    if (nthreads == 0 && n > 6)
-        nthreads = 6; // Limit default thread count to 6 to avoid excessive
-                      // resource usage
-    else if (nthreads < 0)
-        n = max(1, n + nthreads); // Allow negative values to
-                                  // specify threads to leave idle
-    nthreads = min(n, max(1, nthreads));
+    if (nthreads < 0) {
+        if (n + nthreads > 1)
+            n += nthreads;
+    } else if (nthreads == 0)
+        nthreads = max(1, n / 2 - 1);
+    else if (nthreads > n)
+        nthreads = n - 1;
     if (f->debug && (f->report_config || f->report_all)) {
         fprintf(stderr, "debug=%d\n", f->debug);
         fprintf(stderr, "  1-report_config %s\n",

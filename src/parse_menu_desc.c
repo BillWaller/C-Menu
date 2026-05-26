@@ -165,7 +165,6 @@ unsigned int parse_menu_description(Init *init) {
         menu->line[menu->line_idx]->letter_pos = 0;
         // Try to get a choice_letter
         // skip past " x - "
-        ltr = '\0';
         if (menu->line[menu->line_idx]->choice_letter != '\0') {
             ltr = menu->line[menu->line_idx]->choice_letter;
             s = menu->line[menu->line_idx]->choice_text;
@@ -199,7 +198,7 @@ unsigned int parse_menu_description(Init *init) {
                 // If no letter found in choice text, find the first unused
                 // letter in the ASCII range 32-126
                 for (ltr = '0'; ltr < 127; ltr++)
-                    if (!fltr[ltr]) {
+                    if (fltr[ltr] == false) {
                         fltr[ltr] = true;
                         break;
                     }

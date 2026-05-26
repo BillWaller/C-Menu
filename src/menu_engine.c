@@ -203,8 +203,6 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_CONTINUE);
             /** Move down to the next menu choice */
         case KEY_DOWN:
-            if (menu->line_idx == menu->item_count - 2)
-                len = menu->item_count;
             i = menu->line_idx;
             while (i < menu->item_count - 1) {
                 i++;
