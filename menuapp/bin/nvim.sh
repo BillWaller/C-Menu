@@ -21,4 +21,5 @@ else
         fi
     fi
 fi
+# Switch to alternate screen buffer before returning to C-Menu
 tput smcup

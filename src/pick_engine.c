@@ -39,8 +39,8 @@ void deselect_object(Pick *);
 
 int pipe_fd[2];
 
-char const pagers_editors[12][10] = {"view", "view",  "less", "more",
-                                     "vi",   "vim",   "nano", "nvim",
+char const pagers_editors[12][10] = {"view", "view", "less", "more",
+                                     "vi", "vim", "nano", "nvim",
                                      "pico", "emacs", "edit", ""};
 
 /** @brief Initializes pick structure and opens pick input file or pipe
@@ -830,14 +830,14 @@ int picker(Init *init, char *field) {
     bool f_insert = false; /* Flag to indicate if insert mode is active */
     char filler_s[MAXLEN]; /* buffer for filling the field with spaces */
     int line = 0;          /* Starting line for field input */
-    int col = 1;    /* Starting column for field input leaving space for > */
-    char *s;        /* source pointer for editing operations */
-    char *d;        /* destination pointer for editing operations */
-    char *e;        /* end pointer for editing operations */
-    char *accept_s; /* pointer to field buffer */
-    char *fstart;   /* start of field buffer */
-    char *fend;     /* end of field buffer */
-    char *str_end;  /* end of content string */
+    int col = 1;           /* Starting column for field input leaving space for > */
+    char *s;               /* source pointer for editing operations */
+    char *d;               /* destination pointer for editing operations */
+    char *e;               /* end pointer for editing operations */
+    char *accept_s;        /* pointer to field buffer */
+    char *fstart;          /* start of field buffer */
+    char *fend;            /* end of field buffer */
+    char *str_end;         /* end of content string */
     accept_s = field;
     fstart = accept_s;
     int flen = pick->win_width - 4;

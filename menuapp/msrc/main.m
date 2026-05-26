@@ -15,11 +15,11 @@
 :     Form Data Types
 !form -d fields.f -i fields.dat -o fields.dat
 :     Rustlings Source
-!pick -S "lf rustlings" -d 5 \"exercises.*\.rs$\"" -n 1 -T "Rustlings Source - Edit" -c nvim %%
+!pick -S "lf rustlings -d 5 \"exercises.*\.rs$\"" -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%
 :     View Manual Pages
 !pick -S "lf ~/menuapp/man" -d 5 -n 1 -T \"Select Manual Page to View\" -c "view %%"
 :     Edit .c Files in Current Directory
-!pick -S project_src -T "Project Tree - Select File to Edit" -c nvim %%
+!pick -S project_src -T "Project Tree - Select File to Edit" -c nvim.sh %%
 :     View C-Menu Source with Tree-Sitter
 !pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 :     View Source with Tree-Sitter
