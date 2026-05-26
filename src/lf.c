@@ -121,7 +121,7 @@ int shutdown = 0;
 int termination_status = EXIT_SUCCESS;
 int lfargc;
 char *lfargs[3];
-char exec[MAXLEN];
+char *exec;
 char *file_types_p;
 char *perms_p;
 char *debug_p;
@@ -149,7 +149,9 @@ static struct argp_option options[] = {
     {"file_size_min", 's', "size", 0,
      "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
+#ifdef EXPERIMENTAL
     {"exec", 'x', "command", 0, "execute external command", 0},
+#endif
     {"debug", 'D', "12345678", 0,
      "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, "
      "8-only_errors",
@@ -350,9 +352,11 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             exit(EXIT_FAILURE);
         }
         break;
+#ifdef EXPERIMENTAL
     case 'x':
-        strnz__cpy(exec, arg, MAXLEN - 1);
+        f->exec = strdup(arg);
         break;
+#endif
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
             lfargs[state->arg_num] = arg;
@@ -406,23 +410,18 @@ int main(int argc, char **argv) {
         if (!f->base_path || f->base_path[0] == '\0') {
             strnz__cpy(tmp_str, lfargs[1], MAXLEN - 1);
             expand_tilde(tmp_str, MAXLEN - 1);
-            if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str)) {
+            if (is_directory(tmp_str) || is_symlink_to_dir(tmp_str))
                 f->base_path = strdup(tmp_str);
-            } else {
-                fprintf(stderr, "lf: Neither %s nor %s is a valid directory\n",
-                        lfargs[0], lfargs[1]);
-                exit(EXIT_FAILURE);
-            }
-            if ((!(f->flags & LF_REGEX)) && is_valid_regex(lfargs[1])) {
-                f->re = strdup(lfargs[1]);
-                f->flags |= LF_REGEX;
-            } else {
-                fprintf(stderr,
-                        "lf: '%s' is neither a directory nor a valid regular "
-                        "expression.\n",
-                        lfargs[1]);
-                exit(EXIT_FAILURE);
-            }
+        }
+        if ((!(f->flags & LF_REGEX)) && is_valid_regex(lfargs[1])) {
+            f->re = strdup(lfargs[1]);
+            f->flags |= LF_REGEX;
+        } else {
+            fprintf(stderr,
+                    "lf: '%s' is neither a directory nor a valid regular "
+                    "expression.\n",
+                    lfargs[1]);
+            exit(EXIT_FAILURE);
         }
     }
     if (f->base_path == nullptr || f->base_path[0] == '\0')
@@ -637,35 +636,35 @@ bool init_find(SearchFilters *f) {
     return true;
 }
 /** @brief Enqueue a directory dir_path for processing by finder threads.
-    @param new_task A pointer to a TaskNode containing the directory path and
- depth to be enqueued for processing by finder threads.
+    @param new_task A pointer to a TaskNode containing the directory path
+ and depth to be enqueued for processing by finder threads.
     @details This function adds a new TaskNode to the global queue of
  directories to be processed by finder threads.
- // It uses a mutex to ensure thread-safe access to the queue and signals one
- waiting thread that a new task is available.
- // If shutdown has been initiated, the signal will wake up any waiting threads
- so they can check the shutdown condition and exit gracefully.
+ // It uses a mutex to ensure thread-safe access to the queue and signals
+ one waiting thread that a new task is available.
+ // If shutdown has been initiated, the signal will wake up any waiting
+ threads so they can check the shutdown condition and exit gracefully.
    */
 void enqueue_dir(TaskNode *new_task) {
     pthread_mutex_lock(&queue_mutex);
     if (qtail)
-        // Add the new task to the end of the queue. If qtail is not NULL, it
-        // means there are already tasks in the queue, so we set the next_task
-        // pointer of the current tail to point to the new task. This
-        // effectively adds the new task to the end of the queue.
+        // Add the new task to the end of the queue. If qtail is not NULL,
+        // it means there are already tasks in the queue, so we set the
+        // next_task pointer of the current tail to point to the new task.
+        // This effectively adds the new task to the end of the queue.
         qtail->next_task = new_task;
     else
-        // If qtail is NULL, it means the queue is currently empty, so we set
-        // qhead to point to the new task, making it the first and only task in
-        // the queue
+        // If qtail is NULL, it means the queue is currently empty, so we
+        // set qhead to point to the new task, making it the first and only
+        // task in the queue
         qhead = new_task;
     // Finally, we update qtail to point to the new task, ensuring that it
     // always points to the last task in the queue.
     qtail = new_task;
     // Signal one waiting thread that a new task is available. If shutdown
-    // hasn't been initiated, this will wake up a finder thread to process the
-    // new task. If shutdown has been initiated, the signal will wake up any
-    // waiting threads so they can check the shutdown condition and exit
+    // hasn't been initiated, this will wake up a finder thread to process
+    // the new task. If shutdown has been initiated, the signal will wake up
+    // any waiting threads so they can check the shutdown condition and exit
     // gracefully.
     pthread_cond_signal(&cond_var);
     pthread_mutex_unlock(&queue_mutex);
@@ -682,35 +681,37 @@ void enqueue_dir(TaskNode *new_task) {
 TaskNode *dequeue_dir() {
     pthread_mutex_lock(&queue_mutex);
 
-    // Wait until there is a task in the queue or shutdown has been initiated.
-    // The loop condition checks if the queue is empty (qhead == NULL) and if
-    // shutdown has not been initiated (!shutdown). If both conditions are true,
-    // it means there are no tasks to process and the thread should wait. The
-    // thread will be woken up when a new task is enqueued (via
-    // pthread_cond_signal in enqueue_dir) or when shutdown is initiated (via
-    // pthread_cond_broadcast in enqueue_dir or when active_tasks count reaches
-    // zero). This ensures that threads do not wait indefinitely when there are
-    // no tasks left to process and allows for a graceful shutdown of the
-    // program.
+    // Wait until there is a task in the queue or shutdown has been
+    // initiated. The loop condition checks if the queue is empty (qhead ==
+    // NULL) and if shutdown has not been initiated (!shutdown). If both
+    // conditions are true, it means there are no tasks to process and the
+    // thread should wait. The thread will be woken up when a new task is
+    // enqueued (via pthread_cond_signal in enqueue_dir) or when shutdown is
+    // initiated (via pthread_cond_broadcast in enqueue_dir or when
+    // active_tasks count reaches zero). This ensures that threads do not
+    // wait indefinitely when there are no tasks left to process and allows
+    // for a graceful shutdown of the program.
     while (qhead == NULL && !shutdown) {
-        // If there are no active tasks and the queue is empty, we can safely
-        // initiate shutdown. This check is necessary to prevent a potential
-        // race condition where a thread could be waiting indefinitely on the
-        // condition variable if all tasks have been completed and no new tasks
-        // will be enqueued. By checking the active_tasks count, we can
-        // determine when it's safe to signal shutdown
+        // If there are no active tasks and the queue is empty, we can
+        // safely initiate shutdown. This check is necessary to prevent a
+        // potential race condition where a thread could be waiting
+        // indefinitely on the condition variable if all tasks have been
+        // completed and no new tasks will be enqueued. By checking the
+        // active_tasks count, we can determine when it's safe to signal
+        // shutdown
         if (atomic_load(&active_tasks) == 0) {
             shutdown = 1;
             // and wake up any waiting threads so they can exit gracefully.
             pthread_cond_broadcast(&cond_var);
             break;
         }
-        // Wait for a task to be enqueued or shutdown initiated. The thread will
-        // be woken up when a new task is added to the queue (via
+        // Wait for a task to be enqueued or shutdown initiated. The thread
+        // will be woken up when a new task is added to the queue (via
         // pthread_cond_signal in enqueue_dir) or when shutdown is initiated
-        // (via pthread_cond_broadcast in enqueue_dir or when active_tasks count
-        // reaches zero). This allows the thread to check the conditions again
-        // and either process a new task or exit if shutdown has been initiated.
+        // (via pthread_cond_broadcast in enqueue_dir or when active_tasks
+        // count reaches zero). This allows the thread to check the
+        // conditions again and either process a new task or exit if
+        // shutdown has been initiated.
         pthread_cond_wait(&cond_var, &queue_mutex);
     }
     if (shutdown && qhead == NULL) {
@@ -718,12 +719,12 @@ TaskNode *dequeue_dir() {
         return NULL;
     }
     TaskNode *temp = qhead;
-    // Move the head pointer to the next task in the queue. If the queue becomes
-    // empty after this operation (qhead becomes NULL), we also set qtail to
-    // NULL to indicate that the queue is empty. This ensures that both qhead
-    // and qtail accurately reflect the state of the queue, preventing potential
-    // issues with enqueuing new tasks or checking for an empty queue in future
-    // operations.
+    // Move the head pointer to the next task in the queue. If the queue
+    // becomes empty after this operation (qhead becomes NULL), we also set
+    // qtail to NULL to indicate that the queue is empty. This ensures that
+    // both qhead and qtail accurately reflect the state of the queue,
+    // preventing potential issues with enqueuing new tasks or checking for
+    // an empty queue in future operations.
     qhead = qhead->next_task;
     if (!qhead)
         qtail = NULL;
@@ -755,15 +756,16 @@ void *finder(void *arg) {
             break;
 
         //-------------------------------------------------------------
-        // Open the directory for reading. We use openat with AT_FDCWD to open
-        // the directory specified by current_task->dir_path, and then use
-        // fdopendir to get a DIR* stream for reading the directory entries.
-        // This approach allows us to handle directories with special characters
-        // in their names more robustly, as it avoids issues that can arise with
-        // functions like opendir that take a path string directly. If openat or
-        // fdopendir fails, we log the error (if debugging is enabled), clean up
-        // resources for the current task, and continue to the next iteration of
-        // the loop to process another task.
+        // Open the directory for reading. We use openat with AT_FDCWD to
+        // open the directory specified by current_task->dir_path, and then
+        // use fdopendir to get a DIR* stream for reading the directory
+        // entries. This approach allows us to handle directories with
+        // special characters in their names more robustly, as it avoids
+        // issues that can arise with functions like opendir that take a
+        // path string directly. If openat or fdopendir fails, we log the
+        // error (if debugging is enabled), clean up resources for the
+        // current task, and continue to the next iteration of the loop to
+        // process another task.
         int dir_fd =
             openat(AT_FDCWD, current_task->dir_path, O_RDONLY | O_DIRECTORY);
         if (dir_fd == -1) {
@@ -815,13 +817,13 @@ void *finder(void *arg) {
                    entry->d_name);
             // Get link's metadata
             int rc;
-            // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of
-            // the symbolic link itself, rather than the target it points to.
-            // This allows us to determine if the entry is a symbolic link and
-            // handle it according to the user's options (e.g., whether to
-            // follow links or not). If fstatat fails, we log the error (if
-            // debugging is enabled) and continue to the next entry without
-            // processing this one further.
+            // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata
+            // of the symbolic link itself, rather than the target it points
+            // to. This allows us to determine if the entry is a symbolic
+            // link and handle it according to the user's options (e.g.,
+            // whether to follow links or not). If fstatat fails, we log the
+            // error (if debugging is enabled) and continue to the next
+            // entry without processing this one further.
             rc = fstatat(AT_FDCWD, full_path, &st, AT_SYMLINK_NOFOLLOW);
             if (rc == -1) {
                 if (f->debug && (f->report_errors || f->report_warnings ||
@@ -832,16 +834,17 @@ void *finder(void *arg) {
                 continue;
             }
             effective_type = (st.st_mode & S_IFMT) >> 12;
-            // Determine the real type of the entry. If the entry is a symbolic
-            // link, we set real_type to DT_LNK and then attempt to get the
-            // metadata of the target it points to using fstatat without
-            // AT_SYMLINK_NOFOLLOW. This allows us to determine the effective
-            // type of the entry based on the target's metadata, which is
-            // important for deciding how to process it (e.g., whether it's a
-            // directory that we should enqueue for further searching). If
-            // fstatat fails when trying to get the target's metadata, we log
-            // the error (if debugging is enabled) but continue processing the
-            // entry based on its symbolic link metadata.
+            // Determine the real type of the entry. If the entry is a
+            // symbolic link, we set real_type to DT_LNK and then attempt to
+            // get the metadata of the target it points to using fstatat
+            // without AT_SYMLINK_NOFOLLOW. This allows us to determine the
+            // effective type of the entry based on the target's metadata,
+            // which is important for deciding how to process it (e.g.,
+            // whether it's a directory that we should enqueue for further
+            // searching). If fstatat fails when trying to get the target's
+            // metadata, we log the error (if debugging is enabled) but
+            // continue processing the entry based on its symbolic link
+            // metadata.
             if (S_ISLNK(st.st_mode)) {
                 // Get the target's metadata
                 rc = fstatat(AT_FDCWD, full_path, &st, 0);
@@ -872,8 +875,8 @@ void *finder(void *arg) {
                     continue;
                 // Check for cycles by comparing the current
                 // directory's dev/inode with the history of dev/inode pairs
-                // from parent directories. If a match is found, it indicates a
-                // cycle and we skip processing this directory.
+                // from parent directories. If a match is found, it
+                // indicates a cycle and we skip processing this directory.
                 bool cycle_found = false;
                 if (f->debug && (f->report_trace || f->report_all))
                     fprintf(stderr, "Checking for cycles in: %s\n", full_path);
@@ -953,8 +956,9 @@ void *finder(void *arg) {
    scanned.
     @param f The SearchFilters struct containing the options and
    flags for filtering.
-    @param dir_st The dirent struct representing the file being
-   scanned.
+    @param effective_type The effective file type of the file being
+   scanned, determined based on the file's metadata and the user's options
+   for following symbolic links.
     @return true if the file was processed successfully, false if an
    error occurred.
     @details This function checks the specified file against the

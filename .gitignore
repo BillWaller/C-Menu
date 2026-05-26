@@ -1,5 +1,6 @@
 .gitignore
 src/*.o
+src/.clang-format
 src/amort
 src/ckeys
 src/menu
