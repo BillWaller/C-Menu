@@ -446,4 +446,4 @@ source ~/.bashrc
 menu
 ```
 
-![C-Menu Running](../screenshots/mainmenu.png)
+![C-Menu Running](../screenshots/applications_menu.png)

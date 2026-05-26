@@ -241,7 +241,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         }
         break;
     case 'e':
-        strnz__cpy(f->ere, arg, MAXLEN - 1);
+        f->ere = strdup(arg);
         f->flags |= LF_EXC_REGEX;
         break;
     case 'H':
@@ -284,7 +284,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         f->sort_reverse = true;
         break;
     case 'r':
-        strnz__cpy(f->re, arg, MAXLEN - 1);
+        f->re = strdup(arg);
         f->flags |= LF_REGEX;
         break;
     case 'S':
@@ -622,10 +622,12 @@ bool init_find(SearchFilters *f) {
     }
     //--------------------------------------------------------------------
     // End Program
-    if (f->flags & LF_REGEX)
+    if (f->flags & LF_REGEX) {
         regfree(&f->compiled_re);
-    if (f->flags & LF_EXC_REGEX)
+    }
+    if (f->flags & LF_EXC_REGEX) {
         regfree(&f->compiled_ere);
+    }
     free(f->base_path);
     free(f->re);
     free(f->ere);
@@ -1010,7 +1012,7 @@ int scan_file(char *file_spec, const SearchFilters *f,
                 if (f->debug && (f->report_errors || f->report_all))
                     fprintf(stderr, "regex error: %s\n", errbuf);
                 termination_status = EXIT_FAILURE;
-                break;
+                return 0;
             }
         }
         /* Exclude matching files */
@@ -1020,13 +1022,15 @@ int scan_file(char *file_spec, const SearchFilters *f,
                         pmatch, f->reg_flags);
             if (reti == 0) // Match
                 break;
-            else if (reti) {
-                char errbuf[MAXLEN];
-                regerror(reti, &f->compiled_ere, errbuf, sizeof(errbuf));
-                if (f->debug && (f->report_errors || f->report_all))
-                    fprintf(stderr, "Exclude regex error: %s\n", errbuf);
-                termination_status = EXIT_FAILURE;
-                break;
+            if (reti != REG_NOMATCH) {
+                if (reti) {
+                    char errbuf[MAXLEN];
+                    regerror(reti, &f->compiled_ere, errbuf, sizeof(errbuf));
+                    if (f->debug && (f->report_errors || f->report_all))
+                        fprintf(stderr, "Exclude regex error: %s\n", errbuf);
+                    termination_status = EXIT_FAILURE;
+                    return 0;
+                }
             }
         }
         stat_cached = false;
