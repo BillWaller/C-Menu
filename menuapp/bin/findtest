@@ -1,0 +1,7 @@
+#!/bin/bash
+# @name findtest
+
+path=/home/bill
+fd . --full-path "$path" -H -L -I | sort >fd.s
+find -H -L "$path" | sort >find.s
+lf "$path" -H -L -T 6 | sort >lf.s

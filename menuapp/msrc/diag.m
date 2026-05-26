@@ -8,5 +8,5 @@
 !exec testfail
 :     Help
 !help
-:     Exit Workstation Configuration
+:     Exit
 !return

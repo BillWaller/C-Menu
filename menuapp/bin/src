@@ -3,4 +3,4 @@
 # @brief This script lists source files within the current directory and up to 5
 # levels of subdirectories. Customize the file extensions as needed.
 
-lf -d 5 . '.*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$' | sort
+lf -S -d 5 . '.*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$'

@@ -1,45 +1,49 @@
 ─────┬──────────────────────────────────────────────────────────────────────────
      │ File: [1mlf.help[0m
 ─────┼──────────────────────────────────────────────────────────────────────────
-   1 │ [33mC[0m[35m-[0m[33mMenu[0m[35m-[0m[33m0.2[0m.[33m9[0m
-   2 │ [33mUsage[0m: lf [[33mOPTION[0m...] [[33mDIRECTORY[0m] [[33mREGULAR_EXPRESSION[0m]
-   3 │ lf list files
-   4 │ 
-   5 │   [35m-[0ma, [35m-[0m[35m-[0mafter[35m=[0mtime           [33mModified[0m after [33mYYYY[0m[35m-[0m[33mMM[0m[35m-[0m[33mDDTHH[0m[32m:[0m[32mMM[0m[32m:[0m[32mSS[0m
-   6 │   [35m-[0mb, [35m-[0m[35m-[0mbefore[35m=[0mtime          [33mModified[0m before [33mYYYY[0m[35m-[0m[33mMM[0m[35m-[0m[33mDDTHH[0m[32m:[0m[32mMM[0m[32m:[0m[32mSS[0m
-   7 │   [35m-[0md, [35m-[0m[35m-[0mmax_depth[35m=[0mnumber     [33mDepth[0m into directory tree
-   8 │   [35m-[0m[33mD[0m, [35m-[0m[35m-[0mdebug[[35m=[0mlevel]        [33mOutput[0m debugging information
+   1 │ [33mUsage[0m: lf [[33mOPTION[0m...] [[33mDIRECTORY[0m] [[33mREGULAR_EXPRESSION[0m]
+   2 │ lf list files
+   3 │ 
+   4 │   [35m-[0ma, [35m-[0m[35m-[0mafter[35m=[0mtime           [33mModified[0m after [33mYYYY[0m[35m-[0m[33mMM[0m[35m-[0m[33mDDTHH[0m[32m:[0m[32mMM[0m[32m:[0m[32mSS[0m
+   5 │   [35m-[0mb, [35m-[0m[35m-[0mbefore[35m=[0mtime          [33mModified[0m before [33mYYYY[0m[35m-[0m[33mMM[0m[35m-[0m[33mDDTHH[0m[32m:[0m[32mMM[0m[32m:[0m[32mSS[0m
+   6 │   [35m-[0md, [35m-[0m[35m-[0mmax_depth[35m=[0mnumber     [33mDepth[0m into directory tree
+   7 │   [35m-[0m[33mD[0m, [35m-[0m[35m-[0mdebug[35m=[0m[33m12345678[0m       [33m1[0m[35m-[0mconfig, [33m2[0m[35m-[0minfo, [33m3[0m[35m-[0mwarnings, [33m4[0m[35m-[0merrors,
+   8 │                              [33m5[0m[35m-[0mbadlinks, [33m6[0m[35m-[0mtrace, [33m7[0m[35m-[0mall, [33m8[0m[35m-[0monly_errors
    9 │   [35m-[0me, [35m-[0m[35m-[0mere[35m=[0mregex            [33mExclude[0m regular expression
-  10 │   [35m-[0m[33mH[0m, [35m-[0m[35m-[0mf_hidden             [33mInclude[0m hidden files
-  11 │   [35m-[0mi, [35m-[0m[35m-[0mf_ignore_case        [33mSearch[0m ignore [35mcase[0m
-  12 │   [35m-[0m[33mL[0m, [35m-[0m[35m-[0mf_lnk_dir            [33mFollow[0m symbolic links
-  13 │   [35m-[0mp, [35m-[0m[35m-[0mpermissions[35m=[0msgrwx    s[35m-[0msetuid, g[35m-[0msetgid, r[35m-[0mread, w[35m-[0mwrite, x[35m-[0mexecute
-  14 │   [35m-[0ms, [35m-[0m[35m-[0mfile_size_min[35m=[0msize   [33mNo[0m [33mSuffix[0m[35m-[0mbytes, [33mK[0m[35m-[0mkilobytes, [33mM[0m[35m-[0m[33mMegabytes[0m, [35mor[0m
-  15 │                              [33mG[0m[35m-[0m[33mGigabytes[0m
-  16 │   [35m-[0m[33mS[0m, [35m-[0m[35m-[0mf_sort[[35m=[0mr]           sort arg[35m=[0mr reverse
-  17 │   [35m-[0mt, [35m-[0m[35m-[0mfile_types[35m=[0mbcdplrsu  b[35m-[0mblock, c[35m-[0mcharacter, d[35m-[0mdirectory, p[35m-[0mpipe, l[35m-[0mlink,
-  18 │                              r[35m-[0mregular, s[35m-[0msocket, u[35m-[0munknown
-  19 │   [35m-[0m[33mT[0m, [35m-[0m[35m-[0mthreads[35m=[0mthreads      [33mNumber[0m [35mof[0m threads
-  20 │   [35m-[0mu, [35m-[0m[35m-[0muser[35m=[0muser name       [33mUser[0m [33mName[0m [35mof[0m file owner 
-  21 │   [35m-[0mx, [35m-[0m[35m-[0mexec[35m=[0mcommand         execute external command
-  22 │   [35m-[0m?, [35m-[0m[35m-[0mhelp                 [33mGive[0m this help list
-  23 │       [35m-[0m[35m-[0musage                [33mGive[0m a short usage message
-  24 │   [35m-[0m[33mV[0m, [35m-[0m[35m-[0mversion              [33mPrint[0m program version
-  25 │ 
-  26 │ [33mMandatory[0m [35mor[0m optional arguments to long options are also mandatory [35mor[0m optional
-  27 │ [35mfor[0m any corresponding short options.
-  28 │ 
-  29 │ [33mIf[0m specified, [33mDIRECTORY[0m is the top[35m-[0mlevel directory to search.
-  30 │ [33mREGULAR_EXPRESSION[0m is a properly formatted regular expression [35mfor[0m which
-  31 │ matching files will be listed.
-  32 │ 
-  33 │ [33mReport[0m bugs to billxwaller@gmail.com.
-  34 │ [33mUsage[0m: lf [[35m-[0m[33mHiL[0m?[33mV[0m] [[35m-[0ma time] [[35m-[0mb time] [[35m-[0md number] [[35m-[0m[33mD[0m[level]] [[35m-[0me regex]
-  35 │             [[35m-[0mp sgrwx] [[35m-[0ms size] [[35m-[0m[33mS[0m[r]] [[35m-[0mt bcdplrsu] [[35m-[0m[33mT[0m threads]
-  36 │             [[35m-[0mu user name] [[35m-[0mx command] [[35m-[0m[35m-[0mafter[35m=[0mtime] [[35m-[0m[35m-[0mbefore[35m=[0mtime]
-  37 │             [[35m-[0m[35m-[0mmax_depth[35m=[0mnumber] [[35m-[0m[35m-[0mdebug[[35m=[0mlevel]] [[35m-[0m[35m-[0mere[35m=[0mregex] [[35m-[0m[35m-[0mf_hidden]
-  38 │             [[35m-[0m[35m-[0mf_ignore_case] [[35m-[0m[35m-[0mf_lnk_dir] [[35m-[0m[35m-[0mpermissions[35m=[0msgrwx]
-  39 │             [[35m-[0m[35m-[0mfile_size_min[35m=[0msize] [[35m-[0m[35m-[0mf_sort[[35m=[0mr]] [[35m-[0m[35m-[0mfile_types[35m=[0mbcdplrsu]
-  40 │             [[35m-[0m[35m-[0mthreads[35m=[0mthreads] [[35m-[0m[35m-[0muser[35m=[0muser name] [[35m-[0m[35m-[0mexec[35m=[0mcommand] [[35m-[0m[35m-[0mhelp]
-  41 │             [[35m-[0m[35m-[0musage] [[35m-[0m[35m-[0mversion] [[33mDIRECTORY[0m] [[33mREGULAR_EXPRESSION[0m]
+  10 │   [35m-[0m[33mH[0m, [35m-[0m[35m-[0minclude_hidden       [33mInclude[0m hidden files
+  11 │   [35m-[0mi, [35m-[0m[35m-[0mignore_case          [33mSearch[0m ignore [35mcase[0m
+  12 │   [35m-[0m[33mL[0m, [35m-[0m[35m-[0mfollow_links         [33mFollow[0m symbolic links
+  13 │   [35m-[0mp, [35m-[0m[35m-[0minclude_perms[35m=[0msgrwx  s[35m-[0msetuid, g[35m-[0msetgid, r[35m-[0mread, w[35m-[0mwrite, x[35m-[0mexecute
+  14 │   [35m-[0mr, [35m-[0m[35m-[0mre[35m=[0mregex             [33mRegular[0m expression to search [35mfor[0m
+  15 │   [35m-[0m[33mR[0m, [35m-[0m[35m-[0msort_reverse         [33mSort[0m [35min[0m [33mReverse[0m order
+  16 │   [35m-[0ms, [35m-[0m[35m-[0mfile_size_min[35m=[0msize   [33mNo[0m [33mSuffix[0m[35m-[0mbytes, [33mK[0m[35m-[0mkilobytes, [33mM[0m[35m-[0m[33mMegabytes[0m, [35mor[0m
+  17 │                              [33mG[0m[35m-[0m[33mGigabytes[0m
+  18 │   [35m-[0m[33mS[0m, [35m-[0m[35m-[0msort                 [33mSort[0m [35min[0m [33mAscending[0m order
+  19 │   [35m-[0mt, [35m-[0m[35m-[0minclude_types[35m=[0mbcdplrsu   b[35m-[0mblock, c[35m-[0mcharacter, d[35m-[0mdirectory, p[35m-[0mpipe,
+  20 │                              l[35m-[0mlink, r[35m-[0mregular, s[35m-[0msocket, u[35m-[0munknown
+  21 │   [35m-[0m[33mT[0m, [35m-[0m[35m-[0mnthreads[35m=[0mthreads     [33mNumber[0m [35mof[0m nthreads
+  22 │   [35m-[0mu, [35m-[0m[35m-[0muser[35m=[0muser name       [33mUser[0m [33mName[0m [35mof[0m file owner 
+  23 │   [35m-[0mx, [35m-[0m[35m-[0mexec[35m=[0mcommand         execute external command
+  24 │   [35m-[0m?, [35m-[0m[35m-[0mhelp                 [33mGive[0m this help list
+  25 │       [35m-[0m[35m-[0musage                [33mGive[0m a short usage message
+  26 │   [35m-[0m[33mV[0m, [35m-[0m[35m-[0mversion              [33mPrint[0m program version
+  27 │ 
+  28 │ [33mMandatory[0m [35mor[0m optional arguments to long options are also mandatory [35mor[0m optional
+  29 │ [35mfor[0m any corresponding short options.
+  30 │ 
+  31 │ [33mIf[0m specified, [33mDIRECTORY[0m is the top[35m-[0mlevel directory to search.
+  32 │ [33mREGULAR_EXPRESSION[0m is a properly formatted regular expression [35mfor[0m which
+  33 │ matching files will be listed.
+  34 │ 
+  35 │ [33mUsage[0m: lf [[35m-[0m[33mHiLRS[0m?[33mV[0m] [[35m-[0ma time] [[35m-[0mb time] [[35m-[0md number] [[35m-[0m[33mD[0m [33m12345678[0m] [[35m-[0me regex]
+  36 │             [[35m-[0mp sgrwx] [[35m-[0mr regex] [[35m-[0ms size] [[35m-[0mt bcdplrsu] [[35m-[0m[33mT[0m threads]
+  37 │             [[35m-[0mu user name] [[35m-[0mx command] [[35m-[0m[35m-[0mafter[35m=[0mtime] [[35m-[0m[35m-[0mbefore[35m=[0mtime]
+  38 │             [[35m-[0m[35m-[0mmax_depth[35m=[0mnumber] [[35m-[0m[35m-[0mdebug[35m=[0m[33m12345678[0m] [[35m-[0m[35m-[0mere[35m=[0mregex]
+  39 │             [[35m-[0m[35m-[0minclude_hidden] [[35m-[0m[35m-[0mignore_case] [[35m-[0m[35m-[0mfollow_links]
+  40 │             [[35m-[0m[35m-[0minclude_perms[35m=[0msgrwx] [[35m-[0m[35m-[0mre[35m=[0mregex] [[35m-[0m[35m-[0msort_reverse]
+  41 │             [[35m-[0m[35m-[0mfile_size_min[35m=[0msize] [[35m-[0m[35m-[0msort] [[35m-[0m[35m-[0minclude_types[35m=[0mbcdplrsu]
+  42 │             [[35m-[0m[35m-[0mnthreads[35m=[0mthreads] [[35m-[0m[35m-[0muser[35m=[0muser name] [[35m-[0m[35m-[0mexec[35m=[0mcommand] [[35m-[0m[35m-[0mhelp]
+  43 │             [[35m-[0m[35m-[0musage] [[35m-[0m[35m-[0mversion] [[33mDIRECTORY[0m] [[33mREGULAR_EXPRESSION[0m]
+  44 │ 
+  45 │ [33mReport[0m bugs to billxwaller@gmail.com.
 ─────┴──────────────────────────────────────────────────────────────────────────

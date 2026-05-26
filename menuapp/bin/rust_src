@@ -6,4 +6,4 @@
 # directory named rustlings, which contains an exercises subdirectory containing
 # rust source files for each exercise.
 
-lf rustlings -d 5 'exercises.*\.rs$' | sort
+lf rustlings -S -d 5 'exercises.*\.rs$'

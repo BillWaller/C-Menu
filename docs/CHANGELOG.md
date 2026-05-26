@@ -2,6 +2,21 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-05-25
+
+lf is coming along very well. To demonstrate its flexibility and power, I created a simple little script, ~/menuapp/bin/checkdir, to scan a specified directory and reports potential problems such as cyclic symbolic links, non-existent links, links that cannot be read due to lack of permissions, and other issues. The operative commands are listed below:
+
+```bash
+lf -L -H -T7 -D458 $dir
+lf -L -H -T7 -ps $dir
+```
+
+![checkdir output](../screenshots/checkdir.png)
+
+The script made 3 passes of 413,557 files in 1.163 seconds.
+
+This script is designed to help users identify and resolve issues with their file system. The output produced by lf is the error type, the file path, and the target of the symbolic link if applicable. The output can easily be converted into a script to remove or fix the problematic links, which can be a huge time saver. Both lf and find print errors, but in preliminary tests, both miss some files that lf catches. The script is available in the C-Menu repository, and it can be easily modified to suit specific needs. This is just one example of how lf can be used to create powerful and flexible file management tools. With lf, checkdir is just a bare starting point. Make it a sleuthing tool by adding more options to the lf command, such as -e to exclude certain files or directories, or -t to specify the types of files to check. The possibilities are endless, and with lf's speed and efficiency, you can quickly scan even large directories for potential issues.
+
 0.2.9 - 2026-05-16
 
 Performance improvements to lf have resulted in a significant increase in speed, especially when listing large directories. The improvements include optimized file system traversal and more efficient filtering of files based on the specified options. In benchmark testing, lf performed exceptionally well, and it is now one of the fastest file listing utilities available.

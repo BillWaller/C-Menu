@@ -1,0 +1,38 @@
+─────┬──────────────────────────────────────────────────────────────────────────
+     │ File: [1m/home/bill/menuapp/msrc/main.m[0m
+─────┼──────────────────────────────────────────────────────────────────────────
+   1 │ :                [33mAPPLICATIONS[0m
+   2 │ [32m#[0m
+   3 │ :     [33mFull[0m [33mScreen[0m (root) [33mShell[0m
+   4 │ !exec rsh
+   5 │ :   [33mWorkstation[0m [33mConfiguration[0m
+   6 │ !menu workstation_config.m
+   7 │ :   [33mDiagnostic[0m [33mTools[0m
+   8 │ !menu diag.m
+   9 │ :     [33mInstallment[0m [33mLoan[0m [33mCalculations[0m
+  10 │ !form iloan.f [35m-[0mi iloan.dat [35m-[0m[33mS[0m iloan [35m-[0m[33mR[0m [32m"[0m[32mview -S [0m[36m\"[0m[32mamort %%[0m[36m\"[0m[32m"[0m [35m-[0mo iloan.dat
+  11 │ :     [33mListener[0m [33mResearch[0m
+  12 │ !form listadd.f [35m-[0mi listadd.dat [35m-[0mo listadd.dat
+  13 │ :     [33mCash[0m [33mReceipts[0m
+  14 │ !form receipt.f [35m-[0mi receipt.dat [35m-[0mo receipt.dat
+  15 │ :     [33mForm[0m [33mData[0m [33mTypes[0m
+  16 │ !form [35m-[0md fields.f [35m-[0mi fields.dat [35m-[0mo fields.dat
+  17 │ :     [33mRustlings[0m [33mSource[0m
+  18 │ !pick [35m-[0m[33mS[0m [32m"[0m[32mlf rustlings -S -d 5 [0m[36m\"[0m[32mexercises.*[0m[36m\.[0m[32mrs$[0m[36m\"[0m[32m"[0m [35m-[0mn [33m1[0m [35m-[0m[33mT[0m [32m"[0m[32mRustlings Source - Edit[0m[32m"[0m [35m-[0mc nvim [35m%[0m[35m%[0m
+  19 │ :     [33mEdit[0m .c [33mFiles[0m [35min[0m [33mCurrent[0m [33mDirectory[0m
+  20 │ !pick [35m-[0m[33mS[0m project_src [35m-[0m[33mT[0m [32m"[0m[32mProject Tree - Select File to Edit[0m[32m"[0m [35m-[0mc nvim [35m%[0m[35m%[0m
+  21 │ :     [33mView[0m [33mC[0m[35m-[0m[33mMenu[0m [33mSource[0m [35mwith[0m [33mTree[0m[35m-[0m[33mSitter[0m
+  22 │ !pick [35m-[0m[33mS[0m project_src [35m-[0mn [33m1[0m [35m-[0m[33mT[0m [32m"[0m[32mSelect Project Source to Highlight[0m[32m"[0m [35m-[0mc [32m"[0m[32mview -L 60 -C 85 -S [0m[36m\"[0m[32mtree-sitter highlight %%[0m[36m\"[0m[32m"[0m
+  23 │ :     [33mView[0m [33mSource[0m [35mwith[0m [33mTree[0m[35m-[0m[33mSitter[0m
+  24 │ !pick [35m-[0m[33mS[0m [32m"[0m[32mlf -S -d 5 . [0m[36m\"[0m[32m.*[0m[36m\.[0m[32m(rs|c|h|sh|lua|py|cpp|js|html|css)$[0m[36m\"[0m[32m"[0m [35m-[0mn [33m1[0m [35m-[0m[33mT[0m [32m"[0m[32mSelect Source File to Highlight[0m[32m"[0m [35m-[0mc [32m"[0m[32mview -L 60 -C 85 -S [0m[36m\"[0m[32mtree-sitter highlight %%[0m[36m\"[0m[32m"[0m
+  25 │ :     [33mView[0m [33mData[0m [33mTypes[0m [33mHelp[0m [33mFile[0m
+  26 │ !view [35m-[0m[33mNf[0m [35m-[0m[33mL47[0m [35m-[0m[33mC85[0m [35m-[0m[33mS[0m [32m"[0m[32mbat --theme ansi -l Crystal -f ~/menuapp/help/fields.hlp[0m[32m"[0m
+  27 │ :     [33mMenu[0m [33mDescription[0m [33mWith[0m [33mBat[0m [33mSyntax[0m [33mHighlighting[0m
+  28 │ !view [35m-[0m[33mNf[0m [35m-[0m[33mL39[0m [35m-[0m[33mC85[0m [35m-[0m[33mS[0m [32m"[0m[32mbat --theme ansi -l Crystal -f ~/menuapp/msrc/main.m[0m[32m"[0m
+  29 │ :     [33mView[0m [33mC[0m[35m-[0m[33mMenu[0m [33mCommand[0m [33mLine[0m [33mOptions[0m
+  30 │ !view [35m-[0m[33mNf[0m [35m-[0m[33mL66[0m [35m-[0m[33mC75[0m [35m~[0m[36m/[0m[36mmenuapp[0m[36m/[0mhelp[35m/[0mmenu.help
+  31 │ :     [33mView[0m [33mHighlighted[0m view_engine.c
+  32 │ !view [35m-[0m[33mN[0m [35m-[0m[33mL66[0m [35m-[0m[33mC85[0m [35m~[0m[36m/[0m[36mmenuapp[0m[36m/[0mhelp[35m/[0mview_engine.c
+  33 │ :     [33mExit[0m [33mApplications[0m
+  34 │ ![35mreturn[0m
+─────┴──────────────────────────────────────────────────────────────────────────

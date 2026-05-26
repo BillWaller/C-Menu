@@ -1,0 +1,20 @@
+#!/bin/bash
+# @name nmi_watchdog
+# @desc Enable or disable nmi_watchdog
+# @usage nmi_watchdog [enable|disable]
+#
+if [ "$(id -un)" != "root" ]; then
+    echo Please run as root
+    exit 1
+fi
+if [ "$1" = "disable" ]; then
+    echo 0 >/proc/sys/kernel/nmi_watchdog
+    echo nmi_watchdog disabled
+else
+    if [ "$1" = "enable" ]; then
+        echo 1 >/proc/sys/kernel/nmi_watchdog
+        echo nmi_watchdog enabled
+    else
+        echo usage: "$0" [enable][disable]
+    fi
+fi

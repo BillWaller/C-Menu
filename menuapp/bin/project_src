@@ -9,4 +9,4 @@ else
     echo "Error: CMENU_SRC environment variable is not set or points to a non-existent directory."
     exit 1
 fi
-lf -d 5 "$CMENU_SRC" '.*\.(h|c|rs|sh|cpp)$' | sort
+lf -S -d 5 "$CMENU_SRC" '.*\.(h|c|rs|sh|cpp)$'
