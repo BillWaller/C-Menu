@@ -46,19 +46,19 @@ extern int cmenu_log_fd;
    expressions without risking unintended consequences from multiple
    evaluations.
  */
-#define max(a, b)                                                              \
-    ({                                                                         \
-        typeof(a) _a = (a);                                                    \
-        typeof(b) _b = (b);                                                    \
-        _a > _b ? _a : _b;                                                     \
+#define max(a, b)           \
+    ({                      \
+        typeof(a) _a = (a); \
+        typeof(b) _b = (b); \
+        _a > _b ? _a : _b;  \
     })
 /** @brief min macro evaluates two expressions, returning least result */
-#define min(x, y)                                                              \
-    ({                                                                         \
-        typeof(x) _x = (x);                                                    \
-        typeof(y) _y = (y);                                                    \
-        (void)(&_x == &_y);                                                    \
-        _x < _y ? _x : _y;                                                     \
+#define min(x, y)           \
+    ({                      \
+        typeof(x) _x = (x); \
+        typeof(y) _y = (y); \
+        (void)(&_x == &_y); \
+        _x < _y ? _x : _y;  \
     })
 /**
  */
@@ -76,22 +76,22 @@ extern int cmenu_log_fd;
     @endcode
     @note The following macro provides a safer alternative to param.h
  */
-#define MAX(a, b)                                                              \
-    ({                                                                         \
-        typeof(a) _a = (a);                                                    \
-        typeof(b) _b = (b);                                                    \
-        _a > _b ? _a : _b;                                                     \
+#define MAX(a, b)           \
+    ({                      \
+        typeof(a) _a = (a); \
+        typeof(b) _b = (b); \
+        _a > _b ? _a : _b;  \
     })
 /** @brief MAX macro for compatibility with code that uses the same name,
    while avoiding multiple evaluations of the arguments.
     @note The following macro provides a safer alternative to param.h
  */
-#define MIN(x, y)                                                              \
-    ({                                                                         \
-        typeof(x) _x = (x);                                                    \
-        typeof(y) _y = (y);                                                    \
-        (void)(&_x == &_y);                                                    \
-        _x < _y ? _x : _y;                                                     \
+#define MIN(x, y)           \
+    ({                      \
+        typeof(x) _x = (x); \
+        typeof(y) _y = (y); \
+        (void)(&_x == &_y); \
+        _x < _y ? _x : _y;  \
     })
 /** @brief ABS macro for absolute value, which evaluates the expression once and
    returns the absolute value.
@@ -101,20 +101,20 @@ extern int cmenu_log_fd;
    once when the macro is expanded. The use of typeof allows the macro to work
    with any data type that supports comparison with zero and negation.
  */
-#define ABS(x)                                                                 \
-    ({                                                                         \
-        __typeof__(x) _a = (x);                                                \
-        _a < 0 ? -_a : _a;                                                     \
+#define ABS(x)                  \
+    ({                          \
+        __typeof__(x) _a = (x); \
+        _a < 0 ? -_a : _a;      \
     })
-#define S_TOLOWER(c)                                                           \
-    ({                                                                         \
-        int __c = (c);                                                         \
-        (__c >= 'A' && __c <= 'Z') ? (__c + ('a' - 'A')) : __c;                \
+#define S_TOLOWER(c)                                            \
+    ({                                                          \
+        int __c = (c);                                          \
+        (__c >= 'A' && __c <= 'Z') ? (__c + ('a' - 'A')) : __c; \
     })
-#define S_TOUPPER(c)                                                           \
-    ({                                                                         \
-        int __c = (c);                                                         \
-        (__c >= 'a' && __c <= 'z') ? (__c - ('a' - 'A')) : __c;                \
+#define S_TOUPPER(c)                                            \
+    ({                                                          \
+        int __c = (c);                                          \
+        (__c >= 'a' && __c <= 'z') ? (__c - ('a' - 'A')) : __c; \
     })
 
 /**
@@ -172,30 +172,45 @@ typedef enum {
 } LFFlags;
 
 /** byte 2 - bits 16-23 File types*/
-// typedef enum {
-//     FT_BLK = 0b00000001,    /**< 1 block device */
-//     FT_CHR = 0b00000010,    /**< 2 character device */
-//     FT_DIR = 0b00000100,    /**< 4 directory */
-//     FT_FIFO = 0b00001000,   /**< 8 named pipe */
-//     FT_LNK = 0b00010000,    /**< 16 link */
-//     FT_REG = 0b00100000,    /**< 32 regular file */
-//     FT_SOCK = 0b01000000,   /**< 64 socket */
-//     FT_UNKNOWN = 0b10000000 /**< 128 unknown */
-// } FTypes;
+typedef enum {
+    LF_FIFO = 0b00000001,   /**<   1 named pipe */
+    LF_CHR = 0b00000010,    /**<   2 character device */
+    LF_DIR = 0b00000100,    /**<   4 directory */
+    LF_BLK = 0b00001000,    /**<   8 block */
+    LF_REG = 0b00010000,    /**<  16 regular file */
+    LF_LNK = 0b00100000,    /**<  32 link */
+    LF_SOCK = 0b01000000,   /**<  64 socket */
+    LF_UNKNOWN = 0b10000000 /**< 128 unknown */
+} LFTypes;
+
+/*
+ * dirent d_type to lf_type for reference
+------------------------   --------------------
+d_type      binary   dec   lf_type     binary   dec ordinal
+---------   -------- ---   ----------- -------- --- -------
+DT_FIFO:    00000001   1   LF_FIFO:    00000001   1     1
+DT_CHR:     00000010   2   LF_CHR:     00000010   2     2
+DT_DIR:     00000100   4   LF_DIR:     00000100   4     3
+DT_BLK:     00000110   6   LF_BLK:     00001000   8     4
+DT_REG:     00001000   8   LF_REG:     00010000  16     5
+DT_LNK:     00001010  10   LF_LNK:     00100000  32     6
+DT_SOCK:    00001100  12   LF_SOCK:    01000000  64     7
+DT_UNKNOWN: 00001110  14   LF_UNKNOWN: 10000000 128     8
+    */
 
 #define F_NO_STDERR 1
 
 /**
                       Include     Exclude
                      ----------  ----------
-    FT_BLK        1  0 00000001  7 11111110 block device
-    FT_CHR        2  1 00000010  6 11111101 character device
-    FT_DIR        4  2 00000100  5 11111011 directory
-    FT_FIFO       8  3 00001000  4 11110111 named pipe
-    FT_LNK       16  4 00010000  3 11101111 link
-    FT_REG       32  5 00100000  2 11011111 regular file
-    FT_SOCK      64  6 01000000  1 10111111 socket
-    FT_UNKNOWN  128  7 10000000  0 01111111 unknown
+    LF_FIFO       1  0 00000001  7 11111110 named pipe
+    LF_CHR        2  1 00000010  6 11111101 character device
+    LF_DIR        4  2 00000100  5 11111011 directory
+    LF_BLK        8  3 00001000  4 11110111 block device
+    LF_REG       16  4 00010000  3 11101111 regular file
+    LF_LNK       32  5 00100000  2 11011111 link
+    LF_SOCK      64  6 01000000  1 10111111 socket
+    LF_UNKNOWN  128  7 10000000  0 01111111 unknown
 */
 
 #define COLOR_LEN 8 /**< length of color code strings */
@@ -212,14 +227,14 @@ typedef enum {
     called on program exit. This will help ensure that the terminal is properly
     restored to its original state, even if the program encounters an error or
     is terminated unexpectedly. */
-#define __atexit                                                               \
-    {                                                                          \
-        int rc;                                                                \
-        rc = atexit(end_pgm);                                                  \
-        if (rc != 0) {                                                         \
-            fprintf(stderr, "\nCannot set exit function\n");                   \
-            exit(EXIT_FAILURE);                                                \
-        }                                                                      \
+#define __atexit                                             \
+    {                                                        \
+        int rc;                                              \
+        rc = atexit(end_pgm);                                \
+        if (rc != 0) {                                       \
+            fprintf(stderr, "\nCannot set exit function\n"); \
+            exit(EXIT_FAILURE);                              \
+        }                                                    \
     }
 
 /** @struct Chyron
@@ -245,8 +260,8 @@ typedef enum {
    and sets the global variables cliek_y and click_x to the coordinates of the
    mouse click.
  */
-#define CHYRON_KEY_MAXLEN                                                      \
-    64                 /**< maximum length of the command text for a key       \
+#define CHYRON_KEY_MAXLEN                                                \
+    64                 /**< maximum length of the command text for a key \
                           binding in the chyron */
 #define CHYRON_KEYS 20 /**< maximum number of key bindings for the chyron */
 
@@ -254,15 +269,15 @@ typedef struct {
     char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code
                                    */
     int keycode;                  /**< key code associated with the command */
-    int end_pos; /**< end position of the command text in the chyron */
-    int cp;      /**< color pair index for the command text in the chyron */
+    int end_pos;                  /**< end position of the command text in the chyron */
+    int cp;                       /**< color pair index for the command text in the chyron */
 } ChyronKey;
 
 typedef struct {
     ChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
-    char s[MAXLEN]; /**< the chyron string, for displaying messages in */
-    cchar_t cmplx_buf[MAXLEN]; /**< the chyron wide character string */
-    int l; /**< length of the chyron string, for display purposes */
+    char s[MAXLEN];              /**< the chyron string, for displaying messages in */
+    cchar_t cmplx_buf[MAXLEN];   /**< the chyron wide character string */
+    int l;                       /**< length of the chyron string, for display purposes */
 } Chyron;
 
 extern int xwgetch(WINDOW *, Chyron *, int);
@@ -297,23 +312,23 @@ typedef struct {
 #define LN_COLOR 4    /**< default line number color */
 #define LN_BG_COLOR 7 /**< default line number background */
 
-extern int cp_default;   /**< default color pair index */
-extern int cp_norm;      /**< normal color pair index */
-extern int cp_win;       /**< window color pair index */
-extern int cp_box;       /**< box color pair index */
-extern int cp_bold;      /**< bold color pair index */
-extern int cp_title;     /**< title color pair index */
-extern int cp_highlight; /**< highlight color pair index */
-extern int cp_nt;        /**< reverse color pair index */
-extern int cp_nt_rev;    /**< reverse color pair index */
-extern int cp_nt_hl;     /**< highlight color pair index */
-extern int cp_nt_hl_rev; /**< reverse highlight color pair index */
-extern int cp_ln;        /**< line number color pair index */
-extern int cp_ln_bg;     /** line number background color pair index */
-extern int clr_idx;      /**< current color index */
-extern int clr_cnt;      /**< number of colors used */
-extern int clr_pair_idx; /**< current color pair index */
-extern int clr_pair_cnt; /**< number of color pairs supported by the terminal */
+extern int cp_default;               /**< default color pair index */
+extern int cp_norm;                  /**< normal color pair index */
+extern int cp_win;                   /**< window color pair index */
+extern int cp_box;                   /**< box color pair index */
+extern int cp_bold;                  /**< bold color pair index */
+extern int cp_title;                 /**< title color pair index */
+extern int cp_highlight;             /**< highlight color pair index */
+extern int cp_nt;                    /**< normal color pair index */
+extern int cp_nt_rev;                /**< reverse color pair index */
+extern int cp_nt_hl;                 /**< highlight color pair index */
+extern int cp_nt_hl_rev;             /**< highlight reverse color pair index */
+extern int cp_ln;                    /**< line number color pair index */
+extern int cp_ln_bg;                 /** line number background color pair index */
+extern int clr_idx;                  /**< current color index */
+extern int clr_cnt;                  /**< number of colors used */
+extern int clr_pair_idx;             /**< current color pair index */
+extern int clr_pair_cnt;             /**< number of color pairs supported by the terminal */
 extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
 
 /** @struct ColorPair
@@ -365,21 +380,21 @@ extern bool mk_dir(char *dir);
 extern int segmentation_fault();
 extern cchar_t mkccc(int, attr_t, char *);
 
-extern cchar_t CCC_NORM;      /**< normal color pair complex character */
-extern cchar_t CCC_NT;        /**< normal text pair complex character */
-extern cchar_t CCC_NT_REV;    /**< normal text reverse */
-extern cchar_t CCC_NT_HL;     /**< normal text reverse */
-extern cchar_t CCC_NT_HL_REV; /**< normal text highlight reverse */
-extern cchar_t CCC_WIN;       /**< window color pair complex character */
-extern cchar_t CCC_BOX;       /**< box color pair complex character */
-extern cchar_t CCC_REVERSE;   /**< reverse color pair complex character */
-extern cchar_t CCC_LN;        /* line number color pair complex character */
+extern cchar_t CCC_NORM;      /**< curses default */
+extern cchar_t CCC_REVERSE;   /**< curses default reverse */
+extern cchar_t CCC_NT;        /**< C-Menu normal text */
+extern cchar_t CCC_NT_REV;    /**< reverse */
+extern cchar_t CCC_NT_HL;     /**< highlight */
+extern cchar_t CCC_NT_HL_REV; /**< highlight reverse */
+extern cchar_t CCC_WIN;       /**< curses default */
+extern cchar_t CCC_BOX;       /**< box colors */
+extern cchar_t CCC_LN;        /* line numbers */
 extern cchar_t CCC_BRKTL;     /* left field bracket */
 extern cchar_t CCC_BRKTR;     /* right field bracket */
 
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */
-#define XTERM_256COLOR /**< use xterm-256color terminfo for altkey bindings */
+#define XTERM_256COLOR                /**< use xterm-256color terminfo for altkey bindings */
 /**
     EXTENDED NCURSES KEYS
 
@@ -510,12 +525,12 @@ extern void open_cmenu_log();
 extern FILE *cmenu_log_fp;
 extern int n_lines; /**< number of lines in the terminal */
 extern int n_cols;  /**< number of columns in the terminal */
-extern int lines; /**< current number of lines (may be less than n_lines if the
-                       terminal is resized) */
-extern int cols;  /**< current number of columns (may be less than n_cols if the
-                       terminal is resized) */
-extern int begx;  /**< beginning x coordinate of the terminal */
-extern int begy;  /**< beginning y coordinate of the terminal */
+extern int lines;   /**< current number of lines (may be less than n_lines if the
+                         terminal is resized) */
+extern int cols;    /**< current number of columns (may be less than n_cols if the
+                         terminal is resized) */
+extern int begx;    /**< beginning x coordinate of the terminal */
+extern int begy;    /**< beginning y coordinate of the terminal */
 
 #define MAXWIN 30 /**< maximum number of windows that can be created */
 typedef unsigned char uchar;
@@ -529,7 +544,7 @@ extern WINDOW *win; /**< generic window pointer, used for various purposes */
 extern WINDOW
     *win_win[MAXWIN]; /**< array of pointers to windows, indexed by window ID */
 extern WINDOW *
-    win_win2[MAXWIN]; /**< array of pointers to windows, indexed by window ID */
+    win_win2[MAXWIN];           /**< array of pointers to windows, indexed by window ID */
 extern WINDOW *win_box[MAXWIN]; /**< array of pointers to box windows, indexed
                                    by window ID */
 
@@ -560,8 +575,8 @@ extern int
     mbegy; /**< beginning y coordinate of the current window, which can be used
               to determine the position of the window on the terminal screen. */
 extern int
-    mbegx; /**< beginning x coordinate of the current window, which can be used
-              to determine the position of the window on the terminal screen. */
+    mbegx;            /**< beginning x coordinate of the current window, which can be used
+                         to determine the position of the window on the terminal screen. */
 extern int mg_action; /**< action in progress, which can be used to keep track
                          of the current state of the program and determine how
                          to respond to user input or other events. */
@@ -572,22 +587,22 @@ extern int
     mg_line; /**< window line, which can be used to determine the current line
                 position in the window for displaying text or other content. */
 /** to_uppercase(c) - convert a lowercase letter to uppercase */
-#define to_uppercase(c)                                                        \
-    if (c >= 'a' && c <= 'z')                                                  \
+#define to_uppercase(c)       \
+    if (c >= 'a' && c <= 'z') \
     c -= ' '
 /** to_lowercase(c) - convert an uppercase letter to lowercase */
-#define to_lowercase(c)                                                        \
-    if (c >= 'A' && c <= 'Z')                                                  \
+#define to_lowercase(c)       \
+    if (c >= 'A' && c <= 'Z') \
     c += ' '
 extern int tty_fd; /**< the file descriptor for the terminal, for error messages
                       and other output */
 extern int
-    dbgfd; /**< the file descriptor for debug output, for debugging purposes */
-extern int src_line;    /**< the line number of the source file being processed,
-                           for error messages */
-extern char *src_name;  /**< the name of the source file being processed, for
-                           error messages */
-extern char fn[MAXLEN]; /**< function name for error messages */
+    dbgfd;               /**< the file descriptor for debug output, for debugging purposes */
+extern int src_line;     /**< the line number of the source file being processed,
+                            for error messages */
+extern char *src_name;   /**< the name of the source file being processed, for
+                            error messages */
+extern char fn[MAXLEN];  /**< function name for error messages */
 extern char em0[MAXLEN]; /**< error message string for error messages */
 extern char em1[MAXLEN]; /**< error message string for error messages */
 extern char em2[MAXLEN]; /**< error message string for error messages */
@@ -621,8 +636,8 @@ typedef struct {
    @brief The Argv structure represents an argument vector, which is an array of
    Arg structures, along with the number of allocated elements in the array. */
 typedef struct {
-    Arg **v; /**< pointer to an array of Arg pointers, representing the argument
-                vector */
+    Arg **v;  /**< pointer to an array of Arg pointers, representing the argument
+                 vector */
     size_t n; /**< allocated array elements */
 } Argv;
 /** @struct String
@@ -654,8 +669,8 @@ typedef struct {
     size_t l;   /**< allocated length */
 } CCStr;
 /** simple macro to convert a character to uppercase */
-#define to_uppercase(c)                                                        \
-    if (c >= 'a' && c <= 'z')                                                  \
+#define to_uppercase(c)       \
+    if (c >= 'a' && c <= 'z') \
     c -= ' '
 /** @struct SIO
     @brief The SIO structure encapsulates various aspects of the terminal's
@@ -800,7 +815,7 @@ extern int answer_yn(char *, char *, char *, char *);
 extern int display_ok_message(char *);
 extern int Perror(char *);
 extern void user_end();
-extern unsigned long long a_to_ull(const char *);
+extern unsigned long a_to_ul(const char *);
 extern size_t canonicalize_file_spec(char *);
 extern bool construct_file_spec(char *, char *, char *, char *, char *, int);
 extern bool file_spec_path(char *, char *);

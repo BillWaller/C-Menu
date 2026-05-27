@@ -561,9 +561,9 @@ int a_toi(char *s, bool *a_toi_error) {
    the optional suffix), this function returns 0. The caller must ensure that
    the input string is a valid representation of an unsigned long long integer
    with an optional suffix before calling this function. */
-unsigned long long a_to_ull(const char *str) {
+unsigned long a_to_ul(const char *str) {
     char *endptr;
-    unsigned long long value = strtoull(str, &endptr, 10);
+    unsigned long value = (unsigned long)strtoull(str, &endptr, 10);
     if (endptr == str)
         return 0;
     switch (tolower(*endptr)) {

@@ -7,20 +7,6 @@
     @date 2026-02-09
  */
 
-/** @defgroup fields Field Edit and Entry
-    @brief Functions for handling field editing and entry
-    @details This module provides functions for handling field editing and entry
-   within in the C-Menu Form library. It includes functionality for accepting
-   user input for fields, displaying fields, formatting field content based on
-   specified formats, validating field input, and creating filler strings for
-   fields. The module supports various field formats such as strings, decimal
-   integers, hexadecimal integers, floating-point numbers, currency, dates, and
-   times. It also handles user interactions such as navigation keys and mouse
-   events for editing fields. The functions in this module are designed to be
-   used in conjunction with the overall C-Menu Form library to create
-   interactive forms in a text-based user interface.
- */
-
 #include <common.h>
 #include <monetary.h>
 #include <stdbool.h>
@@ -37,8 +23,8 @@ void numeric(char *, char *);
 void right_justify(char *, int);
 void left_justify(char *);
 
-char ff_tbl[][26] = {"string",   "decimal_int", "hex_int", "float", "double",
-                     "currency", "yyyymmdd",    "hhmmss",  "apr",   ""};
+char ff_tbl[][26] = {"string", "decimal_int", "hex_int", "float", "double",
+                     "currency", "yyyymmdd", "hhmmss", "apr", ""};
 
 int field_editor(Form *);
 int form_display_field(Form *);

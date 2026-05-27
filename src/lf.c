@@ -55,7 +55,7 @@ int nthreads;
 // Search Filters
 typedef struct {
     uintmax_t user_id;
-    intmax_t file_size_min;
+    off_t file_size_min;
     long flags;
     time_t after;
     time_t before;
@@ -293,8 +293,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         f->sort = true;
         break;
     case 's':
-        long long ull = a_to_ull(arg);
-        f->file_size_min = (intmax_t)ull;
+        f->file_size_min = (intmax_t)(a_to_ul(arg));
         break;
     case 'T':
         if (arg && arg[0] != '\0')
@@ -305,30 +304,30 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         while (file_types_p[i]) {
             switch (file_types_p[i++]) {
             case 'b':
-                f->include_types |= DT_BLK;
+                f->include_types |= LF_BLK;
                 break;
             case 'c':
-                f->include_types |= DT_CHR;
+                f->include_types |= LF_CHR;
                 break;
             case 'd':
-                f->include_types |= DT_DIR;
+                f->include_types |= LF_DIR;
                 break;
             case 'p':
-                f->include_types |= DT_FIFO;
+                f->include_types |= LF_FIFO;
                 break;
             case 'l':
-                f->include_types |= DT_LNK;
+                f->include_types |= LF_LNK;
                 break;
             case 'f': // for regular files, 'f' is more intuitive than 'r'
             case 'r': // regular files are the most common type, so 'r' is also
                       // accepted
-                f->include_types |= DT_REG;
+                f->include_types |= LF_REG;
                 break;
             case 's':
-                f->include_types |= DT_SOCK;
+                f->include_types |= LF_SOCK;
                 break;
             case 'u':
-                f->include_types |= DT_UNKNOWN;
+                f->include_types |= LF_UNKNOWN;
                 break;
             default:
                 break;
@@ -338,14 +337,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'u':
         struct passwd *pwd = getpwnam(arg);
         if (pwd) {
-            if (pwd->pw_uid > 0xffff) {
-                fprintf(stderr,
-                        "User '%s' has UID %d which is too large for this "
-                        "program.\n",
-                        arg, pwd->pw_uid);
-                exit(EXIT_FAILURE);
-            }
-            f->flags |= (long)(pwd->pw_uid) << 24;
+            f->user_id = (uintmax_t)pwd->pw_uid;
             f->flags |= LF_USER;
         } else {
             fprintf(stderr, "User '%s' not found.\n", arg);
@@ -490,9 +482,6 @@ void sort_lf_output(SearchFilters *f) {
    complete before cleaning up resources and returning.
    */
 bool init_find(SearchFilters *f) {
-    if (f->flags & LF_USER)
-        f->user_id = f->flags >> 24 & 0xffff;
-    f->include_types = f->flags >> 8 & 0xff;
     /** suppress file types that aren't included */
     if (f->include_types)
         f->suppress_types = f->include_types ^ 0xff;
@@ -527,26 +516,69 @@ bool init_find(SearchFilters *f) {
         nthreads = max(1, n / 2 - 1);
     else if (nthreads > n)
         nthreads = n - 1;
-    if (f->debug && (f->report_config || f->report_all)) {
-        fprintf(stderr, "debug=%d\n", f->debug);
-        fprintf(stderr, "  1-report_config %s\n",
+    if (f->debug && (f->report_config || f->report_info || f->report_all)) {
+        fprintf(stderr, "%s\n", CM_VERSION);
+        fprintf(stderr, "lf debug=%d\n", f->debug);
+        fprintf(stderr, "  1-config %s\n",
                 f->report_config ? "true" : "false");
-        fprintf(stderr, "  2-report_info %s\n",
+        fprintf(stderr, "  2-info %s\n",
                 f->report_info ? "true" : "false");
-        fprintf(stderr, "  3-report_warnings %s\n",
+        fprintf(stderr, "  3-warnings %s\n",
                 f->report_warnings ? "true" : "false");
-        fprintf(stderr, "  4-report_errors %s\n",
+        fprintf(stderr, "  4-errors %s\n",
                 f->report_errors ? "true" : "false");
-        fprintf(stderr, "  5-bad links %s\n",
+        fprintf(stderr, "  5-badlinks %s\n",
                 f->report_trace ? "true" : "false");
-        fprintf(stderr, "  6-report_trace %s\n",
+        fprintf(stderr, "  6-trace %s\n",
                 f->report_trace ? "true" : "false");
-        fprintf(stderr, "  7-report_all %s\n",
+        fprintf(stderr, "  7-all %s\n",
                 f->report_all ? "true" : "false");
-        fprintf(stderr, "Starting search in: %s\n", f->base_path);
+        fprintf(stderr, "  8-only_errors %s\n",
+                f->report_all ? "true" : "false");
+        fprintf(stderr, "Search directory: %s\n", f->base_path);
         fprintf(stderr, "Using %d threads\n", nthreads);
-        fprintf(stderr, " include_types=%08b\n", f->include_types);
-        fprintf(stderr, "suppress_types=%08b\n", f->suppress_types);
+        if (!f->include_types)
+            fprintf(stderr, " include_types=all\n");
+        else {
+            fprintf(stderr, " include_types=%08b\n", f->include_types);
+            if (f->include_types & LF_FIFO)
+                fprintf(stderr, "     %08b pipe\n", LF_FIFO);
+            if (f->include_types & LF_CHR)
+                fprintf(stderr, "     %08b character\n", LF_CHR);
+            if (f->include_types & LF_DIR)
+                fprintf(stderr, "     %08b directory\n", LF_DIR);
+            if (f->include_types & LF_BLK)
+                fprintf(stderr, "     %08b block\n", LF_BLK);
+            if (f->include_types & LF_REG)
+                fprintf(stderr, "     %08b regular\n", LF_REG);
+            if (f->include_types & LF_LNK)
+                fprintf(stderr, "     %08b link\n", LF_LNK);
+            if (f->include_types & LF_SOCK)
+                fprintf(stderr, "     %08b socket\n", LF_SOCK);
+            if (f->include_types & LF_UNKNOWN)
+                fprintf(stderr, "     %08b unknown\n", LF_UNKNOWN);
+        }
+        if (!f->suppress_types)
+            fprintf(stderr, " suppress_types=none\n");
+        else {
+            fprintf(stderr, "suppress_types=%08b\n", f->suppress_types);
+            if (f->suppress_types & LF_FIFO)
+                fprintf(stderr, "     %08b named pipe\n", LF_FIFO);
+            if (f->suppress_types & LF_CHR)
+                fprintf(stderr, "     %08b character\n", LF_CHR);
+            if (f->suppress_types & LF_DIR)
+                fprintf(stderr, "     %08b directory\n", LF_DIR);
+            if (f->suppress_types & LF_BLK)
+                fprintf(stderr, "     %08b block\n", LF_BLK);
+            if (f->suppress_types & LF_REG)
+                fprintf(stderr, "     %08b regular\n", LF_REG);
+            if (f->suppress_types & LF_LNK)
+                fprintf(stderr, "     %08b link\n", LF_LNK);
+            if (f->suppress_types & LF_SOCK)
+                fprintf(stderr, "     %08b socket\n", LF_SOCK);
+            if (f->suppress_types & LF_UNKNOWN)
+                fprintf(stderr, "     %08b unknown\n", LF_UNKNOWN);
+        }
         if (f->flags & LF_REGEX)
             fprintf(stderr, "Include regex: %s\n", f->re);
         if (f->flags & LF_EXC_REGEX)
@@ -557,34 +589,24 @@ bool init_find(SearchFilters *f) {
             fprintf(stderr, "Modified after: %s", ctime(&f->after));
         if (f->before)
             fprintf(stderr, "Modified before: %s", ctime(&f->before));
-        if (f->file_size_min)
-            fprintf(stderr, "Minimum file size: %jd bytes\n",
-                    (intmax_t)f->file_size_min);
+        if (f->file_size_min) {
+            const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
+            off_t size = f->file_size_min;
+            int i = 0;
+            while (size >= 1024 && i < 6) {
+                size /= 1024;
+                i++;
+            }
+            char buffer[32];
+            ssnprintf(buffer, 32, "%ld %s", size, units[i]);
+            fprintf(stderr, "Minimum file size: %s\n", buffer);
+        }
         if (f->max_depth)
             fprintf(stderr, "Max depth: %d\n", f->max_depth);
         if (f->include_hidden)
             fprintf(stderr, "Include hidden files.\n");
         if (f->follow_links)
             fprintf(stderr, "Follow symbolic links.\n");
-        if (f->include_types) {
-            fprintf(stderr, "Included file types:");
-            if (f->include_types & DT_BLK)
-                fprintf(stderr, " block\n");
-            if (f->include_types & DT_CHR)
-                fprintf(stderr, " character\n");
-            if (f->include_types & DT_DIR)
-                fprintf(stderr, " directory\n");
-            if (f->include_types & DT_FIFO)
-                fprintf(stderr, " pipe\n");
-            if (f->include_types & DT_LNK)
-                fprintf(stderr, " link\n");
-            if (f->include_types & DT_REG)
-                fprintf(stderr, " regular\n");
-            if (f->include_types & DT_SOCK)
-                fprintf(stderr, " socket\n");
-            if (f->include_types & DT_UNKNOWN)
-                fprintf(stderr, " unknown\n");
-        }
         if (f->report_config && !f->report_all)
             exit(EXIT_SUCCESS);
     }

@@ -29,24 +29,25 @@
 #define NC true
 
 bool open_curses(SIO *);
+bool init_clr_palette(SIO *);
 void destroy_curses();
 int box_new(int, int, int, int, char *, bool);
 int box2_new(int, int, int, int, char *, bool);
+void cbox(WINDOW *);
+void cbox2(WINDOW *);
 int win_new(int, int, int, int);
 void win_redraw(WINDOW *);
 void win_resize(int, int, char *);
 WINDOW *win_del();
 void restore_wins();
-void cbox(WINDOW *);
-void cbox2(WINDOW *);
 void win_init_attrs();
-int Perror(char *);
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 void abend(int, char *);
 int nf_error(int, char *);
+int Perror(char *);
 int click_y;
 int click_x;
-WINDOW *mouse_win;
+
 void list_colors();
 int clr_name_to_idx(char *);
 void init_hex_clr(int, char *);
@@ -64,37 +65,34 @@ void unset_chyron_key(Chyron *, int);
 void compile_chyron(Chyron *);
 int get_chyron_key(Chyron *, int);
 Chyron *destroy_chyron(Chyron *chyron);
+Chyron *wait_mk_chyron();
+
 int mb_to_cc(cchar_t *, char *, attr_t, int, int *, int);
 
-Chyron *wait_mk_chyron();
-WINDOW *wait_mk_win(Chyron *, char *);
 int wait_continue(WINDOW *, Chyron *, int);
 bool wait_destroy(Chyron *);
-
 int xwgetch(WINDOW *, Chyron *, int);
-
-bool init_clr_palette(SIO *);
 cchar_t mkccc(int, attr_t, char *);
-SCREEN *screen;
 
+WINDOW *mouse_win;
+WINDOW *wait_mk_win(Chyron *, char *);
+SCREEN *screen;
 SIO *sio; /**< Global pointer to SIO struct for terminal and color settings */
 
 /** StdColors
     @details Standard 16 colors for xterm256 color conversions These colors can
    be overridden in ".minitrc" */
 RGB StdColors[16] = {
-    {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
-    {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
-    {128, 128, 128}, {255, 0, 0},   {0, 255, 0},   {255, 255, 0},
-    {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+    {0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 /** colors_text
     @brief Color names for .minitrc overrides
     @details These names are used in .minitrc to specify color overrides The
    order of these names corresponds to the ColorsEnum values */
 char const colors_text[][10] = {
-    "black",   "red",    "green", "yellow",   "blue",   "magenta", "cyan",
-    "white",   "orange", "bg",    "abg",      "bblack", "bred",    "bgreen",
-    "byellow", "bblue",  "bcyan", "bmagenta", "bwhite", "borange", ""};
+    "black", "red", "green", "yellow", "blue", "magenta", "cyan",
+    "white", "orange", "bg", "abg", "bblack", "bred", "bgreen",
+    "byellow", "bblue", "bcyan", "bmagenta", "bwhite", "borange", ""};
+
 const wchar_t bw_ho = BW_HO;   /**< horizontal line */
 const wchar_t bw_ve = BW_VE;   /**< vertical line */
 const wchar_t bw_tl = BW_RTL;  /**< top left corner */
@@ -177,224 +175,8 @@ FILE *ncurses_fp;
  */
 void win_init_attrs() { return; }
 
-/** @defgroup Chyron Chyron Management
-    @brief Create and manage the Chyron
- */
-
-/** @brief Create and initialize Chyron structure
-    @ingroup Chyron
-    @return pointer to new Chyron structure
-    @details This function allocates memory for a new Chyron structure and
-   initializes the key pointers. Each key pointer is allocated memory for a
-   ChyronKey structure. The Chyron structure is used to manage function key
-   labels and their associated keycodes for mouse click handling in the chyron
-   area of the interface.
-    The use of calloc ensures that the allocated memory is initialized to
-   zero, which means that the text for each key will be initialized to an empty
-   string and the keycodes will be initialized to zero. This allows the
-   is_set_chyron_key function to check if a key is set by checking if the first
-   character of the text is not '\0'. If any memory allocation fails, the
-   function will call abend to handle the error and return nullptr.
- */
-Chyron *new_chyron() {
-    Chyron *chyron = (Chyron *)calloc(1, sizeof(Chyron));
-    if (!chyron) {
-        abend(-1, "calloc chyron failed");
-        return nullptr;
-    }
-    for (int i = 0; i < CHYRON_KEYS; i++)
-        chyron->key[i] = (ChyronKey *)calloc(1, sizeof(ChyronKey));
-    return chyron;
-}
-/** @brief Destroy Chyron structure
-    @ingroup Chyron
-    @param chyron pointer to Chyron structure
-    @return nullptr
- */
-Chyron *destroy_chyron(Chyron *chyron) {
-    int i;
-
-    if (!chyron)
-        return nullptr;
-    for (i = 0; i < CHYRON_KEYS; i++) {
-        if (chyron->key[i])
-            free(chyron->key[i]);
-        chyron->key[i] = nullptr;
-    }
-    free(chyron);
-    chyron = nullptr;
-    return chyron;
-}
-/** @brief Check if function key label is set
-    @ingroup Chyron
-    @param chyron structure
-    @param k Function key index (0-19)
-    @return true if set, false if not set */
-bool is_set_chyron_key(Chyron *chyron, int k) {
-    if (chyron->key[k]->text[0] != '\0')
-        return true;
-    else
-        return false;
-}
-/** @brief Set chyron key with color pair (cp)
-    @ingroup Chyron
-    @param chyron structure
-    @param k chyron key index (0-19)
-    @param s chyron key label
-    @param kc chyron key code
-    @param cp color pair index for the key label
-    @details This function is like set_chyron_key, except it includes a color
-   pair numbers */
-void set_chyron_key_cp(Chyron *chyron, int k, char *s, int kc, int cp) {
-    if (*s != '\0')
-        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
-    else
-        chyron->key[k]->text[0] = '\0';
-    chyron->key[k]->keycode = kc;
-    chyron->key[k]->cp = cp;
-}
-void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
-    if (*s != '\0')
-        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
-    else
-        chyron->key[k]->text[0] = '\0';
-    chyron->key[k]->keycode = kc;
-    chyron->key[k]->cp = cp_nt_rev;
-}
-/** @brief Unset chyron key
-    @ingroup Chyron
-    @param chyron structure
-    @param k chyron_key index
-*/
-void unset_chyron_key(Chyron *chyron, int k) { chyron->key[k]->text[0] = '\0'; }
-/** @brief construct the chyron string from the chyron structure
-    @ingroup Chyron
-    @param chyron
-    @details The chyron string is constructed by concatenating the labels of the
-   set keys, separated by " | ". The end_pos values for each key are set to
-   determine the zones for mouse clicks. When a mouse click occurs, the
-   get_chyron_key function uses the end_pos values to determine which key was
-   clicked based on the X position of the click.
-*/
-void compile_chyron(Chyron *chyron) {
-    int end_pos = 0;
-    int k = 0;
-    int pos = 0;
-    int cp = cp_nt_rev;
-    cchar_t *cx;
-    while (k < CHYRON_KEYS) {
-        if (chyron->key[k]->text[0] == '\0') {
-            k++;
-            continue;
-        }
-        if (end_pos == 0) {
-            cx = chyron->cmplx_buf;
-            mb_to_cc(cx, " ", WA_NORMAL, cp_nt_rev, &pos, MAXLEN - 1);
-        } else {
-            mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_nt_rev, &pos,
-                     MAXLEN - 1);
-        }
-        cx = chyron->cmplx_buf;
-        cp = chyron->key[k]->cp;
-        mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
-        end_pos = pos;
-        chyron->l = end_pos;
-        chyron->key[k]->end_pos = end_pos;
-        k++;
-    }
-    mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
-    chyron->l = end_pos;
-}
-/** @brief Display chyron on window
-    @ingroup Chyron
-    @param win NCurses window to display chyron on
-    @param chyron Chyron structure containing the compiled chyron string
-    @param line Line number to display the chyron on
-    @param col Column number to start displaying the chyron from
-    @details This function clears the line where the chyron will be displayed,
-   then uses wadd_wchstr to add the compiled chyron string (cmplx_buf) to the
-   window. Finally, it moves the cursor to the specified column position.
-*/
-void display_chyron(WINDOW *win, Chyron *chyron, int line, int col) {
-    wmove(win, line, 0);
-    wclrtoeol(win);
-    wmove(win, line, 0);
-    wadd_wchstr(win, chyron->cmplx_buf);
-    wmove(win, line, col);
-    return;
-}
-/** @brief Convert multibyte string to complex character array
-    @ingroup Chyron
-    @param cmplx_buf Output buffer for complex characters
-    @param str Input multibyte string
-    @param attr Attributes to apply to the complex characters
-    @param cpx Color pair index for the complex characters
-    @param pos Pointer to current position in the output buffer, updated as
-   characters are added
-    @param maxlen Maximum length of the output buffer
-    @return Number of bytes processed from the input string
-    @details This function converts a multibyte string to an array of complex
-   characters (cchar_t) that can be used with NCurses functions. It handles
-   multibyte characters and applies the specified color pair to each character.
-   The pos parameter is updated to reflect the current position in the output
-   buffer, and the function ensures that it does not exceed the maximum length.
-*/
-int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
-             int maxlen) {
-    int i = 0, len = 0;
-    const char *s;
-    cchar_t cc = {0};
-    wchar_t wstr[2] = {L'\0', L'\0'};
-    mbstate_t mbstate;
-    memset(&mbstate, 0, sizeof(mbstate));
-    attr = WA_NORMAL;
-    if (*pos >= maxlen - 1)
-        return 0;
-    while (str[i] != '\0') {
-        s = &str[i];
-        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
-        if (len <= 0) {
-            wstr[0] = L'?';
-            wstr[1] = L'\0';
-            len = 1;
-        }
-        wstr[1] = L'\0';
-        if (*pos >= maxlen - 1)
-            break;
-        if (setcchar(&cc, wstr, attr, cpx, nullptr) != ERR) {
-            if (len > 0 && (*pos + len) < MAXLEN - 1)
-                cmplx_buf[(*pos)++] = cc;
-        }
-        i += len;
-    }
-    wstr[0] = L'\0';
-    wstr[1] = L'\0';
-    setcchar(&cc, wstr, attr, cpx, nullptr);
-    cmplx_buf[*pos] = cc;
-    return *pos;
-}
-/** @brief Get keycode from chyron
-    @ingroup Chyron
-    @param chyron structure
-    @param x Mouse X position
-    @return Keycode
-    @details This function uses the end_pos values set in compile_chyron
-    to determine which key was clicked.
-    The chyron functions provide xwgetch() with a mechanism to translate
-    mouse click positions into key codes based on the labels set in the chyron
-   structure. When a mouse click occurs, xwgetch() can call get_chyron_key()
-   with the X position of the click to determine which function key was clicked,
-   allowing for dynamic and customizable function key behavior in the chyron
-   area of the interface.
-*/
-int get_chyron_key(Chyron *chyron, int x) {
-    int i;
-    for (i = 0; chyron->key[i]->end_pos != -1; i++)
-        if (x < chyron->key[i]->end_pos)
-            break;
-    return chyron->key[i]->keycode;
-}
-/** @brief Initialize NCurses and color settings
+/** open_curses
+    @brief Initialize NCurses and color settings
     @ingroup window_support
     @param sio Pointer to SIO struct with terminal and color settings
     @return true if successful, false if error
@@ -407,7 +189,6 @@ int get_chyron_key(Chyron *chyron, int x) {
     2. opens a terminal device for NCurses screen IO
     3. replaces STDERR_FILENO with terminal file descriptor
     @endcode */
-
 bool open_curses(SIO *sio) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
@@ -461,6 +242,7 @@ bool open_curses(SIO *sio) {
     BLUE_GAMMA = sio->blue_gamma;
     GRAY_GAMMA = sio->gray_gamma;
 
+    // cp_ variables are indices for ncurses color pairs, created with get_clr_pair function. These color pairs are used to set the foreground and background colors for different elements of the interface, such as windows, text, and boxes. By defining these color pair indices as global variables, we can easily reference them throughout the code when applying colors to various parts of the interface using NCurses functions that accept color pair indices.
     cp_win = get_clr_pair(CLR_FG, CLR_BG);
     cp_norm = get_clr_pair(CLR_WHITE, CLR_BLACK);
     cp_nt = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
@@ -469,6 +251,7 @@ bool open_curses(SIO *sio) {
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
     cp_box = get_clr_pair(CLR_BO, CLR_BG);
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
+    // CCC_ variables are cchar_t versions of the color pairs, created with mkccc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
     CCC_NORM = mkccc(cp_norm, WA_NORMAL, " ");
     CCC_WIN = mkccc(cp_win, WA_NORMAL, " ");
     CCC_NT = mkccc(cp_nt, WA_NORMAL, " ");
@@ -492,7 +275,8 @@ bool open_curses(SIO *sio) {
     @brief Conversion of Color Data Types and Management of Colors and Color
    Pairs
  */
-/** @brief Get color pair index for foreground and background colors
+/** get_clr_pair
+    @brief Get color pair index for foreground and background colors
     @ingroup color_management
     @param fg Foreground color index
     @param bg Background color index
@@ -521,7 +305,8 @@ int get_clr_pair(int fg, int bg) {
         clr_pair_cnt++;
     return i;
 }
-/** @brief Get color index for RGB color
+/** rgb_to_curses_clr
+    @brief Get color index for RGB color
     @ingroup color_management
     @param rgb RGB color
     @return NCurses color index
@@ -547,7 +332,8 @@ int rgb_to_curses_clr(RGB *rgb) {
     }
     return ERR;
 }
-/** @brief Convert RGB color to XTerm 256 color index
+/** rgb_to_xterm256_idx
+    @brief Convert RGB color to XTerm 256 color index
     @ingroup color_management
     @param rgb RGB color
     @return XTerm 256 color index
@@ -569,7 +355,8 @@ int rgb_to_xterm256_idx(RGB *rgb) {
         return 16 + (36 * r_index) + (6 * g_index) + b_index;
     }
 }
-/** @brief Convert XTerm 256 color index to RGB color
+/** xterm256_idx_to_rgb
+    @brief Convert XTerm 256 color index to RGB color
     @ingroup color_management
     @param idx XTerm 256 color index
     @return RGB color
@@ -602,7 +389,8 @@ RGB xterm256_idx_to_rgb(int idx) {
     return rgb;
 }
 
-/** @brief Apply gamma correction to RGB color
+/** apply_gamma
+    @brief Apply gamma correction to RGB color
     @ingroup color_management
     @param rgb Pointer to RGB color
     @details This function modifies the RGB color in place. It applies gamma
@@ -626,7 +414,8 @@ void apply_gamma(RGB *rgb) {
     if (rgb->b != 0 && BLUE_GAMMA > 0.0f && BLUE_GAMMA != 1.0f)
         rgb->b = (int)(pow((rgb->b / 255.0f), 1.0f / BLUE_GAMMA) * 255.0f);
 }
-/** @brief Initialize color palette based on SIO settings
+/** init_clr_palette
+    @brief Initialize color palette based on SIO settings
     @ingroup color_management
     @param sio Pointer to SIO struct with color settings
     @return true if successful, false if error
@@ -706,7 +495,8 @@ bool init_clr_palette(SIO *sio) {
     clr_cnt = CLR_NCOLORS;
     return true;
 }
-/** @brief Initialize extended ncurses color from HTML style hex string
+/** init_hex_clr
+    @brief Initialize extended ncurses color from HTML style hex string
     @ingroup color_management
     @param idx Color index
     @param s Hex color string
@@ -729,7 +519,8 @@ void init_hex_clr(int idx, char *s) {
     rgb.b = (rgb.b * 1000) / 255;
     init_extended_color(idx, rgb.r, rgb.g, rgb.b);
 }
-/** @brief Convert six-digit HTML style hex color code to RGB struct
+/** hex_clr_str_to_rgb
+    @brief Convert six-digit HTML style hex color code to RGB struct
     @ingroup color_management
     @param s six-digit HTML style hex color code */
 RGB hex_clr_str_to_rgb(char *s) {
@@ -737,7 +528,8 @@ RGB hex_clr_str_to_rgb(char *s) {
     sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
     return rgb;
 }
-/** @brief Gracefully shut down NCurses and restore terminal settings
+/** destroy_curses
+    @brief Gracefully shut down NCurses and restore terminal settings
     @ingroup window_support
     @details This function should be called before exiting the program to ensure
    that the terminal is left in a usable state. It checks if NCurses was
@@ -770,7 +562,59 @@ void destroy_curses() {
     sig_dfl_mode();
     return;
 }
-/** @brief Create a cchar_t with the specified color pair index
+/** mb_to_cc
+    @brief Convert multibyte string to complex character array
+    @ingroup Chyron
+    @param cmplx_buf Output buffer for complex characters
+    @param str Input multibyte string
+    @param attr Attributes to apply to the complex characters
+    @param cpx Color pair index for the complex characters
+    @param pos Pointer to current position in the output buffer, updated as
+   characters are added
+    @param maxlen Maximum length of the output buffer
+    @return Number of bytes processed from the input string
+    @details This function converts a multibyte string to an array of complex
+   characters (cchar_t) that can be used with NCurses functions. It handles
+   multibyte characters and applies the specified color pair to each character.
+   The pos parameter is updated to reflect the current position in the output
+   buffer, and the function ensures that it does not exceed the maximum length.
+*/
+int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
+             int maxlen) {
+    int i = 0, len = 0;
+    const char *s;
+    cchar_t cc = {0};
+    wchar_t wstr[2] = {L'\0', L'\0'};
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    attr = WA_NORMAL;
+    if (*pos >= maxlen - 1)
+        return 0;
+    while (str[i] != '\0') {
+        s = &str[i];
+        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
+            len = 1;
+        }
+        wstr[1] = L'\0';
+        if (*pos >= maxlen - 1)
+            break;
+        if (setcchar(&cc, wstr, attr, cpx, nullptr) != ERR) {
+            if (len > 0 && (*pos + len) < MAXLEN - 1)
+                cmplx_buf[(*pos)++] = cc;
+        }
+        i += len;
+    }
+    wstr[0] = L'\0';
+    wstr[1] = L'\0';
+    setcchar(&cc, wstr, attr, cpx, nullptr);
+    cmplx_buf[*pos] = cc;
+    return *pos;
+}
+/** mkccc
+    @brief Create a cchar_t with the specified color pair index
     @ingroup color_management
     @param cp Color pair index
     @param attr Attributes to apply to the cchar_t
@@ -787,8 +631,61 @@ cchar_t mkccc(int cp, attr_t attr, char *s) {
     setcchar(&cc, wstr, attr, cp, nullptr);
     return cc;
 }
+/** mk_cmplx_str
+    @brief Convert a multibyte string to an array of cchar_t complex characters
+    @ingroup color_management
+    @param cmplx_buf Output buffer for complex characters (allocated within the
+   function)
+    @param s Input multibyte string
+    @param attr Attributes to apply to the complex characters
+    @param cp Color pair index for the complex characters
+    @return Number of bytes processed from the input string
+    @details This function converts a multibyte string to an array of complex
+   characters (cchar_t) that can be used with NCurses functions. It handles
+   multibyte characters and applies the specified color pair to each character.
+    @note cmplx_buf is allocated within the function and should be freed by the
+   caller when no longer needed. */
+size_t mk_cmplx_str(cchar_t *cmplx_buf, char *s, attr_t attr, int cp) {
+    cchar_t cc = {0};
+    wchar_t wstr[2] = {L'\0', L'\0'};
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    size_t len = strlen(s);
+    cmplx_buf = calloc(len + 1, sizeof(cchar_t));
 
-/** @brief Create a new window with optional box and title
+    while (*s != '\0') {
+        mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        setcchar(&cc, wstr, attr, cp, nullptr);
+        *cmplx_buf++ = cc;
+        s += mbrlen(s, MB_CUR_MAX, &mbstate);
+    }
+    wstr[0] = L'\0';
+    wstr[1] = L'\0';
+    setcchar(&cc, wstr, attr, cp, nullptr);
+    *cmplx_buf++ = cc;
+    return len;
+}
+/** display_cmplx_str
+    @brief Display a complex character string on a window
+    @ingroup color_management
+    @param win NCurses window to display the string on
+    @param cmplx_buf Array of cchar_t complex characters to display
+    @param line Line number to display the string on
+    @param col Column number to start displaying the string from
+    @details This function clears the line where the string will be displayed,
+   then uses wadd_wchstr to add the complex character string (cmplx_buf) to the
+   window. Finally, it moves the cursor to the specified column position. */
+void display_cmplx_str(WINDOW *win, cchar_t *cmplx_buf, int line, int col) {
+    wmove(win, line, 0);
+    wclrtoeol(win);
+    wmove(win, line, 0);
+    wadd_wchstr(win, cmplx_buf);
+    wmove(win, line, col);
+    return;
+}
+
+/** box2_new
+    @brief Create a new window with optional box and title
     @ingroup window_support
     @param wlines Number of lines
     @param wcols Number of columns
@@ -835,7 +732,8 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     }
     return 0;
 }
-/** @brief Create a new window with optional box and title
+/** box_new
+    @brief Create a new window with optional box and title
     @ingroup window_support
     @param wlines Number of lines
     @param wcols Number of columns
@@ -879,7 +777,8 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         win_new(wlines, wcols, wbegy, wbegx);
     return 0;
 }
-/** @brief Create a new window with specified dimensions and position
+/** win_new
+    @brief Create a new window with specified dimensions and position
     @ingroup window_support
     @param wlines Number of lines
     @param wcols Number of columns
@@ -904,7 +803,8 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
     scrollok(win_win[win_ptr], true);
     return 0;
 }
-/** @brief Create a new window with specified dimensions and position
+/** win2_new
+    @brief Create a new window with specified dimensions and position
     @ingroup window_support
     @param wlines Number of lines
     @param wcols Number of columns
@@ -928,7 +828,8 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
     idcok(win_win2[win_ptr], false);
     return 0;
 }
-/** @brief Resize the current window and its box, and update the title
+/** win_resize
+    @brief Resize the current window and its box, and update the title
     @ingroup window_support
     @param wlines Number of lines
     @param wcols Number of columns
@@ -970,7 +871,8 @@ void win_resize(int wlines, int wcols, char *title) {
     immedok(win_win[win_ptr], true);
 #endif
 }
-/** @brief Redraw the specified window
+/** win_redraw
+    @brief Redraw the specified window
     @ingroup window_support
     @param win Pointer to the window to redraw
     @details This function erases the contents of the specified window and then
@@ -980,7 +882,8 @@ void win_redraw(WINDOW *win) {
     werase(win);
     wnoutrefresh(win);
 }
-/** @brief Delete the current window and its associated box window
+/** win_del
+    @brief Delete the current window and its associated box window
     @ingroup window_support
     @return nullptr
     @details This function deletes the current window and its associated box
@@ -1019,7 +922,8 @@ WINDOW *win_del() {
     }
     return 0;
 }
-/** @brief Restore all windows after a screen resize
+/** restore_wins
+    @brief Restore all windows after a screen resize
     @ingroup window_support
     @details This function is used to restore the display of all windows after a
    screen resize event. It clears the standard screen and then iterates through
@@ -1041,7 +945,8 @@ void restore_wins() {
         wrefresh(win_win[i]);
     }
 }
-/** @brief Draw a box around the specified window
+/** cbox
+    @brief Draw a box around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
     @details This function uses NCurses functions to draw a box around the
@@ -1071,7 +976,8 @@ void cbox(WINDOW *box) {
         waddnwstr(box, &bw_ho, 1);
     waddnwstr(box, &bw_br, 1);
 }
-/** @brief Draw a box with a separator line around the specified window
+/** cbox2
+    @brief Draw a box with a separator line around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
     @details This function draws a box around the specified window, similar to
@@ -1124,7 +1030,8 @@ void cbox2(WINDOW *box) {
     @brief Display Error messages
  */
 
-/** @brief Accept a single letter answer
+/** answer_yn
+    @brief Accept a single letter answer
     @ingroup error_handling
     @param em0 First error message line
     @param em1 Second error message line
@@ -1184,7 +1091,8 @@ int answer_yn(char *em0, char *em1, char *em2, char *em3) {
     destroy_chyron(chyron);
     return (cmd_key);
 }
-/** @brief Display an error message window or print to stderr
+/** display_error
+    @brief Display an error message window or print to stderr
     @ingroup error_handling
     @param em0 First error message line
     @param em1 Second error message line
@@ -1246,7 +1154,8 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     return (cmd_key);
 }
 
-/** @brief Display a simple error message window or print to stderr
+/** Perror
+    @brief Display a simple error message window or print to stderr
     @ingroup error_handling
     @param emsg_str Error message string
     @return Key code of user command */
@@ -1298,7 +1207,8 @@ int Perror(char *emsg_str) {
     destroy_chyron(chyron);
     return (cmd_key);
 }
-/** @brief Create a Chyron struct for the waiting message
+/** wait_mk_chyron
+    @brief Create a Chyron struct for the waiting message
     @ingroup error_handling
     @return Pointer to the chyron struct */
 Chyron *wait_mk_chyron() {
@@ -1307,7 +1217,8 @@ Chyron *wait_mk_chyron() {
     compile_chyron(chyron);
     return chyron;
 }
-/** @brief Display a popup waiting message
+/** wait_mk_win
+    @brief Display a popup waiting message
     @ingroup error_handling
     @param chyron Pointer to Chyron struct for displaying key options
     @param title window title
@@ -1339,7 +1250,8 @@ WINDOW *wait_mk_win(Chyron *chyron, char *title) {
     wmove(wait_win, 1, chyron->l);
     return wait_win;
 }
-/** @brief Destroy the waiting message window and chyron
+/** wait_destroy
+    @brief Destroy the waiting message window and chyron
     @ingroup error_handling
     @param chyron Pointer to Chyron struct for displaying key options
     @return true if successful */
@@ -1348,7 +1260,8 @@ bool wait_destroy(Chyron *chyron) {
     destroy_chyron(chyron);
     return true;
 }
-/** @brief Update the waiting message with remaining time and check for user
+/** wait_continue
+    @brief Update the waiting message with remaining time and check for user
    input
     @ingroup error_handling
     @param chyron Pointer to Chyron struct for displaying key options
@@ -1364,7 +1277,8 @@ int wait_continue(WINDOW *wait_win, Chyron *chyron, int remaining) {
     cmd_key = xwgetch(wait_win, chyron, 1);
     return cmd_key;
 }
-/** @brief Display a simple action disposition message window or print to stderr
+/** action_disposition
+    @brief Display a simple action disposition message window or print to stderr
     @ingroup error_handling
     @param title Window title
     @param action_str Action description string
@@ -1399,8 +1313,199 @@ bool action_disposition(char *title, char *action_str) {
     destroy_chyron(chyron);
     return true;
 }
+/** @defgroup Chyron Chyron Management
+    @brief Create and manage the Chyron
+ */
 
-/** @brief For lines shorter than their display area, fill the rest with spaces
+/** new_chyron
+   @brief Create and initialize Chyron structure
+    @ingroup Chyron
+    @return pointer to new Chyron structure
+    @details This function allocates memory for a new Chyron structure and
+   initializes the key pointers. Each key pointer is allocated memory for a
+   ChyronKey structure. The Chyron structure is used to manage function key
+   labels and their associated keycodes for mouse click handling in the chyron
+   area of the interface.
+    The use of calloc ensures that the allocated memory is initialized to
+   zero, which means that the text for each key will be initialized to an empty
+   string and the keycodes will be initialized to zero. This allows the
+   is_set_chyron_key function to check if a key is set by checking if the first
+   character of the text is not '\0'. If any memory allocation fails, the
+   function will call abend to handle the error and return nullptr.
+ */
+Chyron *new_chyron() {
+    Chyron *chyron = (Chyron *)calloc(1, sizeof(Chyron));
+    if (!chyron) {
+        abend(-1, "calloc chyron failed");
+        return nullptr;
+    }
+    for (int i = 0; i < CHYRON_KEYS; i++)
+        chyron->key[i] = (ChyronKey *)calloc(1, sizeof(ChyronKey));
+    return chyron;
+}
+/** destroy_chyron
+    @brief Destroy Chyron structure
+    @ingroup Chyron
+    @param chyron pointer to Chyron structure
+    @return nullptr
+ */
+Chyron *destroy_chyron(Chyron *chyron) {
+    int i;
+
+    if (!chyron)
+        return nullptr;
+    for (i = 0; i < CHYRON_KEYS; i++) {
+        if (chyron->key[i])
+            free(chyron->key[i]);
+        chyron->key[i] = nullptr;
+    }
+    free(chyron);
+    chyron = nullptr;
+    return chyron;
+}
+/** is_set_chyron_key
+    @brief Check if function key label is set
+    @ingroup Chyron
+    @param chyron structure
+    @param k Function key index (0-19)
+    @return true if set, false if not set */
+bool is_set_chyron_key(Chyron *chyron, int k) {
+    if (chyron->key[k]->text[0] != '\0')
+        return true;
+    else
+        return false;
+}
+/** set_chyron_key_cp
+    @brief Set chyron key with color pair (cp)
+    @ingroup Chyron
+    @param chyron structure
+    @param k chyron key index (0-19)
+    @param s chyron key label
+    @param kc chyron key code
+    @param cp color pair index for the key label
+    @details This function is like set_chyron_key, except it includes a color
+   pair numbers */
+void set_chyron_key_cp(Chyron *chyron, int k, char *s, int kc, int cp) {
+    if (*s != '\0')
+        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
+    else
+        chyron->key[k]->text[0] = '\0';
+    chyron->key[k]->keycode = kc;
+    chyron->key[k]->cp = cp;
+}
+/** set_chyron_key
+    @brief Set chyron key with default color pair (cp_nt_rev)
+    @ingroup Chyron
+    @param chyron structure
+    @param k chyron key index (0-19)
+    @param s chyron key label
+    @param kc chyron key code
+    @details This function sets the label and keycode for a function key in the
+   chyron structure. It uses the default color pair cp_nt_rev for the key
+   label. If the input string s is not empty, it copies the string into the
+   chyron key's text field. If the input string is empty, it sets the first
+   character of the text field to '\0' to indicate that the key is not set.
+   The keycode is stored in the chyron key's keycode field, and the color pair
+   index is set to cp_nt_rev.
+ */
+void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
+    if (*s != '\0')
+        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
+    else
+        chyron->key[k]->text[0] = '\0';
+    chyron->key[k]->keycode = kc;
+    chyron->key[k]->cp = cp_nt_rev;
+}
+/** unset_chyron_key
+    @brief Unset chyron key
+    @ingroup Chyron
+    @param chyron structure
+    @param k chyron_key index
+*/
+void unset_chyron_key(Chyron *chyron, int k) { chyron->key[k]->text[0] = '\0'; }
+/**  compile_chyron
+   @brief construct the chyron string from the chyron structure
+    @ingroup Chyron
+    @param chyron
+    @details The chyron string is constructed by concatenating the labels of the
+   set keys, separated by " | ". The end_pos values for each key are set to
+   determine the zones for mouse clicks. When a mouse click occurs, the
+   get_chyron_key function uses the end_pos values to determine which key was
+   clicked based on the X position of the click.
+*/
+void compile_chyron(Chyron *chyron) {
+    int end_pos = 0;
+    int k = 0;
+    int pos = 0;
+    int cp = cp_nt_rev;
+    cchar_t *cx;
+    while (k < CHYRON_KEYS) {
+        if (chyron->key[k]->text[0] == '\0') {
+            k++;
+            continue;
+        }
+        if (end_pos == 0) {
+            cx = chyron->cmplx_buf;
+            mb_to_cc(cx, " ", WA_NORMAL, cp_nt_rev, &pos, MAXLEN - 1);
+        } else {
+            mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_nt_rev, &pos,
+                     MAXLEN - 1);
+        }
+        cx = chyron->cmplx_buf;
+        cp = chyron->key[k]->cp;
+        mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
+        end_pos = pos;
+        chyron->l = end_pos;
+        chyron->key[k]->end_pos = end_pos;
+        k++;
+    }
+    mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
+    chyron->l = end_pos;
+}
+/** display_chyron
+   @brief Display chyron on window
+    @ingroup Chyron
+    @param win NCurses window to display chyron on
+    @param chyron Chyron structure containing the compiled chyron string
+    @param line Line number to display the chyron on
+    @param col Column number to start displaying the chyron from
+    @details This function clears the line where the chyron will be displayed,
+   then uses wadd_wchstr to add the compiled chyron string (cmplx_buf) to the
+   window. Finally, it moves the cursor to the specified column position.
+*/
+void display_chyron(WINDOW *win, Chyron *chyron, int line, int col) {
+    wmove(win, line, 0);
+    wclrtoeol(win);
+    wmove(win, line, 0);
+    wadd_wchstr(win, chyron->cmplx_buf);
+    wmove(win, line, col);
+    return;
+}
+/** get_chyron_key
+    @brief Get keycode from chyron
+    @ingroup Chyron
+    @param chyron structure
+    @param x Mouse X position
+    @return Keycode
+    @details This function uses the end_pos values set in compile_chyron
+    to determine which key was clicked.
+    The chyron functions provide xwgetch() with a mechanism to translate
+    mouse click positions into key codes based on the labels set in the chyron
+   structure. When a mouse click occurs, xwgetch() can call get_chyron_key()
+   with the X position of the click to determine which function key was clicked,
+   allowing for dynamic and customizable function key behavior in the chyron
+   area of the interface.
+*/
+int get_chyron_key(Chyron *chyron, int x) {
+    int i;
+    for (i = 0; chyron->key[i]->end_pos != -1; i++)
+        if (x < chyron->key[i]->end_pos)
+            break;
+    return chyron->key[i]->keycode;
+}
+
+/** mvwaddstr_fill
+    @brief For lines shorter than their display area, fill the rest with spaces
     @ingroup window_support
     @param w Pointer to window
     @param y Y coordinate
@@ -1423,7 +1528,8 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     *d = '\0';
     mvwaddstr(w, y, x, tmp_str);
 }
-/** @brief Get color index from color name
+/** clr_name_to_idx
+    @brief Get color index from color name
     @ingroup color_management
     @param s Color name
     @return Color index or -1 if not found */
@@ -1441,7 +1547,8 @@ int clr_name_to_idx(char *s) {
         return (-1);
     return (i);
 }
-/** @brief list colors to stderr
+/** list_colors
+    @brief list colors to stderr
     @ingroup color_management
     @details only lists the first 16, since that's how many we let the
     user redefine */
@@ -1461,7 +1568,8 @@ void list_colors() {
     }
     fprintf(stderr, "\n");
 }
-/** @brief Display error message and wait for key press
+/** nf_error
+    @brief Display error message and wait for key press
     @ingroup error_handling
     @param ec Error code
     @param s Error message */
@@ -1472,7 +1580,8 @@ int nf_error(int ec, char *s) {
     fprintf(stderr, "\n");
     return ec;
 }
-/** @brief Abnormal program termination
+/** abend
+    @brief Abnormal program termination
     @ingroup error_handling
     @param ec Exit code
     @param s Error message */
@@ -1483,7 +1592,8 @@ void abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     exit(EXIT_FAILURE);
 }
-/** @brief Wait for a process to finish with a timeout and optional user
+/** waitpid_with_timeout
+    @brief Wait for a process to finish with a timeout and optional user
    cancellation
     @ingroup error_handling
     @param pid Process ID to wait for
@@ -1518,7 +1628,8 @@ bool waitpid_with_timeout(pid_t pid, int timeout) {
     wait_destroy(wait_chyron);
     return false;
 }
-/** @brief Wrapper for wgetch that handles signals, mouse events, checks for
+/** xwgetch
+    @brief Wrapper for wgetch that handles signals, mouse events, checks for
    clicks on the chyron line, and accepts a sinigle character answer
     @ingroup window_support
     @param win Pointer to window
@@ -1602,7 +1713,8 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
     restore_curses_tioctl();
     return c;
 }
-/** This is a version of xwgetch that checks for mouse clicks in two windows.
+/** dxwgetch
+    This is a version of xwgetch that checks for mouse clicks in two windows.
     Sets mouse_win to the window that was clicked and click_y and click_x to the
    coordinates of the click. If the click is in the chyron line of the second
    window, it gets the corresponding key command. Otherwise, it stores the click
