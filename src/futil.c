@@ -117,7 +117,7 @@ String mk_string(size_t);
 String free_string(String);
 char *iso8601_time(char *, int, time_t *, bool);
 bool parse_local_timestamp(const char *, time_t *);
-void format_local_timestamp(time_t, char *, size_t);
+char *format_local_timestamp(time_t, char *, size_t);
 
 /** Global variables for error reporting */
 
@@ -185,10 +185,11 @@ bool parse_local_timestamp(const char *s, time_t *out) {
     @returns pointer to buf
     @note The caller is responsible for ensuring that buf has enough space to hold the resulting string. The ISO 8601 format produced is "YYYY-MM-DDTHH:MM:SS" followed by the local time zone offset (e.g., "+hhmm" or "-hhmm"). This function uses strftime internally, so the actual format may vary based on the implementation of strftime and the locale settings.
  */
-void format_local_timestamp(time_t t, char *buf, size_t n) {
+char *format_local_timestamp(time_t t, char *buf, size_t n) {
     struct tm tmv;
     localtime_r(&t, &tmv);
     strftime(buf, n, "%Y-%m-%dT%H:%M:%S", &tmv);
+    return buf;
 }
 /**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim

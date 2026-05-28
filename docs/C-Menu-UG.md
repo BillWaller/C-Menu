@@ -12,9 +12,13 @@
       - [Full Screen Root Shell](#full-screen-root-shell)
       - [Workstation Configuration](#workstation-configuration)
       - [Diagnostic Tools](#diagnostic-tools)
-      - [Installment Loan Calculations](#installment-loan-calculations-)
+      - [Installment Loan Calculations](#installment-loan-calculations)
       - [Listener Research](#listener-research)
-      - [Cash Receipts#####](#cash-receipts)
+      - [Cash Receipts](#cash-receipts)
+      - [Form Data Types](#form-data-types)
+      - [Rustlings Source](#rustlings-source)
+      - [View Manual Pages](#view-manual-pages-)
+      - [Edit .c Files in Current Directory](#edit-c-files-in-current-directory)
   - [How Menu Works](#how-menu-works)
   - [Menu Key characters](#menu-key-characters)
   - [User Choices, Commands, and comments](#user-choices-commands-and-comments)
@@ -25,11 +29,11 @@
     - [Fields](#fields)
     - [Directives](#directives)
   - [Examples](#examples)
-    - [Installment Loan Calculations](#installment-loan-calculations)
+    - [Installment Loan Calculations](#installment-loan-calculations-1)
     - [Cash Receipts](#cash-receipts-1)
 - [C-Menu Pick](#c-menu-pick)
-  - [Rustlings Source](#rustlings-source)
-  - [Edit .c Files in Current Directory](#edit-c-files-in-current-directory)
+  - [Rustlings Source](#rustlings-source-1)
+  - [Edit .c Files in Current Directory](#edit-c-files-in-current-directory-1)
   - [View C-Menu Source With Tree-Sitter](#view-c-menu-source-with-tree-sitter)
 - [C-Menu View](#c-menu-view)
 - [RSH - A Root Shell Alternative](#rsh---a-root-shell-alternative)
@@ -145,7 +149,7 @@ Requirements: A menu description file, ~/menuapp/msrc/diag.m, normally included 
 
 Synopsis: Demonstrates how to use C-Menu Form to create a form-based interface for performing calculations based on form data. When the user selects this menu item, C-Menu executes the form command with the specified description file, "iloan.f". Form opens the input file, "iloan.dat", reads field data, and displays it in the Form window. The user edits the data and presses F10 Accept. Form then executes the "iloan" executable with the form data as arguments. "iloan" processes the form data and writes the resulting data to standard output. Form reads the resulting data from a pipe and displays the updated form data. The user can experiment with the numbers in the form, running as many calculation cycles as necessary. When the user gets the desired results, and presses F10 a second time, ~/menuapp/bin/amort executes with the form data and a loan amortization report is displayed with view.
 
-Requirements: iloan and amort executables: These are simple programs distributed with C-Menu specifically for the purpose this demonstration. If you don't have the "iloan" executable distributed with C-Menu, you can create a simple version of it in C or any programming language of your choice that accepts the data as arguments, standard input, or file, performs calculations, and writes the resulting data to standard output. You could even create a shell script or awk script to perform the calculations if you prefer. The point is to demonstrate how to use external executables with C-Menu Form, so the specific implementation of "iloan" is not important as long as it can read form data from standard input, perform calculations, and write the resulting data to standard output.
+Requirements: iloan and amort executables: These are simple programs distributed with C-Menu specifically for the purpose of this demonstration. If you don't have the "iloan" executable distributed with C-Menu, you can create a simple version of it in C or any programming language of your choice that accepts the data as arguments, standard input, or file, performs calculations, and writes the resulting data to standard output. You could even create a shell script or awk script to perform the calculations if you prefer. The point is to demonstrate how to use external executables with C-Menu Form, so the specific implementation of "iloan" is not important as long as it can read form data from standard input, perform calculations, and write the resulting data to standard output because that's all you need to integrate an external application with C-Menu Form.
 
 ##### Listener Research
 
@@ -153,22 +157,44 @@ Synopsis: This menu item is a placeholder for a future demonstration of how to u
 
 Requirements: None.
 
-##### Cash Receipts #####
+##### Cash Receipts
 
-: Cash Receipts
-!form receipt.f -i receipt.dat -o receipt.dat
-: Form Data Types
-!form -d fields.f -i fields.dat -o fields.dat
-: Rustlings Source
-!pick -S "lf rustlings -d 5 \"exercises._\.rs$\"" -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%
-: View Manual Pages
-!pick -S "lf ~/menuapp/man" -d 5 -n 1 -T \"Select Manual Page to View\" -c "view %%"
+Synopsis: Demonstrates how to use C-Menu Form to create a form-based interface for entering, editing, validating, processing, and submitting data related to cash receipts. When the user selects this menu item, C-Menu executes the form command with the specified description file, "receipt.f". Form opens the input file, "receipt.dat", reads field data, and displays it in the Form window. The user edits the data and presses F10 Accept. Form then writes the updated data to the specified output file, "receipt.dat". This menu item is not very useful as it stands. It is included here as a challenge in some industrious developer who can write external executables or scripts to provide database interaction and ancillary menu items to track deposit slips and batch numbers and post to general ledger.Synopsis:
+
+Requirements: None
+
+##### Form Data Types
+
+Synopsis: Demonstrates how to create forms using various data types.
+
+Requirements: None
+
+##### Rustlings Source
+
+Synopsis: Demonstrates how to use C-Menu to streamline a repetitive work flow
+using lf and C-Menu Pick to automate the process of navigating to a directory, filtering for specific files, and opening those files in an editor. When the user selects this menu item, C-Menu executes the specified command line which launches Pick with the output of the "rust_src" script as its input. The "rust_src" script generates a list of Rust source files from the "exercises" directory, which is part of the Rustlings project. The user can then filter and select a file from the list, and Pick will automatically open the selected file in nvim for editing.
+
+Requirements:
+
+- A shell script, "rust_src", located in ~/menuapp/bin, which calls lf to create a sorted file list of Rust source files from the "exercises" directory. The "rust_src" script is included with C-Menu, but you can create your own version of it if you prefer. The important thing is that it generates a list of files that can be used as input for Pick.
+
+- Rust development environment with the Rustlings exercises directory. You can set up a Rust development environment and download the Rustlings exercises from the official Rustlings repository on GitHub. See Augmenting C-Menu for details on how to install Rustup, Rust, and Rustlings on your system. The Rustlings directory or a link thereto must be located in your current working directory.
+
+##### View Manual Pages
+
+Synopsis: Instead of typing man commands, this menu item allows you to select
+from a group of manual pages residing in ~/menuapp/man.
+
+Requirements: A group of manual pages stored in the ~/menuapp/man directory.
+
+##### Edit .c Files in Current Directory
+
 : Edit .c Files in Current Directory
-!pick -S project_src -T "Project Tree - Select File to Edit" -c nvim.sh %%
+!pick -S project*src -T "Project Tree - Select File to Edit" -c nvim.sh %%
 : View C-Menu Source with Tree-Sitter
 !pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 : View Source with Tree-Sitter
-!pick -S "lf -S -d 5 . \"._\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -n 1 -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
+!pick -S "lf -S -d 5 . \".*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -n 1 -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 : lf Help
 !view -Nf -L50 -C86 ~/menuapp/help/lf.help
 : View Data Types Help File
@@ -429,7 +455,7 @@ with C-Menu Form. For the purpose of demonstration, we shall designate the image
 Notice in window 4), I have set the field brackets in the configuration
 file, ~/menuapp/.minitrc. The brackets tend to look good so long as you don't over-crowd the form with 10 or 15 fields on some lines.
 
-**_Chyron_**
+***Chyron***
 
 Also notice the chyron, the line at the bottom of the form window. It is
 used to convey state information to the user and to present the user with a set
@@ -462,7 +488,7 @@ start until you start building your own projects with C-Menu.
 
 #### Cash Receipts
 
-**_Cash Receipts_** also works like Installment Loan Calculations, except no external
+***Cash Receipts*** also works like Installment Loan Calculations, except no external
 executable is specified to process data. Obviously, this menu item is not very
 useful as it stands. It is included here as a challenge in some industrious
 developer who can write external executables or scripts to provide database interaction and ancillary menu items to track deposit slips and batch numbers and post to general ledger.
@@ -648,7 +674,7 @@ nonsense, just blazing fast performance.
 
 ## RSH - A Root Shell Alternative
 
-**_RSH_** - RSH provides an alternative to su and sudo for executing commands
+***RSH*** - RSH provides an alternative to su and sudo for executing commands
 with elevated privileges. It allows developers and system administrators to
 get in and out of root shells and execute commands with root privileges
 without the need for a password, for example, by authenticating with an ssh
@@ -665,7 +691,7 @@ and relinquish root privilege.
 
 ## lf - A Regular Expression File Finder
 
-**_lf_** - is a sleek, easy-to-use, and fast file finder. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
+***lf*** - is a sleek, easy-to-use, and fast file finder. The name, lf, can be thought of in the imperative sense as "list files", or in the noun sense, "lightweight find."
 
 ![lf help](../screenshots/lf-help.png)
 
