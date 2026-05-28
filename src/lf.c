@@ -172,32 +172,18 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     switch (key) {
     case 'a':
         memset(&tm_info, 0, sizeof(struct tm));
-        if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL)
-            if (strptime(arg, "%4Y%2m%2dT%2H%2M%2S", &tm_info) == NULL)
-                if (strptime(arg, "%Y-%m-%d", &tm_info) == NULL)
-                    if (strptime(arg, "%4Y%2m%2d", &tm_info) == NULL) {
-                        fprintf(stderr, "-b Failed to parse time string.\n");
-                        return 1;
-                    }
-        f->after = mktime(&tm_info);
-        if (f->after && f->before && f->after > f->before) {
-            fprintf(stderr, "-a time must be before -b time.\n");
-            return 1;
+        parse_local_timestamp(arg, &f->after);
+        if (f->after && f->before && f->before < f->after) {
+            fprintf(stderr, "-b time must be greater than -a time.\n");
+            f->after = 0;
         }
         break;
     case 'b':
         memset(&tm_info, 0, sizeof(struct tm));
-        if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL)
-            if (strptime(arg, "%4Y%2m%2dT%2H%2M%2S", &tm_info) == NULL)
-                if (strptime(arg, "%Y-%m-%d", &tm_info) == NULL)
-                    if (strptime(arg, "%4Y%2m%2d", &tm_info) == NULL) {
-                        fprintf(stderr, "-b Failed to parse time string.\n");
-                        return 1;
-                    }
-        f->before = mktime(&tm_info);
-        if (f->after && f->before && f->after > f->before) {
-            fprintf(stderr, "-a time must be before -b time.\n");
-            return 1;
+        parse_local_timestamp(arg, &f->before);
+        if (f->after && f->before && f->before < f->after) {
+            fprintf(stderr, "-b time must be greater than -a time.\n");
+            f->before = 0;
         }
         break;
     case 'd':
@@ -595,13 +581,13 @@ bool init_find(SearchFilters *f) {
 
         if (f->after) {
             char buf[32];
-            iso8601_time(buf, sizeof(buf), &f->after, true);
+            format_local_timestamp(f->after, buf, sizeof(buf));
             fprintf(stderr, "Modified after: %s\n", buf);
         }
 
         if (f->before) {
             char buf[32];
-            iso8601_time(buf, sizeof(buf), &f->before, true);
+            format_local_timestamp(f->before, buf, sizeof(buf));
             fprintf(stderr, "Modified before: %s\n", buf);
         }
 

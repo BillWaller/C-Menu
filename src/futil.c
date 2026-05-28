@@ -116,6 +116,8 @@ String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
 char *iso8601_time(char *, int, time_t *, bool);
+void format_local_timestamp(time_t, char *, size_t);
+bool parse_local_timestamp(const char *, time_t *);
 
 /** Global variables for error reporting */
 
@@ -153,7 +155,41 @@ char *iso8601_time(char *buf, int n, time_t *t, bool local) {
     }
     return buf;
 }
+/** @brief Parses an ISO 8601 timestamp string in local time and converts it to time_t.
+    @ingroup utility_functions
+    @param s - ISO 8601 timestamp string to parse (e.g., "2024-06-01T12:34:56")
+    @param out - pointer to time_t variable to receive the result
+    @returns true if parsing and conversion were successful, false otherwise
+    @details This function expects the input string to be in the format "YYYY-MM-DDTHH:MM:SS" representing local time. It uses strptime to parse the string into a struct tm, then uses mktime to convert it to time_t. The caller must ensure that the input string is properly formatted and represents a valid date and time. If the input string is invalid or if any error occurs during parsing or conversion, this function returns false and does not modify the output variable.
+ */
+bool parse_local_timestamp(const char *s, time_t *out) {
+    struct tm tmv;
+    memset(&tmv, 0, sizeof tmv);
+    tmv.tm_isdst = -1;
 
+    if (strptime(s, "%Y-%m-%dT%H:%M:%S", &tmv) == NULL)
+        return false;
+
+    time_t t = mktime(&tmv);
+    if (t == (time_t)-1)
+        return false;
+
+    *out = t;
+    return true;
+}
+/** @brief Formats a time_t as an ISO 8601 string in local time.
+    @ingroup utility_functions
+    @param t - time to format
+    @param buf - buffer to receive formatted string
+    @param n - size of buffer
+    @returns pointer to buf
+    @note The caller is responsible for ensuring that buf has enough space to hold the resulting string. The ISO 8601 format produced is "YYYY-MM-DDTHH:MM:SS" followed by the local time zone offset (e.g., "+hhmm" or "-hhmm"). This function uses strftime internally, so the actual format may vary based on the implementation of strftime and the locale settings.
+ */
+void format_local_timestamp(time_t t, char *buf, size_t n) {
+    struct tm tmv;
+    localtime_r(&t, &tmv);
+    strftime(buf, n, "%Y-%m-%dT%H:%M:%S", &tmv);
+}
 /**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim
      @returns length of trimmed string */
