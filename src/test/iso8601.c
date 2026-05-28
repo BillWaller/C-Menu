@@ -28,7 +28,7 @@ int main() {
     strcpy(time_s, "2026-06-01T00:00:00");
     printf("input:     %s\n", time_s);
     memset(&tm1, 0, sizeof(struct tm)); // xor tm1
-    printf("with memset(&tm1)\n");
+    tm1.tm_isdst = -1;
     strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
     t1 = mktime(&tm1);
 
@@ -51,7 +51,8 @@ int main() {
     // ----------------------------------------------------------
     strcpy(time_s, "2026-06-01T00:00:00");
     printf("input:     %s\n", time_s);
-    printf("without memset(&tm1)\n");
+    memset(&tm1, 0, sizeof(struct tm)); // xor tm1
+    tm1.tm_isdst = -1;
     strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
     t1 = mktime(&tm1);
 
@@ -74,7 +75,8 @@ int main() {
     // ==========================================================
     strcpy(time_s, "2026-03-07T00:00:00");
     printf("input:     %s\n", time_s);
-    printf("without memset(&tm1)\n");
+    memset(&tm1, 0, sizeof(struct tm));
+    tm1.tm_isdst = -1;
     strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
     t1 = mktime(&tm1);
 
@@ -98,7 +100,7 @@ int main() {
     strcpy(time_s, "2026-03-07T00:00:00");
     printf("input:     %s\n", time_s);
     memset(&tm1, 0, sizeof(struct tm));
-    printf("with memset(&tm1)\n");
+    tm1.tm_isdst = -1;
     strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
     t1 = mktime(&tm1);
 
