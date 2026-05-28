@@ -64,6 +64,7 @@ typedef struct {
     char *base_path;
     char *re;
     char *ere;
+    char *user_name;
     regex_t compiled_re;
     regex_t compiled_ere;
     unsigned char include_perms;
@@ -125,8 +126,9 @@ char *exec;
 char *file_types_p;
 char *perms_p;
 char *debug_p;
-bool init_find(SearchFilters *);
-void sort_lf_output(SearchFilters *);
+void debug_out(SearchFilters *, int, char **, int);
+bool init_find(SearchFilters *, int, char **);
+void sort_lf_output(SearchFilters *, int, char **);
 void enqueue_dir(TaskNode *);
 TaskNode *dequeue_dir();
 void *finder(void *);
@@ -171,7 +173,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
     switch (key) {
     case 'a':
-        memset(&tm_info, 0, sizeof(struct tm));
         parse_local_timestamp(arg, &f->after);
         if (f->after && f->before && f->before < f->after) {
             fprintf(stderr, "-b time must be greater than -a time.\n");
@@ -179,7 +180,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         }
         break;
     case 'b':
-        memset(&tm_info, 0, sizeof(struct tm));
         parse_local_timestamp(arg, &f->before);
         if (f->after && f->before && f->before < f->after) {
             fprintf(stderr, "-b time must be greater than -a time.\n");
@@ -258,7 +258,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                 f->include_perms |= LF_ISGID;
                 break;
             case 'r':
-                f->include_perms |= LF_IWUSR;
+                f->include_perms |= LF_IRUSR;
                 break;
             case 's':
                 f->include_perms |= LF_ISUID;
@@ -327,6 +327,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         }
         break;
     case 'u':
+        f->user_name = strdup(arg);
         struct passwd *pwd = getpwnam(arg);
         if (pwd) {
             f->user_id = (uintmax_t)pwd->pw_uid;
@@ -411,9 +412,9 @@ int main(int argc, char **argv) {
     if (f->base_path == nullptr || f->base_path[0] == '\0')
         f->base_path = strdup(".");
     if (!f->sort) {
-        init_find(f);
+        init_find(f, argc, argv);
     } else
-        sort_lf_output(f);
+        sort_lf_output(f, argc, argv);
     exit(termination_status);
 }
 // Initialize and transfer control to the finder
@@ -424,7 +425,7 @@ int main(int argc, char **argv) {
  * The parent process will run the finder and write its output to
  * the pipe, while the child process will read from the pipe and
  * execute the sort command. */
-void sort_lf_output(SearchFilters *f) {
+void sort_lf_output(SearchFilters *f, int argc, char **argv) {
     char *eargv[MAXARGS];
     int eargc = 0;
     eargv[eargc++] = strdup("sort");
@@ -457,59 +458,40 @@ void sort_lf_output(SearchFilters *f) {
     // for input that hasn't been flushed yet.
     dup2(save_fd, STDOUT_FILENO); // restore STDOUT
     waitpid(pid1, &wstatus, 0);
-    init_find(f); // Initialize and transfer control to the finder
+    init_find(f, argc, argv); // Initialize and transfer control to the finder
 }
-/** @brief Initialize the file search based on the provided SearchFilters
-   and start finder threads.
+/** @brief Output debug information about the search filters and configuration.
     @param f A pointer to a SearchFilters struct containing the options and
    flags for filtering.
-    @return true if the search was initialized successfully, false if an
-   error occurred during initialization (e.g., regex compilation failure).
-    @details This function processes the flags and options specified in the
-   SearchFilters struct to set up the search criteria. It compiles any
-   regular expressions provided by the user and initializes the queue with
-   the base directory. It then creates a number of finder threads equal to
-   the number of CPU cores to perform the directory traversal and file
-   scanning concurrently. The function waits for all finder threads to
-   complete before cleaning up resources and returning.
+    @param argc The number of command-line arguments.
+    @param argv The array of command-line argument strings.
+    @details This function prints detailed information about the configuration and search filters as well as each of the options and arguments used on the command line invoking lf. The output is sent to the standard error stream, which can be redirected to standard output making it suitable as documentation for an audit trail.
    */
-bool init_find(SearchFilters *f) {
-    /** suppress file types that aren't included */
-    if (f->include_types)
-        f->suppress_types = f->include_types ^ 0xff;
-    // LF_HIDE = 0 - include hidden files,
-    // LF_HIDE = 1 - suppress hidden files
-    f->include_hidden = !(f->flags & LF_HIDE);
-    int reti = 0;
-    f->reg_flags = REG_EXTENDED;
-    if (f->flags & LF_ICASE)
-        f->reg_flags |= REG_ICASE;
-    if (f->flags & LF_REGEX) {
-        reti = regcomp(&f->compiled_re, f->re, f->reg_flags);
-        if (reti) {
-            fprintf(stderr, "lf: '%s' Invalid pattern\n", f->re);
-            regfree(&f->compiled_re);
-            return false;
-        }
-    }
-    if (f->flags & LF_EXC_REGEX) {
-        reti = regcomp(&f->compiled_ere, f->ere, f->reg_flags);
-        if (reti) {
-            fprintf(stderr, "lf: '%s' Invalid exclude pattern\n", f->ere);
-            regfree(&f->compiled_ere);
-            return false;
-        }
-    }
-    int n = get_nprocs();
-    if (nthreads < 0) {
-        if (n + nthreads > 1)
-            n += nthreads;
-    } else if (nthreads == 0)
-        nthreads = max(1, n / 2 - 1);
-    else if (nthreads > n)
-        nthreads = n - 1;
+
+void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
+    char user_str[100];
+    char ip_str[MAXLEN];
+    int len;
+    bool addspace_before = false;
     if (f->debug && (f->report_config || f->report_info || f->report_all)) {
-        fprintf(stderr, "%s\n", CM_VERSION);
+        fprintf(stderr, "%s,%s,%s,", get_local_timestamp(), get_user_str(user_str, 100), get_ip_addresses(ip_str, MAXLEN));
+
+        for (int i = 0; i < argc; i++) {
+            len = len + strlen(argv[i]);
+            if (len > 72) {
+                fprintf(stderr, "\n");
+                len = strlen(argv[i]);
+                addspace_before = false;
+            }
+            if (addspace_before) {
+                fprintf(stderr, " ");
+                len++;
+            }
+            fprintf(stderr, "%s", argv[i]);
+            addspace_before = true;
+        }
+        fprintf(stderr, "\n\n");
+        fprintf(stderr, "%s\n\n", CM_VERSION);
         fprintf(stderr, "lf debug      %s\n",
                 f->debug ? "true" : "     false");
         fprintf(stderr, "  1-config      %s\n",
@@ -528,8 +510,9 @@ bool init_find(SearchFilters *f) {
                 f->report_all ? "true" : "|    false");
         fprintf(stderr, "  8-only_errors %s\n",
                 f->only_errors ? "true" : "|    false");
-        fprintf(stderr, "Search directory: %s\n", f->base_path);
-        fprintf(stderr, "Using %d threads\n", nthreads);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Search directory: %s\n\n", f->base_path);
+        fprintf(stderr, "Using %d threads\n\n", nthreads);
         if (!f->include_types)
             fprintf(stderr, " include_types=all\n");
         else {
@@ -572,23 +555,38 @@ bool init_find(SearchFilters *f) {
             if (f->suppress_types & LF_UNKNOWN)
                 fprintf(stderr, "     %08b unknown\n", LF_UNKNOWN);
         }
-        if (f->flags & LF_REGEX)
-            fprintf(stderr, "Include regex: %s\n", f->re);
-        if (f->flags & LF_EXC_REGEX)
-            fprintf(stderr, "Exclude regex: %s\n", f->ere);
+        fprintf(stderr, "\n");
+
         if (f->flags & LF_USER)
-            fprintf(stderr, "User ID filter: %ju\n", f->user_id);
+            fprintf(stderr, "User: %s (%ju)\n", f->user_name, f->user_id);
+        if (f->include_perms) {
+            if (f->include_perms & LF_IXUSR)
+                fprintf(stderr, "    %08b Execute\n", LF_IXUSR);
+            if (f->include_perms & LF_IWUSR)
+                fprintf(stderr, "    %08b Write\n", LF_IWUSR);
+            if (f->include_perms & LF_IRUSR)
+                fprintf(stderr, "    %08b Read\n", LF_IRUSR);
+            if (f->include_perms & LF_ISUID)
+                fprintf(stderr, "    %08b SETUID\n", LF_ISUID);
+            if (f->include_perms & LF_ISGID)
+                fprintf(stderr, "    %08b SETGID\n", LF_ISGID);
+        }
+        fprintf(stderr, "\n");
+        if (f->flags & LF_REGEX)
+            fprintf(stderr, "Include regex: %s\n\n", f->re);
+        if (f->flags & LF_EXC_REGEX)
+            fprintf(stderr, "Exclude regex: %s\n\n", f->ere);
 
         if (f->after) {
             char buf[32];
             format_local_timestamp(f->after, buf, sizeof(buf));
-            fprintf(stderr, "Modified after: %s\n", buf);
+            fprintf(stderr, "Modified after: %s\n\n", buf);
         }
 
         if (f->before) {
             char buf[32];
             format_local_timestamp(f->before, buf, sizeof(buf));
-            fprintf(stderr, "Modified before: %s\n", buf);
+            fprintf(stderr, "Modified before: %s\n\n", buf);
         }
 
         if (f->file_size_min) {
@@ -601,17 +599,75 @@ bool init_find(SearchFilters *f) {
             }
             char buffer[32];
             ssnprintf(buffer, 32, "%ld %s", size, units[i]);
-            fprintf(stderr, "Minimum file size: %s\n", buffer);
+            fprintf(stderr, "Minimum file size: %s\n\n", buffer);
         }
         if (f->max_depth)
-            fprintf(stderr, "Max depth: %d\n", f->max_depth);
+            fprintf(stderr, "Max depth: %d\n\n", f->max_depth);
+        if (f->ignore_case)
+            fprintf(stderr, "Ignore case in regex matching.\n\n");
         if (f->include_hidden)
-            fprintf(stderr, "Include hidden files.\n");
+            fprintf(stderr, "Include hidden files.\n\n");
         if (f->follow_links)
-            fprintf(stderr, "Follow symbolic links.\n");
+            fprintf(stderr, "Follow symbolic links.\n\n");
+        if (f->sort)
+            fprintf(stderr, "Sort output in ascending order.\n\n");
+        if (f->sort_reverse)
+            fprintf(stderr, "Sort output in reverse order.\n\n");
         if (f->report_config && !f->report_all)
             exit(EXIT_SUCCESS);
     }
+    return;
+}
+/** @brief Initialize the file search based on the provided SearchFilters
+   and start finder threads.
+    @param f A pointer to a SearchFilters struct containing the options and
+   flags for filtering.
+    @return true if the search was initialized successfully, false if an
+   error occurred during initialization (e.g., regex compilation failure).
+    @details This function processes the flags and options specified in the
+   SearchFilters struct to set up the search criteria. It compiles any
+   regular expressions provided by the user and initializes the queue with
+   the base directory. It then creates a number of finder threads equal to
+   the number of CPU cores to perform the directory traversal and file
+   scanning concurrently. The function waits for all finder threads to
+   complete before cleaning up resources and returning.
+   */
+bool init_find(SearchFilters *f, int argc, char **argv) {
+    /** suppress file types that aren't included */
+    if (f->include_types)
+        f->suppress_types = f->include_types ^ 0xff;
+    // LF_HIDE = 0 - include hidden files,
+    // LF_HIDE = 1 - suppress hidden files
+    f->include_hidden = !(f->flags & LF_HIDE);
+    int reti = 0;
+    f->reg_flags = REG_EXTENDED;
+    if (f->flags & LF_ICASE)
+        f->reg_flags |= REG_ICASE;
+    if (f->flags & LF_REGEX) {
+        reti = regcomp(&f->compiled_re, f->re, f->reg_flags);
+        if (reti) {
+            fprintf(stderr, "lf: '%s' Invalid pattern\n", f->re);
+            regfree(&f->compiled_re);
+            return false;
+        }
+    }
+    if (f->flags & LF_EXC_REGEX) {
+        reti = regcomp(&f->compiled_ere, f->ere, f->reg_flags);
+        if (reti) {
+            fprintf(stderr, "lf: '%s' Invalid exclude pattern\n", f->ere);
+            regfree(&f->compiled_ere);
+            return false;
+        }
+    }
+    int n = get_nprocs();
+    if (nthreads < 0) {
+        if (n + nthreads > 1)
+            n += nthreads;
+    } else if (nthreads == 0)
+        nthreads = max(1, n / 2 - 1);
+    else if (nthreads > n)
+        nthreads = n - 1;
+    debug_out(f, argc, argv, nthreads);
     //--------------------------------------------------------------------
     // Create and enqueue the first TaskNode
     struct stat st;
@@ -652,6 +708,7 @@ bool init_find(SearchFilters *f) {
         regfree(&f->compiled_ere);
     }
     free(f->base_path);
+    free(f->user_name);
     free(f->re);
     free(f->ere);
     free(f);
@@ -1074,7 +1131,7 @@ int scan_file(char *file_spec, const SearchFilters *f,
                 if (stat(file_spec, &sb) == 0)
                     stat_cached = true;
             }
-            if ((f->include_perms & LF_IWUSR) && !(sb.st_mode & S_IRUSR))
+            if ((f->include_perms & LF_IRUSR) && !(sb.st_mode & S_IRUSR))
                 break;
             else if ((f->include_perms & LF_IWUSR) && !(sb.st_mode & S_IWUSR))
                 break;

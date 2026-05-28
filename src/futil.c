@@ -18,17 +18,20 @@
 #include <cm.h>
 #include <stdint.h>
 
+#include <arpa/inet.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
+#include <ifaddrs.h>
 #include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <termios.h>
@@ -118,6 +121,9 @@ String free_string(String);
 char *iso8601_time(char *, int, time_t *, bool);
 bool parse_local_timestamp(const char *, time_t *);
 char *format_local_timestamp(time_t, char *, size_t);
+char *get_local_timestamp();
+char *get_user_str(char *, size_t);
+char *get_ip_addresses(char *, int);
 
 /** Global variables for error reporting */
 
@@ -191,6 +197,32 @@ char *format_local_timestamp(time_t t, char *buf, size_t n) {
     strftime(buf, n, "%Y-%m-%dT%H:%M:%S", &tmv);
     return buf;
 }
+/** @brief Returns the current local time as an ISO 8601 formatted string.
+    @ingroup utility_functions
+    @returns pointer to static buffer containing the current local timestamp in ISO 8601 format
+    @note The returned string is stored in a static buffer, so it will be overwritten by subsequent calls to this function. The format of the returned string is "YYYY-MM-DDTHH:MM:SS" followed by the local time zone offset (e.g., "+hhmm" or "-hhmm"). This function uses the current system time and formats it using strftime internally, so the actual format may vary based on the implementation of strftime and the locale settings.
+ */
+char *get_local_timestamp() {
+    static char buf[32];
+    time_t t = time(NULL);
+    format_local_timestamp(t, buf, sizeof buf);
+    return buf;
+}
+/** @brief Retrieves the current user's name and UID, and formats it into a string.
+    @ingroup utility_functions
+    @param user_str - buffer to receive formatted string
+    @param maxlen - size of buffer
+    @returns pointer to user_str containing the formatted user information, or nullptr if an error occurs
+    @details This function uses getuid to retrieve the current user's UID, then uses getpwuid to get the corresponding passwd structure, which contains the user's name. It formats the user's name and UID into the provided buffer in the format "User: username (uid)\n". The caller must ensure that user_str has enough space to hold the resulting string. If getpwuid fails (e.g., if the UID does not exist), this function returns nullptr and does not modify the buffer.
+ */
+char *get_user_str(char *user_str, size_t maxlen) {
+    uid_t uid = getuid();
+    struct passwd *pw = getpwuid(uid);
+    if (pw == NULL)
+        return nullptr;
+    ssnprintf(user_str, maxlen - 1, "%s (%u)", pw->pw_name, (unsigned int)uid);
+    return user_str;
+}
 /**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim
      @returns length of trimmed string */
@@ -203,6 +235,40 @@ size_t rtrim(char *s) {
     *(p + 1) = '\0';
     return (size_t)(p - s + 1);
 }
+char *get_ip_addresses(char *ip_str, int maxlen) {
+    char tmp_str[MAXLEN];
+    struct ifaddrs *ifaddr, *ifa;
+    char host[INET_ADDRSTRLEN];
+    bool comma_before = false;
+    // getifaddrs returns a linked list of network interface structures
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        exit(EXIT_FAILURE);
+    }
+    ip_str[0] = '\0';
+    // Walk through the linked list
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL)
+            continue;
+        // Check for IPv4 addresses
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+            struct sockaddr_in *pAddr = (struct sockaddr_in *)ifa->ifa_addr;
+
+            // Convert binary IP to human-readable string
+            inet_ntop(AF_INET, &pAddr->sin_addr, host, INET_ADDRSTRLEN);
+
+            if (comma_before)
+                snprintf(tmp_str, MAXLEN - 1, ",[%s-%s]", ifa->ifa_name, host);
+            else
+                snprintf(tmp_str, MAXLEN - 1, "[%s-%s]", ifa->ifa_name, host);
+            strnz__cat(ip_str, tmp_str, maxlen - 1);
+            comma_before = true;
+        }
+    }
+    freeifaddrs(ifaddr); // Clean up the memory allocated by getifaddrs
+    return ip_str;
+}
+
 /** @brief Trims leading and trailing spaces from string s in place.
     @ingroup utility_functions
     @param s - string to trim

@@ -382,6 +382,9 @@ extern cchar_t mkccc(int, attr_t, char *);
 extern char *iso8601_time(char *, int, time_t *, bool);
 extern bool parse_local_timestamp(const char *, time_t *);
 extern char *format_local_timestamp(time_t, char *, size_t);
+extern char *get_local_timestamp();
+extern char *get_user_str(char *, size_t);
+extern char *get_ip_addresses(char *, int);
 
 extern cchar_t CCC_NORM;      /**< curses default */
 extern cchar_t CCC_REVERSE;   /**< curses default reverse */

@@ -7,8 +7,7 @@
 - [Other C-Menu Documents](#other-c-menu-documents)
 - [Get C-Menu on Github](#get-c-menu-on-github)
   - [C-Menu Introduction](#c-menu-introduction)
-- [**_NEW Features_**](#_new-features_)
-  - [**_NEW View Line Numbering_**](#_new-view-line-numbering_)
+  - [View Line Numbering](#view-line-numbering)
   - [Large Log File in View](#large-log-file-in-view)
   - [**_New API Integration With Neovim_**](#_new-api-integration-with-neovim_)
   - [**_New Options for lf_**](#_new-options-for-lf_)
@@ -91,9 +90,7 @@ C-Menu is not just low cost, it is **_ABSOLUTELY FREE_** and open-source under t
 
 ---
 
-## **_NEW Features_**
-
-### **_NEW View Line Numbering_**
+### View Line Numbering
 
 ![View C Source](../screenshots/tree-sitter3.png)
 
@@ -113,11 +110,11 @@ Step aside CodeView. As you are typing the name of a C-Menu API function, a list
 
 ### **_New Options for lf_**
 
-![lf options](../screenshots/lf-help.png)
+![lf options](../screenshots/lf-debug.png)
 
 The speed of C-Menu's ultra-lightweight executables is almost obscene. Designed to be used in pipelines, they won't slow you down.
 
-The new options for lf allow you to specify the file types to list, and whether to include hidden files in the results. If no option is specified, lf lists all files and if any file types are specified those files are listed to the exclusion of other types.
+One of the menu items under Diagnostic
 
 ## C-Menu Exercises
 

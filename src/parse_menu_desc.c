@@ -162,12 +162,12 @@ unsigned int parse_menu_description(Init *init) {
     menu->item_count = menu->line_idx;
     for (menu->line_idx = 0; menu->line_idx < menu->item_count;
          menu->line_idx++) {
-        menu->line[menu->line_idx]->letter_pos = 0;
+        menu->line[menu->line_idx]->letter_pos = 1;
         // Try to get a choice_letter
         // skip past " x - "
         if (menu->line[menu->line_idx]->choice_letter != '\0') {
             ltr = menu->line[menu->line_idx]->choice_letter;
-            s = menu->line[menu->line_idx]->choice_text;
+            s = menu->line[menu->line_idx]->choice_text + 5;
             while (*s != '\0') {
                 if (*s == ltr) {
                     menu->line[menu->line_idx]->letter_pos =
