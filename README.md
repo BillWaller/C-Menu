@@ -1,12 +1,14 @@
 # C-Menu
 
-![User Guide](screenshots/User-Guide.png)
+![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
 
 C-Menu is a fast, modular toolkit for building terminal-based user interfaces on Linux. Its components can be combined to create responsive menus, forms, pick lists, viewers, file-finding workflows, and administrative tools without the overhead of a heavyweight GUI stack.
 
 Written in C and designed for speed, C-Menu works well for developer tools, system administration workflows, kiosk-style interfaces, and resource-constrained environments.
 
 ## Table of Contents
+
+<!-- mtoc-start -->
 
 - [Why C-Menu](#why-c-menu)
 - [Components](#components)
@@ -26,16 +28,7 @@ Written in C and designed for speed, C-Menu works well for developer tools, syst
 - [Why the Design Works](#why-the-design-works)
 - [Contributing](#contributing)
 
-## Breaking News About C-Menu
-
-As methodical testing and development coninue, C-Menu is now available for public use with a few cautionary notes. The project is still in active development, debugging continues, and contributions are welcome.
-
-Our most recent holdup involves an omission initializing the tm struct when using the GLIBC date/time functions gmtime and localtime. In short, use memset to initialize the tm struct, and then set tm1.tm_isdist = -1 before calling gmtime or localtime. This is a known issue that can lead to unpredictable behavior when the tm struct contains uninitialized data.
-
-If you are interested in the test code and an excellent re-write of my original
-documentation by Co-Pilot, take a look at: [gmtime/localtime test code](https://github.com/BillWaller/C-Menu/blob/main/docs/gnudatetime.md)
-
-If you have noticed "opportunities for improvement" (a shameless euphemism for bugs) in C-Menu's code or documentation, please feel free to submit an issue or pull request. The project is still in its early stages, and contributions are welcome to help improve the codebase and documentation. Note the MIT License, which means this is just as much your project as it is mine.
+<!-- mtoc-end -->
 
 ## Why C-Menu
 
