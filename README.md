@@ -35,7 +35,7 @@ gmtime and localtime. This is a known issue that can cause crashes in C-Menu’s
 
 If you are interested in the test code for the date/time functions, take a look
 at: [gmtime/localtime test
-code](https://github.com/BillWaller/C-Menu/docs/gnudatetime.md).
+code](https://github.com/BillWaller/C-Menu/blob/main/docs/gnudatetime.md)
 
 If you have ideas on a workaround or want to contribute to the fix, please reach out or submit a merge request.
 
