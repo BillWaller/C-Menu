@@ -379,6 +379,7 @@ extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
 extern cchar_t mkccc(int, attr_t, char *);
+extern char *iso8601_time(char *, int, time_t *, bool);
 
 extern cchar_t CCC_NORM;      /**< curses default */
 extern cchar_t CCC_REVERSE;   /**< curses default reverse */

@@ -8,7 +8,14 @@
   - [C-Menu Start-up Options](#c-menu-start-up-options)
   - [C-Menu Menu](#c-menu-menu)
   - [Menu Description File](#menu-description-file)
-  - [Menu Description File](#menu-description-file-1)
+    - [Example Application Menu](#example-application-menu)
+      - [Full Screen Root Shell](#full-screen-root-shell)
+      - [Workstation Configuration](#workstation-configuration)
+      - [Diagnostic Tools](#diagnostic-tools)
+      - [Installment Loan Calculations](#installment-loan-calculations-)
+      - [Listener Research](#listener-research)
+      - [Cash Receipts#####](#cash-receipts)
+  - [How Menu Works](#how-menu-works)
   - [Menu Key characters](#menu-key-characters)
   - [User Choices, Commands, and comments](#user-choices-commands-and-comments)
   - [Sub-Menus](#sub-menus)
@@ -19,7 +26,7 @@
     - [Directives](#directives)
   - [Examples](#examples)
     - [Installment Loan Calculations](#installment-loan-calculations)
-    - [Cash Receipts](#cash-receipts)
+    - [Cash Receipts](#cash-receipts-1)
 - [C-Menu Pick](#c-menu-pick)
   - [Rustlings Source](#rustlings-source)
   - [Edit .c Files in Current Directory](#edit-c-files-in-current-directory)
@@ -107,7 +114,75 @@ This section will break down the Example C-Menu Applications Menu and explain ho
 
 Lets examine the Menu source above and break down how it works. The source file is a simple text file that contains a series of User Choices and Commands.
 
-### Menu Description File
+#### Example Application Menu
+
+In the C-Menu application directory, you will find an example, ~/menuapp/msrc/main.m. This example is designed to demonstrate a variety of features and techniques that can be applied to your projects. It is not meant to be a practical menu for everyday use, but rather a showcase of what is possible with C-Menu. Think of yourself as an artist and C-Menu as your canvas. What will you create?
+
+##### Full Screen Root Shell
+
+Synopsis: Demonstrates how to use C-Menu to execute an external command, in this case, "rsh", which is a root shell alternative. When the user selects this menu item, C-Menu executes the "rsh" command, providing the user with a full-screen shell with root privileges. This can be useful for performing administrative tasks or troubleshooting issues that require elevated privileges.
+
+Requirements: rsh owned by root, with setuid permissions.
+
+```bash
+chown root:root ~/menuapp/bin/rsh
+chmod 4711 ~/menuapp/bin/rsh
+```
+
+##### Workstation Configuration
+
+Synopsis: Demonstrates how to create a sub-menu by specifying a menu description file, "workstation_config.m", which will be loaded and displayed when the menu item is selected. This allows you to create a hierarchical menu structure, with multiple levels of sub-menus, to organize your application and provide a more intuitive user experience.
+
+Requirements: A menu description file, ~/menuapp/msrc/workstation_config.m, normally included with C-Menu. Alternatively, you can create this file with any text editor and populate it with menu items and commands relevant to workstation configuration tasks.
+
+##### Diagnostic Tools
+
+Synopsis: Demonstrates how to create a sub-menu by specifying a menu description file, ~/menuapp/msrc/diag.m, which will be loaded and displayed when the menu item is selected. Similar to Workstation Configuration.
+
+Requirements: A menu description file, ~/menuapp/msrc/diag.m, normally included with C-Menu. Alternatively, you can create this file with any text editor and populate it with menu items and commands relevant to diagnostic tools and tasks.
+
+##### Installment Loan Calculations
+
+Synopsis: Demonstrates how to use C-Menu Form to create a form-based interface for performing calculations based on form data. When the user selects this menu item, C-Menu executes the form command with the specified description file, "iloan.f". Form opens the input file, "iloan.dat", reads field data, and displays it in the Form window. The user edits the data and presses F10 Accept. Form then executes the "iloan" executable with the form data as arguments. "iloan" processes the form data and writes the resulting data to standard output. Form reads the resulting data from a pipe and displays the updated form data. The user can experiment with the numbers in the form, running as many calculation cycles as necessary. When the user gets the desired results, and presses F10 a second time, ~/menuapp/bin/amort executes with the form data and a loan amortization report is displayed with view.
+
+Requirements: iloan and amort executables: These are simple programs distributed with C-Menu specifically for the purpose this demonstration. If you don't have the "iloan" executable distributed with C-Menu, you can create a simple version of it in C or any programming language of your choice that accepts the data as arguments, standard input, or file, performs calculations, and writes the resulting data to standard output. You could even create a shell script or awk script to perform the calculations if you prefer. The point is to demonstrate how to use external executables with C-Menu Form, so the specific implementation of "iloan" is not important as long as it can read form data from standard input, perform calculations, and write the resulting data to standard output.
+
+##### Listener Research
+
+Synopsis: This menu item is a placeholder for a future demonstration of how to use C-Menu to create an interface for conducting research on listeners, such as audio or network listeners. The specific implementation and requirements for this menu item will depend on the type of listener research being conducted and the tools and technologies being used.
+
+Requirements: None.
+
+##### Cash Receipts #####
+
+: Cash Receipts
+!form receipt.f -i receipt.dat -o receipt.dat
+: Form Data Types
+!form -d fields.f -i fields.dat -o fields.dat
+: Rustlings Source
+!pick -S "lf rustlings -d 5 \"exercises._\.rs$\"" -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%
+: View Manual Pages
+!pick -S "lf ~/menuapp/man" -d 5 -n 1 -T \"Select Manual Page to View\" -c "view %%"
+: Edit .c Files in Current Directory
+!pick -S project_src -T "Project Tree - Select File to Edit" -c nvim.sh %%
+: View C-Menu Source with Tree-Sitter
+!pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
+: View Source with Tree-Sitter
+!pick -S "lf -S -d 5 . \"._\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -n 1 -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
+: lf Help
+!view -Nf -L50 -C86 ~/menuapp/help/lf.help
+: View Data Types Help File
+!view -Nf -L47 -C85 -S "bat --theme ansi -l Crystal -f ~/menuapp/help/fields.hlp"
+: Menu Description With Bat Syntax Highlighting
+!view -Nf -L 39 -C 85 -S "bat --theme ansi -l Crystal -f ~/menuapp/msrc/main.m"
+: View C-Menu Command Line Options
+!view -Nf -L66 -C75 ~/menuapp/help/menu.help
+: View Highlighted view_engine.c
+!view -N -L66 -C85 ~/menuapp/help/view_engine.c
+: Exit Applications
+!return
+
+### How Menu Works
 
 The menu description file is a simple text file that contains a series of User Choices and Commands. The first line of the menu description file is used as the Menu title, which is displayed at the top of the Menu window. Subsequent lines beginning with ":" are user choices that will be displayed in the menu. Lines beginning with "!" are commands to be executed by Menu when the corresponding menu item is selected. Lines beginning with "#" are comments.
 

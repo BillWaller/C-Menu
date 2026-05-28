@@ -26,6 +26,19 @@ Written in C and designed for speed, C-Menu works well for developer tools, syst
 - [Why the Design Works](#why-the-design-works)
 - [Contributing](#contributing)
 
+## Breaking News About C-Menu
+
+As methodical testing and development coninue, C-Menu is now available for public use with a few cautionary notes. The project is still in active development, debugging continues, and contributions are welcome.
+
+Our most recent holdup involves a bug in the GLIBC date/time functions including
+gmtime and localtime. This is a known issue that can cause crashes in C-Menu’s `lf` component when it tries to process file timestamps. We are working on a fix and will update the documentation with any necessary workarounds.
+
+If you are interested in the test code for the date/time functions, take a look
+at: [gmtime/localtime test
+code](https://gitlab.com/BillWaller/C-Menu/docs/gnudatetime.md).
+
+If you have ideas on a workaround or want to contribute to the fix, please reach out or submit a merge request.
+
 ## Why C-Menu
 
 C-Menu is built for users who want terminal applications that are:

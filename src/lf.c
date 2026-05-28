@@ -172,10 +172,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     switch (key) {
     case 'a':
         memset(&tm_info, 0, sizeof(struct tm));
-        if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL) {
-            fprintf(stderr, "-a Failed to parse time string.\n");
-            return 1;
-        }
+        if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL)
+            if (strptime(arg, "%4Y%2m%2dT%2H%2M%2S", &tm_info) == NULL)
+                if (strptime(arg, "%Y-%m-%d", &tm_info) == NULL)
+                    if (strptime(arg, "%4Y%2m%2d", &tm_info) == NULL) {
+                        fprintf(stderr, "-b Failed to parse time string.\n");
+                        return 1;
+                    }
         f->after = mktime(&tm_info);
         if (f->after && f->before && f->after > f->before) {
             fprintf(stderr, "-a time must be before -b time.\n");
@@ -184,10 +187,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'b':
         memset(&tm_info, 0, sizeof(struct tm));
-        if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL) {
-            fprintf(stderr, "-b Failed to parse time string.\n");
-            return 1;
-        }
+        if (strptime(arg, "%Y-%m-%dT%H:%M:%S", &tm_info) == NULL)
+            if (strptime(arg, "%4Y%2m%2dT%2H%2M%2S", &tm_info) == NULL)
+                if (strptime(arg, "%Y-%m-%d", &tm_info) == NULL)
+                    if (strptime(arg, "%4Y%2m%2d", &tm_info) == NULL) {
+                        fprintf(stderr, "-b Failed to parse time string.\n");
+                        return 1;
+                    }
         f->before = mktime(&tm_info);
         if (f->after && f->before && f->after > f->before) {
             fprintf(stderr, "-a time must be before -b time.\n");
@@ -518,23 +524,24 @@ bool init_find(SearchFilters *f) {
         nthreads = n - 1;
     if (f->debug && (f->report_config || f->report_info || f->report_all)) {
         fprintf(stderr, "%s\n", CM_VERSION);
-        fprintf(stderr, "lf debug=%d\n", f->debug);
-        fprintf(stderr, "  1-config %s\n",
-                f->report_config ? "true" : "false");
-        fprintf(stderr, "  2-info %s\n",
-                f->report_info ? "true" : "false");
-        fprintf(stderr, "  3-warnings %s\n",
-                f->report_warnings ? "true" : "false");
-        fprintf(stderr, "  4-errors %s\n",
-                f->report_errors ? "true" : "false");
-        fprintf(stderr, "  5-badlinks %s\n",
-                f->report_trace ? "true" : "false");
-        fprintf(stderr, "  6-trace %s\n",
-                f->report_trace ? "true" : "false");
-        fprintf(stderr, "  7-all %s\n",
-                f->report_all ? "true" : "false");
+        fprintf(stderr, "lf debug      %s\n",
+                f->debug ? "true" : "     false");
+        fprintf(stderr, "  1-config      %s\n",
+                f->report_config ? "true" : "|    false");
+        fprintf(stderr, "  2-info        %s\n",
+                f->report_info ? "true" : "|    false");
+        fprintf(stderr, "  3-warnings    %s\n",
+                f->report_warnings ? "true" : "|    false");
+        fprintf(stderr, "  4-errors      %s\n",
+                f->report_errors ? "true" : "|    false");
+        fprintf(stderr, "  5-badlinks    %s\n",
+                f->report_trace ? "true" : "|    false");
+        fprintf(stderr, "  6-trace       %s\n",
+                f->report_trace ? "true" : "|    false");
+        fprintf(stderr, "  7-all         %s\n",
+                f->report_all ? "true" : "|    false");
         fprintf(stderr, "  8-only_errors %s\n",
-                f->report_all ? "true" : "false");
+                f->only_errors ? "true" : "|    false");
         fprintf(stderr, "Search directory: %s\n", f->base_path);
         fprintf(stderr, "Using %d threads\n", nthreads);
         if (!f->include_types)
@@ -585,10 +592,19 @@ bool init_find(SearchFilters *f) {
             fprintf(stderr, "Exclude regex: %s\n", f->ere);
         if (f->flags & LF_USER)
             fprintf(stderr, "User ID filter: %ju\n", f->user_id);
-        if (f->after)
-            fprintf(stderr, "Modified after: %s", ctime(&f->after));
-        if (f->before)
-            fprintf(stderr, "Modified before: %s", ctime(&f->before));
+
+        if (f->after) {
+            char buf[32];
+            iso8601_time(buf, sizeof(buf), &f->after, true);
+            fprintf(stderr, "Modified after: %s\n", buf);
+        }
+
+        if (f->before) {
+            char buf[32];
+            iso8601_time(buf, sizeof(buf), &f->before, true);
+            fprintf(stderr, "Modified before: %s\n", buf);
+        }
+
         if (f->file_size_min) {
             const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
             off_t size = f->file_size_min;

@@ -115,8 +115,10 @@ size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
+char *iso8601_time(char *, int, time_t *, bool);
 
 /** Global variables for error reporting */
+
 char errmsg[MAXLEN];
 typedef struct {
     char fn[MAXLEN];
@@ -132,6 +134,26 @@ typedef struct {
 error_info_t error_info;
 error_source_t error_source;
 int wait_timeout;
+
+/** @brief Formats a struct tm as an ISO 8601 string.
+    @ingroup utility_functions
+    @param buf - buffer to receive formatted string
+    @param n - size of buffer
+    @param t - struct tm to format
+    @param local - if true, include local time zone offset; if false, use 'Z' for UTC
+    @returns pointer to buf
+    @note The caller is responsible for ensuring that buf has enough space to hold the resulting string. The ISO 8601 format produced is "YYYY-MM-DDTHH:MM:SSZ" for UTC or "YYYY-MM-DDTHH:MM:SS±hhmm" for local time. This function uses strftime internally, so the actual format may vary based on the implementation of strftime and the locale settings.
+ */
+char *iso8601_time(char *buf, int n, time_t *t, bool local) {
+    struct tm *tp = local ? localtime(t) : gmtime(t);
+    if (local) {
+        strftime(buf, n, "%Y-%m-%dT%H:%M:%S%z", tp);
+    } else {
+        strftime(buf, n, "%Y-%m-%dT%H:%M:%SZ", tp);
+    }
+    return buf;
+}
+
 /**  @brief Trims trailing spaces from string s in place.
      @param s - string to trim
      @returns length of trimmed string */
