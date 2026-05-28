@@ -116,8 +116,8 @@ String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
 char *iso8601_time(char *, int, time_t *, bool);
-void format_local_timestamp(time_t, char *, size_t);
 bool parse_local_timestamp(const char *, time_t *);
+void format_local_timestamp(time_t, char *, size_t);
 
 /** Global variables for error reporting */
 

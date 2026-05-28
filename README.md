@@ -30,14 +30,12 @@ Written in C and designed for speed, C-Menu works well for developer tools, syst
 
 As methodical testing and development coninue, C-Menu is now available for public use with a few cautionary notes. The project is still in active development, debugging continues, and contributions are welcome.
 
-Our most recent holdup involves a bug in the GLIBC date/time functions including
-gmtime and localtime. This is a known issue that can cause crashes in C-Menu’s `lf` component when it tries to process file timestamps. We are working on a fix and will update the documentation with any necessary workarounds.
+Our most recent holdup involves an omission initializing the tm struct when using the GLIBC date/time functions gmtime and localtime. In short, use memset to initialize the tm struct, and then set tm1.tm_isdist = -1 before calling gmtime or localtime. This is a known issue that can lead to unpredictable behavior when the tm struct contains uninitialized data.
 
-If you are interested in the test code for the date/time functions, take a look
-at: [gmtime/localtime test
-code](https://github.com/BillWaller/C-Menu/blob/main/docs/gnudatetime.md)
+If you are interested in the test code and an excellent re-write of my original
+documentation by Co-Pilot, take a look at: [gmtime/localtime test code](https://github.com/BillWaller/C-Menu/blob/main/docs/gnudatetime.md)
 
-If you have ideas on a workaround or want to contribute to the fix, please reach out or submit a merge request.
+If you have noticed "opportunities for improvement" (a shameless euphemism for bugs) in C-Menu's code or documentation, please feel free to submit an issue or pull request. The project is still in its early stages, and contributions are welcome to help improve the codebase and documentation. Note the MIT License, which means this is just as much your project as it is mine.
 
 ## Why C-Menu
 

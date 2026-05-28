@@ -1,79 +1,123 @@
 # DATE/TIME CONUNDRUM
 
-Bill Waller Copyright (c) 2026
-2026-05-25
-MIT License
+Bill Waller Copyright (c) 2026  
+2026-05-25  
+MIT License  
 [bill waller email](email@billxwaller@gmail.com)
 
 ## Overview
 
-The C program herein prints date/times in ISO 8601 format to demonstrate the behavior of the GNU gmtime and localtime functions with respect to the use of memset to zero a struct tm before use. The behavior of these functions is inconsistent with respect to the use of memset to zero a struct tm before use, and the behavior changes depending on whether the time zone is CST (UTC-6) or CDT (UTC-5).
+This note documents an issue encountered while parsing local date/time text with `strptime()`, converting the result to `time_t` with `mktime()`, and then formatting the resulting value after conversion back to local time with `localtime_r()`.
 
-The fact that using memset to zero the tm struct fixes the broken behavior of GNU gmtime and localtime functions when used within the scope of CST (UTC-6) suggests that there may be a bug in the implementation of these functions that is triggered by uninitialized memory. The fact that it breaks the otherwise correct behavior of GNU gmtime and localtime functions when used within the scope of CDT (UTC-5) suggests that there may be a different bug in the implementation of these functions that is triggered by zeroed memory.
+At first glance, the behavior can look like a GNU `gmtime_r()` or `localtime_r()` bug because the formatted output appears to shift by one hour depending on whether the `struct tm` was first cleared with `memset()`. In practice, the real problem is usually the value of `tm_isdst` before calling `mktime()`.
 
----
+`strptime()` fills only the fields specified by the format string. It does **not** guarantee that the rest of the `struct tm` is initialized to useful values. One of the most important remaining fields is `tm_isdst`:
 
-## CDT && MEMSET - INCORRECT
+- `tm_isdst = 0` means standard time is in effect.
+- `tm_isdst = 1` means daylight saving time is in effect.
+- `tm_isdst = -1` means "determine DST automatically."
 
-```C
-input:     2026-06-01T00:00:00
-gmtime     2026-06-01T06:00:00Z
-localtime  2026-06-01T01:00:00
+That means:
+
+- If the structure is zeroed with `memset()`, then `tm_isdst` becomes `0`, which forces `mktime()` to interpret the input as standard time even when the date falls in CDT.
+- If the structure is **not** initialized first, `tm_isdst` may retain leftover data from prior use, which can accidentally make one test case appear correct and another appear incorrect.
+
+So the one-hour discrepancy is not caused by `localtime_r()` itself. The incorrect value is usually created earlier by `mktime()` when it receives an incompletely initialized `struct tm`.
+
+## Correct workaround
+
+The safe pattern is:
+
+1. Clear the full `struct tm`.
+2. Set `tm_isdst = -1`.
+3. Call `strptime()`.
+4. Call `mktime()`.
+
+Example:
+
+```c
+struct tm tm1;
+memset(&tm1, 0, sizeof tm1);
+tm1.tm_isdst = -1;
+
+if (strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1) == NULL) {
+    /* parse error */
+}
+
+time_t t1 = mktime(&tm1);
 ```
 
-```Text
-    gmtime_r incorrectly used UTC-6 instead of UTC-5
-    localtime_r incorrectly added 1 hour
+Then format for display using a separate output structure:
+
+```c
+struct tm out;
+localtime_r(&t1, &out);
+strftime(buf, sizeof buf, "%Y-%m-%dT%H:%M:%S", &out);
 ```
 
----
+## Why the previous results looked contradictory
 
-## CDT && NOT MEMSET - CORRECT
+The earlier examples showed this pattern:
 
-```C
-input:     2026-06-01T00:00:00
-gmtime     2026-06-01T05:00:00Z
-localtime  2026-06-01T00:00:00
+- Zeroing the structure appeared to break CDT dates.
+- Not zeroing the structure appeared to break CST dates.
+
+That happens because the tests were effectively toggling the initial value of `tm_isdst`:
+
+- `memset(..., 0, ...)` forced `tm_isdst = 0`, i.e. standard time.
+- Reusing the same structure without reinitializing it allowed `tm_isdst` to carry stale state from earlier operations.
+
+As a result, the code was not consistently asking `mktime()` to determine DST from the input date. Once `tm_isdst` is explicitly set to `-1`, both standard-time and daylight-time dates should round-trip correctly in the local timezone.
+
+## Important note about `gmtime_r()`
+
+`gmtime_r()` converts a `time_t` to UTC. It does not use the local timezone rules to decide whether the original parsed time was CST or CDT. If the UTC result appears to be off by one hour, that usually means the `time_t` value produced by `mktime()` was already wrong.
+
+## Recommended helper
+
+A simple helper for parsing local timestamps safely:
+
+```c
+#include <stdbool.h>
+#include <string.h>
+#include <time.h>
+
+bool parse_local_timestamp(const char *s, time_t *out)
+{
+    struct tm tmv;
+    memset(&tmv, 0, sizeof tmv);
+    tmv.tm_isdst = -1;
+
+    if (strptime(s, "%Y-%m-%dT%H:%M:%S", &tmv) == NULL)
+        return false;
+
+    time_t t = mktime(&tmv);
+    if (t == (time_t)-1)
+        return false;
+
+    *out = t;
+    return true;
+}
 ```
 
-```Text
-    gmtime correctly used UTC-5
-    localtime correctly did not add 1 hour
+And a matching formatter:
+
+```c
+void format_local_timestamp(time_t t, char *buf, size_t n)
+{
+    struct tm tmv;
+    localtime_r(&t, &tmv);
+    strftime(buf, n, "%Y-%m-%dT%H:%M:%S", &tmv);
+}
 ```
 
----
+## Revised interpretation of the original test cases
 
-## NOT CDT && NOT MEMSET - INCORRECT
+The original test cases are still useful because they show that leaving `tm_isdst` uncontrolled produces different behavior across DST boundaries. However, they do **not** demonstrate a `localtime_r()` or `gmtime_r()` bug. They demonstrate that `mktime()` needs a fully initialized `struct tm`, with `tm_isdst` set appropriately.
 
-```C
-input:     2026-03-07T00:00:00
-gmtime     2026-03-07T05:00:00Z
-localtime  2026-03-06T23:00:00
-```
+## Original demonstration code
 
-```Text
-    gmtime_r incorrectly used UTC-5 instead of UTC-6
-    localtime_r incorrectly subtracted 1 hour
-```
-
----
-
-## NOT CDT && MEMSET - CORRECT
-
-```C
-input:    2026-03-07T00:00:00
-gmtime    2026-03-07T06:00:00Z
-localtime 2026-03-07T00:00:00
-```
-
-```Text
-    gmtime_r correctly used UTC-6 instead of UTC-5
-    localtime_r correctly did not add 1 hour
-```
-
----
-
-```C
+```c
 /** @file iso8601.c
     @brief iso8601 Timestamp
     @author Bill Waller
@@ -82,8 +126,7 @@ localtime 2026-03-07T00:00:00
     billxwaller@gmail.com
     @date 2026-02-09
     @details This program prints the current time in ISO 8601 format.
-    It also demonstrates the behavior of the GNU gmtime and localtime functions with respect to the use of memset to xor a struct tm before use, and how the behavior changes depending on whether the time zone is CST (UTC-6) or CDT (UTC-5).
-
+    It also demonstrates the behavior of the GNU gmtime and localtime functions with respect to the use of memset to xor a struct tm before use, and how the behavior changes depending on whether the tm struct is zeroed before being passed through strptime() and mktime().
  */
 
 #define _GNU_SOURCE
@@ -102,7 +145,7 @@ int main() {
     // CDT && MEMSET - INCORRECT
     strcpy(time_s, "2026-06-01T00:00:00");
     printf("input:     %s\n", time_s);
-    memset(&tm1, 0, sizeof(struct tm)); // xor tm1
+    memset(&tm1, 0, sizeof(struct tm));
     printf("with memset(&tm1)\n");
     strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
     t1 = mktime(&tm1);
@@ -114,17 +157,6 @@ int main() {
     localtime_r(&t1, &tm1);
     strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
     printf("%s\n\n", buf);
-
-    // used memset to xor tm struct
-    //
-    // input:     2026-06-01T00:00:00
-    // gmtime     2026-06-01T06:00:00Z
-    // localtime  2026-06-01T01:00:00
-    //
-    //     gmtime_r incorrectly used UTC-6 instead of UTC-5
-    //     localtime_r incorrectly added 1 hour
-
-    // ----------------------------------------------------------------
 
     // CDT && NOT MEMSET - CORRECT
     strcpy(time_s, "2026-06-01T00:00:00");
@@ -141,15 +173,6 @@ int main() {
     strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
     printf("%s\n\n", buf);
 
-    // input:     2026-06-01T00:00:00
-    // gmtime     2026-06-01T05:00:00Z
-    // localtime  2026-06-01T00:00:00
-    //
-    //     gmtime correctly used UTC-5
-    //     localtime correctly did not add 1 hour
-
-    // ----------------------------------------------------------------
-
     // NOT CDT && NOT MEMSET - INCORRECT
     strcpy(time_s, "2026-03-07T00:00:00");
     printf("input:     %s\n", time_s);
@@ -165,18 +188,10 @@ int main() {
     strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
     printf("%s\n\n", buf);
 
-    // input:     2026-03-07T00:00:00
-    // gmtime     2026-03-07T05:00:00Z
-    // localtime  2026-03-06T23:00:00
-    //
-    //     gmtime_r incorrectly used UTC-6 instead of UTC-5
-    //     localtime_r incorrectly subtracted 1 hour
-
     // NOT CDT && MEMSET - CORRECT
     strcpy(time_s, "2026-03-07T00:00:00");
     printf("input:     %s\n", time_s);
     memset(&tm1, 0, sizeof(struct tm));
-    // NOT CDT && MEMSET - correct\n");
     strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
     t1 = mktime(&tm1);
 
@@ -187,12 +202,5 @@ int main() {
     localtime_r(&t1, &tm1);
     strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
     printf("%s\n\n", buf);
-
-    // input:     2026-03-07T00:00:00
-    // gmtime     2026-03-07T06:00:00Z
-    // localtime  2026-03-07T00:00:00
-    //
-    //     gmtime_r correctly used UTC-6 instead of UTC-5
-    //     localtime_r correctly did not add 1 hour
 }
 ```
