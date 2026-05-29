@@ -702,6 +702,38 @@ unsigned long a_to_ul(const char *str) {
         return value;
     }
 }
+/** @brief Converts a Unicode code point to a UTF-8 encoded string.
+    @ingroup utility_functions
+    @param cp - Unicode code point to convert
+    @param buffer - buffer to receive UTF-8 encoded string (must be at least 4 bytes)
+    @returns number of bytes written to buffer, or 0 if cp is invalid
+    @details This function encodes the given Unicode code point into its UTF-8 representation and stores it in the provided buffer. The caller must ensure that the buffer has enough space to hold the resulting UTF-8 string (up to 4 bytes for code points up to U+10FFFF). If the code point is invalid (e.g., greater than U+10FFFF), this function returns 0 and does not modify the buffer. */
+int wccp_to_str(wchar_t cp, uint8_t *buffer) {
+    if (cp <= 0x7F) {
+        // 1-byte sequence: 0xxxxxxx
+        buffer[0] = (uint8_t)cp;
+        return 1;
+    } else if (cp <= 0x7FF) {
+        // 2-byte sequence: 110xxxxx 10xxxxxx
+        buffer[0] = (uint8_t)(0xC0 | ((cp >> 6) & 0x1F));
+        buffer[1] = (uint8_t)(0x80 | (cp & 0x3F));
+        return 2;
+    } else if (cp <= 0xFFFF) {
+        // 3-byte sequence: 1110xxxx 10xxxxxx 10xxxxxx
+        buffer[0] = (uint8_t)(0xE0 | ((cp >> 12) & 0x0F));
+        buffer[1] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+        buffer[2] = (uint8_t)(0x80 | (cp & 0x3F));
+        return 3;
+    } else if (cp <= 0x10FFFF) {
+        // 4-byte sequence: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        buffer[0] = (uint8_t)(0xF0 | ((cp >> 18) & 0x07));
+        buffer[1] = (uint8_t)(0x80 | ((cp >> 12) & 0x3F));
+        buffer[2] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+        buffer[3] = (uint8_t)(0x80 | (cp & 0x3F));
+        return 4;
+    }
+    return 0; // Invalid Unicode code point
+}
 /** @brief Strips ANSI SGR escape sequences (ending in 'm') from string s to d
     @ingroup utility_functions
     @param d Destination string

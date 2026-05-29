@@ -42,6 +42,15 @@
 #include <time.h>
 #include <unistd.h>
 
+#define print_file_type(mask, lf_type, dt_type, name)                                                     \
+    {                                                                                                     \
+        if (mask & lf_type)                                                                               \
+            sign = '*';                                                                                   \
+        else                                                                                              \
+            sign = ' ';                                                                                   \
+        fprintf(stderr, "%c %08b (%3d) %08b (%2d) %s\n", sign, lf_type, lf_type, dt_type, dt_type, name); \
+    }
+
 struct tm tm_info;
 const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
@@ -460,164 +469,6 @@ void sort_lf_output(SearchFilters *f, int argc, char **argv) {
     waitpid(pid1, &wstatus, 0);
     init_find(f, argc, argv); // Initialize and transfer control to the finder
 }
-/** @brief Output debug information about the search filters and configuration.
-    @param f A pointer to a SearchFilters struct containing the options and
-   flags for filtering.
-    @param argc The number of command-line arguments.
-    @param argv The array of command-line argument strings.
-    @details This function prints detailed information about the configuration and search filters as well as each of the options and arguments used on the command line invoking lf. The output is sent to the standard error stream, which can be redirected to standard output making it suitable as documentation for an audit trail.
-   */
-
-void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
-    char user_str[100];
-    char ip_str[MAXLEN];
-    int len;
-    bool addspace_before = false;
-    if (f->debug && (f->report_config || f->report_info || f->report_all)) {
-        fprintf(stderr, "%s,%s,%s,", get_local_timestamp(), get_user_str(user_str, 100), get_ip_addresses(ip_str, MAXLEN));
-
-        for (int i = 0; i < argc; i++) {
-            len = len + strlen(argv[i]);
-            if (len > 72) {
-                fprintf(stderr, "\n");
-                len = strlen(argv[i]);
-                addspace_before = false;
-            }
-            if (addspace_before) {
-                fprintf(stderr, " ");
-                len++;
-            }
-            fprintf(stderr, "%s", argv[i]);
-            addspace_before = true;
-        }
-        fprintf(stderr, "\n\n");
-        fprintf(stderr, "%s\n\n", CM_VERSION);
-        fprintf(stderr, "lf debug      %s\n",
-                f->debug ? "true" : "     false");
-        fprintf(stderr, "  1-config      %s\n",
-                f->report_config ? "true" : "|    false");
-        fprintf(stderr, "  2-info        %s\n",
-                f->report_info ? "true" : "|    false");
-        fprintf(stderr, "  3-warnings    %s\n",
-                f->report_warnings ? "true" : "|    false");
-        fprintf(stderr, "  4-errors      %s\n",
-                f->report_errors ? "true" : "|    false");
-        fprintf(stderr, "  5-badlinks    %s\n",
-                f->report_trace ? "true" : "|    false");
-        fprintf(stderr, "  6-trace       %s\n",
-                f->report_trace ? "true" : "|    false");
-        fprintf(stderr, "  7-all         %s\n",
-                f->report_all ? "true" : "|    false");
-        fprintf(stderr, "  8-only_errors %s\n",
-                f->only_errors ? "true" : "|    false");
-        fprintf(stderr, "\n");
-        fprintf(stderr, "Search directory: %s\n\n", f->base_path);
-        fprintf(stderr, "Using %d threads\n\n", nthreads);
-        if (!f->include_types)
-            fprintf(stderr, " include_types=all\n");
-        else {
-            fprintf(stderr, " include_types=%08b\n", f->include_types);
-            if (f->include_types & LF_FIFO)
-                fprintf(stderr, "     %08b pipe\n", LF_FIFO);
-            if (f->include_types & LF_CHR)
-                fprintf(stderr, "     %08b character\n", LF_CHR);
-            if (f->include_types & LF_DIR)
-                fprintf(stderr, "     %08b directory\n", LF_DIR);
-            if (f->include_types & LF_BLK)
-                fprintf(stderr, "     %08b block\n", LF_BLK);
-            if (f->include_types & LF_REG)
-                fprintf(stderr, "     %08b regular\n", LF_REG);
-            if (f->include_types & LF_LNK)
-                fprintf(stderr, "     %08b link\n", LF_LNK);
-            if (f->include_types & LF_SOCK)
-                fprintf(stderr, "     %08b socket\n", LF_SOCK);
-            if (f->include_types & LF_UNKNOWN)
-                fprintf(stderr, "     %08b unknown\n", LF_UNKNOWN);
-        }
-        if (!f->suppress_types)
-            fprintf(stderr, " suppress_types=none\n");
-        else {
-            fprintf(stderr, "suppress_types=%08b\n", f->suppress_types);
-            if (f->suppress_types & LF_FIFO)
-                fprintf(stderr, "     %08b named pipe\n", LF_FIFO);
-            if (f->suppress_types & LF_CHR)
-                fprintf(stderr, "     %08b character\n", LF_CHR);
-            if (f->suppress_types & LF_DIR)
-                fprintf(stderr, "     %08b directory\n", LF_DIR);
-            if (f->suppress_types & LF_BLK)
-                fprintf(stderr, "     %08b block\n", LF_BLK);
-            if (f->suppress_types & LF_REG)
-                fprintf(stderr, "     %08b regular\n", LF_REG);
-            if (f->suppress_types & LF_LNK)
-                fprintf(stderr, "     %08b link\n", LF_LNK);
-            if (f->suppress_types & LF_SOCK)
-                fprintf(stderr, "     %08b socket\n", LF_SOCK);
-            if (f->suppress_types & LF_UNKNOWN)
-                fprintf(stderr, "     %08b unknown\n", LF_UNKNOWN);
-        }
-        fprintf(stderr, "\n");
-
-        if (f->flags & LF_USER)
-            fprintf(stderr, "User: %s (%ju)\n", f->user_name, f->user_id);
-        if (f->include_perms) {
-            if (f->include_perms & LF_IXUSR)
-                fprintf(stderr, "    %08b Execute\n", LF_IXUSR);
-            if (f->include_perms & LF_IWUSR)
-                fprintf(stderr, "    %08b Write\n", LF_IWUSR);
-            if (f->include_perms & LF_IRUSR)
-                fprintf(stderr, "    %08b Read\n", LF_IRUSR);
-            if (f->include_perms & LF_ISUID)
-                fprintf(stderr, "    %08b SETUID\n", LF_ISUID);
-            if (f->include_perms & LF_ISGID)
-                fprintf(stderr, "    %08b SETGID\n", LF_ISGID);
-        }
-        fprintf(stderr, "\n");
-        if (f->flags & LF_REGEX)
-            fprintf(stderr, "Include regex: %s\n\n", f->re);
-        if (f->flags & LF_EXC_REGEX)
-            fprintf(stderr, "Exclude regex: %s\n\n", f->ere);
-
-        if (f->after) {
-            char buf[32];
-            format_local_timestamp(f->after, buf, sizeof(buf));
-            fprintf(stderr, "Modified after: %s\n\n", buf);
-        }
-
-        if (f->before) {
-            char buf[32];
-            format_local_timestamp(f->before, buf, sizeof(buf));
-            fprintf(stderr, "Modified before: %s\n\n", buf);
-        }
-
-        if (f->file_size_min) {
-            const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
-            off_t size = f->file_size_min;
-            int i = 0;
-            while (size >= 1024 && i < 6) {
-                size /= 1024;
-                i++;
-            }
-            char buffer[32];
-            ssnprintf(buffer, 32, "%ld %s", size, units[i]);
-            fprintf(stderr, "Minimum file size: %s\n\n", buffer);
-        }
-        if (f->max_depth)
-            fprintf(stderr, "Max depth: %d\n\n", f->max_depth);
-        if (f->ignore_case)
-            fprintf(stderr, "Ignore case in regex matching.\n\n");
-        if (f->include_hidden)
-            fprintf(stderr, "Include hidden files.\n\n");
-        if (f->follow_links)
-            fprintf(stderr, "Follow symbolic links.\n\n");
-        if (f->sort)
-            fprintf(stderr, "Sort output in ascending order.\n\n");
-        if (f->sort_reverse)
-            fprintf(stderr, "Sort output in reverse order.\n\n");
-        if (f->report_config && !f->report_all)
-            exit(EXIT_SUCCESS);
-    }
-    return;
-}
 /** @brief Initialize the file search based on the provided SearchFilters
    and start finder threads.
     @param f A pointer to a SearchFilters struct containing the options and
@@ -634,6 +485,8 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
    */
 bool init_find(SearchFilters *f, int argc, char **argv) {
     /** suppress file types that aren't included */
+    if (!f->include_types)
+        f->include_types = 0xff;
     if (f->include_types)
         f->suppress_types = f->include_types ^ 0xff;
     // LF_HIDE = 0 - include hidden files,
@@ -715,6 +568,131 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
     if (reti)
         return false;
     return true;
+}
+/** @brief Output debug information about the search filters and configuration.
+    @param f A pointer to a SearchFilters struct containing the options and
+   flags for filtering.
+    @param argc The number of command-line arguments.
+    @param argv The array of command-line argument strings.
+    @details This function prints detailed information about the configuration and search filters as well as each of the options and arguments used on the command line invoking lf. The output is sent to the standard error stream, which can be redirected to standard output making it suitable as documentation for an audit trail.
+   */
+
+void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
+    char user_str[100];
+    char ip_str[MAXLEN];
+    int len;
+    int i;
+    bool addspace_before = false;
+    if (f->debug && (f->report_config || f->report_info || f->report_all)) {
+        fprintf(stderr, "%s,%s,%s,", get_local_timestamp(), get_user_str(user_str, 100), get_ip_addresses(ip_str, MAXLEN));
+        for (i = 0; i < argc; i++) {
+            len = len + strlen(argv[i]);
+            if (len > 72) {
+                fprintf(stderr, "\n");
+                len = strlen(argv[i]);
+                addspace_before = false;
+            }
+            if (addspace_before) {
+                fprintf(stderr, " ");
+                len++;
+            }
+            fprintf(stderr, "%s", argv[i]);
+            addspace_before = true;
+        }
+        fprintf(stderr, "\n\n");
+        fprintf(stderr, "%s\n\n", CM_VERSION);
+        fprintf(stderr, "lf debug      %s\n",
+                f->debug ? "true" : "     false");
+        fprintf(stderr, "  1-config      %s\n",
+                f->report_config ? "true" : "|    false");
+        fprintf(stderr, "  2-info        %s\n",
+                f->report_info ? "true" : "|    false");
+        fprintf(stderr, "  3-warnings    %s\n",
+                f->report_warnings ? "true" : "|    false");
+        fprintf(stderr, "  4-errors      %s\n",
+                f->report_errors ? "true" : "|    false");
+        fprintf(stderr, "  5-badlinks    %s\n",
+                f->report_trace ? "true" : "|    false");
+        fprintf(stderr, "  6-trace       %s\n",
+                f->report_trace ? "true" : "|    false");
+        fprintf(stderr, "  7-all         %s\n",
+                f->report_all ? "true" : "|    false");
+        fprintf(stderr, "  8-only_errors %s\n",
+                f->only_errors ? "true" : "|    false");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Search directory: %s\n\n", f->base_path);
+        fprintf(stderr, "Using %d threads\n\n", nthreads);
+        fprintf(stderr, "File types preceeded by an asterisk (\"*\") will be included:\n\n");
+        fprintf(stderr, "  LF type        DT type\n");
+        char sign = ' ';
+        print_file_type(f->include_types, LF_FIFO, DT_FIFO, "FIFO    named pipe");
+        print_file_type(f->include_types, LF_CHR, DT_CHR, "CHR     character device");
+        print_file_type(f->include_types, LF_DIR, DT_DIR, "DIR     directory");
+        print_file_type(f->include_types, LF_BLK, DT_BLK, "BLK     block device");
+        print_file_type(f->include_types, LF_REG, DT_REG, "REG     regular file");
+        print_file_type(f->include_types, LF_LNK, DT_LNK, "LINK    symbolic link");
+        print_file_type(f->include_types, LF_SOCK, DT_SOCK, "SOCK    socket");
+        print_file_type(f->include_types, LF_UNKNOWN, DT_UNKNOWN, "UNKNOWN unknown");
+        if (f->flags & LF_USER)
+            fprintf(stderr, "User: %s (%ju)\n", f->user_name, f->user_id);
+        if (f->include_perms) {
+            if (f->include_perms & LF_IXUSR)
+                fprintf(stderr, "    %08b Execute\n", LF_IXUSR);
+            if (f->include_perms & LF_IWUSR)
+                fprintf(stderr, "    %08b Write\n", LF_IWUSR);
+            if (f->include_perms & LF_IRUSR)
+                fprintf(stderr, "    %08b Read\n", LF_IRUSR);
+            if (f->include_perms & LF_ISUID)
+                fprintf(stderr, "    %08b SETUID\n", LF_ISUID);
+            if (f->include_perms & LF_ISGID)
+                fprintf(stderr, "    %08b SETGID\n", LF_ISGID);
+        }
+        fprintf(stderr, "\n");
+        if (f->flags & LF_REGEX)
+            fprintf(stderr, "Include regex: %s\n\n", f->re);
+        if (f->flags & LF_EXC_REGEX)
+            fprintf(stderr, "Exclude regex: %s\n\n", f->ere);
+
+        if (f->after) {
+            char buf[32];
+            format_local_timestamp(f->after, buf, sizeof(buf));
+            fprintf(stderr, "Modified after: %s\n\n", buf);
+        }
+
+        if (f->before) {
+            char buf[32];
+            format_local_timestamp(f->before, buf, sizeof(buf));
+            fprintf(stderr, "Modified before: %s\n\n", buf);
+        }
+
+        if (f->file_size_min) {
+            const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
+            off_t size = f->file_size_min;
+            int i = 0;
+            while (size >= 1024 && i < 6) {
+                size /= 1024;
+                i++;
+            }
+            char buffer[32];
+            ssnprintf(buffer, 32, "%ld %s", size, units[i]);
+            fprintf(stderr, "Minimum file size: %s\n\n", buffer);
+        }
+        if (f->max_depth)
+            fprintf(stderr, "Max depth: %d\n\n", f->max_depth);
+        if (f->ignore_case)
+            fprintf(stderr, "Ignore case in regex matching.\n\n");
+        if (f->include_hidden)
+            fprintf(stderr, "Include hidden files.\n\n");
+        if (f->follow_links)
+            fprintf(stderr, "Follow symbolic links.\n\n");
+        if (f->sort)
+            fprintf(stderr, "Sort output in ascending order.\n\n");
+        if (f->sort_reverse)
+            fprintf(stderr, "Sort output in reverse order.\n\n");
+        if (f->report_config && !f->report_all)
+            exit(EXIT_SUCCESS);
+    }
+    return;
 }
 /** @brief Enqueue a directory dir_path for processing by finder threads.
     @param new_task A pointer to a TaskNode containing the directory path
