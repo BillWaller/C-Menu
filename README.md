@@ -1,4 +1,12 @@
-# C-Menu
+# C-Menu README
+
+## New Features for lf
+
+Version 0.2.9 2026-05-25
+
+![C-Menu lf Feature Update](screenshots/lf-debug.png)
+
+## C-Menu Introduction
 
 ![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
 
