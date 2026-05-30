@@ -1,5 +1,4 @@
-
-:     Directory Navigation
+:     Directories
 :     Up
 !exec "cd .."
 :     Select

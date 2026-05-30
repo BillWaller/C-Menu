@@ -38,6 +38,8 @@ if [[ ! -d "$1" ]]; then
     echo "Error: File '$1' not found or is not a directory."
     exit 1
 fi
+start=$EPOCHREALTIME
+# ... your commands ...
 
 dir="$1"
 
@@ -62,9 +64,12 @@ echo "Checking for setuid files in: $dir"
 for line in $(lf -L -H -T7 -ps "$dir"); do
     echo "WARNING_SETUID,$line" | sed 's/^[A-Z_]*,/[31m&[0m/'
 done
-TIMEFORMAT=%E
+# TIMEFORMAT=%E
 files=$(lf -L -H -T7 "$dir" | wc -l)
-echo
 yel=$(printf "[33m")
 sgr0=$(printf "[0m")
-printf "Total Files: %s%'d%s\n" $yel $files $sgr0
+printf "Files scanned: %s%'d%s\n" $yel $files $sgr0
+
+end=$EPOCHREALTIME
+elapsed=$(echo "$end - $start" | bc)
+printf "Elapsed: %s%s seconds%s\n" $yel $elapsed $sgr0

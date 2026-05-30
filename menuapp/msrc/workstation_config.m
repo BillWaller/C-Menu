@@ -1,4 +1,4 @@
-:   WORKSTATION CONFIGURATION
+:   Workstation Configuration Menu
 :
 :   View SDDM Previews
 !exec sddm_preview.sh

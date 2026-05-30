@@ -1,0 +1,1 @@
+view -Nf -L43 -C171 -S "bat --theme ansi -l Crystal -f ~/menuapp/msrc/main.m"

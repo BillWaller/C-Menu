@@ -17,7 +17,7 @@
       - [Cash Receipts](#cash-receipts)
       - [Form Data Types](#form-data-types)
       - [Rustlings Source](#rustlings-source)
-      - [View Manual Pages](#view-manual-pages-)
+      - [View Manual Pages](#view-manual-pages)
       - [Edit .c Files in Current Directory](#edit-c-files-in-current-directory)
   - [How Menu Works](#how-menu-works)
   - [Menu Key characters](#menu-key-characters)
@@ -71,7 +71,7 @@ Because C-Menu is written in C and terminal-based, it is super-fast and has a mi
 
 ### C-Menu Portability
 
-C-Menu is designed so that you can design an application on your development machine and deploy it to a production environment without modifications by following a few simple conventions.
+C-Menu is designed so that you can build an application on your development machine and deploy it to a production environment without modifications by following a few simple conventions.
 
 - Keep the C-Menu application separate, generally in the user's home directory.
   Set the environment variable CMENU_HOME to the path of the C-Menu application directory. This will allow you to keep C-Menu applications organized and easily accessible.
@@ -80,7 +80,7 @@ C-Menu is designed so that you can design an application on your development mac
 
 - Don't distribute C-Menu rsh unless you have a specific use case for it. RSH is designed to provide an alternative to su and sudo for executing commands with elevated privileges, but it should be used with caution and only in situations where it is necessary. If you do need to distribute RSH, make sure to properly secure it and restrict access to it to prevent unauthorized use.
 
-- Use tilde ("~") to specify the home directory in your command lines and configuration files, and C-Menu will expand the tilde to the appropriate path on the target system. This will localize the C-Menu application to the user's home directory.
+- Use tilde ("~") to specify the home directory or $CMENU_HOME to specify the C-Menu home directory in your command lines and configuration files, and C-Menu will expand the tilde to the appropriate path on the target system. It is convenient to install the C-Menu applications directory in $HOME/menuapp, so you can export CMENU_HOME=~/menuapp. This will localize the C-Menu application to the user's home directory.
 
 - Before updates, back up the user's configuration, ~/.minitrc and any menu description files, and restore them on the target system. This will ensure that the user's custom settings and menu configurations are preserved when deploying to a new environment.
 
@@ -115,6 +115,9 @@ Below is an example of source defining the above menu. This is the part you desi
 This section will break down the Example C-Menu Applications Menu and explain how it works from the perspective of a developer using C-Menu to build applications. With this understanding, you will be ready to create custom software products with C-Menu.
 
 ![Menu Description File](../screenshots/applications_menu.m.png)
+Notice the red highlighted lines in the menu description file above. That is a
+menu option that demonstrates how to edit the menu description files within
+C-Menu. You can use C-Menu to edit the menu description files that define your application, allowing you to make changes to your application's menu structure and commands without needing to exit the application. With this feature, you can quickly iterate on your application's design and functionality.
 
 Lets examine the Menu source above and break down how it works. The source file is a simple text file that contains a series of User Choices and Commands.
 

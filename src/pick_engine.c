@@ -918,6 +918,7 @@ int picker(Init *init, char *field) {
                 curs_set(1);
                 wrefresh(win);
                 mouse_win = nullptr;
+                // 1
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
                 if (mouse_win == win2 && click_y == 0)
                     break;
@@ -1185,6 +1186,7 @@ int picker(Init *init, char *field) {
                 wmove(win2, line, pos);
                 wrefresh(win);
                 wrefresh(win2);
+                // 2
                 in_key = dxwgetch(win, win2, pick->chyron, -1);
                 if (mouse_win == win)
                     break;

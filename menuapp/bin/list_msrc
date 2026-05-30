@@ -1,0 +1,15 @@
+#!/bin/bash
+
+abend() {
+    echo Directory "$CMENU_HOME"/msrc not found
+    exit 1
+}
+
+cd "$CMENU_HOME"/msrc || abend
+IFS="
+"
+for file in $(ls *.[fm]); do
+    echo -n $file":"
+    sed -n '1,1p' "$file" | sed '
+    s/^.*:\s*//'
+done | awk -F: '{printf("%-30s %s\n", $1, $2)}' | sort

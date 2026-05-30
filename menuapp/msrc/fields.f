@@ -1,4 +1,4 @@
-H:Numeric Fields
+H:Field Data Types Example
 T:2:7:Decimal_Int
 F!2!22!8!decimal_int
 T:4:11:Hex_Int

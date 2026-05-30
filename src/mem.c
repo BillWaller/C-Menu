@@ -419,18 +419,25 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     if (!org_spec[0])
         return false;
     idio_spec[0] = '\0';
+    // try the provided spec as is, with quotes stripped for file name parsing
     strnz__cpy(try_spec, org_spec, MAXLEN - 1);
     f_quote = stripz_quotes(try_spec);
+
     s1 = strtok(try_spec, " \t\n");
     strnz__cpy(s1_s, s1, MAXLEN - 1);
+
     s2 = strtok(nullptr, "\n");
     strnz__cpy(s2_s, s2, MAXLEN - 1);
+
     strnz__cpy(file_name, s1, MAXLEN - 1);
     strnz__cpy(try_spec, file_name, MAXLEN - 1);
+
     canonicalize_file_spec(try_spec);
+
     if (try_spec[0]) {
         expand_tilde(try_spec, MAXLEN - 1);
         if (try_spec[0] == '/') {
+            // try absolute path as is, with quotes stripped for file name parsing
             f_spec = verify_file(try_spec, mode);
             if (f_quote)
                 /** preserve quotes */
@@ -438,6 +445,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
             else
                 strnz__cpy(spec, try_spec, MAXLEN - 1);
             return f_spec;
+
         } else {
             if (!f_dir && dir[0]) {
                 if (strcmp(dir, "$PATH") == 0) {
@@ -448,6 +456,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                     expand_tilde(try_spec, MAXLEN - 1);
                     f_dir = verify_dir(try_spec, mode);
                     if (f_dir) {
+                        // directory is valid, append file_name and verify file
                         strnz__cat(try_spec, "/", MAXLEN - 1);
                         strnz__cat(try_spec, file_name, MAXLEN - 1);
                         strnz__cpy(idio_spec, try_spec, MAXLEN - 1);
