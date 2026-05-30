@@ -42,13 +42,11 @@
 #include <time.h>
 #include <unistd.h>
 
-#define print_file_type(mask, lf_type, dt_type, name)                                                     \
-    {                                                                                                     \
-        if (mask & lf_type)                                                                               \
-            sign = '*';                                                                                   \
-        else                                                                                              \
-            sign = ' ';                                                                                   \
-        fprintf(stderr, "%c %08b (%3d) %08b (%2d) %s\n", sign, lf_type, lf_type, dt_type, dt_type, name); \
+#define print_file_type(mask, lf_type, dt_type, name)           \
+    {                                                           \
+        fprintf(stderr, "%c %08b (%3d) %08b (%2d) %s\n",        \
+                (mask & lf_type) ? '*' : ' ', lf_type, lf_type, \
+                dt_type, dt_type, name);                        \
     }
 
 struct tm tm_info;
@@ -627,7 +625,6 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
         fprintf(stderr, "Using %d threads\n\n", nthreads);
         fprintf(stderr, "File types preceeded by an asterisk (\"*\") will be included:\n\n");
         fprintf(stderr, "  LF type        DT type\n");
-        char sign = ' ';
         print_file_type(f->include_types, LF_FIFO, DT_FIFO, "FIFO    named pipe");
         print_file_type(f->include_types, LF_CHR, DT_CHR, "CHR     character device");
         print_file_type(f->include_types, LF_DIR, DT_DIR, "DIR     directory");

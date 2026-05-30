@@ -66,8 +66,8 @@ int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
     @param init the Init struct pointer
     @param argc the number of command line arguments
     @param argv the command line arguments
-    @param begy the y coordinate for the form window
-    @param begx the x coordinate for the form window
+    @param begy the y coordinate for the pick window
+    @param begx the x coordinate for the pick window
     @details begy and begx may be set as command line option arguments, in which
    case, they will take precedence over arguments passed in the function
    arguments.

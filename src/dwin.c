@@ -1704,7 +1704,7 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
                         break;
                     }
                 }
-                c = 0;
+                c = ERR;
                 continue;
             }
         }

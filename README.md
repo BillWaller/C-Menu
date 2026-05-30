@@ -4,6 +4,10 @@
 
 Version 0.2.9 2026-05-25
 
+### Installment Loan Calculator - Built with C-Menu
+
+![Installment Loan Calculator](screenshots/iloan.png)
+
 ![C-Menu lf Feature Update](screenshots/lf-composite.png)
 
 ## C-Menu Introduction

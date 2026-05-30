@@ -310,7 +310,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 }
 
 static struct argp argp = {options, parse_opt, args_doc, doc,
-                           nullptr, nullptr,   nullptr};
+                           nullptr, nullptr, nullptr};
 
 /** @brief Main initialization function for MAPP - Menu Application
     @ingroup init
@@ -352,19 +352,22 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         strnz__cpy(init->minitrc, e, MAXLEN);
     if (init->minitrc[0] == '\0')
         strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
+    // Set default colors and settings in SIO struct
+    // These can be overridden by the config file or command-line options
+    // Included here to ensure SIO has valid defaults even if config parsing fails
     strnz__cpy(sio->bg_clr_x, "#000007",
                COLOR_LEN - 1); /**< background color */
     strnz__cpy(sio->fg_clr_x, "#c0c0c0",
-               COLOR_LEN - 1); /**< foreground color */
+               COLOR_LEN - 1);                           /**< foreground color */
     strnz__cpy(sio->bo_clr_x, "#f00000", COLOR_LEN - 1); /**< bold color */
     strnz__cpy(sio->ln_clr_x, "#0070ff",
                COLOR_LEN - 1); /**< line number olor */
     strnz__cpy(sio->ln_bg_clr_x, "#101010",
-               COLOR_LEN - 1);      /**< line number background */
-    init->f_erase_remainder = true; /**< erase remainder on enter */
-    init->brackets[0] = '\0';       /**< field enclosure brackets */
+               COLOR_LEN - 1);                    /**< line number background */
+    init->f_erase_remainder = true;               /**< erase remainder on enter */
+    init->brackets[0] = '\0';                     /**< field enclosure brackets */
     strnz__cpy(init->fill_char, "_", MAXLEN - 1); /**< field fill character */
-    init->mapp_spec[0] = '\0'; /**< menu specification file */
+    init->mapp_spec[0] = '\0';                    /**< menu specification file */
     strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
     strnz__cpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
     strnz__cpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
@@ -382,6 +385,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
     parse_config(init);
+    init->mapp_spec[0] = '\0';
     init->argc = argc;
     argp_parse(&argp, argc, argv, 0, 0, init);
     if (f_write_config) {
