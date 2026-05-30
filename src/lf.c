@@ -1010,58 +1010,21 @@ void *finder(void *arg) {
     }
     return NULL;
 }
-/** @brief Scan a single file against the search filters and print
-   if it matches.
-    @param file_spec The full specification of the file being
-   scanned.
-    @param f The SearchFilters struct containing the options and
-   flags for filtering.
-    @param effective_type The effective file type of the file being
-   scanned, determined based on the file's metadata and the user's options
-   for following symbolic links.
-    @return true if the file was processed successfully, false if an
-   error occurred.
-    @details This function checks the specified file against the
-   various filters defined in the SearchFilters struct, including
-   file type, regex patterns, ownership, permissions, modification
-   time, and size. If the file matches all criteria, its path is
-   printed to standard output. If any errors occur during processing
-   (e.g., regex compilation failure), an error message is printed to
-   standard error and the function returns false.
-    @note This function is called by finder threads for each file
-   encountered during the directory traversal. It is designed to be
-   thread-safe and efficient, minimizing redundant system calls. For
-   example, it only calls stat() when necessary for filters that
-   require file metadata, and it caches the results to avoid
-   multiple stat() calls for the same file.
-    @note regex matching is opttimized by pre-compiling the regular
-   expressions in init_find() and using regexec() for each file,
-   which is more efficient than compiling the regex for each file.
-   Additionally, the function minimizes calls to regexec() by first
-   checking simpler filters (like file type and hidden status)
-   before performing regex matching, thus avoiding unnecessary regex
-   evaluations for files that are already excluded by other
-   criteria.
-    @todo Can we come up with a more efficient data structure for
-   managing the queue of directories to process, such as a lock-free
-   queue or work-stealing deque? A work stealing dequeue would allow
-   idle threads to steal work from busier threads, improving load
-   balancing and reducing idle time. This would involve implementing
-   a thread-safe deque data structure that supports concurrent push
-   and pop operations from both ends, allowing threads to
-   efficiently share the workload without excessive locking or
-   contention.
-   */
+/** @brief scan a single file against search filters
+ * @param file_spec specification of file being scanned
+ * @param f SearchFilters struct
+ * @param effective_type type of file being scanned
+ * @return true if file selected, false otherwise
+ */
 int scan_file(char *file_spec, const SearchFilters *f,
               const unsigned char effective_type) {
-
     regmatch_t pmatch[2];
     bool stat_cached = false;
 
     while (1) {
         if (f->suppress_types & effective_type)
             break;
-        /* Exclude non-matching files */
+        // Exclude non-matching files
         if (f->flags & LF_REGEX) {
             int reti =
                 regexec(&f->compiled_re, file_spec, f->compiled_re.re_nsub + 1,
@@ -1079,7 +1042,7 @@ int scan_file(char *file_spec, const SearchFilters *f,
                 return 0;
             }
         }
-        /* Exclude matching files */
+        // Exclude matching files
         if (f->flags & LF_EXC_REGEX) {
             int reti =
                 regexec(&f->compiled_ere, file_spec, f->compiled_re.re_nsub + 1,
@@ -1099,7 +1062,7 @@ int scan_file(char *file_spec, const SearchFilters *f,
         }
         stat_cached = false;
         struct stat sb;
-        /** Exclude files not owned by specified user */
+        //  Exclude files not owned by specified user
         if ((f->flags & LF_USER) && stat(file_spec, &sb) == 0) {
             stat_cached = true;
             if (sb.st_uid != f->user_id)
