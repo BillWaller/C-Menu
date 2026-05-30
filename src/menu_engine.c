@@ -302,13 +302,21 @@ unsigned int menu_cmd_processor(Init *init) {
                 return (MA_CONTINUE);
             break;
         }
+        char *s;
         c = (int)menu->line[menu->line_idx]->command_type;
         switch (c) {
             /** @brief Execute the command associated with the selected menu
              * choice
              */
+        case CT_DMON:
+            s = strpbrk(menu->line[menu->line_idx]->command_str, " \t\f\v");
+            strnz__cpy(earg_str, s, MAXLEN - 1);
+            trim(earg_str);
+            eargc = str_to_args(eargv, s, MAX_ARGS);
+            dmon(eargv);
+            destroy_argv(eargc, eargv);
+            return (MA_RESET_MENU);
         case CT_EXEC:
-            char *s;
             s = strpbrk(menu->line[menu->line_idx]->command_str, " \t\f\v");
             strnz__cpy(earg_str, s, MAXLEN - 1);
             trim(earg_str);
