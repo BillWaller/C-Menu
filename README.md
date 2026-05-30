@@ -4,7 +4,7 @@
 
 Version 0.2.9 2026-05-25
 
-![C-Menu lf Feature Update](screenshots/lf-debug.png)
+![C-Menu lf Feature Update](screenshots/lf-composite.png)
 
 ## C-Menu Introduction
 

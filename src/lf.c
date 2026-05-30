@@ -633,6 +633,7 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
         print_file_type(f->include_types, LF_LNK, DT_LNK, "LINK    symbolic link");
         print_file_type(f->include_types, LF_SOCK, DT_SOCK, "SOCK    socket");
         print_file_type(f->include_types, LF_UNKNOWN, DT_UNKNOWN, "UNKNOWN unknown");
+        fprintf(stderr, "\n");
         if (f->flags & LF_USER)
             fprintf(stderr, "User: %s (%ju)\n", f->user_name, f->user_id);
         if (f->include_perms) {
