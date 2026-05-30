@@ -235,6 +235,13 @@ size_t rtrim(char *s) {
     *(p + 1) = '\0';
     return (size_t)(p - s + 1);
 }
+/** @brief Retrieves the IP addresses of the local machine and formats them into a string.
+    @ingroup utility_functions
+    @param ip_str - buffer to receive formatted string of IP addresses
+    @param maxlen - size of buffer
+    @returns pointer to ip_str containing the formatted IP addresses, or nullptr if an error occurs
+    @details This function uses getifaddrs to retrieve a linked list of network interfaces on the local machine. It iterates through the list and checks for interfaces with IPv4 addresses (AF_INET). For each valid interface, it converts the binary IP address to a human-readable string using inet_ntop and appends it to the provided buffer in the format "[interface-name-IP-address]". Multiple interfaces are separated by commas. The caller must ensure that ip_str has enough space to hold the resulting string. If getifaddrs fails, this function returns nullptr and does not modify the buffer.
+ */
 char *get_ip_addresses(char *ip_str, int maxlen) {
     char tmp_str[MAXLEN];
     struct ifaddrs *ifaddr, *ifa;
@@ -268,7 +275,6 @@ char *get_ip_addresses(char *ip_str, int maxlen) {
     freeifaddrs(ifaddr); // Clean up the memory allocated by getifaddrs
     return ip_str;
 }
-
 /** @brief Trims leading and trailing spaces from string s in place.
     @ingroup utility_functions
     @param s - string to trim

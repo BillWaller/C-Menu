@@ -473,6 +473,8 @@ void sort_lf_output(SearchFilters *f, int argc, char **argv) {
    and start finder threads.
     @param f A pointer to a SearchFilters struct containing the options and
    flags for filtering.
+    @param argc The number of command-line arguments.
+    @param argv The array of command-line argument strings.
     @return true if the search was initialized successfully, false if an
    error occurred during initialization (e.g., regex compilation failure).
     @details This function processes the flags and options specified in the
@@ -574,6 +576,7 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
    flags for filtering.
     @param argc The number of command-line arguments.
     @param argv The array of command-line argument strings.
+    @param nthreads The number of threads being used for the search.
     @details This function prints detailed information about the configuration and search filters as well as each of the options and arguments used on the command line invoking lf. The output is sent to the standard error stream, which can be redirected to standard output making it suitable as documentation for an audit trail.
    */
 
