@@ -1,12 +1,12 @@
 # C-Menu README
 
-## New Features for lf
-
 Version 0.2.9 2026-05-25
 
-### Installment Loan Calculator - Built with C-Menu
+## Installment Loan Calculator - Built with C-Menu
 
 ![Installment Loan Calculator](screenshots/iloan.png)
+
+## New Features for lf
 
 ![C-Menu lf Feature Update](screenshots/lf-composite.png)
 
