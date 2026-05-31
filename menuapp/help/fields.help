@@ -1,0 +1,46 @@
+─────┬──────────────────────────────────────────────────────────────────────────
+     │ File: [1mfields_help[0m
+─────┼──────────────────────────────────────────────────────────────────────────
+   1 │ 
+   2 │ [33mFile[0m: fields.md
+   3 │ 
+   4 │ [33mForm[0m [33mField[0m [33mDefinition[0m [33mFile[0m [33mFormat[0m
+   5 │ 
+   6 │ [33mLine[0m [33mType[0m [33mSpeecifiers[0m ([33mH[0m, [33mT[0m, [33mF[0m, [35mand[0m [35m?[0m)
+   7 │ 
+   8 │ [32m [0m[32m#[0m[32m - Comment line (ignored)[0m
+   9 │  [33mH[0m [35m-[0m [33mThe[0m header to be displayed at the top [35mof[0m the form
+  10 │  [33mT[0m [35m-[0m [33mText[0m field ([32mline[0m[32m:[0m[32mcolumn[0m[32m:[0m[32mlength[0m[32m:[0mtext)
+  11 │  [33mF[0m [35m-[0m [33mInput[0m field ([32mline[0m[32m:[0m[32mcolumn[0m[32m:[0m[32mlength[0m[32m:[0mtype)
+  12 │  [35m?[0m [35m-[0m [33mA[0m user supplied help file [35mfor[0m the form. [33mIf[0m no path is given, [33mForm[0m will
+  13 │      look [35mfor[0m a file [35mwith[0m the same name [35mas[0m the form but [35mwith[0m a .hlp extension.
+  14 │      [33mIt[0m will search [35min[0m the current directory [35mand[0m [35mthen[0m [35min[0m the menu help
+  15 │      directory, [35m~[0m[36m/[0m[36mmenuapp[0m[36m/[0mhelp.
+  16 │ 
+  17 │ [32m#[0m[32m# Field Delimiters[0m
+  18 │ 
+  19 │ [33mThe[0m [32m"[0m[32m:[0m[32m"[0m character is used [35mas[0m a delimiter [35min[0m the fields above, but any
+  20 │ character that is placed immediately after the line designator ([33mH[0m, [33mT[0m, [33mF[0m, [35m?[0m)
+  21 │ can be used [35mas[0m a delimiter. [33mFor[0m example, the following two lines are
+  22 │ [32mequivalent[0m[32m:[0m
+  23 │ 
+  24 │ [33mT[0m:[33m2[0m:[33m4[0m[32m:[0m[32mEnter[0m any three [35mof[0m the four values to calculate the fourth.
+  25 │ [33mT[0m[35m|[0m[33m2[0m[35m|[0m[33m4[0m[35m|[0m[33mEnter[0m any three [35mof[0m the four values to calculate the fourth.
+  26 │ 
+  27 │ [33mData[0m [33mTypes[0m
+  28 │ 
+  29 │         [33mString[0m: [33mAny[0m text
+  30 │    [33mDecimal_Int[0m: [33mInteger[0m number
+  31 │        [33mHex_Int[0m: [33mHexadecimal[0m integer
+  32 │          [33mFloat[0m: [33mFloating[0m point number
+  33 │         [33mDouble[0m: [33mDouble[0m precision floating point number
+  34 │       [33mCurrency[0m: [33mCurrency[0m amount
+  35 │            [33mAPR[0m: [33mAnnual[0m [33mPercentage[0m [33mRate[0m
+  36 │ 
+  37 │ 
+  38 │ [33mNote[0m that the data types affect only input validation. [33mAll[0m data is stored
+  39 │ internally [35mas[0m strings.
+  40 │ 
+  41 │ [33mThe[0m [33mField[0m [33mFormat[0m [33mSpecifiers[0m can be any combination [35mof[0m upper [35mand[0m lower [35mcase[0m,
+  42 │ [35mand[0m [35mnew[0m types can be easily added by modifying the source code.
+─────┴──────────────────────────────────────────────────────────────────────────

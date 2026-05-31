@@ -345,13 +345,36 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN);
     else
         strnz__cpy(init->mapp_home, e, MAXLEN);
+
+    if (init->mapp_home[0] != '\0') {
+        expand_tilde(init->mapp_home, MAXLEN - 1);
+        if (!verify_dir(init->mapp_home, R_OK))
+            abend(-1, "MAPP_HOME directory invalid");
+    }
+    // CMENU_RC should be an absolute path
     e = getenv("CMENU_RC");
-    if (!e || *e == '\0')
-        strnz__cpy(init->minitrc, "~/menuapp/.minitrc", MAXLEN);
-    else
+    if (!e || *e == '\0') {
+        strnz__cpy(init->minitrc, init->mapp_home, MAXLEN - 1);
+        strnz__cat(init->minitrc, "/.minitrc", MAXLEN);
+    } else
         strnz__cpy(init->minitrc, e, MAXLEN);
-    if (init->minitrc[0] == '\0')
-        strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
+    if (init->mapp_user[0] == '\0') {
+        strnz__cpy(init->mapp_user, init->mapp_home, MAXLEN - 1);
+        strnz__cat(init->mapp_user, "/user", MAXLEN - 1);
+    }
+    if (init->mapp_msrc[0] == '\0') {
+        strnz__cpy(init->mapp_msrc, init->mapp_home, MAXLEN - 1);
+        strnz__cat(init->mapp_msrc, "/msrc", MAXLEN - 1);
+    }
+    if (init->mapp_data[0] == '\0') {
+        strnz__cpy(init->mapp_data, init->mapp_home, MAXLEN - 1);
+        strnz__cat(init->mapp_data, "/data", MAXLEN - 1);
+    }
+    if (init->mapp_help[0] == '\0') {
+        strnz__cpy(init->mapp_help, init->mapp_home, MAXLEN - 1);
+        strnz__cat(init->mapp_help, "/help", MAXLEN - 1);
+    }
+    init->mapp_spec[0] = '\0'; /**< menu specification file */
     // Set default colors and settings in SIO struct
     // These can be overridden by the config file or command-line options
     // Included here to ensure SIO has valid defaults even if config parsing fails
@@ -367,13 +390,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     init->f_erase_remainder = true;               /**< erase remainder on enter */
     init->brackets[0] = '\0';                     /**< field enclosure brackets */
     strnz__cpy(init->fill_char, "_", MAXLEN - 1); /**< field fill character */
-    init->mapp_spec[0] = '\0';                    /**< menu specification file */
-    strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN - 1);
-    strnz__cpy(init->mapp_user, "~/menuapp/user", MAXLEN - 1);
-    strnz__cpy(init->mapp_msrc, "~/menuapp/msrc", MAXLEN - 1);
-    strnz__cpy(init->mapp_data, "~/menuapp/data", MAXLEN - 1);
-    strnz__cpy(init->mapp_help, "~/menuapp/help", MAXLEN - 1);
-
     e = getenv("TERM");
     if (e == nullptr || *e == '\0')
         strnz__cpy(term, "xterm-256color", MAXLEN);
@@ -395,11 +411,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     if (f_dump_config) {
         dump_config(init, "Current Configuration");
         exit(EXIT_SUCCESS);
-    }
-    if (init->mapp_home[0] != '\0') {
-        expand_tilde(init->mapp_home, MAXLEN - 1);
-        if (!verify_dir(init->mapp_home, R_OK))
-            abend(-1, "MAPP_HOME directory invalid");
     }
 }
 /** @brief Parse command-line options and set Init struct values accordingly

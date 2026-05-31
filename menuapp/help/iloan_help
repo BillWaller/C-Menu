@@ -1,0 +1,36 @@
+Installment Loan Calculator
+
+The Installment Loan Calculator is a financial modeling tool
+that provides a framework for home mortgages, auto loans,
+and other types of installment loans. Given any three of the
+following variables, the calculator solves for the fourth.
+
+    PV  - principal amount
+    n   - number of payments
+    APR - annual interest rate
+    PMT - monthly payment amount
+
+The First Payment Date field is not used in the calculations,
+but will be included in the amortization schedule to show the
+date of payments.
+
+For example, if you know the principal amount, the number of
+payments, and the annual interest rate, enter 0 in the
+payment amount field.
+
+Use the up and down, tab and back-tab keys or the mouse to
+navigate the fields. A chyron at the bottom of the form
+lists commands which may be activated by pressing the
+indicated function key or by mouse clicking the command
+within the chyron.
+
+The Form starts in overwrite mode, but can be switched to
+insert mode by pressing the insert key or clicking INS in the
+chyron. When in insert mode, INS will be highlighted. Press
+the INS key or click INS again to toggle INS off.
+
+After the First Payment Date is accepted, the chyron will
+present the F5 Process command. The user can choose F9 Cancel
+to exit the form without processing, or F5 Process to
+calculate the missing variable and display the amortization
+schedule.
