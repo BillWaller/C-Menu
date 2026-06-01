@@ -1,6 +1,10 @@
-% LF(1) Version 0.2.9 | User Commands
-% Bill Waller
-% May 2026
+---
+title: "lf - lite find"
+section: 1
+header: User Manuals
+Footer: C-Menu Version 0.2.9
+date: June 2026
+---
 
 # NAME
 
