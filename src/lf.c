@@ -149,11 +149,10 @@ static struct argp_option options[] = {
     {"ere", 'e', "regex", 0, "Exclude regular expression", 0},
     {"ignore_case", 'i', 0, 0, "Search ignore case", 0},
     {"include_perms", 'p', "sgrwx", 0,
-     "s-setuid, g-setgid, r-read, w-write, x-execute", 0},
+     "x-execute, w-write, r-read, s-setuid, g-setgid", 0},
     {"re", 'r', "regex", 0, "Regular expression to search for", 0},
-    {"include_types", 't', "bcdplrsu", 0,
-     "b-block, c-character, d-directory, p-pipe, l-link, r-regular, s-"
-     "socket, u-unknown",
+    {"include_types", 't', "pcdbflsu", 0,
+     "p-pipe, c-character_dev, d-directory, b-block_dev, f-regular_file, l-link, s-socket, u-unknown",
      0},
     {"file_size_min", 's', "size", 0,
      "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
@@ -517,7 +516,7 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
         if (n + nthreads > 1)
             n += nthreads;
     } else if (nthreads == 0)
-        nthreads = max(1, n / 2 - 1);
+        nthreads = max(1, ((n * 40) / 99 + 1));
     else if (nthreads > n)
         nthreads = n - 1;
     debug_out(f, argc, argv, nthreads);
@@ -625,14 +624,14 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
         fprintf(stderr, "Using %d threads\n\n", nthreads);
         fprintf(stderr, "File types preceeded by an asterisk (\"*\") will be included:\n\n");
         fprintf(stderr, "  LF type        DT type\n");
-        print_file_type(f->include_types, LF_FIFO, DT_FIFO, "FIFO    named pipe");
-        print_file_type(f->include_types, LF_CHR, DT_CHR, "CHR     character device");
-        print_file_type(f->include_types, LF_DIR, DT_DIR, "DIR     directory");
-        print_file_type(f->include_types, LF_BLK, DT_BLK, "BLK     block device");
-        print_file_type(f->include_types, LF_REG, DT_REG, "REG     regular file");
-        print_file_type(f->include_types, LF_LNK, DT_LNK, "LINK    symbolic link");
-        print_file_type(f->include_types, LF_SOCK, DT_SOCK, "SOCK    socket");
-        print_file_type(f->include_types, LF_UNKNOWN, DT_UNKNOWN, "UNKNOWN unknown");
+        print_file_type(f->include_types, LF_FIFO, DT_FIFO, "FIFO    p-named pipe");
+        print_file_type(f->include_types, LF_CHR, DT_CHR, "CHR     c-character device");
+        print_file_type(f->include_types, LF_DIR, DT_DIR, "DIR     d-directory");
+        print_file_type(f->include_types, LF_BLK, DT_BLK, "BLK     b-block device");
+        print_file_type(f->include_types, LF_REG, DT_REG, "REG     f-regular file");
+        print_file_type(f->include_types, LF_LNK, DT_LNK, "LINK    l-symbolic link");
+        print_file_type(f->include_types, LF_SOCK, DT_SOCK, "SOCK    s-socket");
+        print_file_type(f->include_types, LF_UNKNOWN, DT_UNKNOWN, "UNKNOWN u-unknown");
         fprintf(stderr, "\n");
         if (f->flags & LF_USER)
             fprintf(stderr, "User: %s (%ju)\n", f->user_name, f->user_id);

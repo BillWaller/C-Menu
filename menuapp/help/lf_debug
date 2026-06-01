@@ -1,0 +1,51 @@
+2026-05-31T13:47:56,bill (1000),[lo-127.0.0.1],[wlp6s0-192.168.88.251],
+lf -pxwrsg -u bill -L -H -S -t f -a 2026-04-01T00:00:00 -b
+2026-05-01T00:00:00 -D18 -e .*\.[ch]$
+
+C-Menu-0.2.9
+
+lf debug      true
+  1-config      true
+  2-info        |    false
+  3-warnings    |    false
+  4-errors      |    false
+  5-badlinks    |    false
+  6-trace       |    false
+  7-all         |    false
+  8-only_errors true
+
+Search directory: .
+
+Using 7 threads
+
+File types preceeded by an asterisk ("*") will be included:
+
+  LF type        DT type
+  00000001 (  1) 00000001 ( 1) FIFO    p-named pipe
+  00000010 (  2) 00000010 ( 2) CHR     c-character device
+  00000100 (  4) 00000100 ( 4) DIR     d-directory
+  00001000 (  8) 00000110 ( 6) BLK     b-block device
+* 00010000 ( 16) 00001000 ( 8) REG     f-regular file
+  00100000 ( 32) 00001010 (10) LINK    l-symbolic link
+  01000000 ( 64) 00001100 (12) SOCK    s-socket
+  10000000 (128) 00000000 ( 0) UNKNOWN u-unknown
+
+User: bill (1000)
+    00000001 Execute
+    00000010 Write
+    00000100 Read
+    00100000 SETUID
+    00010000 SETGID
+
+Exclude regex: .*\.[ch]$
+
+Modified after: 2026-04-01T00:00:00
+
+Modified before: 2026-05-01T00:00:00
+
+Include hidden files.
+
+Follow symbolic links.
+
+Sort output in ascending order.
+

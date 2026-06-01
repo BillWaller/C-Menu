@@ -17,6 +17,7 @@ src/*.o
 src/gdbcmds
 src/lf-bak.c
 src/lf-new.c
+src/lf.1
 src/tlf
 src/tm
 src/tf

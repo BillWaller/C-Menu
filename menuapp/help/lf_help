@@ -1,0 +1,142 @@
+C-Menu-0.2.9
+Usage: lf [OPTION...] [DIRECTORY] [REGULAR_EXPRESSION]
+lf list files
+
+  -a, --after=time           Modified after YYYY-MM-DDTHH:MM:SS
+  -b, --before=time          Modified before YYYY-MM-DDTHH:MM:SS
+
+        Dates use the ISO 8601 format. The T is a separator between the date and 
+        time. If the time is not specified, it defaults to 00:00:00. If the date
+        is not specified, it defaults to the current date.
+
+  -d, --max_depth=number     Depth into directory tree
+
+        Default depth is 0, which means no limit. A depth of 1 means only the
+        specified directory, 2 means the specified directory and its immediate
+        subdirectories, and so on.
+
+  -D, --debug=12345678       1-config, 2-info, 3-warnings, 4-errors,
+                             5-badlinks, 6-trace, 7-all, 8-only_errors
+
+        The debug option can be used to print various levels of debugging 
+        information. The levels are as follows:
+
+            1-config: Print the configuration settings.
+            2-info: Print informational messages about the program execution.
+            3-warnings: Print warning messages about potential issues.
+            4-errors: Print error messages about problems encountered during
+                execution.
+            5-badlinks: Print messages about broken symbolic links.
+            6-trace: Trace ancestor scans for cyclic links.
+            7-all: Print all debugging information (config, info, warnings,
+                errors and badlinks).
+            8-only_errors: Print only error messages. This is useful for
+                examining a directory tree for errors.
+
+        Debug option arguments may be combined in any order. For example, if
+        you want to examine a directory tree for bad and problem links, you 
+        could use -D458. 
+
+
+  -e, --ere=regex            Exclude regular expression
+
+        The regular expression should be a properly formatted regular expression
+        for which matching files will be excluded from the results.
+
+  -H, --include_hidden       Include hidden files
+
+        Use -H to include hidden files and directories, which lf excludes
+        by default.
+
+  -i, --ignore_case          Search ignore case
+
+        Use -i to ignore case when searching for files that match the regular
+        expression. By default, lf is case-sensitive.
+
+  -L, --follow_links         Follow symbolic links
+
+        Use -L to follow symbolic links. By default, lf does not follow symbolic
+        links.
+
+  -p, --include_perms=sgrwx  x-execute, w-write, r-read, s-setuid, g-setgid
+
+        Use -p to include only files with the specified permissions.
+
+            x-execute: Include files that have execute permission.
+            w-write: Include files that have write permission.
+            r-read: Include files that have read permission.
+            s-setuid: Include files that have the setuid bit set.
+            g-setgid: Include files that have the setgid bit set.
+
+        For example, if you want to include only files that have read and write
+        permissions you would use -prw.
+
+        To list all files with the setuid bit, you would use -ps.
+
+  -r, --re=regex             Regular expression to search for
+
+        The regular expression should be a properly formatted regular expression
+        for which matching files will be listed in the results. By default, lf
+        lists all files that match the other criteria specified by the options.
+        If you specify a regular expression, only files that match the regular
+        expression will be listed. A regular expression may be specified
+        as the second non-option positional argument on the command line or
+        as an argument to the -r option.
+
+  -R, --sort_reverse         Sort in Reverse order
+
+        Use -R to sort the results in reverse order. By default, results
+        are not sorted.
+
+  -s, --file_size_min=size   No Suffix-bytes, K-kilobytes, M-Megabytes, or
+                             G-Gigabytes
+
+        Use -s to include only files that are at least the specified size. A 
+        suffix may be used to specify the size in bytes, kilobytes, megabytes or gigabytes. For example, -s10M would include only files that are at least 10 megabytes in size.
+
+  -S, --sort                 Sort in Ascending order
+
+        Use -R to sort the results in ascending order. By default, results
+        are not sorted.
+
+  -t, --include_types=pcdbflsu   p-pipe, c-character_dev, d-directory,
+                             b-block_dev, f-regular_file, l-link, s-socket,
+                             u-unknown
+
+        Use -t to include only files of the specified types. To include only
+        regular files and directories, you would use -tdf.
+
+  -T, --nthreads=threads     Number of nthreads
+
+        Use -T to specify the number of threads to use for searching. By default,
+        lf queries the operating system for the number of CPU cores and uses
+        about 40% of that value as the number of threads. The optimal number of
+        threads to use depends on the number of files in the directory tree and
+        the speed of the storage device. If you are searching a directory tree with a large number of files, you may want to increase the number of threads. If you are searching a directory tree with a small number of files, you may want to decrease the number of threads.
+
+  -u, --user=user name       User Name of file owner 
+
+        Use -u to include only files owned by the specified user. The user name
+        should be the login name of the user, not the user ID number.
+
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+  -V, --version              Print program version
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+If specified, DIRECTORY is the top-level directory to search.
+REGULAR_EXPRESSION is a properly formatted regular expression for which
+matching files will be listed.
+
+Report bugs to billxwaller@gmail.com.
+Usage: lf [-HiLRS?V] [-a time] [-b time] [-d number] [-D 12345678] [-e regex]
+            [-p sgrwx] [-r regex] [-s size] [-t pcdbflsu] [-T threads]
+            [-u user name] [--after=time] [--before=time] [--max_depth=number]
+            [--debug=12345678] [--ere=regex] [--include_hidden] [--ignore_case]
+            [--follow_links] [--include_perms=sgrwx] [--re=regex]
+            [--sort_reverse] [--file_size_min=size] [--sort]
+            [--include_types=pcdbflsu] [--nthreads=threads] [--user=user name]
+            [--help] [--usage] [--version] [DIRECTORY] [REGULAR_EXPRESSION]
+

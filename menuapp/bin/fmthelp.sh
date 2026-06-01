@@ -4,10 +4,6 @@ if [ $# -ne 1 ]; then
     echo "Usage: $0 <command>"
     exit 1
 fi
-if [ ! -x "$1" ]; then
-    echo "Error: Command '$1' not found"
-    exit 1
-fi
 name="$1"
 if [ ! -f "$name"_help ]; then
     if [ -f "$name".help ]; then

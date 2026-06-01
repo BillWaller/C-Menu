@@ -1,40 +1,58 @@
 ─────┬──────────────────────────────────────────────────────────────────────────
      │ File: [1miloan_help[0m
 ─────┼──────────────────────────────────────────────────────────────────────────
-   1 │ [33mInstallment[0m [33mLoan[0m [33mCalculator[0m
-   2 │ 
-   3 │ [33mThe[0m [33mInstallment[0m [33mLoan[0m [33mCalculator[0m is a financial modeling tool
-   4 │ that provides a framework [35mfor[0m home mortgages, auto loans,
-   5 │ [35mand[0m other types [35mof[0m installment loans. [33mGiven[0m any three [35mof[0m the
-   6 │ following variables, the calculator solves [35mfor[0m the fourth.
-   7 │ 
-   8 │     [33mPV[0m  [35m-[0m principal amount
-   9 │     n   [35m-[0m number [35mof[0m payments
-  10 │     [33mAPR[0m [35m-[0m annual interest rate
-  11 │     [33mPMT[0m [35m-[0m monthly payment amount
-  12 │ 
-  13 │ [33mThe[0m [33mFirst[0m [33mPayment[0m [33mDate[0m field is [35mnot[0m used [35min[0m the calculations,
-  14 │ but will be included [35min[0m the amortization schedule to show the
-  15 │ date [35mof[0m payments.
-  16 │ 
-  17 │ [33mFor[0m example, [35mif[0m you know the principal amount, the number [35mof[0m
-  18 │ payments, [35mand[0m the annual interest rate, enter [33m0[0m [35min[0m the
-  19 │ payment amount field.
-  20 │ 
-  21 │ [33mUse[0m the up [35mand[0m down, tab [35mand[0m back[35m-[0mtab keys [35mor[0m the mouse to
-  22 │ navigate the fields. [33mA[0m chyron at the bottom [35mof[0m the form
-  23 │ lists commands which may be activated by pressing the
-  24 │ indicated function key [35mor[0m by mouse clicking the command
-  25 │ within the chyron.
+   1 │ [33mThe[0m [33mInstallment[0m [33mLoan[0m [33mCalculator[0m is a financial modeling framework
+   2 │ [35mfor[0m home mortgages, auto loans, [35mand[0m other types [35mof[0m installment
+   3 │ loans. [33mGiven[0m any three [35mof[0m the following variables, the calculator
+   4 │ solves [35mfor[0m the fourth.
+   5 │ 
+   6 │     [33mPV[0m  [35m-[0m principal amount
+   7 │     n   [35m-[0m number [35mof[0m monthly payments
+   8 │     [33mAPR[0m [35m-[0m annual interest rate (eg. [33m6.5[0m [35mfor[0m [33m6.5[0m[35m%[0m)
+   9 │     [33mPMT[0m [35m-[0m monthly payment amount
+  10 │ 
+  11 │ [33mFirst[0m [33mPayment[0m [33mDate[0m is used to determine payment dates [35mfor[0m the
+  12 │ amortization schedule.
+  13 │ 
+  14 │ [33mIf[0m the specified input file, [35m~[0m[36m/[0m[36mmenuapp[0m[36m/[0mdata[35m/[0miloan.dat, is
+  15 │ available, [33mC[0m[35m-[0m[33mMenu[0m [33mForm[0m reads the values from the file [35mand[0m
+  16 │ populates the fields. [33mOtherwise[0m, the fields are initialized to
+  17 │ [33m0[0m.
+  18 │ 
+  19 │ [33mEnter[0m any three known values [35min[0m the appropriate fields [35mand[0m [33m0[0m [35min[0m
+  20 │ the field you want to calculate.
+  21 │ 
+  22 │ [33mTo[0m navigation among fields, use the up, down, tab, [35mand[0m back[35m-[0mtab
+  23 │ keys [35mor[0m the mouse. [33mUse[0m these keys to move sequentially among
+  24 │ fields without disturbing field values, [35mor[0m mouse click to move
+  25 │ directly to any field [35mor[0m position within any field.
   26 │ 
-  27 │ [33mThe[0m [33mForm[0m starts [35min[0m overwrite mode, but can be switched to
-  28 │ insert mode by pressing the insert key [35mor[0m clicking [33mINS[0m [35min[0m the
-  29 │ chyron. [33mWhen[0m [35min[0m insert mode, [33mINS[0m will be highlighted. [33mPress[0m
-  30 │ the [33mINS[0m key [35mor[0m click [33mINS[0m again to toggle [33mINS[0m off.
-  31 │ 
-  32 │ [33mAfter[0m the [33mFirst[0m [33mPayment[0m [33mDate[0m is accepted, the chyron will
-  33 │ present the [33mF5[0m [33mProcess[0m command. [33mThe[0m user can choose [33mF9[0m [33mCancel[0m
-  34 │ to exit the form without processing, [35mor[0m [33mF5[0m [33mProcess[0m to
-  35 │ calculate the missing variable [35mand[0m display the amortization
-  36 │ schedule.
+  27 │ [33mThe[0m behavior [35mof[0m the [33mEnter[0m key depends on the setting [35mof[0m the
+  28 │ f_erase_remainder flag [35min[0m the [33mC[0m[35m-[0m[33mMenu[0m configuration, ([33mCMENU_RC[0m). [33mIf[0m
+  29 │ [33mtrue[0m, characters above [35mand[0m to the right [35mof[0m the cursor will be
+  30 │ truncated by pressing enter, allowing the user to remain focused
+  31 │ on the source document without looking up to clear artifacts from
+  32 │ previous edits. [33mIf[0m f_erase_remainder is set to [33mfalse[0m, the [33mEnter[0m
+  33 │ key functions like the tab key.
+  34 │ 
+  35 │ [33mForm[0m starts [35min[0m overwrite mode, but [33mINS[0m mode can be toggled by
+  36 │ pressing the insert key [35mor[0m clicking [33mINS[0m [35min[0m the chyron. [33mWhen[0m [35min[0m
+  37 │ insert mode, the [33mINS[0m [35min[0m the chyron will be highlighted.
+  38 │ 
+  39 │ [33mAfter[0m the last field ([33mFirst[0m [33mPayment[0m [33mDate[0m) is accepted, edit mode
+  40 │ terminates [35mand[0m [33mForm[0m enters disposition mode [35mas[0m indicated by the
+  41 │ appearance [35mof[0m action commands [35min[0m the chyron (the highlighted line
+  42 │ at the bottom [35mof[0m the window). [33mThe[0m user can activate these commands
+  43 │ by mouse clicking [35min[0m the appropriate block within the chyron [35mor[0m
+  44 │ pressing the associated key.
+  45 │ 
+  46 │ [33mF5[0m [33mProcess[0m solves [35mfor[0m the fourth value (entered [35mas[0m [33m0[0m) [35mand[0m displays
+  47 │ the results. [33mThe[0m chyron [35mthen[0m presents the [33mF5[0m [33mEdit[0m command, which
+  48 │ allows the user to [35mreturn[0m to edit mode, change field values [35mand[0m
+  49 │ iterate [35muntil[0m satisfied [35mwith[0m the results.
+  50 │ 
+  51 │ [33mF9[0m [33mCancel[0m exits the form without further processing.
+  52 │ 
+  53 │ [33mF10[0m [33mCommit[0m writes the field values to the specified output file
+  54 │ ([35m~[0m[36m/[0m[36mmenuapp[0m[36m/[0mdata[35m/[0miloan.dat) [35mand[0m prints the amortization schedule.
 ─────┴──────────────────────────────────────────────────────────────────────────

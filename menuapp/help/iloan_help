@@ -1,36 +1,54 @@
-Installment Loan Calculator
-
-The Installment Loan Calculator is a financial modeling tool
-that provides a framework for home mortgages, auto loans,
-and other types of installment loans. Given any three of the
-following variables, the calculator solves for the fourth.
+The Installment Loan Calculator is a financial modeling framework
+for home mortgages, auto loans, and other types of installment
+loans. Given any three of the following variables, the calculator
+solves for the fourth.
 
     PV  - principal amount
-    n   - number of payments
-    APR - annual interest rate
+    n   - number of monthly payments
+    APR - annual interest rate (eg. 6.5 for 6.5%)
     PMT - monthly payment amount
 
-The First Payment Date field is not used in the calculations,
-but will be included in the amortization schedule to show the
-date of payments.
+First Payment Date is used to determine payment dates for the
+amortization schedule.
 
-For example, if you know the principal amount, the number of
-payments, and the annual interest rate, enter 0 in the
-payment amount field.
+If the specified input file, ~/menuapp/data/iloan.dat, is
+available, C-Menu Form reads the values from the file and
+populates the fields. Otherwise, the fields are initialized to
+0.
 
-Use the up and down, tab and back-tab keys or the mouse to
-navigate the fields. A chyron at the bottom of the form
-lists commands which may be activated by pressing the
-indicated function key or by mouse clicking the command
-within the chyron.
+Enter any three known values in the appropriate fields and 0 in
+the field you want to calculate.
 
-The Form starts in overwrite mode, but can be switched to
-insert mode by pressing the insert key or clicking INS in the
-chyron. When in insert mode, INS will be highlighted. Press
-the INS key or click INS again to toggle INS off.
+To navigation among fields, use the up, down, tab, and back-tab
+keys or the mouse. Use these keys to move sequentially among
+fields without disturbing field values, or mouse click to move
+directly to any field or position within any field.
 
-After the First Payment Date is accepted, the chyron will
-present the F5 Process command. The user can choose F9 Cancel
-to exit the form without processing, or F5 Process to
-calculate the missing variable and display the amortization
-schedule.
+The behavior of the Enter key depends on the setting of the
+f_erase_remainder flag in the C-Menu configuration, (CMENU_RC). If
+true, characters above and to the right of the cursor will be
+truncated by pressing enter, allowing the user to remain focused
+on the source document without looking up to clear artifacts from
+previous edits. If f_erase_remainder is set to false, the Enter
+key functions like the tab key.
+
+Form starts in overwrite mode, but INS mode can be toggled by
+pressing the insert key or clicking INS in the chyron. When in
+insert mode, the INS in the chyron will be highlighted.
+
+After the last field (First Payment Date) is accepted, edit mode
+terminates and Form enters disposition mode as indicated by the
+appearance of action commands in the chyron (the highlighted line
+at the bottom of the window). The user can activate these commands
+by mouse clicking in the appropriate block within the chyron or
+pressing the associated key.
+
+F5 Process solves for the fourth value (entered as 0) and displays
+the results. The chyron then presents the F5 Edit command, which
+allows the user to return to edit mode, change field values and
+iterate until satisfied with the results.
+
+F9 Cancel exits the form without further processing.
+
+F10 Commit writes the field values to the specified output file
+(~/menuapp/data/iloan.dat) and prints the amortization schedule.

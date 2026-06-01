@@ -8,4 +8,4 @@
 :     Fields Help
 !view -Nf -L47 -C85 ~/menuapp/help/fields.help
 :     Installment Loan Calculations
-!view -Nf -L40 -C75 ~/menuapp/help/iloan.help
+!view -Nf -L59 -C75 ~/menuapp/help/iloan.help

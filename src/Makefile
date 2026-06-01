@@ -167,11 +167,14 @@ LIB_STATIC=libcm.a
 LIB_NAME=$(LIB_SHARED)
 LIB_DIR=$(PREFIX)/lib64
 BIN_DIR=$(PREFIX)/bin
+MAN_DIR=$(PREFIX)/man/man1
 INC_DIR=$(PREFIX)
 LIB_PATH=.:$(LIB_DIR)
 
 BINEXES=menu form pick view ckeys whence rsh iloan amort enterchr \
 		enterstr lf stripansi
+
+MANPAGES=lf.1.gz
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
@@ -200,6 +203,8 @@ view:	menu
 ckeys:	menu
 	ln -sf menu ckeys
 
+man: $(MANPAGES)
+
 enterchr:	include/cm.h enterchr.o $(LIB_NAME)
 	$(CC) enterchr.o -o $@ $(LIBS)
 
@@ -220,6 +225,10 @@ rsh:	include/cm.h rsh.o
 
 lf: include/cm.h	include/version.h	lf.c $(LIB_NAME)
 	$(CC) lf.c -o $@  $(LIBS)
+
+lf.1.gz:	../docs/lf.md
+	pandoc -f markdown-smart -standalone --to man ../docs/lf.md -o lf.1
+	gzip -f lf.1
 
 stripansi:	include/cm.h stripansi.o $(LIB_NAME)
 	$(CC) stripansi.o -o $@ $(LIBS)
@@ -258,7 +267,7 @@ clean:
 	rm -rf core *.o $(BINEXES) $(CFLOW_OUTPUT) *.[aeos] *.diff \
 		*.so *.cflow scan-build* CMenu.conf x xx* *.out \
 	   	.user_id .group_id manifest.txt manifest.ls *.gc.. \
-		perf.*
+		perf.* *.1
 
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)
@@ -298,6 +307,7 @@ install:
 	./inst.sh amort			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh stripansi		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh lf			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh lf.1.gz			$(MAN_DIR)	  0711	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(LIB_DIR)
 	rm -f	 $(LIB_DIR)/libcm*
