@@ -10,6 +10,10 @@ Version 0.2.9 2026-05-25
 
 ![C-Menu lf Feature Update](screenshots/lf-composite.png)
 
+**_NEW_**:
+
+[lf manual page](docs/lf.md)
+
 ## C-Menu Introduction
 
 ![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
