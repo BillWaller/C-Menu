@@ -63,8 +63,6 @@ providing a variety of options for customizing the search criteria.
     Debug option arguments may be combined in any order. For example, if
     you want to examine a directory tree for bad and problem links, you
 
-could use -D458.
-
 -e, --ere=Exclude regular expression
 
     The regular expression should be a properly formatted regular expression
