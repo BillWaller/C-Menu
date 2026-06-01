@@ -2,7 +2,8 @@
 title: "lf - lite find"
 section: 1
 header: User Manuals
-Footer: C-Menu Version 0.2.9
+footer: C-Menu Version 0.2.9
+author: Bill Waller
 date: June 2026
 ---
 
@@ -225,10 +226,6 @@ List broken or bad symbolic links:
 Count the number of files in a directory tree using 7 threads:
 
     lf -L -H -T7 /path/to/directory | wc -l
-
-# AUTHOR
-
-Bill Waller
 
 # REPORTING BUGS
 
