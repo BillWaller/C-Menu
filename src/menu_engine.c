@@ -308,12 +308,12 @@ unsigned int menu_cmd_processor(Init *init) {
             /** @brief Execute the command associated with the selected menu
              * choice
              */
-        case CT_DMON:
+        case CT_DEXE:
             s = strpbrk(menu->line[menu->line_idx]->command_str, " \t\f\v");
             strnz__cpy(earg_str, s, MAXLEN - 1);
             trim(earg_str);
             eargc = str_to_args(eargv, s, MAX_ARGS);
-            dmon(eargv);
+            fork_detach_execvp(eargv);
             destroy_argv(eargc, eargv);
             return (MA_RESET_MENU);
         case CT_EXEC:

@@ -237,10 +237,10 @@ unsigned int get_command_type(char *t) {
     *s = '\0';
     if (!strcmp(p, "ckeys"))
         return (CT_CKEYS);
-    else if (!strcmp(p, "dmon"))
-        return (CT_DMON);
     else if (!strcmp(p, "exec"))
         return (CT_EXEC);
+    else if (!strcmp(p, "dexe"))
+        return (CT_DEXE);
     else if (!strcmp(p, "help"))
         return (CT_HELP);
     else if (!strcmp(p, "about"))

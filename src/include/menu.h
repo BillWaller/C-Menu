@@ -35,7 +35,7 @@ typedef enum {
 /**< Menu command types */
 typedef enum {
     CT_NULL = 0x396,
-    CT_DMON,
+    CT_DEXE,
     CT_EXEC,
     CT_HELP,
     CT_ABOUT,

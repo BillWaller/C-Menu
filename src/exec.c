@@ -33,7 +33,7 @@ int full_screen_shell(char *);
 int shell(char *);
 int fork_exec(char **);
 int nf_error(int ec, char *s);
-int dmon(char **);
+int fork_detach_execvp(char **);
 /** @brief Execute a command in full screen mode
     @ingroup exec
     @param argv - array of arguments for the command to execute
@@ -223,60 +223,45 @@ int fork_exec(char **argv) {
     Executes the command using execvp.
     Exits with failure if any step fails.
     @note Don't use this code. It is not finished. */
-int dmon(char **eargv) {
-
+int fork_detach_execvp(char **eargv) {
     pid_t pid = fork();
     capture_curses_tioctl();
     curs_set(1);
     sig_dfl_mode();
 
     if (pid < 0) {
-        fprintf(stderr, "Failed to fork: %s\n", strerror(errno));
-        return EXIT_FAILURE;
-    }
-    if (pid > 0) {
-        restore_curses_tioctl();
-        sig_prog_mode();
-        touchwin(stdscr);
-        wnoutrefresh(stdscr);
-        wrefresh(stdscr);
-        restore_wins();
-        return 0;
-    }
-    if (setsid() < 0) {
-        fprintf(stderr, "Failed to set session ID: %s\n", strerror(errno));
+        fprintf(stderr, "First fork failed: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
-    pid = fork();
-    if (pid < 0) {
-        fprintf(stderr, "Second fork failed: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    if (pid > 0) {
-        exit(EXIT_SUCCESS);
-    }
-    char *e = getenv("HOME");
-    if (e != NULL) {
-        if (chdir(e) < 0)
+    if (pid == 0) {
+        if (setsid() < 0) {
+            fprintf(stderr, "Set session ID failed: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
-    }
-    umask(0);
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
-    int dev_null = open("/dev/null", O_RDWR);
-    if (dev_null != -1) {
-        dup2(dev_null, STDIN_FILENO);
-        dup2(dev_null, STDOUT_FILENO);
-        dup2(dev_null, STDERR_FILENO);
-        if (dev_null > 2) {
-            close(dev_null);
         }
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+        int dev_null = open("/dev/null", O_RDWR);
+        if (dev_null != -1) {
+            dup2(dev_null, STDIN_FILENO);
+            dup2(dev_null, STDOUT_FILENO);
+            dup2(dev_null, STDERR_FILENO);
+            if (dev_null > 2) {
+                close(dev_null);
+            }
+        }
+        long max_fd = sysconf(_SC_OPEN_MAX);
+        for (long fd = 3; fd < max_fd; fd++)
+            close(fd);
+        execvp(eargv[0], eargv);
+        perror("execvp failed");
+        exit(EXIT_FAILURE);
     }
-    long max_fd = sysconf(_SC_OPEN_MAX);
-    for (long fd = 3; fd < max_fd; fd++) {
-        close(fd);
-    }
-    execvp(eargv[0], eargv);
-    exit(EXIT_FAILURE);
+    restore_curses_tioctl();
+    sig_prog_mode();
+    touchwin(stdscr);
+    wnoutrefresh(stdscr);
+    wrefresh(stdscr);
+    restore_wins();
+    return 0;
 }
