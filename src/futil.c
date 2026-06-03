@@ -597,26 +597,15 @@ bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
     *d = '\0';
     return true;
 }
-/**  @brief Fills string s with character c n
-//     @ingroup utility_functions
-//      @param s - string to fill
-//      @param c - character to fill with
-//      @param n - number of characters to fill
-//      @returns true if successful, false if s is nullptr or n is non-positive */
-// bool strnfill(char *s, char c, int n) {
-//     if (s == nullptr || n <= 0)
-//         return false;
-//     char *e;
-//     e = s + n;
-//     while (s < e)
-//         *s++ = c;
-//     *s = '\0';
-//     return true;
-// }
-/**  @brief removes leading and trailing double quotes if present
+/** @brief removes leading and trailing double quotes if present
     @ingroup utility_functions
-     @param s - string to strip quotes from
-     @returns true if successful, false if s is nullptr or empty */
+    @param s - string to strip quotes from
+    @returns true if successful, false if s is nullptr or empty
+    @details If the string has a leading double quote and a trailing double quote,
+   this function removes them in place. If the string does not have both leading
+   and trailing double quotes, it is left unchanged. The function returns true
+   if the operation was successful (i.e., if the string was modified or if it
+   was valid), and false if the input string was null or empty. */
 bool strip_quotes(char *s) {
     if (s == nullptr)
         return false;

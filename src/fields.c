@@ -62,7 +62,7 @@ int field_editor(Form *form) {
     int flen = form->field[form->fidx]->len;
     int ff = form->field[form->fidx]->ff;
     char *accept_s = form->field[form->fidx]->accept_s;
-    char *filler_s = form->field[form->fidx]->filler_s;
+    // char *filler_s = form->field[form->fidx]->filler_s;
     form_fmt_field(form, accept_s);
     click_x = click_y = -1;
     char *fstart = accept_s;
@@ -82,8 +82,9 @@ int field_editor(Form *form) {
     immedok(form->box, TRUE);
     while (1) {
         if (in_key == 0) {
-            mvwaddstr(win, flin, fcol, filler_s);
-            mvwaddstr(win, flin, fcol, accept_s);
+            form_display_field(form);
+            // mvwaddstr(win, flin, fcol, filler_s);
+            // mvwaddstr(win, flin, fcol, accept_s);
             tcflush(0, TCIFLUSH);
             wrefresh(form->box);
             wmove(win, flin, x);
@@ -214,7 +215,7 @@ int field_editor(Form *form) {
             flen = form->field[form->fidx]->len;
             ff = form->field[form->fidx]->ff; /* ff - field forat */
             accept_s = form->field[form->fidx]->accept_s;
-            filler_s = form->field[form->fidx]->filler_s;
+            // filler_s = form->field[form->fidx]->filler_s;
             form_fmt_field(form, accept_s);
             fstart = accept_s;
             fend = fstart + flen;

@@ -59,14 +59,5 @@ int main() {
     }
     printf("\n");
 
-    memcpy(utf_s3, "＿", 3); // copy the UTF-8 bytes for '＿' (U+FF3F) into utf_s3
-    printf("underscore: %s\n", utf_s3);
-    printf("Code point: U+%04X\n", (unsigned int)underscore);
-    printf("UTF-8 Hex:  0x");
-    for (int i = 0; i < bytes_written; i++) {
-        printf("%02X", utf_s2[i]);
-    }
-    printf("\n");
-
     return 0;
 }

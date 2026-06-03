@@ -17,6 +17,7 @@
    @endverbatim
  */
 
+#define _GNU_SOURCE
 #include <argp.h>
 #include <common.h>
 #include <locale.h>
@@ -24,6 +25,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <wchar.h>
 
 typedef enum {
     IN_SPEC = 257,
@@ -583,6 +585,10 @@ int parse_config(Init *init) {
                 continue;
             }
             if (!strcmp(key, "fill_char")) {
+                if (strlen(value) > 1)
+                    value[1] = '\0';
+                if (wcwidth((int)value[0]) > 1)
+                    value[0] = '?';
                 strnz__cpy(init->fill_char, value, 4);
                 continue;
             }
