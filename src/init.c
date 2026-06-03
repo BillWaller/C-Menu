@@ -389,7 +389,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
                COLOR_LEN - 1);                    /**< line number background */
     init->f_erase_remainder = true;               /**< erase remainder on enter */
     init->brackets[0] = '\0';                     /**< field enclosure brackets */
-    strnz__cpy(init->fill_char, "_", MAXLEN - 1); /**< field fill character */
+    strnz__cpy(init->fill_char, " ", MAXLEN - 1); /**< field fill character */
     e = getenv("TERM");
     if (e == nullptr || *e == '\0')
         strnz__cpy(term, "xterm-256color", MAXLEN);
@@ -583,7 +583,7 @@ int parse_config(Init *init) {
                 continue;
             }
             if (!strcmp(key, "fill_char")) {
-                strnz__cpy(init->fill_char, value, 2);
+                strnz__cpy(init->fill_char, value, 4);
                 continue;
             }
             if (!strcmp(key, "f_ignore_case")) {

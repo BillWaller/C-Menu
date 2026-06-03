@@ -47,6 +47,7 @@ int form_post(Init *);
 int init_form(Init *, int, char **, int, int);
 int form_engine(Init *);
 int form_yx_to_fidx(Form *, int, int);
+void mk_filler(char *, int);
 
 /** @brief Initialize form data structure and parse description file
     @ingroup form_engine
@@ -88,6 +89,9 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (form->title[0] == '\0')
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
+    form->brktl = mkcc(cp_nt_hl, A_NORMAL, &form->brackets[0]);
+    form->brktr = mkcc(cp_nt_hl, A_NORMAL, &form->brackets[1]);
+
 #ifdef DEBUG_IMMEDOK
     immedok(form->win, true);
     immedok(form->box, true);
@@ -513,20 +517,20 @@ unsigned int display_form(Init *init) {
         return (1);
     }
 #ifdef DEBUG_IMMEDOK
-    immedok(form->win, TRUE);
+    immedok(form->win, true);
+    immedok(form->box, true);
 #endif
     form->box = win_box[win_ptr];
     form->win = win_win[win_ptr];
     wnoutrefresh(form->win);
+    // display field brackets if specified in the form description
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
         if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
             flin = form->field[form->fidx]->line + 1;
             fcol = form->field[form->fidx]->col;
-            // mvwadd_wch(form->box, flin, fcol, &form->brktl);
-            mvwaddch(form->box, flin, fcol, form->brackets[0]);
+            mvwadd_wch(form->box, flin, fcol, &form->brktl);
             fcol += form->field[form->fidx]->len + 1;
-            // mvwadd_wch(box, flin, fcol, &form->brktr);
-            mvwaddch(form->box, flin, fcol, form->brackets[1]);
+            mvwadd_wch(form->box, flin, fcol, &form->brktr);
         }
     }
     wnoutrefresh(form->box);
@@ -549,20 +553,45 @@ unsigned int display_form(Init *init) {
    length, and renders them on the form window. It also updates the chyron
    with available commands for user interaction. */
 void form_display_fields(Form *form) {
-    int flin, fcol;
-    char fill_char = form->fill_char[0];
+    int y, x;
+    immedok(form->win, true);
+    immedok(form->box, true);
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
         if (form->field[form->fidx]->col + form->field[form->fidx]->len + 2 >
             form->cols)
             form->field[form->fidx]->len =
                 form->cols - (form->field[form->fidx]->col + 2);
-        strnfill(form->field[form->fidx]->filler_s, fill_char,
-                 form->field[form->fidx]->len);
+        // Make filler_cc
+        size_t fl = form->field[form->fidx]->len;
+        char *d = form->field[form->fidx]->filler_s;
+        size_t char_bytes = strlen(form->fill_char);
+        for (size_t i = 0; i < fl; i++) {
+            memcpy(d, form->fill_char, char_bytes);
+            d += char_bytes;
+        }
+        d = nullptr;
+
+        if (form->field[form->fidx]->accept_s[0] != '\0') {
+            strnz(form->field[form->fidx]->accept_s, form->field[form->fidx]->len);
+            d = form->field[form->fidx]->accept_s;
+        } else {
+            memset(form->field[form->fidx]->accept_s, 0, MAXLEN);
+            d = form->field[form->fidx]->accept_s;
+        }
         strnz(form->field[form->fidx]->display_s, form->field[form->fidx]->len);
-        flin = form->field[form->fidx]->line;
-        fcol = form->field[form->fidx]->col;
-        mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->filler_s);
-        mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->display_s);
+
+        y = form->field[form->fidx]->line;
+        x = form->field[form->fidx]->col;
+
+        str_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, A_DIM, cp_nt, form->field[form->fidx]->len);
+
+        mvwadd_wchstr(form->win, y, x, form->field[form->fidx]->filler_cc);
+
+        // -------------
+        str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt, form->field[form->fidx]->len);
+
+        mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
+
         wnoutrefresh(form->win);
     }
     return;

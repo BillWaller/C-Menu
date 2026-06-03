@@ -7,8 +7,17 @@
     @date 2026-02-09
  */
 
-#include <cm.h>
+#define _GNU_SOURCE
+#include <errno.h>
+#ifdef RSH_SSH
 #include <libssh/libssh.h>
+#endif
+#define RSH_PAM
+#ifdef RSH_PAM
+#include <security/pam_appl.h>
+#include <security/pam_misc.h>
+#endif
+#include <cm.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -22,14 +31,21 @@
 #include <termios.h>
 #include <unistd.h>
 
+#define HOST "localhost"
 #ifndef MAXLEN
 #define MAXLEN 256
 #endif
 
 #ifdef VERBOSE
-bool f_verbose = true;
+bool F_VERBOSE = true;
 #else
-bool f_verbose = false;
+bool F_VERBOSE = false;
+#endif
+
+#ifdef RSH_PAM
+static struct pam_conv conv = {
+    misc_conv,
+    NULL};
 #endif
 
 /** @brief Abnormal termination - print an error message and exit
@@ -66,54 +82,118 @@ void ABEND(int e, char const *);
 int main(int argc, char **argv) {
     char *cargv[30];
     char exec_cmd[MAXLEN] = "/usr/bin/bash";
+#ifdef RSH_LOG
     char rsh_user[MAXLEN];
+#endif
     char *p;
-    int c, a;
-    int rc;
+    int c;
+    bool ssh_login = false;
     int status;
     pid_t pid;
 #ifdef RSH_SSH
-    ssh_session _ssh_session = ssh_new();
-    if (_ssh_session == nullptr)
-        exit(EXIT_FAILURE);
-    // "$HOME"/.ssh/authorized_keys
-    ssh_options_set(_ssh_session, SSH_OPTIONS_HOST, "localhost");
-    if ((rc = ssh_connect(_ssh_session)) != SSH_OK) {
-        fprintf(stderr, "Error: %s\n", ssh_get_error(_ssh_session));
-        ssh_free(_ssh_session);
-        exit(EXIT_FAILURE);
-    }
-    // Authenticate using public key
-    if (ssh_userauth_publickey_auto(_ssh_session, NULL, NULL) !=
-        SSH_AUTH_SUCCESS) {
-        fprintf(stderr, "SSH Public key auth failed: %s\n",
-                ssh_get_error(_ssh_session));
-        syslog(LOG_ERR, "SSH Error: %s", ssh_get_error(_ssh_session));
-        exit(EXIT_FAILURE);
-    }
-    ssh_disconnect(_ssh_session);
-    ssh_free(_ssh_session);
+#define RSH_LOG
 #endif
 #ifdef RSH_LOG
     char ttyname[MAXLEN];
     p = getenv("USER");
     strncpy(rsh_user, p ? p : "unknown", sizeof(rsh_user));
     openlog("rsh", LOG_PID | LOG_CONS, LOG_AUTH);
-    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
-        syslog(LOG_INFO, "rsh started by user '%s' on terminal '%s'", rsh_user,
-               ttyname);
+    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) != 0) {
+        syslog(LOG_ERR, "Error getting terminal name: %s", strerror(errno));
+        fprintf(stderr, "Error getting terminal name: %s", strerror(errno));
+        strncpy(ttyname, "unknown", sizeof(ttyname));
+    }
+#endif
+#define RSH_PAM
+#ifdef RSH_PAM
+    pam_handle_t *pamh = NULL;
+    int retval;
+    char *username = getenv("USER");
+    if (username == NULL) {
+        syslog(LOG_ERR, "USER environment variable not set");
+        fprintf(stderr, "Error: USER environment variable not set\n");
+        return 1;
+    }
+    retval = pam_start("pam_nopass", username, &conv, &pamh);
+    if (retval != PAM_SUCCESS) {
+        syslog(LOG_ERR, "PAM start failed: %s", pam_strerror(pamh, retval));
+        fprintf(stderr, "PAM start failed: %s\n", pam_strerror(pamh, retval));
+        return 1;
+    }
+
+    // Authenticate the user using PAM. The configuration for this PAM service should
+    // be set to allow passwordless authentication, for example by using pam_permit.so.
+    // You can create a PAM configuration file named /etc/pam.d/pam_nopass with the
+    // following content:
+    //
+    // /etc/pam.d/pam_nopass:
+    // auth required pam_permit.so
+    //
+    //
+    retval = pam_authenticate(pamh, 0);
+    if (retval == PAM_SUCCESS) {
+        syslog(LOG_AUTH, "Authentication succeeded for user '%s': %s", username, pam_strerror(pamh, retval));
+    } else {
+        syslog(LOG_AUTH, "Authentication failed for user '%s': %s", username, pam_strerror(pamh, retval));
+        fprintf(stderr, "Failure: Authentication failed: %s\n", pam_strerror(pamh, retval));
+    }
+
+    // It's a wrap
+    pam_end(pamh, retval);
+
+    if (retval != PAM_SUCCESS) {
+        fprintf(stderr, "PAM authentication failed: %s\n", pam_strerror(pamh, retval));
+        exit(EXIT_FAILURE);
+    }
+
+#endif
+
+#ifdef RSH_SSH
+    ssh_session _ssh_session = ssh_new();
+    if (_ssh_session == nullptr) {
+        syslog(LOG_ERR, "SSH session initialization failed: %s", ssh_get_error(_ssh_session));
+        fprintf(stderr, "SSH session initialization failed: %s", ssh_get_error(_ssh_session));
+        ssh_free(_ssh_session);
+        exit(EXIT_FAILURE);
+    }
+    int rc = 0;
+    ssh_options_set(_ssh_session, SSH_OPTIONS_HOST, HOST);
+    if ((rc = ssh_connect(_ssh_session)) != SSH_OK) {
+        syslog(LOG_ERR, "SSH connection failed: %s", ssh_get_error(_ssh_session));
+        fprintf(stderr, "SSH connection failed: %s", ssh_get_error(_ssh_session));
+        ssh_free(_ssh_session);
+        ssh_free(_ssh_session);
+        exit(EXIT_FAILURE);
+    }
+    if (ssh_userauth_publickey_auto(_ssh_session, NULL, NULL) !=
+        SSH_AUTH_SUCCESS) {
+        syslog(LOG_AUTH, "SSH authentication failed: %s", ssh_get_error(_ssh_session));
+        fprintf(stderr, "SSH authentication failed: %s", ssh_get_error(_ssh_session));
+        exit(EXIT_FAILURE);
+    }
+    ssh_disconnect(_ssh_session);
+    ssh_free(_ssh_session);
+    syslog(LOG_AUTH, "rsh SSH authentication succeeded for user '%s' on terminal '%s'", rsh_user, ttyname);
+#endif
+#ifdef RSH_LOG
     closelog();
 #endif
     if ((p = getenv("SHELL")))
         strncpy(exec_cmd, p, MAXLEN - 1);
     cargv[0] = strdup(exec_cmd);
     c = 1;
-    a = 1;
-    if (argc == 1)
-        cargv[c++] = "-i";
-    while (a < argc)
-        cargv[c++] = strdup(argv[a++]);
-    cargv[c] = (char *)'\0';
+    if (argc > 0) {
+        for (int i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "-i") == 0) {
+                cargv[c++] = strdup("-i");
+            } else if (strcmp(argv[i], "-D1") == 0 && ssh_login) {
+                fprintf(stderr, "SSH authentication succeeded\n");
+            } else {
+                cargv[c++] = strdup(argv[i]);
+            }
+        }
+    }
+    cargv[c] = nullptr;
     pid = fork();
     switch (pid) {
     case -1:
@@ -133,26 +213,24 @@ int main(int argc, char **argv) {
         ABEND(EXIT_FAILURE, "execvp() fatal error");
         break;
     default: // Parent
-
         waitpid(pid, &status, 0);
-        if (f_verbose) {
-            if (WIFEXITED(status)) {
-                rc = WEXITSTATUS(status);
-                if (rc != 0)
-                    ABEND(rc, "Child process exited");
-            } else {
-                if (WIFSIGNALED(status)) {
-                    rc = WTERMSIG(status);
-                    ABEND(rc, "Child process terminated by signal");
-                } else
-                    ABEND(EXIT_FAILURE, "Child process terminated abnormally");
-            }
+        for (int i = 0; i < c; i++)
+            free(cargv[i]);
+#ifdef F_VERBOSE
+        if (WIFEXITED(status)) {
+            rc = WEXITSTATUS(status);
+            if (rc != 0)
+                ABEND(rc, "Child process exited");
+        } else {
+            if (WIFSIGNALED(status)) {
+                rc = WTERMSIG(status);
+                ABEND(rc, "Child process terminated by signal");
+            } else
+                ABEND(EXIT_FAILURE, "Child process terminated abnormally");
         }
+#endif
         break;
     }
-    openlog("rsh", LOG_PID | LOG_CONS, LOG_AUTH);
-    syslog(LOG_INFO, "rsh exited by user '%s'", rsh_user);
-    closelog();
     exit(EXIT_SUCCESS);
 }
 

@@ -30,7 +30,6 @@ int field_editor(Form *);
 int form_display_field(Form *);
 int form_display_field_n(Form *, int);
 int form_validate_field(Form *);
-void mk_filler(char *, int);
 
 /** @defgroup field_editor Field Editor
    @brief File mapping, user input, command processing, and display logic
@@ -79,15 +78,20 @@ int field_editor(Form *form) {
     compile_chyron(form->chyron);
     display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
 
+    immedok(win, TRUE);
+    immedok(form->box, TRUE);
     while (1) {
         if (in_key == 0) {
             mvwaddstr(win, flin, fcol, filler_s);
             mvwaddstr(win, flin, fcol, accept_s);
-            wmove(win, flin, x);
             tcflush(0, TCIFLUSH);
             wrefresh(form->box);
+            wmove(win, flin, x);
+            curs_set(1);
+            // wrefresh(form->win);
             in_key = xwgetch(win, form->chyron, -1);
         }
+        curs_set(0);
         switch (in_key) {
             /** KEY_F(10) is the default key for accepting the field and moving
                 to the next field */
@@ -352,6 +356,9 @@ int form_display_field_n(Form *form, int n) {
     form->fidx = fidx;
     return 0;
 }
+void display_field(cchar_t *cmplx_buf, int y, int x) {
+    mvwadd_wchstr(win, y, x, cmplx_buf);
+}
 /** @brief Display current field
     @ingroup field_editor
     @param form Pointer to Form structure
@@ -364,10 +371,15 @@ int form_display_field_n(Form *form, int n) {
    display to show the updated field content.
  */
 int form_display_field(Form *form) {
-    int flin = form->field[form->fidx]->line;
-    int fcol = form->field[form->fidx]->col;
-    mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->filler_s);
-    mvwaddstr(form->win, flin, fcol, form->field[form->fidx]->display_s);
+    int y = form->field[form->fidx]->line;
+    int x = form->field[form->fidx]->col;
+    immedok(form->win, true);
+    immedok(form->box, true);
+    mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
+    str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt,
+              form->field[form->fidx]->len);
+    mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
+
     return 0;
 }
 /** @brief Format field according to its format type
@@ -419,7 +431,7 @@ int form_fmt_field(Form *form, char *s) {
     char *input_s = form->field[form->fidx]->input_s;
     char *accept_s = form->field[form->fidx]->accept_s;
     char *display_s = form->field[form->fidx]->display_s;
-    char *filler_s = form->field[form->fidx]->filler_s;
+    // char *filler_s = form->field[form->fidx]->filler_s;
     int ff = form->field[form->fidx]->ff;
     int fl = form->field[form->fidx]->len;
 
@@ -510,7 +522,6 @@ int form_fmt_field(Form *form, char *s) {
     }
     strnz(accept_s, fl);
     left_justify(accept_s);
-    mk_filler(filler_s, fl);
     return 0;
 }
 /** @brief Validate current field based on flags
@@ -538,24 +549,6 @@ int form_validate_field(Form *form) {
         }
     }
     return (0);
-}
-/** @brief Create filler string for field
-    @ingroup field_editor
-    @param s Filler string to create
-    @param fl Field length
-    @details Fills the string s with the fill character specified in the form's
-   fill_char array, repeated for the length of the field (fl). The resulting
-   string is null-terminated. This filler string can be used to display empty
-   fields or to clear the field area before displaying new content.
- */
-void mk_filler(char *s, int fl) {
-    char *e = s + fl;
-    unsigned char c;
-
-    c = form->fill_char[0];
-    while (s != e)
-        *s++ = c;
-    *s = '\0';
 }
 /** @brief Left justify string by removing leading spaces
     @ingroup field_editor

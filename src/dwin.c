@@ -72,7 +72,7 @@ int mb_to_cc(cchar_t *, char *, attr_t, int, int *, int);
 int wait_continue(WINDOW *, Chyron *, int);
 bool wait_destroy(Chyron *);
 int xwgetch(WINDOW *, Chyron *, int);
-cchar_t mkccc(int, attr_t, char *);
+cchar_t mkcc(int, attr_t, char *);
 
 WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
@@ -153,17 +153,17 @@ int cp_ln;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
-cchar_t CCC_NORM;
-cchar_t CCC_WIN;
-cchar_t CCC_BG;
-cchar_t CCC_BOX;
-cchar_t CCC_NT;
-cchar_t CCC_NT_REV;
-cchar_t CCC_NT_HL_REV;
-cchar_t CCC_NT_HL;
-cchar_t CCC_LN;
-cchar_t CCC_BRKTL;
-cchar_t CCC_BRKTR;
+cchar_t CC_NORM;
+cchar_t CC_WIN;
+cchar_t CC_BG;
+cchar_t CC_BOX;
+cchar_t CC_NT;
+cchar_t CC_NT_REV;
+cchar_t CC_NT_HL_REV;
+cchar_t CC_NT_HL;
+cchar_t CC_LN;
+cchar_t CC_BRKTL;
+cchar_t CC_BRKTR;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 FILE *ncurses_fp;
@@ -251,20 +251,20 @@ bool open_curses(SIO *sio) {
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
     cp_box = get_clr_pair(CLR_BO, CLR_BG);
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
-    // CCC_ variables are cchar_t versions of the color pairs, created with mkccc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
-    CCC_NORM = mkccc(cp_norm, WA_NORMAL, " ");
-    CCC_WIN = mkccc(cp_win, WA_NORMAL, " ");
-    CCC_NT = mkccc(cp_nt, WA_NORMAL, " ");
-    CCC_NT_REV = mkccc(cp_nt_rev, WA_NORMAL, " ");
-    CCC_NT_HL_REV = mkccc(cp_nt_hl_rev, WA_NORMAL, " ");
-    CCC_NT_HL = mkccc(cp_nt_hl, WA_NORMAL, " ");
-    CCC_BOX = mkccc(cp_box, WA_NORMAL, " ");
-    CCC_LN = mkccc(cp_ln, WA_NORMAL, " ");
+    // CC_ variables are cchar_t versions of the color pairs, created with mkcc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
+    CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
+    CC_WIN = mkcc(cp_win, WA_NORMAL, " ");
+    CC_NT = mkcc(cp_nt, WA_NORMAL, " ");
+    CC_NT_REV = mkcc(cp_nt_rev, WA_NORMAL, " ");
+    CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
+    CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
+    CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
+    CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     noecho();
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
-    wbkgrndset(stdscr, &CCC_NT);
+    wbkgrndset(stdscr, &CC_NT);
 #ifdef DEBUG_IMMEDOK
     immedok(stdscr, true);
 #endif
@@ -613,7 +613,7 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
     cmplx_buf[*pos] = cc;
     return *pos;
 }
-/** mkccc
+/** mkcc
     @brief Create a cchar_t with the specified color pair index
     @ingroup color_management
     @param cp Color pair index
@@ -622,36 +622,76 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
    character is used)
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
-cchar_t mkccc(int cp, attr_t attr, char *s) {
+cchar_t mkcc(int cp, attr_t attr, char *s) {
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    size_t len;
+    size_t n;
+    cchar_t cc = {0};
+    wchar_t wstr[2] = {L'\0', L'\0'};
+    len = strlen(s);
+    if (len > 0) {
+        n = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        if (n <= 0) {
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
+        } else {
+            wstr[1] = L'\0';
+        }
+    } else {
+        wstr[0] = L' ';
+        wstr[1] = L'\0';
+    }
+    setcchar(&cc, wstr, attr, cp, nullptr);
+    return cc;
+}
+size_t str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t maxlen) {
+    int i = 0, j = 0;
+    int len = 0;
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
-    mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
-    setcchar(&cc, wstr, attr, cp, nullptr);
-    return cc;
+    while (s[i] != '\0') {
+        if (s[i] == '\033') {
+            i++;
+            continue;
+        }
+        wstr[1] = L'\0';
+        len = mbrtowc(wstr, &s[i], MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
+            len = 1;
+        }
+        if (setcchar(&cc, wstr, attr, cp, nullptr) != ERR) {
+            if (len > 0)
+                if ((j + len) < (int)maxlen + 1)
+                    cmplx_buf[j++] = cc;
+        }
+        i += len;
+    }
+    wstr[0] = '\0';
+    wstr[1] = '\0';
+    setcchar(&cc, wstr, WA_NORMAL, cp, nullptr);
+    cmplx_buf[j++] = cc;
+    return j;
 }
 /** mk_cmplx_str
     @brief Convert a multibyte string to an array of cchar_t complex characters
     @ingroup color_management
-    @param cmplx_buf Output buffer for complex characters (allocated within the
-   function)
+    @param cmplx_buf Output buffer for complex characters
     @param s Input multibyte string
     @param attr Attributes to apply to the complex characters
     @param cp Color pair index for the complex characters
     @return Number of bytes processed from the input string
-    @details This function converts a multibyte string to an array of complex
-   characters (cchar_t) that can be used with NCurses functions. It handles
-   multibyte characters and applies the specified color pair to each character.
-    @note cmplx_buf is allocated within the function and should be freed by the
-   caller when no longer needed. */
+ */
 size_t mk_cmplx_str(cchar_t *cmplx_buf, char *s, attr_t attr, int cp) {
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     size_t len = strlen(s);
-    cmplx_buf = calloc(len + 1, sizeof(cchar_t));
 
     while (*s != '\0') {
         mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
@@ -683,8 +723,39 @@ void display_cmplx_str(WINDOW *win, cchar_t *cmplx_buf, int line, int col) {
     wmove(win, line, col);
     return;
 }
-
-/** box2_new
+/** @brief Converts a Unicode code point to a UTF-8 encoded string.
+    @ingroup utility_functions
+    @param cp - Unicode code point to convert
+    @param buffer - buffer to receive UTF-8 encoded string (must be at least 4 bytes)
+    @returns number of bytes written to buffer, or 0 if cp is invalid
+    @details This function encodes the given Unicode code point into its UTF-8 representation and stores it in the provided buffer. The caller must ensure that the buffer has enough space to hold the resulting UTF-8 string (up to 4 bytes for code points up to U+10FFFF). If the code point is invalid (e.g., greater than U+10FFFF), this function returns 0 and does not modify the buffer. */
+int wccp_to_str(wchar_t cp, uint8_t *buffer) {
+    if (cp <= 0x7F) {
+        // 1-byte sequence: 0xxxxxxx
+        buffer[0] = (uint8_t)cp;
+        return 1;
+    } else if (cp <= 0x7FF) {
+        // 2-byte sequence: 110xxxxx 10xxxxxx
+        buffer[0] = (uint8_t)(0xC0 | ((cp >> 6) & 0x1F));
+        buffer[1] = (uint8_t)(0x80 | (cp & 0x3F));
+        return 2;
+    } else if (cp <= 0xFFFF) {
+        // 3-byte sequence: 1110xxxx 10xxxxxx 10xxxxxx
+        buffer[0] = (uint8_t)(0xE0 | ((cp >> 12) & 0x0F));
+        buffer[1] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+        buffer[2] = (uint8_t)(0x80 | (cp & 0x3F));
+        return 3;
+    } else if (cp <= 0x10FFFF) {
+        // 4-byte sequence: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        buffer[0] = (uint8_t)(0xF0 | ((cp >> 18) & 0x07));
+        buffer[1] = (uint8_t)(0x80 | ((cp >> 12) & 0x3F));
+        buffer[2] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+        buffer[3] = (uint8_t)(0x80 | (cp & 0x3F));
+        return 4;
+    }
+    return 0; // Invalid Unicode code point
+}
+/** @brief Strips ANSI SGR escape sequences (ending in 'm') from string s to d
     @brief Create a new window with optional box and title
     @ingroup window_support
     @param wlines Number of lines
@@ -712,7 +783,7 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 #ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
-    wbkgrndset(win_box[win_ptr], &CCC_BOX);
+    wbkgrndset(win_box[win_ptr], &CC_BOX);
     cbox2(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
     mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
@@ -760,7 +831,7 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 #ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
-    wbkgrndset(win_box[win_ptr], &CCC_BOX);
+    wbkgrndset(win_box[win_ptr], &CC_BOX);
     cbox(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
     mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
@@ -796,7 +867,7 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
-    wbkgrndset(win_win[win_ptr], &CCC_NT);
+    wbkgrndset(win_win[win_ptr], &CC_NT);
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
@@ -822,7 +893,7 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win2[win_ptr], true);
 #endif
-    wbkgrndset(win_win2[win_ptr], &CCC_NT);
+    wbkgrndset(win_win2[win_ptr], &CC_NT);
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
     idcok(win_win2[win_ptr], false);
@@ -842,7 +913,7 @@ void win_resize(int wlines, int wcols, char *title) {
     int maxx;
     wrefresh(stdscr);
     wresize(win_box[win_ptr], wlines + 2, wcols + 2);
-    wbkgrndset(win_box[win_ptr], &CCC_BOX);
+    wbkgrndset(win_box[win_ptr], &CC_BOX);
     cbox(win_box[win_ptr]);
     if (title != nullptr && *title != '\0') {
         wmove(win_box[win_ptr], 0, 1);
@@ -861,7 +932,7 @@ void win_resize(int wlines, int wcols, char *title) {
     }
     wnoutrefresh(win_box[win_ptr]);
     wresize(win_win[win_ptr], wlines, wcols);
-    wbkgrndset(win_win[win_ptr], &CCC_NT);
+    wbkgrndset(win_win[win_ptr], &CC_NT);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
     keypad(win_win[win_ptr], TRUE);
     idlok(win_win[win_ptr], false);
@@ -896,14 +967,14 @@ WINDOW *win_del() {
     if (win_ptr >= 0) {
         if (win_win[win_ptr] != nullptr) {
             touchwin(win_win[win_ptr]);
-            wbkgrndset(win_win[win_ptr], &CCC_NT);
+            wbkgrndset(win_win[win_ptr], &CC_NT);
             werase(win_win[win_ptr]);
             wnoutrefresh(win_win[win_ptr]);
             delwin(win_win[win_ptr]);
         }
         if (win_box[win_ptr] != nullptr) {
             touchwin(win_box[win_ptr]);
-            wbkgrndset(win_box[win_ptr], &CCC_NT);
+            wbkgrndset(win_box[win_ptr], &CC_NT);
             werase(win_box[win_ptr]);
             wnoutrefresh(win_box[win_ptr]);
             delwin(win_box[win_ptr]);

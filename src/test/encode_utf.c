@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <wchar.h>
 
 /** @brief Converts a wide character code point to UTF-8 bytes.
@@ -45,5 +46,27 @@ int main() {
         printf("%02X", utf_s[i]);
     }
     printf("\n");
+
+    wchar_t underscore = L'\U0000ff3f';
+    uint8_t utf_s2[4] = {0};
+    // convert wide character code point to UTF-8 bytes
+    bytes_written = wccp_to_str(underscore, utf_s2);
+    printf("underscore: %s\n", utf_s2);
+    printf("Code point: U+%04X\n", (unsigned int)underscore);
+    printf("UTF-8 Hex:  0x");
+    for (int i = 0; i < bytes_written; i++) {
+        printf("%02X", utf_s2[i]);
+    }
+    printf("\n");
+
+    memcpy(utf_s3, "＿", 3); // copy the UTF-8 bytes for '＿' (U+FF3F) into utf_s3
+    printf("underscore: %s\n", utf_s3);
+    printf("Code point: U+%04X\n", (unsigned int)underscore);
+    printf("UTF-8 Hex:  0x");
+    for (int i = 0; i < bytes_written; i++) {
+        printf("%02X", utf_s2[i]);
+    }
+    printf("\n");
+
     return 0;
 }

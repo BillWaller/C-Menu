@@ -379,7 +379,7 @@ extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
-extern cchar_t mkccc(int, attr_t, char *);
+extern cchar_t mkcc(int, attr_t, char *);
 extern char *iso8601_time(char *, int, time_t *, bool);
 extern bool parse_local_timestamp(const char *, time_t *);
 extern char *format_local_timestamp(time_t, char *, size_t);
@@ -387,17 +387,17 @@ extern char *get_local_timestamp();
 extern char *get_user_str(char *, size_t);
 extern char *get_ip_addresses(char *, int);
 
-extern cchar_t CCC_NORM;      /**< curses default */
-extern cchar_t CCC_REVERSE;   /**< curses default reverse */
-extern cchar_t CCC_NT;        /**< C-Menu normal text */
-extern cchar_t CCC_NT_REV;    /**< reverse */
-extern cchar_t CCC_NT_HL;     /**< highlight */
-extern cchar_t CCC_NT_HL_REV; /**< highlight reverse */
-extern cchar_t CCC_WIN;       /**< curses default */
-extern cchar_t CCC_BOX;       /**< box colors */
-extern cchar_t CCC_LN;        /* line numbers */
-extern cchar_t CCC_BRKTL;     /* left field bracket */
-extern cchar_t CCC_BRKTR;     /* right field bracket */
+extern cchar_t CC_NORM;      /**< curses default */
+extern cchar_t CC_REVERSE;   /**< curses default reverse */
+extern cchar_t CC_NT;        /**< C-Menu normal text */
+extern cchar_t CC_NT_REV;    /**< reverse */
+extern cchar_t CC_NT_HL;     /**< highlight */
+extern cchar_t CC_NT_HL_REV; /**< highlight reverse */
+extern cchar_t CC_WIN;       /**< curses default */
+extern cchar_t CC_BOX;       /**< box colors */
+extern cchar_t CC_LN;        /* line numbers */
+extern cchar_t CC_BRKTL;     /* left field bracket */
+extern cchar_t CC_BRKTR;     /* right field bracket */
 
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */
@@ -842,5 +842,7 @@ extern bool verify_file_q(char *, int);
 extern bool verify_dir(char *, int);
 extern bool verify_dir_q(char *, int);
 extern bool verify_spec_arg(char *, char *, char *, char *, int);
+extern size_t mk_cmplx_str(cchar_t *, char *, attr_t, int);
+extern size_t str_to_cc(cchar_t *, const char *, attr_t, int, size_t);
 
 #endif

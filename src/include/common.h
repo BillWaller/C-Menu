@@ -48,28 +48,31 @@
 #define P_WRITE 1
 #define TRUE 1
 
-#define new_cmenu()                                                            \
-    __end_pgm;                                                                 \
-    int main(int argc, char **argv) {                                          \
-        __atexit;                                                              \
-        capture_shell_tioctl();                                                \
-        Init *init = new_init(argc, argv);                                     \
-        SIO *sio = init->sio;                                                  \
-        mapp_initialization(init);                                             \
-        open_curses(sio);                                                      \
-        sig_prog_mode();                                                       \
-        capture_curses_tioctl();                                               \
+#define new_cmenu()                        \
+    __end_pgm;                             \
+    int main(int argc, char **argv) {      \
+        __atexit;                          \
+        capture_shell_tioctl();            \
+        Init *init = new_init(argc, argv); \
+        SIO *sio = init->sio;              \
+        mapp_initialization(init);         \
+        open_curses(sio);                  \
+        sig_prog_mode();                   \
+        capture_curses_tioctl();           \
         win_init_attrs();
 
-#define destroy_cmenu()                                                        \
-    destroy_init(init);                                                        \
-    win_del();                                                                 \
-    curs_set(1);                                                               \
-    destroy_curses();                                                          \
-    return 0;                                                                  \
+#define destroy_cmenu() \
+    destroy_init(init); \
+    win_del();          \
+    curs_set(1);        \
+    destroy_curses();   \
+    return 0;           \
     }
 
-typedef enum { VIEW, FORM, PICK, MENU } Caller;
+typedef enum { VIEW,
+               FORM,
+               PICK,
+               MENU } Caller;
 
 /** @brief option types */
 typedef enum {
@@ -110,33 +113,33 @@ typedef struct {
 
     char provider_cmd[MAXLEN]; /**< command provides input */
     char receiver_cmd[MAXLEN]; /**< command receives output */
-    char cmd[MAXLEN]; /**< command to execute in foreground, e.g. an editor */
-    char cmd_all[MAXLEN]; /**< View - command to execute at start of program */
-    char parent_cmd[MAXLEN]; /**< command to be executed by parent */
-    char prompt_str[MAXLEN]; /**< prompt string for chyron */
-    int prompt_type; /**< View - prompt type for chyron, e.g. 0=short, 1=long,
-                        2=none */
-    char chyron_s[MAXLEN]; /**< chyron string */
-    char title[MAXLEN];    /**< display on top line of box window */
-    int argc;              /**< command line arguments count */
-    char **argv;           /**< command line arguments vector */
-    int optind;           /**< getopt pointer to non-option arguments in argv */
-    bool f_ignore_case;   /**< View - ignore case in search */
-    bool f_at_end_remove; /**< obsolete, unneeded */
-    bool f_strip_ansi; /**< strip ansi escape sequences when writing buffer */
-    bool f_squeeze;    /**< View - print one line for each group of blank lines
-                        */
-    bool f_multiple_cmd_args; /**< View - put multiple arguments in a single
-                                 string */
-    bool f_erase_remainder;   /**< Form - erase remainder of field on enter */
-    bool f_ln;                /**< View - show line numbers */
-    char brackets[3];         /**< Form - left and right enclosing characters */
-    char fill_char[2];        /**< Form - fill character for fields */
-    char mapp_home[MAXLEN];   /**< home directory */
-    char mapp_data[MAXLEN];   /**< data directory */
-    char mapp_help[MAXLEN];   /**< help directory */
-    char mapp_msrc[MAXLEN];   /**< source directory */
-    char mapp_user[MAXLEN];   /**< user directory */
+    char cmd[MAXLEN];          /**< command to execute in foreground, e.g. an editor */
+    char cmd_all[MAXLEN];      /**< View - command to execute at start of program */
+    char parent_cmd[MAXLEN];   /**< command to be executed by parent */
+    char prompt_str[MAXLEN];   /**< prompt string for chyron */
+    int prompt_type;           /**< View - prompt type for chyron, e.g. 0=short, 1=long,
+                                  2=none */
+    char chyron_s[MAXLEN];     /**< chyron string */
+    char title[MAXLEN];        /**< display on top line of box window */
+    int argc;                  /**< command line arguments count */
+    char **argv;               /**< command line arguments vector */
+    int optind;                /**< getopt pointer to non-option arguments in argv */
+    bool f_ignore_case;        /**< View - ignore case in search */
+    bool f_at_end_remove;      /**< obsolete, unneeded */
+    bool f_strip_ansi;         /**< strip ansi escape sequences when writing buffer */
+    bool f_squeeze;            /**< View - print one line for each group of blank lines
+                                */
+    bool f_multiple_cmd_args;  /**< View - put multiple arguments in a single
+                                  string */
+    bool f_erase_remainder;    /**< Form - erase remainder of field on enter */
+    bool f_ln;                 /**< View - show line numbers */
+    char brackets[3];          /**< Form - left and right enclosing characters */
+    char fill_char[4];         /**< Form - fill character for fields */
+    char mapp_home[MAXLEN];    /**< home directory */
+    char mapp_data[MAXLEN];    /**< data directory */
+    char mapp_help[MAXLEN];    /**< help directory */
+    char mapp_msrc[MAXLEN];    /**< source directory */
+    char mapp_user[MAXLEN];    /**< user directory */
 
     bool f_mapp_home; /**< flag - mapp_home verified */
     bool f_mapp_data; /**< flag - mapp_data verified */

@@ -61,7 +61,7 @@ PREFIX=$(HOME)/menuapp
 # documentation for more information on how to configure logging for RSH.
 #
 # Uncomment the following line to enable SSH authentication for RSH
-# RSH_CFLAGS = $(RSH_CFLAGS) -DRSH_SSH
+# RSH_CFLAGS = -DRSH_SSH
 #
 # -DRSH_SSH: If you enable SSH authentication for RSH, you will need to ensure
 # that libssh is installed on your system and that the header files and 
@@ -174,7 +174,7 @@ LIB_PATH=.:$(LIB_DIR)
 BINEXES=menu form pick view ckeys whence rsh iloan amort enterchr \
 		enterstr lf stripansi
 
-MANPAGES=lf.1.gz
+MANPAGES=cmenu.1.gz lf.1.gz rsh.1.gz
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
@@ -221,14 +221,22 @@ amort:	amort.o $(LIB_NAME)
 	$(CC) amort.o -o $@ $(LIBS)
 
 rsh:	include/cm.h rsh.o
-	$(CC) $(RSH_CFLAGS) rsh.o -o $@ -lssh
+	$(CC) $(RSH_CFLAGS) rsh.o -o $@ -lpam -lpam_misc
 
 lf: include/cm.h	include/version.h	lf.c $(LIB_NAME)
 	$(CC) lf.c -o $@  $(LIBS)
 
+cmenu.1.gz:	../docs/cmenu.md
+	pandoc -f markdown-smart -standalone --to man ../docs/cmenu.md -o cmenu.1
+	gzip -f cmenu.1
+
 lf.1.gz:	../docs/lf.md
 	pandoc -f markdown-smart -standalone --to man ../docs/lf.md -o lf.1
 	gzip -f lf.1
+
+rsh.1.gz:	../docs/rsh.md
+	pandoc -f markdown-smart -standalone --to man ../docs/rsh.md -o rsh.1
+	gzip -f rsh.1
 
 stripansi:	include/cm.h stripansi.o $(LIB_NAME)
 	$(CC) stripansi.o -o $@ $(LIBS)
@@ -267,7 +275,7 @@ clean:
 	rm -rf core *.o $(BINEXES) $(CFLOW_OUTPUT) *.[aeos] *.diff \
 		*.so *.cflow scan-build* CMenu.conf x xx* *.out \
 	   	.user_id .group_id manifest.txt manifest.ls *.gc.. \
-		perf.* *.1
+		perf.* *.1 *.1.gz
 
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)
@@ -300,14 +308,15 @@ install:
 	./inst.sh include/view.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
 	./inst.sh menu			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh whence		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh rsh			$(BIN_DIR)	  4711	root	root
+	./inst.sh rsh			$(BIN_DIR)	  6711	root	root
 	./inst.sh enterchr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh enterstr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh iloan			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh amort			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
 	./inst.sh stripansi		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh lf			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh lf.1.gz			$(MAN_DIR)	  0711	$(USER)	$(GROUP)
+	./inst.sh cmenu.1.gz			$(MAN_DIR)	  0666	$(USER)	$(GROUP)
+	./inst.sh lf.1.gz			$(MAN_DIR)	  0666	$(USER)	$(GROUP)
+	./inst.sh rsh.1.gz			$(MAN_DIR)	  0666	$(USER)	$(GROUP)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(LIB_DIR)
 	rm -f	 $(LIB_DIR)/libcm*
