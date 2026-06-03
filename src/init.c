@@ -672,8 +672,8 @@ int parse_config(Init *init) {
                 strnz__cpy(sio->nt_hl_rev_bg, value, COLOR_LEN - 1);
                 continue;
             }
-            if (!strcmp(key, "nt_hl_rev_fg")) {
-                strnz__cpy(sio->nt_hl_rev_fg, value, COLOR_LEN - 1);
+            if (!strcmp(key, "fill_char_fg")) {
+                strnz__cpy(sio->fill_char_fg, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "bg")) {
@@ -870,7 +870,7 @@ int write_config(Init *init) {
 
     (void)fprintf(minitrc_fp, "%s=%s\n", "nt_hl_rev_fg", sio->nt_hl_rev_fg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "nt_hl_rev_bg", sio->nt_hl_rev_bg);
-
+    (void)fprintf(minitrc_fp, "%s=%s\n", "fill_char_fg", sio->fill_char_fg);
     (void)fprintf(minitrc_fp, "%s=%s\n", "black", sio->black);
     (void)fprintf(minitrc_fp, "%s=%s\n", "red", sio->red);
     (void)fprintf(minitrc_fp, "%s=%s\n", "green", sio->green);

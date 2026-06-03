@@ -142,19 +142,16 @@ char em0[MAXLEN];
 char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
-int cp_norm;
-int cp_win;
 int cp_box;
 int cp_nt;
 int cp_nt_rev;
 int cp_nt_hl;
 int cp_nt_hl_rev;
 int cp_ln;
+int cp_fill_char;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
-cchar_t CC_NORM;
-cchar_t CC_WIN;
 cchar_t CC_BG;
 cchar_t CC_BOX;
 cchar_t CC_NT;
@@ -164,6 +161,7 @@ cchar_t CC_NT_HL;
 cchar_t CC_LN;
 cchar_t CC_BRKTL;
 cchar_t CC_BRKTR;
+cchar_t CC_FILL_CHAR;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 FILE *ncurses_fp;
@@ -171,7 +169,7 @@ FILE *ncurses_fp;
 /** @brief Initialize window attributes
     @ingroup window_support
     @details This function initializes color pairs for the window
-    cp_norm, cp_win, and cp_box are global variables
+    cp_nt, and cp_box are global variables
  */
 void win_init_attrs() { return; }
 
@@ -243,8 +241,7 @@ bool open_curses(SIO *sio) {
     GRAY_GAMMA = sio->gray_gamma;
 
     // cp_ variables are indices for ncurses color pairs, created with get_clr_pair function. These color pairs are used to set the foreground and background colors for different elements of the interface, such as windows, text, and boxes. By defining these color pair indices as global variables, we can easily reference them throughout the code when applying colors to various parts of the interface using NCurses functions that accept color pair indices.
-    cp_win = get_clr_pair(CLR_FG, CLR_BG);
-    cp_norm = get_clr_pair(CLR_WHITE, CLR_BLACK);
+    cp_fill_char = get_clr_pair(CLR_FILL_CHAR_FG, CLR_NT_BG);
     cp_nt = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
     cp_nt_rev = get_clr_pair(CLR_NT_REV_FG, CLR_NT_REV_BG);
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
@@ -252,8 +249,7 @@ bool open_curses(SIO *sio) {
     cp_box = get_clr_pair(CLR_BO, CLR_BG);
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
     // CC_ variables are cchar_t versions of the color pairs, created with mkcc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
-    CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
-    CC_WIN = mkcc(cp_win, WA_NORMAL, " ");
+    CC_FILL_CHAR = mkcc(cp_fill_char, WA_DIM, " ");
     CC_NT = mkcc(cp_nt, WA_NORMAL, " ");
     CC_NT_REV = mkcc(cp_nt_rev, WA_NORMAL, " ");
     CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
@@ -474,6 +470,7 @@ bool init_clr_palette(SIO *sio) {
 
     if (sio->nt_fg[0])
         init_hex_clr(CLR_NT_FG, sio->nt_fg);
+
     if (sio->nt_bg[0])
         init_hex_clr(CLR_NT_BG, sio->nt_bg);
 
@@ -492,6 +489,8 @@ bool init_clr_palette(SIO *sio) {
     if (sio->nt_hl_rev_bg[0])
         init_hex_clr(CLR_NT_HL_REV_BG, sio->nt_hl_rev_bg);
 
+    if (sio->fill_char_fg[0])
+        init_hex_clr(CLR_FILL_CHAR_FG, sio->fill_char_fg);
     clr_cnt = CLR_NCOLORS;
     return true;
 }

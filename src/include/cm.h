@@ -151,6 +151,7 @@ typedef enum {
     CLR_NT_HL_BG,
     CLR_NT_HL_REV_FG,
     CLR_NT_HL_REV_BG,
+    CLR_FILL_CHAR_FG,
     CLR_NCOLORS
 } ColorsEnum;
 
@@ -313,13 +314,12 @@ typedef struct {
 #define LN_COLOR 4    /**< default line number color */
 #define LN_BG_COLOR 7 /**< default line number background */
 
-extern int cp_default;               /**< default color pair index */
-extern int cp_norm;                  /**< normal color pair index */
-extern int cp_win;                   /**< window color pair index */
-extern int cp_box;                   /**< box color pair index */
-extern int cp_bold;                  /**< bold color pair index */
-extern int cp_title;                 /**< title color pair index */
-extern int cp_highlight;             /**< highlight color pair index */
+extern int cp_default;   /**< default color pair index */
+extern int cp_box;       /**< box color pair index */
+extern int cp_bold;      /**< bold color pair index */
+extern int cp_title;     /**< title color pair index */
+extern int cp_highlight; /**< highlight color pair index */
+extern int cp_fill_char;
 extern int cp_nt;                    /**< normal color pair index */
 extern int cp_nt_rev;                /**< reverse color pair index */
 extern int cp_nt_hl;                 /**< highlight color pair index */
@@ -387,13 +387,12 @@ extern char *get_local_timestamp();
 extern char *get_user_str(char *, size_t);
 extern char *get_ip_addresses(char *, int);
 
-extern cchar_t CC_NORM;      /**< curses default */
 extern cchar_t CC_REVERSE;   /**< curses default reverse */
 extern cchar_t CC_NT;        /**< C-Menu normal text */
 extern cchar_t CC_NT_REV;    /**< reverse */
 extern cchar_t CC_NT_HL;     /**< highlight */
 extern cchar_t CC_NT_HL_REV; /**< highlight reverse */
-extern cchar_t CC_WIN;       /**< curses default */
+extern cchar_t CC_FILL_CHAR; /**< curses default */
 extern cchar_t CC_BOX;       /**< box colors */
 extern cchar_t CC_LN;        /* line numbers */
 extern cchar_t CC_BRKTL;     /* left field bracket */
@@ -730,34 +729,35 @@ typedef struct {
     char nt_hl_fg[COLOR_LEN];    /**< normal text highlight foreground */
     char nt_hl_bg[COLOR_LEN];    /**< normal text highlight background */
     char
-        nt_hl_rev_fg[COLOR_LEN]; /** normal text highlight reverse foreground */
+        nt_hl_rev_fg[COLOR_LEN]; /**< normal text highlight reverse foreground */
     char
-        nt_hl_rev_bg[COLOR_LEN]; /** normal text highlight reverse background */
-    char tty_name[MAXLEN];       /**< name of the terminal device */
-    FILE *stdin_fp;              /**< stdin stream pointer */
-    FILE *stdout_fp;             /**< stdout stream pointer */
-    FILE *stderr_fp;             /**< stderr stream pointer */
-    FILE *tty_fp;                /**< terminal device stream pointer */
-    int stdin_fd;                /**< stdin file descriptor */
-    int stdout_fd;               /**< stdout file descriptor */
-    int stderr_fd;               /**< stderr file descriptor */
-    int tty_fd;                  /**< terminal device file descriptor */
-    int clr_cnt;                 /**< number of colors currently in use */
-    int clr_pair_cnt;            /**< number of color pairs currently in use */
-    int clr_idx;                 /**< current color index */
-    int clr_pair_idx;            /**< current color pair index */
-    int cp_default;              /**< default color pair index */
-    int cp_norm;                 /**< normal color pair index */
-    int cp_win;                  /**< window color pair index */
-    int cp_nt_rev;               /**< reverse color pair index */
-    int cp_nt_hl;                /**< highlight color pair index */
-    int cp_nt_hl_rev;            /**< reverse highlight color pair index */
-    int cp_box;                  /**< box color pair index */
-    int cp_bold;                 /**< bold color pair index */
-    int cp_title;                /**< title color pair index */
-    int cp_highlight;            /**< highlight color pair index */
-    int cp_ln;                   /**< line number color pair index */
-    int cp_ln_bg;                /**< line number background pair index */
+        nt_hl_rev_bg[COLOR_LEN];  /**< normal text highlight reverse background */
+    char fill_char_fg[COLOR_LEN]; /**< fill character foreground */
+    char tty_name[MAXLEN];        /**< name of the terminal device */
+    FILE *stdin_fp;               /**< stdin stream pointer */
+    FILE *stdout_fp;              /**< stdout stream pointer */
+    FILE *stderr_fp;              /**< stderr stream pointer */
+    FILE *tty_fp;                 /**< terminal device stream pointer */
+    int stdin_fd;                 /**< stdin file descriptor */
+    int stdout_fd;                /**< stdout file descriptor */
+    int stderr_fd;                /**< stderr file descriptor */
+    int tty_fd;                   /**< terminal device file descriptor */
+    int clr_cnt;                  /**< number of colors currently in use */
+    int clr_pair_cnt;             /**< number of color pairs currently in use */
+    int clr_idx;                  /**< current color index */
+    int clr_pair_idx;             /**< current color pair index */
+    int cp_default;               /**< default color pair index */
+    int cp_norm;                  /**< normal color pair index */
+    int cp_win;                   /**< window color pair index */
+    int cp_nt_rev;                /**< reverse color pair index */
+    int cp_nt_hl;                 /**< highlight color pair index */
+    int cp_nt_hl_rev;             /**< reverse highlight color pair index */
+    int cp_box;                   /**< box color pair index */
+    int cp_bold;                  /**< bold color pair index */
+    int cp_title;                 /**< title color pair index */
+    int cp_highlight;             /**< highlight color pair index */
+    int cp_ln;                    /**< line number color pair index */
+    int cp_ln_bg;                 /**< line number background pair index */
 } SIO;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);

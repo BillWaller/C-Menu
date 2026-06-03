@@ -5,9 +5,34 @@ Use C-Menu Form when you need to enter, edit, validate, process, and submit data
 The C-Menu form command specifies a description file which defines the on-../screen
 form.
 
-### Description File
+### Form Description File
 
-![iloan.f](../screenshots/iloan.f.png)
+```bash
+# ~/menuapp/msrc/iloan.f
+H:Installment Loan Calculator
+#
+T:1:4:Enter any three of the four values to calculate the fourth.
+T:2:4:Only one field can be left blank or zero.
+T:3:4:Press F5 to calculate the missing value.
+#
+T:5:14:Principal Amount:
+F:5:33:14:Currency
+#
+T:6:14:Number of Months:
+F:6:33:5:Decimal_Int
+#
+T:7:10:Annual Interest Rate:
+F:7:33:5:APR
+#
+T:8:16:Payment Amount:
+F:8:33:12:Currency
+#
+T:10:1:First Payment Date (Yyyymmdd):
+F:10:33:10:Yyyymmdd
+#
+G
+?iloan.hlp
+```
 
 #### Text
 
@@ -79,6 +104,41 @@ program specified with the -S option.
 "Q" - specifies that field values are to be provided by an external executable
 specified with the -S option and parameterized with a key value for a query
 operation.
+
+---
+
+#### Form Data Types
+
+String
+Left justified with trailing spaces ignored. Note: pressing the space bar
+with the cursor on the first position of a field will delete the first character
+and shift the field left one character position.
+
+Decimal Integer
+composed of digits 0-9, with an optional leading minus sign for negative numbers. Right justified with leading zeros ignored.
+
+Hexadecimal Integer
+composed of digits 0-9 and letters A-F, with an optional leading minus sign for negative numbers. Right justified with leading zeros ignored.
+
+Float
+composed of digits 0-9, with an optional leading minus sign for negative numbers, and an optional decimal point. Right justified with leading zeros ignored.
+
+Double
+composed of digits 0-9, with an optional leading minus sign for negative numbers, and an optional decimal point. Right justified with leading zeros ignored.
+
+Currency
+composed of digits 0-9, with an optional leading minus sign for negative numbers, and an optional decimal point. Right justified with leading zeros ignored. When displayed, currency values are formatted with digit group separators and two decimal places.
+
+Yyyymmdd
+composed of digits 0-9. When displayed, date values are formatted as
+YYYY-MM-DD. Invalid dates will be rejected.
+
+Hhmmss
+composed of digits 0-9. When displayed, time values are formatted as
+HH:MM:SS. Invalid times will be rejected.
+
+APR
+composed of digits 0-9, with an optional decimal point and minus sign. When displayed, APR values are formatted with an optional leading minus sign, up to three digits to the left of the decimal point, and up to four digits to the right of the decimal point, followed by a percent sign. For example: -12.3456.
 
 ---
 

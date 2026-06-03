@@ -82,9 +82,9 @@ int field_editor(Form *form) {
     immedok(form->box, TRUE);
     while (1) {
         if (in_key == 0) {
-            form_display_field(form);
             // mvwaddstr(win, flin, fcol, filler_s);
-            // mvwaddstr(win, flin, fcol, accept_s);
+            form_fmt_field(form, accept_s);
+            form_display_field(form);
             tcflush(0, TCIFLUSH);
             wrefresh(form->box);
             wmove(win, flin, x);
@@ -324,6 +324,15 @@ int field_editor(Form *form) {
             } else {
                 if (p < fend) {
                     if (p < str_end) {
+                        if (p == accept_s && in_key == ' ') {
+                            d = accept_s;
+                            s = accept_s + 1;
+                            while (*s != '\0')
+                                *d++ = *s++;
+                            *d = '\0';
+                            in_key = 0;
+                            continue;
+                        }
                         *p++ = in_key;
                         x++;
                     } else if (p == str_end) {

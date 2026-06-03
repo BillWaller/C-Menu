@@ -583,7 +583,7 @@ void form_display_fields(Form *form) {
         y = form->field[form->fidx]->line;
         x = form->field[form->fidx]->col;
 
-        str_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, A_DIM, cp_nt, form->field[form->fidx]->len);
+        str_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, A_NORMAL, cp_fill_char, form->field[form->fidx]->len);
 
         mvwadd_wchstr(form->win, y, x, form->field[form->fidx]->filler_cc);
 

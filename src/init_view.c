@@ -64,8 +64,8 @@ int init_view_full_screen(Init *init) {
     keypad(view->cmdln_win, true);
     idlok(view->cmdln_win, false);
     idcok(view->cmdln_win, false);
-    wbkgrnd(view->cmdln_win, &CC_WIN);
-    wbkgrndset(view->cmdln_win, &CC_WIN);
+    wbkgrnd(view->cmdln_win, &CC_NT);
+    wbkgrndset(view->cmdln_win, &CC_NT);
     scrollok(view->cmdln_win, false);
 #ifdef DEBUG_IMMEDOK
     immedok(view->cmdln_win, true);
@@ -95,8 +95,8 @@ int init_view_full_screen(Init *init) {
     keypad(view->pad, false);
     idlok(view->pad, false);
     idcok(view->pad, false);
-    wbkgrnd(view->pad, &CC_WIN);
-    wbkgrndset(view->pad, &CC_WIN);
+    wbkgrnd(view->pad, &CC_NT);
+    wbkgrndset(view->pad, &CC_NT);
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
 #ifdef DEBUG_IMMEDOK
@@ -210,8 +210,8 @@ int init_view_boxwin(Init *init, char *title) {
     keypad(view->cmdln_win, true);
     idlok(view->cmdln_win, false);
     idcok(view->cmdln_win, false);
-    wbkgrnd(view->cmdln_win, &CC_WIN);
-    wbkgrndset(view->cmdln_win, &CC_WIN);
+    wbkgrnd(view->cmdln_win, &CC_NT);
+    wbkgrndset(view->cmdln_win, &CC_NT);
     scrollok(view->cmdln_win, false);
 #ifdef DEBUG_IMMEDOK
     immedok(view->cmdln_win, true);
@@ -245,8 +245,8 @@ int init_view_boxwin(Init *init, char *title) {
     keypad(view->pad, true);
     idlok(view->pad, false);
     idcok(view->pad, false);
-    wbkgrnd(view->pad, &CC_WIN);
-    wbkgrndset(view->pad, &CC_WIN);
+    wbkgrnd(view->pad, &CC_NT);
+    wbkgrndset(view->pad, &CC_NT);
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
 #ifdef DEBUG_IMMEDOK

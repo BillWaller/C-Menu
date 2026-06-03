@@ -41,19 +41,19 @@
    without the need for explicit buffering or read system calls, as the kernel
    handles loading the necessary pages into memory on demand.
  */
-#define get_next_char()                                                        \
-    {                                                                          \
-        c = 0;                                                                 \
-        do {                                                                   \
-            if (view->file_pos == view->file_size) {                           \
-                view->f_eod = true;                                            \
-                break;                                                         \
-            } else                                                             \
-                view->f_eod = false;                                           \
-            c = view->buf[view->file_pos++];                                   \
-        } while (c == 0x0d);                                                   \
-        if (c == '\n')                                                         \
-            increment_ln(view);                                                \
+#define get_next_char()                              \
+    {                                                \
+        c = 0;                                       \
+        do {                                         \
+            if (view->file_pos == view->file_size) { \
+                view->f_eod = true;                  \
+                break;                               \
+            } else                                   \
+                view->f_eod = false;                 \
+            c = view->buf[view->file_pos++];         \
+        } while (c == 0x0d);                         \
+        if (c == '\n')                               \
+            increment_ln(view);                      \
     }
 /** @brief read the previous characater from the virtual file
     @ingroup view_engine
@@ -64,17 +64,17 @@
    changes.
     Carriage-returns are ignored as they should be.
  */
-#define get_prev_char()                                                        \
-    {                                                                          \
-        c = 0;                                                                 \
-        do {                                                                   \
-            if (view->file_pos == 0) {                                         \
-                view->f_bod = true;                                            \
-                break;                                                         \
-            } else                                                             \
-                view->f_bod = false;                                           \
-            c = view->buf[--view->file_pos];                                   \
-        } while (c == 0x0d);                                                   \
+#define get_prev_char()                      \
+    {                                        \
+        c = 0;                               \
+        do {                                 \
+            if (view->file_pos == 0) {       \
+                view->f_bod = true;          \
+                break;                       \
+            } else                           \
+                view->f_bod = false;         \
+            c = view->buf[--view->file_pos]; \
+        } while (c == 0x0d);                 \
     }
 
 char prev_regex_pattern[MAXLEN];
@@ -1103,7 +1103,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             view->curx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
             mvwchgat(view->pad, view->cury - 1, view->curx, match_len,
-                     WA_REVERSE, cp_win, nullptr);
+                     WA_REVERSE, cp_nt, nullptr);
             if (view->first_match_x == -1)
                 view->first_match_x = pmatch[0].rm_so;
             view->last_match_x = line_offset + pmatch[0].rm_eo;
@@ -1658,7 +1658,7 @@ int fmt_line(View *view) {
     int len = 0;
     const char *s;
     attr_t attr = WA_NORMAL;
-    int cpx = cp_win;
+    int cpx = cp_nt;
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
 
