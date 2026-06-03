@@ -9,6 +9,7 @@ if [ ! -x "$1" ]; then
     exit 1
 fi
 name="$1"
+
 $name --version >"$name"_help
 $name -? >>"$name"_help
 $name --usage >>"$name"_help
