@@ -1784,8 +1784,13 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
     restore_curses_tioctl();
     return c;
 }
-/** dxwgetch
-    This is a version of xwgetch that checks for mouse clicks in two windows.
+/** @brief This is a version of xwgetch that checks for mouse clicks in two windows.
+    @param win First window to check for mouse clicks
+    @param win2 Second window to check for mouse clicks
+    @param chyron Pointer to chyron struct for the second window
+    @param n Number of seconds to wait before timing out
+    @return Key code or ERR if interrupted by signal
+    @details This is a version of xwgetch that checks for mouse clicks in two windows.
     Sets mouse_win to the window that was clicked and click_y and click_x to the
    coordinates of the click. If the click is in the chyron line of the second
    window, it gets the corresponding key command. Otherwise, it stores the click
