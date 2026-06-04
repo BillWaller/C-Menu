@@ -356,13 +356,19 @@ To start pick using the output of lf:
 
     pick -S lf
 
-Explanation: The first command will work fine from a shell, but it will not work if you try to execute it using C-Menu direct execution. C-Menu direct execution purposely avoids the over does not
+Explanation: The first command will work fine from a shell, but it will not work
+with C-Menu direct execution. C-Menu direct execution allows the developer to avoid the overhead and exposure of creating a shell to execute commands, so it does not use the shell syntax for creating pipelines. C-Menu direct execution does provide support for input and output pipelines using provider (-S) and receiver (-R) options instead of pipe symbols.
 
-## The second command will work from either a shell or a C-Menu Menu or Form description file
+Of course, there are times when using a shell is more practical, and C-Menu
+provides that capability as well. To execute a command using the shell, simply use the name of the shell script as the argument to the -S or -R option.
 
-# REPORTING BUGS
+    pick -S "my_shell_script.sh"
 
-Report bugs to <billxwaller@gmail.com>.
+You won't get the benefit of direct execution, but you will be able to use the shell syntax for pipelines and other features of the shell.
+
+With direct execution, C-Menu does provide basic shell-like conveniences such as
+tilde expansion for file names and file location using the PATH environment
+variable.
 
 # COPYRIGHT
 

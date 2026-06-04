@@ -41,6 +41,11 @@ unsigned int parse_menu_description(Init *init) {
     int choices = 0;
     int in_fp_line = 0;
     menu = init->menu;
+    for (ltr = 0; ltr < 32; ltr++)
+        fltr[ltr] = true;
+    for (ltr = 32; ltr < 127; ltr++)
+        fltr[ltr] = false;
+    fltr['q'] = true;
     fp = fopen(menu->mapp_spec, "r");
     if (fp == nullptr) {
         strnz__cpy(tmp_buf, "file not found", MAXLEN);
@@ -67,11 +72,6 @@ unsigned int parse_menu_description(Init *init) {
             continue;
         if (directive == '#')
             continue;
-        for (ltr = 0; ltr < 32; ltr++)
-            fltr[ltr] = true;
-        for (ltr = 32; ltr < 127; ltr++)
-            fltr[ltr] = false;
-        fltr['q'] = true;
         switch (directive) {
         /**  '!' Command */
         case '!':
@@ -182,12 +182,13 @@ unsigned int parse_menu_description(Init *init) {
             // Search string for first character that is not a space and not
             // already used as a choice_letter
             while (*s != '\0') {
-                if (*s != ' ')
-                    if (!fltr[(int)(uintptr_t)*s]) {
-                        ltr = *s;
+                ltr = *s;
+                if (ltr != ' ') {
+                    if (!fltr[ltr]) {
                         fltr[ltr] = true;
                         break;
                     }
+                }
                 s++;
             }
             if (*s != '\0') {
