@@ -45,9 +45,8 @@
 # before running the make command.
 USER=bill
 GROUP=bill
-HOME=/home/$(USER)
-PREFIX=$(HOME)/menuapp
-DISPLAY_MANIFEST ?= 1
+PREFIX=$(CMENU_HOME)
+DISPLAY_MANIFEST ?= 0
 # Uncomment the following line to enable logging for RSH
 # RSH_CFLAGS = -DRSH_LOG
 # 
@@ -172,7 +171,7 @@ BUILD_DIR=$(CMENU_SRC)
 BIN_DIR=$(PREFIX)/bin
 MAN_DIR=$(PREFIX)/man/man1
 INC_DIR=$(PREFIX)
-LIB_PATH=.:$(LIB_DIR)
+LIB_PATH=.:$(INSTALL_LIB_DIR):$(LIB_DIR)
 PAM_DIR=/etc/pam.d
 
 BINEXES=menu form pick view ckeys whence rsh iloan amort enterchr \
@@ -192,11 +191,53 @@ COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
 LIBS = $(LIBASAN) $(LINKOPT) -L. -lcm -lncursesw -ltinfo -lm -luring -Wl,-rpath,$(LIB_PATH)
 
-.PHONY: all install clean uninstall helgrind valgrind
+.PHONY: all install install_man clean uninstall helgrind valgrind
 
 all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Build Date: $(SYSDATE)
+	@echo CMENU_HOME = $(CMENU_HOME)
 	@echo Make Complete
+
+config:
+	@echo Build Date: $(SYSDATE)
+	@echo VERSION = $(VERSION)
+	@echo CMENU_HOME = $(CMENU_HOME)
+	@echo USER = $(USER)
+	@echo GROUP $(GROUP)
+	@echo PREFIX = $(CMENU_HOME)
+	@echo CFLAGS = $(CFLAGS)
+	@echo LINKOPT = $(LINKOPT)
+	@echo CC = $(CC)
+	@echo CX = $(CX)-std=gnu23
+	@echo LIB_DIR = $(LIB_DIR)
+	@echo LIB_SHARED = $(LIB_SHARED)
+	@echo SONAME = $(SONAME)
+	@echo REAL_NAME = $(REAL_NAME)
+	@echo LIB_STATIC = $(LIB_STATIC)
+	@echo LIB_NAME = $(LIB_NAME)
+	@echo INSTALL_LIB_DIR = $(INSTALL_LIB_DIR)
+	@echo BUILD_DIR = $(BUILD_DIR)
+	@echo BIN_DIR = $(BIN_DIR)
+	@echo MAN_DIR = $(MAN_DIR)
+	@echo INC_DIR = $(INC_DIR)
+	@echo LIB_PATH = $(LIB_PATH)
+	@echo PAM_DIR = $(PAM_DIR)
+	@echo BINEXES = $(BINEXES)
+	@echo MANPAGES $(MANPAGES)
+	@echo LIBS = $(LIBS)
+
+help:
+	@echo "Available targets:"
+	@echo "  config        - Display Configuration"
+	@echo "  all           - Build the library and all binaries"
+	@echo "  install       - Install binaries, libraries, and headers"
+	@echo "  man           - Build Manual Pages"
+	@echo "  install_man   - Install Manual Pages"
+	@echo "  clean         - Remove build artifacts"
+	@echo "  uninstall     - Remove installed binaries and libraries"
+	@echo "  manifest      - Display manifest of installed files"
+	@echo "  valgrind      - run valgrind on selected executable"
+	@echo "  helgrind      - run helgrind on selected executable"
 
 menu:	menu.o $(COMMON_OBJS) $(COMMON_HDRS) $(LIB_NAME)
 	$(CC) $(COMMON_OBJS) menu.o -o $@ $(LIBS)
@@ -212,26 +253,29 @@ ckeys:	menu
 
 man: $(MANPAGES)
 
-enterchr:	include/cm.h enterchr.o $(LIB_NAME)
-	$(CC) enterchr.o -o $@ $(LIBS)
+enterchr:	enterchr.o $(LIB_NAME)
+	$(CC) $< -o $@ $(LIBS)
 
-enterstr:	include/cm.h enterstr.o $(LIB_NAME)
-	$(CC) enterstr.o -o $@ $(LIBS)
+enterstr:	enterstr.o $(LIB_NAME)
+	$(CC) $< -o $@ $(LIBS)
 
-whence:	include/cm.h whence.o $(LIB_NAME)
-	$(CC) whence.o -o $@ $(LIBS)
+whence:	whence.o $(LIB_NAME)
+	$(CC) $< -o $@ $(LIBS)
 
 iloan:	iloan.o $(LIB_NAME)
-	$(CC) iloan.o -o $@ $(LIBS)
+	$(CC) $< -o $@ $(LIBS)
 
-amort:	amort.o $(LIB_NAME)
-	$(CC) amort.o -o $@ $(LIBS)
+# amort:	amort.o $(LIB_NAME)
+# 	$(CC) $< -o $@ $(LIBS)
 
-rsh:	include/cm.h rsh.o
-	$(CC) $(RSH_CFLAGS) rsh.o -o $@ -lpam -lpam_misc
+rsh:	rsh.o
+	$(CC) $(RSH_CFLAGS) $< -o $@ -lpam -lpam_misc
 
-lf: include/cm.h	include/version.h	lf.c $(LIB_NAME)
-	$(CC) lf.c -o $@  $(LIBS)
+lf: lf.c $(LIB_NAME)
+	$(CC) $< -o $@ $(LIBS)
+
+%:	%.o $(LIB_NAME)
+	$(CC) $< -o $@ $(LIBS)
 
 cmenu.1.gz:	../docs/cmenu.md
 	pandoc -f markdown-smart -standalone --to man ../docs/cmenu.md -o cmenu.1
@@ -257,26 +301,8 @@ $(LIB_SHARED): $(LIB_OBJS)
 $(LIB_STATIC): $(LIB_OBJS)
 	ar rcs $@ $^
 
-dwin.o:	dwin.c
-	$(CC) 	-c $< -fPIC -o $@
-
-futil.o:	futil.c
-	$(CC) 	-c $< -fPIC -o $@
-
-popups.o:	popups.c
-	$(CC) 	-c $< -fPIC -o $@
-
-scriou.o:	scriou.c
-	$(CC) 	-c $< -fPIC -o $@
-
-exec.o:	exec.c
-	$(CC) 	-c $< -fPIC -o $@
-
-sig.o:	sig.c
-	$(CC) 	-c $< -fPIC -o $@
-
 %.o:	%.c
-	$(CC) 	-c $< -o $@
+	$(CC) 	-c $< -fPIC -o $@
 
 clean:
 	rm -rf core *.o $(BINEXES) $(CFLOW_OUTPUT) *.[aeos] *.diff \
@@ -314,7 +340,7 @@ install:
 	install -CDp include/view.h -t $(PREFIX)/include
 	install -CDp menu	-t $(BIN_DIR)
 	install -CDp whence	-t $(BIN_DIR)
-	install -Dp rsh	-t $(BIN_DIR)	-o root -g root -m 6711
+	install -Dp  rsh	-t $(BIN_DIR)	-o root -g root -m 6711
 	install -CDp enterchr	-t $(BIN_DIR)
 	install -CDp enterstr	-t	$(BIN_DIR)
 	install -CDp iloan	-t $(BIN_DIR)
@@ -331,14 +357,19 @@ install:
 	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/ckeys
 	ln	-sf	$(PAM_DIR)/rsh-auth-pc $(PAM_DIR)/rsh-auth
 	install -CDp CMenu.conf -t /etc/ld.so.conf.d
-	install -CDp cmenu.1.gz	-t $(MAN_DIR)
-	install -CDp lf.1.gz	-t $(MAN_DIR)
-	install -CDp rsh.1.gz	-t $(MAN_DIR)
 	ldconfig
 	./manifest.sh
 ifeq ($(DISPLAY_MANIFEST), 1)
 	cat manifest.txt
 endif
+
+manifest:
+	cat manifest.txt
+
+install_man:
+	install -CDp cmenu.1.gz	-t $(MAN_DIR)
+	install -CDp lf.1.gz	-t $(MAN_DIR)
+	install -CDp rsh.1.gz	-t $(MAN_DIR)
 
 uninstall:
 			$(BIN_DIR)/menu \
