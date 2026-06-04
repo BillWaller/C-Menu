@@ -47,7 +47,7 @@ USER=bill
 GROUP=bill
 HOME=/home/$(USER)
 PREFIX=$(HOME)/menuapp
-
+DISPLAY_MANIFEST ?= 1
 # Uncomment the following line to enable logging for RSH
 # RSH_CFLAGS = -DRSH_LOG
 # 
@@ -154,7 +154,7 @@ MINOR=2
 PATCH=9
 VERSION=$(MAJOR).$(MINOR).$(PATCH)
 
-SYSDATE := $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+SYSDATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 CC=gcc -Wall -Wextra -I./include $(CFLAGS)
 CX=-std=gnu23
@@ -192,7 +192,10 @@ COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
 LIBS = $(LIBASAN) $(LINKOPT) -L. -lcm -lncursesw -ltinfo -lm -luring -Wl,-rpath,$(LIB_PATH)
 
+.PHONY: all install clean uninstall helgrind valgrind
+
 all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
+	@echo Build Date: $(SYSDATE)
 	@echo Make Complete
 
 menu:	menu.o $(COMMON_OBJS) $(COMMON_HDRS) $(LIB_NAME)
@@ -302,6 +305,7 @@ valgrind: lf
 # --tool=memcheck
 
 install:
+	rm -f	$(INSTALL_LIB_DIR)/libcm*
 	install -CDp include/cm.h -t $(PREFIX)/include
 	install -CDp include/common.h -t $(PREFIX)/include
 	install -CDp include/form.h -t $(PREFIX)/include
@@ -317,21 +321,24 @@ install:
 	install -CDp amort	-t $(BIN_DIR)
 	install -CDp stripansi	-t $(BIN_DIR)
 	install -CDp rsh-auth-pc -t $(PAM_DIR) -o root	-g root -m 0644
+	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
+	install	-CDp $(LIB_SHARED) -T $(INSTALL_LIB_DIR)/$(REAL_NAME)
+	ln	-sf	$(INSTALL_LIB_DIR)/$(REAL_NAME) $(INSTALL_LIB_DIR)/$(LIB_SHARED)
+	ln	-sf	$(INSTALL_LIB_DIR)/$(REAL_NAME) $(INSTALL_LIB_DIR)/$(SONAME)
+	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/form
+	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/pick
+	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/view
+	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/ckeys
+	ln	-sf	$(PAM_DIR)/rsh-auth-pc $(PAM_DIR)/rsh-auth
+	install -CDp CMenu.conf -t /etc/ld.so.conf.d
 	install -CDp cmenu.1.gz	-t $(MAN_DIR)
 	install -CDp lf.1.gz	-t $(MAN_DIR)
 	install -CDp rsh.1.gz	-t $(MAN_DIR)
-	rm -f	$(INSTALL_LIB_DIR)/libcm*
-	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
-	install	-CDp $(LIB_SHARED) -T $(INSTALL_LIB_DIR)/$(REAL_NAME)
-	ln -sf	$(INSTALL_LIB_DIR)/$(REAL_NAME) $(INSTALL_LIB_DIR)/$(LIB_SHARED)
-	ln -sf	$(INSTALL_LIB_DIR)/$(REAL_NAME) $(INSTALL_LIB_DIR)/$(SONAME)
-	ln -sf	$(BIN_DIR)/menu $(BIN_DIR)/form
-	ln -sf	$(BIN_DIR)/menu $(BIN_DIR)/pick
-	ln -sf	$(BIN_DIR)/menu $(BIN_DIR)/view
-	ln -sf	$(BIN_DIR)/menu $(BIN_DIR)/ckeys
-	ln -sf	$(PAM_DIR)/rsh-auth-pc $(PAM_DIR)/rsh-auth
-	cp CMenu.conf /etc/ld.so.conf.d
 	ldconfig
+	./manifest.sh
+ifeq ($(DISPLAY_MANIFEST), 1)
+	cat manifest.txt
+endif
 
 uninstall:
 			$(BIN_DIR)/menu \

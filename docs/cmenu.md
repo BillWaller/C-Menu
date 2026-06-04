@@ -331,6 +331,102 @@ links, you can use -t f -t d -t l or -tfdl.
 Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
 
+# FUNCTION CALL VS DIRECT EXECUTION VS SHELL
+
+There are three ways to launch applications from within C-Menu:
+
+1. Function Calls: Menu, Form, Pick, and View are integral to the C-Menu binary
+    file and are launched by calling the appropriate function within the C-Menu code.
+    This is by far, the most efficient way to launch applications, often with
+    response times of less than one millisecond.
+
+2. Direct Execution: C-Menu provides the capability to launch external applications
+    directly, rather than through an interposing shell. Response times for direct execution are often in single digit milliseconds, depending on the application being launched.
+
+3. Shell: C-Menu also provides the capability to launch external applications through
+    a shell, which allows you to use shell syntax for pipelines and other features of the shell. Response times for launching applications through a shell are typically in the range of 100 milliseconds or more, depending on the application being launched and the complexity of the shell command.
+
+Every cmenu command is a function call. C-Menu Menu, Form, Pick, and View are launched by function calls.
+
+Examples: Starting Programs in C-Menu:
+
+Function Call (very fast):
+
+```cmenu
+    !menu diag.m
+```
+
+In the menu command above, menu is a function call. (very fast)
+
+---
+
+```cmenu
+!form iloan.f -i iloan.dat -S iloan -R "view -L60 -C62 -Nf -S \"amort %%\"" -o iloan.dat
+```
+
+In the menu command above, form is a function call.
+Form's -S option launches iloan via direct execution and opens an input pipeline attached to iloan's output.
+
+Form's -R option launches view using a function call .
+
+, and opens an output pipeline with a shell, and the "%%" in the command is replaced with the output of form, which is passed to view as command line arguments. --- Below is a hybrid menu command line using a Function Call, Direct Execution, and Shell. `!pick -S "lf rustlings -d 5 \"exercises.*\.rs$\"" -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%` Above, Pick's -S option launches lf and opens an input pipeline attached to lf's output. The -c option launches nvim with a shell, and the "%%" in the command is replaced with the output of pick, which is passed to nvim as command line arguments.
+
+---
+
+```cmenu
+    !pick -S ls
+```
+
+In the command above, pick is a function call, but ls is launched as an external application through direct execution, and its output is piped directly to pick without the involvement of a shell.
+
+    !exec
+
+Explanation: The first command will work fine from a shell, but it will not work
+with C-Menu direct execution. C-Menu direct execution allows the developer to avoid the overhead and exposure of creating a shell to execute commands, so it does not use the shell syntax for creating pipelines. C-Menu direct execution does provide support for input and output pipelines using provider (-S) and receiver (-R) options instead of pipe symbols.
+
+Of course, there are times when using a shell is more practical, and C-Menu
+provides that capability as well. To execute a command using the shell, simply use the name of the shell script as the argument to the -S or -R option.
+
+    pick -S "my_shell_script.sh"
+
+You won't get the benefit of direct execution, but you will be able to use the shell syntax for pipelines and other features of the shell.
+
+With direct execution, C-Menu does provide basic shell-like conveniences such as
+tilde expansion for file names and file location using the PATH environment
+variable.
+
+# CMENU MENU COMMAND SYNTAX
+
+All menu command lines begin with an exclamation point followed by the name of function call:
+
+!menu [menu description file]
+
+    reads the specified menu description file, parses it, and displays a menu.
+
+!form [form description file] [OPTIONS]
+
+    reads the specified form description file, parses it, and displays a form.
+
+!pick [INPUT] [OPTIONS]
+
+    displays a pick window containing a collection of objects derived from INPUT.
+
+!view [INPUT_FILE] [OPTIONS]
+
+    displays the contents of INPUT_FILE in a view window.
+
+!exec [COMMAND]
+
+    executes the specified command directly unless a shell is specified  using the shell.
+
+!dexe [COMMAND]
+
+# COPYRIGHT
+
+Copyright © 2026 Bill Waller.
+
+# LICENSE
+
 # EXAMPLES
 
 To start menu, reading the main.m description file:
@@ -347,34 +443,6 @@ To start menu, reading the main.m description file from an arbitrary location:
     menu -d /path/to/main.m
 
 ---
-
-To start pick using the output of lf:
-
-    lf | pick
-
-    or
-
-    pick -S lf
-
-Explanation: The first command will work fine from a shell, but it will not work
-with C-Menu direct execution. C-Menu direct execution allows the developer to avoid the overhead and exposure of creating a shell to execute commands, so it does not use the shell syntax for creating pipelines. C-Menu direct execution does provide support for input and output pipelines using provider (-S) and receiver (-R) options instead of pipe symbols.
-
-Of course, there are times when using a shell is more practical, and C-Menu
-provides that capability as well. To execute a command using the shell, simply use the name of the shell script as the argument to the -S or -R option.
-
-    pick -S "my_shell_script.sh"
-
-You won't get the benefit of direct execution, but you will be able to use the shell syntax for pipelines and other features of the shell.
-
-With direct execution, C-Menu does provide basic shell-like conveniences such as
-tilde expansion for file names and file location using the PATH environment
-variable.
-
-# COPYRIGHT
-
-Copyright © 2026 Bill Waller.
-
-# LICENSE
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
