@@ -160,17 +160,20 @@ CC=gcc -Wall -Wextra -I./include $(CFLAGS)
 CX=-std=gnu23
 CX=-std=c23
 
+LIB_DIR=/usr/lib64
+
 LIB_SHARED=libcm.so
 SONAME=$(LIB_SHARED).$(MAJOR)
 REAL_NAME=$(LIB_SHARED).$(VERSION)
 LIB_STATIC=libcm.a
 LIB_NAME=$(LIB_SHARED)
-LIB_DIR=$(PREFIX)/lib64
-BUILD_LIB_DIR=$(PREFIX)/lib64
+INSTALL_LIB_DIR=$(PREFIX)/lib64
+BUILD_DIR=$(CMENU_SRC)
 BIN_DIR=$(PREFIX)/bin
 MAN_DIR=$(PREFIX)/man/man1
 INC_DIR=$(PREFIX)
 LIB_PATH=.:$(LIB_DIR)
+PAM_DIR=/etc/pam.d
 
 BINEXES=menu form pick view ckeys whence rsh iloan amort enterchr \
 		enterstr lf stripansi
@@ -243,7 +246,7 @@ stripansi:	include/cm.h stripansi.o $(LIB_NAME)
 	$(CC) stripansi.o -o $@ $(LIBS)
 
 CMenu.conf:
-	echo $(LIB_DIR) >CMenu.conf
+	echo $(INSTALL_LIB_DIR) >CMenu.conf
 
 $(LIB_SHARED): $(LIB_OBJS)
 	$(CC) 	-shared -o $@ $^
@@ -299,46 +302,36 @@ valgrind: lf
 # --tool=memcheck
 
 install:
-	./inst.sh --
-	mkdir -p $(PREFIX)/include
-	./inst.sh include/cm.h		$(PREFIX)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/common.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/form.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/menu.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/pick.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
-	./inst.sh include/view.h	$(PREFIX)	  0711	$(USER)	$(GROUP)
-	./inst.sh menu			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh whence		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh rsh			$(BIN_DIR)	  6711	root	root
-	./inst.sh enterchr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh enterstr		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh iloan			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh amort			$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh stripansi		$(BIN_DIR)	  0711	$(USER)	$(GROUP)
-	./inst.sh cmenu.1.gz			$(MAN_DIR)	  0666	$(USER)	$(GROUP)
-	./inst.sh lf.1.gz			$(MAN_DIR)	  0666	$(USER)	$(GROUP)
-	./inst.sh rsh.1.gz			$(MAN_DIR)	  0666	$(USER)	$(GROUP)
-	mkdir -p $(BIN_DIR)
-	mkdir -p $(LIB_DIR)
-	rm -f	 $(LIB_DIR)/libcm*
-	cp	 $(LIB_STATIC) $(LIB_DIR)
-	echo	$(SYSDATE) $(LIB_DIR)/$(LIB_STATIC) >>manifest.txt
-	cp	 $(LIB_SHARED) $(LIB_DIR)/$(REAL_NAME)
-	echo	$(SYSDATE) $(LIB_DIR)/$(REAL_NAME) >>manifest.txt
-	ln -sf	 $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(LIB_SHARED)
-	echo	$(SYSDATE) $(LIB_DIR)/$(LIB_SHARED) >>manifest.txt
-	ln -sf	 $(LIB_DIR)/$(REAL_NAME) $(LIB_DIR)/$(SONAME)
-	echo	$(SYSDATE) $(LIB_DIR)/$(SONAME) >>manifest.txt
-	ln -sf	 $(BIN_DIR)/menu $(BIN_DIR)/form
-	ln -sf	 $(BIN_DIR)/menu $(BIN_DIR)/pick
-	ln -sf	 $(BIN_DIR)/menu $(BIN_DIR)/view
-	ln -sf	 $(BIN_DIR)/menu $(BIN_DIR)/ckeys
+	install -CDp include/cm.h -t $(PREFIX)/include
+	install -CDp include/common.h -t $(PREFIX)/include
+	install -CDp include/form.h -t $(PREFIX)/include
+	install -CDp include/menu.h -t $(PREFIX)/include
+	install -CDp include/pick.h -t $(PREFIX)/include
+	install -CDp include/view.h -t $(PREFIX)/include
+	install -CDp menu	-t $(BIN_DIR)
+	install -CDp whence	-t $(BIN_DIR)
+	install -Dp rsh	-t $(BIN_DIR)	-o root -g root -m 6711
+	install -CDp enterchr	-t $(BIN_DIR)
+	install -CDp enterstr	-t	$(BIN_DIR)
+	install -CDp iloan	-t $(BIN_DIR)
+	install -CDp amort	-t $(BIN_DIR)
+	install -CDp stripansi	-t $(BIN_DIR)
+	install -CDp rsh-auth-pc -t $(PAM_DIR) -o root	-g root -m 0644
+	install -CDp cmenu.1.gz	-t $(MAN_DIR)
+	install -CDp lf.1.gz	-t $(MAN_DIR)
+	install -CDp rsh.1.gz	-t $(MAN_DIR)
+	rm -f	$(INSTALL_LIB_DIR)/libcm*
+	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
+	install	-CDp $(LIB_SHARED) -T $(INSTALL_LIB_DIR)/$(REAL_NAME)
+	ln -sf	$(INSTALL_LIB_DIR)/$(REAL_NAME) $(INSTALL_LIB_DIR)/$(LIB_SHARED)
+	ln -sf	$(INSTALL_LIB_DIR)/$(REAL_NAME) $(INSTALL_LIB_DIR)/$(SONAME)
+	ln -sf	$(BIN_DIR)/menu $(BIN_DIR)/form
+	ln -sf	$(BIN_DIR)/menu $(BIN_DIR)/pick
+	ln -sf	$(BIN_DIR)/menu $(BIN_DIR)/view
+	ln -sf	$(BIN_DIR)/menu $(BIN_DIR)/ckeys
+	ln -sf	$(PAM_DIR)/rsh-auth-pc $(PAM_DIR)/rsh-auth
 	cp CMenu.conf /etc/ld.so.conf.d
-	echo `test/iso8601.sh` /etc/ld.so.conf.d/CMenu.conf >>manifest.txt
 	ldconfig
-	./inst.sh -p
-	./inst.sh -l
-	./inst.sh -m
 
 uninstall:
 			$(BIN_DIR)/menu \
@@ -352,4 +345,4 @@ uninstall:
 			$(BIN_DIR)/enterstr \
 			$(BIN_DIR)/stripansi \
 			$(BIN_DIR)/lf \
-			$(LIB_DIR)/libcm.so
+			$(INSTALL_LIB_DIR)/libcm.so

@@ -1,31 +1,29 @@
-#!/bin/bash
-IFS="
-"
-printf "\nInstalled files:\n"
-if [ -f install_manifest.txt ]; then
-    LS=$(cat install_manifest.txt)
-else
-    if [ -f build/install_manifest.txt ]; then
-        if [ -f manifest.txt ]; then
-            if [ build/install_manifest.txt -nt manifest.txt ]; then
-                LS=$(cat build/install_manifest.txt)
-            else
-                LS=$(awk '{print $2}' manifest.txt)
-            fi
-        else
-            LS=$(cat build/install_manifest.txt)
-        fi
-    else
-        if [ -f manifest.txt ]; then
-            LS=$(awk '{print $2}' manifest.txt)
-        else
-            echo no manifest.txt or install_manifest.txt
-            exit 1
-        fi
-    fi
-fi
-if which lsd >/dev/null 2>&1; then
-    lsd -Ul --icon-theme unicode $LS
-else
-    ls -Ul --color=always $LS
-fi
+/bin/ls -Fl --time-style=+"%y%m%d %H%M" --color=always \
+    /etc/ld.so.conf.d/CMenu.conf \
+    /etc/pam.d/rsh-auth \
+    /etc/pam.d/rsh-auth-pc \
+    /home/bill/menuapp/bin/amort \
+    /home/bill/menuapp/bin/ckeys \
+    /home/bill/menuapp/bin/enterchr \
+    /home/bill/menuapp/bin/enterstr \
+    /home/bill/menuapp/bin/form \
+    /home/bill/menuapp/bin/iloan \
+    /home/bill/menuapp/bin/menu \
+    /home/bill/menuapp/bin/pick \
+    /home/bill/menuapp/bin/rsh \
+    /home/bill/menuapp/bin/stripansi \
+    /home/bill/menuapp/bin/view \
+    /home/bill/menuapp/bin/whence \
+    /home/bill/menuapp/include/cm.h \
+    /home/bill/menuapp/include/common.h \
+    /home/bill/menuapp/include/form.h \
+    /home/bill/menuapp/include/menu.h \
+    /home/bill/menuapp/include/pick.h \
+    /home/bill/menuapp/include/view.h \
+    /home/bill/menuapp/lib64/libcm.a \
+    /home/bill/menuapp/lib64/libcm.so \
+    /home/bill/menuapp/lib64/libcm.so.0 \
+    /home/bill/menuapp/lib64/libcm.so.0.2.9 \
+    /home/bill/menuapp/man/man1/cmenu.1.gz \
+    /home/bill/menuapp/man/man1/lf.1.gz \
+    /home/bill/menuapp/man/man1/rsh.1.gz >manifest.txt

@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Error: USER environment variable not set\n");
         return 1;
     }
-    retval = pam_start("pam_nopass", username, &conv, &pamh);
+    retval = pam_start("rsh-auth", username, &conv, &pamh);
     if (retval != PAM_SUCCESS) {
         syslog(LOG_ERR, "PAM start failed: %s", pam_strerror(pamh, retval));
         fprintf(stderr, "PAM start failed: %s\n", pam_strerror(pamh, retval));
