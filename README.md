@@ -12,6 +12,8 @@ Version 0.2.9 2026-05-25
 
 **_NEW_**:
 
+![RSH Cert](screenshots/rsh_cert.png)
+
 [lf manual page](docs/lf.md)
 
 ## C-Menu Introduction
