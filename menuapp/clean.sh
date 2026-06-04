@@ -12,6 +12,7 @@ rm -f bin/lf
 rm -f bin/form
 rm -f bin/menu
 rm -f bin/iloan
+rm -f bin/amort
 rm -f bin/pick
 rm -f bin/rsh
 rm -f bin/stripansi
