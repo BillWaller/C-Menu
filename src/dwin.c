@@ -149,6 +149,7 @@ int cp_nt_hl;
 int cp_nt_hl_rev;
 int cp_ln;
 int cp_fill_char;
+int cp_brackets;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
@@ -242,6 +243,7 @@ bool open_curses(SIO *sio) {
 
     // cp_ variables are indices for ncurses color pairs, created with get_clr_pair function. These color pairs are used to set the foreground and background colors for different elements of the interface, such as windows, text, and boxes. By defining these color pair indices as global variables, we can easily reference them throughout the code when applying colors to various parts of the interface using NCurses functions that accept color pair indices.
     cp_fill_char = get_clr_pair(CLR_FILL_CHAR_FG, CLR_NT_BG);
+    cp_brackets = get_clr_pair(CLR_BRACKETS_FG, CLR_NT_BG);
     cp_nt = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
     cp_nt_rev = get_clr_pair(CLR_NT_REV_FG, CLR_NT_REV_BG);
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
@@ -250,6 +252,8 @@ bool open_curses(SIO *sio) {
     cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
     // CC_ variables are cchar_t versions of the color pairs, created with mkcc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
     CC_FILL_CHAR = mkcc(cp_fill_char, WA_DIM, " ");
+    CC_BRKTL = mkcc(cp_brackets, WA_DIM, " ");
+    CC_BRKTR = mkcc(cp_brackets, WA_DIM, " ");
     CC_NT = mkcc(cp_nt, WA_NORMAL, " ");
     CC_NT_REV = mkcc(cp_nt_rev, WA_NORMAL, " ");
     CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
@@ -491,6 +495,8 @@ bool init_clr_palette(SIO *sio) {
 
     if (sio->fill_char_fg[0])
         init_hex_clr(CLR_FILL_CHAR_FG, sio->fill_char_fg);
+    if (sio->brackets_fg[0])
+        init_hex_clr(CLR_BRACKETS_FG, sio->brackets_fg);
     clr_cnt = CLR_NCOLORS;
     return true;
 }

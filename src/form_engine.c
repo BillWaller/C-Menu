@@ -89,8 +89,8 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (form->title[0] == '\0')
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
-    form->brktl = mkcc(cp_nt_hl, A_NORMAL, &form->brackets[0]);
-    form->brktr = mkcc(cp_nt_hl, A_NORMAL, &form->brackets[1]);
+    form->brktl = mkcc(cp_brackets, A_NORMAL, &form->brackets[0]);
+    form->brktr = mkcc(cp_brackets, A_NORMAL, &form->brackets[1]);
 
 #ifdef DEBUG_IMMEDOK
     immedok(form->win, true);

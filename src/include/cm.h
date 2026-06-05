@@ -152,6 +152,7 @@ typedef enum {
     CLR_NT_HL_REV_FG,
     CLR_NT_HL_REV_BG,
     CLR_FILL_CHAR_FG,
+    CLR_BRACKETS_FG,
     CLR_NCOLORS
 } ColorsEnum;
 
@@ -314,12 +315,13 @@ typedef struct {
 #define LN_COLOR 4    /**< default line number color */
 #define LN_BG_COLOR 7 /**< default line number background */
 
-extern int cp_default;   /**< default color pair index */
-extern int cp_box;       /**< box color pair index */
-extern int cp_bold;      /**< bold color pair index */
-extern int cp_title;     /**< title color pair index */
-extern int cp_highlight; /**< highlight color pair index */
-extern int cp_fill_char;
+extern int cp_default;               /**< default color pair index */
+extern int cp_box;                   /**< box color pair index */
+extern int cp_bold;                  /**< bold color pair index */
+extern int cp_title;                 /**< title color pair index */
+extern int cp_highlight;             /**< highlight color pair index */
+extern int cp_fill_char;             /**< fill character color pair index */
+extern int cp_brackets;              /**< color pair index for field brackets */
 extern int cp_nt;                    /**< normal color pair index */
 extern int cp_nt_rev;                /**< reverse color pair index */
 extern int cp_nt_hl;                 /**< highlight color pair index */
@@ -392,7 +394,9 @@ extern cchar_t CC_NT;        /**< C-Menu normal text */
 extern cchar_t CC_NT_REV;    /**< reverse */
 extern cchar_t CC_NT_HL;     /**< highlight */
 extern cchar_t CC_NT_HL_REV; /**< highlight reverse */
-extern cchar_t CC_FILL_CHAR; /**< curses default */
+extern cchar_t CC_FILL_CHAR; /**< fill character */
+extern cchar_t CC_BRKTL;     /**< left bracket */
+extern cchar_t CC_BRKTR;     /**< right bracket */
 extern cchar_t CC_BOX;       /**< box colors */
 extern cchar_t CC_LN;        /* line numbers */
 extern cchar_t CC_BRKTL;     /* left field bracket */
@@ -733,6 +737,7 @@ typedef struct {
     char
         nt_hl_rev_bg[COLOR_LEN];  /**< normal text highlight reverse background */
     char fill_char_fg[COLOR_LEN]; /**< fill character foreground */
+    char brackets_fg[COLOR_LEN];  /**< brackets foreground */
     char tty_name[MAXLEN];        /**< name of the terminal device */
     FILE *stdin_fp;               /**< stdin stream pointer */
     FILE *stdout_fp;              /**< stdout stream pointer */
