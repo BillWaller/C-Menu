@@ -336,19 +336,21 @@ for any corresponding short options.
 There are three ways to launch applications from within C-Menu:
 
 1. Function Calls: Menu, Form, Pick, and View are integral to the C-Menu binary
-    file and are launched by calling the appropriate function within the C-Menu code.
-    This is by far, the most efficient way to launch applications, often with
-    response times of less than one millisecond.
+   file and are launched by calling the appropriate function within the C-Menu code.
+   This is by far, the most efficient way to launch applications, often with
+   response times of less than one millisecond.
 
 2. Direct Execution: C-Menu provides the capability to launch external applications
-    directly, rather than through an interposing shell. Response times for direct execution are often in single digit milliseconds, depending on the application being launched.
+   directly, rather than through an interposing shell. Response times for direct execution are often in single digit milliseconds, depending on the application being launched.
 
 3. Shell: C-Menu also provides the capability to launch external applications through
-    a shell, which allows you to use shell syntax for pipelines and other features of the shell. Response times for launching applications through a shell are typically in the range of 100 milliseconds or more, depending on the application being launched and the complexity of the shell command.
+   a shell, which allows you to use shell syntax for pipelines and other features of the shell. Response times for launching applications through a shell are typically in the range of 100 milliseconds or more, depending on the application being launched and the complexity of the shell command.
 
-Every cmenu command is a function call. C-Menu Menu, Form, Pick, and View are launched by function calls.
+Every cmenu command is a function call. C-Menu Menu, Form, Pick, and View are launched entirely by function calls. Many external programs can be launched by direct execution,from menu command lines or -S, -R, or -c options, and it is just as easy to launch external programs through a shell when shell features are needed.
 
-Examples: Starting Programs in C-Menu:
+# EXAMPLES
+
+Starting Programs in C-Menu:
 
 Function Call (very fast):
 
@@ -356,7 +358,8 @@ Function Call (very fast):
     !menu diag.m
 ```
 
-In the menu command above, menu is a function call. (very fast)
+In the menu command above, menu is a pure function call. There is no direct
+execution or interposing shell. This is very fast.
 
 ---
 
@@ -364,14 +367,23 @@ In the menu command above, menu is a function call. (very fast)
 !form iloan.f -i iloan.dat -S iloan -R "view -L60 -C62 -Nf -S \"amort %%\"" -o iloan.dat
 ```
 
-In the menu command above, form is a function call.
-Form's -S option launches iloan via direct execution and opens an input pipeline attached to iloan's output.
+Sometimes you may need to launch multiple programs, each using a different method. The menu command above combines four executables in concert to produce the end result.
 
-Form's -R option launches view using a function call .
+    Form is a pure function call.
 
-, and opens an output pipeline with a shell, and the "%%" in the command is replaced with the output of form, which is passed to view as command line arguments. --- Below is a hybrid menu command line using a Function Call, Direct Execution, and Shell. `!pick -S "lf rustlings -d 5 \"exercises.*\.rs$\"" -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%` Above, Pick's -S option launches lf and opens an input pipeline attached to lf's output. The -c option launches nvim with a shell, and the "%%" in the command is replaced with the output of pick, which is passed to nvim as command line arguments.
+    iloan: direct execution as a result of Form's -S option, which opens a pipeline from iloan's output to Form's input.
+
+    View: started with direct execution by Form's -R option.
+
+    amort: started by direct execution as View's -S option, which is compiled by replacing "%%" with iloan's output. A pipeline is opened from amort's output to View's input and displayed by View.
+
+Form, iloan, View, and amort, each providing a discrete piece of functionality, are combined in a way that allows them to work together seamlessly. It may seem
+complicated at first, but the real hurdle is accepting the simplicity with which
+such workflows can be created.
 
 ---
+
+First
 
 ```cmenu
     !pick -S ls
@@ -379,7 +391,22 @@ Form's -R option launches view using a function call .
 
 In the command above, pick is a function call, but ls is launched as an external application through direct execution, and its output is piped directly to pick without the involvement of a shell.
 
-    !exec
+```cmenu
+    !exec sh -c "ls | pick"
+```
+
+or
+
+```cmenu
+    !exec select_files.sh
+```
+
+where select_files.sh is as follows:
+
+```bash
+    #!/bin/bash
+    ls | pick
+```
 
 Explanation: The first command will work fine from a shell, but it will not work
 with C-Menu direct execution. C-Menu direct execution allows the developer to avoid the overhead and exposure of creating a shell to execute commands, so it does not use the shell syntax for creating pipelines. C-Menu direct execution does provide support for input and output pipelines using provider (-S) and receiver (-R) options instead of pipe symbols.
