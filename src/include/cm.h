@@ -10,6 +10,7 @@
 #ifndef _CM_H
 #define _CM_H 1
 
+// #define DEBUG_IMMEDOK true
 #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
 #define _GNU_SOURCE
@@ -140,8 +141,9 @@ typedef enum {
     CLR_BORANGE,
     CLR_FG,
     CLR_BG,
-    CLR_BO,
-    CLR_LN,
+    CLR_BOX_FG,
+    CLR_BOX_BG,
+    CLR_LN_FG,
     CLR_LN_BG,
     CLR_NT_FG,
     CLR_NT_BG,
@@ -697,41 +699,41 @@ typedef struct {
    structure allows for efficient management of the terminal's state and
    configuration in a structured way. */
 typedef struct {
-    double red_gamma;            /**< red gamma correction value */
-    double green_gamma;          /**< green gamma correction value */
-    double blue_gamma;           /**< blue gamma correction value */
-    double gray_gamma;           /**< gray gamma correction value */
-    char black[COLOR_LEN];       /**< color code for black */
-    char red[COLOR_LEN];         /**< color code for red */
-    char green[COLOR_LEN];       /**< color code for green */
-    char yellow[COLOR_LEN];      /**< color code for yellow */
-    char blue[COLOR_LEN];        /**< color code for blue */
-    char magenta[COLOR_LEN];     /**< color code for magenta */
-    char cyan[COLOR_LEN];        /**< color code for cyan */
-    char white[COLOR_LEN];       /**< color code for white */
-    char orange[COLOR_LEN];      /**< color code for orange */
-    char bblack[COLOR_LEN];      /**< color code for bold black */
-    char bred[COLOR_LEN];        /**< color code for bold red */
-    char bgreen[COLOR_LEN];      /**< color code for bold green */
-    char byellow[COLOR_LEN];     /**< color code for bold yellow */
-    char bblue[COLOR_LEN];       /**< color code for bold blue */
-    char bmagenta[COLOR_LEN];    /**< color code for bold magenta */
-    char bcyan[COLOR_LEN];       /**< color code for bold cyan */
-    char bwhite[COLOR_LEN];      /**< color code for bold white */
-    char borange[COLOR_LEN];     /**< color code for bold orange */
-    char bg[COLOR_LEN];          /**< color code for background */
-    char abg[COLOR_LEN];         /**< color code for background with alpha */
-    char fg_clr_x[COLOR_LEN];    /**< foreground color index */
-    char bg_clr_x[COLOR_LEN];    /**< background color index */
-    char bo_clr_x[COLOR_LEN];    /**< bold color index */
-    char ln_clr_x[COLOR_LEN];    /**< line number color index */
-    char ln_bg_clr_x[COLOR_LEN]; /**< line number background index */
-    char nt_fg[COLOR_LEN];       /**< color code for normal text foreground */
-    char nt_bg[COLOR_LEN];       /**< color code for normal text background */
-    char nt_rev_fg[COLOR_LEN];   /**< normal text reverse foreground */
-    char nt_rev_bg[COLOR_LEN];   /**< normal text reverse background */
-    char nt_hl_fg[COLOR_LEN];    /**< normal text highlight foreground */
-    char nt_hl_bg[COLOR_LEN];    /**< normal text highlight background */
+    double red_gamma;          /**< red gamma correction value */
+    double green_gamma;        /**< green gamma correction value */
+    double blue_gamma;         /**< blue gamma correction value */
+    double gray_gamma;         /**< gray gamma correction value */
+    char black[COLOR_LEN];     /**< color code for black */
+    char red[COLOR_LEN];       /**< color code for red */
+    char green[COLOR_LEN];     /**< color code for green */
+    char yellow[COLOR_LEN];    /**< color code for yellow */
+    char blue[COLOR_LEN];      /**< color code for blue */
+    char magenta[COLOR_LEN];   /**< color code for magenta */
+    char cyan[COLOR_LEN];      /**< color code for cyan */
+    char white[COLOR_LEN];     /**< color code for white */
+    char orange[COLOR_LEN];    /**< color code for orange */
+    char bblack[COLOR_LEN];    /**< color code for bold black */
+    char bred[COLOR_LEN];      /**< color code for bold red */
+    char bgreen[COLOR_LEN];    /**< color code for bold green */
+    char byellow[COLOR_LEN];   /**< color code for bold yellow */
+    char bblue[COLOR_LEN];     /**< color code for bold blue */
+    char bmagenta[COLOR_LEN];  /**< color code for bold magenta */
+    char bcyan[COLOR_LEN];     /**< color code for bold cyan */
+    char bwhite[COLOR_LEN];    /**< color code for bold white */
+    char borange[COLOR_LEN];   /**< color code for bold orange */
+    char abg[COLOR_LEN];       /**< color code for background with alpha */
+    char fg[COLOR_LEN];        /**< foreground color index */
+    char bg[COLOR_LEN];        /**< background color index */
+    char box_fg[COLOR_LEN];    /**< bold color index */
+    char box_bg[COLOR_LEN];    /**< bold color index */
+    char ln_fg[COLOR_LEN];     /**< line number color index */
+    char ln_bg[COLOR_LEN];     /**< line number background index */
+    char nt_fg[COLOR_LEN];     /**< color code for normal text foreground */
+    char nt_bg[COLOR_LEN];     /**< color code for normal text background */
+    char nt_rev_fg[COLOR_LEN]; /**< normal text reverse foreground */
+    char nt_rev_bg[COLOR_LEN]; /**< normal text reverse background */
+    char nt_hl_fg[COLOR_LEN];  /**< normal text highlight foreground */
+    char nt_hl_bg[COLOR_LEN];  /**< normal text highlight background */
     char
         nt_hl_rev_fg[COLOR_LEN]; /**< normal text highlight reverse foreground */
     char
@@ -762,7 +764,6 @@ typedef struct {
     int cp_title;                 /**< title color pair index */
     int cp_highlight;             /**< highlight color pair index */
     int cp_ln;                    /**< line number color pair index */
-    int cp_ln_bg;                 /**< line number background pair index */
 } SIO;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);

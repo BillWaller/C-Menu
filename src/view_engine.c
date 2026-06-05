@@ -1103,7 +1103,7 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
             view->curx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
             mvwchgat(view->pad, view->cury - 1, view->curx, match_len,
-                     WA_REVERSE, cp_nt, nullptr);
+                     WA_NORMAL, cp_nt_rev, nullptr);
             if (view->first_match_x == -1)
                 view->first_match_x = pmatch[0].rm_so;
             view->last_match_x = line_offset + pmatch[0].rm_eo;
@@ -1839,9 +1839,9 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         bg_clr = rgb_to_curses_clr(&rgb);
                 } else if (t1 == '9') {
                     if (t0 == '3')
-                        fg_clr = CLR_FG;
+                        fg_clr = CLR_NT_FG;
                     else if (t0 == '4')
-                        bg_clr = CLR_BG;
+                        bg_clr = CLR_NT_BG;
                 } else if (t1 >= '0' && t1 <= '7') {
                     if (t0 == '3') {
                         tstr[0] = t1;
@@ -1865,8 +1865,8 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
         if (len == 1) {
             if (*tok == '0') {
                 *attr = WA_NORMAL;
-                fg_clr = CLR_FG;
-                bg_clr = CLR_BG;
+                fg_clr = CLR_NT_FG;
+                bg_clr = CLR_NT_BG;
             } else {
                 switch (a_toi(tok, &a_toi_error)) {
                 case 1:
@@ -1896,8 +1896,8 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
             }
         } else if (len == 0) {
             *attr = WA_NORMAL;
-            fg_clr = CLR_FG;
-            bg_clr = CLR_BG;
+            fg_clr = CLR_NT_FG;
+            bg_clr = CLR_NT_BG;
         }
         tok = strtok(nullptr, ";m");
     }
@@ -1918,11 +1918,11 @@ int display_prompt(View *view, char *s) {
     wmove(view->cmdln_win, view->cmd_line, 0);
     if (l != 0) {
         wclrtoeol(view->cmdln_win);
-        wattron(view->cmdln_win, WA_REVERSE);
+        wbkgrndset(view->cmdln_win, &CC_NT_REV);
         waddstr(view->cmdln_win, " ");
         waddstr(view->cmdln_win, message_str);
         waddstr(view->cmdln_win, " ");
-        wattroff(view->cmdln_win, WA_REVERSE);
+        wbkgrndset(view->cmdln_win, &CC_NT);
         waddstr(view->cmdln_win, " ");
         view->curx = l + 2;
         wmove(view->cmdln_win, view->cmd_line, view->curx);

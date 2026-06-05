@@ -6,7 +6,7 @@
     billxwaller@gmail.com
     @date 2026-02-09
  */
-
+// #define DEBUG_IMMEDOK true
 /** @defgroup form_engine Form Engine
     @brief Parses Form Descriptions, Handles User Input, and Integrates with
    External Commands for Calculations and Data Processing.
@@ -306,7 +306,7 @@ int form_process(Init *init) {
 
     form = init->form;
     wmove(form->win, form->lines - 1, 0);
-    wclrtoeol(form->win);
+    // wclrtoeol(form->win);
     unset_chyron_key(form->chyron, 18);
     unset_chyron_key(form->chyron, 10);
     strnz__cpy(tmp_str, "F5 ", MAXLEN - 1);
@@ -516,12 +516,12 @@ unsigned int display_form(Init *init) {
         Perror(tmp_str);
         return (1);
     }
+    form->box = win_box[win_ptr];
+    form->win = win_win[win_ptr];
 #ifdef DEBUG_IMMEDOK
     immedok(form->win, true);
     immedok(form->box, true);
 #endif
-    form->box = win_box[win_ptr];
-    form->win = win_win[win_ptr];
     wnoutrefresh(form->win);
     // display field brackets if specified in the form description
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
@@ -531,9 +531,9 @@ unsigned int display_form(Init *init) {
             mvwadd_wch(form->box, flin, fcol, &form->brktl);
             fcol += form->field[form->fidx]->len + 1;
             mvwadd_wch(form->box, flin, fcol, &form->brktr);
+            wnoutrefresh(form->box);
         }
     }
-    wnoutrefresh(form->box);
     for (n = 0; n < form->dcnt; n++) {
         strnz(form->text[n]->str, form->cols - 3);
         mvwaddstr(form->win, form->text[n]->line, form->text[n]->col,
@@ -554,8 +554,6 @@ unsigned int display_form(Init *init) {
    with available commands for user interaction. */
 void form_display_fields(Form *form) {
     int y, x;
-    immedok(form->win, true);
-    immedok(form->box, true);
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
         if (form->field[form->fidx]->col + form->field[form->fidx]->len + 2 >
             form->cols)

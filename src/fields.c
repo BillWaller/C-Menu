@@ -78,8 +78,10 @@ int field_editor(Form *form) {
     compile_chyron(form->chyron);
     display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
 
+#ifdef DEBUG_IMMEDOK
     immedok(win, TRUE);
     immedok(form->box, TRUE);
+#endif
     while (1) {
         if (in_key == 0) {
             // mvwaddstr(win, flin, fcol, filler_s);
@@ -383,8 +385,10 @@ void display_field(cchar_t *cmplx_buf, int y, int x) {
 int form_display_field(Form *form) {
     int y = form->field[form->fidx]->line;
     int x = form->field[form->fidx]->col;
+#ifdef DEBUG_IMMEDOK
     immedok(form->win, true);
     immedok(form->box, true);
+#endif
     mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt,
               form->field[form->fidx]->len);

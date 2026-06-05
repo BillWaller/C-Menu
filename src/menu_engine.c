@@ -62,6 +62,11 @@ unsigned int menu_engine(Init *init) {
     menu->win = win_win[win_ptr];
     menu->box = win_box[win_ptr];
 
+#ifdef DEBUG_IMMEDOK
+    immedok(menu->win, true);
+    immedok(menu->box, true);
+#endif
+    scrollok(menu->win, false);
     int len;
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
@@ -83,8 +88,8 @@ unsigned int menu_engine(Init *init) {
         case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
-                mvwaddstr(menu->win, menu->line_idx, 0,
-                          menu->line[menu->line_idx]->choice_text);
+                // mvwaddstr(menu->win, menu->line_idx, 0, menu->line[menu->line_idx]->choice_text);
+                mvwaddstr_fill(menu->win, menu->line_idx, 0, menu->line[menu->line_idx]->choice_text, menu->cols);
                 // Highlight the letter of the menu choice
                 wchar_t wstr[2] = {L'\0', L'\0'};
                 len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,
@@ -144,7 +149,9 @@ unsigned int menu_cmd_processor(Init *init) {
     cchar_t cc = {0};
     Menu *menu = init->menu;
     keypad(menu->win, TRUE);
+#ifdef DEBUG_IMMEDOK
     immedok(menu->win, TRUE);
+#endif
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
     scrollok(menu->win, FALSE);
@@ -152,10 +159,12 @@ unsigned int menu_cmd_processor(Init *init) {
     // Highlight the currently selected menu choice
 
     while (1) {
-        wattron(menu->win, A_REVERSE);
+        wbkgrndset(menu->win, &CC_NT_REV);
+        // wattron(menu->win, A_REVERSE);
         mvwaddstr_fill(menu->win, menu->line_idx, 0,
                        menu->line[menu->line_idx]->choice_text, menu->cols);
-        wattroff(menu->win, A_REVERSE);
+        wbkgrndset(menu->win, &CC_NT);
+        // wattroff(menu->win, A_REVERSE);
         // Highlight the letter of the currently selected menu choice
         wchar_t wstr[2] = {L'\0', L'\0'};
         len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,

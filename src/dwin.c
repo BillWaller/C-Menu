@@ -148,6 +148,7 @@ int cp_nt_rev;
 int cp_nt_hl;
 int cp_nt_hl_rev;
 int cp_ln;
+int cp_norm;
 int cp_fill_char;
 int cp_brackets;
 int clr_cnt = 0;
@@ -160,6 +161,7 @@ cchar_t CC_NT_REV;
 cchar_t CC_NT_HL_REV;
 cchar_t CC_NT_HL;
 cchar_t CC_LN;
+cchar_t CC_NORM;
 cchar_t CC_BRKTL;
 cchar_t CC_BRKTR;
 cchar_t CC_FILL_CHAR;
@@ -248,23 +250,27 @@ bool open_curses(SIO *sio) {
     cp_nt_rev = get_clr_pair(CLR_NT_REV_FG, CLR_NT_REV_BG);
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
-    cp_box = get_clr_pair(CLR_BO, CLR_BG);
-    cp_ln = get_clr_pair(CLR_LN, CLR_LN_BG);
+    cp_box = get_clr_pair(CLR_BOX_FG, CLR_BOX_BG);
+    cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
+    cp_norm = get_clr_pair(CLR_FG, CLR_BG);
     // CC_ variables are cchar_t versions of the color pairs, created with mkcc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
-    CC_FILL_CHAR = mkcc(cp_fill_char, WA_DIM, " ");
-    CC_BRKTL = mkcc(cp_brackets, WA_DIM, " ");
-    CC_BRKTR = mkcc(cp_brackets, WA_DIM, " ");
+    CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
+    CC_BRKTL = mkcc(cp_brackets, WA_NORMAL, " ");
+    CC_BRKTR = mkcc(cp_brackets, WA_NORMAL, " ");
     CC_NT = mkcc(cp_nt, WA_NORMAL, " ");
     CC_NT_REV = mkcc(cp_nt_rev, WA_NORMAL, " ");
     CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
     CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
     CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
+    CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
     noecho();
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
-    wbkgrndset(stdscr, &CC_NT);
+    wbkgrnd(stdscr, &CC_NORM);
+    werase(stdscr);
+    wrefresh(stdscr);
 #ifdef DEBUG_IMMEDOK
     immedok(stdscr, true);
 #endif
@@ -461,16 +467,18 @@ bool init_clr_palette(SIO *sio) {
         init_hex_clr(CLR_BWHITE, sio->bwhite);
     if (sio->borange[0])
         init_hex_clr(CLR_BORANGE, sio->borange);
-    if (sio->fg_clr_x[0])
-        init_hex_clr(CLR_FG, sio->fg_clr_x);
-    if (sio->bg_clr_x[0])
-        init_hex_clr(CLR_BG, sio->bg_clr_x);
-    if (sio->bo_clr_x[0])
-        init_hex_clr(CLR_BO, sio->bo_clr_x);
-    if (sio->ln_clr_x[0])
-        init_hex_clr(CLR_LN, sio->ln_clr_x);
-    if (sio->ln_bg_clr_x[0])
-        init_hex_clr(CLR_LN_BG, sio->ln_bg_clr_x);
+    if (sio->fg[0])
+        init_hex_clr(CLR_FG, sio->fg);
+    if (sio->bg[0])
+        init_hex_clr(CLR_BG, sio->bg);
+    if (sio->box_fg[0])
+        init_hex_clr(CLR_BOX_FG, sio->box_fg);
+    if (sio->box_bg[0])
+        init_hex_clr(CLR_BOX_BG, sio->box_bg);
+    if (sio->ln_fg[0])
+        init_hex_clr(CLR_LN_FG, sio->ln_fg);
+    if (sio->ln_bg[0])
+        init_hex_clr(CLR_LN_BG, sio->ln_bg);
 
     if (sio->nt_fg[0])
         init_hex_clr(CLR_NT_FG, sio->nt_fg);
@@ -872,7 +880,8 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
-    wbkgrndset(win_win[win_ptr], &CC_NT);
+    // wbkgrndset(win_win[win_ptr], &CC_NT);
+    wbkgrnd(win_win[win_ptr], &CC_NT);
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
@@ -971,17 +980,18 @@ WINDOW *win_del() {
     curs_set(0);
     if (win_ptr >= 0) {
         if (win_win[win_ptr] != nullptr) {
-            touchwin(win_win[win_ptr]);
-            wbkgrndset(win_win[win_ptr], &CC_NT);
+            wbkgrnd(win_win[win_ptr], &CC_NORM);
             werase(win_win[win_ptr]);
-            wnoutrefresh(win_win[win_ptr]);
+            touchwin(win_win[win_ptr]);
+            wrefresh(win_win[win_ptr]);
             delwin(win_win[win_ptr]);
         }
         if (win_box[win_ptr] != nullptr) {
-            touchwin(win_box[win_ptr]);
-            wbkgrndset(win_box[win_ptr], &CC_NT);
+            // wbkgrndset(win_box[win_ptr], &CC_NT);
+            wbkgrnd(win_box[win_ptr], &CC_NORM);
             werase(win_box[win_ptr]);
-            wnoutrefresh(win_box[win_ptr]);
+            touchwin(win_box[win_ptr]);
+            wrefresh(win_box[win_ptr]);
             delwin(win_box[win_ptr]);
         }
         for (i = 0; i < win_ptr; i++) {
@@ -994,6 +1004,7 @@ WINDOW *win_del() {
             touchwin(win_win[i]);
             wnoutrefresh(win_win[i]);
         }
+        refresh();
         win_ptr--;
     }
     return 0;

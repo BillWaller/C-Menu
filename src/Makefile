@@ -62,7 +62,8 @@ LINKOPT = -pthread -flto
 #   purposes.
 #
 # Standard Debugging Flags
-CFLAGS=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic -DDEUBG_IMMEDOK
+CFLAGS=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic
+# -DDEUBG_IMMEDOK
 # LINKOPT = -pthread
 # CFLAGS=-DDEBUG_RESIZE -DDEUBG_IMMEDOK -DDEBUG_LOG
 #

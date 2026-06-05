@@ -50,9 +50,9 @@ int popup_ckeys() {
     box = win_box[win_ptr];
     win = win_win[win_ptr];
     keypad(win, TRUE);
-    wattron(win, WA_REVERSE);
+    wbkgrndset(menu->win, &CC_NT_REV);
     mvwaddstr(win, lines - 1, 0, " <ALT>END to exit ");
-    wattroff(win, WA_REVERSE);
+    wbkgrndset(menu->win, &CC_NT);
     wnoutrefresh(box);
     mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
     c = '\0';
@@ -579,10 +579,6 @@ int popup_ckeys() {
         }
         c = '\0';
     }
-    wclear(win);
-    wrefresh(win);
-    clear();
-    refresh();
     win_del();
     return 0;
 }

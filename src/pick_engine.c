@@ -472,10 +472,10 @@ void reverse_object(Pick *pick) {
     pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols +
                   pick->tbl_col * pick->pg_lines + pick->tbl_line;
     wmove(pick->win, pick->y, pick->x);
-    wattron(pick->win, WA_REVERSE);
+    wbkgrndset(pick->win, &CC_NT_REV);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width);
-    wattroff(pick->win, WA_REVERSE);
+    wbkgrndset(pick->win, &CC_NT);
     wmove(pick->win, pick->y, pick->x - 1);
 }
 /** @brief Unreverses the display of the currently selected object in pick

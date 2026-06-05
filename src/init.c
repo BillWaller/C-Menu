@@ -30,10 +30,12 @@
 typedef enum {
     IN_SPEC = 257,
     OUT_SPEC,
-    BG_XCLR,
-    BO_XCLR,
-    FG_XCLR,
-    LN_BG_CLR,
+    BG,
+    FG,
+    BOX_FG,
+    BOX_BG,
+    LN_FG,
+    LN_BG,
     LN_XCLR,
     GM_BLUE,
     GM_GRAY,
@@ -120,11 +122,12 @@ static struct argp_option options[] = {
     {"brackets", 'u', "text", 0, "brackets around fields", 5},
     {"editor", CM_EDITOR, "text", 0, "default editor", 8},
     {"tab_stop", 't', "number", 0, "number of spaces per tab", 5},
-    {"bg_clr_x", BG_XCLR, "hex_clr", 0, "background color", 6},
-    {"bo_clr_x", BO_XCLR, "hex_clr", 0, "border color", 6},
-    {"fg_clr_x", FG_XCLR, "hex_clr", 0, "foreground color", 6},
-    {"ln__bg_clr_x", LN_BG_CLR, "hex_clr", 0, "line number background", 6},
-    {"ln_clr_x", LN_XCLR, "hex_clr", 0, "line number color", 6},
+    {"bg", BG, "hex_clr", 0, "background color", 6},
+    {"fg", FG, "hex_clr", 0, "foreground color", 6},
+    {"box_fg", BOX_FG, "hex_clr", 0, "border color", 6},
+    {"box_bg", BOX_BG, "hex_clr", 0, "box background", 6},
+    {"ln_bg", LN_BG, "hex_clr", 0, "line number background", 6},
+    {"ln_fg", LN_FG, "hex_clr", 0, "line number color", 6},
     {"blue_gamma", GM_BLUE, "float", 0, "blue_gamma (View)", 7},
     {"gray_gamma", GM_GRAY, "float", 0, "gray gamma (View)", 7},
     {"green_gamma", GM_GREEN, "float", 0, "green gamma (View)", 7},
@@ -222,7 +225,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         strnz__cpy(init->cmd_all, arg, MAXLEN - 1);
         break;
     case 'B':
-        strnz__cpy(sio->bg_clr_x, arg, MAXLEN - 1);
+        strnz__cpy(sio->bg, arg, MAXLEN - 1);
         break;
     case 'C':
         init->cols = atoi(arg);
@@ -231,7 +234,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         f_dump_config = true;
         break;
     case 'F':
-        strnz__cpy(sio->fg_clr_x, arg, MAXLEN - 1);
+        strnz__cpy(sio->fg, arg, MAXLEN - 1);
         break;
     case 'G':
         sio->gray_gamma = str_to_double(arg);
@@ -252,7 +255,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             init->f_ln = true;
         break;
     case 'O':
-        strnz__cpy(sio->bo_clr_x, arg, MAXLEN - 1);
+        strnz__cpy(sio->box_fg, arg, MAXLEN - 1);
         break;
     case 'R':
         strnz__cpy(init->receiver_cmd, arg, MAXLEN - 1);
@@ -380,14 +383,15 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     // Set default colors and settings in SIO struct
     // These can be overridden by the config file or command-line options
     // Included here to ensure SIO has valid defaults even if config parsing fails
-    strnz__cpy(sio->bg_clr_x, "#000007",
+    strnz__cpy(sio->bg, "#000007",
                COLOR_LEN - 1); /**< background color */
-    strnz__cpy(sio->fg_clr_x, "#c0c0c0",
-               COLOR_LEN - 1);                           /**< foreground color */
-    strnz__cpy(sio->bo_clr_x, "#f00000", COLOR_LEN - 1); /**< bold color */
-    strnz__cpy(sio->ln_clr_x, "#0070ff",
+    strnz__cpy(sio->fg, "#c0c0c0",
+               COLOR_LEN - 1);                         /**< foreground color */
+    strnz__cpy(sio->box_fg, "#f00000", COLOR_LEN - 1); /**< bold color */
+    strnz__cpy(sio->box_bg, "#000000", COLOR_LEN - 1); /**< bold color */
+    strnz__cpy(sio->ln_fg, "#0070ff",
                COLOR_LEN - 1); /**< line number olor */
-    strnz__cpy(sio->ln_bg_clr_x, "#101010",
+    strnz__cpy(sio->ln_bg, "#101010",
                COLOR_LEN - 1);                    /**< line number background */
     init->f_erase_remainder = true;               /**< erase remainder on enter */
     init->brackets[0] = '\0';                     /**< field enclosure brackets */
@@ -532,28 +536,32 @@ int parse_config(Init *init) {
                 init->begx = atoi(value);
                 continue;
             }
-            if (!strcmp(key, "fg_clr_x")) {
-                strnz__cpy(sio->fg_clr_x, value, COLOR_LEN - 1);
+            if (!strcmp(key, "fg")) {
+                strnz__cpy(sio->fg, value, COLOR_LEN - 1);
                 continue;
             }
-            if (!strcmp(key, "bg_clr_x")) {
-                strnz__cpy(sio->bg_clr_x, value, COLOR_LEN - 1);
+            if (!strcmp(key, "bg")) {
+                strnz__cpy(sio->bg, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "f_ln")) {
                 init->f_ln = str_to_bool(value);
                 continue;
             }
-            if (!strcmp(key, "bo_clr_x")) {
-                strnz__cpy(sio->bo_clr_x, value, COLOR_LEN - 1);
+            if (!strcmp(key, "box_fg")) {
+                strnz__cpy(sio->box_fg, value, COLOR_LEN - 1);
                 continue;
             }
-            if (!strcmp(key, "ln_clr_x")) {
-                strnz__cpy(sio->ln_clr_x, value, COLOR_LEN - 1);
+            if (!strcmp(key, "box_bg")) {
+                strnz__cpy(sio->box_bg, value, COLOR_LEN - 1);
                 continue;
             }
-            if (!strcmp(key, "ln_bg_clr_x")) {
-                strnz__cpy(sio->ln_bg_clr_x, value, COLOR_LEN - 1);
+            if (!strcmp(key, "ln_fg")) {
+                strnz__cpy(sio->ln_fg, value, COLOR_LEN - 1);
+                continue;
+            }
+            if (!strcmp(key, "ln_bg")) {
+                strnz__cpy(sio->ln_bg, value, COLOR_LEN - 1);
                 continue;
             }
             if (!strcmp(key, "red_gamma")) {
@@ -853,11 +861,12 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%s=%s\n", "editor", init->editor);
     (void)fprintf(minitrc_fp, "%s=%d\n", "tab_stop", init->tab_stop);
     (void)fprintf(minitrc_fp, "%s=%d\n", "wait_timeout", wait_timeout);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bg_clr_x", sio->bg_clr_x);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "bo_clr_x", sio->bo_clr_x);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "fg_clr_x", sio->fg_clr_x);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "ln_bg_clr_x", sio->ln_bg_clr_x);
-    (void)fprintf(minitrc_fp, "%s=%s\n", "ln_clr_x", sio->ln_clr_x);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "bg", sio->bg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "box_fg", sio->box_fg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "box_bg", sio->box_bg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "fg", sio->fg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "ln_bg", sio->ln_bg);
+    (void)fprintf(minitrc_fp, "%s=%s\n", "ln_fg", sio->ln_fg);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "blue_gamma", sio->blue_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "gray_gamma", sio->gray_gamma);
     (void)fprintf(minitrc_fp, "%s=%0.2f\n", "green_gamma", sio->green_gamma);
@@ -1041,11 +1050,14 @@ void dump_config(Init *init, char *msg) {
     opt_prt_str("-u ", "  brackets", init->brackets);
     opt_prt_str("-f:", "  fill_char", init->fill_char);
     opt_prt_str("   ", "  editor", init->editor);
-    opt_prt_str("   ", "  bg_clr_x", sio->bg_clr_x);
-    opt_prt_str("   ", "  bo_clr_x", sio->bo_clr_x);
-    opt_prt_str("   ", "  fg_clr_x", sio->fg_clr_x);
-    opt_prt_str("   ", "  ln_bg_clr_x", sio->ln_bg_clr_x);
-    opt_prt_str("   ", "  ln_clr_x", sio->ln_clr_x);
+    opt_prt_str("   ", "  box_fg", sio->box_fg);
+    opt_prt_str("   ", "  box_bg", sio->box_bg);
+    opt_prt_str("   ", "  bg", sio->bg);
+    opt_prt_str("   ", "  fg", sio->fg);
+    opt_prt_str("   ", "  nt_bg", sio->nt_bg);
+    opt_prt_str("   ", "  nt_fg", sio->nt_fg);
+    opt_prt_str("   ", "  ln_bg", sio->ln_bg);
+    opt_prt_str("   ", "  ln_fg", sio->ln_fg);
     opt_prt_double("   ", "  blue_gamma", sio->blue_gamma);
     opt_prt_double("   ", "  gray_gamma", sio->gray_gamma);
     opt_prt_double("   ", "  green_gamma", sio->green_gamma);
