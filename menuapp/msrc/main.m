@@ -10,7 +10,7 @@
 !form iloan.f -i iloan.dat -S iloan -R "view -L60 -C62 -Nf -S \"amort %%\"" -o iloan.dat
 :     Doxygen
 !dexe doxywizard /srv/www/htdocs/C-Menu/Doxyfile
-:     RSH Time Based Certificates
+:     Issue RSH Certificate
 !form rshusers.f -i rshusers.dat -o rshusers.dat
 :     Cash Receipts
 !form receipt.f -i receipt.dat -o receipt.dat
