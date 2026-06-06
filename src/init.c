@@ -526,33 +526,72 @@ int process_config_file(char *config_file_name, Init *init) {
     char include_file_name[MAXLEN];
     char ts[MAXLEN];
     char *sp, *dp;
-    char tmp_str[MAXLEN];
     SIO *sio = init->sio;
-
+    char hex_clr_str[8];
+    char key[MAXLEN];
+    char value[MAXLEN];
     FILE *config_fp = fopen(config_file_name, "r");
     if (!config_fp) {
         fprintf(stderr, "failed to read file: %s\n", config_file_name);
         return (-1);
     }
     while (fgets(ts, sizeof(ts), config_fp)) {
+        bool inquotes = false;
+        bool after_whitespace = false;
         if (ts[0] == '#')
             continue;
         sp = ts;
-        dp = tmp_str;
+        key[0] = '\0';
+        dp = key;
+        // copy delimited by "=" into value
         while (*sp != '\0') {
-            if (*sp == '\n') {
+            if (*sp == '\n')
                 *dp = *sp = '\0';
-            } else {
-                if (*sp != '"' && *sp != ' ' && *sp != ';') {
-                    *dp++ = *sp;
-                }
+            if (*sp == '=') {
+                *dp = '\0';
                 sp++;
+                break;
             }
+            if (*sp != '"' && *sp != ' ' && *sp != ';') {
+                *dp++ = *sp;
+            }
+            sp++;
+        }
+        value[0] = '\0';
+        dp = value;
+        // copy delimited by newline or unquoted "#" into value, removing quotes, spaces, semicolons, and newlines, but respecting quotes
+        while (*sp != '\0') {
+            if (*sp == '#' && unstr_hex_clr(hex_clr_str, sp)) {
+                strnz__cpy(value, hex_clr_str, MAXLEN - 1);
+                dp = value + strlen(value);
+                break;
+            }
+            if (inquotes) {
+                if (*sp == '"')
+                    inquotes = false;
+            } else {
+                if (*sp == '"')
+                    inquotes = true;
+            }
+            if (!inquotes) {
+                if (*sp == ' ') {
+                    after_whitespace = true;
+                    sp++;
+                } else if (*sp == ';')
+                    sp++;
+                else if (after_whitespace && *sp == '#') {
+                    *dp = *sp = '\0';
+                    break;
+                }
+            }
+            if (*sp == '\n')
+                *dp = *sp = '\0';
+            *dp++ = *sp++;
         }
         *dp = '\0';
-        char *key = strtok(tmp_str, "=");
-        char *value = strtok(nullptr, "=");
-        if (value == nullptr)
+        if (key[0] == '\0')
+            continue;
+        if (value[0] == '\0')
             continue;
         if (!strcmp(key, "include")) {
             strnz__cpy(include_file_name, value, MAXLEN - 1);

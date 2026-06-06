@@ -143,6 +143,60 @@ error_info_t error_info;
 error_source_t error_source;
 int wait_timeout;
 
+/** @brief Validates that a string consists of exactly len hexadecimal digits.
+    @ingroup utility_functions
+    @param str - input string to validate
+    @param len - expected number of hexadecimal digits
+    @returns true if str is a valid hex string of the specified length, false otherwise
+    @details This function checks that the input string contains only hexadecimal characters (0-9, A-F, a-f) and that the total number of hex digits matches the specified length. If the input string is valid, it returns true; otherwise, it returns false. The caller must ensure that the input string is not null and has at least one character before calling this function.
+ */
+bool is_hex_str(char *str, int len) {
+    char *s = str;
+    char *e;
+    if (s == NULL || *s == '\0')
+        return false;
+    e = (s + len + 1);
+    while (s < e && *s != '\0') {
+        if (!isxdigit(*s)) {
+            return false;
+        }
+        s++;
+    }
+    if ((int)(s - str) != len)
+        return false;
+    return true;
+}
+
+/** @brief Validates that a string is a hex color code in the format "#RRGGBB".
+    @ingroup utility_functions
+    @param dst - buffer to receive validated hex color string
+    @param str - input string to validate
+    @returns true if str is a valid hex color code, false otherwise
+    @details This function checks that the input string starts with a '#' character, followed by exactly six hexadecimal digits (0-9, A-F, a-f). If the input string is valid, it copies the hex color code into the provided destination buffer. The caller must ensure that dst has enough space to hold the resulting string (at least 8 characters including the null terminator). If the input string is invalid (e.g., does not start with '#', contains non-hex characters, or does not have exactly six hex digits), this function returns false and does not modify the destination buffer.
+ */
+bool unstr_hex_clr(char *dst, char *str) {
+    char *s = str;
+    char *e;
+    char *d;
+    if (s == NULL || *s == '\0')
+        return false;
+    if (*s != '#')
+        return false;
+    d = dst;
+    *d++ = *s++;
+    e = (s + 6);
+    while (s < e && *s != '\0') {
+        if (!isxdigit(*s)) {
+            return false;
+        }
+        *d++ = *s++;
+    }
+    *d = '\0';
+    if ((int)(s - str) != 7)
+        return false;
+    return true;
+}
+
 /** @brief Formats a struct tm as an ISO 8601 string.
     @ingroup utility_functions
     @param buf - buffer to receive formatted string

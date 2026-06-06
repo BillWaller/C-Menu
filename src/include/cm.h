@@ -325,6 +325,8 @@ extern int wait_timeout;
 extern bool action_disposition(char *title, char *action_str);
 extern int fork_detach_execvp(char **);
 extern WINDOW *message_win(char *);
+extern bool is_hex_str(char *, int);
+extern bool unstr_hex_clr(char *, char *);
 
 extern bool f_debug;         /**< a flag to indicate whether debug
         output should be printed, for debugging purposes */
