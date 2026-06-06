@@ -4,10 +4,9 @@ Version 0.2.9 2026-05-25
 
 **_NEW_** - C-Menu 0.2.9 released with new features and improvements
 
-## C-Menu Color Themes
+## C-Menu Themes
 
-![RSH Cert](screenshots/themes.png)
-![RSH Cert](screenshots/rsh_cert.png)
+![A Few Samples of C-Menu Themes](screenshots/themes.png)
 
 ## Installment Loan Calculator - Built with C-Menu
 

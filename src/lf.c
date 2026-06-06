@@ -94,7 +94,9 @@ typedef struct {
 } SearchFilters;
 
 #define DT_LNK_DIR 14
-
+unsigned char const lf_mask[15] = {
+    0, 0b00000001, 0b00000010, 0, 0b00000100, 0, 0b00001000, 0, 0b00010000, 0,
+    0b00100000, 0, 0b01000000, 0, 0b10000000};
 typedef struct {
     dev_t dev;
     ino_t ino;
@@ -622,6 +624,7 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Search directory: %s\n\n", f->base_path);
         fprintf(stderr, "Using %d threads\n\n", nthreads);
+
         fprintf(stderr, "File types preceeded by an asterisk (\"*\") will be included:\n\n");
         fprintf(stderr, "  LF type        DT type\n");
         print_file_type(f->include_types, LF_FIFO, DT_FIFO, "FIFO    p-named pipe");
@@ -632,6 +635,9 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
         print_file_type(f->include_types, LF_LNK, DT_LNK, "LINK    l-symbolic link");
         print_file_type(f->include_types, LF_SOCK, DT_SOCK, "SOCK    s-socket");
         print_file_type(f->include_types, LF_UNKNOWN, DT_UNKNOWN, "UNKNOWN u-unknown");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "f->include_types  = %08b\n", f->include_types);
+        fprintf(stderr, "f->suppress_types = %08b\n", f->suppress_types);
         fprintf(stderr, "\n");
         if (f->flags & LF_USER)
             fprintf(stderr, "User: %s (%ju)\n", f->user_name, f->user_id);
@@ -1021,7 +1027,11 @@ int scan_file(char *file_spec, const SearchFilters *f,
     bool stat_cached = false;
 
     while (1) {
-        if (f->suppress_types & effective_type)
+        if (f->debug && (f->report_trace || f->report_all)) {
+            printf("suppress %08b, effective %08b, lf_mask %08b, & %08b %s\n",
+                   f->suppress_types, effective_type, lf_mask[effective_type], f->suppress_types & lf_mask[effective_type], file_spec);
+        }
+        if (f->suppress_types & lf_mask[effective_type])
             break;
         // Exclude non-matching files
         if (f->flags & LF_REGEX) {

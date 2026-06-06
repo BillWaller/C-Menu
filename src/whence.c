@@ -7,6 +7,7 @@
     @date 2026-02-09
  */
 
+#define _GNU_SOURCE
 #include <argp.h>
 #include <cm.h>
 #include <fcntl.h>
@@ -29,7 +30,8 @@ int next_path(char *, char **);
 int file_spec_parts(char *, char *, char *);
 void ABEND(char *, int, char *);
 void normalend();
-typedef enum { WH_ALL = 1, WH_VERBOSE = 2 } WhenceFlags;
+typedef enum { WH_ALL = 1,
+               WH_VERBOSE = 2 } WhenceFlags;
 int wh_flags = 0;
 const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
@@ -43,12 +45,12 @@ static struct argp_option options[] = {
 
 struct wh_opts {
     int flags;
+    int argc;
     char *argv[MAXARGS];
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     struct wh_opts *wh_opts = state->input;
-    int i = 0;
     switch (key) {
     case 'a':
         wh_opts->flags |= WH_ALL;
@@ -57,12 +59,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         wh_opts->flags |= WH_VERBOSE;
         break;
     case ARGP_KEY_ARG:
-        if (i >= 1) {
+        if (state->arg_num == 0 || state->arg_num == 1) {
+            wh_opts->argv[state->arg_num] = arg;
+            wh_opts->argc = state->arg_num + 1;
+        } else {
             argp_usage(state);
         }
-        wh_opts->argv[i] = arg;
-        optind = i;
-        i++;
         break;
     case ARGP_KEY_END:
         break;
@@ -72,12 +74,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     return 0;
 }
 static struct argp argp = {options, parse_opt, args_doc, doc,
-                           nullptr, nullptr,   nullptr};
+                           nullptr, nullptr, nullptr};
 
 int main(int argc, char **argv) {
     struct wh_opts wh_opts = {0};
     wh_opts.flags = 0;
     wh_opts.argv[0] = nullptr;
+    int i = 0;
 
     argp_parse(&argp, argc, argv, 0, 0, &wh_opts);
     path_p = getenv("PATH");
@@ -85,8 +88,8 @@ int main(int argc, char **argv) {
         ABEND(argv[0], 0, "PATH environment variable not set");
     if (wh_opts.flags & WH_VERBOSE)
         printf("%s\n", path_p);
-    while (optind < argc) {
-        whence(wh_opts.argv[optind++], wh_opts.flags);
+    while (i < argc - 1) {
+        whence(wh_opts.argv[i++], wh_opts.flags);
     }
     normalend();
 }

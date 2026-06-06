@@ -286,6 +286,7 @@ install:
 	install -CDp include/view.h -t $(CMENU_HOME)/include
 	install -CDp menu	-t $(BIN_DIR)
 	install -CDp whence	-t $(BIN_DIR)
+	install -CDp lf     -t $(BIN_DIR)
 	install -Dp  rsh	-t $(BIN_DIR)	-o root -g root -m 6711
 	install -CDp enterchr	-t $(BIN_DIR)
 	install -CDp enterstr	-t	$(BIN_DIR)

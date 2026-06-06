@@ -143,6 +143,7 @@ char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
 int cp_box;
+int cp_title;
 int cp_nt;
 int cp_nt_rev;
 int cp_nt_hl;
@@ -156,6 +157,7 @@ int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
 cchar_t CC_BG;
 cchar_t CC_BOX;
+cchar_t CC_TITLE;
 cchar_t CC_NT;
 cchar_t CC_NT_REV;
 cchar_t CC_NT_HL_REV;
@@ -251,6 +253,7 @@ bool open_curses(SIO *sio) {
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
     cp_box = get_clr_pair(CLR_BOX_FG, CLR_BOX_BG);
+    cp_title = get_clr_pair(CLR_TITLE_FG, CLR_TITLE_BG);
     cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
     cp_norm = get_clr_pair(CLR_FG, CLR_BG);
     // CC_ variables are cchar_t versions of the color pairs, created with mkcc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
@@ -262,6 +265,7 @@ bool open_curses(SIO *sio) {
     CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
     CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
     CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
+    CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
     noecho();
@@ -475,6 +479,10 @@ bool init_clr_palette(SIO *sio) {
         init_hex_clr(CLR_BOX_FG, sio->box_fg);
     if (sio->box_bg[0])
         init_hex_clr(CLR_BOX_BG, sio->box_bg);
+    if (sio->title_fg[0])
+        init_hex_clr(CLR_TITLE_FG, sio->title_fg);
+    if (sio->title_bg[0])
+        init_hex_clr(CLR_TITLE_BG, sio->title_bg);
     if (sio->ln_fg[0])
         init_hex_clr(CLR_LN_FG, sio->ln_fg);
     if (sio->ln_bg[0])
@@ -800,7 +808,14 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     cbox2(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
     mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
-    mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
+
+    // ----------------------------------------
+    // title
+    cchar_t title_cc[MAXLEN] = {0};
+    str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title,
+              MAXLEN - 1);
+    mvwadd_wchstr(win_box[win_ptr], 0, 3, title_cc);
+    // ----------------------------------------
     maxx = getmaxx(win_box[win_ptr]);
     int s = strlen(wtitle);
     if ((s + 3) < maxx)
@@ -848,7 +863,15 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     cbox(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
     mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
-    mvwaddstr(win_box[win_ptr], 0, 3, wtitle);
+
+    // ----------------------------------------
+    // title
+    cchar_t title_cc[MAXLEN] = {0};
+    str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title,
+              MAXLEN - 1);
+    mvwadd_wchstr(win_box[win_ptr], 0, 3, title_cc);
+    // ----------------------------------------
+
     maxx = getmaxx(win_box[win_ptr]);
     int s = strlen(wtitle);
     if ((s + 3) < maxx)
@@ -977,7 +1000,6 @@ void win_redraw(WINDOW *win) {
    variable is decremented to point to the previous window in the stack. */
 WINDOW *win_del() {
     int i;
-    curs_set(0);
     if (win_ptr >= 0) {
         if (win_win[win_ptr] != nullptr) {
             wbkgrnd(win_win[win_ptr], &CC_NORM);
@@ -1753,9 +1775,10 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
     else
         halfdelay(min(255, max(0, n * 10)));
     tcflush(2, TCIFLUSH);
-    curs_set(1);
     do {
+        curs_set(1);
         c = wgetch(win);
+        curs_set(0);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
                 c = display_error(em0, em1, em2, nullptr);
@@ -1774,10 +1797,8 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
                 continue;
             }
             if (event.bstate & BUTTON4_PRESSED) {
-                curs_set(0);
                 return KEY_UP;
             } else if (event.bstate & BUTTON5_PRESSED) {
-                curs_set(0);
                 return KEY_DOWN;
             }
             if (event.bstate & BUTTON1_CLICKED ||
@@ -1796,7 +1817,6 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
             }
         }
     } while (c == ERR);
-    curs_set(0);
     restore_curses_tioctl();
     return c;
 }
@@ -1830,9 +1850,10 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
     else
         halfdelay(min(255, max(0, n * 10)));
     tcflush(2, TCIFLUSH);
-    curs_set(1);
     do {
+        curs_set(1);
         c = wgetch(win);
+        curs_set(0);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
                 c = display_error(em0, em1, em2, nullptr);
@@ -1851,10 +1872,8 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
                 continue;
             }
             if (event.bstate & BUTTON4_PRESSED) {
-                curs_set(0);
                 return KEY_UP;
             } else if (event.bstate & BUTTON5_PRESSED) {
-                curs_set(0);
                 return KEY_DOWN;
             }
             if (event.bstate & BUTTON1_CLICKED ||
@@ -1882,7 +1901,6 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
             }
         }
     } while (c == ERR);
-    curs_set(0);
     restore_curses_tioctl();
     return c;
 }

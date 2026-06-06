@@ -1,0 +1,22 @@
+# cmenu_Midnight.th
+bg=#000000
+fg=#f0f0f0
+# box - box window
+box_fg=#0050ff
+box_bg=#000030
+# ln - line numbers
+ln_fg=#0040ff
+ln_bg=#040812
+title_fg=#00a0ff
+title_bg=#000030
+# nt - normal text
+nt_fg=#c0c0c0
+nt_bg=#000030
+nt_rev_fg=#000000
+nt_rev_bg=#c0c0c0
+nt_hl_fg=#d00000
+nt_hl_bg=#000030
+nt_hl_rev_fg=#b00000
+nt_hl_rev_bg=#f0f0f0
+brackets_fg=#0090f0
+fill_char_fg=#00009f

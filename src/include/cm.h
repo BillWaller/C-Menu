@@ -143,6 +143,8 @@ typedef enum {
     CLR_BG,
     CLR_BOX_FG,
     CLR_BOX_BG,
+    CLR_TITLE_FG,
+    CLR_TITLE_BG,
     CLR_LN_FG,
     CLR_LN_BG,
     CLR_NT_FG,
@@ -187,6 +189,28 @@ typedef enum {
     LF_UNKNOWN = 0b10000000 /**< 128 unknown */
 } LFTypes;
 
+typedef enum {
+    F_F0,      // 0
+    F_FIFO,    // 1
+    F_CHR,     // 2
+    F_F1,      // 3
+    F_DIR,     // 4
+    F_F2,      // 5
+    F_BLK,     // 6
+    F_F3,      // 7
+    F_REG,     // 8
+    F_F4,      // 9
+    F_LNK,     // 10
+    F_F5,      // 11
+    F_SOCK,    // 12
+    F_F6,      // 13
+    F_UNKNOWN, // 14
+} F_Type;
+
+// int const lf_type[][15] = {
+//      {0, 0b00000001, 0b00000010, 0, 0b00000100, 0, 0b00001000, 0, 0b00010000, 0,
+//       0b00100000, 0,0b01000000, 0, 0b10000000}};
+
 /*
  * dirent d_type to lf_type for reference
 ------------------------   --------------------
@@ -200,6 +224,7 @@ DT_REG:     00001000   8   LF_REG:     00010000  16     5
 DT_LNK:     00001010  10   LF_LNK:     00100000  32     6
 DT_SOCK:    00001100  12   LF_SOCK:    01000000  64     7
 DT_UNKNOWN: 00001110  14   LF_UNKNOWN: 10000000 128     8
+
     */
 
 #define F_NO_STDERR 1
@@ -400,6 +425,7 @@ extern cchar_t CC_FILL_CHAR; /**< fill character */
 extern cchar_t CC_BRKTL;     /**< left bracket */
 extern cchar_t CC_BRKTR;     /**< right bracket */
 extern cchar_t CC_BOX;       /**< box colors */
+extern cchar_t CC_TITLE;     /**< box colors */
 extern cchar_t CC_LN;        /* line numbers */
 extern cchar_t CC_BRKTL;     /* left field bracket */
 extern cchar_t CC_BRKTR;     /* right field bracket */
@@ -724,8 +750,10 @@ typedef struct {
     char abg[COLOR_LEN];       /**< color code for background with alpha */
     char fg[COLOR_LEN];        /**< foreground color index */
     char bg[COLOR_LEN];        /**< background color index */
-    char box_fg[COLOR_LEN];    /**< bold color index */
-    char box_bg[COLOR_LEN];    /**< bold color index */
+    char box_fg[COLOR_LEN];    /**< box foreground */
+    char box_bg[COLOR_LEN];    /**< box background */
+    char title_fg[COLOR_LEN];  /**< title foreground */
+    char title_bg[COLOR_LEN];  /**< title background */
     char ln_fg[COLOR_LEN];     /**< line number color index */
     char ln_bg[COLOR_LEN];     /**< line number background index */
     char nt_fg[COLOR_LEN];     /**< color code for normal text foreground */
