@@ -1139,6 +1139,30 @@ void cbox2(WINDOW *box) {
     @brief Display Error messages
  */
 
+WINDOW *message_win(char *em0) {
+    if (!f_curses_open) {
+        fprintf(stderr, "\n\n%s\n\n", em0);
+        return nullptr;
+    }
+    if (LINES < 4 || COLS < 42)
+        return nullptr;
+    int wlines = 3, wcols = 40;
+    int wbegy = 0;
+    int wbegx = COLS - wcols - 2;
+    WINDOW *win = newwin(wlines, wcols, wbegy, wbegx);
+    if (win == nullptr)
+        return win;
+#ifdef DEBUG_IMMEDOK
+    immedok(win, true);
+#endif
+    wbkgrndset(win, &CC_BOX);
+    cbox(win);
+    strnz(em0, 40);
+    mvwaddstr(win, 0, 1, em0);
+    wrefresh(win);
+    return win;
+}
+
 /** answer_yn
     @brief Accept a single letter answer
     @ingroup error_handling

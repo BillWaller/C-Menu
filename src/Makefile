@@ -62,7 +62,7 @@ LINKOPT = -pthread -flto
 #   purposes.
 #
 # Standard Debugging Flags
-CFLAGS=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic
+CFLAGS=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic 
 # -DDEUBG_IMMEDOK
 # LINKOPT = -pthread
 # CFLAGS=-DDEBUG_RESIZE -DDEUBG_IMMEDOK -DDEBUG_LOG
@@ -148,32 +148,30 @@ COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
 LIBS = $(LIBASAN) $(LINKOPT) -L. -lcm -lncursesw -ltinfo -lm -luring -Wl,-rpath,$(RPATH)
 
-.PHONY: all install install_man clean uninstall helgrind valgrind
+.PHONY: all config help install install_man clean uninstall helgrind valgrind
 
 all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
-	@echo Build Date: $(SYSDATE)
-	@echo CMENU_HOME = $(CMENU_HOME)
 	@echo Make Complete
 
 config:
 	@echo "   Build Date $(SYSDATE)"
-	@echo "      VERSION $(VERSION)"
 	@echo "   CMENU_HOME $(CMENU_HOME)"
-	@echo "       CFLAGS $(CFLAGS)"
-	@echo "      LINKOPT $(LINKOPT)"
+	@echo "    BUILD_DIR $(BUILD_DIR)"
+	@echo "      VERSION $(VERSION)"
 	@echo "           CC $(CC)"
 	@echo "           CX $(CX)"
-	@echo "      LIB_DIR $(LIB_DIR)"
+	@echo "       CFLAGS $(CFLAGS)"
+	@echo "         LIBS $(LIBS)"
+	@echo "      LINKOPT $(LINKOPT)"
+	@echo "        RPATH $(RPATH)"
 	@echo "   LIB_SHARED $(LIB_SHARED)"
 	@echo "   LIB_STATIC $(LIB_STATIC)"
 	@echo "CMENU_LIB_DIR $(CMENU_LIB_DIR)"
-	@echo "    BUILD_DIR $(BUILD_DIR)"
+	@echo "      INC_DIR $(INC_DIR)"
 	@echo "      BIN_DIR $(BIN_DIR)"
 	@echo "      MAN_DIR $(MAN_DIR)"
-	@echo "      INC_DIR $(INC_DIR)"
-	@echo "        RPATH $(RPATH)"
+	@echo "      LIB_DIR $(LIB_DIR)"
 	@echo "      PAM_DIR $(PAM_DIR)"
-	@echo "         LIBS $(LIBS)"
 
 help:
 	@echo "Available targets:"

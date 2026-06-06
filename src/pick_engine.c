@@ -291,6 +291,7 @@ int pick_engine(Init *init) {
     int rc;
     int maxy, maxx, win_maxy, win_maxx;
     int tbl_max_cols, pg_max_objs;
+    bool f_processed = false;
 
     getmaxyx(stdscr, maxy, maxx);
     /** Calculate pick window size and position based on terminal size and pick
@@ -329,7 +330,7 @@ int pick_engine(Init *init) {
     set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
     if (pick->tbl_pages > 1) {
         set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
-        set_chyron_key(pick->chyron, 12, "PgDn", KEY_NPAGE);
+        set_chyron_key(pick->chyron, 2, "PgDn", KEY_NPAGE);
     }
     compile_chyron(pick->chyron);
     if (pick->chyron->l > win_maxx)
@@ -351,6 +352,7 @@ int pick_engine(Init *init) {
     pick->x = 1;
     char field[MAXLEN]; /**< Buffer for user input in the field */
     field[0] = '\0';
+    display_page(pick);
     do {
         rc = picker(init, field);
         if (rc == KEY_F(9))
@@ -359,10 +361,18 @@ int pick_engine(Init *init) {
             break;
         else {
             if (pick->select_cnt > 0) {
-                if (pick->f_out_spec && pick->out_spec[0])
+                if (pick->f_out_spec && pick->out_spec[0]) {
                     output_objects(pick);
-                if (pick->f_cmd && pick->cmd[0])
+                    f_processed = true;
+                }
+                if (pick->f_cmd && pick->cmd[0]) {
                     exec_objects(init);
+                    f_processed = true;
+                }
+                if (f_processed) {
+                    mvwaddstr(pick->win2, 0, 0, "Selection Processed");
+                    wrefresh(pick->win2);
+                }
             }
         }
         deselect_object(pick);
@@ -777,6 +787,8 @@ int open_pick_win(Init *init) {
     pick->win2 = win_win2[win_ptr];
     pick->box = win_box[win_ptr];
     keypad(pick->win, true);
+    immedok(pick->win, true);
+    immedok(pick->win2, true);
     return 0;
 }
 /** @brief Displays the help screen for the pick interface using view
@@ -859,19 +871,14 @@ int picker(Init *init, char *field) {
     char tmp_str[MAXLEN];
 
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
-    display_page(pick);
+
     f_insert = false;
     set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_nt_rev);
-    compile_chyron(pick->chyron);
-    display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
-
-    cchar_t cc = {0};
-    wchar_t wstr[2] = {BW_RAN, L'\0'};
-    setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
-    mvwadd_wch(pick->box, pick->separator_line + 1, 1, &cc);
+    // compile_chyron(pick->chyron);
+    // display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
 
     keypad(pick->win, true);
-    wrefresh(pick->win2);
+    // wrefresh(pick->win2);
 
     int in_key = 0;
     while (1) {
@@ -897,26 +904,6 @@ int picker(Init *init, char *field) {
                 tmp_str[21] = '\0';
                 mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
                 wrefresh(pick->box);
-
-                /** win2 display_field_content */
-                rtrim(accept_s);
-                s = &filler_s[0];
-                e = s + flen;
-                while (s != e)
-                    *s++ = ' ';
-                *s = '\0';
-                mvwaddstr(win2, line, col, filler_s);
-                mvwaddstr(win2, line, col, accept_s);
-                pos = col + strlen(accept_s);
-                prev_pos = pos;
-                prev_ptr = accept_s;
-                wmove(win2, line, pos);
-                curs_set(0);
-                wrefresh(win2);
-                /** end display_field_content */
-
-                curs_set(1);
-                wrefresh(win);
                 mouse_win = nullptr;
                 // 1
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
@@ -1153,6 +1140,12 @@ int picker(Init *init, char *field) {
         set_chyron_key(pick->chyron, 5, "Tab Pick", '\t');
         compile_chyron(pick->chyron);
         display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
+        cchar_t cc = {0};
+        wchar_t wstr[2] = {BW_RAN, L'\0'};
+        setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
+        mvwadd_wch(pick->box, pick->separator_line + 1, 1, &cc);
+        wrefresh(pick->box);
+        wrefresh(pick->win2);
         while (1) {
             if (in_key == 0) {
                 mouse_win = nullptr;
@@ -1202,7 +1195,6 @@ int picker(Init *init, char *field) {
             case '\n':
             case KEY_ENTER:
                 in_key = 0;
-                curs_set(0);
                 break;
 
                 /** KEY_IC toggles insert mode */
@@ -1211,7 +1203,6 @@ int picker(Init *init, char *field) {
             case KEY_UP:
             case '\t':
                 in_key = 0;
-                curs_set(0);
                 break;
 
             case KEY_F(1):

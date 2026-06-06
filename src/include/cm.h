@@ -324,6 +324,7 @@ extern bool waitpid_with_timeout(pid_t, int);
 extern int wait_timeout;
 extern bool action_disposition(char *title, char *action_str);
 extern int fork_detach_execvp(char **);
+extern WINDOW *message_win(char *);
 
 extern bool f_debug;         /**< a flag to indicate whether debug
         output should be printed, for debugging purposes */

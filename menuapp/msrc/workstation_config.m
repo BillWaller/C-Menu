@@ -1,5 +1,7 @@
 :   Workstation Configuration Menu
 :
+:   Select C-Menu Theme
+!pick -n 1 -T "Select C-Menu Theme" -S cmenu_themes.sh -c "cmenu_chtheme.sh %%"
 :   View SDDM Previews
 !exec sddm_preview.sh
 :   Select SDDM Background
