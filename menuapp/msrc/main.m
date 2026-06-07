@@ -10,6 +10,8 @@
 !form iloan.f -i iloan.dat -S iloan -R "view -L60 -C62 -Nf -S \"amort %%\"" -o iloan.dat
 :     Doxygen
 !dexe doxywizard /srv/www/htdocs/C-Menu/Doxyfile
+:     Start New C-Menu Session in a New Terminal
+!dexe ghostty -e menu >/dev/null 2>&1
 :     Issue RSH Certificate
 !form rshusers.f -i rshusers.dat -o rshusers.dat
 :     Cash Receipts

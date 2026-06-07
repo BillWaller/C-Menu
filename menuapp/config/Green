@@ -1,24 +1,44 @@
-# cmenu_Midnight.th
+# Theme: Green
+nt_hl_bg=#003030        // normal text highlight background
+bg=#000000              // Terminal (stdscr) background
+fg=#f0f0f0              // Terminal (stdscr) foreground
+box_fg=#00af70          // box window foreground
+box_bg=#003030          // box window background
+title_fg=#f0f0f0        // title foreground
+title_bg=#003030        // title background
+ln_fg=#00af70           // line number foreground
+ln_bg=#002030           // line number background
+nt_fg=#c0c0c0           // normal text foreground
+nt_bg=#003030           // normal text background
+nt_rev_fg=#000000       // normal text reverse foreground
+nt_rev_bg=#c0c0c0       // normal text reverse background
+nt_hl_fg=#d00000        // normal text highlight foreground
+nt_hl_bg=#003030        // normal text highlight background
+nt_hl_rev_fg=#b00000    // normal text highlight reverse foreground
+nt_hl_rev_bg=#f0f0f0    // normal text highlight reverse background
+brackets=[]
+brackets_fg=#305040     // brackets foreground
+fill_char=_
+fill_char_fg=#305040    // fill character foreground
 bg=#000000
 fg=#f0f0f0
-# box - box window
-box_fg=#00af70
-box_bg=#003030
-# title
-title_fg=#f0f0f0
-title_bg=#003030
-# ln - line numbers
-ln_fg=#00af70
-ln_bg=#002030
-# nt - normal text
-nt_fg=#c0c0c0
-nt_bg=#003030
-nt_rev_fg=#000000
-nt_rev_bg=#c0c0c0
-nt_hl_fg=#d00000
-nt_hl_bg=#003030
-nt_hl_rev_fg=#b00000
-nt_hl_rev_bg=#f0f0f0
-brackets_fg=#305040
-fill_char_fg=#305040
-
+black=#000000
+red=#ff0000
+green=#00e0af
+yellow=#f0c000
+blue=#0080ff
+magenta=#f000f0
+cyan=#00dff0
+white=#c0c0c0
+bblack=#000000
+bred=#ff7f00
+bgreen=#00ff9f
+byellow=#ffff00
+bblue=#00afff
+bmagenta=#ff00ff
+bcyan=#00ffff
+bwhite=#ffffff
+red_gamma=1.2
+green_gamma=1.2
+blue_gamma=1.2
+gray_gamma=1.2
