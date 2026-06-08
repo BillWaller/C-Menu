@@ -4,6 +4,15 @@ Version 0.2.9 2026-05-25
 
 **_NEW_** - C-Menu 0.2.9 released with new features and improvements
 
+## C-Menu Detached Executables
+
+Some programs, such as Kitty, have a command line option to detach from the
+calling process and run independently. That is very handy, for example, if you
+want to start htop in a separate terminal window. My favorite terminal emulator, Ghostty, doesn't have such an option. However, C-Menu's detached executable feature provides that capability with any terminal program, including Ghostty. Just use the
+"dexe" command in your menu description file, and the specified command will run in a detached process.
+
+![Detached Executables](screenshots/dexe-composite.png)
+
 ## C-Menu Themes
 
 ![A Few Samples of C-Menu Themes](screenshots/themes.png)

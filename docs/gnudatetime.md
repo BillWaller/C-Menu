@@ -9,6 +9,8 @@ MIT License
 
 This note documents an issue encountered while parsing local date/time text with `strptime()`, converting the result to `time_t` with `mktime()`, and then formatting the resulting value after conversion back to local time with `localtime_r()`.
 
+I am including this documentation because the behavior can be confusing at first, and it is easy to misattribute the problem to `localtime_r()` when the real issue is usually an uninitialized `struct tm` field that affects how `mktime()` interprets the input.
+
 At first glance, the behavior can look like a GNU `gmtime_r()` or `localtime_r()` bug because the formatted output appears to shift by one hour depending on whether the `struct tm` was first cleared with `memset()`. In practice, the real problem is usually the value of `tm_isdst` before calling `mktime()`.
 
 `strptime()` fills only the fields specified by the format string. It does **not** guarantee that the rest of the `struct tm` is initialized to useful values. One of the most important remaining fields is `tm_isdst`:

@@ -2,6 +2,26 @@
 
 ## [Released] - 2026-02-04
 
+0.2.9 - 2026-06-07
+
+Many feature additions, improvements, and bug fixes. Added new function call to
+C-Menu Menu, "dexe", or "detached execute", which allows the user to spacify
+a command to be executed in a detached process, which is useful for launching GUI applications from a terminal-based menu or another terminal running TUI processes.
+The user can specify the command to be executed, along with any necessary arguments, and the command will be executed in a separate process, allowing the user to continue using the terminal for other tasks. This is particularly useful for launching applications that have a graphical user interface, as it allows the user to interact with the application without having to wait for it to finish executing in the terminal.
+
+It also allows the user to start an independent instance of C-Menu.
+
+C-Menu now has support for themes including a menu under Workstation
+Configuration to select from a group of sample themes or custom themes created
+by the user. The themes are implemented using a simple configuration file format, and they allow users to customize the appearance of C-Menu to their liking. Users can specify colors for various elements of the interface, such as the background, foreground, and highlight colors, as well as other visual aspects like borders and padding. This feature adds a new level of personalization to C-Menu, allowing users to create an interface that suits their preferences and enhances their user experience.
+
+To go along with the new theme support, I have added documentation from argp,
+as comments to explain each option in configuration files written with the "-W"
+option when starting any of the C-Menu programs. This will allow users to easily understand the available options and how to use them when configuring their themes or other settings.
+
+lf had a number of bugs after a last-minute change to the handling of file
+types. I believe I have that squared away now.
+
 0.2.9 - 2026-05-25
 
 lf is coming along very well. To demonstrate its flexibility and power, I created a simple little script, ~/menuapp/bin/checkdir, to scan a specified directory and reports potential problems such as cyclic symbolic links, non-existent links, links that cannot be read due to lack of permissions, and other issues. The operative commands are listed below:

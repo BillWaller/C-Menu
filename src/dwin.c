@@ -1137,6 +1137,10 @@ void cbox2(WINDOW *box) {
     @brief Display Error messages
  */
 
+/** @brief Display a message in a window or print to stderr if curses is not available
+    @ingroup error_handling
+    @param em0 Message to display
+    @return Pointer to the created window, or nullptr if curses is not available or screen is too small */
 WINDOW *message_win(char *em0) {
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n\n", em0);
@@ -1160,7 +1164,6 @@ WINDOW *message_win(char *em0) {
     wrefresh(win);
     return win;
 }
-
 /** answer_yn
     @brief Accept a single letter answer
     @ingroup error_handling

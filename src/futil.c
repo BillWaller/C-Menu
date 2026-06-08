@@ -144,7 +144,13 @@ error_info_t error_info;
 error_source_t error_source;
 int wait_timeout;
 
-/* Returns the documentation string if a match is found; otherwise NULL */
+/** @brief Retrieves the documentation string for a given key name from an argp
+   options array.
+    @ingroup utility_functions
+    @param comment - buffer to receive the documentation string
+    @param options - array of argp_option structures to search
+    @param key_name - the long option name or short option character
+*/
 bool get_argp_doc_by_name(char *comment, const struct argp_option *options,
                           const char *key_name) {
     for (size_t i = 0; options[i].name != NULL || options[i].key != 0; i++) {
@@ -194,7 +200,6 @@ bool is_hex_str(char *str, int len) {
         return false;
     return true;
 }
-
 /** @brief Validates that a string is a hex color code in the format "#RRGGBB".
     @ingroup utility_functions
     @param dst - buffer to receive validated hex color string

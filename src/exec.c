@@ -152,17 +152,6 @@ int fork_exec(char **argv) {
         Perror(tmp_str);
         return (-1);
     case 0: // child
-        /** Prevent child process from writing to terminal */
-        // if (flags & F_NO_STDERR) {
-        //     int dev_null = open("/dev/null", O_WRONLY);
-        //     if (dev_null == -1) {
-        //         Perror("open(/dev/null) failed in init_pick child process");
-        //         exit(EXIT_FAILURE);
-        //     }
-        //     dup2(dev_null, STDOUT_FILENO);
-        //     dup2(dev_null, STDERR_FILENO);
-        //     close(dev_null);
-        // }
         restore_shell_tioctl();
         werase(stdscr);
         wrefresh(stdscr);
@@ -216,13 +205,13 @@ int fork_exec(char **argv) {
     @ingroup exec
     @param eargv - array of arguments for the command to execute
     @return EXIT_SUCCESS on success, EXIT_FAILURE on failure
-    @details Forks the process twice to create a daemon.
-    Sets the session ID and working directory.
+    @details
+    Sets the session ID
     Redirects standard file descriptors to /dev/null.
     Closes all open file descriptors.
     Executes the command using execvp.
     Exits with failure if any step fails.
-    @note Don't use this code. It is not finished. */
+    @note Tested 2026-06-05 on Linux - appears to be functioning properly */
 int fork_detach_execvp(char **eargv) {
     pid_t pid = fork();
     capture_curses_tioctl();

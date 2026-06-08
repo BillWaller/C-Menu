@@ -116,9 +116,9 @@ VERSION=$(MAJOR).$(MINOR).$(PATCH)
 
 SYSDATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-CC=gcc -Wall -Wextra -I./include $(CFLAGS)
 # CX=-std=gnu23
 CX=-std=c23
+CC=gcc $(CX) -Wall -Wextra -I./include $(CFLAGS)
 
 LIB_DIR=/usr/lib64
 LIB_SHARED=libcm.so
