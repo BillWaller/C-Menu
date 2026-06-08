@@ -18,6 +18,7 @@
 #include <cm.h>
 #include <stdint.h>
 
+#include <argp.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -143,6 +144,33 @@ error_info_t error_info;
 error_source_t error_source;
 int wait_timeout;
 
+/* Returns the documentation string if a match is found; otherwise NULL */
+bool get_argp_doc_by_name(char *comment, const struct argp_option *options,
+                          const char *key_name) {
+    for (size_t i = 0; options[i].name != NULL || options[i].key != 0; i++) {
+        // Skip purely cosmetic header/group entries in argp
+        if (options[i].name == NULL && options[i].doc != NULL &&
+            options[i].key == 0) {
+            continue;
+        }
+
+        // 1. Check against the long option name (e.g., "verbose")
+        if (options[i].name && strcmp(options[i].name, key_name) == 0) {
+            strnz__cpy(comment, options[i].doc, MAXLEN - 1);
+            return true;
+        }
+
+        // 2. Check against the short option key character (e.g., 'v')
+        if (options[i].key > 0 && options[i].key < 127) {
+            char short_str[2] = {(char)options[i].key, '\0'};
+            if (strcmp(short_str, key_name) == 0) {
+                strnz__cpy(comment, options[i].doc, MAXLEN - 1);
+                return true;
+            }
+        }
+    }
+    return false; // Key not found in the argp structure
+}
 /** @brief Validates that a string consists of exactly len hexadecimal digits.
     @ingroup utility_functions
     @param str - input string to validate

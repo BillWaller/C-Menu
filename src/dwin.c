@@ -246,8 +246,8 @@ bool open_curses(SIO *sio) {
     GRAY_GAMMA = sio->gray_gamma;
 
     // cp_ variables are indices for ncurses color pairs, created with get_clr_pair function. These color pairs are used to set the foreground and background colors for different elements of the interface, such as windows, text, and boxes. By defining these color pair indices as global variables, we can easily reference them throughout the code when applying colors to various parts of the interface using NCurses functions that accept color pair indices.
-    cp_fill_char = get_clr_pair(CLR_FILL_CHAR_FG, CLR_NT_BG);
-    cp_brackets = get_clr_pair(CLR_BRACKETS_FG, CLR_NT_BG);
+    cp_fill_char = get_clr_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
+    cp_brackets = get_clr_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
     cp_nt = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
     cp_nt_rev = get_clr_pair(CLR_NT_REV_FG, CLR_NT_REV_BG);
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
@@ -487,32 +487,30 @@ bool init_clr_palette(SIO *sio) {
         init_hex_clr(CLR_LN_FG, sio->ln_fg);
     if (sio->ln_bg[0])
         init_hex_clr(CLR_LN_BG, sio->ln_bg);
-
     if (sio->nt_fg[0])
         init_hex_clr(CLR_NT_FG, sio->nt_fg);
-
     if (sio->nt_bg[0])
         init_hex_clr(CLR_NT_BG, sio->nt_bg);
-
     if (sio->nt_rev_fg[0])
         init_hex_clr(CLR_NT_REV_FG, sio->nt_rev_fg);
     if (sio->nt_rev_bg[0])
         init_hex_clr(CLR_NT_REV_BG, sio->nt_rev_bg);
-
     if (sio->nt_hl_fg[0])
         init_hex_clr(CLR_NT_HL_FG, sio->nt_hl_fg);
     if (sio->nt_hl_bg[0])
         init_hex_clr(CLR_NT_HL_BG, sio->nt_hl_bg);
-
     if (sio->nt_hl_rev_fg[0])
         init_hex_clr(CLR_NT_HL_REV_FG, sio->nt_hl_rev_fg);
     if (sio->nt_hl_rev_bg[0])
         init_hex_clr(CLR_NT_HL_REV_BG, sio->nt_hl_rev_bg);
-
     if (sio->fill_char_fg[0])
         init_hex_clr(CLR_FILL_CHAR_FG, sio->fill_char_fg);
+    if (sio->fill_char_bg[0])
+        init_hex_clr(CLR_FILL_CHAR_BG, sio->fill_char_bg);
     if (sio->brackets_fg[0])
         init_hex_clr(CLR_BRACKETS_FG, sio->brackets_fg);
+    if (sio->brackets_bg[0])
+        init_hex_clr(CLR_BRACKETS_BG, sio->brackets_bg);
     clr_cnt = CLR_NCOLORS;
     return true;
 }

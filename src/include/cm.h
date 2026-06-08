@@ -15,6 +15,7 @@
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
 #define _GNU_SOURCE
 #include "version.h"
+#include <argp.h>
 #include <ncursesw/ncurses.h>
 #include <signal.h>
 #include <stddef.h>
@@ -143,8 +144,10 @@ typedef enum {
     CLR_BG,
     CLR_BOX_FG,
     CLR_BOX_BG,
-    CLR_TITLE_FG,
-    CLR_TITLE_BG,
+    CLR_BRACKETS_FG,
+    CLR_BRACKETS_BG,
+    CLR_FILL_CHAR_FG,
+    CLR_FILL_CHAR_BG,
     CLR_LN_FG,
     CLR_LN_BG,
     CLR_NT_FG,
@@ -155,8 +158,8 @@ typedef enum {
     CLR_NT_HL_BG,
     CLR_NT_HL_REV_FG,
     CLR_NT_HL_REV_BG,
-    CLR_FILL_CHAR_FG,
-    CLR_BRACKETS_FG,
+    CLR_TITLE_FG,
+    CLR_TITLE_BG,
     CLR_NCOLORS
 } ColorsEnum;
 
@@ -665,6 +668,7 @@ extern void init_stdscr();
 extern void curskeys(WINDOW *);
 extern void mouse_getch(int *, int *, int *, int *);
 extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
+extern bool get_argp_doc_by_name(char *comment, const struct argp_option *, const char *);
 
 /** @struct Arg
    @brief The Arg structure represents a string argument with a pointer to the
@@ -728,73 +732,75 @@ typedef struct {
    structure allows for efficient management of the terminal's state and
    configuration in a structured way. */
 typedef struct {
-    double red_gamma;          /**< red gamma correction value */
-    double green_gamma;        /**< green gamma correction value */
-    double blue_gamma;         /**< blue gamma correction value */
-    double gray_gamma;         /**< gray gamma correction value */
-    char black[COLOR_LEN];     /**< color code for black */
-    char red[COLOR_LEN];       /**< color code for red */
-    char green[COLOR_LEN];     /**< color code for green */
-    char yellow[COLOR_LEN];    /**< color code for yellow */
-    char blue[COLOR_LEN];      /**< color code for blue */
-    char magenta[COLOR_LEN];   /**< color code for magenta */
-    char cyan[COLOR_LEN];      /**< color code for cyan */
-    char white[COLOR_LEN];     /**< color code for white */
-    char orange[COLOR_LEN];    /**< color code for orange */
-    char bblack[COLOR_LEN];    /**< color code for bold black */
-    char bred[COLOR_LEN];      /**< color code for bold red */
-    char bgreen[COLOR_LEN];    /**< color code for bold green */
-    char byellow[COLOR_LEN];   /**< color code for bold yellow */
-    char bblue[COLOR_LEN];     /**< color code for bold blue */
-    char bmagenta[COLOR_LEN];  /**< color code for bold magenta */
-    char bcyan[COLOR_LEN];     /**< color code for bold cyan */
-    char bwhite[COLOR_LEN];    /**< color code for bold white */
-    char borange[COLOR_LEN];   /**< color code for bold orange */
-    char abg[COLOR_LEN];       /**< color code for background with alpha */
-    char fg[COLOR_LEN];        /**< foreground color index */
-    char bg[COLOR_LEN];        /**< background color index */
-    char box_fg[COLOR_LEN];    /**< box foreground */
-    char box_bg[COLOR_LEN];    /**< box background */
-    char title_fg[COLOR_LEN];  /**< title foreground */
-    char title_bg[COLOR_LEN];  /**< title background */
-    char ln_fg[COLOR_LEN];     /**< line number color index */
-    char ln_bg[COLOR_LEN];     /**< line number background index */
-    char nt_fg[COLOR_LEN];     /**< color code for normal text foreground */
-    char nt_bg[COLOR_LEN];     /**< color code for normal text background */
-    char nt_rev_fg[COLOR_LEN]; /**< normal text reverse foreground */
-    char nt_rev_bg[COLOR_LEN]; /**< normal text reverse background */
-    char nt_hl_fg[COLOR_LEN];  /**< normal text highlight foreground */
-    char nt_hl_bg[COLOR_LEN];  /**< normal text highlight background */
+    double red_gamma;             /**< red gamma correction value */
+    double green_gamma;           /**< green gamma correction value */
+    double blue_gamma;            /**< blue gamma correction value */
+    double gray_gamma;            /**< gray gamma correction value */
+    char black[COLOR_LEN];        /**< color code for black */
+    char red[COLOR_LEN];          /**< color code for red */
+    char green[COLOR_LEN];        /**< color code for green */
+    char yellow[COLOR_LEN];       /**< color code for yellow */
+    char blue[COLOR_LEN];         /**< color code for blue */
+    char magenta[COLOR_LEN];      /**< color code for magenta */
+    char cyan[COLOR_LEN];         /**< color code for cyan */
+    char white[COLOR_LEN];        /**< color code for white */
+    char orange[COLOR_LEN];       /**< color code for orange */
+    char bblack[COLOR_LEN];       /**< color code for bold black */
+    char bred[COLOR_LEN];         /**< color code for bold red */
+    char bgreen[COLOR_LEN];       /**< color code for bold green */
+    char byellow[COLOR_LEN];      /**< color code for bold yellow */
+    char bblue[COLOR_LEN];        /**< color code for bold blue */
+    char bmagenta[COLOR_LEN];     /**< color code for bold magenta */
+    char bcyan[COLOR_LEN];        /**< color code for bold cyan */
+    char bwhite[COLOR_LEN];       /**< color code for bold white */
+    char borange[COLOR_LEN];      /**< color code for bold orange */
+    char abg[COLOR_LEN];          /**< color code for background with alpha */
+    char fg[COLOR_LEN];           /**< foreground color index */
+    char bg[COLOR_LEN];           /**< background color index */
+    char box_fg[COLOR_LEN];       /**< box foreground */
+    char box_bg[COLOR_LEN];       /**< box background */
+    char brackets_fg[COLOR_LEN];  /**< brackets foreground */
+    char brackets_bg[COLOR_LEN];  /**< brackets background */
+    char fill_char_fg[COLOR_LEN]; /**< fill character foreground */
+    char fill_char_bg[COLOR_LEN]; /**< fill character background */
+    char ln_fg[COLOR_LEN];        /**< line number color index */
+    char ln_bg[COLOR_LEN];        /**< line number background index */
+    char nt_fg[COLOR_LEN];        /**< color code for normal text foreground */
+    char nt_bg[COLOR_LEN];        /**< color code for normal text background */
+    char nt_rev_fg[COLOR_LEN];    /**< normal text reverse foreground */
+    char nt_rev_bg[COLOR_LEN];    /**< normal text reverse background */
+    char nt_hl_fg[COLOR_LEN];     /**< normal text highlight foreground */
+    char nt_hl_bg[COLOR_LEN];     /**< normal text highlight background */
     char
         nt_hl_rev_fg[COLOR_LEN]; /**< normal text highlight reverse foreground */
     char
-        nt_hl_rev_bg[COLOR_LEN];  /**< normal text highlight reverse background */
-    char fill_char_fg[COLOR_LEN]; /**< fill character foreground */
-    char brackets_fg[COLOR_LEN];  /**< brackets foreground */
-    char tty_name[MAXLEN];        /**< name of the terminal device */
-    FILE *stdin_fp;               /**< stdin stream pointer */
-    FILE *stdout_fp;              /**< stdout stream pointer */
-    FILE *stderr_fp;              /**< stderr stream pointer */
-    FILE *tty_fp;                 /**< terminal device stream pointer */
-    int stdin_fd;                 /**< stdin file descriptor */
-    int stdout_fd;                /**< stdout file descriptor */
-    int stderr_fd;                /**< stderr file descriptor */
-    int tty_fd;                   /**< terminal device file descriptor */
-    int clr_cnt;                  /**< number of colors currently in use */
-    int clr_pair_cnt;             /**< number of color pairs currently in use */
-    int clr_idx;                  /**< current color index */
-    int clr_pair_idx;             /**< current color pair index */
-    int cp_default;               /**< default color pair index */
-    int cp_norm;                  /**< normal color pair index */
-    int cp_win;                   /**< window color pair index */
-    int cp_nt_rev;                /**< reverse color pair index */
-    int cp_nt_hl;                 /**< highlight color pair index */
-    int cp_nt_hl_rev;             /**< reverse highlight color pair index */
-    int cp_box;                   /**< box color pair index */
-    int cp_bold;                  /**< bold color pair index */
-    int cp_title;                 /**< title color pair index */
-    int cp_highlight;             /**< highlight color pair index */
-    int cp_ln;                    /**< line number color pair index */
+        nt_hl_rev_bg[COLOR_LEN]; /**< normal text highlight reverse background */
+    char title_fg[COLOR_LEN];    /**< title foreground */
+    char title_bg[COLOR_LEN];    /**< title background */
+    char tty_name[MAXLEN];       /**< name of the terminal device */
+    FILE *stdin_fp;              /**< stdin stream pointer */
+    FILE *stdout_fp;             /**< stdout stream pointer */
+    FILE *stderr_fp;             /**< stderr stream pointer */
+    FILE *tty_fp;                /**< terminal device stream pointer */
+    int stdin_fd;                /**< stdin file descriptor */
+    int stdout_fd;               /**< stdout file descriptor */
+    int stderr_fd;               /**< stderr file descriptor */
+    int tty_fd;                  /**< terminal device file descriptor */
+    int clr_cnt;                 /**< number of colors currently in use */
+    int clr_pair_cnt;            /**< number of color pairs currently in use */
+    int clr_idx;                 /**< current color index */
+    int clr_pair_idx;            /**< current color pair index */
+    int cp_default;              /**< default color pair index */
+    int cp_norm;                 /**< normal color pair index */
+    int cp_win;                  /**< window color pair index */
+    int cp_nt_rev;               /**< reverse color pair index */
+    int cp_nt_hl;                /**< highlight color pair index */
+    int cp_nt_hl_rev;            /**< reverse highlight color pair index */
+    int cp_box;                  /**< box color pair index */
+    int cp_bold;                 /**< bold color pair index */
+    int cp_title;                /**< title color pair index */
+    int cp_highlight;            /**< highlight color pair index */
+    int cp_ln;                   /**< line number color pair index */
 } SIO;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);

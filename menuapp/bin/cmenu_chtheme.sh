@@ -4,7 +4,7 @@
 
 U=$(id -un)
 G=$(id -gn)
-themes_dir="$CMENU_HOME"/config
+themes_dir="$CMENU_HOME"/themes
 if [ ! -d "$themes_dir" ]; then
     echo "$0"
     echo "can't find $themes_dir"

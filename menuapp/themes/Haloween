@@ -1,0 +1,86 @@
+# /home/bill/menuapp/themes/Wild
+# C-Menu example theme
+#
+# C-Menu processes key value pairs in reading order from its
+# main configuraiton file, ~/ menuapp /.minitrc, and any other
+# configuration files sourced with include statements such as
+# the following:
+#
+# include = ~/menuapp/themes/default
+#
+# Assuming your configuration file is in ~/menuapp/themes/Red,
+# you could create a symbolic link named default that points to
+# Red, and then include default in your main configuration file.
+# (Actually ~/menuapp/.minitrc already includes default, so you
+# would only need to create the theme file and the symbolic link.
+#
+# ln -s Red default
+#
+# Key value pairs included from configuration files are
+# processed in reading order as they are included.
+#
+# This is significant in the event that a key is included more
+# than once in the configuration file and / or included files.
+# Only the last value read for a key will be used by C-Menu.
+#
+# If you want to override key values in the C-Menu configuration
+# file, you can do so by inserting an include statement for a
+# supplemental configuration file below the keys you want to
+# override in the C-Menu configuration file. Conversely, if you
+# want to use a supplemental configuration as the default,
+# include it first.
+#
+# Parsing: Lines beginning with # are comments and are ignored.
+# Lines containing key=value pairs are parsed and the key and
+# value are extracted. Lines without an '=' are ignored. Values
+# are stripped of leading and trailing whitespace and quotes.
+# Values can be enclosed in single or double quotes to preserve
+# leading and trailing whitespace. Values can also be specified
+# as hex color codes such as #ff0000 for red. If a value is
+# specified as a hex color code, it is parsed and stored as a
+# hex color code in the configuration. An unquoted '#' that is
+# not part of a six digit hex color code and after key values
+# have been extracted is the beginning of a comment.
+#
+fill_char=_                        # field fill_char
+brackets=[]                        # brackets around fields
+bg=#000000                         # Terminal (stdscr) background
+fg=#d0d0d0                         # Terminal (stdscr) foreground
+box_fg=#ff5000                     # box foreground
+box_bg=#000000                     # box background
+brackets_fg=#ff4000                # brackets foreground
+brackets_bg=#000000                # brackets background
+fill_char_fg=#00009f               # fill character foreground
+fill_char_bg=#000000               # fill character background
+ln_bg=#040812                      # line number background
+ln_fg=#0040ff                      # line number foreground
+nt_fg=#c0c0c0                      # normal text foreground
+nt_bg=#000000                      # normal text background
+nt_hl_fg=#ff5000                   # normal text highlight foreground
+nt_hl_bg=#000000                   # normal text highlight background
+nt_rev_fg=#000000                  # normal text reverse foreground
+nt_rev_bg=#d0d0d0                  # normal text reverse background
+nt_hl_rev_fg=#a04000               # normal text highlight reverse foreground
+nt_hl_rev_bg=#f0f0f0               # normal text highlight reverse background
+title_fg=#f0f0f0                   # title foreground
+title_bg=#000000                   # title background
+blue_gamma=1.20                    # blue_gamma (View)
+gray_gamma=1.20                    # gray gamma (View)
+green_gamma=1.20                   # green gamma (View)
+red_gamma=1.20                     # red gamma (View)
+black=#000000                      # black (#000000)
+red=#ff0000                        # red (#bf0000)
+green=#00e0af                      # green (#00cf00)
+yellow=#f0c000                     # yellow (#efbf00)
+blue=#0080ff                       # blue (#0000FF)
+magenta=#f000f0                    # magenta (#9f009f)
+cyan=#00dff0                       # cyan (#00dfdf)
+white=#c0c0c0                      # white (#d0d0d0)
+bblack=#000000                     # bright black (#7f7f7f)
+bred=#ff7f00                       # bright red (#FF3737)
+bgreen=#00ff9f                     # bright green (#00FF7f)
+byellow=#ffff00                    # bright yellow (#FFeF00)
+bblue=#00afff                      # bright blue (#00cfFF)
+bmagenta=#ff00ff                   # bright magenta (#FF00FF)
+bcyan=#00ffff                      # bright cyan (#00FFFF)
+bwhite=#ffffff                     # bright white (#FFFFFF)

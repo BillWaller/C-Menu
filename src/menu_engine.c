@@ -173,7 +173,7 @@ unsigned int menu_cmd_processor(Init *init) {
             wstr[0] = L'?';
             wstr[1] = L'\0';
         }
-        setcchar(&cc, wstr, WA_BOLD, cp_nt_hl_rev, nullptr);
+        setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl_rev, nullptr);
         mvwadd_wch(menu->win, menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos, &cc);
         wrefresh(menu->win);
