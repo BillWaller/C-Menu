@@ -132,7 +132,7 @@ RPATH=.:$(CMENU_LIB_DIR):$(LIB_DIR)
 PAM_DIR=/etc/pam.d
 
 BINEXES=menu form pick view ckeys whence rsh iloan amort enterchr \
-		enterstr lf stripansi
+		enterstr lf stripansi detach
 
 MANPAGES=cmenu.1.gz lf.1.gz rsh.1.gz
 
@@ -236,6 +236,9 @@ rsh.1.gz:	../docs/rsh.md
 stripansi:	include/cm.h stripansi.o $(LIB_SHARED)
 	$(CC) stripansi.o -o $@ $(LIBS)
 
+detach:	detach.o $(LIB_SHARED)
+	$(CC) detach.o -o $@ $(LIBS)
+
 CMenu.conf:
 	echo $(CMENU_LIB_DIR) >CMenu.conf
 
@@ -291,6 +294,7 @@ install:
 	install -CDp iloan	-t $(BIN_DIR)
 	install -CDp amort	-t $(BIN_DIR)
 	install -CDp stripansi	-t $(BIN_DIR)
+	install -CDp detach		-t $(BIN_DIR)
 	install -CDp rsh-auth-pc -t $(PAM_DIR) -o root	-g root -m 0644
 	install -CDp $(LIB_STATIC) -t $(CMENU_LIB_DIR)
 	install	-CDp $(LIB_SHARED) -T $(CMENU_LIB_DIR)/$(LIB_SHARED).$(VERSION)

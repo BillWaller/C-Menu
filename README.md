@@ -9,7 +9,9 @@ Version 0.2.9 2026-05-25
 Some programs, such as Kitty, have a command line option to detach from the
 calling process and run independently. That is very handy, for example, if you
 want to start htop in a separate terminal window. My favorite terminal emulator, Ghostty, doesn't have such an option. However, C-Menu's detached executable feature provides that capability with any terminal program, including Ghostty. Just use the
-"dexe" command in your menu description file, and the specified command will run in a detached process.
+"dexe" command in your menu description file, and the specified command will run in a detached process. If you want to run a detached process outside of C-Menu, such
+as on the command line or in a script, you can use the detach command
+distributed with C-Menu.
 
 ![Detached Executables](screenshots/dexe-composite.png)
 
