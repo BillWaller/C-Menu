@@ -378,6 +378,7 @@ int pick_engine(Init *init) {
                 }
                 if (f_processed) {
                     mvwaddstr(pick->win2, 0, 0, "Selection Processed");
+                    wclrtoeol(pick->win2);
                     wrefresh(pick->win2);
                 }
             }
@@ -781,9 +782,9 @@ int exec_objects(Init *init) {
     destroy_argv(eargc, eargv);
     restore_curses_tioctl();
     sig_prog_mode();
-    // werase(stdscr);
-    // wrefresh(stdscr);
-    // restore_wins();
+    werase(stdscr);
+    wrefresh(stdscr);
+    restore_wins();
     return rc;
 }
 /** @brief Initializes the pick window based on the parameters specified in the

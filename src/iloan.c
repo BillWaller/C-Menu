@@ -180,7 +180,11 @@ int main(int argc, char **argv) {
     signal(SIGQUIT, SIG_DFL);
     signal(SIGHUP, SIG_DFL);
 }
-
+/** @brief The following functions are used to accept user input for the present
+  value, number of payments, interest rate, and payment amount. They validate
+  the input to ensure it is numeric and meets the required conditions (e.g., non-negative).
+  If the input is invalid, an error message is displayed, and the user is prompted to enter the value again.
+*/
 double accept_pv() {
     double pv;
     while (1) {
@@ -201,7 +205,8 @@ double accept_pv() {
     }
     return (pv);
 }
-
+/** @brief The accept_n function prompts the user to enter the number of payments for the loan. It validates the input to ensure it is numeric and non-negative. If the input is invalid, an error message is displayed, and the user is prompted to enter the value again until a valid input is provided.
+ */
 double accept_n() {
     double n;
     while (1) {
@@ -217,7 +222,8 @@ double accept_n() {
     }
     return (n);
 }
-
+/** @brief The accept_i function prompts the user to enter the annual interest rate for the loan. It validates the input to ensure it is numeric and non-negative. If the input is invalid, an error message is displayed, and the user is prompted to enter the value again until a valid input is provided.
+ */
 double accept_i() {
     double i;
     while (1) {
@@ -238,7 +244,8 @@ double accept_i() {
     }
     return (i);
 }
-
+/** brief The accept_pmt function prompts the user to enter the payment amount for the loan. It validates the input to ensure it is numeric and non-negative. If the input is invalid, an error message is displayed, and the user is prompted to enter the value again until a valid input is provided.
+ */
 double accept_pmt() {
     double pmt;
     while (1) {
@@ -256,13 +263,15 @@ double accept_pmt() {
     }
     return (pmt);
 }
-
+/** @brief The error_press_any_key function is a utility function that displays an error message to the user and waits for them to press any key before continuing. It takes a string argument that contains the error message to be displayed. After the user presses a key, it prints two newlines for formatting.
+ */
 void error_press_any_key(char *s) {
     printf("%s", s);
     getc(stdin);
     printf("\n\n");
 }
-
+/** @brief The calculate_pv function calculates the present value of a loan based on the number of payments, interest rate, and payment amount. It uses the formula for the present value of an annuity to compute the result. If any of the input values are zero, it displays an error message and prompts the user to provide valid inputs.
+ */
 double calculate_pv(double n, double i, double pmt) {
     double i1, pv;
 
@@ -275,7 +284,8 @@ double calculate_pv(double n, double i, double pmt) {
         printf("Present Value - - - - - -> %s\n", format_currency(pv));
     return (pv);
 }
-
+/** @brief The calculate_n function calculates the number of payments required to pay off a loan based on the present value, interest rate, and payment amount. It uses logarithmic functions to compute the result. If any of the input values are zero, it displays an error message and prompts the user to provide valid inputs.
+ */
 double calculate_n(double pv, double i, double pmt) {
     double i1, n;
     if (pv == 0 || i == 0 || pmt == 0)
@@ -287,7 +297,8 @@ double calculate_n(double pv, double i, double pmt) {
         printf("Number of Payments  - - -> %s\n", format_currency(n));
     return (n);
 }
-
+/** @brief The calculate_i function calculates the annual interest rate for a loan based on the present value, number of payments, and payment amount. It uses an iterative method to find the interest rate that satisfies the loan equation. If any of the input values are zero, it displays an error message and prompts the user to provide valid inputs.
+ */
 double calculate_i(double pv, double n, double pmt) {
     double i1 = 0, i;
     double delta = 0.0000001;
@@ -324,7 +335,8 @@ double calculate_i(double pv, double n, double pmt) {
         printf("interest Rate - - - - - -> %s\n", format_interest(i));
     return (i);
 }
-
+/** @brief The calculate_pmt function calculates the payment amount for a loan based on the present value, number of payments, and interest rate. It uses the formula for the payment amount of an annuity to compute the result. If any of the input values are zero, it displays an error message and prompts the user to provide valid inputs.
+ */
 double calculate_pmt(double pv, double n, double i) {
     double i1, pmt;
     if (pv == 0 || n == 0 || i == 0)
@@ -336,7 +348,8 @@ double calculate_pmt(double pv, double n, double i) {
         printf("Payment Amount  - - - - -> %s\n", format_currency(pmt));
     return (pmt);
 }
-
+/** @brief The is_numeric function checks if a given string consists of numeric characters, including digits, decimal points, and commas. It iterates through each character in the string and returns FALSE if it encounters any character that is not a digit, a decimal point, or a comma. If all characters are valid, it returns TRUE.
+ */
 int is_numeric(char *s) {
     char c;
 
@@ -345,12 +358,14 @@ int is_numeric(char *s) {
             return (FALSE);
     return (TRUE);
 }
-
+/** @brief The accept_str function prompts the user with a given string and reads input from the standard input into a buffer. It uses the fprintf function to display the prompt and the read function to capture the user's input. The input is stored in the global buffer in_str, which can be used by other functions for further processing.
+ */
 void accept_str(char *s) {
     fprintf(stderr, "%s", s);
     read(0, in_str, BUFSIZ);
 }
-
+/** @brief The format_currency function takes a floating-point number as input and formats it as a currency string. It adds commas as thousand separators and ensures that the number is displayed with two decimal places. The function uses a static buffer to store the formatted string and returns a pointer to that buffer. The formatted string is right-aligned and padded with spaces if necessary.
+ */
 char *format_currency(float a) {
     int digit_count, left_of_point;
     static char sstr[80];
@@ -389,7 +404,8 @@ char *format_currency(float a) {
     *++dst_ptr = '\0';
     return (sptr);
 }
-
+/** @brief The format_interest function takes a floating-point number representing an interest rate and formats it as a string with five decimal places. It uses a static buffer to store the formatted string and returns a pointer to that buffer. The formatted string is left-aligned and padded with spaces if necessary.
+ */
 char *format_interest(float a) {
     static char sstr[80];
     char *s;
@@ -398,12 +414,14 @@ char *format_interest(float a) {
     s = sstr;
     return (s);
 }
-
+/** @brief The ABEND function is a signal handler that is called when the program receives certain signals (e.g., SIGINT, SIGQUIT, SIGHUP). It takes an integer argument representing the signal number and prints an error message indicating that an abnormal end (ABEND) has occurred, along with the signal number. After displaying the message, it exits the program with a failure status.
+ */
 void ABEND(int e) {
     printf("ABEND: Error %d:\n", e);
     exit(EXIT_FAILURE);
 }
-
+/** @brief The numbers function takes two character pointers as arguments: a destination pointer (d) and a source pointer (s). It iterates through the characters in the source string (s) and copies only the numeric characters (digits, decimal points, and minus signs) to the destination string (d). The function effectively filters out any non-numeric characters from the source string and constructs a new string containing only the valid numeric characters. Finally, it null-terminates the destination string.
+ */
 void numbers(char *d, char *s) {
     while (*s != '\0') {
         if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))
