@@ -11,7 +11,7 @@ the "Select C-Menu Theme" option. This will display a list of available themes. 
 
 ![Select Theme](../screenshots/GreenDark.png)
 
-That's it. The windows will instantly render with the theme you selected.
+That's it. C-Menu will instantly render any open C-Menu windows with the theme you selected.
 
 ## Creating New Themes
 
@@ -43,11 +43,16 @@ The same information that can be included in the main configuration file can als
 ## Theme Files
 
 Theme files are just supplemental configuration files that configure the appearance of C-Menu. Theme files are kept separately to facilitate coherent organization of theme
-components and to make it easier to create and manage themes. Theme files are included in the C-Menu configuration file with include statements such as the following:
+components, to make it easier to create and manage themes, and most importantly, to allow the user to activate themes without reloading the main C-Menu Configuration. That's because a user may have started C-Menu with specific command line options that override the main configuration file, and reloading the main configuration file would override those command line options. By keeping themes in separate files, users can activate themes without reloading the main configuration file and overriding any command line options they may have used when starting C-Menu.
+
+Theme files are included in the main C-Menu configuration file with include statements such as the following:
 
 ```cmenu
 include = ~/menuapp/themes/default
 ```
+
+The placement of the include statement in the main configuration file is
+significant because C-Menu processes key value pairs in reading order, so the key value pairs in the included file will override any duplicate key values in the main configuration file that are positioned before the include statement. Conversely, if you want to use a supplemental configuration as the default, include it first.
 
 ## Key Value Pairs
 
@@ -73,25 +78,14 @@ When you are finished editing the theme file, save it and close the text editor.
 There is no restriction on the names of theme files except that "default" is
 reserved for the default theme. The new theme will be available for selection in the "Select C-Menu Theme" menu.
 
-## Configuration Line Processing Order
+## Setting the New Theme as the Default
 
-C-Menu processes key value pairs in reading order from its main configuraiton file, ~/ menuapp /.minitrc, and any supplemental configuration files sourced with include statements such as the following:
-
-```cmenu
-include = ~/menuapp/themes/default
-```
-
-Assuming your configuration file is in ~/menuapp/themes/Red, you could create a symbolic link named default that points to Red, and then include default in your main configuration file. (Actually ~/menuapp/.minitrc already includes default, so you would only need to create the theme file and the symbolic link.
+If you use the C-Menu Workstation Configuration Menu to select the new theme,
+C-Menu will automatically create a symbolic link named "default" that points to the theme file you selected, so you don't need to do anything else. However, if you want to set the new theme as the default without using the C-Menu Workstation Configuration Menu, you can create a symbolic link named "default" that points to your new theme file with the following command:
 
 ```bash
 ln -s Red default
 ```
-
-Key value pairs included from configuration files (including theme files) are processed in reading order as they are included.
-
-This is significant in the event that a key is included more than once in the configuration file and / or included files. Only the last value read for a key will be used by C-Menu.
-
-If you want to override key values in the C-Menu configuration file, you can do so by including a supplemental configuration file that contains the desired key value pairs. The key value pairs in the included file will be processed in reading order after the key value pairs in the main configuration file, so they will override any duplicate key values in the main configuration file. Conversely, if you want to use a supplemental configuration as the default, include it first.
 
 ### Parsing Rules
 
