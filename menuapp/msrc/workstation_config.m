@@ -1,7 +1,11 @@
 :   Workstation Configuration Menu
 :
+:   Create C-Menu Theme
+!pick -n 1 -T "Choose Theme Template" -S cmenu_themes.sh -c "new_theme.sh %%"
+:   Edit C-Menu Theme
+!pick -r -n 1 -T "Edit C-Menu Theme" -S cmenu_themes.sh -c "nvim.sh %%"
 :   Select C-Menu Theme
-!pick -n 1 -T "Select C-Menu Theme" -S cmenu_themes.sh -c "cmenu_chtheme.sh %%"
+!pick -r -n 1 -T "Select C-Menu Theme" -S cmenu_themes.sh -c "cmenu_chtheme.sh %%"
 :   View SDDM Previews
 !exec sddm_preview.sh
 :   Select SDDM Background

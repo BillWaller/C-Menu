@@ -28,17 +28,6 @@ function ansi_color(hex_color) {
     return sprintf("%s\x1b[48;2;%d;%d;%dm", fg, rr, gg, bb)
 }
 
-function process_line() {
-    line = $0
-    if (match($0, /#[0-f]{6}/)) {
-        color = substr(line, RSTART, RLENGTH) 
-        ansi = ansi_color(color)
-        p1 = substr(line, 1, RSTART - 1)
-        p2 = substr(line, RSTART, RLENGTH)
-        p3 = substr(line, RSTART + RLENGTH)
-    }
-}
-
 BEGIN {
     ansioff = "\x1b[0m"
     while (getline > 0) {
@@ -51,13 +40,13 @@ BEGIN {
                 p1 = substr(line, 1, RSTART - 1)
                 p2 = substr(line, RSTART, RLENGTH)
                 p3 = substr(line, RSTART + RLENGTH)
-                lineout = sprintf("%s%s%s%s", p1, ansi, p2, ansioff)
+                lineout = sprintf("%s%s%s%s%s", lineout, p1, ansi, p2, ansioff)
                 if (length(p3) > 0) {
                     line = p3
                     continue
                 }
                 else
-                    line = ""
+                    break
             }
             else
                 lineout = sprintf("%s%s", lineout, line)

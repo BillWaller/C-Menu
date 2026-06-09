@@ -8,6 +8,7 @@ rm -rf tmp/*
 rm -f bin/ckeys
 rm -f bin/enterchr
 rm -f bin/enterstr
+rm -f bin/detach
 rm -f bin/lf
 rm -f bin/form
 rm -f bin/menu

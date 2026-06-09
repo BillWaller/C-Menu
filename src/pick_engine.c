@@ -556,22 +556,13 @@ void deselect_object(Pick *pick) {
 }
 int read_theme(Init *init) {
     int rc;
-    char theme_control_file[MAXLEN];
     expand_tilde(init->mapp_theme, MAXLEN - 1);
-    dir_name(theme_control_file, init->mapp_theme);
-    strnz__cat(theme_control_file, "/.control", MAXLEN - 1);
-    if (is_newer(theme_control_file, init->mapp_theme)) {
-        rc = process_config_file(init->mapp_theme, init);
-        if (rc)
-            return rc;
-        SIO *sio = init->sio;
-        initialize_local_colors(sio);
-        wrefresh(init->pick->win);
-        // wrefresh(init->pick->box);
-        // wrefresh(init->pick->win);
-        // wrefresh(init->pick->win2);
-        // display_page(pick);
-    }
+    rc = process_config_file(init->mapp_theme, init);
+    if (rc)
+        return rc;
+    SIO *sio = init->sio;
+    initialize_local_colors(sio);
+    wrefresh(init->pick->win);
     return 0;
 }
 

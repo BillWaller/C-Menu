@@ -1948,7 +1948,7 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
                     c = 0;
                     break;
                 }
-                if (chyron && event.y == getmaxy(mouse_win) - 1)
+                if (mouse_win == win2 && chyron && (event.y == getmaxy(mouse_win) - 1))
                     c = get_chyron_key(chyron, event.x);
                 break;
             }

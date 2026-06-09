@@ -2,18 +2,22 @@
 #
 :   -RFull Screen (Root) Shell
 !exec rsh
+:     Youtube (in Firefox)
+!dexe firefox https://www.youtube.com
+:     C-Menu (in ghostty)
+!dexe ghostty -e menu
+:     Kitty HTOP
+!exec kitty --detach -o initial_window_width=80c -o initial_window_height=20c htop
+:     Ghostty HTOP
+!dexe ghostty --window-width=80 --window-height=20 -e htop
+:     Issue RSH Certificate
+!form rshusers.f -i rshusers.dat -o rshusers.dat
 :   Workstation Configuration
 !menu workstation_config.m
 :   Diagnostic Utilities
 !menu diag.m
 :     Installment Loan Calculations
 !form iloan.f -i iloan.dat -S iloan -R "view -L60 -C62 -Nf -S \"amort %%\"" -o iloan.dat
-:     Doxygen
-!dexe doxywizard /srv/www/htdocs/C-Menu/Doxyfile
-:     Start New C-Menu Session in a New Terminal
-!dexe ghostty -e menu >/dev/null 2>&1
-:     Issue RSH Certificate
-!form rshusers.f -i rshusers.dat -o rshusers.dat
 :     Cash Receipts
 !form receipt.f -i receipt.dat -o receipt.dat
 :     Rustlings Source
