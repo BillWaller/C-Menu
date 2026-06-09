@@ -664,6 +664,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     if (pick->receiver_cmd[0] != '\0')
         expand_tilde(pick->receiver_cmd, MAXLEN - 1);
     pick->select_max = init->select_max;
+    pick->f_read_theme = init->f_read_theme;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
     return true;
 }

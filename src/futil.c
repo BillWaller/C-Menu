@@ -143,7 +143,22 @@ typedef struct {
 error_info_t error_info;
 error_source_t error_source;
 int wait_timeout;
-
+/** @brief Checks if the file specified by "fut" is newer than the file specified by "control".
+    @ingroup utility_functions
+    @param control - path to the control file
+    @param fut - path to the file to compare against the control file
+    @returns true if "fut" is newer than "control", false otherwise
+    @details This function uses the stat system call to retrieve the modification times of both files. It compares the modification time of "fut" with that of "control" and returns true if "fut" has a more recent modification time. If either file cannot be accessed or if any error occurs during the stat calls, this function returns false. The caller must ensure that both file paths are valid and that the files exist before calling this function.
+ */
+bool is_newer(char *control, char *fut) {
+    // is fut newer than control?
+    struct stat control_st, fut_st;
+    if (!stat(control, &control_st))
+        if (!lstat(fut, &fut_st))
+            if (fut_st.st_mtime > control_st.st_mtime)
+                return true;
+    return false;
+}
 /** @brief Retrieves the documentation string for a given key name from an argp
    options array.
     @ingroup utility_functions

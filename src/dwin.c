@@ -68,6 +68,7 @@ Chyron *destroy_chyron(Chyron *chyron);
 Chyron *wait_mk_chyron();
 
 int mb_to_cc(cchar_t *, char *, attr_t, int, int *, int);
+void initialize_local_colors(SIO *);
 
 int wait_continue(WINDOW *, Chyron *, int);
 bool wait_destroy(Chyron *);
@@ -109,14 +110,10 @@ const wchar_t bw_da = BW_DA;   /**< right arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
 const wchar_t bw_lan = BW_LAN; /**< right angle */
 
-double GRAY_GAMMA =
-    1.2; /**< Gamma correction value for gray colors. Set in .minitrc */
-double RED_GAMMA =
-    1.2; /**< Gamma correction value for red colors. Set in .minitrc */
-double GREEN_GAMMA =
-    1.2; /**< Gamma correction value for green colors. Set in .minitrc */
-double BLUE_GAMMA =
-    1.2; /**< Gamma correction value for blue colors. Set in .minitrc */
+double GRAY_GAMMA = 1.2;  /**< Gamma correction value for gray colors. Set in .minitrc */
+double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .minitrc */
+double GREEN_GAMMA = 1.2; /**< Gamma correction value for green colors. Set in .minitrc */
+double BLUE_GAMMA = 1.2;  /**< Gamma correction value for blue colors. Set in .minitrc */
 
 WINDOW *win;
 WINDOW *win_win[MAXWIN];
@@ -176,7 +173,9 @@ FILE *ncurses_fp;
     @details This function initializes color pairs for the window
     cp_nt, and cp_box are global variables
  */
-void win_init_attrs() { return; }
+void win_init_attrs() {
+    return;
+}
 
 /** open_curses
     @brief Initialize NCurses and color settings
@@ -236,7 +235,22 @@ bool open_curses(SIO *sio) {
         fprintf(stderr, "Check terminfo for missing \"ccc\"\n");
         abend(-1, "fatal error");
     }
-    init_clr_palette(sio);
+    initialize_local_colors(sio);
+    noecho();
+    keypad(stdscr, true);
+    idlok(stdscr, false);
+    idcok(stdscr, false);
+    wbkgrnd(stdscr, &CC_NORM);
+    werase(stdscr);
+    wrefresh(stdscr);
+#ifdef DEBUG_IMMEDOK
+    immedok(stdscr, true);
+#endif
+    win_ptr = -1;
+    return sio;
+}
+
+void initialize_local_colors(SIO *sio) {
     /** Set gamma correction values */
     /** These are read from ~/.minitrc */
     /** We need these values when initializing colors */
@@ -245,6 +259,7 @@ bool open_curses(SIO *sio) {
     BLUE_GAMMA = sio->blue_gamma;
     GRAY_GAMMA = sio->gray_gamma;
 
+    init_clr_palette(sio);
     // cp_ variables are indices for ncurses color pairs, created with get_clr_pair function. These color pairs are used to set the foreground and background colors for different elements of the interface, such as windows, text, and boxes. By defining these color pair indices as global variables, we can easily reference them throughout the code when applying colors to various parts of the interface using NCurses functions that accept color pair indices.
     cp_fill_char = get_clr_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
     cp_brackets = get_clr_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
@@ -268,18 +283,6 @@ bool open_curses(SIO *sio) {
     CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
-    noecho();
-    keypad(stdscr, true);
-    idlok(stdscr, false);
-    idcok(stdscr, false);
-    wbkgrnd(stdscr, &CC_NORM);
-    werase(stdscr);
-    wrefresh(stdscr);
-#ifdef DEBUG_IMMEDOK
-    immedok(stdscr, true);
-#endif
-    win_ptr = -1;
-    return sio;
 }
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
@@ -641,7 +644,8 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
    character is used)
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
-cchar_t mkcc(int cp, attr_t attr, char *s) {
+cchar_t
+mkcc(int cp, attr_t attr, char *s) {
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     size_t len;
@@ -664,7 +668,8 @@ cchar_t mkcc(int cp, attr_t attr, char *s) {
     setcchar(&cc, wstr, attr, cp, nullptr);
     return cc;
 }
-size_t str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t maxlen) {
+size_t
+str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t maxlen) {
     int i = 0, j = 0;
     int len = 0;
     cchar_t cc = {0};
@@ -705,7 +710,8 @@ size_t str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t 
     @param cp Color pair index for the complex characters
     @return Number of bytes processed from the input string
  */
-size_t mk_cmplx_str(cchar_t *cmplx_buf, char *s, attr_t attr, int cp) {
+size_t
+mk_cmplx_str(cchar_t *cmplx_buf, char *s, attr_t attr, int cp) {
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
     mbstate_t mbstate;
@@ -901,7 +907,6 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
-    // wbkgrndset(win_win[win_ptr], &CC_NT);
     wbkgrnd(win_win[win_ptr], &CC_NT);
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
@@ -928,7 +933,7 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
 #ifdef DEBUG_IMMEDOK
     immedok(win_win2[win_ptr], true);
 #endif
-    wbkgrndset(win_win2[win_ptr], &CC_NT);
+    wbkgrnd(win_win2[win_ptr], &CC_NT);
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
     idcok(win_win2[win_ptr], false);
@@ -996,7 +1001,8 @@ void win_redraw(WINDOW *win) {
    window, if they exist. It also refreshes the remaining windows to ensure the
    display is updated correctly. After calling this function, the global win_ptr
    variable is decremented to point to the previous window in the stack. */
-WINDOW *win_del() {
+WINDOW *
+win_del() {
     int i;
     if (win_ptr >= 0) {
         if (win_win[win_ptr] != nullptr) {
@@ -1141,7 +1147,8 @@ void cbox2(WINDOW *box) {
     @ingroup error_handling
     @param em0 Message to display
     @return Pointer to the created window, or nullptr if curses is not available or screen is too small */
-WINDOW *message_win(char *em0) {
+WINDOW *
+message_win(char *em0) {
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n\n", em0);
         return nullptr;
@@ -1217,8 +1224,7 @@ int answer_yn(char *em0, char *em1, char *em2, char *em3) {
         curs_set(1);
         cmd_key = xwgetch(error_win, chyron, -1);
         curs_set(0);
-        if (cmd_key == KEY_F(1) || cmd_key == 'N' || cmd_key == 'n' ||
-            cmd_key == 'Y' || cmd_key == 'y')
+        if (cmd_key == KEY_F(1) || cmd_key == 'N' || cmd_key == 'n' || cmd_key == 'Y' || cmd_key == 'y')
             break;
     } while (1);
     win_del();
@@ -1279,8 +1285,7 @@ int display_error(char *em0, char *em1, char *em2, char *em3) {
     display_chyron(error_win, chyron, 4, chyron->l + 1);
     do {
         cmd_key = xwgetch(error_win, chyron, -1);
-        if (cmd_key == KEY_F(9) || cmd_key == KEY_F(10) || cmd_key == 'q' ||
-            cmd_key == 'Q')
+        if (cmd_key == KEY_F(9) || cmd_key == KEY_F(10) || cmd_key == 'q' || cmd_key == 'Q')
             break;
     } while (1);
     win_del();
@@ -1345,7 +1350,8 @@ int Perror(char *emsg_str) {
     @brief Create a Chyron struct for the waiting message
     @ingroup error_handling
     @return Pointer to the chyron struct */
-Chyron *wait_mk_chyron() {
+Chyron *
+wait_mk_chyron() {
     Chyron *chyron = new_chyron();
     set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
     compile_chyron(chyron);
@@ -1357,7 +1363,8 @@ Chyron *wait_mk_chyron() {
     @param chyron Pointer to Chyron struct for displaying key options
     @param title window title
     @return WINDOW * struct */
-WINDOW *wait_mk_win(Chyron *chyron, char *title) {
+WINDOW *
+wait_mk_win(Chyron *chyron, char *title) {
     char wm1[] = "Seconds remaining:";
     int len;
     int line, col;
@@ -1467,7 +1474,8 @@ bool action_disposition(char *title, char *action_str) {
    character of the text is not '\0'. If any memory allocation fails, the
    function will call abend to handle the error and return nullptr.
  */
-Chyron *new_chyron() {
+Chyron *
+new_chyron() {
     Chyron *chyron = (Chyron *)calloc(1, sizeof(Chyron));
     if (!chyron) {
         abend(-1, "calloc chyron failed");
@@ -1483,7 +1491,8 @@ Chyron *new_chyron() {
     @param chyron pointer to Chyron structure
     @return nullptr
  */
-Chyron *destroy_chyron(Chyron *chyron) {
+Chyron *
+destroy_chyron(Chyron *chyron) {
     int i;
 
     if (!chyron)
@@ -1556,7 +1565,9 @@ void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
     @param chyron structure
     @param k chyron_key index
 */
-void unset_chyron_key(Chyron *chyron, int k) { chyron->key[k]->text[0] = '\0'; }
+void unset_chyron_key(Chyron *chyron, int k) {
+    chyron->key[k]->text[0] = '\0';
+}
 /**  compile_chyron
    @brief construct the chyron string from the chyron structure
     @ingroup Chyron
@@ -1785,8 +1796,7 @@ bool waitpid_with_timeout(pid_t pid, int timeout) {
 int xwgetch(WINDOW *win, Chyron *chyron, int n) {
     int c;
     MEVENT event;
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
-                  BUTTON5_PRESSED,
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED | BUTTON5_PRESSED,
               nullptr);
     click_y = event.y = -1;
     click_x = event.x = -1;
@@ -1826,8 +1836,7 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
             } else if (event.bstate & BUTTON5_PRESSED) {
                 return KEY_DOWN;
             }
-            if (event.bstate & BUTTON1_CLICKED ||
-                event.bstate & BUTTON1_DOUBLE_CLICKED) {
+            if (event.bstate & BUTTON1_CLICKED || event.bstate & BUTTON1_DOUBLE_CLICKED) {
                 if (wenclose(win, event.y, event.x)) {
                     wmouse_trafo(win, &event.y, &event.x, false);
                     click_y = event.y;
@@ -1860,8 +1869,7 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
 int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
     int c;
     MEVENT event;
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED |
-                  BUTTON5_PRESSED,
+    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED | BUTTON5_PRESSED,
               nullptr);
     click_y = event.y = -1;
     click_x = event.x = -1;
@@ -1901,8 +1909,7 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
             } else if (event.bstate & BUTTON5_PRESSED) {
                 return KEY_DOWN;
             }
-            if (event.bstate & BUTTON1_CLICKED ||
-                event.bstate & BUTTON1_DOUBLE_CLICKED) {
+            if (event.bstate & BUTTON1_CLICKED || event.bstate & BUTTON1_DOUBLE_CLICKED) {
                 // Check if the click is in win or win2, and set mouse_win
                 // accordingly
                 // don't free mouse_win, since it is borrowed
@@ -1910,9 +1917,7 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
                 if (wenclose(win, event.y, event.x)) {
                     if (wmouse_trafo(win, &event.y, &event.x, false))
                         mouse_win = win;
-                } else if (win2 != nullptr &&
-                           wenclose(win2, event.y, event.x) &&
-                           wmouse_trafo(win2, &event.y, &event.x, false))
+                } else if (win2 != nullptr && wenclose(win2, event.y, event.x) && wmouse_trafo(win2, &event.y, &event.x, false))
                     mouse_win = win2;
                 click_y = event.y;
                 click_x = event.x;

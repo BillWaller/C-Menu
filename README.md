@@ -17,6 +17,8 @@ distributed with C-Menu.
 
 ## C-Menu Themes
 
+There is no need to restart C-Menu to apply a new theme. Just click and done.
+
 ![A Few Samples of C-Menu Themes](screenshots/themes.png)
 
 ## Installment Loan Calculator - Built with C-Menu

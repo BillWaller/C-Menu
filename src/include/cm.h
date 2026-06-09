@@ -421,7 +421,7 @@ extern char *format_local_timestamp(time_t, char *, size_t);
 extern char *get_local_timestamp();
 extern char *get_user_str(char *, size_t);
 extern char *get_ip_addresses(char *, int);
-
+extern bool is_newer(char *, char *);
 extern cchar_t CC_REVERSE;   /**< curses default reverse */
 extern cchar_t CC_NT;        /**< C-Menu normal text */
 extern cchar_t CC_NT_REV;    /**< reverse */

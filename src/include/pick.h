@@ -56,6 +56,7 @@ typedef struct {
     bool f_in_pipe;              /**< flag: input spec is a pipe */
     bool f_out_pipe;             /**< flag: output spec is a pipe */
     bool f_help_spec;            /**< flag: help spec verified */
+    bool f_read_theme;           /**< flag: read and process default theme */
     bool f_multiple_cmd_args;    /**< flag: multiple command arguments */
     bool f_selected[OBJ_MAXCNT]; /**< flag: object selected */
     bool help;                   /**< flag: help requested */
@@ -63,10 +64,10 @@ typedef struct {
     bool f_receiver_cmd;         /**< flag: receiver command verified */
     bool f_cmd;                  /**< flag: command verified */
     char in_buf[BUFSIZ];         /**< input buffer */
-    char **m_object; /**< master object table (as read from input) */
-    int select_idx;  /**< index of current selected object */
-    int select_cnt;  /**< count of selected objects */
-    int select_max;  /**< maximum number of selected objects */
+    char **m_object;             /**< master object table (as read from input) */
+    int select_idx;              /**< index of current selected object */
+    int select_cnt;              /**< count of selected objects */
+    int select_max;              /**< maximum number of selected objects */
     int m_cnt;
     int d_cnt;
     int m_idx;       /**< count of objects */
