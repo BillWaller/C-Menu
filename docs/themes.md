@@ -30,14 +30,20 @@ The C-Menu theme files are extensions of the C-Menu configuration file. Any key 
 
 ![Edit C-Menu Theme](../screenshots/edit_theme.png)
 
+## Key Value Pairs
+
 The colors are standard six-digit html-style hex color codes in the format
 '#RRGGBB', where RR, GG, and BB are two-digit hexadecimal numbers representing the red, green, and blue components of the color, respectively. For example, '#FF0000' represents pure red, '#00FF00' represents pure green, and '#0000FF' represents pure blue.
 
 The hex color codes must begin with a '#" character, followed by exactly six hexadecimal digits.
 
+## Comments
+
 A '#' character that is not part of a value is treated as a comment character,
 and the rest of the line is ignored. This allows you to add comments documenting
 your entries in the theme file.
+
+## Saving the Theme File
 
 When you are finished editing the theme file, save it and close the text editor. You may use the name assigned, which will be in the form, "New.XXXXX", where "XXXXX" is a random string of characters, or you can rename the file to something more descriptive.
 There is no restriction on the names of theme files except that "default" is
@@ -51,11 +57,15 @@ C-Menu configuration files are text files that contain key value pairs that conf
 
 C-Menu processes key value pairs in reading order from its main configuraiton file, ~/ menuapp /.minitrc, and any other configuration files sourced with include statements such as the following:
 
+```cmenu
 include = ~/menuapp/themes/default
+```
 
 Assuming your configuration file is in ~/menuapp/themes/Red, you could create a symbolic link named default that points to Red, and then include default in your main configuration file. (Actually ~/menuapp/.minitrc already includes default, so you would only need to create the theme file and the symbolic link.
 
+```bash
 ln -s Red default
+```
 
 Key value pairs included from configuration files (including theme files) are processed in reading order as they are included.
 
