@@ -22,6 +22,8 @@ You can choose one of the included themes or create your own. C-Menu's theming s
 
 ![A Few Samples of C-Menu Themes](screenshots/themes.png)
 
+[C-Menu Themes Documentation](docs/themes.md)
+
 ## Installment Loan Calculator - Built with C-Menu
 
 ![Installment Loan Calculator](screenshots/iloan.png)
