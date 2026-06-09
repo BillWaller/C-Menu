@@ -18,6 +18,7 @@ distributed with C-Menu.
 ## C-Menu Themes
 
 There is no need to restart C-Menu to apply a new theme. Just click and done.
+You can choose one of the included themes or create your own. C-Menu's theming system is flexible and allows you to customize the appearance of your terminal applications with ease. I would only ask that you consider sharing your themes with the community if you create something you like. You can share your themes by submitting a pull request. Your themes will be appreciated by other users, and they will be a great way to contribute to the project. If you want to see how themes are created, you can check out the forthcoming [C-Menu Theme Documentation](docs/themes.md) for more information on how to create and customize themes. C-Menu makes it Easy Peasy and fun to boot!
 
 ![A Few Samples of C-Menu Themes](screenshots/themes.png)
 
