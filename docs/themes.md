@@ -30,14 +30,38 @@ The C-Menu theme files are extensions of the C-Menu configuration file. Any key 
 
 ![Edit C-Menu Theme](../screenshots/edit_theme.png)
 
+## C-Menu Configuration Files
+
+C-Menu configuration files are text files that contain key value pairs that configure the appearance and behavior of C-Menu. The main C-Menu configuration file is normally located at ~/menuapp/.minitrc, but you can include additional configuration files with include statements such as the following:
+
+```cmenu
+include = ~/menuapp/themes/default
+```
+
+The same information that can be included in the main configuration file can also be included in theme files and vice versa. The difference is that theme files are kept in ~/menuapp/themes as a convenience. The main C-Menu Configuration file normally includes all of the entries needed for a complete theme, so it is not necessary to include theme files in the main configuration file. The Theme file is just a supplementary configuration file, the key values of which override those in the main configuration file positioned before the include statement. C-Menu uses only the last occurrence of a key and its value.
+
+## Theme Files
+
+Theme files are just supplemental configuration files that configure the appearance of C-Menu. Theme files are kept separately to facilitate coherent organization of theme
+components and to make it easier to create and manage themes. Theme files are included in the C-Menu configuration file with include statements such as the following:
+
+```cmenu
+include = ~/menuapp/themes/default
+```
+
 ## Key Value Pairs
 
-The colors are standard six-digit html-style hex color codes in the format
-'#RRGGBB', where RR, GG, and BB are two-digit hexadecimal numbers representing the red, green, and blue components of the color, respectively. For example, '#FF0000' represents pure red, '#00FF00' represents pure green, and '#0000FF' represents pure blue.
+Key value pairs consist of a key, text from the beginning of a line delimited by
+an '=' character, and a value after the '=' character delimited by whitespace or
+including syntactically valid hex color codes. Values may be enclosed in single or double quotes to preserve leading and trailing whitespace, which will otherwise be stripped.
+
+### Colors
+
+Colors are standard six-digit html-style hex color codes in the format '#RRGGBB', where RR, GG, and BB are two-digit hexadecimal numbers representing the red, green, and blue components of the color, respectively. For example, '#FF0000' represents pure red, '#00FF00' represents pure green, and '#0000FF' represents pure blue.
 
 The hex color codes must begin with a '#" character, followed by exactly six hexadecimal digits.
 
-## Comments
+### Comments
 
 A '#' character that is not part of a value is treated as a comment character,
 and the rest of the line is ignored. This allows you to add comments documenting
@@ -49,13 +73,9 @@ When you are finished editing the theme file, save it and close the text editor.
 There is no restriction on the names of theme files except that "default" is
 reserved for the default theme. The new theme will be available for selection in the "Select C-Menu Theme" menu.
 
-## C-Menu Configuration Files
+## Configuration Line Processing Order
 
-C-Menu configuration files are text files that contain key value pairs that configure the appearance and behavior of C-Menu.
-
-### Processing Order
-
-C-Menu processes key value pairs in reading order from its main configuraiton file, ~/ menuapp /.minitrc, and any other configuration files sourced with include statements such as the following:
+C-Menu processes key value pairs in reading order from its main configuraiton file, ~/ menuapp /.minitrc, and any supplemental configuration files sourced with include statements such as the following:
 
 ```cmenu
 include = ~/menuapp/themes/default
