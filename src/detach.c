@@ -1,3 +1,12 @@
+/** @file detach.c
+    @brief Launch executable, detaching from current process
+    @author Bill Waller
+    Copyright (c) 2025
+    MIT License
+    billxwaller@gmail.com
+    @date 2026-02-09
+ */
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>

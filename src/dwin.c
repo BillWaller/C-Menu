@@ -249,7 +249,16 @@ bool open_curses(SIO *sio) {
     win_ptr = -1;
     return sio;
 }
-
+/** @brief Initialize local color variables and color pairs based on SIO settings
+    @ingroup color_management
+    @param sio Pointer to SIO struct with color settings
+    @details This function initializes local color variables and color pairs
+   based on the settings in the SIO struct. It applies gamma correction to
+   colors and sets up cchar_t variables for use in NCurses functions. The color
+   pair indices are stored in global variables for easy reference throughout the
+   code when applying colors to various parts of the interface using NCurses
+   functions that accept color pair indices.
+ */
 void initialize_local_colors(SIO *sio) {
     /** Set gamma correction values */
     /** These are read from ~/.minitrc */
@@ -668,6 +677,20 @@ mkcc(int cp, attr_t attr, char *s) {
     setcchar(&cc, wstr, attr, cp, nullptr);
     return cc;
 }
+/** str_to_cc
+    @brief Convert a multibyte string to an array of cchar_t complex characters
+    @ingroup color_management
+    @param cmplx_buf Output buffer for complex characters
+    @param s Input multibyte string
+    @param attr Attributes to apply to the complex characters
+    @param cp Color pair index for the complex characters
+    @param maxlen Maximum length of the output buffer
+    @return Number of complex characters added to the output buffer
+    @details This function converts a multibyte string to an array of cchar_t
+   complex characters that can be used with NCurses functions. It handles
+   multibyte characters and applies the specified color pair to each character.
+   The function ensures that it does not exceed the maximum length of the output
+   buffer. */
 size_t
 str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t maxlen) {
     int i = 0, j = 0;

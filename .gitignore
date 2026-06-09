@@ -3,6 +3,7 @@ src/*.o
 src/.clang-format
 src/amort
 src/ckeys
+src/detach
 src/menu
 src/form
 src/pick
