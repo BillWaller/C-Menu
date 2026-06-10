@@ -1,17 +1,16 @@
-![C-Menu Themes](../screenshots/Themes.png)
+![C-Menu Themes](../screenshots/themes_hdr.png)
 
-# C-Menu How-To Themes
+# C-Menu Themes
 
 C-Menu supports themes, which allow you to customize the appearance of the menu. You can create your own themes or use one of the built-in themes.
 
 ## Selecting Themes
 
-To select a theme, go to the C-Menu Workstation Configuration Menu and select
-the "Select C-Menu Theme" option. This will display a list of available themes. Select the theme you want by clicking on it, or use the arrow keys to position the cursor on the theme and press "t" or " " (spacebar) to select it.")
+To select a theme, go to the C-Menu Workstation Configuration Menu and select the Select C-Menu Theme option. This will display a list of available themes. Select the theme you want. Either click it, or move the selector over it with the arrow keys and press the spacebar.
 
-![Select Theme](../screenshots/GreenDark.png)
+![Select Theme](../screenshots/green_dark.png)
 
-That's it. C-Menu will instantly render any open C-Menu windows with the theme you selected.
+That's it. C-Menu will instantly render open C-Menu windows with the theme you selected.
 
 ## Creating New Themes
 
@@ -21,8 +20,8 @@ selecting themes, but the title will be "Choose Theme Template". Select a theme
 template to use as a starting point for you new theme.
 
 When you select a theme template, C-Menu Pick will make a copy of the file you
-selected as a template and o pen it in your default text editor. Below, you can
-see how the file looks when opened in Neovim with the Colorizer plugin enabled. The Colorizer plugin will display the colors and update them as you edit the file, making it easier to see the changes you are making to the theme.
+selected as a template and open it in your default text editor. Below, you can
+see how the file looks when opened in Neovim with the Norcalli Colorizer plugin enabled. The Colorizer plugin will display the colors and update them as you edit the file, making it easier to see the changes you are making to the theme.
 
 [Neovim Colorizer on github](https://github.com/norcalli/nvim-colorizer.lua)
 
@@ -90,3 +89,9 @@ ln -s Red default
 ### Parsing Rules
 
 Parsing: Lines beginning with # are comments and are ignored. Lines containing key=value pairs are parsed and the key and value are extracted. Lines without an '=' are ignored. Values are stripped of leading and trailing whitespace and quotes. Values can be enclosed in single or double quotes to preserve leading and trailing whitespace. Values can also be specified as hex color codes such as #ff0000 for red. If a value is specified as a hex color code, it is parsed and stored as a hex color code in the configuration. An unquoted '#' that is not part of a six digit hex color code and after key values have been extracted is the beginning of a comment.
+
+## Conclusion
+
+C-Menu themes allow you to customize the appearance of C-Menu to your liking. You can create your own themes or use one of the built-in themes. By using themes, you can easily switch between different appearances for C-Menu without having to edit the main configuration file or restart C-Menu. Themes are a powerful way to personalize your C-Menu experience and make it more enjoyable to use. Whether you prefer a dark theme, a light theme, or something in between, C-Menu has you covered with its flexible theming system.
+
+With this knowledge, go forth and create your own custom themes to make C-Menu look exactly how you want it to!

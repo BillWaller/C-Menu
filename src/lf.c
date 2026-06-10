@@ -57,7 +57,7 @@ const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
                    "formatted regular expression for which matching files "
                    "will be listed.";
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
-int nthreads;
+unsigned int nthreads;
 
 // Search Filters
 typedef struct {
@@ -513,14 +513,16 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
             return false;
         }
     }
-    int n = get_nprocs();
-    if (nthreads < 0) {
-        if (n + nthreads > 1)
-            n += nthreads;
-    } else if (nthreads == 0)
-        nthreads = max(1, ((n * 40) / 99 + 1));
-    else if (nthreads > n)
-        nthreads = n - 1;
+    unsigned int nprocs = get_nprocs();
+    if (nthreads > 1 && nthreads < nprocs)
+        nthreads += nprocs;
+    else {
+        if (nthreads == 0)
+            nthreads = ((nprocs * 40) / 99) + 1;
+    }
+    if (nthreads > nprocs)
+        nthreads = nprocs - 1;
+
     debug_out(f, argc, argv, nthreads);
     //--------------------------------------------------------------------
     // Create and enqueue the first TaskNode
@@ -536,7 +538,7 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
             child_task->history[0].ino = st.st_ino;
             enqueue_dir(child_task);
             pthread_t threads[nthreads];
-            for (int i = 0; i < nthreads; i++) {
+            for (unsigned int i = 0; i < nthreads; i++) {
                 pthread_create(&threads[i], NULL, finder, f);
             }
             pthread_mutex_lock(&queue_mutex);
@@ -544,7 +546,7 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
                 pthread_cond_wait(&cond_var, &queue_mutex);
             }
             pthread_mutex_unlock(&queue_mutex);
-            for (int i = 0; i < nthreads; i++)
+            for (unsigned int i = 0; i < nthreads; i++)
                 pthread_join(threads[i], NULL);
         } else {
             fprintf(stderr,
@@ -582,7 +584,7 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
 void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
     char user_str[100];
     char ip_str[MAXLEN];
-    int len;
+    int len = 0;
     int i;
     bool addspace_before = false;
     if (f->debug && (f->report_config || f->report_info || f->report_all)) {
@@ -868,7 +870,6 @@ void *finder(void *arg) {
         while ((entry = readdir(dir)) != NULL) {
             struct stat st;
             // real_type = '\0';
-            effective_type = '\0';
             if (entry->d_name[0] == '.') {
                 if (entry->d_name[1] == '\0')
                     continue;

@@ -28,15 +28,29 @@ You can choose one of the included themes or create your own. C-Menu's theming s
 
 ## Installment Loan Calculator - Built with C-Menu
 
+The Installment Loan Calculator is a practical example of how C-Menu can be used
+to create a powerful financial modeling tool in just a few steps. It demonstrates how to use C-Menu's form component to enter loan parameters, perform calculations, and display results in an interactive terminal interface. The calculator allows users to input the principal amount, interest rate, loan term, and payment frequency, and then calculates the monthly payment, total interest paid, and total cost of the loan. This example showcases the versatility of C-Menu for building real-world applications that can be used for financial planning and decision-making.
+
+The same features used to create the Installment Loan Calculator can just as
+easily be used to perform database queries or interact with APIs. The possibilities are endless, and C-Menu provides a powerful and flexible framework for building a wide range of terminal-based applications.
+
 ![Installment Loan Calculator](screenshots/iloan.png)
 
 ## New Features for lf
+
+The design objectives for 'lf' were to create a fast, flexible, and super easy to use file finder with a minimal footprint. With multi-threaded worker queues, it is among the fastest file finders available, and it is designed to be used across a wide range of platforms, including those with limited resources. 'lf' is lean and powerful.
 
 ![C-Menu lf Feature Update](screenshots/lf-composite.png)
 
 **_NEW_**:
 
 [lf manual page](docs/lf.md)
+
+## C-Menu View
+
+C-Menu's view component is a read-only viewer for files and command output. It supports Unicode, line numbering, regular-expression searching, horizontal scrolling with a large virtual pad, and highlighted output from tools such as Tree-sitter, `bat`, `pygments`, and `source-highlight`. View achieves incredible performance with zero-copy seek and read operations directly from the kernel's demand paged virtual memory. If you work with large datasets, you will love C-Menu View.
+
+![C-Menu View](screenshots/view.png)
 
 ## C-Menu Introduction
 

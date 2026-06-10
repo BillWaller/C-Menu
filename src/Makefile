@@ -64,7 +64,6 @@ LINKOPT = -pthread -flto
 # Standard Debugging Flags
 CFLAGS=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic
 # -DDEUBG_IMMEDOK
-# -DDEUBG_IMMEDOK
 # LINKOPT = -pthread
 # CFLAGS=-DDEBUG_RESIZE -DDEUBG_IMMEDOK -DDEBUG_LOG
 #
@@ -275,7 +274,8 @@ valgrind: lf
 		--leak-resolution=high \
 		--track-origins=yes \
 		--suppressions=valgrind.supp \
-		./lf -H -L -T6 /home/bill
+		./menu
+#	lf -H -L -T6 /home/bill
 # --tool=memcheck
 
 install:

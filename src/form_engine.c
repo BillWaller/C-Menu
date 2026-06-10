@@ -571,10 +571,10 @@ void form_display_fields(Form *form) {
 
         if (form->field[form->fidx]->accept_s[0] != '\0') {
             strnz(form->field[form->fidx]->accept_s, form->field[form->fidx]->len);
-            d = form->field[form->fidx]->accept_s;
+            // d = form->field[form->fidx]->accept_s;
         } else {
             memset(form->field[form->fidx]->accept_s, 0, MAXLEN);
-            d = form->field[form->fidx]->accept_s;
+            // d = form->field[form->fidx]->accept_s;
         }
         strnz(form->field[form->fidx]->display_s, form->field[form->fidx]->len);
 

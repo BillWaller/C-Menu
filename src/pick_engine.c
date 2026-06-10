@@ -875,7 +875,7 @@ int picker(Init *init, char *field) {
     char *ptr; /* pointer to current cursor position within field buffer */
     int pos;
     char prev_field[MAXLEN];
-    int prev_pos;
+    int prev_pos = 0;
     char *prev_ptr;
 
     pick = init->pick;
@@ -985,7 +985,6 @@ int picker(Init *init, char *field) {
                     display_page(pick);
                 in_key = 0;
                 continue;
-
             case '\t':
                 in_key = 0;
                 break;
