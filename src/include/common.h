@@ -48,30 +48,28 @@
 #define P_WRITE 1
 #define TRUE 1
 
-#define new_cmenu()                         \
-    __end_pgm;                              \
-    int main (int argc, char **argv)        \
-    {                                       \
-        __atexit;                           \
-        capture_shell_tioctl ();            \
-        Init *init = new_init (argc, argv); \
-        SIO *sio = init->sio;               \
-        mapp_initialization (init);         \
-        open_curses (sio);                  \
-        sig_prog_mode ();                   \
-        capture_curses_tioctl ();           \
-        win_init_attrs ();
+#define new_cmenu()                        \
+    __end_pgm;                             \
+    int main(int argc, char **argv) {      \
+        __atexit;                          \
+        capture_shell_tioctl();            \
+        Init *init = new_init(argc, argv); \
+        SIO *sio = init->sio;              \
+        mapp_initialization(init);         \
+        open_curses(sio);                  \
+        sig_prog_mode();                   \
+        capture_curses_tioctl();           \
+        win_init_attrs();
 
-#define destroy_cmenu()  \
-    destroy_init (init); \
-    win_del ();          \
-    curs_set (1);        \
-    destroy_curses ();   \
-    return 0;            \
+#define destroy_cmenu() \
+    destroy_init(init); \
+    win_del();          \
+    curs_set(1);        \
+    destroy_curses();   \
+    return 0;           \
     }
 
-typedef enum
-{
+typedef enum {
     VIEW,
     FORM,
     PICK,
@@ -79,8 +77,7 @@ typedef enum
 } Caller;
 
 /** @brief option types */
-typedef enum
-{
+typedef enum {
     OT_STRING,
     OT_INT,
     OT_BOOL,
@@ -88,8 +85,7 @@ typedef enum
 } OptType;
 
 /** @brief option groups */
-typedef enum
-{
+typedef enum {
     OG_FILES,
     OG_DIRS,
     OG_SPECS,
@@ -178,6 +174,7 @@ typedef struct
     int select_max; /**< Pick maximum number of selections */
     // View
     int tab_stop; /**< View - number of spapaces per tab */
+    int h_shift;  /**< View - horizontal scroll shift width */
     Menu *menu;   /**< menu data structure */
     int menu_cnt; /**< number of menu data structures allocated */
     Form *form;   /**< form data structure */
@@ -191,42 +188,42 @@ typedef struct
 extern Init *init;
 extern int init_cnt; /** number of Init data structures allocated */
 extern char minitrc[MAXLEN];
-extern void mapp_initialization (Init *, int, char **);
-extern Init *new_init (int, char **);
-extern View *new_view (Init *);
-extern Form *new_form (Init *, int, char **, int, int);
-extern Pick *new_pick (Init *, int, char **, int, int);
-extern Menu *new_menu (Init *, int, char **, int, int);
-extern int popup_menu (Init *, int, char **, int, int);
-extern int popup_form (Init *, int, char **, int, int);
-extern int popup_pick (Init *, int, char **, int, int);
-extern int popup_view (Init *, int, char **, int, int, int, int);
-extern int popup_ckeys ();
-extern Menu *destroy_menu (Init *init);
-extern Pick *destroy_pick (Init *init);
-extern Form *destroy_form (Init *init);
-extern View *destroy_view (Init *init);
-extern Init *destroy_init (Init *init);
-extern int parse_opt_args (Init *, int, char **);
-extern void zero_opt_args (Init *);
-extern int write_config (Init *);
-extern bool derive_file_spec (char *, char *, char *);
-extern bool init_menu_files (Init *, int, char **);
-extern unsigned int menu_engine (Init *);
-extern unsigned int parse_menu_description (Init *);
-extern int init_form (Init *, int, char **, int, int);
-extern int init_pick (Init *, int, char **, int, int);
-extern int open_pick_win (Init *);
-extern int pick_engine (Init *);
-extern int cmd_processor (Init *);
-extern int view_file (Init *);
-extern int init_view_full_screen (Init *);
-extern int init_view_boxwin (Init *, char *);
-extern int view_init_input (View *, char *);
-extern void view_calc_full_screen_dimensions (Init *);
-extern void view_full_screen_resize (Init *);
-extern void view_calc_win_dimensions (Init *, char *title);
-extern void view_win_resize (Init *, char *);
-extern int process_config_file (char *, Init *);
-extern void initialize_local_colors (SIO *);
+extern void mapp_initialization(Init *, int, char **);
+extern Init *new_init(int, char **);
+extern View *new_view(Init *);
+extern Form *new_form(Init *, int, char **, int, int);
+extern Pick *new_pick(Init *, int, char **, int, int);
+extern Menu *new_menu(Init *, int, char **, int, int);
+extern int popup_menu(Init *, int, char **, int, int);
+extern int popup_form(Init *, int, char **, int, int);
+extern int popup_pick(Init *, int, char **, int, int);
+extern int popup_view(Init *, int, char **, int, int, int, int);
+extern int popup_ckeys();
+extern Menu *destroy_menu(Init *init);
+extern Pick *destroy_pick(Init *init);
+extern Form *destroy_form(Init *init);
+extern View *destroy_view(Init *init);
+extern Init *destroy_init(Init *init);
+extern int parse_opt_args(Init *, int, char **);
+extern void zero_opt_args(Init *);
+extern int write_config(Init *);
+extern bool derive_file_spec(char *, char *, char *);
+extern bool init_menu_files(Init *, int, char **);
+extern unsigned int menu_engine(Init *);
+extern unsigned int parse_menu_description(Init *);
+extern int init_form(Init *, int, char **, int, int);
+extern int init_pick(Init *, int, char **, int, int);
+extern int open_pick_win(Init *);
+extern int pick_engine(Init *);
+extern int cmd_processor(Init *);
+extern int view_file(Init *);
+extern int init_view_full_screen(Init *);
+extern int init_view_boxwin(Init *, char *);
+extern int view_init_input(View *, char *);
+extern void view_calc_full_screen_dimensions(Init *);
+extern void view_full_screen_resize(Init *);
+extern void view_calc_win_dimensions(Init *, char *title);
+extern void view_win_resize(Init *, char *);
+extern int process_config_file(char *, Init *);
+extern void initialize_local_colors(SIO *);
 #endif

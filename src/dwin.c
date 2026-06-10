@@ -1957,3 +1957,35 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
     restore_curses_tioctl();
     return c;
 }
+int vgetch(WINDOW *win, int n) {
+    int c;
+    mousemask(0, nullptr);
+
+    if (n == -1) {
+        struct termios raw_tioctl;
+        raw_tioctl = curses_tioctl;
+        mk_raw_tioctl(&raw_tioctl);
+    } else if (n == 0)
+        halfdelay(1);
+    else
+        halfdelay(min(255, max(0, n * 10)));
+    // tcflush(2, TCIFLUSH);
+    curs_set(1);
+    do {
+        c = wgetch(win);
+        //     curs_set(0);
+        //     if (sig_received != 0) {
+        //         if (handle_signal(sig_received))
+        //             c = display_error(em0, em1, em2, nullptr);
+        //         if (c == 'q' || c == 'Q' || c == KEY_F(9))
+        //             exit(EXIT_FAILURE);
+        //     }
+        if (n > 0 && c == ERR) {
+            c = 0;
+            break;
+        }
+    } while (c == ERR);
+    curs_set(0);
+    // restore_curses_tioctl();
+    return c;
+}

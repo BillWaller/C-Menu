@@ -312,6 +312,7 @@ typedef struct {
     int l;                       /**< length of the chyron string, for display purposes */
 } Chyron;
 
+extern int vgetch(WINDOW *, int);
 extern int xwgetch(WINDOW *, Chyron *, int);
 extern int dxwgetch(WINDOW *, WINDOW *, Chyron *, int);
 

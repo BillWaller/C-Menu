@@ -795,7 +795,9 @@ bool init_view_files(Init *init) {
     view->f_ignore_case = init->f_ignore_case;
     view->f_at_end_remove = init->f_at_end_remove;
     view->f_squeeze = init->f_squeeze;
+    view->tab_stop = init->tab_stop;
     view->f_ln = init->f_ln;
+    view->h_shift = init->h_shift;
     e = getenv("VIEW_HELP_FILE");
     if (e && e[0] != '\0') {
         strnz__cpy(view->help_spec, e, MAXLEN - 1);

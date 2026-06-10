@@ -249,8 +249,14 @@ int view_cmd_processor(Init *init) {
         case Ctrl('H'):
         case KEY_LEFT:
         case KEY_BACKSPACE:
-            if (n_cmd <= 0)
-                n_cmd = 1;
+            if (n_cmd > 0)
+                view->h_shift = n_cmd;
+            else if (n_cmd == 0) {
+                if (view->h_shift > 0)
+                    n_cmd = view->h_shift;
+                else
+                    n_cmd = 1;
+            }
             shift = (int)n_cmd;
             // swidth = view->smaxcol - view->smincol;
             if (view->pmincol - shift > 0)
@@ -262,8 +268,14 @@ int view_cmd_processor(Init *init) {
                      thirds of the page width */
         case 'L':
         case KEY_RIGHT:
-            if (n_cmd <= 0)
-                n_cmd = 1;
+            if (n_cmd > 0)
+                view->h_shift = n_cmd;
+            else if (n_cmd == 0) {
+                if (view->h_shift > 0)
+                    n_cmd = view->h_shift;
+                else
+                    n_cmd = 1;
+            }
             shift = (int)n_cmd;
             swidth = view->smaxcol - view->smincol + 1;
             if (view->f_ln)
@@ -699,17 +711,22 @@ int get_cmd_char(View *view, off_t *n) {
     pad_refresh(view);
     wmove(view->cmdln_win, view->cmd_line, view->curx);
     do {
-        c = xwgetch(view->cmdln_win, nullptr, 0);
+        c = vgetch(view->cmdln_win, 0);
         if ((c >= '0' && c <= '9') && i < 32) {
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
         } else {
             if (c >= 256)
-                return c;
+                break;
             else
                 continue;
         }
     } while (c >= '0' && c <= '9');
+    if (cmd_str[0] == '\0') {
+        *n = 0;
+        view->cmd_arg[0] = '\0';
+        return (c);
+    }
     *n = atol(cmd_str);
     view->cmd_arg[0] = '\0';
     return (c);
@@ -769,7 +786,7 @@ int get_cmd_arg(View *view, char *prompt) {
     }
     wclrtoeol(view->cmdln_win);
     while (1) {
-        c = xwgetch(view->cmdln_win, nullptr, -1);
+        c = vgetch(view->cmdln_win, -1);
         switch (c) {
         /** Basic Editing Keys for Command Line */
         case KEY_LEFT:
@@ -1938,7 +1955,7 @@ void remove_file(View *view) {
         wmove(view->pad, view->cmd_line, 0);
         waddstr(view->pad, "Remove File (Y or N)->");
         wclrtoeol(view->pad);
-        c = (char)xwgetch(view->cmdln_win, nullptr, -1);
+        c = (char)vgetch(view->cmdln_win, -1);
         waddch(view->pad, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);

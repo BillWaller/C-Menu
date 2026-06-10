@@ -29,65 +29,69 @@ typedef struct Init Init;
 #define BUFSIZ 8192
 #define PAD_COLS 4096
 
-typedef enum { PT_NONE, PT_SHORT, PT_LONG, PT_STRING } PromptType;
+typedef enum { PT_NONE,
+               PT_SHORT,
+               PT_LONG,
+               PT_STRING } PromptType;
 
-#define LINE_TBL_INCR                                                          \
+#define LINE_TBL_INCR \
     1024 // number of entries to add to line_tbl when reallocating
 
 typedef struct {
-    int fg_clr_idx;           /**< foreground_color */
-    int bg_clr_idx;           /**< background_color */
-    int bo_clr_idx;           /**< bold_color */
-    int ln_clr_idx;           /**< line_number_color */
-    int ln_bg_clr_idx;        /**< line_number_background_color */
-    char fg_clr_x[COLOR_LEN]; /**< foreground_color in hex, e.g. "#RRGGBB" */
-    char bg_clr_x[COLOR_LEN]; /**< background_color in hex, e.g. "#RRGGBB" */
-    char bo_clr_x[COLOR_LEN]; /**< bold_color in hex, e.g. "#RRGGBB" */
-    char ln_clr_x[COLOR_LEN]; /**< line_number_color in hex, e.g. "#RRGGBB" */
+    int fg_clr_idx;              /**< foreground_color */
+    int bg_clr_idx;              /**< background_color */
+    int bo_clr_idx;              /**< bold_color */
+    int ln_clr_idx;              /**< line_number_color */
+    int ln_bg_clr_idx;           /**< line_number_background_color */
+    char fg_clr_x[COLOR_LEN];    /**< foreground_color in hex, e.g. "#RRGGBB" */
+    char bg_clr_x[COLOR_LEN];    /**< background_color in hex, e.g. "#RRGGBB" */
+    char bo_clr_x[COLOR_LEN];    /**< bold_color in hex, e.g. "#RRGGBB" */
+    char ln_clr_x[COLOR_LEN];    /**< line_number_color in hex, e.g. "#RRGGBB" */
     char ln_bg_clr_x[COLOR_LEN]; /**< line_number_background_color in hex */
     int lines;                   /**< number of lines for window size */
     int cols;                    /**< number of columns for window size */
     int begy;                    /**< screen line upper left corner of window */
-    int begx;                  /**< screen column upper left corner of window */
-    char provider_cmd[MAXLEN]; /**< command provides input */
-    char receiver_cmd[MAXLEN]; /**< command receives output */
-    char cmd[MAXLEN]; /**< command to execute in foreground, e.g. an editor */
-    char cmd_all[MAXLEN]; /**< View - command to execute at start of program */
-    char prompt_str[MAXLEN]; /**< prompt string for chyron */
-    char title[MAXLEN];      /**< title string for window */
-    int argc;                /**< command line arguments count */
-    char **argv;             /**< command line arguments vector */
-    int optind;           /**< getopt pointer to non-option arguments in argv */
-    bool f_ignore_case;   /**< View - ignore case in search */
-    bool f_at_end_remove; /**< obsolete, unneeded */
-    bool f_squeeze; /**< View - print one line for each group of blank lines */
-    bool f_strip_ansi; /**< strip ansi escape sequences when writing buffer */
-    bool f_multiple_cmd_args; /**< View - put multiple arguments in a single
-                                 string */
-    WINDOW *box;       /**< ncurses window used by View for box around win */
-    WINDOW *cmdln_win; /**< ncurses command line window used by View */
-    WINDOW *pad;       /**< ncurses pad used by View */
-    WINDOW *ln_win;    /**< ncurses window used by View for line numbers */
+    int begx;                    /**< screen column upper left corner of window */
+    char provider_cmd[MAXLEN];   /**< command provides input */
+    char receiver_cmd[MAXLEN];   /**< command receives output */
+    char cmd[MAXLEN];            /**< command to execute in foreground, e.g. an editor */
+    char cmd_all[MAXLEN];        /**< View - command to execute at start of program */
+    char prompt_str[MAXLEN];     /**< prompt string for chyron */
+    char title[MAXLEN];          /**< title string for window */
+    int argc;                    /**< command line arguments count */
+    char **argv;                 /**< command line arguments vector */
+    int optind;                  /**< getopt pointer to non-option arguments in argv */
+    bool f_ignore_case;          /**< View - ignore case in search */
+    bool f_at_end_remove;        /**< obsolete, unneeded */
+    bool f_squeeze;              /**< View - print one line for each group of blank lines */
+    bool f_strip_ansi;           /**< strip ansi escape sequences when writing buffer */
+    bool f_multiple_cmd_args;    /**< View - put multiple arguments in a single
+                                    string */
+    WINDOW *box;                 /**< ncurses window used by View for box around win */
+    WINDOW *cmdln_win;           /**< ncurses command line window used by View */
+    WINDOW *pad;                 /**< ncurses pad used by View */
+    WINDOW *ln_win;              /**< ncurses window used by View for line numbers */
 
     char tmp_prompt_str[MAXLEN]; /**< temporary prompt string used when building
                                     prompt */
-    int curr_argc;        /**< current argument count when processing multiple
-                             arguments */
-    char cmd_arg[MAXLEN]; /**< argument string */
-    int tab_stop;         /**< number of spaces between tab stops */
-    int next_cmd_char;    /**< index of next character in cmd string to process
-                             when building prompt */
-    bool f_bod;           /**< beginning of data */
-    bool f_eod;           /**< end of data */
-    bool f_forward;       /**< motion flag forward */
-    bool f_is_pipe;       /**< input is from a pipe */
-    char file_name[MAXLEN]; /**< basename of file being viewed */
-    bool f_redisplay_page;  /**< flag indicating page needs to be redisplayed */
-    bool f_displaying_help; /**< currently didsplaying help information */
-    bool f_first_iter;      /**< first iteration of search */
-    bool f_search_complete; /**< Entire file has been searched */
-    bool f_full_screen; /**< default mode if lines and columns not specified */
-    bool f_timer;       /**< time commands and display elapsed time in prompt */
+    int curr_argc;               /**< current argument count when processing multiple
+                                    arguments */
+    char cmd_arg[MAXLEN];        /**< argument string */
+    int tab_stop;                /**< number of spaces between tab stops */
+    int h_shift;                 /**< horizontal scroll shift width */
+    int next_cmd_char;           /**< index of next character in cmd string to process
+                                    when building prompt */
+    bool f_bod;                  /**< beginning of data */
+    bool f_eod;                  /**< end of data */
+    bool f_forward;              /**< motion flag forward */
+    bool f_is_pipe;              /**< input is from a pipe */
+    char file_name[MAXLEN];      /**< basename of file being viewed */
+    bool f_redisplay_page;       /**< flag indicating page needs to be redisplayed */
+    bool f_displaying_help;      /**< currently didsplaying help information */
+    bool f_first_iter;           /**< first iteration of search */
+    bool f_search_complete;      /**< Entire file has been searched */
+    bool f_full_screen;          /**< default mode if lines and columns not specified */
+    bool f_timer;                /**< time commands and display elapsed time in prompt */
 
     bool f_cmd;                       /**< cmd is verified */
     bool f_cmd_all;                   /**< cmd_all is verified */
@@ -96,72 +100,72 @@ typedef struct {
     char line_out_s[PAD_COLS];        /**< scratch buffer */
     char stripped_line_out[PAD_COLS]; /**< printable characters only */
     cchar_t cmplx_buf[PAD_COLS];      /**< complex character buffer */
-    char *line_out_p;    /**< pointer to current position in line_out_s */
-    char *line_in_beg_p; /**< pointer used in matching search targets */
-    char *line_in_end_p; /**< pointer used in matching search targets */
-    int cury;            /**< cury is the pad row of the cursor location */
-    int curx;            /**< curx is the pad column of the cursor location */
-    int scroll_lines;    /**< number of lines to scroll */
-    int cmd_line;        /**< command line location on pad */
-    int maxcol;          /**< length of longest line on pad */
-    int pminrow;         /**< first pad row displayed in view window */
-    int pmincol;         /**< first pad column displayed in view window */
-    int sminrow; /**< screen position of first row of pad displayed in view
-                    window */
-    int smincol; /**< screen position of first column of pad displayed in view
-                    window */
-    int smaxrow; /**< screen position of last row of pad displayed in view
-                    windiow */
-    int smaxcol; /**< screen position of last column of pad displayed in view
-                    window */
-    int first_match_x;        /**< first column of current search match in
-                                 stripped_line_out */
-    int last_match_x;         /**< last column of current search match in
-                                 stripped_line_out */
-    char in_spec[MAXLEN];     /**< input file spec */
-    char out_spec[MAXLEN];    /**< output file spec */
-    char help_spec[MAXLEN];   /**< help file spec */
-    bool f_in_spec;           /**< input file verified */
-    bool f_out_spec;          /**< output file verified */
-    bool f_help_spec;         /**< output file verified */
-    char *file_spec_ptr;      /**< pointer to current file spec */
-    char *next_file_spec_ptr; /**< pointer to next file spec */
-    char *tmp_file_name_ptr;  /**< pointer to temporary file spec */
-    off_t file_size;          /**< size of file being viewed */
-    off_t file_pos;           /**< current file position */
-    off_t prev_file_pos;      /**< previous file position */
-    off_t page_top_pos;       /**< file position of top line displayed */
-    off_t page_bot_pos;       /**< file position of last line displayed */
-    off_t srch_curr_pos;      /**< current search position */
-    off_t srch_beg_pos;       /**< file position when search started */
-    off_t mark_tbl[NMARKS];   /**< not implemented */
-    bool f_in_pipe;           /**< input is from a pipe */
-    int in_fd;                /**< input file descriptor */
-    int out_fd;               /**< output file descriptor */
-    FILE *in_fp;              /**< pointer to input stream data structure */
-    int stdin_fd;             /**< standard input file descriptor */
-    FILE *stdin_fp;     /**< pointer to standard input stream data structure */
-    int stdout_fd;      /**< standard output file descriptor */
-    FILE *stdout_fp;    /**< pointer to standard output stream data structure */
-    char *buf;          /**< pointer to first byte of virtual buffer */
-    char *buf_curr_ptr; /**< pointer to current position in virtual buffer */
-    char *buf_end_ptr;  /**< pointer to first byte after end of data in virtual
-                           buffer */
-    char *lnbuf;        /**< pointer to first byte of virtual buffer */
-    char *lnbuf_curr_ptr; /**< pointer to first byte of virtual buffer */
-    char *lnbuf_end_ptr; /**< pointer to first byte after end of data in virtual
-                          buffer */
-    int ln_win_lines;    /**< number of lines in line number window */
-    int ln_win_cols;     /**< number of columns in line number window */
-    bool f_ln;           /**< flag - number lines */
-    off_t ln;            /**< line number */
-    char ln_s[10];       /**< line number formatted string */
-    off_t *ln_tbl;       /**< line number table - array of file positions */
-    off_t ln_tbl_size;   /**< number of entries allocated in line_tbl */
-    off_t ln_tbl_cnt;    /**< number of entries used in line_tbl */
-    off_t ln_max_pos;    /**< position of last page number increment */
-    off_t page_top_ln;   /**< line number of top line displayed */
-    off_t page_bot_ln;   /**< line number of last line displayed */
+    char *line_out_p;                 /**< pointer to current position in line_out_s */
+    char *line_in_beg_p;              /**< pointer used in matching search targets */
+    char *line_in_end_p;              /**< pointer used in matching search targets */
+    int cury;                         /**< cury is the pad row of the cursor location */
+    int curx;                         /**< curx is the pad column of the cursor location */
+    int scroll_lines;                 /**< number of lines to scroll */
+    int cmd_line;                     /**< command line location on pad */
+    int maxcol;                       /**< length of longest line on pad */
+    int pminrow;                      /**< first pad row displayed in view window */
+    int pmincol;                      /**< first pad column displayed in view window */
+    int sminrow;                      /**< screen position of first row of pad displayed in view
+                                         window */
+    int smincol;                      /**< screen position of first column of pad displayed in view
+                                         window */
+    int smaxrow;                      /**< screen position of last row of pad displayed in view
+                                         windiow */
+    int smaxcol;                      /**< screen position of last column of pad displayed in view
+                                         window */
+    int first_match_x;                /**< first column of current search match in
+                                         stripped_line_out */
+    int last_match_x;                 /**< last column of current search match in
+                                         stripped_line_out */
+    char in_spec[MAXLEN];             /**< input file spec */
+    char out_spec[MAXLEN];            /**< output file spec */
+    char help_spec[MAXLEN];           /**< help file spec */
+    bool f_in_spec;                   /**< input file verified */
+    bool f_out_spec;                  /**< output file verified */
+    bool f_help_spec;                 /**< output file verified */
+    char *file_spec_ptr;              /**< pointer to current file spec */
+    char *next_file_spec_ptr;         /**< pointer to next file spec */
+    char *tmp_file_name_ptr;          /**< pointer to temporary file spec */
+    off_t file_size;                  /**< size of file being viewed */
+    off_t file_pos;                   /**< current file position */
+    off_t prev_file_pos;              /**< previous file position */
+    off_t page_top_pos;               /**< file position of top line displayed */
+    off_t page_bot_pos;               /**< file position of last line displayed */
+    off_t srch_curr_pos;              /**< current search position */
+    off_t srch_beg_pos;               /**< file position when search started */
+    off_t mark_tbl[NMARKS];           /**< not implemented */
+    bool f_in_pipe;                   /**< input is from a pipe */
+    int in_fd;                        /**< input file descriptor */
+    int out_fd;                       /**< output file descriptor */
+    FILE *in_fp;                      /**< pointer to input stream data structure */
+    int stdin_fd;                     /**< standard input file descriptor */
+    FILE *stdin_fp;                   /**< pointer to standard input stream data structure */
+    int stdout_fd;                    /**< standard output file descriptor */
+    FILE *stdout_fp;                  /**< pointer to standard output stream data structure */
+    char *buf;                        /**< pointer to first byte of virtual buffer */
+    char *buf_curr_ptr;               /**< pointer to current position in virtual buffer */
+    char *buf_end_ptr;                /**< pointer to first byte after end of data in virtual
+                                         buffer */
+    char *lnbuf;                      /**< pointer to first byte of virtual buffer */
+    char *lnbuf_curr_ptr;             /**< pointer to first byte of virtual buffer */
+    char *lnbuf_end_ptr;              /**< pointer to first byte after end of data in virtual
+                                       buffer */
+    int ln_win_lines;                 /**< number of lines in line number window */
+    int ln_win_cols;                  /**< number of columns in line number window */
+    bool f_ln;                        /**< flag - number lines */
+    off_t ln;                         /**< line number */
+    char ln_s[10];                    /**< line number formatted string */
+    off_t *ln_tbl;                    /**< line number table - array of file positions */
+    off_t ln_tbl_size;                /**< number of entries allocated in line_tbl */
+    off_t ln_tbl_cnt;                 /**< number of entries used in line_tbl */
+    off_t ln_max_pos;                 /**< position of last page number increment */
+    off_t page_top_ln;                /**< line number of top line displayed */
+    off_t page_bot_ln;                /**< line number of last line displayed */
 } View;
 extern View *view;
 
