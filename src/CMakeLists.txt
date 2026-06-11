@@ -2,24 +2,6 @@ cmake_minimum_required(VERSION 4.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (RSH_LD)
-    message(STATUS "Static linking of rsh enabled.")
-    message(STATUS "Features that require dynamic linking of rsh will be disabled.")
-    message(STATUS "rsh SSH is disabled.")
-    unset (RSH_SSH)
-    message(STATUS "rsh PAM is disabled.")
-    unset (RSH_PAM)
-    message(STATUS "rsh LOG is disabled.")
-    unset (RSH_LOG)
-else()
-    message(STATUS "Static linking of rsh disabled.")
-    if (RSH_PAM)
-        message(STATUS "RSH_PAM enabled.")
-        set(RSH_LIBS, "pam pam_misc")
-        set(RSH_OPT, "-DRSH_PAM")
-    endif()
-endif()
-
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Setting build type to 'Release' as none was specified.")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
@@ -27,6 +9,10 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
 "MinSizeRel" "RelWithDebInfo")
 endif()
+
+# Apply the -s (strip all symbols) flag specifically to the Release 
+# configuration
+add_link_options($<$<CONFIG:RELEASE>:-s>)
 
 set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/menuapp" CACHE PATH "Install path prefix"
 FORCE)
@@ -57,7 +43,6 @@ install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json" DESTINATION
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 set(LIBS ncursesw tinfo m)
-
 add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c)
 set_target_properties(
     cm PROPERTIES
@@ -99,16 +84,16 @@ add_executable(detach detach.c)
 target_link_libraries(lf cm ${LIBS})
 
 add_executable(rsh rsh.c)
-if (RSH_LD)
-    target_link_options(rsh PRIVATE -static)
-else()
-    if (RSH_PAM)
-        target_compile_definitions(rsh PRIVATE -DRSH_PAM)
-        target_link_libraries(rsh pam pam_misc)
-    endif()
-endif()
+
+add_executable(rsh_static rsh.c)
+target_link_options(rsh_static PRIVATE -static)
+
+add_executable(rsh_pam rsh.c)
+target_compile_definitions(rsh_pam PRIVATE -DRSH_PAM)
+target_link_libraries(rsh_pam pam pam_misc)
+
 install(
-  TARGETS rsh
+  TARGETS rsh rsh_static rsh_pam
   RUNTIME DESTINATION bin
     PERMISSIONS
       OWNER_READ
@@ -127,13 +112,15 @@ target_link_libraries(whence cm ${LIBS})
 
 install(
   TARGETS menu
+          detach
           enterchr
           enterstr
           iloan
           lf
           stripansi
           whence
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
 install(CODE "
   set(APP_PATH \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/menu\")

@@ -6,11 +6,14 @@
     /home/bill/menuapp/bin/ckeys \
     /home/bill/menuapp/bin/enterchr \
     /home/bill/menuapp/bin/enterstr \
+    /home/bill/menuapp/bin/detach \
     /home/bill/menuapp/bin/form \
     /home/bill/menuapp/bin/iloan \
     /home/bill/menuapp/bin/menu \
     /home/bill/menuapp/bin/pick \
     /home/bill/menuapp/bin/rsh \
+    /home/bill/menuapp/bin/rsh_static \
+    /home/bill/menuapp/bin/rsh_pam \
     /home/bill/menuapp/bin/stripansi \
     /home/bill/menuapp/bin/view \
     /home/bill/menuapp/bin/whence \

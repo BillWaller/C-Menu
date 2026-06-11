@@ -35,6 +35,8 @@ src/libcm.so
 src/manifest.ls
 src/manifest.txt
 src/rsh
+src/rsh_static
+src/rsh_pam
 build/.cmake
 x
 xx
