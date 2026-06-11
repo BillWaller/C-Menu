@@ -1,7 +1,24 @@
 cmake_minimum_required(VERSION 4.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(RSH_LD $ENV{RSH_LD})
+
+if (RSH_LD)
+    message(STATUS "Static linking of rsh enabled.")
+    message(STATUS "Features that require dynamic linking of rsh will be disabled.")
+    message(STATUS "rsh SSH is disabled.")
+    unset (RSH_SSH)
+    message(STATUS "rsh PAM is disabled.")
+    unset (RSH_PAM)
+    message(STATUS "rsh LOG is disabled.")
+    unset (RSH_LOG)
+else()
+    message(STATUS "Static linking of rsh disabled.")
+    if (RSH_PAM)
+        message(STATUS "RSH_PAM enabled.")
+        set(RSH_LIBS, "pam pam_misc")
+        set(RSH_OPT, "-DRSH_PAM")
+    endif()
+endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Setting build type to 'Release' as none was specified.")
@@ -38,15 +55,15 @@ configure_file(
 install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json" DESTINATION
 "${CMAKE_CURRENT_SOURCE_DIR}")
 
-add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c)
+include_directories("${PROJECT_SOURCE_DIR}/include")
+set(LIBS ncursesw tinfo m)
 
+add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c)
 set_target_properties(
     cm PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
-
-set(LIBS ncursesw tinfo m)
 
 set(COMMON_SRCS
     curskeys.c
@@ -76,16 +93,20 @@ add_executable(iloan iloan.c)
 target_link_libraries(iloan cm ${LIBS})
 
 add_executable(lf lf.c)
+target_link_libraries(lf cm ${LIBS} -pthread)
+
+add_executable(detach detach.c)
 target_link_libraries(lf cm ${LIBS})
 
 add_executable(rsh rsh.c)
-#[[ Remove the Comment lines to enable static linking of rsh
-set(RSH_LD -static)
-]]
-if(RSH_LD STREQUAL "-static")
-    #     set_target_properties(rsh PROPERTIES LINK_FLAGS_RELEASE -s)
+if (RSH_LD)
+    target_link_options(rsh PRIVATE -static)
+else()
+    if (RSH_PAM)
+        target_compile_definitions(rsh PRIVATE -DRSH_PAM)
+        target_link_libraries(rsh pam pam_misc)
+    endif()
 endif()
-target_link_libraries(rsh ${RSH_LD})
 install(
   TARGETS rsh
   RUNTIME DESTINATION bin

@@ -21,6 +21,7 @@
 #include <argp.h>
 #include <common.h>
 #include <locale.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -110,12 +111,12 @@ static struct argp_option options[] = {
     {"cols", 'C', "number", 0, "width in columns", 2},
     {"lines", 'L', "number", 0, "height in lines", 2},
     {"title", 'T', "text", 0, "Window title", 2},
-    {"out_spec", 'o', "file_spec", 0, "output spec", 3},
+    {"out_spec", 'o', "file_spec", 0, "output file spec", 3},
     {"cmd", 'c', "file_spec", 0, "view cmd, first file", 3},
     {"cmd_all", 'A', "file_spec", 0, "view cmd, all files", 3},
-    {"help_spec", 'H', "file_spec", 0, "help spec", 3},
-    {"in_spec", 'i', "file_spec", 0, "input spec", 3},
-    {"mapp_spec", 'd', "file_spec", 0, "description spec", 3},
+    {"help_spec", 'H', "file_spec", 0, "help file spec", 3},
+    {"in_spec", 'i', "file_spec", 0, "input file spec", 3},
+    {"mapp_spec", 'd', "file_spec", 0, "description file spec", 3},
     {"provider_cmd", 'S', "file_spec", 0, "execute provider of piped input", 3},
     {"receiver_cmd", 'R', "file_spec", 0, "execute receiver of piped output", 3},
     {"wait_timeout", 'w', "seconds", 0, "Wait timer", 5},
@@ -127,35 +128,56 @@ static struct argp_option options[] = {
     {"f_squeeze", 's', "bool", OPTION_ARG_OPTIONAL, "squeeze multiple blank lines", 5},
     {"f_ignore_case", 'x', "bool", OPTION_ARG_OPTIONAL, "ignore case in search", 5},
     {"f_ln", 'N', "bool", OPTION_ARG_OPTIONAL, "line numbers in view", 5},
-    {"fill_char", 'f', "char", 0, "field fill_char", 5},
-    {"brackets", 'u', "text", 0, "brackets around fields", 5},
+    {"fill_char", 'f', "char", 0, "field fill_char (_,.,empty)", 5},
+    {"brackets", 'u', "text", 0, "brackets around fields ([]{}<>)", 5},
     {"editor", CM_EDITOR, "text", 0, "default editor", 5},
-    {"tab_stop", 't', "number", 0, "number of spaces per tab", 5},
-    {"h_shift", 'z', "number", 0, "horizontal shift width", 5},
-    {"bg", BG, "hex_clr", 0, "Terminal (stdscr) background", 6},
-    {"fg", FG, "hex_clr", 0, "Terminal (stdscr) foreground", 6},
-    {"box_fg", BOX_FG, "hex_clr", 0, "box foreground", 6},
-    {"box_bg", BOX_BG, "hex_clr", 0, "box background", 6},
-    {"brackets_fg", BRACKETS_FG, "hex_clr", 0, "brackets foreground", 6},
-    {"brackets_bg", BRACKETS_BG, "hex_clr", 0, "brackets background", 6},
-    {"fill_char_fg", FILL_CHAR_FG, "hex_clr", 0, "fill character foreground", 6},
-    {"fill_char_bg", FILL_CHAR_BG, "hex_clr", 0, "fill character background", 6},
-    {"nt_fg", NT_FG, "hex_clr", 0, "normal text foreground", 6},
-    {"nt_bg", NT_BG, "hex_clr", 0, "normal text background", 6},
-    {"nt_rev_fg", NT_REV_FG, "hex_clr", 0, "normal text reverse foreground", 6},
-    {"nt_rev_bg", NT_REV_BG, "hex_clr", 0, "normal text reverse background", 6},
-    {"nt_hl_fg", NT_HL_FG, "hex_clr", 0, "normal text highlight foreground", 6},
-    {"nt_hl_bg", NT_HL_BG, "hex_clr", 0, "normal text highlight background", 6},
-    {"nt_hl_rev_fg", NT_HL_REV_FG, "hex_clr", 0, "normal text highlight reverse foreground", 6},
-    {"nt_hl_rev_bg", NT_HL_REV_BG, "hex_clr", 0, "normal text highlight reverse background", 6},
-    {"ln_fg", LN_FG, "hex_clr", 0, "line number foreground", 6},
-    {"ln_bg", LN_BG, "hex_clr", 0, "line number background", 6},
-    {"title_fg", TITLE_FG, "hex_clr", 0, "title foreground", 6},
-    {"title_bg", TITLE_BG, "hex_clr", 0, "title background", 6},
-    {"blue_gamma", GM_BLUE, "float", 0, "blue_gamma (View)", 7},
-    {"gray_gamma", GM_GRAY, "float", 0, "gray gamma (View)", 7},
-    {"green_gamma", GM_GREEN, "float", 0, "green gamma (View)", 7},
+    {"tab_stop", 't', "number", 0, "number of spaces per tab (4)", 5},
+    {"h_shift", 'z', "number", 0, "horizontal shift width (16)", 5},
+    {"bg", BG, "hex_clr", 0, "Terminal (stdscr) background (#000000)", 6},
+
+    {"fg", FG, "hex_clr", 0, "Terminal (stdscr) foreground (#d0d0d0)", 6},
+
+    {"box_fg", BOX_FG, "hex_clr", 0, "box foreground (#d0d0d0)", 6},
+
+    {"box_bg", BOX_BG, "hex_clr", 0, "box background (#000000)", 6},
+
+    {"brackets_fg", BRACKETS_FG, "hex_clr", 0, "brackets foreground (#d0d0d0)", 6},
+
+    {"brackets_bg", BRACKETS_BG, "hex_clr", 0, "brackets background (#000000)", 6},
+
+    {"fill_char_fg", FILL_CHAR_FG, "hex_clr", 0, "fill character foreground (#d0d0d0)", 6},
+
+    {"fill_char_bg", FILL_CHAR_BG, "hex_clr", 0, "fill character background (#000000)", 6},
+
+    {"nt_fg", NT_FG, "hex_clr", 0, "normal text foreground (#d0d0d0)", 6},
+
+    {"nt_bg", NT_BG, "hex_clr", 0, "normal text background (#000000)", 6},
+
+    {"nt_rev_fg", NT_REV_FG, "hex_clr", 0, "normal text reverse foreground (#000000)", 6},
+
+    {"nt_rev_bg", NT_REV_BG, "hex_clr", 0, "normal text reverse background (#d0d0d0)", 6},
+
+    {"nt_hl_fg", NT_HL_FG, "hex_clr", 0, "normal text highlight foreground (#ffffff)", 6},
+
+    {"nt_hl_bg", NT_HL_BG, "hex_clr", 0, "normal text highlight background (#000000)", 6},
+
+    {"nt_hl_rev_fg", NT_HL_REV_FG, "hex_clr", 0, "normal text highlight reverse foreground (#f00000)", 6},
+
+    {"nt_hl_rev_bg", NT_HL_REV_BG, "hex_clr", 0, "normal text highlight reverse background (#d0d0d0)", 6},
+
+    {"ln_fg", LN_FG, "hex_clr", 0, "line number foreground (#0000b0)", 6},
+
+    {"ln_bg", LN_BG, "hex_clr", 0, "line number background (#202020)", 6},
+
+    {"title_fg", TITLE_FG, "hex_clr", 0, "title foreground (#d0d0d0)", 6},
+
+    {"title_bg", TITLE_BG, "hex_clr", 0, "title background (#000000)", 6},
+
+    {"blue_gamma", GM_BLUE, "float", 0, "blue_gamma (1.2)", 7},
+    {"gray_gamma", GM_GRAY, "float", 0, "gray gamma (1.2)", 7},
+    {"green_gamma", GM_GREEN, "float", 0, "green gamma (1.2)", 7},
     {"red_gamma", GM_RED, "float", 0, "red gamma (View)", 7},
+
     {"black", XBLACK, "hex_clr", 0, "black (#000000)", 8},
     {"red", XRED, "hex_clr", 0, "red (#bf0000)", 8},
     {"green", XGREEN, "hex_clr", 0, "green (#00cf00)", 8},

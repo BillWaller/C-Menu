@@ -8,11 +8,6 @@
  */
 
 #define _GNU_SOURCE
-#include <errno.h>
-#ifdef RSH_SSH
-#include <libssh/libssh.h>
-#endif
-#define RSH_PAM
 #ifdef RSH_PAM
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
@@ -82,29 +77,12 @@ void ABEND(int e, char const *);
 int main(int argc, char **argv) {
     char *cargv[30];
     char exec_cmd[MAXLEN] = "/usr/bin/bash";
-#ifdef RSH_LOG
-    char rsh_user[MAXLEN];
-#endif
     char *p;
     int c;
     bool ssh_login = false;
     int status;
     pid_t pid;
-#ifdef RSH_SSH
-#define RSH_LOG
-#endif
-#ifdef RSH_LOG
-    char ttyname[MAXLEN];
-    p = getenv("USER");
-    strncpy(rsh_user, p ? p : "unknown", sizeof(rsh_user));
-    openlog("rsh", LOG_PID | LOG_CONS, LOG_AUTH);
-    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) != 0) {
-        syslog(LOG_ERR, "Error getting terminal name: %s", strerror(errno));
-        fprintf(stderr, "Error getting terminal name: %s", strerror(errno));
-        strncpy(ttyname, "unknown", sizeof(ttyname));
-    }
-#endif
-#define RSH_PAM
+
 #ifdef RSH_PAM
     pam_handle_t *pamh = NULL;
     int retval;
@@ -146,37 +124,6 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-#endif
-
-#ifdef RSH_SSH
-    ssh_session _ssh_session = ssh_new();
-    if (_ssh_session == nullptr) {
-        syslog(LOG_ERR, "SSH session initialization failed: %s", ssh_get_error(_ssh_session));
-        fprintf(stderr, "SSH session initialization failed: %s", ssh_get_error(_ssh_session));
-        ssh_free(_ssh_session);
-        exit(EXIT_FAILURE);
-    }
-    int rc = 0;
-    ssh_options_set(_ssh_session, SSH_OPTIONS_HOST, HOST);
-    if ((rc = ssh_connect(_ssh_session)) != SSH_OK) {
-        syslog(LOG_ERR, "SSH connection failed: %s", ssh_get_error(_ssh_session));
-        fprintf(stderr, "SSH connection failed: %s", ssh_get_error(_ssh_session));
-        ssh_free(_ssh_session);
-        ssh_free(_ssh_session);
-        exit(EXIT_FAILURE);
-    }
-    if (ssh_userauth_publickey_auto(_ssh_session, NULL, NULL) !=
-        SSH_AUTH_SUCCESS) {
-        syslog(LOG_AUTH, "SSH authentication failed: %s", ssh_get_error(_ssh_session));
-        fprintf(stderr, "SSH authentication failed: %s", ssh_get_error(_ssh_session));
-        exit(EXIT_FAILURE);
-    }
-    ssh_disconnect(_ssh_session);
-    ssh_free(_ssh_session);
-    syslog(LOG_AUTH, "rsh SSH authentication succeeded for user '%s' on terminal '%s'", rsh_user, ttyname);
-#endif
-#ifdef RSH_LOG
-    closelog();
 #endif
     if ((p = getenv("SHELL")))
         strncpy(exec_cmd, p, MAXLEN - 1);

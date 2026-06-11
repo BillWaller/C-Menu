@@ -14,6 +14,15 @@ ifeq ($(CMENU_HOME),)
 	CMENU_HOME = $(HOME)/menuapp
 endif
 DISPLAY_MANIFEST ?= 0
+# Uncomment the following line to enable logging for RSH
+# RSH_CFLAGS = -DRSH_LOG
+# 
+# -DRSH_LOG: If you enable system logging for RSH, you will need to ensure that
+# your system is configured to allow the RSH binary to write to the system log.
+# If you use PAM authentication, you shouldn't need -DRSH_LOG, as PAM can be 
+# onfigured to log authentication attempts directly.
+#
+# RSH_CFLAGS = -DRSH_SSH
 #
 # PAM authentication is generally recommended for RSH, as it provides better 
 # security and is more widely supported. If you choose to use PAM 
@@ -107,6 +116,9 @@ VERSION=$(MAJOR).$(MINOR).$(PATCH)
 
 SYSDATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+# CX=-std=gnu23
+CX=-std=c23
+CC=gcc $(CX) -Wall -Wextra -I./include $(CFLAGS)
 
 LIB_DIR=/usr/lib64
 LIB_SHARED=libcm.so
@@ -115,14 +127,9 @@ CMENU_LIB_DIR=$(CMENU_HOME)/lib64
 BUILD_DIR=$(CMENU_SRC)
 BIN_DIR=$(CMENU_HOME)/bin
 MAN_DIR=$(CMENU_HOME)/man/man1
+INC_DIR=$(CMENU_HOME)
 RPATH=.:$(CMENU_LIB_DIR):$(LIB_DIR)
 PAM_DIR=/etc/pam.d
-
-INC_DIRS=./include
-
-# CX=-std=gnu23
-CX=-std=c23
-CC=gcc $(CX) -Wall -Wextra -I$(INC_DIRS) $(CFLAGS)
 
 BINEXES=menu form pick view ckeys whence rsh iloan amort enterchr \
 		enterstr lf stripansi detach
@@ -160,7 +167,7 @@ config:
 	@echo "   LIB_SHARED $(LIB_SHARED)"
 	@echo "   LIB_STATIC $(LIB_STATIC)"
 	@echo "CMENU_LIB_DIR $(CMENU_LIB_DIR)"
-	@echo "     INC_DIRS $(INC_DIRS)"
+	@echo "      INC_DIR $(INC_DIR)"
 	@echo "      BIN_DIR $(BIN_DIR)"
 	@echo "      MAN_DIR $(MAN_DIR)"
 	@echo "      LIB_DIR $(LIB_DIR)"
@@ -245,10 +252,10 @@ $(LIB_STATIC): $(LIB_OBJS)
 	$(CC) 	-c $< -fPIC -o $@
 
 clean:
-	rm -rf $(BINEXES) $(CFLOW_OUTPUT) .user_id .group_id core scan-build* \
-	CMenu.conf manifest.txt manifest.ls perf.* x xx* *.[aeos] *.diff *.so \
-	*.cflow *.gc.. *.out *.1 *.1.gz CMakeFiles cmake_install.cmake \
-   	CMakeCache.txt CMakefile
+	rm -rf core *.o $(BINEXES) $(CFLOW_OUTPUT) *.[aeos] *.diff \
+		*.so *.cflow scan-build* CMenu.conf x xx* *.out \
+	   	.user_id .group_id manifest.txt manifest.ls *.gc.. \
+		perf.* *.1 *.1.gz
 
 test: snippets/strings_test1.c
 	$(CC) -o test_strings snippets/strings_test1.c $(LIBS)

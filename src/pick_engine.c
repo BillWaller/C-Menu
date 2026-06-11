@@ -862,27 +862,22 @@ int picker(Init *init, char *field) {
     char filler_s[MAXLEN]; /* buffer for filling the field with spaces */
     int line = 0;          /* Starting line for field input */
     int col = 1;           /* Starting column for field input leaving space for > */
-    char *s;               /* source pointer for editing operations */
-    char *d;               /* destination pointer for editing operations */
-    char *e;               /* end pointer for editing operations */
-    char *accept_s;        /* pointer to field buffer */
-    char *fstart;          /* start of field buffer */
-    char *fend;            /* end of field buffer */
-    char *str_end;         /* end of content string */
-    accept_s = field;
-    fstart = accept_s;
     int flen = pick->win_width - 4;
-    char *ptr; /* pointer to current cursor position within field buffer */
-    int pos;
-    char prev_field[MAXLEN];
+    char *accept_s = field; /* pointer to start of field buffer */
+    char *ptr = field;      /* pointer to current cursor position in field buffer */
+    char *s = field;        /* source pointer for editing operations */
+    char *d = field;        /* destination pointer for editing operations */
+    char *fend = field + flen;
+    char *e = fend;                        /* end pointer for editing operations */
+    char *str_end = field + strlen(field); /* End of field content */
+    int pos = 0;
     int prev_pos = 0;
-    char *prev_ptr;
+    char prev_field[MAXLEN];
+    char *prev_ptr = prev_field;
 
     pick = init->pick;
     win = pick->win;
     WINDOW *win2 = pick->win2;
-    fend = fstart + flen;
-    str_end = fstart + strlen(fstart); /* End of field content */
 
     ptr = str_end;
     click_x = -1;
@@ -1143,6 +1138,8 @@ int picker(Init *init, char *field) {
         mvwadd_wch(pick->box, pick->separator_line + 1, 1, &cc);
         wrefresh(pick->box);
         wrefresh(pick->win2);
+        pos = 1;
+        ptr = accept_s;
         while (1) {
             if (in_key == 0) {
                 mouse_win = nullptr;
@@ -1219,7 +1216,7 @@ int picker(Init *init, char *field) {
             case Ctrl('e'):
                 while (*ptr != '\0')
                     ptr++;
-                pos = col + (ptr - fstart);
+                pos = col + (ptr - accept_s);
                 in_key = 0;
                 continue;
 
@@ -1253,14 +1250,14 @@ int picker(Init *init, char *field) {
             /** KEY_HOME moves cursor to start of field */
             case KEY_HOME:
             case Ctrl('a'):
-                ptr = fstart;
+                ptr = accept_s;
                 pos = col;
                 in_key = 0;
                 continue;
 
             /** KEY_BACKSPACE deletes character before cursor */
             case KEY_BACKSPACE:
-                if (ptr > fstart) {
+                if (ptr > accept_s) {
                     ptr--;
                     pos--;
                 } else {
@@ -1273,7 +1270,7 @@ int picker(Init *init, char *field) {
                     *d++ = *s++;
                 *d = '\0';
                 str_end = d;
-                if (ptr == fstart) {
+                if (ptr == accept_s) {
                     match_objects(pick, accept_s);
                     display_page(pick);
                     ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
@@ -1289,7 +1286,7 @@ int picker(Init *init, char *field) {
 
             /** KEY_LEFT moves cursor left one character */
             case KEY_LEFT:
-                if (ptr > fstart) {
+                if (ptr > accept_s) {
                     ptr--;
                     pos--;
                 }
@@ -1312,12 +1309,12 @@ int picker(Init *init, char *field) {
                     continue;
                 }
                 pos = click_x;
-                fstart = accept_s;
-                fend = fstart + flen;
-                str_end = fstart + strlen(fstart);
-                ptr = fstart + (pos - col);
+                accept_s = accept_s;
+                fend = accept_s + flen;
+                str_end = accept_s + strlen(accept_s);
+                ptr = accept_s + (pos - col);
                 ptr = min(ptr, str_end);
-                pos = col + (ptr - fstart);
+                pos = col + (ptr - accept_s);
                 click_x = -1;
                 in_key = 0;
                 continue;
