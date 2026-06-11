@@ -30,7 +30,7 @@ RSH_CFLAGS = -DRSH_PAM
 # configuration, so please consult the documentation for libssh and your 
 # system's package manager for more information.
 #
-CFLAGS = -Ofast -flto -pthread
+CFLAGS = -Ofast -flto -pthread -s
 LINKOPT = -pthread -flto
 #   -DLF_DEBUG \
 # CFLAGS = -Ofast \
@@ -53,7 +53,7 @@ LINKOPT = -pthread -flto
 #   purposes.
 #
 # Standard Debugging Flags
-CFLAGS=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic
+# CFLAGS=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic
 # -DDEUBG_IMMEDOK
 # LINKOPT = -pthread
 # CFLAGS=-DDEBUG_RESIZE -DDEUBG_IMMEDOK -DDEBUG_LOG
@@ -122,10 +122,10 @@ INC_DIRS=./include
 
 # CX=-std=gnu23
 CX=-std=c23
-CC=gcc $(CX) -Wall -Wextra -I$(INC_DIRS) $(CFLAGS)
+CC=gcc $(CX) $(CFLAGS) -Wall -Wextra -I$(INC_DIRS)
 
-BINEXES=menu form pick view ckeys whence rsh iloan amort enterchr \
-		enterstr lf stripansi detach
+BINEXES=menu form pick view ckeys whence rsh_pam rsh_static rsh iloan \
+	  amort enterchr enterstr lf stripansi detach
 
 MANPAGES=cmenu.1.gz lf.1.gz rsh.1.gz
 
@@ -205,8 +205,14 @@ whence:	whence.o $(LIB_SHARED)
 iloan:	iloan.o $(LIB_SHARED)
 	$(CC) $< -o $@ $(LIBS)
 
-rsh:	rsh.o
-	$(CC) $(RSH_CFLAGS) $< -o $@ -lpam -lpam_misc
+rsh_pam:	rsh.c
+	$(CC) -DRSH_PAM $< -o $(@) -lpam -lpam_misc
+
+rsh_static:	rsh.c
+	$(CC) -static $< -o $(@) -s
+
+rsh:	rsh.c
+	$(CC) $< -o $(@)
 
 lf: lf.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LIBS)
@@ -229,8 +235,8 @@ rsh.1.gz:	../docs/rsh.md
 stripansi:	include/cm.h stripansi.o $(LIB_SHARED)
 	$(CC) stripansi.o -o $@ $(LIBS)
 
-detach:	detach.o $(LIB_SHARED)
-	$(CC) detach.o -o $@ $(LIBS)
+detach:	detach.c $(LIB_SHARED)
+	$(CC) detach.c -o $@ $(LIBS)
 
 CMenu.conf:
 	echo $(CMENU_LIB_DIR) >CMenu.conf
@@ -242,7 +248,7 @@ $(LIB_STATIC): $(LIB_OBJS)
 	ar rcs $@ $^
 
 %.o:	%.c
-	$(CC) 	-c $< -fPIC -o $@
+	$(CC) -c $< -fPIC -o $@
 
 clean:
 	rm -rf $(BINEXES) $(CFLOW_OUTPUT) .user_id .group_id core scan-build* \
@@ -282,6 +288,8 @@ install:
 	install -CDp menu	-t $(BIN_DIR)
 	install -CDp whence	-t $(BIN_DIR)
 	install -CDp lf     -t $(BIN_DIR)
+	install -Dp  rsh_pam	-t $(BIN_DIR)	-o root -g root -m 6711
+	install -Dp  rsh_static	-t $(BIN_DIR)	-o root -g root -m 6711
 	install -Dp  rsh	-t $(BIN_DIR)	-o root -g root -m 6711
 	install -CDp enterchr	-t $(BIN_DIR)
 	install -CDp enterstr	-t	$(BIN_DIR)
