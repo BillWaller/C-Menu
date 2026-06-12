@@ -570,6 +570,7 @@ void zero_opt_args(Init *init) {
     init->f_help_spec = false;
     init->f_in_spec = false;
     init->f_out_spec = false;
+    init->h_shift = 0;
     init->mapp_spec[0] = init->help_spec[0] = '\0';
     init->provider_cmd[0] = init->receiver_cmd[0] = '\0';
     init->title[0] = '\0';

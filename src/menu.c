@@ -68,6 +68,8 @@ int main(int argc, char **argv) {
     } else if (!strcmp(pgm_name, "view")) {
         view = new_view(init);
         if (init->lines > 0 || init->cols > 0) {
+            if (init->h_shift == 0)
+                init->h_shift = view->cols / 3;
             if (!init_view_boxwin(init, init->title)) {
                 view_file(init);
             }

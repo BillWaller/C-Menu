@@ -441,22 +441,36 @@ void sort_lf_output(SearchFilters *f, int argc, char **argv) {
         eargv[eargc++] = strdup("-r");
     eargv[eargc] = nullptr;
     int wstatus;
-    int save_fd = dup(STDOUT_FILENO); // save current STDOUT
+
+    // int save_fd = dup(STDOUT_FILENO); // save current STDOUT
     int fds[2];
     pipe(fds); // Create the pipes
+
     pid_t pid1 = fork();
-    if (pid1 == 0) {   // Child process
-        close(fds[1]); // Close child write pipe
-        dup2(fds[0],
-             STDIN_FILENO);      // Clone child read pipe to STDIN_FILENO
-        close(fds[0]);           // Close child read pipe after cloning
-        execvp(eargv[0], eargv); // Execute the external command
+    if (pid1 == 0) { // Child process
+        // Child's STDIN will be redirected to the read end of the pipe, so that
+        // the sort process will read the output of the finder from the pipe.
+        close(fds[1]);              // Close the write end of the pipe in the child
+        dup2(fds[0], STDIN_FILENO); // Clone child's read pipe to STDIN_FILENO
+        close(fds[0]);              // Close the original read end of the pipe
+        execvp(eargv[0], eargv);    // Execute the sort command
+        fprintf(stderr, "Failed to execute sort: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
     }
-    // Parent process
-    close(fds[0]);               // Close read end of pipe
-    dup2(fds[1], STDOUT_FILENO); // Clone write pipe to STDOUT_FILENO
-    close(fds[1]);               // Close duplicated write pipe
-    setvbuf(stdout, NULL, _IOLBF, 0);
+    // fclose(stdout);
+    dup2(fds[1], STDOUT_FILENO);         // Clone write pipe to STDOUT_FILENO
+    stdout = fdopen(STDOUT_FILENO, "w"); // Reopen STDOUT as a stream
+    setvbuf(stdout, NULL, _IONBF, 0);    //  line buffering
+    init_find(f, argc, argv);            // Initialize and transfer control to the finder
+    fclose(stdout);
+    close(fds[1]);
+    wait(&wstatus);
+    for (int i = 0; i < eargc; i++)
+        free(eargv[i]);
+    // fclose(stdout);
+    // dup2(save_fd, STDOUT_FILENO);        // restore STDOUT
+    // stdout = fdopen(STDOUT_FILENO, "w"); // Reopen STDOUT as a stream
+    //
     // line buffering is essential to ensure that output is flushed to
     // the sort process in a timely manner, preventing deadlocks and
     // ensuring that the sort process can start processing input as soon
@@ -464,9 +478,6 @@ void sort_lf_output(SearchFilters *f, int argc, char **argv) {
     // buffered until the buffer is full, which could lead to delays in
     // processing and potential deadlocks if the sort process is waiting
     // for input that hasn't been flushed yet.
-    dup2(save_fd, STDOUT_FILENO); // restore STDOUT
-    waitpid(pid1, &wstatus, 0);
-    init_find(f, argc, argv); // Initialize and transfer control to the finder
 }
 /** @brief Initialize the file search based on the provided SearchFilters
    and start finder threads.
