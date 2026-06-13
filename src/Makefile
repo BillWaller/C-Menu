@@ -7,7 +7,7 @@
 # @date 2026-06-10
 #
 ifneq ($(CMENU_HOME),)
-	CMENU_HOME:=$(HOME)/menuapp
+	PREFIX:=$(HOME)/menuapp
 endif
 DISPLAY_MANIFEST=0
 BUILD_TYPE=Debug
@@ -28,15 +28,15 @@ SYSDATE:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LIB_DIR:=/usr/lib64
 LIB_SHARED:=libcm.so
 LIB_STATIC:=libcm.a
-CMENU_LIB_DIR:=$(CMENU_HOME)/lib64
+INSTALL_LIB_DIR:=$(PREFIX)/lib64
 BUILD_DIR:=$(CURDIR)
-BIN_DIR:=$(CMENU_HOME)/bin
-MAN_DIR:=$(CMENU_HOME)/man/man1
-RPATH:=.:$(CMENU_LIB_DIR):$(LIB_DIR)
+INSTALL_BIN_DIR:=$(PREFIX)/bin
+INSTALL_MAN_DIR:=$(PREFIX)/man/man1
+RPATH:=.:$(INSTALL_LIB_DIR):$(LIB_DIR)
 PAM_DIR:=/etc/pam.d
-INC_DIRS:=./include
+INCLUDE_DIR:=./include
 CX:=-std=c23
-CC:=gcc $(CX) -Wall -Wextra -I$(INC_DIRS) $(CFLAGS)
+CC:=gcc $(CX) -Wall -Wextra -I$(INCLUDE_DIR) $(CFLAGS)
 
 BINEXES:=menu form pick view ckeys whence rsh rsh_static rsh_pam \
 		iloan amort enterchr enterstr lf stripansi detach
@@ -56,7 +56,7 @@ COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
 			pick_engine.c popups.c view_engine.c
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
-LIBS:=$(LINKOPT) -L. -lcm -lncursesw -ltinfow -lpanelw -lm -luring -Wl,-rpath,$(RPATH)
+LDFLAGS:=$(LINKOPT) -L. -lcm -lncursesw -ltinfow -lpanelw -lm -luring -Wl,-rpath,$(RPATH)
 
 .PHONY: all config help install install_man clean uninstall helgrind valgrind
 
@@ -64,25 +64,25 @@ all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Make Complete
 
 config:
-	@echo "   Build Date $(SYSDATE)"
-	@echo "   Build Type $(BUILD_TYPE)"
-	@echo "   CMENU_HOME $(CMENU_HOME)"
-	@echo "    BUILD_DIR $(BUILD_DIR)"
-	@echo "      VERSION $(VERSION)"
-	@echo "           CC $(CC)"
-	@echo "           CX $(CX)"
-	@echo "       CFLAGS $(CFLAGS)"
-	@echo "         LIBS $(LIBS)"
-	@echo "      LINKOPT $(LINKOPT)"
-	@echo "        RPATH $(RPATH)"
-	@echo "   LIB_SHARED $(LIB_SHARED)"
-	@echo "   LIB_STATIC $(LIB_STATIC)"
-	@echo "CMENU_LIB_DIR $(CMENU_LIB_DIR)"
-	@echo "     INC_DIRS $(INC_DIRS)"
-	@echo "      BIN_DIR $(BIN_DIR)"
-	@echo "      MAN_DIR $(MAN_DIR)"
-	@echo "      LIB_DIR $(LIB_DIR)"
-	@echo "      PAM_DIR $(PAM_DIR)"
+	@echo "     Build Date $(SYSDATE)"
+	@echo "     Build Type $(BUILD_TYPE)"
+	@echo "         PREFIX $(PREFIX)"
+	@echo "      BUILD_DIR $(BUILD_DIR)"
+	@echo "        VERSION $(VERSION)"
+	@echo "             CC $(CC)"
+	@echo "             CX $(CX)"
+	@echo "         CFLAGS $(CFLAGS)"
+	@echo "        LDFLAGS $(LDFLAGS)"
+	@echo "        LINKOPT $(LINKOPT)"
+	@echo "          RPATH $(RPATH)"
+	@echo "     LIB_SHARED $(LIB_SHARED)"
+	@echo "     LIB_STATIC $(LIB_STATIC)"
+	@echo "INSTALL_LIB_DIR $(INSTALL_LIB_DIR)"
+	@echo "    INCLUDE_DIR $(INCLUDE_DIR)"
+	@echo "INSTALL_BIN_DIR $(INSTALL_BIN_DIR)"
+	@echo "INSTALL_MAN_DIR $(INSTALL_MAN_DIR)"
+	@echo "        LIB_DIR $(LIB_DIR)"
+	@echo "        PAM_DIR $(PAM_DIR)"
 
 help:
 	@echo "Available targets:"
@@ -98,7 +98,7 @@ help:
 	@echo "  helgrind      - run helgrind on selected executable"
 
 menu:	menu.o $(COMMON_OBJS) $(COMMON_HDRS) $(LIB_SHARED)
-	$(CC) $(COMMON_OBJS) menu.o -o $@ $(LIBS)
+	$(CC) $(COMMON_OBJS) menu.o -o $@ $(LDFLAGS)
 
 form:	menu
 	ln -sf menu form
@@ -112,13 +112,13 @@ ckeys:	menu
 man: $(MANPAGES)
 
 rsh_static:	rsh.c
-	$(CC) $(RSH_CFLAGS) -static $< -o $@
+	$(CC) -static $< -o $@
 
 rsh_pam:	rsh.c
-	$(CC) -DRSH_PAM $(RSH_CFLAGS) $< -o $@ -lpam -lpam_misc
+	$(CC) -DRSH_PAM $< -o $@ -lpam -lpam_misc
 
 %:	%.c $(LIB_SHARED)
-	$(CC) $< -o $@ $(LIBS)
+	$(CC) $< -o $@ $(LDFLAGS)
 
 %.o:	%.c
 	$(CC) 	-c $< -fPIC -o $@
@@ -130,7 +130,7 @@ $(LIB_STATIC): $(LIB_OBJS)
 	ar rcs $@ $^
 
 CMenu.conf:
-	echo $(CMENU_LIB_DIR) >CMenu.conf
+	echo $(INSTALL_LIB_DIR) >CMenu.conf
 
 cmenu.1.gz:	../docs/cmenu.md
 	pandoc -f markdown-smart -standalone --to man ../docs/cmenu.md -o cmenu.1
@@ -166,22 +166,22 @@ valgrind: lf
 # --tool=memcheck
 
 install:
-	rm -f	$(CMENU_LIB_DIR)/libcm*
-	install -CDp 	$(COMMON_HDRS)	-t $(CMENU_HOME)/include
+	rm -f	$(INSTALL_LIB_DIR)/libcm*
+	install -CDp 	$(COMMON_HDRS)	-t $(PREFIX)/include
 	install -CDp	menu whence lf detach enterchr enterstr \
-		iloan amort stripansi -t $(BIN_DIR)
-	install -Dp -o root -g root -m 6711	rsh rsh_static rsh_pam -t $(BIN_DIR)
-	install -CDp $(LIB_STATIC) -t $(CMENU_LIB_DIR)
-	install	-CDp $(LIB_SHARED) -T $(CMENU_LIB_DIR)/$(LIB_SHARED).$(VERSION)
+		iloan amort stripansi -t $(INSTALL_BIN_DIR)
+	install -Dp -o root -g root -m 6711	rsh rsh_static rsh_pam -t $(INSTALL_BIN_DIR)
+	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
+	install	-CDp $(LIB_SHARED) -T $(INSTALL_LIB_DIR)/$(LIB_SHARED).$(VERSION)
 	install -CDp CMenu.conf -t /etc/ld.so.conf.d
 	install -CDp rsh-auth-pc -t $(PAM_DIR) -o root -g root -m 644
 	ln	-sf	$(PAM_DIR)/rsh-auth-pc $(PAM_DIR)/rsh-auth
-	ln	-sf	$(CMENU_LIB_DIR)/$(LIB_SHARED).$(VERSION) $(CMENU_LIB_DIR)/$(LIB_SHARED)
-	ln	-sf	$(CMENU_LIB_DIR)/$(LIB_SHARED).$(VERSION) $(CMENU_LIB_DIR)/$(LIB_SHARED).$(MAJOR)
-	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/form
-	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/pick
-	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/view
-	ln	-sf	$(BIN_DIR)/menu $(BIN_DIR)/ckeys
+	ln	-sf	$(INSTALL_LIB_DIR)/$(LIB_SHARED).$(VERSION) $(INSTALL_LIB_DIR)/$(LIB_SHARED)
+	ln	-sf	$(INSTALL_LIB_DIR)/$(LIB_SHARED).$(VERSION) $(INSTALL_LIB_DIR)/$(LIB_SHARED).$(MAJOR)
+	ln	-sf	$(INSTALL_BIN_DIR)/menu $(INSTALL_BIN_DIR)/form
+	ln	-sf	$(INSTALL_BIN_DIR)/menu $(INSTALL_BIN_DIR)/pick
+	ln	-sf	$(INSTALL_BIN_DIR)/menu $(INSTALL_BIN_DIR)/view
+	ln	-sf	$(INSTALL_BIN_DIR)/menu $(INSTALL_BIN_DIR)/ckeys
 	ldconfig
 	./manifest.sh
 ifeq ($(DISPLAY_MANIFEST), 1)
@@ -192,23 +192,23 @@ manifest:
 	cat manifest.txt
 
 install_man:
-	install -CDp cmenu.1.gz	-t $(MAN_DIR)
-	install -CDp lf.1.gz	-t $(MAN_DIR)
-	install -CDp rsh.1.gz	-t $(MAN_DIR)
+	install -CDp cmenu.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp lf.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp rsh.1.gz	-t $(INSTALL_MAN_DIR)
 
 uninstall:
-			$(BIN_DIR)/menu \
-			$(BIN_DIR)/form \
-			$(BIN_DIR)/pick \
-			$(BIN_DIR)/view \
-			$(BIN_DIR)/ckeys \
-			$(BIN_DIR)/detach \
-			$(BIN_DIR)/rsh \
-			$(BIN_DIR)/rsh_static \
-			$(BIN_DIR)/rsh_pam \
-			$(BIN_DIR)/ush \
-			$(BIN_DIR)/enterchr \
-			$(BIN_DIR)/enterstr \
-			$(BIN_DIR)/stripansi \
-			$(BIN_DIR)/lf \
-			$(CMENU_LIB_DIR)/libcm.so
+			$(INSTALL_BIN_DIR)/menu \
+			$(INSTALL_BIN_DIR)/form \
+			$(INSTALL_BIN_DIR)/pick \
+			$(INSTALL_BIN_DIR)/view \
+			$(INSTALL_BIN_DIR)/ckeys \
+			$(INSTALL_BIN_DIR)/detach \
+			$(INSTALL_BIN_DIR)/rsh \
+			$(INSTALL_BIN_DIR)/rsh_static \
+			$(INSTALL_BIN_DIR)/rsh_pam \
+			$(INSTALL_BIN_DIR)/ush \
+			$(INSTALL_BIN_DIR)/enterchr \
+			$(INSTALL_BIN_DIR)/enterstr \
+			$(INSTALL_BIN_DIR)/stripansi \
+			$(INSTALL_BIN_DIR)/lf \
+			$(INSTALL_LIB_DIR)/libcm.so

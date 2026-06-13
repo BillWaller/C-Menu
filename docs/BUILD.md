@@ -25,26 +25,23 @@
 
 ## Introduction
 
-The instructions below will guide you through the process of building and
-installing C-Menu from source.
+The instructions below will guide you through building and installing C-Menu from source.
 
 ### Build Tool Choices
 
 1. GNU Makefile
 2. CMake
 
-If you plan to develop C-Menu, use the build tool you are most comfortable with, as both are fully supported and will produce the similar results.
+If you plan to develop C-Menu, use the build tool you are most comfortable with, as both are fully supported and will produce similar results.
 
 ### Build Type Choices
 
 1. Debug (default)
 2. Release
 
-If you are building C-Menu for development or debugging purposes, it is recommended to build the Debug variants of the C-Menu binaries, which are unstripped and include debugging symbols. 
+If you are building C-Menu for development or debugging purposes, use the default Debug build type. This creates unstripped executables with debugging symbols. As of C-Menu 0.2.9, the Debug binaries are about 6.5 Mb.
 
-If you are building C-Menu for production use or want to optimize for size and performance, it is recommended to build the Release variants of the C-Menu binaries.
-
-As of C-Menu 0.2.9, the Debug binaries are about 6.5 Mb and the Release binaries about 1.4 Mb.
+If you are building C-Menu for deployment or want to optimize for size and performance, use the Release build type. As of C-Menu 0.2.9, the Release binaries are about 1.4 Mb.
 
 ### Prerequisites
 
@@ -101,6 +98,20 @@ To build the Release version:
 make BUILD_TYPE=Release
 ```
 
+If you want to run the build in a separate build directory (recommended), you can use the following commands:
+
+```bash
+mkdir build
+cd build
+cp ../GNUMakefile Makefile
+ln -sf ../include .
+make VPATH=.. BUILD_TYPE=Release
+sudo make install
+```
+
+Choosing the above method obviates the need for the install step below, as the
+last command completes the install.
+
 ---
 
 ### CMake
@@ -121,17 +132,28 @@ To build with C-Make:
 cmake .
 ```
 
-This will generate the necessary build files for your system. By default, CMake will configure the project to build the Debug variants of the C-Menu binaries. If you want to build the Release variants, you can specify the build type when configuring CMake:
+This will generate the necessary build files for your system. By default, CMake will configure the project to build the Debug variants of the C-Menu binaries. If you want to build the Release variants, specify the build type when configuring CMake:
 
 ```bash
 cmake . -DCMAKE_BUILD_TYPE=Release
 ```
 
-You will now have a CMake makefile in C-Menu/src/Makefile. You can build the project using the following command:
+You will now have a CMake makefile in C-Menu/src/Makefile. Build the project using the following command:
 
 ```bash
 make
 ```
+
+If you want to run the build in a separate build directory (recommended), you can use the following commands:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+sudo cmake --install build
+```
+
+Choosing the above method obviates the need for the install step below, as the
+last command completes the install.
 
 ## Install
 
@@ -141,19 +163,19 @@ To install C-Menu binaries, run the following command with root privileges:
 sudo make install
 ```
 
-This will install the C-Menu binaries and libraries to the specified PREFIX directory (e.g., /home/yourusername/menuapp) and set the appropriate permissions.
+This will install the C-Menu binaries and libraries to the specified PREFIX directory (e.g., /home/your_user_name/menuapp) and set the appropriate permissions.
 
 ## Post Install
 
 ### Check the Installation
 
-After installation, you can verify that the C-Menu binaries and libraries have been installed to the correct directories (e.g., /home/yourusername/menuapp/lib64 and /home/yourusername/menuapp/bin) and that the permissions are set correctly. You can do this by running the following command:
+After installation, you can verify that the C-Menu binaries and libraries have been installed to the correct directories (e.g., /home/your_user_name/menuapp/lib64 and /home/your_user_name/menuapp/bin) and that the permissions are set correctly. You can do this by running the following command:
 
 ```bash
 cat manifest.txt
 ```
 
-This will display a list of all the files that were installed, along with their permissions and sizes. You should see entries for the C-Menu binaries in /home/yourusername/menuapp/bin and the C-Menu libraries in /home/yourusername/menuapp/lib64, as well as the configuration file for the dynamic linker in /etc/ld.so.conf.d/CMenu.conf.
+This will display a list of all the files that were installed, along with their permissions and sizes. You should see entries for the C-Menu binaries in /home/your_user_name/menuapp/bin and the C-Menu libraries in /home/your_user_name/menuapp/lib64, as well as the configuration file for the dynamic linker in /etc/ld.so.conf.d/CMenu.conf.
 
 ```
 -rwxrr-xr-x 1 root root      25 260613 0936 /etc/ld.so.conf.d/CMenu.conf*
@@ -212,7 +234,7 @@ The contents of CMenu.conf should include the path to the C-Menu libraries, whic
 
 ```
 
-$HOME/menuapp/lib64
+/home/your_user_name/menuapp/lib64
 
 ```
 

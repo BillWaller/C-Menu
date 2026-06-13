@@ -10,7 +10,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# Apply the -s (strip all symbols) flag specifically to the Release 
+# Apply the -s (strip all symbols) flag specifically to the Release
 # configuration
 add_link_options($<$<CONFIG:RELEASE>:-s>)
 
@@ -42,7 +42,7 @@ install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json" DESTINATION
 "${CMAKE_CURRENT_SOURCE_DIR}")
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
-set(LIBS ncursesw tinfo m)
+set(LIBS ncursesw panelw tinfow m)
 add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c)
 set_target_properties(
     cm PROPERTIES
