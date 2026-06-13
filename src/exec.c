@@ -39,10 +39,10 @@ int fork_detach_execvp(char **);
     @param argv - array of arguments for the command to execute
     @return the return code from the executed command
     @details Clear the screen,
-    move the cursor to the bottom, and refresh the screen before executing
+    move the cursor to the bottom, and update the screen before executing
    the command.
     After the command completes, clear the screen, move the cursor to the
-   top, refresh the screen, and restore the windows. */
+   top, update the screen, and restore the windows. */
 int full_screen_fork_exec(char **argv) {
     int rc;
 
@@ -55,7 +55,7 @@ int full_screen_fork_exec(char **argv) {
     @ingroup exec
     @param shellCmdPtr - pointer to the shell command string
     @return the return code from the executed shell command
-    @details Clear the screen, move the cursor to the top, and refresh the
+    @details Clear the screen, move the cursor to the top, and update the
    screen before executing the shell command. After the command completes,
    restore the windows.
  */
@@ -65,12 +65,8 @@ int full_screen_shell(char *shellCmdPtr) {
     fflush(stderr);
     werase(stdscr);
     wmove(stdscr, 0, 0);
-    wrefresh(stdscr);
     rc = shell(shellCmdPtr);
-    touchwin(stdscr);
-    wnoutrefresh(stdscr);
     restore_wins();
-    wrefresh(stdscr);
     return (rc);
 }
 /** @brief Execute a shell command
@@ -140,65 +136,38 @@ int fork_exec(char **argv) {
     capture_curses_tioctl();
     curs_set(1);
     sig_dfl_mode();
-
+    endwin();
     tmp_str[0] = '\0';
     pid = fork();
-    switch (pid) {
-    case -1: // parent fork failed
+    if (pid < 0) {
         sig_prog_mode();
         keypad(stdscr, true);
         ssnprintf(tmp_str, sizeof(tmp_str), "fork failed: %s, errno: %d",
                   argv[0], errno);
         Perror(tmp_str);
         return (-1);
-    case 0: // child
+    } else if (pid == 0) {
         restore_shell_tioctl();
-        werase(stdscr);
-        wrefresh(stdscr);
+        sig_dfl_mode();
         execvp(argv[0], argv);
-        restore_curses_tioctl();
-        sig_prog_mode();
-        keypad(stdscr, true);
-        ssnprintf(tmp_str, sizeof(tmp_str), "execvp failed: %s, errno: %d",
-                  argv[0], errno);
-        Perror(tmp_str);
-        exit(-1);
-    default: // parent
-        rc = 0;
-        restore_curses_tioctl();
-        sig_prog_mode();
-        waitpid(pid, &status, 0);
-        if (WIFEXITED(status)) {
-            rc = WEXITSTATUS(status);
-            if (rc != 0) {
-                keypad(stdscr, true);
-                ssnprintf(tmp_str, sizeof(tmp_str),
-                          "Child %s exited  with status %d", argv[0], rc);
-            }
-        } else {
-            if (WIFSIGNALED(status)) {
-                rc = WTERMSIG(status);
-                keypad(stdscr, true);
-                ssnprintf(tmp_str, sizeof(tmp_str),
-                          "Child %s terminated by signal %d", argv[0], rc);
-            } else {
-                keypad(stdscr, true);
-                ssnprintf(tmp_str, sizeof(tmp_str),
-                          "Child %s terminated abnormally", argv[0]);
-            }
-        }
-        break;
+        fprintf(stderr, "execvp failed: %s, errno: %d\n", argv[0], errno);
+        exit(EXIT_FAILURE);
     }
-    restore_curses_tioctl();
-    sig_prog_mode();
-    touchwin(stdscr);
-    wnoutrefresh(stdscr);
-    wrefresh(stdscr);
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status)) {
+        rc = WEXITSTATUS(status);
+    } else if (WIFSIGNALED(status)) {
+        ssnprintf(tmp_str, sizeof(tmp_str), "Child process terminated by signal: %d",
+                  WTERMSIG(status));
+        Perror(tmp_str);
+        rc = -1;
+    } else {
+        ssnprintf(tmp_str, sizeof(tmp_str), "Child process terminated abnormally");
+        Perror(tmp_str);
+        rc = -1;
+    }
+    reset_prog_mode();
     restore_wins();
-    tmp_str[0] = '\0';
-    if (tmp_str[0] != '\0') {
-        Perror(tmp_str);
-    }
     return (rc);
 }
 /** @brief Fork and execute a command as a daemon
@@ -248,9 +217,6 @@ int fork_detach_execvp(char **eargv) {
     }
     restore_curses_tioctl();
     sig_prog_mode();
-    touchwin(stdscr);
-    wnoutrefresh(stdscr);
-    wrefresh(stdscr);
     restore_wins();
     return 0;
 }

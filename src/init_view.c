@@ -59,8 +59,9 @@ int init_view_full_screen(Init *init) {
               view->scroll_lines);
 #endif
     /** view->cmdln_win: status or command line window */
+    std_panel = new_panel(stdscr);
     view->cmdln_win =
-        newwin(1, view->cols, view->begy + view->lines - 1, view->begx);
+        subwin(stdscr, 1, view->cols, view->begy + view->lines - 1, view->begx);
     keypad(view->cmdln_win, true);
     idlok(view->cmdln_win, false);
     idcok(view->cmdln_win, false);
@@ -70,8 +71,7 @@ int init_view_full_screen(Init *init) {
 #ifdef DEBUG_IMMEDOK
     immedok(view->cmdln_win, true);
 #endif
-    /** view->ln_win: line number window */
-    view->ln_win = newwin(view->ln_win_lines - 1, view->ln_win_cols, 0, 0);
+    view->ln_win = subwin(stdscr, view->ln_win_lines - 1, view->ln_win_cols, 0, 0);
     keypad(view->ln_win, false);
     idlok(view->ln_win, false);
     idcok(view->ln_win, false);
@@ -114,20 +114,16 @@ int init_view_full_screen(Init *init) {
  */
 void view_full_screen_resize(Init *init) {
     erase();
-    wnoutrefresh(stdscr);
-    wrefresh(stdscr);
     view_calc_full_screen_dimensions(init);
     mvwin(view->cmdln_win, view->lines - 1, 0);
     wresize(view->cmdln_win, 1, view->cols);
-    wnoutrefresh(view->cmdln_win);
-
-    // wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
+    wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
     wresize(view->ln_win, view->ln_win_lines - 1, view->ln_win_cols);
     wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
-    wnoutrefresh(view->ln_win);
-
     wresize(view->pad, view->lines - 1, PAD_COLS);
     wsetscrreg(view->pad, 0, view->lines - 1);
+    update_panels();
+    doupdate();
 }
 /** @brief Calculate the dimensions for full screen mode.
     @ingroup init_view
@@ -206,7 +202,8 @@ int init_view_boxwin(Init *init, char *title) {
 
     /** view->cmdln_win: status or command line window */
     view->cmdln_win =
-        newwin(1, view->cols, view->begy + view->lines, view->begx + 1);
+        subwin(win_box[win_ptr], 1, view->cols, view->begy + view->lines, view->begx + 1);
+
     keypad(view->cmdln_win, true);
     idlok(view->cmdln_win, false);
     idcok(view->cmdln_win, false);
@@ -227,7 +224,7 @@ int init_view_boxwin(Init *init, char *title) {
     write_cmenu_log_nt(em0);
 #endif
     if (view->f_ln) {
-        view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols,
+        view->ln_win = subwin(view->box, view->ln_win_lines, view->ln_win_cols,
                               view->begy + 1, view->begx + 1);
         keypad(view->ln_win, false);
         idlok(view->ln_win, false);
@@ -265,8 +262,6 @@ int init_view_boxwin(Init *init, char *title) {
 void view_win_resize(Init *init, char *title) {
     int maxx;
     erase();
-    wnoutrefresh(stdscr);
-    wrefresh(stdscr);
     view_calc_win_dimensions(init, title);
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1, "view->box: begy=%d, begx=%d, lines=%d, cols=%d",
@@ -298,7 +293,6 @@ void view_win_resize(Init *init, char *title) {
         if ((s + 4) < maxx)
             mvwaddnwstr(view->box, 0, (s + 4), &bw_lt, 1);
     }
-    wnoutrefresh(view->box);
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1,
               "view->cmdln_win: begy=%d, begx=%d, lines=%d, cols=%d",
@@ -307,7 +301,6 @@ void view_win_resize(Init *init, char *title) {
 #endif
     mvwin(view->cmdln_win, view->begy + view->lines, view->begx + 1);
     wresize(view->cmdln_win, 1, view->cols);
-    wnoutrefresh(view->cmdln_win);
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1,
               "(285)view->ln_win: begy=%d, begx=%d, lines=%d, cols=%d, "
@@ -318,7 +311,7 @@ void view_win_resize(Init *init, char *title) {
 #endif
     if (view->f_ln) {
         if (view->ln_win == nullptr) {
-            view->ln_win = newwin(view->ln_win_lines, view->ln_win_cols,
+            view->ln_win = subwin(view->box, view->ln_win_lines, view->ln_win_cols,
                                   view->begy + 1, view->begx + 1);
             keypad(view->ln_win, false);
             idlok(view->ln_win, false);
@@ -333,13 +326,12 @@ void view_win_resize(Init *init, char *title) {
         } else {
             mvwin(view->ln_win, view->begy + 1, view->begx + 1);
             wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
-            wsetscrreg(view->ln_win, 0, view->scroll_lines);
-            wnoutrefresh(view->ln_win);
         }
     } else if (view->ln_win != nullptr) {
         delwin(view->ln_win);
         view->ln_win = nullptr;
     }
+    update_panels();
     view->sminrow = view->begy + 1;
     view->smincol = view->begx + 1;
     view->smaxrow = view->begy + view->lines;
@@ -389,6 +381,7 @@ void view_calc_win_dimensions(Init *init, char *title) {
         view->cols = len + 4;
     if (view->cols > scr_cols - 4)
         view->cols = scr_cols - 4;
+    view->h_shift = view->cols / 3;
 
     if (init->begy != 0 && view->begy == 0)
         view->begy = init->begy;
@@ -411,6 +404,7 @@ void view_calc_win_dimensions(Init *init, char *title) {
         view->ln_win_cols = 0;
 
     view->scroll_lines = view->lines - 1;
+
     view->cmd_line = 0;
 
     view->pminrow = 0;

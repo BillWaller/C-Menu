@@ -19,6 +19,7 @@
 #include <cm.h>
 #include <errno.h>
 #include <math.h>
+#include <ncursesw/panel.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +28,12 @@
 #include <wait.h>
 #include <wchar.h>
 #define NC true
+
+enum WinFlags {
+    WF_BOX = 0b00000001,
+    WF_WIN = 0b00000010,
+    WF_WIN2 = 0b00000100
+};
 
 bool open_curses(SIO *);
 bool init_clr_palette(SIO *);
@@ -115,10 +122,13 @@ double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .mi
 double GREEN_GAMMA = 1.2; /**< Gamma correction value for green colors. Set in .minitrc */
 double BLUE_GAMMA = 1.2;  /**< Gamma correction value for blue colors. Set in .minitrc */
 
+PANEL *std_panel;
 WINDOW *win;
 WINDOW *win_win[MAXWIN];
 WINDOW *win_win2[MAXWIN];
 WINDOW *win_box[MAXWIN];
+PANEL *panel[MAXWIN];
+int win_flags[MAXWIN];
 int exit_code;
 unsigned int cmd_key;
 bool f_sigwench = false;
@@ -235,14 +245,18 @@ bool open_curses(SIO *sio) {
         fprintf(stderr, "Check terminfo for missing \"ccc\"\n");
         abend(-1, "fatal error");
     }
+    for (int i = 0; i < MAXWIN; i++)
+        win_flags[i] = 0;
     initialize_local_colors(sio);
     noecho();
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
+    std_panel = new_panel(stdscr);
     wbkgrnd(stdscr, &CC_NORM);
     werase(stdscr);
-    wrefresh(stdscr);
+    update_panels();
+    doupdate();
 #ifdef DEBUG_IMMEDOK
     immedok(stdscr, true);
 #endif
@@ -583,8 +597,8 @@ void destroy_curses() {
         win_box[win_ptr] = nullptr;
         win_ptr--;
     }
-    werase(stdscr);
-    wrefresh(stdscr);
+    update_panels();
+    doupdate();
     endwin();
     delscreen(screen);
     fclose(ncurses_fp);
@@ -828,6 +842,8 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         win_ptr--;
         return 1;
     }
+    panel[win_ptr] = new_panel(win_box[win_ptr]);
+    win_flags[win_ptr] = WF_BOX;
 #ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
@@ -849,7 +865,7 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
     if ((s + 4) < maxx)
         mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-    wnoutrefresh(win_box[win_ptr]);
+    update_panels();
     win_win[win_ptr] = nullptr;
     win_win2[win_ptr] = nullptr;
     if (win_pair) {
@@ -883,6 +899,8 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         win_ptr--;
         return 1;
     }
+    panel[win_ptr] = new_panel(win_box[win_ptr]);
+    win_flags[win_ptr] = WF_BOX;
 #ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
@@ -905,7 +923,8 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
     if ((s + 4) < maxx)
         mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-    wnoutrefresh(win_box[win_ptr]);
+    update_panels();
+    doupdate();
     win_win[win_ptr] = nullptr;
     if (win_pair)
         win_new(wlines, wcols, wbegy, wbegx);
@@ -922,11 +941,12 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 int win_new(int wlines, int wcols, int wbegy, int wbegx) {
     wbegy += 1;
     wbegx += 1;
-    win_win[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
+    win_win[win_ptr] = subwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
     if (win_win[win_ptr] == nullptr) {
         delwin(win_box[win_ptr]);
         return 1;
     }
+    win_flags[win_ptr] |= WF_WIN;
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
@@ -948,11 +968,12 @@ int win_new(int wlines, int wcols, int wbegy, int wbegx) {
 int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
     wbegy += 1;
     wbegx += 1;
-    win_win2[win_ptr] = newwin(wlines, wcols, wbegy, wbegx);
+    win_win2[win_ptr] = subwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
     if (win_win2[win_ptr] == nullptr) {
         delwin(win_box[win_ptr]);
         return 1;
     }
+    win_flags[win_ptr] |= WF_WIN2;
 #ifdef DEBUG_IMMEDOK
     immedok(win_win2[win_ptr], true);
 #endif
@@ -974,7 +995,8 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
    the windows to apply the changes. */
 void win_resize(int wlines, int wcols, char *title) {
     int maxx;
-    wrefresh(stdscr);
+    update_panels();
+    doupdate();
     wresize(win_box[win_ptr], wlines + 2, wcols + 2);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
     cbox(win_box[win_ptr]);
@@ -993,7 +1015,7 @@ void win_resize(int wlines, int wcols, char *title) {
         if ((s + 4) < maxx)
             mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
     }
-    wnoutrefresh(win_box[win_ptr]);
+    update_panels();
     wresize(win_win[win_ptr], wlines, wcols);
     wbkgrndset(win_win[win_ptr], &CC_NT);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
@@ -1014,7 +1036,7 @@ void win_resize(int wlines, int wcols, char *title) {
    and redraw a window, such as after resizing or when updating its contents. */
 void win_redraw(WINDOW *win) {
     werase(win);
-    wnoutrefresh(win);
+    update_panels();
 }
 /** win_del
     @brief Delete the current window and its associated box window
@@ -1026,34 +1048,16 @@ void win_redraw(WINDOW *win) {
    variable is decremented to point to the previous window in the stack. */
 WINDOW *
 win_del() {
-    int i;
     if (win_ptr >= 0) {
-        if (win_win[win_ptr] != nullptr) {
-            wbkgrnd(win_win[win_ptr], &CC_NORM);
-            werase(win_win[win_ptr]);
-            touchwin(win_win[win_ptr]);
-            wrefresh(win_win[win_ptr]);
+        if (panel[win_ptr] != nullptr)
+            del_panel(panel[win_ptr]);
+        if (win_win[win_ptr] != nullptr)
             delwin(win_win[win_ptr]);
-        }
         if (win_box[win_ptr] != nullptr) {
-            // wbkgrndset(win_box[win_ptr], &CC_NT);
-            wbkgrnd(win_box[win_ptr], &CC_NORM);
-            werase(win_box[win_ptr]);
-            touchwin(win_box[win_ptr]);
-            wrefresh(win_box[win_ptr]);
             delwin(win_box[win_ptr]);
         }
-        for (i = 0; i < win_ptr; i++) {
-            if (win_box[i] != nullptr) {
-                touchwin(win_box[i]);
-                wnoutrefresh(win_box[i]);
-            }
-            if (win_win[i] == nullptr)
-                continue;
-            touchwin(win_win[i]);
-            wnoutrefresh(win_win[i]);
-        }
-        refresh();
+        update_panels();
+        doupdate();
         win_ptr--;
     }
     return 0;
@@ -1067,19 +1071,17 @@ win_del() {
    correctly on the resized screen. Use this function in response to a SIGWINCH
    signal to handle terminal resizing gracefully. */
 void restore_wins() {
-    int i;
-    for (i = 0; i <= win_ptr; i++) {
-        if (win_box[i] != nullptr) {
+    touchwin(stdscr);
+    for (int i = 0; i <= win_ptr; i++) {
+        if (win_box[i] != nullptr)
             touchwin(win_box[i]);
-            wnoutrefresh(win_box[i]);
-            wrefresh(win_box[i]);
-        }
-        if (win_win[i] == nullptr)
-            continue;
-        touchwin(win_win[i]);
-        wnoutrefresh(win_win[i]);
-        wrefresh(win_win[i]);
+        if (win_win[i] != nullptr)
+            touchwin(win_win[i]);
+        if (win_win2[i] == nullptr)
+            touchwin(win_win2[i]);
     }
+    update_panels();
+    doupdate();
 }
 /** cbox
     @brief Draw a box around the specified window
@@ -1191,7 +1193,8 @@ message_win(char *em0) {
     cbox(win);
     strnz(em0, 40);
     mvwaddstr(win, 0, 1, em0);
-    wrefresh(win);
+    update_panels();
+    doupdate();
     return win;
 }
 /** answer_yn

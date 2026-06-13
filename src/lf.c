@@ -636,8 +636,11 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
                 f->only_errors ? "true" : "|    false");
         fprintf(stderr, "\n");
         fprintf(stderr, "Search directory: %s\n\n", f->base_path);
+        if (f->max_depth == 0)
+            fprintf(stderr, "Max depth 0 (unlimited)\n\n");
+        else
+            fprintf(stderr, "Max depth %d\n\n", f->max_depth);
         fprintf(stderr, "Using %d threads\n\n", nthreads);
-
         fprintf(stderr, "File types preceeded by an asterisk (\"*\") will be included:\n\n");
         fprintf(stderr, "  LF type        DT type\n");
         print_file_type(f->include_types, LF_FIFO, DT_FIFO, "FIFO    p-named pipe");
@@ -948,8 +951,6 @@ void *finder(void *arg) {
             // user's options while still allowing for traversal of linked
             // directories if desired.
             if (effective_type == DT_DIR) {
-                if (f->max_depth != 0 && current_task->depth == f->max_depth)
-                    continue;
                 // Check for cycles by comparing the current
                 // directory's dev/inode with the history of dev/inode pairs
                 // from parent directories. If a match is found, it
@@ -1003,6 +1004,8 @@ void *finder(void *arg) {
                 //
                 // What about using realloc? NO! All the directories in this
                 // subdirectory must share the same history array.
+                if (f->max_depth != 0 && current_task->depth + 1 == f->max_depth)
+                    continue;
                 TaskNode *child_task = malloc(sizeof(TaskNode));
                 child_task->dir_path = strdup(full_path);
                 child_task->depth = current_task->depth + 1;

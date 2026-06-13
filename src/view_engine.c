@@ -115,7 +115,6 @@ void initialize_line_table(View *);
 int pad_refresh(View *);
 void sync_ln(View *);
 char err_msg[MAXLEN];
-void view_restore_wins();
 
 /** @brief Start view
     @ingroup view_engine
@@ -202,10 +201,8 @@ int view_cmd_processor(Init *init) {
         if (!c) {
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            if (view->f_ln) {
+            if (view->f_ln)
                 touchwin(view->ln_win);
-                wrefresh(view->ln_win);
-            }
             c = get_cmd_char(view, &n_cmd);
             if (c >= '0' && c <= '9') {
                 tmp_str[0] = (char)c;
@@ -711,6 +708,8 @@ int get_cmd_char(View *view, off_t *n) {
     pad_refresh(view);
     wmove(view->cmdln_win, view->cmd_line, view->curx);
     do {
+        update_panels();
+        doupdate();
         c = vgetch(view->cmdln_win, 0);
         if ((c >= '0' && c <= '9') && i < 32) {
             cmd_str[i++] = (char)c;
@@ -786,6 +785,8 @@ int get_cmd_arg(View *view, char *prompt) {
     }
     wclrtoeol(view->cmdln_win);
     while (1) {
+        update_panels();
+        doupdate();
         c = vgetch(view->cmdln_win, -1);
         switch (c) {
         /** Basic Editing Keys for Command Line */
@@ -1193,9 +1194,7 @@ int pad_refresh(View *view) {
                       view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR)
         Perror("Error refreshing screen");
-    wrefresh(view->cmdln_win);
-    if (view->f_ln)
-        wrefresh(view->ln_win);
+    update_panels();
     return rc;
 }
 /*--------------------------------------------------------------
@@ -1330,10 +1329,8 @@ void scroll_up_n_lines(View *view, int n) {
     view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->file_pos = view->page_top_pos;
 
-    if (view->f_ln) {
+    if (view->f_ln)
         wscrl(view->ln_win, -n);
-        wnoutrefresh(view->ln_win);
-    }
     wscrl(view->pad, -n);
     view->cury = 0;
     wmove(view->pad, view->cury, 0);
@@ -1955,6 +1952,8 @@ void remove_file(View *view) {
         wmove(view->pad, view->cmd_line, 0);
         waddstr(view->pad, "Remove File (Y or N)->");
         wclrtoeol(view->pad);
+        update_panels();
+        doupdate();
         c = (char)vgetch(view->cmdln_win, -1);
         waddch(view->pad, (char)toupper(c));
         if (c == 'Y' || c == 'y')
@@ -2006,19 +2005,6 @@ void view_display_help(Init *init) {
                init->begx);
     destroy_argv(eargc, eargv);
     init->view->f_redisplay_page = true;
-}
-/** @brief Restore View Windows
-    @ingroup view_display
-    @details This function restores the content of the view windows (line
-   number window and command line window) after they may have been
-   overwritten by a popup or other temporary display. It uses wnoutrefresh to
-   update the virtual screen with the content of the windows and then calls
-   wrefresh to update the physical screen. */
-void view_restore_wins() {
-    wnoutrefresh(view->ln_win);
-    wrefresh(view->ln_win);
-    wnoutrefresh(view->cmdln_win);
-    wrefresh(view->cmdln_win);
 }
 /*------------------------------------------------------------
       END DISPLAY

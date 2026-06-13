@@ -17,6 +17,7 @@
 #include "version.h"
 #include <argp.h>
 #include <ncursesw/ncurses.h>
+#include <ncursesw/panel.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -585,6 +586,9 @@ extern void sig_shell_mode();
 extern char di_getch();
 extern int enter_option();
 
+extern PANEL *std_panel;
+extern PANEL *panel[MAXWIN];
+extern int win_flags[MAXWIN];
 extern WINDOW *win; /**< generic window pointer, used for various purposes */
 extern WINDOW
     *win_win[MAXWIN]; /**< array of pointers to windows, indexed by window ID */

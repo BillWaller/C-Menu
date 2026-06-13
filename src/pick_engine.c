@@ -20,7 +20,6 @@
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
-#define DEBUG_IMMEDOK
 int tbl_col, tbl_line, tbl_page, tbl_cols, pg_lines, tbl_pages;
 int obj_idx, calculated_idx;
 int pick_engine(Init *);
@@ -94,7 +93,6 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
             /** STDOUT attached to write end of pipe, so close pipe fd */
             close(pipe_fd[P_WRITE]);
-            /** Spawn Child to execute provider_cmd */
             execvp(s_argv[0], s_argv);
             strnz__cpy(tmp_str, "Can't exec pick start cmd: ", MAXLEN - 1);
             strnz__cat(tmp_str, s_argv[0], MAXLEN - 1);
@@ -379,7 +377,8 @@ int pick_engine(Init *init) {
                 if (f_processed) {
                     mvwaddstr(pick->win2, 0, 0, "Selection Processed");
                     wclrtoeol(pick->win2);
-                    wrefresh(pick->win2);
+                    // wrefresh(pick->win2);
+                    update_panels();
                 }
             }
         }
@@ -445,7 +444,8 @@ void display_page(Pick *pick) {
         wscrl(pick->win, -pick->y_offset);
     } else
         pick->y_offset = 0;
-    wrefresh(pick->win);
+    // wrefresh(pick->win);
+    update_panels();
 }
 /** @brief Displays current page of objects in pick window
     @ingroup pick_engine
@@ -552,7 +552,8 @@ void deselect_object(Pick *pick) {
         pick->f_selected[pick->d_idx] = false;
         mvwaddstr(pick->win, pick->y, pick->x - 1, " ");
     }
-    wrefresh(pick->win);
+    // wrefresh(pick->win);
+    update_panels();
 }
 int read_theme(Init *init) {
     int rc;
@@ -562,7 +563,9 @@ int read_theme(Init *init) {
         return rc;
     SIO *sio = init->sio;
     initialize_local_colors(sio);
-    wrefresh(init->pick->win);
+    // wrefresh(init->pick->win);
+    update_panels();
+    doupdate();
     return 0;
 }
 
@@ -739,6 +742,7 @@ int exec_objects(Init *init) {
         }
         return 0;
     } else {
+        endwin();
         if ((pid = fork()) == -1) {
             /** fork failed, free eargv and return error */
             i = 0;
@@ -749,32 +753,22 @@ int exec_objects(Init *init) {
             }
             Perror("fork() failed in exec_objects");
             return (1);
-        }
-        if (pid == 0) {
+        } else if (pid == 0) {
             /** Prevent child process from writing to terminal */
-            int dev_null = open("/dev/null", O_WRONLY);
-            if (dev_null == -1) {
-                Perror("open(/dev/null) failed in init_pick child process");
-                exit(EXIT_FAILURE);
-            }
-            dup2(dev_null, STDERR_FILENO);
-            close(dev_null);
-            /** Child process to execute command */
+            // int dev_null = open("/dev/null", O_WRONLY);
+            // if (dev_null == -1) {
+            //     Perror("open(/dev/null) failed in init_pick child process");
+            //     exit(EXIT_FAILURE);
+            // }
+            // dup2(dev_null, STDERR_FILENO);
+            // close(dev_null);
             execvp(eargv[0], eargv);
-            /** If execvp returns, it means execution failed, so free eargv
-               and print error message before exiting */
-            strnz__cpy(tmp_str, "Can't exec pick cmd: ", MAXLEN - 1);
-            strnz__cat(tmp_str, eargv[0], MAXLEN - 1);
-            Perror(tmp_str);
             exit(EXIT_FAILURE);
         }
     }
     waitpid(pid, nullptr, 0);
     destroy_argv(eargc, eargv);
-    restore_curses_tioctl();
-    sig_prog_mode();
-    werase(stdscr);
-    wrefresh(stdscr);
+    reset_prog_mode();
     restore_wins();
     return rc;
 }
@@ -915,9 +909,10 @@ int picker(Init *init, char *field) {
                 strnz__cat(tmp_str, "         ", MAXLEN - 1);
                 tmp_str[22] = '\0';
                 mvwaddstr(pick->box, pick->separator_line, 2, tmp_str);
-                wrefresh(pick->box);
+                // wrefresh(pick->box);
                 mouse_win = nullptr;
-                // 1
+                update_panels();
+                doupdate();
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
                 if (mouse_win == win2 && click_y == 0)
                     break;
@@ -936,7 +931,7 @@ int picker(Init *init, char *field) {
                 wchar_t wstr[2] = {BW_RAN, L'\0'};
                 setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
                 mvwadd_wch(pick->win2, 0, 0, &cc);
-                wrefresh(pick->win2);
+                // wrefresh(pick->win2);
                 in_key = 0;
                 continue;
 
@@ -1136,8 +1131,8 @@ int picker(Init *init, char *field) {
         wchar_t wstr[2] = {BW_RAN, L'\0'};
         setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
         mvwadd_wch(pick->box, pick->separator_line + 1, 1, &cc);
-        wrefresh(pick->box);
-        wrefresh(pick->win2);
+        // wrefresh(pick->box);
+        // wrefresh(pick->win2);
         pos = 1;
         ptr = accept_s;
         while (1) {
@@ -1157,7 +1152,7 @@ int picker(Init *init, char *field) {
                         strnz__cat(tmp_str, "     ", MAXLEN - 1);
                         tmp_str[21] = '\0';
                         mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
-                        wrefresh(pick->box);
+                        // wrefresh(pick->box);
                     }
                 }
                 /** display_field_content */
@@ -1171,9 +1166,11 @@ int picker(Init *init, char *field) {
                 mvwaddstr(win2, line, col, accept_s);
                 // pos = col + strlen(accept_s);
                 wmove(win2, line, pos);
-                wrefresh(win);
-                wrefresh(win2);
+                // wrefresh(win);
+                // wrefresh(win2);
                 // 2
+                update_panels();
+                doupdate();
                 in_key = dxwgetch(win, win2, pick->chyron, -1);
                 if (mouse_win == win)
                     break;
@@ -1279,7 +1276,7 @@ int picker(Init *init, char *field) {
                     strnz__cat(tmp_str, "     ", MAXLEN - 1);
                     tmp_str[21] = '\0';
                     mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
-                    wrefresh(pick->box);
+                    // wrefresh(pick->box);
                 }
                 in_key = 0;
                 continue;

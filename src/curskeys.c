@@ -22,7 +22,7 @@ int popup_ckeys();
  */
 int popup_ckeys() {
     WINDOW *win;
-    WINDOW *box;
+    // WINDOW *box;
     char Title[] = "TEST CURSES KEYS";
     int lines = 10;
     int cols = 55;
@@ -47,13 +47,13 @@ int popup_ckeys() {
         Perror(tmp);
         return 0;
     }
-    box = win_box[win_ptr];
+    // box = win_box[win_ptr];
     win = win_win[win_ptr];
     keypad(win, TRUE);
     wbkgrndset(menu->win, &CC_NT_REV);
     mvwaddstr(win, lines - 1, 0, " <ALT>END to exit ");
     wbkgrndset(menu->win, &CC_NT);
-    wnoutrefresh(box);
+    // wnoutrefresh(box);
     mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
     c = '\0';
     halfdelay(1);
@@ -61,6 +61,8 @@ int popup_ckeys() {
         kstr[0] = '\0';
         wmove(win, 1, 39);
         do {
+            update_panels();
+            doupdate();
             c = wgetch(win);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
@@ -571,7 +573,9 @@ int popup_ckeys() {
             mvwaddstr(win, 7, 2, "Key bound To: ");
             wclrtoeol(win);
             mvwaddstr(win, 7, 16, s ? s : "Not Bound");
-            wrefresh(win);
+            // wrefresh(win);
+            update_panels();
+            doupdate();
         }
         if (c == KEY_ALTEND) {
             usleep(100000);

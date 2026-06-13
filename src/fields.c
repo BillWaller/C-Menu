@@ -88,10 +88,12 @@ int field_editor(Form *form) {
             form_fmt_field(form, accept_s);
             form_display_field(form);
             tcflush(0, TCIFLUSH);
-            wrefresh(form->box);
+            // wrefresh(form->box);
             wmove(win, flin, x);
             curs_set(1);
             // wrefresh(form->win);
+            update_panels();
+            doupdate();
             in_key = xwgetch(win, form->chyron, -1);
         }
         curs_set(0);

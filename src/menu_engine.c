@@ -176,11 +176,13 @@ unsigned int menu_cmd_processor(Init *init) {
         setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl_rev, nullptr);
         mvwadd_wch(menu->win, menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos, &cc);
-        wrefresh(menu->win);
+        // wrefresh(menu->win);
 
         // Wait for user input and process it
         event.y = event.x = -1;
         wmove(menu->win, menu->line_idx, 1);
+        update_panels();
+        doupdate();
         in_key = xwgetch(menu->win, nullptr, -1);
 
         // Remove the highlight from the currently selected menu choice

@@ -225,7 +225,9 @@ int form_post(Init *init) {
             display_chyron(form->win, form->chyron, form->lines - 1,
                            form->chyron->l);
             tcflush(2, TCIFLUSH);
-            wrefresh(form->box);
+            update_panels();
+            doupdate();
+            // wrefresh(form->box);
             c = xwgetch(form->win, form->chyron, -1);
         }
         switch (c) {
@@ -325,7 +327,9 @@ int form_process(Init *init) {
                        form->chyron->l);
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
-        wrefresh(form->box);
+        update_panels();
+        doupdate();
+        // wrefresh(form->box);
         c = xwgetch(form->win, form->chyron, -1);
         switch (c) {
         case KEY_F(1):
@@ -522,7 +526,7 @@ unsigned int display_form(Init *init) {
     immedok(form->win, true);
     immedok(form->box, true);
 #endif
-    wnoutrefresh(form->win);
+    // wnoutrefresh(form->win);
     // display field brackets if specified in the form description
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
         if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
@@ -531,15 +535,16 @@ unsigned int display_form(Init *init) {
             mvwadd_wch(form->box, flin, fcol, &form->brktl);
             fcol += form->field[form->fidx]->len + 1;
             mvwadd_wch(form->box, flin, fcol, &form->brktr);
-            wnoutrefresh(form->box);
+            // wnoutrefresh(form->box);
         }
     }
     for (n = 0; n < form->dcnt; n++) {
         strnz(form->text[n]->str, form->cols - 3);
         mvwaddstr(form->win, form->text[n]->line, form->text[n]->col,
                   form->text[n]->str);
-        wnoutrefresh(form->win);
+        // wnoutrefresh(form->win);
     }
+    update_panels();
     form_display_fields(form);
     return 0;
 }
@@ -589,8 +594,8 @@ void form_display_fields(Form *form) {
         str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt, form->field[form->fidx]->len);
 
         mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
-
-        wnoutrefresh(form->win);
+        update_panels();
+        // wnoutrefresh(form->win);
     }
     return;
 }
@@ -1046,7 +1051,7 @@ int form_exec_receiver(Init *init) {
     restore_curses_tioctl();
     sig_prog_mode();
     werase(stdscr);
-    wrefresh(stdscr);
+    // wrefresh(stdscr);
     restore_wins();
     return rc;
 }
