@@ -245,9 +245,7 @@ The contents of CMenu.conf should include the path to the C-Menu libraries, whic
 The C-Menu binaries are installed in:
 
 ```
-
 $HOME/menuapp/bin
-
 ```
 
 ### Set Up Your Environment
@@ -264,7 +262,8 @@ export CMENU_HOME="$HOME"/menuapp
 
 After setting up your environment, you can run the C-Menu binaries from any terminal. For example, to run the `menu` binary, simply type:
 
-```bash menu
+```bash
+menu
 ```
 
 ## Conclusion
