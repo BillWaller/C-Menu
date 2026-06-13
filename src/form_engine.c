@@ -1016,6 +1016,7 @@ int form_exec_receiver(Init *init) {
         }
         return 0;
     } else {
+        endwin();
         if ((pid = fork()) == -1) {
             /** fork failed, free eargv and return error */
             i = 0;
@@ -1047,10 +1048,10 @@ int form_exec_receiver(Init *init) {
         }
     }
     waitpid(pid, nullptr, 0);
+    reset_prog_mode();
     destroy_argv(eargc, eargv);
-    restore_curses_tioctl();
     sig_prog_mode();
-    werase(stdscr);
+    // werase(stdscr);
     // wrefresh(stdscr);
     restore_wins();
     return rc;

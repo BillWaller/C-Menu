@@ -1,4 +1,4 @@
-![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
+![C-Menu Introduction](../screenshots/C-Menu-Introduction.png)
 
 ## What is C-Menu?
 
@@ -32,7 +32,7 @@ Instead of treating menus, forms, selection lists, and viewers as separate one-o
 
 ## Quick Start
 
-See [BUILD](docs/BUILD.md) for full build and install instructions.
+See [INSTALLATION](docs/INSTALL.md) for full build and install instructions.
 
 A typical workflow with C-Menu looks like this:
 

@@ -742,6 +742,7 @@ int exec_objects(Init *init) {
         }
         return 0;
     } else {
+        werase(stdscr);
         endwin();
         if ((pid = fork()) == -1) {
             /** fork failed, free eargv and return error */

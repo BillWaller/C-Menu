@@ -15,10 +15,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
 char month[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-
 typedef struct {
     double pv;
     double pmt;
@@ -28,7 +26,6 @@ typedef struct {
     double principal;
     double year_total_interest;
 } Amort;
-
 void print_totals(Amort *);
 
 int main(int argc, char **argv) {

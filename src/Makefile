@@ -7,54 +7,56 @@
 # @date 2026-06-10
 #
 ifneq ($(CMENU_HOME),)
-	CMENU_HOME = $(HOME)/menuapp
+	CMENU_HOME:=$(HOME)/menuapp
 endif
 DISPLAY_MANIFEST=0
 BUILD_TYPE=Debug
 ifeq ($(BUILD_TYPE), Release)
-	CFLAGS = -Ofast -flto -pthread
-	LINKOPT = -pthread -flto
+	CFLAGS=-Ofast -flto -pthread -s
+	LINKOPT= -pthread -flto -s
 else
-	CFLAGS = -O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic -DDEBUG_IMMEDOK
-	LINKOPT = -pthread
+	CFLAGS:=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic -DDEBUG_IMMEDOK
+	LINKOPT=-pthread
 endif
 #	-DDEBUG_IMMEDOK
 #
 MAJOR=0
 MINOR=2
 PATCH=9
-VERSION=$(MAJOR).$(MINOR).$(PATCH)
-SYSDATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-LIB_DIR=/usr/lib64
-LIB_SHARED=libcm.so
-LIB_STATIC=libcm.a
-CMENU_LIB_DIR=$(CMENU_HOME)/lib64
-BUILD_DIR=$(CMENU_SRC)
-BIN_DIR=$(CMENU_HOME)/bin
-MAN_DIR=$(CMENU_HOME)/man/man1
-RPATH=.:$(CMENU_LIB_DIR):$(LIB_DIR)
-PAM_DIR=/etc/pam.d
-INC_DIRS=./include
-CX=-std=c23
-CC=gcc $(CX) -Wall -Wextra -I$(INC_DIRS) $(CFLAGS)
+VERSION:=$(MAJOR).$(MINOR).$(PATCH)
+SYSDATE:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+LIB_DIR:=/usr/lib64
+LIB_SHARED:=libcm.so
+LIB_STATIC:=libcm.a
+CMENU_LIB_DIR:=$(CMENU_HOME)/lib64
+BUILD_DIR:=$(CURDIR)
+BIN_DIR:=$(CMENU_HOME)/bin
+MAN_DIR:=$(CMENU_HOME)/man/man1
+RPATH:=.:$(CMENU_LIB_DIR):$(LIB_DIR)
+PAM_DIR:=/etc/pam.d
+INC_DIRS:=./include
+CX:=-std=c23
+CC:=gcc $(CX) -Wall -Wextra -I$(INC_DIRS) $(CFLAGS)
 
-BINEXES=menu form pick view ckeys whence rsh rsh_static rsh_pam \
+BINEXES:=menu form pick view ckeys whence rsh rsh_static rsh_pam \
 		iloan amort enterchr enterstr lf stripansi detach
 
-MANPAGES=cmenu.1.gz lf.1.gz rsh.1.gz
+MANPAGES:=cmenu.1.gz lf.1.gz rsh.1.gz
+
+OTHER:=CMenu.conf
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 
-COMMON_HDRS=include/cm.h include/common.h include/menu.h \
+COMMON_HDRS:=include/cm.h include/common.h include/menu.h \
 		include/form.h include/pick.h include/view.h include/version.h \
 		include/version.h.in
-COMMON_SRCS=menu_engine.c parse_menu_desc.c curskeys.c \
+COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
 			fields.c form_engine.c init.c init_view.c mem.c \
 			pick_engine.c popups.c view_engine.c
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
-LIBS = $(LINKOPT) -L. -lcm -lncursesw -ltinfow -lpanelw -lm -luring -Wl,-rpath,$(RPATH)
+LIBS:=$(LINKOPT) -L. -lcm -lncursesw -ltinfow -lpanelw -lm -luring -Wl,-rpath,$(RPATH)
 
 .PHONY: all config help install install_man clean uninstall helgrind valgrind
 
@@ -166,8 +168,8 @@ valgrind: lf
 install:
 	rm -f	$(CMENU_LIB_DIR)/libcm*
 	install -CDp 	$(COMMON_HDRS)	-t $(CMENU_HOME)/include
-	install -CDp	menu whence lf detach enterchr \
-					enterstr iloan amort stripansi -t $(BIN_DIR)
+	install -CDp	menu whence lf detach enterchr enterstr \
+		iloan amort stripansi -t $(BIN_DIR)
 	install -Dp -o root -g root -m 6711	rsh rsh_static rsh_pam -t $(BIN_DIR)
 	install -CDp $(LIB_STATIC) -t $(CMENU_LIB_DIR)
 	install	-CDp $(LIB_SHARED) -T $(CMENU_LIB_DIR)/$(LIB_SHARED).$(VERSION)

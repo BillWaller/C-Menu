@@ -14,7 +14,7 @@
 /** Pick structures, enums, and data types */
 
 #define OBJ_MAXLEN 80
-#define OBJ_MAXCNT 1024
+#define OBJ_MAXCNT 4096
 
 #ifndef _COMMON_H
 typedef struct Init Init;

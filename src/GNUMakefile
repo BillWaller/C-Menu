@@ -15,10 +15,10 @@ ifeq ($(BUILD_TYPE), Release)
 	CFLAGS = -Ofast -flto -pthread
 	LINKOPT = -pthread -flto
 else
-	CFLAGS = -O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic
+	CFLAGS = -O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic -DDEBUG_IMMEDOK
 	LINKOPT = -pthread
 endif
-#	-DDEUBG_IMMEDOK
+#	-DDEBUG_IMMEDOK
 #
 MAJOR=0
 MINOR=2
@@ -54,7 +54,7 @@ COMMON_SRCS=menu_engine.c parse_menu_desc.c curskeys.c \
 			pick_engine.c popups.c view_engine.c
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
-LIBS = $(LINKOPT) -L. -lcm -lncursesw -ltinfo -lm -luring -Wl,-rpath,$(RPATH)
+LIBS = $(LINKOPT) -L. -lcm -lncursesw -ltinfow -lpanelw -lm -luring -Wl,-rpath,$(RPATH)
 
 .PHONY: all config help install install_man clean uninstall helgrind valgrind
 
