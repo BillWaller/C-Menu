@@ -1,0 +1,160 @@
+[31;3;1mpthread_mutex_init[24;0m(3)      Library Functions Manual      [31;3;1mpthread_mutex_init[24;0m(3)
+
+[36;1mNAME[0m
+       pthread_mutex_init,      pthread_mutex_lock,     pthread_mutex_trylock,
+       pthread_mutex_unlock, pthread_mutex_destroy - operations on mutexes
+
+[36;1mSYNOPSIS[0m
+       [36;1m#include <pthread.h>[0m
+
+       [36;1mpthread_mutex_t [31;3;1m[22;0mfastmutex[24;0m [36;1m= PTHREAD_MUTEX_INITIALIZER;[0m
+       [36;1mpthread_mutex_t [31;3;1m[22;0mrecmutex[24;0m [36;1m= PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;[0m
+       [36;1mpthread_mutex_t [31;3;1m[22;0merrchkmutex[24;0m [36;1m= PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;[0m
+
+       [36;1mint pthread_mutex_init(pthread_mutex_t *[31;3;1m[22;0mmutex[24;0m[36;1m,[0m
+                              [36;1mconst pthread_mutexattr_t *[31;3;1m[22;0mmutexattr[24;0m[36;1m);[0m
+       [36;1mint pthread_mutex_lock(pthread_mutex_t *[31;3;1m[22;0mmutex[24;0m[36;1m);[0m
+       [36;1mint pthread_mutex_trylock(pthread_mutex_t *[31;3;1m[22;0mmutex[24;0m[36;1m);[0m
+       [36;1mint pthread_mutex_unlock(pthread_mutex_t *[31;3;1m[22;0mmutex[24;0m[36;1m);[0m
+       [36;1mint pthread_mutex_destroy(pthread_mutex_t *[31;3;1m[22;0mmutex[24;0m[36;1m);[0m
+
+[36;1mDESCRIPTION[0m
+       A mutex is a MUTual EXclusion device,  and  is  useful  for  protecting
+       shared  data structures from concurrent modifications, and implementing
+       critical sections and monitors.
+
+       A mutex has two possible states: unlocked (not owned  by  any  thread),
+       and  locked  (owned  by one thread).  A mutex can never be owned by two
+       different threads simultaneously.  A thread attempting to lock a  mutex
+       that  is already locked by another thread is suspended until the owning
+       thread unlocks the mutex first.
+
+       [36;1mpthread_mutex_init[22;0m() initializes the mutex object pointed to  by  [31;3;1mmutex[0m
+       according to the mutex attributes specified in [31;3;1mmutexattr[24;0m.  If [31;3;1mmutexattr[0m
+       is NULL, default attributes are used instead.
+
+       The LinuxThreads implementation supports only one mutex attributes, the
+       [31;3;1mmutex[24;0m  [31;3;1mkind[24;0m,  which is either "fast", "recursive", or "error checking".
+       The kind of a mutex determines whether it can  be  locked  again  by  a
+       thread  that  already  owns  it.   The  default  kind  is  "fast".  See
+       [36;1mpthread_mutexattr_init[22;0m(3) for more information on mutex attributes.
+
+       Variables of type [31;3;1mpthread_mutex_t[24;0m can also be  initialized  statically,
+       using  the  constants  [36;1mPTHREAD_MUTEX_INITIALIZER  [22;0m(for  fast  mutexes),
+       [36;1mPTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP  [22;0m(for  recursive  mutexes),  and
+       [36;1mPTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP [22;0m(for error checking mutexes).
+
+       [36;1mpthread_mutex_lock[22;0m()  locks the given mutex.  If the mutex is currently
+       unlocked, it becomes locked  and  owned  by  the  calling  thread,  and
+       [36;1mpthread_mutex_lock[22;0m()  returns  immediately.   If  the  mutex is already
+       locked by another thread,  [36;1mpthread_mutex_lock[22;0m()  suspends  the  calling
+       thread until the mutex is unlocked.
+
+       If  the  mutex is already locked by the calling thread, the behavior of
+       [36;1mpthread_mutex_lock[22;0m() depends on the kind of the mutex.  If the mutex is
+       of the "fast" kind, the calling thread is suspended until the mutex  is
+       unlocked,  thus effectively causing the calling thread to deadlock.  If
+       the mutex is of the "error checking" kind, [36;1mpthread_mutex_lock[22;0m() returns
+       immediately with the error code [36;1mEDEADLK[22;0m.  If the mutex is of  the  "re‐
+       cursive"  kind,  [36;1mpthread_mutex_lock[22;0m() succeeds and returns immediately,
+       recording the number of times the calling thread has locked the  mutex.
+       An  equal number of [36;1mpthread_mutex_unlock[22;0m() operations must be performed
+       before the mutex returns to the unlocked state.
+
+       [36;1mpthread_mutex_trylock[22;0m() behaves  identically  to  [36;1mpthread_mutex_lock[22;0m(),
+       except  that  it  does not block the calling thread if the mutex is al‐
+       ready locked by another thread (or by the calling thread in the case of
+       a "fast" mutex).  Instead, [36;1mpthread_mutex_trylock[22;0m() returns  immediately
+       with the error code [36;1mEBUSY[22;0m.
+
+       [36;1mpthread_mutex_unlock[22;0m()  unlocks  the given mutex.  The mutex is assumed
+       to be locked and owned by the calling thread on entrance to [36;1mpthread_mu‐[0m
+       [36;1mtex_unlock[22;0m().  If the mutex is of the  "fast"  kind,  [36;1mpthread_mutex_un‐[0m
+       [36;1mlock[22;0m()  always  returns it to the unlocked state.  If it is of the "re‐
+       cursive" kind, it decrements the locking count of the mutex (number  of
+       [36;1mpthread_mutex_lock[22;0m() operations performed on it by the calling thread),
+       and only when this count reaches zero is the mutex actually unlocked.
+
+       On "error checking" and "recursive" mutexes, [36;1mpthread_mutex_unlock[22;0m() ac‐
+       tually  checks  at  run‐time  that the mutex is locked on entrance, and
+       that it was locked by the same thread that is now  calling  [36;1mpthread_mu‐[0m
+       [36;1mtex_unlock[22;0m().   If  these  conditions are not met, an error code is re‐
+       turned and the mutex remains unchanged.  "Fast" mutexes perform no such
+       checks, thus allowing a locked mutex to be unlocked by a  thread  other
+       than  its  owner.  This is non‐portable behavior and must not be relied
+       upon.
+
+       [36;1mpthread_mutex_destroy[22;0m() destroys a mutex object, freeing the  resources
+       it  might hold.  The mutex must be unlocked on entrance.  In the Linux‐
+       Threads implementation, no resources are associated with mutex objects,
+       thus [36;1mpthread_mutex_destroy[22;0m() actually does nothing except checking that
+       the mutex is unlocked.
+
+[36;1mCANCELLATION[0m
+       None  of  the  mutex  functions  is  a  cancelation  point,  not   even
+       [36;1mpthread_mutex_lock[22;0m(), in spite of the fact that it can suspend a thread
+       for  arbitrary  durations.  This way, the status of mutexes at cancela‐
+       tion points is predictable, allowing  cancelation  handlers  to  unlock
+       precisely  those  mutexes  that  need  to be unlocked before the thread
+       stops executing.   Consequently,  threads  using  deferred  cancelation
+       should never hold a mutex for extended periods of time.
+
+[36;1mASYNC‐SIGNAL SAFETY[0m
+       The mutex functions are not async‐signal safe.  What this means is that
+       they  should not be called from a signal handler.  In particular, call‐
+       ing [36;1mpthread_mutex_lock[22;0m() or [36;1mpthread_mutex_unlock[22;0m() from a  signal  han‐
+       dler may deadlock the calling thread.
+
+[36;1mRETURN VALUE[0m
+       [36;1mpthread_mutex_init[22;0m()  always  returns 0.  The other mutex functions re‐
+       turn 0 on success and a non‐zero error code on error.
+
+[36;1mERRORS[0m
+       The [36;1mpthread_mutex_lock[22;0m() function returns the following error  code  on
+       error:
+
+              [36;1mEINVAL [22;0mThe mutex has not been properly initialized.
+
+              [36;1mEDEADLK[0m
+                     The mutex is already locked by the calling thread ("error
+                     checking" mutexes only).
+
+       The  [36;1mpthread_mutex_trylock[22;0m() function returns the following error codes
+       on error:
+
+              [36;1mEBUSY  [22;0mThe mutex could not be acquired because it was  currently
+                     locked.
+
+              [36;1mEINVAL [22;0mThe mutex has not been properly initialized.
+
+       The [36;1mpthread_mutex_unlock[22;0m() function returns the following error code on
+       error:
+
+              [36;1mEINVAL [22;0mThe mutex has not been properly initialized.
+
+              [36;1mEPERM  [22;0mThe  calling thread does not own the mutex ("error check‐
+                     ing" mutexes only).
+
+       The [36;1mpthread_mutex_destroy[22;0m() function returns the following  error  code
+       on error:
+
+              [36;1mEBUSY  [22;0mThe mutex is currently locked.
+
+[36;1mSEE ALSO[0m
+       [36;1mpthread_mutexattr_init[22;0m(3),             [36;1mpthread_mutexattr_setkind_np[22;0m(3),
+       [36;1mpthread_cancel[22;0m(3).
+
+[36;1mEXAMPLE[0m
+       A shared global variable [31;3;1mx[24;0m can be protected by a mutex as follows:
+
+              [36;1mint x;[0m
+              [36;1mpthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;[0m
+
+       All accesses and modifications to [31;3;1mx[24;0m should be  bracketed  by  calls  to
+       [36;1mpthread_mutex_lock[22;0m() and [36;1mpthread_mutex_unlock[22;0m() as follows:
+
+              [36;1mpthread_mutex_lock(&mut);[0m
+              [36;1m/* operate on x */[0m
+              [36;1mpthread_mutex_unlock(&mut);[0m
+
+Linux man‐pages (unreleased)      2025‐05‐17             [31;3;1mpthread_mutex_init[24;0m(3)

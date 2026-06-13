@@ -1,0 +1,2 @@
+#!/bin/bash
+lf -S rustlings -d 3 -t f '\.*\.rs$'

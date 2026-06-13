@@ -16,6 +16,8 @@ rm -f bin/iloan
 rm -f bin/amort
 rm -f bin/pick
 rm -f bin/rsh
+rm -f bin/rsh_static
+rm -f bin/rsh_pam
 rm -f bin/stripansi
 rm -f bin/testfail
 rm -f bin/testok

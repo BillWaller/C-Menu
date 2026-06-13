@@ -23,7 +23,7 @@
 :     Rustlings Source
 !pick -S "lf rustlings -d3 \".*\.rs$\"" -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%
 :     -PView Manual Pages
-!pick -S "lf ~/menuapp/man" -d 5 -n 1 -T \"Select Manual Page to View\" -c "view -Nf %%"
+!pick -S "listman.sh" -n 1 -T \"Select Manual Page to View\" -c "readman.sh %%"
 :     Edit C-Menu Description Files
 !pick -S list_msrc -n 1 -T "C-Menu Description Files - Select File to Edit" -c edit_msrc %%
 :     -SView C-Menu Source with Tree-Sitter
