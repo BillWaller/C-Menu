@@ -342,7 +342,6 @@ If you contribute examples, documentation improvements, or fixes, keeping exampl
 - [Augmentation](docs/extras.md) - additional examples and supporting material
 - [FAQ](docs/FAQ.md) - frequently asked questions
 - [Performance](docs/Performance.md) - benchmarks and performance notes
-- [Contributing](CONTRIBUTING.md) - guidelines for contributing to the project
 - [Menu](docs/menu.md) - detailed documentation for the `menu` component
 - [Form](docs/form.md) - detailed documentation for the `form` component
 - [Pick](docs/pick.md) - detailed documentation for the `pick` component
@@ -350,4 +349,4 @@ If you contribute examples, documentation improvements, or fixes, keeping exampl
 - [Exercises](docs/exercises.md) - exercises to practice using C-Menu components
 - [Valgrind](docs/valgrind.md) - memory-checking notes and best practices
 - [Roadmap](ROADMAP.md) - planned features and future directions'
-- [Contributing](CONTRIBUTING.md) - guidelines for contributing to the project
+- [Contributing](docs/CONTRIBUTING.md) - guidelines for contributing to the project
