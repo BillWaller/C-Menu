@@ -348,5 +348,5 @@ If you contribute examples, documentation improvements, or fixes, keeping exampl
 - [View](docs/view.md) - detailed documentation for the `view` component
 - [Exercises](docs/exercises.md) - exercises to practice using C-Menu components
 - [Valgrind](docs/valgrind.md) - memory-checking notes and best practices
-- [Roadmap](ROADMAP.md) - planned features and future directions'
+- [Roadmap](docs/ROADMAP.md) - planned features and future directions'
 - [Contributing](docs/CONTRIBUTING.md) - guidelines for contributing to the project
