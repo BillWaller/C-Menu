@@ -914,6 +914,7 @@ int picker(Init *init, char *field) {
                 mouse_win = nullptr;
                 update_panels();
                 doupdate();
+                // 1
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
                 if (mouse_win == win2 && click_y == 0)
                     break;
