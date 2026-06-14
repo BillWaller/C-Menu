@@ -338,10 +338,10 @@ If you contribute examples, documentation improvements, or fixes, keeping exampl
 - [Build](docs/BUILD.md) - build instructions and requirements
 - [API](docs/API.md) - developer-facing API documentation
 - [CHANGELOG](docs/CHANGELOG.md) - project history and notable changes
-- [USER GUIDE](docs/C-Menu-UG.md) - end-user documentation
-- [AUGMENTATION](docs/extras.md) - additional examples and supporting material
+- [User Guide](docs/C-Menu-UG.md) - end-user documentation
+- [Augmentation](docs/extras.md) - additional examples and supporting material
 - [FAQ](docs/FAQ.md) - frequently asked questions
-- [PERFORMANCE](docs/Performance.md) - benchmarks and performance notes
+- [Performance](docs/Performance.md) - benchmarks and performance notes
 - [Contributing](CONTRIBUTING.md) - guidelines for contributing to the project
 - [Menu](docs/menu.md) - detailed documentation for the `menu` component
 - [Form](docs/form.md) - detailed documentation for the `form` component
