@@ -238,8 +238,6 @@ The contents of CMenu.conf should include the path to the C-Menu libraries, whic
 
 ```
 
-/etc/ld.so.conf.d/CMenu.conf
-
 ### C-Menu Binaries
 
 The C-Menu binaries are installed in:
