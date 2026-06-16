@@ -201,8 +201,6 @@ int view_cmd_processor(Init *init) {
         if (!c) {
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            if (view->f_ln)
-                touchwin(view->ln_win);
             c = get_cmd_char(view, &n_cmd);
             if (c >= '0' && c <= '9') {
                 tmp_str[0] = (char)c;
@@ -706,11 +704,11 @@ int get_cmd_char(View *view, off_t *n) {
     char cmd_str[33];
     cmd_str[0] = '\0';
     pad_refresh(view);
-    wmove(view->cmdln_win, view->cmd_line, view->curx);
+    wmove(view->cmdln.win, view->cmd_line, view->curx);
     do {
         update_panels();
         doupdate();
-        c = vgetch(view->cmdln_win, 0);
+        c = vgetch(view->cmdln.win, 0);
         if ((c >= '0' && c <= '9') && i < 32) {
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
@@ -760,15 +758,15 @@ int get_cmd_arg(View *view, char *prompt) {
         return 0;
     cmd_p = view->cmd_arg;
     cmd_e = view->cmd_arg + MAXLEN - 2;
-    wmove(view->cmdln_win, view->cmd_line, 0);
+    wmove(view->cmdln.win, view->cmd_line, 0);
     if (prompt_l == 0)
         numeric_arg = true;
     if (prompt_l > 1) {
-        wstandout(view->cmdln_win);
-        waddch(view->cmdln_win, ' ');
-        waddstr(view->cmdln_win, prompt_s);
-        waddch(view->cmdln_win, ' ');
-        wstandend(view->cmdln_win);
+        wstandout(view->cmdln.win);
+        waddch(view->cmdln.win, ' ');
+        waddstr(view->cmdln.win, prompt_s);
+        waddch(view->cmdln.win, ' ');
+        wstandend(view->cmdln.win);
     } else {
         if (*prompt == ':')
             numeric_arg = true;
@@ -780,14 +778,14 @@ int get_cmd_arg(View *view, char *prompt) {
                 numeric_arg = true;
             }
         }
-        waddstr(view->cmdln_win, prompt_s);
-        wmove(view->cmdln_win, view->cmd_line, prompt_l);
+        waddstr(view->cmdln.win, prompt_s);
+        wmove(view->cmdln.win, view->cmd_line, prompt_l);
     }
-    wclrtoeol(view->cmdln_win);
+    wclrtoeol(view->cmdln.win);
     while (1) {
         update_panels();
         doupdate();
-        c = vgetch(view->cmdln_win, -1);
+        c = vgetch(view->cmdln.win, -1);
         switch (c) {
         /** Basic Editing Keys for Command Line */
         case KEY_LEFT:
@@ -796,20 +794,20 @@ int get_cmd_arg(View *view, char *prompt) {
             if (cmd_p > view->cmd_arg) {
                 cmd_p--;
                 if (*cmd_p < ' ' || *cmd_p == 0x7f) {
-                    getyx(view->cmdln_win, view->cury, view->curx);
+                    getyx(view->cmdln.win, view->cury, view->curx);
                     if (view->curx > 0) {
                         view->curx--;
-                        wmove(view->cmdln_win, view->cmd_line, view->curx);
-                        waddch(view->cmdln_win, ' ');
-                        wmove(view->cmdln_win, view->cmd_line, view->curx);
+                        wmove(view->cmdln.win, view->cmd_line, view->curx);
+                        waddch(view->cmdln.win, ' ');
+                        wmove(view->cmdln.win, view->cmd_line, view->curx);
                     }
                 }
-                getyx(view->cmdln_win, view->cury, view->curx);
+                getyx(view->cmdln.win, view->cury, view->curx);
                 if (view->curx > 0) {
                     view->curx--;
-                    wmove(view->cmdln_win, view->cmd_line, view->curx);
-                    waddch(view->cmdln_win, ' ');
-                    wmove(view->cmdln_win, view->cmd_line, view->curx);
+                    wmove(view->cmdln.win, view->cmd_line, view->curx);
+                    waddch(view->cmdln.win, ' ');
+                    wmove(view->cmdln.win, view->cmd_line, view->curx);
                 }
             }
             break;
@@ -825,11 +823,11 @@ int get_cmd_arg(View *view, char *prompt) {
             *cmd_p++ = (char)c;
             *cmd_p = '\0';
             if ((char)c < ' ') {
-                waddch(view->cmdln_win, '^');
+                waddch(view->cmdln.win, '^');
                 c |= '@';
             } else if ((uchar)c == 0x7f)
                 c = '?';
-            waddch(view->cmdln_win, (char)c);
+            waddch(view->cmdln.win, (char)c);
             if (cmd_p >= cmd_e)
                 return 0;
             if (numeric_arg && (c < '0' || c > '9'))
@@ -1187,7 +1185,8 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
 int pad_refresh(View *view) {
     int rc;
     if (view->f_ln)
-        rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
+        rc = prefresh(view->pad, view->pminrow, view->pmincol,
+                      view->sminrow,
                       view->smincol + 8, view->smaxrow, view->smaxcol);
     else
         rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
@@ -1246,8 +1245,8 @@ void view_display_page(View *view) {
     int i;
     view->cury = 0;
     wmove(view->pad, 0, 0);
-    if (view->ln_win)
-        wmove(view->ln_win, 0, 0);
+    if (view->lnno.win)
+        wmove(view->lnno.win, 0, 0);
     view->ln = view->page_top_ln;
     view->page_bot_ln = view->ln;
     view->page_top_pos = view->ln_tbl[view->ln];
@@ -1259,13 +1258,19 @@ void view_display_page(View *view) {
             break;
         fmt_line(view);
         display_line(view);
+        pad_refresh(view);
+        update_panels();
+        doupdate();
     }
     if (view->cury < view->scroll_lines) {
-        wmove(view->ln_win, view->cury, 0);
-        wclrtobot(view->ln_win);
+        wmove(view->lnno.win, view->cury, 0);
+        wclrtobot(view->lnno.win);
         wmove(view->pad, view->cury, 0);
         wclrtobot(view->pad);
     }
+    pad_refresh(view);
+    update_panels();
+    doupdate();
     view->page_bot_ln = view->ln;
 }
 /** @brief Scroll N Lines
@@ -1287,14 +1292,14 @@ void scroll_down_n_lines(View *view, int n) {
     /** Scroll */
     if (n > view->scroll_lines) {
         if (view->f_ln) {
-            wmove(view->ln_win, 0, 0);
-            wclrtobot(view->ln_win);
+            wmove(view->lnno.win, 0, 0);
+            wclrtobot(view->lnno.win);
         }
         wmove(view->pad, 0, 0);
         wclrtobot(view->pad);
     } else {
         if (view->f_ln)
-            wscrl(view->ln_win, n);
+            wscrl(view->lnno.win, n);
         wscrl(view->pad, n);
         if (view->cury + n < view->scroll_lines)
             view->cury = view->scroll_lines - n;
@@ -1330,7 +1335,7 @@ void scroll_up_n_lines(View *view, int n) {
     view->file_pos = view->page_top_pos;
 
     if (view->f_ln)
-        wscrl(view->ln_win, -n);
+        wscrl(view->lnno.win, -n);
     wscrl(view->pad, -n);
     view->cury = 0;
     wmove(view->pad, view->cury, 0);
@@ -1644,9 +1649,9 @@ void display_line(View *view) {
         view->cury = view->scroll_lines - 1;
     if (view->f_ln) {
         ssnprintf(ln_s, 8, "%7jd", view->ln);
-        wmove(view->ln_win, view->cury, 0);
-        wclrtoeol(view->ln_win);
-        mvwaddstr(view->ln_win, view->cury, 0, ln_s);
+        wmove(view->lnno.win, view->cury, 0);
+        wclrtoeol(view->lnno.win);
+        mvwaddstr(view->lnno.win, view->cury, 0, ln_s);
     }
     wmove(view->pad, view->cury, 0);
     wclrtoeol(view->pad);
@@ -1929,17 +1934,17 @@ int display_prompt(View *view, char *s) {
     char message_str[PAD_COLS + 1];
     int l;
     l = strnz__cpy(message_str, s, PAD_COLS);
-    wmove(view->cmdln_win, view->cmd_line, 0);
+    wmove(view->cmdln.win, view->cmd_line, 0);
     if (l != 0) {
-        wclrtoeol(view->cmdln_win);
-        wbkgrndset(view->cmdln_win, &CC_NT_REV);
-        waddstr(view->cmdln_win, " ");
-        waddstr(view->cmdln_win, message_str);
-        waddstr(view->cmdln_win, " ");
-        wbkgrndset(view->cmdln_win, &CC_NT);
-        waddstr(view->cmdln_win, " ");
+        wclrtoeol(view->cmdln.win);
+        wbkgrndset(view->cmdln.win, &CC_NT_REV);
+        waddstr(view->cmdln.win, " ");
+        waddstr(view->cmdln.win, message_str);
+        waddstr(view->cmdln.win, " ");
+        wbkgrndset(view->cmdln.win, &CC_NT);
+        waddstr(view->cmdln.win, " ");
         view->curx = l + 2;
-        wmove(view->cmdln_win, view->cmd_line, view->curx);
+        wmove(view->cmdln.win, view->cmd_line, view->curx);
     }
     return (view->curx);
 }
@@ -1954,7 +1959,7 @@ void remove_file(View *view) {
         wclrtoeol(view->pad);
         update_panels();
         doupdate();
-        c = (char)vgetch(view->cmdln_win, -1);
+        c = (char)vgetch(view->cmdln.win, -1);
         waddch(view->pad, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);
@@ -2092,4 +2097,47 @@ bool enter_file_spec(Init *init, char *file_spec) {
             return true;
     }
     return true;
+}
+
+bool view_stack_init(ViewStack *s, size_t initial_capacity) {
+    s->items = malloc(initial_capacity * sizeof(View));
+    if (!s->items)
+        return false;
+    s->capacity = initial_capacity;
+    s->top = 0;
+    return true;
+}
+
+bool view_stack_push(ViewStack *s, View item) {
+    if (s->top >= s->capacity) {
+        size_t new_capacity = s->capacity * 2;
+        View *new_items = realloc(s->items, new_capacity * sizeof(View));
+        if (!new_items)
+            return false; // Out of memory
+        s->items = new_items;
+        s->capacity = new_capacity;
+    }
+    s->items[s->top++] = item; // Structure copy
+    return true;
+}
+
+bool view_stack_pop(ViewStack *s, View *out_item) {
+    if (s->top == 0)
+        return false; // Stack underflow
+    *out_item = s->items[--s->top];
+    return true;
+}
+
+bool view_stack_peek(const ViewStack *s, View *out_item) {
+    if (s->top == 0)
+        return false;
+    *out_item = s->items[s->top - 1];
+    return true;
+}
+
+void view_stack_free(ViewStack *s) {
+    free(s->items);
+    s->items = NULL;
+    s->capacity = 0;
+    s->top = 0;
 }

@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <termios.h>
@@ -36,6 +37,9 @@ void display_pick_help(Init *);
 int read_pick_input(Init *);
 void deselect_object(Pick *);
 int read_theme(Init *);
+int pick_init_view(Init *);
+void new_view_file(Init *, char *);
+void end_pick_view(Init *);
 
 int pipe_fd[2];
 
@@ -285,38 +289,59 @@ int read_pick_input(Init *init) {
  accepts selection, returns count of selected objects. */
 int pick_engine(Init *init) {
     int rc;
-    int maxy, maxx, win_maxy, win_maxx;
+    int maxy, maxx;
+    int whitespace_ratio = 20;
+    int usable_lines;
+    int pick_ratio = 50;
     int tbl_max_cols, pg_max_objs;
     bool f_processed = false;
 
     getmaxyx(stdscr, maxy, maxx);
-    /** Calculate pick window size and position based on terminal size and pick
-        parameters */
-    win_maxy = min(((maxy * 8) / 10), (maxy - pick->begy - 1));
-    win_maxx = min(((maxx * 9) / 10), (maxx - pick->begx - 1));
+    // Screen Geometry
+    // Calculate pick window size and position based on terminal size and pick
+    // parameters
+    //
+    // Calculate line usage:
+    if (pick->begy == 0)
+        pick->begy = (maxy * whitespace_ratio) / 200;
+    usable_lines = maxy - (maxy * whitespace_ratio) / 100;
+    usable_lines -= pick->begy;
+    usable_lines -= 5; // Pick overhead lines
+    if (pick->p_view_files) {
+        if (pick->lines == 0) {
+            pick->lines = usable_lines * pick_ratio / 100;
+            usable_lines -= pick->lines;
+        }
+        init->begy = pick->begy + 5 + pick->lines;
+        init->begx = 0;
+        usable_lines -= 3; // View overhead lines
+        init->lines = usable_lines;
+        init->cols = maxx - 2;
+    } else if (pick->lines == 0)
+        pick->lines = usable_lines;
+
     pick->tbl_col_width = max(pick->tbl_col_width, 4);
-    pick->tbl_col_width = min(pick->tbl_col_width, win_maxx - 2);
-    if (pick->d_cnt <= win_maxy) {
+    pick->tbl_col_width = min(pick->tbl_col_width, maxx - 2);
+    if (pick->d_cnt <= pick->lines) {
         pick->tbl_lines = pick->d_cnt;
         pick->tbl_cols = 1;
     } else {
-        tbl_max_cols = (win_maxx / (pick->tbl_col_width + 1));
-        pg_max_objs = win_maxy * tbl_max_cols;
+        tbl_max_cols = (maxx / (pick->tbl_col_width + 1));
+        pg_max_objs = pick->lines * tbl_max_cols;
         if (pick->d_cnt > pg_max_objs)
             pick->tbl_cols = tbl_max_cols;
         else
-            pick->tbl_cols = pick->d_cnt / win_maxy;
+            pick->tbl_cols = pick->d_cnt / pick->lines;
         pick->tbl_lines = pick->d_cnt / tbl_max_cols;
     }
-    pick->tbl_pages = (pick->tbl_lines / (win_maxy - 1)) + 1;
-    pick->pg_lines = (pick->tbl_lines / pick->tbl_pages);
-    pick->win_lines = pick->pg_lines + 1;
+    pick->tbl_pages = (pick->tbl_lines / (pick->lines - 1)) + 1;
+    // pick->lines = (pick->tbl_lines + pick->tbl_pages - 1) / pick->tbl_pages;
     pick->tbl_page = 0;
-    if (pick->begy == 0)
-        pick->begy = (LINES - pick->win_lines) / 5;
-    else if (pick->begy + pick->win_lines > LINES - 4)
-        pick->begy = LINES - pick->win_lines - 2;
-    pick->win_width = (pick->tbl_col_width + 1) * pick->tbl_cols;
+    // if (pick->begy == 0)
+    //     pick->begy = (LINES - pick->lines) / 5;
+    // else if (pick->begy + pick->lines > LINES - 4)
+    //     pick->begy = LINES - pick->lines - 2;
+    pick->width = (pick->tbl_col_width + 1) * pick->tbl_cols;
 
     pick->chyron = new_chyron();
     set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
@@ -329,25 +354,18 @@ int pick_engine(Init *init) {
         set_chyron_key(pick->chyron, 2, "PgDn", KEY_NPAGE);
     }
     compile_chyron(pick->chyron);
-    if (pick->chyron->l > win_maxx)
-        pick->chyron->l = strnz(pick->chyron->s, win_maxx);
-    if (pick->win_width < pick->chyron->l)
-        pick->win_width = pick->chyron->l;
-    pick->win_width = max(pick->win_width, pick->chyron->l) + 5;
-    if (pick->begx + pick->win_width > COLS - 2)
-        pick->begx = COLS - pick->win_width - 2;
+    if (pick->chyron->l > pick->width)
+        pick->chyron->l = strnz(pick->chyron->s, pick->width);
+    if (pick->width < pick->chyron->l)
+        pick->width = pick->chyron->l;
+    pick->width = max(pick->width, pick->chyron->l) + 5;
+    if (pick->begx + pick->width > COLS - 2)
+        pick->begx = COLS - pick->width - 2;
     else if (pick->begx == 0)
-        pick->begx = (COLS - pick->win_width) / 2;
-
+        pick->begx = (COLS - pick->width) / 2;
     rc = open_pick_win(init);
-#ifdef DEBUG_IMMEDOK
-    immedok(pick->box, true);
-    immedok(pick->win, true);
-    immedok(pick->win2, true);
-#endif
     if (rc)
         return (rc);
-
     /** Enter picker loop to handle user input and interactions */
     pick->d_idx = 0;
     pick->x = 1;
@@ -421,15 +439,15 @@ void save_object(Pick *pick, char *s) {
    window. */
 void display_page(Pick *pick) {
     int col;
-    for (pick->y = 0; pick->y < pick->pg_lines; pick->y++) {
+    for (pick->y = 0; pick->y < pick->lines; pick->y++) {
         wmove(pick->win, pick->y, 0);
         wclrtoeol(pick->win);
     }
-    pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols;
+    pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols;
     for (col = 0; col < pick->tbl_cols; col++) {
         pick->x = col * (pick->tbl_col_width + 1) + 1;
         pick->y = 0;
-        while (pick->d_idx < pick->d_cnt && pick->y < pick->pg_lines) {
+        while (pick->d_idx < pick->d_cnt && pick->y < pick->lines) {
             if (pick->f_selected[pick->d_idx])
                 mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
             mvwaddstr_fill(pick->win, pick->y++, pick->x,
@@ -438,14 +456,14 @@ void display_page(Pick *pick) {
     }
     pick->d_idx -= 1;
     pick->tbl_lines = pick->d_cnt;
-    pick->tbl_pages = ((pick->tbl_lines + pick->pg_lines - 1) / pick->pg_lines);
-    if (pick->y < pick->pg_lines) {
-        pick->y_offset = pick->pg_lines - pick->y;
+    pick->tbl_pages = ((pick->tbl_lines + pick->lines - 1) / pick->lines);
+    if (pick->y < pick->lines) {
+        pick->y_offset = pick->lines - pick->y;
         wscrl(pick->win, -pick->y_offset);
     } else
         pick->y_offset = 0;
-    // wrefresh(pick->win);
     update_panels();
+    doupdate();
 }
 /** @brief Displays current page of objects in pick window
     @ingroup pick_engine
@@ -484,15 +502,22 @@ void reverse_object(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
         pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
-    pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_col * pick->pg_lines + pick->tbl_line;
+    pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
+#ifdef DEBUG_IMMEDOK
+    immedok(pick->box, true);
+    immedok(pick->win, true);
+    immedok(pick->win2, true);
+#endif
     wmove(pick->win, pick->y, pick->x);
     wbkgrndset(pick->win, &CC_NT_REV);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width);
     wbkgrndset(pick->win, &CC_NT);
     wmove(pick->win, pick->y, pick->x - 1);
+    update_panels();
+    doupdate();
 }
 /** @brief Unreverses the display of the currently selected object in pick
    window
@@ -509,9 +534,9 @@ void unreverse_object(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
         pick->d_idx = pick->d_cnt - 1;
     pick->x = pick->tbl_col * (pick->tbl_col_width + 1) + 1;
-    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
-    pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_col * pick->pg_lines + pick->tbl_line;
+    pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width);
@@ -786,20 +811,22 @@ options for the window, and returns 0 on success. */
 int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
     pick = init->pick;
-    if (box2_new(pick->win_lines, pick->win_width, pick->begy, pick->begx,
+    if (box2_new(pick->lines, pick->width, pick->begy, pick->begx,
                  pick->title, true)) {
         ssnprintf(tmp_str, MAXLEN - 1, "box2_new(%d, %d, %d, %d, %s) failed",
-                  pick->win_lines, pick->win_width, pick->begy, pick->begx,
+                  pick->lines, pick->width, pick->begy, pick->begx,
                   pick->title);
         Perror(tmp_str);
         return (1);
     }
-    pick->separator_line = pick->win_lines;
+    pick->separator_line = pick->lines + 1;
     pick->win = win_win[win_ptr];
     pick->win2 = win_win2[win_ptr];
     pick->box = win_box[win_ptr];
     keypad(pick->win, true);
+    pick_init_view(init);
 #ifdef DEBUG_IMMEDOK
+    immedok(pick->box, true);
     immedok(pick->win, true);
     immedok(pick->win2, true);
 #endif
@@ -857,7 +884,7 @@ int picker(Init *init, char *field) {
     char filler_s[MAXLEN]; /* buffer for filling the field with spaces */
     int line = 0;          /* Starting line for field input */
     int col = 1;           /* Starting column for field input leaving space for > */
-    int flen = pick->win_width - 4;
+    int flen = pick->width - 4;
     char *accept_s = field; /* pointer to start of field buffer */
     char *ptr = field;      /* pointer to current cursor position in field buffer */
     char *s = field;        /* source pointer for editing operations */
@@ -901,7 +928,7 @@ int picker(Init *init, char *field) {
             display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
             if (in_key == 0) {
                 reverse_object(pick);
-                pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+                pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
                 pick->y = pick->tbl_line + pick->y_offset;
                 /** box display_page_info */
                 ssnprintf(tmp_str, MAXLEN - 1, " Line %d, Page %d/%d",
@@ -910,10 +937,11 @@ int picker(Init *init, char *field) {
                 strnz__cat(tmp_str, "         ", MAXLEN - 1);
                 tmp_str[22] = '\0';
                 mvwaddstr(pick->box, pick->separator_line, 2, tmp_str);
-                // wrefresh(pick->box);
-                mouse_win = nullptr;
                 update_panels();
                 doupdate();
+                if (pick->p_view_files)
+                    new_view_file(init, pick->d_object[pick->d_idx]);
+                mouse_win = nullptr;
                 // 1
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
                 if (mouse_win == win2 && click_y == 0)
@@ -937,7 +965,14 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** Toggle Select Object */
+                /** Toggle Select Object */
+
+            case 'v':
+                view_cmd_processor(init);
+                display_page(pick);
+                in_key = 0;
+                continue;
+
             case KEY_F(13):
             case 't':
             case ' ':
@@ -969,8 +1004,8 @@ int picker(Init *init, char *field) {
                                pick->tbl_col_width);
                 int display_tbl_page = pick->tbl_page;
                 pick->d_idx = pick->d_cnt - 1;
-                pick->tbl_page = pick->d_idx / (pick->pg_lines * pick->tbl_cols);
-                pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->pg_lines;
+                pick->tbl_page = pick->d_idx / (pick->lines * pick->tbl_cols);
+                pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
                 pick->tbl_col = pick->d_idx % pick->tbl_cols;
                 pick->y = pick->tbl_line;
                 if (display_tbl_page != pick->tbl_page)
@@ -995,7 +1030,7 @@ int picker(Init *init, char *field) {
                                pick->tbl_col_width);
                 if (pick->tbl_col > 0)
                     pick->tbl_col--;
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_col * pick->pg_lines + pick->tbl_line;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
                 in_key = 0;
                 continue;
 
@@ -1008,9 +1043,9 @@ int picker(Init *init, char *field) {
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width);
-                if (pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_col * pick->pg_lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_line < pick->pg_lines - 1)
+                if (pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_line < pick->lines - 1)
                     pick->tbl_line++;
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_col * pick->pg_lines + pick->tbl_line;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
                 in_key = 0;
                 continue;
 
@@ -1022,7 +1057,7 @@ int picker(Init *init, char *field) {
                                pick->tbl_col_width);
                 if (pick->tbl_line > 0)
                     pick->tbl_line--;
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_col * pick->pg_lines + pick->tbl_line;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
                 in_key = 0;
                 continue;
 
@@ -1037,9 +1072,9 @@ int picker(Init *init, char *field) {
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width);
                 /** pick->obj_idx += pick->tbl_lines -> next column */
-                if (pick->tbl_page * pick->pg_lines * pick->tbl_cols + (pick->tbl_col + 1) * pick->pg_lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_col < pick->tbl_cols - 1)
+                if (pick->tbl_page * pick->lines * pick->tbl_cols + (pick->tbl_col + 1) * pick->lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_col < pick->tbl_cols - 1)
                     pick->tbl_col++;
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_col * pick->pg_lines + pick->tbl_line;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
                 in_key = 0;
                 continue;
 
@@ -1056,7 +1091,7 @@ int picker(Init *init, char *field) {
                     pick->pg_line = 0;
                     pick->tbl_col = 0;
                 }
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_page(pick);
                 in_key = 0;
                 continue;
@@ -1071,7 +1106,7 @@ int picker(Init *init, char *field) {
                 }
                 if (pick->tbl_page > 0)
                     pick->tbl_page--;
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_page(pick);
                 in_key = 0;
                 continue;
@@ -1081,7 +1116,7 @@ int picker(Init *init, char *field) {
                 pick->tbl_page = 0;
                 pick->tbl_line = 0;
                 pick->tbl_col = 0;
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_page(pick);
                 in_key = 0;
                 continue;
@@ -1090,7 +1125,7 @@ int picker(Init *init, char *field) {
                 object in list */
             case KEY_LL:
                 pick->tbl_page = pick->tbl_pages - 1;
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_page(pick);
                 in_key = 0;
                 continue;
@@ -1110,7 +1145,7 @@ int picker(Init *init, char *field) {
                 pick->tbl_col = (click_x - 1) / (pick->tbl_col_width + 1);
                 if (pick->tbl_col < 0 || pick->tbl_col >= pick->tbl_cols)
                     continue;
-                pick->d_idx = pick->tbl_page * pick->pg_lines * pick->tbl_cols + pick->tbl_col * pick->pg_lines + pick->y;
+                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->y;
                 in_key = KEY_F(13); /** toggle selection on mouse click */
                 click_y = click_x = -1;
                 continue;
@@ -1308,7 +1343,6 @@ int picker(Init *init, char *field) {
                     continue;
                 }
                 pos = click_x;
-                accept_s = accept_s;
                 fend = accept_s + flen;
                 str_end = accept_s + strlen(accept_s);
                 ptr = accept_s + (pos - col);
@@ -1354,6 +1388,76 @@ int picker(Init *init, char *field) {
                 continue;
             }
             break;
+        }
+    }
+}
+
+int pick_init_view(Init *init) {
+    char *e;
+    // if (init->view != nullptr)
+    // view_stack_push(&view_stack, *init->view);
+    init->view = nullptr;
+    destroy_argv(init->argc, init->argv);
+    view = new_view(init); // View struct allocation
+    view->lines = init->lines;
+    view->cols = init->cols;
+    view->begy = init->begy;
+    view->begx = init->begx;
+    view->receiver_cmd[0] = '\0';
+    view->f_ignore_case = init->f_ignore_case;
+    view->f_at_end_remove = init->f_at_end_remove;
+    view->f_squeeze = init->f_squeeze;
+    view->tab_stop = init->tab_stop;
+    view->f_ln = init->f_ln;
+    view->h_shift = init->h_shift;
+    e = getenv("VIEW_HELP_FILE");
+    if (e && e[0] != '\0') {
+        strnz__cpy(view->help_spec, e, MAXLEN - 1);
+    }
+    view->f_help_spec =
+        verify_spec_arg(view->help_spec, view->help_spec, init->mapp_help,
+                        "~/menuapp/help", R_OK);
+    if (!view->f_help_spec) {
+        strnz__cpy(view->help_spec, init->mapp_home, MAXLEN - 1);
+        strnz__cat(view->help_spec, "/help/", MAXLEN - 1);
+        strnz__cat(view->help_spec, VIEW_HELP_FILE, MAXLEN - 1);
+    }
+    int rc = init_view_boxwin(init, "");
+    return rc;
+}
+
+void new_view_file(Init *init, char *file) {
+    view = init->view;
+    if (view->buf != nullptr) {
+        munmap(view->buf, view->file_size);
+        view->buf = nullptr;
+    }
+    strnz__cpy(view->provider_cmd, "tree-sitter highlight ", MAXLEN - 1);
+    strnz__cat(view->provider_cmd, file, MAXLEN - 1);
+    strnz__cpy(view->title, file, MAXLEN - 1);
+    box_title(view->box.win, view->title);
+    if (view_init_input(view, file) == 0) {
+        if (view->buf) {
+            view->f_eod = 0;
+            view->f_bod = 0;
+            view->maxcol = 0;
+            view->page_top_pos = 0;
+            view->page_top_ln = 0;
+            view->page_bot_ln = 0;
+            view->ln_max_pos = 0;
+            view->ln = 0;
+            view->page_bot_pos = 0;
+            view->file_pos = 0;
+            initialize_line_table(view);
+            next_page(view);
+            pad_refresh(view);
+            build_prompt(view);
+            display_prompt(view, view->prompt_str);
+            if (view->f_ln)
+                touchwin(view->lnno.win);
+
+            update_panels();
+            doupdate();
         }
     }
 }

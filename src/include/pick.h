@@ -26,8 +26,8 @@ typedef struct {
     int fg_clr_idx;              /**< foreground color */
     int bg_clr_idx;              /**< background color */
     int bo_clr_idx;              /**< box color */
-    int win_lines;               /**< window lines */
-    int win_width;               /**< window width (columns)*/
+    int lines;                   /**< window lines */
+    int width;                   /**< window width (columns)*/
     int begy;                    /**< begin y screen position of window top */
     int begx;                    /**< begin x screen position of windor left */
     int y;                       /**< current y (line)*/
@@ -58,6 +58,7 @@ typedef struct {
     bool f_help_spec;            /**< flag: help spec verified */
     bool f_read_theme;           /**< flag: read and process default theme */
     bool f_multiple_cmd_args;    /**< flag: multiple command arguments */
+    bool p_view_files;           /**< flag: multiple command arguments */
     bool f_selected[OBJ_MAXCNT]; /**< flag: object selected */
     bool help;                   /**< flag: help requested */
     bool f_provider_cmd;         /**< flag: provider command verified */

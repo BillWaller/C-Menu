@@ -30,12 +30,9 @@
    terminal state after the program has exited. */
 static void end_pgm(void) {
     curs_set(1);
-    win_del();
-    destroy_curses();
     destroy_init(init);
     init = nullptr;
     restore_shell_tioctl();
-    sig_dfl_mode();
     close(cmenu_log_fd);
     exit(EXIT_SUCCESS);
 }
@@ -56,6 +53,7 @@ int main(int argc, char **argv) {
     sig_prog_mode();
     capture_curses_tioctl();
     win_init_attrs();
+    // view_stack_init(&view_stack, MAX_VIEWS);
     base_name(pgm_name, argv[0]);
     if (!strcmp(pgm_name, "menu")) {
         new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
@@ -78,5 +76,6 @@ int main(int argc, char **argv) {
         }
     } else if (!strcmp(pgm_name, "ckeys"))
         popup_ckeys();
+    // view_stack_free(&view_stack);
     // end_pgm();
 }

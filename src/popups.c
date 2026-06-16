@@ -148,7 +148,8 @@ int popup_view(Init *init, int argc, char **argv, int lines, int cols, int begy,
     int rc = 0;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
-    View *sav_view = init->view;
+    // view_stack_push(&view_stack, *init->view);
+    View *view_sav = init->view;
     init->view = nullptr;
     view = nullptr;
     view = new_view(init);
@@ -174,6 +175,7 @@ int popup_view(Init *init, int argc, char **argv, int lines, int cols, int begy,
         win_del();
     }
     destroy_view(init);
-    init->view = sav_view;
+    init->view = view_sav;
+    // view_stack_pop(&view_stack, init->view);
     return rc;
 }

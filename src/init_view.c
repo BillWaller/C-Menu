@@ -29,6 +29,8 @@ void view_full_screen_resize(Init *);
 void view_calc_win_dimensions(Init *, char *title);
 void view_win_resize(Init *, char *);
 
+ViewStack view_stack;
+
 /** @brief Initialize C-Menu View in full screen mode.
     @ingroup init_view
    @param init Pointer to the Init structure containing view settings.
@@ -37,8 +39,8 @@ void view_win_resize(Init *, char *);
    creates a new pad for the view.
    @verbatim
    The function creates the following windows:
-   1. view->cmdln_win: Status or Command Line
-   2. view->ln_win: Line Number Window
+   1. view->cmdln.win: Status or Command Line
+   2. view->lnno.win: Line Number Window
    3. view->pad: Main Content Pad
    @endverbatim
  */
@@ -50,58 +52,43 @@ int init_view_full_screen(Init *init) {
     set_tabsize(view->tab_stop);
     view->f_full_screen = true;
     view_calc_full_screen_dimensions(init);
-#ifdef DEBUG_RESIZE
-    ssnprintf(em0, MAXLEN - 1,
-              "init_view_full_screen(): lines=%d, cols=%d, "
-              "ln_win_lines=%d, ln_win_cols=%d, "
-              "scroll_lines=%d",
-              view->lines, view->cols, view->ln_win_lines, view->ln_win_cols,
-              view->scroll_lines);
-#endif
-    /** view->cmdln_win: status or command line window */
-    std_panel = new_panel(stdscr);
-    view->cmdln_win =
-        subwin(stdscr, 1, view->cols, view->begy + view->lines - 1, view->begx);
-    keypad(view->cmdln_win, true);
-    idlok(view->cmdln_win, false);
-    idcok(view->cmdln_win, false);
-    wbkgrnd(view->cmdln_win, &CC_NT);
-    wbkgrndset(view->cmdln_win, &CC_NT);
-    scrollok(view->cmdln_win, false);
-#ifdef DEBUG_IMMEDOK
-    immedok(view->cmdln_win, true);
-#endif
-    view->ln_win = subwin(stdscr, view->ln_win_lines - 1, view->ln_win_cols, 0, 0);
-    keypad(view->ln_win, false);
-    idlok(view->ln_win, false);
-    idcok(view->ln_win, false);
-    wbkgrnd(view->ln_win, &CC_LN);
-    wbkgrndset(view->ln_win, &CC_LN);
-    scrollok(view->ln_win, true);
-    wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
-#ifdef DEBUG_IMMEDOK
-    immedok(view->ln_win, true);
-#endif
-    /** view->cmdln_win: status or command line window */
-    view->pad = newpad(view->lines - 1, PAD_COLS);
-    if (view->pad == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-        ssnprintf(em1, MAXLEN - 1, "newpad(%d, %d) failed", view->lines,
-                  PAD_COLS);
-        em2[0] = '\0';
-        display_error(em0, em1, em2, nullptr);
-        abend(-1, "init_view_full_screen: newpad() failed");
-    }
-    keypad(view->pad, false);
+
+    view->win.win = newwin(LINES, COLS, 0, 0);
+    view->win.pan = new_panel(view->win.win);
+    wbkgrnd(view->win.win, &CC_DATA);
+
+    view->lnno.win = derwin(view->win.win, LINES - 1, COLS, 0, 0);
+    view->lnno.pan = new_panel(view->lnno.win);
+    wbkgrnd(view->lnno.win, &CC_LN);
+    keypad(view->lnno.win, false);
+    idlok(view->lnno.win, false);
+    idcok(view->lnno.win, false);
+    wbkgrnd(view->lnno.win, &CC_LN);
+    wbkgrndset(view->lnno.win, &CC_LN);
+    scrollok(view->lnno.win, true);
+    wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
+
+    view->cmdln.win = derwin(view->win.win, 1, COLS, LINES - 1, 0);
+    view->cmdln.pan = new_panel(view->cmdln.win);
+    wbkgrnd(view->cmdln.win, &CC_CMD);
+    keypad(view->cmdln.win, true);
+    idlok(view->cmdln.win, false);
+    idcok(view->cmdln.win, false);
+    scrollok(view->cmdln.win, false);
+
+    view->pad_container.win = derwin(view->win.win, LINES - 1, COLS - view->ln_win_cols, 0, view->ln_win_cols);
+    view->pad = newpad(LINES - 1, PAD_COLS - 1);
+    view->pad_view.win = subpad(view->pad, LINES - 1, COLS - view->ln_win_cols, 0, 0);
+    view->pad_view.pan = new_panel(view->pad_view.win);
+    wbkgrnd(view->pad, &CC_NT);
+    keypad(view->pad, true);
+    keypad(view->pad, true);
     idlok(view->pad, false);
     idcok(view->pad, false);
     wbkgrnd(view->pad, &CC_NT);
     wbkgrndset(view->pad, &CC_NT);
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
-#ifdef DEBUG_IMMEDOK
-    immedok(view->pad, true);
-#endif
     return 0;
 }
 /** @brief Resize the full screen view and its components.
@@ -115,11 +102,11 @@ int init_view_full_screen(Init *init) {
 void view_full_screen_resize(Init *init) {
     erase();
     view_calc_full_screen_dimensions(init);
-    mvwin(view->cmdln_win, view->lines - 1, 0);
-    wresize(view->cmdln_win, 1, view->cols);
-    wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
-    wresize(view->ln_win, view->ln_win_lines - 1, view->ln_win_cols);
-    wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
+    mvwin(view->cmdln.win, view->lines - 1, 0);
+    wresize(view->cmdln.win, 1, view->cols);
+    wresize(view->lnno.win, view->ln_win_lines, view->ln_win_cols);
+    wresize(view->lnno.win, view->ln_win_lines - 1, view->ln_win_cols);
+    wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
     wresize(view->pad, view->lines - 1, PAD_COLS);
     wsetscrreg(view->pad, 0, view->lines - 1);
     update_panels();
@@ -181,64 +168,44 @@ int init_view_boxwin(Init *init, char *title) {
             view->argv[0][0] != '\0')
             strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
     }
-#ifdef DEBUG_RESIZE
-    ssnprintf(em0, MAXLEN - 1,
-              "init_view_boxwin(): view->box: begy=%d, begx=%d, lines=%d, "
-              "cols=%d, title=%s",
-              view->begy, view->begx, view->lines + 2, view->cols + 2,
-              view->title);
-    write_cmenu_log_nt(em0);
-#endif
-    if (box_new(view->lines, view->cols, view->begy, view->begx, view->title,
-                false)) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "win_new(%d, %d, %d, %d, %s) failed",
-                  view->lines, view->cols, view->begy, view->begx, view->title);
-        em2[0] = '\0';
-        display_error(em0, em1, em2, nullptr);
-        return (-1);
-    }
-    view->box = win_box[win_ptr];
 
-    /** view->cmdln_win: status or command line window */
-    view->cmdln_win =
-        subwin(win_box[win_ptr], 1, view->cols, view->begy + view->lines, view->begx + 1);
+    view->box.win = newwin(view->lines + 2, view->cols + 2, view->begy, view->begx);
+    view->box.pan = new_panel(view->box.win);
+    wbkgrnd(view->box.win, &CC_BOX);
 
-    keypad(view->cmdln_win, true);
-    idlok(view->cmdln_win, false);
-    idcok(view->cmdln_win, false);
-    wbkgrnd(view->cmdln_win, &CC_NT);
-    wbkgrndset(view->cmdln_win, &CC_NT);
-    scrollok(view->cmdln_win, false);
-#ifdef DEBUG_IMMEDOK
-    immedok(view->cmdln_win, true);
-#endif
+    wborder_set(view->box.win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
 
-    /** view->ln_win: line number window */
-#ifdef DEBUG_RESIZE
-    ssnprintf(em0, MAXLEN - 1,
-              "init_view_boxwin(): view->ln_win: begy=%d, begx=%d, lines=%d, "
-              "cols=%d, scroll_lines=%d",
-              view->begy, view->begx, view->ln_win_lines, view->ln_win_cols,
-              view->scroll_lines);
-    write_cmenu_log_nt(em0);
-#endif
-    if (view->f_ln) {
-        view->ln_win = subwin(view->box, view->ln_win_lines, view->ln_win_cols,
-                              view->begy + 1, view->begx + 1);
-        keypad(view->ln_win, false);
-        idlok(view->ln_win, false);
-        idcok(view->ln_win, false);
-        wbkgrnd(view->ln_win, &CC_LN);
-        wbkgrndset(view->ln_win, &CC_LN);
-        scrollok(view->ln_win, true);
-        wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
-    }
-#ifdef DEBUG_IMMEDOK
-    immedok(view->ln_win, true);
-#endif
-    /** pad for main content */
-    view->pad = newpad(view->lines - 1, PAD_COLS);
+    // box_title(view->box.win.win, view->title);
+
+    view->win.win = derwin(view->box.win, view->lines, view->cols, 1, 1);
+    view->win.pan = new_panel(view->win.win);
+    wbkgrnd(view->win.win, &CC_DATA);
+
+    view->lnno.win = derwin(view->win.win, view->lines - 1, view->ln_win_cols, 0, 0);
+    view->lnno.pan = new_panel(view->lnno.win);
+    wbkgrnd(view->lnno.win, &CC_LN);
+    keypad(view->lnno.win, false);
+    idlok(view->lnno.win, false);
+    idcok(view->lnno.win, false);
+    wbkgrnd(view->lnno.win, &CC_LN);
+    wbkgrndset(view->lnno.win, &CC_LN);
+    scrollok(view->lnno.win, true);
+    wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
+
+    view->cmdln.win = derwin(view->win.win, 1, view->cols, view->lines - 1, 0);
+    view->cmdln.pan = new_panel(view->cmdln.win);
+    wbkgrnd(view->cmdln.win, &CC_CMD);
+    keypad(view->cmdln.win, true);
+    idlok(view->cmdln.win, false);
+    idcok(view->cmdln.win, false);
+    scrollok(view->cmdln.win, false);
+
+    view->pad_container.win = derwin(view->win.win, view->lines - 1, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
+    view->pad = newpad(view->lines - 1, PAD_COLS - 1);
+    view->pad_view.win = subpad(view->pad, view->lines - 1, view->cols - view->ln_win_cols, 0, 0);
+    view->pad_view.pan = new_panel(view->pad_view.win);
+    wbkgrnd(view->pad, &CC_NT);
+    keypad(view->pad, true);
     keypad(view->pad, true);
     idlok(view->pad, false);
     idcok(view->pad, false);
@@ -246,9 +213,7 @@ int init_view_boxwin(Init *init, char *title) {
     wbkgrndset(view->pad, &CC_NT);
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
-#ifdef DEBUG_IMMEDOK
-    immedok(view->pad, true);
-#endif
+
     return (0);
 }
 /** @brief Resize the current window and its box, and update the title
@@ -264,72 +229,58 @@ void view_win_resize(Init *init, char *title) {
     erase();
     view_calc_win_dimensions(init, title);
 #ifdef DEBUG_RESIZE
-    ssnprintf(em0, MAXLEN - 1, "view->box: begy=%d, begx=%d, lines=%d, cols=%d",
+    ssnprintf(em0, MAXLEN - 1, "view->box.win: begy=%d, begx=%d, lines=%d, cols=%d",
               view->begy, view->begx, view->lines + 2, view->cols + 2);
     write_cmenu_log_nt(em0);
 #endif
-    mvwin(view->box, view->begy, view->begx);
-    wresize(view->box, view->lines + 2, view->cols + 2);
-    wbkgrnd(view->box, &CC_BOX);
-    wbkgrndset(view->box, &CC_BOX);
-    cbox(view->box);
+    mvwin(view->box.win, view->begy, view->begx);
+    wresize(view->box.win, view->lines + 2, view->cols + 2);
+    wbkgrnd(view->box.win, &CC_BOX);
+    wbkgrndset(view->box.win, &CC_BOX);
+    cbox(view->box.win);
     if (title != nullptr && *title != '\0') {
-        wmove(view->box, 0, 1);
-        waddnstr(view->box, (const char *)&bw_rt, 1);
-        wmove(view->box, 0, 2);
-        waddnstr(view->box, (const char *)&bw_sp, 1);
-        mvwaddnwstr(view->box, 0, 1, &bw_rt, 1);
-        mvwaddnwstr(view->box, 0, 2, &bw_sp, 1);
+        wmove(view->box.win, 0, 1);
+        waddnstr(view->box.win, (const char *)&bw_rt, 1);
+        wmove(view->box.win, 0, 2);
+        waddnstr(view->box.win, (const char *)&bw_sp, 1);
+        mvwaddnwstr(view->box.win, 0, 1, &bw_rt, 1);
+        mvwaddnwstr(view->box.win, 0, 2, &bw_sp, 1);
         int len = strlen(title);
         if (len > (view->cols - 4)) {
             len -= (view->cols - 4);
-            mvwaddstr(view->box, 0, 3, &title[len]);
+            mvwaddstr(view->box.win, 0, 3, &title[len]);
         } else
-            mvwaddstr(view->box, 0, 3, title);
-        maxx = getmaxx(view->box);
+            mvwaddstr(view->box.win, 0, 3, title);
+        maxx = getmaxx(view->box.win);
         int s = strlen(title);
         if ((s + 3) < maxx)
-            mvwaddch(view->box, 0, (s + 3), ' ');
+            mvwaddch(view->box.win, 0, (s + 3), ' ');
         if ((s + 4) < maxx)
-            mvwaddnwstr(view->box, 0, (s + 4), &bw_lt, 1);
+            mvwaddnwstr(view->box.win, 0, (s + 4), &bw_lt, 1);
     }
-#ifdef DEBUG_RESIZE
-    ssnprintf(em0, MAXLEN - 1,
-              "view->cmdln_win: begy=%d, begx=%d, lines=%d, cols=%d",
-              view->begy + view->lines, view->begx + 1, 1, view->cols);
-    write_cmenu_log_nt(em0);
-#endif
-    mvwin(view->cmdln_win, view->begy + view->lines, view->begx + 1);
-    wresize(view->cmdln_win, 1, view->cols);
-#ifdef DEBUG_RESIZE
-    ssnprintf(em0, MAXLEN - 1,
-              "(285)view->ln_win: begy=%d, begx=%d, lines=%d, cols=%d, "
-              "scroll_lines %d",
-              view->begy + 1, view->begx + 1, view->ln_win_lines + 2,
-              view->ln_win_cols, view->scroll_lines);
-    write_cmenu_log_nt(em0);
-#endif
+    mvwin(view->cmdln.win, view->begy + view->lines, view->begx + 1);
+    wresize(view->cmdln.win, 1, view->cols);
     if (view->f_ln) {
-        if (view->ln_win == nullptr) {
-            view->ln_win = subwin(view->box, view->ln_win_lines, view->ln_win_cols,
-                                  view->begy + 1, view->begx + 1);
-            keypad(view->ln_win, false);
-            idlok(view->ln_win, false);
-            idcok(view->ln_win, false);
-            wbkgrnd(view->ln_win, &CC_LN);
-            wbkgrndset(view->ln_win, &CC_LN);
-            scrollok(view->ln_win, true);
-            wsetscrreg(view->ln_win, 0, view->scroll_lines - 1);
+        if (view->lnno.win == nullptr) {
+            view->lnno.win = subwin(win_box[win_ptr], view->ln_win_lines, view->ln_win_cols,
+                                    view->begy + 1, view->begx + 1);
+            keypad(view->lnno.win, false);
+            idlok(view->lnno.win, false);
+            idcok(view->lnno.win, false);
+            wbkgrnd(view->lnno.win, &CC_LN);
+            wbkgrndset(view->lnno.win, &CC_LN);
+            scrollok(view->lnno.win, true);
+            wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
 #ifdef DEBUG_IMMEDOK
-            immedok(view->ln_win, true);
+            immedok(view->lnno.win, true);
 #endif
         } else {
-            mvwin(view->ln_win, view->begy + 1, view->begx + 1);
-            wresize(view->ln_win, view->ln_win_lines, view->ln_win_cols);
+            mvwin(view->lnno.win, view->begy + 1, view->begx + 1);
+            wresize(view->lnno.win, view->ln_win_lines, view->ln_win_cols);
         }
-    } else if (view->ln_win != nullptr) {
-        delwin(view->ln_win);
-        view->ln_win = nullptr;
+    } else if (view->lnno.win != nullptr) {
+        delwin(view->lnno.win);
+        view->lnno.win = nullptr;
     }
     update_panels();
     view->sminrow = view->begy + 1;
@@ -359,13 +310,13 @@ void view_win_resize(Init *init, char *title) {
 void view_calc_win_dimensions(Init *init, char *title) {
     int scr_lines, scr_cols;
     view = init->view;
-    getmaxyx(stdscr, scr_lines, scr_cols);
     int len = strlen(title);
 
     /** Use view->lines and view->cols if set, otherwise calculate based on
      * screen size with some padding. Ensure the view fits within the screen
      * dimensions. */
 
+    getmaxyx(stdscr, scr_lines, scr_cols);
     if (init->lines != 0 && view->lines == 0)
         view->lines = init->lines;
     if (view->lines == 0)
@@ -453,6 +404,7 @@ int view_init_input(View *view, char *file_name) {
             Perror("pipe(pipe_fd) failed in init_view");
             return -1;
         }
+        endwin();
         if ((pid = fork()) == -1) {
             Perror("fork() failed in init_view");
             return -1;
@@ -477,6 +429,8 @@ int view_init_input(View *view, char *file_name) {
         }
         // Back to parent
         destroy_argv(s_argc, s_argv);
+        reset_prog_mode();
+        restore_wins();
         close(pipe_fd[P_WRITE]);
         dup2(pipe_fd[P_READ], STDIN_FILENO);
         view->in_fd = dup(STDIN_FILENO);

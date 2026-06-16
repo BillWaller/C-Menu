@@ -87,6 +87,8 @@ WINDOW *wait_mk_win(Chyron *, char *);
 SCREEN *screen;
 SIO *sio; /**< Global pointer to SIO struct for terminal and color settings */
 
+cchar_t ls, rs, ts, bs, tl, tr, bl, br;
+
 /** StdColors
     @details Standard 16 colors for xterm256 color conversions These colors can
    be overridden in ".minitrc" */
@@ -150,6 +152,8 @@ char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
 int cp_box;
+int cp_cmd;
+int cp_data;
 int cp_title;
 int cp_nt;
 int cp_nt_rev;
@@ -164,12 +168,14 @@ int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
 cchar_t CC_BG;
 cchar_t CC_BOX;
+cchar_t CC_CMD;
+cchar_t CC_LN;
+cchar_t CC_DATA;
 cchar_t CC_TITLE;
 cchar_t CC_NT;
 cchar_t CC_NT_REV;
 cchar_t CC_NT_HL_REV;
 cchar_t CC_NT_HL;
-cchar_t CC_LN;
 cchar_t CC_NORM;
 cchar_t CC_BRKTL;
 cchar_t CC_BRKTR;
@@ -252,11 +258,9 @@ bool open_curses(SIO *sio) {
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
-    std_panel = new_panel(stdscr);
+    // std_panel = new_panel(stdscr);
     wbkgrnd(stdscr, &CC_NORM);
     werase(stdscr);
-    update_panels();
-    doupdate();
 #ifdef DEBUG_IMMEDOK
     immedok(stdscr, true);
 #endif
@@ -291,6 +295,8 @@ void initialize_local_colors(SIO *sio) {
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
     cp_box = get_clr_pair(CLR_BOX_FG, CLR_BOX_BG);
+    cp_cmd = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
+    cp_data = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
     cp_title = get_clr_pair(CLR_TITLE_FG, CLR_TITLE_BG);
     cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
     cp_norm = get_clr_pair(CLR_FG, CLR_BG);
@@ -303,9 +309,21 @@ void initialize_local_colors(SIO *sio) {
     CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
     CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
     CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
+    CC_CMD = mkcc(cp_nt, WA_NORMAL, " ");
+    CC_DATA = mkcc(cp_data, WA_NORMAL, " ");
     CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
+
+    // create cchart for box borders
+    setcchar(&ls, &bw_ve, WA_NORMAL, 0, NULL); // Left side
+    setcchar(&rs, &bw_ve, WA_NORMAL, 0, NULL); // Right side
+    setcchar(&ts, &bw_ho, WA_NORMAL, 0, NULL); // Top side
+    setcchar(&bs, &bw_ho, WA_NORMAL, 0, NULL); // Bottom side
+    setcchar(&tl, &bw_tl, WA_NORMAL, 0, NULL); // Top-left corner
+    setcchar(&tr, &bw_tr, WA_NORMAL, 0, NULL); // Top-right corner
+    setcchar(&bl, &bw_bl, WA_NORMAL, 0, NULL); // Bottom-left corner
+    setcchar(&br, &bw_br, WA_NORMAL, 0, NULL); // Bottom-right corner
 }
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
@@ -578,7 +596,7 @@ RGB hex_clr_str_to_rgb(char *s) {
     @ingroup window_support
     @details This function should be called before exiting the program to ensure
    that the terminal is left in a usable state. It checks if NCurses was
-   initialized and, if so, it erases the screen, refreshes it, and ends the
+   initialized and, if so, it erases the screen, and ends the
    NCurses session. It also restores the original terminal settings using
    restore_shell_tioctl and resets signal handlers to their default state with
    sig_dfl_mode. */
@@ -837,7 +855,7 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     win_ptr++;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
-    win_box[win_ptr] = newwin(wlines + 4, wcols + 2, wbegy, wbegx);
+    win_box[win_ptr] = subwin(stdscr, wlines + 5, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
         win_ptr--;
         return 1;
@@ -869,8 +887,8 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     win_win[win_ptr] = nullptr;
     win_win2[win_ptr] = nullptr;
     if (win_pair) {
-        win_new(wlines - 1, wcols, wbegy, wbegx);
-        win2_new(2, wcols, wbegy + wlines, wbegx);
+        win_new(wlines, wcols, wbegy, wbegx);
+        win2_new(2, wcols, wbegy + wlines + 1, wbegx);
     }
     return 0;
 }
@@ -923,11 +941,38 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
     if ((s + 4) < maxx)
         mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
     win_win[win_ptr] = nullptr;
     if (win_pair)
         win_new(wlines, wcols, wbegy, wbegx);
+    return 0;
+}
+int box_title(WINDOW *box, char *wtitle) {
+    wbkgrndset(box, &CC_BOX);
+    int x;
+    int maxx;
+
+    maxx = getmaxx(box);
+    maxx--;
+    mvwaddnwstr(box, 0, 0, &bw_tl, 1);
+    for (x = 1; x < maxx; x++)
+        waddnwstr(box, &bw_ho, 1);
+    waddnwstr(box, &bw_tr, 1);
+    mvwaddnwstr(box, 0, 1, &bw_rt, 1);
+    mvwaddnwstr(box, 0, 2, &bw_sp, 1);
+    cchar_t title_cc[MAXLEN] = {0};
+    str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title,
+              MAXLEN - 1);
+    mvwadd_wchstr(box, 0, 3, title_cc);
+    maxx = getmaxx(box);
+    int s = strlen(wtitle);
+    if ((s + 3) < maxx)
+        mvwaddch(box, 0, (s + 3), ' ');
+    if ((s + 4) < maxx)
+        mvwaddnwstr(box, 0, (s + 4), &bw_lt, 1);
+    // update_panels();
+    // doupdate();
     return 0;
 }
 /** win_new
@@ -941,7 +986,8 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
 int win_new(int wlines, int wcols, int wbegy, int wbegx) {
     wbegy += 1;
     wbegx += 1;
-    win_win[win_ptr] = subwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
+    // win_win[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
+    win_win[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, 1, 1);
     if (win_win[win_ptr] == nullptr) {
         delwin(win_box[win_ptr]);
         return 1;
@@ -1067,7 +1113,7 @@ win_del() {
     @ingroup window_support
     @details This function is used to restore the display of all windows after a
    screen resize event. It clears the standard screen and then iterates through
-   all existing windows, touching and refreshing them to ensure they are redrawn
+   all existing windows, touching them to ensure they are redrawn
    correctly on the resized screen. Use this function in response to a SIGWINCH
    signal to handle terminal resizing gracefully. */
 void restore_wins() {
@@ -1183,7 +1229,7 @@ message_win(char *em0) {
     int wlines = 3, wcols = 40;
     int wbegy = 0;
     int wbegx = COLS - wcols - 2;
-    WINDOW *win = newwin(wlines, wcols, wbegy, wbegx);
+    WINDOW *win = subwin(stdscr, wlines, wcols, wbegy, wbegx);
     if (win == nullptr)
         return win;
 #ifdef DEBUG_IMMEDOK

@@ -35,6 +35,9 @@ extern int cmenu_log_fd;
 #define MAX_DEPTH 3   /**< default depth for recursive file searching */
 #define SCREEN_MAX_LINES 100
 #define Ctrl(c) ((c) & 0x1f)
+#include <stdio.h>
+
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 
 /** @brief max macro evaluates two expressions, returning greatest result.
     @details These macros use compound statements to create local scopes for the
@@ -339,9 +342,7 @@ extern unsigned int cmd_key; /**< the command key for the current command, for
                                 error messages and other output */
 /** @struct RGB */
 typedef struct {
-    int r; /**< red component (0-255) */
-    int g; /**< green component (0-255) */
-    int b; /**< blue component (0-255) */
+    int r, g, b;
 } RGB;
 
 #define FG_COLOR 2    /**< default foreground color */
@@ -349,6 +350,23 @@ typedef struct {
 #define BO_COLOR 1    /**< default bold foreground color */
 #define LN_COLOR 4    /**< default line number color */
 #define LN_BG_COLOR 7 /**< default line number background */
+
+extern const wchar_t bw_ho;
+extern const wchar_t bw_ho;
+extern const wchar_t bw_ve;
+extern const wchar_t bw_tl;
+extern const wchar_t bw_tr;
+extern const wchar_t bw_bl;
+extern const wchar_t bw_br;
+extern const wchar_t bw_lt;
+extern const wchar_t bw_rt;
+extern const wchar_t bw_sp;
+extern const wchar_t bw_ra;
+extern const wchar_t bw_la;
+extern const wchar_t bw_ua;
+extern const wchar_t bw_da;
+extern const wchar_t bw_ran;
+extern const wchar_t bw_lan;
 
 extern int cp_default;               /**< default color pair index */
 extern int cp_box;                   /**< box color pair index */
@@ -407,6 +425,7 @@ extern int box_new(int, int, int, int, char *, bool);
 extern int box2_new(int, int, int, int, char *, bool);
 extern int win_new(int, int, int, int);
 extern int win2_new(int, int, int, int);
+extern int box_title(WINDOW *, char *);
 extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
@@ -433,11 +452,15 @@ extern cchar_t CC_FILL_CHAR; /**< fill character */
 extern cchar_t CC_BRKTL;     /**< left bracket */
 extern cchar_t CC_BRKTR;     /**< right bracket */
 extern cchar_t CC_BOX;       /**< box colors */
-extern cchar_t CC_TITLE;     /**< box colors */
-extern cchar_t CC_LN;        /* line numbers */
-extern cchar_t CC_BRKTL;     /* left field bracket */
-extern cchar_t CC_BRKTR;     /* right field bracket */
+extern cchar_t CC_CMD;
+extern cchar_t CC_LN;
+extern cchar_t CC_DATA;
+extern cchar_t CC_TITLE; /**< box colors */
 
+extern cchar_t CC_BRKTL; /* left field bracket */
+extern cchar_t CC_BRKTR; /* right field bracket */
+
+extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */
 #define XTERM_256COLOR                /**< use xterm-256color terminfo for altkey bindings */
@@ -522,8 +545,8 @@ extern cchar_t CC_BRKTR;     /* right field bracket */
 #define BW_TR L'\x2510'  /**< top right */
 #define BW_BL L'\x2514'  /**< bottom left */
 #define BW_BR L'\x2518'  /**< bottom right */
-#define BW_RTL L'\x256d' /**< rounded left tee */
-#define BW_RTR L'\x256e' /**< rounded right tee */
+#define BW_RTL L'\x256d' /**< rounded top left */
+#define BW_RTR L'\x256e' /**< rounded top right */
 #define BW_RBL L'\x2570' /**< rounded bottom left */
 #define BW_RBR L'\x256f' /**< rounded bottom right */
 #define BW_LT L'\x251C'  /**< left tee */

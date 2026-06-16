@@ -15,7 +15,7 @@ ifeq ($(BUILD_TYPE), Release)
 	CFLAGS=-Ofast -flto -pthread -s
 	LINKOPT= -pthread -flto -s
 else
-	CFLAGS:=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic -DDEBUG_IMMEDOK
+	CFLAGS:=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic	-DDEBUG_IMMEDOK
 	LINKOPT=-pthread
 endif
 #	-DDEBUG_IMMEDOK
@@ -32,7 +32,7 @@ INSTALL_LIB_DIR:=$(PREFIX)/lib64
 BUILD_DIR:=$(CURDIR)
 INSTALL_BIN_DIR:=$(PREFIX)/bin
 INSTALL_MAN_DIR:=$(PREFIX)/man/man1
-RPATH:=.:$(INSTALL_LIB_DIR):$(LIB_DIR)
+RPATH:=$(INSTALL_LIB_DIR):$(LIB_DIR)
 PAM_DIR:=/etc/pam.d
 INCLUDE_DIR:=./include
 CX:=-std=c23

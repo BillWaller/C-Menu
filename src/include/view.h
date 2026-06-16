@@ -10,9 +10,11 @@
 #ifndef _VIEW_H
 #define _VIEW_H 1
 
+#define _GNU_SOURCE
 #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
 #include <ncursesw/ncurses.h>
+#include <ncursesw/panel.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -36,6 +38,11 @@ typedef enum { PT_NONE,
 
 #define LINE_TBL_INCR \
     1024 // number of entries to add to line_tbl when reallocating
+
+typedef struct {
+    WINDOW *win;
+    PANEL *pan;
+} Panel;
 
 typedef struct {
     int fg_clr_idx;              /**< foreground_color */
@@ -65,12 +72,15 @@ typedef struct {
     bool f_at_end_remove;        /**< obsolete, unneeded */
     bool f_squeeze;              /**< View - print one line for each group of blank lines */
     bool f_strip_ansi;           /**< strip ansi escape sequences when writing buffer */
-    bool f_multiple_cmd_args;    /**< View - put multiple arguments in a single
-                                    string */
-    WINDOW *box;                 /**< ncurses window used by View for box around win */
-    WINDOW *cmdln_win;           /**< ncurses command line window used by View */
-    WINDOW *pad;                 /**< ncurses pad used by View */
-    WINDOW *ln_win;              /**< ncurses window used by View for line numbers */
+    bool f_multiple_cmd_args;    /**< View - put multiple arguments in a single */
+
+    Panel box;
+    Panel win;
+    Panel lnno;
+    Panel cmdln;
+    Panel pad_container;
+    WINDOW *pad;
+    Panel pad_view;
 
     char tmp_prompt_str[MAXLEN]; /**< temporary prompt string used when building
                                     prompt */
@@ -168,6 +178,12 @@ typedef struct {
     off_t page_bot_ln;                /**< line number of last line displayed */
 } View;
 extern View *view;
+
+typedef struct {
+    View *items;
+    size_t capacity;
+    size_t top;
+} ViewStack;
 
 extern int get_cmd_spec(View *, char *);
 extern void go_to_position(View *, long);

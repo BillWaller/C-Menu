@@ -127,6 +127,7 @@ static struct argp_option options[] = {
     {"f_read_theme", 'r', "bool", OPTION_ARG_OPTIONAL, "read and process theme file", 5},
     {"f_squeeze", 's', "bool", OPTION_ARG_OPTIONAL, "squeeze multiple blank lines", 5},
     {"f_ignore_case", 'x', "bool", OPTION_ARG_OPTIONAL, "ignore case in search", 5},
+    {"p_view_files", 'v', "bool", OPTION_ARG_OPTIONAL, "File View in Pick", 5},
     {"f_ln", 'N', "bool", OPTION_ARG_OPTIONAL, "line numbers in view", 5},
     {"fill_char", 'f', "char", 0, "field fill_char (_,.,empty)", 5},
     {"brackets", 'u', "text", 0, "brackets around fields ([]{}<>)", 5},
@@ -141,14 +142,14 @@ static struct argp_option options[] = {
     {"brackets_bg", BRACKETS_BG, "hex_clr", 0, "brackets background (#000000)", 6},
     {"fill_char_fg", FILL_CHAR_FG, "hex_clr", 0, "fill character foreground (#d0d0d0)", 6},
     {"fill_char_bg", FILL_CHAR_BG, "hex_clr", 0, "fill character background (#000000)", 6},
-    {"nt_fg", NT_FG, "hex_clr", 0, "normal text foreground (#d0d0d0)", 6},
-    {"nt_bg", NT_BG, "hex_clr", 0, "normal text background (#000000)", 6},
-    {"nt_rev_fg", NT_REV_FG, "hex_clr", 0, "normal text reverse foreground (#000000)", 6},
-    {"nt_rev_bg", NT_REV_BG, "hex_clr", 0, "normal text reverse background (#d0d0d0)", 6},
-    {"nt_hl_fg", NT_HL_FG, "hex_clr", 0, "normal text highlight foreground (#ffffff)", 6},
-    {"nt_hl_bg", NT_HL_BG, "hex_clr", 0, "normal text highlight background (#000000)", 6},
-    {"nt_hl_rev_fg", NT_HL_REV_FG, "hex_clr", 0, "normal text highlight reverse foreground (#f00000)", 6},
-    {"nt_hl_rev_bg", NT_HL_REV_BG, "hex_clr", 0, "normal text highlight reverse background (#d0d0d0)", 6},
+    {"nt_fg", NT_FG, "hex_clr", 0, "normal foreground (#d0d0d0)", 6},
+    {"nt_bg", NT_BG, "hex_clr", 0, "normal background (#000000)", 6},
+    {"nt_rev_fg", NT_REV_FG, "hex_clr", 0, "normal reverse foreground (#000000)", 6},
+    {"nt_rev_bg", NT_REV_BG, "hex_clr", 0, "normal reverse background (#d0d0d0)", 6},
+    {"nt_hl_fg", NT_HL_FG, "hex_clr", 0, "normal highlight foreground (#ffffff)", 6},
+    {"nt_hl_bg", NT_HL_BG, "hex_clr", 0, "normal highlight background (#000000)", 6},
+    {"nt_hl_rev_fg", NT_HL_REV_FG, "hex_clr", 0, "normal highlight reverse foreground (#f00000)", 6},
+    {"nt_hl_rev_bg", NT_HL_REV_BG, "hex_clr", 0, "normal highlight reverse background (#d0d0d0)", 6},
     {"ln_fg", LN_FG, "hex_clr", 0, "line number foreground (#0000b0)", 6},
     {"ln_bg", LN_BG, "hex_clr", 0, "line number background (#202020)", 6},
     {"title_fg", TITLE_FG, "hex_clr", 0, "title foreground (#d0d0d0)", 6},
@@ -280,9 +281,9 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         wait_timeout = max(wait_timeout, 29);
         break;
     case 'x':
-        init->f_ignore_case = true;
+        init->p_view_files = true;
         if (arg)
-            init->f_ignore_case = str_to_bool(arg);
+            init->p_view_files = str_to_bool(arg);
         break;
     case BG:
         strnz__cpy(sio->bg, arg, MAXLEN - 1);
@@ -476,14 +477,14 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(sio->box_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
     strnz__cpy(sio->title_fg, "#f0f0f0", COLOR_LEN - 1);     /**< title foreground color */
     strnz__cpy(sio->title_bg, "#000000", COLOR_LEN - 1);     /**< title background color */
-    strnz__cpy(sio->nt_fg, "#c0c0c0", COLOR_LEN - 1);        /**< normal text foreground color */
-    strnz__cpy(sio->nt_bg, "#000000", COLOR_LEN - 1);        /**< normal text background color */
-    strnz__cpy(sio->nt_rev_fg, "#000000", COLOR_LEN - 1);    /**< normal text reverse foreground color */
-    strnz__cpy(sio->nt_rev_bg, "#c0c0c0", COLOR_LEN - 1);    /**< normal text reverse background color */
-    strnz__cpy(sio->nt_hl_fg, "#f00000", COLOR_LEN - 1);     /**< normal text highlight foreground color */
-    strnz__cpy(sio->nt_hl_bg, "#000000", COLOR_LEN - 1);     /**< normal text highlight background color */
-    strnz__cpy(sio->nt_hl_rev_fg, "#000000", COLOR_LEN - 1); /**< normal text reverse foreground color */
-    strnz__cpy(sio->nt_hl_rev_bg, "#c0c0c0", COLOR_LEN - 1); /**< normal text reverse background color */
+    strnz__cpy(sio->nt_fg, "#c0c0c0", COLOR_LEN - 1);        /**< normal foreground color */
+    strnz__cpy(sio->nt_bg, "#000000", COLOR_LEN - 1);        /**< normal background color */
+    strnz__cpy(sio->nt_rev_fg, "#000000", COLOR_LEN - 1);    /**< normal reverse foreground color */
+    strnz__cpy(sio->nt_rev_bg, "#c0c0c0", COLOR_LEN - 1);    /**< normal reverse background color */
+    strnz__cpy(sio->nt_hl_fg, "#f00000", COLOR_LEN - 1);     /**< normal highlight foreground color */
+    strnz__cpy(sio->nt_hl_bg, "#000000", COLOR_LEN - 1);     /**< normal highlight background color */
+    strnz__cpy(sio->nt_hl_rev_fg, "#000000", COLOR_LEN - 1); /**< normal reverse foreground color */
+    strnz__cpy(sio->nt_hl_rev_bg, "#c0c0c0", COLOR_LEN - 1); /**< normal reverse background color */
     strnz__cpy(sio->ln_fg, "#0070ff",
                COLOR_LEN - 1); /**< line number olor */
     strnz__cpy(sio->ln_bg, "#101010",
@@ -713,6 +714,10 @@ int process_config_file(char *config_file_name, Init *init) {
         }
         if (!strcmp(key, "f_ignore_case")) {
             init->f_ignore_case = str_to_bool(value);
+            continue;
+        }
+        if (!strcmp(key, "p_view_files")) {
+            init->p_view_files = str_to_bool(value);
             continue;
         }
         if (!strcmp(key, "f_read_theme")) {
@@ -1107,6 +1112,8 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "wait_timeout");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_ignore_case", init->f_ignore_case ? "true" : "false");
     print_argp_doc(minitrc_fp, config_s, "f_ignore_case");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "p_view_files", init->p_view_files ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "p_view_files");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_read_theme", init->f_read_theme ? "true" : "false");
     print_argp_doc(minitrc_fp, config_s, "f_read_theme");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "editor", init->editor);

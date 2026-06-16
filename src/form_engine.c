@@ -89,8 +89,8 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (form->title[0] == '\0')
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
-    form->brktl = mkcc(cp_brackets, A_NORMAL, &form->brackets[0]);
-    form->brktr = mkcc(cp_brackets, A_NORMAL, &form->brackets[1]);
+    form->brktl = mkcc(cp_brackets, WA_NORMAL, &form->brackets[0]);
+    form->brktr = mkcc(cp_brackets, WA_NORMAL, &form->brackets[1]);
 
 #ifdef DEBUG_IMMEDOK
     immedok(form->win, true);
@@ -586,12 +586,12 @@ void form_display_fields(Form *form) {
         y = form->field[form->fidx]->line;
         x = form->field[form->fidx]->col;
 
-        str_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, A_NORMAL, cp_fill_char, form->field[form->fidx]->len);
+        str_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, form->field[form->fidx]->len);
 
         mvwadd_wchstr(form->win, y, x, form->field[form->fidx]->filler_cc);
 
         // -------------
-        str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt, form->field[form->fidx]->len);
+        str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, form->field[form->fidx]->len);
 
         mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         update_panels();

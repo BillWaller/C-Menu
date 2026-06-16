@@ -38,6 +38,11 @@
 #define VIEW_PRT_FILE "prtout"
 #define DEFAULTEDITOR "vi"
 
+#define MAX_VIEWS 10
+#define MAX_FORMS 10
+#define MAX_MENUS 10
+#define MAX_PICKS 10
+
 #define MINITRC ".minitrc"
 #define ABOUT ".about"
 #define MAPP_DIR "~/menuapp"
@@ -128,6 +133,7 @@ typedef struct
     char **argv;               /**< command line arguments vector */
     int optind;                /**< getopt pointer to non-option arguments in argv */
     bool f_ignore_case;        /**< View - ignore case in search */
+    bool p_view_files;         /**< View - ignore case in search */
     bool f_at_end_remove;      /**< obsolete, unneeded */
     bool f_strip_ansi;         /**< strip ansi escape sequences when writing buffer */
     bool f_squeeze;            /**< View - print one line for each group of blank lines
@@ -226,4 +232,17 @@ extern void view_calc_win_dimensions(Init *, char *title);
 extern void view_win_resize(Init *, char *);
 extern int process_config_file(char *, Init *);
 extern void initialize_local_colors(SIO *);
+extern void initialize_line_table(View *);
+extern void next_page(View *);
+extern int view_cmd_processor(Init *);
+extern int pad_refresh(View *);
+extern void build_prompt(View *);          // View build prompt
+extern int display_prompt(View *, char *); // view display prompt
+extern ViewStack view_stack;
+extern bool view_stack_init(ViewStack *, size_t);
+extern bool view_stack_push(ViewStack *, View);
+extern bool view_stack_pop(ViewStack *, View *);
+extern bool view_stack_peek(const ViewStack *, View *);
+extern void view_stack_free(ViewStack *);
+extern int view_cmd_processor(Init *);
 #endif

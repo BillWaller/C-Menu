@@ -364,20 +364,20 @@ View *destroy_view(Init *init) {
         free(view->ln_tbl);
         view->ln_tbl = nullptr;
     }
-    if (view->ln_win) {
-        delwin(view->ln_win);
-        view->ln_win = nullptr;
+    if (view->lnno.win) {
+        delwin(view->lnno.win);
+        view->lnno.win = nullptr;
     }
-    if (view->cmdln_win) {
-        delwin(view->cmdln_win);
-        view->cmdln_win = nullptr;
+    if (view->cmdln.win) {
+        delwin(view->cmdln.win);
+        view->cmdln.win = nullptr;
     }
-    delwin(view->cmdln_win);
-    if (view->box) {
-        delwin(view->box);
-        view->box = nullptr;
+    delwin(view->cmdln.win);
+    if (view->box.win) {
+        delwin(view->box.win);
+        view->box.win = nullptr;
     }
-    delwin(view->box);
+    delwin(view->box.win);
     if (view->pad) {
         delwin(view->pad);
         view->pad = nullptr;
@@ -666,6 +666,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     pick->select_max = init->select_max;
     pick->f_read_theme = init->f_read_theme;
     pick->f_multiple_cmd_args = init->f_multiple_cmd_args;
+    pick->p_view_files = init->p_view_files;
     return true;
 }
 /** @brief Initialize Form file specifications

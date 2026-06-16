@@ -1,5 +1,17 @@
 ![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
 
+## ***New***: New "-v" option for 'Pick'
+
+The latest release of C-Menu includes a new "-v" option that enables View to
+display file content as you browse with Pick. This allows you to see file contents in real time as you navigate through file lists, making it easier to find the right file without opening it separately. To use this feature, simply add the "-v" option to your Pick command, and View will automatically update to show the content of the currently highlighted file. This enhancement is designed to improve your workflow and make file selection more efficient.
+
+If you press the "v" key while browsing with pick with the "-v" option enabled,
+controls will be passed to view, allowing you to scroll or search the file
+content. If you decide you want to edit the file, you can press "v" again and
+the file will open in your editor of choice. This provides a seamless way to transition from browsing to viewing and editing files, all within the terminal interface.
+
+![Pick with View Integration](screenshots/FileBrowser.png)
+
 ## What is C-Menu?
 
 C-Menu is a fast, modular toolkit for building terminal-based user interfaces on Linux. Its components can be combined to create responsive menus, forms, pick lists, viewers, file-finding workflows, and administrative tools without the overhead of a heavyweight GUI stack.
