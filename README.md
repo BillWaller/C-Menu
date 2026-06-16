@@ -5,6 +5,8 @@
 The latest release of C-Menu includes a new "-v" option that enables View to
 display file content as you browse with Pick. This allows you to see file contents in real time as you navigate through file lists, making it easier to find the right file without opening it separately. To use this feature, simply add the "-v" option to your Pick command, and View will automatically update to show the content of the currently highlighted file. This enhancement is designed to improve your workflow and make file selection more efficient.
 
+As you move the selection bar through the list of files in pick, the content of the currently highlighted file will be displayed in view, and the response is lightning fast.
+
 If you press the "v" key while browsing with pick with the "-v" option enabled,
 controls will be passed to view, allowing you to scroll or search the file
 content. If you decide you want to edit the file, you can press "v" again and
