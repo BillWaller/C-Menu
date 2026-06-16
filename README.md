@@ -12,6 +12,9 @@ controls will be passed to view, allowing you to scroll or search the file
 content. If you decide you want to edit the file, you can press "v" again and
 the file will open in your editor of choice. This provides a seamless way to transition from browsing to viewing and editing files, all within the terminal interface.
 
+Beware: Because this feature release involved a complete refactor of the window
+management code, and it is not yet fully tested, there are still a number of known bugs. If you encounter any issues, please report them on the GitHub issue tracker so we can address them in future updates. I expect the related bugs to persist for another week or two, but I wanted to get the feature out there for users to try as soon as possible.
+
 ![Pick with View Integration](screenshots/FileBrowser.png)
 
 ## What is C-Menu?
