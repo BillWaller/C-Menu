@@ -37,10 +37,10 @@ void display_pick_help(Init *);
 int read_pick_input(Init *);
 void deselect_object(Pick *);
 int read_theme(Init *);
-int pick_init_view(Init *);
+int new_pick_view(Init *);
 void new_view_file(Init *, char *);
 void end_pick_view(Init *);
-
+void destroy_pick_view();
 int pipe_fd[2];
 
 char const pagers_editors[12][10] = {"view", "view", "less", "more",
@@ -245,8 +245,20 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
         pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx++];
     pick->d_cnt = pick->d_idx;
     pick_engine(init);
+    if (pick->p_view_files)
+        destroy_pick_view();
     win_del();
     return 0;
+}
+
+void destroy_pick_view() {
+    if (pick->p_view_files) {
+        if (view->buf != nullptr) {
+            munmap(view->buf, view->file_size);
+            view->buf = nullptr;
+        }
+    }
+    destroy_view(init);
 }
 /** @brief Reads pick input from file pointer and saves objects into pick
  structure
@@ -395,13 +407,14 @@ int pick_engine(Init *init) {
                 if (f_processed) {
                     mvwaddstr(pick->win2, 0, 0, "Selection Processed");
                     wclrtoeol(pick->win2);
-                    // wrefresh(pick->win2);
                     update_panels();
                 }
             }
         }
         deselect_object(pick);
     } while (1);
+    update_panels();
+    doupdate();
     destroy_chyron(pick->chyron);
     return (rc);
 }
@@ -462,8 +475,8 @@ void display_page(Pick *pick) {
         wscrl(pick->win, -pick->y_offset);
     } else
         pick->y_offset = 0;
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
 }
 /** @brief Displays current page of objects in pick window
     @ingroup pick_engine
@@ -577,7 +590,6 @@ void deselect_object(Pick *pick) {
         pick->f_selected[pick->d_idx] = false;
         mvwaddstr(pick->win, pick->y, pick->x - 1, " ");
     }
-    // wrefresh(pick->win);
     update_panels();
 }
 int read_theme(Init *init) {
@@ -588,7 +600,6 @@ int read_theme(Init *init) {
         return rc;
     SIO *sio = init->sio;
     initialize_local_colors(sio);
-    // wrefresh(init->pick->win);
     update_panels();
     doupdate();
     return 0;
@@ -824,7 +835,8 @@ int open_pick_win(Init *init) {
     pick->win2 = win_win2[win_ptr];
     pick->box = win_box[win_ptr];
     keypad(pick->win, true);
-    pick_init_view(init);
+    if (pick->p_view_files)
+        new_pick_view(init);
 #ifdef DEBUG_IMMEDOK
     immedok(pick->box, true);
     immedok(pick->win, true);
@@ -898,8 +910,6 @@ int picker(Init *init, char *field) {
     char *prev_ptr = prev_field;
 
     pick = init->pick;
-    win = pick->win;
-    WINDOW *win2 = pick->win2;
 
     ptr = str_end;
     click_x = -1;
@@ -914,7 +924,6 @@ int picker(Init *init, char *field) {
     // display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
 
     keypad(pick->win, true);
-    // wrefresh(pick->win2);
 
     int in_key = 0;
     while (1) {
@@ -944,7 +953,7 @@ int picker(Init *init, char *field) {
                 mouse_win = nullptr;
                 // 1
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
-                if (mouse_win == win2 && click_y == 0)
+                if (mouse_win == pick->win2 && click_y == 0)
                     break;
             }
             switch (in_key) {
@@ -961,15 +970,15 @@ int picker(Init *init, char *field) {
                 wchar_t wstr[2] = {BW_RAN, L'\0'};
                 setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
                 mvwadd_wch(pick->win2, 0, 0, &cc);
-                // wrefresh(pick->win2);
                 in_key = 0;
                 continue;
 
                 /** Toggle Select Object */
 
             case 'v':
-                view_cmd_processor(init);
-                display_page(pick);
+                if (pick->p_view_files)
+                    view_cmd_processor(init);
+                // display_page(pick);
                 in_key = 0;
                 continue;
 
@@ -1168,8 +1177,6 @@ int picker(Init *init, char *field) {
         wchar_t wstr[2] = {BW_RAN, L'\0'};
         setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
         mvwadd_wch(pick->box, pick->separator_line + 1, 1, &cc);
-        // wrefresh(pick->box);
-        // wrefresh(pick->win2);
         pos = 1;
         ptr = accept_s;
         while (1) {
@@ -1189,7 +1196,6 @@ int picker(Init *init, char *field) {
                         strnz__cat(tmp_str, "     ", MAXLEN - 1);
                         tmp_str[21] = '\0';
                         mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
-                        // wrefresh(pick->box);
                     }
                 }
                 /** display_field_content */
@@ -1199,16 +1205,14 @@ int picker(Init *init, char *field) {
                 while (s != e)
                     *s++ = ' ';
                 *s = '\0';
-                mvwaddstr(win2, line, col, filler_s);
-                mvwaddstr(win2, line, col, accept_s);
+                mvwaddstr(pick->win2, line, col, filler_s);
+                mvwaddstr(pick->win2, line, col, accept_s);
                 // pos = col + strlen(accept_s);
-                wmove(win2, line, pos);
-                // wrefresh(win);
-                // wrefresh(win2);
+                wmove(pick->win2, line, pos);
                 // 2
                 update_panels();
                 doupdate();
-                in_key = dxwgetch(win, win2, pick->chyron, -1);
+                in_key = dxwgetch(win, pick->win2, pick->chyron, -1);
                 if (mouse_win == win)
                     break;
                 if (in_key == KEY_F(13)) {
@@ -1265,7 +1269,7 @@ int picker(Init *init, char *field) {
                                       cp_nt_hl_rev);
                 }
                 compile_chyron(pick->chyron);
-                display_chyron(win2, pick->chyron, 1, pick->chyron->l);
+                display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
                 in_key = 0;
                 continue;
 
@@ -1313,7 +1317,6 @@ int picker(Init *init, char *field) {
                     strnz__cat(tmp_str, "     ", MAXLEN - 1);
                     tmp_str[21] = '\0';
                     mvwaddstr(pick->box, pick->separator_line, 3, tmp_str);
-                    // wrefresh(pick->box);
                 }
                 in_key = 0;
                 continue;
@@ -1392,7 +1395,7 @@ int picker(Init *init, char *field) {
     }
 }
 
-int pick_init_view(Init *init) {
+int new_pick_view(Init *init) {
     char *e;
     // if (init->view != nullptr)
     // view_stack_push(&view_stack, *init->view);
@@ -1450,14 +1453,9 @@ void new_view_file(Init *init, char *file) {
             view->file_pos = 0;
             initialize_line_table(view);
             next_page(view);
-            pad_refresh(view);
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            if (view->f_ln)
-                touchwin(view->lnno.win);
-
-            update_panels();
-            doupdate();
+            pad_refresh(view);
         }
     }
 }

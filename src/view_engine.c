@@ -703,9 +703,10 @@ int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
-    pad_refresh(view);
+    // pad_refresh(view);
     wmove(view->cmdln.win, view->cmd_line, view->curx);
     do {
+        pad_refresh(view);
         update_panels();
         doupdate();
         c = vgetch(view->cmdln.win, 0);
@@ -1258,9 +1259,9 @@ void view_display_page(View *view) {
             break;
         fmt_line(view);
         display_line(view);
-        pad_refresh(view);
-        update_panels();
-        doupdate();
+        // pad_refresh(view);
+        // update_panels();
+        // doupdate();
     }
     if (view->cury < view->scroll_lines) {
         wmove(view->lnno.win, view->cury, 0);
@@ -1268,9 +1269,9 @@ void view_display_page(View *view) {
         wmove(view->pad, view->cury, 0);
         wclrtobot(view->pad);
     }
-    pad_refresh(view);
-    update_panels();
-    doupdate();
+    // pad_refresh(view);
+    // update_panels();
+    // doupdate();
     view->page_bot_ln = view->ln;
 }
 /** @brief Scroll N Lines

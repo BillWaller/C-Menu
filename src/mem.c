@@ -360,29 +360,43 @@ View *destroy_view(Init *init) {
     view = init->view;
     if (!view)
         return nullptr;
-    if (view->ln_tbl) {
-        free(view->ln_tbl);
-        view->ln_tbl = nullptr;
-    }
-    if (view->lnno.win) {
-        delwin(view->lnno.win);
-        view->lnno.win = nullptr;
-    }
-    if (view->cmdln.win) {
-        delwin(view->cmdln.win);
-        view->cmdln.win = nullptr;
-    }
-    delwin(view->cmdln.win);
-    if (view->box.win) {
-        delwin(view->box.win);
-        view->box.win = nullptr;
-    }
-    delwin(view->box.win);
-    if (view->pad) {
-        delwin(view->pad);
-        view->pad = nullptr;
-    }
+
+    werase(view->pad_view.win);
+    wnoutrefresh(view->pad_view.win);
+    del_panel(view->pad_view.pan);
     delwin(view->pad);
+    update_panels();
+    doupdate();
+
+    werase(view->cmdln.win);
+    wnoutrefresh(view->cmdln.win);
+    del_panel(view->cmdln.pan);
+    delwin(view->cmdln.win);
+    update_panels();
+    doupdate();
+
+    werase(view->lnno.win);
+    wnoutrefresh(view->lnno.win);
+    del_panel(view->lnno.pan);
+    delwin(view->lnno.win);
+    update_panels();
+    doupdate();
+
+    werase(view->win.win);
+    wnoutrefresh(view->win.win);
+    del_panel(view->win.pan);
+    delwin(view->win.win);
+    update_panels();
+    doupdate();
+
+    werase(view->box.win);
+    wnoutrefresh(view->box.win);
+    del_panel(view->box.pan);
+    delwin(view->box.win);
+
+    update_panels();
+    doupdate();
+
     view->argc = destroy_argv(view->argc, view->argv);
     free(view->argv);
     free(view);

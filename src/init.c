@@ -49,6 +49,8 @@ typedef enum {
     TITLE_BG,
     LN_FG,
     LN_BG,
+    CMDLN_FG,
+    CMDLN_BG,
     XBBLACK,
     XBBLUE,
     XBCYAN,
@@ -150,8 +152,11 @@ static struct argp_option options[] = {
     {"nt_hl_bg", NT_HL_BG, "hex_clr", 0, "normal highlight background (#000000)", 6},
     {"nt_hl_rev_fg", NT_HL_REV_FG, "hex_clr", 0, "normal highlight reverse foreground (#f00000)", 6},
     {"nt_hl_rev_bg", NT_HL_REV_BG, "hex_clr", 0, "normal highlight reverse background (#d0d0d0)", 6},
+
     {"ln_fg", LN_FG, "hex_clr", 0, "line number foreground (#0000b0)", 6},
     {"ln_bg", LN_BG, "hex_clr", 0, "line number background (#202020)", 6},
+    {"cmdln_fg", CMDLN_FG, "hex_clr", 0, "line number foreground (#0000b0)", 6},
+    {"cmdln_bg", CMDLN_BG, "hex_clr", 0, "line number background (#202020)", 6},
     {"title_fg", TITLE_FG, "hex_clr", 0, "title foreground (#d0d0d0)", 6},
     {"title_bg", TITLE_BG, "hex_clr", 0, "title background (#000000)", 6},
     {"blue_gamma", GM_BLUE, "float", 0, "blue_gamma (1.2)", 7},
@@ -280,7 +285,7 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         wait_timeout = min(wait_timeout, 1);
         wait_timeout = max(wait_timeout, 29);
         break;
-    case 'x':
+    case 'v':
         init->p_view_files = true;
         if (arg)
             init->p_view_files = str_to_bool(arg);
@@ -344,6 +349,12 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case LN_BG:
         strnz__cpy(sio->ln_bg, arg, MAXLEN - 1);
+        break;
+    case CMDLN_FG:
+        strnz__cpy(sio->cmdln_fg, arg, MAXLEN - 1);
+        break;
+    case CMDLN_BG:
+        strnz__cpy(sio->cmdln_bg, arg, MAXLEN - 1);
         break;
     case GM_BLUE:
         sio->blue_gamma = str_to_double(arg);
@@ -488,7 +499,13 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(sio->ln_fg, "#0070ff",
                COLOR_LEN - 1); /**< line number olor */
     strnz__cpy(sio->ln_bg, "#101010",
-               COLOR_LEN - 1);                    /**< line number background */
+               COLOR_LEN - 1); /**< line number background */
+
+    strnz__cpy(sio->cmdln_fg, "#d0d0d0",
+               COLOR_LEN - 1); /**< line number olor */
+    strnz__cpy(sio->cmdln_bg, "#000000",
+               COLOR_LEN - 1); /**< line number background */
+
     init->f_erase_remainder = true;               /**< erase remainder on enter */
     init->brackets[0] = '\0';                     /**< field enclosure brackets */
     strnz__cpy(init->fill_char, " ", MAXLEN - 1); /**< field fill character */
@@ -820,6 +837,14 @@ int process_config_file(char *config_file_name, Init *init) {
             strnz__cpy(sio->ln_bg, value, COLOR_LEN - 1);
             continue;
         }
+        if (!strcmp(key, "cmdln_fg")) {
+            strnz__cpy(sio->ln_fg, value, COLOR_LEN - 1);
+            continue;
+        }
+        if (!strcmp(key, "cmdln_bg")) {
+            strnz__cpy(sio->ln_bg, value, COLOR_LEN - 1);
+            continue;
+        }
         if (!strcmp(key, "nt_fg")) {
             strnz__cpy(sio->nt_fg, value, COLOR_LEN - 1);
             continue;
@@ -1134,10 +1159,18 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "fill_char_fg");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "fill_char_bg", sio->fill_char_bg);
     print_argp_doc(minitrc_fp, config_s, "fill_char_bg");
+
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ln_bg", sio->ln_bg);
     print_argp_doc(minitrc_fp, config_s, "ln_bg");
+
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ln_fg", sio->ln_fg);
-    print_argp_doc(minitrc_fp, config_s, "ln_fg");
+    print_argp_doc(minitrc_fp, config_s, "ln_bg");
+
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "cmdln_bg", sio->cmdln_bg);
+    print_argp_doc(minitrc_fp, config_s, "cmdln_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "cmdln_fg", sio->cmdln_fg);
+    print_argp_doc(minitrc_fp, config_s, "cmdln_fg");
+
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_fg", sio->nt_fg);
     print_argp_doc(minitrc_fp, config_s, "nt_fg");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_bg", sio->nt_bg);

@@ -35,6 +35,7 @@ enum WinFlags {
     WF_WIN2 = 0b00000100
 };
 
+int win2_new(int wlines, int wcols, int wbegy, int wbegx);
 bool open_curses(SIO *);
 bool init_clr_palette(SIO *);
 void destroy_curses();
@@ -42,7 +43,7 @@ int box_new(int, int, int, int, char *, bool);
 int box2_new(int, int, int, int, char *, bool);
 void cbox(WINDOW *);
 void cbox2(WINDOW *);
-int win_new(int, int, int, int);
+int win_new(int, int);
 void win_redraw(WINDOW *);
 void win_resize(int, int, char *);
 WINDOW *win_del();
@@ -54,7 +55,8 @@ int nf_error(int, char *);
 int Perror(char *);
 int click_y;
 int click_x;
-
+WINDOW *win_main;
+PANEL *panel_main;
 void list_colors();
 int clr_name_to_idx(char *);
 void init_hex_clr(int, char *);
@@ -124,12 +126,21 @@ double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .mi
 double GREEN_GAMMA = 1.2; /**< Gamma correction value for green colors. Set in .minitrc */
 double BLUE_GAMMA = 1.2;  /**< Gamma correction value for blue colors. Set in .minitrc */
 
-PANEL *std_panel;
-WINDOW *win;
-WINDOW *win_win[MAXWIN];
-WINDOW *win_win2[MAXWIN];
-WINDOW *win_box[MAXWIN];
-PANEL *panel[MAXWIN];
+WINDOW *win_main;
+PANEL *panel_main;
+
+WINDOW *win;  /**< generic window pointer, used for various purposes */
+PANEL *panel; /**< generic panel pointer, used for various purposes */
+
+WINDOW *win_win[MAXWIN]; /**< array of pointers to windows */
+PANEL *panel_win[MAXWIN];
+
+WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
+PANEL *panel_win2[MAXWIN];
+
+WINDOW *win_box[MAXWIN]; /**< array of pointers to box windows */
+PANEL *panel_box[MAXWIN];
+
 int win_flags[MAXWIN];
 int exit_code;
 unsigned int cmd_key;
@@ -152,8 +163,12 @@ char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
 int cp_box;
-int cp_cmd;
-int cp_data;
+int cp_cmdln;
+int cp_data1;
+int cp_data2;
+int cp_data3;
+int cp_data4;
+int cp_data5;
 int cp_title;
 int cp_nt;
 int cp_nt_rev;
@@ -168,9 +183,13 @@ int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
 cchar_t CC_BG;
 cchar_t CC_BOX;
-cchar_t CC_CMD;
 cchar_t CC_LN;
-cchar_t CC_DATA;
+cchar_t CC_CMDLN;
+cchar_t CC_DATA1;
+cchar_t CC_DATA2;
+cchar_t CC_DATA3;
+cchar_t CC_DATA4;
+cchar_t CC_DATA5;
 cchar_t CC_TITLE;
 cchar_t CC_NT;
 cchar_t CC_NT_REV;
@@ -258,9 +277,10 @@ bool open_curses(SIO *sio) {
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
-    // std_panel = new_panel(stdscr);
     wbkgrnd(stdscr, &CC_NORM);
     werase(stdscr);
+    update_panels();
+    doupdate();
 #ifdef DEBUG_IMMEDOK
     immedok(stdscr, true);
 #endif
@@ -295,10 +315,14 @@ void initialize_local_colors(SIO *sio) {
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
     cp_box = get_clr_pair(CLR_BOX_FG, CLR_BOX_BG);
-    cp_cmd = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
-    cp_data = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
+    cp_data1 = get_clr_pair(CLR_YELLOW, CLR_RED);
+    cp_data2 = get_clr_pair(CLR_YELLOW, CLR_GREEN);
+    cp_data3 = get_clr_pair(CLR_BLACK, CLR_YELLOW);
+    cp_data4 = get_clr_pair(CLR_YELLOW, CLR_BLUE);
+    cp_data5 = get_clr_pair(CLR_YELLOW, CLR_CYAN);
     cp_title = get_clr_pair(CLR_TITLE_FG, CLR_TITLE_BG);
     cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
+    cp_cmdln = get_clr_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
     cp_norm = get_clr_pair(CLR_FG, CLR_BG);
     // CC_ variables are cchar_t versions of the color pairs, created with mkcc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
     CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
@@ -309,8 +333,12 @@ void initialize_local_colors(SIO *sio) {
     CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
     CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
     CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
-    CC_CMD = mkcc(cp_nt, WA_NORMAL, " ");
-    CC_DATA = mkcc(cp_data, WA_NORMAL, " ");
+    CC_CMDLN = mkcc(cp_cmdln, WA_NORMAL, " ");
+    CC_DATA1 = mkcc(cp_data1, WA_NORMAL, " ");
+    CC_DATA2 = mkcc(cp_data2, WA_NORMAL, " ");
+    CC_DATA3 = mkcc(cp_data3, WA_NORMAL, " ");
+    CC_DATA4 = mkcc(cp_data4, WA_NORMAL, " ");
+    CC_DATA5 = mkcc(cp_data5, WA_NORMAL, " ");
     CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
@@ -604,15 +632,7 @@ void destroy_curses() {
     if (!f_curses_open)
         return;
     while (win_ptr > 0) {
-        if (win_win[win_ptr])
-            delwin(win_win[win_ptr]);
-        if (win_win2[win_ptr])
-            delwin(win_win2[win_ptr]);
-        if (win_box[win_ptr])
-            delwin(win_box[win_ptr]);
-        win_win[win_ptr] = nullptr;
-        win_win2[win_ptr] = nullptr;
-        win_box[win_ptr] = nullptr;
+        win_del();
         win_ptr--;
     }
     update_panels();
@@ -844,7 +864,8 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     @param wbegx Beginning X position
     @param wtitle Window title
     @param win_pair If true, creates a pair of windows (box and inner window)
-    @return 0 if successful, 1 if error */
+    @return 0 if successful, 1 if error
+------------------------------------------------------------------------- */
 int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
              bool win_pair) {
     int maxx;
@@ -855,17 +876,20 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     win_ptr++;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
-    win_box[win_ptr] = subwin(stdscr, wlines + 5, wcols + 2, wbegy, wbegx);
+    win_box[win_ptr] = newwin(wlines + 5, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
         win_ptr--;
         return 1;
     }
-    panel[win_ptr] = new_panel(win_box[win_ptr]);
+    panel_box[win_ptr] = new_panel(win_box[win_ptr]);
     win_flags[win_ptr] = WF_BOX;
 #ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
-    wbkgrndset(win_box[win_ptr], &CC_BOX);
+    wbkgrnd(win_box[win_ptr], &CC_BOX);
+    top_panel(panel_box[win_ptr]);
+    update_panels();
+    doupdate();
     cbox2(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
     mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
@@ -883,12 +907,14 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
     if ((s + 4) < maxx)
         mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
+    top_panel(panel_box[win_ptr]);
     update_panels();
+    doupdate();
     win_win[win_ptr] = nullptr;
     win_win2[win_ptr] = nullptr;
     if (win_pair) {
-        win_new(wlines, wcols, wbegy, wbegx);
-        win2_new(2, wcols, wbegy + wlines + 1, wbegx);
+        win_new(wlines, wcols);
+        win2_new(2, wcols, wlines + 2, 1);
     }
     return 0;
 }
@@ -901,7 +927,8 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     @param wbegx Beginning X position
     @param wtitle Window title
     @param win_pair If true, creates a pair of windows (box and inner window)
-    @return 0 if successful, 1 if error */
+    @return 0 if successful, 1 if error
+------------------------------------------------------------------------- */
 int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             bool win_pair) {
     int maxx;
@@ -917,12 +944,14 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         win_ptr--;
         return 1;
     }
-    panel[win_ptr] = new_panel(win_box[win_ptr]);
+    panel_box[win_ptr] = new_panel(win_box[win_ptr]);
     win_flags[win_ptr] = WF_BOX;
 #ifdef DEBUG_IMMEDOK
     immedok(win_box[win_ptr], true);
 #endif
-    wbkgrndset(win_box[win_ptr], &CC_BOX);
+    wbkgrnd(win_box[win_ptr], &CC_BOX);
+    update_panels();
+    doupdate();
     cbox(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
     mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
@@ -945,7 +974,7 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     // doupdate();
     win_win[win_ptr] = nullptr;
     if (win_pair)
-        win_new(wlines, wcols, wbegy, wbegx);
+        win_new(wlines, wcols);
     return 0;
 }
 int box_title(WINDOW *box, char *wtitle) {
@@ -982,53 +1011,55 @@ int box_title(WINDOW *box, char *wtitle) {
     @param wcols Number of columns
     @param wbegy Beginning Y position
     @param wbegx Beginning X position
-    @return 0 if successful, 1 if error */
-int win_new(int wlines, int wcols, int wbegy, int wbegx) {
-    wbegy += 1;
-    wbegx += 1;
-    // win_win[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
+    @return 0 if successful, 1 if error
+------------------------------------------------------------------------- */
+int win_new(int wlines, int wcols) {
     win_win[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, 1, 1);
     if (win_win[win_ptr] == nullptr) {
         delwin(win_box[win_ptr]);
         return 1;
     }
+    // panel_win[win_ptr] = new_panel(win_win[win_ptr]);
     win_flags[win_ptr] |= WF_WIN;
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
     wbkgrnd(win_win[win_ptr], &CC_NT);
+    // win_win[0, 1] CC_DATA2, Green
+    // top_panel(panel_win[win_ptr]);
+    // update_panels();
+    // doupdate();
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
     scrollok(win_win[win_ptr], true);
     return 0;
 }
-/** win2_new
-    @brief Create a new window with specified dimensions and position
-    @ingroup window_support
-    @param wlines Number of lines
-    @param wcols Number of columns
-    @param wbegy Beginning Y position
-    @param wbegx Beginning X position
-    @return 0 if successful, 1 if error */
+
+/*
+------------------------------------------------------------------------- */
 int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
-    wbegy += 1;
-    wbegx += 1;
-    win_win2[win_ptr] = subwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
+    win_win2[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
     if (win_win2[win_ptr] == nullptr) {
         delwin(win_box[win_ptr]);
         return 1;
     }
+    // panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
+    wbkgrnd(win_win2[win_ptr], &CC_NT);
+    // win_win2[1] CC_DATA4, Blue
+    // top_panel(panel_win2[win_ptr]);
+    update_panels();
+    doupdate();
     win_flags[win_ptr] |= WF_WIN2;
 #ifdef DEBUG_IMMEDOK
     immedok(win_win2[win_ptr], true);
 #endif
-    wbkgrnd(win_win2[win_ptr], &CC_NT);
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
     idcok(win_win2[win_ptr], false);
     return 0;
 }
+
 /** win_resize
     @brief Resize the current window and its box, and update the title
     @ingroup window_support
@@ -1095,12 +1126,47 @@ void win_redraw(WINDOW *win) {
 WINDOW *
 win_del() {
     if (win_ptr >= 0) {
-        if (panel[win_ptr] != nullptr)
-            del_panel(panel[win_ptr]);
-        if (win_win[win_ptr] != nullptr)
+
+        mvwaddstr(win_win[win_ptr], 10, 0, "#########################");
+        mvwaddstr(win_win2[win_ptr], 1, 0, "#########################");
+        update_panels();
+        doupdate();
+        if (panel_win2[win_ptr] != nullptr) {
+            hide_panel(panel_win2[win_ptr]);
+            update_panels();
+            doupdate();
+            del_panel(panel_win2[win_ptr]);
+            panel_win2[win_ptr] = nullptr;
+        }
+        if (win_win2[win_ptr] != nullptr) {
+            delwin(win_win2[win_ptr]);
+            win_win2[win_ptr] = nullptr;
+        }
+        update_panels();
+        doupdate();
+        if (panel_win[win_ptr] != nullptr) {
+            hide_panel(panel_win[win_ptr]);
+            update_panels();
+            doupdate();
+            del_panel(panel_win[win_ptr]);
+            panel_win[win_ptr] = nullptr;
+        }
+        if (win_win[win_ptr] != nullptr) {
             delwin(win_win[win_ptr]);
+            win_win[win_ptr] = nullptr;
+        }
+        update_panels();
+        doupdate();
+        if (panel_box[win_ptr] != nullptr) {
+            hide_panel(panel_box[win_ptr]);
+            update_panels();
+            doupdate();
+            del_panel(panel_box[win_ptr]);
+            panel_box[win_ptr] = nullptr;
+        }
         if (win_box[win_ptr] != nullptr) {
             delwin(win_box[win_ptr]);
+            win_box[win_ptr] = nullptr;
         }
         update_panels();
         doupdate();
@@ -1232,6 +1298,7 @@ message_win(char *em0) {
     WINDOW *win = subwin(stdscr, wlines, wcols, wbegy, wbegx);
     if (win == nullptr)
         return win;
+    // PANEL *panel = new_panel(win);
 #ifdef DEBUG_IMMEDOK
     immedok(win, true);
 #endif
@@ -1292,6 +1359,7 @@ int answer_yn(char *em0, char *em1, char *em2, char *em3) {
     mvwaddstr(error_win, 2, 1, em2);
     mvwaddstr(error_win, 3, 1, em3);
     display_chyron(error_win, chyron, 4, chyron->l + 1);
+
     do {
         curs_set(1);
         cmd_key = xwgetch(error_win, chyron, -1);
@@ -1669,7 +1737,8 @@ void compile_chyron(Chyron *chyron) {
                      MAXLEN - 1);
         }
         cx = chyron->cmplx_buf;
-        cp = chyron->key[k]->cp;
+        if (chyron->key[k]->cp)
+            cp = chyron->key[k]->cp;
         mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
         end_pos = pos;
         chyron->l = end_pos;
@@ -1696,6 +1765,8 @@ void display_chyron(WINDOW *win, Chyron *chyron, int line, int col) {
     wmove(win, line, 0);
     wadd_wchstr(win, chyron->cmplx_buf);
     wmove(win, line, col);
+    update_panels();
+    doupdate();
     return;
 }
 /** get_chyron_key

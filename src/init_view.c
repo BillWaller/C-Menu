@@ -55,7 +55,7 @@ int init_view_full_screen(Init *init) {
 
     view->win.win = newwin(LINES, COLS, 0, 0);
     view->win.pan = new_panel(view->win.win);
-    wbkgrnd(view->win.win, &CC_DATA);
+    wbkgrnd(view->win.win, &CC_DATA1);
 
     view->lnno.win = derwin(view->win.win, LINES - 1, COLS, 0, 0);
     view->lnno.pan = new_panel(view->lnno.win);
@@ -63,14 +63,12 @@ int init_view_full_screen(Init *init) {
     keypad(view->lnno.win, false);
     idlok(view->lnno.win, false);
     idcok(view->lnno.win, false);
-    wbkgrnd(view->lnno.win, &CC_LN);
-    wbkgrndset(view->lnno.win, &CC_LN);
     scrollok(view->lnno.win, true);
     wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
 
     view->cmdln.win = derwin(view->win.win, 1, COLS, LINES - 1, 0);
     view->cmdln.pan = new_panel(view->cmdln.win);
-    wbkgrnd(view->cmdln.win, &CC_CMD);
+    wbkgrnd(view->cmdln.win, &CC_CMDLN);
     keypad(view->cmdln.win, true);
     idlok(view->cmdln.win, false);
     idcok(view->cmdln.win, false);
@@ -85,8 +83,6 @@ int init_view_full_screen(Init *init) {
     keypad(view->pad, true);
     idlok(view->pad, false);
     idcok(view->pad, false);
-    wbkgrnd(view->pad, &CC_NT);
-    wbkgrndset(view->pad, &CC_NT);
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
     return 0;
@@ -168,39 +164,38 @@ int init_view_boxwin(Init *init, char *title) {
             view->argv[0][0] != '\0')
             strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
     }
-
     view->box.win = newwin(view->lines + 2, view->cols + 2, view->begy, view->begx);
     view->box.pan = new_panel(view->box.win);
     wbkgrnd(view->box.win, &CC_BOX);
-
     wborder_set(view->box.win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
 
     // box_title(view->box.win.win, view->title);
 
     view->win.win = derwin(view->box.win, view->lines, view->cols, 1, 1);
     view->win.pan = new_panel(view->win.win);
-    wbkgrnd(view->win.win, &CC_DATA);
+    wbkgrnd(view->win.win, &CC_NT);
 
     view->lnno.win = derwin(view->win.win, view->lines - 1, view->ln_win_cols, 0, 0);
     view->lnno.pan = new_panel(view->lnno.win);
     wbkgrnd(view->lnno.win, &CC_LN);
+
     keypad(view->lnno.win, false);
     idlok(view->lnno.win, false);
     idcok(view->lnno.win, false);
-    wbkgrnd(view->lnno.win, &CC_LN);
-    wbkgrndset(view->lnno.win, &CC_LN);
     scrollok(view->lnno.win, true);
     wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
 
     view->cmdln.win = derwin(view->win.win, 1, view->cols, view->lines - 1, 0);
     view->cmdln.pan = new_panel(view->cmdln.win);
-    wbkgrnd(view->cmdln.win, &CC_CMD);
+    wbkgrnd(view->cmdln.win, &CC_NT);
     keypad(view->cmdln.win, true);
     idlok(view->cmdln.win, false);
     idcok(view->cmdln.win, false);
     scrollok(view->cmdln.win, false);
 
-    view->pad_container.win = derwin(view->win.win, view->lines - 1, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
+    view->pad_container.win = derwin(view->win.win, view->lines - 1,
+                                     view->cols - view->ln_win_cols, 0, view->ln_win_cols);
+    view->pad_container.pan = new_panel(view->pad_container.win);
     view->pad = newpad(view->lines - 1, PAD_COLS - 1);
     view->pad_view.win = subpad(view->pad, view->lines - 1, view->cols - view->ln_win_cols, 0, 0);
     view->pad_view.pan = new_panel(view->pad_view.win);
@@ -209,8 +204,6 @@ int init_view_boxwin(Init *init, char *title) {
     keypad(view->pad, true);
     idlok(view->pad, false);
     idcok(view->pad, false);
-    wbkgrnd(view->pad, &CC_NT);
-    wbkgrndset(view->pad, &CC_NT);
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
 
@@ -278,10 +271,8 @@ void view_win_resize(Init *init, char *title) {
             mvwin(view->lnno.win, view->begy + 1, view->begx + 1);
             wresize(view->lnno.win, view->ln_win_lines, view->ln_win_cols);
         }
-    } else if (view->lnno.win != nullptr) {
-        delwin(view->lnno.win);
+    } else
         view->lnno.win = nullptr;
-    }
     update_panels();
     view->sminrow = view->begy + 1;
     view->smincol = view->begx + 1;
@@ -404,7 +395,7 @@ int view_init_input(View *view, char *file_name) {
             Perror("pipe(pipe_fd) failed in init_view");
             return -1;
         }
-        endwin();
+        // endwin();
         if ((pid = fork()) == -1) {
             Perror("fork() failed in init_view");
             return -1;

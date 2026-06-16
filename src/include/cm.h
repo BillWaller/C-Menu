@@ -154,6 +154,8 @@ typedef enum {
     CLR_FILL_CHAR_BG,
     CLR_LN_FG,
     CLR_LN_BG,
+    CLR_CMDLN_FG,
+    CLR_CMDLN_BG,
     CLR_NT_FG,
     CLR_NT_BG,
     CLR_NT_REV_FG,
@@ -379,8 +381,10 @@ extern int cp_nt;                    /**< normal color pair index */
 extern int cp_nt_rev;                /**< reverse color pair index */
 extern int cp_nt_hl;                 /**< highlight color pair index */
 extern int cp_nt_hl_rev;             /**< highlight reverse color pair index */
-extern int cp_ln;                    /**< line number color pair index */
+extern int cp_ln_fg;                 /**< line number color pair index */
 extern int cp_ln_bg;                 /** line number background color pair index */
+extern int cp_cmdln_fg;              /**< command line number color pair index */
+extern int cp_cmdln_bg;              /** command line number background color pair index */
 extern int clr_idx;                  /**< current color index */
 extern int clr_cnt;                  /**< number of colors used */
 extern int clr_pair_idx;             /**< current color pair index */
@@ -423,7 +427,7 @@ extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
 extern int box_new(int, int, int, int, char *, bool);
 extern int box2_new(int, int, int, int, char *, bool);
-extern int win_new(int, int, int, int);
+extern int win_new(int, int);
 extern int win2_new(int, int, int, int);
 extern int box_title(WINDOW *, char *);
 extern void win_redraw(WINDOW *);
@@ -452,9 +456,11 @@ extern cchar_t CC_FILL_CHAR; /**< fill character */
 extern cchar_t CC_BRKTL;     /**< left bracket */
 extern cchar_t CC_BRKTR;     /**< right bracket */
 extern cchar_t CC_BOX;       /**< box colors */
-extern cchar_t CC_CMD;
+extern cchar_t CC_CMDLN;
 extern cchar_t CC_LN;
-extern cchar_t CC_DATA;
+extern cchar_t CC_DATA1;
+extern cchar_t CC_DATA2;
+extern cchar_t CC_DATA3;
 extern cchar_t CC_TITLE; /**< box colors */
 
 extern cchar_t CC_BRKTL; /* left field bracket */
@@ -610,15 +616,22 @@ extern char di_getch();
 extern int enter_option();
 
 extern PANEL *std_panel;
-extern PANEL *panel[MAXWIN];
 extern int win_flags[MAXWIN];
-extern WINDOW *win; /**< generic window pointer, used for various purposes */
-extern WINDOW
-    *win_win[MAXWIN]; /**< array of pointers to windows, indexed by window ID */
-extern WINDOW *
-    win_win2[MAXWIN];           /**< array of pointers to windows, indexed by window ID */
-extern WINDOW *win_box[MAXWIN]; /**< array of pointers to box windows, indexed
-                                   by window ID */
+
+extern WINDOW *win_main;
+extern PANEL *panel_main;
+
+extern WINDOW *win;  /**< generic window pointer, used for various purposes */
+extern PANEL *panel; /**< generic panel pointer, used for various purposes */
+
+extern WINDOW *win_win[MAXWIN]; /**< array of pointers to windows */
+extern PANEL *panel_win[MAXWIN];
+
+extern WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
+extern PANEL *panel_win2[MAXWIN];
+
+extern WINDOW *win_box[MAXWIN]; /**< array of pointers to box windows */
+extern PANEL *panel_box[MAXWIN];
 
 extern int win_attr; /**< Ncurses attributes for the current window, such as
                         color pair, bold, etc. */
@@ -793,6 +806,8 @@ typedef struct {
     char fill_char_bg[COLOR_LEN]; /**< fill character background */
     char ln_fg[COLOR_LEN];        /**< line number color index */
     char ln_bg[COLOR_LEN];        /**< line number background index */
+    char cmdln_fg[COLOR_LEN];     /**< line number color index */
+    char cmdln_bg[COLOR_LEN];     /**< line number background index */
     char nt_fg[COLOR_LEN];        /**< color code for normal text foreground */
     char nt_bg[COLOR_LEN];        /**< color code for normal text background */
     char nt_rev_fg[COLOR_LEN];    /**< normal text reverse foreground */
@@ -829,6 +844,7 @@ typedef struct {
     int cp_title;                /**< title color pair index */
     int cp_highlight;            /**< highlight color pair index */
     int cp_ln;                   /**< line number color pair index */
+    int cp_cmdln;                /**< line number color pair index */
 } SIO;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);

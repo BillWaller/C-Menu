@@ -32,8 +32,8 @@ static void end_pgm(void) {
     curs_set(1);
     destroy_init(init);
     init = nullptr;
-    restore_shell_tioctl();
     close(cmenu_log_fd);
+    endwin();
     exit(EXIT_SUCCESS);
 }
 
