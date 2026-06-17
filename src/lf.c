@@ -168,7 +168,7 @@ static struct argp_option options[] = {
      "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, "
      "8-only_errors",
      0},
-    {"include_hidden", 'H', "o", 0, "Include hidden files (Ho=only)", 0},
+    {"include_hidden", 'H', "o", 0, "Include hidden files (Ho=hidden only)", 0},
     {"follow_links", 'L', 0, 0, "Follow symbolic links", 0},
     {"sort_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
     {"sort", 'S', 0, 0, "Sort in Ascending order", 0},
