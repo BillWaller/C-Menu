@@ -621,9 +621,6 @@ extern int win_flags[MAXWIN];
 extern WINDOW *win_main;
 extern PANEL *panel_main;
 
-extern WINDOW *win;  /**< generic window pointer, used for various purposes */
-extern PANEL *panel; /**< generic panel pointer, used for various purposes */
-
 extern WINDOW *win_win[MAXWIN]; /**< array of pointers to windows */
 extern PANEL *panel_win[MAXWIN];
 

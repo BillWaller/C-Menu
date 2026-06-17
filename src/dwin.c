@@ -876,6 +876,8 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     win_ptr++;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
+
+    // ------------------->    win_box    <-------------------
     win_box[win_ptr] = newwin(wlines + 5, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
         win_ptr--;
@@ -939,6 +941,8 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     win_ptr++;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
+
+    // ------------------->    win_box    <-------------------
     win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
         win_ptr--;
@@ -1014,21 +1018,19 @@ int box_title(WINDOW *box, char *wtitle) {
     @return 0 if successful, 1 if error
 ------------------------------------------------------------------------- */
 int win_new(int wlines, int wcols) {
+
+    // ------------------->    win_win    <-------------------
     win_win[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, 1, 1);
     if (win_win[win_ptr] == nullptr) {
         delwin(win_box[win_ptr]);
         return 1;
     }
-    // panel_win[win_ptr] = new_panel(win_win[win_ptr]);
+    panel_win[win_ptr] = new_panel(win_win[win_ptr]);
     win_flags[win_ptr] |= WF_WIN;
 #ifdef DEBUG_IMMEDOK
     immedok(win_win[win_ptr], true);
 #endif
     wbkgrnd(win_win[win_ptr], &CC_NT);
-    // win_win[0, 1] CC_DATA2, Green
-    // top_panel(panel_win[win_ptr]);
-    // update_panels();
-    // doupdate();
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
@@ -1039,15 +1041,15 @@ int win_new(int wlines, int wcols) {
 /*
 ------------------------------------------------------------------------- */
 int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
+
+    // ------------------->   win2_win   <-------------------
     win_win2[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
     if (win_win2[win_ptr] == nullptr) {
         delwin(win_box[win_ptr]);
         return 1;
     }
-    // panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
+    panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
     wbkgrnd(win_win2[win_ptr], &CC_NT);
-    // win_win2[1] CC_DATA4, Blue
-    // top_panel(panel_win2[win_ptr]);
     update_panels();
     doupdate();
     win_flags[win_ptr] |= WF_WIN2;

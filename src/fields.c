@@ -55,7 +55,6 @@ int field_editor(Form *form) {
     bool f_insert = FALSE;
     int in_key;
     char *s, *d;
-    WINDOW *win = form->win;
 
     int flin = form->field[form->fidx]->line;
     int fcol = form->field[form->fidx]->col;
@@ -79,22 +78,22 @@ int field_editor(Form *form) {
     display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
 
 #ifdef DEBUG_IMMEDOK
-    immedok(win, TRUE);
+    immedok(form->win, TRUE);
     immedok(form->box, TRUE);
 #endif
     while (1) {
         if (in_key == 0) {
-            // mvwaddstr(win, flin, fcol, filler_s);
+            // mvwaddstr(form->win, flin, fcol, filler_s);
             form_fmt_field(form, accept_s);
             form_display_field(form);
             tcflush(0, TCIFLUSH);
             // wrefresh(form->box);
-            wmove(win, flin, x);
+            wmove(form->win, flin, x);
             curs_set(1);
             // wrefresh(form->win);
             update_panels();
             doupdate();
-            in_key = xwgetch(win, form->chyron, -1);
+            in_key = xwgetch(form->win, form->chyron, -1);
         }
         curs_set(0);
         switch (in_key) {
@@ -371,7 +370,7 @@ int form_display_field_n(Form *form, int n) {
     return 0;
 }
 void display_field(cchar_t *cmplx_buf, int y, int x) {
-    mvwadd_wchstr(win, y, x, cmplx_buf);
+    mvwadd_wchstr(form->win, y, x, cmplx_buf);
 }
 /** @brief Display current field
     @ingroup field_editor

@@ -550,6 +550,7 @@ void unreverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
+    wbkgrndset(pick->win, &CC_NT);
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width);
@@ -1040,6 +1041,7 @@ int picker(Init *init, char *field) {
                 if (pick->tbl_col > 0)
                     pick->tbl_col--;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
+                unreverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1055,6 +1057,7 @@ int picker(Init *init, char *field) {
                 if (pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_line < pick->lines - 1)
                     pick->tbl_line++;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
+                unreverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1067,6 +1070,7 @@ int picker(Init *init, char *field) {
                 if (pick->tbl_line > 0)
                     pick->tbl_line--;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
+                unreverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1084,6 +1088,7 @@ int picker(Init *init, char *field) {
                 if (pick->tbl_page * pick->lines * pick->tbl_cols + (pick->tbl_col + 1) * pick->lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_col < pick->tbl_cols - 1)
                     pick->tbl_col++;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
+                unreverse_object(pick);
                 in_key = 0;
                 continue;
 
@@ -1163,7 +1168,6 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
             }
-            unreverse_object(pick);
             in_key = 0;
             break;
         }
@@ -1205,6 +1209,7 @@ int picker(Init *init, char *field) {
                 while (s != e)
                     *s++ = ' ';
                 *s = '\0';
+                line = 0;
                 mvwaddstr(pick->win2, line, col, filler_s);
                 mvwaddstr(pick->win2, line, col, accept_s);
                 // pos = col + strlen(accept_s);
@@ -1212,8 +1217,9 @@ int picker(Init *init, char *field) {
                 // 2
                 update_panels();
                 doupdate();
-                in_key = dxwgetch(win, pick->win2, pick->chyron, -1);
-                if (mouse_win == win)
+                curs_set(1);
+                in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
+                if (mouse_win == pick->win)
                     break;
                 if (in_key == KEY_F(13)) {
                     in_key = 0;
@@ -1456,6 +1462,8 @@ void new_view_file(Init *init, char *file) {
             build_prompt(view);
             display_prompt(view, view->prompt_str);
             pad_refresh(view);
+            update_panels();
+            doupdate();
         }
     }
 }
