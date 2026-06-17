@@ -592,7 +592,6 @@ extern const wchar_t bw_la;  /**< left arrow */
 extern const wchar_t bw_ua;  /**< up arrow */
 extern const wchar_t bw_da;  /**< down arrow */
 extern const wchar_t bw_ran; /**< right piointing angle */
-extern const wchar_t bw_lan; /**< left piointing angle */
 
 extern void write_cmenu_log_nt(char *);
 extern void write_cmenu_log(char *);

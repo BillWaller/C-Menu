@@ -119,7 +119,6 @@ const wchar_t bw_la = BW_LA;   /**< right arrow */
 const wchar_t bw_ua = BW_UA;   /**< right arrow */
 const wchar_t bw_da = BW_DA;   /**< right arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
-const wchar_t bw_lan = BW_LAN; /**< right angle */
 
 double GRAY_GAMMA = 1.2;  /**< Gamma correction value for gray colors. Set in .minitrc */
 double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .minitrc */
@@ -199,6 +198,7 @@ cchar_t CC_NORM;
 cchar_t CC_BRKTL;
 cchar_t CC_BRKTR;
 cchar_t CC_FILL_CHAR;
+cchar_t CC_RAN;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 FILE *ncurses_fp;
@@ -343,7 +343,7 @@ void initialize_local_colors(SIO *sio) {
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
 
-    // create cchart for box borders
+    // create cchar_t for box borders
     setcchar(&ls, &bw_ve, WA_NORMAL, 0, NULL); // Left side
     setcchar(&rs, &bw_ve, WA_NORMAL, 0, NULL); // Right side
     setcchar(&ts, &bw_ho, WA_NORMAL, 0, NULL); // Top side
@@ -864,8 +864,7 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     @param wbegx Beginning X position
     @param wtitle Window title
     @param win_pair If true, creates a pair of windows (box and inner window)
-    @return 0 if successful, 1 if error
-------------------------------------------------------------------------- */
+    @return 0 if successful, 1 if error */
 int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
              bool win_pair) {
     int maxx;
@@ -929,8 +928,7 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     @param wbegx Beginning X position
     @param wtitle Window title
     @param win_pair If true, creates a pair of windows (box and inner window)
-    @return 0 if successful, 1 if error
-------------------------------------------------------------------------- */
+    @return 0 if successful, 1 if error */
 int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             bool win_pair) {
     int maxx;
@@ -1013,10 +1011,7 @@ int box_title(WINDOW *box, char *wtitle) {
     @ingroup window_support
     @param wlines Number of lines
     @param wcols Number of columns
-    @param wbegy Beginning Y position
-    @param wbegx Beginning X position
-    @return 0 if successful, 1 if error
-------------------------------------------------------------------------- */
+    @return 0 if successful, 1 if error */
 int win_new(int wlines, int wcols) {
 
     // ------------------->    win_win    <-------------------

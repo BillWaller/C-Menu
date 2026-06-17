@@ -909,7 +909,7 @@ int picker(Init *init, char *field) {
     int prev_pos = 0;
     char prev_field[MAXLEN];
     char *prev_ptr = prev_field;
-
+    char view_file[MAXLEN] = {'\0'};
     pick = init->pick;
 
     ptr = str_end;
@@ -928,14 +928,15 @@ int picker(Init *init, char *field) {
 
     int in_key = 0;
     while (1) {
+        set_chyron_key(pick->chyron, 5, "<Tab> Edit", '\t');
+        if (pick->p_view_files)
+            set_chyron_key(pick->chyron, 2, "F2 View", '\t');
+        compile_chyron(pick->chyron);
+        display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
         while (1) {
             /** ===========================================================
                 Pick Objects Loop
                 =========================================================== */
-
-            set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
-            compile_chyron(pick->chyron);
-            display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
             if (in_key == 0) {
                 reverse_object(pick);
                 pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
@@ -947,12 +948,18 @@ int picker(Init *init, char *field) {
                 strnz__cat(tmp_str, "         ", MAXLEN - 1);
                 tmp_str[22] = '\0';
                 mvwaddstr(pick->box, pick->separator_line, 2, tmp_str);
-                update_panels();
-                doupdate();
                 if (pick->p_view_files)
-                    new_view_file(init, pick->d_object[pick->d_idx]);
+                    if (strcmp(pick->d_object[pick->d_idx], view_file) != 0) {
+                        strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);
+                        new_view_file(init, view_file);
+                    }
                 mouse_win = nullptr;
                 // 1
+                top_panel(panel_win[win_ptr]);
+                curs_set(1);
+                wmove(pick->win, pick->y, pick->x);
+                update_panels();
+                doupdate();
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
                 if (mouse_win == pick->win2 && click_y == 0)
                     break;
@@ -976,10 +983,9 @@ int picker(Init *init, char *field) {
 
                 /** Toggle Select Object */
 
-            case 'v':
+            case KEY_F(2):
                 if (pick->p_view_files)
                     view_cmd_processor(init);
-                // display_page(pick);
                 in_key = 0;
                 continue;
 
@@ -1174,13 +1180,7 @@ int picker(Init *init, char *field) {
         /** ===============================================================
             Line editor loop
             =============================================================== */
-        set_chyron_key(pick->chyron, 5, "Tab Pick", '\t');
-        compile_chyron(pick->chyron);
-        display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
-        cchar_t cc = {0};
-        wchar_t wstr[2] = {BW_RAN, L'\0'};
-        setcchar(&cc, wstr, WA_NORMAL, cp_box, nullptr);
-        mvwadd_wch(pick->box, pick->separator_line + 1, 1, &cc);
+        mvwaddnwstr(pick->box, pick->separator_line + 1, 1, &bw_ran, 1);
         pos = 1;
         ptr = accept_s;
         while (1) {
@@ -1212,13 +1212,20 @@ int picker(Init *init, char *field) {
                 line = 0;
                 mvwaddstr(pick->win2, line, col, filler_s);
                 mvwaddstr(pick->win2, line, col, accept_s);
-                // pos = col + strlen(accept_s);
-                wmove(pick->win2, line, pos);
+                if (pick->p_view_files)
+                    if (strcmp(pick->d_object[pick->d_idx], view_file) != 0) {
+                        strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);
+                        new_view_file(init, view_file);
+                    }
+                mouse_win = nullptr;
+                pos = col + strlen(accept_s);
+                top_panel(panel_win2[win_ptr]);
                 // 2
+                wmove(pick->win2, pick->y, pos);
                 update_panels();
                 doupdate();
                 curs_set(1);
-                in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
+                in_key = dxwgetch(pick->win2, pick->win, pick->chyron, -1);
                 if (mouse_win == pick->win)
                     break;
                 if (in_key == KEY_F(13)) {
@@ -1245,6 +1252,12 @@ int picker(Init *init, char *field) {
 
             case KEY_F(1):
                 return (in_key);
+
+            case KEY_F(2):
+                if (pick->p_view_files)
+                    view_cmd_processor(init);
+                in_key = 0;
+                continue;
 
             /** KEY_F(9) Cancels the current operation */
             case KEY_BREAK:

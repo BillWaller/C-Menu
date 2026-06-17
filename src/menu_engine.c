@@ -180,9 +180,9 @@ unsigned int menu_cmd_processor(Init *init) {
 
         // Wait for user input and process it
         event.y = event.x = -1;
-        wmove(menu->win, menu->line_idx, 1);
         update_panels();
         doupdate();
+        wmove(menu->win, menu->line_idx, 1);
         in_key = xwgetch(menu->win, nullptr, -1);
 
         // Remove the highlight from the currently selected menu choice

@@ -707,6 +707,7 @@ int get_cmd_char(View *view, off_t *n) {
     wmove(view->cmdln.win, view->cmd_line, view->curx);
     do {
         pad_refresh(view);
+        top_panel(view->cmdln.pan);
         update_panels();
         doupdate();
         c = vgetch(view->cmdln.win, 0);
@@ -1259,9 +1260,6 @@ void view_display_page(View *view) {
             break;
         fmt_line(view);
         display_line(view);
-        // pad_refresh(view);
-        // update_panels();
-        // doupdate();
     }
     if (view->cury < view->scroll_lines) {
         wmove(view->lnno.win, view->cury, 0);
@@ -1269,9 +1267,9 @@ void view_display_page(View *view) {
         wmove(view->pad, view->cury, 0);
         wclrtobot(view->pad);
     }
-    // pad_refresh(view);
-    // update_panels();
-    // doupdate();
+    pad_refresh(view);
+    update_panels();
+    doupdate();
     view->page_bot_ln = view->ln;
 }
 /** @brief Scroll N Lines
