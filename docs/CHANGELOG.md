@@ -2,394 +2,726 @@
 
 ## [Released] - 2026-02-04
 
-0.2.9 - 2026-06-07
-
-Many feature additions, improvements, and bug fixes. Added new function call to
-C-Menu Menu, "dexe", or "detached execute", which allows the user to spacify
-a command to be executed in a detached process, which is useful for launching GUI applications from a terminal-based menu or another terminal running TUI processes.
-The user can specify the command to be executed, along with any necessary arguments, and the command will be executed in a separate process, allowing the user to continue using the terminal for other tasks. This is particularly useful for launching applications that have a graphical user interface, as it allows the user to interact with the application without having to wait for it to finish executing in the terminal.
-
-It also allows the user to start an independent instance of C-Menu.
-
-C-Menu now has support for themes including a menu under Workstation
-Configuration to select from a group of sample themes or custom themes created
-by the user. The themes are implemented using a simple configuration file format, and they allow users to customize the appearance of C-Menu to their liking. Users can specify colors for various elements of the interface, such as the background, foreground, and highlight colors, as well as other visual aspects like borders and padding. This feature adds a new level of personalization to C-Menu, allowing users to create an interface that suits their preferences and enhances their user experience.
-
-To go along with the new theme support, I have added documentation from argp,
-as comments to explain each option in configuration files written with the "-W"
-option when starting any of the C-Menu programs. This will allow users to easily understand the available options and how to use them when configuring their themes or other settings.
-
-lf had a number of bugs after a last-minute change to the handling of file
-types. I believe I have that squared away now.
-
-0.2.9 - 2026-05-25
-
-lf is coming along very well. To demonstrate its flexibility and power, I created a simple little script, ~/menuapp/bin/checkdir, to scan a specified directory and reports potential problems such as cyclic symbolic links, non-existent links, links that cannot be read due to lack of permissions, and other issues. The operative commands are listed below:
-
-```bash
-lf -L -H -T7 -D458 $dir
-lf -L -H -T7 -ps $dir
-```
-
-![checkdir output](../screenshots/checkdir.png)
-
-The script made 3 passes of 413,557 files in 1.163 seconds.
-
-This script is designed to help users identify and resolve issues with their file system. The output produced by lf is the error type, the file path, and the target of the symbolic link if applicable. The output can easily be converted into a script to remove or fix the problematic links, which can be a huge time saver. Both lf and find print errors, but in preliminary tests, both miss some files that lf catches. The script is available in the C-Menu repository, and it can be easily modified to suit specific needs. This is just one example of how lf can be used to create powerful and flexible file management tools. With lf, checkdir is just a bare starting point. Make it a sleuthing tool by adding more options to the lf command, such as -e to exclude certain files or directories, or -t to specify the types of files to check. The possibilities are endless, and with lf's speed and efficiency, you can quickly scan even large directories for potential issues.
-
-0.2.9 - 2026-05-16
-
-Performance improvements to lf have resulted in a significant increase in speed, especially when listing large directories. The improvements include optimized file system traversal and more efficient filtering of files based on the specified options. In benchmark testing, lf performed exceptionally well, and it is now one of the fastest file listing utilities available.
-
-The optimization strategy currently in place is thread pool with a circular
-queue. The thread pool allows for multiple threads to be used for file system traversal, which can significantly speed up the process, especially on systems with multiple CPU cores. The circular queue is used to manage the tasks for the threads, allowing for efficient scheduling and load balancing. This approach has proven to be effective in improving the performance of lf, and it has been well-received by users.
-
-The next step in the optimization process will be to implement a more sophisticated task scheduling algorithm using io_uring to further improve performance, especially on systems with high I/O workloads. This will allow for even faster file listing and better responsiveness, particularly when dealing with large directories or complex file structures.
-
-I also tried and rejected using mmap for directories, as it is not well-suited for this purpose due to the dynamic nature of directory contents and the need for efficient traversal and filtering. The thread pool with a circular queue has proven to be a more effective solution for optimizing lf's performance.
-
-You can specify the number of threads by using lf's -T option. If you don't
-specify a -T option, lf will choose a reasonable number of threads based on the number of CPU cores available on the system.
-
-0.2.9 - 2026-04-25
-
-The recent changes to the Pick Engine have introduced a number of bugs, or
-euphemistically, opportunities for refinement. Please be assured that testing
-continues and issues are being handled as they arise with the objective of
-having a stable release.
-
-0.2.9 - 2026-04-22
-
-A line editor has been added to the Pick Engine, which allows the user to enter
-a match string to filter the Pick objects. The user can toggle between the Pick window and the line editor by pressing the tab key.
-
-0.2.9 - 2026-04-15
-
-The -N option (line numbering) in view originally required an argument of true, false, yes, no, t, f, y, or n, but a user suggested that this was a little clumsy, and that it would be more intuitive if the -N option simply turned on line numbering when included, and turned it off when omitted. I agreed with this suggestion, and I have changed the behavior of the -N option accordingly. So, the -N option has been changed to be consistent with other boolean options. Line numbering will be turned on by specifying the -N option, whether or not it is followed by an affirmative indicator. In the case that you have f_ln set to true in your configuration, you can still turn off line numbering by including the "-N f" or "-N n" option, which will override the configuration setting. You can also toggle line numbering on and off from within view by pressing -N from a command prompt. I am trying to keep View's operation as close to vi, vim, nvim, and less as possible
-
-0.2.9 - 2026-04-14
-
-After thinking about the resizing issue in view, I decided to implement yet another option, and that is to fill the terminal emulator screen. My reasoning was that a user typically shrinks the terminal window to make more room for another application window, not to make the viewing area smaller. And, when a user expands the terminal window which contains the view window, they want to see more of the document. So, when resizing, the view window will first fill the terminal emulator window, and the user can continue to shrink the terminal window, but no viewing area will be lost to blank space. The objective is to achieve the most efficient use of screen area.
-
-The really obnoxious bugs that emerged during the resizing refactor have been fixed, and I will be doing a lot of testing to find and fix any remaining bugs. The resizing code is sort of complicated, and it is likely that there are still some edge cases that I haven't encountered yet.
-
-0.2.9 - 2026-04-12
-
-Refactoring of View's live resizing for both full screen and box window modes.
-If you need to shrink the View window, simply resize the terminal window.
-Expansion is a little more complicated. The issue is not so much technical, but
-rather expectations. If the View window is in box mode, and it is originally
-sized to be 3/4 of the terminal window, on resizing of the terminal window,
-should it calculate resize lines and columns based on the ratio of the View
-window to the terminal window, should it add the difference in size to the View
-window, or should it fill the terminal emulator screen? My current impulse is to implement the first option, which is to calculate the new size based on the ratio of the View window to the terminal window. This seems to be the most intuitive and consistent behavior, but I am open to feedback on this.
-
-0.2.9 - 2026-04-11
-
-Major progress is being made in refactoring the main components of C-Menu to provide pop-up and drop-down helper widgets. This is a major step in the evolution of C-Menu, and it will allow for much more flexible and powerful user interfaces. The first component to be refactored is the chyron, which is a pop-up widget that can be used to display information and options to the user. The chyron is implemented as a separate module, and it can be easily integrated into any C-Menu program. The next step will be to refactor the Pick module to use the chyron for displaying options, which will allow for much more dynamic and context-sensitive user interfaces. For example, when entering form fields, the user can press or click the help button to display a list of possible ogjects with which to fill the field and then select one with the mouse or keyboard. This will be a much more intuitive and efficient way to fill out forms, and it will also allow for much more complex forms with many fields. This is in preparation for the next major release, which will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
-
-Resizing of the View windows is underway. This will require much testing as
-there are four windows within the View window, the box window, the line number
-window, the command line window, and the virtual pad that must be resized and
-sequenced perfectly to avoid distracting artifacts.
-
-0.2.9 - 2026-04-10
-
-Used valgrind to find and fix a number of memory leaks and other memory-related issues. At this point, C-Menu is exiting with no memory leaks.
-
-Removed the -a (list hidden files) option from lf, made that the default
-behavior, and added -n option to exclude hidden files.
-
-Until now, the default maximum depth for lf was set to 3, which was convenient for testing, but could be confusing for users accustomed to find. The default maximum depth has been changed to 0, which means no limit. Users may want to specify a reasonable maximum depth to avoid unnecessary voluminous output.
-
-In benchmark testing, lf performed exceptionally well. It's fast.
-
-0.2.9 - 2026-04-01
-
-Most of the known bugs have been fixed, and the code is in a much more stable state. I will be doing a lot of testing and debugging to find and fix any remaining bugs, but I am confident that the code is in a good state for the next release, which will be version 0.3.x. The next release will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
-
-0.2.9 - 2026-03-31
-
-More bugs fixed related to transition to argp.
-
-Added set_chyron_key_cp() function to allow the caller to specify a custom color pair
-for individual chyron keys. This allows for more flexible and customizable chyrons, and it can be used to highlight important options or to differentiate between different types of options. The color pair is specified as a six-digit hexadecimal RGB value, and it can be set to any color the user desires. This function is part of the larger effort to integrate the chyron facility into all C-Menu programs, which will allow for much more dynamic and context-sensitive user interfaces.
-
-0.2.9 - 2026-03-30
-
-Continued testing and debugging after having substantially refactored the main components of C-Menu to provide pop-up and drop-down helper widgets. This is a major step in the evolution of C-Menu, and it will allow for much more flexible and powerful user interfaces. The first component to be refactored is the chyron, which is a pop-up widget that can be used to display information and options to the user. The chyron is implemented as a separate module, and it can be easily integrated into any C-Menu program. The next step will be to refactor the Pick module to use the chyron for displaying options, which will allow for much more dynamic and context-sensitive user interfaces. For example, when entering form fields, the user can press or click the help button to display a list of possible objects with which to fill the field and then select one with the mouse or keyboard. This will be a much more intuitive and efficient way to fill out forms, and it will also allow for much more complex forms with many fields. This is in preparation for the next major release, which will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
-
-Specifically, the following improvements have been made:
-Combined Menu, Form, Pick, View, and CKeys into a single executable
-Incorporated argp for option processing
-Added Popup and Drop-down facility for Menu, Form, Pick, View, and CKeys
-Added line numbering to View
-Refactored View navigation to maintain a line number table and use the table to improve navigation performance
-Added file type selection to lf
-Added an exclude regular expression option to lf
-Modified Pick to return to the picker after executed the selected action
-Added a new Exercises section to the documentation, which includes a number of exercises designed to help developers learn how to use C-Menu and to provide a test bed for debugging. The first exercise is a suite of Workstation Configuration programs for SDDM, Ghostty, Kitty, and Alacritty. These have been integrated into the C-Menu example main menu. I will continue to add more exercises along with documentation. The exercises will be designed to be both educational and practical, and they will cover a wide range of topics related to C-Menu development. One of the next projects, if time allows, will be a C-Menu based general ledger using SQLite as the backend database.
-Added SSH authentication and logging to RSH
-Added a wait popup to View and Pick for slow provider programs
-
-This has no doubt introduced some bugs, so I will be doing a lot of testing and debugging before moving on to the next release, which will be version 0.3.x. The next release will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
-
-0.2.9 - 2026-03-29
-
-If anyone knows of bugs that I need to address, now is the time to let me know.
-I will continue working with the pop-ups and drop-downs and I will be adding more exercises to the documentation, but I want to make sure the code is as error-free as possible before moving on to the next release, as version 0.3.x will embark on some major new features.
-
-Testing has revealed a number of off-by-one errors in view, which I have fixed,
-at least all those that I know about. I have also added a wait popup to view and pick, which will be displayed in the unlikely event that a provider program takes longer than 200ms to respond. The wait popup is a simple window with a message that counts down in seconds until input arrives or timeout, at which time the user is presented with an option to cancel. This is a possibility in the event that the provider program produces no output or stops waiting on user input. The timer checks the open pipe for input and also checks that the provider has terminated. If the program seems to be hung, the user can press Ctrl-C to cause a SIGTERM interrupt and then choose F9 to cancel. The wait popup is implemented in the parent process, which allows the countdown to timeout to be displayed without blocking the main thread of the program. The wait popup is designed to be non-intrusive, so it doesn't interfere with the user's workflow.
-
-0.2.9 - 2026-03-28
-
-Accomplished the first step in refactoring the main components of C-Menu to provide pop-up and drop-down helper widgets. This is a major step in the evolution of C-Menu, and it will allow for much more flexible and powerful user interfaces. The first component to be refactored is the chyron, which is a pop-up widget that can be used to display information and options to the user. The chyron is implemented as a separate module, and it can be easily integrated into any C-Menu program. The next step will be to refactor the Pick module to use the chyron for displaying options, which will allow for much more dynamic and context-sensitive user interfaces. For example, when entering form fields, the user can press or click the help button to display a list of possible ogjects with which to fill the field and then select one with the mouse or keyboard. This will be a much more intuitive and efficient way to fill out forms, and it will also allow for much more complex forms with many fields. This is in preparation for the next major release, which will include a number of new features and improvements, including plug-ins for external data, such as weather, news, stock quotes, and more.
-
-0.2.9 - 2026-03-24
-
-Addes SSH authentication to RSH for extra security, and also implemented logging
-to the system log for all RSH sessions. The SSH authentication is implemented using the libssh library, and it allows users to authenticate using their SSH keys instead of passwords. This is a much more secure method of authentication, and it also allows for easier management of user credentials. The logging to the system log is implemented using the syslog() function, and it allows administrators to keep track of all RSH sessions for auditing purposes. On systems with systemd, the user can type journalctl -t rsh to view the log entries for RSH sessions.
-
-Added a wait popup to View and Pick, for the unlikely cases in which a provider
-program takes longer than 200ms to respond. The wait popup is a simple window with a message that counts down in seconds until input arrives or timeout, at which time the user is presented with an option to cancel. This is a possibility in the event that the provider program produces no output or stops waiting on user input. The timer checks the open pipe for input and also checks that the provider has terminated. If the program seems to be hung, the user can press Ctrl-C to cause a SIGTERM interrupt and then choose F9 to cancel. The wait popup is implemented in the parent process, which allows the countdown to timeout to be displayed without blocking the main thread of the program. The wait popup is designed to be non-intrusive, so it doesn't interfere with the user's workflow.
-
-0.2.9 - 2026-03-19
-
-Added line numbering option "-N" to View to display line numbers in the left
-margin. The line numbers have a separate window, so it doesn't interfere with
-horizontal scrolling. The line numbers are right-aligned and padded with spaces to maintain a consistent width. The C-Menu configuration now has options for foreground and background colors for line numbers. These are six-digit hexadecimal RGB values, and they can be set to any color the user desires.
-
-Also refactored View navigation to maintain a line number table and use the
-table to improve navigation performance. The table is allocated dynamically, and
-consumes four bytes per line. The line number table is updated whenever the user scrolls vertically, and it allows for much faster navigation to specific lines, especially in large documents. The line number table is also used to maintain the correct line numbers in the left margin when the user scrolls horizontally.
-
-0.2.9 - 2026-03-13
-
-Added additional file selection options to lf. Now, you can
-list files of specific types by specifying
--t bcdplfsu (in any order or combination)
-b block devices
-c character devices
-d directories
-p named pipes
-l symbolic links
-f regular files
-s sockets
-u unknown file types
-You can select multiple file types and any you don't select will not be emitted.
-For example, lf -t d will only list directories, while lf -t f will only list regular files. lf -t df will list both directories and regular files, and lf -t bcdplfsu will list all file types, which is the default behavior with no -t option.
-
-0.2.9 - 2026-03-13
-
-Modified Pick to return to the picker after executed the selected action. This
-is a much more intuitive behavior, and it allows the user to execute multiple
-actions without having to reopen the picker each time. One of the new Exercises
-will make this abundantly clear.
-
-Added a new Exercises section to the documentation, which includes a number of exercises designed to help developers learn how to use C-Menu and to provide a test bed for debugging. The first exercise is a suite of Workstation Configuration programs for SDDM, Ghostty, Kitty, and Alacritty. These have been integrated into the C-Menu example main menu. I will continue to add more exercises along with documentation. The exercises will be designed to be both educational and practical, and they will cover a wide range of topics related to C-Menu development. One of the next projects, if time allows, will be a C-Menu based general ledger using SQLite as the backend database.
-
-0.2.9 - 2026-03-10
-
-Moved documentation to a separate repository and website, which is now available
-at:
-
-[C-Menu Comprehensive Reference](https://decision-inc.com/)
-
-This was necessary because the documentation had become too large and unwieldy to
-be easily navigable within the C-Menu repository, so only the main page was available.
-With the new website on Github Pages, I was able to include all the Doxygen
-pages including function cross references and diagrams.
-
-The new website is much more user-friendly and easier to navigate, and it will allow me to keep the documentation up-to-date more easily.
-
-0.2.9 - 2026-03-09
-
-Much more work on chyron integration. Appears to be working as intended. In the
-process, I found and fixed a number of bugs in form and one in lf. The debugging
-process is somewhat tedious following disruptive feature additions, but we are
-making progress.
-
-Still more work on inte
-
-0.2.9 - 2026-03-08
-
-Continuing to work on chyron integration into Form and Pick. When using the
-Installment Loan example, the chyron has been adjusted to only include relevant
-options, and the key handling has been reworked to accommodate the new structure.
-For example, when the user finishes entering all the fields in the form, the
-chyron provides only F1 Help, F5 Calculate, and F9 Cancel, which makes sense
-because the form is still in edit mode and the user can continue to edit fields
-by using movement keys or by clicking on the fields. Once the user clicks
-calculate, the chyron changes to include F1 Help, F4 Edit, F9 Cancel, and F10
-Commit. Upon clicking F9 Commit (or pressing the F9 key), Form will execute the appropriate action specified by the user.
-
-0.2.9 - 2026-03-07
-
-Corrected Pick Page Down and Page Up key handling, which had been broken by the integration of the chyron facility into xwgetch. This was a major problem, and it caused the Pick module to be completely unusable. I have reimplemented the key handling, and it is now working as intended.
-
-Modified Pick so that the chyron only includes Page Up and Page Down options
-when there is more than 1 page of Pick ojbects. This is part of a larger effort
-to integrate the chyron facility into all C-Menu programs. The chyron facility
-allows C-Menu to generate dynamic chyrons based on the current state of the
-program, while automatically keeping track of click zones so that xwgetch
-can interpret mouse clicks as key codes. The idea is that the chyron should
-only include relevant options.
-
-0.2.9 - 2026-03-06
-
-Added -e exclude regular expression to lf, which allows users to exclude files from the listing based on a regular expression. This is a powerful feature that can be used to filter out unwanted files from the listing.
-
-Replaced mouse handling in Pick, Form, and Menu with xwgetch, which reads chyron
-mouse selections as key codes. Now all mouse events are handled through a single function. xwgetch also handles asynchronous signal events.
-
-Some code in menu_engine.c, which handled hierarchical menu navigation, had
-somehow been deleted. This was a major problem, and it caused the menu system to be completely broken. I have reimplemented it, and it is now working as intended.
-
-The addition of an Exercises section will provide a test bed for debugging as well
-as a proof-of-concept for C-Menu. The first project is a suite of Workstation
-Configuration programs for SDDM, Ghostty, Kitty, and Alacritty. These have been
-integrated into the C-Menu example main menu. I will continue to add more
-exercises along with documentation. The exercises will be designed to be both
-educational and practical, and they will cover a wide range of topics related to
-C-Menu development. One of the next projects, if time allows, will be a C-Menu
-based general ledger using SQLite as the backend database.
-
-0.2.9 - 2026-02-27
-
-Added a number of improvements to CMake build to accommodate C-Menu's
-revised file structure. Both CMake and straight Makefile builds produce
-similar results, but CMake is more flexible, easier to work with, and less
-prone to difficult-to-solve problems.
-
-View's search function has been reworked to fix a number of issues with
-buffer and page management, such as off-by-one page top and bottom
-positioning.
-
-lf (list files) - recursive option has been replaced by a depth option and
-lf's core logic has been reworked to enhance reliability. Also removed mangled
-lf syntax which had been used in some scripts to compensate for deficiencies in
-lf's option handler.
-
-Many documentation updates - API/ABI documentation is substantially complete.
-Function Call Graphs, Called Graphs, and forward and backward references added.
-
-Every function is documented, and most variables. All documentation has been
-consolidated into a single html file available at:
-
-[C-Menu Comprehensive Reference](https://billwaller.github.io/C-Menu/)
-
-In View, replaced calls to mbtowc() with mbrtowc() because of spurious
-accent marks populating the complex characters structures (cchar_t). Apparently,
-mbtowc() is broken. mbrtowc() is the new and improved replacement.
-
-The ANSI SGR parser and gamma correction in View is working perfectly. Try a
-setting of 2.2 in ~/.minitrc to brighten up dull documents.
-
-0.2.9 - 2026-02-09
-
-Split the large menu.h into Separate .h files for each module, which should
-make it easier for developers who want to work on a particular feature.
-
-Modified Makefile and CMakeLists.txt to reflect the new file structure, and to add the new shared library libcm.so
-
-Many unimplemented functions have been implemented, and the project is now in a much more complete state. I am still working on the documentation, but I have made significant progress on it, and I will be uploading it to the repository as I go.
-
-I will look into adding a website for the project, and I will be uploading the documentation to the repository as I go. I am also working on a website for the project, which will be up soon.
-
----
-
-[0.2.8] - 2026-02-04
-
-Makefile
-
-menu - menu.c menu_engine.c parse_menu_desc.c
-
-form - form.c
-
-pick - pick.c
-
-view - view.c
-
-ckeys - ckeys.c
-
-enterchr - enterchr.c
-
-enterstr - enterstr.c
-
-optsp - optsp.c
-
-whence - whence.c
-
-stripansi - stripansi.c
-
-iloan - iloan.c
-
-lf - lf.c
-
-add_executable(form form.c)
-target_sources(form PRIVATE $<TARGET_OBJECTS:cmenu>)
-target_link_libraries(form cm ${LIBS})
-
-add_executable(enterchr enterchr.c)
-target_link_libraries(enterchr cm ${LIBS})
-
-add_executable(enterstr enterstr.c)
-target_link_libraries(enterstr cm ${LIBS})
-
-add_executable(iloan iloan.c)
-target_link_libraries(iloan cm ${LIBS})
-
-add_executable(lf lf.c)
-target_link_libraries(lf cm ${LIBS})
-
-add_executable(pick pick.c)
-target_sources(pick PRIVATE $<TARGET_OBJECTS:cmenu>)
-target_link_libraries(pick cm ${LIBS})
-
-TARGETS menu
-form
-pick
-view
-ckeys
-enterchr
-enterstr
-lf
-optsp
-stripansi
-whence
-cm
-
-dwin.c
-futil.c
-scriou.c
-exec.c
-sig.c
-
-COMMON_SRCS
-curskeys.c
-fields.c
-form_engine.c
-init_view.c
-pick_engine.c
-view_engine.c
-init.c
-mem.c
-mview.c
-opts.c)
-
-- 0.2.8 - 2026-02-03
-- 0.2.9 - 2026-02-04
-
-### Fixed
-
-- Prevent segmentation fault upon `close()` ([#28](link-to-pr))
-
-## [0.2.8]- 2026-02-04
-
-### Added
-
-- Initial release of the project ([`a1b2c3d`](link-to-commit))
-
-: <https://github.com/BillWAller/C-Menu/releases/tag/C-Menu-0.2.8>
-: <https://github.com/BillWaller/C-Menu/releases/tag/C-Menu-0.2.8>
+* Finally, the recent window management upgrades are coming together. The codebase has been refactored from the old 2 plane (y and x) windowing system that was becoming increasingly difficult to maintain. NCurses panels, along with derived windows and pads not only provides a z axis stack, but does much of the heavy lifting for window management, including handling of overlapping windows, input focus, and efficient redrawing. This refactor has allowed for a significant reduction in code complexity, as well as improved performance and maintainability. The new system is more modular, making it easier to add new features and fix bugs in the future. Overall, this refactor has been a major step forward in improving the window management capabilities of the application, and it sets a solid foundation for future enhancements. (5a9e1cd)
+* Continuing bug fixes related to refactoring window management. (3591849)
+* Finally, the flickering is gone. I do know why it was happening, but that was among the easiest things to fix. The difficult part is becoming familiar with a whole new way managing windows with a hierarchy of panels and derived windows. It is clear to me that the old way I was managing windows was becoming unwieldy and C-Menu must be able to scale to achieve its ambitions. (a5cdc1b)
+* Documentation Update (0b09f6c)
+* Beware: There are still bugs in this release as the most recent feature additions involved a complete rewrite of the window management system. Please report any bugs you find to the issue tracker BillWaller/C-Menu on GitHub. If you have any questions about the new features, please ask in the discussions section of the same repository. Thank you for your support and happy menuing! (8cf794b)
+* Documentation Updates (7380a40)
+* Combined Pick and View to create a File Browser. (a737709)
+* Documentation Updates (19f0741)
+* Documentation Updates (563be65)
+* Documentation Updates (95fa915)
+* Documentation Updates (09b638e)
+* Documentation Updates (7d64d17)
+* Documentation updates (01fba15)
+* Minor bug in pick_engine.c fixed. (951bf7d)
+* Mini bug in Build documentation. (d5e6a18)
+* Synchronized the build instructions in the documentation with the actual build system. Updated the CMakeLists.txt and Makefiles to reflect the changes in the build process. Removed the outdated README.md file from the docs directory as it is no longer relevant. (d8616e6)
+* Several bug fixes related to panels upgrade. (8ee2b72)
+* Documentation Updates (9f97b1b)
+* The latest tranche of changes to As C-Menu is likely to be the most significant yet, in terms of what it will bring to C-Menu in the form of scalability as it gears up for tackling more sophisticated applications. The changes include reorganizing the window structure with NCurses Panels to make it much easier to introduce new features while improving resilience and maintainability. As C-Menu grew to a staggering 10,000 lines of code, it became clear that the original window structure was too rigid and made it difficult to implement new features without breaking existing functionality. The new window structure allows for more modular and reusable code, making it easier to add new features and maintain the codebase. Additionally, the new structure allows for better performance and scalability, as it can handle larger and more complex applications without sacrificing performance. Overall, these changes are a significant step forward for As C-Menu as it continues to grow and evolve as a powerful and flexible application development toolkit. (7b17417)
+* lf had an error that caused sort to fail. (56b52d0)
+* Brought both Makefiles to synch, and removed the old build scripts. Both Makefile and CMakeLists.txt now support the same targets, and the Makefile is now a GNU Makefile, which is more portable and has better support for parallel builds. The old build scripts were redundant and not well maintained, so they have been removed to simplify the build process. The .gitignore file has been updated to ignore the new build artifacts generated by the Makefile and CMakeLists.txt, such as the compile_commands.json and install_manifest.txt files. This should help keep the repository clean and prevent unnecessary files from being committed. Overall, these changes should improve the build process and make it easier for developers to build and maintain the project. (2262191)
+* Modified the Makefile (GNU) to produce 3 binaries for rsh. "rsh" is dynamically linked, "rsh_static" is statically linked, and "rsh_pam" is dynamically linked with PAM support. The reason for doing so is that you have different requirements depending on the use case, and many developers and administrators have a variety of use cases. For rescue environments, a statically linked binary is often preferred because it does not rely on shared libraries that may not be available. For regular use, a dynamically linked binary is more common and can take advantage of shared libraries for better performance and smaller size. For environments that require PAM support, having a separate binary allows users to choose the appropriate version based on their needs without having to recompile the entire project. This approach provides flexibility and caters to a wider range of use cases while maintaining the integrity of the project. It gives you a selection of tools so you always have the right one for the job. (f749603)
+* Several bug fixes and improvements to the build system, including: Brought the C-Menu build up to date, adding conditional builds for a static executable and PAM support. (d7dc6b4)
+* Modified view_engine.c to allow clipping text with mouse. Added horizontal scroll default shift width, which can be overridden by entering a shift width before right or left arrow keys. Shift width sticky and doesn't change until you enter a different shift width before pressing left or right arrow keys. (3144626)
+* Bug fixes and Documentation Updates (6122ecc)
+* Documentation Updates (e8a051d)
+* Documentation Updates (fde1507)
+* Documentation Updates (6d29ea8)
+* Testing, catching edge cases and improving the overall user experience. This includes refining the color schemes, enhancing the configuration options, and ensuring better compatibility across different environments. The new theme script allows users to easily create and apply custom themes, while the updated documentation provides clearer guidance on how to utilize these features effectively. Additionally, various bug fixes and performance optimizations have been implemented to ensure a smoother and more responsive interface. (b571d83)
+* Documentation Updates (bcedae3)
+* Documentation Updates (8218f1f)
+* In previous testing, I had commented out the code that restored ncurses windows after executing a command. Therefore, the windows were not being restored after executing a command. Fixed that. My wife said the problem is the loose nut on the keyboard. (64e55de)
+* Documentation Updates (9854918)
+* Documentation Updates (d1c0681)
+* Documentation Updates (72686cc)
+* Documentation Upodates (71d1e68)
+* Added code to load and apply themes instantly without restarting the application. This includes changes to the Makefile, detach, dwin.c, futil.c, include/cm.h, include/common.h, include/pick.h, init.c, mem.c, and pick_engine.c. Additionally, updated the README.md and themes.png to reflect the new theme functionality. (2d8260e)
+* Added detach command to the Makefile, which allows the user to detach a process from the terminal and run it in the background. The detach command is implemented in the src/detach.c file, which uses the fork() and setsid() system calls to create a new process that is detached from the terminal. (06b3a6e)
+* Documentation Updates, bug fixes. (fc9fc8c)
+* Modified init.c to load themes from the themes directory. Added a new script to list themes and another to change themes. Added some themes. Modified init.c to include descriptive comments from argp when writing configuration files. (0e32422)
+* Move C-Menu/src/test to C-Menu/src/work (372c4f2)
+* Themes (e2aa875)
+* Themes (e760317)
+* Added selection to the C-Menu example main menu, which will start an independent instance of C-Menu in a new terminal window. This is an example of the flexibility of C-Menu, and how it can be used to create multiple menus that can be launched from each other. The new menu is a copy of the main menu, but it can be modified independently to show different options or information. This demonstrates how C-Menu can be used to create complex menu systems with multiple levels and branches, allowing for a more dynamic and interactive user experience. The changes include modifications to the configuration files for the Green, Red, and default themes, as well as changes to the main.m file to add the new menu option and launch the new menu in a new terminal window. Overall, this update enhances the functionality and versatility of the C-Menu example, making it a more powerful tool for creating custom menu interfaces. (575d5d9)
+* Modified config file (~/menuapp/.minitrc) processing to accommodate comments on configuration lines. This allows users to add comments to their configuration files without breaking the parsing logic. The changes include updating the parsing function to ignore any text following a comment character (e.g., '#') on a line, ensuring that only the actual configuration settings are processed. This enhancement improves the usability of the configuration files by allowing users to document their settings directly within the file. (2bb86c7)
+* Added menu selection to select C-Menu theme. Corrected an error in the C-Menu Kitty theme selector. Added Selections Processed message to Pick. (3cdce06)
+* After adding so many new features in the past month, I expected lots of bugs, but it hasn't been as bad as I thought. And the bugs are getting easier to fix as the codebase nears the end of the 0.2.9 cycle. I have a few more features to add, and I think the next release will be a good one. The new themes are really nice, and I think users will like them. I did find a significant error in lf file type handling, but that is fixed in this commit. (cb0eb0c)
+* Added new colors for the themes, added a new theme, and made some minor adjustments to the code to make it more efficient and easier to read. Also updated the README.md file to reflect the changes made to the themes and the new features added. (414a3e5)
+* menuapp updates (d572637)
+* Added color, brackets_fg. (2f8c90a)
+* Makefile and documentation update (9322b1f)
+* Preview of RSH certificate screenshot added to README.md (1a09503)
+* General cleanup and update of the C-Menu example application directory. (77b525e)
+* Makefile added help, config, and manifest. Added $CMENU_HOME/lib64 to RPATH. RPATH is very useful in a development environment where you may have several versions of a library installed. As C-Menu becomes more mature, we will likely remove the RPATH and rely on the user to set their LD_LIBRARY_PATH. But for now, this makes it easier to test new versions of the library without having to worry about the system version of the library. (956b523)
+* Added optional manifest display at end of Makefile. Activate by setting DISPLAY_MANIFEST to 1 in the Makefile. Deactivate by setting it to 0. This is useful information for debugging and development, but has no effect on the final product. It is not intended for end users, and may be removed in future versions. (6b7a702)
+* Corrected error in parse_menu_desc.c so that choice letters designated with "-" are properly reserved, preventing some letters from occurring more than once in a menu. Also updated cmenu manual page to explain the handling of input and output pipes in direct execution mode. (33683a3)
+* Substituted native linux install command for the inst.sh script in  the Makefile in the interest of standardization and convenience of developers who are familiar with the native linux install command. (881f86e)
+* Added color definition for Form's fill character, fill_char_fg. Fixed artifact from previous commit that caused Form fields not to update properly. (792447e)
+* Documentation Updates (c0954b4)
+* Add manual page for rsh. (5f56536)
+* Documentation Updates (548705e)
+* Documentation Updates, Unicode and wide character processing in form. (df104ea)
+* Added a new menu command type, "dexe", which detaches from the current process and executes a command. This allows for running simultaneous concurrent processes without blocking the menu system. The implementation involves changes to the command execution logic, menu description parsing, and the menu engine to support this new command type. (4313103)
+* Documentation Updates (d14708e)
+* lf manual page (2bb05dd)
+* Add lf manual link to README.md (c4fe485)
+* Remove spurious line in lf. (269b967)
+* Added lf manual page, updated lf help files, screenshots, and the Makefile to include a section to build and install manual pages. (67f1090)
+* Documentation Updates (c9cf318)
+* Documentation Updates (9443271)
+* Documentation Updates (60671d8)
+* Documentation Updates (5ae213d)
+* Documentation Updates (065c268)
+* Various and sundry cleanup and fixes. (2f4c034)
+* Documentation Updates (93a858a)
+* Corrected bug in Form command processing (f555cb0)
+* Documentation Updates (bbec346)
+* Documentation Updates (c32f92d)
+* Menu application directory general cleanup. Added Main Menu selection to edit menu description files. (36abdec)
+* Cleaned up lf "-D1" output. (59d64d0)
+* Documentation Updates (7f3ee96)
+* Documentation Updates (55cd44e)
+* Testing the new help system and adding a few screenshots to the docs. (270940c)
+* Documentation Updates (fdebcd6)
+* Applied changes to test program C-Menu/test/iso8601.c. (410a1c3)
+* Documentation Updates (648bc7a)
+* Documentation Updates (b727830)
+* Resolved lf date/time issues with Co-Pilot's help. The date/times at issue were the after and before date/times defining the range of files to be included in lf's output. I discovered this issue using the "-D18" option, which reveals the date/time information captured from the command line. The option processing code captured the date/times entered, but the verification date/times printed in init_find were off by by an hour for date/times in the CDT domain. The problem was that tm1_isdst must be initialized to -1 before calling mktime, which is used to convert the date/time information into a time_t value. By setting tm1_isdst to -1, mktime can correctly determine whether daylight saving time is in effect for the given date/time, which resolves the issue with the date/time being off by an hour. After making this change, the date is now correctly formatted and displayed in the application. This fix ensures that users will see the correct date information without any formatting errors. (e5d8d0f)
+* Documentation Updates (4733538)
+* Documentation Updates (c9635ee)
+* Bug fixes and documentation updates. (5c79ba9)
+* I suspended organized testing during the last tranche of feature additions and improvements in the interest of expedient completion. As a result, I have a backlog of testing. I am adding more test cases to ensure that the code is robust and can handle a wide variety of operating conditions. (ed4b279)
+* Clean-up following scan-build report. lf: Corrected thread number calculation. (f0be657)
+* Switching back to alternate screen buffer after running nvim as a subprogram. This is to deal with screen buffer corruption when exiting C-Menu after running nvim as a subprogram. (f6e7c77)
+* lf: fixed error in argument processing, which could cause regular expression failure and SIGSEGV (core dumped) (6416ab3)
+* Update C-Menu application directory (4180881)
+* lf: corrected issues with exclusion regex leading to SIGSEGV (be4f787)
+* Documentation Updates (d6967a8)
+* Menu: Due to some menu's running out of key characters that make sense, I have removed the restriction on lower case letters and some special characters. The characters  "!" through "~" (0x21 - 0x7e) are now valid key characters. Menu uses a rudamentary algorithm to determine the key character for a menu item. It scans the menu text for the first character that is not a space, not already reserved, and in the valid key character range. If no such character is found, Menu will select the first unreserved letter in the valid range, even though it may not be in the menu text. You may specify any character by including it immediately (no space separation) after a dash ("-") as the first non-blank character in the the menu item text. Lower case ("q") is always reserved for the hidden "Quit", "Exit", "Return", etc. menu item. As an additional visual queue, key characters in the menu text will be displayed using "nt_hl_rev_fg" and "nt_hl_rev_bg" color pair. These colors are defined as six-digit hex RGB values in the C-Menu configuration (normally ~/menuapp/.minitrc). (ce2bd45)
+* Added color definitions to specify reverse and highlight for Menu items. These are nt_fg, nt_bg, nt_hl_fg, nt_hl_bg, nt_hl_rev_fg, nt_hl_rev_bg, where nt is for normal text, hl is highlighted, rev is reverse, and fg for background and bg for background. (6275417)
+* lf: Continuing optimizations and enhancements (a7051e9)
+* lf: Continuing performance enhancements and adding tests (7bab980)
+* lf: added several features and performance enhancements (ec00aa1)
+* lf: continuing performance improvements, added features (d4462c7)
+* Documentation Updates (1a7c8d5)
+* Experimental feature additions and optimizations. (748f02c)
+* Documentation Updates (250fd38)
+* CHANGELOG updates (33d11e8)
+* lf: Attempts to integrate mmap into lf resulted in degraded performanc. As a result, the mmap implementation has been removed and the previous file handling method has been restored. This change aims to improve the overall performance of lf while maintaining its functionality. (154252e)
+* Documentation Update (d690f4b)
+* lf performance tuning (4ae9224)
+* lf corrected conditionals grouping errors in file type deselector (44579fd)
+* Further lf optimizations and Documentation updates (222dbcd)
+* lf performance tuning (06d7b5d)
+* Documentation Updates (3f01ec0)
+* lf performance tuning. Set default number of threads to 6 if available. Added -T option to specify number of threads. Using more threads isn't always better, and can actually decrease performance, I have 16 threads available, but testing showed that 6 threads gave the best performance. Use the time command and pay most attention to real time, not user or system time. You can specify the number of threads you want to use with the -T option if you want to experiment with it. lf checks the number of threads available on the system on the system and limits the user setting accordingly. lf's -D (debug) option displays the number of threads being used. (1634b31)
+* lf: include directory names by default (9fb64ea)
+* lf: corrected error in finder loop (7249198)
+* Documentation Updates (3e38862)
+* Documentation Updates (0996cf5)
+* lf default was to follow symbolic links to directories. New default is to not follow symbolic links to directories. The -L option has been added to follow symbolic links to directories. (d9f5bc2)
+* Documentation Updates (0c2c778)
+* lf: Changed default to exclude hidden files, removed -n option to exclude hidden files, and added the -H option to include hidden files. Updated the help file and screenshot accordingly. (789d536)
+* lf: tidying up the coded added for concurrent directory processing. Further benchmark testing indicates the concurrent directory processing provides the expected performance gains, and in all cases so far, C-Menu's lf finder is outperforming fd and find, and in some cases significantly so. (78cbf70)
+* Added concurrent directory processing to lf using a thread pool and a worker to manage thread queues. Threads are mutex protected to ensure safe access to shared resources. The implementation includes a thread pool for efficient task management and a worker to handle the distribution of tasks among threads. This enhancement allows for faster processing of directories by utilizing multiple threads concurrently, improving the overall performance of the lf application. The changes include modifications to the Makefile, the addition of thread management code in futil.c, and updates to the header file cm.h to support the new threading functionality. The documentation has also been updated to reflect these changes. (f8caa1e)
+* Documentation Updates (47677e7)
+* Documentation Updates (2dc15e3)
+* Documentation Updates (d604e1c)
+* Identified a logic error in lf that was causing it to recurse into lf_process for regular files. This induced quite a performance penalty on lf because lf_process was being called for all files, regardless of whether they were directories or not. The fix was to rearrange the comparisons of the controlling if statement. This prevents the unnecessary recursion and allows lf to function correctly when processing regular files. (2ea6bc2)
+* Documentation Updates (1246103)
+* Documentation Updates (2f52d89)
+* Added -S (sort) option to lf. -Sr sorts in reverse order. (59565a7)
+* Documentation Updates and minor bug fixes (655385e)
+* amort, the executable receiver for the Form example only had the format yyyy-mm-dd specified in strptime, and the default output of Form is unformatted without the "-". As a reault the amortization View output had incorrect dates. Added a second format, Yyyymmdd, to make it more robust and it's working now. (6de3df1)
+* Documentation Updates (51cbc03)
+* Reworked form_engine exec_receiver_cmd to make it more robust like pick. Added simple amortization program to demonstrate Form's -R execute_receiver_cmd functionality (3971767)
+* Form was failing to display field brackets. Assumed it was either an error in ncurses or a loose nut on my computer and rearranged placements of wnoutrefresh calls to manipulate screen updates in an order that worked. (ab117e0)
+* Documentation Updates (23235d7)
+* Documentation Updates (a6d4bf7)
+* popups.c remove superfluous new_form (a0ccc0d)
+* Documentation Updates (865ab6f)
+* Documentation Updates (9d9dd0a)
+* Documentation Updates (18c4bfe)
+* Documentation Updates (da62671)
+* form_fields.c pressing escape in field editor resulted in endless loop. Added validation for printable ASCII characters to prevent this. Documentation Updates (fb86fa6)
+* Documentation Updates (340c49a)
+* Documentation Updates (dc60532)
+* Documentation Updates (7d6a143)
+* Documentation Updates (043251c)
+* pick_engine.c: remove toggle selection on enter key (799f12a)
+* Documentation Updates (503b7d7)
+* Documentation Updates (863c705)
+* Documentation Updates (9c00438)
+* Documentation Updates (e805d08)
+* Documentation Updates (7f7e951)
+* Documentation Updates (f37a250)
+* Documentation Updates (824963d)
+* Documentation Updates (c6e2c42)
+* Documentation Updates (1b05e5c)
+* Documentation Updates (35210c2)
+* Documentation Updates (a5664fe)
+* Documentation Updates (04661ed)
+* Added screenshots to Rustlings exercises and updated the exercises.md file to reflect the changes. The new screenshots show the output of the exercises after completing them, while the old screenshots have been removed as they were outdated. The exercises.md file has been modified to include the new screenshots and to provide a better visual representation of the exercises. This update will help users understand the expected output of the exercises and make it easier for them to follow along with the Rustlings course. (9da87a3)
+* Remove hard-coded paths from main.m (5c11769)
+* Provide tilde expansion for external commands. (5c87c89)
+* Documentation Updates (890b41c)
+* Documentation Updates (132004a)
+* Documentation Updates (5169950)
+* Added "Tab Pick" and "Tab Edit" to chyron. (d493339)
+* pick_engine: accept line editor field on enter key (299e9c4)
+* pick_engine: pick->tbl_pages calculation is correct in line editor main loop. Also fixed updating of pick->tbl_pages on info line. (ccfcf3e)
+* pick_engine: fixed pick->tbl_pages calculation (b50e75b)
+* Fixed fork_exec root shell. Fixed spurious mouse click in object selection window triggering selection of the first object in the list. (c53799f)
+* pick_engine revert search term to previous state if change would result in match failure (6e467b5)
+* Removed spurious setting of pick->d_cnt in pick_engine.c, which was causing the pick engine to display only the first page of objects. (f64726d)
+* Fix child processes inheriting stderr and corrupting ncurses display. (ee46a48)
+* Before all execvp calls, redirect stderr to /dev/null to prevent corruption of ncurses windows. (91ef99e)
+* Redirect child output to /dev/null after fork and before execvp to prevent the child from corrupting the ncurses display. Fixes a bug where the child process could write to the terminal and mess up the display of the parent process. (d1f4d04)
+* pick_engine: minor cosmetic update (7824acb)
+* pick_engine: track number of pages (69f2e3e)
+* Pick Engine: Turn cursor off in inactive window (ff5cf2e)
+* lf: correcting issues with arguments (799b9b3)
+* if lf cannot validate the first positional argument as directory, but determines it is a valid regular expression, it should also check the second positional argument, and if it is a valid regular expression, reject the first positional argument. (b7dca5b)
+* Fixed failure of lf to detect symlink to valid directory. (6e1f8d2)
+* Pick Engine: refinement of information display. (937d501)
+* Pick Engine: added line and page numbers to separator line. (5a80a11)
+* Pick Engine, window width error. (757f8e2)
+* Pick Engine: Accept mouse clicks from line editor window when object selector is active. (2be3236)
+* Increase width of Pick Window to accommodate chyron. (8d5e9f9)
+* Pick Engine. Various improvements and bug fixes. (0b44b83)
+* Documentation Updates (eb34606)
+* In menu.c, move _atexit() after curses initialization because _atexit() calls destroy_curses(). (2d8da6d)
+* Pick Engine set y_offset to 0 when not used. (81bbb06)
+* Pick Engine line editor field positioning errors corrected. Added logic to make object selector and line editor cede control when a mouse click comes from other than their assigned window. (1f12dcd)
+* Documentation Updates (df1164e)
+* Documentation Updates (cde9478)
+* Documentation Updates (4b9103d)
+* Pick_engine, fine tuning the odds and ends. (3192b7a)
+* Fixed bug in Pick Engine. Pressing the page down key when there is only one page failed to set in_key to 0 resulting in endless loop. (ac3edf2)
+* Added wrefresh to line editor in Pick Engine. (ffff2a0)
+* Documentation Update (2e20b6f)
+* Adjusted Pick Engine box geometry to remove extra background line. (829a6f5)
+* Pick Engine redisplay window 2 after displaying help. (1c899c3)
+* Somehow lost wmouse_trafo() in dxwgetch, which caused the mouse to not work in dxwgetch. Reinstating it. (ba14771)
+* Documentation Updates (210c97b)
+* Continue fine tuning Pick Engine documentation and screenshots. (e9c6072)
+* Documentation Updates (9ce692d)
+* Continuing work on Pick Engine. (3d10b8e)
+* Reworked Pick Engine logic to be more efficient and handle edge cases better. Updated the user interface to provide clearer feedback on pick results. Refactored code for improved readability and maintainability. Added comments to explain complex sections of the code. (181caf3)
+* Update object cursor position. (68bf7b8)
+* Still more tuning on Pick Engine. (73008f9)
+* Continuing to fine tune the pick engine. (fe34505)
+* Fine tuning Pick's line editor. (2b6d087)
+* Valgrind documentation update (c2393f0)
+* Fix Valgrind still-reachable leaks: free new_init allocs, add suppression file, Makefile target, and docs (5f7fa6d)
+* Initial plan (45eb774)
+* Fixing valgrind errors. (1475850)
+* Chasing down valgrind errors and fixing them. (c3f049e)
+* Extensively reworked the Pick Engine to make it much more intuitive and easier to use. The new API is much more consistent and easier to understand, and the new implementation is much more efficient and easier to maintain. Specifically, a line editor has been added to the Pick Engine to allow users to enter search strings. The Pick Engine automatically filters the list of items displayed in real time, as you type. It's sort of like Telescope, except that it maintains distinct modes for the Picker and Editor to preserve the individual features and optimizations of each. As a result, Pick delivers a powerful multi-column, multi-page Picker and a full-function line editor. (8b8b909)
+* Fixed bug in mem.c which was causing view to fail when reading input from a command line pipe. (4cbd7e0)
+* Cleaning up possible memory leaks in lf.c and futil.c, and fixing a minor issue in the Makefile. (de18965)
+* Complex characters must be initialized with proper wide character strings and mbstate must be initialized to zeros. (0fcb4f4)
+* lf after and before date/time changes, and some refactoring to make the code more readable and maintainable. (81a7cc5)
+* lf -i does not have an argument. (d4f22a2)
+* Documentation Updates (756c6c0)
+* Documentation Updates (cbd2333)
+* Add -s, file_size, option to lf. For example, lf -t f -s 100k, will only list files greater than or equal to 100k. (eea1e7e)
+* Added after and before date ranges to lf. (438bacd)
+* Fixed bug in lf. Erroneously used continue where I should have suppressed. (117dcbf)
+* Added -u, --user option to lf. Usage is -u user_name. I am trying to keep lf as simple as possible, but this seems like a pretty important capability. Also changed some instances of "-N f" to "-Nf" in the code. This became an error when I added a boolean argument to the -N option without removing the space between N and f. (53cfd77)
+* Documentation Updates (4cd0de9)
+* After adding OPTION_ARG_OPTIONAL to the "-N" option of view, argp interpreted the "f" of "-N f" as a separate argument, causing C-Menu to fail as it tried to open "f" as a file". Reading the documentation for argp, this is normal and expected behavior. The solution, as suggested by the documentation, is to eliminate the space after the -N option. The scripts will be changed and the documentation will clarify that the -N option should be used without a space when providing an argument. I also ran across a problem caused by popup_view using the function arguments for line, col, begy, and begx, when command line arguments were also specified. The desired behavior os to override the function arguments with the command line arguments when they are provided. I have also modified the code to check for the presence of command line arguments and use them instead of the function arguments when they are available. (4002fc7)
+* More minor fixes for View line numbering (39a2890)
+* Fine tuning line numbering toggle (957f549)
+* Documentation Updates (055deb6)
+* Fixed View trying to open line number window when line number flag set to false. (e10d921)
+* More work on resizing View windows (ebeb1eb)
+* Documentation Updates (a9c8d95)
+* Working on View window resizing. It's not perfect yet, but we are making progress. As always, if you have any suggestions or feedback, please let me know. I am open to any ideas that can help improve the resizing behavior and overall user experience. Thank you for your continued support and contributions to the project. Let's keep pushing forward and making this software better together! (4bd4cd5)
+* Expand view line number window to 8 characters wide. (d38c142)
+* Expanded line number window to 7 digits. To accommodate more than 7 digits, we will need to allow scalinig of the line number window. (4c91267)
+* Corrected line numbering issue in view when scrolling up and then down. (3a7d508)
+* Don't activate cursor after deleting a window (3d91614)
+* Erase and refresh stdscr after execvp() (0c3d99c)
+* Replace old submenu code with popup_menu() (849b471)
+* Correct color rendition in view (d2b49b8)
+* set menu to init->menu to avoid SIGSEGV (e89db48)
+* Set background to NORMAL when deleting windows (5165cf5)
+* Uncommented endwin() in destroy_curses() to prevent the terminal from being left in an unusable state if the program crashes. (ddc0f6f)
+* Documentation Updates (239ef76)
+* Reset terminal on exit (4328a76)
+* Add atexit and end_pgm functions to menu.c to ensure proper cleanup of resources when the program exits. This will help prevent memory leaks and ensure that any necessary finalization steps are performed before the program terminates. (82ed1b1)
+* Taking care of valgrind issues. While I am working hard to chase down memory leaks, the fixes may have side-effects leading to other issues. Be assured, I am addressing all known issues as quickly as possible. (861dc4b)
+* Fixed fastbin chunk detected (688d630)
+* Valgrind fixes, and some other minor cleanups. See individual commits for details. (e1565ba)
+* Off by one free error in destroy_view. (2d9abe2)
+* Fixed memory leak in view. (5608609)
+* Minor fixes (40392c3)
+* Documentation Updates (99d8dc6)
+* Removed -a (List all files, including hidden) option from lf and added -n (Don't list hidden files) to conform with find's default of listing all files. The -n option is equivalent to find . -not -name ".*" (5b2192e)
+* Changed lf default depth to unlimited, in conformance with find. lf did have a default depth of 3 because it was handy for initial testing. As it no longer serves a purpose, the default depth is 0, which means unlimited depth like find. My next quandry is whether to change the behavior of lf concerning hidden files. By default, lf ignores hidden files, while find includes them. I am leaning towards changing lf to include hidden files by default. (fd3ee61)
+* Documentation Updates (b0c4869)
+* Documentation Updates (f6bfb6e)
+* Documentation Updates (8fbbaca)
+* Fixed (a720a1a)
+* Fixed errors in fork_exec(). (0ae9865)
+* Documentation Updates (1d0c201)
+* Documentation Updates (f9bdfb0)
+* Documentation Updates (d80852e)
+* Documentation Updates (79596f4)
+* Documentation Updates (d005381)
+* Documentation Updates (e01e3a1)
+* Documentation Updates (7a945ee)
+* Documentation Updates (3deb95e)
+* Documentation Updates (e03a712)
+* Documentation Updates (dec007c)
+* Documentation Updates (5514922)
+* Documentation Updates (beb705e)
+* Documentation Updates (bc7f060)
+* Documentation Updates (fab361c)
+* Documentation updates. (a66c138)
+* Documentation Updates (44d02e2)
+* Documentation updates. (10f8337)
+* Documentation Updates. (f1ab95f)
+* Documentation Updates (c15d44b)
+* Documentation Updates (cb0004b)
+* Update Installation Guide (4d9de3f)
+* Clean up script errors (2024375)
+* Resolving issues between NCurses and Neovim handling of alternate and main screens related to smcup and rmcup. This commit includes changes to the Makefile, menu_engine.c, and pick_engine.c to ensure compatibility and proper handling of screen states in both environments. (0cb0869)
+* Fixed several errors in scripts. (396ef2e)
+* Documentation Updates. (721691a)
+* Documentation updates. (3b7e2ed)
+* Reworked menu_engine logic, added c23 standard to .clangd, made SIGSEGV handler messages more informative. (62f746a)
+* Fixed bug in waiting for process. Added confirmation of program execution. (d295001)
+* Clear screen before execvp. (d3ba5af)
+* Cleaned up entry and exit for fork-exec executables and added checks for directories in workstation setup scripts. (6deda1b)
+* Clear before execvp. (570fa2f)
+* Clear artifacts from screen before and after fork_exec. (407a886)
+* Documentation Updates (e75f7bd)
+* pick_engine - pick->obj_idx was being erroneously set to 0 in picker main loop. (7eec3d2)
+* Tuning some of the fine details. (5ddc306)
+* When starting a full screen root shell from the main.m menu, the ncurses screen was not being cleared, and the root shell was being launched on top of the ncurses screen. This was because the clear() function was not being called before launching the root shell. To fix this issue, I added a call to clear() before launching the root shell in the main.m file. This ensures that the ncurses screen is cleared before the root shell is launched, providing a clean and clear interface for the user. (f409bfb)
+* Added a complete user session with Form to the User Guide. (1865b59)
+* Update menuapp files. (b4da3a6)
+* Catching the edge cases now. I would love to have some help locating bugs so 0.2.9 can be wrapped up soon. I have been testing the new features and they seem to be working well, but as the designer, I am functionally fixed. If you have some time, please try out the latest version and make a list of things that don't work they way they should. I will be working on the list and trying to resolve as many of the issues as I can. I was a lead developer for many years, so I an no newby to criticism. I know what kinds of bugs live in the shadows of every software project. No one shapes a software product more than the early adopters. Theirs is perhaps the greatest contribution to great software. (da20f98)
+* Valgrinding and fixing some memory leaks and other minor issues. Also added some comments to the code for better readability. (090688d)
+* My tree-sitter parser for shell scripts isn't working properly, so i removed the "sh" entries from source queries. (085a7ad)
+* Fixed bug in form_engine related to F5 process. (0f37c55)
+* Documentation update (178281f)
+* Clean up screen artifacts after running various processes in C-Menu. (4a76b3c)
+* Prevent nvim from leaving artifacts on screen. (16feed4)
+* Added help files to Menu, Form, and Pick and cleaned up the code to display help. (f9974c0)
+* Included form help file and fixed bug in form_engine. (6b6887a)
+* Fixed bug in form engine help. (541a4d8)
+* Documentation updates. (4ac7dcd)
+* Documentation updates. (a2ae2eb)
+* Documentation updates. (beda78e)
+* Documentation updates. (407ddd9)
+* Documentation Updates (cc968d8)
+* Tidy up the chyron a bit. (abe17e9)
+* Further testing proved that "wchar_t wstr[2] = {L'\0', L'\0'};" will work for "setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);", so re-reverted to wstr. (db33dc4)
+* Changing final setcchar(&cc, &wc, WA_NORMAL, cpx, nullptr) to setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr) lost termination of cmplx_buf. Reverted back to scalar wc. (cac17e8)
+* Replace all ocrrurences of scalar wc with wstr (a9ba9f1)
+* Remove unnecessary code from whence (9b41873)
+* pick_engine.c - highlight selection when toggled on with mouse (1f0957d)
+* Added wclrtoeol() at end of chyron (f081952)
+* Removed extra space at end of chyron. (9e2b865)
+* Added set_chyron_key_cp to insert/overwrite toggle switch in the field editor. (389efc2)
+* Added color pair to to set_chyron_key so that certain keys can be highlighted. This is used as a hint to the user as to the next logical key to press or click with the mouse. (c0c7f35)
+* Fixed bug in pick_engine related to argp processing. Essentially, argp provides all the non-option arguments to be captured in an array not including argv[0]. The getopt code returned an array of all arguments with an index to the first non-option argument. This caused the pick_engine code to fail when it tried to access the non-option arguments as it was accessing the wrong indices. The fix was to adjust the indices in pick_engine to account for the fact that argp does not include argv[0] in the array of non-option arguments. This should resolve the issue and allow pick_engine to function correctly with argp. (c5fccfb)
+* More clean-up and documentation updates. (505ce52)
+* Refactoring some function calls to use the new API, and removing some unused code. (ac143e4)
+* Resolved more issues with argp conversion. (b1b4766)
+* Incorporate argp into whence (4ffe4cb)
+* Fixed another error resulting from switching to argp from getopt. There is nothing wrong with the argp library. These issues are solely my fault for not testing the code more thoroughly after switching to argp. I will be more careful in the future. (177b424)
+* Fixed off-by-one error introduced by migration to argp in commit 9c8e5b1. The error caused the last argument to be ignored, which was the path to the form description file. This involved setting optind to state->next - 1 instead of state->next. (e3f044c)
+* Fixed bugs related to upgrading from getopt to argp. (8cb91c6)
+* Switched from getopt to argp for better argument parsing and help message generation. This change improves the user experience by providing clearer usage instructions and more robust handling of command-line arguments. The new implementation also allows for easier maintenance and future enhancements to the argument parsing logic. (eab930d)
+* Documentation Updates (40aa839)
+* Documentation Updates (23fc539)
+* Documentation Updates (1c2f3b4)
+* Delete C-Menu-0.2.9-Linux-x86_64.tar.xz (a914662)
+* Add files via upload (52337df)
+* Documentation Updates (11c80aa)
+* Testing revealed some off-by-one errors in view. Fixed all that I know about. (523580c)
+* Fixed menu calling popup_view instead of mview, which caused SIGSEGV on exit. (fa6bbec)
+* Making the build a little cleaner (550bfcd)
+* view clrtobot at eod (476cdb1)
+* Restore cursor at end of program (3e08925)
+* Cosmetic improvement to view (7f5dd1e)
+* Removed artifacts from bottom line of line number window (815afbe)
+* Fixed several bugs arising from refactoring xwgetch() to expand its usefulness for managing wait states, synchronizing forked processes, and catching signals. (19e83a6)
+* Refresh pad after selecting -n line numbering from command line (dc82e08)
+* Refactor field input after xwgetch changes (4598a9e)
+* Remove mview and updated CMakeLists.txt and Makefile (1454c16)
+* Removed unneeded source files menu.c, form.c, pick.c, view.c, and ckeys.c (9aa52ec)
+* Combined menu, form, pick, view, and ckeys into a single executable, main, which substitutes for menu, form, pick, view, and ckeys when executed via symbolic links of those same names to main. Created a module, popups.c, that contains function calls to menu, form, pick, view, and ckeys, which will function as pop-ups and drop-downs within the main executable. (1b93653)
+* Put #ifdefs in rsh to make SSH authentication and system logging optional. (1c8f1f4)
+* Changelog Updates (3a94a1e)
+* RSH Activating SSH Authentication (9664176)
+* Added ssh authentication and system logging to RSH (370fdb0)
+* Documentation Updates (a81ce20)
+* Fix view display_page clearing last line. (c979db3)
+* Get rid of flickering in view display_page by moving wclrtobot to after the last line is displayed. (3d05ae1)
+* Documentation Updates (72714d1)
+* Remove DEBUG from cm.h (d2e138a)
+* Fine tuning of wait timing (2aec90a)
+* Testing and debugging of the pick engine and the view initialization. (97439e9)
+* Resolve timing issues with pick and view engines (fb52458)
+* Synchronize forked processes (038c79c)
+* Update to init_view waiting display (749536c)
+* Working with waiting pop-ups (f9a8f4b)
+* Further work on the wait displays (8d17a7e)
+* Add -rdynamic option to debug builds (baa3543)
+* Fine tuning the timeout and fixing a bug. (bcc34b6)
+* Added pop-up wait message with countdown timer in view and pick while waiting for input from provider processes. Default timeout is 5 seconds. (91480ef)
+* Documentation Updates (a65b276)
+* Suppress "File of" if input is stdin (e1c36dc)
+* Documentation Updates (f2cbdc1)
+* Documentation Updates (36cfc17)
+* Toggle line numbers with "-n" in view (1a36e1a)
+* Documentation Updates (27e2600)
+* Documentation Updates (49835cc)
+* Documentation Updates (2a99341)
+* Documentation Updates (0d2f8e2)
+* General clean-up of the code (8fadfde)
+* Fixed bug in xwgetch that caused it to miss mouse clicks. (7b8efbe)
+* Fix bug in View vertical scrolling with mouse wheel (387204f)
+* Fixed mouse wheel vertical scrolling in view_engine. (d8af8cb)
+* Documentation Updates (158fa05)
+* Documentation Updates (76ed571)
+* Documentation Updates (6511373)
+* Documentation Updates (2458d80)
+* Documentation Updates (8cc677d)
+* Documentation Updates (525b42b)
+* Fixed some logic errors in view related to page positioning. (8786c49)
+* Fine tuning the paging logic (e34203f)
+* Corrected Page Up logic in view (9cf9e63)
+* fixed Pick failing to operate on the last item in the object list. This was caused by an off-by-one error in the loop that iterates through the objects. The loop condition was checking for `i < num_objects - 1` instead of `i < num_objects`, which caused it to skip the last object. This fix changes the loop condition to `i < num_objects`, allowing Pick to properly operate on all objects in the list, including the last one. (f70f73a)
+* Close line number window properly to clear artifact (b2273bc)
+* free data structures view->ln_tbl, view->ln_win (0a43245)
+* Documentation Updates (33db892)
+* Added line number option (-N) to view command. (a0dcdf6)
+* lf enhanced to selectively list any combination of 8 file types. (011cab8)
+* Documentation Updates (4aee67a)
+* Documentation Updates (aa24c0e)
+* Documentation Updates (f8c9309)
+* Documentation Updates (8cdb03d)
+* fixed bug in lf -a not showing hidden files (0b5e057)
+* Documentation Updates (5549280)
+* Documentation Updates (9cd4b8d)
+* Documentation Updates (92c5647)
+* Documentation Updates (06e92b0)
+* Documentation Updates (43b64df)
+* Documentation Updates (ee3194b)
+* Documentation Updates (590acda)
+* Prevent lf from following links (86c73a7)
+* Modified scripts to sort output (0aabb09)
+* Field editor refinements/cleanup (266156f)
+* Removed intentional segmentation fault used for testing. This function was designed to verify that the program would core dump instead of continuing to run after a SIGSEGV interrupt and it functioned correctly, breaking the program as designed. It is a testing artifact not intended for production code. (e049a2b)
+* Fixed bug in field editor insert mode. (820d39e)
+* Modified lf to use current directory instead of complaining if first non-option argument is not a valid directory. (3a36817)
+* Fixed problem with lf (a892d19)
+* Hopefully fixed stubborn bug in lf (96f1e14)
+* Many bug fixes and improvements, including: integrating chyron into form and pick, fixing a long-standing bug in the form engine, improving the pick engine. Fixed another bug in lf. (02cf0a0)
+* Added section on lf (3df3620)
+* Documentation Updates (c486828)
+* Corrected Pick KEY_DOWN behavior (879f03e)
+* Additions to Changelog (8c6e15d)
+* Upgraded the menuapp and src code with various modifications, including changes to the sddm_chbg.sh script, main.m file, and several C source files. Additionally, a new file diag.m was added to the menuapp/msrc directory, and an old file xx was deleted. These changes aim to enhance the functionality and performance of the application while maintaining compatibility with existing features. The chyron functions, which have been updated to handle mouse events, will now provide a more interactive user experience. The modifications in the form_engine.c and related files will improve the overall efficiency of the form handling process,while the updates in the include files will ensure better code organization and maintainability. Overall, these changes contribute to a more robust and user-friendly application, aligning with the project's goals and objectives. (a5d0f8a)
+* Added incomplete message (7d924f8)
+* Documentation Updates (85a936a)
+* Documentation Updates (c6e1040)
+* Bug fixes, exercises, scripts and screenshots (beb3a3a)
+* Fixed bugs in menu and added exclusion regex to lf. (36f6f61)
+* Documentation Updates (e517c7b)
+* Replace NULL with nullptr (ef205a7)
+* Pick failing to draw box window if no title (f200d24)
+* Documentation Updates (84e3af5)
+* Documentation Updates (895c8ed)
+* Documentation Updates (50e90a1)
+* Documentation Updates (879fc74)
+* Perfect sub-window positioning (8506579)
+* Documentation Updates (17efe5d)
+* Code and Documentation inmprovements (0d34b57)
+* Use new options with lf (6158f74)
+* Fixed another issue with lf (6e24f11)
+* Fixed lf (list files) (b9da523)
+* Documentation Updates (67b5c92)
+* Documentation Updates (7fa5d04)
+* Documentation Updates (78a81e6)
+* Documentation Updates (f5d1dc4)
+* Added Desktop startup files (7d8a628)
+* Correct transposition of iso8601 (17dce78)
+* Documentation Updates (9c04881)
+* Documentation Updates (9c9a988)
+* Documentation Updates (9cd3803)
+* Corrected search page-top, page-bottom positions (882cacb)
+* Corrected issue with lf -d, (depth) (0260f4b)
+* Corrected problem with lf (2f546f6)
+* Move chktty to bin (9df8eef)
+* Documentation Updates (20dbc09)
+* Added message if tty directory not found (32cc346)
+* View reverse search logic fixes (cfe059e)
+* Make include directives more portable for API use (e7c7269)
+* Correcting type-o (168807e)
+* More work on CMake build system (2863861)
+* Remove installed include and lib64 directories (80b4d4e)
+* CMake - update installation logic (0a5c89e)
+* Install CMenu.conf in ld.so.conf (f8b1aff)
+* Documentation Updates (333a74a)
+* Documentation Updates (9ece466)
+* View Window Geometry (25a63ef)
+* Reworking View's search logic (740e614)
+* Fixed problem with multi-byte conv. mbrtowc() (816da7d)
+* Documentation Updates (8883c67)
+* Documentation Updates (127945a)
+* Added environment variable for static rsh build (a4d5e87)
+* Added option to statically link rsh (e198ef6)
+* Corrected issue with View wrapping (bc7b04a)
+* Add .bashrc to .gitignore (8510f0c)
+* Remove GH_TOKEN (7472f48)
+* Deleted GH_TOKEN from .bashrc (d60510d)
+* Logic correction in view write buffer to file (10e4242)
+* CMake Build install directory (188c612)
+* Documentation Updates (4d54450)
+* Added logic for editing current buffer (34251eb)
+* Library versioning CMake and Makefile (c456339)
+* Correct Misspelling in menu.m (8f84125)
+* Fix several programs that weren't expanding tilde (1eef8a8)
+* Documentation Updates (db11690)
+* Documentation Updates (47e22d9)
+* Documentation Updates (89eff83)
+* Documentation Updates (d73ff24)
+* Documentation Updates (68699d3)
+* Documentation Updates (d09d233)
+* Documentation Updates (2633bcf)
+* Documentation Updates (dc17952)
+* Improving Help display (2dd03e9)
+* Improved Signal Handling, Help mechanism (d88ffc0)
+* Documentation Updates (cda6791)
+* Documentation Updates (28093cf)
+* Documentation Updates (e0608c7)
+* Documentation Updates (060c035)
+* Add files via upload (ea5398e)
+* Add files via upload (3d5a29d)
+* Update C-Menu API link to use HTTPS (6d28af5)
+* Documentation Updates (bfc5662)
+* Reorganize files, added doxygen API (e3cef18)
+* Documentation Updates (c67bfa6)
+* Documentation Updates (795e9c4)
+* Documentation Updates (3ff9df5)
+* Documentation Update (7662842)
+* Processing of mview parameters, Documentation (63dbde6)
+* Corrections to Makefile and CMake install paths (f22379a)
+* Added dependencies to make install (68b8bb7)
+* Misspelling in Makefile (04e4d64)
+* Mogrify Images (a318582)
+* Documentation Updates (e5009f7)
+* Documentation Updates (525d0d2)
+* Calculate Window Size if zero (350c80c)
+* API placed in libcm.so (5ea4320)
+* Documentation Updates (22a95e5)
+* Documentation Updates (b0066f0)
+* View Engine Improvements and Bug Fixes (85b8a41)
+* Corrected errors in View Search Logic (f945324)
+* Refine horizontal scrolling behavior in view (992991a)
+* Modified Horizantal Scrolling default to pagewidth (c0db1d6)
+* Documentation Updates (1a33ced)
+* Documentation Updates (39e8557)
+* Documentation Updates (9ebcd7f)
+* Throw an error for bad ANSI escape sequences (fd06710)
+* Documentation Updates (45f0e1e)
+* Documentation Updates (e3e011f)
+* Documentation updates and bug fixes (2635e88)
+* Corrected issue with italics attribute (f4f16aa)
+* Remove unneeded debugging code (68aad87)
+* Update terminfo documentation (73d4824)
+* Tweaking Color Supprt (43aaa57)
+* Continuing work on view_engine.c (aaab95e)
+* Corrected issue with input line index (a654268)
+* view-engine fmt_line input handling optimization (827385f)
+* Signal Handler, Documentation Updates (db991f2)
+* Delete Unneeded directory (bd2b841)
+* Documentation Updates (35a038a)
+* Documentation Updates (189a8d4)
+* Documentation Updates (b90e17b)
+* Improve Signal Handling, Doc Updates (610bd20)
+* Documentation Updates (33a01c9)
+* Documentation Updates (8a508e2)
+* Documentation Updates (70608d9)
+* Corrected Gamma Calculation, added gray gamma (2e10b66)
+* Documentation Updates (360010f)
+* Documentation Updates (180a13a)
+* Documentation Updates (f7bba8d)
+* Documentation Updates (67ef89d)
+* Documentation Updates (56c6d91)
+* Documentation Updates (483fa34)
+* Documentation Updates (fb6d7fe)
+* Documentation Updates (675d80d)
+* Documentation Updates (737d266)
+* Documentation Updates (f10c384)
+* Documentation Updates (2774bc8)
+* Documentation Updates (fb8f13c)
+* Clean-up of obsolete test and work files (fb67164)
+* Documentation Updates (9569258)
+* Documentation Updates (48b5b56)
+* Documentation Updates (2a414b6)
+* Corrected issues with ANSI to Complex Char (b9a20d6)
+* Added Terminal Emulator Example Configurations (7f1aef6)
+* Documentation Updates (a7748d8)
+* Corrected rgb_to_xterm256_idx, gcc -O2 issues (da80c38)
+* Conflicting signatures for str_tok_r (d39058f)
+* Update str_tok_r (4494292)
+* Documentation Updates (5c08c7d)
+* Documentation Updates (34f4d95)
+* Documentation Updates (7d3ccea)
+* Documentation Updates (1fc4a1e)
+* Documentation Updates (85c8e01)
+* Documentation Updates (5a3560a)
+* Documentation Updates (caffd09)
+* Documentation Updates (d14d800)
+* File handling and memory management issues. (4581d40)
+* Documentation Updates (7b172a9)
+* Documentation Updates (1edc7dc)
+* Documentation Updates (d192eb3)
+* Documentation Updates (9905e9f)
+* Documentation Updates (3dc82d1)
+* Documentation Updates (d08e329)
+* Documentation Updates (532a019)
+* Documentation Updates (76ddb69)
+* Documentation Updates (e31d606)
+* Documentation Updates (5e3794f)
+* Documentation Updates (5911114)
+* Documentation Updates (49b74d8)
+* Documentation Updates (39b087d)
+* Documentation Updates (d03051d)
+* Documentation Updates (e233309)
+* stripansi - Handle \033[K, API.md Update Doc (81eb9d0)
+* Documentation Updates (c0efe56)
+* Same as previous commit, except for boxwin (4b926d4)
+* View - enforce horizontal scrolling limit (42700b3)
+* Fixed unable to read stdin in view (ssize_t issue) (999de1d)
+* Documentation Updates (cf1882d)
+* Documentation updates. (dedb1bb)
+* Data type corrections (0484de8)
+* Corrections to data types in view (4bc597a)
+* View - interpret ANSI SGR \033[K correctly (783ee41)
+* Documentation updates (2100671)
+* Documentation Updates (d4ce1d3)
+* Documentation Updates (834e1c3)
+* Documentation update (e094934)
+* Documentation Updates (c8fefa8)
+* Added functionality to handle window resizing in the view engine. (955fbcc)
+* Resolve problems exposed by ccc-analyzer (3df53ed)
+* Documentation Updates (0cdd56a)
+* Updates (cae5502)
+* Documentation update (6acf7a8)
+* Documentation update (43ea75c)
+* Documentation uppdate (ccb1ea3)
+* Documentation update (4e684f6)
+* Documentation update (d461b14)
+* Documentation Updates (9029c11)
+* Listed recent changes (54c8ccf)
+* Movement keys (ac968d1)
+* Documentation updates (37d0ebe)
+* Clean-up (66704b9)
+* Delete doc/extras.html (0f77a44)
+* Update image paths in extras.html (919dbd2)
+* Delete doc/screenshots (61ebde1)
+* Clean-up (b6a71cd)
+* Continuing updates (dbcfadb)
+* Added hjkl to motion keys, added Form entry to View (144638d)
+* Modified image directory in extras.html (57c5297)
+* Fix image paths in extras.md (7cf2531)
+* Move extras to root directory (1c85d4b)
+* Updates for documentation and code comments (e28dfff)
+* Continuing clean-up (e1fe5c8)
+* Updates to CMake build (f98c016)
+* Added extras.html file and updated documentation files (175a10a)
+* Continuing clean-up (64dced0)
+* Additions (b42f59a)
+* Title banner box view (1bc1c68)
+* Next page test for EOD (6501ea9)
+* Mouse Support for Function Keys in Form_Engine (c4d55bc)
+* Add -d (depth) option to lf (bb47164)
+* Deal with superfluous escape character in input file (16965fe)
+* Continuing clean-up (d933354)
+* Continuing clean-up (606206b)
+* Fixed issue with -S, -R, and -c options (6df9466)
+* clean-up (146081d)
+* Continuing clean-up (fe87cd2)
+* Clean-up (27b77d3)
+* Clean-up (379133f)
+* Continuing clean-up (8c53023)
+* Continuing clean-up (31db56e)
+* Fix typeo (dd58147)
+* Typeo correction (6aeecd2)
+* Added section on external executables (8b17f90)
+* Form logic corrections (a63a60e)
+* Update README and FAQ (9cf54dc)
+* Add name known as (58a83f8)
+* Refine descriptions for receiver and provider (c459eca)
+* L and C options reversed (0eb4486)
+* Continuing clean-up (0adca37)
+* Continuing clean-up (e0d0e0b)
+* Continuing clean-up (c14200f)
+* Continuing clean-up (6617ebc)
+* Continuing clean-up (99b645a)
+* Continuing updates (f29a008)
+* Added FAQ section to doc (f3e301b)
+* Additional extras (f113be1)
+* Continuing clean-up (cf4e6fd)
+* Continui (25ca719)
+* Continuing clean-up (fa45fe6)
+* Continuing clean-up (c7dbf76)
+* Continuing clean-up (0f0dd7a)
+* Updated Help Screen to reflect option changes (e615ca0)
+* Changed -c, and -S options, and added -R (d433383)
+* Continuing clean-up (6a553ed)
+* Continuing clean-up (37a5ada)
+* Back to some level of sanity (550d8a2)
+* Continuing updates (2749b64)
+* This set of patches may be buggy. Substantial changes. (03ce699)
+* Continuing clean-up (b88c73a)
+* View screen geometry (98146ee)
+* View screen geometry corrected (b07f242)
+* Can't use treesitter with main.m (no parser) (494cb2d)
+* Continuing clean-up (23aa0bf)
+* Continuing clean-up (9000af9)
+* Continuing clean-up (c02467c)
+* Continuing clean-up (cde7e7c)
+* Continuing clean-up (59bbb84)
+* Add extras.md to doc (171bf88)
+* Add extras.md to doc (9fef45b)
+* Added extras directory (f96dd6c)
+* Continuing clean-up (86ad3f7)
+* Continuing clean-up (f544b29)
+* Continuing clean-up (1cf0a48)
+* Continuing clean-up (34a1a42)
+* Continuing clean-up (657f6f7)
+* Continuing clean-up (8e67f61)
+* Continuing clean-up (acb98e8)
+* fix view KEY_UP disabling itself by setting view->f_bod (5db3440)
+* Clean-up (d155656)
+* Continuing clean-up (9c994e2)
+* Clean-up continues (c1c89ae)
+* Clean-up continues (0cc5272)
+* Continuing clean-up (4b1e1b0)
+* Expand line buffer to accommodate 2048 byte lines (37a25f9)
+* Bug Fixes (baff4c0)
+* Bug fixes for pick (faf70a1)
+* Continuing the cleanup after refactoring. (c86e6ec)
+* Continuing the clean-up after added features (ea2640c)
+* General Cleanup (a6c5420)
+* General Cleanup (5e5e2dd)
+* General Cleanup of Repository (bb16274)
+* More updates (aa436a3)
+* C-Menu still needs lots of work (5b26a1e)
+* Update distribution files (5abbe3c)
+* Major revisions, but not complete yet. (33ab794)
+* Add files via upload (eee1535)
+* Initial commit (4c987cd)
