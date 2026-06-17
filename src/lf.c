@@ -56,6 +56,7 @@ const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
                    "directory to search. REGULAR_EXPRESSION is a properly "
                    "formatted regular expression for which matching files "
                    "will be listed.";
+bool is_hidden(const char *);
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 unsigned int nthreads;
 
@@ -81,6 +82,7 @@ typedef struct {
     bool sort;
     bool sort_reverse;
     bool include_hidden;
+    bool hidden_only;
     bool follow_links;
     bool debug;
     bool report_config;
@@ -166,7 +168,7 @@ static struct argp_option options[] = {
      "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, "
      "8-only_errors",
      0},
-    {"include_hidden", 'H', 0, 0, "Include hidden files", 0},
+    {"include_hidden", 'H', "o", 0, "Include hidden files (Ho=only)", 0},
     {"follow_links", 'L', 0, 0, "Follow symbolic links", 0},
     {"sort_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
     {"sort", 'S', 0, 0, "Sort in Ascending order", 0},
@@ -248,9 +250,11 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'H':
         f->include_hidden = true; // Include hidden files
-        f->flags &= ~(LF_HIDE);   // Turn hide flag off
-                                  // LF_HIDE = 0 - include hidden files,
-                                  // LF_HIDE = 1 - suppress hidden files
+        if (arg && arg[0] == 'o')
+            f->hidden_only = true;
+        f->flags &= ~(LF_HIDE); // Turn hide flag off
+                                // LF_HIDE = 0 - include hidden files,
+                                // LF_HIDE = 1 - suppress hidden files
         break;
     case 'i':
         f->flags |= LF_ICASE;
@@ -378,6 +382,7 @@ int main(int argc, char **argv) {
                                // -H to include them.
     // LF_HIDE = 0 - include hidden files,
     // LF_HIDE = 1 - suppress hidden files
+    f->hidden_only = false;
     f->flags |= LF_HIDE;     // Turn hide flag on
     f->follow_links = false; // By default, symbolic links are not followed. Use
                              // -L to follow them.
@@ -883,15 +888,11 @@ void *finder(void *arg) {
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
             struct stat st;
-            // real_type = '\0';
-            if (entry->d_name[0] == '.') {
-                if (entry->d_name[1] == '\0')
-                    continue;
-                if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
-                    continue;
-                if (!f->include_hidden)
-                    continue;
-            }
+            bool f_is_hidden = is_hidden(entry->d_name);
+            if (f->hidden_only && !f_is_hidden)
+                continue;
+            if (!f->include_hidden && f_is_hidden)
+                continue;
             char full_path[PATH_MAX] = {'\0'};
             stpcpy(stpcpy(stpcpy(full_path, current_task->dir_path), "/"),
                    entry->d_name);
@@ -1029,6 +1030,17 @@ void *finder(void *arg) {
         atomic_fetch_sub(&active_tasks, 1);
     }
     return NULL;
+}
+
+bool is_hidden(const char *name) {
+    if (name[0] == '.') {
+        if (name[1] == '\0')
+            return false;
+        if (name[1] == '.' && name[2] == '\0')
+            return false;
+        return true;
+    }
+    return false;
 }
 /** @brief scan a single file against search filters
  * @param file_spec specification of file being scanned
