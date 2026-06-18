@@ -57,6 +57,7 @@ const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
                    "formatted regular expression for which matching files "
                    "will be listed.";
 bool is_hidden(const char *);
+bool is_dirsys(const char *);
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 unsigned int nthreads;
 
@@ -250,8 +251,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'H':
         f->include_hidden = true; // Include hidden files
-        if (arg && arg[0] == 'o')
+        if (arg && arg[0] == 'o') {
             f->hidden_only = true;
+            f->include_hidden = true;
+        }
         f->flags &= ~(LF_HIDE); // Turn hide flag off
                                 // LF_HIDE = 0 - include hidden files,
                                 // LF_HIDE = 1 - suppress hidden files
@@ -883,17 +886,12 @@ void *finder(void *arg) {
             continue;
         }
         // unsigned char real_type;
-        unsigned char effective_type;
         //-------------------------------------------------------------
+        unsigned char effective_type;
+        char full_path[PATH_MAX] = {'\0'};
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
             struct stat st;
-            bool f_is_hidden = is_hidden(entry->d_name);
-            if (f->hidden_only && !f_is_hidden)
-                continue;
-            if (!f->include_hidden && f_is_hidden)
-                continue;
-            char full_path[PATH_MAX] = {'\0'};
             stpcpy(stpcpy(stpcpy(full_path, current_task->dir_path), "/"),
                    entry->d_name);
             // Get link's metadata
@@ -941,17 +939,28 @@ void *finder(void *arg) {
                 if (f->follow_links)
                     effective_type = (st.st_mode & S_IFMT) >> 12;
             }
-            // Determine the effective type of the entry. We use the st_mode
-            // field from the stat struct to determine the file type by
-            // applying the S_IFMT mask and shifting it to get a value that
-            // corresponds to the DT_* constants. If the entry is a symbolic
-            // link and the user has chosen not to follow links, we treat it
-            // as a directory for the purpose of deciding whether to enqueue
-            // it for further searching. This allows us to handle symbolic
-            // links that point to directories in a way that respects the
-            // user's options while still allowing for traversal of linked
-            // directories if desired.
-            if (effective_type == DT_DIR) {
+            if (effective_type != DT_DIR) {
+                if (is_hidden(entry->d_name)) {
+                    if (!f->include_hidden)
+                        continue;
+                } else if (f->hidden_only)
+                    continue;
+            } else {
+                if (is_dirsys(entry->d_name))
+                    continue;
+                if (is_hidden(entry->d_name))
+                    continue;
+                // Determine the effective type of the entry. We use the st_mode
+                // field from the stat struct to determine the file type by
+                // applying the S_IFMT mask and shifting it to get a value that
+                // corresponds to the DT_* constants. If the entry is a symbolic
+                // link and the user has chosen not to follow links, we treat it
+                // as a directory for the purpose of deciding whether to enqueue
+                // it for further searching. This allows us to handle symbolic
+                // links that point to directories in a way that respects the
+                // user's options while still allowing for traversal of linked
+                // directories if desired.
+                //
                 // Check for cycles by comparing the current
                 // directory's dev/inode with the history of dev/inode pairs
                 // from parent directories. If a match is found, it
@@ -961,7 +970,6 @@ void *finder(void *arg) {
                     fprintf(stderr, "Checking for cycles in: %s\n", full_path);
                 for (int i = 0; i < current_task->depth; i++) {
                     if (f->debug && (f->report_trace || f->report_all)) {
-
                         if (current_task->history[i].ino == st.st_ino)
                             fprintf(stderr, "%3d %ju %ju<===========\n", i,
                                     current_task->history[i].ino, st.st_ino);
@@ -1021,6 +1029,8 @@ void *finder(void *arg) {
                 child_task->history[current_task->depth].ino = st.st_ino;
                 enqueue_dir(child_task);
             }
+            if (f->hidden_only && !is_hidden(entry->d_name))
+                continue;
             scan_file(full_path, f, effective_type);
         }
         closedir(dir);
@@ -1039,6 +1049,15 @@ bool is_hidden(const char *name) {
         if (name[1] == '.' && name[2] == '\0')
             return false;
         return true;
+    }
+    return false;
+}
+bool is_dirsys(const char *name) {
+    if (name[0] == '.') {
+        if (name[1] == '\0')
+            return true;
+        if (name[1] == '.' && name[2] == '\0')
+            return true;
     }
     return false;
 }
