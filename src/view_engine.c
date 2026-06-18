@@ -1173,6 +1173,9 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
                   (view->page_bot_pos * 100 / view->file_size));
 #endif
     regfree(&compiled_regex);
+    pad_refresh(view);
+    update_panels();
+    doupdate();
     return true;
 }
 
@@ -1195,7 +1198,10 @@ int pad_refresh(View *view) {
                       view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR)
         Perror("Error refreshing screen");
+    // top_panel(view->pad_view.pan);
+    // top_panel(view->pad_container.pan);
     update_panels();
+    doupdate();
     return rc;
 }
 /*--------------------------------------------------------------

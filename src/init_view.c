@@ -82,7 +82,7 @@ int init_view_full_screen(Init *init) {
         return -1;
     }
     view->cmdln.pan = new_panel(view->cmdln.win);
-    wbkgrnd(view->cmdln.win, &CC_CMDLN);
+    wbkgrnd(view->cmdln.win, &CC_NT);
     keypad(view->cmdln.win, true);
     idlok(view->cmdln.win, false);
     idcok(view->cmdln.win, false);
