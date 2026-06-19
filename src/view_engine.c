@@ -703,13 +703,12 @@ int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
-    // pad_refresh(view);
+    top_panel(view->cmdln.pan);
+    update_panels();
+    doupdate();
     wmove(view->cmdln.win, view->cmd_line, view->curx);
+    pad_refresh(view);
     do {
-        pad_refresh(view);
-        top_panel(view->cmdln.pan);
-        update_panels();
-        doupdate();
         c = vgetch(view->cmdln.win, 0);
         if ((c >= '0' && c <= '9') && i < 32) {
             cmd_str[i++] = (char)c;
@@ -1174,8 +1173,6 @@ bool search(View *view, int *search_cmd, char *regex_pattern) {
 #endif
     regfree(&compiled_regex);
     pad_refresh(view);
-    update_panels();
-    doupdate();
     return true;
 }
 
@@ -1198,10 +1195,6 @@ int pad_refresh(View *view) {
                       view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR)
         Perror("Error refreshing screen");
-    // top_panel(view->pad_view.pan);
-    // top_panel(view->pad_container.pan);
-    update_panels();
-    doupdate();
     return rc;
 }
 /*--------------------------------------------------------------
@@ -1273,9 +1266,9 @@ void view_display_page(View *view) {
         wmove(view->pad, view->cury, 0);
         wclrtobot(view->pad);
     }
-    pad_refresh(view);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
+    // pad_refresh(view);
     view->page_bot_ln = view->ln;
 }
 /** @brief Scroll N Lines
@@ -1319,9 +1312,9 @@ void scroll_down_n_lines(View *view, int n) {
         fmt_line(view);
         display_line(view);
     }
-    pad_refresh(view);
     update_panels();
     doupdate();
+    pad_refresh(view);
 }
 /** @brief Scroll Up N Lines
     @ingroup view_navigation

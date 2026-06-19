@@ -4,6 +4,7 @@ src/.clang-format
 src/amort
 src/ckeys
 src/detach
+src/gdb.log
 src/menu
 src/form
 src/pick

@@ -247,16 +247,18 @@ int init_view_boxwin(Init *init, char *title) {
     scrollok(view->cmdln.win, false);
 
     // -------------------> 5. pad <-------------------
-    view->pad_container.win = derwin(view->win.win, view->lines - 1,
-                                     view->cols - view->ln_win_cols, 0, view->ln_win_cols);
-    if (view->pad_container.win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1,
-                  "view->pad_container.win: lines=%d, cols=%d, begy=%d, begx=%d",
-                  view->lines + 2, view->cols + 2, 1, 1);
-        Perror(em0);
-        return -1;
-    }
-    view->pad_container.pan = new_panel(view->pad_container.win);
+    //  view->pad_container.win = derwin(view->win.win, view->lines - 1,
+    //                                   view->cols - view->ln_win_cols, 0,
+    //                                   view->ln_win_cols);
+    //  if (view->pad_container.win == nullptr) {
+    //      ssnprintf(em0, MAXLEN - 1,
+    //                "view->pad_container.win: lines=%d, cols=%d, begy=%d,
+    //                begx=%d",
+    //                view->lines + 2, view->cols + 2, 1, 1);
+    //      Perror(em0);
+    //      return -1;
+    //  }
+    //  view->pad_container.pan = new_panel(view->pad_container.win);
 
     // -------------------> pad <-------------------
     view->pad = newpad(view->lines - 1, PAD_COLS - 1);
