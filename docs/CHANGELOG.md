@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-19T17:32:53-05:00* - [ui] Add ncurses UI backend 
+
+*2026-06-19T12:30:07-05:00* - Doc - CHANGELOG 
+
 *2026-06-19T12:27:51-05:00* - Doc: Updated CHANGELOG.md 
 
 *2026-06-19T08:46:53-05:00* - view_engine.c: Correct error in panel stack updates. 
