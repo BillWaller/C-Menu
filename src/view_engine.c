@@ -1319,6 +1319,9 @@ void scroll_down_n_lines(View *view, int n) {
         fmt_line(view);
         display_line(view);
     }
+    pad_refresh(view);
+    update_panels();
+    doupdate();
 }
 /** @brief Scroll Up N Lines
     @ingroup view_navigation
