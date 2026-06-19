@@ -19,6 +19,9 @@ else
 #	-DDEBUG_IMMEDOK
 	LINKOPT=-pthread
 endif
+CFLAGS += -Isrc/include -Isrc/ui
+CFLAGS += -Wall -Wextra -Wpointer-arith -Wstrict-prototypes
+# CFLAGS += -Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes
 #	-DDEBUG_IMMEDOK
 #
 MAJOR=0
@@ -38,7 +41,6 @@ PAM_DIR:=/etc/pam.d
 INCLUDE_DIR:=./include
 CX:=-std=c23
 CC:=gcc $(CX) -Wall -Wextra -I$(INCLUDE_DIR) $(CFLAGS)
-
 BINEXES:=menu form pick view ckeys whence rsh rsh_static rsh_pam \
 		iloan amort enterchr enterstr lf stripansi detach
 
@@ -55,6 +57,8 @@ COMMON_HDRS:=include/cm.h include/common.h include/menu.h \
 COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
 			fields.c form_engine.c init.c init_view.c mem.c \
 			pick_engine.c popups.c view_engine.c
+# COMMON_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
+
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
 LDFLAGS:=$(LINKOPT) -L. -lcm -lncursesw -ltinfow -lpanelw -lm -luring -Wl,-rpath,$(RPATH)
@@ -155,7 +159,7 @@ helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf -H -L -T6 /home/bill 1>/dev/null 2>/dev/null
 
 valgrind: lf
-	valgrind -v \
+	valgrind -v -v \
     	--log-file=valgrind.out \
 		--leak-check=full \
 		--show-leak-kinds=all \

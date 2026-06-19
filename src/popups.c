@@ -170,10 +170,8 @@ int popup_view(Init *init, int argc, char **argv, int lines, int cols, int begy,
     view->f_full_screen = false;
     if (view->h_shift == 0)
         view->h_shift = view->cols / 3;
-    if (!init_view_boxwin(init, view->title)) {
+    if (!init_view_boxwin(init, view->title))
         rc = view_file(init);
-        win_del();
-    }
     destroy_view(init);
     init->view = view_sav;
     // view_stack_pop(&view_stack, init->view);

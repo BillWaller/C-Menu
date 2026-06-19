@@ -112,6 +112,7 @@ bool enter_file_spec(Init *, char *);
 int a_toi(char *, bool *);
 void increment_ln(View *);
 void initialize_line_table(View *);
+void destroy_line_table(View *);
 int pad_refresh(View *);
 void sync_ln(View *);
 char err_msg[MAXLEN];
@@ -156,6 +157,7 @@ int view_file(Init *init) {
                 initialize_line_table(view);
                 next_page(view);
                 view_cmd_processor(init);
+                destroy_line_table(view);
                 munmap(view->buf, view->file_size);
             }
         } else {
@@ -1555,6 +1557,13 @@ void initialize_line_table(View *view) {
     }
     view->ln_max_pos = 0;
     view->ln_tbl[0] = 0;
+    view->ln = 0;
+}
+void destroy_line_table(View *view) {
+    free(view->ln_tbl);
+    view->ln_tbl = nullptr;
+    view->ln_tbl_size = 0;
+    view->ln_max_pos = 0;
     view->ln = 0;
 }
 /** @brief Increment Line Index and Update Line Table

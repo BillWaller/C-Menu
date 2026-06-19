@@ -364,30 +364,31 @@ View *destroy_view(Init *init) {
     werase(view->pad_view.win);
     wnoutrefresh(view->pad_view.win);
     del_panel(view->pad_view.pan);
+    delwin(view->pad_view.win);
     delwin(view->pad);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
 
     werase(view->cmdln.win);
     wnoutrefresh(view->cmdln.win);
     del_panel(view->cmdln.pan);
     delwin(view->cmdln.win);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
 
     werase(view->lnno.win);
     wnoutrefresh(view->lnno.win);
     del_panel(view->lnno.pan);
     delwin(view->lnno.win);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
 
     werase(view->win.win);
     wnoutrefresh(view->win.win);
     del_panel(view->win.pan);
     delwin(view->win.win);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
 
     werase(view->box.win);
     wnoutrefresh(view->box.win);

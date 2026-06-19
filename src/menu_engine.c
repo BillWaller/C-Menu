@@ -89,7 +89,11 @@ unsigned int menu_engine(Init *init) {
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
                 // mvwaddstr(menu->win, menu->line_idx, 0, menu->line[menu->line_idx]->choice_text);
-                mvwaddstr_fill(menu->win, menu->line_idx, 0, menu->line[menu->line_idx]->choice_text, menu->cols);
+                mvwaddstr_fill(menu->win,
+                               menu->line_idx,
+                               0,
+                               menu->line[menu->line_idx]->choice_text,
+                               menu->cols - 2);
                 // Highlight the letter of the menu choice
                 wchar_t wstr[2] = {L'\0', L'\0'};
                 len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,

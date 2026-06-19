@@ -635,8 +635,6 @@ void destroy_curses() {
         win_del();
         win_ptr--;
     }
-    update_panels();
-    doupdate();
     endwin();
     delscreen(screen);
     fclose(ncurses_fp);
@@ -1124,10 +1122,10 @@ WINDOW *
 win_del() {
     if (win_ptr >= 0) {
 
-        mvwaddstr(win_win[win_ptr], 10, 0, "#########################");
-        mvwaddstr(win_win2[win_ptr], 1, 0, "#########################");
-        update_panels();
-        doupdate();
+        // mvwaddstr(win_win[win_ptr], 10, 0, "#########################");
+        // mvwaddstr(win_win2[win_ptr], 1, 0, "#########################");
+        // update_panels();
+        // doupdate();
         if (panel_win2[win_ptr] != nullptr) {
             hide_panel(panel_win2[win_ptr]);
             update_panels();
@@ -1139,8 +1137,8 @@ win_del() {
             delwin(win_win2[win_ptr]);
             win_win2[win_ptr] = nullptr;
         }
-        update_panels();
-        doupdate();
+        // update_panels();
+        // doupdate();
         if (panel_win[win_ptr] != nullptr) {
             hide_panel(panel_win[win_ptr]);
             update_panels();
@@ -1152,8 +1150,8 @@ win_del() {
             delwin(win_win[win_ptr]);
             win_win[win_ptr] = nullptr;
         }
-        update_panels();
-        doupdate();
+        // update_panels();
+        // doupdate();
         if (panel_box[win_ptr] != nullptr) {
             hide_panel(panel_box[win_ptr]);
             update_panels();
@@ -1799,8 +1797,11 @@ int get_chyron_key(Chyron *chyron, int x) {
     @param l Length of display area */
 void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     char *d, *e;
+    int maxy, maxx;
     char tmp_str[MAXLEN];
-
+    getmaxyx(w, maxy, maxx);
+    y = min(y, maxy - 1);
+    l = min(l, maxx - 1);
     l = min(l, MAXLEN - 1);
     e = d = tmp_str;
     e += l;

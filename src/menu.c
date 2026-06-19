@@ -33,7 +33,9 @@ static void end_pgm(void) {
     destroy_init(init);
     init = nullptr;
     close(cmenu_log_fd);
+    win_del();
     endwin();
+    destroy_curses();
     exit(EXIT_SUCCESS);
 }
 
