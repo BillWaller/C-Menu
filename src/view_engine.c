@@ -953,6 +953,7 @@ void cat_file(View *view) {
 }
 /** @brief Send File to Print Queue
     @ingroup view_engine
+    @param view Pointer to the View structure containing the state and
     @param PrintFile - file to print */
 void lp(View *view, char *PrintFile) {
     char *print_cmd_ptr;

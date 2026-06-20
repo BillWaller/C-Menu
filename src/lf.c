@@ -596,7 +596,7 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
    flags for filtering.
     @param argc The number of command-line arguments.
     @param argv The array of command-line argument strings.
-    @param nthreads The number of threads being used for the search.
+    @param threads The number of threads being used for the search.
     @details This function prints detailed information about the configuration and search filters as well as each of the options and arguments used on the command line invoking lf. The output is sent to the standard error stream, which can be redirected to standard output making it suitable as documentation for an audit trail.
    */
 

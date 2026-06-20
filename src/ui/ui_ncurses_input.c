@@ -1,6 +1,20 @@
 #include "ui_ncurses_internal.h"
 #include <string.h>
+/** @file
+   @brief Input handling for ncurses-based UI.
+   @ingroup ui_ncurses
 
+   This file implements the input handling for the ncurses-based UI. It translates
+   ncurses key codes into the UI's internal key representation and handles mouse events.
+ */
+
+/**
+   @brief Translates a ncurses key code into the UI's internal key
+   representation.
+
+   @param ch The ncurses key code to translate.
+   @return The corresponding UiKey value.
+ */
 static UiKey translate_key(int ch) {
     switch (ch) {
     case ERR:
@@ -76,6 +90,21 @@ static UiKey translate_key(int ch) {
     }
 }
 
+/**
+   @brief Retrieves an input event from the specified UI surface.
+   @ingroup ui_ncurses
+
+   This function waits for an input event on the given UI surface (or the standard
+   screen if no surface is specified) and fills the provided UiEvent structure
+   with the details of the event. It handles both keyboard and mouse events.
+
+   @param ui The UI runtime context (unused in this implementation).
+   @param target The UI surface to monitor for events, or NULL to use stdscr.
+   @param ev A pointer to a UiEvent structure to be filled with event details.
+   @param timeout_ms The maximum time to wait for an event in milliseconds,
+   or -1 to wait indefinitely.
+   @return 0 on success, or -1 on error (e.g., if ev is NULL).
+ */
 int ui_get_event(UiRuntime *ui, UiSurface *target, UiEvent *ev, int timeout_ms) {
     int ch;
     WINDOW *win;

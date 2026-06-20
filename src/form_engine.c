@@ -1111,6 +1111,8 @@ int form_write(Form *form) {
    file, providing detailed error messages that include the file name, line
    number, and the specific error encountered.
    @ingroup form_engine
+    @param form A pointer to the Form structure containing form data and
+   state.
     @param in_line_num The line number in the description file where the
    error occurred.
     @param in_buf The content of the line that caused the error, for

@@ -61,7 +61,7 @@ including syntactically valid hex color codes. Values may be enclosed in single 
 
 ### Colors
 
-Colors are standard six-digit html-style hex color codes in the format '#RRGGBB', where RR, GG, and BB are two-digit hexadecimal numbers representing the red, green, and blue components of the color, respectively. For example, '#FF0000' represents pure red, '#00FF00' represents pure green, and '#0000FF' represents pure blue.
+Colors are standard six-digit html-style hex color codes in the format \#RRGGBB, where RR, GG, and BB are two-digit hexadecimal numbers representing the red, green, and blue components of the color, respectively. For example, \#FF0000 represents pure red, \#00FF00 represents pure green, and \#0000FF represents pure blue.
 
 The hex color codes must begin with a '#" character, followed by exactly six hexadecimal digits.
 

@@ -36,13 +36,13 @@ int popup_view(Init *, int, char **, int, int, int, int);
     @param init the Init struct pointer
     @param argc the number of command line arguments
     @param argv the command line arguments
-    @param begy the y coordinate for the menu window
-    @param begx the x coordinate for the menu window
-    @details begy and begx may be set as command line option arguments, in which
+    @param by the y coordinate for the menu window
+    @param bx the x coordinate for the menu window
+    @details by and bx may be set as command line option arguments, in which
    case, they will take precedence over arguments passed in the function
    arguments.
     @verbatim
-    begy, and begx may be set by
+    by, and bx may be set by
        1. the calling function
           or
        2. command line arguments
@@ -66,13 +66,13 @@ int popup_menu(Init *init, int argc, char **argv, int by, int bx) {
     @param init the Init struct pointer
     @param argc the number of command line arguments
     @param argv the command line arguments
-    @param begy the y coordinate for the pick window
-    @param begx the x coordinate for the pick window
-    @details begy and begx may be set as command line option arguments, in which
+    @param by the y coordinate for the pick window
+    @param bx the x coordinate for the pick window
+    @details by and bx may be set as command line option arguments, in which
    case, they will take precedence over arguments passed in the function
    arguments.
     @verbatim
-    begy, and begx may be set by
+    by, and bx may be set by
        1. the calling function
           or
        2. command line arguments
@@ -95,13 +95,13 @@ int popup_pick(Init *init, int argc, char **argv, int by, int bx) {
     @param init the Init struct pointer
     @param argc the number of command line arguments
     @param argv the command line arguments
-    @param begy the y coordinate for the form window
-    @param begx the x coordinate for the form window
-    @details begy and begx may be set as command line option arguments, in which
+    @param by the y coordinate for the form window
+    @param bx the x coordinate for the form window
+    @details by and bx may be set as command line option arguments, in which
    case, they will take precedence over arguments passed in the function
    arguments.
     @verbatim
-    begy, and begx may be set by
+    by, and bx may be set by
        1. the calling function
           or
        2. command line arguments
@@ -125,15 +125,15 @@ int popup_form(Init *init, int argc, char **argv, int by, int bx) {
     @param init the Init struct pointer
     @param argc the number of command line arguments
     @param argv the command line arguments
-    @param lines the number of lines for the view window
-    @param cols the number of columns for the view window
+    @param ilines the number of lines for the view window
+    @param icols the number of columns for the view window
     @param by the y coordinate for the view window
-    @param begx the x coordinate for the view window
-    @details lines, cols, by, and begx may also be set as command line option
+    @param bx the x coordinate for the view window
+    @details ilines, cols, by, and bx may also be set as command line option
    arguments, in which case, they will take precedence over arguments passed in
    the function arguments.
     @verbatim
-    lines, cols, by, and begx may be set by
+    ilines, cols, by, and bx may be set by
        1. the calling function
           or
        2. command line arguments

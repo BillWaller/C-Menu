@@ -163,7 +163,7 @@ clean:
 	rm -rf $(BINEXES) $(CFLOW_OUTPUT) .user_id .group_id core scan-build* \
 	CMenu.conf manifest.txt manifest.ls perf.* x xx* *.[aeos] *.diff *.so \
 	*.cflow *.gc.. *.out *.1 *.1.gz CMakeFiles cmake_install.cmake \
-   	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log
+   	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log ui/*.o
 
 helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf -H -L -T6 /home/bill 1>/dev/null 2>/dev/null

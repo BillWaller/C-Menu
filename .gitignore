@@ -1,4 +1,5 @@
 .gitignore
+src/ui/*.o
 src/*.o
 src/.clang-format
 src/amort
@@ -15,7 +16,6 @@ src/rustlings
 src/whence
 src/.cache
 src/build
-src/*.o
 src/gdbcmds
 src/lf-bak.c
 src/lf-new.c

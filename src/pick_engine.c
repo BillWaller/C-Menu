@@ -53,8 +53,8 @@ char const pagers_editors[12][10] = {"view", "view", "less", "more",
     @param init Pointer to Init structure
     @param argc Argument count
     @param argv Argument vector
-    @param begy Beginning y coordinate for pick window
-    @param begx Beginning x coordinate for pick window
+    @param by Beginning y coordinate for pick window
+    @param bx Beginning x coordinate for pick window
     @details If provider_cmd is specified, it takes precedence over in_spec and
     input file arguments.
     provider_cmd is executed and its output is read as pick input
