@@ -1,24 +1,9 @@
 ![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
 
-## ***New***: New "-v" option for 'Pick'
 
-The latest release of C-Menu includes a new "-v" option that enables View to
-display file content as you browse with Pick. This allows you to see file contents in real time as you navigate through file lists, making it easier to find the right file without opening it separately. To use this feature, simply add the "-v" option to your Pick command, and View will automatically update to show the content of the currently highlighted file. This enhancement is designed to improve your workflow and make file selection more efficient.
+# C-Menu-0.2.9 Announcement
 
-As you move the selection bar through the list of files in pick, the content of the currently highlighted file will be displayed in view, and the response is lightning fast.
-
-If you press the F2 key from the Pick window while browsing with pick with the
-"-v" option enabled, controls will be passed to view, allowing you to scroll
-or search the file content. From the View window, you can type "v" to edit the file
-in your editor of choice. When you quit the editor, you will return to the view
-window, and the file content will be updated to reflect any changes you made. If you quit view, you will return to the pick window.
-
-Beware: Because this feature release involved a complete refactor of the window
-management code, and it is not yet fully tested, there are still a number of known bugs. If you encounter any issues, please report them on the GitHub issue tracker so we can address them in future updates. I expect the related bugs to persist for another week or two, but I wanted to get the feature out there for users to try as soon as possible.
-
-[CHANGELOG](docs/CHANGELOG.md) has more details on the new features and the related refactor.
-
-![Pick with View Integration](screenshots/FileBrowser.png)
+*2026-06-19T23:40:50-05:00* - FEATURE: Yes, something is underway. There should be no functional changes at this point. This is a refactor, and the first step is to move all of the ncurses-specific code into a separate directory. This will allow us to eventually support multiple backends, and to cleanly separate the concerns of the UI from the core logic of the application. The next step will be to abstract the UI layer, so that we can have a clean interface between the core logic and the UI. This will allow us to more easily support multiple backends, and to make the code more modular and maintainable. The final step will be to implement a new backend, perhaps using a modern graphics library, to provide a more visually appealing and responsive user interface. This will be a significant undertaking, but it will ultimately result in a much better user experience and a more maintainable codebase. In the meantime, we will continue to support the existing ncurses backend, and we will work to ensure that the refactor does not introduce any regressions or break any existing functionality. This is an exciting time for the project, and I look forward to seeing the improvements that will come from this refactor. Thank you to everyone who has contributed to the project so far, and I encourage everyone to continue contributing and providing feedback as we move forward with this refactor. Together, we can make this project even better and more enjoyable for everyone who uses it. Let's keep up the great work and continue to push the boundaries of what we can achieve with this project. Thank you again for your support and contributions, and I look forward to seeing the amazing things that we will accomplish together in the future. Let's keep up the momentum and continue to make this project the best it can be. Thank you all for your hard work and dedication, and let's keep pushing forward with this refactor and the exciting improvements that it will bring to the project. Together, we can make this project even better and more enjoyable for everyone who uses it. Let's keep up the great work and continue to push the boundaries of what we can achieve with this project. Thank you again for your support and contributions, and I look forward to seeing the amazing things that we will accomplish together in the future. Let's keep up the momentum and continue to make this project the best it can be. 
 
 ## What is C-Menu?
 
