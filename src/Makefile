@@ -64,7 +64,6 @@ UI_SRCS:=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
 UI_OBJS=$(UI_SRCS:.c=.o)
 
 COMMON_HDRS+=$(UI_HDRS)
-# COMMON_SRCS+=$(UI_SRCS) # UI_SRCS are compiled separately and linked in, so they are not added to COMMON_SRCS
 COMMON_OBJS+=$(UI_OBJS)
 
 LDFLAGS:=$(LINKOPT) -L. -lcm -lm $(shell pkg-config --libs $(PACKAGES)) \
@@ -164,7 +163,7 @@ clean:
 	rm -rf $(BINEXES) $(CFLOW_OUTPUT) .user_id .group_id core scan-build* \
 	CMenu.conf manifest.txt manifest.ls perf.* x xx* *.[aeos] *.diff *.so \
 	*.cflow *.gc.. *.out *.1 *.1.gz CMakeFiles cmake_install.cmake \
-   	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug
+   	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log
 
 helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf -H -L -T6 /home/bill 1>/dev/null 2>/dev/null

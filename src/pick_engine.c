@@ -388,6 +388,7 @@ int pick_engine(Init *init) {
     char field[MAXLEN]; /**< Buffer for user input in the field */
     field[0] = '\0';
     display_page(pick);
+
     do {
         rc = picker(init, field);
         if (rc == KEY_F(9))
@@ -844,11 +845,6 @@ int open_pick_win(Init *init) {
     keypad(pick->win, true);
     if (pick->p_view_files)
         new_pick_view(init);
-#ifdef DEBUG_IMMEDOK
-    immedok(pick->box, true);
-    immedok(pick->win, true);
-    immedok(pick->win2, true);
-#endif
     return 0;
 }
 /** @brief Displays the help screen for the pick interface using view
@@ -966,6 +962,7 @@ int picker(Init *init, char *field) {
                 top_panel(panel_win[win_ptr]);
                 curs_set(1);
                 wmove(pick->win, pick->y, pick->x);
+                top_panel(panel_win[win_ptr]);
                 update_panels();
                 doupdate();
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);

@@ -865,7 +865,7 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     @return 0 if successful, 1 if error */
 int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
              bool win_pair) {
-    int maxx;
+    int mx;
     if (win_ptr >= MAXWIN) {
         ssnprintf(em0, MAXLEN - 1, "Maximum number of windows (%d) exceeded");
         abend(-1, em0);
@@ -881,30 +881,26 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         return 1;
     }
     panel_box[win_ptr] = new_panel(win_box[win_ptr]);
-    win_flags[win_ptr] = WF_BOX;
-#ifdef DEBUG_IMMEDOK
-    immedok(win_box[win_ptr], true);
-#endif
     wbkgrnd(win_box[win_ptr], &CC_BOX);
-    top_panel(panel_box[win_ptr]);
-    update_panels();
-    doupdate();
-    // ----------------------------------------
+    wbkgrndset(win_box[win_ptr], &CC_BOX);
+    // wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
+    cbox2(win_box[win_ptr]);
+    win_flags[win_ptr] = WF_BOX;
+
+    // -------------------> title <-------------------
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
-    mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
-    // title
+    mvwaddch(win_box[win_ptr], 0, 2, ' ');
     cchar_t title_cc[MAXLEN] = {0};
-    str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title,
-              MAXLEN - 1);
+    str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title, MAXLEN - 1);
     mvwadd_wchstr(win_box[win_ptr], 0, 3, title_cc);
-    // ----------------------------------------
-    maxx = getmaxx(win_box[win_ptr]);
+    mx = getmaxx(win_box[win_ptr]);
     int s = strlen(wtitle);
-    if ((s + 3) < maxx)
+    if ((s + 3) < mx)
         mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
-    if ((s + 4) < maxx)
+    if ((s + 4) < mx)
         mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-    top_panel(panel_box[win_ptr]);
+
+    // ----------------------------------------
     update_panels();
     doupdate();
     win_win[win_ptr] = nullptr;
@@ -1977,7 +1973,8 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
                     if (chyron && event.y == getmaxy(win) - 1) {
                         c = get_chyron_key(chyron, event.x);
                         break;
-                    }
+                    } else
+                        break;
                 }
                 c = ERR;
                 continue;
