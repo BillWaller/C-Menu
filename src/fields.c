@@ -369,7 +369,8 @@ int form_display_field_n(Form *form, int n) {
     form->fidx = fidx;
     return 0;
 }
-void display_field(cchar_t *cmplx_buf, int y, int x) {
+void display_field(Form *form, cchar_t *cmplx_buf, int y, int x) {
+
     mvwadd_wchstr(form->win, y, x, cmplx_buf);
 }
 /** @brief Display current field

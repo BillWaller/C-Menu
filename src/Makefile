@@ -12,18 +12,18 @@ endif
 DISPLAY_MANIFEST=0
 BUILD_TYPE=Debug
 ifeq ($(BUILD_TYPE), Release)
-	CFLAGS=-Ofast -flto -pthread -s
+	CFLAGS=-Ofast -flto -pthread -s -fPIC
 	LINKOPT= -pthread -flto -s
 else
-	CFLAGS:=-O0 -g3 -pthread -fno-omit-frame-pointer -rdynamic
+	CFLAGS:=-O0 -g3 -pthread -fPIC -fno-omit-frame-pointer -rdynamic
 #	-DDEBUG_IMMEDOK
 	LINKOPT=-pthread
 endif
-CFLAGS += -Isrc/include -Isrc/ui
-CFLAGS += -Wall -Wextra -Wpointer-arith -Wstrict-prototypes
-# CFLAGS += -Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes
-#	-DDEBUG_IMMEDOK
-#
+INCLUDE_DIRS:=-I./include -I./ui
+CFLAGS+=$(INCLUDE_DIRS)
+PACKAGES=ncursesw panelw
+CFLAGS+=$(shell pkg-config --cflags $(PACKAGES))
+CFLAGS+=-Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Werror -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-value -Wno-unused-const-variable -Wno-unused-macros
 MAJOR=0
 MINOR=2
 PATCH=9
@@ -38,9 +38,9 @@ INSTALL_BIN_DIR:=$(PREFIX)/bin
 INSTALL_MAN_DIR:=$(PREFIX)/man/man1
 RPATH:=./:$(INSTALL_LIB_DIR):$(LIB_DIR)
 PAM_DIR:=/etc/pam.d
-INCLUDE_DIR:=./include
 CX:=-std=c23
-CC:=gcc $(CX) -Wall -Wextra -I$(INCLUDE_DIR) $(CFLAGS)
+CC:=gcc $(CX) -I$(INCLUDE_DIRS) $(CFLAGS)
+
 BINEXES:=menu form pick view ckeys whence rsh rsh_static rsh_pam \
 		iloan amort enterchr enterstr lf stripansi detach
 
@@ -57,11 +57,18 @@ COMMON_HDRS:=include/cm.h include/common.h include/menu.h \
 COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
 			fields.c form_engine.c init.c init_view.c mem.c \
 			pick_engine.c popups.c view_engine.c
-# COMMON_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
-
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
-LDFLAGS:=$(LINKOPT) -L. -lcm -lncursesw -ltinfow -lpanelw -lm -luring -Wl,-rpath,$(RPATH)
+UI_HDRS=include/ui_backend.h
+UI_SRCS:=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
+UI_OBJS=$(UI_SRCS:.c=.o)
+
+COMMON_HDRS+=$(UI_HDRS)
+# COMMON_SRCS+=$(UI_SRCS) # UI_SRCS are compiled separately and linked in, so they are not added to COMMON_SRCS
+COMMON_OBJS+=$(UI_OBJS)
+
+LDFLAGS:=$(LINKOPT) -L. -lcm -lm $(shell pkg-config --libs $(PACKAGES)) \
+		 -Wl,-rpath,$(RPATH)
 
 .PHONY: all config help install man install_man clean uninstall helgrind valgrind
 
@@ -88,6 +95,10 @@ config:
 	@echo "INSTALL_MAN_DIR $(INSTALL_MAN_DIR)"
 	@echo "        LIB_DIR $(LIB_DIR)"
 	@echo "        PAM_DIR $(PAM_DIR)"
+	@echo "    COMMON_HDRS $(COMMON_HDRS)"
+	@echo "    COMMON_SRCS $(COMMON_SRCS)"
+	@echo "    COMMON_OBJS $(COMMON_OBJS)"
+	@echo "        UI_OBJS $(UI_OBJS)"
 
 help:
 	@echo "Available targets:"
@@ -159,7 +170,7 @@ helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf -H -L -T6 /home/bill 1>/dev/null 2>/dev/null
 
 valgrind: lf
-	valgrind -v -v \
+	valgrind -v \
     	--log-file=valgrind.out \
 		--leak-check=full \
 		--show-leak-kinds=all \

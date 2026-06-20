@@ -645,20 +645,20 @@ size_t strnlf(char *s, size_t max_len) {
      @param l - maximum length to copy
      @returns pointer to allocated memory */
 char *strnz_dup(char *s, size_t l) {
-    char *p, *rs, *e;
+    char *p, *ms, *e;
     size_t m;
     if (s == nullptr || *s == '\0' || l == 0)
         return nullptr;
     for (p = s, m = 1; *p != '\0'; p++, m++)
         ;
-    rs = p = (char *)malloc(m);
-    if (rs != nullptr) {
-        e = rs + l;
+    ms = p = (char *)malloc(m);
+    if (ms != nullptr) {
+        e = ms + l;
         while (*s != '\0' && *s != '\n' && *s != '\r' && p < e)
             *p++ = *s++;
         *p = '\0';
     }
-    return rs;
+    return ms;
 }
 /** @brief Replaces "ReplaceChr" in "s" with "Withstr" in "d" won't copy more
    than "l" bytes to "d" Replaces all occurrences of a character in a string
@@ -884,14 +884,14 @@ bool file_spec_path(char *fp, char *fs) {
 }
 /**  @brief extracts the file name component of a file specification
     @ingroup utility_functions
-     @param fn - name component to return
+     @param file_name - name component to return
      @param fs - full file specification
-     @note The caller is responsible for ensuring that "fn" has enough space to
+     @note The caller is responsible for ensuring that "file_name" has enough space to
      receive the result. */
-bool file_spec_name(char *fn, char *fs) {
-    if (fs == nullptr || *fs == '\0' || fn == nullptr) {
-        if (fn != nullptr)
-            *fn = '\0';
+bool file_spec_name(char *file_name, char *fs) {
+    if (fs == nullptr || *fs == '\0' || file_name == nullptr) {
+        if (file_name != nullptr)
+            *file_name = '\0';
         return false;
     }
     char *d, *l, *s;
@@ -906,7 +906,7 @@ bool file_spec_name(char *fn, char *fs) {
         s = fs;
     else
         s = ++l;
-    d = fn;
+    d = file_name;
     while (*s != '\0')
         *d++ = *s++;
     *d = '\0';
@@ -1209,12 +1209,12 @@ bool locate_file_in_path(char *file_spec, char *file_name) {
     if (file_name == nullptr || *file_name == '\0' || file_spec == nullptr)
         return false;
     char path[MAXLEN];
-    char fn[MAXLEN];
+    char ifn[MAXLEN];
     char *p, *fnp, *dir;
 
     canonicalize_file_spec(file_name);
-    strnz__cpy(fn, file_name, MAXLEN - 1);
-    fnp = fn;
+    strnz__cpy(ifn, file_name, MAXLEN - 1);
+    fnp = ifn;
     while (*fnp && *fnp != '/')
         fnp++;
     if (*fnp == '/')

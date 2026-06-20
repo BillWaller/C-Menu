@@ -30,8 +30,8 @@
    terminal state after the program has exited. */
 static void end_pgm(void) {
     curs_set(1);
-    destroy_init(init);
-    init = nullptr;
+    // destroy_init(init);
+    // init = nullptr;
     close(cmenu_log_fd);
     win_del();
     endwin();
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     int rc;
     char pgm_name[MAXLEN];
     capture_shell_tioctl();
-    init = new_init(argc, argv);
+    Init *init = new_init(argc, argv);
     SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
     rc = atexit(end_pgm);
@@ -59,14 +59,13 @@ int main(int argc, char **argv) {
     base_name(pgm_name, argv[0]);
     if (!strcmp(pgm_name, "menu")) {
         new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
-        menu = init->menu;
         menu_engine(init);
     } else if (!strcmp(pgm_name, "form")) {
         init_form(init, init->argc, init->argv, LINES / 14, COLS / 14);
     } else if (!strcmp(pgm_name, "pick")) {
         init_pick(init, init->argc, init->argv, 0, 0);
     } else if (!strcmp(pgm_name, "view")) {
-        view = new_view(init);
+        View *view = new_view(init);
         if (init->lines > 0 || init->cols > 0) {
             if (init->h_shift == 0)
                 init->h_shift = view->cols / 3;

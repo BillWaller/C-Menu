@@ -50,13 +50,13 @@ int popup_view(Init *, int, char **, int, int, int, int);
    arguments.
     @endverbatim
 */
-int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
+int popup_menu(Init *init, int argc, char **argv, int by, int bx) {
     int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Menu *sav_menu = init->menu;
     init->menu = nullptr;
-    init->menu = new_menu(init, init->argc, init->argv, begy, begx);
+    init->menu = new_menu(init, init->argc, init->argv, by, bx);
     rc = menu_engine(init);
     destroy_menu(init);
     init->menu = sav_menu;
@@ -80,14 +80,13 @@ int popup_menu(Init *init, int argc, char **argv, int begy, int begx) {
    arguments.
     @endverbatim
 */
-int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
+int popup_pick(Init *init, int argc, char **argv, int by, int bx) {
     int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Pick *sav_pick = init->pick;
     init->pick = nullptr;
-    pick = nullptr;
-    rc = init_pick(init, init->argc, init->argv, begy, begx);
+    rc = init_pick(init, init->argc, init->argv, by, bx);
     destroy_pick(init);
     init->pick = sav_pick;
     return rc;
@@ -110,14 +109,13 @@ int popup_pick(Init *init, int argc, char **argv, int begy, int begx) {
    arguments.
     @endverbatim
 */
-int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
+int popup_form(Init *init, int argc, char **argv, int by, int bx) {
     int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     Form *sav_form = init->form;
     init->form = nullptr;
-    form = nullptr;
-    rc = init_form(init, init->argc, init->argv, begy, begx);
+    rc = init_form(init, init->argc, init->argv, by, bx);
     destroy_form(init);
     init->form = sav_form;
     return rc;
@@ -129,13 +127,13 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
     @param argv the command line arguments
     @param lines the number of lines for the view window
     @param cols the number of columns for the view window
-    @param begy the y coordinate for the view window
+    @param by the y coordinate for the view window
     @param begx the x coordinate for the view window
-    @details lines, cols, begy, and begx may also be set as command line option
+    @details lines, cols, by, and begx may also be set as command line option
    arguments, in which case, they will take precedence over arguments passed in
    the function arguments.
     @verbatim
-    lines, cols, begy, and begx may be set by
+    lines, cols, by, and begx may be set by
        1. the calling function
           or
        2. command line arguments
@@ -143,29 +141,30 @@ int popup_form(Init *init, int argc, char **argv, int begy, int begx) {
    arguments.
     @endverbatim
 */
-int popup_view(Init *init, int argc, char **argv, int lines, int cols, int begy,
-               int begx) {
+int popup_view(Init *init, int argc, char **argv, int ilines, int icols, int by,
+               int bx) {
     int rc = 0;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
     // view_stack_push(&view_stack, *init->view);
     View *view_sav = init->view;
     init->view = nullptr;
+    View *view = nullptr;
     view = nullptr;
     view = new_view(init);
 
     if (init->lines > 0 && init->cols > 0) {
-        lines = init->lines;
-        cols = init->cols;
+        ilines = init->lines;
+        icols = init->cols;
     }
     if (init->begy > 0 || init->begx > 0) {
-        begy = init->begy;
-        begx = init->begx;
+        by = init->begy;
+        bx = init->begx;
     }
-    view->lines = lines;
-    view->cols = cols;
-    view->begy = begy;
-    view->begx = begx;
+    view->begy = by;
+    view->begx = bx;
+    view->lines = ilines;
+    view->cols = icols;
     view_calc_win_dimensions(init, view->title);
     view->f_full_screen = false;
     if (view->h_shift == 0)

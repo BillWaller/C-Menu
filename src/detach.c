@@ -16,6 +16,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+int fork_detach_execvp(char **eargv);
+
 /** @brief Fork, set new session ID, close files, and execute detached command
     @ingroup exec
     @param eargv - array of arguments for the command to execute

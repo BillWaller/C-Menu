@@ -39,18 +39,18 @@ int main(int argc, char **argv) {
     char c = 'Y';
     char *msg;
     struct termios raw_tioctl;
-    char errmsg[128];
+    char emsg[128];
 
     if (argc < 2)
-        strcpy(errmsg, "Press any key");
+        strcpy(emsg, "Press any key");
     else
-        strcpy(errmsg, argv[1]);
+        strcpy(emsg, argv[1]);
     capture_shell_tioctl();
     raw_tioctl = shell_tioctl;
     mk_raw_tioctl(&raw_tioctl);
     tcflush(0, TCOFLUSH);
     while (1) {
-        msg = errmsg;
+        msg = emsg;
         while (*msg) {
             write(2, msg++, 1);
         }

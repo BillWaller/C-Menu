@@ -11,7 +11,7 @@
 #define _VIEW_H 1
 
 #define _GNU_SOURCE
-#define _XOPEN_SOURCE_EXTENDED 1
+// #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
@@ -177,7 +177,7 @@ typedef struct {
     off_t page_top_ln;                /**< line number of top line displayed */
     off_t page_bot_ln;                /**< line number of last line displayed */
 } View;
-extern View *view;
+// extern View *view;
 
 typedef struct {
     View *items;

@@ -55,6 +55,22 @@ typedef enum {
 /** @struct Line
     @brief The Line strutures are attached to the Menu main structure */
 typedef struct {
+
+    void *ui_runtime; /**< A pointer to the UI runtime structure, which may be used to
+                           access information about the current state of the UI,
+                           such as variables, settings, or other data that may be
+                           needed for processing the menu line or executing its
+                           command, used to provide context and information for
+                           processing the menu line and executing its associated
+                           command */
+    void *ui_surface; /**< A pointer to the UI surface structure, which may be used to
+                           access information about the current state of the UI
+                           surface, such as dimensions, colors, or other properties
+                           that may be needed for processing the menu line or
+                           executing its command, used to provide context and
+                           information for processing the menu line and executing
+                           its associated command */
+
     unsigned int type;  /**< The type of menu line, e.g. MT_TEXT for a text line,
                            MT_CHOICE for a choice line */
     char *raw_text;     /**< The raw text of the menu line, as read from the menu
@@ -207,7 +223,7 @@ typedef struct {
                                    and command string, and to manage the menu
                                    lines in the menu display */
 } Menu;
-extern Menu *menu;
+// extern Menu *menu;
 
 extern unsigned int get_command_type(char *);
 extern void free_menu_line(Line *);

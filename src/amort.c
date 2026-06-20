@@ -6,8 +6,7 @@
     billxwaller@gmail.com
     @date 2026-05-05
  */
-
-#define _XOPEN_SOURCE
+#define _GNU_SOURCE
 #include <locale.h>
 #include <stdbool.h>
 #include <stdio.h>

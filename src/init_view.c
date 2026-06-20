@@ -45,7 +45,7 @@ ViewStack view_stack;
    @endverbatim
  */
 int init_view_full_screen(Init *init) {
-    view = init->view;
+    View *view = init->view;
 
     if (view->tab_stop <= 0)
         view->tab_stop = TABSIZE;
@@ -129,6 +129,7 @@ int init_view_full_screen(Init *init) {
  */
 void view_full_screen_resize(Init *init) {
     erase();
+    View *view = init->view;
     view_calc_full_screen_dimensions(init);
     mvwin(view->cmdln.win, view->lines - 1, 0);
     wresize(view->cmdln.win, 1, view->cols);
@@ -149,7 +150,7 @@ void view_full_screen_resize(Init *init) {
     @param init Pointer to the Init structure containing view settings.
  */
 void view_calc_full_screen_dimensions(Init *init) {
-    view = init->view;
+    View *view = init->view;
     getmaxyx(stdscr, view->lines, view->cols);
     view->ln_win_lines = view->lines;
     view->ln_win_cols = 8;
@@ -181,8 +182,8 @@ void view_calc_full_screen_dimensions(Init *init) {
    various parameters such as scroll lines, command line position, and tab size.
  */
 int init_view_boxwin(Init *init, char *title) {
-    view = init->view;
-
+    View *view = init->view;
+    int mx;
     if (view->tab_stop <= 0)
         view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
@@ -206,6 +207,20 @@ int init_view_boxwin(Init *init, char *title) {
     view->box.pan = new_panel(view->box.win);
     wbkgrnd(view->box.win, &CC_BOX);
     wborder_set(view->box.win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
+
+    // -------------------> title <-------------------
+    //
+    mvwaddnwstr(view->box.win, 0, 1, &bw_rt, 1);
+    mvwaddch(view->box.win, 0, 2, ' ');
+    cchar_t title_cc[MAXLEN] = {0};
+    str_to_cc(title_cc, title, WA_NORMAL, cp_title, MAXLEN - 1);
+    mvwadd_wchstr(view->box.win, 0, 3, title_cc);
+    mx = getmaxx(view->box.win);
+    int s = strlen(title);
+    if ((s + 3) < mx)
+        mvwaddch(view->box.win, 0, (s + 3), ' ');
+    if ((s + 4) < mx)
+        mvwaddnwstr(view->box.win, 0, (s + 4), &bw_lt, 1);
 
     // -------------------> 2. win.win <-------------------
     view->win.win = derwin(view->box.win, view->lines, view->cols, 1, 1);
@@ -298,6 +313,7 @@ int init_view_boxwin(Init *init, char *title) {
 void view_win_resize(Init *init, char *title) {
     int maxx;
     erase();
+    View *view = init->view;
     view_calc_win_dimensions(init, title);
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1, "view->box.win: begy=%d, begx=%d, lines=%d, cols=%d",
@@ -378,7 +394,7 @@ void view_win_resize(Init *init, char *title) {
  */
 void view_calc_win_dimensions(Init *init, char *title) {
     int scr_lines, scr_cols;
-    view = init->view;
+    View *view = init->view;
     int len = strlen(title);
 
     /** Use view->lines and view->cols if set, otherwise calculate based on
@@ -460,6 +476,7 @@ int view_init_input(View *view, char *file_name) {
     pid_t pid = -1;
     int pipe_fd[2];
     int s_argc = 0;
+    int cmd_key = 0;
     char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
     view->f_in_pipe = false;

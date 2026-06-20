@@ -40,7 +40,7 @@ unsigned int parse_menu_description(Init *init) {
     int commands = 0;
     int choices = 0;
     int in_fp_line = 0;
-    menu = init->menu;
+    Menu *menu = init->menu;
     for (ltr = 0; ltr < 32; ltr++)
         fltr[ltr] = true;
     for (ltr = 32; ltr < 127; ltr++)

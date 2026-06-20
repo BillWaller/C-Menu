@@ -85,7 +85,7 @@ int get_cmd_char(View *, off_t *);
 int get_cmd_arg(View *, char *);
 void build_prompt(View *);
 void cat_file(View *);
-void lp(char *);
+void lp(View *, char *);
 void go_to_mark(View *, int);
 void go_to_eof(View *);
 int go_to_line(View *, off_t);
@@ -127,7 +127,7 @@ char err_msg[MAXLEN];
    non-zero value if an error occurs during initialization or execution.
  */
 int view_file(Init *init) {
-    view = init->view;
+    View *view = init->view;
     if (view->argc < 1) {
         view->curr_argc = -1;
         view->argc = 0;
@@ -191,7 +191,7 @@ int view_cmd_processor(Init *init) {
     off_t prev_file_pos;
     int swidth;
     int max_pmincol;
-    view = init->view;
+    View *view = init->view;
     view->cmd[0] = '\0';
     while (1) {
         if (view->f_redisplay_page) {
@@ -572,7 +572,7 @@ int view_cmd_processor(Init *init) {
             strnz__cat(shell_cmd_spec, ">>", MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
-            lp(view->cur_file_str);
+            lp(view, view->cur_file_str);
             shell(shell_cmd_spec);
             ssnprintf(shell_cmd_spec, (size_t)(MAXLEN - 5), "rm %s",
                       view->tmp_file_name_ptr);
@@ -587,7 +587,7 @@ int view_cmd_processor(Init *init) {
         case Ctrl('P'):
         case KEY_CATAB:
         case KEY_PRINT:
-            lp(view->cur_file_str);
+            lp(view, view->cur_file_str);
             view->f_redisplay_page = true;
             break;
         /** 'P' or KEY_F(9) or ESC - Close Current File and Open Next */
@@ -954,7 +954,7 @@ void cat_file(View *view) {
 /** @brief Send File to Print Queue
     @ingroup view_engine
     @param PrintFile - file to print */
-void lp(char *PrintFile) {
+void lp(View *view, char *PrintFile) {
     char *print_cmd_ptr;
     char shell_cmd_spec[MAXLEN];
     print_cmd_ptr = getenv("PRINTCMD");
@@ -1999,6 +1999,7 @@ void view_display_help(Init *init) {
     char tmp_str[MAXLEN];
     int eargc = 0;
     char *eargv[MAXARGS];
+    View *view = init->view;
     if (view->f_help_spec && view->help_spec[0] != '\0')
         strnz__cpy(tmp_str, view->help_spec, MAXLEN - 1);
     else {
@@ -2042,7 +2043,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
     char tmp_spec[MAXLEN];
     int rc = false;
     FILE *tmp_fp;
-    view = init->view;
+    View *view = init->view;
     strnz__cpy(tmp_dir, init->mapp_home, MAXLEN - 1);
     strnz__cat(tmp_dir, "/tmp", MAXLEN - 1);
     expand_tilde(tmp_dir, MAXLEN - 1);

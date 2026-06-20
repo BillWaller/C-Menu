@@ -23,7 +23,7 @@
 
 char *path_p;
 char path_s[MAXLEN];
-char *file_name[MAXLEN + 1];
+// char *file_name[MAXLEN + 1];
 
 void whence(char *, int);
 int next_path(char *, char **);

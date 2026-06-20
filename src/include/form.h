@@ -370,15 +370,7 @@ typedef struct {
                              events to enhance the user experience and provide context-
                              sensitive information as needed. */
 } Form;
-extern Form
-    *form; /**< a pointer to the current form structure, used for managing and
-              processing the form during form processing. This pointer can be
-              updated to point to different form structures as needed, allowing
-              for dynamic handling of multiple forms within the same application
-              or session. The form pointer provides access to all the properties
-              and data of the current form, enabling efficient management and
-              processing of the form fields and text during user interactions
-              and other events during form processing. */
+// extern Form *form;
 
 extern int field_editor(Form *);
 extern int form_display_field(Form *);
@@ -386,8 +378,9 @@ extern int form_display_field_n(Form *, int);
 extern int field_navigator(Form *);
 extern int form_read_description(Form *);
 extern int form_fmt_field(Form *, char *s);
-extern int form_desc_error(int, char *, char *);
+extern int form_desc_error(Form *, int, char *, char *);
 extern void form_help(char *);
 extern int form_yx_to_fidx(Form *, int, int);
 extern void form_display_chyron(Form *);
+extern void display_field(Form *, cchar_t *, int, int);
 #endif

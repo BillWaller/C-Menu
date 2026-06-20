@@ -11,8 +11,8 @@
 #define _CM_H 1
 
 // #define DEBUG_IMMEDOK true
-#define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
-#define NCURSES_WIDECHAR 1       /**< Enable wide character support */
+// #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
+#define NCURSES_WIDECHAR 1 /**< Enable wide character support */
 #define _GNU_SOURCE
 #include "version.h"
 #include <argp.h>
@@ -338,10 +338,11 @@ extern WINDOW *message_win(char *);
 extern bool is_hex_str(char *, int);
 extern bool unstr_hex_clr(char *, char *);
 
-extern bool f_debug;         /**< a flag to indicate whether debug
-        output should be printed, for debugging purposes */
-extern unsigned int cmd_key; /**< the command key for the current command, for
-                                error messages and other output */
+extern bool f_debug; /**< a flag to indicate whether debug
+output should be printed, for debugging purposes */
+// extern unsigned int cmd_key; /**< the command key for the current command,
+// for
+//                              error messages and other output */
 /** @struct RGB */
 typedef struct {
     int r, g, b;
@@ -599,13 +600,14 @@ extern void open_cmenu_log();
 extern FILE *cmenu_log_fp;
 extern int n_lines; /**< number of lines in the terminal */
 extern int n_cols;  /**< number of columns in the terminal */
-extern int lines;   /**< current number of lines (may be less than n_lines if the
-                         terminal is resized) */
-extern int cols;    /**< current number of columns (may be less than n_cols if the
-                         terminal is resized) */
-extern int begx;    /**< beginning x coordinate of the terminal */
-extern int begy;    /**< beginning y coordinate of the terminal */
-
+// extern int lines;   current number of lines (may be less than n_lines if
+// the terminal is resized)
+// extern int cols;    current number of columns (may be less than n_cols
+// if the
+//                       terminal is resized) extern int begx;
+//                       beginning x coordinate of the terminal */
+// extern int begy;      beginning y coordinate of the terminal
+//
 #define MAXWIN 30 /**< maximum number of windows that can be created */
 typedef unsigned char uchar;
 
@@ -636,14 +638,14 @@ extern int
                      which may be different from the attributes for even lines
                      to create a striped effect in the window. */
 extern int
-    win_attr_even;    /**< Ncurses attributes for the current window even lines,
-                         which may be different from the attributes for odd lines
-                         to create a striped effect in the window. */
-extern int win_ptr;   /**< Pointer to the current window pair, box and window,
-                         which can be used to keep track of the currently active
-                         window and its associated box. */
-extern bool win_pair; /**< Flag to indicate whether the current window is part
-                         of a window pair */
+    win_attr_even;  /**< Ncurses attributes for the current window even lines,
+                       which may be different from the attributes for odd lines
+                       to create a striped effect in the window. */
+extern int win_ptr; /**< Pointer to the current window pair, box and window,
+                       which can be used to keep track of the currently active
+                       window and its associated box. */
+// extern bool win_pair; /**< Flag to indicate whether the current window is
+// part of a window pair */
 extern int
     mlines; /**< number of lines in the current window, which may be less than
                the total number of lines in the terminal if the window is
@@ -667,7 +669,7 @@ extern int mg_col;    /**< window column, which can be used to determine the
 extern int
     mg_line; /**< window line, which can be used to determine the current line
                 position in the window for displaying text or other content. */
-/** to_uppercase(c) - convert a lowercase letter to uppercase */
+             /** to_uppercase(c) - convert a lowercase letter to uppercase */
 #define to_uppercase(c)       \
     if (c >= 'a' && c <= 'z') \
     c -= ' '
@@ -927,5 +929,7 @@ extern bool verify_dir_q(char *, int);
 extern bool verify_spec_arg(char *, char *, char *, char *, int);
 extern size_t mk_cmplx_str(cchar_t *, char *, attr_t, int);
 extern size_t str_to_cc(cchar_t *, const char *, attr_t, int, size_t);
+extern void display_cmplx_str(WINDOW *, cchar_t *, int, int);
+extern int wccp_to_str(wchar_t, uint8_t *);
 
 #endif

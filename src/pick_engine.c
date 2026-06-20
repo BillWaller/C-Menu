@@ -40,7 +40,8 @@ int read_theme(Init *);
 int new_pick_view(Init *);
 void new_view_file(Init *, char *);
 void end_pick_view(Init *);
-void destroy_pick_view();
+void destroy_pick_view(Init *);
+int match_objects(Pick *pick, char *s);
 int pipe_fd[2];
 
 char const pagers_editors[12][10] = {"view", "view", "less", "more",
@@ -61,14 +62,14 @@ char const pagers_editors[12][10] = {"view", "view", "less", "more",
     input from a file or stdin
     If provider_cmd is specified, it is executed and its output is
     read as pick input */
-int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
+int init_pick(Init *init, int argc, char **argv, int by, int bx) {
     struct stat sb;
     char *s_argv[MAXARGS];
     int s_argc;
     char tmp_str[MAXLEN];
     pid_t pid = 0;
 
-    Pick *pick = new_pick(init, argc, argv, begy, begx);
+    Pick *pick = new_pick(init, argc, argv, by, bx);
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
     SIO *sio = init->sio;
@@ -246,12 +247,14 @@ int init_pick(Init *init, int argc, char **argv, int begy, int begx) {
     pick->d_cnt = pick->d_idx;
     pick_engine(init);
     if (pick->p_view_files)
-        destroy_pick_view();
+        destroy_pick_view(init);
     win_del();
     return 0;
 }
 
-void destroy_pick_view() {
+void destroy_pick_view(Init *init) {
+    Pick *pick = init->pick;
+    View *view = init->view;
     if (pick->p_view_files) {
         if (view->buf != nullptr) {
             munmap(view->buf, view->file_size);
@@ -308,6 +311,7 @@ int pick_engine(Init *init) {
     int tbl_max_cols, pg_max_objs;
     bool f_processed = false;
 
+    Pick *pick = init->pick;
     getmaxyx(stdscr, maxy, maxx);
     // Screen Geometry
     // Calculate pick window size and position based on terminal size and pick
@@ -680,6 +684,7 @@ int exec_objects(Init *init) {
     pid_t pid = 0;
     bool f_append_objects = false;
 
+    Pick *pick = init->pick;
     title[0] = '\0';
     if (pick->cmd[0] == '\0')
         return -1;
@@ -822,6 +827,7 @@ the window and box pointers in the Pick structure, sets scrollok and keypad
 options for the window, and returns 0 on success. */
 int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
+    Pick *pick = init->pick;
     pick = init->pick;
     if (box2_new(pick->lines, pick->width, pick->begy, pick->begx,
                  pick->title, true)) {
@@ -856,6 +862,7 @@ void display_pick_help(Init *init) {
     int eargc;
     char *eargv[MAXARGS];
     char tmp_str[MAXLEN];
+    Pick *pick = init->pick;
     if (pick->f_help_spec && pick->help_spec[0] != '\0')
         strnz__cpy(tmp_str, pick->help_spec, MAXLEN - 1);
     else {
@@ -896,7 +903,8 @@ int picker(Init *init, char *field) {
     bool f_insert = false; /* Flag to indicate if insert mode is active */
     char filler_s[MAXLEN]; /* buffer for filling the field with spaces */
     int line = 0;          /* Starting line for field input */
-    int col = 1;           /* Starting column for field input leaving space for > */
+    Pick *pick = init->pick;
+    int col = 0;
     int flen = pick->width - 4;
     char *accept_s = field; /* pointer to start of field buffer */
     char *ptr = field;      /* pointer to current cursor position in field buffer */
@@ -1210,6 +1218,7 @@ int picker(Init *init, char *field) {
                     *s++ = ' ';
                 *s = '\0';
                 line = 0;
+                col = 1;
                 mvwaddstr(pick->win2, line, col, filler_s);
                 mvwaddstr(pick->win2, line, col, accept_s);
                 if (pick->p_view_files)
@@ -1420,6 +1429,7 @@ int new_pick_view(Init *init) {
     // view_stack_push(&view_stack, *init->view);
     init->view = nullptr;
     destroy_argv(init->argc, init->argv);
+    View *view = init->view;
     view = new_view(init); // View struct allocation
     view->lines = init->lines;
     view->cols = init->cols;
@@ -1449,7 +1459,7 @@ int new_pick_view(Init *init) {
 }
 
 void new_view_file(Init *init, char *file) {
-    view = init->view;
+    View *view = init->view;
     if (view->buf != nullptr) {
         munmap(view->buf, view->file_size);
         view->buf = nullptr;

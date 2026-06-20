@@ -600,7 +600,7 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
     @details This function prints detailed information about the configuration and search filters as well as each of the options and arguments used on the command line invoking lf. The output is sent to the standard error stream, which can be redirected to standard output making it suitable as documentation for an audit trail.
    */
 
-void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
+void debug_out(SearchFilters *f, int argc, char **argv, int threads) {
     char user_str[100];
     char ip_str[MAXLEN];
     int len = 0;
@@ -648,7 +648,7 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
             fprintf(stderr, "Max depth 0 (unlimited)\n\n");
         else
             fprintf(stderr, "Max depth %d\n\n", f->max_depth);
-        fprintf(stderr, "Using %d threads\n\n", nthreads);
+        fprintf(stderr, "Using %d threads\n\n", threads);
         fprintf(stderr, "File types preceeded by an asterisk (\"*\") will be included:\n\n");
         fprintf(stderr, "  LF type        DT type\n");
         print_file_type(f->include_types, LF_FIFO, DT_FIFO, "FIFO    p-named pipe");
@@ -698,7 +698,7 @@ void debug_out(SearchFilters *f, int argc, char **argv, int nthreads) {
         if (f->file_size_min) {
             const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
             off_t size = f->file_size_min;
-            int i = 0;
+            i = 0;
             while (size >= 1024 && i < 6) {
                 size /= 1024;
                 i++;

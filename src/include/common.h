@@ -11,7 +11,7 @@
 #define _COMMON_H 1
 
 #define _GNU_SOURCE
-#define _XOPEN_SOURCE_EXTENDED 1
+// #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
 #include <ncursesw/ncurses.h>
 
@@ -191,7 +191,7 @@ typedef struct
     int view_cnt; /**< number of view data structures allocated */
 } Init;
 
-extern Init *init;
+// extern Init *init;
 extern int init_cnt; /** number of Init data structures allocated */
 extern char minitrc[MAXLEN];
 extern void mapp_initialization(Init *, int, char **);

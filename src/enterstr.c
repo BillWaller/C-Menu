@@ -34,19 +34,19 @@ int main(int argc, char **argv) {
     char in_str[BUFSIZ];
     char *in_ptr = in_str;
     char *msg;
-    char errmsg[128];
+    char emsg[128];
 
     if (argc < 2)
-        strcpy(errmsg, "input:");
+        strcpy(emsg, "input:");
     else
-        strcpy(errmsg, argv[1]);
+        strcpy(emsg, argv[1]);
     capture_shell_tioctl();
     sig_prog_mode();
     new_tioctl = shell_tioctl;
     new_tioctl.c_lflag |= ICANON;
     tcsetattr(2, TCSAFLUSH, &new_tioctl);
     while (1) {
-        msg = errmsg;
+        msg = emsg;
         while (*msg)
             write(2, msg++, 1);
         if (read(2, in_str, BUFSIZ) > -1)

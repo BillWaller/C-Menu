@@ -90,7 +90,7 @@ typedef struct {
                          */
     Chyron *chyron;     /**< chyron data structure */
 } Pick;
-extern Pick *pick; /**< pointer to Pick data structure */
+// extern Pick *pick; /**< pointer to Pick data structure */
 
 extern void save_object(Pick *, char *);
 extern void display_page(Pick *);

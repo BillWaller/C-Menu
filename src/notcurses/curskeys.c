@@ -7,9 +7,9 @@
     @date 2026-02-09
  */
 
-#include <common.h>
-#include <ncursesw/ncurses.h>
-#include <unistd.h>
+// #include <common.h>
+// #include <ncursesw/ncurses.h>
+// #include <unistd.h>
 
 #define KSTRLEN 100
 #define MAXLEN 256
@@ -37,6 +37,7 @@ int popup_ckeys() {
     getmaxyx(stdscr, maxy, maxx);
     int begy = (maxy - lines) / 3;
     int begx = (maxx - cols) / 2;
+
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
                   BUTTON_CTRL | BUTTON_ALT,
               NULL);
@@ -49,9 +50,9 @@ int popup_ckeys() {
     // box = win_box[win_ptr];
     win = win_win[win_ptr];
     keypad(win, TRUE);
-    wbkgrndset(win, &CC_NT_REV);
+    wbkgrndset(menu->win, &CC_NT_REV);
     mvwaddstr(win, lines - 1, 0, " <ALT>END to exit ");
-    wbkgrndset(win, &CC_NT);
+    wbkgrndset(menu->win, &CC_NT);
     // wnoutrefresh(box);
     mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
     c = '\0';

@@ -87,7 +87,7 @@ cchar_t mkcc(int, attr_t, char *);
 WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
 SCREEN *screen;
-// SIO *sio; /**< Global pointer to SIO struct for terminal and color settings
+SIO *sio; /**< Global pointer to SIO struct for terminal and color settings */
 
 cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 
@@ -125,11 +125,11 @@ double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .mi
 double GREEN_GAMMA = 1.2; /**< Gamma correction value for green colors. Set in .minitrc */
 double BLUE_GAMMA = 1.2;  /**< Gamma correction value for blue colors. Set in .minitrc */
 
-// WINDOW *win_main;
-// PANEL *panel_main;
+WINDOW *win_main;
+PANEL *panel_main;
 
-// WINDOW *win;  /**< generic window pointer, used for various purposes */
-// PANEL *panel; /**< generic panel pointer, used for various purposes */
+WINDOW *win;  /**< generic window pointer, used for various purposes */
+PANEL *panel; /**< generic panel pointer, used for various purposes */
 
 WINDOW *win_win[MAXWIN]; /**< array of pointers to windows */
 PANEL *panel_win[MAXWIN];
@@ -635,6 +635,8 @@ void destroy_curses() {
         win_del();
         win_ptr--;
     }
+    update_panels();
+    doupdate();
     endwin();
     delscreen(screen);
     fclose(ncurses_fp);
@@ -889,9 +891,11 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     top_panel(panel_box[win_ptr]);
     update_panels();
     doupdate();
-    // ----------------------------------------
+    cbox2(win_box[win_ptr]);
     mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
     mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
+
+    // ----------------------------------------
     // title
     cchar_t title_cc[MAXLEN] = {0};
     str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title,
@@ -943,27 +947,33 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
         return 1;
     }
     panel_box[win_ptr] = new_panel(win_box[win_ptr]);
-    wbkgrnd(win_box[win_ptr], &CC_BOX);
-    wbkgrndset(win_box[win_ptr], &CC_BOX);
-    wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
     win_flags[win_ptr] = WF_BOX;
+#ifdef DEBUG_IMMEDOK
+    immedok(win_box[win_ptr], true);
+#endif
+    wbkgrnd(win_box[win_ptr], &CC_BOX);
+    update_panels();
+    doupdate();
+    cbox(win_box[win_ptr]);
+    mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
+    mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
+
     // ----------------------------------------
     // title
-    mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_lt, 1);
-    mvwaddch(win_box[win_ptr], 0, 2, ' ');
     cchar_t title_cc[MAXLEN] = {0};
     str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title,
               MAXLEN - 1);
     mvwadd_wchstr(win_box[win_ptr], 0, 3, title_cc);
+    // ----------------------------------------
+
     maxx = getmaxx(win_box[win_ptr]);
     int s = strlen(wtitle);
     if ((s + 3) < maxx)
         mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
     if ((s + 4) < maxx)
         mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-    top_panel(panel_box[win_ptr]);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
     win_win[win_ptr] = nullptr;
     if (win_pair)
         win_new(wlines, wcols);
@@ -1114,10 +1124,8 @@ WINDOW *
 win_del() {
     if (win_ptr >= 0) {
 
-        // mvwaddstr(win_win[win_ptr], 10, 0, "#########################");
-        // mvwaddstr(win_win2[win_ptr], 1, 0, "#########################");
-        // update_panels();
-        // doupdate();
+        update_panels();
+        doupdate();
         if (panel_win2[win_ptr] != nullptr) {
             hide_panel(panel_win2[win_ptr]);
             update_panels();
@@ -1129,8 +1137,8 @@ win_del() {
             delwin(win_win2[win_ptr]);
             win_win2[win_ptr] = nullptr;
         }
-        // update_panels();
-        // doupdate();
+        update_panels();
+        doupdate();
         if (panel_win[win_ptr] != nullptr) {
             hide_panel(panel_win[win_ptr]);
             update_panels();
@@ -1142,8 +1150,8 @@ win_del() {
             delwin(win_win[win_ptr]);
             win_win[win_ptr] = nullptr;
         }
-        // update_panels();
-        // doupdate();
+        update_panels();
+        doupdate();
         if (panel_box[win_ptr] != nullptr) {
             hide_panel(panel_box[win_ptr]);
             update_panels();
@@ -1269,12 +1277,12 @@ void cbox2(WINDOW *box) {
 
 /** @brief Display a message in a window or print to stderr if curses is not available
     @ingroup error_handling
-    @param msg Message to display
+    @param em0 Message to display
     @return Pointer to the created window, or nullptr if curses is not available or screen is too small */
 WINDOW *
-message_win(char *msg) {
+message_win(char *em0) {
     if (!f_curses_open) {
-        fprintf(stderr, "\n\n%s\n\n", msg);
+        fprintf(stderr, "\n\n%s\n\n", em0);
         return nullptr;
     }
     if (LINES < 4 || COLS < 42)
@@ -1291,8 +1299,8 @@ message_win(char *msg) {
 #endif
     wbkgrndset(win, &CC_BOX);
     cbox(win);
-    strnz(msg, 40);
-    mvwaddstr(win, 0, 1, msg);
+    strnz(em0, 40);
+    mvwaddstr(win, 0, 1, em0);
     update_panels();
     doupdate();
     return win;
@@ -1300,18 +1308,18 @@ message_win(char *msg) {
 /** answer_yn
     @brief Accept a single letter answer
     @ingroup error_handling
-    @param msg0 First error message line
-    @param msg1 Second error message line
-    @param msg2 Third error message line
-    @param msg3 Fourth error message line
+    @param em0 First error message line
+    @param em1 Second error message line
+    @param em2 Third error message line
+    @param em3 Fourth error message line
     @return Key code of user command */
-int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
+int answer_yn(char *em0, char *em1, char *em2, char *em3) {
     char title[MAXLEN];
-    int line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
+    int line, pos, em_l, em0_l, em1_l, em2_l, em3_l;
     WINDOW *error_win;
 
     if (!f_curses_open) {
-        fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", msg0, msg1, msg2, msg3);
+        fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", em0, em1, em2, em3);
         return 1;
     }
 
@@ -1321,30 +1329,30 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     set_chyron_key(chyron, 3, "Y - Yes", 'y');
     compile_chyron(chyron);
 
-    msg0_l = strnz(msg0, COLS - 4);
-    msg1_l = strnz(msg1, COLS - 4);
-    msg2_l = strnz(msg2, COLS - 4);
-    msg3_l = strnz(msg1, COLS - 4);
-    msg_l = max(msg0_l, msg1_l);
-    msg_l = max(msg_l, msg2_l);
-    msg_l = max(msg_l, msg3_l);
-    msg_l = max(msg_l, chyron->l);
-    msg_l = min(msg_l, COLS - 4);
+    em0_l = strnz(em0, COLS - 4);
+    em1_l = strnz(em1, COLS - 4);
+    em2_l = strnz(em2, COLS - 4);
+    em3_l = strnz(em1, COLS - 4);
+    em_l = max(em0_l, em1_l);
+    em_l = max(em_l, em2_l);
+    em_l = max(em_l, em3_l);
+    em_l = max(em_l, chyron->l);
+    em_l = min(em_l, COLS - 4);
 
-    pos = ((COLS - msg_l) - 4) / 2;
+    pos = ((COLS - em_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(5, msg_l + 2, line, pos, title, true)) {
+    if (box_new(5, em_l + 2, line, pos, title, true)) {
         ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 5,
-                  msg_l + 2, line, pos, title);
+                  em_l + 2, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
     }
     error_win = win_win[win_ptr];
-    mvwaddstr(error_win, 0, 1, msg0);
-    mvwaddstr(error_win, 1, 1, msg1);
-    mvwaddstr(error_win, 2, 1, msg2);
-    mvwaddstr(error_win, 3, 1, msg3);
+    mvwaddstr(error_win, 0, 1, em0);
+    mvwaddstr(error_win, 1, 1, em1);
+    mvwaddstr(error_win, 2, 1, em2);
+    mvwaddstr(error_win, 3, 1, em3);
     display_chyron(error_win, chyron, 4, chyron->l + 1);
 
     do {
@@ -1361,21 +1369,21 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
 /** display_error
     @brief Display an error message window or print to stderr
     @ingroup error_handling
-    @param msg0 First error message line
-    @param msg1 Second error message line
-    @param msg2 Third error message line
-    @param msg3 Fourth error message line
+    @param em0 First error message line
+    @param em1 Second error message line
+    @param em2 Third error message line
+    @param em3 Fourth error message line
     @return Key code of user command */
-int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
+int display_error(char *em0, char *em1, char *em2, char *em3) {
     char title[MAXLEN];
-    int line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
+    int line, pos, em_l, em0_l, em1_l, em2_l, em3_l;
     WINDOW *error_win;
 
     if (!f_curses_open) {
-        fprintf(stderr, "\n\n%s\n", msg0);
-        fprintf(stderr, "%s\n", msg1);
-        fprintf(stderr, "%s\n", msg2);
-        fprintf(stderr, "%s\n\n", msg3);
+        fprintf(stderr, "\n\n%s\n", em0);
+        fprintf(stderr, "%s\n", em1);
+        fprintf(stderr, "%s\n", em2);
+        fprintf(stderr, "%s\n\n", em3);
         return 1;
     }
 
@@ -1385,30 +1393,30 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(chyron);
 
-    msg0_l = strnz(msg0, COLS - 4);
-    msg1_l = strnz(msg1, COLS - 4);
-    msg2_l = strnz(msg2, COLS - 4);
-    msg3_l = strnz(msg1, COLS - 4);
-    msg_l = max(msg0_l, msg1_l);
-    msg_l = max(msg_l, msg2_l);
-    msg_l = max(msg_l, msg3_l);
-    msg_l = max(msg_l, chyron->l);
-    msg_l = min(msg_l, COLS - 4);
+    em0_l = strnz(em0, COLS - 4);
+    em1_l = strnz(em1, COLS - 4);
+    em2_l = strnz(em2, COLS - 4);
+    em3_l = strnz(em1, COLS - 4);
+    em_l = max(em0_l, em1_l);
+    em_l = max(em_l, em2_l);
+    em_l = max(em_l, em3_l);
+    em_l = max(em_l, chyron->l);
+    em_l = min(em_l, COLS - 4);
 
-    pos = ((COLS - msg_l) - 4) / 2;
+    pos = ((COLS - em_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(5, msg_l + 2, line, pos, title, true)) {
+    if (box_new(5, em_l + 2, line, pos, title, true)) {
         ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 5,
-                  msg_l + 2, line, pos, title);
+                  em_l + 2, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
     }
     error_win = win_win[win_ptr];
-    mvwaddstr(error_win, 0, 1, msg0);
-    mvwaddstr(error_win, 1, 1, msg1);
-    mvwaddstr(error_win, 2, 1, msg2);
-    mvwaddstr(error_win, 3, 1, msg3);
+    mvwaddstr(error_win, 0, 1, em0);
+    mvwaddstr(error_win, 1, 1, em1);
+    mvwaddstr(error_win, 2, 1, em2);
+    mvwaddstr(error_win, 3, 1, em3);
     display_chyron(error_win, chyron, 4, chyron->l + 1);
     do {
         cmd_key = xwgetch(error_win, chyron, -1);
@@ -1428,7 +1436,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
 int Perror(char *emsg_str) {
     char emsg[80];
     int emsg_max_len = 80;
-    unsigned in_key;
+    unsigned cmd_key;
     WINDOW *error_win;
     int len, line, pos;
     char title[MAXLEN];
@@ -1464,14 +1472,14 @@ int Perror(char *emsg_str) {
     display_chyron(error_win, chyron, 1, chyron->l + 1);
     if (f_xwgetch) {
         curs_set(1);
-        in_key = xwgetch(error_win, chyron, -1);
+        cmd_key = xwgetch(error_win, chyron, -1);
         curs_set(0);
         win_del();
     } else {
-        in_key = KEY_F(10);
+        cmd_key = KEY_F(10);
     }
     destroy_chyron(chyron);
-    return (in_key);
+    return (cmd_key);
 }
 /** wait_mk_chyron
     @brief Create a Chyron struct for the waiting message
@@ -1789,11 +1797,8 @@ int get_chyron_key(Chyron *chyron, int x) {
     @param l Length of display area */
 void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     char *d, *e;
-    int maxy, maxx;
     char tmp_str[MAXLEN];
-    getmaxyx(w, maxy, maxx);
-    y = min(y, maxy - 1);
-    l = min(l, maxx - 1);
+
     l = min(l, MAXLEN - 1);
     e = d = tmp_str;
     e += l;
