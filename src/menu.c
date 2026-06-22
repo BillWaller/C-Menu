@@ -6,7 +6,8 @@
     billxwaller@gmail.com
     @date 2026-02-09
  */
-
+#define _GNU_SOURCE
+#include "ui_backend.h"
 #include <common.h>
 #include <string.h>
 
@@ -30,12 +31,9 @@
    terminal state after the program has exited. */
 static void end_pgm(void) {
     curs_set(1);
-    // destroy_init(init);
-    // init = nullptr;
     close(cmenu_log_fd);
-    win_del();
-    endwin();
-    destroy_curses();
+    if (f_curses_open)
+        endwin();
     exit(EXIT_SUCCESS);
 }
 
@@ -51,11 +49,21 @@ int main(int argc, char **argv) {
         fprintf(stderr, "\nCannot set exit function\n");
         exit(EXIT_FAILURE);
     }
-    open_curses(sio);
+    // initialize user interface
+#ifdef UI
+    sio->ui_cfg = calloc(1, sizeof(UiConfig));
+    sio->ui_cfg->enable_mouse = true;
+    sio->ui_cfg->enable_alt_screen = false;
+    sio->ui_cfg->cursor_visible = true;
+    sio->ui = ui_init(sio->ui_cfg);
+    initialize_local_colors(sio);
     sig_prog_mode();
     capture_curses_tioctl();
-    win_init_attrs();
+    // win_init_attrs();
     // view_stack_init(&view_stack, MAX_VIEWS);
+#else
+    open_curses(sio);
+#endif
     base_name(pgm_name, argv[0]);
     if (!strcmp(pgm_name, "menu")) {
         new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
@@ -77,6 +85,15 @@ int main(int argc, char **argv) {
         }
     } else if (!strcmp(pgm_name, "ckeys"))
         popup_ckeys();
+#ifdef UI
+    free(sio->screen);
+    free(sio->ui);
+    free(sio->ui_cfg);
+#endif
+    destroy_view(init);
+    destroy_curses();
+    destroy_init(init);
     // view_stack_free(&view_stack);
     // end_pgm();
+    exit(EXIT_SUCCESS);
 }

@@ -41,12 +41,13 @@ bool init_clr_palette(SIO *);
 void destroy_curses();
 int box_new(int, int, int, int, char *, bool);
 int box2_new(int, int, int, int, char *, bool);
-void cbox(WINDOW *);
-void cbox2(WINDOW *);
+void cbox_hsplit(WINDOW *, int);
+void cbox_hsplit_text(WINDOW *, char *, int);
+
 int win_new(int, int);
 void win_redraw(WINDOW *);
 void win_resize(int, int, char *);
-WINDOW *win_del();
+int win_del();
 void restore_wins();
 void win_init_attrs();
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
@@ -89,7 +90,7 @@ WINDOW *wait_mk_win(Chyron *, char *);
 SCREEN *screen;
 // SIO *sio; /**< Global pointer to SIO struct for terminal and color settings
 
-cchar_t ls, rs, ts, bs, tl, tr, bl, br;
+cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran;
 
 /** StdColors
     @details Standard 16 colors for xterm256 color conversions These colors can
@@ -131,13 +132,12 @@ double BLUE_GAMMA = 1.2;  /**< Gamma correction value for blue colors. Set in .m
 // WINDOW *win;  /**< generic window pointer, used for various purposes */
 // PANEL *panel; /**< generic panel pointer, used for various purposes */
 
-WINDOW *win_win[MAXWIN]; /**< array of pointers to windows */
-PANEL *panel_win[MAXWIN];
-
 WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
-PANEL *panel_win2[MAXWIN];
+WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
+WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
 
-WINDOW *win_box[MAXWIN]; /**< array of pointers to box windows */
+PANEL *panel_win2[MAXWIN];
+PANEL *panel_win[MAXWIN];
 PANEL *panel_box[MAXWIN];
 
 int win_flags[MAXWIN];
@@ -230,6 +230,7 @@ bool open_curses(SIO *sio) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
 
+    // Get the name of the terminal device
     if (ttyname_r(STDERR_FILENO, sio->tty_name, sizeof(sio->tty_name)) != 0) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "ttyname_r failed ", MAXLEN - 1);
@@ -237,7 +238,7 @@ bool open_curses(SIO *sio) {
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    /** open the terminal device for reading and writing */
+    // open the terminal device for NCurses input and output
     ncurses_fp = fopen(sio->tty_name, "r+");
     if (ncurses_fp == nullptr) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -246,8 +247,8 @@ bool open_curses(SIO *sio) {
         fprintf(stderr, "%s\n", tmp_str);
         exit(0);
     }
-    /** We use SCREEN and newterm because this allows us to */
-    /** specify the terminal FILE */
+    // newterm() allows us to specify a tty device for NCurses input and
+    // output.
     screen = newterm(nullptr, ncurses_fp, ncurses_fp);
     if (screen == nullptr) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
@@ -344,14 +345,22 @@ void initialize_local_colors(SIO *sio) {
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
 
     // create cchar_t for box borders
-    setcchar(&ls, &bw_ve, WA_NORMAL, 0, NULL); // Left side
-    setcchar(&rs, &bw_ve, WA_NORMAL, 0, NULL); // Right side
-    setcchar(&ts, &bw_ho, WA_NORMAL, 0, NULL); // Top side
-    setcchar(&bs, &bw_ho, WA_NORMAL, 0, NULL); // Bottom side
-    setcchar(&tl, &bw_tl, WA_NORMAL, 0, NULL); // Top-left corner
-    setcchar(&tr, &bw_tr, WA_NORMAL, 0, NULL); // Top-right corner
-    setcchar(&bl, &bw_bl, WA_NORMAL, 0, NULL); // Bottom-left corner
-    setcchar(&br, &bw_br, WA_NORMAL, 0, NULL); // Bottom-right corner
+    setcchar(&ls, &bw_ve, WA_NORMAL, 0, NULL);   // Left side
+    setcchar(&rs, &bw_ve, WA_NORMAL, 0, NULL);   // Right side
+    setcchar(&ts, &bw_ho, WA_NORMAL, 0, NULL);   // Top side
+    setcchar(&bs, &bw_ho, WA_NORMAL, 0, NULL);   // Bottom side
+    setcchar(&tl, &bw_tl, WA_NORMAL, 0, NULL);   // Top-left corner
+    setcchar(&tr, &bw_tr, WA_NORMAL, 0, NULL);   // Top-right corner
+    setcchar(&bl, &bw_bl, WA_NORMAL, 0, NULL);   // Bottom-left corner
+    setcchar(&br, &bw_br, WA_NORMAL, 0, NULL);   // Bottom-right corner
+    setcchar(&lt, &bw_lt, WA_NORMAL, 0, NULL);   // Bottom-right corner
+    setcchar(&rt, &bw_rt, WA_NORMAL, 0, NULL);   // Bottom-right corner
+    setcchar(&sp, &bw_sp, WA_NORMAL, 0, NULL);   // Bottom-right corner
+    setcchar(&ra, &bw_ra, WA_NORMAL, 0, NULL);   // Bottom-right corner
+    setcchar(&la, &bw_la, WA_NORMAL, 0, NULL);   // Bottom-right corner
+    setcchar(&ua, &bw_ua, WA_NORMAL, 0, NULL);   // Bottom-right corner
+    setcchar(&da, &bw_da, WA_NORMAL, 0, NULL);   // Bottom-right corner
+    setcchar(&ran, &bw_ran, WA_NORMAL, 0, NULL); // Bottom-right corner
 }
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
@@ -631,10 +640,8 @@ RGB hex_clr_str_to_rgb(char *s) {
 void destroy_curses() {
     if (!f_curses_open)
         return;
-    while (win_ptr > 0) {
+    while (win_ptr >= 0)
         win_del();
-        win_ptr--;
-    }
     endwin();
     delscreen(screen);
     fclose(ncurses_fp);
@@ -865,44 +872,24 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     @return 0 if successful, 1 if error */
 int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
              bool win_pair) {
-    int mx;
     if (win_ptr >= MAXWIN) {
-        ssnprintf(em0, MAXLEN - 1, "Maximum number of windows (%d) exceeded");
-        abend(-1, em0);
+        Perror("Maximum number of windows (%d) exceeded");
+        exit(EXIT_FAILURE);
     }
-    win_ptr++;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
-
-    // ------------------->    win_box    <-------------------
+    win_ptr++;
     win_box[win_ptr] = newwin(wlines + 5, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
-        win_ptr--;
-        return 1;
+        Perror("win_box[win_ptr] = newwin() failed");
+        exit(EXIT_FAILURE);
     }
     panel_box[win_ptr] = new_panel(win_box[win_ptr]);
     wbkgrnd(win_box[win_ptr], &CC_BOX);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
-    // wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
-    cbox2(win_box[win_ptr]);
+    wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
+    box_title(win_box[win_ptr], wtitle);
     win_flags[win_ptr] = WF_BOX;
-
-    // -------------------> title <-------------------
-    mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
-    mvwaddch(win_box[win_ptr], 0, 2, ' ');
-    cchar_t title_cc[MAXLEN] = {0};
-    str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title, MAXLEN - 1);
-    mvwadd_wchstr(win_box[win_ptr], 0, 3, title_cc);
-    mx = getmaxx(win_box[win_ptr]);
-    int s = strlen(wtitle);
-    if ((s + 3) < mx)
-        mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
-    if ((s + 4) < mx)
-        mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-
-    // ----------------------------------------
-    update_panels();
-    doupdate();
     win_win[win_ptr] = nullptr;
     win_win2[win_ptr] = nullptr;
     if (win_pair) {
@@ -923,73 +910,50 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     @return 0 if successful, 1 if error */
 int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             bool win_pair) {
-    int maxx;
     if (win_ptr >= MAXWIN) {
-        ssnprintf(em0, MAXLEN - 1, "Maximum number of windows (%d) exceeded");
-        abend(-1, em0);
+        Perror("Maximum number of windows (%d) exceeded");
+        exit(EXIT_FAILURE);
     }
-    win_ptr++;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
 
+    win_ptr++;
     // ------------------->    win_box    <-------------------
     win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
-        win_ptr--;
-        return 1;
+        Perror("win_box[win_ptr] = newwin() failed");
+        exit(EXIT_FAILURE);
     }
     panel_box[win_ptr] = new_panel(win_box[win_ptr]);
     wbkgrnd(win_box[win_ptr], &CC_BOX);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
     wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
     win_flags[win_ptr] = WF_BOX;
-    // ----------------------------------------
-    // title
-    mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_lt, 1);
-    mvwaddch(win_box[win_ptr], 0, 2, ' ');
-    cchar_t title_cc[MAXLEN] = {0};
-    str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title,
-              MAXLEN - 1);
-    mvwadd_wchstr(win_box[win_ptr], 0, 3, title_cc);
-    maxx = getmaxx(win_box[win_ptr]);
-    int s = strlen(wtitle);
-    if ((s + 3) < maxx)
-        mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
-    if ((s + 4) < maxx)
-        mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-    top_panel(panel_box[win_ptr]);
-    update_panels();
-    doupdate();
+    box_title(win_box[win_ptr], wtitle);
     win_win[win_ptr] = nullptr;
     if (win_pair)
         win_new(wlines, wcols);
     return 0;
 }
-int box_title(WINDOW *box, char *wtitle) {
+int box_title(WINDOW *box, char *title) {
     wbkgrndset(box, &CC_BOX);
-    int x;
+    int y, x, l;
     int maxx;
-
+    int pos = 0;
+    y = 0;
+    x = 1;
     maxx = getmaxx(box);
-    maxx--;
-    mvwaddnwstr(box, 0, 0, &bw_tl, 1);
-    for (x = 1; x < maxx; x++)
-        waddnwstr(box, &bw_ho, 1);
-    waddnwstr(box, &bw_tr, 1);
-    mvwaddnwstr(box, 0, 1, &bw_rt, 1);
-    mvwaddnwstr(box, 0, 2, &bw_sp, 1);
+    mvwadd_wchnstr(box, y, x++, &ts, 1);
+    mvwadd_wchnstr(box, y, x++, &rt, 1);
+    mvwadd_wchnstr(box, y, x++, &sp, 1);
     cchar_t title_cc[MAXLEN] = {0};
-    str_to_cc(title_cc, wtitle, WA_NORMAL, cp_title,
-              MAXLEN - 1);
-    mvwadd_wchstr(box, 0, 3, title_cc);
-    maxx = getmaxx(box);
-    int s = strlen(wtitle);
-    if ((s + 3) < maxx)
-        mvwaddch(box, 0, (s + 3), ' ');
-    if ((s + 4) < maxx)
-        mvwaddnwstr(box, 0, (s + 4), &bw_lt, 1);
-    // update_panels();
-    // doupdate();
+    l = mb_to_cc(title_cc, title, WA_NORMAL, cp_box, &pos, MAXLEN - 1);
+    mvwadd_wchnstr(box, y, x, title_cc, l);
+    x += l;
+    mvwadd_wchnstr(box, y, x++, &sp, 1);
+    mvwadd_wchnstr(box, y, x++, &lt, 1);
+    while (x < maxx - 1)
+        mvwadd_wchnstr(box, y, x++, &ts, 1);
     return 0;
 }
 /** win_new
@@ -999,18 +963,14 @@ int box_title(WINDOW *box, char *wtitle) {
     @param wcols Number of columns
     @return 0 if successful, 1 if error */
 int win_new(int wlines, int wcols) {
-
     // ------------------->    win_win    <-------------------
     win_win[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, 1, 1);
     if (win_win[win_ptr] == nullptr) {
-        delwin(win_box[win_ptr]);
-        return 1;
+        Perror("win_win[win_ptr] = derwin() failed");
+        exit(EXIT_FAILURE);
     }
     panel_win[win_ptr] = new_panel(win_win[win_ptr]);
     win_flags[win_ptr] |= WF_WIN;
-#ifdef DEBUG_IMMEDOK
-    immedok(win_win[win_ptr], true);
-#endif
     wbkgrnd(win_win[win_ptr], &CC_NT);
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
@@ -1026,13 +986,11 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
     // ------------------->   win2_win   <-------------------
     win_win2[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
     if (win_win2[win_ptr] == nullptr) {
-        delwin(win_box[win_ptr]);
-        return 1;
+        Perror("win_win2[win_ptr] = derwin() failed");
+        exit(EXIT_FAILURE);
     }
     panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
     wbkgrnd(win_win2[win_ptr], &CC_NT);
-    update_panels();
-    doupdate();
     win_flags[win_ptr] |= WF_WIN2;
 #ifdef DEBUG_IMMEDOK
     immedok(win_win2[win_ptr], true);
@@ -1059,7 +1017,7 @@ void win_resize(int wlines, int wcols, char *title) {
     doupdate();
     wresize(win_box[win_ptr], wlines + 2, wcols + 2);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
-    cbox(win_box[win_ptr]);
+    wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
     if (title != nullptr && *title != '\0') {
         wmove(win_box[win_ptr], 0, 1);
         waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
@@ -1106,56 +1064,38 @@ void win_redraw(WINDOW *win) {
    window, if they exist. It also refreshes the remaining windows to ensure the
    display is updated correctly. After calling this function, the global win_ptr
    variable is decremented to point to the previous window in the stack. */
-WINDOW *
-win_del() {
+int win_del() {
     if (win_ptr >= 0) {
-
-        // mvwaddstr(win_win[win_ptr], 10, 0, "#########################");
-        // mvwaddstr(win_win2[win_ptr], 1, 0, "#########################");
-        // update_panels();
-        // doupdate();
         if (panel_win2[win_ptr] != nullptr) {
             hide_panel(panel_win2[win_ptr]);
-            update_panels();
-            doupdate();
             del_panel(panel_win2[win_ptr]);
             panel_win2[win_ptr] = nullptr;
+        }
+        if (panel_win[win_ptr] != nullptr) {
+            hide_panel(panel_win[win_ptr]);
+            del_panel(panel_win[win_ptr]);
+            panel_win[win_ptr] = nullptr;
+        }
+        if (panel_box[win_ptr] != nullptr) {
+            hide_panel(panel_box[win_ptr]);
+            del_panel(panel_box[win_ptr]);
+            panel_box[win_ptr] = nullptr;
         }
         if (win_win2[win_ptr] != nullptr) {
             delwin(win_win2[win_ptr]);
             win_win2[win_ptr] = nullptr;
         }
-        // update_panels();
-        // doupdate();
-        if (panel_win[win_ptr] != nullptr) {
-            hide_panel(panel_win[win_ptr]);
-            update_panels();
-            doupdate();
-            del_panel(panel_win[win_ptr]);
-            panel_win[win_ptr] = nullptr;
-        }
         if (win_win[win_ptr] != nullptr) {
             delwin(win_win[win_ptr]);
             win_win[win_ptr] = nullptr;
-        }
-        // update_panels();
-        // doupdate();
-        if (panel_box[win_ptr] != nullptr) {
-            hide_panel(panel_box[win_ptr]);
-            update_panels();
-            doupdate();
-            del_panel(panel_box[win_ptr]);
-            panel_box[win_ptr] = nullptr;
         }
         if (win_box[win_ptr] != nullptr) {
             delwin(win_box[win_ptr]);
             win_box[win_ptr] = nullptr;
         }
-        update_panels();
-        doupdate();
         win_ptr--;
     }
-    return 0;
+    return win_ptr;
 }
 /** restore_wins
     @brief Restore all windows after a screen resize
@@ -1175,41 +1115,8 @@ void restore_wins() {
         if (win_win2[i] == nullptr)
             touchwin(win_win2[i]);
     }
-    update_panels();
-    doupdate();
 }
-/** cbox
-    @brief Draw a box around the specified window
-    @ingroup window_support
-    @param box Pointer to the window to draw the box around
-    @details This function uses NCurses functions to draw a box around the
-   specified window. It adds the appropriate characters for the corners and
-   edges of the box based on the current character set. Use this function when
-   you want to visually separate a window from the rest of the screen with a
-   border. */
-void cbox(WINDOW *box) {
-    int x, y;
-    int maxx;
-    int maxy;
-
-    maxx = getmaxx(box);
-    maxx--;
-    mvwaddnwstr(box, 0, 0, &bw_tl, 1);
-    for (x = 1; x < maxx; x++)
-        waddnwstr(box, &bw_ho, 1);
-    waddnwstr(box, &bw_tr, 1);
-    maxy = getmaxy(box);
-    maxy--;
-    for (y = 1; y < maxy; y++) {
-        mvwaddnwstr(box, y, 0, &bw_ve, 1);
-        mvwaddnwstr(box, y, maxx, &bw_ve, 1);
-    }
-    mvwaddnwstr(box, maxy, 0, &bw_bl, 1);
-    for (x = 1; x < maxx; x++)
-        waddnwstr(box, &bw_ho, 1);
-    waddnwstr(box, &bw_br, 1);
-}
-/** cbox2
+/** cbox-split
     @brief Draw a box with a separator line around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
@@ -1219,44 +1126,40 @@ void cbox(WINDOW *box) {
    page 00) and extends across the width of the box. Use this function when you
    want to visually separate two sections within a window, such as for a header
    and content area. */
-void cbox2(WINDOW *box) {
-    int x, y;
-    int maxx;
-    int maxy;
-
-    maxx = getmaxx(box);
-    maxx--;
-    mvwaddnwstr(box, 0, 0, &bw_tl, 1);
-    for (x = 1; x < maxx; x++)
-        waddnwstr(box, &bw_ho, 1);
-    waddnwstr(box, &bw_tr, 1);
-    maxy = getmaxy(box);
-    // Verticals
-    for (y = 1; y < maxy - 4; y++) {
-        mvwaddnwstr(box, y, 0, &bw_ve, 1);
-        mvwaddnwstr(box, y, maxx, &bw_ve, 1);
-    }
-    // Separator line
+void cbox_hsplit(WINDOW *box, int y) {
+    int maxx = getmaxx(box);
     mvwaddnwstr(box, y, 0, &bw_lt, 1);
-    // line 00, page 00
-    mvwaddnwstr(box, y, 1, &bw_rt, 1);
-    mvwaddnwstr(box, y, 24, &bw_lt, 1);
-    for (x = 25; x < maxx; x++)
+    for (int x = 1; x < maxx - 1; x++)
         waddnwstr(box, &bw_ho, 1);
-    waddnwstr(box, &bw_rt, 1);
-    // Window 2
-    y++;
-    mvwaddnwstr(box, y, 0, &bw_ve, 1);
-    mvwaddnwstr(box, y, maxx, &bw_ve, 1);
-    y++;
-    mvwaddnwstr(box, y, 0, &bw_ve, 1);
-    mvwaddnwstr(box, y, maxx, &bw_ve, 1);
-    // Bottom
-    y++;
-    mvwaddnwstr(box, y, 0, &bw_bl, 1);
-    for (x = 1; x < maxx; x++)
-        waddnwstr(box, &bw_ho, 1);
-    waddnwstr(box, &bw_br, 1);
+    mvwaddnwstr(box, y, maxx - 1, &bw_rt, 1);
+    return;
+}
+
+void cbox_hsplit_text(WINDOW *box, char *text, int y) {
+    int maxx;
+    int pos = 0;
+    maxx = getmaxx(box);
+    int x = 0;
+    int l;
+    // Clearly, this is a bit hacky, but it works. We want to draw the
+    // horizontal line with text in the middle, so we start by drawing the left
+    // edge, then the text, then the right edge, and finally fill in the
+    // horizontal line on either side of the text. mvwadd_wchnstr(box, y, x++,
+    // &lt, 1);
+    mvwadd_wchnstr(box, y, x++, &lt, 1);
+    mvwadd_wchnstr(box, y, x++, &ts, 1);
+    mvwadd_wchnstr(box, y, x++, &rt, 1);
+    mvwadd_wchnstr(box, y, x++, &sp, 1);
+    strnz(text, maxx - 7);
+    cchar_t text_cc[MAXLEN] = {0};
+    l = mb_to_cc(text_cc, text, WA_NORMAL, cp_box, &pos, MAXLEN - 1);
+    mvwadd_wchnstr(box, y, x, text_cc, l);
+    x += l;
+    mvwadd_wchnstr(box, y, x++, &sp, 1);
+    mvwadd_wchnstr(box, y, x++, &lt, 1);
+    while (x < maxx - 1)
+        mvwadd_wchnstr(box, y, x++, &ts, 1);
+    mvwadd_wchnstr(box, y, x++, &rt, 1);
 }
 
 /** @defgroup error_handling Error Handling
@@ -1281,12 +1184,8 @@ message_win(char *msg) {
     WINDOW *win = subwin(stdscr, wlines, wcols, wbegy, wbegx);
     if (win == nullptr)
         return win;
-    // PANEL *panel = new_panel(win);
-#ifdef DEBUG_IMMEDOK
-    immedok(win, true);
-#endif
     wbkgrndset(win, &CC_BOX);
-    cbox(win);
+    wborder_set(win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
     strnz(msg, 40);
     mvwaddstr(win, 0, 1, msg);
     update_panels();
@@ -1788,8 +1687,8 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
     int maxy, maxx;
     char tmp_str[MAXLEN];
     getmaxyx(w, maxy, maxx);
-    y = min(y, maxy - 1);
-    l = min(l, maxx - 1);
+    y = min(y, maxy);
+    l = min(l, maxx);
     l = min(l, MAXLEN - 1);
     e = d = tmp_str;
     e += l;
@@ -1800,6 +1699,7 @@ void mvwaddstr_fill(WINDOW *w, int y, int x, char *s, int l) {
             *d++ = *s++;
     }
     *d = '\0';
+    l = strlen(tmp_str);
     mvwaddstr(w, y, x, tmp_str);
 }
 /** clr_name_to_idx

@@ -1,4 +1,5 @@
 // src/ui/ui_ncurses.c
+#include "../include/cm.h"
 #include "ui_ncurses_internal.h"
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +22,9 @@
  * of a larger UI framework and can be extended with additional features as
  * needed.
  */
+
+// ncurses state globals
+static SCREEN *screen = NULL;
 
 /** * @brief Create a new UI surface.
  * @ingroup ui_ncurses
@@ -167,7 +171,7 @@ int ui_cursor_move(UiSurface *s, int y, int x) {
         return -1;
     return wmove(s->win, y, x);
 }
-/** @brief Enable or disable the cursor visibility.
+/** @brief Initialize NCUrses
  * @ingroup ui_ncurses
  * @param cfg The UI runtime instance.
  * @return 0 on success, or -1 on failure.
@@ -176,17 +180,44 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     UiRuntime *ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
+    char tty_name[XLEN];
+    FILE *tty_fp;
 
-    initscr();
+    // Get the name of the terminal device
+    if (ttyname_r(STDERR_FILENO, tty_name, sizeof(tty_name)) != 0) {
+        Perror("ui_init: ttyname_r() failed");
+        exit(EXIT_FAILURE);
+    }
+    // open the terminal device for NCurses input and output
+    tty_fp = fopen(tty_name, "r+");
+    if (tty_fp == nullptr) {
+        Perror("ui_init: fopen() failed");
+        exit(EXIT_FAILURE);
+    }
+    // newterm() allows us to specify a tty device for NCurses input and
+    // output.
+    ui->screen = newterm(nullptr, tty_fp, tty_fp);
+    if (ui->screen == nullptr) {
+        Perror("ui_init: newterm() failed");
+        exit(EXIT_FAILURE);
+    }
+    set_term(ui->screen);
+    f_curses_open = true;
+    if (!has_colors()) {
+        ui_shutdown(ui);
+        Perror("Terminal does not support colors");
+        exit(EXIT_FAILURE);
+    }
+    if (!can_change_color()) {
+        ui_shutdown(ui);
+        Perror("Terminal cannot change colors");
+        exit(EXIT_FAILURE);
+    }
+    start_color();
+    use_default_colors();
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
-
-    if (has_colors()) {
-        start_color();
-        use_default_colors();
-    }
-
     if (cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
         ui->alt_screen = cfg->enable_alt_screen;
@@ -194,14 +225,13 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     } else {
         ui->cursor_visible = true;
     }
-
-    if (ui->mouse_enabled) {
+    if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
-    }
-
     curs_set(ui->cursor_visible ? 1 : 0);
     getmaxyx(stdscr, ui->rows, ui->cols);
-
+    for (int i = 0; i < MAXWIN; i++)
+        win_flags[i] = 0;
+    win_ptr = -1;
     return ui;
 }
 

@@ -614,7 +614,7 @@ int process_config_files(Init *init) {
 int process_config_file(char *config_file_name, Init *init) {
     char include_file_name[MAXLEN];
     char tmp_str[MAXLEN];
-    char *sp, *dp;
+    char *src_p, *dp;
     SIO *sio = init->sio;
     char hex_clr_str[8];
     char key[MAXLEN];
@@ -629,55 +629,55 @@ int process_config_file(char *config_file_name, Init *init) {
         bool inquotes = false;
         if (tmp_str[0] == '#')
             continue;
-        sp = tmp_str;
+        src_p = tmp_str;
         key[0] = '\0';
         dp = key;
         // copy delimited by "=" into value
-        while (*sp != '\0') {
-            if (*sp == '\n')
-                *dp = *sp = '\0';
-            if (*sp == '=') {
+        while (*src_p != '\0') {
+            if (*src_p == '\n')
+                *dp = *src_p = '\0';
+            if (*src_p == '=') {
                 *dp = '\0';
-                sp++;
+                src_p++;
                 break;
             }
-            if (*sp == '"' && *sp == ' ') {
-                sp++;
+            if (*src_p == '"' && *src_p == ' ') {
+                src_p++;
                 continue;
             }
-            *dp++ = *sp++;
+            *dp++ = *src_p++;
         }
         value[0] = '\0';
         dp = value;
         // copy delimited by newline or unquoted "#" into value, removing quotes, spaces, semicolons, and newlines, but respecting quotes
-        while (*sp != '\0') {
-            if ((*sp == '"' || *sp == '\'') && (*(sp + 1) != '\\')) {
+        while (*src_p != '\0') {
+            if ((*src_p == '"' || *src_p == '\'') && (*(src_p + 1) != '\\')) {
                 if (!inquotes) {
                     inquotes = true;
-                    quote_char = *sp++;
-                } else if (*sp == quote_char) {
+                    quote_char = *src_p++;
+                } else if (*src_p == quote_char) {
                     inquotes = false;
                     quote_char = '\0';
                 }
             }
             if (!inquotes) {
-                if (*sp == '#') {
-                    if (unstr_hex_clr(hex_clr_str, sp)) {
+                if (*src_p == '#') {
+                    if (unstr_hex_clr(hex_clr_str, src_p)) {
                         strnz__cpy(value, hex_clr_str, MAXLEN - 1);
                         dp = value + strlen(value);
                     }
                     break;
                 }
             }
-            if (*sp == ' ' || *sp == ';') {
-                sp++;
+            if (*src_p == ' ' || *src_p == ';') {
+                src_p++;
                 continue;
             }
-            if (*sp == '\n') {
-                *sp = '\0';
+            if (*src_p == '\n') {
+                *src_p = '\0';
                 break;
             }
-            *dp++ = *sp++;
+            *dp++ = *src_p++;
         }
         *dp = '\0';
         if (key[0] == '\0')

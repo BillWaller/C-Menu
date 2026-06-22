@@ -14,6 +14,8 @@
 #include <ncursesw/panel.h>
 #include <stdbool.h>
 
+#define XLEN 256
+
 /** @struct UiRuntime
    @ingroup ui_backend
    @brief Runtime state for the ncurses UI backend.
@@ -27,6 +29,7 @@ struct UiRuntime {
     bool cursor_visible;
     int rows;
     int cols;
+    SCREEN *screen;
 };
 
 /** @struct UiSurface

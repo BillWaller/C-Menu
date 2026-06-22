@@ -146,22 +146,22 @@ void whence(char *file_spec_p, int flags) {
    reaches a colon or the end of the string, and returns the length of the
    extracted path.
  */
-int next_path(char *dp, char **sp) {
+int next_path(char *dp, char **pp) {
     int dl;
 
-    if (**sp == ':') {
-        (*sp)++;
+    if (**pp == ':') {
+        (*pp)++;
         getcwd(dp, PATH_MAX);
         return (strlen(dp));
     } else {
         dl = 0;
-        while (**sp != '\0' && **sp != '\n' && **sp != '\r' && **sp != ':') {
-            *dp++ = *(*sp)++;
+        while (**pp != '\0' && **pp != '\n' && **pp != '\r' && **pp != ':') {
+            *dp++ = *(*pp)++;
             dl++;
         }
         *dp = '\0';
-        if (**sp == ':' && *++(*sp) == '\0')
-            (*sp)--;
+        if (**pp == ':' && *++(*pp) == '\0')
+            (*pp)--;
         return (dl);
     }
 }

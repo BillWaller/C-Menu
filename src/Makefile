@@ -16,6 +16,7 @@ ifeq ($(BUILD_TYPE), Release)
 	LINKOPT= -pthread -flto -s
 else
 	CFLAGS:=-O0 -g3 -pthread -fPIC -fno-omit-frame-pointer -rdynamic
+#	-DUI
 #	-DDEBUG_IMMEDOK
 	LINKOPT=-pthread
 endif
@@ -39,7 +40,7 @@ INSTALL_MAN_DIR:=$(PREFIX)/man/man1
 RPATH:=./:$(INSTALL_LIB_DIR):$(LIB_DIR)
 PAM_DIR:=/etc/pam.d
 CX:=-std=c23
-CC:=gcc $(CX) -I$(INCLUDE_DIRS) $(CFLAGS)
+CC:=gcc $(CX) $(INCLUDE_DIRS) $(CFLAGS)
 
 BINEXES:=menu form pick view ckeys whence rsh rsh_static rsh_pam \
 		iloan amort enterchr enterstr lf stripansi detach
@@ -170,9 +171,11 @@ helgrind: lf
 
 valgrind: lf
 	valgrind -v \
+		--tool=memcheck \
     	--log-file=valgrind.out \
 		--leak-check=full \
-		--show-leak-kinds=all \
+		--show-leak-kinds=definite \
+		--num-callers=30 \
 		--leak-resolution=high \
 		--track-origins=yes \
 		--suppressions=valgrind.supp \

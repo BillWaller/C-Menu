@@ -324,7 +324,7 @@ void view_win_resize(Init *init, char *title) {
     wresize(view->box.win, view->lines + 2, view->cols + 2);
     wbkgrnd(view->box.win, &CC_BOX);
     wbkgrndset(view->box.win, &CC_BOX);
-    cbox(view->box.win);
+    wborder_set(view->box.win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
     if (title != nullptr && *title != '\0') {
         wmove(view->box.win, 0, 1);
         waddnstr(view->box.win, (const char *)&bw_rt, 1);

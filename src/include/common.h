@@ -13,11 +13,11 @@
 #define _GNU_SOURCE
 // #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
-#include <ncursesw/ncurses.h>
-
+#include "ui_backend.h"
 #include <cm.h>
 #include <form.h>
 #include <menu.h>
+#include <ncursesw/ncurses.h>
 #include <pick.h>
 #include <view.h>
 

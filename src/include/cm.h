@@ -14,6 +14,7 @@
 // #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1 /**< Enable wide character support */
 #define _GNU_SOURCE
+#include "ui_backend.h"
 #include "version.h"
 #include <argp.h>
 #include <ncursesw/ncurses.h>
@@ -594,6 +595,8 @@ extern const wchar_t bw_ua;  /**< up arrow */
 extern const wchar_t bw_da;  /**< down arrow */
 extern const wchar_t bw_ran; /**< right piointing angle */
 
+extern cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran;
+
 extern void write_cmenu_log_nt(char *);
 extern void write_cmenu_log(char *);
 extern void open_cmenu_log();
@@ -616,19 +619,17 @@ extern void sig_shell_mode();
 extern char di_getch();
 extern int enter_option();
 
-extern PANEL *std_panel;
+// extern PANEL *std_panel;
+
+// extern WINDOW *win_main;
+// extern PANEL *panel_main;
+
 extern int win_flags[MAXWIN];
-
-extern WINDOW *win_main;
-extern PANEL *panel_main;
-
-extern WINDOW *win_win[MAXWIN]; /**< array of pointers to windows */
-extern PANEL *panel_win[MAXWIN];
-
+extern WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
 extern WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
+extern WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
+extern PANEL *panel_win[MAXWIN];
 extern PANEL *panel_win2[MAXWIN];
-
-extern WINDOW *win_box[MAXWIN]; /**< array of pointers to box windows */
 extern PANEL *panel_box[MAXWIN];
 
 extern int win_attr; /**< Ncurses attributes for the current window, such as
@@ -694,11 +695,10 @@ extern char em3[MAXLEN]; /**< error message string for error messages */
 extern int exit_code; /**< the exit code for the program, for error messages and
                          other output */
 
-extern WINDOW *win_del();
+extern int win_del();
 extern void destroy_win(WINDOW *);
 extern void destroy_box(WINDOW *);
 extern void restore_wins();
-extern void cbox(WINDOW *);
 extern void win_init_attrs();
 extern void win_Toggle_Attrs();
 extern void mvwaddstr_fill(WINDOW *, int, int, char *, int);
@@ -708,6 +708,8 @@ extern void curskeys(WINDOW *);
 extern void mouse_getch(int *, int *, int *, int *);
 extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
 extern bool get_argp_doc_by_name(char *comment, const struct argp_option *, const char *);
+extern void cbox_hsplit(WINDOW *, int);
+extern void cbox_hsplit_text(WINDOW *, char *, int);
 
 /** @struct Arg
    @brief The Arg structure represents a string argument with a pointer to the
@@ -771,6 +773,9 @@ typedef struct {
    structure allows for efficient management of the terminal's state and
    configuration in a structured way. */
 typedef struct {
+    UiRuntime *ui;
+    UiConfig *ui_cfg;
+    SCREEN *screen;
     double red_gamma;             /**< red gamma correction value */
     double green_gamma;           /**< green gamma correction value */
     double blue_gamma;            /**< blue gamma correction value */

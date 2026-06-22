@@ -282,6 +282,7 @@ int read_pick_input(Init *init) {
     if (pick->in_fp) {
         while (fgets(pick->in_buf, sizeof(pick->in_buf), pick->in_fp) != nullptr)
             save_object(pick, pick->in_buf);
+
     } else
         for (i = 1; i < pick->argc; i++)
             save_object(pick, pick->argv[i]);
@@ -367,14 +368,24 @@ int pick_engine(Init *init) {
     set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
     if (pick->tbl_pages > 1) {
         set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
-        set_chyron_key(pick->chyron, 2, "PgDn", KEY_NPAGE);
+
+        pick->chyron = new_chyron();
+        set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
+        set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
+        set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F(10));
+        set_chyron_key(pick->chyron, 4, "Sp Toggle", KEY_F(13));
+        set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
+        if (pick->tbl_pages > 1) {
+            set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
+            set_chyron_key(pick->chyron, 2, "PgDn", KEY_NPAGE);
+        }
     }
     compile_chyron(pick->chyron);
     if (pick->chyron->l > pick->width)
         pick->chyron->l = strnz(pick->chyron->s, pick->width);
     if (pick->width < pick->chyron->l)
         pick->width = pick->chyron->l;
-    pick->width = max(pick->width, pick->chyron->l) + 5;
+    pick->width = max(pick->width, pick->chyron->l + 5);
     if (pick->begx + pick->width > COLS - 2)
         pick->begx = COLS - pick->width - 2;
     else if (pick->begx == 0)
@@ -469,7 +480,7 @@ void display_page(Pick *pick) {
             if (pick->f_selected[pick->d_idx])
                 mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
             mvwaddstr_fill(pick->win, pick->y++, pick->x,
-                           pick->d_object[pick->d_idx++], pick->tbl_col_width);
+                           pick->d_object[pick->d_idx++], pick->tbl_col_width - 1);
         }
     }
     pick->d_idx -= 1;
@@ -480,8 +491,6 @@ void display_page(Pick *pick) {
         wscrl(pick->win, -pick->y_offset);
     } else
         pick->y_offset = 0;
-    // update_panels();
-    // doupdate();
 }
 /** @brief Displays current page of objects in pick window
     @ingroup pick_engine
@@ -523,15 +532,10 @@ void reverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-#ifdef DEBUG_IMMEDOK
-    immedok(pick->box, true);
-    immedok(pick->win, true);
-    immedok(pick->win2, true);
-#endif
     wmove(pick->win, pick->y, pick->x);
     wbkgrndset(pick->win, &CC_NT_REV);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
-                   pick->tbl_col_width);
+                   pick->tbl_col_width - 1);
     wbkgrndset(pick->win, &CC_NT);
     wmove(pick->win, pick->y, pick->x - 1);
     update_panels();
@@ -558,7 +562,7 @@ void unreverse_object(Pick *pick) {
     wbkgrndset(pick->win, &CC_NT);
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
-                   pick->tbl_col_width);
+                   pick->tbl_col_width - 1);
     wmove(pick->win, pick->y, pick->x - 1);
 }
 /** @brief Toggles the selection state of the currently selected object in pick
@@ -759,9 +763,9 @@ int exec_objects(Init *init) {
     }
     strnz__cpy(tmp_str, eargv[0], MAXLEN - 1);
     eargv[eargc] = nullptr;
-    char *sp;
+    char *sav_ptr;
     char *tok;
-    tok = strtok_r(tmp_str, " ", &sp);
+    tok = strtok_r(tmp_str, " ", &sav_ptr);
     strnz__cpy(sav_arg, tok, MAXLEN - 1);
     base_name(tmp_str, sav_arg);
     if (tmp_str[0] != '\0' && (strcmp(tmp_str, "view") == 0 || strcmp(tmp_str, "view") == 0)) {
@@ -946,12 +950,10 @@ int picker(Init *init, char *field) {
                 pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
                 pick->y = pick->tbl_line + pick->y_offset;
                 /** box display_page_info */
-                ssnprintf(tmp_str, MAXLEN - 1, " Line %d, Page %d/%d",
+                ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                           pick->tbl_line + 1, pick->tbl_page + 1,
                           pick->tbl_pages);
-                strnz__cat(tmp_str, "         ", MAXLEN - 1);
-                tmp_str[22] = '\0';
-                mvwaddstr(pick->box, pick->separator_line, 2, tmp_str);
+                cbox_hsplit_text(pick->box, tmp_str, pick->separator_line);
                 if (pick->p_view_files)
                     if (strcmp(pick->d_object[pick->d_idx], view_file) != 0) {
                         strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);
@@ -1022,7 +1024,7 @@ int picker(Init *init, char *field) {
             case KEY_END:
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
-                               pick->tbl_col_width);
+                               pick->tbl_col_width - 1);
                 int display_tbl_page = pick->tbl_page;
                 pick->d_idx = pick->d_cnt - 1;
                 pick->tbl_page = pick->d_idx / (pick->lines * pick->tbl_cols);
@@ -1048,7 +1050,7 @@ int picker(Init *init, char *field) {
                 }
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
-                               pick->tbl_col_width);
+                               pick->tbl_col_width - 1);
                 if (pick->tbl_col > 0)
                     pick->tbl_col--;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
@@ -1064,7 +1066,7 @@ int picker(Init *init, char *field) {
                 }
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
-                               pick->tbl_col_width);
+                               pick->tbl_col_width - 1);
                 if (pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_line < pick->lines - 1)
                     pick->tbl_line++;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
@@ -1077,7 +1079,7 @@ int picker(Init *init, char *field) {
             case KEY_UP:
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
-                               pick->tbl_col_width);
+                               pick->tbl_col_width - 1);
                 if (pick->tbl_line > 0)
                     pick->tbl_line--;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
@@ -1094,7 +1096,7 @@ int picker(Init *init, char *field) {
                 }
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
-                               pick->tbl_col_width);
+                               pick->tbl_col_width - 1);
                 /** pick->obj_idx += pick->tbl_lines -> next column */
                 if (pick->tbl_page * pick->lines * pick->tbl_cols + (pick->tbl_col + 1) * pick->lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_col < pick->tbl_cols - 1)
                     pick->tbl_col++;
