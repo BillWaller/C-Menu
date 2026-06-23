@@ -2,6 +2,16 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-22T20:02:27-05:00* - FIX: view_engine.c: pad_refresh was placed before update_panels/doupdate, so NCurses was correctly updating pad, and then the panels, which overwrote the pad. Fixed that. 
+
+*2026-06-21T23:34:48-05:00* - FIX: Fix a few memory leaks and some minor bugs after adding the UALUI code, but a 32 byte win_box panel is definitely lost. I am still tracking it down, but C-Menu seems to be functioning properly. A valgrind output file has been saved in the C-Menu/src directory. 
+
+*2026-06-20T18:25:44-05:00* - REFACTOR: UI_NCURSES isolation and Uniform Abstraction Layer User Interface (UI_BACKEND) Implementation 
+
+*2026-06-20T13:42:23-05:00* - DOCS: Update README.md 
+
+*2026-06-20T11:39:49-05:00* - DOCS: Update CHANGELOG.md 
+
 *2026-06-20T11:25:44-05:00* - FIX BUG: Replaced internal border function with NCurses setborder(), but that won't work for Pick because it has a split-window, so this fix reverts to the internal border function for Pick. The idea behind abandoning internal code for setborder() is to standardize the code and reduce maintenance. The internal border function for split-windows works fine, so it will be retained for Pick. 
 
 *2026-06-19T23:55:27-05:00* - FEATURE: Update README and CHANGELOG 

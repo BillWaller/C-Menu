@@ -1,28 +1,10 @@
-![C-Menu Announcement](screenshots/Announcement.png)
-
-*2026-06-19T23:40:50-05:00* - REFACTOR: The goal of this refactor is to decouple the core logic from the UI library, and to create a uniform abstraction layer user interface (UALUI) to support multiple backends. The steps will be as follows:
-
-1. Create a UALUI that defines UI operations, such as drawing, input handling, and event processing.
-2. Isolate library dependent UI code behind the UALUI.
-3. Refactor the core logic, replacing NCurses specific code with UALUI code.
-4. Test the refactor to ensure that there are no regressions or breakages in existing functionality.
-5. Add support for new backends, such as Notcurses and a modern graphics library.
-
-The refactoring will proceed incrementally, maintaining both the existing NCurses interface and the UALUI simultaneously. This will ensure that the refactor does not introduce any regressions or break any existing functionality, while also allowing us to test the new UALUI code and the new backends as they are developed.
-
-This is an exciting time for the project, and I look forward to seeing the improvements that will come from this refactor. Thank you to everyone who has contributed to the project so far, and I encourage everyone to continue contributing and providing feedback as we move forward.
-
-Note: A substantial portion of the UALUI framework is already in place under
-C-Menu/src/ui.  
-
-[C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md)
-
 ![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
-
 
 C-Menu is a fast, modular toolkit for building terminal-based user interfaces on Linux. Its components can be combined to create responsive menus, forms, pick lists, viewers, file-finding workflows, and administrative tools without the overhead of a heavyweight GUI stack.
 
 Written in C and designed for speed, C-Menu works well for developer tools, system administration workflows, kiosk-style interfaces, and resource-constrained environments.
+
+[C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md)
 
 ## Why C-Menu?
 
