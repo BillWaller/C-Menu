@@ -948,8 +948,6 @@ void *finder(void *arg) {
             } else {
                 if (is_dirsys(entry->d_name))
                     continue;
-                if (is_hidden(entry->d_name))
-                    continue;
                 // Determine the effective type of the entry. We use the st_mode
                 // field from the stat struct to determine the file type by
                 // applying the S_IFMT mask and shifting it to get a value that

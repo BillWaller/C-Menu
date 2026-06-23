@@ -2,6 +2,14 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-23T11:12:17-05:00* - CLEANUP: in anticipation of UALUI integration with the new UI engine. This commit includes modifications to various source files, including curskeys.c, dwin.c, fields.c, form_engine.c, cm.h, init_view.c, menu.c, menu_engine.c, pick_engine.c, ui_ncurses.c, ui_ncurses_internal.h, and view_engine.c. The changes aim to improve the overall functionality and user experience of the application. 
+
+*2026-06-23T09:08:06-05:00* - FIX: dwin.c someone inadvertently removed a line of code, getmaxyx(), causing core dump on start-up. Fixed that. 
+
+*2026-06-22T21:24:47-05:00* - FIX: Ncurses documentation states that libpanelw should be placed before libncursesw in the link order. This commit updates the Makefile to reflect this change, ensuring that libpanelw is linked before libncursesw. This adjustment is crucial for proper functionality and compatibility with the ncurses library. 
+
+*2026-06-22T21:13:04-05:00* - DOCS: CHANGELOG.md updated with new release notes. 
+
 *2026-06-22T20:02:27-05:00* - FIX: view_engine.c: pad_refresh was placed before update_panels/doupdate, so NCurses was correctly updating pad, and then the panels, which overwrote the pad. Fixed that. 
 
 *2026-06-21T23:34:48-05:00* - FIX: Fix a few memory leaks and some minor bugs after adding the UALUI code, but a 32 byte win_box panel is definitely lost. I am still tracking it down, but C-Menu seems to be functioning properly. A valgrind output file has been saved in the C-Menu/src directory. 
