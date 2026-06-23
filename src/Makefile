@@ -11,18 +11,19 @@ ifneq ($(CMENU_HOME),)
 endif
 DISPLAY_MANIFEST=0
 BUILD_TYPE=Debug
+UI=-DUAL_UI
+UI=-DNCURSES_UI
 ifeq ($(BUILD_TYPE), Release)
-	CFLAGS=-Ofast -flto -pthread -s -fPIC
+	CFLAGS=-Ofast -flto -pthread -s -fPIC $(UI)
 	LINKOPT= -pthread -flto -s
 else
-	CFLAGS:=-O0 -g3 -pthread -fPIC -fno-omit-frame-pointer -rdynamic
-#	-DUI
+	CFLAGS:=-O0 -g3 -pthread -fPIC -fno-omit-frame-pointer -rdynamic $(UI)
 #	-DDEBUG_IMMEDOK
 	LINKOPT=-pthread
 endif
 INCLUDE_DIRS:=-I./include -I./ui
 CFLAGS+=$(INCLUDE_DIRS)
-PACKAGES=panelw ncursesw
+PACKAGES= panelw ncursesw
 CFLAGS+=$(shell pkg-config --cflags $(PACKAGES))
 CFLAGS+=-Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Werror -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-value -Wno-unused-const-variable -Wno-unused-macros
 MAJOR=0
@@ -69,6 +70,10 @@ COMMON_OBJS+=$(UI_OBJS)
 
 LDFLAGS:=$(LINKOPT) -L. -lcm -lm $(shell pkg-config --libs $(PACKAGES)) \
 		 -Wl,-rpath,$(RPATH)
+SHARED_LDFLAGS:=-Wl,-Map=output.map \
+		-Wl,-ffunction-sections \
+		-Wl,-fdata-sections \
+		-Wl,--gc-sections
 
 .PHONY: all config help install man install_man clean uninstall helgrind valgrind
 
@@ -140,7 +145,7 @@ rsh_pam:	rsh.c
 	$(CC) 	-c $< -fPIC -o $@
 
 $(LIB_SHARED): $(LIB_OBJS)
-	$(CC) 	-shared -o $@ $^
+	$(CC) 	-shared -o $@ $^ $(SHARED_LDFLAGS)
 
 $(LIB_STATIC): $(LIB_OBJS)
 	ar rcs $@ $^

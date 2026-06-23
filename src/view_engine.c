@@ -255,7 +255,6 @@ int view_cmd_processor(Init *init) {
                     n_cmd = 1;
             }
             shift = (int)n_cmd;
-            // swidth = view->smaxcol - view->smincol;
             if (view->pmincol - shift > 0)
                 view->pmincol -= shift;
             else
@@ -706,6 +705,7 @@ int get_cmd_char(View *view, off_t *n) {
     char cmd_str[33];
     cmd_str[0] = '\0';
     top_panel(view->cmdln.pan);
+
     update_panels();
     doupdate();
     wmove(view->cmdln.win, view->cmd_line, view->curx);
@@ -1269,9 +1269,6 @@ void view_display_page(View *view) {
         wmove(view->pad, view->cury, 0);
         wclrtobot(view->pad);
     }
-    // update_panels();
-    // doupdate();
-    // pad_refresh(view);
     view->page_bot_ln = view->ln;
 }
 /** @brief Scroll N Lines

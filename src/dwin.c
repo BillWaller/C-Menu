@@ -282,9 +282,6 @@ bool open_curses(SIO *sio) {
     werase(stdscr);
     update_panels();
     doupdate();
-#ifdef DEBUG_IMMEDOK
-    immedok(stdscr, true);
-#endif
     win_ptr = -1;
     return sio;
 }
@@ -910,13 +907,15 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     @return 0 if successful, 1 if error */
 int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
             bool win_pair) {
+    int maxy = 0;
+    int maxx = 0;
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
-    wlines = min(wlines, LINES - 2);
-    wcols = min(wcols, COLS - 2);
-
+    getmaxyx(stdscr, maxy, maxx);
+    wlines = min(wlines, maxy - 2);
+    wcols = min(wcols, maxx - 2);
     win_ptr++;
     // ------------------->    win_box    <-------------------
     win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
@@ -992,9 +991,6 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
     panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
     wbkgrnd(win_win2[win_ptr], &CC_NT);
     win_flags[win_ptr] |= WF_WIN2;
-#ifdef DEBUG_IMMEDOK
-    immedok(win_win2[win_ptr], true);
-#endif
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
     idcok(win_win2[win_ptr], false);
@@ -1041,9 +1037,6 @@ void win_resize(int wlines, int wcols, char *title) {
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
     scrollok(win_win[win_ptr], true);
-#ifdef DEBUG_IMMEDOK
-    immedok(win_win[win_ptr], true);
-#endif
 }
 /** win_redraw
     @brief Redraw the specified window
