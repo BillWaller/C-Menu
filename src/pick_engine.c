@@ -1483,9 +1483,9 @@ void new_view_file(Init *init, char *file) {
             next_page(view);
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            pad_refresh(view);
             update_panels();
             doupdate();
+            pad_refresh(view);
         }
     }
 }
