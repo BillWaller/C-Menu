@@ -22,7 +22,7 @@ else
 endif
 INCLUDE_DIRS:=-I./include -I./ui
 CFLAGS+=$(INCLUDE_DIRS)
-PACKAGES=ncursesw panelw
+PACKAGES=panelw ncursesw
 CFLAGS+=$(shell pkg-config --cflags $(PACKAGES))
 CFLAGS+=-Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Werror -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-value -Wno-unused-const-variable -Wno-unused-macros
 MAJOR=0
