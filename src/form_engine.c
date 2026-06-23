@@ -92,10 +92,6 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     form->brktl = mkcc(cp_brackets, WA_NORMAL, &form->brackets[0]);
     form->brktr = mkcc(cp_brackets, WA_NORMAL, &form->brackets[1]);
 
-#ifdef DEBUG_IMMEDOK
-    immedok(form->win, true);
-    immedok(form->box, true);
-#endif
     rc = form_engine(init);
     destroy_chyron(form->chyron);
     if (form->win)
@@ -513,8 +509,7 @@ unsigned int display_form(Init *init) {
     form->cols += 2;
     if (form->cols > (COLS - form->begx - 3))
         form->cols = COLS - form->begx - 3;
-    if (box_new(form->lines, form->cols, form->begy, form->begx, form->title,
-                true)) {
+    if (box_new(form->lines, form->cols, form->begy, form->begx, form->title)) {
         strnz__cpy(tmp_str, "box_new failed: ", MAXLEN - 1);
         strnz__cat(tmp_str, form->title, MAXLEN - 1);
         Perror(tmp_str);

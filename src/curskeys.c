@@ -40,11 +40,11 @@ int popup_ckeys() {
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
                   BUTTON_CTRL | BUTTON_ALT,
               NULL);
-    if (box_new(lines, cols, begy, begx, Title, true)) {
+    if (box_new(lines, cols, begy, begx, Title)) {
         strnz__cpy(tmp, "box_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
         Perror(tmp);
-        return 0;
+        exit(EXIT_FAILURE);
     }
     // box = win_box[win_ptr];
     win = win_win[win_ptr];

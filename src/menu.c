@@ -59,10 +59,9 @@ int main(int argc, char **argv) {
     initialize_local_colors(sio);
     sig_prog_mode();
     capture_curses_tioctl();
-    // win_init_attrs();
-    // view_stack_init(&view_stack, MAX_VIEWS);
 #else
     open_curses(sio);
+    initialize_local_colors(sio);
 #endif
     base_name(pgm_name, argv[0]);
     if (!strcmp(pgm_name, "menu")) {
@@ -85,15 +84,8 @@ int main(int argc, char **argv) {
         }
     } else if (!strcmp(pgm_name, "ckeys"))
         popup_ckeys();
-#ifdef UI
-    free(sio->screen);
-    free(sio->ui);
-    free(sio->ui_cfg);
-#endif
     destroy_view(init);
     destroy_curses();
     destroy_init(init);
-    // view_stack_free(&view_stack);
-    // end_pgm();
     exit(EXIT_SUCCESS);
 }

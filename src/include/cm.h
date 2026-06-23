@@ -29,6 +29,13 @@ extern int cmenu_log_fd;
 #define nullptr NULL
 #endif
 
+#define MAXWIN 30 /**< maximum number of windows that can be created */
+extern UiSurface *ui_box[MAXWIN];
+extern UiSurface *ui_win[MAXWIN];
+extern UiSurface *ui_win2[MAXWIN];
+extern SCREEN *screen;
+extern FILE *tty_fp;
+
 #define MAX_ARGS 64   /**< maximum number of arguments for external commands */
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
@@ -427,8 +434,8 @@ extern bool capture_curses_tioctl();
 extern bool restore_curses_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
-extern int box_new(int, int, int, int, char *, bool);
-extern int box2_new(int, int, int, int, char *, bool);
+extern int box_new(int, int, int, int, char *);
+extern int box2_new(int, int, int, int, char *);
 extern int win_new(int, int);
 extern int win2_new(int, int, int, int);
 extern int box_title(WINDOW *, char *);

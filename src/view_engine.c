@@ -255,6 +255,7 @@ int view_cmd_processor(Init *init) {
                     n_cmd = 1;
             }
             shift = (int)n_cmd;
+            // swidth = view->smaxcol - view->smincol;
             if (view->pmincol - shift > 0)
                 view->pmincol -= shift;
             else

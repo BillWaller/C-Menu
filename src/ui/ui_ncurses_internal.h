@@ -29,7 +29,6 @@ struct UiRuntime {
     bool cursor_visible;
     int rows;
     int cols;
-    SCREEN *screen;
 };
 
 /** @struct UiSurface

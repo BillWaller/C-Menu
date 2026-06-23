@@ -59,7 +59,7 @@ int init_view_full_screen(Init *init) {
         return -1;
     }
     view->win.pan = new_panel(view->win.win);
-    wbkgrnd(view->win.win, &CC_DATA1);
+    wbkgrnd(view->win.win, &CC_NT);
 
     view->lnno.win = derwin(view->win.win, LINES - 1, COLS, 0, 0);
     if (view->lnno.win == nullptr) {
@@ -358,9 +358,6 @@ void view_win_resize(Init *init, char *title) {
             wbkgrndset(view->lnno.win, &CC_LN);
             scrollok(view->lnno.win, true);
             wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
-#ifdef DEBUG_IMMEDOK
-            immedok(view->lnno.win, true);
-#endif
         } else {
             mvwin(view->lnno.win, view->begy + 1, view->begx + 1);
             wresize(view->lnno.win, view->ln_win_lines, view->ln_win_cols);

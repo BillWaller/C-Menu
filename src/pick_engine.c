@@ -835,7 +835,7 @@ int open_pick_win(Init *init) {
     Pick *pick = init->pick;
     pick = init->pick;
     if (box2_new(pick->lines, pick->width, pick->begy, pick->begx,
-                 pick->title, true)) {
+                 pick->title)) {
         ssnprintf(tmp_str, MAXLEN - 1, "box2_new(%d, %d, %d, %d, %s) failed",
                   pick->lines, pick->width, pick->begy, pick->begx,
                   pick->title);

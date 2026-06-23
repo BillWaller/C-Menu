@@ -52,8 +52,7 @@ unsigned int menu_engine(Init *init) {
     menu->choice_max_len = 0;
     menu->text_max_len = 0;
     parse_menu_description(init);
-    if (box_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title,
-                true)) {
+    if (box_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title)) {
         ssnprintf(tmp_str, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed",
                   menu->lines, menu->cols, menu->begy, menu->begx, menu->title);
         Perror(tmp_str);
@@ -62,10 +61,6 @@ unsigned int menu_engine(Init *init) {
     menu->win = win_win[win_ptr];
     menu->box = win_box[win_ptr];
 
-#ifdef DEBUG_IMMEDOK
-    immedok(menu->win, true);
-    immedok(menu->box, true);
-#endif
     scrollok(menu->win, false);
     int len;
     mbstate_t mbstate;
@@ -153,9 +148,6 @@ unsigned int menu_cmd_processor(Init *init) {
     cchar_t cc = {0};
     Menu *menu = init->menu;
     keypad(menu->win, TRUE);
-#ifdef DEBUG_IMMEDOK
-    immedok(menu->win, TRUE);
-#endif
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
     scrollok(menu->win, FALSE);
@@ -164,11 +156,9 @@ unsigned int menu_cmd_processor(Init *init) {
 
     while (1) {
         wbkgrndset(menu->win, &CC_NT_REV);
-        // wattron(menu->win, A_REVERSE);
         mvwaddstr_fill(menu->win, menu->line_idx, 0,
                        menu->line[menu->line_idx]->choice_text, menu->cols);
         wbkgrndset(menu->win, &CC_NT);
-        // wattroff(menu->win, A_REVERSE);
         // Highlight the letter of the currently selected menu choice
         wchar_t wstr[2] = {L'\0', L'\0'};
         len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,
@@ -180,7 +170,6 @@ unsigned int menu_cmd_processor(Init *init) {
         setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl_rev, nullptr);
         mvwadd_wch(menu->win, menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos, &cc);
-        // wrefresh(menu->win);
 
         // Wait for user input and process it
         event.y = event.x = -1;

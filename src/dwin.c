@@ -35,12 +35,30 @@ enum WinFlags {
     WF_WIN2 = 0b00000100
 };
 
+SCREEN *screen;
+FILE *tty_fp;
+UiSurface *ui_win[MAXWIN];
+UiSurface *ui_win2[MAXWIN];
+UiSurface *ui_box[MAXWIN];
+UiRect rect;
+
+WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
+WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
+WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
+
+PANEL *panel_win2[MAXWIN];
+PANEL *panel_win[MAXWIN];
+PANEL *panel_box[MAXWIN];
+
+int win_flags[MAXWIN];
+
+void ui_set_rect(UiRect *, int, int, int, int);
 int win2_new(int wlines, int wcols, int wbegy, int wbegx);
 bool open_curses(SIO *);
 bool init_clr_palette(SIO *);
 void destroy_curses();
-int box_new(int, int, int, int, char *, bool);
-int box2_new(int, int, int, int, char *, bool);
+int box_new(int, int, int, int, char *);
+int box2_new(int, int, int, int, char *);
 void cbox_hsplit(WINDOW *, int);
 void cbox_hsplit_text(WINDOW *, char *, int);
 
@@ -87,7 +105,6 @@ cchar_t mkcc(int, attr_t, char *);
 
 WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
-SCREEN *screen;
 // SIO *sio; /**< Global pointer to SIO struct for terminal and color settings
 
 cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran;
@@ -126,21 +143,6 @@ double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .mi
 double GREEN_GAMMA = 1.2; /**< Gamma correction value for green colors. Set in .minitrc */
 double BLUE_GAMMA = 1.2;  /**< Gamma correction value for blue colors. Set in .minitrc */
 
-// WINDOW *win_main;
-// PANEL *panel_main;
-
-// WINDOW *win;  /**< generic window pointer, used for various purposes */
-// PANEL *panel; /**< generic panel pointer, used for various purposes */
-
-WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
-WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
-WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
-
-PANEL *panel_win2[MAXWIN];
-PANEL *panel_win[MAXWIN];
-PANEL *panel_box[MAXWIN];
-
-int win_flags[MAXWIN];
 int exit_code;
 unsigned int cmd_key;
 bool f_sigwench = false;
@@ -163,11 +165,6 @@ char em2[MAXLEN];
 char em3[MAXLEN];
 int cp_box;
 int cp_cmdln;
-int cp_data1;
-int cp_data2;
-int cp_data3;
-int cp_data4;
-int cp_data5;
 int cp_title;
 int cp_nt;
 int cp_nt_rev;
@@ -184,11 +181,6 @@ cchar_t CC_BG;
 cchar_t CC_BOX;
 cchar_t CC_LN;
 cchar_t CC_CMDLN;
-cchar_t CC_DATA1;
-cchar_t CC_DATA2;
-cchar_t CC_DATA3;
-cchar_t CC_DATA4;
-cchar_t CC_DATA5;
 cchar_t CC_TITLE;
 cchar_t CC_NT;
 cchar_t CC_NT_REV;
@@ -201,7 +193,6 @@ cchar_t CC_FILL_CHAR;
 cchar_t CC_RAN;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
-FILE *ncurses_fp;
 
 /** @brief Initialize window attributes
     @ingroup window_support
@@ -239,8 +230,8 @@ bool open_curses(SIO *sio) {
         exit(0);
     }
     // open the terminal device for NCurses input and output
-    ncurses_fp = fopen(sio->tty_name, "r+");
-    if (ncurses_fp == nullptr) {
+    tty_fp = fopen(sio->tty_name, "r+");
+    if (tty_fp == nullptr) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "fopen(sio->tty_name) failed ", MAXLEN - 1);
         strnz__cat(emsg0, tmp_str, MAXLEN - 1);
@@ -249,7 +240,7 @@ bool open_curses(SIO *sio) {
     }
     // newterm() allows us to specify a tty device for NCurses input and
     // output.
-    screen = newterm(nullptr, ncurses_fp, ncurses_fp);
+    screen = newterm(nullptr, tty_fp, tty_fp);
     if (screen == nullptr) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "newterm failed ", MAXLEN - 1);
@@ -273,15 +264,11 @@ bool open_curses(SIO *sio) {
     }
     for (int i = 0; i < MAXWIN; i++)
         win_flags[i] = 0;
-    initialize_local_colors(sio);
     noecho();
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
     wbkgrnd(stdscr, &CC_NORM);
-    werase(stdscr);
-    update_panels();
-    doupdate();
     win_ptr = -1;
     return sio;
 }
@@ -313,11 +300,6 @@ void initialize_local_colors(SIO *sio) {
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
     cp_box = get_clr_pair(CLR_BOX_FG, CLR_BOX_BG);
-    cp_data1 = get_clr_pair(CLR_YELLOW, CLR_RED);
-    cp_data2 = get_clr_pair(CLR_YELLOW, CLR_GREEN);
-    cp_data3 = get_clr_pair(CLR_BLACK, CLR_YELLOW);
-    cp_data4 = get_clr_pair(CLR_YELLOW, CLR_BLUE);
-    cp_data5 = get_clr_pair(CLR_YELLOW, CLR_CYAN);
     cp_title = get_clr_pair(CLR_TITLE_FG, CLR_TITLE_BG);
     cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
     cp_cmdln = get_clr_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
@@ -332,11 +314,6 @@ void initialize_local_colors(SIO *sio) {
     CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
     CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
     CC_CMDLN = mkcc(cp_cmdln, WA_NORMAL, " ");
-    CC_DATA1 = mkcc(cp_data1, WA_NORMAL, " ");
-    CC_DATA2 = mkcc(cp_data2, WA_NORMAL, " ");
-    CC_DATA3 = mkcc(cp_data3, WA_NORMAL, " ");
-    CC_DATA4 = mkcc(cp_data4, WA_NORMAL, " ");
-    CC_DATA5 = mkcc(cp_data5, WA_NORMAL, " ");
     CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
@@ -444,7 +421,7 @@ int rgb_to_xterm256_idx(RGB *rgb) {
     }
 }
 /** xterm256_idx_to_rgb
-    @brief Convert XTerm 256 color index to RGB color
+    @brief Convert XTerm 256 color index to RGB
     @ingroup color_management
     @param idx XTerm 256 color index
     @return RGB color
@@ -641,7 +618,7 @@ void destroy_curses() {
         win_del();
     endwin();
     delscreen(screen);
-    fclose(ncurses_fp);
+    fclose(tty_fp);
     f_curses_open = false;
     restore_shell_tioctl();
     sig_dfl_mode();
@@ -857,6 +834,13 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     }
     return 0; // Invalid Unicode code point
 }
+void ui_set_rect(UiRect *r, int y, int x, int h, int w) {
+    r->y = y;
+    r->x = x;
+    r->rows = h;
+    r->cols = w;
+}
+
 /** @brief Strips ANSI SGR escape sequences (ending in 'm') from string s to d
     @brief Create a new window with optional box and title
     @ingroup window_support
@@ -865,10 +849,8 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     @param wbegy Beginning Y position
     @param wbegx Beginning X position
     @param wtitle Window title
-    @param win_pair If true, creates a pair of windows (box and inner window)
     @return 0 if successful, 1 if error */
-int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
-             bool win_pair) {
+int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
@@ -886,13 +868,10 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     wbkgrndset(win_box[win_ptr], &CC_BOX);
     wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
     box_title(win_box[win_ptr], wtitle);
-    win_flags[win_ptr] = WF_BOX;
     win_win[win_ptr] = nullptr;
     win_win2[win_ptr] = nullptr;
-    if (win_pair) {
-        win_new(wlines, wcols);
-        win2_new(2, wcols, wlines + 2, 1);
-    }
+    win_new(wlines, wcols);
+    win2_new(2, wcols, wlines + 2, 1);
     return 0;
 }
 /** box_new
@@ -903,12 +882,9 @@ int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     @param wbegy Beginning Y position
     @param wbegx Beginning X position
     @param wtitle Window title
-    @param win_pair If true, creates a pair of windows (box and inner window)
     @return 0 if successful, 1 if error */
-int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
-            bool win_pair) {
-    int maxy = 0;
-    int maxx = 0;
+int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
+    int maxy, maxx;
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
@@ -917,6 +893,7 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     wlines = min(wlines, maxy - 2);
     wcols = min(wcols, maxx - 2);
     win_ptr++;
+    ui_set_rect(&rect, wbegy, wbegx, wlines + 2, wcols + 2);
     // ------------------->    win_box    <-------------------
     win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
@@ -929,9 +906,7 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle,
     wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
     win_flags[win_ptr] = WF_BOX;
     box_title(win_box[win_ptr], wtitle);
-    win_win[win_ptr] = nullptr;
-    if (win_pair)
-        win_new(wlines, wcols);
+    win_new(wlines, wcols);
     return 0;
 }
 int box_title(WINDOW *box, char *title) {
@@ -1222,7 +1197,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((COLS - msg_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(5, msg_l + 2, line, pos, title, true)) {
+    if (box_new(5, msg_l + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         destroy_chyron(chyron);
@@ -1286,7 +1261,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((COLS - msg_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(5, msg_l + 2, line, pos, title, true)) {
+    if (box_new(5, msg_l + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         destroy_chyron(chyron);
@@ -1341,7 +1316,7 @@ int Perror(char *emsg_str) {
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(2, len + 2, line, pos, title, true)) {
+    if (box_new(2, len + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
         destroy_chyron(chyron);
@@ -1395,7 +1370,7 @@ wait_mk_win(Chyron *chyron, char *title) {
     len = max(len, 40);
     col = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (box_new(2, len + 2, line, col, title, true)) {
+    if (box_new(2, len + 2, line, col, title)) {
         ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 4,
                   line, line, col, title);
         abend(-1, title);
@@ -1455,7 +1430,7 @@ bool action_disposition(char *title, char *action_str) {
     len = max(strlen(title), strlen(action_str));
     col = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (box_new(2, len + 2, line, col, title, true)) {
+    if (box_new(2, len + 2, line, col, title)) {
         ssnprintf(em0, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 4,
                   line, line, col, title);
         Perror(em0);
@@ -1969,17 +1944,9 @@ int vgetch(WINDOW *win, int n) {
         halfdelay(1);
     else
         halfdelay(min(255, max(0, n * 10)));
-    // tcflush(2, TCIFLUSH);
     curs_set(1);
     do {
         c = wgetch(win);
-        //     curs_set(0);
-        //     if (sig_received != 0) {
-        //         if (handle_signal(sig_received))
-        //             c = display_error(em0, em1, em2, nullptr);
-        //         if (c == 'q' || c == 'Q' || c == KEY_F(9))
-        //             exit(EXIT_FAILURE);
-        //     }
         if (n > 0 && c == ERR) {
             c = 0;
             break;

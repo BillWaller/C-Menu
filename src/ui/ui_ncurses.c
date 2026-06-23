@@ -23,9 +23,6 @@
  * needed.
  */
 
-// ncurses state globals
-static SCREEN *screen = NULL;
-
 /** * @brief Create a new UI surface.
  * @ingroup ui_ncurses
  * @param ui The UI runtime instance.
@@ -181,7 +178,6 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     if (!ui)
         return NULL;
     char tty_name[XLEN];
-    FILE *tty_fp;
 
     // Get the name of the terminal device
     if (ttyname_r(STDERR_FILENO, tty_name, sizeof(tty_name)) != 0) {
@@ -195,13 +191,13 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         exit(EXIT_FAILURE);
     }
     // newterm() allows us to specify a tty device for NCurses input and
-    // output.
-    ui->screen = newterm(nullptr, tty_fp, tty_fp);
-    if (ui->screen == nullptr) {
+    // output. nullptr for the first argument means to use the default terminal type.
+    screen = newterm(nullptr, tty_fp, tty_fp);
+    if (screen == nullptr) {
         Perror("ui_init: newterm() failed");
         exit(EXIT_FAILURE);
     }
-    set_term(ui->screen);
+    set_term(screen);
     f_curses_open = true;
     if (!has_colors()) {
         ui_shutdown(ui);
