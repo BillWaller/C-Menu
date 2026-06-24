@@ -21,7 +21,7 @@
 :     Cash Receipts
 !form receipt.f -i receipt.dat -o receipt.dat
 :     Rustlings Source
-!pick -S "lf rustlings -d3 \".*\.rs$\"" -n 1 -T "Rustlings Source - Edit" -c nvim.sh %%
+!pick -S "lf -S rustlings -d3 \".*exercises.*\.rs$\"" -v -n 1 -T "Rustlings Source - Edit" -c "nvim %%"
 :     -PView Manual Pages
 !pick -S "listman.sh" -n 1 -T \"Select Manual Page to View\" -c "readman.sh %%"
 :     Edit C-Menu Description Files

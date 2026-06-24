@@ -2,6 +2,8 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-23T12:33:00-05:00* - FIX: lf somehow regressed to a previous version in which hidden directories were not being traversed unless the "f_include_hidden" option was set to true. This commit fixes that regression and ensures that hidden directories are always traversed, regardless of the "f_include_hidden" option. 
+
 *2026-06-23T11:12:17-05:00* - CLEANUP: in anticipation of UALUI integration with the new UI engine. This commit includes modifications to various source files, including curskeys.c, dwin.c, fields.c, form_engine.c, cm.h, init_view.c, menu.c, menu_engine.c, pick_engine.c, ui_ncurses.c, ui_ncurses_internal.h, and view_engine.c. The changes aim to improve the overall functionality and user experience of the application. 
 
 *2026-06-23T09:08:06-05:00* - FIX: dwin.c someone inadvertently removed a line of code, getmaxyx(), causing core dump on start-up. Fixed that. 

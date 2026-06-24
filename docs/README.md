@@ -1,30 +1,10 @@
 ![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
 
-## ***New***: New "-v" option for 'Pick'
-
-The latest release of C-Menu includes a new "-v" option that enables View to
-display file content as you browse with Pick. This allows you to see file contents in real time as you navigate through file lists, making it easier to find the right file without opening it separately. To use this feature, simply add the "-v" option to your Pick command, and View will automatically update to show the content of the currently highlighted file. This enhancement is designed to improve your workflow and make file selection more efficient.
-
-As you move the selection bar through the list of files in pick, the content of the currently highlighted file will be displayed in view, and the response is lightning fast.
-
-If you press the F2 key from the Pick window while browsing with pick with the
-"-v" option enabled, controls will be passed to view, allowing you to scroll
-or search the file content. From the View window, you can type "v" to edit the file
-in your editor of choice. When you quit the editor, you will return to the view
-window, and the file content will be updated to reflect any changes you made. If you quit view, you will return to the pick window.
-
-Beware: Because this feature release involved a complete refactor of the window
-management code, and it is not yet fully tested, there are still a number of known bugs. If you encounter any issues, please report them on the GitHub issue tracker so we can address them in future updates. I expect the related bugs to persist for another week or two, but I wanted to get the feature out there for users to try as soon as possible.
-
-[CHANGELOG](docs/CHANGELOG.md) has more details on the new features and the related refactor.
-
-![Pick with View Integration](screenshots/FileBrowser.png)
-
-## What is C-Menu?
-
 C-Menu is a fast, modular toolkit for building terminal-based user interfaces on Linux. Its components can be combined to create responsive menus, forms, pick lists, viewers, file-finding workflows, and administrative tools without the overhead of a heavyweight GUI stack.
 
 Written in C and designed for speed, C-Menu works well for developer tools, system administration workflows, kiosk-style interfaces, and resource-constrained environments.
+
+[C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md)
 
 ## Why C-Menu?
 
