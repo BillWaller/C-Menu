@@ -19,8 +19,8 @@
     @date 2026-02-09
  */
 #define _GNU_SOURCE
+#include "include/cm.h"
 #include <argp.h>
-#include <cm.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>

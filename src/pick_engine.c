@@ -261,6 +261,7 @@ void destroy_pick_view(Init *init) {
             view->buf = nullptr;
         }
     }
+    destroy_view_win(init);
     destroy_view(init);
 }
 /** @brief Reads pick input from file pointer and saves objects into pick
@@ -423,14 +424,14 @@ int pick_engine(Init *init) {
                 if (f_processed) {
                     mvwaddstr(pick->win2, 0, 0, "Selection Processed");
                     wclrtoeol(pick->win2);
-                    update_panels();
+                    // update_panels();
                 }
             }
         }
         deselect_object(pick);
     } while (1);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
     destroy_chyron(pick->chyron);
     return (rc);
 }
@@ -834,10 +835,11 @@ int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
     Pick *pick = init->pick;
     pick = init->pick;
-    if (box2_new(pick->lines, pick->width, pick->begy, pick->begx,
-                 pick->title)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "box2_new(%d, %d, %d, %d, %s) failed",
-                  pick->lines, pick->width, pick->begy, pick->begx,
+    int split_win_lines = 2; // 1 text, 1 chyron
+    if (box_hsplit_new(pick->lines, split_win_lines, pick->width, pick->begy, pick->begx,
+                       pick->title)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "box_hsplit_new(%d, %d, %d, %d, %d, %s) failed",
+                  pick->lines, split_win_lines, pick->width, pick->begy, pick->begx,
                   pick->title);
         Perror(tmp_str);
         return (1);
@@ -953,7 +955,7 @@ int picker(Init *init, char *field) {
                 ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                           pick->tbl_line + 1, pick->tbl_page + 1,
                           pick->tbl_pages);
-                cbox_hsplit_text(pick->box, tmp_str, pick->separator_line);
+                border_hsplit_text(pick->box, tmp_str, pick->separator_line);
                 if (pick->p_view_files)
                     if (strcmp(pick->d_object[pick->d_idx], view_file) != 0) {
                         strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);
@@ -962,9 +964,7 @@ int picker(Init *init, char *field) {
                 mouse_win = nullptr;
                 // 1
                 top_panel(panel_win[win_ptr]);
-                curs_set(1);
                 wmove(pick->win, pick->y, pick->x);
-                top_panel(panel_win[win_ptr]);
                 update_panels();
                 doupdate();
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
@@ -1466,7 +1466,7 @@ void new_view_file(Init *init, char *file) {
     strnz__cpy(view->provider_cmd, "tree-sitter highlight ", MAXLEN - 1);
     strnz__cat(view->provider_cmd, file, MAXLEN - 1);
     strnz__cpy(view->title, file, MAXLEN - 1);
-    box_title(view->box.win, view->title);
+    border_title(view->box.win, view->title);
     if (view_init_input(view, file) == 0) {
         if (view->buf) {
             view->f_eod = 0;

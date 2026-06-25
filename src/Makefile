@@ -11,15 +11,15 @@ ifneq ($(CMENU_HOME),)
 endif
 DISPLAY_MANIFEST=0
 BUILD_TYPE=Debug
-UI=-DUAL_UI
-UI=-DNCURSES_UI
+UI="-DUAL_UI"
+UI="-DNCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
-	CFLAGS=-Ofast -flto -pthread -s -fPIC $(UI)
+	CFLAGS=-Ofast -flto -s -fPIC -pthread $(UI)
 	LINKOPT= -pthread -flto -s
 else
-	CFLAGS:=-O0 -g3 -pthread -fPIC -fno-omit-frame-pointer -rdynamic $(UI)
+	CFLAGS:=-O0 -g3 -fPIC -pthread -fno-omit-frame-pointer -rdynamic $(UI)
+	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
 #	-DDEBUG_IMMEDOK
-	LINKOPT=-pthread
 endif
 INCLUDE_DIRS:=-I./include -I./ui
 CFLAGS+=$(INCLUDE_DIRS)
@@ -43,7 +43,8 @@ PAM_DIR:=/etc/pam.d
 CX:=-std=c23
 CC:=gcc $(CX) $(INCLUDE_DIRS) $(CFLAGS)
 
-BINEXES:=menu form pick view ckeys whence rsh rsh_static rsh_pam \
+BINEXES:=menu form pick view ckeys \
+		whence rsh rsh_static rsh_pam \
 		iloan amort enterchr enterstr lf stripansi detach
 
 MANPAGES:=cmenu.1.gz lf.1.gz rsh.1.gz
@@ -51,6 +52,9 @@ MANPAGES:=cmenu.1.gz lf.1.gz rsh.1.gz
 OTHER:=CMenu.conf
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
+ifeq ($(UI), "-DUAL_UI")
+	LIB_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
+endif
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 
 COMMON_HDRS:=include/cm.h include/common.h include/menu.h \
@@ -59,14 +63,13 @@ COMMON_HDRS:=include/cm.h include/common.h include/menu.h \
 COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
 			fields.c form_engine.c init.c init_view.c mem.c \
 			pick_engine.c popups.c view_engine.c
+ifeq ($(UI), "-DUAL_UI")
+	COMMON_HDRS+=include/ui_backend.h ui/ui_ncurses_internal.h
+	COMMON_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
+	NCFLAGS:=$(CFLAGS) -DNCURSES_UI
+endif
+
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
-
-UI_HDRS=include/ui_backend.h
-UI_SRCS:=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
-UI_OBJS=$(UI_SRCS:.c=.o)
-
-COMMON_HDRS+=$(UI_HDRS)
-COMMON_OBJS+=$(UI_OBJS)
 
 LDFLAGS:=$(LINKOPT) -L. -lcm -lm $(shell pkg-config --libs $(PACKAGES)) \
 		 -Wl,-rpath,$(RPATH)
@@ -89,6 +92,7 @@ config:
 	@echo "             CC $(CC)"
 	@echo "             CX $(CX)"
 	@echo "         CFLAGS $(CFLAGS)"
+	@echo "        NCFLAGS $(NCFLAGS)"
 	@echo "        LDFLAGS $(LDFLAGS)"
 	@echo "        LINKOPT $(LINKOPT)"
 	@echo "          RPATH $(RPATH)"
@@ -119,7 +123,7 @@ help:
 	@echo "  helgrind      - run helgrind on selected executable"
 
 menu:	menu.c $(COMMON_OBJS) $(COMMON_HDRS) $(LIB_SHARED)
-	$(CC) $(COMMON_OBJS) menu.c -o $@ $(LDFLAGS)
+	$(CC) $(NCFLAGS) $(COMMON_OBJS) menu.c -o $@ $(LDFLAGS)
 
 form:	menu
 	ln -sf menu form
@@ -132,17 +136,38 @@ ckeys:	menu
 
 man: $(MANPAGES)
 
+rsh:	rsh.c
+	$(CC) $< -o $@
+
 rsh_static:	rsh.c
 	$(CC) -static $< -o $@
 
 rsh_pam:	rsh.c
 	$(CC) -DRSH_PAM $< -o $@ -lpam -lpam_misc
 
+lf: lf.c $(LIB_SHARED)
+	$(CC) $< -o $@ $(LDFLAGS)
+
 %:	%.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
 %.o:	%.c
 	$(CC) 	-c $< -fPIC -o $@
+
+iloan:	iloan.c
+	$(CC) 	-c $< -lm -o $@
+
+amort:	amort.c
+	$(CC) 	-c $< -lm -o $@
+
+whence:	whence.c
+	$(CC) 	-c $< -o $@
+
+enterchr:	enterchr.c
+	$(CC) 	-c $< -o $@
+
+enterstr:	enterstr.c
+	$(CC) 	-c $< -o $@
 
 $(LIB_SHARED): $(LIB_OBJS)
 	$(CC) 	-shared -o $@ $^ $(SHARED_LDFLAGS)

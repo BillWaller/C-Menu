@@ -10,10 +10,9 @@
 #ifndef _CM_H
 #define _CM_H 1
 
-// #define DEBUG_IMMEDOK true
-// #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
-#define NCURSES_WIDECHAR 1 /**< Enable wide character support */
 #define _GNU_SOURCE
+#define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
+#define NCURSES_WIDECHAR 1       /**< Enable wide character support */
 #include "ui_backend.h"
 #include "version.h"
 #include <argp.h>
@@ -22,6 +21,8 @@
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <time.h>
+#include <wait.h>
 
 extern int cmenu_log_fd;
 
@@ -30,12 +31,14 @@ extern int cmenu_log_fd;
 #endif
 
 #define MAXWIN 30 /**< maximum number of windows that can be created */
+extern SCREEN *screen;
+extern FILE *tty_fp;
+#ifdef UAL_UI
+extern UiRuntime *ui_runtime;
 extern UiSurface *ui_box[MAXWIN];
 extern UiSurface *ui_win[MAXWIN];
 extern UiSurface *ui_win2[MAXWIN];
-extern SCREEN *screen;
-extern FILE *tty_fp;
-
+#endif
 #define MAX_ARGS 64   /**< maximum number of arguments for external commands */
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
@@ -436,9 +439,13 @@ extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
 extern int box_new(int, int, int, int, char *);
 extern int box2_new(int, int, int, int, char *);
+extern int box_hsplit_new(int, int, int, int, int, char *);
 extern int win_new(int, int);
 extern int win2_new(int, int, int, int);
-extern int box_title(WINDOW *, char *);
+extern int border_draw(WINDOW *);
+extern int border_title(WINDOW *, char *);
+extern int border_hsplit(WINDOW *, int);
+extern int border_hsplit_text(WINDOW *, char *, int);
 extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
@@ -448,7 +455,7 @@ extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
-extern cchar_t mkcc(int, attr_t, char *);
+extern cchar_t mkcc(int, attr_t, const char *);
 extern char *iso8601_time(char *, int, time_t *, bool);
 extern bool parse_local_timestamp(const char *, time_t *);
 extern char *format_local_timestamp(time_t, char *, size_t);
@@ -631,7 +638,6 @@ extern int enter_option();
 // extern WINDOW *win_main;
 // extern PANEL *panel_main;
 
-extern int win_flags[MAXWIN];
 extern WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
 extern WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
 extern WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
@@ -715,8 +721,6 @@ extern void curskeys(WINDOW *);
 extern void mouse_getch(int *, int *, int *, int *);
 extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
 extern bool get_argp_doc_by_name(char *comment, const struct argp_option *, const char *);
-extern void cbox_hsplit(WINDOW *, int);
-extern void cbox_hsplit_text(WINDOW *, char *, int);
 
 /** @struct Arg
    @brief The Arg structure represents a string argument with a pointer to the
@@ -780,9 +784,6 @@ typedef struct {
    structure allows for efficient management of the terminal's state and
    configuration in a structured way. */
 typedef struct {
-    UiRuntime *ui;
-    UiConfig *ui_cfg;
-    SCREEN *screen;
     double red_gamma;             /**< red gamma correction value */
     double green_gamma;           /**< green gamma correction value */
     double blue_gamma;            /**< blue gamma correction value */

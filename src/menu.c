@@ -7,6 +7,7 @@
     @date 2026-02-09
  */
 #define _GNU_SOURCE
+#include "ui/ui_ncurses_internal.h"
 #include "ui_backend.h"
 #include <common.h>
 #include <string.h>
@@ -49,20 +50,18 @@ int main(int argc, char **argv) {
         fprintf(stderr, "\nCannot set exit function\n");
         exit(EXIT_FAILURE);
     }
-    // initialize user interface
-#ifdef UI
-    sio->ui_cfg = calloc(1, sizeof(UiConfig));
-    sio->ui_cfg->enable_mouse = true;
-    sio->ui_cfg->enable_alt_screen = false;
-    sio->ui_cfg->cursor_visible = true;
-    sio->ui = ui_init(sio->ui_cfg);
+#ifdef UAL_UI
+    UiConfig *ui_config = calloc(1, sizeof(UiConfig));
+    ui_config->enable_mouse = true;
+    ui_config->enable_alt_screen = false;
+    ui_config->cursor_visible = true;
+    ui_runtime = ui_init(ui_config);
+#else
+    open_curses(sio);
+#endif
     initialize_local_colors(sio);
     sig_prog_mode();
     capture_curses_tioctl();
-#else
-    open_curses(sio);
-    initialize_local_colors(sio);
-#endif
     base_name(pgm_name, argv[0]);
     if (!strcmp(pgm_name, "menu")) {
         new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);

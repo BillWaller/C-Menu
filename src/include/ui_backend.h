@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define MAXWIN 30
+
 /** @defgroup ui_backend UI Backend
     @brief Backend API for terminal UI library
 
@@ -125,12 +127,26 @@ typedef enum {
    @see UiStyle
 */
 typedef struct {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+    union {
+        struct {
+            uint8_t a; // alpha    LSB (Little Endian order)
+            uint8_t b; // blue
+            uint8_t g; // green
+            uint8_t r; // red      MSB (Little Endian order)
+        };
+        struct {
+            uint32_t rgba; // 0xRRGGBBAA   red, green, blue, alpha
+        };
+    };
     bool use_rgb;
-    int index;
+    uint32_t index;
 } UiColor;
+
+typedef struct {
+    UiColor fg;
+    UiColor bg;
+    uint32_t idx;
+} UiColorPair;
 
 /** @struct UiStyle
    @brief Structure representing the style attributes for UI elements.
@@ -143,9 +159,12 @@ typedef struct {
     UiColor fg;
     UiColor bg;
     bool bold;
+    bool dim;
     bool italic;
     bool underline;
+    bool blink;
     bool reverse;
+    bool invis;
 } UiStyle;
 
 /** @struct UiEvent
@@ -234,9 +253,10 @@ int ui_draw_hline(UiSurface *s, int y, int x, int len, const UiStyle *style);
 int ui_draw_vline(UiSurface *s, int y, int x, int len, const UiStyle *style);
 int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style);
 int ui_draw_box_title(UiSurface *s, int x, const UiStyle *style, const char *title);
-
+int ui_bkgrnd(UiSurface *, const UiStyle *, const char *);
+int ui_bkgd_set(UiSurface *, const UiStyle *, const char *);
 /* @brief clipping / visibility
-   @ingroup ui_backend */
+@ingroup ui_backend */
 int ui_surface_show(UiSurface *s);
 int ui_surface_hide(UiSurface *s);
 
@@ -248,5 +268,9 @@ int ui_get_event(UiRuntime *ui, UiSurface *target, UiEvent *ev, int timeout_ms);
    @ingroup ui_backend */
 int ui_cursor_move(UiSurface *s, int y, int x);
 int ui_cursor_enable(UiRuntime *ui, bool visible);
+
+extern UiSurface *ui_surface_box[MAXWIN];
+extern UiSurface *ui_surface_win[MAXWIN];
+extern UiSurface *ui_surface_win2[MAXWIN];
 
 #endif

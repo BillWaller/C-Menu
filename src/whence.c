@@ -30,6 +30,8 @@ int next_path(char *, char **);
 int file_spec_parts(char *, char *, char *);
 void ABEND(char *, int, char *);
 void normalend();
+size_t strnz__cat(char *, const char *, size_t);
+size_t strnz__cpy(char *, const char *, size_t);
 typedef enum { WH_ALL = 1,
                WH_VERBOSE = 2 } WhenceFlags;
 int wh_flags = 0;
@@ -239,4 +241,66 @@ void normalend() { exit(EXIT_SUCCESS); }
 void ABEND(char *pgmid, int rc, char *err_msg) {
     fprintf(stderr, "%s; error %d; %s\n", pgmid, rc, err_msg);
     exit(EXIT_FAILURE);
+}
+
+/** @brief safer alternative to strncpy
+    @ingroup utility_functions
+    @details copies string s to d, ensuring that the total length of d does not
+   exceed max_len, and that the resulting string is null-terminated. It also
+   treats newline and carriage return characters as string terminators,
+   preventing them from being included in the result. This is particularly
+   useful when copying user input or file data, where embedded newlines could
+   cause issues.
+    @param d - destination string
+    @param s - source string
+    @param max_len - maximum length to copy
+    @returns length of resulting string */
+size_t strnz__cpy(char *d, const char *s, size_t max_len) {
+    char *e;
+    size_t len = 0;
+    if (s == nullptr || d == nullptr || max_len == 0) {
+        if (d != nullptr && max_len > 0)
+            *d = '\0';
+        return 0;
+    }
+    e = d + max_len;
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
+}
+/** @brief safer alternative to strncat
+    @ingroup utility_functions
+    @param d - destination string
+    @param s - source string
+    @param max_len - maximum length to copy
+    @returns length of resulting string
+    @details Append string s to d, ensuring that the total length of d does not
+   exceed max_len, and that the resulting string is null-terminated. It also
+   treats newline and carriage return characters as string terminators,
+   preventing them from being included in the result. This is particularly
+   useful when concatenating user input or file data, where embedded newlines
+   could cause issues.
+ */
+size_t strnz__cat(char *d, const char *s, size_t max_len) {
+    char *e;
+    size_t len = 0;
+    if (s == nullptr || d == nullptr || max_len == 0) {
+        if (d != nullptr && max_len > 0)
+            *d = '\0';
+        return 0;
+    }
+    e = d + max_len;
+    while (*d != '\0' && *d != '\n' && *d != '\r' && d < e) {
+        d++;
+        len++;
+    }
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
 }

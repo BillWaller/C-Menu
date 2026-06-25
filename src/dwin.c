@@ -16,6 +16,8 @@
     @brief Manage NCurses windows and color settings
  */
 
+#include "include/ui_backend.h"
+#include "ui/ui_ncurses_internal.h"
 #include <cm.h>
 #include <errno.h>
 #include <math.h>
@@ -37,10 +39,12 @@ enum WinFlags {
 
 SCREEN *screen;
 FILE *tty_fp;
+UiRuntime *ui_runtime;
+UiConfig *ui_config;
+UiSurface *ui_box[MAXWIN];
 UiSurface *ui_win[MAXWIN];
 UiSurface *ui_win2[MAXWIN];
-UiSurface *ui_box[MAXWIN];
-UiRect rect;
+UiRect ui_rect;
 
 WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
 WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
@@ -52,15 +56,17 @@ PANEL *panel_box[MAXWIN];
 
 int win_flags[MAXWIN];
 
-void ui_set_rect(UiRect *, int, int, int, int);
+void ui_rect_set(UiRect *, int, int, int, int);
 int win2_new(int wlines, int wcols, int wbegy, int wbegx);
 bool open_curses(SIO *);
 bool init_clr_palette(SIO *);
 void destroy_curses();
 int box_new(int, int, int, int, char *);
 int box2_new(int, int, int, int, char *);
-void cbox_hsplit(WINDOW *, int);
-void cbox_hsplit_text(WINDOW *, char *, int);
+int box_hsplit_new(int, int, int, int, int, char *);
+int border_draw(WINDOW *);
+int border_hsplit(WINDOW *, int);
+int border_hsplit_text(WINDOW *, char *, int);
 
 int win_new(int, int);
 void win_redraw(WINDOW *);
@@ -101,7 +107,7 @@ void initialize_local_colors(SIO *);
 int wait_continue(WINDOW *, Chyron *, int);
 bool wait_destroy(Chyron *);
 int xwgetch(WINDOW *, Chyron *, int);
-cchar_t mkcc(int, attr_t, char *);
+cchar_t mkcc(int, attr_t, const char *);
 
 WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
@@ -684,8 +690,7 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
    character is used)
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
-cchar_t
-mkcc(int cp, attr_t attr, char *s) {
+cchar_t mkcc(int cp, attr_t attr, const char *s) {
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     size_t len;
@@ -834,44 +839,27 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     }
     return 0; // Invalid Unicode code point
 }
-void ui_set_rect(UiRect *r, int y, int x, int h, int w) {
+
+void ui_rect_set(UiRect *r, int y, int x, int h, int w) {
     r->y = y;
     r->x = x;
     r->rows = h;
     r->cols = w;
 }
 
-/** @brief Strips ANSI SGR escape sequences (ending in 'm') from string s to d
-    @brief Create a new window with optional box and title
-    @ingroup window_support
-    @param wlines Number of lines
-    @param wcols Number of columns
-    @param wbegy Beginning Y position
-    @param wbegx Beginning X position
-    @param wtitle Window title
-    @return 0 if successful, 1 if error */
-int box2_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
+int box_hsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wbegx, char *wtitle) {
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
+    wlines += split_win_lines + 1;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
-    win_ptr++;
-    win_box[win_ptr] = newwin(wlines + 5, wcols + 2, wbegy, wbegx);
-    if (win_box[win_ptr] == nullptr) {
-        Perror("win_box[win_ptr] = newwin() failed");
-        exit(EXIT_FAILURE);
-    }
-    panel_box[win_ptr] = new_panel(win_box[win_ptr]);
+    box_new(wlines, wcols, wbegy, wbegx, wtitle);
     wbkgrnd(win_box[win_ptr], &CC_BOX);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
-    wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
-    box_title(win_box[win_ptr], wtitle);
-    win_win[win_ptr] = nullptr;
-    win_win2[win_ptr] = nullptr;
-    win_new(wlines, wcols);
-    win2_new(2, wcols, wlines + 2, 1);
+    border_hsplit(win_box[win_ptr], wlines - split_win_lines);
+    win2_new(2, wcols, wlines - 1, 1);
     return 0;
 }
 /** box_new
@@ -889,12 +877,37 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
+#ifdef NCURSES_UI
     getmaxyx(stdscr, maxy, maxx);
+#else
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+#endif
     wlines = min(wlines, maxy - 2);
     wcols = min(wcols, maxx - 2);
     win_ptr++;
-    ui_set_rect(&rect, wbegy, wbegx, wlines + 2, wcols + 2);
     // ------------------->    win_box    <-------------------
+#ifdef UAL_UI
+    ui_rect_set(&ui_rect, wbegy, wbegx, wlines + 2, wcols + 2);
+    ui_box[win_ptr] = ui_surface_new(ui_runtime, NULL, ui_rect);
+    win_box[win_ptr] = ui_box[win_ptr]->win;
+    panel_box[win_ptr] = ui_box[win_ptr]->pan;
+
+    UiStyle *ui_style = ui_style_from_cch(&CC_BOX);
+    ui_bkgrnd(ui_box[win_ptr], ui_style, " ");     // flood fill_char
+    ui_bkgrnd_set(ui_box[win_ptr], ui_style, " "); // like wattron
+    wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
+    border_title(win_box[win_ptr], wtitle);
+
+    ui_rect_set(&ui_rect, 1, 1, wlines, wcols);
+    ui_win[win_ptr] = ui_surface_new(ui_runtime, ui_box[win_ptr], ui_rect);
+    ui_style = ui_style_from_cch(&CC_NT);
+    ui_bkgrnd(ui_win[win_ptr], ui_style, " ");     // flood fill_char
+    ui_bkgrnd_set(ui_win[win_ptr], ui_style, " "); // like wattron
+    win_win[win_ptr] = ui_win[win_ptr]->win;
+    panel_win[win_ptr] = ui_win[win_ptr]->pan;
+    mvwaddstr(win_win[win_ptr], 10, 1, "Hello!");
+
+#else
     win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
         Perror("win_box[win_ptr] = newwin() failed");
@@ -903,31 +916,10 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     panel_box[win_ptr] = new_panel(win_box[win_ptr]);
     wbkgrnd(win_box[win_ptr], &CC_BOX);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
-    wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
-    win_flags[win_ptr] = WF_BOX;
-    box_title(win_box[win_ptr], wtitle);
+    border_draw(win_box[win_ptr]);
+    border_title(win_box[win_ptr], wtitle);
     win_new(wlines, wcols);
-    return 0;
-}
-int box_title(WINDOW *box, char *title) {
-    wbkgrndset(box, &CC_BOX);
-    int y, x, l;
-    int maxx;
-    int pos = 0;
-    y = 0;
-    x = 1;
-    maxx = getmaxx(box);
-    mvwadd_wchnstr(box, y, x++, &ts, 1);
-    mvwadd_wchnstr(box, y, x++, &rt, 1);
-    mvwadd_wchnstr(box, y, x++, &sp, 1);
-    cchar_t title_cc[MAXLEN] = {0};
-    l = mb_to_cc(title_cc, title, WA_NORMAL, cp_box, &pos, MAXLEN - 1);
-    mvwadd_wchnstr(box, y, x, title_cc, l);
-    x += l;
-    mvwadd_wchnstr(box, y, x++, &sp, 1);
-    mvwadd_wchnstr(box, y, x++, &lt, 1);
-    while (x < maxx - 1)
-        mvwadd_wchnstr(box, y, x++, &ts, 1);
+#endif
     return 0;
 }
 /** win_new
@@ -944,8 +936,8 @@ int win_new(int wlines, int wcols) {
         exit(EXIT_FAILURE);
     }
     panel_win[win_ptr] = new_panel(win_win[win_ptr]);
-    win_flags[win_ptr] |= WF_WIN;
     wbkgrnd(win_win[win_ptr], &CC_NT);
+    wbkgrndset(win_win[win_ptr], &CC_NT);
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
@@ -1035,27 +1027,26 @@ void win_redraw(WINDOW *win) {
 int win_del() {
     if (win_ptr >= 0) {
         if (panel_win2[win_ptr] != nullptr) {
-            hide_panel(panel_win2[win_ptr]);
             del_panel(panel_win2[win_ptr]);
             panel_win2[win_ptr] = nullptr;
-        }
-        if (panel_win[win_ptr] != nullptr) {
-            hide_panel(panel_win[win_ptr]);
-            del_panel(panel_win[win_ptr]);
-            panel_win[win_ptr] = nullptr;
-        }
-        if (panel_box[win_ptr] != nullptr) {
-            hide_panel(panel_box[win_ptr]);
-            del_panel(panel_box[win_ptr]);
-            panel_box[win_ptr] = nullptr;
         }
         if (win_win2[win_ptr] != nullptr) {
             delwin(win_win2[win_ptr]);
             win_win2[win_ptr] = nullptr;
         }
+
+        if (panel_win[win_ptr] != nullptr) {
+            del_panel(panel_win[win_ptr]);
+            panel_win[win_ptr] = nullptr;
+        }
         if (win_win[win_ptr] != nullptr) {
             delwin(win_win[win_ptr]);
             win_win[win_ptr] = nullptr;
+        }
+
+        if (panel_box[win_ptr] != nullptr) {
+            del_panel(panel_box[win_ptr]);
+            panel_box[win_ptr] = nullptr;
         }
         if (win_box[win_ptr] != nullptr) {
             delwin(win_box[win_ptr]);
@@ -1065,6 +1056,7 @@ int win_del() {
     }
     return win_ptr;
 }
+
 /** restore_wins
     @brief Restore all windows after a screen resize
     @ingroup window_support
@@ -1084,31 +1076,53 @@ void restore_wins() {
             touchwin(win_win2[i]);
     }
 }
-/** cbox-split
+int border_draw(WINDOW *box) {
+    int maxy = getmaxy(box);
+    int maxx = getmaxx(box);
+    int y = 0;
+    int x = 0;
+    mvwadd_wchnstr(box, y, x++, &tl, 1); // top left
+    for (x = 1; x < maxx - 1; x++)
+        mvwadd_wchnstr(box, y, x, &ts, 1);    // horizontal line
+    mvwadd_wchnstr(box, y, maxx - 1, &tr, 1); // top left
+
+    for (y = 1; y < maxy - 1; y++) {
+        mvwadd_wchnstr(box, y, 0, &ls, 1);        // vertical line
+        mvwadd_wchnstr(box, y, maxx - 1, &rs, 1); // vertical line
+    }
+
+    mvwadd_wchnstr(box, y, 0, &bl, 1); // bottom left
+    for (x = 1; x < maxx - 1; x++)
+        mvwadd_wchnstr(box, y, x, &bs, 1);    // horizontal line
+    mvwadd_wchnstr(box, y, maxx - 1, &br, 1); // bottom right
+    return 0;
+}
+
+/** border-hsplit
     @brief Draw a box with a separator line around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
     @details This function draws a box around the specified window, similar to
-   cbox(), but it also includes a horizontal separator line that divides the box
+   border_draw(), but it also includes a horizontal separator line that divides the box
    into two sections. The separator line is drawn at a fixed position (line 00,
    page 00) and extends across the width of the box. Use this function when you
    want to visually separate two sections within a window, such as for a header
    and content area. */
-void cbox_hsplit(WINDOW *box, int y) {
+int border_hsplit(WINDOW *box, int y) {
     int maxx = getmaxx(box);
     mvwaddnwstr(box, y, 0, &bw_lt, 1);
     for (int x = 1; x < maxx - 1; x++)
         waddnwstr(box, &bw_ho, 1);
     mvwaddnwstr(box, y, maxx - 1, &bw_rt, 1);
-    return;
+    return 0;
 }
 
-void cbox_hsplit_text(WINDOW *box, char *text, int y) {
-    int maxx;
+int border_hsplit_text(WINDOW *box, char *text, int separator_line) {
     int pos = 0;
-    maxx = getmaxx(box);
-    int x = 0;
+    int maxx = getmaxx(box);
     int l;
+    int y = separator_line;
+    int x = 0;
     // Clearly, this is a bit hacky, but it works. We want to draw the
     // horizontal line with text in the middle, so we start by drawing the left
     // edge, then the text, then the right edge, and finally fill in the
@@ -1125,11 +1139,52 @@ void cbox_hsplit_text(WINDOW *box, char *text, int y) {
     x += l;
     mvwadd_wchnstr(box, y, x++, &sp, 1);
     mvwadd_wchnstr(box, y, x++, &lt, 1);
+
     while (x < maxx - 1)
         mvwadd_wchnstr(box, y, x++, &ts, 1);
     mvwadd_wchnstr(box, y, x++, &rt, 1);
+    return 0;
 }
 
+int border_title(WINDOW *box, char *title) {
+    int pos = 0;
+    int maxx = getmaxx(box);
+    int y = 0;
+    int x = 0;
+    int l;
+    mvwadd_wchnstr(box, y, x++, &tl, 1); // top left
+    mvwadd_wchnstr(box, y, x++, &rt, 1); // right tee
+    mvwadd_wchnstr(box, y, x++, &sp, 1); // space
+    cchar_t title_cc[MAXLEN] = {0};
+    l = mb_to_cc(title_cc, title, WA_NORMAL, cp_title, &pos, MAXLEN - 1);
+    l = min(l, maxx - 7);
+    mvwadd_wchnstr(box, y, x, title_cc, l);
+    x += l;
+    mvwadd_wchnstr(box, y, x++, &sp, 1); // space
+    mvwadd_wchnstr(box, y, x++, &lt, 1); // left tee
+    return 0;
+}
+/* int box_title(WINDOW *box, char *title) {
+    wbkgrndset(box, &CC_BOX);
+    int y, x, l;
+    int maxx;
+    int pos = 0;
+    y = 0;
+    x = 1;
+    maxx = getmaxx(box);
+    mvwadd_wchnstr(box, y, x++, &ts, 1);
+    mvwadd_wchnstr(box, y, x++, &rt, 1);
+    mvwadd_wchnstr(box, y, x++, &sp, 1);
+    cchar_t title_cc[MAXLEN] = {0};
+    l = mb_to_cc(title_cc, title, WA_NORMAL, cp_box, &pos, MAXLEN - 1);
+    mvwadd_wchnstr(box, y, x, title_cc, l);
+    x += l;
+    mvwadd_wchnstr(box, y, x++, &sp, 1);
+    mvwadd_wchnstr(box, y, x++, &lt, 1);
+    while (x < maxx - 1)
+        mvwadd_wchnstr(box, y, x++, &ts, 1);
+    return 0;
+} */
 /** @defgroup error_handling Error Handling
     @brief Display Error messages
  */

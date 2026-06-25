@@ -23,6 +23,10 @@
  * needed.
  */
 
+UiSurface *ui_surface_box[MAXWIN];
+UiSurface *ui_surface_win[MAXWIN];
+UiSurface *ui_surface_win2[MAXWIN];
+
 /** * @brief Create a new UI surface.
  * @ingroup ui_ncurses
  * @param ui The UI runtime instance.
@@ -225,8 +229,6 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
     curs_set(ui->cursor_visible ? 1 : 0);
     getmaxyx(stdscr, ui->rows, ui->cols);
-    for (int i = 0; i < MAXWIN; i++)
-        win_flags[i] = 0;
     win_ptr = -1;
     return ui;
 }
@@ -238,7 +240,11 @@ UiRuntime *ui_init(const UiConfig *cfg) {
 void ui_shutdown(UiRuntime *ui) {
     if (!ui)
         return;
+    // ui_surface_destroy  (ui->surface[0]);
     endwin();
+    delscreen(screen);
+    fclose(tty_fp);
+    f_curses_open = false;
     free(ui);
 }
 
@@ -319,4 +325,89 @@ int ui_cursor_enable(UiRuntime *ui, bool visible) {
     ui->cursor_visible = visible;
     curs_set(visible ? 1 : 0);
     return 0;
+}
+
+int ui_bkgrnd(UiSurface *s, const UiStyle *style, const char *c) {
+    if (!s)
+        return -1;
+    cchar_t cch = ui_style_to_cch(style, c);
+    wbkgrnd(s->win, &cch);
+    return 0;
+}
+
+int ui_bkgrnd_set(UiSurface *s, const UiStyle *style, const char *c) {
+    if (!s)
+        return -1;
+    cchar_t cch = ui_style_to_cch(style, c);
+    wbkgrndset(s->win, &cch);
+    return 0;
+}
+UiStyle *ui_style_from_cch(const cchar_t *cch) {
+    UiStyle *style = calloc(1, sizeof(*style));
+    if (!style)
+        return NULL;
+    wchar_t wc[2] = {L'\0', L'\0'};
+    attr_t attrs;
+    short cpx;
+    int fg, bg;
+    RGB rgb;
+    getcchar(cch, wc, &attrs, &cpx, nullptr);
+    style->bold = (attrs & WA_BOLD) != 0;
+    style->dim = (attrs & WA_DIM) != 0;
+    style->italic = (attrs & WA_ITALIC) != 0;
+    style->underline = (attrs & WA_UNDERLINE) != 0;
+    style->blink = (attrs & WA_BLINK) != 0;
+    style->reverse = (attrs & WA_REVERSE) != 0;
+    style->invis = (attrs & WA_INVIS) != 0;
+    extended_pair_content(cpx, &fg, &bg);
+    extended_color_content(fg, &rgb.r, &rgb.g, &rgb.b);
+    style->fg.r = (rgb.r * 255) / 1000;
+    style->fg.g = (rgb.g * 255) / 1000;
+    style->fg.b = (rgb.b * 255) / 1000;
+    extended_color_content(bg, &rgb.r, &rgb.g, &rgb.b);
+    style->bg.r = (rgb.r * 255) / 1000;
+    style->bg.g = (rgb.g * 255) / 1000;
+    style->bg.b = (rgb.b * 255) / 1000;
+    return style;
+}
+
+UiStyle *ui_style_new() {
+    UiStyle *style = calloc(1, sizeof(*style));
+    if (!style)
+        return NULL;
+    style->fg.r = 255;
+    style->fg.g = 255;
+    style->fg.b = 255;
+    style->bg.r = 0;
+    style->bg.g = 0;
+    style->bg.b = 0;
+    return style;
+}
+
+void ui_style_destroy(UiStyle *style) {
+    if (!style)
+        return;
+    free(style);
+}
+
+cchar_t ui_style_to_cch(const UiStyle *style, const char *c) {
+    int fg, bg;
+    attr_t attrs = 0;
+    uint32_t cpx = 0;
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    attrs |= style->bold ? WA_BOLD : 0;
+    attrs |= style->dim ? WA_DIM : 0;
+    attrs |= style->italic ? WA_ITALIC : 0;
+    attrs |= style->underline ? WA_UNDERLINE : 0;
+    attrs |= style->blink ? WA_BLINK : 0;
+    attrs |= style->reverse ? WA_REVERSE : 0;
+    attrs |= style->invis ? WA_INVIS : 0;
+    RGB rgb = (RGB){style->fg.r, style->fg.g, style->fg.b};
+    fg = rgb_to_curses_clr(&rgb);
+    rgb = (RGB){style->bg.r, style->bg.g, style->bg.b};
+    bg = rgb_to_curses_clr(&rgb);
+    cpx = get_clr_pair(fg, bg);
+    const cchar_t cch = mkcc(cpx, attrs, c);
+    return cch;
 }

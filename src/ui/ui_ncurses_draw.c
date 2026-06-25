@@ -45,16 +45,18 @@ int ui_ncurses_color_pair_from_style(const UiStyle *style) {
 int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style) {
     if (!win || !style)
         return -1;
-
-    wattrset(win, A_NORMAL);
-
-    if (style->bold)
-        wattron(win, A_BOLD);
-    if (style->underline)
-        wattron(win, A_UNDERLINE);
-    if (style->reverse)
-        wattron(win, A_REVERSE);
-
+    wchar_t wstr[2] = {L'\0', L'\0'};
+    cchar_t cc = {0};
+    attr_t attrs = 0;
+    uint32_t cpx = 0;
+    attrs |= style->bold ? WA_BOLD : 0;
+    attrs |= style->dim ? WA_DIM : 0;
+    attrs |= style->italic ? WA_ITALIC : 0;
+    attrs |= style->underline ? WA_UNDERLINE : 0;
+    attrs |= style->blink ? WA_BLINK : 0;
+    attrs |= style->reverse ? WA_REVERSE : 0;
+    attrs |= style->invis ? WA_INVIS : 0;
+    setcchar(&cc, wstr, attrs, cpx, nullptr);
     return 0;
 }
 

@@ -245,4 +245,5 @@ extern bool view_stack_pop(ViewStack *, View *);
 extern bool view_stack_peek(const ViewStack *, View *);
 extern void view_stack_free(ViewStack *);
 extern int view_cmd_processor(Init *);
+extern void destroy_view_win(Init *);
 #endif

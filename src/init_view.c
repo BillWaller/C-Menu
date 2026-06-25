@@ -28,6 +28,7 @@ void view_calc_full_screen_dimensions(Init *);
 void view_full_screen_resize(Init *);
 void view_calc_win_dimensions(Init *, char *title);
 void view_win_resize(Init *, char *);
+void view_win_del(Panel *);
 
 ViewStack view_stack;
 
@@ -302,6 +303,26 @@ int init_view_boxwin(Init *init, char *title) {
 
     return (0);
 }
+void destroy_view_win(Init *init) {
+    View *view = init->view;
+    if (!view)
+        return;
+    view_win_del(&view->pad_view);
+    delwin(view->pad);
+    view_win_del(&view->cmdln);
+    view_win_del(&view->lnno);
+    view_win_del(&view->win);
+    view_win_del(&view->box);
+}
+void view_win_del(Panel *panel) {
+    if (panel) {
+        PANEL *pan = panel->pan;
+        del_panel(pan);
+        WINDOW *win = panel->win;
+        delwin(win);
+    }
+}
+
 /** @brief Resize the current window and its box, and update the title
     @ingroup window_support
     @param init Pointer to the Init structure containing view settings.
@@ -349,7 +370,7 @@ void view_win_resize(Init *init, char *title) {
     wresize(view->cmdln.win, 1, view->cols);
     if (view->f_ln) {
         if (view->lnno.win == nullptr) {
-            view->lnno.win = subwin(win_box[win_ptr], view->ln_win_lines, view->ln_win_cols,
+            view->lnno.win = subwin(view->box.win, view->ln_win_lines, view->ln_win_cols,
                                     view->begy + 1, view->begx + 1);
             keypad(view->lnno.win, false);
             idlok(view->lnno.win, false);
