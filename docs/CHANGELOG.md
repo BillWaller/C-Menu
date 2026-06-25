@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-25T17:14:56-05:00* - REFACTOR: Many changes today as we back the Uniform Abstraction Layer User Interface (UAL_UI) into the code base. This code isn't supposed to do anything new yet. The objective is to provide a uniform interface through which C-Menu can communicate with an abstracted UI backend. The UAL_UI is a work in progress, and the current implementation is not complete. The goal is to eventually allow C-Menu to support multiple UI backends, such as ncurses, notcurses, and potentially others. The changes made today include - Adding new files for the notcurses backend, including example.c, ui_draw_with_channels.c, and ui_mvaddcell.c. - Modifying existing files to integrate the UAL_UI # Please enter the commit message for your changes. Lines starting 
+
+*2026-06-24T00:39:27-05:00* - Update CHANGELOG.md 
+
 *2026-06-24T00:12:32-05:00* - FEATURE: menuapp/msrc/main.m: Rustlings Source: Added "-S" (sort) option to lf command. 
 
 *2026-06-23T12:33:00-05:00* - FIX: lf somehow regressed to a previous version in which hidden directories were not being traversed unless the "f_include_hidden" option was set to true. This commit fixes that regression and ensures that hidden directories are always traversed, regardless of the "f_include_hidden" option. 
