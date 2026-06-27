@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-27T16:38:31-05:00* - FIXES: Many various and sundry fixes to the codebase. The recent addition of Ncurses Panels followed immediately by integrating framework for the Uniform Abstraction Layer (UAL) has caused a number of issues to crop up in the codebase. This commit addresses those issues and improves the overall stability and functionality of the application. The UAL will provide plug-in support for many new and diverse capabilities. 
+
+*2026-06-27T00:47:47-05:00* - Update CHANGELOG.md 
+
 *2026-06-27T00:36:07-05:00* - FIXES: The refactoring to accommodate the new Uniform Abstraction Layer User Interface (UAL_UI) stressed the C-Menu code base, resulting in a number of issues. After a long day of debugging, the major issues have been resolved. Among the issues were three definitely lost memory blocks. There are still 64 bytes dangling, but not lost. They are NCurses panels, which may not be freed until the end program. 
 
 *2026-06-25T17:26:17-05:00* - DOCS: Update Changelog 
