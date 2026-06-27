@@ -319,6 +319,7 @@ DT_UNKNOWN: 00001110  14   LF_UNKNOWN: 10000000 128     8
 #define CHYRON_KEYS 20 /**< maximum number of key bindings for the chyron */
 
 typedef struct {
+    bool active;                  /**< whether the key binding is active */
     char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code
                                    */
     int keycode;                  /**< key code associated with the command */
@@ -333,6 +334,10 @@ typedef struct {
     int l;                       /**< length of the chyron string, for display purposes */
 } Chyron;
 
+extern void activate_chyron_key(Chyron *, int);
+extern void activate_all_chyron_keys(Chyron *);
+extern void deactivate_chyron_key(Chyron *, int);
+extern void deactivate_all_chyron_keys(Chyron *);
 extern int vgetch(WINDOW *, int);
 extern int xwgetch(WINDOW *, Chyron *, int);
 extern int dxwgetch(WINDOW *, WINDOW *, Chyron *, int);
@@ -950,6 +955,6 @@ extern void display_cmplx_str(WINDOW *, cchar_t *, int, int);
 extern int wccp_to_str(wchar_t, uint8_t *);
 extern char *fdname(int, char *);
 extern char *stdio_names(char *, char *);
-extern char *xstdio_names(char *, char *);
+extern char *stdio_fdnames(char *, char *);
 extern char stdio_names_str[MAXLEN];
 #endif

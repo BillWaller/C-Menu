@@ -156,19 +156,19 @@ lf: lf.c $(LIB_SHARED)
 	$(CC) 	-c $< -fPIC -o $@
 
 iloan:	iloan.c
-	$(CC) 	-c $< -lm -o $@
+	$(CC) 	$< -lm -o $@
 
 amort:	amort.c
-	$(CC) 	-c $< -lm -o $@
+	$(CC) 	$< -lm -o $@
 
 whence:	whence.c
-	$(CC) 	-c $< -o $@
+	$(CC) 	$< -o $@
 
-enterchr:	enterchr.c
-	$(CC) 	-c $< -o $@
+# enterchr:	enterchr.c
+#	$(CC) 	$< -o $@
 
-enterstr:	enterstr.c
-	$(CC) 	-c $< -o $@
+#enterstr:	enterstr.c
+#	$(CC) 	$< -o $@
 
 $(LIB_SHARED): $(LIB_OBJS)
 	$(CC) 	-shared -o $@ $^ $(SHARED_LDFLAGS)

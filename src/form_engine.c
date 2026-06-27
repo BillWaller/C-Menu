@@ -223,7 +223,6 @@ int form_post(Init *init) {
             tcflush(2, TCIFLUSH);
             update_panels();
             doupdate();
-            // wrefresh(form->box);
             c = xwgetch(form->win, form->chyron, -1);
         }
         switch (c) {
@@ -364,6 +363,7 @@ int form_process(Init *init) {
                     close(dev_null);
                     close(pipe_fd[P_READ]);
                     dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
+                    stdio_fdnames(stdio_names_str, "form_engine.c:367");
                     close(pipe_fd[P_WRITE]);
                     execvp(eargv[0], eargv);
                     ssnprintf(em0, MAXLEN, "%s, line: %d", __FILE__,
@@ -383,6 +383,7 @@ int form_process(Init *init) {
                 form_read_data(form);
                 close(pipe_fd[P_READ]);
                 waitpid_with_timeout(pid, wait_timeout);
+                stdio_fdnames(stdio_names_str, "form_engine.c:387");
                 destroy_argv(eargc, eargv);
                 form_display_fields(form);
                 set_chyron_key_cp(form->chyron, 5, "F5 Edit", KEY_F(5),
@@ -585,12 +586,11 @@ void form_display_fields(Form *form) {
 
         mvwadd_wchstr(form->win, y, x, form->field[form->fidx]->filler_cc);
 
-        // -------------
         str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, form->field[form->fidx]->len);
 
         mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         update_panels();
-        // wnoutrefresh(form->win);
+        doupdate();
     }
     return;
 }

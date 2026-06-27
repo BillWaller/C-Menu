@@ -167,6 +167,8 @@ int view_file(Init *init) {
             }
         }
     }
+    destroy_view_win(init);
+    destroy_view(init);
     return 0;
 }
 /** @brief Main Command Processing Loop for View
@@ -789,6 +791,8 @@ int get_cmd_arg(View *view, char *prompt) {
     while (1) {
         update_panels();
         doupdate();
+        pad_refresh(view);
+
         c = vgetch(view->cmdln.win, -1);
         switch (c) {
         /** Basic Editing Keys for Command Line */

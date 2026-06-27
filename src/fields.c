@@ -28,6 +28,7 @@ char ff_tbl[][26] = {"string", "decimal_int", "hex_int", "float", "double",
 
 int field_editor(Form *);
 int form_display_field(Form *);
+int form_display_accept_field(Form *);
 int form_display_field_n(Form *, int);
 int form_validate_field(Form *);
 
@@ -81,12 +82,11 @@ int field_editor(Form *form) {
         if (in_key == 0) {
             // mvwaddstr(form->win, flin, fcol, filler_s);
             form_fmt_field(form, accept_s);
-            form_display_field(form);
+            form_display_accept_field(form);
             tcflush(0, TCIFLUSH);
-            // wrefresh(form->box);
             wmove(form->win, flin, x);
+
             curs_set(1);
-            // wrefresh(form->win);
             update_panels();
             doupdate();
             in_key = xwgetch(form->win, form->chyron, -1);
@@ -387,7 +387,13 @@ int form_display_field(Form *form) {
     str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt,
               form->field[form->fidx]->len);
     mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
-
+    return 0;
+}
+int form_display_accept_field(Form *form) {
+    int y = form->field[form->fidx]->line;
+    int x = form->field[form->fidx]->col;
+    mvwaddstr(form->win, y, x, form->field[form->fidx]->filler_s);
+    mvwaddstr(form->win, y, x, form->field[form->fidx]->accept_s);
     return 0;
 }
 /** @brief Format field according to its format type

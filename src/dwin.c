@@ -51,8 +51,8 @@ WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
 WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
 WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
 
-// PANEL *panel_win2[MAXWIN];
-// PANEL *panel_win[MAXWIN];
+PANEL *panel_win2[MAXWIN];
+PANEL *panel_win[MAXWIN];
 PANEL *panel_box[MAXWIN];
 PANEL *panel_main;
 
@@ -108,6 +108,10 @@ int wait_continue(WINDOW *, Chyron *, int);
 bool wait_destroy(Chyron *);
 int xwgetch(WINDOW *, Chyron *, int);
 cchar_t mkcc(int, attr_t, const char *);
+void activate_chyron_key(Chyron *chyron, int k);
+void activate_all_chyron_keys(Chyron *chyron);
+void deactivate_chyron_key(Chyron *chyron, int k);
+void deactivate_all_chyron_keys(Chyron *chyron);
 
 WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
@@ -321,7 +325,9 @@ void initialize_local_colors(SIO *sio) {
     cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
     cp_cmdln = get_clr_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
     cp_norm = get_clr_pair(CLR_FG, CLR_BG);
-    // CC_ variables are cchar_t versions of the color pairs, created with mkcc function for use in NCurses functions that require cchar_t attributes. These are used to set the background color of windows and other elements in the interface. By creating these cchar_t variables, we can easily apply the desired color pairs to various parts of the interface using NCurses functions that accept cchar_t attributes.
+
+    // CC_ variables are type cchar_t with color and space characters
+    // for setting backgrounds
     CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
     CC_BRKTL = mkcc(cp_brackets, WA_NORMAL, " ");
     CC_BRKTR = mkcc(cp_brackets, WA_NORMAL, " ");
@@ -335,23 +341,23 @@ void initialize_local_colors(SIO *sio) {
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
 
-    // create cchar_t for box borders
-    setcchar(&ls, &bw_ve, WA_NORMAL, 0, NULL);   // Left side
-    setcchar(&rs, &bw_ve, WA_NORMAL, 0, NULL);   // Right side
-    setcchar(&ts, &bw_ho, WA_NORMAL, 0, NULL);   // Top side
-    setcchar(&bs, &bw_ho, WA_NORMAL, 0, NULL);   // Bottom side
-    setcchar(&tl, &bw_tl, WA_NORMAL, 0, NULL);   // Top-left corner
-    setcchar(&tr, &bw_tr, WA_NORMAL, 0, NULL);   // Top-right corner
-    setcchar(&bl, &bw_bl, WA_NORMAL, 0, NULL);   // Bottom-left corner
-    setcchar(&br, &bw_br, WA_NORMAL, 0, NULL);   // Bottom-right corner
-    setcchar(&lt, &bw_lt, WA_NORMAL, 0, NULL);   // Bottom-right corner
-    setcchar(&rt, &bw_rt, WA_NORMAL, 0, NULL);   // Bottom-right corner
-    setcchar(&sp, &bw_sp, WA_NORMAL, 0, NULL);   // Bottom-right corner
-    setcchar(&ra, &bw_ra, WA_NORMAL, 0, NULL);   // Bottom-right corner
-    setcchar(&la, &bw_la, WA_NORMAL, 0, NULL);   // Bottom-right corner
-    setcchar(&ua, &bw_ua, WA_NORMAL, 0, NULL);   // Bottom-right corner
-    setcchar(&da, &bw_da, WA_NORMAL, 0, NULL);   // Bottom-right corner
-    setcchar(&ran, &bw_ran, WA_NORMAL, 0, NULL); // Bottom-right corner
+    // create cchar_t for box borders - no color specified
+    setcchar(&ls, &bw_ve, WA_NORMAL, cp_box, NULL);   // Left side
+    setcchar(&rs, &bw_ve, WA_NORMAL, cp_box, NULL);   // Right side
+    setcchar(&ts, &bw_ho, WA_NORMAL, cp_box, NULL);   // Top side
+    setcchar(&bs, &bw_ho, WA_NORMAL, cp_box, NULL);   // Bottom side
+    setcchar(&tl, &bw_tl, WA_NORMAL, cp_box, NULL);   // Top-left corner
+    setcchar(&tr, &bw_tr, WA_NORMAL, cp_box, NULL);   // Top-right corner
+    setcchar(&bl, &bw_bl, WA_NORMAL, cp_box, NULL);   // Bottom-left corner
+    setcchar(&br, &bw_br, WA_NORMAL, cp_box, NULL);   // Bottom-right corner
+    setcchar(&lt, &bw_lt, WA_NORMAL, cp_box, NULL);   // Left tee
+    setcchar(&rt, &bw_rt, WA_NORMAL, cp_box, NULL);   // Right tee
+    setcchar(&sp, &bw_sp, WA_NORMAL, cp_box, NULL);   // Space
+    setcchar(&ra, &bw_ra, WA_NORMAL, cp_box, NULL);   // Right arrow
+    setcchar(&la, &bw_la, WA_NORMAL, cp_box, NULL);   // Left arrow
+    setcchar(&ua, &bw_ua, WA_NORMAL, cp_box, NULL);   // Up arrow
+    setcchar(&da, &bw_da, WA_NORMAL, cp_box, NULL);   // Down arrow
+    setcchar(&ran, &bw_ran, WA_NORMAL, cp_box, NULL); // Right angle
 }
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
@@ -951,7 +957,7 @@ int win_new(int wlines, int wcols) {
         Perror("win_win[win_ptr] = derwin() failed");
         exit(EXIT_FAILURE);
     }
-    // panel_win[win_ptr] = new_panel(win_win[win_ptr]);
+    panel_win[win_ptr] = new_panel(win_win[win_ptr]);
     wbkgrnd(win_win[win_ptr], &CC_NT);
     wbkgrndset(win_win[win_ptr], &CC_NT);
     keypad(win_win[win_ptr], true);
@@ -971,7 +977,7 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
         Perror("win_win2[win_ptr] = derwin() failed");
         exit(EXIT_FAILURE);
     }
-    // panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
+    panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
     wbkgrnd(win_win2[win_ptr], &CC_NT);
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
@@ -1045,27 +1051,28 @@ void win_del() {
         exit(EXIT_FAILURE);
     }
     if (win_ptr >= 0) {
-        if (panel_box[win_ptr] != nullptr) {
-            del_panel(panel_box[win_ptr]);
-            panel_box[win_ptr] = nullptr;
-        }
 
-        // if (panel_win[win_ptr] != nullptr) {
-        //     del_panel(panel_win[win_ptr]);
-        //     panel_win[win_ptr] = nullptr;
-        // }
+        if (panel_win[win_ptr] != nullptr) {
+            del_panel(panel_win[win_ptr]);
+            panel_win[win_ptr] = nullptr;
+        }
         if (win_win[win_ptr] != nullptr) {
             delwin(win_win[win_ptr]);
             win_win[win_ptr] = nullptr;
         }
 
-        // if (panel_win2[win_ptr] != nullptr) {
-        //     del_panel(panel_win2[win_ptr]);
-        //     panel_win2[win_ptr] = nullptr;
-        // }
+        if (panel_win2[win_ptr] != nullptr) {
+            del_panel(panel_win2[win_ptr]);
+            panel_win2[win_ptr] = nullptr;
+        }
         if (win_win2[win_ptr] != nullptr) {
             delwin(win_win2[win_ptr]);
             win_win2[win_ptr] = nullptr;
+        }
+
+        if (panel_box[win_ptr] != nullptr) {
+            del_panel(panel_box[win_ptr]);
+            panel_box[win_ptr] = nullptr;
         }
 
         if (win_box[win_ptr] != nullptr) {
@@ -1181,6 +1188,8 @@ int border_title(WINDOW *box, char *title) {
     x += l;
     mvwadd_wchnstr(box, y, x++, &sp, 1); // space
     mvwadd_wchnstr(box, y, x++, &lt, 1); // left tee
+    while (x < maxx - 1)
+        mvwadd_wchnstr(box, y, x++, &ts, 1); // horizontal line
     return 0;
 }
 /* int box_title(WINDOW *box, char *title) {
@@ -1604,6 +1613,7 @@ void set_chyron_key_cp(Chyron *chyron, int k, char *s, int kc, int cp) {
     else
         chyron->key[k]->text[0] = '\0';
     chyron->key[k]->keycode = kc;
+    chyron->key[k]->active = true;
     chyron->key[k]->cp = cp;
 }
 /** set_chyron_key
@@ -1627,6 +1637,7 @@ void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
     else
         chyron->key[k]->text[0] = '\0';
     chyron->key[k]->keycode = kc;
+    chyron->key[k]->active = true;
     chyron->key[k]->cp = cp_nt_rev;
 }
 /** unset_chyron_key
@@ -1637,6 +1648,20 @@ void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
 */
 void unset_chyron_key(Chyron *chyron, int k) {
     chyron->key[k]->text[0] = '\0';
+}
+void activate_chyron_key(Chyron *chyron, int k) {
+    chyron->key[k]->active = true;
+}
+void activate_all_chyron_keys(Chyron *chyron) {
+    for (int k = 0; k < CHYRON_KEYS; k++)
+        chyron->key[k]->active = true;
+}
+void deactivate_chyron_key(Chyron *chyron, int k) {
+    chyron->key[k]->active = false;
+}
+void deactivate_all_chyron_keys(Chyron *chyron) {
+    for (int k = 0; k < CHYRON_KEYS; k++)
+        chyron->key[k]->active = false;
 }
 /**  compile_chyron
    @brief construct the chyron string from the chyron structure
@@ -1655,7 +1680,7 @@ void compile_chyron(Chyron *chyron) {
     int cp = cp_nt_rev;
     cchar_t *cx;
     while (k < CHYRON_KEYS) {
-        if (chyron->key[k]->text[0] == '\0') {
+        if (chyron->key[k]->text[0] == '\0' || !chyron->key[k]->active) {
             k++;
             continue;
         }

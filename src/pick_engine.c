@@ -41,6 +41,7 @@ void new_view_file(Init *, char *);
 void end_pick_view(Init *);
 void destroy_pick_view(Init *);
 int match_objects(Pick *pick, char *s);
+void remove_right_angle(Pick *);
 int pipe_fd[2];
 
 char const pagers_editors[12][10] = {"view", "view", "less", "more",
@@ -370,22 +371,32 @@ int pick_engine(Init *init) {
 
     pick->chyron = new_chyron();
     set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
-    if (pick->p_view_files)
-        set_chyron_key(pick->chyron, 2, "F2 View", '\t');
-    set_chyron_key(pick->chyron, 3, "F9 Cancel", KEY_F(9));
-    set_chyron_key(pick->chyron, 4, "F10 Accept", KEY_F(10));
-    set_chyron_key(pick->chyron, 5, "<Sp> Toggle", KEY_F(13));
-    set_chyron_key(pick->chyron, 6, "<Tab> Refine", '\t');
-    if (pick->tbl_pages > 0 && pick->tbl_page > 0)
-        set_chyron_key(pick->chyron, 7, "PgUp", KEY_PPAGE);
-    if (pick->tbl_pages > 0 && pick->tbl_page < pick->tbl_pages)
-        set_chyron_key(pick->chyron, 8, "PgDn", KEY_NPAGE);
-    set_chyron_key(pick->chyron, 5, "<Tab> Edit", '\t');
-    set_chyron_key(pick->chyron, 9, "INS", KEY_IC);
+    set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
+    set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F(10));
+    if (pick->p_view_files) {
+        set_chyron_key(pick->chyron, 4, "<v> View", 'v');
+        set_chyron_key(pick->chyron, 5, "<Sp> Edit", ' ');
+    } else
+        set_chyron_key(pick->chyron, 6, "<Sp> Toggle", ' ');
+    set_chyron_key(pick->chyron, 7, "<Tab> Refine", '\t');
+    set_chyron_key(pick->chyron, 8, "<Tab> Pick", '\t');
+    set_chyron_key(pick->chyron, 9, "PgUp", KEY_PPAGE);
+    set_chyron_key(pick->chyron, 10, "PgDn", KEY_NPAGE);
+    set_chyron_key(pick->chyron, 11, "INS", KEY_IC);
+    activate_all_chyron_keys(pick->chyron);
+    pick->chyron->key[6]->active = false;
+    pick->chyron->key[11]->active = false;
     compile_chyron(pick->chyron);
-    pick->width = max(pick->width, pick->chyron->l + 9);
-    unset_chyron_key(pick->chyron, 7);
-    unset_chyron_key(pick->chyron, 8);
+    pick->width = max(pick->width, pick->chyron->l);
+    pick->chyron->key[1]->active = true;
+    pick->chyron->key[2]->active = true;
+    pick->chyron->key[3]->active = false;
+    pick->chyron->key[4]->active = pick->p_view_files;
+    pick->chyron->key[5]->active = pick->p_view_files;
+    pick->chyron->key[6]->active = !pick->p_view_files;
+    pick->chyron->key[7]->active = true;
+    pick->chyron->key[8]->active = false;
+    pick->chyron->key[11]->active = false;
 
     rc = open_pick_win(init);
     if (rc) {
@@ -535,6 +546,7 @@ void reverse_object(Pick *pick) {
                    pick->tbl_col_width - 1);
     wbkgrndset(pick->win, &CC_NT);
     wmove(pick->win, pick->y, pick->x - 1);
+    mvwadd_wchnstr(pick->win, pick->y, 0, &ran, 1); // right angle
     update_panels();
     doupdate();
 }
@@ -556,11 +568,26 @@ void unreverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
+    // mvwaddnwstr(pick->win, 0, 1, &bw_sp, 1);
     wbkgrndset(pick->win, &CC_NT);
     wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width - 1);
-    wmove(pick->win, pick->y, pick->x - 1);
+    mvwadd_wchnstr(pick->win, pick->y, 0, &sp, 1); // space
+    wmove(pick->win, pick->y, 0);
+    update_panels();
+    doupdate();
+}
+void remove_right_angle(Pick *pick) {
+    if (pick->d_idx >= pick->d_cnt)
+        pick->d_idx = pick->d_cnt - 1;
+    pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
+    pick->y = pick->tbl_line + pick->y_offset;
+    pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
+    mvwadd_wchnstr(pick->win, pick->y, 0, &sp, 1); // space
+    wmove(pick->win, pick->y, 0);
+    update_panels();
+    doupdate();
 }
 /** @brief Toggles the selection state of the currently selected object in pick
    window
@@ -933,17 +960,23 @@ int picker(Init *init, char *field) {
 
     int in_key = 0;
     while (1) {
-        if (pick->p_view_files)
-            set_chyron_key(pick->chyron, 2, "F2 View", '\t');
         while (1) {
-            if (pick->tbl_pages > 0 && pick->tbl_page > 0) {
-                set_chyron_key(pick->chyron, 7, "PgUp", KEY_PPAGE);
-            } else
-                unset_chyron_key(pick->chyron, 7);
-            if (pick->tbl_pages > 0 && pick->tbl_page < pick->tbl_pages)
-                set_chyron_key(pick->chyron, 8, "PgDn", KEY_NPAGE);
+            pick->chyron->key[1]->active = true; // F1 Help
+            pick->chyron->key[2]->active = true; // F9 Cancel
+            pick->chyron->key[3]->active = pick->select_cnt > 0 ? true : false;
+            pick->chyron->key[4]->active = pick->p_view_files;                                 // <v> View
+            pick->chyron->key[5]->active = pick->p_view_files;                                 // <Sp> Edit
+            pick->chyron->key[6]->active = !pick->p_view_files;                                // <Sp> Toggle
+            pick->chyron->key[7]->active = true;                                               // <Tab> Refine
+            pick->chyron->key[8]->active = false;                                              // <Tab> Pick
+            pick->chyron->key[9]->active = pick->tbl_page > 0 ? true : false;                  // PgUp
+            pick->chyron->key[10]->active = (pick->tbl_pages > pick->tbl_page) ? true : false; // PgDn
+            pick->chyron->key[11]->active = false;                                             // INS
             compile_chyron(pick->chyron);
             display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
+            wnoutrefresh(pick->win2);
+            update_panels();
+            doupdate();
             /** ===========================================================
                 Pick Objects Loop
                 =========================================================== */
@@ -991,7 +1024,11 @@ int picker(Init *init, char *field) {
 
                 /** Toggle Select Object */
 
-            case KEY_F(2):
+            case 'v':
+                remove_right_angle(pick);
+                wnoutrefresh(pick->win);
+                update_panels();
+                doupdate();
                 if (pick->p_view_files)
                     view_cmd_processor(init);
                 in_key = 0;
@@ -1037,6 +1074,10 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
             case '\t':
+                remove_right_angle(pick);
+                wnoutrefresh(pick->win);
+                update_panels();
+                doupdate();
                 in_key = 0;
                 break;
 
@@ -1049,14 +1090,15 @@ int picker(Init *init, char *field) {
                     in_key = 0;
                     continue;
                 }
+                unreverse_object(pick);
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width - 1);
                 if (pick->tbl_col > 0)
                     pick->tbl_col--;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-                unreverse_object(pick);
                 in_key = 0;
+                reverse_object(pick);
                 continue;
 
             /** 'j' or KEY_DOWN Moves selection to next object in list */
@@ -1068,11 +1110,12 @@ int picker(Init *init, char *field) {
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width - 1);
+                unreverse_object(pick);
                 if (pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_line < pick->lines - 1)
                     pick->tbl_line++;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-                unreverse_object(pick);
                 in_key = 0;
+                reverse_object(pick);
                 continue;
 
             /** 'k' or KEY_UP Moves selection to previous object in list */
@@ -1081,11 +1124,12 @@ int picker(Init *init, char *field) {
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width - 1);
+                unreverse_object(pick);
                 if (pick->tbl_line > 0)
                     pick->tbl_line--;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-                unreverse_object(pick);
                 in_key = 0;
+                reverse_object(pick);
                 continue;
 
             /** 'l' or KEY_RIGHT Moves selection to next object in list */
@@ -1098,12 +1142,13 @@ int picker(Init *init, char *field) {
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width - 1);
+                unreverse_object(pick);
                 /** pick->obj_idx += pick->tbl_lines -> next column */
                 if (pick->tbl_page * pick->lines * pick->tbl_cols + (pick->tbl_col + 1) * pick->lines + pick->tbl_line < pick->d_cnt - 1 && pick->tbl_col < pick->tbl_cols - 1)
                     pick->tbl_col++;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-                unreverse_object(pick);
                 in_key = 0;
+                reverse_object(pick);
                 continue;
 
             /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of
@@ -1188,9 +1233,26 @@ int picker(Init *init, char *field) {
         /** ===============================================================
             Line editor loop
             =============================================================== */
+        update_panels();
+        doupdate();
         mvwaddnwstr(pick->box, pick->separator_line + 1, 1, &bw_ran, 1);
         pos = 1;
         ptr = accept_s;
+
+        pick->chyron->key[1]->active = true;  // F1 Help
+        pick->chyron->key[2]->active = true;  // F9 Cancel
+        pick->chyron->key[3]->active = false; // F10 Accept
+        pick->chyron->key[4]->active = false; // <v> View
+        pick->chyron->key[5]->active = false; // <Sp> Edit
+        pick->chyron->key[6]->active = false; // <Sp> Toggle
+        pick->chyron->key[7]->active = false; // <Tab> Refine
+        pick->chyron->key[8]->active = true;  // <Tab> Pick
+        pick->chyron->key[9]->active = false;
+        pick->chyron->key[10]->active = false;
+        pick->chyron->key[11]->active = true; // INS
+
+        compile_chyron(pick->chyron);
+        display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
         while (1) {
             if (in_key == 0) {
                 mouse_win = nullptr;
@@ -1289,11 +1351,11 @@ int picker(Init *init, char *field) {
             case KEY_IC:
                 if (f_insert) {
                     f_insert = FALSE;
-                    set_chyron_key_cp(pick->chyron, 9, "INS", KEY_IC,
+                    set_chyron_key_cp(pick->chyron, 10, "INS", KEY_IC,
                                       cp_nt_rev);
                 } else {
                     f_insert = TRUE;
-                    set_chyron_key_cp(pick->chyron, 9, "INS", KEY_IC,
+                    set_chyron_key_cp(pick->chyron, 10, "INS", KEY_IC,
                                       cp_nt_hl_rev);
                 }
                 compile_chyron(pick->chyron);
@@ -1420,6 +1482,7 @@ int picker(Init *init, char *field) {
             }
             break;
         }
+        mvwaddnwstr(pick->box, pick->separator_line + 1, 1, &bw_sp, 1);
     }
 }
 

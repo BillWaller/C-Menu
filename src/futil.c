@@ -1079,7 +1079,7 @@ char *stdio_names(char *stdio_str, char *id) {
 
     return stdio_str;
 }
-char *xstdio_names(char *stdio_str, char *id) {
+char *stdio_fdnames(char *stdio_str, char *id) {
     if (!stdio_str)
         return nullptr;
     char buf[MAXLEN] = {'\0'};

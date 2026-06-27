@@ -300,6 +300,8 @@ int init_view_boxwin(Init *init, char *title) {
     // idcok(view->pad, false);
     // scrollok(view->pad, true);
     // wsetscrreg(view->pad, 0, view->scroll_lines - 1);
+    scrollok(view->pad, true);
+    wsetscrreg(view->pad, 0, view->scroll_lines - 1);
 
     return (0);
 }
