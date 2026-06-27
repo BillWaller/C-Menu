@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-27T00:36:07-05:00* - FIXES: The refactoring to accommodate the new Uniform Abstraction Layer User Interface (UAL_UI) stressed the C-Menu code base, resulting in a number of issues. After a long day of debugging, the major issues have been resolved. Among the issues were three definitely lost memory blocks. There are still 64 bytes dangling, but not lost. They are NCurses panels, which may not be freed until the end program. 
+
+*2026-06-25T17:26:17-05:00* - DOCS: Update Changelog 
+
 *2026-06-25T17:14:56-05:00* - REFACTOR: Many changes today as we back the Uniform Abstraction Layer User Interface (UAL_UI) into the code base. This code isn't supposed to do anything new yet. The objective is to provide a uniform interface through which C-Menu can communicate with an abstracted UI backend. The UAL_UI is a work in progress, and the current implementation is not complete. The goal is to eventually allow C-Menu to support multiple UI backends, such as ncurses, notcurses, and potentially others. The changes made today include - Adding new files for the notcurses backend, including example.c, ui_draw_with_channels.c, and ui_mvaddcell.c. - Modifying existing files to integrate the UAL_UI # Please enter the commit message for your changes. Lines starting 
 
 *2026-06-24T00:39:27-05:00* - Update CHANGELOG.md 
