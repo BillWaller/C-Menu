@@ -488,7 +488,7 @@ file. This allows for memory-mapping the input later. It does not support
 real-time updates to the input, but it allows for efficient access to the
 data.
 */
-int view_init_input(View *view, char *file_name) {
+int view_init_input(Init *init, char *file_name) {
     struct stat sb;
     int idx = 0;
     pid_t pid = -1;
@@ -497,6 +497,7 @@ int view_init_input(View *view, char *file_name) {
     int cmd_key = 0;
     char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
+    View *view = init->view;
     view->f_in_pipe = false;
     if (strcmp(file_name, "-") == 0) {
         file_name = "/dev/stdin";
@@ -709,6 +710,9 @@ int view_init_input(View *view, char *file_name) {
         return -1;
     }
     close(view->in_fd);
+    SIO *sio = init->sio;
+    dup2(sio->stdin_fd, STDIN_FILENO);
+    stdio_names(stdio_names_str, "init_view.c 715");
     view->file_size = sb.st_size;
     view->prev_file_pos = NULL_POSITION;
     view->buf_curr_ptr = view->buf;

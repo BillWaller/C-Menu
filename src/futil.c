@@ -125,6 +125,7 @@ char *format_local_timestamp(time_t, char *, size_t);
 char *get_local_timestamp();
 char *get_user_str(char *, size_t);
 char *get_ip_addresses(char *, int);
+char stdio_names_str[MAXLEN];
 
 /** Global variables for error reporting */
 
@@ -1032,6 +1033,64 @@ bool trim_ext(char *buf, char *filename) {
     if (d == buf)
         return false;
     return true;
+}
+/** @brief Retrieves the file path associated with a given file descriptor.
+    @ingroup utility_functions
+    @param fd - file descriptor
+    @param out_path - buffer to receive the file path
+    @param out_size - size of the output buffer
+    @returns 0 on success, -1 on failure
+    @details This function uses the /proc filesystem to read the symbolic link
+   corresponding to the file descriptor. It constructs the path to the symbolic
+   link in /proc/self/fd/ and uses readlink to retrieve the actual file path.
+   The caller must ensure that out_path has enough space to hold the resulting
+   path. If readlink fails, this function returns -1 and does not modify
+   out_path.
+ */
+char *fdname(int fd, char *out_path) {
+    char proc_path[MAXLEN];
+
+    snprintf(proc_path, sizeof(proc_path), "/proc/self/fd/%d", fd);
+    ssize_t len = readlink(proc_path, out_path, MAXLEN - 1);
+    if (len == -1)
+        return nullptr;
+    out_path[len] = '\0';
+    return out_path;
+}
+char *stdio_names(char *stdio_str, char *id) {
+    if (!stdio_str)
+        return nullptr;
+    char buf[MAXLEN] = {'\0'};
+    char err_str[MAXLEN] = {'\0'};
+    errno = 0;
+    ssnprintf(buf, MAXLEN - 1, "%s - ", id);
+    strnz__cpy(stdio_str, buf, MAXLEN - 1);
+    strnz__cpy(stdio_str, ttyname(0), MAXLEN - 1);
+    if (errno)
+        ssnprintf(err_str, MAXLEN - 1, "Error fd %d: %s\n", 0, strerror(errno));
+
+    strnz__cpy(stdio_str, ttyname(1), MAXLEN - 1);
+    if (errno)
+        ssnprintf(err_str, MAXLEN - 1, "Error fd %d: %s\n", 1, strerror(errno));
+
+    strnz__cpy(stdio_str, ttyname(2), MAXLEN - 1);
+    if (errno)
+        ssnprintf(err_str, MAXLEN - 1, "Error fd %d: %s\n", 2, strerror(errno));
+
+    return stdio_str;
+}
+char *xstdio_names(char *stdio_str, char *id) {
+    if (!stdio_str)
+        return nullptr;
+    char buf[MAXLEN] = {'\0'};
+    ssnprintf(buf, MAXLEN - 1, "%s - ", id);
+    strnz__cpy(stdio_str, buf, MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(0, buf), MAXLEN - 1);
+    strnz__cat(stdio_str, ",", MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(1, buf), MAXLEN - 1);
+    strnz__cat(stdio_str, ",", MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(2, buf), MAXLEN - 1);
+    return stdio_str;
 }
 /**  @brief Returns the base name of a file specification.
     @ingroup utility_functions

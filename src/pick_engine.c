@@ -11,10 +11,9 @@
     @brief Navigate, Select, and Perform Action on Objects
  */
 
-#include <common.h>
+#include "include/common.h"
 #include <fcntl.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -226,11 +225,18 @@ int init_pick(Init *init, int argc, char **argv, int by, int bx) {
     /*------------------------------------------------------------*/
     read_pick_input(init);
     if (pick->f_in_pipe && pid > 0) {
-        /** Wait for provider_cmd child process to finish before proceeding */
-        waitpid_with_timeout(pid, wait_timeout);
+        //
+        // Wait for provider_cmd child process to finish before proceeding bool
+        // rc = waitpid_with_timeout(pid, wait_timeout);
+        //
+        //  if (rc == false) {
+        //      Perror("Timeout waiting for provider_cmd child process to finish");
+        //      kill(pid, SIGKILL);
+        //      waitpid(pid, nullptr, 0);
+        //  }
+        waitpid(pid, nullptr, 0);
         close(pipe_fd[P_READ]);
-        dup2(sio->stdin_fd, STDIN_FILENO);
-        dup2(sio->stdout_fd, STDOUT_FILENO);
+        // dup2(sio->stdin_fd, STDIN_FILENO);
         restore_curses_tioctl();
         sig_prog_mode();
         keypad(pick->win, true);
@@ -257,6 +263,7 @@ void destroy_pick_view(Init *init) {
     View *view = init->view;
     if (pick->p_view_files) {
         if (view->buf != nullptr) {
+            destroy_line_table(view);
             munmap(view->buf, view->file_size);
             view->buf = nullptr;
         }
@@ -363,37 +370,29 @@ int pick_engine(Init *init) {
 
     pick->chyron = new_chyron();
     set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
-    set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
-    set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F(10));
-    set_chyron_key(pick->chyron, 4, "Sp Toggle", KEY_F(13));
-    set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
-    if (pick->tbl_pages > 1) {
-        set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
-
-        pick->chyron = new_chyron();
-        set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
-        set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
-        set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F(10));
-        set_chyron_key(pick->chyron, 4, "Sp Toggle", KEY_F(13));
-        set_chyron_key(pick->chyron, 5, "Tab Edit", '\t');
-        if (pick->tbl_pages > 1) {
-            set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
-            set_chyron_key(pick->chyron, 2, "PgDn", KEY_NPAGE);
-        }
-    }
+    if (pick->p_view_files)
+        set_chyron_key(pick->chyron, 2, "F2 View", '\t');
+    set_chyron_key(pick->chyron, 3, "F9 Cancel", KEY_F(9));
+    set_chyron_key(pick->chyron, 4, "F10 Accept", KEY_F(10));
+    set_chyron_key(pick->chyron, 5, "<Sp> Toggle", KEY_F(13));
+    set_chyron_key(pick->chyron, 6, "<Tab> Refine", '\t');
+    if (pick->tbl_pages > 0 && pick->tbl_page > 0)
+        set_chyron_key(pick->chyron, 7, "PgUp", KEY_PPAGE);
+    if (pick->tbl_pages > 0 && pick->tbl_page < pick->tbl_pages)
+        set_chyron_key(pick->chyron, 8, "PgDn", KEY_NPAGE);
+    set_chyron_key(pick->chyron, 5, "<Tab> Edit", '\t');
+    set_chyron_key(pick->chyron, 9, "INS", KEY_IC);
     compile_chyron(pick->chyron);
-    if (pick->chyron->l > pick->width)
-        pick->chyron->l = strnz(pick->chyron->s, pick->width);
-    if (pick->width < pick->chyron->l)
-        pick->width = pick->chyron->l;
-    pick->width = max(pick->width, pick->chyron->l + 5);
-    if (pick->begx + pick->width > COLS - 2)
-        pick->begx = COLS - pick->width - 2;
-    else if (pick->begx == 0)
-        pick->begx = (COLS - pick->width) / 2;
+    pick->width = max(pick->width, pick->chyron->l + 9);
+    unset_chyron_key(pick->chyron, 7);
+    unset_chyron_key(pick->chyron, 8);
+
     rc = open_pick_win(init);
-    if (rc)
-        return (rc);
+    if (rc) {
+        Perror("Failed to open pick window");
+        exit(EXIT_FAILURE);
+        // return (rc);
+    }
     /** Enter picker loop to handle user input and interactions */
     pick->d_idx = 0;
     pick->x = 1;
@@ -424,14 +423,11 @@ int pick_engine(Init *init) {
                 if (f_processed) {
                     mvwaddstr(pick->win2, 0, 0, "Selection Processed");
                     wclrtoeol(pick->win2);
-                    // update_panels();
                 }
             }
         }
         deselect_object(pick);
     } while (1);
-    // update_panels();
-    // doupdate();
     destroy_chyron(pick->chyron);
     return (rc);
 }
@@ -930,7 +926,6 @@ int picker(Init *init, char *field) {
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
 
     f_insert = false;
-    set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_nt_rev);
     // compile_chyron(pick->chyron);
     // display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
 
@@ -938,12 +933,17 @@ int picker(Init *init, char *field) {
 
     int in_key = 0;
     while (1) {
-        set_chyron_key(pick->chyron, 5, "<Tab> Edit", '\t');
         if (pick->p_view_files)
             set_chyron_key(pick->chyron, 2, "F2 View", '\t');
-        compile_chyron(pick->chyron);
-        display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
         while (1) {
+            if (pick->tbl_pages > 0 && pick->tbl_page > 0) {
+                set_chyron_key(pick->chyron, 7, "PgUp", KEY_PPAGE);
+            } else
+                unset_chyron_key(pick->chyron, 7);
+            if (pick->tbl_pages > 0 && pick->tbl_page < pick->tbl_pages)
+                set_chyron_key(pick->chyron, 8, "PgDn", KEY_NPAGE);
+            compile_chyron(pick->chyron);
+            display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
             /** ===========================================================
                 Pick Objects Loop
                 =========================================================== */
@@ -963,7 +963,7 @@ int picker(Init *init, char *field) {
                     }
                 mouse_win = nullptr;
                 // 1
-                top_panel(panel_win[win_ptr]);
+                // top_panel(panel_win[win_ptr]);
                 wmove(pick->win, pick->y, pick->x);
                 update_panels();
                 doupdate();
@@ -978,7 +978,8 @@ int picker(Init *init, char *field) {
                 display_pick_help(init);
                 display_page(pick);
                 f_insert = false;
-                set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC, cp_nt_rev);
+
+                set_chyron_key(pick->chyron, 9, "INS", KEY_IC);
                 compile_chyron(pick->chyron);
                 display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
                 cchar_t cc = {0};
@@ -1227,7 +1228,7 @@ int picker(Init *init, char *field) {
                     }
                 mouse_win = nullptr;
                 pos = col + strlen(accept_s);
-                top_panel(panel_win2[win_ptr]);
+                // top_panel(panel_win2[win_ptr]);
                 // 2
                 wmove(pick->win2, pick->y, pos);
                 update_panels();
@@ -1288,11 +1289,11 @@ int picker(Init *init, char *field) {
             case KEY_IC:
                 if (f_insert) {
                     f_insert = FALSE;
-                    set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC,
+                    set_chyron_key_cp(pick->chyron, 9, "INS", KEY_IC,
                                       cp_nt_rev);
                 } else {
                     f_insert = TRUE;
-                    set_chyron_key_cp(pick->chyron, 18, "INS", KEY_IC,
+                    set_chyron_key_cp(pick->chyron, 9, "INS", KEY_IC,
                                       cp_nt_hl_rev);
                 }
                 compile_chyron(pick->chyron);
@@ -1460,6 +1461,7 @@ int new_pick_view(Init *init) {
 void new_view_file(Init *init, char *file) {
     View *view = init->view;
     if (view->buf != nullptr) {
+        destroy_line_table(view);
         munmap(view->buf, view->file_size);
         view->buf = nullptr;
     }
@@ -1467,7 +1469,7 @@ void new_view_file(Init *init, char *file) {
     strnz__cat(view->provider_cmd, file, MAXLEN - 1);
     strnz__cpy(view->title, file, MAXLEN - 1);
     border_title(view->box.win, view->title);
-    if (view_init_input(view, file) == 0) {
+    if (view_init_input(init, file) == 0) {
         if (view->buf) {
             view->f_eod = 0;
             view->f_bod = 0;

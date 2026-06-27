@@ -142,7 +142,7 @@ int view_file(Init *init) {
         view->file_spec_ptr = view->next_file_spec_ptr;
         view->next_file_spec_ptr = nullptr;
         strnz__cpy(view->cur_file_str, view->file_spec_ptr, MAXLEN - 1);
-        if (view_init_input(view, view->cur_file_str) == 0) {
+        if (view_init_input(init, view->cur_file_str) == 0) {
             if (view->buf) {
                 view->f_eod = 0;
                 view->f_bod = 0;
@@ -1549,7 +1549,7 @@ int go_to_line(View *view, off_t line_idx) {
  */
 void initialize_line_table(View *view) {
     view->ln_tbl_size = LINE_TBL_INCR;
-    view->ln_tbl = (off_t *)malloc(view->ln_tbl_size * sizeof(off_t));
+    view->ln_tbl = (off_t *)calloc(view->ln_tbl_size, sizeof(off_t));
     if (view->ln_tbl == nullptr) {
         Perror("Memory allocation failed");
         exit(EXIT_FAILURE);
@@ -1559,6 +1559,8 @@ void initialize_line_table(View *view) {
     view->ln = 0;
 }
 void destroy_line_table(View *view) {
+    if (view->ln_tbl == nullptr)
+        return;
     free(view->ln_tbl);
     view->ln_tbl = nullptr;
     view->ln_tbl_size = 0;

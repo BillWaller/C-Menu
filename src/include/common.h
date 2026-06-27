@@ -13,11 +13,9 @@
 #define _GNU_SOURCE
 // #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
-#include "ui_backend.h"
-#include <cm.h>
+#include "cm.h"
 #include <form.h>
 #include <menu.h>
-#include <ncursesw/ncurses.h>
 #include <pick.h>
 #include <view.h>
 
@@ -225,7 +223,7 @@ extern int cmd_processor(Init *);
 extern int view_file(Init *);
 extern int init_view_full_screen(Init *);
 extern int init_view_boxwin(Init *, char *);
-extern int view_init_input(View *, char *);
+extern int view_init_input(Init *, char *);
 extern void view_calc_full_screen_dimensions(Init *);
 extern void view_full_screen_resize(Init *);
 extern void view_calc_win_dimensions(Init *, char *title);
@@ -246,4 +244,5 @@ extern bool view_stack_peek(const ViewStack *, View *);
 extern void view_stack_free(ViewStack *);
 extern int view_cmd_processor(Init *);
 extern void destroy_view_win(Init *);
+extern void destroy_line_table(View *);
 #endif

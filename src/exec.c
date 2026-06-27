@@ -136,7 +136,9 @@ int fork_exec(char **argv) {
     capture_curses_tioctl();
     curs_set(1);
     sig_dfl_mode();
+    stdio_names(stdio_names_str, "exec.c:139");
     endwin();
+    stdio_names(stdio_names_str, "exec.c:141");
     tmp_str[0] = '\0';
     pid = fork();
     if (pid < 0) {

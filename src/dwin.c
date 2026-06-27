@@ -20,15 +20,16 @@
 #include "ui/ui_ncurses_internal.h"
 #include <cm.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <math.h>
-#include <ncursesw/panel.h>
-#include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
-#include <wait.h>
 #include <wchar.h>
+
 #define NC true
 
 enum WinFlags {
@@ -50,11 +51,10 @@ WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
 WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
 WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
 
-PANEL *panel_win2[MAXWIN];
-PANEL *panel_win[MAXWIN];
+// PANEL *panel_win2[MAXWIN];
+// PANEL *panel_win[MAXWIN];
 PANEL *panel_box[MAXWIN];
-
-int win_flags[MAXWIN];
+PANEL *panel_main;
 
 void ui_rect_set(UiRect *, int, int, int, int);
 int win2_new(int wlines, int wcols, int wbegy, int wbegx);
@@ -71,7 +71,7 @@ int border_hsplit_text(WINDOW *, char *, int);
 int win_new(int, int);
 void win_redraw(WINDOW *);
 void win_resize(int, int, char *);
-int win_del();
+void win_del();
 void restore_wins();
 void win_init_attrs();
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
@@ -228,6 +228,9 @@ bool open_curses(SIO *sio) {
     char emsg0[MAXLEN];
 
     // Get the name of the terminal device
+    sio->stdin_fd = dup(STDIN_FILENO);
+    sio->stdout_fd = dup(STDOUT_FILENO);
+    sio->stderr_fd = dup(STDERR_FILENO);
     if (ttyname_r(STDERR_FILENO, sio->tty_name, sizeof(sio->tty_name)) != 0) {
         strerror_r(errno, tmp_str, MAXLEN - 1);
         strnz__cpy(emsg0, "ttyname_r failed ", MAXLEN - 1);
@@ -268,13 +271,21 @@ bool open_curses(SIO *sio) {
         fprintf(stderr, "Check terminfo for missing \"ccc\"\n");
         abend(-1, "fatal error");
     }
-    for (int i = 0; i < MAXWIN; i++)
-        win_flags[i] = 0;
+    panel_main = new_panel(stdscr);
     noecho();
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
     wbkgrnd(stdscr, &CC_NORM);
+    for (win_ptr = 0; win_ptr < MAXWIN; win_ptr++) {
+        panel_box[win_ptr] = nullptr;
+        ui_win[win_ptr] = nullptr;
+        ui_win2[win_ptr] = nullptr;
+        ui_box[win_ptr] = nullptr;
+        win_win[win_ptr] = nullptr;
+        win_win2[win_ptr] = nullptr;
+        win_box[win_ptr] = nullptr;
+    }
     win_ptr = -1;
     return sio;
 }
@@ -620,8 +631,13 @@ RGB hex_clr_str_to_rgb(char *s) {
 void destroy_curses() {
     if (!f_curses_open)
         return;
-    while (win_ptr >= 0)
-        win_del();
+    for (win_ptr = 0; win_ptr < MAXWIN; win_ptr++) {
+        del_panel(panel_box[win_ptr]);
+        delwin(win_win2[win_ptr]);
+        delwin(win_win[win_ptr]);
+        delwin(win_box[win_ptr]);
+    }
+    win_ptr = -1;
     endwin();
     delscreen(screen);
     fclose(tty_fp);
@@ -935,7 +951,7 @@ int win_new(int wlines, int wcols) {
         Perror("win_win[win_ptr] = derwin() failed");
         exit(EXIT_FAILURE);
     }
-    panel_win[win_ptr] = new_panel(win_win[win_ptr]);
+    // panel_win[win_ptr] = new_panel(win_win[win_ptr]);
     wbkgrnd(win_win[win_ptr], &CC_NT);
     wbkgrndset(win_win[win_ptr], &CC_NT);
     keypad(win_win[win_ptr], true);
@@ -955,9 +971,8 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
         Perror("win_win2[win_ptr] = derwin() failed");
         exit(EXIT_FAILURE);
     }
-    panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
+    // panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
     wbkgrnd(win_win2[win_ptr], &CC_NT);
-    win_flags[win_ptr] |= WF_WIN2;
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
     idcok(win_win2[win_ptr], false);
@@ -1024,37 +1039,41 @@ void win_redraw(WINDOW *win) {
    window, if they exist. It also refreshes the remaining windows to ensure the
    display is updated correctly. After calling this function, the global win_ptr
    variable is decremented to point to the previous window in the stack. */
-int win_del() {
+void win_del() {
+    if (win_ptr >= MAXWIN) {
+        Perror("win_ptr >= MAXWIN");
+        exit(EXIT_FAILURE);
+    }
     if (win_ptr >= 0) {
-        if (panel_win2[win_ptr] != nullptr) {
-            del_panel(panel_win2[win_ptr]);
-            panel_win2[win_ptr] = nullptr;
-        }
-        if (win_win2[win_ptr] != nullptr) {
-            delwin(win_win2[win_ptr]);
-            win_win2[win_ptr] = nullptr;
+        if (panel_box[win_ptr] != nullptr) {
+            del_panel(panel_box[win_ptr]);
+            panel_box[win_ptr] = nullptr;
         }
 
-        if (panel_win[win_ptr] != nullptr) {
-            del_panel(panel_win[win_ptr]);
-            panel_win[win_ptr] = nullptr;
-        }
+        // if (panel_win[win_ptr] != nullptr) {
+        //     del_panel(panel_win[win_ptr]);
+        //     panel_win[win_ptr] = nullptr;
+        // }
         if (win_win[win_ptr] != nullptr) {
             delwin(win_win[win_ptr]);
             win_win[win_ptr] = nullptr;
         }
 
-        if (panel_box[win_ptr] != nullptr) {
-            del_panel(panel_box[win_ptr]);
-            panel_box[win_ptr] = nullptr;
+        // if (panel_win2[win_ptr] != nullptr) {
+        //     del_panel(panel_win2[win_ptr]);
+        //     panel_win2[win_ptr] = nullptr;
+        // }
+        if (win_win2[win_ptr] != nullptr) {
+            delwin(win_win2[win_ptr]);
+            win_win2[win_ptr] = nullptr;
         }
+
         if (win_box[win_ptr] != nullptr) {
             delwin(win_box[win_ptr]);
             win_box[win_ptr] = nullptr;
         }
         win_ptr--;
     }
-    return win_ptr;
 }
 
 /** restore_wins
@@ -1384,11 +1403,11 @@ int Perror(char *emsg_str) {
         curs_set(1);
         in_key = xwgetch(error_win, chyron, -1);
         curs_set(0);
-        win_del();
     } else {
         in_key = KEY_F(10);
     }
     destroy_chyron(chyron);
+    win_del();
     return (in_key);
 }
 /** wait_mk_chyron
@@ -1444,6 +1463,8 @@ wait_mk_win(Chyron *chyron, char *title) {
 bool wait_destroy(Chyron *chyron) {
     win_del();
     destroy_chyron(chyron);
+    update_panels();
+    doupdate();
     return true;
 }
 /** wait_continue
@@ -1519,15 +1540,19 @@ bool action_disposition(char *title, char *action_str) {
    character of the text is not '\0'. If any memory allocation fails, the
    function will call abend to handle the error and return nullptr.
  */
-Chyron *
-new_chyron() {
+Chyron *new_chyron() {
     Chyron *chyron = (Chyron *)calloc(1, sizeof(Chyron));
     if (!chyron) {
         abend(-1, "calloc chyron failed");
         return nullptr;
     }
-    for (int i = 0; i < CHYRON_KEYS; i++)
+    for (int i = 0; i < CHYRON_KEYS; i++) {
         chyron->key[i] = (ChyronKey *)calloc(1, sizeof(ChyronKey));
+        if (!chyron->key[i]) {
+            abend(-1, "calloc chyron->key[i] failed");
+            return nullptr;
+        }
+    }
     return chyron;
 }
 /** destroy_chyron
@@ -1536,16 +1561,16 @@ new_chyron() {
     @param chyron pointer to Chyron structure
     @return nullptr
  */
-Chyron *
-destroy_chyron(Chyron *chyron) {
+Chyron *destroy_chyron(Chyron *chyron) {
     int i;
 
     if (!chyron)
         return nullptr;
     for (i = 0; i < CHYRON_KEYS; i++) {
-        if (chyron->key[i])
+        if (chyron->key[i]) {
             free(chyron->key[i]);
-        chyron->key[i] = nullptr;
+            chyron->key[i] = nullptr;
+        }
     }
     free(chyron);
     chyron = nullptr;
@@ -1802,10 +1827,14 @@ bool waitpid_with_timeout(pid_t pid, int timeout) {
     Chyron *wait_chyron;
     WINDOW *wait_win;
     int remaining = timeout;
+    bool rc = false;
 
     waitpid(pid, &status, WNOHANG);
-    if (WIFEXITED(status) || WIFSIGNALED(status))
+    if (WIFEXITED(status) || WIFSIGNALED(status)) {
+        kill(pid, SIGKILL);
+        waitpid(pid, &status, 0);
         return true;
+    }
     usleep(100000); // Sleep for 200ms */
     wait_chyron = wait_mk_chyron();
     ssnprintf(em0, MAXLEN - 1, "Waiting for process %d to finish...", pid);
@@ -1815,15 +1844,24 @@ bool waitpid_with_timeout(pid_t pid, int timeout) {
         cmd_key = wait_continue(wait_win, wait_chyron, remaining);
         if (cmd_key == KEY_F(9))
             break;
+        if (cmd_key == KEY_F(10)) {
+            remaining = timeout;
+            continue;
+        }
         remaining--;
         waitpid(pid, &status, WNOHANG);
         if (WIFEXITED(status) || WIFSIGNALED(status)) {
-            wait_destroy(wait_chyron);
-            return true;
+            rc = true;
+            break;
         }
     }
-    wait_destroy(wait_chyron);
-    return false;
+    kill(pid, SIGKILL);
+    waitpid(pid, &status, 0);
+    win_del();
+    destroy_chyron(wait_chyron);
+    update_panels();
+    doupdate();
+    return rc;
 }
 /** xwgetch
     @brief Wrapper for wgetch that handles signals, mouse events, checks for

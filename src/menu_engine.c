@@ -58,10 +58,8 @@ unsigned int menu_engine(Init *init) {
         Perror(tmp_str);
         return 1;
     }
-    menu->win = win_win[win_ptr];
-    menu->box = win_box[win_ptr];
 
-    scrollok(menu->win, false);
+    scrollok(win_win[win_ptr], false);
     int len;
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
@@ -76,15 +74,13 @@ unsigned int menu_engine(Init *init) {
                 destroy_menu(init);
                 return 0;
             }
-            menu->win = win_win[win_ptr];
-            menu->box = win_box[win_ptr];
             restore_wins();
             return 0;
         case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
-                // mvwaddstr(menu->win, menu->line_idx, 0, menu->line[menu->line_idx]->choice_text);
-                mvwaddstr_fill(menu->win,
+                // mvwaddstr(win_win[win_ptr], menu->line_idx, 0, menu->line[menu->line_idx]->choice_text);
+                mvwaddstr_fill(win_win[win_ptr],
                                menu->line_idx,
                                0,
                                menu->line[menu->line_idx]->choice_text,
@@ -98,7 +94,7 @@ unsigned int menu_engine(Init *init) {
                     wstr[1] = L'\0';
                 }
                 setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl, nullptr);
-                mvwadd_wch(menu->win, menu->line_idx,
+                mvwadd_wch(win_win[win_ptr], menu->line_idx,
                            menu->line[menu->line_idx]->letter_pos, &cc);
             }
             action = MA_RESET_MENU;
@@ -147,18 +143,18 @@ unsigned int menu_cmd_processor(Init *init) {
     memset(&mbstate, 0, sizeof(mbstate));
     cchar_t cc = {0};
     Menu *menu = init->menu;
-    keypad(menu->win, TRUE);
+    keypad(win_win[win_ptr], TRUE);
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
     MEVENT event;
-    scrollok(menu->win, FALSE);
+    scrollok(win_win[win_ptr], FALSE);
 
     // Highlight the currently selected menu choice
 
     while (1) {
-        wbkgrndset(menu->win, &CC_NT_REV);
-        mvwaddstr_fill(menu->win, menu->line_idx, 0,
+        wbkgrndset(win_win[win_ptr], &CC_NT_REV);
+        mvwaddstr_fill(win_win[win_ptr], menu->line_idx, 0,
                        menu->line[menu->line_idx]->choice_text, menu->cols);
-        wbkgrndset(menu->win, &CC_NT);
+        wbkgrndset(win_win[win_ptr], &CC_NT);
         // Highlight the letter of the currently selected menu choice
         wchar_t wstr[2] = {L'\0', L'\0'};
         len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,
@@ -168,18 +164,18 @@ unsigned int menu_cmd_processor(Init *init) {
             wstr[1] = L'\0';
         }
         setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl_rev, nullptr);
-        mvwadd_wch(menu->win, menu->line_idx,
+        mvwadd_wch(win_win[win_ptr], menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos, &cc);
 
         // Wait for user input and process it
         event.y = event.x = -1;
         update_panels();
         doupdate();
-        wmove(menu->win, menu->line_idx, 1);
-        in_key = xwgetch(menu->win, nullptr, -1);
+        wmove(win_win[win_ptr], menu->line_idx, 1);
+        in_key = xwgetch(win_win[win_ptr], nullptr, -1);
 
         // Remove the highlight from the currently selected menu choice
-        mvwaddstr_fill(menu->win, menu->line_idx, 0,
+        mvwaddstr_fill(win_win[win_ptr], menu->line_idx, 0,
                        menu->line[menu->line_idx]->choice_text, menu->cols);
         len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,
                       MB_CUR_MAX, &mbstate);
@@ -188,7 +184,7 @@ unsigned int menu_cmd_processor(Init *init) {
             wstr[1] = L'\0';
         }
         setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl, nullptr);
-        mvwadd_wch(menu->win, menu->line_idx,
+        mvwadd_wch(win_win[win_ptr], menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos, &cc);
         // Initialize the mouse event coordinates to -1 to indicate no mouse
         // event
@@ -325,6 +321,7 @@ unsigned int menu_cmd_processor(Init *init) {
             strnz__cpy(earg_str, s, MAXLEN - 1);
             trim(earg_str);
             eargc = str_to_args(eargv, s, MAX_ARGS);
+            stdio_names(stdio_names_str, "menu_engine.c:328");
             full_screen_fork_exec(eargv);
             destroy_argv(eargc, eargv);
             return (MA_RESET_MENU);

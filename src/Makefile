@@ -14,11 +14,12 @@ BUILD_TYPE=Debug
 UI="-DUAL_UI"
 UI="-DNCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
-	CFLAGS=-Ofast -flto -s -fPIC -pthread $(UI)
-	LINKOPT= -pthread -flto -s
+	CFLAGS=-Ofast -s -fPIC -pthread $(UI)
+	EXTRA_CFLAGS=-flto
+	LINKOPT= -pthread -s
 else
-	CFLAGS:=-O0 -g3 -fPIC -pthread -fno-omit-frame-pointer -rdynamic $(UI)
-	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
+	CFLAGS:=-O0 -gdwarf-4 -fPIC -pthread -fno-omit-frame-pointer -rdynamic $(UI)
+	LINKOPT= -gdwarf-4 -fno-omit-frame-pointer -rdynamic -pthread
 #	-DDEBUG_IMMEDOK
 endif
 INCLUDE_DIRS:=-I./include -I./ui
@@ -199,7 +200,7 @@ clean:
 helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf -H -L -T6 /home/bill 1>/dev/null 2>/dev/null
 
-valgrind: lf
+valgrind: menu
 	valgrind -v \
 		--tool=memcheck \
     	--log-file=valgrind.out \
@@ -210,8 +211,6 @@ valgrind: lf
 		--track-origins=yes \
 		--suppressions=valgrind.supp \
 		./menu
-#	lf -H -L -T6 /home/bill
-# --tool=memcheck
 
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*

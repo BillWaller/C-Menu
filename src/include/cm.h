@@ -13,7 +13,6 @@
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
-#include "ui_backend.h"
 #include "version.h"
 #include <argp.h>
 #include <ncursesw/ncurses.h>
@@ -22,6 +21,11 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ui_backend.h>
+#ifdef UAL_UI
+#include <ui_backend.h>
+#include <ui_ncurses_internal.h>
+#endif
 #include <wait.h>
 
 extern int cmenu_log_fd;
@@ -708,7 +712,7 @@ extern char em3[MAXLEN]; /**< error message string for error messages */
 extern int exit_code; /**< the exit code for the program, for error messages and
                          other output */
 
-extern int win_del();
+extern void win_del();
 extern void destroy_win(WINDOW *);
 extern void destroy_box(WINDOW *);
 extern void restore_wins();
@@ -944,5 +948,8 @@ extern size_t mk_cmplx_str(cchar_t *, char *, attr_t, int);
 extern size_t str_to_cc(cchar_t *, const char *, attr_t, int, size_t);
 extern void display_cmplx_str(WINDOW *, cchar_t *, int, int);
 extern int wccp_to_str(wchar_t, uint8_t *);
-
+extern char *fdname(int, char *);
+extern char *stdio_names(char *, char *);
+extern char *xstdio_names(char *, char *);
+extern char stdio_names_str[MAXLEN];
 #endif
