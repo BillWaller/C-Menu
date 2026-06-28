@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-28T15:49:52-05:00* - FIXES: The box window was too small for the picker window, which caused scroll to overwrite the search window and part of the border. Internally C-Menu uses ratios in percentages to calculate window sizes, and one of the calculations was incorrect. 
+
+*2026-06-28T12:26:23-05:00* - Update CHANGELOG.md 
+
 *2026-06-28T12:21:55-05:00* - FIXES: Corrected issues in src/fields.c and src/form_engine.c, which were causing a number of problems. Also resolved some issues that had surfaced in valgrind. If you are wondering why valgrind includes the ncurses references, here is the answer:  To prevent a subprogram from interacting with the NCurses instance in the current process, it is idiomatic to call endwin(). By design, NCurses retains nominal state information to facilitate efficient reactivation. This is normal behavior for NCursesw and is not a memory leak. 
 
 *2026-06-27T16:55:31-05:00* - Update CHANGELOG.md 
