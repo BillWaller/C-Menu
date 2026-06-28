@@ -406,6 +406,9 @@ extern int cp_ln_fg;                 /**< line number color pair index */
 extern int cp_ln_bg;                 /** line number background color pair index */
 extern int cp_cmdln_fg;              /**< command line number color pair index */
 extern int cp_cmdln_bg;              /** command line number background color pair index */
+extern int cp_red;                   /** red background color pair index */
+extern int cp_green;                 /** green background color pair index */
+extern int cp_blue;                  /** blue background color pair index */
 extern int clr_idx;                  /**< current color index */
 extern int clr_cnt;                  /**< number of colors used */
 extern int clr_pair_idx;             /**< current color pair index */
@@ -490,6 +493,9 @@ extern cchar_t CC_TITLE; /**< box colors */
 
 extern cchar_t CC_BRKTL; /* left field bracket */
 extern cchar_t CC_BRKTR; /* right field bracket */
+extern cchar_t CC_RED;   /* red background */
+extern cchar_t CC_GREEN; /* green background */
+extern cchar_t CC_BLUE;  /* blue background */
 
 extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define KEY_ALTF0 0x138
@@ -957,4 +963,7 @@ extern char *fdname(int, char *);
 extern char *stdio_names(char *, char *);
 extern char *stdio_fdnames(char *, char *);
 extern char stdio_names_str[MAXLEN];
+extern void check_panels(int);
+extern int bare_box_new(int, int, int, int, char *);
+extern int win2_box_new(int, int, int, int, char *);
 #endif

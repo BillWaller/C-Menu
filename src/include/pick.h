@@ -93,7 +93,7 @@ typedef struct {
 // extern Pick *pick; /**< pointer to Pick data structure */
 
 extern void save_object(Pick *, char *);
-extern void display_page(Pick *);
+extern void display_pick_page(Pick *);
 extern void reverse_object(Pick *);
 extern void toggle_object(Pick *);
 extern int output_objects(Pick *);

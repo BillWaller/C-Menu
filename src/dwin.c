@@ -61,7 +61,6 @@ bool open_curses(SIO *);
 bool init_clr_palette(SIO *);
 void destroy_curses();
 int box_new(int, int, int, int, char *);
-int box2_new(int, int, int, int, char *);
 int box_hsplit_new(int, int, int, int, int, char *);
 int border_draw(WINDOW *);
 int border_hsplit(WINDOW *, int);
@@ -111,6 +110,9 @@ void activate_chyron_key(Chyron *chyron, int k);
 void activate_all_chyron_keys(Chyron *chyron);
 void deactivate_chyron_key(Chyron *chyron, int k);
 void deactivate_all_chyron_keys(Chyron *chyron);
+void check_panels(int);
+int bare_box_new(int, int, int, int, char *);
+int win2_box_new(int, int, int, int, char *);
 
 WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
@@ -183,6 +185,9 @@ int cp_ln;
 int cp_norm;
 int cp_fill_char;
 int cp_brackets;
+int cp_red;
+int cp_green;
+int cp_blue;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
@@ -200,6 +205,9 @@ cchar_t CC_BRKTL;
 cchar_t CC_BRKTR;
 cchar_t CC_FILL_CHAR;
 cchar_t CC_RAN;
+cchar_t CC_RED;
+cchar_t CC_GREEN;
+cchar_t CC_BLUE;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 
@@ -324,6 +332,9 @@ void initialize_local_colors(SIO *sio) {
     cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
     cp_cmdln = get_clr_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
     cp_norm = get_clr_pair(CLR_FG, CLR_BG);
+    cp_red = get_clr_pair(CLR_FG, CLR_RED);
+    cp_green = get_clr_pair(CLR_FG, CLR_GREEN);
+    cp_blue = get_clr_pair(CLR_FG, CLR_BLUE);
 
     // CC_ variables are type cchar_t with color and space characters
     // for setting backgrounds
@@ -339,6 +350,9 @@ void initialize_local_colors(SIO *sio) {
     CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
+    CC_RED = mkcc(cp_red, WA_NORMAL, " ");
+    CC_GREEN = mkcc(cp_green, WA_NORMAL, " ");
+    CC_BLUE = mkcc(cp_blue, WA_NORMAL, " ");
 
     // create cchar_t for box borders - no color specified
     setcchar(&ls, &bw_ve, WA_NORMAL, cp_box, NULL);   // Left side
@@ -873,14 +887,29 @@ int box_hsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wb
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
-    wlines += split_win_lines + 1;
     wlines = min(wlines, LINES - 2);
     wcols = min(wcols, COLS - 2);
-    box_new(wlines, wcols, wbegy, wbegx, wtitle);
+    bare_box_new(wlines + split_win_lines + 1, wcols, wbegy, wbegx, wtitle);
     wbkgrnd(win_box[win_ptr], &CC_BOX);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
-    border_hsplit(win_box[win_ptr], wlines - split_win_lines);
-    win2_new(2, wcols, wlines - 1, 1);
+    border_hsplit(win_box[win_ptr], wlines + 1);
+    update_panels();
+    doupdate();
+    win_new(wlines, wcols);
+    win2_new(2, wcols, wlines + 2, 1);
+    return 0;
+}
+
+int win2_box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
+    bare_box_new(wlines, wcols, wbegy, wbegx, wtitle);
+    win_new(wlines, wcols);
+    win2_new(wlines, wcols, 1, 1);
+    return 0;
+}
+
+int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
+    bare_box_new(wlines, wcols, wbegy, wbegx, wtitle);
+    win_new(wlines, wcols);
     return 0;
 }
 /** box_new
@@ -892,7 +921,7 @@ int box_hsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wb
     @param wbegx Beginning X position
     @param wtitle Window title
     @return 0 if successful, 1 if error */
-int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
+int bare_box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     int maxy, maxx;
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
@@ -939,7 +968,6 @@ int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     wbkgrndset(win_box[win_ptr], &CC_BOX);
     border_draw(win_box[win_ptr]);
     border_title(win_box[win_ptr], wtitle);
-    win_new(wlines, wcols);
 #endif
     return 0;
 }
@@ -962,6 +990,7 @@ int win_new(int wlines, int wcols) {
     keypad(win_win[win_ptr], true);
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
+    wsetscrreg(win_win[win_ptr], 0, wlines - 1);
     scrollok(win_win[win_ptr], true);
     return 0;
 }
@@ -983,7 +1012,34 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
     idcok(win_win2[win_ptr], false);
     return 0;
 }
+void check_panels(int i) {
+    if (i == -1)
+        return;
+    char tmp_str[MAXLEN];
+    wbkgrnd(win_box[i], &CC_RED);
+    ssnprintf(tmp_str, MAXLEN - 1, "box[%d]", i);
+    mvwaddstr(win_box[i], 5, 2, tmp_str);
+    show_panel(panel_box[i]);
+    update_panels();
+    doupdate();
+    getch();
 
+    wbkgrnd(win_win[i], &CC_GREEN);
+    ssnprintf(tmp_str, MAXLEN - 1, "win[%d]", i);
+    mvwaddstr(win_win[i], 6, 2, tmp_str);
+    show_panel(panel_win[i]);
+    update_panels();
+    doupdate();
+    getch();
+
+    wbkgrnd(win_win2[i], &CC_BLUE);
+    ssnprintf(tmp_str, MAXLEN - 1, "win2[%d]", i);
+    mvwaddstr(win_win2[i], 0, 0, tmp_str);
+    update_panels();
+    doupdate();
+    show_panel(panel_win2[i]);
+    getch();
+}
 /** win_resize
     @brief Resize the current window and its box, and update the title
     @ingroup window_support
