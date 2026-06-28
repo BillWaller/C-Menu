@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-28T12:21:55-05:00* - FIXES: Corrected issues in src/fields.c and src/form_engine.c, which were causing a number of problems. Also resolved some issues that had surfaced in valgrind. If you are wondering why valgrind includes the ncurses references, here is the answer:  To prevent a subprogram from interacting with the NCurses instance in the current process, it is idiomatic to call endwin(). By design, NCurses retains nominal state information to facilitate efficient reactivation. This is normal behavior for NCursesw and is not a memory leak. 
+
+*2026-06-27T16:55:31-05:00* - Update CHANGELOG.md 
+
 *2026-06-27T16:38:31-05:00* - FIXES: Many various and sundry fixes to the codebase. The recent addition of Ncurses Panels followed immediately by integrating framework for the Uniform Abstraction Layer (UAL) has caused a number of issues to crop up in the codebase. This commit addresses those issues and improves the overall stability and functionality of the application. The UAL will provide plug-in support for many new and diverse capabilities. 
 
 *2026-06-27T00:47:47-05:00* - Update CHANGELOG.md 
