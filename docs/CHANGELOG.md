@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-28T16:01:51-05:00* - FIX: pick_engine.c: After entering a search expression and returning to the selection window, and then returning to the search window, the previous position pointer was initialized causing the field editor to get confused. Fixed that. 
+
+*2026-06-28T15:56:02-05:00* - Update CHANGELOG.md 
+
 *2026-06-28T15:49:52-05:00* - FIXES: The box window was too small for the picker window, which caused scroll to overwrite the search window and part of the border. Internally C-Menu uses ratios in percentages to calculate window sizes, and one of the calculations was incorrect. 
 
 *2026-06-28T12:26:23-05:00* - Update CHANGELOG.md 
