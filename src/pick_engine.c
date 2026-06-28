@@ -953,6 +953,7 @@ int picker(Init *init, char *field) {
     char view_file[MAXLEN] = {'\0'};
     pick = init->pick;
 
+    ptr = accept_s;
     ptr = str_end;
     click_x = -1;
     click_y = click_x = -1;
@@ -1241,8 +1242,6 @@ int picker(Init *init, char *field) {
         /** ===============================================================
             Line editor loop
             =============================================================== */
-        pos = 1;
-        ptr = accept_s;
         pick->chyron->key[1]->active = true;   // F1 Help
         pick->chyron->key[2]->active = true;   // F9 Cancel
         pick->chyron->key[3]->active = false;  // F10 Accept
