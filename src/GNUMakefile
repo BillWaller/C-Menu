@@ -14,11 +14,12 @@ BUILD_TYPE=Debug
 UI="-DUAL_UI"
 UI="-DNCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
-	CFLAGS=-Ofast -flto -s -fPIC -pthread $(UI)
-	LINKOPT= -pthread -flto -s
+	CFLAGS=-Ofast -s -fPIC -pthread $(UI)
+	EXTRA_CFLAGS=-flto
+	LINKOPT= -pthread -s
 else
-	CFLAGS:=-O0 -g3 -fPIC -pthread -fno-omit-frame-pointer -rdynamic $(UI)
-	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
+	CFLAGS:=-O0 -gdwarf-4 -fPIC -pthread -fno-omit-frame-pointer -rdynamic $(UI)
+	LINKOPT= -gdwarf-4 -fno-omit-frame-pointer -rdynamic -pthread
 #	-DDEBUG_IMMEDOK
 endif
 INCLUDE_DIRS:=-I./include -I./ui
@@ -155,19 +156,19 @@ lf: lf.c $(LIB_SHARED)
 	$(CC) 	-c $< -fPIC -o $@
 
 iloan:	iloan.c
-	$(CC) 	-c $< -lm -o $@
+	$(CC) 	$< -lm -o $@
 
 amort:	amort.c
-	$(CC) 	-c $< -lm -o $@
+	$(CC) 	$< -lm -o $@
 
 whence:	whence.c
-	$(CC) 	-c $< -o $@
+	$(CC) 	$< -o $@
 
-enterchr:	enterchr.c
-	$(CC) 	-c $< -o $@
+# enterchr:	enterchr.c
+#	$(CC) 	$< -o $@
 
-enterstr:	enterstr.c
-	$(CC) 	-c $< -o $@
+#enterstr:	enterstr.c
+#	$(CC) 	$< -o $@
 
 $(LIB_SHARED): $(LIB_OBJS)
 	$(CC) 	-shared -o $@ $^ $(SHARED_LDFLAGS)
@@ -199,19 +200,17 @@ clean:
 helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf -H -L -T6 /home/bill 1>/dev/null 2>/dev/null
 
-valgrind: lf
+valgrind: menu
 	valgrind -v \
 		--tool=memcheck \
     	--log-file=valgrind.out \
 		--leak-check=full \
-		--show-leak-kinds=definite \
+ 		--show-leak-kinds=all \
 		--num-callers=30 \
 		--leak-resolution=high \
 		--track-origins=yes \
 		--suppressions=valgrind.supp \
 		./menu
-#	lf -H -L -T6 /home/bill
-# --tool=memcheck
 
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*

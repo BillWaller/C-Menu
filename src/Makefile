@@ -18,8 +18,8 @@ ifeq ($(BUILD_TYPE), Release)
 	EXTRA_CFLAGS=-flto
 	LINKOPT= -pthread -s
 else
-	CFLAGS:=-O0 -gdwarf-4 -fPIC -pthread -fno-omit-frame-pointer -rdynamic $(UI)
-	LINKOPT= -gdwarf-4 -fno-omit-frame-pointer -rdynamic -pthread
+	CFLAGS:=-O0 -g3 -fPIC -pthread -fno-omit-frame-pointer -rdynamic $(UI)
+	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
 #	-DDEBUG_IMMEDOK
 endif
 INCLUDE_DIRS:=-I./include -I./ui
@@ -206,10 +206,13 @@ valgrind: menu
     	--log-file=valgrind.out \
 		--leak-check=full \
 		--show-leak-kinds=definite \
+		--show-reachable=no \
 		--num-callers=30 \
 		--leak-resolution=high \
 		--track-origins=yes \
+		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
+		--gen-suppressions=all \
 		./menu
 
 install:

@@ -54,7 +54,6 @@ WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
 PANEL *panel_win2[MAXWIN];
 PANEL *panel_win[MAXWIN];
 PANEL *panel_box[MAXWIN];
-PANEL *panel_main;
 
 void ui_rect_set(UiRect *, int, int, int, int);
 int win2_new(int wlines, int wcols, int wbegy, int wbegx);

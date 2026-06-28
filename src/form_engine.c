@@ -135,15 +135,33 @@ int form_engine(Init *init) {
     display_form(init);
     form->chyron = new_chyron();
     set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
+    set_chyron_key_cp(form->chyron, 2, "F2 Process", KEY_F(2), cp_nt_hl_rev);
+    set_chyron_key_cp(form->chyron, 3, "F3 Calculate", KEY_F(3), cp_nt_hl_rev);
+    set_chyron_key_cp(form->chyron, 4, "F4 Query", KEY_F(4), cp_nt_hl_rev);
+    set_chyron_key_cp(form->chyron, 5, "F5 Edit", KEY_F(5), cp_nt_hl_rev);
     set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F(9));
-    set_chyron_key(form->chyron, 10, "F10 Continue", KEY_F(10));
+    set_chyron_key(form->chyron, 10, "F10 Accept", KEY_F(10));
+    set_chyron_key(form->chyron, 18, "INS", KEY_IC);
+    form->chyron->key[2]->active = false;  // F2 Process
+    form->chyron->key[3]->active = false;  // F3 Calculate
+    form->chyron->key[4]->active = false;  // F4 Query
+    form->chyron->key[5]->active = false;  // F5 Edit
+    form->chyron->key[18]->active = false; // Insert
     compile_chyron(form->chyron);
     display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
+    // 1 F1 Help
+    // 2 F2 Process
+    // 3 F3 Calculate
+    // 4 F4 Query
+    // 5 F5 Edit
+    // 9 F9 Cancel
+    // 10 F10 Accept
     form->fidx = 0;
     form_action = 0;
     while (1) {
         if (form_action == 0 || form_action == FA_CONTINUE)
             form_action = field_navigator(form);
+        form->chyron->key[18]->active = false; // Insert
         switch (form_action) {
         case FA_ACCEPT:
             if (form->f_process || form->f_calculate || form->f_query)
@@ -211,9 +229,18 @@ int form_post(Init *init) {
     Form *form = init->form;
     wmove(form->win, form->lines - 1, 0);
     wclrtoeol(form->win);
-    unset_chyron_key(form->chyron, 18);
-    set_chyron_key(form->chyron, 8, "F8 Edit", KEY_F(8));
-    set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
+    // 1 F1 Help
+    // 2 F2 Process
+    // 3 F3 Calculate
+    // 4 F4 Query
+    // 5 F5 Edit
+    // 9 F9 Cancel
+    // 10 F10 Continue
+    // 11 F10 Commit
+    // 18 INS Insert
+    form->chyron->key[5]->active = true;   // F5 Edit
+    form->chyron->key[10]->active = false; // F10 Continue
+    form->chyron->key[18]->active = false; // INS Insert
     compile_chyron(form->chyron);
     rc = -1;
     while (loop) {
@@ -228,8 +255,8 @@ int form_post(Init *init) {
         switch (c) {
         case KEY_F(1):
             return FA_HELP;
-        case KEY_F(8):
-            if (is_set_chyron_key(form->chyron, 8)) {
+        case KEY_F(5): // F5 Edit
+            if (is_set_chyron_key(form->chyron, 5)) {
                 loop = false;
                 rc = FA_CONTINUE;
                 break;
@@ -249,7 +276,7 @@ int form_post(Init *init) {
             break;
         }
     }
-    unset_chyron_key(form->chyron, 8);
+    form->chyron->key[5]->active = false; // F5 Edit
     return rc;
 }
 
@@ -292,7 +319,6 @@ int form_post(Init *init) {
             */
 int form_process(Init *init) {
     int i, c, rc;
-    char tmp_str[MAXLEN];
     char earg_str[MAXLEN + 1];
     char *eargv[MAXARGS];
     int eargc;
@@ -303,18 +329,20 @@ int form_process(Init *init) {
 
     Form *form = init->form;
     wmove(form->win, form->lines - 1, 0);
-    // wclrtoeol(form->win);
-    unset_chyron_key(form->chyron, 18);
-    unset_chyron_key(form->chyron, 10);
-    strnz__cpy(tmp_str, "F5 ", MAXLEN - 1);
-
-    if (form->f_process)
-        strnz__cat(tmp_str, "Process", MAXLEN - 1);
-    else if (form->f_calculate)
-        strnz__cat(tmp_str, "Calculate", MAXLEN - 1);
-    else if (form->f_query)
-        strnz__cat(tmp_str, "Query", MAXLEN - 1);
-    set_chyron_key_cp(form->chyron, 5, tmp_str, KEY_F(5), cp_nt_hl_rev);
+    //
+    // 1 F1 Help
+    // 2 F2 Process
+    // 3 F3 Calculate
+    // 4 F4 Query
+    // 5 F5 Edit
+    // 9 F9 Cancel
+    // 10 F10 Continue
+    // 11 F10 Commit
+    form->chyron->key[2]->active = form->f_process > 0 ? true : false;
+    form->chyron->key[3]->active = form->f_calculate > 0 ? true : false;
+    form->chyron->key[4]->active = form->f_query > 0 ? true : false; // PgUp
+    form->chyron->key[10]->active = false;                           // F10 Continue
+    form->chyron->key[18]->active = false;                           // INS Insert
 
     while (loop) {
         compile_chyron(form->chyron);
@@ -324,12 +352,13 @@ int form_process(Init *init) {
         tcflush(2, TCIFLUSH);
         update_panels();
         doupdate();
-        // wrefresh(form->box);
         c = xwgetch(form->win, form->chyron, -1);
         switch (c) {
         case KEY_F(1):
             return FA_HELP;
-        case KEY_F(5):
+        case KEY_F(2): // F2 Process
+        case KEY_F(3): // F3 Calculate
+        case KEY_F(4): // F4 Query
             if (form->f_out_spec)
                 form_write(form);
             if (form->f_provider_cmd) {
@@ -386,15 +415,17 @@ int form_process(Init *init) {
                 stdio_fdnames(stdio_names_str, "form_engine.c:387");
                 destroy_argv(eargc, eargv);
                 form_display_fields(form);
-                set_chyron_key_cp(form->chyron, 5, "F5 Edit", KEY_F(5),
-                                  cp_nt_hl_rev);
-                set_chyron_key(form->chyron, 10, "F10 Commit", KEY_F(10));
+                form->chyron->key[2]->active = false; // F2 Process
+                form->chyron->key[3]->active = false; // F3 Calculate
+                form->chyron->key[4]->active = false; // F4 Query
+                form->chyron->key[5]->active = true;  // F5 Edit
+                form->chyron->key[10]->active = true; // F10 Accept
                 compile_chyron(form->chyron);
                 continue;
             }
             break;
-        case KEY_F(8):
-            if (is_set_chyron_key(form->chyron, 8)) {
+        case KEY_F(5):
+            if (is_set_chyron_key(form->chyron, 5)) {
                 loop = false;
                 rc = FA_CONTINUE;
                 break;
@@ -414,8 +445,10 @@ int form_process(Init *init) {
             break;
         }
     }
-    unset_chyron_key(form->chyron, 8);
-    unset_chyron_key(form->chyron, 5);
+    form->chyron->key[2]->active = false; // F2 Process
+    form->chyron->key[3]->active = false; // F3 Calculate
+    form->chyron->key[4]->active = false; // F4 Query
+    form->chyron->key[5]->active = false; // F5 Edit
     return rc;
 }
 /** @brief Handle user input for field entry, allowing navigation between fields
@@ -430,22 +463,23 @@ int form_process(Init *init) {
    until the user selects an exit action (e.g., accept or cancel). */
 int field_navigator(Form *form) {
 
-    if (form->fidx < 0)
-        return (-1);
+    if (form->fidx < 0 || form->fidx >= form->fcnt)
+        form->fidx = 0;
     while (1) {
         int cmd_key = field_editor(form);
-
         switch (cmd_key) {
-        case KEY_F(10):
-            return (FA_ACCEPT);
-        case KEY_F(1):
+        case KEY_F(1): // F1 Help
             return (FA_HELP);
-        case KEY_F(5):
+        case KEY_F(2): // F2 Process
+        case KEY_F(3): // F3 Calculate
+        case KEY_F(4): // F4 Query
             if (form->f_process)
                 return (FA_CALC);
             break;
-        case KEY_F(9):
+        case KEY_F(9): // F9 Cancel
             return (FA_CANCEL);
+        case KEY_F(10): // F10 Accept
+            return (FA_ACCEPT);
         case 'k':
         case KEY_UP:
             if (form->fidx != 0)

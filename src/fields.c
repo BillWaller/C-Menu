@@ -56,7 +56,8 @@ int field_editor(Form *form) {
     bool f_insert = FALSE;
     int in_key;
     char *s, *d;
-
+    if (form->fidx < 0 || form->fidx >= form->fcnt)
+        form->fcnt = 0;
     int flin = form->field[form->fidx]->line;
     int fcol = form->field[form->fidx]->col;
     int flen = form->field[form->fidx]->len;

@@ -583,17 +583,18 @@ int view_init_input(Init *init, char *file_name) {
         /*----------------------------------------------------------------------*/
     }
     if (view->f_in_pipe) {
-        char tmp_filename[] = "/tmp/view_XXXXXX";
+        // char tmp_filename[] = "/tmp/view_XXXXXX";
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;
         ssize_t bytes_written = 0;
         close(view->in_fd);
-        view->in_fd = mkstemp(tmp_filename);
+        // view->in_fd = mkstemp(tmp_filename);
+        view->in_fd = memfd_create("view_input", MFD_CLOEXEC);
         if (view->in_fd == -1) {
             abend(-1, "failed to mkstemp");
             exit(EXIT_FAILURE);
         }
-        unlink(tmp_filename);
+        // unlink(tmp_filename);
         /*-----------------------------------------------------------------*/
         bool f_wait = false;
         int ready;
@@ -682,6 +683,7 @@ int view_init_input(Init *init, char *file_name) {
             }
             bytes_written += bytes_read;
         }
+        ftruncate(view->in_fd, bytes_written);
         if (bytes_written == 0) {
             abend(-1, "unable to read stdin");
             exit(EXIT_FAILURE);

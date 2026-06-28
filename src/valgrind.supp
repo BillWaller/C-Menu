@@ -8,7 +8,25 @@
 #            --suppressions=src/valgrind.supp ./menu
 #
 # See docs/valgrind.md for the full recommended command.
-
+{
+   ncurses_new_panel
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:root_panel
+   fun:new_panel
+   fun:open_curses
+   fun:main
+}
+{
+   ncurses_new_panel2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:new_panel
+   fun:open_curses
+   fun:main
+}
 # ncurses caches the TERM environment variable lookup in a global strdup'd
 # string inside _nc_first_db / update_getenv (db_iterator.c).
 {
