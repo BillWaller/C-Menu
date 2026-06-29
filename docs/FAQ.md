@@ -2,45 +2,65 @@
 
 # Table of Contents
 
-<!-- mtoc-start -->
+## Where am I?
 
-- [lf is fast, but I rely on find's features](#lf-is-fast-but-i-rely-on-finds-features)
-- [Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc](#drop-down-and-pop-up-menus-forms-pickers-views-ckeys-etc)
-- [Can lf match files with multiple suffixes](#can-lf-match-files-with-multiple-suffixes)
-- [Multiple Executables](#multiple-executables)
-- [Static Executables](#static-executables)
-- [What's the Icon?](#whats-the-icon)
-- [C-Menu's File Structure](#c-menus-file-structure)
-- [Some Menu Selections Don't work](#some-menu-selections-dont-work)
-  - [Visual Aids Soap-box](#visual-aids-soap-box)
-- [High Precision Math With C-Menu and Gawk](#high-precision-math-with-c-menu-and-gawk)
-- [TrueColor Support](#truecolor-support)
-- [Why View Displays Question Marks](#why-view-displays-question-marks)
-- [View - How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
-- [View - How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
-- [View - How to Customize Colors](#view---how-to-customize-colors)
-- [Menu, Form, Pick, and View API](#menu-form-pick-and-view-api)
-- [View - How to Use Tree-Sitter with View](#view---how-to-use-tree-sitter-with-view)
-- [Install Tree-Sitter-CLI](#install-tree-sitter-cli)
-  - [Download From Github](#download-from-github)
-- [Menu Form - Integrating External Executables](#menu-form---integrating-external-executables)
-- [Menu - Using the Installment Loan Calculator](#menu---using-the-installment-loan-calculator)
-- [Menu Form - Line Type Speecifiers (H, T, F, and ?)](#menu-form---line-type-speecifiers-h-t-f-and-)
-- [Menu Form - Field Delimiters](#menu-form---field-delimiters)
-- [Menu Form - Data Types](#menu-form---data-types)
-- [Menu - Interprocess Communications](#menu---interprocess-communications)
-- [Menu - What Happened to Delete by Inode](#menu---what-happened-to-delete-by-inode)
-- [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
-- [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
-- [View In a Box Window](#view-in-a-box-window)
+Q: Using Pick with the -v option, I get confused about which function is active.
 
-<!-- mtoc-end -->
+A: The -v option simply tells view to open the selected file in a View window. It does not change the active function in Pick, but if you enter the <v> KEY from Pick, your focus will be shifted to the View window.
+
+Focus Indicators:
+
+Pick has two functions, Search and Select. The active function is indicated by a right angle in the first column of the Pick window.
+
+They chyron also provides visual cues about the active function.
+
+When Pick Select is active, the chyron displays <Tab> Search.
+When Pick Search is active, the chyron displays <Tab> Select.
+
+When you press <v> from the Select function, the right angle will disappear
+as your focus is shifted to the View window. From View, you can press <q> or F9, to return to Pick, and the right angle will reappear in the first column, indicating that
+Pick's Select function is active.
+
+## Pick search not accepting certain letters
+
+Q: When I try to enter a search term in Pick, it does not accept certain letters? What's going on?
+
+A: If the letter you typed would constitute a sterile search term, Pick rejects
+it instead of displaying an empty list. You may 
+
+1. Enter a different letter,
+1. Press <Backspace> to erase previously entered letters,
+1. Press <KEY LEFT> to edit the search, if any,
+1. Press <Tab> to go to the Select window,
+1. Press F9 to exit Pick, or
+1. Press F10 to accept the search term as is.
+
+## Menu Selections Not Working
+
+Many of the menu items don't work. Why not?
+
+A: Many of the menu items are examples of what can be done with C-Menu. Almost
+all depend on external programs, such as "bat", "tree-sitter", "rustlings",
+"ghostty", "kitty", "nvim", "xargs", and others. If you don't have those
+programs installed, the menu items will not work. You can install those programs, or you can remove the menu items that don't work for you. You can also modify the menu items to use programs that you have installed. The menu items are just examples of what can be done with C-Menu. You can easily create your own menu items that use the programs you have installed.
+
+## How do I get a list of hidden files in lf?
+
+Q: How do I get a list of hidden files in lf?
+
+A: You can use the following command to get a list of hidden files in lf:
+
+```bash
+    lf -S -d3 -tf -Ho
+```
+
+The -S option sorts the output, the -d3 option tells lf to descend 3 levels into the directory tree, the -tf option tells lf to list only files, and the -Ho option tells lf to include only hidden files in the output.
 
 ## lf is fast, but I rely on find's features
 
 Q: I use find all the time to delete, move, and process files. find's -exec argument can apply any executable to found files. How can I do that with lf?
 
-A: The xargs utility, which is distributed with find, is available in the public domain. You can use it with lf. For example:
+A: The xargs utility, available in the public domain, is highly optimized and much faster than find's -exec option. You can use it with lf, find, or any program that provides a list of files. For example:
 
 ```bash
 lf -a -t f | xargs rm -f
@@ -48,48 +68,40 @@ lf -a -t f | xargs rm -f
 lf -a -t f | xargs ls -l
 ```
 
-And, you will find the performance of lf is spectacular compared to find.
+And, you will find lf's performance is spectacular.
 
-![lf vs find performance](../screenshots/lf-benchmarks.png)
+![lf performance](../screenshots/lf-benchmarks.png)
 
 ## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc
 
 Q: Why don't you have drop-down and pop-up menus, forms, pickers, views, ckeys, etc.?
 
-A: That capability is being implemented and refined. I think the key is to make
-the drop-down and pop-up menus, forms, pickers, views, ckeys, etc. easy for the
-developer to use and reliable for the user.
+A: That capability is being implemented and refined.
 
 ## Can lf match files with multiple suffixes
 
-Q: Can lf match files with multiple suffixes, such as .c and .h files?
+Q: Can lf match multiple file suffixes, such as .c and .h files?
 
-A: Yes, you can use regular expressions to match files with multiple suffixes. For example, the following command will match both .c and .h files:
+A: Yes, lf uses regular expressions, so any search term that conforms to the regular expressions specification will work with lf. For example, you might use the following command to match both .c and .h files:
+ 
 
 ```bash
 lf -t f '.*\.[ch]$'
 ```
 
-You can also match multiple suffixes with a slightly more complex regular expression. For example, the following command will match .c, .h, .cpp, .hpp, .cc, .hh, .cxx, .hxx, .rs, and .sh files:
+For matching groupings of characters, you would use a regular expression similar to the following to match .c, .h, .cpp, .hpp, .cc, .hh, .cxx, .hxx, .rs, and .sh file extensions:
 
 ```bash
 lf -t f '.*\.\(c|h|cpp|hpp|cc|hh|cxx|hxx|rs|sh\)$'
 ```
 
-## Multiple Executables
-
-Q: Why do you have separate executables for Menu, Form, Pick, and View? Why not just one executable with different modes?
-
-A: I can't think of any justification for that, so I removed the separate
-executables and added symbolic links to the Menu executable. Everything works
-exactly as before, and the binary distribution is smaller and simpler. Thank you
-for the suggestion.
-
 ## Static Executables
 
 Q: Why don't you compile static executables? That would make installation easier and more portable.
 
-A: Of course you are right, and it is very possible that static executables will be available in the future. Currently, you can compile RSH as a static executable by setting "RSH_LD = -static". Menu, Form, Pick, and View can be compiled with static libc, libm, libncurses, and libcm. However, in testing the statically linked executables, I ran into problems with the ncurses library failing when it tried to dlopen shared library components. I will need to investigate further to determine if the issues can be resolved.
+A: Of course you are right, and it is very possible that static executables will be available in the future. Currently, the C-Menu build creates rsh, rsh_pam, and rsh_static. Menu, Form, Pick, and View may be compiled with static libc, libm, libncurses, and libcm, but that doesn't prevent the statically linked libraries from using dlopen() to load shared libraries. For example, the statically linked ncurses library may still attempt to load a shared terminfo library. This can lead to unexpected behavior and errors if the shared libraries are not present or are incompatible with the statically linked libraries. Therefore, while static linking can provide some benefits in terms of portability and ease of installation, it is not a foolproof solution and may still require careful consideration of library dependencies.
+
+- Note: Developers with experience in static linking and library dependencies (embedded and SOC developers) may be able to create fully static executables that do not rely on shared libraries. However, this can be a complex and time-consuming process that requires careful attention to detail and a deep understanding of the underlying libraries and their dependencies.
 
 ## What's the Icon?
 

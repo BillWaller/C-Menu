@@ -1737,6 +1737,7 @@ void compile_chyron(Chyron *chyron) {
     int pos = 0;
     int cp = cp_nt_rev;
     cchar_t *cx;
+    char tmp_str[MAXLEN];
     while (k < CHYRON_KEYS) {
         if (chyron->key[k]->text[0] == '\0' || !chyron->key[k]->active) {
             k++;
@@ -1756,6 +1757,8 @@ void compile_chyron(Chyron *chyron) {
         end_pos = pos;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
+        ssnprintf(tmp_str, MAXLEN - 1, "k=%d, text=%s, end_pos=%d", k,
+                  chyron->key[k]->text, chyron->key[k]->end_pos);
         k++;
     }
     mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
@@ -1798,11 +1801,19 @@ void display_chyron(WINDOW *win, Chyron *chyron, int line, int col) {
    area of the interface.
 */
 int get_chyron_key(Chyron *chyron, int x) {
-    int i;
-    for (i = 0; chyron->key[i]->end_pos != -1; i++)
-        if (x < chyron->key[i]->end_pos)
-            break;
-    return chyron->key[i]->keycode;
+    int i = 0;
+    int k = -1;
+    while (i < CHYRON_KEYS - 1) {
+        if (chyron->key[i]->text[0] != '\0' && chyron->key[i]->active)
+            if (chyron->key[i]->end_pos >= x) {
+                k = i;
+                break;
+            }
+        i++;
+    }
+    if (k == -1)
+        return 0;
+    return chyron->key[k]->keycode;
 }
 
 /** mvwaddstr_fill
