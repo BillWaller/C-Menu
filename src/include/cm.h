@@ -374,23 +374,6 @@ typedef struct {
 #define LN_COLOR 4    /**< default line number color */
 #define LN_BG_COLOR 7 /**< default line number background */
 
-extern const wchar_t bw_ho;
-extern const wchar_t bw_ho;
-extern const wchar_t bw_ve;
-extern const wchar_t bw_tl;
-extern const wchar_t bw_tr;
-extern const wchar_t bw_bl;
-extern const wchar_t bw_br;
-extern const wchar_t bw_lt;
-extern const wchar_t bw_rt;
-extern const wchar_t bw_sp;
-extern const wchar_t bw_ra;
-extern const wchar_t bw_la;
-extern const wchar_t bw_ua;
-extern const wchar_t bw_da;
-extern const wchar_t bw_ran;
-extern const wchar_t bw_lan;
-
 extern int cp_default;               /**< default color pair index */
 extern int cp_box;                   /**< box color pair index */
 extern int cp_bold;                  /**< bold color pair index */
@@ -598,6 +581,8 @@ extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define BW_DA L'\x2193'  /**< large down arrow */
 #define BW_RAN L'\x276F' /**< right_angle */
 #define BW_LAN L'\x276E' /**< left_angle */
+// #define BW_CHK L'\x2705' /**< left_angle */
+#define BW_CHK L'\x2611' /**< left_angle */
 
 /** The following are the actual wchar_t variables that will hold the box
     drawing characters. These correspond to the above Unicode code points. By
@@ -623,8 +608,9 @@ extern const wchar_t bw_la;  /**< left arrow */
 extern const wchar_t bw_ua;  /**< up arrow */
 extern const wchar_t bw_da;  /**< down arrow */
 extern const wchar_t bw_ran; /**< right piointing angle */
+extern const wchar_t bw_chk; /**< right piointing angle */
 
-extern cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran;
+extern cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran, chk;
 
 extern void write_cmenu_log_nt(char *);
 extern void write_cmenu_log(char *);

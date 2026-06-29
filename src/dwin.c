@@ -118,7 +118,7 @@ WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
 // SIO *sio; /**< Global pointer to SIO struct for terminal and color settings
 
-cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran;
+cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran, chk;
 
 /** StdColors
     @details Standard 16 colors for xterm256 color conversions These colors can
@@ -148,6 +148,7 @@ const wchar_t bw_la = BW_LA;   /**< right arrow */
 const wchar_t bw_ua = BW_UA;   /**< right arrow */
 const wchar_t bw_da = BW_DA;   /**< right arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
+const wchar_t bw_chk = BW_CHK; /**< right angle */
 
 double GRAY_GAMMA = 1.2;  /**< Gamma correction value for gray colors. Set in .minitrc */
 double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .minitrc */
@@ -350,6 +351,7 @@ void initialize_local_colors(SIO *sio) {
     CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
+    CC_RAN = mkcc(cp_red, WA_NORMAL, " ");
     CC_RED = mkcc(cp_red, WA_NORMAL, " ");
     CC_GREEN = mkcc(cp_green, WA_NORMAL, " ");
     CC_BLUE = mkcc(cp_blue, WA_NORMAL, " ");
@@ -371,6 +373,7 @@ void initialize_local_colors(SIO *sio) {
     setcchar(&ua, &bw_ua, WA_NORMAL, cp_box, NULL);   // Up arrow
     setcchar(&da, &bw_da, WA_NORMAL, cp_box, NULL);   // Down arrow
     setcchar(&ran, &bw_ran, WA_NORMAL, cp_box, NULL); // Right angle
+    setcchar(&chk, &bw_chk, WA_NORMAL, cp_box, NULL); // Right angle
 }
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color

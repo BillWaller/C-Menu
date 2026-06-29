@@ -74,10 +74,10 @@ COMMON_OBJS=$(COMMON_SRCS:.c=.o)
 
 LDFLAGS:=$(LINKOPT) -L. -lcm -lm $(shell pkg-config --libs $(PACKAGES)) \
 		 -Wl,-rpath,$(RPATH)
-SHARED_LDFLAGS:=-Wl,-Map=output.map \
-		-Wl,-ffunction-sections \
+SHARED_LDFLAGS:=-Wl,-ffunction-sections \
 		-Wl,-fdata-sections \
 		-Wl,--gc-sections
+# -Wl,-Map=output.map
 
 .PHONY: all config help install man install_man clean uninstall helgrind valgrind
 
@@ -87,6 +87,7 @@ all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 config:
 	@echo "     Build Date $(SYSDATE)"
 	@echo "     Build Type $(BUILD_TYPE)"
+	@echo "             UI $(UI)"
 	@echo "         PREFIX $(PREFIX)"
 	@echo "      BUILD_DIR $(BUILD_DIR)"
 	@echo "        VERSION $(VERSION)"
