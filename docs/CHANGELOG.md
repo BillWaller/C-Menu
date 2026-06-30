@@ -2,6 +2,12 @@
 
 ## C-Menu-0.2.9
 
+*2026-06-29T22:40:10-05:00* - FIX: Cosmetic adjustments to View and Pick engines. 
+
+*2026-06-29T21:28:37-05:00* - DOCS: Documentation Updates 
+
+*2026-06-29T14:55:04-05:00* - Update CHANGELOG.md 
+
 *2026-06-29T14:32:08-05:00* - FEATURE: pick_engine.c, dwin.c: Added an activation flag to the chyron structure. This makes it easier for C-Menu to display content that is relevant to the context of the application. 
 
 *2026-06-29T07:42:30-05:00* - Update CHANGELOG.md 
