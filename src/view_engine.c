@@ -213,8 +213,7 @@ int view_cmd_processor(Init *init) {
             }
         }
         switch (c) {
-        case Ctrl(
-            'R'): /**<  Ctrl('R') or KEY_RESIZE - Handle terminal resize */
+        case Ctrl('R'): /**<  Ctrl('R') or KEY_RESIZE - Handle terminal resize */
         case 'x':
         case KEY_RESIZE:
             getmaxyx(stdscr, view->lines, view->cols);

@@ -1083,6 +1083,8 @@ void win_resize(int wlines, int wcols, char *title) {
     idlok(win_win[win_ptr], false);
     idcok(win_win[win_ptr], false);
     scrollok(win_win[win_ptr], true);
+    update_panels();
+    doupdate();
 }
 /** win_redraw
     @brief Redraw the specified window

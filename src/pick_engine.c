@@ -1012,6 +1012,7 @@ int picker(Init *init, char *field) {
                 // top_panel(panel_win[win_ptr]);
                 compile_chyron(pick->chyron);
                 display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
+                curs_set(1);
                 wmove(pick->win, pick->y, pick->x);
                 update_panels();
                 doupdate();
@@ -1562,7 +1563,7 @@ void new_view_file(Init *init, char *file) {
             next_page(view);
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            top_panel(view->win.pan);
+            // top_panel(view->win.pan);
             update_panels();
             doupdate();
             pad_refresh(view);

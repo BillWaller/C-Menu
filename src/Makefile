@@ -18,9 +18,11 @@ ifeq ($(BUILD_TYPE), Release)
 	EXTRA_CFLAGS=-flto
 	LINKOPT= -pthread -s
 else
-	CFLAGS:=-O0 -g3 -fPIC -pthread -fno-omit-frame-pointer -rdynamic $(UI)
-	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
 #	-DDEBUG_IMMEDOK
+	DEBUG_FLAGS=-DDEBUG_RESIZE
+	CFLAGS:=-O0 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
+			-rdynamic $(UI)
+	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
 endif
 INCLUDE_DIRS:=-I./include -I./ui
 CFLAGS+=$(INCLUDE_DIRS)
