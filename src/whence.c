@@ -25,15 +25,16 @@ char *path_p;
 char path_s[MAXLEN];
 // char *file_name[MAXLEN + 1];
 
-void whence(char *, int);
+int whence(char *, int);
 int next_path(char *, char **);
 int file_spec_parts(char *, char *, char *);
 void ABEND(char *, int, char *);
-void normalend();
 size_t strnz__cat(char *, const char *, size_t);
 size_t strnz__cpy(char *, const char *, size_t);
 typedef enum { WH_ALL = 1,
-               WH_VERBOSE = 2 } WhenceFlags;
+               WH_VERBOSE = 2,
+               WH_EXECUTABLE = 4,
+               WH_SETUID = 8 } WhenceFlags;
 int wh_flags = 0;
 const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
@@ -42,6 +43,8 @@ static char args_doc[] = "";
 
 static struct argp_option options[] = {
     {"all", 'a', 0, 0, "list all matches", 0},
+    {"setuid", 's', 0, 0, "setuid only", 0},
+    {"executable", 'x', 0, 0, "executable only", 0},
     {"verbose", 'v', 0, 0, "verbose messages", 0},
     {0}};
 
@@ -57,8 +60,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'a':
         wh_opts->flags |= WH_ALL;
         break;
+    case 's':
+        wh_opts->flags |= WH_SETUID;
+        break;
     case 'v':
         wh_opts->flags |= WH_VERBOSE;
+        break;
+    case 'x':
+        wh_opts->flags |= WH_EXECUTABLE;
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
@@ -83,17 +92,19 @@ int main(int argc, char **argv) {
     wh_opts.flags = 0;
     wh_opts.argv[0] = nullptr;
     int i = 0;
-
+    int found = 0;
     argp_parse(&argp, argc, argv, 0, 0, &wh_opts);
     path_p = getenv("PATH");
     if (path_p == nullptr)
         ABEND(argv[0], 0, "PATH environment variable not set");
     if (wh_opts.flags & WH_VERBOSE)
         printf("%s\n", path_p);
-    while (i < argc - 1) {
-        whence(wh_opts.argv[i++], wh_opts.flags);
+    while (i < wh_opts.argc) {
+        found = whence(wh_opts.argv[i++], wh_opts.flags);
     }
-    normalend();
+    if (found == 0)
+        exit(1);
+    exit(0);
 }
 /** @brief Find the full path of a file in the directories specified by the PATH
    environment variable
@@ -105,13 +116,14 @@ int main(int argc, char **argv) {
    the PATH environment variable to find matches. It prints the full path of
    each match found, and if verbose mode is enabled, it also indicates whether
    each attempted path was found or not. */
-void whence(char *file_spec_p, int flags) {
+int whence(char *file_spec_p, int flags) {
     char file_spec[PATH_MAX];
     char file_dir[PATH_MAX];
     char file_name[PATH_MAX];
     char try_spec[PATH_MAX];
     char try_dir[PATH_MAX];
     int path_l;
+    int found = 0;
     struct stat stat_struct;
 
     strnz__cpy(file_spec, file_spec_p, MAXLEN - 1);
@@ -124,18 +136,37 @@ void whence(char *file_spec_p, int flags) {
         if (try_spec[path_l] != '/')
             strnz__cat(try_spec, "/", MAXLEN - 1);
         strnz__cat(try_spec, file_name, MAXLEN - 1);
-        if (flags & WH_VERBOSE) {
-            if (stat(try_spec, &stat_struct) == -1)
+        if (stat(try_spec, &stat_struct) != 0) {
+            if (flags & WH_VERBOSE)
                 printf("-      %s\n", try_spec);
-            else
-                printf("found  %s\n", try_spec);
-        } else if (stat(try_spec, &stat_struct) == 0) {
+            path_l = next_path(try_dir, &path_p);
+            continue;
+        }
+        if (flags & WH_SETUID)
+            if (!(stat_struct.st_mode & S_ISUID)) {
+                path_l = next_path(try_dir, &path_p);
+                continue;
+            }
+        if (flags & WH_EXECUTABLE)
+            if (!(stat_struct.st_mode & S_ISUID)) {
+                path_l = next_path(try_dir, &path_p);
+                continue;
+            }
+        if (!(stat_struct.st_mode & S_IXUSR)) {
+            path_l = next_path(try_dir, &path_p);
+            continue;
+        }
+        found++;
+        if (flags & WH_VERBOSE)
+            printf("found  %s\n", try_spec);
+        else {
             printf("%s\n", try_spec);
             if (!(flags & WH_ALL))
-                return;
+                return found;
         }
         path_l = next_path(try_dir, &path_p);
     }
+    return found;
 }
 /** @brief Extract the next directory path from the PATH string
     @param dp A buffer to store the extracted directory path
@@ -227,10 +258,6 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
     }
     return (0);
 }
-/** @brief Exit the program successfully
-    @details This function is called to exit the program with a success status.
-   It simply calls the exit function with EXIT_SUCCESS. */
-void normalend() { exit(EXIT_SUCCESS); }
 /** @brief Exit the program with an error message
     @param pgmid The name of the program
     @param rc The return code to exit with

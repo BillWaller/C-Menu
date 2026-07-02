@@ -19,7 +19,7 @@ ifeq ($(BUILD_TYPE), Release)
 	LINKOPT= -pthread -s
 else
 #	-DDEBUG_IMMEDOK
-	DEBUG_FLAGS=-DDEBUG_RESIZE
+	DEBUG_FLAGS=-DDEBUG_RESIZE -DDEBUG_LOG -DDEBUG_LAYOUT
 	CFLAGS:=-O0 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
 			-rdynamic $(UI)
 	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread

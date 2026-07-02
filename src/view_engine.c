@@ -154,6 +154,8 @@ int view_file(Init *init) {
                 view->ln = 0;
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
+                strnz__cpy(view->title, view->cur_file_str, MAXLEN - 1);
+                border_title(view->box.win, view->title);
                 initialize_line_table(view);
                 next_page(view);
                 view_cmd_processor(init);
@@ -219,15 +221,14 @@ int view_cmd_processor(Init *init) {
             getmaxyx(stdscr, view->lines, view->cols);
 #ifdef DEBUG_RESIZE
             ssnprintf(em0, MAXLEN - 1,
-                      "view->page_top_ln=%d, resized to lines: %d, cols: %d\n",
-                      view->page_top_ln, view->lines, view->cols);
+                      "%s:%d view->page_top_ln=%d, resized to lines: %d, cols: %d\n",
+                      __FILE__, __LINE__, view->page_top_ln, view->lines, view->cols);
             write_cmenu_log_nt(em0);
 #endif
-            if (view->f_full_screen) {
+            if (view->f_full_screen)
                 view_full_screen_resize(init);
-            } else {
-                view_win_resize(init, view->title);
-            }
+            else
+                view_boxwin_resize(init);
             view->f_redisplay_page = true;
             continue;
         case KEY_ALTHOME: /**< KEY_ALTHOME - horizontal scroll to the first
@@ -378,7 +379,7 @@ int view_cmd_processor(Init *init) {
                     view->f_ln = false;
                 else
                     view->f_ln = true;
-                view_win_resize(init, view->title);
+                view_boxwin_resize(init);
                 view->ln = view->page_top_ln;
                 view->file_pos = view->ln_tbl[view->ln];
                 view->maxcol = 0;
@@ -706,8 +707,6 @@ int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
     char cmd_str[33];
     cmd_str[0] = '\0';
-    top_panel(view->cmdln.pan);
-
     update_panels();
     doupdate();
     wmove(view->cmdln.win, view->cmd_line, view->curx);
@@ -1200,8 +1199,11 @@ int pad_refresh(View *view) {
     else
         rc = prefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol, view->smaxrow, view->smaxcol);
-    if (rc == ERR)
-        Perror("Error refreshing screen");
+    if (rc == ERR) {
+        ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->pad, pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
+                  __FILE__, __LINE__, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
+        Perror(em0);
+    }
     return rc;
 }
 /*--------------------------------------------------------------

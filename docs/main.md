@@ -1,8 +1,13 @@
-# C-Menu Example Application Menu
+![C-Menu - How to Make Menus](../screenshots/How_To_Menus.png)
+
+# C-Menu - How to Make Menus
 
 <!-- mtoc-start -->
 
+* [cmenu_chk](#cmenu_chk)
+* [Starting C-Menu](#starting-c-menu)
 * [Menu Title](#menu-title)
+* [Menu Selections](#menu-selections)
 * [Full Screen (Root) Shell](#full-screen-root-shell)
 * [Youtube (in Firefox)](#youtube-in-firefox)
 * [C-Menu (in Ghostty)](#c-menu-in-ghostty)
@@ -22,16 +27,80 @@
 * [Help Menu](#help-menu)
 * [Menu Description With Bat Syntax Highlighting](#menu-description-with-bat-syntax-highlighting)
 * [View C-Menu Command Line Options](#view-c-menu-command-line-options)
-* [View Highlighted view_engine.c](#view-highlighted-view_enginec)
+* [View Highlighted view_engine](#view-highlighted-view_engine)
 * [Exit Applications](#exit-applications)
 
 <!-- mtoc-end -->
 
 ---
 
+
+## cmenu_chk
+
+This Guide will examine the C-Menu Example Application Menu and explain how it works. By the time you finish reading this guide, you will have a good understanding of how to create your own menus using C-Menu.
+
+Before getting started, you should run the cmenu_chk utility to check your C-Menu installation. This utility checks for the presence of required and optional dependencies for C-Menu. Before running C-Menu, you will need to correct any failures of the requirements listed. 
+
+```bash
+cmenu_chk
+```
+
+You should see output similar to the following:
+
+```
+Checking C-Menu requirements...
+pass - CMENU_HOME/bin = /home/bill/menuapp/bin is a directory
+pass - CMENU_HOME/bin = /home/bill/menuapp/bin is in PATH
+pass - CMENU_SRC = /usr/local/src/C-Menu/src is a directory
+pass - /home/bill/menuapp/bin/rsh setuid
+pass - /home/bill/menuapp/bin/menu
+pass - /home/bill/menuapp/bin/lf
+
+Checking C-Menu optional dependencies...
+pass - /home/bill/menuapp/bin/iloan
+pass - /home/bill/menuapp/bin/amort
+pass - /usr/bin/firefox
+pass - /usr/bin/ghostty
+pass - /usr/bin/htop
+pass - /usr/bin/kitty
+pass - /usr/bin/nvim
+pass - /home/bill/.cargo/bin/rustup
+pass - /home/bill/.cargo/bin/cargo
+pass - /home/bill/.cargo/bin/rustc
+pass - /home/bill/.cargo/bin/rustlings
+pass - /home/bill/.cargo/bin/tree-sitter
+pass - /home/bill/menuapp/bin/whence
+
+Summary of checks:
+All checks passed
+```
+
+If any of the optional dependencies fail, you can still run C-Menu, but some
+menu selections may not work as expected. You can install the missing dependencies using your system's package manager or by following the installation instructions for each dependency in the C-Menu Augmentation Guide.
+
+The only dependency that is somewhat difficult to install is the tree-sitter-cli, and i
+
+---
+
+## Starting C-Menu
+
+Start the terminal emulator of your choice, and type:
+
+```bash
+menu
+```
+
+A menu similar to the following will be displayed:
+
 ![Main Menu](../screenshots/applications_menu.png)
 
+The letters and characters on the left side of the menu are hotkeys that you can use to select menu items. You can use the arrow keys to move the reverse color selector bar up and down. Pressing enter will select the menu item in the reverse color bar. You can also select menu items by clicking on them with button1 on your mouse.
 
+You may specify hotkeys by preceding the menu selection text with a hyphen followed by the character or glyph you want to use as a hotkey. If a hotkey is not specified, C-menu will assign the first character in the menu selection that has not already been reserved by assignment to another menu selection. C-Menu assigns hotkeys to menu selections in order, but letters assigned with the "-" dash are processed first, thus reserving those assignments.
+
+The menu component of C-Menu is very easy to use and examples are the best way to learn. Get this section under your belt, and you will be ready to move on to the more advanced features of C-Menu. Form and Pick expand on the concepts introduced in this guide.
+
+---
 
 ## Menu Title
 
@@ -41,10 +110,27 @@
 :    MAIN MENU
 ```
 
-The title of the menu is specified as the first text line in the menu
-description file.
+Arguably, the most important component of your menu is the title, and it is super easy. Just start a line with a colon and follow it with the text you want displayed in the title. C-Menu will take care of the rest.
 
 ---
+
+## Menu Selections
+
+Each menu selection consists of a line of text that describes it, followed by a
+command line that is executed when the menu selection is chosen. Like the title, text lines begin with a colon (:). The command line begins with an exclamation point (!). There are four types of commands in C-Menu:
+
+1. Internal (function calls such as Menu, Form, Pick, View)
+1. Direct   (external binaries with no interposing shell)
+1. Detached (external binaries that run in the background as separate processes)
+1. Shell    (external shell commands and scripts)
+
+Internal function calls are, by far, the fastest and most efficient. Response
+time is instantaneous. Direct commands are also very fast, but they require the command to be an executable binary. Detached commands are slower than direct commands because they require a shell to launch the command in a separate process. Shell commands are the slowest because they require a shell to interpret the command line and execute it.
+
+Commands that begin with !ckeys, !menu, !form, !pick, and !view are internal
+function calls. Commands that begin with !exec are direct commands, if they reference a binary executable. If they reference a shell or shell script, they are, of course shell commands. Commands that begin with !dexe are detached commands.
+
+For now, do not get bogged down in these details. The important thing to remember is that the menu selection text is followed by a command line that is executed when the menu selection is chosen. You can always fine tune for performance after you get your application working. The important thing is to get it working first.
 
 ## Full Screen (Root) Shell
 
@@ -53,6 +139,16 @@ description file.
 ```
 :   -RFull Screen (Root) Shell
 !exec rsh
+```
+
+This is the simplest possible shell command. It launches C-Menu's rsh command as a subprocess of C-Menu. The rsh command takes over the entire terminal window and runs in full screen mode. When rsh exits, control returns to C-Menu.
+
+- Requires: CMenu's rsh executable installed and available in the user's path. If rsh is installed with setuid root permissions, the menu selection will launch a full screen root shell.
+
+```bash
+export PATH=$HOME/menuapp/bin:$PATH
+ls -l $HOME/menuapp/bin/rsh
+.rws--s--x root root 139 KB Mon Jun 29 22:41:29 2026  /home/bill/menuapp/bin/rsh
 ```
 
 - The -R option tells C-Menu to use the letter R as the hotkey to launch the command.
@@ -69,9 +165,19 @@ description file.
 !dexe firefox https://www.youtube.com
 ```
 
+- Requires: firefox executable installed and available in the user's path. You can check with the following command.
+
+```bash
+which firefox
+/usr/bin/firefox
+```
+
+This menu selection is an example of detached execution. It launches the firefox command as a detached and independent process. C-Menu does not wait for firefox to exit before returning control to C-Menu.
+
+- !dexe (detached execution) launches the firefox command as a detached and independent process.
+
 - Because no hotkey is specified, C-Menu uses the first letter of the menu selection
 text as the hot key, which is the Y in Youtube.
-- !dexe (detached execute) launches the firefox command as a detached and independent process. C-Menu does not wait for firefox to exit before returning control to C-Menu.
 
 ---
 
@@ -84,10 +190,23 @@ text as the hot key, which is the Y in Youtube.
 !dexe ghostty -e menu
 ```
 
+This menu selection uses detached execution to spawn a twin.
+
+- Requires: ghostty executable installed and available in the user's path. You
+can check with the following command.
+
+```bash
+which ghostty
+/usr/bin/ghostty
+```
+
 - The -e option tells ghostty to execute the menu command in a new terminal window. C-Menu does not wait for ghostty to exit before returning control to C-Menu.
 
-## HTOP (in Kitty)
+You may substitute any terminal emulator for ghostty, but you will need to check the documentation for that terminal emulator to determine the correct command line options to use. See the next menu selection.
 
+---
+
+## HTOP (in Kitty)
 
 ![app_menu_04](../screenshots/app_menu_04.png)
 
@@ -96,10 +215,11 @@ text as the hot key, which is the Y in Youtube.
 !exec kitty --detach -o initial_window_width=80c -o initial_window_height=20c htop
 ```
 
-- We don't use !dexe with Kitty because Kitty has a built-in --detach option that allows it to run as a detached process. C-Menu does not wait for Kitty to exit before returning control to C-Menu.
+- Notice that we don't use !dexe with Kitty, and it still runs as a detached executable. This is because Kitty has a built-in --detach option. C-Menu does not wait for Kitty to exit before returning control to C-Menu.
 
 - We use the -o option to specify both initial window width and hieght in
 characters (c). see [Kitty Command Line Options](https://sw.kovidgoyal.net/kitty/command-line-options/) 
+
 ---
 
 ## HTOP (in Ghostty)
@@ -113,19 +233,21 @@ characters (c). see [Kitty Command Line Options](https://sw.kovidgoyal.net/kitty
 
 There are several things to learn about this menu selection.
 
-- The hotkey assigned by C-Menu is the left parenthesis character (. C-Menu assigns the first character in the menu selection text that has not been reserved by assignment to another menu selection. C-Menu assigns hotkeys to menu selections in order, but letters assigned with the "-" dash are processed first, thus reserving those assignments. Because H, T, O, and P have already been assigned, the next available character is the left parenthesis. If you don't like that hotkey, you may specify a different character as the hotkey by adding it at the beginning of the line and preceding it with a dash. For example:
+- The hotkey assigned by C-Menu is the left parenthesis character, "(". C-Menu assigns the first character in the menu selection text that has not been reserved by assignment to another menu selection. C-Menu assigns hotkeys to menu selections in order, but letters assigned with the "-" hyphen or dash are processed first, and once used, reserve those assignments. Because H, T, O, and P have already been assigned, the next available character is the left parenthesis. If you don't like that hotkey, you may specify a different character as the hotkey by adding it at the beginning of the line and preceding it with a dash. For example:
 
 ```
 :     -HHTOP (in Ghostty)
 ```
 
-- However, there is a gotcha. When you specify the letter H as the hotkey for
-HTOP (in Ghostty), C-Menu will assign the left parenthesis character as the
-hotkey for HTOP (in Kitty) because it has already been reserved by prepending
--H to HTOP (in Ghostty).
+- But, there is a gotcha. When you specify the letter H as the hotkey for
+HTOP (in Ghostty), C-Menu assigns the left parenthesis character as the
+hotkey for HTOP (in Kitty). That is because it has already been reserved by
+assigning it to HTOP (in Ghostty). It might be better to use "K" for Kitty and
+"G" for Ghostty, or some other combination of letters that makes sense to you.
+It's your menu, and you can assign hotkeys any way you like.
 
-- We use !dexe with Ghostty because it does not have a built-in --detach option.
-C-Menu does not wait for Ghostty to exit before returning control to C-Menu.
+- We use !dexe if we want Ghostty to run as a detached process because it does
+not have a built-in --detach option like Kitty. C-Menu does not wait for Ghostty to exit before returning control to C-Menu.
 
 - As with HTOP (in Kitty), we specify the --window_width and --window-height in
   columns, and use Ghostty's -e option to execute htop in the new terminal window.
@@ -151,11 +273,7 @@ used to:
 
 - Interact with external programs to perform tasks such as validation, calculations, or data manipulation.
 
-Currently, the form utility is a work in progress and is not fully implemented. It is included in this example application to demonstrate how it can be used to create a simple form for issuing RSH certificates. As distributed, C-Menu simply creates a file, /etc/pam.d/rsh_auth containing "auth required pam_permit.so".
-
-
-There are many ways to implement authentication and authorization
-
+- Adhering to the ethos of PAM, it is not the purview of an application such as C-Menu to implement authentication. It is the responsibility of the system administrator to configure PAM to authenticate users. C-Menu provides the functionality to interface with PAM, but it is up to the system administrator to configure PAM to authenticate users.
 
 ---
 
@@ -231,16 +349,12 @@ edit. The Rustlings exercises are generally small and fairly simple, but very
 powerful learning tools because they provide practical experience with the Rust
 programming language.
 
-- With this menu option using C-Menu, I have seen students finish 30 or more
-exercises in an afternoon, and they have a lot of fun doing it. The Rustlings
-exercises are a great way to learn Rust, and C-Menu makes it easy to find and
-edit the source files.
+- With C-Menu, using this menu selection, I easily finished more than 30
+of the Rustlings exercises in an portion of an afternoon, and had a lot of fun doing it. Admittedly, I had previously completed all the exercises, so I was cheating a little bit. Nevertheless, Rustlings is a great way to learn Rust, and C-Menu Pick combined with C-Menu lf make repetitively finding and editing the rust source files super fast and easy. 
 
-- Hats off to the Rustlings team for creating such a great learning resource.
+- Hats off to the Rustlings team for creating such an enjoyable and productive learning resource. I haven't had that much fun since I got The C Programming Language, 2nd Edition, by Kernighan and Ritchie back in 1989, and its predecessor about 10 years earlier.
 
-- To begin your Rust journey:
-
-1. Get the book: [The Rust Programming Language](https://doc.rust-lang.org/book/)
+1. Get the book: [The Rust Programming Language by Steve Klabnik](https://doc.rust-lang.org/book/)
 2. Install Rustup: [Rustup](https://rustup.rs/)
 3. Install Rustlings:
 
@@ -248,8 +362,7 @@ edit the source files.
 cargo install rustlings
 ```
 
-Enjoy!
-
+---
 
 ## View Manual Pages
 
@@ -257,6 +370,7 @@ Enjoy!
 :     -PView Manual Pages
 !pick -S "listman.sh" -n 1 -T \"Select Manual Page to View\" -c "readman.sh %%"
 ```
+
 ---
 
 ## Edit C-Menu Description Files
@@ -359,7 +473,7 @@ suppresses line numbers in view.
 
 ---
 
-## View Highlighted view_engine.c
+## View Highlighted view_engine
 
 ```
 :     -eView Highlighted view_engine.c

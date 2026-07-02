@@ -93,6 +93,8 @@ typedef struct {
     bool report_badlinks;
     bool report_trace;
     bool report_all;
+    bool count;
+    bool count_silently;
     bool only_errors;
 } SearchFilters;
 
@@ -138,6 +140,7 @@ char *exec;
 char *file_types_p;
 char *perms_p;
 char *debug_p;
+size_t file_count = 0;
 void debug_out(SearchFilters *, int, char **, int);
 bool init_find(SearchFilters *, int, char **);
 void sort_lf_output(SearchFilters *, int, char **);
@@ -174,6 +177,7 @@ static struct argp_option options[] = {
     {"sort_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
     {"sort", 'S', 0, 0, "Sort in Ascending order", 0},
     {"nthreads", 'T', "threads", 0, "Number of nthreads", 0},
+    {"count", 'c', "s", 0, "Count (s only report count)", 0},
     {0}};
 
 /** @brief Parse a single option.  */
@@ -195,6 +199,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         if (f->after && f->before && f->before < f->after) {
             fprintf(stderr, "-b time must be greater than -a time.\n");
             f->before = 0;
+        }
+        break;
+    case 'c':
+        f->count = true;
+        if (arg && arg[0] != '\0') {
+            if (strcmp(arg, "s") == 0)
+                f->count_silently |= true;
         }
         break;
     case 'd':
@@ -389,6 +400,8 @@ int main(int argc, char **argv) {
     f->flags |= LF_HIDE;     // Turn hide flag on
     f->follow_links = false; // By default, symbolic links are not followed. Use
                              // -L to follow them.
+    f->count = false;
+    f->count_silently = false;
     char tmp_str[PATH_MAX];
     argp_parse(&argp, argc, argv, 0, 0, f);
     if (lfargc > 0) {
@@ -431,7 +444,11 @@ int main(int argc, char **argv) {
         init_find(f, argc, argv);
     } else
         sort_lf_output(f, argc, argv);
-    exit(termination_status);
+    if (f->count)
+        fprintf(stderr, "Files: %zu\n", file_count);
+    if (file_count == 0)
+        return 1;
+    return 0;
 }
 // Initialize and transfer control to the finder
 /** If sorting is requested, execute the finder and pipe its output
@@ -642,6 +659,9 @@ void debug_out(SearchFilters *f, int argc, char **argv, int threads) {
                 f->report_all ? "true" : "|    false");
         fprintf(stderr, "  8-only_errors %s\n",
                 f->only_errors ? "true" : "|    false");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Count files: %s\n", f->count ? "true" : "false");
+        fprintf(stderr, "Count only: %s\n", f->count_silently ? "true" : "false");
         fprintf(stderr, "\n");
         fprintf(stderr, "Search directory: %s\n\n", f->base_path);
         if (f->max_depth == 0)
@@ -1169,10 +1189,13 @@ int scan_file(char *file_spec, const SearchFilters *f,
         }
         if (f->only_errors)
             break;
-        if (file_spec[0] == '.' && file_spec[1] == '/')
-            printf("%s\n", &file_spec[2]);
-        else
-            printf("%s\n", file_spec);
+        file_count++;
+        if (!f->count_silently) {
+            if (file_spec[0] == '.' && file_spec[1] == '/')
+                printf("%s\n", &file_spec[2]);
+            else
+                printf("%s\n", file_spec);
+        }
         break;
     }
     return true;

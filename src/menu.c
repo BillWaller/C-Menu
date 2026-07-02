@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
         if (init->lines > 0 || init->cols > 0) {
             if (init->h_shift == 0)
                 init->h_shift = view->cols / 3;
-            if (!init_view_boxwin(init, init->title)) {
+            if (!init_view_boxwin(init)) {
                 view_file(init);
             }
         } else if (!init_view_full_screen(init)) {

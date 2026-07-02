@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -188,6 +189,7 @@ int cp_fill_char;
 int cp_brackets;
 int cp_red;
 int cp_green;
+int cp_yellow;
 int cp_blue;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
@@ -208,6 +210,7 @@ cchar_t CC_FILL_CHAR;
 cchar_t CC_RAN;
 cchar_t CC_RED;
 cchar_t CC_GREEN;
+cchar_t CC_YELLOW;
 cchar_t CC_BLUE;
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
@@ -335,6 +338,7 @@ void initialize_local_colors(SIO *sio) {
     cp_norm = get_clr_pair(CLR_FG, CLR_BG);
     cp_red = get_clr_pair(CLR_FG, CLR_RED);
     cp_green = get_clr_pair(CLR_FG, CLR_GREEN);
+    cp_yellow = get_clr_pair(CLR_BG, CLR_YELLOW);
     cp_blue = get_clr_pair(CLR_FG, CLR_BLUE);
 
     // CC_ variables are type cchar_t with color and space characters
@@ -354,6 +358,7 @@ void initialize_local_colors(SIO *sio) {
     CC_RAN = mkcc(cp_red, WA_NORMAL, " ");
     CC_RED = mkcc(cp_red, WA_NORMAL, " ");
     CC_GREEN = mkcc(cp_green, WA_NORMAL, " ");
+    CC_YELLOW = mkcc(cp_yellow, WA_NORMAL, " ");
     CC_BLUE = mkcc(cp_blue, WA_NORMAL, " ");
 
     // create cchar_t for box borders - no color specified
@@ -1432,8 +1437,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     @param emsg_str Error message string
     @return Key code of user command */
 int Perror(char *emsg_str) {
-    char emsg[80];
-    int emsg_max_len = 80;
+    char emsg[MAXLEN];
     unsigned in_key;
     WINDOW *error_win;
     int len, line, pos;
@@ -1443,7 +1447,7 @@ int Perror(char *emsg_str) {
         emsg_str += 2;
         f_xwgetch = false;
     }
-    strnz__cpy(emsg, emsg_str, emsg_max_len - 1);
+    strnz__cpy(emsg, emsg_str, 79);
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", emsg);
         return 1;
@@ -1453,9 +1457,7 @@ int Perror(char *emsg_str) {
     set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(chyron);
-    len = max(strlen(title), strlen(emsg));
-    len = max(len, chyron->l);
-    len = max(len, 40);
+    len = strnz(emsg, COLS - 4);
     pos = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);

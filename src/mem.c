@@ -767,6 +767,8 @@ bool init_view_files(Init *init) {
     view = init->view;
     view->lines = init->lines;
     view->cols = init->cols;
+    view->begy = init->begy;
+    view->begx = init->begx;
     view->f_ignore_case = init->f_ignore_case;
     view->f_at_end_remove = init->f_at_end_remove;
     view->f_squeeze = init->f_squeeze;

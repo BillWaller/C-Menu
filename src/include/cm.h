@@ -67,11 +67,11 @@ extern UiSurface *ui_win2[MAXWIN];
    expressions without risking unintended consequences from multiple
    evaluations.
  */
-#define max(a, b)           \
-    ({                      \
-        typeof(a) _a = (a); \
-        typeof(b) _b = (b); \
-        _a > _b ? _a : _b;  \
+#define max(a, b)               \
+    ({                          \
+        __typeof__(a) _a = (a); \
+        __typeof__(b) _b = (b); \
+        _a > _b ? _a : _b;      \
     })
 /** @brief min macro evaluates two expressions, returning least result */
 #define min(x, y)           \
@@ -352,7 +352,7 @@ extern int wait_continue(WINDOW *, Chyron *, int);
 extern bool wait_destroy(Chyron *);
 extern bool waitpid_with_timeout(pid_t, int);
 extern int wait_timeout;
-extern bool action_disposition(char *title, char *action_str);
+extern bool action_disposition(char *eitle, char *action_str);
 extern int fork_detach_execvp(char **);
 extern WINDOW *message_win(char *);
 extern bool is_hex_str(char *, int);
@@ -386,12 +386,13 @@ extern int cp_nt_rev;                /**< reverse color pair index */
 extern int cp_nt_hl;                 /**< highlight color pair index */
 extern int cp_nt_hl_rev;             /**< highlight reverse color pair index */
 extern int cp_ln_fg;                 /**< line number color pair index */
-extern int cp_ln_bg;                 /** line number background color pair index */
+extern int cp_ln_bg;                 /**< line number background color pair index */
 extern int cp_cmdln_fg;              /**< command line number color pair index */
-extern int cp_cmdln_bg;              /** command line number background color pair index */
-extern int cp_red;                   /** red background color pair index */
-extern int cp_green;                 /** green background color pair index */
-extern int cp_blue;                  /** blue background color pair index */
+extern int cp_cmdln_bg;              /**< command line number background color pair index */
+extern int cp_red;                   /**< red background color pair index */
+extern int cp_green;                 /**< green background color pair index */
+extern int cp_yellow;                /**< yellow background color pair index */
+extern int cp_blue;                  /**< blue background color pair index */
 extern int clr_idx;                  /**< current color index */
 extern int clr_cnt;                  /**< number of colors used */
 extern int clr_pair_idx;             /**< current color pair index */
@@ -474,11 +475,12 @@ extern cchar_t CC_DATA2;
 extern cchar_t CC_DATA3;
 extern cchar_t CC_TITLE; /**< box colors */
 
-extern cchar_t CC_BRKTL; /* left field bracket */
-extern cchar_t CC_BRKTR; /* right field bracket */
-extern cchar_t CC_RED;   /* red background */
-extern cchar_t CC_GREEN; /* green background */
-extern cchar_t CC_BLUE;  /* blue background */
+extern cchar_t CC_BRKTL;  /**< left field bracket */
+extern cchar_t CC_BRKTR;  /**< right field bracket */
+extern cchar_t CC_RED;    /**< red background */
+extern cchar_t CC_GREEN;  /**< green background */
+extern cchar_t CC_YELLOW; /**< yellow background */
+extern cchar_t CC_BLUE;   /**< blue background */
 
 extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define KEY_ALTF0 0x138
@@ -952,4 +954,5 @@ extern char stdio_names_str[MAXLEN];
 extern void check_panels(int);
 extern int bare_box_new(int, int, int, int, char *);
 extern int win2_box_new(int, int, int, int, char *);
+extern void resize_panel(PANEL *, int, int, int, int);
 #endif

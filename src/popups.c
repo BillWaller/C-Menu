@@ -165,11 +165,8 @@ int popup_view(Init *init, int argc, char **argv, int ilines, int icols, int by,
     view->begx = bx;
     view->lines = ilines;
     view->cols = icols;
-    view_calc_win_dimensions(init, view->title);
     view->f_full_screen = false;
-    if (view->h_shift == 0)
-        view->h_shift = view->cols / 3;
-    if (!init_view_boxwin(init, view->title))
+    if (!init_view_boxwin(init))
         rc = view_file(init);
     destroy_view(init);
     init->view = view_sav;

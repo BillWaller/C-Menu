@@ -347,12 +347,12 @@ int pick_engine(Init *init) {
         pick->lines = usable_lines;
 
     pick->tbl_col_width = max(pick->tbl_col_width, 4);
-    pick->tbl_col_width = min(pick->tbl_col_width, maxx - 2);
+    pick->tbl_col_width = min(pick->tbl_col_width, (maxx - (2 + pick->begx)));
     if (pick->d_cnt <= pick->lines) {
         pick->tbl_lines = pick->d_cnt;
         pick->tbl_cols = 1;
     } else {
-        tbl_max_cols = (maxx / (pick->tbl_col_width + 1));
+        tbl_max_cols = ((maxx - (2 + pick->begx)) / (pick->tbl_col_width + 1));
         pg_max_objs = pick->lines * tbl_max_cols;
         if (pick->d_cnt > pg_max_objs)
             pick->tbl_cols = tbl_max_cols;
@@ -1014,6 +1014,7 @@ int picker(Init *init, char *field) {
                 display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
                 curs_set(1);
                 wmove(pick->win, pick->y, pick->x);
+                top_panel(panel_win[win_ptr]);
                 update_panels();
                 doupdate();
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
@@ -1533,7 +1534,7 @@ int new_pick_view(Init *init) {
         strnz__cat(view->help_spec, "/help/", MAXLEN - 1);
         strnz__cat(view->help_spec, VIEW_HELP_FILE, MAXLEN - 1);
     }
-    int rc = init_view_boxwin(init, "");
+    int rc = init_view_boxwin(init);
     return rc;
 }
 void new_view_file(Init *init, char *file) {
@@ -1546,7 +1547,6 @@ void new_view_file(Init *init, char *file) {
     strnz__cpy(view->provider_cmd, "tree-sitter highlight ", MAXLEN - 1);
     strnz__cat(view->provider_cmd, file, MAXLEN - 1);
     strnz__cpy(view->title, file, MAXLEN - 1);
-    border_title(view->box.win, view->title);
     if (view_init_input(init, file) == 0) {
         if (view->buf) {
             view->f_eod = 0;
@@ -1559,11 +1559,11 @@ void new_view_file(Init *init, char *file) {
             view->ln = 0;
             view->page_bot_pos = 0;
             view->file_pos = 0;
+            border_title(view->box.win, view->title);
             initialize_line_table(view);
             next_page(view);
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            // top_panel(view->win.pan);
             update_panels();
             doupdate();
             pad_refresh(view);
