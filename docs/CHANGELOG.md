@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-02T10:23:24-05:00* - FIXES: init_view.c: fixed issues in view when resizing the terminal window 
+
+*2026-06-29T22:40:47-05:00* - Update CHANGELOG.md 
+
 *2026-06-29T22:40:10-05:00* - FIX: Cosmetic adjustments to View and Pick engines. 
 
 *2026-06-29T21:28:37-05:00* - DOCS: Documentation Updates 
