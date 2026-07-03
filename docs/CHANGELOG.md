@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-02T22:07:56-05:00* - REFACTOR: Preparation for Uniform Abstraction Layer User Interface. Added cm_fields.c, which will eventually replace fields.c. cm_fields.c will be a simpler, more streamlined, and yet functionally equivalent replacement for fields.c. fields.c works well, but it turned out to be overly complicated and laborious to maintain. 
+
+*2026-07-02T10:25:51-05:00* - Update CHANGELOG.md 
+
 *2026-07-02T10:23:24-05:00* - FIXES: init_view.c: fixed issues in view when resizing the terminal window 
 
 *2026-06-29T22:40:47-05:00* - Update CHANGELOG.md 
