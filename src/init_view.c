@@ -306,7 +306,7 @@ void view_boxwin_resize(Init *init) {
     destroy_view_win(init);
     init_view_boxwin(init);
     border_title(init->view->box.win, init->view->title);
-    initialize_line_table(init->view);
+    // initialize_line_table(init->view);
 }
 
 /** @brief Calculate the dimensions and position of the box window for C-Menu

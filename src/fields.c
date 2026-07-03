@@ -456,19 +456,11 @@ int form_fmt_field(Form *form, char *s) {
     float float_n = 0.0;
     double double_n = 0.0;
     double currency_n = 0.0;
+    Date date;
+    date.yyyy = date.mm = date.dd = 0;
+    Time time;
+    time.hh = time.mm = time.ss = 0;
 
-    struct {
-        int yyyy;
-        int mm;
-        int dd;
-    } Date;
-    Date.yyyy = Date.mm = Date.dd = 0;
-    struct {
-        int hh;
-        int mm;
-        int ss;
-    } Time;
-    Time.hh = Time.mm = Time.ss = 0;
     strnz(accept_s, fl);
     switch (ff) {
     case FF_STRING:
@@ -510,20 +502,20 @@ int form_fmt_field(Form *form, char *s) {
         right_justify(display_s, fl);
         break;
     case FF_YYYYMMDD:
-        Date.yyyy = Date.mm = Date.dd = 0;
+        date.yyyy = date.mm = date.dd = 0;
         strnz__cpy(field_s, input_s, FIELD_MAXLEN - 1);
-        sscanf(field_s, "%4d%2d%2d", &Date.yyyy, &Date.mm, &Date.dd);
-        sprintf(accept_s, "%04d%02d%02d", Date.yyyy, Date.mm, Date.dd);
-        if (is_valid_date(Date.yyyy, Date.mm, Date.dd))
-            sprintf(display_s, "%04d-%02d-%02d", Date.yyyy, Date.mm, Date.dd);
+        sscanf(field_s, "%4d%2d%2d", &date.yyyy, &date.mm, &date.dd);
+        sprintf(accept_s, "%04d%02d%02d", date.yyyy, date.mm, date.dd);
+        if (is_valid_date(date.yyyy, date.mm, date.dd))
+            sprintf(display_s, "%04d-%02d-%02d", date.yyyy, date.mm, date.dd);
         break;
     case FF_HHMMSS:
-        Time.hh = Time.mm = Time.ss = 0;
+        time.hh = time.mm = time.ss = 0;
         strnz__cpy(field_s, input_s, FIELD_MAXLEN - 1);
-        sscanf(field_s, "%2d%2d%2d", &Time.hh, &Time.mm, &Time.ss);
-        sprintf(accept_s, "%02d%02d%02d", Time.hh, Time.mm, Time.ss);
-        if (is_valid_time(Time.hh, Time.mm, Time.ss))
-            sprintf(display_s, "%02d:%02d:%02d", Time.hh, Time.mm, Time.ss);
+        sscanf(field_s, "%2d%2d%2d", &time.hh, &time.mm, &time.ss);
+        sprintf(accept_s, "%02d%02d%02d", time.hh, time.mm, time.ss);
+        if (is_valid_time(time.hh, time.mm, time.ss))
+            sprintf(display_s, "%02d:%02d:%02d", time.hh, time.mm, time.ss);
         break;
     case FF_APR:
         sscanf(input_s, "%lf", &double_n);
@@ -585,6 +577,7 @@ void left_justify(char *s) { trim(s); }
    side with spaces. The resulting string is null-terminated and fits within the
    specified field length.
  */
+void right_justify(char *, int);
 void right_justify(char *s, int fl) {
     char *p = s;
     char *d = s + fl;

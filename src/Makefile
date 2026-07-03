@@ -18,8 +18,8 @@ ifeq ($(BUILD_TYPE), Release)
 	EXTRA_CFLAGS=-flto
 	LINKOPT= -pthread -s
 else
+#	DEBUG_FLAGS=-DDEBUG_RESIZE -DDEBUG_LOG -DDEBUG_LAYOUT
 #	-DDEBUG_IMMEDOK
-	DEBUG_FLAGS=-DDEBUG_RESIZE -DDEBUG_LOG -DDEBUG_LAYOUT
 	CFLAGS:=-O0 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
 			-rdynamic $(UI)
 	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
@@ -64,7 +64,7 @@ COMMON_HDRS:=include/cm.h include/common.h include/menu.h \
 		include/form.h include/pick.h include/view.h include/version.h \
 		include/version.h.in
 COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
-			fields.c form_engine.c init.c init_view.c mem.c \
+			fields.c cm_fields.c form_engine.c init.c init_view.c mem.c \
 			pick_engine.c popups.c view_engine.c
 ifeq ($(UI), "-DUAL_UI")
 	COMMON_HDRS+=include/ui_backend.h ui/ui_ncurses_internal.h

@@ -690,6 +690,34 @@ int view_cmd_processor(Init *init) {
         view->cmd_arg[0] = '\0';
     }
 }
+int view_accept_cmd(View *view) {
+    off_t *n;
+    char input_s[MAXLEN];
+    char accept_s[MAXLEN];
+    char display_s[MAXLEN];
+    char fill_char = '_';
+    // int flin = view->cmd_line;
+    // view->cmdln.win;
+    // view->cmd_line;
+    // view->curx;
+    // WINDOW *win = view->cmdln.win;
+    //
+    int flin = 0;
+    int maxx = getmaxx(view->cmdln.win);
+    int flen = maxx - 2;
+    int fcol = 1;
+
+    cm_accept(view->cmdln.win, nullptr, input_s, accept_s, display_s,
+              flin, fcol, flen, FF_STRING);
+
+    cm_display_field(view->cmdln.win, display_s, flin, fcol, flen);
+    cm_display_accept_field(view->cmdln.win, accept_s, flin, fcol, flen);
+    cm_validate_field(accept_s, FF_STRING);
+    cm_fmt_field(input_s, accept_s, display_s, FF_STRING, flen);
+    fill_field(accept_s, display_s, fill_char, flen);
+    return 0;
+}
+
 /** @brief Get Command Character and Numeric Argument
     @ingroup view_engine
     @param view Pointer to the View structure containing the state around
@@ -709,7 +737,9 @@ int get_cmd_char(View *view, off_t *n) {
     cmd_str[0] = '\0';
     update_panels();
     doupdate();
-    wmove(view->cmdln.win, view->cmd_line, view->curx);
+    // wmove(view->cmdln.win, view->cmd_line, view->curx);
+    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &ran, 1);
+    wmove(view->cmdln.win, view->cmd_line, view->curx + 1);
     pad_refresh(view);
     do {
         c = vgetch(view->cmdln.win, 0);
@@ -726,10 +756,14 @@ int get_cmd_char(View *view, off_t *n) {
     if (cmd_str[0] == '\0') {
         *n = 0;
         view->cmd_arg[0] = '\0';
+        mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &sp, 1);
+        wclrtoeol(view->cmdln.win);
         return (c);
     }
     *n = atol(cmd_str);
     view->cmd_arg[0] = '\0';
+    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &sp, 1);
+    wclrtoeol(view->cmdln.win);
     return (c);
 }
 /** @brief Get Command Argument from User Input

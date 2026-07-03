@@ -578,9 +578,7 @@ void unreverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-    // mvwaddnwstr(pick->win, 0, 1, &bw_sp, 1);
     wbkgrndset(pick->win, &CC_NT);
-    wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width - 1);
     if (pick->f_selected[pick->d_idx])
@@ -991,8 +989,8 @@ int picker(Init *init, char *field) {
             /** ===========================================================
                 Pick Objects Loop
                 =========================================================== */
-            pick->chyron->key[9]->active = pick->tbl_page > 0 ? true : false;                  // PgUp
-            pick->chyron->key[10]->active = (pick->tbl_pages > pick->tbl_page) ? true : false; // PgDn
+            pick->chyron->key[9]->active = pick->tbl_page > 0 ? true : false;                        // PgUp
+            pick->chyron->key[10]->active = (pick->tbl_pages > (pick->tbl_page + 1)) ? true : false; // PgDn
             if (in_key == 0) {
                 reverse_object(pick);
                 pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
@@ -1115,9 +1113,8 @@ int picker(Init *init, char *field) {
             /** 'j' or KEY_DOWN Moves selection to next object in list */
             case 'j':
             case KEY_DOWN:
-                if (pick->tbl_line == pick->tbl_lines - 1) {
+                if (pick->tbl_line == pick->tbl_lines - 1)
                     break;
-                }
                 mvwaddstr_fill(pick->win, pick->y, pick->x,
                                pick->d_object[pick->d_idx],
                                pick->tbl_col_width - 1);

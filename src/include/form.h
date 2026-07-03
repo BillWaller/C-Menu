@@ -19,9 +19,8 @@ typedef struct Init Init;
 #define FIELD_MAXCNT 100
 #define F_NOMETAS 1  /**< flag - no metacharacters allowed in field input */
 #define F_NOTBLANK 2 /**< flag - field input cannot be blank */
-#define F_NOECHO                                                           \
-    4 /**< flag - do not echo field input on the screen, e.g. for password \
-         fields */
+#define F_NOECHO 4   /**< flag - do not echo field input on the screen, \
+    e.g. for password fields */
 
 /** FormAction Directives */
 typedef enum {
@@ -86,8 +85,7 @@ typedef enum {
  *  enum values, e.g. ff_tbl[FF_STRING] = "string", ff_tbl[F_DECIMAL_INT] =
  *  "decimal_int", etc.
  */
-extern char
-    ff_tbl[][26]; /**< a table of field format strings used in the Form
+extern char ff_tbl[][26]; /**< a table of field format strings used in the Form
                      description file to identify field data types, e.g.
                      "string", "decimal_int", "hex_int", etc. The index of the
                      field format in this table corresponds to the FieldFormat

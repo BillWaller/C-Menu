@@ -52,6 +52,18 @@ extern UiSurface *ui_win2[MAXWIN];
 #define Ctrl(c) ((c) & 0x1f)
 #include <stdio.h>
 
+typedef struct {
+    int yyyy;
+    int mm;
+    int dd;
+} Date;
+
+typedef struct {
+    int hh;
+    int mm;
+    int ss;
+} Time;
+
 #define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 
 /** @brief max macro evaluates two expressions, returning greatest result.
@@ -955,4 +967,15 @@ extern void check_panels(int);
 extern int bare_box_new(int, int, int, int, char *);
 extern int win2_box_new(int, int, int, int, char *);
 extern void resize_panel(PANEL *, int, int, int, int);
+extern void left_justify(char *s);
+extern void right_justify(char *, int);
+extern bool is_valid_date(int yyyy, int mm, int dd);
+extern bool is_valid_time(int hh, int mm, int ss);
+extern void numeric(char *d, char *s);
+extern int cm_accept(WINDOW *, Chyron *, char *, char *, char *, int, int, int, int);
+extern int cm_display_field(WINDOW *, char *, int, int, int);
+extern int cm_display_accept_field(WINDOW *, char *, int, int, int);
+extern int cm_validate_field(char *, int);
+extern int cm_fmt_field(char *, char *, char *, int, int);
+extern char *fill_field(char *, char *, char, int);
 #endif

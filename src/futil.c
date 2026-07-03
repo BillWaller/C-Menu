@@ -46,6 +46,11 @@
 
 void write_cmenu_log(char *);
 void open_cmenu_log();
+void left_justify(char *s);
+void right_justify(char *, int);
+bool is_valid_date(int yyyy, int mm, int dd);
+bool is_valid_time(int hh, int mm, int ss);
+void numeric(char *d, char *s);
 int cmenu_log_fd;
 
 char earg_str[MAXLEN];
@@ -125,6 +130,7 @@ char *format_local_timestamp(time_t, char *, size_t);
 char *get_local_timestamp();
 char *get_user_str(char *, size_t);
 char *get_ip_addresses(char *, int);
+char *fill_field(char *accept_s, char *display_s, char fill_char, int flen);
 char stdio_names_str[MAXLEN];
 
 /** Global variables for error reporting */
@@ -1682,4 +1688,57 @@ void write_cmenu_log_nt(char *msg) {
     write(cmenu_log_fd, msg, strlen(msg));
     write(cmenu_log_fd, "\n", 1);
     return;
+}
+
+void left_justify(char *s) { trim(s); }
+void right_justify(char *s, int fl) {
+    char *p = s;
+    char *d = s + fl;
+    trim(s);
+    *d = '\0';
+    while (*s != '\0') {
+        s++;
+    }
+    while (s != p) {
+        *(--d) = *(--s);
+    }
+    while (d != p) {
+        *(--d) = ' ';
+    }
+}
+bool is_valid_date(int yyyy, int mm, int dd) {
+    if (yyyy < 1 || mm < 1 || mm > 12 || dd < 1)
+        return false;
+    int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if ((yyyy % 4 == 0 && yyyy % 100 != 0) || (yyyy % 400 == 0))
+        days_in_month[2] = 29;
+    if (dd > days_in_month[mm])
+        return false;
+    return true;
+}
+bool is_valid_time(int hh, int mm, int ss) {
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59 || ss < 0 || ss > 59)
+        return false;
+    return true;
+}
+void numeric(char *d, char *s) {
+    while (*s != '\0') {
+        if (*s == '-' || *s == '.' || (*s >= '0' && *s <= '9'))
+            *d++ = *s++;
+        else
+            s++;
+    }
+    *d = '\0';
+}
+
+char *fill_field(char *accept_s, char *display_s, char fill_char, int flen) {
+    char *s = accept_s;
+    char *d = display_s;
+    char *e = d + flen;
+    while (*s != '\0' && d < e)
+        *d++ = *s++;
+    while (d < e)
+        *d++ = fill_char;
+    *d = '\0';
+    return display_s;
 }

@@ -189,5 +189,5 @@ extern int get_cmd_spec(View *, char *);
 extern void go_to_position(View *, long);
 extern void cat_file(View *);
 extern char err_msg[MAXLEN];
-
+extern int view_accept_cmd(View *);
 #endif
