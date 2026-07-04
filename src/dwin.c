@@ -2127,6 +2127,7 @@ int vgetch(WINDOW *win, int n) {
     int c;
     mousemask(0, nullptr);
 
+    curs_set(1);
     if (n == -1) {
         struct termios raw_tioctl;
         raw_tioctl = curses_tioctl;
@@ -2135,7 +2136,6 @@ int vgetch(WINDOW *win, int n) {
         halfdelay(1);
     else
         halfdelay(min(255, max(0, n * 10)));
-    curs_set(1);
     do {
         c = wgetch(win);
         if (n > 0 && c == ERR) {

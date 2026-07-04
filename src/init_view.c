@@ -252,9 +252,29 @@ int init_view_boxwin(Init *init) {
     scrollok(view->lnno.win, true);
     wsetscrreg(view->lnno.win, 0, view->scroll_lines);
 
+    // -------------------> 5. PAD CONTAINER <---------
+    // view->pad_container.win = derwin(view->win.win, view->lines - 1,
+    // view->cols - view->ln_win_cols, 0, view->ln_win_cols);
+    // if (view->pad_container.win == nullptr) {
+    //     ssnprintf(em0, MAXLEN - 1,
+    //               "derwin(view->win.win, view->lines - 1, view->cols -
+    //               view->ln_win_cols, 0, view->ln_win_cols) failed in
+    //               init_view_full_screen");
+    //     Perror(em0);
+    //     return -1;
+    // }
+    // view->pad_container.pan = new_panel(view->pad_container.win);
+
     // -------------------> 5. PAD <-------------------
     view->pad = newpad(view->lines - 1, PAD_COLS - 1);
-    // ----------------------
+    if (view->pad == nullptr) {
+        ssnprintf(em0, MAXLEN - 1, "newpad(view->lines - 1, PAD_COLS - 1) failed in init_view_full_screen");
+        Perror(em0);
+        return -1;
+    }
+    view->pad = newpad(view->lines - 1, PAD_COLS - 1);
+
+    // -------------------> 5. PAD_VIEW <--------------
     view->pad_view.win = subpad(view->pad,
                                 view->lines - 1, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
     if (view->pad_view.win == nullptr) {

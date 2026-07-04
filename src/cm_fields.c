@@ -1,4 +1,4 @@
-/** @file cm_fields.c
+/** @file field.c
     @brief Stand-alone Field Edit and Entry for C-Menu
     @author Bill Waller
     Copyright (c) 2025, 2026
@@ -17,24 +17,35 @@
 #include <unistd.h>
 
 typedef struct {
-    bool f_erase_remainder;
-} cm;
+    int flin;
+    int fcol;
+    int flen;
+    int ff;
+    char fill_char;
+    char input_s[FIELD_MAXLEN];
+    char accept_s[FIELD_MAXLEN];
+    char display_s[FIELD_MAXLEN];
+    Chyron *chyron;
+    WINDOW *win;
+    bool cf_erase_remainder;
+} CmField;
 
 bool f_erase_remainder = true;
 
-int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *display_s, int flin, int fcol, int flen, int ff);
-int cm_display_field(WINDOW *win, char *display_s, int flin, int fcol, int flen);
-int cm_display_accept_field(WINDOW *win, char *accept_s, int flin, int fcol, int flen);
-int cm_validate_field(char *accept_s, int ff);
-int cm_fmt_field(char *input_s, char *accept_s, char *display_s, int ff, int flen);
+int cf_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *display_s, int flin, int fcol, int flen, int ff);
+int cf_display(WINDOW *win, char *display_s, int flin, int fcol, int flen);
+int cf_display_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen);
+int cf_validate(char *accept_s, int ff);
+int cf_fmt(char *input_s, char *accept_s, char *display_s, int ff, int flen);
 
-int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *display_s, int flin, int fcol, int flen, int ff) {
+int cf_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *display_s, int flin, int fcol, int flen, int ff) {
     bool f_insert = FALSE;
     int in_key = 0;
     char *s, *d;
     char *fstart;
     int lines;
-    cm_fmt_field(input_s, accept_s, display_s, ff, flen);
+    cf_fmt(input_s, accept_s, display_s, ff, flen);
+
     click_x = click_y = -1;
     char *p = fstart = accept_s;
     char *fend = fstart + flen;
@@ -52,8 +63,8 @@ int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *
     }
     while (1) {
         if (in_key == 0) {
-            cm_fmt_field(input_s, accept_s, display_s, ff, flen);
-            cm_display_accept_field(win, accept_s, flin, fcol, flen);
+            cf_fmt(input_s, accept_s, display_s, ff, flen);
+            cf_display_accept(win, accept_s, flin, fcol, flen);
             tcflush(0, TCIFLUSH);
             wmove(win, flin, x);
             curs_set(1);
@@ -64,15 +75,15 @@ int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *
         curs_set(0);
         switch (in_key) {
         case KEY_F(10):
-            cm_fmt_field(input_s, accept_s, display_s, ff, flen);
-            cm_display_field(win, display_s, flin, fcol, flen);
-            if (cm_validate_field(accept_s, ff) != 0)
+            cf_fmt(input_s, accept_s, display_s, ff, flen);
+            cf_display(win, display_s, flin, fcol, flen);
+            if (cf_validate(accept_s, ff) != 0)
                 continue;
             return (in_key);
             /** KEY_F(9) Cancels the current operation */
         case KEY_BREAK:
         case KEY_F(9):
-            cm_display_field(win, display_s, flin, fcol, flen);
+            cf_display(win, display_s, flin, fcol, flen);
             in_key = KEY_F(9);
             return (in_key);
             /** KEY_UP, KEY_BTAB moves to the previous field */
@@ -81,15 +92,15 @@ int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *
             return (in_key);
         case KEY_BTAB:
         case KEY_UP:
-            cm_fmt_field(input_s, accept_s, display_s, ff, flen);
-            cm_display_field(win, display_s, flin, fcol, flen);
+            cf_fmt(input_s, accept_s, display_s, ff, flen);
+            cf_display(win, display_s, flin, fcol, flen);
             in_key = KEY_UP;
             return (in_key);
             /** KEY_DOWN, TAB moves to the next field */
         case '\t':
         case KEY_DOWN:
-            cm_fmt_field(input_s, accept_s, display_s, ff, flen);
-            cm_display_field(win, display_s, flin, fcol, flen);
+            cf_fmt(input_s, accept_s, display_s, ff, flen);
+            cf_display(win, display_s, flin, fcol, flen);
             in_key = KEY_DOWN;
             return (in_key);
             /** KEY_END moves cursor to end of field */
@@ -107,8 +118,8 @@ int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *
         case KEY_ENTER:
             if (f_erase_remainder)
                 *p = '\0';
-            cm_fmt_field(input_s, accept_s, display_s, ff, flen);
-            cm_display_field(win, display_s, flin, fcol, flen);
+            cf_fmt(input_s, accept_s, display_s, ff, flen);
+            cf_display(win, display_s, flin, fcol, flen);
             in_key = KEY_ENTER;
             return (in_key);
             /** KEY_IC toggles insert mode */
@@ -180,7 +191,7 @@ int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *
         case KEY_MOUSE:
             x = click_x;
             flin = click_y;
-            cm_fmt_field(input_s, accept_s, display_s, ff, flen);
+            cf_fmt(input_s, accept_s, display_s, ff, flen);
             fstart = accept_s;
             fend = fstart + flen;
             str_end = fstart + strlen(fstart);
@@ -268,7 +279,7 @@ int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *
                 in_key = 0;
                 continue;
             default:
-                Perror("cm_field_editor() invalid format");
+                Perror("cf_field_editor() invalid format");
                 break;
             }
             if (in_key < ' ' || in_key > '~') {
@@ -313,7 +324,7 @@ int cm_accept(WINDOW *win, Chyron *chyron, char *input_s, char *accept_s, char *
     }
 }
 
-int cm_display_field(WINDOW *win, char *display_s, int y, int x, int flen) {
+int cf_display(WINDOW *win, char *display_s, int y, int x, int flen) {
     cchar_t display_cc[flen + 1];
     mvwadd_wchnstr(win, y, x, &sp, flen);
     str_to_cc(display_cc, display_s, A_NORMAL, cp_nt, flen);
@@ -321,7 +332,7 @@ int cm_display_field(WINDOW *win, char *display_s, int y, int x, int flen) {
     return 0;
 }
 
-int cm_display_accept_field(WINDOW *win, char *accept_s, int y, int x, int flen) {
+int cf_display_accept(WINDOW *win, char *accept_s, int y, int x, int flen) {
     cchar_t accept_cc[flen + 1];
     mvwadd_wchnstr(win, y, x, &sp, flen);
     str_to_cc(accept_cc, accept_s, A_NORMAL, cp_nt, flen);
@@ -329,7 +340,7 @@ int cm_display_accept_field(WINDOW *win, char *accept_s, int y, int x, int flen)
     return 0;
 }
 
-int cm_fmt_field(char *input_s, char *accept_s, char *display_s, int ff, int flen) {
+int cf_fmt(char *input_s, char *accept_s, char *display_s, int ff, int flen) {
     char field_s[FIELD_MAXLEN];
     int decimal_int_n = 0;
     int hex_int_n = 0;
@@ -410,7 +421,7 @@ int cm_fmt_field(char *input_s, char *accept_s, char *display_s, int ff, int fle
     return 0;
 }
 
-int cm_validate_field(char *accept_s, int ff) {
+int cf_validate(char *accept_s, int ff) {
     char *p = accept_s;
     if (ff & F_NOTBLANK) {
         char *s = accept_s;
