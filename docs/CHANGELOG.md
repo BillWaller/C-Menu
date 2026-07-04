@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-03T19:59:28-05:00* - FIXES: Several issues with the view engine fixed, but a few more remain. We have added many new and powerful features in the last few months, including highlighter integration, Neovim code completion, Unicode support, pads, panels, an async worker queue thread pool, direct kernel virtual memory file mapping, live file preview with View in Pick, and more, but the next wave will be even more exciting. We have only scratched the surface of what is possible with the new view engine. but The next wave will be even more exciting, with a Uniform Abstraction Layer User Interface (UAL_UI). That will allow us to provide Notcurses as a UI backend, and that will give us a bridge to other platforms including Windows, and MacOS. However, we should probably get to release 1.0.0 first, and that means we need to fix the remaining bugs and issues, and we need to make sure that the new features are stable and well-tested. We also need to improve the documentation and provide more examples and tutorials for users. That's an invitation to all users to help us test and report any issues they find, and to contribute to the project if they can. We welcome all contributions, big or small, and we appreciate any help we can get. 
+
+*2026-07-02T22:30:43-05:00* - Update CHANGELOG.md 
+
 *2026-07-02T22:07:56-05:00* - REFACTOR: Preparation for Uniform Abstraction Layer User Interface. Added cm_fields.c, which will eventually replace fields.c. cm_fields.c will be a simpler, more streamlined, and yet functionally equivalent replacement for fields.c. fields.c works well, but it turned out to be overly complicated and laborious to maintain. 
 
 *2026-07-02T10:25:51-05:00* - Update CHANGELOG.md 
