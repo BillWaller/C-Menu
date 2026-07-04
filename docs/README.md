@@ -1,10 +1,11 @@
-![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
+![C-Menu Introduction](../screenshots/C-Menu-Introduction.png)
 
 C-Menu is a fast, modular toolkit for building terminal-based user interfaces on Linux. Its components can be combined to create responsive menus, forms, pick lists, viewers, file-finding workflows, and administrative tools without the overhead of a heavyweight GUI stack.
 
 Written in C and designed for speed, C-Menu works well for developer tools, system administration workflows, kiosk-style interfaces, and resource-constrained environments.
 
 [C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md)
+[Example Applications Menu Guided Tour](docs/menu.md)
 
 ## Why C-Menu?
 

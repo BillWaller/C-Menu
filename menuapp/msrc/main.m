@@ -4,11 +4,11 @@
 !exec rsh
 :     Youtube (in Firefox)
 !dexe firefox https://www.youtube.com
-:     C-Menu (in ghostty)
+:     C-Menu (in Ghostty)
 !dexe ghostty -e menu
-:     Kitty HTOP
+:     -KHTOP (in Kitty)
 !exec kitty --detach -o initial_window_width=80c -o initial_window_height=20c htop
-:     Ghostty HTOP
+:     -GHTOP (in Ghostty)
 !dexe ghostty --window-width=80 --window-height=20 -e htop
 :     Issue RSH Certificate
 !form rshusers.f -i rshusers.dat -o rshusers.dat
@@ -25,11 +25,11 @@
 :     -PView Manual Pages
 !pick -S "listman.sh" -n 1 -T \"Select Manual Page to View\" -c "readman.sh %%"
 :     Edit C-Menu Description Files
-!pick -S list_msrc -n 1 -T "C-Menu Description Files - Select File to Edit" -c edit_msrc %%
+!pick -S list_msrc -n1 -T "C-Menu Description Files - Select File to Edit" -c edit_msrc %%
 :     -SView C-Menu Source with Tree-Sitter
 !pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 :     -TView Source with Tree-Sitter
-!pick -S "lf -S -d 5 . \".*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -n 1 -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
+!pick -S "lf -S -d 5 . \".*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 :   View LSP Log
 !view -L60 -C80 /home/bill/.local/state/nvim/logs/lsp.log
 :     Help Menu

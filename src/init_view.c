@@ -53,6 +53,8 @@ int init_view_full_screen(Init *init) {
         view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
     view->f_full_screen = true;
+
+    // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
     view->win.win = newwin(LINES, COLS, 0, 0);
     if (view->win.win == nullptr) {
@@ -63,6 +65,7 @@ int init_view_full_screen(Init *init) {
     view->win.pan = new_panel(view->win.win);
     wbkgrnd(view->win.win, &CC_NT);
 
+    // -------------------> 2. LNNO <-------------------
     view->lnno.win = derwin(view->win.win, LINES - 1, COLS, 0, 0);
     if (view->lnno.win == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "derwin(view->win.win, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
@@ -77,6 +80,7 @@ int init_view_full_screen(Init *init) {
     scrollok(view->lnno.win, true);
     wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
 
+    // -------------------> 3. CMDLN <-------------------
     view->cmdln.win = derwin(view->win.win, 1, COLS, LINES - 1, 0);
     if (view->cmdln.win == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "derwin(view->win.win, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
@@ -90,21 +94,24 @@ int init_view_full_screen(Init *init) {
     idcok(view->cmdln.win, false);
     scrollok(view->cmdln.win, false);
 
-    view->pad_container.win = derwin(view->win.win, LINES - 1, COLS - view->ln_win_cols, 0, view->ln_win_cols);
-    if (view->pad_container.win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1,
-                  "derwin(view->win.win, LINES - 1, COLS - view->ln_win_cols, 0, view->ln_win_cols) failed in init_view_full_screen");
-        Perror(em0);
-        return -1;
-    }
-    view->pad_container.pan = new_panel(view->pad_container.win);
+    // view->pad_container.win = derwin(view->win.win, LINES - 1, COLS -
+    // view->ln_win_cols, 0, view->ln_win_cols);
+    // if (view->pad_container.win == nullptr) {
+    //     ssnprintf(em0, MAXLEN - 1,
+    //               "derwin(view->win.win, LINES - 1, COLS - view->ln_win_cols,
+    //               0, view->ln_win_cols) failed in init_view_full_screen");
+    //     Perror(em0);
+    //     return -1;
+    // }
+    // view->pad_container.pan = new_panel(view->pad_container.win);
+    // -------------------> 4. PAD <-------------------
     view->pad = newpad(LINES - 1, PAD_COLS - 1);
     if (view->pad == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "newpad(LINES - 1, PAD_COLS - 1) failed in init_view_full_screen");
         Perror(em0);
         return -1;
     }
-    view->pad_view.win = subpad(view->pad, LINES - 1, COLS - view->ln_win_cols, 0, 0);
+    view->pad_view.win = subpad(view->pad, LINES - 1, COLS - 1, 0, 0);
     if (view->pad_view.win == nullptr) {
         ssnprintf(em0, MAXLEN - 1,
                   "subpad(view->pad, LINES - 1, COLS - view->ln_win_cols, 0, 0) failed in init_view_full_screen");
@@ -154,6 +161,7 @@ void view_calc_full_screen_dimensions(Init *init) {
     view->ln_win_lines = view->lines;
     view->ln_win_cols = 8;
     view->scroll_lines = view->lines - 1;
+    view->h_shift = view->cols / 3;
 #ifdef DEBUG_RESIZE
     char file[MAXLEN];
     ssnprintf(
@@ -167,7 +175,7 @@ void view_calc_full_screen_dimensions(Init *init) {
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = 0;
-    view->smincol = 0;
+    view->smincol = view->ln_win_cols;
     view->smaxrow = view->lines - 1;
     view->smaxcol = view->cols - 1;
     view->ln = view->page_top_ln + view->scroll_lines;
@@ -276,7 +284,10 @@ int init_view_boxwin(Init *init) {
 
     // -------------------> 5. PAD_VIEW <--------------
     view->pad_view.win = subpad(view->pad,
-                                view->lines - 1, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
+                                view->lines - 1,
+                                PAD_COLS - 1,
+                                0,
+                                0);
     if (view->pad_view.win == nullptr) {
         ssnprintf(em0, MAXLEN - 1,
                   "%s:%d PAD: lines=%d, cols=%d, begy=%d, begx=%d",
@@ -284,14 +295,20 @@ int init_view_boxwin(Init *init) {
                   view->lines - 1,
                   view->cols - view->ln_win_cols,
                   0,
-                  view->ln_win_cols);
+                  0);
         Perror(em0);
         return -1;
     }
     view->pad_view.pan = new_panel(view->pad_view.win);
+
     // -----------------------------
+#ifdef DEBUG_LAYOUT
+    wbkgrnd(view->pad, &CC_GREEN);
+    wbkgrndset(view->pad, &CC_GREEN);
+#else
     wbkgrnd(view->pad, &CC_NT);
     wbkgrndset(view->pad, &CC_NT);
+#endif
     scrollok(view->pad, true);
     wsetscrreg(view->pad, 0, view->scroll_lines - 1);
     return (0);
@@ -384,10 +401,9 @@ void view_calc_boxwin_dimensions(Init *init) {
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = view->begy + 1;
-    view->smincol = view->begx + 1;
+    view->smincol = view->begx + view->ln_win_cols + 1;
     view->smaxrow = view->begy + view->lines;
     view->smaxcol = view->begx + view->cols;
-
     view->ln = view->page_top_ln + view->scroll_lines;
     view->page_bot_ln = view->ln;
 #ifdef DEBUG_RESIZE

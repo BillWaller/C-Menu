@@ -1,0 +1,106 @@
+#!/bin/bash
+# @name cmenu_chk
+# Check requirements for C-Menu
+
+ALL_PASS=1
+check_exe() {
+    file=$(which $1 2>/dev/null)
+    if [ "$?" == "0" ]; then
+        if [ -u "$file" ]; then
+            echo "pass - $file"
+            return 0
+        fi
+        if [ -x "$file" ]; then
+            echo "pass - $file"
+            return 0
+        else
+            echo "fail - $file is not executable"
+            ALL_PASS=0
+            return 1
+        fi
+    else
+        echo "fail - $1 not found"
+        ALL_PASS=0
+        return 1
+    fi
+}
+echo
+echo "Checking C-Menu requirements..."
+CMENU_HOME=~/menuapp
+if [ -z "$CMENU_HOME" ]; then
+    echo "fail - CMENU_HOME is not set"
+    ALL_PASS=0
+else
+    if [ -d "$CMENU_HOME" ]; then
+        if [ -d "$CMENU_HOME"/bin ]; then
+            echo "pass - CMENU_HOME/bin = $CMENU_HOME/bin is a directory"
+        else
+            echo "fail - CMENU_HOME/bin = $CMENU_HOME/bin is not a directory"
+            ALL_PASS=0
+        fi
+        echo $PATH | grep "$CMENU_HOME"/bin >/dev/null 2>&1
+        if [ "$?" == "0" ]; then
+            echo "pass - CMENU_HOME/bin = $CMENU_HOME/bin is in PATH"
+        else
+            echo "fail - CMENU_HOME/bin = $CMENU_HOME/bin is not in PATH"
+            ALL_PASS=0
+        fi
+    else
+        echo "fail - CMENU_HOME = $CMENU_HOME not a directory"
+        ALL_PASS=0
+    fi
+fi
+if [ -z "$CMENU_SRC" ]; then
+    echo "fail - CMENU_SRC is not set"
+    ALL_PASS=0
+else
+    if [ -d "$CMENU_SRC" ]; then
+        echo "pass - CMENU_SRC = $CMENU_SRC is a directory"
+    else
+        echo "fail - CMENU_SRC = $CMENU_SRC is not a directory"
+        ALL_PASS=0
+    fi
+fi
+
+file=$(which rsh 2>/dev/null)
+if [ "$?" == "0" ]; then
+    if [ -u "$file" ]; then
+        echo "pass - $file setuid"
+    else
+        if [ -x "$file" ]; then
+            echo "pass - $file"
+        else
+            echo "fail - $file is not executable"
+            ALL_PASS=0
+        fi
+    fi
+else
+    echo "fail - rsh not found"
+    ALL_PASS=0
+fi
+check_exe menu
+check_exe lf
+echo
+echo "Checking C-Menu optional dependencies..."
+check_exe iloan
+check_exe amort
+check_exe firefox
+check_exe ghostty
+check_exe htop
+check_exe kitty
+check_exe nvim
+check_exe rustup
+check_exe cargo
+check_exe rustc
+check_exe rustlings
+check_exe tree-sitter
+check_exe whence
+echo
+echo "Summary of checks:"
+if [ "$ALL_PASS" == "1" ]; then
+    echo "All checks passed"
+    exit 0
+else
+    echo "At least one check failed"
+    exit 1
+fi

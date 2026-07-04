@@ -1,0 +1,52 @@
+
+# Pick Help
+| Key                    | Function                       |
+|------------------------|--------------------------------|
+| h, KEY_LEFT         |Previous Object                        |
+| j, KEY_DOWN         |Next Row                               |
+| k, KEY_UP           |Previous Row                           |
+| l, KEY_RIGHT        |Next object                            |
+| KEY_F(1)            |Display Help                           |
+| q, KEY_F(9) Cancel  |Exit Program                           |
+| KEY_F(10) Accept    |Process Selections                     |
+| t, space            |Toggle Select                          |
+| v                   | Go to View                            |
+| <tab>               | Toggle between Pick and Refine Search |
+| MOUSE BUTTON1 CLICK |Toggle Select or chyron function       |
+| KEY_END             |Move to Last Object                    |
+| KEY_HOME            |Move to First Object                   |
+| KEY_NPAGE           | Next Page                             |
+| KEY_PPAGE           |Previous Page                          |
+
+
+From the Pick main window, use the arrow keys or "h", "j", "k", and "l" to highlight the item you want to select and press the space bar to toggle the selection. You can
+also use button 1 of the mouse to click on an item to toggle the selection.
+
+The command line that starts Pick may specify an -nX option, where X is the
+number of selections that automatically triggers acceptance. Without the -n
+option, Pick will allow you to select any number of items and then press F10 to
+accept them all at once. -n1 is especially convenient if you are editing
+individual files, because it will automatically accept and process your first selection. 
+
+If the -v option is specified on the Pick command line, Pick will enter file
+browsing mode, and automatically provide a preview of the highlighted file as
+you move the selection bar. For now, the preview is limited to text files, but
+work is underway to provide previews for other file types including images,
+videos, and audio files. 
+
+If you have a large number of items to select from, you can use the "Refine
+Search" feature to filter the list of items. Press the <tab> key to move the
+cursor to the search box and type in your search term. You may use text
+fragments or regular expressions. The file list will respond in real time as you
+type, displaying only items that match your search term. When finished with your
+search term, press <tab> again to return to the file list and continue browsing
+or selecting items.
+
+If you want to search the preview file, press the <v> key and Pick will transfer
+control to the preview window, which is View. The full compliment of View
+commands are available, and you can expand the window if you like.
+
+To edit a file using an editor, such as Nvim, move the selector bar to the file
+you want to edit, and press the space bar to select it. If Pick was started with
+the -n1 option, the file will be automatically opened in a full screen editor session.
+

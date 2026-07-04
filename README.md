@@ -1,353 +1,507 @@
-![C-Menu Introduction](screenshots/C-Menu-Introduction.png)
+![C-Menu - How to Make Menus](screenshots/How_To_Menus.png)
 
-C-Menu is a fast, modular toolkit for building terminal-based user interfaces on Linux. Its components can be combined to create responsive menus, forms, pick lists, viewers, file-finding workflows, and administrative tools without the overhead of a heavyweight GUI stack.
+# C-Menu - How to Make Menus
 
-Written in C and designed for speed, C-Menu works well for developer tools, system administration workflows, kiosk-style interfaces, and resource-constrained environments.
+<!-- mtoc-start -->
 
-[C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md)
-[Example Applications Menu Guided Tour](docs/menu.md)
+* [cmenu_chk](#cmenu_chk)
+* [Starting C-Menu](#starting-c-menu)
+* [Menu Title](#menu-title)
+* [Menu Selections](#menu-selections)
+* [Full Screen (Root) Shell](#full-screen-root-shell)
+* [Youtube (in Firefox)](#youtube-in-firefox)
+* [C-Menu (in Ghostty)](#c-menu-in-ghostty)
+* [HTOP (in Kitty)](#htop-in-kitty)
+* [HTOP (in Ghostty)](#htop-in-ghostty)
+* [Issue RSH Certificate](#issue-rsh-certificate)
+* [Workstation Configuration](#workstation-configuration)
+* [Diagnostic Utilities](#diagnostic-utilities)
+* [Installment Loan Calculations](#installment-loan-calculations)
+* [Cash Receipts](#cash-receipts)
+* [Rustlings Source](#rustlings-source)
+* [View Manual Pages](#view-manual-pages)
+* [Edit C-Menu Description Files](#edit-c-menu-description-files)
+* [View C-Menu Source with Tree-Sitter](#view-c-menu-source-with-tree-sitter)
+* [View Source with Tree-sitter](#view-source-with-tree-sitter)
+  * [View LSP Log](#view-lsp-log)
+* [Help Menu](#help-menu)
+* [Menu Description With Bat Syntax Highlighting](#menu-description-with-bat-syntax-highlighting)
+* [View C-Menu Command Line Options](#view-c-menu-command-line-options)
+* [View Highlighted view_engine](#view-highlighted-view_engine)
+* [Exit Applications](#exit-applications)
 
-## Why C-Menu?
+<!-- mtoc-end -->
 
-C-Menu is built for users who want terminal applications that are:
+---
 
-- **Fast** - optimized C programs with a minimal footprint
-- **Modular** - combine small purpose-built components into larger workflows
-- **Script-friendly** - easy to integrate with shell scripts and external commands
-- **Interactive** - supports keyboard and mouse driven terminal interfaces
-- **Practical** - useful for both end-user tools and developer/admin utilities
 
-Instead of treating menus, forms, selection lists, and viewers as separate one-off programs, C-Menu treats them as reusable building blocks that can be assembled into complete applications.
+## cmenu_chk
 
-## Components
+This Guide will examine the C-Menu Example Application Menu and explain how it works. By the time you finish reading this guide, you will have a good understanding of how to create your own menus using C-Menu.
 
-| Component | Purpose                                            | Typical Use                                            |
-| --------- | -------------------------------------------------- | ------------------------------------------------------ |
-| `menu`    | Display menus and launch actions                   | Application navigation, submenus, command dispatch     |
-| `form`    | Enter, edit, validate, and process structured data | Data entry, calculations, query/update workflows       |
-| `pick`    | Select one or more items from a list               | File selection, multi-select actions, command dispatch |
-| `view`    | Display text and command output efficiently        | Logs, reports, source code, highlighted output         |
-| `lf`      | Regular-expression-based file finder               | File discovery, filtering, pipelines                   |
-| `rsh`     | Privileged shell helper                            | Controlled administrative workflows                    |
-| `C-Keys`  | Keyboard and mouse diagnostic utility              | Input testing and terminal diagnostics                 |
+Before getting started, you should run the cmenu_chk utility to check your C-Menu installation. This utility checks for the presence of required and optional dependencies for C-Menu. Before running C-Menu, you will need to correct any failures of the requirements listed. 
 
-## Quick Start
+```bash
+cmenu_chk
+```
 
-See [BUILD](docs/BUILD.md) for full build and install instructions.
+You should see output similar to the following:
 
-A typical workflow with C-Menu looks like this:
+```
+Checking C-Menu requirements...
+pass - CMENU_HOME/bin = /home/bill/menuapp/bin is a directory
+pass - CMENU_HOME/bin = /home/bill/menuapp/bin is in PATH
+pass - CMENU_SRC = /usr/local/src/C-Menu/src is a directory
+pass - /home/bill/menuapp/bin/rsh setuid
+pass - /home/bill/menuapp/bin/menu
+pass - /home/bill/menuapp/bin/lf
 
-1. Write a small menu description file
-2. Launch `menu`
-3. Dispatch actions to `form`, `pick`, `view`, shell commands, or other C-Menu components
+Checking C-Menu optional dependencies...
+pass - /home/bill/menuapp/bin/iloan
+pass - /home/bill/menuapp/bin/amort
+pass - /usr/bin/firefox
+pass - /usr/bin/ghostty
+pass - /usr/bin/htop
+pass - /usr/bin/kitty
+pass - /usr/bin/nvim
+pass - /home/bill/.cargo/bin/rustup
+pass - /home/bill/.cargo/bin/cargo
+pass - /home/bill/.cargo/bin/rustc
+pass - /home/bill/.cargo/bin/rustlings
+pass - /home/bill/.cargo/bin/tree-sitter
+pass - /home/bill/menuapp/bin/whence
 
-Minimal example:
+Summary of checks:
+All checks passed
+```
 
-```text
-: APPLICATIONS
-:     Edit Current Project C Files
-!pick -S "lf -d 5 '.*\.c$'" -T "Project Source" -c nvim %%
-:     Open Root Shell
+If any of the optional dependencies fail, you can still run C-Menu, but some
+menu selections may not work as expected. You can install the missing dependencies using your system's package manager or by following the installation instructions for each dependency in the C-Menu Augmentation Guide.
+
+The only dependency that is somewhat difficult to install is the tree-sitter-cli, and i
+
+---
+
+## Starting C-Menu
+
+Start the terminal emulator of your choice, and type:
+
+```bash
+menu
+```
+
+A menu similar to the following will be displayed:
+
+![Main Menu](screenshots/applications_menu.png)
+
+The letters and characters on the left side of the menu are hotkeys that you can use to select menu items. You can use the arrow keys to move the reverse color selector bar up and down. Pressing enter will select the menu item in the reverse color bar. You can also select menu items by clicking on them with button1 on your mouse.
+
+You may specify hotkeys by preceding the menu selection text with a hyphen followed by the character or glyph you want to use as a hotkey. If a hotkey is not specified, C-menu will assign the first character in the menu selection that has not already been reserved by assignment to another menu selection. C-Menu assigns hotkeys to menu selections in order, but letters assigned with the "-" dash are processed first, thus reserving those assignments.
+
+The menu component of C-Menu is very easy to use and examples are the best way to learn. Get this section under your belt, and you will be ready to move on to the more advanced features of C-Menu. Form and Pick expand on the concepts introduced in this guide.
+
+---
+
+## Menu Title
+
+![app_menu_title](screenshots/app_menu_title.png)
+
+```
+:    MAIN MENU
+```
+
+Arguably, the most important component of your menu is the title, and it is super easy. Just start a line with a colon and follow it with the text you want displayed in the title. C-Menu will take care of the rest.
+
+---
+
+## Menu Selections
+
+Each menu selection consists of a line of text that describes it, followed by a
+command line that is executed when the menu selection is chosen. Like the title, text lines begin with a colon (:). The command line begins with an exclamation point (!). There are four types of commands in C-Menu:
+
+1. Internal (function calls such as Menu, Form, Pick, View)
+1. Direct   (external binaries with no interposing shell)
+1. Detached (external binaries that run in the background as separate processes)
+1. Shell    (external shell commands and scripts)
+
+Internal function calls are, by far, the fastest and most efficient. Response
+time is instantaneous. Direct commands are also very fast, but they require the command to be an executable binary. Detached commands are slower than direct commands because they require a shell to launch the command in a separate process. Shell commands are the slowest because they require a shell to interpret the command line and execute it.
+
+Commands that begin with !ckeys, !menu, !form, !pick, and !view are internal
+function calls. Commands that begin with !exec are direct commands, if they reference a binary executable. If they reference a shell or shell script, they are, of course shell commands. Commands that begin with !dexe are detached commands.
+
+For now, do not get bogged down in these details. The important thing to remember is that the menu selection text is followed by a command line that is executed when the menu selection is chosen. You can always fine tune for performance after you get your application working. The important thing is to get it working first.
+
+## Full Screen (Root) Shell
+
+![app_menu_01](screenshots/app_menu_01.png)
+
+```
+:   -RFull Screen (Root) Shell
 !exec rsh
 ```
 
-This example shows one of C-Menu’s core ideas: the menu itself is simple, and the power comes from composing components and external commands.
+This is the simplest possible shell command. It launches C-Menu's rsh command as a subprocess of C-Menu. The rsh command takes over the entire terminal window and runs in full screen mode. When rsh exits, control returns to C-Menu.
 
-## Core Concepts
-
-C-Menu applications are usually built from plain text description files and command lines.
-
-- **Menu** description files define choices and the commands that run when a choice is selected.
-- **Form** description files define labels, input fields, and directives for processing.
-- **Pick** reads items from a file or command and lets the user select one or more of them.
-- **View** displays files or command output in a fast read-only interface.
-- **lf** can generate file lists that feed directly into `pick`, shell pipelines, or custom scripts.
-
-This makes C-Menu especially effective when you want to combine:
-
-- shell commands
-- external utilities
-- custom scripts
-- terminal UI components
-- low-latency workflows
-
-## Examples
-
-### Menu
-
-`menu` is the top-level dispatcher. It displays choices and runs the corresponding commands.
-
-Example:
+- Requires: CMenu's rsh executable installed and available in the user's path. If rsh is installed with setuid root permissions, the menu selection will launch a full screen root shell.
 
 ```bash
-: APPLICATIONS
-:     Full Screen Shell
-!exec rsh
+export PATH=$HOME/menuapp/bin:$PATH
+ls -l $HOME/menuapp/bin/rsh
+.rws--s--x root root 139 KB Mon Jun 29 22:41:29 2026  /home/bill/menuapp/bin/rsh
+```
 
-:     Workstation Configuration
+- The -R option tells C-Menu to use the letter R as the hotkey to launch the command.
+- !exec (execute) rsh launches the rsh command as a subprocess of C-Menu. rsh takes over the entire terminal window and runs in full screen mode. When rsh exits, control returns to C-Menu.
+
+---
+
+## Youtube (in Firefox)
+
+![app_menu_02](screenshots/app_menu_02.png)
+
+```
+:     Youtube (in Firefox)
+!dexe firefox https://www.youtube.com
+```
+
+- Requires: firefox executable installed and available in the user's path. You can check with the following command.
+
+```bash
+which firefox
+/usr/bin/firefox
+```
+
+This menu selection is an example of detached execution. It launches the firefox command as a detached and independent process. C-Menu does not wait for firefox to exit before returning control to C-Menu.
+
+- !dexe (detached execution) launches the firefox command as a detached and independent process.
+
+- Because no hotkey is specified, C-Menu uses the first letter of the menu selection
+text as the hot key, which is the Y in Youtube.
+
+---
+
+## C-Menu (in Ghostty)
+
+![app_menu_03](screenshots/app_menu_03.png)
+
+```
+:     C-Menu (in Ghostty)
+!dexe ghostty -e menu
+```
+
+This menu selection uses detached execution to spawn a twin.
+
+- Requires: ghostty executable installed and available in the user's path. You
+can check with the following command.
+
+```bash
+which ghostty
+/usr/bin/ghostty
+```
+
+- The -e option tells ghostty to execute the menu command in a new terminal window. C-Menu does not wait for ghostty to exit before returning control to C-Menu.
+
+You may substitute any terminal emulator for ghostty, but you will need to check the documentation for that terminal emulator to determine the correct command line options to use. See the next menu selection.
+
+---
+
+## HTOP (in Kitty)
+
+![app_menu_04](screenshots/app_menu_04.png)
+
+```
+:     HTOP (in Kitty)
+!exec kitty --detach -o initial_window_width=80c -o initial_window_height=20c htop
+```
+
+- Notice that we don't use !dexe with Kitty, and it still runs as a detached executable. This is because Kitty has a built-in --detach option. C-Menu does not wait for Kitty to exit before returning control to C-Menu.
+
+- We use the -o option to specify both initial window width and hieght in
+characters (c). see [Kitty Command Line Options](https://sw.kovidgoyal.net/kitty/command-line-options/) 
+
+---
+
+## HTOP (in Ghostty)
+
+![app_menu_05](screenshots/app_menu_05.png)
+
+```
+:     HTOP (in Ghostty)
+!dexe ghostty --window-width=80 --window-height=20 -e htop
+```
+
+There are several things to learn about this menu selection.
+
+- The hotkey assigned by C-Menu is the left parenthesis character, "(". C-Menu assigns the first character in the menu selection text that has not been reserved by assignment to another menu selection. C-Menu assigns hotkeys to menu selections in order, but letters assigned with the "-" hyphen or dash are processed first, and once used, reserve those assignments. Because H, T, O, and P have already been assigned, the next available character is the left parenthesis. If you don't like that hotkey, you may specify a different character as the hotkey by adding it at the beginning of the line and preceding it with a dash. For example:
+
+```
+:     -HHTOP (in Ghostty)
+```
+
+- But, there is a gotcha. When you specify the letter H as the hotkey for
+HTOP (in Ghostty), C-Menu assigns the left parenthesis character as the
+hotkey for HTOP (in Kitty). That is because it has already been reserved by
+assigning it to HTOP (in Ghostty). It might be better to use "K" for Kitty and
+"G" for Ghostty, or some other combination of letters that makes sense to you.
+It's your menu, and you can assign hotkeys any way you like.
+
+- We use !dexe if we want Ghostty to run as a detached process because it does
+not have a built-in --detach option like Kitty. C-Menu does not wait for Ghostty to exit before returning control to C-Menu.
+
+- As with HTOP (in Kitty), we specify the --window_width and --window-height in
+  columns, and use Ghostty's -e option to execute htop in the new terminal window.
+
+---
+
+## Issue RSH Certificate
+
+:     Issue RSH Certificate
+!form rshusers.f -i rshusers.dat -o rshusers.dat
+
+- This menu selection launches C-Menu's form utility to display an example form
+  for issuing RSH certificates.
+
+- The form utility provides a structured way to collect user input. It can be
+used to:
+
+- Create new data, or Edit existing data
+
+- Read input from an external program via command line arguments, pipe, or file.
+
+- Submit output to external programs for processing via command line arguments, pipe, or File.
+
+- Interact with external programs to perform tasks such as validation, calculations, or data manipulation.
+
+- Adhering to the ethos of PAM, it is not the purview of an application such as C-Menu to implement authentication. It is the responsibility of the system administrator to configure PAM to authenticate users. C-Menu provides the functionality to interface with PAM, but it is up to the system administrator to configure PAM to authenticate users.
+
+---
+
+## Workstation Configuration
+
+```
+:   Workstation Configuration
 !menu workstation_config.m
+```
 
-:     Diagnostic Tools
+- This menu selection launches a sub-menu.
+
+---
+
+## Diagnostic Utilities
+
+```
+:   Diagnostic Utilities
 !menu diag.m
 ```
 
-Use `menu` when you want:
+- This menu selection launches a sub-menu.
 
-- a text-based launcher
-- a hierarchy of submenus
-- a consistent front end for scripts and utilities
-- a terminal-native application shell
+---
 
-### Form
+## Installment Loan Calculations
 
-`form` is used for entering, editing, validating, and processing structured data.
-
-A form description file contains text lines and field definitions.
-
-Text example:
-
-```bash
-T:5:14:Principal Amount
 ```
-
-Field example:
-
-```bash
-F:5:33:14:Currency
-```
-
-Common workflow:
-
-```bash
 :     Installment Loan Calculations
-!form iloan.f -i iloan.dat -S iloan -R "view -S \"amort %%\"" -o iloan.dat
+!form iloan.f -i iloan.dat -S iloan -R "view -L60 -C62 -Nf -S \"amort %%\"" -o iloan.dat
 ```
 
-This demonstrates a powerful pattern:
+- This menu selection launches a simple installment loan calculator that solves
+for a fourth variable given the other three.
 
-- load initial values
-- process them with an external executable
-- redisplay updated values
-- optionally hand off results to `view`
+- The -S option specifies a command to run when the user commits a loan record. In this case, it runs the amort, a command that prints an amortization schedule for the selected loan.
 
-Use `form` when you need:
+---
 
-- data entry
-- calculations
-- validation workflows
-- query/update cycles
-- integration with external programs
+## Cash Receipts
 
-### Pick
-
-`pick` displays a list of items and lets the user select one or more of them.
-
-General form:
-
-```bash
-!pick [ -n maximum_number_of_selections ][ -m ] \
-    [ -i input_file ][ -S executable_provider ] \
-    [ -o output_file ][ -c executable %% ]
+```
+:     Cash Receipts
+!form receipt.f -i receipt.dat -o receipt.dat
 ```
 
-Example:
+- This menu selection launches a simple cash receipts form that allows the user
+  to enter a cash receipt transaction and save it to a file. If it were part of
+a real accounting application, form would have a -c option specifying a program
+or script that would process the cash receipt and post it to the general ledger.
 
-```bash
+---
+
+## Rustlings Source
+
+```
 :     Rustlings Source
-!pick -S rust_src -n 1 -T "Rustlings Source - Edit" -c nvim %%
+!pick -S "lf -S rustlings -d3 \".*exercises.*\.rs$\"" -v -n 1 -T "Rustlings Source - Edit" -c "nvim %%"
 ```
 
-You can also avoid helper scripts when a direct command is sufficient:
+- For anyone learning Rust, the Rustlings exercises are a great way to practice
+  Rust programming. This menu selection launches a file picker that allows the
+user to quickly find and select a Rustlings source file to edit in the default
+editor. In this example, we use nvim.
+
+- Requires: Rustlings installed and available in the user's path. You can check with the following command.
 
 ```bash
-: Edit .c Files in Current Directory
-!pick -S "lf -d 5 '.*\.c$'" -T "Project Tree - Select File to Edit" -c nvim %%
+which rustlings
+/home/bill/.cargo/bin/rustlings
 ```
 
-Use `pick` when you need:
+- This menu selection looks in ./rustlings/exercises for Rust source files. The rustlings directory should be in the current directory when you start C-Menu. The -S option specifies a command to run to generate a list of files to display in the Pick window. In this case, we use lf to recursively search the rustlings/exercises directory for all .rs files. The -d3 option tells lf to search up to 3 levels deep in the directory tree. The -v option tells Pick to display the selected file in View below the Pick window.
 
-- interactive selection from generated lists
-- real-time filtering
-- single- or multi-select workflows
-- dispatching selected items to external commands
+- The opening Pick window displays a list of all 94 Rustlings source files. The
+user can tab to the Search field and enter a search string to filter the list of
+files. The file highlighted by the Selector bar will be opened in View instantly
+and displayed below the Pick window. The user can browse the file in View, or
+press the space bar to edit the file in nvim. When the user exits nvim, control
+returns to the Pick window, which allows the user to select another file to
+edit. The Rustlings exercises are generally small and fairly simple, but very
+powerful learning tools because they provide practical experience with the Rust
+programming language.
 
-### View
+- With C-Menu, using this menu selection, I easily finished more than 30
+of the Rustlings exercises in an portion of an afternoon, and had a lot of fun doing it. Admittedly, I had previously completed all the exercises, so I was cheating a little bit. Nevertheless, Rustlings is a great way to learn Rust, and C-Menu Pick combined with C-Menu lf make repetitively finding and editing the rust source files super fast and easy. 
 
-`view` is a fast read-only viewer for files and command output.
+- Hats off to the Rustlings team for creating such an enjoyable and productive learning resource. I haven't had that much fun since I got The C Programming Language, 2nd Edition, by Kernighan and Ritchie back in 1989, and its predecessor about 10 years earlier.
 
-It supports:
+1. Get the book: [The Rust Programming Language by Steve Klabnik](https://doc.rust-lang.org/book/)
+2. Install Rustup: [Rustup](https://rustup.rs/)
+3. Install Rustlings:
 
-- Unicode
-- line numbering
-- regular-expression searching
-- horizontal scrolling with a large virtual pad
-- highlighted output from tools such as Tree-sitter, `bat`, `pygments`, and `source-highlight`
+```
+cargo install rustlings
+```
 
-Example:
 
-```bash
-: View C-Menu Source with Tree-Sitter
+
+
+---
+
+## View Manual Pages
+
+```
+:     -PView Manual Pages
+!pick -S "listman.sh" -n 1 -T \"Select Manual Page to View\" -c "readman.sh %%"
+```
+
+---
+
+## Edit C-Menu Description Files
+
+```
+:     Edit C-Menu Description Files
+!pick -S list_msrc -n1 -T "C-Menu Description Files - Select File to Edit" -c edit_msrc %%
+```
+
+- This menu selection uses lf to display a list of all C-Menu description files
+in the application's msrc directory. The user can select a file to edit in the
+default text editor. In this example, we use nvim.
+
+---
+
+## View C-Menu Source with Tree-Sitter
+
+```
+:     -SView C-Menu Source with Tree-Sitter
 !pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 ```
 
-`view` is especially useful for:
+- This menu selection uses lf to display a list of .c and .h files in the C-Menu source directory. To use this option, you will need to have tree-sitter-cli installed and the tree-sitter highlight command available in your path. The user can select a source file to view with syntax highlighting provided by tree-sitter.
 
-- source browsing
-- log inspection
-- highlighted output
-- large text files
-- command output that should remain read-only
+- You will also need to have the tree-sitter grammars for the languages you want
+to highlight installed. You can find the grammars on the tree-sitter GitHub
+page: [Tree-Sitter Grammars](https://github.com/tree-sitter-grammars).
 
-### lf
+---
 
-`lf` is C-Menu’s regular expression file finder. The name can be read as either **list files** or **lightweight find**.
+## View Source with Tree-sitter
 
-Example:
-
-```bash
-lf -d 5 -t f -a 2024-01-01 -b 2024-06-01 | xargs ls -l
+```
+:     -TView Source with Tree-Sitter
+!pick -S "lf -S -d 5 . \".*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 ```
 
-This makes it easy to generate file sets for:
+- This menu selection uses lf to display a list of source files in the current
+directory and its subdirectories. The user can select a source file to view with syntax highlighting provided by tree-sitter.
 
-- `pick`
-- shell pipelines
-- batch processing
-- date-based searches
-- source filtering
+- In addition to tree-sitter-cli, you will also need to have the tree-sitter grammars for the languages you want to highlight installed. You can find the grammars on the tree-sitter GitHub page: [Tree-Sitter Grammars](https://github.com/tree-sitter-grammars)
+---
 
-Example integration with `pick`:
+### View LSP Log
 
-```bash
-!pick -S "lf -d 5 '.*\.c$'" -T "Project Tree - Select File to Edit" -c nvim %%
+```
+:   View LSP Log
+!view -L60 -C80 /home/bill/.local/state/nvim/logs/lsp.log
 ```
 
-For performance notes and additional details, see [PERFORMANCE](docs/Performance.md).
+- This menu selection uses C-Menu's view utility to display the log file for the Language Server Protocol (LSP) used by Neovim. The log file is located at $HOME/.local/state/nvim/logs/lsp.log. The -L option specifies the number of lines to display, and the -C option specifies the number of columns to display.
 
-### rsh
+- The LSP log has long lines. In view set the horizontal scroll width to about half a page (50 columns if your terminal is 100 columns wide). You can also expand your View window by expanding your terminal window.
 
-`rsh` provides a root-shell-oriented administrative workflow intended as an alternative approach to repeatedly invoking `su` or `sudo` for certain tasks.
+- Beware: The LSP log can be very large, and you may not be able to load in vim or nvim, and if you do it will be very slow and unwieldy. No problem for view. It eats multi-gigabyte files for breakfast. You can scroll through the log file quickly and easily, and search for specific entries using the built-in search functionality, and you can do so lickety-split. (How is that for an onomatopoeic idiom?)
 
-Example use case:
+---
 
-- elevate for an administrative operation
-- run the required command
-- exit immediately when finished
+## Help Menu
 
-This can be useful in tightly controlled environments where short-lived privileged sessions are part of an established workflow.
-
-## Documentation
-
-Additional documentation is available in the `docs` directory:
-
-- [API](docs/API.md) - developer-facing API documentation
-- [CHANGELOG](docs/CHANGELOG.md) - project history and notable changes
-- [USER GUIDE](docs/C-Menu-UG.md) - end-user documentation
-- [AUGMENTATION](docs/extras.md) - additional examples and supporting material
-- [FAQ](docs/FAQ.md) - frequently asked questions
-- [INSTALLATION](docs/INSTALL.md) - build and installation instructions
-- [PERFORMANCE](docs/Performance.md) - benchmarks and performance notes
-- [VALGRIND](docs/valgrind.md) - memory-checking notes
-- [HTML Documentation](https://decision-inc.com) - published documentation site
-
-## Configuration
-
-Many C-Menu options can be set either:
-
-- on the command line, or
-- in the configuration file `~/.minitrc`
-
-Command-line options override configuration-file settings.
-
-Examples:
-
-```bash
-# .minitrc
-fill_character=_
-brackets=[]
+```
+:     Help Menu
+!menu help.m
 ```
 
-Configuration can be used to control display behavior and tailor the interface to your workflow.
+- This menu selection opens a sub-menu with a list of help topics.
 
-## Platform and Requirements
+---
 
-C-Menu is designed for Linux and terminal-based operation.
+## Menu Description With Bat Syntax Highlighting
 
-Typical requirements:
+```
+:     -BMenu Description With Bat Syntax Highlighting
+!view -Nf -L 39 -C 85 -S "bat --theme ansi -l Crystal -f ~/menuapp/msrc/main.m"
+```
 
-- Linux
-- a standard C library
-- a terminal with the capabilities needed for the desired interface features
+- You will need to have bat installed and the bat command available in your path
+  to use this menu selection. -Nf tells view not to display line numbering as
+bat does its own line numbering. -L and -C specify the number of lines and
+columns respectively.
 
-Optional integrations may depend on additional external tools such as:
+- Install bat with the following command:
 
-- `nvim`
-- `bat`
-- Tree-sitter tools
-- `source-highlight`
-- `pygments`
+```
+cargo install --locked bat
+```
 
-Refer to [INSTALLATION](docs/INSTALL.md) for the exact build and runtime details.
+---
 
-## Security Notes
+## View C-Menu Command Line Options
 
-Some C-Menu components can be used in privileged or security-sensitive workflows, especially `rsh`.
+```
+:     -OView C-Menu Command Line Options
+!view -Nf -L66 -C75 ~/menuapp/help/menu.help
+```
 
-Before using `rsh` or integrating C-Menu into elevated workflows, make sure you clearly define:
+- This menu selection displays C-Menu's command line options. The -Nf option
+suppresses line numbers in view.
 
-- who is allowed to authenticate
-- how authentication is performed
-- what level of privilege is granted
-- what auditing or logging is required
-- whether the environment is appropriate for passwordless or key-based elevation
 
-Administrative tooling should be reviewed carefully before use in production or multi-user environments.
+---
 
-## Why the Design Works
+## View Highlighted view_engine
 
-C-Menu’s design is effective because it keeps the UI layer simple and composable.
+```
+:     -eView Highlighted view_engine.c
+!view -N -L66 -C85 ~/menuapp/help/view_engine.c
+```
 
-Rather than forcing a single monolithic framework, it lets you connect:
+- This menu option displays the C-Menu source file view_engine.c with syntax
+highlighting by tree-sitter. 
 
-- plain text configuration
-- terminal-native interaction
-- Unix pipelines
-- external executables
-- lightweight focused tools
+---
 
-That makes it a strong fit for:
+## Exit Applications
 
-- custom internal tools
-- developer utilities
-- interactive scripts
-- operations workflows
-- systems with limited resources
+- This selection is not needed because it is already built in to every C-Menu menu. For sub-menus, the letter q is reserved as the hotkey to exit the sub-menu and return to the parent menu. For the root menu, the hotkey q exits the application. However, we include it here to demonstrate that you can add your own exit selection to the menu if you like. 
 
-## Contributing
-
-If you are exploring C-Menu for the first time, a good path is:
-
-1. Read [BUILD](docs/BUILD.md)
-2. Read the [USER GUIDE](docs/C-Menu-UG.md)
-3. Try a small `menu` + `pick` workflow
-4. Expand into `form`, `view`, and `lf` integrations
-
-If you contribute examples, documentation improvements, or fixes, keeping examples small and practical will help new users learn the system quickly.
-
-## See also
-
-- [Build](docs/BUILD.md) - build instructions and requirements
-- [API](docs/API.md) - developer-facing API documentation
-- [CHANGELOG](docs/CHANGELOG.md) - project history and notable changes
-- [User Guide](docs/C-Menu-UG.md) - end-user documentation
-- [Augmentation](docs/extras.md) - additional examples and supporting material
-- [FAQ](docs/FAQ.md) - frequently asked questions
-- [Performance](docs/Performance.md) - benchmarks and performance notes
-- [Menu](docs/menu.md) - detailed documentation for the `menu` component
-- [Form](docs/form.md) - detailed documentation for the `form` component
-- [Pick](docs/pick.md) - detailed documentation for the `pick` component
-- [View](docs/view.md) - detailed documentation for the `view` component
-- [Exercises](docs/exercises.md) - exercises to practice using C-Menu components
-- [Valgrind](docs/valgrind.md) - memory-checking notes and best practices
-- [Roadmap](docs/ROADMAP.md) - planned features and future directions'
-- [Contributing](docs/CONTRIBUTING.md) - guidelines for contributing to the project
+```
+:     Exit Applications
+!return
+```

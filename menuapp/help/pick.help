@@ -1,33 +1,57 @@
-[1m[31mPick Command Keys[0m
+[1m[23m[39m[49m[24m[29mPICK HELP[0m
 
-[1m[34m h or KEY_LEFT or Backspace [0m[3m[32mPrevious object[0m
-[1m[34m              j or KEY_DOWN [0m[3m[32mNext row[0m
-[1m[34m                k or KEY_UP [0m[3m[32mPrevious row[0m
-[1m[34m             l or KEY_RIGHT [0m[3m[32mNext object[0m
-[1m[34m             q, or KEY_F(9) [0m[3m[32mCancel and exit[0m
-[1m[34m                 t or Space [0m[3m[32mSelect/Deselect[0m
-[1m[34m         Enter or KEY_F(10) [0m[3m[32mAccept selections[0m
-[1m[34m                    KEY_END [0m[3m[32mLast object[0m
-[1m[34m              KEY_F(1) or H [0m[3m[32mDisplay help[0m
-[1m[34m                   KEY_HOME [0m[3m[32mFirst object[0m
-[1m[34m        KEY_NPAGE or Ctrl+f [0m[3m[32mNext page[0m
-[1m[34m        KEY_PPAGE or Ctrl+b [0m[3m[32mPrevious page[0m
-[1m[34m              BUTTON1 CLICK [0m[3m[32mSelect/Deselect[0m
-[1m[34m       BUTTON1 DOUBLE_CLICK [0m[3m[32mSelect/Deselect[0m
+Key                                 Function
+─────────────────────────────────── ───────────────────────────────────
+h, KEY_LEFT                         Previous Object
+j, KEY_DOWN                         Next Row
+k, KEY_UP                           Previous Row
+l, KEY_RIGHT                        Next object
+KEY_F(1)                            Display Help
+q, KEY_F(9) Cancel                  Exit Program
+KEY_F(10) Accept                    Process Selections
+t, space                            Toggle Select
+v                                   Go to View
+                                    Toggle between Pick and Refine
+                                    Search
+MOUSE BUTTON1 CLICK                 Toggle Select or chyron function
+KEY_END                             Move to Last Object
+KEY_HOME                            Move to First Object
+KEY_NPAGE                           Next Page
+KEY_PPAGE                           Previous Page
+─────────────────────────────────── ───────────────────────────────────
 
-With Pick, select the item or items you want by using the arrow keys or "h", 
-"j", "k", and "l" to highlight the item you want to select and press "t" or
-space to toggle the selection. You can also use the mouse to click on items
-to select or deselect them. When you are done, press "Enter" to accept the 
-selections. If you want to cancel and exit without making any selections,
-press "q" or F9. For more information, press F1 or "H" to display this help 
-message again.
+From the Pick main window, use the arrow keys or “h”, “j”, “k”, and “l”
+to highlight the item you want to select and press the space bar to
+toggle the selection. You can also use button 1 of the mouse to click on
+an item to toggle the selection.
 
-If pick is configured to accept only one selection, then selecting an item
-will automatically trigger acceptance. Otherwise, you can select multiple
-items and then press "Enter" or F10 to accept them all at once.
+The command line that starts Pick may specify an -nX option, where X is
+the number of selections that automatically triggers acceptance. Without
+the -n option, Pick will allow you to select any number of items and
+then press F10 to accept them all at once. -n1 is especially convenient
+if you are editing individual files, because it will automatically
+accept and process your first selection.
 
-If an external executable is specified on the command line, pick will
-execute the command on acceptance. he pick If an output file is specified
-on the command line, pick will write the selected items to the file on 
-acceptance.
+If the -v option is specified on the Pick command line, Pick will enter
+file browsing mode, and automatically provide a preview of the
+highlighted file as you move the selection bar. For now, the preview is
+limited to text files, but work is underway to provide previews for
+other file types including images, videos, and audio files.
+
+If you have a large number of items to select from, you can use the
+“Refine Search” feature to filter the list of items. Press the key to
+move the cursor to the search box and type in your search term. You may
+use text fragments or regular expressions. The file list will respond in
+real time as you type, displaying only items that match your search
+term. When finished with your search term, press again to return to the
+file list and continue browsing or selecting items.
+
+If you want to search the preview file, press the key and Pick will
+transfer control to the preview window, which is View. The full
+compliment of View commands are available, and you can expand the window
+if you like.
+
+To edit a file using an editor, such as Nvim, move the selector bar to
+the file you want to edit, and press the space bar to select it. If Pick
+was started with the -n1 option, the file will be automatically opened
+in a full screen editor session.[0m]8;;\
