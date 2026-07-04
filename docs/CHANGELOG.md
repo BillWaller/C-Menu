@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-04T16:19:48-05:00* - FIXES: Several issues with derived windows, panels, and pads in view_engine.c and init_view.c. The refactoring of C-Menu in preparation for the new Uniform Abstraction Layer User Interface (UAL_UI) turned out to be more disruptive than expected. Nevertheless, the refactoring continues to bring C-Menu closer to the UAL_UI design objectives. Scalability, resilience to change, and maintainability are improving as well. Z-stack management with derived windows, panels, and pads is more robust, paving the way for cellular grapheme clusters, multi-media integration, and plug-in interfaces. 
+
+*2026-07-03T20:34:08-05:00* - Update CHANGELOG.md 
+
 *2026-07-03T19:59:28-05:00* - FIXES: Several issues with the view engine fixed, but a few more remain. We have added many new and powerful features in the last few months, including highlighter integration, Neovim code completion, Unicode support, pads, panels, an async worker queue thread pool, direct kernel virtual memory file mapping, live file preview with View in Pick, and more, but the next wave will be even more exciting. We have only scratched the surface of what is possible with the new view engine. but The next wave will be even more exciting, with a Uniform Abstraction Layer User Interface (UAL_UI). That will allow us to provide Notcurses as a UI backend, and that will give us a bridge to other platforms including Windows, and MacOS. However, we should probably get to release 1.0.0 first, and that means we need to fix the remaining bugs and issues, and we need to make sure that the new features are stable and well-tested. We also need to improve the documentation and provide more examples and tutorials for users. That's an invitation to all users to help us test and report any issues they find, and to contribute to the project if they can. We welcome all contributions, big or small, and we appreciate any help we can get. 
 
 *2026-07-02T22:30:43-05:00* - Update CHANGELOG.md 
