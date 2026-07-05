@@ -4,8 +4,11 @@
 
 <!-- mtoc-start -->
 
+* [See Also](#see-also)
 * [cmenu_chk](#cmenu_chk)
 * [Starting C-Menu](#starting-c-menu)
+* [C-Menu Start-up Options](#c-menu-start-up-options)
+* [Menu Description File](#menu-description-file)
 * [Menu Title](#menu-title)
 * [Menu Selections](#menu-selections)
 * [Full Screen (Root) Shell](#full-screen-root-shell)
@@ -34,6 +37,35 @@
 
 ---
 
+## See Also
+
+[FAQ](docs/FAQ.md)
+
+[Augmentation](docs/Augmentation_Guide.md)
+
+[Overview](docs/OVERVIEW.md)
+
+[Themes](docs/themes.md)
+
+[Changelog](docs/CHANGELOG.md)
+
+[Installation](docs/INSTALL.md)
+
+[CMenu Manpage](docs/cmenu_manpage.md)
+
+[Form Manpage](docs/form.md)
+
+[Pick Manpage](docs/pick.md)
+
+[View Manpage](docs/view.md)
+
+[RSH Manpage](docs/rsh.md)
+
+[LF Manpage](docs/lf.md)
+
+
+
+---
 
 ## cmenu_chk
 
@@ -102,6 +134,30 @@ The menu component of C-Menu is very easy to use and examples are the best way t
 
 ---
 
+## C-Menu Start-up Options
+
+All of C-Menu's long options, shown as, --option_name, in the following ../screen can be
+can be set on the command line or in the C-Menu configuration file, ~/.minitrc.
+The "--" prefix is omitted in the configuration file. Options commonly used on the command line also have a single-letter short option equivalent. Command line options override configuration file options, allowing you to customize the behavior of your applications on a per-instance basis.
+
+![C-Menu-Help](screenshots/C-Menu-help.png)
+
+## Menu Description File
+
+Below is an example of source defining the above menu. This is the part you design as the top-level framework for your application.
+
+This section will break down the Example C-Menu Applications Menu and explain how it works from the perspective of a developer using C-Menu to build applications. With this understanding, you will be ready to create custom software products with C-Menu.
+
+![Menu Description File](screenshots/applications_menu.m.png)
+Notice the red highlighted lines in the menu description file above. That is a
+menu option that demonstrates how to edit the menu description files within
+C-Menu. You can use C-Menu to edit the menu description files that define your application, allowing you to make changes to your application's menu structure and commands without needing to exit the application. With this feature, you can quickly iterate on your application's design and functionality.
+
+Lets examine the Menu source above and break down how it works. The source file is a simple text file that contains a series of User Choices and Commands.
+
+
+---
+
 ## Menu Title
 
 ![app_menu_title](screenshots/app_menu_title.png)
@@ -144,6 +200,12 @@ For now, do not get bogged down in these details. The important thing to remembe
 This is the simplest possible shell command. It launches C-Menu's rsh command as a subprocess of C-Menu. The rsh command takes over the entire terminal window and runs in full screen mode. When rsh exits, control returns to C-Menu.
 
 - Requires: CMenu's rsh executable installed and available in the user's path. If rsh is installed with setuid root permissions, the menu selection will launch a full screen root shell.
+Requirements: rsh owned by root, with setuid permissions.
+
+```bash
+chown root:root ~/menuapp/bin/rsh
+chmod 4711 ~/menuapp/bin/rsh
+```
 
 ```bash
 export PATH=$HOME/menuapp/bin:$PATH
@@ -284,18 +346,27 @@ used to:
 !menu workstation_config.m
 ```
 
-- This menu selection launches a sub-menu.
+This menu item demonstrates how to create a sub-menu by specifying a menu description file, "workstation_config.m", which will be loaded and displayed when the menu item is selected. This allows you to create a hierarchical menu structure, with multiple levels of sub-menus, to organize your application and provide a more intuitive user experience.
+
+```bash
+:     Workstation Configuration
+!menu workstation_config.m
+```
+
+![Workstation Configuration](screenshots/workstation_config.png)
 
 ---
 
 ## Diagnostic Utilities
 
-```
+Diagnostic Utilities is another menu item that specifies a menu description file, "diag.m", which will be loaded and displayed when the menu item is selected. This demonstrates how you can create multiple menus for different purposes and link them together through menu items.
+
+```bash
 :   Diagnostic Utilities
 !menu diag.m
 ```
 
-- This menu selection launches a sub-menu.
+![Diagnostic Utilities](screenshots/Diagnostic_Tools.png)
 
 ---
 

@@ -2,6 +2,44 @@
 
 # Table of Contents
 
+<!-- mtoc-start -->
+
+* [Where am I?](#where-am-i)
+* [Pick search not accepting certain letters](#pick-search-not-accepting-certain-letters)
+* [Menu Selections Not Working](#menu-selections-not-working)
+* [How do I get a list of hidden files in lf?](#how-do-i-get-a-list-of-hidden-files-in-lf)
+* [lf is fast, but I rely on find's features](#lf-is-fast-but-i-rely-on-finds-features)
+* [Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc](#drop-down-and-pop-up-menus-forms-pickers-views-ckeys-etc)
+* [Can lf match files with multiple suffixes](#can-lf-match-files-with-multiple-suffixes)
+* [Static Executables](#static-executables)
+* [What's the Icon?](#whats-the-icon)
+* [C-Menu's File Structure](#c-menus-file-structure)
+* [Some Menu Selections Don't work](#some-menu-selections-dont-work)
+  * [Visual Aids Soap-box](#visual-aids-soap-box)
+* [High Precision Math With C-Menu and Gawk](#high-precision-math-with-c-menu-and-gawk)
+* [TrueColor Support](#truecolor-support)
+* [Why View Displays Question Marks](#why-view-displays-question-marks)
+* [View \- How to Colorize Manual Pages](#view---how-to-colorize-manual-pages)
+* [View \- How to Colorize HTML Color Codes](#view---how-to-colorize-html-color-codes)
+* [View - How to Customize Colors](#view---how-to-customize-colors)
+* [Menu, Form, Pick, and View API](#menu-form-pick-and-view-api)
+* [View - How to Use Tree-Sitter with View](#view---how-to-use-tree-sitter-with-view)
+  * [Install Tree-Sitter-CLI](#install-tree-sitter-cli)
+  * [Download From Github](#download-from-github)
+* [Menu Form - Integrating External Executables](#menu-form---integrating-external-executables)
+* [Menu - Using the Installment Loan Calculator](#menu---using-the-installment-loan-calculator)
+* [Menu Form - Line Type Speecifiers (H, T, F, and ?)](#menu-form---line-type-speecifiers-h-t-f-and-)
+* [Menu Form - Field Delimiters](#menu-form---field-delimiters)
+* [Menu Form - Data Types](#menu-form---data-types)
+* [Menu - Interprocess Communications](#menu---interprocess-communications)
+* [Menu - What Happened to Delete by Inode](#menu---what-happened-to-delete-by-inode)
+* [Pick - Selecting Multiple Files](#pick---selecting-multiple-files)
+* [Menu lf - Where Are My Header Files?](#menu-lf---where-are-my-header-files)
+* [View In a Box Window](#view-in-a-box-window)
+
+<!-- mtoc-end -->
+---
+
 ## Where am I?
 
 Q: Using Pick with the -v option, I get confused about which function is active.
@@ -21,6 +59,8 @@ When you press <v> from the Select function, the right angle will disappear
 as your focus is shifted to the View window. From View, you can press <q> or F9, to return to Pick, and the right angle will reappear in the first column, indicating that
 Pick's Select function is active.
 
+---
+
 ## Pick search not accepting certain letters
 
 Q: When I try to enter a search term in Pick, it does not accept certain letters? What's going on?
@@ -35,6 +75,8 @@ it instead of displaying an empty list. You may
 1. Press F9 to exit Pick, or
 1. Press F10 to accept the search term as is.
 
+---
+
 ## Menu Selections Not Working
 
 Many of the menu items don't work. Why not?
@@ -44,17 +86,31 @@ all depend on external programs, such as "bat", "tree-sitter", "rustlings",
 "ghostty", "kitty", "nvim", "xargs", and others. If you don't have those
 programs installed, the menu items will not work. You can install those programs, or you can remove the menu items that don't work for you. You can also modify the menu items to use programs that you have installed. The menu items are just examples of what can be done with C-Menu. You can easily create your own menu items that use the programs you have installed.
 
+---
+
 ## How do I get a list of hidden files in lf?
 
-Q: How do I get a list of hidden files in lf?
+Q: How do I get a list of hidden files in my home directory with lf?
 
 A: You can use the following command to get a list of hidden files in lf:
 
 ```bash
-    lf -S -d3 -tf -Ho
+    lf -S -Ho -d1 -tf | xargs lsd -l
 ```
 
-The -S option sorts the output, the -d3 option tells lf to descend 3 levels into the directory tree, the -tf option tells lf to list only files, and the -Ho option tells lf to include only hidden files in the output.
+```
+    -S  sorts the output
+    -d1 descend 1 level into the directory tree
+    -tf list only files
+    -Ho include only hidden files
+    | xargs lsd -l pipes the output to lsd for long listing format
+```
+
+You will get a list that looks similar to the following:
+
+![lf hidden files](../screenshots/hidden_files.png)
+
+---
 
 ## lf is fast, but I rely on find's features
 
@@ -72,11 +128,15 @@ And, you will find lf's performance is spectacular.
 
 ![lf performance](../screenshots/lf-benchmarks.png)
 
+---
+
 ## Drop-down and Pop-up Menus, Forms, Pickers, Views, Ckeys, etc
 
 Q: Why don't you have drop-down and pop-up menus, forms, pickers, views, ckeys, etc.?
 
 A: That capability is being implemented and refined.
+
+---
 
 ## Can lf match files with multiple suffixes
 
@@ -95,6 +155,8 @@ For matching groupings of characters, you would use a regular expression similar
 lf -t f '.*\.\(c|h|cpp|hpp|cc|hh|cxx|hxx|rs|sh\)$'
 ```
 
+---
+
 ## Static Executables
 
 Q: Why don't you compile static executables? That would make installation easier and more portable.
@@ -102,6 +164,8 @@ Q: Why don't you compile static executables? That would make installation easier
 A: Of course you are right, and it is very possible that static executables will be available in the future. Currently, the C-Menu build creates rsh, rsh_pam, and rsh_static. Menu, Form, Pick, and View may be compiled with static libc, libm, libncurses, and libcm, but that doesn't prevent the statically linked libraries from using dlopen() to load shared libraries. For example, the statically linked ncurses library may still attempt to load a shared terminfo library. This can lead to unexpected behavior and errors if the shared libraries are not present or are incompatible with the statically linked libraries. Therefore, while static linking can provide some benefits in terms of portability and ease of installation, it is not a foolproof solution and may still require careful consideration of library dependencies.
 
 - Note: Developers with experience in static linking and library dependencies (embedded and SOC developers) may be able to create fully static executables that do not rely on shared libraries. However, this can be a complex and time-consuming process that requires careful attention to detail and a deep understanding of the underlying libraries and their dependencies.
+
+---
 
 ## What's the Icon?
 
@@ -121,11 +185,15 @@ Brian, said it's just overlapping tilted squares. Cousin Mike, an IBM Systems
 Analyst, said it looks like a ligature made from the less and more symbols "<>".
 What do you think? If you have a suggestion for a better icon, please let me know.
 
+---
+
 ## C-Menu's File Structure
 
 Q: Why don't you install cmenu in the standard directories, such as /usr/local/bin and /usr/local/lib64?
 
 A: Installing C-Menu in a standard directory would limit its flexibility and make it less portable. By keeping C-Menu in a user-specific directory, such as ~/menuapp, users can easily customize and manage their C-Menu installation without affecting the system-wide configuration. This approach allows users to have multiple versions of C-Menu or different configurations for different projects without conflicts. Additionally, it simplifies the installation process, as users can simply clone the repository into their home directory without needing administrative privileges. Overall, this design choice enhances the usability and adaptability of C-Menu for a wide range of users and use cases.
+
+---
 
 ## Some Menu Selections Don't work
 
@@ -138,12 +206,16 @@ The option, "Menu Description" in the sample Main Menu included with C-Menu, is 
 
 Both of those will be documented in a new addition to the manual. In the meantime, I have added "with Bat" to the "Menu Description" menu item as a hint that it requires "bat". I have also added an option in the Main Menu to view view-engine.c, which I have pre-highlighted with Tree-Sitter.
 
+---
+
 ### Visual Aids Soap-box
 
 Installing tools like Tree-Sitter-CLI and "bat" is not just about pretty colors. The colorization provided by Tree-Sitter reduces your cognitive load, allowing you to focus on the structure of the code and understand it more intuitively. The colors help you visually parse the code, making it easier to identify functions, variables, and other elements. This is especially helpful for complex codebases, where the structure can be difficult to understand without visual cues.
 
 According to the National Institutes of Health (NIH), color coding can improve learning and retention by up to 80%. The use of color in code editors has been shown to enhance readability and reduce errors, making it an essential tool for developers.
 That's because language and visual processing are distinct cognitive systems that interact to enhance object recognition and categorization. While vision provides raw sensory input, language acts as a top-down, categorical cue that accelerates recognition, improves memory, and organizes conceptual representations.
+
+---
 
 ## High Precision Math With C-Menu and Gawk
 
@@ -208,6 +280,8 @@ The output will be something like this:
 
 You will recognize the famous sequence, 00729927..., which repeats indefinitely.
 With Gawk, GMP, and MPFR, you can calculate as many digits as you want.
+
+---
 
 ## TrueColor Support
 
@@ -384,7 +458,7 @@ line-drawing characters.
 
 ---
 
-## View - How to Colorize Manual Pages
+## View \- How to Colorize Manual Pages
 
 Q: How can I add color to manual pages?
 
@@ -429,7 +503,7 @@ View.
 
 ---
 
-## View - How to Colorize HTML Color Codes
+## View \- How to Colorize HTML Color Codes
 
 Q: I want to colorize six digit HTML style hexadecimal colors, such as
 \#RRGGBB, in View. How can I do this?
@@ -483,7 +557,9 @@ A: Documentation on this feature is sparse at the moment.
 
 Here are the basic steps to get started with tree-sitter and View.
 
-## Install Tree-Sitter-CLI
+---
+
+### Install Tree-Sitter-CLI
 
 ```bash
 cargo install tree-sitter-cli
@@ -579,6 +655,8 @@ Menu Form will complain that "iloan.dat" does not exist the first
 time you run the form. This is normal. Menu Form will create the
 file when you exit the form.
 
+---
+
 ## Menu - Using the Installment Loan Calculator
 
 ![Installment Loan Calculator](../screenshots/iloan.png)
@@ -595,6 +673,8 @@ The next time you run the form, Menu Form will read the values from
 
 Here's a summary of the important parts of the form file format:
 
+---
+
 ## Menu Form - Line Type Speecifiers (H, T, F, and ?)
 
 - \# Comment line (ignored)
@@ -606,6 +686,8 @@ Here's a summary of the important parts of the form file format:
   .hlp extension. It will search in the current directory and then in
   the menu help directory, ~/menuapp/help.
 
+---
+
 ## Menu Form - Field Delimiters
 
 The ":" character is used as a delimiter in the fields above, but any
@@ -615,6 +697,8 @@ equivalent:
 
 T:2:4:Enter any three of the four values to calculate the fourth.
 T|2|4|Enter any three of the four values to calculate the fourth.
+
+---
 
 ## Menu Form - Data Types
 
