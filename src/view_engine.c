@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <iso646.h>
 #include <regex.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -719,37 +720,115 @@ int view_cmd_processor(Init *init) {
  */
 int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
+    char *d, *s;
+    int prevx;
+    bool once = false;
     char cmd_str[33];
     cmd_str[0] = '\0';
     pad_refresh(view);
     update_panels();
     curs_set(1);
-    // wmove(view->cmdln.win, view->cmd_line, view->curx);
-    // mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &ran, 1);
-    wmove(view->cmdln.win, view->cmd_line, view->curx + 1);
+    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx + 1, &ran, 1);
+    wmove(view->cmdln.win, view->cmd_line, view->curx + 2);
     doupdate();
-    do {
+    while (1) {
+        if (i == 1 && !once) {
+            once = true;
+            view->curx = 0;
+            wmove(view->cmdln.win, view->cmd_line, view->curx);
+            wclrtoeol(view->cmdln.win);
+            mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx++, &ran, 1);
+            mvwaddch(view->cmdln.win, view->cmd_line, view->curx++, (chtype)c);
+        }
+        wmove(view->cmdln.win, view->cmd_line, view->curx);
         c = vgetch(view->cmdln.win, 0);
-        if ((c >= '0' && c <= '9') && i < 32) {
+        switch (c) {
+        case KEY_MOUSE:
+            // if (getmouse(event) == OK) {
+            //     if (event.bstate & BUTTON1_CLICKED) {
+            //         c = KEY_MOUSE;
+            //         break;
+            //     }
+            // }
+            break;
+        case KEY_RESIZE:
+        case '\n':
+        case '\r':
+            break;
+        case '\b':
+        case KEY_BACKSPACE:
+            if (i > 0) {
+                s = &cmd_str[i];
+                d = &cmd_str[--i];
+                view->curx--;
+                prevx = view->curx;
+                while (*s != '\0') {
+                    mvwaddch(view->cmdln.win, view->cmd_line, view->curx++, *s);
+                    *d++ = *s++;
+                }
+                *d = '\0';
+                wmove(view->cmdln.win, view->cmd_line, view->curx);
+                wclrtoeol(view->cmdln.win);
+                view->curx = prevx;
+                wmove(view->cmdln.win, view->cmd_line, view->curx);
+            }
+            continue;
+        case KEY_DC:
+            if (i < 32 && cmd_str[i] != '\0') {
+                s = &cmd_str[i + 1];
+                d = &cmd_str[i];
+                while (*s != '\0') {
+                    mvwaddch(view->cmdln.win, view->cmd_line, view->curx++, *s);
+                    *d++ = *s++;
+                }
+                *d = '\0';
+                wmove(view->cmdln.win, view->cmd_line, view->curx);
+                wclrtoeol(view->cmdln.win);
+                wmove(view->cmdln.win, view->cmd_line, view->curx);
+            }
+            continue;
+        case KEY_SRIGHT:
+            if (i < 32 && cmd_str[i] != '\0') {
+                i++;
+                getyx(view->cmdln.win, view->cury, view->curx);
+                if (view->curx < view->cols - 1) {
+                    view->curx++;
+                    wmove(view->cmdln.win, view->cmd_line, view->curx);
+                }
+            }
+            continue;
+        case KEY_SLEFT:
+            if (i > 0) {
+                i--;
+                getyx(view->cmdln.win, view->cury, view->curx);
+                if (view->curx > 0) {
+                    view->curx--;
+                    wmove(view->cmdln.win, view->cmd_line, view->curx);
+                }
+            }
+            continue;
+        default:
+            if (c < '0' || c > '9' || i == 32)
+                break;
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
-        } else {
-            if (c >= 256)
-                break;
-            else
-                continue;
+            waddch(view->cmdln.win, (chtype)c);
+            view->curx++;
+            continue;
         }
-    } while (c >= '0' && c <= '9');
+        if (c < '0' || c > '9' || i == 32)
+            break;
+    }
     if (cmd_str[0] == '\0') {
         *n = 0;
         view->cmd_arg[0] = '\0';
-        mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &sp, 1);
+        mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx + 1, &sp, 1);
         wclrtoeol(view->cmdln.win);
         return (c);
     }
     *n = atol(cmd_str);
     view->cmd_arg[0] = '\0';
-    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &sp, 1);
+    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx + 1, &sp, 1);
     wclrtoeol(view->cmdln.win);
     return (c);
 }
@@ -772,97 +851,36 @@ int get_cmd_char(View *view, off_t *n) {
 */
 int get_cmd_arg(View *view, char *prompt) {
     int c;
-    int numeric_arg = false;
-    char *cmd_p;
-    char *cmd_e;
-    char prompt_s[PAD_COLS + 1];
-    char *n;
-    int prompt_l = strnz__cpy(prompt_s, prompt, view->cols - 4) + 2;
+    char prompt_s[MAXLEN];
+    int prompt_l = strnz__cpy(prompt_s, prompt, min(MAXLEN - 1, view->cols - 4)) + 2;
     if (view->cmd_arg[0] != '\0')
         return 0;
-    cmd_p = view->cmd_arg;
-    cmd_e = view->cmd_arg + MAXLEN - 2;
     wmove(view->cmdln.win, view->cmd_line, 0);
-    if (prompt_l == 0)
-        numeric_arg = true;
     if (prompt_l > 1) {
         wstandout(view->cmdln.win);
         mvwaddch(view->cmdln.win, view->cmd_line, 0, ' ');
         waddstr(view->cmdln.win, prompt_s);
         waddch(view->cmdln.win, ' ');
         wstandend(view->cmdln.win);
-        wclrtoeol(view->cmdln.win);
-    } else {
-        if (*prompt == ':')
-            numeric_arg = true;
-        else {
-            n = prompt;
-            if (*n >= '0' && *n <= '9') {
-                *cmd_p++ = *n;
-                *cmd_p = '\0';
-                numeric_arg = true;
-            }
-        }
     }
+    wclrtoeol(view->cmdln.win);
     pad_refresh(view);
     curs_set(1);
     wmove(view->cmdln.win, view->cmd_line, prompt_l);
     update_panels();
     wnoutrefresh(view->cmdln.win);
     doupdate();
-    while (1) {
-        c = vgetch(view->cmdln.win, -1);
-        switch (c) {
-        /** Basic Editing Keys for Command Line */
-        case KEY_LEFT:
-        case KEY_BACKSPACE:
-        case '\b':
-            if (cmd_p > view->cmd_arg) {
-                cmd_p--;
-                if (*cmd_p < ' ' || *cmd_p == 0x7f) {
-                    getyx(view->cmdln.win, view->cury, view->curx);
-                    if (view->curx > 0) {
-                        view->curx--;
-                        wmove(view->cmdln.win, view->cmd_line, view->curx);
-                        mvwaddch(view->cmdln.win, view->cmd_line, 0, ' ');
-                        wmove(view->cmdln.win, view->cmd_line, view->curx);
-                    }
-                }
-                getyx(view->cmdln.win, view->cury, view->curx);
-                if (view->curx > 0) {
-                    view->curx--;
-                    wmove(view->cmdln.win, view->cmd_line, view->curx);
-                    waddch(view->cmdln.win, ' ');
-                    wmove(view->cmdln.win, view->cmd_line, view->curx);
-                }
-            }
-            break;
-        case '\n':
-        case KEY_ENTER:
-            return c;
-        case '\033':
-        case KEY_F(9):
-            return c;
-        case KEY_MOUSE:
-            continue;
-        default:
-            *cmd_p++ = (char)c;
-            *cmd_p = '\0';
-            if ((char)c < ' ') {
-                waddch(view->cmdln.win, '^');
-                c |= '@';
-            } else if ((uchar)c == 0x7f)
-                c = '?';
-            waddch(view->cmdln.win, (char)c);
-            if (cmd_p >= cmd_e)
-                return 0;
-            if (numeric_arg && (c < '0' || c > '9'))
-                return -1;
-            break;
-        }
-    }
+    char input_s[MAXLEN];
+    char accept_s[MAXLEN];
+    char display_s[MAXLEN];
+    int flin = view->cmd_line;
+    int fcol = prompt_l;
+    int flen = view->cols - prompt_l;
+    int ff = 0;
+    c = cf_accept(view->cmdln.win, nullptr, input_s, accept_s, display_s, flin, fcol, flen, ff);
     return c;
 }
+
 /** @brief Build Prompt String
     @ingroup view_engine
     @param view Pointer to the View structure containing the state and
@@ -871,23 +889,37 @@ int get_cmd_arg(View *view, char *prompt) {
  */
 void build_prompt(View *view) {
     char tmp_str[MAXLEN];
+    int prompt_maxlen = min(MAXLEN - 1, view->cols - 4);
+    int prompt_l = 0;
+    // ----------------< File Name >----------------
     if (view->f_is_pipe)
-        strnz__cpy(view->prompt_str, "stdin", MAXLEN - 1);
+        strnz__cpy(view->prompt_str, "stdin", prompt_maxlen);
     else
-        strnz__cpy(view->prompt_str, view->file_name, MAXLEN - 1);
+        strnz__cpy(view->prompt_str, view->file_name, prompt_maxlen);
+    // ----------------< Columns >----------------
     if (view->pmincol > 0) {
         sprintf(tmp_str, "Col %d of %d", view->pmincol, view->maxcol);
         if (view->prompt_str[0] != '\0')
-            strnz__cat(view->prompt_str, "|", MAXLEN - 1);
-        strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
+            strnz__cat(view->prompt_str, "|", prompt_maxlen);
+        strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
     }
-    if (view->argc > 0) {
-        sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
-        if (view->prompt_str[0] != '\0') {
-            strnz__cat(view->prompt_str, "|", MAXLEN - 1);
-            strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
+    // ----------------< File Number >----------------
+    if (view->argc > 1) {
+        prompt_l = (int)strlen(view->prompt_str);
+        if (prompt_l > (view->cols - 4) / 2)
+            return;
+        if (view->argc > 0) {
+            sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
+            if (view->prompt_str[0] != '\0') {
+                strnz__cat(view->prompt_str, "|", prompt_maxlen);
+                strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
+            }
         }
     }
+    // ----------------< File Position >----------------
+    prompt_l = (int)strlen(view->prompt_str);
+    if (prompt_l > (view->cols - 4) / 2)
+        return;
     view->page_top_pos = view->ln_tbl[view->page_top_ln];
     if (view->page_top_pos == NULL_POSITION)
         view->page_top_pos = view->file_size;
@@ -896,23 +928,27 @@ void build_prompt(View *view) {
         view->page_bot_pos = view->file_size;
     sprintf(tmp_str, "Pos %zd-%zd", view->page_top_pos, view->page_bot_pos);
     if (view->prompt_str[0] != '\0') {
-        strnz__cat(view->prompt_str, "|", MAXLEN - 1);
-        strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
+        strnz__cat(view->prompt_str, "|", prompt_maxlen);
+        strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
     }
     if (!view->f_is_pipe) {
         if (view->file_size > 0) {
             sprintf(tmp_str, " of %zd", view->file_size);
-            strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
+            strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
         }
     }
+    // ----------------< (End) >----------------
+    prompt_l = (int)strlen(view->prompt_str);
+    if (prompt_l > (view->cols - 4) / 2)
+        return;
     if (view->f_eod) {
         if (view->prompt_str[0] != '\0')
-            strnz__cat(view->prompt_str, " ", MAXLEN - 1);
-        strnz__cat(view->prompt_str, "(End)", MAXLEN - 1);
+            strnz__cat(view->prompt_str, " ", prompt_maxlen);
+        strnz__cat(view->prompt_str, "(End)", prompt_maxlen);
         if (view->curr_argc + 1 < view->argc) {
             base_name(tmp_str, view->argv[view->curr_argc + 1]);
-            strnz__cpy(view->prompt_str, " Next File: ", MAXLEN - 1);
-            strnz__cat(view->prompt_str, tmp_str, MAXLEN - 1);
+            strnz__cpy(view->prompt_str, " Next File: ", prompt_maxlen);
+            strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
         }
     }
 }

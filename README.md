@@ -110,7 +110,8 @@ All checks passed
 If any of the optional dependencies fail, you can still run C-Menu, but some
 menu selections may not work as expected. You can install the missing dependencies using your system's package manager or by following the installation instructions for each dependency in the C-Menu Augmentation Guide.
 
-The only dependency that is somewhat difficult to install is the tree-sitter-cli, and i
+The only dependency that is somewhat difficult to install is the tree-sitter-cli, but it only takes a little persistence, patience, and a search engine to get it installed.
+You can find the installation instructions for tree-sitter-cli in the C-Menu Augmentation Guide. It is well worth the effort.
 
 ---
 

@@ -1016,6 +1016,10 @@ int picker(Init *init, char *field) {
                 update_panels();
                 doupdate();
                 in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
+                if (pick->f_selected[pick->d_idx])
+                    mvwadd_wchnstr(pick->win, pick->y, 0, &chk, 1);
+                else
+                    mvwadd_wchnstr(pick->win, pick->y, 0, &sp, 1); // space
                 if (mouse_win == pick->win2 && click_y == 0)
                     break;
             }
@@ -1032,10 +1036,8 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-                /** Toggle Select Object */
-
             case 'v':
-                remove_right_angle(pick);
+                // remove_right_angle(pick);
                 wnoutrefresh(pick->win);
                 update_panels();
                 doupdate();
@@ -1255,11 +1257,8 @@ int picker(Init *init, char *field) {
 
         compile_chyron(pick->chyron);
         display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
+        mvwaddnwstr(pick->box, pick->separator_line + 1, 1, &bw_ran, 1);
 
-        if (pick->f_selected[pick->d_idx])
-            mvwaddstr(pick->win, pick->y, pick->x - 1, "*");
-        else
-            mvwaddnwstr(pick->box, pick->separator_line + 1, 1, &bw_ran, 1);
         while (1) {
 
             if (in_key == 0) {

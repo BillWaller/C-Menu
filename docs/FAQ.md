@@ -15,7 +15,7 @@
 * [What's the Icon?](#whats-the-icon)
 * [C-Menu's File Structure](#c-menus-file-structure)
 * [Some Menu Selections Don't work](#some-menu-selections-dont-work)
-  * [Visual Aids Soap-box](#visual-aids-soap-box)
+* [Visual Aids Soap-box](#visual-aids-soap-box)
 * [High Precision Math With C-Menu and Gawk](#high-precision-math-with-c-menu-and-gawk)
 * [TrueColor Support](#truecolor-support)
 * [Why View Displays Question Marks](#why-view-displays-question-marks)
@@ -208,7 +208,7 @@ Both of those will be documented in a new addition to the manual. In the meantim
 
 ---
 
-### Visual Aids Soap-box
+## Visual Aids Soap-box
 
 Installing tools like Tree-Sitter-CLI and "bat" is not just about pretty colors. The colorization provided by Tree-Sitter reduces your cognitive load, allowing you to focus on the structure of the code and understand it more intuitively. The colors help you visually parse the code, making it easier to identify functions, variables, and other elements. This is especially helpful for complex codebases, where the structure can be difficult to understand without visual cues.
 
