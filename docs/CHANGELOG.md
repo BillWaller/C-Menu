@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-05T15:06:14-05:00* - FIX: View's command line editor takes two kinds of input. The first is an optional numeric argument that precedes single-character commands. For example, to scroll 5 spaces to the right, you can type "5l" in the command line. The second is a command argument that follows a command. For example, to search for the string "foo", you can type "/foo" in the command line. We are shoring up the command line editor to handle arguments more robustly. We also added logic to elide sections of the prompt string that are not relevant to the current command, or would produce a prompt string that is too long to fit in the command line. 
+
+*2026-07-04T19:03:16-05:00* - Update CHANGELOG.md 
+
 *2026-07-04T19:02:47-05:00* - DOCS: Documentation Updates 
 
 *2026-07-04T16:54:34-05:00* - Update CHANGELOG.md 
