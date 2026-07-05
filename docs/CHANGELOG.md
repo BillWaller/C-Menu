@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-04T19:02:47-05:00* - DOCS: Documentation Updates 
+
+*2026-07-04T16:54:34-05:00* - Update CHANGELOG.md 
+
 *2026-07-04T16:19:48-05:00* - FIXES: Several issues with derived windows, panels, and pads in view_engine.c and init_view.c. The refactoring of C-Menu in preparation for the new Uniform Abstraction Layer User Interface (UAL_UI) turned out to be more disruptive than expected. Nevertheless, the refactoring continues to bring C-Menu closer to the UAL_UI design objectives. Scalability, resilience to change, and maintainability are improving as well. Z-stack management with derived windows, panels, and pads is more robust, paving the way for cellular grapheme clusters, multi-media integration, and plug-in interfaces. 
 
 *2026-07-03T20:34:08-05:00* - Update CHANGELOG.md 
