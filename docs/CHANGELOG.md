@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-05T22:39:12-05:00* - FIX: view_engine.c: Continuing refinements of command line editor. 
+
+*2026-07-05T21:02:24-05:00* - Update CHANGELOG.md 
+
 *2026-07-05T21:01:15-05:00* - FIX: This is the clean-up of the second form of input used on the view command line. 
 
 *2026-07-05T15:28:25-05:00* - Update CHANGELOG.md 
