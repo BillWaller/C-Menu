@@ -15,6 +15,10 @@
 #include <termios.h>
 #include <unistd.h>
 
+/** @brief Structure to hold field information for C-Menu
+    @note Not currently used in the code, but may be used in
+    future versions of C-Menu
+ */
 typedef struct {
     int flin;
     int fcol;
@@ -29,6 +33,14 @@ bool f_erase_remainder = true;
 
 int cf_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen);
 
+/** @brief Accepts input for a field in a C-Menu window
+    @param win The window to accept input from
+    @param accept_s The string to accept input into
+    @param flin The line number of the field
+    @param fcol The column number of the field
+    @param flen The length of the field
+    @return The key pressed to exit the field (KEY_ENTER, KEY_F(9), etc.)
+ */
 int cf_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen) {
     bool f_insert = FALSE;
     int in_key = 0;
@@ -44,13 +56,9 @@ int cf_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen) {
         if (in_key == 0) {
             mvwaddstr(win, flin, fcol, accept_s);
             wclrtoeol(win);
-            tcflush(0, TCIFLUSH);
             wmove(win, flin, x);
-            curs_set(1);
-            update_panels();
-            doupdate();
-            curs_set(1);
-            in_key = vgetch(win, -1);
+            tcflush(0, TCIFLUSH);
+            in_key = vgetch(win, 0);
         }
         curs_set(0);
         switch (in_key) {
@@ -76,6 +84,7 @@ int cf_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen) {
             return (in_key);
             /** KEY_IC toggles insert mode */
         case KEY_IC:
+            f_insert = !f_insert;
             in_key = 0;
             continue;
             /** KEY_DC deletes character at cursor */

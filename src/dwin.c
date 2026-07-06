@@ -361,7 +361,7 @@ void initialize_local_colors(SIO *sio) {
     CC_YELLOW = mkcc(cp_yellow, WA_NORMAL, " ");
     CC_BLUE = mkcc(cp_blue, WA_NORMAL, " ");
 
-    // create cchar_t for box borders - no color specified
+    // create cchar_t for box borders
     setcchar(&ls, &bw_ve, WA_NORMAL, cp_box, NULL);   // Left side
     setcchar(&rs, &bw_ve, WA_NORMAL, cp_box, NULL);   // Right side
     setcchar(&ts, &bw_ho, WA_NORMAL, cp_box, NULL);   // Top side

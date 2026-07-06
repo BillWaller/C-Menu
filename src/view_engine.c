@@ -456,7 +456,7 @@ int view_cmd_processor(Init *init) {
         /**  '/' or '?' - Search Forward fromk top of page */
         case '/':
             view->f_search_complete = false;
-            strnz__cpy(tmp_str, "(forward)->", MAXLEN - 1);
+            strnz__cpy(tmp_str, " Forward", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == KEY_F(9) || c == '\033')
@@ -478,7 +478,7 @@ int view_cmd_processor(Init *init) {
         /**  '?' - Search Backward */
         case '?':
             view->f_search_complete = false;
-            strnz__cpy(tmp_str, "(backward)->", MAXLEN - 1);
+            strnz__cpy(tmp_str, " Backward", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == KEY_F(9) || c == '\033')
@@ -630,6 +630,8 @@ int view_cmd_processor(Init *init) {
         case 'Q':
         case KEY_F(9):
         case '\033':
+            view->curx;
+            mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &sp, 1);
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = nullptr;
             return 0;
@@ -709,19 +711,21 @@ int view_cmd_processor(Init *init) {
         view->cmd_arg[0] = '\0';
     }
 }
-/** @brief Get Command Character and Numeric Argument
+/** @brief Get Command Character from User Input
     @ingroup view_engine
-    @param view Pointer to the View structure containing the state around
-   the view application. This structure is used to access and modify the
-   state
-    @param n is used to store the numeric argument entered by the user, if
-   applicable. The function reads user input and extracts both the command
-   character and any numeric argument, allowing for commands that require a
-   numeric parameter to be processed effectively.
+    @param view Pointer to the View structure containing the state and
+   parameters of the view application. This structure is used to access and
+   modify the state of the application as needed.
+    @param n Pointer to an off_t variable where the numeric argument entered by
+   the user will be stored. If the user enters a numeric argument, it will be
+   converted to an off_t value and stored in this variable for use by the
+   calling function.
     @return Returns the command character entered by the user, or a special
-   value if a mouse event is detected. The numeric argument is stored in the
-   variable pointed to by n if applicable.
- */
+   value if a mouse event is detected. The function handles user input,
+   including editing keys, and updates the command argument buffer accordingly.
+   If the user enters a numeric argument, it is validated based on the context
+   of the command being executed.
+*/
 int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
     char *d, *s;
@@ -732,8 +736,12 @@ int get_cmd_char(View *view, off_t *n) {
     pad_refresh(view);
     update_panels();
     curs_set(1);
-    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx + 1, &ran, 1);
+    getyx(view->cmdln.win, view->cmd_line, view->curx);
+    wbkgrndset(view->cmdln.win, &CC_BOX);
+    wmove(view->cmdln.win, view->cmd_line, view->curx);
+    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &ran, 1);
     wmove(view->cmdln.win, view->cmd_line, view->curx + 2);
+    update_panels();
     doupdate();
     while (1) {
         if (i == 1 && !once) {
@@ -741,10 +749,15 @@ int get_cmd_char(View *view, off_t *n) {
             view->curx = 0;
             wmove(view->cmdln.win, view->cmd_line, view->curx);
             wclrtoeol(view->cmdln.win);
-            mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx++, &ran, 1);
-            mvwaddch(view->cmdln.win, view->cmd_line, view->curx++, (chtype)c);
+            wbkgrndset(view->cmdln.win, &CC_BOX);
+            mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &ran, 1);
+            wbkgrndset(view->cmdln.win, &CC_NT);
+            mvwaddch(view->cmdln.win, view->cmd_line, view->curx + 1, (chtype)c);
         }
+        getyx(view->cmdln.win, view->cmd_line, view->curx);
         wmove(view->cmdln.win, view->cmd_line, view->curx);
+        update_panels();
+        doupdate();
         c = vgetch(view->cmdln.win, 0);
         switch (c) {
         case KEY_MOUSE:
@@ -759,6 +772,12 @@ int get_cmd_char(View *view, off_t *n) {
         case '\n':
         case '\r':
             break;
+        case 'q':
+        case KEY_F(9):
+            build_prompt(view);
+            display_prompt(view, view->prompt_str);
+            c = KEY_F(9);
+            return c;
         case '\b':
         case KEY_BACKSPACE:
             if (i > 0) {
@@ -816,7 +835,7 @@ int get_cmd_char(View *view, off_t *n) {
                 break;
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
-            waddch(view->cmdln.win, (chtype)c);
+            mvwaddch(view->cmdln.win, view->cmd_line, view->curx, (chtype)c);
             view->curx++;
             continue;
         }
@@ -832,6 +851,7 @@ int get_cmd_char(View *view, off_t *n) {
     }
     *n = atol(cmd_str);
     view->cmd_arg[0] = '\0';
+    getyx(view->cmdln.win, view->cmd_line, view->curx);
     mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx + 1, &sp, 1);
     wclrtoeol(view->cmdln.win);
     return (c);
@@ -856,37 +876,45 @@ int get_cmd_char(View *view, off_t *n) {
 int get_cmd_arg(View *view, char *prompt) {
     int c;
     char prompt_s[MAXLEN];
-    int prompt_l = strnz__cpy(prompt_s, prompt, min(MAXLEN - 1, view->cols - 4)) + 2;
+    int prompt_l = strnz__cpy(prompt_s, prompt, min(MAXLEN - 1, view->cols - 4));
     if (view->cmd_arg[0] != '\0')
         return 0;
     wmove(view->cmdln.win, view->cmd_line, 0);
     if (prompt_l > 1) {
-        wstandout(view->cmdln.win);
-        mvwaddch(view->cmdln.win, view->cmd_line, 0, ' ');
+        wbkgrndset(view->cmdln.win, &CC_NT_REV);
         waddstr(view->cmdln.win, prompt_s);
-        waddch(view->cmdln.win, ' ');
-        wstandend(view->cmdln.win);
+        wbkgrndset(view->cmdln.win, &CC_NT);
     }
+    view->curx = prompt_l;
     wclrtoeol(view->cmdln.win);
     pad_refresh(view);
-    curs_set(1);
-    wmove(view->cmdln.win, view->cmd_line, prompt_l);
     update_panels();
-    wnoutrefresh(view->cmdln.win);
+    curs_set(1);
+    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &ran, 1);
+    wmove(view->cmdln.win, view->cmd_line, view->curx + 1);
     doupdate();
     int flin = view->cmd_line;
-    int fcol = prompt_l;
+    int fcol = prompt_l + 1;
     int flen = view->cols - prompt_l;
-    wgetch(view->cmdln.win);
     c = cf_accept(view->cmdln.win, view->cmd_arg, flin, fcol, flen);
     return c;
 }
-
 /** @brief Build Prompt String
-    @ingroup view_engine
+ *   @ingroup view_engine
     @param view Pointer to the View structure containing the state and
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
+    @details
+    This function constructs a prompt string that provides information about
+   the current state of the view application. The prompt includes details such
+   as the file name, current column, file number, file position, and whether
+   the end of the document has been reached. The constructed prompt string is
+   stored in the view->prompt_str buffer for display to the user.
+    @note The prompt string is built based on the current state of the view
+   application, and segments that are not relevant will be omitted. Less
+   relevant segments will be omitted if the length of the prompt string
+   exceeds more than half the available space. The length of the prompt
+   string has a hard limit of view->cols - 4.
  */
 void build_prompt(View *view) {
     char tmp_str[MAXLEN];
@@ -2030,9 +2058,9 @@ int display_prompt(View *view, char *s) {
         wbkgrndset(view->cmdln.win, &CC_NT_REV);
         mvwaddstr(view->cmdln.win, view->cmd_line, 0, " ");
         mvwaddstr(view->cmdln.win, view->cmd_line, 1, message_str);
-        waddstr(view->cmdln.win, ":");
+        waddstr(view->cmdln.win, " ");
         wbkgrndset(view->cmdln.win, &CC_NT);
-        view->curx = l;
+        getyx(view->cmdln.win, view->cmd_line, view->curx);
         wmove(view->cmdln.win, view->cmd_line, view->curx);
     }
     return (view->curx);
