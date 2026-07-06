@@ -459,7 +459,9 @@ int view_cmd_processor(Init *init) {
             strnz__cpy(tmp_str, "(forward)->", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
-            if (c == '\n') {
+            if (c == KEY_F(9) || c == '\033')
+                break;
+            if (c == KEY_ENTER) {
                 view->cury = 0;
                 view->f_first_iter = true;
                 view->srch_beg_pos = view->page_top_pos;
@@ -479,6 +481,8 @@ int view_cmd_processor(Init *init) {
             strnz__cpy(tmp_str, "(backward)->", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
+            if (c == KEY_F(9) || c == '\033')
+                break;
             if (c == '\n') {
                 view->cury = view->scroll_lines;
                 view->f_first_iter = true;
@@ -870,14 +874,11 @@ int get_cmd_arg(View *view, char *prompt) {
     update_panels();
     wnoutrefresh(view->cmdln.win);
     doupdate();
-    char input_s[MAXLEN];
-    char accept_s[MAXLEN];
-    char display_s[MAXLEN];
     int flin = view->cmd_line;
     int fcol = prompt_l;
     int flen = view->cols - prompt_l;
-    int ff = 0;
-    c = cf_accept(view->cmdln.win, nullptr, input_s, accept_s, display_s, flin, fcol, flen, ff);
+    wgetch(view->cmdln.win);
+    c = cf_accept(view->cmdln.win, view->cmd_arg, flin, fcol, flen);
     return c;
 }
 
