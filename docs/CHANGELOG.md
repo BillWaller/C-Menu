@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-07T11:51:19-05:00* - FIXES: The width of the pad for full-screen mode was set to COLS instead of PAD_COLS, which truncated lines as pmincol was shifted to the right in horizontal scrolling. Fixed. 
+
+*2026-07-07T10:23:15-05:00* - Update CHANGELOG.md 
+
 *2026-07-07T10:22:32-05:00* - FIX: pick_engine.c: hide page down on last page 
 
 *2026-07-07T09:18:20-05:00* - Update CHANGELOG.md 
