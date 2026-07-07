@@ -319,6 +319,8 @@ not have a built-in --detach option like Kitty. C-Menu does not wait for Ghostty
 - As with HTOP (in Kitty), we specify the --window_width and --window-height in
   columns, and use Ghostty's -e option to execute htop in the new terminal window.
 
+See [Ghostty Command Line Options](https://ghostty.org/docs/config/reference)
+
 ---
 
 ## Issue RSH Certificate
