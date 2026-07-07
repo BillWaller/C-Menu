@@ -40,11 +40,6 @@ typedef enum { PT_NONE,
     1024 // number of entries to add to line_tbl when reallocating
 
 typedef struct {
-    WINDOW *win;
-    PANEL *pan;
-} Panel;
-
-typedef struct {
     int fg_clr_idx;              /**< foreground_color */
     int bg_clr_idx;              /**< background_color */
     int bo_clr_idx;              /**< bold_color */
@@ -74,34 +69,40 @@ typedef struct {
     bool f_strip_ansi;           /**< strip ansi escape sequences when writing buffer */
     bool f_multiple_cmd_args;    /**< View - put multiple arguments in a single */
 
-    Panel box;
-    Panel win;
-    Panel lnno;
-    Panel cmdln;
-    Panel pad_container;
+    WINDOW *box_win;
+    PANEL *box_pan;
+    WINDOW *win_win;
+    PANEL *win_pan;
+    WINDOW *lnno_win;
+    PANEL *lnno_pan;
+    WINDOW *cmdln_win;
+    PANEL *cmdln_pan;
+    WINDOW *pad_container_win;
+    PANEL *pad_container_pan;
     WINDOW *pad;
-    Panel pad_view;
+    WINDOW *pad_view_win;
+    PANEL *pad_view_pan;
 
     char tmp_prompt_str[MAXLEN]; /**< temporary prompt string used when building
                                     prompt */
-    int curr_argc;               /**< current argument count when processing multiple
-                                    arguments */
-    char cmd_arg[MAXLEN];        /**< argument string */
-    int tab_stop;                /**< number of spaces between tab stops */
-    int h_shift;                 /**< horizontal scroll shift width */
-    int next_cmd_char;           /**< index of next character in cmd string to process
-                                    when building prompt */
-    bool f_bod;                  /**< beginning of data */
-    bool f_eod;                  /**< end of data */
-    bool f_forward;              /**< motion flag forward */
-    bool f_is_pipe;              /**< input is from a pipe */
-    char file_name[MAXLEN];      /**< basename of file being viewed */
-    bool f_redisplay_page;       /**< flag indicating page needs to be redisplayed */
-    bool f_displaying_help;      /**< currently didsplaying help information */
-    bool f_first_iter;           /**< first iteration of search */
-    bool f_search_complete;      /**< Entire file has been searched */
-    bool f_full_screen;          /**< default mode if lines and columns not specified */
-    bool f_timer;                /**< time commands and display elapsed time in prompt */
+    int curr_argc;               /**< current argument count when processing multiple */
+
+    char cmd_arg[MAXLEN];   /**< argument string */
+    int tab_stop;           /**< number of spaces between tab stops */
+    int h_shift;            /**< horizontal scroll shift width */
+    int next_cmd_char;      /**< index of next character in cmd string to process
+                               when building prompt */
+    bool f_bod;             /**< beginning of data */
+    bool f_eod;             /**< end of data */
+    bool f_forward;         /**< motion flag forward */
+    bool f_is_pipe;         /**< input is from a pipe */
+    char file_name[MAXLEN]; /**< basename of file being viewed */
+    bool f_redisplay_page;  /**< flag indicating page needs to be redisplayed */
+    bool f_displaying_help; /**< currently didsplaying help information */
+    bool f_first_iter;      /**< first iteration of search */
+    bool f_search_complete; /**< Entire file has been searched */
+    bool f_full_screen;     /**< default mode if lines and columns not specified */
+    bool f_timer;           /**< time commands and display elapsed time in prompt */
 
     bool f_cmd;                       /**< cmd is verified */
     bool f_cmd_all;                   /**< cmd_all is verified */

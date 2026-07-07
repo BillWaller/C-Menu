@@ -156,7 +156,7 @@ int view_file(Init *init) {
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
                 strnz__cpy(view->title, view->cur_file_str, MAXLEN - 1);
-                border_title(view->box.win, view->title);
+                border_title(view->box_win, view->title);
                 initialize_line_table(view);
                 next_page(view);
                 view_cmd_processor(init);
@@ -630,8 +630,7 @@ int view_cmd_processor(Init *init) {
         case 'Q':
         case KEY_F(9):
         case '\033':
-            view->curx;
-            mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &sp, 1);
+            mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &sp, 1);
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = nullptr;
             return 0;
@@ -736,29 +735,27 @@ int get_cmd_char(View *view, off_t *n) {
     pad_refresh(view);
     update_panels();
     curs_set(1);
-    getyx(view->cmdln.win, view->cmd_line, view->curx);
-    wbkgrndset(view->cmdln.win, &CC_BOX);
-    wmove(view->cmdln.win, view->cmd_line, view->curx);
-    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &ran, 1);
-    wmove(view->cmdln.win, view->cmd_line, view->curx + 2);
+    getyx(view->cmdln_win, view->cmd_line, view->curx);
+    wbkgrndset(view->cmdln_win, &CC_IND);
+    wmove(view->cmdln_win, view->cmd_line, view->curx);
+    mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &ran, 1);
+    wmove(view->cmdln_win, view->cmd_line, view->curx + 1);
     update_panels();
     doupdate();
     while (1) {
         if (i == 1 && !once) {
             once = true;
             view->curx = 0;
-            wmove(view->cmdln.win, view->cmd_line, view->curx);
-            wclrtoeol(view->cmdln.win);
-            wbkgrndset(view->cmdln.win, &CC_BOX);
-            mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &ran, 1);
-            wbkgrndset(view->cmdln.win, &CC_NT);
-            mvwaddch(view->cmdln.win, view->cmd_line, view->curx + 1, (chtype)c);
+            wmove(view->cmdln_win, view->cmd_line, view->curx);
+            wclrtoeol(view->cmdln_win);
+            mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &ran, 1);
+            mvwaddch(view->cmdln_win, view->cmd_line, view->curx + 1, (chtype)c);
         }
-        getyx(view->cmdln.win, view->cmd_line, view->curx);
-        wmove(view->cmdln.win, view->cmd_line, view->curx);
+        getyx(view->cmdln_win, view->cmd_line, view->curx);
         update_panels();
+        wmove(view->cmdln_win, view->cmd_line, view->curx);
         doupdate();
-        c = vgetch(view->cmdln.win, 0);
+        c = vgetch(view->cmdln_win, 0);
         switch (c) {
         case KEY_MOUSE:
             // if (getmouse(event) == OK) {
@@ -786,14 +783,14 @@ int get_cmd_char(View *view, off_t *n) {
                 view->curx--;
                 prevx = view->curx;
                 while (*s != '\0') {
-                    mvwaddch(view->cmdln.win, view->cmd_line, view->curx++, *s);
+                    mvwaddch(view->cmdln_win, view->cmd_line, view->curx++, *s);
                     *d++ = *s++;
                 }
                 *d = '\0';
-                wmove(view->cmdln.win, view->cmd_line, view->curx);
-                wclrtoeol(view->cmdln.win);
+                wmove(view->cmdln_win, view->cmd_line, view->curx);
+                wclrtoeol(view->cmdln_win);
                 view->curx = prevx;
-                wmove(view->cmdln.win, view->cmd_line, view->curx);
+                wmove(view->cmdln_win, view->cmd_line, view->curx);
             }
             continue;
         case KEY_DC:
@@ -801,32 +798,32 @@ int get_cmd_char(View *view, off_t *n) {
                 s = &cmd_str[i + 1];
                 d = &cmd_str[i];
                 while (*s != '\0') {
-                    mvwaddch(view->cmdln.win, view->cmd_line, view->curx++, *s);
+                    mvwaddch(view->cmdln_win, view->cmd_line, view->curx++, *s);
                     *d++ = *s++;
                 }
                 *d = '\0';
-                wmove(view->cmdln.win, view->cmd_line, view->curx);
-                wclrtoeol(view->cmdln.win);
-                wmove(view->cmdln.win, view->cmd_line, view->curx);
+                wmove(view->cmdln_win, view->cmd_line, view->curx);
+                wclrtoeol(view->cmdln_win);
+                wmove(view->cmdln_win, view->cmd_line, view->curx);
             }
             continue;
         case KEY_SRIGHT:
             if (i < 32 && cmd_str[i] != '\0') {
                 i++;
-                getyx(view->cmdln.win, view->cury, view->curx);
+                getyx(view->cmdln_win, view->cury, view->curx);
                 if (view->curx < view->cols - 1) {
                     view->curx++;
-                    wmove(view->cmdln.win, view->cmd_line, view->curx);
+                    wmove(view->cmdln_win, view->cmd_line, view->curx);
                 }
             }
             continue;
         case KEY_SLEFT:
             if (i > 0) {
                 i--;
-                getyx(view->cmdln.win, view->cury, view->curx);
+                getyx(view->cmdln_win, view->cury, view->curx);
                 if (view->curx > 0) {
                     view->curx--;
-                    wmove(view->cmdln.win, view->cmd_line, view->curx);
+                    wmove(view->cmdln_win, view->cmd_line, view->curx);
                 }
             }
             continue;
@@ -835,7 +832,7 @@ int get_cmd_char(View *view, off_t *n) {
                 break;
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
-            mvwaddch(view->cmdln.win, view->cmd_line, view->curx, (chtype)c);
+            mvwaddch(view->cmdln_win, view->cmd_line, view->curx, (chtype)c);
             view->curx++;
             continue;
         }
@@ -845,15 +842,15 @@ int get_cmd_char(View *view, off_t *n) {
     if (cmd_str[0] == '\0') {
         *n = 0;
         view->cmd_arg[0] = '\0';
-        mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx + 1, &sp, 1);
-        wclrtoeol(view->cmdln.win);
+        mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx + 1, &sp, 1);
+        wclrtoeol(view->cmdln_win);
         return (c);
     }
     *n = atol(cmd_str);
     view->cmd_arg[0] = '\0';
-    getyx(view->cmdln.win, view->cmd_line, view->curx);
-    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx + 1, &sp, 1);
-    wclrtoeol(view->cmdln.win);
+    getyx(view->cmdln_win, view->cmd_line, view->curx);
+    mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx + 1, &sp, 1);
+    wclrtoeol(view->cmdln_win);
     return (c);
 }
 /** @brief Get Command Argument from User Input
@@ -879,24 +876,24 @@ int get_cmd_arg(View *view, char *prompt) {
     int prompt_l = strnz__cpy(prompt_s, prompt, min(MAXLEN - 1, view->cols - 4));
     if (view->cmd_arg[0] != '\0')
         return 0;
-    wmove(view->cmdln.win, view->cmd_line, 0);
+    wmove(view->cmdln_win, view->cmd_line, 0);
     if (prompt_l > 1) {
-        wbkgrndset(view->cmdln.win, &CC_NT_REV);
-        waddstr(view->cmdln.win, prompt_s);
-        wbkgrndset(view->cmdln.win, &CC_NT);
+        wbkgrndset(view->cmdln_win, &CC_NT_REV);
+        waddstr(view->cmdln_win, prompt_s);
+        wbkgrndset(view->cmdln_win, &CC_NT);
     }
     view->curx = prompt_l;
-    wclrtoeol(view->cmdln.win);
+    wclrtoeol(view->cmdln_win);
     pad_refresh(view);
     update_panels();
     curs_set(1);
-    mvwadd_wchnstr(view->cmdln.win, view->cmd_line, view->curx, &ran, 1);
-    wmove(view->cmdln.win, view->cmd_line, view->curx + 1);
+    mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &ran, 1);
+    wmove(view->cmdln_win, view->cmd_line, view->curx + 1);
     doupdate();
     int flin = view->cmd_line;
     int fcol = prompt_l + 1;
     int flen = view->cols - prompt_l;
-    c = cf_accept(view->cmdln.win, view->cmd_arg, flin, fcol, flen);
+    c = cf_accept(view->cmdln_win, view->cmd_arg, flin, fcol, flen);
     return c;
 }
 /** @brief Build Prompt String
@@ -1286,12 +1283,12 @@ int pad_refresh(View *view) {
     touchwin(view->pad);
     pnoutrefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
                  view->smincol, view->smaxrow, view->smaxcol);
-    touchwin(view->pad_view.win);
+    touchwin(view->pad_view_win);
     if (view->f_ln)
         // rc = prefresh(view->pad, view->pminrow, view->pmincol,
         //               view->sminrow,
         //               view->smincol + 8, view->smaxrow, view->smaxcol);
-        rc = prefresh(view->pad_view.win,
+        rc = prefresh(view->pad_view_win,
                       view->pminrow,
                       view->pmincol,
                       view->sminrow,
@@ -1299,10 +1296,10 @@ int pad_refresh(View *view) {
                       view->smaxrow,
                       view->smaxcol);
     else
-        rc = prefresh(view->pad_view.win, view->pminrow, view->pmincol, view->sminrow,
+        rc = prefresh(view->pad_view_win, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol, view->smaxrow, view->smaxcol);
     if (rc == ERR) {
-        ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->pad_view.win, pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
+        ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->pad_view_win, pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
                   __FILE__, __LINE__, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
         Perror(em0);
     }
@@ -1357,8 +1354,8 @@ void view_display_page(View *view) {
     int i;
     view->cury = 0;
     wmove(view->pad, 0, 0);
-    if (view->lnno.win)
-        wmove(view->lnno.win, 0, 0);
+    if (view->lnno_win)
+        wmove(view->lnno_win, 0, 0);
     view->ln = view->page_top_ln;
     view->page_bot_ln = view->ln;
     view->page_top_pos = view->ln_tbl[view->ln];
@@ -1372,8 +1369,8 @@ void view_display_page(View *view) {
         display_line(view);
     }
     if (view->cury < view->scroll_lines) {
-        wmove(view->lnno.win, view->cury, 0);
-        wclrtobot(view->lnno.win);
+        wmove(view->lnno_win, view->cury, 0);
+        wclrtobot(view->lnno_win);
         wmove(view->pad, view->cury, 0);
         wclrtobot(view->pad);
     }
@@ -1398,14 +1395,14 @@ void scroll_down_n_lines(View *view, int n) {
     /** Scroll */
     if (n > view->scroll_lines) {
         if (view->f_ln) {
-            wmove(view->lnno.win, 0, 0);
-            wclrtobot(view->lnno.win);
+            wmove(view->lnno_win, 0, 0);
+            wclrtobot(view->lnno_win);
         }
         wmove(view->pad, 0, 0);
         wclrtobot(view->pad);
     } else {
         if (view->f_ln)
-            wscrl(view->lnno.win, n);
+            wscrl(view->lnno_win, n);
         wscrl(view->pad, n);
         // scrolled up
         if (n < view->scroll_lines)
@@ -1441,7 +1438,7 @@ void scroll_up_n_lines(View *view, int n) {
     view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->file_pos = view->page_top_pos;
     if (view->f_ln)
-        wscrl(view->lnno.win, -n);
+        wscrl(view->lnno_win, -n);
     wscrl(view->pad, -n);
     view->cury = 0;
     wmove(view->pad, view->cury, 0);
@@ -1764,9 +1761,9 @@ void display_line(View *view) {
         view->cury = view->scroll_lines - 1;
     if (view->f_ln) {
         ssnprintf(ln_s, 8, "%7jd", view->ln);
-        wmove(view->lnno.win, view->cury, 0);
-        wclrtoeol(view->lnno.win);
-        mvwaddstr(view->lnno.win, view->cury, 0, ln_s);
+        wmove(view->lnno_win, view->cury, 0);
+        wclrtoeol(view->lnno_win);
+        mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
     }
     wmove(view->pad, view->cury, 0);
     wclrtoeol(view->pad);
@@ -2049,19 +2046,19 @@ int display_prompt(View *view, char *s) {
     char message_str[PAD_COLS + 1];
     int l;
     l = strnz__cpy(message_str, s, PAD_COLS);
-    wmove(view->cmdln.win, view->cmd_line, 0);
+    wmove(view->cmdln_win, view->cmd_line, 0);
     if (l != 0) {
-        wclrtoeol(view->cmdln.win);
-        // wbkgrndset(view->cmdln.win, &CC_NT_HL_REV);
-        // mvwadd_wchnstr(view->cmdln.win, view->cmd_line, 0, &ran, 1);
-        // mvwadd_wchnstr(view->cmdln.win, view->cmd_line, 0, &sp, 1);
-        wbkgrndset(view->cmdln.win, &CC_NT_REV);
-        mvwaddstr(view->cmdln.win, view->cmd_line, 0, " ");
-        mvwaddstr(view->cmdln.win, view->cmd_line, 1, message_str);
-        waddstr(view->cmdln.win, " ");
-        wbkgrndset(view->cmdln.win, &CC_NT);
-        getyx(view->cmdln.win, view->cmd_line, view->curx);
-        wmove(view->cmdln.win, view->cmd_line, view->curx);
+        wclrtoeol(view->cmdln_win);
+        // wbkgrndset(view->cmdln_win, &CC_NT_HL_REV);
+        // mvwadd_wchnstr(view->cmdln_win, view->cmd_line, 0, &ran, 1);
+        // mvwadd_wchnstr(view->cmdln_win, view->cmd_line, 0, &sp, 1);
+        wbkgrndset(view->cmdln_win, &CC_NT_REV);
+        mvwaddstr(view->cmdln_win, view->cmd_line, 0, " ");
+        mvwaddstr(view->cmdln_win, view->cmd_line, 1, message_str);
+        waddstr(view->cmdln_win, " ");
+        wbkgrndset(view->cmdln_win, &CC_NT);
+        getyx(view->cmdln_win, view->cmd_line, view->curx);
+        wmove(view->cmdln_win, view->cmd_line, view->curx);
     }
     return (view->curx);
 }
@@ -2076,7 +2073,7 @@ void remove_file(View *view) {
         wclrtoeol(view->pad);
         update_panels();
         doupdate();
-        c = (char)vgetch(view->cmdln.win, -1);
+        c = (char)vgetch(view->cmdln_win, -1);
         waddch(view->pad, (char)toupper(c));
         if (c == 'Y' || c == 'y')
             remove(view->cur_file_str);

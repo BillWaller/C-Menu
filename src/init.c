@@ -33,6 +33,8 @@ typedef enum {
     FG,
     BOX_FG,
     BOX_BG,
+    IND_FG,
+    IND_BG,
     BRACKETS_FG,
     BRACKETS_BG,
     FILL_CHAR_FG,
@@ -145,6 +147,8 @@ static struct argp_option options[] = {
     {"fg", FG, "hex_clr", 0, "Terminal (stdscr) foreground (#d0d0d0)", 6},
     {"box_fg", BOX_FG, "hex_clr", 0, "box foreground (#d0d0d0)", 6},
     {"box_bg", BOX_BG, "hex_clr", 0, "box background (#000000)", 6},
+    {"ind_fg", IND_FG, "hex_clr", 0, "indicator foreground (#d0d0d0)", 6},
+    {"ind_bg", IND_BG, "hex_clr", 0, "indicator background (#000000)", 6},
     {"brackets_fg", BRACKETS_FG, "hex_clr", 0, "brackets foreground (#d0d0d0)", 6},
     {"brackets_bg", BRACKETS_BG, "hex_clr", 0, "brackets background (#000000)", 6},
     {"fill_char_fg", FILL_CHAR_FG, "hex_clr", 0, "fill character foreground (#d0d0d0)", 6},
@@ -306,6 +310,12 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case BOX_BG:
         strnz__cpy(sio->box_bg, arg, MAXLEN - 1);
+        break;
+    case IND_FG:
+        strnz__cpy(sio->ind_fg, arg, MAXLEN - 1);
+        break;
+    case IND_BG:
+        strnz__cpy(sio->ind_bg, arg, MAXLEN - 1);
         break;
     case BRACKETS_FG:
         strnz__cpy(sio->brackets_fg, arg, MAXLEN - 1);
@@ -491,6 +501,8 @@ void mapp_initialization(Init *init, int argc, char **argv) {
                COLOR_LEN - 1);                               /**< foreground color */
     strnz__cpy(sio->box_fg, "#f00000", COLOR_LEN - 1);       /**< bold color */
     strnz__cpy(sio->box_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
+    strnz__cpy(sio->ind_fg, "#f00000", COLOR_LEN - 1);       /**< bold color */
+    strnz__cpy(sio->ind_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
     strnz__cpy(sio->title_fg, "#f0f0f0", COLOR_LEN - 1);     /**< title foreground color */
     strnz__cpy(sio->title_bg, "#000000", COLOR_LEN - 1);     /**< title background color */
     strnz__cpy(sio->nt_fg, "#c0c0c0", COLOR_LEN - 1);        /**< normal foreground color */
@@ -572,6 +584,7 @@ void zero_opt_args(Init *init) {
     init->f_help_spec = false;
     init->f_in_spec = false;
     init->f_out_spec = false;
+    init->p_view_files = false;
     init->h_shift = 0;
     init->mapp_spec[0] = init->help_spec[0] = '\0';
     init->provider_cmd[0] = init->receiver_cmd[0] = '\0';
@@ -816,6 +829,14 @@ int process_config_file(char *config_file_name, Init *init) {
         }
         if (!strcmp(key, "box_bg")) {
             strnz__cpy(sio->box_bg, value, COLOR_LEN - 1);
+            continue;
+        }
+        if (!strcmp(key, "ind_fg")) {
+            strnz__cpy(sio->ind_fg, value, COLOR_LEN - 1);
+            continue;
+        }
+        if (!strcmp(key, "ind_bg")) {
+            strnz__cpy(sio->ind_bg, value, COLOR_LEN - 1);
             continue;
         }
         if (!strcmp(key, "brackets_fg")) {
@@ -1156,6 +1177,10 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "box_fg");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "box_bg", sio->box_bg);
     print_argp_doc(minitrc_fp, config_s, "box_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ind_fg", sio->ind_fg);
+    print_argp_doc(minitrc_fp, config_s, "ind_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ind_bg", sio->ind_bg);
+    print_argp_doc(minitrc_fp, config_s, "ind_bg");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "brackets_fg", sio->brackets_fg);
     print_argp_doc(minitrc_fp, config_s, "brackets_fg");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "brackets_bg", sio->brackets_bg);

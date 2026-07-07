@@ -1071,15 +1071,18 @@ char *stdio_names(char *stdio_str, char *id) {
     errno = 0;
     ssnprintf(buf, MAXLEN - 1, "%s - ", id);
     strnz__cpy(stdio_str, buf, MAXLEN - 1);
-    strnz__cpy(stdio_str, ttyname(0), MAXLEN - 1);
+    strnz__cat(stdio_str, ttyname(0), MAXLEN - 1);
+    strnz__cat(stdio_str, ", ", MAXLEN - 1);
     if (errno)
         ssnprintf(err_str, MAXLEN - 1, "Error fd %d: %s\n", 0, strerror(errno));
 
-    strnz__cpy(stdio_str, ttyname(1), MAXLEN - 1);
+    strnz__cat(stdio_str, ttyname(1), MAXLEN - 1);
+    strnz__cat(stdio_str, ", ", MAXLEN - 1);
     if (errno)
         ssnprintf(err_str, MAXLEN - 1, "Error fd %d: %s\n", 1, strerror(errno));
 
-    strnz__cpy(stdio_str, ttyname(2), MAXLEN - 1);
+    strnz__cat(stdio_str, ttyname(2), MAXLEN - 1);
+    strnz__cat(stdio_str, ", ", MAXLEN - 1);
     if (errno)
         ssnprintf(err_str, MAXLEN - 1, "Error fd %d: %s\n", 2, strerror(errno));
 
@@ -1096,6 +1099,19 @@ char *stdio_fdnames(char *stdio_str, char *id) {
     strnz__cat(stdio_str, fdname(1, buf), MAXLEN - 1);
     strnz__cat(stdio_str, ",", MAXLEN - 1);
     strnz__cat(stdio_str, fdname(2, buf), MAXLEN - 1);
+    strnz__cat(stdio_str, ",", MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(3, buf), MAXLEN - 1);
+    strnz__cat(stdio_str, ",", MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(4, buf), MAXLEN - 1);
+    strnz__cat(stdio_str, ",", MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(5, buf), MAXLEN - 1);
+    strnz__cat(stdio_str, ",", MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(6, buf), MAXLEN - 1);
+    strnz__cat(stdio_str, ",", MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(7, buf), MAXLEN - 1);
+    strnz__cat(stdio_str, ",", MAXLEN - 1);
+    strnz__cat(stdio_str, fdname(8, buf), MAXLEN - 1);
+    return stdio_str;
     return stdio_str;
 }
 /**  @brief Returns the base name of a file specification.

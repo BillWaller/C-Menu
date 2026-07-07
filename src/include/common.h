@@ -131,7 +131,7 @@ typedef struct
     char **argv;               /**< command line arguments vector */
     int optind;                /**< getopt pointer to non-option arguments in argv */
     bool f_ignore_case;        /**< View - ignore case in search */
-    bool p_view_files;         /**< View - ignore case in search */
+    bool p_view_files;         /**< Pick - View Pick Files */
     bool f_at_end_remove;      /**< obsolete, unneeded */
     bool f_strip_ansi;         /**< strip ansi escape sequences when writing buffer */
     bool f_squeeze;            /**< View - print one line for each group of blank lines

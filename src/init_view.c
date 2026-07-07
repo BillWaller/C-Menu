@@ -29,7 +29,7 @@ void view_full_screen_resize(Init *);
 void view_calc_boxwin_dimensions(Init *);
 void view_boxwin_resize(Init *);
 void destroy_view_win(Init *);
-void view_win_del(Panel *);
+void view_win_del(PANEL *, WINDOW *);
 
 ViewStack view_stack;
 
@@ -41,8 +41,8 @@ ViewStack view_stack;
    creates a new pad for the view.
    @verbatim
    The function creates the following windows:
-   1. view->cmdln.win: Status or Command Line
-   2. view->lnno.win: Line Number Window
+   1. view->cmdln_win: Status or Command Line
+   2. view->lnno_win: Line Number Window
    3. view->pad: Main Content Pad
    @endverbatim
  */
@@ -56,54 +56,54 @@ int init_view_full_screen(Init *init) {
 
     // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
-    view->win.win = newwin(LINES, COLS, 0, 0);
-    if (view->win.win == nullptr) {
+    view->win_win = newwin(LINES, COLS, 0, 0);
+    if (view->win_win == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;
     }
-    view->win.pan = new_panel(view->win.win);
-    wbkgrnd(view->win.win, &CC_NT);
+    view->win_pan = new_panel(view->win_win);
+    wbkgrnd(view->win_win, &CC_NT);
 
     // -------------------> 2. LNNO <-------------------
-    view->lnno.win = derwin(view->win.win, LINES - 1, COLS, 0, 0);
-    if (view->lnno.win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "derwin(view->win.win, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
+    view->lnno_win = derwin(view->win_win, LINES - 1, COLS, 0, 0);
+    if (view->lnno_win == nullptr) {
+        ssnprintf(em0, MAXLEN - 1, "derwin(view->win_win, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;
     }
-    view->lnno.pan = new_panel(view->lnno.win);
-    wbkgrnd(view->lnno.win, &CC_LN);
-    keypad(view->lnno.win, false);
-    idlok(view->lnno.win, false);
-    idcok(view->lnno.win, false);
-    scrollok(view->lnno.win, true);
-    wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
+    view->lnno_pan = new_panel(view->lnno_win);
+    wbkgrnd(view->lnno_win, &CC_LN);
+    keypad(view->lnno_win, false);
+    idlok(view->lnno_win, false);
+    idcok(view->lnno_win, false);
+    scrollok(view->lnno_win, true);
+    wsetscrreg(view->lnno_win, 0, view->scroll_lines - 1);
 
     // -------------------> 3. CMDLN <-------------------
-    view->cmdln.win = derwin(view->win.win, 1, COLS, LINES - 1, 0);
-    if (view->cmdln.win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "derwin(view->win.win, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
+    view->cmdln_win = derwin(view->win_win, 1, COLS, LINES - 1, 0);
+    if (view->cmdln_win == nullptr) {
+        ssnprintf(em0, MAXLEN - 1, "derwin(view->win_win, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;
     }
-    view->cmdln.pan = new_panel(view->cmdln.win);
-    wbkgrnd(view->cmdln.win, &CC_NT);
-    keypad(view->cmdln.win, true);
-    idlok(view->cmdln.win, false);
-    idcok(view->cmdln.win, false);
-    scrollok(view->cmdln.win, false);
+    view->cmdln_pan = new_panel(view->cmdln_win);
+    wbkgrnd(view->cmdln_win, &CC_NT);
+    keypad(view->cmdln_win, true);
+    idlok(view->cmdln_win, false);
+    idcok(view->cmdln_win, false);
+    scrollok(view->cmdln_win, false);
 
-    // view->pad_container.win = derwin(view->win.win, LINES - 1, COLS -
+    // view->pad_container_win = derwin(view->win_win, LINES - 1, COLS -
     // view->ln_win_cols, 0, view->ln_win_cols);
-    // if (view->pad_container.win == nullptr) {
+    // if (view->pad_container_win == nullptr) {
     //     ssnprintf(em0, MAXLEN - 1,
-    //               "derwin(view->win.win, LINES - 1, COLS - view->ln_win_cols,
+    //               "derwin(view->win_win, LINES - 1, COLS - view->ln_win_cols,
     //               0, view->ln_win_cols) failed in init_view_full_screen");
     //     Perror(em0);
     //     return -1;
     // }
-    // view->pad_container.pan = new_panel(view->pad_container.win);
+    // view->pad_container_pan = new_panel(view->pad_container_win);
     // -------------------> 4. PAD <-------------------
     view->pad = newpad(LINES - 1, PAD_COLS - 1);
     if (view->pad == nullptr) {
@@ -111,14 +111,14 @@ int init_view_full_screen(Init *init) {
         Perror(em0);
         return -1;
     }
-    view->pad_view.win = subpad(view->pad, LINES - 1, COLS - 1, 0, 0);
-    if (view->pad_view.win == nullptr) {
+    view->pad_view_win = subpad(view->pad, LINES - 1, COLS - 1, 0, 0);
+    if (view->pad_view_win == nullptr) {
         ssnprintf(em0, MAXLEN - 1,
                   "subpad(view->pad, LINES - 1, COLS - view->ln_win_cols, 0, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;
     }
-    view->pad_view.pan = new_panel(view->pad_view.win);
+    view->pad_view_pan = new_panel(view->pad_view_win);
     wbkgrnd(view->pad, &CC_NT);
     keypad(view->pad, true);
     keypad(view->pad, true);
@@ -140,10 +140,10 @@ void view_full_screen_resize(Init *init) {
     erase();
     View *view = init->view;
     view_calc_full_screen_dimensions(init);
-    mvwin(view->cmdln.win, view->lines - 1, 0);
-    wresize(view->cmdln.win, 1, view->cols);
-    wresize(view->lnno.win, view->ln_win_lines - 1, view->ln_win_cols);
-    wsetscrreg(view->lnno.win, 0, view->scroll_lines - 1);
+    mvwin(view->cmdln_win, view->lines - 1, 0);
+    wresize(view->cmdln_win, 1, view->cols);
+    wresize(view->lnno_win, view->ln_win_lines - 1, view->ln_win_cols);
+    wsetscrreg(view->lnno_win, 0, view->scroll_lines - 1);
     wresize(view->pad, view->lines - 1, PAD_COLS);
     wsetscrreg(view->pad, 0, view->lines - 1);
 }
@@ -198,80 +198,80 @@ int init_view_boxwin(Init *init) {
     view->f_full_screen = false;
     view_calc_boxwin_dimensions(init);
     // -------------------> 1. BOX <-------------------
-    view->box.win = newwin(view->lines + 2, view->cols + 2, view->begy, view->begx);
-    if (view->box.win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "view->box.win: lines=%d, cols=%d, begy=%d, begx=%d",
+    view->box_win = newwin(view->lines + 2, view->cols + 2, view->begy, view->begx);
+    if (view->box_win == nullptr) {
+        ssnprintf(em0, MAXLEN - 1, "view->box_win: lines=%d, cols=%d, begy=%d, begx=%d",
                   view->lines + 2, view->cols + 2, view->begy, view->begx);
         Perror(em0);
         return -1;
     }
-    view->box.pan = new_panel(view->box.win);
-    wbkgrnd(view->box.win, &CC_BOX);
-    wbkgrndset(view->box.win, &CC_BOX);
+    view->box_pan = new_panel(view->box_win);
+    wbkgrnd(view->box_win, &CC_BOX);
+    wbkgrndset(view->box_win, &CC_BOX);
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d init BOX: lines=%d, cols=%d, begy=%d, begx=%d",
               __FILE__, __LINE__, view->lines + 2, view->cols + 2, view->begy, view->begx);
     write_cmenu_log_nt(em0);
 #endif
-    wborder_set(view->box.win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
+    wborder_set(view->box_win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
 
     // -------------------> 2. WIN <-------------------
-    view->win.win = derwin(view->box.win, view->lines, view->cols, 1, 1);
-    if (view->win.win == nullptr) {
+    view->win_win = derwin(view->box_win, view->lines, view->cols, 1, 1);
+    if (view->win_win == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s:%d WIN: lines=%d, cols=%d, begy=%d, begx=%d",
                   __FILE__, __LINE__, view->lines, view->cols, 1, 1);
         Perror(em0);
         return -1;
     }
-    view->win.pan = new_panel(view->win.win);
-    wbkgrnd(view->win.win, &CC_NT);
-    wbkgrndset(view->win.win, &CC_NT);
+    view->win_pan = new_panel(view->win_win);
+    wbkgrnd(view->win_win, &CC_NT);
+    wbkgrndset(view->win_win, &CC_NT);
     // -------------------> 3. CMDLN <-------------------
-    view->cmdln.win = derwin(view->win.win, 1, view->cols, view->lines - 1, 0);
-    if (view->cmdln.win == nullptr) {
+    view->cmdln_win = derwin(view->win_win, 1, view->cols, view->lines - 1, 0);
+    if (view->cmdln_win == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s:%d CMDLN: lines=%d, cols=%d, begy=%d, begx=%d",
                   __FILE__, __LINE__, 1, view->cols, view->lines - 1, 0);
         Perror(em0);
         return -1;
     }
-    view->cmdln.pan = new_panel(view->cmdln.win);
-    wbkgrnd(view->cmdln.win, &CC_NT);
-    wbkgrndset(view->cmdln.win, &CC_NT);
-    keypad(view->cmdln.win, true);
-    idlok(view->cmdln.win, false);
-    idcok(view->cmdln.win, false);
-    scrollok(view->cmdln.win, false);
+    view->cmdln_pan = new_panel(view->cmdln_win);
+    wbkgrnd(view->cmdln_win, &CC_NT);
+    wbkgrndset(view->cmdln_win, &CC_NT);
+    keypad(view->cmdln_win, true);
+    idlok(view->cmdln_win, false);
+    idcok(view->cmdln_win, false);
+    scrollok(view->cmdln_win, false);
 
     // -------------------> 4. LNNO <-------------------
-    view->lnno.win = derwin(view->win.win, view->lines - 1, view->ln_win_cols, 0, 0);
-    if (view->lnno.win == nullptr) {
+    view->lnno_win = derwin(view->win_win, view->lines - 1, view->ln_win_cols, 0, 0);
+    if (view->lnno_win == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "%s:%d LNNO: lines=%d, cols=%d, begy=%d, begx=%d",
                   __FILE__, __LINE__, view->lines - 1, view->ln_win_cols, 0, 0);
         Perror(em0);
         return -1;
     }
-    view->lnno.pan = new_panel(view->lnno.win);
-    wbkgrnd(view->lnno.win, &CC_LN);
-    wbkgrndset(view->lnno.win, &CC_LN);
-    keypad(view->lnno.win, false);
-    idlok(view->lnno.win, false);
-    idcok(view->lnno.win, false);
-    scrollok(view->lnno.win, true);
-    wsetscrreg(view->lnno.win, 0, view->scroll_lines);
+    view->lnno_pan = new_panel(view->lnno_win);
+    wbkgrnd(view->lnno_win, &CC_LN);
+    wbkgrndset(view->lnno_win, &CC_LN);
+    keypad(view->lnno_win, false);
+    idlok(view->lnno_win, false);
+    idcok(view->lnno_win, false);
+    scrollok(view->lnno_win, true);
+    wsetscrreg(view->lnno_win, 0, view->scroll_lines);
 
     // -------------------> 5. PAD CONTAINER <---------
-    // view->pad_container.win = derwin(view->win.win, view->lines - 1,
+    // view->pad_container_win = derwin(view->win_win, view->lines - 1,
     // view->cols - view->ln_win_cols, 0, view->ln_win_cols);
-    // if (view->pad_container.win == nullptr) {
+    // if (view->pad_container_win == nullptr) {
     //     ssnprintf(em0, MAXLEN - 1,
-    //               "derwin(view->win.win, view->lines - 1, view->cols -
+    //               "derwin(view->win_win, view->lines - 1, view->cols -
     //               view->ln_win_cols, 0, view->ln_win_cols) failed in
     //               init_view_full_screen");
     //     Perror(em0);
     //     return -1;
     // }
-    // view->pad_container.pan = new_panel(view->pad_container.win);
+    // view->pad_container_pan = new_panel(view->pad_container_win);
 
     // -------------------> 5. PAD <-------------------
     view->pad = newpad(view->lines - 1, PAD_COLS - 1);
@@ -283,12 +283,12 @@ int init_view_boxwin(Init *init) {
     view->pad = newpad(view->lines - 1, PAD_COLS - 1);
 
     // -------------------> 5. PAD_VIEW <--------------
-    view->pad_view.win = subpad(view->pad,
+    view->pad_view_win = subpad(view->pad,
                                 view->lines - 1,
                                 PAD_COLS - 1,
                                 0,
                                 0);
-    if (view->pad_view.win == nullptr) {
+    if (view->pad_view_win == nullptr) {
         ssnprintf(em0, MAXLEN - 1,
                   "%s:%d PAD: lines=%d, cols=%d, begy=%d, begx=%d",
                   __FILE__, __LINE__,
@@ -299,7 +299,7 @@ int init_view_boxwin(Init *init) {
         Perror(em0);
         return -1;
     }
-    view->pad_view.pan = new_panel(view->pad_view.win);
+    view->pad_view_pan = new_panel(view->pad_view_win);
 
     // -----------------------------
 #ifdef DEBUG_LAYOUT
@@ -318,19 +318,22 @@ void destroy_view_win(Init *init) {
     View *view = init->view;
     if (!view)
         return;
-    view_win_del(&view->pad_view);
+    view_win_del(view->pad_view_pan, view->pad_view_win);
     delwin(view->pad);
-    view_win_del(&view->cmdln);
-    view_win_del(&view->lnno);
-    view_win_del(&view->win);
-    view_win_del(&view->box);
+    view_win_del(view->cmdln_pan, view->cmdln_win);
+    view_win_del(view->lnno_pan, view->lnno_win);
+    view_win_del(view->win_pan, view->win_win);
+    view_win_del(view->box_pan, view->box_win);
+    wnoutrefresh(stdscr);
+    update_panels();
+    doupdate();
 }
-void view_win_del(Panel *panel) {
-    if (panel) {
-        PANEL *pan = panel->pan;
+void view_win_del(PANEL *pan, WINDOW *win) {
+    if (pan) {
         del_panel(pan);
-        WINDOW *win = panel->win;
+        pan = nullptr;
         delwin(win);
+        win = nullptr;
     }
 }
 //------------------------------------------------------------------------------
@@ -342,7 +345,7 @@ void view_win_del(Panel *panel) {
 void view_boxwin_resize(Init *init) {
     destroy_view_win(init);
     init_view_boxwin(init);
-    border_title(init->view->box.win, init->view->title);
+    border_title(init->view->box_win, init->view->title);
     // initialize_line_table(init->view);
 }
 
@@ -540,113 +543,32 @@ int view_init_input(Init *init, char *file_name) {
         /*----------------------------------------------------------------------*/
     }
     if (view->f_in_pipe) {
-        // char tmp_filename[] = "/tmp/view_XXXXXX";
+        close(view->in_fd);
+        errno = 0;
+        view->in_fd = memfd_create("view_input", MFD_CLOEXEC);
+        if (view->in_fd < 0 || errno != 0) {
+            ssnprintf(em0, MAXLEN - 1, "memfd_create failed\n");
+            ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+            ssnprintf(em2, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+                      __LINE__ - 4, errno);
+            display_error(em0, em1, em2, nullptr);
+            exit(EXIT_FAILURE);
+        }
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;
         ssize_t bytes_written = 0;
-        close(view->in_fd);
-        // view->in_fd = mkstemp(tmp_filename);
-        view->in_fd = memfd_create("view_input", MFD_CLOEXEC);
-        if (view->in_fd == -1) {
-            abend(-1, "failed to mkstemp");
-            exit(EXIT_FAILURE);
-        }
-        // unlink(tmp_filename);
-        /*-----------------------------------------------------------------*/
-        bool f_wait = false;
-        int ready;
-        fd_set read_fds;
-        struct timeval timeout;
-        Chyron *wait_chyron = nullptr;
-        WINDOW *wait_win = nullptr;
-        int remaining = 0;
-        FD_ZERO(&read_fds);
-        FD_SET(STDIN_FILENO, &read_fds);
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 200000; /**< 200ms timeout to check for input */
-        ready = select(STDIN_FILENO + 1, &read_fds, nullptr, nullptr, &timeout);
-        if (ready == 0) {
-            f_wait = true;
-            remaining = wait_timeout;
-            wait_chyron = wait_mk_chyron();
-            wait_win = wait_mk_win(wait_chyron, "WAITING for VIEW INPUT");
-        }
-        cmd_key = 0;
-        while (ready == 0 && remaining > 0 && cmd_key != KEY_F(9)) {
-            cmd_key = wait_continue(wait_win, wait_chyron, remaining);
-            if (cmd_key == KEY_F(9))
-                break;
-            FD_ZERO(&read_fds);
-            FD_SET(STDIN_FILENO, &read_fds);
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 0;
-            ready =
-                select(STDIN_FILENO + 1, &read_fds, nullptr, nullptr, &timeout);
-            remaining--;
-        }
-        if (f_wait) {
-            if (wait_chyron != nullptr)
-                wait_destroy(wait_chyron);
-        }
-        if (cmd_key == KEY_F(9)) {
-            if (view->f_in_pipe && pid > 0) {
-                /** If user cancels while waiting for view input, kill
-                 * provider_cmd child process and close pipe */
-                kill(pid, SIGKILL);
-                waitpid(pid, nullptr, 0);
-                close(pipe_fd[P_READ]);
-            }
-            Perror("No view input available");
-            return -1;
-        }
-        if (ready == -1) {
-            Perror("Error waiting for view input");
-            if (view->f_in_pipe && pid > 0) {
-                /** If error occurs while waiting for view input, kill
-                 * provider_cmd child process and close pipe */
-                kill(pid, SIGKILL);
-                waitpid(pid, nullptr, 0);
-                close(pipe_fd[P_READ]);
-            }
-            return -1;
-        }
-        if (ready == 0) {
-            Perror("Timeout waiting for view input");
-            if (view->f_in_pipe && pid > 0) {
-                /** If timeout occurs while waiting for view input, kill
-                 * provider_cmd child process and close pipe */
-                kill(pid, SIGKILL);
-                waitpid(pid, nullptr, 0);
-                close(pipe_fd[P_READ]);
-            }
-            return -1;
-        }
-        if (ready == 1 && !FD_ISSET(STDIN_FILENO, &read_fds)) {
-            Perror("Unexpected error waiting for view input");
-            if (view->f_in_pipe && pid > 0) {
-                /** If unexpected error occurs while waiting for view input,
-                 * kill provider_cmd child process and close pipe */
-                kill(pid, SIGKILL);
-                waitpid(pid, nullptr, 0);
-                close(pipe_fd[P_READ]);
-            }
-            return -1;
-        }
-        /*-----------------------------------------------------------------*/
         while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0) {
-            if (write(view->in_fd, buf, bytes_read) != bytes_read) {
-                abend(-1, "unable to write tmp");
+            if ((bytes_written = write(view->in_fd, buf, bytes_read)) != bytes_read) {
+                abend(-1, "unable to write view->in_fd");
                 exit(EXIT_FAILURE);
             }
-            bytes_written += bytes_read;
-        }
-        ftruncate(view->in_fd, bytes_written);
-        if (bytes_written == 0) {
-            abend(-1, "unable to read stdin");
-            exit(EXIT_FAILURE);
         }
         if (fstat(view->in_fd, &sb) == -1) {
-            abend(-1, "fstat failed");
+            ssnprintf(em0, MAXLEN - 1, "fstat(view->in_fd) failed\n");
+            ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+            ssnprintf(em2, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+                      __LINE__ - 4, errno);
+            display_error(em0, em1, em2, nullptr);
             exit(EXIT_FAILURE);
         }
         view->file_size = sb.st_size;
@@ -656,10 +578,8 @@ int view_init_input(Init *init, char *file_name) {
             abend(-1, tmp_str);
             exit(EXIT_FAILURE);
         }
-        waitpid_with_timeout(pid, wait_timeout);
-        // waitpid(-1, nullptr, 0);
+        waitpid(-1, nullptr, 0);
     }
-    //  Memory-map the input file for efficient access.
     view->buf =
         mmap(nullptr, view->file_size, PROT_READ, MAP_PRIVATE, view->in_fd, 0);
     if (view->buf == MAP_FAILED) {
@@ -672,8 +592,11 @@ int view_init_input(Init *init, char *file_name) {
     }
     close(view->in_fd);
     SIO *sio = init->sio;
+    stdio_names(stdio_names_str, "init_view.c 673");
+    stdio_fdnames(stdio_names_str, "init_view.c 674");
     dup2(sio->stdin_fd, STDIN_FILENO);
-    stdio_names(stdio_names_str, "init_view.c 715");
+    stdio_names(stdio_names_str, "init_view.c 673");
+    stdio_fdnames(stdio_names_str, "init_view.c 674");
     view->file_size = sb.st_size;
     view->prev_file_pos = NULL_POSITION;
     view->buf_curr_ptr = view->buf;

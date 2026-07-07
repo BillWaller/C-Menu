@@ -42,6 +42,7 @@ void end_pick_view(Init *);
 void destroy_pick_view(Init *);
 int match_objects(Pick *pick, char *s);
 void remove_right_angle(Pick *);
+void pick_std_chyron(Pick *);
 int pipe_fd[2];
 
 char const pagers_editors[12][10] = {"view", "view", "less", "more",
@@ -72,7 +73,7 @@ int init_pick(Init *init, int argc, char **argv, int by, int bx) {
     Pick *pick = new_pick(init, argc, argv, by, bx);
     if (init->pick != pick)
         abend(-1, "init->pick != pick\n");
-    SIO *sio = init->sio;
+    // SIO *sio = init->sio;
     if (pick->provider_cmd[0] != '\0') {
         s_argc = str_to_args(s_argv, pick->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
@@ -140,87 +141,8 @@ int init_pick(Init *init, int argc, char **argv, int by, int bx) {
         }
     }
     /*------------------------------------------------------------*/
-    bool f_wait = false;
-    int ready;
-    fd_set read_fds;
-    struct timeval timeout;
-    Chyron *wait_chyron;
-    WINDOW *wait_win;
-    int remaining = 0;
     if (pick->in_fp == nullptr) {
         Perror("No pick input available");
-        return (1);
-    }
-    int in_fd = fileno(pick->in_fp);
-    FD_ZERO(&read_fds);
-    FD_SET(in_fd, &read_fds);
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 200000; /**< Initial timeout of 200ms to check for pick input */
-    ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
-    if (ready == 0) {
-        f_wait = true;
-        remaining = wait_timeout;
-        wait_chyron = wait_mk_chyron();
-        wait_win = wait_mk_win(wait_chyron, "WAITING for PICK INPUT");
-        int in_key = 0;
-        while (ready == 0 && remaining > 0 && in_key != KEY_F(9)) {
-            in_key = wait_continue(wait_win, wait_chyron, remaining);
-            if (in_key == KEY_F(9))
-                break;
-            FD_ZERO(&read_fds);
-            FD_SET(in_fd, &read_fds);
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 0;
-            ready = select(in_fd + 1, &read_fds, nullptr, nullptr, &timeout);
-            remaining--;
-        }
-        if (f_wait) {
-            if (wait_chyron != nullptr)
-                wait_destroy(wait_chyron);
-        }
-        if (in_key == KEY_F(9)) {
-            if (pick->f_in_pipe && pid > 0) {
-                /** If user cancels while waiting for pick input, kill
-                 * provider_cmd child process and close pipe */
-                kill(pid, SIGKILL);
-                waitpid(pid, nullptr, 0);
-                close(pipe_fd[P_READ]);
-            }
-            Perror("No pick input available");
-            return (1);
-        }
-    }
-    if (ready == -1) {
-        Perror("Error waiting for pick input");
-        if (pick->f_in_pipe && pid > 0) {
-            /** If error occurs while waiting for pick input, kill provider_cmd
-             * child process and close pipe */
-            kill(pid, SIGKILL);
-            waitpid(pid, nullptr, 0);
-            close(pipe_fd[P_READ]);
-        }
-        return (1);
-    }
-    if (ready == 0) {
-        Perror("Timeout waiting for pick input");
-        if (pick->f_in_pipe && pid > 0) {
-            /** If timeout occurs while waiting for pick input, kill
-             * provider_cmd child process and close pipe */
-            kill(pid, SIGKILL);
-            waitpid(pid, nullptr, 0);
-            close(pipe_fd[P_READ]);
-        }
-        return (1);
-    }
-    if (ready == 1 && !FD_ISSET(in_fd, &read_fds)) {
-        Perror("Unexpected error waiting for pick input");
-        if (pick->f_in_pipe && pid > 0) {
-            /** If unexpected error occurs while waiting for pick input, kill
-             * provider_cmd child process and close pipe */
-            kill(pid, SIGKILL);
-            waitpid(pid, nullptr, 0);
-            close(pipe_fd[P_READ]);
-        }
         return (1);
     }
     /*------------------------------------------------------------*/
@@ -252,6 +174,21 @@ int init_pick(Init *init, int argc, char **argv, int by, int bx) {
     while (pick->m_idx < pick->m_cnt)
         pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx++];
     pick->d_cnt = pick->d_idx;
+    pick->chyron = new_chyron();
+    set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
+    set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
+    set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F(10));
+    set_chyron_key(pick->chyron, 4, "<v> View", 'v');
+    set_chyron_key(pick->chyron, 5, "<q> Quit View", 'q');
+    set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
+    set_chyron_key(pick->chyron, 7, "<Sp> Toggle", ' ');
+    set_chyron_key(pick->chyron, 9, "<Tab> Search", '\t');
+    set_chyron_key(pick->chyron, 10, "<Tab> Select", '\t');
+    set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
+    set_chyron_key(pick->chyron, 12, "PgDn", KEY_NPAGE);
+    set_chyron_key(pick->chyron, 13, "INS", KEY_IC);
+    pick_std_chyron(pick);
+    compile_chyron(pick->chyron);
     pick_engine(init);
     if (pick->p_view_files)
         destroy_pick_view(init);
@@ -260,6 +197,7 @@ int init_pick(Init *init, int argc, char **argv, int by, int bx) {
 }
 
 void destroy_pick_view(Init *init) {
+    stdio_fdnames(stdio_names_str, "pick_engine.c 279");
     Pick *pick = init->pick;
     View *view = init->view;
     if (pick->p_view_files) {
@@ -350,6 +288,7 @@ int pick_engine(Init *init) {
     pick->tbl_col_width = min(pick->tbl_col_width, (maxx - (2 + pick->begx)));
     if (pick->d_cnt <= pick->lines) {
         pick->tbl_lines = pick->d_cnt;
+        pick->lines = pick->d_cnt;
         pick->tbl_cols = 1;
     } else {
         tbl_max_cols = ((maxx - (2 + pick->begx)) / (pick->tbl_col_width + 1));
@@ -369,34 +308,12 @@ int pick_engine(Init *init) {
     //     pick->begy = LINES - pick->lines - 2;
     pick->width = (pick->tbl_col_width + 1) * pick->tbl_cols;
 
-    pick->chyron = new_chyron();
-    set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
-    set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
-    set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F(10));
-    if (pick->p_view_files)
-        set_chyron_key(pick->chyron, 4, "<v> View", 'v');
-    if (pick->select_max == 1)
-        set_chyron_key(pick->chyron, 5, "<Sp> Process", ' ');
-    else
-        set_chyron_key(pick->chyron, 6, "<Sp> Toggle", ' ');
-    set_chyron_key(pick->chyron, 7, "<Tab> Search", '\t');
-    set_chyron_key(pick->chyron, 8, "<Tab> Select", '\t');
-    set_chyron_key(pick->chyron, 9, "PgUp", KEY_PPAGE);
-    set_chyron_key(pick->chyron, 10, "PgDn", KEY_NPAGE);
-    set_chyron_key(pick->chyron, 11, "INS", KEY_IC);
-    activate_all_chyron_keys(pick->chyron);
-    pick->chyron->key[6]->active = false;
-    pick->chyron->key[7]->active = false;
-    pick->chyron->key[11]->active = false;
+    // The following lines will accomodate the longest chyron line
+    pick->chyron->key[11]->active = true;
+    pick->chyron->key[12]->active = true;
     compile_chyron(pick->chyron);
     pick->width = max(pick->width, pick->chyron->l);
-    pick->chyron->key[3]->active = false;
-    pick->chyron->key[4]->active = pick->p_view_files;
-    pick->chyron->key[5]->active = pick->p_view_files;
-    pick->chyron->key[6]->active = !pick->p_view_files;
-    pick->chyron->key[8]->active = false;
-    pick->chyron->key[11]->active = false;
-
+    pick_std_chyron(pick);
     rc = open_pick_win(init);
     if (rc) {
         Perror("Failed to open pick window");
@@ -441,6 +358,32 @@ int pick_engine(Init *init) {
     destroy_chyron(pick->chyron);
     return (rc);
 }
+void pick_std_chyron(Pick *pick) {
+    // *   1  F1 Help         KEY_F(1));
+    // *   2  F9 Cancel       KEY_F(9));
+    // *   3  F10 Accept      KEY_F(10));
+    // ?   4  <v> View        <v>
+    // ?   5  <q> Quit View   <q>
+    // ?   6  <Sp> Process    <Sp>
+    // ?   7  <Sp> Toggle     <Sp>
+    // ?   9  <Tab> Search    <Tab>
+    // ?  10  <Tab> Select"   <Tab>
+    // ?  11  PgUp            KEY_PPAGE
+    // ?  12  PgDn            KEY_NPAGE
+    // ?  13  INS             KEY_IC
+    pick->chyron->key[1]->active = true;                                                    // F1 Help
+    pick->chyron->key[2]->active = true;                                                    // F9 Cancel
+    pick->chyron->key[3]->active = pick->select_max != 1 ? true : false;                    // F10 Accept
+    pick->chyron->key[4]->active = pick->p_view_files;                                      // <v> View
+    pick->chyron->key[5]->active = false;                                                   // <q> Quit View
+    pick->chyron->key[6]->active = pick->select_max != 1 ? true : false;                    // <Sp> Toggle
+    pick->chyron->key[7]->active = pick->select_max == 1 ? true : false;                    // <Sp> Process
+    pick->chyron->key[9]->active = true;                                                    // <Tab> Search;
+    pick->chyron->key[10]->active = false;                                                  // <Tab> Select;
+    pick->chyron->key[11]->active = pick->tbl_page > 0 ? true : false;                      // PgUp
+    pick->chyron->key[12]->active = (pick->tbl_page < (pick->tbl_page + 1)) ? true : false; // PgDn
+    pick->chyron->key[13]->active = false;                                                  // INS
+}
 /** @brief Saves a string as an object in the pick structure
  *  @ingroup pick_engine
     @param pick Pointer to Pick structure
@@ -474,15 +417,11 @@ void save_object(Pick *pick, char *s) {
  an asterisk. Updates the chyron with page information at the bottom of the pick
    window. */
 void display_pick_page(Pick *pick) {
-    update_panels();
-    doupdate();
     int col;
     for (pick->y = 0; pick->y < pick->lines; pick->y++) {
         wmove(pick->win, pick->y, 0);
         wclrtoeol(pick->win);
     }
-    update_panels();
-    doupdate();
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols;
     for (col = 0; col < pick->tbl_cols; col++) {
         pick->x = col * (pick->tbl_col_width + 1) + 1;
@@ -494,8 +433,6 @@ void display_pick_page(Pick *pick) {
                            pick->d_object[pick->d_idx++], pick->tbl_col_width - 1);
         }
     }
-    update_panels();
-    doupdate();
     pick->d_idx -= 1;
     pick->tbl_lines = pick->d_cnt;
     pick->tbl_pages = ((pick->tbl_lines + pick->lines - 1) / pick->lines);
@@ -504,8 +441,6 @@ void display_pick_page(Pick *pick) {
         wscrl(pick->win, -pick->y_offset);
     } else
         pick->y_offset = 0;
-    update_panels();
-    doupdate();
 }
 /** @brief Displays current page of objects in pick window
     @ingroup pick_engine
@@ -547,18 +482,16 @@ void reverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-    wmove(pick->win, pick->y, pick->x);
     wbkgrndset(pick->win, &CC_NT_REV);
+    wmove(pick->win, pick->y, pick->x);
     mvwaddstr_fill(pick->win, pick->y, pick->x, pick->d_object[pick->d_idx],
                    pick->tbl_col_width - 1);
-    wbkgrndset(pick->win, &CC_NT);
     wmove(pick->win, pick->y, pick->x - 1);
     if (pick->f_selected[pick->d_idx])
         mvwadd_wchnstr(pick->win, pick->y, 0, &chk, 1);
     else
         mvwadd_wchnstr(pick->win, pick->y, 0, &ran, 1); // space
-    update_panels();
-    doupdate();
+    wbkgrndset(pick->win, &CC_NT);
 }
 /** @brief Unreverses the display of the currently selected object in pick
    window
@@ -586,8 +519,6 @@ void unreverse_object(Pick *pick) {
     else
         mvwadd_wchnstr(pick->win, pick->y, 0, &sp, 1); // space
     wmove(pick->win, pick->y, 0);
-    update_panels();
-    doupdate();
 }
 void remove_right_angle(Pick *pick) {
     if (pick->d_idx >= pick->d_cnt)
@@ -600,8 +531,6 @@ void remove_right_angle(Pick *pick) {
     else
         mvwadd_wchnstr(pick->win, pick->y, 0, &sp, 1); // space
     wmove(pick->win, pick->y, 0);
-    update_panels();
-    doupdate();
 }
 /** @brief Toggles the selection state of the currently selected object in pick
    window
@@ -638,7 +567,6 @@ void deselect_object(Pick *pick) {
         pick->f_selected[pick->d_idx] = false;
         mvwadd_wchnstr(pick->win, pick->y, 0, &sp, 1); // space
     }
-    update_panels();
 }
 int read_theme(Init *init) {
     int rc;
@@ -940,8 +868,6 @@ void display_pick_help(Init *init) {
     */
 int picker(Init *init, char *field) {
     bool f_insert = false; /* Flag to indicate if insert mode is active */
-    char filler_s[MAXLEN]; /* buffer for filling the field with spaces */
-    int line = 0;          /* Starting line for field input */
     Pick *pick = init->pick;
     int col = 0;
     int flen = pick->width - 4;
@@ -968,29 +894,15 @@ int picker(Init *init, char *field) {
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
 
     f_insert = false;
-    // compile_chyron(pick->chyron);
-    // display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
 
     keypad(pick->win, true);
 
     int in_key = 0;
     while (1) {
-        pick->chyron->key[1]->active = true;                                // F1 Help
-        pick->chyron->key[2]->active = true;                                // F9 Cancel
-        pick->chyron->key[3]->active = pick->select_cnt > 0 ? true : false; // F10 Accept
-        pick->chyron->key[4]->active = pick->p_view_files;                  // <v> View
-        pick->chyron->key[5]->active = pick->p_view_files;                  // <Sp> Edit
-        pick->chyron->key[6]->active = !pick->p_view_files;                 // <Sp> Toggle
-        pick->chyron->key[7]->active = true;                                // <Tab> Search
-        pick->chyron->key[8]->active = false;                               // <Tab> Select
-        pick->chyron->key[11]->active = false;                              // INS
-        // wnoutrefresh(pick->win2);
         while (1) {
             /** ===========================================================
                 Pick Objects Loop
                 =========================================================== */
-            pick->chyron->key[9]->active = pick->tbl_page > 0 ? true : false;                        // PgUp
-            pick->chyron->key[10]->active = (pick->tbl_pages > (pick->tbl_page + 1)) ? true : false; // PgDn
             if (in_key == 0) {
                 reverse_object(pick);
                 pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
@@ -1008,14 +920,15 @@ int picker(Init *init, char *field) {
                 mouse_win = nullptr;
                 // 1
                 // top_panel(panel_win[win_ptr]);
+                pick_std_chyron(pick);
                 compile_chyron(pick->chyron);
                 display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
-                curs_set(1);
-                wmove(pick->win, pick->y, pick->x);
-                top_panel(panel_win[win_ptr]);
+                // top_panel(panel_win[win_ptr]);
+                reverse_object(pick);
                 update_panels();
+                wmove(pick->win, pick->y, pick->x);
                 doupdate();
-                in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
+                in_key = dxwgetch(pick->win, pick->win, pick->win2, nullptr, pick->win2, pick->chyron, -1);
                 if (pick->f_selected[pick->d_idx])
                     mvwadd_wchnstr(pick->win, pick->y, 0, &chk, 1);
                 else
@@ -1037,12 +950,43 @@ int picker(Init *init, char *field) {
                 continue;
 
             case 'v':
-                // remove_right_angle(pick);
-                wnoutrefresh(pick->win);
+                if (!pick->p_view_files) {
+                    in_key = 0;
+                    continue;
+                }
+                // *   1  F1 Help         KEY_F(1));
+                // *   2  F9 Cancel       KEY_F(9));
+                // *   3  F10 Accept      KEY_F(10));
+                // ?   4  <v> View        <v>
+                // ?   5  <q> Quit View   <q>
+                // ?   6  <Sp> Process    <Sp>
+                // ?   7  <Sp> Toggle     <Sp>
+                // ?   9  <Tab> Search    <Tab>
+                // ?  10  <Tab> Select"   <Tab>
+                // ?  11  PgUp            KEY_PPAGE
+                // ?  12  PgDn            KEY_NPAGE
+                // ?  13  INS             KEY_IC
+                pick->chyron->key[1]->active = true;   // F1 Help
+                pick->chyron->key[2]->active = true;   // F9 Cancel
+                pick->chyron->key[4]->active = false;  // <v> View
+                pick->chyron->key[5]->active = true;   // <q> Quit View
+                pick->chyron->key[6]->active = false;  // <Sp> Toggle
+                pick->chyron->key[7]->active = false;  // <Sp> Process
+                pick->chyron->key[9]->active = false;  // <Tab> Search;
+                pick->chyron->key[10]->active = false; // <Tab> Select;
+                pick->chyron->key[11]->active = true;  // PgUp
+                pick->chyron->key[12]->active = true;  // PgDn
+                pick->chyron->key[13]->active = false; // INS
+                remove_right_angle(pick);
+                compile_chyron(pick->chyron);
+                display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
                 update_panels();
                 doupdate();
                 if (pick->p_view_files)
                     view_cmd_processor(init);
+                pick_std_chyron(pick);
+                compile_chyron(pick->chyron);
+                display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
                 in_key = 0;
                 continue;
 
@@ -1087,8 +1031,6 @@ int picker(Init *init, char *field) {
             case '\t':
                 remove_right_angle(pick);
                 wnoutrefresh(pick->win);
-                update_panels();
-                doupdate();
                 in_key = 0;
                 break;
 
@@ -1247,17 +1189,14 @@ int picker(Init *init, char *field) {
         pick->chyron->key[2]->active = true;   // F9 Cancel
         pick->chyron->key[3]->active = false;  // F10 Accept
         pick->chyron->key[4]->active = false;  // <v> View
+        pick->chyron->key[5]->active = false;  // <q> Quit View
         pick->chyron->key[5]->active = false;  // <Sp> Edit
-        pick->chyron->key[6]->active = false;  // <Sp> Toggle
-        pick->chyron->key[7]->active = false;  // <Tab> Search
-        pick->chyron->key[8]->active = true;   // <Tab> Select
-        pick->chyron->key[9]->active = false;  // PgDn
-        pick->chyron->key[10]->active = false; // PgUp
-        pick->chyron->key[11]->active = true;  // INS
-
-        compile_chyron(pick->chyron);
-        display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
-        mvwaddnwstr(pick->box, pick->separator_line + 1, 1, &bw_ran, 1);
+        pick->chyron->key[7]->active = false;  // <Sp> Toggle
+        pick->chyron->key[9]->active = false;  // <Tab> Search
+        pick->chyron->key[10]->active = true;  // <Tab> Select
+        pick->chyron->key[11]->active = false; // PgDn
+        pick->chyron->key[12]->active = false; // PgUp
+        pick->chyron->key[13]->active = true;  // INS
 
         while (1) {
 
@@ -1270,7 +1209,6 @@ int picker(Init *init, char *field) {
                         ptr = prev_ptr;
                     } else {
                         display_pick_page(pick);
-                        /** display_pick_page_info */
                         ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                                   pick->tbl_line + 1, pick->tbl_page + 1,
                                   pick->tbl_pages);
@@ -1281,19 +1219,11 @@ int picker(Init *init, char *field) {
                 }
                 compile_chyron(pick->chyron);
                 display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
-                update_panels();
-                doupdate();
+                wmove(pick->win2, 0, 1);
                 /** display_field_content */
                 rtrim(accept_s);
-                s = &filler_s[0];
-                e = s + flen;
-                while (s != e)
-                    *s++ = ' ';
-                *s = '\0';
-                line = 0;
                 col = 1;
-                mvwaddstr(pick->win2, line, col, filler_s);
-                mvwaddstr(pick->win2, line, col, accept_s);
+                mvwaddstr(pick->win2, 0, col, accept_s);
                 if (pick->p_view_files)
                     if (strcmp(pick->d_object[pick->d_idx], view_file) != 0) {
                         strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);
@@ -1302,12 +1232,12 @@ int picker(Init *init, char *field) {
                 mouse_win = nullptr;
                 pos = col + strlen(accept_s);
                 // 2
-                wmove(pick->win2, pick->y, pos);
-                curs_set(1);
-                top_panel(panel_win2[win_ptr]);
+                // top_panel(panel_win2[win_ptr]);
+                mvwadd_wchnstr(pick->win2, 0, 0, &ran, 1);
                 update_panels();
+                wmove(pick->win2, 0, pos);
                 doupdate();
-                in_key = dxwgetch(pick->win, pick->win2, pick->chyron, -1);
+                in_key = dxwgetch(pick->win2, pick->win, pick->win2, nullptr, pick->win2, pick->chyron, -1);
                 if (mouse_win == pick->win)
                     break;
                 if (in_key == KEY_F(13)) {
@@ -1360,11 +1290,11 @@ int picker(Init *init, char *field) {
             case KEY_IC:
                 if (f_insert) {
                     f_insert = FALSE;
-                    set_chyron_key_cp(pick->chyron, 11, "INS", KEY_IC,
+                    set_chyron_key_cp(pick->chyron, 12, "INS", KEY_IC,
                                       cp_nt_rev);
                 } else {
                     f_insert = TRUE;
-                    set_chyron_key_cp(pick->chyron, 11, "INS", KEY_IC,
+                    set_chyron_key_cp(pick->chyron, 12, "INS", KEY_IC,
                                       cp_nt_hl_rev);
                 }
                 compile_chyron(pick->chyron);
@@ -1455,8 +1385,6 @@ int picker(Init *init, char *field) {
                 continue;
 
             default:
-                update_panels();
-                doupdate();
                 if (in_key < ' ' || in_key > '~') {
                     in_key = 0;
                     continue;
@@ -1489,8 +1417,6 @@ int picker(Init *init, char *field) {
                     }
                 }
                 in_key = 0;
-                update_panels();
-                doupdate();
                 continue;
             }
             break;
@@ -1555,13 +1481,11 @@ void new_view_file(Init *init, char *file) {
             view->ln = 0;
             view->page_bot_pos = 0;
             view->file_pos = 0;
-            border_title(view->box.win, view->title);
+            border_title(view->box_win, view->title);
             initialize_line_table(view);
             next_page(view);
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            update_panels();
-            doupdate();
             pad_refresh(view);
         }
     }

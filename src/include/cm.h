@@ -175,6 +175,8 @@ typedef enum {
     CLR_BG,
     CLR_BOX_FG,
     CLR_BOX_BG,
+    CLR_IND_FG,
+    CLR_IND_BG,
     CLR_BRACKETS_FG,
     CLR_BRACKETS_BG,
     CLR_FILL_CHAR_FG,
@@ -352,7 +354,7 @@ extern void deactivate_chyron_key(Chyron *, int);
 extern void deactivate_all_chyron_keys(Chyron *);
 extern int vgetch(WINDOW *, int);
 extern int xwgetch(WINDOW *, Chyron *, int);
-extern int dxwgetch(WINDOW *, WINDOW *, Chyron *, int);
+extern int dxwgetch(WINDOW *, WINDOW *, WINDOW *, WINDOW *, WINDOW *, Chyron *, int);
 
 extern int click_y;       /**< the y coordinate of a mouse click */
 extern int click_x;       /**< the x coordinate of a mouse click */
@@ -388,6 +390,7 @@ typedef struct {
 
 extern int cp_default;               /**< default color pair index */
 extern int cp_box;                   /**< box color pair index */
+extern int cp_ind;                   /**< indicator color pair index */
 extern int cp_bold;                  /**< bold color pair index */
 extern int cp_title;                 /**< title color pair index */
 extern int cp_highlight;             /**< highlight color pair index */
@@ -479,13 +482,14 @@ extern cchar_t CC_NT_HL_REV; /**< highlight reverse */
 extern cchar_t CC_FILL_CHAR; /**< fill character */
 extern cchar_t CC_BRKTL;     /**< left bracket */
 extern cchar_t CC_BRKTR;     /**< right bracket */
-extern cchar_t CC_BOX;       /**< box colors */
+extern cchar_t CC_BOX;       /**< indicator colors */
+extern cchar_t CC_IND;       /**< box colors */
 extern cchar_t CC_CMDLN;
 extern cchar_t CC_LN;
 extern cchar_t CC_DATA1;
 extern cchar_t CC_DATA2;
 extern cchar_t CC_DATA3;
-extern cchar_t CC_TITLE; /**< box colors */
+extern cchar_t CC_TITLE; /**< title colors */
 
 extern cchar_t CC_BRKTL;  /**< left field bracket */
 extern cchar_t CC_BRKTR;  /**< right field bracket */
@@ -826,6 +830,8 @@ typedef struct {
     char bg[COLOR_LEN];           /**< background color index */
     char box_fg[COLOR_LEN];       /**< box foreground */
     char box_bg[COLOR_LEN];       /**< box background */
+    char ind_fg[COLOR_LEN];       /**< indicator foreground */
+    char ind_bg[COLOR_LEN];       /**< indicator background */
     char brackets_fg[COLOR_LEN];  /**< brackets foreground */
     char brackets_bg[COLOR_LEN];  /**< brackets background */
     char fill_char_fg[COLOR_LEN]; /**< fill character foreground */
@@ -866,6 +872,7 @@ typedef struct {
     int cp_nt_hl;                /**< highlight color pair index */
     int cp_nt_hl_rev;            /**< reverse highlight color pair index */
     int cp_box;                  /**< box color pair index */
+    int cp_ind;                  /**< box color pair index */
     int cp_bold;                 /**< bold color pair index */
     int cp_title;                /**< title color pair index */
     int cp_highlight;            /**< highlight color pair index */

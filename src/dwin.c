@@ -177,6 +177,7 @@ char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
 int cp_box;
+int cp_ind;
 int cp_cmdln;
 int cp_title;
 int cp_nt;
@@ -196,6 +197,7 @@ int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
 cchar_t CC_BG;
 cchar_t CC_BOX;
+cchar_t CC_IND;
 cchar_t CC_LN;
 cchar_t CC_CMDLN;
 cchar_t CC_TITLE;
@@ -207,6 +209,7 @@ cchar_t CC_NORM;
 cchar_t CC_BRKTL;
 cchar_t CC_BRKTR;
 cchar_t CC_FILL_CHAR;
+cchar_t CC_CHK;
 cchar_t CC_RAN;
 cchar_t CC_RED;
 cchar_t CC_GREEN;
@@ -332,6 +335,7 @@ void initialize_local_colors(SIO *sio) {
     cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
     cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
     cp_box = get_clr_pair(CLR_BOX_FG, CLR_BOX_BG);
+    cp_ind = get_clr_pair(CLR_IND_FG, CLR_IND_BG);
     cp_title = get_clr_pair(CLR_TITLE_FG, CLR_TITLE_BG);
     cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
     cp_cmdln = get_clr_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
@@ -351,11 +355,13 @@ void initialize_local_colors(SIO *sio) {
     CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
     CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
     CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
+    CC_IND = mkcc(cp_ind, WA_NORMAL, " ");
     CC_CMDLN = mkcc(cp_cmdln, WA_NORMAL, " ");
     CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
     CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
-    CC_RAN = mkcc(cp_red, WA_NORMAL, " ");
+    CC_RAN = mkcc(cp_ind, WA_NORMAL, " ");
+    CC_CHK = mkcc(cp_ind, WA_NORMAL, " ");
     CC_RED = mkcc(cp_red, WA_NORMAL, " ");
     CC_GREEN = mkcc(cp_green, WA_NORMAL, " ");
     CC_YELLOW = mkcc(cp_yellow, WA_NORMAL, " ");
@@ -377,8 +383,8 @@ void initialize_local_colors(SIO *sio) {
     setcchar(&la, &bw_la, WA_NORMAL, cp_box, NULL);   // Left arrow
     setcchar(&ua, &bw_ua, WA_NORMAL, cp_box, NULL);   // Up arrow
     setcchar(&da, &bw_da, WA_NORMAL, cp_box, NULL);   // Down arrow
-    setcchar(&ran, &bw_ran, WA_NORMAL, cp_box, NULL); // Right angle
-    setcchar(&chk, &bw_chk, WA_NORMAL, cp_box, NULL); // Right angle
+    setcchar(&ran, &bw_ran, WA_NORMAL, cp_ind, NULL); // Right angle
+    setcchar(&chk, &bw_chk, WA_NORMAL, cp_ind, NULL); // Right angle
 }
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
@@ -578,6 +584,10 @@ bool init_clr_palette(SIO *sio) {
         init_hex_clr(CLR_BOX_FG, sio->box_fg);
     if (sio->box_bg[0])
         init_hex_clr(CLR_BOX_BG, sio->box_bg);
+    if (sio->ind_fg[0])
+        init_hex_clr(CLR_IND_FG, sio->ind_fg);
+    if (sio->ind_bg[0])
+        init_hex_clr(CLR_IND_BG, sio->ind_bg);
     if (sio->title_fg[0])
         init_hex_clr(CLR_TITLE_FG, sio->title_fg);
     if (sio->title_bg[0])
@@ -2055,7 +2065,7 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
    window, it gets the corresponding key command. Otherwise, it stores the click
    coordinates and returns 0.
  */
-int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
+int dxwgetch(WINDOW *win_0, WINDOW *win_1, WINDOW *win_2, WINDOW *win_3, WINDOW *win_c, Chyron *chyron, int n) {
     int c;
     MEVENT event;
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED | BUTTON5_PRESSED,
@@ -2074,7 +2084,7 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
     tcflush(2, TCIFLUSH);
     do {
         curs_set(1);
-        c = wgetch(win);
+        c = wgetch(win_0);
         curs_set(0);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
@@ -2099,22 +2109,24 @@ int dxwgetch(WINDOW *win, WINDOW *win2, Chyron *chyron, int n) {
                 return KEY_DOWN;
             }
             if (event.bstate & BUTTON1_CLICKED || event.bstate & BUTTON1_DOUBLE_CLICKED) {
-                // Check if the click is in win or win2, and set mouse_win
+                // Check if the click is in win_0, win_1, or win_2, and set
+                // mouse_win
                 // accordingly
                 // don't free mouse_win, since it is borrowed
                 mouse_win = nullptr;
-                if (wenclose(win, event.y, event.x)) {
-                    if (wmouse_trafo(win, &event.y, &event.x, false))
-                        mouse_win = win;
-                } else if (win2 != nullptr && wenclose(win2, event.y, event.x) && wmouse_trafo(win2, &event.y, &event.x, false))
-                    mouse_win = win2;
+                if (win_0 != nullptr && wenclose(win_0, event.y, event.x) && wmouse_trafo(win_0, &event.y, &event.x, false))
+                    mouse_win = win_0;
+                else if (win_1 != nullptr && wenclose(win_1, event.y, event.x) && wmouse_trafo(win_1, &event.y, &event.x, false))
+                    mouse_win = win_1;
+                else if (win_2 != nullptr && wenclose(win_2, event.y, event.x) && wmouse_trafo(win_2, &event.y, &event.x, false))
+                    mouse_win = win_2;
                 click_y = event.y;
                 click_x = event.x;
                 if (mouse_win == nullptr) {
                     c = 0;
                     break;
                 }
-                if (mouse_win == win2 && chyron && (event.y == getmaxy(mouse_win) - 1))
+                if (mouse_win == win_c && chyron && (event.y == getmaxy(mouse_win) - 1))
                     c = get_chyron_key(chyron, event.x);
                 break;
             }
