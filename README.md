@@ -285,7 +285,7 @@ You may substitute any terminal emulator for ghostty, but you will need to check
 - Notice that we don't use !dexe with Kitty, and it still runs as a detached executable. This is because Kitty has a built-in --detach option. C-Menu does not wait for Kitty to exit before returning control to C-Menu.
 
 - We use the -o option to specify both initial window width and hieght in
-characters (c). see [Kitty Command Line Options](https://sw.kovidgoyal.net/kitty/command-line-options/) 
+characters (c). see [Kitty Command Line Options](https://sw.kovidgoyal.net/kitty/invocation/) 
 
 ---
 
