@@ -14,7 +14,6 @@ if [ ! -d "$themes_dir" ]; then
     enterchr "Press any key to continue..."
     exit 1
 fi
-# rsh -c "chown -R $U:$G $themes_dir"
 cd "$themes_dir" || exit
 for theme in $(lf -t f | sort); do
     echo $(basename "$theme")

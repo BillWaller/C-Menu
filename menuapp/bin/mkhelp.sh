@@ -15,7 +15,8 @@ $name -? >>"$name"_help
 $name --usage >>"$name"_help
 echo created "$name"_help
 
-bat --theme ansi -l Crystal -f "$name"_help >"$name".help
+bat --theme ansi -l Crystal -f "$name"_help | sed 's/(\[32m\#/(\#/g
+    s/(\#\\[0m\\[32m/(\#/g' | awk -f /home/bill/menuapp/bin/colorize.awk >"$name".help
 echo created "$name".help
 
 if [ "$name" == "lf" ]; then

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -i
 # @file cmenu_chtheme.sh
 # @brief link selected theme configuration file to default
 
@@ -14,6 +14,5 @@ if [ ! -d "$themes_dir" ]; then
     enterchr "Press any key to continue..."
     exit 1
 fi
-rsh -c "chown -R $U:$G $themes_dir"
 cd "$themes_dir" || exit 1
 ln -sf "$1" default
