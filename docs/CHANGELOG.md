@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-07T09:15:44-05:00* - FIX: Added clrtoeol after displaying the input field in pick_engine.c search line. 
+
+*2026-07-06T19:54:09-05:00* - Update CHANGELOG.md 
+
 *2026-07-06T19:53:52-05:00* - DOCS: Documentation Updates 
 
 *2026-07-06T19:51:04-05:00* - Update CHANGELOG.md 
