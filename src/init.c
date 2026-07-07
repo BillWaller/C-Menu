@@ -621,6 +621,10 @@ int process_config_files(Init *init) {
     expand_tilde(init->minitrc, MAXLEN - 1);
     strnz__cpy(config_file_name, init->minitrc, MAXLEN - 1);
     rc = process_config_file(config_file_name, init);
+
+    expand_tilde(init->mapp_theme, MAXLEN - 1);
+    strnz__cpy(config_file_name, init->mapp_theme, MAXLEN - 1);
+    rc = process_config_file(config_file_name, init);
     return rc;
 }
 
