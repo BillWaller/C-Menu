@@ -1044,7 +1044,6 @@ bool trim_ext(char *buf, char *filename) {
     @ingroup utility_functions
     @param fd - file descriptor
     @param out_path - buffer to receive the file path
-    @param out_size - size of the output buffer
     @returns 0 on success, -1 on failure
     @details This function uses the /proc filesystem to read the symbolic link
    corresponding to the file descriptor. It constructs the path to the symbolic

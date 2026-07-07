@@ -196,6 +196,13 @@ int init_pick(Init *init, int argc, char **argv, int by, int bx) {
     return 0;
 }
 
+/** @brief Destroys pick view, unmaps file buffer, and cleans up resources
+ *  @ingroup pick_engine
+    @param init Pointer to Init structure containing pick information
+    @details If pick->p_view_files is true and view->buf is not nullptr, destroys
+   line table, unmaps the file buffer, and sets view->buf to nullptr. Destroys
+   view window and view structure to free associated resources.
+ */
 void destroy_pick_view(Init *init) {
     stdio_fdnames(stdio_names_str, "pick_engine.c 279");
     Pick *pick = init->pick;
@@ -358,6 +365,15 @@ int pick_engine(Init *init) {
     destroy_chyron(pick->chyron);
     return (rc);
 }
+/** @brief Sets standard chyron key states based on pick structure
+ *  @ingroup pick_engine
+    @param pick Pointer to Pick structure containing chyron and selection
+   information
+    @details Updates the active state of chyron keys based on the current state
+   of the pick structure. Enables or disables keys for help, cancel, accept,
+   view, quit view, process, toggle, search, select, page up, page down, and
+   insert based on selection count, view mode, and table pages.
+ */
 void pick_std_chyron(Pick *pick) {
     // *   1  F1 Help         KEY_F(1));
     // *   2  F9 Cancel       KEY_F(9));
@@ -1424,7 +1440,16 @@ int picker(Init *init, char *field) {
         mvwaddnwstr(pick->box, pick->separator_line + 1, 1, &bw_sp, 1);
     }
 }
-
+/** @brief Initializes a new view for displaying file contents in the pick
+   interface
+   @ingroup pick_engine
+    @param init Pointer to Init structure containing pick information
+    @return 0 on success, 1 on failure
+    @details Allocates memory for a new View structure and initializes its
+   fields based on the parameters specified in the Init structure. Sets up the
+   help_spec field for the view, and calls init_view_boxwin to create the view's
+   window. Returns 0 on success, or 1 if window creation fails.
+    */
 int new_pick_view(Init *init) {
     char *e;
     // if (init->view != nullptr)
@@ -1459,6 +1484,17 @@ int new_pick_view(Init *init) {
     int rc = init_view_boxwin(init);
     return rc;
 }
+/** @brief Initializes a new view for displaying the contents of a specified
+   file in the pick interface
+   @ingroup pick_engine
+    @param init Pointer to Init structure containing pick information
+    @param file Name of the file to be displayed in the view
+    @details If a view is already initialized, it destroys the existing line
+   table and unmaps the buffer. Then, it sets up the provider command for
+   highlighting the specified file, initializes the view input, and if successful,
+   resets various view parameters, initializes the line table, and displays the
+   first page of the file contents along with the prompt.
+    */
 void new_view_file(Init *init, char *file) {
     View *view = init->view;
     if (view->buf != nullptr) {

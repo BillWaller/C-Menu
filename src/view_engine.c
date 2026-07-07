@@ -258,7 +258,6 @@ int view_cmd_processor(Init *init) {
                     n_cmd = 1;
             }
             shift = (int)n_cmd;
-            // swidth = view->smaxcol - view->smincol;
             if (view->pmincol - shift > 0)
                 view->pmincol -= shift;
             else
@@ -1281,23 +1280,15 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
 int pad_refresh(View *view) {
     int rc;
     touchwin(view->pad);
-    pnoutrefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
-                 view->smincol, view->smaxrow, view->smaxcol);
-    touchwin(view->pad_view_win);
-    if (view->f_ln)
-        // rc = prefresh(view->pad, view->pminrow, view->pmincol,
-        //               view->sminrow,
-        //               view->smincol + 8, view->smaxrow, view->smaxcol);
-        rc = prefresh(view->pad_view_win,
-                      view->pminrow,
-                      view->pmincol,
-                      view->sminrow,
-                      view->smincol,
-                      view->smaxrow,
-                      view->smaxcol);
-    else
-        rc = prefresh(view->pad_view_win, view->pminrow, view->pmincol, view->sminrow,
+    rc = pnoutrefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
                       view->smincol, view->smaxrow, view->smaxcol);
+    rc = prefresh(view->pad_view_win,
+                  view->pminrow,
+                  view->pmincol,
+                  view->sminrow,
+                  view->smincol,
+                  view->smaxrow,
+                  view->smaxcol);
     if (rc == ERR) {
         ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->pad_view_win, pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
                   __FILE__, __LINE__, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
@@ -2214,6 +2205,16 @@ bool enter_file_spec(Init *init, char *file_spec) {
     return true;
 }
 
+/** @brief Initialize View Stack
+    @ingroup view_engine
+    @param s pointer to ViewStack structure
+    @param initial_capacity initial capacity of the stack
+    @returns true if successful, false if memory allocation fails
+    @details This function initializes a ViewStack structure by allocating
+   memory for the items array with the specified initial capacity. It sets
+   the capacity and top index accordingly. If memory allocation fails, it
+   returns false.
+ */
 bool view_stack_init(ViewStack *s, size_t initial_capacity) {
     s->items = malloc(initial_capacity * sizeof(View));
     if (!s->items)
@@ -2222,7 +2223,16 @@ bool view_stack_init(ViewStack *s, size_t initial_capacity) {
     s->top = 0;
     return true;
 }
-
+/** @brief Push Item onto View Stack
+    @ingroup view_engine
+    @param s pointer to ViewStack structure
+    @param item View item to push onto the stack
+    @returns true if successful, false if memory allocation fails during
+   resizing
+    @details This function pushes a View item onto the stack. If the stack is
+   full, it reallocates memory to double the capacity. If memory allocation
+   fails during resizing, it returns false.
+ */
 bool view_stack_push(ViewStack *s, View item) {
     if (s->top >= s->capacity) {
         size_t new_capacity = s->capacity * 2;
@@ -2235,21 +2245,42 @@ bool view_stack_push(ViewStack *s, View item) {
     s->items[s->top++] = item; // Structure copy
     return true;
 }
-
+/** @brief Pop Item from View Stack
+    @ingroup view_engine
+    @param s pointer to ViewStack structure
+    @param out_item pointer to View structure where the popped item will be
+   stored
+    @returns true if successful, false if the stack is empty (underflow)
+    @details This function pops a View item from the stack and stores it in
+   the provided out_item pointer. If the stack is empty, it returns false.
+ */
 bool view_stack_pop(ViewStack *s, View *out_item) {
     if (s->top == 0)
         return false; // Stack underflow
     *out_item = s->items[--s->top];
     return true;
 }
-
+/** @brief Peek at Top Item of View Stack
+    @ingroup view_engine
+    @param s pointer to ViewStack structure
+    @param out_item pointer to View structure where the top item will be
+   stored
+    @returns true if successful, false if the stack is empty
+    @details This function retrieves the top item of the stack without
+   removing it. If the stack is empty, it returns false.
+ */
 bool view_stack_peek(const ViewStack *s, View *out_item) {
     if (s->top == 0)
         return false;
     *out_item = s->items[s->top - 1];
     return true;
 }
-
+/** @brief Free View Stack
+    @ingroup view_engine
+    @param s pointer to ViewStack structure
+    @details This function frees the memory allocated for the items array in
+   the ViewStack structure and resets the capacity and top index to zero.
+ */
 void view_stack_free(ViewStack *s) {
     free(s->items);
     s->items = NULL;

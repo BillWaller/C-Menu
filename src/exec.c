@@ -172,17 +172,21 @@ int fork_exec(char **argv) {
     restore_wins();
     return (rc);
 }
-/** @brief Fork and execute a command as a daemon
+/** @brief Fork, detach, and exec a command
     @ingroup exec
     @param eargv - array of arguments for the command to execute
-    @return EXIT_SUCCESS on success, EXIT_FAILURE on failure
-    @details
-    Sets the session ID
-    Redirects standard file descriptors to /dev/null.
-    Closes all open file descriptors.
-    Executes the command using execvp.
-    Exits with failure if any step fails.
-    @note Tested 2026-06-05 on Linux - appears to be functioning properly */
+    @return 0 on success, or exits on failure
+    @details Forks a new process, detaches it from the terminal, and executes
+   the specified command using execvp.
+    Closes standard input, output, and error file descriptors in the child
+   process.
+    Redirects standard input, output, and error to /dev/null in the child
+   process.
+    Closes all other file descriptors in the child process.
+    Sets the session ID for the child process to detach it from the terminal.
+    Restores curses mode and signal handling in the parent process after
+   forking.
+    Restores window states in the parent process after forking. */
 int fork_detach_execvp(char **eargv) {
     pid_t pid = fork();
     capture_curses_tioctl();

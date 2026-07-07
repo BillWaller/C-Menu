@@ -318,16 +318,17 @@ bool open_curses(SIO *sio) {
    functions that accept color pair indices.
  */
 void initialize_local_colors(SIO *sio) {
-    /** Set gamma correction values */
+    /** gamma correction values */
     /** These are read from ~/.minitrc */
-    /** We need these values when initializing colors */
+    /** used when initializing colors */
     RED_GAMMA = sio->red_gamma;
     GREEN_GAMMA = sio->green_gamma;
     BLUE_GAMMA = sio->blue_gamma;
     GRAY_GAMMA = sio->gray_gamma;
-
     init_clr_palette(sio);
-    // cp_ variables are indices for ncurses color pairs, created with get_clr_pair function. These color pairs are used to set the foreground and background colors for different elements of the interface, such as windows, text, and boxes. By defining these color pair indices as global variables, we can easily reference them throughout the code when applying colors to various parts of the interface using NCurses functions that accept color pair indices.
+
+    // Color Pairs
+    // Often used standardized color pairs for the user interface
     cp_fill_char = get_clr_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
     cp_brackets = get_clr_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
     cp_nt = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
@@ -345,8 +346,8 @@ void initialize_local_colors(SIO *sio) {
     cp_yellow = get_clr_pair(CLR_BG, CLR_YELLOW);
     cp_blue = get_clr_pair(CLR_FG, CLR_BLUE);
 
-    // CC_ variables are type cchar_t with color and space characters
-    // for setting backgrounds
+    // cchar_t For setting backgrounds
+    // with attributes and color pairs
     CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
     CC_BRKTL = mkcc(cp_brackets, WA_NORMAL, " ");
     CC_BRKTR = mkcc(cp_brackets, WA_NORMAL, " ");
@@ -367,7 +368,8 @@ void initialize_local_colors(SIO *sio) {
     CC_YELLOW = mkcc(cp_yellow, WA_NORMAL, " ");
     CC_BLUE = mkcc(cp_blue, WA_NORMAL, " ");
 
-    // create cchar_t for box borders
+    // cchar_t For borders and indicators
+    // with attributes and color pairs
     setcchar(&ls, &bw_ve, WA_NORMAL, cp_box, NULL);   // Left side
     setcchar(&rs, &bw_ve, WA_NORMAL, cp_box, NULL);   // Right side
     setcchar(&ts, &bw_ho, WA_NORMAL, cp_box, NULL);   // Top side
@@ -892,14 +894,34 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     }
     return 0; // Invalid Unicode code point
 }
-
+/** ui_rect_set
+    @brief Set the properties of a UiRect structure
+    @ingroup utility_functions
+    @param r Pointer to the UiRect structure to set
+    @param y Y-coordinate (row) of the rectangle's top-left corner
+    @param x X-coordinate (column) of the rectangle's top-left corner
+    @param h Height (number of rows) of the rectangle
+    @param w Width (number of columns) of the rectangle
+    @details This function initializes the fields of a UiRect structure
+    with the specified values for position and size. It is used to define
+    rectangular areas in a user interface. */
 void ui_rect_set(UiRect *r, int y, int x, int h, int w) {
     r->y = y;
     r->x = x;
     r->rows = h;
     r->cols = w;
 }
-
+/** box_hsplit_new
+    @brief Create a new window with optional box and title, and a second window
+   inside it, split horizontally
+    @ingroup window_support
+    @param wlines Number of lines for the first window
+    @param split_win_lines Number of lines for the second window
+    @param wcols Number of columns for the first window
+    @param wbegy Beginning Y position for the first window
+    @param wbegx Beginning X position for the first window
+    @param wtitle Window title for the first window
+    @return 0 if successful, 1 if error */
 int box_hsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wbegx, char *wtitle) {
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
@@ -917,14 +939,31 @@ int box_hsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wb
     win2_new(2, wcols, wlines + 2, 1);
     return 0;
 }
-
+/** win2_box_new
+    @brief Create a new window with optional box and title, and a second window
+   inside it
+    @ingroup window_support
+    @param wlines Number of lines for the first window
+    @param wcols Number of columns for the first window
+    @param wbegy Beginning Y position for the first window
+    @param wbegx Beginning X position for the first window
+    @param wtitle Window title for the first window
+    @return 0 if successful, 1 if error */
 int win2_box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     bare_box_new(wlines, wcols, wbegy, wbegx, wtitle);
     win_new(wlines, wcols);
     win2_new(wlines, wcols, 1, 1);
     return 0;
 }
-
+/** box_new
+    @brief Create a new window with optional box and title
+    @ingroup window_support
+    @param wlines Number of lines
+    @param wcols Number of columns
+    @param wbegy Beginning Y position
+    @param wbegx Beginning X position
+    @param wtitle Window title
+    @return 0 if successful, 1 if error */
 int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     bare_box_new(wlines, wcols, wbegy, wbegx, wtitle);
     win_new(wlines, wcols);
@@ -1015,6 +1054,15 @@ int win_new(int wlines, int wcols) {
 
 /*
 ------------------------------------------------------------------------- */
+
+/** win2_new
+    @brief Create a new subwindow (win2) with specified dimensions and position
+    @ingroup window_support
+    @param wlines Number of lines
+    @param wcols Number of columns
+    @param wbegy Beginning Y position relative to the parent window
+    @param wbegx Beginning X position relative to the parent window
+    @return 0 if successful, 1 if error */
 int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
 
     // ------------------->   win2_win   <-------------------
@@ -1030,6 +1078,15 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
     idcok(win_win2[win_ptr], false);
     return 0;
 }
+/** check_panels
+    @brief Check and display the panels for a given window index
+    @ingroup window_support
+    @param i Index of the window to check
+    @details This function checks the panels associated with the
+    specified window index. It sets the background color for each panel,
+    displays a label indicating the panel type, and updates the display.
+    The function pauses after displaying each panel to allow the user to
+    view the changes. */
 void check_panels(int i) {
     if (i == -1)
         return;
@@ -1115,7 +1172,6 @@ void win_redraw(WINDOW *win) {
 /** win_del
     @brief Delete the current window and its associated box window
     @ingroup window_support
-    @return nullptr
     @details This function deletes the current window and its associated box
    window, if they exist. It also refreshes the remaining windows to ensure the
    display is updated correctly. After calling this function, the global win_ptr
@@ -1203,6 +1259,7 @@ int border_draw(WINDOW *box) {
     @brief Draw a box with a separator line around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
+    @param y Line number where the separator line should be drawn
     @details This function draws a box around the specified window, similar to
    border_draw(), but it also includes a horizontal separator line that divides the box
    into two sections. The separator line is drawn at a fixed position (line 00,
@@ -1217,7 +1274,18 @@ int border_hsplit(WINDOW *box, int y) {
     mvwaddnwstr(box, y, maxx - 1, &bw_rt, 1);
     return 0;
 }
-
+/** border_hsplit_text
+    @brief Draw a box with a separator line and text around the specified window
+    @ingroup window_support
+    @param box Pointer to the window to draw the box around
+    @param text Text to display in the middle of the separator line
+    @param separator_line Line number where the separator line should be drawn
+    @details This function draws a box around the specified window, similar to
+   border_draw(), but it also includes a horizontal separator line that divides the box
+   into two sections. The separator line is drawn at the specified line number and
+   extends across the width of the box, with the provided text displayed in the
+   middle of the line. Use this function when you want to visually separate two
+   sections within a window and label the separator with descriptive text. */
 int border_hsplit_text(WINDOW *box, char *text, int separator_line) {
     int pos = 0;
     int maxx = getmaxx(box);
@@ -1246,7 +1314,16 @@ int border_hsplit_text(WINDOW *box, char *text, int separator_line) {
     mvwadd_wchnstr(box, y, x++, &rt, 1);
     return 0;
 }
-
+/** border_title
+    @brief Draw a box with a title around the specified window
+    @ingroup window_support
+    @param box Pointer to the window to draw the box around
+    @param title Title text to display at the top of the box
+    @details This function draws a box around the specified window, similar to
+   border_draw(), but it also includes a title at the top of the box. The title
+   is displayed in the center of the top edge of the box, and the horizontal line
+   is drawn on either side of the title. Use this function when you want to
+   visually label a window with a title. */
 int border_title(WINDOW *box, char *title) {
     int pos = 0;
     int maxx = getmaxx(box);
@@ -1721,16 +1798,39 @@ void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
 void unset_chyron_key(Chyron *chyron, int k) {
     chyron->key[k]->text[0] = '\0';
 }
+/** activate_chyron_key
+    @brief Activate chyron key
+    @ingroup Chyron
+    @param chyron structure
+    @param k chyron_key index
+*/
 void activate_chyron_key(Chyron *chyron, int k) {
     chyron->key[k]->active = true;
 }
+/** deactivate_chyron_key
+    @brief Deactivate chyron key
+    @ingroup Chyron
+    @param chyron structure
+    @param k chyron_key index
+*/
 void activate_all_chyron_keys(Chyron *chyron) {
     for (int k = 0; k < CHYRON_KEYS; k++)
         chyron->key[k]->active = true;
 }
+/** deactivate_chyron_key
+    @brief Deactivate chyron key
+    @ingroup Chyron
+    @param chyron structure
+    @param k chyron_key index
+*/
 void deactivate_chyron_key(Chyron *chyron, int k) {
     chyron->key[k]->active = false;
 }
+/** deactivate_all_chyron_keys
+    @brief Deactivate all chyron keys
+    @ingroup Chyron
+    @param chyron structure
+*/
 void deactivate_all_chyron_keys(Chyron *chyron) {
     for (int k = 0; k < CHYRON_KEYS; k++)
         chyron->key[k]->active = false;
@@ -2053,18 +2153,30 @@ int xwgetch(WINDOW *win, Chyron *chyron, int n) {
     restore_curses_tioctl();
     return c;
 }
-/** @brief This is a version of xwgetch that checks for mouse clicks in two windows.
-    @param win First window to check for mouse clicks
-    @param win2 Second window to check for mouse clicks
-    @param chyron Pointer to chyron struct for the second window
+/** dxwgetch
+    @brief Wrapper for wgetch that handles signals, mouse events, checks for
+   clicks on the chyron line, and accepts a sinigle character answer
+    @ingroup window_support
+    @param win_0 Pointer to window 0
+    @param win_1 Pointer to window 1
+    @param win_2 Pointer to window 2
+    @param win_3 Pointer to window 3
+    @param win_c Pointer to chyron window
+    @param chyron Pointer to chyron struct
     @param n Number of seconds to wait before timing out
+    @verbatim
+
+        0: Wait indefinitely for user input (raw mode)
+            accept a single character answer, and don't wait for Enter key
+        1: Wait for 1 decisecond
+        n > 1: Wait for n/10 seconds
+
+    @endverbatim
     @return Key code or ERR if interrupted by signal
-    @details This is a version of xwgetch that checks for mouse clicks in two windows.
-    Sets mouse_win to the window that was clicked and click_y and click_x to the
-   coordinates of the click. If the click is in the chyron line of the second
-   window, it gets the corresponding key command. Otherwise, it stores the click
-   coordinates and returns 0.
- */
+    @details Get mouse event and check if it's a left click or double click. If
+   the click is outside the windows, ignore it. If it's on the chyron line, get
+   the corresponding key command. Otherwise, store the click coordinates as
+   click_y and click_x for later use. */
 int dxwgetch(WINDOW *win_0, WINDOW *win_1, WINDOW *win_2, WINDOW *win_3, WINDOW *win_c, Chyron *chyron, int n) {
     int c;
     MEVENT event;
@@ -2114,12 +2226,12 @@ int dxwgetch(WINDOW *win_0, WINDOW *win_1, WINDOW *win_2, WINDOW *win_3, WINDOW 
                 // accordingly
                 // don't free mouse_win, since it is borrowed
                 mouse_win = nullptr;
-                if (win_0 != nullptr && wenclose(win_0, event.y, event.x) && wmouse_trafo(win_0, &event.y, &event.x, false))
-                    mouse_win = win_0;
-                else if (win_1 != nullptr && wenclose(win_1, event.y, event.x) && wmouse_trafo(win_1, &event.y, &event.x, false))
+                if (win_1 != nullptr && wenclose(win_1, event.y, event.x) && wmouse_trafo(win_1, &event.y, &event.x, false))
                     mouse_win = win_1;
                 else if (win_2 != nullptr && wenclose(win_2, event.y, event.x) && wmouse_trafo(win_2, &event.y, &event.x, false))
                     mouse_win = win_2;
+                else if (win_3 != nullptr && wenclose(win_3, event.y, event.x) && wmouse_trafo(win_3, &event.y, &event.x, false))
+                    mouse_win = win_3;
                 click_y = event.y;
                 click_x = event.x;
                 if (mouse_win == nullptr) {
@@ -2135,6 +2247,14 @@ int dxwgetch(WINDOW *win_0, WINDOW *win_1, WINDOW *win_2, WINDOW *win_3, WINDOW 
     restore_curses_tioctl();
     return c;
 }
+/** vgetch
+    @brief Wrapper for wgetch that handles signals and mouse events, and accepts a single character answer
+    @ingroup window_support
+    @param win Pointer to window
+    @param n Number of seconds to wait before timing out
+    @return Key code or ERR if interrupted by signal
+    @details This function is similar to xwgetch, but it does not handle chyron clicks. It sets the terminal to raw mode if n is -1, or halfdelay mode if n is 0 or greater. It waits for user input and returns the key code. If a signal is received, it handles the signal and may display an error message. If the user presses 'q', 'Q', or F9, the program exits.
+ */
 int vgetch(WINDOW *win, int n) {
     int c;
     mousemask(0, nullptr);

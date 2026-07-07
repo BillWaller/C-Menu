@@ -168,17 +168,15 @@ int whence(char *file_spec_p, int flags) {
     }
     return found;
 }
-/** @brief Extract the next directory path from the PATH string
+/** @brief Get the next directory path from a colon-separated list of paths
     @param dp A buffer to store the extracted directory path
-    @param sp A pointer to the current position in the PATH string
+    @param pp A pointer to the current position in the path string
     @return The length of the extracted directory path
-    @details This function takes a buffer and a pointer to the current position
-   in the PATH string, and extracts the next directory path. If the next
-   character in the PATH string is a colon, it treats it as an empty path and
-   uses the current working directory. Otherwise, it copies characters until it
-   reaches a colon or the end of the string, and returns the length of the
-   extracted path.
- */
+    @details This function takes a pointer to a colon-separated list of paths
+   and extracts the next directory path from it. If the current character is a
+   colon, it retrieves the current working directory instead. The extracted
+   directory path is stored in the provided buffer, and the function returns
+   the length of the extracted path. */
 int next_path(char *dp, char **pp) {
     int dl;
 

@@ -111,7 +111,8 @@ int init_view_full_screen(Init *init) {
         Perror(em0);
         return -1;
     }
-    view->pad_view_win = subpad(view->pad, LINES - 1, COLS - 1, 0, 0);
+    view->pad_view_win = subpad(view->pad, LINES - 1, PAD_COLS - 1, 0, 0);
+    immedok(view->pad, true);
     if (view->pad_view_win == nullptr) {
         ssnprintf(em0, MAXLEN - 1,
                   "subpad(view->pad, LINES - 1, COLS - view->ln_win_cols, 0, 0) failed in init_view_full_screen");
@@ -280,7 +281,7 @@ int init_view_boxwin(Init *init) {
         Perror(em0);
         return -1;
     }
-    view->pad = newpad(view->lines - 1, PAD_COLS - 1);
+    // view->pad = newpad(view->lines - 1, PAD_COLS - 1);
 
     // -------------------> 5. PAD_VIEW <--------------
     view->pad_view_win = subpad(view->pad,
@@ -433,30 +434,22 @@ void view_calc_boxwin_dimensions(Init *init) {
 
 #endif
 }
-/** @brief Initialize the input for a C-Menu View.
-@ingroup init_view
-@details This function initializes the input for view, which can be a file,
-standard input, or a provider command to be initiated by view. It handles
-different input sources and sets up the necessary file descriptors and memory
-mapping for efficient access.
-@param view Pointer to the View structure to be initialized.
-@param file_name Name of the input file or "-" for standard input.
-@return true on success, false on failure.
-@details if a provider command is specified, set up a pipe to read its output.
-A child process is spawned, and view, the parent process, reads from the
-pipe.
-If input is from a pipe or standard input, clone it to a temporary
-file. This allows for memory-mapping the input later. It does not support
-real-time updates to the input, but it allows for efficient access to the
-data.
-*/
+/** @brief Initialize the input for the C-Menu View.
+    @ingroup init_view
+    @param init Pointer to the Init structure containing view settings.
+    @param file_name Name of the input file or "-" for standard input.
+    @return 0 on success, -1 on failure.
+    @details This function initializes the input for the C-Menu View. It handles
+   both regular files and standard input, setting up pipes if necessary. It also
+   memory-maps the input file for efficient access and sets up the view structure
+   accordingly.
+ */
 int view_init_input(Init *init, char *file_name) {
     struct stat sb;
     int idx = 0;
     pid_t pid = -1;
     int pipe_fd[2];
     int s_argc = 0;
-    int cmd_key = 0;
     char *s_argv[MAXARGS];
     char tmp_str[MAXLEN];
     View *view = init->view;
@@ -507,7 +500,7 @@ int view_init_input(Init *init, char *file_name) {
             view->in_fd = dup(STDIN_FILENO);
         else {
             /*----------------------------------------------------------------------*/
-            /** Open the input file for reading and get its size. */
+            /* Open the input file for reading and get its size. */
             expand_tilde(file_name, MAXLEN - 1);
             view->in_fd = open(file_name, O_RDONLY);
             if (view->in_fd == -1) {

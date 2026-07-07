@@ -52,23 +52,8 @@ struct UiSurface {
     bool hidden;
 };
 
-/** @struct UiNcursesBackend
-   @ingroup ui_backend
-   @param style The UiStyle to apply to the window.
-   @brief Represents the ncurses UI backend.
-   This structure implements the UiBackend interface for the ncurses UI
-   backend. It holds a reference to the runtime state and any necessary
-   function pointers for backend operations.
- */
 int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style);
-
-/** @brief Converts a UiStyle to an ncurses color pair.
-   @ingroup ui_backend
-   @param style The UiStyle to convert.
-   @return The ncurses color pair corresponding to the given style.
- */
 int ui_ncurses_color_pair_from_style(const UiStyle *style);
-
 UiStyle *ui_style_new();
 void ui_style_destroy(UiStyle *);
 UiStyle *ui_style_from_cch(const cchar_t *);
