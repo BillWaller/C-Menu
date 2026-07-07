@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-07T10:22:32-05:00* - FIX: pick_engine.c: hide page down on last page 
+
+*2026-07-07T09:18:20-05:00* - Update CHANGELOG.md 
+
 *2026-07-07T09:15:44-05:00* - FIX: Added clrtoeol after displaying the input field in pick_engine.c search line. 
 
 *2026-07-06T19:54:09-05:00* - Update CHANGELOG.md 
