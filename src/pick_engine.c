@@ -371,18 +371,18 @@ void pick_std_chyron(Pick *pick) {
     // ?  11  PgUp            KEY_PPAGE
     // ?  12  PgDn            KEY_NPAGE
     // ?  13  INS             KEY_IC
-    pick->chyron->key[1]->active = true;                                                    // F1 Help
-    pick->chyron->key[2]->active = true;                                                    // F9 Cancel
-    pick->chyron->key[3]->active = pick->select_max != 1 ? true : false;                    // F10 Accept
-    pick->chyron->key[4]->active = pick->p_view_files;                                      // <v> View
-    pick->chyron->key[5]->active = false;                                                   // <q> Quit View
-    pick->chyron->key[6]->active = pick->select_max != 1 ? true : false;                    // <Sp> Toggle
-    pick->chyron->key[7]->active = pick->select_max == 1 ? true : false;                    // <Sp> Process
-    pick->chyron->key[9]->active = true;                                                    // <Tab> Search;
-    pick->chyron->key[10]->active = false;                                                  // <Tab> Select;
-    pick->chyron->key[11]->active = pick->tbl_page > 0 ? true : false;                      // PgUp
-    pick->chyron->key[12]->active = (pick->tbl_page < (pick->tbl_page + 1)) ? true : false; // PgDn
-    pick->chyron->key[13]->active = false;                                                  // INS
+    pick->chyron->key[1]->active = true;                                                 // F1 Help
+    pick->chyron->key[2]->active = true;                                                 // F9 Cancel
+    pick->chyron->key[3]->active = pick->select_max != 1 ? true : false;                 // F10 Accept
+    pick->chyron->key[4]->active = pick->p_view_files;                                   // <v> View
+    pick->chyron->key[5]->active = false;                                                // <q> Quit View
+    pick->chyron->key[6]->active = pick->select_max != 1 ? true : false;                 // <Sp> Toggle
+    pick->chyron->key[7]->active = pick->select_max == 1 ? true : false;                 // <Sp> Process
+    pick->chyron->key[9]->active = true;                                                 // <Tab> Search;
+    pick->chyron->key[10]->active = false;                                               // <Tab> Select;
+    pick->chyron->key[11]->active = pick->tbl_page > 0 ? true : false;                   // PgUp
+    pick->chyron->key[12]->active = pick->tbl_page < pick->tbl_pages - 1 ? true : false; // PgDn
+    pick->chyron->key[13]->active = false;                                               // INS
 }
 /** @brief Saves a string as an object in the pick structure
  *  @ingroup pick_engine
@@ -923,7 +923,6 @@ int picker(Init *init, char *field) {
                 pick_std_chyron(pick);
                 compile_chyron(pick->chyron);
                 display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
-                // top_panel(panel_win[win_ptr]);
                 reverse_object(pick);
                 update_panels();
                 wmove(pick->win, pick->y, pick->x);
