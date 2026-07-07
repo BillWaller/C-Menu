@@ -892,7 +892,6 @@ int picker(Init *init, char *field) {
     char *s = field;        /* source pointer for editing operations */
     char *d = field;        /* destination pointer for editing operations */
     char *fend = field + flen;
-    char *e = fend;                        /* end pointer for editing operations */
     char *str_end = field + strlen(field); /* End of field content */
     int pos = 0;
     int prev_pos = 0;

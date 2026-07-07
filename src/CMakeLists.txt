@@ -44,11 +44,13 @@ install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json"
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 set(LIBS ncursesw panelw tinfow m)
-add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c)
+add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c
+    ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c)
 set_target_properties(cm PROPERTIES VERSION ${PROJECT_VERSION}
                                     SOVERSION ${PROJECT_VERSION_MAJOR})
 
 set(COMMON_SRCS
+    cm_fields.c
     curskeys.c
     fields.c
     form_engine.c

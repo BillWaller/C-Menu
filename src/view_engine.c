@@ -487,7 +487,7 @@ int view_cmd_processor(Init *init) {
                 view->f_first_iter = true;
                 view->srch_beg_pos = view->page_bot_pos;
                 view->srch_curr_pos = view->page_bot_pos;
-                search(view, search_cmd, view->cmd_arg);
+                rc = search(view, search_cmd, view->cmd_arg);
                 if (rc == false) {
                     Perror("No matches found");
                     break;

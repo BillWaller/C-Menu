@@ -5,6 +5,7 @@
 /home/bill/menuapp/bin/detach
 /home/bill/menuapp/bin/enterchr
 /home/bill/menuapp/bin/enterstr
+/home/bill/menuapp/bin/amort
 /home/bill/menuapp/bin/iloan
 /home/bill/menuapp/bin/lf
 /home/bill/menuapp/bin/stripansi
@@ -19,6 +20,8 @@
 /home/bill/menuapp/include/form.h
 /home/bill/menuapp/include/menu.h
 /home/bill/menuapp/include/pick.h
+/home/bill/menuapp/include/safe_strerror.h
+/home/bill/menuapp/include/ui_backend.h
 /home/bill/menuapp/include/version.h
 /home/bill/menuapp/include/view.h
 /etc/ld.so.conf.d/CMenu.conf

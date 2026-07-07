@@ -1,2 +1,8 @@
 CompileFlags:
   Add: [-std=c23]
+    [
+      "-I/usr/include",
+      "-I/usr/local/src/C-Menu/src/include"
+      "-I/usr/local/src/C-Menu/src/ui"
+      "-I/lib64/clang/22/include"
+    ]

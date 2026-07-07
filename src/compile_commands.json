@@ -31,6 +31,30 @@
 },
 {
   "directory": "/usr/local/src/C-Menu/src",
+  "command": "/usr/bin/cc -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -Wall -Wextra -O3 -DNDEBUG -fPIC -o CMakeFiles/cm.dir/ui/ui_ncurses.c.o -c /usr/local/src/C-Menu/src/ui/ui_ncurses.c",
+  "file": "/usr/local/src/C-Menu/src/ui/ui_ncurses.c",
+  "output": "CMakeFiles/cm.dir/ui/ui_ncurses.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu/src",
+  "command": "/usr/bin/cc -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -Wall -Wextra -O3 -DNDEBUG -fPIC -o CMakeFiles/cm.dir/ui/ui_ncurses_draw.c.o -c /usr/local/src/C-Menu/src/ui/ui_ncurses_draw.c",
+  "file": "/usr/local/src/C-Menu/src/ui/ui_ncurses_draw.c",
+  "output": "CMakeFiles/cm.dir/ui/ui_ncurses_draw.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu/src",
+  "command": "/usr/bin/cc -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -Wall -Wextra -O3 -DNDEBUG -fPIC -o CMakeFiles/cm.dir/ui/ui_ncurses_input.c.o -c /usr/local/src/C-Menu/src/ui/ui_ncurses_input.c",
+  "file": "/usr/local/src/C-Menu/src/ui/ui_ncurses_input.c",
+  "output": "CMakeFiles/cm.dir/ui/ui_ncurses_input.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu/src",
+  "command": "/usr/bin/cc  -I/usr/local/src/C-Menu/src/include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/cm_fields.c.o -c /usr/local/src/C-Menu/src/cm_fields.c",
+  "file": "/usr/local/src/C-Menu/src/cm_fields.c",
+  "output": "CMakeFiles/CMenu.dir/cm_fields.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu/src",
   "command": "/usr/bin/cc  -I/usr/local/src/C-Menu/src/include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/CMenu.dir/curskeys.c.o -c /usr/local/src/C-Menu/src/curskeys.c",
   "file": "/usr/local/src/C-Menu/src/curskeys.c",
   "output": "CMakeFiles/CMenu.dir/curskeys.c.o"
@@ -112,6 +136,12 @@
   "command": "/usr/bin/cc  -I/usr/local/src/C-Menu/src/include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/enterstr.dir/enterstr.c.o -c /usr/local/src/C-Menu/src/enterstr.c",
   "file": "/usr/local/src/C-Menu/src/enterstr.c",
   "output": "CMakeFiles/enterstr.dir/enterstr.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu/src",
+  "command": "/usr/bin/cc  -I/usr/local/src/C-Menu/src/include -Wall -Wextra -O3 -DNDEBUG -o CMakeFiles/amort.dir/amort.c.o -c /usr/local/src/C-Menu/src/amort.c",
+  "file": "/usr/local/src/C-Menu/src/amort.c",
+  "output": "CMakeFiles/amort.dir/amort.c.o"
 },
 {
   "directory": "/usr/local/src/C-Menu/src",

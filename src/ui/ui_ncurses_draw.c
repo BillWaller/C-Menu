@@ -17,9 +17,9 @@
    @param v The RGB value (0-255).
    @return The corresponding 1000-based value for ncurses.
  */
-static short clamp_rgb_1000(uint8_t v) {
-    return (short)((v * 1000) / 255);
-}
+// static short clamp_rgb_1000(uint8_t v) {
+//     return (short)((v * 1000) / 255);
+// }
 
 /** @brief Convert a UiStyle to an ncurses color pair index.
    @ingroup ui_ncurses
