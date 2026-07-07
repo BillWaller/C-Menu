@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-07T17:12:41-05:00* - FIX: Update themes and scripts in menuapp 
+
+*2026-07-07T17:09:57-05:00* - Update CHANGELOG.md 
+
 *2026-07-07T17:09:23-05:00* - FIX: Insert code to read theme file in init.c 
 
 *2026-07-07T16:48:45-05:00* - Update CHANGELOG.md 
