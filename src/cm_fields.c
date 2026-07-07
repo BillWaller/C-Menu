@@ -1,5 +1,12 @@
-/** @file field.c
+/** @file cm_fields.c
     @brief Stand-alone Field Edit and Entry for C-Menu
+    @details Currently, this modules contains a single function, cf_accept(),
+    a lightweight yet fully functional field editor. For text fields, it is
+    equivalent to the field editor in fields.c. Instead of the built-in
+    formatting and validation in fields.c, this module provides a clean slate
+    for a modular plug-in architecture to accomodate formatting, validation, and
+    high-precision numeric data. It will eventually replace the field editor in
+    fields.c. It is a work in progress.
     @author Bill Waller
     Copyright (c) 2025, 2026
     MIT License

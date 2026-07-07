@@ -1224,6 +1224,7 @@ int picker(Init *init, char *field) {
                 rtrim(accept_s);
                 col = 1;
                 mvwaddstr(pick->win2, 0, col, accept_s);
+                wclrtoeol(pick->win2);
                 if (pick->p_view_files)
                     if (strcmp(pick->d_object[pick->d_idx], view_file) != 0) {
                         strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);
