@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-06T19:50:42-05:00* - DOCS: Documentation Updates 
+
+*2026-07-06T19:46:06-05:00* - Update CHANGELOG.md 
+
 *2026-07-06T19:27:02-05:00* - FIXES: At this point, we are examining the code and resolving as many issues as possible while laying the groundwork for the next phase of development. We resolved several issues in this update related to the pick and view engines, as well as the initialization process. We are continuously improving screen handling and aesthetics to make C-Menu more intuitive and user-friendly. 
 
 *2026-07-05T22:39:50-05:00* - Update CHANGELOG.md 
