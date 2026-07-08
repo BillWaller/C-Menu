@@ -1,4 +1,4 @@
-# /home/bill/menuapp/themes/Wild
+# /home/bill/menuapp/theme/Blue
 # C-Menu example theme
 #
 # C-Menu processes key value pairs in reading order from its
@@ -45,27 +45,27 @@
 fill_char=_                        # field fill_char
 brackets=[]                        # brackets around fields
 bg=#000000                         # Terminal (stdscr) background
-fg=#d0d0d0                         # Terminal (stdscr) foreground
-box_fg=#ff4040                     # box foreground
-box_bg=#000000                     # box background
-ind_fg=#f00000                     # indicator foreground
+fg=#f0f0f0                         # Terminal (stdscr) foreground
+box_fg=#f04000                     # box foreground
+box_bg=#020304                     # box background
+ind_fg=#ffb000                     # indicator foreground
 ind_bg=#000000                     # indicator background
-brackets_fg=#ff4040                # brackets foreground
-brackets_bg=#000000                # brackets background
-fill_char_fg=#00009f               # fill character foreground
-fill_char_bg=#000000               # fill character background
-ln_bg=#040812                      # line number background
-ln_fg=#0040ff                      # line number foreground
+brackets_fg=#c0c0c0                # brackets foreground
+brackets_bg=#020304                       # brackets background
+fill_char_fg=#c0c0c0               # fill character foreground
+fill_char_bg=#020304               # fill character background
+ln_fg=#00d0ff                      # line number foreground
+ln_bg=#020304                      # line number background
 nt_fg=#c0c0c0                      # normal text foreground
-nt_bg=#000000                      # normal text background
-nt_hl_fg=#ff4040                   # normal text highlight foreground
-nt_hl_bg=#000000                   # normal text highlight background
+nt_bg=#020304                      # normal text background
+nt_hl_fg=#f04000                   # normal text highlight foreground
+nt_hl_bg=#020304                   # normal text highlight background
 nt_rev_fg=#000000                  # normal text reverse foreground
-nt_rev_bg=#ff9070                  # normal text reverse background
-nt_hl_rev_fg=#00f000               # normal text highlight reverse foreground
-nt_hl_rev_bg=#ff4040               # normal text highlight reverse background
+nt_rev_bg=#c0c0c0                  # normal text reverse background
+nt_hl_rev_fg=#f04000               # normal text highlight reverse foreground
+nt_hl_rev_bg=#f0f0f0               # normal text highlight reverse background
 title_fg=#f0f0f0                   # title foreground
-title_bg=#000000                   # title background
+title_bg=#020304                   # title background
 blue_gamma=1.20                    # blue_gamma (View)
 gray_gamma=1.20                    # gray gamma (View)
 green_gamma=1.20                   # green gamma (View)

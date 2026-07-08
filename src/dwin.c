@@ -1527,7 +1527,7 @@ int Perror(char *emsg_str) {
     char emsg[MAXLEN];
     unsigned in_key;
     WINDOW *error_win;
-    int len, line, pos;
+    int line, pos, cols;
     char title[MAXLEN];
     bool f_xwgetch = true;
     if (emsg_str[0] == '' && emsg_str[1] == 'w') {
@@ -1544,11 +1544,12 @@ int Perror(char *emsg_str) {
     set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(chyron);
-    len = strnz(emsg, COLS - 4);
-    pos = (COLS - len - 4) / 2;
+    cols = strnz(emsg, COLS - 4);
+    cols = max(cols, chyron->l);
+    pos = (COLS - cols - 4) / 2;
     line = (LINES - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(2, len + 2, line, pos, title)) {
+    if (box_new(2, cols + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
         destroy_chyron(chyron);
