@@ -2,6 +2,11 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-07T23:06:39-05:00* - FIX: dwin.c: make Perror() window width large enough to accommodate chyron. 
+/menuapp/themes: Adjust theme colors to be more readable. 
+
+*2026-07-07T18:09:46-05:00* - Update CHANGELOG.md 
+
 *2026-07-07T18:09:14-05:00* - DOCS: Documentation Updates 
 
 *2026-07-07T17:13:03-05:00* - Update CHANGELOG.md 
