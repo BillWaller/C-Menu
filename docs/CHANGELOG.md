@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-11T19:07:45-05:00* - FEATURE: Adding a toggle option for line wrapping in the view engine. The code that splits long lines into multiple lines is already present in the view engine, but it is not complete. When it is, I will add a toggle option to enable or disable line wrapping. 
+
+*2026-07-07T23:11:06-05:00* - Update CHANGELOG.md 
+
 *2026-07-07T23:06:39-05:00* - FIX: dwin.c: make Perror() window width large enough to accommodate chyron. 
 /menuapp/themes: Adjust theme colors to be more readable. 
 
