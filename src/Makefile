@@ -20,6 +20,7 @@ ifeq ($(BUILD_TYPE), Release)
 else
 #	DEBUG_FLAGS=-DDEBUG_RESIZE -DDEBUG_LOG -DDEBUG_LAYOUT
 #	-DDEBUG_IMMEDOK
+	DEBUG_FLAGS=-DDEBUG_LOG -DDEBUG_WRAP
 	CFLAGS:=-O0 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
 			-rdynamic $(UI)
 	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread

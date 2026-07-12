@@ -170,7 +170,7 @@ void view_calc_full_screen_dimensions(Init *init) {
         "%s:%d view->lines=%d, view->cols=%d, view->maxrows=%d, view->maxcols=%d",
         __FILE__, __LINE__,
         view->lines, view->cols, view->smaxrow, view->smaxcol);
-    write_cmenu_log_nt(em0);
+    write_cmenu_log(em0);
 #endif
     view->cmd_line = 0;
     view->pminrow = 0;
@@ -213,7 +213,7 @@ int init_view_boxwin(Init *init) {
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d init BOX: lines=%d, cols=%d, begy=%d, begx=%d",
               __FILE__, __LINE__, view->lines + 2, view->cols + 2, view->begy, view->begx);
-    write_cmenu_log_nt(em0);
+    write_cmenu_log(em0);
 #endif
     wborder_set(view->box_win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
 
@@ -372,7 +372,7 @@ void view_calc_boxwin_dimensions(Init *init) {
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d=%d calc lines=%d, cols=%d, begy=%d, begx=%d",
               __FILE__, __LINE__, 526, view->lines, view->cols, view->begy, view->begx);
-    write_cmenu_log_nt(em0);
+    write_cmenu_log(em0);
 #endif
     if (view->lines == 0 && view->cols == 0 && view->begy == 0 && view->begx == 0) {
         view->lines = scr_lines - 3;
@@ -414,23 +414,23 @@ void view_calc_boxwin_dimensions(Init *init) {
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d calc BOX lines=%d, cols=%d, begy=%d, begx=%d",
               __FILE__, __LINE__, view->lines + 2, view->cols + 2, view->begy, view->begx);
-    write_cmenu_log_nt(em0);
+    write_cmenu_log(em0);
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d calc WIN lines=%d, cols=%d, begy=%d, begx=%d",
               __FILE__, __LINE__, view->lines, view->cols, 1, 1);
-    write_cmenu_log_nt(em0);
+    write_cmenu_log(em0);
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d calc CMDLN lines=%d, cols=%d, begy=%d, begx=%d",
               __FILE__, __LINE__, 1, view->cols, view->lines - 1, 1);
-    write_cmenu_log_nt(em0);
+    write_cmenu_log(em0);
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d calc LNNO lines=%d, cols=%d, begy=%d, begx=%d",
               __FILE__, __LINE__, view->lines - 1, view->ln_win_cols, 0, 0);
-    write_cmenu_log_nt(em0);
+    write_cmenu_log(em0);
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d calc PAD lines=%d, cols=%d, begy=%d, begx=%d",
               __FILE__, __LINE__, view->lines - 1, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
-    write_cmenu_log_nt(em0);
+    write_cmenu_log(em0);
 
 #endif
 }

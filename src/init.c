@@ -128,7 +128,6 @@ static struct argp_option options[] = {
     {"mapp_spec", 'd', "file_spec", 0, "description file spec", 3},
     {"provider_cmd", 'S', "file_spec", 0, "execute provider of piped input", 3},
     {"receiver_cmd", 'R', "file_spec", 0, "execute receiver of piped output", 3},
-    {"wait_timeout", 'w', "seconds", 0, "Wait timer", 5},
     {"select_max", 'n', "number", 0, "number of selections", 5},
     {"f_erase_remainder", 'e', "bool", OPTION_ARG_OPTIONAL, "erase remainder of line on enter", 5},
     {"f_strip_ansi", 'j', "bool", OPTION_ARG_OPTIONAL, "always strip ansi when writing", 5},
@@ -137,6 +136,7 @@ static struct argp_option options[] = {
     {"f_squeeze", 's', "bool", OPTION_ARG_OPTIONAL, "squeeze multiple blank lines", 5},
     {"f_ignore_case", 'x', "bool", OPTION_ARG_OPTIONAL, "ignore case in search", 5},
     {"p_view_files", 'v', "bool", OPTION_ARG_OPTIONAL, "File View in Pick", 5},
+    {"wrap", 'w', "bool", OPTION_ARG_OPTIONAL, "view wrap lines", 5},
     {"f_ln", 'N', "bool", OPTION_ARG_OPTIONAL, "line numbers in view", 5},
     {"fill_char", 'f', "char", 0, "field fill_char (_,.,empty)", 5},
     {"brackets", 'u', "text", 0, "brackets around fields ([]{}<>)", 5},
@@ -266,9 +266,14 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         init->select_max = atoi(arg);
         break;
     case 'N':
-        init->f_ln = true;
         if (arg)
             init->f_ln = str_to_bool(arg);
+        if (arg && arg[0] == 't')
+            init->f_ln = true;
+        else if (arg && arg[0] == 'f')
+            init->f_ln = false;
+        else
+            init->f_ln = true;
         break;
     case 'r':
         init->f_read_theme = true;
@@ -290,9 +295,12 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         strnz__cpy(init->brackets, arg, 2);
         break;
     case 'w':
-        wait_timeout = atoi(arg);
-        wait_timeout = min(wait_timeout, 1);
-        wait_timeout = max(wait_timeout, 29);
+        if (arg && arg[0] == 't')
+            init->wrap = true;
+        else if (arg && arg[0] == 'f')
+            init->wrap = false;
+        else
+            init->wrap = true;
         break;
     case 'v':
         init->p_view_files = true;
@@ -787,8 +795,8 @@ int process_config_file(char *config_file_name, Init *init) {
             init->h_shift = atoi(value);
             continue;
         }
-        if (!strcmp(key, "wait_timeout")) {
-            wait_timeout = atoi(value);
+        if (!strcmp(key, "wrap")) {
+            init->wrap = str_to_bool(value);
             continue;
         }
         if (!strcmp(key, "title")) {
@@ -1153,8 +1161,10 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "f_multiple_cmd_args");
     ssnprintf(config_s, MAXLEN - 1, "%s=%d", "select_max", init->select_max);
     print_argp_doc(minitrc_fp, config_s, "select_max");
+
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_ln", init->f_ln ? "true" : "false");
     print_argp_doc(minitrc_fp, config_s, "f_ln");
+
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_squeeze", init->f_squeeze ? "true" : "false");
     print_argp_doc(minitrc_fp, config_s, "f_squeeze");
     ssnprintf(config_s, MAXLEN - 1, "%s=%d", "tab_stop", init->tab_stop);
@@ -1163,8 +1173,10 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "h_shift");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "brackets", init->brackets);
     print_argp_doc(minitrc_fp, config_s, "brackets");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "wait_timeout", wait_timeout);
-    print_argp_doc(minitrc_fp, config_s, "wait_timeout");
+
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "wrap", init->wrap ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "wrap");
+
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_ignore_case", init->f_ignore_case ? "true" : "false");
     print_argp_doc(minitrc_fp, config_s, "f_ignore_case");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "p_view_files", init->p_view_files ? "true" : "false");

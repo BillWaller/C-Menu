@@ -630,8 +630,8 @@ extern const wchar_t bw_chk; /**< right piointing angle */
 
 extern cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran, chk;
 
-extern void write_cmenu_log_nt(char *);
 extern void write_cmenu_log(char *);
+extern void write_cmenu_log_ts(char *);
 extern void open_cmenu_log();
 extern FILE *cmenu_log_fp;
 extern int n_lines; /**< number of lines in the terminal */

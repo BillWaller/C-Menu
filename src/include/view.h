@@ -40,6 +40,14 @@ typedef enum { PT_NONE,
     1024 // number of entries to add to line_tbl when reallocating
 
 typedef struct {
+    int ln_cnt;
+    int ln_idx;
+    char *ln_s[128];
+    cchar_t *ln[128];
+    size_t ln_len[128];
+} SplitLine;
+
+typedef struct {
     int fg_clr_idx;              /**< foreground_color */
     int bg_clr_idx;              /**< background_color */
     int bo_clr_idx;              /**< bold_color */
@@ -169,14 +177,18 @@ typedef struct {
     int ln_win_lines;                 /**< number of lines in line number window */
     int ln_win_cols;                  /**< number of columns in line number window */
     bool f_ln;                        /**< flag - number lines */
-    off_t ln;                         /**< line number */
-    char ln_s[10];                    /**< line number formatted string */
-    off_t *ln_tbl;                    /**< line number table - array of file positions */
-    off_t ln_tbl_size;                /**< number of entries allocated in line_tbl */
-    off_t ln_tbl_cnt;                 /**< number of entries used in line_tbl */
-    off_t ln_max_pos;                 /**< position of last page number increment */
-    off_t page_top_ln;                /**< line number of top line displayed */
-    off_t page_bot_ln;                /**< line number of last line displayed */
+    bool wrap;
+    SplitLine top;     /**< split line structure for top line displayed */
+    SplitLine bot;     /**< split line structure for bottom line displayed */
+    SplitLine cur;     /**< split line structure for current line displayed */
+    off_t ln;          /**< line number */
+    char ln_s[10];     /**< line number formatted string */
+    off_t *ln_tbl;     /**< line number table - array of file positions */
+    off_t ln_tbl_size; /**< number of entries allocated in line_tbl */
+    off_t ln_tbl_cnt;  /**< number of entries used in line_tbl */
+    off_t ln_max_pos;  /**< position of last page number increment */
+    off_t page_top_ln; /**< line number of top line displayed */
+    off_t page_bot_ln; /**< line number of last line displayed */
 } View;
 // extern View *view;
 

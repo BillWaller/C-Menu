@@ -1683,7 +1683,7 @@ void open_cmenu_log() {
     @ingroup utility_functions
     @param msg - string to write to log file
  */
-void write_cmenu_log(char *msg) {
+void write_cmenu_log_ts(char *msg) {
     char time_buf[100];
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
@@ -1699,7 +1699,7 @@ void write_cmenu_log(char *msg) {
     @ingroup utility_functions
     @param msg - string to write to log file
  */
-void write_cmenu_log_nt(char *msg) {
+void write_cmenu_log(char *msg) {
     write(cmenu_log_fd, msg, strlen(msg));
     write(cmenu_log_fd, "\n", 1);
     return;

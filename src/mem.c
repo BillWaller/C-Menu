@@ -774,6 +774,7 @@ bool init_view_files(Init *init) {
     view->f_squeeze = init->f_squeeze;
     view->tab_stop = init->tab_stop;
     view->f_ln = init->f_ln;
+    view->wrap = init->wrap;
     view->h_shift = init->h_shift;
     e = getenv("VIEW_HELP_FILE");
     if (e && e[0] != '\0') {

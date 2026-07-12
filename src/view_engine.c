@@ -224,7 +224,7 @@ int view_cmd_processor(Init *init) {
             ssnprintf(em0, MAXLEN - 1,
                       "%s:%d view->page_top_ln=%d, resized to lines: %d, cols: %d\n",
                       __FILE__, __LINE__, view->page_top_ln, view->lines, view->cols);
-            write_cmenu_log_nt(em0);
+            write_cmenu_log(em0);
 #endif
             if (view->f_full_screen)
                 view_full_screen_resize(init);
@@ -276,11 +276,7 @@ int view_cmd_processor(Init *init) {
                     n_cmd = 1;
             }
             shift = (int)n_cmd;
-            swidth = view->smaxcol - view->smincol + 1;
-            if (view->f_ln)
-                max_pmincol = view->maxcol - swidth + view->ln_win_cols;
-            else
-                max_pmincol = view->maxcol - swidth;
+            max_pmincol = (view->maxcol > view->cols) ? (view->maxcol - view->cols) : 0;
             if (view->pmincol + shift < max_pmincol)
                 view->pmincol += shift;
             else
@@ -1776,87 +1772,196 @@ void display_line(View *view) {
  */
 int fmt_line(View *view) {
     char ansi_tok[MAXLEN];
-    int i = 0, j = 0;
+    int i = 0, j = 0, x = 0;
     int len = 0;
-    const char *s;
+    int tab_spaces = 0;
+    int char_width;
     attr_t attr = WA_NORMAL;
     int cpx = cp_nt;
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
-
     char *in_str = view->line_in_s;
+    int ln_len = 0;
     cchar_t *cmplx_buf = view->cmplx_buf;
-
+    view->cur.ln_cnt = 0;
+    view->cur.ln_idx = 0;
+    view->cur.ln_s[0] = nullptr;
+    view->cur.ln[0] = nullptr;
+    char *ln_s = view->stripped_line_out;
+    cchar_t *ln = view->cmplx_buf;
     rtrim(view->line_out_s);
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
+    int word_len = 0;
+    int ln_maxlen = PAD_COLS - 1;
+    if (view->wrap)
+        ln_maxlen = view->cols;
+    if (view->f_ln)
+        ln_maxlen -= view->ln_win_cols;
+    memset(view->stripped_line_out, 0, sizeof(view->stripped_line_out));
     while (in_str[i] != '\0') {
-        if (in_str[i] == '\033' && in_str[i + 1] == '[') {
-            /** This section calls the decoder for ANSI escape sequences */
-            len = strcspn(&in_str[i], "mK ") + 1;
-            memcpy(ansi_tok, &in_str[i], len + 1);
-            ansi_tok[len] = '\0';
-            if (ansi_tok[0] == '\0') {
-                if (i + 2 < MAXLEN)
-                    i += 2;
-                continue;
-            }
-            if (len == 0 || in_str[i + len - 1] == ' ') {
-                i += 2;
-                continue;
-            } else if (in_str[i + len - 1] == 'K') {
-                i += len;
-                continue;
-            }
-            parse_ansi_str(ansi_tok, &attr, &cpx);
-            i += len;
-        } else {
-            /** This section converts the input string to wide characters,
-                handling tabs and multi-byte characters, and stores the result
-                in the complex buffer for display. ANSI escape sequences are
-                ignored in this section since they are handled separately above.
-             */
+        while (1) {
             if (in_str[i] == '\033') {
-                i++;
-                continue;
-            }
-            s = &in_str[i];
-            if (*s == '\t') {
-                do {
+                if (in_str[i + 1] == '[') {
+                    len = strcspn(&in_str[i], "mK ") + 1;
+                    memcpy(ansi_tok, &in_str[i], len + 1);
+                    ansi_tok[len] = '\0';
+                    if (ansi_tok[0] == '\0') {
+                        if (i + 2 < MAXLEN)
+                            i += 2;
+                        continue;
+                    }
+                    if (len == 0 || in_str[i + len - 1] == ' ') {
+                        i += 2;
+                        continue;
+                    } else if (in_str[i + len - 1] == 'K') {
+                        i += len;
+                        continue;
+                    }
+                    parse_ansi_str(ansi_tok, &attr, &cpx);
+                    i += len;
+                } else {
+                    i++;
+                    continue;
+                }
+            } else {
+                if (in_str[i] == '\\' && in_str[i + 1] == 'n') {
+                    i += 2;
+                    continue;
+                }
+                if (in_str[i] == '\t') {
+                    tab_spaces = view->tab_stop - (ln_len % view->tab_stop);
+                    if (view->wrap && ln_len + word_len + tab_spaces > ln_maxlen - 1)
+                        break;
                     wstr[0] = L' ';
                     wstr[1] = L'\0';
                     setcchar(&cc, wstr, attr, cpx, nullptr);
-                    view->stripped_line_out[j] = ' ';
+                    for (int z = 0; z < tab_spaces; z++) {
+                        view->stripped_line_out[x++] = ' ';
+                        cmplx_buf[j++] = cc;
+                    }
+                    if (view->wrap) {
+                        ln_len += word_len + tab_spaces;
+                        word_len = 0;
+                    } else
+                        ln_len += tab_spaces;
+                    i++;
+                    continue;
+                }
+                if (in_str[i] == ' ' || in_str[i] == '\n') {
+                    if (view->wrap && ln_len + word_len + 1 > ln_maxlen - 1)
+                        break;
+                    wstr[0] = L' ';
+                    wstr[1] = L'\0';
+                    setcchar(&cc, wstr, attr, cpx, nullptr);
+                    view->stripped_line_out[x++] = ' ';
                     cmplx_buf[j++] = cc;
-                } while ((j < PAD_COLS - 2) && (j % view->tab_stop != 0));
-                i++;
-            } else {
+                    if (view->wrap) {
+                        ln_len += word_len + 1;
+                        word_len = 0;
+                    } else
+                        ln_len += 1;
+                    i++;
+                    continue;
+                }
+                if (in_str[i] == '\0')
+                    break;
                 wstr[1] = L'\0';
-                len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+                len = mbrtowc(wstr, &in_str[i], MB_CUR_MAX, &mbstate);
                 if (len <= 0) {
                     wstr[0] = L'?';
                     wstr[1] = L'\0';
                     len = 1;
                 }
-                if (setcchar(&cc, wstr, attr, cpx, nullptr) != ERR) {
-                    if (len > 0 && (j + len) < PAD_COLS - 1) {
-                        view->stripped_line_out[j] = *s;
-                        cmplx_buf[j++] = cc;
-                    }
+                char_width = wcwidth(wstr[0]);
+                if (char_width <= 0) {
+                    i += len;
+                    continue;
                 }
+                setcchar(&cc, wstr, attr, cpx, nullptr);
+                view->stripped_line_out[x++] = in_str[i];
+                if (char_width > 1)
+                    for (int n = 1; n < char_width; n++)
+                        view->stripped_line_out[x++] = ' ';
+                cmplx_buf[j++] = cc;
                 i += len;
+                if (view->wrap) {
+                    word_len += char_width;
+                } else
+                    ln_len += char_width;
+                continue;
             }
         }
+        //---------------------------------------------------------------------
+        // If the current line length plus the word length exceeds the maximum
+        // line length, we move the word to the next line.
+        // if we get here, its because (ln_len + word_len) > ln_maxlen - 1
+        if (view->wrap && word_len > 0) {
+            if (ln_len <= ln_maxlen - 1) {
+                view->cur.ln_s[view->cur.ln_idx] = ln_s;
+                view->cur.ln[view->cur.ln_idx] = ln;
+                view->cur.ln_len[view->cur.ln_idx++] = ln_len;
+                ln_s = &ln_s[ln_len];
+                ln = &ln[ln_len];
+                ln_len = word_len;
+                word_len = 0;
+            }
+            while (ln_len > ln_maxlen - 1) {
+                view->cur.ln_s[view->cur.ln_idx] = ln_s;
+                view->cur.ln[view->cur.ln_idx] = ln;
+                view->cur.ln_len[view->cur.ln_idx++] = ln_maxlen;
+                ln_s = &ln_s[ln_maxlen];
+                ln = &ln[ln_maxlen];
+                ln_len -= ln_maxlen;
+                word_len = 0;
+            }
+        }
+        if (ln_len > view->maxcol)
+            view->maxcol = ln_len;
     }
-    if (j > view->maxcol)
-        view->maxcol = j;
+    //-------------------------------------------------------------------------
+    if (view->wrap && view->cur.ln_idx > 0) {
+
+        // last word
+        // view->cur.ln_s[view->cur.ln_idx] = ln_s;
+        // view->cur.ln[view->cur.ln_idx] = ln;
+        // view->cur.ln_idx++;
+
+        // end of line pointer
+        ln_s = &ln_s[ln_len];
+        view->cur.ln_s[view->cur.ln_idx] = ln_s;
+        view->cur.ln[view->cur.ln_idx] = nullptr;
+
+        // terminate split-line table
+        view->cur.ln_idx++;
+        view->cur.ln_s[view->cur.ln_idx] = nullptr;
+        view->cur.ln_s[view->cur.ln_idx] = nullptr;
+
+        view->cur.ln_cnt = view->cur.ln_idx;
+
+#ifdef DEBUG_WRAP
+        char tmp_str[MAXLEN];
+        for (int k = 0; k < view->cur.ln_cnt - 1; k++) {
+            memset(tmp_str, 0, sizeof(tmp_str));
+            char *s = view->cur.ln_s[k];
+            char *d = tmp_str;
+            char *e = view->cur.ln_s[k] + view->cur.ln_len[k];
+            while (s < e)
+                *d++ = *s++;
+            *d = '\0';
+            write_cmenu_log(tmp_str);
+        }
+#endif
+    }
+    //-------------------------------------------------------------------------
     wstr[0] = '\0';
     wstr[1] = '\0';
     setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);
     cmplx_buf[j] = cc;
-    view->stripped_line_out[j] = '\0';
+    view->stripped_line_out[x] = '\0';
     return j;
 }
+//----------------------------------------------------------------------------------
 /** @brief Parse ANSI SGR Escape Sequence
     @ingroup view_display
     @param ansi_str is the ANSI escape sequence string to parse
@@ -1885,7 +1990,6 @@ int fmt_line(View *view) {
    (0-255)
 
     XTERM 256-color:
-
         foreground \033[38;5;xm
         background \033[48;5;xm
 
@@ -2283,7 +2387,7 @@ bool view_stack_peek(const ViewStack *s, View *out_item) {
  */
 void view_stack_free(ViewStack *s) {
     free(s->items);
-    s->items = NULL;
+    s->items = nullptr;
     s->capacity = 0;
     s->top = 0;
 }

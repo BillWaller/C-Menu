@@ -141,6 +141,7 @@ typedef struct
     bool f_erase_remainder;    /**< Form - erase remainder of field on enter */
     bool f_read_theme;         /**< Pick - read and process theme */
     bool f_ln;                 /**< View - show line numbers */
+    bool wrap;                 /**< View - wrap lines */
     char brackets[3];          /**< Form - left and right enclosing characters */
     char fill_char[4];         /**< Form - fill character for fields */
     char mapp_home[MAXLEN];    /**< home directory */
