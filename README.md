@@ -32,6 +32,11 @@
 * [View C-Menu Command Line Options](#view-c-menu-command-line-options)
 * [View Highlighted view_engine](#view-highlighted-view_engine)
 * [Exit Applications](#exit-applications)
+* [C-Menu Features](#c-menu-features)
+  * [Lightweight Finder (lf)](#lightweight-finder-lf)
+  * [File Browser Pick, LF, and View](#file-browser-pick-lf-and-view)
+  * [Detached Execution](#detached-execution)
+  * [Neovim Integration](#neovim-integration)
 
 <!-- mtoc-end -->
 
@@ -389,6 +394,8 @@ for a fourth variable given the other three.
 
 - The -S option specifies a command to run when the user commits a loan record. In this case, it runs the amort, a command that prints an amortization schedule for the selected loan.
 
+![Installment Loan Calculations (An Example Form)](screenshots/iloan.png)
+
 ---
 
 ## Cash Receipts
@@ -402,6 +409,8 @@ for a fourth variable given the other three.
   to enter a cash receipt transaction and save it to a file. If it were part of
 a real accounting application, form would have a -c option specifying a program
 or script that would process the cash receipt and post it to the general ledger.
+
+![Cash Receipts](screenshots/Receipt.png)
 
 ---
 
@@ -436,6 +445,8 @@ edit. The Rustlings exercises are generally small and fairly simple, but very
 powerful learning tools because they provide practical experience with the Rust
 programming language.
 
+![Rustlings Source](screenshots/rustlings.png)
+
 - With C-Menu, using this menu selection, I easily finished more than 30
 of the Rustlings exercises in an portion of an afternoon, and had a lot of fun doing it. Admittedly, I had previously completed all the exercises, so I was cheating a little bit. Nevertheless, Rustlings is a great way to learn Rust, and C-Menu Pick combined with C-Menu lf make repetitively finding and editing the rust source files super fast and easy. 
 
@@ -449,9 +460,6 @@ of the Rustlings exercises in an portion of an afternoon, and had a lot of fun d
 cargo install rustlings
 ```
 
-
-
-
 ---
 
 ## View Manual Pages
@@ -460,6 +468,9 @@ cargo install rustlings
 :     -PView Manual Pages
 !pick -S "listman.sh" -n 1 -T \"Select Manual Page to View\" -c "readman.sh %%"
 ```
+
+![Manual Pages in View](screenshots/man-page.png)
+
 
 ---
 
@@ -473,6 +484,8 @@ cargo install rustlings
 - This menu selection uses lf to display a list of all C-Menu description files
 in the application's msrc directory. The user can select a file to edit in the
 default text editor. In this example, we use nvim.
+
+![C-Menu Description File](screenshots/applications_menu.m.png)
 
 ---
 
@@ -488,6 +501,9 @@ default text editor. In this example, we use nvim.
 - You will also need to have the tree-sitter grammars for the languages you want
 to highlight installed. You can find the grammars on the tree-sitter GitHub
 page: [Tree-Sitter Grammars](https://github.com/tree-sitter-grammars).
+
+![View C-Menu Source](screenshots/tree-sitter.png)
+
 
 ---
 
@@ -517,6 +533,8 @@ directory and its subdirectories. The user can select a source file to view with
 
 - Beware: The LSP log can be very large, and you may not be able to load in vim or nvim, and if you do it will be very slow and unwieldy. No problem for view. It eats multi-gigabyte files for breakfast. You can scroll through the log file quickly and easily, and search for specific entries using the built-in search functionality, and you can do so lickety-split. (How is that for an onomatopoeic idiom?)
 
+![LSP Log](screenshots/lsp_log.png)
+
 ---
 
 ## Help Menu
@@ -527,6 +545,8 @@ directory and its subdirectories. The user can select a source file to view with
 ```
 
 - This menu selection opens a sub-menu with a list of help topics.
+
+![Menu Help](screenshots/menu_help.png)
 
 ---
 
@@ -583,3 +603,36 @@ highlighting by tree-sitter.
 :     Exit Applications
 !return
 ```
+
+---
+
+## C-Menu Features
+
+### Lightweight Finder (lf)
+
+![LF](screenshots/lf-composite.png)
+
+---
+
+### File Browser Pick, LF, and View
+
+![File Browser](screenshots/FileBrowser.png)
+---
+
+### Detached Execution
+
+![Detached Execution](screenshots/dexe-composite.png)
+
+---
+
+### Neovim Integration
+
+
+![Neovim Integration](screenshots/api-help.png)
+
+
+![Neovim Integration](screenshots/api-help1.png)
+
+![Neovim Integration](screenshots/api-help1.png)
+
+

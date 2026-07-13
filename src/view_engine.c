@@ -102,7 +102,10 @@ off_t get_prev_line(View *, off_t);
 off_t get_pos_next_line(View *, off_t);
 off_t get_pos_prev_line(View *, off_t);
 int fmt_line(View *);
+void log_split_lines(View *);
+void log_cc_buf(View *);
 void display_line(View *);
+void display_split_line(View *);
 void view_display_page(View *);
 void parse_ansi_str(char *, attr_t *, int *);
 void view_display_help(Init *);
@@ -1348,7 +1351,7 @@ void view_display_page(View *view) {
     view->page_top_pos = view->ln_tbl[view->ln];
     view->file_pos = view->page_top_pos;
     view->page_bot_pos = view->file_pos;
-    for (i = 0; i < view->scroll_lines; i++) {
+    while (view->cury < view->scroll_lines) {
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
         if (view->f_eod)
             break;
@@ -1397,7 +1400,24 @@ void scroll_down_n_lines(View *view, int n) {
     }
     /** Fill in Page Bottom */
     wmove(view->pad, view->cury, 0);
-    for (i = 0; i < n; i++) {
+    // view->page_bot_sl will be false when the last line of the file has been
+    // reached
+    if (view->wrap && view->page_bot_sl) {
+        view->page_bot_pos = view->ln_tbl[view->page_bot_ln];
+        if (view->page_bot_pos == view->cur.sl_pos) {
+            if (view->cur.sl_idx + 1 < view->cur.sl_cnt) {
+                view->cur.sl_idx = view->cur.sl_idx + 1;
+                display_split_line(view);
+                return;
+            }
+        } else {
+            view->page_bot_pos = get_prev_line(view, view->page_bot_pos);
+            fmt_line(view);
+            display_line(view);
+            return;
+        }
+    }
+    while (view->cury < view->scroll_lines) {
         view->page_bot_pos = get_next_line(view, view->page_bot_pos);
         view->page_bot_ln = view->ln;
         if (view->f_eod)
@@ -1746,6 +1766,11 @@ void display_line(View *view) {
         view->cury = 0;
     if (view->cury > view->scroll_lines - 1)
         view->cury = view->scroll_lines - 1;
+    if (view->wrap && view->cur.sl_cnt > 0) {
+        view->cur.sl_idx = 0;
+        display_split_line(view);
+        return;
+    }
     if (view->f_ln) {
         ssnprintf(ln_s, 8, "%7jd", view->ln);
         wmove(view->lnno_win, view->cury, 0);
@@ -1756,6 +1781,36 @@ void display_line(View *view) {
     wclrtoeol(view->pad);
     wadd_wchstr(view->pad, view->cmplx_buf);
     view->cury++;
+}
+void display_split_line(View *view) {
+    char ln_s[16];
+    if (view->cury < 0)
+        view->cury = 0;
+    if (view->cury > view->scroll_lines - 1)
+        view->cury = view->scroll_lines - 1;
+
+    for (int i = view->cur.sl_idx; i < view->cur.sl_cnt; i++) {
+        if (i == 0) {
+            if (view->f_ln) {
+                ssnprintf(ln_s, 8, "%7jd", view->ln);
+                wmove(view->lnno_win, view->cury, 0);
+                wclrtoeol(view->lnno_win);
+                mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
+            }
+        } else {
+            if (view->f_ln) {
+                wmove(view->lnno_win, view->cury, 0);
+                wclrtoeol(view->lnno_win);
+            }
+        }
+        wmove(view->pad, view->cury, 0);
+        wclrtoeol(view->pad);
+        wadd_wchnstr(view->pad, view->cur.sl_cc[i], view->cur.sl_cells[i]);
+        view->cur.sl_idx = i;
+        view->cury++;
+        if (view->cury >= view->scroll_lines - 1)
+            break;
+    }
 }
 /** @brief Format Line for Display
     @ingroup view_display
@@ -1781,23 +1836,26 @@ int fmt_line(View *view) {
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
     char *in_str = view->line_in_s;
-    int ln_len = 0;
+    int sl_cols = 0;
+    int sl_cells = 0;
+    int word_cells = 0;
     cchar_t *cmplx_buf = view->cmplx_buf;
-    view->cur.ln_cnt = 0;
-    view->cur.ln_idx = 0;
-    view->cur.ln_s[0] = nullptr;
-    view->cur.ln[0] = nullptr;
-    char *ln_s = view->stripped_line_out;
-    cchar_t *ln = view->cmplx_buf;
+    view->cur.sl_idx = 0;
+    view->cur.sl_cols[0] = 0;
+    view->cur.sl_cells[0] = 0;
+    view->cur.sl_s[0] = nullptr;
+    view->cur.sl_cc[0] = nullptr;
+    char *sl_s = view->stripped_line_out;
+    cchar_t *sl_cc = view->cmplx_buf;
     rtrim(view->line_out_s);
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
-    int word_len = 0;
-    int ln_maxlen = PAD_COLS - 1;
+    int word_cols = 0;
+    int sl_maxlen = PAD_COLS - 1;
     if (view->wrap)
-        ln_maxlen = view->cols;
+        sl_maxlen = view->cols;
     if (view->f_ln)
-        ln_maxlen -= view->ln_win_cols;
+        sl_maxlen -= view->ln_win_cols;
     memset(view->stripped_line_out, 0, sizeof(view->stripped_line_out));
     while (in_str[i] != '\0') {
         while (1) {
@@ -1825,13 +1883,37 @@ int fmt_line(View *view) {
                     continue;
                 }
             } else {
-                if (in_str[i] == '\\' && in_str[i + 1] == 'n') {
-                    i += 2;
+                if (in_str[i] == ' ') {
+                    if (view->wrap && (sl_cols + word_cols) + 1 > (sl_maxlen - 1))
+                        break;
+                    wstr[0] = L' ';
+                    wstr[1] = L'\0';
+                    setcchar(&cc, wstr, attr, cpx, nullptr);
+                    view->stripped_line_out[x++] = ' ';
+                    cmplx_buf[j++] = cc;
+                    if (view->wrap) {
+                        sl_cols += word_cols + 1;
+                        word_cols = 0;
+                        sl_cells += word_cells + 1;
+                        word_cells = 0;
+                    } else
+                        sl_cols += 1;
+                    i++;
                     continue;
                 }
+                if (in_str[i] == '\0') {
+                    if (view->wrap && sl_cols + word_cols > sl_maxlen - 1)
+                        break;
+                    sl_cols += word_cols;
+                    word_cols = 0;
+                    sl_cells += word_cells;
+                    word_cells = 0;
+                    i++;
+                    break;
+                }
                 if (in_str[i] == '\t') {
-                    tab_spaces = view->tab_stop - (ln_len % view->tab_stop);
-                    if (view->wrap && ln_len + word_len + tab_spaces > ln_maxlen - 1)
+                    tab_spaces = view->tab_stop - (sl_cols % view->tab_stop);
+                    if (view->wrap && sl_cols + word_cols + tab_spaces > sl_maxlen - 1)
                         break;
                     wstr[0] = L' ';
                     wstr[1] = L'\0';
@@ -1841,31 +1923,17 @@ int fmt_line(View *view) {
                         cmplx_buf[j++] = cc;
                     }
                     if (view->wrap) {
-                        ln_len += word_len + tab_spaces;
-                        word_len = 0;
-                    } else
-                        ln_len += tab_spaces;
+                        sl_cols += word_cols + tab_spaces;
+                        word_cols = 0;
+                        sl_cells += word_cells + tab_spaces;
+                        word_cells = 0;
+                    } else {
+                        sl_cols += tab_spaces;
+                        sl_cells += tab_spaces;
+                    }
                     i++;
                     continue;
                 }
-                if (in_str[i] == ' ' || in_str[i] == '\n') {
-                    if (view->wrap && ln_len + word_len + 1 > ln_maxlen - 1)
-                        break;
-                    wstr[0] = L' ';
-                    wstr[1] = L'\0';
-                    setcchar(&cc, wstr, attr, cpx, nullptr);
-                    view->stripped_line_out[x++] = ' ';
-                    cmplx_buf[j++] = cc;
-                    if (view->wrap) {
-                        ln_len += word_len + 1;
-                        word_len = 0;
-                    } else
-                        ln_len += 1;
-                    i++;
-                    continue;
-                }
-                if (in_str[i] == '\0')
-                    break;
                 wstr[1] = L'\0';
                 len = mbrtowc(wstr, &in_str[i], MB_CUR_MAX, &mbstate);
                 if (len <= 0) {
@@ -1874,83 +1942,87 @@ int fmt_line(View *view) {
                     len = 1;
                 }
                 char_width = wcwidth(wstr[0]);
-                if (char_width <= 0) {
-                    i += len;
-                    continue;
-                }
-                setcchar(&cc, wstr, attr, cpx, nullptr);
                 view->stripped_line_out[x++] = in_str[i];
                 if (char_width > 1)
                     for (int n = 1; n < char_width; n++)
                         view->stripped_line_out[x++] = ' ';
+
+                setcchar(&cc, wstr, attr, cpx, nullptr);
                 cmplx_buf[j++] = cc;
                 i += len;
                 if (view->wrap) {
-                    word_len += char_width;
-                } else
-                    ln_len += char_width;
+                    word_cols += char_width;
+                    word_cells++;
+                } else {
+                    sl_cols += char_width;
+                    sl_cells++;
+                }
                 continue;
             }
         }
-        //---------------------------------------------------------------------
-        // If the current line length plus the word length exceeds the maximum
-        // line length, we move the word to the next line.
-        // if we get here, its because (ln_len + word_len) > ln_maxlen - 1
-        if (view->wrap && word_len > 0) {
-            if (ln_len <= ln_maxlen - 1) {
-                view->cur.ln_s[view->cur.ln_idx] = ln_s;
-                view->cur.ln[view->cur.ln_idx] = ln;
-                view->cur.ln_len[view->cur.ln_idx++] = ln_len;
-                ln_s = &ln_s[ln_len];
-                ln = &ln[ln_len];
-                ln_len = word_len;
-                word_len = 0;
+        if (view->wrap && word_cols > 0) {
+            if (sl_cols <= sl_maxlen - 1) {
+                view->cur.sl_s[view->cur.sl_idx] = sl_s;
+                view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
+                view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
+                view->cur.sl_cells[view->cur.sl_idx] = sl_cells;
+                view->cur.sl_idx++;
+                sl_s = &sl_s[sl_cells];
+                sl_cc = &sl_cc[sl_cells];
+                sl_cols > view->maxcol ? view->maxcol = sl_cols : 0;
+                sl_cols = word_cols;
+                sl_cells = word_cells;
+                word_cols = 0;
+                word_cells = 0;
             }
-            while (ln_len > ln_maxlen - 1) {
-                view->cur.ln_s[view->cur.ln_idx] = ln_s;
-                view->cur.ln[view->cur.ln_idx] = ln;
-                view->cur.ln_len[view->cur.ln_idx++] = ln_maxlen;
-                ln_s = &ln_s[ln_maxlen];
-                ln = &ln[ln_maxlen];
-                ln_len -= ln_maxlen;
-                word_len = 0;
+            while (sl_cols > sl_maxlen - 1) {
+                int safe_cells = 0;
+                int safe_cols = 0;
+                while (safe_cols < sl_maxlen && safe_cells < sl_cells) {
+                    wchar_t wstr_chk[CCHARW_MAX];
+                    attr_t attr_chk;
+                    short cpx_chk;
+                    getcchar(&sl_cc[safe_cells], wstr_chk, &attr_chk, &cpx_chk, nullptr);
+                    int cw = wcwidth(wstr_chk[0]);
+                    if (safe_cols + cw > sl_maxlen)
+                        break;
+                    safe_cols += cw;
+                    safe_cells++;
+                }
+                if (safe_cells == 0) {
+                    safe_cells = 1;
+                    safe_cols = sl_maxlen;
+                }
+                view->cur.sl_s[view->cur.sl_idx] = sl_s;
+                view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
+                view->cur.sl_cols[view->cur.sl_idx] = safe_cols;
+                view->cur.sl_cells[view->cur.sl_idx] = safe_cells;
+                view->cur.sl_idx++;
+                sl_s = &sl_s[safe_cells];
+                sl_cc = &sl_cc[safe_cells];
+                sl_cols > view->maxcol ? view->maxcol = sl_cols : 0;
+                sl_cols -= safe_cols;
+                sl_cells -= safe_cells;
+                word_cols = 0;
+                word_cells = 0;
             }
-        }
-        if (ln_len > view->maxcol)
-            view->maxcol = ln_len;
+        } else
+            sl_cols > view->maxcol ? view->maxcol = sl_cols : 0;
     }
-    //-------------------------------------------------------------------------
-    if (view->wrap && view->cur.ln_idx > 0) {
-
-        // last word
-        // view->cur.ln_s[view->cur.ln_idx] = ln_s;
-        // view->cur.ln[view->cur.ln_idx] = ln;
-        // view->cur.ln_idx++;
-
-        // end of line pointer
-        ln_s = &ln_s[ln_len];
-        view->cur.ln_s[view->cur.ln_idx] = ln_s;
-        view->cur.ln[view->cur.ln_idx] = nullptr;
-
-        // terminate split-line table
-        view->cur.ln_idx++;
-        view->cur.ln_s[view->cur.ln_idx] = nullptr;
-        view->cur.ln_s[view->cur.ln_idx] = nullptr;
-
-        view->cur.ln_cnt = view->cur.ln_idx;
-
+    if (view->wrap && view->cur.sl_idx > 0) {
+        // sl_s = &sl_s[sl_cols];
+        // sl_cc = &sl_cc[sl_cols];
+        view->cur.sl_s[view->cur.sl_idx] = sl_s;
+        view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
+        view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
+        view->cur.sl_cells[view->cur.sl_idx] = sl_cells;
+        view->cur.sl_idx++;
+        view->cur.sl_cc[view->cur.sl_idx] = nullptr;
+        view->cur.sl_s[view->cur.sl_idx] = nullptr;
+        view->cur.sl_cnt = view->cur.sl_idx;
 #ifdef DEBUG_WRAP
-        char tmp_str[MAXLEN];
-        for (int k = 0; k < view->cur.ln_cnt - 1; k++) {
-            memset(tmp_str, 0, sizeof(tmp_str));
-            char *s = view->cur.ln_s[k];
-            char *d = tmp_str;
-            char *e = view->cur.ln_s[k] + view->cur.ln_len[k];
-            while (s < e)
-                *d++ = *s++;
-            *d = '\0';
-            write_cmenu_log(tmp_str);
-        }
+        // log_split_lines(view);
+        log_cc_buf(view);
 #endif
     }
     //-------------------------------------------------------------------------
@@ -1960,6 +2032,40 @@ int fmt_line(View *view) {
     cmplx_buf[j] = cc;
     view->stripped_line_out[x] = '\0';
     return j;
+}
+void log_cc_buf(View *view) {
+    char tmp_str[PAD_COLS];
+
+    for (int k = 0; k < view->cur.sl_cnt; k++) {
+        memset(tmp_str, 0, sizeof(tmp_str));
+        for (int c = 0; c < view->cur.sl_cells[k]; c++) {
+            wchar_t wstr[CCHARW_MAX];
+            attr_t attr;
+            short cpx;
+            getcchar(&view->cur.sl_cc[k][c], wstr, &attr, &cpx, nullptr);
+            if (wstr[0] == L'\0')
+                tmp_str[c] = ' ';
+            else
+                tmp_str[c] = (char)wstr[0];
+        }
+        write_cmenu_log(tmp_str);
+    }
+}
+void log_split_lines(View *view) {
+    char tmp_str[MAXLEN];
+
+    for (int k = 0; k < view->cur.sl_cnt; k++) {
+        if (view->cur.sl_cols[k] > 0) {
+            memset(tmp_str, 0, sizeof(tmp_str));
+            char *s = view->cur.sl_s[k];
+            char *d = tmp_str;
+            char *e = view->cur.sl_s[k] + view->cur.sl_cols[k];
+            while (s < e)
+                *d++ = *s++;
+            *d = '\0';
+            write_cmenu_log(tmp_str);
+        }
+    }
 }
 //----------------------------------------------------------------------------------
 /** @brief Parse ANSI SGR Escape Sequence

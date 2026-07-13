@@ -40,11 +40,13 @@ typedef enum { PT_NONE,
     1024 // number of entries to add to line_tbl when reallocating
 
 typedef struct {
-    int ln_cnt;
-    int ln_idx;
-    char *ln_s[128];
-    cchar_t *ln[128];
-    size_t ln_len[128];
+    off_t sl_pos;           // File position of this subline chunk
+    char *sl_s[MAXLEN];     // Stripped subline
+    cchar_t *sl_cc[MAXLEN]; // Subline cchar_t array
+    int sl_cols[MAXLEN];    // Column widths (for cursor/layout calculations)
+    int sl_cells[MAXLEN];   // Number of cchar_t items in this subline chunk
+    int sl_idx;             // Index tracking sublines
+    int sl_cnt;             // Number of sublines
 } SplitLine;
 
 typedef struct {
@@ -177,18 +179,22 @@ typedef struct {
     int ln_win_lines;                 /**< number of lines in line number window */
     int ln_win_cols;                  /**< number of columns in line number window */
     bool f_ln;                        /**< flag - number lines */
-    bool wrap;
-    SplitLine top;     /**< split line structure for top line displayed */
-    SplitLine bot;     /**< split line structure for bottom line displayed */
-    SplitLine cur;     /**< split line structure for current line displayed */
-    off_t ln;          /**< line number */
-    char ln_s[10];     /**< line number formatted string */
-    off_t *ln_tbl;     /**< line number table - array of file positions */
-    off_t ln_tbl_size; /**< number of entries allocated in line_tbl */
-    off_t ln_tbl_cnt;  /**< number of entries used in line_tbl */
-    off_t ln_max_pos;  /**< position of last page number increment */
-    off_t page_top_ln; /**< line number of top line displayed */
-    off_t page_bot_ln; /**< line number of last line displayed */
+    bool wrap;                        /** flag - wrap lines longer than window width */
+    SplitLine cur;                    /**< split line structure for current line displayed */
+    SplitLine top;                    /**< split line structure for page top line */
+    SplitLine bot;                    /**< split line structure for page bottom line */
+    off_t ln;                         /**< line number */
+    char ln_s[10];                    /**< line number formatted string */
+    off_t *ln_tbl;                    /**< line number table - array of file positions */
+    off_t ln_tbl_size;                /**< number of entries allocated in line_tbl */
+    off_t ln_tbl_cnt;                 /**< number of entries used in line_tbl */
+    off_t ln_max_pos;                 /**< position of last page number increment */
+    off_t page_top_ln;                /**< line number of top line displayed */
+    off_t page_bot_ln;                /**< line number of last line displayed */
+    bool page_top_sl;                 /**< flag - top line is a split line */
+    bool page_bot_sl;                 /**< flag - bottom line is a split line */
+    int page_top_sl_idx;              /**< flag - top line split line index */
+    int page_bot_sl_idx;              /**< flag - bottom line split line index */
 } View;
 // extern View *view;
 
