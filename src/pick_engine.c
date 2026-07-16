@@ -1510,10 +1510,10 @@ void new_view_file(Init *init, char *file) {
             view->f_bod = 0;
             view->maxcol = 0;
             view->page_top_pos = 0;
-            view->page_top_ln = 0;
-            view->page_bot_ln = 0;
+            view->page_top_ln_no = 0;
+            view->page_bot_ln_no = 0;
             view->ln_max_pos = 0;
-            view->ln = 0;
+            view->ln_no = 0;
             view->page_bot_pos = 0;
             view->file_pos = 0;
             border_title(view->box_win, view->title);

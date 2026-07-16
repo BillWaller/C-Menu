@@ -36,11 +36,13 @@
    When reading forward, the End of Data (EOD) flag is set when the
    position is equal to the file size, and cleared when the position or reading
    direction changes.
-   Carriage-returns are ignored as they should be.
-   View uses the kernel's demand paged virtual address space to map files
-   directly into memory. This allows for efficient access to file contents
-   without the need for explicit buffering or read system calls, as the kernel
-   handles loading the necessary pages into memory on demand.
+   @note view_engine.c line numbering
+   The macro, get_next_char() reads lines delimited by '\n', advancing the
+   line number index at the end of each record. The line number index
+   is one record ahead for most operations, including line numbering as lines
+   are displayed. Nevertheless, when providing a line number index to
+   get_line(), you must use the zero origin index, which is one less than
+   the line number index
  */
 #define get_next_char()                              \
     {                                                \
@@ -78,6 +80,13 @@
         } while (c == 0x0d);                 \
     }
 
+#define confirm()                                                \
+    {                                                            \
+        if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y') \
+            ans = true;                                          \
+        else if (c == 'n' || c == 'N')                           \
+            ans = false;                                         \
+    }
 char prev_regex_pattern[MAXLEN];
 FILE *dbgfp;
 int view_file(Init *);
@@ -98,12 +107,15 @@ void prev_page(View *);
 void scroll_down_n_lines(View *, int);
 void scroll_up_n_lines(View *, int);
 off_t get_next_line(View *, off_t);
+off_t get_line(View *, off_t);
 off_t get_prev_line(View *, off_t);
 off_t get_pos_next_line(View *, off_t);
 off_t get_pos_prev_line(View *, off_t);
 int fmt_line(View *);
 void log_split_lines(View *);
 void log_cc_buf(View *);
+void log_stripped_line_out(View *);
+void log_strnz(char *, int);
 void display_line(View *);
 void display_split_line(View *);
 void view_display_page(View *);
@@ -152,10 +164,9 @@ int view_file(Init *init) {
                 view->f_bod = 0;
                 view->maxcol = 0;
                 view->page_top_pos = 0;
-                view->page_top_ln = 0;
-                view->page_bot_ln = 0;
+                view->page_top_ln_no = 0;
+                view->page_bot_ln_no = 0;
                 view->ln_max_pos = 0;
-                view->ln = 0;
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
                 strnz__cpy(view->title, view->cur_file_str, MAXLEN - 1);
@@ -192,12 +203,12 @@ int view_cmd_processor(Init *init) {
     int search_cmd = 0;
     int prev_search_cmd = 0;
     int rc, i;
+    bool ans;
     ssize_t bytes_written;
     char *e;
     char shell_cmd_spec[MAXLEN];
     off_t n_cmd = 0L;
     off_t prev_file_pos;
-    int swidth;
     int max_pmincol;
     View *view = init->view;
     view->cmd[0] = '\0';
@@ -225,8 +236,8 @@ int view_cmd_processor(Init *init) {
             getmaxyx(stdscr, view->lines, view->cols);
 #ifdef DEBUG_RESIZE
             ssnprintf(em0, MAXLEN - 1,
-                      "%s:%d view->page_top_ln=%d, resized to lines: %d, cols: %d\n",
-                      __FILE__, __LINE__, view->page_top_ln, view->lines, view->cols);
+                      "%s:%d view->page_top_ln_no=%d, resized to lines: %d, cols: %d\n",
+                      __FILE__, __LINE__, view->page_top_ln_no, view->lines, view->cols);
             write_cmenu_log(em0);
 #endif
             if (view->f_full_screen)
@@ -354,7 +365,7 @@ int view_cmd_processor(Init *init) {
             break;
         /**  '-', Change View Settings */
         case '-':
-            display_prompt(view, "(i, n, s, t, or h)->");
+            display_prompt(view, "(i, n, s, t, w, or h)->");
             c = get_cmd_char(view, &n_cmd);
             c = S_TOLOWER(c);
             switch (c) {
@@ -362,38 +373,45 @@ int view_cmd_processor(Init *init) {
             /**   -n   line numbers */
             /**   -s   squeeze multiple blank lines */
             /**   -t n set tab stop columns */
+            /**   -w   wrap long lines */
             /**   -h   display help */
             case 'i':
                 display_prompt(view, "Ignore Case in search (Y or N)->");
-                if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
+                confirm();
+                if (ans)
                     view->f_ignore_case = true;
                 else if (c == 'n' || c == 'N')
                     view->f_ignore_case = false;
                 break;
             /**   -n   line numbers */
             case 'n':
-                if (view->f_ln)
-                    view->f_ln = false;
-                else
-                    view->f_ln = true;
-                view_boxwin_resize(init);
-                view->ln = view->page_top_ln;
-                view->file_pos = view->ln_tbl[view->ln];
-                view->maxcol = 0;
-                view->cury = 0;
-                view->page_top_ln = view->ln;
-                mvwaddstr(view->pad, view->cmd_line, 0, "       ");
-                pad_refresh(view);
-                view_display_page(view);
+                display_prompt(view, "Line Numbering (Y or N)->");
+                confirm();
+                if (view->f_ln == ans)
+                    break;
+                view->f_ln = ans;
+                view->f_redisplay_page = true;
+                (view->f_full_screen) ? view_full_screen_resize(init) : view_boxwin_resize(init);
                 break;
             /**  -s  Squeeze Multiple Blank Lines */
             case 's':
                 display_prompt(
                     view, "view->f_squeeze Multiple Blank lines (Y or N)->");
+                confirm();
+                view->f_squeeze = ans;
+                break;
+            case 'w':
+                display_prompt(
+                    view, "Line Wrapping (Y or N)->");
                 if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
-                    view->f_squeeze = true;
+                    ans = true;
                 else if (c == 'n' || c == 'N')
-                    view->f_squeeze = false;
+                    ans = false;
+                if (view->wrap == ans)
+                    break;
+                view->wrap = ans;
+                view->f_redisplay_page = true;
+                (view->f_full_screen) ? view_full_screen_resize(init) : view_boxwin_resize(init);
                 break;
             /**  -t  n Set Tab Stop Columns */
             case 't':
@@ -409,13 +427,10 @@ int view_cmd_processor(Init *init) {
                     Perror("Tab stops not changed");
                 break;
             /**  -h  Display Help */
-            case 'h':
             case KEY_F(1):
+            case 'h':
                 if (!view->f_displaying_help) {
                     view_display_help(init);
-                    /** Pedantic reassignment of view pointer as the
-                        init->view pointer was was reassigned during
-                       view_display_help */
                     view = init->view;
                 }
                 view->next_cmd_char = '-';
@@ -423,10 +438,6 @@ int view_cmd_processor(Init *init) {
             default:
                 break;
             }
-            break;
-        /**  ':' - Set a Prompt String */
-        case ':':
-            view->next_cmd_char = get_cmd_arg(view, ":");
             break;
         /**  'n' - Repeat Previous Search */
         case 'n':
@@ -944,10 +955,10 @@ void build_prompt(View *view) {
     prompt_l = (int)strlen(view->prompt_str);
     if (prompt_l > (view->cols - 4) / 2)
         return;
-    view->page_top_pos = view->ln_tbl[view->page_top_ln];
+    view->page_top_pos = view->ln_tbl[view->page_top_ln_no];
     if (view->page_top_pos == NULL_POSITION)
         view->page_top_pos = view->file_size;
-    view->page_bot_pos = view->ln_tbl[view->page_bot_ln];
+    view->page_bot_pos = view->ln_tbl[view->page_bot_ln_no];
     if (view->page_bot_pos == NULL_POSITION)
         view->page_bot_pos = view->file_size;
     sprintf(tmp_str, "Pos %zd-%zd", view->page_top_pos, view->page_bot_pos);
@@ -1091,7 +1102,7 @@ void go_to_mark(View *view, int c) {
    file is reached. If the search wraps around the file, a message is
    displayed indicating that the search is complete.
     The search state is maintained in the view structure, allowing for
-   repeat searches and tracking of the current search position. This
+   repeat searches and tracking of the current search line. This
    function highlights all matches in the current ncurses pad, including
    those not displayed on the screen, and tracks the first and last match
    columns for prompt display.
@@ -1105,8 +1116,15 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     int reti;
     int line_offset;
     int line_len;
+    int match_idx;
     int match_len;
-    off_t prev_ln;
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    wchar_t wstr[2] = {L'\0', L'\0'};
+    attr_t attr;
+    short cpx;
+    cchar_t cc = {0};
+    off_t prev_ln_no;
     bool f_page = false;
     if (*regex_pattern == '\0')
         return false;
@@ -1123,13 +1141,13 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     while (1) {
         /** initialize iteration */
         if (search_cmd == '/') {
-            if (view->srch_curr_pos == view->file_size)
-                view->srch_curr_pos = 0;
+            if (view->srch_curr_ln_no == view->file_size)
+                view->srch_curr_ln_no = 0;
         } else {
-            if (view->srch_curr_pos == 0)
-                view->srch_curr_pos = view->file_size;
+            if (view->srch_curr_ln_no == 0)
+                view->srch_curr_ln_no = view->file_size;
         }
-        if (view->srch_curr_pos == view->srch_beg_pos) {
+        if (view->srch_curr_ln_no == view->srch_beg_ln_no) {
             if (view->f_first_iter == true) {
                 view->f_first_iter = false;
                 view->f_search_complete = false;
@@ -1142,23 +1160,21 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 return rc;
             }
         }
-        view->file_pos = view->srch_curr_pos;
+        view->ln_no = view->srch_curr_ln_no;
         sync_ln(view);
         /** get line to scan */
         if (search_cmd == '/') {
             if (view->cury == view->scroll_lines)
                 return rc;
-            prev_ln = view->ln; /**< Note placement before get_next_line */
-            view->srch_curr_pos = get_next_line(view, view->srch_curr_pos);
-            view->page_bot_ln = view->ln;
-            view->page_bot_pos = view->srch_curr_pos;
+            prev_ln_no = view->srch_curr_ln_no; /**< Note placement before get_next_line */
+            get_line(view, view->srch_curr_ln_no);
+            view->page_bot_ln_no = view->srch_curr_ln_no;
         } else {
             if (view->cury == 0)
                 return rc;
-            view->srch_curr_pos = get_prev_line(view, view->srch_curr_pos);
-            prev_ln = view->ln; /**< Note placement after get_prev_line */
-            view->page_top_ln = view->ln;
-            view->page_top_pos = view->srch_curr_pos;
+            get_line(view, view->srch_curr_ln_no);
+            prev_ln_no = view->srch_curr_ln_no; /**< Note placement after get_prev_line */
+            view->page_top_ln_no = view->srch_curr_ln_no;
         }
         fmt_line(view);
         reti = regexec(&compiled_regex, view->stripped_line_out,
@@ -1189,10 +1205,10 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         /** Display matching lines */
         if (!f_page) {
             if (search_cmd == '/') {
-                view->page_top_ln = prev_ln;
+                view->page_top_ln_no = prev_ln_no;
                 wmove(view->pad, view->cury, 0);
             } else {
-                view->page_bot_ln = view->ln;
+                view->page_bot_ln_no = view->ln_no;
                 wmove(view->pad, 0, 0);
             }
             wclrtobot(view->pad);
@@ -1200,7 +1216,6 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         }
         if (search_cmd == '?')
             view->cury -= 2;
-        display_line(view);
         /** All matches on the current line are highlighted,
            including those not displayed on the screen.
            Track first and last match columns for prompt display. */
@@ -1210,10 +1225,15 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
 
         line_offset = 0;
         while (1) {
-            view->curx = line_offset + pmatch[0].rm_so;
+            match_idx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
-            mvwchgat(view->pad, view->cury - 1, view->curx, match_len,
-                     WA_NORMAL, cp_nt_rev, nullptr);
+            for (int i = match_idx; i < match_idx + match_len; i++) {
+                cc = view->cmplx_buf[i];
+                getcchar(&cc, wstr, &attr, &cpx, nullptr);
+                cpx = cp_nt_rev;
+                setcchar(&cc, wstr, attr, cpx, nullptr);
+                view->cmplx_buf[i] = cc;
+            }
             if (view->first_match_x == -1)
                 view->first_match_x = pmatch[0].rm_so;
             view->last_match_x = line_offset + pmatch[0].rm_eo;
@@ -1234,35 +1254,39 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 return false;
             }
             if (search_cmd == '/') {
-                if (view->cury == view->scroll_lines) {
-                    regfree(&compiled_regex);
+                if (view->cury == view->scroll_lines - 1) {
                     break;
                 }
             } else if (view->cury == 1) {
-                regfree(&compiled_regex);
                 break;
             }
         }
+        display_line(view);
+        if (search_cmd == '/')
+            view->srch_curr_ln_no++;
+        else
+            view->srch_curr_ln_no--;
     }
-    view->file_pos = view->srch_curr_pos;
+    regfree(&compiled_regex);
+    view->ln_no = view->srch_curr_ln_no;
 #ifdef DEBUG_SEARCH
     /** Statistics for debugging */
     ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
               "%s|%c%s|Pos %zu-%zu|(%zd) %zu %zu", view->file_name, search_cmd,
-              regex_pattern, view->page_top_pos, view->page_bot_pos,
-              view->file_size, view->srch_beg_pos, view->srch_curr_pos);
+              regex_pattern, view->page_top_ln_no, view->page_bot_ln_no,
+              view->file_size, view->srch_beg_ln_no, view->srch_curr_ln_no);
 #else
     if (view->last_match_x > view->maxcol)
         ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
                   "%s|%c%s|Match Cols %d-%d of %d-%d|(%zd%%)", view->file_name,
                   search_cmd, regex_pattern, view->first_match_x,
                   view->last_match_x, view->pmincol, view->smaxcol - view->begx,
-                  (view->page_bot_pos * 100 / view->file_size));
+                  (view->page_bot_ln_no * 100 / view->file_size));
     else
         ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
                   "%s|%c%s|Pos %zu-%zu|(%zd%%)", view->file_name, search_cmd,
-                  regex_pattern, view->page_top_pos, view->page_bot_pos,
-                  (view->page_bot_pos * 100 / view->file_size));
+                  regex_pattern, view->page_top_ln_no, view->page_bot_ln_no,
+                  (view->page_bot_ln_no * 100 / view->file_size));
 #endif
     regfree(&compiled_regex);
     return rc;
@@ -1301,18 +1325,18 @@ int pad_refresh(View *view) {
 /** @brief display previous page
     @ingroup view_navigation
     @param view data structure
-    @details Displays the previous page starting at (view->page_top_ln -
+    @details Displays the previous page starting at (view->page_top_ln_no -
    view->scroll_lines).
  */
 void prev_page(View *view) {
     if (view->page_top_pos == 0)
         return;
     view->cury = 0;
-    view->ln = view->page_top_ln;
-    if (view->ln - view->scroll_lines >= 0)
-        view->ln -= view->scroll_lines;
+    view->ln_no = view->page_top_ln_no;
+    if (view->ln_no - view->scroll_lines >= 0)
+        view->ln_no -= view->scroll_lines;
     else
-        view->ln = 0;
+        view->ln_no = 0;
     next_page(view);
 }
 /** @brief Advance to Next Page
@@ -1328,12 +1352,12 @@ void prev_page(View *view) {
    Finally, it calls the function to display the new page content.
 */
 void next_page(View *view) {
-    view->file_pos = view->ln_tbl[view->ln];
+    view->file_pos = view->ln_tbl[view->ln_no];
     if (view->file_pos == view->file_size)
         return;
     view->maxcol = 0;
     view->cury = 0;
-    view->page_top_ln = view->ln;
+    view->page_top_ln_no = view->ln_no;
     view_display_page(view);
 }
 /** @brief Display Current Page
@@ -1341,30 +1365,38 @@ void next_page(View *view) {
     @param view data structure
  */
 void view_display_page(View *view) {
-    int i;
     view->cury = 0;
     wmove(view->pad, 0, 0);
     if (view->lnno_win)
         wmove(view->lnno_win, 0, 0);
-    view->ln = view->page_top_ln;
-    view->page_bot_ln = view->ln;
-    view->page_top_pos = view->ln_tbl[view->ln];
-    view->file_pos = view->page_top_pos;
-    view->page_bot_pos = view->file_pos;
+    view->ln_no = view->page_top_ln_no;
+    view->page_top_ln_no = 0;
+    view->page_bot_ln_no = 0;
+    wnoutrefresh(stdscr);
+    update_panels();
+    doupdate();
     while (view->cury < view->scroll_lines) {
-        view->page_bot_pos = get_next_line(view, view->page_bot_pos);
+        get_line(view, view->ln_no);
         if (view->f_eod)
             break;
+        if (view->cury == 0)
+            view->page_top_ln_no = view->ln_no;
+        if (view->cury == view->scroll_lines - 1) {
+            view->page_bot_ln_no = view->ln_no;
+            view->page_bot_end_pos = view->file_pos - 1;
+        }
         fmt_line(view);
         display_line(view);
+        view->ln_no++;
     }
+    view->ln_no--;
     if (view->cury < view->scroll_lines) {
         wmove(view->lnno_win, view->cury, 0);
         wclrtobot(view->lnno_win);
         wmove(view->pad, view->cury, 0);
         wclrtobot(view->pad);
     }
-    view->page_bot_ln = view->ln;
+    view->ln_no = view->page_bot_ln_no;
 }
 /** @brief Scroll N Lines
     @ingroup view_navigation
@@ -1372,16 +1404,40 @@ void view_display_page(View *view) {
     @param n number of lines to scroll
  */
 void scroll_down_n_lines(View *view, int n) {
-    int i = 0;
+    int scroll_off;
     view->f_bod = false;
+
     if (view->page_bot_pos == view->file_size)
         return;
-    /** Locate New Top of Page */
-    if (view->page_top_ln + n < view->ln) {
-        view->page_top_ln += n;
-        view->page_top_pos = view->ln_tbl[view->page_top_ln];
-    } else
-        view->page_top_ln = view->ln;
+
+    if (view->wrap) {
+        /** Locate New Top of Page to reset page top variables
+         */
+        scroll_off = n;
+        while (scroll_off > 0) {
+            if (view->page_top_sl == false) {
+                view->page_top_ln_no++;
+                view->ln_no = view->page_top_ln_no;
+                get_line(view, view->ln_no);
+                fmt_line(view);
+                if (view->page_top_sl == false)
+                    scroll_off--;
+            } else {
+                if (view->page_top_sl_idx + scroll_off < view->page_top_sl_cnt) {
+                    view->page_top_sl_idx += scroll_off;
+                    break;
+                } else {
+                    scroll_off -= (view->page_top_sl_cnt - view->page_top_sl_idx);
+                    view->page_top_sl = false;
+                }
+            }
+        }
+    } else {
+        if (view->page_top_ln_no + n < view->ln_no) {
+            view->page_top_ln_no += n;
+        } else
+            view->page_top_ln_no = view->ln_no;
+    }
     /** Scroll */
     if (n > view->scroll_lines) {
         if (view->f_ln) {
@@ -1398,32 +1454,23 @@ void scroll_down_n_lines(View *view, int n) {
         if (n < view->scroll_lines)
             view->cury = view->scroll_lines - n;
     }
-    /** Fill in Page Bottom */
     wmove(view->pad, view->cury, 0);
-    // view->page_bot_sl will be false when the last line of the file has been
-    // reached
-    if (view->wrap && view->page_bot_sl) {
-        view->page_bot_pos = view->ln_tbl[view->page_bot_ln];
-        if (view->page_bot_pos == view->cur.sl_pos) {
-            if (view->cur.sl_idx + 1 < view->cur.sl_cnt) {
-                view->cur.sl_idx = view->cur.sl_idx + 1;
-                display_split_line(view);
-                return;
-            }
+    /** Fill in Page Bottom */
+    while (view->cury < view->scroll_lines) {
+        if (view->wrap && (view->page_bot_sl == true) &&
+            (view->cur.sl_ln_no == view->page_bot_ln_no) &&
+            ((view->cur.sl_idx + 1) < view->cur.sl_cnt)) {
+            view->cur.sl_idx++;
+            display_split_line(view);
         } else {
-            view->page_bot_pos = get_prev_line(view, view->page_bot_pos);
+            view->page_bot_ln_no++;
+            view->ln_no = view->page_bot_ln_no;
+            get_line(view, view->ln_no);
+            if (view->f_eod)
+                break;
             fmt_line(view);
             display_line(view);
-            return;
         }
-    }
-    while (view->cury < view->scroll_lines) {
-        view->page_bot_pos = get_next_line(view, view->page_bot_pos);
-        view->page_bot_ln = view->ln;
-        if (view->f_eod)
-            break;
-        fmt_line(view);
-        display_line(view);
     }
 }
 /** @brief Scroll Up N Lines
@@ -1433,37 +1480,65 @@ void scroll_down_n_lines(View *view, int n) {
  */
 void scroll_up_n_lines(View *view, int n) {
     int i;
-    view->page_top_pos = view->ln_tbl[view->page_top_ln];
     view->f_eod = false;
-    if (view->page_top_pos == 0)
-        return;
-    if (view->page_top_ln - n >= 0) {
-        view->page_top_ln -= n;
-    } else
-        view->page_top_ln = 1;
-    view->ln = view->page_top_ln;
-    view->page_top_pos = view->ln_tbl[view->page_top_ln];
-    view->file_pos = view->page_top_pos;
+    if (view->page_top_ln_no == 0) {
+        if (view->wrap) {
+            if (view->page_top_sl == true && view->page_top_sl_idx == 0)
+                return;
+        } else
+            return;
+    }
+    view->ln_no = view->page_top_ln_no;
     if (view->f_ln)
         wscrl(view->lnno_win, -n);
     wscrl(view->pad, -n);
     view->cury = 0;
     wmove(view->pad, view->cury, 0);
-    /** Fill in Page Top */
-    for (i = 0; i < n; i++) {
-        view->file_pos = get_next_line(view, view->file_pos);
-        if (view->f_eod)
-            break;
-        fmt_line(view);
-        display_line(view);
+    if (view->wrap && view->page_top_sl == true && view->page_top_sl_idx > 0) {
+        if (view->cur.sl_ln_no != view->page_top_ln_no) {
+            get_line(view, view->page_top_ln_no);
+            fmt_line(view);
+        }
+        int cury = n;
+        int needed = n;
+        while (cury > 0) {
+            if (view->cur.sl_cnt >= needed) {
+                // view->cur.sl_idx set to zero in fmt_line(),
+                // so use view->page_top_sl_idx to set the new index
+                view->page_top_sl_idx -= needed;
+                view->cur.sl_idx = view->page_top_sl_idx;
+                view->cury = 0;
+                display_line(view);
+                break;
+            }
+            cury -= view->cur.sl_cnt - 1;
+            view->cury = cury;
+            display_line(view);
+            if (cury == 0)
+                break;
+            if (view->page_top_ln_no > 0) {
+                view->page_top_ln_no--;
+                get_line(view, view->page_top_ln_no);
+                fmt_line(view);
+            }
+        }
+    } else {
+        /** Fill in Page Top */
+        for (i = 0; i < n; i++) {
+            get_line(view, view->ln_no);
+            if (view->f_eod)
+                break;
+            fmt_line(view);
+            display_line(view);
+        }
+        if (view->page_bot_ln_no - n >= view->scroll_lines)
+            view->page_bot_ln_no -= n;
+        else
+            view->page_bot_ln_no = view->scroll_lines;
+        view->ln_no = view->page_bot_ln_no;
+        // view->page_bot_pos = view->ln_tbl[view->page_bot_ln_no];
+        // view->file_pos = view->page_bot_pos;
     }
-    if (view->page_bot_ln - n >= view->scroll_lines)
-        view->page_bot_ln -= n;
-    else
-        view->page_bot_ln = view->scroll_lines;
-    view->ln = view->page_bot_ln;
-    view->page_bot_pos = view->ln_tbl[view->page_bot_ln];
-    view->file_pos = view->page_bot_pos;
     return;
 }
 /** @brief Get Next Line from View->buf
@@ -1509,6 +1584,51 @@ off_t get_next_line(View *view, off_t pos) {
             return view->file_pos;
     }
     return view->file_pos;
+}
+off_t get_line(View *view, off_t line) {
+    char c;
+    char *line_in_p;
+    off_t pos;
+
+    pos = view->file_pos = view->ln_tbl[line];
+    view->f_eod = false;
+    get_next_char();
+    if (view->f_eod) {
+        view->ln_no = line;
+        return view->file_pos;
+    }
+    line_in_p = view->line_in_s;
+    view->line_in_beg_p = view->line_in_s;
+    view->line_in_end_p = view->line_in_s + PAD_COLS;
+    while (1) {
+        if (c == '\n')
+            break;
+        if (line_in_p >= view->line_in_end_p)
+            break;
+        *line_in_p++ = c;
+        get_next_char();
+        if (view->f_eod) {
+            view->ln_no = line;
+            return view->file_pos;
+        }
+    }
+    *line_in_p = '\0';
+    if (view->f_squeeze) {
+        while (1) {
+            get_next_char();
+            if (c != '\n')
+                break;
+            if (view->f_eod)
+                break;
+        }
+        get_prev_char();
+        if (view->f_eod) {
+            view->ln_no = line;
+            return view->file_pos;
+        }
+    }
+    view->ln_no = line;
+    return pos;
 }
 /** @brief Get Previous Line from View->buf
     @ingroup view_navigation
@@ -1569,12 +1689,12 @@ off_t get_pos_prev_line(View *view, off_t pos) {
         view->f_bod = true;
         return view->file_pos;
     }
-    while (view->ln_tbl[view->ln] >= view->file_pos) {
-        if (view->ln == 0)
+    while (view->ln_tbl[view->ln_no] >= view->file_pos) {
+        if (view->ln_no == 0)
             break;
-        view->ln--;
+        view->ln_no--;
     }
-    view->file_pos = view->ln_tbl[view->ln];
+    view->file_pos = view->ln_tbl[view->ln_no];
     return view->file_pos;
 }
 /** @brief Go to Specific File Position
@@ -1596,12 +1716,12 @@ void go_to_position(View *view, off_t go_to_pos) {
 void go_to_eof(View *view) {
     view->file_pos = view->file_size;
     sync_ln(view);
-    if (view->ln > view->scroll_lines)
-        view->ln -= view->scroll_lines;
+    if (view->ln_no > view->scroll_lines)
+        view->ln_no -= view->scroll_lines;
     else
-        view->page_top_ln = 0;
-    view->page_top_ln = view->ln;
-    view->page_top_pos = view->ln_tbl[view->ln];
+        view->page_top_ln_no = 0;
+    view->page_top_ln_no = view->ln_no;
+    view->page_top_pos = view->ln_tbl[view->ln_no];
     view->page_bot_pos = view->page_top_pos;
     view->file_pos = view->page_top_pos;
     view->cury = 0;
@@ -1619,11 +1739,11 @@ void go_to_percent(View *view, int percent) {
     }
     view->file_pos = (percent * view->file_size) / 100;
     sync_ln(view);
-    if (view->ln > view->scroll_lines)
-        view->page_top_ln = view->ln - view->scroll_lines;
+    if (view->ln_no > view->scroll_lines)
+        view->page_top_ln_no = view->ln_no - view->scroll_lines;
     else
-        view->page_top_ln = 0;
-    view->page_top_pos = view->ln_tbl[view->page_top_ln];
+        view->page_top_ln_no = 0;
+    view->page_top_pos = view->ln_tbl[view->page_top_ln_no];
     view->page_bot_pos = view->page_top_pos;
     view->file_pos = view->page_top_pos;
     next_page(view);
@@ -1653,7 +1773,7 @@ int go_to_line(View *view, off_t line_idx) {
     @details The line table is initialized with a specified increment size
    (LINE_TBL_INCR). Memory is allocated for the line table, and the first
    entry is set to 0, indicating the file position of the first line. The
-   line index (view->ln) is initialized to 0.
+   line index (view->ln_no) is initialized to 0.
  */
 void initialize_line_table(View *view) {
     view->ln_tbl_size = LINE_TBL_INCR;
@@ -1664,7 +1784,7 @@ void initialize_line_table(View *view) {
     }
     view->ln_max_pos = 0;
     view->ln_tbl[0] = 0;
-    view->ln = 0;
+    view->ln_no = 0;
 }
 void destroy_line_table(View *view) {
     if (view->ln_tbl == nullptr)
@@ -1673,23 +1793,25 @@ void destroy_line_table(View *view) {
     view->ln_tbl = nullptr;
     view->ln_tbl_size = 0;
     view->ln_max_pos = 0;
-    view->ln = 0;
+    view->ln_no = 0;
 }
 /** @brief Increment Line Index and Update Line Table
     @ingroup view_navigation
     @param view data structure
     @details This function is called when a line feed character is
    encountered while reading the file. It increments the line index
-   (view->ln) and checks if the current file position exceeds the maximum
+   (view->ln_no) and checks if the current file position exceeds the maximum
    position recorded in the line table. If it does, it updates the line
    table with the new file position. If the line index exceeds the current
    size of the line table, the table is resized by allocating more memory.
  */
 void increment_ln(View *view) {
-    view->ln++;
+    // view->ln_tbl[0] is set to 0 in initialize_line_table
+    // view->ln_tbl[1] is the second line
+    view->ln_no++;
     if (view->file_pos <= view->ln_max_pos)
         return;
-    if (view->ln > view->ln_tbl_size - 1) {
+    if (view->ln_no > view->ln_tbl_size - 1) {
         view->ln_tbl_size += LINE_TBL_INCR;
         view->ln_tbl =
             (off_t *)realloc(view->ln_tbl, view->ln_tbl_size * sizeof(off_t));
@@ -1698,15 +1820,15 @@ void increment_ln(View *view) {
             exit(EXIT_FAILURE);
         }
     }
-    view->ln_tbl_cnt = view->ln;
+    view->ln_tbl_cnt = view->ln_no;
     view->ln_max_pos = view->file_pos;
-    view->ln_tbl[view->ln] = view->file_pos;
+    view->ln_tbl[view->ln_no] = view->file_pos;
 }
 /** @brief Synchronize Line Table with Current File Position
     @ingroup view_navigation
     @param view data Structure
     @details The line table (view->ln_tbl) is an array that stores the file
-   position of each line. The index (view->ln + 1) corresponds to the
+   position of each line. The index (view->ln_no + 1) corresponds to the
    current line number. (the line number table is 0-based, while line
    numbering starts at 1).
     @details If the line or position requested is not in the line table, this
@@ -1719,26 +1841,26 @@ void sync_ln(View *view) {
     int c = 0;
     off_t idx;
     off_t target_pos;
-    if (view->ln_tbl[view->ln] == view->file_pos)
+    if (view->ln_tbl[view->ln_no] == view->file_pos)
         return;
     target_pos = view->file_pos;
     view->file_pos = view->ln_tbl[view->ln_tbl_cnt];
     if (view->file_pos < target_pos) {
-        view->ln = view->ln_tbl_cnt;
+        view->ln_no = view->ln_tbl_cnt;
         while (view->ln_max_pos < target_pos) {
             get_next_char();
             if (view->f_eod)
                 return;
         }
-    } else if (view->ln_tbl[view->ln] > target_pos) {
-        idx = view->ln - 1;
+    } else if (view->ln_tbl[view->ln_no] > target_pos) {
+        idx = view->ln_no - 1;
         while (view->ln_tbl[idx] > target_pos)
             idx--;
-        view->ln = idx;
-        view->file_pos = view->ln_tbl[view->ln];
+        view->ln_no = idx;
+        view->file_pos = view->ln_tbl[view->ln_no];
     } else {
-        view->ln = view->ln_tbl_cnt;
-        view->file_pos = view->ln_tbl[view->ln];
+        view->ln_no = view->ln_tbl_cnt;
+        view->file_pos = view->ln_tbl[view->ln_no];
     }
 }
 /*------------------------------------------------------------
@@ -1754,7 +1876,7 @@ void sync_ln(View *view) {
    displayed at the beginning of the line with the specified attributes and
    color pair.
     @details Because get_next_char calls increment_ln upon encountering a
-   line feed and increment_ln advances view->ln after updating the line
+   line feed and increment_ln advances view->ln_no after updating the line
    table, the line number displayed is one greater than the index to the
    line table. That means the line counter begins with 1, while the table
    origin is 0.
@@ -1762,17 +1884,18 @@ void sync_ln(View *view) {
 void display_line(View *view) {
     char ln_s[16];
 
+    if (view->wrap && view->cur.sl_cnt > 0) {
+        if (view->cur.sl_idx < view->cur.sl_cnt) {
+            display_split_line(view);
+            return;
+        }
+    }
     if (view->cury < 0)
         view->cury = 0;
     if (view->cury > view->scroll_lines - 1)
         view->cury = view->scroll_lines - 1;
-    if (view->wrap && view->cur.sl_cnt > 0) {
-        view->cur.sl_idx = 0;
-        display_split_line(view);
-        return;
-    }
     if (view->f_ln) {
-        ssnprintf(ln_s, 8, "%7jd", view->ln);
+        ssnprintf(ln_s, 8, "%7jd", view->ln_no);
         wmove(view->lnno_win, view->cury, 0);
         wclrtoeol(view->lnno_win);
         mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
@@ -1781,6 +1904,10 @@ void display_line(View *view) {
     wclrtoeol(view->pad);
     wadd_wchstr(view->pad, view->cmplx_buf);
     view->cury++;
+    pad_refresh(view);
+    update_panels();
+    wnoutrefresh(view->box_win);
+    doupdate();
 }
 void display_split_line(View *view) {
     char ln_s[16];
@@ -1792,7 +1919,7 @@ void display_split_line(View *view) {
     for (int i = view->cur.sl_idx; i < view->cur.sl_cnt; i++) {
         if (i == 0) {
             if (view->f_ln) {
-                ssnprintf(ln_s, 8, "%7jd", view->ln);
+                ssnprintf(ln_s, 8, "%7jd", view->ln_no);
                 wmove(view->lnno_win, view->cury, 0);
                 wclrtoeol(view->lnno_win);
                 mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
@@ -1806,10 +1933,17 @@ void display_split_line(View *view) {
         wmove(view->pad, view->cury, 0);
         wclrtoeol(view->pad);
         wadd_wchnstr(view->pad, view->cur.sl_cc[i], view->cur.sl_cells[i]);
-        view->cur.sl_idx = i;
+
+        if (view->cury == 0) {
+            view->page_top_sl = true;
+            view->page_top_sl_idx = i;
+        }
         view->cury++;
-        if (view->cury >= view->scroll_lines - 1)
+        if (view->cury == view->scroll_lines) {
+            view->page_bot_sl = true;
+            view->page_bot_sl_idx = i;
             break;
+        }
     }
 }
 /** @brief Format Line for Display
@@ -1841,6 +1975,7 @@ int fmt_line(View *view) {
     int word_cells = 0;
     cchar_t *cmplx_buf = view->cmplx_buf;
     view->cur.sl_idx = 0;
+    view->cur.sl_cnt = 0;
     view->cur.sl_cols[0] = 0;
     view->cur.sl_cells[0] = 0;
     view->cur.sl_s[0] = nullptr;
@@ -1856,10 +1991,11 @@ int fmt_line(View *view) {
         sl_maxlen = view->cols;
     if (view->f_ln)
         sl_maxlen -= view->ln_win_cols;
+    size_t in_str_len = strlen(in_str);
     memset(view->stripped_line_out, 0, sizeof(view->stripped_line_out));
-    while (in_str[i] != '\0') {
-        while (1) {
-            if (in_str[i] == '\033') {
+    while (in_str[i] != '\0') {        // line
+        while (1) {                    // ANSI SGR, Character, and Word
+            if (in_str[i] == '\033') { // ANSI SGR
                 if (in_str[i + 1] == '[') {
                     len = strcspn(&in_str[i], "mK ") + 1;
                     memcpy(ansi_tok, &in_str[i], len + 1);
@@ -1882,9 +2018,9 @@ int fmt_line(View *view) {
                     i++;
                     continue;
                 }
-            } else {
+            } else { // Character and Word
                 if (in_str[i] == ' ') {
-                    if (view->wrap && (sl_cols + word_cols) + 1 > (sl_maxlen - 1))
+                    if (view->wrap && (sl_cols + word_cols + 1) > (sl_maxlen - 1))
                         break;
                     wstr[0] = L' ';
                     wstr[1] = L'\0';
@@ -1896,19 +2032,19 @@ int fmt_line(View *view) {
                         word_cols = 0;
                         sl_cells += word_cells + 1;
                         word_cells = 0;
-                    } else
-                        sl_cols += 1;
+                    }
                     i++;
                     continue;
                 }
                 if (in_str[i] == '\0') {
-                    if (view->wrap && sl_cols + word_cols > sl_maxlen - 1)
-                        break;
-                    sl_cols += word_cols;
-                    word_cols = 0;
-                    sl_cells += word_cells;
-                    word_cells = 0;
-                    i++;
+                    if (view->wrap) {
+                        if (sl_cols + word_cols + 1 > sl_maxlen - 1)
+                            break;
+                        sl_cols += word_cols;
+                        word_cols = 0;
+                        sl_cells += word_cells;
+                        word_cells = 0;
+                    }
                     break;
                 }
                 if (in_str[i] == '\t') {
@@ -1927,9 +2063,6 @@ int fmt_line(View *view) {
                         word_cols = 0;
                         sl_cells += word_cells + tab_spaces;
                         word_cells = 0;
-                    } else {
-                        sl_cols += tab_spaces;
-                        sl_cells += tab_spaces;
                     }
                     i++;
                     continue;
@@ -1946,36 +2079,36 @@ int fmt_line(View *view) {
                 if (char_width > 1)
                     for (int n = 1; n < char_width; n++)
                         view->stripped_line_out[x++] = ' ';
-
                 setcchar(&cc, wstr, attr, cpx, nullptr);
                 cmplx_buf[j++] = cc;
                 i += len;
                 if (view->wrap) {
                     word_cols += char_width;
                     word_cells++;
-                } else {
-                    sl_cols += char_width;
-                    sl_cells++;
                 }
                 continue;
+            } // END Character and Word
+        } // END WHILE - ANSI SGR, Character, and Word
+        if (view->wrap) {        // handle line wrapping
+            if (word_cols > 0) { // break line, add last word to next line
+                if (view->cur.sl_idx == 0)
+                    view->cur.sl_ln_no = view->ln_no;
+                if (sl_cols <= sl_maxlen - 1) {
+                    view->cur.sl_s[view->cur.sl_idx] = sl_s;
+                    view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
+                    view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
+                    view->cur.sl_cells[view->cur.sl_idx] = sl_cells;
+                    view->cur.sl_idx++;
+                    sl_s = &sl_s[sl_cols];
+                    sl_cc = &sl_cc[sl_cells];
+                    sl_cols > view->maxcol ? view->maxcol = sl_cols : 0;
+                    sl_cols = word_cols;
+                    sl_cells = word_cells;
+                    word_cols = 0;
+                    word_cells = 0;
+                }
             }
-        }
-        if (view->wrap && word_cols > 0) {
-            if (sl_cols <= sl_maxlen - 1) {
-                view->cur.sl_s[view->cur.sl_idx] = sl_s;
-                view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
-                view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
-                view->cur.sl_cells[view->cur.sl_idx] = sl_cells;
-                view->cur.sl_idx++;
-                sl_s = &sl_s[sl_cells];
-                sl_cc = &sl_cc[sl_cells];
-                sl_cols > view->maxcol ? view->maxcol = sl_cols : 0;
-                sl_cols = word_cols;
-                sl_cells = word_cells;
-                word_cols = 0;
-                word_cells = 0;
-            }
-            while (sl_cols > sl_maxlen - 1) {
+            while (sl_cols > sl_maxlen - 1) { // split long lines
                 int safe_cells = 0;
                 int safe_cols = 0;
                 while (safe_cols < sl_maxlen && safe_cells < sl_cells) {
@@ -2005,13 +2138,11 @@ int fmt_line(View *view) {
                 sl_cells -= safe_cells;
                 word_cols = 0;
                 word_cells = 0;
-            }
-        } else
-            sl_cols > view->maxcol ? view->maxcol = sl_cols : 0;
-    }
-    if (view->wrap && view->cur.sl_idx > 0) {
-        // sl_s = &sl_s[sl_cols];
-        // sl_cc = &sl_cc[sl_cols];
+            } // END WHILE - split long lines
+        } // END IF - handle line wrapping
+        j > view->maxcol ? view->maxcol = j : 0;
+    } // END WHILE - line
+    if (view->wrap && view->cur.sl_idx > 0) { // finish and commit wrap state
         view->cur.sl_s[view->cur.sl_idx] = sl_s;
         view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
         view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
@@ -2020,12 +2151,26 @@ int fmt_line(View *view) {
         view->cur.sl_cc[view->cur.sl_idx] = nullptr;
         view->cur.sl_s[view->cur.sl_idx] = nullptr;
         view->cur.sl_cnt = view->cur.sl_idx;
+        view->cur.sl_idx = 0;
+        if (view->ln_no == view->page_top_ln_no) {
+            view->page_top_sl = true;
+            view->page_top_sl_cnt = view->cur.sl_cnt;
+        }
+        if (view->ln_no == view->page_bot_ln_no) {
+            view->page_bot_sl = true;
+            view->page_bot_sl_cnt = view->cur.sl_cnt;
+        }
+        view->cur.sl_ln_no = view->ln_no;
 #ifdef DEBUG_WRAP
         // log_split_lines(view);
         log_cc_buf(view);
+        // log_stripped_line_out(view);
 #endif
     }
     //-------------------------------------------------------------------------
+    if (in_str_len > 0)
+        if (sl_cols == 1179)
+            Perror("Help!");
     wstr[0] = '\0';
     wstr[1] = '\0';
     setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);
@@ -2033,9 +2178,23 @@ int fmt_line(View *view) {
     view->stripped_line_out[x] = '\0';
     return j;
 }
+void log_stripped_line_out(View *view) {
+    char tmp_str[PAD_COLS];
+
+    write_cmenu_log("");
+    write_cmenu_log("stripped_line_out");
+    for (int k = 0; k < view->cur.sl_cnt; k++) {
+        memset(tmp_str, 0, sizeof(tmp_str));
+        for (int c = 0; c < view->cur.sl_cols[k]; c++)
+            tmp_str[c] = view->cur.sl_s[k][c];
+        write_cmenu_log(tmp_str);
+    }
+}
 void log_cc_buf(View *view) {
     char tmp_str[PAD_COLS];
 
+    write_cmenu_log("");
+    write_cmenu_log("cc_buf");
     for (int k = 0; k < view->cur.sl_cnt; k++) {
         memset(tmp_str, 0, sizeof(tmp_str));
         for (int c = 0; c < view->cur.sl_cells[k]; c++) {
@@ -2050,6 +2209,11 @@ void log_cc_buf(View *view) {
         }
         write_cmenu_log(tmp_str);
     }
+}
+void log_strnz(char *str, int len) {
+    char tmp_str[MAXLEN];
+    strnz__cpy(tmp_str, str, len);
+    write_cmenu_log(tmp_str);
 }
 void log_split_lines(View *view) {
     char tmp_str[MAXLEN];
@@ -2305,7 +2469,7 @@ void view_display_help(Init *init) {
     int eargc = 0;
     char *eargv[MAXARGS];
     View *view = init->view;
-    if (view->f_help_spec && view->help_spec[0] != '\0')
+    if (view->f_help_spec || view->help_spec[0] != '\0')
         strnz__cpy(tmp_str, view->help_spec, MAXLEN - 1);
     else {
         strnz__cpy(tmp_str, init->mapp_help, MAXLEN - 1);
@@ -2314,7 +2478,6 @@ void view_display_help(Init *init) {
     }
     eargv[eargc++] = strdup("view");
     eargv[eargc++] = strdup("-N");
-    eargv[eargc++] = strdup("f");
     eargv[eargc++] = strdup(tmp_str);
     eargv[eargc] = nullptr;
     init->lines = 48;

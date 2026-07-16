@@ -4,6 +4,10 @@
 
 <!-- mtoc-start -->
 
+* [View - New Feature - Smart Word Wrapping](#view---new-feature---smart-word-wrapping)
+* [For Comparison - Not C-Menu View](#for-comparison---not-c-menu-view)
+* [C-Menu View - Smart Word Wrapping](#c-menu-view---smart-word-wrapping)
+* [C-Menu Themes](#c-menu-themes)
 * [See Also](#see-also)
 * [cmenu_chk](#cmenu_chk)
 * [Starting C-Menu](#starting-c-menu)
@@ -40,7 +44,30 @@
 
 <!-- mtoc-end -->
 
+## View - New Feature - Smart Word Wrapping
+
+While most pagers and viewers offer an option to wrap long text lines, you will
+probably get something like the following. As you can see, the lines are wrapped
+by chopping them off at the right edge of the window. This is not very useful, and it is difficult to read.
+
+## For Comparison - Not C-Menu View
+
+![BrandX Pager Logs](screenshots/Pager_Log.png)
+
 ---
+
+## C-Menu View - Smart Word Wrapping
+
+C-Menu's View utility has a new feature that allows you to wrap long lines intelligently, so that the text is wrapped at word boundaries. This makes it much easier to read long lines of text, and it is especially useful for viewing log files.
+
+![C-Menu View Logs](screenshots/View_Log.png)
+
+Both View and the BrandX Pager were opened with the same log file, and a search
+term, "transport" was entered. The file was highlighted with Tudyx's tree-sitter-log grammar, which is available at [Tudyx's log grammar](https://github.com/Tudyx/tree-sitter-log.git)
+
+---
+
+## C-Menu Themes
 
 ![C-Menu](screenshots/PickView.png)
 

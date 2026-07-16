@@ -179,8 +179,8 @@ void view_calc_full_screen_dimensions(Init *init) {
     view->smincol = view->ln_win_cols;
     view->smaxrow = view->lines - 1;
     view->smaxcol = view->cols - 1;
-    view->ln = view->page_top_ln + view->scroll_lines;
-    view->page_bot_ln = view->ln;
+    view->ln_no = view->page_top_ln_no + view->scroll_lines;
+    view->page_bot_ln_no = view->ln_no;
 }
 
 /** @brief Initialize the C-Menu View in box window mode.
@@ -216,7 +216,6 @@ int init_view_boxwin(Init *init) {
     write_cmenu_log(em0);
 #endif
     wborder_set(view->box_win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
-
     // -------------------> 2. WIN <-------------------
     view->win_win = derwin(view->box_win, view->lines, view->cols, 1, 1);
     if (view->win_win == nullptr) {
@@ -408,8 +407,8 @@ void view_calc_boxwin_dimensions(Init *init) {
     view->smincol = view->begx + view->ln_win_cols + 1;
     view->smaxrow = view->begy + view->lines;
     view->smaxcol = view->begx + view->cols;
-    view->ln = view->page_top_ln + view->scroll_lines;
-    view->page_bot_ln = view->ln;
+    view->ln_no = view->page_top_ln_no + view->scroll_lines;
+    view->page_bot_ln_no = view->ln_no;
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d calc BOX lines=%d, cols=%d, begy=%d, begx=%d",
