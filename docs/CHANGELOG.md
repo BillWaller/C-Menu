@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-16T07:44:38-05:00* - DOCS: Documentation update 
+
+*2026-07-15T21:19:40-05:00* - Update CHANGELOG.md 
+
 *2026-07-15T21:05:46-05:00* - FEATURE: view: smart line wrapping. The testing and debugging for this update is incomplete, but the feature is somewhat functional. By starting View with the "-w" option, or entering "-w" from a View command prompt, the user can enable smart line wrapping. See the README.md for a comparison of View with other popular text viewers. C-Menu's View is the perfect tool for examining large log files with long lines. Where other pagers just chop the lines in at the right edge, C-Menu's View intelligently wraps lines at word boundaries rendering 1000+ byte lines in a readable format. The user can also toggle the smart line wrapping feature on and off while viewing a file. The difference in readability is dramatic. Check it out. In the meantime, I will continue to test and debug in preparation for the next release. 
 
 *2026-07-12T21:40:40-05:00* - Update CHANGELOG.md 
