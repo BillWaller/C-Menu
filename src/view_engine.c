@@ -87,6 +87,21 @@
         else if (c == 'n' || c == 'N')                           \
             ans = false;                                         \
     }
+
+#define _Perror(msg)                                                        \
+    {                                                                       \
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2); \
+        strnz__cpy(em1, msg, MAXLEN - 1);                                   \
+        display_error(em0, em1, nullptr, nullptr);                          \
+    }
+
+#define _Refresh(view)     \
+    {                      \
+        pad_refresh(view); \
+        update_panels();   \
+        doupdate();        \
+    }
+
 char prev_regex_pattern[MAXLEN];
 FILE *dbgfp;
 int view_file(Init *);
@@ -107,7 +122,7 @@ void prev_page(View *);
 void scroll_down_n_lines(View *, int);
 void scroll_up_n_lines(View *, int);
 off_t get_next_line(View *, off_t);
-off_t get_line(View *, off_t);
+void get_line(View *, off_t);
 off_t get_prev_line(View *, off_t);
 off_t get_pos_next_line(View *, off_t);
 off_t get_pos_prev_line(View *, off_t);
@@ -117,6 +132,7 @@ void log_cc_buf(View *);
 void log_stripped_line_out(View *);
 void log_strnz(char *, int);
 void display_line(View *);
+void display_line_eod(View *);
 void display_split_line(View *);
 void view_display_page(View *);
 void parse_ansi_str(char *, attr_t *, int *);
@@ -327,6 +343,7 @@ int view_cmd_processor(Init *init) {
         case 'F':
         case KEY_NPAGE:
         case Ctrl('F'):
+            view->ln_no++;
             next_page(view);
             break;
         /** 'g', KEY_HOME - Go to the beginning of the document */
@@ -1190,6 +1207,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                     break;
                 }
             }
+            view->srch_curr_ln_no += (search_cmd == '/') ? 1 : -1;
             continue;
         }
         if (reti) {
@@ -1262,10 +1280,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
             }
         }
         display_line(view);
-        if (search_cmd == '/')
-            view->srch_curr_ln_no++;
-        else
-            view->srch_curr_ln_no--;
+        view->srch_curr_ln_no += (search_cmd == '/') ? 1 : -1;
     }
     regfree(&compiled_regex);
     view->ln_no = view->srch_curr_ln_no;
@@ -1329,14 +1344,58 @@ int pad_refresh(View *view) {
    view->scroll_lines).
  */
 void prev_page(View *view) {
-    if (view->page_top_pos == 0)
+    off_t ln_no;
+    if (view->page_top_ln_no == 0)
         return;
     view->cury = 0;
     view->ln_no = view->page_top_ln_no;
-    if (view->ln_no - view->scroll_lines >= 0)
-        view->ln_no -= view->scroll_lines;
-    else
-        view->ln_no = 0;
+    int scroll, avail, scroll_this_line;
+    if (view->wrap) {
+        scroll = view->scroll_lines;
+        ln_no = view->page_top_ln_no;
+        while (scroll > 0) {
+            get_line(view, ln_no);
+            fmt_line(view);
+            view->page_top_sl = (view->cur.sl_cnt > 1);
+            if (view->page_top_sl == false) {
+                scroll--;
+                if (ln_no > 0)
+                    ln_no--;
+                continue;
+            }
+            if (ln_no == view->page_top_ln_no) {
+                view->cur.sl_idx = view->page_top_sl_idx;
+                if (view->cur.sl_idx == 0) {
+                    if (ln_no > 0)
+                        ln_no--;
+                    continue;
+                }
+                avail = view->cur.sl_idx;
+            } else
+                avail = view->cur.sl_cnt;
+            scroll_this_line = min(scroll, avail);
+            scroll -= scroll_this_line;
+            if (ln_no == view->page_top_ln_no)
+                view->cur.sl_idx -= scroll_this_line;
+            else
+                view->cur.sl_idx = view->cur.sl_cnt - scroll_this_line;
+            if (ln_no > 0)
+                ln_no--;
+        }
+        view->page_top_sl_idx = view->cur.sl_idx;
+        view->page_top_sl_cnt = view->cur.sl_cnt;
+        view->page_top_ln_no = ln_no;
+        view->ln_no = view->page_top_ln_no;
+        view->page_top_sl = (view->page_top_sl_cnt > 1);
+    } else {
+        view->ln_no = view->page_top_ln_no;
+        view->cury = 0;
+        if (view->ln_no - view->scroll_lines >= 0)
+            view->ln_no -= view->scroll_lines;
+        else
+            view->ln_no = 0;
+        view->page_top_ln_no = view->ln_no;
+    }
     next_page(view);
 }
 /** @brief Advance to Next Page
@@ -1352,6 +1411,7 @@ void prev_page(View *view) {
    Finally, it calls the function to display the new page content.
 */
 void next_page(View *view) {
+
     view->file_pos = view->ln_tbl[view->ln_no];
     if (view->file_pos == view->file_size)
         return;
@@ -1366,79 +1426,112 @@ void next_page(View *view) {
  */
 void view_display_page(View *view) {
     view->cury = 0;
+    view->page_top_sl = false;
+    view->page_bot_sl = false;
     wmove(view->pad, 0, 0);
     if (view->lnno_win)
         wmove(view->lnno_win, 0, 0);
     view->ln_no = view->page_top_ln_no;
     view->page_top_ln_no = 0;
     view->page_bot_ln_no = 0;
-    wnoutrefresh(stdscr);
-    update_panels();
-    doupdate();
     while (view->cury < view->scroll_lines) {
         get_line(view, view->ln_no);
         if (view->f_eod)
             break;
-        if (view->cury == 0)
-            view->page_top_ln_no = view->ln_no;
-        if (view->cury == view->scroll_lines - 1) {
-            view->page_bot_ln_no = view->ln_no;
-            view->page_bot_end_pos = view->file_pos - 1;
-        }
         fmt_line(view);
         display_line(view);
         view->ln_no++;
     }
+    if (view->f_eod)
+        display_line_eod(view);
+    view->page_bot_end_pos = view->file_pos - 1;
     view->ln_no--;
-    if (view->cury < view->scroll_lines) {
-        wmove(view->lnno_win, view->cury, 0);
-        wclrtobot(view->lnno_win);
-        wmove(view->pad, view->cury, 0);
-        wclrtobot(view->pad);
-    }
-    view->ln_no = view->page_bot_ln_no;
+    // if (view->cury < view->scroll_lines) {
+    //     wmove(view->lnno_win, view->cury, 0);
+    //     wclrtobot(view->lnno_win);
+    //     wmove(view->pad, view->cury, 0);
+    //     wclrtobot(view->pad);
+    // }
 }
 /** @brief Scroll N Lines
     @ingroup view_navigation
     @param view data Structure
     @param n number of lines to scroll
+    @details Scrolls the view by n lines.
+    Wordwrap maintains page top and bottom line state including
+    index, count, and flag.
+
  */
 void scroll_down_n_lines(View *view, int n) {
-    int scroll_off;
+    int scroll, scroll_this_line, avail;
+    off_t ln_no;
     view->f_bod = false;
-
     if (view->page_bot_pos == view->file_size)
         return;
-
     if (view->wrap) {
-        /** Locate New Top of Page to reset page top variables
-         */
-        scroll_off = n;
-        while (scroll_off > 0) {
+        // Set Top Line State
+        scroll = n;
+        ln_no = view->page_top_ln_no;
+        while (scroll > 0) {
+            get_line(view, ln_no);
+            fmt_line(view);
+            view->page_top_sl = (view->cur.sl_cnt > 1);
             if (view->page_top_sl == false) {
-                view->page_top_ln_no++;
-                view->ln_no = view->page_top_ln_no;
-                get_line(view, view->ln_no);
-                fmt_line(view);
-                if (view->page_top_sl == false)
-                    scroll_off--;
-            } else {
-                if (view->page_top_sl_idx + scroll_off < view->page_top_sl_cnt) {
-                    view->page_top_sl_idx += scroll_off;
-                    break;
-                } else {
-                    scroll_off -= (view->page_top_sl_cnt - view->page_top_sl_idx);
-                    view->page_top_sl = false;
-                }
+                ln_no++;
+                scroll--;
+                continue;
             }
+            if (ln_no == view->page_top_ln_no)
+                view->cur.sl_idx = view->page_top_sl_idx;
+            avail = view->cur.sl_cnt - 1 - view->cur.sl_idx;
+            scroll_this_line = min(scroll, avail);
+            scroll -= scroll_this_line;
+            if (ln_no == view->page_top_ln_no)
+                view->cur.sl_idx += scroll_this_line;
+            else
+                view->cur.sl_idx += scroll_this_line - 1;
+            if (scroll != 0)
+                ln_no++;
         }
+        view->page_top_sl_idx = view->cur.sl_idx;
+        view->page_top_sl_cnt = view->cur.sl_cnt;
+        view->page_top_ln_no = ln_no;
+        view->page_top_sl = (view->cur.sl_cnt > 1);
+
+        // Set Bottom Line State
+        scroll = n;
+        ln_no = view->page_bot_ln_no;
+        while (scroll > 0) {
+            get_line(view, ln_no);
+            fmt_line(view);
+            view->page_bot_sl = (view->cur.sl_cnt > 1);
+            if (view->page_bot_sl == false) {
+                ln_no++;
+                scroll--;
+                continue;
+            }
+            if (ln_no == view->page_bot_ln_no)
+                view->cur.sl_idx = view->page_bot_sl_idx;
+            avail = view->cur.sl_cnt - 1 - view->cur.sl_idx;
+            scroll_this_line = min(scroll, avail);
+            scroll -= scroll_this_line;
+            if (ln_no == view->page_bot_ln_no)
+                view->cur.sl_idx += scroll_this_line;
+            else
+                view->cur.sl_idx += scroll_this_line - 1;
+            if (scroll != 0)
+                ln_no++;
+        }
+        view->page_bot_sl_idx = view->cur.sl_idx;
+        view->page_bot_sl_cnt = view->cur.sl_cnt;
+        view->page_bot_ln_no = ln_no;
+        view->page_bot_sl = (view->cur.sl_cnt > 1);
     } else {
-        if (view->page_top_ln_no + n < view->ln_no) {
-            view->page_top_ln_no += n;
-        } else
-            view->page_top_ln_no = view->ln_no;
+        view->page_top_ln_no += n;
+        view->page_bot_ln_no += n;
+        get_line(view, view->page_bot_ln_no);
+        fmt_line(view);
     }
-    /** Scroll */
     if (n > view->scroll_lines) {
         if (view->f_ln) {
             wmove(view->lnno_win, 0, 0);
@@ -1450,28 +1543,14 @@ void scroll_down_n_lines(View *view, int n) {
         if (view->f_ln)
             wscrl(view->lnno_win, n);
         wscrl(view->pad, n);
-        // scrolled up
         if (n < view->scroll_lines)
             view->cury = view->scroll_lines - n;
     }
+    view->ln_no = view->page_bot_ln_no;
     wmove(view->pad, view->cury, 0);
-    /** Fill in Page Bottom */
-    while (view->cury < view->scroll_lines) {
-        if (view->wrap && (view->page_bot_sl == true) &&
-            (view->cur.sl_ln_no == view->page_bot_ln_no) &&
-            ((view->cur.sl_idx + 1) < view->cur.sl_cnt)) {
-            view->cur.sl_idx++;
-            display_split_line(view);
-        } else {
-            view->page_bot_ln_no++;
-            view->ln_no = view->page_bot_ln_no;
-            get_line(view, view->ln_no);
-            if (view->f_eod)
-                break;
-            fmt_line(view);
-            display_line(view);
-        }
-    }
+    display_line(view);
+    _Refresh(view);
+    return;
 }
 /** @brief Scroll Up N Lines
     @ingroup view_navigation
@@ -1479,65 +1558,105 @@ void scroll_down_n_lines(View *view, int n) {
     @param n number of lines to scroll
  */
 void scroll_up_n_lines(View *view, int n) {
-    int i;
+    int scroll, avail, scroll_this_line;
+    off_t ln_no;
     view->f_eod = false;
     if (view->page_top_ln_no == 0) {
         if (view->wrap) {
-            if (view->page_top_sl == true && view->page_top_sl_idx == 0)
+            if (view->page_top_sl == false || view->page_top_sl_idx == 0)
                 return;
         } else
             return;
     }
-    view->ln_no = view->page_top_ln_no;
+    wmove(view->pad, 0, 0);
     if (view->f_ln)
         wscrl(view->lnno_win, -n);
     wscrl(view->pad, -n);
-    view->cury = 0;
-    wmove(view->pad, view->cury, 0);
-    if (view->wrap && view->page_top_sl == true && view->page_top_sl_idx > 0) {
-        if (view->cur.sl_ln_no != view->page_top_ln_no) {
-            get_line(view, view->page_top_ln_no);
+    if (view->wrap) {
+        scroll = n;
+        ln_no = view->page_top_ln_no;
+        while (scroll > 0) {
+            get_line(view, ln_no);
             fmt_line(view);
-        }
-        int cury = n;
-        int needed = n;
-        while (cury > 0) {
-            if (view->cur.sl_cnt >= needed) {
-                // view->cur.sl_idx set to zero in fmt_line(),
-                // so use view->page_top_sl_idx to set the new index
-                view->page_top_sl_idx -= needed;
+            view->page_top_sl = (view->cur.sl_cnt > 1);
+            if (view->page_top_sl == false) {
+                scroll--;
+                if (ln_no > 0)
+                    ln_no--;
+                continue;
+            }
+            if (ln_no == view->page_top_ln_no) {
                 view->cur.sl_idx = view->page_top_sl_idx;
-                view->cury = 0;
-                display_line(view);
+                if (view->cur.sl_idx == 0) {
+                    if (ln_no > 0)
+                        ln_no--;
+                    continue;
+                }
+                avail = view->cur.sl_idx;
+            } else
+                avail = view->cur.sl_cnt;
+            scroll_this_line = min(scroll, avail);
+            scroll -= scroll_this_line;
+            if (ln_no == view->page_top_ln_no)
+                view->cur.sl_idx -= scroll_this_line;
+            else
+                view->cur.sl_idx = view->cur.sl_cnt - scroll_this_line;
+            if (ln_no > 0)
+                ln_no--;
+            if (scroll == 0)
                 break;
-            }
-            cury -= view->cur.sl_cnt - 1;
-            view->cury = cury;
-            display_line(view);
-            if (cury == 0)
-                break;
-            if (view->page_top_ln_no > 0) {
-                view->page_top_ln_no--;
-                get_line(view, view->page_top_ln_no);
-                fmt_line(view);
-            }
         }
-    } else {
-        /** Fill in Page Top */
-        for (i = 0; i < n; i++) {
-            get_line(view, view->ln_no);
-            if (view->f_eod)
-                break;
+        view->page_top_sl_idx = view->cur.sl_idx;
+        view->page_top_sl_cnt = view->cur.sl_cnt;
+        view->page_top_ln_no = ln_no;
+        view->page_top_sl = (view->page_top_sl_cnt > 1);
+
+        view->cury = 0;
+        display_line(view);
+        _Refresh(view);
+
+        // Set Bottom Line State
+        scroll = n;
+        ln_no = view->page_bot_ln_no;
+        while (scroll > 0) {
+            get_line(view, view->page_bot_ln_no);
             fmt_line(view);
-            display_line(view);
+            view->page_bot_sl = (view->cur.sl_cnt > 1);
+            if (view->page_bot_sl == false) {
+                scroll--;
+                if (ln_no > 0)
+                    ln_no--;
+                continue;
+            }
+            if (ln_no != view->page_bot_ln_no) {
+                view->cur.sl_idx = view->page_bot_sl_idx;
+                if (view->cur.sl_idx == 0) {
+                    ln_no--;
+                    continue;
+                }
+                avail = view->cur.sl_idx;
+            } else
+                avail = view->cur.sl_cnt;
+            scroll_this_line = min(scroll, avail);
+            scroll -= scroll_this_line;
+            if (ln_no == view->page_bot_ln_no)
+                view->cur.sl_idx -= scroll_this_line;
+            else
+                view->cur.sl_idx = view->cur.sl_cnt - scroll_this_line;
+            if (ln_no > 0)
+                ln_no--;
         }
-        if (view->page_bot_ln_no - n >= view->scroll_lines)
-            view->page_bot_ln_no -= n;
-        else
-            view->page_bot_ln_no = view->scroll_lines;
-        view->ln_no = view->page_bot_ln_no;
-        // view->page_bot_pos = view->ln_tbl[view->page_bot_ln_no];
-        // view->file_pos = view->page_bot_pos;
+        view->page_bot_sl_idx = view->cur.sl_idx;
+        view->page_bot_sl_cnt = view->cur.sl_cnt;
+        view->page_bot_ln_no = ln_no;
+        view->page_bot_sl = (view->cur.sl_cnt > 1);
+    } else {
+        view->page_top_ln_no -= n;
+        get_line(view, view->page_top_ln_no);
+        fmt_line(view);
+        view->cury = 0;
+        display_line(view);
+        _Refresh(view);
     }
     return;
 }
@@ -1585,17 +1704,17 @@ off_t get_next_line(View *view, off_t pos) {
     }
     return view->file_pos;
 }
-off_t get_line(View *view, off_t line) {
+void get_line(View *view, off_t line) {
     char c;
     char *line_in_p;
-    off_t pos;
 
-    pos = view->file_pos = view->ln_tbl[line];
+    view->ln_no = line;
+    view->file_pos = view->ln_tbl[view->ln_no];
     view->f_eod = false;
     get_next_char();
     if (view->f_eod) {
         view->ln_no = line;
-        return view->file_pos;
+        return;
     }
     line_in_p = view->line_in_s;
     view->line_in_beg_p = view->line_in_s;
@@ -1609,7 +1728,7 @@ off_t get_line(View *view, off_t line) {
         get_next_char();
         if (view->f_eod) {
             view->ln_no = line;
-            return view->file_pos;
+            return;
         }
     }
     *line_in_p = '\0';
@@ -1624,11 +1743,11 @@ off_t get_line(View *view, off_t line) {
         get_prev_char();
         if (view->f_eod) {
             view->ln_no = line;
-            return view->file_pos;
+            return;
         }
     }
     view->ln_no = line;
-    return pos;
+    return;
 }
 /** @brief Get Previous Line from View->buf
     @ingroup view_navigation
@@ -1903,11 +2022,19 @@ void display_line(View *view) {
     wmove(view->pad, view->cury, 0);
     wclrtoeol(view->pad);
     wadd_wchstr(view->pad, view->cmplx_buf);
+    if (view->cury == 0)
+        view->page_top_ln_no = view->ln_no;
+    if (view->cury == view->scroll_lines - 1)
+        view->page_bot_ln_no = view->ln_no;
     view->cury++;
-    pad_refresh(view);
-    update_panels();
-    wnoutrefresh(view->box_win);
-    doupdate();
+}
+void display_line_eod(View *view) {
+    if (view->f_ln) {
+        wmove(view->lnno_win, view->cury, 0);
+        wclrtobot(view->lnno_win);
+    }
+    wmove(view->pad, view->cury, 0);
+    wclrtobot(view->pad);
 }
 void display_split_line(View *view) {
     char ln_s[16];
@@ -1930,20 +2057,27 @@ void display_split_line(View *view) {
                 wclrtoeol(view->lnno_win);
             }
         }
+        _Refresh(view);
         wmove(view->pad, view->cury, 0);
         wclrtoeol(view->pad);
         wadd_wchnstr(view->pad, view->cur.sl_cc[i], view->cur.sl_cells[i]);
-
+        _Refresh(view);
         if (view->cury == 0) {
+            view->page_top_ln_no = view->ln_no;
             view->page_top_sl = true;
             view->page_top_sl_idx = i;
+            view->page_top_sl_cnt = view->cur.sl_cnt;
         }
-        view->cury++;
-        if (view->cury == view->scroll_lines) {
+        if (view->cury == view->scroll_lines - 1) {
+            view->page_bot_ln_no = view->ln_no;
             view->page_bot_sl = true;
             view->page_bot_sl_idx = i;
-            break;
+            view->page_bot_sl_cnt = view->cur.sl_cnt;
+            view->page_bot_ln_no = view->ln_no;
         }
+        view->cury++;
+        if (view->cury == view->scroll_lines)
+            break;
     }
 }
 /** @brief Format Line for Display
@@ -2091,8 +2225,8 @@ int fmt_line(View *view) {
         } // END WHILE - ANSI SGR, Character, and Word
         if (view->wrap) {        // handle line wrapping
             if (word_cols > 0) { // break line, add last word to next line
-                if (view->cur.sl_idx == 0)
-                    view->cur.sl_ln_no = view->ln_no;
+                // if (view->cur.sl_idx == 0)
+                //    view->cur.sl_ln_no = view->ln_no;
                 if (sl_cols <= sl_maxlen - 1) {
                     view->cur.sl_s[view->cur.sl_idx] = sl_s;
                     view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
@@ -2142,31 +2276,25 @@ int fmt_line(View *view) {
         } // END IF - handle line wrapping
         j > view->maxcol ? view->maxcol = j : 0;
     } // END WHILE - line
-    if (view->wrap && view->cur.sl_idx > 0) { // finish and commit wrap state
-        view->cur.sl_s[view->cur.sl_idx] = sl_s;
-        view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
-        view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
-        view->cur.sl_cells[view->cur.sl_idx] = sl_cells;
-        view->cur.sl_idx++;
-        view->cur.sl_cc[view->cur.sl_idx] = nullptr;
-        view->cur.sl_s[view->cur.sl_idx] = nullptr;
-        view->cur.sl_cnt = view->cur.sl_idx;
-        view->cur.sl_idx = 0;
-        if (view->ln_no == view->page_top_ln_no) {
-            view->page_top_sl = true;
-            view->page_top_sl_cnt = view->cur.sl_cnt;
-        }
-        if (view->ln_no == view->page_bot_ln_no) {
-            view->page_bot_sl = true;
-            view->page_bot_sl_cnt = view->cur.sl_cnt;
+    if (view->wrap) { // finish and commit wrap state
+        if (view->cur.sl_idx > 1) {
+            view->cur.sl_s[view->cur.sl_idx] = sl_s;
+            view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
+            view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
+            view->cur.sl_cells[view->cur.sl_idx] = sl_cells;
+            view->cur.sl_idx++;
+            view->cur.sl_cc[view->cur.sl_idx] = nullptr;
+            view->cur.sl_s[view->cur.sl_idx] = nullptr;
+            view->cur.sl_cnt = view->cur.sl_idx;
+            view->cur.sl_idx = 0;
         }
         view->cur.sl_ln_no = view->ln_no;
-#ifdef DEBUG_WRAP
-        // log_split_lines(view);
-        log_cc_buf(view);
-        // log_stripped_line_out(view);
-#endif
     }
+#ifdef DEBUG_WRAP
+    // log_split_lines(view);
+    log_cc_buf(view);
+    // log_stripped_line_out(view);
+#endif
     //-------------------------------------------------------------------------
     if (in_str_len > 0)
         if (sl_cols == 1179)

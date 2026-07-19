@@ -2260,6 +2260,7 @@ int vgetch(WINDOW *win, int n) {
     int c;
     mousemask(0, nullptr);
 
+    tcflush(2, TCIFLUSH);
     curs_set(1);
     if (n == -1) {
         struct termios raw_tioctl;
