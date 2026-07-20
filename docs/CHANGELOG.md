@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-20T16:05:17-05:00* - FIX: view_engine.c: valgrind identified several leaks in search(), where execution avoided regfree() due to return statements. I don't pull my hair out over these kinds of things anymore. I just asked Co-Pilot to fix it for me. It did. I am grateful for that. I will now go back to my life and not worry about this anymore. I will not worry about this anymore. I will not worry about this anymore. I will not worry about this anymore. I will not worry... 
+
+*2026-07-20T14:54:09-05:00* - Update CHANGELOG.md 
+
 *2026-07-20T14:53:39-05:00* - FIX: view_engine.c minor cleanup 
 
 *2026-07-20T11:53:58-05:00* - Update CHANGELOG.md 
