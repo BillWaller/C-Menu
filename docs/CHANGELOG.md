@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-20T14:53:39-05:00* - FIX: view_engine.c minor cleanup 
+
+*2026-07-20T11:53:58-05:00* - Update CHANGELOG.md 
+
 *2026-07-20T11:31:39-05:00* - FEATURES and FIXES: Continuation of view_engine refactoring and cleanup. ANSI SGR input (converted to complex character arrays for display), Support for highlighting tools such as Tree-Sitter, Pygments, Bat, and others, Memory mapped file support for large files, NCursesw panels, smart line wrapping, and a foundation for a Uniform Abstraction Layer User Interface. 
 
 *2026-07-19T18:52:56-05:00* - Update CHANGELOG.md 
