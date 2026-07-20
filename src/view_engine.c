@@ -1174,7 +1174,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                     view->cury = view->scroll_lines + 1;
             } else {
                 view->f_search_complete = true;
-                return rc;
+                goto cleanup; /* FIX: Was return rc; */
             }
         }
         view->ln_no = view->srch_curr_ln_no;
@@ -1182,15 +1182,15 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         /** get line to scan */
         if (search_cmd == '/') {
             if (view->cury == view->scroll_lines)
-                return rc;
-            prev_ln_no = view->srch_curr_ln_no; /**< Note placement before get_next_line */
+                goto cleanup; /* FIX: Was return rc; */
+            prev_ln_no = view->srch_curr_ln_no;
             get_line(view, view->srch_curr_ln_no);
             view->page_bot_ln_no = view->srch_curr_ln_no;
         } else {
             if (view->cury == 0)
-                return rc;
+                goto cleanup; /* FIX: Was return rc; */
             get_line(view, view->srch_curr_ln_no);
-            prev_ln_no = view->srch_curr_ln_no; /**< Note placement after get_prev_line */
+            prev_ln_no = view->srch_curr_ln_no;
             view->page_top_ln_no = view->srch_curr_ln_no;
         }
         fmt_line(view);
@@ -1216,8 +1216,8 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
             strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
             strnz__cat(tmp_str, err_str, MAXLEN - 1);
             Perror(tmp_str);
-            regfree(&compiled_regex);
-            return false;
+            rc = false;   /* Set status */
+            goto cleanup; /* FIX: Consolidated to cleanup */
         }
         rc = true;
         /** Display matching lines */
@@ -1234,13 +1234,9 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         }
         if (search_cmd == '?')
             view->cury -= 2;
-        /** All matches on the current line are highlighted,
-           including those not displayed on the screen.
-           Track first and last match columns for prompt display. */
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
-
         line_offset = 0;
         while (1) {
             match_idx = line_offset + pmatch[0].rm_so;
@@ -1268,8 +1264,8 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 regerror(reti, &compiled_regex, msgbuf, sizeof(msgbuf));
                 sprintf(tmp_str, "Regex match failed: %s", msgbuf);
                 Perror(tmp_str);
-                regfree(&compiled_regex);
-                return false;
+                rc = false;   /* Set status */
+                goto cleanup; /* FIX: Consolidated to cleanup */
             }
             if (search_cmd == '/') {
                 if (view->cury == view->scroll_lines - 1) {
@@ -1282,28 +1278,9 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         display_line(view);
         view->srch_curr_ln_no += (search_cmd == '/') ? 1 : -1;
     }
+cleanup:
     regfree(&compiled_regex);
     view->ln_no = view->srch_curr_ln_no;
-#ifdef DEBUG_SEARCH
-    /** Statistics for debugging */
-    ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-              "%s|%c%s|Pos %zu-%zu|(%zd) %zu %zu", view->file_name, search_cmd,
-              regex_pattern, view->page_top_ln_no, view->page_bot_ln_no,
-              view->file_size, view->srch_beg_ln_no, view->srch_curr_ln_no);
-#else
-    if (view->last_match_x > view->maxcol)
-        ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-                  "%s|%c%s|Match Cols %d-%d of %d-%d|(%zd%%)", view->file_name,
-                  search_cmd, regex_pattern, view->first_match_x,
-                  view->last_match_x, view->pmincol, view->smaxcol - view->begx,
-                  (view->page_bot_ln_no * 100 / view->file_size));
-    else
-        ssnprintf(view->tmp_prompt_str, MAXLEN - 1,
-                  "%s|%c%s|Pos %zu-%zu|(%zd%%)", view->file_name, search_cmd,
-                  regex_pattern, view->page_top_ln_no, view->page_bot_ln_no,
-                  (view->page_bot_ln_no * 100 / view->file_size));
-#endif
-    regfree(&compiled_regex);
     return rc;
 }
 

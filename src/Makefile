@@ -202,7 +202,8 @@ clean:
    	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log ui/*.o
 
 helgrind: lf
-	valgrind --tool=helgrind --log-file=helgrind.out -s ./lf -H -L -T6 /home/bill 1>/dev/null 2>/dev/null
+	valgrind --tool=helgrind --log-file=helgrind.out -s \
+		./lf -H -L -T6 $(HOME) 1>/dev/null 2>/dev/null
 
 valgrind: menu
 	valgrind -v \
@@ -217,7 +218,7 @@ valgrind: menu
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
-		./menu
+		./view -L60 -C90 -w lsp.log
 
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*
