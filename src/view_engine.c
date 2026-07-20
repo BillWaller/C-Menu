@@ -759,15 +759,15 @@ int get_cmd_char(View *view, off_t *n) {
     char cmd_str[33];
     cmd_str[0] = '\0';
     pad_refresh(view);
-    update_panels();
+    // update_panels();
     curs_set(1);
     getyx(view->cmdln_win, view->cmd_line, view->curx);
     wbkgrndset(view->cmdln_win, &CC_IND);
     wmove(view->cmdln_win, view->cmd_line, view->curx);
     mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &ran, 1);
     wmove(view->cmdln_win, view->cmd_line, view->curx + 1);
-    update_panels();
-    doupdate();
+    // update_panels();
+    // doupdate();
     while (1) {
         if (i == 1 && !once) {
             once = true;
@@ -975,7 +975,7 @@ void build_prompt(View *view) {
     view->page_top_pos = view->ln_tbl[view->page_top_ln_no];
     if (view->page_top_pos == NULL_POSITION)
         view->page_top_pos = view->file_size;
-    view->page_bot_pos = view->ln_tbl[view->page_bot_ln_no];
+    view->page_bot_pos = view->ln_tbl[view->page_bot_ln_no + 1];
     if (view->page_bot_pos == NULL_POSITION)
         view->page_bot_pos = view->file_size;
     sprintf(tmp_str, "Pos %zd-%zd", view->page_top_pos, view->page_bot_pos);
@@ -1363,7 +1363,7 @@ void prev_page(View *view) {
                     ln_no--;
                 continue;
             }
-            if (ln_no == view->page_top_ln_no) {
+            if (ln_no == view->page_top_ln_no && ln_no != view->last_ln_no) {
                 view->cur.sl_idx = view->page_top_sl_idx;
                 if (view->cur.sl_idx == 0) {
                     if (ln_no > 0)
@@ -1375,13 +1375,14 @@ void prev_page(View *view) {
                 avail = view->cur.sl_cnt;
             scroll_this_line = min(scroll, avail);
             scroll -= scroll_this_line;
-            if (ln_no == view->page_top_ln_no)
+            if (ln_no == view->page_top_ln_no && ln_no != view->last_ln_no)
                 view->cur.sl_idx -= scroll_this_line;
             else
                 view->cur.sl_idx = view->cur.sl_cnt - scroll_this_line;
             if (ln_no > 0)
                 ln_no--;
         }
+        ln_no++;
         view->page_top_sl_idx = view->cur.sl_idx;
         view->page_top_sl_cnt = view->cur.sl_cnt;
         view->page_top_ln_no = ln_no;
@@ -1439,11 +1440,15 @@ void view_display_page(View *view) {
         if (view->f_eod)
             break;
         fmt_line(view);
+        if (view->wrap && view->cury == 0)
+            view->cur.sl_idx = view->page_top_sl_idx;
         display_line(view);
+        _Refresh(view);
         view->ln_no++;
     }
     if (view->f_eod)
         display_line_eod(view);
+    _Refresh(view);
     view->page_bot_end_pos = view->file_pos - 1;
     view->ln_no--;
     // if (view->cury < view->scroll_lines) {
@@ -1474,6 +1479,8 @@ void scroll_down_n_lines(View *view, int n) {
         ln_no = view->page_top_ln_no;
         while (scroll > 0) {
             get_line(view, ln_no);
+            if (view->f_eod)
+                break;
             fmt_line(view);
             view->page_top_sl = (view->cur.sl_cnt > 1);
             if (view->page_top_sl == false) {
@@ -1497,12 +1504,15 @@ void scroll_down_n_lines(View *view, int n) {
         view->page_top_sl_cnt = view->cur.sl_cnt;
         view->page_top_ln_no = ln_no;
         view->page_top_sl = (view->cur.sl_cnt > 1);
-
+    }
+    if (view->wrap) {
         // Set Bottom Line State
         scroll = n;
         ln_no = view->page_bot_ln_no;
         while (scroll > 0) {
             get_line(view, ln_no);
+            if (view->f_eod)
+                break;
             fmt_line(view);
             view->page_bot_sl = (view->cur.sl_cnt > 1);
             if (view->page_bot_sl == false) {
@@ -1513,43 +1523,60 @@ void scroll_down_n_lines(View *view, int n) {
             if (ln_no == view->page_bot_ln_no)
                 view->cur.sl_idx = view->page_bot_sl_idx;
             avail = view->cur.sl_cnt - 1 - view->cur.sl_idx;
+            if (avail == 0) {
+                ln_no++;
+                continue;
+            }
             scroll_this_line = min(scroll, avail);
             scroll -= scroll_this_line;
             if (ln_no == view->page_bot_ln_no)
                 view->cur.sl_idx += scroll_this_line;
             else
                 view->cur.sl_idx += scroll_this_line - 1;
+            view->page_bot_sl_idx = view->cur.sl_idx;
+            view->page_bot_sl_cnt = view->cur.sl_cnt;
+            view->page_bot_ln_no = ln_no;
+            view->page_bot_sl = (view->cur.sl_cnt > 1);
+            view->ln_no = view->page_bot_ln_no;
+            if (view->f_ln)
+                wscrl(view->lnno_win, 1);
+            wscrl(view->pad, scroll_this_line);
+            view->cury = view->scroll_lines - scroll_this_line;
+            wmove(view->pad, view->cury, 0);
+            display_line(view);
             if (scroll != 0)
                 ln_no++;
         }
-        view->page_bot_sl_idx = view->cur.sl_idx;
-        view->page_bot_sl_cnt = view->cur.sl_cnt;
-        view->page_bot_ln_no = ln_no;
-        view->page_bot_sl = (view->cur.sl_cnt > 1);
     } else {
-        view->page_top_ln_no += n;
-        view->page_bot_ln_no += n;
-        get_line(view, view->page_bot_ln_no);
-        fmt_line(view);
-    }
-    if (n > view->scroll_lines) {
-        if (view->f_ln) {
-            wmove(view->lnno_win, 0, 0);
-            wclrtobot(view->lnno_win);
+        if (n > view->scroll_lines) {
+            if (view->f_ln) {
+                wmove(view->lnno_win, 0, 0);
+                wclrtobot(view->lnno_win);
+            }
+            wmove(view->pad, 0, 0);
+            wclrtobot(view->pad);
+        } else {
+            if (view->f_ln)
+                wscrl(view->lnno_win, n);
+            wscrl(view->pad, n);
+            if (n < view->scroll_lines)
+                view->cury = view->scroll_lines - n;
         }
-        wmove(view->pad, 0, 0);
-        wclrtobot(view->pad);
-    } else {
-        if (view->f_ln)
-            wscrl(view->lnno_win, n);
-        wscrl(view->pad, n);
-        if (n < view->scroll_lines)
-            view->cury = view->scroll_lines - n;
+        view->page_top_ln_no += n;
+        scroll = n;
+        while (scroll > 0) {
+            get_line(view, view->ln_no);
+            if (view->f_eod)
+                break;
+            fmt_line(view);
+            wmove(view->pad, view->cury, 0);
+            display_line(view);
+            if (view->cury == view->scroll_lines)
+                break;
+            view->ln_no++;
+        }
+        view->page_bot_ln_no += n;
     }
-    view->ln_no = view->page_bot_ln_no;
-    wmove(view->pad, view->cury, 0);
-    display_line(view);
-    _Refresh(view);
     return;
 }
 /** @brief Scroll Up N Lines
@@ -1606,6 +1633,7 @@ void scroll_up_n_lines(View *view, int n) {
             if (scroll == 0)
                 break;
         }
+        ln_no++;
         view->page_top_sl_idx = view->cur.sl_idx;
         view->page_top_sl_cnt = view->cur.sl_cnt;
         view->page_top_ln_no = ln_no;
@@ -1613,7 +1641,6 @@ void scroll_up_n_lines(View *view, int n) {
 
         view->cury = 0;
         display_line(view);
-        _Refresh(view);
 
         // Set Bottom Line State
         scroll = n;
@@ -1656,7 +1683,6 @@ void scroll_up_n_lines(View *view, int n) {
         fmt_line(view);
         view->cury = 0;
         display_line(view);
-        _Refresh(view);
     }
     return;
 }
@@ -1835,8 +1861,16 @@ void go_to_position(View *view, off_t go_to_pos) {
 void go_to_eof(View *view) {
     view->file_pos = view->file_size;
     sync_ln(view);
+    view->ln_no--;
+    view->last_ln_no = view->ln_no;
+    if (view->wrap) {
+        view->page_top_ln_no = view->ln_no;
+        view->f_eod = true;
+        prev_page(view);
+        return;
+    }
     if (view->ln_no > view->scroll_lines)
-        view->ln_no -= view->scroll_lines;
+        view->ln_no -= view->scroll_lines + 1;
     else
         view->page_top_ln_no = 0;
     view->page_top_ln_no = view->ln_no;
@@ -2057,11 +2091,9 @@ void display_split_line(View *view) {
                 wclrtoeol(view->lnno_win);
             }
         }
-        _Refresh(view);
         wmove(view->pad, view->cury, 0);
         wclrtoeol(view->pad);
         wadd_wchnstr(view->pad, view->cur.sl_cc[i], view->cur.sl_cells[i]);
-        _Refresh(view);
         if (view->cury == 0) {
             view->page_top_ln_no = view->ln_no;
             view->page_top_sl = true;
@@ -2121,6 +2153,8 @@ int fmt_line(View *view) {
     memset(&mbstate, 0, sizeof(mbstate));
     int word_cols = 0;
     int sl_maxlen = PAD_COLS - 1;
+    if (view->f_eod)
+        return 0;
     if (view->wrap)
         sl_maxlen = view->cols;
     if (view->f_ln)
@@ -2182,7 +2216,7 @@ int fmt_line(View *view) {
                     break;
                 }
                 if (in_str[i] == '\t') {
-                    tab_spaces = view->tab_stop - (sl_cols % view->tab_stop);
+                    tab_spaces = view->tab_stop - ((sl_cols + word_cols) % view->tab_stop);
                     if (view->wrap && sl_cols + word_cols + tab_spaces > sl_maxlen - 1)
                         break;
                     wstr[0] = L' ';
