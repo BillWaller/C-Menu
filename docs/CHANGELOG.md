@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-20T11:31:39-05:00* - FEATURES and FIXES: Continuation of view_engine refactoring and cleanup. ANSI SGR input (converted to complex character arrays for display), Support for highlighting tools such as Tree-Sitter, Pygments, Bat, and others, Memory mapped file support for large files, NCursesw panels, smart line wrapping, and a foundation for a Uniform Abstraction Layer User Interface. 
+
+*2026-07-19T18:52:56-05:00* - Update CHANGELOG.md 
+
 *2026-07-19T18:48:22-05:00* - FIXES: Added screen handling for word wrapped lines in view_engine.c. The view_engine is still a work in progress, but this commit represents a cursory testing of functionality, but no edge cases have been tested yet. It's still pre-release, but I hope it works well enough to be useful and give users some insight on where the project is headed. 
 
 *2026-07-16T07:44:56-05:00* - Update CHANGELOG.md 
