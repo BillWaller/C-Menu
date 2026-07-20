@@ -119,8 +119,8 @@ void go_to_position(View *, off_t);
 bool search(View *, int, char *);
 void next_page(View *);
 void prev_page(View *);
-void scroll_down_n_lines(View *, int);
-void scroll_up_n_lines(View *, int);
+void scroll_down(View *, int);
+void scroll_up(View *, int);
 off_t get_next_line(View *, off_t);
 void get_line(View *, off_t);
 off_t get_prev_line(View *, off_t);
@@ -318,7 +318,7 @@ int view_cmd_processor(Init *init) {
         case Ctrl('K'):
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scroll_up_n_lines(view, n_cmd);
+            scroll_up(view, n_cmd);
             break;
         /** 'j', 'J', KEY_DOWN, KEY_ENTER, SPACE - scroll down one line */
         case 'j':
@@ -329,7 +329,7 @@ int view_cmd_processor(Init *init) {
         case KEY_ENTER:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scroll_down_n_lines(view, n_cmd);
+            scroll_down(view, n_cmd);
             break;
         /** 'b', 'B', Ctrl('B'), KEY_PPAGE - Previous Page */
         case KEY_PPAGE:
@@ -1307,33 +1307,6 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     return rc;
 }
 
-/** @defgroup view_display Manage View Display
-    @brief Manage the View Display
- */
-/** @brief Refresh Pad and Line Number Window
-    @ingroup view_display
-    @param view data structure
-    @returns OK on success, ERR on failure
-*/
-int pad_refresh(View *view) {
-    int rc;
-    touchwin(view->pad);
-    rc = pnoutrefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
-                      view->smincol, view->smaxrow, view->smaxcol);
-    rc = prefresh(view->pad_view_win,
-                  view->pminrow,
-                  view->pmincol,
-                  view->sminrow,
-                  view->smincol,
-                  view->smaxrow,
-                  view->smaxcol);
-    if (rc == ERR) {
-        ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->pad_view_win, pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
-                  __FILE__, __LINE__, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
-        Perror(em0);
-    }
-    return rc;
-}
 /*--------------------------------------------------------------
    Navigation
  *--------------------------------------------------------------- */
@@ -1458,16 +1431,17 @@ void view_display_page(View *view) {
     //     wclrtobot(view->pad);
     // }
 }
-/** @brief Scroll N Lines
+/** @brief Scroll Down by n Lines
     @ingroup view_navigation
-    @param view data Structure
-    @param n number of lines to scroll
-    @details Scrolls the view by n lines.
-    Wordwrap maintains page top and bottom line state including
-    index, count, and flag.
-
+    @param view Pointer to the View structure containing the state and
+   parameters of the view application. This structure is used to access and
+   modify the state of the application as needed.
+    @param n The number of lines to scroll down. This parameter specifies how
+   many lines the view should move down in the file, effectively advancing
+   the display by n lines. The function will handle scrolling, updating the
+   current line number, and refreshing the display accordingly.
  */
-void scroll_down_n_lines(View *view, int n) {
+void scroll_down(View *view, int n) {
     int scroll, scroll_this_line, avail;
     off_t ln_no;
     view->f_bod = false;
@@ -1579,12 +1553,17 @@ void scroll_down_n_lines(View *view, int n) {
     }
     return;
 }
-/** @brief Scroll Up N Lines
+/** @brief Scroll Up by n Lines
     @ingroup view_navigation
-    @param view data Structure
-    @param n number of lines to scroll
+    @param view Pointer to the View structure containing the state and
+   parameters of the view application. This structure is used to access and
+   modify the state of the application as needed.
+    @param n The number of lines to scroll up. This parameter specifies how
+   many lines the view should move up in the file, effectively moving the
+   display up by n lines. The function will handle scrolling, updating the
+   current line number, and refreshing the display accordingly.
  */
-void scroll_up_n_lines(View *view, int n) {
+void scroll_up(View *view, int n) {
     int scroll, avail, scroll_this_line;
     off_t ln_no;
     view->f_eod = false;
@@ -1595,15 +1574,30 @@ void scroll_up_n_lines(View *view, int n) {
         } else
             return;
     }
+    if (view->page_top_ln_no - n >= 0)
+        view->page_top_ln_no -= n;
+    else
+        view->page_top_ln_no = 0;
+    if (n > view->scroll_lines) {
+        if (view->f_ln) {
+            wmove(view->lnno_win, 0, 0);
+            wclrtobot(view->lnno_win);
+        }
+        wmove(view->pad, 0, 0);
+        wclrtobot(view->pad);
+    } else {
+        if (view->f_ln)
+            wscrl(view->lnno_win, -n);
+        wscrl(view->pad, -n);
+    }
     wmove(view->pad, 0, 0);
-    if (view->f_ln)
-        wscrl(view->lnno_win, -n);
-    wscrl(view->pad, -n);
     if (view->wrap) {
         scroll = n;
         ln_no = view->page_top_ln_no;
         while (scroll > 0) {
             get_line(view, ln_no);
+            if (view->f_bod)
+                break;
             fmt_line(view);
             view->page_top_sl = (view->cur.sl_cnt > 1);
             if (view->page_top_sl == false) {
@@ -1640,13 +1634,25 @@ void scroll_up_n_lines(View *view, int n) {
         view->page_top_sl = (view->page_top_sl_cnt > 1);
 
         view->cury = 0;
-        display_line(view);
+        scroll = n;
+        while (scroll > 0) {
+            get_line(view, view->ln_no);
+            if (view->f_eod)
+                break;
+            fmt_line(view);
+            display_line(view);
+            scroll--;
+            view->ln_no++;
+        }
+        view->ln_no--;
 
         // Set Bottom Line State
         scroll = n;
         ln_no = view->page_bot_ln_no;
         while (scroll > 0) {
             get_line(view, view->page_bot_ln_no);
+            if (view->f_bod)
+                break;
             fmt_line(view);
             view->page_bot_sl = (view->cur.sl_cnt > 1);
             if (view->page_bot_sl == false) {
@@ -1678,11 +1684,17 @@ void scroll_up_n_lines(View *view, int n) {
         view->page_bot_ln_no = ln_no;
         view->page_bot_sl = (view->cur.sl_cnt > 1);
     } else {
-        view->page_top_ln_no -= n;
-        get_line(view, view->page_top_ln_no);
-        fmt_line(view);
         view->cury = 0;
-        display_line(view);
+        scroll = n;
+        while (scroll > 0) {
+            get_line(view, view->ln_no);
+            if (view->f_eod)
+                break;
+            fmt_line(view);
+            display_line(view);
+            scroll--;
+            view->ln_no++;
+        }
     }
     return;
 }
@@ -2020,6 +2032,33 @@ void sync_ln(View *view) {
         END NAVIGATION
         BEGIN DISPLAY
   ------------------------------------------------------------*/
+/** @defgroup view_display Manage View Display
+    @brief Manage the View Display
+ */
+/** @brief Refresh Pad and Line Number Window
+    @ingroup view_display
+    @param view data structure
+    @returns OK on success, ERR on failure
+*/
+int pad_refresh(View *view) {
+    int rc;
+    touchwin(view->pad);
+    rc = pnoutrefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
+                      view->smincol, view->smaxrow, view->smaxcol);
+    rc = prefresh(view->pad_view_win,
+                  view->pminrow,
+                  view->pmincol,
+                  view->sminrow,
+                  view->smincol,
+                  view->smaxrow,
+                  view->smaxcol);
+    if (rc == ERR) {
+        ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->pad_view_win, pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
+                  __FILE__, __LINE__, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
+        Perror(em0);
+    }
+    return rc;
+}
 /** @brief Display Line on Pad
     @ingroup view_display
     param View *view data structure
@@ -2188,7 +2227,7 @@ int fmt_line(View *view) {
                 }
             } else { // Character and Word
                 if (in_str[i] == ' ') {
-                    if (view->wrap && (sl_cols + word_cols + 1) > (sl_maxlen - 1))
+                    if (view->wrap && (sl_cols + word_cols) > (sl_maxlen - 1))
                         break;
                     wstr[0] = L' ';
                     wstr[1] = L'\0';

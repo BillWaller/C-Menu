@@ -181,7 +181,7 @@ int init_pick(Init *init, int argc, char **argv, int by, int bx) {
     set_chyron_key(pick->chyron, 4, "<v> View", 'v');
     set_chyron_key(pick->chyron, 5, "<q> Quit View", 'q');
     set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
-    set_chyron_key(pick->chyron, 7, "<Sp> Toggle", ' ');
+    set_chyron_key(pick->chyron, 7, "<Sp> Edit", ' ');
     set_chyron_key(pick->chyron, 9, "<Tab> Search", '\t');
     set_chyron_key(pick->chyron, 10, "<Tab> Select", '\t');
     set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
@@ -380,8 +380,8 @@ void pick_std_chyron(Pick *pick) {
     // *   3  F10 Accept      KEY_F(10));
     // ?   4  <v> View        <v>
     // ?   5  <q> Quit View   <q>
-    // ?   6  <Sp> Process    <Sp>
-    // ?   7  <Sp> Toggle     <Sp>
+    // ?   6  <Sp> Toggle     <Sp>
+    // ?   7  <Sp> Edit       <Sp>
     // ?   9  <Tab> Search    <Tab>
     // ?  10  <Tab> Select"   <Tab>
     // ?  11  PgUp            KEY_PPAGE
@@ -392,7 +392,7 @@ void pick_std_chyron(Pick *pick) {
     pick->chyron->key[3]->active = pick->select_max != 1 ? true : false;                 // F10 Accept
     pick->chyron->key[4]->active = pick->p_view_files;                                   // <v> View
     pick->chyron->key[5]->active = false;                                                // <q> Quit View
-    pick->chyron->key[6]->active = pick->select_max != 1 ? true : false;                 // <Sp> Toggle
+    pick->chyron->key[6]->active = pick->select_max == 1 ? false : true;                 // <Sp> Toggle
     pick->chyron->key[7]->active = pick->select_max == 1 ? true : false;                 // <Sp> Process
     pick->chyron->key[9]->active = true;                                                 // <Tab> Search;
     pick->chyron->key[10]->active = false;                                               // <Tab> Select;
@@ -985,7 +985,7 @@ int picker(Init *init, char *field) {
                 pick->chyron->key[4]->active = false;  // <v> View
                 pick->chyron->key[5]->active = true;   // <q> Quit View
                 pick->chyron->key[6]->active = false;  // <Sp> Toggle
-                pick->chyron->key[7]->active = false;  // <Sp> Process
+                pick->chyron->key[7]->active = false;  // <Sp> Edit
                 pick->chyron->key[9]->active = false;  // <Tab> Search;
                 pick->chyron->key[10]->active = false; // <Tab> Select;
                 pick->chyron->key[11]->active = true;  // PgUp
@@ -1204,8 +1204,8 @@ int picker(Init *init, char *field) {
         pick->chyron->key[3]->active = false;  // F10 Accept
         pick->chyron->key[4]->active = false;  // <v> View
         pick->chyron->key[5]->active = false;  // <q> Quit View
-        pick->chyron->key[5]->active = false;  // <Sp> Edit
-        pick->chyron->key[7]->active = false;  // <Sp> Toggle
+        pick->chyron->key[6]->active = false;  // <Sp> Toggle
+        pick->chyron->key[7]->active = false;  // <Sp> Edit
         pick->chyron->key[9]->active = false;  // <Tab> Search
         pick->chyron->key[10]->active = true;  // <Tab> Select
         pick->chyron->key[11]->active = false; // PgDn
