@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-21T16:02:53-05:00* - FIXES: Continuing general clean-up of view_engine.c after refactoring. Added function to convert file positions to line numbers. 
+
+*2026-07-20T19:54:07-05:00* - Update CHANGELOG.md 
+
 *2026-07-20T19:53:49-05:00* - DOCS: Documentation update 
 
 *2026-07-20T16:12:24-05:00* - Update CHANGELOG.md 
