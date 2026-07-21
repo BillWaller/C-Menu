@@ -1396,17 +1396,11 @@ void view_display_page(View *view) {
         _Refresh(view);
         view->ln_no++;
     }
+    view->ln_no--;
     if (view->f_eod)
         display_line_eod(view);
-    _Refresh(view);
     view->page_bot_end_pos = view->file_pos - 1;
-    view->ln_no--;
-    // if (view->cury < view->scroll_lines) {
-    //     wmove(view->lnno_win, view->cury, 0);
-    //     wclrtobot(view->lnno_win);
-    //     wmove(view->pad, view->cury, 0);
-    //     wclrtobot(view->pad);
-    // }
+    view->page_bot_pos = view->file_pos;
 }
 /** @brief Scroll Down by n Lines
     @ingroup view_navigation
@@ -2005,22 +1999,6 @@ void display_line(View *view) {
         view->page_bot_ln_no = view->ln_no;
     view->cury++;
 }
-/** @brief Display End of Data
-    @ingroup view_display
-    @param view data structure
-    @details This function is called when the end of the file is reached and
-   there are no more lines to display. It clears the remaining lines in the
-   pad and line number window (if line numbering is enabled) to ensure that
-   no residual content from previous lines is displayed.
- */
-void display_line_eod(View *view) {
-    if (view->f_ln) {
-        wmove(view->lnno_win, view->cury, 0);
-        wclrtobot(view->lnno_win);
-    }
-    wmove(view->pad, view->cury, 0);
-    wclrtobot(view->pad);
-}
 /** @brief Display Split Line on Pad
     @ingroup view_display
     @param view data structure
@@ -2073,6 +2051,23 @@ void display_split_line(View *view) {
             break;
     }
 }
+/** @brief Display End of Data
+    @ingroup view_display
+    @param view data structure
+    @details This function is called when the end of the file is reached and
+   there are no more lines to display. It clears the remaining lines in the
+   pad and line number window (if line numbering is enabled) to ensure that
+   no residual content from previous lines is displayed.
+ */
+void display_line_eod(View *view) {
+    if (view->f_ln) {
+        wmove(view->lnno_win, view->cury, 0);
+        wclrtobot(view->lnno_win);
+    }
+    wmove(view->pad, view->cury, 0);
+    wclrtobot(view->pad);
+    view->page_bot_ln_no = view->ln_no;
+}
 /** @brief Format Line for Display
     @ingroup view_display
     @param view pointer to View structure containing line input and output
@@ -2120,7 +2115,6 @@ int fmt_line(View *view) {
         sl_maxlen = view->cols;
     if (view->f_ln)
         sl_maxlen -= view->ln_win_cols;
-    size_t in_str_len = strlen(in_str);
     memset(view->stripped_line_out, 0, sizeof(view->stripped_line_out));
     while (in_str[i] != '\0') {        // line
         while (1) {                    // ANSI SGR, Character, and Word
@@ -2272,7 +2266,7 @@ int fmt_line(View *view) {
         j > view->maxcol ? view->maxcol = j : 0;
     } // END WHILE - line
     if (view->wrap) { // finish and commit wrap state
-        if (view->cur.sl_idx > 1) {
+        if (view->cur.sl_idx > 0) {
             view->cur.sl_s[view->cur.sl_idx] = sl_s;
             view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
             view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
