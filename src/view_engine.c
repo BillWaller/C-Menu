@@ -121,11 +121,7 @@ void next_page(View *);
 void prev_page(View *);
 void scroll_down(View *, int);
 void scroll_up(View *, int);
-off_t get_next_line(View *, off_t);
 void get_line(View *, off_t);
-off_t get_prev_line(View *, off_t);
-off_t get_pos_next_line(View *, off_t);
-off_t get_pos_prev_line(View *, off_t);
 int fmt_line(View *);
 void log_split_lines(View *);
 void log_cc_buf(View *);
@@ -147,6 +143,7 @@ void initialize_line_table(View *);
 void destroy_line_table(View *);
 int pad_refresh(View *);
 void sync_ln(View *);
+off_t line_number(View *, off_t);
 char err_msg[MAXLEN];
 
 /** @brief Start view
@@ -1042,13 +1039,16 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
     }
     bytes_written = 0;
     while (!view->f_eod) {
-        pos = get_next_line(view, pos);
+        off_t ln_no = 0;
+        get_line(view, ln_no);
         if (f_strip_ansi)
             strip_ansi(tmp_line_s, view->line_in_s);
         else
             strnz__cpy(tmp_line_s, view->line_in_s, MAXLEN - 1);
         l = strnlf(tmp_line_s, PAD_COLS - 1);
         bytes_written += write(view->out_fd, tmp_line_s, l);
+        if (ln_no >= view->ln_tbl_size - 1)
+            break;
     }
     close(view->out_fd);
     strnz__cpy(view->in_spec, view->out_spec, MAXLEN - 1);
@@ -1675,50 +1675,6 @@ void scroll_up(View *view, int n) {
     }
     return;
 }
-/** @brief Get Next Line from View->buf
-    @ingroup view_navigation
-    @param view struct
-    @param pos buffer offset
-    @returns file position of next line
-    @details gets view->line_in_s
- */
-off_t get_next_line(View *view, off_t pos) {
-    char c;
-    char *line_in_p;
-
-    view->file_pos = pos;
-    view->f_eod = false;
-    get_next_char();
-    if (view->f_eod)
-        return view->file_pos;
-    line_in_p = view->line_in_s;
-    view->line_in_beg_p = view->line_in_s;
-    view->line_in_end_p = view->line_in_s + PAD_COLS;
-    while (1) {
-        if (c == '\n')
-            break;
-        if (line_in_p >= view->line_in_end_p)
-            break;
-        *line_in_p++ = c;
-        get_next_char();
-        if (view->f_eod)
-            return view->file_pos;
-    }
-    *line_in_p = '\0';
-    if (view->f_squeeze) {
-        while (1) {
-            get_next_char();
-            if (c != '\n')
-                break;
-            if (view->f_eod)
-                break;
-        }
-        get_prev_char();
-        if (view->f_eod)
-            return view->file_pos;
-    }
-    return view->file_pos;
-}
 void get_line(View *view, off_t line) {
     char c;
     char *line_in_p;
@@ -1764,85 +1720,6 @@ void get_line(View *view, off_t line) {
     view->ln_no = line;
     return;
 }
-/** @brief Get Previous Line from View->buf
-    @ingroup view_navigation
-   @param view data structure
-   @param pos buffer offset
-   @returns file position of previous line
- */
-off_t get_prev_line(View *view, off_t pos) {
-    pos = get_pos_prev_line(view, pos);
-    view->file_pos = pos;
-    get_next_line(view, view->file_pos);
-    return pos;
-}
-/** @brief Get Position of Next Line
-    @ingroup view_navigation
-   @param view data structure
-   @param pos buffer offset
-   @returns file position of next line
-   */
-off_t get_pos_next_line(View *view, off_t pos) {
-    char c;
-    if (pos == view->file_size) {
-        view->f_eod = true;
-        return view->file_pos;
-    } else
-        view->f_eod = false;
-    view->file_pos = pos;
-    get_next_char();
-    if (view->f_eod)
-        return view->file_pos;
-    if (view->f_squeeze) {
-        while (1) {
-            if (c != '\n')
-                break;
-            get_next_char();
-            if (view->f_eod)
-                return view->file_pos;
-        }
-        get_prev_char();
-    }
-    while (!view->f_eod) {
-        if (c == '\n') {
-            break;
-        }
-        get_next_char();
-    }
-    return view->file_pos;
-}
-/** @brief Get Position of Previous Line
-    @ingroup view_navigation
-    @param view data structure
-    @param pos buffer offset
-    @returns file position of previous line
-  */
-off_t get_pos_prev_line(View *view, off_t pos) {
-    view->file_pos = pos;
-    if (view->file_pos == 0) {
-        view->f_bod = true;
-        return view->file_pos;
-    }
-    while (view->ln_tbl[view->ln_no] >= view->file_pos) {
-        if (view->ln_no == 0)
-            break;
-        view->ln_no--;
-    }
-    view->file_pos = view->ln_tbl[view->ln_no];
-    return view->file_pos;
-}
-/** @brief Go to Specific File Position
-    @ingroup view_navigation
-    @param view data Structure
-    @param go_to_pos
-*/
-void go_to_position(View *view, off_t go_to_pos) {
-    view->file_pos = go_to_pos;
-    view->page_top_pos = view->file_pos;
-    view->page_bot_pos = view->file_pos;
-    sync_ln(view);
-    next_page(view);
-}
 /** @brief Go to End of File
     @ingroup view_navigation
     @param view data structure
@@ -1880,6 +1757,8 @@ void go_to_percent(View *view, int percent) {
         return;
     }
     view->file_pos = (percent * view->file_size) / 100;
+    view->ln_no = line_number(view, view->file_pos);
+    view->file_pos = view->ln_tbl[view->ln_no];
     sync_ln(view);
     if (view->ln_no > view->scroll_lines)
         view->page_top_ln_no = view->ln_no - view->scroll_lines;
@@ -1898,16 +1777,56 @@ void go_to_percent(View *view, int percent) {
    is reached
  */
 int go_to_line(View *view, off_t line_idx) {
-    if (line_idx <= 1) {
-        go_to_position(view, 0);
+    if (line_idx < 0 || line_idx > view->ln_tbl_size - 1) {
+        Perror("Line number out of bounds");
         return EOF;
     }
+    view->ln_no = line_idx;
+    view->file_pos = view->ln_tbl[view->ln_no];
     sync_ln(view);
     view->page_top_pos = view->file_pos;
     view->page_bot_pos = view->file_pos;
     view->file_pos = view->page_top_pos;
     next_page(view);
     return 0;
+}
+/** @brief Go to Specific File Position
+    @ingroup view_navigation
+    @param view data Structure
+    @param go_to_pos
+*/
+void go_to_position(View *view, off_t go_to_pos) {
+    view->ln_no = line_number(view, go_to_pos);
+    view->file_pos = view->ln_tbl[view->ln_no];
+    sync_ln(view);
+    next_page(view);
+}
+/** @brief Get Line Number for a Given File Position
+    @ingroup view_navigation
+    @param view data structure
+    @param target file position
+    @returns line number corresponding to the given file position
+    @details This function performs a binary search on the line table (view->ln_tbl)
+   to find the line number corresponding to the specified file position (target).
+   It returns the index of the line in the line table that is closest to the target
+   position without exceeding it. If the target position is not found, it returns
+   the previous line number.
+ */
+off_t line_number(View *view, off_t position) {
+    off_t low = 0;
+    off_t high = view->ln_tbl_size - 1;
+    off_t prev_ln_no = 0;
+    while (low <= high) {
+        off_t guess = low + (high - low) / 2;
+        if (view->ln_tbl[guess] == position)
+            return guess;
+        if (view->ln_tbl[guess] < position) {
+            prev_ln_no = guess;
+            low = guess + 1;
+        } else
+            high = guess - 1;
+    }
+    return prev_ln_no;
 }
 /** @brief Initialize Line Table
     @ingroup view_navigation
@@ -1928,6 +1847,14 @@ void initialize_line_table(View *view) {
     view->ln_tbl[0] = 0;
     view->ln_no = 0;
 }
+/** @brief Destroy Line Table
+    @ingroup view_navigation
+    @param view data structure
+    @details This function frees the memory allocated for the line table and
+   resets the relevant fields in the View structure. It ensures that the line
+   table is properly cleaned up when it is no longer needed, preventing memory
+   leaks.
+ */
 void destroy_line_table(View *view) {
     if (view->ln_tbl == nullptr)
         return;
@@ -2078,6 +2005,14 @@ void display_line(View *view) {
         view->page_bot_ln_no = view->ln_no;
     view->cury++;
 }
+/** @brief Display End of Data
+    @ingroup view_display
+    @param view data structure
+    @details This function is called when the end of the file is reached and
+   there are no more lines to display. It clears the remaining lines in the
+   pad and line number window (if line numbering is enabled) to ensure that
+   no residual content from previous lines is displayed.
+ */
 void display_line_eod(View *view) {
     if (view->f_ln) {
         wmove(view->lnno_win, view->cury, 0);
@@ -2086,6 +2021,16 @@ void display_line_eod(View *view) {
     wmove(view->pad, view->cury, 0);
     wclrtobot(view->pad);
 }
+/** @brief Display Split Line on Pad
+    @ingroup view_display
+    @param view data structure
+    @details This function is used to display a line that has been split into
+   multiple segments due to wrapping. It iterates through the segments of the
+   current line (stored in view->cur.sl_cc and view->cur.sl_cells) and
+   displays each segment on the pad, along with the corresponding line number
+   if line numbering is enabled. The function also updates the top and bottom
+   line numbers of the page based on the current position in the split line.
+ */
 void display_split_line(View *view) {
     char ln_s[16];
     if (view->cury < 0)
@@ -2346,9 +2291,6 @@ int fmt_line(View *view) {
     // log_stripped_line_out(view);
 #endif
     //-------------------------------------------------------------------------
-    if (in_str_len > 0)
-        if (sl_cols == 1179)
-            Perror("Help!");
     wstr[0] = '\0';
     wstr[1] = '\0';
     setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);
@@ -2356,6 +2298,14 @@ int fmt_line(View *view) {
     view->stripped_line_out[x] = '\0';
     return j;
 }
+/** @brief Log Stripped Line Output
+    @ingroup view_display
+    @param view pointer to View structure containing stripped line output
+   buffer
+    @details This function logs the contents of the stripped line output
+   buffer (view->stripped_line_out) for debugging purposes. It iterates
+   through the split lines (if any) and logs each line to the cmenu log.
+ */
 void log_stripped_line_out(View *view) {
     char tmp_str[PAD_COLS];
 
@@ -2368,6 +2318,16 @@ void log_stripped_line_out(View *view) {
         write_cmenu_log(tmp_str);
     }
 }
+/** @brief Log Complex Character Buffer
+    @ingroup view_display
+    @param view pointer to View structure containing complex character buffer
+   (view->cmplx_buf)
+    @details This function logs the contents of the complex character buffer
+   (view->cmplx_buf) for debugging purposes. It iterates through the split
+   lines (if any) and logs each line to the cmenu log, converting wide
+   characters to their corresponding single-byte representation for easier
+   viewing.
+ */
 void log_cc_buf(View *view) {
     char tmp_str[PAD_COLS];
 
@@ -2388,11 +2348,27 @@ void log_cc_buf(View *view) {
         write_cmenu_log(tmp_str);
     }
 }
+/** @brief Log String with Specified Length
+    @ingroup view_display
+    @param str pointer to the string to log
+    @param len length of the string to log
+    @details This function logs a specified number of characters from a given
+   string to the cmenu log. It copies the specified length of the string into
+   a temporary buffer and then writes it to the log.
+ */
 void log_strnz(char *str, int len) {
     char tmp_str[MAXLEN];
     strnz__cpy(tmp_str, str, len);
     write_cmenu_log(tmp_str);
 }
+/** @brief Log Split Lines
+    @ingroup view_display
+    @param view pointer to View structure containing split line information
+    @details This function logs the contents of the split lines stored in the
+   view structure for debugging purposes. It iterates through the split lines
+   and logs each line to the cmenu log, converting wide characters to their
+   corresponding single-byte representation for easier viewing.
+ */
 void log_split_lines(View *view) {
     char tmp_str[MAXLEN];
 
@@ -2426,7 +2402,7 @@ void log_split_lines(View *view) {
 
    @verbatim
 
-    This function converts the following SGR specification types to the
+   This function converts the following SGR specification types to the
    appropriate curses color pair index for use in the terminal display.
 
     RGB:
@@ -2434,8 +2410,7 @@ void log_split_lines(View *view) {
         foreground \033[38;2;r;g;bm
         background \033[48;2;r;g;bm
 
-        Where r, g, b are the red, green, and blue color components
-   (0-255)
+        Where r, g, b are the red, green, and blue color components (0-255)
 
     XTERM 256-color:
         foreground \033[38;5;xm
@@ -2444,6 +2419,7 @@ void log_split_lines(View *view) {
         Where x is the 256-color index (0-255)
 
         uses xterm256_idx_to_rgb() to convert the 256-color index to
+
    RGB
 
     8-color:
@@ -2754,87 +2730,4 @@ bool enter_file_spec(Init *init, char *file_spec) {
             return true;
     }
     return true;
-}
-
-/** @brief Initialize View Stack
-    @ingroup view_engine
-    @param s pointer to ViewStack structure
-    @param initial_capacity initial capacity of the stack
-    @returns true if successful, false if memory allocation fails
-    @details This function initializes a ViewStack structure by allocating
-   memory for the items array with the specified initial capacity. It sets
-   the capacity and top index accordingly. If memory allocation fails, it
-   returns false.
- */
-bool view_stack_init(ViewStack *s, size_t initial_capacity) {
-    s->items = malloc(initial_capacity * sizeof(View));
-    if (!s->items)
-        return false;
-    s->capacity = initial_capacity;
-    s->top = 0;
-    return true;
-}
-/** @brief Push Item onto View Stack
-    @ingroup view_engine
-    @param s pointer to ViewStack structure
-    @param item View item to push onto the stack
-    @returns true if successful, false if memory allocation fails during
-   resizing
-    @details This function pushes a View item onto the stack. If the stack is
-   full, it reallocates memory to double the capacity. If memory allocation
-   fails during resizing, it returns false.
- */
-bool view_stack_push(ViewStack *s, View item) {
-    if (s->top >= s->capacity) {
-        size_t new_capacity = s->capacity * 2;
-        View *new_items = realloc(s->items, new_capacity * sizeof(View));
-        if (!new_items)
-            return false; // Out of memory
-        s->items = new_items;
-        s->capacity = new_capacity;
-    }
-    s->items[s->top++] = item; // Structure copy
-    return true;
-}
-/** @brief Pop Item from View Stack
-    @ingroup view_engine
-    @param s pointer to ViewStack structure
-    @param out_item pointer to View structure where the popped item will be
-   stored
-    @returns true if successful, false if the stack is empty (underflow)
-    @details This function pops a View item from the stack and stores it in
-   the provided out_item pointer. If the stack is empty, it returns false.
- */
-bool view_stack_pop(ViewStack *s, View *out_item) {
-    if (s->top == 0)
-        return false; // Stack underflow
-    *out_item = s->items[--s->top];
-    return true;
-}
-/** @brief Peek at Top Item of View Stack
-    @ingroup view_engine
-    @param s pointer to ViewStack structure
-    @param out_item pointer to View structure where the top item will be
-   stored
-    @returns true if successful, false if the stack is empty
-    @details This function retrieves the top item of the stack without
-   removing it. If the stack is empty, it returns false.
- */
-bool view_stack_peek(const ViewStack *s, View *out_item) {
-    if (s->top == 0)
-        return false;
-    *out_item = s->items[s->top - 1];
-    return true;
-}
-/** @brief Free View Stack
-    @ingroup view_engine
-    @param s pointer to ViewStack structure
-    @details This function frees the memory allocated for the items array in
-   the ViewStack structure and resets the capacity and top index to zero.
- */
-void view_stack_free(ViewStack *s) {
-    free(s->items);
-    s->items = nullptr;
-    s->capacity = 0;
-    s->top = 0;
 }

@@ -31,7 +31,7 @@
 :     -TView Source with Tree-Sitter
 !pick -S "lf -S -d 5 . \".*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 :   View LSP Log
-!view -L60 -C80 /home/bill/.local/state/nvim/logs/lsp.log
+!view -w -L60 -C80 ~/menuapp/logs/lsp.log
 :     Help Menu
 !menu help.m
 :     -BMenu Description With Bat Syntax Highlighting

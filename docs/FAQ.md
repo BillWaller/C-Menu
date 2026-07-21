@@ -4,6 +4,7 @@
 
 <!-- mtoc-start -->
 
+* [Clipboard in View](#clipboard-in-view)
 * [Where am I?](#where-am-i)
 * [Pick search not accepting certain letters](#pick-search-not-accepting-certain-letters)
 * [Menu Selections Not Working](#menu-selections-not-working)
@@ -38,6 +39,15 @@
 * [View In a Box Window](#view-in-a-box-window)
 
 <!-- mtoc-end -->
+---
+
+## Clipboard in View
+
+Q. Can I clip text from View to the system clipboard?
+
+A. Yes. I do this quite often. You need a terminal emulator that supports it with
+the proper configuration. I have clipped and pasted text using Ghostty, Alacritty, and Kitty, which have built-in features to communicate with the clipboard. It is likely that other terminal emulators also support this capability. Google your emulator or check it's documentation.
+
 ---
 
 ## Where am I?

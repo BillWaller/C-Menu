@@ -75,6 +75,7 @@ f_ignore_case=false                # ignore case in search
 p_view_files=false                 # Open File View in Pick
 editor=nvim                        # default editor
 brackets=[]                        # brackets around fields
+wrap=false                         # wrap text in view
 bg=#000000                         # Terminal (stdscr) background
 fg=#d0d0d0                         # Terminal (stdscr) foreground
 box_fg=#f00000                     # box foreground

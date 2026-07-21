@@ -1,6 +1,6 @@
 :     Help Menu
 :     Menu Help
-!view -Nf -L50 -C74 ~/menuapp/help/menu.help
+!view -Nf -L52 -C74 ~/menuapp/help/menu.help
 :     lf Help
 !view -Nf -L50 -C86 ~/menuapp/help/lf.help
 :     Form Help

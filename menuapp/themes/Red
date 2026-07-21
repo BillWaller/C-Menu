@@ -1,4 +1,4 @@
-# /home/bill/menuapp/themes/Red
+# /home/bill/menuapp/themes/GreenDark
 # C-Menu example theme
 #
 # C-Menu processes key value pairs in reading order from its
@@ -48,8 +48,6 @@ bg=#000000                         # Terminal (stdscr) background
 fg=#d0d0d0                         # Terminal (stdscr) foreground
 box_fg=#f00000                     # box foreground
 box_bg=#000000                     # box background
-ind_fg=#f00000                     # indicator foreground
-ind_bg=#000000                     # indicator background
 brackets_fg=#a00000                # brackets foreground
 brackets_bg=#000000                # brackets background
 fill_char_fg=#00009f               # fill character foreground
@@ -86,3 +84,8 @@ bblue=#00afff                      # bright blue (#00cfFF)
 bmagenta=#ff00ff                   # bright magenta (#FF00FF)
 bcyan=#00ffff                      # bright cyan (#00FFFF)
 bwhite=#ffffff                     # bright white (#FFFFFF)
+mapp_data=~/menuapp/data           # data directory
+mapp_help=~/menuapp/help           # help directory
+mapp_home=~/menuapp                # home directory
+mapp_msrc=~/menuapp/msrc           # source directory
+mapp_user=~/menuapp/user           # user directory
