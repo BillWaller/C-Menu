@@ -218,8 +218,8 @@ valgrind: menu
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
-		./menu
-# 		./view -L60 -C90 -w lsp.log
+ 		./view -L60 -C90 -w lsp.log
+#	./menu
 
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*

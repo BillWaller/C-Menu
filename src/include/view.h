@@ -185,7 +185,7 @@ typedef struct {
     int ln_win_cols;                  /**< number of columns in line number window */
     bool f_ln;                        /**< flag - number lines */
     off_t ln_no;                      /**< line number */
-    off_t last_ln_no;                 /**< last line number */
+    off_t ln_no_max;                  /**< last line number */
     char ln_s[10];                    /**< line number formatted string */
     off_t *ln_tbl;                    /**< line number table - array of file positions */
     off_t ln_tbl_size;                /**< number of entries allocated in line_tbl */

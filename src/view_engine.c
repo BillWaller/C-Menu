@@ -243,6 +243,9 @@ int view_cmd_processor(Init *init) {
             }
         }
         switch (c) {
+
+        case 'd':
+            break;
         case Ctrl('R'): /**<  Ctrl('R') or KEY_RESIZE - Handle terminal resize */
         case 'x':
         case KEY_RESIZE:
@@ -273,7 +276,6 @@ int view_cmd_processor(Init *init) {
             break;
         case 'h': /**< 'h', Ctrl('H'), KEY_LEFT, KEY_BACKSPACE - Horizontal
                      scroll left by two thirds of the page width */
-        case Ctrl('H'):
         case KEY_LEFT:
         case KEY_BACKSPACE:
             if (n_cmd > 0)
@@ -290,9 +292,7 @@ int view_cmd_processor(Init *init) {
             else
                 view->pmincol = 0;
             break;
-        case 'l': /**< 'l', 'L', KEY_RIGHT - Horizontal scroll right by two
-                     thirds of the page width */
-        case 'L':
+        case 'l': /**< 'l', KEY_RIGHT - Horizontal scroll right by two thirds of the page width */
         case KEY_RIGHT:
             if (n_cmd > 0)
                 view->h_shift = n_cmd;
@@ -309,45 +309,31 @@ int view_cmd_processor(Init *init) {
             else
                 view->pmincol = max_pmincol;
             break;
-        case 'k': /** 'k', 'K', KEY_UP, Ctrl('K') - Scroll up one line */
-        case 'K':
+        case 'k': /** 'k', KEY_UP - Scroll up one line */
         case KEY_UP:
-        case Ctrl('K'):
             if (n_cmd <= 0)
                 n_cmd = 1;
             scroll_up(view, n_cmd);
             break;
-        /** 'j', 'J', KEY_DOWN, KEY_ENTER, SPACE - scroll down one line */
+        /** 'j', KEY_DOWN, KEY_ENTER - scroll down one line */
         case 'j':
-        case 'J':
         case '\n':
-        case ' ':
         case KEY_DOWN:
         case KEY_ENTER:
             if (n_cmd <= 0)
                 n_cmd = 1;
             scroll_down(view, n_cmd);
             break;
-        /** 'b', 'B', Ctrl('B'), KEY_PPAGE - Previous Page */
+        /** Ctrl('B'), KEY_PPAGE - Previous Page */
         case KEY_PPAGE:
-        case 'b':
-        case 'B':
         case Ctrl('B'):
             prev_page(view);
             break;
-        /**  'f', 'F', Ctrl('F'), KEY_NPAGE Next Page */
-        case 'f':
-        case 'F':
+        /**  Ctrl('F'), KEY_NPAGE Next Page */
         case KEY_NPAGE:
         case Ctrl('F'):
             view->ln_no++;
             next_page(view);
-            break;
-        /** 'g', KEY_HOME - Go to the beginning of the document */
-        case 'g':
-        case KEY_HOME:
-            view->pmincol = 0;
-            go_to_line(view, 0);
             break;
         /**  KEY_LL - Go to the end of the document */
         case KEY_LL:
@@ -520,11 +506,8 @@ int view_cmd_processor(Init *init) {
                 strnz__cpy(prev_regex_pattern, view->cmd_arg, MAXLEN - 1);
             }
             break;
-        /**  'o' or 'O' - Open a File */
+        /**  'o' - Open a File */
         case 'o':
-        case 'O':
-        case 'e':
-        case 'E':
             if (get_cmd_arg(view, "File name:") == 0) {
                 strtok(view->cmd_arg, " ");
                 view->next_file_spec_ptr = strdup(view->cmd_arg);
@@ -532,14 +515,24 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
-        /**  'g' or 'G' - Go to the End of the Document */
-        case 'G':
+
+        /** 'E', KEY_END - Go to the end of the document or line */
+        case 'E':
         case KEY_END:
-            if (n_cmd <= 0)
-                go_to_eof(view);
-            else
+            if (n_cmd > 0)
                 go_to_line(view, n_cmd);
+            else
+                go_to_eof(view);
             break;
+
+        case 'G': /**  'G' - Go to the Beginning of the Document or line */
+        case KEY_HOME:
+            if (n_cmd > 0)
+                go_to_line(view, n_cmd);
+            else
+                go_to_line(view, 0);
+            break;
+
         /**  'H' or KEY_F(1) - Display Help Information */
         case 'H':
         case KEY_F(1):
@@ -1313,7 +1306,7 @@ void prev_page(View *view) {
                     ln_no--;
                 continue;
             }
-            if (ln_no == view->page_top_ln_no && ln_no != view->last_ln_no) {
+            if (ln_no == view->page_top_ln_no && ln_no != view->ln_no_max) {
                 view->cur.sl_idx = view->page_top_sl_idx;
                 if (view->cur.sl_idx == 0) {
                     if (ln_no > 0)
@@ -1325,7 +1318,7 @@ void prev_page(View *view) {
                 avail = view->cur.sl_cnt;
             scroll_this_line = min(scroll, avail);
             scroll -= scroll_this_line;
-            if (ln_no == view->page_top_ln_no && ln_no != view->last_ln_no)
+            if (ln_no == view->page_top_ln_no && ln_no != view->ln_no_max)
                 view->cur.sl_idx -= scroll_this_line;
             else
                 view->cur.sl_idx = view->cur.sl_cnt - scroll_this_line;
@@ -1401,6 +1394,118 @@ void view_display_page(View *view) {
         display_line_eod(view);
     view->page_bot_end_pos = view->file_pos - 1;
     view->page_bot_pos = view->file_pos;
+    view->page_bot_ln_no = view->ln_no;
+}
+/** @brief Display Line on Pad
+    @ingroup view_display
+    param View *view data structure
+    @details This function displays a single line of text on the ncurses
+   pad.
+    If line numbering is enabled (view->f_ln), it is formatted and
+   displayed at the beginning of the line with the specified attributes and
+   color pair.
+    @details Because get_next_char calls increment_ln upon encountering a
+   line feed and increment_ln advances view->ln_no after updating the line
+   table, the line number displayed is one greater than the index to the
+   line table. That means the line counter begins with 1, while the table
+   origin is 0.
+  */
+void display_line(View *view) {
+    char ln_s[16];
+
+    if (view->wrap && view->cur.sl_cnt > 0) {
+        if (view->cur.sl_idx < view->cur.sl_cnt) {
+            display_split_line(view);
+            return;
+        }
+    }
+    if (view->cury < 0)
+        view->cury = 0;
+    if (view->cury > view->scroll_lines - 1)
+        view->cury = view->scroll_lines - 1;
+    if (view->f_ln) {
+        ssnprintf(ln_s, 8, "%7jd", view->ln_no);
+        wmove(view->lnno_win, view->cury, 0);
+        wclrtoeol(view->lnno_win);
+        mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
+    }
+    wmove(view->pad, view->cury, 0);
+    wclrtoeol(view->pad);
+    wadd_wchstr(view->pad, view->cmplx_buf);
+    if (view->cury == 0)
+        view->page_top_ln_no = view->ln_no;
+    if (view->cury == view->scroll_lines - 1)
+        view->page_bot_ln_no = view->ln_no;
+    view->cury++;
+}
+/** @brief Display Split Line on Pad
+    @ingroup view_display
+    @param view data structure
+    @details This function is used to display a line that has been split into
+   multiple segments due to wrapping. It iterates through the segments of the
+   current line (stored in view->cur.sl_cc and view->cur.sl_cells) and
+   displays each segment on the pad, along with the corresponding line number
+   if line numbering is enabled. The function also updates the top and bottom
+   line numbers of the page based on the current position in the split line.
+ */
+void display_split_line(View *view) {
+    char ln_s[16];
+    if (view->cury < 0)
+        view->cury = 0;
+    if (view->cury > view->scroll_lines - 1)
+        view->cury = view->scroll_lines - 1;
+
+    for (int i = view->cur.sl_idx; i < view->cur.sl_cnt; i++) {
+        if (i == 0) {
+            if (view->f_ln) {
+                ssnprintf(ln_s, 8, "%7jd", view->ln_no);
+                wmove(view->lnno_win, view->cury, 0);
+                wclrtoeol(view->lnno_win);
+                mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
+            }
+        } else {
+            if (view->f_ln) {
+                wmove(view->lnno_win, view->cury, 0);
+                wclrtoeol(view->lnno_win);
+            }
+        }
+        wmove(view->pad, view->cury, 0);
+        wclrtoeol(view->pad);
+        wadd_wchnstr(view->pad, view->cur.sl_cc[i], view->cur.sl_cells[i]);
+        if (view->cury == 0) {
+            view->page_top_ln_no = view->ln_no;
+            view->page_top_sl = true;
+            view->page_top_sl_idx = i;
+            view->page_top_sl_cnt = view->cur.sl_cnt;
+        }
+        if (view->cury == view->scroll_lines - 1) {
+            view->page_bot_ln_no = view->ln_no;
+            view->page_bot_sl = true;
+            view->page_bot_sl_idx = i;
+            view->page_bot_sl_cnt = view->cur.sl_cnt;
+            view->page_bot_ln_no = view->ln_no;
+        }
+        view->cury++;
+        if (view->cury == view->scroll_lines)
+            break;
+    }
+}
+/** @brief Display End of Data
+    @ingroup view_display
+    @param view data structure
+    @details This function is called when the end of the file is reached and
+   there are no more lines to display. It clears the remaining lines in the
+   pad and line number window (if line numbering is enabled) to ensure that
+   no residual content from previous lines is displayed.
+ */
+void display_line_eod(View *view) {
+    if (view->f_ln) {
+        wmove(view->lnno_win, view->cury, 0);
+        wclrtobot(view->lnno_win);
+    }
+    wmove(view->pad, view->cury, 0);
+    wclrtobot(view->pad);
+    view->page_bot_ln_no = view->ln_no;
 }
 /** @brief Scroll Down by n Lines
     @ingroup view_navigation
@@ -1416,8 +1521,6 @@ void scroll_down(View *view, int n) {
     int scroll, scroll_this_line, avail;
     off_t ln_no;
     view->f_bod = false;
-    if (view->page_bot_pos == view->file_size)
-        return;
     if (view->wrap) {
         // Set Top Line State
         scroll = n;
@@ -1520,6 +1623,7 @@ void scroll_down(View *view, int n) {
                 break;
             view->ln_no++;
         }
+        view->ln_no--;
         view->page_bot_ln_no += n;
     }
     return;
@@ -1545,10 +1649,6 @@ void scroll_up(View *view, int n) {
         } else
             return;
     }
-    if (view->page_top_ln_no - n >= 0)
-        view->page_top_ln_no -= n;
-    else
-        view->page_top_ln_no = 0;
     if (n > view->scroll_lines) {
         if (view->f_ln) {
             wmove(view->lnno_win, 0, 0);
@@ -1593,12 +1693,9 @@ void scroll_up(View *view, int n) {
                 view->cur.sl_idx -= scroll_this_line;
             else
                 view->cur.sl_idx = view->cur.sl_cnt - scroll_this_line;
-            if (ln_no > 0)
-                ln_no--;
             if (scroll == 0)
                 break;
         }
-        ln_no++;
         view->page_top_sl_idx = view->cur.sl_idx;
         view->page_top_sl_cnt = view->cur.sl_cnt;
         view->page_top_ln_no = ln_no;
@@ -1607,10 +1704,12 @@ void scroll_up(View *view, int n) {
         view->cury = 0;
         scroll = n;
         while (scroll > 0) {
-            get_line(view, view->ln_no);
-            if (view->f_eod)
-                break;
-            fmt_line(view);
+            if (view->ln_no != view->page_top_ln_no) {
+                get_line(view, view->ln_no);
+                if (view->f_eod)
+                    break;
+                fmt_line(view);
+            }
             display_line(view);
             scroll--;
             view->ln_no++;
@@ -1621,7 +1720,7 @@ void scroll_up(View *view, int n) {
         scroll = n;
         ln_no = view->page_bot_ln_no;
         while (scroll > 0) {
-            get_line(view, view->page_bot_ln_no);
+            get_line(view, ln_no);
             if (view->f_bod)
                 break;
             fmt_line(view);
@@ -1632,7 +1731,7 @@ void scroll_up(View *view, int n) {
                     ln_no--;
                 continue;
             }
-            if (ln_no != view->page_bot_ln_no) {
+            if (ln_no == view->page_bot_ln_no) {
                 view->cur.sl_idx = view->page_bot_sl_idx;
                 if (view->cur.sl_idx == 0) {
                     ln_no--;
@@ -1650,6 +1749,7 @@ void scroll_up(View *view, int n) {
             if (ln_no > 0)
                 ln_no--;
         }
+        ln_no++;
         view->page_bot_sl_idx = view->cur.sl_idx;
         view->page_bot_sl_cnt = view->cur.sl_cnt;
         view->page_bot_ln_no = ln_no;
@@ -1666,6 +1766,7 @@ void scroll_up(View *view, int n) {
             scroll--;
             view->ln_no++;
         }
+        view->ln_no--;
     }
     return;
 }
@@ -1722,7 +1823,7 @@ void go_to_eof(View *view) {
     view->file_pos = view->file_size;
     sync_ln(view);
     view->ln_no--;
-    view->last_ln_no = view->ln_no;
+    view->ln_no_max = view->ln_no;
     if (view->wrap) {
         view->page_top_ln_no = view->ln_no;
         view->f_eod = true;
@@ -1780,7 +1881,7 @@ int go_to_line(View *view, off_t line_idx) {
     sync_ln(view);
     view->page_top_pos = view->file_pos;
     view->page_bot_pos = view->file_pos;
-    view->file_pos = view->page_top_pos;
+    // view->file_pos = view->page_top_pos;
     next_page(view);
     return 0;
 }
@@ -1957,117 +2058,7 @@ int pad_refresh(View *view) {
     }
     return rc;
 }
-/** @brief Display Line on Pad
-    @ingroup view_display
-    param View *view data structure
-    @details This function displays a single line of text on the ncurses
-   pad.
-    If line numbering is enabled (view->f_ln), it is formatted and
-   displayed at the beginning of the line with the specified attributes and
-   color pair.
-    @details Because get_next_char calls increment_ln upon encountering a
-   line feed and increment_ln advances view->ln_no after updating the line
-   table, the line number displayed is one greater than the index to the
-   line table. That means the line counter begins with 1, while the table
-   origin is 0.
-  */
-void display_line(View *view) {
-    char ln_s[16];
 
-    if (view->wrap && view->cur.sl_cnt > 0) {
-        if (view->cur.sl_idx < view->cur.sl_cnt) {
-            display_split_line(view);
-            return;
-        }
-    }
-    if (view->cury < 0)
-        view->cury = 0;
-    if (view->cury > view->scroll_lines - 1)
-        view->cury = view->scroll_lines - 1;
-    if (view->f_ln) {
-        ssnprintf(ln_s, 8, "%7jd", view->ln_no);
-        wmove(view->lnno_win, view->cury, 0);
-        wclrtoeol(view->lnno_win);
-        mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
-    }
-    wmove(view->pad, view->cury, 0);
-    wclrtoeol(view->pad);
-    wadd_wchstr(view->pad, view->cmplx_buf);
-    if (view->cury == 0)
-        view->page_top_ln_no = view->ln_no;
-    if (view->cury == view->scroll_lines - 1)
-        view->page_bot_ln_no = view->ln_no;
-    view->cury++;
-}
-/** @brief Display Split Line on Pad
-    @ingroup view_display
-    @param view data structure
-    @details This function is used to display a line that has been split into
-   multiple segments due to wrapping. It iterates through the segments of the
-   current line (stored in view->cur.sl_cc and view->cur.sl_cells) and
-   displays each segment on the pad, along with the corresponding line number
-   if line numbering is enabled. The function also updates the top and bottom
-   line numbers of the page based on the current position in the split line.
- */
-void display_split_line(View *view) {
-    char ln_s[16];
-    if (view->cury < 0)
-        view->cury = 0;
-    if (view->cury > view->scroll_lines - 1)
-        view->cury = view->scroll_lines - 1;
-
-    for (int i = view->cur.sl_idx; i < view->cur.sl_cnt; i++) {
-        if (i == 0) {
-            if (view->f_ln) {
-                ssnprintf(ln_s, 8, "%7jd", view->ln_no);
-                wmove(view->lnno_win, view->cury, 0);
-                wclrtoeol(view->lnno_win);
-                mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
-            }
-        } else {
-            if (view->f_ln) {
-                wmove(view->lnno_win, view->cury, 0);
-                wclrtoeol(view->lnno_win);
-            }
-        }
-        wmove(view->pad, view->cury, 0);
-        wclrtoeol(view->pad);
-        wadd_wchnstr(view->pad, view->cur.sl_cc[i], view->cur.sl_cells[i]);
-        if (view->cury == 0) {
-            view->page_top_ln_no = view->ln_no;
-            view->page_top_sl = true;
-            view->page_top_sl_idx = i;
-            view->page_top_sl_cnt = view->cur.sl_cnt;
-        }
-        if (view->cury == view->scroll_lines - 1) {
-            view->page_bot_ln_no = view->ln_no;
-            view->page_bot_sl = true;
-            view->page_bot_sl_idx = i;
-            view->page_bot_sl_cnt = view->cur.sl_cnt;
-            view->page_bot_ln_no = view->ln_no;
-        }
-        view->cury++;
-        if (view->cury == view->scroll_lines)
-            break;
-    }
-}
-/** @brief Display End of Data
-    @ingroup view_display
-    @param view data structure
-    @details This function is called when the end of the file is reached and
-   there are no more lines to display. It clears the remaining lines in the
-   pad and line number window (if line numbering is enabled) to ensure that
-   no residual content from previous lines is displayed.
- */
-void display_line_eod(View *view) {
-    if (view->f_ln) {
-        wmove(view->lnno_win, view->cury, 0);
-        wclrtobot(view->lnno_win);
-    }
-    wmove(view->pad, view->cury, 0);
-    wclrtobot(view->pad);
-    view->page_bot_ln_no = view->ln_no;
-}
 /** @brief Format Line for Display
     @ingroup view_display
     @param view pointer to View structure containing line input and output

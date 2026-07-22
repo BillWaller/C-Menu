@@ -5,7 +5,7 @@ src/.clang-format
 src/amort
 src/ckeys
 src/detach
-src/gdb.log
+src/*.log
 src/menu
 src/form
 src/pick
@@ -17,8 +17,8 @@ src/whence
 src/.cache
 src/build
 src/gdbcmds
-src/lf-bak.c
-src/lf-new.c
+src/*[-_]bak.c
+src/*[-_]new.c
 src/*.1.gz
 src/tlf
 src/tm
@@ -38,6 +38,7 @@ src/manifest.txt
 src/rsh
 src/rsh_static
 src/rsh_pam
+src/vars
 build/.cmake
 x
 xx
