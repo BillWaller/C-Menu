@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-22T17:17:13-05:00* - FEATURE: Customized Tree-Sitter system log parser with Smart Line Wrapping in View. 
+
+*2026-07-22T10:34:26-05:00* - Update CHANGELOG.md 
+
 *2026-07-22T09:57:58-05:00* - Update CHANGELOG.md 
 
 *2026-07-22T09:57:03-05:00* - FIXES: view_engine.c: set scroll_up() top line 
