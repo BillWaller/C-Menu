@@ -1552,8 +1552,6 @@ void scroll_down(View *view, int n) {
         view->page_top_sl_cnt = view->cur.sl_cnt;
         view->page_top_ln_no = ln_no;
         view->page_top_sl = (view->cur.sl_cnt > 1);
-    }
-    if (view->wrap) {
         // Set Bottom Line State
         scroll = n;
         ln_no = view->page_bot_ln_no;
@@ -1596,6 +1594,9 @@ void scroll_down(View *view, int n) {
                 ln_no++;
         }
     } else {
+        view->ln_no = view->page_bot_ln_no;
+        if (view->ln_no >= view->ln_no_max)
+            return;
         if (n > view->scroll_lines) {
             if (view->f_ln) {
                 wmove(view->lnno_win, 0, 0);
@@ -1613,6 +1614,9 @@ void scroll_down(View *view, int n) {
         view->page_top_ln_no += n;
         scroll = n;
         while (scroll > 0) {
+            if (view->ln_no >= view->ln_no_max)
+                break;
+            view->ln_no++;
             get_line(view, view->ln_no);
             if (view->f_eod)
                 break;
@@ -1621,10 +1625,8 @@ void scroll_down(View *view, int n) {
             display_line(view);
             if (view->cury == view->scroll_lines)
                 break;
-            view->ln_no++;
         }
-        view->ln_no--;
-        view->page_bot_ln_no += n;
+        view->page_bot_ln_no = view->ln_no;
     }
     return;
 }
@@ -1834,7 +1836,7 @@ void go_to_eof(View *view) {
         return;
     }
     if (view->ln_no > view->scroll_lines)
-        view->ln_no -= view->scroll_lines + 1;
+        view->ln_no -= view->scroll_lines - 1;
     else
         view->page_top_ln_no = 0;
     view->page_top_ln_no = view->ln_no;
