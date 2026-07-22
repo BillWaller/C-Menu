@@ -8,6 +8,14 @@ With C-Menu, you can leverage the raw speed and power of a terminal interface wi
 
 More sophisticated applications can be be built using the C-Menu API that is fully integrated with modern development environments like Vim and Neovim. As you type C-Menu API function names, the editor provides auto-completion and inline documentation, making it easy to learn and use. That's why C-Menu is an indispensable tool for skill levels ranging from shell script hobbyists to professional developers and system administrators.
 
+## New Features for System Logs in View
+
+Nvim's Language Server Protocol log highlighted with a customized Tree-Sitter parser and C-Menu View's Smart Line Wrapping. It's the Bee's knees for developers who want to see the whole line on-screen without horizontal scrolling. With view, you can switch between horizontal scrolling and line wrap modes without closing the document.
+
+![Smart Line Wrapping](screenshots/View_Log.png)
+
+---
+
 [C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md)
 [Example Applications Menu Guided Tour](docs/menu.md)
 

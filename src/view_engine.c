@@ -515,22 +515,13 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
-
-        /** 'E', KEY_END - Go to the end of the document or line */
-        case 'E':
-        case KEY_END:
-            if (n_cmd > 0)
-                go_to_line(view, n_cmd);
-            else
-                go_to_eof(view);
-            break;
-
         case 'G': /**  'G' - Go to the Beginning of the Document or line */
         case KEY_HOME:
-            if (n_cmd > 0)
+            if (n_cmd > 0) {
+                n_cmd -= 1;
                 go_to_line(view, n_cmd);
-            else
-                go_to_line(view, 0);
+            } else
+                go_to_eof(view);
             break;
 
         /**  'H' or KEY_F(1) - Display Help Information */
@@ -1837,12 +1828,12 @@ void go_to_eof(View *view) {
     }
     if (view->ln_no > view->scroll_lines)
         view->ln_no -= view->scroll_lines - 1;
-    else
-        view->page_top_ln_no = 0;
+    // else
+    // view->page_top_ln_no = 0;
     view->page_top_ln_no = view->ln_no;
-    view->page_top_pos = view->ln_tbl[view->ln_no];
-    view->page_bot_pos = view->page_top_pos;
-    view->file_pos = view->page_top_pos;
+    // view->page_top_pos = view->ln_tbl[view->ln_no];
+    // view->page_bot_pos = view->page_top_pos;
+    // view->file_pos = view->page_top_pos;
     view->cury = 0;
     next_page(view);
 }
