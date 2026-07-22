@@ -1758,6 +1758,9 @@ void scroll_up(View *view, int n) {
         view->cury = 0;
         scroll = n;
         while (scroll > 0) {
+            view->ln_no = view->page_top_ln_no - scroll;
+            if (view->ln_no < 0)
+                view->ln_no = 0;
             get_line(view, view->ln_no);
             if (view->f_eod)
                 break;
