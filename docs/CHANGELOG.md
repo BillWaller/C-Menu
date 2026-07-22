@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-22T09:57:03-05:00* - FIXES: view_engine.c: set scroll_up() top line 
+
+*2026-07-22T09:50:40-05:00* - Update CHANGELOG.md 
+
 *2026-07-22T09:47:52-05:00* - counters and other loose ends at this point. 
 
 *2026-07-21T19:22:06-05:00* - Update CHANGELOG.md 
