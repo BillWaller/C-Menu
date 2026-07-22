@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-22T09:47:52-05:00* - counters and other loose ends at this point. 
+
+*2026-07-21T19:22:06-05:00* - Update CHANGELOG.md 
+
 *2026-07-21T18:53:02-05:00* - FIX: view_engine.c: pressing down arrow and then up arrow on a partially filled display due to an "end of data" condition would scroll down, and then redisplay the first two lines, resulting in duplication of the second line. Fixed. 
 
 *2026-07-21T16:05:26-05:00* - Update CHANGELOG.md 
