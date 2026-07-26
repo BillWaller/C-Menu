@@ -1,10 +1,8 @@
 CC = gcc
 CFLAGS = -Wall
-LIBS=-lncursesw -lpanelw -ltinfow
+# LIBS=-lnotcurses-core -lnotcurses -ltinfo
 
-%: %.c %.h
+%: %.c
 	$(CC) -g $(CFLAGS) $< -o $@ $(LIBS)
 
 
-clean:
-	rm -f pan1 border *.out

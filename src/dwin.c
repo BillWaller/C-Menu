@@ -62,10 +62,10 @@ bool open_curses(SIO *);
 bool init_clr_palette(SIO *);
 void destroy_curses();
 int box_new(int, int, int, int, char *);
-int box_hsplit_new(int, int, int, int, int, char *);
+int box_vsplit_new(int, int, int, int, int, char *);
 int border_draw(WINDOW *);
-int border_hsplit(WINDOW *, int);
-int border_hsplit_text(WINDOW *, char *, int);
+int border_vsplit(WINDOW *, int);
+int border_vsplit_text(WINDOW *, char *, int);
 
 int win_new(int, int);
 void win_redraw(WINDOW *);
@@ -911,9 +911,9 @@ void ui_rect_set(UiRect *r, int y, int x, int h, int w) {
     r->rows = h;
     r->cols = w;
 }
-/** box_hsplit_new
+/** box_vsplit_new
     @brief Create a new window with optional box and title, and a second window
-   inside it, split horizontally
+   inside it, split vertically
     @ingroup window_support
     @param wlines Number of lines for the first window
     @param split_win_lines Number of lines for the second window
@@ -922,7 +922,7 @@ void ui_rect_set(UiRect *r, int y, int x, int h, int w) {
     @param wbegx Beginning X position for the first window
     @param wtitle Window title for the first window
     @return 0 if successful, 1 if error */
-int box_hsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wbegx, char *wtitle) {
+int box_vsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wbegx, char *wtitle) {
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
@@ -932,7 +932,7 @@ int box_hsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wb
     bare_box_new(wlines + split_win_lines + 1, wcols, wbegy, wbegx, wtitle);
     wbkgrnd(win_box[win_ptr], &CC_BOX);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
-    border_hsplit(win_box[win_ptr], wlines + 1);
+    border_vsplit(win_box[win_ptr], wlines + 1);
     update_panels();
     doupdate();
     win_new(wlines, wcols);
@@ -1255,7 +1255,7 @@ int border_draw(WINDOW *box) {
     return 0;
 }
 
-/** border-hsplit
+/** border-vsplit
     @brief Draw a box with a separator line around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
@@ -1266,7 +1266,7 @@ int border_draw(WINDOW *box) {
    page 00) and extends across the width of the box. Use this function when you
    want to visually separate two sections within a window, such as for a header
    and content area. */
-int border_hsplit(WINDOW *box, int y) {
+int border_vsplit(WINDOW *box, int y) {
     int maxx = getmaxx(box);
     mvwaddnwstr(box, y, 0, &bw_lt, 1);
     for (int x = 1; x < maxx - 1; x++)
@@ -1274,7 +1274,7 @@ int border_hsplit(WINDOW *box, int y) {
     mvwaddnwstr(box, y, maxx - 1, &bw_rt, 1);
     return 0;
 }
-/** border_hsplit_text
+/** border_vsplit_text
     @brief Draw a box with a separator line and text around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
@@ -1286,7 +1286,7 @@ int border_hsplit(WINDOW *box, int y) {
    extends across the width of the box, with the provided text displayed in the
    middle of the line. Use this function when you want to visually separate two
    sections within a window and label the separator with descriptive text. */
-int border_hsplit_text(WINDOW *box, char *text, int separator_line) {
+int border_vsplit_text(WINDOW *box, char *text, int separator_line) {
     int pos = 0;
     int maxx = getmaxx(box);
     int l;

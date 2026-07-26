@@ -244,10 +244,9 @@ int view_cmd_processor(Init *init) {
         }
         switch (c) {
 
-        case 'd':
+        case 'd': /** 'd' Breakpoint for Debugging */
             break;
-        case Ctrl('R'): /**<  Ctrl('R') or KEY_RESIZE - Handle terminal resize */
-        case 'x':
+        case Ctrl('L'): /**<  Ctrl('L') or KEY_RESIZE - Handle terminal resize */
         case KEY_RESIZE:
             getmaxyx(stdscr, view->lines, view->cols);
 #ifdef DEBUG_RESIZE
@@ -1158,7 +1157,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                     view->cury = view->scroll_lines + 1;
             } else {
                 view->f_search_complete = true;
-                goto cleanup; /* FIX: Was return rc; */
+                goto cleanup;
             }
         }
         view->ln_no = view->srch_curr_ln_no;
@@ -1166,13 +1165,13 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         /** get line to scan */
         if (search_cmd == '/') {
             if (view->cury == view->scroll_lines)
-                goto cleanup; /* FIX: Was return rc; */
+                goto cleanup;
             prev_ln_no = view->srch_curr_ln_no;
             get_line(view, view->srch_curr_ln_no);
             view->page_bot_ln_no = view->srch_curr_ln_no;
         } else {
             if (view->cury == 0)
-                goto cleanup; /* FIX: Was return rc; */
+                goto cleanup;
             get_line(view, view->srch_curr_ln_no);
             prev_ln_no = view->srch_curr_ln_no;
             view->page_top_ln_no = view->srch_curr_ln_no;
@@ -1200,8 +1199,8 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
             strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
             strnz__cat(tmp_str, err_str, MAXLEN - 1);
             Perror(tmp_str);
-            rc = false;   /* Set status */
-            goto cleanup; /* FIX: Consolidated to cleanup */
+            rc = false; /* Set status */
+            goto cleanup;
         }
         rc = true;
         /** Display matching lines */
@@ -1248,8 +1247,8 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 regerror(reti, &compiled_regex, msgbuf, sizeof(msgbuf));
                 sprintf(tmp_str, "Regex match failed: %s", msgbuf);
                 Perror(tmp_str);
-                rc = false;   /* Set status */
-                goto cleanup; /* FIX: Consolidated to cleanup */
+                rc = false; /* Set status */
+                goto cleanup;
             }
             if (search_cmd == '/') {
                 if (view->cury == view->scroll_lines - 1) {
@@ -2374,17 +2373,14 @@ void log_split_lines(View *view) {
    attributes will be stored
     @param cpx is a pointer to an int variable where the parsed color pair
    index will be stored
-    @details This function parses an ANSI escape sequence and updates the color
-   pair and color tables according to the attributes specified. Despite the
-   depth of nested conditionals, with an understanding of the ANSI Select
-   Graphics Rendition (SGR) scheme, which is defined in the ECMA-48 standard
-   (ISO/IEC 6429), you will find that it is exceptionally simple and
-   straightforward.
-
+    @details This function parses ANSI escape sequences, which it converts
+    to color pairs and attributes used to construct complex character cells
+    or extended grapheme clusters.
+    @note ANSI Select Graphics Rendition (SGR), ECMA-48, (ISO/IEC 6429)
+    @note Extends Color Pair and Color arrays as necessary
    @verbatim
 
-   This function converts the following SGR specification types to the
-   appropriate curses color pair index for use in the terminal display.
+   SGR specification types:
 
     RGB:
 
@@ -2394,14 +2390,12 @@ void log_split_lines(View *view) {
         Where r, g, b are the red, green, and blue color components (0-255)
 
     XTERM 256-color:
+
         foreground \033[38;5;xm
         background \033[48;5;xm
 
         Where x is the 256-color index (0-255)
-
-        uses xterm256_idx_to_rgb() to convert the 256-color index to
-
-   RGB
+        uses xterm256_idx_to_rgb() to convert the 256-color index to RGB
 
     8-color:
 
@@ -2419,7 +2413,7 @@ void log_split_lines(View *view) {
    4 for underline, 5 for blink, 7 for reverse, 8 for invis). The function
    also supports resetting attributes and colors to default using \033[0m.
 
-    @sa xterm256_idx_to_rgb(), rgb_to_curses_clr(), extended_pair_content(),
+    see also: xterm256_idx_to_rgb(), rgb_to_curses_clr(), extended_pair_content(),
    get_clr_pair()
 
     @endverbatim

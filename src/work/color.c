@@ -33,10 +33,7 @@ RGB xterm256_to_rgb(int code) {
     if (code < 16) {
         /** 16 color standard palette */
         static const RGB standard_colors[16] = {
-            {0, 0, 0},       {128, 0, 0},   {0, 128, 0},   {128, 128, 0},
-            {0, 0, 128},     {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
-            {128, 128, 128}, {255, 0, 0},   {0, 255, 0},   {255, 255, 0},
-            {0, 0, 255},     {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+            {0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
         color = standard_colors[code];
     } else if (code >= 16 && code <= 231) {
         /** 216 (6x6x6) color xterm cube */
@@ -69,6 +66,21 @@ RGB xterm256_to_rgb(int code) {
     return color;
 }
 
+int rgb_to_xterm(unsigned char r, unsigned char g, unsigned char b) {
+    if (r == g && g == b) {
+        if (r < 8)
+            return 16;
+        if (r > 248)
+            return 231;
+        return ((r - 8) / 10) + 232;
+    } else {
+        /** xterm Color cube */
+        int r_index = (r * 5) / 255;
+        int g_index = (g * 5) / 255;
+        int b_index = (b * 5) / 255;
+        return 16 + (36 * r_index) + (6 * g_index) + b_index;
+    }
+}
 /** @brief Converts an RGB color to the nearest xterm 256-color code.
    @param r The red component (0-255).
    @param g The green component (0-255).
@@ -89,18 +101,28 @@ int rgb_to_xterm256(unsigned char r, unsigned char g, unsigned char b) {
         return 16 + (36 * r_index) + (6 * g_index) + b_index;
     }
 }
-int main(int argc, char *argv[]) {
+int main() {
     RGB rgb;
     RGB rgb2;
-    int i, idx;
+    int i, idx, fail = 0;
     for (i = 0; i < 256; i++) {
         rgb = xterm256_to_rgb(i);
-        idx = rgb_to_xterm256(rgb.r, rgb.g, rgb.b);
+        idx = rgb_to_xterm(rgb.r, rgb.g, rgb.b);
         rgb2 = xterm256_to_rgb(idx);
-        printf("idx %-3d (%3d, %3d, %3d) #%02x%02x%02x %-3d (%3d, %3d, %3d) "
-               "#%02x%02x%02x\n",
-               i, rgb.r, rgb.g, rgb.b, rgb.r, rgb.g, rgb.b, idx, rgb2.r, rgb2.g,
-               rgb2.b, rgb2.r, rgb2.g, rgb2.b);
+        if (rgb.r != rgb2.r || rgb.g != rgb2.g || rgb.b != rgb2.b) {
+            printf("Mismatch for idx %d: (%d, %d, %d) -> idx %d -> (%d, %d, %d)\n",
+                   i, rgb.r, rgb.g, rgb.b, idx, rgb2.r, rgb2.g, rgb2.b);
+            fail = 1;
+        } else {
+            printf("idx %-3d (%3d, %3d, %3d) #%02x%02x%02x %-3d (%3d, %3d, %3d) "
+                   "#%02x%02x%02x\n",
+                   i, rgb.r, rgb.g, rgb.b, rgb.r, rgb.g, rgb.b, idx, rgb2.r, rgb2.g,
+                   rgb2.b, rgb2.r, rgb2.g, rgb2.b);
+        }
+    }
+    if (fail) {
+        printf("Test failed.\n");
+        return 1;
     }
     return 0;
 }

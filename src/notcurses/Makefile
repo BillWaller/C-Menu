@@ -7,4 +7,4 @@ LIBS=-lnotcurses-core -lnotcurses -ltinfo
 
 
 clean:
-	rm -f pan1 border *.out
+	rm -f visual

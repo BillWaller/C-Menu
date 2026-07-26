@@ -189,8 +189,15 @@ typedef struct {
 /** @struct UiRect
    @brief Structure representing a rectangular area in the UI.
    @ingroup ui_backend
-   @details The UiRect structure defines a rectangular area within the UI, specified by its top-left corner (y, x) and its dimensions (rows, cols). This structure is commonly used when creating new surfaces or defining areas for drawing operations.
-   The y and x fields represent the position of the rectangle's top-left corner relative to its parent surface, while the rows and cols fields specify the height and width of the rectangle, respectively. By using UiRect, you can easily manage and manipulate different areas of the UI for various purposes such as layout management and drawing.
+   @details The UiRect structure defines a rectangular area within the UI,
+   specified by its top-left corner (y, x) and its dimensions (rows, cols).
+   This structure is commonly used when creating new surfaces or defining
+   areas for drawing operations. The y and x fields represent the position
+   of the rectangle's top-left corner relative to its parent surface, while
+   the rows and cols fields specify the height and width of the rectangle,'
+   respectively. By using UiRect, you can easily manage and manipulate
+   different areas of the UI for various purposes such as layout management
+   and drawing.
    @see ui_surface_new
 */
 typedef struct {
@@ -203,9 +210,17 @@ typedef struct {
 /** @struct UiConfig
    @brief Structure representing the configuration options for the UI runtime.
    @ingroup ui_backend
-   @details The UiConfig structure encapsulates the configuration options that can be set when initializing the UI runtime. This includes enabling mouse support, using an alternate screen buffer, and controlling cursor visibility.
-   The enable_mouse field allows you to specify whether mouse input should be captured and processed by the UI. The enable_alt_screen field determines whether the UI should use an alternate screen buffer, which can help prevent cluttering the main terminal screen. The cursor_visible field controls whether the cursor is visible while the UI is active, which can enhance the user experience in certain applications.
-   By configuring these options appropriately, you can tailor the behavior of the UI runtime to suit your application's needs.
+   @details The UiConfig structure encapsulates the configuration options that
+   can be set when initializing the UI runtime. This includes enabling mouse
+   support, using an alternate screen buffer, and controlling cursor visibility.
+   The enable_mouse field allows you to specify whether mouse input should be
+   captured and processed by the UI. The enable_alt_screen field determines
+   whether the UI should use an alternate screen buffer, which can help prevent
+   cluttering the main terminal screen. The cursor_visible field controls
+   whether the cursor is visible while the UI is active, which can enhance the
+   user experience in certain applications. By configuring these options
+   appropriately, you can tailor the behavior of the UI runtime to suit your
+   application's needs.
    @see ui_init
 */
 typedef struct {
@@ -216,9 +231,15 @@ typedef struct {
 
 /* @name UI Backend API
    @ingroup ui_backend
-   @details The following functions define the API for implementing a backend for the terminal UI library. These functions cover the initialization and shutdown of the UI runtime, management of surfaces, drawing operations, input handling, and cursor control.
-   Each function is designed to be implemented by the backend according to the specifications provided in the function comments. By implementing these functions, you can create a functional backend that allows the terminal UI library to render and interact with users effectively.
-   Note: ui_init should return NULL on failure and set an appropriate error
+   @details The following functions define the API for implementing a backend
+   for the terminal UI library. These functions cover the initialization and
+   shutdown of the UI runtime, management of surfaces, drawing operations,
+   input handling, and cursor control. Each function is designed to be
+   implemented by the backend according to the specifications provided in
+   the function comments. By implementing these functions, you can create a
+   functional backend that allows the terminal UI library to render and
+   interact with users effectively.
+    @note: ui_init should return NULL on failure and set an appropriate error
    message that can be retrieved by the caller. The error message should provide
    details about the reason for the failure, such as issues with terminal
    capabilities, resource allocation failures, or unsupported features. This
@@ -235,7 +256,17 @@ int ui_suspend(UiRuntime *ui);
 int ui_resume(UiRuntime *ui);
 
 /* @brief surfaces
-   @ingroup ui_backend */
+   @ingroup ui_backend
+   @details UAL_UI implements the concept of surfaces, which are rectangular
+   areas that can be drawn to and manipulated independently. Surfaces can be
+   nested, allowing for complex layouts and hierarchies. Each surface has its
+   own position and size, and can be shown or hidden as needed. Each surface
+   has a y, x, and z position, where y and x are the coordinates of the
+   top-left corner of the surface relative to its parent surface, and z is
+   the stacking order of the surface relative to its siblings. Surfaces can
+   be moved, resized, and cleared. Surfaces may be thought of as a similar in
+   concept to panels in ncurses or planes in notcurses.
+ */
 UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect);
 void ui_surface_destroy(UiSurface *s);
 int ui_surface_move(UiSurface *s, int y, int x);

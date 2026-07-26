@@ -16,8 +16,7 @@ Nvim's Language Server Protocol log highlighted with a customized Tree-Sitter pa
 
 ---
 
-[C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md)
-[Example Applications Menu Guided Tour](docs/menu.md)
+[C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md) | [Example Applications Menu Guided Tour](docs/menu.md)
 
 ## Why C-Menu?
 
