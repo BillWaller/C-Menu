@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-26T18:00:40-05:00* - FEATURE: Add Notcurses support for C-Menu. This project is just getting started. The first step is to construct and test the functional components of the user interface. Next, the functional components will be integrated into the C-Menu API. Finally, we will interpose an abstraction layer between the functional components and the C-Menu API. This abstraction layer will allow C-Menu consumers to use a variety of user interfaces, NCurses and Notcurses initially, and later, KDE, QT, GTK, and others. It's an ambitious project, but we believe it will be worth the effort. The C-Menu API is a powerful and flexible interface for building text-based user interfaces, and we want to make it as easy as possible for developers to use it. By adding support for Notcurses, we hope to provide a more modern and feature-rich alternative to NCurses, while still maintaining compatibility with existing C-Menu applications. We are excited to see what developers will create with this new functionality, and we look forward to continuing to improve and expand the C-Menu API in the future. We welcome feedback and contributions from the community 
+
+*2026-07-22T17:19:09-05:00* - Update CHANGELOG.md 
+
 *2026-07-22T17:17:13-05:00* - FEATURE: Customized Tree-Sitter system log parser with Smart Line Wrapping in View. 
 
 *2026-07-22T10:34:26-05:00* - Update CHANGELOG.md 
