@@ -9,8 +9,8 @@
    external code.
  */
 
+#include "../include/cm.h"
 #include "../include/ui_backend.h"
-#include <cm.h>
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
 #include <stdbool.h>
@@ -50,10 +50,12 @@ struct UiSurface {
     int rows;
     int cols;
     bool hidden;
+    char name[XLEN];
+    char title[XLEN];
 };
 
-int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style);
-int ui_ncurses_color_pair_from_style(const UiStyle *style);
+int ui_style_apply(WINDOW *win, const UiStyle *style);
+int ui_color_pair_from_style(const UiStyle *style);
 UiStyle *ui_style_new();
 void ui_style_destroy(UiStyle *);
 UiStyle *ui_style_from_cch(const cchar_t *);

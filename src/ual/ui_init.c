@@ -1,24 +1,18 @@
-/** @file dwin.c
-    @brief Window support for C-Menu - EXPERIMENTAL
-    @details This file contains functions for managing NCurses windows and color
-   settings for the Chyron structure for function key labels and mouse click
-   handling. This file is a work in progress and may be subject to change as the
-   C-Menu project evolves. Generally, don't try to use it yet unless you want
-   complete the half-done code modifications.
+/** @file ui_ual.c
     @author Bill Waller
-    Copyright (c) 2025
+    Copyright (c) 2026
     MIT License
     billxwaller@gmail.com
     @date 2026-02-09
  */
 
-/** @defgroup window_support Window Support
-    @brief Manage NCurses windows and color settings
+/** @defgroup ui_ual UI Abstraction Layer
+    @brief Platform Independent User Interface
  */
 
-#include "include/cm.h"
-#include "include/ui_backend.h"
-#include "ncurses/ui_ncurses_internal.h"
+#include "../include/ui_backend.h"
+#include "../ui_ncurses/ui_ncurses_internal.h"
+#include <cm.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>

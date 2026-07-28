@@ -2,6 +2,8 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-27T21:11:57-05:00* - Update CHANGELOG.md 
+
 *2026-07-27T21:01:38-05:00* - FEATURE: Continuing to add support for Notcurses while maintaining compatibility with NCurses. Both APIs will be subsumed into a super-API that can use either backend or others while maintaining a consistent interface with the application program. 
 
 *2026-07-26T18:20:07-05:00* - Update CHANGELOG.md 

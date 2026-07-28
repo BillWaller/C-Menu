@@ -665,17 +665,9 @@ extern PANEL *panel_box[MAXWIN];
 
 extern int win_attr; /**< Ncurses attributes for the current window, such as
                         color pair, bold, etc. */
-extern int
-    win_attr_odd; /**< Ncurses attributes for the current window odd lines,
-                     which may be different from the attributes for even lines
-                     to create a striped effect in the window. */
-extern int
-    win_attr_even;  /**< Ncurses attributes for the current window even lines,
-                       which may be different from the attributes for odd lines
-                       to create a striped effect in the window. */
-extern int win_ptr; /**< Pointer to the current window pair, box and window,
-                       which can be used to keep track of the currently active
-                       window and its associated box. */
+extern int win_ptr;  /**< Pointer to the current window pair, box and window,
+                        which can be used to keep track of the currently active
+                        window and its associated box. */
 // extern bool win_pair; /**< Flag to indicate whether the current window is
 // part of a window pair */
 extern int

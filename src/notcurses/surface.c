@@ -1,3 +1,14 @@
+/**
+ * @file nc_ckeys.c
+ * @brief Notcurses input handling example
+ *
+ * This example demonstrates how to handle keyboard and mouse input events using the Notcurses library.
+ * It creates two planes and allows the user to interact with them using mouse clicks and keyboard inputs.
+ *
+ * @author Your Name
+ * @date 2024-06-10
+ */
+
 #define _XOPEN_SOURCE 700
 
 #include <inttypes.h>
@@ -7,28 +18,49 @@
 #include <unistd.h>
 
 #define MAXLEN 256
+#define MAXPLANE 30
+#define MAXSFC 30
 #define U_VE L'\x2502' /**< vertical line */
 
 typedef struct notcurses NotCurses;
-typedef struct ncplane NCPlane;
+typedef struct ncplane NcPlane;
 typedef struct notcurses_options NotCursesOptions;
-typedef struct ncplane_options NCPlaneOptions;
+typedef struct ncplane_options NcPlaneOptions;
+
 typedef struct {
     unsigned int r, g, b;
 } RGB;
 
+struct NcSurface {
+    NcPlane *box; // box rows+2 and cols+2
+    NcPlane *win;
+};
+
+typedef struct NcSurface NcSurface;
+
+NcSurface *nc_surface[MAXSFC];
+
+int sfc_ptr = -1;
+
 RGB hex_clr_str_to_rgb(char *s);
 
 char *notcurses_key_str(unsigned int, char *);
-void ncplane_printf_yx_clrtoeol(NCPlane *n, int y, int x, const char *fmt, ...);
-void ncplane_move_yx_clrtoeol(NCPlane *n, int y, int x);
+void ncplane_printf_yx_clrtoeol(NcPlane *n, int y, int x, const char *fmt, ...);
+void ncplane_move_yx_clrtoeol(NcPlane *n, int y, int x);
 
-NCPlane *ncplane_clicked(NCPlane *pile_member, ncinput *ni);
-NCPlane *plane_new(NotCurses *nc, int rows, int cols, int y, int x,
+NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni);
+NcPlane *plane_new(NotCurses *nc, int rows, int cols, int y, int x,
                    const char *name, const char *title, const char *fg, const char *bg);
+NcSurface *surface_new(NotCurses *, int, int, int, int,
+                       const char *, const char *, const char *, const char *);
+int ui_surface_cnt = 0; // Drawable surface count
+
+NcSurface *nc_surface[MAXSFC];
+
 int handle_input(NotCurses *nc, int y, int x, ncinput *ni);
 
 int main(void) {
+    unsigned int y, x;
     setlocale(LC_ALL, "");
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
@@ -36,32 +68,97 @@ int main(void) {
     if (!nc) {
         return 1;
     }
-    NCPlane *stdn = notcurses_stdplane(nc);
+    NcPlane *stdn = notcurses_stdplane(nc);
     ncplane_erase(stdn);
-    NCPlane *plane1 = plane_new(nc, 12, 40, 4, 10, "plane1", "┤ Plane 1 ├", "#00d7ff", "#1c1c1c");
-    NCPlane *plane2 = plane_new(nc, 12, 40, 16, 10, "plane2", "┤ Plane 2 ├", "#c0c0c0", "#000714");
-    ncplane_putstr_yx(plane1, 5, 4, "Notcurses Plane 1");
-    ncplane_putstr_yx(plane2, 5, 4, "Notcurses Plane 2");
+
+    NcSurface *surface1 = surface_new(nc, 4, 40, 4, 10, "surface1", "┤ Surface 1 ├", "#00d7ff", "#1c1c1c");
+    if (!surface1) {
+        notcurses_stop(nc);
+        return 1;
+    }
+    ncplane_dim_yx(nc_surface[0]->win, &y, &x);
+    ncplane_printf_yx_clrtoeol(nc_surface[0]->win, 0, 0, "%s (y=%d, x=%d)", ncplane_name(nc_surface[0]->win), y, x);
     notcurses_render(nc);
+
+    NcSurface *surface2 = surface_new(nc, 4, 40, 12, 10, "surface2", "┤ Surface 2 ├", "#c0c0c0", "#000714");
+    if (!surface2) {
+        notcurses_stop(nc);
+        return 1;
+    }
+    ncplane_dim_yx(nc_surface[1]->win, &y, &x);
+    ncplane_printf_yx_clrtoeol(nc_surface[1]->win, 0, 0, "%s (y=%d, x=%d)", ncplane_name(nc_surface[1]->win), y, x);
+    notcurses_render(nc);
+
     ncinput ni;
-    handle_input(nc, 28, 0, &ni);
+    handle_input(nc, 30, 0, &ni);
     notcurses_mice_disable(nc);
     notcurses_stop(nc);
     return 0;
 }
-NCPlane *plane_new(NotCurses *nc, int rows, int cols,
+NcSurface *surface_new(NotCurses *nc, int rows, int cols,
+                       int y, int x, const char *name, const char *title,
+                       const char *fg, const char *bg) {
+    char plane_name[MAXLEN];
+    snprintf(plane_name, MAXLEN - 1, "%s_box", name);
+    RGB rgb_fg = hex_clr_str_to_rgb((char *)fg);
+    RGB rgb_bg = hex_clr_str_to_rgb((char *)bg);
+    unsigned int dimy, dimx;
+    notcurses_stddim_yx(nc, &dimy, &dimx);
+    NcPlaneOptions plane_opts = {
+        .y = y,
+        .x = x,
+        .rows = rows + 2,
+        .cols = cols + 2,
+        .name = plane_name};
+    NcPlane *stdn = notcurses_stdplane(nc);
+    NcPlane *box = ncplane_create(stdn, &plane_opts);
+    if (!box) {
+        notcurses_stop(nc);
+        return NULL;
+    }
+    uint64_t channels = 0;
+    ncchannels_set_fg_rgb8(&channels, rgb_fg.r, rgb_fg.g, rgb_fg.b);
+    ncchannels_set_bg_rgb8(&channels, rgb_bg.r, rgb_bg.g, rgb_bg.b);
+    ncplane_set_base(box, " ", 0, channels);
+    ncplane_set_channels(box, channels);
+    ncplane_perimeter_rounded(box, 0, channels, 0);
+    int title_len = (int)strlen(title);
+    int title_x = (cols - title_len) / 2;
+    ncplane_putstr_yx(box, 0, title_x, title);
+    plane_opts.y = 1;
+    plane_opts.x = 1;
+    plane_opts.rows = rows;
+    plane_opts.cols = cols;
+    snprintf(plane_name, MAXLEN - 1, "%s_win", name);
+    plane_opts.name = plane_name;
+    NcPlane *win = ncplane_create(box, &plane_opts);
+    if (!win) {
+        notcurses_stop(nc);
+        return NULL;
+    }
+    ncplane_set_base(win, " ", 0, channels);
+    ncplane_set_channels(win, channels);
+    sfc_ptr++;
+    nc_surface[sfc_ptr] = malloc(sizeof(NcSurface));
+    nc_surface[sfc_ptr]->box = box;
+    nc_surface[sfc_ptr]->win = win;
+    return nc_surface[sfc_ptr];
+}
+NcPlane *plane_new(NotCurses *nc, int rows, int cols,
                    int y, int x, const char *name, const char *title,
                    const char *fg, const char *bg) {
     RGB rgb_fg = hex_clr_str_to_rgb((char *)fg);
     RGB rgb_bg = hex_clr_str_to_rgb((char *)bg);
-    NCPlaneOptions plane_opts = {
+    unsigned int dimy, dimx;
+    notcurses_stddim_yx(nc, &dimy, &dimx);
+    NcPlaneOptions plane_opts = {
         .y = y,
         .x = x,
-        .rows = rows,
-        .cols = cols,
+        .rows = rows + 2,
+        .cols = cols + 2,
         .name = name};
-    NCPlane *stdn = notcurses_stdplane(nc);
-    NCPlane *plane = ncplane_create(stdn, &plane_opts);
+    NcPlane *stdn = notcurses_stdplane(nc);
+    NcPlane *plane = ncplane_create(stdn, &plane_opts);
     if (!plane) {
         notcurses_stop(nc);
         return NULL;
@@ -75,21 +172,31 @@ NCPlane *plane_new(NotCurses *nc, int rows, int cols,
     int title_len = (int)strlen(title);
     int title_x = (cols - title_len) / 2;
     ncplane_putstr_yx(plane, 0, title_x, title);
+    plane_opts.y = 1;
+    plane_opts.x = 1;
+    plane_opts.rows = rows;
+    plane_opts.cols = cols;
+    if (!plane) {
+        notcurses_stop(nc);
+        return NULL;
+    }
+
     return plane;
 }
 int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
     uint32_t id;
     bool running = true;
     char kstr[MAXLEN];
-    NCPlane *stdn = notcurses_stdplane(nc);
+    NcPlane *stdn = notcurses_stdplane(nc);
     notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
+    y = 36;
     ncplane_printf_yx_clrtoeol(stdn, y + 1, x, "%s", "Press 'q' to exit.");
     notcurses_render(nc);
     while (running) {
         id = notcurses_get_blocking(nc, ni);
         if (id == 'q' || id == 'Q')
             running = false;
-        NCPlane *plane = ncplane_clicked(stdn, ni);
+        NcPlane *plane = ncplane_clicked(stdn, ni);
         if (plane) {
             ncplane_printf_yx_clrtoeol(stdn, y + 2, x, "Clicked plane: %s", ncplane_name(plane));
         } else {
@@ -122,7 +229,7 @@ int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
     }
     return 0;
 }
-void ncplane_printf_yx_clrtoeol(NCPlane *n, int y, int x, const char *fmt, ...) {
+void ncplane_printf_yx_clrtoeol(NcPlane *n, int y, int x, const char *fmt, ...) {
     char tmp_str[MAXLEN];
     va_list args;
     va_start(args, fmt);
@@ -135,16 +242,16 @@ void ncplane_printf_yx_clrtoeol(NCPlane *n, int y, int x, const char *fmt, ...) 
     tmp_str[dimx] = '\0';
     ncplane_putstr_yx(n, y, x, tmp_str);
 }
-void ncplane_move_yx_clrtoeol(NCPlane *n, int y, int x) {
+void ncplane_move_yx_clrtoeol(NcPlane *n, int y, int x) {
     char tmp_str[MAXLEN];
     int dimx = ncplane_dim_x(n);
     int dcols = dimx - x;
-    memset(tmp_str, ' ', dcols - 1);
+    memset(tmp_str, ' ', dcols);
     tmp_str[dcols] = '\0';
     ncplane_putstr_yx(n, y, x, tmp_str);
 }
-NCPlane *ncplane_clicked(NCPlane *pile_member, ncinput *ni) {
-    NCPlane *cur = ncpile_top(pile_member);
+NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni) {
+    NcPlane *cur = ncpile_top(pile_member);
     while (cur != NULL) {
         int y = ni->y, x = ni->x;
         if (ncplane_translate_abs(cur, &y, &x)) {

@@ -18,7 +18,7 @@
 
 #include "include/cm.h"
 #include "include/ui_backend.h"
-#include "ncurses/ui_ncurses_internal.h"
+#include "ui_ncurses/ui_ncurses_internal.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>

@@ -1,18 +1,18 @@
+/**
+ * @file ui_colors.c
+ * @brief UI color definitions and utilities.
+ */
+
 typedef struct {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+    int r, g, b;
 } RGB;
 
 typedef struct {
     union {
-        struct {
-            uint8_t a; // alpha    LSB (Little Endian order)
-            uint8_t b; // blue
-            uint8_t g; // green
-            uint8_t r; // red      MSB (Little Endian order)
+        struct RGB8 {
+            uint8_t a, b, g, r; // alpha LSB (Little Endian order)
         };
-        struct {
+        struct RGB32 {
             uint32_t rgba; // 0xRRGGBBAA   red, green, blue, alpha
         };
     };
