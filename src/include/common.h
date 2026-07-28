@@ -59,7 +59,7 @@
         Init *init = new_init(argc, argv); \
         SIO *sio = init->sio;              \
         mapp_initialization(init);         \
-        open_curses(sio);                  \
+        ui_init(sio);                      \
         sig_prog_mode();                   \
         capture_curses_tioctl();           \
         win_init_attrs();

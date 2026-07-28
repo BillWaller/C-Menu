@@ -6,10 +6,10 @@
     @brief Backend API for terminal UI library
 */
 
-#include "cm.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
 #define MAXWIN 30
 
 /** @defgroup ui_backend UI Backend
@@ -247,7 +247,7 @@ typedef struct {
    feedback to the user.
    @see ui_backend.h
 */
-UiRuntime *ui_init(UiRuntime *ui);
+UiRuntime *ui_init(const UiConfig *cfg);
 void ui_shutdown(UiRuntime *ui);
 void ui_get_screen_size(UiRuntime *ui, int *rows, int *cols);
 int ui_render(UiRuntime *ui);

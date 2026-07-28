@@ -17,7 +17,7 @@
  */
 
 #include "include/ui_backend.h"
-#include "ui/ui_ncurses_internal.h"
+#include "ui_ncurses/ui_ncurses_internal.h"
 #include <cm.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -145,11 +145,11 @@ const wchar_t bw_lt = BW_LT;   /**< left tee */
 const wchar_t bw_rt = BW_RT;   /**< right tee */
 const wchar_t bw_sp = BW_SP;   /**< tee space */
 const wchar_t bw_ra = BW_RA;   /**< right arrow */
-const wchar_t bw_la = BW_LA;   /**< right arrow */
-const wchar_t bw_ua = BW_UA;   /**< right arrow */
-const wchar_t bw_da = BW_DA;   /**< right arrow */
+const wchar_t bw_la = BW_LA;   /**< left arrow */
+const wchar_t bw_ua = BW_UA;   /**< up arrow */
+const wchar_t bw_da = BW_DA;   /**< down arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
-const wchar_t bw_chk = BW_CHK; /**< right angle */
+const wchar_t bw_chk = BW_CHK; /**< check mark */
 
 double GRAY_GAMMA = 1.2;  /**< Gamma correction value for gray colors. Set in .minitrc */
 double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .minitrc */

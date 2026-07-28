@@ -1,78 +1,67 @@
 #define _XOPEN_SOURCE 700
 
+#include <inttypes.h>
 #include <locale.h>
 #include <notcurses/notcurses.h>
 #include <string.h>
 #include <unistd.h>
 
-#include <inttypes.h>
+#define MAXLEN 256
+#define U_VE L'\x2502' /**< vertical line */
 
+typedef struct notcurses NotCurses;
+typedef struct ncplane NCPlane;
+typedef struct notcurses_options NotCursesOptions;
+typedef struct ncplane_options NCPlaneOptions;
 typedef struct {
-    // uint8_t r, g, b;
     unsigned int r, g, b;
 } RGB;
 
 RGB hex_clr_str_to_rgb(char *s);
 
-#define ncplane_clrtoeol(n) \
-    ncplane_erase_region((n), -1, -1, 1, 0)
-
-#define ncplane_printf_yx_clrtoeol(n, y, x, f, ...)                 \
-    do {                                                            \
-        dcols = ncplane_printf_yx((n), (y), (x), (f), __VA_ARGS__); \
-        rcols = dimx - ((x) + dcols);                               \
-        ncplane_erase_region((n), -1, -1, 0, rcols);                \
-    } while (0)
-
-#define MAXLEN 256
-
-struct ncplane *plane_new(struct notcurses *nc, int rows, int cols, int y, int x,
-                          const char *name, const char *title,
-                          const char *fg, const char *bg);
-int handle_input(struct notcurses *nc, struct ncplane *stdn, int y, int x, ncinput *ni);
 char *notcurses_key_str(unsigned int, char *);
+void ncplane_printf_yx_clrtoeol(NCPlane *n, int y, int x, const char *fmt, ...);
+void ncplane_move_yx_clrtoeol(NCPlane *n, int y, int x);
+
+NCPlane *ncplane_clicked(NCPlane *pile_member, ncinput *ni);
+NCPlane *plane_new(NotCurses *nc, int rows, int cols, int y, int x,
+                   const char *name, const char *title, const char *fg, const char *bg);
+int handle_input(NotCurses *nc, int y, int x, ncinput *ni);
 
 int main(void) {
     setlocale(LC_ALL, "");
-    struct notcurses_options nc_opts = {
+    NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
-    struct notcurses *nc = notcurses_init(&nc_opts, NULL);
+    NotCurses *nc = notcurses_init(&nc_opts, NULL);
     if (!nc) {
         return 1;
     }
-    // ---------------------------------------------------------------------------
-
-    struct ncplane *plane1 = plane_new(nc, 12, 40, 4, 10, "plane1", "[ Plane 1 ]", "#00d7ff", "#1c1c1c");
-
-    struct ncplane *plane2 = plane_new(nc, 12, 40, 16, 10, "plane2", "[ Plane 2 ]", "#c0c0c0", "#000714");
-
-    // ---------------------------------------------------------------------------
-    notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
+    NCPlane *stdn = notcurses_stdplane(nc);
+    ncplane_erase(stdn);
+    NCPlane *plane1 = plane_new(nc, 12, 40, 4, 10, "plane1", "┤ Plane 1 ├", "#00d7ff", "#1c1c1c");
+    NCPlane *plane2 = plane_new(nc, 12, 40, 16, 10, "plane2", "┤ Plane 2 ├", "#c0c0c0", "#000714");
     ncplane_putstr_yx(plane1, 5, 4, "Notcurses Plane 1");
     ncplane_putstr_yx(plane2, 5, 4, "Notcurses Plane 2");
-    struct ncplane *stdn = notcurses_stdplane(nc);
-    ncplane_erase(stdn);
     notcurses_render(nc);
     ncinput ni;
-    handle_input(nc, stdn, 28, 0, &ni);
+    handle_input(nc, 28, 0, &ni);
     notcurses_mice_disable(nc);
     notcurses_stop(nc);
     return 0;
 }
-
-struct ncplane *plane_new(struct notcurses *nc, int rows, int cols,
-                          int y, int x, const char *name, const char *title,
-                          const char *fg, const char *bg) {
+NCPlane *plane_new(NotCurses *nc, int rows, int cols,
+                   int y, int x, const char *name, const char *title,
+                   const char *fg, const char *bg) {
     RGB rgb_fg = hex_clr_str_to_rgb((char *)fg);
     RGB rgb_bg = hex_clr_str_to_rgb((char *)bg);
-    struct ncplane_options plane_opts = {
+    NCPlaneOptions plane_opts = {
         .y = y,
         .x = x,
         .rows = rows,
         .cols = cols,
         .name = name};
-    struct ncplane *std_plane = notcurses_stdplane(nc);
-    struct ncplane *plane = ncplane_create(std_plane, &plane_opts);
+    NCPlane *stdn = notcurses_stdplane(nc);
+    NCPlane *plane = ncplane_create(stdn, &plane_opts);
     if (!plane) {
         notcurses_stop(nc);
         return NULL;
@@ -88,39 +77,90 @@ struct ncplane *plane_new(struct notcurses *nc, int rows, int cols,
     ncplane_putstr_yx(plane, 0, title_x, title);
     return plane;
 }
-
-int handle_input(struct notcurses *nc, struct ncplane *stdn, int y, int x, ncinput *ni) {
+int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
     uint32_t id;
     bool running = true;
     char kstr[MAXLEN];
-    size_t dcols, rcols;
-    int dimx = ncplane_dim_x(stdn);
-    ncplane_putstr_yx(stdn, y + 2, 0, "Press 'q' to exit.");
+    NCPlane *stdn = notcurses_stdplane(nc);
+    notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
+    ncplane_printf_yx_clrtoeol(stdn, y + 1, x, "%s", "Press 'q' to exit.");
     notcurses_render(nc);
     while (running) {
         id = notcurses_get_blocking(nc, ni);
         if (id == 'q' || id == 'Q')
             running = false;
-        else if (id == NCKEY_BUTTON1)
-            ncplane_printf_yx_clrtoeol(stdn, y, x, "Left Click at: X=%d, Y=%d", ni->x, ni->y);
+        NCPlane *plane = ncplane_clicked(stdn, ni);
+        if (plane) {
+            ncplane_printf_yx_clrtoeol(stdn, y + 2, x, "Clicked plane: %s", ncplane_name(plane));
+        } else {
+            ncplane_printf_yx_clrtoeol(stdn, y + 2, x, "Clicked plane: None");
+        }
+        ncplane_move_yx_clrtoeol(stdn, y + 4, 0);
+        notcurses_render(nc);
+        ncplane_move_yx_clrtoeol(stdn, y + 5, 0);
+        notcurses_render(nc);
+        ncplane_move_yx_clrtoeol(stdn, y + 6, 0);
+        notcurses_render(nc);
+        ncplane_move_yx_clrtoeol(stdn, y + 7, 0);
+        notcurses_render(nc);
+        if (id == NCKEY_BUTTON1)
+            ncplane_printf_yx_clrtoeol(stdn, y + 4, x, "Left Click at: X=%d, Y=%d", ni->x, ni->y);
         else if (id == NCKEY_BUTTON2)
-            ncplane_printf_yx_clrtoeol(stdn, y, x, "Button Click at: X=%d, Y=%d", ni->x, ni->y);
+            ncplane_printf_yx_clrtoeol(stdn, y + 4, x, "Button Click at: X=%d, Y=%d", ni->x, ni->y);
         else if (id == NCKEY_RESIZE)
-            ncplane_printf_yx_clrtoeol(stdn, y, x, "%s", "Terminal resized!");
-        else
-            ncplane_printf_yx_clrtoeol(stdn, y, x, "Key pressed: %s (Code: %u)",
-                                       notcurses_key_str(id, kstr), id);
+            ncplane_printf_yx_clrtoeol(stdn, y + 4, x, "%s", "Terminal resized!");
+        else {
+            ncplane_printf_yx_clrtoeol(stdn, y + 4, x, "      Octal: %3o", id);
+            ncplane_printf_yx_clrtoeol(stdn, y + 5, x, "    Decimal: %3d", id);
+            ncplane_printf_yx_clrtoeol(stdn, y + 6, x, "        Hex: %3x", id);
+            if (id >= 32 && id <= 126)
+                ncplane_printf_yx_clrtoeol(stdn, y + 7, x, "      ASCII: %c", id);
+            else
+                ncplane_printf_yx_clrtoeol(stdn, y + 7, x, "Description: %s", notcurses_key_str(id, kstr));
+        }
         notcurses_render(nc);
     }
     return 0;
 }
-
+void ncplane_printf_yx_clrtoeol(NCPlane *n, int y, int x, const char *fmt, ...) {
+    char tmp_str[MAXLEN];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(tmp_str, MAXLEN - 1, fmt, args);
+    va_end(args);
+    int l = (int)strlen(tmp_str);
+    int dimx = ncplane_dim_x(n);
+    int dcols = dimx - x - l;
+    memset(tmp_str + l, ' ', dcols);
+    tmp_str[dimx] = '\0';
+    ncplane_putstr_yx(n, y, x, tmp_str);
+}
+void ncplane_move_yx_clrtoeol(NCPlane *n, int y, int x) {
+    char tmp_str[MAXLEN];
+    int dimx = ncplane_dim_x(n);
+    int dcols = dimx - x;
+    memset(tmp_str, ' ', dcols - 1);
+    tmp_str[dcols] = '\0';
+    ncplane_putstr_yx(n, y, x, tmp_str);
+}
+NCPlane *ncplane_clicked(NCPlane *pile_member, ncinput *ni) {
+    NCPlane *cur = ncpile_top(pile_member);
+    while (cur != NULL) {
+        int y = ni->y, x = ni->x;
+        if (ncplane_translate_abs(cur, &y, &x)) {
+            ni->y = y;
+            ni->x = x;
+            return cur;
+        }
+        cur = ncplane_below(cur);
+    }
+    return NULL;
+}
 RGB hex_clr_str_to_rgb(char *s) {
     RGB rgb;
     sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
     return rgb;
 }
-
 char *notcurses_key_str(unsigned int key_id, char *kstr) {
     switch (key_id) {
     case NCKEY_INVALID:

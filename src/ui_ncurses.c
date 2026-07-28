@@ -1,28 +1,27 @@
-#ifndef UI_BACKEND_H
-#define UI_BACKEND_H 1
+#ifndef UI_NCURSES_H
+#define UI_NCURSES_H 1
 
-/** @file ui_backend.h
-    @ingroup ui_backend
-    @brief Backend API for terminal UI library
+/** @file ui_ncurses.h
+    @ingroup ui_ncurses
+    @brief NCurses Uniform Abstraction Layer User Interface
 */
 
-#include "cm.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#define MAXWIN 30
 
-/** @defgroup ui_backend UI Backend
-    @brief Backend API for terminal UI library
+#define MAXSURFACE 30
 
-    This module defines the API for implementing a backend for the terminal UI library.
-    It includes types and functions for managing the UI runtime, surfaces, drawing operations,
-    input handling, and cursor control.
+/** @defgroup ui_ncurses UI NCurses
+    @brief NCurses Uniform Abstraction Layer User Interface
 
-    The backend is responsible for rendering the UI to the terminal, handling user input events,
-    and managing the lifecycle of the UI runtime and surfaces.
+    This module defines the NCurses Uniform Abstraction Layer User Interface
+    It includes types and functions for managing the UI runtime, surfaces, drawing operations, input handling, and cursor control.
 
-    To implement a backend, you need to define the functions declared in this header file
+    This library is responsible for rendering the User Interface using
+    the NCurses API.
+
+    To implement the NCurses User Interface ne the functions declared in this header file
     according to the specifications provided in the function comments.
 
     @see ui_backend.h
@@ -247,7 +246,7 @@ typedef struct {
    feedback to the user.
    @see ui_backend.h
 */
-UiRuntime *ui_init(UiRuntime *ui);
+UiRuntime *ui_init(const UiConfig *cfg);
 void ui_shutdown(UiRuntime *ui);
 void ui_get_screen_size(UiRuntime *ui, int *rows, int *cols);
 int ui_render(UiRuntime *ui);
@@ -300,8 +299,8 @@ int ui_get_event(UiRuntime *ui, UiSurface *target, UiEvent *ev, int timeout_ms);
 int ui_cursor_move(UiSurface *s, int y, int x);
 int ui_cursor_enable(UiRuntime *ui, bool visible);
 
-extern UiSurface *ui_surface_box[MAXWIN];
-extern UiSurface *ui_surface_win[MAXWIN];
-extern UiSurface *ui_surface_win2[MAXWIN];
+extern UiSurface *ui_surface_box[MAXSURFACE];
+extern UiSurface *ui_surface_win[MAXSURFACE];
+extern UiSurface *ui_surface_win2[MAXSURFACE];
 
 #endif

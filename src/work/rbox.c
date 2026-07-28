@@ -34,18 +34,19 @@
 
 int main(int argc, char **argv) {
     setlocale(LC_CTYPE, "en_US.UTF-8");
-    wchar_t box_top[] = {BW_RTL, BW_HO, BW_HO, BW_HO,  BW_TT,
-                         BW_HO,  BW_HO, BW_HO, BW_RTR, L'\0'};
-    wchar_t box_line[] = {BW_VE, L' ', L' ', L' ',  BW_CR,
-                          L' ',  L' ', L' ', BW_VE, L'\0'};
+    wchar_t box_top[] = {BW_RTL, BW_HO, BW_HO, BW_HO, BW_TT,
+                         BW_HO, BW_HO, BW_HO, BW_RTR, L'\0'};
+    wchar_t box_line[] = {BW_VE, L' ', L' ', L' ', BW_CR,
+                          L' ', L' ', L' ', BW_VE, L'\0'};
     wchar_t box_middle[] = {BW_LT, BW_HO, BW_HO, BW_HO, BW_HO,
                             BW_HO, BW_HO, BW_HO, BW_RT, L'\0'};
     wchar_t box_middle_cr[] = {BW_LT, BW_HO, BW_HO, BW_HO, BW_CR,
                                BW_HO, BW_HO, BW_HO, BW_RT, L'\0'};
-    wchar_t box_bottom[] = {BW_RBL, BW_HO, BW_HO, BW_HO,  BW_BT,
-                            BW_HO,  BW_HO, BW_HO, BW_RBR, L'\0'};
+    wchar_t box_bottom[] = {BW_RBL, BW_HO, BW_HO, BW_HO, BW_BT,
+                            BW_HO, BW_HO, BW_HO, BW_RBR, L'\0'};
     wprintf(L"%ls\n", box_top);
     wprintf(L"%ls\n", box_line);
+    wprintf(L"%ls\n", box_middle);
     wprintf(L"%ls\n", box_middle_cr);
     wprintf(L"%ls\n", box_bottom);
     return 0;

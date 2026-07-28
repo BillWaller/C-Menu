@@ -2,6 +2,8 @@
 #include <notcurses/notcurses.h>
 #include <unistd.h>
 
+struct ncplane *find_clicked_plane(struct ncplane *pile_member, ncinput *ni);
+
 int main(void) {
     setlocale(LC_ALL, "");
 
@@ -44,7 +46,8 @@ int main(void) {
             struct ncplane *clicked_plane = NULL;
 
             // This function modifies ni.x and ni.y to be relative to 'clicked_plane'
-            clicked_plane = ncinput_drop_plane_relative(stdn, &ni);
+            // clicked_plane = ncinput_drop_plane_relative(stdn, &ni);
+            clicked_plane = find_clicked_plane(my_plane, &ni);
 
             // Clear the standard plane background for status text
             ncplane_erase(stdn);
@@ -69,4 +72,24 @@ int main(void) {
     notcurses_mice_disable(nc);
     notcurses_stop(nc);
     return 0;
+}
+/* Walk the pile from topmost plane downward, find the first (highest
+z-order)
+plane that encloses the click, transform coordinates to plane-relative.
+Returns the hit plane, or NULL if no plane encloses the click.
+On return, ni->y and ni->x are relative to the returned plane. */
+struct ncplane *find_clicked_plane(struct ncplane *pile_member, ncinput *ni) {
+    // ncpile_top() gives the topmost (highest z) plane in the pile
+    struct ncplane *cur = ncpile_top(pile_member);
+    while (cur != NULL) {
+        int y = ni->y, x = ni->x;
+        if (ncplane_translate_abs(cur, &y, &x)) {
+            // Point is inside cur; coordinates are now relative to cur
+            ni->y = y;
+            ni->x = x;
+            return cur;
+        }
+        cur = ncplane_below(cur); // move down the z-stack
+    }
+    return NULL;
 }
