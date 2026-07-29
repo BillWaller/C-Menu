@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-29T10:49:47-05:00* - FEATURE: Reorganize UI code, remove superfluous files. 
+
+*2026-07-28T20:45:21-05:00* - Update CHANGELOG.md 
+
 *2026-07-28T20:44:45-05:00* - FEATURE: Add code related to the UAL (User Abstraction Layer) and notes UI, including new files for UAL implementation and modifications to existing files for UI backend and surface handling. 
 
 *2026-07-28T15:49:52-05:00* - Update CHANGELOG.md 
