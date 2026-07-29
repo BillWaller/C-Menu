@@ -11,8 +11,11 @@ ifneq ($(CMENU_HOME),)
 endif
 DISPLAY_MANIFEST=0
 BUILD_TYPE=Debug
-UI="-DUAL_UI"
-UI="-DNCURSES_UI"
+# UI backend selection:
+#   NCURSES_UI    — legacy ncurses direct-use (default)
+#   UAL_UI        — UALUI with ncurses backend (src/ui/)
+#   NOTCURSES_UI  — UALUI with notcurses backend (src/ui/)
+UI?="-DNCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
 	CFLAGS=-Ofast -s -fPIC -pthread $(UI)
 	EXTRA_CFLAGS=-flto
@@ -27,7 +30,13 @@ else
 endif
 INCLUDE_DIRS:=-I./include -I./ui
 CFLAGS+=$(INCLUDE_DIRS)
-PACKAGES= panelw ncursesw
+
+ifeq ($(UI), "-DNOTCURSES_UI")
+	PACKAGES= notcurses
+else
+	PACKAGES= panelw ncursesw
+endif
+
 CFLAGS+=$(shell pkg-config --cflags $(PACKAGES))
 CFLAGS+=-Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Werror -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-value -Wno-unused-const-variable -Wno-unused-macros
 MAJOR=0
@@ -57,7 +66,12 @@ OTHER:=CMenu.conf
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
 ifeq ($(UI), "-DUAL_UI")
-	LIB_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
+	LIB_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c \
+		ual/ui_layout.c
+endif
+ifeq ($(UI), "-DNOTCURSES_UI")
+	LIB_SRCS+=ui/ui_notcurses.c ui/ui_notcurses_draw.c ui/ui_notcurses_input.c \
+		ual/ui_layout.c
 endif
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 
@@ -69,8 +83,15 @@ COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
 			pick_engine.c popups.c view_engine.c
 ifeq ($(UI), "-DUAL_UI")
 	COMMON_HDRS+=include/ui_backend.h ui/ui_ncurses_internal.h
-	COMMON_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
-	NCFLAGS:=$(CFLAGS) -DNCURSES_UI
+	COMMON_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c \
+		ual/ui_layout.c
+	NCFLAGS:=$(CFLAGS) -DNCURSES_UI -DUAL_LEGACY_COMPAT
+endif
+ifeq ($(UI), "-DNOTCURSES_UI")
+	COMMON_HDRS+=include/ui_backend.h ui/ui_notcurses_internal.h
+	COMMON_SRCS+=ui/ui_notcurses.c ui/ui_notcurses_draw.c \
+		ui/ui_notcurses_input.c ual/ui_layout.c
+	NCFLAGS:=$(CFLAGS)
 endif
 
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
@@ -82,7 +103,7 @@ SHARED_LDFLAGS:=-Wl,-ffunction-sections \
 		-Wl,--gc-sections
 # -Wl,-Map=output.map
 
-.PHONY: all config help install man install_man clean uninstall helgrind valgrind
+.PHONY: all config help install man install_man clean uninstall helgrind valgrind conformance_test
 
 all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
 	@echo Make Complete
@@ -199,7 +220,27 @@ clean:
 	rm -rf $(BINEXES) $(CFLOW_OUTPUT) .user_id .group_id core scan-build* \
 	CMenu.conf manifest.txt manifest.ls perf.* x xx* *.[aeos] *.diff *.so \
 	*.cflow *.gc.. *.out *.1 *.1.gz CMakeFiles cmake_install.cmake \
-   	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log ui/*.o
+   	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log ui/*.o \
+	ual/*.o conformance_ncurses conformance_notcurses
+
+conformance_test: ui/ui_conformance_test.c
+ifeq ($(UI), "-DNOTCURSES_UI")
+	$(CC) \
+		ui/ui_conformance_test.c \
+		ui/ui_notcurses.c ui/ui_notcurses_draw.c ui/ui_notcurses_input.c \
+		ual/ui_layout.c \
+		$(shell pkg-config --libs notcurses) \
+		-o conformance_notcurses
+	@echo "Run ./conformance_notcurses from a terminal to execute the test"
+else
+	$(CC) -DNCURSES_UI \
+		ui/ui_conformance_test.c \
+		ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c \
+		ual/ui_layout.c \
+		$(shell pkg-config --libs panelw ncursesw) \
+		-o conformance_ncurses
+	@echo "Run ./conformance_ncurses from a terminal to execute the test"
+endif
 
 helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s \
