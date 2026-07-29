@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-28T20:44:45-05:00* - FEATURE: Add code related to the UAL (User Abstraction Layer) and notes UI, including new files for UAL implementation and modifications to existing files for UI backend and surface handling. 
+
+*2026-07-28T15:49:52-05:00* - Update CHANGELOG.md 
+
 *2026-07-27T21:11:57-05:00* - Update CHANGELOG.md 
 
 *2026-07-27T21:01:38-05:00* - FEATURE: Continuing to add support for Notcurses while maintaining compatibility with NCurses. Both APIs will be subsumed into a super-API that can use either backend or others while maintaining a consistent interface with the application program. 

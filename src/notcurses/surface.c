@@ -2,11 +2,12 @@
  * @file nc_ckeys.c
  * @brief Notcurses input handling example
  *
- * This example demonstrates how to handle keyboard and mouse input events using the Notcurses library.
- * It creates two planes and allows the user to interact with them using mouse clicks and keyboard inputs.
- *
- * @author Your Name
- * @date 2024-06-10
+ * This example demonstrates how to handle keyboard and mouse input events using
+ * the Notcurses library.
+ * It creates two planes and allows the user to interact with them using mouse
+ * clicks and keyboard inputs.
+ * @author Bill Waller - Copyright 2026
+ * @ License: MIT
  */
 
 #define _XOPEN_SOURCE 700
@@ -57,19 +58,24 @@ int ui_surface_cnt = 0; // Drawable surface count
 
 NcSurface *nc_surface[MAXSFC];
 
-int handle_input(NotCurses *nc, int y, int x, ncinput *ni);
-
-int main(void) {
-    unsigned int y, x;
+NotCurses *ui_notcurses_init() {
     setlocale(LC_ALL, "");
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
     NotCurses *nc = notcurses_init(&nc_opts, NULL);
     if (!nc) {
-        return 1;
+        return NULL;
     }
     NcPlane *stdn = notcurses_stdplane(nc);
     ncplane_erase(stdn);
+    return nc;
+}
+
+int handle_input(NotCurses *nc, int y, int x, ncinput *ni);
+
+int main(void) {
+    unsigned int y, x;
+    NotCurses *nc = ui_notcurses_init();
 
     NcSurface *surface1 = surface_new(nc, 4, 40, 4, 10, "surface1", "┤ Surface 1 ├", "#00d7ff", "#1c1c1c");
     if (!surface1) {
@@ -92,9 +98,33 @@ int main(void) {
     ncinput ni;
     handle_input(nc, 30, 0, &ni);
     notcurses_mice_disable(nc);
+
     notcurses_stop(nc);
     return 0;
 }
+/**
+ * @brief Create a new NcSurface with a box and a window plane.
+ * @param nc Pointer to the NotCurses context.
+ * @param rows Number of rows for the window plane.
+ * @param cols Number of columns for the window plane.
+ * @param y Y-coordinate for the top-left corner of the box plane.
+ * @param x X-coordinate for the top-left corner of the box plane.
+ * @param name Name of the surface (used for naming planes).
+ * @param title Title to display on the box plane.
+ * @param fg Foreground color in hex format (e.g., "#RRGGBB").
+ * @param bg Background color in hex format (e.g., "#RRGGBB").
+ * @return Pointer to the newly created NcSurface, or NULL on failure.
+ * @details This function creates a new NcSurface consisting of a box plane and
+ * a window plane. The box plane is created with rounded corners and a title,
+ * while the window plane is created inside the box. The foreground and
+ * background colors are set based on the provided hex color strings. The reason
+ * we create a box plane and a window plane is to provide a visual container
+ * (the box) for the content (the window). This allows us to use 0 based
+ * coordinates and prevents the content from overwriting the box borders.
+ * The box plane is created with dimensions of (rows + 2) x (cols + 2) to
+ * accommodate the borders, while the window plane is created with the specified
+ * rows and cols.
+ */
 NcSurface *surface_new(NotCurses *nc, int rows, int cols,
                        int y, int x, const char *name, const char *title,
                        const char *fg, const char *bg) {
@@ -122,6 +152,9 @@ NcSurface *surface_new(NotCurses *nc, int rows, int cols,
     ncplane_set_base(box, " ", 0, channels);
     ncplane_set_channels(box, channels);
     ncplane_perimeter_rounded(box, 0, channels, 0);
+    if (!title || strlen(title) == 0) {
+        title = "┤ Surface ├";
+    }
     int title_len = (int)strlen(title);
     int title_x = (cols - title_len) / 2;
     ncplane_putstr_yx(box, 0, title_x, title);
@@ -229,6 +262,20 @@ int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
     }
     return 0;
 }
+/**
+ * @brief Print formatted text to a plane at specified coordinates and clear to
+ * the end of the line.
+ * @param n Pointer to the NcPlane where the text will be printed.
+ * @param y Y-coordinate for the starting position.
+ * @param x X-coordinate for the starting position.
+ * @param fmt Format string (like printf).
+ * @param ... Additional arguments for the format string.
+ * @details This function prints formatted text to the specified plane at the
+ * given coordinates. After printing, it clears any remaining characters on that
+ * line to ensure a clean output. It uses a temporary buffer to hold the
+ * formatted string and calculates how many spaces are needed to clear to the
+ * end of the line based on the plane's width.
+ */
 void ncplane_printf_yx_clrtoeol(NcPlane *n, int y, int x, const char *fmt, ...) {
     char tmp_str[MAXLEN];
     va_list args;
@@ -250,6 +297,16 @@ void ncplane_move_yx_clrtoeol(NcPlane *n, int y, int x) {
     tmp_str[dcols] = '\0';
     ncplane_putstr_yx(n, y, x, tmp_str);
 }
+/**
+ * @brief Determine which plane was clicked based on the input coordinates.
+ * @param pile_member Pointer to the top plane in the pile.
+ * @param ni Pointer to the ncinput structure containing the click coordinates.
+ * @return Pointer to the clicked NcPlane, or NULL if no plane was clicked.
+ * @details This function checks each plane in the pile, starting from the top,
+ * to see if the click coordinates fall within its bounds. If a plane is found
+ * that contains the click coordinates, it returns a pointer to that plane. If
+ * no planes contain the click coordinates, it returns NULL.
+ */
 NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni) {
     NcPlane *cur = ncpile_top(pile_member);
     while (cur != NULL) {
@@ -263,6 +320,15 @@ NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni) {
     }
     return NULL;
 }
+/** @brief Convert a standard HTML-style hex color string to an RGB structure.
+ * @param s Pointer to the hex color string (e.g., "#RRGGBB").
+ * @return RGB structure containing the red, green, and blue components.
+ * @details This function parses a hex color string and extracts the red, green,
+ * and blue components. It uses sscanf to read the values and stores them in an
+ * RGB structure. The input string should be in the format "#RRGGBB", where RR,
+ * GG, and BB are two-digit hexadecimal numbers representing the color
+ * components.
+ */
 RGB hex_clr_str_to_rgb(char *s) {
     RGB rgb;
     sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
