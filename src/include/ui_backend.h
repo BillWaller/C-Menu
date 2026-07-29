@@ -1,6 +1,11 @@
 #ifndef UI_BACKEND_H
 #define UI_BACKEND_H 1
 
+/** @file ui_backend.h
+    @ingroup ui_backend
+    @brief Backend API for terminal UI library
+*/
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -112,13 +117,76 @@ typedef struct {
     int cols;
 } UiRect;
 
+/** @struct UiConfig
+   @brief Structure representing the configuration options for the UI runtime.
+   @ingroup ui_backend
+   @details The UiConfig structure encapsulates the configuration options that
+   can be set when initializing the UI runtime. This includes enabling mouse
+   support, using an alternate screen buffer, and controlling cursor visibility.
+   The enable_mouse field allows you to specify whether mouse input should be
+   captured and processed by the UI. The enable_alt_screen field determines
+   whether the UI should use an alternate screen buffer, which can help prevent
+   cluttering the main terminal screen. The cursor_visible field controls
+   whether the cursor is visible while the UI is active, which can enhance the
+   user experience in certain applications. The tty_path field, if non-NULL,
+   specifies the terminal device to use; if NULL, the backend auto-detects the
+   terminal (typically via stderr). By configuring these options appropriately,
+   you can tailor the behavior of the UI runtime to suit your application's
+   needs.
+   @see ui_init
+*/
 typedef struct {
     bool enable_mouse;
     bool enable_alt_screen;
     bool cursor_visible;
+    const char *tty_path; /**< optional TTY device path; NULL = auto-detect */
 } UiConfig;
 
-UiRuntime *ui_init(UiRuntime *ui);
+/** @enum UiBackend
+   @brief Identifies which terminal library is powering the UI runtime.
+   @ingroup ui_backend
+*/
+typedef enum {
+    UI_BACKEND_NCURSES = 0, /**< NCurses / NCursesW backend */
+    UI_BACKEND_NOTCURSES    /**< NotCurses backend */
+} UiBackend;
+
+/** @struct UiCaps
+   @brief Capability flags reported by the active UI backend.
+   @ingroup ui_backend
+   @details Query via ui_get_caps() after ui_init() succeeds.  Differences
+   between backends are made explicit through these flags so application code
+   can adapt rather than assume.
+   @see ui_get_caps
+*/
+typedef struct {
+    bool truecolor;    /**< backend can display 24-bit RGB colors */
+    bool palette256;   /**< backend supports at least 256 palette entries */
+    bool mouse;        /**< backend can deliver mouse events */
+    bool unicode;      /**< backend handles full Unicode / UTF-8 correctly */
+    bool resize;       /**< backend emits UI_KEY_RESIZE on terminal resize */
+    int  color_pairs;  /**< max simultaneous color pairs; 0 = unlimited */
+} UiCaps;
+
+/* @name UI Backend API
+   @ingroup ui_backend
+   @details The following functions define the API for implementing a backend
+   for the terminal UI library. These functions cover the initialization and
+   shutdown of the UI runtime, management of surfaces, drawing operations,
+   input handling, and cursor control. Each function is designed to be
+   implemented by the backend according to the specifications provided in
+   the function comments. By implementing these functions, you can create a
+   functional backend that allows the terminal UI library to render and
+   interact with users effectively.
+    @note: ui_init should return NULL on failure and set an appropriate error
+   message that can be retrieved by the caller. The error message should provide
+   details about the reason for the failure, such as issues with terminal
+   capabilities, resource allocation failures, or unsupported features. This
+   allows the caller to handle initialization errors gracefully and provide
+   feedback to the user.
+   @see ui_backend.h
+*/
+UiRuntime *ui_init(const UiConfig *cfg);
 void ui_shutdown(UiRuntime *ui);
 void ui_get_screen_size(UiRuntime *ui, int *rows, int *cols);
 int ui_render(UiRuntime *ui);
@@ -150,6 +218,23 @@ int ui_surface_hide(UiSurface *s);
 int ui_get_event(UiRuntime *ui, UiSurface *target, UiEvent *ev, int timeout_ms);
 int ui_cursor_move(UiSurface *s, int y, int x);
 int ui_cursor_enable(UiRuntime *ui, bool visible);
+
+/* @brief backend identification and capability query
+   @ingroup ui_backend */
+
+/** @brief Return which backend is powering this runtime.
+   @ingroup ui_backend
+   @param ui The UiRuntime returned by ui_init().
+   @return The UiBackend enum value for the compiled-in backend.
+*/
+UiBackend ui_get_backend(const UiRuntime *ui);
+
+/** @brief Query the capabilities of the active backend.
+   @ingroup ui_backend
+   @param ui  The UiRuntime returned by ui_init().
+   @param caps Output structure filled with capability flags.
+*/
+void ui_get_caps(const UiRuntime *ui, UiCaps *caps);
 
 extern UiSurface *ui_surface_box[MAXWIN];
 extern UiSurface *ui_surface_win[MAXWIN];

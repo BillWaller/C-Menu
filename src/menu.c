@@ -7,7 +7,6 @@
     @date 2026-02-09
  */
 #define _GNU_SOURCE
-#include "ncurses/ui_ncurses_internal.h"
 #include "ui_backend.h"
 #include <common.h>
 #include <string.h>

@@ -116,11 +116,10 @@ int main(void) {
  * @return Pointer to the newly created NcSurface, or NULL on failure.
  * @details This function creates a new NcSurface consisting of a box plane and
  * a window plane. The box plane is created with rounded corners and a title,
- * while the window plane is created inside the box. The foreground and
- * background colors are set based on the provided hex color strings. The reason
- * we create a box plane and a window plane is to provide a visual container
- * (the box) for the content (the window). This allows us to use 0 based
- * coordinates and prevents the content from overwriting the box borders.
+ * while the window plane is created inside the box.
+ * The reason we create a box plane and a window plane is to provide a visual
+ * container (the box) for the content (the window). This allows us to use 0
+ * based coordinates and prevents the content from overwriting the box borders.
  * The box plane is created with dimensions of (rows + 2) x (cols + 2) to
  * accommodate the borders, while the window plane is created with the specified
  * rows and cols.
