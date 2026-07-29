@@ -79,7 +79,8 @@ unsigned int menu_engine(Init *init) {
         case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
-                // mvwaddstr(win_win[win_ptr], menu->line_idx, 0, menu->line[menu->line_idx]->choice_text);
+                // mvwaddstr(win_win[win_ptr], menu->line_idx, 0,
+                // menu->line[menu->line_idx]->choice_text);
                 mvwaddstr_fill(win_win[win_ptr],
                                menu->line_idx,
                                0,
@@ -280,11 +281,12 @@ unsigned int menu_cmd_processor(Init *init) {
                 return (MA_CONTINUE);
             menu->line_idx = click_y;
             break;
+        case 'q':
+            return (MA_RETURN);
+            break;
         default:
             /** @brief If the user presses a key that corresponds to a menu
              * choice's letter, select that menu choice */
-            if (in_key == 'q')
-                return (MA_RETURN);
             for (i = 0; i < menu->item_count; i++) {
                 if (menu->line[i]->raw_text[0] == '_') {
                     if (menu->line[i]->choice_letter == (char)in_key) {

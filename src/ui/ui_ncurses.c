@@ -151,6 +151,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     } else {
         ui->cursor_visible = true;
     }
+    ui->panel_main = new_panel(stdscr);
     wbkgd(stdscr, COLOR_PAIR(0));
     if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
@@ -271,21 +272,24 @@ UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect) {
     s->rows = rect.rows;
     s->cols = rect.cols;
 
-    if (parent && parent->win)
+    if (parent && parent->win) {
         s->win = derwin(parent->win, rect.rows, rect.cols, rect.y, rect.x);
-    else
+        if (!s->win) {
+            free(s);
+            return NULL;
+        }
+    } else {
         s->win = newwin(rect.rows, rect.cols, rect.y, rect.x);
-
-    if (!s->win) {
-        free(s);
-        return NULL;
-    }
-
-    s->pan = new_panel(s->win);
-    if (!s->pan) {
-        delwin(s->win);
-        free(s);
-        return NULL;
+        if (!s->win) {
+            free(s);
+            return NULL;
+        }
+        s->pan = new_panel(s->win);
+        if (!s->pan) {
+            delwin(s->win);
+            free(s);
+            return NULL;
+        }
     }
 
     return s;

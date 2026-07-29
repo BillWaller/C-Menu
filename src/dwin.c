@@ -51,8 +51,6 @@ WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
 WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
 WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
 
-PANEL *panel_win2[MAXWIN];
-PANEL *panel_win[MAXWIN];
 PANEL *panel_box[MAXWIN];
 
 void ui_rect_set(UiRect *, int, int, int, int);
@@ -669,11 +667,13 @@ RGB hex_clr_str_to_rgb(char *s) {
 void destroy_curses() {
     if (!f_curses_open)
         return;
-    for (win_ptr = 0; win_ptr < MAXWIN; win_ptr++) {
-        del_panel(panel_box[win_ptr]);
-        delwin(win_win2[win_ptr]);
-        delwin(win_win[win_ptr]);
-        delwin(win_box[win_ptr]);
+    if (win_ptr >= 0) {
+        for (win_ptr = 0; win_ptr < MAXWIN; win_ptr++) {
+            del_panel(panel_box[win_ptr]);
+            delwin(win_win2[win_ptr]);
+            delwin(win_win[win_ptr]);
+            delwin(win_box[win_ptr]);
+        }
     }
     win_ptr = -1;
     endwin();
@@ -781,8 +781,7 @@ cchar_t mkcc(int cp, attr_t attr, const char *s) {
    multibyte characters and applies the specified color pair to each character.
    The function ensures that it does not exceed the maximum length of the output
    buffer. */
-size_t
-str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t maxlen) {
+size_t str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t maxlen) {
     int i = 0, j = 0;
     int len = 0;
     cchar_t cc = {0};
@@ -1010,9 +1009,6 @@ int bare_box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     ui_bkgrnd(ui_win[win_ptr], ui_style, " ");   // flood fill_char
     ui_bkgd_set(ui_win[win_ptr], ui_style, " "); // like wattron
     win_win[win_ptr] = ui_win[win_ptr]->win;
-    panel_win[win_ptr] = ui_win[win_ptr]->pan;
-    mvwaddstr(win_win[win_ptr], 10, 1, "Hello!");
-
 #else
     win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
@@ -1040,7 +1036,6 @@ int win_new(int wlines, int wcols) {
         Perror("win_win[win_ptr] = derwin() failed");
         exit(EXIT_FAILURE);
     }
-    panel_win[win_ptr] = new_panel(win_win[win_ptr]);
     wbkgrnd(win_win[win_ptr], &CC_NT);
     wbkgrndset(win_win[win_ptr], &CC_NT);
     keypad(win_win[win_ptr], true);
@@ -1070,7 +1065,6 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
         Perror("win_win2[win_ptr] = derwin() failed");
         exit(EXIT_FAILURE);
     }
-    panel_win2[win_ptr] = new_panel(win_win2[win_ptr]);
     wbkgrnd(win_win2[win_ptr], &CC_NT);
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
@@ -1093,26 +1087,21 @@ void check_panels(int i) {
     wbkgrnd(win_box[i], &CC_RED);
     ssnprintf(tmp_str, MAXLEN - 1, "box[%d]", i);
     mvwaddstr(win_box[i], 5, 2, tmp_str);
-    show_panel(panel_box[i]);
-    update_panels();
-    doupdate();
     getch();
 
     wbkgrnd(win_win[i], &CC_GREEN);
     ssnprintf(tmp_str, MAXLEN - 1, "win[%d]", i);
     mvwaddstr(win_win[i], 6, 2, tmp_str);
-    show_panel(panel_win[i]);
-    update_panels();
-    doupdate();
     getch();
 
     wbkgrnd(win_win2[i], &CC_BLUE);
     ssnprintf(tmp_str, MAXLEN - 1, "win2[%d]", i);
     mvwaddstr(win_win2[i], 0, 0, tmp_str);
+    getch();
+
+    show_panel(panel_box[i]);
     update_panels();
     doupdate();
-    show_panel(panel_win2[i]);
-    getch();
 }
 /** win_resize
     @brief Resize the current window and its box, and update the title
@@ -1181,35 +1170,28 @@ void win_del() {
         exit(EXIT_FAILURE);
     }
     if (win_ptr >= 0) {
-
-        if (panel_win[win_ptr] != nullptr) {
-            del_panel(panel_win[win_ptr]);
-            panel_win[win_ptr] = nullptr;
-        }
-        if (win_win[win_ptr] != nullptr) {
-            delwin(win_win[win_ptr]);
-            win_win[win_ptr] = nullptr;
-        }
-
-        if (panel_win2[win_ptr] != nullptr) {
-            del_panel(panel_win2[win_ptr]);
-            panel_win2[win_ptr] = nullptr;
-        }
-        if (win_win2[win_ptr] != nullptr) {
-            delwin(win_win2[win_ptr]);
-            win_win2[win_ptr] = nullptr;
-        }
-
+        werase(win_win[win_ptr]);
         if (panel_box[win_ptr] != nullptr) {
             del_panel(panel_box[win_ptr]);
-            panel_box[win_ptr] = nullptr;
+            // panel_box[win_ptr] = nullptr;
         }
-
+        if (win_win2[win_ptr] != nullptr) {
+            werase(win_win2[win_ptr]);
+            delwin(win_win2[win_ptr]);
+            // win_win2[win_ptr] = nullptr;
+        }
+        if (win_win[win_ptr] != nullptr) {
+            werase(win_win[win_ptr]);
+            delwin(win_win[win_ptr]);
+            // win_win[win_ptr] = nullptr;
+        }
         if (win_box[win_ptr] != nullptr) {
+            werase(win_box[win_ptr]);
             delwin(win_box[win_ptr]);
-            win_box[win_ptr] = nullptr;
+            // win_box[win_ptr] = nullptr;
         }
         win_ptr--;
+        restore_wins();
     }
 }
 
@@ -1224,12 +1206,16 @@ void win_del() {
 void restore_wins() {
     touchwin(stdscr);
     for (int i = 0; i <= win_ptr; i++) {
-        if (win_box[i] != nullptr)
+        if (win_box[i] != nullptr) {
             touchwin(win_box[i]);
-        if (win_win[i] != nullptr)
+        }
+        if (win_win[i] != nullptr) {
             touchwin(win_win[i]);
-        if (win_win2[i] == nullptr)
+        }
+        if (win_win2[i] == nullptr) {
             touchwin(win_win2[i]);
+        }
+        show_panel(panel_box[i]);
     }
 }
 int border_draw(WINDOW *box) {

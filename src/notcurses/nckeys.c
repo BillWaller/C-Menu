@@ -44,17 +44,17 @@ NcSurface *nc_surface[MAXSFC];
 int sfc_ptr = -1;
 
 RGB hex_clr_str_to_rgb(char *s);
-
 char *notcurses_key_str(unsigned int, char *);
 void ncplane_printf_yx_clrtoeol(NcPlane *n, int y, int x, const char *fmt, ...);
 void ncplane_move_yx_clrtoeol(NcPlane *n, int y, int x);
-
+int compat_mvwprintw(struct ncplane *, int, int, const char *, ...);
 NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni);
 NcPlane *plane_new(NotCurses *nc, int rows, int cols, int y, int x,
                    const char *name, const char *title, const char *fg, const char *bg);
 NcSurface *surface_new(NotCurses *, int, int, int, int,
                        const char *, const char *, const char *, const char *);
-int ui_surface_cnt = 0; // Drawable surface count
+
+int ui_surface_cnt = 0;
 
 NcSurface *nc_surface[MAXSFC];
 
@@ -215,13 +215,14 @@ NcPlane *plane_new(NotCurses *nc, int rows, int cols,
 
     return plane;
 }
+
 int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
     uint32_t id;
     bool running = true;
     char kstr[MAXLEN];
     NcPlane *stdn = notcurses_stdplane(nc);
     notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
-    y = 36;
+    y = 18;
     ncplane_printf_yx_clrtoeol(stdn, y + 1, x, "%s", "Press 'q' to exit.");
     notcurses_render(nc);
     while (running) {
@@ -295,6 +296,16 @@ void ncplane_move_yx_clrtoeol(NcPlane *n, int y, int x) {
     memset(tmp_str, ' ', dcols);
     tmp_str[dcols] = '\0';
     ncplane_putstr_yx(n, y, x, tmp_str);
+}
+int compat_mvwprintw(struct ncplane *nc, int y, int x, const char *fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+    if (ncplane_vprintf_yx(nc, y, x, fmt, va) < 0) {
+        va_end(va);
+        return -1;
+    }
+    va_end(va);
+    return 0;
 }
 /**
  * @brief Determine which plane was clicked based on the input coordinates.

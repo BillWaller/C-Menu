@@ -934,7 +934,6 @@ int picker(Init *init, char *field) {
                     }
                 mouse_win = nullptr;
                 // 1
-                // top_panel(panel_win[win_ptr]);
                 pick_std_chyron(pick);
                 compile_chyron(pick->chyron);
                 display_chyron(pick->win2, pick->chyron, 1, pick->chyron->l);
@@ -1247,7 +1246,6 @@ int picker(Init *init, char *field) {
                 mouse_win = nullptr;
                 pos = col + strlen(accept_s);
                 // 2
-                // top_panel(panel_win2[win_ptr]);
                 mvwadd_wchnstr(pick->win2, 0, 0, &ran, 1);
                 update_panels();
                 wmove(pick->win2, 0, pos);
