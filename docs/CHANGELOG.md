@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-29T12:42:06-05:00* - FIXES: Building with -DUAL_UI, several minor fixes have been made to the NCurses UI code. 
+
+*2026-07-29T10:50:37-05:00* - Update CHANGELOG.md 
+
 *2026-07-29T10:49:47-05:00* - FEATURE: Reorganize UI code, remove superfluous files. 
 
 *2026-07-28T20:45:21-05:00* - Update CHANGELOG.md 
