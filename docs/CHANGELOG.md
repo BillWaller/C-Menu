@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-29T18:21:49-05:00* - FEATURE: Test/Debug Uniform Abstraction Layer UI for NCurses build with -DUAL_UI, which implements the API for the UAL-UI. # Please enter the commit message for your changes. Lines starting 
+
+*2026-07-29T12:46:15-05:00* - Update CHANGELOG.md 
+
 *2026-07-29T12:42:06-05:00* - FIXES: Building with -DUAL_UI, several minor fixes have been made to the NCurses UI code. 
 
 *2026-07-29T10:50:37-05:00* - Update CHANGELOG.md 
