@@ -1,0 +1,78 @@
+Initialization:
+    set_term
+    can_change_color
+    start_color
+    has_colors
+    newterm
+
+Constructors:
+    newwin
+    derwin
+    subwin
+    new_panel
+    newpad
+    subpad
+
+Destructors:
+    del_panel
+    delwin
+    endwin
+    delscreen
+
+Display Management:
+    wtouchln
+    wnoutrefresh
+    update_panels
+    doupdate
+    pnoutrefresh
+    prefresh
+    show_panel
+    mvwin
+    wresize
+
+Set State:
+    immedok
+    noecho
+    scrollok
+
+Get State:
+    getcurx
+    getcury
+    getmaxx
+    getmaxy
+
+Window Management:
+    wborder_set
+    wbkgrnd
+    wbkgrndset
+    wsetscrreg
+
+Mouse:
+    mousemask
+    getmouse
+    wenclose
+    wmouse_trafo
+
+Colors:
+    init_extended_color
+    init_extended_pair
+    extended_color_content
+    extended_pair_content
+
+Complex Character Cells:
+    getcchar
+    setcchar
+
+Content:
+    beep
+    waddch
+    waddnstr
+    waddnwstr
+    wadd_wch
+    wadd_wchnstr
+    wclrtobot
+    wclrtoeol
+    werase
+    wgetch
+    wmove
+    wscrl

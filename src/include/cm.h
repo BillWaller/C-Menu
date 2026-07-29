@@ -21,6 +21,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <time.h>
+#include <wchar.h>
 #ifdef UAL_UI
 #include <ui_backend.h>
 #include <ui_ncurses_internal.h>

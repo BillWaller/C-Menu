@@ -11,10 +11,9 @@
 */
 
 #define _GNU_SOURCE
-#define _XOPEN_SOURCE_EXTENDED
 #define NCURSES_WIDECHAR 1
 
-#include "../include/ui_backend.h"
+#include "ui_backend.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
 #include <stdbool.h>
@@ -32,13 +31,13 @@
    not yet been migrated to the UAL API.
 */
 struct UiRuntime {
-    SCREEN *screen;        /**< NCurses SCREEN created by newterm() */
-    FILE   *tty_fp;        /**< TTY file handle opened by ui_init() */
-    bool    mouse_enabled;
-    bool    alt_screen;
-    bool    cursor_visible;
-    int     rows;
-    int     cols;
+    SCREEN *screen; /**< NCurses SCREEN created by newterm() */
+    FILE *tty_fp;   /**< TTY file handle opened by ui_init() */
+    bool mouse_enabled;
+    bool alt_screen;
+    bool cursor_visible;
+    int rows;
+    int cols;
 };
 
 /** @struct UiSurface
@@ -48,25 +47,25 @@ struct UiRuntime {
    Wraps an NCurses WINDOW and its associated PANEL.
 */
 struct UiSurface {
-    WINDOW          *win;
-    PANEL           *pan;
+    WINDOW *win;
+    PANEL *pan;
     struct UiRuntime *runtime;
     struct UiSurface *parent;
-    int   y;
-    int   x;
-    int   rows;
-    int   cols;
-    bool  hidden;
-    char  name[XLEN];
-    char  title[XLEN];
+    int y;
+    int x;
+    int rows;
+    int cols;
+    bool hidden;
+    char name[XLEN];
+    char title[XLEN];
 };
 
 /* Internal style helpers */
-int     ui_ncurses_style_apply(WINDOW *win, const UiStyle *style);
-int     ui_ncurses_color_pair_from_style(const UiStyle *style);
+int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style);
+int ui_ncurses_color_pair_from_style(const UiStyle *style);
 UiStyle *ui_style_new(void);
-void    ui_style_destroy(UiStyle *);
+void ui_style_destroy(UiStyle *);
 UiStyle *ui_style_from_cch(const cchar_t *);
-cchar_t  ui_style_to_cch(const UiStyle *, const char *);
+cchar_t ui_style_to_cch(const UiStyle *, const char *);
 
 #endif

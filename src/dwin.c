@@ -999,16 +999,16 @@ int bare_box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     panel_box[win_ptr] = ui_box[win_ptr]->pan;
 
     UiStyle *ui_style = ui_style_from_cch(&CC_BOX);
-    ui_bkgrnd(ui_box[win_ptr], ui_style, " ");     // flood fill_char
-    ui_bkgrnd_set(ui_box[win_ptr], ui_style, " "); // like wattron
+    ui_bkgrnd(ui_box[win_ptr], ui_style, " ");   // flood fill_char
+    ui_bkgd_set(ui_box[win_ptr], ui_style, " "); // like wattron
     wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
     border_title(win_box[win_ptr], wtitle);
 
     ui_rect_set(&ui_rect, 1, 1, wlines, wcols);
     ui_win[win_ptr] = ui_surface_new(ui_runtime, ui_box[win_ptr], ui_rect);
     ui_style = ui_style_from_cch(&CC_NT);
-    ui_bkgrnd(ui_win[win_ptr], ui_style, " ");     // flood fill_char
-    ui_bkgrnd_set(ui_win[win_ptr], ui_style, " "); // like wattron
+    ui_bkgrnd(ui_win[win_ptr], ui_style, " ");   // flood fill_char
+    ui_bkgd_set(ui_win[win_ptr], ui_style, " "); // like wattron
     win_win[win_ptr] = ui_win[win_ptr]->win;
     panel_win[win_ptr] = ui_win[win_ptr]->pan;
     mvwaddstr(win_win[win_ptr], 10, 1, "Hello!");
