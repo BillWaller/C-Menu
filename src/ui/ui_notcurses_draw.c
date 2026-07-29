@@ -49,10 +49,10 @@ int ui_draw_hline(UiSurface *s, int y, int x, int len, const UiStyle *style) {
         return -1;
     uint64_t channels = ui_notcurses_channels_from_style(style);
     uint32_t attrs    = ui_notcurses_attrs_from_style(style);
-    ncplane_cursor_move_yx(s->plane, y, x);
+    ncplane_set_channels(s->plane, channels);
+    ncplane_set_styles(s->plane, attrs);
     for (int i = 0; i < len; i++)
         ncplane_putegc_yx(s->plane, y, x + i, "\xe2\x94\x80", NULL); /* U+2500 ─ */
-    (void)channels; (void)attrs;
     return 0;
 }
 
@@ -62,7 +62,8 @@ int ui_draw_vline(UiSurface *s, int y, int x, int len, const UiStyle *style) {
         return -1;
     uint64_t channels = ui_notcurses_channels_from_style(style);
     uint32_t attrs    = ui_notcurses_attrs_from_style(style);
-    (void)channels; (void)attrs;
+    ncplane_set_channels(s->plane, channels);
+    ncplane_set_styles(s->plane, attrs);
     for (int i = 0; i < len; i++)
         ncplane_putegc_yx(s->plane, y + i, x, "\xe2\x94\x82", NULL); /* U+2502 │ */
     return 0;
