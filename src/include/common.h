@@ -143,7 +143,7 @@ typedef struct
     bool f_ln;                 /**< View - show line numbers */
     bool wrap;                 /**< View - wrap lines */
     char brackets[3];          /**< Form - left and right enclosing characters */
-    char fill_char[4];         /**< Form - fill character for fields */
+    char fill_char[2];         /**< Form - fill character for fields */
     char mapp_home[MAXLEN];    /**< home directory */
     char mapp_data[MAXLEN];    /**< data directory */
     char mapp_help[MAXLEN];    /**< help directory */

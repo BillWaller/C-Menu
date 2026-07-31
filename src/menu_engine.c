@@ -79,8 +79,6 @@ unsigned int menu_engine(Init *init) {
         case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
-                // mvwaddstr(win_win[win_ptr], menu->line_idx, 0,
-                // menu->line[menu->line_idx]->choice_text);
                 mvwaddstr_fill(win_win[win_ptr],
                                menu->line_idx,
                                0,

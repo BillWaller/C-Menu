@@ -57,7 +57,6 @@ int border_draw(WINDOW *);
 int border_ysplit(WINDOW *, int);
 int border_ysplit_text(WINDOW *, char *, int);
 
-void win_init_attrs();
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 void abend(int, char *);
 int nf_error(int, char *);
@@ -176,7 +175,6 @@ int cp_nt_rev;
 int cp_nt_hl;
 int cp_nt_hl_rev;
 int cp_ln;
-int cp_norm;
 int cp_fill_char;
 int cp_brackets;
 int cp_red;
@@ -206,36 +204,9 @@ cchar_t CC_RED;
 cchar_t CC_GREEN;
 cchar_t CC_YELLOW;
 cchar_t CC_BLUE;
-UiStyle *style_fill_char;
-UiStyle *style_brackets;
-UiStyle *style_box;
-UiStyle *style_ind;
-UiStyle *style_cmdln;
-UiStyle *style_title;
-UiStyle *style_ln;
-UiStyle *style_cmdln;
-UiStyle *style_nt;
-UiStyle *style_nt_rev;
-UiStyle *style_nt_hl;
-UiStyle *style_nt_hl_rev;
-UiStyle *style_norm;
-UiStyle *style_ran;
-
-UiStyle *ui_set_style(char *fg, char *bg);
-
-void set_styles(SIO *sio);
 
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
-
-/** @brief Initialize window attributes
-    @ingroup window_support
-    @details This function initializes color pairs for the window
-    cp_nt, and cp_box are global variables
- */
-void win_init_attrs() {
-    return;
-}
 
 /** open_curses
     @brief Initialize NCurses and color settings
@@ -348,7 +319,6 @@ void initialize_local_colors(SIO *sio) {
     cp_title = get_clr_pair(CLR_TITLE_FG, CLR_TITLE_BG);
     cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
     cp_cmdln = get_clr_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
-    cp_norm = get_clr_pair(CLR_FG, CLR_BG);
     cp_red = get_clr_pair(CLR_FG, CLR_RED);
     cp_green = get_clr_pair(CLR_FG, CLR_GREEN);
     cp_yellow = get_clr_pair(CLR_BG, CLR_YELLOW);
@@ -368,7 +338,6 @@ void initialize_local_colors(SIO *sio) {
     CC_CMDLN = mkcc(cp_cmdln, WA_NORMAL, " ");
     CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
     CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
-    CC_NORM = mkcc(cp_norm, WA_NORMAL, " ");
     CC_RAN = mkcc(cp_ind, WA_NORMAL, " ");
     CC_CHK = mkcc(cp_ind, WA_NORMAL, " ");
     CC_RED = mkcc(cp_red, WA_NORMAL, " ");
@@ -396,32 +365,6 @@ void initialize_local_colors(SIO *sio) {
     setcchar(&ran, &bw_ran, WA_NORMAL, cp_ind, NULL); // Right angle
     setcchar(&chk, &bw_chk, WA_NORMAL, cp_ind, NULL); // Right angle
 }
-
-void set_styles(SIO *sio) {
-    style_fill_char = ui_set_style(sio->fill_char_fg, sio->fill_char_bg);
-    style_brackets = ui_set_style(sio->brackets_fg, sio->brackets_bg);
-    style_box = ui_set_style(sio->box_fg, sio->box_bg);
-    style_ind = ui_set_style(sio->ind_fg, sio->ind_bg);
-    style_cmdln = ui_set_style(sio->cmdln_fg, sio->cmdln_bg);
-    style_title = ui_set_style(sio->title_fg, sio->title_bg);
-    style_ln = ui_set_style(sio->ln_fg, sio->ln_bg);
-    style_nt = ui_set_style(sio->nt_fg, sio->nt_bg);
-    style_nt_rev = ui_set_style(sio->nt_rev_fg, sio->nt_rev_bg);
-    style_nt_hl = ui_set_style(sio->nt_hl_fg, sio->nt_hl_bg);
-    style_nt_hl_rev = ui_set_style(sio->nt_hl_rev_fg, sio->nt_hl_rev_bg);
-    style_ran = ui_set_style(sio->ran_fg, sio->ran_bg);
-}
-UiStyle *ui_set_style(char *fg, char *bg) {
-    RGB rgb_fg = hex_clr_str_to_rgb(fg);
-    RGB rgb_bg = hex_clr_str_to_rgb(bg);
-    int fg_idx = rgb_to_curses_clr(&rgb_fg);
-    int bg_idx = rgb_to_curses_clr(&rgb_bg);
-    int pair_idx = get_clr_pair(fg_idx, bg_idx);
-    UiStyle *style = (UiStyle *)malloc(sizeof(UiStyle));
-    style->pair_idx = pair_idx;
-    return style;
-}
-
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
    Pairs
@@ -930,12 +873,11 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
 }
 // ------------------->    box_win_new    <-------------------
 int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
-    int maxy, maxx;
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    int maxy, maxx;
     getmaxyx(stdscr, maxy, maxx);
     wlines = min(wlines, maxy - 2);
     wcols = min(wcols, maxx - 2);
@@ -1089,21 +1031,7 @@ void win_resize(int wlines, int wcols, char *title) {
     wresize(win_box[win_ptr], wlines + 2, wcols + 2);
     wbkgrndset(win_box[win_ptr], &CC_BOX);
     wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
-    if (title != nullptr && *title != '\0') {
-        wmove(win_box[win_ptr], 0, 1);
-        waddnstr(win_box[win_ptr], (const char *)&bw_rt, 1);
-        wmove(win_box[win_ptr], 0, 2);
-        waddnstr(win_box[win_ptr], (const char *)&bw_sp, 1);
-        mvwaddnwstr(win_box[win_ptr], 0, 1, &bw_rt, 1);
-        mvwaddnwstr(win_box[win_ptr], 0, 2, &bw_sp, 1);
-        mvwaddstr(win_box[win_ptr], 0, 3, title);
-        maxx = getmaxx(win_box[win_ptr]);
-        int s = strlen(title);
-        if ((s + 3) < maxx)
-            mvwaddch(win_box[win_ptr], 0, (s + 3), ' ');
-        if ((s + 4) < maxx)
-            mvwaddnwstr(win_box[win_ptr], 0, (s + 4), &bw_lt, 1);
-    }
+    border_title(win_box[win_ptr], title);
     update_panels();
     wresize(win_win[win_ptr], wlines, wcols);
     wbkgrndset(win_win[win_ptr], &CC_NT);
@@ -1196,12 +1124,10 @@ int border_draw(WINDOW *box) {
     for (x = 1; x < maxx - 1; x++)
         mvwadd_wchnstr(box, y, x, &ts, 1);    // horizontal line
     mvwadd_wchnstr(box, y, maxx - 1, &tr, 1); // top left
-
     for (y = 1; y < maxy - 1; y++) {
         mvwadd_wchnstr(box, y, 0, &ls, 1);        // vertical line
         mvwadd_wchnstr(box, y, maxx - 1, &rs, 1); // vertical line
     }
-
     mvwadd_wchnstr(box, y, 0, &bl, 1); // bottom left
     for (x = 1; x < maxx - 1; x++)
         mvwadd_wchnstr(box, y, x, &bs, 1);    // horizontal line
@@ -1317,11 +1243,13 @@ WINDOW *message_win(char *msg) {
     int wlines = 3, wcols = 40;
     int wbegy = 0;
     int wbegx = COLS - wcols - 2;
+
     WINDOW *win = subwin(stdscr, wlines, wcols, wbegy, wbegx);
     if (win == nullptr)
         return win;
     wbkgrndset(win, &CC_BOX);
     wborder_set(win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
+
     strnz(msg, 40);
     mvwaddstr(win, 0, 1, msg);
     update_panels();

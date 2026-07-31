@@ -74,6 +74,41 @@ int ui_surface_set_base(UiSurface *s, const UiStyle *style, uint32_t fill_ch) {
    Text
    ------------------------------------------------------------------------- */
 
+int ui_mvwaddstr(UiSurface *s, int y, int x, const char *txt) {
+    if (!s || !txt)
+        return -1;
+    mvwaddstr(s->win, y, x, txt);
+    return 0;
+}
+
+void ui_mvwaddstr_fill(UiSurface *sfc, int y, int x, char *s, int l) {
+    char *d, *e;
+    int maxy, maxx;
+    char tmp_str[MAXLEN];
+    getmaxyx(sfc->win, maxy, maxx);
+    y = min(y, maxy);
+    l = min(l, maxx);
+    l = min(l, MAXLEN - 1);
+    e = d = tmp_str;
+    e += l;
+    while (d < e) {
+        if (*s == '\0' || *s == '\n')
+            *d++ = ' ';
+        else
+            *d++ = *s++;
+    }
+    *d = '\0';
+    l = strlen(tmp_str);
+    mvwaddstr(sfc->win, y, x, tmp_str);
+}
+
+int ui_wclrtoeol(UiSurface *s) {
+    if (!s)
+        return -1;
+    wclrtoeol(s->win);
+    return 0;
+}
+
 /** @brief Draw UTF-8 text at (y, x) with optional style. */
 int ui_draw_text(UiSurface *s, int y, int x, const UiStyle *style,
                  const char *text) {
@@ -203,7 +238,7 @@ int ui_draw_box_title(UiSurface *s, int x, const UiStyle *style,
     mvwaddstr(s->win, 0, x, title);
     return 0;
 }
-
+/** @brief Convert a multibyte string to a complex character array. */
 int mbstr_to_cc(char *in_str, cchar_t *cmplx_buf_s) {
     char ansi_tok[MAXLEN];
     int i = 0, j = 0, x = 0;
@@ -290,7 +325,7 @@ int mbstr_to_cc(char *in_str, cchar_t *cmplx_buf_s) {
     cmplx_buf[j] = cc;
     return x;
 }
-
+/** @brief Parse an ANSI SGR sequence and update attributes and color pair index. */
 void parse_ansi(char *ansi_str, attr_t *attr, int *cpx) {
     char *tok;
     char t0, t1;

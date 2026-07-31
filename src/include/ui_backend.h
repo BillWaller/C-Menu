@@ -12,8 +12,8 @@
 #define MAXWIN 30
 
 typedef struct UiRuntime UiRuntime;
-
 typedef struct UiSurface UiSurface;
+typedef struct UiSplitSurface UiSplitSurface;
 
 typedef enum {
     UI_KEY_NONE = 0,
@@ -90,7 +90,7 @@ typedef struct {
 typedef struct {
     UiColor fg;
     UiColor bg;
-    int pair_idx;
+    int cp;
     bool bold;
     bool dim;
     bool italic;
@@ -109,6 +109,8 @@ typedef struct {
     int y;
     int x;
     UiMouseAction mouse_action;
+    bool mouse_inside;
+    char keybound[32];
 } UiEvent;
 
 typedef struct {
@@ -204,6 +206,8 @@ int ui_surface_clear(UiSurface *s);
 int ui_surface_erase(UiSurface *s);
 int ui_surface_set_base(UiSurface *s, const UiStyle *style, uint32_t fill_ch);
 int ui_surface_set_style(UiSurface *s, const UiStyle *style);
+int ui_mvwaddstr(UiSurface *s, int y, int x, const char *text);
+int ui_wclrtoeol(UiSurface *s);
 
 int ui_draw_text(UiSurface *s, int y, int x, const UiStyle *style, const char *text);
 int ui_draw_text_n(UiSurface *s, int y, int x, const UiStyle *style, const char *text, size_t n);
@@ -238,8 +242,7 @@ UiBackend ui_get_backend(const UiRuntime *ui);
 */
 void ui_get_caps(const UiRuntime *ui, UiCaps *caps);
 
-extern UiSurface *ui_surface_box[MAXWIN];
-extern UiSurface *ui_surface_win[MAXWIN];
-extern UiSurface *ui_surface_win2[MAXWIN];
+extern UiRuntime *ui_runtime;
+extern UiSurface *ui_surface[MAXWIN];
 
 #endif

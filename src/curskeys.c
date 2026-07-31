@@ -7,7 +7,9 @@
     @date 2026-02-09
  */
 
-#include <common.h>
+#include "include/common.h"
+#include "include/ui_backend.h"
+// #include "ui/ui_ncurses_internal.h"
 #include <ncursesw/ncurses.h>
 #include <unistd.h>
 
@@ -33,8 +35,7 @@ int popup_ckeys() {
     MEVENT event;
     char *s;
     int maxy, maxx;
-
-    getmaxyx(stdscr, maxy, maxx);
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
     int begy = (maxy - lines) / 3;
     int begx = (maxx - cols) / 2;
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
@@ -46,23 +47,22 @@ int popup_ckeys() {
         Perror(tmp);
         exit(EXIT_FAILURE);
     }
-    // box = win_box[win_ptr];
+    UiSurface *sfc = ui_surface[win_ptr];
     win = win_win[win_ptr];
     keypad(win, TRUE);
-    wbkgrndset(win, &CC_NT_REV);
-    mvwaddstr(win, lines - 1, 0, " <ALT>END to exit ");
-    wbkgrndset(win, &CC_NT);
-    // wnoutrefresh(box);
-    mvwaddstr(win, 1, 4, "Press a key or activate the mouse:");
+    ui_bkgrndset(sfc, nullptr, " ");
+    ui_mvwaddstr(sfc, lines - 1, 0, " <ALT>END to exit ");
+    ui_bkgrndset(sfc, NULL, " ");
+    ui_mvwaddstr(sfc, 1, 4, "Press a key or activate the mouse:");
     c = '\0';
-    halfdelay(1);
+    // halfdelay(1);
+    UiEvent ev;
     while (!c) {
         kstr[0] = '\0';
-        wmove(win, 1, 39);
+        ui_cursor_move(sfc, 1, 39);
         do {
-            update_panels();
-            doupdate();
-            c = wgetch(win);
+            ui_render(ui_runtime);
+            c = ui_get_event(ui_runtime, sfc, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
                     c = display_error(em0, em1, em2, NULL);
@@ -71,7 +71,6 @@ int popup_ckeys() {
                 continue;
             }
         } while (c == ERR);
-        s = keybound(c, 0);
         switch (c) {
         case '\0':
             break;
@@ -460,121 +459,114 @@ int popup_ckeys() {
             strnz__cpy(kstr, "KEY_ALTF12 alt+F12", KSTRLEN - 1);
             break;
         case KEY_MOUSE:
-            action[0] = '\0';
-            if (getmouse(&event) == OK) {
-                switch (event.bstate) {
-                case BUTTON1_PRESSED:
-                    strnz__cpy(action, "Button 1 pressed", KSTRLEN - 1);
-                    break;
-                case BUTTON1_RELEASED:
-                    strnz__cpy(action, "Button 1 released", KSTRLEN - 1);
-                    break;
-                case BUTTON1_CLICKED:
-                    strnz__cpy(action, "Button 1 clicked", KSTRLEN - 1);
-                    break;
-                case BUTTON1_DOUBLE_CLICKED:
-                    strnz__cpy(action, "Button 1 double-clicked", KSTRLEN - 1);
-                    break;
-                case BUTTON2_PRESSED:
-                    strnz__cpy(action, "Button 2 pressed", KSTRLEN - 1);
-                    break;
-                case BUTTON2_RELEASED:
-                    strnz__cpy(action, "Button 2 released", KSTRLEN - 1);
-                    break;
-                case BUTTON2_CLICKED:
-                    strnz__cpy(action, "Button 2 clicked", KSTRLEN - 1);
-                    break;
-                case BUTTON2_DOUBLE_CLICKED:
-                    strnz__cpy(action, "Button 2 double-clicked", KSTRLEN - 1);
-                    break;
-                case BUTTON3_PRESSED:
-                    strnz__cpy(action, "Button 3 pressed", KSTRLEN - 1);
-                    break;
-                case BUTTON3_RELEASED:
-                    strnz__cpy(action, "Button 3 released", KSTRLEN - 1);
-                    break;
-                case BUTTON3_CLICKED:
-                    strnz__cpy(action, "Button 3 clicked", KSTRLEN - 1);
-                    break;
-                case BUTTON3_DOUBLE_CLICKED:
-                    strnz__cpy(action, "Button 3 double-clicked", KSTRLEN - 1);
-                    break;
-                case BUTTON4_PRESSED:
-                    strnz__cpy(action, "Button 4 pressed", KSTRLEN - 1);
-                    break;
-                case BUTTON4_RELEASED:
-                    strnz__cpy(action, "Button 4 released", KSTRLEN - 1);
-                    break;
-                case BUTTON4_CLICKED:
-                    strnz__cpy(action, "Button 4 clicked", KSTRLEN - 1);
-                    break;
-                case BUTTON4_DOUBLE_CLICKED:
-                    strnz__cpy(action, "Button 4 double-clicked", KSTRLEN - 1);
-                    break;
-                case BUTTON5_PRESSED:
-                    strnz__cpy(action, "Scroll Up", KSTRLEN - 1);
-                    break;
-                default:
-                    break;
-                }
-                mvwaddstr(win, 6, 3, "     Action:");
-                mvwaddstr(win, 6, 16, action);
-                wclrtoeol(win);
-
-                strnz__cpy(tmp, "  With Key:", MAXLEN - 1);
-                if (event.bstate & BUTTON_SHIFT)
-                    strnz__cat(tmp, " Shift", MAXLEN - 1);
-                if (event.bstate & BUTTON_CTRL)
-                    strnz__cat(tmp, " Ctrl", MAXLEN - 1);
-                if (event.bstate & BUTTON_ALT)
-                    strnz__cat(tmp, " Alt", MAXLEN - 1);
-                mvwaddstr(win, 3, 4, tmp);
-                wclrtoeol(win);
-                if (wenclose(win, event.y, event.x)) {
-                    sprintf(tmp, "   Inside Win:  y: %3d, x: %3d",
-                            event.y - begy, event.x - begx);
-                } else {
-                    sprintf(tmp, "  Outside Win:  y: %3d, x: %3d",
-                            event.y - begy, event.x - begx);
-                }
-                mvwaddstr(win, 4, 4, tmp);
-                wclrtoeol(win);
-                wmove(win, 5, 0);
-                wclrtoeol(win);
-                wmove(win, 7, 0);
-                wclrtoeol(win);
+            switch (event.bstate) {
+            case BUTTON1_PRESSED:
+                strnz__cpy(action, "Button 1 pressed", KSTRLEN - 1);
+                break;
+            case BUTTON1_RELEASED:
+                strnz__cpy(action, "Button 1 released", KSTRLEN - 1);
+                break;
+            case BUTTON1_CLICKED:
+                strnz__cpy(action, "Button 1 clicked", KSTRLEN - 1);
+                break;
+            case BUTTON1_DOUBLE_CLICKED:
+                strnz__cpy(action, "Button 1 double-clicked", KSTRLEN - 1);
+                break;
+            case BUTTON2_PRESSED:
+                strnz__cpy(action, "Button 2 pressed", KSTRLEN - 1);
+                break;
+            case BUTTON2_RELEASED:
+                strnz__cpy(action, "Button 2 released", KSTRLEN - 1);
+                break;
+            case BUTTON2_CLICKED:
+                strnz__cpy(action, "Button 2 clicked", KSTRLEN - 1);
+                break;
+            case BUTTON2_DOUBLE_CLICKED:
+                strnz__cpy(action, "Button 2 double-clicked", KSTRLEN - 1);
+                break;
+            case BUTTON3_PRESSED:
+                strnz__cpy(action, "Button 3 pressed", KSTRLEN - 1);
+                break;
+            case BUTTON3_RELEASED:
+                strnz__cpy(action, "Button 3 released", KSTRLEN - 1);
+                break;
+            case BUTTON3_CLICKED:
+                strnz__cpy(action, "Button 3 clicked", KSTRLEN - 1);
+                break;
+            case BUTTON3_DOUBLE_CLICKED:
+                strnz__cpy(action, "Button 3 double-clicked", KSTRLEN - 1);
+                break;
+            case BUTTON4_PRESSED:
+                strnz__cpy(action, "Button 4 pressed", KSTRLEN - 1);
+                break;
+            case BUTTON4_RELEASED:
+                strnz__cpy(action, "Button 4 released", KSTRLEN - 1);
+                break;
+            case BUTTON4_CLICKED:
+                strnz__cpy(action, "Button 4 clicked", KSTRLEN - 1);
+                break;
+            case BUTTON4_DOUBLE_CLICKED:
+                strnz__cpy(action, "Button 4 double-clicked", KSTRLEN - 1);
+                break;
+            case BUTTON5_PRESSED:
+                strnz__cpy(action, "Scroll Up", KSTRLEN - 1);
+                break;
+            default:
+                break;
             }
-            break;
+            ui_mvwaddstr(sfc, 6, 3, "     Action:");
+            ui_mvwaddstr(sfc, 6, 16, action);
+            ui_wclrtoeol(sfc);
+            strnz__cpy(tmp, "  With Key:", MAXLEN - 1);
+            if (event.bstate & BUTTON_SHIFT)
+                strnz__cat(tmp, " Shift", MAXLEN - 1);
+            if (event.bstate & BUTTON_CTRL)
+                strnz__cat(tmp, " Ctrl", MAXLEN - 1);
+            if (event.bstate & BUTTON_ALT)
+                strnz__cat(tmp, " Alt", MAXLEN - 1);
+            ui_mvwaddstr(sfc, 3, 4, tmp);
+            ui_wclrtoeol(sfc);
+            if (ev.mouse_inside) {
+                sprintf(tmp, "   Inside Win:  y: %3d, x: %3d",
+                        ev.y - begy, ev.x - begx);
+            } else {
+                sprintf(tmp, "       stdwin:  y: %3d, x: %3d",
+                        ev.y - begy, ev.x - begx);
+            }
+            ui_mvwaddstr(sfc, 4, 4, tmp);
+            ui_wclrtoeol(sfc);
+            ui_cursor_move(sfc, 5, 0);
+            ui_wclrtoeol(sfc);
+            ui_cursor_move(sfc, 7, 0);
+            ui_wclrtoeol(sfc);
         default:
             break;
         }
         if (c != KEY_MOUSE) {
-
             sprintf(tmp, "     Octal: %3o", c);
-            mvwaddstr(win, 3, 4, tmp);
-            wclrtoeol(win);
+            ui_mvwaddstr(sfc, 3, 4, tmp);
+            ui_wclrtoeol(sfc);
 
             sprintf(tmp, "   Decimal: %3d", c);
-            mvwaddstr(win, 4, 4, tmp);
-            wclrtoeol(win);
+            ui_mvwaddstr(sfc, 4, 4, tmp);
+            ui_wclrtoeol(sfc);
 
             sprintf(tmp, "       Hex: %3x", c);
-            mvwaddstr(win, 5, 4, tmp);
-            wclrtoeol(win);
+            ui_mvwaddstr(sfc, 5, 4, tmp);
+            ui_wclrtoeol(sfc);
 
             if (kstr[0]) {
                 sprintf(tmp, "Description: %s", kstr);
             } else {
                 sprintf(tmp, "      ASCII: %c", c);
             }
-            mvwaddstr(win, 6, 3, tmp);
-            wclrtoeol(win);
-            mvwaddstr(win, 7, 2, "Key bound To: ");
-            wclrtoeol(win);
-            mvwaddstr(win, 7, 16, s ? s : "Not Bound");
-            // wrefresh(win);
-            update_panels();
-            doupdate();
+            ui_mvwaddstr(sfc, 6, 3, tmp);
+            ui_wclrtoeol(sfc);
+            s = ev.keybound;
+            ui_mvwaddstr(sfc, 7, 2, "Key bound To: ");
+            ui_wclrtoeol(sfc);
+            ui_mvwaddstr(sfc, 7, 16, s ? s : "Not Bound");
+            ui_render(ui_runtime);
         }
         if (c == KEY_ALTEND) {
             usleep(100000);

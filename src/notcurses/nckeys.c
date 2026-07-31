@@ -39,7 +39,7 @@ struct NcSurface {
 
 typedef struct NcSurface NcSurface;
 
-NcSurface *nc_surface[MAXSFC];
+NcSurface nc_surface[MAXSFC];
 
 int sfc_ptr = -1;
 
@@ -54,9 +54,7 @@ NcPlane *plane_new(NotCurses *nc, int rows, int cols, int y, int x,
 NcSurface *surface_new(NotCurses *, int, int, int, int,
                        const char *, const char *, const char *, const char *);
 
-int ui_surface_cnt = 0;
-
-NcSurface *nc_surface[MAXSFC];
+int nc_surface_cnt = 0;
 
 NotCurses *ui_notcurses_init() {
     setlocale(LC_ALL, "");
@@ -82,8 +80,8 @@ int main(void) {
         notcurses_stop(nc);
         return 1;
     }
-    ncplane_dim_yx(nc_surface[0]->win, &y, &x);
-    ncplane_printf_yx_clrtoeol(nc_surface[0]->win, 0, 0, "%s (y=%d, x=%d)", ncplane_name(nc_surface[0]->win), y, x);
+    ncplane_dim_yx(nc_surface[0].win, &y, &x);
+    ncplane_printf_yx_clrtoeol(nc_surface[0].win, 0, 0, "%s (y=%d, x=%d)", ncplane_name(nc_surface[0].win), y, x);
     notcurses_render(nc);
 
     NcSurface *surface2 = surface_new(nc, 4, 40, 12, 10, "surface2", "┤ Surface 2 ├", "#c0c0c0", "#000714");
@@ -91,8 +89,8 @@ int main(void) {
         notcurses_stop(nc);
         return 1;
     }
-    ncplane_dim_yx(nc_surface[1]->win, &y, &x);
-    ncplane_printf_yx_clrtoeol(nc_surface[1]->win, 0, 0, "%s (y=%d, x=%d)", ncplane_name(nc_surface[1]->win), y, x);
+    ncplane_dim_yx(nc_surface[1].win, &y, &x);
+    ncplane_printf_yx_clrtoeol(nc_surface[1].win, 0, 0, "%s (y=%d, x=%d)", ncplane_name(nc_surface[1].win), y, x);
     notcurses_render(nc);
 
     ncinput ni;
@@ -171,10 +169,9 @@ NcSurface *surface_new(NotCurses *nc, int rows, int cols,
     ncplane_set_base(win, " ", 0, channels);
     ncplane_set_channels(win, channels);
     sfc_ptr++;
-    nc_surface[sfc_ptr] = malloc(sizeof(NcSurface));
-    nc_surface[sfc_ptr]->box = box;
-    nc_surface[sfc_ptr]->win = win;
-    return nc_surface[sfc_ptr];
+    nc_surface[sfc_ptr].box = box;
+    nc_surface[sfc_ptr].win = win;
+    return &nc_surface[sfc_ptr];
 }
 NcPlane *plane_new(NotCurses *nc, int rows, int cols,
                    int y, int x, const char *name, const char *title,

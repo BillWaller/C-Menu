@@ -211,6 +211,7 @@ typedef struct {
 typedef struct {
     UiColor fg;
     UiColor bg;
+    int cp;
     bool bold;
     bool dim;
     bool italic;

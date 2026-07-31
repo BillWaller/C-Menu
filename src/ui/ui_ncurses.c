@@ -91,9 +91,6 @@ static int nc_alloc_pair(int fg, int bg) {
 /* -------------------------------------------------------------------------
    Global surface arrays (declared extern in ui_backend.h).
    ------------------------------------------------------------------------- */
-UiSurface *ui_surface_box[MAXWIN];
-UiSurface *ui_surface_win[MAXWIN];
-UiSurface *ui_surface_win2[MAXWIN];
 
 /* -------------------------------------------------------------------------
    Lifecycle
@@ -302,14 +299,12 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int co
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-
     s->runtime = ui;
     s->parent = parent;
     s->y = y;
     s->x = x;
     s->rows = rows;
     s->cols = cols;
-
     if (parent && parent->win) {
         s->box = derwin(parent->win, rows + 2, cols + 2, y, x);
         if (!s->box) {
@@ -333,8 +328,6 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int co
     wbkgrndset(s->box, &CC_BOX);
     border_draw(s->box);
     border_title(s->box, wtitle);
-    update_panels();
-    doupdate();
     s->win = derwin(s->box, rows, cols, 1, 1);
     if (!s->win) {
         free(s);
@@ -342,8 +335,6 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int co
     }
     wbkgrnd(s->win, &CC_NT);
     wbkgrndset(s->win, &CC_NT);
-    update_panels();
-    doupdate();
     return s;
 }
 

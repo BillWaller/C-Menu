@@ -38,10 +38,6 @@ extern int cmenu_log_fd;
 extern SCREEN *screen;
 extern FILE *tty_fp;
 #ifdef UAL_UI
-extern UiRuntime *ui_runtime;
-extern UiSurface *ui_box[MAXWIN];
-extern UiSurface *ui_win[MAXWIN];
-extern UiSurface *ui_win2[MAXWIN];
 #endif
 #define MAX_ARGS 64   /**< maximum number of arguments for external commands */
 #define MAXLEN 256    /**< maximum length for strings and buffers */
@@ -597,7 +593,6 @@ extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define BW_DA L'\x2193'  /**< large down arrow */
 #define BW_RAN L'\x276F' /**< right_angle */
 #define BW_LAN L'\x276E' /**< left_angle */
-// #define BW_CHK L'\x2705' /**< left_angle */
 #define BW_CHK L'\x2611' /**< left_angle */
 
 /** The following are the actual wchar_t variables that will hold the box
@@ -731,48 +726,25 @@ extern void mouse_getch(int *, int *, int *, int *);
 extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
 extern bool get_argp_doc_by_name(char *comment, const struct argp_option *, const char *);
 
-/** @struct Arg
-   @brief The Arg structure represents a string argument with a pointer to the
-   string and its allocated length. */
 typedef struct {
-    char *s;  /**< pointer to the string argument */
-    size_t l; /**< allocated length */
+    char *s;
+    size_t l;
 } Arg;
-/** @struct Argv
-   @brief The Argv structure represents an argument vector, which is an array of
-   Arg structures, along with the number of allocated elements in the array. */
 typedef struct {
-    Arg **v;  /**< pointer to an array of Arg pointers, representing the argument
-                 vector */
-    size_t n; /**< allocated array elements */
+    Arg **v;
+    size_t n;
 } Argv;
-/** @struct String
-    @brief The String structure represents a string object with a pointer to the
-   string and its allocated length. */
 typedef struct {
-    char *s;  /**< pointer to the string */
-    size_t l; /**< allocated length */
+    char *s;
+    size_t l;
 } String;
-/** @struct WCStr
-   @brief wide character string object with a pointer to the wide character
-   string and its allocated length
-   @details The WCStr structure represents a wide character string with a
-   pointer to the wide character string and its allocated length. */
 typedef struct {
-    wchar_t *s; /**< pointer to the wide character string */
-    size_t l;   /**< @brief allocated length */
+    wchar_t *s;
+    size_t l;
 } WCStr;
-/** @struct CCStr
-   @brief complex character objectl with a pointer to the complex character
-   string and its allocated length
-   @details The CCStr structure represents a complex character string, which is
-   a string that can contain both regular characters and attributes (such as
-   color, bold, etc.) in the ncurses library. This structure includes a pointer
-   to the complex character string and its allocated length, allowing for
-   dynamic handling of complex character strings in the terminal interface. */
 typedef struct {
-    cchar_t *s; /**< pointer to the complex character string */
-    size_t l;   /**< allocated length */
+    cchar_t *s;
+    size_t l;
 } CCStr;
 /** simple macro to convert a character to uppercase */
 #define to_uppercase(c)       \
@@ -793,32 +765,31 @@ typedef struct {
    structure allows for efficient management of the terminal's state and
    configuration in a structured way. */
 typedef struct {
-    double red_gamma;         /**< red gamma correction value */
-    double green_gamma;       /**< green gamma correction value */
-    double blue_gamma;        /**< blue gamma correction value */
-    double gray_gamma;        /**< gray gamma correction value */
-    char black[COLOR_LEN];    /**< color code for black */
-    char red[COLOR_LEN];      /**< color code for red */
-    char green[COLOR_LEN];    /**< color code for green */
-    char yellow[COLOR_LEN];   /**< color code for yellow */
-    char blue[COLOR_LEN];     /**< color code for blue */
-    char magenta[COLOR_LEN];  /**< color code for magenta */
-    char cyan[COLOR_LEN];     /**< color code for cyan */
-    char white[COLOR_LEN];    /**< color code for white */
-    char orange[COLOR_LEN];   /**< color code for orange */
-    char bblack[COLOR_LEN];   /**< color code for bold black */
-    char bred[COLOR_LEN];     /**< color code for bold red */
-    char bgreen[COLOR_LEN];   /**< color code for bold green */
-    char byellow[COLOR_LEN];  /**< color code for bold yellow */
-    char bblue[COLOR_LEN];    /**< color code for bold blue */
-    char bmagenta[COLOR_LEN]; /**< color code for bold magenta */
-    char bcyan[COLOR_LEN];    /**< color code for bold cyan */
-    char bwhite[COLOR_LEN];   /**< color code for bold white */
-    char borange[COLOR_LEN];  /**< color code for bold orange */
-    char abg[COLOR_LEN];      /**< color code for background with alpha */
-
-    char fg[COLOR_LEN];           /**< foreground color index */
-    char bg[COLOR_LEN];           /**< background color index */
+    double red_gamma;             /**< red gamma correction value */
+    double green_gamma;           /**< green gamma correction value */
+    double blue_gamma;            /**< blue gamma correction value */
+    double gray_gamma;            /**< gray gamma correction value */
+    char black[COLOR_LEN];        /**< black */
+    char red[COLOR_LEN];          /**< red */
+    char green[COLOR_LEN];        /**< green */
+    char yellow[COLOR_LEN];       /**< yellow */
+    char blue[COLOR_LEN];         /**< blue */
+    char magenta[COLOR_LEN];      /**< magenta */
+    char cyan[COLOR_LEN];         /**< cyan */
+    char white[COLOR_LEN];        /**< white */
+    char orange[COLOR_LEN];       /**< orange */
+    char bblack[COLOR_LEN];       /**< bold black */
+    char bred[COLOR_LEN];         /**< bold red */
+    char bgreen[COLOR_LEN];       /**< bold green */
+    char byellow[COLOR_LEN];      /**< bold yellow */
+    char bblue[COLOR_LEN];        /**< bold blue */
+    char bmagenta[COLOR_LEN];     /**< bold magenta */
+    char bcyan[COLOR_LEN];        /**< bold cyan */
+    char bwhite[COLOR_LEN];       /**< bold white */
+    char borange[COLOR_LEN];      /**< bold orange */
+    char abg[COLOR_LEN];          /**< background with alpha */
+    char fg[COLOR_LEN];           /**< foreground color */
+    char bg[COLOR_LEN];           /**< background color */
     char box_fg[COLOR_LEN];       /**< box foreground */
     char box_bg[COLOR_LEN];       /**< box background */
     char ind_fg[COLOR_LEN];       /**< indicator foreground */
@@ -845,20 +816,19 @@ typedef struct {
     char title_bg[COLOR_LEN];    /**< title background */
     char ran_fg[COLOR_LEN];      /**< right angle foreground */
     char ran_bg[COLOR_LEN];      /**< right angle background */
-
-    char tty_name[MAXLEN]; /**< name of the terminal device */
-    FILE *stdin_fp;        /**< stdin stream pointer */
-    FILE *stdout_fp;       /**< stdout stream pointer */
-    FILE *stderr_fp;       /**< stderr stream pointer */
-    FILE *tty_fp;          /**< terminal device stream pointer */
-    int stdin_fd;          /**< stdin file descriptor */
-    int stdout_fd;         /**< stdout file descriptor */
-    int stderr_fd;         /**< stderr file descriptor */
-    int tty_fd;            /**< terminal device file descriptor */
-    int clr_cnt;           /**< number of colors currently in use */
-    int clr_pair_cnt;      /**< number of color pairs currently in use */
-    int clr_idx;           /**< current color index */
-    int clr_pair_idx;      /**< current color pair index */
+    char tty_name[MAXLEN];       /**< name of the terminal device */
+    FILE *stdin_fp;              /**< stdin stream pointer */
+    FILE *stdout_fp;             /**< stdout stream pointer */
+    FILE *stderr_fp;             /**< stderr stream pointer */
+    FILE *tty_fp;                /**< terminal device stream pointer */
+    int stdin_fd;                /**< stdin file descriptor */
+    int stdout_fd;               /**< stdout file descriptor */
+    int stderr_fd;               /**< stderr file descriptor */
+    int tty_fd;                  /**< terminal device file descriptor */
+    int clr_cnt;                 /**< number of colors currently in use */
+    int clr_pair_cnt;            /**< number of color pairs currently in use */
+    int clr_idx;                 /**< current color index */
+    int clr_pair_idx;            /**< current color pair index */
 
     int cp_default;   /**< default color pair index */
     int cp_fill_char; /**< fill character color pair index */
@@ -872,7 +842,6 @@ typedef struct {
     int cp_cmdln;     /**< command line color pair index */
     int cp_title;     /**< title color pair index */
     int cp_ln;        /**< line number color pair index */
-    int cp_norm;      /**< normal color pair index */
     int cp_ran;       /**< right angle color pair index */
     int cp_chk;       /**< checkmark color pair index */
     int cp_bold;      /**< bold color pair index */

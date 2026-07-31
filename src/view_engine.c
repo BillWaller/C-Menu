@@ -134,7 +134,6 @@ void view_display_page(View *);
 void parse_ansi_str(char *, attr_t *, int *);
 void view_display_help(Init *);
 int display_prompt(View *, char *);
-void remove_file(View *);
 int write_view_buffer(Init *, bool);
 bool enter_file_spec(Init *, char *);
 int a_toi(char *, bool *);
@@ -2555,23 +2554,6 @@ int display_prompt(View *view, char *s) {
         wmove(view->cmdln_win, view->cmd_line, view->curx);
     }
     return (view->curx);
-}
-/** @brief Remove File
-    @ingroup view_engine
-    @param view is the current view data structure */
-void remove_file(View *view) {
-    char c;
-    if (view->f_at_end_remove) {
-        wmove(view->pad, view->cmd_line, 0);
-        waddstr(view->pad, "Remove File (Y or N)->");
-        wclrtoeol(view->pad);
-        update_panels();
-        doupdate();
-        c = (char)vgetch(view->cmdln_win, -1);
-        waddch(view->pad, (char)toupper(c));
-        if (c == 'Y' || c == 'y')
-            remove(view->cur_file_str);
-    }
 }
 /** @brief Display View Help File
     @ingroup view_display
