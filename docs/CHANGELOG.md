@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-07-30T21:56:18-05:00* - FEATURE: Continuing to implement the UI backend for Notcurses, focusing on the integration of the ncurses library and enhancing the user interface components. This update includes modifications to various source files, including the Makefile, curskeys.c, dwin.c, enterchr.c, enterstr.c, exec.c, form_engine.c, futil.c, and several others. Additionally, a new file UALUI.md has been added to document the UI backend implementation. 
+
+*2026-07-29T18:43:38-05:00* - Update CHANGELOG.md 
+
 *2026-07-29T18:21:49-05:00* - FEATURE: Test/Debug Uniform Abstraction Layer UI for NCurses build with -DUAL_UI, which implements the API for the UAL-UI. # Please enter the commit message for your changes. Lines starting 
 
 *2026-07-29T12:46:15-05:00* - Update CHANGELOG.md 
