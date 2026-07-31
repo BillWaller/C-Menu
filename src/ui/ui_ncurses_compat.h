@@ -11,9 +11,9 @@
    functions are intentionally not declared in ui_backend.h.
 */
 
+#include "../include/ui_backend.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
-#include "../include/ui_backend.h"
 
 /** @brief Return the raw @c SCREEN* for the NCurses session.
    @param ui The UiRuntime returned by ui_init().

@@ -10,10 +10,13 @@
    that code not yet migrated to the UAL API continues to work.
 */
 
+#define _XOPEN_SOURCE_EXTENDED 1
+
 #include "ui_ncurses_compat.h"
 #include "ui_ncurses_internal.h"
 #include <ncurses/panel.h>
 #include <ncursesw/ncurses.h>
+#define UAL_LEGACY_COMPAT 1
 #ifdef UAL_LEGACY_COMPAT
 #include "cm.h"
 #endif
@@ -152,7 +155,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         ui->cursor_visible = true;
     }
     ui->panel_main = new_panel(stdscr);
-    wbkgd(stdscr, COLOR_PAIR(0));
+    wbkgrnd(stdscr, &CC_NT);
     if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
 
@@ -260,26 +263,26 @@ void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
    Surface management
    ------------------------------------------------------------------------- */
 
-UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect) {
+UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int cols, int y, int x) {
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
 
     s->runtime = ui;
     s->parent = parent;
-    s->y = rect.y;
-    s->x = rect.x;
-    s->rows = rect.rows;
-    s->cols = rect.cols;
+    s->y = y;
+    s->x = x;
+    s->rows = rows;
+    s->cols = cols;
 
     if (parent && parent->win) {
-        s->win = derwin(parent->win, rect.rows, rect.cols, rect.y, rect.x);
+        s->win = derwin(parent->win, rows, cols, y, x);
         if (!s->win) {
             free(s);
             return NULL;
         }
     } else {
-        s->win = newwin(rect.rows, rect.cols, rect.y, rect.x);
+        s->win = newwin(rows, cols, y, x);
         if (!s->win) {
             free(s);
             return NULL;
@@ -292,6 +295,55 @@ UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect) {
         }
     }
 
+    return s;
+}
+
+UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int cols, int y, int x, char *wtitle) {
+    UiSurface *s = calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
+
+    s->runtime = ui;
+    s->parent = parent;
+    s->y = y;
+    s->x = x;
+    s->rows = rows;
+    s->cols = cols;
+
+    if (parent && parent->win) {
+        s->box = derwin(parent->win, rows + 2, cols + 2, y, x);
+        if (!s->box) {
+            free(s);
+            return NULL;
+        }
+    } else {
+        s->box = newwin(rows + 2, cols + 2, y, x);
+        if (!s->box) {
+            free(s);
+            return NULL;
+        }
+        s->pan = new_panel(s->box);
+        if (!s->box) {
+            delwin(s->box);
+            free(s);
+            return NULL;
+        }
+    }
+    wbkgrnd(s->box, &CC_BOX);
+    wbkgrndset(s->box, &CC_BOX);
+    border_draw(s->box);
+    border_title(s->box, wtitle);
+    update_panels();
+    doupdate();
+    s->win = derwin(s->box, rows, cols, 1, 1);
+    if (!s->win) {
+        free(s);
+        return NULL;
+    }
+    wbkgrnd(s->win, &CC_NT);
+    wbkgrndset(s->win, &CC_NT);
+    update_panels();
+    doupdate();
     return s;
 }
 
@@ -365,7 +417,7 @@ int ui_bkgrnd(UiSurface *s, const UiStyle *style, const char *c) {
     return 0;
 }
 
-int ui_bkgd_set(UiSurface *s, const UiStyle *style, const char *c) {
+int ui_bkgrndset(UiSurface *s, const UiStyle *style, const char *c) {
     if (!s)
         return -1;
     cchar_t cch = ui_style_to_cch(style, c);

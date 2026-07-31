@@ -17,7 +17,7 @@
    continuing execution.
  */
 
-#include <cm.h>
+#include "cm.h"
 #include <execinfo.h>
 #include <signal.h>
 #include <stdbool.h>

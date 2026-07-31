@@ -817,11 +817,9 @@ int open_pick_win(Init *init) {
     Pick *pick = init->pick;
     pick = init->pick;
     int split_win_lines = 2; // 1 text, 1 chyron
-    if (box_vsplit_new(pick->lines, split_win_lines, pick->width, pick->begy, pick->begx,
-                       pick->title)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "box_vsplit_new(%d, %d, %d, %d, %d, %s) failed",
-                  pick->lines, split_win_lines, pick->width, pick->begy, pick->begx,
-                  pick->title);
+    if (split_box_win_new(pick->lines, pick->width, split_win_lines, 0, pick->begy, pick->begx, pick->title)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "split_box_win_new(%d, %d, %d, %d, %d, %d, %s) failed",
+                  pick->lines, pick->width, split_win_lines, 0, pick->begy, pick->begx, pick->title);
         Perror(tmp_str);
         return (1);
     }
@@ -926,7 +924,7 @@ int picker(Init *init, char *field) {
                 ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                           pick->tbl_line + 1, pick->tbl_page + 1,
                           pick->tbl_pages);
-                border_vsplit_text(pick->box, tmp_str, pick->separator_line);
+                border_ysplit_text(pick->box, tmp_str, pick->separator_line);
                 if (pick->p_view_files)
                     if (strcmp(pick->d_object[pick->d_idx], view_file) != 0) {
                         strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);

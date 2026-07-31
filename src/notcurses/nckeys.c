@@ -212,18 +212,22 @@ NcPlane *plane_new(NotCurses *nc, int rows, int cols,
         notcurses_stop(nc);
         return NULL;
     }
-
     return plane;
 }
-
 int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
     uint32_t id;
     bool running = true;
     char kstr[MAXLEN];
     NcPlane *stdn = notcurses_stdplane(nc);
     notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
+    y = 0;
+    x = 10;
+    ncplane_printf_yx_clrtoeol(stdn, y + 1, x, "%s",
+                               "Input Diagnostics - Notcurses");
     y = 18;
-    ncplane_printf_yx_clrtoeol(stdn, y + 1, x, "%s", "Press 'q' to exit.");
+    x = 10;
+    ncplane_printf_yx_clrtoeol(stdn, y, x, "%s", "Press a key or exercise the mouse");
+    ncplane_printf_yx_clrtoeol(stdn, y + 1, x, "%s", "q to exit");
     notcurses_render(nc);
     while (running) {
         id = notcurses_get_blocking(nc, ni);
@@ -235,13 +239,13 @@ int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
         } else {
             ncplane_printf_yx_clrtoeol(stdn, y + 2, x, "Clicked plane: None");
         }
-        ncplane_move_yx_clrtoeol(stdn, y + 4, 0);
+        ncplane_move_yx_clrtoeol(stdn, y + 4, x);
         notcurses_render(nc);
-        ncplane_move_yx_clrtoeol(stdn, y + 5, 0);
+        ncplane_move_yx_clrtoeol(stdn, y + 5, x);
         notcurses_render(nc);
-        ncplane_move_yx_clrtoeol(stdn, y + 6, 0);
+        ncplane_move_yx_clrtoeol(stdn, y + 6, x);
         notcurses_render(nc);
-        ncplane_move_yx_clrtoeol(stdn, y + 7, 0);
+        ncplane_move_yx_clrtoeol(stdn, y + 7, x);
         notcurses_render(nc);
         if (id == NCKEY_BUTTON1)
             ncplane_printf_yx_clrtoeol(stdn, y + 4, x, "Left Click at: X=%d, Y=%d", ni->x, ni->y);

@@ -30,7 +30,8 @@ UiFramedSurface ui_framed_surface_new(UiRuntime *ui, UiSurface *parent,
     if (!ui || rect.rows < 3 || rect.cols < 3)
         return fs;
 
-    fs.outer = ui_surface_new(ui, parent, rect);
+    char title[64] = {0};
+    fs.outer = ui_surface_new(ui, parent, rect.rows, rect.cols, rect.y, rect.x);
     if (!fs.outer)
         return fs;
 
@@ -40,7 +41,7 @@ UiFramedSurface ui_framed_surface_new(UiRuntime *ui, UiSurface *parent,
         .rows = rect.rows - 2,
         .cols = rect.cols - 2,
     };
-    fs.inner = ui_surface_new(ui, fs.outer, inner_rect);
+    fs.inner = ui_surface_new(ui, fs.outer, rect.rows, rect.cols, rect.y, rect.x);
     if (!fs.inner) {
         ui_surface_destroy(fs.outer);
         fs.outer = NULL;

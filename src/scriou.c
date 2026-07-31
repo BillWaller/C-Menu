@@ -13,7 +13,7 @@
     Terminal State on Exit
  */
 
-#include <cm.h>
+#include "cm.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <termios.h>

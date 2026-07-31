@@ -40,8 +40,8 @@ int popup_ckeys() {
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
                   BUTTON_CTRL | BUTTON_ALT,
               NULL);
-    if (box_new(lines, cols, begy, begx, Title)) {
-        strnz__cpy(tmp, "box_new failed: ", MAXLEN - 1);
+    if (box_win_new(lines, cols, begy, begx, Title)) {
+        strnz__cpy(tmp, "box_win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
         Perror(tmp);
         exit(EXIT_FAILURE);

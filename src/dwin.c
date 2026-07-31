@@ -42,10 +42,7 @@ SCREEN *screen;
 FILE *tty_fp;
 UiRuntime *ui_runtime;
 UiConfig *ui_config;
-UiSurface *ui_box[MAXWIN];
-UiSurface *ui_win[MAXWIN];
-UiSurface *ui_win2[MAXWIN];
-UiRect ui_rect;
+UiSurface *ui_surface[MAXWIN];
 
 WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
 WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
@@ -53,22 +50,13 @@ WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
 
 PANEL *panel_box[MAXWIN];
 
-void ui_rect_set(UiRect *, int, int, int, int);
-int win2_new(int wlines, int wcols, int wbegy, int wbegx);
-bool open_curses(SIO *);
 bool init_clr_palette(SIO *);
+bool open_curses(SIO *);
 void destroy_curses();
-int box_new(int, int, int, int, char *);
-int box_vsplit_new(int, int, int, int, int, char *);
 int border_draw(WINDOW *);
-int border_vsplit(WINDOW *, int);
-int border_vsplit_text(WINDOW *, char *, int);
+int border_ysplit(WINDOW *, int);
+int border_ysplit_text(WINDOW *, char *, int);
 
-int win_new(int, int);
-void win_redraw(WINDOW *);
-void win_resize(int, int, char *);
-void win_del();
-void restore_wins();
 void win_init_attrs();
 void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 void abend(int, char *);
@@ -108,9 +96,15 @@ void activate_chyron_key(Chyron *chyron, int k);
 void activate_all_chyron_keys(Chyron *chyron);
 void deactivate_chyron_key(Chyron *chyron, int k);
 void deactivate_all_chyron_keys(Chyron *chyron);
+
+int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle);
+int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy, int wbegx, char *wtitle);
+
+void win_del();
+void win_redraw(WINDOW *);
+void win_resize(int, int, char *);
+void restore_wins();
 void check_panels(int);
-int bare_box_new(int, int, int, int, char *);
-int win2_box_new(int, int, int, int, char *);
 
 WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
@@ -212,6 +206,25 @@ cchar_t CC_RED;
 cchar_t CC_GREEN;
 cchar_t CC_YELLOW;
 cchar_t CC_BLUE;
+UiStyle *style_fill_char;
+UiStyle *style_brackets;
+UiStyle *style_box;
+UiStyle *style_ind;
+UiStyle *style_cmdln;
+UiStyle *style_title;
+UiStyle *style_ln;
+UiStyle *style_cmdln;
+UiStyle *style_nt;
+UiStyle *style_nt_rev;
+UiStyle *style_nt_hl;
+UiStyle *style_nt_hl_rev;
+UiStyle *style_norm;
+UiStyle *style_ran;
+
+UiStyle *ui_set_style(char *fg, char *bg);
+
+void set_styles(SIO *sio);
+
 /** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 
@@ -294,9 +307,7 @@ bool open_curses(SIO *sio) {
     wbkgrnd(stdscr, &CC_NORM);
     for (win_ptr = 0; win_ptr < MAXWIN; win_ptr++) {
         panel_box[win_ptr] = nullptr;
-        ui_win[win_ptr] = nullptr;
-        ui_win2[win_ptr] = nullptr;
-        ui_box[win_ptr] = nullptr;
+
         win_win[win_ptr] = nullptr;
         win_win2[win_ptr] = nullptr;
         win_box[win_ptr] = nullptr;
@@ -323,9 +334,9 @@ void initialize_local_colors(SIO *sio) {
     BLUE_GAMMA = sio->blue_gamma;
     GRAY_GAMMA = sio->gray_gamma;
     init_clr_palette(sio);
-
-    // Color Pairs
-    // Often used standardized color pairs for the user interface
+    //
+    // Standardized color pairs
+    //
     cp_fill_char = get_clr_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
     cp_brackets = get_clr_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
     cp_nt = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
@@ -342,16 +353,16 @@ void initialize_local_colors(SIO *sio) {
     cp_green = get_clr_pair(CLR_FG, CLR_GREEN);
     cp_yellow = get_clr_pair(CLR_BG, CLR_YELLOW);
     cp_blue = get_clr_pair(CLR_FG, CLR_BLUE);
-
-    // cchar_t For setting backgrounds
-    // with attributes and color pairs
+    //
+    // cchar_t Used to set foreground/background color pairs and attributes
+    //
     CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
     CC_BRKTL = mkcc(cp_brackets, WA_NORMAL, " ");
     CC_BRKTR = mkcc(cp_brackets, WA_NORMAL, " ");
     CC_NT = mkcc(cp_nt, WA_NORMAL, " ");
     CC_NT_REV = mkcc(cp_nt_rev, WA_NORMAL, " ");
-    CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
     CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
+    CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
     CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
     CC_IND = mkcc(cp_ind, WA_NORMAL, " ");
     CC_CMDLN = mkcc(cp_cmdln, WA_NORMAL, " ");
@@ -364,9 +375,9 @@ void initialize_local_colors(SIO *sio) {
     CC_GREEN = mkcc(cp_green, WA_NORMAL, " ");
     CC_YELLOW = mkcc(cp_yellow, WA_NORMAL, " ");
     CC_BLUE = mkcc(cp_blue, WA_NORMAL, " ");
-
-    // cchar_t For borders and indicators
-    // with attributes and color pairs
+    //
+    // cchar_t borders and indicator characters with color pairs and attributes
+    //
     setcchar(&ls, &bw_ve, WA_NORMAL, cp_box, NULL);   // Left side
     setcchar(&rs, &bw_ve, WA_NORMAL, cp_box, NULL);   // Right side
     setcchar(&ts, &bw_ho, WA_NORMAL, cp_box, NULL);   // Top side
@@ -385,6 +396,32 @@ void initialize_local_colors(SIO *sio) {
     setcchar(&ran, &bw_ran, WA_NORMAL, cp_ind, NULL); // Right angle
     setcchar(&chk, &bw_chk, WA_NORMAL, cp_ind, NULL); // Right angle
 }
+
+void set_styles(SIO *sio) {
+    style_fill_char = ui_set_style(sio->fill_char_fg, sio->fill_char_bg);
+    style_brackets = ui_set_style(sio->brackets_fg, sio->brackets_bg);
+    style_box = ui_set_style(sio->box_fg, sio->box_bg);
+    style_ind = ui_set_style(sio->ind_fg, sio->ind_bg);
+    style_cmdln = ui_set_style(sio->cmdln_fg, sio->cmdln_bg);
+    style_title = ui_set_style(sio->title_fg, sio->title_bg);
+    style_ln = ui_set_style(sio->ln_fg, sio->ln_bg);
+    style_nt = ui_set_style(sio->nt_fg, sio->nt_bg);
+    style_nt_rev = ui_set_style(sio->nt_rev_fg, sio->nt_rev_bg);
+    style_nt_hl = ui_set_style(sio->nt_hl_fg, sio->nt_hl_bg);
+    style_nt_hl_rev = ui_set_style(sio->nt_hl_rev_fg, sio->nt_hl_rev_bg);
+    style_ran = ui_set_style(sio->ran_fg, sio->ran_bg);
+}
+UiStyle *ui_set_style(char *fg, char *bg) {
+    RGB rgb_fg = hex_clr_str_to_rgb(fg);
+    RGB rgb_bg = hex_clr_str_to_rgb(bg);
+    int fg_idx = rgb_to_curses_clr(&rgb_fg);
+    int bg_idx = rgb_to_curses_clr(&rgb_bg);
+    int pair_idx = get_clr_pair(fg_idx, bg_idx);
+    UiStyle *style = (UiStyle *)malloc(sizeof(UiStyle));
+    style->pair_idx = pair_idx;
+    return style;
+}
+
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
    Pairs
@@ -736,7 +773,7 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
     return *pos;
 }
 /** mkcc
-    @brief Create a cchar_t with the specified color pair index
+    @brief Create a cchar_t with the specified color pair index and attributes
     @ingroup color_management
     @param cp Color pair index
     @param attr Attributes to apply to the cchar_t
@@ -822,8 +859,7 @@ size_t str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t 
     @param cp Color pair index for the complex characters
     @return Number of bytes processed from the input string
  */
-size_t
-mk_cmplx_str(cchar_t *cmplx_buf, char *s, attr_t attr, int cp) {
+size_t mk_cmplx_str(cchar_t *cmplx_buf, char *s, attr_t attr, int cp) {
     cchar_t cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
     mbstate_t mbstate;
@@ -892,123 +928,30 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     }
     return 0; // Invalid Unicode code point
 }
-/** ui_rect_set
-    @brief Set the properties of a UiRect structure
-    @ingroup utility_functions
-    @param r Pointer to the UiRect structure to set
-    @param y Y-coordinate (row) of the rectangle's top-left corner
-    @param x X-coordinate (column) of the rectangle's top-left corner
-    @param h Height (number of rows) of the rectangle
-    @param w Width (number of columns) of the rectangle
-    @details This function initializes the fields of a UiRect structure
-    with the specified values for position and size. It is used to define
-    rectangular areas in a user interface. */
-void ui_rect_set(UiRect *r, int y, int x, int h, int w) {
-    r->y = y;
-    r->x = x;
-    r->rows = h;
-    r->cols = w;
-}
-/** box_vsplit_new
-    @brief Create a new window with optional box and title, and a second window
-   inside it, split vertically
-    @ingroup window_support
-    @param wlines Number of lines for the first window
-    @param split_win_lines Number of lines for the second window
-    @param wcols Number of columns for the first window
-    @param wbegy Beginning Y position for the first window
-    @param wbegx Beginning X position for the first window
-    @param wtitle Window title for the first window
-    @return 0 if successful, 1 if error */
-int box_vsplit_new(int wlines, int split_win_lines, int wcols, int wbegy, int wbegx, char *wtitle) {
-    if (win_ptr >= MAXWIN) {
-        Perror("Maximum number of windows (%d) exceeded");
-        exit(EXIT_FAILURE);
-    }
-    wlines = min(wlines, LINES - 2);
-    wcols = min(wcols, COLS - 2);
-    bare_box_new(wlines + split_win_lines + 1, wcols, wbegy, wbegx, wtitle);
-    wbkgrnd(win_box[win_ptr], &CC_BOX);
-    wbkgrndset(win_box[win_ptr], &CC_BOX);
-    border_vsplit(win_box[win_ptr], wlines + 1);
-    update_panels();
-    doupdate();
-    win_new(wlines, wcols);
-    win2_new(2, wcols, wlines + 2, 1);
-    return 0;
-}
-/** win2_box_new
-    @brief Create a new window with optional box and title, and a second window
-   inside it
-    @ingroup window_support
-    @param wlines Number of lines for the first window
-    @param wcols Number of columns for the first window
-    @param wbegy Beginning Y position for the first window
-    @param wbegx Beginning X position for the first window
-    @param wtitle Window title for the first window
-    @return 0 if successful, 1 if error */
-int win2_box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
-    bare_box_new(wlines, wcols, wbegy, wbegx, wtitle);
-    win_new(wlines, wcols);
-    win2_new(wlines, wcols, 1, 1);
-    return 0;
-}
-/** box_new
-    @brief Create a new window with optional box and title
-    @ingroup window_support
-    @param wlines Number of lines
-    @param wcols Number of columns
-    @param wbegy Beginning Y position
-    @param wbegx Beginning X position
-    @param wtitle Window title
-    @return 0 if successful, 1 if error */
-int box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
-    bare_box_new(wlines, wcols, wbegy, wbegx, wtitle);
-    win_new(wlines, wcols);
-    return 0;
-}
-/** box_new
-    @brief Create a new window with optional box and title
-    @ingroup window_support
-    @param wlines Number of lines
-    @param wcols Number of columns
-    @param wbegy Beginning Y position
-    @param wbegx Beginning X position
-    @param wtitle Window title
-    @return 0 if successful, 1 if error */
-int bare_box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
+// ------------------->    box_win_new    <-------------------
+int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     int maxy, maxx;
     if (win_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
-#ifdef NCURSES_UI
-    getmaxyx(stdscr, maxy, maxx);
-#else
     ui_get_screen_size(ui_runtime, &maxy, &maxx);
-#endif
+    getmaxyx(stdscr, maxy, maxx);
     wlines = min(wlines, maxy - 2);
     wcols = min(wcols, maxx - 2);
     win_ptr++;
-    // ------------------->    win_box    <-------------------
 #ifdef UAL_UI
-    ui_rect_set(&ui_rect, wbegy, wbegx, wlines + 2, wcols + 2);
-    ui_box[win_ptr] = ui_surface_new(ui_runtime, NULL, ui_rect);
-    win_box[win_ptr] = ui_box[win_ptr]->win;
-    panel_box[win_ptr] = ui_box[win_ptr]->pan;
-
-    UiStyle *ui_style = ui_style_from_cch(&CC_BOX);
-    ui_bkgrnd(ui_box[win_ptr], ui_style, " ");   // flood fill_char
-    ui_bkgd_set(ui_box[win_ptr], ui_style, " "); // like wattron
-    wborder_set(win_box[win_ptr], &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
-    border_title(win_box[win_ptr], wtitle);
-
-    ui_rect_set(&ui_rect, 1, 1, wlines, wcols);
-    ui_win[win_ptr] = ui_surface_new(ui_runtime, ui_box[win_ptr], ui_rect);
-    ui_style = ui_style_from_cch(&CC_NT);
-    ui_bkgrnd(ui_win[win_ptr], ui_style, " ");   // flood fill_char
-    ui_bkgd_set(ui_win[win_ptr], ui_style, " "); // like wattron
-    win_win[win_ptr] = ui_win[win_ptr]->win;
+    // ------------------->    UAL_win_box    <-------------------
+    ui_surface[win_ptr] = ui_box_surface_new(ui_runtime, NULL, wlines, wcols, wbegy, wbegx, wtitle);
+    if (ui_surface[win_ptr] == nullptr || ui_surface[win_ptr]->box == nullptr) {
+        Perror("ui_surface_new() failed");
+        exit(EXIT_FAILURE);
+    }
+    // LEGACY - to be removed when all code is converted to UAL
+    win_box[win_ptr] = ui_surface[win_ptr]->box;
+    panel_box[win_ptr] = ui_surface[win_ptr]->pan;
+    win_win[win_ptr] = ui_surface[win_ptr]->win;
+    // END LEGACY
 #else
     win_box[win_ptr] = newwin(wlines + 2, wcols + 2, wbegy, wbegx);
     if (win_box[win_ptr] == nullptr) {
@@ -1020,17 +963,7 @@ int bare_box_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     wbkgrndset(win_box[win_ptr], &CC_BOX);
     border_draw(win_box[win_ptr]);
     border_title(win_box[win_ptr], wtitle);
-#endif
-    return 0;
-}
-/** win_new
-    @brief Create a new window with specified dimensions and position
-    @ingroup window_support
-    @param wlines Number of lines
-    @param wcols Number of columns
-    @return 0 if successful, 1 if error */
-int win_new(int wlines, int wcols) {
-    // ------------------->    win_win    <-------------------
+
     win_win[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, 1, 1);
     if (win_win[win_ptr] == nullptr) {
         Perror("win_win[win_ptr] = derwin() failed");
@@ -1043,24 +976,57 @@ int win_new(int wlines, int wcols) {
     idcok(win_win[win_ptr], false);
     wsetscrreg(win_win[win_ptr], 0, wlines - 1);
     scrollok(win_win[win_ptr], true);
+#endif
     return 0;
 }
 
-/*
-------------------------------------------------------------------------- */
-
-/** win2_new
-    @brief Create a new subwindow (win2) with specified dimensions and position
-    @ingroup window_support
-    @param wlines Number of lines
-    @param wcols Number of columns
-    @param wbegy Beginning Y position relative to the parent window
-    @param wbegx Beginning X position relative to the parent window
-    @return 0 if successful, 1 if error */
-int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
-
-    // ------------------->   win2_win   <-------------------
-    win_win2[win_ptr] = derwin(win_box[win_ptr], wlines, wcols, wbegy, wbegx);
+// ------------------->    box_split_new    <-------------------
+int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy, int wbegx, char *wtitle) {
+    if (win_ptr >= MAXWIN) {
+        Perror("Maximum number of windows (%d) exceeded");
+        exit(EXIT_FAILURE);
+    }
+    wlines = min(wlines, LINES - 2);
+    wcols = min(wcols, COLS - 2);
+    // ------------------------
+    int maxy, maxx;
+    if (win_ptr >= MAXWIN) {
+        Perror("Maximum number of windows (%d) exceeded");
+        exit(EXIT_FAILURE);
+    }
+    getmaxyx(stdscr, maxy, maxx);
+    split_x = min(split_x, maxx - 2); // not implemented yet
+    int split_wlines = min(wlines + split_y + 1, maxy - 2);
+    wcols = min(wcols, maxx - 2);
+    win_ptr++;
+#ifdef UAL_UI
+    // ------------------->    UAL_win_box    <-------------------
+    ui_surface[win_ptr] = ui_box_surface_new(ui_runtime, NULL, split_wlines, wcols, wbegy, wbegx, wtitle);
+    if (ui_surface[win_ptr] == nullptr || ui_surface[win_ptr]->box == nullptr) {
+        Perror("ui_surface_new() failed");
+        exit(EXIT_FAILURE);
+    }
+    // LEGACY - to be removed when all code is converted to UAL
+    win_box[win_ptr] = ui_surface[win_ptr]->box;
+    panel_box[win_ptr] = ui_surface[win_ptr]->pan;
+    win_win[win_ptr] = ui_surface[win_ptr]->win;
+    // END LEGACY
+#else
+    win_box[win_ptr] = newwin(split_wlines + 2, wcols + 2, wbegy, wbegx);
+    if (win_box[win_ptr] == nullptr) {
+        Perror("win_box[win_ptr] = newwin() failed");
+        exit(EXIT_FAILURE);
+    }
+    panel_box[win_ptr] = new_panel(win_box[win_ptr]);
+    wbkgrnd(win_box[win_ptr], &CC_BOX);
+    wbkgrndset(win_box[win_ptr], &CC_BOX);
+    border_draw(win_box[win_ptr]);
+    border_title(win_box[win_ptr], wtitle);
+#endif
+    border_ysplit(win_box[win_ptr], wlines + 1);
+    update_panels();
+    doupdate();
+    win_win2[win_ptr] = derwin(win_box[win_ptr], 2, wcols, wlines + 2, 1);
     if (win_win2[win_ptr] == nullptr) {
         Perror("win_win2[win_ptr] = derwin() failed");
         exit(EXIT_FAILURE);
@@ -1069,8 +1035,11 @@ int win2_new(int wlines, int wcols, int wbegy, int wbegx) {
     keypad(win_win2[win_ptr], true);
     idlok(win_win2[win_ptr], false);
     idcok(win_win2[win_ptr], false);
+    update_panels();
+    doupdate();
     return 0;
 }
+// ------------------------------------------------------------
 /** check_panels
     @brief Check and display the panels for a given window index
     @ingroup window_support
@@ -1240,7 +1209,7 @@ int border_draw(WINDOW *box) {
     return 0;
 }
 
-/** border-vsplit
+/** border-ysplit
     @brief Draw a box with a separator line around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
@@ -1251,7 +1220,7 @@ int border_draw(WINDOW *box) {
    page 00) and extends across the width of the box. Use this function when you
    want to visually separate two sections within a window, such as for a header
    and content area. */
-int border_vsplit(WINDOW *box, int y) {
+int border_ysplit(WINDOW *box, int y) {
     int maxx = getmaxx(box);
     mvwaddnwstr(box, y, 0, &bw_lt, 1);
     for (int x = 1; x < maxx - 1; x++)
@@ -1259,7 +1228,7 @@ int border_vsplit(WINDOW *box, int y) {
     mvwaddnwstr(box, y, maxx - 1, &bw_rt, 1);
     return 0;
 }
-/** border_vsplit_text
+/** border_ysplit_text
     @brief Draw a box with a separator line and text around the specified window
     @ingroup window_support
     @param box Pointer to the window to draw the box around
@@ -1271,7 +1240,7 @@ int border_vsplit(WINDOW *box, int y) {
    extends across the width of the box, with the provided text displayed in the
    middle of the line. Use this function when you want to visually separate two
    sections within a window and label the separator with descriptive text. */
-int border_vsplit_text(WINDOW *box, char *text, int separator_line) {
+int border_ysplit_text(WINDOW *box, char *text, int separator_line) {
     int pos = 0;
     int maxx = getmaxx(box);
     int l;
@@ -1329,27 +1298,7 @@ int border_title(WINDOW *box, char *title) {
         mvwadd_wchnstr(box, y, x++, &ts, 1); // horizontal line
     return 0;
 }
-/* int box_title(WINDOW *box, char *title) {
-    wbkgrndset(box, &CC_BOX);
-    int y, x, l;
-    int maxx;
-    int pos = 0;
-    y = 0;
-    x = 1;
-    maxx = getmaxx(box);
-    mvwadd_wchnstr(box, y, x++, &ts, 1);
-    mvwadd_wchnstr(box, y, x++, &rt, 1);
-    mvwadd_wchnstr(box, y, x++, &sp, 1);
-    cchar_t title_cc[MAXLEN] = {0};
-    l = mb_to_cc(title_cc, title, WA_NORMAL, cp_box, &pos, MAXLEN - 1);
-    mvwadd_wchnstr(box, y, x, title_cc, l);
-    x += l;
-    mvwadd_wchnstr(box, y, x++, &sp, 1);
-    mvwadd_wchnstr(box, y, x++, &lt, 1);
-    while (x < maxx - 1)
-        mvwadd_wchnstr(box, y, x++, &ts, 1);
-    return 0;
-} */
+
 /** @defgroup error_handling Error Handling
     @brief Display Error messages
  */
@@ -1358,8 +1307,7 @@ int border_title(WINDOW *box, char *title) {
     @ingroup error_handling
     @param msg Message to display
     @return Pointer to the created window, or nullptr if curses is not available or screen is too small */
-WINDOW *
-message_win(char *msg) {
+WINDOW *message_win(char *msg) {
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n\n", msg);
         return nullptr;
@@ -1417,8 +1365,8 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((COLS - msg_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(5, msg_l + 2, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 5,
+    if (box_win_new(5, msg_l + 2, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
@@ -1481,8 +1429,8 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((COLS - msg_l) - 4) / 2;
     line = (LINES - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(5, msg_l + 2, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 5,
+    if (box_win_new(5, msg_l + 2, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
@@ -1534,8 +1482,8 @@ int Perror(char *emsg_str) {
     pos = (COLS - cols - 4) / 2;
     line = (LINES - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_new(2, cols + 2, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s, %b) failed",
+    if (box_win_new(2, cols + 2, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
@@ -1558,8 +1506,7 @@ int Perror(char *emsg_str) {
     @brief Create a Chyron struct for the waiting message
     @ingroup error_handling
     @return Pointer to the chyron struct */
-Chyron *
-wait_mk_chyron() {
+Chyron *wait_mk_chyron() {
     Chyron *chyron = new_chyron();
     set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
     compile_chyron(chyron);
@@ -1571,8 +1518,7 @@ wait_mk_chyron() {
     @param chyron Pointer to Chyron struct for displaying key options
     @param title window title
     @return WINDOW * struct */
-WINDOW *
-wait_mk_win(Chyron *chyron, char *title) {
+WINDOW *wait_mk_win(Chyron *chyron, char *title) {
     char wm1[] = "Seconds remaining:";
     int len;
     int line, col;
@@ -1588,8 +1534,8 @@ wait_mk_win(Chyron *chyron, char *title) {
     len = max(len, 40);
     col = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (box_new(2, len + 2, line, col, title)) {
-        ssnprintf(title, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 4,
+    if (box_win_new(2, len + 2, line, col, title)) {
+        ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 4,
                   line, line, col, title);
         abend(-1, title);
     }
@@ -1650,8 +1596,8 @@ bool action_disposition(char *title, char *action_str) {
     len = max(strlen(title), strlen(action_str));
     col = (COLS - len - 4) / 2;
     line = (LINES - 4) / 2;
-    if (box_new(2, len + 2, line, col, title)) {
-        ssnprintf(em0, MAXLEN - 1, "box_new(%d, %d, %d, %d, %s) failed", 4,
+    if (box_win_new(2, len + 2, line, col, title)) {
+        ssnprintf(em0, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 4,
                   line, line, col, title);
         Perror(em0);
     }

@@ -8,8 +8,8 @@
  */
 
 #define _GNU_SOURCE
+#include "cm.h"
 #include <argp.h>
-#include <cm.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <stdbool.h>

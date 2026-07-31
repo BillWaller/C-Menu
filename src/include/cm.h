@@ -448,15 +448,13 @@ extern bool capture_curses_tioctl();
 extern bool restore_curses_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
-extern int box_new(int, int, int, int, char *);
-extern int box2_new(int, int, int, int, char *);
-extern int box_vsplit_new(int, int, int, int, int, char *);
-extern int win_new(int, int);
-extern int win2_new(int, int, int, int);
+
+extern int box_win_new(int, int, int, int, char *);
+extern int split_box_win_new(int, int, int, int, int, int, char *);
 extern int border_draw(WINDOW *);
 extern int border_title(WINDOW *, char *);
-extern int border_vsplit(WINDOW *, int);
-extern int border_vsplit_text(WINDOW *, char *, int);
+extern int border_ysplit(WINDOW *, int);
+extern int border_ysplit_text(WINDOW *, char *, int);
 extern void win_redraw(WINDOW *);
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
@@ -795,29 +793,30 @@ typedef struct {
    structure allows for efficient management of the terminal's state and
    configuration in a structured way. */
 typedef struct {
-    double red_gamma;             /**< red gamma correction value */
-    double green_gamma;           /**< green gamma correction value */
-    double blue_gamma;            /**< blue gamma correction value */
-    double gray_gamma;            /**< gray gamma correction value */
-    char black[COLOR_LEN];        /**< color code for black */
-    char red[COLOR_LEN];          /**< color code for red */
-    char green[COLOR_LEN];        /**< color code for green */
-    char yellow[COLOR_LEN];       /**< color code for yellow */
-    char blue[COLOR_LEN];         /**< color code for blue */
-    char magenta[COLOR_LEN];      /**< color code for magenta */
-    char cyan[COLOR_LEN];         /**< color code for cyan */
-    char white[COLOR_LEN];        /**< color code for white */
-    char orange[COLOR_LEN];       /**< color code for orange */
-    char bblack[COLOR_LEN];       /**< color code for bold black */
-    char bred[COLOR_LEN];         /**< color code for bold red */
-    char bgreen[COLOR_LEN];       /**< color code for bold green */
-    char byellow[COLOR_LEN];      /**< color code for bold yellow */
-    char bblue[COLOR_LEN];        /**< color code for bold blue */
-    char bmagenta[COLOR_LEN];     /**< color code for bold magenta */
-    char bcyan[COLOR_LEN];        /**< color code for bold cyan */
-    char bwhite[COLOR_LEN];       /**< color code for bold white */
-    char borange[COLOR_LEN];      /**< color code for bold orange */
-    char abg[COLOR_LEN];          /**< color code for background with alpha */
+    double red_gamma;         /**< red gamma correction value */
+    double green_gamma;       /**< green gamma correction value */
+    double blue_gamma;        /**< blue gamma correction value */
+    double gray_gamma;        /**< gray gamma correction value */
+    char black[COLOR_LEN];    /**< color code for black */
+    char red[COLOR_LEN];      /**< color code for red */
+    char green[COLOR_LEN];    /**< color code for green */
+    char yellow[COLOR_LEN];   /**< color code for yellow */
+    char blue[COLOR_LEN];     /**< color code for blue */
+    char magenta[COLOR_LEN];  /**< color code for magenta */
+    char cyan[COLOR_LEN];     /**< color code for cyan */
+    char white[COLOR_LEN];    /**< color code for white */
+    char orange[COLOR_LEN];   /**< color code for orange */
+    char bblack[COLOR_LEN];   /**< color code for bold black */
+    char bred[COLOR_LEN];     /**< color code for bold red */
+    char bgreen[COLOR_LEN];   /**< color code for bold green */
+    char byellow[COLOR_LEN];  /**< color code for bold yellow */
+    char bblue[COLOR_LEN];    /**< color code for bold blue */
+    char bmagenta[COLOR_LEN]; /**< color code for bold magenta */
+    char bcyan[COLOR_LEN];    /**< color code for bold cyan */
+    char bwhite[COLOR_LEN];   /**< color code for bold white */
+    char borange[COLOR_LEN];  /**< color code for bold orange */
+    char abg[COLOR_LEN];      /**< color code for background with alpha */
+
     char fg[COLOR_LEN];           /**< foreground color index */
     char bg[COLOR_LEN];           /**< background color index */
     char box_fg[COLOR_LEN];       /**< box foreground */
@@ -844,32 +843,39 @@ typedef struct {
         nt_hl_rev_bg[COLOR_LEN]; /**< normal text highlight reverse background */
     char title_fg[COLOR_LEN];    /**< title foreground */
     char title_bg[COLOR_LEN];    /**< title background */
-    char tty_name[MAXLEN];       /**< name of the terminal device */
-    FILE *stdin_fp;              /**< stdin stream pointer */
-    FILE *stdout_fp;             /**< stdout stream pointer */
-    FILE *stderr_fp;             /**< stderr stream pointer */
-    FILE *tty_fp;                /**< terminal device stream pointer */
-    int stdin_fd;                /**< stdin file descriptor */
-    int stdout_fd;               /**< stdout file descriptor */
-    int stderr_fd;               /**< stderr file descriptor */
-    int tty_fd;                  /**< terminal device file descriptor */
-    int clr_cnt;                 /**< number of colors currently in use */
-    int clr_pair_cnt;            /**< number of color pairs currently in use */
-    int clr_idx;                 /**< current color index */
-    int clr_pair_idx;            /**< current color pair index */
-    int cp_default;              /**< default color pair index */
-    int cp_norm;                 /**< normal color pair index */
-    int cp_win;                  /**< window color pair index */
-    int cp_nt_rev;               /**< reverse color pair index */
-    int cp_nt_hl;                /**< highlight color pair index */
-    int cp_nt_hl_rev;            /**< reverse highlight color pair index */
-    int cp_box;                  /**< box color pair index */
-    int cp_ind;                  /**< box color pair index */
-    int cp_bold;                 /**< bold color pair index */
-    int cp_title;                /**< title color pair index */
-    int cp_highlight;            /**< highlight color pair index */
-    int cp_ln;                   /**< line number color pair index */
-    int cp_cmdln;                /**< line number color pair index */
+    char ran_fg[COLOR_LEN];      /**< right angle foreground */
+    char ran_bg[COLOR_LEN];      /**< right angle background */
+
+    char tty_name[MAXLEN]; /**< name of the terminal device */
+    FILE *stdin_fp;        /**< stdin stream pointer */
+    FILE *stdout_fp;       /**< stdout stream pointer */
+    FILE *stderr_fp;       /**< stderr stream pointer */
+    FILE *tty_fp;          /**< terminal device stream pointer */
+    int stdin_fd;          /**< stdin file descriptor */
+    int stdout_fd;         /**< stdout file descriptor */
+    int stderr_fd;         /**< stderr file descriptor */
+    int tty_fd;            /**< terminal device file descriptor */
+    int clr_cnt;           /**< number of colors currently in use */
+    int clr_pair_cnt;      /**< number of color pairs currently in use */
+    int clr_idx;           /**< current color index */
+    int clr_pair_idx;      /**< current color pair index */
+
+    int cp_default;   /**< default color pair index */
+    int cp_fill_char; /**< fill character color pair index */
+    int cp_brackets;  /**< brackets color pair index */
+    int cp_nt;        /**< normal text color pair index */
+    int cp_nt_rev;    /**< reverse color pair index */
+    int cp_nt_hl;     /**< highlight color pair index */
+    int cp_nt_hl_rev; /**< reverse highlight color pair index */
+    int cp_box;       /**< box color pair index */
+    int cp_ind;       /**< indicator color pair index */
+    int cp_cmdln;     /**< command line color pair index */
+    int cp_title;     /**< title color pair index */
+    int cp_ln;        /**< line number color pair index */
+    int cp_norm;      /**< normal color pair index */
+    int cp_ran;       /**< right angle color pair index */
+    int cp_chk;       /**< checkmark color pair index */
+    int cp_bold;      /**< bold color pair index */
 } SIO;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);

@@ -15,8 +15,8 @@ BUILD_TYPE=Debug
 #   NCURSES_UI    — legacy ncurses direct-use (default)
 #   UAL_UI        — UALUI with ncurses backend (src/ui/)
 #   NOTCURSES_UI  — UALUI with notcurses backend (src/ui/)
-UI?="-DNCURSES_UI"
-# UI?="-DUAL_UI"
+# UI?="-DNCURSES_UI"
+UI?="-DUAL_UI"
 # UI?="-DNOTCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
 	CFLAGS=-Ofast -s -fPIC -pthread $(UI)
@@ -27,7 +27,7 @@ else
 #	-DDEBUG_IMMEDOK
 #	DEBUG_FLAGS=-DDEBUG_LOG -DDEBUG_WRAP
 	CFLAGS:=-O0 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
-			-rdynamic $(UI)
+		-rdynamic $(UI)
 	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
 endif
 INCLUDE_DIRS:=-I./include -I./ui
@@ -59,8 +59,8 @@ CX:=-std=c23
 CC:=gcc $(CX) $(INCLUDE_DIRS)
 
 BINEXES:=menu form pick view ckeys \
-		whence rsh rsh_static rsh_pam \
-		iloan amort enterchr enterstr lf stripansi detach
+	whence rsh rsh_static rsh_pam \
+	iloan amort enterchr enterstr lf stripansi detach
 
 MANPAGES:=cmenu.1.gz lf.1.gz rsh.1.gz
 
@@ -78,11 +78,11 @@ endif
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 
 COMMON_HDRS:=include/cm.h include/common.h include/menu.h \
-		include/form.h include/pick.h include/view.h include/version.h \
-		include/version.h.in
+	include/form.h include/pick.h include/view.h include/version.h \
+	include/version.h.in
 COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
-			fields.c cm_fields.c form_engine.c init.c init_view.c mem.c \
-			pick_engine.c popups.c view_engine.c
+	fields.c cm_fields.c form_engine.c init.c init_view.c mem.c \
+	pick_engine.c popups.c view_engine.c
 ifeq ($(UI), "-DUAL_UI")
 	COMMON_HDRS+=include/ui_backend.h ui/ui_ncurses_internal.h
 	COMMON_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c \
@@ -291,18 +291,18 @@ install_man:
 	install -CDp rsh.1.gz	-t $(INSTALL_MAN_DIR)
 
 uninstall:
-			$(INSTALL_BIN_DIR)/menu \
-			$(INSTALL_BIN_DIR)/form \
-			$(INSTALL_BIN_DIR)/pick \
-			$(INSTALL_BIN_DIR)/view \
-			$(INSTALL_BIN_DIR)/ckeys \
-			$(INSTALL_BIN_DIR)/detach \
-			$(INSTALL_BIN_DIR)/rsh \
-			$(INSTALL_BIN_DIR)/rsh_static \
-			$(INSTALL_BIN_DIR)/rsh_pam \
-			$(INSTALL_BIN_DIR)/ush \
-			$(INSTALL_BIN_DIR)/enterchr \
-			$(INSTALL_BIN_DIR)/enterstr \
-			$(INSTALL_BIN_DIR)/stripansi \
-			$(INSTALL_BIN_DIR)/lf \
-			$(INSTALL_LIB_DIR)/libcm.so
+	$(INSTALL_BIN_DIR)/menu \
+	$(INSTALL_BIN_DIR)/form \
+	$(INSTALL_BIN_DIR)/pick \
+	$(INSTALL_BIN_DIR)/view \
+	$(INSTALL_BIN_DIR)/ckeys \
+	$(INSTALL_BIN_DIR)/detach \
+	$(INSTALL_BIN_DIR)/rsh \
+	$(INSTALL_BIN_DIR)/rsh_static \
+	$(INSTALL_BIN_DIR)/rsh_pam \
+	$(INSTALL_BIN_DIR)/ush \
+	$(INSTALL_BIN_DIR)/enterchr \
+	$(INSTALL_BIN_DIR)/enterstr \
+	$(INSTALL_BIN_DIR)/stripansi \
+	$(INSTALL_BIN_DIR)/lf \
+	$(INSTALL_LIB_DIR)/libcm.so

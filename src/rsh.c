@@ -12,7 +12,7 @@
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
 #endif
-#include <cm.h>
+#include "cm.h"
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>

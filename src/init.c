@@ -53,6 +53,8 @@ typedef enum {
     LN_BG,
     CMDLN_FG,
     CMDLN_BG,
+    RAN_FG,
+    RAN_BG,
     XBBLACK,
     XBBLUE,
     XBCYAN,
@@ -143,8 +145,10 @@ static struct argp_option options[] = {
     {"editor", CM_EDITOR, "text", 0, "default editor", 5},
     {"tab_stop", 't', "number", 0, "number of spaces per tab (4)", 5},
     {"h_shift", 'z', "number", 0, "horizontal shift width (16)", 5},
+
     {"bg", BG, "hex_clr", 0, "Terminal (stdscr) background (#000000)", 6},
     {"fg", FG, "hex_clr", 0, "Terminal (stdscr) foreground (#d0d0d0)", 6},
+
     {"box_fg", BOX_FG, "hex_clr", 0, "box foreground (#d0d0d0)", 6},
     {"box_bg", BOX_BG, "hex_clr", 0, "box background (#000000)", 6},
     {"ind_fg", IND_FG, "hex_clr", 0, "indicator foreground (#d0d0d0)", 6},
@@ -161,13 +165,14 @@ static struct argp_option options[] = {
     {"nt_hl_bg", NT_HL_BG, "hex_clr", 0, "normal highlight background (#000000)", 6},
     {"nt_hl_rev_fg", NT_HL_REV_FG, "hex_clr", 0, "normal highlight reverse foreground (#f00000)", 6},
     {"nt_hl_rev_bg", NT_HL_REV_BG, "hex_clr", 0, "normal highlight reverse background (#d0d0d0)", 6},
-
     {"ln_fg", LN_FG, "hex_clr", 0, "line number foreground (#0000b0)", 6},
     {"ln_bg", LN_BG, "hex_clr", 0, "line number background (#202020)", 6},
     {"cmdln_fg", CMDLN_FG, "hex_clr", 0, "line number foreground (#0000b0)", 6},
     {"cmdln_bg", CMDLN_BG, "hex_clr", 0, "line number background (#202020)", 6},
     {"title_fg", TITLE_FG, "hex_clr", 0, "title foreground (#d0d0d0)", 6},
     {"title_bg", TITLE_BG, "hex_clr", 0, "title background (#000000)", 6},
+    {"ran_fg", RAN_FG, "hex_clr", 0, "ran foreground (#d0d0d0)", 6},
+    {"ran_bg", RAN_BG, "hex_clr", 0, "ran background (#000000)", 6},
     {"blue_gamma", GM_BLUE, "float", 0, "blue_gamma (1.2)", 7},
     {"gray_gamma", GM_GRAY, "float", 0, "gray gamma (1.2)", 7},
     {"green_gamma", GM_GREEN, "float", 0, "green gamma (1.2)", 7},
@@ -379,6 +384,12 @@ parse_opt(int key, char *arg, struct argp_state *state) {
     case CMDLN_BG:
         strnz__cpy(sio->cmdln_bg, arg, MAXLEN - 1);
         break;
+    case RAN_FG:
+        strnz__cpy(sio->ran_fg, arg, MAXLEN - 1);
+        break;
+    case RAN_BG:
+        strnz__cpy(sio->ran_bg, arg, MAXLEN - 1);
+        break;
     case GM_BLUE:
         sio->blue_gamma = str_to_double(arg);
         break;
@@ -511,6 +522,8 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     strnz__cpy(sio->box_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
     strnz__cpy(sio->ind_fg, "#f00000", COLOR_LEN - 1);       /**< bold color */
     strnz__cpy(sio->ind_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
+    strnz__cpy(sio->ran_fg, "#f00000", COLOR_LEN - 1);       /**< bold color */
+    strnz__cpy(sio->ran_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
     strnz__cpy(sio->title_fg, "#f0f0f0", COLOR_LEN - 1);     /**< title foreground color */
     strnz__cpy(sio->title_bg, "#000000", COLOR_LEN - 1);     /**< title background color */
     strnz__cpy(sio->nt_fg, "#c0c0c0", COLOR_LEN - 1);        /**< normal foreground color */
@@ -923,6 +936,14 @@ int process_config_file(char *config_file_name, Init *init) {
             strnz__cpy(sio->title_bg, value, COLOR_LEN - 1);
             continue;
         }
+        if (!strcmp(key, "ran_fg")) {
+            strnz__cpy(sio->ran_fg, value, COLOR_LEN - 1);
+            continue;
+        }
+        if (!strcmp(key, "ran_bg")) {
+            strnz__cpy(sio->ran_bg, value, COLOR_LEN - 1);
+            continue;
+        }
         if (!strcmp(key, "red_gamma")) {
             sio->red_gamma = str_to_double(value);
             continue;
@@ -1237,6 +1258,10 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "title_fg");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "title_bg", sio->title_bg);
     print_argp_doc(minitrc_fp, config_s, "title_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ran_fg", sio->ran_fg);
+    print_argp_doc(minitrc_fp, config_s, "ran_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ran_bg", sio->ran_bg);
+    print_argp_doc(minitrc_fp, config_s, "ran_bg");
     ssnprintf(config_s, MAXLEN - 1, "%s=%0.2f", "blue_gamma", sio->blue_gamma);
     print_argp_doc(minitrc_fp, config_s, "blue_gamma");
     ssnprintf(config_s, MAXLEN - 1, "%s=%0.2f", "gray_gamma", sio->gray_gamma);

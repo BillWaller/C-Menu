@@ -8,7 +8,7 @@
     @date 2026-02-09
  */
 
-#include <cm.h>
+#include "cm.h"
 #include <stdio.h>
 
 /** @brief strip ANSI SGR sequences
@@ -20,7 +20,7 @@
    them from the output. */
 int main(int argc, char *argv[]) {
     char
-        in_buf[2048]; /**< Buffer to hold the input string read from the file */
+        in_buf[2048];   /**< Buffer to hold the input string read from the file */
     char out_buf[2048]; /**< Buffer to hold the cleaned output string */
     if (argc != 2) {
         fprintf(stderr, "Usage: %s [file_with_ansi_codes]\n", argv[0]);

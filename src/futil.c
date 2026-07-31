@@ -15,7 +15,7 @@
    range of applications.
  */
 
-#include <cm.h>
+#include "cm.h"
 #include <stdint.h>
 
 #include <argp.h>

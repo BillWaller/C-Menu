@@ -544,8 +544,8 @@ unsigned int display_form(Init *init) {
     form->cols += 2;
     if (form->cols > (COLS - form->begx - 3))
         form->cols = COLS - form->begx - 3;
-    if (box_new(form->lines, form->cols, form->begy, form->begx, form->title)) {
-        strnz__cpy(tmp_str, "box_new failed: ", MAXLEN - 1);
+    if (box_win_new(form->lines, form->cols, form->begy, form->begx, form->title)) {
+        strnz__cpy(tmp_str, "box_win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp_str, form->title, MAXLEN - 1);
         Perror(tmp_str);
         return (1);

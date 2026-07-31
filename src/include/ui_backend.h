@@ -90,6 +90,7 @@ typedef struct {
 typedef struct {
     UiColor fg;
     UiColor bg;
+    int pair_idx;
     bool bold;
     bool dim;
     bool italic;
@@ -160,12 +161,12 @@ typedef enum {
    @see ui_get_caps
 */
 typedef struct {
-    bool truecolor;    /**< backend can display 24-bit RGB colors */
-    bool palette256;   /**< backend supports at least 256 palette entries */
-    bool mouse;        /**< backend can deliver mouse events */
-    bool unicode;      /**< backend handles full Unicode / UTF-8 correctly */
-    bool resize;       /**< backend emits UI_KEY_RESIZE on terminal resize */
-    int  color_pairs;  /**< max simultaneous color pairs; 0 = unlimited */
+    bool truecolor;  /**< backend can display 24-bit RGB colors */
+    bool palette256; /**< backend supports at least 256 palette entries */
+    bool mouse;      /**< backend can deliver mouse events */
+    bool unicode;    /**< backend handles full Unicode / UTF-8 correctly */
+    bool resize;     /**< backend emits UI_KEY_RESIZE on terminal resize */
+    int color_pairs; /**< max simultaneous color pairs; 0 = unlimited */
 } UiCaps;
 
 /* @name UI Backend API
@@ -194,7 +195,8 @@ int ui_clear_screen(UiRuntime *ui);
 int ui_suspend(UiRuntime *ui);
 int ui_resume(UiRuntime *ui);
 
-UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect);
+UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int cols, int y, int x);
+UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int cols, int y, int x, char *title);
 void ui_surface_destroy(UiSurface *s);
 int ui_surface_move(UiSurface *s, int y, int x);
 int ui_surface_resize(UiSurface *s, int rows, int cols);
@@ -210,7 +212,7 @@ int ui_draw_vline(UiSurface *s, int y, int x, int len, const UiStyle *style);
 int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style);
 int ui_draw_box_title(UiSurface *s, int x, const UiStyle *style, const char *title);
 int ui_bkgrnd(UiSurface *, const UiStyle *, const char *);
-int ui_bkgd_set(UiSurface *, const UiStyle *, const char *);
+int ui_bkgrndset(UiSurface *, const UiStyle *, const char *);
 /* @brief clipping / visibility
 @ingroup ui_backend */
 int ui_surface_show(UiSurface *s);
