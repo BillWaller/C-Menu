@@ -108,9 +108,11 @@ typedef struct {
     bool shift;
     int y;
     int x;
+    int chyron;
+    int in_win;
     UiMouseAction mouse_action;
     bool mouse_inside;
-    char keybound[32];
+    char keybound[256];
 } UiEvent;
 
 typedef struct {
@@ -207,10 +209,12 @@ int ui_surface_erase(UiSurface *s);
 int ui_surface_set_base(UiSurface *s, const UiStyle *style, uint32_t fill_ch);
 int ui_surface_set_style(UiSurface *s, const UiStyle *style);
 int ui_mvwaddstr(UiSurface *s, int y, int x, const char *text);
+void ui_mvwaddstr_fill(UiSurface *sfc, int y, int x, char *s, int l);
 int ui_wclrtoeol(UiSurface *s);
-
+int ui_draw_ch(UiSurface *s, int y, int x, const UiStyle *style, const char c);
 int ui_draw_text(UiSurface *s, int y, int x, const UiStyle *style, const char *text);
 int ui_draw_text_n(UiSurface *s, int y, int x, const UiStyle *style, const char *text, size_t n);
+int ui_draw_text_fill(UiSurface *s, int y, int x, const UiStyle *style, const char *text, size_t n);
 int ui_draw_hline(UiSurface *s, int y, int x, int len, const UiStyle *style);
 int ui_draw_vline(UiSurface *s, int y, int x, int len, const UiStyle *style);
 int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style);
@@ -222,6 +226,7 @@ int ui_bkgrndset(UiSurface *, const UiStyle *, const char *);
 int ui_surface_show(UiSurface *s);
 int ui_surface_hide(UiSurface *s);
 int ui_get_event(UiRuntime *ui, UiSurface *target, UiEvent *ev, int timeout_ms);
+int ui_get_event_multi(UiRuntime *ui, UiSurface *surface, UiEvent *ev, int timeout_ms);
 int ui_cursor_move(UiSurface *s, int y, int x);
 int ui_cursor_enable(UiRuntime *ui, bool visible);
 

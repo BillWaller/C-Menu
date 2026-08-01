@@ -38,9 +38,6 @@ int popup_ckeys() {
     ui_get_screen_size(ui_runtime, &maxy, &maxx);
     int begy = (maxy - lines) / 3;
     int begx = (maxx - cols) / 2;
-    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT |
-                  BUTTON_CTRL | BUTTON_ALT,
-              NULL);
     if (box_win_new(lines, cols, begy, begx, Title)) {
         strnz__cpy(tmp, "box_win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
@@ -55,7 +52,6 @@ int popup_ckeys() {
     ui_bkgrndset(sfc, NULL, " ");
     ui_mvwaddstr(sfc, 1, 4, "Press a key or activate the mouse:");
     c = '\0';
-    // halfdelay(1);
     UiEvent ev;
     while (!c) {
         kstr[0] = '\0';

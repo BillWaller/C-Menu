@@ -105,12 +105,13 @@ int ui_get_event(UiRuntime *ui, UiSurface *target, UiEvent *ev,
     if (!ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
-
     WINDOW *win = target ? target->win : stdscr;
     keypad(win, true);
-    timeout_ms = timeout_ms < -1 ? -1 : timeout_ms;
-    // wtimeout(win, timeout_ms);
-
+    if (timeout_ms <= 0) {
+        timeout_ms = -1;
+    } else
+        wtimeout(win, timeout_ms);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT | BUTTON_CTRL | BUTTON_ALT, NULL);
     int ch = wgetch(win);
     ev->key = translate_key(ch);
     if (ev->key == UI_KEY_CHAR) {
@@ -134,10 +135,62 @@ int ui_get_event(UiRuntime *ui, UiSurface *target, UiEvent *ev,
                 ev->mouse_action = UI_MOUSE_PRESS;
             else if (me.bstate & BUTTON1_RELEASED)
                 ev->mouse_action = UI_MOUSE_RELEASE;
-            if (wenclose(target->win, me.y, me.x)) {
+            if (wenclose(target->win, me.y, me.x) &&
+                wmouse_trafo(target->win, &me.y, &me.x, false)) {
                 ev->mouse_inside = true;
+                ev->y = me.y;
+                ev->x = me.x;
             } else {
                 ev->mouse_inside = false;
+            }
+        }
+    }
+    return ch;
+}
+
+int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, UiEvent *ev, int timeout_ms) {
+    (void)ui;
+    int i;
+    char *keybound_p = NULL;
+    if (!ev)
+        return -1;
+    memset(ev, 0, sizeof(*ev));
+    WINDOW *win = sfc ? sfc->win : stdscr;
+    keypad(win, true);
+    if (timeout_ms <= 0) {
+        timeout_ms = -1;
+    } else
+        wtimeout(win, timeout_ms);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT | BUTTON_CTRL | BUTTON_ALT, NULL);
+    ev->chyron = -1;
+    int ch = wgetch(win);
+    ev->key = translate_key(ch);
+    if (ev->key == UI_KEY_CHAR) {
+        ev->ch = (uint32_t)ch;
+    } else if (ev->key == UI_KEY_MOUSE) {
+        MEVENT me;
+        if (getmouse(&me) == OK) {
+            ev->y = me.y;
+            ev->x = me.x;
+            if (me.bstate & BUTTON4_PRESSED)
+                ev->mouse_action = UI_MOUSE_SCROLL_UP;
+            else if (me.bstate & BUTTON5_PRESSED)
+                ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
+            else if (me.bstate & BUTTON1_CLICKED || me.bstate & BUTTON1_DOUBLE_CLICKED) {
+                ev->mouse_action = UI_MOUSE_PRESS;
+                for (i = 0; i < 4; i++) {
+                    if (sfc->mwin[i] != NULL &&
+                        wenclose(sfc->mwin[i], me.y, me.x) &&
+                        wmouse_trafo(sfc->mwin[i], &me.y, &me.x, false)) {
+                        ev->in_win = i;
+                        ev->key = 0;
+                        break;
+                    }
+                }
+                ev->y = me.y;
+                ev->x = me.x;
+                ev->key = 0;
+                return 0;
             }
         }
     }

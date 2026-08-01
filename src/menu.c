@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     UiConfig *ui_config = calloc(1, sizeof(UiConfig));
     ui_config->enable_mouse = true;
     ui_config->enable_alt_screen = false;
-    ui_config->cursor_visible = true;
+    ui_config->cursor_visible = false;
     ui_runtime = ui_init(ui_config);
 #else
     open_curses(sio);

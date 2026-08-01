@@ -131,6 +131,40 @@ int ui_draw_text_n(UiSurface *s, int y, int x, const UiStyle *style,
     return 0;
 }
 
+/** @brief Draw exactly n bytes of UTF-8 text at (y, x). */
+int ui_draw_text_fill(UiSurface *s, int y, int x, const UiStyle *style,
+                      const char *text, size_t n) {
+    if (!s || !text)
+        return -1;
+    if (style)
+        ui_ncurses_style_apply(s->win, style);
+    int l = strlen(text);
+    if (l < (int)n) {
+        char *tmp_str = (char *)malloc(n + 1);
+        if (!tmp_str)
+            return -1;
+        strcpy(tmp_str, text);
+        for (int i = l; i < (int)n; i++) {
+            tmp_str[i] = ' ';
+        }
+        tmp_str[n] = '\0';
+        mvwaddstr(s->win, y, x, tmp_str);
+        free(tmp_str);
+    } else {
+        mvwaddnstr(s->win, y, x, text, (int)n);
+    }
+    return 0;
+}
+/** @brief Draw UTF-8 character at (y, x) with optional style. */
+int ui_draw_ch(UiSurface *s, int y, int x, const UiStyle *style, const char c) {
+    if (!s || !c)
+        return -1;
+    if (style)
+        ui_ncurses_style_apply(s->win, style);
+    mvwaddch(s->win, y, x, c);
+    return 0;
+}
+
 /** @brief Display at most n columns. */
 int ui_mvwadd_mbnstr(UiSurface *s, int y, int x, const char *text, int n) {
     if (!s || !text)

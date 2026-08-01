@@ -15,8 +15,9 @@
     and managing the display of submenus, pick lists, forms, and views.
  */
 
-#include <common.h>
-#include <ctype.h>
+#include "include/common.h"
+#include "include/ui_backend.h"
+#include "ui/ui_ncurses_internal.h"
 #include <ncursesw/ncurses.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,18 +53,16 @@ unsigned int menu_engine(Init *init) {
     menu->choice_max_len = 0;
     menu->text_max_len = 0;
     parse_menu_description(init);
-    if (box_win_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title)) {
+    box_win_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title);
+    UiSurface *sfc = ui_surface[win_ptr];
+    if (sfc == nullptr) {
         ssnprintf(tmp_str, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed",
                   menu->lines, menu->cols, menu->begy, menu->begx, menu->title);
         Perror(tmp_str);
         return 1;
     }
-
-    scrollok(win_win[win_ptr], false);
-    int len;
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
-    cchar_t cc = {0};
 
     action = MA_DISPLAY_MENU;
     while (action) {
@@ -79,22 +78,15 @@ unsigned int menu_engine(Init *init) {
         case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
-                mvwaddstr_fill(win_win[win_ptr],
-                               menu->line_idx,
-                               0,
-                               menu->line[menu->line_idx]->choice_text,
-                               menu->cols - 2);
-                // Highlight the letter of the menu choice
-                wchar_t wstr[2] = {L'\0', L'\0'};
-                len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,
-                              MB_CUR_MAX, &mbstate);
-                if (len < 0) {
-                    wstr[0] = L'?';
-                    wstr[1] = L'\0';
-                }
-                setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl, nullptr);
-                mvwadd_wch(win_win[win_ptr], menu->line_idx,
-                           menu->line[menu->line_idx]->letter_pos, &cc);
+                ui_bkgrndset_cch(sfc, &CC_NT);
+                ui_draw_text_fill(sfc, menu->line_idx, 0, NULL,
+                                  menu->line[menu->line_idx]->choice_text,
+                                  menu->cols);
+                ui_bkgrndset_cch(sfc, &CC_NT_HL);
+                ui_draw_ch(sfc, menu->line_idx,
+                           menu->line[menu->line_idx]->letter_pos, NULL,
+                           menu->line[menu->line_idx]->choice_letter);
+                ui_bkgrndset_cch(sfc, &CC_NT);
             }
             action = MA_RESET_MENU;
             break;
@@ -131,7 +123,6 @@ unsigned int menu_engine(Init *init) {
  */
 unsigned int menu_cmd_processor(Init *init) {
     int i, c;
-    int len;
     char *d;
     int in_key;
     char tmp_str[MAXLEN];
@@ -140,54 +131,41 @@ unsigned int menu_cmd_processor(Init *init) {
     int eargc;
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
-    cchar_t cc = {0};
     Menu *menu = init->menu;
     keypad(win_win[win_ptr], TRUE);
     mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
-    MEVENT event;
     scrollok(win_win[win_ptr], FALSE);
+    UiSurface *sfc = ui_surface[win_ptr];
+    UiEvent event;
 
     // Highlight the currently selected menu choice
 
     while (1) {
-        wbkgrndset(win_win[win_ptr], &CC_NT_REV);
-        mvwaddstr_fill(win_win[win_ptr], menu->line_idx, 0,
-                       menu->line[menu->line_idx]->choice_text, menu->cols);
-        wbkgrndset(win_win[win_ptr], &CC_NT);
-        // Highlight the letter of the currently selected menu choice
-        wchar_t wstr[2] = {L'\0', L'\0'};
-        len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,
-                      MB_CUR_MAX, &mbstate);
-        if (len < 0) {
-            wstr[0] = L'?';
-            wstr[1] = L'\0';
-        }
-        setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl_rev, nullptr);
-        mvwadd_wch(win_win[win_ptr], menu->line_idx,
-                   menu->line[menu->line_idx]->letter_pos, &cc);
-
+        ui_bkgrndset_cch(sfc, &CC_NT_REV);
+        ui_draw_text_fill(sfc, menu->line_idx, 0, NULL,
+                          menu->line[menu->line_idx]->choice_text,
+                          menu->cols);
+        ui_bkgrndset_cch(sfc, &CC_NT_HL_REV);
+        ui_draw_ch(sfc, menu->line_idx,
+                   menu->line[menu->line_idx]->letter_pos, NULL,
+                   menu->line[menu->line_idx]->choice_letter);
+        ui_bkgrndset_cch(sfc, &CC_NT);
         // Wait for user input and process it
         event.y = event.x = -1;
-        update_panels();
-        doupdate();
-        wmove(win_win[win_ptr], menu->line_idx, 1);
-        in_key = xwgetch(win_win[win_ptr], nullptr, -1);
-
+        ui_cursor_move(sfc, menu->line_idx, 1);
+        in_key = ui_get_event(ui_runtime, sfc, &event, -1);
         // Remove the highlight from the currently selected menu choice
-        mvwaddstr_fill(win_win[win_ptr], menu->line_idx, 0,
-                       menu->line[menu->line_idx]->choice_text, menu->cols);
-        len = mbrtowc(wstr, &menu->line[menu->line_idx]->choice_letter,
-                      MB_CUR_MAX, &mbstate);
-        if (len < 0) {
-            wstr[0] = L'?';
-            wstr[1] = L'\0';
-        }
-        setcchar(&cc, wstr, WA_NORMAL, cp_nt_hl, nullptr);
-        mvwadd_wch(win_win[win_ptr], menu->line_idx,
-                   menu->line[menu->line_idx]->letter_pos, &cc);
+        ui_bkgrndset_cch(sfc, &CC_NT);
+        ui_draw_text_fill(sfc, menu->line_idx, 0, NULL,
+                          menu->line[menu->line_idx]->choice_text,
+                          menu->cols);
+        ui_bkgrndset_cch(sfc, &CC_NT_HL);
+        ui_draw_ch(sfc, menu->line_idx,
+                   menu->line[menu->line_idx]->letter_pos, NULL,
+                   menu->line[menu->line_idx]->choice_letter);
+        ui_render(ui_runtime);
         // Initialize the mouse event coordinates to -1 to indicate no mouse
         // event
-        event.y = event.x = -1;
         switch (in_key) {
         /** Move up to the previous menu choice */
         case KEY_UP:
@@ -273,11 +251,11 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_DISPLAY_MENU);
             /** @brief process mouse event */
         case KEY_MOUSE:
-            if (click_y == -1 || click_x == -1)
+            if (event.y == -1 || event.x == -1)
                 return (MA_CONTINUE);
-            if (click_y < 0 || click_y >= menu->item_count)
+            if (event.y < 0 || event.y >= menu->item_count)
                 return (MA_CONTINUE);
-            menu->line_idx = click_y;
+            menu->line_idx = event.y;
             break;
         case 'q':
             return (MA_RETURN);

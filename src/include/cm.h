@@ -6,7 +6,6 @@
  *  billxwaller@gmail.com
  *  @date 2026-02-09
  */
-
 #ifndef _CM_H
 #define _CM_H 1
 
@@ -468,29 +467,25 @@ extern char *get_local_timestamp();
 extern char *get_user_str(char *, size_t);
 extern char *get_ip_addresses(char *, int);
 extern bool is_newer(char *, char *);
-extern cchar_t CC_REVERSE;   /**< curses default reverse */
-extern cchar_t CC_NT;        /**< C-Menu normal text */
-extern cchar_t CC_NT_REV;    /**< reverse */
-extern cchar_t CC_NT_HL;     /**< highlight */
-extern cchar_t CC_NT_HL_REV; /**< highlight reverse */
-extern cchar_t CC_FILL_CHAR; /**< fill character */
-extern cchar_t CC_BRKTL;     /**< left bracket */
-extern cchar_t CC_BRKTR;     /**< right bracket */
-extern cchar_t CC_BOX;       /**< indicator colors */
-extern cchar_t CC_IND;       /**< box colors */
-extern cchar_t CC_CMDLN;
-extern cchar_t CC_LN;
-extern cchar_t CC_DATA1;
-extern cchar_t CC_DATA2;
-extern cchar_t CC_DATA3;
-extern cchar_t CC_TITLE; /**< title colors */
 
-extern cchar_t CC_BRKTL;  /**< left field bracket */
-extern cchar_t CC_BRKTR;  /**< right field bracket */
-extern cchar_t CC_RED;    /**< red background */
-extern cchar_t CC_GREEN;  /**< green background */
-extern cchar_t CC_YELLOW; /**< yellow background */
-extern cchar_t CC_BLUE;   /**< blue background */
+extern cchar_t CC_BOX;
+extern cchar_t CC_CMDLN;
+extern cchar_t CC_IND;
+extern cchar_t CC_LN;
+extern cchar_t CC_TITLE;
+extern cchar_t CC_NT;
+extern cchar_t CC_NT_REV;
+extern cchar_t CC_NT_HL_REV;
+extern cchar_t CC_NT_HL;
+extern cchar_t CC_BRKTL;
+extern cchar_t CC_BRKTR;
+extern cchar_t CC_FILL_CHAR;
+extern cchar_t CC_CHK;
+extern cchar_t CC_RAN;
+extern cchar_t CC_RED;
+extern cchar_t CC_GREEN;
+extern cchar_t CC_YELLOW;
+extern cchar_t CC_BLUE;
 
 extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define KEY_ALTF0 0x138

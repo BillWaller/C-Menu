@@ -18,6 +18,7 @@
 
 #include "include/cm.h"
 #include "include/ui_backend.h"
+#include "ui/ui_ncurses_internal.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
@@ -103,7 +104,6 @@ void win_del();
 void win_redraw(WINDOW *);
 void win_resize(int, int, char *);
 void restore_wins();
-void check_panels(int);
 
 WINDOW *mouse_win;
 WINDOW *wait_mk_win(Chyron *, char *);
@@ -140,6 +140,25 @@ const wchar_t bw_ua = BW_UA;   /**< up arrow */
 const wchar_t bw_da = BW_DA;   /**< down arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
 const wchar_t bw_chk = BW_CHK; /**< check mark */
+
+cchar_t CC_BOX;
+cchar_t CC_CMDLN;
+cchar_t CC_IND;
+cchar_t CC_LN;
+cchar_t CC_TITLE;
+cchar_t CC_NT;
+cchar_t CC_NT_REV;
+cchar_t CC_NT_HL_REV;
+cchar_t CC_NT_HL;
+cchar_t CC_BRKTL;
+cchar_t CC_BRKTR;
+cchar_t CC_FILL_CHAR;
+cchar_t CC_CHK;
+cchar_t CC_RAN;
+cchar_t CC_RED;
+cchar_t CC_GREEN;
+cchar_t CC_YELLOW;
+cchar_t CC_BLUE;
 
 double GRAY_GAMMA = 1.2;  /**< Gamma correction value for gray colors. Set in .minitrc */
 double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .minitrc */
@@ -184,28 +203,7 @@ int cp_blue;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
-cchar_t CC_BG;
-cchar_t CC_BOX;
-cchar_t CC_IND;
-cchar_t CC_LN;
-cchar_t CC_CMDLN;
-cchar_t CC_TITLE;
-cchar_t CC_NT;
-cchar_t CC_NT_REV;
-cchar_t CC_NT_HL_REV;
-cchar_t CC_NT_HL;
-cchar_t CC_NORM;
-cchar_t CC_BRKTL;
-cchar_t CC_BRKTR;
-cchar_t CC_FILL_CHAR;
-cchar_t CC_CHK;
-cchar_t CC_RAN;
-cchar_t CC_RED;
-cchar_t CC_GREEN;
-cchar_t CC_YELLOW;
-cchar_t CC_BLUE;
 
-/** Global file/pipe numbers */
 int tty_fd, pipe_in, pipe_out;
 
 /** open_curses
@@ -275,7 +273,7 @@ bool open_curses(SIO *sio) {
     keypad(stdscr, true);
     idlok(stdscr, false);
     idcok(stdscr, false);
-    wbkgrnd(stdscr, &CC_NORM);
+    wbkgrnd(stdscr, &CC_NT);
     for (win_ptr = 0; win_ptr < MAXWIN; win_ptr++) {
         panel_box[win_ptr] = nullptr;
 
@@ -889,6 +887,7 @@ int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
         Perror("ui_surface_new() failed");
         exit(EXIT_FAILURE);
     }
+    ui_render(ui_runtime);
     // LEGACY - to be removed when all code is converted to UAL
     win_box[win_ptr] = ui_surface[win_ptr]->box;
     panel_box[win_ptr] = ui_surface[win_ptr]->pan;
@@ -981,39 +980,6 @@ int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy
     doupdate();
     return 0;
 }
-// ------------------------------------------------------------
-/** check_panels
-    @brief Check and display the panels for a given window index
-    @ingroup window_support
-    @param i Index of the window to check
-    @details This function checks the panels associated with the
-    specified window index. It sets the background color for each panel,
-    displays a label indicating the panel type, and updates the display.
-    The function pauses after displaying each panel to allow the user to
-    view the changes. */
-void check_panels(int i) {
-    if (i == -1)
-        return;
-    char tmp_str[MAXLEN];
-    wbkgrnd(win_box[i], &CC_RED);
-    ssnprintf(tmp_str, MAXLEN - 1, "box[%d]", i);
-    mvwaddstr(win_box[i], 5, 2, tmp_str);
-    getch();
-
-    wbkgrnd(win_win[i], &CC_GREEN);
-    ssnprintf(tmp_str, MAXLEN - 1, "win[%d]", i);
-    mvwaddstr(win_win[i], 6, 2, tmp_str);
-    getch();
-
-    wbkgrnd(win_win2[i], &CC_BLUE);
-    ssnprintf(tmp_str, MAXLEN - 1, "win2[%d]", i);
-    mvwaddstr(win_win2[i], 0, 0, tmp_str);
-    getch();
-
-    show_panel(panel_box[i]);
-    update_panels();
-    doupdate();
-}
 /** win_resize
     @brief Resize the current window and its box, and update the title
     @ingroup window_support
@@ -1087,6 +1053,7 @@ void win_del() {
             delwin(win_box[win_ptr]);
             // win_box[win_ptr] = nullptr;
         }
+        ui_render(ui_runtime);
         win_ptr--;
         restore_wins();
     }
@@ -1113,6 +1080,7 @@ void restore_wins() {
             touchwin(win_win2[i]);
         }
         show_panel(panel_box[i]);
+        ui_render(ui_runtime);
     }
 }
 int border_draw(WINDOW *box) {

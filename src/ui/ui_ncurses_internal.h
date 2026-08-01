@@ -84,6 +84,7 @@ struct UiSplitSurface {
 struct UiSurface {
     WINDOW *box;
     WINDOW *win;
+    WINDOW *mwin[4];
     WINDOW *win2; // LEGACY - to be removed in future versions
     PANEL *pan;
     struct UiRuntime *runtime;
@@ -105,5 +106,6 @@ void ui_style_destroy(UiStyle *);
 UiStyle *ui_style_from_cch(const cchar_t *);
 cchar_t ui_style_to_cch(const UiStyle *, const char *);
 int ui_mvwadd_mbnstr(UiSurface *s, int y, int x, const char *text, int n);
+int ui_bkgrndset_cch(UiSurface *, cchar_t *cch);
 
 #endif

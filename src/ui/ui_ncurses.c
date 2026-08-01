@@ -20,7 +20,6 @@
 #ifdef UAL_LEGACY_COMPAT
 #include "cm.h"
 #endif
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -162,7 +161,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
 #ifdef UAL_LEGACY_COMPAT
     win_ptr = -1;
 #endif
-
+    curs_set(ui->cursor_visible ? 1 : 0);
     return ui;
 }
 
@@ -333,8 +332,10 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int co
         free(s);
         return NULL;
     }
+    s->mwin[0] = s->win;
     wbkgrnd(s->win, &CC_NT);
     wbkgrndset(s->win, &CC_NT);
+    scrollok(s->win, false);
     return s;
 }
 
@@ -413,6 +414,12 @@ int ui_bkgrndset(UiSurface *s, const UiStyle *style, const char *c) {
         return -1;
     cchar_t cch = ui_style_to_cch(style, c);
     wbkgrndset(s->win, &cch);
+    return 0;
+}
+int ui_bkgrndset_cch(UiSurface *s, cchar_t *cch) {
+    if (!s)
+        return -1;
+    wbkgrndset(s->win, cch);
     return 0;
 }
 
