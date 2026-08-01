@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-01T12:39:11-05:00* - FEATURE: Continuing to integrate UAL into C-Menu. 
+
+*2026-07-31T19:19:58-05:00* - Update CHANGELOG.md 
+
 *2026-07-31T18:51:18-05:00* - FEATURE: The Uniform Abstraction Layer (UAL) is commencing nicely. Curskeys, a keyboard and mouse diagnostic tool, was ported to the UAL first because it is small, and it provides a good diagnostic tool for testing the UAL. When finished, the UAL will allow C-Menu to use multiple UI backends. NCurses is currently supported, and the Notcurses port is already underway. The capabilities of Notcurses are truly amazing. Imagine C-Menu View with images, audio, and video. We believe it will be a major leap forward. Because of the UAL, we will be able to add other backends as well, such as GTK, QT, and maybe even SwiftUI - without requiring changes to the C-Menu codebase. Of course, we will continue to provide support for NCurses because it is rock-solid, and ubiquitous. 
 
 *2026-07-30T21:58:22-05:00* - Update CHANGELOG.md 
