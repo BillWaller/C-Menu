@@ -561,6 +561,8 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     init->mapp_spec[0] = '\0';
     init->argc = argc;
     argp_parse(&argp, argc, argv, 0, 0, init);
+    strnz__cpy(sio->fill_char, init->fill_char, 1);
+    strnz__cpy(sio->brackets, init->brackets, 2);
     if (f_write_config) {
         write_config(init);
         exit(EXIT_SUCCESS);

@@ -20,8 +20,6 @@
 #include <string.h>
 #include <wchar.h>
 
-int ui_mvwadd_mbnstr(UiSurface *s, int y, int x, const char *text, int n);
-int ui_mvwadd_mbnstr_fill(UiSurface *s, int y, int x, const char *text, int n);
 int mbstr_to_cc(char *in_str, cchar_t *cmplx_buf_s);
 void parse_ansi(char *ansi_str, attr_t *attr, int *cpx);
 
@@ -54,86 +52,66 @@ int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style) {
    ------------------------------------------------------------------------- */
 
 /** @brief Apply a style to a surface's default rendering attributes. */
-int ui_surface_set_style(UiSurface *s, const UiStyle *style) {
+int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style) {
     if (!s || !style)
         return -1;
-    return ui_ncurses_style_apply(s->win, style);
+    return ui_ncurses_style_apply(s->mwin[w], style);
 }
 
 /** @brief Set the background fill character and style for a surface. */
-int ui_surface_set_base(UiSurface *s, const UiStyle *style, uint32_t fill_ch) {
+int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill_ch) {
     if (!s)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
-    wbkgdset(s->win, (chtype)(fill_ch ? fill_ch : ' '));
+        ui_ncurses_style_apply(s->mwin[w], style);
+    wbkgdset(s->mwin[w], (chtype)(fill_ch ? fill_ch : ' '));
     return 0;
 }
 
+int ui_wclrtobot(UiSurface *s, int w) {
+    if (!s)
+        return -1;
+    wclrtobot(s->mwin[w]);
+    return 0;
+}
+int ui_wclrtoeol(UiSurface *s, int w) {
+    if (!s)
+        return -1;
+    wclrtoeol(s->mwin[w]);
+    return 0;
+}
 /* -------------------------------------------------------------------------
-   Text
+   Text with UiStyle
    ------------------------------------------------------------------------- */
-
-int ui_mvwaddstr(UiSurface *s, int y, int x, const char *txt) {
-    if (!s || !txt)
-        return -1;
-    mvwaddstr(s->win, y, x, txt);
-    return 0;
-}
-
-void ui_mvwaddstr_fill(UiSurface *sfc, int y, int x, char *s, int l) {
-    char *d, *e;
-    int maxy, maxx;
-    char tmp_str[MAXLEN];
-    getmaxyx(sfc->win, maxy, maxx);
-    y = min(y, maxy);
-    l = min(l, maxx);
-    l = min(l, MAXLEN - 1);
-    e = d = tmp_str;
-    e += l;
-    while (d < e) {
-        if (*s == '\0' || *s == '\n')
-            *d++ = ' ';
-        else
-            *d++ = *s++;
-    }
-    *d = '\0';
-    l = strlen(tmp_str);
-    mvwaddstr(sfc->win, y, x, tmp_str);
-}
-
-int ui_wclrtoeol(UiSurface *s) {
-    if (!s)
-        return -1;
-    wclrtoeol(s->win);
-    return 0;
-}
-
-/** @brief Draw UTF-8 text at (y, x) with optional style. */
-int ui_draw_text(UiSurface *s, int y, int x, const UiStyle *style,
-                 const char *text) {
-    if (!s || !text)
+//  text character single
+int ui_draw_ch(UiSurface *s, int w, int y, int x, const UiStyle *style, const char c) {
+    if (!s || !s->mwin[w] || !c)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
-    mvwaddstr(s->win, y, x, text);
+        ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddch(s->mwin[w], y, x, c);
     return 0;
 }
-
-/** @brief Draw at most @p n bytes of UTF-8 text at (y, x). */
-int ui_draw_text_n(UiSurface *s, int y, int x, const UiStyle *style,
-                   const char *text, size_t n) {
-    if (!s || !text)
+//  text string
+int ui_draw_text(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text) {
+    if (!s || !s->mwin[w] || !text)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
-    mvwaddnstr(s->win, y, x, text, (int)n);
+        ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
-
-/** @brief Draw exactly n bytes of UTF-8 text at (y, x). */
-int ui_draw_text_fill(UiSurface *s, int y, int x, const UiStyle *style,
-                      const char *text, size_t n) {
+// text - limit length
+int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text, size_t n) {
+    if (!s || !s->mwin[w] || !text)
+        return -1;
+    if (style)
+        ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddnstr(s->mwin[w], y, x, text, (int)n);
+    return 0;
+}
+//  text string - pad length
+int ui_draw_text_fill(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text, size_t n) {
     if (!s || !text)
         return -1;
     if (style)
@@ -148,36 +126,153 @@ int ui_draw_text_fill(UiSurface *s, int y, int x, const UiStyle *style,
             tmp_str[i] = ' ';
         }
         tmp_str[n] = '\0';
-        mvwaddstr(s->win, y, x, tmp_str);
+        mvwaddstr(s->mwin[w], y, x, tmp_str);
         free(tmp_str);
     } else {
-        mvwaddnstr(s->win, y, x, text, (int)n);
+        mvwaddnstr(s->mwin[w], y, x, text, (int)n);
     }
     return 0;
 }
-/** @brief Draw UTF-8 character at (y, x) with optional style. */
-int ui_draw_ch(UiSurface *s, int y, int x, const UiStyle *style, const char c) {
-    if (!s || !c)
+// ---------------------------------------------------------------------------
+// Wide Character Strings (wstr)
+// ---------------------------------------------------------------------------
+int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr, int n) {
+    if (!s || !wstr)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
-    mvwaddch(s->win, y, x, c);
+        ui_ncurses_style_apply(s->mwin[w], style);
+    waddnwstr(s->mwin[w], wstr, n);
     return 0;
 }
-
-/** @brief Display at most n columns. */
-int ui_mvwadd_mbnstr(UiSurface *s, int y, int x, const char *text, int n) {
+int ui_mvwaddnwstr(UiSurface *s, int w, int y, int x, const UiStyle *style, const wchar_t *wstr, int n) {
+    if (!s || !wstr)
+        return -1;
+    if (style)
+        ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddnwstr(s->mwin[w], y, x, wstr, n);
+    return 0;
+}
+// -------------------------------------------------------------------------
+// Text - Sanstyle
+// -------------------------------------------------------------------------
+int ui_waddstr(UiSurface *s, int w, const char *text) {
+    if (!s || !s->mwin[w] || !text)
+        return -1;
+    //  if (style)
+    //      ui_ncurses_style_apply(s->mwin[w], style);
+    waddstr(s->mwin[w], text);
+    return 0;
+}
+//  text string
+int ui_mvaddstr(UiSurface *s, int w, int y, int x, const char *text) {
+    if (!s || !s->mwin[w] || !text)
+        return -1;
+    //  if (style)
+    //      ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddstr(s->mwin[w], y, x, text);
+    return 0;
+}
+//  text character single
+int ui_mvwaddch(UiSurface *s, int w, int y, int x, const char c) {
+    if (!s || !s->mwin[w] || !c)
+        return -1;
+    //  if (style)
+    //      ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddch(s->mwin[w], y, x, c);
+    return 0;
+}
+// text string
+int ui_mvwaddstr(UiSurface *s, int w, int y, int x, const char *text) {
+    if (!s || !s->mwin[w] || !text)
+        return -1;
+    //  if (style)
+    //      ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddstr(s->mwin[w], y, x, text);
+    return 0;
+}
+// text string - pad length
+int ui_mvwaddstr_fill(UiSurface *s, int w, int y, int x, char *str, int l) {
+    char *d, *e;
+    int maxy, maxx;
+    char tmp_str[MAXLEN];
+    getmaxyx(s->mwin[w], maxy, maxx);
+    y = min(y, maxy);
+    l = min(l, maxx);
+    l = min(l, MAXLEN - 1);
+    e = d = tmp_str;
+    e += l;
+    while (d < e) {
+        if (*str == '\0' || *str == '\n')
+            *d++ = ' ';
+        else
+            *d++ = *str++;
+    }
+    *d = '\0';
+    l = strlen(tmp_str);
+    //  if (style)
+    //      ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddstr(s->mwin[w], y, x, tmp_str);
+    return 0;
+}
+// ---------------------------------------------------------------------------
+// Complex Characters (cc)
+// ---------------------------------------------------------------------------
+/** cc character single      */
+int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, cchar_t *cc) {
+    if (!s || !cc)
+        return -1;
+    mvwadd_wch(s->mwin[w], y, x, cc);
+    return 0;
+}
+//  cc string
+int ui_wadd_wchstr(UiSurface *s, int w, cchar_t *cmplx_buf) {
+    if (!s || !cmplx_buf)
+        return -1;
+    wadd_wchstr(s->mwin[w], cmplx_buf);
+    return 0;
+}
+//  cc string
+int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf) {
+    if (!s || !cmplx_buf)
+        return -1;
+    mvwadd_wchstr(s->mwin[w], y, x, cmplx_buf);
+    return 0;
+}
+//  cc string - limit length
+int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf, int n) {
+    if (!s || !cmplx_buf)
+        return -1;
+    mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, n);
+    return 0;
+}
+// ---------------------------------------------------------------------------
+// Convert Multi-byte String to Complex Character Array
+// ---------------------------------------------------------------------------
+//  mb string to cc
+int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text) {
+    if (!s || !text)
+        return -1;
+    cchar_t cmplx_buf[MAXLEN];
+    int cols = mbstr_to_cc((char *)text, cmplx_buf);
+    //  if (style)
+    //      ui_ncurses_style_apply(s->mwin[w], style);
+    mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, cols);
+    return 0;
+}
+//  mb string to cc - limit length
+int ui_mvwadd_mbnstr(UiSurface *s, int w, int y, int x, const char *text, int n) {
     if (!s || !text)
         return -1;
     cchar_t cmplx_buf[MAXLEN];
     int cols = mbstr_to_cc((char *)text, cmplx_buf);
     cols = (cols > n) ? n : cols;
-    mvwadd_wchnstr(s->win, y, x, cmplx_buf, cols);
+    //  if (style)
+    //      ui_ncurses_style_apply(s->mwin[w], style);
+    mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, cols);
     return 0;
 }
-
-/** @brief Display n columns, space filling if necessary */
-int ui_mvwadd_mbnstr_fill(UiSurface *s, int y, int x, const char *text, int n) {
+//  mb string to cc - pad length
+int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, int n) {
     if (!s || !text)
         return -1;
     cchar_t cmplx_buf[MAXLEN];
@@ -186,14 +281,14 @@ int ui_mvwadd_mbnstr_fill(UiSurface *s, int y, int x, const char *text, int n) {
         cchar_t fill_cc;
         wchar_t wstr[2] = {L' ', L'\0'};
         setcchar(&fill_cc, wstr, WA_NORMAL, cp_nt, nullptr);
-        for (int i = cols; i < n; i++) {
+        for (int i = cols; i < n; i++)
             cmplx_buf[i] = fill_cc;
-        }
     }
-    mvwadd_wchnstr(s->win, y, x, cmplx_buf, cols);
+    //  if (style)
+    //      ui_ncurses_style_apply(s->mwin[w], style);
+    mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, cols);
     return 0;
 }
-
 /* -------------------------------------------------------------------------
    Lines
    ------------------------------------------------------------------------- */
@@ -227,12 +322,12 @@ int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style) {
     if (!s)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
+        ui_ncurses_style_apply(s->mwin[0], style);
     switch (kind) {
     case UI_BORDER_NONE:
         return 0;
     case UI_BORDER_ASCII:
-        box(s->win, '|', '-');
+        box(s->mwin[0], '|', '-');
         return 0;
     case UI_BORDER_ROUNDED: {
         /* Use Unicode rounded-corner box-drawing characters. */
@@ -252,12 +347,12 @@ int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style) {
         setcchar(&ho, wcs, a, cp, NULL);
         wcs[0] = L'\x2502';
         setcchar(&ve, wcs, a, cp, NULL);
-        wborder_set(s->win, &ve, &ve, &ho, &ho, &tl, &tr, &bl, &br);
+        wborder_set(s->mwin[0], &ve, &ve, &ho, &ho, &tl, &tr, &bl, &br);
         return 0;
     }
     case UI_BORDER_LIGHT:
     default:
-        box(s->win, 0, 0);
+        box(s->mwin[0], 0, 0);
         return 0;
     }
 }
@@ -268,8 +363,8 @@ int ui_draw_box_title(UiSurface *s, int x, const UiStyle *style,
     if (!s || !title)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
-    mvwaddstr(s->win, 0, x, title);
+        ui_ncurses_style_apply(s->mwin[0], style);
+    mvwaddstr(s->mwin[0], 0, x, title);
     return 0;
 }
 /** @brief Convert a multibyte string to a complex character array. */

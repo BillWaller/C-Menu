@@ -33,10 +33,10 @@
 
 /* Pull in whichever compat header matches the compiled backend. */
 #if defined(NCURSES_UI) || defined(UAL_UI)
-# include "ui_ncurses_compat.h"
+#include "ui_ncurses_compat.h"
 #endif
 #ifdef NOTCURSES_UI
-# include "ui_notcurses_compat.h"
+#include "ui_notcurses_compat.h"
 #endif
 
 /* -------------------------------------------------------------------------
@@ -44,19 +44,25 @@
    ------------------------------------------------------------------------- */
 static void compile_time_checks(void) {
     /* Verify all public types exist and have the expected fields. */
-    UiConfig   cfg = {.enable_mouse = false, .enable_alt_screen = false,
-                      .cursor_visible = true, .tty_path = NULL};
-    UiEvent    ev;
-    UiRect     rect  = {.y = 0, .x = 0, .rows = 10, .cols = 20};
-    UiStyle    style = {0};
-    UiCaps     caps;
+    UiConfig cfg = {.enable_mouse = false, .enable_alt_screen = false, .cursor_visible = true, .tty_path = NULL};
+    UiEvent ev;
+    UiRect rect = {.y = 0, .x = 0, .lines = 10, .cols = 20};
+    UiStyle style = {0};
+    UiCaps caps;
     UiBorderKind bk = UI_BORDER_ROUNDED;
-    UiBackend    be;
-    UiColor      col;
-    UiColorPair  cp;
+    UiBackend be;
+    UiColor col;
+    UiColorPair cp;
 
-    (void)cfg; (void)ev; (void)rect; (void)style; (void)caps;
-    (void)bk;  (void)be; (void)col;  (void)cp;
+    (void)cfg;
+    (void)ev;
+    (void)rect;
+    (void)style;
+    (void)caps;
+    (void)bk;
+    (void)be;
+    (void)col;
+    (void)cp;
 
     /* Verify enum values are defined. */
     (void)(UI_KEY_NONE + UI_KEY_CHAR + UI_KEY_ENTER + UI_KEY_ESCAPE +
@@ -72,10 +78,10 @@ static void compile_time_checks(void) {
    ------------------------------------------------------------------------- */
 static int test_lifecycle(void) {
     UiConfig cfg = {
-        .enable_mouse     = false,
+        .enable_mouse = false,
         .enable_alt_screen = true,
-        .cursor_visible   = false,
-        .tty_path         = NULL,
+        .cursor_visible = false,
+        .tty_path = NULL,
     };
 
     UiRuntime *ui = ui_init(&cfg);
@@ -85,20 +91,20 @@ static int test_lifecycle(void) {
     }
 
     /* Screen size */
-    int rows = 0, cols = 0;
-    ui_get_screen_size(ui, &rows, &cols);
-    if (rows <= 0 || cols <= 0) {
-        fprintf(stderr, "FAIL: invalid screen size %dx%d\n", rows, cols);
+    int lines = 0, cols = 0;
+    ui_get_screen_size(ui, &lines, &cols);
+    if (lines <= 0 || cols <= 0) {
+        fprintf(stderr, "FAIL: invalid screen size %dx%d\n", lines, cols);
         ui_shutdown(ui);
         return 1;
     }
-    printf("PASS: screen size %d rows x %d cols\n", rows, cols);
+    printf("PASS: screen size %d lines x %d cols\n", lines, cols);
 
     /* Backend identity */
     UiBackend be = ui_get_backend(ui);
     printf("PASS: backend = %s\n",
-           be == UI_BACKEND_NCURSES   ? "ncurses" :
-           be == UI_BACKEND_NOTCURSES ? "notcurses" : "unknown");
+           be == UI_BACKEND_NCURSES ? "ncurses" : be == UI_BACKEND_NOTCURSES ? "notcurses"
+                                                                             : "unknown");
 
     /* Capabilities */
     UiCaps caps;
@@ -108,7 +114,7 @@ static int test_lifecycle(void) {
            caps.unicode, caps.resize, caps.color_pairs);
 
     /* Surface */
-    UiRect rect = {.y = 2, .x = 4, .rows = 5, .cols = 20};
+    UiRect rect = {.y = 2, .x = 4, .lines = 5, .cols = 20};
     UiSurface *s = ui_surface_new(ui, NULL, rect);
     if (!s) {
         fprintf(stderr, "FAIL: ui_surface_new() returned NULL\n");
@@ -119,15 +125,19 @@ static int test_lifecycle(void) {
 
     /* Drawing */
     UiStyle style = {0};
-    style.fg.r = 255; style.fg.g = 255; style.fg.b = 255;
-    style.bg.r = 0;   style.bg.g = 0;   style.bg.b = 0;
+    style.fg.r = 255;
+    style.fg.g = 255;
+    style.fg.b = 255;
+    style.bg.r = 0;
+    style.bg.g = 0;
+    style.bg.b = 0;
     ui_draw_border(s, UI_BORDER_ROUNDED, &style);
     ui_draw_text(s, 1, 1, &style, "UALUI conformance test");
     ui_render(ui);
     printf("PASS: surface drawn and rendered\n");
 
     /* Framed surface (layout helper) */
-    UiRect fr = {.y = 8, .x = 4, .rows = 6, .cols = 30};
+    UiRect fr = {.y = 8, .x = 4, .lines = 6, .cols = 30};
     UiFramedSurface fs = ui_framed_surface_new(ui, NULL, fr);
     if (!fs.outer || !fs.inner) {
         fprintf(stderr, "FAIL: ui_framed_surface_new() failed\n");

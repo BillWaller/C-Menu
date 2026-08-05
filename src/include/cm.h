@@ -12,6 +12,7 @@
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
+#include "ui_backend.h"
 #include "version.h"
 #include <argp.h>
 #include <ncursesw/ncurses.h>
@@ -192,6 +193,21 @@ typedef enum {
     CLR_TITLE_BG,
     CLR_NCOLORS
 } ColorsEnum;
+
+extern UiStyle style_fill_char;
+extern UiStyle style_brktl;
+extern UiStyle style_brktr;
+extern UiStyle style_nt;
+extern UiStyle style_nt_rev;
+extern UiStyle style_nt_hl;
+extern UiStyle style_nt_hl_rev;
+extern UiStyle style_box;
+extern UiStyle style_ind;
+extern UiStyle style_cmdln;
+extern UiStyle style_title;
+extern UiStyle style_ln;
+extern UiStyle style_ran;
+extern UiStyle style_chk;
 
 typedef enum {
     /** byte 0 - bits 0-7  Selection Flags*/
@@ -446,11 +462,12 @@ extern bool set_sane_tioctl(struct termios *);
 
 extern int box_win_new(int, int, int, int, char *);
 extern int split_box_win_new(int, int, int, int, int, int, char *);
-extern int border_draw(WINDOW *);
-extern int border_title(WINDOW *, char *);
-extern int border_ysplit(WINDOW *, int);
-extern int border_ysplit_text(WINDOW *, char *, int);
-extern void win_redraw(WINDOW *);
+
+extern int border_draw(UiSurface *sfc);
+extern int border_title(UiSurface *sfc, char *title);
+extern int border_ysplit(UiSurface *, int);
+extern int border_ysplit_text(UiSurface *, char *, int);
+
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
 extern bool handle_signal(sig_atomic_t);
@@ -654,7 +671,7 @@ extern PANEL *panel_box[MAXWIN];
 
 extern int win_attr; /**< Ncurses attributes for the current window, such as
                         color pair, bold, etc. */
-extern int win_ptr;  /**< Pointer to the current window pair, box and window,
+extern int sfc_ptr;  /**< Pointer to the current window pair, box and window,
                         which can be used to keep track of the currently active
                         window and its associated box. */
 // extern bool win_pair; /**< Flag to indicate whether the current window is
@@ -713,7 +730,6 @@ extern void destroy_box(WINDOW *);
 extern void restore_wins();
 extern void win_init_attrs();
 extern void win_Toggle_Attrs();
-extern void mvwaddstr_fill(WINDOW *, int, int, char *, int);
 extern int display_curses_keys();
 extern void init_stdscr();
 extern void curskeys(WINDOW *);
@@ -824,7 +840,8 @@ typedef struct {
     int clr_pair_cnt;            /**< number of color pairs currently in use */
     int clr_idx;                 /**< current color index */
     int clr_pair_idx;            /**< current color pair index */
-
+    char brackets[3];
+    char fill_char[2];
     int cp_default;   /**< default color pair index */
     int cp_fill_char; /**< fill character color pair index */
     int cp_brackets;  /**< brackets color pair index */
@@ -841,6 +858,14 @@ typedef struct {
     int cp_chk;       /**< checkmark color pair index */
     int cp_bold;      /**< bold color pair index */
 } SIO;
+typedef struct {
+    int flin;
+    int fcol;
+    int flen;
+    int ff;
+    char fill_char;
+    bool cf_erase_remainder;
+} CmField;
 extern void destroy_curses();
 extern int a_toi(char *, bool *);
 extern bool chrep(char *, char, char);
@@ -889,7 +914,7 @@ extern void get_rfc3339_s(char *, size_t);
 extern int open_log(char *);
 extern void write_log(char *);
 extern void compile_chyron(Chyron *);
-extern void display_chyron(WINDOW *, Chyron *, int, int);
+extern void display_chyron(UiSurface *, int n, Chyron *, int, int);
 extern int get_chyron_key(Chyron *, int);
 extern bool is_set_chyron_key(Chyron *, int);
 extern void set_chyron_key(Chyron *, int, char *, int);
@@ -941,6 +966,8 @@ extern void right_justify(char *, int);
 extern bool is_valid_date(int yyyy, int mm, int dd);
 extern bool is_valid_time(int hh, int mm, int ss);
 extern void numeric(char *d, char *s);
-extern int cf_accept(WINDOW *, char *, int, int, int);
+extern int cf_accept(UiSurface *, int w, char *, int, int, int);
 extern char *fill_field(char *, char *, char, int);
+extern int cm_surface_destroy(UiSurface *sfc);
+extern wchar_t *mbstr_to_wcstr(const char *mb_str);
 #endif

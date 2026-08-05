@@ -37,7 +37,7 @@ struct UiRuntime {
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
-    int rows;
+    int lines;
     int cols;
     PANEL *panel_main;
 };
@@ -49,7 +49,7 @@ struct UiRuntime {
     split_y > 0 && split_x > 0: 4 quadrants
     0: top-left, 1: top-right, 2: bottom-left, 3: bottom-right
 
-    split_y > 0 && split_x == 0: 2 rows
+    split_y > 0 && split_x == 0: 2 lines
     0: top, 1: bottom
 
     split_y == 0 && split_x > 0: 2 cols
@@ -57,42 +57,66 @@ struct UiRuntime {
 
     @endverbatim
  */
-struct UiSplitSurface {
-    WINDOW *box;
-    WINDOW *win[4];
-    PANEL *pan;
-    int win_cnt;
-    struct UiRuntime *runtime;
-    struct UiSurface *parent;
-    int y;
-    int x;
-    int rows;
-    int cols;
-    int split_y;
-    int split_x;
-    bool hidden;
-    char name[XLEN];
-    char title[XLEN];
-};
 
 /** @struct UiSurface
    @ingroup ui_ncurses
    @brief A drawable surface in the NCurses backend.
-
    Wraps an NCurses WINDOW and its associated PANEL.
 */
+/*
+   This configuration is designed to make tiling and splitting surfaces easier
+   to manage. One obvious application is to split the view screen into multiple
+   panes when selecting photos from a gallery. I only added a four quadrants to
+   start with, but it can be expanded to more panes in the future. The split_y and split_x values determine how the surface is divided. If both are greater than
+   zero, the surface is split into four quadrants. If only one of them is greater than zero, the surface is split into two lines or two columns. The mwin array holds the child windows for each quadrant. The parent pointer allows for hierarchical relationships between surfaces, enabling complex layouts. The hidden flag can be used to control the visibility of the surface, and the name and title fields provide identifiers for the surface. The lines and cols fields store the dimensions of the surface, while the x and y fields store its position on the screen.
+*/
+
+typedef enum {
+    BOX,
+    WIN,
+    WIN2,
+    LNNO,
+    CMDLN,
+    PAD,
+    WINX,
+    SUB_SFC_MAX
+} SubSurface;
+
 struct UiSurface {
-    WINDOW *box;
-    WINDOW *win;
-    WINDOW *mwin[4];
-    WINDOW *win2; // LEGACY - to be removed in future versions
-    PANEL *pan;
+    union {
+        struct {
+            PANEL *box_pan;
+            PANEL *win_pan;
+            PANEL *win2_pan;
+            PANEL *lnno_pan;
+            PANEL *cmdln_pan;
+            PANEL *pad_pan;
+        };
+        struct {
+            PANEL *mpan[8];
+        };
+    };
+    union {
+        struct {
+            WINDOW *box;
+            WINDOW *win;
+            WINDOW *win2;
+            WINDOW *lnno;
+            WINDOW *cmdln;
+            WINDOW *pad;
+        };
+        struct {
+            WINDOW *mwin[8];
+        };
+    };
     struct UiRuntime *runtime;
     struct UiSurface *parent;
     int y;
     int x;
-    int rows;
+    int lines;
     int cols;
+    int sfc_idx;
+    int sub_cnt;
     bool hidden;
     char name[XLEN];
     char title[XLEN];
@@ -105,7 +129,14 @@ UiStyle *ui_style_new(void);
 void ui_style_destroy(UiStyle *);
 UiStyle *ui_style_from_cch(const cchar_t *);
 cchar_t ui_style_to_cch(const UiStyle *, const char *);
-int ui_mvwadd_mbnstr(UiSurface *s, int y, int x, const char *text, int n);
-int ui_bkgrndset_cch(UiSurface *, cchar_t *cch);
+
+int ui_bkgrndset_cch(UiSurface *s, int w, cchar_t *cc);
+int ui_bkgrnd_cch(UiSurface *s, int w, const cchar_t *cc);
+
+int ui_wadd_wchstr(UiSurface *s, int w, cchar_t *cmplx_buf);
+int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, cchar_t *cc);
+int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf, int n);
+int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf);
+int ui_setcchar(cchar_t *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts);
 
 #endif

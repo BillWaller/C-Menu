@@ -28,8 +28,6 @@ void view_calc_full_screen_dimensions(Init *);
 void view_full_screen_resize(Init *);
 void view_calc_boxwin_dimensions(Init *);
 void view_boxwin_resize(Init *);
-void destroy_view_win(Init *);
-void view_win_del(PANEL *, WINDOW *);
 
 ViewStack view_stack;
 
@@ -48,85 +46,47 @@ ViewStack view_stack;
  */
 int init_view_full_screen(Init *init) {
     View *view = init->view;
-
     if (view->tab_stop <= 0)
         view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
     view->f_full_screen = true;
-
     // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
-    view->win_win = newwin(LINES, COLS, 0, 0);
-    if (view->win_win == nullptr) {
+    view->sfc = ui_surface_new(ui_runtime, NULL, 0, view->lines, view->cols, 0, 0);
+    if (view->sfc->win == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;
     }
-    view->win_pan = new_panel(view->win_win);
-    wbkgrnd(view->win_win, &CC_NT);
-
+    ui_bkgrnd_cch(view->sfc, WIN, &CC_NT);
     // -------------------> 2. LNNO <-------------------
-    view->lnno_win = derwin(view->win_win, LINES - 1, COLS, 0, 0);
-    if (view->lnno_win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "derwin(view->win_win, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
+    ui_surface_addwin(view->sfc, LNNO, WIN, view->scroll_lines, view->ln_win_cols, 0, 0);
+    if (view->sfc->lnno == nullptr) {
+        ssnprintf(em0, MAXLEN - 1, "ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;
     }
-    view->lnno_pan = new_panel(view->lnno_win);
-    wbkgrnd(view->lnno_win, &CC_LN);
-    keypad(view->lnno_win, false);
-    idlok(view->lnno_win, false);
-    idcok(view->lnno_win, false);
-    scrollok(view->lnno_win, true);
-    wsetscrreg(view->lnno_win, 0, view->scroll_lines - 1);
-
+    ui_bkgrnd_cch(view->sfc, LNNO, &CC_LN);
+    ui_render(ui_runtime);
+    ui_scrollok(view->sfc, LNNO, true);
+    ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
     // -------------------> 3. CMDLN <-------------------
-    view->cmdln_win = derwin(view->win_win, 1, COLS, LINES - 1, 0);
-    if (view->cmdln_win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "derwin(view->win_win, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
+    ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->scroll_lines, 0);
+    if (view->sfc->cmdln == nullptr) {
+        ssnprintf(em0, MAXLEN - 1, "ui_sfc_addwin(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;
     }
-    view->cmdln_pan = new_panel(view->cmdln_win);
-    wbkgrnd(view->cmdln_win, &CC_NT);
-    keypad(view->cmdln_win, true);
-    idlok(view->cmdln_win, false);
-    idcok(view->cmdln_win, false);
-    scrollok(view->cmdln_win, false);
-
-    // view->pad_container_win = derwin(view->win_win, LINES - 1, COLS -
-    // view->ln_win_cols, 0, view->ln_win_cols);
-    // if (view->pad_container_win == nullptr) {
-    //     ssnprintf(em0, MAXLEN - 1,
-    //               "derwin(view->win_win, LINES - 1, COLS - view->ln_win_cols,
-    //               0, view->ln_win_cols) failed in init_view_full_screen");
-    //     Perror(em0);
-    //     return -1;
-    // }
-    // view->pad_container_pan = new_panel(view->pad_container_win);
+    ui_bkgrnd_cch(view->sfc, CMDLN, &CC_NT);
+    ui_keypad(view->sfc, CMDLN, true);
+    ui_idlok(view->sfc, CMDLN, false);
+    ui_idcok(view->sfc, CMDLN, false);
+    ui_scrollok(view->sfc, CMDLN, false);
     // -------------------> 4. PAD <-------------------
-    view->pad = newpad(LINES - 1, PAD_COLS - 1);
-    if (view->pad == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "newpad(LINES - 1, PAD_COLS - 1) failed in init_view_full_screen");
-        Perror(em0);
-        return -1;
-    }
-    view->pad_view_win = subpad(view->pad, LINES - 1, PAD_COLS - 1, 0, 0);
-    immedok(view->pad, true);
-    if (view->pad_view_win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1,
-                  "subpad(view->pad, LINES - 1, COLS - view->ln_win_cols, 0, 0) failed in init_view_full_screen");
-        Perror(em0);
-        return -1;
-    }
-    view->pad_view_pan = new_panel(view->pad_view_win);
-    wbkgrnd(view->pad, &CC_NT);
-    keypad(view->pad, true);
-    keypad(view->pad, true);
-    idlok(view->pad, false);
-    idcok(view->pad, false);
-    scrollok(view->pad, true);
-    wsetscrreg(view->pad, 0, view->scroll_lines - 1);
+
+    ui_surface_addpad(view->sfc, PAD, view->lines - 1, PAD_COLS - 1);
+
+    // ------------------------------------------------
     return 0;
 }
 /** @brief Resize the full screen view and its components.
@@ -138,15 +98,12 @@ int init_view_full_screen(Init *init) {
    scroll regions accordingly.
  */
 void view_full_screen_resize(Init *init) {
-    erase();
-    View *view = init->view;
+    ui_erase();
     view_calc_full_screen_dimensions(init);
-    mvwin(view->cmdln_win, view->lines - 1, 0);
-    wresize(view->cmdln_win, 1, view->cols);
-    wresize(view->lnno_win, view->ln_win_lines - 1, view->ln_win_cols);
-    wsetscrreg(view->lnno_win, 0, view->scroll_lines - 1);
-    wresize(view->pad, view->lines - 1, PAD_COLS);
-    wsetscrreg(view->pad, 0, view->lines - 1);
+    View *view = init->view;
+    ui_surface_destroy(view->sfc);
+    ui_render(ui_runtime);
+    init_view_full_screen(init);
 }
 /** @brief Calculate the dimensions for full screen mode.
     @ingroup init_view
@@ -158,7 +115,7 @@ void view_full_screen_resize(Init *init) {
  */
 void view_calc_full_screen_dimensions(Init *init) {
     View *view = init->view;
-    getmaxyx(stdscr, view->lines, view->cols);
+    ui_get_screen_size(ui_runtime, &view->lines, &view->cols);
     view->ln_win_lines = view->lines;
     view->ln_win_cols = 8;
     view->scroll_lines = view->lines - 1;
@@ -182,7 +139,6 @@ void view_calc_full_screen_dimensions(Init *init) {
     view->ln_no = view->page_top_ln_no + view->scroll_lines;
     view->page_bot_ln_no = view->ln_no;
 }
-
 /** @brief Initialize the C-Menu View in box window mode.
     @ingroup init_view
     @param init Pointer to the Init structure containing view settings.
@@ -197,144 +153,26 @@ int init_view_boxwin(Init *init) {
         view->tab_stop = TABSIZE;
     set_tabsize(view->tab_stop);
     view->f_full_screen = false;
+    // -------------------> 1. BOX / WIN <-------------------
     view_calc_boxwin_dimensions(init);
-    // -------------------> 1. BOX <-------------------
-    view->box_win = newwin(view->lines + 2, view->cols + 2, view->begy, view->begx);
-    if (view->box_win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "view->box_win: lines=%d, cols=%d, begy=%d, begx=%d",
-                  view->lines + 2, view->cols + 2, view->begy, view->begx);
-        Perror(em0);
-        return -1;
-    }
-    view->box_pan = new_panel(view->box_win);
-    wbkgrnd(view->box_win, &CC_BOX);
-    wbkgrndset(view->box_win, &CC_BOX);
-#ifdef DEBUG_RESIZE
-    ssnprintf(em0, MAXLEN - 1,
-              "%s:%d init BOX: lines=%d, cols=%d, begy=%d, begx=%d",
-              __FILE__, __LINE__, view->lines + 2, view->cols + 2, view->begy, view->begx);
-    write_cmenu_log(em0);
-#endif
-    wborder_set(view->box_win, &ls, &rs, &ts, &bs, &tl, &tr, &bl, &br);
-    // -------------------> 2. WIN <-------------------
-    view->win_win = derwin(view->box_win, view->lines, view->cols, 1, 1);
-    if (view->win_win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "%s:%d WIN: lines=%d, cols=%d, begy=%d, begx=%d",
-                  __FILE__, __LINE__, view->lines, view->cols, 1, 1);
-        Perror(em0);
-        return -1;
-    }
-    view->win_pan = new_panel(view->win_win);
-    wbkgrnd(view->win_win, &CC_NT);
-    wbkgrndset(view->win_win, &CC_NT);
+    view->sfc = ui_box_surface_new(ui_runtime, NULL, 0, view->lines, view->cols, view->begy, view->begx, NULL);
+    // -------------------> 2. LNNO <-------------------
+    ui_surface_addwin(view->sfc, LNNO, WIN, view->lines - 1, view->ln_win_cols, 0, 0);
+    ui_bkgrnd_cch(view->sfc, LNNO, &CC_LN);
+    ui_bkgrndset_cch(view->sfc, LNNO, &CC_LN);
+    ui_scrollok(view->sfc, LNNO, true);
+    ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
     // -------------------> 3. CMDLN <-------------------
-    view->cmdln_win = derwin(view->win_win, 1, view->cols, view->lines - 1, 0);
-    if (view->cmdln_win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "%s:%d CMDLN: lines=%d, cols=%d, begy=%d, begx=%d",
-                  __FILE__, __LINE__, 1, view->cols, view->lines - 1, 0);
-        Perror(em0);
-        return -1;
-    }
-    view->cmdln_pan = new_panel(view->cmdln_win);
-    wbkgrnd(view->cmdln_win, &CC_NT);
-    wbkgrndset(view->cmdln_win, &CC_NT);
-    keypad(view->cmdln_win, true);
-    idlok(view->cmdln_win, false);
-    idcok(view->cmdln_win, false);
-    scrollok(view->cmdln_win, false);
-
-    // -------------------> 4. LNNO <-------------------
-    view->lnno_win = derwin(view->win_win, view->lines - 1, view->ln_win_cols, 0, 0);
-    if (view->lnno_win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "%s:%d LNNO: lines=%d, cols=%d, begy=%d, begx=%d",
-                  __FILE__, __LINE__, view->lines - 1, view->ln_win_cols, 0, 0);
-        Perror(em0);
-        return -1;
-    }
-    view->lnno_pan = new_panel(view->lnno_win);
-    wbkgrnd(view->lnno_win, &CC_LN);
-    wbkgrndset(view->lnno_win, &CC_LN);
-    keypad(view->lnno_win, false);
-    idlok(view->lnno_win, false);
-    idcok(view->lnno_win, false);
-    scrollok(view->lnno_win, true);
-    wsetscrreg(view->lnno_win, 0, view->scroll_lines);
-
-    // -------------------> 5. PAD CONTAINER <---------
-    // view->pad_container_win = derwin(view->win_win, view->lines - 1,
-    // view->cols - view->ln_win_cols, 0, view->ln_win_cols);
-    // if (view->pad_container_win == nullptr) {
-    //     ssnprintf(em0, MAXLEN - 1,
-    //               "derwin(view->win_win, view->lines - 1, view->cols -
-    //               view->ln_win_cols, 0, view->ln_win_cols) failed in
-    //               init_view_full_screen");
-    //     Perror(em0);
-    //     return -1;
-    // }
-    // view->pad_container_pan = new_panel(view->pad_container_win);
-
-    // -------------------> 5. PAD <-------------------
-    view->pad = newpad(view->lines - 1, PAD_COLS - 1);
-    if (view->pad == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "newpad(view->lines - 1, PAD_COLS - 1) failed in init_view_full_screen");
-        Perror(em0);
-        return -1;
-    }
-    // view->pad = newpad(view->lines - 1, PAD_COLS - 1);
-
-    // -------------------> 5. PAD_VIEW <--------------
-    view->pad_view_win = subpad(view->pad,
-                                view->lines - 1,
-                                PAD_COLS - 1,
-                                0,
-                                0);
-    if (view->pad_view_win == nullptr) {
-        ssnprintf(em0, MAXLEN - 1,
-                  "%s:%d PAD: lines=%d, cols=%d, begy=%d, begx=%d",
-                  __FILE__, __LINE__,
-                  view->lines - 1,
-                  view->cols - view->ln_win_cols,
-                  0,
-                  0);
-        Perror(em0);
-        return -1;
-    }
-    view->pad_view_pan = new_panel(view->pad_view_win);
-
-    // -----------------------------
-#ifdef DEBUG_LAYOUT
-    wbkgrnd(view->pad, &CC_GREEN);
-    wbkgrndset(view->pad, &CC_GREEN);
-#else
-    wbkgrnd(view->pad, &CC_NT);
-    wbkgrndset(view->pad, &CC_NT);
-#endif
-    scrollok(view->pad, true);
-    wsetscrreg(view->pad, 0, view->scroll_lines - 1);
+    ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->lines - 1, 0);
+    ui_bkgrnd_cch(view->sfc, CMDLN, &CC_NT);
+    ui_keypad(view->sfc, CMDLN, true);
+    ui_idlok(view->sfc, CMDLN, false);
+    ui_idcok(view->sfc, CMDLN, false);
+    ui_scrollok(view->sfc, CMDLN, false);
+    // -------------------> 4. PAD <-------------------
+    ui_surface_addpad(view->sfc, PAD, view->lines - 1, PAD_COLS - 1);
+    // ------------------------------------------------
     return (0);
-}
-
-void destroy_view_win(Init *init) {
-    View *view = init->view;
-    if (!view)
-        return;
-    view_win_del(view->pad_view_pan, view->pad_view_win);
-    delwin(view->pad);
-    view_win_del(view->cmdln_pan, view->cmdln_win);
-    view_win_del(view->lnno_pan, view->lnno_win);
-    view_win_del(view->win_pan, view->win_win);
-    view_win_del(view->box_pan, view->box_win);
-    wnoutrefresh(stdscr);
-    update_panels();
-    doupdate();
-}
-void view_win_del(PANEL *pan, WINDOW *win) {
-    if (pan) {
-        del_panel(pan);
-        pan = nullptr;
-        delwin(win);
-        win = nullptr;
-    }
 }
 //------------------------------------------------------------------------------
 /** @brief Resize the current window and its box
@@ -343,12 +181,13 @@ void view_win_del(PANEL *pan, WINDOW *win) {
     @details This function resizes the current window and its associated box
    window to the specified number of lines and columns. */
 void view_boxwin_resize(Init *init) {
-    destroy_view_win(init);
+    View *view = init->view;
+    ui_surface_destroy(view->sfc);
+    ui_render(ui_runtime);
     init_view_boxwin(init);
-    border_title(init->view->box_win, init->view->title);
+    border_title(init->view->sfc, init->view->title);
     // initialize_line_table(init->view);
 }
-
 /** @brief Calculate the dimensions and position of the box window for C-Menu
    View.
     @ingroup init_view

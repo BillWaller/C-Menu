@@ -95,11 +95,11 @@
         display_error(em0, em1, nullptr, nullptr);                          \
     }
 
-#define _Refresh(view)     \
-    {                      \
-        pad_refresh(view); \
-        update_panels();   \
-        doupdate();        \
+#define _Refresh(view)      \
+    {                       \
+        pad_refresh(view);  \
+        ui_update_panels(); \
+        ui_doupdate();      \
     }
 
 char prev_regex_pattern[MAXLEN];
@@ -182,7 +182,7 @@ int view_file(Init *init) {
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
                 strnz__cpy(view->title, view->cur_file_str, MAXLEN - 1);
-                border_title(view->box_win, view->title);
+                border_title(view->sfc, view->title);
                 initialize_line_table(view);
                 next_page(view);
                 view_cmd_processor(init);
@@ -196,7 +196,7 @@ int view_file(Init *init) {
             }
         }
     }
-    destroy_view_win(init);
+    ui_surface_destroy(view->sfc);
     destroy_view(init);
     return 0;
 }
@@ -223,6 +223,7 @@ int view_cmd_processor(Init *init) {
     off_t prev_file_pos;
     int max_pmincol;
     View *view = init->view;
+    UiSurface *sfc = view->sfc;
     view->cmd[0] = '\0';
     while (1) {
         if (view->f_redisplay_page) {
@@ -635,7 +636,7 @@ int view_cmd_processor(Init *init) {
         case 'Q':
         case KEY_F(9):
         case '\033':
-            mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &sp, 1);
+            ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &sp, 1);
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = nullptr;
             return 0;
@@ -737,30 +738,30 @@ int get_cmd_char(View *view, off_t *n) {
     bool once = false;
     char cmd_str[33];
     cmd_str[0] = '\0';
+    UiSurface *sfc = view->sfc;
+    UiEvent event;
     pad_refresh(view);
-    // update_panels();
-    curs_set(1);
-    getyx(view->cmdln_win, view->cmd_line, view->curx);
-    wbkgrndset(view->cmdln_win, &CC_IND);
-    wmove(view->cmdln_win, view->cmd_line, view->curx);
-    mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &ran, 1);
-    wmove(view->cmdln_win, view->cmd_line, view->curx + 1);
-    // update_panels();
-    // doupdate();
+    ui_curs_set(1);
+    ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
+    ui_bkgrndset_cch(sfc, CMDLN, &CC_IND);
+    ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
+    ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
+    ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
     while (1) {
         if (i == 1 && !once) {
             once = true;
             view->curx = 0;
-            wmove(view->cmdln_win, view->cmd_line, view->curx);
-            wclrtoeol(view->cmdln_win);
-            mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &ran, 1);
-            mvwaddch(view->cmdln_win, view->cmd_line, view->curx + 1, (chtype)c);
+            ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
+            ui_wclrtoeol(sfc, CMDLN);
+            ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
+            ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx + 1, (chtype)c);
         }
-        getyx(view->cmdln_win, view->cmd_line, view->curx);
-        update_panels();
-        wmove(view->cmdln_win, view->cmd_line, view->curx);
-        doupdate();
-        c = vgetch(view->cmdln_win, 0);
+        ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
+        ui_update_panels();
+        ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
+        ui_doupdate();
+        event.y = event.x = -1;
+        c = ui_get_event_no_mouse(sfc, CMDLN, &event);
         switch (c) {
         case KEY_MOUSE:
             // if (getmouse(event) == OK) {
@@ -788,14 +789,14 @@ int get_cmd_char(View *view, off_t *n) {
                 view->curx--;
                 prevx = view->curx;
                 while (*s != '\0') {
-                    mvwaddch(view->cmdln_win, view->cmd_line, view->curx++, *s);
+                    ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx++, *s);
                     *d++ = *s++;
                 }
                 *d = '\0';
-                wmove(view->cmdln_win, view->cmd_line, view->curx);
-                wclrtoeol(view->cmdln_win);
+                ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
+                ui_wclrtoeol(sfc, CMDLN);
                 view->curx = prevx;
-                wmove(view->cmdln_win, view->cmd_line, view->curx);
+                ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
             }
             continue;
         case KEY_DC:
@@ -803,32 +804,32 @@ int get_cmd_char(View *view, off_t *n) {
                 s = &cmd_str[i + 1];
                 d = &cmd_str[i];
                 while (*s != '\0') {
-                    mvwaddch(view->cmdln_win, view->cmd_line, view->curx++, *s);
+                    ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx++, *s);
                     *d++ = *s++;
                 }
                 *d = '\0';
-                wmove(view->cmdln_win, view->cmd_line, view->curx);
-                wclrtoeol(view->cmdln_win);
-                wmove(view->cmdln_win, view->cmd_line, view->curx);
+                ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
+                ui_wclrtoeol(sfc, CMDLN);
+                ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
             }
             continue;
         case KEY_SRIGHT:
             if (i < 32 && cmd_str[i] != '\0') {
                 i++;
-                getyx(view->cmdln_win, view->cury, view->curx);
+                ui_getyx(sfc, CMDLN, &view->cury, &view->curx);
                 if (view->curx < view->cols - 1) {
                     view->curx++;
-                    wmove(view->cmdln_win, view->cmd_line, view->curx);
+                    ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
                 }
             }
             continue;
         case KEY_SLEFT:
             if (i > 0) {
                 i--;
-                getyx(view->cmdln_win, view->cury, view->curx);
+                ui_getyx(sfc, CMDLN, &view->cury, &view->curx);
                 if (view->curx > 0) {
                     view->curx--;
-                    wmove(view->cmdln_win, view->cmd_line, view->curx);
+                    ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
                 }
             }
             continue;
@@ -837,7 +838,7 @@ int get_cmd_char(View *view, off_t *n) {
                 break;
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
-            mvwaddch(view->cmdln_win, view->cmd_line, view->curx, (chtype)c);
+            ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx, (chtype)c);
             view->curx++;
             continue;
         }
@@ -847,15 +848,15 @@ int get_cmd_char(View *view, off_t *n) {
     if (cmd_str[0] == '\0') {
         *n = 0;
         view->cmd_arg[0] = '\0';
-        mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx + 1, &sp, 1);
-        wclrtoeol(view->cmdln_win);
+        ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx + 1, &sp, 1);
+        ui_wclrtoeol(sfc, CMDLN);
         return (c);
     }
     *n = atol(cmd_str);
     view->cmd_arg[0] = '\0';
-    getyx(view->cmdln_win, view->cmd_line, view->curx);
-    mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx + 1, &sp, 1);
-    wclrtoeol(view->cmdln_win);
+    ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
+    ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx + 1, &sp, 1);
+    ui_wclrtoeol(sfc, CMDLN);
     return (c);
 }
 /** @brief Get Command Argument from User Input
@@ -878,27 +879,28 @@ int get_cmd_char(View *view, off_t *n) {
 int get_cmd_arg(View *view, char *prompt) {
     int c;
     char prompt_s[MAXLEN];
+    UiSurface *sfc = view->sfc;
     int prompt_l = strnz__cpy(prompt_s, prompt, min(MAXLEN - 1, view->cols - 4));
     if (view->cmd_arg[0] != '\0')
         return 0;
-    wmove(view->cmdln_win, view->cmd_line, 0);
+    ui_cursor_move(sfc, CMDLN, view->cmd_line, 0);
     if (prompt_l > 1) {
-        wbkgrndset(view->cmdln_win, &CC_NT_REV);
-        waddstr(view->cmdln_win, prompt_s);
-        wbkgrndset(view->cmdln_win, &CC_NT);
+        ui_bkgrndset_cch(sfc, CMDLN, &CC_NT_REV);
+        ui_waddstr(sfc, CMDLN, prompt_s);
+        ui_bkgrndset_cch(sfc, CMDLN, &CC_NT);
     }
     view->curx = prompt_l;
-    wclrtoeol(view->cmdln_win);
+    ui_wclrtoeol(sfc, CMDLN);
     pad_refresh(view);
-    update_panels();
-    curs_set(1);
-    mvwadd_wchnstr(view->cmdln_win, view->cmd_line, view->curx, &ran, 1);
-    wmove(view->cmdln_win, view->cmd_line, view->curx + 1);
-    doupdate();
+    ui_update_panels();
+    ui_curs_set(1);
+    ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
+    ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
+    ui_doupdate();
     int flin = view->cmd_line;
     int fcol = prompt_l + 1;
     int flen = view->cols - prompt_l;
-    c = cf_accept(view->cmdln_win, view->cmd_arg, flin, fcol, flen);
+    c = cf_accept(sfc, CMDLN, view->cmd_arg, flin, fcol, flen);
     return c;
 }
 /** @brief Build Prompt String
@@ -991,7 +993,6 @@ void build_prompt(View *view) {
    */
 int write_view_buffer(Init *init, bool f_strip_ansi) {
     ssize_t bytes_written = 0;
-    off_t pos;
     View *view = init->view;
     int rc;
     size_t l;
@@ -1009,7 +1010,6 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
     }
     restore_wins();
     /** write the buffer */
-    pos = 0;
     view->out_fd = open(view->out_spec, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     if (view->out_fd == -1) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
@@ -1125,6 +1125,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     cchar_t cc = {0};
     off_t prev_ln_no;
     bool f_page = false;
+    UiSurface *sfc = view->sfc;
     if (*regex_pattern == '\0')
         return false;
     if (view->f_ignore_case)
@@ -1206,12 +1207,12 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         if (!f_page) {
             if (search_cmd == '/') {
                 view->page_top_ln_no = prev_ln_no;
-                wmove(view->pad, view->cury, 0);
+                ui_cursor_move(sfc, PAD, view->cury, 0);
             } else {
                 view->page_bot_ln_no = view->ln_no;
-                wmove(view->pad, 0, 0);
+                ui_cursor_move(sfc, PAD, 0, 0);
             }
-            wclrtobot(view->pad);
+            ui_wclrtobot(sfc, CMDLN);
             f_page = true;
         }
         if (search_cmd == '?')
@@ -1227,7 +1228,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 cc = view->cmplx_buf[i];
                 getcchar(&cc, wstr, &attr, &cpx, nullptr);
                 cpx = cp_nt_rev;
-                setcchar(&cc, wstr, attr, cpx, nullptr);
+                ui_setcchar(&cc, wstr, attr, cpx, nullptr);
                 view->cmplx_buf[i] = cc;
             }
             if (view->first_match_x == -1)
@@ -1361,9 +1362,10 @@ void view_display_page(View *view) {
     view->cury = 0;
     view->page_top_sl = false;
     view->page_bot_sl = false;
-    wmove(view->pad, 0, 0);
-    if (view->lnno_win)
-        wmove(view->lnno_win, 0, 0);
+    UiSurface *sfc = view->sfc;
+    ui_cursor_move(sfc, PAD, 0, 0);
+    if (view->f_ln)
+        ui_cursor_move(sfc, LNNO, 0, 0);
     view->ln_no = view->page_top_ln_no;
     view->page_top_ln_no = 0;
     view->page_bot_ln_no = 0;
@@ -1375,7 +1377,6 @@ void view_display_page(View *view) {
         if (view->wrap && view->cury == 0)
             view->cur.sl_idx = view->page_top_sl_idx;
         display_line(view);
-        _Refresh(view);
         view->ln_no++;
     }
     view->ln_no--;
@@ -1402,6 +1403,7 @@ void view_display_page(View *view) {
 void display_line(View *view) {
     char ln_s[16];
 
+    UiSurface *sfc = view->sfc;
     if (view->wrap && view->cur.sl_cnt > 0) {
         if (view->cur.sl_idx < view->cur.sl_cnt) {
             display_split_line(view);
@@ -1414,13 +1416,13 @@ void display_line(View *view) {
         view->cury = view->scroll_lines - 1;
     if (view->f_ln) {
         ssnprintf(ln_s, 8, "%7jd", view->ln_no);
-        wmove(view->lnno_win, view->cury, 0);
-        wclrtoeol(view->lnno_win);
-        mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
+        ui_cursor_move(sfc, LNNO, view->cury, 0);
+        ui_wclrtoeol(sfc, LNNO);
+        ui_mvwaddstr(sfc, LNNO, view->cury, 0, ln_s);
     }
-    wmove(view->pad, view->cury, 0);
-    wclrtoeol(view->pad);
-    wadd_wchstr(view->pad, view->cmplx_buf);
+    ui_cursor_move(sfc, PAD, view->cury, 0);
+    ui_wclrtoeol(sfc, PAD);
+    ui_mvwadd_wchstr(sfc, PAD, view->cury, 0, view->cmplx_buf);
     if (view->cury == 0)
         view->page_top_ln_no = view->ln_no;
     if (view->cury == view->scroll_lines - 1)
@@ -1439,6 +1441,7 @@ void display_line(View *view) {
  */
 void display_split_line(View *view) {
     char ln_s[16];
+    UiSurface *sfc = view->sfc;
     if (view->cury < 0)
         view->cury = 0;
     if (view->cury > view->scroll_lines - 1)
@@ -1448,19 +1451,19 @@ void display_split_line(View *view) {
         if (i == 0) {
             if (view->f_ln) {
                 ssnprintf(ln_s, 8, "%7jd", view->ln_no);
-                wmove(view->lnno_win, view->cury, 0);
-                wclrtoeol(view->lnno_win);
-                mvwaddstr(view->lnno_win, view->cury, 0, ln_s);
+                ui_cursor_move(sfc, LNNO, view->cury, 0);
+                ui_wclrtoeol(sfc, LNNO);
+                ui_mvwaddstr(sfc, LNNO, view->cury, 0, ln_s);
             }
         } else {
             if (view->f_ln) {
-                wmove(view->lnno_win, view->cury, 0);
-                wclrtoeol(view->lnno_win);
+                ui_cursor_move(sfc, LNNO, view->cury, 0);
+                ui_wclrtoeol(sfc, LNNO);
             }
         }
-        wmove(view->pad, view->cury, 0);
-        wclrtoeol(view->pad);
-        wadd_wchnstr(view->pad, view->cur.sl_cc[i], view->cur.sl_cells[i]);
+        ui_cursor_move(sfc, PAD, view->cury, 0);
+        ui_wclrtoeol(sfc, CMDLN);
+        wadd_wchnstr(view->sfc->mwin[WIN2], view->cur.sl_cc[i], view->cur.sl_cells[i]);
         if (view->cury == 0) {
             view->page_top_ln_no = view->ln_no;
             view->page_top_sl = true;
@@ -1488,12 +1491,13 @@ void display_split_line(View *view) {
    no residual content from previous lines is displayed.
  */
 void display_line_eod(View *view) {
+    UiSurface *sfc = view->sfc;
     if (view->f_ln) {
-        wmove(view->lnno_win, view->cury, 0);
-        wclrtobot(view->lnno_win);
+        ui_cursor_move(sfc, LNNO, view->cury, 0);
+        ui_wclrtobot(sfc, LNNO);
     }
-    wmove(view->pad, view->cury, 0);
-    wclrtobot(view->pad);
+    ui_cursor_move(sfc, PAD, view->cury, 0);
+    ui_wclrtobot(sfc, CMDLN);
     view->page_bot_ln_no = view->ln_no;
 }
 /** @brief Scroll Down by n Lines
@@ -1509,6 +1513,7 @@ void display_line_eod(View *view) {
 void scroll_down(View *view, int n) {
     int scroll, scroll_this_line, avail;
     off_t ln_no;
+    UiSurface *sfc = view->sfc;
     view->f_bod = false;
     if (view->wrap) {
         // Set Top Line State
@@ -1574,10 +1579,10 @@ void scroll_down(View *view, int n) {
             view->page_bot_sl = (view->cur.sl_cnt > 1);
             view->ln_no = view->page_bot_ln_no;
             if (view->f_ln)
-                wscrl(view->lnno_win, 1);
-            wscrl(view->pad, scroll_this_line);
+                ui_wscrl(sfc, LNNO, 1);
+            ui_wscrl(sfc, PAD, scroll_this_line);
             view->cury = view->scroll_lines - scroll_this_line;
-            wmove(view->pad, view->cury, 0);
+            ui_cursor_move(sfc, PAD, view->cury, 0);
             display_line(view);
             if (scroll != 0)
                 ln_no++;
@@ -1588,15 +1593,15 @@ void scroll_down(View *view, int n) {
             return;
         if (n > view->scroll_lines) {
             if (view->f_ln) {
-                wmove(view->lnno_win, 0, 0);
-                wclrtobot(view->lnno_win);
+                ui_cursor_move(sfc, LNNO, 0, 0);
+                ui_wclrtobot(sfc, LNNO);
             }
-            wmove(view->pad, 0, 0);
-            wclrtobot(view->pad);
+            ui_cursor_move(sfc, PAD, 0, 0);
+            ui_wclrtobot(sfc, CMDLN);
         } else {
             if (view->f_ln)
-                wscrl(view->lnno_win, n);
-            wscrl(view->pad, n);
+                ui_wscrl(sfc, LNNO, n);
+            ui_wscrl(sfc, PAD, n);
             if (n < view->scroll_lines)
                 view->cury = view->scroll_lines - n;
         }
@@ -1610,7 +1615,7 @@ void scroll_down(View *view, int n) {
             if (view->f_eod)
                 break;
             fmt_line(view);
-            wmove(view->pad, view->cury, 0);
+            ui_cursor_move(sfc, PAD, view->cury, 0);
             display_line(view);
             if (view->cury == view->scroll_lines)
                 break;
@@ -1640,19 +1645,20 @@ void scroll_up(View *view, int n) {
         } else
             return;
     }
+    UiSurface *sfc = view->sfc;
     if (n > view->scroll_lines) {
         if (view->f_ln) {
-            wmove(view->lnno_win, 0, 0);
-            wclrtobot(view->lnno_win);
+            ui_cursor_move(sfc, LNNO, 0, 0);
+            ui_wclrtobot(sfc, LNNO);
         }
-        wmove(view->pad, 0, 0);
-        wclrtobot(view->pad);
+        ui_cursor_move(sfc, PAD, 0, 0);
+        ui_wclrtobot(sfc, CMDLN);
     } else {
         if (view->f_ln)
-            wscrl(view->lnno_win, -n);
-        wscrl(view->pad, -n);
+            ui_wscrl(sfc, LNNO, -n);
+        ui_wscrl(sfc, PAD, -n);
     }
-    wmove(view->pad, 0, 0);
+    ui_cursor_move(sfc, PAD, 0, 0);
     if (view->wrap) {
         scroll = n;
         ln_no = view->page_top_ln_no;
@@ -2035,10 +2041,11 @@ void sync_ln(View *view) {
 */
 int pad_refresh(View *view) {
     int rc;
-    touchwin(view->pad);
-    rc = pnoutrefresh(view->pad, view->pminrow, view->pmincol, view->sminrow,
-                      view->smincol, view->smaxrow, view->smaxcol);
-    rc = prefresh(view->pad_view_win,
+    // touchwin(view->sfc->mwin[WIN2]);
+    // rc = pnoutrefresh(view->sfc->mwin[WIN2], view->pminrow, view->pmincol,
+    // view->sminrow,
+    //                  view->smincol, view->smaxrow, view->smaxcol);
+    rc = prefresh(view->sfc->mwin[PAD],
                   view->pminrow,
                   view->pmincol,
                   view->sminrow,
@@ -2046,8 +2053,8 @@ int pad_refresh(View *view) {
                   view->smaxrow,
                   view->smaxcol);
     if (rc == ERR) {
-        ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->pad_view_win, pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
-                  __FILE__, __LINE__, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
+        ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
+                  __FILE__, __LINE__ - 1, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
         Perror(em0);
     }
     return rc;
@@ -2127,13 +2134,13 @@ int fmt_line(View *view) {
                     continue;
                 }
             } else { // Character and Word
-                if (in_str[i] == ' ') {
+                if (in_str[i] == ' ' || in_str[i] == '-') {
                     if (view->wrap && (sl_cols + word_cols) > (sl_maxlen - 1))
                         break;
-                    wstr[0] = L' ';
+                    (in_str[i] == '-') ? (wstr[0] = L'-') : (wstr[0] = L' ');
                     wstr[1] = L'\0';
-                    setcchar(&cc, wstr, attr, cpx, nullptr);
-                    view->stripped_line_out[x++] = ' ';
+                    ui_setcchar(&cc, wstr, attr, cpx, nullptr);
+                    view->stripped_line_out[x++] = in_str[i];
                     cmplx_buf[j++] = cc;
                     if (view->wrap) {
                         sl_cols += word_cols + 1;
@@ -2161,7 +2168,7 @@ int fmt_line(View *view) {
                         break;
                     wstr[0] = L' ';
                     wstr[1] = L'\0';
-                    setcchar(&cc, wstr, attr, cpx, nullptr);
+                    ui_setcchar(&cc, wstr, attr, cpx, nullptr);
                     for (int z = 0; z < tab_spaces; z++) {
                         view->stripped_line_out[x++] = ' ';
                         cmplx_buf[j++] = cc;
@@ -2187,7 +2194,7 @@ int fmt_line(View *view) {
                 if (char_width > 1)
                     for (int n = 1; n < char_width; n++)
                         view->stripped_line_out[x++] = ' ';
-                setcchar(&cc, wstr, attr, cpx, nullptr);
+                ui_setcchar(&cc, wstr, attr, cpx, nullptr);
                 cmplx_buf[j++] = cc;
                 i += len;
                 if (view->wrap) {
@@ -2272,7 +2279,7 @@ int fmt_line(View *view) {
     //-------------------------------------------------------------------------
     wstr[0] = '\0';
     wstr[1] = '\0';
-    setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);
+    ui_setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);
     cmplx_buf[j] = cc;
     view->stripped_line_out[x] = '\0';
     return j;
@@ -2538,20 +2545,21 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
 int display_prompt(View *view, char *s) {
     char message_str[PAD_COLS + 1];
     int l;
+    UiSurface *sfc = view->sfc;
     l = strnz__cpy(message_str, s, PAD_COLS);
-    wmove(view->cmdln_win, view->cmd_line, 0);
+    ui_cursor_move(sfc, CMDLN, view->cmd_line, 0);
     if (l != 0) {
-        wclrtoeol(view->cmdln_win);
-        // wbkgrndset(view->cmdln_win, &CC_NT_HL_REV);
-        // mvwadd_wchnstr(view->cmdln_win, view->cmd_line, 0, &ran, 1);
-        // mvwadd_wchnstr(view->cmdln_win, view->cmd_line, 0, &sp, 1);
-        wbkgrndset(view->cmdln_win, &CC_NT_REV);
-        mvwaddstr(view->cmdln_win, view->cmd_line, 0, " ");
-        mvwaddstr(view->cmdln_win, view->cmd_line, 1, message_str);
-        waddstr(view->cmdln_win, " ");
-        wbkgrndset(view->cmdln_win, &CC_NT);
-        getyx(view->cmdln_win, view->cmd_line, view->curx);
-        wmove(view->cmdln_win, view->cmd_line, view->curx);
+        ui_wclrtoeol(sfc, CMDLN);
+        // ui_bkgrndset(sfc, CMDLN, &CC_NT_HL_REV);
+        // ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, 0, &ran, 1);
+        // ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, 0, &sp, 1);
+        ui_bkgrndset_cch(sfc, CMDLN, &CC_NT_REV);
+        ui_mvwaddstr(sfc, CMDLN, view->cmd_line, 0, " ");
+        ui_mvwaddstr(sfc, CMDLN, view->cmd_line, 1, message_str);
+        ui_waddstr(sfc, CMDLN, " ");
+        ui_bkgrndset_cch(sfc, CMDLN, &CC_NT);
+        ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
+        ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
     }
     return (view->curx);
 }

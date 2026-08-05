@@ -32,13 +32,13 @@ static int nc_alloc_pair(int fg, int bg)
 static inline int nc_scale_1000(uint8_t v)
 int ui_bkgrnd(UiSurface *s, const UiStyle *style, const char *c)
 int ui_bkgrndset(UiSurface *s, const UiStyle *style, const char *c)
-UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int cols, int y, int x, char *wtitle)
+UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int lines, int cols, int y, int x, char *wtitle)
 int ui_clear_screen(UiRuntime *ui)
 int ui_cursor_enable(UiRuntime *ui, bool visible)
 int ui_cursor_move(UiSurface *s, int y, int x)
 UiBackend ui_get_backend(const UiRuntime *ui)
 void ui_get_caps(const UiRuntime *ui, UiCaps *caps)
-void ui_get_screen_size(UiRuntime *ui, int *rows, int *cols)
+void ui_get_screen_size(UiRuntime *ui, int *lines, int *cols)
 UiRuntime *ui_init(const UiConfig *cfg)
 SCREEN *ui_ncurses_get_screen(const UiRuntime *ui)
 PANEL *ui_ncurses_surface_get_panel(const UiSurface *s)
@@ -55,8 +55,8 @@ void ui_surface_destroy(UiSurface *s)
 int ui_surface_erase(UiSurface *s)
 int ui_surface_hide(UiSurface *s)
 int ui_surface_move(UiSurface *s, int y, int x)
-UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, int rows, int cols, int y, int x)
-int ui_surface_resize(UiSurface *s, int rows, int cols)
+UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, int lines, int cols, int y, int x)
+int ui_surface_resize(UiSurface *s, int lines, int cols)
 int ui_surface_show(UiSurface *s)
 int ui_suspend(UiRuntime *ui)
 ```
@@ -98,7 +98,7 @@ struct UiRuntime {
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
-    int rows;
+    int lines;
     int cols;
     PANEL *panel_main;
 };
@@ -116,7 +116,7 @@ struct UiSplitSurface {
     struct UiSurface *parent;
     int y;
     int x;
-    int rows;
+    int lines;
     int cols;
     int split_y;
     int split_x;
@@ -139,7 +139,7 @@ struct UiSurface {
     struct UiSurface *parent;
     int y;
     int x;
-    int rows;
+    int lines;
     int cols;
     bool hidden;
     char name[XLEN];
@@ -243,7 +243,7 @@ typedef struct {
 typedef struct {
     int y;
     int x;
-    int rows;
+    int lines;
     int cols;
 } UiRect;
 ```

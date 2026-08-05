@@ -7,7 +7,9 @@
     @date 2026-02-09
  */
 
-#include <common.h>
+#include "common.h"
+#include "ui/ui_ncurses_internal.h"
+#include "ui_backend.h"
 #include <monetary.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -56,6 +58,9 @@ int field_editor(Form *form) {
     bool f_insert = FALSE;
     int in_key;
     char *s, *d;
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    UiEvent event;
+    int maxy, maxx;
     if (form->fidx < 0 || form->fidx >= form->fcnt)
         form->fcnt = 0;
     int flin = form->field[form->fidx]->line;
@@ -77,20 +82,20 @@ int field_editor(Form *form) {
     else
         set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC, cp_nt_rev);
     compile_chyron(form->chyron);
-    display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
+    display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
 
     while (1) {
         if (in_key == 0) {
-            // mvwaddstr(form->win, flin, fcol, filler_s);
             form_fmt_field(form, accept_s);
             form_display_accept_field(form);
             tcflush(0, TCIFLUSH);
-            wmove(form->win, flin, x);
+            ui_cursor_move(sfc, WIN, flin, x);
 
-            curs_set(1);
-            update_panels();
-            doupdate();
-            in_key = xwgetch(form->win, form->chyron, -1);
+            ui_render(ui_runtime);
+            in_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+            ui_getmaxyx(sfc, WIN, &maxy, &maxx);
+            if (event.in_win == WIN && event.y == maxy - 1)
+                in_key = get_chyron_key(form->chyron, event.x);
         }
         curs_set(0);
         switch (in_key) {
@@ -155,7 +160,7 @@ int field_editor(Form *form) {
                                   cp_nt_hl_rev);
             }
             compile_chyron(form->chyron);
-            display_chyron(form->win, form->chyron, form->lines - 1,
+            display_chyron(sfc, 1, form->chyron, form->lines - 1,
                            form->chyron->l);
             in_key = 0;
             continue;
@@ -366,9 +371,9 @@ int form_display_field_n(Form *form, int n) {
     form->fidx = fidx;
     return 0;
 }
-void display_field(Form *form, cchar_t *cmplx_buf, int y, int x) {
-
-    mvwadd_wchstr(form->win, y, x, cmplx_buf);
+void display_field(cchar_t *cmplx_buf, int y, int x) {
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    ui_mvwadd_wchstr(sfc, WIN, y, x, cmplx_buf);
 }
 /** @brief Display current field
     @ingroup field_editor
@@ -382,19 +387,21 @@ void display_field(Form *form, cchar_t *cmplx_buf, int y, int x) {
    display to show the updated field content.
  */
 int form_display_field(Form *form) {
+    UiSurface *sfc = ui_surface[sfc_ptr];
     int y = form->field[form->fidx]->line;
     int x = form->field[form->fidx]->col;
-    mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
+    ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt,
               form->field[form->fidx]->len);
-    mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
+    ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
     return 0;
 }
 int form_display_accept_field(Form *form) {
+    UiSurface *sfc = ui_surface[sfc_ptr];
     int y = form->field[form->fidx]->line;
     int x = form->field[form->fidx]->col;
-    mvwaddstr(form->win, y, x, form->field[form->fidx]->filler_s);
-    mvwaddstr(form->win, y, x, form->field[form->fidx]->accept_s);
+    ui_mvwaddstr(sfc, WIN, y, x, form->field[form->fidx]->filler_s);
+    ui_mvwaddstr(sfc, WIN, y, x, form->field[form->fidx]->accept_s);
     return 0;
 }
 /** @brief Format field according to its format type

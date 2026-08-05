@@ -31,6 +31,6 @@ WINDOW *ui_ncurses_surface_get_win(const UiSurface *s);
    @param s The UiSurface to inspect.
    @return The PANEL pointer, or NULL if @p s is NULL.
 */
-PANEL *ui_ncurses_surface_get_panel(const UiSurface *s);
+PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, int w);
 
 #endif

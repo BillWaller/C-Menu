@@ -69,7 +69,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
 
     unsigned int r = 0, c = 0;
     notcurses_stddim_yx(ui->nc, &r, &c);
-    ui->rows = (int)r;
+    ui->lines = (int)r;
     ui->cols = (int)c;
 
     return ui;
@@ -86,15 +86,15 @@ void ui_shutdown(UiRuntime *ui) {
     free(ui);
 }
 
-void ui_get_screen_size(UiRuntime *ui, int *rows, int *cols) {
+void ui_get_screen_size(UiRuntime *ui, int *lines, int *cols) {
     if (!ui)
         return;
     unsigned int r = 0, c = 0;
     notcurses_stddim_yx(ui->nc, &r, &c);
-    ui->rows = (int)r;
+    ui->lines = (int)r;
     ui->cols = (int)c;
-    if (rows)
-        *rows = ui->rows;
+    if (lines)
+        *lines = ui->lines;
     if (cols)
         *cols = ui->cols;
 }
@@ -177,7 +177,7 @@ UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect) {
     s->parent = parent;
     s->y = rect.y;
     s->x = rect.x;
-    s->rows = rect.rows;
+    s->lines = rect.lines;
     s->cols = rect.cols;
 
     struct ncplane *parent_plane =
@@ -186,7 +186,7 @@ UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect) {
     struct ncplane_options plane_opts = {
         .y = rect.y,
         .x = rect.x,
-        .rows = (unsigned int)rect.rows,
+        .lines = (unsigned int)rect.lines,
         .cols = (unsigned int)rect.cols,
         .name = NULL,
     };
@@ -218,12 +218,12 @@ int ui_surface_move(UiSurface *s, int y, int x) {
     return 0;
 }
 
-int ui_surface_resize(UiSurface *s, int rows, int cols) {
+int ui_surface_resize(UiSurface *s, int lines, int cols) {
     if (!s)
         return -1;
-    s->rows = rows;
+    s->lines = lines;
     s->cols = cols;
-    return ncplane_resize_simple(s->plane, (unsigned int)rows,
+    return ncplane_resize_simple(s->plane, (unsigned int)lines,
                                  (unsigned int)cols) == 0
                ? 0
                : -1;
@@ -259,7 +259,7 @@ int ui_surface_hide(UiSurface *s) {
     if (!s->hidden) {
         s->hidden = true;
         /* Move far off-screen so the plane does not obscure anything. */
-        ncplane_move_yx(s->plane, -s->rows - 1, 0);
+        ncplane_move_yx(s->plane, -s->lines - 1, 0);
     }
     return 0;
 }

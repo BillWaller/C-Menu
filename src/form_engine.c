@@ -12,7 +12,9 @@
    External Commands for Calculations and Data Processing.
  */
 
-#include <common.h>
+#include "include/common.h"
+#include "include/ui_backend.h"
+#include "ui/ui_ncurses_internal.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -91,11 +93,11 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
     form->brktl = mkcc(cp_brackets, WA_NORMAL, &form->brackets[0]);
     form->brktr = mkcc(cp_brackets, WA_NORMAL, &form->brackets[1]);
-
+    UiSurface *sfc = ui_surface[sfc_ptr];
     rc = form_engine(init);
     destroy_chyron(form->chyron);
-    if (form->win)
-        win_del();
+    if (sfc)
+        cm_surface_destroy(sfc);
     destroy_form(init);
     return rc;
 }
@@ -130,7 +132,6 @@ int form_engine(Init *init) {
     if (form_parse_desc(form)) {
         return 0;
     }
-
     form_read_data(form);
     display_form(init);
     form->chyron = new_chyron();
@@ -148,7 +149,8 @@ int form_engine(Init *init) {
     form->chyron->key[5]->active = false;  // F5 Edit
     form->chyron->key[18]->active = false; // Insert
     compile_chyron(form->chyron);
-    display_chyron(form->win, form->chyron, form->lines - 1, form->chyron->l);
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
     // 1 F1 Help
     // 2 F2 Process
     // 3 F3 Calculate
@@ -227,8 +229,11 @@ int form_post(Init *init) {
     int c, rc;
     click_y = click_x = -1;
     Form *form = init->form;
-    wmove(form->win, form->lines - 1, 0);
-    wclrtoeol(form->win);
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    UiEvent event;
+    int maxy, maxx;
+    ui_cursor_move(sfc, WIN, form->lines - 1, 0);
+    ui_wclrtoeol(sfc, WIN);
     // 1 F1 Help
     // 2 F2 Process
     // 3 F3 Calculate
@@ -245,12 +250,13 @@ int form_post(Init *init) {
     rc = -1;
     while (loop) {
         if (rc == -1) {
-            display_chyron(form->win, form->chyron, form->lines - 1,
-                           form->chyron->l);
+            display_chyron(sfc, WIN, form->chyron, form->lines - 1, form->chyron->l);
             tcflush(2, TCIFLUSH);
-            update_panels();
-            doupdate();
-            c = xwgetch(form->win, form->chyron, -1);
+            ui_render(ui_runtime);
+            c = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+            ui_getmaxyx(sfc, WIN, &maxy, &maxx);
+            if (event.in_win == 1 && event.y == maxy - 1)
+                c = get_chyron_key(form->chyron, event.x);
         }
         switch (c) {
         case KEY_F(1):
@@ -326,9 +332,11 @@ int form_process(Init *init) {
     bool loop = true;
     pid_t pid;
     int pipe_fd[2];
-
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    UiEvent event;
     Form *form = init->form;
-    wmove(form->win, form->lines - 1, 0);
+    ui_cursor_move(sfc, WIN, form->lines - 1, 0);
+    int maxy, maxx;
     //
     // 1 F1 Help
     // 2 F2 Process
@@ -346,13 +354,15 @@ int form_process(Init *init) {
 
     while (loop) {
         compile_chyron(form->chyron);
-        display_chyron(form->win, form->chyron, form->lines - 1,
-                       form->chyron->l);
+        display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
-        update_panels();
-        doupdate();
-        c = xwgetch(form->win, form->chyron, -1);
+        ui_render(ui_runtime);
+        c = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+        ui_getmaxyx(sfc, WIN, &maxy, &maxx);
+        if (event.in_win == 1 && event.y == maxy - 1)
+            c = get_chyron_key(form->chyron, event.x);
+
         switch (c) {
         case KEY_F(1):
             return FA_HELP;
@@ -411,7 +421,7 @@ int form_process(Init *init) {
                 form->f_in_pipe = true;
                 form_read_data(form);
                 close(pipe_fd[P_READ]);
-                waitpid_with_timeout(pid, wait_timeout);
+                waitpid(pid, nullptr, 0);
                 stdio_fdnames(stdio_names_str, "form_engine.c:387");
                 destroy_argv(eargc, eargv);
                 form_display_fields(form);
@@ -550,29 +560,28 @@ unsigned int display_form(Init *init) {
         Perror(tmp_str);
         return (1);
     }
-    form->box = win_box[win_ptr];
-    form->win = win_win[win_ptr];
+    UiSurface *sfc = ui_surface[sfc_ptr];
 #ifdef DEBUG_IMMEDOK
-    immedok(form->win, true);
-    immedok(form->box, true);
+    ui_immedok(sfc, WIN, true);
+    ui_immedok(sfc, BOX, true);
 #endif
-    // wnoutrefresh(form->win);
+    // ui_wnoutrefresh(sfc, WIN);
     // display field brackets if specified in the form description
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
         if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
             flin = form->field[form->fidx]->line + 1;
             fcol = form->field[form->fidx]->col;
-            mvwadd_wch(form->box, flin, fcol, &form->brktl);
+            ui_mvwadd_wch(sfc, BOX, flin, fcol, &form->brktl);
             fcol += form->field[form->fidx]->len + 1;
-            mvwadd_wch(form->box, flin, fcol, &form->brktr);
-            // wnoutrefresh(form->box);
+            ui_mvwadd_wch(sfc, BOX, flin, fcol, &form->brktr);
+            // ui_wnoutrefresh(sfc, BOX);
         }
     }
     for (n = 0; n < form->dcnt; n++) {
         strnz(form->text[n]->str, form->cols - 3);
-        mvwaddstr(form->win, form->text[n]->line, form->text[n]->col,
-                  form->text[n]->str);
-        // wnoutrefresh(form->win);
+        ui_mvwaddstr(sfc, WIN, form->text[n]->line, form->text[n]->col,
+                     form->text[n]->str);
+        // ui_wnoutrefresh(sfc, WIN);
     }
     update_panels();
     form_display_fields(form);
@@ -617,12 +626,12 @@ void form_display_fields(Form *form) {
         x = form->field[form->fidx]->col;
 
         str_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, form->field[form->fidx]->len);
-
-        mvwadd_wchstr(form->win, y, x, form->field[form->fidx]->filler_cc);
+        UiSurface *sfc = ui_surface[sfc_ptr];
+        ui_mvwadd_wchstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
 
         str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, form->field[form->fidx]->len);
 
-        mvwadd_wchnstr(form->win, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
+        ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         update_panels();
         doupdate();
     }

@@ -26,19 +26,10 @@
     @note Not currently used in the code, but may be used in
     future versions of C-Menu
  */
-typedef struct {
-    int flin;
-    int fcol;
-    int flen;
-    int ff;
-    char fill_char;
-    WINDOW *win;
-    bool cf_erase_remainder;
-} CmField;
 
 bool f_erase_remainder = true;
 
-int cf_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen);
+int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int flen);
 
 /** @brief Accepts input for a field in a C-Menu window
     @param win The window to accept input from
@@ -48,11 +39,12 @@ int cf_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen);
     @param flen The length of the field
     @return The key pressed to exit the field (KEY_ENTER, KEY_F(9), etc.)
  */
-int cf_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen) {
+int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int flen) {
     bool f_insert = FALSE;
     int in_key = 0;
     char *s, *d;
     char *fstart;
+    UiEvent event;
 
     click_x = click_y = -1;
     char *p = fstart = accept_s;
@@ -61,11 +53,11 @@ int cf_accept(WINDOW *win, char *accept_s, int flin, int fcol, int flen) {
     char *str_end = p + strlen(p);
     while (1) {
         if (in_key == 0) {
-            mvwaddstr(win, flin, fcol, accept_s);
-            wclrtoeol(win);
-            wmove(win, flin, x);
-            tcflush(0, TCIFLUSH);
-            in_key = vgetch(win, 0);
+            ui_mvwaddstr(sfc, w, flin, fcol, accept_s);
+            ui_wclrtoeol(sfc, w);
+            ui_cursor_move(sfc, w, flin, x);
+            ui_qiflush();
+            in_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
         }
         curs_set(0);
         switch (in_key) {

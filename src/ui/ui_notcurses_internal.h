@@ -25,12 +25,12 @@
    carries per-session configuration flags.
 */
 struct UiRuntime {
-    struct notcurses *nc;      /**< root NotCurses context */
-    bool              mouse_enabled;
-    bool              alt_screen;
-    bool              cursor_visible;
-    int               rows;
-    int               cols;
+    struct notcurses *nc; /**< root NotCurses context */
+    bool mouse_enabled;
+    bool alt_screen;
+    bool cursor_visible;
+    int lines;
+    int cols;
 };
 
 /** @struct UiSurface
@@ -41,16 +41,16 @@ struct UiRuntime {
    moving the plane off-screen when hidden and restoring it when shown.
 */
 struct UiSurface {
-    struct ncplane   *plane;
+    struct ncplane *plane;
     struct UiRuntime *runtime;
     struct UiSurface *parent;
-    int   y;
-    int   x;
-    int   rows;
-    int   cols;
-    bool  hidden;
-    char  name[XLEN];
-    char  title[XLEN];
+    int y;
+    int x;
+    int lines;
+    int cols;
+    bool hidden;
+    char name[XLEN];
+    char title[XLEN];
 };
 
 /* Internal style helpers */

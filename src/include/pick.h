@@ -23,18 +23,19 @@ typedef struct Init Init;
 /** @struct Pick
    @brief Pick data structure */
 typedef struct {
-    int fg_clr_idx;              /**< foreground color */
-    int bg_clr_idx;              /**< background color */
-    int bo_clr_idx;              /**< box color */
-    int lines;                   /**< window lines */
-    int width;                   /**< window width (columns)*/
-    int begy;                    /**< begin y screen position of window top */
-    int begx;                    /**< begin x screen position of windor left */
-    int y;                       /**< current y (line)*/
-    int x;                       /**< current x (column) */
-    WINDOW *win;                 /**< pointer to window */
-    WINDOW *win2;                /**< pointer to 2nd window */
-    WINDOW *box;                 /**< pointer to box */
+    int fg_clr_idx; /**< foreground color */
+    int bg_clr_idx; /**< background color */
+    int bo_clr_idx; /**< box color */
+    int lines;      /**< window lines */
+    int width;      /**< window width (columns)*/
+    int begy;       /**< begin y screen position of window top */
+    int begx;       /**< begin x screen position of windor left */
+    int y;          /**< current y (line)*/
+    int x;          /**< current x (column) */
+    WINDOW *win;    /**< pointer to window */
+    WINDOW *win2;   /**< pointer to 2nd window */
+    WINDOW *box;    /**< pointer to box */
+    UiSurface *surface;
     char title[MAXLEN];          /**< title string */
     int argc;                    /**< argument count */
     char **argv;                 /**< argument vector */

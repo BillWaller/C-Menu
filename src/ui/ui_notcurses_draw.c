@@ -48,7 +48,7 @@ int ui_draw_hline(UiSurface *s, int y, int x, int len, const UiStyle *style) {
     if (!s || len <= 0)
         return -1;
     uint64_t channels = ui_notcurses_channels_from_style(style);
-    uint32_t attrs    = ui_notcurses_attrs_from_style(style);
+    uint32_t attrs = ui_notcurses_attrs_from_style(style);
     ncplane_set_channels(s->plane, channels);
     ncplane_set_styles(s->plane, attrs);
     for (int i = 0; i < len; i++)
@@ -61,7 +61,7 @@ int ui_draw_vline(UiSurface *s, int y, int x, int len, const UiStyle *style) {
     if (!s || len <= 0)
         return -1;
     uint64_t channels = ui_notcurses_channels_from_style(style);
-    uint32_t attrs    = ui_notcurses_attrs_from_style(style);
+    uint32_t attrs = ui_notcurses_attrs_from_style(style);
     ncplane_set_channels(s->plane, channels);
     ncplane_set_styles(s->plane, attrs);
     for (int i = 0; i < len; i++)
@@ -78,23 +78,23 @@ int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style) {
     if (!s)
         return -1;
     uint64_t channels = ui_notcurses_channels_from_style(style);
-    uint32_t attrs    = ui_notcurses_attrs_from_style(style);
+    uint32_t attrs = ui_notcurses_attrs_from_style(style);
     switch (kind) {
     case UI_BORDER_NONE:
         return 0;
     case UI_BORDER_ASCII: {
         /* Draw ASCII border manually. */
-        unsigned int rows, cols;
-        ncplane_dim_yx(s->plane, &rows, &cols);
+        unsigned int lines, cols;
+        ncplane_dim_yx(s->plane, &lines, &cols);
         ncplane_putegc_yx(s->plane, 0, 0, "+", NULL);
         ncplane_putegc_yx(s->plane, 0, (int)cols - 1, "+", NULL);
-        ncplane_putegc_yx(s->plane, (int)rows - 1, 0, "+", NULL);
-        ncplane_putegc_yx(s->plane, (int)rows - 1, (int)cols - 1, "+", NULL);
+        ncplane_putegc_yx(s->plane, (int)lines - 1, 0, "+", NULL);
+        ncplane_putegc_yx(s->plane, (int)lines - 1, (int)cols - 1, "+", NULL);
         for (unsigned int c = 1; c < cols - 1; c++) {
             ncplane_putegc_yx(s->plane, 0, (int)c, "-", NULL);
-            ncplane_putegc_yx(s->plane, (int)rows - 1, (int)c, "-", NULL);
+            ncplane_putegc_yx(s->plane, (int)lines - 1, (int)c, "-", NULL);
         }
-        for (unsigned int r = 1; r < rows - 1; r++) {
+        for (unsigned int r = 1; r < lines - 1; r++) {
             ncplane_putegc_yx(s->plane, (int)r, 0, "|", NULL);
             ncplane_putegc_yx(s->plane, (int)r, (int)cols - 1, "|", NULL);
         }

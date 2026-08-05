@@ -23,8 +23,6 @@ int popup_ckeys();
     @return 0 on success, non-zero on failure
  */
 int popup_ckeys() {
-    WINDOW *win;
-    // WINDOW *box;
     char Title[] = "TEST CURSES KEYS";
     int lines = 10;
     int cols = 55;
@@ -44,21 +42,20 @@ int popup_ckeys() {
         Perror(tmp);
         exit(EXIT_FAILURE);
     }
-    UiSurface *sfc = ui_surface[win_ptr];
-    win = win_win[win_ptr];
-    keypad(win, TRUE);
-    ui_bkgrndset(sfc, nullptr, " ");
-    ui_mvwaddstr(sfc, lines - 1, 0, " <ALT>END to exit ");
-    ui_bkgrndset(sfc, NULL, " ");
-    ui_mvwaddstr(sfc, 1, 4, "Press a key or activate the mouse:");
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    ui_keypad(sfc, WIN, true);
+    ui_bkgrndset(sfc, WIN, nullptr, " ");
+    ui_mvwaddstr(sfc, WIN, lines - 1, 0, " <ALT>END to exit ");
+    ui_bkgrndset(sfc, WIN, NULL, " ");
+    ui_mvwaddstr(sfc, WIN, 1, 4, "Press a key or activate the mouse:");
     c = '\0';
     UiEvent ev;
     while (!c) {
         kstr[0] = '\0';
-        ui_cursor_move(sfc, 1, 39);
+        ui_cursor_move(sfc, WIN, 1, 39);
         do {
             ui_render(ui_runtime);
-            c = ui_get_event(ui_runtime, sfc, &ev, -1);
+            c = ui_get_event(ui_runtime, sfc, WIN, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
                     c = display_error(em0, em1, em2, NULL);
@@ -510,9 +507,9 @@ int popup_ckeys() {
             default:
                 break;
             }
-            ui_mvwaddstr(sfc, 6, 3, "     Action:");
-            ui_mvwaddstr(sfc, 6, 16, action);
-            ui_wclrtoeol(sfc);
+            ui_mvwaddstr(sfc, WIN, 6, 3, "     Action:");
+            ui_mvwaddstr(sfc, WIN, 6, 16, action);
+            ui_wclrtoeol(sfc, WIN);
             strnz__cpy(tmp, "  With Key:", MAXLEN - 1);
             if (event.bstate & BUTTON_SHIFT)
                 strnz__cat(tmp, " Shift", MAXLEN - 1);
@@ -520,8 +517,8 @@ int popup_ckeys() {
                 strnz__cat(tmp, " Ctrl", MAXLEN - 1);
             if (event.bstate & BUTTON_ALT)
                 strnz__cat(tmp, " Alt", MAXLEN - 1);
-            ui_mvwaddstr(sfc, 3, 4, tmp);
-            ui_wclrtoeol(sfc);
+            ui_mvwaddstr(sfc, WIN, 3, 4, tmp);
+            ui_wclrtoeol(sfc, WIN);
             if (ev.mouse_inside) {
                 sprintf(tmp, "   Inside Win:  y: %3d, x: %3d",
                         ev.y - begy, ev.x - begx);
@@ -529,39 +526,39 @@ int popup_ckeys() {
                 sprintf(tmp, "       stdwin:  y: %3d, x: %3d",
                         ev.y - begy, ev.x - begx);
             }
-            ui_mvwaddstr(sfc, 4, 4, tmp);
-            ui_wclrtoeol(sfc);
-            ui_cursor_move(sfc, 5, 0);
-            ui_wclrtoeol(sfc);
-            ui_cursor_move(sfc, 7, 0);
-            ui_wclrtoeol(sfc);
+            ui_mvwaddstr(sfc, WIN, 4, 4, tmp);
+            ui_wclrtoeol(sfc, WIN);
+            ui_cursor_move(sfc, WIN, 5, 0);
+            ui_wclrtoeol(sfc, WIN);
+            ui_cursor_move(sfc, WIN, 7, 0);
+            ui_wclrtoeol(sfc, WIN);
         default:
             break;
         }
         if (c != KEY_MOUSE) {
             sprintf(tmp, "     Octal: %3o", c);
-            ui_mvwaddstr(sfc, 3, 4, tmp);
-            ui_wclrtoeol(sfc);
+            ui_mvwaddstr(sfc, WIN, 3, 4, tmp);
+            ui_wclrtoeol(sfc, WIN);
 
             sprintf(tmp, "   Decimal: %3d", c);
-            ui_mvwaddstr(sfc, 4, 4, tmp);
-            ui_wclrtoeol(sfc);
+            ui_mvwaddstr(sfc, WIN, 4, 4, tmp);
+            ui_wclrtoeol(sfc, WIN);
 
             sprintf(tmp, "       Hex: %3x", c);
-            ui_mvwaddstr(sfc, 5, 4, tmp);
-            ui_wclrtoeol(sfc);
+            ui_mvwaddstr(sfc, WIN, 5, 4, tmp);
+            ui_wclrtoeol(sfc, WIN);
 
             if (kstr[0]) {
                 sprintf(tmp, "Description: %s", kstr);
             } else {
                 sprintf(tmp, "      ASCII: %c", c);
             }
-            ui_mvwaddstr(sfc, 6, 3, tmp);
-            ui_wclrtoeol(sfc);
+            ui_mvwaddstr(sfc, WIN, 6, 3, tmp);
+            ui_wclrtoeol(sfc, WIN);
             s = ev.keybound;
-            ui_mvwaddstr(sfc, 7, 2, "Key bound To: ");
-            ui_wclrtoeol(sfc);
-            ui_mvwaddstr(sfc, 7, 16, s ? s : "Not Bound");
+            ui_mvwaddstr(sfc, WIN, 7, 2, "Key bound To: ");
+            ui_wclrtoeol(sfc, WIN);
+            ui_mvwaddstr(sfc, WIN, 7, 16, s ? s : "Not Bound");
             ui_render(ui_runtime);
         }
         if (c == KEY_ALTEND) {
@@ -570,6 +567,6 @@ int popup_ckeys() {
         }
         c = '\0';
     }
-    win_del();
+    ui_surface_destroy(sfc);
     return 0;
 }

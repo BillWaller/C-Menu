@@ -27,21 +27,21 @@ UiFramedSurface ui_framed_surface_new(UiRuntime *ui, UiSurface *parent,
                                       UiRect rect) {
     UiFramedSurface fs = {NULL, NULL};
 
-    if (!ui || rect.rows < 3 || rect.cols < 3)
+    if (!ui || rect.lines < 3 || rect.cols < 3)
         return fs;
 
     char title[64] = {0};
-    fs.outer = ui_surface_new(ui, parent, rect.rows, rect.cols, rect.y, rect.x);
+    fs.outer = ui_surface_new(ui, parent, 0, rect.lines, rect.cols, rect.y, rect.x);
     if (!fs.outer)
         return fs;
 
     UiRect inner_rect = {
         .y = 1,
         .x = 1,
-        .rows = rect.rows - 2,
+        .lines = rect.lines - 2,
         .cols = rect.cols - 2,
     };
-    fs.inner = ui_surface_new(ui, fs.outer, rect.rows, rect.cols, rect.y, rect.x);
+    fs.inner = ui_surface_new(ui, fs.outer, 0, rect.lines, rect.cols, rect.y, rect.x);
     if (!fs.inner) {
         ui_surface_destroy(fs.outer);
         fs.outer = NULL;

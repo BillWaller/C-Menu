@@ -380,5 +380,5 @@ extern int form_desc_error(Form *, int, char *, char *);
 extern void form_help(char *);
 extern int form_yx_to_fidx(Form *, int, int);
 extern void form_display_chyron(Form *);
-extern void display_field(Form *, cchar_t *, int, int);
+extern void display_field(cchar_t *, int, int);
 #endif

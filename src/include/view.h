@@ -13,6 +13,8 @@
 #define _GNU_SOURCE
 // #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
+#include "../ui/ui_ncurses_internal.h"
+#include "ui_backend.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
 #include <signal.h>
@@ -82,17 +84,12 @@ typedef struct {
     WINDOW *box_win;
     PANEL *box_pan;
     WINDOW *win_win;
-    PANEL *win_pan;
     WINDOW *lnno_win;
-    PANEL *lnno_pan;
     WINDOW *cmdln_win;
-    PANEL *cmdln_pan;
-    WINDOW *pad_container_win;
-    PANEL *pad_container_pan;
     WINDOW *pad;
     WINDOW *pad_view_win;
     PANEL *pad_view_pan;
-
+    UiSurface *sfc;              /**< pointer to UI surface structure */
     char tmp_prompt_str[MAXLEN]; /**< temporary prompt string used when building
                                     prompt */
     int curr_argc;               /**< current argument count when processing multiple */
