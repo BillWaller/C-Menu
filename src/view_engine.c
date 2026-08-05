@@ -1599,7 +1599,7 @@ void scroll_down(View *view, int n) {
                 ui_wclrtobot(sfc, LNNO);
             }
             ui_cursor_move(sfc, PAD, 0, 0);
-            ui_wclrtobot(sfc, CMDLN);
+            ui_wclrtobot(sfc, PAD);
         } else {
             if (view->f_ln)
                 ui_wscrl(sfc, LNNO, n);
@@ -1654,7 +1654,7 @@ void scroll_up(View *view, int n) {
             ui_wclrtobot(sfc, LNNO);
         }
         ui_cursor_move(sfc, PAD, 0, 0);
-        ui_wclrtobot(sfc, CMDLN);
+        ui_wclrtobot(sfc, PAD);
     } else {
         if (view->f_ln)
             ui_wscrl(sfc, LNNO, -n);
@@ -2208,9 +2208,7 @@ int fmt_line(View *view) {
         } // END WHILE - ANSI SGR, Character, and Word
         if (view->wrap) {        // handle line wrapping
             if (word_cols > 0) { // break line, add last word to next line
-                // if (view->cur.sl_idx == 0)
-                //    view->cur.sl_ln_no = view->ln_no;
-                if (sl_cols <= sl_maxlen - 1) {
+                if (sl_cols <= sl_maxlen) {
                     view->cur.sl_s[view->cur.sl_idx] = sl_s;
                     view->cur.sl_cc[view->cur.sl_idx] = sl_cc;
                     view->cur.sl_cols[view->cur.sl_idx] = sl_cols;
