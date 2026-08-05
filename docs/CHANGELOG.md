@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-05T14:27:06-05:00* - FIX: In line wrap mode, view was not displaying on the active window. 
+
+*2026-08-05T11:37:37-05:00* - Update CHANGELOG.md 
+
 *2026-08-05T11:36:29-05:00* - FEATURE: Continuing refactoring of UI code to support multiple backends (ncurses and notcurses). This commit includes updates to various source files and header files to improve the structure and maintainability of the UI components. The changes involve modifications to field handling, cursor keys, window management, form engine, menu engine, pick engine, and view engine. 
 
 *2026-08-01T12:40:20-05:00* - Update CHANGELOG.md 
