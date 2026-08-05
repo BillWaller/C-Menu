@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-05T15:40:37-05:00* - FIX: view_engine.c word wrap off by 1 when separator character occurred at maximum line length + 1. 
+
+*2026-08-05T14:29:06-05:00* - Update CHANGELOG.md 
+
 *2026-08-05T14:27:06-05:00* - FIX: In line wrap mode, view was not displaying on the active window. 
 
 *2026-08-05T11:37:37-05:00* - Update CHANGELOG.md 
