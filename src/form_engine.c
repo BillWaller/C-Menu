@@ -625,11 +625,11 @@ void form_display_fields(Form *form) {
         y = form->field[form->fidx]->line;
         x = form->field[form->fidx]->col;
 
-        str_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, form->field[form->fidx]->len);
+        mb_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, 0, form->field[form->fidx]->len);
         UiSurface *sfc = ui_surface[sfc_ptr];
         ui_mvwadd_wchstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
 
-        str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, form->field[form->fidx]->len);
+        mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, 0, form->field[form->fidx]->len);
 
         ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         update_panels();

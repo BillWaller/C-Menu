@@ -15,6 +15,19 @@
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
 
+typedef struct {
+    wchar_t ch;       /**< The wide character. */
+    attr_t attr;      /**< The attributes (color, bold, etc.). */
+    short color_pair; /**< The color pair index. */
+} ui_cchar;
+
+typedef struct {
+    wchar_t ch; /**< The wide character.  4-bytes */
+    short attr; /**< The attributes (color, bold, etc.). */
+    int fg;
+    int bg;
+} ui_xchar;
+
 /** @brief Return the raw @c SCREEN* for the NCurses session.
    @param ui The UiRuntime returned by ui_init().
    @return The NCurses SCREEN pointer, or NULL if @p ui is NULL.

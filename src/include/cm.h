@@ -950,7 +950,6 @@ extern bool verify_dir(char *, int);
 extern bool verify_dir_q(char *, int);
 extern bool verify_spec_arg(char *, char *, char *, char *, int);
 extern size_t mk_cmplx_str(cchar_t *, char *, attr_t, int);
-extern size_t str_to_cc(cchar_t *, const char *, attr_t, int, size_t);
 extern void display_cmplx_str(WINDOW *, cchar_t *, int, int);
 extern int wccp_to_str(wchar_t, uint8_t *);
 extern char *fdname(int, char *);
@@ -970,4 +969,5 @@ extern int cf_accept(UiSurface *, int w, char *, int, int, int);
 extern char *fill_field(char *, char *, char, int);
 extern int cm_surface_destroy(UiSurface *sfc);
 extern wchar_t *mbstr_to_wcstr(const char *mb_str);
+extern int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen);
 #endif

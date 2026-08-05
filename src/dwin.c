@@ -157,10 +157,10 @@ UiStyle style_ln;
 UiStyle style_ran;
 UiStyle style_chk;
 
-double GRAY_GAMMA = 1.2;  /**< Gamma correction value for gray colors. Set in .minitrc */
-double RED_GAMMA = 1.2;   /**< Gamma correction value for red colors. Set in .minitrc */
-double GREEN_GAMMA = 1.2; /**< Gamma correction value for green colors. Set in .minitrc */
-double BLUE_GAMMA = 1.2;  /**< Gamma correction value for blue colors. Set in .minitrc */
+double GRAY_GAMMA = 1.2; /**< Gamma correction. Set in .minitrc */
+double RED_GAMMA = 1.2;
+double GREEN_GAMMA = 1.2;
+double BLUE_GAMMA = 1.2;
 
 int exit_code;
 unsigned int cmd_key;
@@ -698,8 +698,7 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    The pos parameter is updated to reflect the current position in the output
    buffer, and the function ensures that it does not exceed the maximum length.
 */
-int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos,
-             int maxlen) {
+int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen) {
     int i = 0, len = 0;
     const char *s;
     cchar_t cc = {0};
@@ -763,52 +762,6 @@ cchar_t mkcc(int cp, attr_t attr, const char *s) {
     }
     ui_setcchar(&cc, wstr, attr, cp, nullptr);
     return cc;
-}
-/** str_to_cc
-    @brief Convert a multibyte string to an array of cchar_t complex characters
-    @ingroup color_management
-    @param cmplx_buf Output buffer for complex characters
-    @param s Input multibyte string
-    @param attr Attributes to apply to the complex characters
-    @param cp Color pair index for the complex characters
-    @param maxlen Maximum length of the output buffer
-    @return Number of complex characters added to the output buffer
-    @details This function converts a multibyte string to an array of cchar_t
-   complex characters that can be used with NCurses functions. It handles
-   multibyte characters and applies the specified color pair to each character.
-   The function ensures that it does not exceed the maximum length of the output
-   buffer. */
-size_t str_to_cc(cchar_t *cmplx_buf, const char *s, attr_t attr, int cp, size_t maxlen) {
-    int i = 0, j = 0;
-    int len = 0;
-    cchar_t cc = {0};
-    wchar_t wstr[2] = {L'\0', L'\0'};
-    mbstate_t mbstate;
-    memset(&mbstate, 0, sizeof(mbstate));
-    while (s[i] != '\0') {
-        if (s[i] == '\033') {
-            i++;
-            continue;
-        }
-        wstr[1] = L'\0';
-        len = mbrtowc(wstr, &s[i], MB_CUR_MAX, &mbstate);
-        if (len <= 0) {
-            wstr[0] = L'?';
-            wstr[1] = L'\0';
-            len = 1;
-        }
-        if (ui_setcchar(&cc, wstr, attr, cp, nullptr) != ERR) {
-            if (len > 0)
-                if ((j + len) < (int)maxlen + 1)
-                    cmplx_buf[j++] = cc;
-        }
-        i += len;
-    }
-    wstr[0] = '\0';
-    wstr[1] = '\0';
-    ui_setcchar(&cc, wstr, WA_NORMAL, cp, nullptr);
-    cmplx_buf[j++] = cc;
-    return j;
 }
 /** @brief Converts a Unicode code point to a UTF-8 encoded string.
     @ingroup utility_functions

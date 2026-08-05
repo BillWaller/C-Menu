@@ -391,8 +391,8 @@ int form_display_field(Form *form) {
     int y = form->field[form->fidx]->line;
     int x = form->field[form->fidx]->col;
     ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
-    str_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt,
-              form->field[form->fidx]->len);
+    mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt, 0,
+             form->field[form->fidx]->len);
     ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
     return 0;
 }

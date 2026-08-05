@@ -760,6 +760,7 @@ int get_cmd_char(View *view, off_t *n) {
         ui_update_panels();
         ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
         ui_doupdate();
+        _Refresh(view);
         event.y = event.x = -1;
         c = ui_get_event_no_mouse(sfc, CMDLN, &event);
         switch (c) {
@@ -1377,11 +1378,12 @@ void view_display_page(View *view) {
         if (view->wrap && view->cury == 0)
             view->cur.sl_idx = view->page_top_sl_idx;
         display_line(view);
+        _Refresh(view);
         view->ln_no++;
     }
-    view->ln_no--;
     if (view->f_eod)
         display_line_eod(view);
+    view->ln_no--;
     view->page_bot_end_pos = view->file_pos - 1;
     view->page_bot_pos = view->file_pos;
     view->page_bot_ln_no = view->ln_no;
@@ -1462,8 +1464,8 @@ void display_split_line(View *view) {
             }
         }
         ui_cursor_move(sfc, PAD, view->cury, 0);
-        ui_wclrtoeol(sfc, CMDLN);
-        wadd_wchnstr(view->sfc->mwin[WIN2], view->cur.sl_cc[i], view->cur.sl_cells[i]);
+        ui_wclrtoeol(sfc, PAD);
+        wadd_wchnstr(view->sfc->mwin[PAD], view->cur.sl_cc[i], view->cur.sl_cells[i]);
         if (view->cury == 0) {
             view->page_top_ln_no = view->ln_no;
             view->page_top_sl = true;
@@ -1497,7 +1499,7 @@ void display_line_eod(View *view) {
         ui_wclrtobot(sfc, LNNO);
     }
     ui_cursor_move(sfc, PAD, view->cury, 0);
-    ui_wclrtobot(sfc, CMDLN);
+    ui_wclrtobot(sfc, PAD);
     view->page_bot_ln_no = view->ln_no;
 }
 /** @brief Scroll Down by n Lines
