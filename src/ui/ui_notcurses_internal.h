@@ -40,8 +40,35 @@ struct UiRuntime {
    Each UiSurface wraps a @c struct ncplane*.  Visibility is simulated by
    moving the plane off-screen when hidden and restoring it when shown.
 */
+
+typedef enum {
+    BOX,
+    WIN,
+    WIN2,
+    LNNO,
+    CMDLN,
+    PAD,
+    WINX,
+    SUB_SFC_MAX
+} SubSurface;
+
 struct UiSurface {
-    struct ncplane *plane;
+
+    union {
+        struct {
+            struct ncplane *box;
+            struct ncplane *win;
+            struct ncplane *win2;
+            struct ncplane *lnno;
+            struct ncplane *cmdln;
+            struct ncplane *pad;
+            struct ncplane *plane1;
+            struct ncplane *plane2;
+        };
+        struct {
+            struct ncplane *mplane[8];
+        };
+    };
     struct UiRuntime *runtime;
     struct UiSurface *parent;
     int y;

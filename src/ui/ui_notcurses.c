@@ -14,19 +14,11 @@
 #include <unistd.h>
 
 /* -------------------------------------------------------------------------
-   Global surface arrays (declared extern in ui_backend.h).
-   ------------------------------------------------------------------------- */
-UiSurface *ui_surface_box[MAXWIN];
-UiSurface *ui_surface_win[MAXWIN];
-UiSurface *ui_surface_win2[MAXWIN];
-
-/* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
 
 UiRuntime *ui_init(const UiConfig *cfg) {
     setlocale(LC_ALL, "");
-
     UiRuntime *ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
@@ -36,8 +28,8 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         ui->alt_screen = cfg->enable_alt_screen;
         ui->cursor_visible = cfg->cursor_visible;
     } else {
-        ui->cursor_visible = true;
-        ui->alt_screen = true;
+        ui->cursor_visible = false;
+        ui->alt_screen = false;
     }
 
     FILE *tty = NULL;
@@ -165,125 +157,121 @@ void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
    Surface management
    ------------------------------------------------------------------------- */
 
-UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect) {
+UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int lines, int cols, int y, int x) {
     if (!ui)
         return NULL;
-
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
 
     s->runtime = ui;
     s->parent = parent;
-    s->y = rect.y;
-    s->x = rect.x;
-    s->lines = rect.lines;
-    s->cols = rect.cols;
+    s->lines = lines;
+    s->cols = cols;
+    s->y = y;
+    s->x = x;
 
-    struct ncplane *parent_plane =
-        parent ? parent->plane : notcurses_stdplane(ui->nc);
-
-    struct ncplane_options plane_opts = {
-        .y = rect.y,
-        .x = rect.x,
-        .lines = (unsigned int)rect.lines,
-        .cols = (unsigned int)rect.cols,
-        .name = NULL,
-    };
-
-    s->plane = ncplane_create(parent_plane, &plane_opts);
-    if (!s->plane) {
-        free(s);
-        return NULL;
+    if (parent && parent->mplane[p]) {
+        struct ncplane_options plane_opts = {
+            .y = y,
+            .x = x,
+            .rows = lines,
+            .cols = cols,
+            .name = NULL,
+        };
+        s->mplane[w] = ncplane_create(parent->mplane[p], &plane_opts);
+        if (!s->mplane[w]) {
+            free(s);
+            return NULL;
+        }
     }
-
     return s;
 }
 
 void ui_surface_destroy(UiSurface *s) {
     if (!s)
         return;
-    if (s->plane)
-        ncplane_destroy(s->plane);
+    for (int w = 0; w < SUB_SFC_MAX)
+        ncplane_destroy(s->mplane[w]);
     free(s);
 }
 
-int ui_surface_move(UiSurface *s, int y, int x) {
+int ui_surface_move(UiSurface *s, int w, int y, int x) {
     if (!s)
         return -1;
     s->y = y;
     s->x = x;
     if (!s->hidden)
-        return ncplane_move_yx(s->plane, y, x) == 0 ? 0 : -1;
+        return ncplane_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
     return 0;
 }
 
-int ui_surface_resize(UiSurface *s, int lines, int cols) {
+int ui_surface_resize(UiSurface *s, int w, int lines, int cols) {
     if (!s)
         return -1;
     s->lines = lines;
     s->cols = cols;
-    return ncplane_resize_simple(s->plane, (unsigned int)lines,
+    return ncplane_resize_simple(s->mplane[w], (unsigned int)lines,
                                  (unsigned int)cols) == 0
                ? 0
                : -1;
 }
 
-int ui_surface_clear(UiSurface *s) {
+int ui_surface_clear(UiSurface *s, int w) {
     if (!s)
         return -1;
-    ncplane_erase(s->plane);
+    ncplane_erase(s->mplane[w]);
     return 0;
 }
 
-int ui_surface_erase(UiSurface *s) {
+int ui_surface_erase(UiSurface *s, int w) {
     if (!s)
         return -1;
-    ncplane_erase(s->plane);
+    ncplane_erase(s->mplane[w]);
     return 0;
 }
 
-int ui_surface_show(UiSurface *s) {
+int ui_surface_show(UiSurface *s, int w) {
     if (!s)
         return -1;
     if (s->hidden) {
         s->hidden = false;
-        ncplane_move_yx(s->plane, s->y, s->x);
+        ncplane_move_yx(s->mplane[w], s->y, s->x);
     }
     return 0;
 }
 
-int ui_surface_hide(UiSurface *s) {
+int ui_surface_hide(UiSurface *s, int w) {
     if (!s)
         return -1;
     if (!s->hidden) {
         s->hidden = true;
         /* Move far off-screen so the plane does not obscure anything. */
-        ncplane_move_yx(s->plane, -s->lines - 1, 0);
+        ncplane_move_yx(s->mplane[w], -s->lines - 1, 0);
     }
     return 0;
 }
 
-int ui_cursor_move(UiSurface *s, int y, int x) {
+int ui_cursor_move(UiSurface *s, int w, int y, int x) {
     if (!s)
         return -1;
-    return ncplane_cursor_move_yx(s->plane, y, x) == 0 ? 0 : -1;
+    return ncplane_cursor_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
 }
 
-int ui_bkgrnd(UiSurface *s, const UiStyle *style, const char *c) {
+int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c) {
     if (!s)
         return -1;
     uint64_t channels = ui_notcurses_channels_from_style(style);
     uint32_t attrs = ui_notcurses_attrs_from_style(style);
     const char *fill = (c && *c) ? c : " ";
-    ncplane_set_base(s->plane, fill, attrs, channels);
+    ncplane_set_base(s->mplane[w], fill, attrs, channels);
     return 0;
 }
 
-int ui_bkgd_set(UiSurface *s, const UiStyle *style, const char *c) {
+int ui_bkgd_set(UiSurface *s, int w, const UiStyle *style, const char *c) {
     /* NotCurses has no separate "set without fill" operation; delegate to
        bkgrnd which sets channels and re-fills the plane background. */
-    return ui_bkgrnd(s, style, c);
+    return ui_bkgrnd(s, w, style, c);
 }
 
 /* -------------------------------------------------------------------------

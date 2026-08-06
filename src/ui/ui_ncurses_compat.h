@@ -50,6 +50,7 @@ WINDOW *ui_ncurses_surface_get_win(const UiSurface *s);
 
 /** @brief Return the raw NCurses @c PANEL* underlying a surface.
    @param s The UiSurface to inspect.
+   @param w UiSurface window
    @return The PANEL pointer, or NULL if @p s is NULL.
 */
 PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, int w);

@@ -11,8 +11,8 @@
    functions are intentionally not declared in ui_backend.h.
 */
 
-#include <notcurses/notcurses.h>
 #include "../include/ui_backend.h"
+#include <notcurses/notcurses.h>
 
 /** @brief Return the raw @c struct notcurses* for the NotCurses session.
    @param ui The UiRuntime returned by ui_init().

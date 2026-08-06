@@ -565,8 +565,6 @@ unsigned int display_form(Init *init) {
     ui_immedok(sfc, WIN, true);
     ui_immedok(sfc, BOX, true);
 #endif
-    // ui_wnoutrefresh(sfc, WIN);
-    // display field brackets if specified in the form description
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
         if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
             flin = form->field[form->fidx]->line + 1;
@@ -574,16 +572,14 @@ unsigned int display_form(Init *init) {
             ui_mvwadd_wch(sfc, BOX, flin, fcol, &form->brktl);
             fcol += form->field[form->fidx]->len + 1;
             ui_mvwadd_wch(sfc, BOX, flin, fcol, &form->brktr);
-            // ui_wnoutrefresh(sfc, BOX);
         }
     }
     for (n = 0; n < form->dcnt; n++) {
         strnz(form->text[n]->str, form->cols - 3);
         ui_mvwaddstr(sfc, WIN, form->text[n]->line, form->text[n]->col,
                      form->text[n]->str);
-        // ui_wnoutrefresh(sfc, WIN);
     }
-    update_panels();
+    ui_render(ui_runtime);
     form_display_fields(form);
     return 0;
 }
@@ -632,8 +628,7 @@ void form_display_fields(Form *form) {
         mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, 0, form->field[form->fidx]->len);
 
         ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
-        update_panels();
-        doupdate();
+        ui_render(ui_runtime);
     }
     return;
 }
@@ -1091,8 +1086,6 @@ int form_exec_receiver(Init *init) {
     reset_prog_mode();
     destroy_argv(eargc, eargv);
     sig_prog_mode();
-    // werase(stdscr);
-    // wrefresh(stdscr);
     restore_wins();
     return rc;
 }

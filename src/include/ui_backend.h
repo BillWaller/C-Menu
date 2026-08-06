@@ -15,6 +15,8 @@ typedef struct UiRuntime UiRuntime;
 typedef struct UiSurface UiSurface;
 typedef struct UiSplitSurface UiSplitSurface;
 
+#define ALLWINS -1
+
 typedef enum {
     UI_KEY_NONE = 0,
     UI_KEY_CHAR,
@@ -79,16 +81,46 @@ typedef struct {
     };
 } UiColor;
 
-typedef struct { // 8-bytes
-    UiColor fg;  // 4-bytes
-    UiColor bg;  // 4-bytes
-} UiColorPair;
+// @brief UiCchar is a structure representing a wide character with attributes
+// and color pair index.
+//
+// At the moment, the following 64-bit structure, UiCchar is the primary
+// candidate for substitution of the NCursews cchar_t structure. I believe
+// cchar_t is at least 16-bytes.
+//
+// View applies colors and attributes derived from ANSI SGR escape sequences,
+// highlights matching search results, and breaks lines at word boundaries while
+// maintaining Unicode character boundaries. Currently, output to the display is
+// deferred until the formatting is complete, and the entire formatted line is
+// transferred to the pad.
+//
+// Unlike NCurses, Notcurses only provides a function to move a single nccell at
+// a time to a plane.
+//
+//
+typedef struct {
+    UiColor fg; //       4-bytes
+    UiColor bg; //       4-bytes
+} UiColorPair;  // total 8-bytes
+
+typedef struct {
+    wchar_t ch;       // Wide character    4-bytes
+    short attr;       // attributes        2-bytes
+    short color_pair; // color pair index  2-bytes
+} UiCchar;            //           total   8-bytes
+
+typedef struct {
+    wchar_t ch; // wide character    4-bytes
+    int attrs;  // attributes        4-bytes
+    UiColor fg; //                   4-bytes
+    UiColor bg; //                   4-bytes
+} UiXchar;      //           total  16-bytes
 
 typedef struct { // 16-bytes
-    UiColor fg;  // 4-bytes
-    UiColor bg;  // 4-bytes
-    int attrs;   // 4-bytes
-    wchar_t wc;  // 4-bytes
+    wchar_t wc;  //  4-bytes
+    int attrs;   //  4-bytes
+    UiColor fg;  //  4-bytes
+    UiColor bg;  //  4-bytes
 } UiStyle;
 
 typedef struct {
@@ -190,22 +222,22 @@ int ui_clear_screen(UiRuntime *ui);
 int ui_suspend(UiRuntime *ui);
 int ui_resume(UiRuntime *ui);
 
-UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, int w, int lines, int cols, int y, int x);
-UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int w, int lines, int cols, int y, int x, char *title);
-int ui_surface_addwin(UiSurface *s, int w, int der_from, int lines, int cols, int y, int x);
-int ui_surface_addpad(UiSurface *s, int view_win, int lines, int cols);
+UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int lines, int cols, int y, int x);
+UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines, int cols, int y, int x, char *title);
+int ui_surface_addwin(UiSurface *s, int w, int p, int lines, int cols, int y, int x);
+int ui_surface_addpad(UiSurface *s, int w, int view_win, int lines, int cols);
 
 void ui_surface_destroy(UiSurface *s);
 int ui_surface_move(UiSurface *s, int w, int y, int x);
 int ui_surface_resize(UiSurface *s, int w, int lines, int cols);
-int ui_surface_clear(UiSurface *s);
-int ui_surface_erase(UiSurface *s);
+int ui_surface_clear(UiSurface *s, int w);
+int ui_surface_erase(UiSurface *s, int w);
 int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill_ch);
 int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style);
 
-int ui_draw_vline(UiSurface *s, int y, int x, int len, const UiStyle *style);
-int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style);
-int ui_draw_box_title(UiSurface *s, int x, const UiStyle *style, const char *title);
+int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
+int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style);
+int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style, const char *title);
 /* @brief clipping / visibility
 @ingroup ui_backend */
 int ui_surface_show(UiSurface *s, int w);
@@ -255,7 +287,7 @@ void ui_idcok(UiSurface *s, int w, bool enable);
 void ui_update_panels();
 void ui_doupdate();
 void ui_wnoutrefresh(UiSurface *s, int w);
-int ui_draw_hline(UiSurface *s, int y, int x, int len, const UiStyle *style);
+int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 void ui_erase();
 /* @brief backend identification and capability query
    @ingroup ui_backend */

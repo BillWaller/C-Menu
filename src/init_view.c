@@ -52,7 +52,7 @@ int init_view_full_screen(Init *init) {
     view->f_full_screen = true;
     // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
-    view->sfc = ui_surface_new(ui_runtime, NULL, 0, view->lines, view->cols, 0, 0);
+    view->sfc = ui_surface_new(ui_runtime, 0, NULL, 0, view->lines, view->cols, 0, 0);
     if (view->sfc->win == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen");
         Perror(em0);
@@ -84,7 +84,7 @@ int init_view_full_screen(Init *init) {
     ui_scrollok(view->sfc, CMDLN, false);
     // -------------------> 4. PAD <-------------------
 
-    ui_surface_addpad(view->sfc, PAD, view->lines - 1, PAD_COLS - 1);
+    ui_surface_addpad(view->sfc, PAD, WIN2, view->lines - 1, PAD_COLS - 1);
 
     // ------------------------------------------------
     return 0;
@@ -170,7 +170,7 @@ int init_view_boxwin(Init *init) {
     ui_idcok(view->sfc, CMDLN, false);
     ui_scrollok(view->sfc, CMDLN, false);
     // -------------------> 4. PAD <-------------------
-    ui_surface_addpad(view->sfc, PAD, view->lines - 1, PAD_COLS - 1);
+    ui_surface_addpad(view->sfc, PAD, WIN2, view->lines - 1, PAD_COLS - 1);
     // ------------------------------------------------
     return (0);
 }

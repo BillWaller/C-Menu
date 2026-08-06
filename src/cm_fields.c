@@ -32,6 +32,7 @@ bool f_erase_remainder = true;
 int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int flen);
 
 /** @brief Accepts input for a field in a C-Menu window
+    @param UiSurface *sfc The surface to accept input from
     @param win The window to accept input from
     @param accept_s The string to accept input into
     @param flin The line number of the field

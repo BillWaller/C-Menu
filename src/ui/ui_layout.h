@@ -20,8 +20,7 @@ typedef struct {
     UiSurface *inner;
 } UiFramedSurface;
 
-/**
-   @brief Creates a new framed surface with the specified parent and rectangle.
+/** @brief Creates a new framed surface with the specified parent and rectangle.
    @ingroup ui_backend
    @param ui The UI runtime context.
    @param parent The parent surface to which the framed surface will be attached.
@@ -29,8 +28,7 @@ typedef struct {
    @return A new UiFramedSurface instance, or NULL on failure.
  */
 UiFramedSurface ui_framed_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect);
-/**
-   @brief Destroys a framed surface and releases its resources.
+/** @brief Destroys a framed surface and releases its resources.
    @ingroup ui_backend
    @param fs The UiFramedSurface to destroy.
  */

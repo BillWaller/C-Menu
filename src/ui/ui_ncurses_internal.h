@@ -42,6 +42,8 @@ struct UiRuntime {
     PANEL *panel_main;
 };
 
+#define stdsfc stdscr
+
 /** @struct UiSplitSurface
     @brief Split surface containing multiple child surfaces.
     @verbatim

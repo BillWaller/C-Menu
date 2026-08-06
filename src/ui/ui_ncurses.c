@@ -20,6 +20,7 @@
 #ifdef UAL_LEGACY_COMPAT
 #include "cm.h"
 #endif
+#include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -87,14 +88,11 @@ static int nc_alloc_pair(int fg, int bg) {
 }
 
 /* -------------------------------------------------------------------------
-   Global surface arrays (declared extern in ui_backend.h).
-   ------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
 
 UiRuntime *ui_init(const UiConfig *cfg) {
+    setlocale(LC_ALL, "");
     UiRuntime *ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
@@ -269,33 +267,35 @@ void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
    Surface management
    ------------------------------------------------------------------------- */
 
-UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, int w, int lines, int cols, int y, int x) {
+UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int lines, int cols, int y, int x) {
+    if (!ui)
+        return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
 
     s->runtime = ui;
     s->parent = parent;
-    s->y = y;
-    s->x = x;
     s->lines = lines;
     s->cols = cols;
+    s->y = y;
+    s->x = x;
 
-    if (parent && parent->mwin[w]) {
-        s->mwin[WIN] = derwin(parent->mwin[w], lines, cols, y, x);
-        if (!s->mwin[WIN]) {
+    if (parent && parent->mwin[p]) {
+        s->mwin[w] = derwin(parent->mwin[p], lines, cols, y, x);
+        if (!s->mwin[w]) {
             free(s);
             return NULL;
         }
     } else {
-        s->mwin[WIN] = newwin(lines, cols, y, x);
-        if (!s->mwin[WIN]) {
+        s->mwin[w] = newwin(lines, cols, y, x);
+        if (!s->mwin[w]) {
             free(s);
             return NULL;
         }
-        s->mpan[WIN] = new_panel(s->mwin[WIN]);
-        if (!s->mpan[WIN]) {
-            delwin(s->mwin[WIN]);
+        s->mpan[w] = new_panel(s->mwin[w]);
+        if (!s->mpan[w]) {
+            delwin(s->mwin[w]);
             free(s);
             return NULL;
         }
@@ -303,7 +303,7 @@ UiSurface *ui_surface_new(UiRuntime *ui, UiSurface *parent, int w, int lines, in
     return s;
 }
 
-UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int w, int lines, int cols, int y, int x, char *wtitle) {
+UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines, int cols, int y, int x, char *wtitle) {
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
@@ -313,8 +313,8 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int w, int lines
     s->x = x;
     s->lines = lines;
     s->cols = cols;
-    if (parent && parent->mwin[w]) {
-        s->mwin[BOX] = derwin(parent->mwin[w], lines + 2, cols + 2, y, x);
+    if (parent && parent->mwin[BOX]) {
+        s->mwin[BOX] = derwin(parent->mwin[p], lines + 2, cols + 2, y, x);
         if (!s->mwin[BOX]) {
             free(s);
             return NULL;
@@ -331,10 +331,9 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int w, int lines
             return NULL;
         }
     }
-    UiStyle *style = ui_style_from_cch(&CC_BOX);
     ui_bkgrnd_cch(s, BOX, &CC_BOX);
     ui_bkgrndset_cch(s, BOX, &CC_BOX);
-    ui_draw_border(s, UI_BORDER_ROUNDED, style);
+    border_draw(s);
     border_title(s, wtitle);
     s->mwin[WIN] = derwin(s->mwin[BOX], lines, cols, 1, 1);
     if (!s->mwin[WIN]) {
@@ -342,21 +341,21 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int w, int lines
         return NULL;
     }
     s->mpan[WIN] = new_panel(s->mwin[WIN]);
-    wbkgrnd(s->mwin[BOX], &CC_BOX);
-    wbkgrndset(s->mwin[BOX], &CC_BOX);
-    scrollok(s->mwin[BOX], false);
-    wbkgrnd(s->mwin[WIN], &CC_NT);
-    wbkgrndset(s->mwin[WIN], &CC_NT);
+    ui_bkgrnd(s, BOX, &style_box, " ");
+    ui_bkgrndset(s, BOX, &style_box, " ");
+    ui_scrollok(s, BOX, false);
+    ui_bkgrnd(s, WIN, &style_nt, " ");
+    ui_bkgrndset(s, WIN, &style_nt, " ");
     return s;
 }
-int ui_surface_addpad(UiSurface *sfc, int view_win, int lines, int cols) {
-    sfc->mwin[PAD] = newpad(lines, cols);
-    if (sfc->mwin[PAD] == nullptr)
+int ui_surface_addpad(UiSurface *sfc, int w, int view_win, int lines, int cols) {
+    sfc->mwin[w] = newpad(lines, cols);
+    if (sfc->mwin[w] == nullptr)
         return -1;
     sfc->mwin[view_win] = subpad(sfc->mwin[PAD], lines, cols, 0, 0);
     if (sfc->mwin[view_win] == nullptr)
         return -1;
-    sfc->mpan[PAD] = new_panel(sfc->mwin[view_win]);
+    sfc->mpan[w] = new_panel(sfc->mwin[view_win]);
     return 0;
 }
 
@@ -465,23 +464,33 @@ int ui_surface_resize(UiSurface *s, int w, int lines, int cols) {
     return 0;
 }
 
-int ui_surface_clear(UiSurface *s) {
+int ui_surface_clear(UiSurface *s, int w) {
     if (!s)
         return -1;
-    for (int i = 1; i < 4; i++) {
-        if (s->mwin[i]) {
-            wclear(s->mwin[i]);
+    if (w == ALLWINS) {
+        for (int i = 1; i < SUB_SFC_MAX; i++) {
+            if (s->mwin[i]) {
+                wclear(s->mwin[i]);
+            }
+        }
+    } else {
+        if (s->mwin[w]) {
+            wclear(s->mwin[w]);
         }
     }
     return 0;
 }
 
-int ui_surface_erase(UiSurface *s) {
-    if (!s)
-        return -1;
-    for (int i = 1; i < 4; i++) {
-        if (s->mwin[i]) {
-            werase(s->mwin[i]);
+int ui_surface_erase(UiSurface *s, int w) {
+    if (w == ALLWINS) {
+        for (int i = 1; i < SUB_SFC_MAX; i++) {
+            if (s->mwin[i]) {
+                werase(s->mwin[i]);
+            }
+        }
+    } else {
+        if (s->mwin[w]) {
+            werase(s->mwin[w]);
         }
     }
     return 0;
@@ -492,6 +501,7 @@ int ui_surface_show(UiSurface *s, int w) {
         return -1;
     show_panel(s->mpan[w]);
     s->hidden = false;
+    return 0;
     return 0;
 }
 
@@ -511,6 +521,8 @@ int ui_cursor_move(UiSurface *s, int w, int y, int x) {
 int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c) {
     if (!s)
         return -1;
+    if (style)
+        ui_ncurses_style_apply(s->mwin[w], style);
     cchar_t cch = ui_style_to_cch(style, c);
     wbkgrndset(s->mwin[w], &cch);
     return 0;
@@ -518,6 +530,8 @@ int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c) {
 int ui_bkgrndset(UiSurface *s, int w, const UiStyle *style, const char *c) {
     if (!s)
         return -1;
+    if (style)
+        ui_ncurses_style_apply(s->mwin[w], style);
     cchar_t cch = ui_style_to_cch(style, c);
     wbkgrndset(s->mwin[w], &cch);
     return 0;

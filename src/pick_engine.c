@@ -927,9 +927,10 @@ int picker(Init *init, char *field) {
                 compile_chyron(pick->chyron);
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 reverse_object(pick);
-                update_panels();
+                ui_render(ui_runtime);
+                // update_panels();
                 ui_cursor_move(sfc, WIN, pick->y, pick->x);
-                doupdate();
+                // doupdate();
                 in_key = ui_get_event_multi(ui_runtime, sfc, WIN, &event, -1);
                 ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
                 if (event.in_win == WIN2 && event.y == maxy - 1)
@@ -985,8 +986,9 @@ int picker(Init *init, char *field) {
                 remove_right_angle(pick);
                 compile_chyron(pick->chyron);
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
-                update_panels();
-                doupdate();
+                // update_panels();
+                // doupdate();
+                ui_render(ui_runtime);
                 if (pick->p_view_files)
                     view_cmd_processor(init);
                 pick_std_chyron(pick);
@@ -1239,9 +1241,10 @@ int picker(Init *init, char *field) {
                 pos = col + strlen(accept_s);
                 // 2
                 ui_mvwadd_wchnstr(sfc, WIN2, 0, 0, &ran, 1);
-                ui_update_panels();
+                // ui_update_panels();
                 ui_cursor_move(sfc, WIN2, 0, pos);
-                ui_doupdate();
+                // ui_doupdate();
+                ui_render(ui_runtime);
                 in_key = ui_get_event_multi(ui_runtime, sfc, WIN2, &event, -1);
                 ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
                 if (event.in_win == 2 && event.y == maxy - 1)

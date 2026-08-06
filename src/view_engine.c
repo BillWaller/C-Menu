@@ -757,9 +757,9 @@ int get_cmd_char(View *view, off_t *n) {
             ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx + 1, (chtype)c);
         }
         ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
-        ui_update_panels();
+        // ui_update_panels();
         ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
-        ui_doupdate();
+        // ui_doupdate();
         _Refresh(view);
         event.y = event.x = -1;
         c = ui_get_event_no_mouse(sfc, CMDLN, &event);
@@ -893,11 +893,12 @@ int get_cmd_arg(View *view, char *prompt) {
     view->curx = prompt_l;
     ui_wclrtoeol(sfc, CMDLN);
     pad_refresh(view);
-    ui_update_panels();
+    // ui_update_panels();
     ui_curs_set(1);
     ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
-    ui_doupdate();
+    // ui_doupdate();
+    ui_render(ui_runtime);
     int flin = view->cmd_line;
     int fcol = prompt_l + 1;
     int flen = view->cols - prompt_l;

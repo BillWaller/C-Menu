@@ -267,10 +267,10 @@ bool open_curses(SIO *sio) {
     }
     panel_main = new_panel(stdscr);
     noecho();
-    keypad(stdscr, true);
-    idlok(stdscr, false);
-    idcok(stdscr, false);
-    wbkgrnd(stdscr, &CC_NT);
+    // ui_keypad(stdscr, true);
+    // ui_idlok(stdscr, false);
+    // idcok(stdscr, false);
+    // ui_bkgrnd_cch(stdscr, &CC_NT);
     for (sfc_ptr = 0; sfc_ptr < MAXWIN; sfc_ptr++) {
         for (int i = 0; i < SUB_SFC_MAX; i++) {
             ui_surface[sfc_ptr]->mpan[i] = nullptr;
@@ -320,6 +320,7 @@ void initialize_local_colors(SIO *sio) {
     //
     // cchar_t Used to set foreground/background color pairs and attributes
     //
+#ifdef UAL_UI
     CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
     CC_BRKTL = mkcc(cp_brackets, WA_NORMAL, " ");
     CC_BRKTR = mkcc(cp_brackets, WA_NORMAL, " ");
@@ -338,6 +339,7 @@ void initialize_local_colors(SIO *sio) {
     CC_GREEN = mkcc(cp_green, WA_NORMAL, " ");
     CC_YELLOW = mkcc(cp_yellow, WA_NORMAL, " ");
     CC_BLUE = mkcc(cp_blue, WA_NORMAL, " ");
+#endif
     //
     // Standardized UiStyle variables
     //
@@ -698,6 +700,7 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    The pos parameter is updated to reflect the current position in the output
    buffer, and the function ensures that it does not exceed the maximum length.
 */
+#ifdef UAL_UI
 int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen) {
     int i = 0, len = 0;
     const char *s;
@@ -740,6 +743,7 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int 
    character is used)
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
+
 cchar_t mkcc(int cp, attr_t attr, const char *s) {
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
@@ -763,6 +767,7 @@ cchar_t mkcc(int cp, attr_t attr, const char *s) {
     ui_setcchar(&cc, wstr, attr, cp, nullptr);
     return cc;
 }
+#endif
 /** @brief Converts a Unicode code point to a UTF-8 encoded string.
     @ingroup utility_functions
     @param cp - Unicode code point to convert
@@ -807,7 +812,7 @@ int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     wcols = min(wcols, maxx - 2);
     sfc_ptr++;
     // ------------------->    UAL_win_box    <-------------------
-    ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, NULL, 0, wlines, wcols, wbegy, wbegx, wtitle);
+    ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, nullptr, 0, wlines, wcols, wbegy, wbegx, wtitle);
     ui_render(ui_runtime);
     if (ui_surface[sfc_ptr] == nullptr || ui_surface[sfc_ptr]->mwin[BOX] == nullptr) {
         Perror("ui_surface_new() failed");
@@ -835,7 +840,7 @@ int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy
     wcols = min(wcols, maxx - 2);
     sfc_ptr++;
     // ------------------->    surface_new    <-------------------
-    ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, NULL, 0, split_wlines, wcols, wbegy, wbegx, wtitle);
+    ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, nullptr, 0, split_wlines, wcols, wbegy, wbegx, wtitle);
     if (ui_surface[sfc_ptr] == nullptr || ui_surface[sfc_ptr]->mwin[BOX] == nullptr) {
         Perror("ui_surface_new() failed");
         exit(EXIT_FAILURE);
@@ -899,7 +904,6 @@ int border_draw(UiSurface *sfc) {
     ui_mvwaddnwstr(sfc, BOX, y, maxx - 1, &style_box, &bw_br, 1);
     return 0;
 }
-
 /** border-ysplit
     @brief Draw a box with a separator line around the specified window
     @ingroup window_support
@@ -1411,16 +1415,19 @@ void compile_chyron(Chyron *chyron) {
     chyron->l = end_pos;
 }
 /** display_chyron
-   @brief Display chyron on window
+ *   @brief Display chyron on the specified line and column of the surface
     @ingroup Chyron
-    @param win NCurses window to display chyron on
-    @param chyron Chyron structure containing the compiled chyron string
-    @param line Line number to display the chyron on
-    @param col Column number to start displaying the chyron from
-    @details This function clears the line where the chyron will be displayed,
-   then uses wadd_wchstr to add the compiled chyron string (cmplx_buf) to the
-   window. Finally, it moves the cursor to the specified column position.
-*/
+    @param sfc Pointer to the UiSurface structure
+    @param w Window index (WIN or BOX)
+    @param chyron Pointer to the Chyron structure
+    @param line Line number where the chyron should be displayed
+    @param col Column number where the chyron should start
+    @details This function displays the compiled chyron string on the specified
+   line and column of the given surface. It first moves the cursor to the
+   specified position, clears to the end of the line, and then writes the chyron
+   string. Finally, it moves the cursor back to the specified column for user
+   input.
+ */
 void display_chyron(UiSurface *sfc, int w, Chyron *chyron, int line, int col) {
     ui_cursor_move(sfc, w, line, 0);
     ui_wclrtoeol(sfc, w);
@@ -1479,10 +1486,16 @@ int clr_name_to_idx(char *s) {
     return (i);
 }
 /** nf_error
-    @brief Display error message and wait for key press
+ *   @brief Display an error message and wait for user input
     @ingroup error_handling
     @param ec Error code
-    @param s Error message */
+    @param s Error message
+    @return Error code
+    @details This function prints an error message to stderr, waits for the user
+   to press a key, and then returns the provided error code. It is useful for
+   displaying error messages in a non-curses environment or when curses is not
+   initialized.
+ */
 int nf_error(int ec, char *s) {
     fprintf(stderr, "ERROR: %s code: %d\n", s, ec);
     fprintf(stderr, "Press a key to continue");

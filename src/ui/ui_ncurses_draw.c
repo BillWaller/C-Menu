@@ -287,22 +287,22 @@ int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, i
    ------------------------------------------------------------------------- */
 
 /** @brief Draw a horizontal line of length @p len at (y, x). */
-int ui_draw_hline(UiSurface *s, int y, int x, int len, const UiStyle *style) {
+int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style) {
     if (!s)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
-    mvwhline(s->win, y, x, 0, len);
+        ui_ncurses_style_apply(s->mwin[w], style);
+    mvwhline(s->mwin[w], y, x, 0, len);
     return 0;
 }
 
 /** @brief Draw a vertical line of length @p len at (y, x). */
-int ui_draw_vline(UiSurface *s, int y, int x, int len, const UiStyle *style) {
+int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style) {
     if (!s)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
-    mvwvline(s->win, y, x, 0, len);
+        ui_ncurses_style_apply(s->mwin[w], style);
+    mvwvline(s->mwin[w], y, x, 0, len);
     return 0;
 }
 
@@ -311,7 +311,7 @@ int ui_draw_vline(UiSurface *s, int y, int x, int len, const UiStyle *style) {
    ------------------------------------------------------------------------- */
 
 /** @brief Draw a border around the surface using @p kind style. */
-int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style) {
+int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style) {
     if (!s)
         return -1;
     if (style)
@@ -340,24 +340,24 @@ int ui_draw_border(UiSurface *s, UiBorderKind kind, const UiStyle *style) {
         setcchar(&ho, wcs, a, cp, NULL);
         wcs[0] = L'\x2502';
         setcchar(&ve, wcs, a, cp, NULL);
-        wborder_set(s->mwin[0], &ve, &ve, &ho, &ho, &tl, &tr, &bl, &br);
+        wborder_set(s->mwin[w], &ve, &ve, &ho, &ho, &tl, &tr, &bl, &br);
         return 0;
     }
     case UI_BORDER_LIGHT:
     default:
-        box(s->mwin[0], 0, 0);
+        box(s->mwin[w], 0, 0);
         return 0;
     }
 }
 
 /** @brief Write @p title into the top border row at column @p x. */
-int ui_draw_box_title(UiSurface *s, int x, const UiStyle *style,
+int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style,
                       const char *title) {
     if (!s || !title)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[0], style);
-    mvwaddstr(s->mwin[0], 0, x, title);
+        ui_ncurses_style_apply(s->mwin[w], style);
+    mvwaddstr(s->mwin[w], 0, x, title);
     return 0;
 }
 /** @brief Convert a multibyte string to a complex character array. */
