@@ -35,14 +35,7 @@ int ui_ncurses_color_pair_from_style(const UiStyle *style) {
 int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style) {
     if (!win || !style)
         return -1;
-    attr_t attrs = 0;
-    attrs |= style->bold ? WA_BOLD : 0;
-    attrs |= style->dim ? WA_DIM : 0;
-    attrs |= style->italic ? WA_ITALIC : 0;
-    attrs |= style->underline ? WA_UNDERLINE : 0;
-    attrs |= style->blink ? WA_BLINK : 0;
-    attrs |= style->reverse ? WA_REVERSE : 0;
-    attrs |= style->invis ? WA_INVIS : 0;
+    attr_t attrs = style->attrs;
     wattr_set(win, attrs, 0, NULL);
     return 0;
 }

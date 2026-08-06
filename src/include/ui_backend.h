@@ -77,27 +77,18 @@ typedef struct {
             uint32_t rgba; // 0xRRGGBBAA   red, green, blue, alpha
         };
     };
-    bool use_rgb;
-    uint32_t index;
 } UiColor;
 
-typedef struct {
-    UiColor fg;
-    UiColor bg;
-    uint32_t idx;
+typedef struct { // 8-bytes
+    UiColor fg;  // 4-bytes
+    UiColor bg;  // 4-bytes
 } UiColorPair;
 
-typedef struct {
-    UiColor fg;
-    UiColor bg;
-    bool bold;
-    bool dim;
-    bool italic;
-    bool underline;
-    bool blink;
-    bool reverse;
-    bool invis;
-    wchar_t wc;
+typedef struct { // 16-bytes
+    UiColor fg;  // 4-bytes
+    UiColor bg;  // 4-bytes
+    int attrs;   // 4-bytes
+    wchar_t wc;  // 4-bytes
 } UiStyle;
 
 typedef struct {

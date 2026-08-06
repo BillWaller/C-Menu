@@ -582,13 +582,7 @@ UiStyle ui_style_from_hex(const char *s1, const char *s2, int attrs, const char 
     style.bg = rgb;
     sscanf(s2, "#%02hhX%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b, &rgb.a);
     style.fg = rgb;
-    style.bold = (attrs & WA_BOLD) != 0;
-    style.dim = (attrs & WA_DIM) != 0;
-    style.italic = (attrs & WA_ITALIC) != 0;
-    style.underline = (attrs & WA_UNDERLINE) != 0;
-    style.blink = (attrs & WA_BLINK) != 0;
-    style.reverse = (attrs & WA_REVERSE) != 0;
-    style.invis = (attrs & WA_INVIS) != 0;
+    style.attrs = attrs;
     if (str && *str && *str != ' ') {
         wchar_t wc = {L'\0'};
         mbstate_t mbst;
@@ -621,13 +615,7 @@ UiStyle *ui_style_from_cch(const cchar_t *cch) {
     short cpx;
     int fg, bg;
     getcchar(cch, wc, &attrs, &cpx, NULL);
-    style->bold = (attrs & WA_BOLD) != 0;
-    style->dim = (attrs & WA_DIM) != 0;
-    style->italic = (attrs & WA_ITALIC) != 0;
-    style->underline = (attrs & WA_UNDERLINE) != 0;
-    style->blink = (attrs & WA_BLINK) != 0;
-    style->reverse = (attrs & WA_REVERSE) != 0;
-    style->invis = (attrs & WA_INVIS) != 0;
+    style->attrs = attrs;
     extended_pair_content(cpx, &fg, &bg);
     int r, g, b;
     extended_color_content(fg, &r, &g, &b);
@@ -646,13 +634,7 @@ cchar_t ui_style_to_cch(const UiStyle *style, const char *c) {
     uint32_t cpx = 0;
 
     if (style) {
-        attrs |= style->bold ? WA_BOLD : 0;
-        attrs |= style->dim ? WA_DIM : 0;
-        attrs |= style->italic ? WA_ITALIC : 0;
-        attrs |= style->underline ? WA_UNDERLINE : 0;
-        attrs |= style->blink ? WA_BLINK : 0;
-        attrs |= style->reverse ? WA_REVERSE : 0;
-        attrs |= style->invis ? WA_INVIS : 0;
+        attrs = style->attrs;
         int fg = nc_alloc_color(style->fg.r, style->fg.g, style->fg.b);
         int bg = nc_alloc_color(style->bg.r, style->bg.g, style->bg.b);
         if (fg >= 0 && bg >= 0)

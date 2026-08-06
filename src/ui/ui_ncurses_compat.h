@@ -15,18 +15,26 @@
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
 
-typedef struct {
-    wchar_t ch;       /**< The wide character. */
-    attr_t attr;      /**< The attributes (color, bold, etc.). */
-    short color_pair; /**< The color pair index. */
-} ui_cchar;
+// Either of the following two structs can be used to represent a character with
+// attributes and color information. The ui_cchar struct is compatible with the
+// NCurses cchar_t type, while the ui_xchar struct is a custom implementation
+// that uses 4-byte integers for attributes and color information.
 
-typedef struct {
-    wchar_t ch; /**< The wide character.  4-bytes */
-    short attr; /**< The attributes (color, bold, etc.). */
-    int fg;
-    int bg;
-} ui_xchar;
+typedef struct {      //                                8-bytes
+    wchar_t ch;       // Wide character                 4-bytes
+    short attr;       // attributes (color, bold, etc.) 2-bytes
+    short color_pair; // color pair index               2-bytes
+} UiCchar;
+
+typedef struct { //                16-bytes
+    wchar_t ch;  // wide character  4-bytes
+    int attr;    // attributes      4-bytes
+    int fg;      //                 4-bytes
+    int bg;      //                 4-bytes
+} UiXchar;
+
+// UiCchar ui_cchar_str[4096];
+// UiXchar ui_xchar_str[4096];
 
 /** @brief Return the raw @c SCREEN* for the NCurses session.
    @param ui The UiRuntime returned by ui_init().
