@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-06T18:35:42-05:00* - FEATURE: Progress continues with the implementation of the UI backend. As the codebase hovers around 22,000 lines, many function calls had to be adapted, added, or replaced to support the new UI backends. I am taking the time to remove old code that is duplicative or marginal. It's not lost time. Adapting the codebase to work with two disparate UI backends has given me reason and opportunity to look at the codebase with fresh eyes. As a result, I have gained new insights on C-Menu and the user interface libraries. Sometimes you need to shake things up to see them in a new light. It reminds me poem by Robert Frost, "The woods are lovely, dark and deep. But I have promises to keep, And miles to go before I sleep, And miles to go before I sleep." 
+
+*2026-08-06T09:28:57-05:00* - Update CHANGELOG.md 
+
 *2026-08-06T09:27:52-05:00* - FIX: minor fixes to the NCurses backend 
 
 *2026-08-05T15:45:05-05:00* - Update CHANGELOG.md 
