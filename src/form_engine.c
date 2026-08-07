@@ -93,8 +93,8 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
     form->brktl = mkcc(cp_brackets, WA_NORMAL, &form->brackets[0]);
     form->brktr = mkcc(cp_brackets, WA_NORMAL, &form->brackets[1]);
-    UiSurface *sfc = ui_surface[sfc_ptr];
     rc = form_engine(init);
+    UiSurface *sfc = ui_surface[sfc_ptr];
     destroy_chyron(form->chyron);
     if (sfc)
         cm_surface_destroy(sfc);
@@ -253,7 +253,7 @@ int form_post(Init *init) {
             display_chyron(sfc, WIN, form->chyron, form->lines - 1, form->chyron->l);
             tcflush(2, TCIFLUSH);
             ui_render(ui_runtime);
-            c = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+            c = ui_get_event_multi(ui_runtime, sfc, WIN, &event, -1);
             ui_getmaxyx(sfc, WIN, &maxy, &maxx);
             if (event.in_win == 1 && event.y == maxy - 1)
                 c = get_chyron_key(form->chyron, event.x);
@@ -358,7 +358,7 @@ int form_process(Init *init) {
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
         ui_render(ui_runtime);
-        c = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+        c = ui_get_event_multi(ui_runtime, sfc, WIN, &event, -1);
         ui_getmaxyx(sfc, WIN, &maxy, &maxx);
         if (event.in_win == 1 && event.y == maxy - 1)
             c = get_chyron_key(form->chyron, event.x);
@@ -594,6 +594,7 @@ unsigned int display_form(Init *init) {
    with available commands for user interaction. */
 void form_display_fields(Form *form) {
     int y, x;
+    int pos = 0;
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
         if (form->field[form->fidx]->col + form->field[form->fidx]->len + 2 >
             form->cols)
@@ -621,11 +622,13 @@ void form_display_fields(Form *form) {
         y = form->field[form->fidx]->line;
         x = form->field[form->fidx]->col;
 
-        mb_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, 0, form->field[form->fidx]->len);
+        pos = 0;
+        mb_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, &pos, form->field[form->fidx]->len + 1);
         UiSurface *sfc = ui_surface[sfc_ptr];
         ui_mvwadd_wchstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
 
-        mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, 0, form->field[form->fidx]->len);
+        pos = 0;
+        mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, &pos, form->field[form->fidx]->len + 1);
 
         ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         ui_render(ui_runtime);

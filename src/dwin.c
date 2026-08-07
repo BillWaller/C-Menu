@@ -735,7 +735,7 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    The pos parameter is updated to reflect the current position in the output
    buffer, and the function ensures that it does not exceed the maximum length.
 */
-#ifdef UAL_UI
+// #ifdef UAL_UI
 int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen) {
     int i = 0, len = 0;
     const char *s;
@@ -744,7 +744,7 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int 
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     attr = WA_NORMAL;
-    if (*pos >= maxlen - 1)
+    if (pos && *pos >= maxlen - 1)
         return 0;
     while (str[i] != '\0') {
         s = &str[i];
@@ -755,10 +755,10 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int 
             len = 1;
         }
         wstr[1] = L'\0';
-        if (*pos >= maxlen - 1)
+        if (*pos > maxlen)
             break;
         if (ui_setcchar(&cc, wstr, attr, cpx, nullptr) != ERR) {
-            if (len > 0 && (*pos + len) < maxlen - 1)
+            if (len > 0 && (*pos + len) < maxlen)
                 cmplx_buf[(*pos)++] = cc;
         }
         i += len;
@@ -802,7 +802,7 @@ cchar_t mkcc(int cp, attr_t attr, const char *s) {
     ui_setcchar(&cc, wstr, attr, cp, nullptr);
     return cc;
 }
-#endif
+// #endif
 /** @brief Converts a Unicode code point to a UTF-8 encoded string.
     @ingroup utility_functions
     @param cp - Unicode code point to convert

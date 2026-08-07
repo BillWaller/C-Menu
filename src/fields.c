@@ -92,7 +92,7 @@ int field_editor(Form *form) {
             ui_cursor_move(sfc, WIN, flin, x);
 
             ui_render(ui_runtime);
-            in_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+            in_key = ui_get_event_multi(ui_runtime, sfc, WIN, &event, -1);
             ui_getmaxyx(sfc, WIN, &maxy, &maxx);
             if (event.in_win == WIN && event.y == maxy - 1)
                 in_key = get_chyron_key(form->chyron, event.x);
@@ -387,11 +387,12 @@ void display_field(cchar_t *cmplx_buf, int y, int x) {
    display to show the updated field content.
  */
 int form_display_field(Form *form) {
+    int pos = 0;
     UiSurface *sfc = ui_surface[sfc_ptr];
     int y = form->field[form->fidx]->line;
     int x = form->field[form->fidx]->col;
     ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
-    mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt, 0,
+    mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt, &pos,
              form->field[form->fidx]->len);
     ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
     return 0;

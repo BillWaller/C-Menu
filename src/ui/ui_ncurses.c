@@ -358,6 +358,7 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
         return NULL;
     }
     s->mpan[WIN] = new_panel(s->mwin[WIN]);
+    keypad(s->mwin[WIN], true);
     ui_bkgdset(s, WIN, &style_nt, " ");
     return s;
 }
