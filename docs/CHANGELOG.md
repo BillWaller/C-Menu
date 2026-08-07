@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-07T16:59:18-05:00* - FIX: form_engine.c screen corruption when using F9 to exit Form because the surface counter was being set too early. 
+
+*2026-08-07T13:59:58-05:00* - Update CHANGELOG.md 
+
 *2026-08-07T13:48:04-05:00* - FEATURE: The Uniform Abstraction Layer User Interface is coming along well. On the NCurses side, all of the UI initialization and most of the window management functions have been moved into the new abstraction layer, and the UI is now fully functional with the new layer. The Notcurses side is also progressing, with the initialization and window management functions being moved into the abstraction layer. The next steps will be to move the input handling functions into the abstraction layer, and to implement the necessary changes to the UI code to work with the new layer. Once that is done, the UI will be fully functional with both NCurses and Notcurses, and the abstraction layer will be complete. This will allow for easier maintenance and future development of the UI, as well as the possibility of adding support for other UI libraries in the future. Overall, this is a significant step forward in the development of the Uniform Abstraction Layer User Interface, and it is exciting to see the progress being made. The next steps will be to continue moving the input handling functions into the abstraction layer, and to implement the necessary changes to the UI code to work with the new layer. 
 
 *2026-08-06T19:25:15-05:00* - Update CHANGELOG.md 
