@@ -221,12 +221,10 @@ int ui_render(UiRuntime *ui);
 int ui_clear_screen(UiRuntime *ui);
 int ui_suspend(UiRuntime *ui);
 int ui_resume(UiRuntime *ui);
-
 UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int lines, int cols, int y, int x);
 UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines, int cols, int y, int x, char *title);
 int ui_surface_addwin(UiSurface *s, int w, int p, int lines, int cols, int y, int x);
 int ui_surface_addpad(UiSurface *s, int w, int view_win, int lines, int cols);
-
 void ui_surface_destroy(UiSurface *s);
 int ui_surface_move(UiSurface *s, int w, int y, int x);
 int ui_surface_resize(UiSurface *s, int w, int lines, int cols);
@@ -234,7 +232,6 @@ int ui_surface_clear(UiSurface *s, int w);
 int ui_surface_erase(UiSurface *s, int w);
 int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill_ch);
 int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style);
-
 int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style);
 int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style, const char *title);
@@ -242,31 +239,26 @@ int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style, const ch
 @ingroup ui_backend */
 int ui_surface_show(UiSurface *s, int w);
 int ui_surface_hide(UiSurface *s, int w);
-
 int ui_get_event(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int timeout_ms);
 int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int timeout_ms);
 int ui_get_event_no_mouse(UiSurface *surface, int w, UiEvent *ev);
-
 int ui_cursor_move(UiSurface *s, int w, int y, int x);
 int ui_cursor_enable(UiRuntime *ui, bool visible);
 void ui_curs_set(int visibility);
-int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c);
-int ui_bkgrndset(UiSurface *s, int w, const UiStyle *style, const char *c);
+int ui_bkgd(UiSurface *s, int w, const UiStyle *style, const char *c);
+int ui_bkgdset(UiSurface *s, int w, const UiStyle *style, const char *c);
 void ui_qiflush();
 void ui_wscrl(UiSurface *s, int w, int n);
 int ui_wclrtoeol(UiSurface *s, int w);
 int ui_wclrtobot(UiSurface *s, int w);
-
 void ui_getyx(UiSurface *sfc, int w, int *lines, int *cols);
 void ui_getmaxyx(UiSurface *s, int w, int *lines, int *cols);
 int ui_getmaxx(UiSurface *s, int w);
 int ui_getmaxy(UiSurface *s, int w);
-
 int ui_draw_ch(UiSurface *s, int w, int y, int x, const UiStyle *style, const char c);
 int ui_draw_text(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text);
 int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text, size_t n);
 int ui_draw_text_fill(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text, size_t n);
-
 int ui_waddstr(UiSurface *s, int w, const char *text);
 int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr, int n);
 int ui_mvaddstr(UiSurface *s, int w, int y, int x, const char *text);
@@ -277,13 +269,11 @@ int ui_mvwaddstr_fill(UiSurface *sfc, int w, int y, int x, char *s, int n);
 int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text);
 int ui_mvwadd_mbnstr(UiSurface *s, int w, int y, int x, const char *text, int n);
 int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, int n);
-
 void ui_setscrreg(UiSurface *s, int w, int top, int bottom);
 void ui_scrollok(UiSurface *s, int w, bool enable);
 void ui_keypad(UiSurface *s, int w, bool enable);
 void ui_idlok(UiSurface *s, int w, bool enable);
 void ui_idcok(UiSurface *s, int w, bool enable);
-
 void ui_update_panels();
 void ui_doupdate();
 void ui_wnoutrefresh(UiSurface *s, int w);
@@ -306,7 +296,7 @@ UiBackend ui_get_backend(const UiRuntime *ui);
 */
 void ui_get_caps(const UiRuntime *ui, UiCaps *caps);
 
-UiStyle ui_style_from_hex(const char *s1, const char *s2, int attrs, const char *str);
+UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const char *str);
 UiStyle *ui_style_copy(const UiStyle *src);
 
 extern UiRuntime *ui_runtime;

@@ -44,9 +44,9 @@ int popup_ckeys() {
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     ui_keypad(sfc, WIN, true);
-    ui_bkgrndset(sfc, WIN, nullptr, " ");
+    ui_bkgdset(sfc, WIN, nullptr, " ");
     ui_mvwaddstr(sfc, WIN, lines - 1, 0, " <ALT>END to exit ");
-    ui_bkgrndset(sfc, WIN, NULL, " ");
+    ui_bkgdset(sfc, WIN, NULL, " ");
     ui_mvwaddstr(sfc, WIN, 1, 4, "Press a key or activate the mouse:");
     c = '\0';
     UiEvent ev;

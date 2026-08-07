@@ -78,15 +78,15 @@ unsigned int menu_engine(Init *init) {
         case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
-                ui_bkgrndset_cch(sfc, WIN, &CC_NT);
+                ui_bkgrndset(sfc, WIN, &CC_NT);
                 ui_draw_text_fill(sfc, WIN, menu->line_idx, 0, NULL,
                                   menu->line[menu->line_idx]->choice_text,
                                   menu->cols);
-                ui_bkgrndset_cch(sfc, WIN, &CC_NT_HL);
+                ui_bkgrndset(sfc, WIN, &CC_NT_HL);
                 ui_mvwaddch(sfc, WIN, menu->line_idx,
                             menu->line[menu->line_idx]->letter_pos,
                             menu->line[menu->line_idx]->choice_letter);
-                ui_bkgrndset_cch(sfc, WIN, &CC_NT);
+                ui_bkgrndset(sfc, WIN, &CC_NT);
             }
             action = MA_RESET_MENU;
             break;
@@ -140,25 +140,25 @@ unsigned int menu_cmd_processor(Init *init) {
     // Highlight the currently selected menu choice
 
     while (1) {
-        ui_bkgrndset_cch(sfc, WIN, &CC_NT_REV);
+        ui_bkgrndset(sfc, WIN, &CC_NT_REV);
         ui_draw_text_fill(sfc, WIN, menu->line_idx, 0, NULL,
                           menu->line[menu->line_idx]->choice_text,
                           menu->cols);
-        ui_bkgrndset_cch(sfc, WIN, &CC_NT_HL_REV);
+        ui_bkgrndset(sfc, WIN, &CC_NT_HL_REV);
         ui_draw_ch(sfc, WIN, menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos, NULL,
                    menu->line[menu->line_idx]->choice_letter);
-        ui_bkgrndset_cch(sfc, WIN, &CC_NT);
+        ui_bkgrndset(sfc, WIN, &CC_NT);
         // Wait for user input and process it
         event.y = event.x = -1;
         ui_cursor_move(sfc, WIN, menu->line_idx, 1);
         in_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
         // Remove the highlight from the currently selected menu choice
-        ui_bkgrndset_cch(sfc, WIN, &CC_NT);
+        ui_bkgrndset(sfc, WIN, &CC_NT);
         ui_draw_text_fill(sfc, WIN, menu->line_idx, 0, NULL,
                           menu->line[menu->line_idx]->choice_text,
                           menu->cols);
-        ui_bkgrndset_cch(sfc, WIN, &CC_NT_HL);
+        ui_bkgrndset(sfc, WIN, &CC_NT_HL);
         ui_draw_ch(sfc, WIN, menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos, NULL,
                    menu->line[menu->line_idx]->choice_letter);

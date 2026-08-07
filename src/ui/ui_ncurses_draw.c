@@ -32,11 +32,10 @@ int ui_ncurses_color_pair_from_style(const UiStyle *style) {
     return 0;
 }
 
-int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style) {
-    if (!win || !style)
+int ui_ncurses_style_apply(UiSurface *s, int w, const UiStyle *style) {
+    if (!style)
         return -1;
-    attr_t attrs = style->attrs;
-    wattr_set(win, attrs, 0, NULL);
+    ui_bkgdset(s, w, style, " ");
     return 0;
 }
 
@@ -48,7 +47,7 @@ int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style) {
 int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style) {
     if (!s || !style)
         return -1;
-    return ui_ncurses_style_apply(s->mwin[w], style);
+    return ui_ncurses_style_apply(s, w, style);
 }
 
 /** @brief Set the background fill character and style for a surface. */
@@ -56,8 +55,8 @@ int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill
     if (!s)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
-    wbkgdset(s->mwin[w], (chtype)(fill_ch ? fill_ch : ' '));
+        ui_ncurses_style_apply(s, w, style);
+    ui_bkgd(s, w, style, " ");
     return 0;
 }
 
@@ -81,7 +80,7 @@ int ui_draw_ch(UiSurface *s, int w, int y, int x, const UiStyle *style, const ch
     if (!s || !s->mwin[w] || !c)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+        ui_ncurses_style_apply(s, w, style);
     mvwaddch(s->mwin[w], y, x, c);
     return 0;
 }
@@ -90,7 +89,7 @@ int ui_draw_text(UiSurface *s, int w, int y, int x, const UiStyle *style, const 
     if (!s || !s->mwin[w] || !text)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+        ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
@@ -99,7 +98,7 @@ int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style, cons
     if (!s || !s->mwin[w] || !text)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+        ui_ncurses_style_apply(s, w, style);
     mvwaddnstr(s->mwin[w], y, x, text, (int)n);
     return 0;
 }
@@ -108,7 +107,7 @@ int ui_draw_text_fill(UiSurface *s, int w, int y, int x, const UiStyle *style, c
     if (!s || !text)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->win, style);
+        ui_ncurses_style_apply(s, w, style);
     int l = strlen(text);
     if (l < (int)n) {
         char *tmp_str = (char *)malloc(n + 1);
@@ -133,7 +132,7 @@ int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr,
     if (!s || !wstr)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+        ui_ncurses_style_apply(s, w, style);
     waddnwstr(s->mwin[w], wstr, n);
     return 0;
 }
@@ -141,7 +140,7 @@ int ui_mvwaddnwstr(UiSurface *s, int w, int y, int x, const UiStyle *style, cons
     if (!s || !wstr)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+        ui_ncurses_style_apply(s, w, style);
     mvwaddnwstr(s->mwin[w], y, x, wstr, n);
     return 0;
 }
@@ -152,7 +151,7 @@ int ui_waddstr(UiSurface *s, int w, const char *text) {
     if (!s || !s->mwin[w] || !text)
         return -1;
     //  if (style)
-    //      ui_ncurses_style_apply(s->mwin[w], style);
+    //      ui_ncurses_style_apply(s, w, style);
     waddstr(s->mwin[w], text);
     return 0;
 }
@@ -161,7 +160,7 @@ int ui_mvaddstr(UiSurface *s, int w, int y, int x, const char *text) {
     if (!s || !s->mwin[w] || !text)
         return -1;
     //  if (style)
-    //      ui_ncurses_style_apply(s->mwin[w], style);
+    //      ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
@@ -170,7 +169,7 @@ int ui_mvwaddch(UiSurface *s, int w, int y, int x, const char c) {
     if (!s || !s->mwin[w] || !c)
         return -1;
     //  if (style)
-    //      ui_ncurses_style_apply(s->mwin[w], style);
+    //      ui_ncurses_style_apply(s, w, style);
     mvwaddch(s->mwin[w], y, x, c);
     return 0;
 }
@@ -179,7 +178,7 @@ int ui_mvwaddstr(UiSurface *s, int w, int y, int x, const char *text) {
     if (!s || !s->mwin[w] || !text)
         return -1;
     //  if (style)
-    //      ui_ncurses_style_apply(s->mwin[w], style);
+    //      ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
@@ -203,7 +202,7 @@ int ui_mvwaddstr_fill(UiSurface *s, int w, int y, int x, char *str, int l) {
     *d = '\0';
     l = strlen(tmp_str);
     //  if (style)
-    //      ui_ncurses_style_apply(s->mwin[w], style);
+    //      ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, tmp_str);
     return 0;
 }
@@ -248,7 +247,7 @@ int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text) {
     cchar_t cmplx_buf[MAXLEN];
     int cols = mbstr_to_cc((char *)text, cmplx_buf);
     //  if (style)
-    //      ui_ncurses_style_apply(s->mwin[w], style);
+    //      ui_ncurses_style_apply(s, w, style);
     mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, cols);
     return 0;
 }
@@ -260,7 +259,7 @@ int ui_mvwadd_mbnstr(UiSurface *s, int w, int y, int x, const char *text, int n)
     int cols = mbstr_to_cc((char *)text, cmplx_buf);
     cols = (cols > n) ? n : cols;
     //  if (style)
-    //      ui_ncurses_style_apply(s->mwin[w], style);
+    //      ui_ncurses_style_apply(s, w, style);
     mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, cols);
     return 0;
 }
@@ -278,7 +277,7 @@ int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, i
             cmplx_buf[i] = fill_cc;
     }
     //  if (style)
-    //      ui_ncurses_style_apply(s->mwin[w], style);
+    //      ui_ncurses_style_apply(s, w, style);
     mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, cols);
     return 0;
 }
@@ -291,7 +290,7 @@ int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *sty
     if (!s)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+        ui_ncurses_style_apply(s, w, style);
     mvwhline(s->mwin[w], y, x, 0, len);
     return 0;
 }
@@ -301,7 +300,7 @@ int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *sty
     if (!s)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+        ui_ncurses_style_apply(s, w, style);
     mvwvline(s->mwin[w], y, x, 0, len);
     return 0;
 }
@@ -315,7 +314,7 @@ int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style)
     if (!s)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[0], style);
+        ui_ncurses_style_apply(s, w, style);
     switch (kind) {
     case UI_BORDER_NONE:
         return 0;
@@ -356,7 +355,7 @@ int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style,
     if (!s || !title)
         return -1;
     if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+        ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], 0, x, title);
     return 0;
 }

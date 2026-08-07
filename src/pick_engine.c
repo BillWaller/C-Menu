@@ -490,14 +490,14 @@ void reverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-    ui_bkgrndset_cch(sfc, WIN, &CC_NT_REV);
+    ui_bkgrndset(sfc, WIN, &CC_NT_REV);
     ui_mvwaddstr_fill(sfc, WIN, pick->y, pick->x, pick->d_object[pick->d_idx],
                       pick->tbl_col_width - 1);
     if (pick->f_selected[pick->d_idx])
         ui_mvwadd_wchnstr(sfc, WIN, pick->y, 0, &chk, 1);
     else
         ui_mvwadd_wchnstr(sfc, WIN, pick->y, 0, &ran, 1); // space
-    ui_bkgrndset_cch(sfc, WIN, &CC_NT);
+    ui_bkgrndset(sfc, WIN, &CC_NT);
 }
 /** @brief Unreverses the display of the currently selected object in pick
    window
@@ -518,7 +518,7 @@ void unreverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-    ui_bkgrndset_cch(sfc, WIN, &CC_NT);
+    ui_bkgrndset(sfc, WIN, &CC_NT);
     ui_mvwaddstr_fill(sfc, WIN, pick->y, pick->x, pick->d_object[pick->d_idx],
                       pick->tbl_col_width - 1);
     if (pick->f_selected[pick->d_idx])

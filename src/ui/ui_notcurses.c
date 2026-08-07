@@ -188,11 +188,12 @@ UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int li
     return s;
 }
 
-void ui_surface_destroy(UiSurface *s) {
+void ui_surfac_destroy(UiSurface *s) {
     if (!s)
         return;
-    for (int w = 0; w < SUB_SFC_MAX)
-        ncplane_destroy(s->mplane[w]);
+    for (int w = 0; w < SUB_SFC_MAX; ++w)
+        if (s->mplane[w])
+            ncplane_destroy(s->mplane[w]);
     free(s);
 }
 
@@ -264,7 +265,7 @@ int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c) {
     uint64_t channels = ui_notcurses_channels_from_style(style);
     uint32_t attrs = ui_notcurses_attrs_from_style(style);
     const char *fill = (c && *c) ? c : " ";
-    ncplane_set_base(s->mplane[w], fill, attrs, channels);
+    ncplane_set_base(s, w, fill, attrs, channels);
     return 0;
 }
 
@@ -288,35 +289,23 @@ uint64_t ui_notcurses_channels_from_style(const UiStyle *style) {
 }
 
 uint32_t ui_notcurses_attrs_from_style(const UiStyle *style) {
-    if (!style)
-        return 0;
-    uint32_t attrs = 0;
-    if (style->bold)
-        attrs |= NCSTYLE_BOLD;
-    if (style->italic)
-        attrs |= NCSTYLE_ITALIC;
-    if (style->underline)
-        attrs |= NCSTYLE_UNDERLINE;
-    // if (style->blink)     attrs |= NCSTYLE_BLINK;
-    // if (style->reverse)   attrs |= NCSTYLE_REVERSE;
-    // if (style->invis)     attrs |= NCSTYLE_INVIS;
-    return attrs;
+    return style->attrs;
 }
 
 /* -------------------------------------------------------------------------
    Surface style
    ------------------------------------------------------------------------- */
 
-int ui_surface_set_style(UiSurface *s, const UiStyle *style) {
+int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style) {
     if (!s || !style)
         return -1;
     uint64_t channels = ui_notcurses_channels_from_style(style);
-    ncplane_set_channels(s->plane, channels);
-    ncplane_set_styles(s->plane, ui_notcurses_attrs_from_style(style));
+    ncplane_set_channels(s->mplane[w], channels);
+    ncplane_set_styles(s->mplane[w], ui_notcurses_attrs_from_style(style));
     return 0;
 }
 
-int ui_surface_set_base(UiSurface *s, const UiStyle *style, uint32_t fill_ch) {
+int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill_ch) {
     if (!s)
         return -1;
     uint64_t channels = ui_notcurses_channels_from_style(style);
@@ -344,7 +333,7 @@ int ui_surface_set_base(UiSurface *s, const UiStyle *style, uint32_t fill_ch) {
             utf8[4] = '\0';
         }
     }
-    ncplane_set_base(s->plane, utf8, attrs, channels);
+    ncplane_set_base(s, w, utf8, attrs, channels);
     return 0;
 }
 
@@ -358,8 +347,8 @@ struct notcurses *ui_notcurses_get_nc(const UiRuntime *ui) {
     return ui->nc;
 }
 
-struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s) {
+struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s, int w) {
     if (!s)
         return NULL;
-    return s->plane;
+    return s->mplane[w];
 }

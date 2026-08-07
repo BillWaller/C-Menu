@@ -125,20 +125,19 @@ struct UiSurface {
 };
 
 /* Internal style helpers */
-int ui_ncurses_style_apply(WINDOW *win, const UiStyle *style);
+int ui_ncurses_style_apply(UiSurface *s, int w, const UiStyle *style);
 int ui_ncurses_color_pair_from_style(const UiStyle *style);
 UiStyle *ui_style_new(void);
 void ui_style_destroy(UiStyle *);
 UiStyle *ui_style_from_cch(const cchar_t *);
 cchar_t ui_style_to_cch(const UiStyle *, const char *);
 
-int ui_bkgrndset_cch(UiSurface *s, int w, cchar_t *cc);
-int ui_bkgrnd_cch(UiSurface *s, int w, const cchar_t *cc);
-
 int ui_wadd_wchstr(UiSurface *s, int w, cchar_t *cmplx_buf);
 int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, cchar_t *cc);
 int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf, int n);
 int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf);
 int ui_setcchar(cchar_t *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts);
+int ui_bkgrnd(UiSurface *s, int w, const cchar_t *c);
+int ui_bkgrndset(UiSurface *s, int w, const cchar_t *c);
 
 #endif

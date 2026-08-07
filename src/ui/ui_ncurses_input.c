@@ -165,6 +165,7 @@ int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int ti
     cbreak();
     curs_set(1);
     int ch = wgetch(sfc->mwin[w]);
+    curs_set(0);
     ev->key = translate_key(ch);
     if (ev->key == UI_KEY_CHAR) {
         ev->ch = (uint32_t)ch;
@@ -191,7 +192,6 @@ int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int ti
                 ev->y = me.y;
                 ev->x = me.x;
                 ev->key = 0;
-                curs_set(0);
                 return 0;
             }
         }

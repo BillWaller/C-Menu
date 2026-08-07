@@ -194,6 +194,7 @@ typedef enum {
     CLR_NCOLORS
 } ColorsEnum;
 
+extern UiStyle style_default;
 extern UiStyle style_fill_char;
 extern UiStyle style_brktl;
 extern UiStyle style_brktr;

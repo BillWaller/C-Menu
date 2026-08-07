@@ -142,6 +142,7 @@ cchar_t CC_GREEN;
 cchar_t CC_YELLOW;
 cchar_t CC_BLUE;
 
+UiStyle style_default;
 UiStyle style_fill_char;
 UiStyle style_brktl;
 UiStyle style_brktr;
@@ -343,6 +344,7 @@ void initialize_local_colors(SIO *sio) {
     //
     // Standardized UiStyle variables
     //
+    style_default = ui_style_from_hex("#d0d0d0", "#000000", WA_NORMAL, " ");
     style_fill_char = ui_style_from_hex(sio->fill_char_fg, sio->fill_char_bg, WA_NORMAL, " ");
     char brktl[2] = {sio->brackets[0], '\0'};
     char brktr[2] = {sio->brackets[1], '\0'};
@@ -362,6 +364,7 @@ void initialize_local_colors(SIO *sio) {
     //
     // cchar_t borders and indicator characters with color pairs and attributes
     //
+#ifdef UAL_UI
     ui_setcchar(&ls, &bw_ve, WA_NORMAL, cp_box, NULL);   // Left side
     ui_setcchar(&rs, &bw_ve, WA_NORMAL, cp_box, NULL);   // Right side
     ui_setcchar(&ts, &bw_ho, WA_NORMAL, cp_box, NULL);   // Top side
@@ -379,6 +382,7 @@ void initialize_local_colors(SIO *sio) {
     ui_setcchar(&da, &bw_da, WA_NORMAL, cp_box, NULL);   // Down arrow
     ui_setcchar(&ran, &bw_ran, WA_NORMAL, cp_ind, NULL); // Right angle
     ui_setcchar(&chk, &bw_chk, WA_NORMAL, cp_ind, NULL); // Right angle
+#endif
 }
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
@@ -393,7 +397,12 @@ void initialize_local_colors(SIO *sio) {
 int get_clr_pair(int fg, int bg) {
     int rc, i, pfg, pbg;
     for (i = 1; i < clr_pair_cnt; i++) {
+#ifdef UAL_UI
         extended_pair_content(i, &pfg, &pbg);
+#else
+        pfg = ui_color_pair[i].fg;
+        pbg = ui_color_pair[i].bg;
+#endif
         if (pfg == fg && pbg == bg)
             return i;
     }
@@ -406,7 +415,13 @@ int get_clr_pair(int fg, int bg) {
         return (EXIT_FAILURE);
     }
     if (i < COLOR_PAIRS) {
+#ifdef UAL_UI
         rc = init_extended_pair(i, fg, bg);
+#else
+        ui_color_pair[i].fg = fg;
+        ui_color_pair[i].bg = bg;
+#endif
+
         if (rc == ERR)
             return ERR;
     }
@@ -425,17 +440,31 @@ int rgb_to_curses_clr(RGB *rgb) {
     int i;
     int r, g, b;
     apply_gamma(rgb);
+#ifdef UAL_UI
     rgb->r = (rgb->r * 1000) / 255;
     rgb->g = (rgb->g * 1000) / 255;
     rgb->b = (rgb->b * 1000) / 255;
+#endif
     for (i = 0; i < clr_cnt; i++) {
+#ifdef UAL_UI
         extended_color_content(i, &r, &g, &b);
+#else
+        r = ui_color[i].r;
+        g = ui_color[i].g;
+        b = ui_color[i].b;
+#endif
         if (rgb->r == r && rgb->g == g && rgb->b == b) {
             return i;
         }
     }
     if (i < COLORS) {
+#ifdef UAL_UI
         init_extended_color(i, rgb->r, rgb->g, rgb->b);
+#else
+        ui_color[i].r = rgb->r;
+        ui_color[i].g = rgb->g;
+        ui_color[i].b = rgb->b;
+#endif
         clr_cnt++;
         return clr_cnt - 1;
     }
@@ -636,10 +665,16 @@ void init_hex_clr(int idx, char *s) {
         StdColors[idx].g = rgb.g;
         StdColors[idx].b = rgb.b;
     }
+#ifdef UAL_UI
     rgb.r = (rgb.r * 1000) / 255;
     rgb.g = (rgb.g * 1000) / 255;
     rgb.b = (rgb.b * 1000) / 255;
     init_extended_color(idx, rgb.r, rgb.g, rgb.b);
+#else
+    ui_color[idx].r = rgb.r;
+    ui_color[idx].g = rgb.g;
+    ui_color[idx].b = rgb.b;
+#endif
 }
 /** hex_clr_str_to_rgb
     @brief Convert six-digit HTML style hex color code to RGB struct
@@ -813,12 +848,10 @@ int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     sfc_ptr++;
     // ------------------->    UAL_win_box    <-------------------
     ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, nullptr, 0, wlines, wcols, wbegy, wbegx, wtitle);
-    ui_render(ui_runtime);
     if (ui_surface[sfc_ptr] == nullptr || ui_surface[sfc_ptr]->mwin[BOX] == nullptr) {
         Perror("ui_surface_new() failed");
         exit(EXIT_FAILURE);
     }
-    ui_render(ui_runtime);
     return 0;
 }
 // ------------------->    box_split_new    <-------------------
@@ -891,6 +924,7 @@ int border_draw(UiSurface *sfc) {
     int y = 0;
     int x = 0;
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_tl, 1);
+    ui_render(ui_runtime);
     for (x = 1; x < maxx - 1; x++)
         ui_mvwaddnwstr(sfc, BOX, y, x, &style_box, &bw_ho, 1);
     ui_mvwaddnwstr(sfc, BOX, y, maxx - 1, &style_box, &bw_tr, 1);
@@ -902,6 +936,7 @@ int border_draw(UiSurface *sfc) {
     for (x = 1; x < maxx - 1; x++)
         ui_mvwaddnwstr(sfc, BOX, y, x, &style_box, &bw_ho, 1);
     ui_mvwaddnwstr(sfc, BOX, y, maxx - 1, &style_box, &bw_br, 1);
+    ui_render(ui_runtime);
     return 0;
 }
 /** border-ysplit
@@ -989,7 +1024,8 @@ int border_title(UiSurface *sfc, char *title) {
     title_wc = mbstr_to_wcstr(title);
     l = wcswidth(title_wc, wcslen(title_wc));
     l = min(l, maxx - 7);
-    ui_mvwaddnwstr(sfc, BOX, y, x, &style_box, title_wc, l);
+    ui_mvwaddnwstr(sfc, BOX, y, x, &style_title, title_wc, l);
+    ui_render(ui_runtime);
     x += l;
     free(title_wc);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_sp, 1);

@@ -16,6 +16,15 @@
 #include <stdint.h>
 
 #define XLEN 256
+#define MAXLEN 256
+#define MAXPLANE 30
+#define MAXSFC 30
+#define U_VE L'\x2502' /**< vertical line */
+
+typedef struct notcurses NotCurses;
+typedef struct ncplane NcPlane;
+typedef struct notcurses_options NotCursesOptions;
+typedef struct ncplane_options NcPlaneOptions;
 
 /** @struct UiRuntime
    @ingroup ui_notcurses
@@ -83,5 +92,6 @@ struct UiSurface {
 /* Internal style helpers */
 uint64_t ui_notcurses_channels_from_style(const UiStyle *style);
 uint32_t ui_notcurses_attrs_from_style(const UiStyle *style);
+NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni);
 
 #endif

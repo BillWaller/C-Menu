@@ -24,6 +24,6 @@ struct notcurses *ui_notcurses_get_nc(const UiRuntime *ui);
    @param s The UiSurface to inspect.
    @return The ncplane pointer, or NULL if @p s is NULL.
 */
-struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s);
+struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s, int w);
 
 #endif

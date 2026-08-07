@@ -21,6 +21,7 @@
 #include "cm.h"
 #endif
 #include <locale.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -32,15 +33,14 @@
 #define NC_MAX_COLORS 512
 #define NC_MAX_PAIRS 512
 
-typedef struct {
-    int fg;
-    int bg;
-    int pair_id;
-} NcColorCache;
-
-static NcColorCache nc_color_cache[NC_MAX_PAIRS];
-static int nc_color_cache_cnt = 0;
-static int nc_color_cnt = 0; /* colors allocated via init_extended_color */
+static UiColor ui_color[NC_MAX_COLORS];
+static UiColorPair ui_color_pair[NC_MAX_PAIRS];
+static int ui_color_idx = 1;
+static int ui_color_cnt = 1; /* colors allocated via init_extended_color */
+static int ui_color_pair_idx = 1;
+static int ui_color_pair_cnt = 1;
+static int ui_style_idx = 1;
+static int ui_style_cnt = 1;
 
 /** Translate an 8-bit channel value (0-255) to the 1000-based NCurses scale. */
 static inline int nc_scale_1000(uint8_t v) {
@@ -51,40 +51,57 @@ static inline int nc_scale_1000(uint8_t v) {
  * Allocate (or find) an extended NCurses color index for an RGB triple.
  * Returns the color index, or -1 on failure.
  */
-static int nc_alloc_color(uint8_t r, uint8_t g, uint8_t b) {
+static int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b) {
+#ifdef UAL_UI
     int r1000 = nc_scale_1000(r);
     int g1000 = nc_scale_1000(g);
     int b1000 = nc_scale_1000(b);
+#else
+#endif
     /* Search for an existing allocation. */
-    for (int i = 0; i < nc_color_cnt && i < NC_MAX_COLORS; i++) {
+    for (int i = 0; i < ui_color_cnt && i < NC_MAX_COLORS; i++) {
+#ifdef UAL_UI
         int cr, cg, cb;
         extended_color_content(i, &cr, &cg, &cb);
         if (cr == r1000 && cg == g1000 && cb == b1000)
             return i;
+#else
+        if (ui_color[i].r == r && ui_color[i].g == g && ui_color[i].b == b)
+            return i;
+#endif
     }
-    if (nc_color_cnt >= NC_MAX_COLORS || nc_color_cnt >= COLORS)
+    if (ui_color_cnt >= NC_MAX_COLORS || ui_color_cnt >= COLORS)
         return -1;
-    init_extended_color(nc_color_cnt, r1000, g1000, b1000);
-    return nc_color_cnt++;
+#ifdef UAL_UI
+    init_extended_color(ui_color_cnt, r1000, g1000, b1000);
+#else
+    ui_color[ui_color_cnt].r = r;
+    ui_color[ui_color_cnt].g = g;
+    ui_color[ui_color_cnt].b = b;
+#endif
+    return ui_color_cnt++;
 }
 /**
  * Find or allocate an NCurses extended color pair for (fg, bg).
  * Returns the pair index.
  */
-static int nc_alloc_pair(int fg, int bg) {
-    for (int i = 0; i < nc_color_cache_cnt; i++) {
-        if (nc_color_cache[i].fg == fg && nc_color_cache[i].bg == bg)
-            return nc_color_cache[i].pair_id;
+static int ui_init_extended_pair(uint32_t fg, uint32_t bg) {
+    for (int i = 0; i < ui_color_pair_cnt; i++) {
+        if (ui_color_pair[i].fg.rgba >> 8 == fg &&
+            ui_color_pair[i].bg.rgba >> 8 == bg)
+            return i;
     }
-    if (nc_color_cache_cnt >= NC_MAX_PAIRS)
+    if (ui_color_pair_cnt >= NC_MAX_PAIRS)
         return 0;
-    int pair_id = nc_color_cache_cnt + 1;
-    init_extended_pair(pair_id, fg, bg);
-    nc_color_cache[nc_color_cache_cnt].fg = fg;
-    nc_color_cache[nc_color_cache_cnt].bg = bg;
-    nc_color_cache[nc_color_cache_cnt].pair_id = pair_id;
-    nc_color_cache_cnt++;
-    return pair_id;
+    int color_pair_idx = ui_color_pair_cnt + 1;
+#ifdef UAL_UI
+    init_extended_pair(color_pair_idx, fg, bg);
+#else
+    ui_color_pair[ui_color_pair_cnt].fg.rgba = fg << 8;
+    ui_color_pair[ui_color_pair_cnt].bg.rgba = bg << 8;
+    ui_color_pair_cnt++;
+#endif
+    return color_pair_idx;
 }
 
 /* -------------------------------------------------------------------------
@@ -331,8 +348,8 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
             return NULL;
         }
     }
-    ui_bkgrnd_cch(s, BOX, &CC_BOX);
-    ui_bkgrndset_cch(s, BOX, &CC_BOX);
+    ui_bkgdset(s, BOX, &style_box, " ");
+    ui_scrollok(s, BOX, false);
     border_draw(s);
     border_title(s, wtitle);
     s->mwin[WIN] = derwin(s->mwin[BOX], lines, cols, 1, 1);
@@ -341,11 +358,7 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
         return NULL;
     }
     s->mpan[WIN] = new_panel(s->mwin[WIN]);
-    ui_bkgrnd(s, BOX, &style_box, " ");
-    ui_bkgrndset(s, BOX, &style_box, " ");
-    ui_scrollok(s, BOX, false);
-    ui_bkgrnd(s, WIN, &style_nt, " ");
-    ui_bkgrndset(s, WIN, &style_nt, " ");
+    ui_bkgdset(s, WIN, &style_nt, " ");
     return s;
 }
 int ui_surface_addpad(UiSurface *sfc, int w, int view_win, int lines, int cols) {
@@ -518,36 +531,41 @@ int ui_cursor_move(UiSurface *s, int w, int y, int x) {
         return -1;
     return wmove(s->mwin[w], y, x);
 }
-int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c) {
+// -------------------------------------------------------------------------
+// Background and style management
+// -------------------------------------------------------------------------
+
+// for the entire window
+int ui_bkgd(UiSurface *s, int w, const UiStyle *style, const char *c) {
     if (!s)
         return -1;
-    if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
+    cchar_t cch = ui_style_to_cch(style, c);
+    wbkgrnd(s->mwin[w], &cch);
+    return 0;
+}
+// for new content to be written to the window
+int ui_bkgdset(UiSurface *s, int w, const UiStyle *style, const char *c) {
+    if (!s)
+        return -1;
     cchar_t cch = ui_style_to_cch(style, c);
     wbkgrndset(s->mwin[w], &cch);
     return 0;
 }
-int ui_bkgrndset(UiSurface *s, int w, const UiStyle *style, const char *c) {
-    if (!s)
-        return -1;
-    if (style)
-        ui_ncurses_style_apply(s->mwin[w], style);
-    cchar_t cch = ui_style_to_cch(style, c);
-    wbkgrndset(s->mwin[w], &cch);
-    return 0;
-}
-int ui_bkgrnd_cch(UiSurface *s, int w, const cchar_t *cc) {
+// for the entire window
+int ui_bkgrnd(UiSurface *s, int w, const cchar_t *cc) {
     if (!s)
         return -1;
     wbkgrnd(s->mwin[w], cc);
     return 0;
 }
-int ui_bkgrndset_cch(UiSurface *s, int w, cchar_t *cc) {
+// for new content to be written to the window
+int ui_bkgrndset(UiSurface *s, int w, const cchar_t *cc) {
     if (!s)
         return -1;
     wbkgrndset(s->mwin[w], cc);
     return 0;
 }
+/* ------------------------------------------------------------------------- */
 void ui_qiflush() {
     qiflush();
 }
@@ -589,13 +607,15 @@ void ui_style_destroy(UiStyle *style) {
     free(style);
 }
 
-UiStyle ui_style_from_hex(const char *s1, const char *s2, int attrs, const char *str) {
-    UiColor rgb;
+UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const char *str) {
+    UiColor rgba;
     UiStyle style;
-    sscanf(s1, "#%02hhX%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b, &rgb.a);
-    style.bg = rgb;
-    sscanf(s2, "#%02hhX%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b, &rgb.a);
-    style.fg = rgb;
+    memset(&rgba, 0, sizeof(rgba));
+    sscanf(fg, "#%02hhX%02hhX%02hhX", &rgba.r, &rgba.g, &rgba.b);
+    style.fg = rgba;
+    memset(&rgba, 0, sizeof(rgba));
+    sscanf(bg, "#%02hhX%02hhX%02hhX", &rgba.r, &rgba.g, &rgba.b);
+    style.bg = rgba;
     style.attrs = attrs;
     if (str && *str && *str != ' ') {
         wchar_t wc = {L'\0'};
@@ -645,16 +665,14 @@ UiStyle *ui_style_from_cch(const cchar_t *cch) {
 
 cchar_t ui_style_to_cch(const UiStyle *style, const char *c) {
     attr_t attrs = 0;
-    uint32_t cpx = 0;
+    short cpx = 0;
 
     if (style) {
         attrs = style->attrs;
-        int fg = nc_alloc_color(style->fg.r, style->fg.g, style->fg.b);
-        int bg = nc_alloc_color(style->bg.r, style->bg.g, style->bg.b);
-        if (fg >= 0 && bg >= 0)
-            cpx = (uint32_t)nc_alloc_pair(fg, bg);
+        int fg = ui_init_extended_color(style->fg.r, style->fg.g, style->fg.b);
+        int bg = ui_init_extended_color(style->bg.r, style->bg.g, style->bg.b);
+        cpx = get_clr_pair(fg, bg);
     }
-    /* Encode the first character (or space) as a cchar_t. */
     mbstate_t mbst;
     memset(&mbst, 0, sizeof(mbst));
     wchar_t wstr[2] = {L' ', L'\0'};
@@ -665,7 +683,7 @@ cchar_t ui_style_to_cch(const UiStyle *style, const char *c) {
             wstr[0] = wc;
     }
     cchar_t cc;
-    setcchar(&cc, wstr, attrs, (short)cpx, NULL);
+    setcchar(&cc, wstr, attrs, cpx, NULL);
     return cc;
 }
 
@@ -679,10 +697,10 @@ SCREEN *ui_ncurses_get_screen(const UiRuntime *ui) {
     return ui->screen;
 }
 
-WINDOW *ui_ncurses_surface_get_win(const UiSurface *s) {
+WINDOW *ui_ncurses_surface_get_win(const UiSurface *s, int w) {
     if (!s)
         return NULL;
-    return s->win;
+    return s->mwin[w];
 }
 
 PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, int w) {
