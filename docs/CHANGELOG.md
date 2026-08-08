@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-07T23:12:16-05:00* - FIX: dwin.c: multibyte to complex character array failed if the parameter, pos, was zero. 
+
+*2026-08-07T17:00:48-05:00* - Update CHANGELOG.md 
+
 *2026-08-07T16:59:18-05:00* - FIX: form_engine.c screen corruption when using F9 to exit Form because the surface counter was being set too early. 
 
 *2026-08-07T13:59:58-05:00* - Update CHANGELOG.md 
