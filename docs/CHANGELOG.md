@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-08T10:49:54-05:00* - DOCUMENTATION: Add file picker image 
+
+*2026-08-07T23:14:44-05:00* - Update CHANGELOG.md 
+
 *2026-08-07T23:12:16-05:00* - FIX: dwin.c: multibyte to complex character array failed if the parameter, pos, was zero. 
 
 *2026-08-07T17:00:48-05:00* - Update CHANGELOG.md 
