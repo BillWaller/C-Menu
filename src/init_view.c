@@ -52,8 +52,8 @@ int init_view_full_screen(Init *init) {
     view->f_full_screen = true;
     // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
-    view->sfc = ui_surface_new(ui_runtime, 0, NULL, 0, view->lines, view->cols, 0, 0);
-    if (view->sfc->win == nullptr) {
+    view->sfc = ui_surface_new(ui_runtime, WIN, NULL, 0, view->lines, view->cols, 0, 0);
+    if (view->sfc->mwin[WIN] == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;

@@ -57,6 +57,7 @@ int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int fle
             ui_mvwaddstr(sfc, w, flin, fcol, accept_s);
             ui_wclrtoeol(sfc, w);
             ui_cursor_move(sfc, w, flin, x);
+            ui_render(ui_runtime);
             ui_qiflush();
             in_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
         }
