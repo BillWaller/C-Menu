@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-08T17:58:13-05:00* - FEATURE: Add support for new UI backend and improve existing UI components 
+
+*2026-08-08T11:25:31-05:00* - Update CHANGELOG.md 
+
 *2026-08-08T11:23:18-05:00* - FIX: View command line not echoing and full screen initialization not working 
 
 *2026-08-08T10:52:41-05:00* - Update CHANGELOG.md 
