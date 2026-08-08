@@ -2,6 +2,8 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-08T10:50:39-05:00* - Update CHANGELOG.md 
+
 *2026-08-08T10:49:54-05:00* - DOCUMENTATION: Add file picker image 
 
 *2026-08-07T23:14:44-05:00* - Update CHANGELOG.md 
