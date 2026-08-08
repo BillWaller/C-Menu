@@ -8,7 +8,16 @@ With C-Menu, you can leverage the raw speed and power of a terminal interface wi
 
 More sophisticated applications can be be built using the C-Menu API that is fully integrated with modern development environments like Vim and Neovim. As you type C-Menu API function names, the editor provides auto-completion and inline documentation, making it easy to learn and use. That's why C-Menu is an indispensable tool for skill levels ranging from shell script hobbyists to professional developers and system administrators.
 
-## New Features for System Logs in View
+## New Features in View
+
+### Pick and View integration
+
+`pick` and `view` can be combined to create a fast, interactive file selection and viewing workflow. For example, you can use `lf` to generate a list of files, pipe that into `pick` for selection. As you move the cursor or enter search expressions in Pick, the file highlighted by the selector bar appears in a View window.
+
+![Pick and View Integration](screenshots/rustlings-a1.png)
+
+
+### Smart Line Wrapping
 
 Nvim's Language Server Protocol log highlighted with a customized Tree-Sitter parser and C-Menu View's Smart Line Wrapping. It's the Bee's knees for developers who want to see the whole line on-screen without horizontal scrolling. With view, you can switch between horizontal scrolling and line wrap modes without closing the document.
 
