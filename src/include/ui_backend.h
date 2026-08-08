@@ -104,17 +104,17 @@ typedef struct {
 } UiColorPair;  // total 8-bytes
 
 typedef struct {
-    wchar_t ch;       // Wide character    4-bytes
-    short attr;       // attributes        2-bytes
+    wchar_t wc;       // Wide character    4-bytes
+    short attrs;      // attributes        2-bytes
     short color_pair; // color pair index  2-bytes
-} UiCchar;            //           total   8-bytes
+} UiCchar64;          //           total   8-bytes
 
 typedef struct {
-    wchar_t ch; // wide character    4-bytes
+    wchar_t wc; // wide character    4-bytes
     int attrs;  // attributes        4-bytes
     UiColor fg; //                   4-bytes
     UiColor bg; //                   4-bytes
-} UiXchar;      //           total  16-bytes
+} UiCchar128;   //           total  16-bytes
 
 typedef struct { // 16-bytes
     wchar_t wc;  //  4-bytes

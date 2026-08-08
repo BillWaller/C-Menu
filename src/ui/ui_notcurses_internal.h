@@ -65,17 +65,17 @@ struct UiSurface {
 
     union {
         struct {
-            struct ncplane *box;
-            struct ncplane *win;
-            struct ncplane *win2;
-            struct ncplane *lnno;
-            struct ncplane *cmdln;
-            struct ncplane *pad;
-            struct ncplane *plane1;
-            struct ncplane *plane2;
+            NcPlane *box;
+            NcPlane *win;
+            NcPlane *win2;
+            NcPlane *lnno;
+            NcPlane *cmdln;
+            NcPlane *pad;
+            NcPlane *plane1;
+            NcPlane *plane2;
         };
         struct {
-            struct ncplane *mplane[8];
+            NcPlane *mplane[8];
         };
     };
     struct UiRuntime *runtime;

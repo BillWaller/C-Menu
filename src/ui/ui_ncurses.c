@@ -330,7 +330,7 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
     s->x = x;
     s->lines = lines;
     s->cols = cols;
-    if (parent && parent->mwin[BOX]) {
+    if (parent && parent->mwin[p]) {
         s->mwin[BOX] = derwin(parent->mwin[p], lines + 2, cols + 2, y, x);
         if (!s->mwin[BOX]) {
             free(s);

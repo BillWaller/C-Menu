@@ -6,6 +6,7 @@
    using the NotCurses library.
 */
 
+#include "cm.h"
 #include "ui_notcurses_compat.h"
 #include "ui_notcurses_internal.h"
 #include <locale.h>
@@ -163,7 +164,41 @@ UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int li
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
+    s->runtime = ui;
+    s->parent = parent;
+    s->lines = lines;
+    s->cols = cols;
+    s->y = y;
+    s->x = x;
+    NcPlaneOptions plane_opts = {
+        .y = y,
+        .x = x,
+        .rows = lines + 2,
+        .cols = cols + 2};
+    if (parent && parent->mplane[p]) {
+        s->mplane[BOX] = ncplane_create(parent->mplane[p], &plane_opts);
+    } else {
+        NcPlane *stdn = notcurses_stdplane(ui->nc);
+        s->mplane[BOX] = ncplane_create(stdn, &plane_opts);
+    }
+    if (!s->mplane[w]) {
+        notcurses_stop(ui->nc);
+        return NULL;
+    }
+    uint64_t channels = ui_notcurses_channels_from_style(&style_box);
+    uint32_t attrs = ui_notcurses_attrs_from_style(&style_box);
+    ncplane_set_base(s->mplane[w], " ", attrs, 0);
+    ncplane_set_channels(s->mplane[w], channels);
+    ncplane_perimeter_rounded(s->mplane[w], 0, channels, 0);
+    return s;
+}
 
+UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines, int cols, int y, int x, char *wtitle) {
+    if (!ui)
+        return NULL;
+    UiSurface *s = calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
     s->runtime = ui;
     s->parent = parent;
     s->lines = lines;
@@ -171,20 +206,50 @@ UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int li
     s->y = y;
     s->x = x;
 
+    NcPlaneOptions plane_opts = {
+        .y = y,
+        .x = x,
+        .rows = lines + 2,
+        .cols = cols + 2,
+        .name = NULL};
     if (parent && parent->mplane[p]) {
-        struct ncplane_options plane_opts = {
-            .y = y,
-            .x = x,
-            .rows = lines,
-            .cols = cols,
-            .name = NULL,
-        };
-        s->mplane[w] = ncplane_create(parent->mplane[p], &plane_opts);
-        if (!s->mplane[w]) {
-            free(s);
-            return NULL;
-        }
+        s->mplane[BOX] = ncplane_create(parent->mplane[p], &plane_opts);
+    } else {
+        NcPlane *stdn = notcurses_stdplane(ui->nc);
+        s->mplane[BOX] = ncplane_create(stdn, &plane_opts);
     }
+    if (!s->mplane[BOX]) {
+        free(s);
+        return NULL;
+    }
+    uint64_t channels = ui_notcurses_channels_from_style(&style_box);
+    uint32_t attrs = ui_notcurses_attrs_from_style(&style_box);
+    ncplane_set_base(s->mplane[BOX], " ", attrs, 0);
+    ncplane_set_channels(s->mplane[BOX], channels);
+    ncplane_perimeter_rounded(s->mplane[BOX], 0, channels, 0);
+
+    // Title
+    int title_len = (int)strlen(wtitle);
+    int title_x = (cols - title_len) / 2;
+    ncplane_putwc_yx(s->mplane[BOX], 0, title_x, BW_RT);
+    ncplane_putstr(s->mplane[BOX], " ");
+    ncplane_putstr(s->mplane[BOX], wtitle);
+    ncplane_putstr(s->mplane[BOX], " ");
+    ncplane_putwc(s->mplane[BOX], BW_LT);
+
+    // Content plane
+    plane_opts.y = 1;
+    plane_opts.x = 1;
+    plane_opts.rows = lines;
+    plane_opts.cols = cols;
+    s->mplane[WIN] = ncplane_create(s->mplane[BOX], &plane_opts);
+    if (!s->mplane[WIN]) {
+        notcurses_stop(ui_runtime->nc);
+        return NULL;
+    }
+    ncplane_set_base(s->mplane[WIN], " ", 0, channels);
+    ncplane_set_channels(s->mplane[WIN], channels);
+    sfc_ptr++;
     return s;
 }
 
@@ -265,7 +330,7 @@ int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c) {
     uint64_t channels = ui_notcurses_channels_from_style(style);
     uint32_t attrs = ui_notcurses_attrs_from_style(style);
     const char *fill = (c && *c) ? c : " ";
-    ncplane_set_base(s, w, fill, attrs, channels);
+    ncplane_set_base(s->mplane[BOX], fill, attrs, channels);
     return 0;
 }
 
@@ -333,7 +398,7 @@ int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill
             utf8[4] = '\0';
         }
     }
-    ncplane_set_base(s, w, utf8, attrs, channels);
+    ncplane_set_base(s->mplane[w], utf8, attrs, channels);
     return 0;
 }
 

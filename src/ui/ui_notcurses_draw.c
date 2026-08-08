@@ -5,8 +5,13 @@
    Implements the drawing operations declared in ui_backend.h using the
    NotCurses API.
 */
+#define _GNU_SOURCE
+#define _XOPEN_SOURCE 700
+#define _XOPEN_SOURCE_EXTENDED 1
 
 #include "ui_notcurses_internal.h"
+#include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* -------------------------------------------------------------------------
@@ -40,36 +45,123 @@ int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style,
 }
 // ---------------------------------------------------------------------------
 // Complex Characters (cc)
+// typedef struct {
+//     wchar_t wc;       // Wide character    4-bytes
+//     short attr;       // attributes        2-bytes
+//     short color_pair; // color pair index  2-bytes
+// } UiCchar64;          //           total   8-bytes
+//
+// typedef struct { // 16-bytes
+//     wchar_t wc;  //  4-bytes
+//     int attrs;   //  4-bytes
+//     UiColor fg;  //  4-bytes
+//     UiColor bg;  //  4-bytes
+// } UiStyle;
+//
 // ---------------------------------------------------------------------------
-/** cc character single      */
-int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, cchar_t *cc) {
-    if (!s || !cc)
+// uicc character single
+int ui_wadd_wch(UiSurface *s, int w, const UiCchar128 uicc) {
+    UiStyle *style = calloc(1, sizeof(UiStyle));
+    if (!s)
         return -1;
-    mvwadd_wch(s->mwin[w], y, x, cc);
+    style->attrs = uicc.attrs;
+    style->fg.rgba = uicc.fg.rgba;
+    style->bg.rgba = uicc.bg.rgba;
+    ncplane_set_channels(s->mplane[w], ui_notcurses_channels_from_style(style));
+    ncplane_set_styles(s->mplane[w], ui_notcurses_attrs_from_style(style));
+    ncplane_putwc(s->mplane[w], uicc.wc);
+    free(style);
     return 0;
 }
-//  cc string
-int ui_wadd_wchstr(UiSurface *s, int w, cchar_t *cmplx_buf) {
-    if (!s || !cmplx_buf)
+int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, const UiCchar128 uicc) {
+    UiStyle *style = calloc(1, sizeof(UiStyle));
+    if (!s)
         return -1;
-    wadd_wchstr(s->mwin[w], cmplx_buf);
+    ui_cursor_move(s, w, y, x);
+    style->attrs = uicc.attrs;
+    style->fg.rgba = uicc.fg.rgba;
+    style->bg.rgba = uicc.bg.rgba;
+    ncplane_set_channels(s->mplane[w], ui_notcurses_channels_from_style(style));
+    ncplane_set_styles(s->mplane[w], ui_notcurses_attrs_from_style(style));
+    ncplane_putwc(s->mplane[w], uicc.wc);
+    free(style);
     return 0;
 }
-//  cc string
-int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf) {
-    if (!s || !cmplx_buf)
+//  uicc string
+int ui_wadd_wchstr(UiSurface *s, int w, const UiCchar128 *uicc) {
+    UiStyle *style = calloc(1, sizeof(UiStyle));
+    if (!s || !uicc)
         return -1;
-    mvwadd_wchstr(s->mwin[w], y, x, cmplx_buf);
+    int i = 0;
+    while (uicc[i].wc != L'\0') {
+        if (uicc[0].attrs != style->attrs ||
+            uicc[0].fg.rgba != style->fg.rgba ||
+            uicc[0].bg.rgba != style->bg.rgba ||
+            i == 0) {
+            style->attrs = uicc[0].attrs;
+            style->fg.rgba = uicc[0].fg.rgba;
+            style->bg.rgba = uicc[0].bg.rgba;
+            ncplane_set_channels(s->mplane[w], ui_notcurses_channels_from_style(style));
+            ncplane_set_styles(s->mplane[w], ui_notcurses_attrs_from_style(style));
+        }
+        ncplane_putwc(s->mplane[w], uicc[i].wc);
+        i++;
+    }
+    free(style);
     return 0;
 }
-//  cc string - limit length
-int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf, int n) {
-    if (!s || !cmplx_buf)
+int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, const UiCchar128 *uicc) {
+    UiStyle *style = calloc(1, sizeof(UiStyle));
+    if (!s || !uicc)
         return -1;
-    mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, n);
+    ui_cursor_move(s, w, y, x);
+    int i = 0;
+    while (uicc[i].wc != L'\0') {
+        if (uicc[0].attrs != style->attrs ||
+            uicc[0].fg.rgba != style->fg.rgba ||
+            uicc[0].bg.rgba != style->bg.rgba ||
+            i == 0) {
+            style->attrs = uicc[0].attrs;
+            style->fg.rgba = uicc[0].fg.rgba;
+            style->bg.rgba = uicc[0].bg.rgba;
+            ncplane_set_channels(s->mplane[w], ui_notcurses_channels_from_style(style));
+            ncplane_set_styles(s->mplane[w], ui_notcurses_attrs_from_style(style));
+        }
+        ncplane_putwc(s->mplane[w], uicc[i].wc);
+        i++;
+    }
+    free(style);
     return 0;
 }
-// ---------------------------------------------------------------------------
+int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, const UiCchar128 *uicc, int count) {
+    UiStyle *style = calloc(1, sizeof(UiStyle));
+    if (!s || !uicc || count <= 0)
+        return -1;
+    ui_cursor_move(s, w, y, x);
+    for (int i = 0; i < count; i++) {
+        if (uicc[0].attrs != style->attrs ||
+            uicc[0].fg.rgba != style->fg.rgba ||
+            uicc[0].bg.rgba != style->bg.rgba ||
+            i == 0) {
+            style->attrs = uicc[0].attrs;
+            style->fg.rgba = uicc[0].fg.rgba;
+            style->bg.rgba = uicc[0].bg.rgba;
+            ncplane_set_channels(s->mplane[w], ui_notcurses_channels_from_style(style));
+            ncplane_set_styles(s->mplane[w], ui_notcurses_attrs_from_style(style));
+        }
+        ncplane_putwc(s->mplane[w], uicc[i].wc);
+    }
+    free(style);
+    return 0;
+}
+bool ui_style_from_uicc(const UiCchar128 *uicc, UiStyle *style) {
+    if (!uicc || !style)
+        return false;
+    style->attrs = uicc->attrs;
+    style->fg.rgba = uicc->fg.rgba;
+    style->bg.rgba = uicc->bg.rgba;
+    return true;
+}
 /* -------------------------------------------------------------------------
    Lines
    ------------------------------------------------------------------------- */

@@ -84,6 +84,22 @@ typedef enum {
     SUB_SFC_MAX
 } SubSurface;
 
+// UiSurface is a structure that represents a drawable surface in the NCurses backend.
+// It contains various fields that define the properties and behavior of the
+// surface, including its associated PANELs and WINDOWs, runtime state,
+// position, dimensions, visibility, and identifiers. The structure also
+// supports hierarchical relationships between surfaces, allowing for complex
+// layouts and tiling of multiple panes.
+//
+// The unions create named fields that duplicate the mwin and mpan arrays. This
+// was merely a convenience to facilitate easier porting of legacy code. The
+// SubSurface enum accomplishes the same thing, but the upper-case letters
+// improve comprehennsibility when scan-reading code.
+//
+// Once the named fields have served their purpose they will most likely be
+// removed in the future as they are redundant and can be confusing.
+//
+
 struct UiSurface {
     union {
         struct {
