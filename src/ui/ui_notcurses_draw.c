@@ -38,7 +38,38 @@ int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style,
     ncplane_putnstr_yx(s->mplane[w], y, x, n, text);
     return 0;
 }
-
+// ---------------------------------------------------------------------------
+// Complex Characters (cc)
+// ---------------------------------------------------------------------------
+/** cc character single      */
+int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, cchar_t *cc) {
+    if (!s || !cc)
+        return -1;
+    mvwadd_wch(s->mwin[w], y, x, cc);
+    return 0;
+}
+//  cc string
+int ui_wadd_wchstr(UiSurface *s, int w, cchar_t *cmplx_buf) {
+    if (!s || !cmplx_buf)
+        return -1;
+    wadd_wchstr(s->mwin[w], cmplx_buf);
+    return 0;
+}
+//  cc string
+int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf) {
+    if (!s || !cmplx_buf)
+        return -1;
+    mvwadd_wchstr(s->mwin[w], y, x, cmplx_buf);
+    return 0;
+}
+//  cc string - limit length
+int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf, int n) {
+    if (!s || !cmplx_buf)
+        return -1;
+    mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, n);
+    return 0;
+}
+// ---------------------------------------------------------------------------
 /* -------------------------------------------------------------------------
    Lines
    ------------------------------------------------------------------------- */

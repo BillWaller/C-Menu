@@ -736,7 +736,13 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    buffer, and the function ensures that it does not exceed the maximum length.
 */
 // #ifdef UAL_UI
-int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen) {
+int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int maxlen) {
+    int p1 = 0;
+    int *pos = &p1;
+    if (p)
+        pos = p;
+    else
+        pos = &p1;
     int i = 0, len = 0;
     const char *s;
     cchar_t cc = {0};

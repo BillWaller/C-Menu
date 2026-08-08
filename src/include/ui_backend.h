@@ -269,6 +269,7 @@ int ui_mvwaddstr_fill(UiSurface *sfc, int w, int y, int x, char *s, int n);
 int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text);
 int ui_mvwadd_mbnstr(UiSurface *s, int w, int y, int x, const char *text, int n);
 int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, int n);
+
 void ui_setscrreg(UiSurface *s, int w, int top, int bottom);
 void ui_scrollok(UiSurface *s, int w, bool enable);
 void ui_keypad(UiSurface *s, int w, bool enable);
