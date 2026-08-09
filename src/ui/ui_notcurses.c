@@ -173,13 +173,13 @@ UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int li
     NcPlaneOptions plane_opts = {
         .y = y,
         .x = x,
-        .rows = lines + 2,
-        .cols = cols + 2};
+        .rows = lines,
+        .cols = cols};
     if (parent && parent->mplane[p]) {
-        s->mplane[BOX] = ncplane_create(parent->mplane[p], &plane_opts);
+        s->mplane[w] = ncplane_create(parent->mplane[p], &plane_opts);
     } else {
         NcPlane *stdn = notcurses_stdplane(ui->nc);
-        s->mplane[BOX] = ncplane_create(stdn, &plane_opts);
+        s->mplane[w] = ncplane_create(stdn, &plane_opts);
     }
     if (!s->mplane[w]) {
         notcurses_stop(ui->nc);
@@ -249,7 +249,6 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
     }
     ncplane_set_base(s->mplane[WIN], " ", 0, channels);
     ncplane_set_channels(s->mplane[WIN], channels);
-    sfc_ptr++;
     return s;
 }
 
@@ -416,4 +415,36 @@ struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s, int w) {
     if (!s)
         return NULL;
     return s->mplane[w];
+}
+
+static int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b) {
+    /* Search for an existing allocation. */
+    for (int i = 0; i < ui_color_cnt && i < NC_MAX_COLORS; i++) {
+        if (ui_color[i].r == r && ui_color[i].g == g && ui_color[i].b == b)
+            return i;
+    }
+    if (ui_color_cnt >= NC_MAX_COLORS || ui_color_cnt >= COLORS)
+        return -1;
+    ui_color[ui_color_cnt].r = r;
+    ui_color[ui_color_cnt].g = g;
+    ui_color[ui_color_cnt].b = b;
+    return ui_color_cnt++;
+}
+/**
+ * Find or allocate an NCurses extended color pair for (fg, bg).
+ * Returns the pair index.
+ */
+static int ui_init_extended_pair(uint32_t fg, uint32_t bg) {
+    for (int i = 0; i < ui_color_pair_cnt; i++) {
+        if (ui_color_pair[i].fg.rgba >> 8 == fg &&
+            ui_color_pair[i].bg.rgba >> 8 == bg)
+            return i;
+    }
+    if (ui_color_pair_cnt >= NC_MAX_PAIRS)
+        return 0;
+    int color_pair_idx = ui_color_pair_cnt + 1;
+    ui_color_pair[ui_color_pair_cnt].fg.rgba = fg << 8;
+    ui_color_pair[ui_color_pair_cnt].bg.rgba = bg << 8;
+    ui_color_pair_cnt++;
+    return color_pair_idx;
 }

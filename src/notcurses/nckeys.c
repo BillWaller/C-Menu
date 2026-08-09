@@ -39,6 +39,7 @@ struct NcSurface {
 
 typedef struct NcSurface NcSurface;
 
+uint64_t channels = 0;
 NcSurface nc_surface[MAXSFC];
 
 int sfc_ptr = -1;
@@ -143,7 +144,6 @@ NcSurface *surface_new(NotCurses *nc, int rows, int cols,
         notcurses_stop(nc);
         return NULL;
     }
-    uint64_t channels = 0;
     ncchannels_set_fg_rgb8(&channels, rgb_fg.r, rgb_fg.g, rgb_fg.b);
     ncchannels_set_bg_rgb8(&channels, rgb_bg.r, rgb_bg.g, rgb_bg.b);
     ncplane_set_base(box, " ", 0, channels);

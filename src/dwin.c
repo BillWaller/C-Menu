@@ -395,14 +395,10 @@ void initialize_local_colors(SIO *sio) {
     @param bg Background color index
     @return Color pair index */
 int get_clr_pair(int fg, int bg) {
-    int rc, i, pfg, pbg;
+    int rc, i;
+    int pfg, pbg;
     for (i = 1; i < clr_pair_cnt; i++) {
-#ifdef UAL_UI
         extended_pair_content(i, &pfg, &pbg);
-#else
-        pfg = ui_color_pair[i].fg;
-        pbg = ui_color_pair[i].bg;
-#endif
         if (pfg == fg && pbg == bg)
             return i;
     }
@@ -415,12 +411,7 @@ int get_clr_pair(int fg, int bg) {
         return (EXIT_FAILURE);
     }
     if (i < COLOR_PAIRS) {
-#ifdef UAL_UI
         rc = init_extended_pair(i, fg, bg);
-#else
-        ui_color_pair[i].fg = fg;
-        ui_color_pair[i].bg = bg;
-#endif
 
         if (rc == ERR)
             return ERR;
@@ -440,31 +431,16 @@ int rgb_to_curses_clr(RGB *rgb) {
     int i;
     int r, g, b;
     apply_gamma(rgb);
-#ifdef UAL_UI
     rgb->r = (rgb->r * 1000) / 255;
     rgb->g = (rgb->g * 1000) / 255;
     rgb->b = (rgb->b * 1000) / 255;
-#endif
     for (i = 0; i < clr_cnt; i++) {
-#ifdef UAL_UI
         extended_color_content(i, &r, &g, &b);
-#else
-        r = ui_color[i].r;
-        g = ui_color[i].g;
-        b = ui_color[i].b;
-#endif
-        if (rgb->r == r && rgb->g == g && rgb->b == b) {
+        if (rgb->r == r && rgb->g == g && rgb->b == b)
             return i;
-        }
     }
     if (i < COLORS) {
-#ifdef UAL_UI
         init_extended_color(i, rgb->r, rgb->g, rgb->b);
-#else
-        ui_color[i].r = rgb->r;
-        ui_color[i].g = rgb->g;
-        ui_color[i].b = rgb->b;
-#endif
         clr_cnt++;
         return clr_cnt - 1;
     }
@@ -665,16 +641,10 @@ void init_hex_clr(int idx, char *s) {
         StdColors[idx].g = rgb.g;
         StdColors[idx].b = rgb.b;
     }
-#ifdef UAL_UI
     rgb.r = (rgb.r * 1000) / 255;
     rgb.g = (rgb.g * 1000) / 255;
     rgb.b = (rgb.b * 1000) / 255;
     init_extended_color(idx, rgb.r, rgb.g, rgb.b);
-#else
-    ui_color[idx].r = rgb.r;
-    ui_color[idx].g = rgb.g;
-    ui_color[idx].b = rgb.b;
-#endif
 }
 /** hex_clr_str_to_rgb
     @brief Convert six-digit HTML style hex color code to RGB struct

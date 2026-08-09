@@ -26,22 +26,6 @@
 #include <string.h>
 #include <unistd.h>
 
-/* -------------------------------------------------------------------------
-   Internal color-pair cache — independent of dwin.c.
-   Keeps a simple linear map of (fg_color_idx, bg_color_idx) → pair_id.
-   ------------------------------------------------------------------------- */
-#define NC_MAX_COLORS 512
-#define NC_MAX_PAIRS 512
-
-static UiColor ui_color[NC_MAX_COLORS];
-static UiColorPair ui_color_pair[NC_MAX_PAIRS];
-static int ui_color_idx = 1;
-static int ui_color_cnt = 1; /* colors allocated via init_extended_color */
-static int ui_color_pair_idx = 1;
-static int ui_color_pair_cnt = 1;
-static int ui_style_idx = 1;
-static int ui_style_cnt = 1;
-
 /** Translate an 8-bit channel value (0-255) to the 1000-based NCurses scale. */
 static inline int nc_scale_1000(uint8_t v) {
     return (int)((v * 1000) / 255);
@@ -52,56 +36,19 @@ static inline int nc_scale_1000(uint8_t v) {
  * Returns the color index, or -1 on failure.
  */
 static int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b) {
-#ifdef UAL_UI
     int r1000 = nc_scale_1000(r);
     int g1000 = nc_scale_1000(g);
     int b1000 = nc_scale_1000(b);
-#else
-#endif
-    /* Search for an existing allocation. */
     for (int i = 0; i < ui_color_cnt && i < NC_MAX_COLORS; i++) {
-#ifdef UAL_UI
         int cr, cg, cb;
         extended_color_content(i, &cr, &cg, &cb);
         if (cr == r1000 && cg == g1000 && cb == b1000)
             return i;
-#else
-        if (ui_color[i].r == r && ui_color[i].g == g && ui_color[i].b == b)
-            return i;
-#endif
     }
     if (ui_color_cnt >= NC_MAX_COLORS || ui_color_cnt >= COLORS)
         return -1;
-#ifdef UAL_UI
     init_extended_color(ui_color_cnt, r1000, g1000, b1000);
-#else
-    ui_color[ui_color_cnt].r = r;
-    ui_color[ui_color_cnt].g = g;
-    ui_color[ui_color_cnt].b = b;
-#endif
     return ui_color_cnt++;
-}
-/**
- * Find or allocate an NCurses extended color pair for (fg, bg).
- * Returns the pair index.
- */
-static int ui_init_extended_pair(uint32_t fg, uint32_t bg) {
-    for (int i = 0; i < ui_color_pair_cnt; i++) {
-        if (ui_color_pair[i].fg.rgba >> 8 == fg &&
-            ui_color_pair[i].bg.rgba >> 8 == bg)
-            return i;
-    }
-    if (ui_color_pair_cnt >= NC_MAX_PAIRS)
-        return 0;
-    int color_pair_idx = ui_color_pair_cnt + 1;
-#ifdef UAL_UI
-    init_extended_pair(color_pair_idx, fg, bg);
-#else
-    ui_color_pair[ui_color_pair_cnt].fg.rgba = fg << 8;
-    ui_color_pair[ui_color_pair_cnt].bg.rgba = bg << 8;
-    ui_color_pair_cnt++;
-#endif
-    return color_pair_idx;
 }
 
 /* -------------------------------------------------------------------------
@@ -598,9 +545,9 @@ UiStyle *ui_style_new(void) {
     UiStyle *style = calloc(1, sizeof(*style));
     if (!style)
         return NULL;
-    style->fg.r = 255;
-    style->fg.g = 255;
-    style->fg.b = 255;
+    style->frgb.r = 255;
+    style->frgb.g = 255;
+    style->frgb.b = 255;
     return style;
 }
 
@@ -609,26 +556,25 @@ void ui_style_destroy(UiStyle *style) {
 }
 
 UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const char *str) {
-    UiColor rgba;
-    UiStyle style;
-    memset(&rgba, 0, sizeof(rgba));
-    sscanf(fg, "#%02hhX%02hhX%02hhX", &rgba.r, &rgba.g, &rgba.b);
-    style.fg = rgba;
-    memset(&rgba, 0, sizeof(rgba));
-    sscanf(bg, "#%02hhX%02hhX%02hhX", &rgba.r, &rgba.g, &rgba.b);
-    style.bg = rgba;
-    style.attrs = attrs;
+    UiStyle *style = calloc(1, sizeof(*style));
+    RGB rgb;
+    sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    int fg_idx = rgb_to_curses_clr(&rgb);
+    sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    int bg_idx = rgb_to_curses_clr(&rgb);
+    style->cp = get_clr_pair(fg_idx, bg_idx);
+    style->attrs = attrs;
     if (str && *str && *str != ' ') {
         wchar_t wc = {L'\0'};
         mbstate_t mbst;
         memset(&mbst, 0, sizeof(mbst));
         size_t n = mbrtowc(&wc, str, MB_CUR_MAX, &mbst);
         if ((ssize_t)n > 0)
-            style.wc = wc;
+            style->wc = wc;
     } else {
-        style.wc = L' ';
+        style->wc = L' ';
     }
-    return style;
+    return *style;
 }
 
 UiStyle *ui_style_copy(const UiStyle *src) {
@@ -646,34 +592,11 @@ UiStyle *ui_style_from_cch(const cchar_t *cch) {
     if (!style)
         return NULL;
     wchar_t wc[2] = {L'\0', L'\0'};
-    attr_t attrs;
-    short cpx;
-    int fg, bg;
-    getcchar(cch, wc, &attrs, &cpx, NULL);
-    style->attrs = attrs;
-    extended_pair_content(cpx, &fg, &bg);
-    int r, g, b;
-    extended_color_content(fg, &r, &g, &b);
-    style->fg.r = (uint8_t)((r * 255) / 1000);
-    style->fg.g = (uint8_t)((g * 255) / 1000);
-    style->fg.b = (uint8_t)((b * 255) / 1000);
-    extended_color_content(bg, &r, &g, &b);
-    style->bg.r = (uint8_t)((r * 255) / 1000);
-    style->bg.g = (uint8_t)((g * 255) / 1000);
-    style->bg.b = (uint8_t)((b * 255) / 1000);
+    getcchar(cch, wc, &style->attrs, &style->cp, NULL);
     return style;
 }
 
 cchar_t ui_style_to_cch(const UiStyle *style, const char *c) {
-    attr_t attrs = 0;
-    short cpx = 0;
-
-    if (style) {
-        attrs = style->attrs;
-        int fg = ui_init_extended_color(style->fg.r, style->fg.g, style->fg.b);
-        int bg = ui_init_extended_color(style->bg.r, style->bg.g, style->bg.b);
-        cpx = get_clr_pair(fg, bg);
-    }
     mbstate_t mbst;
     memset(&mbst, 0, sizeof(mbst));
     wchar_t wstr[2] = {L' ', L'\0'};
@@ -684,7 +607,7 @@ cchar_t ui_style_to_cch(const UiStyle *style, const char *c) {
             wstr[0] = wc;
     }
     cchar_t cc;
-    setcchar(&cc, wstr, attrs, cpx, NULL);
+    setcchar(&cc, wstr, style->attrs, style->cp, NULL);
     return cc;
 }
 

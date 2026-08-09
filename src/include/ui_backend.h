@@ -14,6 +14,7 @@
 typedef struct UiRuntime UiRuntime;
 typedef struct UiSurface UiSurface;
 typedef struct UiSplitSurface UiSplitSurface;
+typedef struct UiStyle UiStyle;
 
 #define ALLWINS -1
 
@@ -67,20 +68,6 @@ typedef enum {
     UI_BORDER_ROUNDED
 } UiBorderKind;
 
-typedef struct {
-    union {
-        struct {
-            uint8_t a; // alpha    LSB (Little Endian order)
-            uint8_t b; // blue
-            uint8_t g; // green
-            uint8_t r; // red      MSB (Little Endian order)
-        };
-        struct {
-            uint32_t rgba; // 0xRRGGBBAA   red, green, blue, alpha
-        };
-    };
-} UiColor;
-
 // @brief UiCchar is a structure representing a wide character with attributes
 // and color pair index.
 //
@@ -99,29 +86,10 @@ typedef struct {
 //
 //
 typedef struct {
-    UiColor fg; //       4-bytes
-    UiColor bg; //       4-bytes
-} UiColorPair;  // total 8-bytes
-
-typedef struct {
     wchar_t wc;       // Wide character    4-bytes
     short attrs;      // attributes        2-bytes
     short color_pair; // color pair index  2-bytes
 } UiCchar64;          //           total   8-bytes
-
-typedef struct {
-    wchar_t wc; // wide character    4-bytes
-    int attrs;  // attributes        4-bytes
-    UiColor fg; //                   4-bytes
-    UiColor bg; //                   4-bytes
-} UiCchar128;   //           total  16-bytes
-
-typedef struct { // 16-bytes
-    wchar_t wc;  //  4-bytes
-    int attrs;   //  4-bytes
-    UiColor fg;  //  4-bytes
-    UiColor bg;  //  4-bytes
-} UiStyle;
 
 typedef struct {
     UiKey key;
@@ -144,6 +112,25 @@ typedef struct {
     int lines;
     int cols;
 } UiRect;
+
+typedef struct {
+    union {
+        struct {
+            uint8_t b, g, r, a;
+        };
+        uint32_t argb;
+    };
+} UiRGBA;
+
+#define NC_MAX_COLORS 512
+#define NC_MAX_PAIRS 512
+
+static int ui_color_idx = 1;
+static int ui_color_cnt = 1; /* colors allocated via init_extended_color */
+static int ui_color_pair_idx = 1;
+static int ui_color_pair_cnt = 1;
+static int ui_style_idx = 1;
+static int ui_style_cnt = 1;
 
 /** @struct UiConfig
    @brief Structure representing the configuration options for the UI runtime.

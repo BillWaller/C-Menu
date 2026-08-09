@@ -12,7 +12,6 @@
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
-#include "ui_backend.h"
 #include "version.h"
 #include <argp.h>
 #include <ncursesw/ncurses.h>
@@ -23,8 +22,8 @@
 #include <time.h>
 #include <wchar.h>
 #ifdef UAL_UI
-#include <ui_backend.h>
-#include <ui_ncurses_internal.h>
+#include "ui_backend.h"
+#include "ui_ncurses_internal.h"
 #endif
 #include <wait.h>
 
@@ -393,6 +392,14 @@ output should be printed, for debugging purposes */
 typedef struct {
     int r, g, b;
 } RGB;
+typedef struct {
+    union {
+        struct {
+            uint8_t b, g, r, a;
+        };
+        uint32_t bgra;
+    };
+} BGRA;
 
 #define FG_COLOR 2    /**< default foreground color */
 #define BG_COLOR 0    /**< default background color */

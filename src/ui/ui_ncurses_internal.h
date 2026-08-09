@@ -21,6 +21,8 @@
 
 #define XLEN 256
 
+typedef cchar_t UiCell;
+
 /** @struct UiRuntime
    @ingroup ui_ncurses
    @brief Runtime state for the NCurses UI backend.
@@ -40,6 +42,25 @@ struct UiRuntime {
     int lines;
     int cols;
     PANEL *panel_main;
+};
+
+struct UiColorPair {
+    int fg;
+    int bg;
+};
+
+struct UiStyle {
+    wchar_t wc;
+    attr_t attrs;
+    short cp;
+    int fg;
+    struct {
+        int r, g, b;
+    } frgb;
+    int bg;
+    struct {
+        int r, g, b;
+    } brgb;
 };
 
 #define stdsfc stdscr
@@ -145,15 +166,16 @@ int ui_ncurses_style_apply(UiSurface *s, int w, const UiStyle *style);
 int ui_ncurses_color_pair_from_style(const UiStyle *style);
 UiStyle *ui_style_new(void);
 void ui_style_destroy(UiStyle *);
-UiStyle *ui_style_from_cch(const cchar_t *);
-cchar_t ui_style_to_cch(const UiStyle *, const char *);
+UiStyle *ui_style_from_cch(const UiCell *);
+UiCell ui_style_to_cch(const UiStyle *, const char *);
 
-int ui_wadd_wchstr(UiSurface *s, int w, cchar_t *cmplx_buf);
-int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, cchar_t *cc);
-int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf, int n);
-int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, cchar_t *cmplx_buf);
-int ui_setcchar(cchar_t *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts);
-int ui_bkgrnd(UiSurface *s, int w, const cchar_t *c);
-int ui_bkgrndset(UiSurface *s, int w, const cchar_t *c);
+int ui_wadd_wchstr(UiSurface *s, int w, UiCell *cmplx_buf);
+int ui_wadd_wch(UiSurface *s, int w, UiCell *cc);
+int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, UiCell *cc);
+int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, UiCell *cmplx_buf, int n);
+int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, UiCell *cmplx_buf);
+int ui_setcchar(UiCell *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts);
+int ui_bkgrnd(UiSurface *s, int w, const UiCell *c);
+int ui_bkgrndset(UiSurface *s, int w, const UiCell *c);
 
 #endif

@@ -61,8 +61,43 @@ typedef enum {
     SUB_SFC_MAX
 } SubSurface;
 
-struct UiSurface {
+typedef struct {
+    union {
+        struct {
+            uint8_t b; // blue             LSB (Little Endian order)
+            uint8_t g; // green
+            uint8_t r; // red
+            uint8_t a; // alpha            MSB
+        };
+        uint32_t rgba; // 0xAARRGGBB  alpha, red, green, blue
+    };
+} UiRGBA;
 
+typedef struct {
+    uint32_t fg; //       4-bytes
+    uint32_t bg; //       4-bytes
+} UiColorPair;   // total 8-bytes
+
+typedef struct { // 16-bytes
+    wchar_t wc;
+    int attrs; //  4-bytes
+    UiRGBA fg; //  4-bytes
+    UiRGBA bg; //  4-bytes
+} UiStyle;
+
+typedef struct {
+    char gcluster[5]; // 4-bytes for UTF-8 + null terminator;
+    int stylemask;
+    union {
+        struct {
+            UiRGBA fg; // foreground color 4-bytes
+            UiRGBA bg; // background color 4-bytes
+        };
+        uint64_t channels;
+    };
+} UiCell;
+
+struct UiSurface {
     union {
         struct {
             NcPlane *box;
@@ -90,6 +125,7 @@ struct UiSurface {
 };
 
 /* Internal style helpers */
+int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c);
 uint64_t ui_notcurses_channels_from_style(const UiStyle *style);
 uint32_t ui_notcurses_attrs_from_style(const UiStyle *style);
 NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni);
