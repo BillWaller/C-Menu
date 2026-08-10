@@ -12,9 +12,7 @@
    External Commands for Calculations and Data Processing.
  */
 
-#include "include/common.h"
-#include "include/ui_backend.h"
-#include "ui/ui_ncurses_internal.h"
+#include "common.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>

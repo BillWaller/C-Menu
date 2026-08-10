@@ -14,18 +14,23 @@
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
 #include "version.h"
 #include <argp.h>
+#ifdef UAL_UI
+#include "../ui/ui_ncurses_internal.h"
+#include "ui_backend.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
+#endif
+#ifdef NOTCURSES_UI
+#include "ui_backend.h"
+#include <notcurses/notcurses.h>
+#endif
 #include <signal.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <time.h>
-#include <wchar.h>
-#ifdef UAL_UI
-#include "ui_backend.h"
-#include "ui_ncurses_internal.h"
-#endif
 #include <wait.h>
+#include <wchar.h>
 
 extern int cmenu_log_fd;
 
@@ -34,10 +39,11 @@ extern int cmenu_log_fd;
 #endif
 
 #define MAXWIN 30 /**< maximum number of windows that can be created */
+
+#ifdef UI_NCURSES
 extern SCREEN *screen;
-extern FILE *tty_fp;
-#ifdef UAL_UI
 #endif
+extern FILE *tty_fp;
 #define MAX_ARGS 64   /**< maximum number of arguments for external commands */
 #define MAXLEN 256    /**< maximum length for strings and buffers */
 #define MAXARGS 64    /**< maximum number of arguments */
@@ -193,21 +199,21 @@ typedef enum {
     CLR_NCOLORS
 } ColorsEnum;
 
-extern UiStyle style_default;
-extern UiStyle style_fill_char;
-extern UiStyle style_brktl;
-extern UiStyle style_brktr;
-extern UiStyle style_nt;
-extern UiStyle style_nt_rev;
-extern UiStyle style_nt_hl;
-extern UiStyle style_nt_hl_rev;
-extern UiStyle style_box;
-extern UiStyle style_ind;
-extern UiStyle style_cmdln;
-extern UiStyle style_title;
-extern UiStyle style_ln;
-extern UiStyle style_ran;
-extern UiStyle style_chk;
+extern struct UiStyle style_default;
+extern struct UiStyle style_fill_char;
+extern struct UiStyle style_brktl;
+extern struct UiStyle style_brktr;
+extern struct UiStyle style_nt;
+extern struct UiStyle style_nt_rev;
+extern struct UiStyle style_nt_hl;
+extern struct UiStyle style_nt_hl_rev;
+extern struct UiStyle style_box;
+extern struct UiStyle style_ind;
+extern struct UiStyle style_cmdln;
+extern struct UiStyle style_title;
+extern struct UiStyle style_ln;
+extern struct UiStyle style_ran;
+extern struct UiStyle style_chk;
 
 typedef enum {
     /** byte 0 - bits 0-7  Selection Flags*/
@@ -471,11 +477,6 @@ extern bool set_sane_tioctl(struct termios *);
 extern int box_win_new(int, int, int, int, char *);
 extern int split_box_win_new(int, int, int, int, int, int, char *);
 
-extern int border_draw(UiSurface *sfc);
-extern int border_title(UiSurface *sfc, char *title);
-extern int border_ysplit(UiSurface *, int);
-extern int border_ysplit_text(UiSurface *, char *, int);
-
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
 extern bool handle_signal(sig_atomic_t);
@@ -484,7 +485,7 @@ extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
-extern cchar_t mkcc(int, attr_t, const char *);
+extern cchar_t mkcc(short, attr_t, const char *);
 extern char *iso8601_time(char *, int, time_t *, bool);
 extern bool parse_local_timestamp(const char *, time_t *);
 extern char *format_local_timestamp(time_t, char *, size_t);
@@ -978,4 +979,8 @@ extern char *fill_field(char *, char *, char, int);
 extern int cm_surface_destroy(UiSurface *sfc);
 extern wchar_t *mbstr_to_wcstr(const char *mb_str);
 extern int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen);
+extern int border_draw(UiSurface *sfc);
+extern int border_title(UiSurface *sfc, char *title);
+extern int border_ysplit(UiSurface *, int);
+extern int border_ysplit_text(UiSurface *, char *, int);
 #endif

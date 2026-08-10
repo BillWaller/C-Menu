@@ -16,12 +16,15 @@
     @brief Manage NCurses windows and color settings
  */
 
-#include "include/cm.h"
-#include "include/ui_backend.h"
-#include "ui/ui_ncurses_internal.h"
+#include "cm.h"
+#include "ui_backend.h"
+#include "ui_ncurses_internal.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
+#include <ncursesw/ncurses.h>
+#include <ncursesw/panel.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -77,7 +80,6 @@ int mb_to_cc(cchar_t *, char *, attr_t, int, int *, int);
 void initialize_local_colors(SIO *);
 
 int xwgetch(WINDOW *, Chyron *, int);
-cchar_t mkcc(int, attr_t, const char *);
 void activate_chyron_key(Chyron *chyron, int k);
 void activate_all_chyron_keys(Chyron *chyron);
 void deactivate_chyron_key(Chyron *chyron, int k);
@@ -218,6 +220,8 @@ int tty_fd, pipe_in, pipe_out;
     2. opens a terminal device for NCurses screen IO
     3. replaces STDERR_FILENO with terminal file descriptor
     @endcode */
+
+#ifdef ASDFJKL
 bool open_curses(SIO *sio) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
@@ -268,10 +272,6 @@ bool open_curses(SIO *sio) {
     }
     panel_main = new_panel(stdscr);
     noecho();
-    // ui_keypad(stdscr, true);
-    // ui_idlok(stdscr, false);
-    // idcok(stdscr, false);
-    // ui_bkgrnd_cch(stdscr, &CC_NT);
     for (sfc_ptr = 0; sfc_ptr < MAXWIN; sfc_ptr++) {
         for (int i = 0; i < SUB_SFC_MAX; i++) {
             ui_surface[sfc_ptr]->mpan[i] = nullptr;
@@ -281,6 +281,7 @@ bool open_curses(SIO *sio) {
     sfc_ptr = -1;
     return sio;
 }
+#endif
 /** @brief Initialize local color variables and color pairs based on SIO settings
     @ingroup color_management
     @param sio Pointer to SIO struct with color settings
@@ -321,7 +322,7 @@ void initialize_local_colors(SIO *sio) {
     //
     // cchar_t Used to set foreground/background color pairs and attributes
     //
-#ifdef UAL_UI
+#ifdef NCURSES_UI
     CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
     CC_BRKTL = mkcc(cp_brackets, WA_NORMAL, " ");
     CC_BRKTR = mkcc(cp_brackets, WA_NORMAL, " ");
@@ -364,7 +365,7 @@ void initialize_local_colors(SIO *sio) {
     //
     // cchar_t borders and indicator characters with color pairs and attributes
     //
-#ifdef UAL_UI
+#ifdef NCURSES_UI
     ui_setcchar(&ls, &bw_ve, WA_NORMAL, cp_box, NULL);   // Left side
     ui_setcchar(&rs, &bw_ve, WA_NORMAL, cp_box, NULL);   // Right side
     ui_setcchar(&ts, &bw_ho, WA_NORMAL, cp_box, NULL);   // Top side
@@ -705,7 +706,7 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    The pos parameter is updated to reflect the current position in the output
    buffer, and the function ensures that it does not exceed the maximum length.
 */
-// #ifdef UAL_UI
+// #ifdef NCURSES_UI
 int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int maxlen) {
     int p1 = 0;
     int *pos = &p1;
@@ -755,7 +756,7 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int ma
     @return cchar_t with the specified color pair index and a space character
     as the wide character */
 
-cchar_t mkcc(int cp, attr_t attr, const char *s) {
+cchar_t mkcc(short cp, attr_t attr, const char *s) {
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     size_t len;

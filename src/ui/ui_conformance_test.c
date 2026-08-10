@@ -25,10 +25,9 @@
 */
 
 #define _GNU_SOURCE
-#include "../include/ui_backend.h"
-#include "../ual/ui_layout.h"
+#include "ui_backend.h"
+#include "ui_layout.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 /* Pull in whichever compat header matches the compiled backend. */

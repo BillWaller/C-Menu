@@ -19,7 +19,6 @@
    @endverbatim
 */
 
-#include "cm.h"
 #include <common.h>
 #include <errno.h>
 #include <stdlib.h>

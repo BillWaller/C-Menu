@@ -12,19 +12,19 @@
 
 #define _XOPEN_SOURCE_EXTENDED 1
 
+#include "cm.h"
+
 #include "ui_ncurses_compat.h"
 #include "ui_ncurses_internal.h"
-#include <ncurses/panel.h>
-#include <ncursesw/ncurses.h>
-#define UAL_LEGACY_COMPAT 1
 #ifdef UAL_LEGACY_COMPAT
-#include "cm.h"
 #endif
 #include <locale.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+static int ui_color_cnt = 0;
 
 /** Translate an 8-bit channel value (0-255) to the 1000-based NCurses scale. */
 static inline int nc_scale_1000(uint8_t v) {
@@ -88,10 +88,10 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     set_term(ui->screen);
 
     /* Keep legacy globals in sync when libcm (dwin.c) is linked. */
-#ifdef UAL_LEGACY_COMPAT
-    screen = ui->screen;
-    tty_fp = ui->tty_fp;
+    // screen = ui->screen;
+    // tty_fp = ui->tty_fp;
     f_curses_open = true;
+#ifdef UAL_LEGACY_COMPAT
 #endif
 
     if (!has_colors() || !can_change_color()) {
@@ -144,13 +144,13 @@ void ui_shutdown(UiRuntime *ui) {
     if (ui->screen) {
         delscreen(ui->screen);
 #ifdef UAL_LEGACY_COMPAT
-        screen = NULL;
+        ui->screen = NULL;
 #endif
     }
     if (ui->tty_fp) {
         fclose(ui->tty_fp);
 #ifdef UAL_LEGACY_COMPAT
-        tty_fp = NULL;
+        // tty_fp = NULL;
 #endif
     }
 #ifdef UAL_LEGACY_COMPAT
@@ -295,7 +295,7 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
             return NULL;
         }
     }
-    ui_bkgdset(s, BOX, &style_box, " ");
+    ui_bkgdset(s, BOX, &style_box);
     ui_scrollok(s, BOX, false);
     border_draw(s);
     border_title(s, wtitle);
@@ -306,7 +306,7 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
     }
     s->mpan[WIN] = new_panel(s->mwin[WIN]);
     keypad(s->mwin[WIN], true);
-    ui_bkgdset(s, WIN, &style_nt, " ");
+    ui_bkgdset(s, WIN, &style_nt);
     return s;
 }
 int ui_surface_addpad(UiSurface *sfc, int w, int view_win, int lines, int cols) {
@@ -484,30 +484,30 @@ int ui_cursor_move(UiSurface *s, int w, int y, int x) {
 // -------------------------------------------------------------------------
 
 // for the entire window
-int ui_bkgd(UiSurface *s, int w, const UiStyle *style, const char *c) {
+int ui_bkgd(UiSurface *s, int w, const UiStyle *style) {
     if (!s)
         return -1;
-    cchar_t cch = ui_style_to_cch(style, c);
+    UiCell cch = ui_style_to_cch(style);
     wbkgrnd(s->mwin[w], &cch);
     return 0;
 }
 // for new content to be written to the window
-int ui_bkgdset(UiSurface *s, int w, const UiStyle *style, const char *c) {
+int ui_bkgdset(UiSurface *s, int w, const UiStyle *style) {
     if (!s)
         return -1;
-    cchar_t cch = ui_style_to_cch(style, c);
+    UiCell cch = ui_style_to_cch(style);
     wbkgrndset(s->mwin[w], &cch);
     return 0;
 }
 // for the entire window
-int ui_bkgrnd(UiSurface *s, int w, const cchar_t *cc) {
+int ui_bkgrnd(UiSurface *s, int w, const UiCell *cc) {
     if (!s)
         return -1;
     wbkgrnd(s->mwin[w], cc);
     return 0;
 }
 // for new content to be written to the window
-int ui_bkgrndset(UiSurface *s, int w, const cchar_t *cc) {
+int ui_bkgrndset(UiSurface *s, int w, const UiCell *cc) {
     if (!s)
         return -1;
     wbkgrndset(s->mwin[w], cc);
@@ -517,7 +517,7 @@ int ui_bkgrndset(UiSurface *s, int w, const cchar_t *cc) {
 void ui_qiflush() {
     qiflush();
 }
-int ui_setcchar(cchar_t *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts) {
+int ui_setcchar(UiCell *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts) {
     return setcchar(wch, wc, attrs, pair, opts);
 }
 void ui_update_panels() {
@@ -545,9 +545,16 @@ UiStyle *ui_style_new(void) {
     UiStyle *style = calloc(1, sizeof(*style));
     if (!style)
         return NULL;
-    style->frgb.r = 255;
-    style->frgb.g = 255;
-    style->frgb.b = 255;
+    RGB rgb;
+    rgb.r = 255;
+    rgb.g = 255;
+    rgb.b = 255;
+    int fg = rgb_to_curses_clr(&rgb);
+    rgb.r = 0;
+    rgb.g = 0;
+    rgb.b = 0;
+    int bg = rgb_to_curses_clr(&rgb);
+    style->cp = get_clr_pair(fg, bg);
     return style;
 }
 
@@ -556,58 +563,44 @@ void ui_style_destroy(UiStyle *style) {
 }
 
 UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const char *str) {
-    UiStyle *style = calloc(1, sizeof(*style));
+    UiStyle style;
     RGB rgb;
     sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int fg_idx = rgb_to_curses_clr(&rgb);
+    int f_idx = rgb_to_curses_clr(&rgb);
     sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int bg_idx = rgb_to_curses_clr(&rgb);
-    style->cp = get_clr_pair(fg_idx, bg_idx);
-    style->attrs = attrs;
-    if (str && *str && *str != ' ') {
-        wchar_t wc = {L'\0'};
+    int b_idx = rgb_to_curses_clr(&rgb);
+    style.cp = get_clr_pair(f_idx, b_idx);
+    style.attrs = attrs;
+    if (str && *str) {
         mbstate_t mbst;
         memset(&mbst, 0, sizeof(mbst));
-        size_t n = mbrtowc(&wc, str, MB_CUR_MAX, &mbst);
-        if ((ssize_t)n > 0)
-            style->wc = wc;
-    } else {
-        style->wc = L' ';
+        size_t n = mbrtowc(style.wstr, str, MB_CUR_MAX, &mbst);
+        if (n == (size_t)-1 || n == (size_t)-2) {
+            style.wstr[0] = L' ';
+            n = 1;
+        }
+        style.wstr[n] = L'\0';
     }
-    return *style;
-}
-
-UiStyle *ui_style_copy(const UiStyle *src) {
-    if (!src)
-        return NULL;
-    UiStyle *copy = calloc(1, sizeof(*copy));
-    if (!copy)
-        return NULL;
-    memcpy(copy, src, sizeof(*copy));
-    return copy;
-}
-
-UiStyle *ui_style_from_cch(const cchar_t *cch) {
-    UiStyle *style = calloc(1, sizeof(*style));
-    if (!style)
-        return NULL;
-    wchar_t wc[2] = {L'\0', L'\0'};
-    getcchar(cch, wc, &style->attrs, &style->cp, NULL);
     return style;
 }
 
-cchar_t ui_style_to_cch(const UiStyle *style, const char *c) {
-    mbstate_t mbst;
-    memset(&mbst, 0, sizeof(mbst));
-    wchar_t wstr[2] = {L' ', L'\0'};
-    if (c && *c) {
-        wchar_t wc = L'\0';
-        size_t n = mbrtowc(&wc, c, MB_CUR_MAX, &mbst);
-        if ((ssize_t)n > 0)
-            wstr[0] = wc;
-    }
-    cchar_t cc;
-    setcchar(&cc, wstr, style->attrs, style->cp, NULL);
+UiStyle *ui_style_copy(const UiStyle *src) {
+    UiStyle *dst = calloc(1, sizeof(*dst));
+    memcpy(dst, src, sizeof(*dst));
+    return dst;
+}
+
+UiStyle *ui_style_from_cch(const UiCell *cc) {
+    UiStyle *style = calloc(1, sizeof(*style));
+    if (!style)
+        return NULL;
+    getcchar(cc, style->wstr, &style->attrs, &style->cp, NULL);
+    return style;
+}
+
+UiCell ui_style_to_cch(const UiStyle *style) {
+    UiCell cc;
+    setcchar(&cc, style->wstr, style->attrs, style->cp, NULL);
     return cc;
 }
 

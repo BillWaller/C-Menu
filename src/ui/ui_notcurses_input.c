@@ -6,7 +6,9 @@
    representation defined in ui_backend.h.
 */
 
+#include "ui_backend.h"
 #include "ui_notcurses_internal.h"
+#include <notcurses/notcurses.h>
 #include <string.h>
 
 /* -------------------------------------------------------------------------

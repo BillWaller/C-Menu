@@ -7,8 +7,8 @@
    any compiled-in backend.
 */
 
-#include "../ui/ui_layout.h"
-#include "../include/ui_backend.h"
+#include "ui_layout.h"
+#include "ui_backend.h"
 #include <string.h>
 
 /** @brief Create a framed surface (outer border + inner content area).

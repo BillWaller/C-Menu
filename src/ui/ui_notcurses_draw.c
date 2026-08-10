@@ -9,7 +9,9 @@
 #define _XOPEN_SOURCE 700
 #define _XOPEN_SOURCE_EXTENDED 1
 
+#include "ui_backend.h"
 #include "ui_notcurses_internal.h"
+#include <notcurses/notcurses.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>

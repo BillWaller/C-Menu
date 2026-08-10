@@ -12,6 +12,12 @@
    @brief File mapping, user input, command processing, and display logic
  */
 
+#ifdef NCURSES_UI
+#include "../ui/ui_ncurses_internal.h"
+#include "ui_backend.h"
+#include <ncursesw/ncurses.h>
+#include <ncursesw/panel.h>
+#endif
 #include <common.h>
 #include <ctype.h>
 #include <errno.h>

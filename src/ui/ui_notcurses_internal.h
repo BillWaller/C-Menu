@@ -10,7 +10,7 @@
    files — never by application code.
 */
 
-#include "../include/ui_backend.h"
+#include "ui_backend.h"
 #include <notcurses/notcurses.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -50,18 +50,7 @@ struct UiRuntime {
    moving the plane off-screen when hidden and restoring it when shown.
 */
 
-typedef enum {
-    BOX,
-    WIN,
-    WIN2,
-    LNNO,
-    CMDLN,
-    PAD,
-    WINX,
-    SUB_SFC_MAX
-} SubSurface;
-
-typedef struct {
+struct UiRGBA {
     union {
         struct {
             uint8_t b; // blue             LSB (Little Endian order)
@@ -71,31 +60,24 @@ typedef struct {
         };
         uint32_t rgba; // 0xAARRGGBB  alpha, red, green, blue
     };
-} UiRGBA;
+};
 
-typedef struct {
+struct UiColorPair {
     uint32_t fg; //       4-bytes
     uint32_t bg; //       4-bytes
-} UiColorPair;   // total 8-bytes
+}; // total 8-bytes
 
-typedef struct { // 16-bytes
-    wchar_t wc;
-    int attrs; //  4-bytes
-    UiRGBA fg; //  4-bytes
-    UiRGBA bg; //  4-bytes
-} UiStyle;
-
-typedef struct {
+struct UiCell {
     char gcluster[5]; // 4-bytes for UTF-8 + null terminator;
     int stylemask;
     union {
         struct {
-            UiRGBA fg; // foreground color 4-bytes
-            UiRGBA bg; // background color 4-bytes
+            struct UiRGBA fg; // foreground color 4-bytes
+            struct UiRGBA bg; // background color 4-bytes
         };
         uint64_t channels;
     };
-} UiCell;
+};
 
 struct UiSurface {
     union {

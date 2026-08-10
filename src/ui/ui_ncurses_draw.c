@@ -8,14 +8,9 @@
 
 #define _XOPEN_SOURCE_EXTENDED 1
 
+#include "cm.h"
+#include "ui_backend.h"
 #include "ui_ncurses_internal.h"
-#include <ncurses/panel.h>
-#include <ncursesw/ncurses.h>
-#define UAL_LEGACY_COMPAT 1
-#ifdef UAL_LEGACY_COMPAT
-#include "cm.h"
-#endif
-#include "cm.h"
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
@@ -35,7 +30,7 @@ int ui_ncurses_color_pair_from_style(const UiStyle *style) {
 int ui_ncurses_style_apply(UiSurface *s, int w, const UiStyle *style) {
     if (!style)
         return -1;
-    ui_bkgdset(s, w, style, " ");
+    ui_bkgdset(s, w, style);
     return 0;
 }
 
@@ -51,12 +46,12 @@ int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style) {
 }
 
 /** @brief Set the background fill character and style for a surface. */
-int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill_ch) {
+int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style) {
     if (!s)
         return -1;
     if (style)
         ui_ncurses_style_apply(s, w, style);
-    ui_bkgd(s, w, style, " ");
+    ui_bkgd(s, w, style);
     return 0;
 }
 

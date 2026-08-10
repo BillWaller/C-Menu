@@ -8,8 +8,6 @@
  */
 
 #include "common.h"
-#include "ui/ui_ncurses_internal.h"
-#include "ui_backend.h"
 #include <monetary.h>
 #include <stdbool.h>
 #include <stddef.h>

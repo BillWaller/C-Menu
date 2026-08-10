@@ -7,9 +7,14 @@
     @date 2026-02-09
  */
 #define _GNU_SOURCE
-#include "ui_backend.h"
-#include <common.h>
+#include "common.h"
 #include <string.h>
+#ifdef NCURSES_UI
+#include "../ui/ui_ncurses_internal.h"
+#include "ui_backend.h"
+#include <ncursesw/ncurses.h>
+#include <ncursesw/panel.h>
+#endif
 
 /** @brief This function is responsible for cleaning up the terminal state and
    exiting the program.
@@ -49,15 +54,11 @@ int main(int argc, char **argv) {
         fprintf(stderr, "\nCannot set exit function\n");
         exit(EXIT_FAILURE);
     }
-#ifdef UAL_UI
     UiConfig *ui_config = calloc(1, sizeof(UiConfig));
     ui_config->enable_mouse = true;
     ui_config->enable_alt_screen = false;
     ui_config->cursor_visible = false;
     ui_runtime = ui_init(ui_config);
-#else
-    open_curses(sio);
-#endif
     initialize_local_colors(sio);
     sig_prog_mode();
     capture_curses_tioctl();

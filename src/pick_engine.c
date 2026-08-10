@@ -11,9 +11,7 @@
     @brief Navigate, Select, and Perform Action on Objects
  */
 
-#include "include/common.h"
-#include "include/ui_backend.h"
-#include "ui/ui_ncurses_internal.h"
+#include "common.h"
 #include <fcntl.h>
 #include <stdbool.h>
 #include <string.h>

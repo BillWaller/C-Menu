@@ -11,7 +11,7 @@
    functions are intentionally not declared in ui_backend.h.
 */
 
-#include "../include/ui_backend.h"
+#include "ui_backend.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
 

@@ -1,11 +1,11 @@
 #include <stdint.h>
 
 typedef struct nccell {
-    uint32_t gcluster;         // 0   4B → 4B little endian EGC
-    uint8_t gcluster_backstop; // 4   1B → 5B (8 bits of zero)
-    uint8_t width;             // 5   1B → 6B (8 bits of EGC column width)
-    uint16_t stylemask;        // 6   2B → 8B (16 bits of NCSTYLE_* attributes)
-    uint64_t channels;         // 8   8B → 16B (fg/bg, alpha, palette index, quadrant)
+    uint32_t gcluster;         // 0  4   4  little endian EGC
+    uint8_t gcluster_backstop; // 4  1   5  (8 bits of zero)
+    uint8_t width;             // 5  1   6  (8 bits of EGC column width)
+    uint16_t stylemask;        // 6  2   8  (16 bits of NCSTYLE_* attributes)
+    uint64_t channels;         // 8  8  16  (fg/bg, alpha, palette index, quadrant)
 } nccell;
 
 #define NCALPHA_HIGHCONTRAST 0x30000000ull
@@ -16,21 +16,16 @@ typedef struct nccell {
 #define NCCHANNELS_FOREGROUND_ALPHA_MASK 0x3000000000000000ull
 #define NCCHANNELS_FOREGROUND_DEFAULT 0x4000000000000000ull
 #define NCCHANNELS_FOREGROUND_QUADRANT_UL 0x8000000000000000ull
-
 #define NCCHANNELS_FOREGROUND_QUADRANT_LR 0x0100000000000000ull
 #define NCCHANNELS_FOREGROUND_QUADRANT_LL 0x0200000000000000ull
 #define NCCHANNELS_FOREGROUND_QUADRANT_UR 0x0400000000000000ull
 #define NCCHANNELS_FOREGROUND_PALETTE 0x0800000000000000ull
-
 #define NCCHANNELS_FOREGROUND_MASK 0x00ffffff00000000ull
-
 #define NCCHANNELS_BACKGROUND_ALPHA_MASK 0x0000000030000000ull
 #define NCCHANNELS_BACKGROUND_DEFAULT 0x0000000040000000ull
 #define NCCHANNELS_RESERVED1 0x0000000080000000ull
-
 #define NCCHANNELS_RESERVED2 0x0000000007000000ull
 #define NCCHANNELS_BACKGROUND_PALETTE 0x0000000008000000ull
-
 #define NCCHANNELS_BACKGROUND_MASK 0x0000000000ffffffull
 
 // (channels & 0x3000000000000000ull): foreground alpha (2 bits)

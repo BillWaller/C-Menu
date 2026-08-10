@@ -5,18 +5,34 @@
     @ingroup ui_backend
     @brief Backend API for terminal UI library
 */
+#define _XOPEN_SOURCE_EXTENDED 1
+#define _GNU_SOURCE
+#define NCURSES_WIDECHAR 1
 
+#ifdef UAL_UI
+#include "../ui/ui_ncurses_internal.h"
+#include <ncursesw/ncurses.h>
+#include <ncursesw/panel.h>
+#endif
+#ifdef NOTCURSES_UI
+#include <notcurses/notcurses.h>
+#endif
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
 #define MAXWIN 30
 
-typedef struct UiRuntime UiRuntime;
-typedef struct UiSurface UiSurface;
-typedef struct UiSplitSurface UiSplitSurface;
-typedef struct UiStyle UiStyle;
-
-#define ALLWINS -1
+typedef enum {
+    BOX,
+    WIN,
+    WIN2,
+    LNNO,
+    CMDLN,
+    PAD,
+    WIN3,
+    SUB_SFC_MAX
+} UiSubSurface;
 
 typedef enum {
     UI_KEY_NONE = 0,
@@ -68,23 +84,28 @@ typedef enum {
     UI_BORDER_ROUNDED
 } UiBorderKind;
 
-// @brief UiCchar is a structure representing a wide character with attributes
-// and color pair index.
-//
-// At the moment, the following 64-bit structure, UiCchar is the primary
-// candidate for substitution of the NCursews cchar_t structure. I believe
-// cchar_t is at least 16-bytes.
-//
-// View applies colors and attributes derived from ANSI SGR escape sequences,
-// highlights matching search results, and breaks lines at word boundaries while
-// maintaining Unicode character boundaries. Currently, output to the display is
-// deferred until the formatting is complete, and the entire formatted line is
-// transferred to the pad.
-//
-// Unlike NCurses, Notcurses only provides a function to move a single nccell at
-// a time to a plane.
-//
-//
+#ifdef UAL_UI
+typedef cchar_t cchar_t;
+typedef UiCell cchar_t;
+#endif
+
+#ifdef NOTCURSES_UI
+struct UiStyle { // 16-bytes
+    wchar_t wc;
+    int attrs;        //  4-bytes
+    struct UiRGBA fg; //  4-bytes
+    struct UiRGBA bg; //  4-bytes
+};
+typedef nccell UiCell;
+#endif
+
+#define ALLWINS -1
+
+typedef struct UiRuntime UiRuntime;
+typedef struct UiSplitSurface UiSplitSurface;
+typedef struct UiSurface UiSurface;
+typedef struct UiStyle UiStyle;
+
 typedef struct {
     wchar_t wc;       // Wide character    4-bytes
     short attrs;      // attributes        2-bytes
@@ -113,24 +134,8 @@ typedef struct {
     int cols;
 } UiRect;
 
-typedef struct {
-    union {
-        struct {
-            uint8_t b, g, r, a;
-        };
-        uint32_t argb;
-    };
-} UiRGBA;
-
 #define NC_MAX_COLORS 512
 #define NC_MAX_PAIRS 512
-
-static int ui_color_idx = 1;
-static int ui_color_cnt = 1; /* colors allocated via init_extended_color */
-static int ui_color_pair_idx = 1;
-static int ui_color_pair_cnt = 1;
-static int ui_style_idx = 1;
-static int ui_style_cnt = 1;
 
 /** @struct UiConfig
    @brief Structure representing the configuration options for the UI runtime.
@@ -217,7 +222,7 @@ int ui_surface_move(UiSurface *s, int w, int y, int x);
 int ui_surface_resize(UiSurface *s, int w, int lines, int cols);
 int ui_surface_clear(UiSurface *s, int w);
 int ui_surface_erase(UiSurface *s, int w);
-int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill_ch);
+int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style);
 int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style);
 int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style);
@@ -232,8 +237,8 @@ int ui_get_event_no_mouse(UiSurface *surface, int w, UiEvent *ev);
 int ui_cursor_move(UiSurface *s, int w, int y, int x);
 int ui_cursor_enable(UiRuntime *ui, bool visible);
 void ui_curs_set(int visibility);
-int ui_bkgd(UiSurface *s, int w, const UiStyle *style, const char *c);
-int ui_bkgdset(UiSurface *s, int w, const UiStyle *style, const char *c);
+int ui_bkgd(UiSurface *s, int w, const UiStyle *style);
+int ui_bkgdset(UiSurface *s, int w, const UiStyle *style);
 void ui_qiflush();
 void ui_wscrl(UiSurface *s, int w, int n);
 int ui_wclrtoeol(UiSurface *s, int w);
@@ -256,7 +261,6 @@ int ui_mvwaddstr_fill(UiSurface *sfc, int w, int y, int x, char *s, int n);
 int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text);
 int ui_mvwadd_mbnstr(UiSurface *s, int w, int y, int x, const char *text, int n);
 int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, int n);
-
 void ui_setscrreg(UiSurface *s, int w, int top, int bottom);
 void ui_scrollok(UiSurface *s, int w, bool enable);
 void ui_keypad(UiSurface *s, int w, bool enable);
@@ -283,9 +287,6 @@ UiBackend ui_get_backend(const UiRuntime *ui);
    @param caps Output structure filled with capability flags.
 */
 void ui_get_caps(const UiRuntime *ui, UiCaps *caps);
-
-UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const char *str);
-UiStyle *ui_style_copy(const UiStyle *src);
 
 extern UiRuntime *ui_runtime;
 extern UiSurface *ui_surface[MAXWIN];

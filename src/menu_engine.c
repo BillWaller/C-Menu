@@ -15,10 +15,7 @@
     and managing the display of submenus, pick lists, forms, and views.
  */
 
-#include "include/common.h"
-#include "include/ui_backend.h"
-#include "ui/ui_ncurses_internal.h"
-#include <ncursesw/ncurses.h>
+#include "common.h"
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>

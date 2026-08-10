@@ -6,6 +6,7 @@
    UiEvent representation defined in ui_backend.h.
 */
 
+#include "ui_backend.h"
 #include "ui_ncurses_internal.h"
 #include <stddef.h>
 #include <string.h>
