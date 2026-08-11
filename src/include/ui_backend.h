@@ -15,6 +15,7 @@
 #include <ncursesw/panel.h>
 #endif
 #ifdef NOTCURSES_UI
+#include "../ui/ui_notcurses_internal.h"
 #include <notcurses/notcurses.h>
 #endif
 #include <stdbool.h>
@@ -90,12 +91,6 @@ typedef UiCell cchar_t;
 #endif
 
 #ifdef NOTCURSES_UI
-struct UiStyle { // 16-bytes
-    wchar_t wc;
-    int attrs;        //  4-bytes
-    struct UiRGBA fg; //  4-bytes
-    struct UiRGBA bg; //  4-bytes
-};
 typedef nccell UiCell;
 #endif
 
@@ -122,6 +117,7 @@ typedef struct {
     int x;
     int chyron;
     int in_win;
+    int bstate;
     UiMouseAction mouse_action;
     bool mouse_inside;
     char keybound[256];
@@ -256,6 +252,8 @@ int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr,
 int ui_mvaddstr(UiSurface *s, int w, int y, int x, const char *text);
 int ui_mvwaddch(UiSurface *s, int w, int y, int x, const char c);
 int ui_mvwaddstr(UiSurface *s, int w, int y, int x, const char *text);
+int ui_mvwadd_style(UiSurface *s, int w, int y, int x, const UiStyle *style);
+int ui_mvwaddwstr(UiSurface *s, int w, int y, int x, const wchar_t *wstr);
 int ui_mvwaddnwstr(UiSurface *s, int w, int y, int x, const UiStyle *style, const wchar_t *wstr, int n);
 int ui_mvwaddstr_fill(UiSurface *sfc, int w, int y, int x, char *s, int n);
 int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text);
@@ -271,6 +269,8 @@ void ui_doupdate();
 void ui_wnoutrefresh(UiSurface *s, int w);
 int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 void ui_erase();
+int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b);
+cchar_t style_to_cc(UiStyle *style);
 /* @brief backend identification and capability query
    @ingroup ui_backend */
 

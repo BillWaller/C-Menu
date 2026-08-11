@@ -1,5 +1,20 @@
 cmake_minimum_required(VERSION 4.1)
 
+set (CMAKE_C_STANDARD 23)
+SET (CMAKE_C_STANDARD_REQUIRED ON)
+
+set(UI "UAL_UI" CACHE STRING "UI Backend selection: UAL_UI, NOTCURSES_UI, or
+NCURSES_UI")
+set_property(CACHE UI PROPERTY STRINGS UAL_UI NOTCURSES_UI NCURSES_UI)
+
+find_package(PkgConfig REQUIRED)
+
+if(UI STREQUAL "NOTCURSES_UI")
+    pkg_check_modules(UI_DEPS REQUIRED notcurses)
+else()
+    pkg_check_modules(UI_DEPS REQUIRED panelw ncursesw)
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -27,7 +42,6 @@ project(
   VERSION 0.2.9
   LANGUAGES C)
 
-set(CMAKE_C_FLAGS "-Wall -Wextra")
 
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
@@ -42,12 +56,18 @@ configure_file("${PROJECT_SOURCE_DIR}/include/version.h.in"
 install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json"
         DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}")
 
-include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_SOURCE_DIR}/include"
+                    "${PROJECT_SOURCE_DIR}/ui")
+
 set(LIBS ncursesw panelw tinfow m)
 add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c
     ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c)
 set_target_properties(cm PROPERTIES VERSION ${PROJECT_VERSION}
-                                    SOVERSION ${PROJECT_VERSION_MAJOR})
+                                  SOVERSION ${PROJECT_VERSION_MAJOR})
+
+# Apply pkg-config compile flags and link libraries automatically
+target_link_libraries(cm PUBLIC ${UI_DEPS_LIBRARIES})
+target_compile_options(cm PRIVATE ${UI_DEPS_CFLAGS_OTHER})
 
 set(COMMON_SRCS
     cm_fields.c
@@ -65,28 +85,69 @@ set(COMMON_SRCS
 add_library(CMenu OBJECT ${COMMON_SRCS})
 
 add_executable(menu menu.c)
+set_target_properties(menu PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_sources(menu PRIVATE $<TARGET_OBJECTS:CMenu>)
 target_link_libraries(menu cm ${LIBS})
 
+# 4. Conditional UI Code Injection
+# Handles adding conditional UI sources and compile flags
+if(UI STREQUAL "UAL_UI")
+    target_sources(cm PRIVATE
+        ui/ui_ncurses.c
+        ui/ui_ncurses_draw.c
+        ui/ui_ncurses_input.c
+        ui/ui_layout.c
+    )
+    set(CMAKE_C_FLAGS "-Wall -Wextra -DUAL_UI")
+    target_compile_definitions(cm PUBLIC -DUAL_UI -DNCURSES_UI
+        -DUAL_LEGACY_COMPAT)
+    target_compile_definitions(CMenu PUBLIC -DUAL_UI -DNCURSES_UI
+        -DUAL_LEGACY_COMPAT)
+    target_compile_definitions(menu PUBLIC -DUAL_UI -DNCURSES_UI
+        -DUAL_LEGACY_COMPAT)
+
+elseif(UI STREQUAL "NOTCURSES_UI")
+    target_sources(cm PRIVATE
+        ui/ui_notcurses.c
+        ui/ui_notcurses_draw.c
+        ui/ui_notcurses_input.c
+        ui/ui_layout.c
+    )
+    set(CMAKE_C_FLAGS "-Wall -Wextra" -DNOTCURSES_UI)
+    target_compile_definitions(cm PUBLIC -DNOTCURSES_UI)
+    target_compile_definitions(CMenu PUBLIC -DNOTCURSES_UI)
+    target_compile_definitions(menu PUBLIC -DNOTCURSES_UI)
+    target_link_libraries(cm PUBLIC tinfo)
+endif()
+
+
+
 add_executable(enterchr enterchr.c)
+set_target_properties(enterchr PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(enterchr cm ${LIBS})
 
 add_executable(enterstr enterstr.c)
+set_target_properties(enterstr PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(enterstr cm ${LIBS})
 
 add_executable(amort amort.c)
+set_target_properties(amort PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(amort cm ${LIBS})
 
 add_executable(iloan iloan.c)
+set_target_properties(iloan PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(iloan cm ${LIBS})
 
 add_executable(lf lf.c)
+set_target_properties(lf PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(lf cm ${LIBS} -pthread)
 
 add_executable(detach detach.c)
-target_link_libraries(lf cm ${LIBS})
+set_target_properties(detach PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
+target_link_libraries(detach cm ${LIBS})
 
 add_executable(rsh rsh.c)
+target_link_libraries(rsh)
 
 add_executable(rsh_static rsh.c)
 target_link_options(rsh_static PRIVATE -static)
@@ -109,9 +170,11 @@ install(
       SETGID)
 
 add_executable(stripansi stripansi.c)
+set_target_properties(stripansi PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(stripansi cm ${LIBS})
 
 add_executable(whence whence.c)
+set_target_properties(whence PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(whence cm ${LIBS})
 
 install(

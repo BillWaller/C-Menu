@@ -221,7 +221,7 @@ int view_cmd_processor(Init *init) {
     int search_cmd = 0;
     int prev_search_cmd = 0;
     int rc, i;
-    bool ans;
+    bool ans = true;
     ssize_t bytes_written;
     char *e;
     char shell_cmd_spec[MAXLEN];
@@ -642,7 +642,7 @@ int view_cmd_processor(Init *init) {
         case 'Q':
         case KEY_F(9):
         case '\033':
-            ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &sp, 1);
+            ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &sp, 1);
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = nullptr;
             return 0;
@@ -749,9 +749,9 @@ int get_cmd_char(View *view, off_t *n) {
     pad_refresh(view);
     ui_curs_set(1);
     ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
-    ui_bkgrndset(sfc, CMDLN, &CC_IND);
+    ui_bkgdset(sfc, CMDLN, &style_ind);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
-    ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
+    ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
     while (1) {
         if (i == 1 && !once) {
@@ -759,7 +759,7 @@ int get_cmd_char(View *view, off_t *n) {
             view->curx = 0;
             ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
             ui_wclrtoeol(sfc, CMDLN);
-            ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
+            ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
             ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx + 1, (chtype)c);
         }
         ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
@@ -855,14 +855,14 @@ int get_cmd_char(View *view, off_t *n) {
     if (cmd_str[0] == '\0') {
         *n = 0;
         view->cmd_arg[0] = '\0';
-        ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx + 1, &sp, 1);
+        ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx + 1, &sp, 1);
         ui_wclrtoeol(sfc, CMDLN);
         return (c);
     }
     *n = atol(cmd_str);
     view->cmd_arg[0] = '\0';
     ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
-    ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx + 1, &sp, 1);
+    ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx + 1, &sp, 1);
     ui_wclrtoeol(sfc, CMDLN);
     return (c);
 }
@@ -892,16 +892,16 @@ int get_cmd_arg(View *view, char *prompt) {
         return 0;
     ui_cursor_move(sfc, CMDLN, view->cmd_line, 0);
     if (prompt_l > 1) {
-        ui_bkgrndset(sfc, CMDLN, &CC_NT_REV);
+        ui_bkgdset(sfc, CMDLN, &style_nt_rev);
         ui_waddstr(sfc, CMDLN, prompt_s);
-        ui_bkgrndset(sfc, CMDLN, &CC_NT);
+        ui_bkgdset(sfc, CMDLN, &style_nt);
     }
     view->curx = prompt_l;
     ui_wclrtoeol(sfc, CMDLN);
     pad_refresh(view);
     // ui_update_panels();
     ui_curs_set(1);
-    ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
+    ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &ran, 1);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
     // ui_doupdate();
     ui_render(ui_runtime);
@@ -1431,7 +1431,7 @@ void display_line(View *view) {
     }
     ui_cursor_move(sfc, PAD, view->cury, 0);
     ui_wclrtoeol(sfc, PAD);
-    ui_mvwadd_wchstr(sfc, PAD, view->cury, 0, view->cmplx_buf);
+    ui_mvwadd_cellstr(sfc, PAD, view->cury, 0, view->cmplx_buf);
     if (view->cury == 0)
         view->page_top_ln_no = view->ln_no;
     if (view->cury == view->scroll_lines - 1)
@@ -1472,7 +1472,7 @@ void display_split_line(View *view) {
         }
         ui_cursor_move(sfc, PAD, view->cury, 0);
         ui_wclrtoeol(sfc, PAD);
-        wadd_wchnstr(view->sfc->mwin[PAD], view->cur.sl_cc[i], view->cur.sl_cells[i]);
+        ui_wadd_cellnstr(sfc, PAD, view->cur.sl_cc[i], view->cur.sl_cells[i]);
         if (view->cury == 0) {
             view->page_top_ln_no = view->ln_no;
             view->page_top_sl = true;
@@ -2557,14 +2557,14 @@ int display_prompt(View *view, char *s) {
     ui_cursor_move(sfc, CMDLN, view->cmd_line, 0);
     if (l != 0) {
         ui_wclrtoeol(sfc, CMDLN);
-        // ui_bkgrndset(sfc, CMDLN, &CC_NT_HL_REV);
-        // ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, 0, &ran, 1);
-        // ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, 0, &sp, 1);
-        ui_bkgrndset(sfc, CMDLN, &CC_NT_REV);
+        // ui_bkgdset(sfc, CMDLN, &style_nt_hl_rev);
+        // ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, 0, &ran, 1);
+        // ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, 0, &sp, 1);
+        ui_bkgdset(sfc, CMDLN, &style_nt_rev);
         ui_mvwaddstr(sfc, CMDLN, view->cmd_line, 0, " ");
         ui_mvwaddstr(sfc, CMDLN, view->cmd_line, 1, message_str);
         ui_waddstr(sfc, CMDLN, " ");
-        ui_bkgrndset(sfc, CMDLN, &CC_NT);
+        ui_bkgdset(sfc, CMDLN, &style_nt);
         ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
         ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
     }

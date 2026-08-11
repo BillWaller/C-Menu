@@ -50,49 +50,20 @@ struct UiRuntime {
    moving the plane off-screen when hidden and restoring it when shown.
 */
 
-struct UiRGBA {
-    union {
-        struct {
-            uint8_t b; // blue             LSB (Little Endian order)
-            uint8_t g; // green
-            uint8_t r; // red
-            uint8_t a; // alpha            MSB
-        };
-        uint32_t rgba; // 0xAARRGGBB  alpha, red, green, blue
-    };
-};
-
-struct UiColorPair {
-    uint32_t fg; //       4-bytes
-    uint32_t bg; //       4-bytes
-}; // total 8-bytes
-
-struct UiCell {
-    char gcluster[5]; // 4-bytes for UTF-8 + null terminator;
-    int stylemask;
-    union {
-        struct {
-            struct UiRGBA fg; // foreground color 4-bytes
-            struct UiRGBA bg; // background color 4-bytes
-        };
-        uint64_t channels;
-    };
-};
-
 struct UiSurface {
     union {
         struct {
-            NcPlane *box;
-            NcPlane *win;
-            NcPlane *win2;
-            NcPlane *lnno;
-            NcPlane *cmdln;
-            NcPlane *pad;
-            NcPlane *plane1;
-            NcPlane *plane2;
+            struct NcPlane *box;
+            struct NcPlane *win;
+            struct NcPlane *win2;
+            struct NcPlane *lnno;
+            struct NcPlane *cmdln;
+            struct NcPlane *pad;
+            struct NcPlane *plane1;
+            struct NcPlane *plane2;
         };
         struct {
-            NcPlane *mplane[8];
+            struct NcPlane *mplane[8];
         };
     };
     struct UiRuntime *runtime;
@@ -106,10 +77,84 @@ struct UiSurface {
     char title[XLEN];
 };
 
+// struct NcCell {
+//     uint32_t gcluster;         // 0  3   4  little endian EGC
+//     uint8_t gcluster_backstop; // 4  1   5  (8 bits of zero)
+//     uint8_t width;             // 5  1   6  (8 bits of EGC column width)
+//     uint16_t stylemask;        // 6  2   8  (16 bits of NCSTYLE_* attributes)
+//     uint64_t channels;         // 8  8  16  (fg/bg, alpha, palette index,
+//     uadrant)
+// };
+
+union UiChannels {
+    struct {
+        struct {
+            uint8_t f_b, f_g, f_r, f_a;
+        };
+        struct {
+            uint8_t b_b, b_g, b_r, b_a;
+        };
+    };
+    struct {
+        uint32_t chan[2];
+    };
+    struct {
+        uint64_t chans;
+    };
+};
+
+union UiGCluster {
+    struct {
+        uint8_t c[4]; // 4-bytes for UTF-8
+        uint8_t t;    // 1-byte terminator
+    };
+    uint8_t gc[5];
+};
+
+struct UiStyle {
+    union UiGCluster gclust;   // 0 -  4   little endian EGC
+    uint8_t width;             // 5 -  5   (8 bits of EGC column width)
+    uint16_t stylemask;        // 6 -  7   2-bytes
+    union UiChannels channels; // 8 - 15   8 bytes
+};
+
+#define NCALPHA_HIGHCONTRAST 0x30000000ull
+#define NCALPHA_TRANSPARENT 0x20000000ull
+#define NCALPHA_BLEND 0x10000000ull
+#define NCALPHA_OPAQUE 0x00000000ull
+#define NCCHANNELS_FOREGROUND_ALPHA_MASK 0x3000000000000000ull
+#define NCCHANNELS_FOREGROUND_DEFAULT 0x4000000000000000ull
+#define NCCHANNELS_FOREGROUND_QUADRANT_UL 0x8000000000000000ull
+#define NCCHANNELS_FOREGROUND_QUADRANT_LR 0x0100000000000000ull
+#define NCCHANNELS_FOREGROUND_QUADRANT_LL 0x0200000000000000ull
+#define NCCHANNELS_FOREGROUND_QUADRANT_UR 0x0400000000000000ull
+#define NCCHANNELS_FOREGROUND_PALETTE 0x0800000000000000ull
+#define NCCHANNELS_FOREGROUND_MASK 0x00ffffff00000000ull
+#define NCCHANNELS_BACKGROUND_ALPHA_MASK 0x0000000030000000ull
+#define NCCHANNELS_BACKGROUND_DEFAULT 0x0000000040000000ull
+#define NCCHANNELS_RESERVED1 0x0000000080000000ull
+#define NCCHANNELS_RESERVED2 0x0000000007000000ull
+#define NCCHANNELS_BACKGROUND_PALETTE 0x0000000008000000ull
+#define NCCHANNELS_BACKGROUND_MASK 0x0000000000ffffffull
+// (channels & 0x3000000000000000ull): foreground alpha (2 bits)
+// (channels & 0x4000000000000000ull): foreground is *not* "default color"
+// (channels & 0x8000000000000000ull): blitted to upper-left quadrant
+// (channels & 0x0100000000000000ull): blitted to lower-right quadrant
+// (channels & 0x0200000000000000ull): blitted to lower-left quadrant
+// (channels & 0x0400000000000000ull): blitted to upper-right quadrant
+// (channels & 0x0800000000000000ull): foreground uses palette index
+// (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
+// (channels & 0x0000000080000000ull): reserved, must be 0
+// (channels & 0x0000000040000000ull): background is *not* "default color"
+// (channels & 0x0000000030000000ull): background alpha (2 bits)
+// (channels & 0x0000000008000000ull): background uses palette index
+// (channels & 0x0000000007000000ull): reserved, must be 0
+// (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
 /* Internal style helpers */
-int ui_bkgrnd(UiSurface *s, int w, const UiStyle *style, const char *c);
-uint64_t ui_notcurses_channels_from_style(const UiStyle *style);
-uint32_t ui_notcurses_attrs_from_style(const UiStyle *style);
-NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni);
+
+int ui_bkgrnd(struct UiSurface *s, int w, const struct UiStyle *style, const char *c);
+uint64_t ui_notcurses_channels_from_style(const struct UiStyle *style);
+uint32_t ui_notcurses_attrs_from_style(const struct UiStyle *style);
+struct NcPlane *ncplane_clicked(struct NcPlane *pile_member, ncinput *ni);
 
 #endif

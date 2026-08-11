@@ -122,17 +122,11 @@ int ui_get_event(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev,
         if (getmouse(&me) == OK) {
             ev->y = me.y;
             ev->x = me.x;
-#ifdef BUTTON4_PRESSED
             if (me.bstate & BUTTON4_PRESSED)
                 ev->mouse_action = UI_MOUSE_SCROLL_UP;
-            else
-#endif
-#ifdef BUTTON5_PRESSED
-                if (me.bstate & BUTTON5_PRESSED)
+            else if (me.bstate & BUTTON5_PRESSED)
                 ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
-            else
-#endif
-                if (me.bstate & BUTTON1_PRESSED)
+            else if (me.bstate & BUTTON1_PRESSED)
                 ev->mouse_action = UI_MOUSE_PRESS;
             else if (me.bstate & BUTTON1_RELEASED)
                 ev->mouse_action = UI_MOUSE_RELEASE;
@@ -179,7 +173,8 @@ int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int ti
                 ev->mouse_action = UI_MOUSE_SCROLL_UP;
             else if (me.bstate & BUTTON5_PRESSED)
                 ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
-            else if (me.bstate & BUTTON1_CLICKED || me.bstate & BUTTON1_DOUBLE_CLICKED) {
+            else if (me.bstate & BUTTON1_CLICKED ||
+                     me.bstate & BUTTON1_DOUBLE_CLICKED) {
                 ev->mouse_action = UI_MOUSE_PRESS;
                 for (i = 0; i < 4; i++) {
                     if (sfc->mwin[i] != NULL &&

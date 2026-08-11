@@ -45,12 +45,20 @@ struct UiColorPair {
     int bg;
 };
 
-struct UiRGBA {
-    union {
+union UiChannels {
+    struct {
         struct {
-            uint8_t b, g, r, a;
+            uint8_t f_b, f_g, f_r, f_a;
         };
-        uint32_t argb;
+        struct {
+            uint8_t b_b, b_g, b_r, b_a;
+        };
+    };
+    struct {
+        uint32_t chan[2];
+    };
+    struct {
+        uint64_t chans;
     };
 };
 
@@ -157,13 +165,14 @@ struct UiStyle *ui_style_new(void);
 struct UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const char *str);
 struct UiStyle *ui_style_copy(const struct UiStyle *src);
 
-int ui_wadd_wchstr(struct UiSurface *s, int w, UiCell *cmplx_buf);
-int ui_wadd_wch(struct UiSurface *s, int w, UiCell *cc);
-int ui_mvwadd_wch(struct UiSurface *s, int w, int y, int x, UiCell *cc);
-int ui_mvwadd_wchnstr(struct UiSurface *s, int w, int y, int x, UiCell *cmplx_buf, int n);
-int ui_mvwadd_wchstr(struct UiSurface *s, int w, int y, int x, UiCell *cmplx_buf);
-int ui_bkgrnd(struct UiSurface *s, int w, const UiCell *c);
-int ui_bkgrndset(struct UiSurface *s, int w, const UiCell *c);
+int ui_wadd_cell(struct UiSurface *s, int w, UiCell *cc);
+int ui_mvwadd_cell(struct UiSurface *s, int w, int y, int x, UiCell *cc);
+int ui_wadd_cellstr(struct UiSurface *s, int w, UiCell *cmplx_buf);
+int ui_wadd_cellnstr(struct UiSurface *s, int w, UiCell *cmplx_buf, int n);
+int ui_mvwadd_cellstr(struct UiSurface *s, int w, int y, int x, UiCell *cmplx_buf);
+int ui_mvwadd_cellnstr(struct UiSurface *s, int w, int y, int x, UiCell *cmplx_buf, int n);
+int ui_bkgrnd(WINDOW *win, const struct UiStyle *style);
+int ui_bkgrndset(WINDOW *win, const struct UiStyle *style);
 int ui_setcchar(UiCell *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts);
 
 #endif

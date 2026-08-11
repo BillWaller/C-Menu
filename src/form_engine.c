@@ -89,8 +89,6 @@ int init_form(Init *init, int argc, char **argv, int begy, int begx) {
     }
     if (form->title[0] == '\0')
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
-    form->brktl = mkcc(cp_brackets, WA_NORMAL, &form->brackets[0]);
-    form->brktr = mkcc(cp_brackets, WA_NORMAL, &form->brackets[1]);
     rc = form_engine(init);
     UiSurface *sfc = ui_surface[sfc_ptr];
     destroy_chyron(form->chyron);
@@ -567,9 +565,9 @@ unsigned int display_form(Init *init) {
         if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
             flin = form->field[form->fidx]->line + 1;
             fcol = form->field[form->fidx]->col;
-            ui_mvwadd_wch(sfc, BOX, flin, fcol, &form->brktl);
+            ui_mvwadd_style(sfc, BOX, flin, fcol, &style_brktl);
             fcol += form->field[form->fidx]->len + 1;
-            ui_mvwadd_wch(sfc, BOX, flin, fcol, &form->brktr);
+            ui_mvwadd_style(sfc, BOX, flin, fcol, &style_brktr);
         }
     }
     for (n = 0; n < form->dcnt; n++) {
@@ -623,12 +621,12 @@ void form_display_fields(Form *form) {
         pos = 0;
         mb_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, &pos, form->field[form->fidx]->len + 1);
         UiSurface *sfc = ui_surface[sfc_ptr];
-        ui_mvwadd_wchstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
+        ui_mvwadd_cellstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
 
         pos = 0;
         mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, &pos, form->field[form->fidx]->len + 1);
 
-        ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
+        ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         ui_render(ui_runtime);
     }
     return;

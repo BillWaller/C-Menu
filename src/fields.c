@@ -371,7 +371,7 @@ int form_display_field_n(Form *form, int n) {
 }
 void display_field(cchar_t *cmplx_buf, int y, int x) {
     UiSurface *sfc = ui_surface[sfc_ptr];
-    ui_mvwadd_wchstr(sfc, WIN, y, x, cmplx_buf);
+    ui_mvwadd_cellstr(sfc, WIN, y, x, cmplx_buf);
 }
 /** @brief Display current field
     @ingroup field_editor
@@ -389,10 +389,10 @@ int form_display_field(Form *form) {
     UiSurface *sfc = ui_surface[sfc_ptr];
     int y = form->field[form->fidx]->line;
     int x = form->field[form->fidx]->col;
-    ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
+    ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt, &pos,
              form->field[form->fidx]->len);
-    ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
+    ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
     return 0;
 }
 int form_display_accept_field(Form *form) {

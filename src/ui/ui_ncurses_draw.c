@@ -121,6 +121,9 @@ int ui_draw_text_fill(UiSurface *s, int w, int y, int x, const UiStyle *style, c
     return 0;
 }
 // ---------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // Wide Character Strings (wstr)
 // ---------------------------------------------------------------------------
 int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr, int n) {
@@ -140,7 +143,9 @@ int ui_mvwaddnwstr(UiSurface *s, int w, int y, int x, const UiStyle *style, cons
     return 0;
 }
 // -------------------------------------------------------------------------
-// Text - Sanstyle
+// NCURSES COMPATIBILITY FUNCTIONS
+// -------------------------------------------------------------------------
+// Text - Sanstyle - These should probably be implemented as macros
 // -------------------------------------------------------------------------
 int ui_waddstr(UiSurface *s, int w, const char *text) {
     if (!s || !s->mwin[w] || !text)
@@ -202,40 +207,66 @@ int ui_mvwaddstr_fill(UiSurface *s, int w, int y, int x, char *str, int l) {
     return 0;
 }
 // ---------------------------------------------------------------------------
+// Wide Characters (wchar_t *wstr)
+// ---------------------------------------------------------------------------
+// text string
+int ui_mvwaddwstr(UiSurface *s, int w, int y, int x, const wchar_t *wstr) {
+    if (!s || !s->mwin[w] || !wstr)
+        return -1;
+    //  if (style)
+    //      ui_ncurses_style_apply(s, w, style);
+    mvwaddwstr(s->mwin[w], y, x, wstr);
+    return 0;
+}
+// ---------------------------------------------------------------------------
 // Complex Characters (cc)
 // ---------------------------------------------------------------------------
 /** cc character single      */
-int ui_wadd_wch(UiSurface *s, int w, UiCell *cc) {
+int ui_wadd_cell(UiSurface *s, int w, UiCell *cc) {
     if (!s || !cc)
         return -1;
     wadd_wch(s->mwin[w], cc);
     return 0;
 }
-int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, UiCell *cc) {
+int ui_mvwadd_cell(UiSurface *s, int w, int y, int x, UiCell *cc) {
     if (!s || !cc)
         return -1;
     mvwadd_wch(s->mwin[w], y, x, cc);
     return 0;
 }
 //  cc string
-int ui_wadd_wchstr(UiSurface *s, int w, UiCell *cmplx_buf) {
+int ui_wadd_cellstr(UiSurface *s, int w, UiCell *cmplx_buf) {
     if (!s || !cmplx_buf)
         return -1;
     wadd_wchstr(s->mwin[w], cmplx_buf);
     return 0;
 }
 //  cc string
-int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, UiCell *cmplx_buf) {
+int ui_mvwadd_cellstr(UiSurface *s, int w, int y, int x, UiCell *cmplx_buf) {
     if (!s || !cmplx_buf)
         return -1;
     mvwadd_wchstr(s->mwin[w], y, x, cmplx_buf);
     return 0;
 }
 //  cc string - limit length
-int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, UiCell *cmplx_buf, int n) {
+int ui_wadd_cellnstr(UiSurface *s, int w, UiCell *cmplx_buf, int n) {
+    if (!s || !cmplx_buf)
+        return -1;
+    wadd_wchnstr(s->mwin[w], cmplx_buf, n);
+    return 0;
+}
+int ui_mvwadd_cellnstr(UiSurface *s, int w, int y, int x, UiCell *cmplx_buf, int n) {
     if (!s || !cmplx_buf)
         return -1;
     mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, n);
+    return 0;
+}
+int ui_mvwadd_style(UiSurface *s, int w, int y, int x, const UiStyle *style) {
+    if (!s || !style || style->wstr[0] == L'\0')
+        return -1;
+    UiCell cc = {0};
+    setcchar(&cc, style->wstr, style->attrs, style->cp, nullptr);
+    ui_mvwadd_cell(s, w, y, x, &cc);
     return 0;
 }
 // ---------------------------------------------------------------------------
@@ -360,6 +391,19 @@ int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style,
     mvwaddstr(s->mwin[w], 0, x, title);
     return 0;
 }
+
+cchar_t style_to_cc(UiStyle *style) {
+    UiCell cc = {0};
+    if (!style)
+        return cc;
+    if (style->wstr[0] == L'\0' || style->wstr[0] == L' ') {
+        style->wstr[0] = L' ';
+        style->wstr[1] = L'\0';
+    }
+    setcchar(&cc, style->wstr, style->attrs, style->cp, nullptr);
+    return cc;
+}
+
 /** @brief Convert a multibyte string to a complex character array. */
 int mbstr_to_cc(char *in_str, UiCell *cmplx_buf_s) {
     char ansi_tok[MAXLEN];

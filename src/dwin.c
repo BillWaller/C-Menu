@@ -125,6 +125,7 @@ const wchar_t bw_da = BW_DA;   /**< down arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
 const wchar_t bw_chk = BW_CHK; /**< check mark */
 
+#ifdef OBSOLETE
 cchar_t CC_BOX;
 cchar_t CC_CMDLN;
 cchar_t CC_IND;
@@ -143,6 +144,7 @@ cchar_t CC_RED;
 cchar_t CC_GREEN;
 cchar_t CC_YELLOW;
 cchar_t CC_BLUE;
+#endif
 
 UiStyle style_default;
 UiStyle style_fill_char;
@@ -221,7 +223,7 @@ int tty_fd, pipe_in, pipe_out;
     3. replaces STDERR_FILENO with terminal file descriptor
     @endcode */
 
-#ifdef ASDFJKL
+#ifdef OBSOLETE
 bool open_curses(SIO *sio) {
     char tmp_str[MAXLEN];
     char emsg0[MAXLEN];
@@ -322,7 +324,7 @@ void initialize_local_colors(SIO *sio) {
     //
     // cchar_t Used to set foreground/background color pairs and attributes
     //
-#ifdef NCURSES_UI
+#ifdef OBSOLETE
     CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
     CC_BRKTL = mkcc(cp_brackets, WA_NORMAL, " ");
     CC_BRKTR = mkcc(cp_brackets, WA_NORMAL, " ");
@@ -348,8 +350,8 @@ void initialize_local_colors(SIO *sio) {
     style_default = ui_style_from_hex("#d0d0d0", "#000000", WA_NORMAL, " ");
     style_fill_char = ui_style_from_hex(sio->fill_char_fg, sio->fill_char_bg, WA_NORMAL, " ");
     char brktl[2] = {sio->brackets[0], '\0'};
-    char brktr[2] = {sio->brackets[1], '\0'};
     style_brktl = ui_style_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktl);
+    char brktr[2] = {sio->brackets[1], '\0'};
     style_brktr = ui_style_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktr);
     style_nt = ui_style_from_hex(sio->nt_fg, sio->nt_bg, WA_NORMAL, " ");
     style_nt_rev = ui_style_from_hex(sio->nt_rev_fg, sio->nt_rev_bg, WA_NORMAL, " ");
@@ -955,7 +957,8 @@ int border_ysplit_text(UiSurface *sfc, char *text, int separator_line) {
     // Clearly, this is a bit hacky, but it works. We want to draw the
     // horizontal line with text in the middle, so we start by drawing the left
     // edge, then the text, then the right edge, and finally fill in the
-    // horizontal line on either side of the text. ui_mvwadd_wchnstr(sfc->box, y, x++,
+    // horizontal line on either side of the text. ui_mvwadd_cellnstr(sfc->box,
+    // y, x++,
     // &lt, 1);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_lt, 1);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_ho, 1);
@@ -1445,7 +1448,7 @@ void display_chyron(UiSurface *sfc, int w, Chyron *chyron, int line, int col) {
     ui_cursor_move(sfc, w, line, 0);
     ui_wclrtoeol(sfc, w);
     ui_cursor_move(sfc, w, line, 0);
-    ui_mvwadd_wchstr(sfc, w, line, 0, chyron->cmplx_buf);
+    ui_mvwadd_cellstr(sfc, w, line, 0, chyron->cmplx_buf);
     ui_cursor_move(sfc, w, line, col);
     return;
 }

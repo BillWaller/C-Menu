@@ -58,7 +58,7 @@ int init_view_full_screen(Init *init) {
         Perror(em0);
         return -1;
     }
-    ui_bkgrnd(view->sfc, WIN, &CC_NT);
+    ui_bkgd(view->sfc, WIN, &style_nt);
     // -------------------> 2. LNNO <-------------------
     ui_surface_addwin(view->sfc, LNNO, WIN, view->scroll_lines, view->ln_win_cols, 0, 0);
     if (view->sfc->lnno == nullptr) {
@@ -66,7 +66,7 @@ int init_view_full_screen(Init *init) {
         Perror(em0);
         return -1;
     }
-    ui_bkgrnd(view->sfc, LNNO, &CC_LN);
+    ui_bkgd(view->sfc, LNNO, &style_ln);
     ui_render(ui_runtime);
     ui_scrollok(view->sfc, LNNO, true);
     ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
@@ -77,7 +77,7 @@ int init_view_full_screen(Init *init) {
         Perror(em0);
         return -1;
     }
-    ui_bkgrnd(view->sfc, CMDLN, &CC_NT);
+    ui_bkgd(view->sfc, CMDLN, &style_nt);
     ui_keypad(view->sfc, CMDLN, true);
     ui_idlok(view->sfc, CMDLN, false);
     ui_idcok(view->sfc, CMDLN, false);
@@ -158,13 +158,13 @@ int init_view_boxwin(Init *init) {
     view->sfc = ui_box_surface_new(ui_runtime, NULL, 0, view->lines, view->cols, view->begy, view->begx, NULL);
     // -------------------> 2. LNNO <-------------------
     ui_surface_addwin(view->sfc, LNNO, WIN, view->lines - 1, view->ln_win_cols, 0, 0);
-    ui_bkgrnd(view->sfc, LNNO, &CC_LN);
-    ui_bkgrndset(view->sfc, LNNO, &CC_LN);
+    ui_bkgd(view->sfc, LNNO, &style_ln);
+    ui_bkgdset(view->sfc, LNNO, &style_ln);
     ui_scrollok(view->sfc, LNNO, true);
     ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
     // -------------------> 3. CMDLN <-------------------
     ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->lines - 1, 0);
-    ui_bkgrnd(view->sfc, CMDLN, &CC_NT);
+    ui_bkgd(view->sfc, CMDLN, &style_nt);
     ui_keypad(view->sfc, CMDLN, true);
     ui_idlok(view->sfc, CMDLN, false);
     ui_idcok(view->sfc, CMDLN, false);

@@ -35,7 +35,7 @@ static inline int nc_scale_1000(uint8_t v) {
  * Allocate (or find) an extended NCurses color index for an RGB triple.
  * Returns the color index, or -1 on failure.
  */
-static int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b) {
+int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b) {
     int r1000 = nc_scale_1000(r);
     int g1000 = nc_scale_1000(g);
     int b1000 = nc_scale_1000(b);
@@ -113,7 +113,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     }
     ui->panel_main = new_panel(stdscr);
 
-    wbkgrnd(stdscr, &CC_NT);
+    ui_bkgrnd(stdscr, &style_nt);
     if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
 
@@ -167,13 +167,6 @@ void ui_get_screen_size(UiRuntime *ui, int *lines, int *cols) {
         *lines = ui->lines;
     if (cols)
         *cols = ui->cols;
-}
-
-int ui_render(UiRuntime *ui) {
-    (void)ui;
-    update_panels();
-    doupdate();
-    return 0;
 }
 
 int ui_clear_screen(UiRuntime *ui) {
@@ -500,17 +493,19 @@ int ui_bkgdset(UiSurface *s, int w, const UiStyle *style) {
     return 0;
 }
 // for the entire window
-int ui_bkgrnd(UiSurface *s, int w, const UiCell *cc) {
-    if (!s)
+int ui_bkgrnd(WINDOW *win, const UiStyle *style) {
+    if (!win)
         return -1;
-    wbkgrnd(s->mwin[w], cc);
+    UiCell cc = ui_style_to_cch(style);
+    wbkgrnd(win, &cc);
     return 0;
 }
 // for new content to be written to the window
-int ui_bkgrndset(UiSurface *s, int w, const UiCell *cc) {
-    if (!s)
+int ui_bkgrndset(WINDOW *win, const UiStyle *style) {
+    if (!win)
         return -1;
-    wbkgrndset(s->mwin[w], cc);
+    UiCell cc = ui_style_to_cch(style);
+    wbkgrndset(win, &cc);
     return 0;
 }
 /* ------------------------------------------------------------------------- */
@@ -519,6 +514,12 @@ void ui_qiflush() {
 }
 int ui_setcchar(UiCell *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts) {
     return setcchar(wch, wc, attrs, pair, opts);
+}
+int ui_render(UiRuntime *ui) {
+    (void)ui;
+    update_panels();
+    doupdate();
+    return 0;
 }
 void ui_update_panels() {
     update_panels();

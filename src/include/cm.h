@@ -362,6 +362,7 @@ typedef struct {
     ChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
     char s[MAXLEN];              /**< the chyron string, for displaying messages in */
     cchar_t cmplx_buf[MAXLEN];   /**< the chyron wide character string */
+                                 //  wchar_t wstr[MAXLEN];        /**< the chyron wide character string */
     int l;                       /**< length of the chyron string, for display purposes */
 } Chyron;
 
@@ -494,6 +495,7 @@ extern char *get_user_str(char *, size_t);
 extern char *get_ip_addresses(char *, int);
 extern bool is_newer(char *, char *);
 
+#ifdef OBSOLETE
 extern cchar_t CC_BOX;
 extern cchar_t CC_CMDLN;
 extern cchar_t CC_IND;
@@ -512,6 +514,7 @@ extern cchar_t CC_RED;
 extern cchar_t CC_GREEN;
 extern cchar_t CC_YELLOW;
 extern cchar_t CC_BLUE;
+#endif
 
 extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define KEY_ALTF0 0x138

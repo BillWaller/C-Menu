@@ -27,7 +27,6 @@ int popup_ckeys() {
     int c;
     char action[MAXLEN];
     char tmp[MAXLEN];
-    MEVENT event;
     char *s;
     int maxy, maxx;
     ui_get_screen_size(ui_runtime, &maxy, &maxx);
@@ -449,7 +448,7 @@ int popup_ckeys() {
             strnz__cpy(kstr, "KEY_ALTF12 alt+F12", KSTRLEN - 1);
             break;
         case KEY_MOUSE:
-            switch (event.bstate) {
+            switch (ev.bstate) {
             case BUTTON1_PRESSED:
                 strnz__cpy(action, "Button 1 pressed", KSTRLEN - 1);
                 break;
@@ -508,11 +507,11 @@ int popup_ckeys() {
             ui_mvwaddstr(sfc, WIN, 6, 16, action);
             ui_wclrtoeol(sfc, WIN);
             strnz__cpy(tmp, "  With Key:", MAXLEN - 1);
-            if (event.bstate & BUTTON_SHIFT)
+            if (ev.bstate & BUTTON_SHIFT)
                 strnz__cat(tmp, " Shift", MAXLEN - 1);
-            if (event.bstate & BUTTON_CTRL)
+            if (ev.bstate & BUTTON_CTRL)
                 strnz__cat(tmp, " Ctrl", MAXLEN - 1);
-            if (event.bstate & BUTTON_ALT)
+            if (ev.bstate & BUTTON_ALT)
                 strnz__cat(tmp, " Alt", MAXLEN - 1);
             ui_mvwaddstr(sfc, WIN, 3, 4, tmp);
             ui_wclrtoeol(sfc, WIN);
