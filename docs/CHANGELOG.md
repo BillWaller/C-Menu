@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-11T15:24:50-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for UI Backends. Updated CMakeLists.txt and GNUMakefile to include new source files for UAL. The project builds successfully with no errors or warnings. With C-Menu's current feature set, we can and will achieve 100% parity whether C-Menu is built with NCurses or NotCurses before adding backend-specific feature implementations. 
+
+*2026-08-10T14:21:18-05:00* - Update CHANGELOG.md 
+
 *2026-08-10T13:58:58-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for UI Backends. I thought I knew Ncurses pretty well, but digging into the internals of Ncurses and Notcurses side-by-side has been enlightening. I have tremendous respect for the developers of both libraries. NCurses is solid and battle-tested, but Notcurses is a more modern and flexible library that can do things that NCurses cannot. The goal of this project is to create a uniform abstraction layer (UAL) that allows developers to write code that can work with both NCurses and Notcurses without having to worry about the differences between the two libraries. This will make it easier for developers to write code that can work with both libraries, and will also make it easier to switch between the two libraries if needed. 
 
 *2026-08-09T17:56:05-05:00* - Update CHANGELOG.md 
