@@ -270,7 +270,9 @@ void ui_wnoutrefresh(UiSurface *s, int w);
 int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 void ui_erase();
 int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b);
+#ifdef UAL_UI
 cchar_t style_to_cc(UiStyle *style);
+#endif
 /* @brief backend identification and capability query
    @ingroup ui_backend */
 

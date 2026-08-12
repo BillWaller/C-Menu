@@ -55,10 +55,11 @@ union UiChannels {
         };
     };
     struct {
-        uint32_t chan[2];
+        uint32_t fg;
+        uint32_t bg;
     };
     struct {
-        uint64_t chans;
+        uint64_t channels;
     };
 };
 

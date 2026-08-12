@@ -113,8 +113,8 @@ static int test_lifecycle(void) {
            caps.unicode, caps.resize, caps.color_pairs);
 
     /* Surface */
-    UiRect rect = {.y = 2, .x = 4, .lines = 5, .cols = 20};
-    UiSurface *s = ui_surface_new(ui, NULL, rect);
+    UiSurface *s = ui_surface_new(ui, BOX, NULL, 0, 5, 20, 2, 4);
+
     if (!s) {
         fprintf(stderr, "FAIL: ui_surface_new() returned NULL\n");
         ui_shutdown(ui);
@@ -123,15 +123,10 @@ static int test_lifecycle(void) {
     printf("PASS: surface created\n");
 
     /* Drawing */
-    UiStyle style = {0};
-    style.fg.r = 255;
-    style.fg.g = 255;
-    style.fg.b = 255;
-    style.bg.r = 0;
-    style.bg.g = 0;
-    style.bg.b = 0;
-    ui_draw_border(s, UI_BORDER_ROUNDED, &style);
-    ui_draw_text(s, 1, 1, &style, "UALUI conformance test");
+    UiStyle style = ui_style_from_hex("#d0d0d0", "#000714", WA_NORMAL, " ");
+
+    ui_draw_border(s, BOX, UI_BORDER_ROUNDED, &style);
+    ui_draw_text(s, BOX, 1, 1, &style, "UALUI conformance test");
     ui_render(ui);
     printf("PASS: surface drawn and rendered\n");
 
@@ -144,8 +139,8 @@ static int test_lifecycle(void) {
         ui_shutdown(ui);
         return 1;
     }
-    ui_draw_border(fs.outer, UI_BORDER_LIGHT, &style);
-    ui_draw_text(fs.inner, 0, 0, &style, "framed surface");
+    ui_draw_border(fs.outer, WIN, UI_BORDER_LIGHT, &style);
+    ui_draw_text(fs.inner, WIN, 0, 0, &style, "framed surface");
     ui_render(ui);
     printf("PASS: framed surface created and drawn\n");
 

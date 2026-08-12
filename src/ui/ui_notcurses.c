@@ -23,7 +23,6 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     UiRuntime *ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
-
     if (cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
         ui->alt_screen = cfg->enable_alt_screen;
@@ -32,7 +31,6 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         ui->cursor_visible = false;
         ui->alt_screen = false;
     }
-
     FILE *tty = NULL;
     if (cfg && cfg->tty_path) {
         tty = fopen(cfg->tty_path, "r+");
@@ -41,7 +39,6 @@ UiRuntime *ui_init(const UiConfig *cfg) {
             return NULL;
         }
     }
-
     struct notcurses_options opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS | (ui->alt_screen ? 0 : NCOPTION_NO_ALTERNATE_SCREEN),
     };
@@ -170,7 +167,7 @@ UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int li
     s->cols = cols;
     s->y = y;
     s->x = x;
-    NcPlaneOptions plane_opts = {
+    ncplane_options plane_opts = {
         .y = y,
         .x = x,
         .rows = lines,
@@ -178,7 +175,7 @@ UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int li
     if (parent && parent->mplane[p]) {
         s->mplane[w] = ncplane_create(parent->mplane[p], &plane_opts);
     } else {
-        NcPlane *stdn = notcurses_stdplane(ui->nc);
+        struct ncplane *stdn = notcurses_stdplane(ui->nc);
         s->mplane[w] = ncplane_create(stdn, &plane_opts);
     }
     if (!s->mplane[w]) {
@@ -206,7 +203,7 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
     s->y = y;
     s->x = x;
 
-    NcPlaneOptions plane_opts = {
+    ncplane_options plane_opts = {
         .y = y,
         .x = x,
         .rows = lines + 2,
@@ -215,7 +212,7 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
     if (parent && parent->mplane[p]) {
         s->mplane[BOX] = ncplane_create(parent->mplane[p], &plane_opts);
     } else {
-        NcPlane *stdn = notcurses_stdplane(ui->nc);
+        struct ncplane *stdn = notcurses_stdplane(ui->nc);
         s->mplane[BOX] = ncplane_create(stdn, &plane_opts);
     }
     if (!s->mplane[BOX]) {
@@ -347,8 +344,9 @@ uint64_t ui_notcurses_channels_from_style(const UiStyle *style) {
     uint64_t channels = 0;
     if (!style)
         return channels;
-    ncchannels_set_fg_rgb8(&channels, style->fg.r, style->fg.g, style->fg.b);
-    ncchannels_set_bg_rgb8(&channels, style->bg.r, style->bg.g, style->bg.b);
+    RGB = style->fgc;
+    ncchannels_set_fg_rgb8(&channels, style->fgc.r, style->fgc.g, style->fgc.b);
+
     return channels;
 }
 

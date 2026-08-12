@@ -120,12 +120,27 @@ int ui_draw_text_fill(UiSurface *s, int w, int y, int x, const UiStyle *style, c
     }
     return 0;
 }
-// ---------------------------------------------------------------------------
-//
-// ---------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// NCURSES COMPATIBILITY FUNCTIONS
 // ---------------------------------------------------------------------------
 // Wide Character Strings (wstr)
 // ---------------------------------------------------------------------------
+int ui_waddwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr) {
+    if (!s || !wstr)
+        return -1;
+    if (style)
+        ui_ncurses_style_apply(s, w, style);
+    waddwstr(s->mwin[w], wstr);
+    return 0;
+}
+int ui_mvwaddwstr(UiSurface *s, int w, int y, int x, const wchar_t *wstr) {
+    if (!s || !s->mwin[w] || !wstr)
+        return -1;
+    //  if (style)
+    //      ui_ncurses_style_apply(s, w, style);
+    mvwaddwstr(s->mwin[w], y, x, wstr);
+    return 0;
+}
 int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr, int n) {
     if (!s || !wstr)
         return -1;
@@ -142,8 +157,6 @@ int ui_mvwaddnwstr(UiSurface *s, int w, int y, int x, const UiStyle *style, cons
     mvwaddnwstr(s->mwin[w], y, x, wstr, n);
     return 0;
 }
-// -------------------------------------------------------------------------
-// NCURSES COMPATIBILITY FUNCTIONS
 // -------------------------------------------------------------------------
 // Text - Sanstyle - These should probably be implemented as macros
 // -------------------------------------------------------------------------
@@ -204,18 +217,6 @@ int ui_mvwaddstr_fill(UiSurface *s, int w, int y, int x, char *str, int l) {
     //  if (style)
     //      ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, tmp_str);
-    return 0;
-}
-// ---------------------------------------------------------------------------
-// Wide Characters (wchar_t *wstr)
-// ---------------------------------------------------------------------------
-// text string
-int ui_mvwaddwstr(UiSurface *s, int w, int y, int x, const wchar_t *wstr) {
-    if (!s || !s->mwin[w] || !wstr)
-        return -1;
-    //  if (style)
-    //      ui_ncurses_style_apply(s, w, style);
-    mvwaddwstr(s->mwin[w], y, x, wstr);
     return 0;
 }
 // ---------------------------------------------------------------------------
@@ -392,7 +393,7 @@ int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style,
     return 0;
 }
 
-cchar_t style_to_cc(UiStyle *style) {
+UiCell style_to_cc(UiStyle *style) {
     UiCell cc = {0};
     if (!style)
         return cc;

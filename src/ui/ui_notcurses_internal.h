@@ -10,8 +10,8 @@
    files — never by application code.
 */
 
-#include "ui_backend.h"
-#include <notcurses/notcurses.h>
+#define _XOPEN_SOURCE_EXTENDED 1
+#define _GNU_SOURCE 1
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -22,9 +22,7 @@
 #define U_VE L'\x2502' /**< vertical line */
 
 typedef struct notcurses NotCurses;
-typedef struct ncplane NcPlane;
 typedef struct notcurses_options NotCursesOptions;
-typedef struct ncplane_options NcPlaneOptions;
 
 /** @struct UiRuntime
    @ingroup ui_notcurses
@@ -53,17 +51,17 @@ struct UiRuntime {
 struct UiSurface {
     union {
         struct {
-            struct NcPlane *box;
-            struct NcPlane *win;
-            struct NcPlane *win2;
-            struct NcPlane *lnno;
-            struct NcPlane *cmdln;
-            struct NcPlane *pad;
-            struct NcPlane *plane1;
-            struct NcPlane *plane2;
+            struct ncplane *box;
+            struct ncplane *win;
+            struct ncplane *win2;
+            struct ncplane *lnno;
+            struct ncplane *cmdln;
+            struct ncplane *pad;
+            struct ncplane *plane1;
+            struct ncplane *plane2;
         };
         struct {
-            struct NcPlane *mplane[8];
+            struct ncplane *mplane[8];
         };
     };
     struct UiRuntime *runtime;
@@ -89,18 +87,19 @@ struct UiSurface {
 union UiChannels {
     struct {
         struct {
-            uint8_t f_b, f_g, f_r, f_a;
-        };
+            uint8_t b, g, r, a;
+        } fgc;
         struct {
-            uint8_t b_b, b_g, b_r, b_a;
-        };
+            uint8_t b, g, r, a;
+        } bgc;
     };
     struct {
-        uint32_t chan[2];
+        uint32_t fg;
+        uint32_t bg;
     };
     struct {
-        uint64_t chans;
-    };
+        uint64_t ui_channels;
+    } l;
 };
 
 union UiGCluster {
@@ -155,6 +154,6 @@ struct UiStyle {
 int ui_bkgrnd(struct UiSurface *s, int w, const struct UiStyle *style, const char *c);
 uint64_t ui_notcurses_channels_from_style(const struct UiStyle *style);
 uint32_t ui_notcurses_attrs_from_style(const struct UiStyle *style);
-struct NcPlane *ncplane_clicked(struct NcPlane *pile_member, ncinput *ni);
+struct NcPlane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni);
 
 #endif
