@@ -11,7 +11,7 @@
 */
 
 #define _XOPEN_SOURCE_EXTENDED 1
-#define _GNU_SOURCE 1
+#include <notcurses/notcurses.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -20,9 +20,12 @@
 #define MAXPLANE 30
 #define MAXSFC 30
 #define U_VE L'\x2502' /**< vertical line */
-
 typedef struct notcurses NotCurses;
 typedef struct notcurses_options NotCursesOptions;
+typedef uint16_t attr_t;
+
+int LINES;
+int COLS;
 
 /** @struct UiRuntime
    @ingroup ui_notcurses
@@ -84,38 +87,87 @@ struct UiSurface {
 //     uadrant)
 // };
 
-union UiChannels {
-    struct {
-        struct {
-            uint8_t b, g, r, a;
-        } fgc;
-        struct {
-            uint8_t b, g, r, a;
-        } bgc;
-    };
-    struct {
-        uint32_t fg;
-        uint32_t bg;
-    };
-    struct {
-        uint64_t ui_channels;
-    } l;
+struct UiColorPair {
+    int fg_idx;
+    int bg_idx;
 };
 
-union UiGCluster {
-    struct {
-        uint8_t c[4]; // 4-bytes for UTF-8
-        uint8_t t;    // 1-byte terminator
+struct UiColor {
+    union {
+        struct {
+            uint8_t b, g, r;
+        };
+        uint32_t rgb;
     };
-    uint8_t gc[5];
 };
+
+union UiChannels {
+    union {
+        struct {
+            union {
+                struct {
+                    uint8_t f_b, f_g, f_r, f_a;
+                };
+                uint32_t fargb;
+            };
+            union {
+                struct {
+                    uint8_t b_b, b_g, b_r, b_a;
+                };
+                uint32_t bargb;
+            };
+        };
+        uint64_t chs;
+    };
+};
+
+typedef uint16_t attr_t;
+#define stylemask attrs;
 
 struct UiStyle {
-    union UiGCluster gclust;   // 0 -  4   little endian EGC
+    union {
+        struct {
+            uint8_t gcluster[4];       // 4-bytes for UTF-8
+            uint8_t gcluster_backstop; // 1-byte terminator
+        } gcluster;
+        uint8_t wstr[5];
+    };
     uint8_t width;             // 5 -  5   (8 bits of EGC column width)
     uint16_t stylemask;        // 6 -  7   2-bytes
     union UiChannels channels; // 8 - 15   8 bytes
 };
+
+#define UISTYLE_MASK NCSTYLE_MASK
+#define UISTYLE_NORMAL NCSTYLE_NONE
+#define UISTYLE_STANDOUT NCSTYLE_UNDERLINE
+#define UISTYLE_UNDERLINE NCSTYLE_UNDERLINE
+#define UISTYLE_REVERSE NCSTYLE_UNDERLINE
+#define UISTYLE_BLINK NCSTYLE_UNDERLINE
+#define UISTYLE_DIM NCSTYLE_UNDERLINE
+#define UISTYLE_BOLD NCSTYLE_BOLD
+#define UISTYLE_ALTCHARSET NCSTYLE_UNDERLINE
+#define UISTYLE_INVIS NCSTYLE_UNDERLINE
+#define UISTYLE_STRUCK NCSTYLE_STRUCK
+#define UISTYLE_PROTECT NCSTYLE_UNDERLINE
+#define UISTYLE_UNDERCURL NCSTYLE_UNDERCURL
+#define UISTYLE_NONE NCSTYLE_NONE
+#define UISTYLE_ITALIC NCSTYLE_UNDERLINE
+
+#define WA_ATTRIBUTES NCSTYLE_MASK
+#define WA_NORMAL NCSTYLE_NONE
+#define WA_STANDOUT NCSTYLE_UNDERLINE
+#define WA_UNDERLINE NCSTYLE_UNDERLINE
+#define WA_REVERSE NCSTYLE_UNDERLINE
+#define WA_BLINK NCSTYLE_UNDERLINE
+#define WA_DIM NCSTYLE_UNDERLINE
+#define WA_BOLD NCSTYLE_BOLD
+#define WA_ALTCHARSET NCSTYLE_UNDERLINE
+#define WA_INVIS NCSTYLE_UNDERLINE
+#define WA_STRUCK NCSTYLE_STRUCK
+#define WA_PROTECT NCSTYLE_UNDERLINE
+#define WA_UNDERCURL NCSTYLE_UNDERCURL
+#define WA_ITALIC NCSTYLE_UNDERLINE
+#define WA_NONE NCSTYLE_NONE
 
 #define NCALPHA_HIGHCONTRAST 0x30000000ull
 #define NCALPHA_TRANSPARENT 0x20000000ull

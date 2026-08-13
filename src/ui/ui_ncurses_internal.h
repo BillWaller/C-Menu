@@ -41,25 +41,31 @@ struct UiRuntime {
 };
 
 struct UiColorPair {
-    int fg;
-    int bg;
+    int fg_idx;
+    int bg_idx;
+};
+
+struct UiColor {
+    uint8_t b, g, r;
 };
 
 union UiChannels {
-    struct {
+    union {
         struct {
-            uint8_t f_b, f_g, f_r, f_a;
+            union {
+                struct {
+                    uint8_t f_b, f_g, f_r, f_a;
+                };
+                uint32_t fbgra;
+            };
+            union {
+                struct {
+                    uint8_t b_b, b_g, b_r, b_a;
+                };
+                uint32_t bbgra;
+            };
         };
-        struct {
-            uint8_t b_b, b_g, b_r, b_a;
-        };
-    };
-    struct {
-        uint32_t fg;
-        uint32_t bg;
-    };
-    struct {
-        uint64_t channels;
+        uint64_t chs;
     };
 };
 
@@ -108,6 +114,22 @@ struct UiStyle {
     attr_t attrs;
     short cp;
 };
+
+#define UISTYLE_MASK WA_ATTRIBUTES
+#define UISTYLE_NORMAL WA_NORMAL
+#define UISTYLE_STANDOUT WA_STANDOUT
+#define UISTYLE_UNDERLINE WA_UNDERLINE
+#define UISTYLE_REVERSE WA_REVERSE
+#define UISTYLE_BLINK WA_BLINK
+#define UISTYLE_DIM WA_DIM
+#define UISTYLE_BOLD WA_BOLD
+#define UISTYLE_ALTCHARSET WA_ALTCHARSET
+#define UISTYLE_INVIS WA_INVIS
+#define UISTYLE_PROTECT WA_PROTECT
+#define UISTYLE_UNDERCURL WA_DIM
+#define UISTYLE_STRUCK WA_INVIS
+#define UISTYLE_NONE WA_NORMAL
+#define UISTYLE_ITALIC WA_ITALIC
 
 #define stdsfc stdscr
 
@@ -163,9 +185,8 @@ void ui_style_destroy(struct UiStyle *);
 struct UiStyle *ui_style_from_cch(const UiCell *);
 UiCell ui_style_to_cch(const struct UiStyle *);
 struct UiStyle *ui_style_new(void);
-struct UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const char *str);
+struct UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
 struct UiStyle *ui_style_copy(const struct UiStyle *src);
-
 int ui_wadd_cell(struct UiSurface *s, int w, UiCell *cc);
 int ui_mvwadd_cell(struct UiSurface *s, int w, int y, int x, UiCell *cc);
 int ui_wadd_cellstr(struct UiSurface *s, int w, UiCell *cmplx_buf);
@@ -174,6 +195,8 @@ int ui_mvwadd_cellstr(struct UiSurface *s, int w, int y, int x, UiCell *cmplx_bu
 int ui_mvwadd_cellnstr(struct UiSurface *s, int w, int y, int x, UiCell *cmplx_buf, int n);
 int ui_bkgrnd(WINDOW *win, const struct UiStyle *style);
 int ui_bkgrndset(WINDOW *win, const struct UiStyle *style);
-int ui_setcchar(UiCell *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts);
+
+int ui_setcchar(UiCell *uc, const wchar_t *wstr, attr_t attrs, short pair, const void *opts);
+int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, short *pair, void *opts);
 
 #endif

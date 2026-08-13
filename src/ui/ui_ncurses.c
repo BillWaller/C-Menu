@@ -14,9 +14,9 @@
 
 #include "cm.h"
 
-#include "ui_ncurses_compat.h"
 #include "ui_ncurses_internal.h"
 #ifdef UAL_LEGACY_COMPAT
+#include "ui_ncurses_compat.h"
 #endif
 #include <locale.h>
 #include <stdint.h>
@@ -31,24 +31,23 @@ static inline int nc_scale_1000(uint8_t v) {
     return (int)((v * 1000) / 255);
 }
 
-/**
- * Allocate (or find) an extended NCurses color index for an RGB triple.
- * Returns the color index, or -1 on failure.
- */
-int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b) {
-    int r1000 = nc_scale_1000(r);
-    int g1000 = nc_scale_1000(g);
-    int b1000 = nc_scale_1000(b);
-    for (int i = 0; i < ui_color_cnt && i < NC_MAX_COLORS; i++) {
-        int cr, cg, cb;
-        extended_color_content(i, &cr, &cg, &cb);
-        if (cr == r1000 && cg == g1000 && cb == b1000)
-            return i;
-    }
-    if (ui_color_cnt >= NC_MAX_COLORS || ui_color_cnt >= COLORS)
-        return -1;
-    init_extended_color(ui_color_cnt, r1000, g1000, b1000);
-    return ui_color_cnt++;
+int ui_extended_color_content(int color, int *r, int *g, int *b) {
+    extended_color_content(color, r, g, b);
+    return 0;
+}
+
+int ui_init_extended_color(int color, int r, int g, int b) {
+    init_extended_color(color, r, g, b);
+    return 0;
+}
+
+int ui_extended_pair_content(int pair, int *fg, int *bg) {
+    extended_pair_content(pair, fg, bg);
+    return 0;
+}
+int ui_init_extended_pair(int pair, int fg, int bg) {
+    init_extended_pair(pair, fg, bg);
+    return 0;
 }
 
 /* -------------------------------------------------------------------------
@@ -87,13 +86,12 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     }
     set_term(ui->screen);
 
-    /* Keep legacy globals in sync when libcm (dwin.c) is linked. */
+/* Keep legacy globals in sync when libcm (dwin.c) is linked. */
+#ifdef UAL_LEGACY_COMPAT
     // screen = ui->screen;
     // tty_fp = ui->tty_fp;
     f_curses_open = true;
-#ifdef UAL_LEGACY_COMPAT
 #endif
-
     if (!has_colors() || !can_change_color()) {
         ui_shutdown(ui);
         return NULL;
@@ -512,9 +510,15 @@ int ui_bkgrndset(WINDOW *win, const UiStyle *style) {
 void ui_qiflush() {
     qiflush();
 }
-int ui_setcchar(UiCell *wch, const wchar_t *wc, attr_t attrs, short pair, const void *opts) {
-    return setcchar(wch, wc, attrs, pair, opts);
+
+int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, short *pair, void *opts) {
+    return getcchar(uc, wstr, attrs, pair, opts);
 }
+
+int ui_setcchar(UiCell *uc, const wchar_t *wstr, attr_t attrs, short pair, const void *opts) {
+    return setcchar(uc, wstr, attrs, pair, opts);
+}
+
 int ui_render(UiRuntime *ui) {
     (void)ui;
     update_panels();
@@ -561,28 +565,6 @@ UiStyle *ui_style_new(void) {
 
 void ui_style_destroy(UiStyle *style) {
     free(style);
-}
-
-UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const char *str) {
-    UiStyle style;
-    RGB rgb;
-    sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int f_idx = rgb_to_curses_clr(&rgb);
-    sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int b_idx = rgb_to_curses_clr(&rgb);
-    style.cp = get_clr_pair(f_idx, b_idx);
-    style.attrs = attrs;
-    if (str && *str) {
-        mbstate_t mbst;
-        memset(&mbst, 0, sizeof(mbst));
-        size_t n = mbrtowc(style.wstr, str, MB_CUR_MAX, &mbst);
-        if (n == (size_t)-1 || n == (size_t)-2) {
-            style.wstr[0] = L' ';
-            n = 1;
-        }
-        style.wstr[n] = L'\0';
-    }
-    return style;
 }
 
 UiStyle *ui_style_copy(const UiStyle *src) {

@@ -341,7 +341,7 @@ int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *sty
 /* -------------------------------------------------------------------------
    Borders
    ------------------------------------------------------------------------- */
-
+#ifdef ASDF
 /** @brief Draw a border around the surface using @p kind style. */
 int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style) {
     if (!s)
@@ -392,7 +392,7 @@ int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style,
     mvwaddstr(s->mwin[w], 0, x, title);
     return 0;
 }
-
+#endif
 UiCell style_to_cc(UiStyle *style) {
     UiCell cc = {0};
     if (!style)

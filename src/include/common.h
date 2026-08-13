@@ -230,7 +230,6 @@ extern void view_full_screen_resize(Init *);
 extern void view_calc_boxwin_dimensions(Init *);
 extern void view_boxwin_resize(Init *);
 extern int process_config_file(char *, Init *);
-extern void initialize_local_colors(SIO *);
 extern void initialize_line_table(View *);
 extern void next_page(View *);
 extern int view_cmd_processor(Init *);

@@ -22,6 +22,7 @@
 #endif
 #ifdef NOTCURSES_UI
 #include "ui_backend.h"
+#include "ui_notcurses_internal.h"
 #include <notcurses/notcurses.h>
 #endif
 #include <signal.h>
@@ -361,7 +362,7 @@ typedef struct {
 typedef struct {
     ChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
     char s[MAXLEN];              /**< the chyron string, for displaying messages in */
-    cchar_t cmplx_buf[MAXLEN];   /**< the chyron wide character string */
+    UiCell cmplx_buf[MAXLEN];    /**< the chyron wide character string */
                                  //  wchar_t wstr[MAXLEN];        /**< the chyron wide character string */
     int l;                       /**< length of the chyron string, for display purposes */
 } Chyron;
@@ -370,23 +371,38 @@ extern void activate_chyron_key(Chyron *, int);
 extern void activate_all_chyron_keys(Chyron *);
 extern void deactivate_chyron_key(Chyron *, int);
 extern void deactivate_all_chyron_keys(Chyron *);
+#ifdef ASDF
 extern int vgetch(WINDOW *, int);
 extern int xwgetch(WINDOW *, Chyron *, int);
 extern int dxwgetch(WINDOW *, WINDOW *, WINDOW *, WINDOW *, WINDOW *, Chyron *, int);
-
-extern int click_y;       /**< the y coordinate of a mouse click */
-extern int click_x;       /**< the x coordinate of a mouse click */
 extern WINDOW *mouse_win; /**< input from window n */
-
-extern Chyron *wait_mk_chyron();
 extern WINDOW *wait_mk_win(Chyron *, char *);
 extern int wait_continue(WINDOW *, Chyron *, int);
+extern WINDOW *message_win(char *);
+// extern PANEL *std_panel;
+// extern WINDOW *win_main;
+// extern PANEL *panel_main;
+extern WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
+extern WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
+extern WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
+extern PANEL *panel_win[MAXWIN];
+extern PANEL *panel_win2[MAXWIN];
+extern PANEL *panel_box[MAXWIN];
+extern void destroy_win(WINDOW *);
+extern void destroy_box(WINDOW *);
+extern void curskeys(WINDOW *);
+extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
+extern void resize_panel(PANEL *, int, int, int, int);
+#endif
+extern int click_y; /**< the y coordinate of a mouse click */
+extern int click_x; /**< the x coordinate of a mouse click */
+
+extern Chyron *wait_mk_chyron();
 extern bool wait_destroy(Chyron *);
 extern bool waitpid_with_timeout(pid_t, int);
 extern int wait_timeout;
 extern bool action_disposition(char *eitle, char *action_str);
 extern int fork_detach_execvp(char **);
-extern WINDOW *message_win(char *);
 extern bool is_hex_str(char *, int);
 extern bool unstr_hex_clr(char *, char *);
 
@@ -414,27 +430,27 @@ typedef struct {
 #define LN_COLOR 4    /**< default line number color */
 #define LN_BG_COLOR 7 /**< default line number background */
 
-extern int cp_default;               /**< default color pair index */
-extern int cp_box;                   /**< box color pair index */
-extern int cp_ind;                   /**< indicator color pair index */
-extern int cp_bold;                  /**< bold color pair index */
-extern int cp_title;                 /**< title color pair index */
-extern int cp_highlight;             /**< highlight color pair index */
-extern int cp_fill_char;             /**< fill character color pair index */
-extern int cp_brackets;              /**< color pair index for field brackets */
-extern int cp_nt;                    /**< normal color pair index */
-extern int cp_nt_rev;                /**< reverse color pair index */
-extern int cp_nt_hl;                 /**< highlight color pair index */
-extern int cp_nt_hl_rev;             /**< highlight reverse color pair index */
-extern int cp_ln_fg;                 /**< line number color pair index */
-extern int cp_ln_bg;                 /**< line number background color pair index */
-extern int cp_cmdln_fg;              /**< command line number color pair index */
-extern int cp_cmdln_bg;              /**< command line number background color pair index */
-extern int cp_red;                   /**< red background color pair index */
-extern int cp_green;                 /**< green background color pair index */
-extern int cp_yellow;                /**< yellow background color pair index */
-extern int cp_blue;                  /**< blue background color pair index */
-extern int clr_idx;                  /**< current color index */
+extern short cp_default;             /**< default color pair index */
+extern short cp_box;                 /**< box color pair index */
+extern short cp_ind;                 /**< indicator color pair index */
+extern short cp_bold;                /**< bold color pair index */
+extern short cp_title;               /**< title color pair index */
+extern short cp_highlight;           /**< highlight color pair index */
+extern short cp_fill_char;           /**< fill character color pair index */
+extern short cp_brackets;            /**< color pair index for field brackets */
+extern short cp_nt;                  /**< normal color pair index */
+extern short cp_nt_rev;              /**< reverse color pair index */
+extern short cp_nt_hl;               /**< highlight color pair index */
+extern short cp_nt_hl_rev;           /**< highlight reverse color pair index */
+extern short cp_ln_fg;               /**< line number color pair index */
+extern short cp_ln_bg;               /**< line number background color pair index */
+extern short cp_cmdln_fg;            /**< command line number color pair index */
+extern short cp_cmdln_bg;            /**< command line number background color pair index */
+extern short cp_red;                 /**< red background color pair index */
+extern short cp_green;               /**< green background color pair index */
+extern short cp_yellow;              /**< yellow background color pair index */
+extern short cp_blue;                /**< blue background color pair index */
+extern short clr_idx;                /**< current color index */
 extern int clr_cnt;                  /**< number of colors used */
 extern int clr_pair_idx;             /**< current color pair index */
 extern int clr_pair_cnt;             /**< number of color pairs supported by the terminal */
@@ -486,7 +502,6 @@ extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
-extern cchar_t mkcc(short, attr_t, const char *);
 extern char *iso8601_time(char *, int, time_t *, bool);
 extern bool parse_local_timestamp(const char *, time_t *);
 extern char *format_local_timestamp(time_t, char *, size_t);
@@ -495,28 +510,6 @@ extern char *get_user_str(char *, size_t);
 extern char *get_ip_addresses(char *, int);
 extern bool is_newer(char *, char *);
 
-#ifdef OBSOLETE
-extern cchar_t CC_BOX;
-extern cchar_t CC_CMDLN;
-extern cchar_t CC_IND;
-extern cchar_t CC_LN;
-extern cchar_t CC_TITLE;
-extern cchar_t CC_NT;
-extern cchar_t CC_NT_REV;
-extern cchar_t CC_NT_HL_REV;
-extern cchar_t CC_NT_HL;
-extern cchar_t CC_BRKTL;
-extern cchar_t CC_BRKTR;
-extern cchar_t CC_FILL_CHAR;
-extern cchar_t CC_CHK;
-extern cchar_t CC_RAN;
-extern cchar_t CC_RED;
-extern cchar_t CC_GREEN;
-extern cchar_t CC_YELLOW;
-extern cchar_t CC_BLUE;
-#endif
-
-extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */
 #define XTERM_256COLOR                /**< use xterm-256color terminfo for altkey bindings */
@@ -618,6 +611,7 @@ extern cchar_t ls, rs, ts, bs, tl, tr, bl, br;
 #define BW_RAN L'\x276F' /**< right_angle */
 #define BW_LAN L'\x276E' /**< left_angle */
 #define BW_CHK L'\x2611' /**< left_angle */
+#define BW_HO9 L'\x23BD' /**< horizontal line 9 */
 
 /** The following are the actual wchar_t variables that will hold the box
     drawing characters. These correspond to the above Unicode code points. By
@@ -645,8 +639,6 @@ extern const wchar_t bw_da;  /**< down arrow */
 extern const wchar_t bw_ran; /**< right piointing angle */
 extern const wchar_t bw_chk; /**< right piointing angle */
 
-extern cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran, chk;
-
 extern void write_cmenu_log(char *);
 extern void write_cmenu_log_ts(char *);
 extern void open_cmenu_log();
@@ -668,18 +660,6 @@ extern void sig_prog_mode();
 extern void sig_shell_mode();
 extern char di_getch();
 extern int enter_option();
-
-// extern PANEL *std_panel;
-
-// extern WINDOW *win_main;
-// extern PANEL *panel_main;
-
-extern WINDOW *win_win[MAXWIN];  /**< array of pointers to windows */
-extern WINDOW *win_win2[MAXWIN]; /**< array of pointers to windows */
-extern WINDOW *win_box[MAXWIN];  /**< array of pointers to box windows */
-extern PANEL *panel_win[MAXWIN];
-extern PANEL *panel_win2[MAXWIN];
-extern PANEL *panel_box[MAXWIN];
 
 extern int win_attr; /**< Ncurses attributes for the current window, such as
                         color pair, bold, etc. */
@@ -737,16 +717,12 @@ extern int exit_code; /**< the exit code for the program, for error messages and
                          other output */
 
 extern void win_del();
-extern void destroy_win(WINDOW *);
-extern void destroy_box(WINDOW *);
 extern void restore_wins();
 extern void win_init_attrs();
 extern void win_Toggle_Attrs();
 extern int display_curses_keys();
 extern void init_stdscr();
-extern void curskeys(WINDOW *);
 extern void mouse_getch(int *, int *, int *, int *);
-extern void w_mouse_getch(WINDOW *, int *, int *, int *, int *);
 extern bool get_argp_doc_by_name(char *comment, const struct argp_option *, const char *);
 
 typedef struct {
@@ -765,10 +741,6 @@ typedef struct {
     wchar_t *s;
     size_t l;
 } WCStr;
-typedef struct {
-    cchar_t *s;
-    size_t l;
-} CCStr;
 /** simple macro to convert a character to uppercase */
 #define to_uppercase(c)       \
     if (c >= 'a' && c <= 'z') \
@@ -961,8 +933,6 @@ extern bool verify_file_q(char *, int);
 extern bool verify_dir(char *, int);
 extern bool verify_dir_q(char *, int);
 extern bool verify_spec_arg(char *, char *, char *, char *, int);
-extern size_t mk_cmplx_str(cchar_t *, char *, attr_t, int);
-extern void display_cmplx_str(WINDOW *, cchar_t *, int, int);
 extern int wccp_to_str(wchar_t, uint8_t *);
 extern char *fdname(int, char *);
 extern char *stdio_names(char *, char *);
@@ -971,7 +941,6 @@ extern char stdio_names_str[MAXLEN];
 extern void check_panels(int);
 extern int bare_box_new(int, int, int, int, char *);
 extern int win2_box_new(int, int, int, int, char *);
-extern void resize_panel(PANEL *, int, int, int, int);
 extern void left_justify(char *s);
 extern void right_justify(char *, int);
 extern bool is_valid_date(int yyyy, int mm, int dd);
@@ -981,9 +950,13 @@ extern int cf_accept(UiSurface *, int w, char *, int, int, int);
 extern char *fill_field(char *, char *, char, int);
 extern int cm_surface_destroy(UiSurface *sfc);
 extern wchar_t *mbstr_to_wcstr(const char *mb_str);
-extern int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen);
+extern int mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen);
 extern int border_draw(UiSurface *sfc);
 extern int border_title(UiSurface *sfc, char *title);
 extern int border_ysplit(UiSurface *, int);
 extern int border_ysplit_text(UiSurface *, char *, int);
+extern void mbc_to_wc(wchar_t wc[2], const char mbc);
+extern void initialize_styles(SIO *);
+extern UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
+
 #endif

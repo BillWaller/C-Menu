@@ -619,12 +619,12 @@ void form_display_fields(Form *form) {
         x = form->field[form->fidx]->col;
 
         pos = 0;
-        mb_to_cc(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, &pos, form->field[form->fidx]->len + 1);
+        mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, &pos, form->field[form->fidx]->len + 1);
         UiSurface *sfc = ui_surface[sfc_ptr];
         ui_mvwadd_cellstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
-
+        ui_render(ui_runtime);
         pos = 0;
-        mb_to_cc(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, &pos, form->field[form->fidx]->len + 1);
+        mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, &pos, form->field[form->fidx]->len + 1);
 
         ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         ui_render(ui_runtime);

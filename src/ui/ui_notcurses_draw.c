@@ -6,7 +6,6 @@
    NotCurses API.
 */
 #define _GNU_SOURCE
-#define _XOPEN_SOURCE 700
 #define _XOPEN_SOURCE_EXTENDED 1
 
 #include "ui_backend.h"

@@ -17,6 +17,64 @@
 /* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
+int ui_color_cnt = 0;
+struct UiColor ui_color[NC_MAX_COLORS] = {0};
+int ui_color_pair_cnt = 0;
+struct UiColorPair ui_color_pair[NC_MAX_PAIRS] = {0};
+
+int ui_init_extended_color(int color, int r, int g, int b) {
+    for (int i = 0; i < ui_color_cnt && i < NC_MAX_COLORS; i++) {
+        if (ui_color[i].r == r && ui_color[i].g == g && ui_color[i].b == b)
+            return i;
+    }
+    if (ui_color_cnt >= NC_MAX_COLORS)
+        return -1;
+    ui_color[ui_color_cnt].r = r;
+    ui_color[ui_color_cnt].g = g;
+    ui_color[ui_color_cnt].b = b;
+    return ui_color_cnt++;
+}
+struct UiColorPair ui_extended_color_pair_content(int pair_idx) {
+    if (pair_idx < 0 || pair_idx >= ui_color_pair_cnt)
+        return content;
+    int fg_idx = ui_color_pair[pair_idx].fg_idx;
+    int bg_idx = ui_color_pair[pair_idx].bg_idx;
+    if (fg_idx >= 0 && fg_idx < ui_color_cnt) {
+        content.fg_r = ui_color[fg_idx].r;
+        content.fg_g = ui_color[fg_idx].g;
+        content.fg_b = ui_color[fg_idx].b;
+    }
+    if (bg_idx >= 0 && bg_idx < ui_color_cnt) {
+        content.bg_r = ui_color[bg_idx].r;
+        content.bg_g = ui_color[bg_idx].g;
+        content.bg_b = ui_color[bg_idx].b;
+    }
+    return content;
+}
+/**
+ * Find or allocate an NCurses extended color pair for (fg, bg).
+ * Returns the pair index.
+ * fg = foreground color in RGB formaat (0xRRGGBB)
+ * bg = background color in RGB formaat (0xRRGGBB)
+ *
+ *
+ */
+static int ui_init_extended_pair(uint32_t fg, uint32_t bg) {
+    for (int i = 0; i < ui_color_pair_cnt; i++) {
+        int ui_fg_idx = ui_color_pair[i].fg_idx;
+        int ui_bg_idx = ui_color_pair[i].bg_idx;
+        if (ui_color_pair[ui_fg_idx].rgb == 
+        if (ui_color_pair[i].bgra >> 8 == fg &&
+                                    ui_color_pair[i].bgra >> 8 == bg) return i;
+    }
+    if (ui_color_pair_cnt >= NC_MAX_PAIRS)
+        return 0;
+    int color_pair_idx = ui_color_pair_cnt + 1;
+    ui_color_pair[ui_color_pair_cnt].fbgra = fg << 8;
+    ui_color_pair[ui_color_pair_cnt].bbgra = bg << 8;
+    ui_color_pair_cnt++;
+    return color_pair_idx;
+}
 
 UiRuntime *ui_init(const UiConfig *cfg) {
     setlocale(LC_ALL, "");
@@ -413,36 +471,4 @@ struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s, int w) {
     if (!s)
         return NULL;
     return s->mplane[w];
-}
-
-static int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b) {
-    /* Search for an existing allocation. */
-    for (int i = 0; i < ui_color_cnt && i < NC_MAX_COLORS; i++) {
-        if (ui_color[i].r == r && ui_color[i].g == g && ui_color[i].b == b)
-            return i;
-    }
-    if (ui_color_cnt >= NC_MAX_COLORS || ui_color_cnt >= COLORS)
-        return -1;
-    ui_color[ui_color_cnt].r = r;
-    ui_color[ui_color_cnt].g = g;
-    ui_color[ui_color_cnt].b = b;
-    return ui_color_cnt++;
-}
-/**
- * Find or allocate an NCurses extended color pair for (fg, bg).
- * Returns the pair index.
- */
-static int ui_init_extended_pair(uint32_t fg, uint32_t bg) {
-    for (int i = 0; i < ui_color_pair_cnt; i++) {
-        if (ui_color_pair[i].fg.rgba >> 8 == fg &&
-            ui_color_pair[i].bg.rgba >> 8 == bg)
-            return i;
-    }
-    if (ui_color_pair_cnt >= NC_MAX_PAIRS)
-        return 0;
-    int color_pair_idx = ui_color_pair_cnt + 1;
-    ui_color_pair[ui_color_pair_cnt].fg.rgba = fg << 8;
-    ui_color_pair[ui_color_pair_cnt].bg.rgba = bg << 8;
-    ui_color_pair_cnt++;
-    return color_pair_idx;
 }

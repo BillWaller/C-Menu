@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     ui_config->enable_alt_screen = false;
     ui_config->cursor_visible = false;
     ui_runtime = ui_init(ui_config);
-    initialize_local_colors(sio);
+    initialize_styles(sio);
     sig_prog_mode();
     capture_curses_tioctl();
     base_name(pgm_name, argv[0]);

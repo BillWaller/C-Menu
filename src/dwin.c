@@ -18,12 +18,18 @@
 
 #include "cm.h"
 #include "ui_backend.h"
-#include "ui_ncurses_internal.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
+#ifdef UAL_UI
+#include "ui_ncurses_internal.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
+#endif
+#ifdef NOTCURSES_UI
+#include "ui_notcurses_internal.h"
+#include <notcurses/notcurses.h>
+#endif
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,9 +41,12 @@
 #include <wchar.h>
 
 #define NC true
-
+#ifdef ASDF
 SCREEN *screen;
 FILE *tty_fp;
+WINDOW *win_main;
+PANEL *panel_main;
+#endif
 UiRuntime *ui_runtime;
 UiConfig *ui_config;
 UiSurface *ui_surface[MAXWIN];
@@ -56,8 +65,6 @@ int nf_error(int, char *);
 int Perror(char *);
 int click_y;
 int click_x;
-WINDOW *win_main;
-PANEL *panel_main;
 void list_colors();
 int clr_name_to_idx(char *);
 void init_hex_clr(int, char *);
@@ -76,10 +83,9 @@ void compile_chyron(Chyron *);
 int get_chyron_key(Chyron *, int);
 Chyron *destroy_chyron(Chyron *chyron);
 
-int mb_to_cc(cchar_t *, char *, attr_t, int, int *, int);
-void initialize_local_colors(SIO *);
+int mbstr_to_cellstr(UiCell *, char *, attr_t, int, int *, int);
+void initialize_styles(SIO *);
 
-int xwgetch(WINDOW *, Chyron *, int);
 void activate_chyron_key(Chyron *chyron, int k);
 void activate_all_chyron_keys(Chyron *chyron);
 void deactivate_chyron_key(Chyron *chyron, int k);
@@ -90,11 +96,11 @@ int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy
 
 void win_resize(int, int, char *);
 void restore_wins();
-
+#ifdef ASDSF
 WINDOW *mouse_win;
 
 cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran, chk;
-
+#endif
 /** StdColors
     @details Standard 16 colors for xterm256 color conversions These colors can
    be overridden in ".minitrc" */
@@ -125,27 +131,6 @@ const wchar_t bw_da = BW_DA;   /**< down arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
 const wchar_t bw_chk = BW_CHK; /**< check mark */
 
-#ifdef OBSOLETE
-cchar_t CC_BOX;
-cchar_t CC_CMDLN;
-cchar_t CC_IND;
-cchar_t CC_LN;
-cchar_t CC_TITLE;
-cchar_t CC_NT;
-cchar_t CC_NT_REV;
-cchar_t CC_NT_HL_REV;
-cchar_t CC_NT_HL;
-cchar_t CC_BRKTL;
-cchar_t CC_BRKTR;
-cchar_t CC_FILL_CHAR;
-cchar_t CC_CHK;
-cchar_t CC_RAN;
-cchar_t CC_RED;
-cchar_t CC_GREEN;
-cchar_t CC_YELLOW;
-cchar_t CC_BLUE;
-#endif
-
 UiStyle style_default;
 UiStyle style_fill_char;
 UiStyle style_brktl;
@@ -161,6 +146,10 @@ UiStyle style_title;
 UiStyle style_ln;
 UiStyle style_ran;
 UiStyle style_chk;
+UiStyle style_ls;
+UiStyle style_rs;
+UiStyle style_ts;
+UiStyle style_bs;
 
 double GRAY_GAMMA = 1.2; /**< Gamma correction. Set in .minitrc */
 double RED_GAMMA = 1.2;
@@ -187,21 +176,21 @@ char em0[MAXLEN];
 char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
-int cp_box;
-int cp_ind;
-int cp_cmdln;
-int cp_title;
-int cp_nt;
-int cp_nt_rev;
-int cp_nt_hl;
-int cp_nt_hl_rev;
-int cp_ln;
-int cp_fill_char;
-int cp_brackets;
-int cp_red;
-int cp_green;
-int cp_yellow;
-int cp_blue;
+short cp_box;
+short cp_ind;
+short cp_cmdln;
+short cp_title;
+short cp_nt;
+short cp_nt_rev;
+short cp_nt_hl;
+short cp_nt_hl_rev;
+short cp_ln;
+short cp_fill_char;
+short cp_brackets;
+short cp_red;
+short cp_green;
+short cp_yellow;
+short cp_blue;
 int clr_cnt = 0;
 int clr_pair_idx = 1;
 int clr_pair_cnt = 1;
@@ -294,7 +283,7 @@ bool open_curses(SIO *sio) {
    code when applying colors to various parts of the interface using NCurses
    functions that accept color pair indices.
  */
-void initialize_local_colors(SIO *sio) {
+void initialize_styles(SIO *sio) {
     /** gamma correction values */
     /** These are read from ~/.minitrc */
     /** used when initializing colors */
@@ -322,70 +311,28 @@ void initialize_local_colors(SIO *sio) {
     cp_yellow = get_clr_pair(CLR_BG, CLR_YELLOW);
     cp_blue = get_clr_pair(CLR_FG, CLR_BLUE);
     //
-    // cchar_t Used to set foreground/background color pairs and attributes
-    //
-#ifdef OBSOLETE
-    CC_FILL_CHAR = mkcc(cp_fill_char, WA_NORMAL, " ");
-    CC_BRKTL = mkcc(cp_brackets, WA_NORMAL, " ");
-    CC_BRKTR = mkcc(cp_brackets, WA_NORMAL, " ");
-    CC_NT = mkcc(cp_nt, WA_NORMAL, " ");
-    CC_NT_REV = mkcc(cp_nt_rev, WA_NORMAL, " ");
-    CC_NT_HL = mkcc(cp_nt_hl, WA_NORMAL, " ");
-    CC_NT_HL_REV = mkcc(cp_nt_hl_rev, WA_NORMAL, " ");
-    CC_BOX = mkcc(cp_box, WA_NORMAL, " ");
-    CC_IND = mkcc(cp_ind, WA_NORMAL, " ");
-    CC_CMDLN = mkcc(cp_cmdln, WA_NORMAL, " ");
-    CC_TITLE = mkcc(cp_title, WA_NORMAL, " ");
-    CC_LN = mkcc(cp_ln, WA_NORMAL, " ");
-    CC_RAN = mkcc(cp_ind, WA_NORMAL, " ");
-    CC_CHK = mkcc(cp_ind, WA_NORMAL, " ");
-    CC_RED = mkcc(cp_red, WA_NORMAL, " ");
-    CC_GREEN = mkcc(cp_green, WA_NORMAL, " ");
-    CC_YELLOW = mkcc(cp_yellow, WA_NORMAL, " ");
-    CC_BLUE = mkcc(cp_blue, WA_NORMAL, " ");
-#endif
-    //
     // Standardized UiStyle variables
     //
-    style_default = ui_style_from_hex("#d0d0d0", "#000000", WA_NORMAL, " ");
-    style_fill_char = ui_style_from_hex(sio->fill_char_fg, sio->fill_char_bg, WA_NORMAL, " ");
-    char brktl[2] = {sio->brackets[0], '\0'};
+    void mbc_to_wc(wchar_t wc[2], const char mbc);
+    style_default = ui_style_from_hex("#d0d0d0", "#000000", WA_NORMAL, nullptr);
+    style_fill_char = ui_style_from_hex(sio->fill_char_fg, sio->fill_char_bg, WA_NORMAL, nullptr);
+    wchar_t brktl[2];
+    mbc_to_wc(brktl, sio->brackets[0]);
     style_brktl = ui_style_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktl);
-    char brktr[2] = {sio->brackets[1], '\0'};
+    wchar_t brktr[2];
+    mbc_to_wc(brktr, sio->brackets[0]);
     style_brktr = ui_style_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktr);
-    style_nt = ui_style_from_hex(sio->nt_fg, sio->nt_bg, WA_NORMAL, " ");
-    style_nt_rev = ui_style_from_hex(sio->nt_rev_fg, sio->nt_rev_bg, WA_NORMAL, " ");
-    style_nt_hl = ui_style_from_hex(sio->nt_hl_fg, sio->nt_hl_bg, WA_NORMAL, " ");
-    style_nt_hl_rev = ui_style_from_hex(sio->nt_hl_rev_fg, sio->nt_hl_rev_bg, WA_NORMAL, " ");
-    style_box = ui_style_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, " ");
-    style_ind = ui_style_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, " ");
-    style_cmdln = ui_style_from_hex(sio->cmdln_fg, sio->cmdln_bg, WA_NORMAL, " ");
-    style_title = ui_style_from_hex(sio->title_fg, sio->title_bg, WA_NORMAL, " ");
-    style_ln = ui_style_from_hex(sio->ln_fg, sio->ln_bg, WA_NORMAL, " ");
-    style_ran = ui_style_from_hex(sio->ran_fg, sio->ran_bg, WA_NORMAL, " ");
-    style_chk = ui_style_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, " ");
-    //
-    // cchar_t borders and indicator characters with color pairs and attributes
-    //
-#ifdef NCURSES_UI
-    ui_setcchar(&ls, &bw_ve, WA_NORMAL, cp_box, NULL);   // Left side
-    ui_setcchar(&rs, &bw_ve, WA_NORMAL, cp_box, NULL);   // Right side
-    ui_setcchar(&ts, &bw_ho, WA_NORMAL, cp_box, NULL);   // Top side
-    ui_setcchar(&bs, &bw_ho, WA_NORMAL, cp_box, NULL);   // Bottom side
-    ui_setcchar(&tl, &bw_tl, WA_NORMAL, cp_box, NULL);   // Top-left corner
-    ui_setcchar(&tr, &bw_tr, WA_NORMAL, cp_box, NULL);   // Top-right corner
-    ui_setcchar(&bl, &bw_bl, WA_NORMAL, cp_box, NULL);   // Bottom-left corner
-    ui_setcchar(&br, &bw_br, WA_NORMAL, cp_box, NULL);   // Bottom-right corner
-    ui_setcchar(&lt, &bw_lt, WA_NORMAL, cp_box, NULL);   // Left tee
-    ui_setcchar(&rt, &bw_rt, WA_NORMAL, cp_box, NULL);   // Right tee
-    ui_setcchar(&sp, &bw_sp, WA_NORMAL, cp_box, NULL);   // Space
-    ui_setcchar(&ra, &bw_ra, WA_NORMAL, cp_box, NULL);   // Right arrow
-    ui_setcchar(&la, &bw_la, WA_NORMAL, cp_box, NULL);   // Left arrow
-    ui_setcchar(&ua, &bw_ua, WA_NORMAL, cp_box, NULL);   // Up arrow
-    ui_setcchar(&da, &bw_da, WA_NORMAL, cp_box, NULL);   // Down arrow
-    ui_setcchar(&ran, &bw_ran, WA_NORMAL, cp_ind, NULL); // Right angle
-    ui_setcchar(&chk, &bw_chk, WA_NORMAL, cp_ind, NULL); // Right angle
-#endif
+    style_nt = ui_style_from_hex(sio->nt_fg, sio->nt_bg, WA_NORMAL, nullptr);
+    style_nt_rev = ui_style_from_hex(sio->nt_rev_fg, sio->nt_rev_bg, WA_NORMAL, nullptr);
+    style_nt_hl = ui_style_from_hex(sio->nt_hl_fg, sio->nt_hl_bg, WA_NORMAL, nullptr);
+    style_nt_hl_rev = ui_style_from_hex(sio->nt_hl_rev_fg, sio->nt_hl_rev_bg, WA_NORMAL, nullptr);
+    style_box = ui_style_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, nullptr);
+    style_ind = ui_style_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, nullptr);
+    style_cmdln = ui_style_from_hex(sio->cmdln_fg, sio->cmdln_bg, WA_NORMAL, nullptr);
+    style_title = ui_style_from_hex(sio->title_fg, sio->title_bg, WA_NORMAL, nullptr);
+    style_ln = ui_style_from_hex(sio->ln_fg, sio->ln_bg, WA_NORMAL, nullptr);
+    style_ran = ui_style_from_hex(sio->ran_fg, sio->ran_bg, WA_NORMAL, &bw_ran);
+    style_chk = ui_style_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, &bw_chk);
 }
 /** @defgroup color_management Color Management
     @brief Conversion of Color Data Types and Management of Colors and Color
@@ -401,7 +348,7 @@ int get_clr_pair(int fg, int bg) {
     int rc, i;
     int pfg, pbg;
     for (i = 1; i < clr_pair_cnt; i++) {
-        extended_pair_content(i, &pfg, &pbg);
+        ui_extended_pair_content(i, &pfg, &pbg);
         if (pfg == fg && pbg == bg)
             return i;
     }
@@ -414,7 +361,7 @@ int get_clr_pair(int fg, int bg) {
         return (EXIT_FAILURE);
     }
     if (i < COLOR_PAIRS) {
-        rc = init_extended_pair(i, fg, bg);
+        rc = ui_init_extended_pair(i, fg, bg);
 
         if (rc == ERR)
             return ERR;
@@ -443,7 +390,7 @@ int rgb_to_curses_clr(RGB *rgb) {
             return i;
     }
     if (i < COLORS) {
-        init_extended_color(i, rgb->r, rgb->g, rgb->b);
+        ui_init_extended_color(i, rgb->r, rgb->g, rgb->b);
         clr_cnt++;
         return clr_cnt - 1;
     }
@@ -647,7 +594,7 @@ void init_hex_clr(int idx, char *s) {
     rgb.r = (rgb.r * 1000) / 255;
     rgb.g = (rgb.g * 1000) / 255;
     rgb.b = (rgb.b * 1000) / 255;
-    init_extended_color(idx, rgb.r, rgb.g, rgb.b);
+    ui_init_extended_color(idx, rgb.r, rgb.g, rgb.b);
 }
 /** hex_clr_str_to_rgb
     @brief Convert six-digit HTML style hex color code to RGB struct
@@ -675,6 +622,35 @@ void destroy_curses() {
     sig_dfl_mode();
     return;
 }
+void mbc_to_wc(wchar_t wc[2], const char mbc) {
+    wc[0] = wc[1] = L'\0';
+    mbstate_t state = {0};
+    size_t len = mbrtowc(wc, &mbc, 0, &state);
+    if (len <= 0) {
+        wc[0] = L'?';
+        wc[1] = L'\0';
+        len = 1;
+    }
+}
+
+UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr) {
+    UiStyle style;
+    RGB rgb;
+    sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    int f_idx = rgb_to_curses_clr(&rgb);
+    sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    int b_idx = rgb_to_curses_clr(&rgb);
+    style.cp = get_clr_pair(f_idx, b_idx);
+    style.attrs = attrs;
+    if (wstr) {
+        size_t n = wcslen(wstr);
+        memcpy(style.wstr, wstr, (n + 1) * sizeof(wchar_t));
+    } else {
+        style.wstr[0] = L' ';
+        style.wstr[1] = L'\0';
+    }
+    return style;
+}
 
 wchar_t *mbstr_to_wcstr(const char *mb_str) {
     const char *src_ptr = mb_str;
@@ -691,7 +667,7 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
     return wc_str;
 }
 
-/** mb_to_cc
+/** mbstr_to_cellstr
     @brief Convert multibyte string to complex character array
     @ingroup Chyron
     @param cmplx_buf Output buffer for complex characters
@@ -709,7 +685,7 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    buffer, and the function ensures that it does not exceed the maximum length.
 */
 // #ifdef NCURSES_UI
-int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int maxlen) {
+int mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int maxlen) {
     int p1 = 0;
     int *pos = &p1;
     if (p)
@@ -718,7 +694,7 @@ int mb_to_cc(cchar_t *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int ma
         pos = &p1;
     int i = 0, len = 0;
     const char *s;
-    cchar_t cc = {0};
+    UiCell cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
@@ -1378,15 +1354,15 @@ void compile_chyron(Chyron *chyron) {
         }
         if (end_pos == 0) {
             cx = chyron->cmplx_buf;
-            mb_to_cc(cx, " ", WA_NORMAL, cp_nt_rev, &pos, MAXLEN - 1);
+            mbstr_to_cellstr(cx, " ", WA_NORMAL, cp_nt_rev, &pos, MAXLEN - 1);
         } else {
-            mb_to_cc(chyron->cmplx_buf, "|", WA_NORMAL, cp_nt_rev, &pos,
-                     MAXLEN - 1);
+            mbstr_to_cellstr(chyron->cmplx_buf, "|", WA_NORMAL, cp_nt_rev, &pos,
+                             MAXLEN - 1);
         }
         cx = chyron->cmplx_buf;
         if (chyron->key[k]->cp)
             cp = chyron->key[k]->cp;
-        mb_to_cc(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
+        mbstr_to_cellstr(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
         end_pos = pos;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
@@ -1394,7 +1370,7 @@ void compile_chyron(Chyron *chyron) {
                   chyron->key[k]->text, chyron->key[k]->end_pos);
         k++;
     }
-    mb_to_cc(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
+    mbstr_to_cellstr(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
     chyron->l = end_pos;
 }
 /** display_chyron
@@ -1498,6 +1474,7 @@ void abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     exit(EXIT_FAILURE);
 }
+#ifdef ASDF
 /** xwgetch
     @brief Wrapper for wgetch that handles signals, mouse events, checks for
    clicks on the chyron line, and accepts a sinigle character answer
@@ -1706,3 +1683,4 @@ int vgetch(WINDOW *win, int n) {
     curs_set(0);
     return c;
 }
+#endif

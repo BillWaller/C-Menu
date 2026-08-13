@@ -21,7 +21,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
 #define MAXWIN 30
 
 typedef enum {
@@ -248,12 +247,13 @@ int ui_draw_text(UiSurface *s, int w, int y, int x, const UiStyle *style, const 
 int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text, size_t n);
 int ui_draw_text_fill(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text, size_t n);
 int ui_waddstr(UiSurface *s, int w, const char *text);
-int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr, int n);
 int ui_mvaddstr(UiSurface *s, int w, int y, int x, const char *text);
 int ui_mvwaddch(UiSurface *s, int w, int y, int x, const char c);
 int ui_mvwaddstr(UiSurface *s, int w, int y, int x, const char *text);
 int ui_mvwadd_style(UiSurface *s, int w, int y, int x, const UiStyle *style);
+int ui_waddwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr);
 int ui_mvwaddwstr(UiSurface *s, int w, int y, int x, const wchar_t *wstr);
+int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr, int n);
 int ui_mvwaddnwstr(UiSurface *s, int w, int y, int x, const UiStyle *style, const wchar_t *wstr, int n);
 int ui_mvwaddstr_fill(UiSurface *sfc, int w, int y, int x, char *s, int n);
 int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text);
@@ -269,7 +269,12 @@ void ui_doupdate();
 void ui_wnoutrefresh(UiSurface *s, int w);
 int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 void ui_erase();
-int ui_init_extended_color(uint8_t r, uint8_t g, uint8_t b);
+
+int ui_extended_color_content(int color, int *r, int *g, int *b);
+int ui_init_extended_color(int color, int r, int g, int b);
+int ui_extended_pair_content(int pair, int *fg, int *bg);
+int ui_init_extended_pair(int pair, int fg, int bg);
+
 #ifdef UAL_UI
 cchar_t style_to_cc(UiStyle *style);
 #endif

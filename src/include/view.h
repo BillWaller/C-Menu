@@ -117,7 +117,7 @@ typedef struct {
     char line_in_s[PAD_COLS];         /**< raw input line from buffer */
     char line_out_s[PAD_COLS];        /**< scratch buffer */
     char stripped_line_out[PAD_COLS]; /**< printable characters only */
-    cchar_t cmplx_buf[PAD_COLS];      /**< complex character buffer */
+    UiCell cmplx_buf[PAD_COLS];       /**< complex character buffer */
     char *line_out_p;                 /**< pointer to current position in line_out_s */
     char *line_in_beg_p;              /**< pointer used in matching search targets */
     char *line_in_end_p;              /**< pointer used in matching search targets */

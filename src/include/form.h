@@ -139,6 +139,7 @@ typedef struct {
                                    processing, based on the field length and the fill
                                    character specified in the form structure */
     cchar_t filler_cc[FIELD_MAXLEN];  /**< filler complex character array */
+    cchar_t accept_cc[FIELD_MAXLEN];  /**< accept complex character array */
 } Field;
 
 /** @struct Form */
