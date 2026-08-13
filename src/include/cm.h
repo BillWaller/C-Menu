@@ -408,21 +408,6 @@ extern bool unstr_hex_clr(char *, char *);
 
 extern bool f_debug; /**< a flag to indicate whether debug
 output should be printed, for debugging purposes */
-// extern unsigned int cmd_key; /**< the command key for the current command,
-// for
-//                              error messages and other output */
-/** @struct RGB */
-typedef struct {
-    int r, g, b;
-} RGB;
-typedef struct {
-    union {
-        struct {
-            uint8_t b, g, r, a;
-        };
-        uint32_t bgra;
-    };
-} BGRA;
 
 #define FG_COLOR 2    /**< default foreground color */
 #define BG_COLOR 0    /**< default background color */
@@ -881,8 +866,6 @@ extern String to_string(const char *);
 extern String mk_string(size_t);
 extern String free_string(String);
 extern void apply_gamma(RGB *);
-extern int get_clr_pair(int, int);
-extern int clr_name_to_idx(char *);
 extern int rgb_to_xterm256_idx(RGB *);
 extern bool init_clr_palette(SIO *);
 extern bool open_curses(SIO *);

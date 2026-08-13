@@ -16,8 +16,11 @@
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define XLEN 256
+#define MAXLEN 256
+#define MAXSFC 30
 
 /** @struct UiRuntime
    @ingroup ui_ncurses
@@ -38,35 +41,6 @@ struct UiRuntime {
     int lines;
     int cols;
     PANEL *panel_main;
-};
-
-struct UiColorPair {
-    int fg_idx;
-    int bg_idx;
-};
-
-struct UiColor {
-    uint8_t b, g, r;
-};
-
-union UiChannels {
-    union {
-        struct {
-            union {
-                struct {
-                    uint8_t f_b, f_g, f_r, f_a;
-                };
-                uint32_t fbgra;
-            };
-            union {
-                struct {
-                    uint8_t b_b, b_g, b_r, b_a;
-                };
-                uint32_t bbgra;
-            };
-        };
-        uint64_t chs;
-    };
 };
 
 struct UiSurface {
@@ -107,6 +81,35 @@ struct UiSurface {
     bool hidden;
     char name[XLEN];
     char title[XLEN];
+};
+
+typedef struct {
+    int r, g, b;
+} RGB;
+
+struct UiColorPair {
+    int fg;
+    int bg;
+};
+
+union UiChannels {
+    union {
+        struct {
+            union {
+                struct {
+                    uint8_t f_b, f_g, f_r, f_a;
+                };
+                uint32_t fbgra;
+            };
+            union {
+                struct {
+                    uint8_t b_b, b_g, b_r, b_a;
+                };
+                uint32_t bbgra;
+            };
+        };
+        uint64_t chs;
+    };
 };
 
 struct UiStyle {

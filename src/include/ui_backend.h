@@ -129,8 +129,8 @@ typedef struct {
     int cols;
 } UiRect;
 
-#define NC_MAX_COLORS 512
-#define NC_MAX_PAIRS 512
+#define NC_COLORS 512
+#define NC_PAIRS 512
 
 /** @struct UiConfig
    @brief Structure representing the configuration options for the UI runtime.
@@ -270,10 +270,22 @@ void ui_wnoutrefresh(UiSurface *s, int w);
 int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 void ui_erase();
 
-int ui_extended_color_content(int color, int *r, int *g, int *b);
 int ui_init_extended_color(int color, int r, int g, int b);
-int ui_extended_pair_content(int pair, int *fg, int *bg);
+int ui_extended_color_content(int color, int *r, int *g, int *b);
 int ui_init_extended_pair(int pair, int fg, int bg);
+int ui_extended_pair_content(int pair, int *fg, int *bg);
+
+int ui_add_pair(int fg, int bg);
+int ui_chg_pair(int pair, int fg, int bg);
+int ui_get_pair(int pair, int *fg, int *bg);
+
+int ui_add_color(int r, int g, int b);
+int ui_add_color_rgb(RGB *rgb);
+int ui_add_color_hex(char *s);
+int ui_chg_color_rgb(int color, RGB *rgb);
+int ui_chg_color_hex(int color, char *s);
+int ui_get_color(int color, RGB *rgb);
+RGB ui_hex_to_rgb(char *s);
 
 #ifdef UAL_UI
 cchar_t style_to_cc(UiStyle *style);
@@ -298,4 +310,7 @@ void ui_get_caps(const UiRuntime *ui, UiCaps *caps);
 extern UiRuntime *ui_runtime;
 extern UiSurface *ui_surface[MAXWIN];
 
+extern RGB std_color[];
+extern int ui_color_cnt;
+extern int ui_pair_cnt;
 #endif

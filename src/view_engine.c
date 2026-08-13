@@ -2428,8 +2428,8 @@ void log_split_lines(View *view) {
    4 for underline, 5 for blink, 7 for reverse, 8 for invis). The function
    also supports resetting attributes and colors to default using \033[0m.
 
-    see also: xterm256_idx_to_rgb(), rgb_to_curses_clr(), extended_pair_content(),
-   get_clr_pair()
+    see also: xterm256_idx_to_rgb(), ui_add_color_rgb(), extended_pair_content(),
+   ui_add_pair()
 
     @endverbatim
 */
@@ -2474,9 +2474,9 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         }
                     }
                     if (t0 == '3')
-                        fg_clr = rgb_to_curses_clr(&rgb);
+                        fg_clr = ui_add_color_rgb(&rgb);
                     else if (t0 == '4')
-                        bg_clr = rgb_to_curses_clr(&rgb);
+                        bg_clr = ui_add_color_rgb(&rgb);
                 } else if (t1 == '9') {
                     if (t0 == '3')
                         fg_clr = CLR_NT_FG;
@@ -2488,13 +2488,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
                         rgb = xterm256_idx_to_rgb(x_idx);
-                        fg_clr = rgb_to_curses_clr(&rgb);
+                        fg_clr = ui_add_color_rgb(&rgb);
                     } else if (t0 == '4') {
                         tstr[0] = t1;
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
                         rgb = xterm256_idx_to_rgb(x_idx);
-                        bg_clr = rgb_to_curses_clr(&rgb);
+                        bg_clr = ui_add_color_rgb(&rgb);
                     }
                 }
             } else if (t0 == '0') {
@@ -2541,10 +2541,8 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
         }
         tok = strtok(nullptr, ";m");
     }
-    if (!a_toi_error && (fg_clr != fg || bg_clr != bg)) {
-        clr_pair_idx = get_clr_pair(fg_clr, bg_clr);
-        *cpx = clr_pair_idx;
-    }
+    if (!a_toi_error && (fg_clr != fg || bg_clr != bg))
+        *cpx = ui_add_pair(fg_clr, bg_clr);
     return;
 }
 /** @brief Display Command Line Prompt

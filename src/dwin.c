@@ -65,12 +65,7 @@ int nf_error(int, char *);
 int Perror(char *);
 int click_y;
 int click_x;
-void list_colors();
-int clr_name_to_idx(char *);
-void init_hex_clr(int, char *);
-RGB hex_clr_str_to_rgb(char *);
 RGB xterm256_idx_to_rgb(int);
-int rgb_to_curses_clr(RGB *);
 int rgb_to_xterm256_idx(RGB *);
 void apply_gamma(RGB *);
 
@@ -101,11 +96,6 @@ WINDOW *mouse_win;
 
 cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran, chk;
 #endif
-/** StdColors
-    @details Standard 16 colors for xterm256 color conversions These colors can
-   be overridden in ".minitrc" */
-RGB StdColors[16] = {
-    {0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 /** colors_text
     @brief Color names for .minitrc overrides
     @details These names are used in .minitrc to specify color overrides The
@@ -191,9 +181,6 @@ short cp_red;
 short cp_green;
 short cp_yellow;
 short cp_blue;
-int clr_cnt = 0;
-int clr_pair_idx = 1;
-int clr_pair_cnt = 1;
 
 int tty_fd, pipe_in, pipe_out;
 
@@ -295,21 +282,21 @@ void initialize_styles(SIO *sio) {
     //
     // Standardized color pairs
     //
-    cp_fill_char = get_clr_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
-    cp_brackets = get_clr_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
-    cp_nt = get_clr_pair(CLR_NT_FG, CLR_NT_BG);
-    cp_nt_rev = get_clr_pair(CLR_NT_REV_FG, CLR_NT_REV_BG);
-    cp_nt_hl_rev = get_clr_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
-    cp_nt_hl = get_clr_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
-    cp_box = get_clr_pair(CLR_BOX_FG, CLR_BOX_BG);
-    cp_ind = get_clr_pair(CLR_IND_FG, CLR_IND_BG);
-    cp_title = get_clr_pair(CLR_TITLE_FG, CLR_TITLE_BG);
-    cp_ln = get_clr_pair(CLR_LN_FG, CLR_LN_BG);
-    cp_cmdln = get_clr_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
-    cp_red = get_clr_pair(CLR_FG, CLR_RED);
-    cp_green = get_clr_pair(CLR_FG, CLR_GREEN);
-    cp_yellow = get_clr_pair(CLR_BG, CLR_YELLOW);
-    cp_blue = get_clr_pair(CLR_FG, CLR_BLUE);
+    cp_fill_char = ui_add_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
+    cp_brackets = ui_add_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
+    cp_nt = ui_add_pair(CLR_NT_FG, CLR_NT_BG);
+    cp_nt_rev = ui_add_pair(CLR_NT_REV_FG, CLR_NT_REV_BG);
+    cp_nt_hl_rev = ui_add_pair(CLR_NT_HL_REV_FG, CLR_NT_HL_REV_BG);
+    cp_nt_hl = ui_add_pair(CLR_NT_HL_FG, CLR_NT_HL_BG);
+    cp_box = ui_add_pair(CLR_BOX_FG, CLR_BOX_BG);
+    cp_ind = ui_add_pair(CLR_IND_FG, CLR_IND_BG);
+    cp_title = ui_add_pair(CLR_TITLE_FG, CLR_TITLE_BG);
+    cp_ln = ui_add_pair(CLR_LN_FG, CLR_LN_BG);
+    cp_cmdln = ui_add_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
+    cp_red = ui_add_pair(CLR_FG, CLR_RED);
+    cp_green = ui_add_pair(CLR_FG, CLR_GREEN);
+    cp_yellow = ui_add_pair(CLR_BG, CLR_YELLOW);
+    cp_blue = ui_add_pair(CLR_FG, CLR_BLUE);
     //
     // Standardized UiStyle variables
     //
@@ -333,68 +320,6 @@ void initialize_styles(SIO *sio) {
     style_ln = ui_style_from_hex(sio->ln_fg, sio->ln_bg, WA_NORMAL, nullptr);
     style_ran = ui_style_from_hex(sio->ran_fg, sio->ran_bg, WA_NORMAL, &bw_ran);
     style_chk = ui_style_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, &bw_chk);
-}
-/** @defgroup color_management Color Management
-    @brief Conversion of Color Data Types and Management of Colors and Color
-   Pairs
- */
-/** get_clr_pair
-    @brief Get color pair index for foreground and background colors
-    @ingroup color_management
-    @param fg Foreground color index
-    @param bg Background color index
-    @return Color pair index */
-int get_clr_pair(int fg, int bg) {
-    int rc, i;
-    int pfg, pbg;
-    for (i = 1; i < clr_pair_cnt; i++) {
-        ui_extended_pair_content(i, &pfg, &pbg);
-        if (pfg == fg && pbg == bg)
-            return i;
-    }
-    if (i >= COLOR_PAIRS) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "NCurses COLOR_PAIRS (%d) exceeded (%d)",
-                  COLOR_PAIRS, i);
-        strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, nullptr);
-        return (EXIT_FAILURE);
-    }
-    if (i < COLOR_PAIRS) {
-        rc = ui_init_extended_pair(i, fg, bg);
-
-        if (rc == ERR)
-            return ERR;
-    }
-    if (i < COLOR_PAIRS)
-        clr_pair_cnt++;
-    return i;
-}
-/** rgb_to_curses_clr
-    @brief Get color index for RGB color
-    @ingroup color_management
-    @param rgb RGB color
-    @return NCurses color index
-    @details Curses uses 0-1000 for RGB values. If the color does not exist, it
-   is created along with a new color index */
-int rgb_to_curses_clr(RGB *rgb) {
-    int i;
-    int r, g, b;
-    apply_gamma(rgb);
-    rgb->r = (rgb->r * 1000) / 255;
-    rgb->g = (rgb->g * 1000) / 255;
-    rgb->b = (rgb->b * 1000) / 255;
-    for (i = 0; i < clr_cnt; i++) {
-        extended_color_content(i, &r, &g, &b);
-        if (rgb->r == r && rgb->g == g && rgb->b == b)
-            return i;
-    }
-    if (i < COLORS) {
-        ui_init_extended_color(i, rgb->r, rgb->g, rgb->b);
-        clr_cnt++;
-        return clr_cnt - 1;
-    }
-    return ERR;
 }
 /** rgb_to_xterm256_idx
     @brief Convert RGB color to XTerm 256 color index
@@ -438,9 +363,9 @@ RGB xterm256_idx_to_rgb(int idx) {
         idx = 0;
     rgb.r = rgb.g = rgb.b = 0;
     if (idx < 16) {
-        rgb.r = StdColors[idx].r;
-        rgb.g = StdColors[idx].g;
-        rgb.b = StdColors[idx].b;
+        rgb.r = std_color[idx].r;
+        rgb.g = std_color[idx].g;
+        rgb.b = std_color[idx].b;
     } else if (idx >= 16 && idx <= 231) {
         idx -= 16;
         rgb.r = (idx / 36) % 6 * 51;
@@ -487,123 +412,88 @@ void apply_gamma(RGB *rgb) {
    color overrides specified in the SIO struct. The color strings in the SIO
    struct are expected to be six-digit HTML style hex color codes (e.g.,
    "#RRGGBB"). If a color override is specified for any of the standard colors,
-   it is applied using the init_hex_clr function. After processing all colors,
-   the clr_cnt variable is set to CLR_NCOLORS to indicate that the standard
-   colors have been initialized. */
+   it is applied using the ui_add_color_hex function. */
 bool init_clr_palette(SIO *sio) {
     if (sio->black[0])
-        init_hex_clr(CLR_BLACK, sio->black);
+        ui_chg_color_hex(CLR_BLACK, sio->black);
     if (sio->red[0])
-        init_hex_clr(CLR_RED, sio->red);
+        ui_chg_color_hex(CLR_RED, sio->red);
     if (sio->green[0])
-        init_hex_clr(CLR_GREEN, sio->green);
+        ui_chg_color_hex(CLR_GREEN, sio->green);
     if (sio->yellow[0])
-        init_hex_clr(CLR_YELLOW, sio->yellow);
+        ui_chg_color_hex(CLR_YELLOW, sio->yellow);
     if (sio->blue[0])
-        init_hex_clr(CLR_BLUE, sio->blue);
+        ui_chg_color_hex(CLR_BLUE, sio->blue);
     if (sio->magenta[0])
-        init_hex_clr(CLR_MAGENTA, sio->magenta);
+        ui_chg_color_hex(CLR_MAGENTA, sio->magenta);
     if (sio->cyan[0])
-        init_hex_clr(CLR_CYAN, sio->cyan);
+        ui_chg_color_hex(CLR_CYAN, sio->cyan);
     if (sio->white[0])
-        init_hex_clr(CLR_WHITE, sio->white);
+        ui_chg_color_hex(CLR_WHITE, sio->white);
     if (sio->bblack[0])
-        init_hex_clr(CLR_BBLACK, sio->bblack);
+        ui_chg_color_hex(CLR_BBLACK, sio->bblack);
     if (sio->bred[0])
-        init_hex_clr(CLR_BRED, sio->bred);
+        ui_chg_color_hex(CLR_BRED, sio->bred);
     if (sio->bgreen[0])
-        init_hex_clr(CLR_BGREEN, sio->bgreen);
+        ui_chg_color_hex(CLR_BGREEN, sio->bgreen);
     if (sio->byellow[0])
-        init_hex_clr(CLR_BYELLOW, sio->byellow);
+        ui_chg_color_hex(CLR_BYELLOW, sio->byellow);
     if (sio->bblue[0])
-        init_hex_clr(CLR_BBLUE, sio->bblue);
+        ui_chg_color_hex(CLR_BBLUE, sio->bblue);
     if (sio->bmagenta[0])
-        init_hex_clr(CLR_BMAGENTA, sio->bmagenta);
+        ui_chg_color_hex(CLR_BMAGENTA, sio->bmagenta);
     if (sio->bcyan[0])
-        init_hex_clr(CLR_BCYAN, sio->bcyan);
+        ui_chg_color_hex(CLR_BCYAN, sio->bcyan);
     if (sio->bwhite[0])
-        init_hex_clr(CLR_BWHITE, sio->bwhite);
+        ui_chg_color_hex(CLR_BWHITE, sio->bwhite);
     if (sio->borange[0])
-        init_hex_clr(CLR_BORANGE, sio->borange);
+        ui_chg_color_hex(CLR_BORANGE, sio->borange);
     if (sio->fg[0])
-        init_hex_clr(CLR_FG, sio->fg);
+        ui_chg_color_hex(CLR_FG, sio->fg);
     if (sio->bg[0])
-        init_hex_clr(CLR_BG, sio->bg);
+        ui_chg_color_hex(CLR_BG, sio->bg);
     if (sio->box_fg[0])
-        init_hex_clr(CLR_BOX_FG, sio->box_fg);
+        ui_chg_color_hex(CLR_BOX_FG, sio->box_fg);
     if (sio->box_bg[0])
-        init_hex_clr(CLR_BOX_BG, sio->box_bg);
+        ui_chg_color_hex(CLR_BOX_BG, sio->box_bg);
     if (sio->ind_fg[0])
-        init_hex_clr(CLR_IND_FG, sio->ind_fg);
+        ui_chg_color_hex(CLR_IND_FG, sio->ind_fg);
     if (sio->ind_bg[0])
-        init_hex_clr(CLR_IND_BG, sio->ind_bg);
+        ui_chg_color_hex(CLR_IND_BG, sio->ind_bg);
     if (sio->title_fg[0])
-        init_hex_clr(CLR_TITLE_FG, sio->title_fg);
+        ui_chg_color_hex(CLR_TITLE_FG, sio->title_fg);
     if (sio->title_bg[0])
-        init_hex_clr(CLR_TITLE_BG, sio->title_bg);
+        ui_chg_color_hex(CLR_TITLE_BG, sio->title_bg);
     if (sio->ln_fg[0])
-        init_hex_clr(CLR_LN_FG, sio->ln_fg);
+        ui_chg_color_hex(CLR_LN_FG, sio->ln_fg);
     if (sio->ln_bg[0])
-        init_hex_clr(CLR_LN_BG, sio->ln_bg);
+        ui_chg_color_hex(CLR_LN_BG, sio->ln_bg);
     if (sio->nt_fg[0])
-        init_hex_clr(CLR_NT_FG, sio->nt_fg);
+        ui_chg_color_hex(CLR_NT_FG, sio->nt_fg);
     if (sio->nt_bg[0])
-        init_hex_clr(CLR_NT_BG, sio->nt_bg);
+        ui_chg_color_hex(CLR_NT_BG, sio->nt_bg);
     if (sio->nt_rev_fg[0])
-        init_hex_clr(CLR_NT_REV_FG, sio->nt_rev_fg);
+        ui_chg_color_hex(CLR_NT_REV_FG, sio->nt_rev_fg);
     if (sio->nt_rev_bg[0])
-        init_hex_clr(CLR_NT_REV_BG, sio->nt_rev_bg);
+        ui_chg_color_hex(CLR_NT_REV_BG, sio->nt_rev_bg);
     if (sio->nt_hl_fg[0])
-        init_hex_clr(CLR_NT_HL_FG, sio->nt_hl_fg);
+        ui_chg_color_hex(CLR_NT_HL_FG, sio->nt_hl_fg);
     if (sio->nt_hl_bg[0])
-        init_hex_clr(CLR_NT_HL_BG, sio->nt_hl_bg);
+        ui_chg_color_hex(CLR_NT_HL_BG, sio->nt_hl_bg);
     if (sio->nt_hl_rev_fg[0])
-        init_hex_clr(CLR_NT_HL_REV_FG, sio->nt_hl_rev_fg);
+        ui_chg_color_hex(CLR_NT_HL_REV_FG, sio->nt_hl_rev_fg);
     if (sio->nt_hl_rev_bg[0])
-        init_hex_clr(CLR_NT_HL_REV_BG, sio->nt_hl_rev_bg);
+        ui_chg_color_hex(CLR_NT_HL_REV_BG, sio->nt_hl_rev_bg);
     if (sio->fill_char_fg[0])
-        init_hex_clr(CLR_FILL_CHAR_FG, sio->fill_char_fg);
+        ui_chg_color_hex(CLR_FILL_CHAR_FG, sio->fill_char_fg);
     if (sio->fill_char_bg[0])
-        init_hex_clr(CLR_FILL_CHAR_BG, sio->fill_char_bg);
+        ui_chg_color_hex(CLR_FILL_CHAR_BG, sio->fill_char_bg);
     if (sio->brackets_fg[0])
-        init_hex_clr(CLR_BRACKETS_FG, sio->brackets_fg);
+        ui_chg_color_hex(CLR_BRACKETS_FG, sio->brackets_fg);
     if (sio->brackets_bg[0])
-        init_hex_clr(CLR_BRACKETS_BG, sio->brackets_bg);
-    clr_cnt = CLR_NCOLORS;
+        ui_chg_color_hex(CLR_BRACKETS_BG, sio->brackets_bg);
+    ui_color_cnt = CLR_NCOLORS;
     return true;
-}
-/** init_hex_clr
-    @brief Initialize extended ncurses color from HTML style hex string
-    @ingroup color_management
-    @param idx Color index
-    @param s Hex color string
-    @details NCurses uses 0-1000 for RGB values, so the RGB values from the hex
-   string are converted to this range before initializing the color. If the
-   color index is less than 16, the RGB values are also stored in the StdColors
-   array for reference.
-    */
-void init_hex_clr(int idx, char *s) {
-    RGB rgb;
-    rgb = hex_clr_str_to_rgb(s);
-    apply_gamma(&rgb);
-    if (idx < 16) {
-        StdColors[idx].r = rgb.r;
-        StdColors[idx].g = rgb.g;
-        StdColors[idx].b = rgb.b;
-    }
-    rgb.r = (rgb.r * 1000) / 255;
-    rgb.g = (rgb.g * 1000) / 255;
-    rgb.b = (rgb.b * 1000) / 255;
-    ui_init_extended_color(idx, rgb.r, rgb.g, rgb.b);
-}
-/** hex_clr_str_to_rgb
-    @brief Convert six-digit HTML style hex color code to RGB struct
-    @ingroup color_management
-    @param s six-digit HTML style hex color code */
-RGB hex_clr_str_to_rgb(char *s) {
-    RGB rgb;
-    sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    return rgb;
 }
 /** destroy_curses
     @brief Gracefully shut down NCurses and restore terminal settings
@@ -637,14 +527,14 @@ UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar
     UiStyle style;
     RGB rgb;
     sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int f_idx = rgb_to_curses_clr(&rgb);
+    int f_idx = ui_add_color_rgb(&rgb);
     sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int b_idx = rgb_to_curses_clr(&rgb);
-    style.cp = get_clr_pair(f_idx, b_idx);
+    int b_idx = ui_add_color_rgb(&rgb);
+    style.cp = ui_add_pair(f_idx, b_idx);
     style.attrs = attrs;
     if (wstr) {
-        size_t n = wcslen(wstr);
-        memcpy(style.wstr, wstr, (n + 1) * sizeof(wchar_t));
+        style.wstr[0] = wstr[0];
+        style.wstr[1] = L'\0';
     } else {
         style.wstr[0] = L' ';
         style.wstr[1] = L'\0';
@@ -897,12 +787,9 @@ int border_ysplit_text(UiSurface *sfc, char *text, int separator_line) {
     int l;
     int y = separator_line;
     int x = 0;
-    // Clearly, this is a bit hacky, but it works. We want to draw the
-    // horizontal line with text in the middle, so we start by drawing the left
-    // edge, then the text, then the right edge, and finally fill in the
-    // horizontal line on either side of the text. ui_mvwadd_cellnstr(sfc->box,
-    // y, x++,
-    // &lt, 1);
+    // Draw the horizontal line with text in the middle, so we start by drawing
+    // the left edge, then the text, then the right edge, and finally fill in the
+    // horizontal line on either side of the text.
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_lt, 1);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_ho, 1);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_rt, 1);
@@ -1424,25 +1311,6 @@ int get_chyron_key(Chyron *chyron, int x) {
     if (k == -1)
         return 0;
     return chyron->key[k]->keycode;
-}
-/** clr_name_to_idx
-    @brief Get color index from color name
-    @ingroup color_management
-    @param s Color name
-    @return Color index or -1 if not found */
-int clr_name_to_idx(char *s) {
-    int i = 0;
-    int n = 16;
-
-    str_to_lower(s);
-    while (i < n) {
-        if (!strcmp(colors_text[i], s))
-            break;
-        i++;
-    }
-    if (i >= n)
-        return (-1);
-    return (i);
 }
 /** nf_error
  *   @brief Display an error message and wait for user input

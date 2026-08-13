@@ -22,7 +22,11 @@
 #define U_VE L'\x2502' /**< vertical line */
 typedef struct notcurses NotCurses;
 typedef struct notcurses_options NotCursesOptions;
-typedef uint16_t attr_t;
+typedef uint32_t attr_t;
+#define stylemask attrs;
+
+#define NC_COLORS 512
+#define NC_PAIRS 512
 
 int LINES;
 int COLS;
@@ -35,7 +39,7 @@ int COLS;
    carries per-session configuration flags.
 */
 struct UiRuntime {
-    struct notcurses *nc; /**< root NotCurses context */
+    struct notcurses *nc;
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
@@ -87,19 +91,23 @@ struct UiSurface {
 //     uadrant)
 // };
 
-struct UiColorPair {
-    int fg_idx;
-    int bg_idx;
+struct UiColor {
+    uint8_t r, g, b;
 };
 
-struct UiColor {
+struct UiColorPair {
+    int fg;
+    int bg;
+};
+
+typedef struct {
     union {
         struct {
             uint8_t b, g, r;
         };
         uint32_t rgb;
     };
-};
+} RGB;
 
 union UiChannels {
     union {
@@ -120,9 +128,6 @@ union UiChannels {
         uint64_t chs;
     };
 };
-
-typedef uint16_t attr_t;
-#define stylemask attrs;
 
 struct UiStyle {
     union {

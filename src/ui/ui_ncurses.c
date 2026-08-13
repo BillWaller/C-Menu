@@ -24,13 +24,139 @@
 #include <string.h>
 #include <unistd.h>
 
-static int ui_color_cnt = 0;
+int ui_color_cnt = 0;
+int ui_pair_cnt = 0;
 
-/** Translate an 8-bit channel value (0-255) to the 1000-based NCurses scale. */
-static inline int nc_scale_1000(uint8_t v) {
-    return (int)((v * 1000) / 255);
+RGB std_color[16] = {
+    {0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+
+/* -------------------------------------------------------------------------
+   Colors, Color Pairs
+   ------------------------------------------------------------------------- */
+int ui_add_pair(int fg, int bg) {
+    int rc, i;
+    int pfg, pbg;
+    for (i = 1; i < ui_pair_cnt; i++) {
+        extended_pair_content(i, &pfg, &pbg);
+        if (pfg == fg && pbg == bg)
+            return i;
+    }
+    if (i >= COLOR_PAIRS) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "NCurses COLOR_PAIRS (%d) exceeded (%d)",
+                  COLOR_PAIRS, i);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, nullptr);
+        return (EXIT_FAILURE);
+    }
+    if (i + 1 >= COLOR_PAIRS)
+        return -1;
+    rc = init_extended_pair(i, fg, bg);
+    if (rc != OK) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "init_extended_pair failed for pair %d", i);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, nullptr);
+        return (EXIT_FAILURE);
+    }
+    ui_pair_cnt++;
+    return ui_pair_cnt - 1;
 }
-
+int ui_chg_pair(int pair, int fg, int bg) {
+    if (pair + 1 >= COLOR_PAIRS)
+        return -1;
+    init_extended_pair(pair, fg, bg);
+    return 0;
+}
+int ui_add_color_rgb(RGB *rgb) {
+    int i;
+    RGB tmp;
+    apply_gamma(rgb);
+    for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
+        extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
+        if (rgb->r == tmp.r && rgb->g == tmp.g && rgb->b == tmp.b)
+            return i;
+    }
+    if (i < NC_COLORS) {
+        if (i < 16) {
+            std_color[i].r = rgb->r;
+            std_color[i].g = rgb->g;
+            std_color[i].b = rgb->b;
+        }
+        rgb->r = (rgb->r * 1000) / 255;
+        rgb->g = (rgb->g * 1000) / 255;
+        rgb->b = (rgb->b * 1000) / 255;
+        init_extended_color(i, rgb->r, rgb->g, rgb->b);
+        if (ui_color_cnt + 1 < NC_COLORS)
+            ui_color_cnt++;
+        return ui_color_cnt - 1;
+    }
+    return 0;
+}
+int ui_add_color_hex(char *s) {
+    int i;
+    RGB rgb;
+    RGB tmp;
+    rgb = ui_hex_to_rgb(s);
+    apply_gamma(&rgb);
+    for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
+        extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
+        if (rgb.r == tmp.r && rgb.g == tmp.g && rgb.b == tmp.b)
+            return i;
+    }
+    if (i < NC_COLORS) {
+        if (i < 16) {
+            std_color[i].r = rgb.r;
+            std_color[i].g = rgb.g;
+            std_color[i].b = rgb.b;
+        }
+        rgb.r = (rgb.r * 1000) / 255;
+        rgb.g = (rgb.g * 1000) / 255;
+        rgb.b = (rgb.b * 1000) / 255;
+        init_extended_color(i, rgb.r, rgb.g, rgb.b);
+        if (ui_color_cnt + 1 < NC_COLORS)
+            ui_color_cnt++;
+        return ui_color_cnt - 1;
+    }
+    return 0;
+}
+int ui_chg_color_rgb(int color, RGB *rgb) {
+    if (color + 1 >= COLORS)
+        return -1;
+    apply_gamma(rgb);
+    rgb->r = (rgb->r * 1000) / 255;
+    rgb->g = (rgb->g * 1000) / 255;
+    rgb->b = (rgb->b * 1000) / 255;
+    if (color < 16) {
+        std_color[color].r = rgb->r;
+        std_color[color].g = rgb->g;
+        std_color[color].b = rgb->b;
+    }
+    init_extended_color(color, rgb->r, rgb->g, rgb->b);
+    return 0;
+}
+int ui_chg_color_hex(int color, char *s) {
+    RGB rgb;
+    if (color + 1 >= COLORS)
+        return -1;
+    rgb = ui_hex_to_rgb(s);
+    apply_gamma(&rgb);
+    if (color < 16) {
+        std_color[color].r = rgb.r;
+        std_color[color].g = rgb.g;
+        std_color[color].b = rgb.b;
+    }
+    rgb.r = (rgb.r * 1000) / 255;
+    rgb.g = (rgb.g * 1000) / 255;
+    rgb.b = (rgb.b * 1000) / 255;
+    init_extended_color(color, rgb.r, rgb.g, rgb.b);
+    return 0;
+}
+RGB ui_hex_to_rgb(char *s) {
+    RGB rgb;
+    sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    return rgb;
+}
 int ui_extended_color_content(int color, int *r, int *g, int *b) {
     extended_color_content(color, r, g, b);
     return 0;
@@ -554,12 +680,12 @@ UiStyle *ui_style_new(void) {
     rgb.r = 255;
     rgb.g = 255;
     rgb.b = 255;
-    int fg = rgb_to_curses_clr(&rgb);
+    int fg = ui_add_color_rgb(&rgb);
     rgb.r = 0;
     rgb.g = 0;
     rgb.b = 0;
-    int bg = rgb_to_curses_clr(&rgb);
-    style->cp = get_clr_pair(fg, bg);
+    int bg = ui_add_color_rgb(&rgb);
+    style->cp = ui_add_pair(fg, bg);
     return style;
 }
 

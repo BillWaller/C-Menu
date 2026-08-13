@@ -6,76 +6,155 @@
    using the NotCurses library.
 */
 
+#define _XOPEN_SOURCE_EXTENDED 1
+
 #include "cm.h"
+#include "ui_backend.h"
 #include "ui_notcurses_compat.h"
 #include "ui_notcurses_internal.h"
+#include <errno.h>
 #include <locale.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+RGB std_color[16] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+int ui_color_cnt = 0;
+int ui_pair_cnt = 0;
+
+/* -------------------------------------------------------------------------
+   Colors, Color Pairs
+   ------------------------------------------------------------------------- */
+
+struct UiColor ui_color[NC_COLORS] = {0};
+struct UiColorPair ui_color_pair[NC_PAIRS] = {0};
+
+int ui_add_pair(int fg, int bg) {
+    int i;
+    for (i = 1; i < ui_pair_cnt; i++) {
+        if (fg == ui_color_pair[i].fg && bg == ui_color_pair[i].bg)
+            return i;
+    }
+    if (i >= NC_PAIRS) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "NotCurses COLOR_PAIRS (%d) exceeded (%d)",
+                  NC_PAIRS, i);
+        strerror_r(errno, em2, MAXLEN);
+        display_error(em0, em1, em2, nullptr);
+        return (EXIT_FAILURE);
+    }
+    if (i < NC_PAIRS) {
+        ui_color_pair[i].fg = fg;
+        ui_color_pair[i].bg = bg;
+        ui_pair_cnt++;
+    }
+    return 0;
+}
+int ui_chg_pair(int pair, int fg, int bg) {
+    if (pair + 1 >= NC_PAIRS)
+        return -1;
+    ui_color_pair[pair].fg = fg;
+    ui_color_pair[pair].bg = bg;
+    return 0;
+}
+int ui_get_pair(int pair, int *fg, int *bg) {
+    if (pair + 1 >= NC_PAIRS)
+        return -1;
+    fg = ui_color_pair[pair].fg;
+    bg = ui_color_pair[pair].bg;
+    return pair;
+}
+int ui_add_color_rgb(RGB *rgb) {
+    int i;
+    apply_gamma(rgb);
+    for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
+        if (rgb->r == ui_color[i].r && rgb->g == ui_color[i].g && rgb->b == ui_color[i].b)
+            return i;
+    }
+    if (i < NC_COLORS) {
+        ui_color[i].r = rgb->r;
+        ui_color[i].g = rgb->g;
+        ui_color[i].b = rgb->b;
+        if (ui_color_cnt + 1 < NC_COLORS)
+            ui_color_cnt++;
+        return ui_color_cnt - 1;
+    }
+    return 0;
+}
+int ui_add_color_hex(char *s) {
+    RGB rgb;
+    rgb = ui_hex_to_rgb(s);
+    apply_gamma(&rgb);
+    int i;
+    for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
+        if (rgb.r == ui_color[i].r && rgb.g == ui_color[i].g && rgb.b == ui_color[i].b)
+            return i;
+    }
+    if (i < 16) {
+        std_color[i].r = rgb.r;
+        std_color[i].g = rgb.g;
+        std_color[i].b = rgb.b;
+    }
+    if (i < NC_COLORS) {
+        ui_color[i].r = rgb.r;
+        ui_color[i].g = rgb.g;
+        ui_color[i].b = rgb.b;
+        if (ui_color_cnt + 1 < NC_COLORS)
+            ui_color_cnt++;
+        return ui_color_cnt - 1;
+    }
+    return 0;
+}
+int ui_chg_color_rgb(int color, RGB *rgb) {
+    if (color + 1 >= NC_COLORS)
+        return -1;
+    apply_gamma(rgb);
+    if (color < 16) {
+        std_color[color].r = rgb->r;
+        std_color[color].g = rgb->g;
+        std_color[color].b = rgb->b;
+    }
+    ui_color[color].r = rgb->r;
+    ui_color[color].g = rgb->g;
+    ui_color[color].b = rgb->b;
+    return 0;
+}
+int ui_chg_color_hex(int color, char *s) {
+    RGB rgb;
+    if (color + 1 >= NC_COLORS)
+        return -1;
+    rgb = ui_hex_to_rgb(s);
+    apply_gamma(&rgb);
+    if (color < 16) {
+        std_color[color].r = rgb.r;
+        std_color[color].g = rgb.g;
+        std_color[color].b = rgb.b;
+    }
+    if (color < NC_COLORS) {
+        ui_color[color].r = rgb.r;
+        ui_color[color].g = rgb.g;
+        ui_color[color].b = rgb.b;
+    }
+    return 0;
+}
+int ui_get_color(int color, RGB *rgb) {
+    if (color + 1 >= NC_COLORS)
+        return -1;
+    rgb->r = ui_color[color].r;
+    rgb->g = ui_color[color].g;
+    rgb->b = ui_color[color].b;
+    return 0;
+}
+RGB ui_hex_to_rgb(char *s) {
+    RGB rgb;
+    sscanf(s, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
+    return rgb;
+}
+
 /* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
-int ui_color_cnt = 0;
-struct UiColor ui_color[NC_MAX_COLORS] = {0};
-int ui_color_pair_cnt = 0;
-struct UiColorPair ui_color_pair[NC_MAX_PAIRS] = {0};
-
-int ui_init_extended_color(int color, int r, int g, int b) {
-    for (int i = 0; i < ui_color_cnt && i < NC_MAX_COLORS; i++) {
-        if (ui_color[i].r == r && ui_color[i].g == g && ui_color[i].b == b)
-            return i;
-    }
-    if (ui_color_cnt >= NC_MAX_COLORS)
-        return -1;
-    ui_color[ui_color_cnt].r = r;
-    ui_color[ui_color_cnt].g = g;
-    ui_color[ui_color_cnt].b = b;
-    return ui_color_cnt++;
-}
-struct UiColorPair ui_extended_color_pair_content(int pair_idx) {
-    if (pair_idx < 0 || pair_idx >= ui_color_pair_cnt)
-        return content;
-    int fg_idx = ui_color_pair[pair_idx].fg_idx;
-    int bg_idx = ui_color_pair[pair_idx].bg_idx;
-    if (fg_idx >= 0 && fg_idx < ui_color_cnt) {
-        content.fg_r = ui_color[fg_idx].r;
-        content.fg_g = ui_color[fg_idx].g;
-        content.fg_b = ui_color[fg_idx].b;
-    }
-    if (bg_idx >= 0 && bg_idx < ui_color_cnt) {
-        content.bg_r = ui_color[bg_idx].r;
-        content.bg_g = ui_color[bg_idx].g;
-        content.bg_b = ui_color[bg_idx].b;
-    }
-    return content;
-}
-/**
- * Find or allocate an NCurses extended color pair for (fg, bg).
- * Returns the pair index.
- * fg = foreground color in RGB formaat (0xRRGGBB)
- * bg = background color in RGB formaat (0xRRGGBB)
- *
- *
- */
-static int ui_init_extended_pair(uint32_t fg, uint32_t bg) {
-    for (int i = 0; i < ui_color_pair_cnt; i++) {
-        int ui_fg_idx = ui_color_pair[i].fg_idx;
-        int ui_bg_idx = ui_color_pair[i].bg_idx;
-        if (ui_color_pair[ui_fg_idx].rgb == 
-        if (ui_color_pair[i].bgra >> 8 == fg &&
-                                    ui_color_pair[i].bgra >> 8 == bg) return i;
-    }
-    if (ui_color_pair_cnt >= NC_MAX_PAIRS)
-        return 0;
-    int color_pair_idx = ui_color_pair_cnt + 1;
-    ui_color_pair[ui_color_pair_cnt].fbgra = fg << 8;
-    ui_color_pair[ui_color_pair_cnt].bbgra = bg << 8;
-    ui_color_pair_cnt++;
-    return color_pair_idx;
-}
-
 UiRuntime *ui_init(const UiConfig *cfg) {
     setlocale(LC_ALL, "");
     UiRuntime *ui = calloc(1, sizeof(*ui));
