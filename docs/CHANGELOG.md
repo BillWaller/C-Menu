@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-13T17:14:44-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. The NCurses backend is now fully integrated into the UI abstraction layer and the NotCurses backend is underway. It would have been much easier to convert to NotCurses than to support both backends, but I do not think the choice between NCurses and NotCurses is a matter of preference. NotCurses is incredibly capable and will support features that NCurses cannot. In addition to text, with Notcurses, you will be able to view photo albums and videos in C-Menu View. You can't do that with NCurses. However, the C-Menu build with NCurses can run on a wide range of systems, including those that may not have NotCurses installed. That includes older Linux distributions, SOC's, and embedded systems. I can't choose between NCurses and NotCurses. I must have both, and so should you. 
+
+*2026-08-13T13:23:41-05:00* - Update CHANGELOG.md 
+
 *2026-08-13T13:19:24-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for UI Backends. Added compatibility code to provide an NCurses-like Colors and Color Pairs API for Notcurses. This allows for easier integration of Notcurses into existing codebases that were originally designed for NCurses, by providing a familiar interface for color management. The UAL ensures that developers can leverage the advanced features of Notcurses while maintaining compatibility with legacy NCurses code, facilitating a smoother transition and reducing the learning curve for developers familiar with NCurses. This enhancement aims to improve the usability and flexibility of the Notcurses library, making it more accessible to a wider range of applications and developers. 
 
 *2026-08-12T21:17:48-05:00* - Update CHANGELOG.md 
