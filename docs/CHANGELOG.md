@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-13T13:19:24-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for UI Backends. Added compatibility code to provide an NCurses-like Colors and Color Pairs API for Notcurses. This allows for easier integration of Notcurses into existing codebases that were originally designed for NCurses, by providing a familiar interface for color management. The UAL ensures that developers can leverage the advanced features of Notcurses while maintaining compatibility with legacy NCurses code, facilitating a smoother transition and reducing the learning curve for developers familiar with NCurses. This enhancement aims to improve the usability and flexibility of the Notcurses library, making it more accessible to a wider range of applications and developers. 
+
+*2026-08-12T21:17:48-05:00* - Update CHANGELOG.md 
+
 *2026-08-12T21:02:18-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. NCurses and NotCurses, despite the differences in design philosophy, have a lot in common. The NCurses maintainer, Thomas E. Dickey, is like the Rock of Gibraltar in the world of terminal handling. He has been maintaining NCurses for decades, and his work is a testament to the power of open-source collaboration. NotCurses, on the other hand, is more like a rocket scientist, with comprehensive knowledge on the leading edge of terminal handling. The NotCurses maintainer, Drew DeVault, is a brilliant mind in the field, and his work is a testament to the power of innovation. How lucky am I to have the opportunity to learn from these giants in the field of terminal handling? I am so grateful for their contributions. 
 
 *2026-08-11T23:05:05-05:00* - FEATURE: Uniform Abstraction Layer for Ui Backends. Continue testing and refactoring C-Menu's codebase. 
