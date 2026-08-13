@@ -19,6 +19,8 @@
 #include <string.h>
 #include <unistd.h>
 
+typedef struct NcPlane NcPlane;
+
 RGB std_color[16] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 int ui_color_cnt = 0;
 int ui_pair_cnt = 0;
@@ -61,9 +63,9 @@ int ui_chg_pair(int pair, int fg, int bg) {
 int ui_get_pair(int pair, int *fg, int *bg) {
     if (pair + 1 >= NC_PAIRS)
         return -1;
-    fg = ui_color_pair[pair].fg;
-    bg = ui_color_pair[pair].bg;
-    return pair;
+    *fg = ui_color_pair[pair].fg;
+    *bg = ui_color_pair[pair].bg;
+    return 0;
 }
 int ui_add_color_rgb(RGB *rgb) {
     int i;
@@ -151,7 +153,27 @@ RGB ui_hex_to_rgb(char *s) {
     sscanf(s, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
     return rgb;
 }
-
+/* -------------------------------------------------------------------------
+   Styles
+   ------------------------------------------------------------------------- */
+UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr) {
+    UiStyle style;
+    RGB rgb;
+    uint64_t channels = 0;
+    sscanf(fg, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
+    ncchannels_set_fg_rgb8(&channels, rgb.r, rgb.g, rgb.b);
+    sscanf(bg, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
+    ncchannels_set_bg_rgb8(&channels, rgb.r, rgb.g, rgb.b);
+    style.attrs = attrs;
+    if (wstr) {
+        style.wstr[0] = wstr[0];
+        style.wstr[1] = L'\0';
+    } else {
+        style.wstr[0] = L' ';
+        style.wstr[1] = L'\0';
+    }
+    return style;
+}
 /* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
@@ -193,6 +215,9 @@ UiRuntime *ui_init(const UiConfig *cfg) {
 
     if (!ui->cursor_visible)
         notcurses_cursor_disable(ui->nc);
+
+    NcPlane *stdn = notcurses_stdplane(ui->nc);
+    ncplane_erase(stdn);
 
     unsigned int r = 0, c = 0;
     notcurses_stddim_yx(ui->nc, &r, &c);

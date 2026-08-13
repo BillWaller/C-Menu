@@ -175,6 +175,28 @@ int ui_init_extended_pair(int pair, int fg, int bg) {
     init_extended_pair(pair, fg, bg);
     return 0;
 }
+/* -------------------------------------------------------------------------
+   Styles
+   ------------------------------------------------------------------------- */
+
+UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr) {
+    UiStyle style;
+    RGB rgb;
+    sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    int f_idx = ui_add_color_rgb(&rgb);
+    sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    int b_idx = ui_add_color_rgb(&rgb);
+    style.cp = ui_add_pair(f_idx, b_idx);
+    style.attrs = attrs;
+    if (wstr) {
+        style.wstr[0] = wstr[0];
+        style.wstr[1] = L'\0';
+    } else {
+        style.wstr[0] = L' ';
+        style.wstr[1] = L'\0';
+    }
+    return style;
+}
 
 /* -------------------------------------------------------------------------
    Lifecycle
@@ -265,19 +287,14 @@ void ui_shutdown(UiRuntime *ui) {
     }
     sfc_ptr = -1;
     endwin();
+#ifdef NCURSES_UI
     if (ui->screen) {
         delscreen(ui->screen);
-#ifdef UAL_LEGACY_COMPAT
         ui->screen = NULL;
-#endif
     }
     if (ui->tty_fp) {
         fclose(ui->tty_fp);
-#ifdef UAL_LEGACY_COMPAT
-        // tty_fp = NULL;
-#endif
     }
-#ifdef UAL_LEGACY_COMPAT
     f_curses_open = false;
 #endif
     free(ui);

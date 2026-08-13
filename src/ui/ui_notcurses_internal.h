@@ -22,8 +22,6 @@
 #define U_VE L'\x2502' /**< vertical line */
 typedef struct notcurses NotCurses;
 typedef struct notcurses_options NotCursesOptions;
-typedef uint32_t attr_t;
-#define stylemask attrs;
 
 #define NC_COLORS 512
 #define NC_PAIRS 512
@@ -132,10 +130,26 @@ union UiChannels {
 struct UiStyle {
     union {
         struct {
-            uint8_t gcluster[4];       // 4-bytes for UTF-8
+            wchar_t gcluster[4];       // 4-bytes for UTF-8
             uint8_t gcluster_backstop; // 1-byte terminator
-        } gcluster;
+        };
         uint8_t wstr[5];
+    };
+    uint8_t width;             // 5 -  5   (8 bits of EGC column width)
+    uint16_t stylemask;        // 6 -  7   2-bytes
+    union UiChannels channels; // 8 - 15   8 bytes
+};
+
+struct UiCell {
+    union {
+        struct {
+            uint8_t gclus[4]; // 4-bytes for UTF-8
+            uint8_t bs;       // 1-byte terminator
+        };
+        struct {
+            wchar_t wst0[4]; // 4-bytes for UTF-8
+            wchar_t wst1[1]; // 1-byte backstop
+        };
     };
     uint8_t width;             // 5 -  5   (8 bits of EGC column width)
     uint16_t stylemask;        // 6 -  7   2-bytes

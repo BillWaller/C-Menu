@@ -287,6 +287,8 @@ int ui_chg_color_hex(int color, char *s);
 int ui_get_color(int color, RGB *rgb);
 RGB ui_hex_to_rgb(char *s);
 
+UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
+
 #ifdef UAL_UI
 cchar_t style_to_cc(UiStyle *style);
 #endif

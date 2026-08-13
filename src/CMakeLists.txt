@@ -113,7 +113,7 @@ elseif(UI STREQUAL "NOTCURSES_UI")
         ui/ui_notcurses_input.c
         ui/ui_layout.c
     )
-    set(CMAKE_C_FLAGS "-Wall -Wextra" -DNOTCURSES_UI)
+    set(CMAKE_C_FLAGS "-Wall -Wextra -DNOTCURSES_UI")
     target_compile_definitions(cm PUBLIC -DNOTCURSES_UI)
     target_compile_definitions(CMenu PUBLIC -DNOTCURSES_UI)
     target_compile_definitions(menu PUBLIC -DNOTCURSES_UI)

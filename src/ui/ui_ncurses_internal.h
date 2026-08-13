@@ -201,5 +201,6 @@ int ui_bkgrndset(WINDOW *win, const struct UiStyle *style);
 
 int ui_setcchar(UiCell *uc, const wchar_t *wstr, attr_t attrs, short pair, const void *opts);
 int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, short *pair, void *opts);
+extern int mbstr_to_cellstr(cchar_t *cmplx_buf, char *str, attr_t attrs, int cpx, int *pos, int maxlen);
 
 #endif

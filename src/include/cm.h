@@ -933,13 +933,12 @@ extern int cf_accept(UiSurface *, int w, char *, int, int, int);
 extern char *fill_field(char *, char *, char, int);
 extern int cm_surface_destroy(UiSurface *sfc);
 extern wchar_t *mbstr_to_wcstr(const char *mb_str);
-extern int mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, int cpx, int *pos, int maxlen);
+
 extern int border_draw(UiSurface *sfc);
 extern int border_title(UiSurface *sfc, char *title);
 extern int border_ysplit(UiSurface *, int);
 extern int border_ysplit_text(UiSurface *, char *, int);
 extern void mbc_to_wc(wchar_t wc[2], const char mbc);
 extern void initialize_styles(SIO *);
-extern UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
 
 #endif

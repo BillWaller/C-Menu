@@ -67,12 +67,33 @@ int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style,
 // ---------------------------------------------------------------------------
 // nccells
 // ---------------------------------------------------------------------------
+
+int ui_setnccell(nccell *uic,
+                 const uint32_t gcluster,
+                 uint32_t stylemask,
+                 const uint64_t channels) {
+    if (!uic || !gcluster)
+        return -1;
+    memset(uic, 0, sizeof(struct nccell));
+    uic->gcluster = gcluster;
+    if (!uic->gcluster)
+        return -1;
+    uic->gcluster_backstop = 0;
+    uic->stylemask = stylemask;
+    uic->channels = channels;
+    return 0;
+}
+//
 // uic character single
-int ui_wadd_wch(UiSurface *s, int w, const UiCell uic) {
+int ui_wadd_wch(UiSurface *s, int w, const nccell uic) {
     if (!s)
         return -1;
     struct nccell c;
-    nccell_prime(s->mplane[w], &c, uic.gcluster, uic.stylemask, uic.channels);
+
+    nccell_prime(s->mplane[w], &c,
+                 uic.gcluster,
+                 uic.stylemask,
+                 uic.channels);
     ncplane_putc(s->mplane[w], &c);
     return 0;
 }
@@ -90,8 +111,11 @@ int ui_wadd_wchstr(UiSurface *s, int w, UiCell *uic) {
         return -1;
     struct nccell c;
     int i = 0;
-    while (uic[i].gcluster[i] != '\0') {
-        nccell_prime(s->mplane[w], &c, &uic[i].gcluster[0], uic[i].stylemask, uic[i].channels);
+    while (uic[i].gcluster != '\0') {
+        nccell_prime(s->mplane[w], &c,
+                     uic[i].gcluster,
+                     uic[i].stylemask,
+                     uic[i].channels);
         ncplane_putc(s->mplane[w], &c);
         i++;
     }

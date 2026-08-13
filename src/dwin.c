@@ -77,8 +77,11 @@ void unset_chyron_key(Chyron *, int);
 void compile_chyron(Chyron *);
 int get_chyron_key(Chyron *, int);
 Chyron *destroy_chyron(Chyron *chyron);
-
+#ifdef NCURSES_UI
 int mbstr_to_cellstr(UiCell *, char *, attr_t, int, int *, int);
+#else
+int mbstr_to_cellstr(struct UiCell *cmplx_buf, char *str, uint16_t *stylemask, int cpx, int *pos, int maxlen);
+#endif
 void initialize_styles(SIO *);
 
 void activate_chyron_key(Chyron *chyron, int k);
@@ -184,83 +187,8 @@ short cp_blue;
 
 int tty_fd, pipe_in, pipe_out;
 
-/** open_curses
-    @brief Initialize NCurses and color settings
-    @ingroup window_support
-    @param sio Pointer to SIO struct with terminal and color settings
-    @return true if successful, false if error
-    @details This function initializes NCurses and sets up color pairs based on
-   the settings in the SIO struct. It also applies gamma correction to colors.
-    Use this function to initialize NCurses if you don't want NCurses to receive
-   data from the stdin pipe
-    @code
-    1. saves stdin and stdout file descriptors in SIO
-    2. opens a terminal device for NCurses screen IO
-    3. replaces STDERR_FILENO with terminal file descriptor
-    @endcode */
-
-#ifdef OBSOLETE
-bool open_curses(SIO *sio) {
-    char tmp_str[MAXLEN];
-    char emsg0[MAXLEN];
-
-    // Get the name of the terminal device
-    sio->stdin_fd = dup(STDIN_FILENO);
-    sio->stdout_fd = dup(STDOUT_FILENO);
-    sio->stderr_fd = dup(STDERR_FILENO);
-    if (ttyname_r(STDERR_FILENO, sio->tty_name, sizeof(sio->tty_name)) != 0) {
-        strerror_r(errno, tmp_str, MAXLEN - 1);
-        strnz__cpy(emsg0, "ttyname_r failed ", MAXLEN - 1);
-        strnz__cat(emsg0, tmp_str, MAXLEN - 1);
-        fprintf(stderr, "%s\n", tmp_str);
-        exit(0);
-    }
-    // open the terminal device for NCurses input and output
-    tty_fp = fopen(sio->tty_name, "r+");
-    if (tty_fp == nullptr) {
-        strerror_r(errno, tmp_str, MAXLEN - 1);
-        strnz__cpy(emsg0, "fopen(sio->tty_name) failed ", MAXLEN - 1);
-        strnz__cat(emsg0, tmp_str, MAXLEN - 1);
-        fprintf(stderr, "%s\n", tmp_str);
-        exit(0);
-    }
-    // newterm() allows us to specify a tty device for NCurses input and
-    // output.
-    screen = newterm(nullptr, tty_fp, tty_fp);
-    if (screen == nullptr) {
-        strerror_r(errno, tmp_str, MAXLEN - 1);
-        strnz__cpy(emsg0, "newterm failed ", MAXLEN - 1);
-        strnz__cat(emsg0, tmp_str, MAXLEN - 1);
-        fprintf(stderr, "%s\n", tmp_str);
-        exit(0);
-    }
-    set_term(screen);
-    f_curses_open = true;
-    if (!has_colors()) {
-        destroy_curses();
-        abend(-1, "Terminal color support required");
-    }
-    start_color();
-    if (!can_change_color()) {
-        destroy_curses();
-        fprintf(stderr, "Terminal cannot change colors\n");
-        fprintf(stderr, "Check TERM environment variable\n");
-        fprintf(stderr, "Check terminfo for missing \"ccc\"\n");
-        abend(-1, "fatal error");
-    }
-    panel_main = new_panel(stdscr);
-    noecho();
-    for (sfc_ptr = 0; sfc_ptr < MAXWIN; sfc_ptr++) {
-        for (int i = 0; i < SUB_SFC_MAX; i++) {
-            ui_surface[sfc_ptr]->mpan[i] = nullptr;
-            ui_surface[sfc_ptr]->mwin[i] = nullptr;
-        }
-    }
-    sfc_ptr = -1;
-    return sio;
-}
-#endif
-/** @brief Initialize local color variables and color pairs based on SIO settings
+/** @brief Initialize local color variables and color pairs based on SIO
+ * settings
     @ingroup color_management
     @param sio Pointer to SIO struct with color settings
     @details This function initializes local color variables and color pairs
@@ -523,25 +451,6 @@ void mbc_to_wc(wchar_t wc[2], const char mbc) {
     }
 }
 
-UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr) {
-    UiStyle style;
-    RGB rgb;
-    sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int f_idx = ui_add_color_rgb(&rgb);
-    sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int b_idx = ui_add_color_rgb(&rgb);
-    style.cp = ui_add_pair(f_idx, b_idx);
-    style.attrs = attrs;
-    if (wstr) {
-        style.wstr[0] = wstr[0];
-        style.wstr[1] = L'\0';
-    } else {
-        style.wstr[0] = L' ';
-        style.wstr[1] = L'\0';
-    }
-    return style;
-}
-
 wchar_t *mbstr_to_wcstr(const char *mb_str) {
     const char *src_ptr = mb_str;
     mbstate_t state = {0};
@@ -574,8 +483,11 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    The pos parameter is updated to reflect the current position in the output
    buffer, and the function ensures that it does not exceed the maximum length.
 */
-// #ifdef NCURSES_UI
+#ifdef NCURSES_UI
 int mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int maxlen) {
+#else
+int mbstr_to_cellstr(struct UiCell *cmplx_buf, char *str, uint16_t *stylemask, int cpx, int *p, int maxlen) {
+#endif
     int p1 = 0;
     int *pos = &p1;
     if (p)
@@ -679,7 +591,7 @@ int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
-    getmaxyx(stdscr, maxy, maxx);
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
     split_x = min(split_x, maxx - 2); // not implemented yet
     int split_wlines = min(wlines + split_y + 1, maxy - 2);
     wcols = min(wcols, maxx - 2);
