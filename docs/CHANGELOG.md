@@ -2,6 +2,12 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-12T21:02:18-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. NCurses and NotCurses, despite the differences in design philosophy, have a lot in common. The NCurses maintainer, Thomas E. Dickey, is like the Rock of Gibraltar in the world of terminal handling. He has been maintaining NCurses for decades, and his work is a testament to the power of open-source collaboration. NotCurses, on the other hand, is more like a rocket scientist, with comprehensive knowledge on the leading edge of terminal handling. The NotCurses maintainer, Drew DeVault, is a brilliant mind in the field, and his work is a testament to the power of innovation. How lucky am I to have the opportunity to learn from these giants in the field of terminal handling? I am so grateful for their contributions. 
+
+*2026-08-11T23:05:05-05:00* - FEATURE: Uniform Abstraction Layer for Ui Backends. Continue testing and refactoring C-Menu's codebase. 
+
+*2026-08-11T16:01:26-05:00* - Update CHANGELOG.md 
+
 *2026-08-11T15:24:50-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for UI Backends. Updated CMakeLists.txt and GNUMakefile to include new source files for UAL. The project builds successfully with no errors or warnings. With C-Menu's current feature set, we can and will achieve 100% parity whether C-Menu is built with NCurses or NotCurses before adding backend-specific feature implementations. 
 
 *2026-08-10T14:21:18-05:00* - Update CHANGELOG.md 
