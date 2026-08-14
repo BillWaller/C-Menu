@@ -24,17 +24,6 @@
 #define MAXWIN 30
 
 typedef enum {
-    BOX,
-    WIN,
-    WIN2,
-    LNNO,
-    CMDLN,
-    PAD,
-    WIN3,
-    SUB_SFC_MAX
-} UiSubSurface;
-
-typedef enum {
     UI_KEY_NONE = 0,
     UI_KEY_CHAR,
     UI_KEY_ENTER,
@@ -222,12 +211,10 @@ int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style);
 int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style);
 int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style, const char *title);
-/* @brief clipping / visibility
-@ingroup ui_backend */
 int ui_surface_show(UiSurface *s, int w);
 int ui_surface_hide(UiSurface *s, int w);
-int ui_get_event(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int timeout_ms);
-int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int timeout_ms);
+int ui_get_event(UiSurface *s, int w, UiEvent *ev, int timeout_ms);
+int ui_get_event_multi(UiSurface *s, int w, UiEvent *ev, int timeout_ms);
 int ui_get_event_no_mouse(UiSurface *surface, int w, UiEvent *ev);
 int ui_cursor_move(UiSurface *s, int w, int y, int x);
 int ui_cursor_enable(UiRuntime *ui, bool visible);
@@ -238,7 +225,7 @@ void ui_qiflush();
 void ui_wscrl(UiSurface *s, int w, int n);
 int ui_wclrtoeol(UiSurface *s, int w);
 int ui_wclrtobot(UiSurface *s, int w);
-void ui_getyx(UiSurface *sfc, int w, int *lines, int *cols);
+void ui_getyx(UiSurface *s, int w, int *lines, int *cols);
 void ui_getmaxyx(UiSurface *s, int w, int *lines, int *cols);
 int ui_getmaxx(UiSurface *s, int w);
 int ui_getmaxy(UiSurface *s, int w);
@@ -255,7 +242,7 @@ int ui_waddwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr);
 int ui_mvwaddwstr(UiSurface *s, int w, int y, int x, const wchar_t *wstr);
 int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr, int n);
 int ui_mvwaddnwstr(UiSurface *s, int w, int y, int x, const UiStyle *style, const wchar_t *wstr, int n);
-int ui_mvwaddstr_fill(UiSurface *sfc, int w, int y, int x, char *s, int n);
+int ui_mvwaddstr_fill(UiSurface *s, int w, int y, int x, char *str, int n);
 int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text);
 int ui_mvwadd_mbnstr(UiSurface *s, int w, int y, int x, const char *text, int n);
 int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, int n);
@@ -286,6 +273,10 @@ int ui_chg_color_rgb(int color, RGB *rgb);
 int ui_chg_color_hex(int color, char *s);
 int ui_get_color(int color, RGB *rgb);
 RGB ui_hex_to_rgb(char *s);
+int ui_wmove(UiSurface *s, int w, int y, int x);
+int ui_werase(UiSurface *s, int w);
+void ui_restore_wins();
+int ui_top_panel(UiSurface *s, int w);
 
 UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
 

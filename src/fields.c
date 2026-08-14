@@ -88,7 +88,7 @@ int field_editor(Form *form) {
             form_display_accept_field(form);
             tcflush(0, TCIFLUSH);
             ui_cursor_move(sfc, WIN, flin, x);
-            in_key = ui_get_event_multi(ui_runtime, sfc, WIN, &event, -1);
+            in_key = ui_get_event_multi(sfc, WIN, &event, -1);
             ui_getmaxyx(sfc, WIN, &maxy, &maxx);
             if (event.in_win == WIN && event.y == maxy - 1)
                 in_key = get_chyron_key(form->chyron, event.x);

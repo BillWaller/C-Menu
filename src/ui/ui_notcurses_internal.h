@@ -128,12 +128,9 @@ union UiChannels {
 };
 
 struct UiStyle {
-    union {
-        struct {
-            wchar_t gcluster[4];       // 4-bytes for UTF-8
-            uint8_t gcluster_backstop; // 1-byte terminator
-        };
-        uint8_t wstr[5];
+    struct {
+        uint32_t gcluster[4];      // 4-bytes for UTF-8
+        uint8_t gcluster_backstop; // 1-byte terminator
     };
     uint8_t width;             // 5 -  5   (8 bits of EGC column width)
     uint16_t stylemask;        // 6 -  7   2-bytes
@@ -141,15 +138,9 @@ struct UiStyle {
 };
 
 struct UiCell {
-    union {
-        struct {
-            uint8_t gclus[4]; // 4-bytes for UTF-8
-            uint8_t bs;       // 1-byte terminator
-        };
-        struct {
-            wchar_t wst0[4]; // 4-bytes for UTF-8
-            wchar_t wst1[1]; // 1-byte backstop
-        };
+    struct {
+        uint32_t gclus[4]; // 4-bytes for UTF-8
+        uint8_t bs;        // 1-byte terminator
     };
     uint8_t width;             // 5 -  5   (8 bits of EGC column width)
     uint16_t stylemask;        // 6 -  7   2-bytes

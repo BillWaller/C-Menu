@@ -40,13 +40,6 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#define NC true
-#ifdef ASDF
-SCREEN *screen;
-FILE *tty_fp;
-WINDOW *win_main;
-PANEL *panel_main;
-#endif
 UiRuntime *ui_runtime;
 UiConfig *ui_config;
 UiSurface *ui_surface[MAXWIN];
@@ -54,11 +47,6 @@ UiSurface *ui_surface[MAXWIN];
 bool init_clr_palette(SIO *);
 bool open_curses(SIO *);
 void destroy_curses();
-
-int border_draw(UiSurface *sfc);
-int border_title(UiSurface *sfc, char *title);
-int border_ysplit(UiSurface *, int);
-int border_ysplit_text(UiSurface *, char *, int);
 
 void abend(int, char *);
 int nf_error(int, char *);
@@ -77,7 +65,7 @@ void unset_chyron_key(Chyron *, int);
 void compile_chyron(Chyron *);
 int get_chyron_key(Chyron *, int);
 Chyron *destroy_chyron(Chyron *chyron);
-#ifdef NCURSES_UI
+#ifdef UAL_UI
 int mbstr_to_cellstr(UiCell *, char *, attr_t, int, int *, int);
 #else
 int mbstr_to_cellstr(struct UiCell *cmplx_buf, char *str, uint16_t *stylemask, int cpx, int *pos, int maxlen);
@@ -89,16 +77,17 @@ void activate_all_chyron_keys(Chyron *chyron);
 void deactivate_chyron_key(Chyron *chyron, int k);
 void deactivate_all_chyron_keys(Chyron *chyron);
 
+int border_draw(UiSurface *sfc);
+int border_title(UiSurface *sfc, char *title);
+int border_ysplit(UiSurface *, int);
+int border_ysplit_text(UiSurface *, char *, int);
+
 int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle);
 int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy, int wbegx, char *wtitle);
 
 void win_resize(int, int, char *);
-void restore_wins();
-#ifdef ASDSF
-WINDOW *mouse_win;
+void ui_restore_wins();
 
-cchar_t ls, rs, ts, bs, tl, tr, bl, br, lt, rt, sp, ra, la, ua, da, ran, chk;
-#endif
 /** colors_text
     @brief Color names for .minitrc overrides
     @details These names are used in .minitrc to specify color overrides The
@@ -485,9 +474,6 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
 */
 #ifdef NCURSES_UI
 int mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int maxlen) {
-#else
-int mbstr_to_cellstr(struct UiCell *cmplx_buf, char *str, uint16_t *stylemask, int cpx, int *p, int maxlen) {
-#endif
     int p1 = 0;
     int *pos = &p1;
     if (p)
@@ -526,7 +512,7 @@ int mbstr_to_cellstr(struct UiCell *cmplx_buf, char *str, uint16_t *stylemask, i
     cmplx_buf[*pos] = cc;
     return *pos;
 }
-// #endif
+#endif
 /** @brief Converts a Unicode code point to a UTF-8 encoded string.
     @ingroup utility_functions
     @param cp - Unicode code point to convert
@@ -572,10 +558,8 @@ int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     sfc_ptr++;
     // ------------------->    UAL_win_box    <-------------------
     ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, nullptr, 0, wlines, wcols, wbegy, wbegx, wtitle);
-    if (ui_surface[sfc_ptr] == nullptr || ui_surface[sfc_ptr]->mwin[BOX] == nullptr) {
-        Perror("ui_surface_new() failed");
-        exit(EXIT_FAILURE);
-    }
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
     return 0;
 }
 // ------------------->    box_split_new    <-------------------
@@ -598,11 +582,11 @@ int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy
     sfc_ptr++;
     // ------------------->    surface_new    <-------------------
     ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, nullptr, 0, split_wlines, wcols, wbegy, wbegx, wtitle);
-    if (ui_surface[sfc_ptr] == nullptr || ui_surface[sfc_ptr]->mwin[BOX] == nullptr) {
-        Perror("ui_surface_new() failed");
-        exit(EXIT_FAILURE);
-    }
     UiSurface *sfc = ui_surface[sfc_ptr];
+
+    ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
+    ui_render(ui_runtime);
+
     border_ysplit(sfc, wlines + 1);
     ui_render(ui_runtime);
     ui_surface_addwin(sfc, WIN2, BOX, 2, wcols, wlines + 2, 1);
@@ -624,23 +608,6 @@ int cm_surface_destroy(UiSurface *sfc) {
     ui_surface_destroy(ui_surface[sfc_ptr]);
     sfc_ptr--;
     return 0;
-}
-/** restore_wins
-    @brief Restore all windows after a screen resize
-    @ingroup window_support
-    @details This function is used to restore the display of all windows after a
-   screen resize event. It clears the standard screen and then iterates through
-   all existing windows, touching them to ensure they are redrawn
-   correctly on the resized screen. Use this function in response to a SIGWINCH
-   signal to handle terminal resizing gracefully. */
-void restore_wins() {
-    touchwin(stdscr);
-    for (int s = 0; s <= sfc_ptr; s++) {
-        for (int w = 0; w < 8; w++)
-            if (ui_surface[s]->mwin[w] != nullptr)
-                touchwin(ui_surface[s]->mwin[w]);
-    }
-    ui_render(ui_runtime);
 }
 int border_draw(UiSurface *sfc) {
     int maxy = ui_getmaxy(sfc, BOX);
@@ -814,7 +781,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     do {
         curs_set(1);
         event.y = event.x = -1;
-        cmd_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+        cmd_key = ui_get_event(sfc, WIN, &event, -1);
         if (cmd_key == KEY_F(1) || cmd_key == 'N' || cmd_key == 'n' || cmd_key == 'Y' || cmd_key == 'y')
             break;
     } while (1);
@@ -877,7 +844,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
     do {
         event.y = event.x = -1;
-        cmd_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+        cmd_key = ui_get_event(sfc, WIN, &event, -1);
         if (cmd_key == KEY_F(9) || cmd_key == KEY_F(10) || cmd_key == 'q' || cmd_key == 'Q')
             break;
     } while (1);
@@ -928,7 +895,7 @@ int Perror(char *emsg_str) {
     display_chyron(sfc, WIN, chyron, 1, chyron->l + 1);
     if (f_xwgetch) {
         event.y = event.x = -1;
-        in_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+        in_key = ui_get_event(sfc, WIN, &event, -1);
     } else {
         in_key = KEY_F(10);
     }
@@ -967,7 +934,7 @@ bool action_disposition(char *title, char *action_str) {
     ui_draw_text(sfc, WIN, 0, 1, NULL, action_str);
     display_chyron(sfc, WIN, chyron, 1, 0);
     event.y = event.x = -1;
-    cmd_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+    cmd_key = ui_get_event(sfc, WIN, &event, -1);
     cm_surface_destroy(sfc);
     destroy_chyron(chyron);
     return true;
@@ -1006,6 +973,21 @@ Chyron *new_chyron() {
         }
     }
     return chyron;
+}
+int assign_chyron_win(Chyron *chyron, UiSurface *sfc, int win, char *y) {
+    if (!sfc)
+        return -1;
+    chyron->sfc = sfc;
+    chyron->win = win;
+    if (*y == '-')
+        chyron->y = ui_getmaxy(sfc, win) - 1;
+    else {
+        chyron->y = atoi(y);
+        if (chyron->y < 0)
+            return -1;
+        chyron->y = min(chyron->y, ui_getmaxy(sfc, win) - 1);
+    }
+    return 0;
 }
 /** destroy_chyron
     @brief Destroy Chyron structure
@@ -1254,213 +1236,3 @@ void abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     exit(EXIT_FAILURE);
 }
-#ifdef ASDF
-/** xwgetch
-    @brief Wrapper for wgetch that handles signals, mouse events, checks for
-   clicks on the chyron line, and accepts a sinigle character answer
-    @ingroup window_support
-    @param win Pointer to window
-    @param chyron Pointer to chyron struct
-    @param n Number of seconds to wait before timing out
-    @verbatim
-
-        0: Wait indefinitely for user input (raw mode)
-            accept a single character answer, and don't wait for Enter key
-        1: Wait for 1 decisecond
-        n > 1: Wait for n/10 seconds
-
-    @endverbatim
-    @return Key code or ERR if interrupted by signal
-    @details Get mouse event and check if it's a left click or double click. If
-   the click is outside the window, ignore it. If it's on the chyron line, get
-   the corresponding key command. Otherwise, store the click coordinates as
-   click_y and click_x for later use. */
-int xwgetch(WINDOW *win, Chyron *chyron, int n) {
-    int c;
-    MEVENT event;
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED | BUTTON5_PRESSED,
-              nullptr);
-    click_y = event.y = -1;
-    click_x = event.x = -1;
-
-    if (n == -1) {
-        struct termios raw_tioctl;
-        raw_tioctl = curses_tioctl;
-        mk_raw_tioctl(&raw_tioctl);
-    } else if (n == 0)
-        halfdelay(1);
-    else
-        halfdelay(min(255, max(0, n * 10)));
-    tcflush(2, TCIFLUSH);
-    do {
-        curs_set(1);
-        c = wgetch(win);
-        curs_set(0);
-        if (sig_received != 0) {
-            if (handle_signal(sig_received))
-                c = display_error(em0, em1, em2, nullptr);
-            if (c == 'q' || c == 'Q' || c == KEY_F(9))
-                exit(EXIT_FAILURE);
-        }
-        if (n > 0 && c == ERR) {
-            c = 0;
-            break;
-        }
-        if (c == ERR)
-            continue;
-        if (c == KEY_MOUSE) {
-            if (getmouse(&event) != OK) {
-                c = 0;
-                continue;
-            }
-            if (event.bstate & BUTTON4_PRESSED) {
-                return KEY_UP;
-            } else if (event.bstate & BUTTON5_PRESSED) {
-                return KEY_DOWN;
-            }
-            if (event.bstate & BUTTON1_CLICKED || event.bstate & BUTTON1_DOUBLE_CLICKED) {
-                if (wenclose(win, event.y, event.x)) {
-                    wmouse_trafo(win, &event.y, &event.x, false);
-                    click_y = event.y;
-                    click_x = event.x;
-                    if (chyron && event.y == getmaxy(win) - 1) {
-                        c = get_chyron_key(chyron, event.x);
-                        break;
-                    } else
-                        break;
-                }
-                c = ERR;
-                continue;
-            }
-        }
-    } while (c == ERR);
-    restore_curses_tioctl();
-    return c;
-}
-/** dxwgetch
-    @brief Wrapper for wgetch that handles signals, mouse events, checks for
-   clicks on the chyron line, and accepts a sinigle character answer
-    @ingroup window_support
-    @param win_0 Pointer to window 0
-    @param win_1 Pointer to window 1
-    @param win_2 Pointer to window 2
-    @param win_3 Pointer to window 3
-    @param win_c Pointer to chyron window
-    @param chyron Pointer to chyron struct
-    @param n Number of seconds to wait before timing out
-    @verbatim
-
-        0: Wait indefinitely for user input (raw mode)
-            accept a single character answer, and don't wait for Enter key
-        1: Wait for 1 decisecond
-        n > 1: Wait for n/10 seconds
-
-    @endverbatim
-    @return Key code or ERR if interrupted by signal
-    @details Get mouse event and check if it's a left click or double click. If
-   the click is outside the windows, ignore it. If it's on the chyron line, get
-   the corresponding key command. Otherwise, store the click coordinates as
-   click_y and click_x for later use. */
-int dxwgetch(WINDOW *win_0, WINDOW *win_1, WINDOW *win_2, WINDOW *win_3, WINDOW *win_c, Chyron *chyron, int n) {
-    int c;
-    MEVENT event;
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED | BUTTON4_PRESSED | BUTTON5_PRESSED,
-              nullptr);
-    click_y = event.y = -1;
-    click_x = event.x = -1;
-
-    if (n == -1) {
-        struct termios raw_tioctl;
-        raw_tioctl = curses_tioctl;
-        mk_raw_tioctl(&raw_tioctl);
-    } else if (n == 0)
-        halfdelay(1);
-    else
-        halfdelay(min(255, max(0, n * 10)));
-    tcflush(2, TCIFLUSH);
-    do {
-        curs_set(1);
-        c = wgetch(win_0);
-        curs_set(0);
-        if (sig_received != 0) {
-            if (handle_signal(sig_received))
-                c = display_error(em0, em1, em2, nullptr);
-            if (c == 'q' || c == 'Q' || c == KEY_F(9))
-                exit(EXIT_FAILURE);
-        }
-        if (n > 0 && c == ERR) {
-            c = 0;
-            break;
-        }
-        if (c == ERR)
-            continue;
-        if (c == KEY_MOUSE) {
-            if (getmouse(&event) != OK) {
-                c = 0;
-                continue;
-            }
-            if (event.bstate & BUTTON4_PRESSED) {
-                return KEY_UP;
-            } else if (event.bstate & BUTTON5_PRESSED) {
-                return KEY_DOWN;
-            }
-            if (event.bstate & BUTTON1_CLICKED || event.bstate & BUTTON1_DOUBLE_CLICKED) {
-                // Check if the click is in win_0, win_1, or win_2, and set
-                // mouse_win
-                // accordingly
-                // don't free mouse_win, since it is borrowed
-                mouse_win = nullptr;
-                if (win_1 != nullptr && wenclose(win_1, event.y, event.x) && wmouse_trafo(win_1, &event.y, &event.x, false))
-                    mouse_win = win_1;
-                else if (win_2 != nullptr && wenclose(win_2, event.y, event.x) && wmouse_trafo(win_2, &event.y, &event.x, false))
-                    mouse_win = win_2;
-                else if (win_3 != nullptr && wenclose(win_3, event.y, event.x) && wmouse_trafo(win_3, &event.y, &event.x, false))
-                    mouse_win = win_3;
-                click_y = event.y;
-                click_x = event.x;
-                if (mouse_win == nullptr) {
-                    c = 0;
-                    break;
-                }
-                if (mouse_win == win_c && chyron && (event.y == getmaxy(mouse_win) - 1))
-                    c = get_chyron_key(chyron, event.x);
-                break;
-            }
-        }
-    } while (c == ERR);
-    restore_curses_tioctl();
-    return c;
-}
-/** vgetch
-    @brief Wrapper for wgetch that handles signals and mouse events, and accepts a single character answer
-    @ingroup window_support
-    @param win Pointer to window
-    @param n Number of seconds to wait before timing out
-    @return Key code or ERR if interrupted by signal
-    @details This function is similar to xwgetch, but it does not handle chyron clicks. It sets the terminal to raw mode if n is -1, or halfdelay mode if n is 0 or greater. It waits for user input and returns the key code. If a signal is received, it handles the signal and may display an error message. If the user presses 'q', 'Q', or F9, the program exits.
- */
-int vgetch(WINDOW *win, int n) {
-    int c;
-    mousemask(0, nullptr);
-
-    tcflush(2, TCIFLUSH);
-    curs_set(1);
-    if (n == -1) {
-        struct termios raw_tioctl;
-        raw_tioctl = curses_tioctl;
-        mk_raw_tioctl(&raw_tioctl);
-    } else if (n == 0)
-        halfdelay(1);
-    else
-        halfdelay(min(255, max(0, n * 10)));
-    do {
-        c = wgetch(win);
-        if (n > 0 && c == ERR) {
-            c = 0;
-            break;
-        }
-    } while (c == ERR);
-    curs_set(0);
-    return c;
-}
-#endif

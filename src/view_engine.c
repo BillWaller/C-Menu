@@ -612,7 +612,7 @@ int view_cmd_processor(Init *init) {
             strnz__cpy(shell_cmd_spec, "rm ", MAXLEN - 5);
             strnz__cat(shell_cmd_spec, view->tmp_file_name_ptr, MAXLEN - 5);
             shell(shell_cmd_spec);
-            restore_wins();
+            ui_restore_wins();
             view->f_redisplay_page = true;
             unlink(tmp_str);
             break;
@@ -687,7 +687,7 @@ int view_cmd_processor(Init *init) {
             view->file_pos = view->page_top_pos = view->page_bot_pos =
                 prev_file_pos;
 
-            restore_wins();
+            ui_restore_wins();
             view->f_redisplay_page = true;
             return 0;
         /** 'w' - Write the current buffer to file */
@@ -1018,7 +1018,7 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
         else
             f_strip_ansi = false;
     }
-    restore_wins();
+    ui_restore_wins();
     /** write the buffer */
     view->out_fd = open(view->out_spec, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     if (view->out_fd == -1) {
@@ -2668,7 +2668,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         rc = popup_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
         destroy_argv(eargc, eargv);
-        restore_wins();
+        ui_restore_wins();
         if (rc == FA_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F(9))
             return false;
         close(view->in_fd);

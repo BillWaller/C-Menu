@@ -70,7 +70,7 @@ unsigned int menu_engine(Init *init) {
                 destroy_menu(init);
                 return 0;
             }
-            restore_wins();
+            ui_restore_wins();
             return 0;
         case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
@@ -149,7 +149,7 @@ unsigned int menu_cmd_processor(Init *init) {
         // Wait for user input and process it
         event.y = event.x = -1;
         ui_cursor_move(sfc, WIN, menu->line_idx, 1);
-        in_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+        in_key = ui_get_event(sfc, WIN, &event, -1);
         // Remove the highlight from the currently selected menu choice
         ui_bkgdset(sfc, WIN, &style_nt);
         ui_draw_text_fill(sfc, WIN, menu->line_idx, 0, NULL,
@@ -243,7 +243,7 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_RESET_MENU);
             /** @brief open the default editor */
         case KEY_ALTF(10):
-            restore_wins();
+            ui_restore_wins();
             return (MA_DISPLAY_MENU);
             /** @brief process mouse event */
         case KEY_MOUSE:

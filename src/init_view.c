@@ -156,6 +156,7 @@ int init_view_boxwin(Init *init) {
     // -------------------> 1. BOX / WIN <-------------------
     view_calc_boxwin_dimensions(init);
     view->sfc = ui_box_surface_new(ui_runtime, NULL, 0, view->lines, view->cols, view->begy, view->begx, NULL);
+    ui_surface_addwin(view->sfc, WIN, BOX, view->lines, view->cols, 1, 1);
     // -------------------> 2. LNNO <-------------------
     ui_surface_addwin(view->sfc, LNNO, WIN, view->lines - 1, view->ln_win_cols, 0, 0);
     ui_bkgd(view->sfc, LNNO, &style_ln);
@@ -328,7 +329,7 @@ int view_init_input(Init *init, char *file_name) {
         // Back to parent
         destroy_argv(s_argc, s_argv);
         reset_prog_mode();
-        restore_wins();
+        ui_restore_wins();
         close(pipe_fd[P_WRITE]);
         dup2(pipe_fd[P_READ], STDIN_FILENO);
         view->in_fd = dup(STDIN_FILENO);

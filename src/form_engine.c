@@ -249,7 +249,7 @@ int form_post(Init *init) {
             display_chyron(sfc, WIN, form->chyron, form->lines - 1, form->chyron->l);
             tcflush(2, TCIFLUSH);
             ui_render(ui_runtime);
-            c = ui_get_event_multi(ui_runtime, sfc, WIN, &event, -1);
+            c = ui_get_event_multi(sfc, WIN, &event, -1);
             ui_getmaxyx(sfc, WIN, &maxy, &maxx);
             if (event.in_win == 1 && event.y == maxy - 1)
                 c = get_chyron_key(form->chyron, event.x);
@@ -354,7 +354,7 @@ int form_process(Init *init) {
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
         ui_render(ui_runtime);
-        c = ui_get_event_multi(ui_runtime, sfc, WIN, &event, -1);
+        c = ui_get_event_multi(sfc, WIN, &event, -1);
         ui_getmaxyx(sfc, WIN, &maxy, &maxx);
         if (event.in_win == 1 && event.y == maxy - 1)
             c = get_chyron_key(form->chyron, event.x);
@@ -1085,7 +1085,7 @@ int form_exec_receiver(Init *init) {
     reset_prog_mode();
     destroy_argv(eargc, eargv);
     sig_prog_mode();
-    restore_wins();
+    ui_restore_wins();
     return rc;
 }
 /** @brief Write form field values to a specified output destination, such

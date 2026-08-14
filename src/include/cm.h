@@ -364,7 +364,10 @@ typedef struct {
     char s[MAXLEN];              /**< the chyron string, for displaying messages in */
     UiCell cmplx_buf[MAXLEN];    /**< the chyron wide character string */
                                  //  wchar_t wstr[MAXLEN];        /**< the chyron wide character string */
-    int l;                       /**< length of the chyron string, for display purposes */
+    int l;                       /**< length of the chyron string, for display */
+    UiSurface *sfc;              /** pointer to surface for the chyron */
+    int win;                     /** index to window of surface */
+    int y;                       /** y coordinante of the chyron in the window */
 } Chyron;
 
 extern void activate_chyron_key(Chyron *, int);
@@ -940,5 +943,6 @@ extern int border_ysplit(UiSurface *, int);
 extern int border_ysplit_text(UiSurface *, char *, int);
 extern void mbc_to_wc(wchar_t wc[2], const char mbc);
 extern void initialize_styles(SIO *);
+extern int assign_chyron_win(Chyron *chyron, UiSurface *s, int w, char *);
 
 #endif

@@ -63,10 +63,10 @@ int full_screen_shell(char *shellCmdPtr) {
     int rc;
 
     fflush(stderr);
-    werase(stdscr);
-    wmove(stdscr, 0, 0);
+    ui_werase(stdsfc, WIN);
+    ui_wmove(stdsfc, WIN, 0, 0);
     rc = shell(shellCmdPtr);
-    restore_wins();
+    ui_restore_wins();
     return (rc);
 }
 /** @brief Execute a shell command
@@ -169,7 +169,7 @@ int fork_exec(char **argv) {
         rc = -1;
     }
     reset_prog_mode();
-    restore_wins();
+    ui_restore_wins();
     return (rc);
 }
 /** @brief Fork, detach, and exec a command
@@ -223,6 +223,6 @@ int fork_detach_execvp(char **eargv) {
     }
     restore_curses_tioctl();
     sig_prog_mode();
-    restore_wins();
+    ui_restore_wins();
     return 0;
 }

@@ -43,6 +43,17 @@ struct UiRuntime {
     PANEL *panel_main;
 };
 
+enum {
+    BOX,
+    WIN,
+    WIN2,
+    LNNO,
+    CMDLN,
+    PAD,
+    WIN3,
+    SUB_SFC_MAX
+};
+
 struct UiSurface {
     union {
         struct {
@@ -54,7 +65,7 @@ struct UiSurface {
             PANEL *pad_pan;
         };
         struct {
-            PANEL *mpan[8];
+            PANEL *mpan[SUB_SFC_MAX];
         };
     };
     union {
@@ -67,7 +78,7 @@ struct UiSurface {
             WINDOW *pad;
         };
         struct {
-            WINDOW *mwin[8];
+            WINDOW *mwin[SUB_SFC_MAX];
         };
     };
     struct UiRuntime *runtime;
@@ -133,8 +144,6 @@ struct UiStyle {
 #define UISTYLE_STRUCK WA_INVIS
 #define UISTYLE_NONE WA_NORMAL
 #define UISTYLE_ITALIC WA_ITALIC
-
-#define stdsfc stdscr
 
 /** @struct UiSplitSurface
     @brief Split surface containing multiple child surfaces.
@@ -202,5 +211,6 @@ int ui_bkgrndset(WINDOW *win, const struct UiStyle *style);
 int ui_setcchar(UiCell *uc, const wchar_t *wstr, attr_t attrs, short pair, const void *opts);
 int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, short *pair, void *opts);
 extern int mbstr_to_cellstr(cchar_t *cmplx_buf, char *str, attr_t attrs, int cpx, int *pos, int maxlen);
+extern struct UiSurface *stdsfc;
 
 #endif

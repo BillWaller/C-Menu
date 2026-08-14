@@ -51,7 +51,7 @@ int popup_ckeys() {
         ui_cursor_move(sfc, WIN, 1, 39);
         do {
             ui_render(ui_runtime);
-            c = ui_get_event(ui_runtime, sfc, WIN, &ev, -1);
+            c = ui_get_event(sfc, WIN, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
                     c = display_error(em0, em1, em2, NULL);
@@ -517,10 +517,10 @@ int popup_ckeys() {
             ui_wclrtoeol(sfc, WIN);
             if (ev.mouse_inside) {
                 sprintf(tmp, "   Inside Win:  y: %3d, x: %3d",
-                        ev.y - begy, ev.x - begx);
+                        ev.y, ev.x);
             } else {
                 sprintf(tmp, "       stdwin:  y: %3d, x: %3d",
-                        ev.y - begy, ev.x - begx);
+                        ev.y, ev.x);
             }
             ui_mvwaddstr(sfc, WIN, 4, 4, tmp);
             ui_wclrtoeol(sfc, WIN);

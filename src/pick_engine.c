@@ -423,10 +423,11 @@ void save_object(Pick *pick, char *s) {
 void display_pick_page(Pick *pick) {
     UiSurface *sfc = pick->surface;
     int col;
-    for (pick->y = 0; pick->y < pick->lines; pick->y++) {
-        ui_cursor_move(sfc, WIN, pick->y, 0);
-        ui_wclrtoeol(sfc, WIN);
-    }
+    ui_bkgdset(sfc, WIN, &style_nt);
+    // for (pick->y = 0; pick->y < pick->lines; pick->y++) {
+    //     ui_cursor_move(sfc, WIN, pick->y, 0);
+    //     ui_wclrtoeol(sfc, WIN);
+    // }
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols;
     for (col = 0; col < pick->tbl_cols; col++) {
         pick->x = col * (pick->tbl_col_width + 1) + 1;
@@ -436,6 +437,7 @@ void display_pick_page(Pick *pick) {
                 ui_mvwaddstr(sfc, WIN, pick->y, pick->x - 1, "*");
             ui_mvwaddstr_fill(sfc, 1, pick->y++, pick->x,
                               pick->d_object[pick->d_idx++], pick->tbl_col_width - 1);
+            ui_render(ui_runtime);
         }
     }
     pick->d_idx -= 1;
@@ -790,7 +792,7 @@ int exec_objects(Init *init) {
     waitpid(pid, nullptr, 0);
     destroy_argv(eargc, eargv);
     reset_prog_mode();
-    restore_wins();
+    ui_restore_wins();
     return rc;
 }
 /** @brief Initializes the pick window based on the parameters specified in the
@@ -816,6 +818,9 @@ int open_pick_win(Init *init) {
     }
     pick->surface = ui_surface[sfc_ptr];
     UiSurface *sfc = pick->surface;
+    ui_setscrreg(sfc, WIN, 0, pick->lines - 1);
+    ui_scrollok(sfc, WIN, true);
+    assign_chyron_win(pick->chyron, pick->surface, WIN2, "-");
     pick->separator_line = pick->lines + 1;
     ui_keypad(sfc, WIN, true);
     if (pick->p_view_files)
@@ -925,20 +930,23 @@ int picker(Init *init, char *field) {
                 compile_chyron(pick->chyron);
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 reverse_object(pick);
-                ui_render(ui_runtime);
-                // update_panels();
+                ui_top_panel(sfc, WIN);
                 ui_cursor_move(sfc, WIN, pick->y, pick->x);
-                // doupdate();
-                in_key = ui_get_event_multi(ui_runtime, sfc, WIN, &event, -1);
-                ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
-                if (event.in_win == WIN2 && event.y == maxy - 1)
-                    in_key = get_chyron_key(pick->chyron, event.x);
-                if (pick->f_selected[pick->d_idx])
-                    ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_chk, 1);
-                else
-                    ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_sp, 1);
-                if (event.in_win == WIN2 && event.y == 0)
-                    break;
+                curs_set(2);
+                ui_render(ui_runtime);
+                in_key = ui_get_event_multi(sfc, WIN, &event, -1);
+                if (event.mouse_action != UI_MOUSE_NONE) {
+                    ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
+                    if (event.in_win == pick->chyron->win && event.y == pick->chyron->y)
+                        in_key = get_chyron_key(pick->chyron, event.x);
+                } else {
+                    if (pick->f_selected[pick->d_idx])
+                        ui_mvwaddnwstr(sfc, WIN, pick->y, 0,
+                                       &style_box, &bw_chk, 1);
+                    else
+                        ui_mvwaddnwstr(sfc, WIN, pick->y, 0,
+                                       &style_box, &bw_sp, 1);
+                }
             }
             switch (in_key) {
             case KEY_F(1):
@@ -1220,7 +1228,7 @@ int picker(Init *init, char *field) {
                 }
                 compile_chyron(pick->chyron);
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
-                ui_cursor_move(sfc, WIN, 0, 1);
+                ui_cursor_move(sfc, WIN2, 0, 1);
                 /** display_field_content */
                 rtrim(accept_s);
                 col = 1;
@@ -1233,18 +1241,19 @@ int picker(Init *init, char *field) {
                     }
                 // mouse_win = nullptr;
                 pos = col + strlen(accept_s);
-                // 2
                 ui_mvwaddnwstr(sfc, WIN2, 0, 0, &style_box, &bw_ran, 1);
-                // ui_update_panels();
                 ui_cursor_move(sfc, WIN2, 0, pos);
-                // ui_doupdate();
+                ui_top_panel(sfc, WIN2);
+                curs_set(2);
                 ui_render(ui_runtime);
-                in_key = ui_get_event_multi(ui_runtime, sfc, WIN2, &event, -1);
+                in_key = ui_get_event_multi(sfc, WIN2, &event, -1);
                 ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
-                if (event.in_win == 2 && event.y == maxy - 1)
-                    in_key = get_chyron_key(pick->chyron, event.x);
-                if (event.in_win == 1)
-                    break;
+                if (event.mouse_action != UI_MOUSE_NONE) {
+                    if (event.in_win == WIN2 && event.y == maxy - 1)
+                        in_key = get_chyron_key(pick->chyron, event.x);
+                    if (event.in_win == WIN)
+                        break;
+                }
                 if (in_key == KEY_F(13)) {
                     in_key = 0;
                     continue;

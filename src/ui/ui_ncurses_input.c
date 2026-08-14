@@ -10,7 +10,7 @@
 #include "ui_ncurses_internal.h"
 #include <stddef.h>
 #include <string.h>
-
+#include <termios.h>
 /* -------------------------------------------------------------------------
    Key translation
    ------------------------------------------------------------------------- */
@@ -100,20 +100,19 @@ static UiKey translate_key(int ch) {
    @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
    @return 0 on success, -1 if @p ev is NULL.
 */
-int ui_get_event(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev,
-                 int timeout_ms) {
-    (void)ui;
+int ui_get_event(UiSurface *s, int w, UiEvent *ev, int timeout_ms) {
     if (!ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
-    qiflush();
-    curs_set(1);
+    tcflush(2, TCIFLUSH);
     if (timeout_ms <= 0) {
         timeout_ms = -1;
     } else
-        wtimeout(sfc->mwin[w], timeout_ms);
+        wtimeout(s->mwin[w], timeout_ms);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT | BUTTON_CTRL | BUTTON_ALT, NULL);
-    int ch = wgetch(sfc->mwin[w]);
+    curs_set(2);
+    int ch = wgetch(s->mwin[w]);
+    curs_set(0);
     ev->key = translate_key(ch);
     if (ev->key == UI_KEY_CHAR) {
         ev->ch = (uint32_t)ch;
@@ -130,8 +129,9 @@ int ui_get_event(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev,
                 ev->mouse_action = UI_MOUSE_PRESS;
             else if (me.bstate & BUTTON1_RELEASED)
                 ev->mouse_action = UI_MOUSE_RELEASE;
-            if (wenclose(sfc->mwin[w], me.y, me.x) &&
-                wmouse_trafo(sfc->mwin[w], &me.y, &me.x, false)) {
+            if (wenclose(s->mwin[w], me.y, me.x) &&
+                wmouse_trafo(s->mwin[w], &me.y, &me.x, false)) {
+                ev->bstate = me.bstate;
                 ev->mouse_inside = true;
                 ev->y = me.y;
                 ev->x = me.x;
@@ -143,24 +143,25 @@ int ui_get_event(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev,
     return ch;
 }
 
-int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int timeout_ms) {
-    (void)ui;
+int ui_get_event_multi(UiSurface *s, int w, UiEvent *ev, int timeout_ms) {
     int i;
     if (!ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
-    keypad(sfc->mwin[w], true);
+    keypad(s->mwin[w], true);
     if (timeout_ms <= 0) {
         timeout_ms = -1;
     } else
-        wtimeout(sfc->mwin[w], timeout_ms);
+        wtimeout(s->mwin[w], timeout_ms);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT | BUTTON_CTRL | BUTTON_ALT, NULL);
     ev->chyron = -1;
     qiflush();
+    tcflush(2, TCIFLUSH);
     cbreak();
-    curs_set(1);
-    int ch = wgetch(sfc->mwin[w]);
+    curs_set(2);
+    int ch = wgetch(s->mwin[w]);
     curs_set(0);
+    ev->mouse_action = UI_MOUSE_NONE;
     ev->key = translate_key(ch);
     if (ev->key == UI_KEY_CHAR) {
         ev->ch = (uint32_t)ch;
@@ -174,17 +175,20 @@ int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int ti
             else if (me.bstate & BUTTON5_PRESSED)
                 ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
             else if (me.bstate & BUTTON1_CLICKED ||
+                     me.bstate & BUTTON1_PRESSED ||
                      me.bstate & BUTTON1_DOUBLE_CLICKED) {
                 ev->mouse_action = UI_MOUSE_PRESS;
-                for (i = 0; i < 4; i++) {
-                    if (sfc->mwin[i] != NULL &&
-                        wenclose(sfc->mwin[i], me.y, me.x) &&
-                        wmouse_trafo(sfc->mwin[i], &me.y, &me.x, false)) {
+                ev->in_win = -1;
+                for (i = WIN; i < SUB_SFC_MAX; i++) {
+                    if (s->mwin[i] != NULL &&
+                        wenclose(s->mwin[i], me.y, me.x) &&
+                        wmouse_trafo(s->mwin[i], &me.y, &me.x, false)) {
                         ev->in_win = i;
                         ev->key = 0;
                         break;
                     }
                 }
+                ev->bstate = me.bstate;
                 ev->y = me.y;
                 ev->x = me.x;
                 ev->key = 0;
@@ -196,21 +200,22 @@ int ui_get_event_multi(UiRuntime *ui, UiSurface *sfc, int w, UiEvent *ev, int ti
     return ch;
 }
 
-int ui_get_event_no_mouse(UiSurface *surface, int w, UiEvent *ev) {
+int ui_get_event_no_mouse(UiSurface *s, int w, UiEvent *ev) {
     int ch;
     mousemask(0, NULL);
 
     qiflush();
-    curs_set(1);
+    tcflush(2, TCIFLUSH);
     cbreak();
     do {
-        ch = wgetch(surface->mwin[w]);
+        curs_set(2);
+        ch = wgetch(s->mwin[w]);
+        curs_set(0);
         ev->key = translate_key(ch);
         if (ev->key == UI_KEY_CHAR) {
             ev->ch = (uint32_t)ch;
             break;
         }
     } while (ch == ERR);
-    curs_set(0);
     return ch;
 }

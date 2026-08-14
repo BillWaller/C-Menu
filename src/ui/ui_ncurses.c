@@ -27,6 +27,8 @@
 int ui_color_cnt = 0;
 int ui_pair_cnt = 0;
 
+UiSurface *stdsfc;
+
 RGB std_color[16] = {
     {0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 
@@ -41,21 +43,18 @@ int ui_add_pair(int fg, int bg) {
         if (pfg == fg && pbg == bg)
             return i;
     }
-    if (i >= COLOR_PAIRS) {
+    if (i + 1 >= COLOR_PAIRS) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "NCurses COLOR_PAIRS (%d) exceeded (%d)",
-                  COLOR_PAIRS, i);
+        ssnprintf(em1, MAXLEN - 1, "ui_add_pair failed for pair: %d", i);
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
-    if (i + 1 >= COLOR_PAIRS)
-        return -1;
     rc = init_extended_pair(i, fg, bg);
-    if (rc != OK) {
+    if (rc == ERR) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "init_extended_pair failed for pair %d", i);
-        strerror_r(errno, em2, MAXLEN);
+        ssnprintf(em1, MAXLEN - 1, "init_extended_pair failed for pair: %d", i);
+        ssnprintf(em2, MAXLEN - 1, "fg: %d, bg: %d, ui_pair_cnt: %d", fg, bg, ui_pair_cnt);
         display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
@@ -72,6 +71,9 @@ int ui_add_color_rgb(RGB *rgb) {
     int i;
     RGB tmp;
     apply_gamma(rgb);
+    rgb->r = (rgb->r * 1000) / 255;
+    rgb->g = (rgb->g * 1000) / 255;
+    rgb->b = (rgb->b * 1000) / 255;
     for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
         extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
         if (rgb->r == tmp.r && rgb->g == tmp.g && rgb->b == tmp.b)
@@ -83,9 +85,6 @@ int ui_add_color_rgb(RGB *rgb) {
             std_color[i].g = rgb->g;
             std_color[i].b = rgb->b;
         }
-        rgb->r = (rgb->r * 1000) / 255;
-        rgb->g = (rgb->g * 1000) / 255;
-        rgb->b = (rgb->b * 1000) / 255;
         init_extended_color(i, rgb->r, rgb->g, rgb->b);
         if (ui_color_cnt + 1 < NC_COLORS)
             ui_color_cnt++;
@@ -202,13 +201,11 @@ UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar
    Lifecycle
    ------------------------------------------------------------------------- */
 
-UiRuntime *ui_init(const UiConfig *cfg) {
+struct UiRuntime *ui_init(const UiConfig *cfg) {
     setlocale(LC_ALL, "");
     UiRuntime *ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
-
-    /* Determine the TTY device to use. */
     char tty_name[XLEN];
     if (cfg && cfg->tty_path) {
         strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
@@ -219,13 +216,11 @@ UiRuntime *ui_init(const UiConfig *cfg) {
             return NULL;
         }
     }
-
     ui->tty_fp = fopen(tty_name, "r+");
     if (!ui->tty_fp) {
         free(ui);
         return NULL;
     }
-
     ui->screen = newterm(NULL, ui->tty_fp, ui->tty_fp);
     if (!ui->screen) {
         fclose(ui->tty_fp);
@@ -233,7 +228,6 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         return NULL;
     }
     set_term(ui->screen);
-
 /* Keep legacy globals in sync when libcm (dwin.c) is linked. */
 #ifdef UAL_LEGACY_COMPAT
     // screen = ui->screen;
@@ -249,7 +243,6 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
-
     if (cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
         ui->alt_screen = cfg->enable_alt_screen;
@@ -257,7 +250,6 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     } else {
         ui->cursor_visible = false;
     }
-    ui->panel_main = new_panel(stdscr);
 
     ui_bkgrnd(stdscr, &style_nt);
     if (ui->mouse_enabled)
@@ -265,11 +257,28 @@ UiRuntime *ui_init(const UiConfig *cfg) {
 
     curs_set(ui->cursor_visible ? 1 : 0);
     getmaxyx(stdscr, ui->lines, ui->cols);
-
-#ifdef UAL_LEGACY_COMPAT
+    stdsfc = calloc(1, sizeof(*stdsfc));
+    if (!stdsfc)
+        return NULL;
+    stdsfc->runtime = ui;
+    stdsfc->parent = NULL;
+    stdsfc->lines = ui->lines;
+    stdsfc->cols = ui->cols;
+    stdsfc->y = 0;
+    stdsfc->x = 0;
+    stdsfc->mwin[WIN] = stdscr;
+    if (!stdsfc->mwin[WIN]) {
+        free(stdsfc);
+        return NULL;
+    }
+    stdsfc->mpan[WIN] = new_panel(stdsfc->mwin[WIN]);
+    ui->panel_main = stdsfc->mpan[WIN];
+    if (!stdsfc->mpan[WIN]) {
+        delwin(stdsfc->mwin[WIN]);
+        free(stdsfc);
+        return NULL;
+    }
     sfc_ptr = -1;
-#endif
-    curs_set(ui->cursor_visible ? 1 : 0);
     return ui;
 }
 
@@ -433,14 +442,6 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines
     ui_scrollok(s, BOX, false);
     border_draw(s);
     border_title(s, wtitle);
-    s->mwin[WIN] = derwin(s->mwin[BOX], lines, cols, 1, 1);
-    if (!s->mwin[WIN]) {
-        free(s);
-        return NULL;
-    }
-    s->mpan[WIN] = new_panel(s->mwin[WIN]);
-    keypad(s->mwin[WIN], true);
-    ui_bkgdset(s, WIN, &style_nt);
     return s;
 }
 int ui_surface_addpad(UiSurface *sfc, int w, int view_win, int lines, int cols) {
@@ -454,17 +455,23 @@ int ui_surface_addpad(UiSurface *sfc, int w, int view_win, int lines, int cols) 
     return 0;
 }
 
-int ui_surface_addwin(UiSurface *s, int w, int der_from, int lines, int cols, int y, int x) {
-    s->mwin[w] = derwin(s->mwin[der_from], lines, cols, y, x);
-    if (!s->mwin[w])
+int ui_surface_addwin(UiSurface *s, int w, int p, int lines, int cols, int y, int x) {
+    s->mwin[w] = derwin(s->mwin[p], lines, cols, y, x);
+    if (!s->mwin[w]) {
+        free(s);
         return -1;
+    }
     s->mpan[w] = new_panel(s->mwin[w]);
+    keypad(s->mwin[w], true);
+    ui_bkgd(s, w, &style_nt);
+    ui_bkgdset(s, w, &style_nt);
     return 0;
 }
 void ui_wscrl(UiSurface *s, int w, int n) {
     if (!s->mwin[w])
         return;
     wscrl(s->mwin[w], n);
+    ui_render(ui_runtime);
 }
 void ui_scrollok(UiSurface *s, int w, bool enable) {
     if (!s->mwin[w])
@@ -600,6 +607,13 @@ int ui_surface_show(UiSurface *s, int w) {
     return 0;
 }
 
+int ui_top_panel(UiSurface *s, int w) {
+    if (!s)
+        return -1;
+    top_panel(s->mpan[w]);
+    return 0;
+}
+
 int ui_surface_hide(UiSurface *s, int w) {
     if (!s)
         return -1;
@@ -609,7 +623,17 @@ int ui_surface_hide(UiSurface *s, int w) {
 }
 
 int ui_cursor_move(UiSurface *s, int w, int y, int x) {
-    if (!s)
+    if (!s || !s->mwin[w])
+        return -1;
+    return wmove(s->mwin[w], y, x);
+}
+int ui_werase(UiSurface *s, int w) {
+    if (!s || !s->mwin[w])
+        return -1;
+    return werase(s->mwin[w]);
+}
+int ui_wmove(UiSurface *s, int w, int y, int x) {
+    if (!s || !s->mwin[w])
         return -1;
     return wmove(s->mwin[w], y, x);
 }

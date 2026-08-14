@@ -59,7 +59,7 @@ int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int fle
             ui_cursor_move(sfc, w, flin, x);
             ui_render(ui_runtime);
             ui_qiflush();
-            in_key = ui_get_event(ui_runtime, sfc, WIN, &event, -1);
+            in_key = ui_get_event(sfc, WIN, &event, -1);
         }
         curs_set(0);
         switch (in_key) {

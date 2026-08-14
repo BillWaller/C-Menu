@@ -77,6 +77,8 @@ int ui_draw_ch(UiSurface *s, int w, int y, int x, const UiStyle *style, const ch
     if (style)
         ui_ncurses_style_apply(s, w, style);
     mvwaddch(s->mwin[w], y, x, c);
+    if (style)
+        ui_ncurses_style_apply(s, w, &style_nt);
     return 0;
 }
 //  text string
@@ -86,6 +88,8 @@ int ui_draw_text(UiSurface *s, int w, int y, int x, const UiStyle *style, const 
     if (style)
         ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, text);
+    if (style)
+        ui_ncurses_style_apply(s, w, &style_nt);
     return 0;
 }
 // text - limit length
@@ -95,6 +99,8 @@ int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style, cons
     if (style)
         ui_ncurses_style_apply(s, w, style);
     mvwaddnstr(s->mwin[w], y, x, text, (int)n);
+    if (style)
+        ui_ncurses_style_apply(s, w, &style_nt);
     return 0;
 }
 //  text string - pad length
@@ -118,6 +124,8 @@ int ui_draw_text_fill(UiSurface *s, int w, int y, int x, const UiStyle *style, c
     } else {
         mvwaddnstr(s->mwin[w], y, x, text, (int)n);
     }
+    if (style)
+        ui_ncurses_style_apply(s, w, &style_nt);
     return 0;
 }
 // -------------------------------------------------------------------------
@@ -314,85 +322,23 @@ int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, i
     mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, cols);
     return 0;
 }
-/* -------------------------------------------------------------------------
-   Lines
-   ------------------------------------------------------------------------- */
-
-/** @brief Draw a horizontal line of length @p len at (y, x). */
-int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style) {
-    if (!s)
-        return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
-    mvwhline(s->mwin[w], y, x, 0, len);
-    return 0;
-}
-
-/** @brief Draw a vertical line of length @p len at (y, x). */
-int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style) {
-    if (!s)
-        return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
-    mvwvline(s->mwin[w], y, x, 0, len);
-    return 0;
-}
 
 /* -------------------------------------------------------------------------
-   Borders
+   Screen management
    ------------------------------------------------------------------------- */
-#ifdef ASDF
-/** @brief Draw a border around the surface using @p kind style. */
-int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style) {
-    if (!s)
-        return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
-    switch (kind) {
-    case UI_BORDER_NONE:
-        return 0;
-    case UI_BORDER_ASCII:
-        box(s->mwin[0], '|', '-');
-        return 0;
-    case UI_BORDER_ROUNDED: {
-        /* Use Unicode rounded-corner box-drawing characters. */
-        UiCell ho, ve;
-        wchar_t wcs[2] = {0, 0};
-        attr_t a = 0;
-        short cp = 0;
-        wcs[0] = L'\x256d';
-        setcchar(&tl, wcs, a, cp, NULL);
-        wcs[0] = L'\x256e';
-        setcchar(&tr, wcs, a, cp, NULL);
-        wcs[0] = L'\x2570';
-        setcchar(&bl, wcs, a, cp, NULL);
-        wcs[0] = L'\x256f';
-        setcchar(&br, wcs, a, cp, NULL);
-        wcs[0] = L'\x2500';
-        setcchar(&ho, wcs, a, cp, NULL);
-        wcs[0] = L'\x2502';
-        setcchar(&ve, wcs, a, cp, NULL);
-        wborder_set(s->mwin[w], &ve, &ve, &ho, &ho, &tl, &tr, &bl, &br);
-        return 0;
+void ui_restore_wins() {
+    touchwin(stdscr);
+    for (int s = 0; s <= sfc_ptr; s++) {
+        for (int w = 0; w < SUB_SFC_MAX; w++)
+            if (ui_surface[s]->mwin[w] != nullptr)
+                touchwin(ui_surface[s]->mwin[w]);
     }
-    case UI_BORDER_LIGHT:
-    default:
-        box(s->mwin[w], 0, 0);
-        return 0;
-    }
+    ui_render(ui_runtime);
 }
+/* -------------------------------------------------------------------------
+   Formatting
+   ------------------------------------------------------------------------- */
 
-/** @brief Write @p title into the top border row at column @p x. */
-int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style,
-                      const char *title) {
-    if (!s || !title)
-        return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
-    mvwaddstr(s->mwin[w], 0, x, title);
-    return 0;
-}
-#endif
 UiCell style_to_cc(UiStyle *style) {
     UiCell cc = {0};
     if (!style)
