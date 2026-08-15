@@ -93,7 +93,7 @@ int field_editor(Form *form) {
             if (event.in_win == WIN && event.y == maxy - 1)
                 in_key = get_chyron_key(form->chyron, event.x);
         }
-        curs_set(0);
+        ui_curs_set(0);
         switch (in_key) {
             /** KEY_F(10) is the default key for accepting the field and moving
                 to the next field */

@@ -47,7 +47,7 @@ int full_screen_fork_exec(char **argv) {
     int rc;
 
     fflush(stderr);
-    wmove(stdscr, LINES - 1, 0);
+    ui_wmove(stdsfc, WIN, LINES - 1, 0);
     rc = fork_exec(argv);
     return (rc);
 }
@@ -134,16 +134,16 @@ int fork_exec(char **argv) {
         return (-1);
     }
     capture_curses_tioctl();
-    curs_set(1);
+    ui_curs_set(1);
     sig_dfl_mode();
     stdio_names(stdio_names_str, "exec.c:139");
-    endwin();
+    ui_endwin();
     stdio_names(stdio_names_str, "exec.c:141");
     tmp_str[0] = '\0';
     pid = fork();
     if (pid < 0) {
         sig_prog_mode();
-        keypad(stdscr, true);
+        ui_keypad(stdsfc, WIN, true);
         ssnprintf(tmp_str, sizeof(tmp_str), "fork failed: %s, errno: %d",
                   argv[0], errno);
         Perror(tmp_str);
@@ -168,7 +168,7 @@ int fork_exec(char **argv) {
         Perror(tmp_str);
         rc = -1;
     }
-    reset_prog_mode();
+    ui_resume(ui_runtime);
     ui_restore_wins();
     return (rc);
 }
@@ -190,7 +190,7 @@ int fork_exec(char **argv) {
 int fork_detach_execvp(char **eargv) {
     pid_t pid = fork();
     capture_curses_tioctl();
-    curs_set(1);
+    ui_curs_set(1);
     sig_dfl_mode();
 
     if (pid < 0) {

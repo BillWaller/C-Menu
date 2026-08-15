@@ -13,10 +13,17 @@
 #define _GNU_SOURCE
 // #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
+#ifdef UAL_UI
 #include "../ui/ui_ncurses_internal.h"
 #include "ui_backend.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
+#else
+#include "../ui/ui_notcurses_internal.h"
+#include "ui_backend.h"
+#include <notcurses/notcurses.h>
+#endif
+
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -42,13 +49,13 @@ typedef enum { PT_NONE,
     1024 // number of entries to add to line_tbl when reallocating
 
 typedef struct {
-    off_t sl_ln_no;         // Line number
-    char *sl_s[MAXLEN];     // Stripped subline
-    cchar_t *sl_cc[MAXLEN]; // Subline cchar_t array
-    int sl_cols[MAXLEN];    // Column widths (for cursor/layout calculations)
-    int sl_cells[MAXLEN];   // Number of cchar_t items in this subline chunk
-    int sl_idx;             // Index tracking sublines
-    int sl_cnt;             // Number of sublines
+    off_t sl_ln_no;        // Line number
+    char *sl_s[MAXLEN];    // Stripped subline
+    UiCell *sl_cc[MAXLEN]; // Subline cchar_t array
+    int sl_cols[MAXLEN];   // Column widths (for cursor/layout calculations)
+    int sl_cells[MAXLEN];  // Number of cchar_t items in this subline chunk
+    int sl_idx;            // Index tracking sublines
+    int sl_cnt;            // Number of sublines
 } SplitLine;
 
 typedef struct {
@@ -81,6 +88,7 @@ typedef struct {
     bool f_strip_ansi;           /**< strip ansi escape sequences when writing buffer */
     bool f_multiple_cmd_args;    /**< View - put multiple arguments in a single */
 
+#ifdef ASDF
     WINDOW *box_win;
     PANEL *box_pan;
     WINDOW *win_win;
@@ -89,6 +97,7 @@ typedef struct {
     WINDOW *pad;
     WINDOW *pad_view_win;
     PANEL *pad_view_pan;
+#endif
     UiSurface *sfc;              /**< pointer to UI surface structure */
     char tmp_prompt_str[MAXLEN]; /**< temporary prompt string used when building
                                     prompt */

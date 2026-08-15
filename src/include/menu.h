@@ -104,30 +104,35 @@ typedef struct {
    application, containing all the information about the menu, its lines, and
    its display properties */
 typedef struct {
-    int fg_clr_idx;            /**< The foreground color for the menu display, used to
-                                determine the color of the text and other elements in the
-                                menu display */
-    int bg_clr_idx;            /** <The background color for the menu display, used to
-                                determine the color of the background in the menu display
-                              */
-    int bo_clr_idx;            /**< The color for the box around the menu, used to
-                                determine the color of the box in the menu display */
-    int lines;                 /**< The number of lines for the menu window size, used to
-                                  determine the height of the menu display */
-    int cols;                  /**< The number of columns for the menu window size, used to
-                                  determine the width of the menu display */
-    int begy;                  /**< The screen line for the upper left corner of the menu window,
-                                  used to determine the vertical position of the menu display on
-                                  the screen */
-    int begx;                  /**< The screen column for the upper left corner of the menu
-                                  window, used to determine the horizontal position of the menu
-                                  display on the screen */
-    WINDOW *win;               /**< The ncurses window structure for the menu display, used to
-                                  manage the display of the menu on the screen and handle user
-                                  input */
-    WINDOW *box;               /**< The ncurses window structure for the box around the menu,
-                                  used to manage the display of the box around the menu on the
-                                  screen */
+    int fg_clr_idx; /**< The foreground color for the menu display, used to
+                     determine the color of the text and other elements in the
+                     menu display */
+    int bg_clr_idx; /** <The background color for the menu display, used to
+                     determine the color of the background in the menu display
+                   */
+    int bo_clr_idx; /**< The color for the box around the menu, used to
+                     determine the color of the box in the menu display */
+    int lines;      /**< The number of lines for the menu window size, used to
+                       determine the height of the menu display */
+    int cols;       /**< The number of columns for the menu window size, used to
+                       determine the width of the menu display */
+    int begy;       /**< The screen line for the upper left corner of the menu window,
+                       used to determine the vertical position of the menu display on
+                       the screen */
+    int begx;       /**< The screen column for the upper left corner of the menu
+                       window, used to determine the horizontal position of the menu
+                       display on the screen */
+
+#ifdef ASDF
+
+    WINDOW *win; /**< The ncurses window structure for the menu display, used to
+                    manage the display of the menu on the screen and handle user
+                    input */
+    WINDOW *box; /**< The ncurses window structure for the box around the menu,
+                    used to manage the display of the box around the menu on the
+                    screen */
+#endif
+
     char title[MAXLEN];        /**< The title to display on the top line of the box
                                   window, used to provide a title or header for the
                                   menu display */

@@ -131,7 +131,7 @@ unsigned int menu_cmd_processor(Init *init) {
     memset(&mbstate, 0, sizeof(mbstate));
     Menu *menu = init->menu;
     ui_keypad(sfc, WIN, true);
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
+    ui_mousemask();
     ui_scrollok(sfc, WIN, false);
     UiEvent event;
     // Highlight the currently selected menu choice

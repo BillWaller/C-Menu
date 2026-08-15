@@ -932,7 +932,7 @@ int picker(Init *init, char *field) {
                 reverse_object(pick);
                 ui_top_panel(sfc, WIN);
                 ui_cursor_move(sfc, WIN, pick->y, pick->x);
-                curs_set(2);
+                ui_curs_set(2);
                 ui_render(ui_runtime);
                 in_key = ui_get_event_multi(sfc, WIN, &event, -1);
                 if (event.mouse_action != UI_MOUSE_NONE) {
@@ -1244,7 +1244,7 @@ int picker(Init *init, char *field) {
                 ui_mvwaddnwstr(sfc, WIN2, 0, 0, &style_box, &bw_ran, 1);
                 ui_cursor_move(sfc, WIN2, 0, pos);
                 ui_top_panel(sfc, WIN2);
-                curs_set(2);
+                ui_curs_set(2);
                 ui_render(ui_runtime);
                 in_key = ui_get_event_multi(sfc, WIN2, &event, -1);
                 ui_getmaxyx(sfc, WIN2, &maxy, &maxx);

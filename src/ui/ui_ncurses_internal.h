@@ -22,6 +22,34 @@
 #define MAXLEN 256
 #define MAXSFC 30
 
+#define K_DOWN KEY_DOWN
+#define K_UP KEY_UP
+#define K_LEFT KEY_LEFT
+#define K_RIGHT KEY_RIGHT
+#define K_HOME KEY_HOME
+#define K_BACKSPACE KEY_BACKSPACE
+#define K_F1 KEY_F(1)
+#define K_F2 KEY_F(2)
+#define K_F3 KEY_F(3)
+#define K_F4 KEY_F(4)
+#define K_F5 KEY_F(5)
+#define K_F6 KEY_F(6)
+#define K_F7 KEY_F(7)
+#define K_F8 KEY_F(8)
+#define K_F9 KEY_F(9)
+#define K_F10 KEY_F(10)
+#define K_F11 KEY_F(11)
+#define K_F12 KEY_F(12)
+#define K_DC KEY_DC
+#define K_IC KEY_IC
+#define K_NPAGE KEY_NPAGE
+#define K_PPAGE KEY_PPAGE
+#define K_ENTER KEY_ENTER
+#define K_RESIZE KEY_RESIZE
+#define K_BTAB KEY_BTAB
+#define K_CANCEL KEY_CANCEL
+#define K_END KEY_END
+
 /** @struct UiRuntime
    @ingroup ui_ncurses
    @brief Runtime state for the NCurses UI backend.
@@ -99,8 +127,8 @@ typedef struct {
 } RGB;
 
 struct UiColorPair {
-    int fg;
-    int bg;
+    uint8_t fg;
+    uint8_t bg;
 };
 
 union UiChannels {

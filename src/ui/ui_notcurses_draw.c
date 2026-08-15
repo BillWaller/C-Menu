@@ -68,10 +68,64 @@ int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style,
 // nccells
 // ---------------------------------------------------------------------------
 
-int ui_setnccell(nccell *uic,
-                 const uint32_t gcluster,
-                 uint32_t stylemask,
-                 const uint64_t channels) {
+int ui_wadd_cell(UiSurface *s, int w, const nccell *uic) {
+    if (!s)
+        return -1;
+
+    ncplane_putc(s->mplane[w], uic);
+    return 0;
+}
+int ui_mvwadd_cell(UiSurface *s, int w, int y, int x, const nccell *uic) {
+    if (!s)
+        return -1;
+    ncplane_putc_yx(s->mplane[w], y, x, uic);
+    return 0;
+}
+// uic strings
+int ui_wadd_cellstr(UiSurface *s, int w, nccell *uic) {
+    if (!s)
+        return -1;
+    int i = 0;
+    while (uic[i].gcluster != '\0') {
+        ncplane_putc(s->mplane[w], uic);
+        i++;
+    }
+    return 0;
+}
+int ui_mvwadd_cellstr(UiSurface *s, int w, int y, int x, nccell *uic) {
+    if (!s)
+        return -1;
+    ui_cursor_move(s, w, y, x);
+    int i = 0;
+    while (uic[i].gcluster != '\0') {
+        ncplane_putc(s->mplane[w], uic);
+        i++;
+    }
+    return 0;
+}
+int ui_wadd_cellnstr(UiSurface *s, int w, nccell *uic, int n) {
+    if (!s)
+        return -1;
+    int i = 0;
+    while (uic[i].gcluster != '\0' && i < n) {
+        ncplane_putc(s->mplane[w], uic);
+        i++;
+    }
+    return 0;
+}
+int ui_mvwadd_cellnstr(UiSurface *s, int w, int y, int x, nccell *uic, int n) {
+    if (!s)
+        return -1;
+    int i = 0;
+    ui_cursor_move(s, w, y, x);
+    while (i < n) {
+        ncplane_putc(s->mplane[w], uic);
+        i++;
+    }
+    return 0;
+}
+//----------------------------------------------------------
+int ui_setnccell(nccell *uic, const uint32_t gcluster, const uint32_t stylemask, const uint64_t channels) {
     if (!uic || !gcluster)
         return -1;
     memset(uic, 0, sizeof(struct nccell));
@@ -83,8 +137,17 @@ int ui_setnccell(nccell *uic,
     uic->channels = channels;
     return 0;
 }
-//
-// uic character single
+int ui_mvwadd_style(UiSurface *s, int w, int y, int x, const UiStyle *style) {
+    if (!s || !style)
+        return -1;
+    nccell uic = {0};
+    ui_setnccell(&uic, style->gcluster, style->stylemask, style->channels.fb);
+    ui_mvwadd_cell(s, w, y, x, &uic);
+    return 0;
+}
+// ---------------------------------------------------------------------------
+// nccells
+// ---------------------------------------------------------------------------
 int ui_wadd_wch(UiSurface *s, int w, const nccell *uic) {
     if (!s)
         return -1;
@@ -130,6 +193,7 @@ int ui_wadd_wchnstr(UiSurface *s, int w, UiCell *uic, int n) {
     }
     return 0;
 }
+
 int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, UiCell *uic, int n) {
     if (!s)
         return -1;

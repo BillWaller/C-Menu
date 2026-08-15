@@ -19,22 +19,6 @@ int mbstr_to_cc(char *in_str, UiCell *cmplx_buf_s);
 void parse_ansi(char *ansi_str, attr_t *attr, int *cpx);
 
 /* -------------------------------------------------------------------------
-Internal style helpers
-------------------------------------------------------------------------- */
-
-int ui_ncurses_color_pair_from_style(const UiStyle *style) {
-    (void)style;
-    return 0;
-}
-
-int ui_ncurses_style_apply(UiSurface *s, int w, const UiStyle *style) {
-    if (!style)
-        return -1;
-    ui_bkgdset(s, w, style);
-    return 0;
-}
-
-/* -------------------------------------------------------------------------
    Surface style
    ------------------------------------------------------------------------- */
 

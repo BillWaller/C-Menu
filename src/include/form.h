@@ -110,51 +110,52 @@ typedef struct {
 /** @struct Field
    @brief structure for form fields */
 typedef struct {
-    int line;                         /**< the line number on the form window where this field should be
-                                         displayed */
-    int col;                          /**< the column number on the form window where this field should
-                                         be displayed */
-    int len;                          /**< the length of the field input area, used for display and
-                                         formatting purposes */
-    int ff;                           /**< the field format, represented as an integer corresponding to
-                                         the FieldFormat enum values, e.g. FF_STRING, FF_DECIMAL_INT, etc.
-                                         This is used for validating and formatting the field input values
-                                         according to their specified formats. */
-    char input_s[FIELD_MAXLEN];       /**< the input string for this field, used for
-                                   storing   the user's input value for this field
-                                   during form   processing */
-    char accept_s[FIELD_MAXLEN];      /**< the accepted string for this field, used
-                                   for  storing the validated and accepted value for
-                                   this  field after processing the user's input
-                                   during  form processing */
-    char display_s[FIELD_MAXLEN];     /**< the display string for this field, used
-                                   for storing the formatted string that will be
-                                   displayed in the field input area on the form
-                                   window during form processing, based on the
-                                   accepted value and the field format */
-    cchar_t display_cc[FIELD_MAXLEN]; /**< display complex character array */
-    char filler_s[FIELD_MAXLEN];      /**< the filler string for this field, used for
-                                   storing the string that will be used to fill the
-                                   field input area on the form window during form
-                                   processing, based on the field length and the fill
-                                   character specified in the form structure */
-    cchar_t filler_cc[FIELD_MAXLEN];  /**< filler complex character array */
-    cchar_t accept_cc[FIELD_MAXLEN];  /**< accept complex character array */
+    int line;                        /**< the line number on the form window where this field should be
+                                        displayed */
+    int col;                         /**< the column number on the form window where this field should
+                                        be displayed */
+    int len;                         /**< the length of the field input area, used for display and
+                                        formatting purposes */
+    int ff;                          /**< the field format, represented as an integer corresponding to
+                                        the FieldFormat enum values, e.g. FF_STRING, FF_DECIMAL_INT, etc.
+                                        This is used for validating and formatting the field input values
+                                        according to their specified formats. */
+    char input_s[FIELD_MAXLEN];      /**< the input string for this field, used for
+                                  storing   the user's input value for this field
+                                  during form   processing */
+    char accept_s[FIELD_MAXLEN];     /**< the accepted string for this field, used
+                                  for  storing the validated and accepted value for
+                                  this  field after processing the user's input
+                                  during  form processing */
+    char display_s[FIELD_MAXLEN];    /**< the display string for this field, used
+                                  for storing the formatted string that will be
+                                  displayed in the field input area on the form
+                                  window during form processing, based on the
+                                  accepted value and the field format */
+    UiCell display_cc[FIELD_MAXLEN]; /**< display complex character array */
+    char filler_s[FIELD_MAXLEN];     /**< the filler string for this field, used for
+                                  storing the string that will be used to fill the
+                                  field input area on the form window during form
+                                  processing, based on the field length and the fill
+                                  character specified in the form structure */
+    UiCell filler_cc[FIELD_MAXLEN];  /**< filler complex character array */
+    UiCell accept_cc[FIELD_MAXLEN];  /**< accept complex character array */
 } Field;
 
 /** @struct Form */
 typedef struct {
-    int fg_clr_idx;               /**< the foreground color for the form window */
-    int bg_clr_idx;               /**< the background color for the form window */
-    int bo_clr_idx;               /**< the border color for the form window */
-    int lines;                    /**< the number of lines for the form window */
-    int cols;                     /**< the number of columns for the form windowi */
-    int begy;                     /**< the screen line number for the upper left corner of the form
-                                     window */
-    int begx;                     /**< the screen column number for the upper left corner of the
-                                     form window */
-    WINDOW *win;                  /**< ncurses window structure for form */
-    WINDOW *box;                  /**< ncurses window structure for form box border */
+    int fg_clr_idx; /**< the foreground color for the form window */
+    int bg_clr_idx; /**< the background color for the form window */
+    int bo_clr_idx; /**< the border color for the form window */
+    int lines;      /**< the number of lines for the form window */
+    int cols;       /**< the number of columns for the form windowi */
+    int begy;       /**< the screen line number for the upper left corner of the form
+                       window */
+    int begx;       /**< the screen column number for the upper left corner of the */
+#ifdef ASDF
+    WINDOW *win; /**< ncurses window structure for form */
+    WINDOW *box; /**< ncurses window structure for form box border */
+#endif
     char title[MAXLEN];           /**< the title of the form, displayed in the form box
                                      border */
     FILE *in_fp;                  /**< input stream pointer, e.g. for reading from a file or pipe
@@ -381,5 +382,5 @@ extern int form_desc_error(Form *, int, char *, char *);
 extern void form_help(char *);
 extern int form_yx_to_fidx(Form *, int, int);
 extern void form_display_chyron(Form *);
-extern void display_field(cchar_t *, int, int);
+extern void display_field(UiCell *, int, int);
 #endif

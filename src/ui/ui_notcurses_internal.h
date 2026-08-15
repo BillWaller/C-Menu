@@ -20,14 +20,26 @@
 #define MAXPLANE 30
 #define MAXSFC 30
 #define U_VE L'\x2502' /**< vertical line */
-typedef struct notcurses NotCurses;
-typedef struct notcurses_options NotCursesOptions;
 
+#define KEY_DOWN NCKEY_DOWN
+#define KEY_UP NCKEY_UP
+#define KEY_LEFT NCKEY_LEFT
+#define KEY_RIGHT NCKEY_RIGHT
+#define KEY_HOME NCKEY_HOME
+#define KEY_BACKSPACE NCKEY_BACKSPACE
+#define KEY_F0 NCKEY_F01 - 1
+#define KEY_F(n) (KEY_F0 + (n))
+#define KEY_DC NCKEY_DEL
+#define KEY_IC NCKEY_INS
+#define KEY_NPAGE NCKEY_PGDOWN
+#define KEY_PPAGE NCKEY_PGUP
+#define KEY_ENTER NCKEY_ENTER
+#define KEY_RESIZE NCKEY_RESIZE
+#define KEY_END NCKEY_END
+#define KEY_BREAK NCKEY_F20
+#define KEY_MOUSE NCKEY_BUTTON1
 #define NC_COLORS 512
 #define NC_PAIRS 512
-
-int LINES;
-int COLS;
 
 /** @struct UiRuntime
    @ingroup ui_notcurses
@@ -41,8 +53,8 @@ struct UiRuntime {
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
-    int lines;
-    int cols;
+    unsigned int lines;
+    unsigned int cols;
 };
 
 /** @struct UiSurface
@@ -52,6 +64,17 @@ struct UiRuntime {
    Each UiSurface wraps a @c struct ncplane*.  Visibility is simulated by
    moving the plane off-screen when hidden and restoring it when shown.
 */
+
+enum {
+    BOX,
+    WIN,
+    WIN2,
+    LNNO,
+    CMDLN,
+    PAD,
+    WIN3,
+    SUB_SFC_MAX
+};
 
 struct UiSurface {
     union {
@@ -71,10 +94,10 @@ struct UiSurface {
     };
     struct UiRuntime *runtime;
     struct UiSurface *parent;
-    int y;
-    int x;
-    int lines;
-    int cols;
+    unsigned int y;
+    unsigned int x;
+    unsigned int lines;
+    unsigned int cols;
     bool hidden;
     char name[XLEN];
     char title[XLEN];
@@ -94,8 +117,8 @@ struct UiColor {
 };
 
 struct UiColorPair {
-    int fg;
-    int bg;
+    uint16_t fg;
+    uint16_t bg;
 };
 
 typedef struct {
@@ -108,39 +131,37 @@ typedef struct {
 } RGB;
 
 union UiChannels {
-    union {
-        struct {
-            union {
-                struct {
-                    uint8_t f_b, f_g, f_r, f_a;
-                };
-                uint32_t fargb;
+    struct {
+        union {
+            struct {
+                uint8_t b_b, b_g, b_r, b_a;
             };
-            union {
-                struct {
-                    uint8_t b_b, b_g, b_r, b_a;
-                };
-                uint32_t bargb;
-            };
+            uint32_t bargb;
         };
-        uint64_t chs;
+        union {
+            struct {
+                uint8_t f_b, f_g, f_r, f_a;
+            };
+            uint32_t fargb;
+        };
     };
+    uint64_t fb;
 };
 
-struct UiStyle {
+struct UiCell {
     struct {
-        uint32_t gcluster[4];      // 4-bytes for UTF-8
-        uint8_t gcluster_backstop; // 1-byte terminator
+        uint32_t gcluster; // 4-bytes for UTF-8
+        uint8_t bs;        // 1-byte terminator
     };
     uint8_t width;             // 5 -  5   (8 bits of EGC column width)
     uint16_t stylemask;        // 6 -  7   2-bytes
     union UiChannels channels; // 8 - 15   8 bytes
 };
 
-struct UiCell {
+struct UiStyle {
     struct {
-        uint32_t gclus[4]; // 4-bytes for UTF-8
-        uint8_t bs;        // 1-byte terminator
+        uint32_t gcluster;         // 4-bytes for UTF-8
+        uint8_t gcluster_backstop; // 1-byte terminator
     };
     uint8_t width;             // 5 -  5   (8 bits of EGC column width)
     uint16_t stylemask;        // 6 -  7   2-bytes
@@ -216,6 +237,7 @@ struct UiCell {
 int ui_bkgrnd(struct UiSurface *s, int w, const struct UiStyle *style, const char *c);
 uint64_t ui_notcurses_channels_from_style(const struct UiStyle *style);
 uint32_t ui_notcurses_attrs_from_style(const struct UiStyle *style);
-struct NcPlane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni);
+struct ncplane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni);
+extern int mbstr_to_cellstr(nccell *cmplx_buf, char *str, uint16_t stylemask, int cpx, int *pos, int maxlen);
 
 #endif

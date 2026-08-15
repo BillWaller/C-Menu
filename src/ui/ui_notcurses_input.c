@@ -15,8 +15,8 @@
    Key translation
    ------------------------------------------------------------------------- */
 
-int get_plane_idx(UiSurface *s, NcPlane *plane);
-NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni);
+int get_plane_idx(struct UiSurface *s, struct ncplane *plane);
+struct ncplane *ncplane_clicked(struct ncplane *pile_member, struct ncinput *ni);
 
 static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
     if (id == NCKEY_INVALID || id == (uint32_t)NCKEY_EOF)
@@ -95,6 +95,12 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
    Event retrieval
    ------------------------------------------------------------------------- */
 
+int ui_mousemask() {
+    if (!ui_runtime)
+        return -1;
+    return notcurses_mice_enable(ui_runtime->nc, NCMICE_ALL_EVENTS);
+}
+
 /** @brief Wait for an input event from the NotCurses context.
    @param ui         UI runtime context.
    @param target     Unused for NotCurses (events are global to the context).
@@ -102,10 +108,10 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
    @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
    @return 0 on success, -1 if @p ui or @p ev is NULL.
 */
-int ui_get_event(UiRuntime *ui, UiSurface *target, int w, UiEvent *ev, int timeout_ms) {
+int ui_get_event(UiSurface *target, int w, UiEvent *ev, int timeout_ms) {
     (void)target;
     (void)w;
-    if (!ui || !ev)
+    if (!ui_runtime || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
 
@@ -113,18 +119,18 @@ int ui_get_event(UiRuntime *ui, UiSurface *target, int w, UiEvent *ev, int timeo
     uint32_t id;
     int y, x;
 
-    notcurses_cursor_yx(ui->nc, &y, &x);
-    notcurses_cursor_enable(ui->nc, y, x);
+    notcurses_cursor_yx(ui_runtime->nc, &y, &x);
+    notcurses_cursor_enable(ui_runtime->nc, y, x);
     if (timeout_ms < 0) {
-        id = notcurses_get_blocking(ui->nc, &ni);
+        id = notcurses_get_blocking(ui_runtime->nc, &ni);
     } else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
             .tv_nsec = (long)(timeout_ms % 1000) * 1000000L,
         };
-        id = notcurses_get(ui->nc, &ts, &ni);
+        id = notcurses_get(ui_runtime->nc, &ts, &ni);
     }
-    notcurses_cursor_disable(ui->nc);
+    notcurses_cursor_disable(ui_runtime->nc);
     ev->key = translate_nckey(id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
@@ -146,30 +152,28 @@ int ui_get_event(UiRuntime *ui, UiSurface *target, int w, UiEvent *ev, int timeo
     return id;
 }
 
-int get_event_multi(UiRuntime *ui, UiSurface *target, int w, UiEvent *ev, int timeout_ms) {
-    (void)target;
-    (void)w;
-    if (!ui || !ev)
+int get_event_multi(UiSurface *s, int w, UiEvent *ev, int timeout_ms) {
+    if (!ui_runtime || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
     uint32_t id;
     int y, x;
-    struct ncplane *stdn = notcurses_stdplane(ui->nc);
-    notcurses_cursor_yx(ui->nc, &y, &x);
-    notcurses_cursor_enable(ui->nc, y, x);
-    notcurses_render(ui->nc);
+    struct ncplane *stdn = notcurses_stdplane(ui_runtime->nc);
+    notcurses_cursor_yx(ui_runtime->nc, &y, &x);
+    notcurses_cursor_enable(ui_runtime->nc, y, x);
+    notcurses_render(ui_runtime->nc);
     if (timeout_ms < 0)
-        id = notcurses_get_blocking(ui->nc, &ni);
+        id = notcurses_get_blocking(ui_runtime->nc, &ni);
     else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
             .tv_nsec = (long)(timeout_ms % 1000) * 1000000L,
         };
-        id = notcurses_get(ui->nc, &ts, &ni);
+        id = notcurses_get(ui_runtime->nc, &ts, &ni);
     }
-    notcurses_cursor_disable(ui->nc);
+    notcurses_cursor_disable(ui_runtime->nc);
     ev->key = translate_nckey(id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
@@ -178,8 +182,8 @@ int get_event_multi(UiRuntime *ui, UiSurface *target, int w, UiEvent *ev, int ti
         ev->ch = id; /* Unicode codepoint */
     } else if (ev->key == UI_KEY_MOUSE) {
         if (id == NCKEY_BUTTON1) {
-            NcPlane *plane = ncplane_clicked(stdn, &ni);
-            ev->in_win = get_plane_idx(target, plane);
+            struct ncplane *plane = ncplane_clicked(stdn, &ni);
+            ev->in_win = get_plane_idx(s, plane);
             ev->key = 0;
         }
     }
@@ -196,7 +200,7 @@ int get_event_multi(UiRuntime *ui, UiSurface *target, int w, UiEvent *ev, int ti
     return id;
 }
 
-int get_plane_idx(UiSurface *s, NcPlane *plane) {
+int get_plane_idx(UiSurface *s, struct ncplane *plane) {
     if (!s)
         return -1;
     for (size_t w = 0; w < SUB_SFC_MAX; ++w) {
@@ -207,8 +211,8 @@ int get_plane_idx(UiSurface *s, NcPlane *plane) {
     return -1;
 }
 
-NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni) {
-    NcPlane *cur = ncpile_top(pile_member);
+struct ncplane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni) {
+    struct ncplane *cur = ncpile_top(pile_member);
     while (cur != NULL) {
         int y = ni->y, x = ni->x;
         if (ncplane_translate_abs(cur, &y, &x)) {

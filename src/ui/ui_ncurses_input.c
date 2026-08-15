@@ -93,6 +93,10 @@ static UiKey translate_key(int ch) {
    Event retrieval
    ------------------------------------------------------------------------- */
 
+int ui_mousemask() {
+    return ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT | BUTTON_CTRL | BUTTON_ALT;
+}
+
 /** @brief Wait for an input event on @p target (or stdscr if NULL).
    @param ui         UI runtime context (unused — event comes from the window).
    @param target     Surface to read from, or NULL for stdscr.

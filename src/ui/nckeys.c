@@ -81,6 +81,7 @@ int main(void) {
         notcurses_stop(nc);
         return 1;
     }
+
     ncplane_dim_yx(nc_surface[0].win, &y, &x);
     ncplane_printf_yx_clrtoeol(nc_surface[0].win, 0, 0, "%s (y=%d, x=%d)", ncplane_name(nc_surface[0].win), y, x);
     notcurses_render(nc);
@@ -90,6 +91,7 @@ int main(void) {
         notcurses_stop(nc);
         return 1;
     }
+
     ncplane_dim_yx(nc_surface[1].win, &y, &x);
     ncplane_printf_yx_clrtoeol(nc_surface[1].win, 0, 0, "%s (y=%d, x=%d)", ncplane_name(nc_surface[1].win), y, x);
     notcurses_render(nc);
@@ -101,28 +103,7 @@ int main(void) {
     notcurses_stop(nc);
     return 0;
 }
-/**
- * @brief Create a new NcSurface with a box and a window plane.
- * @param nc Pointer to the NotCurses context.
- * @param rows Number of rows for the window plane.
- * @param cols Number of columns for the window plane.
- * @param y Y-coordinate for the top-left corner of the box plane.
- * @param x X-coordinate for the top-left corner of the box plane.
- * @param name Name of the surface (used for naming planes).
- * @param title Title to display on the box plane.
- * @param fg Foreground color in hex format (e.g., "#RRGGBB").
- * @param bg Background color in hex format (e.g., "#RRGGBB").
- * @return Pointer to the newly created NcSurface, or NULL on failure.
- * @details This function creates a new NcSurface consisting of a box plane and
- * a window plane. The box plane is created with rounded corners and a title,
- * while the window plane is created inside the box.
- * The reason we create a box plane and a window plane is to provide a visual
- * container (the box) for the content (the window). This allows us to use 0
- * based coordinates and prevents the content from overwriting the box borders.
- * The box plane is created with dimensions of (rows + 2) x (cols + 2) to
- * accommodate the borders, while the window plane is created with the specified
- * rows and cols.
- */
+
 NcSurface *surface_new(NotCurses *nc, int rows, int cols,
                        int y, int x, const char *name, const char *title,
                        const char *fg, const char *bg) {
@@ -173,6 +154,7 @@ NcSurface *surface_new(NotCurses *nc, int rows, int cols,
     nc_surface[sfc_ptr].win = win;
     return &nc_surface[sfc_ptr];
 }
+
 NcPlane *plane_new(NotCurses *nc, int rows, int cols,
                    int y, int x, const char *name, const char *title,
                    const char *fg, const char *bg) {
@@ -211,6 +193,7 @@ NcPlane *plane_new(NotCurses *nc, int rows, int cols,
     }
     return plane;
 }
+
 int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
     uint32_t id;
     bool running = true;
@@ -263,20 +246,7 @@ int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
     }
     return 0;
 }
-/**
- * @brief Print formatted text to a plane at specified coordinates and clear to
- * the end of the line.
- * @param n Pointer to the NcPlane where the text will be printed.
- * @param y Y-coordinate for the starting position.
- * @param x X-coordinate for the starting position.
- * @param fmt Format string (like printf).
- * @param ... Additional arguments for the format string.
- * @details This function prints formatted text to the specified plane at the
- * given coordinates. After printing, it clears any remaining characters on that
- * line to ensure a clean output. It uses a temporary buffer to hold the
- * formatted string and calculates how many spaces are needed to clear to the
- * end of the line based on the plane's width.
- */
+
 void ncplane_printf_yx_clrtoeol(NcPlane *n, int y, int x, const char *fmt, ...) {
     char tmp_str[MAXLEN];
     va_list args;
@@ -290,6 +260,7 @@ void ncplane_printf_yx_clrtoeol(NcPlane *n, int y, int x, const char *fmt, ...) 
     tmp_str[dimx] = '\0';
     ncplane_putstr_yx(n, y, x, tmp_str);
 }
+
 void ncplane_move_yx_clrtoeol(NcPlane *n, int y, int x) {
     char tmp_str[MAXLEN];
     int dimx = ncplane_dim_x(n);
@@ -298,6 +269,7 @@ void ncplane_move_yx_clrtoeol(NcPlane *n, int y, int x) {
     tmp_str[dcols] = '\0';
     ncplane_putstr_yx(n, y, x, tmp_str);
 }
+
 int compat_mvwprintw(struct ncplane *nc, int y, int x, const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
@@ -308,16 +280,7 @@ int compat_mvwprintw(struct ncplane *nc, int y, int x, const char *fmt, ...) {
     va_end(va);
     return 0;
 }
-/**
- * @brief Determine which plane was clicked based on the input coordinates.
- * @param pile_member Pointer to the top plane in the pile.
- * @param ni Pointer to the ncinput structure containing the click coordinates.
- * @return Pointer to the clicked NcPlane, or NULL if no plane was clicked.
- * @details This function checks each plane in the pile, starting from the top,
- * to see if the click coordinates fall within its bounds. If a plane is found
- * that contains the click coordinates, it returns a pointer to that plane. If
- * no planes contain the click coordinates, it returns NULL.
- */
+
 NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni) {
     NcPlane *cur = ncpile_top(pile_member);
     while (cur != NULL) {
@@ -331,20 +294,13 @@ NcPlane *ncplane_clicked(NcPlane *pile_member, ncinput *ni) {
     }
     return NULL;
 }
-/** @brief Convert a standard HTML-style hex color string to an RGB structure.
- * @param s Pointer to the hex color string (e.g., "#RRGGBB").
- * @return RGB structure containing the red, green, and blue components.
- * @details This function parses a hex color string and extracts the red, green,
- * and blue components. It uses sscanf to read the values and stores them in an
- * RGB structure. The input string should be in the format "#RRGGBB", where RR,
- * GG, and BB are two-digit hexadecimal numbers representing the color
- * components.
- */
+
 RGB hex_clr_str_to_rgb(char *s) {
     RGB rgb;
     sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
     return rgb;
 }
+
 char *notcurses_key_str(unsigned int key_id, char *kstr) {
     switch (key_id) {
     case NCKEY_INVALID:

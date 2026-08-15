@@ -65,12 +65,6 @@ void unset_chyron_key(Chyron *, int);
 void compile_chyron(Chyron *);
 int get_chyron_key(Chyron *, int);
 Chyron *destroy_chyron(Chyron *chyron);
-#ifdef UAL_UI
-int mbstr_to_cellstr(UiCell *, char *, attr_t, int, int *, int);
-#else
-int mbstr_to_cellstr(struct UiCell *cmplx_buf, char *str, uint16_t *stylemask, int cpx, int *pos, int maxlen);
-#endif
-void initialize_styles(SIO *);
 
 void activate_chyron_key(Chyron *chyron, int k);
 void activate_all_chyron_keys(Chyron *chyron);
@@ -779,7 +773,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
 
     do {
-        curs_set(1);
+        ui_curs_set(1);
         event.y = event.x = -1;
         cmd_key = ui_get_event(sfc, WIN, &event, -1);
         if (cmd_key == KEY_F(1) || cmd_key == 'N' || cmd_key == 'n' || cmd_key == 'Y' || cmd_key == 'y')
@@ -1126,7 +1120,7 @@ void compile_chyron(Chyron *chyron) {
     int k = 0;
     int pos = 0;
     int cp = cp_nt_rev;
-    cchar_t *cx;
+    UiCell *cx;
     char tmp_str[MAXLEN];
     while (k < CHYRON_KEYS) {
         if (chyron->key[k]->text[0] == '\0' || !chyron->key[k]->active) {

@@ -21,14 +21,18 @@ int popup_ckeys();
  */
 int popup_ckeys() {
     char Title[] = "TEST CURSES KEYS";
-    int lines = 10;
-    int cols = 55;
+    unsigned lines = 10;
+    unsigned cols = 55;
     char kstr[KSTRLEN];
     int c;
     char action[MAXLEN];
     char tmp[MAXLEN];
     char *s;
+#ifdef UAL_UI
     int maxy, maxx;
+#else
+    unsigned int maxy, maxx;
+#endif
     ui_get_screen_size(ui_runtime, &maxy, &maxx);
     int begy = (maxy - lines) / 3;
     int begx = (maxx - cols) / 2;

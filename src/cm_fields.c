@@ -61,7 +61,7 @@ int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int fle
             ui_qiflush();
             in_key = ui_get_event(sfc, WIN, &event, -1);
         }
-        curs_set(0);
+        ui_curs_set(0);
         switch (in_key) {
         case KEY_F(9):
             in_key = KEY_F(9);

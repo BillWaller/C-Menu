@@ -29,9 +29,47 @@ int ui_pair_cnt = 0;
 
 UiSurface *stdsfc;
 
-RGB std_color[16] = {
-    {0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+STDRGB std_color[] = {
+    {0, 0, 0},
+    {128, 0, 0},
+    {0, 128, 0},
+    {128, 128, 0},
+    {0, 0, 128},
+    {128, 0, 128},
+    {0, 128, 128},
+    {192, 192, 192},
+    {128, 128, 128},
+    {255, 0, 0},
+    {0, 255, 0},
+    {255, 255, 0},
+    {0, 0, 255},
+    {255, 0, 255},
+    {0, 255, 255},
+    {255, 255, 255}};
 
+/* -------------------------------------------------------------------------
+   Backend identification and capability query
+   ------------------------------------------------------------------------- */
+
+UiBackend ui_get_backend(const UiRuntime *ui) {
+    (void)ui;
+    return UI_BACKEND_NCURSES;
+}
+
+void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
+    if (!caps)
+        return;
+    memset(caps, 0, sizeof(*caps));
+    if (!ui)
+        return;
+    // Will add code to actually check later. For now, just lie.
+    caps->truecolor = true;
+    caps->palette256 = true;
+    caps->mouse = ui->mouse_enabled;
+    caps->unicode = true;
+    caps->resize = true;
+    caps->color_pairs = 0;
+}
 /* -------------------------------------------------------------------------
    Colors, Color Pairs
    ------------------------------------------------------------------------- */
@@ -74,19 +112,19 @@ int ui_add_color_rgb(RGB *rgb) {
     rgb->r = (rgb->r * 1000) / 255;
     rgb->g = (rgb->g * 1000) / 255;
     rgb->b = (rgb->b * 1000) / 255;
-    for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
+    for (i = 0; i < ui_color_cnt && i < COLORS; i++) {
         extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
         if (rgb->r == tmp.r && rgb->g == tmp.g && rgb->b == tmp.b)
             return i;
     }
-    if (i < NC_COLORS) {
+    if (i < COLORS) {
         if (i < 16) {
             std_color[i].r = rgb->r;
             std_color[i].g = rgb->g;
             std_color[i].b = rgb->b;
         }
         init_extended_color(i, rgb->r, rgb->g, rgb->b);
-        if (ui_color_cnt + 1 < NC_COLORS)
+        if (ui_color_cnt + 1 < COLORS)
             ui_color_cnt++;
         return ui_color_cnt - 1;
     }
@@ -98,12 +136,12 @@ int ui_add_color_hex(char *s) {
     RGB tmp;
     rgb = ui_hex_to_rgb(s);
     apply_gamma(&rgb);
-    for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
+    for (i = 0; i < ui_color_cnt && i < COLORS; i++) {
         extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
         if (rgb.r == tmp.r && rgb.g == tmp.g && rgb.b == tmp.b)
             return i;
     }
-    if (i < NC_COLORS) {
+    if (i < COLORS) {
         if (i < 16) {
             std_color[i].r = rgb.r;
             std_color[i].g = rgb.g;
@@ -113,7 +151,7 @@ int ui_add_color_hex(char *s) {
         rgb.g = (rgb.g * 1000) / 255;
         rgb.b = (rgb.b * 1000) / 255;
         init_extended_color(i, rgb.r, rgb.g, rgb.b);
-        if (ui_color_cnt + 1 < NC_COLORS)
+        if (ui_color_cnt + 1 < COLORS)
             ui_color_cnt++;
         return ui_color_cnt - 1;
     }
@@ -149,6 +187,15 @@ int ui_chg_color_hex(int color, char *s) {
     rgb.g = (rgb.g * 1000) / 255;
     rgb.b = (rgb.b * 1000) / 255;
     init_extended_color(color, rgb.r, rgb.g, rgb.b);
+    return 0;
+}
+int ui_get_color(int color, RGB *rgb) {
+    if (color + 1 >= COLORS)
+        return -1;
+    extended_color_content(color, &rgb->r, &rgb->g, &rgb->b);
+    rgb->r = (rgb->r * 255) / 1000;
+    rgb->g = (rgb->g * 255) / 1000;
+    rgb->b = (rgb->b * 255) / 1000;
     return 0;
 }
 RGB ui_hex_to_rgb(char *s) {
@@ -282,6 +329,10 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     return ui;
 }
 
+void ui_endwin() {
+    ui_shutdown(ui_runtime);
+}
+
 void ui_shutdown(UiRuntime *ui) {
     if (!ui)
         return;
@@ -296,7 +347,6 @@ void ui_shutdown(UiRuntime *ui) {
     }
     sfc_ptr = -1;
     endwin();
-#ifdef NCURSES_UI
     if (ui->screen) {
         delscreen(ui->screen);
         ui->screen = NULL;
@@ -305,7 +355,6 @@ void ui_shutdown(UiRuntime *ui) {
         fclose(ui->tty_fp);
     }
     f_curses_open = false;
-#endif
     free(ui);
 }
 
@@ -335,7 +384,6 @@ int ui_suspend(UiRuntime *ui) {
 int ui_resume(UiRuntime *ui) {
     (void)ui;
     reset_prog_mode();
-    refresh();
     update_panels();
     doupdate();
     return 0;
@@ -347,27 +395,6 @@ int ui_cursor_enable(UiRuntime *ui, bool visible) {
     ui->cursor_visible = visible;
     curs_set(visible ? 1 : 0);
     return 0;
-}
-
-/* -------------------------------------------------------------------------
-   Backend identification and capability query
-   ------------------------------------------------------------------------- */
-
-UiBackend ui_get_backend(const UiRuntime *ui) {
-    (void)ui;
-    return UI_BACKEND_NCURSES;
-}
-
-void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
-    if (!caps)
-        return;
-    memset(caps, 0, sizeof(*caps));
-    caps->truecolor = can_change_color() && (COLORS >= 256);
-    caps->palette256 = (COLORS >= 256);
-    caps->mouse = ui ? ui->mouse_enabled : false;
-    caps->unicode = true; /* compiled with NCURSES_WIDECHAR */
-    caps->resize = true;  /* KEY_RESIZE is supported */
-    caps->color_pairs = COLOR_PAIRS;
 }
 
 /* -------------------------------------------------------------------------
@@ -752,6 +779,18 @@ UiCell ui_style_to_cch(const UiStyle *style) {
     UiCell cc;
     setcchar(&cc, style->wstr, style->attrs, style->cp, NULL);
     return cc;
+}
+
+int ui_ncurses_color_pair_from_style(const UiStyle *style) {
+    (void)style;
+    return 0;
+}
+
+int ui_ncurses_style_apply(UiSurface *s, int w, const UiStyle *style) {
+    if (!style)
+        return -1;
+    ui_bkgdset(s, w, style);
+    return 0;
 }
 
 /* -------------------------------------------------------------------------

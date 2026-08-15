@@ -192,7 +192,6 @@ typedef struct {
 */
 UiRuntime *ui_init(const UiConfig *cfg);
 void ui_shutdown(UiRuntime *ui);
-void ui_get_screen_size(UiRuntime *ui, int *lines, int *cols);
 int ui_render(UiRuntime *ui);
 int ui_clear_screen(UiRuntime *ui);
 int ui_suspend(UiRuntime *ui);
@@ -256,29 +255,79 @@ void ui_doupdate();
 void ui_wnoutrefresh(UiSurface *s, int w);
 int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
 void ui_erase();
-
+int ui_mousemask();
+#ifdef NOTCURSES_UI
+// How do you convert "NCurses" to "Notcurses"?
+// Insert "ot" after "N".
+int ui_init_extended_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b);
+int ui_extended_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b);
+int ui_init_extended_pair(uint16_t pair, uint16_t fg, uint16_t bg);
+int ui_extended_pair_content(uint16_t pair, uint16_t *fg, uint16_t *bg);
+int ui_channels_from_pair(uint16_t pair, union UiChannels *ui_channels);
+int ui_add_pair(uint16_t fg, uint16_t bg);
+int ui_chg_pair(uint16_t pair, uint16_t fg, uint16_t bg);
+int ui_get_pair(uint16_t pair, uint16_t *fg, uint16_t *bg);
+int ui_add_color(uint16_t r, uint16_t g, uint16_t b);
+int ui_add_color_rgb(RGB *rgb);
+int ui_add_color_hex(char *s);
+int ui_chg_color_rgb(uint16_t color, RGB *rgb);
+int ui_chg_color_hex(uint16_t color, char *s);
+int ui_get_color(uint16_t color, RGB *rgb);
+int ui_wadd_cell(UiSurface *s, int w, const nccell *uic);
+int ui_mvwadd_cell(UiSurface *s, int w, int y, int x, const nccell *uic);
+int ui_wadd_cellstr(UiSurface *s, int w, nccell *uic);
+int ui_mvwadd_cellstr(UiSurface *s, int w, int y, int x, nccell *uic);
+int ui_wadd_cellnstr(UiSurface *s, int w, nccell *uic, int n);
+int ui_mvwadd_cellnstr(UiSurface *s, int w, int y, int x, nccell *uic, int n);
+int ui_wadd_wch(UiSurface *s, int w, const nccell *uic);
+int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, const UiCell *uic);
+int ui_wadd_wchstr(UiSurface *s, int w, UiCell *uic);
+int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, UiCell *uic);
+int ui_wadd_wchnstr(UiSurface *s, int w, UiCell *uic, int n);
+int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, UiCell *uic, int n);
+uint64_t ui_channels_from_style(const UiStyle *style);
+uint32_t ui_stylemask_from_style(const UiStyle *style);
+int ui_setnccell(nccell *uic, const uint32_t gcluster, const uint32_t stylemask, const uint64_t channels);
+int get_event_multi(UiSurface *s, int w, UiEvent *ev, int timeout_ms);
+void ui_get_screen_size(UiRuntime *ui, unsigned int *lines, unsigned int *cols);
+union UiChannels ui_channels_from_hex(const char *fg, const char *bg);
+extern UiSurface *stdsfc;
+extern unsigned int LINES, COLS;
+typedef struct {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+} STDRGB;
+#else
 int ui_init_extended_color(int color, int r, int g, int b);
 int ui_extended_color_content(int color, int *r, int *g, int *b);
 int ui_init_extended_pair(int pair, int fg, int bg);
 int ui_extended_pair_content(int pair, int *fg, int *bg);
-
+int ui_channels_from_pair(int pair, union UiChannels *ui_channels);
 int ui_add_pair(int fg, int bg);
 int ui_chg_pair(int pair, int fg, int bg);
 int ui_get_pair(int pair, int *fg, int *bg);
-
 int ui_add_color(int r, int g, int b);
 int ui_add_color_rgb(RGB *rgb);
 int ui_add_color_hex(char *s);
 int ui_chg_color_rgb(int color, RGB *rgb);
 int ui_chg_color_hex(int color, char *s);
 int ui_get_color(int color, RGB *rgb);
+UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
+void ui_get_screen_size(UiRuntime *ui, int *lines, int *cols);
+UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
+typedef struct {
+    int r;
+    int g;
+    int b;
+} STDRGB;
+#endif
+void ui_endwin();
 RGB ui_hex_to_rgb(char *s);
 int ui_wmove(UiSurface *s, int w, int y, int x);
 int ui_werase(UiSurface *s, int w);
 void ui_restore_wins();
 int ui_top_panel(UiSurface *s, int w);
-
-UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
 
 #ifdef UAL_UI
 cchar_t style_to_cc(UiStyle *style);
@@ -299,11 +348,11 @@ UiBackend ui_get_backend(const UiRuntime *ui);
    @param caps Output structure filled with capability flags.
 */
 void ui_get_caps(const UiRuntime *ui, UiCaps *caps);
-
+extern STDRGB std_color[];
 extern UiRuntime *ui_runtime;
 extern UiSurface *ui_surface[MAXWIN];
 
-extern RGB std_color[];
+extern STDRGB std_color[];
 extern int ui_color_cnt;
 extern int ui_pair_cnt;
 #endif
