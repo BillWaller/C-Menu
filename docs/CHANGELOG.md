@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-15T18:35:46-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. As the integration of Notcurses proceeds, we find it necessary to modify the NCurses backend to align with the new abstraction layer. This commit includes changes to the Notcurses backend, and the Ncurses backend as well. How do you convert NCurses to Notcurses? Insert "ot" after the "N". 
+
+*2026-08-14T15:52:50-05:00* - Update CHANGELOG.md 
+
 *2026-08-14T15:47:42-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for UI Backends. The 16-byte Notcurses nccell contains a 32 bit gcluster, which can be extended through an EGC (Extended Grapheme Cluster) pool, an architectural component of the Notcurses plane. This robustly handles Unicode characters and their attributes, but it presents some challenges when adapting existing code that was designed for NCurses. 
 
 *2026-08-13T18:08:46-05:00* - Update CHANGELOG.md 
