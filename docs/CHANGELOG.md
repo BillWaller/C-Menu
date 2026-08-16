@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-16T14:42:42-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for UI Backends. In this commit, we are standardizing data types and function signatures to allow C-Menu to communicate seamlessly with different UI backends. In doing so, we have held casting and compiler directives to a minimum, ensuring that the code remains clean and maintainable. 
+
+*2026-08-16T09:35:03-05:00* - Update CHANGELOG.md 
+
 *2026-08-16T09:16:14-05:00* - FIX: dwin.c: lost box characters after title insertion, ui_surface_destroy overshot counter causing a segmentation fault. It had been set to destroy 0 through 8, which is 9. Properly setting the upper limit refactor SUB_SFC_MAX fixes the issue, even if more sub-surfaces are added in the future. 
 
 *2026-08-15T23:33:01-05:00* - Update CHANGELOG.md 
