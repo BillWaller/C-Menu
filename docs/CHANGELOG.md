@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-15T23:30:29-05:00* - FEATURE: UAL - Continuing to add support for Notcurses and NCurses backends. This commit includes minor clean-up work on the UI backend code. The work continues. 
+
+*2026-08-15T18:46:26-05:00* - Update CHANGELOG.md 
+
 *2026-08-15T18:35:46-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. As the integration of Notcurses proceeds, we find it necessary to modify the NCurses backend to align with the new abstraction layer. This commit includes changes to the Notcurses backend, and the Ncurses backend as well. How do you convert NCurses to Notcurses? Insert "ot" after the "N". 
 
 *2026-08-14T15:52:50-05:00* - Update CHANGELOG.md 
