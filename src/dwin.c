@@ -708,13 +708,13 @@ int border_title(UiSurface *sfc, char *title) {
     l = wcswidth(title_wc, wcslen(title_wc));
     l = min(l, maxx - 7);
     ui_mvwaddnwstr(sfc, BOX, y, x, &style_title, title_wc, l);
-    ui_render(ui_runtime);
     x += l;
     free(title_wc);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_sp, 1);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_lt, 1);
     while (x < maxx - 1)
         ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_ho, 1);
+    ui_render(ui_runtime);
     return 0;
 }
 

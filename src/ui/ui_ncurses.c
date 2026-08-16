@@ -566,13 +566,13 @@ int ui_getmaxx(UiSurface *sfc, int w) {
 void ui_surface_destroy(UiSurface *s) {
     if (!s)
         return;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < SUB_SFC_MAX; i++) {
         if (s->mpan[i]) {
             hide_panel(s->mpan[i]);
             del_panel(s->mpan[i]);
         }
     }
-    for (int i = 1; i < 8; i++) {
+    for (int i = 1; i < SUB_SFC_MAX; i++) {
         if (s->mwin[i]) {
             werase(s->mwin[i]);
             delwin(s->mwin[i]);
