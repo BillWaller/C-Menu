@@ -126,29 +126,26 @@ typedef struct {
     int r, g, b;
 } RGB;
 
-struct UiColorPair {
-    uint8_t fg;
-    uint8_t bg;
-};
+typedef struct {
+    int fg, bg;
+} UiColorPair;
 
 union UiChannels {
-    union {
-        struct {
-            union {
-                struct {
-                    uint8_t f_b, f_g, f_r, f_a;
-                };
-                uint32_t fbgra;
+    struct {
+        union {
+            struct {
+                uint8_t b_b, b_g, b_r, b_a;
             };
-            union {
-                struct {
-                    uint8_t b_b, b_g, b_r, b_a;
-                };
-                uint32_t bbgra;
-            };
+            uint32_t bargb;
         };
-        uint64_t chs;
+        union {
+            struct {
+                uint8_t f_b, f_g, f_r, f_a;
+            };
+            uint32_t fargb;
+        };
     };
+    uint64_t fb;
 };
 
 struct UiStyle {
@@ -225,7 +222,8 @@ void ui_style_destroy(struct UiStyle *);
 struct UiStyle *ui_style_from_cch(const UiCell *);
 UiCell ui_style_to_cch(const struct UiStyle *);
 struct UiStyle *ui_style_new(void);
-struct UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
+int ui_pair_from_hex(const char *fg, const char *bg);
+struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const attr_t attrs, const wchar_t *wstr);
 struct UiStyle *ui_style_copy(const struct UiStyle *src);
 int ui_wadd_cell(struct UiSurface *s, int w, UiCell *cc);
 int ui_mvwadd_cell(struct UiSurface *s, int w, int y, int x, UiCell *cc);

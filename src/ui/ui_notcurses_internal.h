@@ -65,7 +65,14 @@ struct UiRuntime {
    moving the plane off-screen when hidden and restoring it when shown.
 */
 
-enum {
+/** @enum sub_surface
+   @ingroup ui_notcurses
+   @brief Identifiers for planes in a UiSurface
+   These identifiers are used to index into the array of ncplanes that compose a UiSurface. They are not essential to the functioning of the UiSurface planes, but merely a convenience. You can just use index numbers to identify the planes.
+   The first six identifiers are named based on C-Menu's particular layouts of planes within UiSurfaces, and the eighth, (idx 7), named SUB_SFC_MAX, is used as an indicator of the array size when allocating and freeing UiSurface planes and other UiSurface management tasks. It serves as a sentinel value to indicate that a UiSurface has no more planes. SUB_SFC_MAX is available for use as a plane identifier.
+   If you are creating your own surfaces, you will probably want to add a custom enum with your own identifiers and use those to index into the ncplane array of your UiSurfaces. You may add more planes. It is convenient to use SUB_SFC_MAX as the last plane, but you may also define SUB_SFC_MAX outside the enum to accomplish the same effect.
+*/
+enum sub_surface {
     BOX,
     WIN,
     WIN2,
@@ -78,7 +85,7 @@ enum {
 
 struct UiSurface {
     union {
-        struct {
+        struct { // DEPRECATED - will be removed
             struct ncplane *box;
             struct ncplane *win;
             struct ncplane *win2;
@@ -87,7 +94,7 @@ struct UiSurface {
             struct ncplane *pad;
             struct ncplane *plane1;
             struct ncplane *plane2;
-        };
+        }; // END DEPRECATION
         struct {
             struct ncplane *mplane[8];
         };

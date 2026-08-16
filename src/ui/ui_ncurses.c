@@ -225,7 +225,16 @@ int ui_init_extended_pair(int pair, int fg, int bg) {
    Styles
    ------------------------------------------------------------------------- */
 
-UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr) {
+int ui_pair_from_hex(const char *fg, const char *bg) {
+    RGB rgb;
+    sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    int f_idx = ui_add_color_rgb(&rgb);
+    sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    int b_idx = ui_add_color_rgb(&rgb);
+    return ui_add_pair(f_idx, b_idx);
+}
+
+UiStyle ui_style_from_hex(const char *fg, const char *bg, const attr_t attrs, const wchar_t *wstr) {
     UiStyle style;
     RGB rgb;
     sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
@@ -234,13 +243,10 @@ UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar
     int b_idx = ui_add_color_rgb(&rgb);
     style.cp = ui_add_pair(f_idx, b_idx);
     style.attrs = attrs;
-    if (wstr) {
-        style.wstr[0] = wstr[0];
-        style.wstr[1] = L'\0';
-    } else {
+    if (wstr)
+        wcsncpy(style.wstr, wstr, sizeof(style.wstr) / sizeof(wchar_t) - 1);
+    else
         style.wstr[0] = L' ';
-        style.wstr[1] = L'\0';
-    }
     return style;
 }
 

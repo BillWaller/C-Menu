@@ -291,6 +291,7 @@ int ui_setnccell(nccell *uic, const uint32_t gcluster, const uint32_t stylemask,
 int get_event_multi(UiSurface *s, int w, UiEvent *ev, int timeout_ms);
 void ui_get_screen_size(UiRuntime *ui, unsigned int *lines, unsigned int *cols);
 union UiChannels ui_channels_from_hex(const char *fg, const char *bg);
+UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const uint32_t gcluster);
 extern UiSurface *stdsfc;
 extern unsigned int LINES, COLS;
 typedef struct {
@@ -313,9 +314,7 @@ int ui_add_color_hex(char *s);
 int ui_chg_color_rgb(int color, RGB *rgb);
 int ui_chg_color_hex(int color, char *s);
 int ui_get_color(int color, RGB *rgb);
-UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
 void ui_get_screen_size(UiRuntime *ui, int *lines, int *cols);
-UiStyle ui_style_from_hex(const char *fg, const char *bg, int attrs, const wchar_t *wstr);
 typedef struct {
     int r;
     int g;

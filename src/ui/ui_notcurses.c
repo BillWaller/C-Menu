@@ -560,6 +560,20 @@ union UiChannels ui_channels_from_hex(const char *fg, const char *bg) {
     return channels;
 }
 
+struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const uint32_t gcluster) {
+    struct UiStyle style = {0};
+    style.gcluster = gcluster;
+    style.gcluster_backstop = gcluster ? 1 : 0;
+    style.width = gcluster ? 1 : 0;
+    style.stylemask = stylemask;
+    RGB rgb;
+    sscanf(fg, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
+    ncchannels_set_fg_rgb8(&style.channels.fb, rgb.r, rgb.g, rgb.b);
+    sscanf(bg, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
+    ncchannels_set_bg_rgb8(&style.channels.fb, rgb.r, rgb.g, rgb.b);
+    return style;
+}
+
 // -------------------------------------------------------------------------
 // Background and style management
 // -------------------------------------------------------------------------
