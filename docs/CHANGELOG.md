@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-16T09:16:14-05:00* - FIX: dwin.c: lost box characters after title insertion, ui_surface_destroy overshot counter causing a segmentation fault. It had been set to destroy 0 through 8, which is 9. Properly setting the upper limit refactor SUB_SFC_MAX fixes the issue, even if more sub-surfaces are added in the future. 
+
+*2026-08-15T23:33:01-05:00* - Update CHANGELOG.md 
+
 *2026-08-15T23:30:29-05:00* - FEATURE: UAL - Continuing to add support for Notcurses and NCurses backends. This commit includes minor clean-up work on the UI backend code. The work continues. 
 
 *2026-08-15T18:46:26-05:00* - Update CHANGELOG.md 
