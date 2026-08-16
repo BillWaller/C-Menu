@@ -199,14 +199,13 @@ void view_boxwin_resize(Init *init) {
     @param init Pointer to the Init structure containing view settings.
  */
 void view_calc_boxwin_dimensions(Init *init) {
-    int scr_lines, scr_cols;
     View *view = init->view;
 
     /** Use view->lines and view->cols if set, otherwise calculate based on
      * screen size with some padding. Ensure the view fits within the screen
      * dimensions. */
-
-    getmaxyx(stdscr, scr_lines, scr_cols);
+    uint scr_lines, scr_cols;
+    ui_get_screen_size(ui_runtime, &scr_lines, &scr_cols);
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d=%d calc lines=%d, cols=%d, begy=%d, begx=%d",
@@ -219,14 +218,14 @@ void view_calc_boxwin_dimensions(Init *init) {
         view->begy = 0;
         view->begx = 0;
     }
-    int lines = max(scr_lines / 10, 8);
+    uint lines = max(scr_lines / 10, 8);
     view->lines = max(view->lines, lines);
     if (view->lines > scr_lines - 3)
         view->lines = scr_lines - 3;
     if (view->lines + view->begy > scr_lines - 3)
         view->begy = scr_lines - (view->lines + 3);
 
-    int cols = max(scr_cols / 3, 40);
+    uint cols = max(scr_cols / 3, 40);
     view->cols = max(view->cols, cols);
     if (view->cols > scr_cols - 2)
         view->cols = scr_cols - 2;

@@ -82,21 +82,20 @@ typedef struct {
     char choice_letter; /**< The letter that the user can press to select this
                            menu line, if it is a choice line, used for selection
                            purposes */
-    int letter_pos;     /**< The position of the choice letter in the text, for
-                           highlighting purposes, used to determine where to
-                           highlight the choice letter in the menu display */
-    unsigned int
-        command_type;  /**< The type of command associated with this menu line,
+    uint letter_pos;    /**< The position of the choice letter in the text, for
+                          highlighting purposes, used to determine where to
+                          highlight the choice letter in the menu display */
+    uint command_type;  /**< The type of command associated with this menu line,
                           e.g. CT_RETURNMAIN for a command that returns to the
                           main menu, CT_EXEC for a command that executes a
                           program, CT_HELP for a command that displays help
                           information, etc., used to determine what action to
                           take when this menu line is selected */
-    char *command_str; /**< The command string associated with this menu line,
-                          which may be a command to execute, a menu to display,
-                          a form to show, etc., depending on the command type,
-                          used to determine the specific action to take when
-                          this menu line is selected */
+    char *command_str;  /**< The command string associated with this menu line,
+                           which may be a command to execute, a menu to display,
+                           a form to show, etc., depending on the command type,
+                           used to determine the specific action to take when
+                           this menu line is selected */
 } Line;
 
 /** @struct Menu
@@ -104,22 +103,22 @@ typedef struct {
    application, containing all the information about the menu, its lines, and
    its display properties */
 typedef struct {
-    int fg_clr_idx; /**< The foreground color for the menu display, used to
+    uint fg_clr_idx; /**< The foreground color for the menu display, used to
                      determine the color of the text and other elements in the
                      menu display */
-    int bg_clr_idx; /** <The background color for the menu display, used to
+    uint bg_clr_idx; /** <The background color for the menu display, used to
                      determine the color of the background in the menu display
                    */
-    int bo_clr_idx; /**< The color for the box around the menu, used to
+    uint bo_clr_idx; /**< The color for the box around the menu, used to
                      determine the color of the box in the menu display */
-    int lines;      /**< The number of lines for the menu window size, used to
+    uint lines;      /**< The number of lines for the menu window size, used to
                        determine the height of the menu display */
-    int cols;       /**< The number of columns for the menu window size, used to
+    uint cols;       /**< The number of columns for the menu window size, used to
                        determine the width of the menu display */
-    int begy;       /**< The screen line for the upper left corner of the menu window,
+    uint begy;       /**< The screen line for the upper left corner of the menu window,
                        used to determine the vertical position of the menu display on
                        the screen */
-    int begx;       /**< The screen column for the upper left corner of the menu
+    uint begx;       /**< The screen column for the upper left corner of the menu
                        window, used to determine the horizontal position of the menu
                        display on the screen */
 
@@ -202,25 +201,25 @@ typedef struct {
                                    verified, used to indicate whether the command specified by
                                    cmd has been successfully verified and can be executed in the
                                    foreground when selected from the menu */
-    int choice_max_len;         /**< The longest choice text string of all menu lines,
-                                   used to determine the width of the menu window,
-                                   calculated based on the length of the choice_text for
-                                   all menu lines and used to ensure that the menu
-                                   window is wide enough to accommodate the longest
-                                   choice text without truncation or wrapping */
-    int text_max_len;           /**< The longest text string of all menu lines, used to
-                                   determine the width of the menu window, calculated
-                                   based on the length of the raw_text for all menu lines
-                                   and used to ensure that the menu window is wide enough
-                                   to accommodate the longest text without truncation or
-                                   wrapping */
-    int item_count;             /**< The number of menu lines in this menu, used to
-                                   determine how many lines are currently defined in the
-                                   menu and to manage the array of menu lines */
-    int line_idx;               /**< The index of the currently selected menu line, used for
-                                   highlighting and selection purposes, updated based on user
-                                   input to indicate which menu line is currently selected and
-                                   should be highlighted in the menu display */
+    uint choice_max_len;        /**< The longest choice text string of all menu lines,
+                                  used to determine the width of the menu window,
+                                  calculated based on the length of the choice_text for
+                                  all menu lines and used to ensure that the menu
+                                  window is wide enough to accommodate the longest
+                                  choice text without truncation or wrapping */
+    uint text_max_len;          /**< The longest text string of all menu lines, used to
+                                  determine the width of the menu window, calculated
+                                  based on the length of the raw_text for all menu lines
+                                  and used to ensure that the menu window is wide enough
+                                  to accommodate the longest text without truncation or
+                                  wrapping */
+    uint item_count;            /**< The number of menu lines in this menu, used to
+                                  determine how many lines are currently defined in the
+                                  menu and to manage the array of menu lines */
+    uint line_idx;              /**< The index of the currently selected menu line, used for
+                                  highlighting and selection purposes, updated based on user
+                                  input to indicate which menu line is currently selected and
+                                  should be highlighted in the menu display */
     Line *line[MAX_MENU_LINES]; /**< An array of pointers to the menu line
                                    structures in this menu, used to store the
                                    information about each menu line, including

@@ -52,27 +52,27 @@ typedef struct {
     off_t sl_ln_no;        // Line number
     char *sl_s[MAXLEN];    // Stripped subline
     UiCell *sl_cc[MAXLEN]; // Subline cchar_t array
-    int sl_cols[MAXLEN];   // Column widths (for cursor/layout calculations)
-    int sl_cells[MAXLEN];  // Number of cchar_t items in this subline chunk
-    int sl_idx;            // Index tracking sublines
-    int sl_cnt;            // Number of sublines
+    uint sl_cols[MAXLEN];  // Column widths (for cursor/layout calculations)
+    uint sl_cells[MAXLEN]; // Number of cchar_t items in this subline chunk
+    uint sl_idx;           // Index tracking sublines
+    uint sl_cnt;           // Number of sublines
 } SplitLine;
 
 typedef struct {
-    int fg_clr_idx;              /**< foreground_color */
-    int bg_clr_idx;              /**< background_color */
-    int bo_clr_idx;              /**< bold_color */
-    int ln_clr_idx;              /**< line_number_color */
-    int ln_bg_clr_idx;           /**< line_number_background_color */
+    uint fg_clr_idx;             /**< foreground_color */
+    uint bg_clr_idx;             /**< background_color */
+    uint bo_clr_idx;             /**< bold_color */
+    uint ln_clr_idx;             /**< line_number_color */
+    uint ln_bg_clr_idx;          /**< line_number_background_color */
     char fg_clr_x[COLOR_LEN];    /**< foreground_color in hex, e.g. "#RRGGBB" */
     char bg_clr_x[COLOR_LEN];    /**< background_color in hex, e.g. "#RRGGBB" */
     char bo_clr_x[COLOR_LEN];    /**< bold_color in hex, e.g. "#RRGGBB" */
     char ln_clr_x[COLOR_LEN];    /**< line_number_color in hex, e.g. "#RRGGBB" */
     char ln_bg_clr_x[COLOR_LEN]; /**< line_number_background_color in hex */
-    int lines;                   /**< number of lines for window size */
-    int cols;                    /**< number of columns for window size */
-    int begy;                    /**< screen line upper left corner of window */
-    int begx;                    /**< screen column upper left corner of window */
+    uint lines;                  /**< number of lines for window size */
+    uint cols;                   /**< number of columns for window size */
+    uint begy;                   /**< screen line upper left corner of window */
+    uint begx;                   /**< screen column upper left corner of window */
     char provider_cmd[MAXLEN];   /**< command provides input */
     char receiver_cmd[MAXLEN];   /**< command receives output */
     char cmd[MAXLEN];            /**< command to execute in foreground, e.g. an editor */
@@ -130,25 +130,25 @@ typedef struct {
     char *line_out_p;                 /**< pointer to current position in line_out_s */
     char *line_in_beg_p;              /**< pointer used in matching search targets */
     char *line_in_end_p;              /**< pointer used in matching search targets */
-    int cury;                         /**< cury is the pad row of the cursor location */
-    int curx;                         /**< curx is the pad column of the cursor location */
-    int scroll_lines;                 /**< number of lines to scroll */
-    int cmd_line;                     /**< command line location on pad */
-    int maxcol;                       /**< length of longest line on pad */
-    int pminrow;                      /**< first pad row displayed in view window */
-    int pmincol;                      /**< first pad column displayed in view window */
-    int sminrow;                      /**< screen position of first row of pad displayed in view
-                                         window */
-    int smincol;                      /**< screen position of first column of pad displayed in view
-                                         window */
-    int smaxrow;                      /**< screen position of last row of pad displayed in view
-                                         windiow */
-    int smaxcol;                      /**< screen position of last column of pad displayed in view
-                                         window */
-    int first_match_x;                /**< first column of current search match in
-                                         stripped_line_out */
-    int last_match_x;                 /**< last column of current search match in
-                                         stripped_line_out */
+    uint cury;                        /**< cury is the pad row of the cursor location */
+    uint curx;                        /**< curx is the pad column of the cursor location */
+    uint scroll_lines;                /**< number of lines to scroll */
+    uint cmd_line;                    /**< command line location on pad */
+    uint maxcol;                      /**< length of longest line on pad */
+    uint pminrow;                     /**< first pad row displayed in view window */
+    uint pmincol;                     /**< first pad column displayed in view window */
+    uint sminrow;                     /**< screen position of first row of pad displayed in view
+                                        window */
+    uint smincol;                     /**< screen position of first column of pad displayed in view
+                                        window */
+    uint smaxrow;                     /**< screen position of last row of pad displayed in view
+                                        windiow */
+    uint smaxcol;                     /**< screen position of last column of pad displayed in view
+                                        window */
+    uint first_match_x;               /**< first column of current search match in
+                                        stripped_line_out */
+    uint last_match_x;                /**< last column of current search match in
+                                        stripped_line_out */
     char in_spec[MAXLEN];             /**< input file spec */
     char out_spec[MAXLEN];            /**< output file spec */
     char help_spec[MAXLEN];           /**< help file spec */
@@ -187,8 +187,8 @@ typedef struct {
     char *lnbuf_curr_ptr;             /**< pointer to first byte of virtual buffer */
     char *lnbuf_end_ptr;              /**< pointer to first byte after end of data in virtual
                                        buffer */
-    int ln_win_lines;                 /**< number of lines in line number window */
-    int ln_win_cols;                  /**< number of columns in line number window */
+    uint ln_win_lines;                /**< number of lines in line number window */
+    uint ln_win_cols;                 /**< number of columns in line number window */
     bool f_ln;                        /**< flag - number lines */
     off_t ln_no;                      /**< line number */
     off_t ln_no_max;                  /**< last line number */
@@ -201,10 +201,10 @@ typedef struct {
     SplitLine cur;                    /**< split line structure for current line displayed */
     bool page_top_sl;                 /**< flag - flag top line split */
     bool page_bot_sl;                 /**< flag - flag bottom line split */
-    int page_top_sl_idx;              /**< flag - top line split index */
-    int page_bot_sl_idx;              /**< flag - bottom line split index */
-    int page_top_sl_cnt;              /**< flag - top line split count */
-    int page_bot_sl_cnt;              /**< flag - bottom line split count */
+    uint page_top_sl_idx;             /**< flag - top line split index */
+    uint page_bot_sl_idx;             /**< flag - bottom line split index */
+    uint page_top_sl_cnt;             /**< flag - top line split count */
+    uint page_bot_sl_cnt;             /**< flag - bottom line split count */
 } View;
 // extern View *view;
 

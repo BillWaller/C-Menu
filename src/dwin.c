@@ -44,41 +44,33 @@ UiRuntime *ui_runtime;
 UiConfig *ui_config;
 UiSurface *ui_surface[MAXWIN];
 
+int click_y;
+int click_x;
+
 bool init_clr_palette(SIO *);
 bool open_curses(SIO *);
 void destroy_curses();
-
 void abend(int, char *);
 int nf_error(int, char *);
 int Perror(char *);
-int click_y;
-int click_x;
 RGB xterm256_idx_to_rgb(int);
 int rgb_to_xterm256_idx(RGB *);
 void apply_gamma(RGB *);
-
 Chyron *new_chyron();
 void set_chyron_key(Chyron *, int, char *, int);
 void set_chyron_key_cp(Chyron *, int, char *, int, int);
 bool is_set_chyron_key(Chyron *, int);
 void unset_chyron_key(Chyron *, int);
 void compile_chyron(Chyron *);
-int get_chyron_key(Chyron *, int);
 Chyron *destroy_chyron(Chyron *chyron);
-
 void activate_chyron_key(Chyron *chyron, int k);
 void activate_all_chyron_keys(Chyron *chyron);
 void deactivate_chyron_key(Chyron *chyron, int k);
 void deactivate_all_chyron_keys(Chyron *chyron);
-
 int border_draw(UiSurface *sfc);
 int border_title(UiSurface *sfc, char *title);
 int border_ysplit(UiSurface *, int);
 int border_ysplit_text(UiSurface *, char *, int);
-
-int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle);
-int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy, int wbegx, char *wtitle);
-
 void win_resize(int, int, char *);
 void ui_restore_wins();
 
@@ -467,14 +459,14 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    buffer, and the function ensures that it does not exceed the maximum length.
 */
 #ifdef NCURSES_UI
-int mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, int cpx, int *p, int maxlen) {
-    int p1 = 0;
-    int *pos = &p1;
+uint mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, uint cpx, uint *p, uint maxlen) {
+    uint p1 = 0;
+    uint *pos = &p1;
     if (p)
         pos = p;
     else
         pos = &p1;
-    int i = 0, len = 0;
+    uint i = 0, len = 0;
     const char *s;
     UiCell cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
@@ -540,12 +532,12 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     return 0; // Invalid Unicode code point
 }
 // ------------------->    box_win_new    <-------------------
-int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
+int box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
     if (sfc_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
-    int maxy, maxx;
+    uint maxy, maxx;
     ui_get_screen_size(ui_runtime, &maxy, &maxx);
     wlines = min(wlines, maxy - 2);
     wcols = min(wcols, maxx - 2);
@@ -557,19 +549,19 @@ int box_win_new(int wlines, int wcols, int wbegy, int wbegx, char *wtitle) {
     return 0;
 }
 // ------------------->    box_split_new    <-------------------
-int split_box_win_new(int wlines, int wcols, int split_y, int split_x, int wbegy, int wbegx, char *wtitle) {
+int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle) {
     if (sfc_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
-    wlines = min(wlines, LINES - 2);
-    wcols = min(wcols, COLS - 2);
-    int maxy, maxx;
     if (sfc_ptr >= MAXWIN) {
         Perror("Maximum number of windows (%d) exceeded");
         exit(EXIT_FAILURE);
     }
+    uint maxy, maxx;
     ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    wlines = min(wlines, maxy - 2);
+    wcols = min(wcols, maxx - 2);
     split_x = min(split_x, maxx - 2); // not implemented yet
     int split_wlines = min(wlines + split_y + 1, maxy - 2);
     wcols = min(wcols, maxx - 2);
@@ -604,10 +596,10 @@ int cm_surface_destroy(UiSurface *sfc) {
     return 0;
 }
 int border_draw(UiSurface *sfc) {
-    int maxy = ui_getmaxy(sfc, BOX);
-    int maxx = ui_getmaxx(sfc, BOX);
-    int y = 0;
-    int x = 0;
+    uint maxy = ui_getmaxy(sfc, BOX);
+    uint maxx = ui_getmaxx(sfc, BOX);
+    uint y = 0;
+    uint x = 0;
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_tl, 1);
     ui_render(ui_runtime);
     for (x = 1; x < maxx - 1; x++)
@@ -656,10 +648,10 @@ int border_ysplit(UiSurface *sfc, int y) {
    middle of the line. Use this function when you want to visually separate two
    sections within a window and label the separator with descriptive text. */
 int border_ysplit_text(UiSurface *sfc, char *text, int separator_line) {
-    int maxx = ui_getmaxx(sfc, BOX);
-    int l;
-    int y = separator_line;
-    int x = 0;
+    uint maxx = ui_getmaxx(sfc, BOX);
+    uint l;
+    uint y = separator_line;
+    uint x = 0;
     // Draw the horizontal line with text in the middle, so we start by drawing
     // the left edge, then the text, then the right edge, and finally fill in the
     // horizontal line on either side of the text.
@@ -696,10 +688,10 @@ int border_ysplit_text(UiSurface *sfc, char *text, int separator_line) {
 int border_title(UiSurface *sfc, char *title) {
     if (!title || !*title)
         return 0;
-    int y = 0;
-    int x = 0;
-    int l;
-    int maxx = ui_getmaxx(sfc, BOX);
+    uint y = 0;
+    uint x = 0;
+    uint l;
+    uint maxx = ui_getmaxx(sfc, BOX);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_tl, 1);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_rt, 1);
     ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_sp, 1);
@@ -732,7 +724,7 @@ int border_title(UiSurface *sfc, char *title) {
     @return Key code of user command */
 int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     char title[MAXLEN];
-    int line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
+    uint line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
 
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", msg0, msg1, msg2, msg3);
@@ -745,18 +737,20 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     set_chyron_key(chyron, 3, "Y - Yes", 'y');
     compile_chyron(chyron);
 
-    msg0_l = strnz(msg0, COLS - 4);
-    msg1_l = strnz(msg1, COLS - 4);
-    msg2_l = strnz(msg2, COLS - 4);
-    msg3_l = strnz(msg1, COLS - 4);
+    uint maxy, maxx;
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    msg0_l = strnz(msg0, maxx - 4);
+    msg1_l = strnz(msg1, maxx - 4);
+    msg2_l = strnz(msg2, maxx - 4);
+    msg3_l = strnz(msg1, maxx - 4);
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);
     msg_l = max(msg_l, chyron->l);
-    msg_l = min(msg_l, COLS - 4);
+    msg_l = min(msg_l, maxx - 4);
 
-    pos = ((COLS - msg_l) - 4) / 2;
-    line = (LINES - 6) / 2;
+    pos = ((maxx - msg_l) - 4) / 2;
+    line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
     if (box_win_new(5, msg_l + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 5,
@@ -793,7 +787,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     @return Key code of user command */
 int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     char title[MAXLEN];
-    int line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
+    uint line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
 
     if (!f_curses_open) {
         fprintf(stderr, "\n\n%s\n", msg0);
@@ -809,18 +803,20 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(chyron);
 
-    msg0_l = strnz(msg0, COLS - 4);
-    msg1_l = strnz(msg1, COLS - 4);
-    msg2_l = strnz(msg2, COLS - 4);
-    msg3_l = strnz(msg1, COLS - 4);
+    uint maxy, maxx;
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    msg0_l = strnz(msg0, maxx - 4);
+    msg1_l = strnz(msg1, maxx - 4);
+    msg2_l = strnz(msg2, maxx - 4);
+    msg3_l = strnz(msg1, maxx - 4);
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);
     msg_l = max(msg_l, chyron->l);
-    msg_l = min(msg_l, COLS - 4);
+    msg_l = min(msg_l, maxx - 4);
 
-    pos = ((COLS - msg_l) - 4) / 2;
-    line = (LINES - 6) / 2;
+    pos = ((maxx - msg_l) - 4) / 2;
+    line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
     if (box_win_new(5, msg_l + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 5,
@@ -855,7 +851,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
 int Perror(char *emsg_str) {
     char emsg[MAXLEN];
     unsigned in_key;
-    int line, pos, cols;
+    uint line, pos, cols;
     char title[MAXLEN];
     bool f_xwgetch = true;
     if (emsg_str[0] == '' && emsg_str[1] == 'w') {
@@ -872,10 +868,13 @@ int Perror(char *emsg_str) {
     set_chyron_key(chyron, 9, "F9 Cancel", KEY_F(9));
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(chyron);
-    cols = strnz(emsg, COLS - 4);
+    uint maxy, maxx;
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    cols = strnz(emsg, maxx - 4);
     cols = max(cols, chyron->l);
-    pos = (COLS - cols - 4) / 2;
-    line = (LINES - 4) / 2;
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    pos = (maxx - cols - 4) / 2;
+    line = (maxy - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
     if (box_win_new(2, cols + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s, %b) failed",
@@ -916,8 +915,10 @@ bool action_disposition(char *title, char *action_str) {
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F(10));
     compile_chyron(chyron);
     len = max(strlen(title), strlen(action_str));
-    col = (COLS - len - 4) / 2;
-    line = (LINES - 4) / 2;
+    uint maxy, maxx;
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    col = (maxx - len - 4) / 2;
+    line = (maxy - 4) / 2;
     if (box_win_new(2, len + 2, line, col, title)) {
         ssnprintf(em0, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 4,
                   line, line, col, title);
@@ -969,6 +970,7 @@ Chyron *new_chyron() {
     return chyron;
 }
 int assign_chyron_win(Chyron *chyron, UiSurface *sfc, int win, char *y) {
+    bool a_toi_error = false;
     if (!sfc)
         return -1;
     chyron->sfc = sfc;
@@ -976,8 +978,8 @@ int assign_chyron_win(Chyron *chyron, UiSurface *sfc, int win, char *y) {
     if (*y == '-')
         chyron->y = ui_getmaxy(sfc, win) - 1;
     else {
-        chyron->y = atoi(y);
-        if (chyron->y < 0)
+        chyron->y = a_toi(y, &a_toi_error);
+        if (a_toi_error)
             return -1;
         chyron->y = min(chyron->y, ui_getmaxy(sfc, win) - 1);
     }
@@ -1116,10 +1118,10 @@ void deactivate_all_chyron_keys(Chyron *chyron) {
    clicked based on the X position of the click.
 */
 void compile_chyron(Chyron *chyron) {
-    int end_pos = 0;
-    int k = 0;
-    int pos = 0;
-    int cp = cp_nt_rev;
+    uint end_pos = 0;
+    uint k = 0;
+    uint pos = 0;
+    uint cp = cp_nt_rev;
     UiCell *cx;
     char tmp_str[MAXLEN];
     while (k < CHYRON_KEYS) {
@@ -1185,8 +1187,8 @@ void display_chyron(UiSurface *sfc, int w, Chyron *chyron, int line, int col) {
    allowing for dynamic and customizable function key behavior in the chyron
    area of the interface.
 */
-int get_chyron_key(Chyron *chyron, int x) {
-    int i = 0;
+int get_chyron_key(Chyron *chyron, uint x) {
+    uint i = 0;
     int k = -1;
     while (i < CHYRON_KEYS - 1) {
         if (chyron->key[i]->text[0] != '\0' && chyron->key[i]->active)

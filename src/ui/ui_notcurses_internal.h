@@ -38,8 +38,6 @@
 #define KEY_END NCKEY_END
 #define KEY_BREAK NCKEY_F20
 #define KEY_MOUSE NCKEY_BUTTON1
-#define NC_COLORS 512
-#define NC_PAIRS 512
 
 /** @struct UiRuntime
    @ingroup ui_notcurses
@@ -155,6 +153,14 @@ union UiChannels {
     uint64_t fb;
 };
 
+typedef struct {
+    union {
+        uint32_t gcluster; // 4-bytes for UTF-8
+        uint8_t gclus[4];
+    };
+    uint8_t width; // 5 -  5   (8 bits of EGC column width)
+} GCluster;
+
 struct UiCell {
     struct {
         uint32_t gcluster; // 4-bytes for UTF-8
@@ -246,5 +252,6 @@ uint64_t ui_notcurses_channels_from_style(const struct UiStyle *style);
 uint32_t ui_notcurses_attrs_from_style(const struct UiStyle *style);
 struct ncplane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni);
 extern int mbstr_to_cellstr(nccell *cmplx_buf, char *str, uint16_t stylemask, int cpx, int *pos, int maxlen);
+struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const wchar_t *wstr);
 
 #endif

@@ -35,7 +35,7 @@ unsigned int parse_menu_description(Init *init) {
     unsigned char ltr;
     bool fltr[127];
     int directive;
-    int l;
+    uint l;
     char *s;
     int commands = 0;
     int choices = 0;

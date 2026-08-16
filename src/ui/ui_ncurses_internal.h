@@ -216,27 +216,26 @@ struct UiStyle {
 //
 typedef cchar_t UiCell;
 /* Internal style helpers */
-int ui_ncurses_style_apply(struct UiSurface *s, int w, const struct UiStyle *style);
+int ui_ncurses_style_apply(struct UiSurface *s, uint w, const struct UiStyle *style);
 int ui_ncurses_color_pair_from_style(const struct UiStyle *style);
 void ui_style_destroy(struct UiStyle *);
 struct UiStyle *ui_style_from_cch(const UiCell *);
 UiCell ui_style_to_cch(const struct UiStyle *);
 struct UiStyle *ui_style_new(void);
 int ui_pair_from_hex(const char *fg, const char *bg);
-struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const attr_t attrs, const wchar_t *wstr);
 struct UiStyle *ui_style_copy(const struct UiStyle *src);
-int ui_wadd_cell(struct UiSurface *s, int w, UiCell *cc);
-int ui_mvwadd_cell(struct UiSurface *s, int w, int y, int x, UiCell *cc);
-int ui_wadd_cellstr(struct UiSurface *s, int w, UiCell *cmplx_buf);
-int ui_wadd_cellnstr(struct UiSurface *s, int w, UiCell *cmplx_buf, int n);
-int ui_mvwadd_cellstr(struct UiSurface *s, int w, int y, int x, UiCell *cmplx_buf);
-int ui_mvwadd_cellnstr(struct UiSurface *s, int w, int y, int x, UiCell *cmplx_buf, int n);
+int ui_wadd_cell(struct UiSurface *s, uint w, UiCell *cc);
+int ui_mvwadd_cell(struct UiSurface *s, uint w, uint y, uint x, UiCell *cc);
+int ui_wadd_cellstr(struct UiSurface *s, uint w, UiCell *cmplx_buf);
+int ui_wadd_cellnstr(struct UiSurface *s, uint w, UiCell *cmplx_buf, uint n);
+int ui_mvwadd_cellstr(struct UiSurface *s, uint w, uint y, uint x, UiCell *cmplx_buf);
+int ui_mvwadd_cellnstr(struct UiSurface *s, uint w, uint y, uint x, UiCell *cmplx_buf, uint n);
 int ui_bkgrnd(WINDOW *win, const struct UiStyle *style);
 int ui_bkgrndset(WINDOW *win, const struct UiStyle *style);
 
 int ui_setcchar(UiCell *uc, const wchar_t *wstr, attr_t attrs, short pair, const void *opts);
 int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, short *pair, void *opts);
-extern int mbstr_to_cellstr(cchar_t *cmplx_buf, char *str, attr_t attrs, int cpx, int *pos, int maxlen);
+struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const attr_t attrs, const wchar_t *wstr);
 extern struct UiSurface *stdsfc;
 
 #endif

@@ -331,7 +331,7 @@ void ui_shutdown(UiRuntime *ui) {
     free(ui);
 }
 
-void ui_get_screen_size(UiRuntime *ui, unsigned int *lines, unsigned int *cols) {
+void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols) {
     if (!ui)
         return;
     unsigned int r = 0, c = 0;
@@ -560,11 +560,18 @@ union UiChannels ui_channels_from_hex(const char *fg, const char *bg) {
     return channels;
 }
 
-struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const uint32_t gcluster) {
+struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const wchar_t *wstr) {
+    int i = 0;
+    GCluster gcluster = {0};
+    while (wstr[i] != L'\0') {
+        gcluster.gclus[i] = wstr[i];
+        i++;
+    }
+    gcluster.gclus[i] = L'\0';
     struct UiStyle style = {0};
-    style.gcluster = gcluster;
-    style.gcluster_backstop = gcluster ? 1 : 0;
-    style.width = gcluster ? 1 : 0;
+    style.gcluster = gcluster.gcluster;
+    style.gcluster_backstop = gcluster.gcluster ? 1 : 0;
+    style.width = gcluster.gcluster ? 1 : 0;
     style.stylemask = stylemask;
     RGB rgb;
     sscanf(fg, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);

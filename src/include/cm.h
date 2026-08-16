@@ -84,14 +84,14 @@ typedef struct {
 #define max(a, b)               \
     ({                          \
         __typeof__(a) _a = (a); \
-        __typeof__(b) _b = (b); \
+        __typeof__(a) _b = (b); \
         _a > _b ? _a : _b;      \
     })
 /** @brief min macro evaluates two expressions, returning least result */
 #define min(x, y)           \
     ({                      \
         typeof(x) _x = (x); \
-        typeof(y) _y = (y); \
+        typeof(x) _y = (y); \
         (void)(&_x == &_y); \
         _x < _y ? _x : _y;  \
     })
@@ -114,7 +114,7 @@ typedef struct {
 #define MAX(a, b)           \
     ({                      \
         typeof(a) _a = (a); \
-        typeof(b) _b = (b); \
+        typeof(y) _b = (b); \
         _a > _b ? _a : _b;  \
     })
 /** @brief MAX macro for compatibility with code that uses the same name,
@@ -152,6 +152,14 @@ typedef struct {
         (__c >= 'a' && __c <= 'z') ? (__c - ('a' - 'A')) : __c; \
     })
 
+/** to_uppercase(c) - convert a lowercase letter to uppercase */
+#define to_uppercase(c)       \
+    if (c >= 'a' && c <= 'z') \
+    c -= ' '
+/** to_lowercase(c) - convert an uppercase letter to lowercase */
+#define to_lowercase(c)       \
+    if (c >= 'A' && c <= 'Z') \
+    c += ' '
 /**
     @brief Used for xterm256 color conversions
  */
@@ -354,9 +362,9 @@ typedef struct {
     bool active;                  /**< whether the key binding is active */
     char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code
                                    */
-    int keycode;                  /**< key code associated with the command */
-    int end_pos;                  /**< end position of the command text in the chyron */
-    int cp;                       /**< color pair index for the command text in the chyron */
+    uint keycode;                 /**< key code associated with the command */
+    uint end_pos;                 /**< end position of the command text in the chyron */
+    uint cp;                      /**< color pair index for the command text in the chyron */
 } ChyronKey;
 
 typedef struct {
@@ -364,10 +372,10 @@ typedef struct {
     char s[MAXLEN];              /**< the chyron string, for displaying messages in */
     UiCell cmplx_buf[MAXLEN];    /**< the chyron wide character string */
                                  //  wchar_t wstr[MAXLEN];        /**< the chyron wide character string */
-    int l;                       /**< length of the chyron string, for display */
+    uint l;                      /**< length of the chyron string, for display */
     UiSurface *sfc;              /** pointer to surface for the chyron */
-    int win;                     /** index to window of surface */
-    int y;                       /** y coordinante of the chyron in the window */
+    uint win;                    /** index to window of surface */
+    uint y;                      /** y coordinante of the chyron in the window */
 } Chyron;
 
 extern void activate_chyron_key(Chyron *, int);
@@ -439,9 +447,9 @@ extern short cp_green;               /**< green background color pair index */
 extern short cp_yellow;              /**< yellow background color pair index */
 extern short cp_blue;                /**< blue background color pair index */
 extern short clr_idx;                /**< current color index */
-extern int clr_cnt;                  /**< number of colors used */
-extern int clr_pair_idx;             /**< current color pair index */
-extern int clr_pair_cnt;             /**< number of color pairs supported by the terminal */
+extern uint clr_cnt;                 /**< number of colors used */
+extern uint clr_pair_idx;            /**< current color pair index */
+extern uint clr_pair_cnt;            /**< number of color pairs supported by the terminal */
 extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
 
 /** @struct ColorPair
@@ -453,9 +461,9 @@ extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
   of the different color pairs you have defined and apply them to various
   elements in your terminal interface. */
 typedef struct {
-    int fg;      /**< foreground color index */
-    int bg;      /**< background color index */
-    int pair_id; /**< color pair index */
+    uint fg;      /**< foreground color index */
+    uint bg;      /**< background color index */
+    uint pair_id; /**< color pair index */
 } ColorPair;
 
 /**< see termios.h */
@@ -479,8 +487,8 @@ extern bool restore_curses_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
 
-extern int box_win_new(int, int, int, int, char *);
-extern int split_box_win_new(int, int, int, int, int, int, char *);
+extern int box_win_new(uint, uint, uint, uint, char *);
+extern int split_box_win_new(uint, uint, uint, uint, uint, uint, char *);
 
 extern void win_resize(int, int, char *);
 extern void signal_handler(int);
@@ -631,8 +639,8 @@ extern void write_cmenu_log(char *);
 extern void write_cmenu_log_ts(char *);
 extern void open_cmenu_log();
 extern FILE *cmenu_log_fp;
-extern int n_lines; /**< number of lines in the terminal */
-extern int n_cols;  /**< number of columns in the terminal */
+extern uint n_lines; /**< number of lines in the terminal */
+extern uint n_cols;  /**< number of columns in the terminal */
 // extern int lines;   current number of lines (may be less than n_lines if
 // the terminal is resized)
 // extern int cols;    current number of columns (may be less than n_cols
@@ -656,37 +664,29 @@ extern int sfc_ptr;  /**< Pointer to the current window pair, box and window,
                         window and its associated box. */
 // extern bool win_pair; /**< Flag to indicate whether the current window is
 // part of a window pair */
-extern int
+extern uint
     mlines; /**< number of lines in the current window, which may be less than
                the total number of lines in the terminal if the window is
                resized or if multiple windows are being used. */
-extern int
+extern uint
     mcols; /**< number of columns in the current window, which may be less than
               the total number of columns in the terminal if the window is
               resized or if multiple windows are being used. */
-extern int
+extern uint
     mbegy; /**< beginning y coordinate of the current window, which can be used
               to determine the position of the window on the terminal screen. */
-extern int
+extern uint
     mbegx;            /**< beginning x coordinate of the current window, which can be used
                          to determine the position of the window on the terminal screen. */
 extern int mg_action; /**< action in progress, which can be used to keep track
                          of the current state of the program and determine how
                          to respond to user input or other events. */
-extern int mg_col;    /**< window column, which can be used to determine the
-                         current column position in the window for displaying text
-                         or other content. */
-extern int
-    mg_line; /**< window line, which can be used to determine the current line
-                position in the window for displaying text or other content. */
-             /** to_uppercase(c) - convert a lowercase letter to uppercase */
-#define to_uppercase(c)       \
-    if (c >= 'a' && c <= 'z') \
-    c -= ' '
-/** to_lowercase(c) - convert an uppercase letter to lowercase */
-#define to_lowercase(c)       \
-    if (c >= 'A' && c <= 'Z') \
-    c += ' '
+extern uint mg_col;   /**< window column, which can be used to determine the
+                        current column position in the window for displaying text
+                        or other content. */
+extern uint
+    mg_line;       /**< window line, which can be used to determine the current line
+                      position in the window for displaying text or other content. */
 extern int tty_fd; /**< the file descriptor for the terminal, for error messages
                       and other output */
 extern int
@@ -885,7 +885,7 @@ extern int open_log(char *);
 extern void write_log(char *);
 extern void compile_chyron(Chyron *);
 extern void display_chyron(UiSurface *, int n, Chyron *, int, int);
-extern int get_chyron_key(Chyron *, int);
+extern int get_chyron_key(Chyron *, uint);
 extern bool is_set_chyron_key(Chyron *, int);
 extern void set_chyron_key(Chyron *, int, char *, int);
 extern void set_chyron_key_cp(Chyron *, int, char *, int, int);
@@ -944,5 +944,6 @@ extern int border_ysplit_text(UiSurface *, char *, int);
 extern void mbc_to_wc(wchar_t wc[2], const char mbc);
 extern void initialize_styles(SIO *);
 extern int assign_chyron_win(Chyron *chyron, UiSurface *s, int w, char *);
+extern uint mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attrs, uint cpx, uint *p, uint maxlen);
 
 #endif

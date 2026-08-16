@@ -34,8 +34,8 @@ unsigned int menu_cmd_processor(Init *);
    menu or returns to the main menu.
  */
 unsigned int menu_engine(Init *init) {
-    int action;
-    int i;
+    uint action;
+    uint i;
     char tmp_str[MAXLEN];
     Menu *menu = init->menu;
     if (menu == nullptr) {
@@ -119,7 +119,8 @@ unsigned int menu_engine(Init *init) {
    function keys and mouse clicks.
  */
 unsigned int menu_cmd_processor(Init *init) {
-    int i, c;
+    uint i;
+    uint c;
     char *d;
     int in_key;
     char tmp_str[MAXLEN];
@@ -247,9 +248,7 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_DISPLAY_MENU);
             /** @brief process mouse event */
         case KEY_MOUSE:
-            if (event.y == -1 || event.x == -1)
-                return (MA_CONTINUE);
-            if (event.y < 0 || event.y >= menu->item_count)
+            if (event.y >= menu->item_count)
                 return (MA_CONTINUE);
             menu->line_idx = event.y;
             break;

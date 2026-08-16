@@ -58,7 +58,7 @@ int field_editor(Form *form) {
     char *s, *d;
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
-    int maxy, maxx;
+    uint maxy, maxx;
     if (form->fidx < 0 || form->fidx >= form->fcnt)
         form->fcnt = 0;
     int flin = form->field[form->fidx]->line;
@@ -66,12 +66,11 @@ int field_editor(Form *form) {
     int flen = form->field[form->fidx]->len;
     int ff = form->field[form->fidx]->ff;
     char *accept_s = form->field[form->fidx]->accept_s;
-    // char *filler_s = form->field[form->fidx]->filler_s;
     form_fmt_field(form, accept_s);
     click_x = click_y = -1;
     char *fstart = accept_s;
     char *fend = fstart + flen;
-    int x = fcol;
+    uint x = fcol;
     char *p = fstart = accept_s;
     char *str_end = p + strlen(p);
     in_key = 0;
@@ -384,10 +383,10 @@ void display_field(cchar_t *cmplx_buf, int y, int x) {
  */
 int form_display_field(Form *form) {
     UiSurface *sfc = ui_surface[sfc_ptr];
-    int y = form->field[form->fidx]->line;
-    int x = form->field[form->fidx]->col;
+    uint y = form->field[form->fidx]->line;
+    uint x = form->field[form->fidx]->col;
 
-    int pos = 0;
+    uint pos = 0;
     mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, A_NORMAL, cp_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
@@ -402,9 +401,9 @@ int form_display_field(Form *form) {
 }
 int form_display_accept_field(Form *form) {
     UiSurface *sfc = ui_surface[sfc_ptr];
-    int y = form->field[form->fidx]->line;
-    int x = form->field[form->fidx]->col;
-    int pos = 0;
+    uint y = form->field[form->fidx]->line;
+    uint x = form->field[form->fidx]->col;
+    uint pos = 0;
     mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, A_NORMAL, cp_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);

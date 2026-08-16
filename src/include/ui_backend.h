@@ -82,7 +82,7 @@ typedef UiCell cchar_t;
 typedef nccell UiCell;
 #endif
 
-#define ALLWINS -1
+#define ALLWINS (uint)1000
 
 typedef struct UiRuntime UiRuntime;
 typedef struct UiSplitSurface UiSplitSurface;
@@ -101,14 +101,15 @@ typedef struct {
     bool alt;
     bool ctrl;
     bool shift;
-    int y;
-    int x;
+    uint y;
+    uint x;
+    bool active;
     int chyron;
-    int in_win;
+    uint in_win;
     int bstate;
     UiMouseAction mouse_action;
     bool mouse_inside;
-    char keybound[256];
+    char keybound[16];
 } UiEvent;
 
 typedef struct {
@@ -118,8 +119,8 @@ typedef struct {
     int cols;
 } UiRect;
 
-#define NC_COLORS 512
-#define NC_PAIRS 512
+#define UI_COLORS 512
+#define UI_PAIRS 512
 
 /** @struct UiConfig
    @brief Structure representing the configuration options for the UI runtime.
@@ -196,64 +197,64 @@ int ui_render(UiRuntime *ui);
 int ui_clear_screen(UiRuntime *ui);
 int ui_suspend(UiRuntime *ui);
 int ui_resume(UiRuntime *ui);
-UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int lines, int cols, int y, int x);
-UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines, int cols, int y, int x, char *title);
-int ui_surface_addwin(UiSurface *s, int w, int p, int lines, int cols, int y, int x);
-int ui_surface_addpad(UiSurface *s, int w, int view_win, int lines, int cols);
+UiSurface *ui_surface_new(UiRuntime *ui, uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x);
+UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *title);
+int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x);
+int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols);
 void ui_surface_destroy(UiSurface *s);
-int ui_surface_move(UiSurface *s, int w, int y, int x);
-int ui_surface_resize(UiSurface *s, int w, int lines, int cols);
-int ui_surface_clear(UiSurface *s, int w);
-int ui_surface_erase(UiSurface *s, int w);
-int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style);
-int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style);
-int ui_draw_vline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
-int ui_draw_border(UiSurface *s, int w, UiBorderKind kind, const UiStyle *style);
-int ui_draw_box_title(UiSurface *s, int w, int x, const UiStyle *style, const char *title);
-int ui_surface_show(UiSurface *s, int w);
-int ui_surface_hide(UiSurface *s, int w);
-int ui_get_event(UiSurface *s, int w, UiEvent *ev, int timeout_ms);
-int ui_get_event_multi(UiSurface *s, int w, UiEvent *ev, int timeout_ms);
-int ui_get_event_no_mouse(UiSurface *surface, int w, UiEvent *ev);
-int ui_cursor_move(UiSurface *s, int w, int y, int x);
+int ui_surface_move(UiSurface *s, uint w, uint y, uint x);
+int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols);
+int ui_surface_clear(UiSurface *s, uint w);
+int ui_surface_erase(UiSurface *s, uint w);
+int ui_surface_set_base(UiSurface *s, uint w, const UiStyle *style);
+int ui_surface_set_style(UiSurface *s, uint w, const UiStyle *style);
+int ui_draw_vline(UiSurface *s, uint w, uint y, uint x, uint len, const UiStyle *style);
+int ui_draw_border(UiSurface *s, uint w, UiBorderKind kind, const UiStyle *style);
+int ui_draw_box_title(UiSurface *s, uint w, uint x, const UiStyle *style, const char *title);
+int ui_surface_show(UiSurface *s, uint w);
+int ui_surface_hide(UiSurface *s, uint w);
+int ui_get_event(UiSurface *s, uint w, UiEvent *ev, uint timeout_ms);
+int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, uint timeout_ms);
+int ui_get_event_no_mouse(UiSurface *surface, uint w, UiEvent *ev);
+int ui_cursor_move(UiSurface *s, uint w, uint y, uint x);
 int ui_cursor_enable(UiRuntime *ui, bool visible);
-void ui_curs_set(int visibility);
-int ui_bkgd(UiSurface *s, int w, const UiStyle *style);
-int ui_bkgdset(UiSurface *s, int w, const UiStyle *style);
+void ui_curs_set(bool visibility);
+int ui_bkgd(UiSurface *s, uint w, const UiStyle *style);
+int ui_bkgdset(UiSurface *s, uint w, const UiStyle *style);
 void ui_qiflush();
-void ui_wscrl(UiSurface *s, int w, int n);
-int ui_wclrtoeol(UiSurface *s, int w);
-int ui_wclrtobot(UiSurface *s, int w);
-void ui_getyx(UiSurface *s, int w, int *lines, int *cols);
-void ui_getmaxyx(UiSurface *s, int w, int *lines, int *cols);
-int ui_getmaxx(UiSurface *s, int w);
-int ui_getmaxy(UiSurface *s, int w);
-int ui_draw_ch(UiSurface *s, int w, int y, int x, const UiStyle *style, const char c);
-int ui_draw_text(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text);
-int ui_draw_text_n(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text, size_t n);
-int ui_draw_text_fill(UiSurface *s, int w, int y, int x, const UiStyle *style, const char *text, size_t n);
-int ui_waddstr(UiSurface *s, int w, const char *text);
-int ui_mvaddstr(UiSurface *s, int w, int y, int x, const char *text);
-int ui_mvwaddch(UiSurface *s, int w, int y, int x, const char c);
-int ui_mvwaddstr(UiSurface *s, int w, int y, int x, const char *text);
-int ui_mvwadd_style(UiSurface *s, int w, int y, int x, const UiStyle *style);
-int ui_waddwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr);
-int ui_mvwaddwstr(UiSurface *s, int w, int y, int x, const wchar_t *wstr);
-int ui_waddnwstr(UiSurface *s, int w, const UiStyle *style, const wchar_t *wstr, int n);
-int ui_mvwaddnwstr(UiSurface *s, int w, int y, int x, const UiStyle *style, const wchar_t *wstr, int n);
-int ui_mvwaddstr_fill(UiSurface *s, int w, int y, int x, char *str, int n);
-int ui_mvwadd_mbstr(UiSurface *s, int w, int y, int x, const char *text);
-int ui_mvwadd_mbnstr(UiSurface *s, int w, int y, int x, const char *text, int n);
-int ui_mvwadd_mbnstr_fill(UiSurface *s, int w, int y, int x, const char *text, int n);
-void ui_setscrreg(UiSurface *s, int w, int top, int bottom);
-void ui_scrollok(UiSurface *s, int w, bool enable);
-void ui_keypad(UiSurface *s, int w, bool enable);
-void ui_idlok(UiSurface *s, int w, bool enable);
-void ui_idcok(UiSurface *s, int w, bool enable);
+void ui_wscrl(UiSurface *s, uint w, uint n);
+int ui_wclrtoeol(UiSurface *s, uint w);
+int ui_wclrtobot(UiSurface *s, uint w);
+void ui_getyx(UiSurface *s, uint w, uint *lines, uint *cols);
+void ui_getmaxyx(UiSurface *s, uint w, uint *lines, uint *cols);
+uint ui_getmaxx(UiSurface *s, uint w);
+uint ui_getmaxy(UiSurface *s, uint w);
+int ui_draw_ch(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const char c);
+int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const char *text);
+int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const char *text, size_t n);
+int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const char *text, size_t n);
+int ui_waddstr(UiSurface *s, uint w, const char *text);
+int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
+int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c);
+int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
+int ui_mvwadd_style(UiSurface *s, uint w, uint y, uint x, const UiStyle *style);
+int ui_waddwstr(UiSurface *s, uint w, const UiStyle *style, const wchar_t *wstr);
+int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr);
+int ui_waddnwstr(UiSurface *s, uint w, const UiStyle *style, const wchar_t *wstr, uint n);
+int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const wchar_t *wstr, uint n);
+int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, char *str, uint n);
+int ui_mvwadd_mbstr(UiSurface *s, uint w, uint y, uint x, const char *text);
+int ui_mvwadd_mbnstr(UiSurface *s, uint w, uint y, uint x, const char *text, uint n);
+int ui_mvwadd_mbnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, uint n);
+void ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom);
+void ui_scrollok(UiSurface *s, uint w, bool enable);
+void ui_keypad(UiSurface *s, uint w, bool enable);
+void ui_idlok(UiSurface *s, uint w, bool enable);
+void ui_idcok(UiSurface *s, uint w, bool enable);
 void ui_update_panels();
 void ui_doupdate();
-void ui_wnoutrefresh(UiSurface *s, int w);
-int ui_draw_hline(UiSurface *s, int w, int y, int x, int len, const UiStyle *style);
+void ui_wnoutrefresh(UiSurface *s, uint w);
+int ui_draw_hline(UiSurface *s, uint w, uint y, uint x, uint len, const UiStyle *style);
 void ui_erase();
 int ui_mousemask();
 #ifdef NOTCURSES_UI
@@ -264,7 +265,7 @@ int ui_extended_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b
 int ui_init_extended_pair(uint16_t pair, uint16_t fg, uint16_t bg);
 int ui_extended_pair_content(uint16_t pair, uint16_t *fg, uint16_t *bg);
 int ui_channels_from_pair(uint16_t pair, union UiChannels *ui_channels);
-int ui_add_pair(uint16_t fg, uint16_t bg);
+uint ui_add_pair(uint16_t fg, uint16_t bg);
 int ui_chg_pair(uint16_t pair, uint16_t fg, uint16_t bg);
 int ui_get_pair(uint16_t pair, uint16_t *fg, uint16_t *bg);
 int ui_add_color(uint16_t r, uint16_t g, uint16_t b);
@@ -273,60 +274,59 @@ int ui_add_color_hex(char *s);
 int ui_chg_color_rgb(uint16_t color, RGB *rgb);
 int ui_chg_color_hex(uint16_t color, char *s);
 int ui_get_color(uint16_t color, RGB *rgb);
-int ui_wadd_cell(UiSurface *s, int w, const nccell *uic);
-int ui_mvwadd_cell(UiSurface *s, int w, int y, int x, const nccell *uic);
-int ui_wadd_cellstr(UiSurface *s, int w, nccell *uic);
-int ui_mvwadd_cellstr(UiSurface *s, int w, int y, int x, nccell *uic);
-int ui_wadd_cellnstr(UiSurface *s, int w, nccell *uic, int n);
-int ui_mvwadd_cellnstr(UiSurface *s, int w, int y, int x, nccell *uic, int n);
-int ui_wadd_wch(UiSurface *s, int w, const nccell *uic);
-int ui_mvwadd_wch(UiSurface *s, int w, int y, int x, const UiCell *uic);
-int ui_wadd_wchstr(UiSurface *s, int w, UiCell *uic);
-int ui_mvwadd_wchstr(UiSurface *s, int w, int y, int x, UiCell *uic);
-int ui_wadd_wchnstr(UiSurface *s, int w, UiCell *uic, int n);
-int ui_mvwadd_wchnstr(UiSurface *s, int w, int y, int x, UiCell *uic, int n);
+int ui_wadd_cell(UiSurface *s, uint w, const nccell *uic);
+int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, const nccell *uic);
+int ui_wadd_cellstr(UiSurface *s, uint w, nccell *uic);
+int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, nccell *uic);
+int ui_wadd_cellnstr(UiSurface *s, uint w, nccell *uic, uint n);
+int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, nccell *uic, uint n);
+int ui_wadd_wch(UiSurface *s, uint w, const nccell *uic);
+int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *uic);
+int ui_wadd_wchstr(UiSurface *s, uint w, UiCell *uic);
+int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic);
+int ui_wadd_wchnstr(UiSurface *s, uint w, UiCell *uic, uint n);
+int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic, uint n);
 uint64_t ui_channels_from_style(const UiStyle *style);
 uint32_t ui_stylemask_from_style(const UiStyle *style);
 int ui_setnccell(nccell *uic, const uint32_t gcluster, const uint32_t stylemask, const uint64_t channels);
-int get_event_multi(UiSurface *s, int w, UiEvent *ev, int timeout_ms);
-void ui_get_screen_size(UiRuntime *ui, unsigned int *lines, unsigned int *cols);
+int get_event_multi(UiSurface *s, uint w, UiEvent *ev, uint timeout_ms);
+void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols);
 union UiChannels ui_channels_from_hex(const char *fg, const char *bg);
-UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const uint32_t gcluster);
 extern UiSurface *stdsfc;
-extern unsigned int LINES, COLS;
+extern uint LINES, COLS;
 typedef struct {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 } STDRGB;
 #else
-int ui_init_extended_color(int color, int r, int g, int b);
-int ui_extended_color_content(int color, int *r, int *g, int *b);
-int ui_init_extended_pair(int pair, int fg, int bg);
-int ui_extended_pair_content(int pair, int *fg, int *bg);
-int ui_channels_from_pair(int pair, union UiChannels *ui_channels);
-int ui_add_pair(int fg, int bg);
-int ui_chg_pair(int pair, int fg, int bg);
-int ui_get_pair(int pair, int *fg, int *bg);
-int ui_add_color(int r, int g, int b);
+int ui_init_extended_color(uint color, uint r, uint g, uint b);
+int ui_extended_color_content(uint color, uint *r, uint *g, uint *b);
+int ui_init_extended_pair(uint pair, uint fg, uint bg);
+int ui_extended_pair_content(uint pair, uint *fg, uint *bg);
+int ui_channels_from_pair(uint pair, union UiChannels *ui_channels);
+int ui_add_pair(uint fg, uint bg);
+int ui_chg_pair(uint pair, uint fg, uint bg);
+int ui_get_pair(uint pair, uint *fg, uint *bg);
+int ui_add_color(uint r, uint g, uint b);
 int ui_add_color_rgb(RGB *rgb);
 int ui_add_color_hex(char *s);
-int ui_chg_color_rgb(int color, RGB *rgb);
-int ui_chg_color_hex(int color, char *s);
-int ui_get_color(int color, RGB *rgb);
-void ui_get_screen_size(UiRuntime *ui, int *lines, int *cols);
+int ui_chg_color_rgb(uint color, RGB *rgb);
+int ui_chg_color_hex(uint color, char *s);
+int ui_get_color(uint color, RGB *rgb);
+void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols);
 typedef struct {
-    int r;
-    int g;
-    int b;
+    uint r;
+    uint g;
+    uint b;
 } STDRGB;
 #endif
 void ui_endwin();
 RGB ui_hex_to_rgb(char *s);
-int ui_wmove(UiSurface *s, int w, int y, int x);
-int ui_werase(UiSurface *s, int w);
+int ui_wmove(UiSurface *s, uint w, uint y, uint x);
+int ui_werase(UiSurface *s, uint w);
 void ui_restore_wins();
-int ui_top_panel(UiSurface *s, int w);
+int ui_top_panel(UiSurface *s, uint w);
 
 #ifdef UAL_UI
 cchar_t style_to_cc(UiStyle *style);
@@ -352,6 +352,6 @@ extern UiRuntime *ui_runtime;
 extern UiSurface *ui_surface[MAXWIN];
 
 extern STDRGB std_color[];
-extern int ui_color_cnt;
-extern int ui_pair_cnt;
+extern uint ui_color_cnt;
+extern uint ui_pair_cnt;
 #endif

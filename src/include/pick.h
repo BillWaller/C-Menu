@@ -23,15 +23,15 @@ typedef struct Init Init;
 /** @struct Pick
    @brief Pick data structure */
 typedef struct {
-    int fg_clr_idx; /**< foreground color */
-    int bg_clr_idx; /**< background color */
-    int bo_clr_idx; /**< box color */
-    int lines;      /**< window lines */
-    int width;      /**< window width (columns)*/
-    int begy;       /**< begin y screen position of window top */
-    int begx;       /**< begin x screen position of windor left */
-    int y;          /**< current y (line)*/
-    int x;          /**< current x (column) */
+    uint fg_clr_idx; /**< foreground color */
+    uint bg_clr_idx; /**< background color */
+    uint bo_clr_idx; /**< box color */
+    uint lines;      /**< window lines */
+    uint width;      /**< window width (columns)*/
+    uint begy;       /**< begin y screen position of window top */
+    uint begx;       /**< begin x screen position of windor left */
+    uint y;          /**< current y (line)*/
+    uint x;          /**< current x (column) */
 #ifdef ASDF
     WINDOW *win;  /**< pointer to window */
     WINDOW *win2; /**< pointer to 2nd window */
@@ -69,29 +69,29 @@ typedef struct {
     bool f_cmd;                  /**< flag: command verified */
     char in_buf[BUFSIZ];         /**< input buffer */
     char **m_object;             /**< master object table (as read from input) */
-    int select_idx;              /**< index of current selected object */
-    int select_cnt;              /**< count of selected objects */
-    int select_max;              /**< maximum number of selected objects */
-    int m_cnt;
-    int d_cnt;
-    int m_idx;       /**< count of objects */
-    int d_idx;       /**< index of current object */
+    uint select_idx;             /**< index of current selected object */
+    uint select_cnt;             /**< count of selected objects */
+    uint select_max;             /**< maximum number of selected objects */
+    uint m_cnt;
+    uint d_cnt;
+    uint m_idx;      /**< count of objects */
+    uint d_idx;      /**< index of current object */
     char **d_object; /**< derived object table */
-    int y_offset;
-    int pg_line;        /**< current line on page */
-    int pg_lines;       /**< lines per page */
-    int pg_objs;        /**< objects per page */
-    int tab_idx;        /**< index of current tab */
-    int tbl_pages;      /**< total number of table pages */
-    int tbl_page;       /**< current table page */
-    int tbl_line;       /**< current line on table page */
-    int tbl_lines;      /**< lines per table page */
-    int tbl_cols;       /**< columns per table page */
-    int tbl_col;        /**< current column on table page */
-    int tbl_col_width;  /**< column width on table page */
-    int separator_line; /**< separator between object selector and line editor
-                         */
-    Chyron *chyron;     /**< chyron data structure */
+    uint y_offset;
+    uint pg_line;        /**< current line on page */
+    uint pg_lines;       /**< lines per page */
+    uint pg_objs;        /**< objects per page */
+    uint tab_idx;        /**< index of current tab */
+    uint tbl_pages;      /**< total number of table pages */
+    uint tbl_page;       /**< current table page */
+    uint tbl_line;       /**< current line on table page */
+    uint tbl_lines;      /**< lines per table page */
+    uint tbl_cols;       /**< columns per table page */
+    uint tbl_col;        /**< current column on table page */
+    uint tbl_col_width;  /**< column width on table page */
+    uint separator_line; /**< separator between object selector and line editor
+                          */
+    Chyron *chyron;      /**< chyron data structure */
 } Pick;
 // extern Pick *pick; /**< pointer to Pick data structure */
 

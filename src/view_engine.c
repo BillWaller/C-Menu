@@ -125,8 +125,8 @@ void go_to_position(View *, off_t);
 bool search(View *, int, char *);
 void next_page(View *);
 void prev_page(View *);
-void scroll_down(View *, int);
-void scroll_up(View *, int);
+void scroll_down(View *, uint);
+void scroll_up(View *, uint);
 void get_line(View *, off_t);
 int fmt_line(View *);
 void log_split_lines(View *);
@@ -137,7 +137,7 @@ void display_line(View *);
 void display_line_eod(View *);
 void display_split_line(View *);
 void view_display_page(View *);
-void parse_ansi_str(char *, attr_t *, int *);
+void parse_ansi_str(char *, attr_t *, uint *);
 void view_display_help(Init *);
 int display_prompt(View *, char *);
 int write_view_buffer(Init *, bool);
@@ -217,17 +217,18 @@ int view_cmd_processor(Init *init) {
     char tmp_str[MAXLEN];
     int tfd;
     int c;
-    int shift = 0;
+    uint shift = 0;
     int search_cmd = 0;
     int prev_search_cmd = 0;
-    int rc, i;
+    int rc;
+    uint i;
     bool ans = true;
     ssize_t bytes_written;
     char *e;
     char shell_cmd_spec[MAXLEN];
     off_t n_cmd = 0L;
     off_t prev_file_pos;
-    int max_pmincol;
+    uint max_pmincol;
     View *view = init->view;
     UiSurface *sfc = view->sfc;
     view->cmd[0] = '\0';
@@ -318,7 +319,7 @@ int view_cmd_processor(Init *init) {
         case KEY_UP:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scroll_up(view, n_cmd);
+            scroll_up(view, (uint)n_cmd);
             break;
         /** 'j', KEY_DOWN, KEY_ENTER - scroll down one line */
         case 'j':
@@ -327,7 +328,7 @@ int view_cmd_processor(Init *init) {
         case KEY_ENTER:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scroll_down(view, n_cmd);
+            scroll_down(view, (uint)n_cmd);
             break;
         /** Ctrl('B'), KEY_PPAGE - Previous Page */
         case KEY_PPAGE:
@@ -932,8 +933,8 @@ int get_cmd_arg(View *view, char *prompt) {
  */
 void build_prompt(View *view) {
     char tmp_str[MAXLEN];
-    int prompt_maxlen = min(MAXLEN - 1, view->cols - 4);
-    int prompt_l = 0;
+    uint prompt_maxlen = min(MAXLEN - 1, view->cols - 4);
+    uint prompt_l = 0;
     // ----------------< File Name >----------------
     if (view->f_is_pipe)
         strnz__cpy(view->prompt_str, "stdin", prompt_maxlen);
@@ -1227,6 +1228,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         }
         if (search_cmd == '?')
             view->cury -= 2;
+        bool f_first_match = true;
         view->first_match_x = -1;
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
@@ -1241,8 +1243,10 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 ui_setcchar(&cc, wstr, attr, cpx, nullptr);
                 view->cmplx_buf[i] = cc;
             }
-            if (view->first_match_x == -1)
+            if (f_first_match) {
+                f_first_match = false;
                 view->first_match_x = pmatch[0].rm_so;
+            }
             view->last_match_x = line_offset + pmatch[0].rm_eo;
             line_offset += pmatch[0].rm_eo;
             if (line_offset >= line_len)
@@ -1421,8 +1425,6 @@ void display_line(View *view) {
             return;
         }
     }
-    if (view->cury < 0)
-        view->cury = 0;
     if (view->cury > view->scroll_lines - 1)
         view->cury = view->scroll_lines - 1;
     if (view->f_ln) {
@@ -1453,12 +1455,10 @@ void display_line(View *view) {
 void display_split_line(View *view) {
     char ln_s[16];
     UiSurface *sfc = view->sfc;
-    if (view->cury < 0)
-        view->cury = 0;
     if (view->cury > view->scroll_lines - 1)
         view->cury = view->scroll_lines - 1;
 
-    for (int i = view->cur.sl_idx; i < view->cur.sl_cnt; i++) {
+    for (uint i = view->cur.sl_idx; i < view->cur.sl_cnt; i++) {
         if (i == 0) {
             if (view->f_ln) {
                 ssnprintf(ln_s, 8, "%7jd", view->ln_no);
@@ -1521,8 +1521,8 @@ void display_line_eod(View *view) {
    the display by n lines. The function will handle scrolling, updating the
    current line number, and refreshing the display accordingly.
  */
-void scroll_down(View *view, int n) {
-    int scroll, scroll_this_line, avail;
+void scroll_down(View *view, uint n) {
+    uint scroll, scroll_this_line, avail;
     off_t ln_no;
     UiSurface *sfc = view->sfc;
     view->f_bod = false;
@@ -1645,7 +1645,7 @@ void scroll_down(View *view, int n) {
    display up by n lines. The function will handle scrolling, updating the
    current line number, and refreshing the display accordingly.
  */
-void scroll_up(View *view, int n) {
+void scroll_up(View *view, uint n) {
     int scroll, avail, scroll_this_line;
     off_t ln_no;
     view->f_eod = false;
@@ -2086,18 +2086,18 @@ int pad_refresh(View *view) {
  */
 int fmt_line(View *view) {
     char ansi_tok[MAXLEN];
-    int i = 0, j = 0, x = 0;
-    int len = 0;
-    int tab_spaces = 0;
-    int char_width;
+    uint i = 0, j = 0, x = 0;
+    uint len = 0;
+    uint tab_spaces = 0;
+    uint char_width;
     attr_t attr = WA_NORMAL;
-    int cpx = cp_nt;
+    uint cpx = cp_nt;
     UiCell cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
     char *in_str = view->line_in_s;
-    int sl_cols = 0;
-    int sl_cells = 0;
-    int word_cells = 0;
+    uint sl_cols = 0;
+    uint sl_cells = 0;
+    uint word_cells = 0;
     UiCell *cmplx_buf = view->cmplx_buf;
     view->cur.sl_idx = 0;
     view->cur.sl_cnt = 0;
@@ -2110,8 +2110,8 @@ int fmt_line(View *view) {
     rtrim(view->line_out_s);
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
-    int word_cols = 0;
-    int sl_maxlen = PAD_COLS - 1;
+    uint word_cols = 0;
+    uint sl_maxlen = PAD_COLS - 1;
     if (view->f_eod)
         return 0;
     if (view->wrap)
@@ -2180,7 +2180,7 @@ int fmt_line(View *view) {
                     wstr[0] = L' ';
                     wstr[1] = L'\0';
                     ui_setcchar(&cc, wstr, attr, cpx, nullptr);
-                    for (int z = 0; z < tab_spaces; z++) {
+                    for (uint z = 0; z < tab_spaces; z++) {
                         view->stripped_line_out[x++] = ' ';
                         cmplx_buf[j++] = cc;
                     }
@@ -2203,7 +2203,7 @@ int fmt_line(View *view) {
                 char_width = wcwidth(wstr[0]);
                 view->stripped_line_out[x++] = in_str[i];
                 if (char_width > 1)
-                    for (int n = 1; n < char_width; n++)
+                    for (uint n = 1; n < char_width; n++)
                         view->stripped_line_out[x++] = ' ';
                 ui_setcchar(&cc, wstr, attr, cpx, nullptr);
                 cmplx_buf[j++] = cc;
@@ -2233,14 +2233,14 @@ int fmt_line(View *view) {
                 }
             }
             while (sl_cols > sl_maxlen - 1) { // split long lines
-                int safe_cells = 0;
-                int safe_cols = 0;
+                uint safe_cells = 0;
+                uint safe_cols = 0;
                 while (safe_cols < sl_maxlen && safe_cells < sl_cells) {
                     wchar_t wstr_chk[CCHARW_MAX];
                     attr_t attr_chk;
                     short cpx_chk;
                     ui_getcchar(&sl_cc[safe_cells], wstr_chk, &attr_chk, &cpx_chk, nullptr);
-                    int cw = wcwidth(wstr_chk[0]);
+                    uint cw = wcwidth(wstr_chk[0]);
                     if (safe_cols + cw > sl_maxlen)
                         break;
                     safe_cols += cw;
@@ -2306,9 +2306,9 @@ void log_stripped_line_out(View *view) {
 
     write_cmenu_log("");
     write_cmenu_log("stripped_line_out");
-    for (int k = 0; k < view->cur.sl_cnt; k++) {
+    for (uint k = 0; k < view->cur.sl_cnt; k++) {
         memset(tmp_str, 0, sizeof(tmp_str));
-        for (int c = 0; c < view->cur.sl_cols[k]; c++)
+        for (uint c = 0; c < view->cur.sl_cols[k]; c++)
             tmp_str[c] = view->cur.sl_s[k][c];
         write_cmenu_log(tmp_str);
     }
@@ -2328,9 +2328,9 @@ void log_cc_buf(View *view) {
 
     write_cmenu_log("");
     write_cmenu_log("cc_buf");
-    for (int k = 0; k < view->cur.sl_cnt; k++) {
+    for (uint k = 0; k < view->cur.sl_cnt; k++) {
         memset(tmp_str, 0, sizeof(tmp_str));
-        for (int c = 0; c < view->cur.sl_cells[k]; c++) {
+        for (uint c = 0; c < view->cur.sl_cells[k]; c++) {
             wchar_t wstr[CCHARW_MAX];
             attr_t attr;
             short cpx;
@@ -2367,7 +2367,7 @@ void log_strnz(char *str, int len) {
 void log_split_lines(View *view) {
     char tmp_str[MAXLEN];
 
-    for (int k = 0; k < view->cur.sl_cnt; k++) {
+    for (uint k = 0; k < view->cur.sl_cnt; k++) {
         if (view->cur.sl_cols[k] > 0) {
             memset(tmp_str, 0, sizeof(tmp_str));
             char *s = view->cur.sl_s[k];
@@ -2433,15 +2433,15 @@ void log_split_lines(View *view) {
 
     @endverbatim
 */
-void parse_ansi_str(char *ansi_str, attr_t *attr, int *cpx) {
+void parse_ansi_str(char *ansi_str, attr_t *attr, uint *cpx) {
     char *tok;
     char t0, t1;
     char tstr[3];
-    int len, x_idx;
-    int fg, bg;
-    int fg_clr, bg_clr;
+    uint len, x_idx;
+    uint fg, bg;
+    uint fg_clr, bg_clr;
     char *ansi_p = ansi_str + 2;
-    extended_pair_content(*cpx, &fg_clr, &bg_clr);
+    ui_extended_pair_content(*cpx, &fg_clr, &bg_clr);
     fg = fg_clr;
     bg = bg_clr;
     RGB rgb;

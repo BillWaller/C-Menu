@@ -28,11 +28,7 @@ int popup_ckeys() {
     char action[MAXLEN];
     char tmp[MAXLEN];
     char *s;
-#ifdef UAL_UI
-    int maxy, maxx;
-#else
-    unsigned int maxy, maxx;
-#endif
+    uint maxy, maxx;
     ui_get_screen_size(ui_runtime, &maxy, &maxx);
     int begy = (maxy - lines) / 3;
     int begx = (maxx - cols) / 2;

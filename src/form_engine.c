@@ -227,7 +227,7 @@ int form_post(Init *init) {
     Form *form = init->form;
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
-    int maxy, maxx;
+    uint maxy, maxx;
     ui_cursor_move(sfc, WIN, form->lines - 1, 0);
     ui_wclrtoeol(sfc, WIN);
     // 1 F1 Help
@@ -332,7 +332,7 @@ int form_process(Init *init) {
     UiEvent event;
     Form *form = init->form;
     ui_cursor_move(sfc, WIN, form->lines - 1, 0);
-    int maxy, maxx;
+    uint maxy, maxx;
     //
     // 1 F1 Help
     // 2 F2 Process
@@ -589,8 +589,8 @@ unsigned int display_form(Init *init) {
    length, and renders them on the form window. It also updates the chyron
    with available commands for user interaction. */
 void form_display_fields(Form *form) {
-    int y, x;
-    int pos = 0;
+    uint y, x;
+    uint pos = 0;
     for (form->fidx = 0; form->fidx < form->fcnt; form->fidx++) {
         if (form->field[form->fidx]->col + form->field[form->fidx]->len + 2 >
             form->cols)

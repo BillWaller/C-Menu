@@ -247,11 +247,11 @@ int read_pick_input(Init *init) {
  accepts selection, returns count of selected objects. */
 int pick_engine(Init *init) {
     int rc;
-    int maxy, maxx;
-    int whitespace_ratio = 15;
-    int usable_lines;
-    int pick_ratio = 50;
-    int tbl_max_cols, pg_max_objs;
+    uint maxy, maxx;
+    uint whitespace_ratio = 15;
+    uint usable_lines;
+    uint pick_ratio = 50;
+    uint tbl_max_cols, pg_max_objs;
     bool f_processed = false;
 
     Pick *pick = init->pick;
@@ -397,7 +397,7 @@ void pick_std_chyron(Pick *pick) {
    necessary and marks the object as not selected. Increments the object index
    for the next object to be saved. */
 void save_object(Pick *pick, char *s) {
-    int l;
+    uint l;
 
     if (pick->m_idx < OBJ_MAXCNT - 1) {
         l = strlen(s);
@@ -422,12 +422,8 @@ void save_object(Pick *pick, char *s) {
    window. */
 void display_pick_page(Pick *pick) {
     UiSurface *sfc = pick->surface;
-    int col;
+    uint col;
     ui_bkgdset(sfc, WIN, &style_nt);
-    // for (pick->y = 0; pick->y < pick->lines; pick->y++) {
-    //     ui_cursor_move(sfc, WIN, pick->y, 0);
-    //     ui_wclrtoeol(sfc, WIN);
-    // }
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols;
     for (col = 0; col < pick->tbl_cols; col++) {
         pick->x = col * (pick->tbl_col_width + 1) + 1;
@@ -653,14 +649,14 @@ int output_objects(Pick *pick) {
    within the pick interface */
 int exec_objects(Init *init) {
     int rc = -1;
-    int eargc;
+    uint eargc;
     char *eargv[MAXARGS];
     char tmp_str[MAXLEN] = {'\0'};
     char title[MAXLEN];
     char sav_arg[MAXLEN];
     char *out_s;
     int eargx = 0;
-    int i = 0;
+    uint i = 0;
     pid_t pid = 0;
     bool f_append_objects = false;
 
@@ -878,23 +874,23 @@ void display_pick_help(Init *init) {
 int picker(Init *init, char *field) {
     bool f_insert = false; /* Flag to indicate if insert mode is active */
     Pick *pick = init->pick;
-    int col = 0;
-    int flen = pick->width - 4;
+    uint col = 0;
+    uint flen = pick->width - 4;
     char *accept_s = field; /* pointer to start of field buffer */
     char *ptr = field;      /* pointer to current cursor position in field buffer */
     char *s = field;        /* source pointer for editing operations */
     char *d = field;        /* destination pointer for editing operations */
     char *fend = field + flen;
     char *str_end = field + strlen(field); /* End of field content */
-    int pos = 0;
-    int prev_pos = 0;
+    uint pos = 0;
+    uint prev_pos = 0;
     char prev_field[MAXLEN];
     char *prev_ptr = prev_field;
     char view_file[MAXLEN] = {'\0'};
     pick = init->pick;
     UiSurface *sfc = pick->surface;
     UiEvent event;
-    int maxy, maxx;
+    uint maxy, maxx;
     ptr = accept_s;
     ptr = str_end;
     char tmp_str[MAXLEN];
@@ -1027,7 +1023,7 @@ int picker(Init *init, char *field) {
                 ui_mvwaddstr_fill(sfc, WIN, pick->y, pick->x,
                                   pick->d_object[pick->d_idx],
                                   pick->tbl_col_width - 1);
-                int display_tbl_page = pick->tbl_page;
+                uint display_tbl_page = pick->tbl_page;
                 pick->d_idx = pick->d_cnt - 1;
                 pick->tbl_page = pick->d_idx / (pick->lines * pick->tbl_cols);
                 pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
@@ -1168,8 +1164,6 @@ int picker(Init *init, char *field) {
                  * key activation */
 
             case KEY_MOUSE:
-                if (event.y == -1 || event.x == -1)
-                    continue;
                 if (event.y < pick->y_offset) {
                     in_key = 0;
                     continue;
@@ -1177,7 +1171,7 @@ int picker(Init *init, char *field) {
                 unreverse_object(pick);
                 pick->y = event.y;
                 pick->tbl_col = (event.x - 1) / (pick->tbl_col_width + 1);
-                if (pick->tbl_col < 0 || pick->tbl_col >= pick->tbl_cols)
+                if (pick->tbl_col >= pick->tbl_cols)
                     continue;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->y;
                 in_key = KEY_F(13); /** toggle selection on mouse click */
