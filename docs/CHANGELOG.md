@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-16T21:27:36-05:00* - FEATURE: Uniform Abstraction Layer For UI Backends. In order to mesh seamlessly with the new Notcurses backend, it has been necessary to standardize the way that the UI backend is accessed. This has been done by creating a uniform abstraction layer that defines a set of functions and data structures that uniformly represent the capabilities of the UI backends. Fortunately, most UI backends do the same kinds of things, but the devil is in the details. The programmers who write the backend UI code are absolute geniuses and what seems obvious to them may not be so obvious to everyone else. This abstraction layer is designed to provide a jump-start for those who want to build sophisticated high-level applications immediately, without spending decades to learn the intricacies of low level UI programming. 
+
+*2026-08-16T14:52:37-05:00* - Update CHANGELOG.md 
+
 *2026-08-16T14:42:42-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for UI Backends. In this commit, we are standardizing data types and function signatures to allow C-Menu to communicate seamlessly with different UI backends. In doing so, we have held casting and compiler directives to a minimum, ensuring that the code remains clean and maintainable. 
 
 *2026-08-16T09:35:03-05:00* - Update CHANGELOG.md 
