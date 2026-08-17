@@ -46,7 +46,7 @@ int form_process(Init *);
 int form_post(Init *);
 int init_form(Init *, int, char **, int, int);
 int form_engine(Init *);
-int form_yx_to_fidx(Form *, int, int);
+uint form_yx_to_fidx(Form *, uint, uint);
 void mk_filler(char *, int);
 
 /** @brief Initialize form data structure and parse description file
@@ -320,7 +320,8 @@ int form_post(Init *init) {
         reads the output, and updates the Form fields.
             */
 int form_process(Init *init) {
-    int i, c, rc;
+    uint i, c;
+    int rc;
     char earg_str[MAXLEN + 1];
     char *eargv[MAXARGS];
     int eargc;
@@ -469,7 +470,7 @@ int form_process(Init *init) {
    until the user selects an exit action (e.g., accept or cancel). */
 int field_navigator(Form *form) {
 
-    if (form->fidx < 0 || form->fidx >= form->fcnt)
+    if (form->fidx >= form->fcnt)
         form->fidx = 0;
     while (1) {
         int cmd_key = field_editor(form);
@@ -512,8 +513,8 @@ int field_navigator(Form *form) {
         }
     }
 }
-int form_yx_to_fidx(Form *form, int y, int x) {
-    for (int i = 0; i < form->fcnt; i++) {
+uint form_yx_to_fidx(Form *form, uint y, uint x) {
+    for (uint i = 0; i < form->fcnt; i++) {
         if (y == form->field[i]->line && x >= form->field[i]->col &&
             x < form->field[i]->col + form->field[i]->len) {
             return i;
@@ -529,7 +530,7 @@ int form_yx_to_fidx(Form *form, int y, int x) {
     @return 0 on success, or a non-zero value if an error occurs while
     creating the form window or rendering the form elements. */
 unsigned int display_form(Init *init) {
-    int n, flin, fcol;
+    uint n, flin, fcol;
     char tmp_str[MAXLEN];
 
     Form *form = init->form;
@@ -644,8 +645,8 @@ int form_parse_desc(Form *form) {
     FILE *form_desc_fp;
     char *token;
     char *s;
-    int cols = 0;
-    int i, l;
+    uint cols = 0;
+    uint i, l;
     int in_line_num = 0;
     char in_buf[BUFSIZ];
     char tmp_buf[BUFSIZ];
@@ -736,8 +737,7 @@ int form_parse_desc(Form *form) {
                 return 1;
             }
             form->field[form->fidx]->line = atoi(token);
-            if (form->field[form->fidx]->line < 0 ||
-                form->field[form->fidx]->line >= FIELD_MAXCNT) {
+            if (form->field[form->fidx]->line >= FIELD_MAXCNT) {
                 form_desc_error(form, in_line_num, in_buf,
                                 "FORM: invalid line number");
                 return 1;
@@ -748,8 +748,7 @@ int form_parse_desc(Form *form) {
                 return 1;
             }
             form->field[form->fidx]->col = atoi(token);
-            if (form->field[form->fidx]->col < 0 ||
-                form->field[form->fidx]->col >= FIELD_MAXLEN) {
+            if (form->field[form->fidx]->col >= FIELD_MAXLEN) {
                 form_desc_error(form, in_line_num, in_buf,
                                 "FORM: invalid column number");
                 break;
@@ -760,8 +759,7 @@ int form_parse_desc(Form *form) {
                 break;
             }
             form->field[form->fidx]->len = atoi(token);
-            if (form->field[form->fidx]->len < 0 ||
-                form->field[form->fidx]->len > FIELD_MAXLEN) {
+            if (form->field[form->fidx]->len > FIELD_MAXLEN) {
                 form_desc_error(form, in_line_num, in_buf, "FORM: invalid length");
                 break;
             }
@@ -770,7 +768,7 @@ int form_parse_desc(Form *form) {
                                 "FORM: validation code delimiter");
                 break;
             }
-            form->field[form->fidx]->ff = -1;
+            form->field[form->fidx]->ff = 0;
             for (i = 0; i < FF_INVALID; i++) {
                 str_to_lower(token);
                 str_to_lower(ff_tbl[i]);
@@ -779,8 +777,7 @@ int form_parse_desc(Form *form) {
                     break;
                 }
             }
-            if (form->field[form->fidx]->ff < 0 ||
-                form->field[form->fidx]->ff >= FF_INVALID) {
+            if (form->field[form->fidx]->ff >= FF_INVALID) {
                 form_desc_error(form, in_line_num, in_buf,
                                 "FORM: invalid format code");
                 break;
@@ -803,8 +800,7 @@ int form_parse_desc(Form *form) {
                 break;
             }
             form->text[form->didx]->line = atoi(token);
-            if (form->text[form->didx]->line < 0 ||
-                form->text[form->didx]->line >= FIELD_MAXCNT) {
+            if (form->text[form->didx]->line >= FIELD_MAXCNT) {
                 form_desc_error(form, in_line_num, in_buf,
                                 "FORM: invalid line number");
                 break;
@@ -815,8 +811,7 @@ int form_parse_desc(Form *form) {
                 break;
             }
             form->text[form->didx]->col = atoi(token);
-            if (form->text[form->didx]->col < 0 ||
-                form->text[form->didx]->col >= FIELD_MAXLEN) {
+            if (form->text[form->didx]->col >= FIELD_MAXLEN) {
                 form_desc_error(form, in_line_num, in_buf,
                                 "FORM: invalid column number");
                 break;
@@ -827,8 +822,7 @@ int form_parse_desc(Form *form) {
             }
             strnz__cpy(form->text[form->didx]->str, token, MAXLEN - 1);
             form->text[form->didx]->len = strlen(form->text[form->didx]->str);
-            if (form->text[form->didx]->len < 0 ||
-                form->text[form->didx]->len > FIELD_MAXLEN) {
+            if (form->text[form->didx]->len > FIELD_MAXLEN) {
                 form_desc_error(form, in_line_num, in_buf, "FORM: invalid length");
                 break;
             }
@@ -912,7 +906,7 @@ int form_read_data(Form *form) {
     constructing or executing the command. */
 int form_exec_cmd(Form *form) {
     char earg_str[MAXLEN + 1];
-    int i;
+    uint i;
     strnz__cpy(earg_str, form->receiver_cmd, MAXLEN - 1);
     for (i = 0; i < form->fcnt; i++) {
         strnz__cat(earg_str, " ", MAXLEN - 1);
@@ -939,14 +933,14 @@ int form_exec_cmd(Form *form) {
    freed. */
 int form_exec_receiver(Init *init) {
     int rc = -1;
-    int eargc;
+    uint eargc;
     char *eargv[MAXARGS];
     char tmp_str[MAXLEN] = {'\0'};
     char title[MAXLEN];
     char sav_arg[MAXLEN];
     char *out_s;
-    int eargx = 0;
-    int i = 0;
+    uint eargx = 0;
+    uint i = 0;
     pid_t pid = 0;
     bool f_append_values = false;
 
@@ -1050,7 +1044,7 @@ int form_exec_receiver(Init *init) {
         }
         return 0;
     } else {
-        endwin();
+        ui_endwin();
         if ((pid = fork()) == -1) {
             /** fork failed, free eargv and return error */
             i = 0;
@@ -1082,7 +1076,6 @@ int form_exec_receiver(Init *init) {
         }
     }
     waitpid(pid, nullptr, 0);
-    reset_prog_mode();
     destroy_argv(eargc, eargv);
     sig_prog_mode();
     ui_restore_wins();
@@ -1097,7 +1090,7 @@ int form_exec_receiver(Init *init) {
     @return 0 on success, or a non-zero value if an error occurs while
    writing the data or if the specified output destination is invalid. */
 int form_write(Form *form) {
-    int n;
+    uint n;
     if (form->out_spec[0] == '\0' || strcmp(form->out_spec, "-") == 0 ||
         strcmp(form->out_spec, "/dev/stdout") == 0) {
         strnz__cpy(form->out_spec, "/dev/stdout", MAXLEN - 1);

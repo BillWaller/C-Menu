@@ -416,6 +416,24 @@ int ui_cursor_enable(UiRuntime *ui, bool visible) {
 }
 
 /* -------------------------------------------------------------------------
+   Mice
+   ------------------------------------------------------------------------- */
+void ui_mousemask(int mask) {
+    if (!ui_runtime)
+        return;
+    if (mask)
+        mousemask(mask, nullptr);
+    else
+        mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+}
+void ui_mice_enable(int mask) {
+    if (mask)
+        mousemask(mask, nullptr);
+    else
+        mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+}
+
+/* -------------------------------------------------------------------------
    Surface management
    ------------------------------------------------------------------------- */
 

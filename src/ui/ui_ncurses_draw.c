@@ -30,7 +30,7 @@ int ui_surface_set_style(UiSurface *s, uint w, const UiStyle *style) {
 }
 
 /** @brief Set the background fill character and style for a surface. */
-int ui_surface_set_base(UiSurface *s, uint w, const UiStyle *style) {
+int ui_surface_set_base(UiSurface *s, uint w, const UiStyle *style, uint32_t fill_ch) {
     if (!s)
         return -1;
     if (style)

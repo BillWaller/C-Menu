@@ -41,7 +41,7 @@ int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int fle
     @return The key pressed to exit the field (KEY_ENTER, KEY_F(9), etc.)
  */
 int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int flen) {
-    bool f_insert = FALSE;
+    bool f_insert = false;
     int in_key = 0;
     char *s, *d;
     char *fstart;
@@ -96,7 +96,7 @@ int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int fle
                 *d++ = *s++;
             *d = '\0';
             str_end = d;
-            f_insert = FALSE;
+            f_insert = false;
             in_key = 0;
             continue;
             /** KEY_HOME moves cursor to start of field */

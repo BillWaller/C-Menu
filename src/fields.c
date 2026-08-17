@@ -16,21 +16,14 @@
 #include <termios.h>
 #include <unistd.h>
 
-bool is_valid_date(int, int, int);
-bool is_valid_time(int, int, int);
-int form_fmt_field(Form *, char *);
-void numeric(char *, char *);
-void right_justify(char *, int);
-void left_justify(char *);
-
-char ff_tbl[][26] = {"string", "decimal_int", "hex_int", "float", "double",
-                     "currency", "yyyymmdd", "hhmmss", "apr", ""};
-
 int field_editor(Form *);
 int form_display_field(Form *);
 int form_display_accept_field(Form *);
-int form_display_field_n(Form *, int);
+int form_display_field_n(Form *, uint);
 int form_validate_field(Form *);
+
+char ff_tbl[][26] = {"string", "decimal_int", "hex_int", "float", "double",
+                     "currency", "yyyymmdd", "hhmmss", "apr", ""};
 
 /** @defgroup field_editor Field Editor
    @brief File mapping, user input, command processing, and display logic
@@ -53,18 +46,18 @@ int form_validate_field(Form *);
      break out of input loop).
  */
 int field_editor(Form *form) {
-    bool f_insert = FALSE;
+    bool f_insert = false;
     int in_key;
     char *s, *d;
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
     uint maxy, maxx;
-    if (form->fidx < 0 || form->fidx >= form->fcnt)
+    if (form->fidx >= form->fcnt)
         form->fcnt = 0;
-    int flin = form->field[form->fidx]->line;
-    int fcol = form->field[form->fidx]->col;
-    int flen = form->field[form->fidx]->len;
-    int ff = form->field[form->fidx]->ff;
+    uint flin = form->field[form->fidx]->line;
+    uint fcol = form->field[form->fidx]->col;
+    uint flen = form->field[form->fidx]->len;
+    uint ff = form->field[form->fidx]->ff;
     char *accept_s = form->field[form->fidx]->accept_s;
     form_fmt_field(form, accept_s);
     click_x = click_y = -1;
@@ -112,7 +105,7 @@ int field_editor(Form *form) {
         case 'H':
         case KEY_F(1):
             return (in_key);
-        case KEY_BTAB:
+        case UI_KEY_BTAB:
         case KEY_UP:
             form_fmt_field(form, accept_s);
             form_display_field(form);
@@ -147,10 +140,10 @@ int field_editor(Form *form) {
             /** KEY_IC toggles insert mode */
         case KEY_IC:
             if (f_insert) {
-                f_insert = FALSE;
+                f_insert = false;
                 set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC, cp_nt_rev);
             } else {
-                f_insert = TRUE;
+                f_insert = true;
                 set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC,
                                   cp_nt_hl_rev);
             }
@@ -167,7 +160,7 @@ int field_editor(Form *form) {
                 *d++ = *s++;
             *d = '\0';
             str_end = d;
-            f_insert = FALSE;
+            f_insert = false;
             in_key = 0;
             continue;
             /** KEY_HOME moves cursor to start of field */
@@ -241,7 +234,6 @@ int field_editor(Form *form) {
             case FF_DECIMAL_INT:
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.')
                     break;
-                beep();
                 in_key = 0;
                 continue;
                 /** FF_HEX_INT accepts digits 0 through 9 and letters A through
@@ -251,7 +243,6 @@ int field_editor(Form *form) {
                     (in_key >= 'A' && in_key <= 'F') ||
                     (in_key >= 'a' && in_key <= 'f'))
                     break;
-                beep();
                 in_key = 0;
                 continue;
                 /** FF_FLOAT accepts digits 0 through 9 and decimal point ('.')
@@ -260,7 +251,6 @@ int field_editor(Form *form) {
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
                     (in_key == '-' && p == fstart))
                     break;
-                beep();
                 in_key = 0;
                 continue;
                 /** FF_DOUBLE accepts digits 0 through 9 and decimal point ('.')
@@ -269,7 +259,6 @@ int field_editor(Form *form) {
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
                     (in_key == '-' && p == fstart))
                     break;
-                beep();
                 in_key = 0;
                 continue;
                 /** FF_CURRENCY accepts digits 0 through 9 and decimal point
@@ -279,28 +268,24 @@ int field_editor(Form *form) {
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.' ||
                     (in_key == '-' && p == fstart))
                     break;
-                beep();
                 in_key = 0;
                 continue;
                 /** FF_YYYYMMDD accepts digits 0 through 9 */
             case FF_YYYYMMDD:
                 if (in_key >= '0' && in_key <= '9')
                     break;
-                beep();
                 in_key = 0;
                 continue;
                 /** FF_HHMMSS accepts digits 0 through 9 */
             case FF_HHMMSS:
                 if (in_key >= '0' && in_key <= '9')
                     break;
-                beep();
                 in_key = 0;
                 continue;
                 /** FF_APR accepts digits 0 through 9 and decimal point ('.') */
             case FF_APR:
                 if ((in_key >= '0' && in_key <= '9') || in_key == '.')
                     break;
-                beep();
                 in_key = 0;
                 continue;
             default:
@@ -359,14 +344,14 @@ int field_editor(Form *form) {
    restores the original fidx value. This allows for displaying a specific field
    without permanently changing the form's current field index.
  */
-int form_display_field_n(Form *form, int n) {
-    int fidx = form->fidx;
+int form_display_field_n(Form *form, uint n) {
+    uint fidx = form->fidx;
     form->fidx = n;
     form_display_field(form);
     form->fidx = fidx;
     return 0;
 }
-void display_field(cchar_t *cmplx_buf, int y, int x) {
+void display_field(UiCell *cmplx_buf, uint y, uint x) {
     UiSurface *sfc = ui_surface[sfc_ptr];
     ui_mvwadd_cellstr(sfc, WIN, y, x, cmplx_buf);
 }
@@ -387,13 +372,13 @@ int form_display_field(Form *form) {
     uint x = form->field[form->fidx]->col;
 
     uint pos = 0;
-    mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, A_NORMAL, cp_nt, &pos,
+    mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     ui_render(ui_runtime);
 
     pos = 0;
-    mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, A_NORMAL, cp_nt, &pos,
+    mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
     ui_render(ui_runtime);
@@ -404,13 +389,13 @@ int form_display_accept_field(Form *form) {
     uint y = form->field[form->fidx]->line;
     uint x = form->field[form->fidx]->col;
     uint pos = 0;
-    mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, A_NORMAL, cp_nt, &pos,
+    mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     ui_render(ui_runtime);
 
     pos = 0;
-    mbstr_to_cellstr(form->field[form->fidx]->accept_cc, form->field[form->fidx]->accept_s, A_NORMAL, cp_nt, &pos,
+    mbstr_to_cellstr(form->field[form->fidx]->accept_cc, form->field[form->fidx]->accept_s, WA_NORMAL, cp_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->accept_cc, form->field[form->fidx]->len);
     ui_render(ui_runtime);
@@ -466,12 +451,12 @@ int form_fmt_field(Form *form, char *s) {
     char *accept_s = form->field[form->fidx]->accept_s;
     char *display_s = form->field[form->fidx]->display_s;
     // char *filler_s = form->field[form->fidx]->filler_s;
-    int ff = form->field[form->fidx]->ff;
-    int fl = form->field[form->fidx]->len;
+    uint ff = form->field[form->fidx]->ff;
+    uint fl = form->field[form->fidx]->len;
 
     char field_s[FIELD_MAXLEN];
-    int decimal_int_n = 0;
-    int hex_int_n = 0;
+    uint decimal_int_n = 0;
+    uint hex_int_n = 0;
     float float_n = 0.0;
     double double_n = 0.0;
     double currency_n = 0.0;
@@ -557,7 +542,7 @@ int form_fmt_field(Form *form, char *s) {
     @details Very underdeveloped - only checks F_NOTBLANK and F_NOMETAS
  */
 int form_validate_field(Form *form) {
-    int n = form->fidx;
+    uint n = form->fidx;
     char *p = form->field[n]->accept_s;
     if (form->field[n]->ff & F_NOTBLANK) {
         char *s = form->field[n]->accept_s;
@@ -596,8 +581,8 @@ void left_justify(char *s) { trim(s); }
    side with spaces. The resulting string is null-terminated and fits within the
    specified field length.
  */
-void right_justify(char *, int);
-void right_justify(char *s, int fl) {
+void right_justify(char *, uint);
+void right_justify(char *s, uint fl) {
     char *p = s;
     char *d = s + fl;
     trim(s);
@@ -623,10 +608,10 @@ void right_justify(char *s, int fl) {
    number of days in February. The function returns true if the date is valid
    and false if it is not.
  */
-bool is_valid_date(int yyyy, int mm, int dd) {
+bool is_valid_date(uint yyyy, uint mm, uint dd) {
     if (yyyy < 1 || mm < 1 || mm > 12 || dd < 1)
         return false;
-    int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    uint days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     if ((yyyy % 4 == 0 && yyyy % 100 != 0) || (yyyy % 400 == 0))
         days_in_month[2] = 29;
     if (dd > days_in_month[mm])
@@ -644,8 +629,8 @@ bool is_valid_date(int yyyy, int mm, int dd) {
    and seconds are between 0 and 59. The function returns true if the time is
    valid and false if it is not.
  */
-bool is_valid_time(int hh, int mm, int ss) {
-    if (hh < 0 || hh > 23 || mm < 0 || mm > 59 || ss < 0 || ss > 59)
+bool is_valid_time(uint hh, uint mm, uint ss) {
+    if (hh > 23 || mm > 59 || ss > 59)
         return false;
     return true;
 }

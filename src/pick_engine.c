@@ -255,7 +255,7 @@ int pick_engine(Init *init) {
     bool f_processed = false;
 
     Pick *pick = init->pick;
-    getmaxyx(stdscr, maxy, maxx);
+    ui_get_screen_size(ui_runtime, &maxy, &maxx);
     // Screen Geometry
     // Calculate pick window size and position based on terminal size and pick
     // parameters
@@ -760,8 +760,8 @@ int exec_objects(Init *init) {
         }
         return 0;
     } else {
-        werase(stdscr);
-        endwin();
+        ui_werase(stdsfc, 0);
+        ui_endwin();
         if ((pid = fork()) == -1) {
             /** fork failed, free eargv and return error */
             i = 0;
@@ -787,7 +787,7 @@ int exec_objects(Init *init) {
     }
     waitpid(pid, nullptr, 0);
     destroy_argv(eargc, eargv);
-    reset_prog_mode();
+    sig_prog_mode();
     ui_restore_wins();
     return rc;
 }
@@ -895,8 +895,11 @@ int picker(Init *init, char *field) {
     ptr = str_end;
     char tmp_str[MAXLEN];
 
-    mousemask(BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED, nullptr);
-
+#ifdef UAL_UI
+    ui_mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION);
+#else
+    ui_mice_enable(0);
+#endif
     f_insert = false;
 
     ui_keypad(sfc, WIN, true);
@@ -1153,7 +1156,7 @@ int picker(Init *init, char *field) {
 
             /** KEY_LL (lower left of numeric pad) Moves selection to last
                 object in list */
-            case KEY_LL:
+            case UI_KEY_END:
                 pick->tbl_page = pick->tbl_pages - 1;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
                 display_pick_page(pick);
@@ -1262,7 +1265,7 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 break;
 
-            case KEY_BTAB:
+            case UI_KEY_BTAB:
             case KEY_UP:
             case '\t':
                 in_key = 0;
@@ -1297,7 +1300,7 @@ int picker(Init *init, char *field) {
 
             case KEY_IC:
                 if (f_insert) {
-                    f_insert = FALSE;
+                    f_insert = false;
                     set_chyron_key_cp(pick->chyron, 12, "INS", KEY_IC,
                                       cp_nt_rev);
                 } else {
@@ -1318,7 +1321,7 @@ int picker(Init *init, char *field) {
                     *d++ = *s++;
                 *d = '\0';
                 str_end = d;
-                f_insert = FALSE;
+                f_insert = false;
                 in_key = 0;
                 continue;
 

@@ -23,8 +23,8 @@ typedef struct NcPlane NcPlane;
 
 STDRGB std_color[16] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 
-int ui_color_cnt = 0;
-int ui_pair_cnt = 0;
+uint ui_color_cnt = 0;
+uint ui_pair_cnt = 0;
 
 UiSurface *stdsfc;
 unsigned int LINES, COLS;
@@ -56,24 +56,24 @@ void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
    Colors, Color Pairs
    ------------------------------------------------------------------------- */
 
-struct UiColor ui_color[NC_COLORS] = {0};
-struct UiColorPair ui_color_pair[NC_PAIRS] = {0};
+struct UiColor ui_color[UI_COLORS] = {0};
+struct UiColorPair ui_color_pair[UI_PAIRS] = {0};
 
-int ui_add_pair(uint16_t fg, uint16_t bg) {
+uint ui_add_pair(uint16_t fg, uint16_t bg) {
     uint16_t i;
     for (i = 1; i < ui_pair_cnt; i++) {
         if (fg == ui_color_pair[i].fg && bg == ui_color_pair[i].bg)
             return i;
     }
-    if (i + 1 >= NC_PAIRS) {
+    if (i + 1 >= UI_PAIRS) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1, "NotCurses COLOR_PAIRS (%d) exceeded (%d)",
-                  NC_PAIRS, i);
+                  UI_PAIRS, i);
         strerror_r(errno, em2, MAXLEN);
         display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
-    if (i < NC_PAIRS) {
+    if (i < UI_PAIRS) {
         ui_color_pair[i].fg = fg;
         ui_color_pair[i].bg = bg;
         ui_pair_cnt++;
@@ -82,7 +82,7 @@ int ui_add_pair(uint16_t fg, uint16_t bg) {
 }
 
 int ui_chg_pair(uint16_t pair, uint16_t fg, uint16_t bg) {
-    if (pair + 1 >= NC_PAIRS)
+    if (pair + 1 >= UI_PAIRS)
         return -1;
     ui_color_pair[pair].fg = fg;
     ui_color_pair[pair].bg = bg;
@@ -90,7 +90,7 @@ int ui_chg_pair(uint16_t pair, uint16_t fg, uint16_t bg) {
 }
 
 int ui_get_pair(uint16_t pair, uint16_t *fg, uint16_t *bg) {
-    if (pair + 1 >= NC_PAIRS)
+    if (pair + 1 >= UI_PAIRS)
         return -1;
     *fg = ui_color_pair[pair].fg;
     *bg = ui_color_pair[pair].bg;
@@ -98,13 +98,13 @@ int ui_get_pair(uint16_t pair, uint16_t *fg, uint16_t *bg) {
 }
 
 int ui_add_color_rgb(RGB *rgb) {
-    int i;
+    uint i;
     apply_gamma(rgb);
-    for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
+    for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
         if (rgb->r == ui_color[i].r && rgb->g == ui_color[i].g && rgb->b == ui_color[i].b)
             return i;
     }
-    if (i < NC_COLORS) {
+    if (i < UI_COLORS) {
         if (i < 16) {
             std_color[i].r = rgb->r;
             std_color[i].g = rgb->g;
@@ -113,7 +113,7 @@ int ui_add_color_rgb(RGB *rgb) {
         ui_color[i].r = rgb->r;
         ui_color[i].g = rgb->g;
         ui_color[i].b = rgb->b;
-        if (ui_color_cnt + 1 < NC_COLORS)
+        if (ui_color_cnt + 1 < UI_COLORS)
             ui_color_cnt++;
         return ui_color_cnt - 1;
     }
@@ -124,12 +124,12 @@ int ui_add_color_hex(char *s) {
     RGB rgb;
     rgb = ui_hex_to_rgb(s);
     apply_gamma(&rgb);
-    int i;
-    for (i = 0; i < ui_color_cnt && i < NC_COLORS; i++) {
+    uint i;
+    for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
         if (rgb.r == ui_color[i].r && rgb.g == ui_color[i].g && rgb.b == ui_color[i].b)
             return i;
     }
-    if (i < NC_COLORS) {
+    if (i < UI_COLORS) {
         if (i < 16) {
             std_color[i].r = rgb.r;
             std_color[i].g = rgb.g;
@@ -138,7 +138,7 @@ int ui_add_color_hex(char *s) {
         ui_color[i].r = rgb.r;
         ui_color[i].g = rgb.g;
         ui_color[i].b = rgb.b;
-        if (ui_color_cnt + 1 < NC_COLORS)
+        if (ui_color_cnt + 1 < UI_COLORS)
             ui_color_cnt++;
         return ui_color_cnt - 1;
     }
@@ -146,7 +146,7 @@ int ui_add_color_hex(char *s) {
 }
 
 int ui_chg_color_rgb(uint16_t color, RGB *rgb) {
-    if (color + 1 >= NC_COLORS)
+    if (color + 1 >= UI_COLORS)
         return -1;
     apply_gamma(rgb);
     ui_color[color].r = rgb->r;
@@ -162,7 +162,7 @@ int ui_chg_color_rgb(uint16_t color, RGB *rgb) {
 
 int ui_chg_color_hex(uint16_t color, char *s) {
     RGB rgb;
-    if (color + 1 >= NC_COLORS)
+    if (color + 1 >= UI_COLORS)
         return -1;
     rgb = ui_hex_to_rgb(s);
     apply_gamma(&rgb);
@@ -171,7 +171,7 @@ int ui_chg_color_hex(uint16_t color, char *s) {
         std_color[color].g = rgb.g;
         std_color[color].b = rgb.b;
     }
-    if (color < NC_COLORS) {
+    if (color < UI_COLORS) {
         ui_color[color].r = rgb.r;
         ui_color[color].g = rgb.g;
         ui_color[color].b = rgb.b;
@@ -180,7 +180,7 @@ int ui_chg_color_hex(uint16_t color, char *s) {
 }
 
 int ui_get_color(uint16_t color, RGB *rgb) {
-    if (color + 1 >= NC_COLORS)
+    if (color + 1 >= UI_COLORS)
         return -1;
     rgb->r = ui_color[color].r;
     rgb->g = ui_color[color].g;
@@ -214,7 +214,7 @@ int ui_channels_from_pair(uint16_t pair, union UiChannels *nc_channels) {
 }
 
 int ui_extended_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
-    if (color + 1 >= NC_COLORS)
+    if (color + 1 >= UI_COLORS)
         return -1;
     *r = ui_color[color].r;
     *g = ui_color[color].g;
@@ -223,7 +223,7 @@ int ui_extended_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b
 }
 
 int ui_init_extended_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b) {
-    if (color + 1 >= NC_COLORS)
+    if (color + 1 >= UI_COLORS)
         return -1;
     ui_color[color].r = r;
     ui_color[color].g = g;
@@ -232,7 +232,7 @@ int ui_init_extended_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b) {
 }
 
 int ui_extended_pair_content(uint16_t pair, uint16_t *fg, uint16_t *bg) {
-    if (pair + 1 >= NC_PAIRS)
+    if (pair + 1 >= UI_PAIRS)
         return -1;
     *fg = ui_color_pair[pair].fg;
     *bg = ui_color_pair[pair].bg;
@@ -240,7 +240,7 @@ int ui_extended_pair_content(uint16_t pair, uint16_t *fg, uint16_t *bg) {
 }
 
 int ui_init_extended_pair(uint16_t pair, uint16_t fg, uint16_t bg) {
-    if (pair + 1 >= NC_PAIRS)
+    if (pair + 1 >= UI_PAIRS)
         return -1;
     ui_color_pair[pair].fg = fg;
     ui_color_pair[pair].bg = bg;
@@ -306,6 +306,21 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     ui->lines = LINES;
     ui->cols = COLS;
     return ui;
+}
+
+void ui_mousemask(int mask) {
+    if (!ui_runtime)
+        return;
+    if (mask)
+        notcurses_mice_enable(ui_runtime->nc, mask);
+    else
+        notcurses_mice_enable(ui_runtime->nc, NCMICE_ALL_EVENTS);
+}
+void ui_mice_enable(int mask) {
+    if (mask)
+        notcurses_mice_enable(ui_runtime->nc, mask);
+    else
+        notcurses_mice_enable(ui_runtime->nc, NCMICE_ALL_EVENTS);
 }
 
 void ui_endwin() {
@@ -387,7 +402,7 @@ int ui_cursor_enable(UiRuntime *ui, bool visible) {
    Surface management
    ------------------------------------------------------------------------- */
 
-UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int lines, int cols, int y, int x) {
+UiSurface *ui_surface_new(UiRuntime *ui, uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
@@ -419,7 +434,7 @@ UiSurface *ui_surface_new(UiRuntime *ui, int w, UiSurface *parent, int p, int li
     return s;
 }
 
-UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, int p, int lines, int cols, int y, int x, char *wtitle) {
+UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *wtitle) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
@@ -485,7 +500,7 @@ void ui_surface_destroy(UiSurface *s) {
     free(s);
 }
 
-int ui_surface_move(UiSurface *s, int w, int y, int x) {
+int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
     if (!s)
         return -1;
     s->y = y;
@@ -495,7 +510,7 @@ int ui_surface_move(UiSurface *s, int w, int y, int x) {
     return 0;
 }
 
-int ui_surface_resize(UiSurface *s, int w, int lines, int cols) {
+int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
     if (!s)
         return -1;
     s->lines = lines;
@@ -506,21 +521,21 @@ int ui_surface_resize(UiSurface *s, int w, int lines, int cols) {
                : -1;
 }
 
-int ui_surface_clear(UiSurface *s, int w) {
+int ui_surface_clear(UiSurface *s, uint w) {
     if (!s)
         return -1;
     ncplane_erase(s->mplane[w]);
     return 0;
 }
 
-int ui_surface_erase(UiSurface *s, int w) {
+int ui_surface_erase(UiSurface *s, uint w) {
     if (!s)
         return -1;
     ncplane_erase(s->mplane[w]);
     return 0;
 }
 
-int ui_surface_show(UiSurface *s, int w) {
+int ui_surface_show(UiSurface *s, uint w) {
     if (!s)
         return -1;
     if (s->hidden) {
@@ -530,7 +545,7 @@ int ui_surface_show(UiSurface *s, int w) {
     return 0;
 }
 
-int ui_surface_hide(UiSurface *s, int w) {
+int ui_surface_hide(UiSurface *s, uint w) {
     if (!s)
         return -1;
     if (!s->hidden) {
@@ -541,7 +556,7 @@ int ui_surface_hide(UiSurface *s, int w) {
     return 0;
 }
 
-int ui_cursor_move(UiSurface *s, int w, int y, int x) {
+int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
     if (!s)
         return -1;
     return ncplane_cursor_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
@@ -584,14 +599,14 @@ struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t 
 // -------------------------------------------------------------------------
 // Background and style management
 // -------------------------------------------------------------------------
-int ui_bkgd(UiSurface *s, int w, const UiStyle *style) {
+int ui_bkgd(UiSurface *s, uint w, const UiStyle *style) {
     if (!s)
         return -1;
     ncplane_set_base(s->mplane[w], " ", style->stylemask, style->channels.fb);
     return 0;
 }
 
-int ui_bkgdset(UiSurface *s, int w, const UiStyle *style) {
+int ui_bkgdset(UiSurface *s, uint w, const UiStyle *style) {
     /* NotCurses has no separate "set without fill" operation; delegate to
        bkgrnd which sets channels and re-fills the plane background. */
     if (!s)
@@ -619,7 +634,7 @@ uint32_t ui_stylemask_from_style(const UiStyle *style) {
    Surface style
    ------------------------------------------------------------------------- */
 
-int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style) {
+int ui_surface_set_style(UiSurface *s, uint w, const UiStyle *style) {
     if (!s || !style)
         return -1;
     ncplane_set_channels(s->mplane[w], style->channels.fb);
@@ -627,7 +642,7 @@ int ui_surface_set_style(UiSurface *s, int w, const UiStyle *style) {
     return 0;
 }
 
-int ui_surface_set_base(UiSurface *s, int w, const UiStyle *style, uint32_t fill_ch) {
+int ui_surface_set_base(UiSurface *s, uint w, const UiStyle *style, uint32_t fill_ch) {
     if (!s)
         return -1;
     char utf8[5] = " ";
@@ -667,7 +682,7 @@ struct notcurses *ui_notcurses_get_nc(const UiRuntime *ui) {
     return ui->nc;
 }
 
-struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s, int w) {
+struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s, uint w) {
     if (!s)
         return NULL;
     return s->mplane[w];

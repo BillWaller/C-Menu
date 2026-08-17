@@ -38,7 +38,7 @@ static void end_pgm(void) {
     ui_curs_set(1);
     close(cmenu_log_fd);
     if (f_curses_open)
-        endwin();
+        ui_endwin();
     exit(EXIT_SUCCESS);
 }
 

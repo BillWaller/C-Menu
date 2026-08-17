@@ -97,29 +97,29 @@ extern char ff_tbl[][26]; /**< a table of field format strings used in the Form
 /** @struct Text
    @brief structure for form fields */
 typedef struct {
-    int line;           /**< the line number on the form window where this text string
-                           should be displayed */
-    int col;            /**< the column number on the form window where this text string
-                           should be displayed */
+    uint line;          /**< the line number on the form window where this text string
+                          should be displayed */
+    uint col;           /**< the column number on the form window where this text string
+                          should be displayed */
     char str[SCR_COLS]; /**< the text string to be displayed on the form window
                          */
-    int len;            /**< the length of the text string, used for display and formatting
-                           purposes */
+    uint len;           /**< the length of the text string, used for display and formatting
+                          purposes */
 } Text;
 
 /** @struct Field
    @brief structure for form fields */
 typedef struct {
-    int line;                        /**< the line number on the form window where this field should be
-                                        displayed */
-    int col;                         /**< the column number on the form window where this field should
-                                        be displayed */
-    int len;                         /**< the length of the field input area, used for display and
-                                        formatting purposes */
-    int ff;                          /**< the field format, represented as an integer corresponding to
-                                        the FieldFormat enum values, e.g. FF_STRING, FF_DECIMAL_INT, etc.
-                                        This is used for validating and formatting the field input values
-                                        according to their specified formats. */
+    uint line;                       /**< the line number on the form window where this field should be
+                                       displayed */
+    uint col;                        /**< the column number on the form window where this field should
+                                       be displayed */
+    uint len;                        /**< the length of the field input area, used for display and
+                                       formatting purposes */
+    uint ff;                         /**< the field format, represented as an integer corresponding to
+                                       the FieldFormat enum values, e.g. FF_STRING, FF_DECIMAL_INT, etc.
+                                       This is used for validating and formatting the field input values
+                                       according to their specified formats. */
     char input_s[FIELD_MAXLEN];      /**< the input string for this field, used for
                                   storing   the user's input value for this field
                                   during form   processing */
@@ -144,14 +144,14 @@ typedef struct {
 
 /** @struct Form */
 typedef struct {
-    int fg_clr_idx; /**< the foreground color for the form window */
-    int bg_clr_idx; /**< the background color for the form window */
-    int bo_clr_idx; /**< the border color for the form window */
-    int lines;      /**< the number of lines for the form window */
-    int cols;       /**< the number of columns for the form windowi */
-    int begy;       /**< the screen line number for the upper left corner of the form
+    uint fg_clr_idx; /**< the foreground color for the form window */
+    uint bg_clr_idx; /**< the background color for the form window */
+    uint bo_clr_idx; /**< the border color for the form window */
+    uint lines;      /**< the number of lines for the form window */
+    uint cols;       /**< the number of columns for the form windowi */
+    uint begy;       /**< the screen line number for the upper left corner of the form
                        window */
-    int begx;       /**< the screen column number for the upper left corner of the */
+    uint begx;       /**< the screen column number for the upper left corner of the */
 #ifdef ASDF
     WINDOW *win; /**< ncurses window structure for form */
     WINDOW *box; /**< ncurses window structure for form box border */
@@ -307,36 +307,36 @@ typedef struct {
                                  look of brackets. The choice of whether to use
                                  brackets, fill characters, or both is a matter of
                                  personal preference and design style for the form. */
-    int fidx;                 /**< the index of the currently selected field, used for
-                                 highlighting and selection purposes during form processing.
-                                 This index corresponds to the position of the field in the
-                                 field array, allowing for easy access to the current field's
-                                 data and properties during form processing. The fidx can be
-                                 updated as the user navigates through the form fields,
-                                 providing visual feedback and allowing for dynamic interactions
-                                 based on the selected field. */
-    int fcnt;                 /**< the number of fields in the form, used for iterating through
-                                 the field array and managing field data during form processing.
-                                 This count can be used to determine when the user has reached
-                                 the end of the fields or to validate that all required fields
-                                 have been completed before accepting the form. The fcnt can
-                                 also be used to dynamically allocate resources or manage memory
-                                 for the field data during form processing. */
-    int didx;                 /**< an index to the array of text strings to be displayed on the
-                                 form window, used for iterating through the text array and
-                                 managing the display of text during form processing. This index
-                                 can be updated as needed to control which text strings are
-                                 currently being displayed on the form window, allowing for
-                                 dynamic updates to the form's content based on user actions or
-                                 other events during form processing. */
-    int dcnt;                 /**< the number of text strings to be displayed on the form
-                                 window, used for iterating through the text array and managing
-                                 the display of text during form processing. This count can be
-                                 used to determine how many text strings need to be displayed on
-                                 the form window and to validate that all necessary text has
-                                 been provided for display during form processing. The dcnt can
-                                 also be used to dynamically allocate resources or manage memory
-                                 for the text data during form processing. */
+    uint fidx;                /**< the index of the currently selected field, used for
+                                highlighting and selection purposes during form processing.
+                                This index corresponds to the position of the field in the
+                                field array, allowing for easy access to the current field's
+                                data and properties during form processing. The fidx can be
+                                updated as the user navigates through the form fields,
+                                providing visual feedback and allowing for dynamic interactions
+                                based on the selected field. */
+    uint fcnt;                /**< the number of fields in the form, used for iterating through
+                                the field array and managing field data during form processing.
+                                This count can be used to determine when the user has reached
+                                the end of the fields or to validate that all required fields
+                                have been completed before accepting the form. The fcnt can
+                                also be used to dynamically allocate resources or manage memory
+                                for the field data during form processing. */
+    uint didx;                /**< an index to the array of text strings to be displayed on the
+                                form window, used for iterating through the text array and
+                                managing the display of text during form processing. This index
+                                can be updated as needed to control which text strings are
+                                currently being displayed on the form window, allowing for
+                                dynamic updates to the form's content based on user actions or
+                                other events during form processing. */
+    uint dcnt;                /**< the number of text strings to be displayed on the form
+                                window, used for iterating through the text array and managing
+                                the display of text during form processing. This count can be
+                                used to determine how many text strings need to be displayed on
+                                the form window and to validate that all necessary text has
+                                been provided for display during form processing. The dcnt can
+                                also be used to dynamically allocate resources or manage memory
+                                for the text data during form processing. */
     Text *text[FIELD_MAXCNT]; /**< an array of pointers to the text structures
                               for the text strings to be displayed on the form
                               window, used for managing and displaying the text
@@ -374,13 +374,13 @@ typedef struct {
 
 extern int field_editor(Form *);
 extern int form_display_field(Form *);
-extern int form_display_field_n(Form *, int);
+extern int form_display_field_n(Form *, uint);
 extern int field_navigator(Form *);
 extern int form_read_description(Form *);
 extern int form_fmt_field(Form *, char *s);
 extern int form_desc_error(Form *, int, char *, char *);
 extern void form_help(char *);
-extern int form_yx_to_fidx(Form *, int, int);
+extern uint form_yx_to_fidx(Form *, uint, uint);
 extern void form_display_chyron(Form *);
-extern void display_field(UiCell *, int, int);
+extern void display_field(UiCell *, uint, uint);
 #endif

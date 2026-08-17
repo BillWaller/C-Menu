@@ -46,14 +46,11 @@ ViewStack view_stack;
  */
 int init_view_full_screen(Init *init) {
     View *view = init->view;
-    if (view->tab_stop <= 0)
-        view->tab_stop = TABSIZE;
-    set_tabsize(view->tab_stop);
     view->f_full_screen = true;
     // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
     view->sfc = ui_surface_new(ui_runtime, WIN, NULL, 0, view->lines, view->cols, 0, 0);
-    if (view->sfc->mwin[WIN] == nullptr) {
+    if (!view->sfc) {
         ssnprintf(em0, MAXLEN - 1, "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen");
         Perror(em0);
         return -1;
@@ -149,9 +146,6 @@ void view_calc_full_screen_dimensions(Init *init) {
  */
 int init_view_boxwin(Init *init) {
     View *view = init->view;
-    if (view->tab_stop <= 0)
-        view->tab_stop = TABSIZE;
-    set_tabsize(view->tab_stop);
     view->f_full_screen = false;
     // -------------------> 1. BOX / WIN <-------------------
     view_calc_boxwin_dimensions(init);
@@ -327,7 +321,7 @@ int view_init_input(Init *init, char *file_name) {
         }
         // Back to parent
         destroy_argv(s_argc, s_argv);
-        reset_prog_mode();
+        sig_prog_mode();
         ui_restore_wins();
         close(pipe_fd[P_WRITE]);
         dup2(pipe_fd[P_READ], STDIN_FILENO);

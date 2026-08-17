@@ -27,8 +27,17 @@
 #define KEY_RIGHT NCKEY_RIGHT
 #define KEY_HOME NCKEY_HOME
 #define KEY_BACKSPACE NCKEY_BACKSPACE
-#define KEY_F0 NCKEY_F01 - 1
-#define KEY_F(n) (KEY_F0 + (n))
+#define KEY_F0 NCKEY_F01 1
+#define KEY_F01 NCKEY_F01
+#define KEY_F02 NCKEY_F02
+#define KEY_F03 NCKEY_F03
+#define KEY_F04 NCKEY_F04
+#define KEY_F05 NCKEY_F05
+#define KEY_F06 NCKEY_F06
+#define KEY_F07 NCKEY_F07
+#define KEY_F08 NCKEY_F08
+#define KEY_F09 NCKEY_F09
+#define KEY_F10 NCKEY_F10
 #define KEY_DC NCKEY_DEL
 #define KEY_IC NCKEY_INS
 #define KEY_NPAGE NCKEY_PGDOWN
@@ -38,6 +47,12 @@
 #define KEY_END NCKEY_END
 #define KEY_BREAK NCKEY_F20
 #define KEY_MOUSE NCKEY_BUTTON1
+#define KEY_RESIZE NCKEY_RESIZE
+#define KEY_SRIGHT NCKEY_F11
+#define KEY_SLEFT NCKEY_F12
+#define KEY_PRINT NCKEY_PRINT
+#define KEY_CATAB NCKEY_F13
+#define KEY_LL NCKEY_F14
 
 /** @struct UiRuntime
    @ingroup ui_notcurses
@@ -156,15 +171,20 @@ union UiChannels {
 typedef struct {
     union {
         uint32_t gcluster; // 4-bytes for UTF-8
-        uint8_t gclus[4];
+        uint8_t gstr[4];
+        wchar_t wstr[4];
     };
     uint8_t width; // 5 -  5   (8 bits of EGC column width)
 } GCluster;
 
 struct UiCell {
-    struct {
-        uint32_t gcluster; // 4-bytes for UTF-8
-        uint8_t bs;        // 1-byte terminator
+    union {
+        struct {
+            uint32_t gcluster; // 4-bytes for UTF-8
+            uint8_t backstop;  // 1-byte terminator
+        };
+        wchar_t wstr[5];
+        uint8_t gstr[5];
     };
     uint8_t width;             // 5 -  5   (8 bits of EGC column width)
     uint16_t stylemask;        // 6 -  7   2-bytes
@@ -247,11 +267,11 @@ struct UiStyle {
 // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
 /* Internal style helpers */
 
-int ui_bkgrnd(struct UiSurface *s, int w, const struct UiStyle *style, const char *c);
+int ui_bkgrnd(struct UiSurface *s, uint w, const struct UiStyle *style, const char *c);
 uint64_t ui_notcurses_channels_from_style(const struct UiStyle *style);
 uint32_t ui_notcurses_attrs_from_style(const struct UiStyle *style);
 struct ncplane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni);
-extern int mbstr_to_cellstr(nccell *cmplx_buf, char *str, uint16_t stylemask, int cpx, int *pos, int maxlen);
+extern int mbstr_to_cellstr(nccell *cmplx_buf, char *str, uint16_t stylemask, uint cpx, uint *pos, uint maxlen);
 struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const wchar_t *wstr);
 
 #endif

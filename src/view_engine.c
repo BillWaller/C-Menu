@@ -117,10 +117,10 @@ int get_cmd_arg(View *, char *);
 void build_prompt(View *);
 void cat_file(View *);
 void lp(View *, char *);
-void go_to_mark(View *, int);
+void go_to_mark(View *, uint);
 void go_to_eof(View *);
 int go_to_line(View *, off_t);
-void go_to_percent(View *, int);
+void go_to_percent(View *, uint);
 void go_to_position(View *, off_t);
 bool search(View *, int, char *);
 void next_page(View *);
@@ -132,7 +132,7 @@ int fmt_line(View *);
 void log_split_lines(View *);
 void log_cc_buf(View *);
 void log_stripped_line_out(View *);
-void log_strnz(char *, int);
+void log_strnz(char *, uint);
 void display_line(View *);
 void display_line_eod(View *);
 void display_split_line(View *);
@@ -255,7 +255,7 @@ int view_cmd_processor(Init *init) {
             break;
         case Ctrl('L'): /**<  Ctrl('L') or KEY_RESIZE - Handle terminal resize */
         case KEY_RESIZE:
-            getmaxyx(stdscr, view->lines, view->cols);
+            ui_get_screen_size(ui_runtime, &view->lines, &view->cols);
 #ifdef DEBUG_RESIZE
             ssnprintf(em0, MAXLEN - 1,
                       "%s:%d view->page_top_ln_no=%d, resized to lines: %d, cols: %d\n",
@@ -285,14 +285,14 @@ int view_cmd_processor(Init *init) {
         case KEY_LEFT:
         case KEY_BACKSPACE:
             if (n_cmd > 0)
-                view->h_shift = n_cmd;
+                view->h_shift = (uint)n_cmd;
             else if (n_cmd == 0) {
                 if (view->h_shift > 0)
                     n_cmd = view->h_shift;
                 else
                     n_cmd = 1;
             }
-            shift = (int)n_cmd;
+            shift = (uint)n_cmd;
             if (view->pmincol - shift > 0)
                 view->pmincol -= shift;
             else
@@ -308,7 +308,7 @@ int view_cmd_processor(Init *init) {
                 else
                     n_cmd = 1;
             }
-            shift = (int)n_cmd;
+            shift = (uint)n_cmd;
             max_pmincol = (view->maxcol > view->cols) ? (view->maxcol - view->cols) : 0;
             if (view->pmincol + shift < max_pmincol)
                 view->pmincol += shift;
@@ -340,10 +340,6 @@ int view_cmd_processor(Init *init) {
         case Ctrl('F'):
             view->ln_no++;
             next_page(view);
-            break;
-        /**  KEY_LL - Go to the end of the document */
-        case KEY_LL:
-            go_to_eof(view);
             break;
         /**  '!', Execute Shell Command from within C-Menu View */
         case '!':
@@ -433,7 +429,7 @@ int view_cmd_processor(Init *init) {
                     Perror("Tab stops not changed");
                 break;
             /**  -h  Display Help */
-            case KEY_F(1):
+            case KEY_F01:
             case 'h':
                 if (!view->f_displaying_help) {
                     view_display_help(init);
@@ -474,7 +470,7 @@ int view_cmd_processor(Init *init) {
             strnz__cpy(tmp_str, " Forward", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
-            if (c == KEY_F(9) || c == '\033')
+            if (c == KEY_F09 || c == '\033')
                 break;
             if (c == KEY_ENTER) {
                 view->cury = 0;
@@ -496,7 +492,7 @@ int view_cmd_processor(Init *init) {
             strnz__cpy(tmp_str, " Backward", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
-            if (c == KEY_F(9) || c == '\033')
+            if (c == KEY_F09 || c == '\033')
                 break;
             if (c == '\n') {
                 view->cury = view->scroll_lines;
@@ -529,10 +525,9 @@ int view_cmd_processor(Init *init) {
             } else
                 go_to_eof(view);
             break;
-
-        /**  'H' or KEY_F(1) - Display Help Information */
+        /**  'H' or KEY_F01 - Display Help Information */
         case 'H':
-        case KEY_F(1):
+        case KEY_F01:
             if (!view->f_displaying_help) {
                 view_display_help(init);
                 view = init->view;
@@ -542,7 +537,7 @@ int view_cmd_processor(Init *init) {
         case 'm':
             display_prompt(view, "Mark label (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
-            if (c == '@' || c == KEY_F(9) || c == '\033')
+            if (c == '@' || c == KEY_F09 || c == '\033')
                 if (c >= 'A' && c <= 'Z')
                     c += ' ';
             if (c < 'a' || c > 'z')
@@ -554,7 +549,7 @@ int view_cmd_processor(Init *init) {
         case 'M':
             display_prompt(view, "Goto mark (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
-            if (c == '@' || c == KEY_F(9) || c == '\033')
+            if (c == '@' || c == KEY_F09 || c == '\033')
                 break;
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
@@ -617,14 +612,12 @@ int view_cmd_processor(Init *init) {
             view->f_redisplay_page = true;
             unlink(tmp_str);
             break;
-        /** 'P' or KEY_CATAB or KEY_PRINT - Print Current File */
+        /** 'P' Print Current File */
         case Ctrl('P'):
-        case KEY_CATAB:
-        case KEY_PRINT:
             lp(view, view->cur_file_str);
             view->f_redisplay_page = true;
             break;
-        /** 'P' or KEY_F(9) or ESC - Close Current File and Open Next */
+        /** 'P' or KEY_F09 or ESC - Close Current File and Open Next */
         case 'P':
             if (n_cmd <= 0)
                 n_cmd = 1;
@@ -638,10 +631,10 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
-        /**  'q' or 'Q' or KEY_F(9) or ESC - Quit the Application */
+        /**  'q' or 'Q' or KEY_F09 or ESC - Quit the Application */
         case 'q':
         case 'Q':
-        case KEY_F(9):
+        case KEY_F09:
         case '\033':
             ui_mvwaddnwstr(sfc, CMDLN, view->cmd_line, view->curx, &style_nt, &bw_sp, 1);
             view->curr_argc = view->argc;
@@ -741,7 +734,7 @@ int view_cmd_processor(Init *init) {
 int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
     char *d, *s;
-    int prevx;
+    uint prevx;
     bool once = false;
     char cmd_str[33];
     cmd_str[0] = '\0';
@@ -763,7 +756,7 @@ int get_cmd_char(View *view, off_t *n) {
             ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
             ui_wclrtoeol(sfc, CMDLN);
             ui_mvwaddnwstr(sfc, CMDLN, view->cmd_line, view->curx, &style_box, &bw_ran, 1);
-            ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx + 1, (chtype)c);
+            ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx + 1, c);
         }
         ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
         // ui_update_panels();
@@ -786,10 +779,10 @@ int get_cmd_char(View *view, off_t *n) {
         case '\r':
             break;
         case 'q':
-        case KEY_F(9):
+        case KEY_F09:
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            c = KEY_F(9);
+            c = KEY_F09;
             return c;
         case '\b':
         case KEY_BACKSPACE:
@@ -848,7 +841,7 @@ int get_cmd_char(View *view, off_t *n) {
                 break;
             cmd_str[i++] = (char)c;
             cmd_str[i] = '\0';
-            ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx, (chtype)c);
+            ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx, c);
             view->curx++;
             continue;
         }
@@ -890,7 +883,7 @@ int get_cmd_arg(View *view, char *prompt) {
     int c;
     char prompt_s[MAXLEN];
     UiSurface *sfc = view->sfc;
-    int prompt_l = strnz__cpy(prompt_s, prompt, min(MAXLEN - 1, view->cols - 4));
+    uint prompt_l = strnz__cpy(prompt_s, prompt, min(MAXLEN - 1, view->cols - 4));
     if (view->cmd_arg[0] != '\0')
         return 0;
     ui_cursor_move(sfc, CMDLN, view->cmd_line, 0);
@@ -908,9 +901,9 @@ int get_cmd_arg(View *view, char *prompt) {
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
     // ui_doupdate();
     ui_render(ui_runtime);
-    int flin = view->cmd_line;
-    int fcol = prompt_l + 1;
-    int flen = view->cols - prompt_l;
+    uint flin = view->cmd_line;
+    uint fcol = prompt_l + 1;
+    uint flen = view->cols - prompt_l;
     c = cf_accept(sfc, CMDLN, view->cmd_arg, flin, fcol, flen);
     return c;
 }
@@ -949,7 +942,7 @@ void build_prompt(View *view) {
     }
     // ----------------< File Number >----------------
     if (view->argc > 1) {
-        prompt_l = (int)strlen(view->prompt_str);
+        prompt_l = (uint)strlen(view->prompt_str);
         if (prompt_l > (view->cols - 4) / 2)
             return;
         if (view->argc > 0) {
@@ -961,7 +954,7 @@ void build_prompt(View *view) {
         }
     }
     // ----------------< File Position >----------------
-    prompt_l = (int)strlen(view->prompt_str);
+    prompt_l = (uint)strlen(view->prompt_str);
     if (prompt_l > (view->cols - 4) / 2)
         return;
     view->page_top_pos = view->ln_tbl[view->page_top_ln_no];
@@ -982,7 +975,7 @@ void build_prompt(View *view) {
         }
     }
     // ----------------< (End) >----------------
-    prompt_l = (int)strlen(view->prompt_str);
+    prompt_l = (uint)strlen(view->prompt_str);
     if (prompt_l > (view->cols - 4) / 2)
         return;
     if (view->f_eod) {
@@ -1089,7 +1082,7 @@ void lp(View *view, char *PrintFile) {
    have set. If the mark is not set, an error message will be displayed to
    the user.
  */
-void go_to_mark(View *view, int c) {
+void go_to_mark(View *view, uint c) {
     if (c == '\'')
         view->file_pos = view->mark_tbl[(NMARKS - 1)];
     else
@@ -1124,10 +1117,10 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     regmatch_t pmatch[1];
     regex_t compiled_regex;
     int reti;
-    int line_offset;
-    int line_len;
-    int match_idx;
-    int match_len;
+    uint line_offset;
+    uint line_len;
+    uint match_idx;
+    uint match_len;
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     wchar_t wstr[2] = {L'\0', L'\0'};
@@ -1233,14 +1226,22 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
         line_offset = 0;
+        uint16_t stylemask;
+        uint64_t channels;
         while (1) {
             match_idx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
-            for (int i = match_idx; i < match_idx + match_len; i++) {
+            for (uint i = match_idx; i < match_idx + match_len; i++) {
                 cc = view->cmplx_buf[i];
+#ifdef UAL_UI
                 ui_getcchar(&cc, wstr, &attr, &cpx, nullptr);
                 cpx = cp_nt_rev;
                 ui_setcchar(&cc, wstr, attr, cpx, nullptr);
+                view->cmplx_buf[i] = cc;
+#else
+                ui_decompose_nccell(&cc, wstr, &stylemask, &channels);
+                ui_compose_nccell(&cc, &wstr[4], &style_nt_rev);
+#endif
                 view->cmplx_buf[i] = cc;
             }
             if (f_first_match) {
@@ -1296,7 +1297,7 @@ void prev_page(View *view) {
         return;
     view->cury = 0;
     view->ln_no = view->page_top_ln_no;
-    int scroll, avail, scroll_this_line;
+    uint scroll, avail, scroll_this_line;
     if (view->wrap) {
         scroll = view->scroll_lines;
         ln_no = view->page_top_ln_no;
@@ -1435,7 +1436,11 @@ void display_line(View *view) {
     }
     ui_cursor_move(sfc, PAD, view->cury, 0);
     ui_wclrtoeol(sfc, PAD);
+#ifdef UAL_UI
     ui_mvwadd_cellstr(sfc, PAD, view->cury, 0, view->cmplx_buf);
+#else
+    ui_mvwadd_cellstr(sfc, PAD, view->cury, 0, (struct nccell *)view->cmplx_buf);
+#endif
     if (view->cury == 0)
         view->page_top_ln_no = view->ln_no;
     if (view->cury == view->scroll_lines - 1)
@@ -1646,7 +1651,7 @@ void scroll_down(View *view, uint n) {
    current line number, and refreshing the display accordingly.
  */
 void scroll_up(View *view, uint n) {
-    int scroll, avail, scroll_this_line;
+    uint scroll, avail, scroll_this_line;
     off_t ln_no;
     view->f_eod = false;
     if (view->page_top_ln_no == 0) {
@@ -1857,7 +1862,7 @@ void go_to_eof(View *view) {
     @param view data structure
     @param percent of file
 */
-void go_to_percent(View *view, int percent) {
+void go_to_percent(View *view, uint percent) {
     if (view->file_size < 0) {
         Perror("Cannot determine file length");
         return;
@@ -2351,7 +2356,7 @@ void log_cc_buf(View *view) {
    string to the cmenu log. It copies the specified length of the string into
    a temporary buffer and then writes it to the log.
  */
-void log_strnz(char *str, int len) {
+void log_strnz(char *str, uint len) {
     char tmp_str[MAXLEN];
     strnz__cpy(tmp_str, str, len);
     write_cmenu_log(tmp_str);
@@ -2551,7 +2556,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, uint *cpx) {
     @param s is the prompt string */
 int display_prompt(View *view, char *s) {
     char message_str[PAD_COLS + 1];
-    int l;
+    uint l;
     UiSurface *sfc = view->sfc;
     l = strnz__cpy(message_str, s, PAD_COLS);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, 0);
@@ -2589,7 +2594,7 @@ int display_prompt(View *view, char *s) {
    popup_view. */
 void view_display_help(Init *init) {
     char tmp_str[MAXLEN];
-    int eargc = 0;
+    uint eargc = 0;
     char *eargv[MAXARGS];
     View *view = init->view;
     if (view->f_help_spec || view->help_spec[0] != '\0')
@@ -2628,11 +2633,11 @@ void view_display_help(Init *init) {
 bool enter_file_spec(Init *init, char *file_spec) {
     char earg_str[MAXLEN];
     char *eargv[MAXARGS];
-    int eargc;
+    uint eargc;
     char tmp_dir[MAXLEN];
     char tmp_str[MAXLEN];
     char tmp_spec[MAXLEN];
-    int rc = false;
+    int rc = 0;
     FILE *tmp_fp;
     View *view = init->view;
     strnz__cpy(tmp_dir, init->mapp_home, MAXLEN - 1);
@@ -2669,7 +2674,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         rc = popup_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
         destroy_argv(eargc, eargv);
         ui_restore_wins();
-        if (rc == FA_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F(9))
+        if (rc == FA_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F09)
             return false;
         close(view->in_fd);
         tmp_fp = fopen(tmp_spec, "r");

@@ -95,12 +95,6 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
    Event retrieval
    ------------------------------------------------------------------------- */
 
-int ui_mousemask() {
-    if (!ui_runtime)
-        return -1;
-    return notcurses_mice_enable(ui_runtime->nc, NCMICE_ALL_EVENTS);
-}
-
 /** @brief Wait for an input event from the NotCurses context.
    @param ui         UI runtime context.
    @param target     Unused for NotCurses (events are global to the context).
@@ -108,7 +102,7 @@ int ui_mousemask() {
    @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
    @return 0 on success, -1 if @p ui or @p ev is NULL.
 */
-int ui_get_event(UiSurface *target, int w, UiEvent *ev, int timeout_ms) {
+int ui_get_event(UiSurface *target, uint w, UiEvent *ev, int timeout_ms) {
     (void)target;
     (void)w;
     if (!ui_runtime || !ev)
@@ -152,7 +146,7 @@ int ui_get_event(UiSurface *target, int w, UiEvent *ev, int timeout_ms) {
     return id;
 }
 
-int get_event_multi(UiSurface *s, int w, UiEvent *ev, int timeout_ms) {
+int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     if (!ui_runtime || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));

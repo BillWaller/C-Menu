@@ -93,10 +93,6 @@ static UiKey translate_key(int ch) {
    Event retrieval
    ------------------------------------------------------------------------- */
 
-int ui_mousemask() {
-    return ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT | BUTTON_CTRL | BUTTON_ALT;
-}
-
 /** @brief Wait for an input event on @p target (or stdscr if NULL).
    @param ui         UI runtime context (unused — event comes from the window).
    @param target     Surface to read from, or NULL for stdscr.
@@ -104,7 +100,7 @@ int ui_mousemask() {
    @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
    @return 0 on success, -1 if @p ev is NULL.
 */
-int ui_get_event(UiSurface *s, uint w, UiEvent *ev, uint timeout_ms) {
+int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     if (!ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
@@ -147,7 +143,7 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, uint timeout_ms) {
     return ch;
 }
 
-int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, uint timeout_ms) {
+int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     int i;
     if (!ev)
         return -1;

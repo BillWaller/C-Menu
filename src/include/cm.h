@@ -928,9 +928,10 @@ extern void check_panels(int);
 extern int bare_box_new(int, int, int, int, char *);
 extern int win2_box_new(int, int, int, int, char *);
 extern void left_justify(char *s);
-extern void right_justify(char *, int);
-extern bool is_valid_date(int yyyy, int mm, int dd);
-extern bool is_valid_time(int hh, int mm, int ss);
+extern void right_justify(char *, uint);
+
+extern bool is_valid_date(uint yyyy, uint mm, uint dd);
+extern bool is_valid_time(uint hh, uint mm, uint ss);
 extern void numeric(char *d, char *s);
 extern int cf_accept(UiSurface *, int w, char *, int, int, int);
 extern char *fill_field(char *, char *, char, int);
@@ -944,6 +945,5 @@ extern int border_ysplit_text(UiSurface *, char *, int);
 extern void mbc_to_wc(wchar_t wc[2], const char mbc);
 extern void initialize_styles(SIO *);
 extern int assign_chyron_win(Chyron *chyron, UiSurface *s, int w, char *);
-extern uint mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attrs, uint cpx, uint *p, uint maxlen);
 
 #endif
