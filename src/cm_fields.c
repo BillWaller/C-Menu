@@ -29,8 +29,6 @@
 
 bool f_erase_remainder = true;
 
-int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int flen);
-
 /** @brief Accepts input for a field in a C-Menu window
     @param UiSurface *sfc The surface to accept input from
     @param win The window to accept input from
@@ -40,7 +38,7 @@ int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int fle
     @param flen The length of the field
     @return The key pressed to exit the field (KEY_ENTER, KEY_F(9), etc.)
  */
-int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int flen) {
+int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint flen) {
     bool f_insert = false;
     int in_key = 0;
     char *s, *d;
@@ -58,7 +56,6 @@ int cf_accept(UiSurface *sfc, int w, char *accept_s, int flin, int fcol, int fle
             ui_wclrtoeol(sfc, w);
             ui_cursor_move(sfc, w, flin, x);
             ui_render(ui_runtime);
-            ui_qiflush();
             in_key = ui_get_event(sfc, WIN, &event, -1);
         }
         ui_curs_set(0);

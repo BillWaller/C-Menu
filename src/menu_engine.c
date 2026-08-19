@@ -75,15 +75,15 @@ unsigned int menu_engine(Init *init) {
         case MA_DISPLAY_MENU:
             for (menu->line_idx = 0; menu->line_idx < menu->item_count;
                  menu->line_idx++) {
-                ui_bkgdset(sfc, WIN, &style_nt);
-                ui_draw_text_fill(sfc, WIN, menu->line_idx, 0, NULL,
+                ui_bkgdset(sfc, WIN, &cell_nt);
+                ui_draw_text_fill(sfc, WIN, menu->line_idx, 0,
                                   menu->line[menu->line_idx]->choice_text,
                                   menu->cols);
-                ui_bkgdset(sfc, WIN, &style_nt_hl);
+                ui_bkgdset(sfc, WIN, &cell_nt_hl);
                 ui_mvwaddch(sfc, WIN, menu->line_idx,
                             menu->line[menu->line_idx]->letter_pos,
                             menu->line[menu->line_idx]->choice_letter);
-                ui_bkgdset(sfc, WIN, &style_nt);
+                ui_bkgdset(sfc, WIN, &cell_nt);
             }
             action = MA_RESET_MENU;
             break;
@@ -142,27 +142,27 @@ unsigned int menu_cmd_processor(Init *init) {
     // Highlight the currently selected menu choice
 
     while (1) {
-        ui_bkgdset(sfc, WIN, &style_nt_rev);
-        ui_draw_text_fill(sfc, WIN, menu->line_idx, 0, NULL,
+        ui_bkgdset(sfc, WIN, &cell_nt_rev);
+        ui_draw_text_fill(sfc, WIN, menu->line_idx, 0,
                           menu->line[menu->line_idx]->choice_text,
                           menu->cols);
-        ui_bkgdset(sfc, WIN, &style_nt_hl_rev);
+        ui_bkgdset(sfc, WIN, &cell_nt_hl_rev);
         ui_draw_ch(sfc, WIN, menu->line_idx,
-                   menu->line[menu->line_idx]->letter_pos, NULL,
+                   menu->line[menu->line_idx]->letter_pos,
                    menu->line[menu->line_idx]->choice_letter);
-        ui_bkgdset(sfc, WIN, &style_nt);
+        ui_bkgdset(sfc, WIN, &cell_nt);
         // Wait for user input and process it
         event.y = event.x = -1;
         ui_cursor_move(sfc, WIN, menu->line_idx, 1);
         in_key = ui_get_event(sfc, WIN, &event, -1);
         // Remove the highlight from the currently selected menu choice
-        ui_bkgdset(sfc, WIN, &style_nt);
-        ui_draw_text_fill(sfc, WIN, menu->line_idx, 0, NULL,
+        ui_bkgdset(sfc, WIN, &cell_nt);
+        ui_draw_text_fill(sfc, WIN, menu->line_idx, 0,
                           menu->line[menu->line_idx]->choice_text,
                           menu->cols);
-        ui_bkgdset(sfc, WIN, &style_nt_hl);
+        ui_bkgdset(sfc, WIN, &cell_nt_hl);
         ui_draw_ch(sfc, WIN, menu->line_idx,
-                   menu->line[menu->line_idx]->letter_pos, NULL,
+                   menu->line[menu->line_idx]->letter_pos,
                    menu->line[menu->line_idx]->choice_letter);
         ui_render(ui_runtime);
         // Initialize the mouse event coordinates to -1 to indicate no mouse

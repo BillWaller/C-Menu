@@ -73,12 +73,12 @@ void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
 /* -------------------------------------------------------------------------
    Colors, Color Pairs
    ------------------------------------------------------------------------- */
-int ui_add_pair(uint fg, uint bg) {
+uint ui_add_pair(uint fg, uint bg) {
     int rc;
     uint i;
     uint pfg, pbg;
     for (i = 1; i < ui_pair_cnt; i++) {
-        ui_extended_pair_content(i, &pfg, &pbg);
+        ui_pair_content(i, &pfg, &pbg);
         if (pfg == fg && pbg == bg)
             return i;
     }
@@ -206,7 +206,7 @@ RGB ui_hex_to_rgb(char *s) {
     sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
     return rgb;
 }
-int ui_extended_color_content(uint color, uint *r, uint *g, uint *b) {
+int ui_color_content(uint color, uint *r, uint *g, uint *b) {
     int _color = (int)color;
     int _r, _g, _b;
     extended_color_content(_color, &_r, &_g, &_b);
@@ -216,12 +216,12 @@ int ui_extended_color_content(uint color, uint *r, uint *g, uint *b) {
     return 0;
 }
 
-int ui_init_extended_color(uint color, uint r, uint g, uint b) {
+int ui_init_color(uint color, uint r, uint g, uint b) {
     init_extended_color(color, r, g, b);
     return 0;
 }
 
-int ui_extended_pair_content(uint pair, uint *fg, uint *bg) {
+int ui_pair_content(uint pair, uint *fg, uint *bg) {
     int _pair = (int)pair;
     int _fg, _bg;
     extended_pair_content(_pair, &_fg, &_bg);
@@ -229,7 +229,7 @@ int ui_extended_pair_content(uint pair, uint *fg, uint *bg) {
     *bg = (uint)_bg;
     return 0;
 }
-int ui_init_extended_pair(uint pair, uint fg, uint bg) {
+int ui_init_pair(uint pair, uint fg, uint bg) {
     init_extended_pair(pair, fg, bg);
     return 0;
 }
@@ -246,20 +246,26 @@ int ui_pair_from_hex(const char *fg, const char *bg) {
     return ui_add_pair(f_idx, b_idx);
 }
 
-UiStyle ui_style_from_hex(const char *fg, const char *bg, const attr_t attrs, const wchar_t *wstr) {
-    UiStyle style;
+UiCell ui_cell_from_hex(const char *fg, const char *bg, const attr_t attrs, const wchar_t *wstr) {
+    UiCell cc = {0};
     RGB rgb;
     sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int f_idx = ui_add_color_rgb(&rgb);
+    ushort f_idx = ui_add_color_rgb(&rgb);
     sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int b_idx = ui_add_color_rgb(&rgb);
-    style.cp = ui_add_pair(f_idx, b_idx);
-    style.attrs = attrs;
-    if (wstr)
-        wcsncpy(style.wstr, wstr, sizeof(style.wstr) / sizeof(wchar_t) - 1);
+    ushort b_idx = ui_add_color_rgb(&rgb);
+    short cp = ui_add_pair(f_idx, b_idx);
+    wchar_t wstr_local[4] = {0};
+    if (!wstr || wcslen(wstr) == 0)
+        wstr_local[0] = L' ';
     else
-        style.wstr[0] = L' ';
-    return style;
+        wstr_local[0] = wstr[0];
+    wstr_local[1] = L'\0';
+    setcchar(&cc,
+             &wstr_local[0],
+             attrs,
+             cp,
+             nullptr);
+    return cc;
 }
 
 /* -------------------------------------------------------------------------
@@ -316,7 +322,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
         ui->cursor_visible = false;
     }
 
-    ui_bkgrnd(stdscr, &style_nt);
+    ui_bkgrnd(stdscr, &cell_nt);
     if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
 
@@ -354,17 +360,14 @@ void ui_endwin() {
 void ui_shutdown(UiRuntime *ui) {
     if (!ui)
         return;
-    if (sfc_ptr >= 0) {
-        for (int i = sfc_ptr; i >= 0; i--) {
-            UiSurface *sfc = ui_surface[i];
-            if (sfc) {
-                ui_surface_destroy(sfc);
-                sfc = NULL;
-            }
+    for (int i = sfc_ptr; i >= 0; i--) {
+        UiSurface *sfc = ui_surface[i];
+        if (sfc) {
+            ui_surface_destroy(sfc);
+            sfc = NULL;
         }
     }
     sfc_ptr = -1;
-    endwin();
     if (ui->screen) {
         delscreen(ui->screen);
         ui->screen = NULL;
@@ -386,8 +389,7 @@ void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols) {
         *cols = ui->cols;
 }
 
-int ui_clear_screen(UiRuntime *ui) {
-    (void)ui;
+int ui_clear() {
     erase();
     return 0;
 }
@@ -418,19 +420,23 @@ int ui_cursor_enable(UiRuntime *ui, bool visible) {
 /* -------------------------------------------------------------------------
    Mice
    ------------------------------------------------------------------------- */
-void ui_mousemask(int mask) {
+int ui_mousemask(int mask) {
     if (!ui_runtime)
-        return;
+        return -1;
     if (mask)
         mousemask(mask, nullptr);
     else
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+    return 0;
 }
-void ui_mice_enable(int mask) {
+int ui_mice_enable(int mask) {
+    if (!ui_runtime)
+        return -1;
     if (mask)
         mousemask(mask, nullptr);
     else
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+    return 0;
 }
 
 /* -------------------------------------------------------------------------
@@ -501,20 +507,26 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, uint p, uint lin
             return NULL;
         }
     }
-    ui_bkgdset(s, BOX, &style_box);
+    ui_bkgdset(s, BOX, &cell_box);
     ui_scrollok(s, BOX, false);
     border_draw(s);
     border_title(s, wtitle);
+#ifdef DEBUG_UI
+    immedok(s->mwin[BOX], true);
+#endif
     return s;
 }
-int ui_surface_addpad(UiSurface *sfc, uint w, uint view_win, uint lines, uint cols) {
-    sfc->mwin[w] = newpad(lines, cols);
-    if (sfc->mwin[w] == nullptr)
+int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols) {
+    s->mwin[w] = newpad(lines, cols);
+    if (s->mwin[w] == nullptr)
         return -1;
-    sfc->mwin[view_win] = subpad(sfc->mwin[PAD], lines, cols, 0, 0);
-    if (sfc->mwin[view_win] == nullptr)
+    s->mwin[view_win] = subpad(s->mwin[PAD], lines, cols, 0, 0);
+    if (s->mwin[view_win] == nullptr)
         return -1;
-    sfc->mpan[w] = new_panel(sfc->mwin[view_win]);
+    s->mpan[w] = new_panel(s->mwin[view_win]);
+    immedok(s->mwin[w], true);
+#ifdef DEBUG_UI
+#endif
     return 0;
 }
 
@@ -526,75 +538,84 @@ int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint 
     }
     s->mpan[w] = new_panel(s->mwin[w]);
     keypad(s->mwin[w], true);
-    ui_bkgd(s, w, &style_nt);
-    ui_bkgdset(s, w, &style_nt);
+    ui_bkgd(s, w, &cell_nt);
+    ui_bkgdset(s, w, &cell_nt);
+    immedok(s->mwin[w], true);
+#ifdef DEBUG_UI
+#endif
     return 0;
 }
-void ui_wscrl(UiSurface *s, uint w, uint n) {
+int ui_wscrl(UiSurface *s, uint w, uint n) {
     if (!s->mwin[w])
-        return;
+        return -1;
     wscrl(s->mwin[w], n);
     ui_render(ui_runtime);
+    return 0;
 }
-void ui_scrollok(UiSurface *s, uint w, bool enable) {
+int ui_scrollok(UiSurface *s, uint w, bool enable) {
     if (!s->mwin[w])
-        return;
+        return -1;
     if (enable)
         scrollok(s->mwin[w], true);
     else
         scrollok(s->mwin[w], false);
+    return 0;
 }
-void ui_keypad(UiSurface *s, uint w, bool enable) {
+int ui_keypad(UiSurface *s, uint w, bool enable) {
     if (!s->mwin[w])
-        return;
+        return -1;
     if (enable)
         keypad(s->mwin[w], true);
     else
         keypad(s->mwin[w], false);
+    return 0;
 }
-void ui_idlok(UiSurface *s, uint w, bool enable) {
+int ui_idlok(UiSurface *s, uint w, bool enable) {
     if (!s->mwin[w])
-        return;
+        return -1;
     if (enable)
         idlok(s->mwin[w], true);
     else
         idlok(s->mwin[w], false);
+    return 0;
 }
-void ui_idcok(UiSurface *s, uint w, bool enable) {
+int ui_idcok(UiSurface *s, uint w, bool enable) {
     if (!s->mwin[w])
-        return;
+        return -1;
     if (enable)
         idcok(s->mwin[w], true);
     else
         idcok(s->mwin[w], false);
+    return 0;
 }
-void ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom) {
+int ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom) {
+    if (!s->mwin[w])
+        return -1;
+    wsetscrreg(s->mwin[w], top, bottom);
+    return 0;
+}
+void ui_getyx(UiSurface *s, uint w, uint *lines, uint *cols) {
     if (!s->mwin[w])
         return;
-    wsetscrreg(s->mwin[w], top, bottom);
-}
-void ui_getyx(UiSurface *sfc, uint w, uint *lines, uint *cols) {
-    if (!sfc->mwin[w])
-        return;
     int _lines, _cols;
-    getyx(sfc->mwin[w], _lines, _cols);
+    getyx(s->mwin[w], _lines, _cols);
     *lines = (uint)(_lines);
     *cols = (uint)(_cols);
 }
-void ui_getmaxyx(UiSurface *sfc, uint w, uint *lines, uint *cols) {
-    if (!sfc->mwin[w])
+void ui_getmaxyx(UiSurface *s, uint w, uint *lines, uint *cols) {
+    if (!s->mwin[w])
         return;
-    getmaxyx(sfc->mwin[w], *lines, *cols);
+    getmaxyx(s->mwin[w], *lines, *cols);
 }
-uint ui_getmaxy(UiSurface *sfc, uint w) {
-    if (!sfc->mwin[w])
+uint ui_getmaxy(UiSurface *s, uint w) {
+    if (!s->mwin[w])
         return -1;
-    return (uint)(getmaxy(sfc->mwin[w]));
+    return (uint)(getmaxy(s->mwin[w]));
 }
-uint ui_getmaxx(UiSurface *sfc, uint w) {
-    if (!sfc->mwin[w])
+uint ui_getmaxx(UiSurface *s, uint w) {
+    if (!s->mwin[w])
         return -1;
-    return (uint)(getmaxx(sfc->mwin[w]));
+    return (uint)(getmaxx(s->mwin[w]));
 }
 void ui_surface_destroy(UiSurface *s) {
     if (!s)
@@ -708,48 +729,49 @@ int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
 // -------------------------------------------------------------------------
 
 // for the entire window
-int ui_bkgd(UiSurface *s, uint w, const UiStyle *style) {
+int ui_bkgd(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
-    UiCell cch = ui_style_to_cch(style);
-    wbkgrnd(s->mwin[w], &cch);
+    wbkgrnd(s->mwin[w], cell);
     return 0;
 }
 // for new content to be written to the window
-int ui_bkgdset(UiSurface *s, uint w, const UiStyle *style) {
+int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
-    UiCell cch = ui_style_to_cch(style);
-    wbkgrndset(s->mwin[w], &cch);
+    wbkgrndset(s->mwin[w], cell);
     return 0;
 }
 // for the entire window
-int ui_bkgrnd(WINDOW *win, const UiStyle *style) {
+int ui_bkgrnd(WINDOW *win, const UiCell *cell) {
     if (!win)
         return -1;
-    UiCell cc = ui_style_to_cch(style);
-    wbkgrnd(win, &cc);
+    wbkgrnd(win, cell);
     return 0;
 }
 // for new content to be written to the window
-int ui_bkgrndset(WINDOW *win, const UiStyle *style) {
+int ui_bkgrndset(WINDOW *win, const UiCell *cell) {
     if (!win)
         return -1;
-    UiCell cc = ui_style_to_cch(style);
-    wbkgrndset(win, &cc);
+    wbkgrndset(win, cell);
     return 0;
 }
 /* ------------------------------------------------------------------------- */
-void ui_qiflush() {
-    qiflush();
-}
 
-int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, short *pair, void *opts) {
-    return getcchar(uc, wstr, attrs, pair, opts);
+int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, uint16_t *pair, void *opts) {
+    short p;
+    getcchar(uc, wstr, attrs, &p, opts);
+    pair = (uint16_t *)&p;
+    p = (short)(*pair); // Tell compiler to forget about it!
+    return 0;
 }
-
-int ui_setcchar(UiCell *uc, const wchar_t *wstr, attr_t attrs, short pair, const void *opts) {
-    return setcchar(uc, wstr, attrs, pair, opts);
+// int ui_setcchar(cchar_t *wch, const wchar_t *wc, const attr_t attrs, short
+// pair, const void *opts) {
+//    return setcchar(wch, wc, attrs, pair, &opts);
+// }
+int ui_setcchar(cchar_t *wch, const wchar_t *wc, const attr_t attrs, short pair, const void *opts) {
+    (void)opts;
+    return setcchar(wch, wc, attrs, pair, NULL);
 }
 
 int ui_render(UiRuntime *ui) {
@@ -761,74 +783,32 @@ int ui_render(UiRuntime *ui) {
 void ui_update_panels() {
     update_panels();
 }
-void ui_doupdate() {
+int ui_doupdate() {
     doupdate();
+    return 0;
 }
-void ui_wnoutrefresh(UiSurface *s, uint w) {
+int ui_wnoutrefresh(UiSurface *s, uint w) {
     if (!s)
-        return;
+        return -1;
     wnoutrefresh(s->mwin[w]);
+    return 0;
 }
-void ui_curs_set(bool visibility) {
+int ui_curs_set(bool visibility) {
     curs_set(visibility);
+    return 0;
 }
-void ui_erase() {
+int ui_erase() {
     erase();
+    return 0;
 }
 /* -------------------------------------------------------------------------
    Style helpers (shared with draw and input modules)
    ------------------------------------------------------------------------- */
 
-UiStyle *ui_style_new(void) {
-    UiStyle *style = calloc(1, sizeof(*style));
-    if (!style)
-        return NULL;
-    RGB rgb;
-    rgb.r = 255;
-    rgb.g = 255;
-    rgb.b = 255;
-    int fg = ui_add_color_rgb(&rgb);
-    rgb.r = 0;
-    rgb.g = 0;
-    rgb.b = 0;
-    int bg = ui_add_color_rgb(&rgb);
-    style->cp = ui_add_pair(fg, bg);
-    return style;
-}
-
-void ui_style_destroy(UiStyle *style) {
-    free(style);
-}
-
-UiStyle *ui_style_copy(const UiStyle *src) {
-    UiStyle *dst = calloc(1, sizeof(*dst));
-    memcpy(dst, src, sizeof(*dst));
-    return dst;
-}
-
-UiStyle *ui_style_from_cch(const UiCell *cc) {
-    UiStyle *style = calloc(1, sizeof(*style));
-    if (!style)
-        return NULL;
-    getcchar(cc, style->wstr, &style->attrs, &style->cp, NULL);
-    return style;
-}
-
-UiCell ui_style_to_cch(const UiStyle *style) {
-    UiCell cc;
-    setcchar(&cc, style->wstr, style->attrs, style->cp, NULL);
-    return cc;
-}
-
-int ui_ncurses_color_pair_from_style(const UiStyle *style) {
-    (void)style;
-    return 0;
-}
-
-int ui_ncurses_style_apply(UiSurface *s, uint w, const UiStyle *style) {
-    if (!style)
+int ui_ncurses_apply_style_from_cell(UiSurface *s, uint w, const UiCell *cell) {
+    if (!cell)
         return -1;
-    ui_bkgdset(s, w, style);
+    ui_bkgdset(s, w, cell);
     return 0;
 }
 

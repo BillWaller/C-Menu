@@ -25,8 +25,8 @@ STDRGB std_color[16] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 
 
 uint ui_color_cnt = 0;
 uint ui_pair_cnt = 0;
-
 UiSurface *stdsfc;
+
 unsigned int LINES, COLS;
 
 /* -------------------------------------------------------------------------
@@ -52,6 +52,91 @@ void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
     caps->resize = true;
     caps->color_pairs = 0;
 }
+/* -------------------------------------------------------------------------
+   Lifecycle
+   ------------------------------------------------------------------------- */
+UiRuntime *ui_init(const UiConfig *cfg) {
+    setlocale(LC_ALL, "");
+    UiRuntime *ui = calloc(1, sizeof(*ui));
+    if (!ui)
+        return NULL;
+    if (cfg) {
+        ui->mouse_enabled = cfg->enable_mouse;
+        ui->alt_screen = cfg->enable_alt_screen;
+        ui->cursor_visible = cfg->cursor_visible;
+    } else {
+        ui->cursor_visible = false;
+        ui->alt_screen = false;
+    }
+    FILE *tty = NULL;
+    if (cfg && cfg->tty_path) {
+        tty = fopen(cfg->tty_path, "r+");
+        if (!tty) {
+            free(ui);
+            return NULL;
+        }
+    }
+    struct notcurses_options opts = {
+        .flags = NCOPTION_SUPPRESS_BANNERS | (ui->alt_screen ? 0 : NCOPTION_NO_ALTERNATE_SCREEN),
+    };
+    ui->nc = notcurses_init(&opts, tty);
+    if (!ui->nc) {
+        if (tty)
+            fclose(tty);
+        free(ui);
+        return NULL;
+    }
+    if (ui->mouse_enabled)
+        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+    if (!ui->cursor_visible)
+        notcurses_cursor_disable(ui->nc);
+    notcurses_stddim_yx(ui->nc, &LINES, &COLS);
+
+    stdsfc = calloc(1, sizeof(*stdsfc));
+    if (!stdsfc)
+        return NULL;
+    stdsfc->runtime = ui;
+    stdsfc->parent = NULL;
+    stdsfc->lines = LINES;
+    stdsfc->cols = COLS;
+    stdsfc->y = 0;
+    stdsfc->x = 0;
+    struct ncplane *stdn = notcurses_stdplane(ui->nc);
+    stdsfc->mplane[WIN] = stdn;
+    if (!stdsfc->mplane[WIN]) {
+        notcurses_stop(ui->nc);
+        return NULL;
+    }
+    ncplane_erase(stdn);
+    UiChannels *ui_pair = calloc(UI_PAIRS, sizeof(UiChannels));
+    ui->lines = LINES;
+    ui->cols = COLS;
+    return ui;
+}
+
+void ui_endwin() {
+    UiRuntime *ui = ui_runtime;
+    if (!ui)
+        return;
+    if (ui->nc) {
+        if (ui->mouse_enabled)
+            notcurses_mice_disable(ui->nc);
+        notcurses_stop(ui->nc);
+    }
+    free(ui);
+}
+
+void ui_shutdown(UiRuntime *ui) {
+    if (!ui)
+        return;
+    if (ui->nc) {
+        if (ui->mouse_enabled)
+            notcurses_mice_disable(ui->nc);
+        notcurses_stop(ui->nc);
+    }
+    free(ui);
+}
+
 /* -------------------------------------------------------------------------
    Colors, Color Pairs
    ------------------------------------------------------------------------- */
@@ -194,26 +279,7 @@ RGB ui_hex_to_rgb(char *s) {
     return rgb;
 }
 
-int ui_channels_from_pair(uint16_t pair, union UiChannels *nc_channels) {
-    if (!pair || !nc_channels)
-        return -1;
-    uint16_t fg, bg;
-    uint8_t r, g, b;
-    ui_extended_pair_content(pair, &fg, &bg);
-    ui_extended_color_content(fg, &r, &g, &b);
-    nc_channels->f_a = 0x40; // foreground not default
-    nc_channels->f_r = r;
-    nc_channels->f_g = g;
-    nc_channels->f_b = b;
-    ui_extended_color_content(bg, &r, &g, &b);
-    nc_channels->b_a = 0x40; // background not default
-    nc_channels->b_r = r;
-    nc_channels->b_g = g;
-    nc_channels->b_b = b;
-    return 0;
-}
-
-int ui_extended_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
+int ui_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
     if (color + 1 >= UI_COLORS)
         return -1;
     *r = ui_color[color].r;
@@ -222,7 +288,7 @@ int ui_extended_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b
     return 0;
 }
 
-int ui_init_extended_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b) {
+int ui_init_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b) {
     if (color + 1 >= UI_COLORS)
         return -1;
     ui_color[color].r = r;
@@ -231,7 +297,7 @@ int ui_init_extended_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b) {
     return 0;
 }
 
-int ui_extended_pair_content(uint16_t pair, uint16_t *fg, uint16_t *bg) {
+int ui_pair_content(uint16_t pair, uint16_t *fg, uint16_t *bg) {
     if (pair + 1 >= UI_PAIRS)
         return -1;
     *fg = ui_color_pair[pair].fg;
@@ -239,7 +305,7 @@ int ui_extended_pair_content(uint16_t pair, uint16_t *fg, uint16_t *bg) {
     return 0;
 }
 
-int ui_init_extended_pair(uint16_t pair, uint16_t fg, uint16_t bg) {
+int ui_init_pair(uint16_t pair, uint16_t fg, uint16_t bg) {
     if (pair + 1 >= UI_PAIRS)
         return -1;
     ui_color_pair[pair].fg = fg;
@@ -248,65 +314,8 @@ int ui_init_extended_pair(uint16_t pair, uint16_t fg, uint16_t bg) {
 }
 
 /* -------------------------------------------------------------------------
-   Lifecycle
+   Screen management functions
    ------------------------------------------------------------------------- */
-UiRuntime *ui_init(const UiConfig *cfg) {
-    setlocale(LC_ALL, "");
-    UiRuntime *ui = calloc(1, sizeof(*ui));
-    if (!ui)
-        return NULL;
-    if (cfg) {
-        ui->mouse_enabled = cfg->enable_mouse;
-        ui->alt_screen = cfg->enable_alt_screen;
-        ui->cursor_visible = cfg->cursor_visible;
-    } else {
-        ui->cursor_visible = false;
-        ui->alt_screen = false;
-    }
-    FILE *tty = NULL;
-    if (cfg && cfg->tty_path) {
-        tty = fopen(cfg->tty_path, "r+");
-        if (!tty) {
-            free(ui);
-            return NULL;
-        }
-    }
-    struct notcurses_options opts = {
-        .flags = NCOPTION_SUPPRESS_BANNERS | (ui->alt_screen ? 0 : NCOPTION_NO_ALTERNATE_SCREEN),
-    };
-    ui->nc = notcurses_init(&opts, tty);
-    if (!ui->nc) {
-        if (tty)
-            fclose(tty);
-        free(ui);
-        return NULL;
-    }
-    if (ui->mouse_enabled)
-        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
-    if (!ui->cursor_visible)
-        notcurses_cursor_disable(ui->nc);
-    notcurses_stddim_yx(ui->nc, &LINES, &COLS);
-
-    stdsfc = calloc(1, sizeof(*stdsfc));
-    if (!stdsfc)
-        return NULL;
-    stdsfc->runtime = ui;
-    stdsfc->parent = NULL;
-    stdsfc->lines = LINES;
-    stdsfc->cols = COLS;
-    stdsfc->y = 0;
-    stdsfc->x = 0;
-    struct ncplane *stdn = notcurses_stdplane(ui->nc);
-    stdsfc->mplane[WIN] = stdn;
-    if (!stdsfc->mplane[WIN]) {
-        notcurses_stop(ui->nc);
-        return NULL;
-    }
-    ncplane_erase(stdn);
-    ui->lines = LINES;
-    ui->cols = COLS;
-    return ui;
-}
 
 void ui_mousemask(int mask) {
     if (!ui_runtime)
@@ -316,34 +325,12 @@ void ui_mousemask(int mask) {
     else
         notcurses_mice_enable(ui_runtime->nc, NCMICE_ALL_EVENTS);
 }
+
 void ui_mice_enable(int mask) {
     if (mask)
         notcurses_mice_enable(ui_runtime->nc, mask);
     else
         notcurses_mice_enable(ui_runtime->nc, NCMICE_ALL_EVENTS);
-}
-
-void ui_endwin() {
-    UiRuntime *ui = ui_runtime;
-    if (!ui)
-        return;
-    if (ui->nc) {
-        if (ui->mouse_enabled)
-            notcurses_mice_disable(ui->nc);
-        notcurses_stop(ui->nc);
-    }
-    free(ui);
-}
-
-void ui_shutdown(UiRuntime *ui) {
-    if (!ui)
-        return;
-    if (ui->nc) {
-        if (ui->mouse_enabled)
-            notcurses_mice_disable(ui->nc);
-        notcurses_stop(ui->nc);
-    }
-    free(ui);
 }
 
 void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols) {
@@ -575,70 +562,64 @@ union UiChannels ui_channels_from_hex(const char *fg, const char *bg) {
     return channels;
 }
 
-struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const wchar_t *wstr) {
+struct UiCell ui_cell_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const wchar_t *wstr) {
     int i = 0;
     GCluster gcluster = {0};
     while (wstr[i] != L'\0') {
-        gcluster.gclus[i] = wstr[i];
+        gcluster.wstr[i] = wstr[i];
         i++;
     }
-    gcluster.gclus[i] = L'\0';
-    struct UiStyle style = {0};
-    style.gcluster = gcluster.gcluster;
-    style.gcluster_backstop = gcluster.gcluster ? 1 : 0;
-    style.width = gcluster.gcluster ? 1 : 0;
-    style.stylemask = stylemask;
+    gcluster.wstr[i] = L'\0';
+    struct UiCell cell = {0};
+    cell.gcluster = gcluster.gcluster;
+    cell.backstop = 0;
+    cell.width = gcluster.gcluster ? 1 : 0;
+    cell.stylemask = stylemask;
     RGB rgb;
     sscanf(fg, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
-    ncchannels_set_fg_rgb8(&style.channels.fb, rgb.r, rgb.g, rgb.b);
+    ncchannels_set_fg_rgb8(&cell.channels.fb, rgb.r, rgb.g, rgb.b);
     sscanf(bg, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
-    ncchannels_set_bg_rgb8(&style.channels.fb, rgb.r, rgb.g, rgb.b);
-    return style;
+    ncchannels_set_bg_rgb8(&cell.channels.fb, rgb.r, rgb.g, rgb.b);
+    return cell;
 }
 
 // -------------------------------------------------------------------------
 // Background and style management
 // -------------------------------------------------------------------------
-int ui_bkgd(UiSurface *s, uint w, const UiStyle *style) {
+int ui_bkgd(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
-    ncplane_set_base(s->mplane[w], " ", style->stylemask, style->channels.fb);
+    ncplane_set_base(s->mplane[w], " ",
+                     cell->stylemask,
+                     cell->channels.fb);
     return 0;
 }
 
-int ui_bkgdset(UiSurface *s, uint w, const UiStyle *style) {
+int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
     /* NotCurses has no separate "set without fill" operation; delegate to
        bkgrnd which sets channels and re-fills the plane background. */
     if (!s)
         return -1;
-    ncplane_set_base(s->mplane[w], " ", style->stylemask, style->channels.fb);
+    ncplane_set_base(s->mplane[w], " ",
+                     cell->stylemask,
+                     cell->channels.fb);
     return 0;
 }
 
 /* -------------------------------------------------------------------------
-   Style helpers (shared with draw and input modules)
+   Cells
    ------------------------------------------------------------------------- */
 
-uint64_t ui_channels_from_style(const UiStyle *style) {
-    uint64_t channels = 0;
-    if (!style)
-        return channels;
-    return style->channels.fb;
-}
-
-uint32_t ui_stylemask_from_style(const UiStyle *style) {
-    return style->stylemask;
-}
-
-/* -------------------------------------------------------------------------
-   Surface style
-   ------------------------------------------------------------------------- */
-
-int ui_surface_set_style(UiSurface *s, uint w, const UiStyle *style) {
-    if (!s || !style)
+int ui_window_style_from_cell(UiSurface *s, uint w, const UiCell *cell) {
+    if (!s || !cell)
         return -1;
-    ncplane_set_channels(s->mplane[w], style->channels.fb);
-    ncplane_set_styles(s->mplane[w], style->stylemask);
+    ncplane_set_styles(s->mplane[w], cell->stylemask);
+    return 0;
+}
+int ui_window_channels_from_cell(UiSurface *s, uint w, const UiCell *cell) {
+    if (!s || !cell)
+        return -1;
+    ncplane_set_channels(s->mplane[w], cell->channels.fb);
     return 0;
 }
 

@@ -44,10 +44,6 @@ int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const UiStyle *style,
                  const char *text) {
     if (!s || !text)
         return -1;
-    if (style) {
-        ncplane_set_channels(s->mplane[w], ui_notcurses_channels_from_style(style));
-        ncplane_set_styles(s->mplane[w], ui_notcurses_attrs_from_style(style));
-    }
     ncplane_putstr_yx(s->mplane[w], y, x, text);
     return 0;
 }
@@ -95,7 +91,7 @@ int ui_wadd_cellstr(UiSurface *s, uint w, nccell *uic) {
 int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, nccell *uic) {
     if (!s)
         return -1;
-    ui_cursor_move(s, w, y, x);
+    ui_wmove(s, w, y, x);
     uint i = 0;
     while (uic[i].gcluster != '\0') {
         ncplane_putc(s->mplane[w], uic);
@@ -117,7 +113,7 @@ int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, nccell *uic, uint n
     if (!s)
         return -1;
     uint i = 0;
-    ui_cursor_move(s, w, y, x);
+    ui_wmove(s, w, y, x);
     while (i < n) {
         ncplane_putc(s->mplane[w], uic);
         i++;
@@ -192,7 +188,7 @@ int ui_wadd_wchstr(UiSurface *s, uint w, struct nccell *uic) {
 int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, struct nccell *uic) {
     if (!s)
         return -1;
-    ui_cursor_move(s, w, y, x);
+    ui_wmove(s, w, y, x);
     uint i = 0;
     while (uic[i].gcluster != '\0') {
         ncplane_putc(s->mplane[w], uic);
@@ -215,7 +211,7 @@ int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, struct nccell *uic, 
     if (!s)
         return -1;
     uint i = 0;
-    ui_cursor_move(s, w, y, x);
+    ui_wmove(s, w, y, x);
     while (i < n) {
         ncplane_putc(s->mplane[w], uic);
         i++;

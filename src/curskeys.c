@@ -45,9 +45,9 @@ int popup_ckeys() {
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     ui_keypad(sfc, WIN, true);
-    ui_bkgdset(sfc, WIN, &style_nt_rev);
+    ui_bkgdset(sfc, WIN, &cell_nt_rev);
     ui_mvwaddstr(sfc, WIN, lines - 1, 0, " <ALT>END to exit ");
-    ui_bkgdset(sfc, WIN, &style_nt);
+    ui_bkgdset(sfc, WIN, &cell_nt);
     ui_mvwaddstr(sfc, WIN, 1, 4, "Press a key or activate the mouse:");
 #ifdef UAL_UI
     ncurses_input(sfc, WIN);

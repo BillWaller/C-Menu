@@ -63,7 +63,7 @@ char const pagers_editors[12][10] = {"view", "view", "less", "more",
     input from a file or stdin
     If provider_cmd is specified, it is executed and its output is
     read as pick input */
-int init_pick(Init *init, int argc, char **argv, int by, int bx) {
+int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     struct stat sb;
     char *s_argv[MAXARGS];
     int s_argc;
@@ -423,7 +423,7 @@ void save_object(Pick *pick, char *s) {
 void display_pick_page(Pick *pick) {
     UiSurface *sfc = pick->surface;
     uint col;
-    ui_bkgdset(sfc, WIN, &style_nt);
+    ui_bkgdset(sfc, WIN, &cell_nt);
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols;
     for (col = 0; col < pick->tbl_cols; col++) {
         pick->x = col * (pick->tbl_col_width + 1) + 1;
@@ -486,14 +486,14 @@ void reverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-    ui_bkgdset(sfc, WIN, &style_nt_rev);
+    ui_bkgdset(sfc, WIN, &cell_nt_rev);
     ui_mvwaddstr_fill(sfc, WIN, pick->y, pick->x, pick->d_object[pick->d_idx],
                       pick->tbl_col_width - 1);
     if (pick->f_selected[pick->d_idx])
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_chk, 1);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_chk, 1);
     else
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_sp, 1);
-    ui_bkgdset(sfc, WIN, &style_nt);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_sp, 1);
+    ui_bkgdset(sfc, WIN, &cell_nt);
 }
 /** @brief Unreverses the display of the currently selected object in pick
    window
@@ -514,13 +514,13 @@ void unreverse_object(Pick *pick) {
     pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
-    ui_bkgdset(sfc, WIN, &style_nt);
+    ui_bkgdset(sfc, WIN, &cell_nt);
     ui_mvwaddstr_fill(sfc, WIN, pick->y, pick->x, pick->d_object[pick->d_idx],
                       pick->tbl_col_width - 1);
     if (pick->f_selected[pick->d_idx])
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_chk, 1);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_chk, 1);
     else
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_sp, 1);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_sp, 1);
     ui_cursor_move(sfc, WIN, pick->y, 0);
 }
 void remove_right_angle(Pick *pick) {
@@ -531,9 +531,9 @@ void remove_right_angle(Pick *pick) {
     pick->y = pick->tbl_line + pick->y_offset;
     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->tbl_line;
     if (pick->f_selected[pick->d_idx])
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_chk, 1);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_chk, 1);
     else
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_sp, 1);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_sp, 1);
     ui_cursor_move(sfc, WIN, pick->y, 0);
 }
 /** @brief Toggles the selection state of the currently selected object in pick
@@ -555,11 +555,11 @@ void toggle_object(Pick *pick) {
     if (pick->f_selected[pick->d_idx]) {
         pick->select_cnt--;
         pick->f_selected[pick->d_idx] = false;
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_sp, 1);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_sp, 1);
     } else {
         pick->select_cnt++;
         pick->f_selected[pick->d_idx] = true;
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_chk, 1);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_chk, 1);
     }
 }
 /** @brief Deselects the currently selected object in pick window
@@ -571,7 +571,7 @@ void deselect_object(Pick *pick) {
     if (pick->f_selected[pick->d_idx]) {
         pick->select_cnt--;
         pick->f_selected[pick->d_idx] = false;
-        ui_mvwaddnwstr(sfc, WIN, pick->y, 0, &style_box, &bw_sp, 1);
+        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0, &cell_sp, 1);
     }
 }
 int read_theme(Init *init) {
@@ -581,7 +581,7 @@ int read_theme(Init *init) {
     if (rc)
         return rc;
     SIO *sio = init->sio;
-    initialize_styles(sio);
+    initialize_cells(sio);
     ui_render(ui_runtime);
     return 0;
 }
@@ -940,11 +940,11 @@ int picker(Init *init, char *field) {
                         in_key = get_chyron_key(pick->chyron, event.x);
                 } else {
                     if (pick->f_selected[pick->d_idx])
-                        ui_mvwaddnwstr(sfc, WIN, pick->y, 0,
-                                       &style_box, &bw_chk, 1);
+                        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0,
+                                           &cell_chk, 1);
                     else
-                        ui_mvwaddnwstr(sfc, WIN, pick->y, 0,
-                                       &style_box, &bw_sp, 1);
+                        ui_mvwadd_cellnstr(sfc, WIN, pick->y, 0,
+                                           &cell_sp, 1);
                 }
             }
             switch (in_key) {
@@ -952,7 +952,7 @@ int picker(Init *init, char *field) {
                 display_pick_help(init);
                 display_pick_page(pick);
                 f_insert = false;
-                ui_mvwaddnwstr(sfc, WIN2, 0, 0, &style_box, &bw_ran, 1);
+                ui_mvwadd_cellnstr(sfc, WIN2, 0, 0, &cell_ran, 1);
                 in_key = 0;
                 continue;
 
@@ -1238,7 +1238,7 @@ int picker(Init *init, char *field) {
                     }
                 // mouse_win = nullptr;
                 pos = col + strlen(accept_s);
-                ui_mvwaddnwstr(sfc, WIN2, 0, 0, &style_box, &bw_ran, 1);
+                ui_mvwadd_cellnstr(sfc, WIN2, 0, 0, &cell_ran, 1);
                 ui_cursor_move(sfc, WIN2, 0, pos);
                 ui_top_panel(sfc, WIN2);
                 ui_curs_set(2);
@@ -1301,12 +1301,12 @@ int picker(Init *init, char *field) {
             case KEY_IC:
                 if (f_insert) {
                     f_insert = false;
-                    set_chyron_key_cp(pick->chyron, 12, "INS", KEY_IC,
-                                      cp_nt_rev);
+                    set_chyron_key_cb(pick->chyron, 12, "INS", KEY_IC,
+                                      cell_nt_rev);
                 } else {
                     f_insert = TRUE;
-                    set_chyron_key_cp(pick->chyron, 12, "INS", KEY_IC,
-                                      cp_nt_hl_rev);
+                    set_chyron_key_cb(pick->chyron, 12, "INS", KEY_IC,
+                                      cell_nt_hl_rev);
                 }
                 compile_chyron(pick->chyron);
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
@@ -1432,7 +1432,7 @@ int picker(Init *init, char *field) {
             }
             break;
         }
-        ui_mvwaddnwstr(sfc, BOX, pick->separator_line + 1, 1, &style_box, &bw_sp, 1);
+        ui_mvwadd_cellnstr(sfc, BOX, pick->separator_line + 1, 1, &cell_sp, 1);
     }
 }
 /** @brief Initializes a new view for displaying file contents in the pick

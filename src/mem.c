@@ -25,22 +25,12 @@
 #include <string.h>
 #include <unistd.h>
 
-Init *new_init(int, char **);
-Menu *new_menu(Init *init, int, char **, int, int);
-Pick *new_pick(Init *init, int, char **, int, int);
-Form *new_form(Init *init, int, char **, int, int);
-View *new_view(Init *init);
-View *destroy_view(Init *init);
-Form *destroy_form(Init *init);
-Pick *destroy_pick(Init *init);
-Menu *destroy_menu(Init *init);
-Init *destroy_init(Init *init);
-bool init_menu_files(Init *, int, char **);
-bool init_pick_files(Init *, int, char **);
-bool init_form_files(Init *, int, char **);
-bool init_view_files(Init *);
-bool verify_spec_arg(char *, char *, char *, char *, int);
 int init_cnt = 0;
+
+bool init_menu_files(Init *init, int argc, char **argv);
+bool init_form_files(Init *init, int argc, char **argv);
+bool init_pick_files(Init *init, int argc, char **argv);
+bool init_view_files(Init *init);
 
 Menu *menu;
 Pick *pick;
@@ -141,7 +131,7 @@ Init *destroy_init(Init *init) {
                     calling program interal to C-Menu
     @param begy, begx - initial position of menu window
  */
-Menu *new_menu(Init *init, int argc, char **argv, int begy, int begx) {
+Menu *new_menu(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->menu = (Menu *)calloc(1, sizeof(Menu));
     if (!init->menu) {
         abend(-1, "calloc menu failed");
@@ -193,7 +183,7 @@ Menu *destroy_menu(Init *init) {
                     calling program interal to C-Menu
     @param begy, begx - initial position of pick window
  */
-Pick *new_pick(Init *init, int argc, char **argv, int begy, int begx) {
+Pick *new_pick(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->pick = (Pick *)calloc(1, sizeof(Pick));
     if (!init->pick) {
         Perror("calloc pick failed");
@@ -259,7 +249,7 @@ Pick *destroy_pick(Init *init) {
                     calling program interal to C-Menu
     @param begy, begx - initial position of form window
  */
-Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
+Form *new_form(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->form = (Form *)calloc(1, sizeof(Form));
     if (!init->form) {
         abend(-1, "calloc form failed");
@@ -283,7 +273,7 @@ Form *new_form(Init *init, int argc, char **argv, int begy, int begx) {
     @return nullptr
  */
 Form *destroy_form(Init *init) {
-    int i;
+    uint i;
 
     if (!init->form)
         return nullptr;
@@ -377,7 +367,7 @@ View *destroy_view(Init *init) {
     @return bool - true if file verified
  */
 bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
-                     int mode) {
+                     uint mode) {
     bool f_dir = false;
     bool f_spec = false;
     bool f_quote = true;

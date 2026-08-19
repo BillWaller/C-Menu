@@ -44,13 +44,6 @@
 #define LF_DIR 2
 #define LF_REG 4
 
-void write_cmenu_log(char *);
-void open_cmenu_log();
-void left_justify(char *s);
-void right_justify(char *, int);
-bool is_valid_date(int yyyy, int mm, int dd);
-bool is_valid_time(int hh, int mm, int ss);
-void numeric(char *d, char *s);
 int cmenu_log_fd;
 
 char earg_str[MAXLEN];
@@ -65,8 +58,8 @@ typedef struct {
     time_t after;
     time_t before;
     uintmax_t user_id;
-    intmax_t file_size_min;
-    int max_depth;
+    uintmax_t file_size_min;
+    uint max_depth;
     bool f_ignore_case;
     bool f_sort;
     bool f_reverse;
@@ -75,8 +68,8 @@ typedef struct {
     char *args[2];
     int argc;
     char exec[MAXLEN];
-    int include_types;
-    int suppress_types;
+    uint include_types;
+    uint suppress_types;
     bool include;
     bool blk;
     bool chr;
@@ -98,20 +91,20 @@ size_t rtrim(char *);
 bool stripz_quotes(char *);
 bool strip_quotes(char *);
 bool str_to_bool(const char *);
-int str_to_args(char **, char *, int);
+int str_to_args(char **, char *, uint);
 double str_to_double(char *);
 bool str_to_lower(char *);
 bool str_to_upper(char *);
 size_t strz(char *);
 size_t strnz(char *, size_t);
 size_t strnlf(char *, size_t);
-bool str_subc(char *, char *, char, char *, int);
+bool str_subc(char *, char *, char, char *, uint);
 char *rep_substring(const char *, const char *, const char *);
 bool normalize_file_spec(char *);
 bool file_spec_path(char *, char *);
 bool file_spec_name(char *, char *);
-bool verify_file(char *, int);
-bool verify_dir(char *, int);
+bool verify_file(char *, uint);
+bool verify_dir(char *, uint);
 bool locate_file_in_path(char *, char *);
 size_t canonicalize_file_spec(char *);
 size_t ssnprintf(char *, size_t, const char *, ...);
@@ -124,13 +117,13 @@ size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
-char *iso8601_time(char *, int, time_t *, bool);
+char *iso8601_time(char *, uint, time_t *, bool);
 bool parse_local_timestamp(const char *, time_t *);
 char *format_local_timestamp(time_t, char *, size_t);
 char *get_local_timestamp();
 char *get_user_str(char *, size_t);
-char *get_ip_addresses(char *, int);
-char *fill_field(char *accept_s, char *display_s, char fill_char, int flen);
+char *get_ip_addresses(char *, uint);
+char *fill_field(char *accept_s, char *display_s, char fill_char, uint flen);
 char stdio_names_str[MAXLEN];
 
 /** Global variables for error reporting */
@@ -145,7 +138,7 @@ typedef struct {
 } error_info_t;
 typedef struct {
     char *src_name;
-    int src_line;
+    uint src_line;
 } error_source_t;
 error_info_t error_info;
 error_source_t error_source;
@@ -206,7 +199,7 @@ bool get_argp_doc_by_name(char *comment, const struct argp_option *options,
     @returns true if str is a valid hex string of the specified length, false otherwise
     @details This function checks that the input string contains only hexadecimal characters (0-9, A-F, a-f) and that the total number of hex digits matches the specified length. If the input string is valid, it returns true; otherwise, it returns false. The caller must ensure that the input string is not null and has at least one character before calling this function.
  */
-bool is_hex_str(char *str, int len) {
+bool is_hex_str(char *str, uint len) {
     char *s = str;
     char *e;
     if (s == NULL || *s == '\0')
@@ -218,7 +211,7 @@ bool is_hex_str(char *str, int len) {
         }
         s++;
     }
-    if ((int)(s - str) != len)
+    if ((uint)(s - str) != len)
         return false;
     return true;
 }
@@ -247,7 +240,7 @@ bool unstr_hex_clr(char *dst, char *str) {
         *d++ = *s++;
     }
     *d = '\0';
-    if ((int)(s - str) != 7)
+    if ((uint)(s - str) != 7)
         return false;
     return true;
 }
@@ -261,7 +254,7 @@ bool unstr_hex_clr(char *dst, char *str) {
     @returns pointer to buf
     @note The caller is responsible for ensuring that buf has enough space to hold the resulting string. The ISO 8601 format produced is "YYYY-MM-DDTHH:MM:SSZ" for UTC or "YYYY-MM-DDTHH:MM:SS±hhmm" for local time. This function uses strftime internally, so the actual format may vary based on the implementation of strftime and the locale settings.
  */
-char *iso8601_time(char *buf, int n, time_t *t, bool local) {
+char *iso8601_time(char *buf, uint n, time_t *t, bool local) {
     struct tm *tp = local ? localtime(t) : gmtime(t);
     if (local) {
         strftime(buf, n, "%Y-%m-%dT%H:%M:%S%z", tp);
@@ -329,7 +322,7 @@ char *get_user_str(char *user_str, size_t maxlen) {
     struct passwd *pw = getpwuid(uid);
     if (pw == NULL)
         return nullptr;
-    ssnprintf(user_str, maxlen - 1, "%s (%u)", pw->pw_name, (unsigned int)uid);
+    ssnprintf(user_str, maxlen - 1, "%s (%u)", pw->pw_name, (uint)uid);
     return user_str;
 }
 /**  @brief Trims trailing spaces from string s in place.
@@ -351,7 +344,7 @@ size_t rtrim(char *s) {
     @returns pointer to ip_str containing the formatted IP addresses, or nullptr if an error occurs
     @details This function uses getifaddrs to retrieve a linked list of network interfaces on the local machine. It iterates through the list and checks for interfaces with IPv4 addresses (AF_INET). For each valid interface, it converts the binary IP address to a human-readable string using inet_ntop and appends it to the provided buffer in the format "[interface-name-IP-address]". Multiple interfaces are separated by commas. The caller must ensure that ip_str has enough space to hold the resulting string. If getifaddrs fails, this function returns nullptr and does not modify the buffer.
  */
-char *get_ip_addresses(char *ip_str, int maxlen) {
+char *get_ip_addresses(char *ip_str, uint maxlen) {
     char tmp_str[MAXLEN];
     struct ifaddrs *ifaddr, *ifa;
     char host[INET_ADDRSTRLEN];
@@ -437,13 +430,13 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
    quotes as individual arguments. It has been in service for many years without
    problems.
     @note The caller is responsible for deallocating the strings in argv. */
-int str_to_args(char **argv, char *arg_str, int max_args) {
+int str_to_args(char **argv, char *arg_str, uint max_args) {
     if (arg_str == nullptr || *arg_str == '\0')
         return 0;
-    int argc = 0;
+    uint argc = 0;
     char *p = arg_str;
     char tmp_str[MAXLEN];
-    int in_quotes = 0;
+    uint in_quotes = 0;
     char *d = tmp_str;
 
     while (*p != '\0' && argc < max_args) {
@@ -491,8 +484,8 @@ int str_to_args(char **argv, char *arg_str, int max_args) {
    allocated strings in argv, and that argv is not null. After calling this
    function, the pointers in argv will be set to nullptr to prevent dangling
    pointers. */
-int destroy_argv(int argc, char **argv) {
-    for (int i = 0; i < argc; i++) {
+int destroy_argv(uint argc, char **argv) {
+    for (uint i = 0; i < argc; i++) {
         if (argv[i] != nullptr) {
             free(argv[i]);
             argv[i] = nullptr;
@@ -687,7 +680,7 @@ char *strnz_dup(char *s, size_t l) {
    perform any bounds checking on "d" or "Withstr", so it is the caller's
    responsibility to ensure that they are valid and that "l" is appropriate for
    the operation. */
-bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
+bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, uint l) {
     char *e;
     if (s == nullptr || d == nullptr || Withstr == nullptr || l == 0) {
         if (d != nullptr && l > 0)
@@ -718,7 +711,7 @@ bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, int l) {
 bool strip_quotes(char *s) {
     if (s == nullptr)
         return false;
-    int l = strlen(s);
+    uint l = strlen(s);
     if (l > 1 && s[l - 1] == '\"') {
         memmove(s, s + 1, l - 2);
         s[l - 2] = '\0';
@@ -733,7 +726,7 @@ bool strip_quotes(char *s) {
 bool stripz_quotes(char *s) {
     if (s == nullptr || strlen(s) < 2)
         return false;
-    int l = strlen(s);
+    uint l = strlen(s);
     if (l > 1 && s[0] == '\"' && s[l - 1] == '\"') {
         memmove(s, s + 1, l - 2);
         s[l - 2] = '\0';
@@ -771,7 +764,7 @@ int a_toi(char *s, bool *a_toi_error) {
     *a_toi_error = false;
     errno = 0;
     if (s && *s != 0)
-        rc = (int)strtol(s, nullptr, 10);
+        rc = (uint)strtol(s, nullptr, 10);
     if (rc < 0 || errno) {
         rc = -1;
         *a_toi_error = true;
@@ -968,7 +961,7 @@ bool str_to_bool(const char *s) {
     @param str - string to modify
     @param path_maxlen - maximum length of resulting string
     @returns true if successful, false if str is nullptr or empty */
-bool expand_tilde(char *str, int path_maxlen) {
+bool expand_tilde(char *str, uint path_maxlen) {
     if (str == nullptr || *str == '\0')
         return false;
     const char tgt[3] = "~/";
@@ -1187,14 +1180,14 @@ bool dir_name(char *buf, char *path) {
             S_QUIET - Suppress Error Messages
      @returns true if successful
      @details S_WCOK and S_QUIET are stripped before calling faccessat */
-bool verify_dir(char *spec, int imode) {
+bool verify_dir(char *spec, uint imode) {
     if (spec == nullptr || *spec == '\0')
         return false;
     expand_tilde(spec, MAXLEN);
     struct stat sb;
     errno = 0;
     src_line = 0;
-    int mode = imode & ~(S_WCOK | S_QUIET);
+    uint mode = imode & ~(S_WCOK | S_QUIET);
     if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) != 0) {
         src_line = __LINE__ - 2;
         src_name = __FILE__;
@@ -1238,13 +1231,13 @@ bool verify_dir(char *spec, int imode) {
             S_QUIET - Suppress Error Messages
      @returns true if successful
      @details S_WCOK and S_QUIET are stripped before calling faccessat */
-bool verify_file(char *in_spec, int imode) {
+bool verify_file(char *in_spec, uint imode) {
     if (in_spec == nullptr || *in_spec == '\0')
         return false;
     struct stat sb;
     char spec[MAXLEN];
     strnz__cpy(spec, in_spec, MAXLEN - 1);
-    int mode = imode & ~(S_WCOK | S_QUIET);
+    uint mode = imode & ~(S_WCOK | S_QUIET);
     errno = 0;
     src_line = 0;
     canonicalize_file_spec(spec);
@@ -1347,7 +1340,7 @@ size_t canonicalize_file_spec(char *spec) {
     s = spec;
     char *d;
     d = tmp_s;
-    int l = 0;
+    uint l = 0;
     while (*s != '\0') {
         if (*s == ' ')
             break;
@@ -1400,7 +1393,7 @@ bool is_symlink_to_dir(const char *path) {
     @returns true if the pattern is valid, false otherwise */
 bool is_valid_regex(const char *pattern) {
     regex_t regex;
-    int ret = regcomp(&regex, pattern, REG_EXTENDED);
+    uint ret = regcomp(&regex, pattern, REG_EXTENDED);
     regfree(&regex);
     if (ret == 0)
         return true;
@@ -1452,10 +1445,10 @@ char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
     if (strcmp(org_s, tgt_s) == 0)
         return strdup(rep_s);
     char *out_s, *ip, *tmp;
-    int tgt_l = strlen(tgt_s);
-    int rep_l = strlen(rep_s);
-    int head_l;
-    int n = 0;
+    uint tgt_l = strlen(tgt_s);
+    uint rep_l = strlen(rep_s);
+    uint head_l;
+    uint n = 0;
     ip = (char *)org_s;
     while ((tmp = strstr(ip, tgt_s)) != nullptr) {
         n++;
@@ -1706,7 +1699,7 @@ void write_cmenu_log(char *msg) {
 }
 
 void left_justify(char *s) { trim(s); }
-void right_justify(char *s, int fl) {
+void right_justify(char *s, uint fl) {
     char *p = s;
     char *d = s + fl;
     trim(s);
@@ -1721,18 +1714,18 @@ void right_justify(char *s, int fl) {
         *(--d) = ' ';
     }
 }
-bool is_valid_date(int yyyy, int mm, int dd) {
+bool is_valid_date(uint yyyy, uint mm, uint dd) {
     if (yyyy < 1 || mm < 1 || mm > 12 || dd < 1)
         return false;
-    int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    uint days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     if ((yyyy % 4 == 0 && yyyy % 100 != 0) || (yyyy % 400 == 0))
         days_in_month[2] = 29;
     if (dd > days_in_month[mm])
         return false;
     return true;
 }
-bool is_valid_time(int hh, int mm, int ss) {
-    if (hh < 0 || hh > 23 || mm < 0 || mm > 59 || ss < 0 || ss > 59)
+bool is_valid_time(uint hh, uint mm, uint ss) {
+    if (hh > 23 || mm > 59 || ss > 59)
         return false;
     return true;
 }
@@ -1746,7 +1739,7 @@ void numeric(char *d, char *s) {
     *d = '\0';
 }
 
-char *fill_field(char *accept_s, char *display_s, char fill_char, int flen) {
+char *fill_field(char *accept_s, char *display_s, char fill_char, uint flen) {
     char *s = accept_s;
     char *d = display_s;
     char *e = d + flen;

@@ -47,33 +47,6 @@ UiSurface *ui_surface[MAXWIN];
 int click_y;
 int click_x;
 
-bool init_clr_palette(SIO *);
-bool open_curses(SIO *);
-void destroy_curses();
-void abend(int, char *);
-int nf_error(int, char *);
-int Perror(char *);
-RGB xterm256_idx_to_rgb(int);
-int rgb_to_xterm256_idx(RGB *);
-void apply_gamma(RGB *);
-Chyron *new_chyron();
-void set_chyron_key(Chyron *, int, char *, int);
-void set_chyron_key_cp(Chyron *, int, char *, int, int);
-bool is_set_chyron_key(Chyron *, int);
-void unset_chyron_key(Chyron *, int);
-void compile_chyron(Chyron *);
-Chyron *destroy_chyron(Chyron *chyron);
-void activate_chyron_key(Chyron *chyron, int k);
-void activate_all_chyron_keys(Chyron *chyron);
-void deactivate_chyron_key(Chyron *chyron, int k);
-void deactivate_all_chyron_keys(Chyron *chyron);
-int border_draw(UiSurface *sfc);
-int border_title(UiSurface *sfc, char *title);
-int border_ysplit(UiSurface *, int);
-int border_ysplit_text(UiSurface *, char *, int);
-void win_resize(int, int, char *);
-void ui_restore_wins();
-
 /** colors_text
     @brief Color names for .minitrc overrides
     @details These names are used in .minitrc to specify color overrides The
@@ -99,25 +72,34 @@ const wchar_t bw_da = BW_DA;   /**< down arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
 const wchar_t bw_chk = BW_CHK; /**< check mark */
 
-UiStyle style_default;
-UiStyle style_fill_char;
-UiStyle style_brktl;
-UiStyle style_brktr;
-UiStyle style_nt;
-UiStyle style_nt_rev;
-UiStyle style_nt_hl;
-UiStyle style_nt_hl_rev;
-UiStyle style_box;
-UiStyle style_ind;
-UiStyle style_cmdln;
-UiStyle style_title;
-UiStyle style_ln;
-UiStyle style_ran;
-UiStyle style_chk;
-UiStyle style_ls;
-UiStyle style_rs;
-UiStyle style_ts;
-UiStyle style_bs;
+UiCell cell_default;
+UiCell cell_fill_char;
+UiCell cell_brktl;
+UiCell cell_brktr;
+UiCell cell_nt;
+UiCell cell_nt_rev;
+UiCell cell_nt_hl;
+UiCell cell_nt_hl_rev;
+UiCell cell_box;
+UiCell cell_ind;
+UiCell cell_cmdln;
+UiCell cell_title;
+UiCell cell_ln;
+UiCell cell_ran;
+UiCell cell_chk;
+UiCell cell_ls;
+UiCell cell_rs;
+UiCell cell_ts;
+UiCell cell_bs;
+UiCell cell_tl;
+UiCell cell_tr;
+UiCell cell_ho;
+UiCell cell_ve;
+UiCell cell_bl;
+UiCell cell_br;
+UiCell cell_lt;
+UiCell cell_rt;
+UiCell cell_sp;
 
 double GRAY_GAMMA = 1.2; /**< Gamma correction. Set in .minitrc */
 double RED_GAMMA = 1.2;
@@ -127,38 +109,39 @@ double BLUE_GAMMA = 1.2;
 int exit_code;
 unsigned int cmd_key;
 bool f_sigwench = false;
-int win_attr;
-int box_attr;
+uint16_t win_attr;
+uint16_t box_attr;
 int sfc_ptr;
-int m_lines;
-int m_cols;
-int m_begy = -1;
-int m_begx = -1;
-int mouse_support;
+uint m_lines;
+uint m_cols;
+uint m_begy = -1;
+uint m_begx = -1;
+uint mouse_support;
 int stdin_fd;
 int stdout_fd;
-int src_line;
+uint src_line;
 char *src_name;
 char fn[MAXLEN];
 char em0[MAXLEN];
 char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
-short cp_box;
-short cp_ind;
-short cp_cmdln;
-short cp_title;
-short cp_nt;
-short cp_nt_rev;
-short cp_nt_hl;
-short cp_nt_hl_rev;
-short cp_ln;
-short cp_fill_char;
-short cp_brackets;
-short cp_red;
-short cp_green;
-short cp_yellow;
-short cp_blue;
+
+ushort cp_box;
+ushort cp_ind;
+ushort cp_cmdln;
+ushort cp_title;
+ushort cp_nt;
+ushort cp_nt_rev;
+ushort cp_nt_hl;
+ushort cp_nt_hl_rev;
+ushort cp_ln;
+ushort cp_fill_char;
+ushort cp_brackets;
+ushort cp_red;
+ushort cp_green;
+ushort cp_yellow;
+ushort cp_blue;
 
 int tty_fd, pipe_in, pipe_out;
 
@@ -173,7 +156,7 @@ int tty_fd, pipe_in, pipe_out;
    code when applying colors to various parts of the interface using NCurses
    functions that accept color pair indices.
  */
-void initialize_styles(SIO *sio) {
+void initialize_cells(SIO *sio) {
     /** gamma correction values */
     /** These are read from ~/.minitrc */
     /** used when initializing colors */
@@ -201,28 +184,37 @@ void initialize_styles(SIO *sio) {
     cp_yellow = ui_add_pair(CLR_BG, CLR_YELLOW);
     cp_blue = ui_add_pair(CLR_FG, CLR_BLUE);
     //
-    // Standardized UiStyle variables
+    // Standardized UiCells
     //
-    void mbc_to_wc(wchar_t wc[2], const char mbc);
-    style_default = ui_style_from_hex("#d0d0d0", "#000000", WA_NORMAL, nullptr);
-    style_fill_char = ui_style_from_hex(sio->fill_char_fg, sio->fill_char_bg, WA_NORMAL, nullptr);
+    // void mbc_to_wc(wchar_t wc[2], const char mbc);
+    cell_default = ui_cell_from_hex("#d0d0d0", "#000000", WA_NORMAL, nullptr);
+    cell_fill_char = ui_cell_from_hex(sio->fill_char_fg, sio->fill_char_bg, WA_NORMAL, nullptr);
     wchar_t brktl[2];
     mbc_to_wc(brktl, sio->brackets[0]);
-    style_brktl = ui_style_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktl);
+    cell_brktl = ui_cell_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktl);
     wchar_t brktr[2];
-    mbc_to_wc(brktr, sio->brackets[0]);
-    style_brktr = ui_style_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktr);
-    style_nt = ui_style_from_hex(sio->nt_fg, sio->nt_bg, WA_NORMAL, nullptr);
-    style_nt_rev = ui_style_from_hex(sio->nt_rev_fg, sio->nt_rev_bg, WA_NORMAL, nullptr);
-    style_nt_hl = ui_style_from_hex(sio->nt_hl_fg, sio->nt_hl_bg, WA_NORMAL, nullptr);
-    style_nt_hl_rev = ui_style_from_hex(sio->nt_hl_rev_fg, sio->nt_hl_rev_bg, WA_NORMAL, nullptr);
-    style_box = ui_style_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, nullptr);
-    style_ind = ui_style_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, nullptr);
-    style_cmdln = ui_style_from_hex(sio->cmdln_fg, sio->cmdln_bg, WA_NORMAL, nullptr);
-    style_title = ui_style_from_hex(sio->title_fg, sio->title_bg, WA_NORMAL, nullptr);
-    style_ln = ui_style_from_hex(sio->ln_fg, sio->ln_bg, WA_NORMAL, nullptr);
-    style_ran = ui_style_from_hex(sio->ran_fg, sio->ran_bg, WA_NORMAL, &bw_ran);
-    style_chk = ui_style_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, &bw_chk);
+    mbc_to_wc(brktr, sio->brackets[1]);
+    cell_brktr = ui_cell_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktr);
+    cell_nt = ui_cell_from_hex(sio->nt_fg, sio->nt_bg, WA_NORMAL, nullptr);
+    cell_nt_rev = ui_cell_from_hex(sio->nt_rev_fg, sio->nt_rev_bg, WA_NORMAL, nullptr);
+    cell_nt_hl = ui_cell_from_hex(sio->nt_hl_fg, sio->nt_hl_bg, WA_NORMAL, nullptr);
+    cell_nt_hl_rev = ui_cell_from_hex(sio->nt_hl_rev_fg, sio->nt_hl_rev_bg, WA_NORMAL, nullptr);
+    cell_box = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, nullptr);
+    cell_ind = ui_cell_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, nullptr);
+    cell_cmdln = ui_cell_from_hex(sio->cmdln_fg, sio->cmdln_bg, WA_NORMAL, nullptr);
+    cell_title = ui_cell_from_hex(sio->title_fg, sio->title_bg, WA_NORMAL, nullptr);
+    cell_ln = ui_cell_from_hex(sio->ln_fg, sio->ln_bg, WA_NORMAL, nullptr);
+    cell_ran = ui_cell_from_hex(sio->ran_fg, sio->ran_bg, WA_NORMAL, &bw_ran);
+    cell_chk = ui_cell_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, &bw_chk);
+    cell_tl = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_tl);
+    cell_tr = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_tr);
+    cell_bl = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_bl);
+    cell_br = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_br);
+    cell_ho = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_ho);
+    cell_ve = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_ve);
+    cell_lt = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_lt);
+    cell_rt = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_rt);
+    cell_sp = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_sp);
 }
 /** rgb_to_xterm256_idx
     @brief Convert RGB color to XTerm 256 color index
@@ -233,7 +225,7 @@ void initialize_styles(SIO *sio) {
    index. It first checks if the color is a shade of gray, and if so, it uses
    the gray ramp. Otherwise, it calculates the nearest color in the 6x6x6 color
    cube. */
-int rgb_to_xterm256_idx(RGB *rgb) {
+uint rgb_to_xterm256_idx(RGB *rgb) {
     if (rgb->r == rgb->g && rgb->g == rgb->b) {
         if (rgb->r < 8)
             return 16;
@@ -241,9 +233,9 @@ int rgb_to_xterm256_idx(RGB *rgb) {
             return 231;
         return ((rgb->r - 8) / 10) + 231;
     } else {
-        int r_index = (rgb->r < 45) ? 0 : (rgb->r - 60) / 40 + 1;
-        int g_index = (rgb->g < 45) ? 0 : (rgb->g - 60) / 40 + 1;
-        int b_index = (rgb->b < 45) ? 0 : (rgb->b - 60) / 40 + 1;
+        uint r_index = (rgb->r < 45) ? 0 : (rgb->r - 60) / 40 + 1;
+        uint g_index = (rgb->g < 45) ? 0 : (rgb->g - 60) / 40 + 1;
+        uint b_index = (rgb->b < 45) ? 0 : (rgb->b - 60) / 40 + 1;
         return 16 + (36 * r_index) + (6 * g_index) + b_index;
     }
 }
@@ -255,15 +247,13 @@ int rgb_to_xterm256_idx(RGB *rgb) {
     @details This function converts an XTerm 256 color index to an RGB color. It
    first checks if the index is in the standard 16 colors, then checks if it's
    in the 6x6x6 color cube, and finally checks if it's in the gray ramp. */
-RGB xterm256_idx_to_rgb(int idx) {
+RGB xterm256_idx_to_rgb(uint idx) {
     /** Convert XTerm 256 color index to RGB
         @param idx - XTerm 256 color index
         @return RGB struct */
     RGB rgb;
     if (idx > 255)
         idx = 255;
-    if (idx < 0)
-        idx = 0;
     rgb.r = rgb.g = rgb.b = 0;
     if (idx < 16) {
         rgb.r = std_color[idx].r;
@@ -275,7 +265,7 @@ RGB xterm256_idx_to_rgb(int idx) {
         rgb.g = (idx / 6) % 6 * 51;
         rgb.b = (idx % 6) * 51;
     } else if (idx >= 232 && idx <= 255) {
-        int gray = (idx - 232) * 11;
+        uint gray = (idx - 232) * 11;
         rgb.r = rgb.g = rgb.b = gray;
     }
     return rgb;
@@ -418,7 +408,7 @@ void destroy_curses() {
 void mbc_to_wc(wchar_t wc[2], const char mbc) {
     wc[0] = wc[1] = L'\0';
     mbstate_t state = {0};
-    size_t len = mbrtowc(wc, &mbc, 0, &state);
+    size_t len = mbrtowc(wc, &mbc, MB_CUR_MAX, &state);
     if (len <= 0) {
         wc[0] = L'?';
         wc[1] = L'\0';
@@ -458,8 +448,11 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
    The pos parameter is updated to reflect the current position in the output
    buffer, and the function ensures that it does not exceed the maximum length.
 */
+
 #ifdef NCURSES_UI
-uint mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, uint cpx, uint *p, uint maxlen) {
+uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
+    attr_t attrs;
+    short cp;
     uint p1 = 0;
     uint *pos = &p1;
     if (p)
@@ -469,11 +462,11 @@ uint mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, uint cpx, uint 
     uint i = 0, len = 0;
     const char *s;
     UiCell cc = {0};
-    wchar_t wstr[2] = {L'\0', L'\0'};
+    wchar_t wstr[5];
+    getcchar(cell_base, &wstr[0], &attrs, &cp, nullptr);
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
-    attr = WA_NORMAL;
-    if (pos && *pos >= maxlen - 1)
+    if (pos && *pos >= atmost - 1)
         return 0;
     while (str[i] != '\0') {
         s = &str[i];
@@ -484,17 +477,54 @@ uint mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attr, uint cpx, uint 
             len = 1;
         }
         wstr[1] = L'\0';
-        if (*pos > maxlen)
+        if (*pos > atmost)
             break;
-        if (ui_setcchar(&cc, wstr, attr, cpx, nullptr) != ERR) {
-            if (len > 0 && (*pos + len) < maxlen)
+        if (setcchar(&cc, wstr, attrs, cp, nullptr) != ERR) {
+            if (len > 0 && (*pos + len) < atmost)
                 cmplx_buf[(*pos)++] = cc;
         }
         i += len;
     }
     wstr[0] = L'\0';
     wstr[1] = L'\0';
-    ui_setcchar(&cc, wstr, attr, cpx, nullptr);
+    setcchar(&cc, wstr, attrs, cp, nullptr);
+    cmplx_buf[*pos] = cc;
+    return *pos;
+}
+#else
+int mbstr_to_cellstr(struct UiCell *cmplx_buf, const char *str, const uint16_t *style, const UiPair *cp, uint *p, const uint atmost) {
+    uint p1 = 0;
+    uint *pos = &p1;
+    if (p)
+        pos = p;
+    uint i = 0, len = 0;
+    const char *s;
+    UiCell cc;
+    wchar_t wstr[2] = {L'\0', L'\0'};
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    if (pos && *pos >= atmost - 1)
+        return 0;
+    while (str[i] != '\0') {
+        s = &str[i];
+        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
+            len = 1;
+        }
+        wstr[1] = L'\0';
+        if (*pos > atmost)
+            break;
+        if (ui_setnccell(&cc, wstr, style, cp) != ERR) {
+            if (len > 0 && (*pos + len) < atmost)
+                cmplx_buf[(*pos)++] = cc;
+        }
+        i += len;
+    }
+    wstr[0] = L'\0';
+    wstr[1] = L'\0';
+    ui_setnccell(&cc, wstr, style, cp);
     cmplx_buf[*pos] = cc;
     return *pos;
 }
@@ -563,7 +593,7 @@ int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint 
     wlines = min(wlines, maxy - 2);
     wcols = min(wcols, maxx - 2);
     split_x = min(split_x, maxx - 2); // not implemented yet
-    int split_wlines = min(wlines + split_y + 1, maxy - 2);
+    uint split_wlines = min(wlines + split_y + 1, maxy - 2);
     wcols = min(wcols, maxx - 2);
     sfc_ptr++;
     // ------------------->    surface_new    <-------------------
@@ -587,7 +617,7 @@ int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint 
     @note The difference between this function and ui_surface_destroy() is that this function destroys the surface pointed to by the surface pointer (sfc_ptr) and decrements the surface pointer after destroying the surface.
  */
 int cm_surface_destroy(UiSurface *sfc) {
-    if (sfc_ptr < 0)
+    if (sfc_ptr >= MAX_SFC)
         return -1;
     if (sfc != ui_surface[sfc_ptr])
         return -1;
@@ -600,19 +630,19 @@ int border_draw(UiSurface *sfc) {
     uint maxx = ui_getmaxx(sfc, BOX);
     uint y = 0;
     uint x = 0;
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_tl, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_tl, 1);
     ui_render(ui_runtime);
     for (x = 1; x < maxx - 1; x++)
-        ui_mvwaddnwstr(sfc, BOX, y, x, &style_box, &bw_ho, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, maxx - 1, &style_box, &bw_tr, 1);
+        ui_mvwadd_cellnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_tr, 1);
     for (y = 1; y < maxy - 1; y++) {
-        ui_mvwaddnwstr(sfc, BOX, y, 0, &style_box, &bw_ve, 1);
-        ui_mvwaddnwstr(sfc, BOX, y, maxx - 1, &style_box, &bw_ve, 1);
+        ui_mvwadd_cellnstr(sfc, BOX, y, 0, &cell_ve, 1);
+        ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_ve, 1);
     }
-    ui_mvwaddnwstr(sfc, BOX, y, 0, &style_box, &bw_bl, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, 0, &cell_bl, 1);
     for (x = 1; x < maxx - 1; x++)
-        ui_mvwaddnwstr(sfc, BOX, y, x, &style_box, &bw_ho, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, maxx - 1, &style_box, &bw_br, 1);
+        ui_mvwadd_cellnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_br, 1);
     ui_render(ui_runtime);
     return 0;
 }
@@ -627,12 +657,12 @@ int border_draw(UiSurface *sfc) {
    page 00) and extends across the width of the box. Use this function when you
    want to visually separate two sections within a window, such as for a header
    and content area. */
-int border_ysplit(UiSurface *sfc, int y) {
-    int maxx = ui_getmaxx(sfc, BOX);
-    ui_mvwaddnwstr(sfc, BOX, y, 0, &style_box, &bw_lt, 1);
-    for (int x = 1; x < maxx - 1; x++)
-        ui_waddnwstr(sfc, BOX, &style_box, &bw_ho, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, maxx - 1, &style_box, &bw_rt, 1);
+int border_ysplit(UiSurface *sfc, uint y) {
+    uint maxx = ui_getmaxx(sfc, BOX);
+    ui_mvwadd_cellnstr(sfc, BOX, y, 0, &cell_lt, 1);
+    for (uint x = 1; x < maxx - 1; x++)
+        ui_mvwadd_cellnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_rt, 1);
     return 0;
 }
 /** border_ysplit_text
@@ -647,7 +677,7 @@ int border_ysplit(UiSurface *sfc, int y) {
    extends across the width of the box, with the provided text displayed in the
    middle of the line. Use this function when you want to visually separate two
    sections within a window and label the separator with descriptive text. */
-int border_ysplit_text(UiSurface *sfc, char *text, int separator_line) {
+int border_ysplit_text(UiSurface *sfc, char *text, uint separator_line) {
     uint maxx = ui_getmaxx(sfc, BOX);
     uint l;
     uint y = separator_line;
@@ -655,24 +685,25 @@ int border_ysplit_text(UiSurface *sfc, char *text, int separator_line) {
     // Draw the horizontal line with text in the middle, so we start by drawing
     // the left edge, then the text, then the right edge, and finally fill in the
     // horizontal line on either side of the text.
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_lt, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_ho, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_rt, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_sp, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_lt, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_ho, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_rt, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_sp, 1);
     strnz(text, maxx - 7);
     wchar_t *text_wc;
     text_wc = mbstr_to_wcstr(text);
     l = wcswidth(text_wc, wcslen(text_wc));
-    ui_mvwaddnwstr(sfc, BOX, y, x, &style_box, text_wc, l);
+    ui_bkgdset(sfc, BOX, &cell_nt_hl);
+    ui_mvwaddnwstr(sfc, BOX, y, x, text_wc, l);
     x += l;
     l = min(l, maxx - 7);
     free(text_wc);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_sp, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_lt, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_lt, 1);
 
     while (x < maxx - 1)
-        ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_ho, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_rt, 1);
+        ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_ho, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_rt, 1);
     return 0;
 }
 /** border_title
@@ -692,20 +723,22 @@ int border_title(UiSurface *sfc, char *title) {
     uint x = 0;
     uint l;
     uint maxx = ui_getmaxx(sfc, BOX);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_tl, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_rt, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_sp, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_tl, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_rt, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_sp, 1);
     wchar_t *title_wc;
     title_wc = mbstr_to_wcstr(title);
     l = wcswidth(title_wc, wcslen(title_wc));
     l = min(l, maxx - 7);
-    ui_mvwaddnwstr(sfc, BOX, y, x, &style_title, title_wc, l);
+    ui_bkgdset(sfc, BOX, &cell_nt_hl);
+    ui_mvwaddnwstr(sfc, BOX, y, x, title_wc, l);
+    ui_bkgdset(sfc, BOX, &cell_box);
     x += l;
     free(title_wc);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_sp, 1);
-    ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_lt, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_lt, 1);
     while (x < maxx - 1)
-        ui_mvwaddnwstr(sfc, BOX, y, x++, &style_box, &bw_ho, 1);
+        ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_ho, 1);
     ui_render(ui_runtime);
     return 0;
 }
@@ -760,10 +793,10 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
-    ui_draw_text(sfc, WIN, 0, 1, NULL, msg0);
-    ui_draw_text(sfc, WIN, 1, 1, NULL, msg1);
-    ui_draw_text(sfc, WIN, 2, 1, NULL, msg2);
-    ui_draw_text(sfc, WIN, 3, 1, NULL, msg3);
+    ui_draw_text(sfc, WIN, 0, 1, msg0);
+    ui_draw_text(sfc, WIN, 1, 1, msg1);
+    ui_draw_text(sfc, WIN, 2, 1, msg2);
+    ui_draw_text(sfc, WIN, 3, 1, msg3);
     display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
 
     do {
@@ -826,10 +859,10 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
-    ui_draw_text(sfc, WIN, 0, 1, NULL, msg0);
-    ui_draw_text(sfc, WIN, 1, 1, NULL, msg1);
-    ui_draw_text(sfc, WIN, 2, 1, NULL, msg2);
-    ui_draw_text(sfc, WIN, 3, 1, NULL, msg3);
+    ui_draw_text(sfc, WIN, 0, 1, msg0);
+    ui_draw_text(sfc, WIN, 1, 1, msg1);
+    ui_draw_text(sfc, WIN, 2, 1, msg2);
+    ui_draw_text(sfc, WIN, 3, 1, msg3);
 
     display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
     do {
@@ -884,7 +917,7 @@ int Perror(char *emsg_str) {
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
-    ui_draw_text(sfc, WIN, 0, 1, NULL, emsg_str);
+    ui_draw_text(sfc, WIN, 0, 1, emsg_str);
     display_chyron(sfc, WIN, chyron, 1, chyron->l + 1);
     if (f_xwgetch) {
         event.y = event.x = -1;
@@ -903,8 +936,8 @@ int Perror(char *emsg_str) {
     @param action_str Action description string
     @return true if successful */
 bool action_disposition(char *title, char *action_str) {
-    int len;
-    int line, col;
+    uint len;
+    uint line, col;
 
     if (!f_curses_open) {
         fprintf(stderr, "\n%s\n", title);
@@ -926,7 +959,7 @@ bool action_disposition(char *title, char *action_str) {
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
-    ui_draw_text(sfc, WIN, 0, 1, NULL, action_str);
+    ui_draw_text(sfc, WIN, 0, 1, action_str);
     display_chyron(sfc, WIN, chyron, 1, 0);
     event.y = event.x = -1;
     cmd_key = ui_get_event(sfc, WIN, &event, -1);
@@ -969,7 +1002,7 @@ Chyron *new_chyron() {
     }
     return chyron;
 }
-int assign_chyron_win(Chyron *chyron, UiSurface *sfc, int win, char *y) {
+int assign_chyron_win(Chyron *chyron, UiSurface *sfc, uint win, char *y) {
     bool a_toi_error = false;
     if (!sfc)
         return -1;
@@ -992,7 +1025,7 @@ int assign_chyron_win(Chyron *chyron, UiSurface *sfc, int win, char *y) {
     @return nullptr
  */
 Chyron *destroy_chyron(Chyron *chyron) {
-    int i;
+    uint i;
 
     if (!chyron)
         return nullptr;
@@ -1012,13 +1045,13 @@ Chyron *destroy_chyron(Chyron *chyron) {
     @param chyron structure
     @param k Function key index (0-19)
     @return true if set, false if not set */
-bool is_set_chyron_key(Chyron *chyron, int k) {
+bool is_set_chyron_key(Chyron *chyron, uint k) {
     if (chyron->key[k]->text[0] != '\0')
         return true;
     else
         return false;
 }
-/** set_chyron_key_cp
+/** set_chyron_key
     @brief Set chyron key with color pair (cp)
     @ingroup Chyron
     @param chyron structure
@@ -1028,14 +1061,14 @@ bool is_set_chyron_key(Chyron *chyron, int k) {
     @param cp color pair index for the key label
     @details This function is like set_chyron_key, except it includes a color
    pair numbers */
-void set_chyron_key_cp(Chyron *chyron, int k, char *s, int kc, int cp) {
+void set_chyron_key_cb(Chyron *chyron, uint k, char *s, uint kc, UiCell cell_base) {
     if (*s != '\0')
         ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
     else
         chyron->key[k]->text[0] = '\0';
     chyron->key[k]->keycode = kc;
     chyron->key[k]->active = true;
-    chyron->key[k]->cp = cp;
+    chyron->key[k]->cell_base = cell_base;
 }
 /** set_chyron_key
     @brief Set chyron key with default color pair (cp_nt_rev)
@@ -1052,14 +1085,14 @@ void set_chyron_key_cp(Chyron *chyron, int k, char *s, int kc, int cp) {
    The keycode is stored in the chyron key's keycode field, and the color pair
    index is set to cp_nt_rev.
  */
-void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
+void set_chyron_key(Chyron *chyron, uint k, char *s, uint kc) {
     if (*s != '\0')
         ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
     else
         chyron->key[k]->text[0] = '\0';
     chyron->key[k]->keycode = kc;
     chyron->key[k]->active = true;
-    chyron->key[k]->cp = cp_nt_rev;
+    chyron->key[k]->cell_base = cell_nt_rev;
 }
 /** unset_chyron_key
     @brief Unset chyron key
@@ -1067,7 +1100,7 @@ void set_chyron_key(Chyron *chyron, int k, char *s, int kc) {
     @param chyron structure
     @param k chyron_key index
 */
-void unset_chyron_key(Chyron *chyron, int k) {
+void unset_chyron_key(Chyron *chyron, uint k) {
     chyron->key[k]->text[0] = '\0';
 }
 /** activate_chyron_key
@@ -1076,7 +1109,7 @@ void unset_chyron_key(Chyron *chyron, int k) {
     @param chyron structure
     @param k chyron_key index
 */
-void activate_chyron_key(Chyron *chyron, int k) {
+void activate_chyron_key(Chyron *chyron, uint k) {
     chyron->key[k]->active = true;
 }
 /** deactivate_chyron_key
@@ -1095,7 +1128,7 @@ void activate_all_chyron_keys(Chyron *chyron) {
     @param chyron structure
     @param k chyron_key index
 */
-void deactivate_chyron_key(Chyron *chyron, int k) {
+void deactivate_chyron_key(Chyron *chyron, uint k) {
     chyron->key[k]->active = false;
 }
 /** deactivate_all_chyron_keys
@@ -1121,7 +1154,7 @@ void compile_chyron(Chyron *chyron) {
     uint end_pos = 0;
     uint k = 0;
     uint pos = 0;
-    uint cp = cp_nt_rev;
+    UiCell cell_base = cell_nt_rev;
     UiCell *cx;
     char tmp_str[MAXLEN];
     while (k < CHYRON_KEYS) {
@@ -1129,17 +1162,23 @@ void compile_chyron(Chyron *chyron) {
             k++;
             continue;
         }
+        cell_base = chyron->key[k]->cell_base;
         if (end_pos == 0) {
             cx = chyron->cmplx_buf;
-            mbstr_to_cellstr(cx, " ", WA_NORMAL, cp_nt_rev, &pos, MAXLEN - 1);
+            mbstr_to_cellstr(cx,
+                             " ",
+                             &cell_base,
+                             &pos,
+                             MAXLEN - 1);
         } else {
-            mbstr_to_cellstr(chyron->cmplx_buf, "|", WA_NORMAL, cp_nt_rev, &pos,
+            mbstr_to_cellstr(chyron->cmplx_buf,
+                             "|",
+                             &cell_base,
+                             &pos,
                              MAXLEN - 1);
         }
         cx = chyron->cmplx_buf;
-        if (chyron->key[k]->cp)
-            cp = chyron->key[k]->cp;
-        mbstr_to_cellstr(cx, chyron->key[k]->text, WA_NORMAL, cp, &pos, MAXLEN - 1);
+        mbstr_to_cellstr(cx, chyron->key[k]->text, &cell_base, &pos, MAXLEN - 1);
         end_pos = pos;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
@@ -1147,7 +1186,7 @@ void compile_chyron(Chyron *chyron) {
                   chyron->key[k]->text, chyron->key[k]->end_pos);
         k++;
     }
-    mbstr_to_cellstr(chyron->cmplx_buf, " ", WA_NORMAL, cp, &pos, MAXLEN - 1);
+    mbstr_to_cellstr(chyron->cmplx_buf, " ", &cell_base, &pos, MAXLEN - 1);
     chyron->l = end_pos;
 }
 /** display_chyron
@@ -1164,12 +1203,12 @@ void compile_chyron(Chyron *chyron) {
    string. Finally, it moves the cursor back to the specified column for user
    input.
  */
-void display_chyron(UiSurface *sfc, int w, Chyron *chyron, int line, int col) {
-    ui_cursor_move(sfc, w, line, 0);
+void display_chyron(UiSurface *sfc, uint w, Chyron *chyron, uint line, uint col) {
+    ui_wmove(sfc, w, line, 0);
     ui_wclrtoeol(sfc, w);
-    ui_cursor_move(sfc, w, line, 0);
+    ui_wmove(sfc, w, line, 0);
     ui_mvwadd_cellstr(sfc, w, line, 0, chyron->cmplx_buf);
-    ui_cursor_move(sfc, w, line, col);
+    ui_wmove(sfc, w, line, col);
     return;
 }
 /** get_chyron_key
@@ -1189,7 +1228,7 @@ void display_chyron(UiSurface *sfc, int w, Chyron *chyron, int line, int col) {
 */
 int get_chyron_key(Chyron *chyron, uint x) {
     uint i = 0;
-    int k = -1;
+    uint k = -1;
     while (i < CHYRON_KEYS - 1) {
         if (chyron->key[i]->text[0] != '\0' && chyron->key[i]->active)
             if (chyron->key[i]->end_pos >= x) {
@@ -1198,27 +1237,7 @@ int get_chyron_key(Chyron *chyron, uint x) {
             }
         i++;
     }
-    if (k == -1)
-        return 0;
     return chyron->key[k]->keycode;
-}
-/** nf_error
- *   @brief Display an error message and wait for user input
-    @ingroup error_handling
-    @param ec Error code
-    @param s Error message
-    @return Error code
-    @details This function prints an error message to stderr, waits for the user
-   to press a key, and then returns the provided error code. It is useful for
-   displaying error messages in a non-curses environment or when curses is not
-   initialized.
- */
-int nf_error(int ec, char *s) {
-    fprintf(stderr, "ERROR: %s code: %d\n", s, ec);
-    fprintf(stderr, "Press a key to continue");
-    di_getch();
-    fprintf(stderr, "\n");
-    return ec;
 }
 /** abend
     @brief Abnormal program termination

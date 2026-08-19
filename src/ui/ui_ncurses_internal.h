@@ -139,21 +139,21 @@ struct UiStyle {
     short cp;
 };
 
-#define UISTYLE_MASK WA_ATTRIBUTES
-#define UISTYLE_NORMAL WA_NORMAL
-#define UISTYLE_STANDOUT WA_STANDOUT
-#define UISTYLE_UNDERLINE WA_UNDERLINE
-#define UISTYLE_REVERSE WA_REVERSE
-#define UISTYLE_BLINK WA_BLINK
-#define UISTYLE_DIM WA_DIM
-#define UISTYLE_BOLD WA_BOLD
-#define UISTYLE_ALTCHARSET WA_ALTCHARSET
-#define UISTYLE_INVIS WA_INVIS
-#define UISTYLE_PROTECT WA_PROTECT
-#define UISTYLE_UNDERCURL WA_DIM
-#define UISTYLE_STRUCK WA_INVIS
-#define UISTYLE_NONE WA_NORMAL
-#define UISTYLE_ITALIC WA_ITALIC
+#define UI_MASK WA_ATTRIBUTES
+#define UI_NORMAL WA_NORMAL
+#define UI_STANDOUT WA_STANDOUT
+#define UI_UNDERLINE WA_UNDERLINE
+#define UI_REVERSE WA_REVERSE
+#define UI_BLINK WA_BLINK
+#define UI_DIM WA_DIM
+#define UI_BOLD WA_BOLD
+#define UI_ALTCHARSET WA_ALTCHARSET
+#define UI_INVIS WA_INVIS
+#define UI_PROTECT WA_PROTECT
+#define UI_UNDERCURL WA_DIM
+#define UI_STRUCK WA_INVIS
+#define UI_NONE WA_NORMAL
+#define UI_ITALIC WA_ITALIC
 
 /** @struct UiSplitSurface
     @brief Split surface containing multiple child surfaces.
@@ -215,13 +215,7 @@ int ui_wadd_cellstr(struct UiSurface *s, uint w, UiCell *cmplx_buf);
 int ui_wadd_cellnstr(struct UiSurface *s, uint w, UiCell *cmplx_buf, uint n);
 int ui_mvwadd_cellstr(struct UiSurface *s, uint w, uint y, uint x, UiCell *cmplx_buf);
 int ui_mvwadd_cellnstr(struct UiSurface *s, uint w, uint y, uint x, UiCell *cmplx_buf, uint n);
-int ui_bkgrnd(WINDOW *win, const struct UiStyle *style);
-int ui_bkgrndset(WINDOW *win, const struct UiStyle *style);
 
-int ui_setcchar(UiCell *uc, const wchar_t *wstr, attr_t attrs, short pair, const void *opts);
-int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, short *pair, void *opts);
-struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const attr_t attrs, const wchar_t *wstr);
-extern uint mbstr_to_cellstr(UiCell *cmplx_buf, char *str, attr_t attrs, uint cpx, uint *p, uint maxlen);
 extern struct UiSurface *stdsfc;
 
 #endif

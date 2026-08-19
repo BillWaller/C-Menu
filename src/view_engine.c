@@ -137,7 +137,7 @@ void display_line(View *);
 void display_line_eod(View *);
 void display_split_line(View *);
 void view_display_page(View *);
-void parse_ansi_str(char *, attr_t *, uint *);
+void parse_ansi_str(char *, attr_t *, ushort *);
 void view_display_help(Init *);
 int display_prompt(View *, char *);
 int write_view_buffer(Init *, bool);
@@ -636,7 +636,7 @@ int view_cmd_processor(Init *init) {
         case 'Q':
         case KEY_F09:
         case '\033':
-            ui_mvwaddnwstr(sfc, CMDLN, view->cmd_line, view->curx, &style_nt, &bw_sp, 1);
+            ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_sp, 1);
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = nullptr;
             return 0;
@@ -743,10 +743,10 @@ int get_cmd_char(View *view, off_t *n) {
     pad_refresh(view);
     ui_curs_set(1);
     ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
-    ui_bkgdset(sfc, CMDLN, &style_ind);
+    ui_bkgdset(sfc, CMDLN, &cell_ind);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
 
-    ui_mvwaddnwstr(sfc, CMDLN, view->cmd_line, view->curx, &style_box, &bw_ran, 1);
+    ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_ran, 1);
 
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
     while (1) {
@@ -755,7 +755,7 @@ int get_cmd_char(View *view, off_t *n) {
             view->curx = 0;
             ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
             ui_wclrtoeol(sfc, CMDLN);
-            ui_mvwaddnwstr(sfc, CMDLN, view->cmd_line, view->curx, &style_box, &bw_ran, 1);
+            ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_ran, 1);
             ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx + 1, c);
         }
         ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
@@ -851,14 +851,14 @@ int get_cmd_char(View *view, off_t *n) {
     if (cmd_str[0] == '\0') {
         *n = 0;
         view->cmd_arg[0] = '\0';
-        ui_mvwaddnwstr(sfc, CMDLN, view->cmd_line, view->curx, &style_box, &bw_sp, 1);
+        ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_sp, 1);
         ui_wclrtoeol(sfc, CMDLN);
         return (c);
     }
     *n = atol(cmd_str);
     view->cmd_arg[0] = '\0';
     ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
-    ui_mvwaddnwstr(sfc, CMDLN, view->cmd_line, view->curx, &style_nt, &bw_sp, 1);
+    ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_sp, 1);
     ui_wclrtoeol(sfc, CMDLN);
     return (c);
 }
@@ -888,16 +888,16 @@ int get_cmd_arg(View *view, char *prompt) {
         return 0;
     ui_cursor_move(sfc, CMDLN, view->cmd_line, 0);
     if (prompt_l > 1) {
-        ui_bkgdset(sfc, CMDLN, &style_nt_rev);
+        ui_bkgdset(sfc, CMDLN, &cell_nt_rev);
         ui_waddstr(sfc, CMDLN, prompt_s);
-        ui_bkgdset(sfc, CMDLN, &style_nt);
+        ui_bkgdset(sfc, CMDLN, &cell_nt);
     }
     view->curx = prompt_l;
     ui_wclrtoeol(sfc, CMDLN);
     pad_refresh(view);
     // ui_update_panels();
     ui_curs_set(1);
-    ui_mvwaddnwstr(sfc, CMDLN, view->cmd_line, view->curx, &style_box, &bw_ran, 1);
+    ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_ran, 1);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
     // ui_doupdate();
     ui_render(ui_runtime);
@@ -1125,7 +1125,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     memset(&mbstate, 0, sizeof(mbstate));
     wchar_t wstr[2] = {L'\0', L'\0'};
     attr_t attr;
-    short cpx;
+    ushort cpx;
     UiCell cc = {0};
     off_t prev_ln_no;
     bool f_page = false;
@@ -1226,8 +1226,6 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         view->last_match_x = 0;
         line_len = strlen(view->stripped_line_out);
         line_offset = 0;
-        uint16_t stylemask;
-        uint64_t channels;
         while (1) {
             match_idx = line_offset + pmatch[0].rm_so;
             match_len = pmatch[0].rm_eo - pmatch[0].rm_so;
@@ -1240,7 +1238,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 view->cmplx_buf[i] = cc;
 #else
                 ui_decompose_nccell(&cc, wstr, &stylemask, &channels);
-                ui_compose_nccell(&cc, &wstr[4], &style_nt_rev);
+                ui_compose_nccell(&cc, &wstr[4], &cell_nt_rev);
 #endif
                 view->cmplx_buf[i] = cc;
             }
@@ -2096,7 +2094,7 @@ int fmt_line(View *view) {
     uint tab_spaces = 0;
     uint char_width;
     attr_t attr = WA_NORMAL;
-    uint cpx = cp_nt;
+    ushort cpx = cp_nt;
     UiCell cc = {0};
     wchar_t wstr[2] = {L'\0', L'\0'};
     char *in_str = view->line_in_s;
@@ -2243,7 +2241,7 @@ int fmt_line(View *view) {
                 while (safe_cols < sl_maxlen && safe_cells < sl_cells) {
                     wchar_t wstr_chk[CCHARW_MAX];
                     attr_t attr_chk;
-                    short cpx_chk;
+                    ushort cpx_chk;
                     ui_getcchar(&sl_cc[safe_cells], wstr_chk, &attr_chk, &cpx_chk, nullptr);
                     uint cw = wcwidth(wstr_chk[0]);
                     if (safe_cols + cw > sl_maxlen)
@@ -2338,7 +2336,7 @@ void log_cc_buf(View *view) {
         for (uint c = 0; c < view->cur.sl_cells[k]; c++) {
             wchar_t wstr[CCHARW_MAX];
             attr_t attr;
-            short cpx;
+            ushort cpx;
             ui_getcchar(&view->cur.sl_cc[k][c], wstr, &attr, &cpx, nullptr);
             if (wstr[0] == L'\0')
                 tmp_str[c] = ' ';
@@ -2438,7 +2436,7 @@ void log_split_lines(View *view) {
 
     @endverbatim
 */
-void parse_ansi_str(char *ansi_str, attr_t *attr, uint *cpx) {
+void parse_ansi_str(char *ansi_str, attr_t *attr, ushort *cpx) {
     char *tok;
     char t0, t1;
     char tstr[3];
@@ -2446,7 +2444,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, uint *cpx) {
     uint fg, bg;
     uint fg_clr, bg_clr;
     char *ansi_p = ansi_str + 2;
-    ui_extended_pair_content(*cpx, &fg_clr, &bg_clr);
+    ui_pair_content(*cpx, &fg_clr, &bg_clr);
     fg = fg_clr;
     bg = bg_clr;
     RGB rgb;
@@ -2562,11 +2560,11 @@ int display_prompt(View *view, char *s) {
     ui_cursor_move(sfc, CMDLN, view->cmd_line, 0);
     if (l != 0) {
         ui_wclrtoeol(sfc, CMDLN);
-        ui_bkgdset(sfc, CMDLN, &style_nt_rev);
+        ui_bkgdset(sfc, CMDLN, &cell_nt_rev);
         ui_mvwaddstr(sfc, CMDLN, view->cmd_line, 0, " ");
         ui_mvwaddstr(sfc, CMDLN, view->cmd_line, 1, message_str);
         ui_waddstr(sfc, CMDLN, " ");
-        ui_bkgdset(sfc, CMDLN, &style_nt);
+        ui_bkgdset(sfc, CMDLN, &cell_nt);
         ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
         ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
     }

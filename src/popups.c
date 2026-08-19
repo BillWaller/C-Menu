@@ -27,10 +27,10 @@
 
 #include "common.h"
 
-int popup_menu(Init *, int, char **, int, int);
-int popup_form(Init *, int, char **, int, int);
-int popup_pick(Init *, int, char **, int, int);
-int popup_view(Init *, int, char **, int, int, int, int);
+int popup_menu(Init *, int, char **, uint, uint);
+int popup_form(Init *, int, char **, uint, uint);
+int popup_pick(Init *, int, char **, uint, uint);
+int popup_view(Init *, int, char **, uint, uint, uint, uint);
 
 /** @brief instantiate a menu popup window
     @param init the Init struct pointer
@@ -50,7 +50,7 @@ int popup_view(Init *, int, char **, int, int, int, int);
    arguments.
     @endverbatim
 */
-int popup_menu(Init *init, int argc, char **argv, int by, int bx) {
+int popup_menu(Init *init, int argc, char **argv, uint by, uint bx) {
     int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
@@ -80,7 +80,7 @@ int popup_menu(Init *init, int argc, char **argv, int by, int bx) {
    arguments.
     @endverbatim
 */
-int popup_pick(Init *init, int argc, char **argv, int by, int bx) {
+int popup_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
@@ -109,7 +109,7 @@ int popup_pick(Init *init, int argc, char **argv, int by, int bx) {
    arguments.
     @endverbatim
 */
-int popup_form(Init *init, int argc, char **argv, int by, int bx) {
+int popup_form(Init *init, int argc, char **argv, uint by, uint bx) {
     int rc;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);
@@ -141,8 +141,8 @@ int popup_form(Init *init, int argc, char **argv, int by, int bx) {
    arguments.
     @endverbatim
 */
-int popup_view(Init *init, int argc, char **argv, int ilines, int icols, int by,
-               int bx) {
+int popup_view(Init *init, int argc, char **argv, uint ilines, uint icols, uint by,
+               uint bx) {
     int rc = 0;
     zero_opt_args(init);
     parse_opt_args(init, argc, argv);

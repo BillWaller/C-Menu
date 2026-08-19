@@ -68,9 +68,9 @@ int field_editor(Form *form) {
     char *str_end = p + strlen(p);
     in_key = 0;
     if (f_insert)
-        set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC, cp_nt_hl_rev);
+        set_chyron_key_cb(form->chyron, 18, "INS", KEY_IC, cell_nt_hl_rev);
     else
-        set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC, cp_nt_rev);
+        set_chyron_key_cb(form->chyron, 18, "INS", KEY_IC, cell_nt_rev);
     compile_chyron(form->chyron);
     display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
 
@@ -141,11 +141,11 @@ int field_editor(Form *form) {
         case KEY_IC:
             if (f_insert) {
                 f_insert = false;
-                set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC, cp_nt_rev);
+                set_chyron_key_cb(form->chyron, 18, "INS", KEY_IC, cell_nt_rev);
             } else {
                 f_insert = true;
-                set_chyron_key_cp(form->chyron, 18, "INS", KEY_IC,
-                                  cp_nt_hl_rev);
+                set_chyron_key_cb(form->chyron, 18, "INS", KEY_IC,
+                                  cell_nt_hl_rev);
             }
             compile_chyron(form->chyron);
             display_chyron(sfc, 1, form->chyron, form->lines - 1,
@@ -372,13 +372,13 @@ int form_display_field(Form *form) {
     uint x = form->field[form->fidx]->col;
 
     uint pos = 0;
-    mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_nt, &pos,
+    mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     ui_render(ui_runtime);
 
     pos = 0;
-    mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, &pos,
+    mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
     ui_render(ui_runtime);
@@ -389,13 +389,13 @@ int form_display_accept_field(Form *form) {
     uint y = form->field[form->fidx]->line;
     uint x = form->field[form->fidx]->col;
     uint pos = 0;
-    mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_nt, &pos,
+    mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     ui_render(ui_runtime);
 
     pos = 0;
-    mbstr_to_cellstr(form->field[form->fidx]->accept_cc, form->field[form->fidx]->accept_s, WA_NORMAL, cp_nt, &pos,
+    mbstr_to_cellstr(form->field[form->fidx]->accept_cc, form->field[form->fidx]->accept_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->accept_cc, form->field[form->fidx]->len);
     ui_render(ui_runtime);

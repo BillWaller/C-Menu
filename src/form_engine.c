@@ -44,10 +44,10 @@ int form_exec_cmd(Form *);
 int form_exec_receiver(Init *);
 int form_process(Init *);
 int form_post(Init *);
-int init_form(Init *, int, char **, int, int);
+int init_form(Init *, int, char **, uint, uint);
 int form_engine(Init *);
 uint form_yx_to_fidx(Form *, uint, uint);
-void mk_filler(char *, int);
+void mk_filler(char *, uint);
 
 /** @brief Initialize form data structure and parse description file
     @ingroup form_engine
@@ -58,7 +58,7 @@ void mk_filler(char *, int);
     @param begx The x-coordinate for the top-left corner of the form window.
     @return 0 on success, or a non-zero value if an error occurs during
 */
-int init_form(Init *init, int argc, char **argv, int begy, int begx) {
+int init_form(Init *init, int argc, char **argv, uint begy, uint begx) {
     int rc;
     char tmp_str[MAXLEN];
     if (init->form != nullptr)
@@ -132,10 +132,10 @@ int form_engine(Init *init) {
     display_form(init);
     form->chyron = new_chyron();
     set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
-    set_chyron_key_cp(form->chyron, 2, "F2 Process", KEY_F(2), cp_nt_hl_rev);
-    set_chyron_key_cp(form->chyron, 3, "F3 Calculate", KEY_F(3), cp_nt_hl_rev);
-    set_chyron_key_cp(form->chyron, 4, "F4 Query", KEY_F(4), cp_nt_hl_rev);
-    set_chyron_key_cp(form->chyron, 5, "F5 Edit", KEY_F(5), cp_nt_hl_rev);
+    set_chyron_key_cb(form->chyron, 2, "F2 Process", KEY_F(2), cell_nt_hl_rev);
+    set_chyron_key_cb(form->chyron, 3, "F3 Calculate", KEY_F(3), cell_nt_hl_rev);
+    set_chyron_key_cb(form->chyron, 4, "F4 Query", KEY_F(4), cell_nt_hl_rev);
+    set_chyron_key_cb(form->chyron, 5, "F5 Edit", KEY_F(5), cell_nt_hl_rev);
     set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F(9));
     set_chyron_key(form->chyron, 10, "F10 Accept", KEY_F(10));
     set_chyron_key(form->chyron, 18, "INS", KEY_IC);
@@ -566,9 +566,9 @@ unsigned int display_form(Init *init) {
         if (form->brackets[0] != '\0' && form->brackets[1] != '\0') {
             flin = form->field[form->fidx]->line + 1;
             fcol = form->field[form->fidx]->col;
-            ui_mvwadd_style(sfc, BOX, flin, fcol, &style_brktl);
+            ui_mvwadd_cell(sfc, BOX, flin, fcol, &cell_brktl);
             fcol += form->field[form->fidx]->len + 1;
-            ui_mvwadd_style(sfc, BOX, flin, fcol, &style_brktr);
+            ui_mvwadd_cell(sfc, BOX, flin, fcol, &cell_brktr);
         }
     }
     for (n = 0; n < form->dcnt; n++) {
@@ -620,12 +620,14 @@ void form_display_fields(Form *form) {
         x = form->field[form->fidx]->col;
 
         pos = 0;
-        mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, WA_NORMAL, cp_fill_char, &pos, form->field[form->fidx]->len + 1);
+        mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_fill_char, &pos, form->field[form->fidx]->len + 1);
+
         UiSurface *sfc = ui_surface[sfc_ptr];
         ui_mvwadd_cellstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
         ui_render(ui_runtime);
+
         pos = 0;
-        mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, WA_NORMAL, cp_nt, &pos, form->field[form->fidx]->len + 1);
+        mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos, form->field[form->fidx]->len + 1);
 
         ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         ui_render(ui_runtime);

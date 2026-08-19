@@ -132,15 +132,6 @@ struct UiSurface {
 //     uadrant)
 // };
 
-struct UiColor {
-    uint8_t r, g, b;
-};
-
-struct UiColorPair {
-    uint16_t fg;
-    uint16_t bg;
-};
-
 typedef struct {
     union {
         struct {
@@ -191,46 +182,36 @@ struct UiCell {
     union UiChannels channels; // 8 - 15   8 bytes
 };
 
-struct UiStyle {
-    struct {
-        uint32_t gcluster;         // 4-bytes for UTF-8
-        uint8_t gcluster_backstop; // 1-byte terminator
-    };
-    uint8_t width;             // 5 -  5   (8 bits of EGC column width)
-    uint16_t stylemask;        // 6 -  7   2-bytes
-    union UiChannels channels; // 8 - 15   8 bytes
-};
-
-#define UISTYLE_MASK NCSTYLE_MASK
-#define UISTYLE_NORMAL NCSTYLE_NONE
-#define UISTYLE_STANDOUT NCSTYLE_UNDERLINE
-#define UISTYLE_UNDERLINE NCSTYLE_UNDERLINE
-#define UISTYLE_REVERSE NCSTYLE_UNDERLINE
-#define UISTYLE_BLINK NCSTYLE_UNDERLINE
-#define UISTYLE_DIM NCSTYLE_UNDERLINE
-#define UISTYLE_BOLD NCSTYLE_BOLD
-#define UISTYLE_ALTCHARSET NCSTYLE_UNDERLINE
-#define UISTYLE_INVIS NCSTYLE_UNDERLINE
-#define UISTYLE_STRUCK NCSTYLE_STRUCK
-#define UISTYLE_PROTECT NCSTYLE_UNDERLINE
-#define UISTYLE_UNDERCURL NCSTYLE_UNDERCURL
-#define UISTYLE_NONE NCSTYLE_NONE
-#define UISTYLE_ITALIC NCSTYLE_UNDERLINE
+#define UI_MASK NCSTYLE_MASK
+#define UI_NORMAL NCSTYLE_NONE
+#define UI_STANDOUT NCSTYLE_BOLD
+#define UI_UNDERLINE NCSTYLE_UNDERLINE
+#define UI_REVERSE NCSTYLE_UNDERLINE
+#define UI_BLINK NCSTYLE_NONE
+#define UI_DIM NCSTYLE_NONE
+#define UI_BOLD NCSTYLE_BOLD
+#define UI_ALTCHARSET NCSTYLE_NONE
+#define UI_INVIS NCSTYLE_NONE
+#define UI_STRUCK NCSTYLE_STRUCK
+#define UI_PROTECT NCSTYLE_UNDERLINE
+#define UI_UNDERCURL NCSTYLE_UNDERCURL
+#define UI_NONE NCSTYLE_NONE
+#define UI_ITALIC NCSTYLE_ITALIC
 
 #define WA_ATTRIBUTES NCSTYLE_MASK
 #define WA_NORMAL NCSTYLE_NONE
-#define WA_STANDOUT NCSTYLE_UNDERLINE
+#define WA_STANDOUT NCSTYLE_BOLD
 #define WA_UNDERLINE NCSTYLE_UNDERLINE
 #define WA_REVERSE NCSTYLE_UNDERLINE
 #define WA_BLINK NCSTYLE_UNDERLINE
 #define WA_DIM NCSTYLE_UNDERLINE
 #define WA_BOLD NCSTYLE_BOLD
-#define WA_ALTCHARSET NCSTYLE_UNDERLINE
-#define WA_INVIS NCSTYLE_UNDERLINE
+#define WA_ALTCHARSET NCSTYLE_NONE
+#define WA_INVIS NCSTYLE_NONE
 #define WA_STRUCK NCSTYLE_STRUCK
 #define WA_PROTECT NCSTYLE_UNDERLINE
 #define WA_UNDERCURL NCSTYLE_UNDERCURL
-#define WA_ITALIC NCSTYLE_UNDERLINE
+#define WA_ITALIC NCSTYLE_ITALIC
 #define WA_NONE NCSTYLE_NONE
 
 #define NCALPHA_HIGHCONTRAST 0x30000000ull
@@ -267,11 +248,7 @@ struct UiStyle {
 // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
 /* Internal style helpers */
 
-int ui_bkgrnd(struct UiSurface *s, uint w, const struct UiStyle *style, const char *c);
-uint64_t ui_notcurses_channels_from_style(const struct UiStyle *style);
-uint32_t ui_notcurses_attrs_from_style(const struct UiStyle *style);
+int ui_bkgrnd(struct UiSurface *s, uint w, const uint16_t *style, const struct UiCell *cell);
 struct ncplane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni);
-extern int mbstr_to_cellstr(nccell *cmplx_buf, char *str, uint16_t stylemask, uint cpx, uint *pos, uint maxlen);
-struct UiStyle ui_style_from_hex(const char *fg, const char *bg, const uint16_t stylemask, const wchar_t *wstr);
 
 #endif

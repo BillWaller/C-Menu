@@ -32,7 +32,6 @@ int full_screen_fork_exec(char **);
 int full_screen_shell(char *);
 int shell(char *);
 int fork_exec(char **);
-int nf_error(int ec, char *s);
 int fork_detach_execvp(char **);
 /** @brief Execute a command in full screen mode
     @ingroup exec

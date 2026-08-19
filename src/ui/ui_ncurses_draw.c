@@ -22,23 +22,6 @@ void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
    Surface style
    ------------------------------------------------------------------------- */
 
-/** @brief Apply a style to a surface's default rendering attributes. */
-int ui_surface_set_style(UiSurface *s, uint w, const UiStyle *style) {
-    if (!s || !style)
-        return -1;
-    return ui_ncurses_style_apply(s, w, style);
-}
-
-/** @brief Set the background fill character and style for a surface. */
-int ui_surface_set_base(UiSurface *s, uint w, const UiStyle *style, uint32_t fill_ch) {
-    if (!s)
-        return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
-    ui_bkgd(s, w, style);
-    return 0;
-}
-
 int ui_wclrtobot(UiSurface *s, uint w) {
     if (!s)
         return -1;
@@ -55,44 +38,30 @@ int ui_wclrtoeol(UiSurface *s, uint w) {
    Text with UiStyle
    ------------------------------------------------------------------------- */
 //  text character single
-int ui_draw_ch(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const char c) {
+int ui_draw_ch(UiSurface *s, uint w, uint y, uint x, const char c) {
     if (!s || !s->mwin[w] || !c)
         return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
     mvwaddch(s->mwin[w], y, x, c);
-    if (style)
-        ui_ncurses_style_apply(s, w, &style_nt);
     return 0;
 }
 //  text string
-int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const char *text) {
+int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text) {
     if (!s || !s->mwin[w] || !text)
         return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, text);
-    if (style)
-        ui_ncurses_style_apply(s, w, &style_nt);
     return 0;
 }
 // text - limit length
-int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const char *text, size_t n) {
+int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, size_t n) {
     if (!s || !s->mwin[w] || !text)
         return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
     mvwaddnstr(s->mwin[w], y, x, text, (int)n);
-    if (style)
-        ui_ncurses_style_apply(s, w, &style_nt);
     return 0;
 }
 //  text string - pad length
-int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const char *text, size_t n) {
+int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, size_t n) {
     if (!s || !text)
         return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
     uint l = strlen(text);
     if (l < (uint)n) {
         char *tmp_str = (char *)malloc(n + 1);
@@ -108,8 +77,6 @@ int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const UiStyle *style
     } else {
         mvwaddnstr(s->mwin[w], y, x, text, (int)n);
     }
-    if (style)
-        ui_ncurses_style_apply(s, w, &style_nt);
     return 0;
 }
 // -------------------------------------------------------------------------
@@ -117,35 +84,27 @@ int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const UiStyle *style
 // ---------------------------------------------------------------------------
 // Wide Character Strings (wstr)
 // ---------------------------------------------------------------------------
-int ui_waddwstr(UiSurface *s, uint w, const UiStyle *style, const wchar_t *wstr) {
+int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr) {
     if (!s || !wstr)
         return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
     waddwstr(s->mwin[w], wstr);
     return 0;
 }
 int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr) {
     if (!s || !s->mwin[w] || !wstr)
         return -1;
-    //  if (style)
-    //      ui_ncurses_style_apply(s, w, style);
     mvwaddwstr(s->mwin[w], y, x, wstr);
     return 0;
 }
-int ui_waddnwstr(UiSurface *s, uint w, const UiStyle *style, const wchar_t *wstr, uint n) {
+int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, uint n) {
     if (!s || !wstr)
         return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
     waddnwstr(s->mwin[w], wstr, n);
     return 0;
 }
-int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, const wchar_t *wstr, uint n) {
+int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, uint n) {
     if (!s || !wstr)
         return -1;
-    if (style)
-        ui_ncurses_style_apply(s, w, style);
     mvwaddnwstr(s->mwin[w], y, x, wstr, n);
     return 0;
 }
@@ -155,8 +114,6 @@ int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const UiStyle *style, c
 int ui_waddstr(UiSurface *s, uint w, const char *text) {
     if (!s || !s->mwin[w] || !text)
         return -1;
-    //  if (style)
-    //      ui_ncurses_style_apply(s, w, style);
     waddstr(s->mwin[w], text);
     return 0;
 }
@@ -164,8 +121,6 @@ int ui_waddstr(UiSurface *s, uint w, const char *text) {
 int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
     if (!s || !s->mwin[w] || !text)
         return -1;
-    //  if (style)
-    //      ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
@@ -173,8 +128,6 @@ int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
 int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
     if (!s || !s->mwin[w] || !c)
         return -1;
-    //  if (style)
-    //      ui_ncurses_style_apply(s, w, style);
     mvwaddch(s->mwin[w], y, x, c);
     return 0;
 }
@@ -182,8 +135,6 @@ int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
 int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
     if (!s || !s->mwin[w] || !text)
         return -1;
-    //  if (style)
-    //      ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
@@ -206,8 +157,6 @@ int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, char *str, uint l) {
     }
     *d = '\0';
     l = strlen(tmp_str);
-    //  if (style)
-    //      ui_ncurses_style_apply(s, w, style);
     mvwaddstr(s->mwin[w], y, x, tmp_str);
     return 0;
 }
@@ -252,14 +201,6 @@ int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, UiCell *cmplx_buf, 
     if (!s || !cmplx_buf)
         return -1;
     mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, n);
-    return 0;
-}
-int ui_mvwadd_style(UiSurface *s, uint w, uint y, uint x, const UiStyle *style) {
-    if (!s || !style || style->wstr[0] == L'\0')
-        return -1;
-    UiCell cc = {0};
-    setcchar(&cc, style->wstr, style->attrs, style->cp, nullptr);
-    ui_mvwadd_cell(s, w, y, x, &cc);
     return 0;
 }
 // ---------------------------------------------------------------------------
@@ -313,7 +254,7 @@ int ui_mvwadd_mbnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text
 void ui_restore_wins() {
     touchwin(stdscr);
     for (int s = 0; s <= sfc_ptr; s++) {
-        for (int w = 0; w < SUB_SFC_MAX; w++)
+        for (uint w = 0; w < SUB_SFC_MAX; w++)
             if (ui_surface[s]->mwin[w] != nullptr)
                 touchwin(ui_surface[s]->mwin[w]);
     }
@@ -322,18 +263,6 @@ void ui_restore_wins() {
 /* -------------------------------------------------------------------------
    Formatting
    ------------------------------------------------------------------------- */
-
-UiCell style_to_cc(UiStyle *style) {
-    UiCell cc = {0};
-    if (!style)
-        return cc;
-    if (style->wstr[0] == L'\0' || style->wstr[0] == L' ') {
-        style->wstr[0] = L' ';
-        style->wstr[1] = L'\0';
-    }
-    setcchar(&cc, style->wstr, style->attrs, style->cp, nullptr);
-    return cc;
-}
 
 /** @brief Convert a multibyte string to a complex character array. */
 int mbstr_to_cc(char *in_str, UiCell *cmplx_buf_s) {
