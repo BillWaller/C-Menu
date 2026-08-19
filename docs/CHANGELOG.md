@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-18T20:25:18-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. Although the refactoring for multiple UI backends is painfully tedious, it will provide many benefits in the long run. The goal is to create a uniform abstraction layer that allows for easy switching between different UI backends, such as ncurses and notcurses. This will enable developers to choose the most suitable backend for their needs without having to rewrite their code. We are creating a set of common interfaces and structures that both backends can implement, ensuring consistency and maintainability across the codebase. 
+
+*2026-08-16T22:08:18-05:00* - Update CHANGELOG.md 
+
 *2026-08-16T21:27:36-05:00* - FEATURE: Uniform Abstraction Layer For UI Backends. In order to mesh seamlessly with the new Notcurses backend, it has been necessary to standardize the way that the UI backend is accessed. This has been done by creating a uniform abstraction layer that defines a set of functions and data structures that uniformly represent the capabilities of the UI backends. Fortunately, most UI backends do the same kinds of things, but the devil is in the details. The programmers who write the backend UI code are absolute geniuses and what seems obvious to them may not be so obvious to everyone else. This abstraction layer is designed to provide a jump-start for those who want to build sophisticated high-level applications immediately, without spending decades to learn the intricacies of low level UI programming. 
 
 *2026-08-16T14:52:37-05:00* - Update CHANGELOG.md 
