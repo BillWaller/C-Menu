@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-19T21:59:21-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. At first, I thought this project might be a bit too ambitious. Now, only a handful of functions remain to be implemented in the backend-specific code, while the rest of the UI logic is now handled in a backend-agnostic manner. This change significantly improves maintainability and allows for easier integration of new UI backends in the future. The abstraction layer provides a consistent interface for UI operations, enabling developers to focus on the core functionality without worrying about backend-specific details. This change also includes updates to the existing backend implementations to conform to the new abstraction layer, ensuring that all UI backends work seamlessly with the updated codebase. Overall, this change enhances the flexibility and scalability of the UI system, making it easier to adapt to different environments and user requirements. 
+
+*2026-08-18T20:30:06-05:00* - Update CHANGELOG.md 
+
 *2026-08-18T20:25:18-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. Although the refactoring for multiple UI backends is painfully tedious, it will provide many benefits in the long run. The goal is to create a uniform abstraction layer that allows for easy switching between different UI backends, such as ncurses and notcurses. This will enable developers to choose the most suitable backend for their needs without having to rewrite their code. We are creating a set of common interfaces and structures that both backends can implement, ensuring consistency and maintainability across the codebase. 
 
 *2026-08-16T22:08:18-05:00* - Update CHANGELOG.md 
