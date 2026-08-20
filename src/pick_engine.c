@@ -164,9 +164,9 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
         pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx++];
     pick->d_cnt = pick->d_idx;
     pick->chyron = new_chyron();
-    set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F(1));
-    set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F(9));
-    set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F(10));
+    set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F01);
+    set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F09);
+    set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F10);
     set_chyron_key(pick->chyron, 4, "<v> View", 'v');
     set_chyron_key(pick->chyron, 5, "<q> Quit View", 'q');
     set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
@@ -324,7 +324,7 @@ int pick_engine(Init *init) {
 
     do {
         rc = picker(init, field);
-        if (rc == KEY_F(9))
+        if (rc == KEY_F09)
             break;
         if (rc == -1)
             break;
@@ -363,9 +363,9 @@ int pick_engine(Init *init) {
    insert based on selection count, view mode, and table pages.
  */
 void pick_std_chyron(Pick *pick) {
-    // *   1  F1 Help         KEY_F(1));
-    // *   2  F9 Cancel       KEY_F(9));
-    // *   3  F10 Accept      KEY_F(10));
+    // *   1  F1 Help         KEY_F01);
+    // *   2  F9 Cancel       KEY_F09);
+    // *   3  F10 Accept      KEY_F10);
     // ?   4  <v> View        <v>
     // ?   5  <q> Quit View   <q>
     // ?   6  <Sp> Toggle     <Sp>
@@ -433,7 +433,7 @@ void display_pick_page(Pick *pick) {
                 ui_mvwaddstr(sfc, WIN, pick->y, pick->x - 1, "*");
             ui_mvwaddstr_fill(sfc, 1, pick->y++, pick->x,
                               pick->d_object[pick->d_idx++], pick->tbl_col_width - 1);
-            ui_render(ui_runtime);
+            ui_render();
         }
     }
     pick->d_idx -= 1;
@@ -582,7 +582,7 @@ int read_theme(Init *init) {
         return rc;
     SIO *sio = init->sio;
     initialize_cells(sio);
-    ui_render(ui_runtime);
+    ui_render();
     return 0;
 }
 
@@ -932,7 +932,7 @@ int picker(Init *init, char *field) {
                 ui_top_panel(sfc, WIN);
                 ui_cursor_move(sfc, WIN, pick->y, pick->x);
                 ui_curs_set(2);
-                ui_render(ui_runtime);
+                ui_render();
                 in_key = ui_get_event_multi(sfc, WIN, &event, -1);
                 if (event.mouse_action != UI_MOUSE_NONE) {
                     ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
@@ -948,7 +948,7 @@ int picker(Init *init, char *field) {
                 }
             }
             switch (in_key) {
-            case KEY_F(1):
+            case KEY_F01:
                 display_pick_help(init);
                 display_pick_page(pick);
                 f_insert = false;
@@ -961,9 +961,9 @@ int picker(Init *init, char *field) {
                     in_key = 0;
                     continue;
                 }
-                // *   1  F1 Help         KEY_F(1));
-                // *   2  F9 Cancel       KEY_F(9));
-                // *   3  F10 Accept      KEY_F(10));
+                // *   1  F1 Help         KEY_F01);
+                // *   2  F9 Cancel       KEY_F09);
+                // *   3  F10 Accept      KEY_F10);
                 // ?   4  <v> View        <v>
                 // ?   5  <q> Quit View   <q>
                 // ?   6  <Sp> Process    <Sp>
@@ -989,7 +989,7 @@ int picker(Init *init, char *field) {
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 // update_panels();
                 // doupdate();
-                ui_render(ui_runtime);
+                ui_render();
                 if (pick->p_view_files)
                     view_cmd_processor(init);
                 pick_std_chyron(pick);
@@ -1007,15 +1007,15 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** 'q', or KEY_F(9) cancel selection and exit picker */
+            /** 'q', or KEY_F09 cancel selection and exit picker */
             case 'q':
-            case KEY_F(9):
+            case KEY_F09:
                 deselect_object(pick);
                 return -1;
 
-            /** Enter or KEY_F(10) Accepts current selection and exits
+            /** Enter or KEY_F10 Accepts current selection and exits
                picker, returning count of selected objects */
-            case KEY_F(10):
+            case KEY_F10:
             case '\n':
             case KEY_ENTER:
                 reverse_object(pick);
@@ -1177,7 +1177,7 @@ int picker(Init *init, char *field) {
                 if (pick->tbl_col >= pick->tbl_cols)
                     continue;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->y;
-                in_key = KEY_F(13); /** toggle selection on mouse click */
+                in_key = KEY_F12; /** toggle selection on mouse click */
                 event.y = event.x = -1;
                 continue;
 
@@ -1242,7 +1242,7 @@ int picker(Init *init, char *field) {
                 ui_cursor_move(sfc, WIN2, 0, pos);
                 ui_top_panel(sfc, WIN2);
                 ui_curs_set(2);
-                ui_render(ui_runtime);
+                ui_render();
                 in_key = ui_get_event_multi(sfc, WIN2, &event, -1);
                 ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
                 if (event.mouse_action != UI_MOUSE_NONE) {
@@ -1251,7 +1251,7 @@ int picker(Init *init, char *field) {
                     if (event.in_win == WIN)
                         break;
                 }
-                if (in_key == KEY_F(13)) {
+                if (in_key == KEY_F12) {
                     in_key = 0;
                     continue;
                 }
@@ -1271,23 +1271,23 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 break;
 
-            case KEY_F(1):
+            case KEY_F01:
                 return (in_key);
 
-            case KEY_F(2):
+            case KEY_F02:
                 if (pick->p_view_files)
                     view_cmd_processor(init);
                 in_key = 0;
                 continue;
 
-            /** KEY_F(9) Cancels the current operation */
+            /** KEY_F09 Cancels the current operation */
             case KEY_BREAK:
-            case KEY_F(9):
-                in_key = KEY_F(9);
+            case KEY_F09:
+                in_key = KEY_F09;
                 return (in_key);
 
-            /** KEY_F(10) is the default key for accepting the field */
-            case KEY_F(10):
+            /** KEY_F10 is the default key for accepting the field */
+            case KEY_F10:
                 return (in_key);
 
             case KEY_END:

@@ -131,13 +131,13 @@ int form_engine(Init *init) {
     form_read_data(form);
     display_form(init);
     form->chyron = new_chyron();
-    set_chyron_key(form->chyron, 1, "F1 Help", KEY_F(1));
-    set_chyron_key_cb(form->chyron, 2, "F2 Process", KEY_F(2), cell_nt_hl_rev);
-    set_chyron_key_cb(form->chyron, 3, "F3 Calculate", KEY_F(3), cell_nt_hl_rev);
-    set_chyron_key_cb(form->chyron, 4, "F4 Query", KEY_F(4), cell_nt_hl_rev);
-    set_chyron_key_cb(form->chyron, 5, "F5 Edit", KEY_F(5), cell_nt_hl_rev);
-    set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F(9));
-    set_chyron_key(form->chyron, 10, "F10 Accept", KEY_F(10));
+    set_chyron_key(form->chyron, 1, "F1 Help", KEY_F01);
+    set_chyron_key_cb(form->chyron, 2, "F2 Process", KEY_F02, cell_nt_hl_rev);
+    set_chyron_key_cb(form->chyron, 3, "F3 Calculate", KEY_F03, cell_nt_hl_rev);
+    set_chyron_key_cb(form->chyron, 4, "F4 Query", KEY_F04, cell_nt_hl_rev);
+    set_chyron_key_cb(form->chyron, 5, "F5 Edit", KEY_F05, cell_nt_hl_rev);
+    set_chyron_key(form->chyron, 9, "F9 Cancel", KEY_F09);
+    set_chyron_key(form->chyron, 10, "F10 Accept", KEY_F10);
     set_chyron_key(form->chyron, 18, "INS", KEY_IC);
     form->chyron->key[2]->active = false;  // F2 Process
     form->chyron->key[3]->active = false;  // F3 Calculate
@@ -248,27 +248,27 @@ int form_post(Init *init) {
         if (rc == -1) {
             display_chyron(sfc, WIN, form->chyron, form->lines - 1, form->chyron->l);
             tcflush(2, TCIFLUSH);
-            ui_render(ui_runtime);
+            ui_render();
             c = ui_get_event_multi(sfc, WIN, &event, -1);
             ui_getmaxyx(sfc, WIN, &maxy, &maxx);
             if (event.in_win == 1 && event.y == maxy - 1)
                 c = get_chyron_key(form->chyron, event.x);
         }
         switch (c) {
-        case KEY_F(1):
+        case KEY_F01:
             return FA_HELP;
-        case KEY_F(5): // F5 Edit
+        case KEY_F05: // F5 Edit
             if (is_set_chyron_key(form->chyron, 5)) {
                 loop = false;
                 rc = FA_CONTINUE;
                 break;
             }
             continue;
-        case KEY_F(9):
+        case KEY_F09:
             loop = false;
             rc = FA_CANCEL;
             break;
-        case KEY_F(10):
+        case KEY_F10:
             loop = false;
             rc = FA_ACCEPT;
             break;
@@ -304,9 +304,9 @@ int form_post(Init *init) {
         The sequence of operations is as follows:
 
         1. The 'C', 'Q', or 'G' option causes Form to pause and display an
-   KEY_F(5) Calculate, Query, or Getter. option on the chyron.
-        2. The user can then cancel the operation by pressing KEY_F(9) or
-        activate the getter option by pressing KEY_F(5).
+   KEY_F05 Calculate, Query, or Getter. option on the chyron.
+        2. The user can then cancel the operation by pressing KEY_F09 or
+        activate the getter option by pressing KEY_F05.
         3. Form outputs its data to file, standard output, or as command line
         parameters.
         4. Form executes the getter program.
@@ -354,18 +354,18 @@ int form_process(Init *init) {
         display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
-        ui_render(ui_runtime);
+        ui_render();
         c = ui_get_event_multi(sfc, WIN, &event, -1);
         ui_getmaxyx(sfc, WIN, &maxy, &maxx);
         if (event.in_win == 1 && event.y == maxy - 1)
             c = get_chyron_key(form->chyron, event.x);
 
         switch (c) {
-        case KEY_F(1):
+        case KEY_F01:
             return FA_HELP;
-        case KEY_F(2): // F2 Process
-        case KEY_F(3): // F3 Calculate
-        case KEY_F(4): // F4 Query
+        case KEY_F02: // F2 Process
+        case KEY_F03: // F3 Calculate
+        case KEY_F04: // F4 Query
             if (form->f_out_spec)
                 form_write(form);
             if (form->f_provider_cmd) {
@@ -431,18 +431,18 @@ int form_process(Init *init) {
                 continue;
             }
             break;
-        case KEY_F(5):
+        case KEY_F05:
             if (is_set_chyron_key(form->chyron, 5)) {
                 loop = false;
                 rc = FA_CONTINUE;
                 break;
             }
             continue;
-        case KEY_F(9):
+        case KEY_F09:
             loop = false;
             rc = FA_CANCEL;
             break;
-        case KEY_F(10):
+        case KEY_F10:
             loop = false;
             rc = FA_ACCEPT;
             break;
@@ -475,17 +475,17 @@ int field_navigator(Form *form) {
     while (1) {
         int cmd_key = field_editor(form);
         switch (cmd_key) {
-        case KEY_F(1): // F1 Help
+        case KEY_F01: // F1 Help
             return (FA_HELP);
-        case KEY_F(2): // F2 Process
-        case KEY_F(3): // F3 Calculate
-        case KEY_F(4): // F4 Query
+        case KEY_F02: // F2 Process
+        case KEY_F03: // F3 Calculate
+        case KEY_F04: // F4 Query
             if (form->f_process)
                 return (FA_CALC);
             break;
-        case KEY_F(9): // F9 Cancel
+        case KEY_F09: // F9 Cancel
             return (FA_CANCEL);
-        case KEY_F(10): // F10 Accept
+        case KEY_F10: // F10 Accept
             return (FA_ACCEPT);
         case 'k':
         case KEY_UP:
@@ -576,7 +576,7 @@ unsigned int display_form(Init *init) {
         ui_mvwaddstr(sfc, WIN, form->text[n]->line, form->text[n]->col,
                      form->text[n]->str);
     }
-    ui_render(ui_runtime);
+    ui_render();
     form_display_fields(form);
     return 0;
 }
@@ -624,13 +624,13 @@ void form_display_fields(Form *form) {
 
         UiSurface *sfc = ui_surface[sfc_ptr];
         ui_mvwadd_cellstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
-        ui_render(ui_runtime);
+        ui_render();
 
         pos = 0;
         mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos, form->field[form->fidx]->len + 1);
 
         ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
-        ui_render(ui_runtime);
+        ui_render();
     }
     return;
 }
@@ -880,7 +880,7 @@ int form_read_data(Form *form) {
                     strnz__cpy(em1, "File does not exist", MAXLEN - 1);
                 strnz__cpy(em2, "Fields will be blank or zero", MAXLEN - 1);
                 cmd_key = display_error(em0, em1, em2, nullptr);
-                if (cmd_key == KEY_F(9))
+                if (cmd_key == KEY_F09)
                     return (1);
             }
             if (form->in_fp == nullptr)

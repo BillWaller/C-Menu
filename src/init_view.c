@@ -64,7 +64,7 @@ int init_view_full_screen(Init *init) {
         return -1;
     }
     ui_bkgd(view->sfc, LNNO, &cell_ln);
-    ui_render(ui_runtime);
+    ui_render();
     ui_scrollok(view->sfc, LNNO, true);
     ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
     // -------------------> 3. CMDLN <-------------------
@@ -99,7 +99,7 @@ void view_full_screen_resize(Init *init) {
     view_calc_full_screen_dimensions(init);
     View *view = init->view;
     ui_surface_destroy(view->sfc);
-    ui_render(ui_runtime);
+    ui_render();
     init_view_full_screen(init);
 }
 /** @brief Calculate the dimensions for full screen mode.
@@ -178,7 +178,7 @@ int init_view_boxwin(Init *init) {
 void view_boxwin_resize(Init *init) {
     View *view = init->view;
     ui_surface_destroy(view->sfc);
-    ui_render(ui_runtime);
+    ui_render();
     init_view_boxwin(init);
     border_title(init->view->sfc, init->view->title);
     // initialize_line_table(init->view);

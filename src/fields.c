@@ -87,23 +87,23 @@ int field_editor(Form *form) {
         }
         ui_curs_set(0);
         switch (in_key) {
-            /** KEY_F(10) is the default key for accepting the field and moving
+            /** KEY_F10 is the default key for accepting the field and moving
                 to the next field */
-        case KEY_F(10):
+        case KEY_F10:
             form_fmt_field(form, accept_s);
             form_display_field(form);
             if (form_validate_field(form) != 0)
                 continue;
             return (in_key);
-            /** KEY_F(9) Cancels the current operation */
+            /** KEY_F09 Cancels the current operation */
         case KEY_BREAK:
-        case KEY_F(9):
+        case KEY_F09:
             form_display_field(form);
-            in_key = KEY_F(9);
+            in_key = KEY_F09;
             return (in_key);
             /** KEY_UP, KEY_BTAB moves to the previous field */
         case 'H':
-        case KEY_F(1):
+        case KEY_F01:
             return (in_key);
         case UI_KEY_BTAB:
         case KEY_UP:
@@ -375,13 +375,13 @@ int form_display_field(Form *form) {
     mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
-    ui_render(ui_runtime);
+    ui_render();
 
     pos = 0;
     mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
-    ui_render(ui_runtime);
+    ui_render();
     return 0;
 }
 int form_display_accept_field(Form *form) {
@@ -392,13 +392,13 @@ int form_display_accept_field(Form *form) {
     mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
-    ui_render(ui_runtime);
+    ui_render();
 
     pos = 0;
     mbstr_to_cellstr(form->field[form->fidx]->accept_cc, form->field[form->fidx]->accept_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
     ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->accept_cc, form->field[form->fidx]->len);
-    ui_render(ui_runtime);
+    ui_render();
     return 0;
 }
 /** @brief Format field according to its format type

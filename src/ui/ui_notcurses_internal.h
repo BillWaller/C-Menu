@@ -38,6 +38,9 @@
 #define KEY_F08 NCKEY_F08
 #define KEY_F09 NCKEY_F09
 #define KEY_F10 NCKEY_F10
+#define KEY_F11 NCKEY_F11
+#define KEY_F12 NCKEY_F12
+#define KEY_F13 NCKEY_F13
 #define KEY_DC NCKEY_DEL
 #define KEY_IC NCKEY_INS
 #define KEY_NPAGE NCKEY_PGDOWN
@@ -53,6 +56,7 @@
 #define KEY_PRINT NCKEY_PRINT
 #define KEY_CATAB NCKEY_F13
 #define KEY_LL NCKEY_F14
+#define KEY_ALTF09 NCKEY_F21
 
 /** @struct UiRuntime
    @ingroup ui_notcurses
@@ -161,25 +165,37 @@ union UiChannels {
 
 typedef struct {
     union {
-        uint32_t gcluster; // 4-bytes for UTF-8
-        uint8_t gstr[4];
+        uint32_t gi32; // 4-bytes for UTF-8
+        uint8_t gi8[4];
         wchar_t wstr[4];
     };
     uint8_t width; // 5 -  5   (8 bits of EGC column width)
 } GCluster;
 
-struct UiCell {
+struct UiCellLocal {
     union {
-        struct {
-            uint32_t gcluster; // 4-bytes for UTF-8
-            uint8_t backstop;  // 1-byte terminator
-        };
-        wchar_t wstr[5];
-        uint8_t gstr[5];
+        uint32_t gcluster; // 4-bytes for UTF-8
+        wchar_t wstr[4];
+        uint8_t gstr[4];
     };
+    uint8_t gcluster_backstop; // 1-byte terminator
     uint8_t width;             // 5 -  5   (8 bits of EGC column width)
     uint16_t stylemask;        // 6 -  7   2-bytes
     union UiChannels channels; // 8 - 15   8 bytes
+};
+
+struct UiColor {
+    union {
+        struct {
+            uint8_t b, g, r;
+        };
+        uint32_t rgb;
+    };
+};
+
+struct UiPair {
+    uint fg;
+    uint bg;
 };
 
 #define UI_MASK NCSTYLE_MASK
@@ -248,7 +264,6 @@ struct UiCell {
 // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
 /* Internal style helpers */
 
-int ui_bkgrnd(struct UiSurface *s, uint w, const uint16_t *style, const struct UiCell *cell);
 struct ncplane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni);
 
 #endif

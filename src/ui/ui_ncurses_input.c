@@ -219,3 +219,24 @@ int ui_get_event_no_mouse(UiSurface *s, uint w, UiEvent *ev) {
     } while (ch == ERR);
     return ch;
 }
+/* -------------------------------------------------------------------------
+   Mice
+   ------------------------------------------------------------------------- */
+int ui_mousemask(int mask) {
+    if (!ui_runtime)
+        return -1;
+    if (mask)
+        mousemask(mask, nullptr);
+    else
+        mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+    return 0;
+}
+int ui_mice_enable(int mask) {
+    if (!ui_runtime)
+        return -1;
+    if (mask)
+        mousemask(mask, nullptr);
+    else
+        mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+    return 0;
+}

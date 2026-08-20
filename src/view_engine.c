@@ -759,20 +759,12 @@ int get_cmd_char(View *view, off_t *n) {
             ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx + 1, c);
         }
         ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
-        // ui_update_panels();
         ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
-        // ui_doupdate();
-        _Refresh(view);
+        ui_render();
         event.y = event.x = -1;
         c = ui_get_event_no_mouse(sfc, CMDLN, &event);
         switch (c) {
         case KEY_MOUSE:
-            // if (getmouse(event) == OK) {
-            //     if (event.bstate & BUTTON1_CLICKED) {
-            //         c = KEY_MOUSE;
-            //         break;
-            //     }
-            // }
             break;
         case KEY_RESIZE:
         case '\n':
@@ -900,7 +892,7 @@ int get_cmd_arg(View *view, char *prompt) {
     ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_ran, 1);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
     // ui_doupdate();
-    ui_render(ui_runtime);
+    ui_render();
     uint flin = view->cmd_line;
     uint fcol = prompt_l + 1;
     uint flen = view->cols - prompt_l;
@@ -1235,10 +1227,8 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 ui_getcchar(&cc, wstr, &attr, &cpx, nullptr);
                 cpx = cp_nt_rev;
                 ui_setcchar(&cc, wstr, attr, cpx, nullptr);
-                view->cmplx_buf[i] = cc;
 #else
-                ui_decompose_nccell(&cc, wstr, &stylemask, &channels);
-                ui_compose_nccell(&cc, &wstr[4], &cell_nt_rev);
+                cc.channels = cell_nt_rev.channels;
 #endif
                 view->cmplx_buf[i] = cc;
             }
@@ -1390,7 +1380,7 @@ void view_display_page(View *view) {
         if (view->wrap && view->cury == 0)
             view->cur.sl_idx = view->page_top_sl_idx;
         display_line(view);
-        _Refresh(view);
+        ui_render();
         view->ln_no++;
     }
     if (view->f_eod)
@@ -2054,7 +2044,8 @@ void sync_ln(View *view) {
     @returns OK on success, ERR on failure
 */
 int pad_refresh(View *view) {
-    int rc;
+    int rc = 0;
+#ifdef UAL_UI
     // touchwin(view->sfc->mwin[WIN2]);
     // rc = pnoutrefresh(view->sfc->mwin[WIN2], view->pminrow, view->pmincol,
     // view->sminrow,
@@ -2071,6 +2062,10 @@ int pad_refresh(View *view) {
                   __FILE__, __LINE__ - 1, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
         Perror(em0);
     }
+#else
+    (void)view;
+    ui_render();
+#endif
     return rc;
 }
 

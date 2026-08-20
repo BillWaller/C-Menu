@@ -194,6 +194,31 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     return id;
 }
 
+int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
+    (void)target;
+    (void)w;
+    if (!ui_runtime || !ev)
+        return -1;
+    memset(ev, 0, sizeof(*ev));
+
+    ncinput ni;
+    uint32_t id;
+    int y, x;
+    notcurses_mice_disable(ui_runtime->nc);
+    notcurses_cursor_yx(ui_runtime->nc, &y, &x);
+    notcurses_cursor_enable(ui_runtime->nc, y, x);
+    id = notcurses_get_blocking(ui_runtime->nc, &ni);
+    notcurses_cursor_disable(ui_runtime->nc);
+    ev->key = translate_nckey(id, &ni);
+    ev->alt = ncinput_alt_p(&ni);
+    ev->ctrl = ncinput_ctrl_p(&ni);
+    ev->shift = ncinput_shift_p(&ni);
+    if (ev->key == UI_KEY_CHAR) {
+        ev->ch = id; /* Unicode codepoint */
+    }
+    return id;
+}
+
 int get_plane_idx(UiSurface *s, struct ncplane *plane) {
     if (!s)
         return -1;

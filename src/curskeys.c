@@ -70,7 +70,7 @@ int ncurses_input(UiSurface *sfc, uint w) {
         kstr[0] = '\0';
         ui_cursor_move(sfc, WIN, 1, 39);
         do {
-            ui_render(ui_runtime);
+            ui_render();
             c = ui_get_event(sfc, WIN, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
@@ -571,7 +571,7 @@ int ncurses_input(UiSurface *sfc, uint w) {
             }
             ui_mvwaddstr(sfc, WIN, 6, 3, tmp);
             ui_wclrtoeol(sfc, WIN);
-            ui_render(ui_runtime);
+            ui_render();
         }
         if (c == KEY_ALTEND) {
             usleep(100000);
@@ -591,12 +591,12 @@ int notcurses_input(UiSurface *sfc, uint w) {
         kstr[0] = '\0';
         ui_cursor_move(sfc, WIN, 1, 39);
         do {
-            ui_render(ui_runtime);
+            ui_render();
             c = ui_get_event(sfc, WIN, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
                     c = display_error(em0, em1, em2, NULL);
-                if (c == 'q' || c == KEY_F(9))
+                if (c == 'q' || c == KEY_F09)
                     exit(EXIT_FAILURE);
                 continue;
             }
@@ -1054,7 +1054,7 @@ int notcurses_input(UiSurface *sfc, uint w) {
             }
             ui_mvwaddstr(sfc, w, 6, 3, tmp);
             ui_wclrtoeol(sfc, w);
-            ui_render(ui_runtime);
+            ui_render();
         }
         if (c == KEY_ALTEND) {
             usleep(100000);

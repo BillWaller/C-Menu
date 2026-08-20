@@ -379,21 +379,6 @@ void ui_shutdown(UiRuntime *ui) {
     free(ui);
 }
 
-void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols) {
-    if (!ui)
-        return;
-    getmaxyx(stdscr, ui->lines, ui->cols);
-    if (lines)
-        *lines = ui->lines;
-    if (cols)
-        *cols = ui->cols;
-}
-
-int ui_clear() {
-    erase();
-    return 0;
-}
-
 int ui_suspend(UiRuntime *ui) {
     (void)ui;
     def_prog_mode();
@@ -409,38 +394,8 @@ int ui_resume(UiRuntime *ui) {
     return 0;
 }
 
-int ui_cursor_enable(UiRuntime *ui, bool visible) {
-    if (!ui)
-        return -1;
-    ui->cursor_visible = visible;
-    curs_set(visible ? 1 : 0);
-    return 0;
-}
-
 /* -------------------------------------------------------------------------
-   Mice
-   ------------------------------------------------------------------------- */
-int ui_mousemask(int mask) {
-    if (!ui_runtime)
-        return -1;
-    if (mask)
-        mousemask(mask, nullptr);
-    else
-        mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
-    return 0;
-}
-int ui_mice_enable(int mask) {
-    if (!ui_runtime)
-        return -1;
-    if (mask)
-        mousemask(mask, nullptr);
-    else
-        mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
-    return 0;
-}
-
-/* -------------------------------------------------------------------------
-   Surface management
+   Surface Creation and Destruction
    ------------------------------------------------------------------------- */
 
 UiSurface *ui_surface_new(UiRuntime *ui, uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
@@ -516,7 +471,7 @@ UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, uint p, uint lin
 #endif
     return s;
 }
-int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols) {
+int ui_surface_addpad(UiSurface *s, uint w, uint view_win, int lines, int cols) {
     s->mwin[w] = newpad(lines, cols);
     if (s->mwin[w] == nullptr)
         return -1;
@@ -545,13 +500,105 @@ int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint 
 #endif
     return 0;
 }
-int ui_wscrl(UiSurface *s, uint w, uint n) {
-    if (!s->mwin[w])
+// -------------------------------------------------------------------------
+// Surface Management
+// -------------------------------------------------------------------------
+
+void ui_surface_destroy(UiSurface *s) {
+    if (!s)
+        return;
+    for (int i = 0; i < SUB_SFC_MAX; i++) {
+        if (s->mpan[i]) {
+            hide_panel(s->mpan[i]);
+            del_panel(s->mpan[i]);
+        }
+    }
+    for (int i = 1; i < SUB_SFC_MAX; i++) {
+        if (s->mwin[i]) {
+            werase(s->mwin[i]);
+            delwin(s->mwin[i]);
+        }
+    }
+    ui_render();
+    free(s);
+}
+int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
+    if (!s)
         return -1;
-    wscrl(s->mwin[w], n);
-    ui_render(ui_runtime);
+    s->y = y;
+    s->x = x;
+    return move_panel(s->mpan[w], y, x);
+}
+
+int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
+    if (!s)
+        return -1;
+    s->lines = lines;
+    s->cols = cols;
+    wresize(s->mwin[w], lines + 2, cols + 2);
+    wresize(s->mwin[w + 1], lines, cols);
     return 0;
 }
+
+int ui_surface_clear(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    if (w == ALLWINS) {
+        for (int i = 1; i < SUB_SFC_MAX; i++) {
+            if (s->mwin[i]) {
+                wclear(s->mwin[i]);
+            }
+        }
+    } else {
+        if (s->mwin[w]) {
+            wclear(s->mwin[w]);
+        }
+    }
+    return 0;
+}
+int ui_surface_erase(UiSurface *s, uint w) {
+    if (w == ALLWINS) {
+        for (int i = 1; i < SUB_SFC_MAX; i++) {
+            if (s->mwin[i]) {
+                werase(s->mwin[i]);
+            }
+        }
+    } else {
+        if (s->mwin[w]) {
+            werase(s->mwin[w]);
+        }
+    }
+    return 0;
+}
+
+int ui_surface_show(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    show_panel(s->mpan[w]);
+    s->hidden = false;
+    return 0;
+    return 0;
+}
+
+int ui_top_panel(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    top_panel(s->mpan[w]);
+    return 0;
+}
+
+int ui_surface_hide(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    hide_panel(s->mpan[w]);
+    s->hidden = true;
+    return 0;
+}
+
+// -------------------------------------------------------------------------
+// Controls and Settings
+// -------------------------------------------------------------------------
+
 int ui_scrollok(UiSurface *s, uint w, bool enable) {
     if (!s->mwin[w])
         return -1;
@@ -617,97 +664,30 @@ uint ui_getmaxx(UiSurface *s, uint w) {
         return -1;
     return (uint)(getmaxx(s->mwin[w]));
 }
-void ui_surface_destroy(UiSurface *s) {
-    if (!s)
+void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols) {
+    if (!ui)
         return;
-    for (int i = 0; i < SUB_SFC_MAX; i++) {
-        if (s->mpan[i]) {
-            hide_panel(s->mpan[i]);
-            del_panel(s->mpan[i]);
-        }
-    }
-    for (int i = 1; i < SUB_SFC_MAX; i++) {
-        if (s->mwin[i]) {
-            werase(s->mwin[i]);
-            delwin(s->mwin[i]);
-        }
-    }
-    ui_render(ui_runtime);
-    free(s);
+    getmaxyx(stdscr, ui->lines, ui->cols);
+    if (lines)
+        *lines = ui->lines;
+    if (cols)
+        *cols = ui->cols;
 }
-int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
-    if (!s)
+int ui_cursor_enable(UiRuntime *ui, bool visible) {
+    if (!ui)
         return -1;
-    s->y = y;
-    s->x = x;
-    return move_panel(s->mpan[w], y, x);
+    ui->cursor_visible = visible;
+    curs_set(visible ? 1 : 0);
+    return 0;
 }
-
-int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
-    if (!s)
-        return -1;
-    s->lines = lines;
-    s->cols = cols;
-    wresize(s->mwin[w], lines + 2, cols + 2);
-    wresize(s->mwin[w + 1], lines, cols);
+int ui_clear() {
+    erase();
     return 0;
 }
 
-int ui_surface_clear(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    if (w == ALLWINS) {
-        for (int i = 1; i < SUB_SFC_MAX; i++) {
-            if (s->mwin[i]) {
-                wclear(s->mwin[i]);
-            }
-        }
-    } else {
-        if (s->mwin[w]) {
-            wclear(s->mwin[w]);
-        }
-    }
-    return 0;
-}
-
-int ui_surface_erase(UiSurface *s, uint w) {
-    if (w == ALLWINS) {
-        for (int i = 1; i < SUB_SFC_MAX; i++) {
-            if (s->mwin[i]) {
-                werase(s->mwin[i]);
-            }
-        }
-    } else {
-        if (s->mwin[w]) {
-            werase(s->mwin[w]);
-        }
-    }
-    return 0;
-}
-
-int ui_surface_show(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    show_panel(s->mpan[w]);
-    s->hidden = false;
-    return 0;
-    return 0;
-}
-
-int ui_top_panel(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    top_panel(s->mpan[w]);
-    return 0;
-}
-
-int ui_surface_hide(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    hide_panel(s->mpan[w]);
-    s->hidden = true;
-    return 0;
-}
+// -------------------------------------------------------------------------
+// Screen Navigation
+// -------------------------------------------------------------------------
 
 int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
     if (!s || !s->mwin[w])
@@ -724,8 +704,23 @@ int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
         return -1;
     return wmove(s->mwin[w], y, x);
 }
+int ui_curs_set(int visibility) {
+    curs_set(visibility);
+    return 0;
+}
+int ui_erase() {
+    erase();
+    return 0;
+}
+int ui_wscrl(UiSurface *s, uint w, uint n) {
+    if (!s->mwin[w])
+        return -1;
+    wscrl(s->mwin[w], n);
+    ui_render();
+    return 0;
+}
 // -------------------------------------------------------------------------
-// Background and style management
+// Background
 // -------------------------------------------------------------------------
 
 // for the entire window
@@ -756,7 +751,9 @@ int ui_bkgrndset(WINDOW *win, const UiCell *cell) {
     wbkgrndset(win, cell);
     return 0;
 }
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+   Cell Manipulation
+   ------------------------------------------------------------------------- */
 
 int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, uint16_t *pair, void *opts) {
     short p;
@@ -765,20 +762,18 @@ int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, uint16_t *pair, 
     p = (short)(*pair); // Tell compiler to forget about it!
     return 0;
 }
-// int ui_setcchar(cchar_t *wch, const wchar_t *wc, const attr_t attrs, short
-// pair, const void *opts) {
-//    return setcchar(wch, wc, attrs, pair, &opts);
-// }
+
 int ui_setcchar(cchar_t *wch, const wchar_t *wc, const attr_t attrs, short pair, const void *opts) {
     (void)opts;
     return setcchar(wch, wc, attrs, pair, NULL);
 }
+/* -------------------------------------------------------------------------
+   Rendering
+   ------------------------------------------------------------------------- */
 
-int ui_render(UiRuntime *ui) {
-    (void)ui;
+void ui_render() {
     update_panels();
     doupdate();
-    return 0;
 }
 void ui_update_panels() {
     update_panels();
@@ -791,14 +786,6 @@ int ui_wnoutrefresh(UiSurface *s, uint w) {
     if (!s)
         return -1;
     wnoutrefresh(s->mwin[w]);
-    return 0;
-}
-int ui_curs_set(bool visibility) {
-    curs_set(visibility);
-    return 0;
-}
-int ui_erase() {
-    erase();
     return 0;
 }
 /* -------------------------------------------------------------------------

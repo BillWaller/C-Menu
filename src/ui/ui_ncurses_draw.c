@@ -52,14 +52,14 @@ int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text) {
     return 0;
 }
 // text - limit length
-int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, size_t n) {
+int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
     if (!s || !s->mwin[w] || !text)
         return -1;
     mvwaddnstr(s->mwin[w], y, x, text, (int)n);
     return 0;
 }
 //  text string - pad length
-int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, size_t n) {
+int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
     if (!s || !text)
         return -1;
     uint l = strlen(text);
@@ -102,7 +102,7 @@ int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, uint n) {
     waddnwstr(s->mwin[w], wstr, n);
     return 0;
 }
-int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, uint n) {
+int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int n) {
     if (!s || !wstr)
         return -1;
     mvwaddnwstr(s->mwin[w], y, x, wstr, n);
@@ -139,7 +139,7 @@ int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
     return 0;
 }
 // text string - pad length
-int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, char *str, uint l) {
+int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *str, int l) {
     char *d, *e;
     uint maxy, maxx;
     char tmp_str[MAXLEN];
@@ -218,11 +218,11 @@ int ui_mvwadd_mbstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
     return 0;
 }
 //  mb string to cc - limit length
-int ui_mvwadd_mbnstr(UiSurface *s, uint w, uint y, uint x, const char *text, uint n) {
+int ui_mvwadd_mbnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
     if (!s || !text)
         return -1;
     UiCell cmplx_buf[MAXLEN];
-    uint cols = mbstr_to_cc((char *)text, cmplx_buf);
+    int cols = mbstr_to_cc((char *)text, cmplx_buf);
     cols = (cols > n) ? n : cols;
     //  if (style)
     //      ui_ncurses_style_apply(s, w, style);
@@ -230,16 +230,16 @@ int ui_mvwadd_mbnstr(UiSurface *s, uint w, uint y, uint x, const char *text, uin
     return 0;
 }
 //  mb string to cc - pad length
-int ui_mvwadd_mbnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, uint n) {
+int ui_mvwadd_mbnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
     if (!s || !text)
         return -1;
     UiCell cmplx_buf[MAXLEN];
-    uint cols = mbstr_to_cc((char *)text, cmplx_buf);
+    int cols = mbstr_to_cc((char *)text, cmplx_buf);
     if (cols < n) {
         UiCell fill_cc;
         wchar_t wstr[2] = {L' ', L'\0'};
         setcchar(&fill_cc, wstr, WA_NORMAL, cp_nt, nullptr);
-        for (uint i = cols; i < n; i++)
+        for (int i = cols; i < n; i++)
             cmplx_buf[i] = fill_cc;
     }
     //  if (style)
@@ -258,7 +258,7 @@ void ui_restore_wins() {
             if (ui_surface[s]->mwin[w] != nullptr)
                 touchwin(ui_surface[s]->mwin[w]);
     }
-    ui_render(ui_runtime);
+    ui_render();
 }
 /* -------------------------------------------------------------------------
    Formatting

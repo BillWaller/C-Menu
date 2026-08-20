@@ -492,15 +492,18 @@ uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_bas
     return *pos;
 }
 #else
-int mbstr_to_cellstr(struct UiCell *cmplx_buf, const char *str, const uint16_t *style, const UiPair *cp, uint *p, const uint atmost) {
+uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
+    uint16_t cp;
     uint p1 = 0;
     uint *pos = &p1;
     if (p)
         pos = p;
     uint i = 0, len = 0;
     const char *s;
+    UiStyle style;
     UiCell cc;
-    wchar_t wstr[2] = {L'\0', L'\0'};
+    wchar_t wstr[5];
+    ui_getnccell(cell_base, &wstr[0], &style, &cp);
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     if (pos && *pos >= atmost - 1)
@@ -516,7 +519,7 @@ int mbstr_to_cellstr(struct UiCell *cmplx_buf, const char *str, const uint16_t *
         wstr[1] = L'\0';
         if (*pos > atmost)
             break;
-        if (ui_setnccell(&cc, wstr, style, cp) != ERR) {
+        if (ui_setnccell(&cc, wstr, &style, &cp) != ERR) {
             if (len > 0 && (*pos + len) < atmost)
                 cmplx_buf[(*pos)++] = cc;
         }
@@ -524,7 +527,7 @@ int mbstr_to_cellstr(struct UiCell *cmplx_buf, const char *str, const uint16_t *
     }
     wstr[0] = L'\0';
     wstr[1] = L'\0';
-    ui_setnccell(&cc, wstr, style, cp);
+    ui_setnccell(&cc, wstr, &style, &cp);
     cmplx_buf[*pos] = cc;
     return *pos;
 }
@@ -601,10 +604,10 @@ int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint 
     UiSurface *sfc = ui_surface[sfc_ptr];
 
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
-    ui_render(ui_runtime);
+    ui_render();
 
     border_ysplit(sfc, wlines + 1);
-    ui_render(ui_runtime);
+    ui_render();
     ui_surface_addwin(sfc, WIN2, BOX, 2, wcols, wlines + 2, 1);
     ui_curs_set(0);
     return 0;
@@ -631,7 +634,7 @@ int border_draw(UiSurface *sfc) {
     uint y = 0;
     uint x = 0;
     ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_tl, 1);
-    ui_render(ui_runtime);
+    ui_render();
     for (x = 1; x < maxx - 1; x++)
         ui_mvwadd_cellnstr(sfc, BOX, y, x, &cell_ho, 1);
     ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_tr, 1);
@@ -643,7 +646,7 @@ int border_draw(UiSurface *sfc) {
     for (x = 1; x < maxx - 1; x++)
         ui_mvwadd_cellnstr(sfc, BOX, y, x, &cell_ho, 1);
     ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_br, 1);
-    ui_render(ui_runtime);
+    ui_render();
     return 0;
 }
 /** border-ysplit
@@ -739,7 +742,7 @@ int border_title(UiSurface *sfc, char *title) {
     ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_lt, 1);
     while (x < maxx - 1)
         ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_ho, 1);
-    ui_render(ui_runtime);
+    ui_render();
     return 0;
 }
 

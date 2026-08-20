@@ -164,7 +164,7 @@ unsigned int menu_cmd_processor(Init *init) {
         ui_draw_ch(sfc, WIN, menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos,
                    menu->line[menu->line_idx]->choice_letter);
-        ui_render(ui_runtime);
+        ui_render();
         // Initialize the mouse event coordinates to -1 to indicate no mouse
         // event
         switch (in_key) {
@@ -197,7 +197,7 @@ unsigned int menu_cmd_processor(Init *init) {
             break;
             /** @brief Display help information for the menu system */
         case '?':
-        case KEY_F(1):
+        case KEY_F01:
             if (menu->f_help_spec && menu->help_spec[0] != '\0')
                 strnz__cpy(tmp_str, menu->help_spec, MAXLEN - 1);
             else {
@@ -221,11 +221,11 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_DISPLAY_MENU);
             /** Exit the menu and return to the previous menu or exit if at top
              */
-        case KEY_F(9):
+        case KEY_F09:
         case KEY_BREAK:
             return (MA_RETURN);
             /** @brief send default printer output file to printer */
-        case KEY_ALTF(9):
+        case KEY_F07:
             d = getenv("PRTCMD");
             if (d == nullptr || *d == '\0')
                 strnz__cpy(earg_str, PRINTCMD, MAXLEN - 1);

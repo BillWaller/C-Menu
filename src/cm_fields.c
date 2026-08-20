@@ -36,7 +36,7 @@ bool f_erase_remainder = true;
     @param flin The line number of the field
     @param fcol The column number of the field
     @param flen The length of the field
-    @return The key pressed to exit the field (KEY_ENTER, KEY_F(9), etc.)
+    @return The key pressed to exit the field (KEY_ENTER, KEY_F09, etc.)
  */
 int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint flen) {
     bool f_insert = false;
@@ -55,13 +55,13 @@ int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint
             ui_mvwaddstr(sfc, w, flin, fcol, accept_s);
             ui_wclrtoeol(sfc, w);
             ui_cursor_move(sfc, w, flin, x);
-            ui_render(ui_runtime);
+            ui_render();
             in_key = ui_get_event(sfc, WIN, &event, -1);
         }
         ui_curs_set(0);
         switch (in_key) {
-        case KEY_F(9):
-            in_key = KEY_F(9);
+        case KEY_F09:
+            in_key = KEY_F09;
             return (in_key);
         case '\t':
         case KEY_END:
