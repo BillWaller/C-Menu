@@ -18,7 +18,7 @@
    @param ui The UiRuntime returned by ui_init().
    @return The NotCurses context pointer, or NULL if @p ui is NULL.
 */
-struct notcurses *ui_notcurses_get_nc(const UiRuntime *ui);
+struct notcurses *ui_notcurses_get_nc();
 
 /** @brief Return the raw @c struct ncplane* underlying a surface.
    @param s The UiSurface to inspect.

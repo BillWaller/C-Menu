@@ -49,7 +49,7 @@ int init_view_full_screen(Init *init) {
     view->f_full_screen = true;
     // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
-    view->sfc = ui_surface_new(ui_runtime, WIN, NULL, 0, view->lines, view->cols, 0, 0);
+    view->sfc = ui_surface_new(WIN, NULL, 0, view->lines, view->cols, 0, 0);
     if (!view->sfc) {
         ssnprintf(em0, MAXLEN - 1, "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen");
         Perror(em0);
@@ -112,7 +112,7 @@ void view_full_screen_resize(Init *init) {
  */
 void view_calc_full_screen_dimensions(Init *init) {
     View *view = init->view;
-    ui_get_screen_size(ui_runtime, &view->lines, &view->cols);
+    ui_get_screen_size(&view->lines, &view->cols);
     view->ln_win_lines = view->lines;
     view->ln_win_cols = 8;
     view->scroll_lines = view->lines - 1;
@@ -149,7 +149,7 @@ int init_view_boxwin(Init *init) {
     view->f_full_screen = false;
     // -------------------> 1. BOX / WIN <-------------------
     view_calc_boxwin_dimensions(init);
-    view->sfc = ui_box_surface_new(ui_runtime, NULL, 0, view->lines, view->cols, view->begy, view->begx, NULL);
+    view->sfc = ui_box_surface_new(NULL, 0, view->lines, view->cols, view->begy, view->begx, NULL);
     ui_surface_addwin(view->sfc, WIN, BOX, view->lines, view->cols, 1, 1);
     // -------------------> 2. LNNO <-------------------
     ui_surface_addwin(view->sfc, LNNO, WIN, view->lines - 1, view->ln_win_cols, 0, 0);
@@ -199,7 +199,7 @@ void view_calc_boxwin_dimensions(Init *init) {
      * screen size with some padding. Ensure the view fits within the screen
      * dimensions. */
     uint scr_lines, scr_cols;
-    ui_get_screen_size(ui_runtime, &scr_lines, &scr_cols);
+    ui_get_screen_size(&scr_lines, &scr_cols);
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1,
               "%s:%d=%d calc lines=%d, cols=%d, begy=%d, begx=%d",

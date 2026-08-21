@@ -96,7 +96,7 @@ int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr) {
     mvwaddwstr(s->mwin[w], y, x, wstr);
     return 0;
 }
-int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, uint n) {
+int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int n) {
     if (!s || !wstr)
         return -1;
     waddnwstr(s->mwin[w], wstr, n);

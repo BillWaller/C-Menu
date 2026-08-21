@@ -255,7 +255,7 @@ int view_cmd_processor(Init *init) {
             break;
         case Ctrl('L'): /**<  Ctrl('L') or KEY_RESIZE - Handle terminal resize */
         case KEY_RESIZE:
-            ui_get_screen_size(ui_runtime, &view->lines, &view->cols);
+            ui_get_screen_size(&view->lines, &view->cols);
 #ifdef DEBUG_RESIZE
             ssnprintf(em0, MAXLEN - 1,
                       "%s:%d view->page_top_ln_no=%d, resized to lines: %d, cols: %d\n",

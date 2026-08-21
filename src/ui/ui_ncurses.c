@@ -24,6 +24,8 @@
 #include <string.h>
 #include <unistd.h>
 
+UiRuntime *ui = NULL;
+UiSurface *ui_surface[UI_SFC_MAX];
 uint ui_color_cnt = 0;
 uint ui_pair_cnt = 0;
 
@@ -51,12 +53,11 @@ STDRGB std_color[] = {
    Backend identification and capability query
    ------------------------------------------------------------------------- */
 
-UiBackend ui_get_backend(const UiRuntime *ui) {
-    (void)ui;
+UiBackend ui_get_backend() {
     return UI_BACKEND_NCURSES;
 }
 
-void ui_get_caps(const UiRuntime *ui, UiCaps *caps) {
+void ui_get_caps(UiCaps *caps) {
     if (!caps)
         return;
     memset(caps, 0, sizeof(*caps));
@@ -274,7 +275,7 @@ UiCell ui_cell_from_hex(const char *fg, const char *bg, const attr_t attrs, cons
 
 struct UiRuntime *ui_init(const UiConfig *cfg) {
     setlocale(LC_ALL, "");
-    UiRuntime *ui = calloc(1, sizeof(*ui));
+    ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
     char tty_name[XLEN];
@@ -306,7 +307,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     f_curses_open = true;
 #endif
     if (!has_colors() || !can_change_color()) {
-        ui_shutdown(ui);
+        ui_shutdown();
         return NULL;
     }
     start_color();
@@ -354,10 +355,10 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
 }
 
 void ui_endwin() {
-    ui_shutdown(ui_runtime);
+    ui_shutdown();
 }
 
-void ui_shutdown(UiRuntime *ui) {
+void ui_shutdown() {
     if (!ui)
         return;
     for (int i = sfc_ptr; i >= 0; i--) {
@@ -379,15 +380,13 @@ void ui_shutdown(UiRuntime *ui) {
     free(ui);
 }
 
-int ui_suspend(UiRuntime *ui) {
-    (void)ui;
+int ui_suspend() {
     def_prog_mode();
     endwin();
     return 0;
 }
 
-int ui_resume(UiRuntime *ui) {
-    (void)ui;
+int ui_resume() {
     reset_prog_mode();
     update_panels();
     doupdate();
@@ -398,7 +397,7 @@ int ui_resume(UiRuntime *ui) {
    Surface Creation and Destruction
    ------------------------------------------------------------------------- */
 
-UiSurface *ui_surface_new(UiRuntime *ui, uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
+UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
@@ -434,7 +433,7 @@ UiSurface *ui_surface_new(UiRuntime *ui, uint w, UiSurface *parent, uint p, uint
     return s;
 }
 
-UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *wtitle) {
+UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *wtitle) {
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
@@ -540,7 +539,21 @@ int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
     return 0;
 }
 
-int ui_surface_clear(UiSurface *s, uint w) {
+int ui_werase(UiSurface *s, uint w) {
+    if (w == ALLWINS) {
+        for (int i = 1; i < SUB_SFC_MAX; i++) {
+            if (s->mwin[i]) {
+                werase(s->mwin[i]);
+            }
+        }
+    } else {
+        if (s->mwin[w]) {
+            werase(s->mwin[w]);
+        }
+    }
+    return 0;
+}
+int ui_wclear(UiSurface *s, uint w) {
     if (!s)
         return -1;
     if (w == ALLWINS) {
@@ -556,21 +569,14 @@ int ui_surface_clear(UiSurface *s, uint w) {
     }
     return 0;
 }
-int ui_surface_erase(UiSurface *s, uint w) {
-    if (w == ALLWINS) {
-        for (int i = 1; i < SUB_SFC_MAX; i++) {
-            if (s->mwin[i]) {
-                werase(s->mwin[i]);
-            }
-        }
-    } else {
-        if (s->mwin[w]) {
-            werase(s->mwin[w]);
-        }
-    }
+int ui_erase() {
+    erase();
     return 0;
 }
-
+int ui_clear() {
+    clear();
+    return 0;
+}
 int ui_surface_show(UiSurface *s, uint w) {
     if (!s)
         return -1;
@@ -664,7 +670,7 @@ uint ui_getmaxx(UiSurface *s, uint w) {
         return -1;
     return (uint)(getmaxx(s->mwin[w]));
 }
-void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols) {
+void ui_get_screen_size(uint *lines, uint *cols) {
     if (!ui)
         return;
     getmaxyx(stdscr, ui->lines, ui->cols);
@@ -673,15 +679,11 @@ void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols) {
     if (cols)
         *cols = ui->cols;
 }
-int ui_cursor_enable(UiRuntime *ui, bool visible) {
+int ui_cursor_enable(bool visible) {
     if (!ui)
         return -1;
     ui->cursor_visible = visible;
     curs_set(visible ? 1 : 0);
-    return 0;
-}
-int ui_clear() {
-    erase();
     return 0;
 }
 
@@ -694,11 +696,6 @@ int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
         return -1;
     return wmove(s->mwin[w], y, x);
 }
-int ui_werase(UiSurface *s, uint w) {
-    if (!s || !s->mwin[w])
-        return -1;
-    return werase(s->mwin[w]);
-}
 int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
     if (!s || !s->mwin[w])
         return -1;
@@ -706,10 +703,6 @@ int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
 }
 int ui_curs_set(int visibility) {
     curs_set(visibility);
-    return 0;
-}
-int ui_erase() {
-    erase();
     return 0;
 }
 int ui_wscrl(UiSurface *s, uint w, uint n) {
@@ -803,7 +796,7 @@ int ui_ncurses_apply_style_from_cell(UiSurface *s, uint w, const UiCell *cell) {
    Non-portable escape-hatch getters (see ui_ncurses_compat.h)
    ------------------------------------------------------------------------- */
 
-SCREEN *ui_ncurses_get_screen(const UiRuntime *ui) {
+SCREEN *ui_ncurses_get_screen() {
     if (!ui)
         return NULL;
     return ui->screen;

@@ -27,7 +27,7 @@ typedef struct {
    @param rect The rectangle defining the position and size of the framed surface.
    @return A new UiFramedSurface instance, or NULL on failure.
  */
-UiFramedSurface ui_framed_surface_new(UiRuntime *ui, UiSurface *parent, UiRect rect);
+UiFramedSurface ui_framed_surface_new(UiSurface *parent, UiRect rect);
 /** @brief Destroys a framed surface and releases its resources.
    @ingroup ui_backend
    @param fs The UiFramedSurface to destroy.

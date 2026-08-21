@@ -84,6 +84,7 @@ unsigned int menu_engine(Init *init) {
                             menu->line[menu->line_idx]->letter_pos,
                             menu->line[menu->line_idx]->choice_letter);
                 ui_bkgdset(sfc, WIN, &cell_nt);
+                ui_render();
             }
             action = MA_RESET_MENU;
             break;
@@ -150,6 +151,7 @@ unsigned int menu_cmd_processor(Init *init) {
         ui_draw_ch(sfc, WIN, menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos,
                    menu->line[menu->line_idx]->choice_letter);
+        ui_render();
         ui_bkgdset(sfc, WIN, &cell_nt);
         // Wait for user input and process it
         event.y = event.x = -1;

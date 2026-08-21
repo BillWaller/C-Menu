@@ -23,8 +23,7 @@
    @param rect   Position and size of the outer frame (including the border).
    @return       A UiFramedSurface; both fields are NULL on failure.
 */
-UiFramedSurface ui_framed_surface_new(UiRuntime *ui, UiSurface *parent,
-                                      UiRect rect) {
+UiFramedSurface ui_framed_surface_new(UiSurface *parent, UiRect rect) {
     int w = 0;
     UiFramedSurface fs = {NULL, NULL};
 
@@ -32,7 +31,7 @@ UiFramedSurface ui_framed_surface_new(UiRuntime *ui, UiSurface *parent,
         return fs;
 
     // char title[64] = {0};
-    fs.outer = ui_surface_new(ui, w, parent, 0, rect.lines, rect.cols, rect.y, rect.x);
+    fs.outer = ui_surface_new(w, parent, 0, rect.lines, rect.cols, rect.y, rect.x);
     if (!fs.outer)
         return fs;
 
@@ -40,7 +39,7 @@ UiFramedSurface ui_framed_surface_new(UiRuntime *ui, UiSurface *parent,
     rect.x = 1,
     rect.lines = rect.lines - 2,
     rect.cols = rect.cols - 2,
-    fs.inner = ui_surface_new(ui, w, fs.outer, 0, rect.lines, rect.cols, rect.y, rect.x);
+    fs.inner = ui_surface_new(w, fs.outer, 0, rect.lines, rect.cols, rect.y, rect.x);
     if (!fs.inner) {
         ui_surface_destroy(fs.outer);
         fs.outer = NULL;

@@ -167,7 +167,7 @@ int fork_exec(char **argv) {
         Perror(tmp_str);
         rc = -1;
     }
-    ui_resume(ui_runtime);
+    ui_resume();
     ui_restore_wins();
     return (rc);
 }

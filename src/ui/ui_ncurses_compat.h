@@ -23,12 +23,6 @@
 // UiCchar ui_cchar_str[4096];
 // UiXchar ui_xchar_str[4096];
 
-/** @brief Return the raw @c SCREEN* for the NCurses session.
-   @param ui The UiRuntime returned by ui_init().
-   @return The NCurses SCREEN pointer, or NULL if @p ui is NULL.
-*/
-SCREEN *ui_ncurses_get_screen(const UiRuntime *ui);
-
 /** @brief Return the raw NCurses @c WINDOW* underlying a surface.
    @param s The UiSurface to inspect.
    @return The WINDOW pointer, or NULL if @p s is NULL.

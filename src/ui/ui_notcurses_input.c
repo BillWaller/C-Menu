@@ -105,7 +105,7 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
 int ui_get_event(UiSurface *target, uint w, UiEvent *ev, int timeout_ms) {
     (void)target;
     (void)w;
-    if (!ui_runtime || !ev)
+    if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
 
@@ -113,18 +113,18 @@ int ui_get_event(UiSurface *target, uint w, UiEvent *ev, int timeout_ms) {
     uint32_t id;
     int y, x;
 
-    notcurses_cursor_yx(ui_runtime->nc, &y, &x);
-    notcurses_cursor_enable(ui_runtime->nc, y, x);
+    notcurses_cursor_yx(ui->nc, &y, &x);
+    notcurses_cursor_enable(ui->nc, y, x);
     if (timeout_ms < 0) {
-        id = notcurses_get_blocking(ui_runtime->nc, &ni);
+        id = notcurses_get_blocking(ui->nc, &ni);
     } else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
             .tv_nsec = (long)(timeout_ms % 1000) * 1000000L,
         };
-        id = notcurses_get(ui_runtime->nc, &ts, &ni);
+        id = notcurses_get(ui->nc, &ts, &ni);
     }
-    notcurses_cursor_disable(ui_runtime->nc);
+    notcurses_cursor_disable(ui->nc);
     ev->key = translate_nckey(id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
@@ -147,27 +147,26 @@ int ui_get_event(UiSurface *target, uint w, UiEvent *ev, int timeout_ms) {
 }
 
 int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
-    if (!ui_runtime || !ev)
+    if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
     uint32_t id;
     int y, x;
-    struct ncplane *stdn = notcurses_stdplane(ui_runtime->nc);
-    notcurses_cursor_yx(ui_runtime->nc, &y, &x);
-    notcurses_cursor_enable(ui_runtime->nc, y, x);
-    notcurses_render(ui_runtime->nc);
+    notcurses_cursor_yx(ui->nc, &y, &x);
+    notcurses_cursor_enable(ui->nc, y, x);
+    notcurses_render(ui->nc);
     if (timeout_ms < 0)
-        id = notcurses_get_blocking(ui_runtime->nc, &ni);
+        id = notcurses_get_blocking(ui->nc, &ni);
     else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
             .tv_nsec = (long)(timeout_ms % 1000) * 1000000L,
         };
-        id = notcurses_get(ui_runtime->nc, &ts, &ni);
+        id = notcurses_get(ui->nc, &ts, &ni);
     }
-    notcurses_cursor_disable(ui_runtime->nc);
+    notcurses_cursor_disable(ui->nc);
     ev->key = translate_nckey(id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
@@ -197,18 +196,18 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
 int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
     (void)target;
     (void)w;
-    if (!ui_runtime || !ev)
+    if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
     uint32_t id;
     int y, x;
-    notcurses_mice_disable(ui_runtime->nc);
-    notcurses_cursor_yx(ui_runtime->nc, &y, &x);
-    notcurses_cursor_enable(ui_runtime->nc, y, x);
-    id = notcurses_get_blocking(ui_runtime->nc, &ni);
-    notcurses_cursor_disable(ui_runtime->nc);
+    notcurses_mice_disable(ui->nc);
+    notcurses_cursor_yx(ui->nc, &y, &x);
+    notcurses_cursor_enable(ui->nc, y, x);
+    id = notcurses_get_blocking(ui->nc, &ni);
+    notcurses_cursor_disable(ui->nc);
     ev->key = translate_nckey(id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);

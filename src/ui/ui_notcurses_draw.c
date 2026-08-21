@@ -63,7 +63,31 @@ int ui_wclrtobot(UiSurface *s, uint w) {
    Text
    ------------------------------------------------------------------------- */
 
+int mk_chimera(UiCell *cell, char c) {
+    cell->gcluster = c;
+    cell->gcluster_backstop = 0;
+    cell->stylemask = donor_cell.stylemask;
+    cell->channels = donor_cell.channels;
+    return 0;
+}
+
+/** @brief Draw a single character using a stylemask and channels from a donor
+ * cell set by bkgdset().
+ * @details To accomodate legacy NCurses colors and color pairs, we use named
+ * and indexed nccells. It is very convenient, but not required here as it is
+ * with NCurses.
+ * @notes A Chimera is a single hybrid cell created by joining parts from two
+ * different cells. Got the idea from Dr. Fauci.
+ **/
 int ui_draw_ch(UiSurface *s, uint w, uint y, uint x, char c) {
+    if (!s || !c)
+        return -1;
+    UiCell cell;
+    mk_chimera(&cell, c);
+    ncplane_putc_yx(s->mplane[w], y, x, &cell);
+    return 0;
+}
+int ui_draw_cell(UiSurface *s, uint w, uint y, uint x, char c) {
     if (!s || !c)
         return -1;
     nccell cell = CELL_INITIALIZER(c, ncplane_styles(s->mplane[w]),
@@ -90,21 +114,15 @@ int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int n
 int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
     if (!s || !text)
         return -1;
-    uint l = strlen(text);
-    if (l < (uint)n) {
-        char *tmp_str = (char *)malloc(n + 1);
-        if (!tmp_str)
-            return -1;
-        strcpy(tmp_str, text);
-        for (int i = l; i < (int)n; i++) {
-            tmp_str[i] = ' ';
-        }
-        tmp_str[n] = '\0';
-        ncplane_putstr_yx(s->mplane[w], y, x, tmp_str);
-        free(tmp_str);
-    } else {
-        ncplane_putnstr_yx(s->mplane[w], y, x, n, text);
+    char tmp_str[MAXLEN];
+    strncpy(tmp_str, text, n);
+    int l = strlen(text);
+    for (int i = l; i < n; i++) {
+        tmp_str[i] = ' ';
     }
+    tmp_str[n] = '\0';
+    ncplane_putnstr_yx(s->mplane[w], y, x, n, tmp_str);
+    ui_render();
     return 0;
 }
 // -------------------------------------------------------------------------
@@ -134,6 +152,24 @@ int ui_mvwaddnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int n)
     ncplane_putnstr_yx(s->mplane[w], y, x, n, text);
     return 0;
 }
+int ui_mvwaddnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
+    if (!s || !text)
+        return -1;
+    uint l = strlen(text);
+    if (l < (uint)n) {
+        char *tmp_str = (char *)malloc(n + 1);
+        if (!tmp_str)
+            return -1;
+        strcpy(tmp_str, text);
+        for (int i = l; i < (int)n; i++) {
+            tmp_str[i] = ' ';
+        }
+        tmp_str[n] = '\0';
+        ncplane_putnstr_yx(s->mplane[w], y, x, n, text);
+        free(tmp_str);
+    }
+    return 0;
+}
 int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
     if (!s || !text)
         return -1;
@@ -147,14 +183,35 @@ int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, in
             tmp_str[i] = ' ';
         }
         tmp_str[n] = '\0';
-        ncplane_putstr_yx(s->mplane[w], y, x, tmp_str);
+        ncplane_putstr_yx(s->mplane[w], y, x, text);
         free(tmp_str);
-    } else {
-        ncplane_putnstr_yx(s->mplane[w], y, x, n, text);
     }
     return 0;
 }
-// -------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Wide Characters
+// ---------------------------------------------------------------------------
+int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int n) {
+    if (!s || !wstr)
+        return -1;
+    wchar_t wc;
+    for (int i = 0; i < n && wstr[i] != L'\0'; i++) {
+        wc = wstr[i];
+        ncplane_putwc_yx(s->mplane[w], -1, -1, wc);
+    }
+    return 0;
+}
+int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int n) {
+    if (!s || !wstr)
+        return -1;
+    ncplane_cursor_move_yx(s->mplane[w], y, x);
+    wchar_t wc;
+    for (int i = 0; i < n && wstr[i] != L'\0'; i++) {
+        wc = wstr[i];
+        ncplane_putwc_yx(s->mplane[w], -1, -1, wc);
+    }
+    return 0;
+}
 
 // ---------------------------------------------------------------------------
 // UiCells
@@ -163,11 +220,10 @@ int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, in
 int ui_wadd_cell(UiSurface *s, uint w, const UiCell *uic) {
     if (!s)
         return -1;
-
     ncplane_putc(s->mplane[w], uic);
     return 0;
 }
-int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, const UiCell *uic) {
+int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, UiCell *uic) {
     if (!s)
         return -1;
     ncplane_putc_yx(s->mplane[w], y, x, uic);
@@ -178,7 +234,7 @@ int ui_wadd_cellstr(UiSurface *s, uint w, UiCell *uic) {
     if (!s)
         return -1;
     uint i = 0;
-    while (uic[i].gcluster != '\0') {
+    while (uic[i].gcluster != L'\0') {
         ncplane_putc(s->mplane[w], uic);
         i++;
     }
@@ -189,7 +245,7 @@ int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic) {
         return -1;
     ui_wmove(s, w, y, x);
     uint i = 0;
-    while (uic[i].gcluster != '\0') {
+    while (uic[i].gcluster != L'\0') {
         ncplane_putc(s->mplane[w], uic);
         i++;
     }
@@ -199,7 +255,7 @@ int ui_wadd_cellnstr(UiSurface *s, uint w, UiCell *uic, uint n) {
     if (!s)
         return -1;
     uint i = 0;
-    while (uic[i].gcluster != '\0' && i < n) {
+    while (uic[i].gcluster != L'\0' && i < n) {
         ncplane_putc(s->mplane[w], uic);
         i++;
     }
@@ -210,7 +266,7 @@ int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic, uint n
         return -1;
     uint i = 0;
     ui_wmove(s, w, y, x);
-    while (i < n) {
+    while (uic[i].gcluster != L'\0' && i < n) {
         ncplane_putc(s->mplane[w], uic);
         i++;
     }
@@ -286,5 +342,5 @@ void ui_restore_wins() {
     //          if (ui_surface[s]->mplane[w] != nullptr)
     //      // touchwin(ui_surface[s]->mplane[w]);
     //  }
-    //  ui_render(ui_runtime);
+    //  ui_render(ui);
 }

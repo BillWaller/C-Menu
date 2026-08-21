@@ -34,7 +34,7 @@ int popup_ckeys() {
     unsigned cols = 55;
     char tmp[MAXLEN];
     uint maxy, maxx;
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     uint begy = (maxy - lines) / 3;
     uint begx = (maxx - cols) / 2;
     if (box_win_new(lines, cols, begy, begx, Title)) {

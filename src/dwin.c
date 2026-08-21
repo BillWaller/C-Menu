@@ -40,10 +40,6 @@
 #include <unistd.h>
 #include <wchar.h>
 
-UiRuntime *ui_runtime;
-UiConfig *ui_config;
-UiSurface *ui_surface[MAXWIN];
-
 int click_y;
 int click_x;
 
@@ -168,6 +164,8 @@ void initialize_cells(SIO *sio) {
     //
     // Standardized color pairs
     //
+    // strcpy(sio->nt_bg, "#0000ff");
+    // strcpy(sio->box_bg, "#00ff00");
     cp_fill_char = ui_add_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
     cp_brackets = ui_add_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
     cp_nt = ui_add_pair(CLR_NT_FG, CLR_NT_BG);
@@ -400,7 +398,7 @@ bool init_clr_palette(SIO *sio) {
 void destroy_curses() {
     if (!f_curses_open)
         return;
-    ui_shutdown(ui_runtime);
+    ui_shutdown();
     restore_shell_tioctl();
     sig_dfl_mode();
     return;
@@ -493,17 +491,17 @@ uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_bas
 }
 #else
 uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
-    uint16_t cp;
+    ushort cp;
     uint p1 = 0;
     uint *pos = &p1;
     if (p)
         pos = p;
     uint i = 0, len = 0;
     const char *s;
-    UiStyle style;
+    attr_t style;
     UiCell cc;
     wchar_t wstr[5];
-    ui_getnccell(cell_base, &wstr[0], &style, &cp);
+    ui_getcchar(cell_base, &wstr[0], &style, &cp, nullptr);
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     if (pos && *pos >= atmost - 1)
@@ -519,7 +517,7 @@ uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_bas
         wstr[1] = L'\0';
         if (*pos > atmost)
             break;
-        if (ui_setnccell(&cc, wstr, &style, &cp) != ERR) {
+        if (ui_setcchar(&cc, wstr, style, cp, nullptr) != ERR) {
             if (len > 0 && (*pos + len) < atmost)
                 cmplx_buf[(*pos)++] = cc;
         }
@@ -527,7 +525,8 @@ uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_bas
     }
     wstr[0] = L'\0';
     wstr[1] = L'\0';
-    ui_setnccell(&cc, wstr, &style, &cp);
+    ui_setcchar(&cc, wstr, style, cp, nullptr);
+    ui_setcchar(&cc, wstr, style, cp, nullptr);
     cmplx_buf[*pos] = cc;
     return *pos;
 }
@@ -571,14 +570,15 @@ int box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
         exit(EXIT_FAILURE);
     }
     uint maxy, maxx;
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     wlines = min(wlines, maxy - 2);
     wcols = min(wcols, maxx - 2);
     sfc_ptr++;
     // ------------------->    UAL_win_box    <-------------------
-    ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, nullptr, 0, wlines, wcols, wbegy, wbegx, wtitle);
+    ui_surface[sfc_ptr] = ui_box_surface_new(nullptr, 0, wlines, wcols, wbegy, wbegx, wtitle);
     UiSurface *sfc = ui_surface[sfc_ptr];
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
+    ui_render();
     return 0;
 }
 // ------------------->    box_split_new    <-------------------
@@ -592,7 +592,7 @@ int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint 
         exit(EXIT_FAILURE);
     }
     uint maxy, maxx;
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     wlines = min(wlines, maxy - 2);
     wcols = min(wcols, maxx - 2);
     split_x = min(split_x, maxx - 2); // not implemented yet
@@ -600,7 +600,7 @@ int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint 
     wcols = min(wcols, maxx - 2);
     sfc_ptr++;
     // ------------------->    surface_new    <-------------------
-    ui_surface[sfc_ptr] = ui_box_surface_new(ui_runtime, nullptr, 0, split_wlines, wcols, wbegy, wbegx, wtitle);
+    ui_surface[sfc_ptr] = ui_box_surface_new(nullptr, 0, split_wlines, wcols, wbegy, wbegx, wtitle);
     UiSurface *sfc = ui_surface[sfc_ptr];
 
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
@@ -620,7 +620,7 @@ int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint 
     @note The difference between this function and ui_surface_destroy() is that this function destroys the surface pointed to by the surface pointer (sfc_ptr) and decrements the surface pointer after destroying the surface.
  */
 int cm_surface_destroy(UiSurface *sfc) {
-    if (sfc_ptr >= MAX_SFC)
+    if (sfc_ptr >= UI_SFC_MAX)
         return -1;
     if (sfc != ui_surface[sfc_ptr])
         return -1;
@@ -774,7 +774,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     compile_chyron(chyron);
 
     uint maxy, maxx;
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     msg0_l = strnz(msg0, maxx - 4);
     msg1_l = strnz(msg1, maxx - 4);
     msg2_l = strnz(msg2, maxx - 4);
@@ -840,7 +840,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     compile_chyron(chyron);
 
     uint maxy, maxx;
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     msg0_l = strnz(msg0, maxx - 4);
     msg1_l = strnz(msg1, maxx - 4);
     msg2_l = strnz(msg2, maxx - 4);
@@ -905,10 +905,10 @@ int Perror(char *emsg_str) {
     set_chyron_key(chyron, 10, "F10 Continue", KEY_F10);
     compile_chyron(chyron);
     uint maxy, maxx;
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     cols = strnz(emsg, maxx - 4);
     cols = max(cols, chyron->l);
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     pos = (maxx - cols - 4) / 2;
     line = (maxy - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
@@ -952,7 +952,7 @@ bool action_disposition(char *title, char *action_str) {
     compile_chyron(chyron);
     len = max(strlen(title), strlen(action_str));
     uint maxy, maxx;
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     col = (maxx - len - 4) / 2;
     line = (maxy - 4) / 2;
     if (box_win_new(2, len + 2, line, col, title)) {

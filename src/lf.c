@@ -132,7 +132,7 @@ TaskNode *qtail = NULL;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
 atomic_int active_tasks = 0;
-int shutdown = 0;
+int shut_down = 0;
 int termination_status = EXIT_SUCCESS;
 int lfargc;
 char *lfargs[3];
@@ -578,7 +578,7 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
                 pthread_create(&threads[i], NULL, finder, f);
             }
             pthread_mutex_lock(&queue_mutex);
-            while (!shutdown) {
+            while (!shut_down) {
                 pthread_cond_wait(&cond_var, &queue_mutex);
             }
             pthread_mutex_unlock(&queue_mutex);
@@ -751,8 +751,8 @@ void debug_out(SearchFilters *f, int argc, char **argv, int threads) {
  directories to be processed by finder threads.
  // It uses a mutex to ensure thread-safe access to the queue and signals
  one waiting thread that a new task is available.
- // If shutdown has been initiated, the signal will wake up any waiting
- threads so they can check the shutdown condition and exit gracefully.
+ // If shut_down has been initiated, the signal will wake up any waiting
+ threads so they can check the shut_down condition and exit gracefully.
    */
 void enqueue_dir(TaskNode *new_task) {
     pthread_mutex_lock(&queue_mutex);
@@ -770,60 +770,60 @@ void enqueue_dir(TaskNode *new_task) {
     // Finally, we update qtail to point to the new task, ensuring that it
     // always points to the last task in the queue.
     qtail = new_task;
-    // Signal one waiting thread that a new task is available. If shutdown
+    // Signal one waiting thread that a new task is available. If shut_down
     // hasn't been initiated, this will wake up a finder thread to process
-    // the new task. If shutdown has been initiated, the signal will wake up
-    // any waiting threads so they can check the shutdown condition and exit
+    // the new task. If shut_down has been initiated, the signal will wake up
+    // any waiting threads so they can check the shut_down condition and exit
     // gracefully.
     pthread_cond_signal(&cond_var);
     pthread_mutex_unlock(&queue_mutex);
 }
 /** @brief Dequeue a directory dir_path for processing by finder threads.
     @return A pointer to a TaskNode containing the directory dir_path and
-   depth, or NULL if the queue is empty and shutdown has been initiated.
+   depth, or NULL if the queue is empty and shut_down has been initiated.
     @details This function removes and returns the next TaskNode from the
    global queue. It uses a mutex to ensure thread-safe access to the queue,
    and waits on a condition variable if the queue is empty. The function
-   also checks for shutdown conditions to allow finder threads to exit
+   also checks for shut_down conditions to allow finder threads to exit
    gracefully when there is no more work to process.
    */
 TaskNode *dequeue_dir() {
     pthread_mutex_lock(&queue_mutex);
 
-    // Wait until there is a task in the queue or shutdown has been
+    // Wait until there is a task in the queue or shut_down has been
     // initiated. The loop condition checks if the queue is empty (qhead ==
-    // NULL) and if shutdown has not been initiated (!shutdown). If both
+    // NULL) and if shut_down has not been initiated (!shut_down). If both
     // conditions are true, it means there are no tasks to process and the
     // thread should wait. The thread will be woken up when a new task is
-    // enqueued (via pthread_cond_signal in enqueue_dir) or when shutdown is
+    // enqueued (via pthread_cond_signal in enqueue_dir) or when shut_down is
     // initiated (via pthread_cond_broadcast in enqueue_dir or when
     // active_tasks count reaches zero). This ensures that threads do not
     // wait indefinitely when there are no tasks left to process and allows
-    // for a graceful shutdown of the program.
-    while (qhead == NULL && !shutdown) {
+    // for a graceful shut_down of the program.
+    while (qhead == NULL && !shut_down) {
         // If there are no active tasks and the queue is empty, we can
-        // safely initiate shutdown. This check is necessary to prevent a
+        // safely initiate shut_down. This check is necessary to prevent a
         // potential race condition where a thread could be waiting
         // indefinitely on the condition variable if all tasks have been
         // completed and no new tasks will be enqueued. By checking the
         // active_tasks count, we can determine when it's safe to signal
-        // shutdown
+        // shut_down
         if (atomic_load(&active_tasks) == 0) {
-            shutdown = 1;
+            shut_down = 1;
             // and wake up any waiting threads so they can exit gracefully.
             pthread_cond_broadcast(&cond_var);
             break;
         }
-        // Wait for a task to be enqueued or shutdown initiated. The thread
+        // Wait for a task to be enqueued or shut_down initiated. The thread
         // will be woken up when a new task is added to the queue (via
-        // pthread_cond_signal in enqueue_dir) or when shutdown is initiated
+        // pthread_cond_signal in enqueue_dir) or when shut_down is initiated
         // (via pthread_cond_broadcast in enqueue_dir or when active_tasks
         // count reaches zero). This allows the thread to check the
         // conditions again and either process a new task or exit if
-        // shutdown has been initiated.
+        // shut_down has been initiated.
         pthread_cond_wait(&cond_var, &queue_mutex);
     }
-    if (shutdown && qhead == NULL) {
+    if (shut_down && qhead == NULL) {
         pthread_mutex_unlock(&queue_mutex);
         return NULL;
     }
@@ -852,7 +852,7 @@ TaskNode *dequeue_dir() {
    (e.g., not hidden if hidden files are suppressed, and within max depth),
    it is enqueued for processing. The function uses atomic operations to
    track active tasks and condition variables to manage thread
-   synchronization and shutdown when all work is complete.
+   synchronization and shut_down when all work is complete.
    */
 void *finder(void *arg) {
     SearchFilters *f = (SearchFilters *)arg;

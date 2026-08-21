@@ -67,6 +67,7 @@ NotCurses *ui_notcurses_init() {
     }
     NcPlane *stdn = notcurses_stdplane(nc);
     ncplane_erase(stdn);
+    notcurses_render(nc);
     return nc;
 }
 

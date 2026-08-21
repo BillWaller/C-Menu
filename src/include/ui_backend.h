@@ -21,7 +21,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#define MAX_SFC 30
+#define UI_SFC_MAX 30
 #define MAXWIN 30
 
 typedef struct UiRuntime UiRuntime;
@@ -141,6 +141,7 @@ typedef struct {
     bool enable_alt_screen;
     bool cursor_visible;
     const char *tty_path; /**< optional TTY device path; NULL = auto-detect */
+    FILE *tty_fp;         /**< optional TTY FILE pointer; NULL = auto-detect */
 } UiConfig;
 
 /** @enum UiBackend
@@ -191,6 +192,7 @@ typedef struct {
     uint8_t b;
 } STDRGB;
 extern UiSurface *stdsfc;
+
 extern uint LINES, COLS;
 #endif
 /* @name UI Backend API
@@ -211,15 +213,15 @@ extern uint LINES, COLS;
    feedback to the user.
    @see ui_backend.h
 */
-UiRuntime *ui_init(const UiConfig *cfg);
-void ui_shutdown(UiRuntime *ui);
+UiRuntime *ui_init(const UiConfig *config);
+void ui_shutdown();
 void ui_render();
 int ui_clear();
 int ui_erase();
-int ui_suspend(UiRuntime *ui);
-int ui_resume(UiRuntime *ui);
-UiSurface *ui_surface_new(UiRuntime *ui, uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x);
-UiSurface *ui_box_surface_new(UiRuntime *ui, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *title);
+int ui_suspend();
+int ui_resume();
+UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x);
+UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *title);
 int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x);
 int ui_surface_addpad(UiSurface *s, uint w, uint view_win, int lines, int cols);
 void ui_surface_destroy(UiSurface *s);
@@ -237,7 +239,7 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
 int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
 int ui_get_event_no_mouse(UiSurface *surface, uint w, UiEvent *ev);
 int ui_wmove(UiSurface *s, uint w, uint y, uint x);
-int ui_cursor_enable(UiRuntime *ui, bool visible);
+int ui_cursor_enable(bool visible);
 int ui_curs_set(int visibility);
 int ui_bkgd(UiSurface *s, uint w, const UiCell *cell);
 int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell);
@@ -248,6 +250,7 @@ void ui_getyx(UiSurface *s, uint w, uint *lines, uint *cols);
 void ui_getmaxyx(UiSurface *s, uint w, uint *lines, uint *cols);
 uint ui_getmaxx(UiSurface *s, uint w);
 uint ui_getmaxy(UiSurface *s, uint w);
+int ui_draw_cell(UiSurface *s, uint w, uint y, uint x, const char c);
 int ui_draw_ch(UiSurface *s, uint w, uint y, uint x, const char c);
 int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int n);
@@ -258,9 +261,10 @@ int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *str, int n);
 int ui_mvwaddnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int n);
+int ui_mvwaddnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n);
 int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr);
 int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr);
-int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, uint n);
+int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int n);
 int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int n);
 int ui_mvwadd_style(UiSurface *s, uint w, uint y, uint x, const UiStyle *style);
 int ui_mvwadd_mbstr(UiSurface *s, uint w, uint y, uint x, const char *text);
@@ -277,10 +281,12 @@ int ui_wnoutrefresh(UiSurface *s, uint w);
 int ui_draw_hline(UiSurface *s, uint w, uint y, uint x, uint len, const UiStyle *style);
 int ui_mousemask(int mask);
 int ui_mice_enable(int mask);
-void ui_get_screen_size(UiRuntime *ui, uint *lines, uint *cols);
+void ui_get_screen_size(uint *lines, uint *cols);
 uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
-int ui_surface_clear(UiSurface *s, uint w);
-int ui_surface_erase(UiSurface *s, uint w);
+int ui_wclear(UiSurface *s, uint w);
+int ui_werase(UiSurface *s, uint w);
+int ui_clear();
+int ui_erase();
 int ui_surface_show(UiSurface *s, uint w);
 int ui_surface_hide(UiSurface *s, uint w);
 int ui_cursor_move(UiSurface *s, uint w, uint y, uint x);
@@ -288,12 +294,17 @@ int ui_ncurses_apply_style_from_cell(UiSurface *s, uint w, const UiCell *cell);
 int ui_add_color_rgb(RGB *rgb);
 
 #ifdef NOTCURSES_UI
+extern UiCell donor_cell;
+int mk_chimera(UiCell *cell, char c);
+typedef struct ncplane NCPlane;
+extern NCPlane *stdn;
+extern uint LINES, COLS;
 int ui_bkgrnd(NCPlane *plane, const UiCell *cell);
 int ui_bkgrndset(NCPlane *plane, const UiCell *cell);
 UiCell ui_cell_from_hex(
     const char *fg,
     const char *bg,
-    const uint16_t *stylemask,
+    const uint16_t stylemask,
     const wchar_t *wstr);
 int ui_getcchar(const UiCell *uic, wchar_t *wstr, UiStyle *style, UiPairIdx *pair, const void *opts);
 int ui_setcchar(UiCell *uic, const wchar_t *wstr, const attr_t style, ushort pair, const void *opts);
@@ -309,14 +320,14 @@ int ui_get_channels_from_pair(uint16_t pair, UiChannels *channels);
 uint ui_add_pair(uint fg, uint bg);
 uint ui_add_color(RGB *rgb);
 uint ui_add_color_hex(char *s);
-uint ui_chg_color_rgb(uint16_t color, RGB *rgb);
-uint ui_chg_color_hex(uint16_t color, char *s);
+int ui_chg_color_rgb(uint16_t color, RGB *rgb);
+int ui_chg_color_hex(uint16_t color, char *s);
 uint ui_get_color(uint16_t color, RGB *rgb);
 int ui_get_nccell(const UiCell *uic, wchar_t *wstr, UiStyle *style, UiPairIdx *pair);
 int ui_set_nccell(UiCell *uic, const wchar_t *wstr, const UiStyle *style, ushort *pair);
 int ui_wch_to_utf8(const wchar_t fill_ch);
 int ui_wadd_cell(UiSurface *s, uint w, const UiCell *uic);
-int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, const UiCell *uic);
+int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, UiCell *uic);
 int ui_wadd_cellstr(UiSurface *s, uint w, UiCell *uic);
 int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic);
 int ui_wadd_cellnstr(UiSurface *s, uint w, UiCell *uic, uint n);
@@ -327,8 +338,6 @@ int ui_wadd_wchstr(UiSurface *s, uint w, UiCell *uic);
 int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic);
 int ui_wadd_wchnstr(UiSurface *s, uint w, UiCell *uic, uint n);
 int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic, uint n);
-int ui_setnccell(UiCell *uic, const wchar_t *wstr, const UiStyle *style, ushort *pair);
-int ui_getnccell(const UiCell *uic, wchar_t *wstr, UiStyle *style, ushort *pair);
 UiChannels ui_channels_from_hex(const char *fg, const char *bg);
 int ui_compose_nccell(UiCell *uic,
                       const wchar_t *wstr,
@@ -365,6 +374,7 @@ void ui_endwin();
 RGB ui_hex_to_rgb(char *s);
 void ui_restore_wins();
 int ui_top_panel(UiSurface *s, uint w);
+SCREEN *ui_ncurses_get_screen();
 
 /* @brief backend identification and capability query
    @ingroup ui_backend */
@@ -374,17 +384,17 @@ int ui_top_panel(UiSurface *s, uint w);
    @param ui The UiRuntime returned by ui_init().
    @return The UiBackend enum value for the compiled-in backend.
 */
-UiBackend ui_get_backend(const UiRuntime *ui);
+UiBackend ui_get_backend();
 
 /** @brief Query the capabilities of the active backend.
    @ingroup ui_backend
    @param ui  The UiRuntime returned by ui_init().
    @param caps Output structure filled with capability flags.
 */
-void ui_get_caps(const UiRuntime *ui, UiCaps *caps);
+void ui_get_caps(UiCaps *caps);
 extern STDRGB std_color[];
-extern UiRuntime *ui_runtime;
-extern UiSurface *ui_surface[MAX_SFC];
+extern UiRuntime *ui;
+extern UiSurface *ui_surface[UI_SFC_MAX];
 
 extern STDRGB std_color[];
 extern uint ui_color_cnt;

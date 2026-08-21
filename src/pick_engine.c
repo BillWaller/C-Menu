@@ -255,7 +255,7 @@ int pick_engine(Init *init) {
     bool f_processed = false;
 
     Pick *pick = init->pick;
-    ui_get_screen_size(ui_runtime, &maxy, &maxx);
+    ui_get_screen_size(&maxy, &maxx);
     // Screen Geometry
     // Calculate pick window size and position based on terminal size and pick
     // parameters
