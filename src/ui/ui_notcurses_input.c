@@ -10,6 +10,7 @@
 #include "ui_notcurses_internal.h"
 #include <notcurses/notcurses.h>
 #include <string.h>
+#include <termios.h>
 
 /* -------------------------------------------------------------------------
    Key translation
@@ -102,8 +103,8 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
    @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
    @return 0 on success, -1 if @p ui or @p ev is NULL.
 */
-int ui_get_event(UiSurface *target, uint w, UiEvent *ev, int timeout_ms) {
-    (void)target;
+int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
+    (void)s;
     (void)w;
     if (!ui || !ev)
         return -1;
@@ -111,10 +112,9 @@ int ui_get_event(UiSurface *target, uint w, UiEvent *ev, int timeout_ms) {
 
     ncinput ni;
     uint32_t id;
-    int y, x;
 
-    notcurses_cursor_yx(ui->nc, &y, &x);
-    notcurses_cursor_enable(ui->nc, y, x);
+    ui_cursor_enable(s, w, true);
+    tcflush(0, TCIFLUSH);
     if (timeout_ms < 0) {
         id = notcurses_get_blocking(ui->nc, &ni);
     } else {

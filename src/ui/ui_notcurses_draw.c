@@ -27,6 +27,12 @@
     .stylemask = (s),                  \
     .channels = (chan),                \
 }
+#define CHIMERA_INITIALIZER(c) {         \
+    .gcluster = (c),                     \
+    .gcluster_backstop = 0,              \
+    .stylemask = (donor_cell.stylemask), \
+    .channels = (donor_cell.channels),   \
+}
 
 /* -------------------------------------------------------------------------
    Housekeeping functions
@@ -70,7 +76,6 @@ int mk_chimera(UiCell *cell, char c) {
     cell->channels = donor_cell.channels;
     return 0;
 }
-
 /** @brief Draw a single character using a stylemask and channels from a donor
  * cell set by bkgdset().
  * @details To accomodate legacy NCurses colors and color pairs, we use named
@@ -82,16 +87,15 @@ int mk_chimera(UiCell *cell, char c) {
 int ui_draw_ch(UiSurface *s, uint w, uint y, uint x, char c) {
     if (!s || !c)
         return -1;
-    UiCell cell;
-    mk_chimera(&cell, c);
+    // mk_chimera(&cell, c);
+    nccell cell = CHIMERA_INITIALIZER(c);
     ncplane_putc_yx(s->mplane[w], y, x, &cell);
     return 0;
 }
 int ui_draw_cell(UiSurface *s, uint w, uint y, uint x, char c) {
     if (!s || !c)
         return -1;
-    nccell cell = CELL_INITIALIZER(c, ncplane_styles(s->mplane[w]),
-                                   ncplane_channels(s->mplane[w]));
+    nccell cell = CHIMERA_INITIALIZER(c);
     ncplane_putc_yx(s->mplane[w], y, x, &cell);
     return 0;
 }

@@ -272,13 +272,12 @@ UiCell ui_cell_from_hex(const char *fg, const char *bg, const attr_t attrs, cons
 /* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
-
 struct UiRuntime *ui_init(const UiConfig *cfg) {
     setlocale(LC_ALL, "");
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
-    char tty_name[XLEN];
+    char tty_name[MAXLEN];
     if (cfg && cfg->tty_path) {
         strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
         tty_name[sizeof(tty_name) - 1] = '\0';
@@ -300,12 +299,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
         return NULL;
     }
     set_term(ui->screen);
-/* Keep legacy globals in sync when libcm (dwin.c) is linked. */
-#ifdef UAL_LEGACY_COMPAT
-    // screen = ui->screen;
-    // tty_fp = ui->tty_fp;
     f_curses_open = true;
-#endif
     if (!has_colors() || !can_change_color()) {
         ui_shutdown();
         return NULL;
@@ -315,38 +309,37 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
+
     if (cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
         ui->alt_screen = cfg->enable_alt_screen;
         ui->cursor_visible = cfg->cursor_visible;
     } else {
         ui->cursor_visible = false;
+        ui->alt_screen = false;
     }
-
-    ui_bkgrnd(stdscr, &cell_nt);
     if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
-
+    ui_bkgrnd(stdscr, &cell_nt);
     curs_set(ui->cursor_visible ? 1 : 0);
-    getmaxyx(stdscr, ui->lines, ui->cols);
     stdsfc = calloc(1, sizeof(*stdsfc));
     if (!stdsfc)
         return NULL;
     stdsfc->runtime = ui;
     stdsfc->parent = NULL;
-    stdsfc->lines = ui->lines;
-    stdsfc->cols = ui->cols;
-    stdsfc->y = 0;
-    stdsfc->x = 0;
-    stdsfc->mwin[WIN] = stdscr;
-    if (!stdsfc->mwin[WIN]) {
+    stdsfc->meta[BOX].lines = ui->lines;
+    stdsfc->meta[BOX].cols = ui->cols;
+    stdsfc->meta[BOX].y = 0;
+    stdsfc->meta[BOX].x = 0;
+    stdsfc->mwin[BOX] = stdscr;
+    if (!stdsfc->mwin[BOX]) {
         free(stdsfc);
         return NULL;
     }
-    stdsfc->mpan[WIN] = new_panel(stdsfc->mwin[WIN]);
-    ui->panel_main = stdsfc->mpan[WIN];
-    if (!stdsfc->mpan[WIN]) {
-        delwin(stdsfc->mwin[WIN]);
+    stdsfc->mpan[BOX] = new_panel(stdsfc->mwin[BOX]);
+    ui->panel_main = stdsfc->mpan[BOX];
+    if (!stdsfc->mpan[BOX]) {
+        delwin(stdsfc->mwin[BOX]);
         free(stdsfc);
         return NULL;
     }
@@ -406,10 +399,10 @@ UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint co
 
     s->runtime = ui;
     s->parent = parent;
-    s->lines = lines;
-    s->cols = cols;
-    s->y = y;
-    s->x = x;
+    s->meta[w].lines = lines;
+    s->meta[w].cols = cols;
+    s->meta[w].y = y;
+    s->meta[w].x = x;
 
     if (parent && parent->mwin[p]) {
         s->mwin[w] = derwin(parent->mwin[p], lines, cols, y, x);
@@ -439,10 +432,10 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
         return NULL;
     s->runtime = ui;
     s->parent = parent;
-    s->y = y;
-    s->x = x;
-    s->lines = lines;
-    s->cols = cols;
+    s->meta[BOX].y = y;
+    s->meta[BOX].x = x;
+    s->meta[BOX].lines = lines;
+    s->meta[BOX].cols = cols;
     if (parent && parent->mwin[p]) {
         s->mwin[BOX] = derwin(parent->mwin[p], lines + 2, cols + 2, y, x);
         if (!s->mwin[BOX]) {
@@ -524,16 +517,16 @@ void ui_surface_destroy(UiSurface *s) {
 int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
     if (!s)
         return -1;
-    s->y = y;
-    s->x = x;
+    s->meta[w].y = y;
+    s->meta[w].x = x;
     return move_panel(s->mpan[w], y, x);
 }
 
 int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
     if (!s)
         return -1;
-    s->lines = lines;
-    s->cols = cols;
+    s->meta[w].lines = lines;
+    s->meta[w].cols = cols;
     wresize(s->mwin[w], lines + 2, cols + 2);
     wresize(s->mwin[w + 1], lines, cols);
     return 0;
@@ -581,7 +574,7 @@ int ui_surface_show(UiSurface *s, uint w) {
     if (!s)
         return -1;
     show_panel(s->mpan[w]);
-    s->hidden = false;
+    s->meta[w].hidden = false;
     return 0;
     return 0;
 }
@@ -597,7 +590,7 @@ int ui_surface_hide(UiSurface *s, uint w) {
     if (!s)
         return -1;
     hide_panel(s->mpan[w]);
-    s->hidden = true;
+    s->meta[w].hidden = true;
     return 0;
 }
 
@@ -679,7 +672,9 @@ void ui_get_screen_size(uint *lines, uint *cols) {
     if (cols)
         *cols = ui->cols;
 }
-int ui_cursor_enable(bool visible) {
+int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
+    (void)s;
+    (void)w;
     if (!ui)
         return -1;
     ui->cursor_visible = visible;

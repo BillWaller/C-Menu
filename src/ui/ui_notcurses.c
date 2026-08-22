@@ -68,10 +68,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
-    NotCursesOptions nc_opts = {
-        .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
-
-    char tty_name[XLEN];
+    char tty_name[MAXLEN];
     if (cfg && cfg->tty_path) {
         strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
         tty_name[sizeof(tty_name) - 1] = '\0';
@@ -86,19 +83,15 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         free(ui);
         return NULL;
     }
-    NotCurses *nc = notcurses_init(&nc_opts, NULL);
-    if (!nc)
-        return NULL;
-    ui->nc = nc;
-    if (!ui->nc) {
-        if (ui->tty_fp)
-            fclose(ui->tty_fp);
+    NotCursesOptions nc_opts = {
+        .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
+    NotCurses *nc = notcurses_init(&nc_opts, ui->tty_fp);
+    if (!nc) {
+        fclose(ui->tty_fp);
         free(ui);
         return NULL;
     }
     stdn = notcurses_stdplane(nc);
-    ncplane_erase(stdn);
-    notcurses_render(nc);
 
     if (cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
@@ -110,25 +103,26 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     }
     if (ui->mouse_enabled)
         notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+    ui_bkgrnd(stdscr, &cell_nt);
     if (!ui->cursor_visible)
         notcurses_cursor_disable(ui->nc);
-    notcurses_stddim_yx(ui->nc, &LINES, &COLS);
+    notcurses_stddim_yx(ui->nc, &ui->lines, &ui->cols);
     stdsfc = calloc(1, sizeof(*stdsfc));
     if (!stdsfc)
         return NULL;
     stdsfc->runtime = ui;
     stdsfc->parent = NULL;
-    stdsfc->lines = LINES;
-    stdsfc->cols = COLS;
-    stdsfc->y = 0;
-    stdsfc->x = 0;
+    stdsfc->meta[BOX].lines = ui->lines;
+    stdsfc->meta[BOX].cols = ui->cols;
+    stdsfc->meta[BOX].y = 0;
+    stdsfc->meta[BOX].x = 0;
     stdsfc->mplane[BOX] = stdn;
     if (!stdsfc->mplane[BOX]) {
         notcurses_stop(ui->nc);
         return NULL;
     }
-    ui->lines = LINES;
-    ui->cols = COLS;
+    LINES = ui->lines;
+    COLS = ui->cols;
     ui_pair = calloc(UI_PAIRS, sizeof(UiPair));
     if (!ui_pair) {
         free(ui_pair);
@@ -400,25 +394,53 @@ int ui_resume() {
 int ui_curs_set(int visible) {
     if (!ui)
         return -1;
-    if (visible == 0)
+    if (visible == 0) {
         ui->cursor_visible = false;
-    else if (visible == 1)
+        notcurses_cursor_disable(ui->nc);
+    } else {
         ui->cursor_visible = true;
-    else
-        return -1;
-    if (visible)
-        return notcurses_cursor_enable(ui->nc, 0, 0) == 0 ? 0 : -1;
-    notcurses_cursor_disable(ui->nc);
+        return notcurses_cursor_enable(ui->nc, -1, -1) == 0 ? 0 : -1;
+    }
     return 0;
 }
-
-int ui_cursor_enable(bool visible) {
-    if (!ui)
+/** @brief Disable (visible = false) or enable (visibile = true) the cursor at a
+ * specified position on the surface and plane specified.
+ */
+int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
+    if (!s)
         return -1;
-    ui->cursor_visible = visible;
-    if (visible)
-        return notcurses_cursor_enable(ui->nc, 0, 0) == 0 ? 0 : -1;
-    notcurses_cursor_disable(ui->nc);
+    if (!visible) {
+        ui->cursor_visible = false;
+        notcurses_cursor_disable(ui->nc);
+    } else {
+        int yy, xx;
+        ncplane_abs_yx(s->mplane[w], &yy, &xx);
+        y += yy;
+        x += xx;
+        ui->cursor_visible = true;
+        return notcurses_cursor_enable(ui->nc, y, x) == 0 ? 0 : -1;
+    }
+    return 0;
+}
+/** @brief Disable (visible = false) or enable (visibile = true) the cursor at
+ * its current position on the surface and plane specified.
+ */
+int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
+    if (!s)
+        return -1;
+    if (!visible) {
+        ui->cursor_visible = false;
+        notcurses_cursor_disable(ui->nc);
+    } else {
+        uint y, x;
+        ncplane_cursor_yx(s->mplane[w], &y, &x);
+        int yy, xx;
+        ncplane_abs_yx(s->mplane[w], &yy, &xx);
+        y += yy;
+        x += xx;
+        ui->cursor_visible = true;
+        return notcurses_cursor_enable(ui->nc, y, x) == 0 ? 0 : -1;
+    }
     return 0;
 }
 
@@ -434,15 +456,16 @@ UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint co
         return NULL;
     s->runtime = ui;
     s->parent = parent;
-    s->lines = lines;
-    s->cols = cols;
-    s->y = y;
-    s->x = x;
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
         .rows = lines,
         .cols = cols};
+    s->meta[w].y = y;
+    s->meta[w].x = x;
+    s->meta[w].lines = lines;
+    s->meta[w].cols = cols;
+    s->meta[w].hidden = false;
     if (parent && parent->mplane[p]) {
         s->mplane[w] = ncplane_create(parent->mplane[p], &plane_opts);
     } else {
@@ -464,17 +487,18 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
         return NULL;
     s->runtime = ui;
     s->parent = parent;
-    s->lines = lines + 2;
-    s->cols = cols + 2;
-    s->y = y;
-    s->x = x;
-
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
         .rows = lines + 2,
         .cols = cols + 2,
         .name = NULL};
+    s->meta[BOX].y = y;
+    s->meta[BOX].x = x;
+    s->meta[BOX].lines = lines + 2;
+    s->meta[BOX].cols = cols + 2;
+    s->meta[BOX].hidden = false;
+    strnz__cpy(s->meta[BOX].name, "BOX", XLEN - 1);
     if (parent && parent->mplane[p]) {
         s->mplane[BOX] = ncplane_create(parent->mplane[p], &plane_opts);
     } else {
@@ -493,14 +517,14 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     ncplane_perimeter_rounded(s->mplane[BOX], 0, cell_box.channels, 0);
 
     // Title
-    int title_len = (int)strlen(wtitle);
-    int title_x = (cols - title_len) / 2;
+    int title_x = 1;
     ncplane_putwc_yx(s->mplane[BOX], 0, title_x, BW_RT);
     ncplane_putstr(s->mplane[BOX], " ");
+    ui_bkgdset(s, BOX, &cell_title);
     ncplane_putstr(s->mplane[BOX], wtitle);
+    ui_bkgdset(s, BOX, &cell_box);
     ncplane_putstr(s->mplane[BOX], " ");
     ncplane_putwc(s->mplane[BOX], BW_LT);
-    ui_render();
     return s;
 }
 
@@ -516,6 +540,11 @@ int ui_surface_addpad(UiSurface *s, uint w, uint view_win, int lines, int cols) 
         .rows = lines,
         .cols = cols,
         .name = NULL};
+    s->meta[w].y = y;
+    s->meta[w].x = x;
+    s->meta[w].lines = lines;
+    s->meta[w].cols = cols;
+    s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[PAD], &plane_opts);
     if (!s->mplane[PAD]) {
         notcurses_stop(ui->nc);
@@ -536,6 +565,11 @@ int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint 
         .rows = lines,
         .cols = cols,
         .name = NULL};
+    s->meta[w].y = y;
+    s->meta[w].x = x;
+    s->meta[w].lines = lines;
+    s->meta[w].cols = cols;
+    s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
     if (!s->mplane[w]) {
         notcurses_stop(ui->nc);
@@ -561,9 +595,9 @@ void ui_surface_destroy(UiSurface *s) {
 int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
     if (!s)
         return -1;
-    s->y = y;
-    s->x = x;
-    if (!s->hidden)
+    s->meta[w].y = y;
+    s->meta[w].x = x;
+    if (!s->meta[w].hidden)
         return ncplane_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
     return 0;
 }
@@ -571,8 +605,8 @@ int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
 int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
     if (!s)
         return -1;
-    s->lines = lines;
-    s->cols = cols;
+    s->meta[w].lines = lines;
+    s->meta[w].cols = cols;
     return ncplane_resize_simple(s->mplane[w], (unsigned int)lines,
                                  (unsigned int)cols) == 0
                ? 0
@@ -619,9 +653,9 @@ int ui_wclear(UiSurface *s, uint w) {
 int ui_surface_show(UiSurface *s, uint w) {
     if (!s)
         return -1;
-    if (s->hidden) {
-        s->hidden = false;
-        ncplane_move_yx(s->mplane[w], s->y, s->x);
+    if (s->meta[w].hidden) {
+        s->meta[w].hidden = false;
+        ncplane_move_yx(s->mplane[w], s->meta[w].y, s->meta[w].x);
     }
     return 0;
 }
@@ -629,10 +663,10 @@ int ui_surface_show(UiSurface *s, uint w) {
 int ui_surface_hide(UiSurface *s, uint w) {
     if (!s)
         return -1;
-    if (!s->hidden) {
-        s->hidden = true;
+    if (!s->meta[w].hidden) {
+        s->meta[w].hidden = true;
         /* Move far off-screen so the plane does not obscure anything. */
-        ncplane_move_yx(s->mplane[w], -s->lines - 1, 0);
+        ncplane_move_yx(s->mplane[w], -s->meta[w].lines - 1, 0);
     }
     return 0;
 }
@@ -640,14 +674,17 @@ int ui_surface_hide(UiSurface *s, uint w) {
 int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
     if (!s)
         return -1;
-    return ncplane_cursor_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
+    if (ncplane_cursor_move_yx(s->mplane[w], y, x) != 0)
+        return -1;
+    return 0;
 }
 int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
     if (!s)
         return -1;
-    return ncplane_cursor_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
+    if (ncplane_cursor_move_yx(s->mplane[w], y, x) != 0)
+        return -1;
+    return 0;
 }
-
 void ui_getyx(UiSurface *s, uint w, uint *y, uint *x) {
     if (!s->mplane[w])
         return;
@@ -801,6 +838,7 @@ int ui_bkgd(UiSurface *s, uint w, const UiCell *cell) {
 int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
+    ncplane_set_styles(s->mplane[w], cell->stylemask);
     ncplane_set_channels(s->mplane[w], cell->channels);
     donor_cell = *cell;
     return 0;
@@ -813,6 +851,7 @@ int ui_bkgrnd(NCPlane *plane, const UiCell *cell) {
 }
 
 int ui_bkgrndset(NCPlane *plane, const UiCell *cell) {
+    ncplane_set_styles(plane, cell->stylemask);
     ncplane_set_channels(plane, cell->channels);
     return 0;
 }

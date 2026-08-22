@@ -2,6 +2,8 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-21T01:25:33-05:00* - Update CHANGELOG.md 
+
 *2026-08-21T00:44:48-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends. This project is coming together better than I expected. (1) Consistent interface that leverages both NCurses and Notcurses using the same function calls. (2) Especially useful for developers who want to switch between the two backends. (3) Eliminates common stumbling blocks for developers transitioning from the NCurses paradigm to Notcurses. (4) Notcurses can do anything that NCurses can do, and much more. (5) NCurses is not just widely used, it is ubiquitous. Conformance to the X/Open Curses standard ensures that NCurses is available on virtually every platform, and it is the default choice for many developers. (6) Allows developers to use the strengths of both libraries without having to learn two separate APIs. (7) Simplifies the Notcurses API, eliminating the steep learning curve normally associated with Notcurses. Until now, the Notcurses API wass more complex and required a deeper understanding of the library. (8) The UAL_UI is implemented in the src/ui directory and is composed of several files that provide the necessary functions and data structures to support both backends. This code will eventually become a separate library. (9) - Highly extensible, allowing for future enhancements and additional backend support. The abstraction layer is a testament to the project's commitment to providing a high-quality and user-friendly development experience, and it will undoubtedly contribute to the growth and success of the project in the future. 
 
 *2026-08-19T22:05:12-05:00* - Update CHANGELOG.md 

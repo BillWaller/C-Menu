@@ -18,7 +18,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define XLEN 256
+#define XLEN 128
 #define MAXLEN 256
 #define MAXSFC 30
 
@@ -67,44 +67,48 @@ enum {
     SUB_SFC_MAX
 };
 
+struct UiSurfaceMeta {
+    unsigned int y;
+    unsigned int x;
+    unsigned int lines;
+    unsigned int cols;
+    bool hidden;
+    char name[XLEN];
+    char title[XLEN];
+};
+
 struct UiSurface {
     union {
-        struct {
+        struct { // DEPRECATED - will be removed
             PANEL *box_pan;
             PANEL *win_pan;
             PANEL *win2_pan;
             PANEL *lnno_pan;
             PANEL *cmdln_pan;
             PANEL *pad_pan;
-        };
+        }; // END DEPRECATION
         struct {
             PANEL *mpan[SUB_SFC_MAX];
         };
     };
     union {
-        struct {
+        struct { // DEPRECATED - will be removed
             WINDOW *box;
             WINDOW *win;
             WINDOW *win2;
             WINDOW *lnno;
             WINDOW *cmdln;
             WINDOW *pad;
-        };
+        }; // END DEPRECATION
         struct {
             WINDOW *mwin[SUB_SFC_MAX];
         };
     };
     struct UiRuntime *runtime;
+    struct UiSurfaceMeta meta[SUB_SFC_MAX];
     struct UiSurface *parent;
-    int y;
-    int x;
-    int lines;
-    int cols;
     int sfc_idx;
     int sub_cnt;
-    bool hidden;
-    char name[XLEN];
-    char title[XLEN];
 };
 
 typedef struct {

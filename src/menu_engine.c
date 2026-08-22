@@ -151,11 +151,11 @@ unsigned int menu_cmd_processor(Init *init) {
         ui_draw_ch(sfc, WIN, menu->line_idx,
                    menu->line[menu->line_idx]->letter_pos,
                    menu->line[menu->line_idx]->choice_letter);
-        ui_render();
         ui_bkgdset(sfc, WIN, &cell_nt);
         // Wait for user input and process it
         event.y = event.x = -1;
-        ui_cursor_move(sfc, WIN, menu->line_idx, 1);
+        ui_wmove(sfc, WIN, menu->line_idx, 1);
+        ui_render();
         in_key = ui_get_event(sfc, WIN, &event, -1);
         // Remove the highlight from the currently selected menu choice
         ui_bkgdset(sfc, WIN, &cell_nt);

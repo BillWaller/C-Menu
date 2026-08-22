@@ -101,6 +101,16 @@ enum sub_surface {
     SUB_SFC_MAX
 };
 
+struct UiSurfaceMeta {
+    unsigned int y;
+    unsigned int x;
+    unsigned int lines;
+    unsigned int cols;
+    bool hidden;
+    char name[XLEN];
+    char title[XLEN];
+};
+
 struct UiSurface {
     union {
         struct { // DEPRECATED - will be removed
@@ -114,18 +124,14 @@ struct UiSurface {
             struct ncplane *plane2;
         }; // END DEPRECATION
         struct {
-            struct ncplane *mplane[8];
+            struct ncplane *mplane[SUB_SFC_MAX];
         };
     };
+    struct UiSurfaceMeta meta[SUB_SFC_MAX];
     struct UiRuntime *runtime;
     struct UiSurface *parent;
-    unsigned int y;
-    unsigned int x;
-    unsigned int lines;
-    unsigned int cols;
-    bool hidden;
-    char name[XLEN];
-    char title[XLEN];
+    int sfc_idx;
+    int sub_cnt;
 };
 
 // struct NcCell {

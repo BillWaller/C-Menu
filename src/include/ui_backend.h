@@ -239,7 +239,8 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
 int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
 int ui_get_event_no_mouse(UiSurface *surface, uint w, UiEvent *ev);
 int ui_wmove(UiSurface *s, uint w, uint y, uint x);
-int ui_cursor_enable(bool visible);
+int ui_cursor_enable(UiSurface *s, uint w, bool visible);
+int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible);
 int ui_curs_set(int visibility);
 int ui_bkgd(UiSurface *s, uint w, const UiCell *cell);
 int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell);
@@ -369,12 +370,12 @@ int ui_add_color_hex(char *s);
 int ui_chg_color_rgb(uint color, RGB *rgb);
 int ui_chg_color_hex(uint color, char *s);
 int ui_get_color(uint color, RGB *rgb);
+SCREEN *ui_ncurses_get_screen();
 #endif
 void ui_endwin();
 RGB ui_hex_to_rgb(char *s);
 void ui_restore_wins();
 int ui_top_panel(UiSurface *s, uint w);
-SCREEN *ui_ncurses_get_screen();
 
 /* @brief backend identification and capability query
    @ingroup ui_backend */
