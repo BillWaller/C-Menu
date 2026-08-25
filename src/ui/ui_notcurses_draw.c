@@ -15,25 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CELL_CHAR_INITIALIZER(c) { \
-    .gcluster = (c),               \
-    .gcluster_backstop = 0,        \
-    .stylemask = 0,                \
-    .channels = 0,                 \
-}
-#define CELL_INITIALIZER(c, s, chan) { \
-    .gcluster = (c),                   \
-    .gcluster_backstop = 0,            \
-    .stylemask = (s),                  \
-    .channels = (chan),                \
-}
-#define CHIMERA_INITIALIZER(c) {         \
-    .gcluster = (c),                     \
-    .gcluster_backstop = 0,              \
-    .stylemask = (donor_cell.stylemask), \
-    .channels = (donor_cell.channels),   \
-}
-
 /* -------------------------------------------------------------------------
    Housekeeping functions
    ------------------------------------------------------------------------- */
@@ -68,74 +49,61 @@ int ui_wclrtobot(UiSurface *s, uint w) {
 /* -------------------------------------------------------------------------
    Text
    ------------------------------------------------------------------------- */
-
 int mk_chimera(UiCell *cell, char c) {
     cell->gcluster = c;
     cell->gcluster_backstop = 0;
-    cell->stylemask = donor_cell.stylemask;
-    cell->channels = donor_cell.channels;
+    cell->stylemask = bkgd_cell.stylemask;
+    cell->channels = bkgd_cell.channels;
     return 0;
 }
-/** @brief Draw a single character using a stylemask and channels from a donor
- * cell set by bkgdset().
- * @details To accomodate legacy NCurses colors and color pairs, we use named
- * and indexed nccells. It is very convenient, but not required here as it is
- * with NCurses.
- * @notes A Chimera is a single hybrid cell created by joining parts from two
- * different cells. Got the idea from Dr. Fauci.
- **/
-int ui_draw_ch(UiSurface *s, uint w, uint y, uint x, char c) {
+int ui_draw_ch(UiSurface *s, uint w, char c) {
     if (!s || !c)
         return -1;
-    // mk_chimera(&cell, c);
-    nccell cell = CHIMERA_INITIALIZER(c);
+    nccell cell = DEFAULT_INITIALIZER(c);
+    ncplane_putc_yx(s->mplane[w], -1, -1, &cell);
+    return 0;
+}
+int ui_draw_ch_yx(UiSurface *s, uint w, uint y, uint x, char c) {
+    if (!s || !c)
+        return -1;
+    nccell cell = DEFAULT_INITIALIZER(c);
     ncplane_putc_yx(s->mplane[w], y, x, &cell);
     return 0;
 }
-int ui_draw_cell(UiSurface *s, uint w, uint y, uint x, char c) {
-    if (!s || !c)
-        return -1;
-    nccell cell = CHIMERA_INITIALIZER(c);
-    ncplane_putc_yx(s->mplane[w], y, x, &cell);
-    return 0;
-}
-
-/** @brief Draw UTF-8 text at (y, x) with optional style. */
 int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text) {
     if (!s || !text)
         return -1;
     ncplane_putstr_yx(s->mplane[w], y, x, text);
     return 0;
 }
-
-/** @brief Draw at most @p n bytes of UTF-8 text at (y, x). */
-int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
+int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
-    ncplane_putnstr_yx(s->mplane[w], y, x, n, text);
+    ncplane_putnstr_yx(s->mplane[w], y, x, m, text);
     return 0;
 }
-int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
+int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
     char tmp_str[MAXLEN];
-    strncpy(tmp_str, text, n);
+    strncpy(tmp_str, text, m);
     int l = strlen(text);
-    for (int i = l; i < n; i++) {
+    for (int i = l; i < m; i++) {
         tmp_str[i] = ' ';
     }
-    tmp_str[n] = '\0';
-    ncplane_putnstr_yx(s->mplane[w], y, x, n, tmp_str);
+    tmp_str[m] = '\0';
+    ncplane_putnstr_yx(s->mplane[w], y, x, m, tmp_str);
     ui_render();
     return 0;
 }
 // -------------------------------------------------------------------------
-int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, char c) {
+int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
     if (!s || !c)
         return -1;
+    ui_wmove(s, w, y, x);
     nccell cell = CELL_INITIALIZER(c, ncplane_styles(s->mplane[w]),
                                    ncplane_channels(s->mplane[w]));
-    return ncplane_putc_yx(s->mplane[w], y, x, &cell);
+    return ncplane_putc_yx(s->mplane[w], -1, -1, &cell);
     return 0;
 }
 int ui_waddstr(UiSurface *s, uint w, const char *text) {
@@ -144,49 +112,55 @@ int ui_waddstr(UiSurface *s, uint w, const char *text) {
     ncplane_putstr(s->mplane[w], text);
     return 0;
 }
+int ui_waddnstr(UiSurface *s, uint w, const char *text, int m) {
+    if (!s || !text)
+        return -1;
+    ncplane_putnstr(s->mplane[w], m, text);
+    return 0;
+}
 int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
     if (!s || !text)
         return -1;
     ncplane_putstr_yx(s->mplane[w], y, x, text);
     return 0;
 }
-int ui_mvwaddnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
+int ui_mvwaddnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
-    ncplane_putnstr_yx(s->mplane[w], y, x, n, text);
+    ncplane_putnstr_yx(s->mplane[w], y, x, m, text);
     return 0;
 }
-int ui_mvwaddnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
+int ui_mvwaddnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
     uint l = strlen(text);
-    if (l < (uint)n) {
-        char *tmp_str = (char *)malloc(n + 1);
+    if (l < (uint)m) {
+        char *tmp_str = (char *)malloc(m + 1);
         if (!tmp_str)
             return -1;
         strcpy(tmp_str, text);
-        for (int i = l; i < (int)n; i++) {
+        for (int i = l; i < (int)m; i++) {
             tmp_str[i] = ' ';
         }
-        tmp_str[n] = '\0';
-        ncplane_putnstr_yx(s->mplane[w], y, x, n, text);
+        tmp_str[m] = '\0';
+        ncplane_putnstr_yx(s->mplane[w], y, x, m, text);
         free(tmp_str);
     }
     return 0;
 }
-int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
+int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
     uint l = strlen(text);
-    if (l < (uint)n) {
-        char *tmp_str = (char *)malloc(n + 1);
+    if (l < (uint)m) {
+        char *tmp_str = (char *)malloc(m + 1);
         if (!tmp_str)
             return -1;
         strcpy(tmp_str, text);
-        for (int i = l; i < (int)n; i++) {
+        for (int i = l; i < (int)m; i++) {
             tmp_str[i] = ' ';
         }
-        tmp_str[n] = '\0';
+        tmp_str[m] = '\0';
         ncplane_putstr_yx(s->mplane[w], y, x, text);
         free(tmp_str);
     }
@@ -195,22 +169,22 @@ int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, in
 // ---------------------------------------------------------------------------
 // Wide Characters
 // ---------------------------------------------------------------------------
-int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int n) {
+int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int m) {
     if (!s || !wstr)
         return -1;
     wchar_t wc;
-    for (int i = 0; i < n && wstr[i] != L'\0'; i++) {
+    for (int i = 0; i < m && wstr[i] != L'\0'; i++) {
         wc = wstr[i];
         ncplane_putwc_yx(s->mplane[w], -1, -1, wc);
     }
     return 0;
 }
-int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int n) {
+int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int m) {
     if (!s || !wstr)
         return -1;
     ncplane_cursor_move_yx(s->mplane[w], y, x);
     wchar_t wc;
-    for (int i = 0; i < n && wstr[i] != L'\0'; i++) {
+    for (int i = 0; i < m && wstr[i] != L'\0'; i++) {
         wc = wstr[i];
         ncplane_putwc_yx(s->mplane[w], -1, -1, wc);
     }
@@ -220,8 +194,7 @@ int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, in
 // ---------------------------------------------------------------------------
 // UiCells
 // ---------------------------------------------------------------------------
-
-int ui_wadd_cell(UiSurface *s, uint w, const UiCell *uic) {
+int ui_wadd_cell(UiSurface *s, uint w, UiCell *uic) {
     if (!s)
         return -1;
     ncplane_putc(s->mplane[w], uic);
@@ -230,70 +203,64 @@ int ui_wadd_cell(UiSurface *s, uint w, const UiCell *uic) {
 int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, UiCell *uic) {
     if (!s)
         return -1;
+    GCluster gc;
+    gc.u32 = uic->gcluster;
+    uint8_t a, b, c, d;
+    a = (gc.u32 >> 24) & 0xFF;
+    b = (gc.u32 >> 16) & 0xFF;
+    c = (gc.u32 >> 8) & 0xFF;
+    d = gc.u32 & 0xFF;
+    gc.u8[0] = d;
+    gc.u8[1] = c;
+    gc.u8[2] = b;
+    gc.u8[3] = a;
+    uic->gcluster = gc.u32;
+    // nccell_load_egc32(s->mplane[w], uic, gc.u32);
     ncplane_putc_yx(s->mplane[w], y, x, uic);
-    return 0;
-}
-// uic strings
-int ui_wadd_cellstr(UiSurface *s, uint w, UiCell *uic) {
-    if (!s)
-        return -1;
-    uint i = 0;
-    while (uic[i].gcluster != L'\0') {
-        ncplane_putc(s->mplane[w], uic);
-        i++;
-    }
     return 0;
 }
 int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic) {
     if (!s)
         return -1;
     ui_wmove(s, w, y, x);
-    uint i = 0;
-    while (uic[i].gcluster != L'\0') {
+    ncplane_putc(s->mplane[w], uic);
+    return 0;
+}
+int ui_wadd_cellnstr(UiSurface *s, uint w, UiCell *uic, uint m) {
+    if (!s)
+        return -1;
+    for (uint i = 0; i < m; i++) {
         ncplane_putc(s->mplane[w], uic);
-        i++;
     }
     return 0;
 }
-int ui_wadd_cellnstr(UiSurface *s, uint w, UiCell *uic, uint n) {
+// uic strings
+int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic, uint m) {
     if (!s)
         return -1;
-    uint i = 0;
-    while (uic[i].gcluster != L'\0' && i < n) {
-        ncplane_putc(s->mplane[w], uic);
-        i++;
-    }
-    return 0;
-}
-int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic, uint n) {
-    if (!s)
-        return -1;
-    uint i = 0;
     ui_wmove(s, w, y, x);
-    while (uic[i].gcluster != L'\0' && i < n) {
-        ncplane_putc(s->mplane[w], uic);
-        i++;
-    }
+    ncplane_putc(s->mplane[w], uic);
     return 0;
 }
+// uic strings
 // ---------------------------------------------------------------------------
-// UiCells
+// nccells
 // ---------------------------------------------------------------------------
-int ui_wadd_wch(UiSurface *s, uint w, const UiCell *uic) {
+int ui_wadd_wch(UiSurface *s, uint w, const nccell *uic) {
     if (!s)
         return -1;
 
     ncplane_putc(s->mplane[w], uic);
     return 0;
 }
-int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *uic) {
+int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const nccell *uic) {
     if (!s)
         return -1;
     ncplane_putc_yx(s->mplane[w], y, x, uic);
     return 0;
 }
 // uic strings
-int ui_wadd_wchstr(UiSurface *s, uint w, UiCell *uic) {
+int ui_wadd_wchstr(UiSurface *s, uint w, nccell *uic) {
     if (!s)
         return -1;
     uint i = 0;
@@ -303,7 +270,7 @@ int ui_wadd_wchstr(UiSurface *s, uint w, UiCell *uic) {
     }
     return 0;
 }
-int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic) {
+int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, nccell *uic) {
     if (!s)
         return -1;
     ui_wmove(s, w, y, x);
@@ -314,23 +281,23 @@ int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic) {
     }
     return 0;
 }
-int ui_wadd_wchnstr(UiSurface *s, uint w, UiCell *uic, uint n) {
+int ui_wadd_wchnstr(UiSurface *s, uint w, nccell *uic, uint m) {
     if (!s)
         return -1;
     uint i = 0;
-    while (uic[i].gcluster != '\0' && i < n) {
+    while (uic[i].gcluster != '\0' && i < m) {
         ncplane_putc(s->mplane[w], uic);
         i++;
     }
     return 0;
 }
 
-int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic, uint n) {
+int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, nccell *uic, uint m) {
     if (!s)
         return -1;
     uint i = 0;
     ui_wmove(s, w, y, x);
-    while (i < n) {
+    while (i < m) {
         ncplane_putc(s->mplane[w], uic);
         i++;
     }

@@ -36,9 +36,9 @@
    terminal state after the program has exited. */
 static void end_pgm(void) {
     ui_curs_set(1);
-    close(cmenu_log_fd);
     if (f_curses_open)
         ui_endwin();
+    close(cmenu_log_fd);
     exit(EXIT_SUCCESS);
 }
 

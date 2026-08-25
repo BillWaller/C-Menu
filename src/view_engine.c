@@ -188,7 +188,8 @@ int view_file(Init *init) {
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
                 strnz__cpy(view->title, view->cur_file_str, MAXLEN - 1);
-                border_title(view->sfc, view->title);
+                if (!view->f_full_screen)
+                    border_title(view->sfc, view->title);
                 initialize_line_table(view);
                 next_page(view);
                 view_cmd_processor(init);

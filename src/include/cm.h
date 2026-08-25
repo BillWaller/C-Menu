@@ -235,6 +235,9 @@ extern UiCell cell_bl;
 extern UiCell cell_br;
 extern UiCell cell_lt;
 extern UiCell cell_rt;
+extern UiCell cell_tt;
+extern UiCell cell_bt;
+extern UiCell cell_cr;
 extern UiCell cell_sp;
 
 typedef enum {
@@ -736,70 +739,68 @@ typedef struct {
    structure allows for efficient management of the terminal's state and
    configuration in a structured way. */
 typedef struct {
-    double red_gamma;             /**< red gamma correction value */
-    double green_gamma;           /**< green gamma correction value */
-    double blue_gamma;            /**< blue gamma correction value */
-    double gray_gamma;            /**< gray gamma correction value */
-    char black[COLOR_LEN];        /**< black */
-    char red[COLOR_LEN];          /**< red */
-    char green[COLOR_LEN];        /**< green */
-    char yellow[COLOR_LEN];       /**< yellow */
-    char blue[COLOR_LEN];         /**< blue */
-    char magenta[COLOR_LEN];      /**< magenta */
-    char cyan[COLOR_LEN];         /**< cyan */
-    char white[COLOR_LEN];        /**< white */
-    char orange[COLOR_LEN];       /**< orange */
-    char bblack[COLOR_LEN];       /**< bold black */
-    char bred[COLOR_LEN];         /**< bold red */
-    char bgreen[COLOR_LEN];       /**< bold green */
-    char byellow[COLOR_LEN];      /**< bold yellow */
-    char bblue[COLOR_LEN];        /**< bold blue */
-    char bmagenta[COLOR_LEN];     /**< bold magenta */
-    char bcyan[COLOR_LEN];        /**< bold cyan */
-    char bwhite[COLOR_LEN];       /**< bold white */
-    char borange[COLOR_LEN];      /**< bold orange */
-    char abg[COLOR_LEN];          /**< background with alpha */
-    char fg[COLOR_LEN];           /**< foreground color */
-    char bg[COLOR_LEN];           /**< background color */
-    char box_fg[COLOR_LEN];       /**< box foreground */
-    char box_bg[COLOR_LEN];       /**< box background */
-    char ind_fg[COLOR_LEN];       /**< indicator foreground */
-    char ind_bg[COLOR_LEN];       /**< indicator background */
-    char brackets_fg[COLOR_LEN];  /**< brackets foreground */
-    char brackets_bg[COLOR_LEN];  /**< brackets background */
-    char fill_char_fg[COLOR_LEN]; /**< fill character foreground */
-    char fill_char_bg[COLOR_LEN]; /**< fill character background */
-    char ln_fg[COLOR_LEN];        /**< line number color index */
-    char ln_bg[COLOR_LEN];        /**< line number background index */
-    char cmdln_fg[COLOR_LEN];     /**< line number color index */
-    char cmdln_bg[COLOR_LEN];     /**< line number background index */
-    char nt_fg[COLOR_LEN];        /**< color code for normal text foreground */
-    char nt_bg[COLOR_LEN];        /**< color code for normal text background */
-    char nt_rev_fg[COLOR_LEN];    /**< normal text reverse foreground */
-    char nt_rev_bg[COLOR_LEN];    /**< normal text reverse background */
-    char nt_hl_fg[COLOR_LEN];     /**< normal text highlight foreground */
-    char nt_hl_bg[COLOR_LEN];     /**< normal text highlight background */
-    char
-        nt_hl_rev_fg[COLOR_LEN]; /**< normal text highlight reverse foreground */
-    char
-        nt_hl_rev_bg[COLOR_LEN]; /**< normal text highlight reverse background */
-    char title_fg[COLOR_LEN];    /**< title foreground */
-    char title_bg[COLOR_LEN];    /**< title background */
-    char ran_fg[COLOR_LEN];      /**< right angle foreground */
-    char ran_bg[COLOR_LEN];      /**< right angle background */
-    char tty_name[MAXLEN];       /**< name of the terminal device */
-    FILE *stdin_fp;              /**< stdin stream pointer */
-    FILE *stdout_fp;             /**< stdout stream pointer */
-    FILE *stderr_fp;             /**< stderr stream pointer */
-    FILE *tty_fp;                /**< terminal device stream pointer */
-    int stdin_fd;                /**< stdin file descriptor */
-    int stdout_fd;               /**< stdout file descriptor */
-    int stderr_fd;               /**< stderr file descriptor */
-    int tty_fd;                  /**< terminal device file descriptor */
-    uint clr_cnt;                /**< number of colors currently in use */
-    uint clr_pair_cnt;           /**< number of color pairs currently in use */
-    uint clr_idx;                /**< current color index */
-    uint clr_pair_idx;           /**< current color pair index */
+    double red_gamma;      /**< red gamma correction value */
+    double green_gamma;    /**< green gamma correction value */
+    double blue_gamma;     /**< blue gamma correction value */
+    double gray_gamma;     /**< gray gamma correction value */
+    uint32_t black;        /**< black */
+    uint32_t red;          /**< red */
+    uint32_t green;        /**< green */
+    uint32_t yellow;       /**< yellow */
+    uint32_t blue;         /**< blue */
+    uint32_t magenta;      /**< magenta */
+    uint32_t cyan;         /**< cyan */
+    uint32_t white;        /**< white */
+    uint32_t orange;       /**< orange */
+    uint32_t bblack;       /**< bold black */
+    uint32_t bred;         /**< bold red */
+    uint32_t bgreen;       /**< bold green */
+    uint32_t byellow;      /**< bold yellow */
+    uint32_t bblue;        /**< bold blue */
+    uint32_t bmagenta;     /**< bold magenta */
+    uint32_t bcyan;        /**< bold cyan */
+    uint32_t bwhite;       /**< bold white */
+    uint32_t borange;      /**< bold orange */
+    uint32_t abg;          /**< background with alpha */
+    uint32_t fg;           /**< foreground color */
+    uint32_t bg;           /**< background color */
+    uint32_t box_fg;       /**< box foreground */
+    uint32_t box_bg;       /**< box background */
+    uint32_t ind_fg;       /**< indicator foreground */
+    uint32_t ind_bg;       /**< indicator background */
+    uint32_t brackets_fg;  /**< brackets foreground */
+    uint32_t brackets_bg;  /**< brackets background */
+    uint32_t fill_char_fg; /**< fill character foreground */
+    uint32_t fill_char_bg; /**< fill character background */
+    uint32_t ln_fg;        /**< line number color index */
+    uint32_t ln_bg;        /**< line number background index */
+    uint32_t cmdln_fg;     /**< line number color index */
+    uint32_t cmdln_bg;     /**< line number background index */
+    uint32_t nt_fg;        /**< color code for normal text foreground */
+    uint32_t nt_bg;        /**< color code for normal text background */
+    uint32_t nt_rev_fg;    /**< normal text reverse foreground */
+    uint32_t nt_rev_bg;    /**< normal text reverse background */
+    uint32_t nt_hl_fg;     /**< normal text highlight foreground */
+    uint32_t nt_hl_bg;     /**< normal text highlight background */
+    uint32_t nt_hl_rev_fg; /**< normal text highlight reverse foreground */
+    uint32_t nt_hl_rev_bg; /**< normal text highlight reverse background */
+    uint32_t title_fg;     /**< title foreground */
+    uint32_t title_bg;     /**< title background */
+    uint32_t ran_fg;       /**< right angle foreground */
+    uint32_t ran_bg;       /**< right angle background */
+    char tty_name[MAXLEN]; /**< name of the terminal device */
+    FILE *stdin_fp;        /**< stdin stream pointer */
+    FILE *stdout_fp;       /**< stdout stream pointer */
+    FILE *stderr_fp;       /**< stderr stream pointer */
+    FILE *tty_fp;          /**< terminal device stream pointer */
+    int stdin_fd;          /**< stdin file descriptor */
+    int stdout_fd;         /**< stdout file descriptor */
+    int stderr_fd;         /**< stderr file descriptor */
+    int tty_fd;            /**< terminal device file descriptor */
+    uint clr_cnt;          /**< number of colors currently in use */
+    uint clr_pair_cnt;     /**< number of color pairs currently in use */
+    uint clr_idx;          /**< current color index */
+    uint clr_pair_idx;     /**< current color pair index */
     char brackets[3];
     char fill_char[2];
     ushort cp_default;   /**< default color pair index */

@@ -60,6 +60,9 @@ const wchar_t bw_bl = BW_RBL;  /**< bottom left corner */
 const wchar_t bw_br = BW_RBR;  /**< bottom right corner */
 const wchar_t bw_lt = BW_LT;   /**< left tee */
 const wchar_t bw_rt = BW_RT;   /**< right tee */
+const wchar_t bw_tt = BW_TT;   /**< right tee */
+const wchar_t bw_bt = BW_BT;   /**< left tee */
+const wchar_t bw_cr = BW_CR;   /**< right tee */
 const wchar_t bw_sp = BW_SP;   /**< tee space */
 const wchar_t bw_ra = BW_RA;   /**< right arrow */
 const wchar_t bw_la = BW_LA;   /**< left arrow */
@@ -67,6 +70,40 @@ const wchar_t bw_ua = BW_UA;   /**< up arrow */
 const wchar_t bw_da = BW_DA;   /**< down arrow */
 const wchar_t bw_ran = BW_RAN; /**< right angle */
 const wchar_t bw_chk = BW_CHK; /**< check mark */
+
+typedef enum Cells {
+    _DEFAULT,
+    _FILL_CHAR,
+    _BRKTL,
+    _BRKTR,
+    _NT,
+    _NT_REV,
+    _NT_HL,
+    _NT_HL_REV,
+    _BOX,
+    _IND,
+    _CMDLN,
+    _TITLE,
+    _LN,
+    _RAN,
+    _CHK,
+    _LS,
+    _RS,
+    _TS,
+    _BS,
+    _TL,
+    _TR,
+    _HO,
+    _VE,
+    _BL,
+    _BR,
+    _LT,
+    _RT,
+    _TT,
+    _BT,
+    _CR,
+    _SP
+} cells_t;
 
 UiCell cell_default;
 UiCell cell_fill_char;
@@ -95,6 +132,9 @@ UiCell cell_bl;
 UiCell cell_br;
 UiCell cell_lt;
 UiCell cell_rt;
+UiCell cell_tt;
+UiCell cell_bt;
+UiCell cell_cr;
 UiCell cell_sp;
 
 double GRAY_GAMMA = 1.2; /**< Gamma correction. Set in .minitrc */
@@ -132,6 +172,7 @@ ushort cp_nt_rev;
 ushort cp_nt_hl;
 ushort cp_nt_hl_rev;
 ushort cp_ln;
+ushort cp_default;
 ushort cp_fill_char;
 ushort cp_brackets;
 ushort cp_red;
@@ -166,6 +207,7 @@ void initialize_cells(SIO *sio) {
     //
     // strcpy(sio->nt_bg, "#0000ff");
     // strcpy(sio->box_bg, "#00ff00");
+    cp_default = ui_add_pair(CLR_NT_FG, CLR_NT_BG);
     cp_fill_char = ui_add_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
     cp_brackets = ui_add_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
     cp_nt = ui_add_pair(CLR_NT_FG, CLR_NT_BG);
@@ -184,35 +226,35 @@ void initialize_cells(SIO *sio) {
     //
     // Standardized UiCells
     //
-    // void mbc_to_wc(wchar_t wc[2], const char mbc);
-    cell_default = ui_cell_from_hex("#d0d0d0", "#000000", WA_NORMAL, nullptr);
-    cell_fill_char = ui_cell_from_hex(sio->fill_char_fg, sio->fill_char_bg, WA_NORMAL, nullptr);
-    wchar_t brktl[2];
-    mbc_to_wc(brktl, sio->brackets[0]);
-    cell_brktl = ui_cell_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktl);
-    wchar_t brktr[2];
-    mbc_to_wc(brktr, sio->brackets[1]);
-    cell_brktr = ui_cell_from_hex(sio->brackets_fg, sio->brackets_bg, WA_NORMAL, brktr);
-    cell_nt = ui_cell_from_hex(sio->nt_fg, sio->nt_bg, WA_NORMAL, nullptr);
-    cell_nt_rev = ui_cell_from_hex(sio->nt_rev_fg, sio->nt_rev_bg, WA_NORMAL, nullptr);
-    cell_nt_hl = ui_cell_from_hex(sio->nt_hl_fg, sio->nt_hl_bg, WA_NORMAL, nullptr);
-    cell_nt_hl_rev = ui_cell_from_hex(sio->nt_hl_rev_fg, sio->nt_hl_rev_bg, WA_NORMAL, nullptr);
-    cell_box = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, nullptr);
-    cell_ind = ui_cell_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, nullptr);
-    cell_cmdln = ui_cell_from_hex(sio->cmdln_fg, sio->cmdln_bg, WA_NORMAL, nullptr);
-    cell_title = ui_cell_from_hex(sio->title_fg, sio->title_bg, WA_NORMAL, nullptr);
-    cell_ln = ui_cell_from_hex(sio->ln_fg, sio->ln_bg, WA_NORMAL, nullptr);
-    cell_ran = ui_cell_from_hex(sio->ran_fg, sio->ran_bg, WA_NORMAL, &bw_ran);
-    cell_chk = ui_cell_from_hex(sio->ind_fg, sio->ind_bg, WA_NORMAL, &bw_chk);
-    cell_tl = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_tl);
-    cell_tr = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_tr);
-    cell_bl = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_bl);
-    cell_br = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_br);
-    cell_ho = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_ho);
-    cell_ve = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_ve);
-    cell_lt = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_lt);
-    cell_rt = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_rt);
-    cell_sp = ui_cell_from_hex(sio->box_fg, sio->box_bg, WA_NORMAL, &bw_sp);
+    cell_default = ui_cell_from_wc(bw_sp, WA_NORMAL,
+                                   &sio->nt_fg, &sio->nt_bg);
+    cell_fill_char = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->fill_char_fg, &sio->fill_char_bg);
+    uint8_t brktl = sio->brackets[0];
+    cell_brktl = ui_cell_from_wc(brktl, WA_NORMAL, &sio->brackets_fg, &sio->brackets_bg);
+    uint8_t brktr = sio->brackets[1];
+    cell_brktr = ui_cell_from_wc(brktr, WA_NORMAL, &sio->brackets_fg, &sio->brackets_bg);
+    cell_nt = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->nt_fg, &sio->nt_bg);
+    cell_nt_rev = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->nt_rev_fg, &sio->nt_rev_bg);
+    cell_nt_hl = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->nt_hl_fg, &sio->nt_hl_bg);
+    cell_nt_hl_rev = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->nt_hl_rev_fg, &sio->nt_hl_rev_bg);
+    cell_box = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_cmdln = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->cmdln_fg, &sio->cmdln_bg);
+    cell_title = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->title_fg, &sio->title_bg);
+    cell_ln = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->ln_fg, &sio->ln_bg);
+    cell_ran = ui_cell_from_wc(bw_ran, WA_NORMAL, &sio->ran_fg, &sio->ran_bg);
+    cell_chk = ui_cell_from_wc(bw_chk, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_tl = ui_cell_from_wc(bw_tl, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_tr = ui_cell_from_wc(bw_tr, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_bl = ui_cell_from_wc(bw_bl, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_br = ui_cell_from_wc(bw_br, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_ho = ui_cell_from_wc(bw_ho, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_ve = ui_cell_from_wc(bw_ve, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_lt = ui_cell_from_wc(bw_lt, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_rt = ui_cell_from_wc(bw_rt, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_tt = ui_cell_from_wc(bw_tt, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_bt = ui_cell_from_wc(bw_bt, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_cr = ui_cell_from_wc(bw_cr, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_sp = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->box_fg, &sio->box_bg);
 }
 /** rgb_to_xterm256_idx
     @brief Convert RGB color to XTerm 256 color index
@@ -305,84 +347,44 @@ void apply_gamma(RGB *rgb) {
    "#RRGGBB"). If a color override is specified for any of the standard colors,
    it is applied using the ui_add_color_hex function. */
 bool init_clr_palette(SIO *sio) {
-    if (sio->black[0])
-        ui_chg_color_hex(CLR_BLACK, sio->black);
-    if (sio->red[0])
-        ui_chg_color_hex(CLR_RED, sio->red);
-    if (sio->green[0])
-        ui_chg_color_hex(CLR_GREEN, sio->green);
-    if (sio->yellow[0])
-        ui_chg_color_hex(CLR_YELLOW, sio->yellow);
-    if (sio->blue[0])
-        ui_chg_color_hex(CLR_BLUE, sio->blue);
-    if (sio->magenta[0])
-        ui_chg_color_hex(CLR_MAGENTA, sio->magenta);
-    if (sio->cyan[0])
-        ui_chg_color_hex(CLR_CYAN, sio->cyan);
-    if (sio->white[0])
-        ui_chg_color_hex(CLR_WHITE, sio->white);
-    if (sio->bblack[0])
-        ui_chg_color_hex(CLR_BBLACK, sio->bblack);
-    if (sio->bred[0])
-        ui_chg_color_hex(CLR_BRED, sio->bred);
-    if (sio->bgreen[0])
-        ui_chg_color_hex(CLR_BGREEN, sio->bgreen);
-    if (sio->byellow[0])
-        ui_chg_color_hex(CLR_BYELLOW, sio->byellow);
-    if (sio->bblue[0])
-        ui_chg_color_hex(CLR_BBLUE, sio->bblue);
-    if (sio->bmagenta[0])
-        ui_chg_color_hex(CLR_BMAGENTA, sio->bmagenta);
-    if (sio->bcyan[0])
-        ui_chg_color_hex(CLR_BCYAN, sio->bcyan);
-    if (sio->bwhite[0])
-        ui_chg_color_hex(CLR_BWHITE, sio->bwhite);
-    if (sio->borange[0])
-        ui_chg_color_hex(CLR_BORANGE, sio->borange);
-    if (sio->fg[0])
-        ui_chg_color_hex(CLR_FG, sio->fg);
-    if (sio->bg[0])
-        ui_chg_color_hex(CLR_BG, sio->bg);
-    if (sio->box_fg[0])
-        ui_chg_color_hex(CLR_BOX_FG, sio->box_fg);
-    if (sio->box_bg[0])
-        ui_chg_color_hex(CLR_BOX_BG, sio->box_bg);
-    if (sio->ind_fg[0])
-        ui_chg_color_hex(CLR_IND_FG, sio->ind_fg);
-    if (sio->ind_bg[0])
-        ui_chg_color_hex(CLR_IND_BG, sio->ind_bg);
-    if (sio->title_fg[0])
-        ui_chg_color_hex(CLR_TITLE_FG, sio->title_fg);
-    if (sio->title_bg[0])
-        ui_chg_color_hex(CLR_TITLE_BG, sio->title_bg);
-    if (sio->ln_fg[0])
-        ui_chg_color_hex(CLR_LN_FG, sio->ln_fg);
-    if (sio->ln_bg[0])
-        ui_chg_color_hex(CLR_LN_BG, sio->ln_bg);
-    if (sio->nt_fg[0])
-        ui_chg_color_hex(CLR_NT_FG, sio->nt_fg);
-    if (sio->nt_bg[0])
-        ui_chg_color_hex(CLR_NT_BG, sio->nt_bg);
-    if (sio->nt_rev_fg[0])
-        ui_chg_color_hex(CLR_NT_REV_FG, sio->nt_rev_fg);
-    if (sio->nt_rev_bg[0])
-        ui_chg_color_hex(CLR_NT_REV_BG, sio->nt_rev_bg);
-    if (sio->nt_hl_fg[0])
-        ui_chg_color_hex(CLR_NT_HL_FG, sio->nt_hl_fg);
-    if (sio->nt_hl_bg[0])
-        ui_chg_color_hex(CLR_NT_HL_BG, sio->nt_hl_bg);
-    if (sio->nt_hl_rev_fg[0])
-        ui_chg_color_hex(CLR_NT_HL_REV_FG, sio->nt_hl_rev_fg);
-    if (sio->nt_hl_rev_bg[0])
-        ui_chg_color_hex(CLR_NT_HL_REV_BG, sio->nt_hl_rev_bg);
-    if (sio->fill_char_fg[0])
-        ui_chg_color_hex(CLR_FILL_CHAR_FG, sio->fill_char_fg);
-    if (sio->fill_char_bg[0])
-        ui_chg_color_hex(CLR_FILL_CHAR_BG, sio->fill_char_bg);
-    if (sio->brackets_fg[0])
-        ui_chg_color_hex(CLR_BRACKETS_FG, sio->brackets_fg);
-    if (sio->brackets_bg[0])
-        ui_chg_color_hex(CLR_BRACKETS_BG, sio->brackets_bg);
+    ui_chg_color(CLR_BLACK, &sio->black);
+    ui_chg_color(CLR_RED, &sio->red);
+    ui_chg_color(CLR_GREEN, &sio->green);
+    ui_chg_color(CLR_YELLOW, &sio->yellow);
+    ui_chg_color(CLR_BLUE, &sio->blue);
+    ui_chg_color(CLR_MAGENTA, &sio->magenta);
+    ui_chg_color(CLR_CYAN, &sio->cyan);
+    ui_chg_color(CLR_WHITE, &sio->white);
+    ui_chg_color(CLR_BBLACK, &sio->bblack);
+    ui_chg_color(CLR_BRED, &sio->bred);
+    ui_chg_color(CLR_BGREEN, &sio->bgreen);
+    ui_chg_color(CLR_BYELLOW, &sio->byellow);
+    ui_chg_color(CLR_BBLUE, &sio->bblue);
+    ui_chg_color(CLR_BMAGENTA, &sio->bmagenta);
+    ui_chg_color(CLR_BCYAN, &sio->bcyan);
+    ui_chg_color(CLR_BWHITE, &sio->bwhite);
+    ui_chg_color(CLR_BORANGE, &sio->borange);
+    ui_chg_color(CLR_FG, &sio->fg);
+    ui_chg_color(CLR_BG, &sio->bg);
+    ui_chg_color(CLR_BOX_FG, &sio->box_fg);
+    ui_chg_color(CLR_BOX_BG, &sio->box_bg);
+    ui_chg_color(CLR_IND_FG, &sio->ind_fg);
+    ui_chg_color(CLR_IND_BG, &sio->ind_bg);
+    ui_chg_color(CLR_TITLE_BG, &sio->title_bg);
+    ui_chg_color(CLR_LN_FG, &sio->ln_fg);
+    ui_chg_color(CLR_LN_BG, &sio->ln_bg);
+    ui_chg_color(CLR_NT_FG, &sio->nt_fg);
+    ui_chg_color(CLR_NT_BG, &sio->nt_bg);
+    ui_chg_color(CLR_NT_REV_FG, &sio->nt_rev_fg);
+    ui_chg_color(CLR_NT_REV_BG, &sio->nt_rev_bg);
+    ui_chg_color(CLR_NT_HL_FG, &sio->nt_hl_fg);
+    ui_chg_color(CLR_NT_HL_BG, &sio->nt_hl_bg);
+    ui_chg_color(CLR_NT_HL_REV_FG, &sio->nt_hl_rev_fg);
+    ui_chg_color(CLR_NT_HL_REV_BG, &sio->nt_hl_rev_bg);
+    ui_chg_color(CLR_FILL_CHAR_FG, &sio->fill_char_fg);
+    ui_chg_color(CLR_FILL_CHAR_BG, &sio->fill_char_bg);
+    ui_chg_color(CLR_BRACKETS_FG, &sio->brackets_fg);
+    ui_chg_color(CLR_BRACKETS_BG, &sio->brackets_bg);
     ui_color_cnt = CLR_NCOLORS;
     return true;
 }
@@ -620,7 +622,7 @@ int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint 
     @note The difference between this function and ui_surface_destroy() is that this function destroys the surface pointed to by the surface pointer (sfc_ptr) and decrements the surface pointer after destroying the surface.
  */
 int cm_surface_destroy(UiSurface *sfc) {
-    if (sfc_ptr >= UI_SFC_MAX)
+    if (sfc_ptr < 0 || sfc_ptr > MAXSFC)
         return -1;
     if (sfc != ui_surface[sfc_ptr])
         return -1;
@@ -733,7 +735,7 @@ int border_title(UiSurface *sfc, char *title) {
     title_wc = mbstr_to_wcstr(title);
     l = wcswidth(title_wc, wcslen(title_wc));
     l = min(l, maxx - 7);
-    ui_bkgdset(sfc, BOX, &cell_nt_hl);
+    ui_bkgdset(sfc, BOX, &cell_title);
     ui_mvwaddnwstr(sfc, BOX, y, x, title_wc, l);
     ui_bkgdset(sfc, BOX, &cell_box);
     x += l;

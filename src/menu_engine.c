@@ -148,9 +148,9 @@ unsigned int menu_cmd_processor(Init *init) {
                           menu->line[menu->line_idx]->choice_text,
                           menu->cols);
         ui_bkgdset(sfc, WIN, &cell_nt_hl_rev);
-        ui_draw_ch(sfc, WIN, menu->line_idx,
-                   menu->line[menu->line_idx]->letter_pos,
-                   menu->line[menu->line_idx]->choice_letter);
+        ui_draw_ch_yx(sfc, WIN, menu->line_idx,
+                      menu->line[menu->line_idx]->letter_pos,
+                      menu->line[menu->line_idx]->choice_letter);
         ui_bkgdset(sfc, WIN, &cell_nt);
         // Wait for user input and process it
         event.y = event.x = -1;
@@ -163,9 +163,9 @@ unsigned int menu_cmd_processor(Init *init) {
                           menu->line[menu->line_idx]->choice_text,
                           menu->cols);
         ui_bkgdset(sfc, WIN, &cell_nt_hl);
-        ui_draw_ch(sfc, WIN, menu->line_idx,
-                   menu->line[menu->line_idx]->letter_pos,
-                   menu->line[menu->line_idx]->choice_letter);
+        ui_draw_ch_yx(sfc, WIN, menu->line_idx,
+                      menu->line[menu->line_idx]->letter_pos,
+                      menu->line[menu->line_idx]->choice_letter);
         ui_render();
         // Initialize the mouse event coordinates to -1 to indicate no mouse
         // event

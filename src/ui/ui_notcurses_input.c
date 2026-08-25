@@ -16,9 +16,6 @@
    Key translation
    ------------------------------------------------------------------------- */
 
-int get_plane_idx(struct UiSurface *s, struct ncplane *plane);
-struct ncplane *ncplane_clicked(struct ncplane *pile_member, struct ncinput *ni);
-
 static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
     if (id == NCKEY_INVALID || id == (uint32_t)NCKEY_EOF)
         return UI_KEY_NONE;
@@ -104,46 +101,46 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
    @return 0 on success, -1 if @p ui or @p ev is NULL.
 */
 int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
-    (void)s;
-    (void)w;
     if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
-    uint32_t id;
-
     ui_cursor_enable(s, w, true);
-    tcflush(0, TCIFLUSH);
+    // tcflush(0, TCIFLUSH);
     if (timeout_ms < 0) {
-        id = notcurses_get_blocking(ui->nc, &ni);
+        do {
+            notcurses_get_blocking(ui->nc, &ni);
+        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
     } else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
             .tv_nsec = (long)(timeout_ms % 1000) * 1000000L,
         };
-        id = notcurses_get(ui->nc, &ts, &ni);
+        do {
+            notcurses_get(ui->nc, &ts, &ni);
+        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
     }
     notcurses_cursor_disable(ui->nc);
-    ev->key = translate_nckey(id, &ni);
+    ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
     ev->shift = ncinput_shift_p(&ni);
     if (ev->key == UI_KEY_CHAR) {
-        ev->ch = id; /* Unicode codepoint */
+        ev->ch = ni.id; /* Unicode codepoint */
     } else if (ev->key == UI_KEY_MOUSE) {
         ev->y = ni.y;
         ev->x = ni.x;
-        if (id == NCKEY_BUTTON4)
+        if (ni.id == NCKEY_BUTTON4)
             ev->mouse_action = UI_MOUSE_SCROLL_UP;
-        else if (id == NCKEY_BUTTON5)
+        else if (ni.id == NCKEY_BUTTON5)
             ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
         else if (ni.evtype == NCTYPE_PRESS)
             ev->mouse_action = UI_MOUSE_PRESS;
         else if (ni.evtype == NCTYPE_RELEASE)
             ev->mouse_action = UI_MOUSE_RELEASE;
     }
-    return id;
+    return ni.id;
 }
 
 int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
@@ -152,45 +149,48 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
-    uint32_t id;
-    int y, x;
-    notcurses_cursor_yx(ui->nc, &y, &x);
-    notcurses_cursor_enable(ui->nc, y, x);
+    // int y, x;
+    // notcurses_cursor_yx(ui->nc, &y, &x);
+    // notcurses_cursor_enable(ui->nc, y, x);
     notcurses_render(ui->nc);
     if (timeout_ms < 0)
-        id = notcurses_get_blocking(ui->nc, &ni);
+        do {
+            notcurses_get_blocking(ui->nc, &ni);
+        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
     else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
             .tv_nsec = (long)(timeout_ms % 1000) * 1000000L,
         };
-        id = notcurses_get(ui->nc, &ts, &ni);
+        do {
+            notcurses_get(ui->nc, &ts, &ni);
+        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
     }
     notcurses_cursor_disable(ui->nc);
-    ev->key = translate_nckey(id, &ni);
+    ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
     ev->shift = ncinput_shift_p(&ni);
     if (ev->key == UI_KEY_CHAR) {
-        ev->ch = id; /* Unicode codepoint */
+        ev->ch = ni.id; /* Unicode codepoint */
     } else if (ev->key == UI_KEY_MOUSE) {
-        if (id == NCKEY_BUTTON1) {
-            struct ncplane *plane = ncplane_clicked(stdn, &ni);
-            ev->in_win = get_plane_idx(s, plane);
+        if (ni.id == NCKEY_BUTTON1) {
+            struct ncplane *nn = ncplane_clicked(s, w, &ni);
+            ev->in_win = get_plane_idx(s, nn);
             ev->key = 0;
         }
     }
     ev->y = ni.y;
     ev->x = ni.x;
-    if (id == NCKEY_BUTTON4)
+    if (ni.id == NCKEY_BUTTON4)
         ev->mouse_action = UI_MOUSE_SCROLL_UP;
-    else if (id == NCKEY_BUTTON5)
+    else if (ni.id == NCKEY_BUTTON5)
         ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
     else if (ni.evtype == NCTYPE_PRESS)
         ev->mouse_action = UI_MOUSE_PRESS;
     else if (ni.evtype == NCTYPE_RELEASE)
         ev->mouse_action = UI_MOUSE_RELEASE;
-    return id;
+    return ni.id;
 }
 
 int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
@@ -201,35 +201,37 @@ int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
-    uint32_t id;
     int y, x;
     notcurses_mice_disable(ui->nc);
     notcurses_cursor_yx(ui->nc, &y, &x);
     notcurses_cursor_enable(ui->nc, y, x);
-    id = notcurses_get_blocking(ui->nc, &ni);
+    do {
+        notcurses_get_blocking(ui->nc, &ni);
+    } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
+
     notcurses_cursor_disable(ui->nc);
-    ev->key = translate_nckey(id, &ni);
+    ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
     ev->shift = ncinput_shift_p(&ni);
     if (ev->key == UI_KEY_CHAR) {
-        ev->ch = id; /* Unicode codepoint */
+        ev->ch = ni.id; /* Unicode codepoint */
     }
-    return id;
+    return ni.id;
 }
 
-int get_plane_idx(UiSurface *s, struct ncplane *plane) {
+uint get_plane_idx(UiSurface *s, struct ncplane *plane) {
     if (!s)
         return -1;
-    for (size_t w = 0; w < SUB_SFC_MAX; ++w) {
-        if (s->mplane[w] == plane) {
+    for (uint w = 0; w < SUB_SFC_MAX; ++w) {
+        if (s->mplane[w] == plane)
             return w;
-        }
     }
     return -1;
 }
 
-struct ncplane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni) {
+NcPlane *ncplane_clicked(UiSurface *s, uint w, ncinput *ni) {
+    NcPlane *pile_member = s->mplane[w];
     struct ncplane *cur = ncpile_top(pile_member);
     while (cur != NULL) {
         int y = ni->y, x = ni->x;

@@ -90,7 +90,7 @@ struct UiRuntime {
    The first six identifiers are named based on C-Menu's particular layouts of planes within UiSurfaces, and the eighth, (idx 7), named SUB_SFC_MAX, is used as an indicator of the array size when allocating and freeing UiSurface planes and other UiSurface management tasks. It serves as a sentinel value to indicate that a UiSurface has no more planes. SUB_SFC_MAX is available for use as a plane identifier.
    If you are creating your own surfaces, you will probably want to add a custom enum with your own identifiers and use those to index into the ncplane array of your UiSurfaces. You may add more planes. It is convenient to use SUB_SFC_MAX as the last plane, but you may also define SUB_SFC_MAX outside the enum to accomplish the same effect.
 */
-enum sub_surface {
+typedef enum SubSurface {
     BOX,
     WIN,
     WIN2,
@@ -99,7 +99,7 @@ enum sub_surface {
     PAD,
     WIN3,
     SUB_SFC_MAX
-};
+} sub_surface;
 
 struct UiSurfaceMeta {
     unsigned int y;
@@ -146,9 +146,9 @@ struct UiSurface {
 typedef struct {
     union {
         struct {
-            uint8_t b, g, r;
+            uint8_t b, g, r, a;
         };
-        uint32_t rgb;
+        uint32_t color;
     };
 } RGB;
 
@@ -172,23 +172,43 @@ union UiChannels {
 
 typedef struct {
     union {
-        uint32_t gi32; // 4-bytes for UTF-8
-        uint8_t gi8[4];
-        wchar_t wstr[4];
+        uint32_t u32;
+        wchar_t u16[2];
+        uint8_t u8[4];
+        char c[4];
     };
+    uint8_t backstop;
     uint8_t width; // 5 -  5   (8 bits of EGC column width)
 } GCluster;
 
-struct UiCellLocal {
+struct UiCell {
     union {
-        uint32_t gcluster; // 4-bytes for UTF-8
-        wchar_t wstr[4];
-        uint8_t gstr[4];
+        uint32_t gcluster;
+        wchar_t u16[2];
+        uint8_t u8[4];
+        char c[4];
     };
-    uint8_t gcluster_backstop; // 1-byte terminator
-    uint8_t width;             // 5 -  5   (8 bits of EGC column width)
-    uint16_t stylemask;        // 6 -  7   2-bytes
-    union UiChannels channels; // 8 - 15   8 bytes
+    char gcluster_backstop;
+    uint8_t width;
+    uint16_t stylemask;
+    uint32_t chhannels;
+    union {
+        struct {
+            union {
+                struct {
+                    uint8_t b_b, b_g, b_r, b_a;
+                };
+                uint32_t bargb;
+            };
+            union {
+                struct {
+                    uint8_t f_b, f_g, f_r, f_a;
+                };
+                uint32_t fargb;
+            };
+        };
+        uint64_t channels;
+    };
 };
 
 struct UiColor {
@@ -270,7 +290,5 @@ struct UiPair {
 // (channels & 0x0000000007000000ull): reserved, must be 0
 // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
 /* Internal style helpers */
-
-struct ncplane *ncplane_clicked(struct ncplane *pile_member, ncinput *ni);
 
 #endif

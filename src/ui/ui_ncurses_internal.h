@@ -51,8 +51,8 @@ struct UiRuntime {
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
-    int lines;
-    int cols;
+    uint lines;
+    uint cols;
     PANEL *panel_main;
 };
 
@@ -86,6 +86,8 @@ struct UiSurface {
             PANEL *lnno_pan;
             PANEL *cmdln_pan;
             PANEL *pad_pan;
+            PANEL *plane1_pan;
+            PANEL *plane2_pan;
         }; // END DEPRECATION
         struct {
             PANEL *mpan[SUB_SFC_MAX];
@@ -99,6 +101,8 @@ struct UiSurface {
             WINDOW *lnno;
             WINDOW *cmdln;
             WINDOW *pad;
+            WINDOW *plane1;
+            WINDOW *plane2;
         }; // END DEPRECATION
         struct {
             WINDOW *mwin[SUB_SFC_MAX];
@@ -112,7 +116,7 @@ struct UiSurface {
 };
 
 typedef struct {
-    int r, g, b;
+    int32_t b, g, r, a;
 } RGB;
 
 typedef struct {

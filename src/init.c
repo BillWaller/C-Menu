@@ -313,82 +313,82 @@ parse_opt(int key, char *arg, struct argp_state *state) {
             init->p_view_files = str_to_bool(arg);
         break;
     case BG:
-        strnz__cpy(sio->bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->bg);
         break;
     case FG:
-        strnz__cpy(sio->fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->fg);
         break;
     case BOX_FG:
-        strnz__cpy(sio->box_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->box_fg);
         break;
     case BOX_BG:
-        strnz__cpy(sio->box_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->box_bg);
         break;
     case IND_FG:
-        strnz__cpy(sio->ind_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->ind_fg);
         break;
     case IND_BG:
-        strnz__cpy(sio->ind_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->ind_bg);
         break;
     case BRACKETS_FG:
-        strnz__cpy(sio->brackets_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->brackets_fg);
         break;
     case BRACKETS_BG:
-        strnz__cpy(sio->brackets_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->brackets_bg);
         break;
     case FILL_CHAR_FG:
-        strnz__cpy(sio->fill_char_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->fill_char_fg);
         break;
     case FILL_CHAR_BG:
-        strnz__cpy(sio->fill_char_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->fill_char_bg);
         break;
     case NT_FG:
-        strnz__cpy(sio->nt_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->nt_fg);
         break;
     case NT_BG:
-        strnz__cpy(sio->nt_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->nt_bg);
         break;
     case NT_REV_FG:
-        strnz__cpy(sio->nt_rev_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->nt_rev_fg);
         break;
     case NT_REV_BG:
-        strnz__cpy(sio->nt_rev_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->nt_rev_bg);
         break;
     case NT_HL_FG:
-        strnz__cpy(sio->nt_hl_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->nt_hl_fg);
         break;
     case NT_HL_BG:
-        strnz__cpy(sio->nt_hl_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->nt_hl_bg);
         break;
     case NT_HL_REV_FG:
-        strnz__cpy(sio->nt_hl_rev_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->nt_hl_rev_fg);
         break;
     case NT_HL_REV_BG:
-        strnz__cpy(sio->nt_hl_rev_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->nt_hl_rev_bg);
         break;
     case TITLE_FG:
-        strnz__cpy(sio->title_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->title_fg);
         break;
     case TITLE_BG:
-        strnz__cpy(sio->title_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->title_bg);
         break;
     case LN_FG:
-        strnz__cpy(sio->ln_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->ln_fg);
         break;
     case LN_BG:
-        strnz__cpy(sio->ln_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->ln_bg);
         break;
     case CMDLN_FG:
-        strnz__cpy(sio->cmdln_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->cmdln_fg);
         break;
     case CMDLN_BG:
-        strnz__cpy(sio->cmdln_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->cmdln_bg);
         break;
     case RAN_FG:
-        strnz__cpy(sio->ran_fg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->ran_fg);
         break;
     case RAN_BG:
-        strnz__cpy(sio->ran_bg, arg, MAXLEN - 1);
+        sscanf(arg, "#%06x", &sio->ran_bg);
         break;
     case GM_BLUE:
         sio->blue_gamma = str_to_double(arg);
@@ -514,36 +514,29 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     // Set default colors and settings in SIO struct
     // These can be overridden by the config file or command-line options
     // Included here to ensure SIO has valid defaults even if config parsing fails
-    strnz__cpy(sio->bg, "#000000",
-               COLOR_LEN - 1); /**< background color */
-    strnz__cpy(sio->fg, "#c0c0c0",
-               COLOR_LEN - 1);                               /**< foreground color */
-    strnz__cpy(sio->box_fg, "#f00000", COLOR_LEN - 1);       /**< bold color */
-    strnz__cpy(sio->box_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
-    strnz__cpy(sio->ind_fg, "#f00000", COLOR_LEN - 1);       /**< bold color */
-    strnz__cpy(sio->ind_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
-    strnz__cpy(sio->ran_fg, "#f00000", COLOR_LEN - 1);       /**< bold color */
-    strnz__cpy(sio->ran_bg, "#000000", COLOR_LEN - 1);       /**< bold color */
-    strnz__cpy(sio->title_fg, "#f0f0f0", COLOR_LEN - 1);     /**< title foreground color */
-    strnz__cpy(sio->title_bg, "#000000", COLOR_LEN - 1);     /**< title background color */
-    strnz__cpy(sio->nt_fg, "#c0c0c0", COLOR_LEN - 1);        /**< normal foreground color */
-    strnz__cpy(sio->nt_bg, "#000000", COLOR_LEN - 1);        /**< normal background color */
-    strnz__cpy(sio->nt_rev_fg, "#000000", COLOR_LEN - 1);    /**< normal reverse foreground color */
-    strnz__cpy(sio->nt_rev_bg, "#c0c0c0", COLOR_LEN - 1);    /**< normal reverse background color */
-    strnz__cpy(sio->nt_hl_fg, "#f00000", COLOR_LEN - 1);     /**< normal highlight foreground color */
-    strnz__cpy(sio->nt_hl_bg, "#000000", COLOR_LEN - 1);     /**< normal highlight background color */
-    strnz__cpy(sio->nt_hl_rev_fg, "#000000", COLOR_LEN - 1); /**< normal reverse foreground color */
-    strnz__cpy(sio->nt_hl_rev_bg, "#c0c0c0", COLOR_LEN - 1); /**< normal reverse background color */
-    strnz__cpy(sio->ln_fg, "#0070ff",
-               COLOR_LEN - 1); /**< line number olor */
-    strnz__cpy(sio->ln_bg, "#101010",
-               COLOR_LEN - 1); /**< line number background */
 
-    strnz__cpy(sio->cmdln_fg, "#d0d0d0",
-               COLOR_LEN - 1); /**< line number olor */
-    strnz__cpy(sio->cmdln_bg, "#000000",
-               COLOR_LEN - 1); /**< line number background */
-
+    sio->bg = 0x000000;
+    sio->fg = 0xc0c0c0;
+    sio->box_fg = 0xf00000;
+    sio->box_bg = 0x000000;
+    sio->ind_fg = 0xf00000;
+    sio->ind_bg = 0x000000;
+    sio->ran_fg = 0xf00000;
+    sio->ran_bg = 0x000000;
+    sio->title_fg = 0xf0f0f0;
+    sio->title_bg = 0x000000;
+    sio->nt_fg = 0xc0c0c0;
+    sio->nt_bg = 0x000000;
+    sio->nt_rev_fg = 0x000000;
+    sio->nt_rev_bg = 0xc0c0c0;
+    sio->nt_hl_fg = 0xf00000;
+    sio->nt_hl_bg = 0x000000;
+    sio->nt_hl_rev_fg = 0x000000;
+    sio->nt_hl_rev_bg = 0xc0c0c0;
+    sio->ln_fg = 0x0070ff;
+    sio->ln_bg = 0x101010;
+    sio->cmdln_fg = 0xd0d0d0;
+    sio->cmdln_bg = 0x000000;
     init->f_erase_remainder = true;               /**< erase remainder on enter */
     init->brackets[0] = '\0';                     /**< field enclosure brackets */
     strnz__cpy(init->fill_char, " ", MAXLEN - 1); /**< field fill character */
@@ -843,107 +836,107 @@ int process_config_file(char *config_file_name, Init *init) {
             continue;
         }
         if (!strcmp(key, "fg")) {
-            strnz__cpy(sio->fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->fg);
             continue;
         }
         if (!strcmp(key, "bg")) {
-            strnz__cpy(sio->bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->bg);
             continue;
         }
         if (!strcmp(key, "box_fg")) {
-            strnz__cpy(sio->box_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->fg);
             continue;
         }
         if (!strcmp(key, "box_bg")) {
-            strnz__cpy(sio->box_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->box_bg);
             continue;
         }
         if (!strcmp(key, "ind_fg")) {
-            strnz__cpy(sio->ind_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->ind_fg);
             continue;
         }
         if (!strcmp(key, "ind_bg")) {
-            strnz__cpy(sio->ind_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->ind_bg);
             continue;
         }
         if (!strcmp(key, "brackets_fg")) {
-            strnz__cpy(sio->brackets_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->brackets_fg);
             continue;
         }
         if (!strcmp(key, "brackets_bg")) {
-            strnz__cpy(sio->brackets_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->brackets_bg);
             continue;
         }
         if (!strcmp(key, "fill_char_fg")) {
-            strnz__cpy(sio->fill_char_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->fill_char_fg);
             continue;
         }
         if (!strcmp(key, "fill_char_bg")) {
-            strnz__cpy(sio->fill_char_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->fill_char_bg);
             continue;
         }
         if (!strcmp(key, "ln_fg")) {
-            strnz__cpy(sio->ln_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->ln_fg);
             continue;
         }
         if (!strcmp(key, "ln_bg")) {
-            strnz__cpy(sio->ln_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->ln_bg);
             continue;
         }
         if (!strcmp(key, "cmdln_fg")) {
-            strnz__cpy(sio->ln_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->cmdln_fg);
             continue;
         }
         if (!strcmp(key, "cmdln_bg")) {
-            strnz__cpy(sio->ln_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->cmdln_bg);
             continue;
         }
         if (!strcmp(key, "nt_fg")) {
-            strnz__cpy(sio->nt_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->nt_fg);
             continue;
         }
         if (!strcmp(key, "nt_bg")) {
-            strnz__cpy(sio->nt_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->nt_bg);
             continue;
         }
         if (!strcmp(key, "nt_rev_fg")) {
-            strnz__cpy(sio->nt_rev_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->nt_rev_fg);
             continue;
         }
         if (!strcmp(key, "nt_rev_bg")) {
-            strnz__cpy(sio->nt_rev_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->nt_rev_bg);
             continue;
         }
         if (!strcmp(key, "nt_hl_fg")) {
-            strnz__cpy(sio->nt_hl_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->nt_hl_fg);
             continue;
         }
         if (!strcmp(key, "nt_hl_bg")) {
-            strnz__cpy(sio->nt_hl_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->nt_hl_bg);
             continue;
         }
         if (!strcmp(key, "nt_hl_rev_fg")) {
-            strnz__cpy(sio->nt_hl_rev_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->nt_hl_rev_fg);
             continue;
         }
         if (!strcmp(key, "nt_hl_rev_bg")) {
-            strnz__cpy(sio->nt_hl_rev_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->nt_hl_rev_bg);
             continue;
         }
         if (!strcmp(key, "title_fg")) {
-            strnz__cpy(sio->title_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->title_fg);
             continue;
         }
         if (!strcmp(key, "title_bg")) {
-            strnz__cpy(sio->title_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->title_bg);
             continue;
         }
         if (!strcmp(key, "ran_fg")) {
-            strnz__cpy(sio->ran_fg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->ran_fg);
             continue;
         }
         if (!strcmp(key, "ran_bg")) {
-            strnz__cpy(sio->ran_bg, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->ran_bg);
             continue;
         }
         if (!strcmp(key, "red_gamma")) {
@@ -963,75 +956,75 @@ int process_config_file(char *config_file_name, Init *init) {
             continue;
         }
         if (!strcmp(key, "black")) {
-            strnz__cpy(sio->black, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->black);
             continue;
         }
         if (!strcmp(key, "red")) {
-            strnz__cpy(sio->red, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->red);
             continue;
         }
         if (!strcmp(key, "green")) {
-            strnz__cpy(sio->green, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->green);
             continue;
         }
         if (!strcmp(key, "yellow")) {
-            strnz__cpy(sio->yellow, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->yellow);
             continue;
         }
         if (!strcmp(key, "blue")) {
-            strnz__cpy(sio->blue, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->blue);
             continue;
         }
         if (!strcmp(key, "magenta")) {
-            strnz__cpy(sio->magenta, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->magenta);
             continue;
         }
         if (!strcmp(key, "cyan")) {
-            strnz__cpy(sio->cyan, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->cyan);
             continue;
         }
         if (!strcmp(key, "white")) {
-            strnz__cpy(sio->white, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->white);
             continue;
         }
         if (!strcmp(key, "orange")) {
-            strnz__cpy(sio->orange, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->orange);
             continue;
         }
         if (!strcmp(key, "bblack")) {
-            strnz__cpy(sio->bblack, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->bblack);
             continue;
         }
         if (!strcmp(key, "bred")) {
-            strnz__cpy(sio->bred, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->bred);
             continue;
         }
         if (!strcmp(key, "bgreen")) {
-            strnz__cpy(sio->bgreen, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->bgreen);
             continue;
         }
         if (!strcmp(key, "byellow")) {
-            strnz__cpy(sio->byellow, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->byellow);
             continue;
         }
         if (!strcmp(key, "bblue")) {
-            strnz__cpy(sio->bblue, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->bblue);
             continue;
         }
         if (!strcmp(key, "bmagenta")) {
-            strnz__cpy(sio->bmagenta, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->bmagenta);
             continue;
         }
         if (!strcmp(key, "bcyan")) {
-            strnz__cpy(sio->bcyan, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->bcyan);
             continue;
         }
         if (!strcmp(key, "bwhite")) {
-            strnz__cpy(sio->bwhite, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->bwhite);
             continue;
         }
         if (!strcmp(key, "borange")) {
-            strnz__cpy(sio->borange, value, COLOR_LEN - 1);
+            sscanf(value, "#%06x", &sio->borange);
             continue;
         }
         if (!strcmp(key, "mapp_spec")) {
@@ -1208,61 +1201,58 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "f_read_theme");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "editor", init->editor);
     print_argp_doc(minitrc_fp, config_s, "editor");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "bg", sio->bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bg", sio->bg);
     print_argp_doc(minitrc_fp, config_s, "bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "fg", sio->fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%6x", "fg", sio->fg);
     print_argp_doc(minitrc_fp, config_s, "fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "box_fg", sio->box_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "box_fg", sio->box_fg);
     print_argp_doc(minitrc_fp, config_s, "box_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "box_bg", sio->box_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "box_bg", sio->box_bg);
     print_argp_doc(minitrc_fp, config_s, "box_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ind_fg", sio->ind_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ind_fg", sio->ind_fg);
     print_argp_doc(minitrc_fp, config_s, "ind_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ind_bg", sio->ind_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ind_bg", sio->ind_bg);
     print_argp_doc(minitrc_fp, config_s, "ind_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "brackets_fg", sio->brackets_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "brackets_fg", sio->brackets_fg);
     print_argp_doc(minitrc_fp, config_s, "brackets_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "brackets_bg", sio->brackets_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "brackets_bg", sio->brackets_bg);
     print_argp_doc(minitrc_fp, config_s, "brackets_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "fill_char_fg", sio->fill_char_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "fill_char_fg", sio->fill_char_fg);
     print_argp_doc(minitrc_fp, config_s, "fill_char_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "fill_char_bg", sio->fill_char_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "fill_char_bg", sio->fill_char_bg);
     print_argp_doc(minitrc_fp, config_s, "fill_char_bg");
-
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ln_bg", sio->ln_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ln_bg", sio->ln_bg);
     print_argp_doc(minitrc_fp, config_s, "ln_bg");
-
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ln_fg", sio->ln_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ln_fg", sio->ln_fg);
     print_argp_doc(minitrc_fp, config_s, "ln_bg");
-
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "cmdln_bg", sio->cmdln_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "cmdln_bg", sio->cmdln_bg);
     print_argp_doc(minitrc_fp, config_s, "cmdln_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "cmdln_fg", sio->cmdln_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "cmdln_fg", sio->cmdln_fg);
     print_argp_doc(minitrc_fp, config_s, "cmdln_fg");
 
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_fg", sio->nt_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_fg", sio->nt_fg);
     print_argp_doc(minitrc_fp, config_s, "nt_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_bg", sio->nt_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_bg", sio->nt_bg);
     print_argp_doc(minitrc_fp, config_s, "nt_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_hl_fg", sio->nt_hl_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_hl_fg", sio->nt_hl_fg);
     print_argp_doc(minitrc_fp, config_s, "nt_hl_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_hl_bg", sio->nt_hl_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_hl_bg", sio->nt_hl_bg);
     print_argp_doc(minitrc_fp, config_s, "nt_hl_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_rev_fg", sio->nt_rev_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_rev_fg", sio->nt_rev_fg);
     print_argp_doc(minitrc_fp, config_s, "nt_rev_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_rev_bg", sio->nt_rev_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_rev_bg", sio->nt_rev_bg);
     print_argp_doc(minitrc_fp, config_s, "nt_rev_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_hl_rev_fg", sio->nt_hl_rev_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_hl_rev_fg", sio->nt_hl_rev_fg);
     print_argp_doc(minitrc_fp, config_s, "nt_hl_rev_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "nt_hl_rev_bg", sio->nt_hl_rev_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_hl_rev_bg", sio->nt_hl_rev_bg);
     print_argp_doc(minitrc_fp, config_s, "nt_hl_rev_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "title_fg", sio->title_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "title_fg", sio->title_fg);
     print_argp_doc(minitrc_fp, config_s, "title_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "title_bg", sio->title_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "title_bg", sio->title_bg);
     print_argp_doc(minitrc_fp, config_s, "title_bg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ran_fg", sio->ran_fg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ran_fg", sio->ran_fg);
     print_argp_doc(minitrc_fp, config_s, "ran_fg");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "ran_bg", sio->ran_bg);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ran_bg", sio->ran_bg);
     print_argp_doc(minitrc_fp, config_s, "ran_bg");
     ssnprintf(config_s, MAXLEN - 1, "%s=%0.2f", "blue_gamma", sio->blue_gamma);
     print_argp_doc(minitrc_fp, config_s, "blue_gamma");
@@ -1272,37 +1262,37 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "green_gamma");
     ssnprintf(config_s, MAXLEN - 1, "%s=%0.2f", "red_gamma", sio->red_gamma);
     print_argp_doc(minitrc_fp, config_s, "red_gamma");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "black", sio->black);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "black", sio->black);
     print_argp_doc(minitrc_fp, config_s, "black");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "red", sio->red);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "red", sio->red);
     print_argp_doc(minitrc_fp, config_s, "red");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "green", sio->green);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "green", sio->green);
     print_argp_doc(minitrc_fp, config_s, "green");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "yellow", sio->yellow);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "yellow", sio->yellow);
     print_argp_doc(minitrc_fp, config_s, "yellow");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "blue", sio->blue);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "blue", sio->blue);
     print_argp_doc(minitrc_fp, config_s, "blue");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "magenta", sio->magenta);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "magenta", sio->magenta);
     print_argp_doc(minitrc_fp, config_s, "magenta");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "cyan", sio->cyan);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "cyan", sio->cyan);
     print_argp_doc(minitrc_fp, config_s, "cyan");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "white", sio->white);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "white", sio->white);
     print_argp_doc(minitrc_fp, config_s, "white");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "bblack", sio->bblack);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bblack", sio->bblack);
     print_argp_doc(minitrc_fp, config_s, "bblack");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "bred", sio->bred);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bred", sio->bred);
     print_argp_doc(minitrc_fp, config_s, "bred");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "bgreen", sio->bgreen);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bgreen", sio->bgreen);
     print_argp_doc(minitrc_fp, config_s, "bgreen");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "byellow", sio->byellow);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "byellow", sio->byellow);
     print_argp_doc(minitrc_fp, config_s, "byellow");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "bblue", sio->bblue);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bblue", sio->bblue);
     print_argp_doc(minitrc_fp, config_s, "bblue");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "bmagenta", sio->bmagenta);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bmagenta", sio->bmagenta);
     print_argp_doc(minitrc_fp, config_s, "bmagenta");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "bcyan", sio->bcyan);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bcyan", sio->bcyan);
     print_argp_doc(minitrc_fp, config_s, "bcyan");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "bwhite", sio->bwhite);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bwhite", sio->bwhite);
     print_argp_doc(minitrc_fp, config_s, "bwhite");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "mapp_data", init->mapp_data);
     print_argp_doc(minitrc_fp, config_s, "mapp_data");

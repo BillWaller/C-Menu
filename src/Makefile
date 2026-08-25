@@ -256,7 +256,8 @@ valgrind: menu
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
- 		./view -L60 -C90 -w lsp.log
+ 		./menu
+#	-L60 -C90 -w lsp.log
 #	./menu
 
 install:

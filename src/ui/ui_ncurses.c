@@ -114,6 +114,7 @@ int ui_add_color_rgb(RGB *rgb) {
     rgb->r = (rgb->r * 1000) / 255;
     rgb->g = (rgb->g * 1000) / 255;
     rgb->b = (rgb->b * 1000) / 255;
+    rgb->a = 0;
     for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
         extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
         if (rgb->r == tmp.r && rgb->g == tmp.g && rgb->b == tmp.b)
@@ -132,74 +133,14 @@ int ui_add_color_rgb(RGB *rgb) {
     }
     return 0;
 }
-int ui_add_color_hex(char *s) {
-    uint i;
+uint32_t ui_get_color(uint16_t color_idx) {
+    if (color_idx + 1 >= UI_COLORS)
+        return -1;
     RGB rgb;
-    RGB tmp;
-    rgb = ui_hex_to_rgb(s);
-    apply_gamma(&rgb);
-    for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
-        extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
-        if (rgb.r == tmp.r && rgb.g == tmp.g && rgb.b == tmp.b)
-            return i;
-    }
-    if (i < UI_COLORS) {
-        if (i < 16) {
-            std_color[i].r = rgb.r;
-            std_color[i].g = rgb.g;
-            std_color[i].b = rgb.b;
-        }
-        rgb.r = (rgb.r * 1000) / 255;
-        rgb.g = (rgb.g * 1000) / 255;
-        rgb.b = (rgb.b * 1000) / 255;
-        init_extended_color(i, rgb.r, rgb.g, rgb.b);
-        if (ui_color_cnt + 1 < UI_COLORS)
-            ui_color_cnt++;
-        return ui_color_cnt - 1;
-    }
-    return 0;
-}
-int ui_chg_color_rgb(uint color, RGB *rgb) {
-    if (color + 1 >= UI_COLORS)
-        return -1;
-    apply_gamma(rgb);
-    rgb->r = (rgb->r * 1000) / 255;
-    rgb->g = (rgb->g * 1000) / 255;
-    rgb->b = (rgb->b * 1000) / 255;
-    if (color < 16) {
-        std_color[color].r = rgb->r;
-        std_color[color].g = rgb->g;
-        std_color[color].b = rgb->b;
-    }
-    init_extended_color(color, rgb->r, rgb->g, rgb->b);
-    return 0;
-}
-int ui_chg_color_hex(uint color, char *s) {
-    RGB rgb;
-    if (color + 1 >= UI_COLORS)
-        return -1;
-    rgb = ui_hex_to_rgb(s);
-    apply_gamma(&rgb);
-    if (color < 16) {
-        std_color[color].r = rgb.r;
-        std_color[color].g = rgb.g;
-        std_color[color].b = rgb.b;
-    }
-    rgb.r = (rgb.r * 1000) / 255;
-    rgb.g = (rgb.g * 1000) / 255;
-    rgb.b = (rgb.b * 1000) / 255;
-    init_extended_color(color, rgb.r, rgb.g, rgb.b);
-    return 0;
-}
-int ui_get_color(uint color, RGB *rgb) {
-    if (color + 1 >= UI_COLORS)
-        return -1;
-    RGB _rgb;
-    int _color = (int)color;
-    extended_color_content(_color, &_rgb.r, &_rgb.g, &_rgb.b);
-    rgb->r = (rgb->r * 255) / 1000;
-    rgb->g = (rgb->g * 255) / 1000;
-    rgb->b = (rgb->b * 255) / 1000;
+    extended_color_content(color_idx, &rgb.r, &rgb.g, &rgb.b);
+    rgb.r = (rgb.r * 255) / 1000;
+    rgb.g = (rgb.g * 255) / 1000;
+    rgb.b = (rgb.b * 255) / 1000;
     return 0;
 }
 RGB ui_hex_to_rgb(char *s) {
@@ -234,6 +175,26 @@ int ui_init_pair(uint pair, uint fg, uint bg) {
     init_extended_pair(pair, fg, bg);
     return 0;
 }
+int ui_chg_color(uint16_t color_idx, uint32_t *color) {
+    if (color_idx + 1 >= UI_COLORS)
+        return -1;
+    RGB rgb;
+    rgb.r = (*color >> 16) & 0xff;
+    rgb.g = (*color >> 8) & 0xff;
+    rgb.b = *color & 0xff;
+    apply_gamma(&rgb);
+    rgb.r = (rgb.r * 1000) / 255;
+    rgb.g = (rgb.g * 1000) / 255;
+    rgb.b = (rgb.b * 1000) / 255;
+    if (color_idx < 16) {
+        std_color[color_idx].r = rgb.r;
+        std_color[color_idx].g = rgb.g;
+        std_color[color_idx].b = rgb.b;
+    }
+    init_extended_color(color_idx, rgb.r, rgb.g, rgb.b);
+    return 0;
+}
+
 /* -------------------------------------------------------------------------
    Styles
    ------------------------------------------------------------------------- */
@@ -247,25 +208,22 @@ int ui_pair_from_hex(const char *fg, const char *bg) {
     return ui_add_pair(f_idx, b_idx);
 }
 
-UiCell ui_cell_from_hex(const char *fg, const char *bg, const attr_t attrs, const wchar_t *wstr) {
+UiCell ui_cell_from_wc(const wchar_t wc, const uint16_t attrs, const uint32_t *fg, const uint32_t *bg) {
     UiCell cc = {0};
     RGB rgb;
-    sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    ushort f_idx = ui_add_color_rgb(&rgb);
-    sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    ushort b_idx = ui_add_color_rgb(&rgb);
+    rgb.r = (*fg >> 16) & 0xff;
+    rgb.g = (*fg >> 8) & 0xff;
+    rgb.b = *fg & 0xff;
+    int f_idx = ui_add_color_rgb(&rgb);
+    rgb.r = (*bg >> 16) & 0xff;
+    rgb.g = (*bg >> 8) & 0xff;
+    rgb.b = *bg & 0xff;
+    int b_idx = ui_add_color_rgb(&rgb);
     short cp = ui_add_pair(f_idx, b_idx);
-    wchar_t wstr_local[4] = {0};
-    if (!wstr || wcslen(wstr) == 0)
-        wstr_local[0] = L' ';
-    else
-        wstr_local[0] = wstr[0];
-    wstr_local[1] = L'\0';
-    setcchar(&cc,
-             &wstr_local[0],
-             attrs,
-             cp,
-             nullptr);
+    wchar_t wstr[2] = {L'\0', L'\0'};
+    wstr[0] = wc;
+    wstr[1] = L'\0';
+    setcchar(&cc, wstr, attrs, cp, nullptr);
     return cc;
 }
 
@@ -309,7 +267,6 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
-
     if (cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
         ui->alt_screen = cfg->enable_alt_screen;
@@ -320,65 +277,88 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     }
     if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
-    ui_bkgrnd(stdscr, &cell_nt);
-    curs_set(ui->cursor_visible ? 1 : 0);
+    getmaxyx(stdscr, ui->lines, ui->cols);
     stdsfc = calloc(1, sizeof(*stdsfc));
     if (!stdsfc)
         return NULL;
     stdsfc->runtime = ui;
     stdsfc->parent = NULL;
-    stdsfc->meta[BOX].lines = ui->lines;
-    stdsfc->meta[BOX].cols = ui->cols;
+    stdsfc->meta[BOX].lines = (int)ui->lines;
+    stdsfc->meta[BOX].cols = (int)ui->cols;
     stdsfc->meta[BOX].y = 0;
     stdsfc->meta[BOX].x = 0;
     stdsfc->mwin[BOX] = stdscr;
-    if (!stdsfc->mwin[BOX]) {
-        free(stdsfc);
-        return NULL;
-    }
     stdsfc->mpan[BOX] = new_panel(stdsfc->mwin[BOX]);
-    ui->panel_main = stdsfc->mpan[BOX];
     if (!stdsfc->mpan[BOX]) {
-        delwin(stdsfc->mwin[BOX]);
         free(stdsfc);
-        return NULL;
+        Perror("new_panel failed for stdsfc->mpan[BOX]");
+        exit(EXIT_FAILURE);
     }
     sfc_ptr = -1;
     return ui;
 }
-
 void ui_endwin() {
     ui_shutdown();
 }
-
 void ui_shutdown() {
-    if (!ui)
+    if (ui == NULL)
         return;
     for (int i = sfc_ptr; i >= 0; i--) {
-        UiSurface *sfc = ui_surface[i];
-        if (sfc) {
-            ui_surface_destroy(sfc);
-            sfc = NULL;
+        if (ui_surface[i] != NULL) {
+            ui_surface_destroy(ui_surface[i]);
+            ui_surface[i] = NULL;
         }
     }
-    sfc_ptr = -1;
-    if (ui->screen) {
+    if (stdsfc->mpan[0] != NULL) {
+        hide_panel(stdsfc->mpan[0]);
+        del_panel(stdsfc->mpan[0]);
+        stdsfc->mpan[0] = NULL;
+    }
+    f_curses_open = false;
+    endwin();
+    if (ui->screen != NULL) {
         delscreen(ui->screen);
         ui->screen = NULL;
     }
-    if (ui->tty_fp) {
+    if (ui->tty_fp != NULL) {
         fclose(ui->tty_fp);
+        ui->tty_fp = NULL;
     }
-    f_curses_open = false;
-    free(ui);
+    if (stdsfc != NULL) {
+        free(stdsfc);
+        stdsfc = NULL;
+    }
+    if (ui != NULL) {
+        free(ui);
+        ui = NULL;
+    }
 }
-
+void ui_surface_destroy(UiSurface *s) {
+    if (!s)
+        return;
+    for (int i = SUB_SFC_MAX; i >= 0; i--) {
+        if (s->mpan[i] != NULL) {
+            hide_panel(s->mpan[i]);
+            del_panel(s->mpan[i]);
+            s->mpan[i] = NULL;
+        }
+    }
+    for (int i = SUB_SFC_MAX; i >= 0; i--) {
+        if (s->mwin[i] != NULL) {
+            delwin(s->mwin[i]);
+            s->mwin[i] = NULL;
+        }
+    }
+    if (s != NULL) {
+        free(s);
+        s = NULL;
+    }
+}
 int ui_suspend() {
     def_prog_mode();
     endwin();
     return 0;
 }
-
 int ui_resume() {
     reset_prog_mode();
     update_panels();
@@ -396,7 +376,10 @@ UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint co
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-
+    for (int i = 0; i < SUB_SFC_MAX; i++) {
+        s->mwin[i] = NULL;
+        s->mpan[i] = NULL;
+    }
     s->runtime = ui;
     s->parent = parent;
     s->meta[w].lines = lines;
@@ -454,7 +437,6 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
             return NULL;
         }
     }
-    ui_bkgdset(s, BOX, &cell_box);
     ui_scrollok(s, BOX, false);
     border_draw(s);
     border_title(s, wtitle);
@@ -462,6 +444,26 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     immedok(s->mwin[BOX], true);
 #endif
     return s;
+}
+
+void fast_exit(UiSurface *s) {
+    update_panels();
+    doupdate();
+    for (int i = SUB_SFC_MAX; i >= 0; i--) {
+        if (s->mpan[i]) {
+            hide_panel(s->mpan[i]);
+            del_panel(s->mpan[i]);
+            s->mpan[i] = NULL;
+        }
+    }
+    for (int i = SUB_SFC_MAX; i >= 0; i--) {
+        if (s->mwin[i]) {
+            delwin(s->mwin[i]);
+            s->mwin[i] = NULL;
+        }
+    }
+    endwin();
+    exit(EXIT_SUCCESS);
 }
 int ui_surface_addpad(UiSurface *s, uint w, uint view_win, int lines, int cols) {
     s->mwin[w] = newpad(lines, cols);
@@ -496,24 +498,6 @@ int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint 
 // Surface Management
 // -------------------------------------------------------------------------
 
-void ui_surface_destroy(UiSurface *s) {
-    if (!s)
-        return;
-    for (int i = 0; i < SUB_SFC_MAX; i++) {
-        if (s->mpan[i]) {
-            hide_panel(s->mpan[i]);
-            del_panel(s->mpan[i]);
-        }
-    }
-    for (int i = 1; i < SUB_SFC_MAX; i++) {
-        if (s->mwin[i]) {
-            werase(s->mwin[i]);
-            delwin(s->mwin[i]);
-        }
-    }
-    ui_render();
-    free(s);
-}
 int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
     if (!s)
         return -1;
@@ -653,15 +637,16 @@ void ui_getmaxyx(UiSurface *s, uint w, uint *lines, uint *cols) {
         return;
     getmaxyx(s->mwin[w], *lines, *cols);
 }
-uint ui_getmaxy(UiSurface *s, uint w) {
+int ui_getmaxy(UiSurface *s, uint w) {
     if (!s->mwin[w])
         return -1;
-    return (uint)(getmaxy(s->mwin[w]));
+    return (int)(getmaxy(s->mwin[w]));
 }
-uint ui_getmaxx(UiSurface *s, uint w) {
+int ui_getmaxx(UiSurface *s, uint w) {
+
     if (!s->mwin[w])
         return -1;
-    return (uint)(getmaxx(s->mwin[w]));
+    return (int)(getmaxx(s->mwin[w]));
 }
 void ui_get_screen_size(uint *lines, uint *cols) {
     if (!ui)
@@ -726,17 +711,17 @@ int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
     return 0;
 }
 // for the entire window
-int ui_bkgrnd(WINDOW *win, const UiCell *cell) {
-    if (!win)
+int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell) {
+    if (!s->mwin[w])
         return -1;
-    wbkgrnd(win, cell);
+    wbkgrnd(s->mwin[w], cell);
     return 0;
 }
 // for new content to be written to the window
-int ui_bkgrndset(WINDOW *win, const UiCell *cell) {
-    if (!win)
+int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell) {
+    if (!s->mwin[w])
         return -1;
-    wbkgrndset(win, cell);
+    wbkgrndset(s->mwin[w], cell);
     return 0;
 }
 /* -------------------------------------------------------------------------
@@ -776,17 +761,6 @@ int ui_wnoutrefresh(UiSurface *s, uint w) {
     wnoutrefresh(s->mwin[w]);
     return 0;
 }
-/* -------------------------------------------------------------------------
-   Style helpers (shared with draw and input modules)
-   ------------------------------------------------------------------------- */
-
-int ui_ncurses_apply_style_from_cell(UiSurface *s, uint w, const UiCell *cell) {
-    if (!cell)
-        return -1;
-    ui_bkgdset(s, w, cell);
-    return 0;
-}
-
 /* -------------------------------------------------------------------------
    Non-portable escape-hatch getters (see ui_ncurses_compat.h)
    ------------------------------------------------------------------------- */

@@ -38,22 +38,28 @@ int ui_wclrtoeol(UiSurface *s, uint w) {
    Text with UiStyle
    ------------------------------------------------------------------------- */
 //  text character single
-int ui_draw_ch(UiSurface *s, uint w, uint y, uint x, const char c) {
-    if (!s || !s->mwin[w] || !c)
+int ui_draw_ch(UiSurface *s, uint w, const char c) {
+    if (!s || !c)
+        return -1;
+    waddch(s->mwin[w], c);
+    return 0;
+}
+int ui_draw_ch_yx(UiSurface *s, uint w, uint y, uint x, const char c) {
+    if (!s)
         return -1;
     mvwaddch(s->mwin[w], y, x, c);
     return 0;
 }
 //  text string
 int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text) {
-    if (!s || !s->mwin[w] || !text)
+    if (!s || !text)
         return -1;
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
 // text - limit length
 int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
-    if (!s || !s->mwin[w] || !text)
+    if (!s || !text)
         return -1;
     mvwaddnstr(s->mwin[w], y, x, text, (int)n);
     return 0;
@@ -91,7 +97,7 @@ int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr) {
     return 0;
 }
 int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr) {
-    if (!s || !s->mwin[w] || !wstr)
+    if (!s || !wstr)
         return -1;
     mvwaddwstr(s->mwin[w], y, x, wstr);
     return 0;
@@ -112,28 +118,28 @@ int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, in
 // Text - Sanstyle - These should probably be implemented as macros
 // -------------------------------------------------------------------------
 int ui_waddstr(UiSurface *s, uint w, const char *text) {
-    if (!s || !s->mwin[w] || !text)
+    if (!s || !text)
         return -1;
     waddstr(s->mwin[w], text);
     return 0;
 }
 //  text string
 int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
-    if (!s || !s->mwin[w] || !text)
+    if (!s || !text)
         return -1;
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
 //  text character single
 int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
-    if (!s || !s->mwin[w] || !c)
+    if (!s || !c)
         return -1;
     mvwaddch(s->mwin[w], y, x, c);
     return 0;
 }
 // text string
 int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
-    if (!s || !s->mwin[w] || !text)
+    if (!s || !text)
         return -1;
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
