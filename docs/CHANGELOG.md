@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-25T11:40:46-05:00* - FEATURE: Uniform API for UI Backends Whether to use ncurses or notcurses as the UI backend. Both have their own advantages and disadvantages, but you need not choose one over the other. You can use notcurses on your desktop for a feature-rich experience, and ncurses on your server for a lightweight and stable experience. No one should be forced to choose between the two, and this feature allows you to use both. 
+
+*2026-08-21T23:03:35-05:00* - Update CHANGELOG.md 
+
 *2026-08-21T22:53:27-05:00* - FEATURE: Uniform Abstraction Layer for UI Backends This commit includes ongoing updates to the Uniform Abstraction Layer for UI Backends (UAL_UI), enhancing the modularity and maintainability of the codebase. This will be particularly interesting to you if you have code that uses the NCurses library, or if you are about to develop code with a text-based user interface. NCurses has been around for a long time. It is solid and battle-tested. It will be around for a long time to come because it implements the standardized programming interface described by X/Open Curses (part of the X/Open Portability Guide and Single UNIX Specification). Not unlike your Grandmother's Buick. Notcurses, on the other hand, is a relatively new library that provides a more modern and feature-rich approach to text-based user interfaces. It offers advanced capabilities such as high-performance rendering, multimedia support, and enhanced input handling. Not unlike your Grandmother's ZR1 Corvette. Personally, I have a soft spot for the ZR1 Corvette. It is a beautiful car that combines style, performance, and innovation. It represents a leap forward in automotive engineering, much like Notcurses does for text-based user interfaces. However, I understand that some people prefer the reliability and familiarity of a classic car like the Buick, which is why I have made sure that the UAL_UI can support both NCurses and Notcurses, allowing developers to choose the backend that best suits their needs. 
 
 *2026-08-21T01:25:33-05:00* - Update CHANGELOG.md 
