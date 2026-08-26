@@ -248,8 +248,8 @@ valgrind: menu
 		--tool=memcheck \
     	--log-file=valgrind.out \
 		--leak-check=full \
-		--show-leak-kinds=definite \
-		--show-reachable=no \
+		--show-leak-kinds=all \
+		--show-reachable=yes \
 		--num-callers=30 \
 		--leak-resolution=high \
 		--track-origins=yes \

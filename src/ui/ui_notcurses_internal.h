@@ -90,6 +90,9 @@ struct UiRuntime {
    The first six identifiers are named based on C-Menu's particular layouts of planes within UiSurfaces, and the eighth, (idx 7), named SUB_SFC_MAX, is used as an indicator of the array size when allocating and freeing UiSurface planes and other UiSurface management tasks. It serves as a sentinel value to indicate that a UiSurface has no more planes. SUB_SFC_MAX is available for use as a plane identifier.
    If you are creating your own surfaces, you will probably want to add a custom enum with your own identifiers and use those to index into the ncplane array of your UiSurfaces. You may add more planes. It is convenient to use SUB_SFC_MAX as the last plane, but you may also define SUB_SFC_MAX outside the enum to accomplish the same effect.
 */
+
+#define SFC_MAX 30
+
 typedef enum SubSurface {
     BOX,
     WIN,

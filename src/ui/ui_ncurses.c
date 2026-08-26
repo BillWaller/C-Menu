@@ -26,6 +26,10 @@
 
 UiRuntime *ui = NULL;
 UiSurface *ui_surface[UI_SFC_MAX];
+
+int win_ptr = -1;
+int sfc_ptr = -1;
+
 uint ui_color_cnt = 0;
 uint ui_pair_cnt = 0;
 
@@ -294,7 +298,6 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
         Perror("new_panel failed for stdsfc->mpan[BOX]");
         exit(EXIT_FAILURE);
     }
-    sfc_ptr = -1;
     return ui;
 }
 void ui_endwin() {

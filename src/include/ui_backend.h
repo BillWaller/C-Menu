@@ -22,7 +22,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #define UI_SFC_MAX 30
-#define MAXWIN 30
+#define SFC_MAX 30
+
+extern int sfc_ptr;
+extern int win_ptr;
 
 typedef struct UiRuntime UiRuntime;
 typedef struct UiSurface UiSurface;
@@ -180,6 +183,7 @@ typedef struct {
 #else
 #define CCHARW_MAX 5
 #define ERR -1
+typedef struct nccell UiCell;
 typedef struct ncplane NcPlane;
 typedef struct notcurses NotCurses;
 typedef struct notcurses_options NotCursesOptions;

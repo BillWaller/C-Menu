@@ -147,7 +147,6 @@ unsigned int cmd_key;
 bool f_sigwench = false;
 uint16_t win_attr;
 uint16_t box_attr;
-int sfc_ptr;
 uint m_lines;
 uint m_cols;
 uint m_begy = -1;
@@ -401,6 +400,7 @@ void destroy_curses() {
     if (!f_curses_open)
         return;
     ui_shutdown();
+    f_curses_open = false;
     restore_shell_tioctl();
     sig_dfl_mode();
     return;
@@ -565,10 +565,10 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
     }
     return 0; // Invalid Unicode code point
 }
-// ------------------->    box_win_new    <-------------------
-int box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
-    if (sfc_ptr >= MAXWIN) {
-        Perror("Maximum number of windows (%d) exceeded");
+// ------------------->    surface_box_win_new    <-------------------
+int surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
+    if (sfc_ptr >= SFC_MAX) {
+        Perror("Maximum number of surfaces (%d) exceeded");
         exit(EXIT_FAILURE);
     }
     uint maxy, maxx;
@@ -584,13 +584,13 @@ int box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
     return 0;
 }
 // ------------------->    box_split_new    <-------------------
-int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle) {
-    if (sfc_ptr >= MAXWIN) {
-        Perror("Maximum number of windows (%d) exceeded");
+int surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle) {
+    if (sfc_ptr >= SFC_MAX) {
+        Perror("Maximum number of surfaces (%d) exceeded");
         exit(EXIT_FAILURE);
     }
-    if (sfc_ptr >= MAXWIN) {
-        Perror("Maximum number of windows (%d) exceeded");
+    if (sfc_ptr >= SFC_MAX) {
+        Perror("Maximum number of surfaces (%d) exceeded");
         exit(EXIT_FAILURE);
     }
     uint maxy, maxx;
@@ -622,11 +622,7 @@ int split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint 
     @note The difference between this function and ui_surface_destroy() is that this function destroys the surface pointed to by the surface pointer (sfc_ptr) and decrements the surface pointer after destroying the surface.
  */
 int cm_surface_destroy(UiSurface *sfc) {
-    if (sfc_ptr < 0 || sfc_ptr > MAXSFC)
-        return -1;
-    if (sfc != ui_surface[sfc_ptr])
-        return -1;
-    ui_surface_destroy(ui_surface[sfc_ptr]);
+    ui_surface_destroy(sfc);
     sfc_ptr--;
     return 0;
 }
@@ -790,8 +786,8 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_win_new(5, msg_l + 2, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 5,
+    if (surface_box_win_new(5, msg_l + 2, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
@@ -856,7 +852,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_win_new(5, msg_l + 2, line, pos, title)) {
+    if (surface_box_win_new(5, msg_l + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         destroy_chyron(chyron);
@@ -914,8 +910,8 @@ int Perror(char *emsg_str) {
     pos = (maxx - cols - 4) / 2;
     line = (maxy - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (box_win_new(2, cols + 2, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s, %b) failed",
+    if (surface_box_win_new(2, cols + 2, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
         destroy_chyron(chyron);
         abend(-1, title);
@@ -957,8 +953,8 @@ bool action_disposition(char *title, char *action_str) {
     ui_get_screen_size(&maxy, &maxx);
     col = (maxx - len - 4) / 2;
     line = (maxy - 4) / 2;
-    if (box_win_new(2, len + 2, line, col, title)) {
-        ssnprintf(em0, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 4,
+    if (surface_box_win_new(2, len + 2, line, col, title)) {
+        ssnprintf(em0, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s) failed", 4,
                   line, line, col, title);
         Perror(em0);
     }

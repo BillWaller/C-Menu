@@ -56,6 +56,8 @@ struct UiRuntime {
     PANEL *panel_main;
 };
 
+#define SFC_MAX 30
+
 enum {
     BOX,
     WIN,

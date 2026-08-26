@@ -37,8 +37,8 @@ int popup_ckeys() {
     ui_get_screen_size(&maxy, &maxx);
     uint begy = (maxy - lines) / 3;
     uint begx = (maxx - cols) / 2;
-    if (box_win_new(lines, cols, begy, begx, Title)) {
-        strnz__cpy(tmp, "box_win_new failed: ", MAXLEN - 1);
+    if (surface_box_win_new(lines, cols, begy, begx, Title)) {
+        strnz__cpy(tmp, "surface_box_win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
         Perror(tmp);
         exit(EXIT_FAILURE);

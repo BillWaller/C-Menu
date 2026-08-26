@@ -32,6 +32,9 @@ UiConfig *ui_config;
 UiSurface *ui_surface[UI_SFC_MAX];
 UiCell bkgd_cell;
 
+int sfc_ptr = -1;
+int win_ptr = -1;
+
 NcPlane *stdplane;
 
 STDRGB std_color[16] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
@@ -66,36 +69,42 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
-    // char tty_name[MAXLEN];
-    // if (cfg && cfg->tty_path) {
-    //     strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
-    //     tty_name[sizeof(tty_name) - 1] = '\0';
-    // } else {
-    //     if (ttyname_r(STDERR_FILENO, tty_name,
-    //     sizeof(tty_name)) != 0) {
-    //         free(ui);
-    //         return NULL;
-    //     }
-    // }
-    // ui->tty_fp = fopen(tty_name, "r+");
-    // if (!ui->tty_fp) {
-    //     free(ui);
-    //     return NULL;
-    // }
-    NotCursesOptions nc_opts = {
-        .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
-    ui->nc = notcurses_init(&nc_opts, NULL);
-    if (!ui->nc) {
+    char tty_name[MAXLEN];
+    if (cfg && cfg->tty_path) {
+        strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
+        tty_name[sizeof(tty_name) - 1] = '\0';
+    } else {
+        if (ttyname_r(STDERR_FILENO, tty_name,
+                      sizeof(tty_name)) != 0) {
+            free(ui);
+            ui = NULL;
+            return NULL;
+        }
+    }
+    ui->tty_fp = fopen(tty_name, "r+");
+    if (ui->tty_fp == NULL) {
+        ui = NULL;
         free(ui);
         return NULL;
     }
+    NotCursesOptions nc_opts = {
+        .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
+    ui->nc = notcurses_init(&nc_opts, ui->tty_fp);
+    if (ui->nc == NULL) {
+        free(ui);
+        ui = NULL;
+        return NULL;
+    }
+    f_curses_open = true;
     stdplane = notcurses_stdplane(ui->nc);
     notcurses_render(ui->nc);
-    // if (!ui->nc) {
-    //     fclose(ui->tty_fp);
-    //     free(ui);
-    //     return NULL;
-    // }
+    if (ui->nc == NULL) {
+        fclose(ui->tty_fp);
+        ui->tty_fp = NULL;
+        free(ui);
+        ui = NULL;
+        return NULL;
+    }
     if (cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
         ui->alt_screen = cfg->enable_alt_screen;
@@ -112,6 +121,14 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     stdsfc = calloc(1, sizeof(*stdsfc));
     if (!stdsfc)
         return NULL;
+    for (int i = 0; i < SUB_SFC_MAX; i++) {
+        stdsfc->mplane[i] = NULL;
+        stdsfc->meta[i].lines = 0;
+        stdsfc->meta[i].cols = 0;
+        stdsfc->meta[i].y = 0;
+        stdsfc->meta[i].x = 0;
+        stdsfc->meta[i].hidden = false;
+    }
     stdsfc->runtime = ui;
     stdsfc->parent = NULL;
     stdsfc->meta[BOX].lines = ui->lines;
@@ -123,9 +140,9 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         notcurses_stop(ui->nc);
         return NULL;
     }
+    sfc_ptr = -1;
     LINES = ui->lines;
     COLS = ui->cols;
-
     ui_pair = calloc(UI_PAIRS, sizeof(UiPair));
     if (!ui_pair) {
         free(ui_pair);
@@ -146,25 +163,28 @@ UiRuntime *ui_init(const UiConfig *cfg) {
 }
 
 void ui_endwin() {
-    if (!ui)
-        return;
-    if (ui->nc) {
-        if (ui->mouse_enabled)
-            notcurses_mice_disable(ui->nc);
-        notcurses_stop(ui->nc);
-    }
-    free(ui);
+    // if (ui == NULL)
+    //     return;
+    // if (ui->nc) {
+    //     if (ui->mouse_enabled)
+    //         notcurses_mice_disable(ui->nc);
+    //     notcurses_stop(ui->nc);
+    // }
+    // free(ui);
+    // ui = NULL;
 }
 
 void ui_shutdown() {
-    if (!ui)
+    if (ui == NULL || f_curses_open == false)
         return;
     if (ui->nc) {
         if (ui->mouse_enabled)
             notcurses_mice_disable(ui->nc);
         notcurses_stop(ui->nc);
+        f_curses_open = false;
     }
     free(ui);
+    ui = NULL;
 }
 
 /* -------------------------------------------------------------------------
@@ -241,14 +261,28 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
 
     // Title
     if (wtitle && strlen(wtitle) > 0) {
-        GCluster gcluster;
-        gcluster.u32 = cell_rt.gcluster;
         x = 1;
+        char tmp_str[MAXLEN];
 
         ui_mvwaddnstr(s, BOX, 0, x++, "┤", 1);
         ui_render();
-        ui_mvwadd_cell(s, BOX, 0, x++, &cell_sp);
+        // ui_mvwadd_cell(s, BOX, 0, x++, &cell_sp);
+        GCluster g;
+        g.u32 = 0x251c;
+        size_t b = 2;
+        size_t *bytes;
+        bytes = &b;
+        // 0x251c;
+        ssnprintf(tmp_str, MAXLEN - 1, "%08lx", g.u32);
+        ncplane_putwegc(s->mplane[BOX], g.u16, bytes);
         ui_render();
+        nccell cell1, cell2;
+        ncplane_at_yx_cell(s->mplane[BOX], 0, 2, (nccell *)&cell1);
+        g.u32 = cell1.gcluster;
+        ssnprintf(tmp_str, MAXLEN - 1, "%08lx", g.u32);
+        ncplane_at_yx_cell(s->mplane[BOX], 0, 3, (nccell *)&cell2);
+        g.u32 = cell2.gcluster;
+        ssnprintf(tmp_str, MAXLEN - 1, "%08lx", g.u32);
         ui_bkgdset(s, BOX, &cell_title);
         ncplane_putstr(s->mplane[BOX], wtitle);
         ui_render();
@@ -317,10 +351,16 @@ int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint 
 void ui_surface_destroy(UiSurface *s) {
     if (!s)
         return;
-    for (int w = 0; w < SUB_SFC_MAX; ++w)
-        if (s->mplane[w])
+    for (int w = SUB_SFC_MAX; w >= 0; w--)
+        if (s->mplane[w] != NULL) {
+            ncplane_erase(s->mplane[w]);
             ncplane_destroy(s->mplane[w]);
-    free(s);
+            s->mplane[w] = NULL;
+        }
+    if (s != NULL) {
+        free(s);
+        s = NULL;
+    }
 }
 /* -------------------------------------------------------------------------
    Configuration Control

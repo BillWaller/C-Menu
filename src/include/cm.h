@@ -480,8 +480,8 @@ extern bool restore_curses_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
 
-extern int box_win_new(uint, uint, uint, uint, char *);
-extern int split_box_win_new(uint, uint, uint, uint, uint, uint, char *);
+extern int surface_box_win_new(uint, uint, uint, uint, char *);
+extern int surface_split_box_win_new(uint, uint, uint, uint, uint, uint, char *);
 
 extern void win_resize(uint, uint, char *);
 extern void signal_handler(int);
@@ -652,9 +652,6 @@ extern uint enter_option();
 
 extern uint16_t win_attr; /**< Ncurses attributes for the current window, such as
                         color pair, bold, etc. */
-extern int sfc_ptr;       /**< Pointer to the current window pair, box and window,
-                             which can be used to keep track of the currently active
-                             window and its associated box. */
 // extern bool win_pair; /**< Flag to indicate whether the current window is
 // part of a window pair */
 extern uint
