@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-25T22:11:43-05:00* - FEATURE: Uniform Ui Backend The objective at this point is to converge the Ncurses and Notcurses backends into a single unified backend. This will allow for a more consistent and streamlined user interface experience across different terminal environments. 
+
+*2026-08-25T11:48:27-05:00* - Update CHANGELOG.md 
+
 *2026-08-25T11:40:46-05:00* - FEATURE: Uniform API for UI Backends Whether to use ncurses or notcurses as the UI backend. Both have their own advantages and disadvantages, but you need not choose one over the other. You can use notcurses on your desktop for a feature-rich experience, and ncurses on your server for a lightweight and stable experience. No one should be forced to choose between the two, and this feature allows you to use both. 
 
 *2026-08-21T23:03:35-05:00* - Update CHANGELOG.md 
