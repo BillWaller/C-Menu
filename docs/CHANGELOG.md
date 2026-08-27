@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-27T10:58:32-05:00* - FEATURE: Uniform Abstract UI Backend Allows selection of different UI backends (currently NCurses and Notcurses) at runtime, enabling flexibility in UI rendering and input handling. The NCurses backend is fully functional, while the Notcurses basckend is still under development and may not support all features. The code is structured to facilitate the addition of new backends in the future, promoting modularity and maintainability. This feature enhances the user experience by providing a consistent interface across different terminal environments, while also allowing for backend-specific optimizations and capabilities. The implementation includes a unified interface for UI operations, abstracting away the details of the underlying backend, and ensuring that the application can operate seamlessly regardless of the chosen UI backend. This design choice not only improves code readability and maintainability but also allows for easier testing and debugging of UI components. 
+
+*2026-08-25T22:13:23-05:00* - Update CHANGELOG.md 
+
 *2026-08-25T22:11:43-05:00* - FEATURE: Uniform Ui Backend The objective at this point is to converge the Ncurses and Notcurses backends into a single unified backend. This will allow for a more consistent and streamlined user interface experience across different terminal environments. 
 
 *2026-08-25T11:48:27-05:00* - Update CHANGELOG.md 
