@@ -173,20 +173,10 @@ union UiChannels {
     uint64_t fb;
 };
 
-typedef struct {
-    union {
-        uint32_t u32;
-        wchar_t u16[2];
-        uint8_t u8[4];
-        char c[4];
-    };
-    uint8_t backstop;
-    uint8_t width; // 5 -  5   (8 bits of EGC column width)
-} GCluster;
-
 struct UiCell {
     union {
         uint32_t gcluster;
+        uint32_t u32;
         wchar_t u16[2];
         uint8_t u8[4];
         char c[4];

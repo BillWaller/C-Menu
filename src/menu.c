@@ -54,7 +54,8 @@ int main(int argc, char **argv) {
     UiConfig *ui_config = calloc(1, sizeof(UiConfig));
     ui_config->enable_mouse = true;
     ui_config->enable_alt_screen = false;
-    ui_config->cursor_visible = false;
+    ui_config->cursor_visible = true;
+    ui_config->border_style = sio->border;
     ui_init(ui_config);
     initialize_cells(sio);
     sig_prog_mode();

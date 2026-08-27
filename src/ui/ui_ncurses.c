@@ -35,6 +35,30 @@ uint ui_pair_cnt = 0;
 
 UiSurface *stdsfc;
 
+/** BOX WIDE UNICODE CODEPOINTS */
+
+wchar_t *border_single = L"─│├┤┬┴┼┌┐└┘";
+wchar_t *border_rounded = L"─│├┤┬┴┼╭╮╰╯";
+wchar_t *border_double = L"═║╠╣╦╩╬╔╗╚╝";
+wchar_t *border_heavy = L"━┃┣┫┳┻╋┏┓┗┛";
+wchar_t *border_none = L"           ";
+
+BorderWide bw;
+
+const wchar_t *bw_rtl = L"\x256d"; /**< rounded top left */
+const wchar_t *bw_rtr = L"\x256e"; /**< rounded top right */
+const wchar_t *bw_rbl = L"\x2570"; /**< rounded bottom left */
+const wchar_t *bw_rbr = L"\x256f"; /**< rounded bottom right */
+const wchar_t *bw_sp = L"\x20";    /**< space */
+const wchar_t *bw_ra = L"\x2192";  /**< large right arrow */
+const wchar_t *bw_la = L"\x2190";  /**< large left arrow */
+const wchar_t *bw_ua = L"\x2191";  /**< large up arrow */
+const wchar_t *bw_da = L"\x2193";  /**< large down arrow */
+const wchar_t *bw_ran = L"\x276F"; /**< right_angle */
+const wchar_t *bw_lan = L"\x276E"; /**< left_angle */
+const wchar_t *bw_chk = L"\x2611"; /**< left_angle */
+const wchar_t *bw_h09 = L"\x23BD"; /**< horizontal line 9 */
+
 STDRGB std_color[] = {
     {0, 0, 0},
     {128, 0, 0},
@@ -212,7 +236,7 @@ int ui_pair_from_hex(const char *fg, const char *bg) {
     return ui_add_pair(f_idx, b_idx);
 }
 
-UiCell ui_cell_from_wc(const wchar_t wc, const uint16_t attrs, const uint32_t *fg, const uint32_t *bg) {
+UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *bg) {
     UiCell cc = {0};
     RGB rgb;
     rgb.r = (*fg >> 16) & 0xff;
@@ -225,9 +249,9 @@ UiCell ui_cell_from_wc(const wchar_t wc, const uint16_t attrs, const uint32_t *f
     int b_idx = ui_add_color_rgb(&rgb);
     short cp = ui_add_pair(f_idx, b_idx);
     wchar_t wstr[2] = {L'\0', L'\0'};
-    wstr[0] = wc;
+    wstr[0] = *ucp;
     wstr[1] = L'\0';
-    setcchar(&cc, wstr, attrs, cp, nullptr);
+    setcchar(&cc, wstr, WA_NORMAL, cp, nullptr);
     return cc;
 }
 
@@ -275,6 +299,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
         ui->alt_screen = cfg->enable_alt_screen;
         ui->cursor_visible = cfg->cursor_visible;
+        ui->border_style = cfg->border_style;
     } else {
         ui->cursor_visible = false;
         ui->alt_screen = false;
@@ -282,6 +307,19 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
     getmaxyx(stdscr, ui->lines, ui->cols);
+    if (cfg) {
+        if (ui->border_style == 'r' || ui->border_style == 'R') {
+            memcpy(bw.str, border_rounded, sizeof(bw.str));
+        } else if (ui->border_style == 's' || ui->border_style == 'S') {
+            memcpy(bw.str, border_single, sizeof(bw.str));
+        } else if (ui->border_style == 'd' || ui->border_style == 'D') {
+            memcpy(bw.str, border_double, sizeof(bw.str));
+        } else if (ui->border_style == 'h' || ui->border_style == 'H') {
+            memcpy(bw.str, border_heavy, sizeof(bw.str));
+        } else if (ui->border_style == 'n' || ui->border_style == 'N') {
+            memcpy(bw.str, border_none, sizeof(bw.str));
+        }
+    }
     stdsfc = calloc(1, sizeof(*stdsfc));
     if (!stdsfc)
         return NULL;
@@ -659,6 +697,18 @@ void ui_get_screen_size(uint *lines, uint *cols) {
         *lines = ui->lines;
     if (cols)
         *cols = ui->cols;
+}
+// included for symetry with notcurses, which needs it to compensate
+// for cursor positioning bug
+int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
+    (void)s;
+    (void)w;
+    if (!ui)
+        return -1;
+    wmove(s->mwin[w], y, x);
+    ui->cursor_visible = visible;
+    curs_set(visible ? 1 : 0);
+    return 0;
 }
 int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
     (void)s;

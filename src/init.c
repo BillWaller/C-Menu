@@ -55,6 +55,7 @@ typedef enum {
     CMDLN_BG,
     RAN_FG,
     RAN_BG,
+    BORDER,
     XBBLACK,
     XBBLUE,
     XBCYAN,
@@ -145,7 +146,7 @@ static struct argp_option options[] = {
     {"editor", CM_EDITOR, "text", 0, "default editor", 5},
     {"tab_stop", 't', "number", 0, "number of spaces per tab (4)", 5},
     {"h_shift", 'z', "number", 0, "horizontal shift width (16)", 5},
-
+    {"border", BORDER, "text", 0, "single, rounded, double, heavy, none", 5},
     {"bg", BG, "hex_clr", 0, "Terminal (stdscr) background (#000000)", 6},
     {"fg", FG, "hex_clr", 0, "Terminal (stdscr) foreground (#d0d0d0)", 6},
 
@@ -317,6 +318,19 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case FG:
         sscanf(arg, "#%06x", &sio->fg);
+        break;
+    case BORDER:
+        char c = arg[0];
+        if (c == 'r' || c == 'R')
+            sio->border = 'r';
+        else if (c == 's' || c == 'S')
+            sio->border = 's';
+        else if (c == 'd' || c == 'D')
+            sio->border = 'd';
+        else if (c == 'h' || c == 'H')
+            sio->border = 'h';
+        else
+            sio->border = 'n';
         break;
     case BOX_FG:
         sscanf(arg, "#%06x", &sio->box_fg);
@@ -515,8 +529,10 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     // These can be overridden by the config file or command-line options
     // Included here to ensure SIO has valid defaults even if config parsing fails
 
+    sio->border = 'r'; /**< default border style */
     sio->bg = 0x000000;
     sio->fg = 0xc0c0c0;
+    sio->border = 'r';
     sio->box_fg = 0xf00000;
     sio->box_bg = 0x000000;
     sio->ind_fg = 0xf00000;
@@ -833,6 +849,20 @@ int process_config_file(char *config_file_name, Init *init) {
         }
         if (!strcmp(key, "editor")) {
             strnz__cpy(init->editor, value, MAXLEN - 1);
+            continue;
+        }
+        if (!strcmp(key, "border")) {
+            char c = value[0];
+            if (c == 'r' || c == 'R')
+                sio->border = 'r';
+            else if (c == 's' || c == 'S')
+                sio->border = 's';
+            else if (c == 'd' || c == 'D')
+                sio->border = 'd';
+            else if (c == 'h' || c == 'H')
+                sio->border = 'h';
+            else
+                sio->border = 'n';
             continue;
         }
         if (!strcmp(key, "fg")) {
@@ -1201,6 +1231,8 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "f_read_theme");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "editor", init->editor);
     print_argp_doc(minitrc_fp, config_s, "editor");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%c", "border", sio->border);
+    print_argp_doc(minitrc_fp, config_s, "border");
     ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bg", sio->bg);
     print_argp_doc(minitrc_fp, config_s, "bg");
     ssnprintf(config_s, MAXLEN - 1, "%s=#%6x", "fg", sio->fg);

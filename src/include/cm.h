@@ -576,58 +576,6 @@ extern bool is_newer(char *, char *);
 #define KEY_ALTRIGHT 0x23c
 #endif
 
-/** UNICODE BOX DRAWING SYMBOLS */
-#define BW_HO L'\x2500'  /**< horizontal line */
-#define BW_VE L'\x2502'  /**< vertical line */
-#define BW_TL L'\x250C'  /**< top left */
-#define BW_TR L'\x2510'  /**< top right */
-#define BW_BL L'\x2514'  /**< bottom left */
-#define BW_BR L'\x2518'  /**< bottom right */
-#define BW_RTL L'\x256d' /**< rounded top left */
-#define BW_RTR L'\x256e' /**< rounded top right */
-#define BW_RBL L'\x2570' /**< rounded bottom left */
-#define BW_RBR L'\x256f' /**< rounded bottom right */
-#define BW_LT L'\x251C'  /**< left tee */
-#define BW_TT L'\x252C'  /**< top tee */
-#define BW_RT L'\x2524'  /**< right tee */
-#define BW_CR L'\x253C'  /**< cross */
-#define BW_BT L'\x2534'  /**< bottom tee */
-#define BW_SP L'\x20'    /**< space */
-#define BW_RA L'\x2192'  /**< large right arrow */
-#define BW_LA L'\x2190'  /**< large left arrow */
-#define BW_UA L'\x2191'  /**< large up arrow */
-#define BW_DA L'\x2193'  /**< large down arrow */
-#define BW_RAN L'\x276F' /**< right_angle */
-#define BW_LAN L'\x276E' /**< left_angle */
-#define BW_CHK L'\x2611' /**< left_angle */
-#define BW_HO9 L'\x23BD' /**< horizontal line 9 */
-
-/** The following are the actual wchar_t variables that will hold the box
-    drawing characters. These correspond to the above Unicode code points. By
-    defining them as wchar_t, we can use them in the ncurses library to draw
-    boxes and lines in the terminal. The variables are named with a "bw_" prefix
-    to indicate that they are box (wide) drawing characters, and they will be
-    initialized with the corresponding Unicode characters defined above. */
-
-extern const wchar_t bw_ho;  /**< horizontal line */
-extern const wchar_t bw_ve;  /**< vertical line */
-extern const wchar_t bw_tl;  /**< top left corner */
-extern const wchar_t bw_tr;  /**< top right corner */
-extern const wchar_t bw_bl;  /**< bottom left corner */
-extern const wchar_t bw_br;  /**< bottom right corner */
-extern const wchar_t bw_lt;  /**< left tee */
-extern const wchar_t bw_tt;  /**< top tee */
-extern const wchar_t bw_rt;  /**< right tee */
-extern const wchar_t bw_cr;  /**< cross */
-extern const wchar_t bw_bt;  /**< bottom tee */
-extern const wchar_t bw_sp;  /**< space */
-extern const wchar_t bw_ra;  /**< right arrow */
-extern const wchar_t bw_la;  /**< left arrow */
-extern const wchar_t bw_ua;  /**< up arrow */
-extern const wchar_t bw_da;  /**< down arrow */
-extern const wchar_t bw_ran; /**< right piointing angle */
-extern const wchar_t bw_chk; /**< right piointing angle */
-
 extern void write_cmenu_log(char *);
 extern void write_cmenu_log_ts(char *);
 extern void open_cmenu_log();
@@ -785,7 +733,6 @@ typedef struct {
     uint32_t title_bg;     /**< title background */
     uint32_t ran_fg;       /**< right angle foreground */
     uint32_t ran_bg;       /**< right angle background */
-    char tty_name[MAXLEN]; /**< name of the terminal device */
     FILE *stdin_fp;        /**< stdin stream pointer */
     FILE *stdout_fp;       /**< stdout stream pointer */
     FILE *stderr_fp;       /**< stderr stream pointer */
@@ -800,21 +747,23 @@ typedef struct {
     uint clr_pair_idx;     /**< current color pair index */
     char brackets[3];
     char fill_char[2];
-    ushort cp_default;   /**< default color pair index */
-    ushort cp_fill_char; /**< fill character color pair index */
-    ushort cp_brackets;  /**< brackets color pair index */
-    ushort cp_nt;        /**< normal text color pair index */
-    ushort cp_nt_rev;    /**< reverse color pair index */
-    ushort cp_nt_hl;     /**< highlight color pair index */
-    ushort cp_nt_hl_rev; /**< reverse highlight color pair index */
-    ushort cp_box;       /**< box color pair index */
-    ushort cp_ind;       /**< indicator color pair index */
-    ushort cp_cmdln;     /**< command line color pair index */
-    ushort cp_title;     /**< title color pair index */
-    ushort cp_ln;        /**< line number color pair index */
-    ushort cp_ran;       /**< right angle color pair index */
-    ushort cp_chk;       /**< checkmark color pair index */
-    ushort cp_bold;      /**< bold color pair index */
+    char border;           /**< Rounded, Single, Double, None */
+    char tty_name[MAXLEN]; /**< name of the terminal device */
+    ushort cp_default;     /**< default color pair index */
+    ushort cp_fill_char;   /**< fill character color pair index */
+    ushort cp_brackets;    /**< brackets color pair index */
+    ushort cp_nt;          /**< normal text color pair index */
+    ushort cp_nt_rev;      /**< reverse color pair index */
+    ushort cp_nt_hl;       /**< highlight color pair index */
+    ushort cp_nt_hl_rev;   /**< reverse highlight color pair index */
+    ushort cp_box;         /**< box color pair index */
+    ushort cp_ind;         /**< indicator color pair index */
+    ushort cp_cmdln;       /**< command line color pair index */
+    ushort cp_title;       /**< title color pair index */
+    ushort cp_ln;          /**< line number color pair index */
+    ushort cp_ran;         /**< right angle color pair index */
+    ushort cp_chk;         /**< checkmark color pair index */
+    ushort cp_bold;        /**< bold color pair index */
 } SIO;
 typedef struct {
     uint flin;
@@ -932,5 +881,6 @@ extern void mbc_to_wc(wchar_t wc[2], const char mbc);
 extern void initialize_styles(SIO *);
 extern int assign_chyron_win(Chyron *chyron, UiSurface *s, uint w, char *);
 extern void initialize_cells(SIO *sio);
+extern size_t codepoint_to_utf8(uint32_t codepoint, uint8_t *utf8);
 
 #endif

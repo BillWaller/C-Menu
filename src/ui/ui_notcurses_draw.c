@@ -101,9 +101,8 @@ int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
     if (!s || !c)
         return -1;
     ui_wmove(s, w, y, x);
-    nccell cell = CELL_INITIALIZER(c, ncplane_styles(s->mplane[w]),
-                                   ncplane_channels(s->mplane[w]));
-    return ncplane_putc_yx(s->mplane[w], -1, -1, &cell);
+    nccell cell = DEFAULT_INITIALIZER(c);
+    ncplane_putc_yx(s->mplane[w], -1, -1, &cell);
     return 0;
 }
 int ui_waddstr(UiSurface *s, uint w, const char *text) {
@@ -203,19 +202,6 @@ int ui_wadd_cell(UiSurface *s, uint w, UiCell *uic) {
 int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, UiCell *uic) {
     if (!s)
         return -1;
-    GCluster gc;
-    gc.u32 = uic->gcluster;
-    uint8_t a, b, c, d;
-    a = (gc.u32 >> 24) & 0xFF;
-    b = (gc.u32 >> 16) & 0xFF;
-    c = (gc.u32 >> 8) & 0xFF;
-    d = gc.u32 & 0xFF;
-    gc.u8[0] = d;
-    gc.u8[1] = c;
-    gc.u8[2] = b;
-    gc.u8[3] = a;
-    uic->gcluster = gc.u32;
-    // nccell_load_egc32(s->mplane[w], uic, gc.u32);
     ncplane_putc_yx(s->mplane[w], y, x, uic);
     return 0;
 }
@@ -223,7 +209,10 @@ int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic) {
     if (!s)
         return -1;
     ui_wmove(s, w, y, x);
-    ncplane_putc(s->mplane[w], uic);
+    while (uic->gcluster != '\0') {
+        ncplane_putc(s->mplane[w], uic);
+        uic++;
+    }
     return 0;
 }
 int ui_wadd_cellnstr(UiSurface *s, uint w, UiCell *uic, uint m) {
@@ -246,14 +235,14 @@ int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic, uint m
 // ---------------------------------------------------------------------------
 // nccells
 // ---------------------------------------------------------------------------
-int ui_wadd_wch(UiSurface *s, uint w, const nccell *uic) {
+int ui_waddwch(UiSurface *s, uint w, const nccell *uic) {
     if (!s)
         return -1;
 
     ncplane_putc(s->mplane[w], uic);
     return 0;
 }
-int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const nccell *uic) {
+int ui_mvwaddwch(UiSurface *s, uint w, uint y, uint x, const nccell *uic) {
     if (!s)
         return -1;
     ncplane_putc_yx(s->mplane[w], y, x, uic);

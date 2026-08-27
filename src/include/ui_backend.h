@@ -143,6 +143,7 @@ typedef struct {
     bool enable_mouse;
     bool enable_alt_screen;
     bool cursor_visible;
+    char border_style;
     const char *tty_path; /**< optional TTY device path; NULL = auto-detect */
     FILE *tty_fp;         /**< optional TTY FILE pointer; NULL = auto-detect */
 } UiConfig;
@@ -173,8 +174,71 @@ typedef struct {
     int color_pairs; /**< max simultaneous color pairs; 0 = unlimited */
 } UiCaps;
 
+/** BOX WIDE UNICODE CODEPOINTS */
+
+extern wchar_t *border_rounded;
+extern wchar_t *border_square;
+extern wchar_t *border_double;
+extern wchar_t *border_heavy;
+
+typedef union border_wide {
+    wchar_t str[11];
+    struct {
+        wchar_t ho; /**< horizontal line */
+        wchar_t ve; /**< vertical line */
+        wchar_t lt; /**< left tee */
+        wchar_t rt; /**< right tee */
+        wchar_t tt; /**< top tee */
+        wchar_t bt; /**< bottom tee */
+        wchar_t cr; /**< cross */
+        wchar_t tl; /**< top left */
+        wchar_t tr; /**< top right */
+        wchar_t bl; /**< bottom left */
+        wchar_t br; /**< bottom right */
+    };
+} BorderWide;
+
+// extern const wchar_t *bw_ho; /**< horizontal line */
+// extern const wchar_t *bw_ve; /**< vertical line */
+// extern const wchar_t *bw_lt; /**< left tee */
+// extern const wchar_t *bw_rt; /**< right tee */
+// extern const wchar_t *bw_tt; /**< top tee */
+// extern const wchar_t *bw_bt; /**< bottom tee */
+// extern const wchar_t *bw_cr; /**< cross */
+// extern const wchar_t *bw_tl; /**< top left */
+// extern const wchar_t *bw_tr; /**< top right */
+// extern const wchar_t *bw_bl; /**< bottom left */
+// extern const wchar_t *bw_br; /**< bottom right */
+
+#define bw_ho bw.ho
+#define bw_ve bw.ve
+#define bw_lt bw.lt
+#define bw_rt bw.rt
+#define bw_tt bw.tt
+#define bw_bt bw.bt
+#define bw_cr bw.cr
+#define bw_tl bw.tl
+#define bw_tr bw.tr
+#define bw_bl bw.bl
+#define bw_br bw.br
+
+extern BorderWide bw;
+extern const wchar_t *bw_rtl;
+extern const wchar_t *bw_rtr;
+extern const wchar_t *bw_rbl;
+extern const wchar_t *bw_rbr;
+extern const wchar_t *bw_sp;
+extern const wchar_t *bw_ra;
+extern const wchar_t *bw_la;
+extern const wchar_t *bw_ua;
+extern const wchar_t *bw_da;
+extern const wchar_t *bw_ran;
+extern const wchar_t *bw_lan;
+extern const wchar_t *bw_chk;
+extern const wchar_t *bw_h09;
+
 #ifdef UAL_UI
-typedef UiCell UiCell;
+typedef cchar_t UiCell;
 typedef struct {
     uint r;
     uint g;
@@ -187,6 +251,7 @@ typedef struct nccell UiCell;
 typedef struct ncplane NcPlane;
 typedef struct notcurses NotCurses;
 typedef struct notcurses_options NotCursesOptions;
+typedef struct ncplane_options NcPlaneOptions;
 
 typedef uint16_t attr_t;
 typedef struct UiPair UiPair;
@@ -217,6 +282,44 @@ extern uint LINES, COLS;
     .channels = (bkgd_cell.channels),   \
 }
 #endif
+typedef struct {
+    union {
+        uint32_t u32;
+        wchar_t u16[2];
+        uint8_t u8[4];
+        char c[4];
+    };
+    uint8_t backstop;
+    uint8_t width;
+} GCluster;
+
+static inline int unicode_to_utf8_gcluster(uint32_t cp, GCluster *g) {
+    if (cp <= 0x7F) {
+        g->c[0] = (char)cp;
+        g->c[1] = '\0';
+        g->width = 1;
+    } else if (cp <= 0x7FF) {
+        g->c[0] = (char)(0xC0 | (cp >> 6));
+        g->c[1] = (char)(0x80 | (cp & 0x3F));
+        g->c[2] = '\0';
+        g->width = 2;
+    } else if (cp <= 0xFFFF) {
+        g->c[0] = (char)(0xE0 | (cp >> 12));
+        g->c[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
+        g->c[2] = (char)(0x80 | (cp & 0x3F));
+        g->c[3] = '\0';
+        g->width = 3;
+    } else if (cp <= 0x10FFFF) {
+        g->c[0] = (char)(0xF0 | (cp >> 18));
+        g->c[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
+        g->c[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
+        g->c[3] = (char)(0x80 | (cp & 0x3F));
+        g->backstop = '\0';
+        g->width = 4;
+    }
+    return 0;
+}
+
 /* @name UI Backend API
    @ingroup ui_backend
    @details The following functions define the API for implementing a backend
@@ -275,7 +378,6 @@ int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
 int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
 int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c);
-
 int ui_waddstr(UiSurface *s, uint w, const char *text);
 int ui_waddnstr(UiSurface *s, uint w, const char *text, int m);
 int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
@@ -287,6 +389,7 @@ int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr);
 int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr);
 int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int m);
 int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int m);
+int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
 int ui_mvwadd_style(UiSurface *s, uint w, uint y, uint x, const UiStyle *style);
 int ui_mvwadd_mbstr(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_mvwadd_mbnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
@@ -313,7 +416,7 @@ int ui_surface_show(UiSurface *s, uint w);
 int ui_surface_hide(UiSurface *s, uint w);
 int ui_surface_move(UiSurface *s, uint w, uint y, uint x);
 int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols);
-UiCell ui_cell_from_wc(const wchar_t wc, const uint16_t stylemask, const uint32_t *fg, const uint32_t *bg);
+UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *bg);
 uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
 int ui_bkgd(UiSurface *s, uint w, const UiCell *cell);
 int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell);
@@ -328,8 +431,8 @@ extern uint LINES, COLS;
 int mk_chimera(UiCell *cell, char c);
 int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell);
 int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell);
-int ui_getcchar(const UiCell *uic, wchar_t *wstr, UiStyle *style, UiPairIdx *pair, const void *opts);
-int ui_setcchar(UiCell *uic, const wchar_t *wstr, const attr_t style, ushort pair, const void *opts);
+int ui_getcchar(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair, const void *opts);
+int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t style, ushort pair, const void *opts);
 // How do you convert "NCurses" to "Notcurses"?
 // Insert "ot" after "N".
 int ui_init_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b);
@@ -342,32 +445,31 @@ uint ui_add_pair(uint fg, uint bg);
 uint ui_add_color(RGB *rgb);
 uint ui_add_color_hex(char *s);
 int ui_wch_to_utf8(const wchar_t fill_ch);
-int ui_get_nccell(const UiCell *uic, wchar_t *wstr, UiStyle *style, UiPairIdx *pair);
-int ui_set_nccell(UiCell *uic, const wchar_t *wstr, const UiStyle *style, ushort *pair);
-int ui_put_cell_yx(struct ncplane *n, uint y, uint x, UiCell *cell);
-int ui_wadd_cell(UiSurface *s, uint w, UiCell *uic);
-int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, UiCell *uic);
+int ui_get_nccell(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair);
+int ui_set_nccell(UiCell *cell, const wchar_t *wstr, const UiStyle *style, ushort *pair);
+int ui_wadd_cell(UiSurface *s, uint w, UiCell *cell);
+int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, UiCell *cell);
 
-int ui_wadd_cellnstr(UiSurface *s, uint w, UiCell *uic, uint m);
-int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic);
-int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic);
-int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, UiCell *uic, uint m);
+int ui_wadd_cellnstr(UiSurface *s, uint w, UiCell *cell, uint m);
+int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell);
+int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell);
+int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell, uint m);
 
-int ui_wadd_wch(UiSurface *s, uint w, const nccell *uic);
-int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const nccell *uic);
+int ui_waddwch(UiSurface *s, uint w, const UiCell *cell);
+int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
 
-int ui_wadd_wchstr(UiSurface *s, uint w, nccell *uic);
-int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, nccell *uic);
-int ui_wadd_wchnstr(UiSurface *s, uint w, nccell *uic, uint m);
+int ui_wadd_wchstr(UiSurface *s, uint w, UiCell *cell);
+int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell);
+int ui_wadd_wchnstr(UiSurface *s, uint w, UiCell *cell, uint m);
 
-int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, nccell *uic, uint m);
+int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell, uint m);
 uint64_t ui_get_channels_from_pair(uint16_t pair);
-int ui_compose_nccell(UiCell *uic,
+int ui_compose_nccell(UiCell *cell,
                       const wchar_t *wstr,
                       const UiStyle *style);
-int ui_decompose_nccell(UiCell *uic, wchar_t *wstr, UiStyle *style, uint64_t *channels);
-int ui_compose_uicell(UiCell *uic, const uint32_t gcluster, UiCell *cell);
-int ui_decompose_uicell(UiCell *uic, wchar_t *wstr, uint64_t *channels);
+int ui_decompose_nccell(UiCell *cell, wchar_t *wstr, UiStyle *style, uint64_t *channels);
+int ui_compose_uicell(UiCell *cell, const uint32_t gcluster, UiCell *cell);
+int ui_decompose_uicell(UiCell *cell, wchar_t *wstr, uint64_t *channels);
 int ui_ncurses_apply_style_from_cell(UiSurface *s, uint w, const UiCell *cell);
 uint get_plane_idx(UiSurface *s, NcPlane *n);
 NcPlane *ncplane_clicked(UiSurface *s, uint w, ncinput *ni);

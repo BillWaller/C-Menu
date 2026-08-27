@@ -20,6 +20,7 @@
 #include "ui_backend.h"
 #include <errno.h>
 #include <fcntl.h>
+#include <iso646.h>
 #include <math.h>
 #ifdef UAL_UI
 #include "ui_ncurses_internal.h"
@@ -51,25 +52,6 @@ char const colors_text[][10] = {
     "black", "red", "green", "yellow", "blue", "magenta", "cyan",
     "white", "orange", "bg", "abg", "bblack", "bred", "bgreen",
     "byellow", "bblue", "bcyan", "bmagenta", "bwhite", "borange", ""};
-
-const wchar_t bw_ho = BW_HO;   /**< horizontal line */
-const wchar_t bw_ve = BW_VE;   /**< vertical line */
-const wchar_t bw_tl = BW_RTL;  /**< top left corner */
-const wchar_t bw_tr = BW_RTR;  /**< top right corner */
-const wchar_t bw_bl = BW_RBL;  /**< bottom left corner */
-const wchar_t bw_br = BW_RBR;  /**< bottom right corner */
-const wchar_t bw_lt = BW_LT;   /**< left tee */
-const wchar_t bw_rt = BW_RT;   /**< right tee */
-const wchar_t bw_tt = BW_TT;   /**< right tee */
-const wchar_t bw_bt = BW_BT;   /**< left tee */
-const wchar_t bw_cr = BW_CR;   /**< right tee */
-const wchar_t bw_sp = BW_SP;   /**< tee space */
-const wchar_t bw_ra = BW_RA;   /**< right arrow */
-const wchar_t bw_la = BW_LA;   /**< left arrow */
-const wchar_t bw_ua = BW_UA;   /**< up arrow */
-const wchar_t bw_da = BW_DA;   /**< down arrow */
-const wchar_t bw_ran = BW_RAN; /**< right angle */
-const wchar_t bw_chk = BW_CHK; /**< check mark */
 
 typedef enum Cells {
     _DEFAULT,
@@ -225,35 +207,38 @@ void initialize_cells(SIO *sio) {
     //
     // Standardized UiCells
     //
-    cell_default = ui_cell_from_wc(bw_sp, WA_NORMAL,
-                                   &sio->nt_fg, &sio->nt_bg);
-    cell_fill_char = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->fill_char_fg, &sio->fill_char_bg);
-    uint8_t brktl = sio->brackets[0];
-    cell_brktl = ui_cell_from_wc(brktl, WA_NORMAL, &sio->brackets_fg, &sio->brackets_bg);
-    uint8_t brktr = sio->brackets[1];
-    cell_brktr = ui_cell_from_wc(brktr, WA_NORMAL, &sio->brackets_fg, &sio->brackets_bg);
-    cell_nt = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->nt_fg, &sio->nt_bg);
-    cell_nt_rev = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->nt_rev_fg, &sio->nt_rev_bg);
-    cell_nt_hl = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->nt_hl_fg, &sio->nt_hl_bg);
-    cell_nt_hl_rev = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->nt_hl_rev_fg, &sio->nt_hl_rev_bg);
-    cell_box = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_cmdln = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->cmdln_fg, &sio->cmdln_bg);
-    cell_title = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->title_fg, &sio->title_bg);
-    cell_ln = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->ln_fg, &sio->ln_bg);
-    cell_ran = ui_cell_from_wc(bw_ran, WA_NORMAL, &sio->ran_fg, &sio->ran_bg);
-    cell_chk = ui_cell_from_wc(bw_chk, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_tl = ui_cell_from_wc(bw_tl, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_tr = ui_cell_from_wc(bw_tr, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_bl = ui_cell_from_wc(bw_bl, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_br = ui_cell_from_wc(bw_br, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_ho = ui_cell_from_wc(bw_ho, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_ve = ui_cell_from_wc(bw_ve, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_lt = ui_cell_from_wc(bw_lt, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_rt = ui_cell_from_wc(bw_rt, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_tt = ui_cell_from_wc(bw_tt, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_bt = ui_cell_from_wc(bw_bt, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_cr = ui_cell_from_wc(bw_cr, WA_NORMAL, &sio->box_fg, &sio->box_bg);
-    cell_sp = ui_cell_from_wc(bw_sp, WA_NORMAL, &sio->box_fg, &sio->box_bg);
+    cell_default = ui_cell_from_ucp(bw_sp, &sio->nt_fg, &sio->nt_bg);
+    cell_fill_char = ui_cell_from_ucp(bw_sp, &sio->fill_char_fg, &sio->fill_char_bg);
+
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    wchar_t brktl = sio->brackets[0];
+    cell_brktl = ui_cell_from_ucp(&brktl, &sio->brackets_fg, &sio->brackets_bg);
+    wchar_t brktr = sio->brackets[1];
+    cell_brktr = ui_cell_from_ucp(&brktr, &sio->brackets_fg, &sio->brackets_bg);
+    cell_nt = ui_cell_from_ucp(bw_sp, &sio->nt_fg, &sio->nt_bg);
+    cell_nt_rev = ui_cell_from_ucp(bw_sp, &sio->nt_rev_fg, &sio->nt_rev_bg);
+    cell_nt_hl = ui_cell_from_ucp(bw_sp, &sio->nt_hl_fg, &sio->nt_hl_bg);
+    cell_nt_hl_rev = ui_cell_from_ucp(bw_sp, &sio->nt_hl_rev_fg, &sio->nt_hl_rev_bg);
+    cell_box = ui_cell_from_ucp(bw_sp, &sio->box_fg, &sio->box_bg);
+    cell_cmdln = ui_cell_from_ucp(bw_sp, &sio->cmdln_fg, &sio->cmdln_bg);
+    cell_title = ui_cell_from_ucp(bw_sp, &sio->title_fg, &sio->title_bg);
+    cell_ln = ui_cell_from_ucp(bw_sp, &sio->ln_fg, &sio->ln_bg);
+    cell_ind = ui_cell_from_ucp(bw_sp, &sio->ind_fg, &sio->ind_bg);
+    cell_ran = ui_cell_from_ucp(bw_ran, &sio->ran_fg, &sio->ran_bg);
+    cell_chk = ui_cell_from_ucp(bw_chk, &sio->box_fg, &sio->box_bg);
+    cell_tl = ui_cell_from_ucp(&bw_tl, &sio->box_fg, &sio->box_bg);
+    cell_tr = ui_cell_from_ucp(&bw_tr, &sio->box_fg, &sio->box_bg);
+    cell_bl = ui_cell_from_ucp(&bw_bl, &sio->box_fg, &sio->box_bg);
+    cell_br = ui_cell_from_ucp(&bw_br, &sio->box_fg, &sio->box_bg);
+    cell_ho = ui_cell_from_ucp(&bw_ho, &sio->box_fg, &sio->box_bg);
+    cell_ve = ui_cell_from_ucp(&bw_ve, &sio->box_fg, &sio->box_bg);
+    cell_lt = ui_cell_from_ucp(&bw_lt, &sio->box_fg, &sio->box_bg);
+    cell_rt = ui_cell_from_ucp(&bw_rt, &sio->box_fg, &sio->box_bg);
+    cell_tt = ui_cell_from_ucp(&bw_tt, &sio->box_fg, &sio->box_bg);
+    cell_bt = ui_cell_from_ucp(&bw_bt, &sio->box_fg, &sio->box_bg);
+    cell_cr = ui_cell_from_ucp(&bw_cr, &sio->box_fg, &sio->box_bg);
+    cell_sp = ui_cell_from_ucp(bw_sp, &sio->box_fg, &sio->box_bg);
 }
 /** rgb_to_xterm256_idx
     @brief Convert RGB color to XTerm 256 color index
@@ -528,43 +513,10 @@ uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_bas
     wstr[0] = L'\0';
     wstr[1] = L'\0';
     ui_setcchar(&cc, wstr, style, cp, nullptr);
-    ui_setcchar(&cc, wstr, style, cp, nullptr);
     cmplx_buf[*pos] = cc;
     return *pos;
 }
 #endif
-/** @brief Converts a Unicode code point to a UTF-8 encoded string.
-    @ingroup utility_functions
-    @param cp - Unicode code point to convert
-    @param buffer - buffer to receive UTF-8 encoded string (must be at least 4 bytes)
-    @returns number of bytes written to buffer, or 0 if cp is invalid
-    @details This function encodes the given Unicode code point into its UTF-8 representation and stores it in the provided buffer. The caller must ensure that the buffer has enough space to hold the resulting UTF-8 string (up to 4 bytes for code points up to U+10FFFF). If the code point is invalid (e.g., greater than U+10FFFF), this function returns 0 and does not modify the buffer. */
-int wccp_to_str(wchar_t cp, uint8_t *buffer) {
-    if (cp <= 0x7F) {
-        // 1-byte sequence: 0xxxxxxx
-        buffer[0] = (uint8_t)cp;
-        return 1;
-    } else if (cp <= 0x7FF) {
-        // 2-byte sequence: 110xxxxx 10xxxxxx
-        buffer[0] = (uint8_t)(0xC0 | ((cp >> 6) & 0x1F));
-        buffer[1] = (uint8_t)(0x80 | (cp & 0x3F));
-        return 2;
-    } else if (cp <= 0xFFFF) {
-        // 3-byte sequence: 1110xxxx 10xxxxxx 10xxxxxx
-        buffer[0] = (uint8_t)(0xE0 | ((cp >> 12) & 0x0F));
-        buffer[1] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
-        buffer[2] = (uint8_t)(0x80 | (cp & 0x3F));
-        return 3;
-    } else if (cp <= 0x10FFFF) {
-        // 4-byte sequence: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-        buffer[0] = (uint8_t)(0xF0 | ((cp >> 18) & 0x07));
-        buffer[1] = (uint8_t)(0x80 | ((cp >> 12) & 0x3F));
-        buffer[2] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
-        buffer[3] = (uint8_t)(0x80 | (cp & 0x3F));
-        return 4;
-    }
-    return 0; // Invalid Unicode code point
-}
 // ------------------->    surface_box_win_new    <-------------------
 int surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
     if (sfc_ptr >= SFC_MAX) {

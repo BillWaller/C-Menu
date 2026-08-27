@@ -50,6 +50,12 @@ int ui_draw_ch_yx(UiSurface *s, uint w, uint y, uint x, const char c) {
     mvwaddch(s->mwin[w], y, x, c);
     return 0;
 }
+int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
+    if (!s)
+        return -1;
+    mvwadd_wch(s->mwin[w], y, x, cell);
+    return 0;
+}
 //  text string
 int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text) {
     if (!s || !text)

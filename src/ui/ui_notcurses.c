@@ -37,7 +37,32 @@ int win_ptr = -1;
 
 NcPlane *stdplane;
 
-STDRGB std_color[16] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+/** BOX WIDE UNICODE CODEPOINTS */
+
+wchar_t *border_single = L"─│├┤┬┴┼┌┐└┘";
+wchar_t *border_rounded = L"─│├┤┬┴┼╭╮╰╯";
+wchar_t *border_double = L"═║╠╣╦╩╬╔╗╚╝";
+wchar_t *border_heavy = L"━┃┣┫┳┻╋┏┓┗┛";
+wchar_t *border_none = L"           ";
+
+BorderWide bw;
+
+const wchar_t *bw_rtl = L"\x256d"; /**< rounded top left */
+const wchar_t *bw_rtr = L"\x256e"; /**< rounded top right */
+const wchar_t *bw_rbl = L"\x2570"; /**< rounded bottom left */
+const wchar_t *bw_rbr = L"\x256f"; /**< rounded bottom right */
+const wchar_t *bw_sp = L"\x20";    /**< space */
+const wchar_t *bw_ra = L"\x2192";  /**< large right arrow */
+const wchar_t *bw_la = L"\x2190";  /**< large left arrow */
+const wchar_t *bw_ua = L"\x2191";  /**< large up arrow */
+const wchar_t *bw_da = L"\x2193";  /**< large down arrow */
+const wchar_t *bw_ran = L"\x276F"; /**< right_angle */
+const wchar_t *bw_lan = L"\x276E"; /**< left_angle */
+const wchar_t *bw_chk = L"\x2611"; /**< left_angle */
+const wchar_t *bw_h09 = L"\x23BD"; /**< horizontal line 9 */
+
+STDRGB std_color[] = {
+    STDRGB std_color[16] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 
 /* -------------------------------------------------------------------------
    Backend identification and capability query
@@ -88,7 +113,12 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         return NULL;
     }
     NotCursesOptions nc_opts = {
-        .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
+        .flags = NCOPTION_SUPPRESS_BANNERS |
+                 NCOPTION_NO_QUIT_SIGHANDLERS |
+                 NCOPTION_NO_ALTERNATE_SCREEN |
+                 NCOPTION_PRESERVE_CURSOR,
+        .loglevel = NCLOGLEVEL_SILENT,
+    };
     ui->nc = notcurses_init(&nc_opts, ui->tty_fp);
     if (ui->nc == NULL) {
         free(ui);
@@ -109,6 +139,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         ui->mouse_enabled = cfg->enable_mouse;
         ui->alt_screen = cfg->enable_alt_screen;
         ui->cursor_visible = cfg->cursor_visible;
+        ui->border_style = cfg->border_style;
     } else {
         ui->cursor_visible = false;
         ui->alt_screen = false;
@@ -157,6 +188,20 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         free(ui);
         return NULL;
     }
+    if (cfg) {
+        if (ui->border_style == 'r' || ui->border_style == 'R') {
+            memcpy(bw.str, border_rounded, sizeof(bw.str));
+        } else if (ui->border_style == 's' || ui->border_style == 'S') {
+            memcpy(bw.str, border_single, sizeof(bw.str));
+        } else if (ui->border_style == 'd' || ui->border_style == 'D') {
+            memcpy(bw.str, border_double, sizeof(bw.str));
+        } else if (ui->border_style == 'h' || ui->border_style == 'H') {
+            memcpy(bw.str, border_heavy, sizeof(bw.str));
+        } else if (ui->border_style == 'n' || ui->border_style == 'N') {
+            memcpy(bw.str, border_none, sizeof(bw.str));
+        }
+    }
+    stdsfc = calloc(1, sizeof(*stdsfc));
     ui_color_cnt = 0;
     ui_pair_cnt = 0;
     return ui;
@@ -260,46 +305,24 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     ncplane_perimeter_rounded(s->mplane[BOX], 0, cell_box.channels, 0);
 
     // Title
-    if (wtitle && strlen(wtitle) > 0) {
+    if (wtitle && strlen(wtitle)) {
         x = 1;
-        char tmp_str[MAXLEN];
-
-        ui_mvwaddnstr(s, BOX, 0, x++, "┤", 1);
-        ui_render();
-        // ui_mvwadd_cell(s, BOX, 0, x++, &cell_sp);
-        GCluster g;
-        g.u32 = 0x251c;
-        size_t b = 2;
-        size_t *bytes;
-        bytes = &b;
-        // 0x251c;
-        ssnprintf(tmp_str, MAXLEN - 1, "%08lx", g.u32);
-        ncplane_putwegc(s->mplane[BOX], g.u16, bytes);
-        ui_render();
-        nccell cell1, cell2;
-        ncplane_at_yx_cell(s->mplane[BOX], 0, 2, (nccell *)&cell1);
-        g.u32 = cell1.gcluster;
-        ssnprintf(tmp_str, MAXLEN - 1, "%08lx", g.u32);
-        ncplane_at_yx_cell(s->mplane[BOX], 0, 3, (nccell *)&cell2);
-        g.u32 = cell2.gcluster;
-        ssnprintf(tmp_str, MAXLEN - 1, "%08lx", g.u32);
+        ncplane_putc_yx(s->mplane[BOX], 0, x++, &cell_rt);
+        ncplane_putc_yx(s->mplane[BOX], 0, x++, &cell_sp);
         ui_bkgdset(s, BOX, &cell_title);
-        ncplane_putstr(s->mplane[BOX], wtitle);
-        ui_render();
+        x += ncplane_putstr_yx(s->mplane[BOX], 0, x, wtitle);
         ui_bkgdset(s, BOX, &cell_box);
-        ui_wadd_cellnstr(s, BOX, &cell_sp, 1);
-        ui_waddnstr(s, BOX, "├", 1);
+        ncplane_putc_yx(s->mplane[BOX], 0, x++, &cell_sp);
+        ncplane_putc_yx(s->mplane[BOX], 0, x++, &cell_lt);
         ui_render();
     }
     return s;
 }
 
 int ui_surface_addpad(UiSurface *s, uint w, uint p, int lines, int cols) {
-    if (!s->mplane[BOX])
-        return -1;
     uint y = 0, x = 0;
-    if (s->parent && s->parent->mplane[BOX])
-        ncplane_dim_yx(s->mplane[BOX], &y, &x);
+    // if (s->mplane[p])
+    //     ncplane_dim_yx(s->mplane[p], &y, &x);
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
@@ -312,15 +335,15 @@ int ui_surface_addpad(UiSurface *s, uint w, uint p, int lines, int cols) {
     s->meta[w].cols = cols;
     s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
-    if (!s->mplane[PAD]) {
+    if (!s->mplane[w]) {
         notcurses_stop(ui->nc);
         return -1;
     }
-    ncplane_set_base(s->mplane[PAD], " ", 0, cell_nt.channels);
-    ncplane_set_channels(s->mplane[PAD], cell_nt.channels);
-    ui_keypad(s, PAD, true);
-    ui_bkgd(s, PAD, &cell_nt);
-    ui_bkgdset(s, PAD, &cell_nt);
+    ncplane_set_base(s->mplane[w], " ", 0, cell_nt.channels);
+    ncplane_set_channels(s->mplane[w], cell_nt.channels);
+    ui_keypad(s, w, false);
+    ui_bkgd(s, w, &cell_nt);
+    ui_bkgdset(s, w, &cell_nt);
     return 0;
 }
 
@@ -466,12 +489,17 @@ int ui_curs_set(int visible) {
         notcurses_cursor_disable(ui->nc);
     } else {
         ui->cursor_visible = true;
-        return notcurses_cursor_enable(ui->nc, -1, -1) == 0 ? 0 : -1;
+        int y, x;
+        notcurses_cursor_yx(ui->nc, &y, &x);
+        int rc = notcurses_cursor_enable(ui->nc, y, x);
+        // == 0 ? 0 : -1;
+        return rc;
     }
     return 0;
 }
 /** @brief Disable (visible = false) or enable (visibile = true) the cursor at a
  * specified position on the surface and plane specified.
+ * Include workaround for NotCurses cursor position bug
  */
 int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
     if (!s)
@@ -664,61 +692,40 @@ int ui_getcchar(const UiCell *uic, wchar_t *wc, UiStyle *style, UiPairIdx *pair,
     return 0;
 }
 
-int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t style, ushort pair, const void *opts) {
+int ui_setcchar(UiCell *cell, const wchar_t *wstr, const uint16_t style, ushort pair, const void *opts) {
     (void)opts;
-    if (!cell || !wstr || !style || !pair)
+    if (!cell)
         return -1;
-    GCluster gcluster;
-    gcluster.u16[0] = wstr[0];
-    gcluster.u16[1] = wstr[1];
-    cell->gcluster = gcluster.u32;
-    cell->stylemask = style;
-    cell->channels = ui_get_channels_from_pair(pair);
+    uint32_t fg, bg;
+    GCluster *gc = (GCluster *)&cell->gcluster;
+    gc->u16[0] = wstr[0];
+    gc->u16[1] = wstr[1];
+    nccell_set_styles(cell, style);
+    UiChannels *chan = (UiChannels *)&cell->channels;
+    ui_get_pair(pair, &fg, &bg);
+    ui_color_content(fg, &chan->f_r, &chan->f_g, &chan->f_b);
+    chan->f_a = 0x40;
+    ui_color_content(bg, &chan->b_r, &chan->b_g, &chan->b_b);
+    chan->b_a = 0x40;
     return 0;
 }
 
-int ui_wch_to_utf8(const wchar_t fill_ch) {
-    char utf8[5] = " ";
-    if (fill_ch >= 0x20) {
-        /* Encode the Unicode codepoint as UTF-8. */
-        if (fill_ch < 0x80) {
-            utf8[0] = (char)fill_ch;
-            utf8[1] = '\0';
-        } else if (fill_ch < 0x800) {
-            utf8[0] = (char)(0xC0 | (fill_ch >> 6));
-            utf8[1] = (char)(0x80 | (fill_ch & 0x3F));
-            utf8[2] = '\0';
-        } else if (fill_ch < 0x10000) {
-            utf8[0] = (char)(0xE0 | (fill_ch >> 12));
-            utf8[1] = (char)(0x80 | ((fill_ch >> 6) & 0x3F));
-            utf8[2] = (char)(0x80 | (fill_ch & 0x3F));
-            utf8[3] = '\0';
-        } else {
-            utf8[0] = (char)(0xF0 | (fill_ch >> 18));
-            utf8[1] = (char)(0x80 | ((fill_ch >> 12) & 0x3F));
-            utf8[2] = (char)(0x80 | ((fill_ch >> 6) & 0x3F));
-            utf8[3] = (char)(0x80 | (fill_ch & 0x3F));
-            utf8[4] = '\0';
-        }
-    }
-    return 0;
-}
-/* -------------------------------------------------------------------------
-   Non-portable escape-hatch getters (see ui_notcurses_compat.h)
-   ------------------------------------------------------------------------- */
-
-struct notcurses *ui_notcurses_get_nc() {
-    if (!ui)
-        return NULL;
-    return ui->nc;
+UiCell ui_cell_from_ucp(const uint32_t ucp, const uint32_t *fg, const uint32_t *bg) {
+    nccell cell;
+    nccell_init(&cell);
+    GCluster *gc = (GCluster *)&cell.gcluster;
+    // wcwidth expects Unicode codepoints, not UTF-8 encoded bytes
+    cell.width = wcwidth((wchar_t)ucp);
+    // unicode_to_utf8_gcluster converts Unicode codepoints to UTF-8
+    unicode_to_utf8_gcluster(ucp, gc);
+    nccell_set_styles(&cell, WA_NORMAL);
+    UiChannels *chan = (UiChannels *)&cell.channels;
+    chan->bargb = *bg;
+    chan->fargb = *fg;
+    chan->b_a = chan->f_a = 0x40;
+    return cell;
 }
 
-NcPlane *ui_notcurses_surface_get_plane(const UiSurface *s, uint w) {
-    (void)w;
-    if (!s)
-        return NULL;
-    return s->mplane[w];
-}
 /* -------------------------------------------------------------------------
    Colors, Color Pairs
    ------------------------------------------------------------------------- */
@@ -879,37 +886,6 @@ int ui_chg_color(uint16_t color_idx, uint32_t *color) {
    Style helpers (shared with draw and input modules)
    ------------------------------------------------------------------------- */
 
-int ui_put_cell_yx(struct ncplane *plane,
-                   uint y, uint x,
-                   UiCell *cell) {
-    ncplane_cursor_move_yx(plane, y, x);
-    nccell_load_egc32(plane,
-                      (nccell *)cell,
-                      cell->gcluster);
-    ncplane_putc(plane, (nccell *)cell);
-    ui_render();
-    return 0;
-}
-
-UiCell ui_cell_from_wc(const wchar_t wc, const uint16_t stylemask,
-                       const uint32_t *fg, const uint32_t *bg) {
-    nccell cell;
-    nccell_init(&cell);
-
-    GCluster gc;
-    gc.u16[0] = wc;
-    gc.u16[1] = 0;
-    cell.gcluster = gc.u32;
-    nccell_set_styles(&cell, stylemask);
-    UiChannels channels;
-    channels.bargb = *bg;
-    channels.b_a = 0x40;
-    channels.fargb = *fg;
-    channels.f_a = 0x40;
-    cell.channels = channels.fb;
-    return cell;
-}
-
 int ui_bkgd(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
@@ -944,4 +920,20 @@ int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell) {
     ncplane_set_styles(s->mplane[w], cell->stylemask);
     ncplane_set_channels(s->mplane[w], cell->channels);
     return 0;
+}
+/* -------------------------------------------------------------------------
+   Non-portable escape-hatch getters (see ui_notcurses_compat.h)
+   ------------------------------------------------------------------------- */
+
+struct notcurses *ui_notcurses_get_nc() {
+    if (!ui)
+        return NULL;
+    return ui->nc;
+}
+
+NcPlane *ui_notcurses_surface_get_plane(const UiSurface *s, uint w) {
+    (void)w;
+    if (!s)
+        return NULL;
+    return s->mplane[w];
 }

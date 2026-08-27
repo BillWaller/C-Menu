@@ -66,11 +66,11 @@ int main() {
     //   00002524 0000251c 00a494e2 009c94e2
     //
     // Wee doggies! Would you look at that? Just like magic, we have the correct
-    // UTF-8 encoded values in the char arrays. Can use these with Notcurses?
-    // Well, we can use the char arrays with Notcurses, but we cannot use the
-    // wchar_t values. The wchar_t values are not UTF-8 encoded. They are just
-    // Unicode codepoints. We don't really care, so long as we have a way to get
-    // the results we want, either from Unicode codepoints or the character
+    // UTF-8 encoded values in the char arrays. Can we use these with Notcurses?
+    // Well, yes, we can use the char arrays with Notcurses, but we cannot use
+    // the wchar_t values. The wchar_t values are not UTF-8 encoded. They are just
+    // Unicode codepoints. But, we don't really care, so long as we have a way
+    // to get the results we want, either from Unicode codepoints or the character
     // glyphs. I wonder if iconv can convert the wchar_t values to UTF-8 encoded
     // char arrays. We can try that next.
     //

@@ -101,11 +101,9 @@
         display_error(em0, em1, nullptr, nullptr);                          \
     }
 
-#define _Refresh(view)      \
-    {                       \
-        pad_refresh(view);  \
-        ui_update_panels(); \
-        ui_doupdate();      \
+#define _Refresh(view)     \
+    {                      \
+        pad_refresh(view); \
     }
 
 char prev_regex_pattern[MAXLEN];
@@ -204,7 +202,6 @@ int view_file(Init *init) {
         }
     }
     ui_surface_destroy(view->sfc);
-    destroy_view(init);
     return 0;
 }
 /** @brief Main Command Processing Loop for View
@@ -468,7 +465,7 @@ int view_cmd_processor(Init *init) {
         /**  '/' or '?' - Search Forward fromk top of page */
         case '/':
             view->f_search_complete = false;
-            strnz__cpy(tmp_str, " Forward", MAXLEN - 1);
+            strnz__cpy(tmp_str, " Forward:", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == KEY_F09 || c == '\033')
@@ -490,7 +487,7 @@ int view_cmd_processor(Init *init) {
         /**  '?' - Search Backward */
         case '?':
             view->f_search_complete = false;
-            strnz__cpy(tmp_str, " Backward", MAXLEN - 1);
+            strnz__cpy(tmp_str, " Backward:", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == KEY_F09 || c == '\033')
@@ -742,25 +739,17 @@ int get_cmd_char(View *view, off_t *n) {
     UiSurface *sfc = view->sfc;
     UiEvent event;
     pad_refresh(view);
-    ui_curs_set(1);
-    ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
-    ui_bkgdset(sfc, CMDLN, &cell_ind);
-    ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
-
-    ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_ran, 1);
-
-    ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
+    ui_mvwadd_wch(sfc, CMDLN, view->cmd_line, view->curx++, &cell_ran);
+    ui_cursor_enable_yx(sfc, CMDLN, 0, view->curx, true);
     while (1) {
         if (i == 1 && !once) {
             once = true;
             view->curx = 0;
             ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
             ui_wclrtoeol(sfc, CMDLN);
-            ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_ran, 1);
-            ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx + 1, c);
+            ui_mvwadd_wch(sfc, CMDLN, view->cmd_line, view->curx++, &cell_ran);
+            ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx++, c);
         }
-        ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
-        ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
         ui_render();
         event.y = event.x = -1;
         c = ui_get_event_no_mouse(sfc, CMDLN, &event);
@@ -888,11 +877,9 @@ int get_cmd_arg(View *view, char *prompt) {
     view->curx = prompt_l;
     ui_wclrtoeol(sfc, CMDLN);
     pad_refresh(view);
-    // ui_update_panels();
     ui_curs_set(1);
     ui_mvwadd_cellnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_ran, 1);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
-    // ui_doupdate();
     ui_render();
     uint flin = view->cmd_line;
     uint fcol = prompt_l + 1;
@@ -1429,6 +1416,7 @@ void display_line(View *view) {
     ui_mvwadd_cellstr(sfc, PAD, view->cury, 0, view->cmplx_buf);
 #else
     ui_mvwadd_cellstr(sfc, PAD, view->cury, 0, (struct nccell *)view->cmplx_buf);
+    ui_render();
 #endif
     if (view->cury == 0)
         view->page_top_ln_no = view->ln_no;
@@ -2045,8 +2033,8 @@ void sync_ln(View *view) {
     @returns OK on success, ERR on failure
 */
 int pad_refresh(View *view) {
-    int rc = 0;
 #ifdef UAL_UI
+    int rc = 0;
     // touchwin(view->sfc->mwin[WIN2]);
     // rc = pnoutrefresh(view->sfc->mwin[WIN2], view->pminrow, view->pmincol,
     // view->sminrow,
@@ -2065,9 +2053,9 @@ int pad_refresh(View *view) {
     }
 #else
     (void)view;
-    ui_render();
 #endif
-    return rc;
+    ui_render();
+    return 0;
 }
 
 /** @brief Format Line for Display

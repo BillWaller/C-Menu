@@ -81,7 +81,7 @@ int init_view_full_screen(Init *init) {
     ui_scrollok(view->sfc, CMDLN, false);
     // -------------------> 4. PAD <-------------------
 
-    ui_surface_addpad(view->sfc, PAD, WIN2, view->lines - 1, PAD_COLS - 1);
+    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1);
 
     // ------------------------------------------------
     return 0;

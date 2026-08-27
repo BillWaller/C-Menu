@@ -199,24 +199,17 @@ int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
     if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
-
     ncinput ni;
-    int y, x;
     notcurses_mice_disable(ui->nc);
-    notcurses_cursor_yx(ui->nc, &y, &x);
-    notcurses_cursor_enable(ui->nc, y, x);
     do {
         notcurses_get_blocking(ui->nc, &ni);
     } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
-
-    notcurses_cursor_disable(ui->nc);
     ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
     ev->shift = ncinput_shift_p(&ni);
-    if (ev->key == UI_KEY_CHAR) {
-        ev->ch = ni.id; /* Unicode codepoint */
-    }
+    if (ev->key == UI_KEY_CHAR)
+        ev->ch = ni.id;
     return ni.id;
 }
 

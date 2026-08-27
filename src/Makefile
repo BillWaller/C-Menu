@@ -248,16 +248,15 @@ valgrind: menu
 		--tool=memcheck \
     	--log-file=valgrind.out \
 		--leak-check=full \
-		--show-leak-kinds=all \
-		--show-reachable=yes \
+		--show-leak-kinds=definite \
+		--show-reachable=no \
 		--num-callers=30 \
 		--leak-resolution=high \
 		--track-origins=yes \
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
- 		./menu
-#	-L60 -C90 -w lsp.log
+ 		./view -L60 -C90 -w lsp.log
 #	./menu
 
 install:
