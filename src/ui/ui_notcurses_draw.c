@@ -129,7 +129,7 @@ int ui_mvwaddnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int m)
     ncplane_putnstr_yx(s->mplane[w], y, x, m, text);
     return 0;
 }
-int ui_mvwaddnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m) {
+int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
     int l = strlen(text);
@@ -199,26 +199,26 @@ int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, in
 // ---------------------------------------------------------------------------
 // UiCells
 // ---------------------------------------------------------------------------
-int ui_waddwch(UiSurface *s, uint w, const UiCell *cell) {
+int ui_wadd_wch(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_putc(s->mplane[w], cell);
     return 0;
 }
-int ui_mvwaddwch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
+int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_putc_yx(s->mplane[w], y, x, cell);
     return 0;
 }
-int ui_waddwchstr(UiSurface *s, uint w, const UiCell *cell) {
+int ui_wadd_wchstr(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
     while (cell->gcluster != 0)
         ncplane_putc(s->mplane[w], cell++);
     return 0;
 }
-int ui_mvwaddwchstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
+int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
     if (!s)
         return -1;
     ui_wmove(s, w, y, x);
@@ -226,7 +226,7 @@ int ui_mvwaddwchstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
         ncplane_putc(s->mplane[w], cell++);
     return 0;
 }
-int ui_waddwchnstr(UiSurface *s, uint w, const UiCell *cell, uint m) {
+int ui_wadd_wchnstr(UiSurface *s, uint w, const UiCell *cell, uint m) {
     if (!s)
         return -1;
     uint cols = 0;
@@ -237,7 +237,7 @@ int ui_waddwchnstr(UiSurface *s, uint w, const UiCell *cell, uint m) {
     return 0;
 }
 
-int ui_mvwaddwchnstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell, uint m) {
+int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell, uint m) {
     if (!s)
         return -1;
     ui_wmove(s, w, y, x);
