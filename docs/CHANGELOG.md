@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-28T13:56:58-05:00* - FIXES: Notcurses input handling 
+
+*2026-08-28T00:03:48-05:00* - Update CHANGELOG.md 
+
 *2026-08-28T00:02:41-05:00* - FIX: A few small fixes to the UI drawing functions in Notcurses. 
 
 *2026-08-27T23:55:09-05:00* - Update CHANGELOG.md 
