@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-28T15:03:08-05:00* - ISSUE: Notcurses input handling 
+
+*2026-08-28T14:58:44-05:00* - Update CHANGELOG.md 
+
 *2026-08-28T14:58:10-05:00* - ISSUE: Ncurses input handling 
 
 *2026-08-28T13:58:23-05:00* - Update CHANGELOG.md 
