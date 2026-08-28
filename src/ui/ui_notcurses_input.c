@@ -159,7 +159,6 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
         } while (ni.evtype == NCTYPE_RELEASE ||
                  ni.id == NCKEY_INVALID ||
                  ni.id == NCKEY_MOTION ||
-                 ni.id == NCKEY_EOF ||
                  ni.id == NCKEY_SIGNAL);
     else {
         struct timespec ts = {
