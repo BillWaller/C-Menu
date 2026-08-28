@@ -110,7 +110,7 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     // tcflush(0, TCIFLUSH);
     if (timeout_ms < 0) {
         do {
-            notcurses_get_blocking(ui->nc, &ni);
+            notcurses_get(ui->nc, NULL, &ni);
         } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
     } else {
         struct timespec ts = {
@@ -155,8 +155,12 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     notcurses_render(ui->nc);
     if (timeout_ms < 0)
         do {
-            notcurses_get_blocking(ui->nc, &ni);
-        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID || ni.id == NCKEY_SIGNAL);
+            notcurses_get(ui->nc, NULL, &ni);
+        } while (ni.evtype == NCTYPE_RELEASE ||
+                 ni.id == NCKEY_INVALID ||
+                 ni.id == NCKEY_MOTION ||
+                 ni.id == NCKEY_EOF ||
+                 ni.id == NCKEY_SIGNAL);
     else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
@@ -210,7 +214,7 @@ int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
     ncinput ni;
     // notcurses_mice_disable(ui->nc);
     do {
-        notcurses_get_blocking(ui->nc, &ni);
+        notcurses_get(ui->nc, NULL, &ni);
     } while (ni.id == NCKEY_INVALID);
     ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);

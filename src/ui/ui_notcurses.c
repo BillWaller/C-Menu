@@ -93,31 +93,31 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
-    char tty_name[MAXLEN];
-    if (cfg && cfg->tty_path) {
-        strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
-        tty_name[sizeof(tty_name) - 1] = '\0';
-    } else {
-        if (ttyname_r(STDERR_FILENO, tty_name,
-                      sizeof(tty_name)) != 0) {
-            free(ui);
-            ui = NULL;
-            return NULL;
-        }
-    }
-    ui->tty_fp = fopen(tty_name, "r+");
-    if (ui->tty_fp == NULL) {
-        ui = NULL;
-        free(ui);
-        return NULL;
-    }
+    // char tty_name[MAXLEN];
+    // if (cfg && cfg->tty_path) {
+    //     strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
+    //     tty_name[sizeof(tty_name) - 1] = '\0';
+    // } else {
+    //     if (ttyname_r(STDERR_FILENO, tty_name,
+    //                   sizeof(tty_name)) != 0) {
+    //         free(ui);
+    //         ui = NULL;
+    //         return NULL;
+    //     }
+    // }
+    // ui->tty_fp = fopen(tty_name, "r+");
+    // if (ui->tty_fp == NULL) {
+    //     ui = NULL;
+    //     free(ui);
+    //     return NULL;
+    // }
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS |
                  NCOPTION_NO_QUIT_SIGHANDLERS
         //               NCOPTION_PRESERVE_CURSOR,
         //      .loglevel = NCLOGLEVEL_SILENT,
     };
-    ui->nc = notcurses_init(&nc_opts, ui->tty_fp);
+    ui->nc = notcurses_init(&nc_opts, NULL);
     if (ui->nc == NULL) {
         free(ui);
         ui = NULL;
@@ -127,7 +127,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     stdplane = notcurses_stdplane(ui->nc);
     notcurses_render(ui->nc);
     if (ui->nc == NULL) {
-        fclose(ui->tty_fp);
+        // fclose(ui->tty_fp);
         ui->tty_fp = NULL;
         free(ui);
         ui = NULL;
