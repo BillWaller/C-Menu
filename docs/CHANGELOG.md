@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-27T22:40:22-05:00* - CONFIGURATION: Added border styles, single, rounded, double, heavy, and none. Also updated the default themes with more tolerable colors. 
+
+*2026-08-27T22:32:26-05:00* - Update CHANGELOG.md 
+
 *2026-08-27T22:25:46-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for NCurses and Notcurses The prooject is coming along nicely, and I have been working on a uniform abstraction layer (UAL) that will allow the project to support both NCurses and Notcurses seamlessly. This will enable users to choose their preferred backend without any changes to the core functionality of the application. This library is not limited to C-Menu, but can be used in any project that would benefit from an upgrade from NCurses to Notcurses, that would benefit from supporting both Notcurses and NCurses. Use Notcurses on your high-powered desktop for rich feature support and NCurses for servers, legacy platforms, and embedded applications. 
 
 *2026-08-27T11:04:29-05:00* - Update CHANGELOG.md 
