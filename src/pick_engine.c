@@ -107,9 +107,11 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
         }
         /** Return to Parent
             Close write end of pipe as Parent only needs to read from pipe */
+        stdio_fdnames(stdio_names_str, "pick_engine.c 110");
         close(pipe_fd[P_WRITE]);
         /** Open a file pointer on read end of pipe */
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
+        stdio_fdnames(stdio_names_str, "pick_engine.c 115");
         pick->f_in_pipe = true;
         destroy_argv(s_argc, s_argv);
     } else {
@@ -119,6 +121,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
             pick->f_in_pipe = true;
         }
     }
+    stdio_fdnames(stdio_names_str, "pick_engine.c 122");
     if (!pick->f_in_pipe) {
         /** No provider_cmd specified, so read pick input from file or stdin */
         if (lstat(pick->in_spec, &sb) == -1) {
@@ -149,10 +152,11 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     read_pick_input(init);
     if (pick->f_in_pipe && pid > 0) {
         waitpid(pid, nullptr, 0);
-        close(pipe_fd[P_READ]);
         // restore_curses_tioctl();
         // sig_prog_mode();
     }
+    close(pipe_fd[P_READ]);
+    stdio_fdnames(stdio_names_str, "pick_engine.c 160");
     if (pick->m_cnt == 0) {
         Perror("No pick objects available");
         return (1);
@@ -931,9 +935,7 @@ int picker(Init *init, char *field) {
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 reverse_object(pick);
                 ui_top_panel(sfc, WIN);
-                ui_cursor_move(sfc, WIN, pick->y, pick->x);
-                ui_curs_set(2);
-                ui_render();
+                ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
                 in_key = ui_get_event_multi(sfc, WIN, &event, -1);
                 if (event.mouse_action != UI_MOUSE_NONE) {
                     ui_getmaxyx(sfc, WIN2, &maxy, &maxx);

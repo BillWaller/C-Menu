@@ -858,7 +858,7 @@ extern int wccp_to_str(wchar_t, uint8_t *);
 extern char *fdname(int, char *);
 extern char *stdio_names(char *, char *);
 extern char *stdio_fdnames(char *, char *);
-extern char stdio_names_str[MAXLEN];
+extern char stdio_names_str[4096];
 extern void check_panels(uint);
 extern int bare_box_new(uint, uint, uint, uint, char *);
 extern int win2_box_new(uint, uint, uint, uint, char *);

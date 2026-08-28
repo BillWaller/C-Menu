@@ -156,7 +156,7 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     if (timeout_ms < 0)
         do {
             notcurses_get_blocking(ui->nc, &ni);
-        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
+        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID || ni.id == NCKEY_SIGNAL);
     else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,

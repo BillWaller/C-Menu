@@ -324,8 +324,9 @@ int view_init_input(Init *init, char *file_name) {
         sig_prog_mode();
         ui_restore_wins();
         close(pipe_fd[P_WRITE]);
-        dup2(pipe_fd[P_READ], STDIN_FILENO);
+        // dup2(pipe_fd[P_READ], STDIN_FILENO);
         view->in_fd = dup(STDIN_FILENO);
+        dup2(pipe_fd[P_READ], STDIN_FILENO);
         view->f_in_pipe = true;
     } else {
         if (view->f_in_pipe)
@@ -417,11 +418,8 @@ int view_init_input(Init *init, char *file_name) {
     }
     close(view->in_fd);
     SIO *sio = init->sio;
-    stdio_names(stdio_names_str, "init_view.c 673");
-    stdio_fdnames(stdio_names_str, "init_view.c 674");
     dup2(sio->stdin_fd, STDIN_FILENO);
-    stdio_names(stdio_names_str, "init_view.c 673");
-    stdio_fdnames(stdio_names_str, "init_view.c 674");
+    stdio_fdnames(stdio_names_str, "init_view.c 422");
     view->file_size = sb.st_size;
     view->prev_file_pos = NULL_POSITION;
     view->buf_curr_ptr = view->buf;

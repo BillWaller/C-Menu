@@ -124,7 +124,7 @@ char *get_local_timestamp();
 char *get_user_str(char *, size_t);
 char *get_ip_addresses(char *, uint);
 char *fill_field(char *accept_s, char *display_s, char fill_char, uint flen);
-char stdio_names_str[MAXLEN];
+char stdio_names_str[4096];
 
 /** Global variables for error reporting */
 
@@ -1084,26 +1084,16 @@ char *stdio_fdnames(char *stdio_str, char *id) {
     if (!stdio_str)
         return nullptr;
     char buf[MAXLEN] = {'\0'};
-    ssnprintf(buf, MAXLEN - 1, "%s - ", id);
+    char buf0[MAXLEN] = {'\0'};
+    ssnprintf(buf, MAXLEN - 1, "%s: ", id);
     strnz__cpy(stdio_str, buf, MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(0, buf), MAXLEN - 1);
-    strnz__cat(stdio_str, ",", MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(1, buf), MAXLEN - 1);
-    strnz__cat(stdio_str, ",", MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(2, buf), MAXLEN - 1);
-    strnz__cat(stdio_str, ",", MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(3, buf), MAXLEN - 1);
-    strnz__cat(stdio_str, ",", MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(4, buf), MAXLEN - 1);
-    strnz__cat(stdio_str, ",", MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(5, buf), MAXLEN - 1);
-    strnz__cat(stdio_str, ",", MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(6, buf), MAXLEN - 1);
-    strnz__cat(stdio_str, ",", MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(7, buf), MAXLEN - 1);
-    strnz__cat(stdio_str, ",", MAXLEN - 1);
-    strnz__cat(stdio_str, fdname(8, buf), MAXLEN - 1);
-    return stdio_str;
+    for (int i = 0; i < 16; i++) {
+        if (fdname(i, buf0) != nullptr) {
+            ssnprintf(buf, 4095, " fd%d=%s", i, buf0);
+            strnz__cat(stdio_str, buf, MAXLEN - 1);
+            strnz__cat(stdio_str, ",", MAXLEN - 1);
+        }
+    }
     return stdio_str;
 }
 /**  @brief Returns the base name of a file specification.

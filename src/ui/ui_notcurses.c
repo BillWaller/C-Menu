@@ -307,8 +307,6 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
 
 int ui_surface_addpad(UiSurface *s, uint w, uint p, int lines, int cols) {
     uint y = 0, x = 0;
-    // if (s->mplane[p])
-    //     ncplane_dim_yx(s->mplane[p], &y, &x);
     ncplane_options plane_opts = {
         .y = y,
         .x = x,

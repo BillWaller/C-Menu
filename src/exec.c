@@ -44,9 +44,6 @@ int fork_detach_execvp(char **);
    top, update the screen, and restore the windows. */
 int full_screen_fork_exec(char **argv) {
     int rc;
-
-    fflush(stderr);
-    ui_wmove(stdsfc, WIN, LINES - 1, 0);
     rc = fork_exec(argv);
     return (rc);
 }

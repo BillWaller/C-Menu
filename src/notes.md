@@ -52,4 +52,18 @@ AI responses may include mistakes.
 [6] https://github.com/dankamongmen/notcurses/blob/master/doc/CURSES.md
 [7] https://notcurses.com/notcurses.3.html
 
+----------------------------------------------------
+     pipe_fd[P_READ]  11
+
+327  dup2(pipe_fd[P_READ], STDIN_FILENO);
+     view->in_fd = dup(STDIN_FILENO);
+
+     view->in_fd    11
+
+----------------------------------------------------
+
+view->in_fd = memfd_create("view_input", MFD_CLOEXEC);  11
+
+401 close(view->in_fd);
+
 
