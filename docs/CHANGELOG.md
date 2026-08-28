@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-27T22:25:46-05:00* - FEATURE: Uniform Abstraction Layer (UAL) for NCurses and Notcurses The prooject is coming along nicely, and I have been working on a uniform abstraction layer (UAL) that will allow the project to support both NCurses and Notcurses seamlessly. This will enable users to choose their preferred backend without any changes to the core functionality of the application. This library is not limited to C-Menu, but can be used in any project that would benefit from an upgrade from NCurses to Notcurses, that would benefit from supporting both Notcurses and NCurses. Use Notcurses on your high-powered desktop for rich feature support and NCurses for servers, legacy platforms, and embedded applications. 
+
+*2026-08-27T11:04:29-05:00* - Update CHANGELOG.md 
+
 *2026-08-27T10:58:32-05:00* - FEATURE: Uniform Abstract UI Backend Allows selection of different UI backends (currently NCurses and Notcurses) at runtime, enabling flexibility in UI rendering and input handling. The NCurses backend is fully functional, while the Notcurses basckend is still under development and may not support all features. The code is structured to facilitate the addition of new backends in the future, promoting modularity and maintainability. This feature enhances the user experience by providing a consistent interface across different terminal environments, while also allowing for backend-specific optimizations and capabilities. The implementation includes a unified interface for UI operations, abstracting away the details of the underlying backend, and ensuring that the application can operate seamlessly regardless of the chosen UI backend. This design choice not only improves code readability and maintainability but also allows for easier testing and debugging of UI components. 
 
 *2026-08-25T22:13:23-05:00* - Update CHANGELOG.md 
