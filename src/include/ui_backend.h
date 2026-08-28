@@ -377,23 +377,71 @@ int ui_draw_ch_yx(UiSurface *s, uint w, uint y, uint x, const char c);
 int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
 int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
+
+// ----------------
+// char
+// ----------------
+// waddch
+// mvwaddch
+// wechochar
+// ----------------
+// string char
+// ----------------
+// waddstr
+// mvwaddstr
+// waddnstr
+// mvwaddnstr
+// ----------------
+// chtype
+// ----------------
+// waddchstr
+// mvwaddchstr
+// waddchnstr
+// mvwaddchnstr
+// ----------------
+// wchar_t
+// ----------------
+// waddwstr
+// mvwaddwstr
+// waddnwstr
+// mvwaddnwstr
+// ----------------
+// cchar_t
+// ----------------
+// wadd_wchstr
+// mvwadd_wchstr
+// wadd_wchnstr
+// mvwadd_wchnstr
+
+int ui_getch();
+int ui_waddch(UiSurface *s, uint w, const char c);
 int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c);
+
 int ui_waddstr(UiSurface *s, uint w, const char *text);
 int ui_waddnstr(UiSurface *s, uint w, const char *text, int m);
-int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
-int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *str, int m);
 int ui_mvwaddnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
 int ui_mvwaddnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
+
 int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr);
 int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr);
 int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int m);
 int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int m);
-int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
-int ui_mvwadd_style(UiSurface *s, uint w, uint y, uint x, const UiStyle *style);
-int ui_mvwadd_mbstr(UiSurface *s, uint w, uint y, uint x, const char *text);
-int ui_mvwadd_mbnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
-int ui_mvwadd_mbnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
+
+// int ui_wadd_chstr(UiSurface *s, uint w, uint y, uint x, const chtype *chstr);
+// int ui_mvwadd_chstr(UiSurface *s, uint w, uint y, uint x, const chtype
+// *chstr);
+// int ui_wadd_chnstr(UiSurface *s, uint w, const chtype *cell);
+// int ui_mvwadd_chnstr(UiSurface *s, uint w, uint y, uint x, const chtype
+// *chstr);
+
+int ui_waddwch(UiSurface *s, uint w, const UiCell *cell);
+int ui_mvwaddwch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
+int ui_waddwchstr(UiSurface *s, uint w, const UiCell *cell);
+int ui_mvwaddwchstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
+int ui_waddwchnstr(UiSurface *s, uint w, const UiCell *cell, uint m);
+int ui_mvwaddwchnstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell, uint m);
+
 int ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom);
 int ui_scrollok(UiSurface *s, uint w, bool enable);
 int ui_keypad(UiSurface *s, uint w, bool enable);
@@ -438,6 +486,7 @@ int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t style, ushort pa
 int ui_init_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b);
 int ui_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b);
 int ui_init_pair(uint16_t pair, uint fg, uint bg);
+uint64_t ui_get_channels_from_pair(uint16_t pair);
 uint ui_init_color_hex(char *s);
 int ui_pair_content(uint16_t pair, uint *fg, uint *bg);
 int ui_get_pair(uint16_t pair, uint *fg, uint *bg);
@@ -447,30 +496,6 @@ uint ui_add_color_hex(char *s);
 int ui_wch_to_utf8(const wchar_t fill_ch);
 int ui_get_nccell(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair);
 int ui_set_nccell(UiCell *cell, const wchar_t *wstr, const UiStyle *style, ushort *pair);
-int ui_wadd_cell(UiSurface *s, uint w, UiCell *cell);
-int ui_mvwadd_cell(UiSurface *s, uint w, uint y, uint x, UiCell *cell);
-
-int ui_wadd_cellnstr(UiSurface *s, uint w, UiCell *cell, uint m);
-int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell);
-int ui_mvwadd_cellstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell);
-int ui_mvwadd_cellnstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell, uint m);
-
-int ui_waddwch(UiSurface *s, uint w, const UiCell *cell);
-int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
-
-int ui_wadd_wchstr(UiSurface *s, uint w, UiCell *cell);
-int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell);
-int ui_wadd_wchnstr(UiSurface *s, uint w, UiCell *cell, uint m);
-
-int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, UiCell *cell, uint m);
-uint64_t ui_get_channels_from_pair(uint16_t pair);
-int ui_compose_nccell(UiCell *cell,
-                      const wchar_t *wstr,
-                      const UiStyle *style);
-int ui_decompose_nccell(UiCell *cell, wchar_t *wstr, UiStyle *style, uint64_t *channels);
-int ui_compose_uicell(UiCell *cell, const uint32_t gcluster, UiCell *cell);
-int ui_decompose_uicell(UiCell *cell, wchar_t *wstr, uint64_t *channels);
-int ui_ncurses_apply_style_from_cell(UiSurface *s, uint w, const UiCell *cell);
 uint get_plane_idx(UiSurface *s, NcPlane *n);
 NcPlane *ncplane_clicked(UiSurface *s, uint w, ncinput *ni);
 uint ui_getmaxx(UiSurface *s, uint w);
@@ -484,7 +509,6 @@ int ui_init_color(uint color, uint r, uint g, uint b);
 int ui_color_content(uint color, uint *r, uint *g, uint *b);
 int ui_init_pair(uint pair, uint fg, uint bg);
 int ui_pair_content(uint pair, uint *fg, uint *bg);
-int ui_channels_from_pair(uint pair, union UiChannels *ui_channels);
 uint ui_add_pair(uint fg, uint bg);
 int ui_chg_pair(uint pair, uint fg, uint bg);
 int ui_get_pair(uint pair, uint *fg, uint *bg);

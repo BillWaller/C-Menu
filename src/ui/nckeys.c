@@ -42,8 +42,11 @@ typedef struct NcSurface NcSurface;
 uint64_t channels = 0;
 NcSurface nc_surface[MAXSFC];
 
+NotCurses *nc;
+
 int sfc_ptr = -1;
 
+int ui_getch();
 RGB hex_clr_str_to_rgb(char *s);
 char *notcurses_key_str(unsigned int, char *);
 void ncplane_printf_yx_clrtoeol(NcPlane *n, int y, int x, const char *fmt, ...);
@@ -61,13 +64,14 @@ NotCurses *ui_notcurses_init() {
     setlocale(LC_ALL, "");
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_QUIT_SIGHANDLERS};
-    NotCurses *nc = notcurses_init(&nc_opts, NULL);
+    nc = notcurses_init(&nc_opts, NULL);
     if (!nc) {
         return NULL;
     }
     NcPlane *stdn = notcurses_stdplane(nc);
     ncplane_erase(stdn);
     notcurses_render(nc);
+    int c = ui_getch();
     return nc;
 }
 
@@ -246,6 +250,12 @@ int handle_input(NotCurses *nc, int y, int x, ncinput *ni) {
         notcurses_render(nc);
     }
     return 0;
+}
+
+int ui_getch() {
+    ncinput ni;
+    notcurses_get_blocking(nc, &ni);
+    return ni.id;
 }
 
 void ncplane_printf_yx_clrtoeol(NcPlane *n, int y, int x, const char *fmt, ...) {

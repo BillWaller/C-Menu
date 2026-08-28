@@ -583,19 +583,23 @@ int border_draw(UiSurface *sfc) {
     uint maxx = ui_getmaxx(sfc, BOX);
     uint y = 0;
     uint x = 0;
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_tl, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_tl, 1);
     ui_render();
     for (x = 1; x < maxx - 1; x++)
-        ui_mvwadd_cellnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_tr, 1);
+        ui_mvwaddwchnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_render();
+    ui_mvwaddwchnstr(sfc, BOX, y, maxx - 1, &cell_tr, 1);
+    ui_render();
     for (y = 1; y < maxy - 1; y++) {
-        ui_mvwadd_cellnstr(sfc, BOX, y, 0, &cell_ve, 1);
-        ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_ve, 1);
+        ui_mvwaddwchnstr(sfc, BOX, y, 0, &cell_ve, 1);
+        ui_render();
+        ui_mvwaddwchnstr(sfc, BOX, y, maxx - 1, &cell_ve, 1);
+        ui_render();
     }
-    ui_mvwadd_cellnstr(sfc, BOX, y, 0, &cell_bl, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, 0, &cell_bl, 1);
     for (x = 1; x < maxx - 1; x++)
-        ui_mvwadd_cellnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_br, 1);
+        ui_mvwaddwchnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, maxx - 1, &cell_br, 1);
     ui_render();
     return 0;
 }
@@ -612,10 +616,10 @@ int border_draw(UiSurface *sfc) {
    and content area. */
 int border_ysplit(UiSurface *sfc, uint y) {
     uint maxx = ui_getmaxx(sfc, BOX);
-    ui_mvwadd_cellnstr(sfc, BOX, y, 0, &cell_lt, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, 0, &cell_lt, 1);
     for (uint x = 1; x < maxx - 1; x++)
-        ui_mvwadd_cellnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, maxx - 1, &cell_rt, 1);
+        ui_mvwaddwchnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, maxx - 1, &cell_rt, 1);
     return 0;
 }
 /** border_ysplit_text
@@ -638,10 +642,10 @@ int border_ysplit_text(UiSurface *sfc, char *text, uint separator_line) {
     // Draw the horizontal line with text in the middle, so we start by drawing
     // the left edge, then the text, then the right edge, and finally fill in the
     // horizontal line on either side of the text.
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_lt, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_ho, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_rt, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_lt, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_ho, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_rt, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_sp, 1);
     strnz(text, maxx - 7);
     wchar_t *text_wc;
     text_wc = mbstr_to_wcstr(text);
@@ -651,12 +655,12 @@ int border_ysplit_text(UiSurface *sfc, char *text, uint separator_line) {
     x += l;
     l = min(l, maxx - 7);
     free(text_wc);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_lt, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_lt, 1);
 
     while (x < maxx - 1)
-        ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_ho, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_rt, 1);
+        ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_ho, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_rt, 1);
     return 0;
 }
 /** border_title
@@ -676,9 +680,9 @@ int border_title(UiSurface *sfc, char *title) {
     uint x = 0;
     uint l;
     uint maxx = ui_getmaxx(sfc, BOX);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_tl, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_rt, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_tl, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_rt, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_sp, 1);
     wchar_t *title_wc;
     title_wc = mbstr_to_wcstr(title);
     l = wcswidth(title_wc, wcslen(title_wc));
@@ -688,10 +692,10 @@ int border_title(UiSurface *sfc, char *title) {
     ui_bkgdset(sfc, BOX, &cell_box);
     x += l;
     free(title_wc);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_lt, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_lt, 1);
     while (x < maxx - 1)
-        ui_mvwadd_cellnstr(sfc, BOX, y, x++, &cell_ho, 1);
+        ui_mvwaddwchnstr(sfc, BOX, y, x++, &cell_ho, 1);
     ui_render();
     return 0;
 }
@@ -1160,7 +1164,7 @@ void display_chyron(UiSurface *sfc, uint w, Chyron *chyron, uint line, uint col)
     ui_wmove(sfc, w, line, 0);
     ui_wclrtoeol(sfc, w);
     ui_wmove(sfc, w, line, 0);
-    ui_mvwadd_cellstr(sfc, w, line, 0, chyron->cmplx_buf);
+    ui_mvwaddwchstr(sfc, w, line, 0, chyron->cmplx_buf);
     ui_wmove(sfc, w, line, col);
     return;
 }

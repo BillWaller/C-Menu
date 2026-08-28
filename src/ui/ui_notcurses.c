@@ -61,8 +61,7 @@ const wchar_t *bw_lan = L"\x276E"; /**< left_angle */
 const wchar_t *bw_chk = L"\x2611"; /**< left_angle */
 const wchar_t *bw_h09 = L"\x23BD"; /**< horizontal line 9 */
 
-STDRGB std_color[] = {
-    STDRGB std_color[16] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
+STDRGB std_color[] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
 
 /* -------------------------------------------------------------------------
    Backend identification and capability query
@@ -114,10 +113,9 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     }
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS |
-                 NCOPTION_NO_QUIT_SIGHANDLERS |
-                 NCOPTION_NO_ALTERNATE_SCREEN |
-                 NCOPTION_PRESERVE_CURSOR,
-        .loglevel = NCLOGLEVEL_SILENT,
+                 NCOPTION_NO_QUIT_SIGHANDLERS
+        //               NCOPTION_PRESERVE_CURSOR,
+        //      .loglevel = NCLOGLEVEL_SILENT,
     };
     ui->nc = notcurses_init(&nc_opts, ui->tty_fp);
     if (ui->nc == NULL) {
@@ -302,20 +300,8 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
                      0,
                      cell_box.channels);
     ncplane_set_channels(s->mplane[BOX], cell_box.channels);
-    ncplane_perimeter_rounded(s->mplane[BOX], 0, cell_box.channels, 0);
-
-    // Title
-    if (wtitle && strlen(wtitle)) {
-        x = 1;
-        ncplane_putc_yx(s->mplane[BOX], 0, x++, &cell_rt);
-        ncplane_putc_yx(s->mplane[BOX], 0, x++, &cell_sp);
-        ui_bkgdset(s, BOX, &cell_title);
-        x += ncplane_putstr_yx(s->mplane[BOX], 0, x, wtitle);
-        ui_bkgdset(s, BOX, &cell_box);
-        ncplane_putc_yx(s->mplane[BOX], 0, x++, &cell_sp);
-        ncplane_putc_yx(s->mplane[BOX], 0, x++, &cell_lt);
-        ui_render();
-    }
+    border_draw(s);
+    border_title(s, wtitle);
     return s;
 }
 
@@ -492,7 +478,6 @@ int ui_curs_set(int visible) {
         int y, x;
         notcurses_cursor_yx(ui->nc, &y, &x);
         int rc = notcurses_cursor_enable(ui->nc, y, x);
-        // == 0 ? 0 : -1;
         return rc;
     }
     return 0;
@@ -513,7 +498,8 @@ int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
         y += yy;
         x += xx;
         ui->cursor_visible = true;
-        return notcurses_cursor_enable(ui->nc, y, x) == 0 ? 0 : -1;
+        int rc = notcurses_cursor_enable(ui->nc, y, x);
+        return rc;
     }
     return 0;
 }
@@ -652,11 +638,13 @@ int ui_wscrl(UiSurface *s, uint w, uint r) {
     return 0;
 }
 int ui_top_panel(UiSurface *s, uint w) {
+    (void)w;
     if (!s)
         return -1;
     return 0;
 }
 int ui_wnoutrefresh(UiSurface *s, uint w) {
+    (void)w;
     if (!s)
         return -1;
     return 0;
@@ -700,6 +688,7 @@ int ui_setcchar(UiCell *cell, const wchar_t *wstr, const uint16_t style, ushort 
     GCluster *gc = (GCluster *)&cell->gcluster;
     gc->u16[0] = wstr[0];
     gc->u16[1] = wstr[1];
+    cell->width = wcwidth((wchar_t)*wstr);
     nccell_set_styles(cell, style);
     UiChannels *chan = (UiChannels *)&cell->channels;
     ui_get_pair(pair, &fg, &bg);
@@ -710,14 +699,15 @@ int ui_setcchar(UiCell *cell, const wchar_t *wstr, const uint16_t style, ushort 
     return 0;
 }
 
-UiCell ui_cell_from_ucp(const uint32_t ucp, const uint32_t *fg, const uint32_t *bg) {
+UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *bg) {
     nccell cell;
     nccell_init(&cell);
     GCluster *gc = (GCluster *)&cell.gcluster;
+    wchar_t wstr[2] = {ucp[0], L'\0'};
     // wcwidth expects Unicode codepoints, not UTF-8 encoded bytes
-    cell.width = wcwidth((wchar_t)ucp);
+    cell.width = wcwidth(wstr[0]);
     // unicode_to_utf8_gcluster converts Unicode codepoints to UTF-8
-    unicode_to_utf8_gcluster(ucp, gc);
+    unicode_to_utf8_gcluster(wstr[0], gc);
     nccell_set_styles(&cell, WA_NORMAL);
     UiChannels *chan = (UiChannels *)&cell.channels;
     chan->bargb = *bg;

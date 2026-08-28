@@ -70,6 +70,7 @@ struct UiRuntime {
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
+    char border_style;
     unsigned int lines;
     unsigned int cols;
     FILE *tty_fp;

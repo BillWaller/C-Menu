@@ -44,13 +44,8 @@ int main(int argc, char **argv) {
     char pgm_name[MAXLEN];
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
-    SIO *sio = init->sio;
     mapp_initialization(init, argc, argv);
-    rc = atexit(end_pgm);
-    if (rc != 0) {
-        fprintf(stderr, "\nCannot set exit function\n");
-        exit(EXIT_FAILURE);
-    }
+    SIO *sio = init->sio;
     UiConfig *ui_config = calloc(1, sizeof(UiConfig));
     ui_config->enable_mouse = true;
     ui_config->enable_alt_screen = false;
@@ -58,6 +53,11 @@ int main(int argc, char **argv) {
     ui_config->border_style = sio->border;
     ui_init(ui_config);
     initialize_cells(sio);
+    rc = atexit(end_pgm);
+    if (rc != 0) {
+        fprintf(stderr, "\nCannot set exit function\n");
+        exit(EXIT_FAILURE);
+    }
     sig_prog_mode();
     capture_curses_tioctl();
     base_name(pgm_name, argv[0]);

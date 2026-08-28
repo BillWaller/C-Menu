@@ -43,6 +43,7 @@ struct termios shell_err_tioctl, curses_err_tioctl;
 bool capture_shell_tioctl() {
     if (f_have_shell_tioctl)
         return true;
+    fflush(NULL);
     tcgetattr(0, &shell_in_tioctl);
     tcgetattr(1, &shell_out_tioctl);
     tcgetattr(2, &shell_err_tioctl);
@@ -56,6 +57,7 @@ bool capture_shell_tioctl() {
 bool restore_shell_tioctl() {
     if (!f_have_shell_tioctl)
         return false;
+    fflush(NULL);
     tcsetattr(0, TCSANOW, &shell_in_tioctl);
     tcsetattr(1, TCSANOW, &shell_out_tioctl);
     tcsetattr(2, TCSANOW, &shell_err_tioctl);
@@ -68,6 +70,7 @@ bool restore_shell_tioctl() {
 bool capture_curses_tioctl() {
     if (f_have_curses_tioctl)
         return true;
+    fflush(NULL);
     tcgetattr(0, &curses_in_tioctl);
     tcgetattr(1, &curses_out_tioctl);
     tcgetattr(2, &curses_err_tioctl);
@@ -81,6 +84,7 @@ bool capture_curses_tioctl() {
 bool restore_curses_tioctl() {
     if (!f_have_curses_tioctl)
         return false;
+    fflush(NULL);
     tcsetattr(0, TCSANOW, &curses_in_tioctl);
     tcsetattr(1, TCSANOW, &curses_out_tioctl);
     tcsetattr(2, TCSANOW, &curses_err_tioctl);
@@ -93,6 +97,7 @@ bool restore_curses_tioctl() {
     @return - true on success
      @details - sets terminal to sane settings for C-MENU applications */
 bool set_sane_tioctl(struct termios *t_p) {
+    fflush(NULL);
     tcgetattr(0, t_p);
     t_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP | INLCR |
                       IGNCR | ICRNL | IXON | IXOFF);
@@ -102,6 +107,7 @@ bool set_sane_tioctl(struct termios *t_p) {
     t_p->c_lflag |= (ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK);
     t_p->c_cflag &= ~(CSIZE | PARENB);
     t_p->c_cflag |= CS8 | CLOCAL | CREAD;
+    fflush(NULL);
     tcsetattr(0, TCSANOW, t_p);
     return true;
 }
@@ -124,17 +130,21 @@ bool set_sane_tioctl(struct termios *t_p) {
     @endcode
    */
 bool mk_raw_tioctl(struct termios *t_p) {
+    fflush(NULL);
     tcgetattr(0, t_p);
     t_p->c_lflag |= ISIG;
     t_p->c_lflag &= ~(ECHO | ICANON);
     t_p->c_cc[VMIN] = 1;
     t_p->c_cc[VTIME] = 0;
+    fflush(NULL);
     tcsetattr(0, TCSAFLUSH, t_p);
+    fflush(NULL);
     tcgetattr(2, t_p);
     t_p->c_lflag |= ISIG;
     t_p->c_lflag &= ~(ECHO | ICANON);
     t_p->c_cc[VMIN] = 1;
     t_p->c_cc[VTIME] = 0;
+    fflush(NULL);
     tcsetattr(2, TCSAFLUSH, t_p);
     return true;
 }
@@ -149,6 +159,7 @@ char di_getch() {
     struct termios org_tioctl, new_tioctl;
     char buf;
 
+    fflush(NULL);
     if (tcgetattr(2, &org_tioctl) == -1) {
         fprintf(stderr, "\ndi_getch: tcgetattr failed\n");
         return (0);
@@ -157,8 +168,10 @@ char di_getch() {
     new_tioctl.c_lflag &= ~(ECHO | ICANON);
     new_tioctl.c_cc[VMIN] = 1;
     new_tioctl.c_cc[VTIME] = 0;
+    fflush(NULL);
     tcsetattr(2, TCSAFLUSH, &new_tioctl);
     read(2, &buf, 1);
+    fflush(NULL);
     tcsetattr(2, TCSAFLUSH, &org_tioctl);
     return (buf);
 }

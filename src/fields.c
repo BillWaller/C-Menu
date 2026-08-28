@@ -353,7 +353,7 @@ int form_display_field_n(Form *form, uint n) {
 }
 void display_field(UiCell *cmplx_buf, uint y, uint x) {
     UiSurface *sfc = ui_surface[sfc_ptr];
-    ui_mvwadd_cellstr(sfc, WIN, y, x, cmplx_buf);
+    ui_mvwaddwchstr(sfc, WIN, y, x, cmplx_buf);
 }
 /** @brief Display current field
     @ingroup field_editor
@@ -374,13 +374,13 @@ int form_display_field(Form *form) {
     uint pos = 0;
     mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
-    ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
+    ui_mvwaddwchnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     ui_render();
 
     pos = 0;
     mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
-    ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
+    ui_mvwaddwchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
     ui_render();
     return 0;
 }
@@ -391,13 +391,13 @@ int form_display_accept_field(Form *form) {
     uint pos = 0;
     mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
-    ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
+    ui_mvwaddwchnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     ui_render();
 
     pos = 0;
     mbstr_to_cellstr(form->field[form->fidx]->accept_cc, form->field[form->fidx]->accept_s, &cell_nt, &pos,
                      form->field[form->fidx]->len + 1);
-    ui_mvwadd_cellnstr(sfc, WIN, y, x, form->field[form->fidx]->accept_cc, form->field[form->fidx]->len);
+    ui_mvwaddwchnstr(sfc, WIN, y, x, form->field[form->fidx]->accept_cc, form->field[form->fidx]->len);
     ui_render();
     return 0;
 }

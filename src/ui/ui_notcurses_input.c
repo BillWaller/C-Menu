@@ -106,7 +106,7 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
-    ui_cursor_enable(s, w, true);
+    // ui_cursor_enable(s, w, true);
     // tcflush(0, TCIFLUSH);
     if (timeout_ms < 0) {
         do {
@@ -121,7 +121,7 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
             notcurses_get(ui->nc, &ts, &ni);
         } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
     }
-    notcurses_cursor_disable(ui->nc);
+    // notcurses_cursor_disable(ui->nc);
     ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
@@ -166,7 +166,7 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
             notcurses_get(ui->nc, &ts, &ni);
         } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
     }
-    notcurses_cursor_disable(ui->nc);
+    // notcurses_cursor_disable(ui->nc);
     ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
@@ -193,6 +193,14 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     return ni.id;
 }
 
+int ui_getch() {
+    if (!ui)
+        return -1;
+    ncinput ni;
+    notcurses_get_blocking(ui->nc, &ni);
+    return ni.id;
+}
+
 int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
     (void)target;
     (void)w;
@@ -200,10 +208,10 @@ int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
         return -1;
     memset(ev, 0, sizeof(*ev));
     ncinput ni;
-    notcurses_mice_disable(ui->nc);
+    // notcurses_mice_disable(ui->nc);
     do {
         notcurses_get_blocking(ui->nc, &ni);
-    } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
+    } while (ni.id == NCKEY_INVALID);
     ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
