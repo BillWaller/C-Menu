@@ -60,6 +60,7 @@ in_spec=                           # input spec
 out_spec=                          # output spec
 receiver_cmd=                      # execute receiver of piped output
 provider_cmd=                      # execute provider of piped input
+border=h                           # rounded, single, double, heavy, none
 f_erase_remainder=true             # erase remainder of line on enter
 fill_char=_                        # field fill_char
 f_strip_ansi=false                 # always strip ansi when writing
