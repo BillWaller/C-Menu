@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-27T23:53:32-05:00* - FIX: Uniform Abstraction Layer for UI Backends The previous commit didn't include the updates to the NCurses backend, which caused inconsistencies in the UI rendering. This commit ensures that both the Notcurses and NCurses backends adhere to the same abstraction layer, providing a consistent user experience across different terminal environments. 
+
+*2026-08-27T22:41:38-05:00* - Update CHANGELOG.md 
+
 *2026-08-27T22:40:22-05:00* - CONFIGURATION: Added border styles, single, rounded, double, heavy, and none. Also updated the default themes with more tolerable colors. 
 
 *2026-08-27T22:32:26-05:00* - Update CHANGELOG.md 
