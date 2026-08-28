@@ -150,24 +150,48 @@ int ui_mvwaddnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, i
 // ---------------------------------------------------------------------------
 // Wide Characters
 // ---------------------------------------------------------------------------
+int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr) {
+    if (!s || !wstr)
+        return -1;
+    while (*wstr != L'\0')
+        ncplane_putwc_yx(s->mplane[w], -1, -1, *wstr++);
+    return 0;
+}
+int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr) {
+    if (!s || !wstr)
+        return -1;
+    while (*wstr != L'\0')
+        ncplane_putwc_yx(s->mplane[w], y, x++, *wstr++);
+    return 0;
+}
 int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int m) {
     if (!s || !wstr)
         return -1;
-    wchar_t wc;
-    for (int i = 0; i < m && wstr[i] != L'\0'; i++) {
-        wc = wstr[i];
-        ncplane_putwc_yx(s->mplane[w], -1, -1, wc);
+    int cols = 0;
+    int width;
+    while (*wstr != L'\0') {
+        width = wcwidth(*wstr);
+        if (width < 0)
+            width = 0;
+        if (cols + width > m)
+            break;
+        ncplane_putwc_yx(s->mplane[w], -1, -1, *wstr++);
     }
     return 0;
 }
 int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int m) {
     if (!s || !wstr)
         return -1;
-    ncplane_cursor_move_yx(s->mplane[w], y, x);
-    wchar_t wc;
-    for (int i = 0; i < m && wstr[i] != L'\0'; i++) {
-        wc = wstr[i];
-        ncplane_putwc_yx(s->mplane[w], -1, -1, wc);
+    int cols = 0;
+    int width;
+    while (*wstr != L'\0') {
+        width = wcwidth(*wstr);
+        if (width < 0)
+            width = 0;
+        if (cols + width > m)
+            break;
+        ncplane_putwc_yx(s->mplane[w], y, x++, *wstr++);
+        cols += wcwidth(*wstr);
     }
     return 0;
 }

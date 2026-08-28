@@ -418,10 +418,12 @@ int ui_waddch(UiSurface *s, uint w, const char c);
 int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c);
 
 int ui_waddstr(UiSurface *s, uint w, const char *text);
+int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
+int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_waddnstr(UiSurface *s, uint w, const char *text, int m);
 int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text);
+int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *str, int m);
 int ui_mvwaddnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
-int ui_mvwaddnstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
 
 int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr);
 int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr);
@@ -435,12 +437,12 @@ int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, in
 // int ui_mvwadd_chnstr(UiSurface *s, uint w, uint y, uint x, const chtype
 // *chstr);
 
-int ui_waddwch(UiSurface *s, uint w, const UiCell *cell);
-int ui_mvwaddwch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
-int ui_waddwchstr(UiSurface *s, uint w, const UiCell *cell);
-int ui_mvwaddwchstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
-int ui_waddwchnstr(UiSurface *s, uint w, const UiCell *cell, uint m);
-int ui_mvwaddwchnstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell, uint m);
+int ui_wadd_wch(UiSurface *s, uint w, const UiCell *cell);
+int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
+int ui_wadd_wchstr(UiSurface *s, uint w, const UiCell *cell);
+int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell);
+int ui_wadd_wchnstr(UiSurface *s, uint w, const UiCell *cell, uint m);
+int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell, uint m);
 
 int ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom);
 int ui_scrollok(UiSurface *s, uint w, bool enable);
