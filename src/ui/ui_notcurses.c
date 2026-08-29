@@ -308,21 +308,21 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     return s;
 }
 
-int ui_surface_addpad(UiSurface *s, uint w, uint p, uint lines, uint cols) {
+int ui_surface_addpad(UiSurface *s, uint w, uint p, uint lines, uint cols, uint begy, uint begx) {
     uint plines, pcols;
     ncplane_dim_yx(s->mplane[p], &plines, &pcols);
     pcols = min(pcols, cols);
     plines = min(plines, lines);
     ncplane_options plane_opts = {
-        .y = 0,
-        .x = 0,
-        .rows = plines,
-        .cols = pcols,
+        .y = begy,
+        .x = begx,
+        .rows = plines - begy,
+        .cols = pcols - begx,
         .name = NULL};
-    s->meta[w].y = 0;
-    s->meta[w].x = 0;
-    s->meta[w].lines = plines;
-    s->meta[w].cols = pcols;
+    s->meta[w].y = begy;
+    s->meta[w].x = begx;
+    s->meta[w].lines = plines - begy;
+    s->meta[w].cols = pcols - begx;
     s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
     if (!s->mplane[w]) {

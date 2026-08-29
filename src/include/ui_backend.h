@@ -349,7 +349,7 @@ int ui_resume();
 UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x);
 UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *title);
 int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x);
-int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols);
+int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols, uint begy, uint begx);
 void ui_surface_destroy(UiSurface *s);
 int ui_wresize(UiSurface *s, uint w, uint lines, uint cols);
 int ui_wclear(UiSurface *s, uint w);

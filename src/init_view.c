@@ -81,7 +81,7 @@ int init_view_full_screen(Init *init) {
     ui_scrollok(view->sfc, CMDLN, false);
     // -------------------> 4. PAD <-------------------
 
-    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1);
+    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
 
     // ------------------------------------------------
     return 0;
@@ -165,7 +165,7 @@ int init_view_boxwin(Init *init) {
     ui_idcok(view->sfc, CMDLN, false);
     ui_scrollok(view->sfc, CMDLN, false);
     // -------------------> 4. PAD <-------------------
-    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1);
+    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
     // ------------------------------------------------
     return (0);
 }
