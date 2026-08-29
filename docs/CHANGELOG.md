@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-28T22:02:51-05:00* - FEATURE UPDATE: Uniform Abstraction Layer for UI Backends If you are considering an upgrade from NCurses to Notcurses, you will find everything you need in this package. We will soon be finished with the implementation of the Uniform Abstraction Layer for NCurses and Notcurses. Basically, you just change the names of your NCurses function calls by adding the prefix "ui_". And that's not all. We have added high-level functions for initialization, drawing, and surface management. We have tamed some of the unwieldy aspects of Notcurses and incorporated convenience features such as color and color pair management as well as input handling. The new UI backend is designed to be compatible with both NCurses and Notcurses, allowing you to switch between the two libraries without having to rewrite your code. Our goal is to deliver the advanced features of Notcurses while maintaining the simplicity and reliability of NCurses. We are confident that this new UI backend will provide a seamless experience for developers looking to upgrade their applications. We are excited to share this update with you and look forward to your feedback. Thank you for your continued support. 
+
+*2026-08-28T15:03:27-05:00* - Update CHANGELOG.md 
+
 *2026-08-28T15:03:08-05:00* - ISSUE: Notcurses input handling 
 
 *2026-08-28T14:58:44-05:00* - Update CHANGELOG.md 
