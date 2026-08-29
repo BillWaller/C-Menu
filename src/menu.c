@@ -42,7 +42,7 @@ static void end_pgm(void) {
 int main(int argc, char **argv) {
     int rc;
     char pgm_name[MAXLEN];
-    // capture_shell_tioctl();
+    capture_shell_tioctl();
     Init *init = new_init(argc, argv);
     mapp_initialization(init, argc, argv);
     SIO *sio = init->sio;

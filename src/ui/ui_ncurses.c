@@ -506,7 +506,7 @@ void fast_exit(UiSurface *s) {
     endwin();
     exit(EXIT_SUCCESS);
 }
-int ui_surface_addpad(UiSurface *s, uint w, uint view_win, int lines, int cols) {
+int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols) {
     s->mwin[w] = newpad(lines, cols);
     if (s->mwin[w] == nullptr)
         return -1;

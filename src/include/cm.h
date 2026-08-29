@@ -624,8 +624,10 @@ extern uint mg_col;    /**< window column, which can be used to determine the
                          or other content. */
 extern uint mg_line;   /**< window line, which can be used to determine the current line
                   position in the window for displaying text or other content. */
-extern int tty_fd;     /**< the file descriptor for the terminal, for error messages
-                          and other output */
+extern int stdin_fd;   /**< the file descriptor for the terminal, for error messages */
+extern int stdout_fd;  /**< the file descriptor for the terminal, for error messages */
+extern int stderr_fd;  /**< the file descriptor for the terminal, for error messages
+                        and other output */
 extern uint
     dbgfd;               /**< the file descriptor for debug output, for debugging purposes */
 extern uint src_line;    /**< the line number of the source file being processed,

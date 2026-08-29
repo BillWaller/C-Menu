@@ -173,6 +173,7 @@ typedef struct {
     off_t mark_tbl[NMARKS];           /**< not implemented */
     bool f_in_pipe;                   /**< input is from a pipe */
     int in_fd;                        /**< input file descriptor */
+    int tmp_fd;                       /**< temporary file descriptor */
     int out_fd;                       /**< output file descriptor */
     FILE *in_fp;                      /**< pointer to input stream data structure */
     int stdin_fd;                     /**< standard input file descriptor */

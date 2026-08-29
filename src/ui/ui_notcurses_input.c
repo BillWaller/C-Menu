@@ -12,6 +12,7 @@
 #include <string.h>
 #include <termios.h>
 
+int ui_get_event_multix(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
 /* -------------------------------------------------------------------------
    Key translation
    ------------------------------------------------------------------------- */
@@ -110,8 +111,12 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     // tcflush(0, TCIFLUSH);
     if (timeout_ms < 0) {
         do {
-            notcurses_get(ui->nc, NULL, &ni);
-        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
+            // notcurses_get(ui->nc, NULL, &ni);
+            notcurses_get_blocking(ui->nc, &ni);
+        } while (ni.evtype == NCTYPE_RELEASE ||
+                 ni.id == NCKEY_INVALID ||
+                 ni.id == NCKEY_MOTION ||
+                 ni.id == NCKEY_SIGNAL);
     } else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
@@ -143,16 +148,41 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     return ni.id;
 }
 
+int ui_getch() {
+    if (!ui)
+        return -1;
+    ncinput ni;
+    do {
+        notcurses_get(ui->nc, NULL, &ni);
+    } while (ni.evtype == NCTYPE_RELEASE ||
+             ni.id == NCKEY_INVALID ||
+             ni.id == NCKEY_MOTION ||
+             ni.id == NCKEY_SIGNAL);
+    return ni.id;
+}
+
+int ui_get_event_multix(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
+    (void)timeout_ms;
+    (void)ev;
+    (void)w;
+    (void)s;
+    if (!ui)
+        return -1;
+    ncinput ni;
+    do {
+        // notcurses_get_blocking(ui->nc, &ni);
+        notcurses_get(ui->nc, NULL, &ni);
+    } while (ni.evtype == NCTYPE_RELEASE ||
+             ni.id == NCKEY_INVALID ||
+             ni.id == NCKEY_MOTION ||
+             ni.id == NCKEY_SIGNAL);
+    return ni.id;
+}
 int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
-
     ncinput ni;
-    // int y, x;
-    // notcurses_cursor_yx(ui->nc, &y, &x);
-    // notcurses_cursor_enable(ui->nc, y, x);
-    notcurses_render(ui->nc);
     if (timeout_ms < 0)
         do {
             notcurses_get(ui->nc, NULL, &ni);
@@ -193,14 +223,6 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
         ev->mouse_action = UI_MOUSE_PRESS;
     else if (ni.evtype == NCTYPE_RELEASE)
         ev->mouse_action = UI_MOUSE_RELEASE;
-    return ni.id;
-}
-
-int ui_getch() {
-    if (!ui)
-        return -1;
-    ncinput ni;
-    notcurses_get_blocking(ui->nc, &ni);
     return ni.id;
 }
 

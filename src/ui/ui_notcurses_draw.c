@@ -142,7 +142,7 @@ int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *text, in
             tmp_str[i] = ' ';
         }
         tmp_str[m] = '\0';
-        ncplane_putnstr_yx(s->mplane[w], y, x, m, text);
+        ncplane_putnstr_yx(s->mplane[w], y, x, m, tmp_str);
         free(tmp_str);
     }
     return 0;

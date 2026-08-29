@@ -261,6 +261,7 @@ typedef struct {
     uint8_t g;
     uint8_t b;
 } STDRGB;
+extern NcPlane *stdplane;
 extern UiSurface *stdsfc;
 extern uint LINES, COLS;
 #define CELL_CHAR_INITIALIZER(c) { \
@@ -348,7 +349,7 @@ int ui_resume();
 UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x);
 UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *title);
 int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x);
-int ui_surface_addpad(UiSurface *s, uint w, uint view_win, int lines, int cols);
+int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols);
 void ui_surface_destroy(UiSurface *s);
 int ui_wresize(UiSurface *s, uint w, uint lines, uint cols);
 int ui_wclear(UiSurface *s, uint w);
@@ -367,7 +368,7 @@ int ui_wmove(UiSurface *s, uint w, uint y, uint x);
 int ui_cursor_enable(UiSurface *s, uint w, bool visible);
 int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible);
 int ui_curs_set(int visibility);
-int ui_wscrl(UiSurface *s, uint w, uint lines);
+int ui_wscrl(UiSurface *s, uint w, int rows);
 int ui_wclrtoeol(UiSurface *s, uint w);
 int ui_wclrtobot(UiSurface *s, uint w);
 void ui_getyx(UiSurface *s, uint w, uint *lines, uint *cols);

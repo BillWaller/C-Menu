@@ -86,6 +86,7 @@ int popup_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     parse_opt_args(init, argc, argv);
     Pick *sav_pick = init->pick;
     init->pick = nullptr;
+
     rc = init_pick(init, init->argc, init->argv, by, bx);
     destroy_pick(init);
     init->pick = sav_pick;

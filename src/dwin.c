@@ -161,7 +161,7 @@ ushort cp_green;
 ushort cp_yellow;
 ushort cp_blue;
 
-int tty_fd, pipe_in, pipe_out;
+int stdin_fd, stdout_fd, stderr_fd, tty_fd, pipe_in, pipe_out;
 
 /** @brief Initialize local color variables and color pairs based on SIO
  * settings

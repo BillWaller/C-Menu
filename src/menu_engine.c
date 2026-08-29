@@ -60,7 +60,6 @@ unsigned int menu_engine(Init *init) {
     }
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
-
     action = MA_DISPLAY_MENU;
     while (action) {
         switch (action) {
@@ -133,12 +132,12 @@ unsigned int menu_cmd_processor(Init *init) {
     memset(&mbstate, 0, sizeof(mbstate));
     Menu *menu = init->menu;
     ui_keypad(sfc, WIN, true);
+    ui_scrollok(sfc, WIN, false);
 #ifdef UAL_UI
     ui_mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION);
 #else
     ui_mice_enable(NCMICE_ALL_EVENTS);
 #endif
-    ui_scrollok(sfc, WIN, false);
     UiEvent event;
     // Highlight the currently selected menu choice
 

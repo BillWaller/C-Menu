@@ -6,6 +6,7 @@
    using the NotCurses library.
 */
 
+#include "common.h"
 #define _XOPEN_SOURCE_EXTENDED 1
 
 #include "cm.h"
@@ -93,31 +94,31 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
-    // char tty_name[MAXLEN];
-    // if (cfg && cfg->tty_path) {
-    //     strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
-    //     tty_name[sizeof(tty_name) - 1] = '\0';
-    // } else {
-    //     if (ttyname_r(STDERR_FILENO, tty_name,
-    //                   sizeof(tty_name)) != 0) {
-    //         free(ui);
-    //         ui = NULL;
-    //         return NULL;
-    //     }
-    // }
-    // ui->tty_fp = fopen(tty_name, "r+");
-    // if (ui->tty_fp == NULL) {
-    //     ui = NULL;
-    //     free(ui);
-    //     return NULL;
-    // }
+    char tty_name[MAXLEN];
+    if (cfg && cfg->tty_path) {
+        strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
+        tty_name[sizeof(tty_name) - 1] = '\0';
+    } else {
+        if (ttyname_r(STDIN_FILENO, tty_name,
+                      sizeof(tty_name)) != 0) {
+            free(ui);
+            ui = NULL;
+            return NULL;
+        }
+    }
+    ui->tty_fp = fopen(tty_name, "r+");
+    if (ui->tty_fp == NULL) {
+        ui = NULL;
+        free(ui);
+        return NULL;
+    }
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS |
                  NCOPTION_NO_QUIT_SIGHANDLERS
         //               NCOPTION_PRESERVE_CURSOR,
         //      .loglevel = NCLOGLEVEL_SILENT,
     };
-    ui->nc = notcurses_init(&nc_opts, NULL);
+    ui->nc = notcurses_init(&nc_opts, ui->tty_fp);
     if (ui->nc == NULL) {
         free(ui);
         ui = NULL;
@@ -126,8 +127,9 @@ UiRuntime *ui_init(const UiConfig *cfg) {
     f_curses_open = true;
     stdplane = notcurses_stdplane(ui->nc);
     notcurses_render(ui->nc);
+
     if (ui->nc == NULL) {
-        // fclose(ui->tty_fp);
+        fclose(ui->tty_fp);
         ui->tty_fp = NULL;
         free(ui);
         ui = NULL;
@@ -142,8 +144,8 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         ui->cursor_visible = false;
         ui->alt_screen = false;
     }
-    //     if (ui->mouse_enabled)
-    //         notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+    if (ui->mouse_enabled)
+        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
     if (!ui->cursor_visible)
         notcurses_cursor_disable(ui->nc);
     notcurses_stddim_yx(ui->nc, &ui->lines, &ui->cols);
@@ -262,6 +264,7 @@ UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint co
         notcurses_stop(ui->nc);
         return NULL;
     }
+    free(stdsfc);
     return s;
 }
 
@@ -305,18 +308,21 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     return s;
 }
 
-int ui_surface_addpad(UiSurface *s, uint w, uint p, int lines, int cols) {
-    uint y = 0, x = 0;
+int ui_surface_addpad(UiSurface *s, uint w, uint p, uint lines, uint cols) {
+    uint plines, pcols;
+    ncplane_dim_yx(s->mplane[p], &plines, &pcols);
+    pcols = min(pcols, cols);
+    plines = min(plines, lines);
     ncplane_options plane_opts = {
-        .y = y,
-        .x = x,
-        .rows = lines,
-        .cols = cols,
+        .y = 0,
+        .x = 0,
+        .rows = plines,
+        .cols = pcols,
         .name = NULL};
-    s->meta[w].y = y;
-    s->meta[w].x = x;
-    s->meta[w].lines = lines;
-    s->meta[w].cols = cols;
+    s->meta[w].y = 0;
+    s->meta[w].x = 0;
+    s->meta[w].lines = plines;
+    s->meta[w].cols = pcols;
     s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
     if (!s->mplane[w]) {
@@ -325,7 +331,6 @@ int ui_surface_addpad(UiSurface *s, uint w, uint p, int lines, int cols) {
     }
     ncplane_set_base(s->mplane[w], " ", 0, cell_nt.channels);
     ncplane_set_channels(s->mplane[w], cell_nt.channels);
-    ui_keypad(s, w, false);
     ui_bkgd(s, w, &cell_nt);
     ui_bkgdset(s, w, &cell_nt);
     return 0;
@@ -628,7 +633,7 @@ uint ui_getmaxx(UiSurface *s, uint w) {
     ncplane_dim_yx(s->mplane[w], &y, &x);
     return x;
 }
-int ui_wscrl(UiSurface *s, uint w, uint r) {
+int ui_wscrl(UiSurface *s, uint w, int r) {
     if (!r)
         return -1;
     ncplane_scrollup(s->mplane[w], r);

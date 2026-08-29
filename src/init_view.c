@@ -324,9 +324,7 @@ int view_init_input(Init *init, char *file_name) {
         sig_prog_mode();
         ui_restore_wins();
         close(pipe_fd[P_WRITE]);
-        // dup2(pipe_fd[P_READ], STDIN_FILENO);
-        view->in_fd = dup(STDIN_FILENO);
-        dup2(pipe_fd[P_READ], STDIN_FILENO);
+        view->in_fd = dup(pipe_fd[P_READ]);
         view->f_in_pipe = true;
     } else {
         if (view->f_in_pipe)
@@ -369,9 +367,8 @@ int view_init_input(Init *init, char *file_name) {
         /*----------------------------------------------------------------------*/
     }
     if (view->f_in_pipe) {
-        close(view->in_fd);
         errno = 0;
-        view->in_fd = memfd_create("view_input", MFD_CLOEXEC);
+        view->tmp_fd = memfd_create("view_input", MFD_CLOEXEC);
         if (view->in_fd < 0 || errno != 0) {
             ssnprintf(em0, MAXLEN - 1, "memfd_create failed\n");
             ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
@@ -383,13 +380,13 @@ int view_init_input(Init *init, char *file_name) {
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;
         ssize_t bytes_written = 0;
-        while ((bytes_read = read(STDIN_FILENO, buf, sizeof(buf))) > 0) {
-            if ((bytes_written = write(view->in_fd, buf, bytes_read)) != bytes_read) {
-                abend(-1, "unable to write view->in_fd");
+        while ((bytes_read = read(view->in_fd, buf, sizeof(buf))) > 0) {
+            if ((bytes_written = write(view->tmp_fd, buf, bytes_read)) != bytes_read) {
+                abend(-1, "unable to write view->tmp_fd");
                 exit(EXIT_FAILURE);
             }
         }
-        if (fstat(view->in_fd, &sb) == -1) {
+        if (fstat(view->tmp_fd, &sb) == -1) {
             ssnprintf(em0, MAXLEN - 1, "fstat(view->in_fd) failed\n");
             ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
             ssnprintf(em2, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
@@ -399,12 +396,13 @@ int view_init_input(Init *init, char *file_name) {
         }
         view->file_size = sb.st_size;
         if (view->file_size == 0) {
-            close(view->in_fd);
+            close(view->tmp_fd);
             strnz__cpy(tmp_str, "no standard input", MAXLEN - 1);
             abend(-1, tmp_str);
             exit(EXIT_FAILURE);
         }
         waitpid(-1, nullptr, 0);
+        view->in_fd = view->tmp_fd;
     }
     view->buf =
         mmap(nullptr, view->file_size, PROT_READ, MAP_PRIVATE, view->in_fd, 0);
@@ -417,8 +415,6 @@ int view_init_input(Init *init, char *file_name) {
         return -1;
     }
     close(view->in_fd);
-    SIO *sio = init->sio;
-    dup2(sio->stdin_fd, STDIN_FILENO);
     stdio_fdnames(stdio_names_str, "init_view.c 422");
     view->file_size = sb.st_size;
     view->prev_file_pos = NULL_POSITION;

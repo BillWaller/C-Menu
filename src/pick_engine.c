@@ -80,6 +80,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
             Perror("pipe(pipe_fd) failed in init_pick");
             return (1);
         }
+
         if ((pid = fork()) == -1) {
             Perror("fork() failed in init_pick");
             return (1);
@@ -92,8 +93,8 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
                 exit(EXIT_FAILURE);
             }
             dup2(dev_null, STDERR_FILENO);
-            close(dev_null);
             /** Close read end of pipe as Child only needs to write to pipe */
+            close(dev_null);
             close(pipe_fd[P_READ]);
             /** Connect CHILD STDOUT to write end of pipe */
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
@@ -107,11 +108,9 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
         }
         /** Return to Parent
             Close write end of pipe as Parent only needs to read from pipe */
-        stdio_fdnames(stdio_names_str, "pick_engine.c 110");
-        close(pipe_fd[P_WRITE]);
         /** Open a file pointer on read end of pipe */
+        close(pipe_fd[P_WRITE]);
         pick->in_fp = fdopen(pipe_fd[P_READ], "rb");
-        stdio_fdnames(stdio_names_str, "pick_engine.c 115");
         pick->f_in_pipe = true;
         destroy_argv(s_argc, s_argv);
     } else {
@@ -313,6 +312,7 @@ int pick_engine(Init *init) {
     compile_chyron(pick->chyron);
     pick->width = max(pick->width, pick->chyron->l);
     pick_std_chyron(pick);
+
     rc = open_pick_win(init);
     if (rc) {
         Perror("Failed to open pick window");
@@ -325,7 +325,6 @@ int pick_engine(Init *init) {
     char field[MAXLEN]; /**< Buffer for user input in the field */
     field[0] = '\0';
     display_pick_page(pick);
-
     do {
         rc = picker(init, field);
         if (rc == KEY_F09)
@@ -934,8 +933,9 @@ int picker(Init *init, char *field) {
                 compile_chyron(pick->chyron);
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 reverse_object(pick);
-                ui_top_panel(sfc, WIN);
-                ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
+                ui_render();
+                // ui_top_panel(sfc, WIN);
+                // ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
                 in_key = ui_get_event_multi(sfc, WIN, &event, -1);
                 if (event.mouse_action != UI_MOUSE_NONE) {
                     ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
