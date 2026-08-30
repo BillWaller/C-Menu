@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-29T20:53:04-05:00* - FEATURE UPDATES: Uniform Abstraction Layer (UAL) for UI Backends Minor updates to the UI backend abstraction layer. 
+
+*2026-08-29T20:07:21-05:00* - Update CHANGELOG.md 
+
 *2026-08-29T19:17:51-05:00* - FIXES: Uniform Abstraction Layer for NCurses and Notcurses This project is is wrapping up quickly and nicely. There are always a few more things to do, but I see no major obstacles. We are testing, debugging, and preparing to enter the next phase of the project. In UAL_UI Phase II, we will create documentation for the core API and break it out as a general purpose UAL_UI library. Applications using this API can deliver both NCurses and Notcurses backends with the same source code and no perceptible differences in functionality. Phase III will allow us to introduce additional features generally not possible with NCurses, and those features will be packaged as an annex to the core UAL_UI library. We are undecided as to Phase IV, but there are at least three compelling directions, which seem natural and may not be mutually exclusive. We could port C-Menu and the UAL_UI to Windows and Mac. We could develop library code to add needed features to NCurses and Notcurses. Last, but certainly not least, we could develop additional backend implementations for the UAL_UI library, such as SDL2, OpenGL, and Vulkan. The latter would allow us to create a cross-platform, cross-API, and cross-architecture UI library that could be used in a wide variety of applications, including games, scientific visualization, and more. 
 
 *2026-08-28T22:35:44-05:00* - FEATURE UPDATE: Same front end API works with NCurses or Notcurses 
