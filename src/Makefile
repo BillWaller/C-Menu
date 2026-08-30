@@ -15,9 +15,9 @@ BUILD_TYPE=Debug
 #   NCURSES_UI    — legacy ncurses direct-use (default)
 #   UAL_UI        — UALUI with ncurses backend (src/ui/)
 #   NOTCURSES_UI  — UALUI with notcurses backend (src/ui/)
-# UI?="-DUAL_UI"
+UI?="-DUAL_UI"
 # UI?=-DNCURSES_UI
-UI?="-DNOTCURSES_UI"
+# UI?="-DNOTCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
 	CFLAGS=-Ofast -s -fPIC -pthread $(UI)
 	EXTRA_CFLAGS=-flto

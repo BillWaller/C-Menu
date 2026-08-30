@@ -506,7 +506,9 @@ void fast_exit(UiSurface *s) {
     endwin();
     exit(EXIT_SUCCESS);
 }
-int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols) {
+int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols, uint begy, uint begx) {
+    (void)begy;
+    (void)begx;
     s->mwin[w] = newpad(lines, cols);
     if (s->mwin[w] == nullptr)
         return -1;
@@ -738,7 +740,7 @@ int ui_curs_set(int visibility) {
     curs_set(visibility);
     return 0;
 }
-int ui_wscrl(UiSurface *s, uint w, uint n) {
+int ui_wscrl(UiSurface *s, uint w, int n) {
     if (!s->mwin[w])
         return -1;
     wscrl(s->mwin[w], n);
