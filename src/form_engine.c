@@ -1097,7 +1097,9 @@ int form_write(Form *form) {
         strcmp(form->out_spec, "/dev/stdout") == 0) {
         strnz__cpy(form->out_spec, "/dev/stdout", MAXLEN - 1);
         close(form->out_fd);
-        form->out_fd = open(form->out_spec, O_CREAT | O_RDWR | O_TRUNC, 0644);
+        // form->out_fd = open(form->out_spec, O_CREAT | O_RDWR | O_TRUNC,
+        // 0644);
+        form->out_fd = dup(STDOUT_FILENO);
         if (form->out_fd == -1) {
             ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
             strnz__cpy(em1, "open ", MAXLEN - 1);
@@ -1106,8 +1108,8 @@ int form_write(Form *form) {
             display_error(em0, em1, em2, nullptr);
             return (1);
         }
-        dup2(form->out_fd, STDOUT_FILENO);
-        form->out_fp = fdopen(STDOUT_FILENO, "w");
+        // dup2(form->out_fd, STDOUT_FILENO);
+        form->out_fp = fdopen(form->out_fd, "w");
         form->f_out_spec = true;
         form->f_out_pipe = true;
     } else {

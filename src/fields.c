@@ -79,9 +79,13 @@ int field_editor(Form *form) {
             form_fmt_field(form, accept_s);
             form_display_accept_field(form);
             tcflush(0, TCIFLUSH);
-            ui_cursor_move(sfc, WIN, flin, x);
+
+            ui_cursor_enable_yx(sfc, WIN, flin, x, true);
+            ui_render();
             in_key = ui_get_event_multi(sfc, WIN, &event, -1);
-            ui_getmaxyx(sfc, WIN, &maxy, &maxx);
+            ui_cursor_enable_yx(sfc, WIN, flin, x, false);
+
+            maxy = ui_getmaxy(sfc, WIN);
             if (event.in_win == WIN && event.y == maxy - 1)
                 in_key = get_chyron_key(form->chyron, event.x);
         }

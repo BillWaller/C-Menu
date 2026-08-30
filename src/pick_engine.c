@@ -933,10 +933,11 @@ int picker(Init *init, char *field) {
                 compile_chyron(pick->chyron);
                 display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 reverse_object(pick);
-                ui_render();
                 // ui_top_panel(sfc, WIN);
-                // ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
+                ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
+                ui_render();
                 in_key = ui_get_event_multi(sfc, WIN, &event, -1);
+                ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, false);
                 if (event.mouse_action != UI_MOUSE_NONE) {
                     ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
                     if (event.in_win == pick->chyron->win && event.y == pick->chyron->y)
@@ -1242,11 +1243,11 @@ int picker(Init *init, char *field) {
                 // mouse_win = nullptr;
                 pos = col + strlen(accept_s);
                 ui_mvwadd_wchnstr(sfc, WIN2, 0, 0, &cell_ran, 1);
-                ui_cursor_move(sfc, WIN2, 0, pos);
                 ui_top_panel(sfc, WIN2);
-                ui_curs_set(2);
+                ui_cursor_enable_yx(sfc, WIN2, 0, pos, true);
                 ui_render();
                 in_key = ui_get_event_multi(sfc, WIN2, &event, -1);
+                ui_cursor_enable_yx(sfc, WIN2, 0, pos, false);
                 ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
                 if (event.mouse_action != UI_MOUSE_NONE) {
                     if (event.in_win == WIN2 && event.y == maxy - 1)

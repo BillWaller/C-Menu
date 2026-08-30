@@ -634,10 +634,27 @@ uint ui_getmaxx(UiSurface *s, uint w) {
     return x;
 }
 int ui_wscrl(UiSurface *s, uint w, int r) {
-    if (!r)
+    if (r > 0) {
+        ncplane_scrollup(s->mplane[w], r);
+        return 0;
+    }
+    r = -r;
+    uint y, x;
+    ncplane_dim_yx(s->mplane[w], &y, &x);
+    if ((uint)r >= y) {
+        ncplane_erase(s->mplane[w]);
+        return 0;
+    }
+    s->mplane[WIN3] = ncplane_dup(s->mplane[w], NULL);
+    if (!s->mplane[WIN3])
         return -1;
-    ncplane_scrollup(s->mplane[w], r);
-    ui_render();
+    ncplane_move_yx(s->mplane[WIN3], r + 1, 1);
+    ncplane_erase(s->mplane[w]);
+    ncplane_mergedown(s->mplane[WIN3], s->mplane[w],
+                      0, 0,
+                      y - r, x,
+                      r, 0);
+    ncplane_destroy(s->mplane[WIN3]);
     return 0;
 }
 int ui_top_panel(UiSurface *s, uint w) {
