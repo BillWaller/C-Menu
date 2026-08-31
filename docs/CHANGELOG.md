@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-30T22:39:43-05:00* - FEATURE UPDATES, BUG FIXES, AND IMPROVEMENTS Uniform Abstraction Layer (UAL) for Input Handling: The input handling system has been refactored to provide a uniform abstraction layer, allowing for easier integration of different input methods and devices. This change enhances the flexibility and maintainability of the input handling code. 
+
+*2026-08-30T21:59:24-05:00* - Update CHANGELOG.md 
+
 *2026-08-30T21:58:48-05:00* - FEATURE UPDATE, BUG FIXES Uniform Abstraction Layer (UAL) for Notcurses 
 
 *2026-08-30T21:42:56-05:00* - Update CHANGELOG.md 
