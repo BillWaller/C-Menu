@@ -14,8 +14,12 @@ More sophisticated applications can be be built using the C-Menu API that is ful
 
 `pick` and `view` can be combined to create a fast, interactive file selection and viewing workflow. For example, you can use `lf` to generate a list of files, pipe that into `pick` for selection. As you move the cursor or enter search expressions in Pick, the file highlighted by the selector bar appears in a View window.
 
-![Pick and View Integration](screenshots/rustlings-a1.png)
+![Pick and View Integration](screenshots/rustlings-a2.png)
 
+You may notice that these windows have a slightly different border. It is
+thicker and doesn't have rounded corners. If you prefer the rounded corners, you
+can change the border variable in your configuration file. Choices are single,
+double, rounded, heavy (above), and none. I have set the default to rounded.
 
 ### Smart Line Wrapping
 
