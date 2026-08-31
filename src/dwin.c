@@ -1,7 +1,7 @@
 /** @file dwin.c
     @brief Window support for C-Menu - EXPERIMENTAL
     @details This file contains functions for managing NCurses windows and color
-   settings for the Chyron structure for function key labels and mouse click
+   settings for the UiChyron structure for function key labels and mouse click
    handling. This file is a work in progress and may be subject to change as the
    C-Menu project evolves. Generally, don't try to use it yet unless you want
    complete the half-done code modifications.
@@ -418,7 +418,7 @@ wchar_t *mbstr_to_wcstr(const char *mb_str) {
 
 /** mbstr_to_cellstr
     @brief Convert multibyte string to complex character array
-    @ingroup Chyron
+    @ingroup UiChyron
     @param cmplx_buf Output buffer for complex characters
     @param str Input multibyte string
     @param attr Attributes to apply to the complex characters
@@ -721,11 +721,11 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
         return 1;
     }
 
-    Chyron *chyron = new_chyron();
-    set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    set_chyron_key(chyron, 2, "N - No", 'n');
-    set_chyron_key(chyron, 3, "Y - Yes", 'y');
-    compile_chyron(chyron);
+    UiChyron *chyron = ui_new_chyron();
+    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key(chyron, 2, "N - No", 'n');
+    ui_set_chyron_key(chyron, 3, "Y - Yes", 'y');
+    ui_compile_chyron(chyron);
 
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
@@ -745,7 +745,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     if (surface_box_win_new(5, msg_l + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
-        destroy_chyron(chyron);
+        ui_destroy_chyron(chyron);
         abend(-1, title);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
@@ -754,17 +754,17 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     ui_draw_text(sfc, WIN, 1, 1, msg1);
     ui_draw_text(sfc, WIN, 2, 1, msg2);
     ui_draw_text(sfc, WIN, 3, 1, msg3);
-    display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
+    ui_display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
 
     do {
         ui_curs_set(1);
         event.y = event.x = -1;
-        cmd_key = ui_get_event(sfc, WIN, &event, -1);
+        cmd_key = ui_get_event(sfc, WIN, chyron, &event, -1);
         if (cmd_key == UIKEY_F01 || cmd_key == 'N' || cmd_key == 'n' || cmd_key == 'Y' || cmd_key == 'y')
             break;
     } while (1);
     cm_surface_destroy(sfc);
-    destroy_chyron(chyron);
+    ui_destroy_chyron(chyron);
     return (cmd_key);
 }
 /** display_error
@@ -787,11 +787,11 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
         return 1;
     }
 
-    Chyron *chyron = new_chyron();
-    set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
-    set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
-    compile_chyron(chyron);
+    UiChyron *chyron = ui_new_chyron();
+    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
+    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_compile_chyron(chyron);
 
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
@@ -811,7 +811,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     if (surface_box_win_new(5, msg_l + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
-        destroy_chyron(chyron);
+        ui_destroy_chyron(chyron);
         abend(-1, title);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
@@ -821,15 +821,15 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     ui_draw_text(sfc, WIN, 2, 1, msg2);
     ui_draw_text(sfc, WIN, 3, 1, msg3);
 
-    display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
+    ui_display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
     do {
         event.y = event.x = -1;
-        cmd_key = ui_get_event(sfc, WIN, &event, -1);
+        cmd_key = ui_get_event(sfc, WIN, chyron, &event, -1);
         if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q')
             break;
     } while (1);
     cm_surface_destroy(sfc);
-    destroy_chyron(chyron);
+    ui_destroy_chyron(chyron);
     return (cmd_key);
 }
 
@@ -853,11 +853,11 @@ int Perror(char *emsg_str) {
         fprintf(stderr, "\n%s\n", emsg);
         return 1;
     }
-    Chyron *chyron = new_chyron();
-    set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
-    set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
-    compile_chyron(chyron);
+    UiChyron *chyron = ui_new_chyron();
+    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
+    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_compile_chyron(chyron);
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     cols = strnz(emsg, maxx - 4);
@@ -869,20 +869,20 @@ int Perror(char *emsg_str) {
     if (surface_box_win_new(2, cols + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
-        destroy_chyron(chyron);
+        ui_destroy_chyron(chyron);
         abend(-1, title);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, emsg_str);
-    display_chyron(sfc, WIN, chyron, 1, chyron->l + 1);
+    ui_display_chyron(sfc, WIN, chyron, 1, chyron->l + 1);
     if (f_xwgetch) {
         event.y = event.x = -1;
-        in_key = ui_get_event(sfc, WIN, &event, -1);
+        in_key = ui_get_event(sfc, WIN, chyron, &event, -1);
     } else {
         in_key = UIKEY_F10;
     }
-    destroy_chyron(chyron);
+    ui_destroy_chyron(chyron);
     cm_surface_destroy(sfc);
     return (in_key);
 }
@@ -901,9 +901,9 @@ bool action_disposition(char *title, char *action_str) {
         fprintf(stderr, "%s\n", action_str);
         return true;
     }
-    Chyron *chyron = new_chyron();
-    set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
-    compile_chyron(chyron);
+    UiChyron *chyron = ui_new_chyron();
+    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_compile_chyron(chyron);
     len = max(strlen(title), strlen(action_str));
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
@@ -917,284 +917,12 @@ bool action_disposition(char *title, char *action_str) {
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, action_str);
-    display_chyron(sfc, WIN, chyron, 1, 0);
+    ui_display_chyron(sfc, WIN, chyron, 1, 0);
     event.y = event.x = -1;
-    cmd_key = ui_get_event(sfc, WIN, &event, -1);
+    cmd_key = ui_get_event(sfc, WIN, chyron, &event, -1);
     cm_surface_destroy(sfc);
-    destroy_chyron(chyron);
+    ui_destroy_chyron(chyron);
     return true;
-}
-/** @defgroup Chyron Chyron Management
-    @brief Create and manage the Chyron
- */
-
-/** new_chyron
-   @brief Create and initialize Chyron structure
-    @ingroup Chyron
-    @return pointer to new Chyron structure
-    @details This function allocates memory for a new Chyron structure and
-   initializes the key pointers. Each key pointer is allocated memory for a
-   ChyronKey structure. The Chyron structure is used to manage function key
-   labels and their associated keycodes for mouse click handling in the chyron
-   area of the interface.
-    The use of calloc ensures that the allocated memory is initialized to
-   zero, which means that the text for each key will be initialized to an empty
-   string and the keycodes will be initialized to zero. This allows the
-   is_set_chyron_key function to check if a key is set by checking if the first
-   character of the text is not '\0'. If any memory allocation fails, the
-   function will call abend to handle the error and return nullptr.
- */
-Chyron *new_chyron() {
-    Chyron *chyron = (Chyron *)calloc(1, sizeof(Chyron));
-    if (!chyron) {
-        abend(-1, "calloc chyron failed");
-        return nullptr;
-    }
-    for (int i = 0; i < CHYRON_KEYS; i++) {
-        chyron->key[i] = (ChyronKey *)calloc(1, sizeof(ChyronKey));
-        if (!chyron->key[i]) {
-            abend(-1, "calloc chyron->key[i] failed");
-            return nullptr;
-        }
-    }
-    return chyron;
-}
-int assign_chyron_win(Chyron *chyron, UiSurface *sfc, uint win, char *y) {
-    bool a_toi_error = false;
-    if (!sfc)
-        return -1;
-    chyron->sfc = sfc;
-    chyron->win = win;
-    if (*y == '-')
-        chyron->y = ui_getmaxy(sfc, win) - 1;
-    else {
-        chyron->y = a_toi(y, &a_toi_error);
-        if (a_toi_error)
-            return -1;
-        chyron->y = min(chyron->y, ui_getmaxy(sfc, win) - 1);
-    }
-    return 0;
-}
-/** destroy_chyron
-    @brief Destroy Chyron structure
-    @ingroup Chyron
-    @param chyron pointer to Chyron structure
-    @return nullptr
- */
-Chyron *destroy_chyron(Chyron *chyron) {
-    uint i;
-
-    if (!chyron)
-        return nullptr;
-    for (i = 0; i < CHYRON_KEYS; i++) {
-        if (chyron->key[i]) {
-            free(chyron->key[i]);
-            chyron->key[i] = nullptr;
-        }
-    }
-    free(chyron);
-    chyron = nullptr;
-    return chyron;
-}
-/** is_set_chyron_key
-    @brief Check if function key label is set
-    @ingroup Chyron
-    @param chyron structure
-    @param k Function key index (0-19)
-    @return true if set, false if not set */
-bool is_set_chyron_key(Chyron *chyron, uint k) {
-    if (chyron->key[k]->text[0] != '\0')
-        return true;
-    else
-        return false;
-}
-/** set_chyron_key
-    @brief Set chyron key with color pair (cp)
-    @ingroup Chyron
-    @param chyron structure
-    @param k chyron key index (0-19)
-    @param s chyron key label
-    @param kc chyron key code
-    @param cp color pair index for the key label
-    @details This function is like set_chyron_key, except it includes a color
-   pair numbers */
-void set_chyron_key_cb(Chyron *chyron, uint k, char *s, uint kc, UiCell cell_base) {
-    if (*s != '\0')
-        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
-    else
-        chyron->key[k]->text[0] = '\0';
-    chyron->key[k]->keycode = kc;
-    chyron->key[k]->active = true;
-    chyron->key[k]->cell_base = cell_base;
-}
-/** set_chyron_key
-    @brief Set chyron key with default color pair (cp_nt_rev)
-    @ingroup Chyron
-    @param chyron structure
-    @param k chyron key index (0-19)
-    @param s chyron key label
-    @param kc chyron key code
-    @details This function sets the label and keycode for a function key in the
-   chyron structure. It uses the default color pair cp_nt_rev for the key
-   label. If the input string s is not empty, it copies the string into the
-   chyron key's text field. If the input string is empty, it sets the first
-   character of the text field to '\0' to indicate that the key is not set.
-   The keycode is stored in the chyron key's keycode field, and the color pair
-   index is set to cp_nt_rev.
- */
-void set_chyron_key(Chyron *chyron, uint k, char *s, uint kc) {
-    if (*s != '\0')
-        ssnprintf(chyron->key[k]->text, CHYRON_KEY_MAXLEN - 1, "%s", s);
-    else
-        chyron->key[k]->text[0] = '\0';
-    chyron->key[k]->keycode = kc;
-    chyron->key[k]->active = true;
-    chyron->key[k]->cell_base = cell_nt_rev;
-}
-/** unset_chyron_key
-    @brief Unset chyron key
-    @ingroup Chyron
-    @param chyron structure
-    @param k chyron_key index
-*/
-void unset_chyron_key(Chyron *chyron, uint k) {
-    chyron->key[k]->text[0] = '\0';
-}
-/** activate_chyron_key
-    @brief Activate chyron key
-    @ingroup Chyron
-    @param chyron structure
-    @param k chyron_key index
-*/
-void activate_chyron_key(Chyron *chyron, uint k) {
-    chyron->key[k]->active = true;
-}
-/** deactivate_chyron_key
-    @brief Deactivate chyron key
-    @ingroup Chyron
-    @param chyron structure
-    @param k chyron_key index
-*/
-void activate_all_chyron_keys(Chyron *chyron) {
-    for (int k = 0; k < CHYRON_KEYS; k++)
-        chyron->key[k]->active = true;
-}
-/** deactivate_chyron_key
-    @brief Deactivate chyron key
-    @ingroup Chyron
-    @param chyron structure
-    @param k chyron_key index
-*/
-void deactivate_chyron_key(Chyron *chyron, uint k) {
-    chyron->key[k]->active = false;
-}
-/** deactivate_all_chyron_keys
-    @brief Deactivate all chyron keys
-    @ingroup Chyron
-    @param chyron structure
-*/
-void deactivate_all_chyron_keys(Chyron *chyron) {
-    for (int k = 0; k < CHYRON_KEYS; k++)
-        chyron->key[k]->active = false;
-}
-/**  compile_chyron
-   @brief construct the chyron string from the chyron structure
-    @ingroup Chyron
-    @param chyron
-    @details The chyron string is constructed by concatenating the labels of the
-   set keys, separated by " | ". The end_pos values for each key are set to
-   determine the zones for mouse clicks. When a mouse click occurs, the
-   get_chyron_key function uses the end_pos values to determine which key was
-   clicked based on the X position of the click.
-*/
-void compile_chyron(Chyron *chyron) {
-    uint end_pos = 0;
-    uint k = 0;
-    uint pos = 0;
-    UiCell cell_base = cell_nt_rev;
-    UiCell *cx;
-    char tmp_str[MAXLEN];
-    while (k < CHYRON_KEYS) {
-        if (chyron->key[k]->text[0] == '\0' || !chyron->key[k]->active) {
-            k++;
-            continue;
-        }
-        cell_base = chyron->key[k]->cell_base;
-        if (end_pos == 0) {
-            cx = chyron->cmplx_buf;
-            mbstr_to_cellstr(cx,
-                             " ",
-                             &cell_base,
-                             &pos,
-                             MAXLEN - 1);
-        } else {
-            mbstr_to_cellstr(chyron->cmplx_buf,
-                             "|",
-                             &cell_base,
-                             &pos,
-                             MAXLEN - 1);
-        }
-        cx = chyron->cmplx_buf;
-        mbstr_to_cellstr(cx, chyron->key[k]->text, &cell_base, &pos, MAXLEN - 1);
-        end_pos = pos;
-        chyron->l = end_pos;
-        chyron->key[k]->end_pos = end_pos;
-        ssnprintf(tmp_str, MAXLEN - 1, "k=%d, text=%s, end_pos=%d", k,
-                  chyron->key[k]->text, chyron->key[k]->end_pos);
-        k++;
-    }
-    mbstr_to_cellstr(chyron->cmplx_buf, " ", &cell_base, &pos, MAXLEN - 1);
-    chyron->l = end_pos;
-}
-/** display_chyron
- *   @brief Display chyron on the specified line and column of the surface
-    @ingroup Chyron
-    @param sfc Pointer to the UiSurface structure
-    @param w Window index (WIN or BOX)
-    @param chyron Pointer to the Chyron structure
-    @param line Line number where the chyron should be displayed
-    @param col Column number where the chyron should start
-    @details This function displays the compiled chyron string on the specified
-   line and column of the given surface. It first moves the cursor to the
-   specified position, clears to the end of the line, and then writes the chyron
-   string. Finally, it moves the cursor back to the specified column for user
-   input.
- */
-void display_chyron(UiSurface *sfc, uint w, Chyron *chyron, uint line, uint col) {
-    ui_wmove(sfc, w, line, 0);
-    ui_wclrtoeol(sfc, w);
-    ui_wmove(sfc, w, line, 0);
-    ui_mvwadd_wchstr(sfc, w, line, 0, chyron->cmplx_buf);
-    ui_wmove(sfc, w, line, col);
-    return;
-}
-/** get_chyron_key
-    @brief Get keycode from chyron
-    @ingroup Chyron
-    @param chyron structure
-    @param x Mouse X position
-    @return Keycode
-    @details This function uses the end_pos values set in compile_chyron
-    to determine which key was clicked.
-    The chyron functions provide xwgetch() with a mechanism to translate
-    mouse click positions into key codes based on the labels set in the chyron
-   structure. When a mouse click occurs, xwgetch() can call get_chyron_key()
-   with the X position of the click to determine which function key was clicked,
-   allowing for dynamic and customizable function key behavior in the chyron
-   area of the interface.
-*/
-int get_chyron_key(Chyron *chyron, uint x) {
-    uint i = 0;
-    uint k = -1;
-    while (i < CHYRON_KEYS - 1) {
-        if (chyron->key[i]->text[0] != '\0' && chyron->key[i]->active)
-            if (chyron->key[i]->end_pos >= x) {
-                k = i;
-                break;
-            }
-        i++;
-    }
-    return chyron->key[k]->keycode;
 }
 /** abend
     @brief Abnormal program termination

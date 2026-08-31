@@ -35,6 +35,7 @@ typedef struct UiMB UiMB;
 typedef uint16_t UiStyle;
 typedef uint16_t UiPairIdx;
 typedef uint UiColorIdx;
+typedef struct ncinput NcInput;
 
 #define UI_COLORS 512
 #define UI_PAIRS 512
@@ -83,15 +84,15 @@ typedef enum {
     UIKEY_DELETE,
     UIKEY_RESIZE,
     UIKEY_MOUSE,
-    UIKEY_F1,
-    UIKEY_F2,
-    UIKEY_F3,
-    UIKEY_F4,
-    UIKEY_F5,
-    UIKEY_F6,
-    UIKEY_F7,
-    UIKEY_F8,
-    UIKEY_F9,
+    UIKEY_F01,
+    UIKEY_F02,
+    UIKEY_F03,
+    UIKEY_F04,
+    UIKEY_F05,
+    UIKEY_F06,
+    UIKEY_F07,
+    UIKEY_F08,
+    UIKEY_F09,
     UIKEY_F10,
     UIKEY_F11,
     UIKEY_F12
@@ -346,9 +347,11 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
 int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x);
 int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols, uint begy, uint begx);
 void ui_surface_destroy(UiSurface *s);
+
 int ui_wresize(UiSurface *s, uint w, uint lines, uint cols);
 int ui_wclear(UiSurface *s, uint w);
 int ui_werase(UiSurface *s, uint w);
+
 int ui_wset_base(UiSurface *s, uint w, const UiStyle *style, uint32_t fill_ch);
 int ui_wset_style(UiSurface *s, uint w, const UiStyle *style);
 int ui_draw_vline(UiSurface *s, uint w, uint y, uint x, uint len, const UiStyle *style);
@@ -356,8 +359,6 @@ int ui_draw_border(UiSurface *s, uint w, UiBorderKind kind, const UiStyle *style
 int ui_draw_box_title(UiSurface *s, uint w, uint x, const UiStyle *style, const char *title);
 int ui_wshow(UiSurface *s, uint w);
 int ui_whide(UiSurface *s, uint w);
-int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
-int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
 int ui_get_event_no_mouse(UiSurface *surface, uint w, UiEvent *ev);
 int ui_wmove(UiSurface *s, uint w, uint y, uint x);
 int ui_cursor_enable(UiSurface *s, uint w, bool visible);
@@ -373,41 +374,6 @@ int ui_draw_ch_yx(UiSurface *s, uint w, uint y, uint x, const char c);
 int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text);
 int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
 int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int m);
-
-// ----------------
-// char
-// ----------------
-// waddch
-// mvwaddch
-// wechochar
-// ----------------
-// string char
-// ----------------
-// waddstr
-// mvwaddstr
-// waddnstr
-// mvwaddnstr
-// ----------------
-// chtype
-// ----------------
-// waddchstr
-// mvwaddchstr
-// waddchnstr
-// mvwaddchnstr
-// ----------------
-// wchar_t
-// ----------------
-// waddwstr
-// mvwaddwstr
-// waddnwstr
-// mvwaddnwstr
-// ----------------
-// cchar_t
-// ----------------
-// wadd_wchstr
-// mvwadd_wchstr
-// wadd_wchnstr
-// mvwadd_wchnstr
 
 int ui_getch();
 int ui_waddch(UiSurface *s, uint w, const char c);
@@ -469,14 +435,18 @@ int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell);
 int ui_chg_color(uint16_t color_idx, uint32_t *color);
 uint32_t ui_get_color(uint16_t color_idx);
 void fast_exit(UiSurface *s);
+int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell);
+int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell);
+uint ui_getmaxx(UiSurface *s, uint w);
+uint ui_getmaxy(UiSurface *s, uint w);
 
 #ifdef NOTCURSES_UI
 typedef struct nccell UiCell;
 extern UiCell bkgd_cell;
 extern uint LINES, COLS;
+void ui_cursor_yx(int *y, int *x);
+void ui_abs_yx(UiSurface *s, uint w, int *y, int *x);
 int mk_chimera(UiCell *cell, char c);
-int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell);
-int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell);
 int ui_getcchar(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair, const void *opts);
 int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t style, ushort pair, const void *opts);
 // How do you convert "NCurses" to "Notcurses"?
@@ -494,13 +464,9 @@ uint ui_add_color_hex(char *s);
 int ui_wch_to_utf8(const wchar_t fill_ch);
 int ui_get_nccell(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair);
 int ui_set_nccell(UiCell *cell, const wchar_t *wstr, const UiStyle *style, ushort *pair);
-uint get_plane_idx(UiSurface *s, NcPlane *n);
-NcPlane *ncplane_clicked(UiSurface *s, uint w, ncinput *ni);
-uint ui_getmaxx(UiSurface *s, uint w);
-uint ui_getmaxy(UiSurface *s, uint w);
+uint ui_get_plane_idx(UiSurface *s, NcPlane *n);
+NcPlane *ui_ncplane_clicked(UiSurface *s, uint w, NcInput *ni);
 #else
-int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell);
-int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell);
 int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, ushort *pair, void *opts);
 int ui_setcchar(UiCell *wch, const wchar_t *wc, const attr_t attrs, short pair, const void *opts);
 int ui_init_color(uint color, uint r, uint g, uint b);
@@ -512,8 +478,6 @@ int ui_chg_pair(uint pair, uint fg, uint bg);
 int ui_get_pair(uint pair, uint *fg, uint *bg);
 int ui_add_color(uint r, uint g, uint b);
 SCREEN *ui_ncurses_get_screen();
-int ui_getmaxx(UiSurface *s, uint w);
-int ui_getmaxy(UiSurface *s, uint w);
 #endif
 void ui_endwin();
 RGB ui_hex_to_rgb(char *s);
@@ -541,5 +505,48 @@ extern UiRuntime *ui;
 extern UiSurface *ui_surface[UI_SFC_MAX];
 extern uint ui_color_cnt;
 extern uint ui_pair_cnt;
+
+// ---------------------------------------------------------------
+// Chyron API
+// ---------------------------------------------------------------
+
+#define CHYRON_KEY_MAXLEN 64 /**< maximum length of the command text */
+#define CHYRON_KEYS 20       /**< maximum number of key bindings for the chyron */
+
+typedef struct {
+    bool active;                  /**< whether the key binding is active */
+    char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code */
+    uint keycode;                 /**< key code associated with the command */
+    uint end_pos;                 /**< end position of the command text */
+    UiCell cell_base;             /**< cell base for colors/attributes */
+} UiChyronKey;
+
+typedef struct {
+    UiChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
+    char s[MAXLEN];                /**< the chyron string, for displaying messages in */
+    UiCell cmplx_buf[MAXLEN];      /**< the chyron wide character string */
+    // wchar_t wstr[MAXLEN];        /**< the chyron wide character string */
+    uint l;                /**< length of the chyron string, for display */
+    struct UiSurface *sfc; /** pointer to surface for the chyron */
+    uint win;              /** index to window of surface */
+    uint y;                /** y coordinante of the chyron in the window */
+} UiChyron;
+
+extern void ui_activate_chyron_key(UiChyron *, uint);
+extern void ui_activate_all_chyron_keys(UiChyron *);
+extern int ui_assign_chyron_win(UiChyron *chyron, struct UiSurface *s, uint w, char *);
+extern void ui_deactivate_chyron_key(UiChyron *, uint);
+extern void ui_deactivate_all_chyron_keys(UiChyron *);
+extern void ui_compile_chyron(UiChyron *);
+extern void ui_display_chyron(struct UiSurface *, uint n, UiChyron *, uint, uint);
+extern int ui_get_chyron_key(UiChyron *, uint);
+extern bool ui_is_set_chyron_key(UiChyron *, uint);
+extern void ui_set_chyron_key(UiChyron *, uint, char *, uint);
+extern void ui_set_chyron_key_cb(UiChyron *, uint, char *, uint, UiCell cell_base);
+extern void ui_unset_chyron_key(UiChyron *, uint);
+extern UiChyron *ui_new_chyron();
+extern UiChyron *ui_destroy_chyron(UiChyron *chyron);
+extern void ui_abend(int, char *);
+int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeout_ms);
 
 #endif

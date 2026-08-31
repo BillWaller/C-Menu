@@ -69,15 +69,15 @@ OTHER:=CMenu.conf
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
 ifeq ($(UI), "-DUAL_UI")
 	LIB_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c \
-		ui/ui_layout.c
+		ui/ui_common.c ui/ui_layout.c
 endif
 ifeq ($(UI), "-DNOTCURSES_UI")
 	LIB_SRCS+=ui/ui_notcurses.c ui/ui_notcurses_draw.c ui/ui_notcurses_input.c \
-		ui/ui_layout.c
+		ui/ui_common.c ui/ui_layout.c
 endif
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 
-COMMON_HDRS:=include/cm.h include/common.h include/menu.h \
+COMMON_HDRS:=include/cm.h include/menu.h \
 	include/form.h include/pick.h include/view.h include/version.h \
 	include/version.h.in
 COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
@@ -86,13 +86,13 @@ COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
 ifeq ($(UI), "-DUAL_UI")
 	COMMON_HDRS+=include/ui_backend.h ui/ui_ncurses_internal.h
 	COMMON_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c \
-		ui/ui_layout.c
+		ui/ui_common.c ui/ui_layout.c
 	CFLAGS+=-DNCURSES_UI -DUAL_LEGACY_COMPAT
 endif
 ifeq ($(UI), "-DNOTCURSES_UI")
 	COMMON_HDRS+=include/ui_backend.h ui/ui_notcurses_internal.h
 	COMMON_SRCS+=ui/ui_notcurses.c ui/ui_notcurses_draw.c \
-		ui/ui_notcurses_input.c ui/ui_layout.c
+		ui/ui_notcurses_input.c ui/ui_common.c ui/ui_layout.c
 endif
 CC+=$(CFLAGS)
 ifeq ($(UI), "-DNOTCURSES_UI")

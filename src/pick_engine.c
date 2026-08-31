@@ -166,21 +166,21 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     while (pick->m_idx < pick->m_cnt)
         pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx++];
     pick->d_cnt = pick->d_idx;
-    pick->chyron = new_chyron();
-    set_chyron_key(pick->chyron, 1, "F1 Help", UIKEY_F01);
-    set_chyron_key(pick->chyron, 2, "F9 Cancel", UIKEY_F09);
-    set_chyron_key(pick->chyron, 3, "F10 Accept", UIKEY_F10);
-    set_chyron_key(pick->chyron, 4, "<v> View", 'v');
-    set_chyron_key(pick->chyron, 5, "<q> Quit View", 'q');
-    set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
-    set_chyron_key(pick->chyron, 7, "<Sp> Edit", ' ');
-    set_chyron_key(pick->chyron, 9, "<Tab> Search", '\t');
-    set_chyron_key(pick->chyron, 10, "<Tab> Select", '\t');
-    set_chyron_key(pick->chyron, 11, "PgUp", UIKEY_PPAGE);
-    set_chyron_key(pick->chyron, 12, "PgDn", UIKEY_NPAGE);
-    set_chyron_key(pick->chyron, 13, "INS", UIKEY_IC);
+    pick->chyron = ui_new_chyron();
+    ui_set_chyron_key(pick->chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key(pick->chyron, 2, "F9 Cancel", UIKEY_F09);
+    ui_set_chyron_key(pick->chyron, 3, "F10 Accept", UIKEY_F10);
+    ui_set_chyron_key(pick->chyron, 4, "<v> View", 'v');
+    ui_set_chyron_key(pick->chyron, 5, "<q> Quit View", 'q');
+    ui_set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
+    ui_set_chyron_key(pick->chyron, 7, "<Sp> Edit", ' ');
+    ui_set_chyron_key(pick->chyron, 9, "<Tab> Search", '\t');
+    ui_set_chyron_key(pick->chyron, 10, "<Tab> Select", '\t');
+    ui_set_chyron_key(pick->chyron, 11, "PgUp", UIKEY_PPAGE);
+    ui_set_chyron_key(pick->chyron, 12, "PgDn", UIKEY_NPAGE);
+    ui_set_chyron_key(pick->chyron, 13, "INS", UIKEY_IC);
     pick_std_chyron(pick);
-    compile_chyron(pick->chyron);
+    ui_compile_chyron(pick->chyron);
     pick_engine(init);
     cm_surface_destroy(pick->surface);
     if (pick->p_view_files)
@@ -309,7 +309,7 @@ int pick_engine(Init *init) {
     // The following lines will accomodate the longest chyron line
     pick->chyron->key[11]->active = true;
     pick->chyron->key[12]->active = true;
-    compile_chyron(pick->chyron);
+    ui_compile_chyron(pick->chyron);
     pick->width = max(pick->width, pick->chyron->l);
     pick_std_chyron(pick);
 
@@ -353,7 +353,7 @@ int pick_engine(Init *init) {
         }
         deselect_object(pick);
     } while (1);
-    destroy_chyron(pick->chyron);
+    ui_destroy_chyron(pick->chyron);
     return (rc);
 }
 /** @brief Sets standard chyron key states based on pick structure
@@ -820,7 +820,7 @@ int open_pick_win(Init *init) {
     UiSurface *sfc = pick->surface;
     ui_setscrreg(sfc, WIN, 0, pick->lines - 1);
     ui_scrollok(sfc, WIN, true);
-    assign_chyron_win(pick->chyron, pick->surface, WIN2, "-");
+    ui_assign_chyron_win(pick->chyron, pick->surface, WIN2, "-");
     pick->separator_line = pick->lines + 1;
     ui_keypad(sfc, WIN, true);
     if (pick->p_view_files)
@@ -930,18 +930,18 @@ int picker(Init *init, char *field) {
                     }
                 // 1
                 pick_std_chyron(pick);
-                compile_chyron(pick->chyron);
-                display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
+                ui_compile_chyron(pick->chyron);
+                ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 reverse_object(pick);
                 // ui_top_panel(sfc, WIN);
                 ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
                 ui_render();
-                in_key = ui_get_event_multi(sfc, WIN, &event, -1);
+                in_key = ui_get_event(sfc, WIN, pick->chyron, &event, -1);
                 ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, false);
                 if (event.mouse_action != UI_MOUSE_NONE) {
                     ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
                     if (event.in_win == pick->chyron->win && event.y == pick->chyron->y)
-                        in_key = get_chyron_key(pick->chyron, event.x);
+                        in_key = ui_get_chyron_key(pick->chyron, event.x);
                 } else {
                     if (pick->f_selected[pick->d_idx])
                         ui_mvwadd_wchnstr(sfc, WIN, pick->y, 0,
@@ -989,16 +989,16 @@ int picker(Init *init, char *field) {
                 pick->chyron->key[12]->active = true;  // PgDn
                 pick->chyron->key[13]->active = false; // INS
                 remove_right_angle(pick);
-                compile_chyron(pick->chyron);
-                display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
+                ui_compile_chyron(pick->chyron);
+                ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 // update_panels();
                 // doupdate();
                 ui_render();
                 if (pick->p_view_files)
                     view_cmd_processor(init);
                 pick_std_chyron(pick);
-                compile_chyron(pick->chyron);
-                display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
+                ui_compile_chyron(pick->chyron);
+                ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 in_key = 0;
                 continue;
 
@@ -1229,8 +1229,8 @@ int picker(Init *init, char *field) {
                         ui_mvwaddstr(sfc, BOX, pick->separator_line, 3, tmp_str);
                     }
                 }
-                compile_chyron(pick->chyron);
-                display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
+                ui_compile_chyron(pick->chyron);
+                ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 ui_cursor_move(sfc, WIN2, 0, 1);
                 /** display_field_content */
                 rtrim(accept_s);
@@ -1248,12 +1248,12 @@ int picker(Init *init, char *field) {
                 // ui_top_panel(sfc, WIN2);
                 ui_cursor_enable_yx(sfc, WIN2, 0, pos, true);
                 ui_render();
-                in_key = ui_get_event_multi(sfc, WIN2, &event, -1);
+                in_key = ui_get_event(sfc, WIN2, pick->chyron, &event, -1);
                 ui_cursor_enable_yx(sfc, WIN2, 0, pos, false);
                 ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
                 if (event.mouse_action != UI_MOUSE_NONE) {
                     if (event.in_win == WIN2 && event.y == maxy - 1)
-                        in_key = get_chyron_key(pick->chyron, event.x);
+                        in_key = ui_get_chyron_key(pick->chyron, event.x);
                     if (event.in_win == WIN)
                         break;
                 }
@@ -1305,15 +1305,15 @@ int picker(Init *init, char *field) {
             case UIKEY_IC:
                 if (f_insert) {
                     f_insert = false;
-                    set_chyron_key_cb(pick->chyron, 12, "INS", UIKEY_IC,
-                                      cell_nt_rev);
+                    ui_set_chyron_key_cb(pick->chyron, 12, "INS", UIKEY_IC,
+                                         cell_nt_rev);
                 } else {
                     f_insert = TRUE;
-                    set_chyron_key_cb(pick->chyron, 12, "INS", UIKEY_IC,
-                                      cell_nt_hl_rev);
+                    ui_set_chyron_key_cb(pick->chyron, 12, "INS", UIKEY_IC,
+                                         cell_nt_hl_rev);
                 }
-                compile_chyron(pick->chyron);
-                display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
+                ui_compile_chyron(pick->chyron);
+                ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 in_key = 0;
                 continue;
 

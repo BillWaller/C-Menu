@@ -51,7 +51,7 @@ int field_editor(Form *form) {
     char *s, *d;
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
-    uint maxy, maxx;
+    uint maxy;
     if (form->fidx >= form->fcnt)
         form->fcnt = 0;
     uint flin = form->field[form->fidx]->line;
@@ -68,11 +68,11 @@ int field_editor(Form *form) {
     char *str_end = p + strlen(p);
     in_key = 0;
     if (f_insert)
-        set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_hl_rev);
+        ui_set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_hl_rev);
     else
-        set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_rev);
-    compile_chyron(form->chyron);
-    display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
+        ui_set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_rev);
+    ui_compile_chyron(form->chyron);
+    ui_display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
 
     while (1) {
         if (in_key == 0) {
@@ -82,12 +82,12 @@ int field_editor(Form *form) {
 
             ui_cursor_enable_yx(sfc, WIN, flin, x, true);
             ui_render();
-            in_key = ui_get_event_multi(sfc, WIN, &event, -1);
+            in_key = ui_get_event(sfc, WIN, form->chyron, &event, -1);
             ui_cursor_enable_yx(sfc, WIN, flin, x, false);
 
             maxy = ui_getmaxy(sfc, WIN);
             if (event.in_win == WIN && event.y == maxy - 1)
-                in_key = get_chyron_key(form->chyron, event.x);
+                in_key = ui_get_chyron_key(form->chyron, event.x);
         }
         ui_curs_set(0);
         switch (in_key) {
@@ -143,15 +143,15 @@ int field_editor(Form *form) {
         case UIKEY_IC:
             if (f_insert) {
                 f_insert = false;
-                set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_rev);
+                ui_set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_rev);
             } else {
                 f_insert = true;
-                set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC,
-                                  cell_nt_hl_rev);
+                ui_set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC,
+                                     cell_nt_hl_rev);
             }
-            compile_chyron(form->chyron);
-            display_chyron(sfc, 1, form->chyron, form->lines - 1,
-                           form->chyron->l);
+            ui_compile_chyron(form->chyron);
+            ui_display_chyron(sfc, 1, form->chyron, form->lines - 1,
+                              form->chyron->l);
             in_key = 0;
             continue;
             /** UIKEY_DC deletes character at cursor */

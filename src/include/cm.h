@@ -346,69 +346,17 @@ DT_UNKNOWN: 00001110  14   LF_UNKNOWN: 10000000 128     8
         }                                                    \
     }
 
-/** @struct Chyron
-    @details The Chyron structure represents a key binding for a command in the
-   chyron, which is a status line or message area in the terminal interface.
-    The ChyronKey structure includes fields for displayable text,
-    the key code, and the end position of the command text in the chyron.
-    This structure allows xwgetch to map mouse clicks to key codes
-    as defined by NCursesw and the C-Menu program.
-    The text field holds the displayable text associated with the command.
-    xwgetch() translates a mouse click on the chyron with a particular key code
-    stored in this table.
-    The use case is when the developer wants a dynamic chyron that can be
-   easily changed depending on the context of the program without having to
-   worry about translating mouse click positions to key codes.
-    While many key codes are defined by NCursesw, the developer is free to
-   define their own key codes for custom commands in the chyron. However,
-   xwgetch() will translate mouse clicks to the key codes defined in this table,
-   even if they interfere with standard NCurses key codes, Unicode code points,
-   or ASCII characters. Just use common sense.
-    In addition to returning the key code associated with mouse clicks on
-   the chyron, xwgetch() also returns the key codes for standard keyboard input,
-   and sets the global variables cliek_y and click_x to the coordinates of the
-   mouse click.
- */
-#define CHYRON_KEY_MAXLEN                                                \
-    64                 /**< maximum length of the command text for a key \
-                          binding in the chyron */
-#define CHYRON_KEYS 20 /**< maximum number of key bindings for the chyron */
-
-typedef struct {
-    bool active;                  /**< whether the key binding is active */
-    char text[CHYRON_KEY_MAXLEN]; /**< command text associated with the key code
-                                   */
-    uint keycode;                 /**< key code associated with the command */
-    uint end_pos;                 /**< end position of the command text in the chyron */
-    UiCell cell_base;             /**< cell base for colors/attributes */
-} ChyronKey;
-
-typedef struct {
-    ChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
-    char s[MAXLEN];              /**< the chyron string, for displaying messages in */
-    UiCell cmplx_buf[MAXLEN];    /**< the chyron wide character string */
-                                 //  wchar_t wstr[MAXLEN];        /**< the chyron wide character string */
-    uint l;                      /**< length of the chyron string, for display */
-    UiSurface *sfc;              /** pointer to surface for the chyron */
-    uint win;                    /** index to window of surface */
-    uint y;                      /** y coordinante of the chyron in the window */
-} Chyron;
-
-extern void activate_chyron_key(Chyron *, uint);
-extern void activate_all_chyron_keys(Chyron *);
-extern void deactivate_chyron_key(Chyron *, uint);
-extern void deactivate_all_chyron_keys(Chyron *);
-extern int click_y; /**< the y coordinate of a mouse click */
-extern int click_x; /**< the x coordinate of a mouse click */
-
-extern Chyron *wait_mk_chyron();
-extern bool wait_destroy(Chyron *);
+extern UiChyron *wait_mk_chyron();
+extern bool wait_destroy(UiChyron *);
 extern bool waitpid_with_timeout(pid_t, uint);
 extern int wait_timeout;
 extern bool action_disposition(char *eitle, char *action_str);
 extern int fork_detach_execvp(char **);
 extern bool is_hex_str(char *, uint);
 extern bool unstr_hex_clr(char *, char *);
+
+extern int click_y; /**< the y coordinate of a mouse click */
+extern int click_x; /**< the x coordinate of a mouse click */
 
 extern bool f_debug; /**< a flag to indicate whether debug
 output should be printed, for debugging purposes */
@@ -820,15 +768,6 @@ extern char errmsg[];
 extern void get_rfc3339_s(char *, size_t);
 extern int open_log(char *);
 extern void write_log(char *);
-extern void compile_chyron(Chyron *);
-extern void display_chyron(UiSurface *, uint n, Chyron *, uint, uint);
-extern int get_chyron_key(Chyron *, uint);
-extern bool is_set_chyron_key(Chyron *, uint);
-extern void set_chyron_key(Chyron *, uint, char *, uint);
-extern void set_chyron_key_cb(Chyron *, uint, char *, uint, UiCell);
-extern void unset_chyron_key(Chyron *, uint);
-extern Chyron *new_chyron();
-extern Chyron *destroy_chyron(Chyron *chyron);
 extern void abend(int, char *);
 extern void display_argv_error_msg(char *, char **);
 extern int display_error(char *, char *, char *, char *);
@@ -881,7 +820,6 @@ extern int border_ysplit(UiSurface *, uint);
 extern int border_ysplit_text(UiSurface *, char *, uint);
 extern void mbc_to_wc(wchar_t wc[2], const char mbc);
 extern void initialize_styles(SIO *);
-extern int assign_chyron_win(Chyron *chyron, UiSurface *s, uint w, char *);
 extern void initialize_cells(SIO *sio);
 extern size_t codepoint_to_utf8(uint32_t codepoint, uint8_t *utf8);
 

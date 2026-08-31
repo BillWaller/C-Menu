@@ -101,22 +101,21 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
    @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
    @return 0 on success, -1 if @p ui or @p ev is NULL.
 */
-int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
+int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeout_ms) {
     if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
-    // ui_cursor_enable(s, w, true);
+    ui_cursor_enable(s, w, true);
     // tcflush(0, TCIFLUSH);
     if (timeout_ms < 0) {
         do {
             // notcurses_get(ui->nc, NULL, &ni);
             notcurses_get_blocking(ui->nc, &ni);
         } while (ni.evtype == NCTYPE_RELEASE ||
-                 ni.id == NCKEY_INVALID ||
-                 ni.id == NCKEY_MOTION ||
-                 ni.id == NCKEY_SIGNAL);
+                 ni.id == NCKEY_INVALID || ni.id == NCKEY_MOTION || ni.id == NCKEY_SIGNAL);
+
     } else {
         struct timespec ts = {
             .tv_sec = timeout_ms / 1000,
@@ -126,25 +125,34 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
             notcurses_get(ui->nc, &ts, &ni);
         } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
     }
-    // notcurses_cursor_disable(ui->nc);
     ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
     ev->shift = ncinput_shift_p(&ni);
-    if (ev->key == UIKEY_CHAR) {
+    if (ev->key == UIKEY_CHAR)
         ev->ch = ni.id; /* Unicode codepoint */
-    } else if (ev->key == UIKEY_MOUSE) {
-        ev->y = ni.y;
-        ev->x = ni.x;
+    else if (ev->key == UIKEY_MOUSE) {
         if (ni.id == NCKEY_BUTTON4)
-            ev->mouse_action = UI_MOUSE_SCROLL_UP;
+            ev->mouse_action = UIKEY_SCROLL_UP;
         else if (ni.id == NCKEY_BUTTON5)
-            ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
-        else if (ni.evtype == NCTYPE_PRESS)
-            ev->mouse_action = UI_MOUSE_PRESS;
-        else if (ni.evtype == NCTYPE_RELEASE)
-            ev->mouse_action = UI_MOUSE_RELEASE;
+            ev->mouse_action = UIKEY_SCROLL_DOWN;
+        else if (ni.id == NCKEY_BUTTON1 && ni.evtype == NCTYPE_PRESS) {
+            ev->mouse_action = UIKEY_BUTTON1_PRESSED;
+            struct ncplane *clicked = ui_ncplane_clicked(s, w, &ni);
+            ev->y = ni.y;
+            ev->x = ni.x;
+            ev->in_win = ui_get_plane_idx(s, clicked);
+            if (chyron) {
+                if (ev->in_win == chyron->win && ev->y == chyron->y) {
+                    ev->mouse_action = UIKEY_BUTTON1_CLICKED;
+                    ev->key = ui_get_chyron_key(chyron, ev->x);
+                    return ev->key;
+                } else
+                    return 0;
+            }
+        }
     }
+    notcurses_cursor_disable(ui->nc);
     return ni.id;
 }
 
@@ -158,71 +166,6 @@ int ui_getch() {
              ni.id == NCKEY_INVALID ||
              ni.id == NCKEY_MOTION ||
              ni.id == NCKEY_SIGNAL);
-    return ni.id;
-}
-
-int ui_get_event_multix(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
-    (void)timeout_ms;
-    (void)ev;
-    (void)w;
-    (void)s;
-    if (!ui)
-        return -1;
-    ncinput ni;
-    do {
-        // notcurses_get_blocking(ui->nc, &ni);
-        notcurses_get(ui->nc, NULL, &ni);
-    } while (ni.evtype == NCTYPE_RELEASE ||
-             ni.id == NCKEY_INVALID ||
-             ni.id == NCKEY_MOTION ||
-             ni.id == NCKEY_SIGNAL);
-    return ni.id;
-}
-int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
-    if (!ui || !ev)
-        return -1;
-    memset(ev, 0, sizeof(*ev));
-    ncinput ni;
-    if (timeout_ms < 0)
-        do {
-            notcurses_get(ui->nc, NULL, &ni);
-        } while (ni.evtype == NCTYPE_RELEASE ||
-                 ni.id == NCKEY_INVALID ||
-                 ni.id == NCKEY_MOTION ||
-                 ni.id == NCKEY_SIGNAL);
-    else {
-        struct timespec ts = {
-            .tv_sec = timeout_ms / 1000,
-            .tv_nsec = (long)(timeout_ms % 1000) * 1000000L,
-        };
-        do {
-            notcurses_get(ui->nc, &ts, &ni);
-        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
-    }
-    // notcurses_cursor_disable(ui->nc);
-    ev->key = translate_nckey(ni.id, &ni);
-    ev->alt = ncinput_alt_p(&ni);
-    ev->ctrl = ncinput_ctrl_p(&ni);
-    ev->shift = ncinput_shift_p(&ni);
-    if (ev->key == UIKEY_CHAR) {
-        ev->ch = ni.id; /* Unicode codepoint */
-    } else if (ev->key == UIKEY_MOUSE) {
-        if (ni.id == NCKEY_BUTTON1) {
-            struct ncplane *nn = ncplane_clicked(s, w, &ni);
-            ev->in_win = get_plane_idx(s, nn);
-            ev->key = 0;
-        }
-    }
-    ev->y = ni.y;
-    ev->x = ni.x;
-    if (ni.id == NCKEY_BUTTON4)
-        ev->mouse_action = UI_MOUSE_SCROLL_UP;
-    else if (ni.id == NCKEY_BUTTON5)
-        ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
-    else if (ni.evtype == NCTYPE_PRESS)
-        ev->mouse_action = UI_MOUSE_PRESS;
-    else if (ni.evtype == NCTYPE_RELEASE)
-        ev->mouse_action = UI_MOUSE_RELEASE;
     return ni.id;
 }
 
@@ -246,7 +189,7 @@ int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
     return ni.id;
 }
 
-uint get_plane_idx(UiSurface *s, struct ncplane *plane) {
+uint ui_get_plane_idx(UiSurface *s, struct ncplane *plane) {
     if (!s)
         return -1;
     for (uint w = 0; w < SUB_SFC_MAX; ++w) {
@@ -256,7 +199,7 @@ uint get_plane_idx(UiSurface *s, struct ncplane *plane) {
     return -1;
 }
 
-NcPlane *ncplane_clicked(UiSurface *s, uint w, ncinput *ni) {
+NcPlane *ui_ncplane_clicked(UiSurface *s, uint w, ncinput *ni) {
     NcPlane *pile_member = s->mplane[w];
     struct ncplane *cur = ncpile_top(pile_member);
     while (cur != NULL) {

@@ -91,7 +91,7 @@ typedef struct {
     uint tbl_col_width;  /**< column width on table page */
     uint separator_line; /**< separator between object selector and line editor
                           */
-    Chyron *chyron;      /**< chyron data structure */
+    UiChyron *chyron;    /**< chyron data structure */
 } Pick;
 // extern Pick *pick; /**< pointer to Pick data structure */
 

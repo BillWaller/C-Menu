@@ -362,13 +362,13 @@ typedef struct {
                               validation, formatting, and processing of user
                               input based on the specified field formats and
                               properties during form processing. */
-    Chyron *chyron;           /**< a structure for managing the chyron string and its
-                             display properties on the form window during form processing.
-                             The chyron can be used to provide instructions, feedback, or
-                             other information to the user during form processing, and it
-                             can be updated dynamically based on user actions or other
-                             events to enhance the user experience and provide context-
-                             sensitive information as needed. */
+    UiChyron *chyron;         /**< a structure for managing the chyron string and its
+                           display properties on the form window during form processing.
+                           The chyron can be used to provide instructions, feedback, or
+                           other information to the user during form processing, and it
+                           can be updated dynamically based on user actions or other
+                           events to enhance the user experience and provide context-
+                           sensitive information as needed. */
 } Form;
 // extern Form *form;
 

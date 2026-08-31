@@ -155,8 +155,10 @@ unsigned int menu_cmd_processor(Init *init) {
         event.y = event.x = -1;
         ui_wmove(sfc, WIN, menu->line_idx, 1);
         ui_render();
-        in_key = ui_get_event(sfc, WIN, &event, -1);
-        // Remove the highlight from the currently selected menu choice
+        in_key = ui_get_event(sfc, WIN, NULL, &event, -1);
+        if (event.mouse_action == UIKEY_BUTTON1_PRESSED)
+            if (event.y < menu->item_count)
+                in_key = menu->line[event.y]->choice_letter;
         ui_bkgdset(sfc, WIN, &cell_nt);
         ui_draw_text_fill(sfc, WIN, menu->line_idx, 0,
                           menu->line[menu->line_idx]->choice_text,

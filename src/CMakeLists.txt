@@ -59,9 +59,15 @@ install(FILES "${CMAKE_BINARY_DIR}/compile_commands.json"
 include_directories("${PROJECT_SOURCE_DIR}/include"
                     "${PROJECT_SOURCE_DIR}/ui")
 
-set(LIBS ncursesw panelw tinfow m)
-add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c
-    ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c)
+if(UI STREQUAL "NOTCURSES_UI")
+    add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c
+        ui/ui_notcurses.c ui/ui_notcurses_draw.c ui/ui_notcurses_input.c
+        ui/ui_common.c)
+else()
+    add_library(cm SHARED dwin.c exec.c futil.c scriou.c sig.c
+        ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
+        ui/ui_common.c)
+endif()
 set_target_properties(cm PROPERTIES VERSION ${PROJECT_VERSION}
                                   SOVERSION ${PROJECT_VERSION_MAJOR})
 
@@ -97,6 +103,7 @@ if(UI STREQUAL "UAL_UI")
         ui/ui_ncurses_draw.c
         ui/ui_ncurses_input.c
         ui/ui_layout.c
+        ui/ui_common.c
     )
     set(CMAKE_C_FLAGS "-Wall -Wextra -DUAL_UI")
     target_compile_definitions(cm PUBLIC -DUAL_UI -DNCURSES_UI
@@ -112,6 +119,7 @@ elseif(UI STREQUAL "NOTCURSES_UI")
         ui/ui_notcurses_draw.c
         ui/ui_notcurses_input.c
         ui/ui_layout.c
+        ui/ui_common.c
     )
     set(CMAKE_C_FLAGS "-Wall -Wextra -DNOTCURSES_UI")
     target_compile_definitions(cm PUBLIC -DNOTCURSES_UI)
@@ -132,11 +140,11 @@ target_link_libraries(enterstr cm ${LIBS})
 
 add_executable(amort amort.c)
 set_target_properties(amort PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-target_link_libraries(amort cm ${LIBS})
+target_link_libraries(amort cm ${LIBS} -lm)
 
 add_executable(iloan iloan.c)
 set_target_properties(iloan PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-target_link_libraries(iloan cm ${LIBS})
+target_link_libraries(iloan cm ${LIBS} -lm)
 
 add_executable(lf lf.c)
 set_target_properties(lf PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)

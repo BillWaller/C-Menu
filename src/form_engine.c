@@ -91,7 +91,7 @@ int init_form(Init *init, int argc, char **argv, uint begy, uint begx) {
         strnz__cpy(form->title, form->in_spec, MAXLEN - 1);
     rc = form_engine(init);
     UiSurface *sfc = ui_surface[sfc_ptr];
-    destroy_chyron(form->chyron);
+    ui_destroy_chyron(form->chyron);
     if (sfc)
         cm_surface_destroy(sfc);
     destroy_form(init);
@@ -130,23 +130,23 @@ int form_engine(Init *init) {
     }
     form_read_data(form);
     display_form(init);
-    form->chyron = new_chyron();
-    set_chyron_key(form->chyron, 1, "F1 Help", UIKEY_F01);
-    set_chyron_key_cb(form->chyron, 2, "F2 Process", UIKEY_F02, cell_nt_hl_rev);
-    set_chyron_key_cb(form->chyron, 3, "F3 Calculate", UIKEY_F03, cell_nt_hl_rev);
-    set_chyron_key_cb(form->chyron, 4, "F4 Query", UIKEY_F04, cell_nt_hl_rev);
-    set_chyron_key_cb(form->chyron, 5, "F5 Edit", UIKEY_F05, cell_nt_hl_rev);
-    set_chyron_key(form->chyron, 9, "F9 Cancel", UIKEY_F09);
-    set_chyron_key(form->chyron, 10, "F10 Accept", UIKEY_F10);
-    set_chyron_key(form->chyron, 18, "INS", UIKEY_IC);
+    form->chyron = ui_new_chyron();
+    ui_set_chyron_key(form->chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key_cb(form->chyron, 2, "F2 Process", UIKEY_F02, cell_nt_hl_rev);
+    ui_set_chyron_key_cb(form->chyron, 3, "F3 Calculate", UIKEY_F03, cell_nt_hl_rev);
+    ui_set_chyron_key_cb(form->chyron, 4, "F4 Query", UIKEY_F04, cell_nt_hl_rev);
+    ui_set_chyron_key_cb(form->chyron, 5, "F5 Edit", UIKEY_F05, cell_nt_hl_rev);
+    ui_set_chyron_key(form->chyron, 9, "F9 Cancel", UIKEY_F09);
+    ui_set_chyron_key(form->chyron, 10, "F10 Accept", UIKEY_F10);
+    ui_set_chyron_key(form->chyron, 18, "INS", UIKEY_IC);
     form->chyron->key[2]->active = false;  // F2 Process
     form->chyron->key[3]->active = false;  // F3 Calculate
     form->chyron->key[4]->active = false;  // F4 Query
     form->chyron->key[5]->active = false;  // F5 Edit
     form->chyron->key[18]->active = false; // Insert
-    compile_chyron(form->chyron);
+    ui_compile_chyron(form->chyron);
     UiSurface *sfc = ui_surface[sfc_ptr];
-    display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
+    ui_display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
     // 1 F1 Help
     // 2 F2 Process
     // 3 F3 Calculate
@@ -242,23 +242,23 @@ int form_post(Init *init) {
     form->chyron->key[5]->active = true;   // F5 Edit
     form->chyron->key[10]->active = false; // F10 Continue
     form->chyron->key[18]->active = false; // INS Insert
-    compile_chyron(form->chyron);
+    ui_compile_chyron(form->chyron);
     rc = -1;
     while (loop) {
         if (rc == -1) {
-            display_chyron(sfc, WIN, form->chyron, form->lines - 1, form->chyron->l);
+            ui_display_chyron(sfc, WIN, form->chyron, form->lines - 1, form->chyron->l);
             tcflush(2, TCIFLUSH);
             ui_render();
-            c = ui_get_event_multi(sfc, WIN, &event, -1);
+            c = ui_get_event(sfc, WIN, form->chyron, &event, -1);
             ui_getmaxyx(sfc, WIN, &maxy, &maxx);
             if (event.in_win == 1 && event.y == maxy - 1)
-                c = get_chyron_key(form->chyron, event.x);
+                c = ui_get_chyron_key(form->chyron, event.x);
         }
         switch (c) {
         case UIKEY_F01:
             return FA_HELP;
         case UIKEY_F05: // F5 Edit
-            if (is_set_chyron_key(form->chyron, 5)) {
+            if (ui_is_set_chyron_key(form->chyron, 5)) {
                 loop = false;
                 rc = FA_CONTINUE;
                 break;
@@ -350,15 +350,15 @@ int form_process(Init *init) {
     form->chyron->key[18]->active = false;                           // INS Insert
 
     while (loop) {
-        compile_chyron(form->chyron);
-        display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
+        ui_compile_chyron(form->chyron);
+        ui_display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
         click_y = click_x = -1;
         tcflush(2, TCIFLUSH);
         ui_render();
-        c = ui_get_event_multi(sfc, WIN, &event, -1);
+        c = ui_get_event(sfc, WIN, form->chyron, &event, -1);
         ui_getmaxyx(sfc, WIN, &maxy, &maxx);
         if (event.in_win == 1 && event.y == maxy - 1)
-            c = get_chyron_key(form->chyron, event.x);
+            c = ui_get_chyron_key(form->chyron, event.x);
 
         switch (c) {
         case UIKEY_F01:
@@ -427,12 +427,12 @@ int form_process(Init *init) {
                 form->chyron->key[4]->active = false; // F4 Query
                 form->chyron->key[5]->active = true;  // F5 Edit
                 form->chyron->key[10]->active = true; // F10 Accept
-                compile_chyron(form->chyron);
+                ui_compile_chyron(form->chyron);
                 continue;
             }
             break;
         case UIKEY_F05:
-            if (is_set_chyron_key(form->chyron, 5)) {
+            if (ui_is_set_chyron_key(form->chyron, 5)) {
                 loop = false;
                 rc = FA_CONTINUE;
                 break;

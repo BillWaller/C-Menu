@@ -1,0 +1,34 @@
++++ ncurses.ctags	2026-08-31 00:08:57.637157299 -0500
++ui_chg_pair
++ui_doupdate
++ui_get_color
++ui_ncurses_get_screen
++ui_ncurses_surface_get_panel
++ui_ncurses_surface_get_win
++ui_pair_from_hex
++ui_top_panel
++ui_wnoutrefresh
++mbstr_to_cc
++parse_ansi
++ui_mvaddstr
++translate_key
++ui_mice_enable
++ui_mousemask
+
+--- notcurses.ctags	2026-08-31 00:08:31.872033984 -0500
+-ui_get_channels_from_pair
+-ui_get_pair
+-ui_init_color_hex
+-ui_mice_enable
+-ui_mousemask
+-ui_notcurses_get_nc
+-ui_notcurses_surface_get_plane
+-mk_chimera
+-ui_draw_ch
+-ui_waddch
+-ui_waddnstr
+-get_plane_idx
+-ncplane_clicked
+-translate_nckey
+-ui_get_event_multix
+-ui_getch

@@ -457,6 +457,14 @@ int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
         return -1;
     return 0;
 }
+void ui_cursor_yx(int *y, int *x) {
+    notcurses_cursor_yx(ui->nc, y, x);
+}
+void ui_abs_yx(UiSurface *s, uint w, int *y, int *x) {
+    if (!s)
+        return;
+    ncplane_abs_yx(s->mplane[w], y, x);
+}
 void ui_getyx(UiSurface *s, uint w, uint *y, uint *x) {
     if (!s)
         return;

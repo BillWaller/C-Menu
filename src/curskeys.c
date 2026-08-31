@@ -71,7 +71,7 @@ int ncurses_input(UiSurface *sfc, uint w) {
         ui_cursor_move(sfc, WIN, 1, 39);
         do {
             ui_render();
-            c = ui_get_event(sfc, WIN, &ev, -1);
+            c = ui_get_event(sfc, WIN, NULL, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
                     c = display_error(em0, em1, em2, NULL);
@@ -592,7 +592,7 @@ int notcurses_input(UiSurface *sfc, uint w) {
         ui_cursor_move(sfc, WIN, 1, 39);
         do {
             ui_render();
-            c = ui_get_event(sfc, WIN, &ev, -1);
+            c = ui_get_event(sfc, WIN, NULL, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
                     c = display_error(em0, em1, em2, NULL);

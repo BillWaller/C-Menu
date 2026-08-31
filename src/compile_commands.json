@@ -31,24 +31,6 @@
 },
 {
   "directory": "/usr/local/src/C-Menu/src/build",
-  "command": "/usr/bin/cc -DNOTCURSES_UI -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -I/usr/local/src/C-Menu/src/ui -Wall -Wextra -DNOTCURSES_UI -O3 -DNDEBUG -std=gnu2x -fPIC -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -o CMakeFiles/cm.dir/ui/ui_ncurses.c.o -c /usr/local/src/C-Menu/src/ui/ui_ncurses.c",
-  "file": "/usr/local/src/C-Menu/src/ui/ui_ncurses.c",
-  "output": "CMakeFiles/cm.dir/ui/ui_ncurses.c.o"
-},
-{
-  "directory": "/usr/local/src/C-Menu/src/build",
-  "command": "/usr/bin/cc -DNOTCURSES_UI -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -I/usr/local/src/C-Menu/src/ui -Wall -Wextra -DNOTCURSES_UI -O3 -DNDEBUG -std=gnu2x -fPIC -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -o CMakeFiles/cm.dir/ui/ui_ncurses_draw.c.o -c /usr/local/src/C-Menu/src/ui/ui_ncurses_draw.c",
-  "file": "/usr/local/src/C-Menu/src/ui/ui_ncurses_draw.c",
-  "output": "CMakeFiles/cm.dir/ui/ui_ncurses_draw.c.o"
-},
-{
-  "directory": "/usr/local/src/C-Menu/src/build",
-  "command": "/usr/bin/cc -DNOTCURSES_UI -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -I/usr/local/src/C-Menu/src/ui -Wall -Wextra -DNOTCURSES_UI -O3 -DNDEBUG -std=gnu2x -fPIC -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -o CMakeFiles/cm.dir/ui/ui_ncurses_input.c.o -c /usr/local/src/C-Menu/src/ui/ui_ncurses_input.c",
-  "file": "/usr/local/src/C-Menu/src/ui/ui_ncurses_input.c",
-  "output": "CMakeFiles/cm.dir/ui/ui_ncurses_input.c.o"
-},
-{
-  "directory": "/usr/local/src/C-Menu/src/build",
   "command": "/usr/bin/cc -DNOTCURSES_UI -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -I/usr/local/src/C-Menu/src/ui -Wall -Wextra -DNOTCURSES_UI -O3 -DNDEBUG -std=gnu2x -fPIC -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -o CMakeFiles/cm.dir/ui/ui_notcurses.c.o -c /usr/local/src/C-Menu/src/ui/ui_notcurses.c",
   "file": "/usr/local/src/C-Menu/src/ui/ui_notcurses.c",
   "output": "CMakeFiles/cm.dir/ui/ui_notcurses.c.o"
@@ -64,6 +46,12 @@
   "command": "/usr/bin/cc -DNOTCURSES_UI -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -I/usr/local/src/C-Menu/src/ui -Wall -Wextra -DNOTCURSES_UI -O3 -DNDEBUG -std=gnu2x -fPIC -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -o CMakeFiles/cm.dir/ui/ui_notcurses_input.c.o -c /usr/local/src/C-Menu/src/ui/ui_notcurses_input.c",
   "file": "/usr/local/src/C-Menu/src/ui/ui_notcurses_input.c",
   "output": "CMakeFiles/cm.dir/ui/ui_notcurses_input.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu/src/build",
+  "command": "/usr/bin/cc -DNOTCURSES_UI -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -I/usr/local/src/C-Menu/src/ui -Wall -Wextra -DNOTCURSES_UI -O3 -DNDEBUG -std=gnu2x -fPIC -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -o CMakeFiles/cm.dir/ui/ui_common.c.o -c /usr/local/src/C-Menu/src/ui/ui_common.c",
+  "file": "/usr/local/src/C-Menu/src/ui/ui_common.c",
+  "output": "CMakeFiles/cm.dir/ui/ui_common.c.o"
 },
 {
   "directory": "/usr/local/src/C-Menu/src/build",

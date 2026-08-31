@@ -752,7 +752,7 @@ int get_cmd_char(View *view, off_t *n) {
         }
         ui_render();
         event.y = event.x = -1;
-        c = ui_get_event(sfc, CMDLN, &event, -1);
+        c = ui_get_event(sfc, CMDLN, NULL, &event, -1);
         switch (c) {
         case UIKEY_BUTTON1:
             break;
@@ -1103,9 +1103,11 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     uint match_len;
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
+#ifdef UAL_UI
     wchar_t wstr[2] = {L'\0', L'\0'};
     attr_t attr;
     ushort cpx;
+#endif
     UiCell cc = {0};
     off_t prev_ln_no;
     bool f_page = false;

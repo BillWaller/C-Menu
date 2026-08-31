@@ -81,6 +81,21 @@ int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, in
 // -------------------------------------------------------------------------
 // Wide Character Strings (wstr)
 // ---------------------------------------------------------------------------
+int ui_waddch(UiSurface *s, uint w, const char c) {
+    if (!s)
+        return -1;
+    waddch(s->mwin[w], c);
+    return 0;
+}
+int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
+    if (!s || !c)
+        return -1;
+    mvwaddch(s->mwin[w], y, x, c);
+    return 0;
+}
+// -------------------------------------------------------------------------
+// Wide Character Strings (wstr)
+// ---------------------------------------------------------------------------
 int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr) {
     if (!s || !wstr)
         return -1;
@@ -114,18 +129,10 @@ int ui_waddstr(UiSurface *s, uint w, const char *text) {
     waddstr(s->mwin[w], text);
     return 0;
 }
-//  text string
-int ui_mvaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
+int ui_waddnstr(UiSurface *s, uint w, const char *text, int m) {
     if (!s || !text)
         return -1;
-    mvwaddstr(s->mwin[w], y, x, text);
-    return 0;
-}
-//  text character single
-int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
-    if (!s || !c)
-        return -1;
-    mvwaddch(s->mwin[w], y, x, c);
+    waddnstr(s->mwin[w], text, m);
     return 0;
 }
 // text string
@@ -319,7 +326,7 @@ void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
     char *ansi_p = ansi_str + 2;
     extended_pair_content(*cpx, &_fg_clr, &_bg_clr);
     fg = fg_clr = (uint)_fg_clr;
-    bg = fg_clr = (uint)_bg_clr;
+    bg = bg_clr = (uint)_bg_clr;
     RGB rgb;
     tok = strtok((char *)ansi_p, ";m");
     bool a_toi_error = false;
