@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-31T16:08:09-05:00* - FEATURE UPDATES: Keyboard and mouse input handling 
+
+*2026-08-31T14:26:30-05:00* - Update CHANGELOG.md 
+
 *2026-08-31T14:25:56-05:00* - FEATURE UPDATE: Uniform Abstraction Layer (UAL) for UI Backends 
 
 *2026-08-31T13:46:50-05:00* - Update CHANGELOG.md 
