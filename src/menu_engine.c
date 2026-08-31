@@ -251,7 +251,7 @@ unsigned int menu_cmd_processor(Init *init) {
             ui_restore_wins();
             return (MA_DISPLAY_MENU);
             /** @brief process mouse event */
-        case UIKEY_BUTTON1:
+        case UIKEY_BUTTON1_CLICKED:
             if (event.y >= menu->item_count)
                 return (MA_CONTINUE);
             menu->line_idx = event.y;

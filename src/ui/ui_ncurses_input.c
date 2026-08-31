@@ -82,6 +82,8 @@ static UiKey translate_key(int ch) {
         return UIKEY_F11;
     case KEY_F(12):
         return UIKEY_F12;
+    case UIKEY_BUTTON1_CLICKED:
+        return UIKEY_BUTTON1;
     default:
         if (ch >= 32 && ch <= 126)
             return UIKEY_CHAR;
@@ -114,9 +116,9 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     int ch = wgetch(s->mwin[w]);
     curs_set(0);
     ev->key = translate_key(ch);
-    if (ev->key == UI_KEY_CHAR) {
+    if (ev->key == UIKEY_CHAR) {
         ev->ch = (uint32_t)ch;
-    } else if (ev->key == UI_KEY_MOUSE) {
+    } else if (ev->key == UIKEY_MOUSE) {
         MEVENT me;
         if (getmouse(&me) == OK) {
             ev->y = me.y;
@@ -163,9 +165,9 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     curs_set(0);
     ev->mouse_action = UI_MOUSE_NONE;
     ev->key = translate_key(ch);
-    if (ev->key == UI_KEY_CHAR) {
+    if (ev->key == UIKEY_CHAR) {
         ev->ch = (uint32_t)ch;
-    } else if (ev->key == UI_KEY_MOUSE) {
+    } else if (ev->key == UIKEY_MOUSE) {
         MEVENT me;
         if (getmouse(&me) == OK) {
             ev->y = me.y;
@@ -212,7 +214,7 @@ int ui_get_event_no_mouse(UiSurface *s, uint w, UiEvent *ev) {
         ch = wgetch(s->mwin[w]);
         curs_set(0);
         ev->key = translate_key(ch);
-        if (ev->key == UI_KEY_CHAR) {
+        if (ev->key == UIKEY_CHAR) {
             ev->ch = (uint32_t)ch;
             break;
         }
