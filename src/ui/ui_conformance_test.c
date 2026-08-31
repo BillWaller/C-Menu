@@ -51,7 +51,7 @@ static void compile_time_checks(void) {
     UiBorderKind bk = UI_BORDER_ROUNDED;
     UiBackend be;
     UiColor col;
-    UiColorPair cp;
+    UiPair cp;
 
     (void)cfg;
     (void)ev;
@@ -64,9 +64,9 @@ static void compile_time_checks(void) {
     (void)cp;
 
     /* Verify enum values are defined. */
-    (void)(UI_KEY_NONE + UI_KEY_CHAR + UI_KEY_ENTER + UI_KEY_ESCAPE +
-           UI_KEY_UP + UI_KEY_DOWN + UI_KEY_LEFT + UI_KEY_RIGHT +
-           UI_KEY_F1 + UI_KEY_F12);
+    (void)(UIKEY_NONE + UIKEY_CHAR + UIKEY_ENTER + UIKEY_ESCAPE +
+           UIKEY_UP + UIKEY_DOWN + UIKEY_LEFT + UIKEY_RIGHT +
+           UIKEY_F01 + UIKEY_F12);
     (void)(UI_MOUSE_NONE + UI_MOUSE_PRESS + UI_MOUSE_RELEASE +
            UI_MOUSE_SCROLL_UP + UI_MOUSE_SCROLL_DOWN);
     (void)(UI_BACKEND_NCURSES + UI_BACKEND_NOTCURSES);

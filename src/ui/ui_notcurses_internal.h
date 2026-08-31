@@ -97,11 +97,10 @@
 #define UIKEY_MOD_META 32
 #define UIKEY_MOD_CAPSLOCK 64
 #define UIKEY_MOD_NUMLOCK 128
-
-#define UIKEY_NONE 700
-#define UIKEY_BTAB 701
-#define UIKEY_MOUSE 702
-#define UIKEY_CHAR 703
+#define UIKEY_NONE 0700
+#define UIKEY_BTAB 0701
+#define UIKEY_MOUSE 0702
+#define UIKEY_CHAR 0703
 
 /** @struct UiRuntime
    @ingroup ui_notcurses

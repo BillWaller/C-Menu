@@ -62,44 +62,45 @@ typedef struct {
     short attrs;      // attributes        2-bytes
     short color_pair; // color pair index  2-bytes
 } UiCchar64;          //           total   8-bytes
-
+#ifdef ASDF
 typedef enum {
-    UI_KEY_NONE = 0,
-    UI_KEY_CHAR,
-    UI_KEY_ENTER,
-    UI_KEY_ESCAPE,
-    UI_KEY_BACKSPACE,
-    UI_KEY_TAB,
-    UI_KEY_BTAB,
-    UI_KEY_UP,
-    UI_KEY_DOWN,
-    UI_KEY_LEFT,
-    UI_KEY_RIGHT,
-    UI_KEY_HOME,
-    UI_KEY_END,
-    UI_KEY_PGUP,
-    UI_KEY_PGDN,
-    UI_KEY_INSERT,
-    UI_KEY_DELETE,
-    UI_KEY_RESIZE,
-    UI_KEY_MOUSE,
-    UI_KEY_F1,
-    UI_KEY_F2,
-    UI_KEY_F3,
-    UI_KEY_F4,
-    UI_KEY_F5,
-    UI_KEY_F6,
-    UI_KEY_F7,
-    UI_KEY_F8,
-    UI_KEY_F9,
-    UI_KEY_F10,
-    UI_KEY_F11,
-    UI_KEY_F12
+    UIKEY_NONE = 0,
+    UIKEY_CHAR,
+    UIKEY_ENTER,
+    UIKEY_ESCAPE,
+    UIKEY_BACKSPACE,
+    UIKEY_TAB,
+    UIKEY_BTAB,
+    UIKEY_UP,
+    UIKEY_DOWN,
+    UIKEY_LEFT,
+    UIKEY_RIGHT,
+    UIKEY_HOME,
+    UIKEY_END,
+    UIKEY_PGUP,
+    UIKEY_PGDN,
+    UIKEY_INSERT,
+    UIKEY_DELETE,
+    UIKEY_RESIZE,
+    UIKEY_MOUSE,
+    UIKEY_F1,
+    UIKEY_F2,
+    UIKEY_F3,
+    UIKEY_F4,
+    UIKEY_F5,
+    UIKEY_F6,
+    UIKEY_F7,
+    UIKEY_F8,
+    UIKEY_F9,
+    UIKEY_F10,
+    UIKEY_F11,
+    UIKEY_F12
 } UiKey;
-
+#endif
+typedef uint32_t UiKey;
 typedef struct {
     UiKey key;
-    uint32_t ch; /* Unicode codepoint when key == UI_KEY_CHAR */
+    uint32_t ch; /* Unicode codepoint when key == UIKEY_CHAR */
     bool alt;
     bool ctrl;
     bool shift;
@@ -170,7 +171,7 @@ typedef struct {
     bool palette256; /**< backend supports at least 256 palette entries */
     bool mouse;      /**< backend can deliver mouse events */
     bool unicode;    /**< backend handles full Unicode / UTF-8 correctly */
-    bool resize;     /**< backend emits UI_KEY_RESIZE on terminal resize */
+    bool resize;     /**< backend emits UIKEY_RESIZE on terminal resize */
     int color_pairs; /**< max simultaneous color pairs; 0 = unlimited */
 } UiCaps;
 
