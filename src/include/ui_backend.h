@@ -64,41 +64,7 @@ typedef struct {
     short attrs;      // attributes        2-bytes
     short color_pair; // color pair index  2-bytes
 } UiCchar64;          //           total   8-bytes
-#ifdef ASDF
-typedef enum {
-    UIKEY_NONE = 0,
-    UIKEY_CHAR,
-    UIKEY_ENTER,
-    UIKEY_ESCAPE,
-    UIKEY_BACKSPACE,
-    UIKEY_TAB,
-    UIKEY_BTAB,
-    UIKEY_UP,
-    UIKEY_DOWN,
-    UIKEY_LEFT,
-    UIKEY_RIGHT,
-    UIKEY_HOME,
-    UIKEY_END,
-    UIKEY_PGUP,
-    UIKEY_PGDN,
-    UIKEY_INSERT,
-    UIKEY_DELETE,
-    UIKEY_RESIZE,
-    UIKEY_MOUSE,
-    UIKEY_F01,
-    UIKEY_F02,
-    UIKEY_F03,
-    UIKEY_F04,
-    UIKEY_F05,
-    UIKEY_F06,
-    UIKEY_F07,
-    UIKEY_F08,
-    UIKEY_F09,
-    UIKEY_F10,
-    UIKEY_F11,
-    UIKEY_F12
-} UiKey;
-#endif
+
 typedef uint32_t UiKey;
 typedef struct {
     UiKey key;
@@ -180,10 +146,11 @@ typedef struct {
 
 /** BOX WIDE UNICODE CODEPOINTS */
 
-extern wchar_t *border_rounded;
-extern wchar_t *border_square;
+extern wchar_t *border_single;
 extern wchar_t *border_double;
+extern wchar_t *border_rounded;
 extern wchar_t *border_heavy;
+extern wchar_t *border_none;
 
 typedef union border_wide {
     wchar_t str[11];
@@ -202,17 +169,7 @@ typedef union border_wide {
     };
 } BorderWide;
 
-// extern const wchar_t *bw_ho; /**< horizontal line */
-// extern const wchar_t *bw_ve; /**< vertical line */
-// extern const wchar_t *bw_lt; /**< left tee */
-// extern const wchar_t *bw_rt; /**< right tee */
-// extern const wchar_t *bw_tt; /**< top tee */
-// extern const wchar_t *bw_bt; /**< bottom tee */
-// extern const wchar_t *bw_cr; /**< cross */
-// extern const wchar_t *bw_tl; /**< top left */
-// extern const wchar_t *bw_tr; /**< top right */
-// extern const wchar_t *bw_bl; /**< bottom left */
-// extern const wchar_t *bw_br; /**< bottom right */
+// Temporary macros to access the border wide characters more easily
 
 #define bw_ho bw.ho
 #define bw_ve bw.ve
@@ -249,6 +206,7 @@ typedef struct {
     uint b;
 } STDRGB;
 #else
+
 #define CCHARW_MAX 5
 #define ERR -1
 typedef struct nccell UiCell;
@@ -280,6 +238,7 @@ extern uint LINES, COLS;
     .stylemask = (s),                  \
     .channels = (chan),                \
 }
+
 #endif
 typedef struct {
     union {

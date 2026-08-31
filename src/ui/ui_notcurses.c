@@ -38,32 +38,6 @@ int sfc_ptr = -1;
 
 NcPlane *stdplane;
 
-/** BOX WIDE UNICODE CODEPOINTS */
-
-wchar_t *border_single = L"─│├┤┬┴┼┌┐└┘";
-wchar_t *border_rounded = L"─│├┤┬┴┼╭╮╰╯";
-wchar_t *border_double = L"═║╠╣╦╩╬╔╗╚╝";
-wchar_t *border_heavy = L"━┃┣┫┳┻╋┏┓┗┛";
-wchar_t *border_none = L"           ";
-
-BorderWide bw;
-
-const wchar_t *bw_rtl = L"\x256d"; /**< rounded top left */
-const wchar_t *bw_rtr = L"\x256e"; /**< rounded top right */
-const wchar_t *bw_rbl = L"\x2570"; /**< rounded bottom left */
-const wchar_t *bw_rbr = L"\x256f"; /**< rounded bottom right */
-const wchar_t *bw_sp = L"\x20";    /**< space */
-const wchar_t *bw_ra = L"\x2192";  /**< large right arrow */
-const wchar_t *bw_la = L"\x2190";  /**< large left arrow */
-const wchar_t *bw_ua = L"\x2191";  /**< large up arrow */
-const wchar_t *bw_da = L"\x2193";  /**< large down arrow */
-const wchar_t *bw_ran = L"\x276F"; /**< right_angle */
-const wchar_t *bw_lan = L"\x276E"; /**< left_angle */
-const wchar_t *bw_chk = L"\x2611"; /**< left_angle */
-const wchar_t *bw_h09 = L"\x23BD"; /**< horizontal line 9 */
-
-STDRGB std_color[] = {{0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0}, {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192}, {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0}, {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
-
 /* -------------------------------------------------------------------------
    Backend identification and capability query
    ------------------------------------------------------------------------- */

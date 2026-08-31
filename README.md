@@ -8,24 +8,27 @@ With C-Menu, you can leverage the raw speed and power of a terminal interface wi
 
 More sophisticated applications can be be built using the C-Menu API that is fully integrated with modern development environments like Vim and Neovim. As you type C-Menu API function names, the editor provides auto-completion and inline documentation, making it easy to learn and use. That's why C-Menu is an indispensable tool for skill levels ranging from shell script hobbyists to professional developers and system administrators.
 
-## New Features in View
+## Uniform Abstraction Layer User Interface
 
-### Pick and View integration
+C-Menu has fully integrated the new Uniform Abstraction Layer (UAL) for UI
+Backends. Currently, NCurses and Notcurses are fully supported, and additional
+backends can be added in the future. The UAL allows C-Menu to provide a
+consistent interface across different terminal environments, while also enabling
+advanced features such as mouse support, color management, and improved performance. This makes C-Menu more versatile and adaptable to a wider range of use cases.
 
-`pick` and `view` can be combined to create a fast, interactive file selection and viewing workflow. For example, you can use `lf` to generate a list of files, pipe that into `pick` for selection. As you move the cursor or enter search expressions in Pick, the file highlighted by the selector bar appears in a View window.
+The UAL UI is a separate library that can be used with or independently of C-Menu,
+allowing developers to build their own terminal-based applications with a consistent and powerful UI framework. The UAL provides a set of APIs for creating windows, menus, forms, and other UI elements, as well as handling input events and managing the terminal display.
 
-![Pick and View Integration](screenshots/rustlings-a2.png)
+While Notcurses has many advanced features, and is just plain cool
+[See the Notcurses III Demo](https://www.youtube.com/watch?v=dcjkezf1ARY). That
+being said, NCurses, with fewer cool features, is solid as a rock, and it isn't
+going anywhere. You can use the Notcurses version of C-Menu on your powerful
+desktop development system, and then deploy the NCurses version of C-Menu on your production server. The UAL makes this possible, and it is a key feature of C-Menu that sets it apart from other terminal-based UI toolkits.
 
-You may notice that these windows have a slightly different border. It is
-thicker and doesn't have rounded corners. If you prefer the rounded corners, you
-can change the border variable in your configuration file. Choices are single,
-double, rounded, heavy (above), and none. I have set the default to rounded.
+The core C-Menu components are visually and functionally identical across both
+NCurses and Notcurses backends, and the same code drives both backends through the UAL. This means that you can develop your application using the Notcurses backend, and then deploy it using the NCurses backend without any changes to your code. This is a powerful feature that allows you to take advantage of the advanced features of Notcurses during development, while still being able to deploy your application on systems that only support NCurses.
 
-### Smart Line Wrapping
-
-Nvim's Language Server Protocol log highlighted with a customized Tree-Sitter parser and C-Menu View's Smart Line Wrapping. It's the Bee's knees for developers who want to see the whole line on-screen without horizontal scrolling. With view, you can switch between horizontal scrolling and line wrap modes without closing the document.
-
-![Smart Line Wrapping](screenshots/View_Log.png)
+![UAL API Example](screenshots/rustlings-a2.png)
 
 ---
 

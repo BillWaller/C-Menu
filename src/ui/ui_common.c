@@ -1,6 +1,71 @@
 #include "cm.h"
 #include "ui_backend.h"
 
+/** BOX WIDE UNICODE CODEPOINTS */
+
+BorderWide bw;
+
+wchar_t *border_single = L"─│├┤┬┴┼┌┐└┘";
+wchar_t *border_double = L"═║╠╣╦╩╬╔╗╚╝";
+wchar_t *border_rounded = L"─│├┤┬┴┼╭╮╰╯";
+wchar_t *border_heavy = L"━┃┣┫┳┻╋┏┓┗┛";
+wchar_t *border_none = L"           ";
+
+const wchar_t *bw_rtl = L"\x256d"; /**< rounded top left */
+const wchar_t *bw_rtr = L"\x256e"; /**< rounded top right */
+const wchar_t *bw_rbl = L"\x2570"; /**< rounded bottom left */
+const wchar_t *bw_rbr = L"\x256f"; /**< rounded bottom right */
+const wchar_t *bw_sp = L"\x20";    /**< space */
+const wchar_t *bw_ra = L"\x2192";  /**< large right arrow */
+const wchar_t *bw_la = L"\x2190";  /**< large left arrow */
+const wchar_t *bw_ua = L"\x2191";  /**< large up arrow */
+const wchar_t *bw_da = L"\x2193";  /**< large down arrow */
+const wchar_t *bw_ran = L"\x276F"; /**< right_angle */
+const wchar_t *bw_lan = L"\x276E"; /**< left_angle */
+const wchar_t *bw_chk = L"\x2611"; /**< left_angle */
+const wchar_t *bw_h09 = L"\x23BD"; /**< horizontal line 9 */
+
+// -----------------------------------------------------------------------
+// Standard VGA 16-Color Palette
+// -----------------------------------------------------------------------
+
+STDRGB std_color[] = {
+    {0, 0, 0},
+    {128, 0, 0},
+    {0, 128, 0},
+    {128, 128, 0},
+    {0, 0, 128},
+    {128, 0, 128},
+    {0, 128, 128},
+    {192, 192, 192},
+    {128, 128, 128},
+    {255, 0, 0},
+    {0, 255, 0},
+    {255, 255, 0},
+    {0, 0, 255},
+    {255, 0, 255},
+    {0, 255, 255},
+    {255, 255, 255}};
+
+// There is also a 256 color palette which is not included here.
+// You don't really need any palette. It's mostly here for nostalgia. You can
+// show it to your friends and say "look at this." I tell you, when I was a kid,
+// we only had 16 colors. And I used to plow four acres of corn with a two-horse team.
+// And we liked it!
+
+// -----------------------------------------------------------------------
+// Chyron API
+// -----------------------------------------------------------------------
+
+/** new_chyron
+    @brief Create new chyron structure
+    @ingroup UiChyron
+    @return pointer to new chyron structure
+    @details This function allocates memory for a new chyron structure and its
+   associated keys. It initializes the structure to zero and returns a pointer
+   to the newly created chyron. If memory allocation fails, it calls abend() to
+   terminate the program with an error message.
+ */
 UiChyron *ui_new_chyron() {
     UiChyron *chyron = (UiChyron *)calloc(1, sizeof(UiChyron));
     if (!chyron) {
@@ -16,6 +81,22 @@ UiChyron *ui_new_chyron() {
     }
     return chyron;
 }
+/** assign_chyron_win
+    @brief Assign surface and window to chyron structure
+    @ingroup UiChyron
+    @param chyron pointer to UiChyron structure
+    @param sfc pointer to UiSurface structure
+    @param win window index (WIN or BOX)
+    @param y line number for chyron display
+    @return 0 on success, -1 on error
+    @details This function assigns the specified surface and window to the chyron
+   structure. It also sets the line number for displaying the chyron. If the
+   input string y is "-", it sets the line number to the last line of the
+   surface. Otherwise, it converts the string y to an integer and sets it as the
+   line number, ensuring it does not exceed the maximum line number of the
+   surface.
+    @note Drop-down menus from the chyron will be added in the future
+ */
 int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, uint win, char *y) {
     bool a_toi_error = false;
     if (!sfc)
@@ -72,7 +153,7 @@ bool ui_is_set_chyron_key(UiChyron *chyron, uint k) {
     @param k chyron key index (0-19)
     @param s chyron key label
     @param kc chyron key code
-    @param cp color pair index for the key label
+    @param cell_base color pair for chyron key label
     @details This function is like set_chyron_key, except it includes a color
    pair numbers */
 void ui_set_chyron_key_cb(UiChyron *chyron, uint k, char *s, uint kc, UiCell cell_base) {
@@ -253,7 +334,7 @@ int ui_get_chyron_key(UiChyron *chyron, uint x) {
     }
     return chyron->key[k]->keycode;
 }
-/** abend
+/** ui_abend
     @brief Abnormal program termination
     @ingroup error_handling
     @param ec Exit code
