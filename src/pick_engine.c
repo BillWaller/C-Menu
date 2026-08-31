@@ -170,7 +170,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     ui_set_chyron_key(pick->chyron, 1, "F1 Help", UIKEY_F01);
     ui_set_chyron_key(pick->chyron, 2, "F9 Cancel", UIKEY_F09);
     ui_set_chyron_key(pick->chyron, 3, "F10 Accept", UIKEY_F10);
-    ui_set_chyron_key(pick->chyron, 4, "<v> View", 'v');
+    ui_set_chyron_key(pick->chyron, 4, "F11 View", UIKEY_F11);
     ui_set_chyron_key(pick->chyron, 5, "<q> Quit View", 'q');
     ui_set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
     ui_set_chyron_key(pick->chyron, 7, "<Sp> Edit", ' ');
@@ -933,7 +933,7 @@ int picker(Init *init, char *field) {
                 ui_compile_chyron(pick->chyron);
                 ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 reverse_object(pick);
-                // ui_top_panel(sfc, WIN);
+                ui_top_panel(sfc, WIN);
                 ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
                 ui_render();
                 in_key = ui_get_event(sfc, WIN, pick->chyron, &event, -1);
@@ -960,26 +960,14 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            case 'v':
+            case UIKEY_F11:
                 if (!pick->p_view_files) {
                     in_key = 0;
                     continue;
                 }
-                // *   1  F1 Help         UIKEY_F01);
-                // *   2  F9 Cancel       UIKEY_F09);
-                // *   3  F10 Accept      UIKEY_F10);
-                // ?   4  <v> View        <v>
-                // ?   5  <q> Quit View   <q>
-                // ?   6  <Sp> Process    <Sp>
-                // ?   7  <Sp> Toggle     <Sp>
-                // ?   9  <Tab> Search    <Tab>
-                // ?  10  <Tab> Select"   <Tab>
-                // ?  11  PgUp            UIKEY_PPAGE
-                // ?  12  PgDn            UIKEY_NPAGE
-                // ?  13  INS             UIKEY_IC
                 pick->chyron->key[1]->active = true;   // F1 Help
                 pick->chyron->key[2]->active = true;   // F9 Cancel
-                pick->chyron->key[4]->active = false;  // <v> View
+                pick->chyron->key[4]->active = false;  // F11 View
                 pick->chyron->key[5]->active = true;   // <q> Quit View
                 pick->chyron->key[6]->active = false;  // <Sp> Toggle
                 pick->chyron->key[7]->active = false;  // <Sp> Edit
@@ -991,8 +979,6 @@ int picker(Init *init, char *field) {
                 remove_right_angle(pick);
                 ui_compile_chyron(pick->chyron);
                 ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
-                // update_panels();
-                // doupdate();
                 ui_render();
                 if (pick->p_view_files)
                     view_cmd_processor(init);
@@ -1200,7 +1186,7 @@ int picker(Init *init, char *field) {
         pick->chyron->key[1]->active = true;   // F1 Help
         pick->chyron->key[2]->active = true;   // F9 Cancel
         pick->chyron->key[3]->active = false;  // F10 Accept
-        pick->chyron->key[4]->active = false;  // <v> View
+        pick->chyron->key[4]->active = true;   // F11 View
         pick->chyron->key[5]->active = false;  // <q> Quit View
         pick->chyron->key[6]->active = false;  // <Sp> Toggle
         pick->chyron->key[7]->active = false;  // <Sp> Edit
@@ -1245,7 +1231,7 @@ int picker(Init *init, char *field) {
                 // mouse_win = nullptr;
                 pos = col + strlen(accept_s);
                 ui_mvwadd_wchnstr(sfc, WIN2, 0, 0, &cell_ran, 1);
-                // ui_top_panel(sfc, WIN2);
+                ui_top_panel(sfc, WIN2);
                 ui_cursor_enable_yx(sfc, WIN2, 0, pos, true);
                 ui_render();
                 in_key = ui_get_event(sfc, WIN2, pick->chyron, &event, -1);
@@ -1293,6 +1279,33 @@ int picker(Init *init, char *field) {
             /** UIKEY_F10 is the default key for accepting the field */
             case UIKEY_F10:
                 return (in_key);
+            case UIKEY_F11:
+                if (!pick->p_view_files) {
+                    in_key = 0;
+                    continue;
+                }
+                pick->chyron->key[1]->active = true;   // F1 Help
+                pick->chyron->key[2]->active = true;   // F9 Cancel
+                pick->chyron->key[4]->active = false;  // F11 View
+                pick->chyron->key[5]->active = true;   // <q> Quit View
+                pick->chyron->key[6]->active = false;  // <Sp> Toggle
+                pick->chyron->key[7]->active = false;  // <Sp> Edit
+                pick->chyron->key[9]->active = false;  // <Tab> Search;
+                pick->chyron->key[10]->active = false; // <Tab> Select;
+                pick->chyron->key[11]->active = true;  // PgUp
+                pick->chyron->key[12]->active = true;  // PgDn
+                pick->chyron->key[13]->active = false; // INS
+                remove_right_angle(pick);
+                ui_compile_chyron(pick->chyron);
+                ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
+                ui_render();
+                if (pick->p_view_files)
+                    view_cmd_processor(init);
+                pick_std_chyron(pick);
+                ui_compile_chyron(pick->chyron);
+                ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
+                in_key = 0;
+                continue;
 
             case UIKEY_END:
             case Ctrl('e'):

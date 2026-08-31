@@ -704,13 +704,11 @@ void ui_get_screen_size(uint *lines, uint *cols) {
 // included for symetry with notcurses, which needs it to compensate
 // for cursor positioning bug
 int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
-    (void)s;
-    (void)w;
     if (!ui)
         return -1;
     wmove(s->mwin[w], y, x);
     ui->cursor_visible = visible;
-    curs_set(visible ? 1 : 0);
+    curs_set(visible ? 2 : 0);
     return 0;
 }
 int ui_cursor_enable(UiSurface *s, uint w, bool visible) {

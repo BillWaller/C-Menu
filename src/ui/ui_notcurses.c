@@ -422,6 +422,13 @@ int ui_wclear(UiSurface *s, uint w) {
     return 0;
 }
 
+int ui_top_panel(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    ncplane_move_top(s->mplane[w]);
+    return 0;
+}
+
 int ui_surface_show(UiSurface *s, uint w) {
     if (!s)
         return -1;
