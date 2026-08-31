@@ -6,6 +6,7 @@
    UiEvent representation defined in ui_backend.h.
 */
 
+#include "cm.h"
 #include "ui_backend.h"
 #include "ui_ncurses_internal.h"
 #include <stddef.h>
@@ -106,49 +107,48 @@ int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeou
     if (!ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
-    tcflush(2, TCIFLUSH);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
     if (timeout_ms <= 0) {
         timeout_ms = -1;
     } else
         wtimeout(s->mwin[w], timeout_ms);
-    curs_set(2);
-    int ch = wgetch(s->mwin[w]);
-
-    if (ev->key == UIKEY_CHAR) {
-        ev->ch = (uint32_t)ch;
-    } else if (ev->key == UIKEY_MOUSE) {
-        MEVENT me;
-        if (getmouse(&me) == OK) {
-            ev->y = me.y;
-            ev->x = me.x;
-            if (me.bstate & BUTTON4_PRESSED)
-                ev->mouse_action = UI_MOUSE_SCROLL_UP;
-            else if (me.bstate & BUTTON5_PRESSED)
-                ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
-            else if (me.bstate & BUTTON1_PRESSED)
-                ev->mouse_action = UI_MOUSE_PRESS;
-            else if (me.bstate & BUTTON1_RELEASED)
-                ev->mouse_action = UI_MOUSE_RELEASE;
-            if (wenclose(s->mwin[w], me.y, me.x) &&
-                wmouse_trafo(s->mwin[w], &me.y, &me.x, false)) {
-                ev->bstate = me.bstate;
-                ev->mouse_inside = true;
-                ev->y = me.y;
-                ev->x = me.x;
-            } else {
-                ev->mouse_inside = false;
-            }
+    int ch;
+    do {
+        // qiflush();
+        tcflush(0, TCIOFLUSH);
+        curs_set(2);
+        ch = wgetch(s->mwin[w]);
+        if (sig_received != 0) {
+            if (handle_signal(sig_received))
+                ch = display_error(em0, em1, em2, nullptr);
+            if (ch == 'q' || ch == 'Q' || ch == UIKEY_F09)
+                exit(EXIT_FAILURE);
+            sig_received = 0;
+            return 0;
         }
-        //==========================================================================
+        if (timeout_ms > 0 && ch == ERR) {
+            ch = 0;
+            break;
+        }
+        if (ch == ERR)
+            continue;
         ev->key = translate_key(ch);
         if (ev->key == UIKEY_CHAR)
             ev->ch = (uint32_t)ch; /* Unicode codepoint */
         else if (ev->key == UIKEY_MOUSE) {
-            if (ch == UIKEY_BUTTON4_PRESSED)
+            MEVENT me;
+            if (getmouse(&me) != OK) {
+                ch = 0;
+                continue;
+            }
+            ev->bstate = me.bstate;
+            ev->y = me.y;
+            ev->x = me.x;
+            if (me.bstate == UIKEY_BUTTON4_PRESSED)
                 ev->mouse_action = UIKEY_SCROLL_UP;
-            else if (ch == UIKEY_BUTTON5_PRESSED)
+            else if (me.bstate == UIKEY_BUTTON5_PRESSED)
                 ev->mouse_action = UIKEY_SCROLL_DOWN;
-            else if (ch == UIKEY_BUTTON1_CLICKED) {
+            else if (me.bstate == UIKEY_BUTTON1_CLICKED) {
                 ev->mouse_action = UIKEY_BUTTON1_CLICKED;
                 for (int i = WIN; i < SUB_SFC_MAX; i++) {
                     if (s->mwin[i] != NULL &&
@@ -161,6 +161,8 @@ int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeou
                         break;
                     }
                 }
+                if (ev->in_win == w)
+                    ev->mouse_inside = true;
                 if (chyron) {
                     if (ev->in_win == chyron->win && ev->y == chyron->y) {
                         ev->mouse_action = UIKEY_BUTTON1_CLICKED;
@@ -171,7 +173,7 @@ int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeou
                 }
             }
         }
-    }
+    } while (ch == ERR);
     curs_set(0);
     return ch;
 }

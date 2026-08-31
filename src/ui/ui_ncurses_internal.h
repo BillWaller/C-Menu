@@ -125,6 +125,7 @@
 #define UIKEY_BUTTON5 0734
 #define UIKEY_SCROLL_UP 0735
 #define UIKEY_SCROLL_DOWN 0736
+#define UIKEY_SIGNAL 0737
 
 /** @struct UiRuntime
    @ingroup ui_ncurses

@@ -51,9 +51,10 @@ typedef enum {
 
 typedef enum {
     UI_BORDER_NONE = 0,
-    UI_BORDER_ASCII,
-    UI_BORDER_LIGHT,
-    UI_BORDER_ROUNDED
+    UI_BORDER_SINGLE,
+    UI_BORDER_DOUBLE,
+    UI_BORDER_ROUNDED,
+    UI_BORDER_HEAVY
 } UiBorderKind;
 
 #define ALLWINS (uint)1000
@@ -114,6 +115,7 @@ typedef struct {
     UiMouseAction mouse_action;
     bool mouse_inside;
     char keybound[16];
+
 } UiEvent;
 
 typedef struct {

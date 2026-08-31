@@ -344,11 +344,12 @@ void ui_endwin() {
 void ui_shutdown() {
     if (ui == NULL)
         return;
-    for (int i = sfc_ptr; i >= 0; i--) {
-        if (ui_surface[i] != NULL) {
-            ui_surface_destroy(ui_surface[i]);
-            ui_surface[i] = NULL;
+    while (sfc_ptr >= 0) {
+        if (ui_surface[sfc_ptr] != NULL) {
+            ui_surface_destroy(ui_surface[sfc_ptr]);
+            ui_surface[sfc_ptr] = NULL;
         }
+        sfc_ptr--;
     }
     if (stdsfc->mpan[0] != NULL) {
         hide_panel(stdsfc->mpan[0]);

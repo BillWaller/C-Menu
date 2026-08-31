@@ -314,6 +314,7 @@ int view_cmd_processor(Init *init) {
                 view->pmincol = max_pmincol;
             break;
         case 'k': /** 'k', UIKEY_UP - Scroll up one line */
+        case UIKEY_SCROLL_UP:
         case UIKEY_UP:
             if (n_cmd <= 0)
                 n_cmd = 1;
@@ -322,6 +323,7 @@ int view_cmd_processor(Init *init) {
         /** 'j', UIKEY_DOWN, UIKEY_ENTER - scroll down one line */
         case 'j':
         case '\n':
+        case UIKEY_SCROLL_DOWN:
         case UIKEY_DOWN:
         case UIKEY_ENTER:
             if (n_cmd <= 0)

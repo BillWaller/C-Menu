@@ -156,7 +156,7 @@ unsigned int menu_cmd_processor(Init *init) {
         ui_wmove(sfc, WIN, menu->line_idx, 1);
         ui_render();
         in_key = ui_get_event(sfc, WIN, NULL, &event, -1);
-        if (event.mouse_action == UIKEY_BUTTON1_PRESSED)
+        if (event.mouse_action == UIKEY_BUTTON1_CLICKED)
             if (event.y < menu->item_count)
                 in_key = menu->line[event.y]->choice_letter;
         ui_bkgdset(sfc, WIN, &cell_nt);

@@ -54,12 +54,12 @@ int popup_ckeys() {
 #else
     notcurses_input(sfc, WIN);
 #endif
-    ui_surface_destroy(sfc);
     return 0;
 }
 
 #ifdef UAL_UI
 int ncurses_input(UiSurface *sfc, uint w) {
+    (void)w;
     char kstr[KSTRLEN];
     int c;
     char action[MAXLEN];
@@ -506,7 +506,7 @@ int ncurses_input(UiSurface *sfc, uint w) {
                 strnz__cpy(action, "Button 3 double-clicked", KSTRLEN - 1);
                 break;
             case BUTTON4_PRESSED:
-                strnz__cpy(action, "Button 4 pressed", KSTRLEN - 1);
+                strnz__cpy(action, "Scroll Down", KSTRLEN - 1);
                 break;
             case BUTTON4_RELEASED:
                 strnz__cpy(action, "Button 4 released", KSTRLEN - 1);
@@ -519,6 +519,15 @@ int ncurses_input(UiSurface *sfc, uint w) {
                 break;
             case BUTTON5_PRESSED:
                 strnz__cpy(action, "Scroll Up", KSTRLEN - 1);
+                break;
+            case BUTTON5_RELEASED:
+                strnz__cpy(action, "Button 5 released", KSTRLEN - 1);
+                break;
+            case BUTTON5_CLICKED:
+                strnz__cpy(action, "Button 5 clicked", KSTRLEN - 1);
+                break;
+            case BUTTON5_DOUBLE_CLICKED:
+                strnz__cpy(action, "Button 5 double-clicked", KSTRLEN - 1);
                 break;
             default:
                 break;
