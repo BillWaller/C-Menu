@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-30T21:58:48-05:00* - FEATURE UPDATE, BUG FIXES Uniform Abstraction Layer (UAL) for Notcurses 
+
+*2026-08-30T21:42:56-05:00* - Update CHANGELOG.md 
+
 *2026-08-30T21:41:56-05:00* - FEATURE UPDATE, BUG FIXES, AND PERFORMANCE IMPROVEMENTS Continuing work on the Uniform Abstraction Layer () for the Notcurses library. 
 
 *2026-08-29T20:54:17-05:00* - Update CHANGELOG.md 
