@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-08-31T13:46:09-05:00* - FEATURE UPDATE: Update UI backend to support new features and improve performance 
+
+*2026-08-30T23:52:09-05:00* - Update CHANGELOG.md 
+
 *2026-08-30T23:51:35-05:00* - FEATURE UPDATE: Added new features and improvements to the UI backend and initialization view. 
 
 *2026-08-30T22:55:14-05:00* - Update CHANGELOG.md 
