@@ -722,7 +722,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     }
 
     Chyron *chyron = new_chyron();
-    set_chyron_key(chyron, 1, "F1 Help", KEY_F01);
+    set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
     set_chyron_key(chyron, 2, "N - No", 'n');
     set_chyron_key(chyron, 3, "Y - Yes", 'y');
     compile_chyron(chyron);
@@ -760,7 +760,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
         ui_curs_set(1);
         event.y = event.x = -1;
         cmd_key = ui_get_event(sfc, WIN, &event, -1);
-        if (cmd_key == KEY_F01 || cmd_key == 'N' || cmd_key == 'n' || cmd_key == 'Y' || cmd_key == 'y')
+        if (cmd_key == UIKEY_F01 || cmd_key == 'N' || cmd_key == 'n' || cmd_key == 'Y' || cmd_key == 'y')
             break;
     } while (1);
     cm_surface_destroy(sfc);
@@ -788,9 +788,9 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     }
 
     Chyron *chyron = new_chyron();
-    set_chyron_key(chyron, 1, "F1 Help", KEY_F01);
-    set_chyron_key(chyron, 9, "F9 Cancel", KEY_F09);
-    set_chyron_key(chyron, 10, "F10 Continue", KEY_F10);
+    set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
+    set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
+    set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
     compile_chyron(chyron);
 
     uint maxy, maxx;
@@ -825,7 +825,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     do {
         event.y = event.x = -1;
         cmd_key = ui_get_event(sfc, WIN, &event, -1);
-        if (cmd_key == KEY_F09 || cmd_key == KEY_F10 || cmd_key == 'q' || cmd_key == 'Q')
+        if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q')
             break;
     } while (1);
     cm_surface_destroy(sfc);
@@ -854,9 +854,9 @@ int Perror(char *emsg_str) {
         return 1;
     }
     Chyron *chyron = new_chyron();
-    set_chyron_key(chyron, 1, "F1 Help", KEY_F01);
-    set_chyron_key(chyron, 9, "F9 Cancel", KEY_F09);
-    set_chyron_key(chyron, 10, "F10 Continue", KEY_F10);
+    set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
+    set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
+    set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
     compile_chyron(chyron);
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
@@ -880,7 +880,7 @@ int Perror(char *emsg_str) {
         event.y = event.x = -1;
         in_key = ui_get_event(sfc, WIN, &event, -1);
     } else {
-        in_key = KEY_F10;
+        in_key = UIKEY_F10;
     }
     destroy_chyron(chyron);
     cm_surface_destroy(sfc);
@@ -902,7 +902,7 @@ bool action_disposition(char *title, char *action_str) {
         return true;
     }
     Chyron *chyron = new_chyron();
-    set_chyron_key(chyron, 10, "F10 Continue", KEY_F10);
+    set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
     compile_chyron(chyron);
     len = max(strlen(title), strlen(action_str));
     uint maxy, maxx;

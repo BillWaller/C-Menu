@@ -18,74 +18,74 @@
 static UiKey translate_key(int ch) {
     switch (ch) {
     case ERR:
-        return UI_KEY_NONE;
+        return UIKEY_NONE;
     case '\n':
     case '\r':
-        return UI_KEY_ENTER;
+        return UIKEY_ENTER;
     case 27:
-        return UI_KEY_ESCAPE;
+        return UIKEY_ESCAPE;
     case '\t':
-        return UI_KEY_TAB;
+        return UIKEY_TAB;
 #ifdef KEY_BTAB
     case KEY_BTAB:
-        return UI_KEY_BTAB;
+        return UIKEY_BTAB;
 #endif
     case KEY_UP:
-        return UI_KEY_UP;
+        return UIKEY_UP;
     case KEY_DOWN:
-        return UI_KEY_DOWN;
+        return UIKEY_DOWN;
     case KEY_LEFT:
-        return UI_KEY_LEFT;
+        return UIKEY_LEFT;
     case KEY_RIGHT:
-        return UI_KEY_RIGHT;
+        return UIKEY_RIGHT;
     case KEY_HOME:
-        return UI_KEY_HOME;
+        return UIKEY_HOME;
     case KEY_END:
-        return UI_KEY_END;
+        return UIKEY_END;
     case KEY_PPAGE:
-        return UI_KEY_PGUP;
+        return UIKEY_PPAGE;
     case KEY_NPAGE:
-        return UI_KEY_PGDN;
+        return UIKEY_NPAGE;
     case KEY_IC:
-        return UI_KEY_INSERT;
+        return UIKEY_IC;
     case KEY_DC:
-        return UI_KEY_DELETE;
+        return UIKEY_DC;
     case KEY_BACKSPACE:
-        return UI_KEY_BACKSPACE;
+        return UIKEY_BACKSPACE;
 #ifdef KEY_RESIZE
     case KEY_RESIZE:
-        return UI_KEY_RESIZE;
+        return UIKEY_RESIZE;
 #endif
     case KEY_MOUSE:
-        return UI_KEY_MOUSE;
+        return UIKEY_MOUSE;
     case KEY_F(1):
-        return UI_KEY_F1;
+        return UIKEY_F01;
     case KEY_F(2):
-        return UI_KEY_F2;
+        return UIKEY_F02;
     case KEY_F(3):
-        return UI_KEY_F3;
+        return UIKEY_F03;
     case KEY_F(4):
-        return UI_KEY_F4;
+        return UIKEY_F04;
     case KEY_F(5):
-        return UI_KEY_F5;
+        return UIKEY_F05;
     case KEY_F(6):
-        return UI_KEY_F6;
+        return UIKEY_F06;
     case KEY_F(7):
-        return UI_KEY_F7;
+        return UIKEY_F07;
     case KEY_F(8):
-        return UI_KEY_F8;
+        return UIKEY_F08;
     case KEY_F(9):
-        return UI_KEY_F9;
+        return UIKEY_F09;
     case KEY_F(10):
-        return UI_KEY_F10;
+        return UIKEY_F10;
     case KEY_F(11):
-        return UI_KEY_F11;
+        return UIKEY_F11;
     case KEY_F(12):
-        return UI_KEY_F12;
+        return UIKEY_F12;
     default:
         if (ch >= 32 && ch <= 126)
-            return UI_KEY_CHAR;
-        return UI_KEY_NONE;
+            return UIKEY_CHAR;
+        return UIKEY_NONE;
     }
 }
 

@@ -123,8 +123,8 @@ void go_to_position(View *, off_t);
 bool search(View *, int, char *);
 void next_page(View *);
 void prev_page(View *);
-void scroll_down(View *, uint);
-void scroll_up(View *, uint);
+void scope_toward_eof(View *, uint);
+void scope_toward_bof(View *, uint);
 void get_line(View *, off_t);
 int fmt_line(View *);
 void log_split_lines(View *);
@@ -251,8 +251,8 @@ int view_cmd_processor(Init *init) {
 
         case 'd': /** 'd' Breakpoint for Debugging */
             break;
-        case Ctrl('L'): /**<  Ctrl('L') or KEY_RESIZE - Handle terminal resize */
-        case KEY_RESIZE:
+        case Ctrl('L'): /**<  Ctrl('L') or UIKEY_RESIZE - Handle terminal resize */
+        case UIKEY_RESIZE:
             ui_get_screen_size(&view->lines, &view->cols);
 #ifdef DEBUG_RESIZE
             ssnprintf(em0, MAXLEN - 1,
@@ -266,22 +266,22 @@ int view_cmd_processor(Init *init) {
                 view_boxwin_resize(init);
             view->f_redisplay_page = true;
             continue;
-        case KEY_ALTHOME: /**< KEY_ALTHOME - horizontal scroll to the first
+        case UIKEY_F05: /**< UIKEY_ALTHOME - horizontal scroll to the first
                              column */
             view->pmincol = 0;
             break;
-        case KEY_ALTEND: /**< KEY_ALTEND  horizontal scroll to the last
-                          * column
-                          */
+        case UIKEY_F06: /**< UIKEY_ALTEND  horizontal scroll to the last
+                         * column
+                         */
             if (view->maxcol > view->cols)
                 view->pmincol = view->maxcol - view->cols;
             else
                 view->pmincol = 0;
             break;
-        case 'h': /**< 'h', Ctrl('H'), KEY_LEFT, KEY_BACKSPACE - Horizontal
+        case 'h': /**< 'h', Ctrl('H'), UIKEY_LEFT, UIKEY_BACKSPACE - Horizontal
                      scroll left by two thirds of the page width */
-        case KEY_LEFT:
-        case KEY_BACKSPACE:
+        case UIKEY_LEFT:
+        case UIKEY_BACKSPACE:
             if (n_cmd > 0)
                 view->h_shift = (uint)n_cmd;
             else if (n_cmd == 0) {
@@ -296,8 +296,8 @@ int view_cmd_processor(Init *init) {
             else
                 view->pmincol = 0;
             break;
-        case 'l': /**< 'l', KEY_RIGHT - Horizontal scroll right by two thirds of the page width */
-        case KEY_RIGHT:
+        case 'l': /**< 'l', UIKEY_RIGHT - Horizontal scroll right by two thirds of the page width */
+        case UIKEY_RIGHT:
             if (n_cmd > 0)
                 view->h_shift = n_cmd;
             else if (n_cmd == 0) {
@@ -313,28 +313,28 @@ int view_cmd_processor(Init *init) {
             else
                 view->pmincol = max_pmincol;
             break;
-        case 'k': /** 'k', KEY_UP - Scroll up one line */
-        case KEY_UP:
+        case 'k': /** 'k', UIKEY_UP - Scroll up one line */
+        case UIKEY_UP:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scroll_up(view, (uint)n_cmd);
+            scope_toward_bof(view, (uint)n_cmd);
             break;
-        /** 'j', KEY_DOWN, KEY_ENTER - scroll down one line */
+        /** 'j', UIKEY_DOWN, UIKEY_ENTER - scroll down one line */
         case 'j':
         case '\n':
-        case KEY_DOWN:
-        case KEY_ENTER:
+        case UIKEY_DOWN:
+        case UIKEY_ENTER:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scroll_down(view, (uint)n_cmd);
+            scope_toward_eof(view, (uint)n_cmd);
             break;
-        /** Ctrl('B'), KEY_PPAGE - Previous Page */
-        case KEY_PPAGE:
+        /** Ctrl('B'), UIKEY_PPAGE - Previous Page */
+        case UIKEY_PPAGE:
         case Ctrl('B'):
             prev_page(view);
             break;
-        /**  Ctrl('F'), KEY_NPAGE Next Page */
-        case KEY_NPAGE:
+        /**  Ctrl('F'), UIKEY_NPAGE Next Page */
+        case UIKEY_NPAGE:
         case Ctrl('F'):
             view->ln_no++;
             next_page(view);
@@ -427,7 +427,7 @@ int view_cmd_processor(Init *init) {
                     Perror("Tab stops not changed");
                 break;
             /**  -h  Display Help */
-            case KEY_F01:
+            case UIKEY_F01:
             case 'h':
                 if (!view->f_displaying_help) {
                     view_display_help(init);
@@ -468,9 +468,9 @@ int view_cmd_processor(Init *init) {
             strnz__cpy(tmp_str, " Forward:", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
-            if (c == KEY_F09 || c == '\033')
+            if (c == UIKEY_F09 || c == '\033')
                 break;
-            if (c == KEY_ENTER) {
+            if (c == UIKEY_ENTER) {
                 view->cury = 0;
                 view->f_first_iter = true;
                 view->srch_beg_pos = view->page_top_pos;
@@ -490,7 +490,7 @@ int view_cmd_processor(Init *init) {
             strnz__cpy(tmp_str, " Backward:", MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
-            if (c == KEY_F09 || c == '\033')
+            if (c == UIKEY_F09 || c == '\033')
                 break;
             if (c == '\n') {
                 view->cury = view->scroll_lines;
@@ -516,16 +516,16 @@ int view_cmd_processor(Init *init) {
             }
             break;
         case 'G': /**  'G' - Go to the Beginning of the Document or line */
-        case KEY_HOME:
+        case UIKEY_HOME:
             if (n_cmd > 0) {
                 n_cmd -= 1;
                 go_to_line(view, n_cmd);
             } else
                 go_to_eof(view);
             break;
-        /**  'H' or KEY_F01 - Display Help Information */
+        /**  'H' or UIKEY_F01 - Display Help Information */
         case 'H':
-        case KEY_F01:
+        case UIKEY_F01:
             if (!view->f_displaying_help) {
                 view_display_help(init);
                 view = init->view;
@@ -535,7 +535,7 @@ int view_cmd_processor(Init *init) {
         case 'm':
             display_prompt(view, "Mark label (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
-            if (c == '@' || c == KEY_F09 || c == '\033')
+            if (c == '@' || c == UIKEY_F09 || c == '\033')
                 if (c >= 'A' && c <= 'Z')
                     c += ' ';
             if (c < 'a' || c > 'z')
@@ -547,7 +547,7 @@ int view_cmd_processor(Init *init) {
         case 'M':
             display_prompt(view, "Goto mark (A-Z)->");
             c = get_cmd_char(view, &n_cmd);
-            if (c == '@' || c == KEY_F09 || c == '\033')
+            if (c == '@' || c == UIKEY_F09 || c == '\033')
                 break;
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
@@ -615,7 +615,7 @@ int view_cmd_processor(Init *init) {
             lp(view, view->cur_file_str);
             view->f_redisplay_page = true;
             break;
-        /** 'P' or KEY_F09 or ESC - Close Current File and Open Next */
+        /** 'P' or UIKEY_F09 or ESC - Close Current File and Open Next */
         case 'P':
             if (n_cmd <= 0)
                 n_cmd = 1;
@@ -629,10 +629,10 @@ int view_cmd_processor(Init *init) {
                 return 0;
             }
             break;
-        /**  'q' or 'Q' or KEY_F09 or ESC - Quit the Application */
+        /**  'q' or 'Q' or UIKEY_F09 or ESC - Quit the Application */
         case 'q':
         case 'Q':
-        case KEY_F09:
+        case UIKEY_F09:
         case '\033':
             ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_sp, 1);
             view->curr_argc = view->argc;
@@ -752,22 +752,22 @@ int get_cmd_char(View *view, off_t *n) {
         }
         ui_render();
         event.y = event.x = -1;
-        c = ui_get_event_no_mouse(sfc, CMDLN, &event);
+        c = ui_get_event(sfc, CMDLN, &event, -1);
         switch (c) {
-        case KEY_MOUSE:
+        case UIKEY_BUTTON1:
             break;
-        case KEY_RESIZE:
+        case UIKEY_RESIZE:
         case '\n':
         case '\r':
             break;
         case 'q':
-        case KEY_F09:
+        case UIKEY_F09:
             build_prompt(view);
             display_prompt(view, view->prompt_str);
-            c = KEY_F09;
+            c = UIKEY_F09;
             return c;
         case '\b':
-        case KEY_BACKSPACE:
+        case UIKEY_BACKSPACE:
             if (i > 0) {
                 s = &cmd_str[i];
                 d = &cmd_str[--i];
@@ -784,7 +784,7 @@ int get_cmd_char(View *view, off_t *n) {
                 ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
             }
             continue;
-        case KEY_DC:
+        case UIKEY_DC:
             if (i < 32 && cmd_str[i] != '\0') {
                 s = &cmd_str[i + 1];
                 d = &cmd_str[i];
@@ -798,7 +798,7 @@ int get_cmd_char(View *view, off_t *n) {
                 ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
             }
             continue;
-        case KEY_SRIGHT:
+        case UIKEY_RSHIFT:
             if (i < 32 && cmd_str[i] != '\0') {
                 i++;
                 ui_getyx(sfc, CMDLN, &view->cury, &view->curx);
@@ -808,7 +808,7 @@ int get_cmd_char(View *view, off_t *n) {
                 }
             }
             continue;
-        case KEY_SLEFT:
+        case UIKEY_LSHIFT:
             if (i > 0) {
                 i--;
                 ui_getyx(sfc, CMDLN, &view->cury, &view->curx);
@@ -1410,6 +1410,7 @@ void display_line(View *view) {
         ui_wclrtoeol(sfc, LNNO);
         ui_mvwaddstr(sfc, LNNO, view->cury, 0, ln_s);
     }
+    ui_render();
     ui_cursor_move(sfc, PAD, view->cury, 0);
     ui_wclrtoeol(sfc, PAD);
 #ifdef UAL_UI
@@ -1498,11 +1499,11 @@ void display_line_eod(View *view) {
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
     @param n The number of lines to scroll down. This parameter specifies how
-   many lines the view should move down in the file, effectively advancing
-   the display by n lines. The function will handle scrolling, updating the
+   many lines the view should move toward end-of-file, effectively advancing
+   the view scope by n lines. The function will handle scrolling, updating the
    current line number, and refreshing the display accordingly.
  */
-void scroll_down(View *view, uint n) {
+void scope_toward_eof(View *view, uint n) {
     uint scroll, scroll_this_line, avail;
     off_t ln_no;
     UiSurface *sfc = view->sfc;
@@ -1581,8 +1582,8 @@ void scroll_down(View *view, uint n) {
         }
     } else {
         view->ln_no = view->page_bot_ln_no;
-        if (view->ln_no >= view->ln_no_max)
-            return;
+        // if (view->ln_no >= view->ln_no_max)
+        //    return;
         if (n > view->scroll_lines) {
             if (view->f_ln) {
                 ui_cursor_move(sfc, LNNO, 0, 0);
@@ -1600,8 +1601,8 @@ void scroll_down(View *view, uint n) {
         view->page_top_ln_no += n;
         scroll = n;
         while (scroll > 0) {
-            if (view->ln_no >= view->ln_no_max)
-                break;
+            // if (view->ln_no >= view->ln_no_max)
+            //     break;
             view->ln_no++;
             get_line(view, view->ln_no);
             if (view->f_eod)
@@ -1616,8 +1617,8 @@ void scroll_down(View *view, uint n) {
     }
     return;
 }
-/** @brief Scroll Up by n Lines
-    @ingroup view_navigation
+/** @brief Move the view scope n lines toward the beginning of the file.
+ *  @ingroup view_navigation
     @param view Pointer to the View structure containing the state and
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
@@ -1625,8 +1626,9 @@ void scroll_down(View *view, uint n) {
    many lines the view should move up in the file, effectively moving the
    display up by n lines. The function will handle scrolling, updating the
    current line number, and refreshing the display accordingly.
+    @note It is easy to get confused with the direction of scrolling. The function scope_toward_eof moves the content of the page down, which means that the view is moving up in the file. We will arbitrarily define the direction of scrolling as follows: if the content of the page moves down, we are moving up in the file; if the content of the page moves up, we are moving down in the file. This is consistent with the behavior of most text viewers and editors, where scrolling down reveals content that is further down in the file, and scrolling up reveals content that is earlier in the file. Accordingly, scope_toward_bof moves the content of the page down, while scope_toward_eof moves the content of the page up.
  */
-void scroll_up(View *view, uint n) {
+void scope_toward_bof(View *view, uint n) {
     uint scroll, avail, scroll_this_line;
     off_t ln_no;
     view->f_eod = false;
@@ -2655,7 +2657,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         rc = popup_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
         destroy_argv(eargc, eargv);
         ui_restore_wins();
-        if (rc == FA_CANCEL || rc == 'q' || rc == 'Q' || rc == KEY_F09)
+        if (rc == FA_CANCEL || rc == 'q' || rc == 'Q' || rc == UIKEY_F09)
             return false;
         close(view->in_fd);
         tmp_fp = fopen(tmp_spec, "r");

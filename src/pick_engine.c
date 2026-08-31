@@ -167,18 +167,18 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
         pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx++];
     pick->d_cnt = pick->d_idx;
     pick->chyron = new_chyron();
-    set_chyron_key(pick->chyron, 1, "F1 Help", KEY_F01);
-    set_chyron_key(pick->chyron, 2, "F9 Cancel", KEY_F09);
-    set_chyron_key(pick->chyron, 3, "F10 Accept", KEY_F10);
+    set_chyron_key(pick->chyron, 1, "F1 Help", UIKEY_F01);
+    set_chyron_key(pick->chyron, 2, "F9 Cancel", UIKEY_F09);
+    set_chyron_key(pick->chyron, 3, "F10 Accept", UIKEY_F10);
     set_chyron_key(pick->chyron, 4, "<v> View", 'v');
     set_chyron_key(pick->chyron, 5, "<q> Quit View", 'q');
     set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
     set_chyron_key(pick->chyron, 7, "<Sp> Edit", ' ');
     set_chyron_key(pick->chyron, 9, "<Tab> Search", '\t');
     set_chyron_key(pick->chyron, 10, "<Tab> Select", '\t');
-    set_chyron_key(pick->chyron, 11, "PgUp", KEY_PPAGE);
-    set_chyron_key(pick->chyron, 12, "PgDn", KEY_NPAGE);
-    set_chyron_key(pick->chyron, 13, "INS", KEY_IC);
+    set_chyron_key(pick->chyron, 11, "PgUp", UIKEY_PPAGE);
+    set_chyron_key(pick->chyron, 12, "PgDn", UIKEY_NPAGE);
+    set_chyron_key(pick->chyron, 13, "INS", UIKEY_IC);
     pick_std_chyron(pick);
     compile_chyron(pick->chyron);
     pick_engine(init);
@@ -327,7 +327,7 @@ int pick_engine(Init *init) {
     display_pick_page(pick);
     do {
         rc = picker(init, field);
-        if (rc == KEY_F09)
+        if (rc == UIKEY_F09)
             break;
         if (rc == -1)
             break;
@@ -366,18 +366,18 @@ int pick_engine(Init *init) {
    insert based on selection count, view mode, and table pages.
  */
 void pick_std_chyron(Pick *pick) {
-    // *   1  F1 Help         KEY_F01);
-    // *   2  F9 Cancel       KEY_F09);
-    // *   3  F10 Accept      KEY_F10);
+    // *   1  F1 Help         UIKEY_F01);
+    // *   2  F9 Cancel       UIKEY_F09);
+    // *   3  F10 Accept      UIKEY_F10);
     // ?   4  <v> View        <v>
     // ?   5  <q> Quit View   <q>
     // ?   6  <Sp> Toggle     <Sp>
     // ?   7  <Sp> Edit       <Sp>
     // ?   9  <Tab> Search    <Tab>
     // ?  10  <Tab> Select"   <Tab>
-    // ?  11  PgUp            KEY_PPAGE
-    // ?  12  PgDn            KEY_NPAGE
-    // ?  13  INS             KEY_IC
+    // ?  11  PgUp            UIKEY_PPAGE
+    // ?  12  PgDn            UIKEY_NPAGE
+    // ?  13  INS             UIKEY_IC
     pick->chyron->key[1]->active = true;                                                 // F1 Help
     pick->chyron->key[2]->active = true;                                                 // F9 Cancel
     pick->chyron->key[3]->active = pick->select_max != 1 ? true : false;                 // F10 Accept
@@ -952,7 +952,7 @@ int picker(Init *init, char *field) {
                 }
             }
             switch (in_key) {
-            case KEY_F01:
+            case UIKEY_F01:
                 display_pick_help(init);
                 display_pick_page(pick);
                 f_insert = false;
@@ -965,18 +965,18 @@ int picker(Init *init, char *field) {
                     in_key = 0;
                     continue;
                 }
-                // *   1  F1 Help         KEY_F01);
-                // *   2  F9 Cancel       KEY_F09);
-                // *   3  F10 Accept      KEY_F10);
+                // *   1  F1 Help         UIKEY_F01);
+                // *   2  F9 Cancel       UIKEY_F09);
+                // *   3  F10 Accept      UIKEY_F10);
                 // ?   4  <v> View        <v>
                 // ?   5  <q> Quit View   <q>
                 // ?   6  <Sp> Process    <Sp>
                 // ?   7  <Sp> Toggle     <Sp>
                 // ?   9  <Tab> Search    <Tab>
                 // ?  10  <Tab> Select"   <Tab>
-                // ?  11  PgUp            KEY_PPAGE
-                // ?  12  PgDn            KEY_NPAGE
-                // ?  13  INS             KEY_IC
+                // ?  11  PgUp            UIKEY_PPAGE
+                // ?  12  PgDn            UIKEY_NPAGE
+                // ?  13  INS             UIKEY_IC
                 pick->chyron->key[1]->active = true;   // F1 Help
                 pick->chyron->key[2]->active = true;   // F9 Cancel
                 pick->chyron->key[4]->active = false;  // <v> View
@@ -1011,22 +1011,22 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** 'q', or KEY_F09 cancel selection and exit picker */
+            /** 'q', or UIKEY_F09 cancel selection and exit picker */
             case 'q':
-            case KEY_F09:
+            case UIKEY_F09:
                 deselect_object(pick);
                 return -1;
 
-            /** Enter or KEY_F10 Accepts current selection and exits
+            /** Enter or UIKEY_F10 Accepts current selection and exits
                picker, returning count of selected objects */
-            case KEY_F10:
+            case UIKEY_F10:
             case '\n':
-            case KEY_ENTER:
+            case UIKEY_ENTER:
                 reverse_object(pick);
                 return pick->select_cnt;
 
-            /** KEY_END Moves selection to last object in list */
-            case KEY_END:
+            /** UIKEY_END Moves selection to last object in list */
+            case UIKEY_END:
                 ui_mvwaddstr_fill(sfc, WIN, pick->y, pick->x,
                                   pick->d_object[pick->d_idx],
                                   pick->tbl_col_width - 1);
@@ -1042,15 +1042,15 @@ int picker(Init *init, char *field) {
                 continue;
             case '\t':
                 remove_right_angle(pick);
-                ui_wnoutrefresh(sfc, WIN);
+                // ui_wnoutrefresh(sfc, WIN);
                 in_key = 0;
                 break;
 
-            /** 'h' or KEY_LEFT or Backspace Moves selection to previous
+            /** 'h' or UIKEY_LEFT or Backspace Moves selection to previous
                object in list */
             case 'h':
-            case KEY_LEFT:
-            case KEY_BACKSPACE:
+            case UIKEY_LEFT:
+            case UIKEY_BACKSPACE:
                 if (pick->tbl_col == 0) {
                     in_key = 0;
                     continue;
@@ -1066,9 +1066,9 @@ int picker(Init *init, char *field) {
                 reverse_object(pick);
                 continue;
 
-            /** 'j' or KEY_DOWN Moves selection to next object in list */
+            /** 'j' or UIKEY_DOWN Moves selection to next object in list */
             case 'j':
-            case KEY_DOWN:
+            case UIKEY_DOWN:
                 if (pick->tbl_line == pick->tbl_lines - 1)
                     break;
                 ui_mvwaddstr_fill(sfc, WIN, pick->y, pick->x,
@@ -1082,9 +1082,9 @@ int picker(Init *init, char *field) {
                 reverse_object(pick);
                 continue;
 
-            /** 'k' or KEY_UP Moves selection to previous object in list */
+            /** 'k' or UIKEY_UP Moves selection to previous object in list */
             case 'k':
-            case KEY_UP:
+            case UIKEY_UP:
                 ui_mvwaddstr_fill(sfc, WIN, pick->y, pick->x,
                                   pick->d_object[pick->d_idx],
                                   pick->tbl_col_width - 1);
@@ -1096,9 +1096,9 @@ int picker(Init *init, char *field) {
                 reverse_object(pick);
                 continue;
 
-            /** 'l' or KEY_RIGHT Moves selection to next object in list */
+            /** 'l' or UIKEY_RIGHT Moves selection to next object in list */
             case 'l':
-            case KEY_RIGHT:
+            case UIKEY_RIGHT:
                 if (pick->tbl_col == pick->tbl_cols - 1) {
                     in_key = 0;
                     continue;
@@ -1115,9 +1115,9 @@ int picker(Init *init, char *field) {
                 reverse_object(pick);
                 continue;
 
-            /** KEY_NPAGE or 'Ctrl+f' Moves selection to next page of
+            /** UIKEY_NPAGE or 'Ctrl+f' Moves selection to next page of
                objects */
-            case KEY_NPAGE:
+            case UIKEY_NPAGE:
             case '\06':
                 if (pick->tbl_pages == 1) {
                     in_key = 0;
@@ -1133,9 +1133,9 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /**   KEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
+            /**   UIKEY_PPAGE or 'Ctrl+b' Moves selection to previous page of
                objects */
-            case KEY_PPAGE:
+            case UIKEY_PPAGE:
             case '\02':
                 if (pick->tbl_pages == 1) {
                     in_key = 0;
@@ -1148,8 +1148,8 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** KEY_HOME Moves selection to first object in list */
-            case KEY_HOME:
+            /** UIKEY_HOME Moves selection to first object in list */
+            case UIKEY_HOME:
                 pick->tbl_page = 0;
                 pick->tbl_line = 0;
                 pick->tbl_col = 0;
@@ -1158,19 +1158,21 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** KEY_LL (lower left of numeric pad) Moves selection to last
-                object in list */
-            case UI_KEY_END:
-                pick->tbl_page = pick->tbl_pages - 1;
-                pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_cols * pick->pg_line + pick->tbl_col;
-                display_pick_page(pick);
-                in_key = 0;
-                continue;
+                /** UIKEY_LL (lower left of numeric pad) Moves selection to last
+                    object in list */
+                // case UIKEY_END:
+                //     pick->tbl_page = pick->tbl_pages - 1;
+                //     pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols +
+                //      //     pick->tbl_cols * pick->pg_line +
+                //      //     pick->tbl_col;
+                //     display_pick_page(pick);
+                //     in_key = 0;
+                //     continue;
 
-                /** KEY_MOUSE Handles mouse events for selection and chyron
+                /** UIKEY_MOUSE Handles mouse events for selection and chyron
                  * key activation */
 
-            case KEY_MOUSE:
+            case UIKEY_BUTTON1:
                 if (event.y < pick->y_offset) {
                     in_key = 0;
                     continue;
@@ -1181,7 +1183,7 @@ int picker(Init *init, char *field) {
                 if (pick->tbl_col >= pick->tbl_cols)
                     continue;
                 pick->d_idx = pick->tbl_page * pick->lines * pick->tbl_cols + pick->tbl_col * pick->lines + pick->y;
-                in_key = KEY_F12; /** toggle selection on mouse click */
+                in_key = UIKEY_F12; /** toggle selection on mouse click */
                 event.y = event.x = -1;
                 continue;
 
@@ -1243,7 +1245,7 @@ int picker(Init *init, char *field) {
                 // mouse_win = nullptr;
                 pos = col + strlen(accept_s);
                 ui_mvwadd_wchnstr(sfc, WIN2, 0, 0, &cell_ran, 1);
-                ui_top_panel(sfc, WIN2);
+                // ui_top_panel(sfc, WIN2);
                 ui_cursor_enable_yx(sfc, WIN2, 0, pos, true);
                 ui_render();
                 in_key = ui_get_event_multi(sfc, WIN2, &event, -1);
@@ -1255,7 +1257,7 @@ int picker(Init *init, char *field) {
                     if (event.in_win == WIN)
                         break;
                 }
-                if (in_key == KEY_F12) {
+                if (in_key == UIKEY_F12) {
                     in_key = 0;
                     continue;
                 }
@@ -1265,36 +1267,34 @@ int picker(Init *init, char *field) {
             prev_ptr = ptr;
             switch (in_key) {
             case '\n':
-            case KEY_ENTER:
+            case UIKEY_ENTER:
                 in_key = 0;
                 break;
 
-            case UI_KEY_BTAB:
-            case KEY_UP:
+            case UIKEY_UP:
             case '\t':
                 in_key = 0;
                 break;
 
-            case KEY_F01:
+            case UIKEY_F01:
                 return (in_key);
 
-            case KEY_F02:
+            case UIKEY_F02:
                 if (pick->p_view_files)
                     view_cmd_processor(init);
                 in_key = 0;
                 continue;
 
-            /** KEY_F09 Cancels the current operation */
-            case KEY_BREAK:
-            case KEY_F09:
-                in_key = KEY_F09;
+            /** UIKEY_F09 Cancels the current operation */
+            case UIKEY_F09:
+                in_key = UIKEY_F09;
                 return (in_key);
 
-            /** KEY_F10 is the default key for accepting the field */
-            case KEY_F10:
+            /** UIKEY_F10 is the default key for accepting the field */
+            case UIKEY_F10:
                 return (in_key);
 
-            case KEY_END:
+            case UIKEY_END:
             case Ctrl('e'):
                 while (*ptr != '\0')
                     ptr++;
@@ -1302,14 +1302,14 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            case KEY_IC:
+            case UIKEY_IC:
                 if (f_insert) {
                     f_insert = false;
-                    set_chyron_key_cb(pick->chyron, 12, "INS", KEY_IC,
+                    set_chyron_key_cb(pick->chyron, 12, "INS", UIKEY_IC,
                                       cell_nt_rev);
                 } else {
                     f_insert = TRUE;
-                    set_chyron_key_cb(pick->chyron, 12, "INS", KEY_IC,
+                    set_chyron_key_cb(pick->chyron, 12, "INS", UIKEY_IC,
                                       cell_nt_hl_rev);
                 }
                 compile_chyron(pick->chyron);
@@ -1317,8 +1317,8 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** KEY_DC deletes character at cursor */
-            case KEY_DC:
+            /** UIKEY_DC deletes character at cursor */
+            case UIKEY_DC:
                 s = ptr + 1;
                 d = ptr;
                 while (*s != '\0')
@@ -1329,16 +1329,16 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** KEY_HOME moves cursor to start of field */
-            case KEY_HOME:
+            /** UIKEY_HOME moves cursor to start of field */
+            case UIKEY_HOME:
             case Ctrl('a'):
                 ptr = accept_s;
                 pos = col;
                 in_key = 0;
                 continue;
 
-            /** KEY_BACKSPACE deletes character before cursor */
-            case KEY_BACKSPACE:
+            /** UIKEY_BACKSPACE deletes character before cursor */
+            case UIKEY_BACKSPACE:
                 if (ptr > accept_s) {
                     ptr--;
                     pos--;
@@ -1365,8 +1365,8 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** KEY_LEFT moves cursor left one character */
-            case KEY_LEFT:
+            /** UIKEY_LEFT moves cursor left one character */
+            case UIKEY_LEFT:
                 if (ptr > accept_s) {
                     ptr--;
                     pos--;
@@ -1374,8 +1374,8 @@ int picker(Init *init, char *field) {
                 in_key = 0;
                 continue;
 
-            /** KEY_RIGHT moves cursor right one character */
-            case KEY_RIGHT:
+            /** UIKEY_RIGHT moves cursor right one character */
+            case UIKEY_RIGHT:
                 if (ptr < fend && ptr <= str_end) {
                     ptr++;
                     pos++;
@@ -1384,7 +1384,7 @@ int picker(Init *init, char *field) {
                 continue;
 
             /** Handles mouse events for field editing */
-            case KEY_MOUSE:
+            case UIKEY_BUTTON1:
                 if (event.x < col || event.x >= col + flen) {
                     in_key = 0;
                     continue;

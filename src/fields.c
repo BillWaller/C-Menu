@@ -68,9 +68,9 @@ int field_editor(Form *form) {
     char *str_end = p + strlen(p);
     in_key = 0;
     if (f_insert)
-        set_chyron_key_cb(form->chyron, 18, "INS", KEY_IC, cell_nt_hl_rev);
+        set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_hl_rev);
     else
-        set_chyron_key_cb(form->chyron, 18, "INS", KEY_IC, cell_nt_rev);
+        set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_rev);
     compile_chyron(form->chyron);
     display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
 
@@ -91,39 +91,37 @@ int field_editor(Form *form) {
         }
         ui_curs_set(0);
         switch (in_key) {
-            /** KEY_F10 is the default key for accepting the field and moving
+            /** UIKEY_F10 is the default key for accepting the field and moving
                 to the next field */
-        case KEY_F10:
+        case UIKEY_F10:
             form_fmt_field(form, accept_s);
             form_display_field(form);
             if (form_validate_field(form) != 0)
                 continue;
             return (in_key);
-            /** KEY_F09 Cancels the current operation */
-        case KEY_BREAK:
-        case KEY_F09:
+            /** UIKEY_F09 Cancels the current operation */
+        case UIKEY_F09:
             form_display_field(form);
-            in_key = KEY_F09;
+            in_key = UIKEY_F09;
             return (in_key);
-            /** KEY_UP, KEY_BTAB moves to the previous field */
+            /** UIKEY_UP, UIKEY_BTAB moves to the previous field */
         case 'H':
-        case KEY_F01:
+        case UIKEY_F01:
             return (in_key);
-        case UI_KEY_BTAB:
-        case KEY_UP:
+        case UIKEY_UP:
             form_fmt_field(form, accept_s);
             form_display_field(form);
-            in_key = KEY_UP;
+            in_key = UIKEY_UP;
             return (in_key);
-            /** KEY_DOWN, TAB moves to the next field */
+            /** UIKEY_DOWN, TAB moves to the next field */
         case '\t':
-        case KEY_DOWN:
+        case UIKEY_DOWN:
             form_fmt_field(form, accept_s);
             form_display_field(form);
-            in_key = KEY_DOWN;
+            in_key = UIKEY_DOWN;
             return (in_key);
-            /** KEY_END moves cursor to end of field */
-        case KEY_END:
+            /** UIKEY_END moves cursor to end of field */
+        case UIKEY_END:
         case Ctrl('e'):
             while (*p != '\0')
                 p++;
@@ -134,21 +132,21 @@ int field_editor(Form *form) {
              * form->f_erase_remainder is set, it will clear the remaining
              * characters above and after the current cursor location */
         case '\n':
-        case KEY_ENTER:
+        case UIKEY_ENTER:
             if (form->f_erase_remainder)
                 *p = '\0';
             form_fmt_field(form, accept_s);
             form_display_field(form);
-            in_key = KEY_ENTER;
+            in_key = UIKEY_ENTER;
             return (in_key);
-            /** KEY_IC toggles insert mode */
-        case KEY_IC:
+            /** UIKEY_IC toggles insert mode */
+        case UIKEY_IC:
             if (f_insert) {
                 f_insert = false;
-                set_chyron_key_cb(form->chyron, 18, "INS", KEY_IC, cell_nt_rev);
+                set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC, cell_nt_rev);
             } else {
                 f_insert = true;
-                set_chyron_key_cb(form->chyron, 18, "INS", KEY_IC,
+                set_chyron_key_cb(form->chyron, 18, "INS", UIKEY_IC,
                                   cell_nt_hl_rev);
             }
             compile_chyron(form->chyron);
@@ -156,8 +154,8 @@ int field_editor(Form *form) {
                            form->chyron->l);
             in_key = 0;
             continue;
-            /** KEY_DC deletes character at cursor */
-        case KEY_DC:
+            /** UIKEY_DC deletes character at cursor */
+        case UIKEY_DC:
             s = p + 1;
             d = p;
             while (*s != '\0')
@@ -167,15 +165,15 @@ int field_editor(Form *form) {
             f_insert = false;
             in_key = 0;
             continue;
-            /** KEY_HOME moves cursor to start of field */
-        case KEY_HOME:
+            /** UIKEY_HOME moves cursor to start of field */
+        case UIKEY_HOME:
         case Ctrl('a'):
             p = fstart;
             x = fcol;
             in_key = 0;
             continue;
-            /** KEY_BACKSPACE deletes character before cursor */
-        case KEY_BACKSPACE:
+            /** UIKEY_BACKSPACE deletes character before cursor */
+        case UIKEY_BACKSPACE:
             if (p > fstart) {
                 p--;
                 x--;
@@ -188,16 +186,16 @@ int field_editor(Form *form) {
             str_end = d;
             in_key = 0;
             continue;
-            /** KEY_LEFT moves cursor left one character */
-        case KEY_LEFT:
+            /** UIKEY_LEFT moves cursor left one character */
+        case UIKEY_LEFT:
             if (p > fstart) {
                 p--;
                 x--;
             }
             in_key = 0;
             continue;
-            /** KEY_RIGHT moves cursor right one character */
-        case KEY_RIGHT:
+            /** UIKEY_RIGHT moves cursor right one character */
+        case UIKEY_RIGHT:
             if (p < fend && p < str_end) {
                 p++;
                 x++;
@@ -205,7 +203,7 @@ int field_editor(Form *form) {
             in_key = 0;
             continue;
             /** Handles mouse events for field editing */
-        case KEY_MOUSE:
+        case UIKEY_BUTTON1:
             form->fidx = form_yx_to_fidx(form, click_y, click_x);
             x = click_x;
             flin = click_y;

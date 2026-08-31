@@ -36,7 +36,7 @@ bool f_erase_remainder = true;
     @param flin The line number of the field
     @param fcol The column number of the field
     @param flen The length of the field
-    @return The key pressed to exit the field (KEY_ENTER, KEY_F09, etc.)
+    @return The key pressed to exit the field (UIKEY_ENTER, UIKEY_F09, etc.)
  */
 int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint flen) {
     bool f_insert = false;
@@ -60,11 +60,11 @@ int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint
         }
         ui_curs_set(0);
         switch (in_key) {
-        case KEY_F09:
-            in_key = KEY_F09;
+        case UIKEY_F09:
+            in_key = UIKEY_F09;
             return (in_key);
         case '\t':
-        case KEY_END:
+        case UIKEY_END:
         case Ctrl('e'):
             while (*p != '\0')
                 p++;
@@ -75,18 +75,18 @@ int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint
              * f_erase_remainder is set, it will clear the remaining
              * characters above and after the current cursor location */
         case '\n':
-        case KEY_ENTER:
+        case UIKEY_ENTER:
             if (f_erase_remainder)
                 *p = '\0';
-            in_key = KEY_ENTER;
+            in_key = UIKEY_ENTER;
             return (in_key);
-            /** KEY_IC toggles insert mode */
-        case KEY_IC:
+            /** UIKEY_IC toggles insert mode */
+        case UIKEY_IC:
             f_insert = !f_insert;
             in_key = 0;
             continue;
-            /** KEY_DC deletes character at cursor */
-        case KEY_DC:
+            /** UIKEY_DC deletes character at cursor */
+        case UIKEY_DC:
             s = p + 1;
             d = p;
             while (*s != '\0')
@@ -96,15 +96,15 @@ int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint
             f_insert = false;
             in_key = 0;
             continue;
-            /** KEY_HOME moves cursor to start of field */
-        case KEY_HOME:
+            /** UIKEY_HOME moves cursor to start of field */
+        case UIKEY_HOME:
         case Ctrl('a'):
             p = fstart;
             x = fcol;
             in_key = 0;
             continue;
-            /** KEY_BACKSPACE deletes character before cursor */
-        case KEY_BACKSPACE:
+            /** UIKEY_BACKSPACE deletes character before cursor */
+        case UIKEY_BACKSPACE:
             if (p > fstart) {
                 p--;
                 x--;
@@ -117,16 +117,16 @@ int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint
             str_end = d;
             in_key = 0;
             continue;
-            /** KEY_LEFT moves cursor left one character */
-        case KEY_LEFT:
+            /** UIKEY_LEFT moves cursor left one character */
+        case UIKEY_LEFT:
             if (p > fstart) {
                 p--;
                 x--;
             }
             in_key = 0;
             continue;
-            /** KEY_RIGHT moves cursor right one character */
-        case KEY_RIGHT:
+            /** UIKEY_RIGHT moves cursor right one character */
+        case UIKEY_RIGHT:
             if (p < fend && p < str_end) {
                 p++;
                 x++;
@@ -134,7 +134,7 @@ int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint
             in_key = 0;
             continue;
             /** Handles mouse events for field editing */
-        case KEY_MOUSE:
+        case UIKEY_BUTTON1:
             x = click_x;
             flin = click_y;
             fstart = accept_s;

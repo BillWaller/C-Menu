@@ -170,7 +170,7 @@ unsigned int menu_cmd_processor(Init *init) {
         // event
         switch (in_key) {
         /** Move up to the previous menu choice */
-        case KEY_UP:
+        case UIKEY_UP:
             i = menu->line_idx;
             while (i > 0) {
                 i--;
@@ -181,7 +181,7 @@ unsigned int menu_cmd_processor(Init *init) {
             }
             return (MA_CONTINUE);
             /** Move down to the next menu choice */
-        case KEY_DOWN:
+        case UIKEY_DOWN:
             i = menu->line_idx;
             while (i < menu->item_count - 1) {
                 i++;
@@ -194,11 +194,11 @@ unsigned int menu_cmd_processor(Init *init) {
             /** Select the current menu choice and execute its associated
              * command */
         case '\n':
-        case KEY_ENTER:
+        case UIKEY_ENTER:
             break;
             /** @brief Display help information for the menu system */
         case '?':
-        case KEY_F01:
+        case UIKEY_F01:
             if (menu->f_help_spec && menu->help_spec[0] != '\0')
                 strnz__cpy(tmp_str, menu->help_spec, MAXLEN - 1);
             else {
@@ -222,11 +222,10 @@ unsigned int menu_cmd_processor(Init *init) {
             return (MA_DISPLAY_MENU);
             /** Exit the menu and return to the previous menu or exit if at top
              */
-        case KEY_F09:
-        case KEY_BREAK:
+        case UIKEY_F09:
             return (MA_RETURN);
             /** @brief send default printer output file to printer */
-        case KEY_F07:
+        case UIKEY_F07:
             d = getenv("PRTCMD");
             if (d == nullptr || *d == '\0')
                 strnz__cpy(earg_str, PRINTCMD, MAXLEN - 1);
@@ -248,11 +247,11 @@ unsigned int menu_cmd_processor(Init *init) {
             full_screen_shell(earg_str);
             return (MA_RESET_MENU);
             /** @brief open the default editor */
-        case KEY_ALTF(10):
+        case UIKEY_F08:
             ui_restore_wins();
             return (MA_DISPLAY_MENU);
             /** @brief process mouse event */
-        case KEY_MOUSE:
+        case UIKEY_BUTTON1:
             if (event.y >= menu->item_count)
                 return (MA_CONTINUE);
             menu->line_idx = event.y;

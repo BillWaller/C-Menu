@@ -33,8 +33,8 @@ UiConfig *ui_config;
 UiSurface *ui_surface[UI_SFC_MAX];
 UiCell bkgd_cell;
 
-int sfc_ptr = -1;
 int win_ptr = -1;
+int sfc_ptr = -1;
 
 NcPlane *stdplane;
 
@@ -308,21 +308,21 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     return s;
 }
 
-int ui_surface_addpad(UiSurface *s, uint w, uint p, uint lines, uint cols, uint begy, uint begx) {
+int ui_surface_addpad(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x) {
     uint plines, pcols;
     ncplane_dim_yx(s->mplane[p], &plines, &pcols);
     pcols = min(pcols, cols);
     plines = min(plines, lines);
     ncplane_options plane_opts = {
-        .y = begy,
-        .x = begx,
-        .rows = plines - begy,
-        .cols = pcols - begx,
+        .y = y,
+        .x = x,
+        .rows = plines - y,
+        .cols = pcols - x,
         .name = NULL};
-    s->meta[w].y = begy;
-    s->meta[w].x = begx;
-    s->meta[w].lines = plines - begy;
-    s->meta[w].cols = pcols - begx;
+    s->meta[w].y = y;
+    s->meta[w].x = x;
+    s->meta[w].lines = plines - y;
+    s->meta[w].cols = pcols - x;
     s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
     if (!s->mplane[w]) {
@@ -333,6 +333,7 @@ int ui_surface_addpad(UiSurface *s, uint w, uint p, uint lines, uint cols, uint 
     ncplane_set_channels(s->mplane[w], cell_nt.channels);
     ui_bkgd(s, w, &cell_nt);
     ui_bkgdset(s, w, &cell_nt);
+    ui_scrollok(s, w, true);
     return 0;
 }
 
@@ -374,6 +375,165 @@ void ui_surface_destroy(UiSurface *s) {
         s = NULL;
     }
 }
+/* -------------------------------------------------------------------------
+   Surface Navigation and Management
+   ------------------------------------------------------------------------- */
+int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
+    if (!s)
+        return -1;
+    s->meta[w].y = y;
+    s->meta[w].x = x;
+    if (!s->meta[w].hidden)
+        return ncplane_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
+    return 0;
+}
+
+int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
+    if (!s)
+        return -1;
+    return ncplane_resize_simple(s->mplane[w], (unsigned int)lines,
+                                 (unsigned int)cols) == 0
+               ? 0
+               : -1;
+}
+
+int ui_clear() {
+    if (!stdplane)
+        return -1;
+    ncplane_erase_region(stdplane, 0, 0, 0, 0);
+    return 0;
+}
+int ui_erase() {
+    if (!stdplane)
+        return -1;
+    ncplane_erase_region(stdplane, 0, 0, 0, 0);
+    return 0;
+}
+int ui_werase(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    ncplane_erase_region(s->mplane[w], 0, 0, 0, 0);
+    return 0;
+}
+int ui_wclear(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    ncplane_erase_region(s->mplane[w], 0, 0, 0, 0);
+    return 0;
+}
+
+int ui_surface_show(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    if (s->meta[w].hidden) {
+        s->meta[w].hidden = false;
+        ncplane_move_yx(s->mplane[w], s->meta[w].y, s->meta[w].x);
+    }
+    return 0;
+}
+
+int ui_surface_hide(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    if (!s->meta[w].hidden) {
+        s->meta[w].hidden = true;
+        /* Move far off-screen so the plane does not obscure anything. */
+        ncplane_move_yx(s->mplane[w], -s->meta[w].lines - 1, 0);
+    }
+    return 0;
+}
+
+int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
+    if (!s)
+        return -1;
+    if (ncplane_cursor_move_yx(s->mplane[w], y, x) != 0)
+        return -1;
+    return 0;
+}
+int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
+    if (!s)
+        return -1;
+    if (ncplane_cursor_move_yx(s->mplane[w], y, x) != 0)
+        return -1;
+    return 0;
+}
+void ui_getyx(UiSurface *s, uint w, uint *y, uint *x) {
+    if (!s)
+        return;
+    ncplane_cursor_yx(s->mplane[w], y, x);
+}
+void ui_getmaxyx(UiSurface *s, uint w, uint *y, uint *x) {
+    if (!s)
+        return;
+    ncplane_dim_yx(s->mplane[w], y, x);
+}
+uint ui_getmaxy(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    uint y, x;
+    ncplane_dim_yx(s->mplane[w], &y, &x);
+    return y;
+}
+uint ui_getmaxx(UiSurface *s, uint w) {
+    if (!s)
+        return -1;
+    uint y, x;
+    ncplane_dim_yx(s->mplane[w], &y, &x);
+    return x;
+}
+/** @brief Scroll the contents of the specified window up or down by the specified
+ * number of lines.
+ * @param s The surface containing the window to scroll.
+ * @param w The index of the window to scroll.
+ * @param r The number of lines to scroll. Positive values scroll up, negative
+ * values scroll down.
+ * @return 0 on success, -1 on error.
+ *
+ * If r is positive, the contents of the plane are moved up, leaving blank lines
+ * at the bottom. In the view application, the view scope is moved toward end of
+ * file (eof). - scope_toward_eof()
+ *
+ * @note ui_wscrl(-n) - If r is negative, the contents of the plane are moved down,
+ * leaving blank lines at the top. In the view application, the view scope is
+ * moved toward beginning of file (bof). - scope_toward_bof()
+ */
+
+int ui_wscrl(UiSurface *s, uint w, int r) {
+    uint rows, cols;
+    ncplane_dim_yx(s->mplane[w], &rows, &cols);
+
+    if (r > 0) {
+        // Scroll up (toward EOF): notcurses has this natively
+        ncplane_scrollup(s->mplane[w], r);
+        return 0;
+    }
+
+    // Scroll down (toward BOF): shift content down by |r| rows
+    r = -r;
+    if ((uint)r >= rows) {
+        ncplane_erase(s->mplane[w]);
+        return 0;
+    }
+
+    // Copy rows bottom-up to avoid overwriting source before reading
+    for (int src_row = (int)(rows - r) - 1; src_row >= 0; src_row--) {
+        int dst_row = src_row + r;
+        for (uint col = 0; col < cols; col++) {
+            nccell c = NCCELL_TRIVIAL_INITIALIZER;
+            ncplane_at_yx_cell(s->mplane[w], src_row, col, &c);
+            ncplane_putc_yx(s->mplane[w], dst_row, col, &c);
+            nccell_release(s->mplane[w], &c);
+        }
+    }
+    // Blank the top r rows
+    for (int row = 0; row < r; row++) {
+        for (uint col = 0; col < cols; col++) {
+            ncplane_putchar_yx(s->mplane[w], row, col, ' ');
+        }
+    }
+    return 0;
+}
+
 /* -------------------------------------------------------------------------
    Configuration Control
    ------------------------------------------------------------------------- */
@@ -527,148 +687,7 @@ int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
     }
     return 0;
 }
-/* -------------------------------------------------------------------------
-   Surface management
-   ------------------------------------------------------------------------- */
-int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
-    if (!s)
-        return -1;
-    s->meta[w].y = y;
-    s->meta[w].x = x;
-    if (!s->meta[w].hidden)
-        return ncplane_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
-    return 0;
-}
 
-int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
-    if (!s)
-        return -1;
-    return ncplane_resize_simple(s->mplane[w], (unsigned int)lines,
-                                 (unsigned int)cols) == 0
-               ? 0
-               : -1;
-}
-
-int ui_clear() {
-    if (!stdplane)
-        return -1;
-    ncplane_erase_region(stdplane, 0, 0, 0, 0);
-    return 0;
-}
-int ui_erase() {
-    if (!stdplane)
-        return -1;
-    ncplane_erase_region(stdplane, 0, 0, 0, 0);
-    return 0;
-}
-int ui_werase(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    ncplane_erase_region(s->mplane[w], 0, 0, 0, 0);
-    return 0;
-}
-int ui_wclear(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    ncplane_erase_region(s->mplane[w], 0, 0, 0, 0);
-    return 0;
-}
-
-int ui_surface_show(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    if (s->meta[w].hidden) {
-        s->meta[w].hidden = false;
-        ncplane_move_yx(s->mplane[w], s->meta[w].y, s->meta[w].x);
-    }
-    return 0;
-}
-
-int ui_surface_hide(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    if (!s->meta[w].hidden) {
-        s->meta[w].hidden = true;
-        /* Move far off-screen so the plane does not obscure anything. */
-        ncplane_move_yx(s->mplane[w], -s->meta[w].lines - 1, 0);
-    }
-    return 0;
-}
-
-int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
-    if (!s)
-        return -1;
-    if (ncplane_cursor_move_yx(s->mplane[w], y, x) != 0)
-        return -1;
-    return 0;
-}
-int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
-    if (!s)
-        return -1;
-    if (ncplane_cursor_move_yx(s->mplane[w], y, x) != 0)
-        return -1;
-    return 0;
-}
-void ui_getyx(UiSurface *s, uint w, uint *y, uint *x) {
-    if (!s)
-        return;
-    ncplane_cursor_yx(s->mplane[w], y, x);
-}
-void ui_getmaxyx(UiSurface *s, uint w, uint *y, uint *x) {
-    if (!s)
-        return;
-    ncplane_dim_yx(s->mplane[w], y, x);
-}
-uint ui_getmaxy(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    uint y, x;
-    ncplane_dim_yx(s->mplane[w], &y, &x);
-    return y;
-}
-uint ui_getmaxx(UiSurface *s, uint w) {
-    if (!s)
-        return -1;
-    uint y, x;
-    ncplane_dim_yx(s->mplane[w], &y, &x);
-    return x;
-}
-int ui_wscrl(UiSurface *s, uint w, int r) {
-    if (r > 0) {
-        ncplane_scrollup(s->mplane[w], r);
-        return 0;
-    }
-    r = -r;
-    uint y, x;
-    ncplane_dim_yx(s->mplane[w], &y, &x);
-    if ((uint)r >= y) {
-        ncplane_erase(s->mplane[w]);
-        return 0;
-    }
-    s->mplane[WIN3] = ncplane_dup(s->mplane[w], NULL);
-    if (!s->mplane[WIN3])
-        return -1;
-    ncplane_move_yx(s->mplane[WIN3], r + 1, 1);
-    ncplane_erase(s->mplane[w]);
-    ncplane_mergedown(s->mplane[WIN3], s->mplane[w],
-                      0, 0,
-                      y - r, x,
-                      r, 0);
-    ncplane_destroy(s->mplane[WIN3]);
-    return 0;
-}
-int ui_top_panel(UiSurface *s, uint w) {
-    (void)w;
-    if (!s)
-        return -1;
-    return 0;
-}
-int ui_wnoutrefresh(UiSurface *s, uint w) {
-    (void)w;
-    if (!s)
-        return -1;
-    return 0;
-}
 /* -------------------------------------------------------------------------
    Cell Manipulation
    ------------------------------------------------------------------------- */
@@ -900,9 +919,10 @@ int ui_bkgd(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_set_styles(s->mplane[w], cell->stylemask);
-    ncplane_set_channels(s->mplane[w], cell_box.channels);
+    ncplane_set_channels(s->mplane[w], cell->channels);
     ncplane_set_base(s->mplane[w], " ",
                      cell->stylemask, cell->channels);
+    s->meta[w].bkgd_cell = *cell;
     return 0;
 }
 
@@ -911,7 +931,7 @@ int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
         return -1;
     ncplane_set_styles(s->mplane[w], cell->stylemask);
     ncplane_set_channels(s->mplane[w], cell->channels);
-    bkgd_cell = *cell;
+    s->meta[w].bkgd_cell = *cell;
     return 0;
 }
 int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell) {

@@ -64,7 +64,7 @@ int init_view_full_screen(Init *init) {
         return -1;
     }
     ui_bkgd(view->sfc, LNNO, &cell_ln);
-    ui_render();
+    ui_bkgdset(view->sfc, LNNO, &cell_ln);
     ui_scrollok(view->sfc, LNNO, true);
     ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
     // -------------------> 3. CMDLN <-------------------
@@ -82,6 +82,7 @@ int init_view_full_screen(Init *init) {
     // -------------------> 4. PAD <-------------------
 
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
+    ui_scrollok(view->sfc, PAD, true);
 
     // ------------------------------------------------
     return 0;
@@ -166,6 +167,7 @@ int init_view_boxwin(Init *init) {
     ui_scrollok(view->sfc, CMDLN, false);
     // -------------------> 4. PAD <-------------------
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
+    ui_scrollok(view->sfc, PAD, true);
     // ------------------------------------------------
     return (0);
 }

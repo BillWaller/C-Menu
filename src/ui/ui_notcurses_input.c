@@ -19,74 +19,74 @@ int ui_get_event_multix(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
 
 static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
     if (id == NCKEY_INVALID || id == (uint32_t)NCKEY_EOF)
-        return UI_KEY_NONE;
+        return UIKEY_NONE;
 
     /* Mouse buttons — handled separately in ui_get_event(). */
     if (nckey_mouse_p(id))
-        return UI_KEY_MOUSE;
+        return UIKEY_MOUSE;
 
     switch (id) {
     case NCKEY_RESIZE:
-        return UI_KEY_RESIZE;
+        return UIKEY_RESIZE;
     case NCKEY_ENTER:
-        return UI_KEY_ENTER;
+        return UIKEY_ENTER;
     case NCKEY_ESC:
-        return UI_KEY_ESCAPE;
+        return UIKEY_ESCAPE;
     case NCKEY_BACKSPACE:
-        return UI_KEY_BACKSPACE;
+        return UIKEY_BACKSPACE;
     case NCKEY_TAB:
-        return UI_KEY_TAB;
+        return UIKEY_TAB;
     case NCKEY_UP:
-        return UI_KEY_UP;
+        return UIKEY_UP;
     case NCKEY_DOWN:
-        return UI_KEY_DOWN;
+        return UIKEY_DOWN;
     case NCKEY_LEFT:
-        return UI_KEY_LEFT;
+        return UIKEY_LEFT;
     case NCKEY_RIGHT:
-        return UI_KEY_RIGHT;
+        return UIKEY_RIGHT;
     case NCKEY_HOME:
-        return UI_KEY_HOME;
+        return UIKEY_HOME;
     case NCKEY_END:
-        return UI_KEY_END;
+        return UIKEY_END;
     case NCKEY_PGUP:
-        return UI_KEY_PGUP;
+        return UIKEY_PPAGE;
     case NCKEY_PGDOWN:
-        return UI_KEY_PGDN;
+        return UIKEY_NPAGE;
     case NCKEY_INS:
-        return UI_KEY_INSERT;
+        return UIKEY_IC;
     case NCKEY_DEL:
-        return UI_KEY_DELETE;
+        return UIKEY_DC;
     case NCKEY_F01:
-        return UI_KEY_F1;
+        return UIKEY_F01;
     case NCKEY_F02:
-        return UI_KEY_F2;
+        return UIKEY_F02;
     case NCKEY_F03:
-        return UI_KEY_F3;
+        return UIKEY_F03;
     case NCKEY_F04:
-        return UI_KEY_F4;
+        return UIKEY_F04;
     case NCKEY_F05:
-        return UI_KEY_F5;
+        return UIKEY_F05;
     case NCKEY_F06:
-        return UI_KEY_F6;
+        return UIKEY_F06;
     case NCKEY_F07:
-        return UI_KEY_F7;
+        return UIKEY_F07;
     case NCKEY_F08:
-        return UI_KEY_F8;
+        return UIKEY_F08;
     case NCKEY_F09:
-        return UI_KEY_F9;
+        return UIKEY_F09;
     case NCKEY_F10:
-        return UI_KEY_F10;
+        return UIKEY_F10;
     case NCKEY_F11:
-        return UI_KEY_F11;
+        return UIKEY_F11;
     case NCKEY_F12:
-        return UI_KEY_F12;
+        return UIKEY_F12;
     default:
         if (ni && ni->evtype == NCTYPE_UNKNOWN)
-            return UI_KEY_NONE;
+            return UIKEY_NONE;
         /* Printable Unicode codepoint. */
         if (id >= 0x20 && id < NCKEY_INVALID)
-            return UI_KEY_CHAR;
-        return UI_KEY_NONE;
+            return UIKEY_CHAR;
+        return UIKEY_NONE;
     }
 }
 
@@ -131,9 +131,9 @@ int ui_get_event(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
     ev->shift = ncinput_shift_p(&ni);
-    if (ev->key == UI_KEY_CHAR) {
+    if (ev->key == UIKEY_CHAR) {
         ev->ch = ni.id; /* Unicode codepoint */
-    } else if (ev->key == UI_KEY_MOUSE) {
+    } else if (ev->key == UIKEY_MOUSE) {
         ev->y = ni.y;
         ev->x = ni.x;
         if (ni.id == NCKEY_BUTTON4)
@@ -204,9 +204,9 @@ int ui_get_event_multi(UiSurface *s, uint w, UiEvent *ev, int timeout_ms) {
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
     ev->shift = ncinput_shift_p(&ni);
-    if (ev->key == UI_KEY_CHAR) {
+    if (ev->key == UIKEY_CHAR) {
         ev->ch = ni.id; /* Unicode codepoint */
-    } else if (ev->key == UI_KEY_MOUSE) {
+    } else if (ev->key == UIKEY_MOUSE) {
         if (ni.id == NCKEY_BUTTON1) {
             struct ncplane *nn = ncplane_clicked(s, w, &ni);
             ev->in_win = get_plane_idx(s, nn);
@@ -241,7 +241,7 @@ int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
     ev->alt = ncinput_alt_p(&ni);
     ev->ctrl = ncinput_ctrl_p(&ni);
     ev->shift = ncinput_shift_p(&ni);
-    if (ev->key == UI_KEY_CHAR)
+    if (ev->key == UIKEY_CHAR)
         ev->ch = ni.id;
     return ni.id;
 }

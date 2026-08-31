@@ -40,6 +40,30 @@ typedef uint UiColorIdx;
 #define UI_PAIRS 512
 
 typedef enum {
+    UI_MOUSE_NONE = 0,
+    UI_MOUSE_PRESS,
+    UI_MOUSE_RELEASE,
+    UI_MOUSE_DRAG,
+    UI_MOUSE_SCROLL_UP,
+    UI_MOUSE_SCROLL_DOWN
+} UiMouseAction;
+
+typedef enum {
+    UI_BORDER_NONE = 0,
+    UI_BORDER_ASCII,
+    UI_BORDER_LIGHT,
+    UI_BORDER_ROUNDED
+} UiBorderKind;
+
+#define ALLWINS (uint)1000
+
+typedef struct {
+    wchar_t wc;       // Wide character    4-bytes
+    short attrs;      // attributes        2-bytes
+    short color_pair; // color pair index  2-bytes
+} UiCchar64;          //           total   8-bytes
+
+typedef enum {
     UI_KEY_NONE = 0,
     UI_KEY_CHAR,
     UI_KEY_ENTER,
@@ -72,30 +96,6 @@ typedef enum {
     UI_KEY_F11,
     UI_KEY_F12
 } UiKey;
-
-typedef enum {
-    UI_MOUSE_NONE = 0,
-    UI_MOUSE_PRESS,
-    UI_MOUSE_RELEASE,
-    UI_MOUSE_DRAG,
-    UI_MOUSE_SCROLL_UP,
-    UI_MOUSE_SCROLL_DOWN
-} UiMouseAction;
-
-typedef enum {
-    UI_BORDER_NONE = 0,
-    UI_BORDER_ASCII,
-    UI_BORDER_LIGHT,
-    UI_BORDER_ROUNDED
-} UiBorderKind;
-
-#define ALLWINS (uint)1000
-
-typedef struct {
-    wchar_t wc;       // Wide character    4-bytes
-    short attrs;      // attributes        2-bytes
-    short color_pair; // color pair index  2-bytes
-} UiCchar64;          //           total   8-bytes
 
 typedef struct {
     UiKey key;

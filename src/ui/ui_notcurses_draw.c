@@ -256,7 +256,7 @@ void ui_restore_wins() {
     //  for (int s = 0; s <= sfc_ptr; s++) {
     //      for (int w = 0; w < 8; w++)
     //          if (ui_surface[s]->mplane[w] != nullptr)
-    //      // touchwin(ui_surface[s]->mplane[w]);
+    //      touchwin(ui_surface[s]->mplane[w]);
     //  }
     //  ui_render(ui);
 }
