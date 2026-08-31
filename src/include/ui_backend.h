@@ -437,8 +437,8 @@ uint32_t ui_get_color(uint16_t color_idx);
 void fast_exit(UiSurface *s);
 int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell);
 int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell);
-uint ui_getmaxx(UiSurface *s, uint w);
-uint ui_getmaxy(UiSurface *s, uint w);
+int ui_getmaxx(UiSurface *s, uint w);
+int ui_getmaxy(UiSurface *s, uint w);
 
 #ifdef NOTCURSES_UI
 typedef struct nccell UiCell;

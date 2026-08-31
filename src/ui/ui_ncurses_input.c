@@ -111,11 +111,9 @@ int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeou
         timeout_ms = -1;
     } else
         wtimeout(s->mwin[w], timeout_ms);
-    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT | BUTTON_CTRL | BUTTON_ALT, NULL);
     curs_set(2);
     int ch = wgetch(s->mwin[w]);
-    curs_set(0);
-    ev->key = translate_key(ch);
+
     if (ev->key == UIKEY_CHAR) {
         ev->ch = (uint32_t)ch;
     } else if (ev->key == UIKEY_MOUSE) {
@@ -141,60 +139,36 @@ int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeou
                 ev->mouse_inside = false;
             }
         }
-    }
-    return ch;
-}
-
-int ui_get_event_multi(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeout_ms) {
-    int i;
-    if (!ev)
-        return -1;
-    memset(ev, 0, sizeof(*ev));
-    keypad(s->mwin[w], true);
-    if (timeout_ms <= 0) {
-        timeout_ms = -1;
-    } else
-        wtimeout(s->mwin[w], timeout_ms);
-    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON_SHIFT | BUTTON_CTRL | BUTTON_ALT, NULL);
-    ev->chyron = -1;
-    qiflush();
-    tcflush(2, TCIFLUSH);
-    cbreak();
-    curs_set(2);
-    int ch = wgetch(s->mwin[w]);
-    curs_set(0);
-    ev->mouse_action = UI_MOUSE_NONE;
-    ev->key = translate_key(ch);
-    if (ev->key == UIKEY_CHAR) {
-        ev->ch = (uint32_t)ch;
-    } else if (ev->key == UIKEY_MOUSE) {
-        MEVENT me;
-        if (getmouse(&me) == OK) {
-            ev->y = me.y;
-            ev->x = me.x;
-            if (me.bstate & BUTTON4_PRESSED)
-                ev->mouse_action = UI_MOUSE_SCROLL_UP;
-            else if (me.bstate & BUTTON5_PRESSED)
-                ev->mouse_action = UI_MOUSE_SCROLL_DOWN;
-            else if (me.bstate & BUTTON1_CLICKED ||
-                     me.bstate & BUTTON1_PRESSED ||
-                     me.bstate & BUTTON1_DOUBLE_CLICKED) {
-                ev->mouse_action = UI_MOUSE_PRESS;
-                ev->in_win = -1;
-                for (i = WIN; i < SUB_SFC_MAX; i++) {
+        //==========================================================================
+        ev->key = translate_key(ch);
+        if (ev->key == UIKEY_CHAR)
+            ev->ch = (uint32_t)ch; /* Unicode codepoint */
+        else if (ev->key == UIKEY_MOUSE) {
+            if (ch == UIKEY_BUTTON4_PRESSED)
+                ev->mouse_action = UIKEY_SCROLL_UP;
+            else if (ch == UIKEY_BUTTON5_PRESSED)
+                ev->mouse_action = UIKEY_SCROLL_DOWN;
+            else if (ch == UIKEY_BUTTON1_CLICKED) {
+                ev->mouse_action = UIKEY_BUTTON1_CLICKED;
+                for (int i = WIN; i < SUB_SFC_MAX; i++) {
                     if (s->mwin[i] != NULL &&
                         wenclose(s->mwin[i], me.y, me.x) &&
                         wmouse_trafo(s->mwin[i], &me.y, &me.x, false)) {
+                        ev->bstate = me.bstate;
                         ev->in_win = i;
-                        ev->key = 0;
+                        ev->y = me.y;
+                        ev->x = me.x;
                         break;
                     }
                 }
-                ev->bstate = me.bstate;
-                ev->y = me.y;
-                ev->x = me.x;
-                ev->key = 0;
-                return 0;
+                if (chyron) {
+                    if (ev->in_win == chyron->win && ev->y == chyron->y) {
+                        ev->mouse_action = UIKEY_BUTTON1_CLICKED;
+                        ev->key = ui_get_chyron_key(chyron, ev->x);
+                        return ev->key;
+                    } else
+                        return 0;
+                }
             }
         }
     }
@@ -205,7 +179,7 @@ int ui_get_event_multi(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int 
 int ui_get_event_no_mouse(UiSurface *s, uint w, UiEvent *ev) {
     int ch;
     mousemask(0, NULL);
-
+    curs_set(2);
     qiflush();
     tcflush(2, TCIFLUSH);
     cbreak();
@@ -219,6 +193,7 @@ int ui_get_event_no_mouse(UiSurface *s, uint w, UiEvent *ev) {
             break;
         }
     } while (ch == ERR);
+    curs_set(0);
     return ch;
 }
 /* -------------------------------------------------------------------------

@@ -475,14 +475,14 @@ void ui_getmaxyx(UiSurface *s, uint w, uint *y, uint *x) {
         return;
     ncplane_dim_yx(s->mplane[w], y, x);
 }
-uint ui_getmaxy(UiSurface *s, uint w) {
+int ui_getmaxy(UiSurface *s, uint w) {
     if (!s)
         return -1;
     uint y, x;
     ncplane_dim_yx(s->mplane[w], &y, &x);
     return y;
 }
-uint ui_getmaxx(UiSurface *s, uint w) {
+int ui_getmaxx(UiSurface *s, uint w) {
     if (!s)
         return -1;
     uint y, x;
