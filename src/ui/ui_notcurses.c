@@ -932,6 +932,8 @@ int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
     ncplane_set_styles(s->mplane[w], cell->stylemask);
     ncplane_set_channels(s->mplane[w], cell->channels);
     s->meta[w].bkgd_cell = *cell;
+    // ncplane_set_base(s->mplane[w], " ",
+    //                  cell->stylemask, cell->channels);
     return 0;
 }
 int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell) {
@@ -949,6 +951,8 @@ int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell) {
         return -1;
     ncplane_set_styles(s->mplane[w], cell->stylemask);
     ncplane_set_channels(s->mplane[w], cell->channels);
+    ncplane_set_base(s->mplane[w], " ",
+                     cell->stylemask, cell->channels);
     return 0;
 }
 /* -------------------------------------------------------------------------

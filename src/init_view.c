@@ -57,16 +57,18 @@ int init_view_full_screen(Init *init) {
     }
     ui_bkgd(view->sfc, WIN, &cell_nt);
     // -------------------> 2. LNNO <-------------------
-    ui_surface_addwin(view->sfc, LNNO, WIN, view->scroll_lines, view->ln_win_cols, 0, 0);
-    if (view->sfc->lnno == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
-        Perror(em0);
-        return -1;
+    if (view->f_ln) {
+        ui_surface_addwin(view->sfc, LNNO, WIN, view->scroll_lines, view->ln_win_cols, 0, 0);
+        if (view->sfc->lnno == nullptr) {
+            ssnprintf(em0, MAXLEN - 1, "ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
+            Perror(em0);
+            return -1;
+        }
+        ui_bkgd(view->sfc, LNNO, &cell_ln);
+        ui_bkgdset(view->sfc, LNNO, &cell_ln);
+        ui_scrollok(view->sfc, LNNO, true);
+        ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
     }
-    ui_bkgd(view->sfc, LNNO, &cell_ln);
-    ui_bkgdset(view->sfc, LNNO, &cell_ln);
-    ui_scrollok(view->sfc, LNNO, true);
-    ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
     // -------------------> 3. CMDLN <-------------------
     ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->scroll_lines, 0);
     if (view->sfc->cmdln == nullptr) {
@@ -153,11 +155,13 @@ int init_view_boxwin(Init *init) {
     view->sfc = ui_box_surface_new(NULL, 0, view->lines, view->cols, view->begy, view->begx, NULL);
     ui_surface_addwin(view->sfc, WIN, BOX, view->lines, view->cols, 1, 1);
     // -------------------> 2. LNNO <-------------------
-    ui_surface_addwin(view->sfc, LNNO, WIN, view->lines - 1, view->ln_win_cols, 0, 0);
-    ui_bkgd(view->sfc, LNNO, &cell_ln);
-    ui_bkgdset(view->sfc, LNNO, &cell_ln);
-    ui_scrollok(view->sfc, LNNO, true);
-    ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
+    if (view->f_ln) {
+        ui_surface_addwin(view->sfc, LNNO, WIN, view->lines - 1, view->ln_win_cols, 0, 0);
+        ui_bkgd(view->sfc, LNNO, &cell_ln);
+        ui_bkgdset(view->sfc, LNNO, &cell_ln);
+        ui_scrollok(view->sfc, LNNO, true);
+        ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
+    }
     // -------------------> 3. CMDLN <-------------------
     ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->lines - 1, 0);
     ui_bkgd(view->sfc, CMDLN, &cell_nt);

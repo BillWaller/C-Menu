@@ -277,12 +277,6 @@ extern uint LINES, COLS;
     .stylemask = (s),                  \
     .channels = (chan),                \
 }
-#define DEFAULT_INITIALIZER(c) {        \
-    .gcluster = (c),                    \
-    .gcluster_backstop = 0,             \
-    .stylemask = (bkgd_cell.stylemask), \
-    .channels = (bkgd_cell.channels),   \
-}
 #endif
 typedef struct {
     union {
