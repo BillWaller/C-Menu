@@ -928,12 +928,11 @@ int picker(Init *init, char *field) {
                         strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);
                         new_view_file(init, view_file);
                     }
-                // 1
                 pick_std_chyron(pick);
                 ui_compile_chyron(pick->chyron);
                 ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
                 reverse_object(pick);
-                ui_top_panel(sfc, WIN);
+                ui_top_surface(sfc, WIN);
                 ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
                 ui_render();
                 in_key = ui_get_event(sfc, WIN, pick->chyron, &event, -1);
@@ -1231,7 +1230,7 @@ int picker(Init *init, char *field) {
                 // mouse_win = nullptr;
                 pos = col + strlen(accept_s);
                 ui_mvwadd_wchnstr(sfc, WIN2, 0, 0, &cell_ran, 1);
-                ui_top_panel(sfc, WIN2);
+                ui_top_surface(sfc, WIN2);
                 ui_cursor_enable_yx(sfc, WIN2, 0, pos, true);
                 ui_render();
                 in_key = ui_get_event(sfc, WIN2, pick->chyron, &event, -1);

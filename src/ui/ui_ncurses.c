@@ -565,7 +565,7 @@ int ui_surface_show(UiSurface *s, uint w) {
     return 0;
 }
 
-int ui_top_panel(UiSurface *s, uint w) {
+int ui_top_surface(UiSurface *s, uint w) {
     if (!s)
         return -1;
     top_panel(s->mpan[w]);

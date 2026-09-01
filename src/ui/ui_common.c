@@ -416,22 +416,29 @@ int ui_border_title(UiSurface *sfc, char *title) {
     uint l;
     uint maxx = ui_getmaxx(sfc, BOX);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
+    ui_render();
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
+    ui_render();
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_render();
     wchar_t *title_wc;
     title_wc = ui_mbstr_to_wcstr(title);
     l = wcswidth(title_wc, wcslen(title_wc));
     l = min(l, maxx - 7);
     ui_bkgdset(sfc, BOX, &cell_title);
     ui_mvwaddnwstr(sfc, BOX, y, x, title_wc, l);
+    ui_render();
     ui_bkgdset(sfc, BOX, &cell_box);
     x += l;
     free(title_wc);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
-    while (x < maxx - 1)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
     ui_render();
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
+    ui_render();
+    while (x < maxx - 1) {
+        ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
+        ui_render();
+    }
     return 0;
 }
 // -----------------------------------------------------------------------

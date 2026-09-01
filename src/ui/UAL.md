@@ -1,3 +1,61 @@
+# UAL - Unified Abstraction Layer for Terminal UI
+
+## Introduction
+
+For years, I have been using the NCurses library to build terminal-based user
+interfaces. However, I couldn't help but notice that the NotCurses library
+offers a more modern and feature-rich approach to terminal UI development.
+Having said that, NCurses has been around for a long time, has a huge user base,
+and is widely supportred across various platforms. I have no intention of giving
+up that reliability and dependability. That's what you want at 3:00 AM, when you
+are trying to fix a problem on a critical server. Yet, I also want to take
+advantage of new features and capabilities that Notcurses provides. I wanted to
+have my cake and eat it too, and I would settle for nothing less. Here's my
+thinking:
+
+## Rationale
+
+* I will not waste time maintaining two separate sets of application code.
+
+* I will not compromise on the reliability and stability of NCurses, which has
+been literally battle-tested for decades.
+
+* I will not give up or compromise the unique features and capabilities of Notcurses.
+
+* I will not compromise on the performance and efficiency of either library.
+
+* I am spoiled rotten by great software, and I want the best of both worlds. I want to be able to use NCurses and Notcurses in the same application, and I want to be able to switch between them at will, without having to rewrite my application code. I want to be able to leverage the unique features and capabilities of each library, while still maintaining a consistent and unified application codebase.
+
+## Design Considerations
+
+* NCurses and Notcurses are fundamentally different libraries from the ground
+up with vastly different data structures and operations.
+
+* Switching from NCurses to Notcurses is not a trivial task, and it would
+require a significant amount of time and effort to rewrite the application code to
+work with Notcurses.
+
+* I have been using Curses since 1985, and it has come a long, long way since then. NotCurses first appeared in 2018, and look how far it has come in just a few years. Curses is in its 6th decade of development. Before Curses, I was writing terminal applications in assembly language. That was a leap, and I feel like I have taken another with Notcurses.
+
+## Goals
+
+* What if I could write my application code in a way that is agnostic to the
+underlying terminal UI library? That way, I could switch between NCurses, Notcurses, and whatever other UI libraries I choose. (Qt is looking pretty good for the moment.)
+
+* In addition, I could insulate the application developer from some of the more
+  unwieldy aspects of the underlying libraries, such as the complexity of handling wide characters and Unicode.
+
+* I decided to create a uniform abstraction layer (UAL) to provide a consistent
+API for both NCurses and Notcurses. This would enable developers to take advantage of the unique features and capabilities of each library without having to worry about the underlying implementation details, and that would shorten the learning curve for developers who are new to terminal UI development.
+
+## By an Application Developer for Application Developers
+
+* Application programmers and library programmers are often different breeds. They often don't share the same concerns and values. The library programmer expects the application programmer to understand the library intuitively. The application programmer expects the library programmer to anticipate misgivings that things that know how to make the library easy to use. They have different mindsets. For the library programmer it is the internal workings of the machinery, while the application programmer focuses on how to use the library to achieve their goals. I have been an application programmer for most of my life, and I developed the UAL with that perspective. I understand wanting to deliver high-quality products on time and on-budget. We app developers just want it to look good, work right, be easy to maintain, and easy to use. That keeps customers coming back.
+
+The core functions of the two libraries work in fundamentally different
+ways, especially when it comes to handling wide characters and Unicode. Later in
+this document, I will provide detailed explanations of why I believe Notcurses has a significant edge.
+
 #ifndef UI_BACKEND_H
 #define UI_BACKEND_H 1
 
@@ -443,7 +501,7 @@ SCREEN *ui_ncurses_get_screen();
 void ui_endwin();
 RGB ui_hex_to_rgb(char *s);
 void ui_restore_wins();
-int ui_top_surface(UiSurface *s, uint w);
+int ui_top_panel(UiSurface *s, uint w);
 
 /* @brief backend identification and capability query
    @ingroup ui_backend */

@@ -220,16 +220,20 @@ int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
 int ui_wadd_wchstr(UiSurface *s, uint w, const UiCell *cell) {
     if (!s)
         return -1;
-    while (cell->gcluster != 0)
-        ncplane_putc(s->mplane[w], cell++);
+    while (cell->gcluster != 0) {
+        ncplane_putc(s->mplane[w], cell);
+        cell++;
+    }
     return 0;
 }
 int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
     if (!s)
         return -1;
     ui_wmove(s, w, y, x);
-    while (cell->gcluster != 0)
-        ncplane_putc(s->mplane[w], cell++);
+    while (cell->gcluster != 0) {
+        ncplane_putc(s->mplane[w], cell);
+        cell++;
+    }
     return 0;
 }
 int ui_wadd_wchnstr(UiSurface *s, uint w, const UiCell *cell, uint m) {
@@ -237,8 +241,9 @@ int ui_wadd_wchnstr(UiSurface *s, uint w, const UiCell *cell, uint m) {
         return -1;
     uint cols = 0;
     while (cell->gcluster != 0 && cols < m) {
-        ncplane_putc(s->mplane[w], cell++);
+        ncplane_putc(s->mplane[w], cell);
         cols += cell->width;
+        cell++;
     }
     return 0;
 }
@@ -249,8 +254,9 @@ int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cell, 
     ui_wmove(s, w, y, x);
     uint cols = 0;
     while (cell->gcluster != 0 && cols < m) {
-        ncplane_putc(s->mplane[w], cell++);
+        ncplane_putc(s->mplane[w], cell);
         cols += cell->width;
+        cell++;
     }
     return 0;
 }
