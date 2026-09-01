@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-01T00:38:32-05:00* - FEATURE UPDATE: Added new features and improvements to the UI backend and Notcurses integration. 
+
+*2026-08-31T19:45:56-05:00* - Update CHANGELOG.md 
+
 *2026-08-31T19:44:42-05:00* - FEATURE UPDATE: Uniform Abstraction Layer for UI Backends Minor changes have been made to the UI backend abstraction layer, enhancing the modularity and maintainability of the codebase. 
 
 *2026-08-31T17:52:32-05:00* - Update CHANGELOG.md 
