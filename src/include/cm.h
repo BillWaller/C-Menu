@@ -427,10 +427,6 @@ extern bool capture_curses_tioctl();
 extern bool restore_curses_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
-
-extern int surface_box_win_new(uint, uint, uint, uint, char *);
-extern int surface_split_box_win_new(uint, uint, uint, uint, uint, uint, char *);
-
 extern void win_resize(uint, uint, char *);
 extern void signal_handler(int);
 extern bool handle_signal(sig_atomic_t);
@@ -811,14 +807,6 @@ extern bool is_valid_time(uint hh, uint mm, uint ss);
 extern void numeric(char *d, char *s);
 extern int cf_accept(UiSurface *, uint w, char *, uint, uint, uint);
 extern char *fill_field(char *, char *, char, uint);
-extern int cm_surface_destroy(UiSurface *sfc);
-extern wchar_t *mbstr_to_wcstr(const char *mb_str);
-
-extern int border_draw(UiSurface *sfc);
-extern int border_title(UiSurface *sfc, char *title);
-extern int border_ysplit(UiSurface *, uint);
-extern int border_ysplit_text(UiSurface *, char *, uint);
-extern void mbc_to_wc(wchar_t wc[2], const char mbc);
 extern void initialize_styles(SIO *);
 extern void initialize_cells(SIO *sio);
 extern size_t codepoint_to_utf8(uint32_t codepoint, uint8_t *utf8);

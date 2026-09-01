@@ -1,5 +1,6 @@
 #include "cm.h"
 #include "ui_backend.h"
+#include <string.h>
 
 /** BOX WIDE UNICODE CODEPOINTS */
 
@@ -53,6 +54,386 @@ STDRGB std_color[] = {
 // we only had 16 colors. And I used to plow four acres of corn with a two-horse team.
 // And we liked it!
 
+// -----------------------------------------------------------------------------
+// Multibyte, Wide Character (wchar_t), and Complex Character (cchar_t) Support
+// -----------------------------------------------------------------------------
+
+/** mbc_to_wc
+    @brief Convert a multibyte character to a wide character
+    @ingroup window_support
+    @param wc Output array for wide characters (size 2)
+    @param mbc Input multibyte character
+    @details This function converts a single multibyte character to a wide
+   character. It uses the mbrtowc function to perform the conversion and handles
+   any errors by setting the output to a question mark ('?') if the conversion
+   fails. The output array is null-terminated. */
+void ui_mbc_to_wc(wchar_t wc[2], const char mbc) {
+    wc[0] = wc[1] = L'\0';
+    mbstate_t state = {0};
+    size_t len = mbrtowc(wc, &mbc, MB_CUR_MAX, &state);
+    if (len <= 0) {
+        wc[0] = L'?';
+        wc[1] = L'\0';
+        len = 1;
+    }
+}
+/** ui_mbstr_to_wcstr
+    @brief Convert a multibyte string to a wide character string
+    @ingroup window_support
+    @param mb_str Input multibyte string
+    @return Pointer to newly allocated wide character string, or nullptr on error
+    @details This function converts a null-terminated multibyte string to a wide
+   character string. It first calculates the required length for the wide
+   character string, allocates memory for it, and then performs the conversion.
+   The caller is responsible for freeing the allocated memory. If the conversion
+   fails, it returns nullptr. */
+wchar_t *ui_mbstr_to_wcstr(const char *mb_str) {
+    const char *src_ptr = mb_str;
+    mbstate_t state = {0};
+    size_t wc_count = mbsrtowcs(NULL, &src_ptr, 0, &state);
+    if (wc_count == (size_t)-1)
+        return nullptr;
+    src_ptr = mb_str;
+    wmemset((wchar_t *)&state, 0, sizeof(state) / sizeof(wchar_t));
+    wchar_t *wc_str = malloc((wc_count + 1) * sizeof(wchar_t));
+    if (!wc_str)
+        return nullptr;
+    mbsrtowcs(wc_str, &src_ptr, wc_count + 1, &state);
+    return wc_str;
+}
+/** ui_mbstr_to_cellstr
+    @brief Convert multibyte string to complex character array
+    @ingroup UiChyron
+    @param cmplx_buf Output buffer for complex characters
+    @param str Input multibyte string
+    @param cell_base Base cell for attributes and color pair
+    @param p Pointer to current position in the output buffer, updated as
+   characters are added
+    @param atmost Maximum length of the output buffer
+    @return Number of bytes processed from the input string
+    @details This function converts a multibyte string to an array of complex
+   characters (cchar_t) that can be used with NCurses functions. It handles
+   multibyte characters and applies the attributes and color pair from the base
+   cell to each character. The p parameter is updated to reflect the current
+   position in the output buffer, and the function ensures that it does not exceed
+   the maximum length specified by atmost.
+*/
+#ifdef NCURSES_UI
+
+uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
+    attr_t attrs;
+    short cp;
+    uint p1 = 0;
+    uint *pos = &p1;
+    if (p)
+        pos = p;
+    else
+        pos = &p1;
+    uint i = 0, len = 0;
+    const char *s;
+    UiCell cc = {0};
+    wchar_t wstr[5];
+    getcchar(cell_base, &wstr[0], &attrs, &cp, nullptr);
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    if (pos && *pos >= atmost - 1)
+        return 0;
+    while (str[i] != '\0') {
+        s = &str[i];
+        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
+            len = 1;
+        }
+        wstr[1] = L'\0';
+        if (*pos > atmost)
+            break;
+        if (setcchar(&cc, wstr, attrs, cp, nullptr) != ERR) {
+            if (len > 0 && (*pos + len) < atmost)
+                cmplx_buf[(*pos)++] = cc;
+        }
+        i += len;
+    }
+    wstr[0] = L'\0';
+    wstr[1] = L'\0';
+    setcchar(&cc, wstr, attrs, cp, nullptr);
+    cmplx_buf[*pos] = cc;
+    return *pos;
+}
+#else
+uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
+    ushort cp;
+    uint p1 = 0;
+    uint *pos = &p1;
+    if (p)
+        pos = p;
+    uint i = 0, len = 0;
+    const char *s;
+    attr_t style;
+    UiCell cc;
+    wchar_t wstr[5];
+    ui_getcchar(cell_base, &wstr[0], &style, &cp, nullptr);
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    if (pos && *pos >= atmost - 1)
+        return 0;
+    while (str[i] != '\0') {
+        s = &str[i];
+        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
+            len = 1;
+        }
+        wstr[1] = L'\0';
+        if (*pos > atmost)
+            break;
+        if (ui_setcchar(&cc, wstr, style, cp, nullptr) != ERR) {
+            if (len > 0 && (*pos + len) < atmost)
+                cmplx_buf[(*pos)++] = cc;
+        }
+        i += len;
+    }
+    wstr[0] = L'\0';
+    wstr[1] = L'\0';
+    ui_setcchar(&cc, wstr, style, cp, nullptr);
+    cmplx_buf[*pos] = cc;
+    return *pos;
+}
+#endif
+// -----------------------------------------------------------------------------
+// High Level Surface Instantiations
+// -----------------------------------------------------------------------------
+/** surface_box_win_new
+    @brief Create a new surface with a box window
+    @ingroup window_support
+    @param wlines Number of lines for the window
+    @param wcols Number of columns for the window
+    @param wbegy Starting Y position for the window
+    @param wbegx Starting X position for the window
+    @param wtitle Title for the window
+    @return 0 on success, -1 on error
+    @details This function creates a new surface and adds a box window to it.
+   It checks if the maximum number of surfaces has been exceeded and adjusts the
+   window size based on the screen size. The new surface is stored in the global
+   ui_surface array, and the surface pointer (sfc_ptr) is incremented. The window
+   is then rendered on the screen.
+ */
+
+int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
+    if (sfc_ptr >= SFC_MAX) {
+        Perror("Maximum number of surfaces (%d) exceeded");
+        exit(EXIT_FAILURE);
+    }
+    uint maxy, maxx;
+    ui_get_screen_size(&maxy, &maxx);
+    wlines = min(wlines, maxy - 2);
+    wcols = min(wcols, maxx - 2);
+    sfc_ptr++;
+    // ------------------->    UAL_win_box    <-------------------
+    ui_surface[sfc_ptr] = ui_box_surface_new(nullptr, 0, wlines, wcols, wbegy, wbegx, wtitle);
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
+    ui_render();
+    return 0;
+}
+// -----------------------------------------------------------------------------
+// box_split_new
+// -----------------------------------------------------------------------------
+/** surface_split_box_win_new
+    @brief Create a new surface with a split box window
+    @ingroup window_support
+    @param wlines Number of lines for the main window
+    @param wcols Number of columns for the main window
+    @param split_y Y position for the split line
+    @param split_x X position for the split line (not implemented yet)
+    @param wbegy Starting Y position for the window
+    @param wbegx Starting X position for the window
+    @param wtitle Title for the window
+    @return 0 on success, -1 on error
+    @details This function creates a new surface and adds a split box window to it.
+   It checks if the maximum number of surfaces has been exceeded and adjusts the
+   window size based on the screen size. The new surface is stored in the global
+   ui_surface array, and the surface pointer (sfc_ptr) is incremented. The main
+   window and the split window are then rendered on the screen, with a separator
+   line drawn at the specified Y position.
+ */
+
+int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle) {
+    if (sfc_ptr >= SFC_MAX) {
+        Perror("Maximum number of surfaces (%d) exceeded");
+        exit(EXIT_FAILURE);
+    }
+    if (sfc_ptr >= SFC_MAX) {
+        Perror("Maximum number of surfaces (%d) exceeded");
+        exit(EXIT_FAILURE);
+    }
+    uint maxy, maxx;
+    ui_get_screen_size(&maxy, &maxx);
+    wlines = min(wlines, maxy - 2);
+    wcols = min(wcols, maxx - 2);
+    split_x = min(split_x, maxx - 2); // not implemented yet
+    uint split_wlines = min(wlines + split_y + 1, maxy - 2);
+    wcols = min(wcols, maxx - 2);
+    sfc_ptr++;
+    // ------------------->    surface_new    <-------------------
+    ui_surface[sfc_ptr] = ui_box_surface_new(nullptr, 0, split_wlines, wcols, wbegy, wbegx, wtitle);
+    UiSurface *sfc = ui_surface[sfc_ptr];
+
+    ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
+    ui_render();
+
+    ui_border_ysplit(sfc, wlines + 1);
+    ui_render();
+    ui_surface_addwin(sfc, WIN2, BOX, 2, wcols, wlines + 2, 1);
+    ui_curs_set(0);
+    return 0;
+}
+// -----------------------------------------------------------------------------
+// ui_cm_surface_destroy
+// -----------------------------------------------------------------------------
+/** ui_cm_destroy_surface
+    @brief Destroy the most recently created surface
+    @ingroup window_support
+    @return 0 on success, -1 if no surfaces exist
+    @details This function destroys the most recently created surface and decrements the surface pointer. It should be called when a surface is no longer needed to free up resources. If there are no surfaces to destroy, it returns -1.
+    @note The difference between this function and ui_surface_destroy() is that this function destroys the surface pointed to by the surface pointer (sfc_ptr) and decrements the surface pointer after destroying the surface.
+ */
+
+int ui_cm_surface_destroy(UiSurface *sfc) {
+    ui_surface_destroy(sfc);
+    sfc_ptr--;
+    return 0;
+}
+// -----------------------------------------------------------------------------
+// border_draw
+// -----------------------------------------------------------------------------
+
+int ui_border_draw(UiSurface *sfc) {
+    uint maxy = ui_getmaxy(sfc, BOX);
+    uint maxx = ui_getmaxx(sfc, BOX);
+    uint y = 0;
+    uint x = 0;
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
+    ui_render();
+    for (x = 1; x < maxx - 1; x++)
+        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_render();
+    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_tr, 1);
+    ui_render();
+    for (y = 1; y < maxy - 1; y++) {
+        ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_ve, 1);
+        ui_render();
+        ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_ve, 1);
+        ui_render();
+    }
+    ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_bl, 1);
+    for (x = 1; x < maxx - 1; x++)
+        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_br, 1);
+    ui_render();
+    return 0;
+}
+/** border-ysplit
+    @brief Draw a box with a separator line around the specified window
+    @ingroup window_support
+    @param box Pointer to the window to draw the box around
+    @param y Line number where the separator line should be drawn
+    @details This function draws a box around the specified window, similar to
+   border_draw(), but it also includes a horizontal separator line that divides the box
+   into two sections. The separator line is drawn at a fixed position (line 00,
+   page 00) and extends across the width of the box. Use this function when you
+   want to visually separate two sections within a window, such as for a header
+   and content area. */
+
+int ui_border_ysplit(UiSurface *sfc, uint y) {
+    uint maxx = ui_getmaxx(sfc, BOX);
+    ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_lt, 1);
+    for (uint x = 1; x < maxx - 1; x++)
+        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_rt, 1);
+    return 0;
+}
+/** ui_border_ysplit_text
+    @brief Draw a box with a separator line and text around the specified window
+    @ingroup window_support
+    @param box Pointer to the window to draw the box around
+    @param text Text to display in the middle of the separator line
+    @param separator_line Line number where the separator line should be drawn
+    @details This function draws a box around the specified window, similar to
+   border_draw(), but it also includes a horizontal separator line that divides the box
+   into two sections. The separator line is drawn at the specified line number and
+   extends across the width of the box, with the provided text displayed in the
+   middle of the line. Use this function when you want to visually separate two
+   sections within a window and label the separator with descriptive text. */
+
+int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line) {
+    uint maxx = ui_getmaxx(sfc, BOX);
+    uint l;
+    uint y = separator_line;
+    uint x = 0;
+    // Draw the horizontal line with text in the middle, so we start by drawing
+    // the left edge, then the text, then the right edge, and finally fill in the
+    // horizontal line on either side of the text.
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    strnz(text, maxx - 7);
+    wchar_t *text_wc;
+    text_wc = ui_mbstr_to_wcstr(text);
+    l = wcswidth(text_wc, wcslen(text_wc));
+    ui_bkgdset(sfc, BOX, &cell_nt_hl);
+    ui_mvwaddnwstr(sfc, BOX, y, x, text_wc, l);
+    x += l;
+    l = min(l, maxx - 7);
+    free(text_wc);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
+
+    while (x < maxx - 1)
+        ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
+    return 0;
+}
+/** border_title
+    @brief Draw a box with a title around the specified window
+    @ingroup window_support
+    @param box Pointer to the window to draw the box around
+    @param title Title text to display at the top of the box
+    @details This function draws a box around the specified window, similar to
+   border_draw(), but it also includes a title at the top of the box. The title
+   is displayed in the center of the top edge of the box, and the horizontal line
+   is drawn on either side of the title. Use this function when you want to
+   visually label a window with a title. */
+
+int ui_border_title(UiSurface *sfc, char *title) {
+    if (!title || !*title)
+        return 0;
+    uint y = 0;
+    uint x = 0;
+    uint l;
+    uint maxx = ui_getmaxx(sfc, BOX);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    wchar_t *title_wc;
+    title_wc = ui_mbstr_to_wcstr(title);
+    l = wcswidth(title_wc, wcslen(title_wc));
+    l = min(l, maxx - 7);
+    ui_bkgdset(sfc, BOX, &cell_title);
+    ui_mvwaddnwstr(sfc, BOX, y, x, title_wc, l);
+    ui_bkgdset(sfc, BOX, &cell_box);
+    x += l;
+    free(title_wc);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
+    while (x < maxx - 1)
+        ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
+    ui_render();
+    return 0;
+}
 // -----------------------------------------------------------------------
 // Chyron API
 // -----------------------------------------------------------------------
@@ -66,6 +447,7 @@ STDRGB std_color[] = {
    to the newly created chyron. If memory allocation fails, it calls abend() to
    terminate the program with an error message.
  */
+
 UiChyron *ui_new_chyron() {
     UiChyron *chyron = (UiChyron *)calloc(1, sizeof(UiChyron));
     if (!chyron) {
@@ -260,20 +642,20 @@ void ui_compile_chyron(UiChyron *chyron) {
         cell_base = chyron->key[k]->cell_base;
         if (end_pos == 0) {
             cx = chyron->cmplx_buf;
-            mbstr_to_cellstr(cx,
-                             " ",
-                             &cell_base,
-                             &pos,
-                             MAXLEN - 1);
+            ui_mbstr_to_cellstr(cx,
+                                " ",
+                                &cell_base,
+                                &pos,
+                                MAXLEN - 1);
         } else {
-            mbstr_to_cellstr(chyron->cmplx_buf,
-                             "|",
-                             &cell_base,
-                             &pos,
-                             MAXLEN - 1);
+            ui_mbstr_to_cellstr(chyron->cmplx_buf,
+                                "|",
+                                &cell_base,
+                                &pos,
+                                MAXLEN - 1);
         }
         cx = chyron->cmplx_buf;
-        mbstr_to_cellstr(cx, chyron->key[k]->text, &cell_base, &pos, MAXLEN - 1);
+        ui_mbstr_to_cellstr(cx, chyron->key[k]->text, &cell_base, &pos, MAXLEN - 1);
         end_pos = pos;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
@@ -281,7 +663,7 @@ void ui_compile_chyron(UiChyron *chyron) {
                   chyron->key[k]->text, chyron->key[k]->end_pos);
         k++;
     }
-    mbstr_to_cellstr(chyron->cmplx_buf, " ", &cell_base, &pos, MAXLEN - 1);
+    ui_mbstr_to_cellstr(chyron->cmplx_buf, " ", &cell_base, &pos, MAXLEN - 1);
     chyron->l = end_pos;
 }
 /** display_chyron

@@ -186,7 +186,7 @@ void view_boxwin_resize(Init *init) {
     ui_surface_destroy(view->sfc);
     ui_render();
     init_view_boxwin(init);
-    border_title(init->view->sfc, init->view->title);
+    ui_border_title(init->view->sfc, init->view->title);
     // initialize_line_table(init->view);
 }
 /** @brief Calculate the dimensions and position of the box window for C-Menu

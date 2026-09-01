@@ -18,7 +18,6 @@
 
 #include "cm.h"
 #include "ui_backend.h"
-#include <errno.h>
 #include <fcntl.h>
 #include <iso646.h>
 #include <math.h>
@@ -53,6 +52,7 @@ char const colors_text[][10] = {
     "white", "orange", "bg", "abg", "bblack", "bred", "bgreen",
     "byellow", "bblue", "bcyan", "bmagenta", "bwhite", "borange", ""};
 
+#ifdef ASDF
 typedef enum Cells {
     _DEFAULT,
     _FILL_CHAR,
@@ -86,6 +86,7 @@ typedef enum Cells {
     _CR,
     _SP
 } cells_t;
+#endif
 
 UiCell cell_default;
 UiCell cell_fill_char;
@@ -119,6 +120,23 @@ UiCell cell_bt;
 UiCell cell_cr;
 UiCell cell_sp;
 
+ushort cp_box;
+ushort cp_ind;
+ushort cp_cmdln;
+ushort cp_title;
+ushort cp_nt;
+ushort cp_nt_rev;
+ushort cp_nt_hl;
+ushort cp_nt_hl_rev;
+ushort cp_ln;
+ushort cp_default;
+ushort cp_fill_char;
+ushort cp_brackets;
+ushort cp_red;
+ushort cp_green;
+ushort cp_yellow;
+ushort cp_blue;
+
 double GRAY_GAMMA = 1.2; /**< Gamma correction. Set in .minitrc */
 double RED_GAMMA = 1.2;
 double GREEN_GAMMA = 1.2;
@@ -143,23 +161,6 @@ char em0[MAXLEN];
 char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
-
-ushort cp_box;
-ushort cp_ind;
-ushort cp_cmdln;
-ushort cp_title;
-ushort cp_nt;
-ushort cp_nt_rev;
-ushort cp_nt_hl;
-ushort cp_nt_hl_rev;
-ushort cp_ln;
-ushort cp_default;
-ushort cp_fill_char;
-ushort cp_brackets;
-ushort cp_red;
-ushort cp_green;
-ushort cp_yellow;
-ushort cp_blue;
 
 int stdin_fd, stdout_fd, stderr_fd, tty_fd, pipe_in, pipe_out;
 
@@ -186,8 +187,6 @@ void initialize_cells(SIO *sio) {
     //
     // Standardized color pairs
     //
-    // strcpy(sio->nt_bg, "#0000ff");
-    // strcpy(sio->box_bg, "#00ff00");
     cp_default = ui_add_pair(CLR_NT_FG, CLR_NT_BG);
     cp_fill_char = ui_add_pair(CLR_FILL_CHAR_FG, CLR_FILL_CHAR_BG);
     cp_brackets = ui_add_pair(CLR_BRACKETS_FG, CLR_BRACKETS_BG);
@@ -329,7 +328,12 @@ void apply_gamma(RGB *rgb) {
    color overrides specified in the SIO struct. The color strings in the SIO
    struct are expected to be six-digit HTML style hex color codes (e.g.,
    "#RRGGBB"). If a color override is specified for any of the standard colors,
-   it is applied using the ui_add_color_hex function. */
+   it is applied using the ui_add_color_hex function.
+    @note This function should be called after the SIO struct has been populated with
+ color settings, typically from a configuration file or user input. It ensures
+ that the color palette used by the application matches the user's preferences.
+ As I have stated before, you don't really need a 16 or 256 bit color pallette, or an array of rgb color values, or an array of color pairs. You almost certainly have a true color display, so you have 1,666,216 colors to choose from.
+ */
 bool init_clr_palette(SIO *sio) {
     ui_chg_color(CLR_BLACK, &sio->black);
     ui_chg_color(CLR_RED, &sio->red);
@@ -390,316 +394,6 @@ void destroy_curses() {
     sig_dfl_mode();
     return;
 }
-void mbc_to_wc(wchar_t wc[2], const char mbc) {
-    wc[0] = wc[1] = L'\0';
-    mbstate_t state = {0};
-    size_t len = mbrtowc(wc, &mbc, MB_CUR_MAX, &state);
-    if (len <= 0) {
-        wc[0] = L'?';
-        wc[1] = L'\0';
-        len = 1;
-    }
-}
-
-wchar_t *mbstr_to_wcstr(const char *mb_str) {
-    const char *src_ptr = mb_str;
-    mbstate_t state = {0};
-    size_t wc_count = mbsrtowcs(NULL, &src_ptr, 0, &state);
-    if (wc_count == (size_t)-1)
-        return nullptr;
-    src_ptr = mb_str;
-    wmemset((wchar_t *)&state, 0, sizeof(state) / sizeof(wchar_t));
-    wchar_t *wc_str = malloc((wc_count + 1) * sizeof(wchar_t));
-    if (!wc_str)
-        return nullptr;
-    mbsrtowcs(wc_str, &src_ptr, wc_count + 1, &state);
-    return wc_str;
-}
-
-/** mbstr_to_cellstr
-    @brief Convert multibyte string to complex character array
-    @ingroup UiChyron
-    @param cmplx_buf Output buffer for complex characters
-    @param str Input multibyte string
-    @param attr Attributes to apply to the complex characters
-    @param cpx Color pair index for the complex characters
-    @param pos Pointer to current position in the output buffer, updated as
-   characters are added
-    @param maxlen Maximum length of the output buffer
-    @return Number of bytes processed from the input string
-    @details This function converts a multibyte string to an array of complex
-   characters (cchar_t) that can be used with NCurses functions. It handles
-   multibyte characters and applies the specified color pair to each character.
-   The pos parameter is updated to reflect the current position in the output
-   buffer, and the function ensures that it does not exceed the maximum length.
-*/
-
-#ifdef NCURSES_UI
-uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
-    attr_t attrs;
-    short cp;
-    uint p1 = 0;
-    uint *pos = &p1;
-    if (p)
-        pos = p;
-    else
-        pos = &p1;
-    uint i = 0, len = 0;
-    const char *s;
-    UiCell cc = {0};
-    wchar_t wstr[5];
-    getcchar(cell_base, &wstr[0], &attrs, &cp, nullptr);
-    mbstate_t mbstate;
-    memset(&mbstate, 0, sizeof(mbstate));
-    if (pos && *pos >= atmost - 1)
-        return 0;
-    while (str[i] != '\0') {
-        s = &str[i];
-        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
-        if (len <= 0) {
-            wstr[0] = L'?';
-            wstr[1] = L'\0';
-            len = 1;
-        }
-        wstr[1] = L'\0';
-        if (*pos > atmost)
-            break;
-        if (setcchar(&cc, wstr, attrs, cp, nullptr) != ERR) {
-            if (len > 0 && (*pos + len) < atmost)
-                cmplx_buf[(*pos)++] = cc;
-        }
-        i += len;
-    }
-    wstr[0] = L'\0';
-    wstr[1] = L'\0';
-    setcchar(&cc, wstr, attrs, cp, nullptr);
-    cmplx_buf[*pos] = cc;
-    return *pos;
-}
-#else
-uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
-    ushort cp;
-    uint p1 = 0;
-    uint *pos = &p1;
-    if (p)
-        pos = p;
-    uint i = 0, len = 0;
-    const char *s;
-    attr_t style;
-    UiCell cc;
-    wchar_t wstr[5];
-    ui_getcchar(cell_base, &wstr[0], &style, &cp, nullptr);
-    mbstate_t mbstate;
-    memset(&mbstate, 0, sizeof(mbstate));
-    if (pos && *pos >= atmost - 1)
-        return 0;
-    while (str[i] != '\0') {
-        s = &str[i];
-        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
-        if (len <= 0) {
-            wstr[0] = L'?';
-            wstr[1] = L'\0';
-            len = 1;
-        }
-        wstr[1] = L'\0';
-        if (*pos > atmost)
-            break;
-        if (ui_setcchar(&cc, wstr, style, cp, nullptr) != ERR) {
-            if (len > 0 && (*pos + len) < atmost)
-                cmplx_buf[(*pos)++] = cc;
-        }
-        i += len;
-    }
-    wstr[0] = L'\0';
-    wstr[1] = L'\0';
-    ui_setcchar(&cc, wstr, style, cp, nullptr);
-    cmplx_buf[*pos] = cc;
-    return *pos;
-}
-#endif
-// ------------------->    surface_box_win_new    <-------------------
-int surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
-    if (sfc_ptr >= SFC_MAX) {
-        Perror("Maximum number of surfaces (%d) exceeded");
-        exit(EXIT_FAILURE);
-    }
-    uint maxy, maxx;
-    ui_get_screen_size(&maxy, &maxx);
-    wlines = min(wlines, maxy - 2);
-    wcols = min(wcols, maxx - 2);
-    sfc_ptr++;
-    // ------------------->    UAL_win_box    <-------------------
-    ui_surface[sfc_ptr] = ui_box_surface_new(nullptr, 0, wlines, wcols, wbegy, wbegx, wtitle);
-    UiSurface *sfc = ui_surface[sfc_ptr];
-    ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
-    ui_render();
-    return 0;
-}
-// ------------------->    box_split_new    <-------------------
-int surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle) {
-    if (sfc_ptr >= SFC_MAX) {
-        Perror("Maximum number of surfaces (%d) exceeded");
-        exit(EXIT_FAILURE);
-    }
-    if (sfc_ptr >= SFC_MAX) {
-        Perror("Maximum number of surfaces (%d) exceeded");
-        exit(EXIT_FAILURE);
-    }
-    uint maxy, maxx;
-    ui_get_screen_size(&maxy, &maxx);
-    wlines = min(wlines, maxy - 2);
-    wcols = min(wcols, maxx - 2);
-    split_x = min(split_x, maxx - 2); // not implemented yet
-    uint split_wlines = min(wlines + split_y + 1, maxy - 2);
-    wcols = min(wcols, maxx - 2);
-    sfc_ptr++;
-    // ------------------->    surface_new    <-------------------
-    ui_surface[sfc_ptr] = ui_box_surface_new(nullptr, 0, split_wlines, wcols, wbegy, wbegx, wtitle);
-    UiSurface *sfc = ui_surface[sfc_ptr];
-
-    ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
-    ui_render();
-
-    border_ysplit(sfc, wlines + 1);
-    ui_render();
-    ui_surface_addwin(sfc, WIN2, BOX, 2, wcols, wlines + 2, 1);
-    ui_curs_set(0);
-    return 0;
-}
-/** cm_destroy_surface
-    @brief Destroy the most recently created surface
-    @ingroup window_support
-    @return 0 on success, -1 if no surfaces exist
-    @details This function destroys the most recently created surface and decrements the surface pointer. It should be called when a surface is no longer needed to free up resources. If there are no surfaces to destroy, it returns -1.
-    @note The difference between this function and ui_surface_destroy() is that this function destroys the surface pointed to by the surface pointer (sfc_ptr) and decrements the surface pointer after destroying the surface.
- */
-int cm_surface_destroy(UiSurface *sfc) {
-    ui_surface_destroy(sfc);
-    sfc_ptr--;
-    return 0;
-}
-int border_draw(UiSurface *sfc) {
-    uint maxy = ui_getmaxy(sfc, BOX);
-    uint maxx = ui_getmaxx(sfc, BOX);
-    uint y = 0;
-    uint x = 0;
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
-    ui_render();
-    for (x = 1; x < maxx - 1; x++)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_render();
-    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_tr, 1);
-    ui_render();
-    for (y = 1; y < maxy - 1; y++) {
-        ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_ve, 1);
-        ui_render();
-        ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_ve, 1);
-        ui_render();
-    }
-    ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_bl, 1);
-    for (x = 1; x < maxx - 1; x++)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_br, 1);
-    ui_render();
-    return 0;
-}
-/** border-ysplit
-    @brief Draw a box with a separator line around the specified window
-    @ingroup window_support
-    @param box Pointer to the window to draw the box around
-    @param y Line number where the separator line should be drawn
-    @details This function draws a box around the specified window, similar to
-   border_draw(), but it also includes a horizontal separator line that divides the box
-   into two sections. The separator line is drawn at a fixed position (line 00,
-   page 00) and extends across the width of the box. Use this function when you
-   want to visually separate two sections within a window, such as for a header
-   and content area. */
-int border_ysplit(UiSurface *sfc, uint y) {
-    uint maxx = ui_getmaxx(sfc, BOX);
-    ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_lt, 1);
-    for (uint x = 1; x < maxx - 1; x++)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_rt, 1);
-    return 0;
-}
-/** border_ysplit_text
-    @brief Draw a box with a separator line and text around the specified window
-    @ingroup window_support
-    @param box Pointer to the window to draw the box around
-    @param text Text to display in the middle of the separator line
-    @param separator_line Line number where the separator line should be drawn
-    @details This function draws a box around the specified window, similar to
-   border_draw(), but it also includes a horizontal separator line that divides the box
-   into two sections. The separator line is drawn at the specified line number and
-   extends across the width of the box, with the provided text displayed in the
-   middle of the line. Use this function when you want to visually separate two
-   sections within a window and label the separator with descriptive text. */
-int border_ysplit_text(UiSurface *sfc, char *text, uint separator_line) {
-    uint maxx = ui_getmaxx(sfc, BOX);
-    uint l;
-    uint y = separator_line;
-    uint x = 0;
-    // Draw the horizontal line with text in the middle, so we start by drawing
-    // the left edge, then the text, then the right edge, and finally fill in the
-    // horizontal line on either side of the text.
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    strnz(text, maxx - 7);
-    wchar_t *text_wc;
-    text_wc = mbstr_to_wcstr(text);
-    l = wcswidth(text_wc, wcslen(text_wc));
-    ui_bkgdset(sfc, BOX, &cell_nt_hl);
-    ui_mvwaddnwstr(sfc, BOX, y, x, text_wc, l);
-    x += l;
-    l = min(l, maxx - 7);
-    free(text_wc);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
-
-    while (x < maxx - 1)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
-    return 0;
-}
-/** border_title
-    @brief Draw a box with a title around the specified window
-    @ingroup window_support
-    @param box Pointer to the window to draw the box around
-    @param title Title text to display at the top of the box
-    @details This function draws a box around the specified window, similar to
-   border_draw(), but it also includes a title at the top of the box. The title
-   is displayed in the center of the top edge of the box, and the horizontal line
-   is drawn on either side of the title. Use this function when you want to
-   visually label a window with a title. */
-int border_title(UiSurface *sfc, char *title) {
-    if (!title || !*title)
-        return 0;
-    uint y = 0;
-    uint x = 0;
-    uint l;
-    uint maxx = ui_getmaxx(sfc, BOX);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    wchar_t *title_wc;
-    title_wc = mbstr_to_wcstr(title);
-    l = wcswidth(title_wc, wcslen(title_wc));
-    l = min(l, maxx - 7);
-    ui_bkgdset(sfc, BOX, &cell_title);
-    ui_mvwaddnwstr(sfc, BOX, y, x, title_wc, l);
-    ui_bkgdset(sfc, BOX, &cell_box);
-    x += l;
-    free(title_wc);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
-    while (x < maxx - 1)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
-    ui_render();
-    return 0;
-}
-
 /** @defgroup error_handling Error Handling
     @brief Display Error messages
  */
@@ -742,8 +436,8 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (surface_box_win_new(5, msg_l + 2, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s) failed", 5,
+    if (ui_surface_box_win_new(5, msg_l + 2, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "ui_surface_box_win_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         ui_destroy_chyron(chyron);
         abend(-1, title);
@@ -763,7 +457,7 @@ int answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
         if (cmd_key == UIKEY_F01 || cmd_key == 'N' || cmd_key == 'n' || cmd_key == 'Y' || cmd_key == 'y')
             break;
     } while (1);
-    cm_surface_destroy(sfc);
+    ui_cm_surface_destroy(sfc);
     ui_destroy_chyron(chyron);
     return (cmd_key);
 }
@@ -808,7 +502,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (surface_box_win_new(5, msg_l + 2, line, pos, title)) {
+    if (ui_surface_box_win_new(5, msg_l + 2, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "box_win_new(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         ui_destroy_chyron(chyron);
@@ -828,7 +522,7 @@ int display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
         if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q')
             break;
     } while (1);
-    cm_surface_destroy(sfc);
+    ui_cm_surface_destroy(sfc);
     ui_destroy_chyron(chyron);
     return (cmd_key);
 }
@@ -866,8 +560,8 @@ int Perror(char *emsg_str) {
     pos = (maxx - cols - 4) / 2;
     line = (maxy - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (surface_box_win_new(2, cols + 2, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s, %b) failed",
+    if (ui_surface_box_win_new(2, cols + 2, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "ui_surface_box_win_new(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
         ui_destroy_chyron(chyron);
         abend(-1, title);
@@ -883,7 +577,7 @@ int Perror(char *emsg_str) {
         in_key = UIKEY_F10;
     }
     ui_destroy_chyron(chyron);
-    cm_surface_destroy(sfc);
+    ui_cm_surface_destroy(sfc);
     return (in_key);
 }
 /** action_disposition
@@ -909,8 +603,8 @@ bool action_disposition(char *title, char *action_str) {
     ui_get_screen_size(&maxy, &maxx);
     col = (maxx - len - 4) / 2;
     line = (maxy - 4) / 2;
-    if (surface_box_win_new(2, len + 2, line, col, title)) {
-        ssnprintf(em0, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s) failed", 4,
+    if (ui_surface_box_win_new(2, len + 2, line, col, title)) {
+        ssnprintf(em0, MAXLEN - 1, "ui_surface_box_win_new(%d, %d, %d, %d, %s) failed", 4,
                   line, line, col, title);
         Perror(em0);
     }
@@ -920,7 +614,7 @@ bool action_disposition(char *title, char *action_str) {
     ui_display_chyron(sfc, WIN, chyron, 1, 0);
     event.y = event.x = -1;
     cmd_key = ui_get_event(sfc, WIN, chyron, &event, -1);
-    cm_surface_destroy(sfc);
+    ui_cm_surface_destroy(sfc);
     ui_destroy_chyron(chyron);
     return true;
 }

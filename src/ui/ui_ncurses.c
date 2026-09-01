@@ -438,8 +438,8 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
         }
     }
     ui_scrollok(s, BOX, false);
-    border_draw(s);
-    border_title(s, wtitle);
+    ui_border_draw(s);
+    ui_border_title(s, wtitle);
 #ifdef DEBUG_UI
     immedok(s->mwin[BOX], true);
 #endif

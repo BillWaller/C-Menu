@@ -93,7 +93,7 @@ int init_form(Init *init, int argc, char **argv, uint begy, uint begx) {
     UiSurface *sfc = ui_surface[sfc_ptr];
     ui_destroy_chyron(form->chyron);
     if (sfc)
-        cm_surface_destroy(sfc);
+        ui_cm_surface_destroy(sfc);
     destroy_form(init);
     return rc;
 }
@@ -551,8 +551,8 @@ unsigned int display_form(Init *init) {
     form->cols += 2;
     if (form->cols > (COLS - form->begx - 3))
         form->cols = COLS - form->begx - 3;
-    if (surface_box_win_new(form->lines, form->cols, form->begy, form->begx, form->title)) {
-        strnz__cpy(tmp_str, "surface_box_win_new failed: ", MAXLEN - 1);
+    if (ui_surface_box_win_new(form->lines, form->cols, form->begy, form->begx, form->title)) {
+        strnz__cpy(tmp_str, "ui_surface_box_win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp_str, form->title, MAXLEN - 1);
         Perror(tmp_str);
         return (1);
@@ -620,14 +620,14 @@ void form_display_fields(Form *form) {
         x = form->field[form->fidx]->col;
 
         pos = 0;
-        mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_fill_char, &pos, form->field[form->fidx]->len + 1);
+        ui_mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_fill_char, &pos, form->field[form->fidx]->len + 1);
 
         UiSurface *sfc = ui_surface[sfc_ptr];
         ui_mvwadd_wchstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
         ui_render();
 
         pos = 0;
-        mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos, form->field[form->fidx]->len + 1);
+        ui_mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos, form->field[form->fidx]->len + 1);
 
         ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         ui_render();

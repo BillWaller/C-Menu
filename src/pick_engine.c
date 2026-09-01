@@ -182,7 +182,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     pick_std_chyron(pick);
     ui_compile_chyron(pick->chyron);
     pick_engine(init);
-    cm_surface_destroy(pick->surface);
+    ui_cm_surface_destroy(pick->surface);
     if (pick->p_view_files)
         destroy_pick_view(init);
     return 0;
@@ -809,10 +809,10 @@ int open_pick_win(Init *init) {
     char tmp_str[MAXLEN];
     Pick *pick = init->pick;
     pick = init->pick;
-    int split_win_lines = 2; // 1 text, 1 chyron
-    if (surface_split_box_win_new(pick->lines, pick->width, split_win_lines, 0, pick->begy, pick->begx, pick->title)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "surface_split_box_win_new(%d, %d, %d, %d, %d, %d, %s) failed",
-                  pick->lines, pick->width, split_win_lines, 0, pick->begy, pick->begx, pick->title);
+    int ui_split_win_lines = 2; // 1 text, 1 chyron
+    if (ui_surface_split_box_win_new(pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_surface_split_box_win_new(%d, %d, %d, %d, %d, %d, %s) failed",
+                  pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title);
         Perror(tmp_str);
         return (1);
     }
@@ -922,7 +922,7 @@ int picker(Init *init, char *field) {
                 ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                           pick->tbl_line + 1, pick->tbl_page + 1,
                           pick->tbl_pages);
-                border_ysplit_text(pick->surface, tmp_str, pick->separator_line);
+                ui_border_ysplit_text(pick->surface, tmp_str, pick->separator_line);
                 if (pick->p_view_files)
                     if (strcmp(pick->d_object[pick->d_idx], view_file) != 0) {
                         strnz__cpy(view_file, pick->d_object[pick->d_idx], MAXLEN - 1);
@@ -1529,7 +1529,7 @@ void new_view_file(Init *init, char *file) {
             view->ln_no = 0;
             view->page_bot_pos = 0;
             view->file_pos = 0;
-            border_title(view->sfc, view->title);
+            ui_border_title(view->sfc, view->title);
             initialize_line_table(view);
             next_page(view);
             build_prompt(view);

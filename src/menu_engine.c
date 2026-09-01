@@ -50,10 +50,10 @@ unsigned int menu_engine(Init *init) {
     menu->choice_max_len = 0;
     menu->text_max_len = 0;
     parse_menu_description(init);
-    surface_box_win_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title);
+    ui_surface_box_win_new(menu->lines, menu->cols, menu->begy, menu->begx, menu->title);
     UiSurface *sfc = ui_surface[sfc_ptr];
     if (sfc == nullptr) {
-        ssnprintf(tmp_str, MAXLEN - 1, "surface_box_win_new(%d, %d, %d, %d, %s) failed",
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_surface_box_win_new(%d, %d, %d, %d, %s) failed",
                   menu->lines, menu->cols, menu->begy, menu->begx, menu->title);
         Perror(tmp_str);
         return 1;
@@ -64,7 +64,7 @@ unsigned int menu_engine(Init *init) {
     while (action) {
         switch (action) {
         case MA_RETURN:
-            cm_surface_destroy(sfc);
+            ui_cm_surface_destroy(sfc);
             if (sfc_ptr < 0) {
                 destroy_menu(init);
                 return 0;

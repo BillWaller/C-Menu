@@ -390,7 +390,7 @@ int ui_surface_hide(UiSurface *s, uint w);
 int ui_surface_move(UiSurface *s, uint w, uint y, uint x);
 int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols);
 UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *bg);
-uint mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
+uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
 int ui_bkgd(UiSurface *s, uint w, const UiCell *cell);
 int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell);
 int ui_chg_color(uint16_t color_idx, uint32_t *color);
@@ -466,6 +466,17 @@ extern UiRuntime *ui;
 extern UiSurface *ui_surface[UI_SFC_MAX];
 extern uint ui_color_cnt;
 extern uint ui_pair_cnt;
+
+void ui_mbc_to_wc(wchar_t wc[2], const char mbc);
+wchar_t *ui_mbstr_to_wcstr(const char *mb_str);
+uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost);
+int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle);
+int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle);
+int ui_cm_surface_destroy(UiSurface *sfc);
+int ui_border_draw(UiSurface *sfc);
+int ui_border_ysplit(UiSurface *sfc, uint y);
+int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line);
+int ui_border_title(UiSurface *sfc, char *title);
 
 // ---------------------------------------------------------------
 // Chyron API

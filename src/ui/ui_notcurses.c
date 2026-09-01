@@ -277,8 +277,8 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
                      0,
                      cell_box.channels);
     ncplane_set_channels(s->mplane[BOX], cell_box.channels);
-    border_draw(s);
-    border_title(s, wtitle);
+    ui_border_draw(s);
+    ui_border_title(s, wtitle);
     return s;
 }
 
