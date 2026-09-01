@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-01T09:43:53-05:00* - FEATURE UPGRADE: Uniform Abstraction Layer (UAL) for UI Backends Reorganizing the UAL for breakout into a separate library. 
+
+*2026-09-01T00:39:02-05:00* - Update CHANGELOG.md 
+
 *2026-09-01T00:38:32-05:00* - FEATURE UPDATE: Added new features and improvements to the UI backend and Notcurses integration. 
 
 *2026-08-31T19:45:56-05:00* - Update CHANGELOG.md 
