@@ -49,7 +49,7 @@ unsigned int parse_menu_description(Init *init) {
     fp = fopen(menu->mapp_spec, "r");
     if (fp == nullptr) {
         strnz__cpy(tmp_buf, "file not found", MAXLEN);
-        abend(-1, tmp_buf);
+        ui_abend(-1, tmp_buf);
         exit(-1);
     }
     while ((fgets(in_buf, MAXLEN, fp)) != nullptr) {
@@ -118,8 +118,8 @@ unsigned int parse_menu_description(Init *init) {
                           in_fp_line);
                 strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
                 strnz__cpy(em2, in_buf, MAXLEN - 1);
-                display_error(em0, em1, em2, nullptr);
-                abend(-1, "unrecoverable error");
+                ui_display_error(em0, em1, em2, nullptr);
+                ui_abend(-1, "unrecoverable error");
             }
             l = strlen(tmp_buf);
             menu->text_max_len = max(menu->text_max_len, l);
@@ -136,7 +136,7 @@ unsigned int parse_menu_description(Init *init) {
                     sprintf(tmp_str,
                             "2-malloc(%ld bytes) failed menu->line[%d]",
                             sizeof(Line), menu->line_idx);
-                    abend(-1, tmp_str);
+                    ui_abend(-1, tmp_str);
                 }
                 menu->line[menu->line_idx]->type = MT_TEXT;
                 menu->line[menu->line_idx]->raw_text = strdup(tmp_buf);
@@ -155,7 +155,7 @@ unsigned int parse_menu_description(Init *init) {
                       directive, in_fp_line);
             strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
             strnz__cpy(em2, in_buf, MAXLEN - 1);
-            display_error(em0, em1, em2, nullptr);
+            ui_display_error(em0, em1, em2, nullptr);
         }
     }
     fclose(fp);
@@ -204,7 +204,7 @@ unsigned int parse_menu_description(Init *init) {
                         break;
                     }
                 if (ltr > 126) {
-                    Perror("Ran out of letters");
+                    ui_perror("Ran out of letters");
                     return 0;
                 }
             }
@@ -218,7 +218,7 @@ unsigned int parse_menu_description(Init *init) {
     else
         menu->cols = menu->choice_max_len + 6;
     if (menu->cols >= MAXLEN)
-        Perror("line too long");
+        ui_perror("line too long");
     return 0;
 }
 /** @brief Get command type from command string

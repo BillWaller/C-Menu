@@ -479,7 +479,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     if (!init) {
         ssnprintf(tmp_str, sizeof(tmp_str), "%s",
                   "init struct not allocated on entry");
-        abend(-1, tmp_str);
+        ui_abend(-1, tmp_str);
         exit(-1);
     }
 #ifdef DEBUG_LOG
@@ -494,7 +494,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     if (init->mapp_home[0] != '\0') {
         expand_tilde(init->mapp_home, MAXLEN - 1);
         if (!verify_dir(init->mapp_home, R_OK))
-            abend(-1, "MAPP_HOME directory invalid");
+            ui_abend(-1, "MAPP_HOME directory invalid");
     }
     // CMENU_RC should be an absolute path
     e = getenv("CMENU_RC");
@@ -1341,7 +1341,7 @@ int write_config(Init *init) {
     (void)fprintf(minitrc_fp, "%-34s # default theme file\n", config_s);
     strnz__cpy(tmp_str, "Configuration written to file: ", MAXLEN - 1);
     strnz__cat(tmp_str, minitrc_dmp, MAXLEN - 1);
-    Perror(tmp_str);
+    ui_perror(tmp_str);
     return 0;
 }
 void print_argp_doc(FILE *minitrc_fp, char *config_s, char *key) {

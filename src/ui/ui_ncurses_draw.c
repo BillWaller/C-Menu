@@ -345,7 +345,7 @@ void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
                             tok = strtok(nullptr, ";m");
                             if (tok != nullptr) {
                                 x_idx = a_toi(tok, &a_toi_error);
-                                rgb = xterm256_idx_to_rgb(x_idx);
+                                rgb = ui_xterm256_idx_to_rgb(x_idx);
                             }
                         } else if (*tok == '2') {
                             tok = strtok(nullptr, ";m");
@@ -370,13 +370,13 @@ void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
                         tstr[0] = t1;
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
-                        rgb = xterm256_idx_to_rgb(x_idx);
+                        rgb = ui_xterm256_idx_to_rgb(x_idx);
                         fg_clr = ui_add_color_rgb(&rgb);
                     } else if (t0 == '4') {
                         tstr[0] = t1;
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
-                        rgb = xterm256_idx_to_rgb(x_idx);
+                        rgb = ui_xterm256_idx_to_rgb(x_idx);
                         bg_clr = ui_add_color_rgb(&rgb);
                     }
                 }

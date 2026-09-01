@@ -120,7 +120,7 @@ int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeou
         ch = wgetch(s->mwin[w]);
         if (sig_received != 0) {
             if (handle_signal(sig_received))
-                ch = display_error(em0, em1, em2, nullptr);
+                ch = ui_display_error(em0, em1, em2, nullptr);
             if (ch == 'q' || ch == 'Q' || ch == UIKEY_F09)
                 exit(EXIT_FAILURE);
             sig_received = 0;

@@ -291,7 +291,7 @@ int field_editor(Form *form) {
                 in_key = 0;
                 continue;
             default:
-                Perror("field_editor() invalid format");
+                ui_perror("field_editor() invalid format");
                 break;
             }
             if (in_key < ' ' || in_key > '~') {
@@ -530,7 +530,7 @@ int form_fmt_field(Form *form, char *s) {
         right_justify(display_s, fl);
         break;
     default:
-        Perror("form_fmt_field() invalid format");
+        ui_perror("form_fmt_field() invalid format");
         break;
     }
     strnz(accept_s, fl);
@@ -551,13 +551,13 @@ int form_validate_field(Form *form) {
         while (*s++ == ' ')
             ;
         if (*s == '\0') {
-            Perror("blank field not allowed");
+            ui_perror("blank field not allowed");
             return (1);
         }
     }
     if (form->field[n]->ff & F_NOMETAS) {
         if (strpbrk(p, "*?[]") != 0) {
-            Perror("metacharacters not allowed");
+            ui_perror("metacharacters not allowed");
             return (1);
         }
     }

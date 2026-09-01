@@ -39,7 +39,7 @@ unsigned int menu_engine(Init *init) {
     char tmp_str[MAXLEN];
     Menu *menu = init->menu;
     if (menu == nullptr) {
-        Perror("menu_engine: menu is nullptr");
+        ui_perror("menu_engine: menu is nullptr");
         return (1);
     }
     menu->lines = 0;
@@ -55,7 +55,7 @@ unsigned int menu_engine(Init *init) {
     if (sfc == nullptr) {
         ssnprintf(tmp_str, MAXLEN - 1, "ui_surface_box_win_new(%d, %d, %d, %d, %s) failed",
                   menu->lines, menu->cols, menu->begy, menu->begx, menu->title);
-        Perror(tmp_str);
+        ui_perror(tmp_str);
         return 1;
     }
     mbstate_t mbstate;

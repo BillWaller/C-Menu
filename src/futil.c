@@ -16,8 +16,7 @@
  */
 
 #include "cm.h"
-#include <stdint.h>
-
+#include "ui_backend.h"
 #include <argp.h>
 #include <arpa/inet.h>
 #include <ctype.h>
@@ -29,6 +28,7 @@
 #include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1202,7 +1202,7 @@ bool verify_dir(char *spec, uint imode) {
                       src_name, src_line);
             strnz__cpy(em1, spec, MAXLEN - 1);
             strnz__cpy(em3, "Check the file", MAXLEN - 1);
-            display_error(em0, em1, em2, em3);
+            ui_display_error(em0, em1, em2, em3);
         }
         return false;
     }
@@ -1257,7 +1257,7 @@ bool verify_file(char *in_spec, uint imode) {
                   src_line);
         strnz__cpy(em1, spec, MAXLEN - 1);
         strnz__cpy(em3, "Check the file", MAXLEN - 1);
-        display_error(em0, em1, em2, em3);
+        ui_display_error(em0, em1, em2, em3);
         return false;
     }
     return true;
@@ -1311,7 +1311,7 @@ bool mk_dir(char *dir) {
             strnz__cat(em1, dir, MAXLEN - 1);
             strnz__cat(em1, " failed", MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
-            display_error(em0, em1, em2, nullptr);
+            ui_display_error(em0, em1, em2, nullptr);
             return false;
         }
         return true;

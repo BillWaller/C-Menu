@@ -163,82 +163,6 @@ typedef struct {
 /**
     @brief Used for xterm256 color conversions
  */
-typedef enum {
-    CLR_BLACK,
-    CLR_RED,
-    CLR_GREEN,
-    CLR_YELLOW,
-    CLR_BLUE,
-    CLR_MAGENTA,
-    CLR_CYAN,
-    CLR_WHITE,
-    CLR_BBLACK,
-    CLR_BRED,
-    CLR_BGREEN,
-    CLR_BYELLOW,
-    CLR_BBLUE,
-    CLR_BMAGENTA,
-    CLR_BCYAN,
-    CLR_BWHITE,
-    CLR_BORANGE,
-    CLR_FG,
-    CLR_BG,
-    CLR_BOX_FG,
-    CLR_BOX_BG,
-    CLR_IND_FG,
-    CLR_IND_BG,
-    CLR_BRACKETS_FG,
-    CLR_BRACKETS_BG,
-    CLR_FILL_CHAR_FG,
-    CLR_FILL_CHAR_BG,
-    CLR_LN_FG,
-    CLR_LN_BG,
-    CLR_CMDLN_FG,
-    CLR_CMDLN_BG,
-    CLR_NT_FG,
-    CLR_NT_BG,
-    CLR_NT_REV_FG,
-    CLR_NT_REV_BG,
-    CLR_NT_HL_FG,
-    CLR_NT_HL_BG,
-    CLR_NT_HL_REV_FG,
-    CLR_NT_HL_REV_BG,
-    CLR_TITLE_FG,
-    CLR_TITLE_BG,
-    CLR_NCOLORS
-} ColorsEnum;
-
-extern UiCell cell_default;
-extern UiCell cell_fill_char;
-extern UiCell cell_brktl;
-extern UiCell cell_brktr;
-extern UiCell cell_nt;
-extern UiCell cell_nt_rev;
-extern UiCell cell_nt_hl;
-extern UiCell cell_nt_hl_rev;
-extern UiCell cell_box;
-extern UiCell cell_ind;
-extern UiCell cell_cmdln;
-extern UiCell cell_title;
-extern UiCell cell_ln;
-extern UiCell cell_ran;
-extern UiCell cell_chk;
-extern UiCell cell_ls;
-extern UiCell cell_rs;
-extern UiCell cell_ts;
-extern UiCell cell_bs;
-extern UiCell cell_tl;
-extern UiCell cell_tr;
-extern UiCell cell_ho;
-extern UiCell cell_ve;
-extern UiCell cell_bl;
-extern UiCell cell_br;
-extern UiCell cell_lt;
-extern UiCell cell_rt;
-extern UiCell cell_tt;
-extern UiCell cell_bt;
-extern UiCell cell_cr;
-extern UiCell cell_sp;
 
 typedef enum {
     /** byte 0 - bits 0-7  Selection Flags*/
@@ -322,7 +246,6 @@ DT_UNKNOWN: 00001110  14   LF_UNKNOWN: 10000000 128     8
     LF_UNKNOWN  128  7 10000000  0 01111111 unknown
 */
 
-#define COLOR_LEN 8 /**< length of color code strings */
 #define DEFAULTSHELL "/bin/bash"
 #define S_WCOK 0x1000  /**< write or create permitted */
 #define S_QUIET 0x2000 /**< quiet mode flag for file validation */
@@ -350,62 +273,12 @@ extern UiChyron *wait_mk_chyron();
 extern bool wait_destroy(UiChyron *);
 extern bool waitpid_with_timeout(pid_t, uint);
 extern int wait_timeout;
-extern bool action_disposition(char *eitle, char *action_str);
 extern int fork_detach_execvp(char **);
 extern bool is_hex_str(char *, uint);
 extern bool unstr_hex_clr(char *, char *);
 
-extern int click_y; /**< the y coordinate of a mouse click */
-extern int click_x; /**< the x coordinate of a mouse click */
-
 extern bool f_debug; /**< a flag to indicate whether debug
 output should be printed, for debugging purposes */
-
-#define FG_COLOR 2    /**< default foreground color */
-#define BG_COLOR 0    /**< default background color */
-#define BO_COLOR 1    /**< default bold foreground color */
-#define LN_COLOR 4    /**< default line number color */
-#define LN_BG_COLOR 7 /**< default line number background */
-
-extern ushort cp_default;            /**< default color pair index */
-extern ushort cp_box;                /**< box color pair index */
-extern ushort cp_ind;                /**< indicator color pair index */
-extern ushort cp_bold;               /**< bold color pair index */
-extern ushort cp_title;              /**< title color pair index */
-extern ushort cp_highlight;          /**< highlight color pair index */
-extern ushort cp_fill_char;          /**< fill character color pair index */
-extern ushort cp_brackets;           /**< color pair index for field brackets */
-extern ushort cp_nt;                 /**< normal color pair index */
-extern ushort cp_nt_rev;             /**< reverse color pair index */
-extern ushort cp_nt_hl;              /**< highlight color pair index */
-extern ushort cp_nt_hl_rev;          /**< highlight reverse color pair index */
-extern ushort cp_ln_fg;              /**< line number color pair index */
-extern ushort cp_ln_bg;              /**< line number background color pair index */
-extern ushort cp_cmdln_fg;           /**< command line number color pair index */
-extern ushort cp_cmdln_bg;           /**< command line number background color pair index */
-extern ushort cp_red;                /**< red background color pair index */
-extern ushort cp_green;              /**< green background color pair index */
-extern ushort cp_yellow;             /**< yellow background color pair index */
-extern ushort cp_blue;               /**< blue background color pair index */
-extern uint clr_idx;                 /**< current color index */
-extern uint clr_cnt;                 /**< number of colors used */
-extern uint clr_pair_idx;            /**< current color pair index */
-extern uint clr_pair_cnt;            /**< number of color pairs supported by the terminal */
-extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
-
-/** @struct ColorPair
-  @details The ColorPair structure is a simple structure that holds information
-  about a color pair, including the foreground color index, background color
-  index, and the color pair index. This structure can be used to manage and
-  apply color pairs in the ncurses library, allowing for easy customization of
-  the terminal's appearance. By using this structure, you can easily keep track
-  of the different color pairs you have defined and apply them to various
-  elements in your terminal interface. */
-typedef struct {
-    uint fg;      /**< foreground color index */
-    uint bg;      /**< background color index */
-    uint pair_id; /**< color pair index */
-} ColorPair;
 
 /**< see termios.h */
 extern struct termios shell_tioctl, curses_tioctl;
@@ -445,80 +318,6 @@ extern bool is_newer(char *, char *);
 
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */
-#define XTERM_256COLOR                /**< use xterm-256color terminfo for altkey bindings */
-/**
-    EXTENDED NCURSES KEYS
-
-    Key code bindings are customarily defined in terminfo.
-    xterm-256color tends to be the most complete, and indeed, it seems to
-    work with Ghostty, Kitty, and Alacritty. If you want to use the
-    altkey bindings, you may need to set your terminal's TERM environment
-    variable to xterm-256color. Here's why:
-
-    Ghostty, Kitty, and Alacritty all come with their own terminfo files:
-
-    Ghostty     with xterm-ghostty,
-    Kitty       with xterm-kitty, and
-    Alacritty   with alacritty
-
-    None of the three produced the correct extended altkey bindings when
-    paired with the terminfo provided in their distribution, yet all
-    three worked with xterm-256color.
-
-    The extended altkeys were not defined in any of the terminfo files, not
-    even xterm-256color. Yet, xterm-256color produced consistent keycode
-    bindings with all three emulators. The standard key bindings, ins, delete,
-    up, down arrows, etc., were the same for all three terminfos, and all
-    three emulators produced the correct key bindings for those keys.
-
-    The fact that xterm-256color produced consistent keycode bindings for the
-    altkeys, while the other three terminfos did not, is likely due to the fact
-    that xterm-256color is more widely used and has better support for extended
-    key bindings, even if they are not explicitly defined in the terminfo file.
-    It's possible that xterm-256color has some default behavior or fallback
-    mechanism that allows it to recognize and produce key codes for the altkeys,
-    while the other terminfos do not have such a mechanism in place. This could
-    explain why xterm-256color produced consistent keycode bindings for the
-    altkeys across all three emulators, while the other terminfos did not.
-    @code
-    mapped                  altkey   ncurses
-    2nd fld - 1    name     binding  keycode
-    ------------- --------- -------- -------
-    kIC=\E[2;2~,  key_ins   \E[2;3~,   223
-    kHOM=\E[1;2H, key_home  \E[1;3H,   21e
-    kPRV=\E[5;2~, key_pgup  \E[5;3~,   232
-    kDC=\E[3;2~,  key_del   \E[3;3~,   20e
-    kEND=\E[1;2F, key_end   \E[1;3F,   219
-    kNXT=\E[6;2~, key_pgdn  \E[6;3~,   22d
-    kri=\E[1;2A,  key_up    \E[1;3A,   23d
-    kind=\E[1;2B, key_down  \E[1;3B,   214
-    kRIT=\E[1;2C, key_right \E[1;3C,   237
-    kLFT=\E[1;2D, key_left  \E[1;3D,   228
-    @endcode
- */
-#if defined(XTERM_256COLOR)
-#define KEY_ALTINS 0x223
-#define KEY_ALTHOME 0x21e
-#define KEY_ALTPGUP 0x232
-#define KEY_ALTDEL 0x20e
-#define KEY_ALTEND 0x219
-#define KEY_ALTPGDN 0x22d
-#define KEY_ALTUP 0x23d
-#define KEY_ALTLEFT 0x228
-#define KEY_ALTDOWN 0x214
-#define KEY_ALTRIGHT 0x237
-#elif defined(XTERM_GHOSTTY)
-#define KEY_ALTINS 0x228
-#define KEY_ALTHOME 0x223
-#define KEY_ALTPGUP 0x237
-#define KEY_ALTDEL 0x213
-#define KEY_ALTEND 0x21e
-#define KEY_ALTPGDN 0x232
-#define KEY_ALTUP 0x242
-#define KEY_ALTLEFT 0x22d
-#define KEY_ALTDOWN 0x219
-#define KEY_ALTRIGHT 0x23c
-#endif
 
 extern void write_cmenu_log(char *);
 extern void write_cmenu_log_ts(char *);
@@ -615,102 +414,7 @@ typedef struct {
 #define to_uppercase(c)       \
     if (c >= 'a' && c <= 'z') \
     c -= ' '
-/** @struct SIO
-    @brief The SIO structure encapsulates various aspects of the terminal's
-   state and configuration, including color management, file pointers, and
-   terminal device information.
-   @details The SIO structure serves as a central repository for all relevant
-   information needed to manage the terminal's appearance and behavior
-   effectively, allowing for a highly customizable and visually appealing
-   terminal experience. The SIO structure includes fields for managing colors,
-   gamma correction values, color codes for different colors, file pointers and
-   descriptors for standard input/output/error and the terminal device, as well
-   as counters and indices for color management. Additionally, it contains a
-   field for storing the name of the terminal device. This comprehensive
-   structure allows for efficient management of the terminal's state and
-   configuration in a structured way. */
-typedef struct {
-    double red_gamma;      /**< red gamma correction value */
-    double green_gamma;    /**< green gamma correction value */
-    double blue_gamma;     /**< blue gamma correction value */
-    double gray_gamma;     /**< gray gamma correction value */
-    uint32_t black;        /**< black */
-    uint32_t red;          /**< red */
-    uint32_t green;        /**< green */
-    uint32_t yellow;       /**< yellow */
-    uint32_t blue;         /**< blue */
-    uint32_t magenta;      /**< magenta */
-    uint32_t cyan;         /**< cyan */
-    uint32_t white;        /**< white */
-    uint32_t orange;       /**< orange */
-    uint32_t bblack;       /**< bold black */
-    uint32_t bred;         /**< bold red */
-    uint32_t bgreen;       /**< bold green */
-    uint32_t byellow;      /**< bold yellow */
-    uint32_t bblue;        /**< bold blue */
-    uint32_t bmagenta;     /**< bold magenta */
-    uint32_t bcyan;        /**< bold cyan */
-    uint32_t bwhite;       /**< bold white */
-    uint32_t borange;      /**< bold orange */
-    uint32_t abg;          /**< background with alpha */
-    uint32_t fg;           /**< foreground color */
-    uint32_t bg;           /**< background color */
-    uint32_t box_fg;       /**< box foreground */
-    uint32_t box_bg;       /**< box background */
-    uint32_t ind_fg;       /**< indicator foreground */
-    uint32_t ind_bg;       /**< indicator background */
-    uint32_t brackets_fg;  /**< brackets foreground */
-    uint32_t brackets_bg;  /**< brackets background */
-    uint32_t fill_char_fg; /**< fill character foreground */
-    uint32_t fill_char_bg; /**< fill character background */
-    uint32_t ln_fg;        /**< line number color index */
-    uint32_t ln_bg;        /**< line number background index */
-    uint32_t cmdln_fg;     /**< line number color index */
-    uint32_t cmdln_bg;     /**< line number background index */
-    uint32_t nt_fg;        /**< color code for normal text foreground */
-    uint32_t nt_bg;        /**< color code for normal text background */
-    uint32_t nt_rev_fg;    /**< normal text reverse foreground */
-    uint32_t nt_rev_bg;    /**< normal text reverse background */
-    uint32_t nt_hl_fg;     /**< normal text highlight foreground */
-    uint32_t nt_hl_bg;     /**< normal text highlight background */
-    uint32_t nt_hl_rev_fg; /**< normal text highlight reverse foreground */
-    uint32_t nt_hl_rev_bg; /**< normal text highlight reverse background */
-    uint32_t title_fg;     /**< title foreground */
-    uint32_t title_bg;     /**< title background */
-    uint32_t ran_fg;       /**< right angle foreground */
-    uint32_t ran_bg;       /**< right angle background */
-    FILE *stdin_fp;        /**< stdin stream pointer */
-    FILE *stdout_fp;       /**< stdout stream pointer */
-    FILE *stderr_fp;       /**< stderr stream pointer */
-    FILE *tty_fp;          /**< terminal device stream pointer */
-    int stdin_fd;          /**< stdin file descriptor */
-    int stdout_fd;         /**< stdout file descriptor */
-    int stderr_fd;         /**< stderr file descriptor */
-    int tty_fd;            /**< terminal device file descriptor */
-    uint clr_cnt;          /**< number of colors currently in use */
-    uint clr_pair_cnt;     /**< number of color pairs currently in use */
-    uint clr_idx;          /**< current color index */
-    uint clr_pair_idx;     /**< current color pair index */
-    char brackets[3];
-    char fill_char[2];
-    char border;           /**< Rounded, Single, Double, None */
-    char tty_name[MAXLEN]; /**< name of the terminal device */
-    ushort cp_default;     /**< default color pair index */
-    ushort cp_fill_char;   /**< fill character color pair index */
-    ushort cp_brackets;    /**< brackets color pair index */
-    ushort cp_nt;          /**< normal text color pair index */
-    ushort cp_nt_rev;      /**< reverse color pair index */
-    ushort cp_nt_hl;       /**< highlight color pair index */
-    ushort cp_nt_hl_rev;   /**< reverse highlight color pair index */
-    ushort cp_box;         /**< box color pair index */
-    ushort cp_ind;         /**< indicator color pair index */
-    ushort cp_cmdln;       /**< command line color pair index */
-    ushort cp_title;       /**< title color pair index */
-    ushort cp_ln;          /**< line number color pair index */
-    ushort cp_ran;         /**< right angle color pair index */
-    ushort cp_chk;         /**< checkmark color pair index */
-    ushort cp_bold;        /**< bold color pair index */
-} SIO;
+
 typedef struct {
     uint flin;
     uint fcol;
@@ -719,7 +423,6 @@ typedef struct {
     char fill_char;
     bool cf_erase_remainder;
 } CmField;
-extern void destroy_curses();
 extern int a_toi(char *, bool *);
 extern bool chrep(char *, char, char);
 extern char *rep_substring(const char *, const char *, const char *);
@@ -749,12 +452,6 @@ extern size_t rtrim(char *);
 extern String to_string(const char *);
 extern String mk_string(size_t);
 extern String free_string(String);
-extern void apply_gamma(RGB *);
-extern uint rgb_to_xterm256_idx(RGB *);
-extern bool init_clr_palette(SIO *);
-extern bool open_curses(SIO *);
-extern uint rgb_clr_to_cube(uint);
-extern uint rgb_to_curses_clr(RGB *);
 extern RGB xterm256_idx_to_rgb(uint);
 extern int fork_exec(char **);
 extern int full_screen_fork_exec(char **);
@@ -764,12 +461,7 @@ extern char errmsg[];
 extern void get_rfc3339_s(char *, size_t);
 extern int open_log(char *);
 extern void write_log(char *);
-extern void abend(int, char *);
 extern void display_argv_error_msg(char *, char **);
-extern int display_error(char *, char *, char *, char *);
-extern int answer_yn(char *, char *, char *, char *);
-extern int display_ok_message(char *);
-extern int Perror(char *);
 extern void user_end();
 extern unsigned long a_to_ul(const char *);
 extern size_t canonicalize_file_spec(char *);
@@ -791,14 +483,10 @@ extern bool verify_file_q(char *, uint);
 extern bool verify_dir(char *, uint);
 extern bool verify_dir_q(char *, uint);
 extern bool verify_spec_arg(char *, char *, char *, char *, uint);
-extern int wccp_to_str(wchar_t, uint8_t *);
 extern char *fdname(int, char *);
 extern char *stdio_names(char *, char *);
 extern char *stdio_fdnames(char *, char *);
 extern char stdio_names_str[4096];
-extern void check_panels(uint);
-extern int bare_box_new(uint, uint, uint, uint, char *);
-extern int win2_box_new(uint, uint, uint, uint, char *);
 extern void left_justify(char *s);
 extern void right_justify(char *, uint);
 
@@ -807,8 +495,5 @@ extern bool is_valid_time(uint hh, uint mm, uint ss);
 extern void numeric(char *d, char *s);
 extern int cf_accept(UiSurface *, uint w, char *, uint, uint, uint);
 extern char *fill_field(char *, char *, char, uint);
-extern void initialize_styles(SIO *);
-extern void initialize_cells(SIO *sio);
-extern size_t codepoint_to_utf8(uint32_t codepoint, uint8_t *utf8);
 
 #endif

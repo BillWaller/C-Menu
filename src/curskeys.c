@@ -40,7 +40,7 @@ int popup_ckeys() {
     if (ui_surface_box_win_new(lines, cols, begy, begx, Title)) {
         strnz__cpy(tmp, "ui_surface_box_win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
-        Perror(tmp);
+        ui_perror(tmp);
         exit(EXIT_FAILURE);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
@@ -74,7 +74,7 @@ int ncurses_input(UiSurface *sfc, uint w) {
             c = ui_get_event(sfc, WIN, NULL, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
-                    c = display_error(em0, em1, em2, NULL);
+                    c = ui_display_error(em0, em1, em2, NULL);
                 if (c == 'q' || c == KEY_F(9))
                     exit(EXIT_FAILURE);
                 continue;
@@ -604,7 +604,7 @@ int notcurses_input(UiSurface *sfc, uint w) {
             c = ui_get_event(sfc, WIN, NULL, &ev, -1);
             if (sig_received != 0) {
                 if (handle_signal(sig_received))
-                    c = display_error(em0, em1, em2, NULL);
+                    c = ui_display_error(em0, em1, em2, NULL);
                 if (c == 'q' || c == NCKEY_F09)
                     exit(EXIT_FAILURE);
                 continue;

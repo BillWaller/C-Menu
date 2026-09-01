@@ -72,24 +72,24 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
 
     Pick *pick = new_pick(init, argc, argv, by, bx);
     if (init->pick != pick)
-        abend(-1, "init->pick != pick\n");
+        ui_abend(-1, "init->pick != pick\n");
     // SIO *sio = init->sio;
     if (pick->provider_cmd[0] != '\0') {
         s_argc = str_to_args(s_argv, pick->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
-            Perror("pipe(pipe_fd) failed in init_pick");
+            ui_perror("pipe(pipe_fd) failed in init_pick");
             return (1);
         }
 
         if ((pid = fork()) == -1) {
-            Perror("fork() failed in init_pick");
+            ui_perror("fork() failed in init_pick");
             return (1);
         }
         if (pid == 0) {
             /** Prevent child process from writing to terminal */
             int dev_null = open("/dev/null", O_WRONLY);
             if (dev_null == -1) {
-                Perror("open(/dev/null) failed in init_pick child process");
+                ui_perror("open(/dev/null) failed in init_pick child process");
                 exit(EXIT_FAILURE);
             }
             dup2(dev_null, STDERR_FILENO);
@@ -103,7 +103,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
             execvp(s_argv[0], s_argv);
             strnz__cpy(tmp_str, "Can't exec pick start cmd: ", MAXLEN - 1);
             strnz__cat(tmp_str, s_argv[0], MAXLEN - 1);
-            Perror(tmp_str);
+            ui_perror(tmp_str);
             exit(EXIT_FAILURE);
         }
         /** Return to Parent
@@ -126,25 +126,25 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
         if (lstat(pick->in_spec, &sb) == -1) {
             strnz__cpy(tmp_str, "Can\'t stat pick input file: ", MAXLEN - 1);
             strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
-            Perror(tmp_str);
+            ui_perror(tmp_str);
             return (1);
         }
         if (sb.st_size == 0) {
             strnz__cpy(tmp_str, "Pick input file empty: ", MAXLEN - 1);
             strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
-            Perror(tmp_str);
+            ui_perror(tmp_str);
             return (1);
         }
         if ((pick->in_fp = fopen(pick->in_spec, "rb")) == nullptr) {
             strnz__cpy(tmp_str, "Can't open pick input file: ", MAXLEN - 1);
             strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
-            Perror(tmp_str);
+            ui_perror(tmp_str);
             return (1);
         }
     }
     /*------------------------------------------------------------*/
     if (pick->in_fp == nullptr) {
-        Perror("No pick input available");
+        ui_perror("No pick input available");
         return (1);
     }
     /*------------------------------------------------------------*/
@@ -157,7 +157,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     close(pipe_fd[P_READ]);
     stdio_fdnames(stdio_names_str, "pick_engine.c 160");
     if (pick->m_cnt == 0) {
-        Perror("No pick objects available");
+        ui_perror("No pick objects available");
         return (1);
     }
     /** Enter pick_engine */
@@ -315,7 +315,7 @@ int pick_engine(Init *init) {
 
     rc = open_pick_win(init);
     if (rc) {
-        Perror("Failed to open pick window");
+        ui_perror("Failed to open pick window");
         exit(EXIT_FAILURE);
         // return (rc);
     }
@@ -725,7 +725,7 @@ int exec_objects(Init *init) {
                         free(eargv[i]);
                     i++;
                 }
-                Perror("rep_substring() failed in exec_objects");
+                ui_perror("rep_substring() failed in exec_objects");
                 return 1;
             }
             strnz__cpy(title, out_s, MAXLEN - 1);
@@ -774,13 +774,13 @@ int exec_objects(Init *init) {
                     free(eargv[i]);
                 i++;
             }
-            Perror("fork() failed in exec_objects");
+            ui_perror("fork() failed in exec_objects");
             return (1);
         } else if (pid == 0) {
             /** Prevent child process from writing to terminal */
             // int dev_null = open("/dev/null", O_WRONLY);
             // if (dev_null == -1) {
-            //     Perror("open(/dev/null) failed in init_pick child process");
+            //     ui_perror("open(/dev/null) failed in init_pick child process");
             //     exit(EXIT_FAILURE);
             // }
             // dup2(dev_null, STDERR_FILENO);
@@ -813,7 +813,7 @@ int open_pick_win(Init *init) {
     if (ui_surface_split_box_win_new(pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title)) {
         ssnprintf(tmp_str, MAXLEN - 1, "ui_surface_split_box_win_new(%d, %d, %d, %d, %d, %d, %s) failed",
                   pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title);
-        Perror(tmp_str);
+        ui_perror(tmp_str);
         return (1);
     }
     pick->surface = ui_surface[sfc_ptr];

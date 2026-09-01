@@ -94,11 +94,11 @@
             ans = false;                                         \
     }
 
-#define _Perror(msg)                                                        \
+#define _ui_perror(msg)                                                     \
     {                                                                       \
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2); \
         strnz__cpy(em1, msg, MAXLEN - 1);                                   \
-        display_error(em0, em1, nullptr, nullptr);                          \
+        ui_display_error(em0, em1, nullptr, nullptr);                       \
     }
 
 #define _Refresh(view)     \
@@ -426,7 +426,7 @@ int view_cmd_processor(Init *init) {
                     view->tab_stop = i;
                     view->f_redisplay_page = true;
                 } else
-                    Perror("Tab stops not changed");
+                    ui_perror("Tab stops not changed");
                 break;
             /**  -h  Display Help */
             case UIKEY_F01:
@@ -444,11 +444,11 @@ int view_cmd_processor(Init *init) {
         /**  'n' - Repeat Previous Search */
         case 'n':
             if (view->f_search_complete) {
-                Perror("Search complete, no more matches");
+                ui_perror("Search complete, no more matches");
                 break;
             }
             if (prev_search_cmd == 0) {
-                Perror("No previouis search");
+                ui_perror("No previouis search");
                 break;
             }
             if (prev_search_cmd == '/') {
@@ -460,7 +460,7 @@ int view_cmd_processor(Init *init) {
             }
             rc = search(view, prev_search_cmd, prev_regex_pattern);
             if (rc == false) {
-                Perror("No matches found");
+                ui_perror("No matches found");
                 break;
             }
             break;
@@ -479,7 +479,7 @@ int view_cmd_processor(Init *init) {
                 view->srch_curr_pos = view->page_top_pos;
                 rc = search(view, search_cmd, view->cmd_arg);
                 if (rc == false) {
-                    Perror("No matches found");
+                    ui_perror("No matches found");
                     break;
                 }
                 prev_search_cmd = search_cmd;
@@ -501,7 +501,7 @@ int view_cmd_processor(Init *init) {
                 view->srch_curr_pos = view->page_bot_pos;
                 rc = search(view, search_cmd, view->cmd_arg);
                 if (rc == false) {
-                    Perror("No matches found");
+                    ui_perror("No matches found");
                     break;
                 }
                 prev_search_cmd = search_cmd;
@@ -541,7 +541,7 @@ int view_cmd_processor(Init *init) {
                 if (c >= 'A' && c <= 'Z')
                     c += ' ';
             if (c < 'a' || c > 'z')
-                Perror("Not (a-z)");
+                ui_perror("Not (a-z)");
             else
                 view->mark_tbl[c - 'a'] = view->page_top_pos;
             break;
@@ -554,7 +554,7 @@ int view_cmd_processor(Init *init) {
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
             if (c < 'a' || c > 'z')
-                Perror("Not (A-Z)");
+                ui_perror("Not (A-Z)");
             else
                 go_to_mark(view, c);
             break;
@@ -563,7 +563,7 @@ int view_cmd_processor(Init *init) {
             if (n_cmd <= 0)
                 n_cmd = 1;
             if (view->curr_argc + n_cmd >= view->argc) {
-                Perror("no more files");
+                ui_perror("no more files");
                 view->curr_argc = view->argc - 1;
             } else {
                 view->curr_argc++;
@@ -589,7 +589,7 @@ int view_cmd_processor(Init *init) {
             tfd = mkstemp(tmp_str);
             strnz__cpy(view->tmp_file_name_ptr, tmp_str, MAXLEN - 1);
             if (tfd == -1) {
-                Perror("Unable to create temporary file");
+                ui_perror("Unable to create temporary file");
                 break;
             }
             strnz__cpy(shell_cmd_spec, "echo ", MAXLEN - 5);
@@ -622,7 +622,7 @@ int view_cmd_processor(Init *init) {
             if (n_cmd <= 0)
                 n_cmd = 1;
             if (view->curr_argc - n_cmd < 0) {
-                Perror("No previous file");
+                ui_perror("No previous file");
                 view->curr_argc = 0;
             } else {
                 view->curr_argc--;
@@ -656,7 +656,7 @@ int view_cmd_processor(Init *init) {
                        MAXLEN - 1);
             strnz__cpy(em2, "Enter Y for yes or any other key to cancel.",
                        MAXLEN - 1);
-            rc = display_error(em0, em1, em2, nullptr);
+            rc = ui_display_error(em0, em1, em2, nullptr);
             if (rc != 'y' && rc != 'Y')
                 break;
             if (!enter_file_spec(init, view->out_spec)) {
@@ -670,7 +670,7 @@ int view_cmd_processor(Init *init) {
                           __LINE__ - 2);
                 strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
                 strerror_r(errno, em1, MAXLEN - 1);
-                display_error(em0, em1, nullptr, nullptr);
+                ui_display_error(em0, em1, nullptr, nullptr);
                 break;
             }
             view->next_file_spec_ptr = view->in_spec;
@@ -697,7 +697,7 @@ int view_cmd_processor(Init *init) {
                           __LINE__ - 2);
                 strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
                 strerror_r(errno, em1, MAXLEN - 1);
-                display_error(em0, em1, nullptr, nullptr);
+                ui_display_error(em0, em1, nullptr, nullptr);
                 break;
             }
             display_prompt(view, tmp_str);
@@ -708,7 +708,7 @@ int view_cmd_processor(Init *init) {
         /** 'V' - Display Version Information */
         case 'V':
             ssnprintf(em0, MAXLEN - 1, "C-Menu Version: %s", CM_VERSION);
-            display_error(em0, em1, nullptr, nullptr);
+            ui_display_error(em0, em1, nullptr, nullptr);
             break;
         default:
             break;
@@ -988,7 +988,7 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
                    MAXLEN - 1);
         strnz__cpy(em1, "Enter Y for yes or any other key to cancel.",
                    MAXLEN - 1);
-        rc = answer_yn(nullptr, em0, em1, nullptr);
+        rc = ui_answer_yn(nullptr, em0, em1, nullptr);
         if (rc == 'y' || rc == 'Y')
             f_strip_ansi = true;
         else
@@ -1002,7 +1002,7 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
         strnz__cpy(em1, "fwrite ", MAXLEN - 1);
         strnz__cat(em1, view->out_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN - 1);
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         return false;
     }
     bytes_written = 0;
@@ -1070,7 +1070,7 @@ void go_to_mark(View *view, uint c) {
     else
         view->file_pos = view->mark_tbl[c - 'a'];
     if (view->file_pos == NULL_POSITION)
-        Perror("Mark not set");
+        ui_perror("Mark not set");
     else
         go_to_position(view, view->file_pos);
 }
@@ -1122,7 +1122,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         REG_FLAGS = REG_EXTENDED;
     reti = regcomp(&compiled_regex, regex_pattern, REG_FLAGS);
     if (reti) {
-        Perror("Invalid pattern");
+        ui_perror("Invalid pattern");
         return false;
     }
     bool rc = false;
@@ -1186,7 +1186,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
             regerror(reti, &compiled_regex, err_str, sizeof(err_str));
             strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
             strnz__cat(tmp_str, err_str, MAXLEN - 1);
-            Perror(tmp_str);
+            ui_perror(tmp_str);
             rc = false; /* Set status */
             goto cleanup;
         }
@@ -1241,7 +1241,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 char msgbuf[100];
                 regerror(reti, &compiled_regex, msgbuf, sizeof(msgbuf));
                 sprintf(tmp_str, "Regex match failed: %s", msgbuf);
-                Perror(tmp_str);
+                ui_perror(tmp_str);
                 rc = false; /* Set status */
                 goto cleanup;
             }
@@ -1846,7 +1846,7 @@ void go_to_eof(View *view) {
 */
 void go_to_percent(View *view, uint percent) {
     if (view->file_size < 0) {
-        Perror("Cannot determine file length");
+        ui_perror("Cannot determine file length");
         return;
     }
     view->file_pos = (percent * view->file_size) / 100;
@@ -1871,7 +1871,7 @@ void go_to_percent(View *view, uint percent) {
  */
 int go_to_line(View *view, off_t line_idx) {
     if (line_idx < 0 || line_idx > view->ln_tbl_size - 1) {
-        Perror("Line number out of bounds");
+        ui_perror("Line number out of bounds");
         return EOF;
     }
     view->ln_no = line_idx;
@@ -1933,7 +1933,7 @@ void initialize_line_table(View *view) {
     view->ln_tbl_size = LINE_TBL_INCR;
     view->ln_tbl = (off_t *)calloc(view->ln_tbl_size, sizeof(off_t));
     if (view->ln_tbl == nullptr) {
-        Perror("Memory allocation failed");
+        ui_perror("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
     view->ln_max_pos = 0;
@@ -1978,7 +1978,7 @@ void increment_ln(View *view) {
         view->ln_tbl =
             (off_t *)realloc(view->ln_tbl, view->ln_tbl_size * sizeof(off_t));
         if (view->ln_tbl == nullptr) {
-            Perror("Memory allocation failed");
+            ui_perror("Memory allocation failed");
             exit(EXIT_FAILURE);
         }
     }
@@ -2054,7 +2054,7 @@ int pad_refresh(View *view) {
     if (rc == ERR) {
         ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
                   __FILE__, __LINE__ - 1, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
-        Perror(em0);
+        ui_perror(em0);
     }
 #else
     (void)view;
@@ -2402,7 +2402,7 @@ void log_split_lines(View *view) {
         background \033[48;5;xm
 
         Where x is the 256-color index (0-255)
-        uses xterm256_idx_to_rgb() to convert the 256-color index to RGB
+        uses ui_xterm256_idx_to_rgb() to convert the 256-color index to RGB
 
     8-color:
 
@@ -2420,7 +2420,7 @@ void log_split_lines(View *view) {
    4 for underline, 5 for blink, 7 for reverse, 8 for invis). The function
    also supports resetting attributes and colors to default using \033[0m.
 
-    see also: xterm256_idx_to_rgb(), ui_add_color_rgb(), extended_pair_content(),
+    see also: ui_xterm256_idx_to_rgb(), ui_add_color_rgb(), extended_pair_content(),
    ui_add_pair()
 
     @endverbatim
@@ -2454,7 +2454,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, ushort *cpx) {
                             tok = strtok(nullptr, ";m");
                             if (tok != nullptr) {
                                 x_idx = a_toi(tok, &a_toi_error);
-                                rgb = xterm256_idx_to_rgb(x_idx);
+                                rgb = ui_xterm256_idx_to_rgb(x_idx);
                             }
                         } else if (*tok == '2') {
                             tok = strtok(nullptr, ";m");
@@ -2479,13 +2479,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, ushort *cpx) {
                         tstr[0] = t1;
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
-                        rgb = xterm256_idx_to_rgb(x_idx);
+                        rgb = ui_xterm256_idx_to_rgb(x_idx);
                         fg_clr = ui_add_color_rgb(&rgb);
                     } else if (t0 == '4') {
                         tstr[0] = t1;
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
-                        rgb = xterm256_idx_to_rgb(x_idx);
+                        rgb = ui_xterm256_idx_to_rgb(x_idx);
                         bg_clr = ui_add_color_rgb(&rgb);
                     }
                 }
@@ -2636,7 +2636,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         strnz__cat(em1, "mkdir", MAXLEN - 1);
         strnz__cat(em1, tmp_dir, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN - 1);
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         return false;
     }
     while (rc == false) {
@@ -2649,7 +2649,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             strnz__cat(em1, "mkstemp ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
-            display_error(em0, em1, nullptr, nullptr);
+            ui_display_error(em0, em1, nullptr, nullptr);
             return false;
         }
         /** call form to get file_name
@@ -2671,7 +2671,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             strnz__cat(em1, "fopen ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN - 1);
-            display_error(em0, em1, em2, nullptr);
+            ui_display_error(em0, em1, em2, nullptr);
             return false;
         }
         fgets(tmp_str, MAXLEN - 1, tmp_fp);
@@ -2683,7 +2683,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             ssnprintf(em0, MAXLEN - 1, "Unable to open %s for writing",
                       tmp_str);
             strnz__cpy(em1, "Try again? y (yes) or n (no) ", MAXLEN - 1);
-            rc = display_error(em0, em1, nullptr, nullptr);
+            rc = ui_display_error(em0, em1, nullptr, nullptr);
             if (rc == 'y' || rc == 'Y')
                 continue;
 

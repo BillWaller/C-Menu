@@ -100,7 +100,7 @@ int shell(char *shellCmdPtr) {
     Restores curses mode and keypad settings after execution.
     Restores window states after execution.
     Uses a temporary string buffer tmp_str for error messages.
-    Uses Perror for error reporting.
+    Uses ui_perror for error reporting.
     Uses sig_dfl_mode and sig_prog_mode for signal handling.
     Uses capture_curses_tioctl and restore_curses_tioctl for terminal
    settings.
@@ -126,7 +126,7 @@ int fork_exec(char **argv) {
     int rc;
 
     if (argv[0] == 0) {
-        Perror("fork_exec: missing argument for execvp");
+        ui_perror("fork_exec: missing argument for execvp");
         return (-1);
     }
     capture_curses_tioctl();
@@ -142,7 +142,7 @@ int fork_exec(char **argv) {
         ui_keypad(stdsfc, WIN, true);
         ssnprintf(tmp_str, sizeof(tmp_str), "fork failed: %s, errno: %d",
                   argv[0], errno);
-        Perror(tmp_str);
+        ui_perror(tmp_str);
         return (-1);
     } else if (pid == 0) {
         restore_shell_tioctl();
@@ -157,11 +157,11 @@ int fork_exec(char **argv) {
     } else if (WIFSIGNALED(status)) {
         ssnprintf(tmp_str, sizeof(tmp_str), "Child process terminated by signal: %d",
                   WTERMSIG(status));
-        Perror(tmp_str);
+        ui_perror(tmp_str);
         rc = -1;
     } else {
         ssnprintf(tmp_str, sizeof(tmp_str), "Child process terminated abnormally");
-        Perror(tmp_str);
+        ui_perror(tmp_str);
         rc = -1;
     }
     ui_resume();

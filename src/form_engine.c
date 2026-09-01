@@ -67,12 +67,12 @@ int init_form(Init *init, int argc, char **argv, uint begy, uint begx) {
     Form *form = init->form;
     if (!form->f_mapp_spec) {
         if (form->mapp_spec[0] == '\0') {
-            rc = Perror("Error: No form specification file given");
+            rc = ui_perror("Error: No form specification file given");
         } else {
             strnz__cpy(tmp_str, "form->mapp_spec: ", MAXLEN - 1);
             strnz__cat(tmp_str, form->mapp_spec, MAXLEN - 1);
             strnz__cat(tmp_str, " not found", MAXLEN - 1);
-            rc = Perror(tmp_str);
+            rc = ui_perror(tmp_str);
         }
         destroy_form(init);
         return rc;
@@ -123,7 +123,7 @@ int form_engine(Init *init) {
 
     Form *form = init->form;
     if (form == nullptr) {
-        Perror("FORM: form data structure is nullptr");
+        ui_perror("FORM: form data structure is nullptr");
     }
     if (form_parse_desc(form)) {
         return 0;
@@ -379,20 +379,20 @@ int form_process(Init *init) {
                 base_name(eargv[0], file_spec);
                 if (pipe(pipe_fd) == -1) {
                     destroy_argv(eargc, eargv);
-                    Perror("pipe(pipe_fd) failed in init_form");
+                    ui_perror("pipe(pipe_fd) failed in init_form");
                     return (1);
                 }
                 if ((pid = fork()) == -1) {
                     destroy_argv(eargc, eargv);
-                    Perror("fork() failed in init_form");
+                    ui_perror("fork() failed in init_form");
                     return (1);
                 }
                 if (pid == 0) { // Child
                     /** Prevent child process from writing to terminal */
                     int dev_null = open("/dev/null", O_WRONLY);
                     if (dev_null == -1) {
-                        Perror("open(/dev/null) failed in init_pick child "
-                               "process");
+                        ui_perror("open(/dev/null) failed in init_pick child "
+                                  "process");
                         exit(EXIT_FAILURE);
                     }
                     dup2(dev_null, STDERR_FILENO);
@@ -410,7 +410,7 @@ int form_process(Init *init) {
                     strnz__cat(em1, earg_str, MAXLEN - 1);
                     strnz__cat(em1, ")", MAXLEN - 1);
                     strerror_r(errno, em2, MAXLEN);
-                    display_error(em0, em1, em2, nullptr);
+                    ui_display_error(em0, em1, em2, nullptr);
                     exit(EXIT_FAILURE);
                 } // Back to parent
                 close(pipe_fd[P_WRITE]);
@@ -554,7 +554,7 @@ unsigned int display_form(Init *init) {
     if (ui_surface_box_win_new(form->lines, form->cols, form->begy, form->begx, form->title)) {
         strnz__cpy(tmp_str, "ui_surface_box_win_new failed: ", MAXLEN - 1);
         strnz__cat(tmp_str, form->title, MAXLEN - 1);
-        Perror(tmp_str);
+        ui_perror(tmp_str);
         return (1);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
@@ -663,21 +663,21 @@ int form_parse_desc(Form *form) {
         strnz__cpy(em1, "fopen ", MAXLEN - 1);
         strnz__cat(em1, form->mapp_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         return (1);
     }
     for (i = 0; i < FIELD_MAXCNT; i++) {
         form->field[i] = calloc(1, sizeof(Field));
         if (!form->field[i]) {
             sprintf(tmp_str, "FORM: calloc failed for fields");
-            abend(EXIT_FAILURE, tmp_str);
+            ui_abend(EXIT_FAILURE, tmp_str);
         }
     }
     for (i = 0; i < FIELD_MAXCNT; i++) {
         form->text[i] = calloc(1, sizeof(Text));
         if (!form->text[i]) {
             sprintf(tmp_str, "FORM: calloc failed for text");
-            abend(EXIT_FAILURE, tmp_str);
+            ui_abend(EXIT_FAILURE, tmp_str);
         }
     }
     form->didx = 0;
@@ -731,7 +731,7 @@ int form_parse_desc(Form *form) {
         case D_FIELD:
             if (form->field[form->fidx] == nullptr) {
                 sprintf(tmp_str, "FORM: calloc failed for fields");
-                abend(EXIT_FAILURE, tmp_str);
+                ui_abend(EXIT_FAILURE, tmp_str);
             }
             if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(form, in_line_num, in_buf,
@@ -794,7 +794,7 @@ int form_parse_desc(Form *form) {
         case D_TEXT:
             if (form->text[form->didx] == nullptr) {
                 sprintf(tmp_str, "FORM: calloc failed for text");
-                abend(EXIT_FAILURE, tmp_str);
+                ui_abend(EXIT_FAILURE, tmp_str);
             }
             if (!(token = strtok(nullptr, delim))) {
                 form_desc_error(form, in_line_num, in_buf,
@@ -850,7 +850,7 @@ int form_parse_desc(Form *form) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__);
         ssnprintf(em1, MAXLEN - 1, "%s", "Error in description file:");
         ssnprintf(em2, MAXLEN - 1, "%s", form->mapp_spec);
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         return (1);
     }
     return (0);
@@ -879,7 +879,7 @@ int form_read_data(Form *form) {
                 else
                     strnz__cpy(em1, "File does not exist", MAXLEN - 1);
                 strnz__cpy(em2, "Fields will be blank or zero", MAXLEN - 1);
-                cmd_key = display_error(em0, em1, em2, nullptr);
+                cmd_key = ui_display_error(em0, em1, em2, nullptr);
                 if (cmd_key == UIKEY_F09)
                     return (1);
             }
@@ -1011,7 +1011,7 @@ int form_exec_receiver(Init *init) {
                         free(eargv[i]);
                     i++;
                 }
-                Perror("rep_substring() failed in form_exec_objects");
+                ui_perror("rep_substring() failed in form_exec_objects");
                 return 1;
             }
             strnz__cpy(title, out_s, MAXLEN - 1);
@@ -1055,14 +1055,14 @@ int form_exec_receiver(Init *init) {
                     free(eargv[i]);
                 i++;
             }
-            Perror("fork() failed in form_exec_objects");
+            ui_perror("fork() failed in form_exec_objects");
             return (1);
         }
         if (pid == 0) {
             /** Prevent child process from writing to terminal */
             int dev_null = open("/dev/null", O_WRONLY);
             if (dev_null == -1) {
-                Perror("open(/dev/null) failed in init_form child process");
+                ui_perror("open(/dev/null) failed in init_form child process");
                 exit(EXIT_FAILURE);
             }
             dup2(dev_null, STDERR_FILENO);
@@ -1073,7 +1073,7 @@ int form_exec_receiver(Init *init) {
                and print error message before exiting */
             strnz__cpy(tmp_str, "Can't exec form cmd: ", MAXLEN - 1);
             strnz__cat(tmp_str, eargv[0], MAXLEN - 1);
-            Perror(tmp_str);
+            ui_perror(tmp_str);
             exit(EXIT_FAILURE);
         }
     }
@@ -1105,7 +1105,7 @@ int form_write(Form *form) {
             strnz__cpy(em1, "open ", MAXLEN - 1);
             strnz__cat(em1, form->out_spec, MAXLEN - 1);
             strerror_r(errno, em2, MAXLEN);
-            display_error(em0, em1, em2, nullptr);
+            ui_display_error(em0, em1, em2, nullptr);
             return (1);
         }
         // dup2(form->out_fd, STDOUT_FILENO);
@@ -1116,7 +1116,7 @@ int form_write(Form *form) {
         if ((form->out_fp = fopen(form->out_spec, "w")) == nullptr) {
             ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
             strerror_r(errno, em2, MAXLEN);
-            display_error(em0, em1, em2, nullptr);
+            ui_display_error(em0, em1, em2, nullptr);
             return (1);
         }
     }
@@ -1125,7 +1125,7 @@ int form_write(Form *form) {
         strnz__cpy(em1, "fopen ", MAXLEN - 1);
         strnz__cat(em1, form->out_spec, MAXLEN - 1);
         strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         return (1);
     }
     for (n = 0; n < form->fcnt; n++)
@@ -1153,6 +1153,6 @@ int form_desc_error(Form *form, int in_line_num, char *in_buf, char *em) {
     ssnprintf(em1, MAXLEN - 1, "Desc file: %s, line: %d", form->mapp_spec,
               in_line_num);
     strnz__cpy(em2, in_buf, MAXLEN - 1);
-    cmd_key = display_error(em0, em1, em2, nullptr);
+    cmd_key = ui_display_error(em0, em1, em2, nullptr);
     return cmd_key;
 }

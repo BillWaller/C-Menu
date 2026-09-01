@@ -73,7 +73,7 @@ uint ui_add_pair(uint fg, uint bg) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1, "ui_add_pair failed for pair: %d", i);
         strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
     rc = init_extended_pair(i, fg, bg);
@@ -81,7 +81,7 @@ uint ui_add_pair(uint fg, uint bg) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1, "init_extended_pair failed for pair: %d", i);
         ssnprintf(em2, MAXLEN - 1, "fg: %d, bg: %d, ui_pair_cnt: %d", fg, bg, ui_pair_cnt);
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
     ui_pair_cnt++;
@@ -96,7 +96,7 @@ int ui_chg_pair(uint pair, uint fg, uint bg) {
 int ui_add_color_rgb(RGB *rgb) {
     uint i;
     RGB tmp;
-    apply_gamma(rgb);
+    ui_apply_gamma(rgb);
     rgb->r = (rgb->r * 1000) / 255;
     rgb->g = (rgb->g * 1000) / 255;
     rgb->b = (rgb->b * 1000) / 255;
@@ -168,7 +168,7 @@ int ui_chg_color(uint16_t color_idx, uint32_t *color) {
     rgb.r = (*color >> 16) & 0xff;
     rgb.g = (*color >> 8) & 0xff;
     rgb.b = *color & 0xff;
-    apply_gamma(&rgb);
+    ui_apply_gamma(&rgb);
     rgb.r = (rgb.r * 1000) / 255;
     rgb.g = (rgb.g * 1000) / 255;
     rgb.b = (rgb.b * 1000) / 255;
@@ -291,7 +291,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     stdsfc->mpan[BOX] = new_panel(stdsfc->mwin[BOX]);
     if (!stdsfc->mpan[BOX]) {
         free(stdsfc);
-        Perror("new_panel failed for stdsfc->mpan[BOX]");
+        ui_perror("new_panel failed for stdsfc->mpan[BOX]");
         exit(EXIT_FAILURE);
     }
     return ui;

@@ -18,6 +18,7 @@
  */
 
 #include "cm.h"
+#include "ui_backend.h"
 #include <execinfo.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -67,24 +68,24 @@ void sig_prog_mode() {
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     if (sigaction(SIGINT, &sa, nullptr) == -1) {
-        abend(-1, "sigaction SIGINT failed");
+        ui_abend(-1, "sigaction SIGINT failed");
         exit(EXIT_FAILURE);
     }
     if (sigaction(SIGTERM, &sa, nullptr) == -1) {
-        abend(-1, "sigaction SIGTERM failed");
+        ui_abend(-1, "sigaction SIGTERM failed");
         exit(EXIT_FAILURE);
     };
     if (sigaction(SIGQUIT, &sa, nullptr) == -1) {
-        abend(-1, "sigaction SIGQUIT failed");
+        ui_abend(-1, "sigaction SIGQUIT failed");
         exit(EXIT_FAILURE);
     }
     if (sigaction(SIGUSR1, &sa, nullptr) == -1) {
-        abend(-1, "sigaction SIGUSR1 failed");
+        ui_abend(-1, "sigaction SIGUSR1 failed");
         exit(EXIT_FAILURE);
     }
     sa.sa_flags = SA_SIGINFO; // Set the flag to receive siginfo_t
     if (sigaction(SIGSEGV, &sa, nullptr) == -1) {
-        abend(-1, "sigaction SIGSEGV failed");
+        ui_abend(-1, "sigaction SIGSEGV failed");
         exit(EXIT_FAILURE);
     }
 }
@@ -115,7 +116,7 @@ void signal_handler(int sig_num) {
         frames = backtrace(addrlist, MAX_FRAMES);
         symbols = backtrace_symbols(addrlist, frames);
         if (symbols == nullptr) {
-            abend(-1, "backtrace_symbols failed");
+            ui_abend(-1, "backtrace_symbols failed");
             exit(EXIT_FAILURE);
         }
         for (int i = 0; i < frames; i++) {

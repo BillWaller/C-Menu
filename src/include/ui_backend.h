@@ -7,9 +7,9 @@
 */
 #define _XOPEN_SOURCE_EXTENDED 1
 #define _GNU_SOURCE
-#define NCURSES_WIDECHAR 1
 
 #ifdef UAL_UI
+#define NCURSES_WIDECHAR 1
 #include "../ui/ui_ncurses_internal.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
@@ -146,11 +146,11 @@ typedef struct {
 
 /** BOX WIDE UNICODE CODEPOINTS */
 
-extern wchar_t *border_single;
-extern wchar_t *border_double;
-extern wchar_t *border_rounded;
-extern wchar_t *border_heavy;
-extern wchar_t *border_none;
+extern const wchar_t *border_single;
+extern const wchar_t *border_double;
+extern const wchar_t *border_rounded;
+extern const wchar_t *border_heavy;
+extern const wchar_t *border_none;
 
 typedef union border_wide {
     wchar_t str[11];
@@ -209,12 +209,16 @@ typedef struct {
 
 #define CCHARW_MAX 5
 #define ERR -1
+
+// Linus doesn't consider typedefs for inclusion into the linux kernel because
+// they can obscure the underlying type leading to performance destroying
+// pass-by-value mistakes. We use them because they improve code readibility
+// and maintainability, but remain aware of that caveat.
 typedef struct nccell UiCell;
 typedef struct ncplane NcPlane;
 typedef struct notcurses NotCurses;
 typedef struct notcurses_options NotCursesOptions;
 typedef struct ncplane_options NcPlaneOptions;
-
 typedef uint16_t attr_t;
 typedef struct UiPair UiPair;
 typedef struct UiColor UiColor;
@@ -277,6 +281,241 @@ static inline int unicode_to_utf8_gcluster(uint32_t cp, GCluster *g) {
     }
     return 0;
 }
+
+typedef enum {
+    CLR_BLACK,
+    CLR_RED,
+    CLR_GREEN,
+    CLR_YELLOW,
+    CLR_BLUE,
+    CLR_MAGENTA,
+    CLR_CYAN,
+    CLR_WHITE,
+    CLR_BBLACK,
+    CLR_BRED,
+    CLR_BGREEN,
+    CLR_BYELLOW,
+    CLR_BBLUE,
+    CLR_BMAGENTA,
+    CLR_BCYAN,
+    CLR_BWHITE,
+    CLR_BORANGE,
+    CLR_FG,
+    CLR_BG,
+    CLR_BOX_FG,
+    CLR_BOX_BG,
+    CLR_IND_FG,
+    CLR_IND_BG,
+    CLR_BRACKETS_FG,
+    CLR_BRACKETS_BG,
+    CLR_FILL_CHAR_FG,
+    CLR_FILL_CHAR_BG,
+    CLR_LN_FG,
+    CLR_LN_BG,
+    CLR_CMDLN_FG,
+    CLR_CMDLN_BG,
+    CLR_NT_FG,
+    CLR_NT_BG,
+    CLR_NT_REV_FG,
+    CLR_NT_REV_BG,
+    CLR_NT_HL_FG,
+    CLR_NT_HL_BG,
+    CLR_NT_HL_REV_FG,
+    CLR_NT_HL_REV_BG,
+    CLR_TITLE_FG,
+    CLR_TITLE_BG,
+    CLR_NCOLORS
+} ColorsEnum;
+
+extern UiCell cell_default;
+extern UiCell cell_fill_char;
+extern UiCell cell_brktl;
+extern UiCell cell_brktr;
+extern UiCell cell_nt;
+extern UiCell cell_nt_rev;
+extern UiCell cell_nt_hl;
+extern UiCell cell_nt_hl_rev;
+extern UiCell cell_box;
+extern UiCell cell_ind;
+extern UiCell cell_cmdln;
+extern UiCell cell_title;
+extern UiCell cell_ln;
+extern UiCell cell_ran;
+extern UiCell cell_chk;
+extern UiCell cell_ls;
+extern UiCell cell_rs;
+extern UiCell cell_ts;
+extern UiCell cell_bs;
+extern UiCell cell_tl;
+extern UiCell cell_tr;
+extern UiCell cell_ho;
+extern UiCell cell_ve;
+extern UiCell cell_bl;
+extern UiCell cell_br;
+extern UiCell cell_lt;
+extern UiCell cell_rt;
+extern UiCell cell_tt;
+extern UiCell cell_bt;
+extern UiCell cell_cr;
+extern UiCell cell_sp;
+
+typedef struct {
+    double red_gamma;      /**< red gamma correction value */
+    double green_gamma;    /**< green gamma correction value */
+    double blue_gamma;     /**< blue gamma correction value */
+    double gray_gamma;     /**< gray gamma correction value */
+    uint32_t black;        /**< black */
+    uint32_t red;          /**< red */
+    uint32_t green;        /**< green */
+    uint32_t yellow;       /**< yellow */
+    uint32_t blue;         /**< blue */
+    uint32_t magenta;      /**< magenta */
+    uint32_t cyan;         /**< cyan */
+    uint32_t white;        /**< white */
+    uint32_t orange;       /**< orange */
+    uint32_t bblack;       /**< bold black */
+    uint32_t bred;         /**< bold red */
+    uint32_t bgreen;       /**< bold green */
+    uint32_t byellow;      /**< bold yellow */
+    uint32_t bblue;        /**< bold blue */
+    uint32_t bmagenta;     /**< bold magenta */
+    uint32_t bcyan;        /**< bold cyan */
+    uint32_t bwhite;       /**< bold white */
+    uint32_t borange;      /**< bold orange */
+    uint32_t abg;          /**< background with alpha */
+    uint32_t fg;           /**< foreground color */
+    uint32_t bg;           /**< background color */
+    uint32_t box_fg;       /**< box foreground */
+    uint32_t box_bg;       /**< box background */
+    uint32_t ind_fg;       /**< indicator foreground */
+    uint32_t ind_bg;       /**< indicator background */
+    uint32_t brackets_fg;  /**< brackets foreground */
+    uint32_t brackets_bg;  /**< brackets background */
+    uint32_t fill_char_fg; /**< fill character foreground */
+    uint32_t fill_char_bg; /**< fill character background */
+    uint32_t ln_fg;        /**< line number color index */
+    uint32_t ln_bg;        /**< line number background index */
+    uint32_t cmdln_fg;     /**< line number color index */
+    uint32_t cmdln_bg;     /**< line number background index */
+    uint32_t nt_fg;        /**< color code for normal text foreground */
+    uint32_t nt_bg;        /**< color code for normal text background */
+    uint32_t nt_rev_fg;    /**< normal text reverse foreground */
+    uint32_t nt_rev_bg;    /**< normal text reverse background */
+    uint32_t nt_hl_fg;     /**< normal text highlight foreground */
+    uint32_t nt_hl_bg;     /**< normal text highlight background */
+    uint32_t nt_hl_rev_fg; /**< normal text highlight reverse foreground */
+    uint32_t nt_hl_rev_bg; /**< normal text highlight reverse background */
+    uint32_t title_fg;     /**< title foreground */
+    uint32_t title_bg;     /**< title background */
+    uint32_t ran_fg;       /**< right angle foreground */
+    uint32_t ran_bg;       /**< right angle background */
+    FILE *stdin_fp;        /**< stdin stream pointer */
+    FILE *stdout_fp;       /**< stdout stream pointer */
+    FILE *stderr_fp;       /**< stderr stream pointer */
+    FILE *tty_fp;          /**< terminal device stream pointer */
+    int stdin_fd;          /**< stdin file descriptor */
+    int stdout_fd;         /**< stdout file descriptor */
+    int stderr_fd;         /**< stderr file descriptor */
+    int tty_fd;            /**< terminal device file descriptor */
+    uint clr_cnt;          /**< number of colors currently in use */
+    uint clr_pair_cnt;     /**< number of color pairs currently in use */
+    uint clr_idx;          /**< current color index */
+    uint clr_pair_idx;     /**< current color pair index */
+    char brackets[3];
+    char fill_char[2];
+    char border;           /**< Rounded, Single, Double, None */
+    char tty_name[MAXLEN]; /**< name of the terminal device */
+    ushort cp_default;     /**< default color pair index */
+    ushort cp_fill_char;   /**< fill character color pair index */
+    ushort cp_brackets;    /**< brackets color pair index */
+    ushort cp_nt;          /**< normal text color pair index */
+    ushort cp_nt_rev;      /**< reverse color pair index */
+    ushort cp_nt_hl;       /**< highlight color pair index */
+    ushort cp_nt_hl_rev;   /**< reverse highlight color pair index */
+    ushort cp_box;         /**< box color pair index */
+    ushort cp_ind;         /**< indicator color pair index */
+    ushort cp_cmdln;       /**< command line color pair index */
+    ushort cp_title;       /**< title color pair index */
+    ushort cp_ln;          /**< line number color pair index */
+    ushort cp_ran;         /**< right angle color pair index */
+    ushort cp_chk;         /**< checkmark color pair index */
+    ushort cp_bold;        /**< bold color pair index */
+} SIO;
+
+#define COLOR_LEN 8   /**< length of color code strings */
+#define FG_COLOR 2    /**< default foreground color */
+#define BG_COLOR 0    /**< default background color */
+#define BO_COLOR 1    /**< default bold foreground color */
+#define LN_COLOR 4    /**< default line number color */
+#define LN_BG_COLOR 7 /**< default line number background */
+
+#define XTERM_256COLOR 1
+#if defined(XTERM_256COLOR)
+#define KEY_ALTINS 0x223
+#define KEY_ALTHOME 0x21e
+#define KEY_ALTPGUP 0x232
+#define KEY_ALTDEL 0x20e
+#define KEY_ALTEND 0x219
+#define KEY_ALTPGDN 0x22d
+#define KEY_ALTUP 0x23d
+#define KEY_ALTLEFT 0x228
+#define KEY_ALTDOWN 0x214
+#define KEY_ALTRIGHT 0x237
+#elif defined(XTERM_GHOSTTY)
+#define KEY_ALTINS 0x228
+#define KEY_ALTHOME 0x223
+#define KEY_ALTPGUP 0x237
+#define KEY_ALTDEL 0x213
+#define KEY_ALTEND 0x21e
+#define KEY_ALTPGDN 0x232
+#define KEY_ALTUP 0x242
+#define KEY_ALTLEFT 0x22d
+#define KEY_ALTDOWN 0x219
+#define KEY_ALTRIGHT 0x23c
+#endif
+
+extern int click_y; /**< the y coordinate of a mouse click */
+extern int click_x; /**< the x coordinate of a mouse click */
+
+extern ushort cp_default;            /**< default color pair index */
+extern ushort cp_box;                /**< box color pair index */
+extern ushort cp_ind;                /**< indicator color pair index */
+extern ushort cp_bold;               /**< bold color pair index */
+extern ushort cp_title;              /**< title color pair index */
+extern ushort cp_highlight;          /**< highlight color pair index */
+extern ushort cp_fill_char;          /**< fill character color pair index */
+extern ushort cp_brackets;           /**< color pair index for field brackets */
+extern ushort cp_nt;                 /**< normal color pair index */
+extern ushort cp_nt_rev;             /**< reverse color pair index */
+extern ushort cp_nt_hl;              /**< highlight color pair index */
+extern ushort cp_nt_hl_rev;          /**< highlight reverse color pair index */
+extern ushort cp_ln_fg;              /**< line number color pair index */
+extern ushort cp_ln_bg;              /**< line number background color pair index */
+extern ushort cp_cmdln_fg;           /**< command line number color pair index */
+extern ushort cp_cmdln_bg;           /**< command line number background color pair index */
+extern ushort cp_red;                /**< red background color pair index */
+extern ushort cp_green;              /**< green background color pair index */
+extern ushort cp_yellow;             /**< yellow background color pair index */
+extern ushort cp_blue;               /**< blue background color pair index */
+extern uint clr_idx;                 /**< current color index */
+extern uint clr_cnt;                 /**< number of colors used */
+extern uint clr_pair_idx;            /**< current color pair index */
+extern uint clr_pair_cnt;            /**< number of color pairs supported by the terminal */
+extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
+
+/** @struct ColorPair
+  @details The ColorPair structure is a simple structure that holds information
+  about a color pair, including the foreground color index, background color
+  index, and the color pair index. This structure can be used to manage and
+  apply color pairs in the ncurses library, allowing for easy customization of
+  the terminal's appearance. By using this structure, you can easily keep track
+  of the different color pairs you have defined and apply them to various
+  elements in your terminal interface. */
+typedef struct {
+    uint fg;      /**< foreground color index */
+    uint bg;      /**< background color index */
+    uint pair_id; /**< color pair index */
+} ColorPair;
 
 /* @name UI Backend API
    @ingroup ui_backend
@@ -521,4 +760,44 @@ extern UiChyron *ui_destroy_chyron(UiChyron *chyron);
 extern void ui_abend(int, char *);
 int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeout_ms);
 
+// ---------------------------------------------------------------
+// Chyron API
+// ---------------------------------------------------------------
+
+void destroy_curses();
+bool init_clr_palette(SIO *sio);
+void initialize_cells(SIO *sio);
+void ui_abend(int ec, char *s);
+bool ui_action_disposition(char *title, char *action_str);
+void ui_activate_all_chyron_keys(UiChyron *chyron);
+void ui_activate_chyron_key(UiChyron *chyron, uint k);
+int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3);
+void ui_apply_gamma(RGB *rgb);
+int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, uint win, char *y);
+int ui_border_draw(UiSurface *sfc);
+int ui_border_title(UiSurface *sfc, char *title);
+int ui_border_ysplit(UiSurface *sfc, uint y);
+int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line);
+int ui_cm_surface_destroy(UiSurface *sfc);
+void ui_compile_chyron(UiChyron *chyron);
+void ui_deactivate_all_chyron_keys(UiChyron *chyron);
+void ui_deactivate_chyron_key(UiChyron *chyron, uint k);
+UiChyron *ui_destroy_chyron(UiChyron *chyron);
+void ui_display_chyron(UiSurface *sfc, uint w, UiChyron *chyron, uint line, uint col);
+int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3);
+int ui_get_chyron_key(UiChyron *chyron, uint x);
+bool ui_is_set_chyron_key(UiChyron *chyron, uint k);
+void ui_mbc_to_wc(wchar_t wc[2], const char mbc);
+uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost);
+uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost);
+wchar_t *ui_mbstr_to_wcstr(const char *mb_str);
+UiChyron *ui_new_chyron();
+int ui_perror(char *emsg_str);
+uint ui_rgb_to_xterm256_idx(RGB *rgb);
+void ui_set_chyron_key(UiChyron *chyron, uint k, char *s, uint kc);
+void ui_set_chyron_key_cb(UiChyron *chyron, uint k, char *s, uint kc, UiCell cell_base);
+int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle);
+int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle);
+void ui_unset_chyron_key(UiChyron *chyron, uint k);
+RGB ui_xterm256_idx_to_rgb(uint idx);
 #endif

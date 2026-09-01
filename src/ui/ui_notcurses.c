@@ -751,7 +751,7 @@ UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *
 int ui_add_color_rgb(RGB *rgb) {
     uint i;
     RGB tmp;
-    apply_gamma(rgb);
+    ui_apply_gamma(rgb);
     for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
         ui_color_content(i, &tmp.r, &tmp.g, &tmp.b);
         if (rgb->r == tmp.r && rgb->g == tmp.g && rgb->b == tmp.b)
@@ -782,7 +782,7 @@ uint ui_add_pair(uint fg, uint bg) {
         ssnprintf(em1, MAXLEN - 1, "NotCurses COLOR_PAIRS (%d) exceeded (%d)",
                   UI_PAIRS, i);
         strerror_r(errno, em2, MAXLEN);
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
     if (i < UI_PAIRS) {
@@ -822,7 +822,7 @@ uint64_t ui_get_channels_from_pair(uint16_t pair) {
 uint ui_init_color_hex(char *s) {
     RGB rgb;
     rgb = ui_hex_to_rgb(s);
-    apply_gamma(&rgb);
+    ui_apply_gamma(&rgb);
     uint i;
     for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
         if (rgb.r == ui_color[i].r && rgb.g == ui_color[i].g && rgb.b == ui_color[i].b)
@@ -889,7 +889,7 @@ int ui_chg_color(uint16_t color_idx, uint32_t *color) {
     rgb.color = *color;
     if (color_idx + 1 >= UI_COLORS)
         return -1;
-    apply_gamma(&rgb);
+    ui_apply_gamma(&rgb);
     if (color_idx < 16) {
         std_color[color_idx].r = rgb.r;
         std_color[color_idx].g = rgb.g;

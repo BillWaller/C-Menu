@@ -61,7 +61,7 @@ Init *new_init(int argc, char **argv) {
     int i = 0;
     Init *init = calloc(1, sizeof(Init));
     if (init == nullptr) {
-        abend(-1, "calloc init failed");
+        ui_abend(-1, "calloc init failed");
         return nullptr;
     }
     init->argv = calloc(MAXARGS + 1, sizeof(char *));
@@ -71,7 +71,7 @@ Init *new_init(int argc, char **argv) {
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
                   (MAXARGS + 1), sizeof(char *));
-        display_error(em0, em1, em2, nullptr);
+        ui_display_error(em0, em1, em2, nullptr);
         exit(EXIT_FAILURE);
     }
     init->argc = argc;
@@ -81,7 +81,7 @@ Init *new_init(int argc, char **argv) {
 
     init->sio = (SIO *)calloc(1, sizeof(SIO));
     if (!init->sio) {
-        Perror("calloc sio failed");
+        ui_perror("calloc sio failed");
         exit(EXIT_FAILURE);
     }
     init_cnt++;
@@ -134,13 +134,13 @@ Init *destroy_init(Init *init) {
 Menu *new_menu(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->menu = (Menu *)calloc(1, sizeof(Menu));
     if (!init->menu) {
-        abend(-1, "calloc menu failed");
+        ui_abend(-1, "calloc menu failed");
         return nullptr;
     }
     init->menu_cnt++;
     menu = init->menu;
     if (!init_menu_files(init, argc, argv)) {
-        abend(-1, "init_menu_files failed");
+        ui_abend(-1, "init_menu_files failed");
         return nullptr;
     }
     menu->begy = begy;
@@ -186,13 +186,13 @@ Menu *destroy_menu(Init *init) {
 Pick *new_pick(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->pick = (Pick *)calloc(1, sizeof(Pick));
     if (!init->pick) {
-        Perror("calloc pick failed");
+        ui_perror("calloc pick failed");
         return nullptr;
     }
     init->pick_cnt++;
     pick = init->pick;
     if (!init_pick_files(init, argc, argv)) {
-        abend(-1, "init_pick_files failed");
+        ui_abend(-1, "init_pick_files failed");
         return nullptr;
     }
     pick->m_object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
@@ -201,8 +201,8 @@ Pick *new_pick(Init *init, int argc, char **argv, uint begy, uint begx) {
         ssnprintf(em1, MAXLEN - 1,
                   "calloc pick->m_object = calloc(%d, %d) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));
-        display_error(em0, em1, nullptr, nullptr);
-        abend(-1, "User terminated program");
+        ui_display_error(em0, em1, nullptr, nullptr);
+        ui_abend(-1, "User terminated program");
     }
     pick->d_object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
     if (pick->d_object == nullptr) {
@@ -210,8 +210,8 @@ Pick *new_pick(Init *init, int argc, char **argv, uint begy, uint begx) {
         ssnprintf(em1, MAXLEN - 1,
                   "calloc pick->d_object = calloc(%d, %d) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));
-        display_error(em0, em1, nullptr, nullptr);
-        abend(-1, "User terminated program");
+        ui_display_error(em0, em1, nullptr, nullptr);
+        ui_abend(-1, "User terminated program");
     }
     pick->begy = begy;
     pick->begx = begx;
@@ -252,13 +252,13 @@ Pick *destroy_pick(Init *init) {
 Form *new_form(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->form = (Form *)calloc(1, sizeof(Form));
     if (!init->form) {
-        abend(-1, "calloc form failed");
+        ui_abend(-1, "calloc form failed");
         return nullptr;
     }
     init->form_cnt++;
     form = init->form;
     if (!init_form_files(init, argc, argv)) {
-        abend(-1, "init_form_files failed");
+        ui_abend(-1, "init_form_files failed");
         return nullptr;
     }
     strnz__cpy(form->brackets, init->brackets, 3);
@@ -306,8 +306,8 @@ View *new_view(Init *init) {
         ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "init->view = calloc(%d) failed\n",
                   sizeof(View));
-        display_error(em0, em1, em2, nullptr);
-        abend(-1, "calloc init->view failed");
+        ui_display_error(em0, em1, em2, nullptr);
+        ui_abend(-1, "calloc init->view failed");
         return nullptr;
     }
     view = init->view;
@@ -321,8 +321,8 @@ View *new_view(Init *init) {
             ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
             ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
                       view->argc, sizeof(char *));
-            display_error(em0, em1, em2, nullptr);
-            abend(-1, "User terminated program");
+            ui_display_error(em0, em1, em2, nullptr);
+            ui_abend(-1, "User terminated program");
             return nullptr;
         }
         int s = 0;
@@ -332,7 +332,7 @@ View *new_view(Init *init) {
         view->argv[d] = nullptr;
     }
     if (!init_view_files(init)) {
-        abend(-1, "init_view_files failed");
+        ui_abend(-1, "init_view_files failed");
         return nullptr;
     }
     return view;
@@ -512,7 +512,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
             strnz__cpy(tmp_str, "menu cannot read description file ",
                        MAXLEN - 1);
             strnz__cat(tmp_str, menu->mapp_spec, MAXLEN - 1);
-            abend(-1, tmp_str);
+            ui_abend(-1, tmp_str);
         }
     }
     if (!menu->f_help_spec) {
@@ -522,7 +522,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
         if (!menu->f_help_spec) {
             strnz__cpy(tmp_str, "menu cannot read help file ", MAXLEN - 1);
             strnz__cat(tmp_str, menu->help_spec, MAXLEN - 1);
-            abend(-1, tmp_str);
+            ui_abend(-1, tmp_str);
         }
     }
     return true;
