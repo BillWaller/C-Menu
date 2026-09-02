@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-01T20:25:08-05:00* - FIXES: minor, plus a small documentation update 
+
+*2026-09-01T19:58:23-05:00* - Update CHANGELOG.md 
+
 *2026-09-01T19:57:47-05:00* - FIXED: resizing issue with Notcurses library and several other minor bugs. 
 
 *2026-09-01T09:45:40-05:00* - Update CHANGELOG.md 
