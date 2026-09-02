@@ -10,6 +10,10 @@
 #ifndef _COMMON_H
 #define _COMMON_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define _GNU_SOURCE
 // #define _XOPEN_SOURCE_EXTENDED 1
 #define NCURSES_WIDECHAR 1
@@ -244,4 +248,7 @@ extern void view_stack_free(ViewStack *);
 extern int view_cmd_processor(Init *);
 extern void destroy_view_win(Init *);
 extern void destroy_line_table(View *);
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -9,6 +9,11 @@
 
 #ifndef _FORM_H
 #define _FORM_H 1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <cm.h>
 
 #ifndef _COMMON_H
@@ -383,4 +388,7 @@ extern void form_help(char *);
 extern uint form_yx_to_fidx(Form *, uint, uint);
 extern void form_display_chyron(Form *);
 extern void display_field(UiCell *, uint, uint);
+#ifdef __cplusplus
+}
+#endif
 #endif

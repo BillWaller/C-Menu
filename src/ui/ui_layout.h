@@ -1,5 +1,8 @@
 #ifndef UI_LAYOUT_H
 #define UI_LAYOUT_H 1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** @file
    @brief UI layout management.
@@ -34,4 +37,7 @@ UiFramedSurface ui_framed_surface_new(UiSurface *parent, UiRect rect);
  */
 void ui_framed_surface_destroy(UiFramedSurface *fs);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

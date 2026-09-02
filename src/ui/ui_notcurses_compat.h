@@ -1,5 +1,8 @@
 #ifndef UI_NOTCURSES_COMPAT_H
 #define UI_NOTCURSES_COMPAT_H 1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** @file ui_notcurses_compat.h
    @ingroup ui_notcurses
@@ -26,4 +29,7 @@ struct notcurses *ui_notcurses_get_nc();
 */
 struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s, uint w);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -22,7 +22,15 @@ int main() {
     char buf[100];
     char time_s[32];
     struct tm tm1;
+
     time_t t1 = time(NULL);
+    gmtime_r(&t1, &tm1);
+    strftime(buf, 100, "gmtime     %Y-%m-%dT%H:%M:%SZ", &tm1);
+    printf("%s\n", buf);
+
+    localtime_r(&t1, &tm1);
+    strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
+    printf("%s\n\n", buf);
 
     // ==========================================================
     strcpy(time_s, "2026-06-01T00:00:00");

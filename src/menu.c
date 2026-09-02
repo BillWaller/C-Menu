@@ -35,7 +35,6 @@
    terminal is properly cleaned up and restored, preventing any issues with the
    terminal state after the program has exited. */
 static void end_pgm(void) {
-    close(cmenu_log_fd);
     exit(EXIT_SUCCESS);
 }
 

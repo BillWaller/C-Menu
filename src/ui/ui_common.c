@@ -457,7 +457,7 @@ uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_
  */
 int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle) {
     if (sfc_ptr >= SFC_MAX) {
-        ui_perror("Maximum number of surfaces (%d) exceeded");
+        ui_log(ERROR, "Maximum number of surfaces (%d) exceeded", SFC_MAX);
         exit(EXIT_FAILURE);
     }
     uint maxy, maxx;
@@ -495,11 +495,7 @@ int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char
  */
 int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle) {
     if (sfc_ptr >= SFC_MAX) {
-        ui_perror("Maximum number of surfaces (%d) exceeded");
-        exit(EXIT_FAILURE);
-    }
-    if (sfc_ptr >= SFC_MAX) {
-        ui_perror("Maximum number of surfaces (%d) exceeded");
+        ui_log(ERROR, "Maximum number of surfaces (%d) exceeded", SFC_MAX);
         exit(EXIT_FAILURE);
     }
     uint maxy, maxx;
@@ -950,6 +946,9 @@ int ui_get_chyron_key(UiChyron *chyron, uint x) {
     }
     return chyron->key[k]->keycode;
 }
+// -----------------------------------------------------------------------
+// Color format translations
+// -----------------------------------------------------------------------
 /** ui_rgb_to_xterm256_idx
     @brief Convert RGB color to XTerm 256 color index
     @ingroup color_management
@@ -1030,6 +1029,9 @@ void ui_apply_gamma(RGB *rgb) {
     if (rgb->b != 0 && BLUE_GAMMA > 0.0f && BLUE_GAMMA != 1.0f)
         rgb->b = (int)(pow((rgb->b / 255.0f), 1.0f / BLUE_GAMMA) * 255.0f);
 }
+// -----------------------------------------------------------------------
+// Error Handling
+// -----------------------------------------------------------------------
 /**
  * @defgroup error_handling Error Handling
     @brief Display Error messages
@@ -1172,6 +1174,7 @@ int ui_perror(char *emsg_str) {
     unsigned in_key;
     uint line, pos, cols;
     char title[MAXLEN];
+    char tmp_str[MAXLEN];
     bool f_xwgetch = true;
     if (emsg_str[0] == '' && emsg_str[1] == 'w') {
         emsg_str += 2;
@@ -1196,10 +1199,11 @@ int ui_perror(char *emsg_str) {
     line = (maxy - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
     if (ui_surface_box_win_new(2, cols + 2, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "ui_surface_box_win_new(%d, %d, %d, %d, %s, %b) failed",
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_surface_box_win_new(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
+        ui_log(ERROR, "%s", tmp_str);
         ui_destroy_chyron(chyron);
-        ui_abend(-1, title);
+        exit(EXIT_FAILURE);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiEvent event;
@@ -1265,3 +1269,67 @@ void ui_abend(int ec, char *s) {
     fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
     exit(EXIT_FAILURE);
 }
+// -----------------------------------------------------------------------
+// Logging
+// -----------------------------------------------------------------------
+char *ui_iso8601_timestamp(char *buf, size_t n, bool local) {
+    if (buf == NULL)
+        return NULL;
+    time_t t = time(NULL);
+    struct tm *tp = local ? localtime(&t) : gmtime(&t);
+    if (local) {
+        strftime(buf, n, "%Y-%m-%dT%H:%M:%S%z", tp);
+    } else {
+        strftime(buf, n, "%Y-%m-%dT%H:%M:%SZ", tp);
+    }
+    return buf;
+}
+// ANSI Color Strings for UiLog
+const char *const ui_logcolor[] = {
+    [PANIC] = "\033[1;41;37m", // Bold White on Red Background
+    [FATAL] = "\033[1;31m",    // Bold Red
+    [ERROR] = "\033[0;31m",    // Regular Red
+    [WARN] = "\033[0;33m",     // Yellow
+    [INFO] = "\033[0;32m",     // Green
+    [VERBOSE] = "\033[0;36m",  // Cyan
+    [DEBUG] = "\033[0;34m",    // Blue
+    [TRACE] = "\033[0;90m",    // Dark Gray
+};
+// Log Levels text for UiLog
+const char *const ui_loglevel[] = {
+    [PANIC] = "PANIC",
+    [FATAL] = "FATAL",
+    [ERROR] = "ERROR",
+    [WARN] = "WARN",
+    [INFO] = "INFO",
+    [VERBOSE] = "VERBOSE",
+    [DEBUG] = "DEBUG",
+    [TRACE] = "TRACE",
+};
+
+FILE *ui_log_fp;
+char *ui_log_file_name = "/tmp/ui.log"; // default log file
+const char *const ui_logcolor[];
+const char *const ui_loglevel[];
+LogLevel ui_min_loglevel = INFO;
+bool ui_timestamp_local = true; // default to local time for timestamps
+char ui_timestamp[32];
+
+FILE *ui_open_log() {
+    char ttyname[MAXLEN];
+    char cmenu_user[MAXLEN];
+    char *p;
+    ui_log_fp = fopen(ui_log_file_name, "w");
+    setvbuf(ui_log_fp, NULL, _IOLBF, BUFSIZ);
+    p = getenv("USER");
+    strnz__cpy(cmenu_user, p, MAXLEN - 1);
+    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
+        strnz__cpy(em0, ttyname, MAXLEN - 1);
+    ssnprintf(em0, MAXLEN - 1, "Ui_Log started by user '%s' on terminal '%s'", cmenu_user, ttyname);
+    ui_log(INFO, "%s:", em0);
+    return ui_log_fp;
+}
+
+// -----------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------

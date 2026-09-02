@@ -1,6 +1,10 @@
 #ifndef UI_NOTCURSES_INTERNAL_H
 #define UI_NOTCURSES_INTERNAL_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** @file ui_notcurses_internal.h
    @ingroup ui_notcurses
    @brief Internal header for the NotCurses UI backend.
@@ -345,4 +349,7 @@ struct UiPair {
 // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
 /* Internal style helpers */
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -49,21 +49,25 @@ int init_view_full_screen(Init *init) {
     view->f_full_screen = true;
     // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
+    ui_log(INFO, "lines=%d, cols=%d", view->lines, view->cols);
     view->sfc = ui_surface_new(WIN, NULL, 0, view->lines, view->cols, 0, 0);
     if (!view->sfc) {
         ssnprintf(em0, MAXLEN - 1, "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen");
-        ui_perror(em0);
+        ui_log(INFO, "%s", em0);
+        exit(EXIT_FAILURE);
         return -1;
     }
+    ui_log(INFO, "created view->sfc");
     ui_bkgd(view->sfc, WIN, &cell_nt);
     // -------------------> 2. LNNO <-------------------
     if (view->f_ln) {
         ui_surface_addwin(view->sfc, LNNO, WIN, view->scroll_lines, view->ln_win_cols, 0, 0);
         if (view->sfc->lnno == nullptr) {
             ssnprintf(em0, MAXLEN - 1, "ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
-            ui_perror(em0);
-            return -1;
+            ui_log(INFO, "%s", em0);
+            exit(EXIT_FAILURE);
         }
+        ui_log(INFO, "created view->sfc->lnno");
         ui_bkgd(view->sfc, LNNO, &cell_ln);
         ui_bkgdset(view->sfc, LNNO, &cell_ln);
         ui_scrollok(view->sfc, LNNO, true);
@@ -73,9 +77,10 @@ int init_view_full_screen(Init *init) {
     ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->scroll_lines, 0);
     if (view->sfc->cmdln == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "ui_sfc_addwin(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
-        ui_perror(em0);
-        return -1;
+        ui_log(INFO, "%s", em0);
+        exit(EXIT_FAILURE);
     }
+    ui_log(INFO, "created view->sfc->cmdln");
     ui_bkgd(view->sfc, CMDLN, &cell_nt);
     ui_keypad(view->sfc, CMDLN, true);
     ui_idlok(view->sfc, CMDLN, false);
@@ -84,6 +89,12 @@ int init_view_full_screen(Init *init) {
     // -------------------> 4. PAD <-------------------
 
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
+    ui_log(INFO, "created view->sfc->mplane[PAD]");
+    if (view->sfc->mplane[PAD] == nullptr) {
+        ssnprintf(em0, MAXLEN - 1, "ui_sfc_addpan(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
+        ui_log(INFO, "%s", em0);
+        exit(EXIT_FAILURE);
+    }
     ui_scrollok(view->sfc, PAD, true);
 
     // ------------------------------------------------
@@ -100,6 +111,7 @@ int init_view_full_screen(Init *init) {
 void view_full_screen_resize(Init *init) {
     ui_erase();
     view_calc_full_screen_dimensions(init);
+    ui_log(INFO, "view_full_screen_resize: lines=%d, cols=%d, ln_win_lines=%d, ln_win_cols=%d, scroll_lines=%d", init->view->lines, init->view->cols, init->view->ln_win_lines, init->view->ln_win_cols, init->view->scroll_lines);
     View *view = init->view;
     ui_surface_destroy(view->sfc);
     ui_render();

@@ -1,5 +1,8 @@
 #ifndef UI_NCURSES_COMPAT_H
 #define UI_NCURSES_COMPAT_H 1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** @file ui_ncurses_compat.h
    @ingroup ui_ncurses
@@ -36,4 +39,7 @@ WINDOW *ui_ncurses_surface_get_win(const UiSurface *s, uint w);
 */
 PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, uint w);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

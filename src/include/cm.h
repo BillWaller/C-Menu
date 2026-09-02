@@ -9,6 +9,10 @@
 #ifndef _CM_H
 #define _CM_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE_EXTENDED 1 /**< Enable wide character support */
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
@@ -32,8 +36,6 @@
 #include <time.h>
 #include <wait.h>
 #include <wchar.h>
-
-extern int cmenu_log_fd;
 
 #if __STDC_VERSION__ < 202311L
 #define nullptr NULL
@@ -308,7 +310,6 @@ extern void sig_prog_mode();
 extern void sig_dfl_mode();
 extern bool mk_dir(char *dir);
 extern int segmentation_fault();
-extern char *iso8601_time(char *, uint, time_t *, bool);
 extern bool parse_local_timestamp(const char *, time_t *);
 extern char *format_local_timestamp(time_t, char *, size_t);
 extern char *get_local_timestamp();
@@ -319,10 +320,6 @@ extern bool is_newer(char *, char *);
 #define KEY_ALTF0 0x138
 #define KEY_ALTF(n) (KEY_ALTF0 + (n)) /**< define alt function keys */
 
-extern void write_cmenu_log(char *);
-extern void write_cmenu_log_ts(char *);
-extern void open_cmenu_log();
-extern FILE *cmenu_log_fp;
 extern uint n_lines; /**< number of lines in the terminal */
 extern uint n_cols;  /**< number of columns in the terminal */
 // extern uint lines;   current number of lines (may be less than n_lines if
@@ -459,8 +456,6 @@ extern int full_screen_shell(char *);
 extern int shell(char *);
 extern char errmsg[];
 extern void get_rfc3339_s(char *, size_t);
-extern int open_log(char *);
-extern void write_log(char *);
 extern void display_argv_error_msg(char *, char **);
 extern void user_end();
 extern unsigned long a_to_ul(const char *);
@@ -496,4 +491,7 @@ extern void numeric(char *d, char *s);
 extern int cf_accept(UiSurface *, uint w, char *, uint, uint, uint);
 extern char *fill_field(char *, char *, char, uint);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

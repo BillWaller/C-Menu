@@ -475,6 +475,8 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
     char *e;
     setlocale(LC_ALL, "en_US.UTF-8");
+    ui_log_fp = ui_open_log();
+    ui_log(INFO, "%s:", "mapp_initialization");
     SIO *sio = init->sio;
     if (!init) {
         ssnprintf(tmp_str, sizeof(tmp_str), "%s",
@@ -482,9 +484,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         ui_abend(-1, tmp_str);
         exit(-1);
     }
-#ifdef DEBUG_LOG
-    open_cmenu_log();
-#endif
     e = getenv("CMENU_HOME");
     if (!e || *e == '\0')
         strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN);
@@ -523,6 +522,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         strnz__cpy(init->mapp_help, init->mapp_home, MAXLEN - 1);
         strnz__cat(init->mapp_help, "/help", MAXLEN - 1);
     }
+    ui_log(INFO, "mapp_home=%s", init->mapp_home);
     init->mapp_spec[0] = '\0'; /**< menu specification file */
     // Set default colors and settings in SIO struct
     // These can be overridden by the config file or command-line options
@@ -565,7 +565,9 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         strnz__cpy(init->editor, "vi", MAXLEN - 1);
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
+    ui_log(INFO, "early initialization complete");
     process_config_files(init);
+    ui_log(INFO, "config files processed");
     init->mapp_spec[0] = '\0';
     init->argc = argc;
     argp_parse(&argp, argc, argv, 0, 0, init);
@@ -652,9 +654,11 @@ int process_config_files(Init *init) {
     expand_tilde(init->minitrc, MAXLEN - 1);
     strnz__cpy(config_file_name, init->minitrc, MAXLEN - 1);
     rc = process_config_file(config_file_name, init);
+    ui_log(INFO, "processed config fille: %s", config_file_name);
 
     expand_tilde(init->mapp_theme, MAXLEN - 1);
     strnz__cpy(config_file_name, init->mapp_theme, MAXLEN - 1);
+    ui_log(INFO, "processed theme fille: %s", config_file_name);
     rc = process_config_file(config_file_name, init);
     return rc;
 }
@@ -1112,9 +1116,11 @@ int write_config(Init *init) {
         strnz__cat(minitrc_dmp, "/", MAXLEN - 1);
     }
     strnz__cat(minitrc_dmp, "minitrc.dmp", MAXLEN - 1);
+    ui_log(INFO, "writing config file to: %s", minitrc_dmp);
     FILE *minitrc_fp = fopen(minitrc_dmp, "w");
     if (minitrc_fp == (FILE *)0) {
-        fprintf(stderr, "failed to open file: %s\n", minitrc_dmp);
+        ssnprintf(em0, MAXLEN - 1, "failed to open file: %s", minitrc_dmp);
+        ui_log(ERROR, "em0");
         return (-1);
     }
     (void)fprintf(minitrc_fp, "# %s\n", minitrc_dmp);

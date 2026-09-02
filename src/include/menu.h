@@ -10,6 +10,10 @@
 #ifndef _MENU_H
 #define _MENU_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <cm.h>
 
 #ifndef _COMMON_H
@@ -231,4 +235,7 @@ typedef struct {
 
 extern unsigned int get_command_type(char *);
 extern void free_menu_line(Line *);
+#ifdef __cplusplus
+}
+#endif
 #endif

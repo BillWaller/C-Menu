@@ -117,7 +117,6 @@ size_t string_ncpy(String *, const String *, size_t);
 String to_string(const char *);
 String mk_string(size_t);
 String free_string(String);
-char *iso8601_time(char *, uint, time_t *, bool);
 bool parse_local_timestamp(const char *, time_t *);
 char *format_local_timestamp(time_t, char *, size_t);
 char *get_local_timestamp();
@@ -244,26 +243,8 @@ bool unstr_hex_clr(char *dst, char *str) {
         return false;
     return true;
 }
-
-/** @brief Formats a struct tm as an ISO 8601 string.
-    @ingroup utility_functions
-    @param buf - buffer to receive formatted string
-    @param n - size of buffer
-    @param t - struct tm to format
-    @param local - if true, include local time zone offset; if false, use 'Z' for UTC
-    @returns pointer to buf
-    @note The caller is responsible for ensuring that buf has enough space to hold the resulting string. The ISO 8601 format produced is "YYYY-MM-DDTHH:MM:SSZ" for UTC or "YYYY-MM-DDTHH:MM:SS±hhmm" for local time. This function uses strftime internally, so the actual format may vary based on the implementation of strftime and the locale settings.
- */
-char *iso8601_time(char *buf, uint n, time_t *t, bool local) {
-    struct tm *tp = local ? localtime(t) : gmtime(t);
-    if (local) {
-        strftime(buf, n, "%Y-%m-%dT%H:%M:%S%z", tp);
-    } else {
-        strftime(buf, n, "%Y-%m-%dT%H:%M:%SZ", tp);
-    }
-    return buf;
-}
-/** @brief Parses an ISO 8601 timestamp string in local time and converts it to time_t.
+/** @brief Parses an ISO 8601 timestamp string in local time and converts it to
+ * time_t.
     @ingroup utility_functions
     @param s - ISO 8601 timestamp string to parse (e.g., "2024-06-01T12:34:56")
     @param out - pointer to time_t variable to receive the result
@@ -1645,47 +1626,6 @@ int segmentation_fault() {
     // *p = 100;
 
     return 0;
-}
-/** @brief Open new C-Menu log file
-    @ingroup utility_functions */
-void open_cmenu_log() {
-    char ttyname[MAXLEN];
-    char cmenu_user[MAXLEN];
-    char *p;
-    cmenu_log_fd = open("/tmp/cmenu.log", O_WRONLY | O_CREAT | O_TRUNC,
-                        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-    p = getenv("USER");
-    strnz__cpy(cmenu_user, p, MAXLEN - 1);
-    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
-        strnz__cpy(em0, ttyname, MAXLEN - 1);
-    ssnprintf(em0, MAXLEN - 1, "C-Menu started by user '%s' on terminal '%s'\n",
-              cmenu_user, ttyname);
-    write_cmenu_log(em0);
-}
-/** @brief Write message to C-Menu log file with timestamp
-    @ingroup utility_functions
-    @param msg - string to write to log file
- */
-void write_cmenu_log_ts(char *msg) {
-    char time_buf[100];
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
-    strftime(time_buf, sizeof(time_buf), "%Y-%m-%dT%H:%M:%S%z", t);
-    strnz__cpy(em1, time_buf, MAXLEN - 1);
-    strnz__cat(em1, " ", MAXLEN - 1);
-    strnz__cat(em1, msg, MAXLEN - 1);
-    write(cmenu_log_fd, em1, strlen(em1));
-    write(cmenu_log_fd, "\n", 1);
-    return;
-}
-/** @brief Write message to C-Menu log file without timestamp
-    @ingroup utility_functions
-    @param msg - string to write to log file
- */
-void write_cmenu_log(char *msg) {
-    write(cmenu_log_fd, msg, strlen(msg));
-    write(cmenu_log_fd, "\n", 1);
-    return;
 }
 
 void left_justify(char *s) { trim(s); }

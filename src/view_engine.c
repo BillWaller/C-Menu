@@ -253,13 +253,9 @@ int view_cmd_processor(Init *init) {
             break;
         case Ctrl('L'): /**<  Ctrl('L') or UIKEY_RESIZE - Handle terminal resize */
         case UIKEY_RESIZE:
+            ui_log(INFO, "UIKEY_RESIZE received");
             ui_get_screen_size(&view->lines, &view->cols);
-#ifdef DEBUG_RESIZE
-            ssnprintf(em0, MAXLEN - 1,
-                      "%s:%d view->page_top_ln_no=%d, resized to lines: %d, cols: %d\n",
-                      __FILE__, __LINE__, view->page_top_ln_no, view->lines, view->cols);
-            write_cmenu_log(em0);
-#endif
+            ui_log(INFO, "UIKEY_RESIZE lines=%d, cols=%d", view->lines, view->cols);
             if (view->f_full_screen)
                 view_full_screen_resize(init);
             else
@@ -2295,14 +2291,12 @@ int fmt_line(View *view) {
  */
 void log_stripped_line_out(View *view) {
     char tmp_str[PAD_COLS];
-
-    write_cmenu_log("");
-    write_cmenu_log("stripped_line_out");
+    ui_log(INFO, "%s:", view->stripped_line_out);
     for (uint k = 0; k < view->cur.sl_cnt; k++) {
         memset(tmp_str, 0, sizeof(tmp_str));
         for (uint c = 0; c < view->cur.sl_cols[k]; c++)
             tmp_str[c] = view->cur.sl_s[k][c];
-        write_cmenu_log(tmp_str);
+        ui_log(INFO, "%s:", tmp_str);
     }
 }
 /** @brief Log Complex Character Buffer
@@ -2318,8 +2312,6 @@ void log_stripped_line_out(View *view) {
 void log_cc_buf(View *view) {
     char tmp_str[PAD_COLS];
 
-    write_cmenu_log("");
-    write_cmenu_log("cc_buf");
     for (uint k = 0; k < view->cur.sl_cnt; k++) {
         memset(tmp_str, 0, sizeof(tmp_str));
         for (uint c = 0; c < view->cur.sl_cells[k]; c++) {
@@ -2332,7 +2324,7 @@ void log_cc_buf(View *view) {
             else
                 tmp_str[c] = (char)wstr[0];
         }
-        write_cmenu_log(tmp_str);
+        ui_log(INFO, "%s:", tmp_str);
     }
 }
 /** @brief Log String with Specified Length
@@ -2346,7 +2338,7 @@ void log_cc_buf(View *view) {
 void log_strnz(char *str, uint len) {
     char tmp_str[MAXLEN];
     strnz__cpy(tmp_str, str, len);
-    write_cmenu_log(tmp_str);
+    ui_log(INFO, "%s:", tmp_str);
 }
 /** @brief Log Split Lines
     @ingroup view_display
@@ -2368,7 +2360,7 @@ void log_split_lines(View *view) {
             while (s < e)
                 *d++ = *s++;
             *d = '\0';
-            write_cmenu_log(tmp_str);
+            ui_log(INFO, "%s:", tmp_str);
         }
     }
 }

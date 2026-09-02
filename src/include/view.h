@@ -9,6 +9,9 @@
 
 #ifndef _VIEW_H
 #define _VIEW_H 1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define _GNU_SOURCE
 // #define _XOPEN_SOURCE_EXTENDED 1
@@ -220,4 +223,7 @@ extern void go_to_position(View *, long);
 extern void cat_file(View *);
 extern char err_msg[MAXLEN];
 extern int view_accept_cmd(View *);
+#ifdef __cplusplus
+}
+#endif
 #endif

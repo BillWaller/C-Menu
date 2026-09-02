@@ -1,6 +1,10 @@
 #ifndef UI_NCURSES_INTERNAL_H
 #define UI_NCURSES_INTERNAL_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** @file ui_ncurses_internal.h
    @ingroup ui_ncurses
    @brief Internal header for the NCurses UI backend.
@@ -321,5 +325,8 @@ int ui_mvwadd_cellstr(struct UiSurface *s, uint w, uint y, uint x, UiCell *cmplx
 int ui_mvwadd_cellnstr(struct UiSurface *s, uint w, uint y, uint x, UiCell *cmplx_buf, uint n);
 
 extern struct UiSurface *stdsfc;
+#ifdef __cplusplus
+}
+#endif
 
 #endif

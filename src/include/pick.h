@@ -9,6 +9,11 @@
 
 #ifndef _PICK_H
 #define _PICK_H 1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <cm.h>
 
 /** Pick structures, enums, and data types */
@@ -101,4 +106,7 @@ extern void reverse_object(Pick *);
 extern void toggle_object(Pick *);
 extern int output_objects(Pick *);
 extern int mpick(int, char **, int, int, int, int, char *, int);
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,6 +1,10 @@
 #ifndef UI_BACKEND_H
 #define UI_BACKEND_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** @file ui_backend.h
     @ingroup ui_backend
     @brief Backend API for terminal UI library
@@ -21,11 +25,19 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#define UI_SFC_MAX 30
-#define SFC_MAX 30
-
 extern int sfc_ptr;
 extern int win_ptr;
+
+typedef struct {
+    union {
+        uint32_t u32;
+        wchar_t u16[2];
+        uint8_t u8[4];
+        char c[4];
+    };
+    uint8_t backstop;
+    uint8_t width;
+} GCluster;
 
 typedef struct UiRuntime UiRuntime;
 typedef struct UiSurface UiSurface;
@@ -37,9 +49,9 @@ typedef uint16_t UiPairIdx;
 typedef uint UiColorIdx;
 typedef struct ncinput NcInput;
 
-#define UI_COLORS 512
-#define UI_PAIRS 512
-
+// ---------------------------------------------------------------
+// Input
+// ---------------------------------------------------------------
 typedef enum {
     UI_MOUSE_NONE = 0,
     UI_MOUSE_PRESS,
@@ -48,22 +60,6 @@ typedef enum {
     UI_MOUSE_SCROLL_UP,
     UI_MOUSE_SCROLL_DOWN
 } UiMouseAction;
-
-typedef enum {
-    UI_BORDER_NONE = 0,
-    UI_BORDER_SINGLE,
-    UI_BORDER_DOUBLE,
-    UI_BORDER_ROUNDED,
-    UI_BORDER_HEAVY
-} UiBorderKind;
-
-#define ALLWINS (uint)1000
-
-typedef struct {
-    wchar_t wc;       // Wide character    4-bytes
-    short attrs;      // attributes        2-bytes
-    short color_pair; // color pair index  2-bytes
-} UiCchar64;          //           total   8-bytes
 
 typedef uint32_t UiKey;
 typedef struct {
@@ -81,8 +77,23 @@ typedef struct {
     UiMouseAction mouse_action;
     bool mouse_inside;
     char keybound[16];
-
 } UiEvent;
+// ---------------------------------------------------------------
+// Input
+// ---------------------------------------------------------------
+typedef struct {
+    wchar_t wc;       // Wide character    4-bytes
+    short attrs;      // attributes        2-bytes
+    short color_pair; // color pair index  2-bytes
+} UiCchar64;          //           total   8-bytes
+
+typedef enum {
+    UI_BORDER_NONE = 0,
+    UI_BORDER_SINGLE,
+    UI_BORDER_DOUBLE,
+    UI_BORDER_ROUNDED,
+    UI_BORDER_HEAVY
+} UiBorderKind;
 
 typedef struct {
     int y;
@@ -91,24 +102,60 @@ typedef struct {
     int cols;
 } UiRect;
 
-/** @struct UiConfig
-   @brief Structure representing the configuration options for the UI runtime.
-   @ingroup ui_backend
-   @details The UiConfig structure encapsulates the configuration options that
-   can be set when initializing the UI runtime. This includes enabling mouse
-   support, using an alternate screen buffer, and controlling cursor visibility.
-   The enable_mouse field allows you to specify whether mouse input should be
-   captured and processed by the UI. The enable_alt_screen field determines
-   whether the UI should use an alternate screen buffer, which can help prevent
-   cluttering the main terminal screen. The cursor_visible field controls
-   whether the cursor is visible while the UI is active, which can enhance the
-   user experience in certain applications. The tty_path field, if non-NULL,
-   specifies the terminal device to use; if NULL, the backend auto-detects the
-   terminal (typically via stderr). By configuring these options appropriately,
-   you can tailor the behavior of the UI runtime to suit your application's
-   needs.
-   @see ui_init
-*/
+// ---------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------
+#define CCHARW_MAX 5
+#define UI_COLORS 512
+#define UI_PAIRS 512
+#define ALLWINS (uint)1000
+#define UI_SFC_MAX 30
+#define SFC_MAX 30
+#define ERR -1
+#ifdef UAL_UI
+typedef cchar_t UiCell;
+typedef struct {
+    uint r;
+    uint g;
+    uint b;
+} STDRGB;
+#else
+// Linus doesn't consider typedefs for inclusion into the linux kernel because
+// they can obscure the underlying type leading to performance destroying
+// pass-by-value mistakes. We use them because they improve code readibility
+// and maintainability, but remain aware of that caveat.
+typedef uint16_t attr_t;
+typedef struct nccell UiCell;
+typedef struct ncplane NcPlane;
+typedef struct notcurses NotCurses;
+typedef struct notcurses_options NotCursesOptions;
+typedef struct ncplane_options NcPlaneOptions;
+typedef struct UiPair UiPair;
+typedef struct UiColor UiColor;
+typedef struct {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+} STDRGB;
+extern NcPlane *stdplane;
+extern UiSurface *stdsfc;
+extern uint LINES, COLS;
+
+#define CELL_CHAR_INITIALIZER(c) { \
+    .gcluster = (c),               \
+    .gcluster_backstop = 0,        \
+    .stylemask = 0,                \
+    .channels = 0,                 \
+}
+#define CELL_INITIALIZER(c, s, chan) { \
+    .gcluster = (c),                   \
+    .gcluster_backstop = 0,            \
+    .stylemask = (s),                  \
+    .channels = (chan),                \
+}
+
+#endif
+
 typedef struct {
     bool enable_mouse;
     bool enable_alt_screen;
@@ -118,23 +165,11 @@ typedef struct {
     FILE *tty_fp;         /**< optional TTY FILE pointer; NULL = auto-detect */
 } UiConfig;
 
-/** @enum UiBackend
-   @brief Identifies which terminal library is powering the UI runtime.
-   @ingroup ui_backend
-*/
 typedef enum {
     UI_BACKEND_NCURSES = 0, /**< NCurses / NCursesW backend */
     UI_BACKEND_NOTCURSES    /**< NotCurses backend */
 } UiBackend;
 
-/** @struct UiCaps
-   @brief Capability flags reported by the active UI backend.
-   @ingroup ui_backend
-   @details Query via ui_get_caps() after ui_init() succeeds.  Differences
-   between backends are made explicit through these flags so application code
-   can adapt rather than assume.
-   @see ui_get_caps
-*/
 typedef struct {
     bool truecolor;  /**< backend can display 24-bit RGB colors */
     bool palette256; /**< backend supports at least 256 palette entries */
@@ -143,6 +178,101 @@ typedef struct {
     bool resize;     /**< backend emits UIKEY_RESIZE on terminal resize */
     int color_pairs; /**< max simultaneous color pairs; 0 = unlimited */
 } UiCaps;
+
+// ---------------------------------------------------------------
+// Colors
+// ---------------------------------------------------------------
+
+extern int click_y; /**< the y coordinate of a mouse click */
+extern int click_x; /**< the x coordinate of a mouse click */
+
+extern ushort cp_default;            /**< default color pair index */
+extern ushort cp_box;                /**< box color pair index */
+extern ushort cp_ind;                /**< indicator color pair index */
+extern ushort cp_bold;               /**< bold color pair index */
+extern ushort cp_title;              /**< title color pair index */
+extern ushort cp_highlight;          /**< highlight color pair index */
+extern ushort cp_fill_char;          /**< fill character color pair index */
+extern ushort cp_brackets;           /**< color pair index for field brackets */
+extern ushort cp_nt;                 /**< normal color pair index */
+extern ushort cp_nt_rev;             /**< reverse color pair index */
+extern ushort cp_nt_hl;              /**< highlight color pair index */
+extern ushort cp_nt_hl_rev;          /**< highlight reverse color pair index */
+extern ushort cp_ln_fg;              /**< line number color pair index */
+extern ushort cp_ln_bg;              /**< line number background color pair index */
+extern ushort cp_cmdln_fg;           /**< command line number color pair index */
+extern ushort cp_cmdln_bg;           /**< command line number background color pair index */
+extern ushort cp_red;                /**< red background color pair index */
+extern ushort cp_green;              /**< green background color pair index */
+extern ushort cp_yellow;             /**< yellow background color pair index */
+extern ushort cp_blue;               /**< blue background color pair index */
+extern uint clr_idx;                 /**< current color index */
+extern uint clr_cnt;                 /**< number of colors used */
+extern uint clr_pair_idx;            /**< current color pair index */
+extern uint clr_pair_cnt;            /**< number of color pairs supported by the terminal */
+extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
+
+typedef struct {
+    uint fg;      /**< foreground color index */
+    uint bg;      /**< background color index */
+    uint pair_id; /**< color pair index */
+} ColorPair;
+
+#define COLOR_LEN 8   /**< length of color code strings */
+#define FG_COLOR 2    /**< default foreground color */
+#define BG_COLOR 0    /**< default background color */
+#define BO_COLOR 1    /**< default bold foreground color */
+#define LN_COLOR 4    /**< default line number color */
+#define LN_BG_COLOR 7 /**< default line number background */
+
+typedef enum {
+    CLR_BLACK,
+    CLR_RED,
+    CLR_GREEN,
+    CLR_YELLOW,
+    CLR_BLUE,
+    CLR_MAGENTA,
+    CLR_CYAN,
+    CLR_WHITE,
+    CLR_BBLACK,
+    CLR_BRED,
+    CLR_BGREEN,
+    CLR_BYELLOW,
+    CLR_BBLUE,
+    CLR_BMAGENTA,
+    CLR_BCYAN,
+    CLR_BWHITE,
+    CLR_BORANGE,
+    CLR_FG,
+    CLR_BG,
+    CLR_BOX_FG,
+    CLR_BOX_BG,
+    CLR_IND_FG,
+    CLR_IND_BG,
+    CLR_BRACKETS_FG,
+    CLR_BRACKETS_BG,
+    CLR_FILL_CHAR_FG,
+    CLR_FILL_CHAR_BG,
+    CLR_LN_FG,
+    CLR_LN_BG,
+    CLR_CMDLN_FG,
+    CLR_CMDLN_BG,
+    CLR_NT_FG,
+    CLR_NT_BG,
+    CLR_NT_REV_FG,
+    CLR_NT_REV_BG,
+    CLR_NT_HL_FG,
+    CLR_NT_HL_BG,
+    CLR_NT_HL_REV_FG,
+    CLR_NT_HL_REV_BG,
+    CLR_TITLE_FG,
+    CLR_TITLE_BG,
+    CLR_NCOLORS
+} ColorsEnum;
+
+// ---------------------------------------------------------------
+// Borders
+// ---------------------------------------------------------------
 
 /** BOX WIDE UNICODE CODEPOINTS */
 
@@ -198,135 +328,6 @@ extern const wchar_t *bw_lan;
 extern const wchar_t *bw_chk;
 extern const wchar_t *bw_h09;
 
-#ifdef UAL_UI
-typedef cchar_t UiCell;
-typedef struct {
-    uint r;
-    uint g;
-    uint b;
-} STDRGB;
-#else
-
-#define CCHARW_MAX 5
-#define ERR -1
-
-// Linus doesn't consider typedefs for inclusion into the linux kernel because
-// they can obscure the underlying type leading to performance destroying
-// pass-by-value mistakes. We use them because they improve code readibility
-// and maintainability, but remain aware of that caveat.
-typedef struct nccell UiCell;
-typedef struct ncplane NcPlane;
-typedef struct notcurses NotCurses;
-typedef struct notcurses_options NotCursesOptions;
-typedef struct ncplane_options NcPlaneOptions;
-typedef uint16_t attr_t;
-typedef struct UiPair UiPair;
-typedef struct UiColor UiColor;
-typedef struct {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-} STDRGB;
-extern NcPlane *stdplane;
-extern UiSurface *stdsfc;
-extern uint LINES, COLS;
-#define CELL_CHAR_INITIALIZER(c) { \
-    .gcluster = (c),               \
-    .gcluster_backstop = 0,        \
-    .stylemask = 0,                \
-    .channels = 0,                 \
-}
-#define CELL_INITIALIZER(c, s, chan) { \
-    .gcluster = (c),                   \
-    .gcluster_backstop = 0,            \
-    .stylemask = (s),                  \
-    .channels = (chan),                \
-}
-
-#endif
-typedef struct {
-    union {
-        uint32_t u32;
-        wchar_t u16[2];
-        uint8_t u8[4];
-        char c[4];
-    };
-    uint8_t backstop;
-    uint8_t width;
-} GCluster;
-
-static inline int unicode_to_utf8_gcluster(uint32_t cp, GCluster *g) {
-    if (cp <= 0x7F) {
-        g->c[0] = (char)cp;
-        g->c[1] = '\0';
-        g->width = 1;
-    } else if (cp <= 0x7FF) {
-        g->c[0] = (char)(0xC0 | (cp >> 6));
-        g->c[1] = (char)(0x80 | (cp & 0x3F));
-        g->c[2] = '\0';
-        g->width = 2;
-    } else if (cp <= 0xFFFF) {
-        g->c[0] = (char)(0xE0 | (cp >> 12));
-        g->c[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
-        g->c[2] = (char)(0x80 | (cp & 0x3F));
-        g->c[3] = '\0';
-        g->width = 3;
-    } else if (cp <= 0x10FFFF) {
-        g->c[0] = (char)(0xF0 | (cp >> 18));
-        g->c[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
-        g->c[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
-        g->c[3] = (char)(0x80 | (cp & 0x3F));
-        g->backstop = '\0';
-        g->width = 4;
-    }
-    return 0;
-}
-
-typedef enum {
-    CLR_BLACK,
-    CLR_RED,
-    CLR_GREEN,
-    CLR_YELLOW,
-    CLR_BLUE,
-    CLR_MAGENTA,
-    CLR_CYAN,
-    CLR_WHITE,
-    CLR_BBLACK,
-    CLR_BRED,
-    CLR_BGREEN,
-    CLR_BYELLOW,
-    CLR_BBLUE,
-    CLR_BMAGENTA,
-    CLR_BCYAN,
-    CLR_BWHITE,
-    CLR_BORANGE,
-    CLR_FG,
-    CLR_BG,
-    CLR_BOX_FG,
-    CLR_BOX_BG,
-    CLR_IND_FG,
-    CLR_IND_BG,
-    CLR_BRACKETS_FG,
-    CLR_BRACKETS_BG,
-    CLR_FILL_CHAR_FG,
-    CLR_FILL_CHAR_BG,
-    CLR_LN_FG,
-    CLR_LN_BG,
-    CLR_CMDLN_FG,
-    CLR_CMDLN_BG,
-    CLR_NT_FG,
-    CLR_NT_BG,
-    CLR_NT_REV_FG,
-    CLR_NT_REV_BG,
-    CLR_NT_HL_FG,
-    CLR_NT_HL_BG,
-    CLR_NT_HL_REV_FG,
-    CLR_NT_HL_REV_BG,
-    CLR_TITLE_FG,
-    CLR_TITLE_BG,
-    CLR_NCOLORS
-} ColorsEnum;
-
 extern UiCell cell_default;
 extern UiCell cell_fill_char;
 extern UiCell cell_brktl;
@@ -358,6 +359,58 @@ extern UiCell cell_tt;
 extern UiCell cell_bt;
 extern UiCell cell_cr;
 extern UiCell cell_sp;
+
+#define XTERM_256COLOR 1
+#if defined(XTERM_256COLOR)
+#define KEY_ALTINS 0x223
+#define KEY_ALTHOME 0x21e
+#define KEY_ALTPGUP 0x232
+#define KEY_ALTDEL 0x20e
+#define KEY_ALTEND 0x219
+#define KEY_ALTPGDN 0x22d
+#define KEY_ALTUP 0x23d
+#define KEY_ALTLEFT 0x228
+#define KEY_ALTDOWN 0x214
+#define KEY_ALTRIGHT 0x237
+#elif defined(XTERM_GHOSTTY)
+#define KEY_ALTINS 0x228
+#define KEY_ALTHOME 0x223
+#define KEY_ALTPGUP 0x237
+#define KEY_ALTDEL 0x213
+#define KEY_ALTEND 0x21e
+#define KEY_ALTPGDN 0x232
+#define KEY_ALTUP 0x242
+#define KEY_ALTLEFT 0x22d
+#define KEY_ALTDOWN 0x219
+#define KEY_ALTRIGHT 0x23c
+#endif
+
+static inline int unicode_to_utf8_gcluster(uint32_t cp, GCluster *g) {
+    if (cp <= 0x7F) {
+        g->c[0] = (char)cp;
+        g->c[1] = '\0';
+        g->width = 1;
+    } else if (cp <= 0x7FF) {
+        g->c[0] = (char)(0xC0 | (cp >> 6));
+        g->c[1] = (char)(0x80 | (cp & 0x3F));
+        g->c[2] = '\0';
+        g->width = 2;
+    } else if (cp <= 0xFFFF) {
+        g->c[0] = (char)(0xE0 | (cp >> 12));
+        g->c[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
+        g->c[2] = (char)(0x80 | (cp & 0x3F));
+        g->c[3] = '\0';
+        g->width = 3;
+    } else if (cp <= 0x10FFFF) {
+        g->c[0] = (char)(0xF0 | (cp >> 18));
+        g->c[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
+        g->c[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
+        g->c[3] = (char)(0x80 | (cp & 0x3F));
+        g->backstop = '\0';
+        g->width = 4;
+    }
+    return 0;
+}
 
 typedef struct {
     double red_gamma;      /**< red gamma correction value */
@@ -441,81 +494,6 @@ typedef struct {
     ushort cp_chk;         /**< checkmark color pair index */
     ushort cp_bold;        /**< bold color pair index */
 } SIO;
-
-#define COLOR_LEN 8   /**< length of color code strings */
-#define FG_COLOR 2    /**< default foreground color */
-#define BG_COLOR 0    /**< default background color */
-#define BO_COLOR 1    /**< default bold foreground color */
-#define LN_COLOR 4    /**< default line number color */
-#define LN_BG_COLOR 7 /**< default line number background */
-
-#define XTERM_256COLOR 1
-#if defined(XTERM_256COLOR)
-#define KEY_ALTINS 0x223
-#define KEY_ALTHOME 0x21e
-#define KEY_ALTPGUP 0x232
-#define KEY_ALTDEL 0x20e
-#define KEY_ALTEND 0x219
-#define KEY_ALTPGDN 0x22d
-#define KEY_ALTUP 0x23d
-#define KEY_ALTLEFT 0x228
-#define KEY_ALTDOWN 0x214
-#define KEY_ALTRIGHT 0x237
-#elif defined(XTERM_GHOSTTY)
-#define KEY_ALTINS 0x228
-#define KEY_ALTHOME 0x223
-#define KEY_ALTPGUP 0x237
-#define KEY_ALTDEL 0x213
-#define KEY_ALTEND 0x21e
-#define KEY_ALTPGDN 0x232
-#define KEY_ALTUP 0x242
-#define KEY_ALTLEFT 0x22d
-#define KEY_ALTDOWN 0x219
-#define KEY_ALTRIGHT 0x23c
-#endif
-
-extern int click_y; /**< the y coordinate of a mouse click */
-extern int click_x; /**< the x coordinate of a mouse click */
-
-extern ushort cp_default;            /**< default color pair index */
-extern ushort cp_box;                /**< box color pair index */
-extern ushort cp_ind;                /**< indicator color pair index */
-extern ushort cp_bold;               /**< bold color pair index */
-extern ushort cp_title;              /**< title color pair index */
-extern ushort cp_highlight;          /**< highlight color pair index */
-extern ushort cp_fill_char;          /**< fill character color pair index */
-extern ushort cp_brackets;           /**< color pair index for field brackets */
-extern ushort cp_nt;                 /**< normal color pair index */
-extern ushort cp_nt_rev;             /**< reverse color pair index */
-extern ushort cp_nt_hl;              /**< highlight color pair index */
-extern ushort cp_nt_hl_rev;          /**< highlight reverse color pair index */
-extern ushort cp_ln_fg;              /**< line number color pair index */
-extern ushort cp_ln_bg;              /**< line number background color pair index */
-extern ushort cp_cmdln_fg;           /**< command line number color pair index */
-extern ushort cp_cmdln_bg;           /**< command line number background color pair index */
-extern ushort cp_red;                /**< red background color pair index */
-extern ushort cp_green;              /**< green background color pair index */
-extern ushort cp_yellow;             /**< yellow background color pair index */
-extern ushort cp_blue;               /**< blue background color pair index */
-extern uint clr_idx;                 /**< current color index */
-extern uint clr_cnt;                 /**< number of colors used */
-extern uint clr_pair_idx;            /**< current color pair index */
-extern uint clr_pair_cnt;            /**< number of color pairs supported by the terminal */
-extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
-
-/** @struct ColorPair
-  @details The ColorPair structure is a simple structure that holds information
-  about a color pair, including the foreground color index, background color
-  index, and the color pair index. This structure can be used to manage and
-  apply color pairs in the ncurses library, allowing for easy customization of
-  the terminal's appearance. By using this structure, you can easily keep track
-  of the different color pairs you have defined and apply them to various
-  elements in your terminal interface. */
-typedef struct {
-    uint fg;      /**< foreground color index */
-    uint bg;      /**< background color index */
-    uint pair_id; /**< color pair index */
-} ColorPair;
 
 /* @name UI Backend API
    @ingroup ui_backend
@@ -800,4 +778,63 @@ int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char
 int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle);
 void ui_unset_chyron_key(UiChyron *chyron, uint k);
 RGB ui_xterm256_idx_to_rgb(uint idx);
+// ---------------------------------------------------------------
+// Logging
+// ---------------------------------------------------------------
+char *ui_iso8601_timestamp(char *buf, size_t n, bool local);
+
+// Ascendling log levels for UiLog
+typedef enum {
+    PANIC,
+    FATAL,
+    ERROR,
+    WARN,
+    INFO,
+    VERBOSE,
+    DEBUG,
+    TRACE,
+    LOG_LEVEL_COUNT
+} LogLevel;
+
+extern const char *iso8601_time(void);
+extern FILE *ui_log_fp;
+extern char *ui_log_file_name;
+extern bool ui_timestamp_local;
+extern const char *const ui_logcolor[];
+extern const char *const ui_loglevel[];
+extern LogLevel ui_min_loglevel;
+extern char ui_timestamp[32];
+#define ANSI_RESET "\033[0m"
+
+FILE *ui_open_log();
+
+static inline void ui_logrec(const LogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
+
+static inline void ui_logrec(const LogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) {
+    LogLevel safe_level = (level >= LOG_LEVEL_COUNT) ? TRACE : level;
+    // Print the metadata header (Timestamp, Level, File, Func, Line)
+    fprintf(ui_log_fp, "[%s] %s[%s]%s <%s:%s:%d> ",
+            ui_iso8601_timestamp(ui_timestamp, sizeof(ui_timestamp), ui_timestamp_local),
+            ui_logcolor[safe_level],
+            ui_loglevel[safe_level],
+            ANSI_RESET,
+            file, func, line);
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(ui_log_fp, fmt, args);
+    va_end(args);
+    fprintf(ui_log_fp, "\n");
+    fflush(ui_log_fp);
+}
+
+#define ui_log(level, fmt, ...)                                                 \
+    do {                                                                        \
+        if (level <= ui_min_loglevel) {                                         \
+            ui_logrec(level, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
+        }                                                                       \
+    } while (0)
+
+#ifdef __cplusplus
+}
+#endif
 #endif

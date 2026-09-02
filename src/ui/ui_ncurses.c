@@ -57,129 +57,6 @@ void ui_get_caps(UiCaps *caps) {
     caps->resize = true;
     caps->color_pairs = 0;
 }
-/* -------------------------------------------------------------------------
-   Colors, Color Pairs
-   ------------------------------------------------------------------------- */
-uint ui_add_pair(uint fg, uint bg) {
-    int rc;
-    uint i;
-    uint pfg, pbg;
-    for (i = 1; i < ui_pair_cnt; i++) {
-        ui_pair_content(i, &pfg, &pbg);
-        if (pfg == fg && pbg == bg)
-            return i;
-    }
-    if (i + 1 >= UI_PAIRS) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "ui_add_pair failed for pair: %d", i);
-        strerror_r(errno, em2, MAXLEN);
-        ui_display_error(em0, em1, em2, nullptr);
-        return (EXIT_FAILURE);
-    }
-    rc = init_extended_pair(i, fg, bg);
-    if (rc == ERR) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "init_extended_pair failed for pair: %d", i);
-        ssnprintf(em2, MAXLEN - 1, "fg: %d, bg: %d, ui_pair_cnt: %d", fg, bg, ui_pair_cnt);
-        ui_display_error(em0, em1, em2, nullptr);
-        return (EXIT_FAILURE);
-    }
-    ui_pair_cnt++;
-    return (int)(ui_pair_cnt - 1);
-}
-int ui_chg_pair(uint pair, uint fg, uint bg) {
-    if (pair + 1 >= UI_PAIRS)
-        return -1;
-    init_extended_pair(pair, fg, bg);
-    return 0;
-}
-int ui_add_color_rgb(RGB *rgb) {
-    uint i;
-    RGB tmp;
-    ui_apply_gamma(rgb);
-    rgb->r = (rgb->r * 1000) / 255;
-    rgb->g = (rgb->g * 1000) / 255;
-    rgb->b = (rgb->b * 1000) / 255;
-    rgb->a = 0;
-    for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
-        extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
-        if (rgb->r == tmp.r && rgb->g == tmp.g && rgb->b == tmp.b)
-            return i;
-    }
-    if (i < UI_COLORS) {
-        if (i < 16) {
-            std_color[i].r = rgb->r;
-            std_color[i].g = rgb->g;
-            std_color[i].b = rgb->b;
-        }
-        init_extended_color(i, rgb->r, rgb->g, rgb->b);
-        if (ui_color_cnt + 1 < UI_COLORS)
-            ui_color_cnt++;
-        return ui_color_cnt - 1;
-    }
-    return 0;
-}
-uint32_t ui_get_color(uint16_t color_idx) {
-    if (color_idx + 1 >= UI_COLORS)
-        return -1;
-    RGB rgb;
-    extended_color_content(color_idx, &rgb.r, &rgb.g, &rgb.b);
-    rgb.r = (rgb.r * 255) / 1000;
-    rgb.g = (rgb.g * 255) / 1000;
-    rgb.b = (rgb.b * 255) / 1000;
-    return 0;
-}
-RGB ui_hex_to_rgb(char *s) {
-    RGB rgb;
-    sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    return rgb;
-}
-int ui_color_content(uint color, uint *r, uint *g, uint *b) {
-    int _color = (int)color;
-    int _r, _g, _b;
-    extended_color_content(_color, &_r, &_g, &_b);
-    *r = (uint)_r;
-    *g = (uint)_g;
-    *b = (uint)_b;
-    return 0;
-}
-
-int ui_init_color(uint color, uint r, uint g, uint b) {
-    init_extended_color(color, r, g, b);
-    return 0;
-}
-
-int ui_pair_content(uint pair, uint *fg, uint *bg) {
-    int _pair = (int)pair;
-    int _fg, _bg;
-    extended_pair_content(_pair, &_fg, &_bg);
-    *fg = (uint)_fg;
-    *bg = (uint)_bg;
-    return 0;
-}
-int ui_init_pair(uint pair, uint fg, uint bg) {
-    init_extended_pair(pair, fg, bg);
-    return 0;
-}
-int ui_chg_color(uint16_t color_idx, uint32_t *color) {
-    if (color_idx + 1 >= UI_COLORS)
-        return -1;
-    RGB rgb;
-    rgb.r = (*color >> 16) & 0xff;
-    rgb.g = (*color >> 8) & 0xff;
-    rgb.b = *color & 0xff;
-    ui_apply_gamma(&rgb);
-    rgb.r = (rgb.r * 1000) / 255;
-    rgb.g = (rgb.g * 1000) / 255;
-    rgb.b = (rgb.b * 1000) / 255;
-    if (color_idx < 16) {
-        std_color[color_idx].r = rgb.r;
-        std_color[color_idx].g = rgb.g;
-        std_color[color_idx].b = rgb.b;
-    }
-    init_extended_color(color_idx, rgb.r, rgb.g, rgb.b);
-    return 0;
-}
 
 /* -------------------------------------------------------------------------
    Styles
@@ -579,9 +456,68 @@ int ui_surface_hide(UiSurface *s, uint w) {
     s->meta[w].hidden = true;
     return 0;
 }
+// -------------------------------------------------------------------------
+// Screen Navigation
+// -------------------------------------------------------------------------
+
+int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
+    if (!s || !s->mwin[w])
+        return -1;
+    return wmove(s->mwin[w], y, x);
+}
+int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
+    if (!s || !s->mwin[w])
+        return -1;
+    return wmove(s->mwin[w], y, x);
+}
+int ui_curs_set(int visibility) {
+    curs_set(visibility);
+    return 0;
+}
+void ui_getyx(UiSurface *s, uint w, uint *lines, uint *cols) {
+    if (!s->mwin[w])
+        return;
+    int _lines, _cols;
+    getyx(s->mwin[w], _lines, _cols);
+    *lines = (uint)(_lines);
+    *cols = (uint)(_cols);
+}
+void ui_getmaxyx(UiSurface *s, uint w, uint *lines, uint *cols) {
+    if (!s->mwin[w])
+        return;
+    getmaxyx(s->mwin[w], *lines, *cols);
+}
+int ui_getmaxy(UiSurface *s, uint w) {
+    if (!s->mwin[w])
+        return -1;
+    return (int)(getmaxy(s->mwin[w]));
+}
+int ui_getmaxx(UiSurface *s, uint w) {
+
+    if (!s->mwin[w])
+        return -1;
+    return (int)(getmaxx(s->mwin[w]));
+}
+void ui_get_screen_size(uint *lines, uint *cols) {
+    if (!ui)
+        return;
+    getmaxyx(stdscr, ui->lines, ui->cols);
+    if (lines)
+        *lines = ui->lines;
+    if (cols)
+        *cols = ui->cols;
+}
+
+int ui_wscrl(UiSurface *s, uint w, int n) {
+    if (!s->mwin[w])
+        return -1;
+    wscrl(s->mwin[w], n);
+    ui_render();
+    return 0;
+}
 
 // -------------------------------------------------------------------------
-// Controls and Settings
+// Configuration Control
 // -------------------------------------------------------------------------
 
 int ui_scrollok(UiSurface *s, uint w, bool enable) {
@@ -626,39 +562,9 @@ int ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom) {
     wsetscrreg(s->mwin[w], top, bottom);
     return 0;
 }
-void ui_getyx(UiSurface *s, uint w, uint *lines, uint *cols) {
-    if (!s->mwin[w])
-        return;
-    int _lines, _cols;
-    getyx(s->mwin[w], _lines, _cols);
-    *lines = (uint)(_lines);
-    *cols = (uint)(_cols);
-}
-void ui_getmaxyx(UiSurface *s, uint w, uint *lines, uint *cols) {
-    if (!s->mwin[w])
-        return;
-    getmaxyx(s->mwin[w], *lines, *cols);
-}
-int ui_getmaxy(UiSurface *s, uint w) {
-    if (!s->mwin[w])
-        return -1;
-    return (int)(getmaxy(s->mwin[w]));
-}
-int ui_getmaxx(UiSurface *s, uint w) {
-
-    if (!s->mwin[w])
-        return -1;
-    return (int)(getmaxx(s->mwin[w]));
-}
-void ui_get_screen_size(uint *lines, uint *cols) {
-    if (!ui)
-        return;
-    getmaxyx(stdscr, ui->lines, ui->cols);
-    if (lines)
-        *lines = ui->lines;
-    if (cols)
-        *cols = ui->cols;
-}
+// -------------------------------------------------------------------------
+// Cursor Control
+// -------------------------------------------------------------------------
 // included for symetry with notcurses, which needs it to compensate
 // for cursor positioning bug
 int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
@@ -679,31 +585,6 @@ int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
     return 0;
 }
 
-// -------------------------------------------------------------------------
-// Screen Navigation
-// -------------------------------------------------------------------------
-
-int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
-    if (!s || !s->mwin[w])
-        return -1;
-    return wmove(s->mwin[w], y, x);
-}
-int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
-    if (!s || !s->mwin[w])
-        return -1;
-    return wmove(s->mwin[w], y, x);
-}
-int ui_curs_set(int visibility) {
-    curs_set(visibility);
-    return 0;
-}
-int ui_wscrl(UiSurface *s, uint w, int n) {
-    if (!s->mwin[w])
-        return -1;
-    wscrl(s->mwin[w], n);
-    ui_render();
-    return 0;
-}
 // -------------------------------------------------------------------------
 // Background
 // -------------------------------------------------------------------------
@@ -771,6 +652,129 @@ int ui_wnoutrefresh(UiSurface *s, uint w) {
     if (!s)
         return -1;
     wnoutrefresh(s->mwin[w]);
+    return 0;
+}
+/* -------------------------------------------------------------------------
+   Colors, Color Pairs
+   ------------------------------------------------------------------------- */
+uint ui_add_pair(uint fg, uint bg) {
+    int rc;
+    uint i;
+    uint pfg, pbg;
+    for (i = 1; i < ui_pair_cnt; i++) {
+        ui_pair_content(i, &pfg, &pbg);
+        if (pfg == fg && pbg == bg)
+            return i;
+    }
+    if (i + 1 >= UI_PAIRS) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "ui_add_pair failed for pair: %d", i);
+        strerror_r(errno, em2, MAXLEN);
+        ui_display_error(em0, em1, em2, nullptr);
+        return (EXIT_FAILURE);
+    }
+    rc = init_extended_pair(i, fg, bg);
+    if (rc == ERR) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "init_extended_pair failed for pair: %d", i);
+        ssnprintf(em2, MAXLEN - 1, "fg: %d, bg: %d, ui_pair_cnt: %d", fg, bg, ui_pair_cnt);
+        ui_display_error(em0, em1, em2, nullptr);
+        return (EXIT_FAILURE);
+    }
+    ui_pair_cnt++;
+    return (int)(ui_pair_cnt - 1);
+}
+int ui_chg_pair(uint pair, uint fg, uint bg) {
+    if (pair + 1 >= UI_PAIRS)
+        return -1;
+    init_extended_pair(pair, fg, bg);
+    return 0;
+}
+int ui_add_color_rgb(RGB *rgb) {
+    uint i;
+    RGB tmp;
+    ui_apply_gamma(rgb);
+    rgb->r = (rgb->r * 1000) / 255;
+    rgb->g = (rgb->g * 1000) / 255;
+    rgb->b = (rgb->b * 1000) / 255;
+    rgb->a = 0;
+    for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
+        extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
+        if (rgb->r == tmp.r && rgb->g == tmp.g && rgb->b == tmp.b)
+            return i;
+    }
+    if (i < UI_COLORS) {
+        if (i < 16) {
+            std_color[i].r = rgb->r;
+            std_color[i].g = rgb->g;
+            std_color[i].b = rgb->b;
+        }
+        init_extended_color(i, rgb->r, rgb->g, rgb->b);
+        if (ui_color_cnt + 1 < UI_COLORS)
+            ui_color_cnt++;
+        return ui_color_cnt - 1;
+    }
+    return 0;
+}
+uint32_t ui_get_color(uint16_t color_idx) {
+    if (color_idx + 1 >= UI_COLORS)
+        return -1;
+    RGB rgb;
+    extended_color_content(color_idx, &rgb.r, &rgb.g, &rgb.b);
+    rgb.r = (rgb.r * 255) / 1000;
+    rgb.g = (rgb.g * 255) / 1000;
+    rgb.b = (rgb.b * 255) / 1000;
+    return 0;
+}
+RGB ui_hex_to_rgb(char *s) {
+    RGB rgb;
+    sscanf(s, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
+    return rgb;
+}
+int ui_color_content(uint color, uint *r, uint *g, uint *b) {
+    int _color = (int)color;
+    int _r, _g, _b;
+    extended_color_content(_color, &_r, &_g, &_b);
+    *r = (uint)_r;
+    *g = (uint)_g;
+    *b = (uint)_b;
+    return 0;
+}
+
+int ui_init_color(uint color, uint r, uint g, uint b) {
+    init_extended_color(color, r, g, b);
+    return 0;
+}
+
+int ui_pair_content(uint pair, uint *fg, uint *bg) {
+    int _pair = (int)pair;
+    int _fg, _bg;
+    extended_pair_content(_pair, &_fg, &_bg);
+    *fg = (uint)_fg;
+    *bg = (uint)_bg;
+    return 0;
+}
+int ui_init_pair(uint pair, uint fg, uint bg) {
+    init_extended_pair(pair, fg, bg);
+    return 0;
+}
+int ui_chg_color(uint16_t color_idx, uint32_t *color) {
+    if (color_idx + 1 >= UI_COLORS)
+        return -1;
+    RGB rgb;
+    rgb.r = (*color >> 16) & 0xff;
+    rgb.g = (*color >> 8) & 0xff;
+    rgb.b = *color & 0xff;
+    ui_apply_gamma(&rgb);
+    rgb.r = (rgb.r * 1000) / 255;
+    rgb.g = (rgb.g * 1000) / 255;
+    rgb.b = (rgb.b * 1000) / 255;
+    if (color_idx < 16) {
+        std_color[color_idx].r = rgb.r;
+        std_color[color_idx].g = rgb.g;
+        std_color[color_idx].b = rgb.b;
+    }
+    init_extended_color(color_idx, rgb.r, rgb.g, rgb.b);
     return 0;
 }
 /* -------------------------------------------------------------------------
