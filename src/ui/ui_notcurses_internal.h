@@ -202,15 +202,6 @@ struct UiSurface {
     int sub_cnt;
 };
 
-// struct NcCell {
-//     uint32_t gcluster;         // 0  3   4  little endian EGC
-//     uint8_t gcluster_backstop; // 4  1   5  (8 bits of zero)
-//     uint8_t width;             // 5  1   6  (8 bits of EGC column width)
-//     uint16_t stylemask;        // 6  2   8  (16 bits of NCSTYLE_* attributes)
-//     uint64_t channels;         // 8  8  16  (fg/bg, alpha, palette index,
-//     uadrant)
-// };
-
 typedef struct {
     union {
         struct {

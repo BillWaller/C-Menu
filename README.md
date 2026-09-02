@@ -25,6 +25,9 @@ being said, NCurses, with fewer cool features, is solid as a rock, and it isn't
 going anywhere. You can use the Notcurses version of C-Menu on your powerful
 desktop development system, and then deploy the NCurses version of C-Menu on your production server. The UAL makes this possible, and it is a key feature of C-Menu that sets it apart from other terminal-based UI toolkits.
 
+It's only natural to wonder if an extra layer will slow the application down.
+The answer is no. The UAL is designed to be lightweight and efficient, and it does not introduce any significant overhead. In fact, the UAL can actually improve performance in some cases, by providing a more efficient way to manage the terminal display and input events. As for the forwarded function calls, the redirection is handled at compile time, so there is no runtime overhead. The UAL is designed to be fast and efficient, and it does not introduce any significant performance penalties.
+
 The core C-Menu components are visually and functionally identical across both
 NCurses and Notcurses backends, and the same code drives both backends through the UAL. This means that you can develop your application using the Notcurses backend, and then deploy it using the NCurses backend without any changes to your code. This is a powerful feature that allows you to take advantage of the advanced features of Notcurses during development, while still being able to deploy your application on systems that only support NCurses.
 
