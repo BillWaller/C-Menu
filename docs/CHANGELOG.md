@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-02T12:21:03-05:00* - FEATURE UPDATE: Fixes and improvements to the ncurses UI backend NCurses stores colors scaled from 0-1000, while Notcurses uses the conventional 0-255 range. This corrects an issue in which the first 16 colors (std_colors) were being scaled up twice, resulting in color distortion. 
+
+*2026-09-02T00:48:15-05:00* - Update CHANGELOG.md 
+
 *2026-09-02T00:47:36-05:00* - FEATURE UPDATE: Minor UI Enhancements and Code Cleanup 
 
 *2026-09-01T20:25:38-05:00* - Update CHANGELOG.md 
