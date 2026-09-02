@@ -90,7 +90,7 @@ int init_view_full_screen(Init *init) {
 
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
     ui_log(INFO, "created view->sfc->mplane[PAD]");
-    if (view->sfc->mplane[PAD] == nullptr) {
+    if (view->sfc->pad == nullptr) {
         ssnprintf(em0, MAXLEN - 1, "ui_sfc_addpan(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
         ui_log(INFO, "%s", em0);
         exit(EXIT_FAILURE);

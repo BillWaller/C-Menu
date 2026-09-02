@@ -111,7 +111,6 @@ typedef struct {
 #define ALLWINS (uint)1000
 #define UI_SFC_MAX 30
 #define SFC_MAX 30
-#define ERR -1
 #ifdef UAL_UI
 typedef cchar_t UiCell;
 typedef struct {
@@ -140,7 +139,7 @@ typedef struct {
 extern NcPlane *stdplane;
 extern UiSurface *stdsfc;
 extern uint LINES, COLS;
-
+#define ERR -1
 #define CELL_CHAR_INITIALIZER(c) { \
     .gcluster = (c),               \
     .gcluster_backstop = 0,        \

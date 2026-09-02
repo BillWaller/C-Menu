@@ -155,7 +155,7 @@ struct UiRuntime {
 
 #define SFC_MAX 30
 
-enum {
+typedef enum {
     BOX,
     WIN,
     WIN2,
@@ -164,7 +164,17 @@ enum {
     PAD,
     WIN3,
     SUB_SFC_MAX
-};
+} SubSurface;
+
+const char *const sub_sfc_names[] = {
+    [BOX] = "BOX",
+    [WIN] = "WIN",
+    [WIN2] = "WIN2",
+    [LNNO] = "LNNO",
+    [CMDLN] = "CMDLN",
+    [PAD] = "PAD",
+    [WIN3] = "WIN3",
+    [SUB_SFC_MAX] = "SUB_SFC_MAX"};
 
 struct UiSurfaceMeta {
     unsigned int y;

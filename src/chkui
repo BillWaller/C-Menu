@@ -1,0 +1,57 @@
+#!/bin/bash
+# @brief chkui - check UI library linkage and selection
+
+if [ "$1" = "-s" ]; then
+    echo Switching compile_commands.json between NCURSES and NOTCURSES
+fi
+if [ "$1" = "-h" -o "$1" = "-?" -o "$1" = "--help" ]; then
+    echo chkui [-s][-h]
+    echo without arguments, chk reports:
+    echo menu - UI library linkage \(ncurses or notcurses\)
+    echo Makefile - UI library selection \(NOTCURSES_UI or UAL_UI\)
+    echo compile_commands.json - UI library selection \(NCURSES or NOTCURSES\)
+    echo Note: compile_commands.json is used by clangd for code completion and navigation.
+    echo -s switches compile_commands.json between NCURSES and NOTCURSES
+    echo -h, -?, --help prints this help message
+    exit 0
+fi
+grep NCURSES compile_commands.json >/dev/null 2>&1
+objdump -p ./menu | grep -E "NEEDED.*(notcurses)" >/dev/null 2>&1
+if [ "$?" = "0" ]; then
+    echo menu linked with notcurses
+else
+    objdump -p ./menu | grep -E "NEEDED.*(ncurses)" >/dev/null 2>&1
+    if [ "$?" = "0" ]; then
+        echo menu linked with ncurses
+    fi
+fi
+grep "^\s*UI?*\s*=\s*\"-DNOTCURSES_UI" Makefile >/dev/null 2>&1
+if [ "$?" = "0" ]; then
+    echo Makefile - NOTCURSES_UI
+else
+    grep "^\s*UI?*\s*=\s*\"-DUAL_UI" Makefile >/dev/null 2>&1
+    if [ "$?" = "0" ]; then
+        echo Makefile - UAL_UI
+    fi
+fi
+grep NCURSES compile_commands.json >/dev/null 2>&1
+if [ "$?" = "0" ]; then
+    if [ "$1" = "-s" ]; then
+        cp compile_commands_notcurses.json compile_commands.json
+        echo compile_commands.json: switching from NCURSES to NOTCURSES
+    else
+        echo last cmake build - NCURSES
+        echo NOTE: you can switch the compile_commands.json between NCURSES and NOTCURSES by running this script with the "-s" argument.
+    fi
+else
+    grep NOTCURSES compile_commands.json >/dev/null 2>&1
+    if [ "$?" = "0" ]; then
+        if [ "$1" = "-s" ]; then
+            cp compile_commands_ncurses.json compile_commands.json
+            echo compile_commands.json: switching from NOTCURSES to NCURSES
+        else
+            echo last cmake build - NOTCURSES
+            echo NOTE: you can switch the compile_commands.json between NCURSES and NOTCURSES by running this script with the "-s" argument.
+        fi
+    fi
+fi

@@ -91,16 +91,6 @@ typedef struct {
     bool f_strip_ansi;           /**< strip ansi escape sequences when writing buffer */
     bool f_multiple_cmd_args;    /**< View - put multiple arguments in a single */
 
-#ifdef ASDF
-    WINDOW *box_win;
-    PANEL *box_pan;
-    WINDOW *win_win;
-    WINDOW *lnno_win;
-    WINDOW *cmdln_win;
-    WINDOW *pad;
-    WINDOW *pad_view_win;
-    PANEL *pad_view_pan;
-#endif
     UiSurface *sfc;              /**< pointer to UI surface structure */
     char tmp_prompt_str[MAXLEN]; /**< temporary prompt string used when building
                                     prompt */
