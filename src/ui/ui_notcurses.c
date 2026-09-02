@@ -771,12 +771,12 @@ int ui_getcchar(const UiCell *uic, wchar_t *wc, UiStyle *style, UiPairIdx *pair,
     rgb.g = channels.f_g;
     rgb.b = channels.f_b;
     // If the color index does not exist, create a new one
-    int fg = ui_add_color_rgb(&rgb);
+    int fg = ui_color_from_rgb(&rgb);
     rgb.r = channels.b_r;
     rgb.g = channels.b_g;
     rgb.b = channels.b_b;
     // If the color index does not exist, create a new one
-    int bg = ui_add_color_rgb(&rgb);
+    int bg = ui_color_from_rgb(&rgb);
     // If the color pair does not exist, create a new one
     *pair = ui_add_pair(fg, bg);
     return 0;
@@ -818,7 +818,7 @@ UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *
 /* -------------------------------------------------------------------------
    Colors, Color Pairs
    ------------------------------------------------------------------------- */
-int ui_add_color_rgb(RGB *rgb) {
+int ui_color_from_rgb(RGB *rgb) {
     uint i;
     RGB tmp;
     ui_apply_gamma(rgb);

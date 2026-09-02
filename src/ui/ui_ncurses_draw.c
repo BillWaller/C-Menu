@@ -357,9 +357,9 @@ void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
                         }
                     }
                     if (t0 == '3')
-                        fg_clr = ui_add_color_rgb(&rgb);
+                        fg_clr = ui_color_from_rgb(&rgb);
                     else if (t0 == '4')
-                        bg_clr = ui_add_color_rgb(&rgb);
+                        bg_clr = ui_color_from_rgb(&rgb);
                 } else if (t1 == '9') {
                     if (t0 == '3')
                         fg_clr = CLR_NT_FG;
@@ -371,13 +371,13 @@ void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
                         rgb = ui_xterm256_idx_to_rgb(x_idx);
-                        fg_clr = ui_add_color_rgb(&rgb);
+                        fg_clr = ui_color_from_rgb(&rgb);
                     } else if (t0 == '4') {
                         tstr[0] = t1;
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
                         rgb = ui_xterm256_idx_to_rgb(x_idx);
-                        bg_clr = ui_add_color_rgb(&rgb);
+                        bg_clr = ui_color_from_rgb(&rgb);
                     }
                 }
             } else if (t0 == '0') {

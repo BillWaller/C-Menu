@@ -166,16 +166,6 @@ typedef enum {
     SUB_SFC_MAX
 } SubSurface;
 
-const char *const sub_sfc_names[] = {
-    [BOX] = "BOX",
-    [WIN] = "WIN",
-    [WIN2] = "WIN2",
-    [LNNO] = "LNNO",
-    [CMDLN] = "CMDLN",
-    [PAD] = "PAD",
-    [WIN3] = "WIN3",
-    [SUB_SFC_MAX] = "SUB_SFC_MAX"};
-
 struct UiSurfaceMeta {
     unsigned int y;
     unsigned int x;
@@ -333,10 +323,9 @@ int ui_wadd_cellstr(struct UiSurface *s, uint w, UiCell *cmplx_buf);
 int ui_wadd_cellnstr(struct UiSurface *s, uint w, UiCell *cmplx_buf, uint n);
 int ui_mvwadd_cellstr(struct UiSurface *s, uint w, uint y, uint x, UiCell *cmplx_buf);
 int ui_mvwadd_cellnstr(struct UiSurface *s, uint w, uint y, uint x, UiCell *cmplx_buf, uint n);
-
 extern struct UiSurface *stdsfc;
+
 #ifdef __cplusplus
 }
 #endif
-
 #endif

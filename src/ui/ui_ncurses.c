@@ -65,9 +65,9 @@ void ui_get_caps(UiCaps *caps) {
 int ui_pair_from_hex(const char *fg, const char *bg) {
     RGB rgb;
     sscanf(fg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int f_idx = ui_add_color_rgb(&rgb);
+    int f_idx = ui_color_from_rgb(&rgb);
     sscanf(bg, "#%02x%02x%02x", &rgb.r, &rgb.g, &rgb.b);
-    int b_idx = ui_add_color_rgb(&rgb);
+    int b_idx = ui_color_from_rgb(&rgb);
     return ui_add_pair(f_idx, b_idx);
 }
 
@@ -77,11 +77,11 @@ UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *
     rgb.r = (*fg >> 16) & 0xff;
     rgb.g = (*fg >> 8) & 0xff;
     rgb.b = *fg & 0xff;
-    int f_idx = ui_add_color_rgb(&rgb);
+    int f_idx = ui_color_from_rgb(&rgb);
     rgb.r = (*bg >> 16) & 0xff;
     rgb.g = (*bg >> 8) & 0xff;
     rgb.b = *bg & 0xff;
-    int b_idx = ui_add_color_rgb(&rgb);
+    int b_idx = ui_color_from_rgb(&rgb);
     short cp = ui_add_pair(f_idx, b_idx);
     wchar_t wstr[2] = {L'\0', L'\0'};
     wstr[0] = *ucp;
@@ -690,7 +690,24 @@ int ui_chg_pair(uint pair, uint fg, uint bg) {
     init_extended_pair(pair, fg, bg);
     return 0;
 }
-int ui_add_color_rgb(RGB *rgb) {
+
+/** was rgb_to_curses_clr
+ * @brief Convert RGB to curses color index, adding new color if necessary.
+ * @param rgb Pointer to RGB struct with r, g, b values (0-255).
+ * @return Color index in curses color table, or 0 on failure.
+ */
+int ui_color_from_rgb(RGB *rgb) {
+    if (rgb->r == rgb->g && rgb->g == rgb->b && rgb->b == 0)
+        return 0;
+    // #ifdef DEBUG_COLOR
+    if (rgb->r > 255 || rgb->g > 255 || rgb->b > 255) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ui_log(ERROR, "%s", em0);
+        ssnprintf(em1, MAXLEN - 1, "ui_color_from_rgb failed for RGB: %d,%d,%d", rgb->r, rgb->g, rgb->b);
+        ui_log(ERROR, "%s", em0);
+        // return (EXIT_FAILURE);
+    }
+    // #endif
     uint i;
     RGB tmp;
     ui_apply_gamma(rgb);
@@ -766,14 +783,14 @@ int ui_chg_color(uint16_t color_idx, uint32_t *color) {
     rgb.g = (*color >> 8) & 0xff;
     rgb.b = *color & 0xff;
     ui_apply_gamma(&rgb);
-    rgb.r = (rgb.r * 1000) / 255;
-    rgb.g = (rgb.g * 1000) / 255;
-    rgb.b = (rgb.b * 1000) / 255;
     if (color_idx < 16) {
         std_color[color_idx].r = rgb.r;
         std_color[color_idx].g = rgb.g;
         std_color[color_idx].b = rgb.b;
     }
+    rgb.r = (rgb.r * 1000) / 255;
+    rgb.g = (rgb.g * 1000) / 255;
+    rgb.b = (rgb.b * 1000) / 255;
     init_extended_color(color_idx, rgb.r, rgb.g, rgb.b);
     return 0;
 }

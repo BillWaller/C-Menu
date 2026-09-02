@@ -2412,7 +2412,7 @@ void log_split_lines(View *view) {
    4 for underline, 5 for blink, 7 for reverse, 8 for invis). The function
    also supports resetting attributes and colors to default using \033[0m.
 
-    see also: ui_xterm256_idx_to_rgb(), ui_add_color_rgb(), extended_pair_content(),
+    see also: ui_xterm256_idx_to_rgb(), ui_color_from_rgb(), extended_pair_content(),
    ui_add_pair()
 
     @endverbatim
@@ -2458,9 +2458,9 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, ushort *cpx) {
                         }
                     }
                     if (t0 == '3')
-                        fg_clr = ui_add_color_rgb(&rgb);
+                        fg_clr = ui_color_from_rgb(&rgb);
                     else if (t0 == '4')
-                        bg_clr = ui_add_color_rgb(&rgb);
+                        bg_clr = ui_color_from_rgb(&rgb);
                 } else if (t1 == '9') {
                     if (t0 == '3')
                         fg_clr = CLR_NT_FG;
@@ -2472,13 +2472,13 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, ushort *cpx) {
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
                         rgb = ui_xterm256_idx_to_rgb(x_idx);
-                        fg_clr = ui_add_color_rgb(&rgb);
+                        fg_clr = ui_color_from_rgb(&rgb);
                     } else if (t0 == '4') {
                         tstr[0] = t1;
                         tstr[1] = '\0';
                         x_idx = a_toi(tstr, &a_toi_error);
                         rgb = ui_xterm256_idx_to_rgb(x_idx);
-                        bg_clr = ui_add_color_rgb(&rgb);
+                        bg_clr = ui_color_from_rgb(&rgb);
                     }
                 }
             } else if (t0 == '0') {
