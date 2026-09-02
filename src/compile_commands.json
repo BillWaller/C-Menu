@@ -49,6 +49,12 @@
 },
 {
   "directory": "/usr/local/src/C-Menu/src/build",
+  "command": "/usr/bin/cc -DNCURSES_UI -DUAL_LEGACY_COMPAT -DUAL_UI -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -I/usr/local/src/C-Menu/src/ui -Wall -Wextra -DUAL_UI -O3 -DNDEBUG -std=gnu2x -fPIC -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -o CMakeFiles/cm.dir/ui/ui_common.c.o -c /usr/local/src/C-Menu/src/ui/ui_common.c",
+  "file": "/usr/local/src/C-Menu/src/ui/ui_common.c",
+  "output": "CMakeFiles/cm.dir/ui/ui_common.c.o"
+},
+{
+  "directory": "/usr/local/src/C-Menu/src/build",
   "command": "/usr/bin/cc -DNCURSES_UI -DUAL_LEGACY_COMPAT -DUAL_UI -Dcm_EXPORTS -I/usr/local/src/C-Menu/src/include -I/usr/local/src/C-Menu/src/ui -Wall -Wextra -DUAL_UI -O3 -DNDEBUG -std=gnu2x -fPIC -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -o CMakeFiles/cm.dir/ui/ui_layout.c.o -c /usr/local/src/C-Menu/src/ui/ui_layout.c",
   "file": "/usr/local/src/C-Menu/src/ui/ui_layout.c",
   "output": "CMakeFiles/cm.dir/ui/ui_layout.c.o"

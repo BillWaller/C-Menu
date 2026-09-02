@@ -19,7 +19,7 @@ extern "C" {
 #include "version.h"
 #include <argp.h>
 #ifdef UAL_UI
-#include "../ui/ui_ncurses_internal.h"
+// #include "../ui/ui_ncurses_internal.h"
 #include "ui_backend.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>
@@ -449,7 +449,6 @@ extern size_t rtrim(char *);
 extern String to_string(const char *);
 extern String mk_string(size_t);
 extern String free_string(String);
-extern RGB xterm256_idx_to_rgb(uint);
 extern int fork_exec(char **);
 extern int full_screen_fork_exec(char **);
 extern int full_screen_shell(char *);

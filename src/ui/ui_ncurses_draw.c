@@ -22,13 +22,13 @@ void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
    Surface style
    ------------------------------------------------------------------------- */
 
-int ui_wclrtobot(UiSurface *s, uint w) {
+int ui_wclrtobot(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     wclrtobot(s->mwin[w]);
     return 0;
 }
-int ui_wclrtoeol(UiSurface *s, uint w) {
+int ui_wclrtoeol(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     wclrtoeol(s->mwin[w]);
@@ -37,28 +37,28 @@ int ui_wclrtoeol(UiSurface *s, uint w) {
 /* -------------------------------------------------------------------------
    Text with UiStyle
    ------------------------------------------------------------------------- */
-int ui_draw_ch_yx(UiSurface *s, uint w, uint y, uint x, const char c) {
+int ui_draw_ch_yx(UiSurface *s, ss_t w, uint y, uint x, const char c) {
     if (!s)
         return -1;
     mvwaddch(s->mwin[w], y, x, c);
     return 0;
 }
 //  text string
-int ui_draw_text(UiSurface *s, uint w, uint y, uint x, const char *text) {
+int ui_draw_text(UiSurface *s, ss_t w, uint y, uint x, const char *text) {
     if (!s || !text)
         return -1;
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
 // text - limit length
-int ui_draw_text_n(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
+int ui_draw_text_n(UiSurface *s, ss_t w, uint y, uint x, const char *text, int n) {
     if (!s || !text)
         return -1;
     mvwaddnstr(s->mwin[w], y, x, text, (int)n);
     return 0;
 }
 //  text string - pad length
-int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, int n) {
+int ui_draw_text_fill(UiSurface *s, ss_t w, uint y, uint x, const char *text, int n) {
     if (!s || !text)
         return -1;
     uint l = strlen(text);
@@ -81,13 +81,13 @@ int ui_draw_text_fill(UiSurface *s, uint w, uint y, uint x, const char *text, in
 // -------------------------------------------------------------------------
 // Wide Character Strings (wstr)
 // ---------------------------------------------------------------------------
-int ui_waddch(UiSurface *s, uint w, const char c) {
+int ui_waddch(UiSurface *s, ss_t w, const char c) {
     if (!s)
         return -1;
     waddch(s->mwin[w], c);
     return 0;
 }
-int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
+int ui_mvwaddch(UiSurface *s, ss_t w, uint y, uint x, const char c) {
     if (!s || !c)
         return -1;
     mvwaddch(s->mwin[w], y, x, c);
@@ -96,25 +96,25 @@ int ui_mvwaddch(UiSurface *s, uint w, uint y, uint x, const char c) {
 // -------------------------------------------------------------------------
 // Wide Character Strings (wstr)
 // ---------------------------------------------------------------------------
-int ui_waddwstr(UiSurface *s, uint w, const wchar_t *wstr) {
+int ui_waddwstr(UiSurface *s, ss_t w, const wchar_t *wstr) {
     if (!s || !wstr)
         return -1;
     waddwstr(s->mwin[w], wstr);
     return 0;
 }
-int ui_mvwaddwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr) {
+int ui_mvwaddwstr(UiSurface *s, ss_t w, uint y, uint x, const wchar_t *wstr) {
     if (!s || !wstr)
         return -1;
     mvwaddwstr(s->mwin[w], y, x, wstr);
     return 0;
 }
-int ui_waddnwstr(UiSurface *s, uint w, const wchar_t *wstr, int m) {
+int ui_waddnwstr(UiSurface *s, ss_t w, const wchar_t *wstr, int m) {
     if (!s || !wstr)
         return -1;
     waddnwstr(s->mwin[w], wstr, m);
     return 0;
 }
-int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, int m) {
+int ui_mvwaddnwstr(UiSurface *s, ss_t w, uint y, uint x, const wchar_t *wstr, int m) {
     if (!s || !wstr)
         return -1;
     mvwaddnwstr(s->mwin[w], y, x, wstr, m);
@@ -123,33 +123,33 @@ int ui_mvwaddnwstr(UiSurface *s, uint w, uint y, uint x, const wchar_t *wstr, in
 // -------------------------------------------------------------------------
 // Text - Sanstyle - These should probably be implemented as macros
 // -------------------------------------------------------------------------
-int ui_waddstr(UiSurface *s, uint w, const char *text) {
+int ui_waddstr(UiSurface *s, ss_t w, const char *text) {
     if (!s || !text)
         return -1;
     waddstr(s->mwin[w], text);
     return 0;
 }
-int ui_waddnstr(UiSurface *s, uint w, const char *text, int m) {
+int ui_waddnstr(UiSurface *s, ss_t w, const char *text, int m) {
     if (!s || !text)
         return -1;
     waddnstr(s->mwin[w], text, m);
     return 0;
 }
 // text string
-int ui_mvwaddstr(UiSurface *s, uint w, uint y, uint x, const char *text) {
+int ui_mvwaddstr(UiSurface *s, ss_t w, uint y, uint x, const char *text) {
     if (!s || !text)
         return -1;
     mvwaddstr(s->mwin[w], y, x, text);
     return 0;
 }
-int ui_mvwaddnstr(UiSurface *s, uint w, uint y, uint x, const char *text, int m) {
+int ui_mvwaddnstr(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
     mvwaddnstr(s->mwin[w], y, x, text, m);
     return 0;
 }
 // text string - pad length
-int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *str, int m) {
+int ui_mvwaddstr_fill(UiSurface *s, ss_t w, uint y, uint x, const char *str, int m) {
     char *d, *e;
     uint maxy, maxx;
     char tmp_str[MAXLEN];
@@ -173,39 +173,39 @@ int ui_mvwaddstr_fill(UiSurface *s, uint w, uint y, uint x, const char *str, int
 // ---------------------------------------------------------------------------
 // Complex Characters (cc)
 // ---------------------------------------------------------------------------
-int ui_wadd_wch(UiSurface *s, uint w, const UiCell *cell) {
+int ui_wadd_wch(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
     wadd_wchnstr(s->mwin[w], cell, 1);
     return 0;
 }
-int ui_mvwadd_wch(UiSurface *s, uint w, uint y, uint x, const UiCell *cell) {
+int ui_mvwadd_wch(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell) {
     if (!s)
         return -1;
     mvwadd_wch(s->mwin[w], y, x, cell);
     return 0;
 }
-int ui_wadd_wchstr(UiSurface *s, uint w, const UiCell *cmplx_buf) {
+int ui_wadd_wchstr(UiSurface *s, ss_t w, const UiCell *cmplx_buf) {
     if (!s || !cmplx_buf)
         return -1;
     wadd_wchstr(s->mwin[w], cmplx_buf);
     return 0;
 }
 //  cc string
-int ui_mvwadd_wchstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cmplx_buf) {
+int ui_mvwadd_wchstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cmplx_buf) {
     if (!s || !cmplx_buf)
         return -1;
     mvwadd_wchstr(s->mwin[w], y, x, cmplx_buf);
     return 0;
 }
 //  cc string - limit length
-int ui_wadd_wchnstr(UiSurface *s, uint w, const UiCell *cmplx_buf, uint n) {
+int ui_wadd_wchnstr(UiSurface *s, ss_t w, const UiCell *cmplx_buf, uint n) {
     if (!s || !cmplx_buf)
         return -1;
     wadd_wchnstr(s->mwin[w], cmplx_buf, n);
     return 0;
 }
-int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cmplx_buf, uint n) {
+int ui_mvwadd_wchnstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cmplx_buf, uint n) {
     if (!s || !cmplx_buf)
         return -1;
     mvwadd_wchnstr(s->mwin[w], y, x, cmplx_buf, n);
@@ -217,7 +217,7 @@ int ui_mvwadd_wchnstr(UiSurface *s, uint w, uint y, uint x, const UiCell *cmplx_
 void ui_restore_wins() {
     touchwin(stdscr);
     for (int s = 0; s <= sfc_ptr; s++) {
-        for (uint w = 0; w < SUB_SFC_MAX; w++)
+        for (ss_t w = BOX; w < SUB_SFC_MAX; w++)
             if (ui_surface[s]->mwin[w] != nullptr)
                 touchwin(ui_surface[s]->mwin[w]);
     }

@@ -30,14 +30,14 @@ extern "C" {
    @param s The UiSurface to inspect.
    @return The WINDOW pointer, or NULL if @p s is NULL.
 */
-WINDOW *ui_ncurses_surface_get_win(const UiSurface *s, uint w);
+WINDOW *ui_ncurses_surface_get_win(const UiSurface *s, ss_t w);
 
 /** @brief Return the raw NCurses @c PANEL* underlying a surface.
    @param s The UiSurface to inspect.
    @param w UiSurface window
    @return The PANEL pointer, or NULL if @p s is NULL.
 */
-PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, uint w);
+PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, ss_t w);
 
 #ifdef __cplusplus
 }

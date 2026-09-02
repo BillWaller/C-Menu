@@ -162,23 +162,25 @@ typedef struct
     bool f_mapp_msrc; /**< flag - mapp_msrc verified */
     bool f_mapp_user; /**< flag - mapp_user verified */
     // file flags
-    bool f_mapp_desc;       /**< flag - mapp_desc verified */
-    bool f_provider_cmd;    /**< flag - provider_cmd verified */
-    bool f_receiver_cmd;    /**< flag - receiver_cmd verified */
-    bool f_cmd;             /**< flag - cmd verified */
-    bool f_cmd_all;         /**< flag - cmd_all verified */
-    bool f_title;           /**< flag - title verified */
-    bool f_help_spec;       /**< flag - help_spec verified */
-    char in_spec[MAXLEN];   /**< input file spec */
-    char out_spec[MAXLEN];  /**< output file spec */
-    bool f_in_spec;         /**< in_spec verified */
-    bool f_out_spec;        /**< out_spec verified */
-    char editor[MAXLEN];    /**< default editor */
-    char menuapp[MAXLEN];   /**< main configuration file, e.g. cmenu/.minitrc */
-    char minitrc[MAXLEN];   /**< main configuration file, e.g. cmenu/.minitrc */
-    char about_fn[MAXLEN];  /**< about information file, e.g. cmenu/.about */
-    char mapp_spec[MAXLEN]; /**< description file */
-    char help_spec[MAXLEN]; /**< help file */
+    bool f_mapp_desc;           /**< flag - mapp_desc verified */
+    bool f_provider_cmd;        /**< flag - provider_cmd verified */
+    bool f_receiver_cmd;        /**< flag - receiver_cmd verified */
+    bool f_cmd;                 /**< flag - cmd verified */
+    bool f_cmd_all;             /**< flag - cmd_all verified */
+    bool f_title;               /**< flag - title verified */
+    bool f_help_spec;           /**< flag - help_spec verified */
+    char in_spec[MAXLEN];       /**< input file spec */
+    char out_spec[MAXLEN];      /**< output file spec */
+    bool f_in_spec;             /**< in_spec verified */
+    bool f_out_spec;            /**< out_spec verified */
+    char editor[MAXLEN];        /**< default editor */
+    char menuapp[MAXLEN];       /**< main configuration file, e.g. cmenu/.minitrc */
+    char minitrc[MAXLEN];       /**< main configuration file, e.g. cmenu/.minitrc */
+    char about_fn[MAXLEN];      /**< about information file, e.g. cmenu/.about */
+    char mapp_spec[MAXLEN];     /**< description file */
+    char help_spec[MAXLEN];     /**< help file */
+    char log_file_spec[MAXLEN]; /**< log file spec */
+    LogLevel min_log_level;     /** log level for logging */
     // Pick
     int select_max; /**< Pick maximum number of selections */
     // View

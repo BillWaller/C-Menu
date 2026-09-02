@@ -127,6 +127,8 @@ static struct argp_option options[] = {
     {"cmd_all", 'A', "file_spec", 0, "view cmd, all files", 3},
     {"help_spec", 'H', "file_spec", 0, "help file spec", 3},
     {"in_spec", 'i', "file_spec", 0, "input file spec", 3},
+    {"log_level", 'l', "text", 0, "FATAL, ERROR, WARN, INFO, VERBOSE, DEBUG", 3},
+    {"log_file_spec", 'g', "file_spec", 0, "log file spec", 3},
     {"mapp_spec", 'd', "file_spec", 0, "description file spec", 3},
     {"provider_cmd", 'S', "file_spec", 0, "execute provider of piped input", 3},
     {"receiver_cmd", 'R', "file_spec", 0, "execute receiver of piped output", 3},
@@ -148,7 +150,6 @@ static struct argp_option options[] = {
     {"border", BORDER, "text", 0, "single, rounded, double, heavy, none", 5},
     {"bg", BG, "hex_clr", 0, "Terminal (stdscr) background (#000000)", 6},
     {"fg", FG, "hex_clr", 0, "Terminal (stdscr) foreground (#d0d0d0)", 6},
-
     {"box_fg", BOX_FG, "hex_clr", 0, "box foreground (#d0d0d0)", 6},
     {"box_bg", BOX_BG, "hex_clr", 0, "box background (#000000)", 6},
     {"ind_fg", IND_FG, "hex_clr", 0, "indicator foreground (#d0d0d0)", 6},
@@ -245,6 +246,26 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'i':
         strnz__cpy(init->in_spec, arg, MAXLEN - 1);
+        break;
+    case 'g':
+        strnz__cpy(init->log_file_spec, arg, MAXLEN - 1);
+        break;
+    case 'l':
+        str_to_upper(arg);
+        if (!strcmp(arg, "SILENT"))
+            init->min_log_level = SILENT;
+        else if (!strcmp(arg, "DEBUG"))
+            init->min_log_level = DEBUG;
+        else if (!strcmp(arg, "INFO"))
+            init->min_log_level = INFO;
+        else if (!strcmp(arg, "WARN"))
+            init->min_log_level = WARN;
+        else if (!strcmp(arg, "ERROR"))
+            init->min_log_level = ERROR;
+        else if (!strcmp(arg, "FATAL"))
+            init->min_log_level = FATAL;
+        else
+            init->min_log_level = SILENT;
         break;
     case 'o':
         strnz__cpy(init->out_spec, arg, MAXLEN - 1);
@@ -475,8 +496,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
     char *e;
     setlocale(LC_ALL, "en_US.UTF-8");
-    ui_log_fp = ui_open_log();
-    ui_log(INFO, "%s:", "mapp_initialization");
     SIO *sio = init->sio;
     if (!init) {
         ssnprintf(tmp_str, sizeof(tmp_str), "%s",
@@ -522,7 +541,6 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         strnz__cpy(init->mapp_help, init->mapp_home, MAXLEN - 1);
         strnz__cat(init->mapp_help, "/help", MAXLEN - 1);
     }
-    ui_log(INFO, "mapp_home=%s", init->mapp_home);
     init->mapp_spec[0] = '\0'; /**< menu specification file */
     // Set default colors and settings in SIO struct
     // These can be overridden by the config file or command-line options
@@ -565,8 +583,9 @@ void mapp_initialization(Init *init, int argc, char **argv) {
         strnz__cpy(init->editor, "vi", MAXLEN - 1);
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
-    ui_log(INFO, "early initialization complete");
     process_config_files(init);
+    ui_log_fp = ui_open_log();
+    ui_log(INFO, "mapp_initialization");
     ui_log(INFO, "config files processed");
     init->mapp_spec[0] = '\0';
     init->argc = argc;
@@ -654,11 +673,9 @@ int process_config_files(Init *init) {
     expand_tilde(init->minitrc, MAXLEN - 1);
     strnz__cpy(config_file_name, init->minitrc, MAXLEN - 1);
     rc = process_config_file(config_file_name, init);
-    ui_log(INFO, "processed config fille: %s", config_file_name);
 
     expand_tilde(init->mapp_theme, MAXLEN - 1);
     strnz__cpy(config_file_name, init->mapp_theme, MAXLEN - 1);
-    ui_log(INFO, "processed theme fille: %s", config_file_name);
     rc = process_config_file(config_file_name, init);
     return rc;
 }
@@ -1088,6 +1105,28 @@ int process_config_file(char *config_file_name, Init *init) {
             strnz__cpy(init->mapp_theme, value, MAXLEN - 1);
             continue;
         }
+        if (!strcmp(key, "log_file_spec")) {
+            strnz__cpy(init->log_file_spec, value, MAXLEN - 1);
+            continue;
+        }
+        if (!strcmp(key, "log_level")) {
+            str_to_upper(value);
+            if (!strcmp(value, "SILENT"))
+                init->min_log_level = SILENT;
+            else if (!strcmp(value, "DEBUG"))
+                init->min_log_level = DEBUG;
+            else if (!strcmp(value, "INFO"))
+                init->min_log_level = INFO;
+            else if (!strcmp(value, "WARN"))
+                init->min_log_level = WARN;
+            else if (!strcmp(value, "ERROR"))
+                init->min_log_level = ERROR;
+            else if (!strcmp(value, "FATAL"))
+                init->min_log_level = FATAL;
+            else
+                init->min_log_level = SILENT;
+            continue;
+        }
     }
     (void)fclose(config_fp);
     return 0;
@@ -1198,6 +1237,12 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, "in_spec");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "out_spec", init->out_spec);
     print_argp_doc(minitrc_fp, config_s, "out_spec");
+
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_file_spec", init->log_file_spec);
+    print_argp_doc(minitrc_fp, config_s, "log_file_spec");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_level", ui_log_level_s[init->min_log_level]);
+    print_argp_doc(minitrc_fp, config_s, "log_level");
+
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "receiver_cmd", init->receiver_cmd);
     print_argp_doc(minitrc_fp, config_s, "receiver_cmd");
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "provider_cmd", init->provider_cmd);

@@ -184,7 +184,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
    Surface Creation and Destruction
    ------------------------------------------------------------------------- */
 
-UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
+UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
@@ -265,7 +265,7 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     return s;
 }
 
-int ui_surface_addpad(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x) {
+int ui_surface_addpad(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x) {
     uint plines, pcols;
     ncplane_dim_yx(s->mplane[p], &plines, &pcols);
     pcols = min(pcols, cols);
@@ -295,7 +295,7 @@ int ui_surface_addpad(UiSurface *s, uint w, uint p, uint lines, uint cols, uint 
     return 0;
 }
 
-int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x) {
+int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x) {
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
@@ -387,7 +387,7 @@ void ui_surface_destroy(UiSurface *s) {
 /* -------------------------------------------------------------------------
    Surface Navigation and Management
    ------------------------------------------------------------------------- */
-int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
+int ui_surface_move(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s)
         return -1;
     s->meta[w].y = y;
@@ -397,7 +397,7 @@ int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
     return 0;
 }
 
-int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
+int ui_surface_resize(UiSurface *s, ss_t w, uint lines, uint cols) {
     if (!s)
         return -1;
     return ncplane_resize_simple(s->mplane[w], (unsigned int)lines,
@@ -418,27 +418,27 @@ int ui_erase() {
     ncplane_erase_region(stdplane, 0, 0, 0, 0);
     return 0;
 }
-int ui_werase(UiSurface *s, uint w) {
+int ui_werase(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     ncplane_erase_region(s->mplane[w], 0, 0, 0, 0);
     return 0;
 }
-int ui_wclear(UiSurface *s, uint w) {
+int ui_wclear(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     ncplane_erase_region(s->mplane[w], 0, 0, 0, 0);
     return 0;
 }
 
-int ui_top_surface(UiSurface *s, uint w) {
+int ui_top_surface(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     ncplane_move_top(s->mplane[w]);
     return 0;
 }
 
-int ui_surface_show(UiSurface *s, uint w) {
+int ui_surface_show(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     if (s->meta[w].hidden) {
@@ -448,7 +448,7 @@ int ui_surface_show(UiSurface *s, uint w) {
     return 0;
 }
 
-int ui_surface_hide(UiSurface *s, uint w) {
+int ui_surface_hide(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     if (!s->meta[w].hidden) {
@@ -461,14 +461,14 @@ int ui_surface_hide(UiSurface *s, uint w) {
 // -------------------------------------------------------------------------
 // Screen Navigation
 // -------------------------------------------------------------------------
-int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
+int ui_wmove(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s)
         return -1;
     if (ncplane_cursor_move_yx(s->mplane[w], y, x) != 0)
         return -1;
     return 0;
 }
-int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
+int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s)
         return -1;
     if (ncplane_cursor_move_yx(s->mplane[w], y, x) != 0)
@@ -478,29 +478,29 @@ int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
 void ui_cursor_yx(int *y, int *x) {
     notcurses_cursor_yx(ui->nc, y, x);
 }
-void ui_abs_yx(UiSurface *s, uint w, int *y, int *x) {
+void ui_abs_yx(UiSurface *s, ss_t w, int *y, int *x) {
     if (!s)
         return;
     ncplane_abs_yx(s->mplane[w], y, x);
 }
-void ui_getyx(UiSurface *s, uint w, uint *y, uint *x) {
+void ui_getyx(UiSurface *s, ss_t w, uint *y, uint *x) {
     if (!s)
         return;
     ncplane_cursor_yx(s->mplane[w], y, x);
 }
-void ui_getmaxyx(UiSurface *s, uint w, uint *y, uint *x) {
+void ui_getmaxyx(UiSurface *s, ss_t w, uint *y, uint *x) {
     if (!s)
         return;
     ncplane_dim_yx(s->mplane[w], y, x);
 }
-int ui_getmaxy(UiSurface *s, uint w) {
+int ui_getmaxy(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     uint y, x;
     ncplane_dim_yx(s->mplane[w], &y, &x);
     return y;
 }
-int ui_getmaxx(UiSurface *s, uint w) {
+int ui_getmaxx(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     uint y, x;
@@ -524,7 +524,7 @@ int ui_getmaxx(UiSurface *s, uint w) {
  * moved toward beginning of file (bof). - scope_toward_bof()
  */
 
-int ui_wscrl(UiSurface *s, uint w, int r) {
+int ui_wscrl(UiSurface *s, ss_t w, int r) {
     uint rows, cols;
     ncplane_dim_yx(s->mplane[w], &rows, &cols);
 
@@ -563,32 +563,32 @@ int ui_wscrl(UiSurface *s, uint w, int r) {
 /* -------------------------------------------------------------------------
    Configuration Control
    ------------------------------------------------------------------------- */
-int ui_scrollok(UiSurface *s, uint w, bool enable) {
+int ui_scrollok(UiSurface *s, ss_t w, bool enable) {
     if (!s)
         return -1;
     ncplane_set_scrolling(s->mplane[w], enable);
     return 0;
 }
-int ui_idcok(UiSurface *s, uint w, bool enable) {
+int ui_idcok(UiSurface *s, ss_t w, bool enable) {
     (void)s;
     (void)w;
     (void)enable;
     return 0;
 }
-int ui_idlok(UiSurface *s, uint w, bool enable) {
+int ui_idlok(UiSurface *s, ss_t w, bool enable) {
     (void)s;
     (void)w;
     (void)enable;
     return 0;
 }
-int ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom) {
+int ui_setscrreg(UiSurface *s, ss_t w, uint top, uint bottom) {
     (void)s;
     (void)w;
     (void)top;
     (void)bottom;
     return 0;
 }
-int ui_keypad(UiSurface *s, uint w, bool enable) {
+int ui_keypad(UiSurface *s, ss_t w, bool enable) {
     (void)s;
     (void)w;
     (void)enable;
@@ -673,7 +673,7 @@ int ui_curs_set(int visible) {
  * specified position on the surface and plane specified.
  * Include workaround for NotCurses cursor position bug
  */
-int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
+int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible) {
     if (!s)
         return -1;
     if (!visible) {
@@ -693,7 +693,7 @@ int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
 /** @brief Disable (visible = false) or enable (visibile = true) the cursor at
  * its current position on the surface and plane specified.
  */
-int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
+int ui_cursor_enable(UiSurface *s, ss_t w, bool visible) {
     if (!s)
         return -1;
     if (!visible) {
@@ -714,7 +714,7 @@ int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
 /* -------------------------------------------------------------------------
    background
    ------------------------------------------------------------------------- */
-int ui_bkgd(UiSurface *s, uint w, const UiCell *cell) {
+int ui_bkgd(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_set_styles(s->mplane[w], cell->stylemask);
@@ -724,7 +724,7 @@ int ui_bkgd(UiSurface *s, uint w, const UiCell *cell) {
     s->meta[w].bkgd_cell = *cell;
     return 0;
 }
-int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
+int ui_bkgdset(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_set_styles(s->mplane[w], cell->stylemask);
@@ -734,7 +734,7 @@ int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
     //                  cell->stylemask, cell->channels);
     return 0;
 }
-int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell) {
+int ui_bkgrnd(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_set_styles(s->mplane[w], cell->stylemask);
@@ -743,7 +743,7 @@ int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell) {
                      cell->stylemask, cell->channels);
     return 0;
 }
-int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell) {
+int ui_bkgrndset(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_set_styles(s->mplane[w], cell->stylemask);
@@ -818,7 +818,7 @@ UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *
 /* -------------------------------------------------------------------------
    Colors, Color Pairs
    ------------------------------------------------------------------------- */
-int ui_color_from_rgb(RGB *rgb) {
+uint ui_color_from_rgb(RGB *rgb) {
     uint i;
     RGB tmp;
     ui_apply_gamma(rgb);
@@ -975,7 +975,7 @@ struct notcurses *ui_notcurses_get_nc() {
     return ui->nc;
 }
 
-NcPlane *ui_notcurses_surface_get_plane(const UiSurface *s, uint w) {
+NcPlane *ui_notcurses_surface_get_plane(const UiSurface *s, ss_t w) {
     (void)w;
     if (!s)
         return NULL;

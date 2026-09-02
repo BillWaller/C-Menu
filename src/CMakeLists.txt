@@ -93,7 +93,7 @@ add_library(CMenu OBJECT ${COMMON_SRCS})
 add_executable(menu menu.c)
 set_target_properties(menu PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_sources(menu PRIVATE $<TARGET_OBJECTS:CMenu>)
-target_link_libraries(menu cm ${LIBS})
+target_link_libraries(menu cm ${LIBS} -lm)
 
 # 4. Conditional UI Code Injection
 # Handles adding conditional UI sources and compile flags
@@ -128,15 +128,13 @@ elseif(UI STREQUAL "NOTCURSES_UI")
     target_link_libraries(cm PUBLIC tinfo)
 endif()
 
-
-
 add_executable(enterchr enterchr.c)
 set_target_properties(enterchr PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-target_link_libraries(enterchr cm ${LIBS})
+target_link_libraries(enterchr cm ${LIBS} -lm)
 
 add_executable(enterstr enterstr.c)
 set_target_properties(enterstr PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-target_link_libraries(enterstr cm ${LIBS})
+target_link_libraries(enterstr cm ${LIBS} -lm)
 
 add_executable(amort amort.c)
 set_target_properties(amort PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
@@ -148,11 +146,11 @@ target_link_libraries(iloan cm ${LIBS} -lm)
 
 add_executable(lf lf.c)
 set_target_properties(lf PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-target_link_libraries(lf cm ${LIBS} -pthread)
+target_link_libraries(lf cm ${LIBS} -pthread -lm)
 
 add_executable(detach detach.c)
 set_target_properties(detach PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-target_link_libraries(detach cm ${LIBS})
+target_link_libraries(detach cm ${LIBS} -lm)
 
 add_executable(rsh rsh.c)
 target_link_libraries(rsh)
@@ -179,11 +177,11 @@ install(
 
 add_executable(stripansi stripansi.c)
 set_target_properties(stripansi PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-target_link_libraries(stripansi cm ${LIBS})
+target_link_libraries(stripansi cm ${LIBS} -lm)
 
 add_executable(whence whence.c)
 set_target_properties(whence PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-target_link_libraries(whence cm ${LIBS})
+target_link_libraries(whence cm ${LIBS} -lm)
 
 install(
   TARGETS menu

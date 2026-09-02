@@ -16,13 +16,17 @@ if [ "$1" = "-h" -o "$1" = "-?" -o "$1" = "--help" ]; then
     exit 0
 fi
 grep NCURSES compile_commands.json >/dev/null 2>&1
-objdump -p ./menu | grep -E "NEEDED.*(notcurses)" >/dev/null 2>&1
-if [ "$?" = "0" ]; then
-    echo menu linked with notcurses
+if [ ! -f ./menu ]; then
+    echo menu not found - linkage check not possible
 else
-    objdump -p ./menu | grep -E "NEEDED.*(ncurses)" >/dev/null 2>&1
+    objdump -p ./menu | grep -E "NEEDED.*(notcurses)" >/dev/null 2>&1
     if [ "$?" = "0" ]; then
-        echo menu linked with ncurses
+        echo menu linked with notcurses
+    else
+        objdump -p ./menu | grep -E "NEEDED.*(ncurses)" >/dev/null 2>&1
+        if [ "$?" = "0" ]; then
+            echo menu linked with ncurses
+        fi
     fi
 fi
 grep "^\s*UI?*\s*=\s*\"-DNOTCURSES_UI" Makefile >/dev/null 2>&1

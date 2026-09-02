@@ -16,7 +16,6 @@
  */
 
 #include "cm.h"
-#include "ui_backend.h"
 #include <argp.h>
 #include <arpa/inet.h>
 #include <ctype.h>
@@ -81,8 +80,6 @@ typedef struct {
     bool unknown;
 } SearchFilters;
 
-// bool init_find(const char *, SearchFilters *);
-// int scan_files(const char *, SearchFilters *, int depth);
 size_t strip_ansi(char *, char *);
 int a_toi(char *, bool *);
 bool chrep(char *, char, char);

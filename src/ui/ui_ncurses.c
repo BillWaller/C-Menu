@@ -113,6 +113,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
         free(ui);
         return NULL;
     }
+    ui_log(INFO, "ui_init: using tty: %s", tty_name);
     ui->screen = newterm(NULL, ui->tty_fp, ui->tty_fp);
     if (!ui->screen) {
         fclose(ui->tty_fp);
@@ -168,9 +169,10 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     stdsfc->mpan[BOX] = new_panel(stdsfc->mwin[BOX]);
     if (!stdsfc->mpan[BOX]) {
         free(stdsfc);
-        ui_perror("new_panel failed for stdsfc->mpan[BOX]");
+        ui_log(ERROR, "new_panel failed for stdsfc->mpan[BOX]");
         exit(EXIT_FAILURE);
     }
+    ui_log(INFO, "ui_init: stdsfc->mwin[BOX]: %p, stdsfc->mpan[BOX]: %p", (void *)stdsfc->mwin[BOX], (void *)stdsfc->mpan[BOX]);
     return ui;
 }
 void ui_endwin() {
@@ -179,33 +181,41 @@ void ui_endwin() {
 void ui_shutdown() {
     if (ui == NULL)
         return;
+    ui_log(INFO, "ui_shutdown in progress...");
     while (sfc_ptr >= 0) {
         if (ui_surface[sfc_ptr] != NULL) {
             ui_surface_destroy(ui_surface[sfc_ptr]);
             ui_surface[sfc_ptr] = NULL;
         }
+        ui_log(INFO, "surface destroy: %d", sfc_ptr);
         sfc_ptr--;
     }
     if (stdsfc->mpan[0] != NULL) {
+        ui_log(INFO, "calling del_panel(stdsfc->mpan[BOX])");
         hide_panel(stdsfc->mpan[0]);
         del_panel(stdsfc->mpan[0]);
         stdsfc->mpan[0] = NULL;
     }
     f_curses_open = false;
+    ui_log(INFO, "calling endwin()");
     endwin();
     if (ui->screen != NULL) {
+        ui_log(INFO, "calling delscreen(ui->screen)");
         delscreen(ui->screen);
         ui->screen = NULL;
     }
     if (ui->tty_fp != NULL) {
+        ui_log(INFO, "closing tty_fp");
         fclose(ui->tty_fp);
         ui->tty_fp = NULL;
     }
     if (stdsfc != NULL) {
+        ui_log(INFO, "freeing stdsfc");
         free(stdsfc);
         stdsfc = NULL;
     }
     if (ui != NULL) {
+        ui_log(INFO, "freeing ui");
         free(ui);
         ui = NULL;
     }
@@ -247,7 +257,7 @@ int ui_resume() {
    Surface Creation and Destruction
    ------------------------------------------------------------------------- */
 
-UiSurface *ui_surface_new(uint w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
+UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
@@ -342,7 +352,7 @@ void fast_exit(UiSurface *s) {
     endwin();
     exit(EXIT_SUCCESS);
 }
-int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols, uint begy, uint begx) {
+int ui_surface_addpad(UiSurface *s, ss_t w, uint view_win, uint lines, uint cols, uint begy, uint begx) {
     (void)begy;
     (void)begx;
     s->mwin[w] = newpad(lines, cols);
@@ -358,7 +368,7 @@ int ui_surface_addpad(UiSurface *s, uint w, uint view_win, uint lines, uint cols
     return 0;
 }
 
-int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint y, uint x) {
+int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x) {
     s->mwin[w] = derwin(s->mwin[p], lines, cols, y, x);
     if (!s->mwin[w]) {
         free(s);
@@ -377,7 +387,7 @@ int ui_surface_addwin(UiSurface *s, uint w, uint p, uint lines, uint cols, uint 
 // Surface Management
 // -------------------------------------------------------------------------
 
-int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
+int ui_surface_move(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s)
         return -1;
     s->meta[w].y = y;
@@ -385,7 +395,7 @@ int ui_surface_move(UiSurface *s, uint w, uint y, uint x) {
     return move_panel(s->mpan[w], y, x);
 }
 
-int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
+int ui_surface_resize(UiSurface *s, ss_t w, uint lines, uint cols) {
     if (!s)
         return -1;
     s->meta[w].lines = lines;
@@ -395,7 +405,7 @@ int ui_surface_resize(UiSurface *s, uint w, uint lines, uint cols) {
     return 0;
 }
 
-int ui_werase(UiSurface *s, uint w) {
+int ui_werase(UiSurface *s, ss_t w) {
     if (w == ALLWINS) {
         for (int i = 1; i < SUB_SFC_MAX; i++) {
             if (s->mwin[i]) {
@@ -409,7 +419,7 @@ int ui_werase(UiSurface *s, uint w) {
     }
     return 0;
 }
-int ui_wclear(UiSurface *s, uint w) {
+int ui_wclear(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     if (w == ALLWINS) {
@@ -433,7 +443,7 @@ int ui_clear() {
     clear();
     return 0;
 }
-int ui_surface_show(UiSurface *s, uint w) {
+int ui_surface_show(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     show_panel(s->mpan[w]);
@@ -442,14 +452,14 @@ int ui_surface_show(UiSurface *s, uint w) {
     return 0;
 }
 
-int ui_top_surface(UiSurface *s, uint w) {
+int ui_top_surface(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     top_panel(s->mpan[w]);
     return 0;
 }
 
-int ui_surface_hide(UiSurface *s, uint w) {
+int ui_surface_hide(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     hide_panel(s->mpan[w]);
@@ -460,12 +470,12 @@ int ui_surface_hide(UiSurface *s, uint w) {
 // Screen Navigation
 // -------------------------------------------------------------------------
 
-int ui_cursor_move(UiSurface *s, uint w, uint y, uint x) {
+int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s || !s->mwin[w])
         return -1;
     return wmove(s->mwin[w], y, x);
 }
-int ui_wmove(UiSurface *s, uint w, uint y, uint x) {
+int ui_wmove(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s || !s->mwin[w])
         return -1;
     return wmove(s->mwin[w], y, x);
@@ -474,7 +484,7 @@ int ui_curs_set(int visibility) {
     curs_set(visibility);
     return 0;
 }
-void ui_getyx(UiSurface *s, uint w, uint *lines, uint *cols) {
+void ui_getyx(UiSurface *s, ss_t w, uint *lines, uint *cols) {
     if (!s->mwin[w])
         return;
     int _lines, _cols;
@@ -482,17 +492,17 @@ void ui_getyx(UiSurface *s, uint w, uint *lines, uint *cols) {
     *lines = (uint)(_lines);
     *cols = (uint)(_cols);
 }
-void ui_getmaxyx(UiSurface *s, uint w, uint *lines, uint *cols) {
+void ui_getmaxyx(UiSurface *s, ss_t w, uint *lines, uint *cols) {
     if (!s->mwin[w])
         return;
     getmaxyx(s->mwin[w], *lines, *cols);
 }
-int ui_getmaxy(UiSurface *s, uint w) {
+int ui_getmaxy(UiSurface *s, ss_t w) {
     if (!s->mwin[w])
         return -1;
     return (int)(getmaxy(s->mwin[w]));
 }
-int ui_getmaxx(UiSurface *s, uint w) {
+int ui_getmaxx(UiSurface *s, ss_t w) {
 
     if (!s->mwin[w])
         return -1;
@@ -508,7 +518,7 @@ void ui_get_screen_size(uint *lines, uint *cols) {
         *cols = ui->cols;
 }
 
-int ui_wscrl(UiSurface *s, uint w, int n) {
+int ui_wscrl(UiSurface *s, ss_t w, int n) {
     if (!s->mwin[w])
         return -1;
     wscrl(s->mwin[w], n);
@@ -520,7 +530,7 @@ int ui_wscrl(UiSurface *s, uint w, int n) {
 // Configuration Control
 // -------------------------------------------------------------------------
 
-int ui_scrollok(UiSurface *s, uint w, bool enable) {
+int ui_scrollok(UiSurface *s, ss_t w, bool enable) {
     if (!s->mwin[w])
         return -1;
     if (enable)
@@ -529,7 +539,7 @@ int ui_scrollok(UiSurface *s, uint w, bool enable) {
         scrollok(s->mwin[w], false);
     return 0;
 }
-int ui_keypad(UiSurface *s, uint w, bool enable) {
+int ui_keypad(UiSurface *s, ss_t w, bool enable) {
     if (!s->mwin[w])
         return -1;
     if (enable)
@@ -538,7 +548,7 @@ int ui_keypad(UiSurface *s, uint w, bool enable) {
         keypad(s->mwin[w], false);
     return 0;
 }
-int ui_idlok(UiSurface *s, uint w, bool enable) {
+int ui_idlok(UiSurface *s, ss_t w, bool enable) {
     if (!s->mwin[w])
         return -1;
     if (enable)
@@ -547,7 +557,7 @@ int ui_idlok(UiSurface *s, uint w, bool enable) {
         idlok(s->mwin[w], false);
     return 0;
 }
-int ui_idcok(UiSurface *s, uint w, bool enable) {
+int ui_idcok(UiSurface *s, ss_t w, bool enable) {
     if (!s->mwin[w])
         return -1;
     if (enable)
@@ -556,7 +566,7 @@ int ui_idcok(UiSurface *s, uint w, bool enable) {
         idcok(s->mwin[w], false);
     return 0;
 }
-int ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom) {
+int ui_setscrreg(UiSurface *s, ss_t w, uint top, uint bottom) {
     if (!s->mwin[w])
         return -1;
     wsetscrreg(s->mwin[w], top, bottom);
@@ -567,7 +577,7 @@ int ui_setscrreg(UiSurface *s, uint w, uint top, uint bottom) {
 // -------------------------------------------------------------------------
 // included for symetry with notcurses, which needs it to compensate
 // for cursor positioning bug
-int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
+int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible) {
     if (!ui)
         return -1;
     wmove(s->mwin[w], y, x);
@@ -575,7 +585,7 @@ int ui_cursor_enable_yx(UiSurface *s, uint w, uint y, uint x, bool visible) {
     curs_set(visible ? 2 : 0);
     return 0;
 }
-int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
+int ui_cursor_enable(UiSurface *s, ss_t w, bool visible) {
     (void)s;
     (void)w;
     if (!ui)
@@ -590,28 +600,28 @@ int ui_cursor_enable(UiSurface *s, uint w, bool visible) {
 // -------------------------------------------------------------------------
 
 // for the entire window
-int ui_bkgd(UiSurface *s, uint w, const UiCell *cell) {
+int ui_bkgd(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
     wbkgrnd(s->mwin[w], cell);
     return 0;
 }
 // for new content to be written to the window
-int ui_bkgdset(UiSurface *s, uint w, const UiCell *cell) {
+int ui_bkgdset(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
     wbkgrndset(s->mwin[w], cell);
     return 0;
 }
 // for the entire window
-int ui_bkgrnd(UiSurface *s, uint w, const UiCell *cell) {
+int ui_bkgrnd(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s->mwin[w])
         return -1;
     wbkgrnd(s->mwin[w], cell);
     return 0;
 }
 // for new content to be written to the window
-int ui_bkgrndset(UiSurface *s, uint w, const UiCell *cell) {
+int ui_bkgrndset(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s->mwin[w])
         return -1;
     wbkgrndset(s->mwin[w], cell);
@@ -648,7 +658,7 @@ int ui_doupdate() {
     doupdate();
     return 0;
 }
-int ui_wnoutrefresh(UiSurface *s, uint w) {
+int ui_wnoutrefresh(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     wnoutrefresh(s->mwin[w]);
@@ -714,7 +724,6 @@ int ui_color_from_rgb(RGB *rgb) {
     rgb->r = (rgb->r * 1000) / 255;
     rgb->g = (rgb->g * 1000) / 255;
     rgb->b = (rgb->b * 1000) / 255;
-    rgb->a = 0;
     for (i = 0; i < ui_color_cnt && i < UI_COLORS; i++) {
         extended_color_content(i, &tmp.r, &tmp.g, &tmp.b);
         if (rgb->r == tmp.r && rgb->g == tmp.g && rgb->b == tmp.b)
@@ -804,13 +813,13 @@ SCREEN *ui_ncurses_get_screen() {
     return ui->screen;
 }
 
-WINDOW *ui_ncurses_surface_get_win(const UiSurface *s, uint w) {
+WINDOW *ui_ncurses_surface_get_win(const UiSurface *s, ss_t w) {
     if (!s)
         return NULL;
     return s->mwin[w];
 }
 
-PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, uint w) {
+PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, ss_t w) {
     if (!s)
         return NULL;
     return s->mpan[w];

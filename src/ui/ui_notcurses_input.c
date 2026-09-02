@@ -12,7 +12,7 @@
 #include <string.h>
 #include <termios.h>
 
-int ui_get_event_multix(UiSurface *s, uint w, UiEvent *ev, int timeout_ms);
+int ui_get_event_multix(UiSurface *s, ss_t w, UiEvent *ev, int timeout_ms);
 /* -------------------------------------------------------------------------
    Key translation
    ------------------------------------------------------------------------- */
@@ -101,7 +101,7 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
    @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
    @return 0 on success, -1 if @p ui or @p ev is NULL.
 */
-int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeout_ms) {
+int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeout_ms) {
     if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
@@ -169,7 +169,7 @@ int ui_getch() {
     return ni.id;
 }
 
-int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
+int ui_get_event_no_mouse(UiSurface *target, ss_t w, UiEvent *ev) {
     (void)target;
     (void)w;
     if (!ui || !ev)
@@ -192,14 +192,14 @@ int ui_get_event_no_mouse(UiSurface *target, uint w, UiEvent *ev) {
 uint ui_get_plane_idx(UiSurface *s, struct ncplane *plane) {
     if (!s)
         return -1;
-    for (uint w = 0; w < SUB_SFC_MAX; ++w) {
+    for (ss_t w = BOX; w < SUB_SFC_MAX; ++w) {
         if (s->mplane[w] == plane)
             return w;
     }
     return -1;
 }
 
-NcPlane *ui_ncplane_clicked(UiSurface *s, uint w, ncinput *ni) {
+NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, ncinput *ni) {
     NcPlane *pile_member = s->mplane[w];
     struct ncplane *cur = ncpile_top(pile_member);
     while (cur != NULL) {

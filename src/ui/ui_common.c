@@ -141,7 +141,7 @@ ushort cp_yellow;    /**< yellow background - for testing */
 ushort cp_blue;      /**< blue background - for testing */
 
 // -----------------------------------------------------------------------
-// Standard VGA 16-Color Palette
+// Standard VGA Colors
 // -----------------------------------------------------------------------
 
 STDRGB std_color[] = {
@@ -709,19 +709,19 @@ UiChyron *ui_new_chyron() {
    surface.
     @note Drop-down menus from the chyron will be added in the future
  */
-int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, uint win, char *y) {
+int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, ss_t w, char *y) {
     bool a_toi_error = false;
     if (!sfc)
         return -1;
     chyron->sfc = sfc;
-    chyron->win = win;
+    chyron->win = w;
     if (*y == '-')
-        chyron->y = ui_getmaxy(sfc, win) - 1;
+        chyron->y = ui_getmaxy(sfc, w) - 1;
     else {
         chyron->y = a_toi(y, &a_toi_error);
         if (a_toi_error)
             return -1;
-        chyron->y = min(chyron->y, ui_getmaxy(sfc, win) - 1);
+        chyron->y = min(chyron->y, ui_getmaxy(sfc, w) - 1);
     }
     return 0;
 }
@@ -910,7 +910,7 @@ void ui_compile_chyron(UiChyron *chyron) {
    string. Finally, it moves the cursor back to the specified column for user
    input.
  */
-void ui_display_chyron(UiSurface *sfc, uint w, UiChyron *chyron, uint line, uint col) {
+void ui_display_chyron(UiSurface *sfc, ss_t w, UiChyron *chyron, uint line, uint col) {
     ui_wmove(sfc, w, line, 0);
     ui_wclrtoeol(sfc, w);
     ui_wmove(sfc, w, line, 0);
@@ -1284,44 +1284,52 @@ char *ui_iso8601_timestamp(char *buf, size_t n, bool local) {
     }
     return buf;
 }
+#define AS_STRING(NAME) #NAME,
+const char *subsfc_s[] = {
+    SUB_SURFACE_LIST(AS_STRING)};
+
+const char *ui_sub_surface_str(ss_t w) {
+    if (w < BOX || w >= SUB_SFC_MAX)
+        return "unknown";
+    return subsfc_s[w];
+}
+
+#define AS_STRING(NAME) #NAME,
+const char *const ui_log_level_s[] = {
+    LOG_LEVEL_LIST(AS_STRING)};
+
 // ANSI Color Strings for UiLog
 const char *const ui_logcolor[] = {
-    [PANIC] = "\033[1;41;37m", // Bold White on Red Background
-    [FATAL] = "\033[1;31m",    // Bold Red
-    [ERROR] = "\033[0;31m",    // Regular Red
-    [WARN] = "\033[0;33m",     // Yellow
-    [INFO] = "\033[0;32m",     // Green
-    [VERBOSE] = "\033[0;36m",  // Cyan
-    [DEBUG] = "\033[0;34m",    // Blue
-    [TRACE] = "\033[0;90m",    // Dark Gray
-};
-// Log Levels text for UiLog
-const char *const ui_loglevel[] = {
-    [PANIC] = "PANIC",
-    [FATAL] = "FATAL",
-    [ERROR] = "ERROR",
-    [WARN] = "WARN",
-    [INFO] = "INFO",
-    [VERBOSE] = "VERBOSE",
-    [DEBUG] = "DEBUG",
-    [TRACE] = "TRACE",
+    [FATAL] = "\033[1;31m",   // Bold Red
+    [ERROR] = "\033[0;31m",   // Regular Red
+    [WARN] = "\033[0;33m",    // Yellow
+    [INFO] = "\033[0;32m",    // Green
+    [VERBOSE] = "\033[0;36m", // Cyan
+    [DEBUG] = "\033[0;34m",   // Blue
+    [SILENT] = "SILENT",
 };
 
-FILE *ui_log_fp;
-char *ui_log_file_name = "/tmp/ui.log"; // default log file
+FILE *ui_log_fp = NULL;
+char ui_log_file_name[MAXLEN] = "/tmp/ui.log"; // default log file
 const char *const ui_logcolor[];
-const char *const ui_loglevel[];
-LogLevel ui_min_loglevel = INFO;
+LogLevel ui_min_log_level = INFO;
 bool ui_timestamp_local = true; // default to local time for timestamps
 char ui_timestamp[32];
 
 FILE *ui_open_log() {
+    if (!ui_log_fp) {
+        if (strlen(ui_log_file_name) == 0)
+            strnz__cpy(ui_log_file_name, "/tmp/ui_default.log", MAXLEN - 1);
+        ui_log_fp = fopen(ui_log_file_name, "w");
+        if (!ui_log_fp) {
+            fprintf(stderr, "Failed to open log file: %s\n", ui_log_file_name);
+            exit(EXIT_FAILURE);
+        }
+        setvbuf(ui_log_fp, NULL, _IOLBF, BUFSIZ);
+    }
     char ttyname[MAXLEN];
     char cmenu_user[MAXLEN];
-    char *p;
-    ui_log_fp = fopen(ui_log_file_name, "w");
-    setvbuf(ui_log_fp, NULL, _IOLBF, BUFSIZ);
-    p = getenv("USER");
+    char *p = getenv("USER");
     strnz__cpy(cmenu_user, p, MAXLEN - 1);
     if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
         strnz__cpy(em0, ttyname, MAXLEN - 1);

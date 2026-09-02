@@ -8,11 +8,11 @@ cd build
 
 # To build C-Menu with the NCurses library:
 
-# cmake .. -D UI=UAL_UI
+cmake .. -D UI=UAL_UI
 
 # To build C-Menu with the Notcurses library
 
-cmake .. -D UI=NOTCURSES_UI
+# cmake .. -D UI=NOTCURSES_UI
 cp compile_commands.json ..
 
 # Using GNU Makefile

@@ -103,7 +103,7 @@ static UiKey translate_key(int ch) {
    @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
    @return 0 on success, -1 if @p ev is NULL.
 */
-int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeout_ms) {
+int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeout_ms) {
     if (!ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
@@ -178,7 +178,7 @@ int ui_get_event(UiSurface *s, uint w, UiChyron *chyron, UiEvent *ev, int timeou
     return ch;
 }
 
-int ui_get_event_no_mouse(UiSurface *s, uint w, UiEvent *ev) {
+int ui_get_event_no_mouse(UiSurface *s, ss_t w, UiEvent *ev) {
     int ch;
     mousemask(0, NULL);
     curs_set(2);
