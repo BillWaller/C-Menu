@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-02T00:47:36-05:00* - FEATURE UPDATE: Minor UI Enhancements and Code Cleanup 
+
+*2026-09-01T20:25:38-05:00* - Update CHANGELOG.md 
+
 *2026-09-01T20:25:08-05:00* - FIXES: minor, plus a small documentation update 
 
 *2026-09-01T19:58:23-05:00* - Update CHANGELOG.md 
