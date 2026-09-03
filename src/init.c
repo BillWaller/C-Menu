@@ -590,6 +590,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
     process_config_files(init);
+    ui_min_log_level = init->min_log_level;
     ui_log_fp = ui_open_log();
     ui_log(INFO, "mapp_initialization");
     ui_log(INFO, "config files processed");

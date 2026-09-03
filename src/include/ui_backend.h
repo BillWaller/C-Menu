@@ -182,7 +182,6 @@ struct UiSurfaceMeta {
     char name[MAXLEN];
     char title[MAXLEN];
 };
-
 struct UiSurface {
     union {
         struct { // DEPRECATED - will be removed
@@ -220,7 +219,6 @@ struct UiSurface {
     int sfc_idx;
     int sub_cnt;
 };
-
 union UiChannels {
     struct {
         union {
@@ -238,7 +236,6 @@ union UiChannels {
     };
     uint64_t fb;
 };
-
 struct UiStyle {
     wchar_t wstr[5];
     attr_t attrs;
@@ -838,6 +835,15 @@ int ui_pair_from_hex(const char *fg, const char *bg);
 // WINDOW *ui_ncurses_surface_get_win(const UiSurface *s, ss_t w);
 // PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, ss_t w);
 const char *ui_sub_surface_str(ss_t w);
+void ui_mbc_to_wc(wchar_t wc[2], const char mbc);
+wchar_t *ui_mbstr_to_wcstr(const char *mb_str);
+
+int ui_perror(char *emsg_str);
+uint ui_rgb_to_xterm256_idx(RGB *rgb);
+RGB ui_xterm256_idx_to_rgb(uint idx);
+
+int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle);
+int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle);
 
 #ifdef NOTCURSES_UI
 struct UiColor {
@@ -919,17 +925,6 @@ extern UiSurface *ui_surface[UI_SFC_MAX];
 extern uint ui_color_cnt;
 extern uint ui_pair_cnt;
 
-void ui_mbc_to_wc(wchar_t wc[2], const char mbc);
-wchar_t *ui_mbstr_to_wcstr(const char *mb_str);
-uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost);
-int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle);
-int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle);
-int ui_cm_surface_destroy(UiSurface *sfc);
-int ui_border_draw(UiSurface *sfc);
-int ui_border_ysplit(UiSurface *sfc, uint y);
-int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line);
-int ui_border_title(UiSurface *sfc, char *title);
-
 // ---------------------------------------------------------------
 // Chyron API
 // ---------------------------------------------------------------
@@ -1002,19 +997,11 @@ void ui_display_chyron(UiSurface *sfc, ss_t w, UiChyron *chyron, uint line, uint
 int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3);
 int ui_get_chyron_key(UiChyron *chyron, uint x);
 bool ui_is_set_chyron_key(UiChyron *chyron, uint k);
-void ui_mbc_to_wc(wchar_t wc[2], const char mbc);
-uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost);
-uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost);
-wchar_t *ui_mbstr_to_wcstr(const char *mb_str);
 UiChyron *ui_new_chyron();
-int ui_perror(char *emsg_str);
-uint ui_rgb_to_xterm256_idx(RGB *rgb);
 void ui_set_chyron_key(UiChyron *chyron, uint k, char *s, uint kc);
 void ui_set_chyron_key_cb(UiChyron *chyron, uint k, char *s, uint kc, UiCell cell_base);
-int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle);
-int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle);
 void ui_unset_chyron_key(UiChyron *chyron, uint k);
-RGB ui_xterm256_idx_to_rgb(uint idx);
+
 // ---------------------------------------------------------------
 // Logging
 // ---------------------------------------------------------------

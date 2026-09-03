@@ -29,6 +29,7 @@ int notcurses_input(UiSurface *s, uint w);
 #endif
 
 int popup_ckeys() {
+
     char Title[] = "TEST CURSES KEYS";
     unsigned lines = 10;
     unsigned cols = 55;

@@ -61,7 +61,7 @@ CC:=gcc $(CX) $(INCLUDE_DIRS)
 
 BINEXES:=menu form pick view ckeys \
 	whence rsh rsh_static rsh_pam \
-	iloan amort enterchr enterstr lf stripansi detach
+	iloan amort enterchr enterstr lf stripansi detach ui_hello
 
 MANPAGES:=cmenu.1.gz lf.1.gz rsh.1.gz
 
@@ -174,6 +174,9 @@ rsh_static:	rsh.c
 
 rsh_pam:	rsh.c
 	$(CC) -DRSH_PAM $< -o $@ -lpam -lpam_misc
+
+ui_hello:	ui_hello.c $(COMMON_OBJS) $(LIB_SHARED)
+	$(CC) $< $(COMMON_OBJS) -o $@ $(LDFLAGS)
 
 lf: lf.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)

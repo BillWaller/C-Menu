@@ -108,6 +108,9 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         free(ui);
         return NULL;
     }
+    if (cfg->log_level >= FATAL)
+        ui_min_log_level = cfg->log_level;
+
     ui_log(INFO, "ui_init: using tty: %s", tty_name);
     ui->screen = newterm(NULL, ui->tty_fp, ui->tty_fp);
     if (!ui->screen) {
@@ -263,6 +266,16 @@ int ui_resume() {
 UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
         return NULL;
+    uint maxy, maxx;
+    ui_get_screen_size(&maxy, &maxx);
+    if (lines > maxy || cols > maxx) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "ui_surface_new failed for lines: %d, cols: %d", lines, cols);
+        ssnprintf(em2, MAXLEN - 1, "maxy: %d, maxx: %d", maxy, maxx);
+        ui_display_error(em0, em1, em2, nullptr);
+        return NULL;
+    }
+
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;
@@ -300,6 +313,17 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
 }
 
 UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *wtitle) {
+    if (!ui)
+        return NULL;
+    uint maxy, maxx;
+    ui_get_screen_size(&maxy, &maxx);
+    if (lines > maxy || cols > maxx) {
+        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, "ui_box_surface_new failed for lines: %d, cols: %d", lines, cols);
+        ssnprintf(em2, MAXLEN - 1, "maxy: %d, maxx: %d", maxy, maxx);
+        ui_display_error(em0, em1, em2, nullptr);
+        return NULL;
+    }
     UiSurface *s = calloc(1, sizeof(*s));
     if (!s)
         return NULL;

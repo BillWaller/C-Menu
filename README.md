@@ -31,6 +31,28 @@ The answer is no. The UAL is designed to be lightweight and efficient, and it do
 The core C-Menu components are visually and functionally identical across both
 NCurses and Notcurses backends, and the same code drives both backends through the UAL. This means that you can develop your application using the Notcurses backend, and then deploy it using the NCurses backend without any changes to your code. This is a powerful feature that allows you to take advantage of the advanced features of Notcurses during development, while still being able to deploy your application on systems that only support NCurses.
 
+---
+
+Below is a screenshot of a simple example program using the UAL. You may notice
+that many function names are simply the equivalent NCurses function name, but
+with a "ui_" prepended. 
+
+That is, except for the high-level functions like ui_surface_box_win_new() for which neither NCurses nor Notcurses has an equivalent. This particular function creates a new surface surrounded by an immutable box (so you can't overwrite it with misplaced text), and up to seven sub-surfaces inside the box.
+
+You may also notice ui_get_event(), another high-level feature not found in NCurses or Notcurses. Like getch(), this function reads keyboard and mouse input, but it goes much further. It handles interrupt signals, mouse positioning, 5 buttons, a scroll wheel, regular text, and Unicode. The data structure returned by ui_get_event() includes the surface and sub-surface on which the event occurred and switch case matching codes for a zoned chyron.
+
+The program compiles and runs with either NCurses or Notcurses, and the UAL handles the differences in the two backends. The UAL is designed to be easy to use and understand, and it provides a consistent interface for developers to work with, regardless of the underlying backend.
+
+![NEW! Example Program Using UAL](screenshots/ui_hello.png)
+
+Below is a screenshot of the UAL logging feature, which provides a detailed view of the internal workings of the UAL and can be used for debugging and performance analysis. The logging feature is available in both NCurses and Notcurses backends, and can be enabled or disabled at runtime.
+
+---
+
+![NEW! UAL Logging](screenshots/ui_log.png)
+
+---
+
 ![UAL API Example](screenshots/rustlings-a2.png)
 
 ---
