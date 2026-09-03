@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-03T08:38:43-05:00* - FEATURE UPDATE: Fixed mouse wheel scrolling in view 
+
+*2026-09-02T18:55:29-05:00* - Update CHANGELOG.md 
+
 *2026-09-02T18:26:37-05:00* - NEW STUFF: The logging system has been rewritten, with selectable loglevels including PANIC, ERROR, WARN, INFO, VERBOSE, AND DEBUG, it color encodes log records and can be accessed via an extremely easy-to-use variadic function (meaning you can have any number of arguments). Check out: ui_log(LogLevel, fmt, content...). 
 
 *2026-09-02T12:25:07-05:00* - Update CHANGELOG.md 
