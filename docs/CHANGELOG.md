@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-03T16:20:50-05:00* - FEATURE UPDATE: Added new UI feature and updated existing components Includes example ui_hello.c to demonstrate the new UI functionality. Updated Makefile to include new source files and modified existing source files to integrate the new feature seamlessly. 
+
+*2026-09-03T16:18:40-05:00* - Update CHANGELOG.md 
+
 *2026-09-03T11:54:25-05:00* - Update CHANGELOG.md 
 
 *2026-09-03T11:50:56-05:00* - FEATURE UPDATE: Uniform Abstraction Layer for UI Backends Reorganized the shared internal objects structure to make initialization and population of objects more straightforward. 
