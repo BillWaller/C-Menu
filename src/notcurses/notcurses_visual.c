@@ -10,6 +10,7 @@ int main() {
         fprintf(stderr, "Error: Unable to initialize notcurses.\n");
         return EXIT_FAILURE;
     }
+
     struct ncvisual *ncv = ncvisual_from_file("test.png");
     if (!ncv) {
         fprintf(stderr, "Error: Could not load image file.\n");
@@ -24,6 +25,7 @@ int main() {
     if (!cn)
         goto end;
     notcurses_render(nc);
+
     sleep(2);
 end:
     ncvisual_destroy(ncv);

@@ -148,29 +148,29 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
                 ev->mouse_action = UIKEY_SCROLL_UP;
             else if (me.bstate == UIKEY_BUTTON5_PRESSED)
                 ev->mouse_action = UIKEY_SCROLL_DOWN;
-            else if (me.bstate == UIKEY_BUTTON1_CLICKED) {
+            else if (me.bstate == UIKEY_BUTTON1_CLICKED)
                 ev->mouse_action = UIKEY_BUTTON1_CLICKED;
-                for (int i = WIN; i < SUB_SFC_MAX; i++) {
-                    if (s->mwin[i] != NULL &&
-                        wenclose(s->mwin[i], me.y, me.x) &&
-                        wmouse_trafo(s->mwin[i], &me.y, &me.x, false)) {
-                        ev->bstate = me.bstate;
-                        ev->in_win = i;
-                        ev->y = me.y;
-                        ev->x = me.x;
-                        break;
-                    }
+            for (int i = WIN; i < SUB_SFC_MAX; i++) {
+                if (s->mwin[i] != NULL &&
+                    wenclose(s->mwin[i], me.y, me.x) &&
+                    wmouse_trafo(s->mwin[i], &me.y, &me.x, false)) {
+                    ch = ev->mouse_action;
+                    ev->bstate = me.bstate;
+                    ev->in_win = i;
+                    ev->y = me.y;
+                    ev->x = me.x;
+                    break;
                 }
-                if (ev->in_win == w)
-                    ev->mouse_inside = true;
-                if (chyron) {
-                    if (ev->in_win == chyron->win && ev->y == chyron->y) {
-                        ev->mouse_action = UIKEY_BUTTON1_CLICKED;
-                        ev->key = ui_get_chyron_key(chyron, ev->x);
-                        return ev->key;
-                    } else
-                        return 0;
-                }
+            }
+            if (ev->in_win == w)
+                ev->mouse_inside = true;
+            if (chyron) {
+                if (ev->in_win == chyron->win && ev->y == chyron->y) {
+                    ev->mouse_action = UIKEY_BUTTON1_CLICKED;
+                    ev->key = ui_get_chyron_key(chyron, ev->x);
+                    return ev->key;
+                } else
+                    return 0;
             }
         }
     } while (ch == ERR);

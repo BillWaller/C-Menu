@@ -753,6 +753,8 @@ int get_cmd_char(View *view, off_t *n) {
         c = ui_get_event(sfc, CMDLN, NULL, &event, -1);
         switch (c) {
         case UIKEY_BUTTON1:
+        case UIKEY_SCROLL_UP:
+        case UIKEY_SCROLL_DOWN:
             break;
         case UIKEY_RESIZE:
         case '\n':

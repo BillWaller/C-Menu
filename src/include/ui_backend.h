@@ -39,13 +39,27 @@ extern int win_ptr;
     X(CMDLN)                \
     X(PAD)                  \
     X(WIN3)
-
 #define AS_ENUM(NAME) NAME,
 typedef enum {
     SUB_SURFACE_LIST(AS_ENUM)
         SUB_SFC_MAX
 } ss_t;
-
+// ---------------------------------------------------------------
+// Logging enums
+// ---------------------------------------------------------------
+#define LOG_LEVEL_LIST(X) \
+    X(FATAL)              \
+    X(ERROR)              \
+    X(WARN)               \
+    X(INFO)               \
+    X(VERBOSE)            \
+    X(DEBUG)              \
+    X(SILENT)
+#define AS_ENUM(NAME) NAME,
+typedef enum {
+    LOG_LEVEL_LIST(AS_ENUM)
+        LOG_LEVEL_COUNT
+} LogLevel;
 // ---------------------------------------------------------------
 // Input
 // ---------------------------------------------------------------
@@ -1006,22 +1020,8 @@ RGB ui_xterm256_idx_to_rgb(uint idx);
 // ---------------------------------------------------------------
 // Logging
 // ---------------------------------------------------------------
+#define ANSI_RESET "\033[0m"
 char *ui_iso8601_timestamp(char *buf, size_t n, bool local);
-
-#define LOG_LEVEL_LIST(X) \
-    X(FATAL)              \
-    X(ERROR)              \
-    X(WARN)               \
-    X(INFO)               \
-    X(VERBOSE)            \
-    X(DEBUG)              \
-    X(SILENT)
-#define AS_ENUM(NAME) NAME,
-typedef enum {
-    LOG_LEVEL_LIST(AS_ENUM)
-        LOG_LEVEL_COUNT
-} LogLevel;
-
 extern const char *iso8601_time(void);
 extern FILE *ui_log_fp;
 extern char ui_log_file_name[];
@@ -1030,15 +1030,12 @@ extern const char *const ui_logcolor[];
 extern const char *const ui_log_level_s[];
 extern LogLevel ui_min_log_level;
 extern char ui_timestamp[32];
-#define ANSI_RESET "\033[0m"
-
 FILE *ui_open_log();
 
 static inline void ui_logrec(const LogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
 
 static inline void ui_logrec(const LogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) {
     LogLevel safe_level = (level >= LOG_LEVEL_COUNT) ? INFO : level;
-    // Print the metadata header (Timestamp, Level, File, Func, Line)
     fprintf(ui_log_fp, "[%s] %s[%s]%s <%s:%s:%d> ",
             ui_iso8601_timestamp(ui_timestamp, sizeof(ui_timestamp), ui_timestamp_local),
             ui_logcolor[safe_level],
@@ -1052,7 +1049,6 @@ static inline void ui_logrec(const LogLevel level, const char *file, const char 
     fprintf(ui_log_fp, "\n");
     fflush(ui_log_fp);
 }
-
 #define ui_log(level, fmt, ...)                                                 \
     do {                                                                        \
         if (level <= ui_min_log_level) {                                        \
