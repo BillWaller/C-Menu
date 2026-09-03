@@ -20,21 +20,21 @@
 #include <unistd.h>
 
 struct termios shell_tioctl;
-struct termios curses_tioctl;
+struct termios program_tioctl;
 bool f_have_shell_tioctl = false;
-bool f_have_curses_tioctl = false;
+bool f_have_program_tioctl = false;
 bool capture_shell_tioctl();
 bool restore_shell_tioctl();
-bool capture_curses_tioctl();
-bool restore_curses_tioctl();
+bool capture_program_tioctl();
+bool restore_program_tioctl();
 bool set_sane_tioctl(struct termios *);
 bool mk_raw_tioctl(struct termios *);
 char di_getch();
 
-struct termios shell_tioctl, curses_tioctl;
-struct termios shell_in_tioctl, curses_in_tioctl;
-struct termios shell_out_tioctl, curses_out_tioctl;
-struct termios shell_err_tioctl, curses_err_tioctl;
+struct termios shell_tioctl, program_tioctl;
+struct termios shell_in_tioctl, program_in_tioctl;
+struct termios shell_out_tioctl, program_out_tioctl;
+struct termios shell_err_tioctl, program_err_tioctl;
 
 /** @brief capture_shell_tioctl() - capture shell terminal settings
     @ingroup screen_io
@@ -63,31 +63,31 @@ bool restore_shell_tioctl() {
     tcsetattr(2, TCSANOW, &shell_err_tioctl);
     return true;
 }
-/** @brief capture_curses_tioctl() - capture curses terminal settings
+/** @brief capture_program_tioctl() - capture program terminal settings
     @ingroup screen_io
     @return - true on success
     @details - captures terminal settings for stdin, stdout, and stderr */
-bool capture_curses_tioctl() {
-    if (f_have_curses_tioctl)
+bool capture_program_tioctl() {
+    if (f_have_program_tioctl)
         return true;
     fflush(NULL);
-    tcgetattr(0, &curses_in_tioctl);
-    tcgetattr(1, &curses_out_tioctl);
-    tcgetattr(2, &curses_err_tioctl);
-    f_have_curses_tioctl = true;
+    tcgetattr(0, &program_in_tioctl);
+    tcgetattr(1, &program_out_tioctl);
+    tcgetattr(2, &program_err_tioctl);
+    f_have_program_tioctl = true;
     return true;
 }
-/** @brief restore_curses_tioctl() - restore curses terminal settings
+/** @brief restore_program_tioctl() - restore program terminal settings
     @ingroup screen_io
     @return - true on success
     @details - restores terminal settings for stdin, stdout, and stderr */
-bool restore_curses_tioctl() {
-    if (!f_have_curses_tioctl)
+bool restore_program_tioctl() {
+    if (!f_have_program_tioctl)
         return false;
     fflush(NULL);
-    tcsetattr(0, TCSANOW, &curses_in_tioctl);
-    tcsetattr(1, TCSANOW, &curses_out_tioctl);
-    tcsetattr(2, TCSANOW, &curses_err_tioctl);
+    tcsetattr(0, TCSANOW, &program_in_tioctl);
+    tcsetattr(1, TCSANOW, &program_out_tioctl);
+    tcsetattr(2, TCSANOW, &program_err_tioctl);
 
     return true;
 }
@@ -151,7 +151,7 @@ bool mk_raw_tioctl(struct termios *t_p) {
 /** @brief get single character from terminal in raw mode
     @ingroup screen_io
     @return - the character read from terminal
-    @details intended to be used when curses is not active
+    @details intended to be used when program is not active
     @note restores terminal settings before returning
 
  */

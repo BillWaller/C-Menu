@@ -79,14 +79,10 @@ Init *new_init(int argc, char **argv) {
         init->argv[i] = argv[i];
     init->argv[i] = nullptr;
 
-    init->sio = (SIO *)calloc(1, sizeof(SIO));
-    if (!init->sio) {
-        ui_perror("calloc sio failed");
-        exit(EXIT_FAILURE);
-    }
     init_cnt++;
     return init;
 }
+
 /** @brief Destroy Init structure
     @ingroup mem
     @param init structure
@@ -95,10 +91,6 @@ Init *new_init(int argc, char **argv) {
 Init *destroy_init(Init *init) {
     if (!init)
         return nullptr;
-    if (init->sio) {
-        free(init->sio);
-        init->sio = nullptr;
-    }
     if (init->menu) {
         init->menu = destroy_menu(init);
         init->menu = nullptr;

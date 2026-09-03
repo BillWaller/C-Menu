@@ -496,6 +496,12 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
     char *e;
     setlocale(LC_ALL, "en_US.UTF-8");
+
+    init->sio = (SIO *)calloc(1, sizeof(SIO));
+    if (!init->sio) {
+        ui_perror("calloc init->sio failed");
+        exit(EXIT_FAILURE);
+    }
     SIO *sio = init->sio;
     if (!init) {
         ssnprintf(tmp_str, sizeof(tmp_str), "%s",

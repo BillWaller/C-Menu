@@ -59,7 +59,7 @@ typedef enum {
 typedef enum {
     LOG_LEVEL_LIST(AS_ENUM)
         LOG_LEVEL_COUNT
-} LogLevel;
+} UiLogLevel;
 // ---------------------------------------------------------------
 // Input
 // ---------------------------------------------------------------
@@ -75,6 +75,7 @@ typedef struct {
 } GCluster;
 
 typedef struct UiRuntime UiRuntime;
+typedef struct SIO SIO;
 typedef struct UiSurface UiSurface;
 typedef struct UiSplitSurface UiSplitSurface;
 typedef union UiChannels UiChannels;
@@ -125,8 +126,9 @@ typedef enum {
     UI_BORDER_SINGLE,
     UI_BORDER_DOUBLE,
     UI_BORDER_ROUNDED,
-    UI_BORDER_HEAVY
-} UiBorderKind;
+    UI_BORDER_HEAVY,
+    UI_BORDER_MAX
+} UiBorderStyle;
 
 typedef struct {
     int y;
@@ -150,6 +152,7 @@ typedef struct {
 // ---------------------------------------------------------------
 // UAL_UI Specific
 // ---------------------------------------------------------------
+extern bool f_curses_open;
 typedef cchar_t UiCell;
 typedef struct {
     uint r, g, b;
@@ -163,10 +166,11 @@ struct UiRuntime {
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
-    char border_style;
+    UiBorderStyle border_style;
     uint lines;
     uint cols;
     PANEL *panel_main;
+    SIO *sio;
 };
 struct UiSurfaceMeta {
     unsigned int y;
@@ -255,15 +259,17 @@ typedef struct {
         uint32_t color;
     };
 } RGB;
+
 struct UiRuntime {
     struct notcurses *nc;
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
-    char border_style;
+    UiBorderStyle border_style;
     unsigned int lines;
     unsigned int cols;
     FILE *tty_fp;
+    SIO *sio;
 };
 
 struct UiSurfaceMeta {
@@ -380,14 +386,10 @@ extern uint LINES, COLS;
 extern UiSurface *stdsfc;
 
 typedef struct {
-    bool enable_mouse;
-    bool enable_alt_screen;
-    bool cursor_visible;
-    char border_style;
-    const char *tty_path; /**< optional TTY device path; NULL = auto-detect */
-    FILE *tty_fp;         /**< optional TTY FILE pointer; NULL = auto-detect */
+    UiBorderStyle border_style;
     char *log_file;       /**< log_file name or NULL for no logging */
-    char *log_level;      /**< log_level FATAL, ERROR, WARN, INFO, VERBOSE, DEBUG, SILENT */
+    UiLogLevel log_level; /**< log_level FATAL, ERROR, WARN, INFO, VERBOSE,
+    DEBUG, SILENT */
 } UiConfig;
 
 typedef enum {
@@ -631,7 +633,7 @@ static inline int unicode_to_utf8_gcluster(uint32_t cp, GCluster *g) {
     return 0;
 }
 
-typedef struct {
+struct SIO {
     double red_gamma;      /**< red gamma correction value */
     double green_gamma;    /**< green gamma correction value */
     double blue_gamma;     /**< blue gamma correction value */
@@ -693,8 +695,8 @@ typedef struct {
     uint clr_pair_cnt;     /**< number of color pairs currently in use */
     uint clr_idx;          /**< current color index */
     uint clr_pair_idx;     /**< current color pair index */
-    char brackets[3];
-    char fill_char[2];
+    char brackets[3];      /**< field brackets for Form */
+    char fill_char[2];     /**< fill character for Form fields */
     char border;           /**< Rounded, Single, Double, None */
     char tty_name[MAXLEN]; /**< name of the terminal device */
     ushort cp_default;     /**< default color pair index */
@@ -712,7 +714,8 @@ typedef struct {
     ushort cp_ran;         /**< right angle color pair index */
     ushort cp_chk;         /**< checkmark color pair index */
     ushort cp_bold;        /**< bold color pair index */
-} SIO;
+}; /**< Shared Internal Objects */
+/** available to the application and the backend implementation */
 
 /* @name UI Backend API
    @ingroup ui_backend
@@ -732,7 +735,7 @@ typedef struct {
    feedback to the user.
    @see ui_backend.h
 */
-UiRuntime *ui_init(const UiConfig *config);
+UiRuntime *ui_init(const UiConfig *config, SIO *sio);
 void ui_shutdown();
 void ui_render();
 int ui_clear();
@@ -749,11 +752,6 @@ int ui_wresize(UiSurface *s, ss_t w, uint lines, uint cols);
 int ui_wclear(UiSurface *s, ss_t w);
 int ui_werase(UiSurface *s, ss_t w);
 
-int ui_wset_base(UiSurface *s, ss_t w, const UiStyle *style, uint32_t fill_ch);
-int ui_wset_style(UiSurface *s, ss_t w, const UiStyle *style);
-int ui_draw_vline(UiSurface *s, ss_t w, uint y, uint x, uint len, const UiStyle *style);
-int ui_draw_border(UiSurface *s, ss_t w, UiBorderKind kind, const UiStyle *style);
-int ui_draw_box_title(UiSurface *s, ss_t w, uint x, const UiStyle *style, const char *title);
 int ui_wshow(UiSurface *s, ss_t w);
 int ui_whide(UiSurface *s, ss_t w);
 int ui_get_event_no_mouse(UiSurface *surface, ss_t w, UiEvent *ev);
@@ -982,8 +980,8 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
 // ---------------------------------------------------------------
 
 void destroy_curses();
-bool init_clr_palette(SIO *sio);
-void initialize_cells(SIO *sio);
+bool ui_init_clr_palette(SIO *sio);
+void ui_initialize_sio(SIO *sio);
 void ui_abend(int ec, char *s);
 bool ui_action_disposition(char *title, char *action_str);
 void ui_activate_all_chyron_keys(UiChyron *chyron);
@@ -1028,14 +1026,14 @@ extern char ui_log_file_name[];
 extern bool ui_timestamp_local;
 extern const char *const ui_logcolor[];
 extern const char *const ui_log_level_s[];
-extern LogLevel ui_min_log_level;
+extern UiLogLevel ui_min_log_level;
 extern char ui_timestamp[32];
 FILE *ui_open_log();
 
-static inline void ui_logrec(const LogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
+static inline void ui_logrec(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
 
-static inline void ui_logrec(const LogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) {
-    LogLevel safe_level = (level >= LOG_LEVEL_COUNT) ? INFO : level;
+static inline void ui_logrec(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) {
+    UiLogLevel safe_level = (level >= LOG_LEVEL_COUNT) ? INFO : level;
     fprintf(ui_log_fp, "[%s] %s[%s]%s <%s:%s:%d> ",
             ui_iso8601_timestamp(ui_timestamp, sizeof(ui_timestamp), ui_timestamp_local),
             ui_logcolor[safe_level],

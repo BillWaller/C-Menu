@@ -102,7 +102,7 @@ int shell(char *shellCmdPtr) {
     Uses a temporary string buffer tmp_str for error messages.
     Uses ui_perror for error reporting.
     Uses sig_dfl_mode and sig_prog_mode for signal handling.
-    Uses capture_curses_tioctl and restore_curses_tioctl for terminal
+    Uses capture_program_tioctl and restore_program_tioctl for terminal
    settings.
     Uses restore_shell_tioctl for shell terminal settings.
     Uses waitpid to wait for the child process.
@@ -129,7 +129,7 @@ int fork_exec(char **argv) {
         ui_perror("fork_exec: missing argument for execvp");
         return (-1);
     }
-    capture_curses_tioctl();
+    capture_program_tioctl();
     ui_curs_set(1);
     sig_dfl_mode();
     stdio_names(stdio_names_str, "exec.c:139");
@@ -185,7 +185,7 @@ int fork_exec(char **argv) {
     Restores window states in the parent process after forking. */
 int fork_detach_execvp(char **eargv) {
     pid_t pid = fork();
-    capture_curses_tioctl();
+    capture_program_tioctl();
     ui_curs_set(1);
     sig_dfl_mode();
 
@@ -217,7 +217,7 @@ int fork_detach_execvp(char **eargv) {
         perror("execvp failed");
         exit(EXIT_FAILURE);
     }
-    restore_curses_tioctl();
+    restore_program_tioctl();
     sig_prog_mode();
     ui_restore_wins();
     return 0;

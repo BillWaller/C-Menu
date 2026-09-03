@@ -180,7 +180,7 @@ typedef struct
     char mapp_spec[MAXLEN];     /**< description file */
     char help_spec[MAXLEN];     /**< help file */
     char log_file_spec[MAXLEN]; /**< log file spec */
-    LogLevel min_log_level;     /** log level for logging */
+    UiLogLevel min_log_level;
     // Pick
     int select_max; /**< Pick maximum number of selections */
     // View

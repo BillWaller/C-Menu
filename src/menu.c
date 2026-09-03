@@ -44,21 +44,18 @@ int main(int argc, char **argv) {
     capture_shell_tioctl();
     Init *init = new_init(argc, argv);
     mapp_initialization(init, argc, argv);
-    SIO *sio = init->sio;
-    UiConfig *ui_config = calloc(1, sizeof(UiConfig));
-    ui_config->enable_mouse = true;
-    ui_config->enable_alt_screen = false;
-    ui_config->cursor_visible = true;
-    ui_config->border_style = sio->border;
-    ui_init(ui_config);
-    initialize_cells(sio);
+    UiConfig ui_config = {
+        .border_style = UI_BORDER_ROUNDED,
+        .log_file = "/tmp/mylog.log",
+        .log_level = INFO};
+    ui_init(&ui_config, init->sio);
     rc = atexit(end_pgm);
     if (rc != 0) {
         fprintf(stderr, "\nCannot set exit function\n");
         exit(EXIT_FAILURE);
     }
     sig_prog_mode();
-    capture_curses_tioctl();
+    capture_program_tioctl();
     base_name(pgm_name, argv[0]);
     if (!strcmp(pgm_name, "menu")) {
         new_menu(init, init->argc, init->argv, LINES / 14, COLS / 14);
@@ -81,7 +78,7 @@ int main(int argc, char **argv) {
     } else if (!strcmp(pgm_name, "ckeys"))
         popup_ckeys();
     destroy_view(init);
-    destroy_curses();
+    ui_shutdown();
     destroy_init(init);
     exit(EXIT_SUCCESS);
 }

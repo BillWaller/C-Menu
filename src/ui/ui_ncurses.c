@@ -29,7 +29,7 @@ UiSurface *ui_surface[UI_SFC_MAX];
 
 int win_ptr = -1;
 int sfc_ptr = -1;
-
+bool f_curses_open = false;
 uint ui_color_cnt = 0;
 uint ui_pair_cnt = 0;
 
@@ -93,20 +93,15 @@ UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *
 /* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
-struct UiRuntime *ui_init(const UiConfig *cfg) {
+struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     setlocale(LC_ALL, "");
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
     char tty_name[MAXLEN];
-    if (cfg && cfg->tty_path) {
-        strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
-        tty_name[sizeof(tty_name) - 1] = '\0';
-    } else {
-        if (ttyname_r(STDERR_FILENO, tty_name, sizeof(tty_name)) != 0) {
-            free(ui);
-            return NULL;
-        }
+    if (ttyname_r(STDERR_FILENO, tty_name, sizeof(tty_name)) != 0) {
+        free(ui);
+        return NULL;
     }
     ui->tty_fp = fopen(tty_name, "r+");
     if (!ui->tty_fp) {
@@ -121,7 +116,6 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
         return NULL;
     }
     set_term(ui->screen);
-    f_curses_open = true;
     if (!has_colors() || !can_change_color()) {
         ui_shutdown();
         return NULL;
@@ -131,31 +125,10 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
-    if (cfg) {
-        ui->mouse_enabled = cfg->enable_mouse;
-        ui->alt_screen = cfg->enable_alt_screen;
-        ui->cursor_visible = cfg->cursor_visible;
-        ui->border_style = cfg->border_style;
-    } else {
-        ui->cursor_visible = false;
-        ui->alt_screen = false;
-    }
     if (ui->mouse_enabled)
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
     getmaxyx(stdscr, ui->lines, ui->cols);
-    if (cfg) {
-        if (ui->border_style == 'r' || ui->border_style == 'R') {
-            memcpy(bw.str, border_rounded, sizeof(bw.str));
-        } else if (ui->border_style == 's' || ui->border_style == 'S') {
-            memcpy(bw.str, border_single, sizeof(bw.str));
-        } else if (ui->border_style == 'd' || ui->border_style == 'D') {
-            memcpy(bw.str, border_double, sizeof(bw.str));
-        } else if (ui->border_style == 'h' || ui->border_style == 'H') {
-            memcpy(bw.str, border_heavy, sizeof(bw.str));
-        } else if (ui->border_style == 'n' || ui->border_style == 'N') {
-            memcpy(bw.str, border_none, sizeof(bw.str));
-        }
-    }
+
     stdsfc = calloc(1, sizeof(*stdsfc));
     if (!stdsfc)
         return NULL;
@@ -172,6 +145,33 @@ struct UiRuntime *ui_init(const UiConfig *cfg) {
         ui_log(ERROR, "new_panel failed for stdsfc->mpan[BOX]");
         exit(EXIT_FAILURE);
     }
+    if (cfg->border_style)
+        ui->border_style = cfg->border_style;
+    if (!ui->border_style)
+        ui->border_style = UI_BORDER_ROUNDED;
+    if (cfg) {
+        switch (ui->border_style) {
+        case UI_BORDER_SINGLE:
+            memcpy(bw.str, border_single, sizeof(bw.str));
+            break;
+        case UI_BORDER_DOUBLE:
+            memcpy(bw.str, border_double, sizeof(bw.str));
+            break;
+        case UI_BORDER_ROUNDED:
+            memcpy(bw.str, border_rounded, sizeof(bw.str));
+            break;
+        case UI_BORDER_HEAVY:
+            memcpy(bw.str, border_heavy, sizeof(bw.str));
+            break;
+        case UI_BORDER_NONE:
+            memcpy(bw.str, border_none, sizeof(bw.str));
+            break;
+        default:
+            memcpy(bw.str, border_rounded, sizeof(bw.str));
+            break;
+        }
+    }
+    ui_initialize_sio(sio);
     ui_log(INFO, "ui_init: stdsfc->mwin[BOX]: %p, stdsfc->mpan[BOX]: %p", (void *)stdsfc->mwin[BOX], (void *)stdsfc->mpan[BOX]);
     return ui;
 }
@@ -196,7 +196,6 @@ void ui_shutdown() {
         del_panel(stdsfc->mpan[0]);
         stdsfc->mpan[0] = NULL;
     }
-    f_curses_open = false;
     ui_log(INFO, "calling endwin()");
     endwin();
     if (ui->screen != NULL) {
@@ -215,6 +214,10 @@ void ui_shutdown() {
         stdsfc = NULL;
     }
     if (ui != NULL) {
+        if (ui->sio) {
+            free(ui->sio);
+            ui->sio = nullptr;
+        }
         ui_log(INFO, "freeing ui");
         free(ui);
         ui = NULL;

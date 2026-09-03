@@ -283,23 +283,23 @@ extern bool f_debug; /**< a flag to indicate whether debug
 output should be printed, for debugging purposes */
 
 /**< see termios.h */
-extern struct termios shell_tioctl, curses_tioctl;
-extern struct termios shell_in_tioctl, curses_in_tioctl;
-extern struct termios shell_out_tioctl, curses_out_tioctl;
-extern struct termios shell_err_tioctl, curses_err_tioctl;
+extern struct termios shell_tioctl, program_tioctl;
+extern struct termios shell_in_tioctl, program_in_tioctl;
+extern struct termios shell_out_tioctl, program_out_tioctl;
+extern struct termios shell_err_tioctl, program_err_tioctl;
 
-extern bool f_have_shell_tioctl;  /**< shell tioctl captured */
-extern bool f_have_curses_tioctl; /**< curses tioctl captured */
-extern bool f_curses_open;        /**< curses mode is active */
-extern bool f_restore_screen;     /**< whether to restore the screen */
+extern bool f_have_shell_tioctl;   /**< shell tioctl captured */
+extern bool f_have_program_tioctl; /**< program tioctl captured */
+extern bool f_program_open;        /**< program mode is active */
+extern bool f_restore_screen;      /**< whether to restore the screen */
 
 extern void dump_opts(); /**< dump options to stdout */
 
 extern void dump_opts_by_use(char *, char *); /**< dump options to stdout */
 extern bool capture_shell_tioctl();
 extern bool restore_shell_tioctl();
-extern bool capture_curses_tioctl();
-extern bool restore_curses_tioctl();
+extern bool capture_program_tioctl();
+extern bool restore_program_tioctl();
 extern bool mk_raw_tioctl(struct termios *);
 extern bool set_sane_tioctl(struct termios *);
 extern void win_resize(uint, uint, char *);

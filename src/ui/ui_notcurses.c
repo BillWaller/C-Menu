@@ -64,22 +64,16 @@ void ui_get_caps(UiCaps *caps) {
 /* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
-UiRuntime *ui_init(const UiConfig *cfg) {
+UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     setlocale(LC_ALL, "");
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
     char tty_name[MAXLEN];
-    if (cfg && cfg->tty_path) {
-        strncpy(tty_name, cfg->tty_path, sizeof(tty_name) - 1);
-        tty_name[sizeof(tty_name) - 1] = '\0';
-    } else {
-        if (ttyname_r(STDIN_FILENO, tty_name,
-                      sizeof(tty_name)) != 0) {
-            free(ui);
-            ui = NULL;
-            return NULL;
-        }
+    if (ttyname_r(STDIN_FILENO, tty_name, sizeof(tty_name)) != 0) {
+        free(ui);
+        ui = NULL;
+        return NULL;
     }
     ui->tty_fp = fopen(tty_name, "r+");
     if (ui->tty_fp == NULL) {
@@ -108,19 +102,8 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         ui = NULL;
         return NULL;
     }
-    if (cfg) {
-        ui->mouse_enabled = cfg->enable_mouse;
-        ui->alt_screen = cfg->enable_alt_screen;
-        ui->cursor_visible = cfg->cursor_visible;
-        ui->border_style = cfg->border_style;
-    } else {
-        ui->cursor_visible = false;
-        ui->alt_screen = false;
-    }
-    if (ui->mouse_enabled)
-        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
-    if (!ui->cursor_visible)
-        notcurses_cursor_disable(ui->nc);
+    notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+    notcurses_cursor_disable(ui->nc);
     notcurses_stddim_yx(ui->nc, &ui->lines, &ui->cols);
     stdsfc = calloc(1, sizeof(*stdsfc));
     if (!stdsfc)
@@ -154,6 +137,7 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         free(ui);
         return NULL;
     }
+    ui_pair_cnt = 0;
     ui_color = calloc(UI_COLORS, sizeof(UiColor));
     if (!ui_color) {
         free(ui_pair);
@@ -161,22 +145,35 @@ UiRuntime *ui_init(const UiConfig *cfg) {
         free(ui);
         return NULL;
     }
+    ui_color_cnt = 0;
+    if (cfg->border_style)
+        ui->border_style = cfg->border_style;
+    if (!ui->border_style)
+        ui->border_style = UI_BORDER_ROUNDED;
     if (cfg) {
-        if (ui->border_style == 'r' || ui->border_style == 'R') {
-            memcpy(bw.str, border_rounded, sizeof(bw.str));
-        } else if (ui->border_style == 's' || ui->border_style == 'S') {
+        switch (ui->border_style) {
+        case UI_BORDER_SINGLE:
             memcpy(bw.str, border_single, sizeof(bw.str));
-        } else if (ui->border_style == 'd' || ui->border_style == 'D') {
+            break;
+        case UI_BORDER_DOUBLE:
             memcpy(bw.str, border_double, sizeof(bw.str));
-        } else if (ui->border_style == 'h' || ui->border_style == 'H') {
+            break;
+        case UI_BORDER_ROUNDED:
+            memcpy(bw.str, border_rounded, sizeof(bw.str));
+            break;
+        case UI_BORDER_HEAVY:
             memcpy(bw.str, border_heavy, sizeof(bw.str));
-        } else if (ui->border_style == 'n' || ui->border_style == 'N') {
+            break;
+        case UI_BORDER_NONE:
             memcpy(bw.str, border_none, sizeof(bw.str));
+            break;
+        default:
+            memcpy(bw.str, border_rounded, sizeof(bw.str));
+            break;
         }
     }
+    ui_initialize_sio(sio);
     stdsfc = calloc(1, sizeof(*stdsfc));
-    ui_color_cnt = 0;
-    ui_pair_cnt = 0;
     return ui;
 }
 
@@ -350,6 +347,8 @@ void ui_shutdown() {
         free(stdsfc);
         stdsfc = NULL;
     }
+    ui_log(INFO, "Calling notcurses_stop");
+    notcurses_stop(ui->nc);
     if (ui != NULL) {
         if (ui_pair != NULL) {
             ui_log(INFO, "Destroying ui_pair");
@@ -361,11 +360,17 @@ void ui_shutdown() {
             free(ui_color);
             ui_color = NULL;
         }
+        if (ui->sio) {
+            ui_log(INFO, "Destroying ui->sio");
+            free(ui->sio);
+            ui->sio = nullptr;
+        }
+        if (ui != NULL) {
+            ui_log(INFO, "Destroying ui");
+            free(ui);
+            ui = NULL;
+        }
     }
-    ui_log(INFO, "Calling notcurses_stop");
-    notcurses_stop(ui->nc);
-    free(ui);
-    ui = NULL;
 }
 
 void ui_surface_destroy(UiSurface *s) {

@@ -162,19 +162,21 @@ STDRGB std_color[] = {
     {0, 255, 255},
     {255, 255, 255}};
 
+bool ui_init_clr_palette(SIO *sio);
 //-------------------------------------------------------------------------
 // Initialization
 // -------------------------------------------------------------------------
 
-void initialize_cells(SIO *sio) {
+void ui_initialize_sio(SIO *sio) {
     /** gamma correction values */
     /** These are read from ~/.minitrc */
     /** used when initializing colors */
+    ui->sio = sio;
     RED_GAMMA = sio->red_gamma;
     GREEN_GAMMA = sio->green_gamma;
     BLUE_GAMMA = sio->blue_gamma;
     GRAY_GAMMA = sio->gray_gamma;
-    init_clr_palette(sio);
+    ui_init_clr_palette(sio);
     //
     // Initialize Standardized color pairs
     //
@@ -230,7 +232,7 @@ void initialize_cells(SIO *sio) {
     cell_sp = ui_cell_from_ucp(bw_sp, &sio->box_fg, &sio->box_bg);
 }
 
-bool init_clr_palette(SIO *sio) {
+bool ui_init_clr_palette(SIO *sio) {
     ui_chg_color(CLR_BLACK, &sio->black);
     ui_chg_color(CLR_RED, &sio->red);
     ui_chg_color(CLR_GREEN, &sio->green);
@@ -271,24 +273,6 @@ bool init_clr_palette(SIO *sio) {
     ui_chg_color(CLR_BRACKETS_BG, &sio->brackets_bg);
     ui_color_cnt = CLR_NCOLORS;
     return true;
-}
-/** destroy_curses
-    @brief Gracefully shut down NCurses and restore terminal settings
-    @ingroup window_support
-    @details This function should be called before exiting the program to ensure
-   that the terminal is left in a usable state. It checks if NCurses was
-   initialized and, if so, it erases the screen, and ends the
-   NCurses session. It also restores the original terminal settings using
-   restore_shell_tioctl and resets signal handlers to their default state with
-   sig_dfl_mode. */
-void destroy_curses() {
-    if (!f_curses_open)
-        return;
-    ui_shutdown();
-    f_curses_open = false;
-    restore_shell_tioctl();
-    sig_dfl_mode();
-    return;
 }
 // -----------------------------------------------------------------------------
 // Multibyte, Wide Character (wchar_t), and Complex Character (cchar_t) Support
@@ -396,6 +380,16 @@ uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_
     cmplx_buf[*pos] = cc;
     return *pos;
 }
+void destroy_curses() {
+    if (!f_curses_open)
+        return;
+    ui_shutdown();
+    f_curses_open = false;
+    restore_shell_tioctl();
+    sig_dfl_mode();
+    return;
+}
+// -----------------------------------------------------------------------------
 #else
 uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
     ushort cp;
@@ -437,6 +431,13 @@ uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_
     return *pos;
 }
 #endif
+void ui_abend(int ec, char *s) {
+    ui_shutdown();
+    restore_shell_tioctl();
+    sig_dfl_mode();
+    fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
+    exit(EXIT_FAILURE);
+}
 // -----------------------------------------------------------------------------
 // High Level Surface Instantiation
 // -----------------------------------------------------------------------------
@@ -1257,18 +1258,6 @@ bool ui_action_disposition(char *title, char *action_str) {
     ui_destroy_chyron(chyron);
     return true;
 }
-/** ui_abend
-    @brief Abnormal program termination
-    @ingroup error_handling
-    @param ec Exit code
-    @param s Error message */
-void ui_abend(int ec, char *s) {
-    destroy_curses();
-    restore_shell_tioctl();
-    sig_dfl_mode();
-    fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
-    exit(EXIT_FAILURE);
-}
 // -----------------------------------------------------------------------
 // Logging
 // -----------------------------------------------------------------------
@@ -1312,7 +1301,7 @@ const char *const ui_logcolor[] = {
 FILE *ui_log_fp = NULL;
 char ui_log_file_name[MAXLEN] = "/tmp/ui.log"; // default log file
 const char *const ui_logcolor[];
-LogLevel ui_min_log_level = INFO;
+UiLogLevel ui_min_log_level = INFO;
 bool ui_timestamp_local = true; // default to local time for timestamps
 char ui_timestamp[32];
 

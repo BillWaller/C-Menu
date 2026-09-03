@@ -151,7 +151,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     read_pick_input(init);
     if (pick->f_in_pipe && pid > 0) {
         waitpid(pid, nullptr, 0);
-        // restore_curses_tioctl();
+        // restore_program_tioctl();
         // sig_prog_mode();
     }
     close(pipe_fd[P_READ]);
@@ -585,7 +585,7 @@ int read_theme(Init *init) {
     if (rc)
         return rc;
     SIO *sio = init->sio;
-    initialize_cells(sio);
+    ui_initialize_sio(sio);
     ui_render();
     return 0;
 }

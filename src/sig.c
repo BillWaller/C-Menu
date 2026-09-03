@@ -31,8 +31,6 @@
 
 volatile sig_atomic_t sig_received = 0;
 
-bool f_curses_open = false;
-
 /** @brief Set signal handlers to default behavior
     @ingroup signal_handling
     @details This function sets the signal handlers for SIGINT, SIGTERM,
