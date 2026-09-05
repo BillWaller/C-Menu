@@ -376,10 +376,13 @@ struct UiCell {
         uint64_t channels;
     };
 };
+// ---------------------------------------------------------------------------
+// About typedefs
+// ---------------------------------------------------------------------------
 // Linus doesn't consider typedefs for inclusion into the linux kernel because
 // they can obscure the underlying type leading to performance destroying
-// pass-by-value mistakes. We use them because they improve code readibility
-// and maintainability, but remain aware of that caveat.
+// pass-by-value mistakes. We use them to improve code readibility and
+// maintainability while aware of that caveat.
 typedef uint16_t attr_t;
 typedef struct nccell UiCell;
 typedef struct ncplane NcPlane;
@@ -428,37 +431,37 @@ typedef struct {
     int color_pairs; /**< max simultaneous color pairs; 0 = unlimited */
 } UiCaps;
 
-// ---------------------------------------------------------------
-// Colors
-// ---------------------------------------------------------------
-
 extern int click_y; /**< the y coordinate of a mouse click */
 extern int click_x; /**< the x coordinate of a mouse click */
 
-extern ushort cp_default;            /**< default color pair index */
-extern ushort cp_box;                /**< box color pair index */
-extern ushort cp_ind;                /**< indicator color pair index */
-extern ushort cp_bold;               /**< bold color pair index */
-extern ushort cp_title;              /**< title color pair index */
-extern ushort cp_highlight;          /**< highlight color pair index */
-extern ushort cp_fill_char;          /**< fill character color pair index */
-extern ushort cp_brackets;           /**< color pair index for field brackets */
-extern ushort cp_nt;                 /**< normal color pair index */
-extern ushort cp_nt_rev;             /**< reverse color pair index */
-extern ushort cp_nt_hl;              /**< highlight color pair index */
-extern ushort cp_nt_hl_rev;          /**< highlight reverse color pair index */
-extern ushort cp_ln_fg;              /**< line number color pair index */
-extern ushort cp_ln_bg;              /**< line number background color pair index */
-extern ushort cp_cmdln_fg;           /**< command line number color pair index */
-extern ushort cp_cmdln_bg;           /**< command line number background color pair index */
-extern ushort cp_red;                /**< red background color pair index */
-extern ushort cp_green;              /**< green background color pair index */
-extern ushort cp_yellow;             /**< yellow background color pair index */
-extern ushort cp_blue;               /**< blue background color pair index */
-extern uint clr_idx;                 /**< current color index */
-extern uint clr_cnt;                 /**< number of colors used */
-extern uint clr_pair_idx;            /**< current color pair index */
-extern uint clr_pair_cnt;            /**< number of color pairs supported by the terminal */
+// ---------------------------------------------------------------
+// Colors
+// ---------------------------------------------------------------
+extern ushort cp_default;   /**< default color pair index */
+extern ushort cp_box;       /**< box color pair index */
+extern ushort cp_ind;       /**< indicator color pair index */
+extern ushort cp_bold;      /**< bold color pair index */
+extern ushort cp_title;     /**< title color pair index */
+extern ushort cp_highlight; /**< highlight color pair index */
+extern ushort cp_fill_char; /**< fill character color pair index */
+extern ushort cp_brackets;  /**< color pair index for field brackets */
+extern ushort cp_nt;        /**< normal color pair index */
+extern ushort cp_nt_rev;    /**< reverse color pair index */
+extern ushort cp_nt_hl;     /**< highlight color pair index */
+extern ushort cp_nt_hl_rev; /**< highlight reverse color pair index */
+extern ushort cp_ln_fg;     /**< line number color pair index */
+extern ushort cp_ln_bg;     /**< line number background color pair index */
+extern ushort cp_cmdln_fg;  /**< command line number color pair index */
+extern ushort cp_cmdln_bg;  /**< command line number background color pair index */
+extern ushort cp_red;       /**< red background color pair index */
+extern ushort cp_green;     /**< green background color pair index */
+extern ushort cp_yellow;    /**< yellow background color pair index */
+extern ushort cp_blue;      /**< blue background color pair index */
+extern uint clr_idx;        /**< current color index */
+extern uint clr_cnt;        /**< number of colors used */
+extern uint clr_pair_idx;   /**< current color pair index */
+extern uint clr_pair_cnt;   /**< number of color pairs supported by the terminal */
+
 extern char const colors_text[][10]; /**< color codes for the 16 basic colors */
 
 #define COLOR_LEN 8   /**< length of color code strings */
@@ -691,10 +694,10 @@ struct SIO {
     uint32_t fill_char_bg; /**< fill character background */
     uint32_t ln_fg;        /**< line number color index */
     uint32_t ln_bg;        /**< line number background index */
-    uint32_t cmdln_fg;     /**< line number color index */
-    uint32_t cmdln_bg;     /**< line number background index */
-    uint32_t nt_fg;        /**< color code for normal text foreground */
-    uint32_t nt_bg;        /**< color code for normal text background */
+    uint32_t cmdln_fg;     /**< command line color index */
+    uint32_t cmdln_bg;     /**< command line background index */
+    uint32_t nt_fg;        /**< normal text foreground */
+    uint32_t nt_bg;        /**< normal text background */
     uint32_t nt_rev_fg;    /**< normal text reverse foreground */
     uint32_t nt_rev_bg;    /**< normal text reverse background */
     uint32_t nt_hl_fg;     /**< normal text highlight foreground */
@@ -769,7 +772,6 @@ int ui_clear();
 int ui_erase();
 int ui_suspend();
 int ui_resume();
-
 int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle);
 int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle);
 UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *title);
@@ -778,29 +780,55 @@ int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
 int ui_surface_addpad(UiSurface *s, ss_t w, uint view_win, uint lines, uint cols, uint begy, uint begx);
 void ui_surface_destroy(UiSurface *s);
 int ui_wresize(UiSurface *s, ss_t w, uint lines, uint cols);
+
+int ui_get_event_no_mouse(UiSurface *surface, ss_t w, UiEvent *ev);
+int ui_cursor_enable(UiSurface *s, ss_t w, bool visible);
+int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible);
+int ui_curs_set(int visibility);
 int ui_wclear(UiSurface *s, ss_t w);
 int ui_werase(UiSurface *s, ss_t w);
 int ui_wshow(UiSurface *s, ss_t w);
 int ui_whide(UiSurface *s, ss_t w);
-int ui_get_event_no_mouse(UiSurface *surface, ss_t w, UiEvent *ev);
 int ui_wmove(UiSurface *s, ss_t w, uint y, uint x);
-int ui_cursor_enable(UiSurface *s, ss_t w, bool visible);
-int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible);
-int ui_curs_set(int visibility);
 int ui_wscrl(UiSurface *s, ss_t w, int rows);
 int ui_wclrtoeol(UiSurface *s, ss_t w);
 int ui_wclrtobot(UiSurface *s, ss_t w);
 void ui_getyx(UiSurface *s, ss_t w, uint *lines, uint *cols);
 void ui_getmaxyx(UiSurface *s, ss_t w, uint *lines, uint *cols);
+int ui_getch();
+
 int ui_draw_ch(UiSurface *s, ss_t w, const char c);
 int ui_draw_ch_yx(UiSurface *s, ss_t w, uint y, uint x, const char c);
 int ui_draw_text(UiSurface *s, ss_t w, uint y, uint x, const char *text);
 int ui_draw_text_n(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m);
 int ui_draw_text_fill(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m);
-int ui_getch();
+
+/** @brief Legend for drawing functions
+ *  mvwaddch()
+ *        ch   character to add
+ *  mvwaddnstr()
+ *        n...   at most n characters
+ *         str   string
+ *  mvwadd_wchnstr()
+ *  mv.... .......   move the cursor to the specified position before drawing
+ *  ..w... .......   destination window or plane
+ *  ...add .......   action
+ *  ...... wch....   wide character cchar_t
+ *  ...... ...n...   at most n characters
+ *  ...... ....str   string
+ *  @param s The UiSurface to draw on.
+ *  @param w The sub-surface identifier (ss_t) to draw on.
+ *  @param y
+ *  @param x
+ *  @param c character
+ *  @param wc wide character
+ *  @param text string
+ *  @param cell
+ *  @param m maximum number of characters
+ *  @return 0 on success, or a negative error code on failure.
+ */
 int ui_waddch(UiSurface *s, ss_t w, const char c);
 int ui_mvwaddch(UiSurface *s, ss_t w, uint y, uint x, const char c);
-
 int ui_waddstr(UiSurface *s, ss_t w, const char *text);
 int ui_mvaddstr(UiSurface *s, ss_t w, uint y, uint x, const char *text);
 int ui_mvwaddstr(UiSurface *s, ss_t w, uint y, uint x, const char *text);
@@ -808,26 +836,20 @@ int ui_waddnstr(UiSurface *s, ss_t w, const char *text, int m);
 int ui_mvwaddstr(UiSurface *s, ss_t w, uint y, uint x, const char *text);
 int ui_mvwaddstr_fill(UiSurface *s, ss_t w, uint y, uint x, const char *str, int m);
 int ui_mvwaddnstr(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m);
-
 int ui_waddwstr(UiSurface *s, ss_t w, const wchar_t *wstr);
 int ui_mvwaddwstr(UiSurface *s, ss_t w, uint y, uint x, const wchar_t *wstr);
 int ui_waddnwstr(UiSurface *s, ss_t w, const wchar_t *wstr, int m);
 int ui_mvwaddnwstr(UiSurface *s, ss_t w, uint y, uint x, const wchar_t *wstr, int m);
-
-// int ui_wadd_chstr(UiSurface *s, ss_t w, uint y, uint x, const chtype *chstr);
-// int ui_mvwadd_chstr(UiSurface *s, ss_t w, uint y, uint x, const chtype
-// *chstr);
-// int ui_wadd_chnstr(UiSurface *s, ss_t w, const chtype *cell);
-// int ui_mvwadd_chnstr(UiSurface *s, ss_t w, uint y, uint x, const chtype
-// *chstr);
-
 int ui_wadd_wch(UiSurface *s, ss_t w, const UiCell *cell);
 int ui_mvwadd_wch(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell);
 int ui_wadd_wchstr(UiSurface *s, ss_t w, const UiCell *cell);
 int ui_mvwadd_wchstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell);
 int ui_wadd_wchnstr(UiSurface *s, ss_t w, const UiCell *cell, uint m);
 int ui_mvwadd_wchnstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell, uint m);
-
+int ui_wclear(UiSurface *s, ss_t w);
+int ui_werase(UiSurface *s, ss_t w);
+int ui_clear();
+int ui_erase();
 int ui_setscrreg(UiSurface *s, ss_t w, uint top, uint bottom);
 int ui_scrollok(UiSurface *s, ss_t w, bool enable);
 int ui_keypad(UiSurface *s, ss_t w, bool enable);
@@ -840,39 +862,51 @@ int ui_draw_hline(UiSurface *s, ss_t w, uint y, uint x, uint len, const UiStyle 
 int ui_mousemask(int mask);
 int ui_mice_enable(int mask);
 void ui_get_screen_size(uint *lines, uint *cols);
-int ui_wclear(UiSurface *s, ss_t w);
-int ui_werase(UiSurface *s, ss_t w);
-int ui_clear();
-int ui_erase();
 int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x);
-
 int ui_surface_show(UiSurface *s, ss_t w);
 int ui_surface_hide(UiSurface *s, ss_t w);
 int ui_surface_move(UiSurface *s, ss_t w, uint y, uint x);
 int ui_surface_resize(UiSurface *s, ss_t w, uint lines, uint cols);
 UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *bg);
 uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
+void fast_exit(UiSurface *s);
 int ui_bkgd(UiSurface *s, ss_t w, const UiCell *cell);
 int ui_bkgdset(UiSurface *s, ss_t w, const UiCell *cell);
-int ui_chg_color(uint16_t color_idx, uint32_t *color);
-uint32_t ui_get_color(uint16_t color_idx);
-void fast_exit(UiSurface *s);
 int ui_bkgrnd(UiSurface *s, ss_t w, const UiCell *cell);
 int ui_bkgrndset(UiSurface *s, ss_t w, const UiCell *cell);
 int ui_getmaxx(UiSurface *s, ss_t w);
 int ui_getmaxy(UiSurface *s, ss_t w);
 int ui_pair_from_hex(const char *fg, const char *bg);
-// WINDOW *ui_ncurses_surface_get_win(const UiSurface *s, ss_t w);
-// PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, ss_t w);
 const char *ui_sub_surface_str(ss_t w);
 void ui_mbc_to_wc(wchar_t wc[2], const char mbc);
 wchar_t *ui_mbstr_to_wcstr(const char *mb_str);
-
 int ui_perror(char *emsg_str);
+int ui_chg_color(uint16_t color_idx, uint32_t *color);
+uint32_t ui_get_color(uint16_t color_idx);
 uint ui_rgb_to_xterm256_idx(RGB *rgb);
 RGB ui_xterm256_idx_to_rgb(uint idx);
 FileType file_type(const char *filename);
-
+void ui_endwin();
+RGB ui_hex_to_rgb(char *s);
+void ui_restore_wins();
+int ui_top_surface(UiSurface *s, ss_t w);
+UiBackend ui_get_backend();
+void ui_get_caps(UiCaps *caps);
+void ui_apply_gamma(RGB *rgb);
+int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3);
+bool ui_init_clr_palette(SIO *sio);
+void ui_initialize_sio(SIO *sio);
+bool ui_action_disposition(char *title, char *action_str);
+void ui_abend(int ec, char *s);
+int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3);
+int ui_border_draw(UiSurface *sfc);
+int ui_border_title(UiSurface *sfc, const char *title);
+int ui_border_ysplit(UiSurface *sfc, uint y);
+int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line);
+int ui_cm_surface_destroy(UiSurface *sfc);
+// ---------------------------------------------------------------
+// NOTCURSES Specific
+// ---------------------------------------------------------------
 #ifdef NOTCURSES_UI
 struct UiColor {
     union {
@@ -913,40 +947,24 @@ uint ui_get_plane_idx(UiSurface *s, NcPlane *n);
 NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, NcInput *ni);
 struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx);
 #else
-int ui_color_from_rgb(RGB *rgb);
-int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, ushort *pair, void *opts);
-int ui_setcchar(UiCell *wch, const wchar_t *wc, const attr_t attrs, short pair, const void *opts);
-int ui_init_color(uint color, uint r, uint g, uint b);
-int ui_color_content(uint color, uint *r, uint *g, uint *b);
-int ui_init_pair(uint pair, uint fg, uint bg);
-int ui_pair_content(uint pair, uint *fg, uint *bg);
+// ---------------------------------------------------------------
+// NCURSES Specific
+// ---------------------------------------------------------------
+int ui_add_color(uint r, uint g, uint b);
 uint ui_add_pair(uint fg, uint bg);
 int ui_chg_pair(uint pair, uint fg, uint bg);
+int ui_color_content(uint color, uint *r, uint *g, uint *b);
+int ui_color_from_rgb(RGB *rgb);
+void destroy_curses();
 int ui_get_pair(uint pair, uint *fg, uint *bg);
-int ui_add_color(uint r, uint g, uint b);
+int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, ushort *pair, void *opts);
+int ui_init_color(uint color, uint r, uint g, uint b);
+int ui_init_pair(uint pair, uint fg, uint bg);
 SCREEN *ui_ncurses_get_screen();
+int ui_pair_content(uint pair, uint *fg, uint *bg);
+int ui_setcchar(UiCell *wch, const wchar_t *wc, const attr_t attrs, short pair, const void *opts);
 #endif
-void ui_endwin();
-RGB ui_hex_to_rgb(char *s);
-void ui_restore_wins();
-int ui_top_surface(UiSurface *s, ss_t w);
 
-/* @brief backend identification and capability query
-   @ingroup ui_backend */
-
-/** @brief Return which backend is powering this runtime.
-   @ingroup ui_backend
-   @param ui The UiRuntime returned by ui_init().
-   @return The UiBackend enum value for the compiled-in backend.
-*/
-UiBackend ui_get_backend();
-
-/** @brief Query the capabilities of the active backend.
-   @ingroup ui_backend
-   @param ui  The UiRuntime returned by ui_init().
-   @param caps Output structure filled with capability flags.
-*/
-void ui_get_caps(UiCaps *caps);
 extern STDRGB std_color[];
 extern UiRuntime *ui;
 extern UiSurface *ui_surface[UI_SFC_MAX];
@@ -954,9 +972,8 @@ extern uint ui_color_cnt;
 extern uint ui_pair_cnt;
 
 // ---------------------------------------------------------------
-// Chyron API
+// Chyron Data Structures
 // ---------------------------------------------------------------
-
 #define CHYRON_KEY_MAXLEN 64 /**< maximum length of the command text */
 #define CHYRON_KEYS 20       /**< maximum number of key bindings for the chyron */
 
@@ -979,56 +996,24 @@ typedef struct {
     uint y;                /** y coordinante of the chyron in the window */
 } UiChyron;
 
-// extern void ui_activate_chyron_key(UiChyron *, uint);
-// extern void ui_activate_all_chyron_keys(UiChyron *);
-// extern int ui_assign_chyron_win(UiChyron *chyron, struct UiSurface *s, ss_t
-// w, char *);
-extern void ui_deactivate_chyron_key(UiChyron *, uint);
-extern void ui_deactivate_all_chyron_keys(UiChyron *);
-extern void ui_compile_chyron(UiChyron *);
-// extern void ui_display_chyron(struct UiSurface *, uint n, UiChyron *, uint,
-// uint);
-extern int ui_get_chyron_key(UiChyron *, uint);
-extern bool ui_is_set_chyron_key(UiChyron *, uint);
-extern void ui_set_chyron_key(UiChyron *, uint, char *, uint);
-extern void ui_set_chyron_key_cb(UiChyron *, uint, char *, uint, UiCell cell_base);
-extern void ui_unset_chyron_key(UiChyron *, uint);
-extern UiChyron *ui_new_chyron();
-extern UiChyron *ui_destroy_chyron(UiChyron *chyron);
-extern void ui_abend(int, char *);
-int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeout_ms);
-
 // ---------------------------------------------------------------
 // Chyron API
 // ---------------------------------------------------------------
-
-void destroy_curses();
-bool ui_init_clr_palette(SIO *sio);
-void ui_initialize_sio(SIO *sio);
-void ui_abend(int ec, char *s);
-bool ui_action_disposition(char *title, char *action_str);
-void ui_activate_all_chyron_keys(UiChyron *chyron);
 void ui_activate_chyron_key(UiChyron *chyron, uint k);
-int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3);
-void ui_apply_gamma(RGB *rgb);
+void ui_activate_all_chyron_keys(UiChyron *chyron);
 int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, ss_t w, char *y);
-int ui_border_draw(UiSurface *sfc);
-int ui_border_title(UiSurface *sfc, const char *title);
-int ui_border_ysplit(UiSurface *sfc, uint y);
-int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line);
-int ui_cm_surface_destroy(UiSurface *sfc);
-void ui_compile_chyron(UiChyron *chyron);
-void ui_deactivate_all_chyron_keys(UiChyron *chyron);
+void ui_compile_chyron(UiChyron *);
 void ui_deactivate_chyron_key(UiChyron *chyron, uint k);
+void ui_deactivate_all_chyron_keys(UiChyron *chyron);
 UiChyron *ui_destroy_chyron(UiChyron *chyron);
 void ui_display_chyron(UiSurface *sfc, ss_t w, UiChyron *chyron, uint line, uint col);
-int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3);
 int ui_get_chyron_key(UiChyron *chyron, uint x);
 bool ui_is_set_chyron_key(UiChyron *chyron, uint k);
 UiChyron *ui_new_chyron();
 void ui_set_chyron_key(UiChyron *chyron, uint k, char *s, uint kc);
 void ui_set_chyron_key_cb(UiChyron *chyron, uint k, char *s, uint kc, UiCell cell_base);
 void ui_unset_chyron_key(UiChyron *chyron, uint k);
+int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeout_ms);
 
 // ---------------------------------------------------------------
 // Logging

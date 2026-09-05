@@ -1,20 +1,18 @@
 #!/bin/bash
 # @brief chkui - check UI library linkage and selection
 
-if [ "$1" = "-s" ]; then
-    echo Switching compile_commands.json between NCURSES and NOTCURSES
-fi
 if [ "$1" = "-h" -o "$1" = "-?" -o "$1" = "--help" ]; then
     echo chkui [-s][-h]
     echo without arguments, chk reports:
     echo menu - UI library linkage \(ncurses or notcurses\)
-    echo Makefile - UI library selection \(NOTCURSES_UI or UAL_UI\)
-    echo compile_commands.json - UI library selection \(NCURSES or NOTCURSES\)
+    echo Makefile - UI library selection \(NOTCURSES_UI or NCUAL_UI\) echo compile_commands.json - UI library selection \(NCURSES or NOTCURSES\)
     echo Note: compile_commands.json is used by clangd for code completion and navigation.
     echo -s switches compile_commands.json between NCURSES and NOTCURSES
     echo -h, -?, --help prints this help message
     exit 0
 fi
+NOTCURSES=0
+NCURSES=0
 grep NCURSES compile_commands.json >/dev/null 2>&1
 if [ ! -f ./menu ]; then
     echo menu not found - linkage check not possible
@@ -29,33 +27,24 @@ else
         fi
     fi
 fi
-grep "^\s*UI?*\s*=\s*\"-DNOTCURSES_UI" Makefile >/dev/null 2>&1
+grep NOTCURSES UI.mk >/dev/null 2>&1
 if [ "$?" = "0" ]; then
-    echo Makefile - NOTCURSES_UI
-else
-    grep "^\s*UI?*\s*=\s*\"-DUAL_UI" Makefile >/dev/null 2>&1
-    if [ "$?" = "0" ]; then
-        echo Makefile - UAL_UI
-    fi
-fi
-grep NCURSES compile_commands.json >/dev/null 2>&1
-if [ "$?" = "0" ]; then
+    echo Makefile - NOTCURSES
     if [ "$1" = "-s" ]; then
-        cp compile_commands_notcurses.json compile_commands.json
-        echo compile_commands.json: switching from NCURSES to NOTCURSES
-    else
-        echo last cmake build - NCURSES
-        echo NOTE: you can switch the compile_commands.json between NCURSES and NOTCURSES by running this script with the "-s" argument.
+        echo Makefile - switching to NCURSES
+        echo "UI?=\"-DUAL_UI\"" >UI.mk
+        echo compile_commands.json: switching to NCURSES
+        cp compile_commands_ncurses.json compile_commands.json
     fi
 else
-    grep NOTCURSES compile_commands.json >/dev/null 2>&1
+    grep UAL_UI UI.mk Makefile >/dev/null 2>&1
     if [ "$?" = "0" ]; then
-        if [ "$1" = "-s" ]; then
-            cp compile_commands_ncurses.json compile_commands.json
-            echo compile_commands.json: switching from NOTCURSES to NCURSES
-        else
-            echo last cmake build - NOTCURSES
-            echo NOTE: you can switch the compile_commands.json between NCURSES and NOTCURSES by running this script with the "-s" argument.
-        fi
+        echo Makefile - NCURSES
+    fi
+    if [ "$1" = "-s" ]; then
+        echo Makefile - switching to NOTCURSES
+        echo "UI?=\"-DNOTCURSES_UI\"" >UI.mk
+        echo compile_commands.json: switching to NOTCURSES
+        cp compile_commands_notcurses.json compile_commands.json
     fi
 fi
