@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-05T10:16:25-05:00* - FIXES: The UAL retrofit involved thousands of code lines. We are now reviewing, testing, and fixing. 
+
+*2026-09-05T08:48:29-05:00* - Update CHANGELOG.md 
+
 *2026-09-05T08:47:05-05:00* - FIXES: pick_engine: fixed several issues related to live view in pick 
 
 *2026-09-05T06:42:20-05:00* - Update CHANGELOG.md 
