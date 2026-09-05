@@ -45,6 +45,8 @@ void remove_right_angle(Pick *);
 void pick_std_chyron(Pick *);
 int pipe_fd[2];
 
+struct ncvisual *ncv;
+
 char const pagers_editors[12][10] = {"view", "view", "less", "more",
                                      "vi", "vim", "nano", "nvim",
                                      "pico", "emacs", "edit", ""};
@@ -823,8 +825,7 @@ int open_pick_win(Init *init) {
     ui_assign_chyron_win(pick->chyron, pick->surface, WIN2, "-");
     pick->separator_line = pick->lines + 1;
     ui_keypad(sfc, WIN, true);
-    if (pick->p_view_files)
-        new_pick_view(init);
+    init->view = nullptr;
     return 0;
 }
 /** @brief Displays the help screen for the pick interface using view
@@ -918,6 +919,7 @@ int picker(Init *init, char *field) {
                 reverse_object(pick);
                 pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
                 pick->y = pick->tbl_line + pick->y_offset;
+
                 /** box display_pick_page_info */
                 ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
                           pick->tbl_line + 1, pick->tbl_page + 1,
@@ -1508,32 +1510,69 @@ int new_pick_view(Init *init) {
     */
 void new_view_file(Init *init, char *file) {
     View *view = init->view;
-    if (view->buf != nullptr) {
+    Pick *pick = init->pick;
+    if (pick->p_view_files && init->view != nullptr) {
         destroy_line_table(view);
         munmap(view->buf, view->file_size);
         view->buf = nullptr;
     }
-    strnz__cpy(view->provider_cmd, "tree-sitter highlight ", MAXLEN - 1);
-    strnz__cat(view->provider_cmd, file, MAXLEN - 1);
-    strnz__cpy(view->title, file, MAXLEN - 1);
-    if (view_init_input(init, file) == 0) {
-        if (view->buf) {
-            view->f_eod = 0;
-            view->f_bod = 0;
-            view->maxcol = 0;
-            view->page_top_pos = 0;
-            view->page_top_ln_no = 0;
-            view->page_bot_ln_no = 0;
-            view->ln_max_pos = 0;
-            view->ln_no = 0;
-            view->page_bot_pos = 0;
-            view->file_pos = 0;
-            ui_border_title(view->sfc, view->title);
-            initialize_line_table(view);
-            next_page(view);
-            build_prompt(view);
-            display_prompt(view, view->prompt_str);
-            pad_refresh(view);
+#ifdef NOTCURSES_UI
+    if (ncv != nullptr) {
+        ncvisual_destroy(ncv);
+        ui_render();
+    }
+#endif
+    FileType ft = file_type(file);
+    switch (ft) {
+    case FT_IMAGE:
+#ifdef NOTCURSES_UI
+        ncv = ui_display_image(ui->nc, file, -1, -1, 30, 0);
+        if (ncv == nullptr) {
+            ui_perror("ncvisual_from_file() failed in new_view_file");
+            return;
         }
+#endif
+        break;
+    case FT_VIDEO:
+#ifdef NOTCURSES_UI
+        ncv = ncvisual_from_file(file);
+        if (ncv == nullptr) {
+            ui_perror("ncvisual_from_file() failed in new_view_file");
+            return;
+        }
+#endif
+        break;
+    case FT_AUDIO:
+        break;
+    case FT_TEXT:
+        if (!pick->p_view_files)
+            return;
+        new_pick_view(init);
+        strnz__cpy(view->provider_cmd, "tree-sitter highlight ", MAXLEN - 1);
+        strnz__cat(view->provider_cmd, file, MAXLEN - 1);
+        strnz__cpy(view->title, file, MAXLEN - 1);
+        if (view_init_input(init, file) == 0) {
+            if (view->buf) {
+                view->f_eod = 0;
+                view->f_bod = 0;
+                view->maxcol = 0;
+                view->page_top_pos = 0;
+                view->page_top_ln_no = 0;
+                view->page_bot_ln_no = 0;
+                view->ln_max_pos = 0;
+                view->ln_no = 0;
+                view->page_bot_pos = 0;
+                view->file_pos = 0;
+                ui_border_title(view->sfc, view->title);
+                initialize_line_table(view);
+                next_page(view);
+                build_prompt(view);
+                display_prompt(view, view->prompt_str);
+                pad_refresh(view);
+            }
+        }
+        break;
+    default:
+        break;
     }
 }

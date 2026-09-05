@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 int main() {
+    char image_file[256] = "ui_log.png";
     struct notcurses_options nopts = {0};
     struct notcurses *nc = notcurses_init(&nopts, NULL);
     if (!nc) {
@@ -11,7 +12,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    struct ncvisual *ncv = ncvisual_from_file("test.png");
+    struct ncvisual *ncv = ncvisual_from_file(image_file);
     if (!ncv) {
         fprintf(stderr, "Error: Could not load image file.\n");
         goto end;

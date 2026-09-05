@@ -43,17 +43,30 @@ You may also notice ui_get_event(), another high-level feature not found in NCur
 
 The program compiles and runs with either NCurses or Notcurses, and the UAL handles the differences in the two backends. The UAL is designed to be easy to use and understand, and it provides a consistent interface for developers to work with, regardless of the underlying backend.
 
+---
+
+Below is a screenshot of the UAL view feature, which allows you to view not only
+text files, but multi-media files as well. We will be adding viewers for video
+and audio. 
+
+![UAL New View Feature - Photos](screenshots/View_Photos.png)
+
+---
+
+![UAL View Feature - View Text Files in Pick](screenshots/rustlings-a2.png)
+
+---
+
 ![NEW! Example Program Using UAL](screenshots/ui_hello.png)
+
+---
 
 Below is a screenshot of the UAL logging feature, which provides a detailed view of the internal workings of the UAL and can be used for debugging and performance analysis. The logging feature is available in both NCurses and Notcurses backends, and can be enabled or disabled at runtime.
 
----
 
 ![NEW! UAL Logging](screenshots/ui_log.png)
 
 ---
-
-![UAL API Example](screenshots/rustlings-a2.png)
 
 ---
 

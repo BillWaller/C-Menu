@@ -1677,3 +1677,52 @@ char *fill_field(char *accept_s, char *display_s, char fill_char, uint flen) {
     *d = '\0';
     return display_s;
 }
+
+FileType file_type(const char *filename) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        return FT_UNREADABLE;
+    }
+    unsigned char buffer[1024];
+    size_t bytes_read = fread(buffer, 1, sizeof(buffer), file);
+    fclose(file);
+    if (bytes_read == 0) {
+        return FT_EMPTY;
+    }
+    // --- IMAGE MAGIC BYTES ---
+    if (bytes_read >= 3 && buffer[0] == 0xFF && buffer[1] == 0xD8 && buffer[2] == 0xFF) {
+        return FT_IMAGE; // JPEG
+    }
+    if (bytes_read >= 8 && buffer[0] == 0x89 && buffer[1] == 0x50 && buffer[2] == 0x4E && buffer[3] == 0x47 &&
+        buffer[4] == 0x0D && buffer[5] == 0x0A && buffer[6] == 0x1A && buffer[7] == 0x0A) {
+        return FT_IMAGE; // PNG
+    }
+    if (bytes_read >= 4 && buffer[0] == 'G' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == '8') {
+        return FT_IMAGE; // GIF
+    }
+    if (bytes_read >= 12 && buffer[0] == 'R' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == 'F' &&
+        buffer[8] == 'W' && buffer[9] == 'E' && buffer[10] == 'B' && buffer[11] == 'P') {
+        return FT_IMAGE; // WebP
+    }
+    // --- STEP 2: HEURISTIC CHECK FOR BINARY GARBAGE ---
+    size_t control_chars = 0;
+    for (size_t i = 0; i < bytes_read; i++) {
+        unsigned char c = buffer[i];
+        // Immediate giveaway: true text files should never contain null
+        // characters
+        if (c == 0x00) {
+            return FT_BINARY_GARBAGE;
+        }
+        // Count non-printable control characters
+        // Skip common whitespace: tab (9), newline (10), carriage return (13)
+        if (c < 32 && c != 9 && c != 10 && c != 13) {
+            control_chars++;
+        }
+    }
+    // If more than 10% of the sample block consists of raw control characters,
+    // it's almost certainly a compiled binary or compressed archive.
+    if ((double)control_chars / bytes_read > 0.10) {
+        return FT_BINARY_GARBAGE;
+    }
+    return FT_TEXT;
+}

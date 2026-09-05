@@ -39,6 +39,8 @@ src/rsh
 src/rsh_static
 src/rsh_pam
 src/vars
+src/photos
+src/visual
 build/.cmake
 x
 xx

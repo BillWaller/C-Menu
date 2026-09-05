@@ -164,7 +164,7 @@ bool handle_signal(int sig_num) {
         strnz__cpy(em1, "unknown signal", MAXLEN - 1);
         break;
     }
-    if (!f_curses_open)
+    if (!f_ncurses_open && !f_notcurses_open)
         restore_shell_tioctl();
     em0[0] = '\0';
     ssnprintf(em0, MAXLEN - 1, "Caught signal %d\n", sig_num);

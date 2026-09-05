@@ -489,6 +489,7 @@ extern bool is_valid_time(uint hh, uint mm, uint ss);
 extern void numeric(char *d, char *s);
 extern int cf_accept(UiSurface *, uint w, char *, uint, uint, uint);
 extern char *fill_field(char *, char *, char, uint);
+extern bool is_image_file(const char *filename);
 
 #ifdef __cplusplus
 }

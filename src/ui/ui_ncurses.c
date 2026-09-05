@@ -29,7 +29,6 @@ UiSurface *ui_surface[UI_SFC_MAX];
 
 int win_ptr = -1;
 int sfc_ptr = -1;
-bool f_curses_open = false;
 uint ui_color_cnt = 0;
 uint ui_pair_cnt = 0;
 
@@ -113,6 +112,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
 
     ui_log(INFO, "ui_init: using tty: %s", tty_name);
     ui->screen = newterm(NULL, ui->tty_fp, ui->tty_fp);
+    f_ncurses_open = true;
     if (!ui->screen) {
         fclose(ui->tty_fp);
         free(ui);
@@ -201,6 +201,7 @@ void ui_shutdown() {
     }
     ui_log(INFO, "calling endwin()");
     endwin();
+    f_ncurses_open = false;
     if (ui->screen != NULL) {
         ui_log(INFO, "calling delscreen(ui->screen)");
         delscreen(ui->screen);
@@ -312,14 +313,14 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
     return s;
 }
 
-UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *wtitle) {
+UiSurface *ui_sfc_box_ll(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
     if (!ui)
         return NULL;
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     if (lines > maxy || cols > maxx) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "ui_box_surface_new failed for lines: %d, cols: %d", lines, cols);
+        ssnprintf(em1, MAXLEN - 1, "ui_sfc_box_ll failed for lines: %d, cols: %d", lines, cols);
         ssnprintf(em2, MAXLEN - 1, "maxy: %d, maxx: %d", maxy, maxx);
         ui_display_error(em0, em1, em2, nullptr);
         return NULL;
@@ -334,13 +335,13 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     s->meta[BOX].lines = lines;
     s->meta[BOX].cols = cols;
     if (parent && parent->mwin[p]) {
-        s->mwin[BOX] = derwin(parent->mwin[p], lines + 2, cols + 2, y, x);
+        s->mwin[BOX] = derwin(parent->mwin[p], lines, cols, y, x);
         if (!s->mwin[BOX]) {
             free(s);
             return NULL;
         }
     } else {
-        s->mwin[BOX] = newwin(lines + 2, cols + 2, y, x);
+        s->mwin[BOX] = newwin(lines, cols, y, x);
         if (!s->mwin[BOX]) {
             free(s);
             return NULL;

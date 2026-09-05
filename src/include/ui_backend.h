@@ -27,7 +27,8 @@ extern "C" {
 #include <stdint.h>
 extern int sfc_ptr;
 extern int win_ptr;
-
+extern bool f_ncurses_open;
+extern bool f_notcurses_open;
 // ---------------------------------------------------------------
 // Surface enums
 // ---------------------------------------------------------------
@@ -61,6 +62,22 @@ typedef enum {
         LOG_LEVEL_COUNT
 } UiLogLevel;
 // ---------------------------------------------------------------
+// File Types
+// ---------------------------------------------------------------
+#define FILE_TYPE_LIST(X) \
+    X(FT_TEXT)            \
+    X(FT_IMAGE)           \
+    X(FT_VIDEO)           \
+    X(FT_AUDIO)           \
+    X(FT_BINARY_GARBAGE)  \
+    X(FT_EMPTY)           \
+    X(FT_UNREADABLE)
+#define AS_ENUM(NAME) NAME,
+typedef enum {
+    FILE_TYPE_LIST(AS_ENUM)
+        FT_MAX
+} FileType;
+// ---------------------------------------------------------------
 // Input
 // ---------------------------------------------------------------
 typedef struct {
@@ -88,13 +105,17 @@ typedef struct ncinput NcInput;
 // ---------------------------------------------------------------
 // Input
 // ---------------------------------------------------------------
+#define MOUSE_ACTION(X)   \
+    X(UI_MOUSE_NONE)      \
+    X(UI_MOUSE_PRESS)     \
+    X(UI_MOUSE_RELEASE)   \
+    X(UI_MOUSE_DRAG)      \
+    X(UI_MOUSE_SCROLL_UP) \
+    X(UI_MOUSE_SCROLL_DOWN)
+#define AS_ENUM(NAME) NAME,
 typedef enum {
-    UI_MOUSE_NONE = 0,
-    UI_MOUSE_PRESS,
-    UI_MOUSE_RELEASE,
-    UI_MOUSE_DRAG,
-    UI_MOUSE_SCROLL_UP,
-    UI_MOUSE_SCROLL_DOWN
+    MOUSE_ACTION(AS_ENUM)
+        MOUSE_ACTION_MAX
 } UiMouseAction;
 
 typedef uint32_t UiKey;
@@ -121,13 +142,16 @@ typedef struct {
     short color_pair; // color pair index  2-bytes
 } UiCchar64;          //           total   8-bytes
 
+#define BORDER_STYLE(X)  \
+    X(UI_BORDER_NONE)    \
+    X(UI_BORDER_SINGLE)  \
+    X(UI_BORDER_DOUBLE)  \
+    X(UI_BORDER_ROUNDED) \
+    X(UI_BORDER_HEAVY)
+#define AS_ENUM(NAME) NAME,
 typedef enum {
-    UI_BORDER_NONE = 0,
-    UI_BORDER_SINGLE,
-    UI_BORDER_DOUBLE,
-    UI_BORDER_ROUNDED,
-    UI_BORDER_HEAVY,
-    UI_BORDER_MAX
+    BORDER_STYLE(AS_ENUM)
+        BORDER_MAX
 } UiBorderStyle;
 
 typedef struct {
@@ -739,8 +763,14 @@ int ui_clear();
 int ui_erase();
 int ui_suspend();
 int ui_resume();
+
+int ui_sfc_box_com(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle);
+UiSurface *ui_sfc_box_ll(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *title);
+
+int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle);
+
 UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x);
-UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *title);
+
 int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x);
 int ui_surface_addpad(UiSurface *s, ss_t w, uint view_win, uint lines, uint cols, uint begy, uint begx);
 void ui_surface_destroy(UiSurface *s);
@@ -841,9 +871,7 @@ wchar_t *ui_mbstr_to_wcstr(const char *mb_str);
 int ui_perror(char *emsg_str);
 uint ui_rgb_to_xterm256_idx(RGB *rgb);
 RGB ui_xterm256_idx_to_rgb(uint idx);
-
-int ui_surface_box_win_new(uint wlines, uint wcols, uint wbegy, uint wbegx, char *wtitle);
-int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, char *wtitle);
+FileType file_type(const char *filename);
 
 #ifdef NOTCURSES_UI
 struct UiColor {
@@ -854,7 +882,6 @@ struct UiColor {
         uint32_t rgb;
     };
 };
-
 struct UiPair {
     uint fg;
     uint bg;
@@ -884,6 +911,7 @@ int ui_get_nccell(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *
 int ui_set_nccell(UiCell *cell, const wchar_t *wstr, const UiStyle *style, ushort *pair);
 uint ui_get_plane_idx(UiSurface *s, NcPlane *n);
 NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, NcInput *ni);
+struct ncvisual *ui_display_image(struct notcurses *nc, const char *image_file, int y, int x, int begy, int begx);
 #else
 int ui_color_from_rgb(RGB *rgb);
 int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, ushort *pair, void *opts);
@@ -985,7 +1013,7 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3);
 void ui_apply_gamma(RGB *rgb);
 int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, ss_t w, char *y);
 int ui_border_draw(UiSurface *sfc);
-int ui_border_title(UiSurface *sfc, char *title);
+int ui_border_title(UiSurface *sfc, const char *title);
 int ui_border_ysplit(UiSurface *sfc, uint y);
 int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line);
 int ui_cm_surface_destroy(UiSurface *sfc);

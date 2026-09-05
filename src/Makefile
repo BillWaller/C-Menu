@@ -15,9 +15,9 @@ BUILD_TYPE=Debug
 #   NCURSES_UI    — legacy ncurses direct-use (default)
 #   UAL_UI        — UALUI with ncurses backend (src/ui/)
 #   NOTCURSES_UI  — UALUI with notcurses backend (src/ui/)
-UI?="-DUAL_UI"
+# UI?="-DUAL_UI"
 # UI?=-DNCURSES_UI
-# UI?="-DNOTCURSES_UI"
+UI?="-DNOTCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
 	CFLAGS=-Ofast -s -fPIC -pthread $(UI)
 	EXTRA_CFLAGS=-flto
@@ -59,9 +59,12 @@ PAM_DIR:=/etc/pam.d
 CX:=-std=c23
 CC:=gcc $(CX) $(INCLUDE_DIRS)
 
-BINEXES:=menu form pick view ckeys \
-	whence rsh rsh_static rsh_pam \
-	iloan amort enterchr enterstr lf stripansi detach ui_hello
+BINEXES:=menu form pick view ckeys whence rsh rsh_static \
+	rsh_pam iloan amort enterchr enterstr lf stripansi detach \
+    ui_hello
+ifeq ($(UI), "-DNOTCURSES_UI")
+BINEXES+=ui_visual
+endif
 
 MANPAGES:=cmenu.1.gz lf.1.gz rsh.1.gz
 
@@ -177,6 +180,12 @@ rsh_pam:	rsh.c
 
 ui_hello:	ui_hello.c $(COMMON_OBJS) $(LIB_SHARED)
 	$(CC) $< $(COMMON_OBJS) -o $@ $(LDFLAGS)
+
+# ifeq ($(UI), "-DNOTCURSES_UI")
+
+ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
+	$(CC) $< $(COMMON_OBJS) -o $@ $(LDFLAGS)
+# endif
 
 lf: lf.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)

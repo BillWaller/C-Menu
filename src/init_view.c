@@ -164,7 +164,9 @@ int init_view_boxwin(Init *init) {
     view->f_full_screen = false;
     // -------------------> 1. BOX / WIN <-------------------
     view_calc_boxwin_dimensions(init);
-    view->sfc = ui_box_surface_new(NULL, 0, view->lines, view->cols, view->begy, view->begx, NULL);
+
+    view->sfc = ui_sfc_box_ll(NULL, 0, view->lines + 2, view->cols + 2, view->begy, view->begx, NULL);
+
     ui_surface_addwin(view->sfc, WIN, BOX, view->lines, view->cols, 1, 1);
     // -------------------> 2. LNNO <-------------------
     if (view->f_ln) {

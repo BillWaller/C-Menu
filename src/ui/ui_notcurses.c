@@ -36,7 +36,6 @@ UiCell bkgd_cell;
 
 int win_ptr = -1;
 int sfc_ptr = -1;
-
 NcPlane *stdplane;
 
 /* -------------------------------------------------------------------------
@@ -91,7 +90,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         ui = NULL;
         return NULL;
     }
-    f_curses_open = true;
+    f_notcurses_open = true;
     stdplane = notcurses_stdplane(ui->nc);
     notcurses_render(ui->nc);
 
@@ -125,6 +124,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     stdsfc->mplane[BOX] = stdplane;
     if (!stdsfc->mplane[BOX]) {
         notcurses_stop(ui->nc);
+        f_notcurses_open = false;
         return NULL;
     }
     sfc_ptr = -1;
@@ -134,6 +134,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     if (!ui_pair) {
         free(ui_pair);
         notcurses_stop(ui->nc);
+        f_notcurses_open = false;
         free(ui);
         return NULL;
     }
@@ -142,6 +143,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     if (!ui_color) {
         free(ui_pair);
         notcurses_stop(ui->nc);
+        f_notcurses_open = false;
         free(ui);
         return NULL;
     }
@@ -217,12 +219,13 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
     ui_log(ERROR, "mplane[%d] created", w);
     if (!s->mplane[w]) {
         notcurses_stop(ui->nc);
+        f_notcurses_open = false;
         return NULL;
     }
     return s;
 }
 
-UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, char *wtitle) {
+UiSurface *ui_sfc_box_ll(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
@@ -233,8 +236,8 @@ UiSurface *ui_box_surface_new(UiSurface *parent, uint p, uint lines, uint cols, 
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
-        .rows = lines + 2,
-        .cols = cols + 2,
+        .rows = lines,
+        .cols = cols,
         .name = NULL};
     s->meta[BOX].y = y;
     s->meta[BOX].x = x;
@@ -282,6 +285,7 @@ int ui_surface_addpad(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
     if (!s->mplane[w]) {
         ui_log(ERROR, "failed to create mplane[%d]", w);
         notcurses_stop(ui->nc);
+        f_notcurses_open = false;
         return -1;
     }
     ncplane_set_base(s->mplane[w], " ", 0, cell_nt.channels);
@@ -308,6 +312,7 @@ int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
     if (!s->mplane[w]) {
         ui_log(ERROR, "failed to create mplane[%d]", w);
         notcurses_stop(ui->nc);
+        f_notcurses_open = false;
         return -1;
     }
     ncplane_set_base(s->mplane[w], " ", 0, cell_nt.channels);
@@ -349,6 +354,7 @@ void ui_shutdown() {
     }
     ui_log(INFO, "Calling notcurses_stop");
     notcurses_stop(ui->nc);
+    f_notcurses_open = false;
     if (ui != NULL) {
         if (ui_pair != NULL) {
             ui_log(INFO, "Destroying ui_pair");
