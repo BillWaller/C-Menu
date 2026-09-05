@@ -750,7 +750,7 @@ int get_cmd_char(View *view, off_t *n) {
             ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx++, c);
         }
         ui_render();
-        ui_cursor_enable(sfc, CMDLN, false);
+        ui_cursor_enable(sfc, CMDLN, true);
         event.y = event.x = -1;
         c = ui_get_event(sfc, CMDLN, NULL, &event, -1);
         switch (c) {
