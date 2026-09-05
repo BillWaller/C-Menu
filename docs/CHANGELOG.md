@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-05T06:36:57-05:00* - FIX: The line of code that set the pointer to the view structure was accidentally removed in the last commit. This caused a crash when trying to access the view structure. The line has been restored to fix the issue. 
+
+*2026-09-04T22:48:42-05:00* - Update CHANGELOG.md 
+
 *2026-09-04T22:42:42-05:00* - FEATURE UPDATE: Uniform Abstraction Layer for UI Backends Added JPEG, PNG, GIF, and WebP images to view. This is a Notcurses only feature. There is a way to hack NCurses to display images, but it is not the kind of code we turn out, and you wouldn't like it. Next, we will be adding video and audio. So you could use C-Menu to develop players for your video and audio archives. 
 
 *2026-09-03T16:22:16-05:00* - Update CHANGELOG.md 
