@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-05T15:13:30-05:00* - FEATURE UPDATE: Uniform Abstraction Layer (UAL) for UI Backends Minor tuning and example image display program 
+
+*2026-09-05T11:00:28-05:00* - Update CHANGELOG.md 
+
 *2026-09-05T10:59:52-05:00* - FIX: Cursor wasn't appearing on view command line. fixed. 
 
 *2026-09-05T10:32:52-05:00* - Update CHANGELOG.md 
